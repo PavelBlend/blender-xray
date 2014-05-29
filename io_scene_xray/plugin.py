@@ -1,0 +1,50 @@
+import bpy
+
+
+#noinspection PyUnusedLocal
+class OpImportObject(bpy.types.Operator):
+    bl_idname = 'xray_import.object'
+    bl_label = 'Import .object'
+    bl_description = 'Imports source STALKER model data'
+    bl_options = {'UNDO'}
+
+    # Properties used by the file browser
+    filepath = bpy.props.StringProperty(
+        name='File path', description='File filepath used for importing the .object file',
+        maxlen=1024, default=''
+    )
+    filter_folder = bpy.props.BoolProperty(name='Filter folders', description='', default=True, options={'HIDDEN'})
+    filter_glob = bpy.props.StringProperty(default='*.object', options={'HIDDEN'})
+
+    def execute(self, context):
+        filepath_lc = self.properties.filepath.lower()
+        if filepath_lc.endswith('.object'):
+            from .fmt_object_imp import import_file
+            import_file(self.properties.filepath, bpy)
+        else:
+            if len(filepath_lc) == 0:
+                self.report({'ERROR'}, 'No file selected')
+            else:
+                self.report({'ERROR'}, 'Format of {} not recognised'.format(self.properties.filepath))
+            return {'CANCELLED'}
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+#noinspection PyUnusedLocal
+def menu_func_import(self, context):
+    self.layout.operator(OpImportObject.bl_idname, text='STALKER (.object)')
+
+
+def register():
+    bpy.utils.register_class(OpImportObject)
+    bpy.types.INFO_MT_file_import.append(menu_func_import)
+
+
+def unregister():
+    bpy.utils.unregister_class(OpImportObject)
+    bpy.types.INFO_MT_file_import.remove(menu_func_import)
