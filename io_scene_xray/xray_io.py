@@ -11,6 +11,12 @@ class PackedReader:
         self.__offs += s
         return struct.unpack_from(fmt, self.__data, self.__offs - s)
 
+    def gets(self):
+        zpos = self.__data.find(0, self.__offs)
+        if zpos == -1:
+            zpos = len(self.__data)
+        return self.getf('{}sx'.format(zpos - self.__offs))[0].decode('cp1251')
+
 
 class ChunkedReader:
     __MASK_COMPRESSED = 0x80000000

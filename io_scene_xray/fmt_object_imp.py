@@ -16,12 +16,22 @@ def warn_imknown_chunk(cid, location):
     print('WARNING: UNKNOWN CHUNK: {:#x} IN: {}'.format(cid, location))
 
 
+def _uniq_vertex(v, unimap, vertices):
+    r = unimap.get(v)
+    if r is None:
+        unimap[v] = r = len(vertices)
+        vertices.append(v)
+    return r
+
+
 def _import_mesh(cx, cr, parent):
     ver = cr.nextf(Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
         raise Exception('unsupported MESH format version: {:#x}'.format(ver))
     vertices = []
     faces = []
+    meshname = ''
+    surfaces = {}
     for (cid, data) in cr:
         if cid == Chunks.Mesh.VERTS:
             pr = PackedReader(data)
@@ -33,13 +43,35 @@ def _import_mesh(cx, cr, parent):
             for _ in range(fc):
                 fr = pr.getf('IIIIII')
                 faces.append((fr[0], fr[2], fr[4]))
+        elif cid == Chunks.Mesh.MESHNAME:
+            meshname = PackedReader(data).gets()
+        elif cid == Chunks.Mesh.SFACE:
+            pr = PackedReader(data)
+            for _ in range(pr.getf('H')[0]):
+                n = pr.gets()
+                surfaces[n] = [pr.getf('I')[0] for __ in range(pr.getf('I')[0])]
     if cx.bpy:
-        bpy_mesh = cx.bpy.data.meshes.new('mesh')
-        bpy_mesh.from_pydata(vertices, [], faces)
+        bo_mesh = cx.bpy.data.objects.new(meshname, None)
+        bo_mesh.parent = parent
+        cx.bpy.context.scene.objects.link(bo_mesh)
 
-        bpy_obj = cx.bpy.data.objects.new('mobj', bpy_mesh)
-        bpy_obj.parent = parent
-        cx.bpy.context.scene.objects.link(bpy_obj)
+        for (sn, sf) in surfaces.items():
+            bm_sf = cx.bpy.data.meshes.new(sn + '.mesh')
+            vtx = []
+            fcs = []
+            vmap = {}
+            for fi in sf:
+                f = faces[fi]
+                fcs.append((
+                    _uniq_vertex(vertices[f[0]], vmap, vtx),
+                    _uniq_vertex(vertices[f[1]], vmap, vtx),
+                    _uniq_vertex(vertices[f[2]], vmap, vtx)
+                ))
+            bm_sf.from_pydata(vtx, [], fcs)
+
+            bo_sf = cx.bpy.data.objects.new(sn, bm_sf)
+            bo_sf.parent = bo_mesh
+            cx.bpy.context.scene.objects.link(bo_sf)
     else:
         print('vertices: ' + str(vertices))
         print('faces: ' + str(faces))
