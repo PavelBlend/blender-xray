@@ -1,14 +1,22 @@
 import io
 import math
+import os.path
 from .xray_io import ChunkedReader, PackedReader
 from .fmt_object import Chunks
+
+
+class ImportContext:
+    def __init__(self, fpath, bpy=None):
+        self.file_path = fpath
+        self.object_name = os.path.basename(fpath.lower())
+        self.bpy = bpy
 
 
 def warn_imknown_chunk(cid, location):
     print('WARNING: UNKNOWN CHUNK: {:#x} IN: {}'.format(cid, location))
 
 
-def _import_mesh(cr, bpy, parent):
+def _import_mesh(cx, cr, parent):
     ver = cr.nextf(Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
         raise Exception('unsupported MESH format version: {:#x}'.format(ver))
@@ -25,44 +33,44 @@ def _import_mesh(cr, bpy, parent):
             for _ in range(fc):
                 fr = pr.getf('IIIIII')
                 faces.append((fr[0], fr[2], fr[4]))
-    if bpy:
-        bpy_mesh = bpy.data.meshes.new('mesh')
+    if cx.bpy:
+        bpy_mesh = cx.bpy.data.meshes.new('mesh')
         bpy_mesh.from_pydata(vertices, [], faces)
 
-        bpy_obj = bpy.data.objects.new('mobj', bpy_mesh)
+        bpy_obj = cx.bpy.data.objects.new('mobj', bpy_mesh)
         bpy_obj.parent = parent
-        bpy.context.scene.objects.link(bpy_obj)
+        cx.bpy.context.scene.objects.link(bpy_obj)
     else:
         print('vertices: ' + str(vertices))
         print('faces: ' + str(faces))
 
 
-def _import_main(cr, bpy):
+def _import_main(cx, cr):
     ver = cr.nextf(Chunks.Object.VERSION, 'H')[0]
     if ver != 0x10:
         raise Exception('unsupported OBJECT format version: {:#x}'.format(ver))
-    if bpy:
-        bpy_obj = bpy.data.objects.new('test', None)
+    if cx.bpy:
+        bpy_obj = cx.bpy.data.objects.new(cx.object_name, None)
         bpy_obj.rotation_euler.x = math.pi / 2
-        bpy.context.scene.objects.link(bpy_obj)
+        cx.bpy.context.scene.objects.link(bpy_obj)
     else:
         bpy_obj = None
     for (cid, data) in cr:
         if cid == Chunks.Object.MESHES:
             for (_, mdat) in ChunkedReader(data):
-                _import_mesh(ChunkedReader(mdat), bpy, bpy_obj)
+                _import_mesh(cx, ChunkedReader(mdat), bpy_obj)
         else:
             warn_imknown_chunk(cid, 'main')
 
 
-def _import(cr, bpy):
+def _import(cx, cr):
     for (cid, data) in cr:
         if cid == Chunks.Object.MAIN:
-            _import_main(ChunkedReader(data), bpy)
+            _import_main(cx, ChunkedReader(data))
         else:
             warn_imknown_chunk(cid, 'root')
 
 
-def import_file(fpath, bpy=None):
-    with io.open(fpath, 'rb') as f:
-        _import(ChunkedReader(f.read()), bpy)
+def import_file(cx):
+    with io.open(cx.file_path, 'rb') as f:
+        _import(cx, ChunkedReader(f.read()))

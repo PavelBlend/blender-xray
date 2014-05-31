@@ -19,8 +19,10 @@ class OpImportObject(bpy.types.Operator):
     def execute(self, context):
         filepath_lc = self.properties.filepath.lower()
         if filepath_lc.endswith('.object'):
-            from .fmt_object_imp import import_file
-            import_file(self.properties.filepath, bpy)
+            from .fmt_object_imp import import_file, ImportContext
+            import_file(ImportContext(
+                fpath=self.properties.filepath,
+                bpy=bpy))
         else:
             if len(filepath_lc) == 0:
                 self.report({'ERROR'}, 'No file selected')
