@@ -16,11 +16,11 @@ def warn_imknown_chunk(cid, location):
     print('WARNING: UNKNOWN CHUNK: {:#x} IN: {}'.format(cid, location))
 
 
-def _uniq_vertex(v, unimap, vertices):
+def _remap(v, unimap, array):
     r = unimap.get(v)
     if r is None:
-        unimap[v] = r = len(vertices)
-        vertices.append(v)
+        unimap[v] = r = len(array)
+        array.append(v)
     return r
 
 
@@ -31,6 +31,7 @@ def _import_mesh(cx, cr, parent):
     vertices = []
     faces = []
     meshname = ''
+    smoothing_groups = []
     surfaces = {}
     for (cid, data) in cr:
         if cid == Chunks.Mesh.VERTS:
@@ -45,6 +46,9 @@ def _import_mesh(cx, cr, parent):
                 faces.append((fr[0], fr[2], fr[4]))
         elif cid == Chunks.Mesh.MESHNAME:
             meshname = PackedReader(data).gets()
+        elif cid == Chunks.Mesh.SG:
+            pr = PackedReader(data)
+            smoothing_groups = [pr.getf('I')[0] for _ in range(len(data) // 4)]
         elif cid == Chunks.Mesh.SFACE:
             pr = PackedReader(data)
             for _ in range(pr.getf('H')[0]):
@@ -59,13 +63,17 @@ def _import_mesh(cx, cr, parent):
             bm_sf = cx.bpy.data.meshes.new(sn + '.mesh')
             vtx = []
             fcs = []
-            vmap = {}
+            smgroups = {}
             for fi in sf:
                 f = faces[fi]
+                sgi = smoothing_groups[fi]
+                sg = smgroups.get(sgi)
+                if sg is None:
+                    smgroups[sgi] = sg = {}
                 fcs.append((
-                    _uniq_vertex(vertices[f[0]], vmap, vtx),
-                    _uniq_vertex(vertices[f[1]], vmap, vtx),
-                    _uniq_vertex(vertices[f[2]], vmap, vtx)
+                    _remap(vertices[f[0]], sg, vtx),
+                    _remap(vertices[f[1]], sg, vtx),
+                    _remap(vertices[f[2]], sg, vtx)
                 ))
             bm_sf.from_pydata(vtx, [], fcs)
 

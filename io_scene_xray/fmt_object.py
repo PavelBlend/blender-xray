@@ -10,3 +10,4 @@ class Chunks:
         VERTS = 0x1005
         FACES = 0x1006
         SFACE = 0x1009
+        SG = 0x1013
