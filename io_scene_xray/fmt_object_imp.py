@@ -192,6 +192,7 @@ def _import_main(cx, cr):
     if cx.bpy:
         bpy_obj = cx.bpy.data.objects.new(cx.object_name, None)
         bpy_obj.rotation_euler.x = math.pi / 2
+        bpy_obj.scale.z = -1
         cx.bpy.context.scene.objects.link(bpy_obj)
     else:
         bpy_obj = None
