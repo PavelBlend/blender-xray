@@ -6,11 +6,11 @@ from .fmt_object import Chunks
 
 
 class ImportContext:
-    def __init__(self, fpath, bpy=None):
+    def __init__(self, fpath, gamedata, bpy=None):
         self.file_path = fpath
         self.object_name = os.path.basename(fpath.lower())
         self.bpy = bpy
-        self.gamedata_folder = '/home/igel/NS/gamedata'
+        self.gamedata_folder = gamedata
         self.__images = {}
 
     def image(self, relpath):
