@@ -6,9 +6,10 @@ from .fmt_object import Chunks
 
 
 class ImportContext:
-    def __init__(self, fpath, gamedata, bpy=None):
+    def __init__(self, fpath, gamedata, report, bpy=None):
         self.file_path = fpath
         self.object_name = os.path.basename(fpath.lower())
+        self.report = report
         self.bpy = bpy
         self.gamedata_folder = gamedata
         self.__images = {}
@@ -188,6 +189,38 @@ def _import_mesh(cx, cr, parent):
     return by_surface
 
 
+def _import_bone(cx, cr, bpy_armature, bonemat):
+    ver = cr.nextf(Chunks.Bone.VERSION, 'H')[0]
+    if ver != 0x2:
+        raise Exception('unsupported BONE format version: {}'.format(ver))
+    pr = PackedReader(cr.next(Chunks.Bone.DEF))
+    name = pr.gets()
+    parent = pr.gets()
+    vmap = pr.gets()
+    if name != vmap:
+        cx.report({'WARNING'}, 'Not supported yet! bone name({}) != bone vmap({})'.format(name, vmap))
+    offset = None
+    rotate = None
+    for (cid, data) in cr:
+        if cid == Chunks.Bone.BIND_POSE:
+            pr = PackedReader(data)
+            offset = pr.getf('fff')
+            rotate = pr.getf('fff')
+    if bpy_armature:
+        cx.bpy.ops.object.mode_set(mode='EDIT')
+        try:
+            bpy_bone = bpy_armature.edit_bones.new(name=name)
+            import mathutils
+            if parent:
+                bpy_bone.parent = bpy_armature.edit_bones[parent]
+            mat = bonemat.get(parent, mathutils.Matrix.Identity(4)) * mathutils.Matrix.Translation(offset) * mathutils.Euler(rotate, 'ZXY').to_matrix().to_4x4()
+            bonemat[name] = mat
+            bpy_bone.head = mat * mathutils.Vector()
+            bpy_bone.tail = bpy_bone.head + mathutils.Vector([0, 0.1, 0])
+        finally:
+            cx.bpy.ops.object.mode_set(mode='OBJECT')
+
+
 def _import_main(cx, cr):
     ver = cr.nextf(Chunks.Object.VERSION, 'H')[0]
     if ver != 0x10:
@@ -200,6 +233,7 @@ def _import_main(cx, cr):
     else:
         bpy_obj = None
 
+    bpy_armature = None
     by_surface = {}
     for (cid, data) in cr:
         if cid == Chunks.Object.MESHES:
@@ -241,6 +275,43 @@ def _import_main(cx, cr):
                         bpy_texture_slot.texture_coords = 'UV'
                         bpy_texture_slot.uv_layer = vmap
                         bpy_texture_slot.use_map_color_diffuse = True
+        elif cid == Chunks.Object.BONES1:
+            if cx.bpy and (bpy_armature is None):
+                bpy_armature = cx.bpy.data.armatures.new(cx.object_name)
+                bpy_arm_obj = cx.bpy.data.objects.new(cx.object_name, bpy_armature)
+                bpy_arm_obj.parent = bpy_obj
+                cx.bpy.context.scene.objects.link(bpy_arm_obj)
+                cx.bpy.context.scene.objects.active = bpy_arm_obj
+            bonemat = {}
+            for (_, bdat) in ChunkedReader(data):
+                _import_bone(cx, ChunkedReader(bdat), bpy_armature, bonemat)
+            cx.bpy.ops.object.mode_set(mode='EDIT')
+            try:
+                import mathutils
+                bone_childrens = {}
+                for b in bpy_armature.edit_bones:
+                    p = b.parent
+                    if not p:
+                        continue
+                    bc = bone_childrens.get(p.name)
+                    if bc is None:
+                        bone_childrens[p.name] = bc = []
+                    bc.append(b)
+                for b in bpy_armature.edit_bones:
+                    bc = bone_childrens.get(b.name)
+                    if not bc:
+                        p = b.parent
+                        if p:
+                            b.tail = b.head + (b.head - p.head).normalized() * 0.01
+                        else:
+                            b.tail = b.head + mathutils.Vector([0, 0.01, 0])
+                    else:
+                        avg = mathutils.Vector()
+                        for c in bc:
+                            avg += c.head
+                        b.tail = avg / len(bc)
+            finally:
+                cx.bpy.ops.object.mode_set(mode='OBJECT')
         else:
             warn_imknown_chunk(cid, 'main')
 
