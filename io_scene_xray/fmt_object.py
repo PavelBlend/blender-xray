@@ -12,6 +12,7 @@ class Chunks:
     class Mesh:
         VERSION = 0x1000
         MESHNAME = 0x1001
+        FLAGS = 0x1002
         VERTS = 0x1005
         FACES = 0x1006
         VMREFS = 0x1008

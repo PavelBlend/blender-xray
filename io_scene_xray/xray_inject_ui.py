@@ -1,14 +1,17 @@
 import bpy
 
 
-class XRayObjectPanel(bpy.types.Panel):
+class XRayPanel(bpy.types.Panel):
     bl_label = 'XRay'
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
-    bl_context = 'object'
 
     def draw_header(self, context):
         self.layout.label(icon='PLUGIN')
+
+
+class XRayObjectPanel(XRayPanel):
+    bl_context = 'object'
 
     def draw(self, context):
         layout = self.layout
@@ -18,9 +21,29 @@ class XRayObjectPanel(bpy.types.Panel):
         layout.prop(data, 'userdata')
 
 
+class XRayMaterialPanel(XRayPanel):
+    bl_context = 'material'
+
+    def draw(self, context):
+        layout = self.layout
+        data = context.object.active_material.xray
+        layout.prop(data, 'flags')
+        layout.prop(data, 'eshader')
+        layout.prop(data, 'cshader')
+        layout.prop(data, 'gamemtl')
+
+
+classes = [
+    XRayObjectPanel
+    , XRayMaterialPanel
+]
+
+
 def inject_ui_init():
-    bpy.utils.register_class(XRayObjectPanel)
+    for c in classes:
+        bpy.utils.register_class(c)
 
 
 def inject_ui_done():
-    bpy.utils.unregister_class(XRayObjectPanel)
+    for c in classes.remove():
+        bpy.utils.unregister_class(c)

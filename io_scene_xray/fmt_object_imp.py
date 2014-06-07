@@ -86,6 +86,7 @@ def _import_mesh(cx, cr, parent):
     surfaces = {}
     vmrefs = []
     vmaps = []
+    flags = 0
     for (cid, data) in cr:
         if cid == Chunks.Mesh.VERTS:
             pr = PackedReader(data)
@@ -131,12 +132,15 @@ def _import_mesh(cx, cr, parent):
                 if discon:
                     vm.faces = [pr.getf('I')[0] for __ in range(sz)]
                 vmaps.append(vm)
+        elif cid == Chunks.Mesh.FLAGS:
+            flags = PackedReader(data).getf('B')[0]
 
     by_surface = {}
     if cx.bpy:
         bo_mesh = cx.bpy.data.objects.new(meshname, None)
         bo_mesh.parent = parent
         cx.bpy.context.scene.objects.link(bo_mesh)
+        bo_mesh.xray.flags = flags
 
         for (sn, sf) in surfaces.items():
             bm_sf = cx.bpy.data.meshes.new(sn + '.mesh')
@@ -248,18 +252,22 @@ def _import_main(cx, cr):
             pr = PackedReader(data)
             for _ in range(pr.getf('I')[0]):
                 n = pr.gets()
-                pr.gets()   # eshader
-                pr.gets()   # cshader
-                pr.gets()   # gamemtl
+                eshader = pr.gets()
+                cshader = pr.gets()
+                gamemtl = pr.gets()
                 texture = pr.gets()
                 vmap = pr.gets()
-                pr.getf('I')    # flags
+                flags = pr.getf('I')[0]
                 pr.getf('I')    # fvf
                 pr.getf('I')    # ?
                 if cx.bpy:
                     bpy_material = cx.bpy.data.materials.get(n)
                     if bpy_material is None:
                         continue
+                    bpy_material.xray.flags = flags
+                    bpy_material.xray.eshader = eshader
+                    bpy_material.xray.cshader = cshader
+                    bpy_material.xray.gamemtl = gamemtl
                     if texture:
                         bpy_texture = cx.bpy.data.textures.get(texture)
                         if bpy_texture is None:
