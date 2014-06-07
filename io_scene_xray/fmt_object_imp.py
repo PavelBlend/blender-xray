@@ -44,29 +44,32 @@ class VMap:
         else:
             self.faces = None
 
-    def init(self, bpy_mesh):
+    def init(self, bpy_obj):
         pass
 
 
 class UVMap(VMap):
-    def init(self, bpy_mesh):
+    def init(self, bpy_obj):
+        bpy_mesh = bpy_obj.data
         uv_l = bpy_mesh.uv_layers.get(self.name)
         if uv_l is None:
             uv_t = bpy_mesh.uv_textures.new(name=self.name)
             uv_l = bpy_mesh.uv_layers.get(uv_t.name)
 
-        def func(i, d):
+        def func(i, vi, d):
             uv_l.data[i].uv = (d[0], 1 - d[1])
 
         return func
 
 
 class WMap(VMap):
-    def init(self, bpy_mesh):
-        print('not supported yet')
+    def init(self, bpy_obj):
+        vg = bpy_obj.vertex_groups.get(self.name)
+        if vg is None:
+            vg = bpy_obj.vertex_groups.new(name=self.name)
 
-        def func(i, d):
-            pass
+        def func(i, vi, d):
+            vg.add([vi], d, 'REPLACE')
 
         return func
 
@@ -154,6 +157,10 @@ def _import_mesh(cx, cr, parent):
                 rfs.append(faces[fi][1])
             bm_sf.from_pydata([vertices[i] for i in vtx], [], fcs)
 
+            bo_sf = cx.bpy.data.objects.new(sn, bm_sf)
+            bo_sf.parent = bo_mesh
+            cx.bpy.context.scene.objects.link(bo_sf)
+
             mmaps = {}
             for i in range(len(fcs)):
                 f = fcs[i]
@@ -163,16 +170,12 @@ def _import_mesh(cx, cr, parent):
                         m = mmaps.get(vmi)
                         vm = vmaps[vmi]
                         if m is None:
-                            mmaps[vmi] = m = vm.init(bm_sf)
-                        m(i * 3 + vi, vm.data[vmo])
+                            mmaps[vmi] = m = vm.init(bo_sf)
+                        m(i * 3 + vi, f[vi], vm.data[vmo])
             bysf = by_surface.get(sn)
             if bysf is None:
                 by_surface[sn] = bysf = []
             bysf.append(bm_sf)
-
-            bo_sf = cx.bpy.data.objects.new(sn, bm_sf)
-            bo_sf.parent = bo_mesh
-            cx.bpy.context.scene.objects.link(bo_sf)
 
             bmat = cx.bpy.data.materials.get(sn)
             if bmat is None:
