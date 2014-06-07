@@ -176,7 +176,7 @@ def _import_mesh(cx, cr, parent):
             bysf = by_surface.get(sn)
             if bysf is None:
                 by_surface[sn] = bysf = []
-            bysf.append(bm_sf)
+            bysf.append(bo_sf)
 
             bmat = cx.bpy.data.materials.get(sn)
             if bmat is None:
@@ -266,8 +266,8 @@ def _import_main(cx, cr):
                             bpy_texture = cx.bpy.data.textures.new(texture, type='IMAGE')
                             bpy_texture.image = cx.image(texture)
                         img = bpy_texture.image
-                        for m in by_surface.get(n):
-                            for t in m.uv_textures:
+                        for o in by_surface.get(n):
+                            for t in o.data.uv_textures:
                                 for f in t.data.values():
                                     f.image = img
                         bpy_texture_slot = bpy_material.texture_slots.add()
@@ -312,6 +312,10 @@ def _import_main(cx, cr):
                         b.tail = avg / len(bc)
             finally:
                 cx.bpy.ops.object.mode_set(mode='OBJECT')
+            for oo in by_surface.values():
+                for o in oo:
+                    bpy_armmod = o.modifiers.new(name='Armature', type='ARMATURE')
+                    bpy_armmod.object = bpy_arm_obj
         else:
             warn_imknown_chunk(cid, 'main')
 
