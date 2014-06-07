@@ -316,6 +316,12 @@ def _import_main(cx, cr):
                 for o in oo:
                     bpy_armmod = o.modifiers.new(name='Armature', type='ARMATURE')
                     bpy_armmod.object = bpy_arm_obj
+        elif cid == Chunks.Object.FLAGS:
+            bpy_obj.xray.flags = PackedReader(data).getf('I')[0]
+        elif cid == Chunks.Object.USERDATA:
+            bpy_obj.xray.userdata = PackedReader(data).gets()
+        elif cid == Chunks.Object.LOD_REF:
+            bpy_obj.xray.lodref = PackedReader(data).gets()
         else:
             warn_imknown_chunk(cid, 'main')
 

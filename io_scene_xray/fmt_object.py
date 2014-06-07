@@ -2,9 +2,12 @@ class Chunks:
     class Object:
         MAIN = 0x7777
         VERSION = 0x0900
+        FLAGS = 0x0903
         SURFACES2 = 0x0907
         MESHES = 0x0910
+        USERDATA = 0x0912
         BONES1 = 0x0921
+        LOD_REF = 0x0925
 
     class Mesh:
         VERSION = 0x1000
