@@ -2,11 +2,20 @@ import bpy
 from .xray_inject_ui import inject_ui_init, inject_ui_done
 
 
+class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
+    owner = bpy.props.StringProperty(name='owner')
+    ctime = bpy.props.IntProperty(name='ctime')
+    moder = bpy.props.StringProperty(name='moder')
+    mtime = bpy.props.IntProperty(name='mtime')
+
+
 class XRayObjectProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Object
     flags = bpy.props.IntProperty(name='flags')
     lodref = bpy.props.StringProperty(name='lodref')
     userdata = bpy.props.StringProperty(name='userdata')
+    bpy.utils.register_class(XRayObjectRevisionProperties)
+    revision = bpy.props.PointerProperty(type=XRayObjectRevisionProperties)
 
 
 class XRayMaterialProperties(bpy.types.PropertyGroup):

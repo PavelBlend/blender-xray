@@ -7,6 +7,7 @@ class Chunks:
         MESHES = 0x0910
         USERDATA = 0x0912
         BONES1 = 0x0921
+        REVISION = 0x0922
         LOD_REF = 0x0925
 
     class Mesh:

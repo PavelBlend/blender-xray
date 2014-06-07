@@ -330,6 +330,12 @@ def _import_main(cx, cr):
             bpy_obj.xray.userdata = PackedReader(data).gets()
         elif cid == Chunks.Object.LOD_REF:
             bpy_obj.xray.lodref = PackedReader(data).gets()
+        elif cid == Chunks.Object.REVISION:
+            pr = PackedReader(data)
+            bpy_obj.xray.revision.owner = pr.gets()
+            bpy_obj.xray.revision.ctime = pr.getf('I')[0]
+            bpy_obj.xray.revision.moder = pr.gets()
+            bpy_obj.xray.revision.mtime = pr.getf('I')[0]
         else:
             warn_imknown_chunk(cid, 'main')
 
