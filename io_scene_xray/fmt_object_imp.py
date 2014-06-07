@@ -6,9 +6,10 @@ from .fmt_object import Chunks
 
 
 class ImportContext:
-    def __init__(self, fpath, gamedata, bpy=None):
+    def __init__(self, fpath, gamedata, report, bpy=None):
         self.file_path = fpath
         self.object_name = os.path.basename(fpath.lower())
+        self.report = report
         self.bpy = bpy
         self.gamedata_folder = gamedata
         self.__images = {}
@@ -44,29 +45,32 @@ class VMap:
         else:
             self.faces = None
 
-    def init(self, bpy_mesh):
+    def init(self, bpy_obj):
         pass
 
 
 class UVMap(VMap):
-    def init(self, bpy_mesh):
+    def init(self, bpy_obj):
+        bpy_mesh = bpy_obj.data
         uv_l = bpy_mesh.uv_layers.get(self.name)
         if uv_l is None:
             uv_t = bpy_mesh.uv_textures.new(name=self.name)
             uv_l = bpy_mesh.uv_layers.get(uv_t.name)
 
-        def func(i, d):
+        def func(i, vi, d):
             uv_l.data[i].uv = (d[0], 1 - d[1])
 
         return func
 
 
 class WMap(VMap):
-    def init(self, bpy_mesh):
-        print('not supported yet')
+    def init(self, bpy_obj):
+        vg = bpy_obj.vertex_groups.get(self.name)
+        if vg is None:
+            vg = bpy_obj.vertex_groups.new(name=self.name)
 
-        def func(i, d):
-            pass
+        def func(i, vi, d):
+            vg.add([vi], d, 'REPLACE')
 
         return func
 
@@ -154,6 +158,10 @@ def _import_mesh(cx, cr, parent):
                 rfs.append(faces[fi][1])
             bm_sf.from_pydata([vertices[i] for i in vtx], [], fcs)
 
+            bo_sf = cx.bpy.data.objects.new(sn, bm_sf)
+            bo_sf.parent = bo_mesh
+            cx.bpy.context.scene.objects.link(bo_sf)
+
             mmaps = {}
             for i in range(len(fcs)):
                 f = fcs[i]
@@ -163,16 +171,12 @@ def _import_mesh(cx, cr, parent):
                         m = mmaps.get(vmi)
                         vm = vmaps[vmi]
                         if m is None:
-                            mmaps[vmi] = m = vm.init(bm_sf)
-                        m(i * 3 + vi, vm.data[vmo])
+                            mmaps[vmi] = m = vm.init(bo_sf)
+                        m(i * 3 + vi, f[vi], vm.data[vmo])
             bysf = by_surface.get(sn)
             if bysf is None:
                 by_surface[sn] = bysf = []
-            bysf.append(bm_sf)
-
-            bo_sf = cx.bpy.data.objects.new(sn, bm_sf)
-            bo_sf.parent = bo_mesh
-            cx.bpy.context.scene.objects.link(bo_sf)
+            bysf.append(bo_sf)
 
             bmat = cx.bpy.data.materials.get(sn)
             if bmat is None:
@@ -183,6 +187,38 @@ def _import_mesh(cx, cr, parent):
         print('faces: ' + str(faces))
 
     return by_surface
+
+
+def _import_bone(cx, cr, bpy_armature, bonemat):
+    ver = cr.nextf(Chunks.Bone.VERSION, 'H')[0]
+    if ver != 0x2:
+        raise Exception('unsupported BONE format version: {}'.format(ver))
+    pr = PackedReader(cr.next(Chunks.Bone.DEF))
+    name = pr.gets()
+    parent = pr.gets()
+    vmap = pr.gets()
+    if name != vmap:
+        cx.report({'WARNING'}, 'Not supported yet! bone name({}) != bone vmap({})'.format(name, vmap))
+    offset = None
+    rotate = None
+    for (cid, data) in cr:
+        if cid == Chunks.Bone.BIND_POSE:
+            pr = PackedReader(data)
+            offset = pr.getf('fff')
+            rotate = pr.getf('fff')
+    if bpy_armature:
+        cx.bpy.ops.object.mode_set(mode='EDIT')
+        try:
+            bpy_bone = bpy_armature.edit_bones.new(name=name)
+            import mathutils
+            if parent:
+                bpy_bone.parent = bpy_armature.edit_bones[parent]
+            mat = bonemat.get(parent, mathutils.Matrix.Identity(4)) * mathutils.Matrix.Translation(offset) * mathutils.Euler(rotate, 'ZXY').to_matrix().to_4x4()
+            bonemat[name] = mat
+            bpy_bone.head = mat * mathutils.Vector()
+            bpy_bone.tail = bpy_bone.head + mathutils.Vector([0, 0.1, 0])
+        finally:
+            cx.bpy.ops.object.mode_set(mode='OBJECT')
 
 
 def _import_main(cx, cr):
@@ -197,6 +233,7 @@ def _import_main(cx, cr):
     else:
         bpy_obj = None
 
+    bpy_armature = None
     by_surface = {}
     for (cid, data) in cr:
         if cid == Chunks.Object.MESHES:
@@ -229,8 +266,8 @@ def _import_main(cx, cr):
                             bpy_texture = cx.bpy.data.textures.new(texture, type='IMAGE')
                             bpy_texture.image = cx.image(texture)
                         img = bpy_texture.image
-                        for m in by_surface.get(n):
-                            for t in m.uv_textures:
+                        for o in by_surface.get(n):
+                            for t in o.data.uv_textures:
                                 for f in t.data.values():
                                     f.image = img
                         bpy_texture_slot = bpy_material.texture_slots.add()
@@ -238,6 +275,47 @@ def _import_main(cx, cr):
                         bpy_texture_slot.texture_coords = 'UV'
                         bpy_texture_slot.uv_layer = vmap
                         bpy_texture_slot.use_map_color_diffuse = True
+        elif cid == Chunks.Object.BONES1:
+            if cx.bpy and (bpy_armature is None):
+                bpy_armature = cx.bpy.data.armatures.new(cx.object_name)
+                bpy_arm_obj = cx.bpy.data.objects.new(cx.object_name, bpy_armature)
+                bpy_arm_obj.parent = bpy_obj
+                cx.bpy.context.scene.objects.link(bpy_arm_obj)
+                cx.bpy.context.scene.objects.active = bpy_arm_obj
+            bonemat = {}
+            for (_, bdat) in ChunkedReader(data):
+                _import_bone(cx, ChunkedReader(bdat), bpy_armature, bonemat)
+            cx.bpy.ops.object.mode_set(mode='EDIT')
+            try:
+                import mathutils
+                bone_childrens = {}
+                for b in bpy_armature.edit_bones:
+                    p = b.parent
+                    if not p:
+                        continue
+                    bc = bone_childrens.get(p.name)
+                    if bc is None:
+                        bone_childrens[p.name] = bc = []
+                    bc.append(b)
+                for b in bpy_armature.edit_bones:
+                    bc = bone_childrens.get(b.name)
+                    if not bc:
+                        p = b.parent
+                        if p:
+                            b.tail = b.head + (b.head - p.head).normalized() * 0.01
+                        else:
+                            b.tail = b.head + mathutils.Vector([0, 0.01, 0])
+                    else:
+                        avg = mathutils.Vector()
+                        for c in bc:
+                            avg += c.head
+                        b.tail = avg / len(bc)
+            finally:
+                cx.bpy.ops.object.mode_set(mode='OBJECT')
+            for oo in by_surface.values():
+                for o in oo:
+                    bpy_armmod = o.modifiers.new(name='Armature', type='ARMATURE')
+                    bpy_armmod.object = bpy_arm_obj
         else:
             warn_imknown_chunk(cid, 'main')
 

@@ -40,8 +40,11 @@ class ChunkedReader:
         self.__offs = offs
         return i & ~ChunkedReader.__MASK_COMPRESSED, data[offs - s:offs]
 
-    def nextf(self, expected_cid, fmt):
+    def next(self, expected_cid):
         cid, data = next(self)
         if cid != expected_cid:
             raise Exception('expected chunk: {}, but found: {}'.format(expected_cid, cid))
-        return struct.unpack(fmt, data)
+        return data
+
+    def nextf(self, expected_cid, fmt):
+        return struct.unpack(fmt, self.next(expected_cid))

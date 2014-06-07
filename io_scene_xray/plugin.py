@@ -25,9 +25,11 @@ class OpImportObject(bpy.types.Operator):
         if filepath_lc.endswith('.object'):
             from .fmt_object_imp import import_file, ImportContext
             import_file(ImportContext(
+                report=self.report,
                 gamedata=addon_prefs.gamedata_folder,
                 fpath=self.properties.filepath,
-                bpy=bpy))
+                bpy=bpy
+            ))
         else:
             if len(filepath_lc) == 0:
                 self.report({'ERROR'}, 'No file selected')
