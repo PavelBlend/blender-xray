@@ -25,3 +25,10 @@ class Chunks:
         VERSION = 0x0001
         DEF = 0x0002
         BIND_POSE = 0x0003
+        MATERIAL = 0x0004
+        SHAPE = 0x0005
+        IK_JOINT = 0x0006
+        MASS_PARAMS = 0x0007
+        IK_FLAGS = 0x0008
+        BREAK_PARAMS = 0x0009
+        FRICTION = 0x0010

@@ -26,9 +26,55 @@ class XRayMaterialProperties(bpy.types.PropertyGroup):
     gamemtl = bpy.props.StringProperty(name='gamemtl')
 
 
+class XRayBoneProperties(bpy.types.PropertyGroup):
+    class BreakProperties(bpy.types.PropertyGroup):
+        force = bpy.props.FloatProperty()
+        torque = bpy.props.FloatProperty()
+
+    class ShapeProperties(bpy.types.PropertyGroup):
+        type = bpy.props.IntProperty()
+        flags = bpy.props.IntProperty()
+        box_rot = bpy.props.FloatVectorProperty(size=9)
+        box_trn = bpy.props.FloatVectorProperty()
+        box_hsz = bpy.props.FloatVectorProperty()
+        sph_pos = bpy.props.FloatVectorProperty()
+        sph_rad = bpy.props.FloatProperty()
+        cyl_pos = bpy.props.FloatVectorProperty()
+        cyl_dir = bpy.props.FloatVectorProperty()
+        cyl_hgh = bpy.props.FloatProperty()
+        cyl_rad = bpy.props.FloatProperty()
+
+    class IKJointProperties(bpy.types.PropertyGroup):
+        type = bpy.props.IntProperty()
+        limits = bpy.props.FloatVectorProperty()
+        lim_spr = bpy.props.FloatProperty()
+        lim_dmp = bpy.props.FloatProperty()
+        spring = bpy.props.FloatProperty()
+        damping = bpy.props.FloatProperty()
+
+    class MassProperties(bpy.types.PropertyGroup):
+        value = bpy.props.FloatProperty()
+        center = bpy.props.FloatVectorProperty()
+
+    b_type = bpy.types.Bone
+    length = bpy.props.FloatProperty()
+    gamemtl = bpy.props.StringProperty()
+    bpy.utils.register_class(ShapeProperties)
+    shape = bpy.props.PointerProperty(type=ShapeProperties)
+    ikflags = bpy.props.IntProperty()
+    bpy.utils.register_class(IKJointProperties)
+    ikjoint = bpy.props.PointerProperty(type=IKJointProperties)
+    bpy.utils.register_class(BreakProperties)
+    breakf = bpy.props.PointerProperty(type=BreakProperties)
+    friction = bpy.props.FloatProperty()
+    bpy.utils.register_class(MassProperties)
+    mass = bpy.props.PointerProperty(type=MassProperties)
+
+
 classes = [
     XRayObjectProperties
     , XRayMaterialProperties
+    , XRayBoneProperties
 ]
 
 
