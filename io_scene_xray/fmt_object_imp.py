@@ -366,6 +366,12 @@ def _import_main(cx, cr):
                 for o in oo:
                     bpy_armmod = o.modifiers.new(name='Armature', type='ARMATURE')
                     bpy_armmod.object = bpy_arm_obj
+        elif cid == Chunks.Object.TRANSFORM:
+            pr = PackedReader(data)
+            pos = pr.getf('fff')
+            rot = pr.getf('fff')
+            import mathutils
+            bpy_obj.matrix_basis *= mathutils.Matrix.Translation(pos) * mathutils.Euler((-rot[0], -rot[1], -rot[2])).to_matrix().to_4x4()
         elif cid == Chunks.Object.FLAGS:
             bpy_obj.xray.flags = PackedReader(data).getf('I')[0]
         elif cid == Chunks.Object.USERDATA:

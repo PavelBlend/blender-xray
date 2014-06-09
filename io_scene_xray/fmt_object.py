@@ -6,6 +6,7 @@ class Chunks:
         SURFACES2 = 0x0907
         MESHES = 0x0910
         USERDATA = 0x0912
+        TRANSFORM = 0x0920
         BONES1 = 0x0921
         REVISION = 0x0922
         MOTION_REFS = 0x0924
