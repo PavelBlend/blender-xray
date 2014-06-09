@@ -17,6 +17,7 @@ class XRayObjectPanel(XRayPanel):
         layout = self.layout
         data = context.object.xray
         layout.prop(data, 'flags')
+        layout.prop(data, 'options')
         layout.prop(data, 'lodref')
         layout.prop(data, 'userdata')
         layout.prop(data, 'motionrefs')

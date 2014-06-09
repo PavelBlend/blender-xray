@@ -87,6 +87,7 @@ def _import_mesh(cx, cr, parent):
     vmrefs = []
     vmaps = []
     flags = 0
+    options = ()
     for (cid, data) in cr:
         if cid == Chunks.Mesh.VERTS:
             pr = PackedReader(data)
@@ -134,6 +135,10 @@ def _import_mesh(cx, cr, parent):
                 vmaps.append(vm)
         elif cid == Chunks.Mesh.FLAGS:
             flags = PackedReader(data).getf('B')[0]
+        elif cid == Chunks.Mesh.BBOX:
+            pass  # blender automatically calculates bbox
+        elif cid == Chunks.Mesh.OPTIONS:
+            options = PackedReader(data).getf('II')
         else:
             warn_imknown_chunk(cid, 'mesh')
 
@@ -143,6 +148,7 @@ def _import_mesh(cx, cr, parent):
         bo_mesh.parent = parent
         cx.bpy.context.scene.objects.link(bo_mesh)
         bo_mesh.xray.flags = flags
+        bo_mesh.xray.options = options
 
         for (sn, sf) in surfaces.items():
             bm_sf = cx.bpy.data.meshes.new(sn + '.mesh')

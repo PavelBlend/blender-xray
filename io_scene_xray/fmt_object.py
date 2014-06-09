@@ -17,10 +17,12 @@ class Chunks:
         VERSION = 0x1000
         MESHNAME = 0x1001
         FLAGS = 0x1002
+        BBOX = 0x1004
         VERTS = 0x1005
         FACES = 0x1006
         VMREFS = 0x1008
         SFACE = 0x1009
+        OPTIONS = 0x1010
         VMAPS2 = 0x1012
         SG = 0x1013
 
