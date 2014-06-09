@@ -134,6 +134,8 @@ def _import_mesh(cx, cr, parent):
                 vmaps.append(vm)
         elif cid == Chunks.Mesh.FLAGS:
             flags = PackedReader(data).getf('B')[0]
+        else:
+            warn_imknown_chunk(cid, 'mesh')
 
     by_surface = {}
     if cx.bpy:
@@ -261,6 +263,8 @@ def _import_bone(cx, cr, bpy_armature, bonemat):
             xray.breakf.torque = pr.getf('f')[0]
         elif cid == Chunks.Bone.FRICTION:
             xray.friction = PackedReader(data).getf('f')[0]
+        else:
+            warn_imknown_chunk(cid, 'bone')
 
 
 def _import_main(cx, cr):
