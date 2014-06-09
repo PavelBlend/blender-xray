@@ -86,6 +86,7 @@ def _import_mesh(cx, cr, parent):
     surfaces = {}
     vmrefs = []
     vmaps = []
+    flags = 0
     for (cid, data) in cr:
         if cid == Chunks.Mesh.VERTS:
             pr = PackedReader(data)
@@ -131,12 +132,15 @@ def _import_mesh(cx, cr, parent):
                 if discon:
                     vm.faces = [pr.getf('I')[0] for __ in range(sz)]
                 vmaps.append(vm)
+        elif cid == Chunks.Mesh.FLAGS:
+            flags = PackedReader(data).getf('B')[0]
 
     by_surface = {}
     if cx.bpy:
         bo_mesh = cx.bpy.data.objects.new(meshname, None)
         bo_mesh.parent = parent
         cx.bpy.context.scene.objects.link(bo_mesh)
+        bo_mesh.xray.flags = flags
 
         for (sn, sf) in surfaces.items():
             bm_sf = cx.bpy.data.meshes.new(sn + '.mesh')
@@ -199,26 +203,64 @@ def _import_bone(cx, cr, bpy_armature, bonemat):
     vmap = pr.gets()
     if name != vmap:
         cx.report({'WARNING'}, 'Not supported yet! bone name({}) != bone vmap({})'.format(name, vmap))
-    offset = None
-    rotate = None
+    pr = PackedReader(cr.next(Chunks.Bone.BIND_POSE))
+    offset = pr.getf('fff')
+    rotate = pr.getf('fff')
+    length = pr.getf('f')[0]
+    cx.bpy.ops.object.mode_set(mode='EDIT')
+    try:
+        bpy_bone = bpy_armature.edit_bones.new(name=name)
+        if parent:
+            bpy_bone.parent = bpy_armature.edit_bones[parent]
+        import mathutils
+        mat = bonemat.get(parent, mathutils.Matrix.Identity(4)) * mathutils.Matrix.Translation(offset) * mathutils.Euler(rotate, 'ZXY').to_matrix().to_4x4()
+        bonemat[name] = mat
+        bpy_bone.head = mat * mathutils.Vector()
+        bpy_bone.tail = bpy_bone.head + mathutils.Vector([0, 0.1, 0])
+    finally:
+        cx.bpy.ops.object.mode_set(mode='OBJECT')
+    xray = bpy_armature.bones[name].xray
+    xray.length = length
     for (cid, data) in cr:
-        if cid == Chunks.Bone.BIND_POSE:
+        if cid == Chunks.Bone.DEF:
+            s = PackedReader(data).gets()
+            if name != s:
+                cx.report({'WARNING'}, 'Not supported yet! bone name({}) != bone def2({})'.format(name, s))
+        elif cid == Chunks.Bone.MATERIAL:
+            xray.gamemtl = PackedReader(data).gets()
+        elif cid == Chunks.Bone.SHAPE:
             pr = PackedReader(data)
-            offset = pr.getf('fff')
-            rotate = pr.getf('fff')
-    if bpy_armature:
-        cx.bpy.ops.object.mode_set(mode='EDIT')
-        try:
-            bpy_bone = bpy_armature.edit_bones.new(name=name)
-            import mathutils
-            if parent:
-                bpy_bone.parent = bpy_armature.edit_bones[parent]
-            mat = bonemat.get(parent, mathutils.Matrix.Identity(4)) * mathutils.Matrix.Translation(offset) * mathutils.Euler(rotate, 'ZXY').to_matrix().to_4x4()
-            bonemat[name] = mat
-            bpy_bone.head = mat * mathutils.Vector()
-            bpy_bone.tail = bpy_bone.head + mathutils.Vector([0, 0.1, 0])
-        finally:
-            cx.bpy.ops.object.mode_set(mode='OBJECT')
+            xray.shape.type = pr.getf('H')[0]
+            xray.shape.flags = pr.getf('H')[0]
+            xray.shape.box_rot = pr.getf('fffffffff')
+            xray.shape.box_trn = pr.getf('fff')
+            xray.shape.box_hsz = pr.getf('fff')
+            xray.shape.sph_pos = pr.getf('fff')
+            xray.shape.sph_rad = pr.getf('f')[0]
+            xray.shape.cyl_pos = pr.getf('fff')
+            xray.shape.cyl_dir = pr.getf('fff')
+            xray.shape.cyl_hgh = pr.getf('f')[0]
+            xray.shape.cyl_rad = pr.getf('f')[0]
+        elif cid == Chunks.Bone.IK_JOINT:
+            pr = PackedReader(data)
+            xray.ikjoint.type = pr.getf('I')[0]
+            xray.ikjoint.limits = pr.getf('fff')
+            xray.ikjoint.lim_spr = pr.getf('f')[0]
+            xray.ikjoint.lim_dmp = pr.getf('f')[0]
+            xray.ikjoint.spring = pr.getf('f')[0]
+            xray.ikjoint.damping = pr.getf('f')[0]
+        elif cid == Chunks.Bone.MASS_PARAMS:
+            pr = PackedReader(data)
+            xray.mass.value = pr.getf('f')[0]
+            xray.mass.center = pr.getf('fff')
+        elif cid == Chunks.Bone.IK_FLAGS:
+            xray.ikflags = PackedReader(data).getf('I')[0]
+        elif cid == Chunks.Bone.BREAK_PARAMS:
+            pr = PackedReader(data)
+            xray.breakf.force = pr.getf('f')[0]
+            xray.breakf.torque = pr.getf('f')[0]
+        elif cid == Chunks.Bone.FRICTION:
+            xray.friction = PackedReader(data).getf('f')[0]
 
 
 def _import_main(cx, cr):
@@ -248,18 +290,22 @@ def _import_main(cx, cr):
             pr = PackedReader(data)
             for _ in range(pr.getf('I')[0]):
                 n = pr.gets()
-                pr.gets()   # eshader
-                pr.gets()   # cshader
-                pr.gets()   # gamemtl
+                eshader = pr.gets()
+                cshader = pr.gets()
+                gamemtl = pr.gets()
                 texture = pr.gets()
                 vmap = pr.gets()
-                pr.getf('I')    # flags
+                flags = pr.getf('I')[0]
                 pr.getf('I')    # fvf
                 pr.getf('I')    # ?
                 if cx.bpy:
                     bpy_material = cx.bpy.data.materials.get(n)
                     if bpy_material is None:
                         continue
+                    bpy_material.xray.flags = flags
+                    bpy_material.xray.eshader = eshader
+                    bpy_material.xray.cshader = cshader
+                    bpy_material.xray.gamemtl = gamemtl
                     if texture:
                         bpy_texture = cx.bpy.data.textures.get(texture)
                         if bpy_texture is None:
@@ -316,6 +362,20 @@ def _import_main(cx, cr):
                 for o in oo:
                     bpy_armmod = o.modifiers.new(name='Armature', type='ARMATURE')
                     bpy_armmod.object = bpy_arm_obj
+        elif cid == Chunks.Object.FLAGS:
+            bpy_obj.xray.flags = PackedReader(data).getf('I')[0]
+        elif cid == Chunks.Object.USERDATA:
+            bpy_obj.xray.userdata = PackedReader(data).gets()
+        elif cid == Chunks.Object.LOD_REF:
+            bpy_obj.xray.lodref = PackedReader(data).gets()
+        elif cid == Chunks.Object.REVISION:
+            pr = PackedReader(data)
+            bpy_obj.xray.revision.owner = pr.gets()
+            bpy_obj.xray.revision.ctime = pr.getf('I')[0]
+            bpy_obj.xray.revision.moder = pr.gets()
+            bpy_obj.xray.revision.mtime = pr.getf('I')[0]
+        elif cid == Chunks.Object.MOTION_REFS:
+            bpy_obj.xray.motionrefs = PackedReader(data).gets()
         else:
             warn_imknown_chunk(cid, 'main')
 

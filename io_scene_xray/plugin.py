@@ -1,4 +1,5 @@
 import bpy
+from .xray_inject import inject_init, inject_done
 
 
 #noinspection PyUnusedLocal
@@ -63,9 +64,11 @@ def register():
     bpy.utils.register_class(PluginPreferences)
     bpy.utils.register_class(OpImportObject)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
+    inject_init()
 
 
 def unregister():
+    inject_done()
     bpy.utils.unregister_class(OpImportObject)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.utils.unregister_class(PluginPreferences)
