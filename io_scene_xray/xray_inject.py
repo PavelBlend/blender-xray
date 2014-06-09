@@ -16,6 +16,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     userdata = bpy.props.StringProperty(name='userdata')
     bpy.utils.register_class(XRayObjectRevisionProperties)
     revision = bpy.props.PointerProperty(type=XRayObjectRevisionProperties)
+    motionrefs = bpy.props.StringProperty()
 
 
 class XRayMaterialProperties(bpy.types.PropertyGroup):

@@ -19,6 +19,7 @@ class XRayObjectPanel(XRayPanel):
         layout.prop(data, 'flags')
         layout.prop(data, 'lodref')
         layout.prop(data, 'userdata')
+        layout.prop(data, 'motionrefs')
 
 
 class XRayMaterialPanel(XRayPanel):

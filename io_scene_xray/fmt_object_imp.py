@@ -374,6 +374,8 @@ def _import_main(cx, cr):
             bpy_obj.xray.revision.ctime = pr.getf('I')[0]
             bpy_obj.xray.revision.moder = pr.gets()
             bpy_obj.xray.revision.mtime = pr.getf('I')[0]
+        elif cid == Chunks.Object.MOTION_REFS:
+            bpy_obj.xray.motionrefs = PackedReader(data).gets()
         else:
             warn_imknown_chunk(cid, 'main')
 
