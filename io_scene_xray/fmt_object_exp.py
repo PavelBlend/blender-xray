@@ -19,6 +19,9 @@ def calculate_bbox(bpy_obj):
             expand_children_r(c.children)
 
     expand_children_r(bpy_obj.children)
+    for i in range(3):
+        mn[i] -= 0.000001
+        mx[i] += 0.000001
     return mn, mx
 
 
