@@ -140,11 +140,11 @@ def _import_mesh(cx, cr, parent):
                 else:
                     raise Exception('unknown vmap type: ' + str(typ))
         elif cid == Chunks.Mesh.FLAGS:
-            bo_mesh.xray.flags = PackedReader(data).getf('B')[0]
+            bo_mesh.data.xray.flags = PackedReader(data).getf('B')[0]
         elif cid == Chunks.Mesh.BBOX:
             pass  # blender automatically calculates bbox
         elif cid == Chunks.Mesh.OPTIONS:
-            bo_mesh.xray.options = PackedReader(data).getf('II')
+            bo_mesh.data.xray.options = PackedReader(data).getf('II')
         else:
             warn_imknown_chunk(cid, 'mesh')
     bm.to_mesh(bm_data)
