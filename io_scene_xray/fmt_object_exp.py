@@ -57,7 +57,7 @@ def _export_mesh(bpy_obj, cw):
             pw.putf('II', f.verts[i].index, len(uvs))
             uv = f.loops[i][uv_layer].uv
             uvs.append((uv[0], 1 - uv[1]))
-            vtx.append(v.index)
+            vtx.append(f.verts[i].index)
             fcs.append(f.index)
     cw.put(Chunks.Mesh.FACES, pw)
 
