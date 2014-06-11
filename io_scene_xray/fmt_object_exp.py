@@ -79,6 +79,26 @@ def _export_mesh(bpy_obj, cw):
             pw.putf('I', f)
     cw.put(Chunks.Mesh.SFACE, pw)
 
+    def mark_fsg(f, sg):
+        ff = [f]
+        for f in ff:
+            for e in f.edges:
+                for lf in e.link_faces:
+                    if fsg.get(lf) is None:
+                        fsg[lf] = sg
+                        ff.append(lf)
+    fsg = {}
+    sgg = 0
+    pw = PackedWriter()
+    for f in bm.faces:
+        sg = fsg.get(f)
+        if sg is None:
+            fsg[f] = sg = sgg
+            sgg += 1
+            mark_fsg(f, sg)
+        pw.putf('I', sg)
+    cw.put(Chunks.Mesh.SG, pw)
+
     pw = PackedWriter()
     pw.putf('I', 1)
     at = bpy_obj.data.uv_textures.active
