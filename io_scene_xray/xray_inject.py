@@ -12,12 +12,17 @@ class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
 class XRayObjectProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Object
     flags = bpy.props.IntProperty(name='flags')
-    options = bpy.props.IntVectorProperty(size=2)
     lodref = bpy.props.StringProperty(name='lodref')
     userdata = bpy.props.StringProperty(name='userdata')
     bpy.utils.register_class(XRayObjectRevisionProperties)
     revision = bpy.props.PointerProperty(type=XRayObjectRevisionProperties)
     motionrefs = bpy.props.StringProperty()
+
+
+class XRayMeshProperties(bpy.types.PropertyGroup):
+    b_type = bpy.types.Mesh
+    flags = bpy.props.IntProperty(name='flags')
+    options = bpy.props.IntVectorProperty(size=2)
 
 
 class XRayMaterialProperties(bpy.types.PropertyGroup):
@@ -75,6 +80,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
 
 classes = [
     XRayObjectProperties
+    , XRayMeshProperties
     , XRayMaterialProperties
     , XRayBoneProperties
 ]

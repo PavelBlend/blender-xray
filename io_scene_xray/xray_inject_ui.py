@@ -13,14 +13,37 @@ class XRayPanel(bpy.types.Panel):
 class XRayObjectPanel(XRayPanel):
     bl_context = 'object'
 
+    @classmethod
+    def poll(cls, context):
+        return (
+            context.active_object
+            and context.active_object.type in {'EMPTY'}
+        )
+
     def draw(self, context):
         layout = self.layout
         data = context.object.xray
         layout.prop(data, 'flags')
-        layout.prop(data, 'options')
         layout.prop(data, 'lodref')
         layout.prop(data, 'userdata')
         layout.prop(data, 'motionrefs')
+
+
+class XRayMeshPanel(XRayPanel):
+    bl_context = 'object'
+
+    @classmethod
+    def poll(cls, context):
+        return (
+            context.active_object
+            and context.active_object.type in {'MESH'}
+        )
+
+    def draw(self, context):
+        layout = self.layout
+        data = context.object.data.xray
+        layout.prop(data, 'flags')
+        layout.prop(data, 'options')
 
 
 class XRayMaterialPanel(XRayPanel):
@@ -74,6 +97,7 @@ class XRayBonePanel(XRayPanel):
 
 classes = [
     XRayObjectPanel
+    , XRayMeshPanel
     , XRayMaterialPanel
     , XRayBonePanel
 ]
