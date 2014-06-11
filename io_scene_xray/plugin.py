@@ -1,4 +1,5 @@
 import bpy
+from bpy_extras import io_utils
 from .xray_inject import inject_init, inject_done
 
 
@@ -45,6 +46,28 @@ class OpImportObject(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
+class OpExportObject(bpy.types.Operator, io_utils.ExportHelper):
+    bl_idname = 'xray_export.object'
+    bl_label = 'Export .object'
+
+    filename_ext = '.object'
+    filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
+
+    def execute(self, context):
+        if not self.filepath:
+            self.report({'ERROR'}, 'No file selected')
+            return {'CANCELLED'}
+        if not context.active_object:
+            self.report({'ERROR'}, 'No object selected')
+            return {'CANCELLED'}
+        if context.active_object.type != 'EMPTY':
+            self.report({'ERROR'}, 'Unsupported object selected')
+            return {'CANCELLED'}
+        from .fmt_object_exp import export_file
+        export_file(context.active_object, self.filepath)
+        return {'FINISHED'}
+
+
 class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
 
@@ -60,15 +83,23 @@ def menu_func_import(self, context):
     self.layout.operator(OpImportObject.bl_idname, text='STALKER (.object)')
 
 
+def menu_func_export(self, context):
+    self.layout.operator(OpExportObject.bl_idname, text='STALKER (.object)')
+
+
 def register():
     bpy.utils.register_class(PluginPreferences)
     bpy.utils.register_class(OpImportObject)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
+    bpy.utils.register_class(OpExportObject)
+    bpy.types.INFO_MT_file_export.append(menu_func_export)
     inject_init()
 
 
 def unregister():
     inject_done()
+    bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    bpy.utils.unregister_class(OpExportObject)
     bpy.utils.unregister_class(OpImportObject)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.utils.unregister_class(PluginPreferences)

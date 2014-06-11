@@ -48,3 +48,27 @@ class ChunkedReader:
 
     def nextf(self, expected_cid, fmt):
         return struct.unpack(fmt, self.next(expected_cid))
+
+
+class PackedWriter():
+    def __init__(self):
+        self.data = bytearray()
+
+    def putf(self, fmt, *args):
+        self.data += struct.pack(fmt, *args)
+        return self
+
+    def puts(self, s):
+        self.data += s.encode('cp1251')
+        self.data += b'\x00'
+        return self
+
+
+class ChunkedWriter():
+    def __init__(self):
+        self.data = bytearray()
+
+    def put(self, cid, w):
+        self.data += struct.pack('II', cid, len(w.data))
+        self.data += w.data
+        return self
