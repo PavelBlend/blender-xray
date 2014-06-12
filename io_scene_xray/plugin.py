@@ -4,18 +4,12 @@ from .xray_inject import inject_init, inject_done
 
 
 #noinspection PyUnusedLocal
-class OpImportObject(bpy.types.Operator):
+class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
     bl_label = 'Import .object'
     bl_description = 'Imports source STALKER model data'
     bl_options = {'UNDO'}
 
-    # Properties used by the file browser
-    filepath = bpy.props.StringProperty(
-        name='File path', description='File filepath used for importing the .object file',
-        maxlen=1024, default=''
-    )
-    filter_folder = bpy.props.BoolProperty(name='Filter folders', description='', default=True, options={'HIDDEN'})
     filter_glob = bpy.props.StringProperty(default='*.object', options={'HIDDEN'})
 
     def execute(self, context):
@@ -39,11 +33,6 @@ class OpImportObject(bpy.types.Operator):
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(self.properties.filepath))
             return {'CANCELLED'}
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
 
 
 class OpExportObject(bpy.types.Operator, io_utils.ExportHelper):
