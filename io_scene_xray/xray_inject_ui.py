@@ -81,9 +81,17 @@ class XRayBonePanel(XRayPanel):
         box = layout.box()
         box.prop(data.ikjoint, 'type', 'joint type')
         bx = box.box();
-        bx.prop(data.ikjoint, 'limits')
-        bx.prop(data.ikjoint, 'lim_spr', 'spring')
-        bx.prop(data.ikjoint, 'lim_dmp', 'damping')
+        bx.prop(data.ikjoint, 'lim_x', 'limit X')
+        bx.prop(data.ikjoint, 'lim_x_spr', 'spring')
+        bx.prop(data.ikjoint, 'lim_x_dmp', 'damping')
+        bx = box.box();
+        bx.prop(data.ikjoint, 'lim_y', 'limit Y')
+        bx.prop(data.ikjoint, 'lim_y_spr', 'spring')
+        bx.prop(data.ikjoint, 'lim_y_dmp', 'damping')
+        bx = box.box();
+        bx.prop(data.ikjoint, 'lim_z', 'limit Z')
+        bx.prop(data.ikjoint, 'lim_z_spr', 'spring')
+        bx.prop(data.ikjoint, 'lim_z_dmp', 'damping')
         box.prop(data.ikjoint, 'spring')
         box.prop(data.ikjoint, 'damping')
         box = layout.box()

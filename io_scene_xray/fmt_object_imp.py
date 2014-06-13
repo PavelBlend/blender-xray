@@ -202,9 +202,12 @@ def _import_bone(cx, cr, bpy_armature, bonemat):
         elif cid == Chunks.Bone.IK_JOINT:
             pr = PackedReader(data)
             xray.ikjoint.type = str(pr.getf('I')[0])
-            xray.ikjoint.limits = pr.getf('fff')
-            xray.ikjoint.lim_spr = pr.getf('f')[0]
-            xray.ikjoint.lim_dmp = pr.getf('f')[0]
+            xray.ikjoint.lim_x = pr.getf('ff')
+            xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp = pr.getf('ff')
+            xray.ikjoint.lim_y = pr.getf('ff')
+            xray.ikjoint.lim_y_spr, xray.ikjoint.lim_y_dmp = pr.getf('ff')
+            xray.ikjoint.lim_z = pr.getf('ff')
+            xray.ikjoint.lim_z_spr, xray.ikjoint.lim_z_dmp = pr.getf('ff')
             xray.ikjoint.spring = pr.getf('f')[0]
             xray.ikjoint.damping = pr.getf('f')[0]
         elif cid == Chunks.Bone.MASS_PARAMS:
