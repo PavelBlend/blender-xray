@@ -83,6 +83,8 @@ def _export_mesh(bpy_obj, cw):
         ff = [f]
         for f in ff:
             for e in f.edges:
+                if not e.smooth:
+                    continue
                 for lf in e.link_faces:
                     if fsg.get(lf) is None:
                         fsg[lf] = sg
