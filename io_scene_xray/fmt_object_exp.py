@@ -147,6 +147,13 @@ def _export_main(bpy_obj, cw):
         sfw.putf('I', 0x112).putf('I', 1)
     cw.put(Chunks.Object.SURFACES2, sfw)
 
+    if xr.userdata:
+        cw.put(Chunks.Object.USERDATA, PackedWriter().puts(xr.userdata))
+    if xr.lodref:
+        cw.put(Chunks.Object.LOD_REF, PackedWriter().puts(xr.lodref))
+    if xr.motionrefs:
+        cw.put(Chunks.Object.MOTION_REFS, PackedWriter().puts(xr.motionrefs))
+
 
 def _export(bpy_obj, cw):
     w = ChunkedWriter()
