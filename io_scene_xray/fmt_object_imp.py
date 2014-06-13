@@ -188,7 +188,7 @@ def _import_bone(cx, cr, bpy_armature, bonemat):
             xray.gamemtl = PackedReader(data).gets()
         elif cid == Chunks.Bone.SHAPE:
             pr = PackedReader(data)
-            xray.shape.type = pr.getf('H')[0]
+            xray.shape.type = str(pr.getf('H')[0])
             xray.shape.flags = pr.getf('H')[0]
             xray.shape.box_rot = pr.getf('fffffffff')
             xray.shape.box_trn = pr.getf('fff')
@@ -201,7 +201,7 @@ def _import_bone(cx, cr, bpy_armature, bonemat):
             xray.shape.cyl_rad = pr.getf('f')[0]
         elif cid == Chunks.Bone.IK_JOINT:
             pr = PackedReader(data)
-            xray.ikjoint.type = pr.getf('I')[0]
+            xray.ikjoint.type = str(pr.getf('I')[0])
             xray.ikjoint.limits = pr.getf('fff')
             xray.ikjoint.lim_spr = pr.getf('f')[0]
             xray.ikjoint.lim_dmp = pr.getf('f')[0]

@@ -39,7 +39,11 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         torque = bpy.props.FloatProperty()
 
     class ShapeProperties(bpy.types.PropertyGroup):
-        type = bpy.props.IntProperty()
+        type = bpy.props.EnumProperty(items=(
+            ('0', 'None', ''),
+            ('1', 'Box', ''),
+            ('2', 'Sphere', ''),
+            ('3', 'Cylinder', '')))
         flags = bpy.props.IntProperty()
         box_rot = bpy.props.FloatVectorProperty(size=9)
         box_trn = bpy.props.FloatVectorProperty()
@@ -52,7 +56,13 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         cyl_rad = bpy.props.FloatProperty()
 
     class IKJointProperties(bpy.types.PropertyGroup):
-        type = bpy.props.IntProperty()
+        type = bpy.props.EnumProperty(items=(
+            ('0', 'Rigid', ''),
+            ('1', 'Cloth', ''),
+            ('2', 'Joint', ''),
+            ('3', 'Wheel', ''),
+            ('4', 'None', ''),
+            ('5', 'Slider', '')))
         limits = bpy.props.FloatVectorProperty()
         lim_spr = bpy.props.FloatProperty()
         lim_dmp = bpy.props.FloatProperty()
