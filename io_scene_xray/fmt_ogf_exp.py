@@ -4,7 +4,7 @@ import io
 import math
 import mathutils
 from .xray_io import ChunkedWriter, PackedWriter
-from .fmt_ogf import Chunks
+from .fmt_ogf import Chunks, ModelType, VertexFormat
 
 
 def calculate_bbox(bpy_obj):
@@ -64,15 +64,15 @@ def _export_child(bpy_obj, cw):
 
     bbox = calculate_bbox(bpy_obj)
     bsph = calculate_bsphere(bpy_obj)
-    cw.put(Chunks.Ogf.HEADER, PackedWriter()
+    cw.put(Chunks.HEADER, PackedWriter()
            .putf('B', 4)  # ogf version
-           .putf('B', 5)  # model type
+           .putf('B', ModelType.SKELETON_GEOMDEF_ST)
            .putf('H', 0)  # shader id
            .putf('fff', *bbox[0]).putf('fff', *bbox[1])
            .putf('fff', *bsph[0]).putf('f', bsph[1]))
 
     m = bpy_obj.data.materials[0]
-    cw.put(0x02, PackedWriter()
+    cw.put(Chunks.TEXTURE, PackedWriter()
            .puts(m.active_texture.name)
            .puts(m.xray.eshader))
 
@@ -103,6 +103,7 @@ def _export_child(bpy_obj, cw):
 
     pw = PackedWriter()
     if vwmx == 1:
+        pw.putf('II', VertexFormat.FVF_1L, len(vertices))
         for v in vertices:
             vw = bm.verts[v[0]][bml_vw]
             pw.putf('fff', *v[1])
@@ -114,7 +115,7 @@ def _export_child(bpy_obj, cw):
     else:
         if vwmx != 2:
             print('warning: vwmx=%i' % vwmx)
-        pw.putf('II', 0x240e3300, len(vertices))
+        pw.putf('II', VertexFormat.FVF_2L, len(vertices))
         for v in vertices:
             vw = bm.verts[v[0]][bml_vw]
             if len(vw) > 2:
@@ -142,26 +143,26 @@ def _export_child(bpy_obj, cw):
             pw.putf('fff', *v[4])
             pw.putf('f', bw)
             pw.putf('ff', *v[5])
-    cw.put(0x3, pw)
+    cw.put(Chunks.VERTICES, pw)
 
     pw = PackedWriter()
     pw.putf('I', 3 * len(indices))
     for f in indices:
         pw.putf('HHH', *f)
-    cw.put(0x4, pw)
+    cw.put(Chunks.INDICES, pw)
 
 
 def _export(bpy_obj, cw):
     bbox = calculate_bbox(bpy_obj)
     bsph = calculate_bsphere(bpy_obj)
-    cw.put(Chunks.Ogf.HEADER, PackedWriter()
+    cw.put(Chunks.HEADER, PackedWriter()
            .putf('B', 4)  # ogf version
-           .putf('B', 3)  # model type
+           .putf('B', ModelType.SKELETON_ANIM)
            .putf('H', 0)  # shader id
            .putf('fff', *bbox[0]).putf('fff', *bbox[1])
            .putf('fff', *bsph[0]).putf('f', bsph[1]))
 
-    cw.put(0x12, PackedWriter()
+    cw.put(Chunks.S_DESC, PackedWriter()
            .puts(bpy_obj.name)
            .puts('blender')
            .putf('III', 0, 0, 0))
@@ -180,7 +181,7 @@ def _export(bpy_obj, cw):
         _export_child(c, mw)
         ccw.put(idx, mw)
         idx += 1
-    cw.put(0x09, ccw)
+    cw.put(Chunks.CHILDREN, ccw)
 
     pw = PackedWriter()
     pw.putf('I', len(bones))
@@ -191,12 +192,12 @@ def _export(bpy_obj, cw):
         pw.putf('fffffffff', *xr.shape.box_rot)
         pw.putf('fff', *xr.shape.box_trn)
         pw.putf('fff', *xr.shape.box_hsz)
-    cw.put(0xd, pw)
+    cw.put(Chunks.S_BONE_NAMES, pw)
 
     pw = PackedWriter()
     for b in bones:
         xr = b.xray
-        pw.putf('I', 0x1)
+        pw.putf('I', 0x1)  # version
         pw.puts(xr.gamemtl)
         pw.putf('H', int(xr.shape.type))
         pw.putf('H', xr.shape.flags)
@@ -223,10 +224,10 @@ def _export(bpy_obj, cw):
         pw.putf('fff', *xr.rotation)
         pw.putf('fff', *xr.position)
         pw.putf('ffff', xr.mass.value, *xr.mass.center)
-    cw.put(0x10, pw)
+    cw.put(Chunks.S_IKDATA, pw)
 
-    cw.put(0x11, PackedWriter().puts(bpy_obj.xray.userdata))
-    cw.put(0x13, PackedWriter().puts(bpy_obj.xray.motionrefs))
+    cw.put(Chunks.S_USERDATA, PackedWriter().puts(bpy_obj.xray.userdata))
+    cw.put(Chunks.S_MOTION_REFS_0, PackedWriter().puts(bpy_obj.xray.motionrefs))
 
 
 def export_file(bpy_obj, fpath):
