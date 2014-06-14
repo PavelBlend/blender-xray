@@ -20,6 +20,7 @@ class Chunks:
         BBOX = 0x1004
         VERTS = 0x1005
         FACES = 0x1006
+        VMAPS0 = 0x1007
         VMREFS = 0x1008
         SFACE = 0x1009
         OPTIONS = 0x1010
