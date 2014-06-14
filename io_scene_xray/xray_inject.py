@@ -81,6 +81,8 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
 
     b_type = bpy.types.Bone
     length = bpy.props.FloatProperty()
+    rotation = bpy.props.FloatVectorProperty()
+    position = bpy.props.FloatVectorProperty()
     gamemtl = bpy.props.StringProperty()
     bpy.utils.register_class(ShapeProperties)
     shape = bpy.props.PointerProperty(type=ShapeProperties)

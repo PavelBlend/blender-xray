@@ -57,6 +57,28 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper):
         return {'FINISHED'}
 
 
+class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper):
+    bl_idname = 'xray_export.ogf'
+    bl_label = 'Export .ogf'
+
+    filename_ext = '.ogf'
+    filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
+
+    def execute(self, context):
+        if not self.filepath:
+            self.report({'ERROR'}, 'No file selected')
+            return {'CANCELLED'}
+        if not context.active_object:
+            self.report({'ERROR'}, 'No object selected')
+            return {'CANCELLED'}
+        if context.active_object.type != 'EMPTY':
+            self.report({'ERROR'}, 'Unsupported object selected')
+            return {'CANCELLED'}
+        from .fmt_ogf_exp import export_file
+        export_file(context.active_object, self.filepath)
+        return {'FINISHED'}
+
+
 class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
 
@@ -76,17 +98,25 @@ def menu_func_export(self, context):
     self.layout.operator(OpExportObject.bl_idname, text='STALKER (.object)')
 
 
+def menu_func_export_ogf(self, context):
+    self.layout.operator(OpExportOgf.bl_idname, text='STALKER (.ogf)')
+
+
 def register():
     bpy.utils.register_class(PluginPreferences)
     bpy.utils.register_class(OpImportObject)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.utils.register_class(OpExportObject)
     bpy.types.INFO_MT_file_export.append(menu_func_export)
+    bpy.utils.register_class(OpExportOgf)
+    bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
     inject_init()
 
 
 def unregister():
     inject_done()
+    bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
+    bpy.utils.unregister_class(OpExportOgf)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
     bpy.utils.unregister_class(OpExportObject)
     bpy.utils.unregister_class(OpImportObject)
