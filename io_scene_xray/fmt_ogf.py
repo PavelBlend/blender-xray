@@ -3,6 +3,7 @@ class Chunks:
     TEXTURE = 0x2
     VERTICES = 0x3
     INDICES = 0x4
+    SWIDATA = 0x6
     CHILDREN = 0x9
     S_BONE_NAMES = 0xd
     S_IKDATA = 0x10
