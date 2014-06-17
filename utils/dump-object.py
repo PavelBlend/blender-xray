@@ -207,6 +207,48 @@ def dump_object(cr, out):
             out('  moder:', pr.gets())
             out('  mtime:', time.ctime(pr.getf('I')[0]))
             out('}')
+        elif cid == Chunks.Object.MOTIONS:
+            out('motions: [{')
+            for _ in range(pr.getf('I')[0]):
+                if _: out('}, {')
+                out('  name:', pr.gets())
+                out('  range:', pr.getf('II'))
+                out('  fps:', pr.getf('f')[0])
+                ver = pr.getf('H')[0]
+                out('  version:', ver)
+                out('  flags:', pr.getf('B')[0])
+                out('  bone_or_part:', pr.getf('H')[0])
+                out('  speed:', pr.getf('f')[0])
+                out('  accrue:', pr.getf('f')[0])
+                out('  falloff:', pr.getf('f')[0])
+                out('  power:', pr.getf('f')[0])
+                oout('bone_motions: [{')
+                for _1 in range(pr.getf('H')[0]):
+                    if _1: oout('}, {')
+                    oout('  bone:', pr.gets())
+                    oout('  flags:', pr.getf('B')[0])
+                    oout('  envelopes: [{')
+                    for _2 in range(6):
+                        if _2: oout('  }, {')
+                        oout('    behaviours:', pr.getf('BB'))
+                        oout('    keys: [{')
+                        for _3 in range(pr.getf('H')[0]):
+                            if _3: oout('    }, {')
+                            oout('      value:', pr.getf('f')[0])
+                            oout('      time:', pr.getf('f')[0])
+                            shape = pr.getf('B')[0]
+                            oout('      shape:', shape)
+                            if shape != 4:
+                                def rfq16(pr, mn, mx):
+                                    return pr.getf('H')[0] * (mx - mn) / 65536 + mn
+                                oout('      tension:', rfq16(pr, -32, 32))
+                                oout('      continuity:', rfq16(pr, -32, 32))
+                                oout('      bias:', rfq16(pr, -32, 32))
+                                oout('      params:', [rfq16(pr, -32, 32) for _4 in range(4)])
+                        oout('    }]')
+                    oout('  }]')
+                oout('}]')
+            out('}]')
         else:
             out('UNKNOWN OBJ CHUNK: {:#x}'.format(cid))
 
