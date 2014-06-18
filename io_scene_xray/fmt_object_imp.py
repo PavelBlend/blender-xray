@@ -151,7 +151,16 @@ def _import_mesh(cx, cr, parent):
     return bo_mesh
 
 
-def _import_bone(cx, cr, bpy_armature, bonemat):
+def _get_fake_bone_shape():
+    r = bpy.data.objects.get('fake_bone_shape')
+    if r is None:
+        r = bpy.data.objects.new('fake_bone_shape', None)
+        r.empty_draw_size = 0
+    return r
+
+
+def _import_bone(cx, cr, bpy_arm_obj, bonemat):
+    bpy_armature = bpy_arm_obj.data
     ver = cr.nextf(Chunks.Bone.VERSION, 'H')[0]
     if ver != 0x2:
         raise Exception('unsupported BONE format version: {}'.format(ver))
@@ -171,10 +180,12 @@ def _import_bone(cx, cr, bpy_armature, bonemat):
         if parent:
             bpy_bone.parent = bpy_armature.edit_bones[parent]
         import mathutils
-        mat = bonemat.get(parent, mathutils.Matrix.Identity(4)) * mathutils.Matrix.Translation(offset) * mathutils.Euler(rotate, 'ZXY').to_matrix().to_4x4()
+        mr = mathutils.Matrix.Rotation(rotate[1], 4, 'Y') * mathutils.Matrix.Rotation(rotate[0], 4, 'X') * mathutils.Matrix.Rotation(rotate[2], 4, 'Z')
+        mat = bonemat.get(parent, mathutils.Matrix.Identity(4)) * mathutils.Matrix.Translation(offset) * mr
         bonemat[name] = mat
-        bpy_bone.head = mat * mathutils.Vector()
-        bpy_bone.tail = bpy_bone.head + mathutils.Vector([0, 0.1, 0])
+        bpy_bone.tail.x = 0.05
+        bpy_bone.transform(mat, roll=True)
+        name = bpy_bone.name
     finally:
         cx.bpy.ops.object.mode_set(mode='OBJECT')
     xray = bpy_armature.bones[name].xray
@@ -285,7 +296,7 @@ def _import_main(cx, cr):
                 cx.bpy.context.scene.objects.active = bpy_arm_obj
             bonemat = {}
             for (_, bdat) in ChunkedReader(data):
-                _import_bone(cx, ChunkedReader(bdat), bpy_armature, bonemat)
+                _import_bone(cx, ChunkedReader(bdat), bpy_arm_obj, bonemat)
             cx.bpy.ops.object.mode_set(mode='EDIT')
             try:
                 import mathutils
@@ -298,21 +309,34 @@ def _import_main(cx, cr):
                     if bc is None:
                         bone_childrens[p.name] = bc = []
                     bc.append(b)
+                fake_names = []
                 for b in bpy_armature.edit_bones:
                     bc = bone_childrens.get(b.name)
-                    if not bc:
-                        p = b.parent
-                        if p:
-                            b.tail = b.head + (b.head - p.head).normalized() * 0.01
-                        else:
-                            b.tail = b.head + mathutils.Vector([0, 0.01, 0])
-                    else:
+                    if bc:
                         avg = mathutils.Vector()
                         for c in bc:
                             avg += c.head
-                        b.tail = avg / len(bc)
+                        b.length = max(b.length, (avg / len(bc) - b.head).dot(b.vector.normalized()))
+                        for c in bc:
+                            fb = bpy_armature.edit_bones.new(name=c.name+'.fake')
+                            fb.use_deform = False
+                            fb.hide = True
+                            fb.parent = b
+                            fb.use_connect = True
+                            fb.tail = c.head
+                            c.parent = fb
+                            c.use_connect = True
+                            fake_names.append(fb.name)
             finally:
                 cx.bpy.ops.object.mode_set(mode='OBJECT')
+            for n in fake_names:
+                b = bpy_arm_obj.pose.bones.get(n)
+                if b:
+                    b.lock_ik_x = b.lock_ik_y = b.lock_ik_z = True
+                    b.custom_shape = _get_fake_bone_shape()
+                b = bpy_armature.bones.get(n)
+                if b:
+                    b.hide = True
             for o in meshes:
                 bpy_armmod = o.modifiers.new(name='Armature', type='ARMATURE')
                 bpy_armmod.object = bpy_arm_obj
