@@ -183,8 +183,14 @@ def _import_bone(cx, cr, bpy_arm_obj, bonemat):
         mr = mathutils.Matrix.Rotation(rotate[1], 4, 'Y') * mathutils.Matrix.Rotation(rotate[0], 4, 'X') * mathutils.Matrix.Rotation(rotate[2], 4, 'Z')
         mat = bonemat.get(parent, mathutils.Matrix.Identity(4)) * mathutils.Matrix.Translation(offset) * mr
         bonemat[name] = mat
-        bpy_bone.tail.x = 0.05
-        bpy_bone.transform(mat, roll=True)
+        bpy_bone.tail.y = 0.05
+        xa = bpy_bone.x_axis
+        bpy_bone.head = mat * bpy_bone.head
+        bpy_bone.tail = mat * bpy_bone.tail
+        va = bpy_bone.x_axis
+        vr = (mat.to_3x3() * xa).normalized()
+        a = math.atan2(vr.cross(va).dot(bpy_bone.y_axis), vr.dot(va))
+        bpy_bone.roll -= a
         name = bpy_bone.name
     finally:
         cx.bpy.ops.object.mode_set(mode='OBJECT')
