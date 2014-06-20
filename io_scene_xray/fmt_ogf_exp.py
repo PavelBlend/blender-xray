@@ -5,6 +5,7 @@ import math
 import mathutils
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_ogf import Chunks, ModelType, VertexFormat
+from .utils import is_fake_bone, find_bone_real_parent
 
 
 def calculate_bbox(bpy_obj):
@@ -174,6 +175,8 @@ def _export(bpy_obj, cw):
     for c in bpy_obj.children:
         if c.type == 'ARMATURE':
             for b in c.data.bones:
+                if is_fake_bone(b):
+                    continue
                 bones.append((b, c))
         if c.type != 'MESH':
             continue
@@ -186,8 +189,9 @@ def _export(bpy_obj, cw):
     pw = PackedWriter()
     pw.putf('I', len(bones))
     for b, _ in bones:
+        b_parent = find_bone_real_parent(b)
         pw.puts(b.name)
-        pw.puts(b.parent.name if b.parent else '')
+        pw.puts(b_parent.name if b_parent else '')
         xr = b.xray
         pw.putf('fffffffff', *xr.shape.box_rot)
         pw.putf('fff', *xr.shape.box_trn)
