@@ -174,7 +174,7 @@ def _export(bpy_obj, cw):
     for c in bpy_obj.children:
         if c.type == 'ARMATURE':
             for b in c.data.bones:
-                bones.append(b)
+                bones.append((b, c))
         if c.type != 'MESH':
             continue
         mw = ChunkedWriter()
@@ -185,7 +185,7 @@ def _export(bpy_obj, cw):
 
     pw = PackedWriter()
     pw.putf('I', len(bones))
-    for b in bones:
+    for b, _ in bones:
         pw.puts(b.name)
         pw.puts(b.parent.name if b.parent else '')
         xr = b.xray
@@ -195,7 +195,8 @@ def _export(bpy_obj, cw):
     cw.put(Chunks.S_BONE_NAMES, pw)
 
     pw = PackedWriter()
-    for b in bones:
+    for b, o in bones:
+        bp = o.pose.bones[b.name]
         xr = b.xray
         pw.putf('I', 0x1)  # version
         pw.puts(xr.gamemtl)
@@ -211,11 +212,11 @@ def _export(bpy_obj, cw):
         pw.putf('f', xr.shape.cyl_hgh)
         pw.putf('f', xr.shape.cyl_rad)
         pw.putf('I', int(xr.ikjoint.type))
-        pw.putf('ff', *xr.ikjoint.lim_x)
+        pw.putf('ff', bp.ik_min_x, bp.ik_max_x)
         pw.putf('ff', xr.ikjoint.lim_x_spr, xr.ikjoint.lim_x_dmp)
-        pw.putf('ff', *xr.ikjoint.lim_y)
+        pw.putf('ff', bp.ik_min_y, bp.ik_max_y)
         pw.putf('ff', xr.ikjoint.lim_y_spr, xr.ikjoint.lim_y_dmp)
-        pw.putf('ff', *xr.ikjoint.lim_z)
+        pw.putf('ff', bp.ik_min_z, bp.ik_max_z)
         pw.putf('ff', xr.ikjoint.lim_z_spr, xr.ikjoint.lim_z_dmp)
         pw.putf('ff', xr.ikjoint.spring, xr.ikjoint.damping)
         pw.putf('I', xr.ikflags)

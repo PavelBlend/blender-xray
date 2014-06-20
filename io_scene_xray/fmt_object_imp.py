@@ -220,12 +220,16 @@ def _import_bone(cx, cr, bpy_arm_obj, bonemat):
             xray.shape.cyl_rad = pr.getf('f')[0]
         elif cid == Chunks.Bone.IK_JOINT:
             pr = PackedReader(data)
+            bp = bpy_arm_obj.pose.bones[name]
             xray.ikjoint.type = str(pr.getf('I')[0])
-            xray.ikjoint.lim_x = pr.getf('ff')
+            bp.use_ik_limit_x = True
+            bp.ik_min_x, bp.ik_max_x = pr.getf('ff')
             xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp = pr.getf('ff')
-            xray.ikjoint.lim_y = pr.getf('ff')
+            bp.use_ik_limit_y = True
+            bp.ik_min_y, bp.ik_max_y = pr.getf('ff')
             xray.ikjoint.lim_y_spr, xray.ikjoint.lim_y_dmp = pr.getf('ff')
-            xray.ikjoint.lim_z = pr.getf('ff')
+            bp.use_ik_limit_z = True
+            bp.ik_min_z, bp.ik_max_z = pr.getf('ff')
             xray.ikjoint.lim_z_spr, xray.ikjoint.lim_z_dmp = pr.getf('ff')
             xray.ikjoint.spring = pr.getf('f')[0]
             xray.ikjoint.damping = pr.getf('f')[0]
