@@ -196,8 +196,6 @@ def _import_bone(cx, cr, bpy_arm_obj, bonemat):
         cx.bpy.ops.object.mode_set(mode='OBJECT')
     xray = bpy_armature.bones[name].xray
     xray.length = length
-    xray.rotation = rotate
-    xray.position = offset
     for (cid, data) in cr:
         if cid == Chunks.Bone.DEF:
             s = PackedReader(data).gets()

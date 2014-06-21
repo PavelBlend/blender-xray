@@ -226,8 +226,13 @@ def _export(bpy_obj, cw):
         pw.putf('I', xr.ikflags)
         pw.putf('ff', xr.breakf.force, xr.breakf.torque)
         pw.putf('f', xr.friction)
-        pw.putf('fff', *xr.rotation)
-        pw.putf('fff', *xr.position)
+        tm = b.matrix_local
+        b_parent = find_bone_real_parent(b)
+        if b_parent:
+            tm = b_parent.matrix_local.inverted() * tm
+        e = tm.to_euler('ZXY')
+        pw.putf('fff', e.x, e.y, e.z)
+        pw.putf('fff', *tm.to_translation())
         pw.putf('ffff', xr.mass.value, *xr.mass.center)
     cw.put(Chunks.S_IKDATA, pw)
 
