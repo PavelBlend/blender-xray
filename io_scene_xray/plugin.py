@@ -12,6 +12,11 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
 
     filter_glob = bpy.props.StringProperty(default='*.object', options={'HIDDEN'})
 
+    shaped_bones = bpy.props.BoolProperty(
+        name='custom shapes for bones',
+        description='use custom shapes for imported bones'
+    )
+
     def execute(self, context):
         addon_prefs = context.user_preferences.addons['io_scene_xray'].preferences
         if not addon_prefs.gamedata_folder:
@@ -24,6 +29,7 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
                 report=self.report,
                 gamedata=addon_prefs.gamedata_folder,
                 fpath=self.properties.filepath,
+                op=self,
                 bpy=bpy
             ))
         else:

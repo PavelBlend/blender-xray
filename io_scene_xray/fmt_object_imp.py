@@ -8,12 +8,13 @@ from .fmt_object import Chunks
 
 
 class ImportContext:
-    def __init__(self, fpath, gamedata, report, bpy=None):
+    def __init__(self, fpath, gamedata, report, op, bpy=None):
         self.file_path = fpath
         self.object_name = os.path.basename(fpath.lower())
         self.report = report
         self.bpy = bpy
         self.gamedata_folder = gamedata
+        self.op = op
         self.__images = {}
 
     def image(self, relpath):
@@ -159,6 +160,15 @@ def _get_fake_bone_shape():
     return r
 
 
+def _get_real_bone_shape():
+    r = bpy.data.objects.get('real_bone_shape')
+    if r is None:
+        r = bpy.data.objects.new('real_bone_shape', None)
+        r.empty_draw_type = 'SPHERE'
+        r.empty_draw_size = 0.3
+    return r
+
+
 def _import_bone(cx, cr, bpy_arm_obj, bonemat):
     bpy_armature = bpy_arm_obj.data
     ver = cr.nextf(Chunks.Bone.VERSION, 'H')[0]
@@ -194,6 +204,9 @@ def _import_bone(cx, cr, bpy_arm_obj, bonemat):
         name = bpy_bone.name
     finally:
         cx.bpy.ops.object.mode_set(mode='OBJECT')
+    bp = bpy_arm_obj.pose.bones[name]
+    if cx.op.shaped_bones:
+        bp.custom_shape = _get_real_bone_shape()
     xray = bpy_armature.bones[name].xray
     xray.length = length
     for (cid, data) in cr:
@@ -218,7 +231,6 @@ def _import_bone(cx, cr, bpy_arm_obj, bonemat):
             xray.shape.cyl_rad = pr.getf('f')[0]
         elif cid == Chunks.Bone.IK_JOINT:
             pr = PackedReader(data)
-            bp = bpy_arm_obj.pose.bones[name]
             xray.ikjoint.type = str(pr.getf('I')[0])
             bp.use_ik_limit_x = True
             bp.ik_min_x, bp.ik_max_x = pr.getf('ff')
@@ -321,10 +333,11 @@ def _import_main(cx, cr):
                 for b in bpy_armature.edit_bones:
                     bc = bone_childrens.get(b.name)
                     if bc:
-                        avg = mathutils.Vector()
-                        for c in bc:
-                            avg += c.head
-                        b.length = max(b.length, (avg / len(bc) - b.head).dot(b.vector.normalized()))
+                        if cx.op.shaped_bones:
+                            avg = mathutils.Vector()
+                            for c in bc:
+                                avg += c.head
+                            b.length = max(b.length, (avg / len(bc) - b.head).dot(b.vector.normalized()))
                         for c in bc:
                             fb = bpy_armature.edit_bones.new(name=c.name+'.fake')
                             fb.use_deform = False
