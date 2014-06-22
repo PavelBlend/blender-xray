@@ -23,7 +23,10 @@ class XRayObjectPanel(XRayPanel):
     def draw(self, context):
         layout = self.layout
         data = context.object.xray
-        layout.prop(data, 'flags')
+        row = layout.row(align=True)
+        row.prop(data, 'flags_dynamic', text='Dynamic', toggle=True)
+        row.prop(data, 'flags_progressive', text='Progressive', toggle=True)
+        row.prop(data, 'flags_other', text='Other')
         layout.prop(data, 'lodref')
         layout.prop(data, 'userdata')
         layout.prop(data, 'motionrefs')
@@ -42,7 +45,9 @@ class XRayMeshPanel(XRayPanel):
     def draw(self, context):
         layout = self.layout
         data = context.object.data.xray
-        layout.prop(data, 'flags')
+        r = layout.row(align=True)
+        r.prop(data, 'flags_valid', text='Valid', toggle=True)
+        r.prop(data, 'flags_other', text='Other')
         layout.prop(data, 'options')
 
 
@@ -52,7 +57,7 @@ class XRayMaterialPanel(XRayPanel):
     def draw(self, context):
         layout = self.layout
         data = context.object.active_material.xray
-        layout.prop(data, 'flags')
+        layout.prop(data, 'flags_twosided', 'Two sided', toggle=True)
         layout.prop(data, 'eshader')
         layout.prop(data, 'cshader')
         layout.prop(data, 'gamemtl')
@@ -76,8 +81,11 @@ class XRayBonePanel(XRayPanel):
         layout.prop(data, 'gamemtl')
         box = layout.box()
         box.prop(data.shape, 'type', 'shape type')
-        box.prop(data.shape, 'flags')
-        layout.prop(data, 'ikflags')
+        row = box.row(align=True)
+        row.prop(data.shape, 'flags_nopickable', text='No pickable', toggle=True)
+        row.prop(data.shape, 'flags_nophysics', text='No physics', toggle=True)
+        row.prop(data.shape, 'flags_removeafterbreak', text='Remove after break', toggle=True)
+        row.prop(data.shape, 'flags_nofogcollider', text='No fog collider', toggle=True)
         box = layout.box()
         box.prop(data.ikjoint, 'type', 'joint type')
         bx = box.box();
@@ -94,9 +102,13 @@ class XRayBonePanel(XRayPanel):
         bx.prop(data.ikjoint, 'lim_z_dmp', 'damping')
         box.prop(data.ikjoint, 'spring')
         box.prop(data.ikjoint, 'damping')
-        box = layout.box()
-        box.prop(data.breakf, 'force', 'break force')
-        box.prop(data.breakf, 'torque', 'break torque')
+        if data.ikflags_breakable:
+            box = layout.box()
+            box.prop(data, 'ikflags_breakable', 'Breakable', toggle=True)
+            box.prop(data.breakf, 'force', 'break force')
+            box.prop(data.breakf, 'torque', 'break torque')
+        else:
+            layout.prop(data, 'ikflags_breakable', 'Breakable', toggle=True)
         layout.prop(data, 'friction')
         box = layout.box()
         box.prop(data.mass, 'value', 'mass')

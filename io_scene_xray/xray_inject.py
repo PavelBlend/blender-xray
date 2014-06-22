@@ -9,9 +9,32 @@ class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
     mtime = bpy.props.IntProperty(name='mtime')
 
 
+def gen_flag_prop(mask):
+    def getter(self):
+        return self.flags & mask
+
+    def setter(self, value):
+        self.flags = self.flags | mask if value else self.flags & ~mask
+
+    return bpy.props.BoolProperty(get=getter, set=setter, options={'SKIP_SAVE'})
+
+
+def gen_other_flags_prop(mask):
+    def getter(self):
+        return self.flags & mask
+
+    def setter(self, value):
+        self.flags = (self.flags & ~mask) | (value & mask)
+
+    return bpy.props.IntProperty(get=getter, set=setter, options={'SKIP_SAVE'})
+
+
 class XRayObjectProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Object
     flags = bpy.props.IntProperty(name='flags')
+    flags_dynamic = gen_flag_prop(mask=0x01)
+    flags_progressive = gen_flag_prop(mask=0x02)
+    flags_other = gen_other_flags_prop(mask=~0x03)
     lodref = bpy.props.StringProperty(name='lodref')
     userdata = bpy.props.StringProperty(name='userdata')
     bpy.utils.register_class(XRayObjectRevisionProperties)
@@ -22,12 +45,15 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
 class XRayMeshProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Mesh
     flags = bpy.props.IntProperty(name='flags')
+    flags_valid = gen_flag_prop(mask=0x01)
+    flags_other = gen_other_flags_prop(mask=~0x01)
     options = bpy.props.IntVectorProperty(size=2)
 
 
 class XRayMaterialProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Material
     flags = bpy.props.IntProperty(name='flags')
+    flags_twosided = gen_flag_prop(mask=0x01)
     eshader = bpy.props.StringProperty(name='eshader')
     cshader = bpy.props.StringProperty(name='cshader')
     gamemtl = bpy.props.StringProperty(name='gamemtl')
@@ -45,6 +71,10 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             ('2', 'Sphere', ''),
             ('3', 'Cylinder', '')))
         flags = bpy.props.IntProperty()
+        flags_nopickable = gen_flag_prop(mask=0x1)
+        flags_removeafterbreak = gen_flag_prop(mask=0x2)
+        flags_nophysics = gen_flag_prop(mask=0x4)
+        flags_nofogcollider = gen_flag_prop(mask=0x8)
         box_rot = bpy.props.FloatVectorProperty(size=9)
         box_trn = bpy.props.FloatVectorProperty()
         box_hsz = bpy.props.FloatVectorProperty()
@@ -82,6 +112,11 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
     bpy.utils.register_class(ShapeProperties)
     shape = bpy.props.PointerProperty(type=ShapeProperties)
     ikflags = bpy.props.IntProperty()
+
+    def set_ikflags_breakable(self, value):
+        self.ikflags = self.ikflags | 0x1 if value else self.ikflags & ~0x1
+
+    ikflags_breakable = bpy.props.BoolProperty(get=lambda self: self.ikflags & 0x1, set=set_ikflags_breakable, options={'SKIP_SAVE'})
     bpy.utils.register_class(IKJointProperties)
     ikjoint = bpy.props.PointerProperty(type=IKJointProperties)
     bpy.utils.register_class(BreakProperties)
