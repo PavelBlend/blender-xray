@@ -31,6 +31,7 @@ def gen_other_flags_prop(mask):
 
 class XRayObjectProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Object
+    version = bpy.props.IntProperty()
     flags = bpy.props.IntProperty(name='flags')
     flags_dynamic = gen_flag_prop(mask=0x01)
     flags_progressive = gen_flag_prop(mask=0x02)
@@ -107,6 +108,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         center = bpy.props.FloatVectorProperty()
 
     b_type = bpy.types.Bone
+    version = bpy.props.IntProperty()
     length = bpy.props.FloatProperty()
     gamemtl = bpy.props.StringProperty()
     bpy.utils.register_class(ShapeProperties)

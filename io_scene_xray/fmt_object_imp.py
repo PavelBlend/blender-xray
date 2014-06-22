@@ -9,6 +9,9 @@ from .fmt_object import Chunks
 
 class ImportContext:
     def __init__(self, fpath, gamedata, report, op, bpy=None):
+        from . import bl_info
+        from .utils import version_to_number
+        self.version = version_to_number(*bl_info['version'])
         self.file_path = fpath
         self.object_name = os.path.basename(fpath.lower())
         self.report = report
@@ -208,6 +211,7 @@ def _import_bone(cx, cr, bpy_arm_obj, bonemat):
     if cx.op.shaped_bones:
         bp.custom_shape = _get_real_bone_shape()
     xray = bpy_armature.bones[name].xray
+    xray.version = cx.version
     xray.length = length
     for (cid, data) in cr:
         if cid == Chunks.Bone.DEF:
@@ -267,6 +271,7 @@ def _import_main(cx, cr):
         bpy_obj = cx.bpy.data.objects.new(cx.object_name, None)
         bpy_obj.rotation_euler.x = math.pi / 2
         bpy_obj.scale.z = -1
+        bpy_obj.xray.version = cx.version
         cx.bpy.context.scene.objects.link(bpy_obj)
     else:
         bpy_obj = None
