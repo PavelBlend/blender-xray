@@ -172,7 +172,7 @@ def _get_real_bone_shape():
     return r
 
 
-def _import_bone(cx, cr, bpy_arm_obj, bonemat):
+def _import_bone(cx, cr, bpy_arm_obj, bonemat, renamemap):
     bpy_armature = bpy_arm_obj.data
     ver = cr.nextf(Chunks.Bone.VERSION, 'H')[0]
     if ver != 0x2:
@@ -182,7 +182,7 @@ def _import_bone(cx, cr, bpy_arm_obj, bonemat):
     parent = pr.gets()
     vmap = pr.gets()
     if name != vmap:
-        cx.report({'WARNING'}, 'Not supported yet! bone name({}) != bone vmap({})'.format(name, vmap))
+        renamemap[name] = vmap
     pr = PackedReader(cr.next(Chunks.Bone.BIND_POSE))
     offset = pr.getf('fff')
     rotate = pr.getf('fff')
@@ -277,6 +277,7 @@ def _import_main(cx, cr):
         bpy_obj = None
 
     bpy_armature = None
+    bones_renamemap = {}
     meshes = []
     for (cid, data) in cr:
         if cid == Chunks.Object.MESHES:
@@ -322,7 +323,7 @@ def _import_main(cx, cr):
                 cx.bpy.context.scene.objects.active = bpy_arm_obj
             bonemat = {}
             for (_, bdat) in ChunkedReader(data):
-                _import_bone(cx, ChunkedReader(bdat), bpy_arm_obj, bonemat)
+                _import_bone(cx, ChunkedReader(bdat), bpy_arm_obj, bonemat, bones_renamemap)
             cx.bpy.ops.object.mode_set(mode='EDIT')
             try:
                 import mathutils
@@ -403,6 +404,8 @@ def _import_main(cx, cr):
             bpy_obj.xray.motionrefs = PackedReader(data).gets()
         else:
             warn_imknown_chunk(cid, 'main')
+    for n, nn in bones_renamemap.items():
+        bpy_armature.bones[n].name = nn
     for m in meshes:
         for p, u in zip(m.data.polygons, m.data.uv_textures[0].data):
             bmat = m.data.materials[p.material_index]
