@@ -315,6 +315,7 @@ def _import_main(cx, cr):
         elif cid == Chunks.Object.BONES1:
             if cx.bpy and (bpy_armature is None):
                 bpy_armature = cx.bpy.data.armatures.new(cx.object_name)
+                bpy_armature.use_auto_ik = True
                 bpy_arm_obj = cx.bpy.data.objects.new(cx.object_name, bpy_armature)
                 bpy_arm_obj.parent = bpy_obj
                 cx.bpy.context.scene.objects.link(bpy_arm_obj)
