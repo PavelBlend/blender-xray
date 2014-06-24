@@ -34,15 +34,15 @@ def dump_ogf4_m05(cr, out):
     pr = PackedReader(cr.next(Chunks.VERTICES))
     out('vertices: {')
     vf, vc = pr.getf('II')
-    if vf == VertexFormat.FVF_1L:
-        out('  format:', 'fvf_2l')
+    if vf == VertexFormat.FVF_1L or vf == VertexFormat.FVF_1L_CS:
+        out('  format:', 'fvf_2l' if vf == VertexFormat.FVF_1L else 'fvf_1l_cs')
         out('  data: [')
         for _ in range(vc):
             out('   {v: %s, n: %s, tg: %s, bn: %s, tx: %s, b: %i' % (
                 pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('ff'), pr.getf('I')[0]))
         out('  ]')
-    elif vf == VertexFormat.FVF_2L:
-        out('  format:', 'fvf_2l')
+    elif vf == VertexFormat.FVF_2L or vf == VertexFormat.FVF_2L_CS:
+        out('  format:', 'fvf_2l' if vf == VertexFormat.FVF_2L else 'fvf_2l_cs')
         out('  data: [')
         for _ in range(vc):
             out('   {b: %s, v: %s, n: %s, tg: %s, bn: %s, bw: %f, tx: %s' % (
