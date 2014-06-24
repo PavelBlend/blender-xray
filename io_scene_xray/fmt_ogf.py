@@ -23,3 +23,4 @@ class VertexFormat:
     FVF_1L_CS = 0x1
     FVF_2L_CS = 0x2
     FVF_3L_CS = 0x3
+    FVF_4L_CS = 0x4
