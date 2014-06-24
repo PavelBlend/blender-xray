@@ -173,6 +173,8 @@ def dump_ogf4(pr, cr, out):
         dump_ogf4_m04(cr, out)
     elif model_type == 5:
         dump_ogf4_m05(cr, out)
+    elif model_type == 10:
+        dump_ogf4_m10(cr, out)
     else:
         raise Exception('unsupported OGF model type: %i' % model_type)
 
