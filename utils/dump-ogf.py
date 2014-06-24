@@ -48,6 +48,13 @@ def dump_ogf4_m05(cr, out):
             out('   {b: %s, v: %s, n: %s, tg: %s, bn: %s, bw: %f, tx: %s' % (
                 pr.getf('HH'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('f')[0], pr.getf('ff')))
         out('  ]')
+    elif vf == VertexFormat.FVF_3L_CS:
+        out('  format:', 'fvf_3l_cs')
+        out('  data: [')
+        for _ in range(vc):
+            out('   {b: %s, v: %s, n: %s, tg: %s, bn: %s, bw: %s, tx: %s' % (
+                pr.getf('HHH'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('ff'), pr.getf('ff')))
+        out('  ]')
     else:
         raise Exception('unexpected vertex format: {:#x}'.format(vf))
     out('}')
