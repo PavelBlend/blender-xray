@@ -129,5 +129,5 @@ def inject_ui_init():
 
 
 def inject_ui_done():
-    for c in classes.remove():
+    for c in reversed(classes):
         bpy.utils.unregister_class(c)

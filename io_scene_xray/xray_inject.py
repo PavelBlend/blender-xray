@@ -145,6 +145,6 @@ def inject_init():
 
 def inject_done():
     inject_ui_done()
-    for c in classes.reverse():
+    for c in reversed(classes):
         del c.b_type.xray
         bpy.utils.unregister_class(c)
