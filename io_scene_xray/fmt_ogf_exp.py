@@ -58,13 +58,20 @@ def max_two(dic):
 
 def _export_child(bpy_obj, cw):
     bm = bmesh.new()
-    bm.from_object(bpy_obj, bpy.context.scene)
+    armmods = [m for m in bpy_obj.modifiers if m.type == 'ARMATURE' and m.show_viewport]
+    try:
+        for m in armmods:
+            m.show_viewport = False
+        bm.from_object(bpy_obj, bpy.context.scene)
+        bbox = calculate_bbox(bpy_obj)
+        bsph = calculate_bsphere(bpy_obj)
+    finally:
+        for m in armmods:
+            m.show_viewport = True
     bmesh.ops.triangulate(bm, faces=bm.faces)
     bpy_data = bpy.data.meshes.new('.export-ogf')
     bm.to_mesh(bpy_data)
 
-    bbox = calculate_bbox(bpy_obj)
-    bsph = calculate_bsphere(bpy_obj)
     cw.put(Chunks.HEADER, PackedWriter()
            .putf('B', 4)  # ogf version
            .putf('B', ModelType.SKELETON_GEOMDEF_ST)
