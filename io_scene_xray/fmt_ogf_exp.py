@@ -26,16 +26,40 @@ def calculate_bbox(bpy_obj):
 
 
 def calculate_bsphere(bpy_obj):
-    bb = calculate_bbox(bpy_obj)
-    c = (
-        (bb[0][0] + bb[1][0]) / 2,
-        (bb[0][1] + bb[1][1]) / 2,
-        (bb[0][2] + bb[1][2]) / 2
-    )
-    dx = bb[0][0] - c[0]
-    dy = bb[0][1] - c[1]
-    dz = bb[0][2] - c[2]
-    return c, math.sqrt(dx * dx + dy * dy + dz * dz)
+    def calc_sph(bb, vertices, offs):
+        mn = mathutils.Vector((bb[0][0], bb[0][1], bb[0][2]))
+        mx = mathutils.Vector((bb[6][0], bb[6][1], bb[6][2]))
+        center = (mn + mx) / 2
+        radius = max(abs(mx.x - mn.x), abs(mx.y - mn.y), abs(mx.z - mn.z)) / 2
+        for v in vertices:
+            d = v.co - center
+            r = d.length
+            if r > radius:
+                o = center - d.normalized() * radius
+                center = (v.co + o) / 2
+                radius = (center - o).length
+        return center, radius
+
+    spheres = []
+
+    def scan_r(bpy_obj, offs):
+        offs = bpy_obj.location + offs
+        if (bpy_obj.type == 'MESH') and len(bpy_obj.data.vertices):
+            spheres.append(calc_sph(bpy_obj.bound_box, bpy_obj.data.vertices, offs))
+        for c in bpy_obj.children:
+            scan_r(c, offs)
+    scan_r(bpy_obj, mathutils.Vector())
+
+    center = mathutils.Vector()
+    radius = 0
+    if not spheres:
+        return center, 0
+    for s in spheres:
+        center += s[0]
+    center /= len(spheres)
+    for c, r in spheres:
+        radius = max(radius, (c - center).length + r)
+    return center, radius
 
 
 def max_two(dic):
