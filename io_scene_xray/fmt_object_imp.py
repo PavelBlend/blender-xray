@@ -5,6 +5,7 @@ import math
 import os.path
 from .xray_io import ChunkedReader, PackedReader
 from .fmt_object import Chunks
+from .utils import find_bone_real_parent
 
 
 class ImportContext:
@@ -346,6 +347,8 @@ def _import_main(cx, cr):
                                 avg += c.head
                             b.length = max(b.length, (avg / len(bc) - b.head).dot(b.vector.normalized()))
                         for c in bc:
+                            if bpy_armature.bones[c.name].xray.ikjoint.type == '0':  # rigid
+                                continue
                             fb = bpy_armature.edit_bones.new(name=c.name+'.fake')
                             fb.use_deform = False
                             fb.hide = True
@@ -402,6 +405,69 @@ def _import_main(cx, cr):
                 cx.bpy.ops.object.mode_set(mode='OBJECT')
         elif cid == Chunks.Object.MOTION_REFS:
             bpy_obj.xray.motionrefs = PackedReader(data).gets()
+        elif cid == Chunks.Object.MOTIONS:
+            def fcurve_set(curve, time, value):
+                if curve.evaluate(time) != value:
+                    curve.keyframe_points.insert(time, value)
+
+            pr = PackedReader(data)
+            for _ in range(pr.getf('I')[0]):
+                a = bpy.data.actions.new(name=pr.gets())
+                pr.getf('II')  # range
+                fps = pr.getf('f')[0]
+                ver = pr.getf('H')[0]
+                if ver == 6:
+                    pr.getf('B')  # flags
+                    pr.getf('H')  # bone or part
+                    pr.getf('f')  # speed
+                    pr.getf('f')  # accrue
+                    pr.getf('f')  # falloff
+                    pr.getf('f')  # power
+                    for _1 in range(pr.getf('H')[0]):
+                        tmpfc = [a.fcurves.new('temp', i) for i in range(6)]
+                        times = {}
+                        bname = pr.gets()
+                        pr.getf('B')  # flags
+                        for i in range(6):
+                            pr.getf('BB')  # behaviours
+                            fc = tmpfc[i]
+                            for _3 in range(pr.getf('H')[0]):
+                                v = pr.getf('f')[0]
+                                t = pr.getf('f')[0] * fps
+                                times[t] = True
+                                fc.keyframe_points.insert(t, v)
+                                shape = pr.getf('B')[0]
+                                if shape != 4:
+                                    raise Exception('unsupported shape: {}'.format(shape))
+                        dp = 'pose.bones["' + bname + '"]'
+                        fcs = [
+                            a.fcurves.new(dp + '.location', 0, bname),
+                            a.fcurves.new(dp + '.location', 1, bname),
+                            a.fcurves.new(dp + '.location', 2, bname),
+                            a.fcurves.new(dp + '.rotation_quaternion', 0, bname),
+                            a.fcurves.new(dp + '.rotation_quaternion', 1, bname),
+                            a.fcurves.new(dp + '.rotation_quaternion', 2, bname),
+                            a.fcurves.new(dp + '.rotation_quaternion', 3, bname)
+                        ]
+                        bpy_bone = bpy_armature.bones[bname]
+                        xm = bpy_bone.matrix_local.inverted()
+                        real_parent = find_bone_real_parent(bpy_bone)
+                        if real_parent:
+                            xm = xm * real_parent.matrix_local
+                        for t in times.keys():
+                            tr = (tmpfc[0].evaluate(t), tmpfc[1].evaluate(t), tmpfc[2].evaluate(t))
+                            rt = (tmpfc[4].evaluate(t), tmpfc[3].evaluate(t), tmpfc[5].evaluate(t))
+                            mat = xm * mathutils.Matrix.Translation(tr) * mathutils.Euler(rt, 'ZXY').to_matrix().to_4x4()
+                            tr = mat.to_translation()
+                            rt = mat.to_quaternion()
+                            for _4 in range(3):
+                                fcurve_set(fcs[_4 + 0], t, tr[_4])
+                            for _4 in range(4):
+                                fcurve_set(fcs[_4 + 3], t, rt[_4])
+                        for fc in tmpfc:
+                            a.fcurves.remove(fc)
+                else:
+                    raise Exception('unsupported motions version: {}'.format(ver))
         else:
             warn_imknown_chunk(cid, 'main')
     for n, nn in bones_renamemap.items():
