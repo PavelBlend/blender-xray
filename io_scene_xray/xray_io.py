@@ -6,6 +6,10 @@ class PackedReader:
         self.__offs = 0
         self.__data = data
 
+    def getb(self, count):
+        self.__offs += count
+        return self.__data[self.__offs - count:self.__offs]
+
     def getf(self, fmt):
         s = struct.calcsize(fmt)
         self.__offs += s

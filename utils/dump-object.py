@@ -9,7 +9,15 @@ import io
 import time
 
 
-def dump_mesh(cr, out):
+def calc_hash(data):
+    import hashlib
+
+    m = hashlib.md5()
+    m.update(data)
+    return m.hexdigest()
+
+
+def dump_mesh(cr, out, opts):
     ver = cr.nextf(Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
         raise Exception('unsupported MESH format version: {}'.format(ver))
@@ -26,11 +34,17 @@ def dump_mesh(cr, out):
             out('options:', pr.getf('II'))
         elif cid == Chunks.Mesh.VERTS:
             vc = pr.getf('I')[0]
+            if opts.diff:
+                out('vertices-info:', 'count=' + str(vc) + ', hash=' + calc_hash(data))
+                continue
             out('vertices: [')
             for _ in range(vc):
                 out(' ', pr.getf('fff'))
             out(']')
         elif cid == Chunks.Mesh.FACES:
+            if opts.diff:
+                out('faces-info:', 'count=' + str(pr.getf('I')[0]) + ', hash=' + calc_hash(data))
+                continue
             out('faces: [')
             for _ in range(pr.getf('I')[0]):
                 fr = pr.getf('IIIIII')
@@ -38,8 +52,14 @@ def dump_mesh(cr, out):
                 out(' ', f)
             out(']')
         elif cid == Chunks.Mesh.SG:
+            if opts.diff:
+                out('sgroups-hash:', calc_hash(data))
+                continue
             out('sgroups:', [pr.getf('I')[0] for _ in range(len(data) // 4)])
         elif cid == Chunks.Mesh.VMREFS:
+            if opts.diff:
+                out('vmrefs-hash:', calc_hash(data))
+                continue
             out('vmrefs: [')
             for _ in range(pr.getf('I')[0]):
                 sz = pr.getf('B')[0]
@@ -51,6 +71,9 @@ def dump_mesh(cr, out):
                 if _: out('}, {')
                 out('  name:', pr.gets())
                 sz = pr.getf('I')[0]
+                if opts.diff:
+                    out('  faces-info:', 'count=' + str(sz) + ', hash=' + calc_hash(pr.getb(sz * 4)))
+                    continue
                 out('  faces:', [pr.getf('I')[0] for __ in range(sz)])
             out('}]')
         elif cid == Chunks.Mesh.VMAPS0:
@@ -59,6 +82,10 @@ def dump_mesh(cr, out):
                 if _: out('}, {')
                 out('  name:', pr.gets())
                 sz = pr.getf('I')[0]
+                if opts.diff:
+                    out('  uvs-hash:', calc_hash(pr.getb(sz * 2 * 4)))
+                    out('  vtx-hash:', calc_hash(pr.getb(sz * 1 * 4)))
+                    continue
                 out('  uvs:', [pr.getf('ff') for __ in range(sz)])
                 out('  vtx:', [pr.getf('I')[0] for __ in range(sz)])
             out('}]')
@@ -73,6 +100,15 @@ def dump_mesh(cr, out):
                 typ = pr.getf('B')[0] & 0x3  # enum {VMT_UV,VMT_WEIGHT}
                 out('  type:', typ)
                 sz = pr.getf('I')[0]
+                if opts.diff:
+                    if typ == 0:
+                        out('  uvs-hash:', calc_hash(pr.getb(sz * 2 * 4)))
+                    elif typ == 1:
+                        out('  wgh-hash:', calc_hash(pr.getb(sz * 4)))
+                    out('  vtx-hash:', calc_hash(pr.getb(sz * 4)))
+                    if dsc != 0:
+                        out('  fcs-hash:', calc_hash(pr.getb(sz * 4)))
+                    continue
                 if typ == 0:
                     out('  uvs:', [pr.getf('ff') for __ in range(sz)])
                 elif typ == 1:
@@ -140,7 +176,7 @@ def dump_bone(cr, out):
             out('UNKNOWN BONE CHUNK: {:#x}'.format(cid))
 
 
-def dump_object(cr, out):
+def dump_object(cr, out, opts):
     def oout(*args):
         out(' ', *args)
 
@@ -162,7 +198,7 @@ def dump_object(cr, out):
             out('meshes: [{')
             for (_, d) in ChunkedReader(data):
                 if _: out('}, {')
-                dump_mesh(ChunkedReader(d), oout)
+                dump_mesh(ChunkedReader(d), oout, opts)
             out('}]')
         elif cid == Chunks.Object.SURFACES2:
             out('surfaces2: [{')
@@ -253,8 +289,17 @@ def dump_object(cr, out):
             out('UNKNOWN OBJ CHUNK: {:#x}'.format(cid))
 
 
-if len(sys.argv) < 2:
-    print('usage: dump-object.py <ogf-file>')
-else:
+def main():
+    from optparse import OptionParser
+    parser = OptionParser(usage='Usage: dump-object.py <.object-file> [options]')
+    parser.add_option("-d", "--diff", action='store_true', default=False, help='generate diff-ready dump')
+    (options, args) = parser.parse_args()
+    if not args:
+        parser.print_help()
+        sys.exit(2)
     with io.open(sys.argv[1], mode='rb') as f:
-        dump_object(ChunkedReader(f.read()), print)
+        dump_object(ChunkedReader(f.read()), print, options)
+
+
+if __name__ == "__main__":
+    main()
