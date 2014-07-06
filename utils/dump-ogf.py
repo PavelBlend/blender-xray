@@ -8,23 +8,35 @@ from io_scene_xray.fmt_ogf import Chunks, VertexFormat
 import io
 
 
-def dump_ogf4_m03(cr, out):
-    dump_ogf4_m10(cr, out)
+def calc_hash(data):
+    import hashlib
+
+    m = hashlib.md5()
+    m.update(data)
+    return m.hexdigest()
 
 
-def dump_ogf4_m04(cr, out):
-    dump_ogf4_m05(cr, out)
+def dump_ogf4_m03(cr, out, opts):
+    dump_ogf4_m10(cr, out, opts)
+
+
+def dump_ogf4_m04(cr, out, opts):
+    dump_ogf4_m05(cr, out, opts)
     pr = PackedReader(cr.next(Chunks.SWIDATA))
     out('swidata: {')
     out('  ?:', pr.getf('IIII'))
-    out('  swis: [')
-    for _ in range(pr.getf('I')[0]):
-        out('    {offs: %i, tris: %i, vtxs: %i}' % pr.getf('IHH'))
-    out('  ]')
+    sc = pr.getf('I')[0]
+    if opts.diff:
+        out('  swis-info:', 'count=' + str(sc) + ', hash=' + calc_hash(pr.getb((4 + 2 + 2) * sc)))
+    else:
+        out('  swis: [')
+        for _ in range(sc):
+            out('    {offs: %i, tris: %i, vtxs: %i}' % pr.getf('IHH'))
+        out('  ]')
     out('}')
 
 
-def dump_ogf4_m05(cr, out):
+def dump_ogf4_m05(cr, out, opts):
     pr = PackedReader(cr.next(Chunks.TEXTURE))
     out('texture: {')
     out('  image:', pr.gets())
@@ -36,38 +48,51 @@ def dump_ogf4_m05(cr, out):
     vf, vc = pr.getf('II')
     if vf == VertexFormat.FVF_1L or vf == VertexFormat.FVF_1L_CS:
         out('  format:', 'fvf_2l' if vf == VertexFormat.FVF_1L else 'fvf_1l_cs')
-        out('  data: [')
-        for _ in range(vc):
-            out('   {v: %s, n: %s, tg: %s, bn: %s, tx: %s, b: %i' % (
-                pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('ff'), pr.getf('I')[0]))
-        out('  ]')
+        if opts.diff:
+            out('  data-info:', 'count=' + str(vc) + ', hash=' + calc_hash(pr.getb(15 * 4 * vc)))
+        else:
+            out('  data: [')
+            for _ in range(vc):
+                out('   {v: %s, n: %s, tg: %s, bn: %s, tx: %s, b: %i' % (
+                    pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('ff'), pr.getf('I')[0]))
+            out('  ]')
     elif vf == VertexFormat.FVF_2L or vf == VertexFormat.FVF_2L_CS:
         out('  format:', 'fvf_2l' if vf == VertexFormat.FVF_2L else 'fvf_2l_cs')
-        out('  data: [')
-        for _ in range(vc):
-            out('   {b: %s, v: %s, n: %s, tg: %s, bn: %s, bw: %f, tx: %s' % (
-                pr.getf('HH'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('f')[0], pr.getf('ff')))
-        out('  ]')
+        if opts.diff:
+            out('  data-info:', 'count=' + str(vc) + ', hash=' + calc_hash(pr.getb(16 * 4 * vc)))
+        else:
+            out('  data: [')
+            for _ in range(vc):
+                out('   {b: %s, v: %s, n: %s, tg: %s, bn: %s, bw: %f, tx: %s' % (
+                    pr.getf('HH'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('f')[0], pr.getf('ff')))
+            out('  ]')
     elif vf == VertexFormat.FVF_3L_CS or vf == VertexFormat.FVF_4L_CS:
         nl = 3 if vf == VertexFormat.FVF_3L_CS else 4
         out('  format:', 'fvf_' + str(nl) + 'l_cs')
-        out('  data: [')
-        for _ in range(vc):
-            out('   {b: %s, v: %s, n: %s, tg: %s, bn: %s, bw: %s, tx: %s' % (
-                pr.getf(str(nl) + 'H'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf(str(nl - 1) + 'f'), pr.getf('ff')))
-        out('  ]')
+        if opts.diff:
+            out('  data-info:', 'count=' + str(vc) + ', hash=' + calc_hash(pr.getb(((14 + nl - 1) * 4 + nl * 2) * vc)))
+        else:
+            out('  data: [')
+            for _ in range(vc):
+                out('   {b: %s, v: %s, n: %s, tg: %s, bn: %s, bw: %s, tx: %s' % (
+                    pr.getf(str(nl) + 'H'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf('fff'), pr.getf(str(nl - 1) + 'f'), pr.getf('ff')))
+            out('  ]')
     else:
         raise Exception('unexpected vertex format: {:#x}'.format(vf))
     out('}')
 
     pr = PackedReader(cr.next(Chunks.INDICES))
-    out('indices: {')
-    for _ in range(pr.getf('I')[0] // 3):
-        out(' ', pr.getf('HHH'))
-    out('}')
+    ic = pr.getf('I')[0] // 3
+    if opts.diff:
+        out('indices-info:', 'count=' + str(ic) + ', hash=' + calc_hash(pr.getb(3 * 2 * ic)))
+    else:
+        out('indices: {')
+        for _ in range(ic):
+            out(' ', pr.getf('HHH'))
+        out('}')
 
 
-def dump_ogf4_m10(cr, out):
+def dump_ogf4_m10(cr, out, opts):
     def oout(*args):
         out(' ', *args)
 
@@ -96,7 +121,7 @@ def dump_ogf4_m10(cr, out):
             out('children: [{')
             for _, ccr in ChunkedReader(data):
                 if _: out('}, {')
-                dump_ogf(ChunkedReader(ccr), oout)
+                dump_ogf(ChunkedReader(ccr), oout, opts)
             out('}]')
         elif cid == Chunks.S_USERDATA:
             out('userdata:', pr.gets())
@@ -161,37 +186,45 @@ def dump_ogf4_m10(cr, out):
             print('unknown ogf4_m10 chunk={:#x}'.format(cid))
 
 
-def dump_ogf4(pr, cr, out):
+def dump_ogf4(pr, cr, out, opts):
     model_type = pr.getf('B')[0]
     out('model type:', model_type)
     out('shader id:', pr.getf('H')[0])
     out('bounding box:', pr.getf('ffffff'))
     out('bounding sphere:', pr.getf('ffff'))
     if model_type == 3:
-        dump_ogf4_m03(cr, out)
+        dump_ogf4_m03(cr, out, opts)
     elif model_type == 4:
-        dump_ogf4_m04(cr, out)
+        dump_ogf4_m04(cr, out, opts)
     elif model_type == 5:
-        dump_ogf4_m05(cr, out)
+        dump_ogf4_m05(cr, out, opts)
     elif model_type == 10:
-        dump_ogf4_m10(cr, out)
+        dump_ogf4_m10(cr, out, opts)
     else:
         raise Exception('unsupported OGF model type: %i' % model_type)
 
 
-def dump_ogf(cr, out):
+def dump_ogf(cr, out, opts):
     pr = PackedReader(cr.next(Chunks.HEADER))
     ver = pr.getf('B')[0]
     out('version:', ver)
     if ver == 4:
-        dump_ogf4(pr, cr, out)
+        dump_ogf4(pr, cr, out, opts)
     else:
         raise Exception('unsupported OGF format version: %i' % ver)
 
 
-if len(sys.argv) < 2:
-    print('usage: dump-ogf.py <ogf-file>')
-else:
+def main():
+    from optparse import OptionParser
+    parser = OptionParser(usage='Usage: dump-ogf.py <.ogf-file> [options]')
+    parser.add_option("-d", "--diff", action='store_true', default=False, help='generate diff-ready dump')
+    (options, args) = parser.parse_args()
+    if not args:
+        parser.print_help()
+        sys.exit(2)
     with io.open(sys.argv[1], mode='rb') as f:
-        # with io.open('stalker_do_balon_4.ogf', mode='rb') as f:
-        dump_ogf(ChunkedReader(f.read()), print)
+        dump_ogf(ChunkedReader(f.read()), print, options)
+
+
+if __name__ == "__main__":
+    main()

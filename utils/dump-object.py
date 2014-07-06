@@ -244,6 +244,9 @@ def dump_object(cr, out, opts):
             out('  mtime:', time.ctime(pr.getf('I')[0]))
             out('}')
         elif cid == Chunks.Object.MOTIONS:
+            if opts.diff:
+                out('motions-info:', 'count=' + str(pr.getf('I')[0]) + ', hash=' + calc_hash(data))
+                continue
             out('motions: [{')
             for _ in range(pr.getf('I')[0]):
                 if _: out('}, {')
