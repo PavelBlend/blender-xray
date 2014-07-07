@@ -7,7 +7,7 @@ from .xray_inject import inject_init, inject_done
 class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
     bl_label = 'Import .object'
-    bl_description = 'Imports source STALKER model data'
+    bl_description = 'Imports X-Ray object'
     bl_options = {'UNDO'}
 
     filter_glob = bpy.props.StringProperty(default='*.object', options={'HIDDEN'})
@@ -97,15 +97,15 @@ class PluginPreferences(bpy.types.AddonPreferences):
 
 #noinspection PyUnusedLocal
 def menu_func_import(self, context):
-    self.layout.operator(OpImportObject.bl_idname, text='STALKER (.object)')
+    self.layout.operator(OpImportObject.bl_idname, text='X-Ray object (.object)')
 
 
 def menu_func_export(self, context):
-    self.layout.operator(OpExportObject.bl_idname, text='STALKER (.object)')
+    self.layout.operator(OpExportObject.bl_idname, text='X-Ray object (.object)')
 
 
 def menu_func_export_ogf(self, context):
-    self.layout.operator(OpExportOgf.bl_idname, text='STALKER (.ogf)')
+    self.layout.operator(OpExportOgf.bl_idname, text='X-Ray game object (.ogf)')
 
 
 def register():

@@ -5,7 +5,7 @@ bl_info = {
     'blender':  (2, 7, 0),
     'category': 'Import-Export',
     'location': 'File > Import/Export',
-    'description': 'Import STALKER files',
+    'description': 'Import/Export X-Ray objects',
     'wiki_url': 'https://github.com/igelbox/blender-xray',
     'tracker_url': 'https://github.com/igelbox/blender-xray/issues',
     'warning':  'Under construction!'
