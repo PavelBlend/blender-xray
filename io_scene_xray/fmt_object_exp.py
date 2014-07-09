@@ -192,21 +192,34 @@ def _export_main(bpy_obj, cw):
     cw.put(Chunks.Object.VERSION, PackedWriter().putf('H', 0x10))
     xr = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
     cw.put(Chunks.Object.FLAGS, PackedWriter().putf('I', xr.flags if xr is not None else 0))
+    meshes = []
+    armatures = set()
+
+    def scan_r(bpy_obj):
+        if bpy_obj.type == 'MESH':
+            mw = ChunkedWriter()
+            _export_mesh(bpy_obj, mw)
+            meshes.append(mw)
+            for m in bpy_obj.modifiers:
+                if (m.type == 'ARMATURE') and m.object:
+                    armatures.add(m.object)
+        elif bpy_obj.type == 'ARMATURE':
+            armatures.add(bpy_obj)
+        for c in bpy_obj.children:
+            scan_r(c)
+
+    scan_r(bpy_obj)
+
     bones = []
     msw = ChunkedWriter()
     idx = 0
-    for c in bpy_obj.children:
-        if c.type == 'ARMATURE':
-            bonemap = {}
-            for b in c.data.bones:
-                if is_fake_bone(b):
-                    continue
-                _export_bone(c, b, bones, bonemap)
-            continue
-        if c.type != 'MESH':
-            continue
-        mw = ChunkedWriter()
-        _export_mesh(c, mw)
+    for bpy_arm_obj in armatures:
+        bonemap = {}
+        for b in bpy_arm_obj.data.bones:
+            if is_fake_bone(b):
+                continue
+            _export_bone(bpy_arm_obj, b, bones, bonemap)
+    for mw in meshes:
         msw.put(idx, mw)
         idx += 1
     cw.put(Chunks.Object.MESHES, msw)

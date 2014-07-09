@@ -52,14 +52,15 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper):
         if not self.filepath:
             self.report({'ERROR'}, 'No file selected')
             return {'CANCELLED'}
-        if not context.active_object:
-            self.report({'ERROR'}, 'No object selected')
+        roots = [o for o in context.scene.objects if o.xray.isroot]
+        if not roots:
+            self.report({'ERROR'}, 'Cannot find object root')
             return {'CANCELLED'}
-        if context.active_object.type != 'EMPTY':
-            self.report({'ERROR'}, 'Unsupported object selected')
+        if len(roots) > 1:
+            self.report({'ERROR'}, 'Too many object roots found')
             return {'CANCELLED'}
         from .fmt_object_exp import export_file
-        export_file(context.active_object, self.filepath)
+        export_file(roots[0], self.filepath)
         return {'FINISHED'}
 
 
