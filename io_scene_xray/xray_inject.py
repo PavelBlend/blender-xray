@@ -30,7 +30,21 @@ def gen_other_flags_prop(mask):
 
 
 class XRayObjectProperties(bpy.types.PropertyGroup):
+    def get_isroot(self):
+        if not self.root:
+            return False
+        if self.id_data.parent:
+            return not self.id_data.parent.xray.isroot
+        return True
+
+    def set_isroot(self, value):
+        if self.id_data.parent:
+            self.id_data.parent.xray.isroot = not value
+        self.root = value
+
     b_type = bpy.types.Object
+    root = bpy.props.BoolProperty(default=True)  # default=True - to backward compatibility
+    isroot = bpy.props.BoolProperty(get=get_isroot, set=set_isroot, options={'SKIP_SAVE'})
     version = bpy.props.IntProperty()
     flags = bpy.props.IntProperty(name='flags')
     flags_dynamic = gen_flag_prop(mask=0x01)

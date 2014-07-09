@@ -12,17 +12,21 @@ class XRayPanel(bpy.types.Panel):
 
 class XRayObjectPanel(XRayPanel):
     bl_context = 'object'
+    bl_label = 'XRay - object root'
 
     @classmethod
     def poll(cls, context):
         return (
             context.active_object
-            and context.active_object.type in {'EMPTY'}
         )
+
+    def draw_header(self, context):
+        self.layout.prop(context.object.xray, 'isroot', text='')
 
     def draw(self, context):
         layout = self.layout
         data = context.object.xray
+        layout.enabled = data.isroot
         row = layout.row(align=True)
         row.prop(data, 'flags_dynamic', text='Dynamic', toggle=True)
         row.prop(data, 'flags_progressive', text='Progressive', toggle=True)
