@@ -48,11 +48,17 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper):
     filename_ext = '.object'
     filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
 
+    selection_only = bpy.props.BoolProperty(
+        name='Selection Only',
+        description='Export only selected objects'
+    )
+
     def execute(self, context):
         if not self.filepath:
             self.report({'ERROR'}, 'No file selected')
             return {'CANCELLED'}
-        roots = [o for o in context.scene.objects if o.xray.isroot]
+        objs = context.selected_objects if self.selection_only else context.scene.objects
+        roots = [o for o in objs if o.xray.isroot]
         if not roots:
             self.report({'ERROR'}, 'Cannot find object root')
             return {'CANCELLED'}
