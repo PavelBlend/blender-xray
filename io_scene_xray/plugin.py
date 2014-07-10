@@ -41,17 +41,14 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
         return {'FINISHED'}
 
 
-class OpExportObject(bpy.types.Operator, io_utils.ExportHelper):
-    bl_idname = 'xray_export.object'
-    bl_label = 'Export .object'
-
-    filename_ext = '.object'
-    filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
-
+class ModelExportHelper:
     selection_only = bpy.props.BoolProperty(
         name='Selection Only',
         description='Export only selected objects'
     )
+
+    def export(self, bpy_obj):
+        pass
 
     def execute(self, context):
         if not self.filepath:
@@ -65,30 +62,32 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper):
         if len(roots) > 1:
             self.report({'ERROR'}, 'Too many object roots found')
             return {'CANCELLED'}
+        return self.export(roots[0])
+
+
+class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
+    bl_idname = 'xray_export.object'
+    bl_label = 'Export .object'
+
+    filename_ext = '.object'
+    filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
+
+    def export(self, bpy_obj):
         from .fmt_object_exp import export_file
-        export_file(roots[0], self.filepath)
+        export_file(bpy_obj, self.filepath)
         return {'FINISHED'}
 
 
-class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper):
+class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
 
     filename_ext = '.ogf'
     filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
 
-    def execute(self, context):
-        if not self.filepath:
-            self.report({'ERROR'}, 'No file selected')
-            return {'CANCELLED'}
-        if not context.active_object:
-            self.report({'ERROR'}, 'No object selected')
-            return {'CANCELLED'}
-        if context.active_object.type != 'EMPTY':
-            self.report({'ERROR'}, 'Unsupported object selected')
-            return {'CANCELLED'}
+    def export(self, bpy_obj):
         from .fmt_ogf_exp import export_file
-        export_file(context.active_object, self.filepath)
+        export_file(bpy_obj, self.filepath)
         return {'FINISHED'}
 
 

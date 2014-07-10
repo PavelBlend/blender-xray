@@ -199,20 +199,34 @@ def _export(bpy_obj, cw):
            .puts('blender')
            .putf('III', 0, 0, 0))
 
+    meshes = []
+    armatures = set()
+
+    def scan_r(bpy_obj):
+        if bpy_obj.type == 'MESH':
+            mw = ChunkedWriter()
+            _export_child(bpy_obj, mw)
+            meshes.append(mw)
+            for m in bpy_obj.modifiers:
+                if (m.type == 'ARMATURE') and m.object:
+                    armatures.add(m.object)
+        elif bpy_obj.type == 'ARMATURE':
+            armatures.add(bpy_obj)
+        for c in bpy_obj.children:
+            scan_r(c)
+
+    scan_r(bpy_obj)
+
     bones = []
 
     ccw = ChunkedWriter()
     idx = 0
-    for c in bpy_obj.children:
-        if c.type == 'ARMATURE':
-            for b in c.data.bones:
-                if is_fake_bone(b):
-                    continue
-                bones.append((b, c))
-        if c.type != 'MESH':
-            continue
-        mw = ChunkedWriter()
-        _export_child(c, mw)
+    for c in armatures:
+        for b in c.data.bones:
+            if is_fake_bone(b):
+                continue
+            bones.append((b, c))
+    for mw in meshes:
         ccw.put(idx, mw)
         idx += 1
     cw.put(Chunks.CHILDREN, ccw)
