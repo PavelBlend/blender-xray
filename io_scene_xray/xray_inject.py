@@ -59,7 +59,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
 
 class XRayMeshProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Mesh
-    flags = bpy.props.IntProperty(name='flags')
+    flags = bpy.props.IntProperty(name='flags', default=0x1)
     flags_valid = gen_flag_prop(mask=0x01)
     flags_other = gen_other_flags_prop(mask=~0x01)
     options = bpy.props.IntVectorProperty(size=2)
@@ -69,9 +69,9 @@ class XRayMaterialProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Material
     flags = bpy.props.IntProperty(name='flags')
     flags_twosided = gen_flag_prop(mask=0x01)
-    eshader = bpy.props.StringProperty(name='eshader')
-    cshader = bpy.props.StringProperty(name='cshader')
-    gamemtl = bpy.props.StringProperty(name='gamemtl')
+    eshader = bpy.props.StringProperty(name='eshader', default='models\\model')
+    cshader = bpy.props.StringProperty(name='cshader', default='default')
+    gamemtl = bpy.props.StringProperty(name='gamemtl', default='default')
 
 
 class XRayBoneProperties(bpy.types.PropertyGroup):
@@ -124,7 +124,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Bone
     version = bpy.props.IntProperty()
     length = bpy.props.FloatProperty()
-    gamemtl = bpy.props.StringProperty()
+    gamemtl = bpy.props.StringProperty(default='default_object')
     bpy.utils.register_class(ShapeProperties)
     shape = bpy.props.PointerProperty(type=ShapeProperties)
     ikflags = bpy.props.IntProperty()
