@@ -3,7 +3,7 @@ import bpy
 import io
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_object import Chunks
-from .utils import is_fake_bone, find_bone_real_parent
+from .utils import is_fake_bone, find_bone_real_parent, AppError
 
 
 def calculate_bbox(bpy_obj):
@@ -57,6 +57,8 @@ def _export_mesh(bpy_obj, cw):
     vtx = []
     fcs = []
     uv_layer = bm.loops.layers.uv.active
+    if not uv_layer:
+        raise AppError('UV-map is required, but not found')
 
     pw = PackedWriter()
     pw.putf('I', len(bm.faces))
@@ -96,6 +98,8 @@ def _export_mesh(bpy_obj, cw):
         m.name: [fi for fi, f in enumerate(bm.faces) if f.material_index == mi]
         for mi, m in enumerate(bpy_obj.data.materials)
     }
+    if not sfaces:
+        raise AppError('mesh "' + bpy_obj.data.name + '" has no material')
     pw.putf('H', len(sfaces))
     for n, ff in sfaces.items():
         pw.puts(n).putf('I', len(ff))
@@ -242,7 +246,8 @@ def _export_main(bpy_obj, cw):
         else:
             sfw.puts('').puts('').puts('')
         sfw.puts(m.active_texture.name if m.active_texture else '')
-        sfw.puts(m.texture_slots[m.active_texture_index].uv_layer)
+        ts = m.texture_slots[m.active_texture_index]
+        sfw.puts(ts.uv_layer if ts else '')
         if hasattr(m, 'xray'):
             sfw.putf('I', m.xray.flags)
         else:

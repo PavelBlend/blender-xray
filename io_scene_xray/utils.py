@@ -11,3 +11,8 @@ def find_bone_real_parent(bpy_bone):
 
 def version_to_number(major, minor, release):
     return ((major & 0xff) << 24) | ((minor & 0xff) << 16) | (release & 0xffff)
+
+
+class AppError(Exception):
+    def __init__(self, message):
+        super().__init__(message)

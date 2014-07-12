@@ -1,6 +1,7 @@
 import bpy
 from bpy_extras import io_utils
 from .xray_inject import inject_init, inject_done
+from .utils import AppError
 
 
 #noinspection PyUnusedLocal
@@ -74,7 +75,12 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelpe
 
     def export(self, bpy_obj):
         from .fmt_object_exp import export_file
-        export_file(bpy_obj, self.filepath)
+        try:
+            export_file(bpy_obj, self.filepath)
+        except AppError as err:
+            self.report({'ERROR'}, str(err))
+            return {'CANCELLED'}
+
         return {'FINISHED'}
 
 
