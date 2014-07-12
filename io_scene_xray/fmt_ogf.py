@@ -15,6 +15,7 @@ class Chunks:
 class ModelType:
     SKELETON_ANIM = 0x3
     SKELETON_GEOMDEF_ST = 0x5
+    SKELETON_RIGID = 0xa
 
 
 class VertexFormat:

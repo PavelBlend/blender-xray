@@ -189,7 +189,7 @@ def _export(bpy_obj, cw):
     bsph = calculate_bsphere(bpy_obj)
     cw.put(Chunks.HEADER, PackedWriter()
            .putf('B', 4)  # ogf version
-           .putf('B', ModelType.SKELETON_ANIM)
+           .putf('B', ModelType.SKELETON_ANIM if bpy_obj.xray.motionrefs else ModelType.SKELETON_RIGID)
            .putf('H', 0)  # shader id
            .putf('fff', *bbox[0]).putf('fff', *bbox[1])
            .putf('fff', *bsph[0]).putf('f', bsph[1]))
@@ -282,7 +282,8 @@ def _export(bpy_obj, cw):
     cw.put(Chunks.S_IKDATA, pw)
 
     cw.put(Chunks.S_USERDATA, PackedWriter().puts(bpy_obj.xray.userdata))
-    cw.put(Chunks.S_MOTION_REFS_0, PackedWriter().puts(bpy_obj.xray.motionrefs))
+    if bpy_obj.xray.motionrefs:
+        cw.put(Chunks.S_MOTION_REFS_0, PackedWriter().puts(bpy_obj.xray.motionrefs))
 
 
 def export_file(bpy_obj, fpath):
