@@ -201,6 +201,7 @@ def _export_main(bpy_obj, cw):
     cw.put(Chunks.Object.FLAGS, PackedWriter().putf('I', xr.flags if xr is not None else 0))
     meshes = []
     armatures = set()
+    materials = set()
 
     def scan_r(bpy_obj):
         if bpy_obj.type == 'MESH':
@@ -210,6 +211,8 @@ def _export_main(bpy_obj, cw):
             for m in bpy_obj.modifiers:
                 if (m.type == 'ARMATURE') and m.object:
                     armatures.add(m.object)
+            for m in bpy_obj.data.materials:
+                materials.add(m)
         elif bpy_obj.type == 'ARMATURE':
             armatures.add(bpy_obj)
         for c in bpy_obj.children:
@@ -230,7 +233,6 @@ def _export_main(bpy_obj, cw):
         msw.put(idx, mw)
         idx += 1
     cw.put(Chunks.Object.MESHES, msw)
-    materials = [m for m in bpy.data.materials if m.users]
     sfw = PackedWriter()
     sfw.putf('I', len(materials))
     for m in materials:
