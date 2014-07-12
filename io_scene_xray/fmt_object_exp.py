@@ -37,7 +37,14 @@ def _export_mesh(bpy_obj, cw):
         cw.put(Chunks.Mesh.FLAGS, PackedWriter().putf('B', 1))
 
     bm = bmesh.new()
-    bm.from_mesh(bpy_obj.data)
+    armmods = [m for m in bpy_obj.modifiers if m.type == 'ARMATURE' and m.show_viewport]
+    try:
+        for m in armmods:
+            m.show_viewport = False
+        bm.from_object(bpy_obj, bpy.context.scene)
+    finally:
+        for m in armmods:
+            m.show_viewport = True
     bmesh.ops.triangulate(bm, faces=bm.faces)
 
     pw = PackedWriter()
