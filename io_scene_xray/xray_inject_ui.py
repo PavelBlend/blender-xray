@@ -92,6 +92,8 @@ class XRayBonePanel(XRayPanel):
         row.prop(data.shape, 'flags_nofogcollider', text='No fog collider', toggle=True)
         box = layout.box()
         box.prop(data.ikjoint, 'type', 'joint type')
+        if int(data.ikjoint.type):
+            box.prop(data, 'friction')
         bx = box.box();
         bx.label('limit x')
         bx.prop(data.ikjoint, 'lim_x_spr', 'spring')
@@ -113,7 +115,6 @@ class XRayBonePanel(XRayPanel):
             box.prop(data.breakf, 'torque', 'break torque')
         else:
             layout.prop(data, 'ikflags_breakable', 'Breakable', toggle=True)
-        layout.prop(data, 'friction')
         box = layout.box()
         box.prop(data.mass, 'value', 'mass')
         box.prop(data.mass, 'center')

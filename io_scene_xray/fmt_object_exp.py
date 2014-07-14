@@ -197,6 +197,19 @@ def _export_bone(bpy_arm_obj, bpy_bone, writers, bonemap):
            .putf('ff', bp.ik_min_z, bp.ik_max_z)
            .putf('ff', xr.ikjoint.lim_z_spr, xr.ikjoint.lim_z_dmp)
            .putf('ff', xr.ikjoint.spring, xr.ikjoint.damping))
+    if xr.ikflags:
+        cw.put(Chunks.Bone.IK_FLAGS, PackedWriter().putf('I', xr.ikflags))
+        if xr.ikflags_breakable:
+            cw.put(Chunks.Bone.BREAK_PARAMS, PackedWriter()
+                   .putf('f', xr.breakf.force)
+                   .putf('f', xr.breakf.torque))
+    if int(xr.ikjoint.type) and xr.friction:
+        cw.put(Chunks.Bone.FRICTION, PackedWriter()
+               .putf('f', xr.friction))
+    if xr.mass.value:
+        cw.put(Chunks.Bone.MASS_PARAMS, PackedWriter()
+               .putf('f', xr.mass.value)
+               .putf('fff', *xr.mass.center))
 
 
 def _export_main(bpy_obj, cw):
