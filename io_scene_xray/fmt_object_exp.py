@@ -1,40 +1,33 @@
 import bmesh
 import bpy
+import mathutils
 import io
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_object import Chunks
 from .utils import is_fake_bone, find_bone_real_parent, AppError
 
+__matrix = mathutils.Matrix(((1, 0, 0), (0, 0, 1), (0, 1, 0))).to_4x4()
 
-def calculate_bbox(bpy_obj):
-    bb = bpy_obj.bound_box
-    mn = [bb[0][0], bb[0][1], bb[0][2]]
-    mx = [bb[6][0], bb[6][1], bb[6][2]]
 
-    def expand_children_r(cc):
-        for c in cc:
-            b = c.bound_box
-            for i in range(3):
-                mn[i] = min(mn[i], b[0][i])
-                mx[i] = max(mx[i], b[6][i])
-            expand_children_r(c.children)
+def calculate_bbox(bm):
+    def vf(va, vb, f):
+        va.x = f(va.x, vb.x)
+        va.y = f(va.y, vb.y)
+        va.z = f(va.z, vb.z)
 
-    expand_children_r(bpy_obj.children)
-    for i in range(3):
-        mn[i] -= 0.000001
-        mx[i] += 0.000001
+    mn = mathutils.Vector(bm.verts[0].co)
+    mx = mathutils.Vector(bm.verts[0].co)
+
+    for v in bm.verts:
+        vf(mn, v.co, min)
+        vf(mx, v.co, max)
+
     return mn, mx
 
 
 def _export_mesh(bpy_obj, cw):
     cw.put(Chunks.Mesh.VERSION, PackedWriter().putf('H', 0x11))
     cw.put(Chunks.Mesh.MESHNAME, PackedWriter().puts(bpy_obj.name))
-    bbox = calculate_bbox(bpy_obj)
-    cw.put(Chunks.Mesh.BBOX, PackedWriter().putf('fff', *bbox[0]).putf('fff', *bbox[1]))
-    if hasattr(bpy_obj.data, 'xray'):
-        cw.put(Chunks.Mesh.FLAGS, PackedWriter().putf('B', bpy_obj.data.xray.flags))
-    else:
-        cw.put(Chunks.Mesh.FLAGS, PackedWriter().putf('B', 1))
 
     bm = bmesh.new()
     armmods = [m for m in bpy_obj.modifiers if m.type == 'ARMATURE' and m.show_viewport]
@@ -45,6 +38,22 @@ def _export_mesh(bpy_obj, cw):
     finally:
         for m in armmods:
             m.show_viewport = True
+    mt = __matrix.inverted() * bpy_obj.matrix_world
+    bm.transform(mt)
+    need_flip = False
+    for k in mt.to_scale():
+        if k < 0:
+            need_flip = not need_flip
+    if need_flip:
+        bmesh.ops.reverse_faces(bm, faces=bm.faces)  # flip normals
+
+    bbox = calculate_bbox(bm)
+    cw.put(Chunks.Mesh.BBOX, PackedWriter().putf('fff', *bbox[0]).putf('fff', *bbox[1]))
+    if hasattr(bpy_obj.data, 'xray'):
+        cw.put(Chunks.Mesh.FLAGS, PackedWriter().putf('B', bpy_obj.data.xray.flags))
+    else:
+        cw.put(Chunks.Mesh.FLAGS, PackedWriter().putf('B', 1))
+
     bmesh.ops.triangulate(bm, faces=bm.faces)
 
     pw = PackedWriter()
