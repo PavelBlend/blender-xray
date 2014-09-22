@@ -107,6 +107,22 @@ class PluginPreferences(bpy.types.AddonPreferences):
         layout.prop(self, 'gamedata_folder')
 
 
+def overlay_view_3d():
+    def try_draw(base_obj, obj):
+        if not hasattr(obj, 'xray'):
+            return
+        x = obj.xray
+        if hasattr(x, 'ondraw_postview'):
+            x.ondraw_postview(base_obj, obj)
+        if hasattr(obj, 'type'):
+            if obj.type == 'ARMATURE':
+                for b in obj.data.bones:
+                    try_draw(base_obj, b)
+
+    for o in bpy.data.objects:
+        try_draw(o, o)
+
+
 #noinspection PyUnusedLocal
 def menu_func_import(self, context):
     self.layout.operator(OpImportObject.bl_idname, text='X-Ray object (.object)')
@@ -128,11 +144,13 @@ def register():
     bpy.types.INFO_MT_file_export.append(menu_func_export)
     bpy.utils.register_class(OpExportOgf)
     bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
+    bpy.types.SpaceView3D.draw_handler_add(overlay_view_3d, (), 'WINDOW', 'POST_VIEW')
     inject_init()
 
 
 def unregister():
     inject_done()
+    bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d)
     bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
     bpy.utils.unregister_class(OpExportOgf)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
