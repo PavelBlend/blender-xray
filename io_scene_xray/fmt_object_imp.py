@@ -17,13 +17,17 @@ class ImportContext:
         self.bpy = bpy
         self.textures_folder = textures
         self.op = op
-        self.__images = {}
+        self.noninitialized_materials = set()
 
     def image(self, relpath):
         relpath = relpath.lower().replace('\\', os.path.sep)
-        result = self.__images.get(relpath)
+        filepath = os.path.abspath(os.path.join(self.textures_folder, relpath + '.dds'))
+        result = None
+        for i in bpy.data.images:
+            if bpy.path.abspath(i.filepath) == filepath:
+                result = i
+                break
         if result is None:
-            filepath = os.path.join(self.textures_folder, '{}.dds'.format(relpath))
             try:
                 result = self.bpy.data.images.load(filepath)
             except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
@@ -31,7 +35,6 @@ class ImportContext:
                 result = self.bpy.data.images.new(os.path.basename(relpath), 0, 0)
                 result.source = 'FILE'
                 result.filepath = filepath
-            self.__images[relpath] = result
         return result
 
 
@@ -98,6 +101,7 @@ def _import_mesh(cx, cr, parent):
                 bmat = cx.bpy.data.materials.get(n)
                 if bmat is None:
                     bmat = cx.bpy.data.materials.new(n)
+                    cx.noninitialized_materials.add(bmat)
                 midx = len(bm_data.materials)
                 bm_data.materials.append(bmat)
                 for fi in pr.getf(str(pr.getf('I')[0]) + 'I'):
@@ -306,7 +310,11 @@ def _import_main(fpath, cx, cr):
                 if cx.bpy:
                     bpy_material = cx.bpy.data.materials.get(n)
                     if bpy_material is None:
+                        cx.report({'WARNING'}, 'No material found for surface: ' + n)
                         continue
+                    if not bpy_material in cx.noninitialized_materials:
+                        continue  # skip existing materials
+                    cx.noninitialized_materials.remove(bpy_material)
                     bpy_material.xray.flags = flags
                     bpy_material.xray.eshader = eshader
                     bpy_material.xray.cshader = cshader
