@@ -9,7 +9,7 @@ from .utils import find_bone_real_parent
 
 
 class ImportContext:
-    def __init__(self, fpath, gamedata, report, op, bpy=None):
+    def __init__(self, fpath, textures, report, op, bpy=None):
         from . import bl_info
         from .utils import version_to_number
         self.version = version_to_number(*bl_info['version'])
@@ -17,7 +17,7 @@ class ImportContext:
         self.object_name = os.path.basename(fpath.lower())
         self.report = report
         self.bpy = bpy
-        self.gamedata_folder = gamedata
+        self.textures_folder = textures
         self.op = op
         self.__images = {}
 
@@ -25,7 +25,7 @@ class ImportContext:
         relpath = relpath.lower().replace('\\', os.path.sep)
         result = self.__images.get(relpath)
         if result is None:
-            self.__images[relpath] = result = self.bpy.data.images.load('{}/textures/{}.dds'.format(self.gamedata_folder, relpath))
+            self.__images[relpath] = result = self.bpy.data.images.load(os.path.join(self.textures_folder, '{}.dds'.format(relpath)))
         return result
 
 

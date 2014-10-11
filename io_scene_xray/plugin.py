@@ -20,15 +20,16 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
 
     def execute(self, context):
         addon_prefs = context.user_preferences.addons['io_scene_xray'].preferences
-        if not addon_prefs.gamedata_folder:
-            self.report({'ERROR'}, 'No gamedata folder specified')
+        textures_folder = addon_prefs.get_textures_folder()
+        if not textures_folder:
+            self.report({'ERROR'}, 'No textures folder specified')
             return {'CANCELLED'}
         filepath_lc = self.properties.filepath.lower()
         if filepath_lc.endswith('.object'):
             from .fmt_object_imp import import_file, ImportContext
             import_file(ImportContext(
                 report=self.report,
-                gamedata=addon_prefs.gamedata_folder,
+                textures=textures_folder,
                 fpath=self.properties.filepath,
                 op=self,
                 bpy=bpy
@@ -101,10 +102,20 @@ class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
 
     gamedata_folder = bpy.props.StringProperty(name='gamedata', description='The path to the \'gamedata\' directory', subtype='DIR_PATH')
+    textures_folder = bpy.props.StringProperty(name='textures', description='The path to the \'gamedata/textures\' directory', subtype='DIR_PATH')
+
+    def get_textures_folder(self):
+        result = self.textures_folder;
+        if not result and self.gamedata_folder:
+            import os.path
+            result = os.path.join(self.gamedata_folder, 'textures')
+        return result
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, 'gamedata_folder')
+        if not self.textures_folder and self.gamedata_folder:
+            self.textures_folder = self.get_textures_folder()
+        layout.prop(self, 'textures_folder')
 
 
 def overlay_view_3d():
