@@ -58,6 +58,10 @@ class XRayMeshPanel(XRayPanel):
 class XRayMaterialPanel(XRayPanel):
     bl_context = 'material'
 
+    @classmethod
+    def poll(cls, context):
+        return context.object.active_material
+
     def draw(self, context):
         layout = self.layout
         data = context.object.active_material.xray
