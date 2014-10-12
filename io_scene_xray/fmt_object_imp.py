@@ -9,12 +9,10 @@ from .utils import find_bone_real_parent
 
 
 class ImportContext:
-    def __init__(self, fpath, textures, report, op, bpy=None):
+    def __init__(self, textures, report, op, bpy=None):
         from . import bl_info
         from .utils import version_to_number
         self.version = version_to_number(*bl_info['version'])
-        self.file_path = fpath
-        self.object_name = os.path.basename(fpath.lower())
         self.report = report
         self.bpy = bpy
         self.textures_folder = textures
@@ -264,12 +262,13 @@ def _import_bone(cx, cr, bpy_arm_obj, bonemat, renamemap):
             warn_imknown_chunk(cid, 'bone')
 
 
-def _import_main(cx, cr):
+def _import_main(fpath, cx, cr):
+    object_name = os.path.basename(fpath.lower())
     ver = cr.nextf(Chunks.Object.VERSION, 'H')[0]
     if ver != 0x10:
         raise Exception('unsupported OBJECT format version: {:#x}'.format(ver))
     if cx.bpy:
-        bpy_obj = cx.bpy.data.objects.new(cx.object_name, None)
+        bpy_obj = cx.bpy.data.objects.new(object_name, None)
         bpy_obj.rotation_euler.x = math.pi / 2
         bpy_obj.scale.z = -1
         bpy_obj.xray.version = cx.version
@@ -316,9 +315,9 @@ def _import_main(cx, cr):
                         bpy_texture_slot.use_map_color_diffuse = True
         elif cid == Chunks.Object.BONES1:
             if cx.bpy and (bpy_armature is None):
-                bpy_armature = cx.bpy.data.armatures.new(cx.object_name)
+                bpy_armature = cx.bpy.data.armatures.new(object_name)
                 bpy_armature.use_auto_ik = True
-                bpy_arm_obj = cx.bpy.data.objects.new(cx.object_name, bpy_armature)
+                bpy_arm_obj = cx.bpy.data.objects.new(object_name, bpy_armature)
                 bpy_arm_obj.parent = bpy_obj
                 cx.bpy.context.scene.objects.link(bpy_arm_obj)
                 cx.bpy.context.scene.objects.active = bpy_arm_obj
@@ -478,14 +477,14 @@ def _import_main(cx, cr):
             u.image = bmat.active_texture.image
 
 
-def _import(cx, cr):
+def _import(fpath, cx, cr):
     for (cid, data) in cr:
         if cid == Chunks.Object.MAIN:
-            _import_main(cx, ChunkedReader(data))
+            _import_main(fpath, cx, ChunkedReader(data))
         else:
             warn_imknown_chunk(cid, 'root')
 
 
-def import_file(cx):
-    with io.open(cx.file_path, 'rb') as f:
-        _import(cx, ChunkedReader(f.read()))
+def import_file(fpath, cx):
+    with io.open(fpath, 'rb') as f:
+        _import(fpath, cx, ChunkedReader(f.read()))

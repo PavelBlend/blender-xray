@@ -13,6 +13,9 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
 
     filter_glob = bpy.props.StringProperty(default='*.object', options={'HIDDEN'})
 
+    directory = bpy.props.StringProperty(subtype="DIR_PATH")
+    files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
+
     shaped_bones = bpy.props.BoolProperty(
         name='custom shapes for bones',
         description='use custom shapes for imported bones'
@@ -24,22 +27,23 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
         if not textures_folder:
             self.report({'ERROR'}, 'No textures folder specified')
             return {'CANCELLED'}
-        filepath_lc = self.properties.filepath.lower()
-        if filepath_lc.endswith('.object'):
-            from .fmt_object_imp import import_file, ImportContext
-            import_file(ImportContext(
-                report=self.report,
-                textures=textures_folder,
-                fpath=self.properties.filepath,
-                op=self,
-                bpy=bpy
-            ))
-        else:
-            if len(filepath_lc) == 0:
-                self.report({'ERROR'}, 'No file selected')
-            else:
-                self.report({'ERROR'}, 'Format of {} not recognised'.format(self.properties.filepath))
+        if len(self.files) == 0:
+            self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
+        from .fmt_object_imp import import_file, ImportContext
+        cx = ImportContext(
+            report=self.report,
+            textures=textures_folder,
+            op=self,
+            bpy=bpy
+        )
+        for file in self.files:
+            import os.path
+            ext = os.path.splitext(file.name)[-1].lower()
+            if ext == '.object':
+                import_file(self.directory + file.name, cx)
+            else:
+                self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
         return {'FINISHED'}
 
 
