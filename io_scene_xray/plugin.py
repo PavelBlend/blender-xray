@@ -155,13 +155,13 @@ def register():
     bpy.types.INFO_MT_file_export.append(menu_func_export)
     bpy.utils.register_class(OpExportOgf)
     bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
-    bpy.types.SpaceView3D.draw_handler_add(overlay_view_3d, (), 'WINDOW', 'POST_VIEW')
+    overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(overlay_view_3d, (), 'WINDOW', 'POST_VIEW')
     inject_init()
 
 
 def unregister():
     inject_done()
-    bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d)
+    bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
     bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
     bpy.utils.unregister_class(OpExportOgf)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
