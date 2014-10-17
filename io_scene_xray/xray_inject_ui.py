@@ -27,10 +27,9 @@ class XRayObjectPanel(XRayPanel):
         layout = self.layout
         data = context.object.xray
         layout.enabled = data.isroot
-        row = layout.row(align=True)
-        row.prop(data, 'flags_dynamic', text='Dynamic', toggle=True)
-        row.prop(data, 'flags_progressive', text='Progressive', toggle=True)
-        row.prop(data, 'flags_other', text='Other')
+        layout.prop(data, 'flags_simple', text='Type')
+        if data.flags_simple_other:
+            layout.prop(data, 'flags', text='Type Flags')
         layout.prop(data, 'lodref')
         layout.prop(data, 'userdata')
         layout.prop(data, 'motionrefs')

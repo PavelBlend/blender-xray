@@ -50,9 +50,39 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     isroot = bpy.props.BoolProperty(get=get_isroot, set=set_isroot, options={'SKIP_SAVE'})
     version = bpy.props.IntProperty()
     flags = bpy.props.IntProperty(name='flags')
-    flags_dynamic = gen_flag_prop(mask=0x01)
-    flags_progressive = gen_flag_prop(mask=0x02)
-    flags_other = gen_other_flags_prop(mask=~0x03)
+
+    _flags_simple_inv_map = [
+        None,  # other
+        0x20,  # sound occluder
+        0x14,  # multi. usage
+        0x08,  # hom
+        0x03,  # dynamic progressive
+        0x01,  # dynamic
+        0x00   # static
+    ]
+    _flags_simple_map = {v: k for k, v in enumerate(_flags_simple_inv_map)}
+    flags_simple_other = bpy.props.BoolProperty(options={'SKIP_SAVE'})
+
+    def flags_simple_get(self):
+        if self.flags_simple_other:
+            return 0
+        return self._flags_simple_map.get(self.flags, 0)
+
+    def flags_simple_set(self, value):
+        if value == 0:  # other
+            self.flags_simple_other = True
+        else:
+            self.flags_simple_other = False
+            self.flags = self._flags_simple_inv_map[value]
+
+    flags_simple = bpy.props.EnumProperty(name='Object Type', items=(
+        ('??', 'Other', ''),
+        ('so', 'Sound Occluder', ''),
+        ('mu', 'Multiple Usage', ''),
+        ('ho', 'HOM', 'Hierarchical Occlusion Mapping'),
+        ('pd', 'Progressive Dynamic', ''),
+        ('dy', 'Dynamic', ''),
+        ('st', 'Static', '')), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set)
     lodref = bpy.props.StringProperty(name='lodref')
     userdata = bpy.props.StringProperty(name='userdata')
     bpy.utils.register_class(XRayObjectRevisionProperties)
