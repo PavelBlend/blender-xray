@@ -23,7 +23,15 @@ class ImportContext:
         relpath = relpath.lower().replace('\\', os.path.sep)
         result = self.__images.get(relpath)
         if result is None:
-            self.__images[relpath] = result = self.bpy.data.images.load(os.path.join(self.textures_folder, '{}.dds'.format(relpath)))
+            filepath = os.path.join(self.textures_folder, '{}.dds'.format(relpath))
+            try:
+                result = self.bpy.data.images.load(filepath)
+            except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+                self.report({'WARNING'}, str(ex))
+                result = self.bpy.data.images.new(os.path.basename(relpath), 0, 0)
+                result.source = 'FILE'
+                result.filepath = filepath
+            self.__images[relpath] = result
         return result
 
 
