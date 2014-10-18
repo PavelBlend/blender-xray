@@ -70,6 +70,22 @@ class XRayMaterialPanel(XRayPanel):
         layout.prop(data, 'gamemtl')
 
 
+class XRayArmaturePanel(XRayPanel):
+    bl_context = 'data'
+
+    @classmethod
+    def poll(cls, context):
+        return (
+            context.active_object
+            and context.active_object.type == 'ARMATURE'
+        )
+
+    def draw(self, context):
+        layout = self.layout
+        data = context.active_object.data.xray
+        layout.prop(data, 'display_bone_shapes')
+
+
 class XRayBonePanel(XRayPanel):
     bl_context = 'bone'
 
@@ -127,6 +143,7 @@ classes = [
     XRayObjectPanel
     , XRayMeshPanel
     , XRayMaterialPanel
+    , XRayArmaturePanel
     , XRayBonePanel
 ]
 

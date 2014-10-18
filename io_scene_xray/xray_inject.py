@@ -107,6 +107,11 @@ class XRayMaterialProperties(bpy.types.PropertyGroup):
     gamemtl = bpy.props.StringProperty(name='gamemtl', default='default')
 
 
+class XRayArmatureProperties(bpy.types.PropertyGroup):
+    b_type = bpy.types.Armature
+    display_bone_shapes = bpy.props.BoolProperty(name='Display Bone Shapes', default=False)
+
+
 class XRayBoneProperties(bpy.types.PropertyGroup):
     class BreakProperties(bpy.types.PropertyGroup):
         force = bpy.props.FloatProperty()
@@ -175,6 +180,9 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
     mass = bpy.props.PointerProperty(type=MassProperties)
 
     def ondraw_postview(self, obj_arm, bone):
+        if obj_arm.hide or not obj_arm.data.xray.display_bone_shapes:
+            return
+
         from .gl_utils import matrix_to_buffer, draw_wire_cube, draw_wire_sphere, draw_wire_cylinder
 
         shape = self.shape
@@ -185,6 +193,8 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             bgl.glColor4f(1.0, 0.0, 0.0, 0.7)
         else:
             bgl.glColor4f(0.0, 0.0, 1.0, 0.5)
+        prev_line_width = bgl.Buffer(bgl.GL_FLOAT, [1])
+        bgl.glGetFloatv(bgl.GL_LINE_WIDTH, prev_line_width)
         bgl.glPushMatrix()
         try:
             # m = obj_arm.matrix_world * bone.matrix_local
@@ -209,12 +219,14 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 draw_wire_cylinder(shape.cyl_rad, shape.cyl_hgh * 0.5, 16)
         finally:
             bgl.glPopMatrix()
+            bgl.glLineWidth(prev_line_width[0])
 
 
 classes = [
     XRayObjectProperties
     , XRayMeshProperties
     , XRayMaterialProperties
+    , XRayArmatureProperties
     , XRayBoneProperties
 ]
 
