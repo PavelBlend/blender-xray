@@ -71,22 +71,97 @@ class ModelExportHelper:
         return self.export(roots[0])
 
 
-class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
+def find_objects_for_export(context):
+    processed = set()
+    roots = []
+    for o in context.selected_objects:
+        while o:
+            if o in processed:
+                break
+            processed.add(o)
+            if o.xray.isroot:
+                roots.append(o)
+                break
+            o = o.parent
+    if len(roots) == 0:
+        roots = [o for o in context.scene.objects if o.xray.isroot]
+        if len(roots) == 0:
+            raise AppError('No \'root\'-objects found')
+        if len(roots) > 1:
+            raise AppError('Too many \'root\'-objects found, but none selected')
+    return roots
+
+
+class OpExportObjects(bpy.types.Operator):
+    bl_idname = 'export_object.xray_objects'
+    bl_label = 'Export selected .object-s'
+
+    objects = bpy.props.StringProperty(options={'HIDDEN'})
+
+    directory = bpy.props.StringProperty(subtype="FILE_PATH")
+
+    def execute(self, context):
+        from .fmt_object_exp import export_file
+        import os.path
+        try:
+            for n in self.objects.split(','):
+                o = context.scene.objects[n]
+                if not n.lower().endswith('.object'):
+                    n += '.object'
+                export_file(o, os.path.join(self.directory, n))
+        except AppError as err:
+            self.report({'ERROR'}, str(err))
+            return {'CANCELLED'}
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        roots = None
+        try:
+            roots = find_objects_for_export(context)
+        except AppError as err:
+            self.report({'ERROR'}, str(err))
+            return {'CANCELLED'}
+        if len(roots) == 1:
+            return bpy.ops.xray_export.object('INVOKE_DEFAULT')
+        self.objects = ','.join([o.name for o in roots])
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class OpExportObject(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
+
+    object = bpy.props.StringProperty(options={'HIDDEN'})
 
     filename_ext = '.object'
     filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
 
-    def export(self, bpy_obj):
+    def execute(self, context):
         from .fmt_object_exp import export_file
         try:
-            export_file(bpy_obj, self.filepath)
+            export_file(context.scene.objects[self.object], self.filepath)
         except AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
-
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        roots = None
+        try:
+            roots = find_objects_for_export(context)
+        except AppError as err:
+            self.report({'ERROR'}, str(err))
+            return {'CANCELLED'}
+        if len(roots) > 1:
+            self.report({'ERROR'}, 'Too many \'root\'-objects selected')
+            return {'CANCELLED'}
+        self.object = roots[0].name
+        self.filepath = self.object
+        if not self.filepath.lower().endswith(self.filename_ext):
+            self.filepath += self.filename_ext
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
 
 class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
@@ -144,7 +219,7 @@ def menu_func_import(self, context):
 
 
 def menu_func_export(self, context):
-    self.layout.operator(OpExportObject.bl_idname, text='X-Ray object (.object)')
+    self.layout.operator(OpExportObjects.bl_idname, text='X-Ray object (.object)')
 
 
 def menu_func_export_ogf(self, context):
@@ -157,6 +232,7 @@ def register():
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.utils.register_class(OpExportObject)
     bpy.types.INFO_MT_file_export.append(menu_func_export)
+    bpy.utils.register_class(OpExportObjects)
     bpy.utils.register_class(OpExportOgf)
     bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(overlay_view_3d, (), 'WINDOW', 'POST_VIEW')
@@ -168,6 +244,7 @@ def unregister():
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
     bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
     bpy.utils.unregister_class(OpExportOgf)
+    bpy.utils.unregister_class(OpExportObjects)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
     bpy.utils.unregister_class(OpExportObject)
     bpy.utils.unregister_class(OpImportObject)
