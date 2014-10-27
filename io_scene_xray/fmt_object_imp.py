@@ -334,6 +334,7 @@ def _import_main(fpath, cx, cr):
                 bpy_armature = cx.bpy.data.armatures.new(object_name)
                 bpy_armature.use_auto_ik = True
                 bpy_arm_obj = cx.bpy.data.objects.new(object_name, bpy_armature)
+                bpy_arm_obj.show_x_ray = True
                 bpy_arm_obj.parent = bpy_obj
                 cx.bpy.context.scene.objects.link(bpy_arm_obj)
                 cx.bpy.context.scene.objects.active = bpy_arm_obj
