@@ -17,7 +17,10 @@ class ImportContext:
         self.bpy = bpy
         self.textures_folder = textures
         self.op = op
-        self.noninitialized_materials = set()
+        self.used_materials = None
+
+    def before_import_file(self):
+        self.used_materials = {}
 
     def image(self, relpath):
         relpath = relpath.lower().replace('\\', os.path.sep)
@@ -98,10 +101,11 @@ def _import_mesh(cx, cr, parent):
             pr = PackedReader(data)
             for _ in range(pr.getf('H')[0]):
                 n = pr.gets()
-                bmat = cx.bpy.data.materials.get(n)
-                if bmat is None:
-                    bmat = cx.bpy.data.materials.new(n)
-                    cx.noninitialized_materials.add(bmat)
+                um = cx.used_materials.get(n)
+                if um is None:
+                    cx.used_materials[n] = um = (cx.bpy.data.materials.new(n), [])
+                bmat, meshes = um
+                meshes.append(bm_data)
                 midx = len(bm_data.materials)
                 bm_data.materials.append(bmat)
                 for fi in pr.getf(str(pr.getf('I')[0]) + 'I'):
@@ -307,14 +311,49 @@ def _import_main(fpath, cx, cr):
                 flags = pr.getf('I')[0]
                 pr.getf('I')    # fvf
                 pr.getf('I')    # ?
-                if cx.bpy:
-                    bpy_material = cx.bpy.data.materials.get(n)
-                    if bpy_material is None:
-                        cx.report({'WARNING'}, 'No material found for surface: ' + n)
+                um = cx.used_materials.get(n)
+                if um is None:
+                    cx.report({'WARNING'}, 'No material found for surface: ' + n)
+                    continue
+                del cx.used_materials[n]
+                bpy_material = None
+                for bm in bpy.data.materials:
+                    if not bm.name.startswith(n):
                         continue
-                    if not bpy_material in cx.noninitialized_materials:
-                        continue  # skip existing materials
-                    cx.noninitialized_materials.remove(bpy_material)
+                    if bm.xray.flags != flags:
+                        continue
+                    if bm.xray.eshader != eshader:
+                        continue
+                    if bm.xray.cshader != cshader:
+                        continue
+                    if bm.xray.gamemtl != gamemtl:
+                        continue
+                    ts_found = False
+                    tx_filepart = texture.replace('\\', os.path.sep)
+                    for ts in bm.texture_slots:
+                        if not ts:
+                            continue
+                        if ts.uv_layer != vmap:
+                            continue
+                        if not hasattr(ts.texture, 'image'):
+                            continue
+                        if not tx_filepart in ts.texture.image.filepath:
+                            continue
+                        ts_found = True
+                        break
+                    if not ts_found:
+                        continue
+                    bpy_material = bm
+                    break
+                if bpy_material:
+                    bmap, um_meshes = um
+                    for d in um_meshes:
+                        for i, m in enumerate(d.materials):
+                            if m == bmap:
+                                d.materials[i] = bpy_material
+                    bpy.data.materials.remove(bmap)
+                else:
+                    bpy_material = um[0]
                     bpy_material.xray.flags = flags
                     bpy_material.xray.eshader = eshader
                     bpy_material.xray.cshader = cshader

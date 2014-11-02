@@ -41,6 +41,7 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
             import os.path
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.object':
+                cx.before_import_file();
                 import_file(self.directory + file.name, cx)
             else:
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
