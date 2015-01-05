@@ -5,7 +5,7 @@ import math
 import mathutils
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_ogf import Chunks, ModelType, VertexFormat
-from .utils import is_fake_bone, find_bone_real_parent
+from .utils import is_fake_bone, find_bone_real_parent, AppError
 
 
 def calculate_bbox(bpy_obj):
@@ -80,7 +80,7 @@ def max_two(dic):
     return {k0: dic[k0], k1: dic[k1]}
 
 
-def _export_child(bpy_obj, cw):
+def _export_child(bpy_obj, cw, vgm):
     bm = bmesh.new()
     armmods = [m for m in bpy_obj.modifiers if m.type == 'ARMATURE' and m.show_viewport]
     try:
@@ -143,7 +143,7 @@ def _export_child(bpy_obj, cw):
             pw.putf('fff', *v[3])
             pw.putf('fff', *v[4])
             pw.putf('ff', *v[5])
-            pw.putf('I', vw.keys()[0])
+            pw.putf('I', vgm[vw.keys()[0]])
     else:
         if vwmx != 2:
             print('warning: vwmx=%i' % vwmx)
@@ -157,14 +157,14 @@ def _export_child(bpy_obj, cw):
                 first = True
                 w0 = 0
                 for vgi in vw.keys():
-                    pw.putf('H', vgi)
+                    pw.putf('H', vgm[vgi])
                     if first:
                         w0 = vw[vgi]
                         first = False
                     else:
                         bw = 1 - (w0 / (w0 + vw[vgi]))
             elif len(vw) == 1:
-                for vgi in vw.keys():
+                for vgi in [vgm[_] for _ in vw.keys()]:
                     pw.putf('HH', vgi, vgi)
                 bw = 0
             else:
@@ -200,32 +200,43 @@ def _export(bpy_obj, cw):
            .putf('III', 0, 0, 0))
 
     meshes = []
-    armatures = set()
+    bones = []
+    bones_map = {}
+
+    def reg_bone(b, a):
+        r = bones_map.get(b, -1)
+        if r == -1:
+            r = len(bones)
+            bones.append((b, a))
+            bones_map[b] = r
+        return r
 
     def scan_r(bpy_obj):
         if bpy_obj.type == 'MESH':
-            mw = ChunkedWriter()
-            _export_child(bpy_obj, mw)
-            meshes.append(mw)
+            vgm = {}
             for m in bpy_obj.modifiers:
                 if (m.type == 'ARMATURE') and m.object:
-                    armatures.add(m.object)
+                    for i, g in enumerate(bpy_obj.vertex_groups):
+                        b = m.object.data.bones.get(g.name, None)
+                        if b is None:
+                            raise AppError('bone "{}" not found in armature "{}" (for object "{}")'.format(g.name, m.object.name, bpy_obj.name))
+                        vgm[i] = reg_bone(b, m.object)
+                    break  # use only first armature modifier
+            mw = ChunkedWriter()
+            _export_child(bpy_obj, mw, vgm)
+            meshes.append(mw)
         elif bpy_obj.type == 'ARMATURE':
-            armatures.add(bpy_obj)
+            for b in bpy_obj.data.bones:
+                if is_fake_bone(b):
+                    continue
+                reg_bone(b, bpy_obj)
         for c in bpy_obj.children:
             scan_r(c)
 
     scan_r(bpy_obj)
 
-    bones = []
-
     ccw = ChunkedWriter()
     idx = 0
-    for c in armatures:
-        for b in c.data.bones:
-            if is_fake_bone(b):
-                continue
-            bones.append((b, c))
     for mw in meshes:
         ccw.put(idx, mw)
         idx += 1
