@@ -66,6 +66,8 @@ def _import_mesh(cx, cr, parent):
             for _ in range(pr.getf('I')[0]):
                 bm.verts.new(pr.getf('fff'))
         elif cid == Chunks.Mesh.FACES:
+            if hasattr(bm.verts, 'ensure_lookup_table'):
+                bm.verts.ensure_lookup_table()
             pr = PackedReader(data)
             for _ in range(pr.getf('I')[0]):
                 fr = pr.getf('IIIIII')
