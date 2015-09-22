@@ -80,9 +80,7 @@ def _import_mesh(cx, cr, parent):
             bm_data.name = bo_mesh.name + '.mesh'
         elif cid == Chunks.Mesh.SG:
             pr = PackedReader(data)
-            besm = bo_mesh.modifiers.new(name='XRay: do smoothing groups', type='EDGE_SPLIT')
-            besm.show_expanded = False
-            besm.use_edge_angle = False
+            bm_data.use_auto_smooth = True
             edict = {}
             for fi, sg in enumerate(pr.getf(str(len(data) // 4) + 'I')):
                 bmf = bmfaces[fi]
