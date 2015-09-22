@@ -16,3 +16,8 @@ def version_to_number(major, minor, release):
 class AppError(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+def fix_ensure_lookup_table(bmv):
+    if hasattr(bmv, 'ensure_lookup_table'):
+        bmv.ensure_lookup_table()

@@ -4,7 +4,7 @@ import mathutils
 import io
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_object import Chunks
-from .utils import is_fake_bone, find_bone_real_parent, AppError
+from .utils import is_fake_bone, find_bone_real_parent, AppError, fix_ensure_lookup_table
 
 __matrix = mathutils.Matrix(((1, 0, 0), (0, 0, 1), (0, 1, 0))).to_4x4()
 
@@ -46,6 +46,7 @@ def _export_mesh(bpy_obj, cw):
             need_flip = not need_flip
     if need_flip:
         bmesh.ops.reverse_faces(bm, faces=bm.faces)  # flip normals
+    fix_ensure_lookup_table(bm.verts)
 
     bbox = calculate_bbox(bm)
     cw.put(Chunks.Mesh.BBOX, PackedWriter().putf('fff', *bbox[0]).putf('fff', *bbox[1]))

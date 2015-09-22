@@ -5,7 +5,7 @@ import math
 import os.path
 from .xray_io import ChunkedReader, PackedReader
 from .fmt_object import Chunks
-from .utils import find_bone_real_parent
+from .utils import find_bone_real_parent, fix_ensure_lookup_table
 
 
 class ImportContext:
@@ -66,8 +66,7 @@ def _import_mesh(cx, cr, parent):
             for _ in range(pr.getf('I')[0]):
                 bm.verts.new(pr.getf('fff'))
         elif cid == Chunks.Mesh.FACES:
-            if hasattr(bm.verts, 'ensure_lookup_table'):
-                bm.verts.ensure_lookup_table()
+            fix_ensure_lookup_table(bm.verts)
             pr = PackedReader(data)
             for _ in range(pr.getf('I')[0]):
                 fr = pr.getf('IIIIII')

@@ -5,7 +5,7 @@ import math
 import mathutils
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_ogf import Chunks, ModelType, VertexFormat
-from .utils import is_fake_bone, find_bone_real_parent, AppError
+from .utils import is_fake_bone, find_bone_real_parent, AppError, fix_ensure_lookup_table
 
 
 def calculate_bbox(bpy_obj):
@@ -133,6 +133,7 @@ def _export_child(bpy_obj, cw, vgm):
         if vwc > vwmx:
             vwmx = vwc
 
+    fix_ensure_lookup_table(bm.verts)
     pw = PackedWriter()
     if vwmx == 1:
         pw.putf('II', VertexFormat.FVF_1L, len(vertices))
