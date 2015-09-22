@@ -2,6 +2,7 @@ import bmesh
 import bpy
 import io
 import math
+import mathutils
 import os.path
 from .xray_io import ChunkedReader, PackedReader
 from .fmt_object import Chunks
@@ -50,6 +51,11 @@ def debug(m):
     pass
 
 
+def read_v3f(packed_reader):
+    v = packed_reader.getf('fff')
+    return v[0], v[2], v[1]
+
+
 def _import_mesh(cx, cr, parent):
     ver = cr.nextf(Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
@@ -64,14 +70,14 @@ def _import_mesh(cx, cr, parent):
         if cid == Chunks.Mesh.VERTS:
             pr = PackedReader(data)
             for _ in range(pr.getf('I')[0]):
-                bm.verts.new(pr.getf('fff'))
+                bm.verts.new(read_v3f(pr))
         elif cid == Chunks.Mesh.FACES:
             fix_ensure_lookup_table(bm.verts)
             pr = PackedReader(data)
             for _ in range(pr.getf('I')[0]):
                 fr = pr.getf('IIIIII')
                 try:
-                    bmfaces.append(bm.faces.new([bm.verts[vi] for vi in fr[::2]]))
+                    bmfaces.append(bm.faces.new((bm.verts[fr[0]], bm.verts[fr[4]], bm.verts[fr[2]])))
                 except ValueError:
                     bmfaces.append(None)
             bm.normal_update()
@@ -186,7 +192,11 @@ def _get_real_bone_shape():
     return r
 
 
-def _import_bone(cx, cr, bpy_arm_obj, bonemat, renamemap):
+__matrix_bone = mathutils.Matrix(((1.0, 0.0, 0.0, 0.0), (0.0, 0.0, -1.0, 0.0), (0.0, 1.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)))
+__matrix_bone_inv = __matrix_bone.inverted()
+
+
+def _import_bone(cx, cr, bpy_arm_obj, renamemap):
     bpy_armature = bpy_arm_obj.data
     ver = cr.nextf(Chunks.Bone.VERSION, 'H')[0]
     if ver != 0x2:
@@ -198,26 +208,19 @@ def _import_bone(cx, cr, bpy_arm_obj, bonemat, renamemap):
     if name != vmap:
         renamemap[name] = vmap
     pr = PackedReader(cr.next(Chunks.Bone.BIND_POSE))
-    offset = pr.getf('fff')
-    rotate = pr.getf('fff')
+    offset = read_v3f(pr)
+    rotate = read_v3f(pr)
     length = pr.getf('f')[0]
     cx.bpy.ops.object.mode_set(mode='EDIT')
     try:
         bpy_bone = bpy_armature.edit_bones.new(name=name)
+        mr = mathutils.Euler((-rotate[0], -rotate[1], -rotate[2]), 'YXZ').to_matrix().to_4x4()
+        mat = mathutils.Matrix.Translation(offset) * mr * __matrix_bone
         if parent:
             bpy_bone.parent = bpy_armature.edit_bones[parent]
-        import mathutils
-        mr = mathutils.Matrix.Rotation(rotate[1], 4, 'Y') * mathutils.Matrix.Rotation(rotate[0], 4, 'X') * mathutils.Matrix.Rotation(rotate[2], 4, 'Z')
-        mat = bonemat.get(parent, mathutils.Matrix.Identity(4)) * mathutils.Matrix.Translation(offset) * mr
-        bonemat[name] = mat
+            mat = bpy_bone.parent.matrix * __matrix_bone_inv * mat
         bpy_bone.tail.y = 0.05
-        xa = bpy_bone.x_axis
-        bpy_bone.head = mat * bpy_bone.head
-        bpy_bone.tail = mat * bpy_bone.tail
-        va = bpy_bone.x_axis
-        vr = (mat.to_3x3() * xa).normalized()
-        a = math.atan2(vr.cross(va).dot(bpy_bone.y_axis), vr.dot(va))
-        bpy_bone.roll -= a
+        bpy_bone.matrix = mat
         name = bpy_bone.name
     finally:
         cx.bpy.ops.object.mode_set(mode='OBJECT')
@@ -264,7 +267,7 @@ def _import_bone(cx, cr, bpy_arm_obj, bonemat, renamemap):
         elif cid == Chunks.Bone.MASS_PARAMS:
             pr = PackedReader(data)
             xray.mass.value = pr.getf('f')[0]
-            xray.mass.center = pr.getf('fff')
+            xray.mass.center = read_v3f(pr)
         elif cid == Chunks.Bone.IK_FLAGS:
             xray.ikflags = PackedReader(data).getf('I')[0]
         elif cid == Chunks.Bone.BREAK_PARAMS:
@@ -284,8 +287,6 @@ def _import_main(fpath, cx, cr):
         raise Exception('unsupported OBJECT format version: {:#x}'.format(ver))
     if cx.bpy:
         bpy_obj = cx.bpy.data.objects.new(object_name, None)
-        bpy_obj.rotation_euler.x = math.pi / 2
-        bpy_obj.scale.z = -1
         bpy_obj.xray.version = cx.version
         cx.bpy.context.scene.objects.link(bpy_obj)
     else:
@@ -371,14 +372,14 @@ def _import_main(fpath, cx, cr):
             if cx.bpy and (bpy_armature is None):
                 bpy_armature = cx.bpy.data.armatures.new(object_name)
                 bpy_armature.use_auto_ik = True
+                bpy_armature.xray.version = cx.version
                 bpy_arm_obj = cx.bpy.data.objects.new(object_name, bpy_armature)
                 bpy_arm_obj.show_x_ray = True
                 bpy_arm_obj.parent = bpy_obj
                 cx.bpy.context.scene.objects.link(bpy_arm_obj)
                 cx.bpy.context.scene.objects.active = bpy_arm_obj
-            bonemat = {}
             for (_, bdat) in ChunkedReader(data):
-                _import_bone(cx, ChunkedReader(bdat), bpy_arm_obj, bonemat, bones_renamemap)
+                _import_bone(cx, ChunkedReader(bdat), bpy_arm_obj, bones_renamemap)
             cx.bpy.ops.object.mode_set(mode='EDIT')
             try:
                 import mathutils
@@ -427,8 +428,8 @@ def _import_main(fpath, cx, cr):
                 bpy_armmod.object = bpy_arm_obj
         elif cid == Chunks.Object.TRANSFORM:
             pr = PackedReader(data)
-            pos = pr.getf('fff')
-            rot = pr.getf('fff')
+            pos = read_v3f(pr)
+            rot = read_v3f(pr)
             import mathutils
             bpy_obj.matrix_basis *= mathutils.Matrix.Translation(pos) * mathutils.Euler((-rot[0], -rot[1], -rot[2])).to_matrix().to_4x4()
         elif cid == Chunks.Object.FLAGS:
@@ -509,8 +510,8 @@ def _import_main(fpath, cx, cr):
                         if real_parent:
                             xm = xm * real_parent.matrix_local
                         for t in times.keys():
-                            tr = (tmpfc[0].evaluate(t), tmpfc[1].evaluate(t), tmpfc[2].evaluate(t))
-                            rt = (tmpfc[4].evaluate(t), tmpfc[3].evaluate(t), tmpfc[5].evaluate(t))
+                            tr = (tmpfc[0].evaluate(t), tmpfc[1].evaluate(t), -tmpfc[2].evaluate(t))
+                            rt = (-tmpfc[4].evaluate(t), -tmpfc[3].evaluate(t), tmpfc[5].evaluate(t))
                             mat = xm * mathutils.Matrix.Translation(tr) * mathutils.Euler(rt, 'ZXY').to_matrix().to_4x4()
                             tr = mat.to_translation()
                             rt = mat.to_quaternion()

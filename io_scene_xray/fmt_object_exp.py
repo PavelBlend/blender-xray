@@ -4,52 +4,21 @@ import mathutils
 import io
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_object import Chunks
-from .utils import is_fake_bone, find_bone_real_parent, AppError, fix_ensure_lookup_table
-
-__matrix = mathutils.Matrix(((1, 0, 0), (0, 0, 1), (0, 1, 0))).to_4x4()
+from .utils import is_fake_bone, find_bone_real_parent, AppError, convert_object_to_worldspace_bmesh, calculate_mesh_bbox
 
 
-def calculate_bbox(bm):
-    def vf(va, vb, f):
-        va.x = f(va.x, vb.x)
-        va.y = f(va.y, vb.y)
-        va.z = f(va.z, vb.z)
-
-    mn = mathutils.Vector(bm.verts[0].co)
-    mx = mathutils.Vector(bm.verts[0].co)
-
-    for v in bm.verts:
-        vf(mn, v.co, min)
-        vf(mx, v.co, max)
-
-    return mn, mx
+def pw_v3f(v):
+    return v[0], v[2], v[1]
 
 
 def _export_mesh(bpy_obj, cw):
     cw.put(Chunks.Mesh.VERSION, PackedWriter().putf('H', 0x11))
     cw.put(Chunks.Mesh.MESHNAME, PackedWriter().puts(bpy_obj.name))
 
-    bm = bmesh.new()
-    armmods = [m for m in bpy_obj.modifiers if m.type == 'ARMATURE' and m.show_viewport]
-    try:
-        for m in armmods:
-            m.show_viewport = False
-        bm.from_object(bpy_obj, bpy.context.scene)
-    finally:
-        for m in armmods:
-            m.show_viewport = True
-    mt = __matrix.inverted() * bpy_obj.matrix_world
-    bm.transform(mt)
-    need_flip = False
-    for k in mt.to_scale():
-        if k < 0:
-            need_flip = not need_flip
-    if need_flip:
-        bmesh.ops.reverse_faces(bm, faces=bm.faces)  # flip normals
-    fix_ensure_lookup_table(bm.verts)
+    bm = convert_object_to_worldspace_bmesh(bpy_obj)
 
-    bbox = calculate_bbox(bm)
-    cw.put(Chunks.Mesh.BBOX, PackedWriter().putf('fff', *bbox[0]).putf('fff', *bbox[1]))
+    bbox = calculate_mesh_bbox(bm.verts)
+    cw.put(Chunks.Mesh.BBOX, PackedWriter().putf('fff', *pw_v3f(bbox[0])).putf('fff', *pw_v3f(bbox[1])))
     if hasattr(bpy_obj.data, 'xray'):
         cw.put(Chunks.Mesh.FLAGS, PackedWriter().putf('B', bpy_obj.data.xray.flags))
     else:
@@ -60,7 +29,7 @@ def _export_mesh(bpy_obj, cw):
     pw = PackedWriter()
     pw.putf('I', len(bm.verts))
     for v in bm.verts:
-        pw.putf('fff', v.co.x, v.co.y, v.co.z)
+        pw.putf('fff', *pw_v3f(v.co))
     cw.put(Chunks.Mesh.VERTS, pw)
 
     uvs = []
@@ -73,7 +42,7 @@ def _export_mesh(bpy_obj, cw):
     pw = PackedWriter()
     pw.putf('I', len(bm.faces))
     for f in bm.faces:
-        for i in range(3):
+        for i in (0, 2, 1):
             pw.putf('II', f.verts[i].index, len(uvs))
             uv = f.loops[i][uv_layer].uv
             uvs.append((uv[0], 1 - uv[1]))
@@ -161,6 +130,10 @@ def _export_mesh(bpy_obj, cw):
     cw.put(Chunks.Mesh.VMAPS2, pw)
 
 
+__matrix_bone = mathutils.Matrix(((1.0, 0.0, 0.0, 0.0), (0.0, 0.0, -1.0, 0.0), (0.0, 1.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)))
+__matrix_bone_inv = __matrix_bone.inverted()
+
+
 def _export_bone(bpy_arm_obj, bpy_bone, writers, bonemap):
     real_parent = find_bone_real_parent(bpy_bone)
     if real_parent:
@@ -176,13 +149,14 @@ def _export_bone(bpy_arm_obj, bpy_bone, writers, bonemap):
            .puts(bpy_bone.name)
            .puts(real_parent.name if real_parent else '')
            .puts(bpy_bone.name))  # vmap
-    tm = bpy_bone.matrix_local
+    mw = bpy_arm_obj.matrix_world
+    tm = mw * bpy_bone.matrix_local * __matrix_bone_inv
     if real_parent:
-        tm = real_parent.matrix_local.inverted() * tm
-    e = tm.to_euler('ZXY')
+        tm = (mw * real_parent.matrix_local * __matrix_bone_inv).inverted() * tm
+    e = tm.to_euler('YXZ')
     cw.put(Chunks.Bone.BIND_POSE, PackedWriter()
-           .putf('fff', *tm.to_translation())
-           .putf('fff', e.x, e.y, e.z)
+           .putf('fff', *pw_v3f(tm.to_translation()))
+           .putf('fff', -e.x, -e.z, -e.y)
            .putf('f', xr.length))
     cw.put(Chunks.Bone.MATERIAL, PackedWriter().puts(xr.gamemtl))
     cw.put(Chunks.Bone.SHAPE, PackedWriter()
@@ -219,7 +193,7 @@ def _export_bone(bpy_arm_obj, bpy_bone, writers, bonemap):
     if xr.mass.value:
         cw.put(Chunks.Bone.MASS_PARAMS, PackedWriter()
                .putf('f', xr.mass.value)
-               .putf('fff', *xr.mass.center))
+               .putf('fff', *pw_v3f(xr.mass.center)))
 
 
 def _export_main(bpy_obj, cw):

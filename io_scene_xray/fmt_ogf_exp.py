@@ -5,50 +5,45 @@ import math
 import mathutils
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_ogf import Chunks, ModelType, VertexFormat
-from .utils import is_fake_bone, find_bone_real_parent, AppError, fix_ensure_lookup_table
+from .utils import is_fake_bone, find_bone_real_parent, AppError, fix_ensure_lookup_table, convert_object_to_worldspace_bmesh, calculate_mesh_bbox
 
 
-def calculate_bbox(bpy_obj):
-    bb = bpy_obj.bound_box
-    mn = [bb[0][0], bb[0][1], bb[0][2]]
-    mx = [bb[6][0], bb[6][1], bb[6][2]]
-
-    def expand_children_r(cc):
-        for c in cc:
-            b = c.bound_box
-            for i in range(3):
-                mn[i] = min(mn[i], b[0][i])
-                mx[i] = max(mx[i], b[6][i])
-            expand_children_r(c.children)
-
-    expand_children_r(bpy_obj.children)
-    return mn, mx
+def calculate_mesh_bsphere(bbox, vertices):
+    center = (bbox[0] + bbox[1]) / 2
+    _delta = bbox[1] - bbox[0]
+    radius = max(abs(_delta.x), abs(_delta.y), abs(_delta.z)) / 2
+    for v in vertices:
+        d = v.co - center
+        r = d.length
+        if r > radius:
+            o = center - d.normalized() * radius
+            center = (v.co + o) / 2
+            radius = (center - o).length
+    return center, radius
 
 
-def calculate_bsphere(bpy_obj):
-    def calc_sph(bb, vertices, offs):
-        mn = mathutils.Vector((bb[0][0], bb[0][1], bb[0][2]))
-        mx = mathutils.Vector((bb[6][0], bb[6][1], bb[6][2]))
-        center = (mn + mx) / 2
-        radius = max(abs(mx.x - mn.x), abs(mx.y - mn.y), abs(mx.z - mn.z)) / 2
-        for v in vertices:
-            d = v.co - center
-            r = d.length
-            if r > radius:
-                o = center - d.normalized() * radius
-                center = (v.co + o) / 2
-                radius = (center - o).length
-        return center, radius
-
-    spheres = []
-
-    def scan_r(bpy_obj, offs):
-        offs = bpy_obj.location + offs
+def calculate_bbox_and_bsphere(bpy_obj):
+    def scan_meshes(bpy_obj, meshes):
         if (bpy_obj.type == 'MESH') and len(bpy_obj.data.vertices):
-            spheres.append(calc_sph(bpy_obj.bound_box, bpy_obj.data.vertices, offs))
+            meshes.append(bpy_obj)
         for c in bpy_obj.children:
-            scan_r(c, offs)
-    scan_r(bpy_obj, mathutils.Vector())
+            scan_meshes(c, meshes)
+
+    meshes = []
+    scan_meshes(bpy_obj, meshes)
+
+    bbox = None
+    spheres = []
+    for m in meshes:
+        bm = convert_object_to_worldspace_bmesh(m)
+        bbx = calculate_mesh_bbox(bm.verts)
+        if bbox is None:
+            bbox = bbx
+        else:
+            for i in range(3):
+                bbox[0][i] = min(bbox[0][i], bbx[0][i])
+                bbox[1][i] = max(bbox[1][i], bbx[1][i])
+        spheres.append(calculate_mesh_bsphere(bbx, bm.verts))
 
     center = mathutils.Vector()
     radius = 0
@@ -59,7 +54,7 @@ def calculate_bsphere(bpy_obj):
     center /= len(spheres)
     for c, r in spheres:
         radius = max(radius, (c - center).length + r)
-    return center, radius
+    return bbox, (center, radius)
 
 
 def max_two(dic):
@@ -80,18 +75,14 @@ def max_two(dic):
     return {k0: dic[k0], k1: dic[k1]}
 
 
+def pw_v3f(v):
+    return v[0], v[2], v[1]
+
+
 def _export_child(bpy_obj, cw, vgm):
-    bm = bmesh.new()
-    armmods = [m for m in bpy_obj.modifiers if m.type == 'ARMATURE' and m.show_viewport]
-    try:
-        for m in armmods:
-            m.show_viewport = False
-        bm.from_object(bpy_obj, bpy.context.scene)
-        bbox = calculate_bbox(bpy_obj)
-        bsph = calculate_bsphere(bpy_obj)
-    finally:
-        for m in armmods:
-            m.show_viewport = True
+    bm = convert_object_to_worldspace_bmesh(bpy_obj)
+    bbox = calculate_mesh_bbox(bm.verts)
+    bsph = calculate_mesh_bsphere(bbox, bm.verts)
     bmesh.ops.triangulate(bm, faces=bm.faces)
     bpy_data = bpy.data.meshes.new('.export-ogf')
     bm.to_mesh(bpy_data)
@@ -100,8 +91,8 @@ def _export_child(bpy_obj, cw, vgm):
            .putf('B', 4)  # ogf version
            .putf('B', ModelType.SKELETON_GEOMDEF_ST)
            .putf('H', 0)  # shader id
-           .putf('fff', *bbox[0]).putf('fff', *bbox[1])
-           .putf('fff', *bsph[0]).putf('f', bsph[1]))
+           .putf('fff', *pw_v3f(bbox[0])).putf('fff', *pw_v3f(bbox[1]))
+           .putf('fff', *pw_v3f(bsph[0])).putf('f', bsph[1]))
 
     m = bpy_obj.data.materials[0]
     cw.put(Chunks.TEXTURE, PackedWriter()
@@ -139,10 +130,10 @@ def _export_child(bpy_obj, cw, vgm):
         pw.putf('II', VertexFormat.FVF_1L, len(vertices))
         for v in vertices:
             vw = bm.verts[v[0]][bml_vw]
-            pw.putf('fff', *v[1])
-            pw.putf('fff', *v[2])
-            pw.putf('fff', *v[3])
-            pw.putf('fff', *v[4])
+            pw.putf('fff', *pw_v3f(v[1]))
+            pw.putf('fff', *pw_v3f(v[2]))
+            pw.putf('fff', *pw_v3f(v[3]))
+            pw.putf('fff', *pw_v3f(v[4]))
             pw.putf('ff', *v[5])
             pw.putf('I', vgm[vw.keys()[0]])
     else:
@@ -170,10 +161,10 @@ def _export_child(bpy_obj, cw, vgm):
                 bw = 0
             else:
                 raise Exception('oops: %i %s' % (len(vw), vw.keys()))
-            pw.putf('fff', *v[1])
-            pw.putf('fff', *v[2])
-            pw.putf('fff', *v[3])
-            pw.putf('fff', *v[4])
+            pw.putf('fff', *pw_v3f(v[1]))
+            pw.putf('fff', *pw_v3f(v[2]))
+            pw.putf('fff', *pw_v3f(v[3]))
+            pw.putf('fff', *pw_v3f(v[4]))
             pw.putf('f', bw)
             pw.putf('ff', *v[5])
     cw.put(Chunks.VERTICES, pw)
@@ -181,19 +172,22 @@ def _export_child(bpy_obj, cw, vgm):
     pw = PackedWriter()
     pw.putf('I', 3 * len(indices))
     for f in indices:
-        pw.putf('HHH', *f)
+        pw.putf('HHH', f[0], f[2], f[1])
     cw.put(Chunks.INDICES, pw)
 
 
+__matrix_bone = mathutils.Matrix(((1.0, 0.0, 0.0, 0.0), (0.0, 0.0, -1.0, 0.0), (0.0, 1.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)))
+__matrix_bone_inv = __matrix_bone.inverted()
+
+
 def _export(bpy_obj, cw):
-    bbox = calculate_bbox(bpy_obj)
-    bsph = calculate_bsphere(bpy_obj)
+    bbox, bsph = calculate_bbox_and_bsphere(bpy_obj)
     cw.put(Chunks.HEADER, PackedWriter()
            .putf('B', 4)  # ogf version
            .putf('B', ModelType.SKELETON_ANIM if bpy_obj.xray.motionrefs else ModelType.SKELETON_RIGID)
            .putf('H', 0)  # shader id
-           .putf('fff', *bbox[0]).putf('fff', *bbox[1])
-           .putf('fff', *bsph[0]).putf('f', bsph[1]))
+           .putf('fff', *pw_v3f(bbox[0])).putf('fff', *pw_v3f(bbox[1]))
+           .putf('fff', *pw_v3f(bsph[0])).putf('f', bsph[1]))
 
     cw.put(Chunks.S_DESC, PackedWriter()
            .puts(bpy_obj.name)
@@ -283,14 +277,15 @@ def _export(bpy_obj, cw):
         pw.putf('I', xr.ikflags)
         pw.putf('ff', xr.breakf.force, xr.breakf.torque)
         pw.putf('f', xr.friction)
-        tm = b.matrix_local
+        mw = o.matrix_world
+        tm = mw * b.matrix_local * __matrix_bone_inv
         b_parent = find_bone_real_parent(b)
         if b_parent:
-            tm = b_parent.matrix_local.inverted() * tm
-        e = tm.to_euler('ZXY')
-        pw.putf('fff', e.x, e.y, e.z)
-        pw.putf('fff', *tm.to_translation())
-        pw.putf('ffff', xr.mass.value, *xr.mass.center)
+            tm = (mw * b_parent.matrix_local * __matrix_bone_inv).inverted() * tm
+        e = tm.to_euler('YXZ')
+        pw.putf('fff', -e.x, -e.z, -e.y)
+        pw.putf('fff', *pw_v3f(tm.to_translation()))
+        pw.putf('ffff', xr.mass.value, *pw_v3f(xr.mass.center))
     cw.put(Chunks.S_IKDATA, pw)
 
     cw.put(Chunks.S_USERDATA, PackedWriter().puts(bpy_obj.xray.userdata))

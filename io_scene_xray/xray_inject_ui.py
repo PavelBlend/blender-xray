@@ -84,6 +84,8 @@ class XRayArmaturePanel(XRayPanel):
         layout = self.layout
         data = context.active_object.data.xray
         layout.prop(data, 'display_bone_shapes')
+        if data.version < 4:
+            layout.label('This armature was imported with obsolete version of this plugin', icon='ERROR')
 
 
 class XRayBonePanel(XRayPanel):

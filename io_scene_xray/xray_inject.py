@@ -109,6 +109,7 @@ class XRayMaterialProperties(bpy.types.PropertyGroup):
 
 class XRayArmatureProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Armature
+    version = bpy.props.IntProperty()
     display_bone_shapes = bpy.props.BoolProperty(name='Display Bone Shapes', default=False)
 
 
@@ -197,12 +198,12 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         bgl.glGetFloatv(bgl.GL_LINE_WIDTH, prev_line_width)
         bgl.glPushMatrix()
         try:
-            # m = obj_arm.matrix_world * bone.matrix_local
-            m = obj_arm.matrix_world * obj_arm.pose.bones[bone.name].matrix
+            m = obj_arm.matrix_world * obj_arm.pose.bones[bone.name].matrix * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
             bgl.glLineWidth(2)
             if shape.type == '1':  # box
                 rt = shape.box_rot
-                m *= mathutils.Matrix.Translation(shape.box_trn) * mathutils.Matrix((rt[0:3], rt[3:6], rt[6:9])).to_4x4()
+                mr = mathutils.Matrix((rt[0:3], rt[3:6], rt[6:9])).transposed()
+                m *= mathutils.Matrix.Translation(shape.box_trn) * mr.to_4x4()
                 bgl.glMultMatrixf(matrix_to_buffer(m.transposed()))
                 draw_wire_cube(*shape.box_hsz)
             if shape.type == '2':  # sphere
