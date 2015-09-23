@@ -69,7 +69,7 @@ class ModelExportHelper:
         if len(roots) > 1:
             self.report({'ERROR'}, 'Too many object roots found')
             return {'CANCELLED'}
-        return self.export(roots[0])
+        return self.export(roots[0], context)
 
 
 def find_objects_for_export(context):
@@ -93,6 +93,22 @@ def find_objects_for_export(context):
     return roots
 
 
+def _texture_name_from_image_path():
+    return bpy.props.BoolProperty(
+        name='texture names from image paths',
+        description='generate texture names from image paths (by subtract <gamedata/textures> prefix & <file-extension> suffix)'
+    )
+
+
+def _mk_export_context(context, texname_from_path):
+        from .fmt_object_exp import ExportContext
+        addon_prefs = context.user_preferences.addons['io_scene_xray'].preferences
+        return ExportContext(
+            textures_folder=addon_prefs.get_textures_folder(),
+            texname_from_path=texname_from_path
+        )
+
+
 class OpExportObjects(bpy.types.Operator):
     bl_idname = 'export_object.xray_objects'
     bl_label = 'Export selected .object-s'
@@ -101,15 +117,18 @@ class OpExportObjects(bpy.types.Operator):
 
     directory = bpy.props.StringProperty(subtype="FILE_PATH")
 
+    texture_name_from_image_path = _texture_name_from_image_path()
+
     def execute(self, context):
         from .fmt_object_exp import export_file
+        cx = _mk_export_context(context, self.texture_name_from_image_path)
         import os.path
         try:
             for n in self.objects.split(','):
                 o = context.scene.objects[n]
                 if not n.lower().endswith('.object'):
                     n += '.object'
-                export_file(o, os.path.join(self.directory, n))
+                export_file(o, os.path.join(self.directory, n), cx)
         except AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
@@ -138,10 +157,13 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper):
     filename_ext = '.object'
     filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
 
+    texture_name_from_image_path = _texture_name_from_image_path()
+
     def execute(self, context):
         from .fmt_object_exp import export_file
+        cx = _mk_export_context(context, self.texture_name_from_image_path)
         try:
-            export_file(context.scene.objects[self.object], self.filepath)
+            export_file(context.scene.objects[self.object], self.filepath, cx)
         except AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
@@ -172,9 +194,12 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
     filename_ext = '.ogf'
     filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
 
-    def export(self, bpy_obj):
+    texture_name_from_image_path = _texture_name_from_image_path()
+
+    def export(self, bpy_obj, context):
         from .fmt_ogf_exp import export_file
-        export_file(bpy_obj, self.filepath)
+        cx = _mk_export_context(context, self.texture_name_from_image_path)
+        export_file(bpy_obj, self.filepath, cx)
         return {'FINISHED'}
 
 

@@ -5,7 +5,7 @@ import math
 import mathutils
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_ogf import Chunks, ModelType, VertexFormat
-from .utils import is_fake_bone, find_bone_real_parent, AppError, fix_ensure_lookup_table, convert_object_to_worldspace_bmesh, calculate_mesh_bbox
+from .utils import is_fake_bone, find_bone_real_parent, AppError, fix_ensure_lookup_table, convert_object_to_worldspace_bmesh, calculate_mesh_bbox, gen_texture_name
 
 
 def calculate_mesh_bsphere(bbox, vertices):
@@ -79,7 +79,7 @@ def pw_v3f(v):
     return v[0], v[2], v[1]
 
 
-def _export_child(bpy_obj, cw, vgm):
+def _export_child(bpy_obj, cw, cx, vgm):
     bm = convert_object_to_worldspace_bmesh(bpy_obj)
     bbox = calculate_mesh_bbox(bm.verts)
     bsph = calculate_mesh_bsphere(bbox, bm.verts)
@@ -96,7 +96,7 @@ def _export_child(bpy_obj, cw, vgm):
 
     m = bpy_obj.data.materials[0]
     cw.put(Chunks.TEXTURE, PackedWriter()
-           .puts(m.active_texture.name)
+           .puts(gen_texture_name(m.active_texture, cx.textures_folder) if cx.texname_from_path else m.active_texture.name)
            .puts(m.xray.eshader))
 
     bml_uv = bm.loops.layers.uv.active
@@ -180,7 +180,7 @@ __matrix_bone = mathutils.Matrix(((1.0, 0.0, 0.0, 0.0), (0.0, 0.0, -1.0, 0.0), (
 __matrix_bone_inv = __matrix_bone.inverted()
 
 
-def _export(bpy_obj, cw):
+def _export(bpy_obj, cw, cx):
     bbox, bsph = calculate_bbox_and_bsphere(bpy_obj)
     cw.put(Chunks.HEADER, PackedWriter()
            .putf('B', 4)  # ogf version
@@ -218,7 +218,7 @@ def _export(bpy_obj, cw):
                         vgm[i] = reg_bone(b, m.object)
                     break  # use only first armature modifier
             mw = ChunkedWriter()
-            _export_child(bpy_obj, mw, vgm)
+            _export_child(bpy_obj, mw, cx, vgm)
             meshes.append(mw)
         elif bpy_obj.type == 'ARMATURE':
             for b in bpy_obj.data.bones:
@@ -293,8 +293,8 @@ def _export(bpy_obj, cw):
         cw.put(Chunks.S_MOTION_REFS_0, PackedWriter().puts(bpy_obj.xray.motionrefs))
 
 
-def export_file(bpy_obj, fpath):
+def export_file(bpy_obj, fpath, cx):
     with io.open(fpath, 'wb') as f:
         cw = ChunkedWriter()
-        _export(bpy_obj, cw)
+        _export(bpy_obj, cw, cx)
         f.write(cw.data)

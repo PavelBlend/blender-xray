@@ -60,3 +60,10 @@ def calculate_mesh_bbox(verts):
         vf(mx, v.co, max)
 
     return mn, mx
+
+
+def gen_texture_name(tx, tx_folder):
+    import os.path
+    a_tx_fpath, a_tx_folder = os.path.abspath(tx.image.filepath), os.path.abspath(tx_folder)
+    a_tx_fpath = os.path.splitext(a_tx_fpath)[0]
+    return a_tx_fpath[len(a_tx_folder) + 1:].replace(os.path.sep, '\\')

@@ -4,7 +4,13 @@ import mathutils
 import io
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_object import Chunks
-from .utils import is_fake_bone, find_bone_real_parent, AppError, convert_object_to_worldspace_bmesh, calculate_mesh_bbox
+from .utils import is_fake_bone, find_bone_real_parent, AppError, convert_object_to_worldspace_bmesh, calculate_mesh_bbox, gen_texture_name
+
+
+class ExportContext:
+    def __init__(self, textures_folder, texname_from_path):
+        self.textures_folder = textures_folder
+        self.texname_from_path = texname_from_path
 
 
 def pw_v3f(v):
@@ -196,7 +202,7 @@ def _export_bone(bpy_arm_obj, bpy_bone, writers, bonemap):
                .putf('fff', *pw_v3f(xr.mass.center)))
 
 
-def _export_main(bpy_obj, cw):
+def _export_main(bpy_obj, cw, cx):
     cw.put(Chunks.Object.VERSION, PackedWriter().putf('H', 0x10))
     xr = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
     cw.put(Chunks.Object.FLAGS, PackedWriter().putf('I', xr.flags if xr is not None else 0))
@@ -242,7 +248,13 @@ def _export_main(bpy_obj, cw):
             sfw.puts(m.xray.eshader).puts(m.xray.cshader).puts(m.xray.gamemtl)
         else:
             sfw.puts('').puts('').puts('')
-        sfw.puts(m.active_texture.name if m.active_texture else '')
+        tx_name = ''
+        if m.active_texture:
+            if cx.texname_from_path:
+                tx_name = gen_texture_name(m.active_texture, cx.textures_folder)
+            else:
+                tx_name = m.active_texture.name
+        sfw.puts(tx_name)
         ts = m.texture_slots[m.active_texture_index]
         sfw.puts(ts.uv_layer if ts else '')
         if hasattr(m, 'xray'):
@@ -268,14 +280,14 @@ def _export_main(bpy_obj, cw):
         cw.put(Chunks.Object.MOTION_REFS, PackedWriter().puts(xr.motionrefs))
 
 
-def _export(bpy_obj, cw):
+def _export(bpy_obj, cw, cx):
     w = ChunkedWriter()
-    _export_main(bpy_obj, w)
+    _export_main(bpy_obj, w, cx)
     cw.put(Chunks.Object.MAIN, w)
 
 
-def export_file(bpy_obj, fpath):
+def export_file(bpy_obj, fpath, cx):
     with io.open(fpath, 'wb') as f:
         cw = ChunkedWriter()
-        _export(bpy_obj, cw)
+        _export(bpy_obj, cw, cx)
         f.write(cw.data)
