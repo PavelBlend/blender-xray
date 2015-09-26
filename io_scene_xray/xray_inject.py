@@ -93,9 +93,10 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
 class XRayMeshProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Mesh
     flags = bpy.props.IntProperty(name='flags', default=0x1)
-    flags_valid = gen_flag_prop(mask=0x01)
-    flags_other = gen_other_flags_prop(mask=~0x01)
-    options = bpy.props.IntVectorProperty(size=2)
+    flags_visible = gen_flag_prop(mask=0x01)
+    flags_locked = gen_flag_prop(mask=0x02)
+    flags_sgmask = gen_flag_prop(mask=0x04)
+    # flags_other = gen_other_flags_prop(mask=~0x01)
 
 
 class XRayMaterialProperties(bpy.types.PropertyGroup):

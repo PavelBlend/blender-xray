@@ -37,6 +37,7 @@ class XRayObjectPanel(XRayPanel):
 
 class XRayMeshPanel(XRayPanel):
     bl_context = 'object'
+    bl_label = 'XRay - mesh'
 
     @classmethod
     def poll(cls, context):
@@ -49,9 +50,10 @@ class XRayMeshPanel(XRayPanel):
         layout = self.layout
         data = context.object.data.xray
         r = layout.row(align=True)
-        r.prop(data, 'flags_valid', text='Valid', toggle=True)
-        r.prop(data, 'flags_other', text='Other')
-        layout.prop(data, 'options')
+        r.prop(data, 'flags_visible', text='Visible', toggle=True)
+        r.prop(data, 'flags_locked', text='Locked', toggle=True)
+        r.prop(data, 'flags_sgmask', text='SGMask', toggle=True)
+        # r.prop(data, 'flags_other', text='Other')
 
 
 class XRayMaterialPanel(XRayPanel):
