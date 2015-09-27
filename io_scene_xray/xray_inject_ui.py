@@ -56,6 +56,15 @@ class XRayMeshPanel(XRayPanel):
         # r.prop(data, 'flags_other', text='Other')
 
 
+def _gen_xr_selector(layout, data, name, text):
+    is_custom = getattr(data, name + '_enum') == 'Custom'
+    if is_custom:
+        layout = layout.row(align=True)
+    layout.prop(data, name + '_enum', text=text)
+    if is_custom:
+        layout.prop(data, name, text='')
+
+
 class XRayMaterialPanel(XRayPanel):
     bl_context = 'material'
 
@@ -67,9 +76,9 @@ class XRayMaterialPanel(XRayPanel):
         layout = self.layout
         data = context.object.active_material.xray
         layout.prop(data, 'flags_twosided', 'Two sided', toggle=True)
-        layout.prop(data, 'eshader')
-        layout.prop(data, 'cshader')
-        layout.prop(data, 'gamemtl')
+        _gen_xr_selector(layout, data, 'eshader', 'EShader')
+        _gen_xr_selector(layout, data, 'cshader', 'CShader')
+        _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
 
 
 class XRayArmaturePanel(XRayPanel):
@@ -105,7 +114,7 @@ class XRayBonePanel(XRayPanel):
         layout = self.layout
         data = context.active_object.data.bones[context.active_bone.name].xray
         layout.prop(data, 'length')
-        layout.prop(data, 'gamemtl')
+        _gen_xr_selector(layout, data, 'gamemtl', 'gamemtl')
         box = layout.box()
         box.prop(data.shape, 'type', 'shape type')
         row = box.row(align=True)
