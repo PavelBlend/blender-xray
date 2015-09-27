@@ -15,6 +15,8 @@ class Chunks:
         LOD_REF = 0x0925
 
     class Mesh:
+        class Flags:
+            SG_MASK = 0x04
         VERSION = 0x1000
         MESHNAME = 0x1001
         FLAGS = 0x1002

@@ -4,6 +4,14 @@ from .xray_inject import inject_init, inject_done
 from .utils import AppError
 
 
+def _create_prop_soc_smoothing_groups():
+    return bpy.props.BoolProperty(
+        default=True,
+        name='SoC smoothing groups',
+        description='use SoC smoothing group format'
+    )
+
+
 #noinspection PyUnusedLocal
 class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
@@ -21,6 +29,8 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
         description='use custom shapes for imported bones'
     )
 
+    soc_smoothing_groups = _create_prop_soc_smoothing_groups()
+
     def execute(self, context):
         addon_prefs = context.user_preferences.addons['io_scene_xray'].preferences
         textures_folder = addon_prefs.get_textures_folder()
@@ -34,6 +44,7 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
         cx = ImportContext(
             report=self.report,
             textures=textures_folder,
+            soc_sgroups=self.soc_smoothing_groups,
             op=self,
             bpy=bpy
         )
@@ -100,11 +111,13 @@ def _texture_name_from_image_path():
     )
 
 
-def _mk_export_context(context, texname_from_path):
+def _mk_export_context(context, report, texname_from_path, soc_smoothing_groups = None):
         from .fmt_object_exp import ExportContext
         addon_prefs = context.user_preferences.addons['io_scene_xray'].preferences
         return ExportContext(
             textures_folder=addon_prefs.get_textures_folder(),
+            report=report,
+            soc_sgroups=soc_smoothing_groups,
             texname_from_path=texname_from_path
         )
 
@@ -119,9 +132,11 @@ class OpExportObjects(bpy.types.Operator):
 
     texture_name_from_image_path = _texture_name_from_image_path()
 
+    soc_smoothing_groups = _create_prop_soc_smoothing_groups()
+
     def execute(self, context):
         from .fmt_object_exp import export_file
-        cx = _mk_export_context(context, self.texture_name_from_image_path)
+        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.soc_smoothing_groups)
         import os.path
         try:
             for n in self.objects.split(','):
@@ -159,9 +174,11 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper):
 
     texture_name_from_image_path = _texture_name_from_image_path()
 
+    soc_smoothing_groups = _create_prop_soc_smoothing_groups()
+
     def execute(self, context):
         from .fmt_object_exp import export_file
-        cx = _mk_export_context(context, self.texture_name_from_image_path)
+        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.soc_smoothing_groups)
         try:
             export_file(context.scene.objects[self.object], self.filepath, cx)
         except AppError as err:
@@ -198,7 +215,7 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
 
     def export(self, bpy_obj, context):
         from .fmt_ogf_exp import export_file
-        cx = _mk_export_context(context, self.texture_name_from_image_path)
+        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path)
         export_file(bpy_obj, self.filepath, cx)
         return {'FINISHED'}
 

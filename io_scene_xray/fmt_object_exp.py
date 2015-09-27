@@ -8,8 +8,10 @@ from .utils import is_fake_bone, find_bone_real_parent, AppError, convert_object
 
 
 class ExportContext:
-    def __init__(self, textures_folder, texname_from_path):
+    def __init__(self, textures_folder, report, soc_sgroups, texname_from_path):
         self.textures_folder = textures_folder
+        self.report = report
+        self.soc_sgroups = soc_sgroups
         self.texname_from_path = texname_from_path
 
 
@@ -17,7 +19,53 @@ def pw_v3f(v):
     return v[0], v[2], v[1]
 
 
-def _export_mesh(bpy_obj, cw):
+def _export_sg_soc(bmfaces):
+    fsg = {}
+
+    def mark_fsg(f, sg):
+        ff = [f]
+        for f in ff:
+            for e in f.edges:
+                if not e.smooth:
+                    continue
+                for lf in e.link_faces:
+                    if fsg.get(lf) is None:
+                        fsg[lf] = sg
+                        ff.append(lf)
+
+    sgg = 0
+    for f in bmfaces:
+        sg = fsg.get(f)
+        if sg is None:
+            fsg[f] = sg = sgg
+            sgg += 1
+            mark_fsg(f, sg)
+        yield sg
+
+
+def _check_sg_soc(bmedges, sgroups):
+    for e in bmedges:
+        if len(e.link_faces) != 2:
+            continue
+        sg0, sg1 = sgroups[e.link_faces[0].index], sgroups[e.link_faces[1].index]
+        if e.smooth:
+            if sg0 != sg1:
+                return 'Maya-SG incompatible: smooth edge adjacents has different smoothing group'
+        else:
+            if sg0 == sg1:
+                return 'Maya-SG incompatible: sharp edge adjacents has same smoothing group'
+
+
+def _export_sg_new(bmfaces):
+    for f in bmfaces:
+        sg = 0
+        for ei, e in enumerate(f.edges):
+            if not e.smooth:
+                sg |= (4, 2, 1)[ei]
+        yield sg
+
+
+def _export_mesh(bpy_obj, cw, cx):
     cw.put(Chunks.Mesh.VERSION, PackedWriter().putf('H', 0x11))
     cw.put(Chunks.Mesh.MESHNAME, PackedWriter().puts(bpy_obj.name))
 
@@ -26,7 +74,8 @@ def _export_mesh(bpy_obj, cw):
     bbox = calculate_mesh_bbox(bm.verts)
     cw.put(Chunks.Mesh.BBOX, PackedWriter().putf('fff', *pw_v3f(bbox[0])).putf('fff', *pw_v3f(bbox[1])))
     if hasattr(bpy_obj.data, 'xray'):
-        cw.put(Chunks.Mesh.FLAGS, PackedWriter().putf('B', bpy_obj.data.xray.flags))
+        flags = bpy_obj.data.xray.flags & ~Chunks.Mesh.Flags.SG_MASK  # MAX sg-format currently unsupported (we use Maya sg-format)
+        cw.put(Chunks.Mesh.FLAGS, PackedWriter().putf('B', flags))
     else:
         cw.put(Chunks.Mesh.FLAGS, PackedWriter().putf('B', 1))
 
@@ -92,25 +141,16 @@ def _export_mesh(bpy_obj, cw):
             pw.putf('I', f)
     cw.put(Chunks.Mesh.SFACE, pw)
 
-    def mark_fsg(f, sg):
-        ff = [f]
-        for f in ff:
-            for e in f.edges:
-                if not e.smooth:
-                    continue
-                for lf in e.link_faces:
-                    if fsg.get(lf) is None:
-                        fsg[lf] = sg
-                        ff.append(lf)
-    fsg = {}
-    sgg = 0
     pw = PackedWriter()
-    for f in bm.faces:
-        sg = fsg.get(f)
-        if sg is None:
-            fsg[f] = sg = sgg
-            sgg += 1
-            mark_fsg(f, sg)
+    sgroups = []
+    if cx.soc_sgroups:
+        sgroups = tuple(_export_sg_soc(bm.faces))
+        err = _check_sg_soc(bm.edges, sgroups)  # check for Maya compatibility
+        if err:
+            cx.report({'WARNING'}, err)
+    else:
+        sgroups = _export_sg_new(bm.faces)
+    for sg in sgroups:
         pw.putf('I', sg)
     cw.put(Chunks.Mesh.SG, pw)
 
@@ -213,7 +253,7 @@ def _export_main(bpy_obj, cw, cx):
     def scan_r(bpy_obj):
         if bpy_obj.type == 'MESH':
             mw = ChunkedWriter()
-            _export_mesh(bpy_obj, mw)
+            _export_mesh(bpy_obj, mw, cx)
             meshes.append(mw)
             for m in bpy_obj.modifiers:
                 if (m.type == 'ARMATURE') and m.object:

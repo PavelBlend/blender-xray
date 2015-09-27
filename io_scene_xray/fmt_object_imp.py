@@ -10,13 +10,14 @@ from .utils import find_bone_real_parent, fix_ensure_lookup_table
 
 
 class ImportContext:
-    def __init__(self, textures, report, op, bpy=None):
+    def __init__(self, textures, soc_sgroups, report, op, bpy=None):
         from . import bl_info
         from .utils import version_to_number
         self.version = version_to_number(*bl_info['version'])
         self.report = report
         self.bpy = bpy
         self.textures_folder = textures
+        self.soc_sgroups = soc_sgroups
         self.op = op
         self.used_materials = None
 
@@ -56,6 +57,17 @@ def read_v3f(packed_reader):
     return v[0], v[2], v[1]
 
 
+def _cop_sgfunc(ga, gb, ea, eb):
+    bfa, bfb = bool(ga & 0x8), bool(gb & 0x8)  # test backface-s
+    if bfa != bfb:
+        return False
+
+    def is_soft(g, bf, e):
+        return not (g & (4, 2, 1)[(4 - e) % 3 if bf else e])
+
+    return is_soft(ga, bfa, ea) and is_soft(gb, bfb, eb)
+
+
 def _import_mesh(cx, cr, parent):
     ver = cr.nextf(Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
@@ -66,6 +78,7 @@ def _import_mesh(cx, cr, parent):
     cx.bpy.context.scene.objects.link(bo_mesh)
     bm = bmesh.new()
     bmfaces = []
+    sgfuncs = (-1, lambda ga, gb, ea, eb: ga == gb) if cx.soc_sgroups else (-1, _cop_sgfunc)
     for (cid, data) in cr:
         if cid == Chunks.Mesh.VERTS:
             pr = PackedReader(data)
@@ -93,14 +106,15 @@ def _import_mesh(cx, cr, parent):
                 if bmf is None:
                     debug('skip face: ' + str(fi))
                     continue
+                if sg == sgfuncs[0]:
+                    bmf.smooth = False
+                    continue
                 bmf.smooth = True
-                for bme in bmf.edges:
+                for ei, bme in enumerate(bmf.edges):
                     x = edict.get(bme)
                     if x is None:
-                        edict[bme] = sg
-                    elif x != sg:
-                        edict[bme] = sg
-                        bme.seam = True
+                        edict[bme] = (sg, ei)
+                    elif not sgfuncs[1](x[0], sg, x[1], ei):
                         bme.smooth = False
         elif cid == Chunks.Mesh.SFACE:
             pr = PackedReader(data)
@@ -165,6 +179,8 @@ def _import_mesh(cx, cr, parent):
                     raise Exception('unknown vmap type: ' + str(typ))
         elif cid == Chunks.Mesh.FLAGS:
             bo_mesh.data.xray.flags = PackedReader(data).getf('B')[0]
+            if bo_mesh.data.xray.flags & 0x4:  # sgmask
+                sgfuncs = (0, lambda ga, gb, ea, eb: bool(ga & gb))
         elif cid == Chunks.Mesh.BBOX:
             pass  # blender automatically calculates bbox
         elif cid == Chunks.Mesh.OPTIONS:
