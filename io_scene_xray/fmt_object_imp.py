@@ -431,6 +431,8 @@ def _import_main(fpath, cx, cr):
                             fake_names.append(fb.name)
             finally:
                 cx.bpy.ops.object.mode_set(mode='OBJECT')
+            for b in bpy_arm_obj.pose.bones:
+                b.rotation_mode = 'ZXY'
             for n in fake_names:
                 b = bpy_arm_obj.pose.bones.get(n)
                 if b:
@@ -515,25 +517,26 @@ def _import_main(fpath, cx, cr):
                             a.fcurves.new(dp + '.location', 0, bname),
                             a.fcurves.new(dp + '.location', 1, bname),
                             a.fcurves.new(dp + '.location', 2, bname),
-                            a.fcurves.new(dp + '.rotation_quaternion', 0, bname),
-                            a.fcurves.new(dp + '.rotation_quaternion', 1, bname),
-                            a.fcurves.new(dp + '.rotation_quaternion', 2, bname),
-                            a.fcurves.new(dp + '.rotation_quaternion', 3, bname)
+                            a.fcurves.new(dp + '.rotation_euler', 0, bname),
+                            a.fcurves.new(dp + '.rotation_euler', 1, bname),
+                            a.fcurves.new(dp + '.rotation_euler', 2, bname)
                         ]
                         bpy_bone = bpy_armature.bones[bname]
                         xm = bpy_bone.matrix_local.inverted()
                         real_parent = find_bone_real_parent(bpy_bone)
                         if real_parent:
                             xm = xm * real_parent.matrix_local
+                        else:
+                            xm = xm * __matrix_bone
                         for t in times.keys():
                             tr = (tmpfc[0].evaluate(t), tmpfc[1].evaluate(t), -tmpfc[2].evaluate(t))
                             rt = (-tmpfc[4].evaluate(t), -tmpfc[3].evaluate(t), tmpfc[5].evaluate(t))
                             mat = xm * mathutils.Matrix.Translation(tr) * mathutils.Euler(rt, 'ZXY').to_matrix().to_4x4()
                             tr = mat.to_translation()
-                            rt = mat.to_quaternion()
+                            rt = mat.to_euler('ZXY')
                             for _4 in range(3):
                                 fcurve_set(fcs[_4 + 0], t, tr[_4])
-                            for _4 in range(4):
+                            for _4 in range(3):
                                 fcurve_set(fcs[_4 + 3], t, rt[_4])
                         for fc in tmpfc:
                             a.fcurves.remove(fc)
