@@ -9,10 +9,10 @@ class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
 
     gamedata_folder = bpy.props.StringProperty(name='gamedata', description='The path to the \'gamedata\' directory', subtype='DIR_PATH')
-    textures_folder = bpy.props.StringProperty(name='textures', description='The path to the \'gamedata/textures\' directory', subtype='DIR_PATH')
-    gamemtl_file = bpy.props.StringProperty(name='gamemtl', description='The path to the \'gamemtl.xr\' file', subtype='FILE_PATH')
-    eshader_file = bpy.props.StringProperty(name='eshader', description='The path to the \'shaders.xr\' file', subtype='FILE_PATH')
-    cshader_file = bpy.props.StringProperty(name='cshader', description='The path to the \'shaders_xrlc.xr\' file', subtype='FILE_PATH')
+    textures_folder = bpy.props.StringProperty(name='Textures Folder', description='The path to the \'gamedata/textures\' directory', subtype='DIR_PATH')
+    gamemtl_file = bpy.props.StringProperty(name='GameMtl File', description='The path to the \'gamemtl.xr\' file', subtype='FILE_PATH')
+    eshader_file = bpy.props.StringProperty(name='EShader File', description='The path to the \'shaders.xr\' file', subtype='FILE_PATH')
+    cshader_file = bpy.props.StringProperty(name='CShader File', description='The path to the \'shaders_xrlc.xr\' file', subtype='FILE_PATH')
 
     def get_textures_folder(self):
         result = self.textures_folder;
