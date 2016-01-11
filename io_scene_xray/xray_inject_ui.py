@@ -1,4 +1,5 @@
 import bpy
+from .plugin_prefs import get_preferences
 
 
 class XRayPanel(bpy.types.Panel):
@@ -44,6 +45,7 @@ class XRayMeshPanel(XRayPanel):
         return (
             context.active_object
             and context.active_object.type in {'MESH'}
+            and get_preferences().expert_mode
         )
 
     def draw(self, context):

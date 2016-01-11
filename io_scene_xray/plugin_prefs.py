@@ -13,6 +13,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
     gamemtl_file = bpy.props.StringProperty(name='GameMtl File', description='The path to the \'gamemtl.xr\' file', subtype='FILE_PATH')
     eshader_file = bpy.props.StringProperty(name='EShader File', description='The path to the \'shaders.xr\' file', subtype='FILE_PATH')
     cshader_file = bpy.props.StringProperty(name='CShader File', description='The path to the \'shaders_xrlc.xr\' file', subtype='FILE_PATH')
+    expert_mode = bpy.props.BoolProperty(name='Expert Mode', description='Show additional properties/controls')
 
     def get_textures_folder(self):
         result = self.textures_folder;
@@ -29,3 +30,6 @@ class PluginPreferences(bpy.types.AddonPreferences):
         layout.prop(self, 'gamemtl_file', emboss=True)
         layout.prop(self, 'eshader_file')
         layout.prop(self, 'cshader_file')
+        lr = layout.row()
+        lr.label(text='Expert Mode:')
+        lr.prop(self, 'expert_mode', text='')
