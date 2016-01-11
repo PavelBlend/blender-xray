@@ -3,6 +3,7 @@ import bpy
 import math
 import mathutils
 from .xray_inject_ui import inject_ui_init, inject_ui_done
+from .plugin_prefs import get_preferences
 
 
 class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
@@ -109,7 +110,7 @@ def _create_xr_selector(name, pname, default, pref_prop, fparser):
             self.other = False
 
         def get_values(self):
-            fpath = getattr(bpy.context.user_preferences.addons['io_scene_xray'].preferences, pref_prop, None)
+            fpath = getattr(get_preferences(), pref_prop, None)
             if self._cdata and (self._cpath == fpath):
                 return self._cdata
             tmp = [('Custom', 'Custom ' + pname)]

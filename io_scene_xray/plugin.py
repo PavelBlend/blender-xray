@@ -2,6 +2,7 @@ import bpy
 from bpy_extras import io_utils
 from .xray_inject import inject_init, inject_done
 from .utils import AppError
+from .plugin_prefs import PluginPreferences
 
 
 def _create_prop_soc_smoothing_groups():
@@ -32,8 +33,7 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
     soc_smoothing_groups = _create_prop_soc_smoothing_groups()
 
     def execute(self, context):
-        addon_prefs = context.user_preferences.addons['io_scene_xray'].preferences
-        textures_folder = addon_prefs.get_textures_folder()
+        textures_folder = get_preferences().get_textures_folder()
         if not textures_folder:
             self.report({'ERROR'}, 'No textures folder specified')
             return {'CANCELLED'}
@@ -113,9 +113,8 @@ def _texture_name_from_image_path():
 
 def _mk_export_context(context, report, texname_from_path, soc_smoothing_groups = None):
         from .fmt_object_exp import ExportContext
-        addon_prefs = context.user_preferences.addons['io_scene_xray'].preferences
         return ExportContext(
-            textures_folder=addon_prefs.get_textures_folder(),
+            textures_folder=get_preferences().get_textures_folder(),
             report=report,
             soc_sgroups=soc_smoothing_groups,
             texname_from_path=texname_from_path
@@ -218,32 +217,6 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
         cx = _mk_export_context(context, self.report, self.texture_name_from_image_path)
         export_file(bpy_obj, self.filepath, cx)
         return {'FINISHED'}
-
-
-class PluginPreferences(bpy.types.AddonPreferences):
-    bl_idname = 'io_scene_xray'
-
-    gamedata_folder = bpy.props.StringProperty(name='gamedata', description='The path to the \'gamedata\' directory', subtype='DIR_PATH')
-    textures_folder = bpy.props.StringProperty(name='textures', description='The path to the \'gamedata/textures\' directory', subtype='DIR_PATH')
-    gamemtl_file = bpy.props.StringProperty(name='gamemtl', description='The path to the \'gamemtl.xr\' file', subtype='FILE_PATH')
-    eshader_file = bpy.props.StringProperty(name='eshader', description='The path to the \'shaders.xr\' file', subtype='FILE_PATH')
-    cshader_file = bpy.props.StringProperty(name='cshader', description='The path to the \'shaders_xrlc.xr\' file', subtype='FILE_PATH')
-
-    def get_textures_folder(self):
-        result = self.textures_folder;
-        if not result and self.gamedata_folder:
-            import os.path
-            result = os.path.join(self.gamedata_folder, 'textures')
-        return result
-
-    def draw(self, context):
-        layout = self.layout
-        if not self.textures_folder and self.gamedata_folder:
-            self.textures_folder = self.get_textures_folder()
-        layout.prop(self, 'textures_folder')
-        layout.prop(self, 'gamemtl_file')
-        layout.prop(self, 'eshader_file')
-        layout.prop(self, 'cshader_file')
 
 
 def overlay_view_3d():
