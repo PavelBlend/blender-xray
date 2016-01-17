@@ -2,7 +2,7 @@ import bpy
 from bpy_extras import io_utils
 from .xray_inject import inject_init, inject_done
 from .utils import AppError
-from .plugin_prefs import PluginPreferences
+from .plugin_prefs import PluginPreferences, get_preferences
 
 
 def _create_prop_soc_smoothing_groups():
