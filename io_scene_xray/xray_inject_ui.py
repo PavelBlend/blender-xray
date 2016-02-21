@@ -28,9 +28,21 @@ class XRayObjectPanel(XRayPanel):
         layout = self.layout
         data = context.object.xray
         layout.enabled = data.isroot
-        layout.prop(data, 'flags_simple', text='Type')
-        if data.flags_simple_other:
-            layout.prop(data, 'flags', text='Type Flags')
+        if not data.flags_use_custom:
+            layout.prop(data, 'flags_simple', text='Type')
+        else:
+            row = layout.row(align=True)
+            row.prop(data, 'flags_simple', text='Type')
+            row.prop(data, 'flags_custom_type', text='')
+            col = layout.column(align=True)
+            row = col.row(align=True)
+            row.prop(data, 'flags_custom_progressive', text='Progressive', toggle=True)
+            row.prop(data, 'flags_custom_lod', text='LOD', toggle=True)
+            row.prop(data, 'flags_custom_hom', text='HOM', toggle=True)
+            row = col.row(align=True)
+            row.prop(data, 'flags_custom_musage', text='Multi Usage', toggle=True)
+            row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
+            row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
         layout.prop(data, 'lodref')
         layout.prop(data, 'userdata')
         layout.prop(data, 'motionrefs')
