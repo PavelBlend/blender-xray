@@ -67,3 +67,62 @@ def gen_texture_name(tx, tx_folder):
     a_tx_fpath, a_tx_folder = os.path.abspath(tx.image.filepath), os.path.abspath(tx_folder)
     a_tx_fpath = os.path.splitext(a_tx_fpath)[0]
     return a_tx_fpath[len(a_tx_folder) + 1:].replace(os.path.sep, '\\')
+
+
+def create_cached_file_data(ffname, fparser):
+    class State:
+        def __init__(self):
+            self._cdata = None
+            self._cpath = None
+
+        def get_values(self):
+            fpath = ffname()
+            if self._cpath == fpath:
+                return self._cdata
+            tmp = None
+            if fpath:
+                from io import open
+                with open(fpath, mode='rb') as f:
+                    tmp = fparser(f.read())
+            self._cpath = fpath
+            self._cdata = tmp
+            return self._cdata
+
+    state = State()
+    return lambda self=None: state.get_values()
+
+
+def parse_shaders(data):
+    from .xray_io import ChunkedReader, PackedReader
+    for (cid, data) in ChunkedReader(data):
+        if cid == 3:
+            pr = PackedReader(data)
+            for i in range(pr.getf('I')[0]):
+                yield (pr.gets(), '')
+
+
+def parse_gamemtl(data):
+    from .xray_io import ChunkedReader, PackedReader
+    for (cid, data) in ChunkedReader(data):
+        if cid == 4098:
+            for (_, cdata) in ChunkedReader(data):
+                name, desc = None, None
+                for (cccid, ccdata) in ChunkedReader(cdata):
+                    if cccid == 0x1000:
+                        pr = PackedReader(ccdata)
+                        pr.getf('I')[0]
+                        name = pr.gets()
+                    if cccid == 0x1005:
+                        desc = PackedReader(ccdata).gets()
+                yield (name, desc)
+
+
+def parse_shaders_xrlc(data):
+    from .xray_io import PackedReader
+    if len(data) % (128 + 16) != 0:
+        exit(1)
+    pr = PackedReader(data)
+    for _ in range(len(data) // (128 + 16)):
+        n = pr.gets()
+        pr.getf('{}s'.format(127 - len(n) + 16))  # skip
+        yield (n, '')

@@ -115,94 +115,13 @@ class XRayMeshProperties(bpy.types.PropertyGroup):
     # flags_other = gen_other_flags_prop(mask=~0x01)
 
 
-def _create_xr_selector(name, pname, default, pref_prop, fparser):
-    prop = bpy.props.StringProperty(default=default)
-
-    class State:
-        def __init__(self):
-            self._cdata = None
-            self._cpath = None
-            self.other = False
-
-        def get_values(self):
-            fpath = getattr(get_preferences(), pref_prop, None)
-            if self._cdata and (self._cpath == fpath):
-                return self._cdata
-            tmp = [('Custom', 'Custom ' + pname)]
-            if fpath:
-                from io import open
-                with open(fpath, mode='rb') as f:
-                    for (n, d) in fparser(f.read()):
-                        tmp.append((n, d))
-            tmp = sorted(tmp, key=lambda e: e[0])
-            # print('cache-reload', fpath, len(tmp))
-            self._cpath = fpath
-            self._cdata = (tmp, {v[0]: k for k, v in enumerate(tmp)})
-            return self._cdata
-
-    state = State()
-
-    def get_enum(self):
-        if state.other:
-            return 0
-        return state.get_values()[1].get(getattr(self, name), 0)
-
-    def set_enum(self, value):
-        if value == 0:  # custom
-            state.other = True
-        else:
-            state.other = False
-            setattr(self, name, state.get_values()[0][value][0])
-
-    prop_enum = bpy.props.EnumProperty(name=pname, items=lambda self, context: ((n, n, d) for n, d in state.get_values()[0]),
-                                       get=get_enum, set=set_enum,
-                                       options={'SKIP_SAVE'})
-    return prop, prop_enum
-
-
-def _parse_gamemtl(data):
-    from .xray_io import ChunkedReader, PackedReader
-    for (cid, data) in ChunkedReader(data):
-        if cid == 4098:
-            for (_, cdata) in ChunkedReader(data):
-                name, desc = None, None
-                for (cccid, ccdata) in ChunkedReader(cdata):
-                    if cccid == 0x1000:
-                        pr = PackedReader(ccdata)
-                        pr.getf('I')[0]
-                        name = pr.gets()
-                    if cccid == 0x1005:
-                        desc = PackedReader(ccdata).gets()
-                yield (name, desc)
-
-
-def _parse_shaders(data):
-    from .xray_io import ChunkedReader, PackedReader
-    for (cid, data) in ChunkedReader(data):
-        if cid == 3:
-            pr = PackedReader(data)
-            for i in range(pr.getf('I')[0]):
-                yield (pr.gets(), '')
-
-
-def _parse_shaders_xrlc(data):
-    from .xray_io import PackedReader
-    if len(data) % (128 + 16) != 0:
-        exit(1)
-    pr = PackedReader(data)
-    for _ in range(len(data) // (128+16)):
-        n = pr.gets()
-        pr.getf('{}s'.format(127 - len(n) + 16))  # skip
-        yield (n, '')
-
-
 class XRayMaterialProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Material
     flags = bpy.props.IntProperty(name='flags')
     flags_twosided = gen_flag_prop(mask=0x01)
-    eshader, eshader_enum = _create_xr_selector('eshader', 'EShader', 'models\\model', 'eshader_file', _parse_shaders)
-    cshader, cshader_enum = _create_xr_selector('cshader', 'CShader', 'default', 'cshader_file', _parse_shaders_xrlc)
-    gamemtl, gamemtl_enum = _create_xr_selector('gamemtl', 'GameMtl', 'default', 'gamemtl_file', _parse_gamemtl)
+    eshader = bpy.props.StringProperty(default='models\\model')
+    cshader = bpy.props.StringProperty(default='default')
+    gamemtl = bpy.props.StringProperty(default='default')
 
 
 class XRayArmatureProperties(bpy.types.PropertyGroup):
@@ -261,7 +180,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Bone
     version = bpy.props.IntProperty()
     length = bpy.props.FloatProperty()
-    gamemtl, gamemtl_enum = _create_xr_selector('gamemtl', 'gamemtl', 'default_object', 'gamemtl_file', _parse_gamemtl)
+    gamemtl = bpy.props.StringProperty(default='default_object')
     bpy.utils.register_class(ShapeProperties)
     shape = bpy.props.PointerProperty(type=ShapeProperties)
     ikflags = bpy.props.IntProperty()

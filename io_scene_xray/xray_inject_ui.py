@@ -1,5 +1,7 @@
 import bpy
 from .plugin_prefs import get_preferences
+from . import ui_dynmenu
+from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl
 
 
 class XRayPanel(bpy.types.Panel):
@@ -70,13 +72,70 @@ class XRayMeshPanel(XRayPanel):
         # r.prop(data, 'flags_other', text='Other')
 
 
+class XRayXrMenuTemplate(ui_dynmenu.DynamicMenu):
+    @staticmethod
+    def parse(data, fparse):
+        def push_dict(d, sp, v):
+            if len(sp) == 1:
+                d[sp[0]] = v
+            else:
+                e = d.get(sp[0], None)
+                if e is None:
+                    d[sp[0]] = e = dict()
+                push_dict(e, sp[1:], v)
+
+        def dict_to_array(d):
+            result = []
+            for (k, v) in d.items():
+                if isinstance(v, str):
+                    result.append((k, v))
+                else:
+                    result.append((k, dict_to_array(v)))
+            return sorted(result, key=lambda e: e[0])
+
+        tmp = dict()
+        for (n, d) in fparse(data):
+            sp = n.split('\\')
+            push_dict(tmp, sp, n)
+        return dict_to_array(tmp)
+
+    @classmethod
+    def create_cached(cls, pref_prop, fparse):
+        return create_cached_file_data(lambda: getattr(get_preferences(), pref_prop, None), lambda data: cls.parse(data, fparse))
+
+    @classmethod
+    def items_for_path(cls, path):
+        data = cls.cached()
+        if data is None:
+            return []
+        for p in path:
+            data = data[p][1]
+        return data
+
+
+class XRayEShaderMenu(XRayXrMenuTemplate):
+    bl_idname = 'io_scene_xray.dynmenu.eshader'
+    prop_name = 'eshader'
+    cached = XRayXrMenuTemplate.create_cached('eshader_file', parse_shaders)
+
+
+class XRayCShaderMenu(XRayXrMenuTemplate):
+    bl_idname = 'io_scene_xray.dynmenu.cshader'
+    prop_name = 'cshader'
+    cached = XRayXrMenuTemplate.create_cached('cshader_file', parse_shaders_xrlc)
+
+
+class XRayGameMtlMenu(XRayXrMenuTemplate):
+    bl_idname = 'io_scene_xray.dynmenu.gamemtl'
+    prop_name = 'gamemtl'
+    cached = XRayXrMenuTemplate.create_cached('gamemtl_file', parse_gamemtl)
+
+
 def _gen_xr_selector(layout, data, name, text):
-    is_custom = getattr(data, name + '_enum') == 'Custom'
-    if is_custom:
-        layout = layout.row(align=True)
-    layout.prop(data, name + '_enum', text=text)
-    if is_custom:
-        layout.prop(data, name, text='')
+    s = layout.row(align=True)
+    s.prop(data, name, text=text)
+    ui_dynmenu.DynamicMenu.set_layout_context_data(s, data)
+    s.menu('io_scene_xray.dynmenu.' + name, icon='TRIA_DOWN')
 
 
 class XRayMaterialPanel(XRayPanel):
@@ -169,6 +228,9 @@ class XRayBonePanel(XRayPanel):
 classes = [
     XRayObjectPanel
     , XRayMeshPanel
+    , XRayEShaderMenu
+    , XRayCShaderMenu
+    , XRayGameMtlMenu
     , XRayMaterialPanel
     , XRayArmaturePanel
     , XRayBonePanel
@@ -178,8 +240,10 @@ classes = [
 def inject_ui_init():
     for c in classes:
         bpy.utils.register_class(c)
+    ui_dynmenu.register()
 
 
 def inject_ui_done():
+    ui_dynmenu.unregister()
     for c in reversed(classes):
         bpy.utils.unregister_class(c)
