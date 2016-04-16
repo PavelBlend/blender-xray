@@ -486,6 +486,7 @@ def _import_main(fpath, cx, cr):
             pr = PackedReader(data)
             for _ in range(pr.getf('I')[0]):
                 a = bpy.data.actions.new(name=pr.gets())
+                a.use_fake_user = True
                 pr.getf('II')  # range
                 fps = pr.getf('f')[0]
                 ver = pr.getf('H')[0]
