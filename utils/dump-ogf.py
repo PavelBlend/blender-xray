@@ -182,8 +182,30 @@ def dump_ogf4_m10(cr, out, opts):
             out('}]')
         elif cid == Chunks.S_MOTION_REFS_0:
             out('s motion refs 0:', pr.gets())
+        elif cid == Chunks.S_MOTIONS:
+            out('s motions: len={}, hash={}'.format(len(data), calc_hash(data)))
+        elif cid == Chunks.S_SMPARAMS:
+            out('s smparams: {')
+            ver = pr.getf('H')[0]
+            if (ver != 3) and (ver != 4):
+                print('unsupported smparams version={}'.format(ver))
+            out('  version:', ver)
+            out('  partitions: [{')
+            for pi in range(pr.getf('H')[0]):
+                if pi: out('  }, {')
+                pn = pr.gets()
+                out('    name:', pn)
+                out('    bones: [{')
+                for bi in range(pr.getf('H')[0]):
+                    if bi: out('    }, {')
+                    out('      name:', pr.gets())
+                    out('      id:', pr.getf('I')[0])
+                out('    }]')
+                break
+            out('  }]')
+            out('}')
         else:
-            print('unknown ogf4_m10 chunk={:#x}'.format(cid))
+            print('unknown ogf4_m10 chunk={:#x}, len={}, hash={}'.format(cid, len(data), calc_hash(data)))
 
 
 def dump_ogf4(pr, cr, out, opts):
