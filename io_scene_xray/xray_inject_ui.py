@@ -249,10 +249,14 @@ class XRayActionPanel(XRayPanel):
         layout.prop(data, 'falloff')
         layout.prop(data, 'flags_fx', text='Type FX', toggle=True)
         if data.flags_fx:
-            layout.prop_search(data, 'bonepart_name', obj.pose, 'bone_groups', text='')
+            row = layout.row(align=True)
+            row.label('Start Bone:')
+            row.prop_search(data, 'bonestart_name', obj.pose, 'bones', text='')
             layout.prop(data, 'power', text='Power')
         else:
-            layout.prop_search(data, 'bonepart_name', obj.pose, 'bone_groups', text='')
+            row = layout.row(align=True)
+            row.label('Bone Part:')
+            row.prop_search(data, 'bonepart_name', obj.pose, 'bone_groups', text='')
             row = layout.row(align=True)
             row.prop(data, 'flags_stopatend', text='Stop', toggle=True)
             row.prop(data, 'flags_nomix', text='!Mix', toggle=True)

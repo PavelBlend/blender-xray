@@ -244,7 +244,7 @@ def _get_collection_item_attr(collection, index, name, special):
     if index == special:
         return ''
     if (index < 0) or (index >= len(collection)):
-        return '!' + str(index)
+        return '!' + str(index) + ': index out of range!'
     return getattr(collection[index], name)
 
 
@@ -258,15 +258,19 @@ class XRayActionProperties(bpy.types.PropertyGroup):
     flags_syncpart = gen_flag_prop(mask=0x08, description='Sync part')
     bonepart = bpy.props.IntProperty()
 
-    def _set_search_bonepart(self, value):
+    def _set_search_collection_item(self, collection, value):
         if value == '':
             self.bonepart = 0xffff
         else:
-            self.bonepart = bpy.context.active_object.pose.bone_groups.find(value)
+            self.bonepart = collection.find(value)
 
     bonepart_name = bpy.props.StringProperty(
         get=lambda self: _get_collection_item_attr(bpy.context.active_object.pose.bone_groups, self.bonepart, 'name', 0xffff),
-        set=_set_search_bonepart, options={'SKIP_SAVE'}
+        set=lambda self, value: self._set_search_collection_item(bpy.context.active_object.pose.bone_groups, value), options={'SKIP_SAVE'}
+    )
+    bonestart_name = bpy.props.StringProperty(
+        get=lambda self: _get_collection_item_attr(bpy.context.active_object.pose.bones, self.bonepart, 'name', 0xffff),
+        set=lambda self, value: self._set_search_collection_item(bpy.context.active_object.pose.bones, value), options={'SKIP_SAVE'}
     )
     speed = bpy.props.FloatProperty()
     accrue = bpy.props.FloatProperty()
