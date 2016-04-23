@@ -25,6 +25,12 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
     directory = bpy.props.StringProperty(subtype="DIR_PATH")
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
+    import_motions = bpy.props.BoolProperty(
+        name='Import Motions',
+        description='Import embedded motions as actions',
+        default=True
+    )
+
     shaped_bones = bpy.props.BoolProperty(
         name='custom shapes for bones',
         description='use custom shapes for imported bones'
@@ -45,6 +51,7 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
             report=self.report,
             textures=textures_folder,
             soc_sgroups=self.soc_smoothing_groups,
+            import_motions=self.import_motions,
             op=self,
             bpy=bpy
         )
@@ -111,17 +118,26 @@ def _texture_name_from_image_path():
     )
 
 
-def _mk_export_context(context, report, texname_from_path, soc_smoothing_groups = None):
+def _mk_export_context(context, report, texname_from_path, soc_smoothing_groups=None, export_motions=True):
         from .fmt_object_exp import ExportContext
         return ExportContext(
             textures_folder=get_preferences().get_textures_folder(),
             report=report,
+            export_motions=export_motions,
             soc_sgroups=soc_smoothing_groups,
             texname_from_path=texname_from_path
         )
 
 
-class OpExportObjects(bpy.types.Operator):
+class _WithExportMotions:
+    export_motions = bpy.props.BoolProperty(
+        name='Export Motions',
+        description='Export armatures actions as embedded motions',
+        default=True
+    )
+
+
+class OpExportObjects(bpy.types.Operator, _WithExportMotions):
     bl_idname = 'export_object.xray_objects'
     bl_label = 'Export selected .object-s'
 
@@ -135,7 +151,7 @@ class OpExportObjects(bpy.types.Operator):
 
     def execute(self, context):
         from .fmt_object_exp import export_file
-        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.soc_smoothing_groups)
+        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.soc_smoothing_groups, self.export_motions)
         import os.path
         try:
             for n in self.objects.split(','):
@@ -162,7 +178,7 @@ class OpExportObjects(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-class OpExportObject(bpy.types.Operator, io_utils.ExportHelper):
+class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotions):
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
 
@@ -177,7 +193,7 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper):
 
     def execute(self, context):
         from .fmt_object_exp import export_file
-        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.soc_smoothing_groups)
+        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.soc_smoothing_groups, self.export_motions)
         try:
             export_file(context.scene.objects[self.object], self.filepath, cx)
         except AppError as err:

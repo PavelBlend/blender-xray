@@ -8,9 +8,10 @@ from .utils import is_fake_bone, find_bone_real_parent, AppError, convert_object
 
 
 class ExportContext:
-    def __init__(self, textures_folder, report, soc_sgroups, texname_from_path):
+    def __init__(self, textures_folder, report, export_motions, soc_sgroups, texname_from_path):
         self.textures_folder = textures_folder
         self.report = report
+        self.export_motions = export_motions
         self.soc_sgroups = soc_sgroups
         self.texname_from_path = texname_from_path
 
@@ -320,7 +321,7 @@ def _export_main(bpy_obj, cw, cx):
     arm_list = list(armatures)
     some_arm = arm_list[0] if len(arm_list) else None  # take care of static objects
 
-    if some_arm:
+    if some_arm and cx.export_motions:
         from .xray_motions import export_motions
         acts = bpy.data.actions
         pw = PackedWriter()
