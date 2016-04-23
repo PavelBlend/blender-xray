@@ -100,6 +100,7 @@ def _import_mesh(cx, cr, parent):
         elif cid == Chunks.Mesh.SG:
             pr = PackedReader(data)
             bm_data.use_auto_smooth = True
+            bm_data.auto_smooth_angle = math.pi
             edict = {}
             for fi, sg in enumerate(pr.getf(str(len(data) // 4) + 'I')):
                 bmf = bmfaces[fi]
