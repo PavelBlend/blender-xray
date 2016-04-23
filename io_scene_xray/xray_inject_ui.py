@@ -225,6 +225,40 @@ class XRayBonePanel(XRayPanel):
         box.prop(data.mass, 'center')
 
 
+class XRayActionPanel(XRayPanel):
+    bl_space_type = 'GRAPH_EDITOR'
+    bl_region_type = 'UI'
+    bl_context = 'object'
+
+    @classmethod
+    def poll(cls, context):
+        return (
+            context.active_object and
+            context.active_object.animation_data and
+            context.active_object.animation_data.action
+        )
+
+    def draw(self, context):
+        layout = self.layout
+        obj = context.active_object
+        a = obj.animation_data.action
+        data = a.xray
+        layout.prop(data, 'fps')
+        layout.prop(data, 'speed')
+        layout.prop(data, 'accrue')
+        layout.prop(data, 'falloff')
+        layout.prop(data, 'flags_fx', text='Type FX', toggle=True)
+        if data.flags_fx:
+            layout.prop_search(data, 'bonepart_name', obj.pose, 'bone_groups', text='')
+            layout.prop(data, 'power', text='Power')
+        else:
+            layout.prop_search(data, 'bonepart_name', obj.pose, 'bone_groups', text='')
+            row = layout.row(align=True)
+            row.prop(data, 'flags_stopatend', text='Stop', toggle=True)
+            row.prop(data, 'flags_nomix', text='!Mix', toggle=True)
+            row.prop(data, 'flags_syncpart', text='Sync', toggle=True)
+
+
 classes = [
     XRayObjectPanel
     , XRayMeshPanel
@@ -234,6 +268,7 @@ classes = [
     , XRayMaterialPanel
     , XRayArmaturePanel
     , XRayBonePanel
+    , XRayActionPanel
 ]
 
 

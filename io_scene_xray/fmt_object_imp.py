@@ -488,23 +488,25 @@ def _import_main(fpath, cx, cr):
             for _ in range(pr.getf('I')[0]):
                 a = bpy.data.actions.new(name=pr.gets())
                 a.use_fake_user = True
+                xr = a.xray
                 pr.getf('II')  # range
                 fps = pr.getf('f')[0]
                 ver = pr.getf('H')[0]
+                xr.fps = fps
                 if ver == 6:
-                    pr.getf('B')  # flags
-                    pr.getf('H')  # bone or part
-                    pr.getf('f')  # speed
-                    pr.getf('f')  # accrue
-                    pr.getf('f')  # falloff
-                    pr.getf('f')  # power
+                    xr.flags, xr.bonepart = pr.getf('<BH')
+                    xr.speed, xr.accrue, xr.falloff, xr.power = pr.getf('<ffff')
                     for _1 in range(pr.getf('H')[0]):
                         tmpfc = [a.fcurves.new('temp', i) for i in range(6)]
                         times = {}
                         bname = pr.gets()
-                        pr.getf('B')  # flags
+                        flags = pr.getf('B')[0]
+                        if flags != 0:
+                            cx.report({'WARNING'}, 'bone "{}" flags == {}'.format(bname, flags))
                         for i in range(6):
-                            pr.getf('BB')  # behaviours
+                            behaviours = pr.getf('BB')
+                            if (behaviours[0] != 1) or (behaviours[1] != 1):
+                                cx.report({'WARNING'}, 'bone "{}" behaviours == {}'.format(bname, behaviours))
                             fc = tmpfc[i]
                             for _3 in range(pr.getf('H')[0]):
                                 v = pr.getf('f')[0]

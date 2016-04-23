@@ -240,12 +240,47 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             bgl.glLineWidth(prev_line_width[0])
 
 
+def _get_collection_item_attr(collection, index, name, special):
+    if index == special:
+        return ''
+    if (index < 0) or (index >= len(collection)):
+        return '!' + str(index)
+    return getattr(collection[index], name)
+
+
+class XRayActionProperties(bpy.types.PropertyGroup):
+    b_type = bpy.types.Action
+    fps = bpy.props.FloatProperty()
+    flags = bpy.props.IntProperty()
+    flags_fx = gen_flag_prop(mask=0x01, description='Type FX')
+    flags_stopatend = gen_flag_prop(mask=0x02, description='Stop at end')
+    flags_nomix = gen_flag_prop(mask=0x04, description='No mix')
+    flags_syncpart = gen_flag_prop(mask=0x08, description='Sync part')
+    bonepart = bpy.props.IntProperty()
+
+    def _set_search_bonepart(self, value):
+        if value == '':
+            self.bonepart = 0xffff
+        else:
+            self.bonepart = bpy.context.active_object.pose.bone_groups.find(value)
+
+    bonepart_name = bpy.props.StringProperty(
+        get=lambda self: _get_collection_item_attr(bpy.context.active_object.pose.bone_groups, self.bonepart, 'name', 0xffff),
+        set=_set_search_bonepart, options={'SKIP_SAVE'}
+    )
+    speed = bpy.props.FloatProperty()
+    accrue = bpy.props.FloatProperty()
+    falloff = bpy.props.FloatProperty()
+    power = bpy.props.FloatProperty()
+
+
 classes = [
     XRayObjectProperties
     , XRayMeshProperties
     , XRayMaterialProperties
     , XRayArmatureProperties
     , XRayBoneProperties
+    , XRayActionProperties
 ]
 
 
