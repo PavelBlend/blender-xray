@@ -327,6 +327,16 @@ def _export_main(bpy_obj, cw, cx):
         pw.putf('fff', *pw_v3f(root_matrix.to_euler('YXZ')))
         cw.put(Chunks.Object.TRANSFORM, pw)
 
+    import platform, getpass, time
+    xr.revision.moder = '\\\\{}\\{}'.format(platform.node(), getpass.getuser())
+    xr.revision.mtime = int(time.time())
+    pw = PackedWriter()
+    pw.puts(xr.revision.owner)
+    pw.putf('I', xr.revision.ctime)
+    pw.puts(xr.revision.moder)
+    pw.putf('I', xr.revision.mtime)
+    cw.put(Chunks.Object.REVISION, pw)
+
 
 def _export(bpy_obj, cw, cx):
     w = ChunkedWriter()
