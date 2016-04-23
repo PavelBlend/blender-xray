@@ -4,7 +4,7 @@ import mathutils
 import io
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_object import Chunks
-from .utils import is_fake_bone, find_bone_real_parent, AppError, convert_object_to_worldspace_bmesh, calculate_mesh_bbox, gen_texture_name
+from .utils import is_fake_bone, find_bone_real_parent, AppError, convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name
 
 
 class ExportContext:
@@ -65,11 +65,11 @@ def _export_sg_new(bmfaces):
         yield sg
 
 
-def _export_mesh(bpy_obj, cw, cx):
+def _export_mesh(bpy_obj, bpy_root, cw, cx):
     cw.put(Chunks.Mesh.VERSION, PackedWriter().putf('H', 0x11))
     cw.put(Chunks.Mesh.MESHNAME, PackedWriter().puts(bpy_obj.name))
 
-    bm = convert_object_to_worldspace_bmesh(bpy_obj)
+    bm = convert_object_to_space_bmesh(bpy_obj, bpy_root.matrix_world)
 
     bbox = calculate_mesh_bbox(bm.verts)
     cw.put(Chunks.Mesh.BBOX, PackedWriter().putf('fff', *pw_v3f(bbox[0])).putf('fff', *pw_v3f(bbox[1])))
@@ -180,11 +180,11 @@ __matrix_bone = mathutils.Matrix(((1.0, 0.0, 0.0, 0.0), (0.0, 0.0, -1.0, 0.0), (
 __matrix_bone_inv = __matrix_bone.inverted()
 
 
-def _export_bone(bpy_arm_obj, bpy_bone, writers, bonemap):
+def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap):
     real_parent = find_bone_real_parent(bpy_bone)
     if real_parent:
         if bonemap.get(real_parent) is None:
-            _export_bone(bpy_arm_obj, real_parent, bonemap)
+            _export_bone(bpy_arm_obj, bpy_root, real_parent, bonemap)
 
     xr = bpy_bone.xray
     cw = ChunkedWriter()
@@ -195,7 +195,7 @@ def _export_bone(bpy_arm_obj, bpy_bone, writers, bonemap):
            .puts(bpy_bone.name)
            .puts(real_parent.name if real_parent else '')
            .puts(bpy_bone.name))  # vmap
-    mw = bpy_arm_obj.matrix_world
+    mw = bpy_root.matrix_world.inverted() * bpy_arm_obj.matrix_world
     tm = mw * bpy_bone.matrix_local * __matrix_bone_inv
     if real_parent:
         tm = (mw * real_parent.matrix_local * __matrix_bone_inv).inverted() * tm
@@ -249,11 +249,12 @@ def _export_main(bpy_obj, cw, cx):
     meshes = []
     armatures = set()
     materials = set()
+    bpy_root = bpy_obj
 
     def scan_r(bpy_obj):
         if bpy_obj.type == 'MESH':
             mw = ChunkedWriter()
-            _export_mesh(bpy_obj, mw, cx)
+            _export_mesh(bpy_obj, bpy_root, mw, cx)
             meshes.append(mw)
             for m in bpy_obj.modifiers:
                 if (m.type == 'ARMATURE') and m.object:
@@ -275,7 +276,7 @@ def _export_main(bpy_obj, cw, cx):
         for b in bpy_arm_obj.data.bones:
             if is_fake_bone(b):
                 continue
-            _export_bone(bpy_arm_obj, b, bones, bonemap)
+            _export_bone(bpy_arm_obj, bpy_root, b, bones, bonemap)
     for mw in meshes:
         msw.put(idx, mw)
         idx += 1
@@ -318,6 +319,13 @@ def _export_main(bpy_obj, cw, cx):
         cw.put(Chunks.Object.LOD_REF, PackedWriter().puts(xr.lodref))
     if xr.motionrefs:
         cw.put(Chunks.Object.MOTION_REFS, PackedWriter().puts(xr.motionrefs))
+
+    root_matrix = bpy_root.matrix_world
+    if root_matrix != mathutils.Matrix.Identity(4):
+        pw = PackedWriter()
+        pw.putf('fff', *pw_v3f(root_matrix.to_translation()))
+        pw.putf('fff', *pw_v3f(root_matrix.to_euler('YXZ')))
+        cw.put(Chunks.Object.TRANSFORM, pw)
 
 
 def _export(bpy_obj, cw, cx):

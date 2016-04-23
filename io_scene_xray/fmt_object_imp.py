@@ -450,7 +450,7 @@ def _import_main(fpath, cx, cr):
             pos = read_v3f(pr)
             rot = read_v3f(pr)
             import mathutils
-            bpy_obj.matrix_basis *= mathutils.Matrix.Translation(pos) * mathutils.Euler((-rot[0], -rot[1], -rot[2])).to_matrix().to_4x4()
+            bpy_obj.matrix_basis *= mathutils.Matrix.Translation(pos) * mathutils.Euler(rot, 'YXZ').to_matrix().to_4x4()
         elif cid == Chunks.Object.FLAGS:
             bpy_obj.xray.flags = PackedReader(data).getf('I')[0]
         elif cid == Chunks.Object.USERDATA:

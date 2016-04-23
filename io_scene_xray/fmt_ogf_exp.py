@@ -5,7 +5,7 @@ import math
 import mathutils
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_ogf import Chunks, ModelType, VertexFormat
-from .utils import is_fake_bone, find_bone_real_parent, AppError, fix_ensure_lookup_table, convert_object_to_worldspace_bmesh, calculate_mesh_bbox, gen_texture_name
+from .utils import is_fake_bone, find_bone_real_parent, AppError, fix_ensure_lookup_table, convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name
 
 
 def calculate_mesh_bsphere(bbox, vertices):
@@ -35,7 +35,7 @@ def calculate_bbox_and_bsphere(bpy_obj):
     bbox = None
     spheres = []
     for m in meshes:
-        bm = convert_object_to_worldspace_bmesh(m)
+        bm = convert_object_to_space_bmesh(m, bpy_obj.matrix_world)
         bbx = calculate_mesh_bbox(bm.verts)
         if bbox is None:
             bbox = bbx
@@ -80,7 +80,7 @@ def pw_v3f(v):
 
 
 def _export_child(bpy_obj, cw, cx, vgm):
-    bm = convert_object_to_worldspace_bmesh(bpy_obj)
+    bm = convert_object_to_space_bmesh(bpy_obj, mathutils.Matrix.Identity(4))
     bbox = calculate_mesh_bbox(bm.verts)
     bsph = calculate_mesh_bsphere(bbox, bm.verts)
     bmesh.ops.triangulate(bm, faces=bm.faces)
