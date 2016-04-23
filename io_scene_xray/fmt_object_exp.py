@@ -316,6 +316,32 @@ def _export_main(bpy_obj, cw, cx):
         cw.put(Chunks.Object.USERDATA, PackedWriter().puts(xr.userdata))
     if xr.lodref:
         cw.put(Chunks.Object.LOD_REF, PackedWriter().puts(xr.lodref))
+
+    arm_list = list(armatures)
+    some_arm = arm_list[0] if len(arm_list) else None  # take care of static objects
+
+    if some_arm:
+        from .xray_motions import export_motions
+        acts = bpy.data.actions
+        pw = PackedWriter()
+        pw.putf('I', len(acts))
+        for a in acts:
+            export_motions(pw, a, cx, some_arm)
+        if pw.data:
+            cw.put(Chunks.Object.MOTIONS, pw)
+
+    if some_arm and len(some_arm.pose.bone_groups):
+        pw = PackedWriter()
+        pw.putf('I', len(some_arm.pose.bone_groups))
+        for g in some_arm.pose.bone_groups:
+            pw.puts(g.name)
+            bones = [b for b in some_arm.pose.bones if b.bone_group == g]
+            pw.putf('I', len(bones))
+            for b in bones:
+                pw.puts(b.name)
+        if pw.data:
+            cw.put(Chunks.Object.PARTITIONS1, pw)
+
     if xr.motionrefs:
         cw.put(Chunks.Object.MOTION_REFS, PackedWriter().puts(xr.motionrefs))
 
