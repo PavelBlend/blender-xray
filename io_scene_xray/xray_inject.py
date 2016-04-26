@@ -8,7 +8,7 @@ from .plugin_prefs import get_preferences
 
 
 def _gen_time_prop(prop, description=''):
-    fmt = '%Y.%m.%d %H.%M'
+    fmt = '%Y.%m.%d %H:%M'
 
     def getter(self):
         t = getattr(self, prop)
@@ -27,7 +27,6 @@ class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
     ctime_str = _gen_time_prop('ctime', description='Creation time')
     moder = bpy.props.StringProperty(name='moder')
     mtime = bpy.props.IntProperty(name='mtime')
-    mtime_str = _gen_time_prop('mtime', description='Modification time')
 
 
 def gen_flag_prop(mask, description='', customprop=''):

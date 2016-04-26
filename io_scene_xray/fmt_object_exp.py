@@ -328,13 +328,19 @@ def _export_main(bpy_obj, cw, cx):
         cw.put(Chunks.Object.TRANSFORM, pw)
 
     import platform, getpass, time
-    xr.revision.moder = '\\\\{}\\{}'.format(platform.node(), getpass.getuser())
-    xr.revision.mtime = int(time.time())
+    curruser = '\\\\{}\\{}'.format(platform.node(), getpass.getuser())
+    currtime = int(time.time())
     pw = PackedWriter()
-    pw.puts(xr.revision.owner)
-    pw.putf('I', xr.revision.ctime)
-    pw.puts(xr.revision.moder)
-    pw.putf('I', xr.revision.mtime)
+    if (not xr.revision.owner) or (xr.revision.owner == curruser):
+        pw.puts(curruser)
+        pw.putf('I', xr.revision.ctime if xr.revision.ctime else currtime)
+        pw.puts('')
+        pw.putf('I', 0)
+    else:
+        pw.puts(xr.revision.owner)
+        pw.putf('I', xr.revision.ctime)
+        pw.puts(curruser)
+        pw.putf('I', currtime)
     cw.put(Chunks.Object.REVISION, pw)
 
 
