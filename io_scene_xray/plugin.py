@@ -59,6 +59,41 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
         return {'FINISHED'}
 
 
+class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
+    bl_idname = 'xray_import.anm'
+    bl_label = 'Import .anm'
+    bl_description = 'Imports X-Ray animation'
+    bl_options = {'UNDO'}
+
+    filter_glob = bpy.props.StringProperty(default='*.anm', options={'HIDDEN'})
+
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
+
+    camera_animation = bpy.props.BoolProperty(
+        name='Create Linked Camera',
+        description='Create animated camera object (linked to "empty"-object)'
+    )
+
+    def execute(self, context):
+        if len(self.files) == 0:
+            self.report({'ERROR'}, 'No files selected')
+            return {'CANCELLED'}
+        from .fmt_anm_imp import import_file, ImportContext
+        cx = ImportContext(
+            report=self.report,
+            camera_animation=self.camera_animation
+        )
+        for file in self.files:
+            import os.path
+            ext = os.path.splitext(file.name)[-1].lower()
+            if ext == '.anm':
+                import_file(self.directory + file.name, cx)
+            else:
+                self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
+        return {'FINISHED'}
+
+
 class ModelExportHelper:
     selection_only = bpy.props.BoolProperty(
         name='Selection Only',
@@ -238,6 +273,7 @@ def overlay_view_3d():
 #noinspection PyUnusedLocal
 def menu_func_import(self, context):
     self.layout.operator(OpImportObject.bl_idname, text='X-Ray object (.object)')
+    self.layout.operator(OpImportAnm.bl_idname, text='X-Ray animation (.anm)')
 
 
 def menu_func_export(self, context):
@@ -251,6 +287,7 @@ def menu_func_export_ogf(self, context):
 def register():
     bpy.utils.register_class(PluginPreferences)
     bpy.utils.register_class(OpImportObject)
+    bpy.utils.register_class(OpImportAnm)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.utils.register_class(OpExportObject)
     bpy.types.INFO_MT_file_export.append(menu_func_export)
@@ -269,6 +306,7 @@ def unregister():
     bpy.utils.unregister_class(OpExportObjects)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
     bpy.utils.unregister_class(OpExportObject)
+    bpy.utils.unregister_class(OpImportAnm)
     bpy.utils.unregister_class(OpImportObject)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.utils.unregister_class(PluginPreferences)
