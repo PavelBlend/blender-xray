@@ -57,3 +57,40 @@ def import_envelope(pr, fc, fps, kv, warn=print):
 
     if len(unsupported_occured):
         warn('Envelope: unsupported shapes: {}, replaced by {}'.format(unsupported_occured, replace_unsupported_to))
+
+
+def export_envelope(pw, fc, fps, kv, warn=print):
+    b = None
+    if fc.extrapolation == 'CONSTANT':
+        b = Behaviour.CONSTANT
+    elif fc.extrapolation == 'LINEAR':
+        b = Behaviour.LINEAR
+    else:
+        b = Behaviour.LINEAR
+        warn('Envelope: extrapolation {} not supported, replaced with {}'.format(fc.extrapolation, b.name))
+    pw.putf('BB', b.value, b.value)
+
+    replace_unsupported_to = Shape.LINEAR
+    unsupported_occured = set()
+    fckf = fc.keyframe_points
+    pw.putf('H', len(fckf))
+    pkf = None
+    for kf in fckf:
+        pw.putf('ff', kf.co.y / kv, kf.co.x / fps)
+        sh = Shape.STEPPED
+        if pkf:
+            if pkf.interpolation == 'CONSTANT':
+                sh = Shape.STEPPED
+            elif pkf.interpolation == 'LINEAR':
+                sh = Shape.LINEAR
+            else:
+                unsupported_occured.add(pkf.interpolation)
+                sh = replace_unsupported_to
+        pw.putf('B', sh.value)
+        if sh != Shape.STEPPED:
+            pw.putf('HHH', 32768, 32768, 32768)
+            pw.putf('HHHH', 32768, 32768, 32768, 32768)
+        pkf = kf
+
+    if len(unsupported_occured):
+        warn('Envelope: unsupported shapes: {}, replaced by {}'.format(unsupported_occured, replace_unsupported_to.name))

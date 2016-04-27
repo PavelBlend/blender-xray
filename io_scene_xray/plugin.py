@@ -254,6 +254,33 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
         return {'FINISHED'}
 
 
+class OpExportAnm(bpy.types.Operator, io_utils.ExportHelper):
+    bl_idname = 'xray_export.anm'
+    bl_label = 'Export .anm'
+    bl_description = 'Exports X-Ray animation'
+
+    filename_ext = '.anm'
+    filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
+
+    def execute(self, context):
+        if not self.filepath:
+            self.report({'ERROR'}, 'No file selected')
+            return {'CANCELLED'}
+        from .fmt_anm_exp import export_file, ExportContext
+        cx = ExportContext(
+            report=self.report
+        )
+        export_file(context.active_object, self.filepath, cx)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.filepath = context.active_object.name
+        if not self.filepath.lower().endswith(self.filename_ext):
+            self.filepath += self.filename_ext
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
 def overlay_view_3d():
     def try_draw(base_obj, obj):
         if not hasattr(obj, 'xray'):
@@ -278,6 +305,7 @@ def menu_func_import(self, context):
 
 def menu_func_export(self, context):
     self.layout.operator(OpExportObjects.bl_idname, text='X-Ray object (.object)')
+    self.layout.operator(OpExportAnm.bl_idname, text='X-Ray animation (.anm)')
 
 
 def menu_func_export_ogf(self, context):
@@ -290,6 +318,7 @@ def register():
     bpy.utils.register_class(OpImportAnm)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.utils.register_class(OpExportObject)
+    bpy.utils.register_class(OpExportAnm)
     bpy.types.INFO_MT_file_export.append(menu_func_export)
     bpy.utils.register_class(OpExportObjects)
     bpy.utils.register_class(OpExportOgf)
@@ -305,8 +334,9 @@ def unregister():
     bpy.utils.unregister_class(OpExportOgf)
     bpy.utils.unregister_class(OpExportObjects)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    bpy.utils.unregister_class(OpExportAnm)
     bpy.utils.unregister_class(OpExportObject)
+    bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.utils.unregister_class(OpImportAnm)
     bpy.utils.unregister_class(OpImportObject)
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.utils.unregister_class(PluginPreferences)
