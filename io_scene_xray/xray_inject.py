@@ -2,13 +2,38 @@ import bgl
 import bpy
 import math
 import mathutils
+import time
 from .xray_inject_ui import inject_ui_init, inject_ui_done
 from .plugin_prefs import get_preferences
+
+
+def _gen_time_prop(prop, description=''):
+    fmt = '%Y.%m.%d %H:%M'
+    fmt_day = '%Y.%m.%d'
+
+    def getter(self):
+        t = getattr(self, prop)
+        return time.strftime(fmt, time.localtime(t)) if t else ''
+
+    def setter(self, value):
+        value = value.strip()
+        t = 0
+        if value:
+            pt = None
+            try:
+                pt = time.strptime(value, fmt)
+            except ValueError:
+                pt = time.strptime(value, fmt_day)
+            t = time.mktime(pt)
+        setattr(self, prop, t)
+
+    return bpy.props.StringProperty(description=description, get=getter, set=setter, options={'SKIP_SAVE'})
 
 
 class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
     owner = bpy.props.StringProperty(name='owner')
     ctime = bpy.props.IntProperty(name='ctime')
+    ctime_str = _gen_time_prop('ctime', description='Creation time')
     moder = bpy.props.StringProperty(name='moder')
     mtime = bpy.props.IntProperty(name='mtime')
 

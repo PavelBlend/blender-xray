@@ -49,6 +49,10 @@ class XRayObjectPanel(XRayPanel):
         layout.prop(data, 'userdata')
         layout.prop(data, 'motionrefs')
 
+        box = layout.box()
+        box.prop(data.revision, 'owner', text='Owner')
+        box.prop(data.revision, 'ctime_str', text='Created')
+
 
 class XRayMeshPanel(XRayPanel):
     bl_context = 'object'
