@@ -35,7 +35,7 @@ def import_envelope(pr, fc, fps, kv, warn=print):
         b0 = b1
         fc.extrapolation = 'CONSTANT'
 
-    replace_unsupported_to = 'LINEAR'
+    replace_unsupported_to = 'BEZIER'
     unsupported_occured = set()
     fckf = fc.keyframe_points
     kf = None
@@ -70,7 +70,7 @@ def export_envelope(pw, fc, fps, kv, warn=print):
         warn('Envelope: extrapolation {} not supported, replaced with {}'.format(fc.extrapolation, b.name))
     pw.putf('BB', b.value, b.value)
 
-    replace_unsupported_to = Shape.LINEAR
+    replace_unsupported_to = Shape.TCB
     unsupported_occured = set()
     fckf = fc.keyframe_points
     pw.putf('H', len(fckf))
