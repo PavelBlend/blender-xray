@@ -9,13 +9,22 @@ from .plugin_prefs import get_preferences
 
 def _gen_time_prop(prop, description=''):
     fmt = '%Y.%m.%d %H:%M'
+    fmt_day = '%Y.%m.%d'
 
     def getter(self):
         t = getattr(self, prop)
         return time.strftime(fmt, time.localtime(t)) if t else ''
 
     def setter(self, value):
-        t = time.mktime(time.strptime(value, fmt)) if value else 0
+        value = value.strip()
+        t = 0
+        if value:
+            pt = None
+            try:
+                pt = time.strptime(value, fmt)
+            except ValueError:
+                pt = time.strptime(value, fmt_day)
+            t = time.mktime(pt)
         setattr(self, prop, t)
 
     return bpy.props.StringProperty(description=description, get=getter, set=setter, options={'SKIP_SAVE'})
