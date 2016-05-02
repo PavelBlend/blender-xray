@@ -10,6 +10,7 @@ class ExportContext:
 
 
 def _export(bpy_obj, cw, cx):
+    assert bpy_obj.rotation_mode == 'YXZ', 'Animation: rotation mode must be \'YXZ\''
     pw = PackedWriter()
     bpy_act = bpy_obj.animation_data.action
     pw.puts('')
@@ -20,7 +21,7 @@ def _export(bpy_obj, cw, cx):
 
     for i in range(6):
         fc = bpy_act.fcurves[(0, 2, 1, 5, 3, 4)[i]]
-        kv = (1, 1, 1, -1, 1, 1)[i]
+        kv = (1, 1, 1, -1, -1, -1)[i]
         export_envelope(pw, fc, fps, kv, warn=lambda msg: cx.report({'WARNING'}, msg))
     cw.put(Chunks.MAIN, pw)
 

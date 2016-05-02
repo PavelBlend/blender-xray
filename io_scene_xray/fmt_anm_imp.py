@@ -25,7 +25,7 @@ def _import(fpath, cr, cx):
             if not name:
                 name = os.path.basename(fpath)
             bpy_obj = bpy.data.objects.new(name, None)
-            bpy_obj.rotation_mode = 'ZXY'
+            bpy_obj.rotation_mode = 'YXZ'
             if cx.camera_animation:
                 bpy_cam = bpy.data.objects.new(name, bpy.data.cameras.new(name))
                 bpy_cam.parent = bpy_obj
@@ -47,7 +47,7 @@ def _import(fpath, cr, cx):
             )
             for i in range(6):
                 fc = fcs[(0, 2, 1, 5, 3, 4)[i]]
-                kv = (1, 1, 1, -1, 1, 1)[i]
+                kv = (1, 1, 1, -1, -1, -1)[i]
                 import_envelope(pr, fc, fps, kv, lambda msg: cx.report({'WARNING'}, msg))
 
 
