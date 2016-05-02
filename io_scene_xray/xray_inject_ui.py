@@ -248,6 +248,8 @@ class XRayActionPanel(XRayPanel):
         a = obj.animation_data.action
         data = a.xray
         layout.prop(data, 'fps')
+        if obj.type != 'ARMATURE':
+            return
         layout.prop(data, 'speed')
         layout.prop(data, 'accrue')
         layout.prop(data, 'falloff')
