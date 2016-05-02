@@ -16,7 +16,7 @@ def _export(bpy_obj, cw, cx):
     pw.puts('')
     fr = bpy_act.frame_range
     pw.putf('II', int(fr[0]), int(fr[1]))
-    fps = 30
+    fps = bpy_act.xray.fps
     pw.putf('fH', fps, 5)
 
     for i in range(6):

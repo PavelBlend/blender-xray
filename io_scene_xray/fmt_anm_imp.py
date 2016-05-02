@@ -36,6 +36,7 @@ def _import(fpath, cr, cx):
             bpy_obj.empty_draw_size = 0.5
             bpy.context.scene.objects.link(bpy_obj)
             a = bpy.data.actions.new(name=name)
+            a.xray.fps = fps
             bpy_obj.animation_data_create().action = a
             fcs = (
                 a.fcurves.new('location', 0, name),
