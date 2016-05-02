@@ -275,13 +275,13 @@ def _get_collection_item_attr(collection, index, name, special):
 
 class XRayActionProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Action
-    fps = bpy.props.FloatProperty()
+    fps = bpy.props.FloatProperty(default=30, min=0, soft_min=1, soft_max=120)
     flags = bpy.props.IntProperty()
     flags_fx = gen_flag_prop(mask=0x01, description='Type FX')
     flags_stopatend = gen_flag_prop(mask=0x02, description='Stop at end')
     flags_nomix = gen_flag_prop(mask=0x04, description='No mix')
     flags_syncpart = gen_flag_prop(mask=0x08, description='Sync part')
-    bonepart = bpy.props.IntProperty()
+    bonepart = bpy.props.IntProperty(default=0xffff)
 
     def _set_search_collection_item(self, collection, value):
         if value == '':
@@ -297,9 +297,9 @@ class XRayActionProperties(bpy.types.PropertyGroup):
         get=lambda self: _get_collection_item_attr(bpy.context.active_object.pose.bones, self.bonepart, 'name', 0xffff),
         set=lambda self, value: self._set_search_collection_item(bpy.context.active_object.pose.bones, value), options={'SKIP_SAVE'}
     )
-    speed = bpy.props.FloatProperty()
-    accrue = bpy.props.FloatProperty()
-    falloff = bpy.props.FloatProperty()
+    speed = bpy.props.FloatProperty(default=1, min=0, soft_max=10)
+    accrue = bpy.props.FloatProperty(default=2, min=0, soft_max=10)
+    falloff = bpy.props.FloatProperty(default=2, min=0, soft_max=10)
     power = bpy.props.FloatProperty()
 
 
