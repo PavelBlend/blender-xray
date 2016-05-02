@@ -3,6 +3,7 @@ XRay-engine import/export plugin for [blender](http://www.blender.org/)
 
 ## Supported formats
 - `.object` (import/export) - source models
+- `.anm` (import/export) - animation paths
 - `.ogf` (export) - compiled models
 
 ## Installation
