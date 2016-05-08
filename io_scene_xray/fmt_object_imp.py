@@ -223,7 +223,10 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
     parent = pr.gets()
     vmap = pr.gets()
     if name != vmap:
-        renamemap[name] = vmap
+        ex = renamemap.get(vmap, None)
+        if (ex is not None) and (ex != name):
+            cx.report({'WARNING'}, 'Bone VMap: {} rebind from {} to {}'.format(vmap, ex, name))
+        renamemap[vmap] = name
     pr = PackedReader(cr.next(Chunks.Bone.BIND_POSE))
     offset = read_v3f(pr)
     rotate = read_v3f(pr)
@@ -548,9 +551,11 @@ def _import_main(fpath, cx, cr):
                     raise Exception('unsupported motions version: {}'.format(ver))
         else:
             warn_imknown_chunk(cid, 'main')
-    for n, nn in bones_renamemap.items():
-        bpy_armature.bones[n].name = nn
     for m in meshes:
+        for vg in m.vertex_groups:
+            nn = bones_renamemap.get(vg.name, None)
+            if nn is not None:
+                vg.name = nn
         for p, u in zip(m.data.polygons, m.data.uv_textures[0].data):
             bmat = m.data.materials[p.material_index]
             u.image = bmat.active_texture.image
