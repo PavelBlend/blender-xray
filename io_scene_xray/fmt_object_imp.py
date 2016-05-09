@@ -7,6 +7,7 @@ import os.path
 from .xray_io import ChunkedReader, PackedReader
 from .fmt_object import Chunks
 from .utils import find_bone_real_parent, fix_ensure_lookup_table
+from .xray_envelope import Shape
 
 
 class ImportContext:
@@ -535,9 +536,10 @@ def _import_main(fpath, cx, cr):
                                 t = pr.getf('f')[0] * fps
                                 times[t] = True
                                 fc.keyframe_points.insert(t, v)
-                                shape = pr.getf('B')[0]
-                                if shape != 4:
-                                    raise Exception('unsupported shape: {}'.format(shape))
+                                shape = Shape(pr.getf('B')[0])
+                                if shape != Shape.STEPPED:
+                                    pr.getf('HHH')
+                                    pr.getf('HHHH')
                         dp = 'pose.bones["' + bname + '"]'
                         fcs = [
                             a.fcurves.new(dp + '.location', 0, bname),
