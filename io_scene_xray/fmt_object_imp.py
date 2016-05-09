@@ -322,6 +322,15 @@ def _import_main(fpath, cx, cr):
             for (_, mdat) in ChunkedReader(data):
                 meshes.append(_import_mesh(cx, ChunkedReader(mdat), bpy_obj))
         elif cid == Chunks.Object.SURFACES2:
+            uvmaps = {}
+            for mesh in meshes:
+                for uvl in mesh.data.uv_layers:
+                    key = uvl.name.lower()
+                    layers = uvmaps.get(key, None)
+                    if layers is None:
+                        uvmaps[key] = layers = []
+                    layers.append(uvl)
+
             pr = PackedReader(data)
             for _ in range(pr.getf('I')[0]):
                 n = pr.gets()
@@ -330,6 +339,10 @@ def _import_main(fpath, cx, cr):
                 gamemtl = pr.gets()
                 texture = pr.gets()
                 vmap = pr.gets()
+                for l in uvmaps.get(vmap.lower(), []):
+                    if l.name != vmap:
+                        cx.report({'WARNING'}, 'Texture VMap: {} renamed to {}'.format(l.name, vmap))
+                        l.name = vmap
                 flags = pr.getf('I')[0]
                 pr.getf('I')    # fvf
                 pr.getf('I')    # ?
