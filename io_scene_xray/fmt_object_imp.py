@@ -10,7 +10,7 @@ from .utils import find_bone_real_parent, fix_ensure_lookup_table
 
 
 class ImportContext:
-    def __init__(self, textures, soc_sgroups, report, op, bpy=None):
+    def __init__(self, textures, soc_sgroups, import_motions, report, op, bpy=None):
         from . import bl_info
         from .utils import version_to_number
         self.version = version_to_number(*bl_info['version'])
@@ -18,6 +18,7 @@ class ImportContext:
         self.bpy = bpy
         self.textures_folder = textures
         self.soc_sgroups = soc_sgroups
+        self.import_motions = import_motions
         self.op = op
         self.used_materials = None
 
@@ -498,6 +499,9 @@ def _import_main(fpath, cx, cr):
         elif cid == Chunks.Object.MOTION_REFS:
             bpy_obj.xray.motionrefs = PackedReader(data).gets()
         elif cid == Chunks.Object.MOTIONS:
+            if not cx.import_motions:
+                continue
+
             def fcurve_set(curve, time, value):
                 if curve.evaluate(time) != value:
                     curve.keyframe_points.insert(time, value)
