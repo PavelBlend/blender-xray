@@ -224,8 +224,10 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
     vmap = pr.gets()
     if name != vmap:
         ex = renamemap.get(vmap, None)
-        if (ex is not None) and (ex != name):
-            cx.report({'WARNING'}, 'Bone VMap: {} rebind from {} to {}'.format(vmap, ex, name))
+        if ex is None:
+            cx.report({'WARNING'}, 'Bone VMap: {} will be renamed to {}'.format(vmap, name))
+        elif ex != name:
+            cx.report({'WARNING'}, 'Bone VMap multiple renaming: {} will be renamed to {} and then to {}'.format(vmap, ex, name))
         renamemap[vmap] = name
     pr = PackedReader(cr.next(Chunks.Bone.BIND_POSE))
     offset = read_v3f(pr)
