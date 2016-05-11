@@ -323,7 +323,7 @@ def _import_main(fpath, cx, cr):
         if cid == Chunks.Object.MESHES:
             for (_, mdat) in ChunkedReader(data):
                 meshes.append(_import_mesh(cx, ChunkedReader(mdat), bpy_obj))
-        elif cid == Chunks.Object.SURFACES2:
+        elif (cid == Chunks.Object.SURFACES1) or (cid == Chunks.Object.SURFACES2):
             uvmaps = {}
             for mesh in meshes:
                 for uvl in mesh.data.uv_layers:
@@ -338,7 +338,7 @@ def _import_main(fpath, cx, cr):
                 n = pr.gets()
                 eshader = pr.gets()
                 cshader = pr.gets()
-                gamemtl = pr.gets()
+                gamemtl = pr.gets() if cid == Chunks.Object.SURFACES2 else 'default'
                 texture = pr.gets()
                 vmap = pr.gets()
                 for l in uvmaps.get(vmap.lower(), []):

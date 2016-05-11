@@ -200,14 +200,15 @@ def dump_object(cr, out, opts):
                 if _: out('}, {')
                 dump_mesh(ChunkedReader(d), oout, opts)
             out('}]')
-        elif cid == Chunks.Object.SURFACES2:
-            out('surfaces2: [{')
+        elif (cid == Chunks.Object.SURFACES1) or (cid == Chunks.Object.SURFACES2):
+            out('surfaces{}'.format(cid - Chunks.Object.SURFACES1 + 1) + ': [{')
             for _ in range(pr.getf('I')[0]):
                 if _: out('}, {')
                 out('  name:', pr.gets())
                 out('  eshader:', pr.gets())
                 out('  cshader:', pr.gets())
-                out('  gamemtl:', pr.gets())
+                if cid == Chunks.Object.SURFACES2:
+                    out('  gamemtl:', pr.gets())
                 out('  texture:', pr.gets())
                 out('  vmap:', pr.gets())
                 out('  flags:', pr.getf('I')[0])
