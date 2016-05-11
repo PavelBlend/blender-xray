@@ -15,11 +15,18 @@ class PackedReader:
         self.__offs += s
         return struct.unpack_from(fmt, self.__data, self.__offs - s)
 
-    def gets(self):
+    def gets(self, onerror=None):
         zpos = self.__data.find(0, self.__offs)
         if zpos == -1:
             zpos = len(self.__data)
-        return self.getf('{}sx'.format(zpos - self.__offs))[0].decode('cp1251')
+        bb = self.getf('{}sx'.format(zpos - self.__offs))[0]
+        try:
+            return bb.decode('cp1251')
+        except UnicodeError as e:
+            if onerror is None:
+                raise
+            onerror(e)
+            return bb.decode('cp1251', errors='replace')
 
 
 class ChunkedReader:

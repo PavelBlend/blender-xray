@@ -186,10 +186,21 @@ def dump_object(cr, out, opts):
         raise Exception('unsupported OBJECT format version: {}'.format(ver))
     out('version:', ver)
 
+    getserr = ''
+
+    def gets_error(e):
+        global getserr
+        getserr = ' //!' + str(e)
+
+    def sgets(pr):
+        global getserr
+        getserr = ''
+        return pr.gets(onerror=gets_error) + getserr
+
     for (cid, data) in cr:
         pr = PackedReader(data)
         if cid == Chunks.Object.USERDATA:
-            out('userdata:', pr.gets())
+            out('userdata:', sgets(pr))
         elif cid == Chunks.Object.LOD_REF:
             out('lod_ref:', pr.gets())
         elif cid == Chunks.Object.FLAGS:

@@ -474,7 +474,7 @@ def _import_main(fpath, cx, cr):
         elif cid == Chunks.Object.FLAGS:
             bpy_obj.xray.flags = PackedReader(data).getf('I')[0]
         elif cid == Chunks.Object.USERDATA:
-            bpy_obj.xray.userdata = PackedReader(data).gets()
+            bpy_obj.xray.userdata = PackedReader(data).gets(onerror=lambda e: cx.report({'WARNING'}, 'Object: bad userdata: {}'.format(e)))
         elif cid == Chunks.Object.LOD_REF:
             bpy_obj.xray.lodref = PackedReader(data).gets()
         elif cid == Chunks.Object.REVISION:
