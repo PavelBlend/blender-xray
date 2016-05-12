@@ -507,6 +507,9 @@ def _import_main(fpath, cx, cr):
                 if curve.evaluate(time) != value:
                     curve.keyframe_points.insert(time, value)
 
+            bonesmap = {b.name.lower(): b for b in bpy_armature.bones}
+            reported = set()
+
             pr = PackedReader(data)
             for _ in range(pr.getf('I')[0]):
                 a = bpy.data.actions.new(name=pr.gets())
@@ -540,6 +543,18 @@ def _import_main(fpath, cx, cr):
                                 if shape != Shape.STEPPED:
                                     pr.getf('HHH')
                                     pr.getf('HHHH')
+                        bpy_bone = bpy_armature.bones.get(bname, None)
+                        if bpy_bone is None:
+                            bpy_bone = bonesmap.get(bname.lower(), None)
+                            if bpy_bone is None:
+                                if bname not in reported:
+                                    cx.report({'WARNING'}, 'Object motions: bone {} not found'.format(bname))
+                                    reported.add(bname)
+                                continue
+                            if bname not in reported:
+                                cx.report({'WARNING'}, 'Object motions: bone {} reference replaced to {}'.format(bname, bpy_bone.name))
+                                reported.add(bname)
+                            bname = bpy_bone.name
                         dp = 'pose.bones["' + bname + '"]'
                         fcs = [
                             a.fcurves.new(dp + '.location', 0, bname),
@@ -549,7 +564,6 @@ def _import_main(fpath, cx, cr):
                             a.fcurves.new(dp + '.rotation_euler', 1, bname),
                             a.fcurves.new(dp + '.rotation_euler', 2, bname)
                         ]
-                        bpy_bone = bpy_armature.bones[bname]
                         xm = bpy_bone.matrix_local.inverted()
                         real_parent = find_bone_real_parent(bpy_bone)
                         if real_parent:
