@@ -126,6 +126,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
         ('st', 'Static', '')), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set)
     lodref = bpy.props.StringProperty(name='lodref')
     userdata = bpy.props.StringProperty(name='userdata')
+    show_userdata = bpy.props.BoolProperty(description='View user data', options={'SKIP_SAVE'})
     bpy.utils.register_class(XRayObjectRevisionProperties)
     revision = bpy.props.PointerProperty(type=XRayObjectRevisionProperties)
     motionrefs = bpy.props.StringProperty()

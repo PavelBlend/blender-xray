@@ -83,10 +83,14 @@ class XRayObjectPanel(XRayPanel):
             row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
             row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
         layout.prop(data, 'lodref')
-        row = layout.row(align=True)
-        row.label('User Data:')
-        row.label('<TEXT>' if data.userdata else '')
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(data, 'show_userdata', toggle=True, icon='VIEWZOOM', text='User Data')
         PropClipOp.drawall(row, 'object.xray.userdata', data.userdata)
+        if data.show_userdata:
+            box = col.box().column(align=True)
+            for line in data.userdata.splitlines():
+                box.label(line)
         layout.prop(data, 'motionrefs')
 
         box = layout.box()
