@@ -125,7 +125,11 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
         ('dy', 'Dynamic', ''),
         ('st', 'Static', '')), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set)
     lodref = bpy.props.StringProperty(name='lodref')
-    userdata = bpy.props.StringProperty(name='userdata')
+
+    def userdata_update(self, context):
+        if self.userdata == '':
+            self.show_userdata = False
+    userdata = bpy.props.StringProperty(name='userdata', update=userdata_update)
     show_userdata = bpy.props.BoolProperty(description='View user data', options={'SKIP_SAVE'})
     bpy.utils.register_class(XRayObjectRevisionProperties)
     revision = bpy.props.PointerProperty(type=XRayObjectRevisionProperties)

@@ -85,7 +85,11 @@ class XRayObjectPanel(XRayPanel):
         layout.prop(data, 'lodref')
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.prop(data, 'show_userdata', toggle=True, icon='VIEWZOOM', text='User Data')
+        rw = row
+        if data.userdata == '':
+            rw = rw.row(align=True)
+            rw.enabled = False
+        rw.prop(data, 'show_userdata', toggle=True, icon='VIEWZOOM', text='User Data')
         PropClipOp.drawall(row, 'object.xray.userdata', data.userdata)
         if data.show_userdata:
             box = col.box().column(align=True)
