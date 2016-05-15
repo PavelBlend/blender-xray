@@ -315,7 +315,7 @@ def _export_main(bpy_obj, cw, cx):
         cw.put(Chunks.Object.BONES1, bw)
 
     if xr.userdata:
-        cw.put(Chunks.Object.USERDATA, PackedWriter().puts(xr.userdata))
+        cw.put(Chunks.Object.USERDATA, PackedWriter().puts('\r\n'.join(xr.userdata.splitlines())))
     if xr.lodref:
         cw.put(Chunks.Object.LOD_REF, PackedWriter().puts(xr.lodref))
 

@@ -4,6 +4,43 @@ from . import ui_dynmenu
 from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl
 
 
+class PropClipOp(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.propclip'
+    bl_label = ''
+
+    items = (
+        ('copy', '', '', 'COPYDOWN', 0),
+        ('paste', '', '', 'PASTEDOWN', 1),
+        ('clear', '', '', 'X', 2)
+    )
+    op = bpy.props.EnumProperty(items=items)
+    path = bpy.props.StringProperty()
+
+    def execute(self, context):
+        *path, prop = self.path.split('.')
+        obj = context
+        for pn in path:
+            obj = getattr(obj, pn)
+        if self.op == 'copy':
+            context.window_manager.clipboard = getattr(obj, prop)
+        elif self.op == 'paste':
+            setattr(obj, prop, context.window_manager.clipboard)
+        elif self.op == 'clear':
+            setattr(obj, prop, '')
+        return {'FINISHED'}
+
+    @classmethod
+    def drawall(cls, layout, path, value):
+        for i in cls.items:
+            l = layout
+            if i[0] in ('copy', 'clear') and not value:
+                l = l.split(align=True)
+                l.enabled = False
+            p = l.operator(cls.bl_idname, icon=i[3])
+            p.op = i[0]
+            p.path = path
+
+
 class XRayPanel(bpy.types.Panel):
     bl_label = 'XRay'
     bl_space_type = 'PROPERTIES'
@@ -46,7 +83,18 @@ class XRayObjectPanel(XRayPanel):
             row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
             row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
         layout.prop(data, 'lodref')
-        layout.prop(data, 'userdata')
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        rw = row
+        if data.userdata == '':
+            rw = rw.row(align=True)
+            rw.enabled = False
+        rw.prop(data, 'show_userdata', toggle=True, icon='VIEWZOOM', text='User Data')
+        PropClipOp.drawall(row, 'object.xray.userdata', data.userdata)
+        if data.show_userdata:
+            box = col.box().column(align=True)
+            for line in data.userdata.splitlines():
+                box.label(line)
         layout.prop(data, 'motionrefs')
 
         box = layout.box()
@@ -270,6 +318,7 @@ class XRayActionPanel(XRayPanel):
 
 
 classes = [
+    PropClipOp,
     XRayObjectPanel
     , XRayMeshPanel
     , XRayEShaderMenu
