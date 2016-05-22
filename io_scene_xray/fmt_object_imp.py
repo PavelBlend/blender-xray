@@ -187,7 +187,9 @@ def _import_mesh(cx, cr, parent):
         else:
             warn_imknown_chunk(cid, 'mesh')
 
-    for bmf, fr in zip(bm.faces, fc_data):
+    for bmf, fr in zip(bmfaces, fc_data):
+        if bmf is None:
+            continue
         for i, j in enumerate((1, 5, 3)):
             for vmr in vm_refs[fr[j]]:
                 vm = vmaps[vmr[0]]
