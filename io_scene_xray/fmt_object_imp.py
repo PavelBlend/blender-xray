@@ -112,6 +112,7 @@ def _import_mesh(cx, cr, parent):
             pr = PackedReader(data)
             bm_data.use_auto_smooth = True
             bm_data.auto_smooth_angle = math.pi
+            bm_data.show_edge_sharp = True
             edict = {}
             for fi, sg in enumerate(pr.getf(str(len(data) // 4) + 'I')):
                 bmf = bmfaces[fi]
@@ -407,6 +408,7 @@ def _import_main(fpath, cx, cr):
                     bpy_material.xray.eshader = eshader
                     bpy_material.xray.cshader = cshader
                     bpy_material.xray.gamemtl = gamemtl
+                    bpy_material.use_shadeless = True
                     if texture:
                         bpy_texture = cx.bpy.data.textures.get(texture)
                         if bpy_texture is None:
