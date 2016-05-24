@@ -1,5 +1,6 @@
 import bmesh
 import bpy
+from collections import namedtuple
 import io
 import math
 import mathutils
@@ -70,6 +71,9 @@ def _cop_sgfunc(ga, gb, ea, eb):
     return is_soft(ga, bfa, ea) and is_soft(gb, bfb, eb)
 
 
+_VMap = namedtuple('_VMap', ['type', 'lidx', 'data'])
+
+
 def _import_mesh(cx, cr, parent):
     ver = cr.nextf(Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
@@ -81,6 +85,10 @@ def _import_mesh(cx, cr, parent):
     bm = bmesh.new()
     bmfaces = []
     sgfuncs = (-1, lambda ga, gb, ea, eb: ga == gb) if cx.soc_sgroups else (-1, _cop_sgfunc)
+    fc_data = ()
+    vm_refs = ()
+    vmaps = []
+    bml_deform = None
     for (cid, data) in cr:
         if cid == Chunks.Mesh.VERTS:
             pr = PackedReader(data)
@@ -89,8 +97,9 @@ def _import_mesh(cx, cr, parent):
         elif cid == Chunks.Mesh.FACES:
             fix_ensure_lookup_table(bm.verts)
             pr = PackedReader(data)
-            for _ in range(pr.getf('I')[0]):
-                fr = pr.getf('IIIIII')
+            cnt = pr.getf('I')[0]
+            fc_data = tuple(pr.getf('IIIIII') for _ in range(cnt))
+            for fr in fc_data:
                 try:
                     bmfaces.append(bm.faces.new((bm.verts[fr[0]], bm.verts[fr[4]], bm.verts[fr[2]])))
                 except ValueError:
@@ -137,7 +146,8 @@ def _import_mesh(cx, cr, parent):
                         continue
                     bmf.material_index = midx
         elif cid == Chunks.Mesh.VMREFS:
-            pass  # we use data from vmaps
+            pr = PackedReader(data)
+            vm_refs = tuple(tuple(pr.getf('II') for __ in range(pr.getf('B')[0])) for _ in range(pr.getf('I')[0]))
         elif cid == Chunks.Mesh.VMAPS2:
             pr = PackedReader(data)
             for _ in range(pr.getf('I')[0]):
@@ -154,30 +164,16 @@ def _import_mesh(cx, cr, parent):
                     vtx = pr.getf(str(sz) + 'I')
                     if discon:
                         fcs = pr.getf(str(sz) + 'I')
-                        for uv, vi, fi in zip(uvs, vtx, fcs):
-                            bmf = bmfaces[fi]
-                            if bmf is None:
-                                debug('skip face: ' + str(fi))
-                                continue
-                            for l, v in zip(bmf.loops, bmf.verts):
-                                if v.index == vi:
-                                    l[bml].uv = (uv[0], 1 - uv[1])
-                                    break
-                    else:
-                        for uv, vi in zip(uvs, vtx):
-                            for l in bm.verts[vi].link_loops:
-                                l[bml].uv = (uv[0], 1 - uv[1])
+                    vmaps.append(_VMap(typ, bml, uvs))
                 elif typ == 1:  # weights
-                    bml = bm.verts.layers.deform.verify()
+                    bml_deform = bm.verts.layers.deform.verify()
                     vgi = len(bo_mesh.vertex_groups)
                     bo_mesh.vertex_groups.new(name=n)
                     wgs = pr.getf(str(sz) + 'f')
                     vtx = pr.getf(str(sz) + 'I')
                     if discon:
                         fcs = pr.getf(str(sz) + 'I')
-                    else:
-                        for vw, vi in zip(wgs, vtx):
-                            bm.verts[vi][bml][vgi] = vw
+                    vmaps.append(_VMap(typ, vgi, wgs))
                 else:
                     raise Exception('unknown vmap type: ' + str(typ))
         elif cid == Chunks.Mesh.FLAGS:
@@ -190,6 +186,19 @@ def _import_mesh(cx, cr, parent):
             bo_mesh.data.xray.options = PackedReader(data).getf('II')
         else:
             warn_imknown_chunk(cid, 'mesh')
+
+    for bmf, fr in zip(bmfaces, fc_data):
+        if bmf is None:
+            continue
+        for i, j in enumerate((1, 5, 3)):
+            for vmr in vm_refs[fr[j]]:
+                vm = vmaps[vmr[0]]
+                ve = vm.data[vmr[1]]
+                if vm.type == 0:
+                    bmf.loops[i][vm.lidx].uv = (ve[0], 1 - ve[1])
+                elif vm.type == 1:
+                    bmf.verts[i][bml_deform][vm.lidx] = ve
+
     bm.to_mesh(bm_data)
     return bo_mesh
 
