@@ -250,8 +250,11 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
         mr = mathutils.Euler((-rotate[0], -rotate[1], -rotate[2]), 'YXZ').to_matrix().to_4x4()
         mat = mathutils.Matrix.Translation(offset) * mr * __matrix_bone
         if parent:
-            bpy_bone.parent = bpy_armature.edit_bones[parent]
-            mat = bpy_bone.parent.matrix * __matrix_bone_inv * mat
+            bpy_bone.parent = bpy_armature.edit_bones.get(parent, None)
+            if bpy_bone.parent:
+                mat = bpy_bone.parent.matrix * __matrix_bone_inv * mat
+            else:
+                cx.report({'WARNING'}, 'Bone parent {} for {} not found'.format(parent, name))
         bpy_bone.tail.y = 0.05
         bpy_bone.matrix = mat
         name = bpy_bone.name
