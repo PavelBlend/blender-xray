@@ -8,6 +8,7 @@ class Chunks:
         MESHES = 0x0910
         USERDATA = 0x0912
         MOTIONS = 0x0916
+        PARTITIONS0 = 0x0919
         TRANSFORM = 0x0920
         BONES1 = 0x0921
         REVISION = 0x0922

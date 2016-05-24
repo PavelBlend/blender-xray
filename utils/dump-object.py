@@ -238,6 +238,14 @@ def dump_object(cr, out, opts):
             out('  position:', pr.getf('fff'))
             out('  rotation:', pr.getf('fff'))
             out('}')
+        elif cid == Chunks.Object.PARTITIONS0:
+            out('partitions1: [{')
+            for _ in range(pr.getf('I')[0]):
+                if _: out('}, {')
+                out('  name:', pr.gets())
+                sz = pr.getf('I')[0]
+                out('  bones:', pr.getf('%dI' % sz))
+            out('}]')
         elif cid == Chunks.Object.PARTITIONS1:
             out('partitions1: [{')
             for _ in range(pr.getf('I')[0]):

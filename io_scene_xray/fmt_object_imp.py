@@ -495,7 +495,7 @@ def _import_main(fpath, cx, cr):
             bpy_obj.xray.revision.ctime = pr.getf('I')[0]
             bpy_obj.xray.revision.moder = pr.gets()
             bpy_obj.xray.revision.mtime = pr.getf('I')[0]
-        elif cid == Chunks.Object.PARTITIONS1:
+        elif (cid == Chunks.Object.PARTITIONS0) or (cid == Chunks.Object.PARTITIONS1):
             cx.bpy.context.scene.objects.active = bpy_arm_obj
             cx.bpy.ops.object.mode_set(mode='POSE')
             try:
@@ -505,7 +505,7 @@ def _import_main(fpath, cx, cr):
                     bg = bpy_arm_obj.pose.bone_groups.active
                     bg.name = pr.gets()
                     for __ in range(pr.getf('I')[0]):
-                        bn = pr.gets()
+                        bn = pr.gets() if cid == Chunks.Object.PARTITIONS1 else pr.getf('I')[0]
                         bpy_arm_obj.pose.bones[bn].bone_group = bg
             finally:
                 cx.bpy.ops.object.mode_set(mode='OBJECT')
