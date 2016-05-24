@@ -596,6 +596,8 @@ def _import_main(fpath, cx, cr):
                             a.fcurves.remove(fc)
                 else:
                     raise Exception('unsupported motions version: {}'.format(ver))
+        elif cid == Chunks.Object.LIB_VERSION:
+            pass  # skip obsolete chunk
         else:
             warn_imknown_chunk(cid, 'main')
     for m in meshes:
