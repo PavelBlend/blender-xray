@@ -595,6 +595,8 @@ def _import_main(fpath, cx, cr):
                                 if bname not in reported:
                                     cx.report({'WARNING'}, 'Object motions: bone {} not found'.format(bname))
                                     reported.add(bname)
+                                for fc in tmpfc:  # try-finally angels cry once again
+                                    a.fcurves.remove(fc)
                                 continue
                             if bname not in reported:
                                 cx.report({'WARNING'}, 'Object motions: bone {} reference replaced to {}'.format(bname, bpy_bone.name))
