@@ -16,6 +16,7 @@ class Chunks:
         PARTITIONS1 = 0x0923
         MOTION_REFS = 0x0924
         LOD_REF = 0x0925
+        SMOTIONS3 = 0x0926
 
     class Mesh:
         class Flags:

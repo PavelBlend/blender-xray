@@ -344,7 +344,20 @@ def _export_main(bpy_obj, cw, cx):
         if pw.data:
             cw.put(Chunks.Object.PARTITIONS1, pw)
 
-    if xr.motionrefs:
+    motionrefs = xr.motionrefs_collection
+    if len(motionrefs):
+        if xr.motionrefs:
+            cx.report({'WARNING'}, 'MotionRefs: skipped legacy data \'%s\'' % xr.motionrefs)
+        if cx.soc_sgroups:
+            s = ','.join(mr.name for mr in motionrefs)
+            cw.put(Chunks.Object.MOTION_REFS, PackedWriter().puts(s))
+        else:
+            pw = PackedWriter()
+            pw.putf('I', len(motionrefs))
+            for mr in motionrefs:
+                pw.puts(mr.name)
+            cw.put(Chunks.Object.SMOTIONS3, pw)
+    elif xr.motionrefs:
         cw.put(Chunks.Object.MOTION_REFS, PackedWriter().puts(xr.motionrefs))
 
     root_matrix = bpy_root.matrix_world

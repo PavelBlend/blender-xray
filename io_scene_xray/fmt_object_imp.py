@@ -512,7 +512,14 @@ def _import_main(fpath, cx, cr):
             finally:
                 cx.bpy.ops.object.mode_set(mode='OBJECT')
         elif cid == Chunks.Object.MOTION_REFS:
-            bpy_obj.xray.motionrefs = PackedReader(data).gets()
+            mrefs = bpy_obj.xray.motionrefs_collection
+            for mref in PackedReader(data).gets().split(','):
+                mrefs.add().name = mref
+        elif cid == Chunks.Object.SMOTIONS3:
+            pr = PackedReader(data)
+            mrefs = bpy_obj.xray.motionrefs_collection
+            for _ in range(pr.getf('I')[0]):
+                mrefs.add().name = pr.gets()
         elif cid == Chunks.Object.MOTIONS:
             if not cx.import_motions:
                 continue

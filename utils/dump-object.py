@@ -308,6 +308,8 @@ def dump_object(cr, out, opts):
                     oout('  }]')
                 oout('}]')
             out('}]')
+        elif cid == Chunks.Object.SMOTIONS3:
+            out('smotions3:', [pr.gets() for _ in range(pr.getf('I')[0])])
         elif cid == Chunks.Object.LIB_VERSION:
             out('lib_version:', pr.getf('Q')[0])
         else:

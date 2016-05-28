@@ -61,6 +61,9 @@ def gen_other_flags_prop(mask):
 
 
 class XRayObjectProperties(bpy.types.PropertyGroup):
+    class MotionRef(bpy.types.PropertyGroup):
+        name = bpy.props.StringProperty()
+
     def get_isroot(self):
         if not self.root:
             return False
@@ -133,7 +136,11 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     show_userdata = bpy.props.BoolProperty(description='View user data', options={'SKIP_SAVE'})
     bpy.utils.register_class(XRayObjectRevisionProperties)
     revision = bpy.props.PointerProperty(type=XRayObjectRevisionProperties)
-    motionrefs = bpy.props.StringProperty()
+    motionrefs = bpy.props.StringProperty(description='!Legacy: use \'motionrefs_collection\' instead')
+    bpy.utils.register_class(MotionRef)
+    motionrefs_collection = bpy.props.CollectionProperty(type=MotionRef)
+    motionrefs_collection_index = bpy.props.IntProperty(options={'SKIP_SAVE'})
+    show_motionsrefs = bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'})
 
 
 class XRayMeshProperties(bpy.types.PropertyGroup):

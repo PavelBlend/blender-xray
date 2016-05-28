@@ -1,6 +1,6 @@
 import bpy
 from .plugin_prefs import get_preferences
-from . import ui_dynmenu
+from . import ui_dynmenu, ui_list
 from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl
 
 
@@ -50,6 +50,20 @@ class XRayPanel(bpy.types.Panel):
         self.layout.label(icon='PLUGIN')
 
 
+def draw_collapsible(layout, data, prop_show, text, enabled=None, icon=None):
+    col = layout.column(align=True)
+    row = col.row(align=True)
+    rw = row
+    if (enabled is not None) and (not enabled):
+        rw = rw.row(align=True)
+        rw.enabled = False
+    isshow = getattr(data, prop_show)
+    if icon is None:
+        icon = 'TRIA_DOWN' if isshow else 'TRIA_RIGHT'
+    rw.prop(data, prop_show, toggle=True, icon=icon, text=text)
+    return row, (col.box() if isshow else None)
+
+
 class XRayObjectPanel(XRayPanel):
     bl_context = 'object'
     bl_label = 'XRay - object root'
@@ -83,19 +97,22 @@ class XRayObjectPanel(XRayPanel):
             row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
             row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
         layout.prop(data, 'lodref')
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        rw = row
-        if data.userdata == '':
-            rw = rw.row(align=True)
-            rw.enabled = False
-        rw.prop(data, 'show_userdata', toggle=True, icon='VIEWZOOM', text='User Data')
-        PropClipOp.drawall(row, 'object.xray.userdata', data.userdata)
-        if data.show_userdata:
-            box = col.box().column(align=True)
+        rw, box = draw_collapsible(layout, data, 'show_userdata', 'User Data', enabled=data.userdata != '', icon='VIEWZOOM')
+        PropClipOp.drawall(rw, 'object.xray.userdata', data.userdata)
+        if box:
+            box = box.column(align=True)
             for line in data.userdata.splitlines():
                 box.label(line)
-        layout.prop(data, 'motionrefs')
+        if data.motionrefs:
+            split = layout.split()
+            split.alert = True
+            split.prop(data, 'motionrefs')
+        rw, box = draw_collapsible(layout, data, 'show_motionsrefs', 'Motion Refs (%d)' % len(data.motionrefs_collection))
+        if box:
+            row = box.row()
+            row.template_list('UI_UL_list', 'name', data, 'motionrefs_collection', data, 'motionrefs_collection_index')
+            col = row.column(align=True)
+            ui_list.draw_list_ops(col, data, 'motionrefs_collection', 'motionrefs_collection_index')
 
         box = layout.box()
         box.prop(data.revision, 'owner', text='Owner')
@@ -335,9 +352,11 @@ def inject_ui_init():
     for c in classes:
         bpy.utils.register_class(c)
     ui_dynmenu.register()
+    ui_list.register()
 
 
 def inject_ui_done():
+    ui_list.unregister()
     ui_dynmenu.unregister()
     for c in reversed(classes):
         bpy.utils.unregister_class(c)
