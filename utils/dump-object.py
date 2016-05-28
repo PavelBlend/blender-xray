@@ -227,6 +227,22 @@ def dump_object(cr, out, opts):
                 out('  fvf:', 'default' if fvf == 0x112 else fvf)
                 out('  ?=1:', pr.getf('I')[0])
             out('}]')
+        elif cid == Chunks.Object.BONES:
+            out('bones: [{')
+            pr = PackedReader(data)
+            for _ in range(pr.getf('I')[0]):
+                if _: out('}, {')
+                out('  def: {')
+                out('    name:', pr.gets())
+                out('    parent:', pr.gets())
+                out('    vmap:', pr.gets())
+                out('  }')
+                out('  pose: {')
+                out('    offset:', pr.getf('fff'))
+                out('    rotate:', pr.getf('fff'))
+                out('    length:', pr.getf('f')[0])
+                out('  }')
+            out('}]')
         elif cid == Chunks.Object.BONES1:
             out('bones: [{')
             for (_, d) in ChunkedReader(data):

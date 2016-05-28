@@ -225,15 +225,8 @@ __matrix_bone = mathutils.Matrix(((1.0, 0.0, 0.0, 0.0), (0.0, 0.0, -1.0, 0.0), (
 __matrix_bone_inv = __matrix_bone.inverted()
 
 
-def _import_bone(cx, cr, bpy_arm_obj, renamemap):
+def _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, renamemap):
     bpy_armature = bpy_arm_obj.data
-    ver = cr.nextf(Chunks.Bone.VERSION, 'H')[0]
-    if ver != 0x2:
-        raise Exception('unsupported BONE format version: {}'.format(ver))
-    pr = PackedReader(cr.next(Chunks.Bone.DEF))
-    name = pr.gets()
-    parent = pr.gets()
-    vmap = pr.gets()
     if name != vmap:
         ex = renamemap.get(vmap, None)
         if ex is None:
@@ -241,10 +234,6 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
         elif ex != name:
             cx.report({'WARNING'}, 'Bone VMap multiple renaming: {} will be renamed to {} and then to {}'.format(vmap, ex, name))
         renamemap[vmap] = name
-    pr = PackedReader(cr.next(Chunks.Bone.BIND_POSE))
-    offset = read_v3f(pr)
-    rotate = read_v3f(pr)
-    length = pr.getf('f')[0]
     cx.bpy.ops.object.mode_set(mode='EDIT')
     try:
         bpy_bone = bpy_armature.edit_bones.new(name=name)
@@ -264,9 +253,27 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
     bp = bpy_arm_obj.pose.bones[name]
     if cx.op.shaped_bones:
         bp.custom_shape = _get_real_bone_shape()
-    xray = bpy_armature.bones[name].xray
+    bpy_bone = bpy_armature.bones[name]
+    xray = bpy_bone.xray
     xray.version = cx.version
     xray.length = length
+    return bpy_bone
+
+
+def _import_bone(cx, cr, bpy_arm_obj, renamemap):
+    ver = cr.nextf(Chunks.Bone.VERSION, 'H')[0]
+    if ver != 0x2:
+        raise Exception('unsupported BONE format version: {}'.format(ver))
+    pr = PackedReader(cr.next(Chunks.Bone.DEF))
+    name = pr.gets()
+    parent = pr.gets()
+    vmap = pr.gets()
+    pr = PackedReader(cr.next(Chunks.Bone.BIND_POSE))
+    offset = read_v3f(pr)
+    rotate = read_v3f(pr)
+    length = pr.getf('f')[0]
+    bpy_bone = _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, renamemap)
+    xray = bpy_bone.xray
     for (cid, data) in cr:
         if cid == Chunks.Bone.DEF:
             s = PackedReader(data).gets()
@@ -289,6 +296,7 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
             xray.shape.cyl_rad = pr.getf('f')[0]
         elif cid == Chunks.Bone.IK_JOINT:
             pr = PackedReader(data)
+            bp = bpy_arm_obj.pose.bones[name]
             xray.ikjoint.type = str(pr.getf('I')[0])
             bp.use_ik_limit_x = True
             bp.ik_min_x, bp.ik_max_x = pr.getf('ff')
@@ -419,7 +427,7 @@ def _import_main(fpath, cx, cr):
                         bpy_texture_slot.texture_coords = 'UV'
                         bpy_texture_slot.uv_layer = vmap
                         bpy_texture_slot.use_map_color_diffuse = True
-        elif cid == Chunks.Object.BONES1:
+        elif (cid == Chunks.Object.BONES) or (cid == Chunks.Object.BONES1):
             if cx.bpy and (bpy_armature is None):
                 bpy_armature = cx.bpy.data.armatures.new(object_name)
                 bpy_armature.use_auto_ik = True
@@ -429,8 +437,24 @@ def _import_main(fpath, cx, cr):
                 bpy_arm_obj.parent = bpy_obj
                 cx.bpy.context.scene.objects.link(bpy_arm_obj)
                 cx.bpy.context.scene.objects.active = bpy_arm_obj
-            for (_, bdat) in ChunkedReader(data):
-                _import_bone(cx, ChunkedReader(bdat), bpy_arm_obj, bones_renamemap)
+            if cid == Chunks.Object.BONES:
+                pr = PackedReader(data)
+                for _ in range(pr.getf('I')[0]):
+                    name, parent, vmap = pr.gets(), pr.gets(), pr.gets()
+                    offset, rotate, length = read_v3f(pr), read_v3f(pr), pr.getf('f')[0]
+                    rotate = rotate[2], rotate[1], rotate[0]
+                    bpy_bone = _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, bones_renamemap)
+                    xray = bpy_bone.xray
+                    xray.mass.gamemtl = 'default_object'
+                    xray.mass.value = 10
+                    xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp = 1, 1
+                    xray.ikjoint.lim_y_spr, xray.ikjoint.lim_y_dmp = 1, 1
+                    xray.ikjoint.lim_z_spr, xray.ikjoint.lim_z_dmp = 1, 1
+                    xray.ikjoint.spring = 1
+                    xray.ikjoint.damping = 1
+            else:
+                for (_, bdat) in ChunkedReader(data):
+                    _import_bone(cx, ChunkedReader(bdat), bpy_arm_obj, bones_renamemap)
             cx.bpy.ops.object.mode_set(mode='EDIT')
             try:
                 import mathutils
