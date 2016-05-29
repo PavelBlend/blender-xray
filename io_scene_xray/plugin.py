@@ -2,15 +2,7 @@ import bpy
 from bpy_extras import io_utils
 from .xray_inject import inject_init, inject_done
 from .utils import AppError
-from .plugin_prefs import PluginPreferences, get_preferences
-
-
-def _create_prop_soc_smoothing_groups():
-    return bpy.props.BoolProperty(
-        default=True,
-        name='SoC smoothing groups',
-        description='use SoC smoothing group format'
-    )
+from . import plugin_prefs
 
 
 #noinspection PyUnusedLocal
@@ -25,21 +17,17 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
     directory = bpy.props.StringProperty(subtype="DIR_PATH")
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
-    import_motions = bpy.props.BoolProperty(
-        name='Import Motions',
-        description='Import embedded motions as actions',
-        default=True
-    )
+    import_motions = plugin_prefs.PropObjectMotionsImport()
 
     shaped_bones = bpy.props.BoolProperty(
         name='custom shapes for bones',
         description='use custom shapes for imported bones'
     )
 
-    soc_smoothing_groups = _create_prop_soc_smoothing_groups()
+    fmt_version = plugin_prefs.PropSDKVersion()
 
     def execute(self, context):
-        textures_folder = get_preferences().get_textures_folder()
+        textures_folder = plugin_prefs.get_preferences().get_textures_folder()
         if not textures_folder:
             self.report({'ERROR'}, 'No textures folder specified')
             return {'CANCELLED'}
@@ -50,7 +38,7 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
         cx = ImportContext(
             report=self.report,
             textures=textures_folder,
-            soc_sgroups=self.soc_smoothing_groups,
+            soc_sgroups=self.fmt_version == 'soc',
             import_motions=self.import_motions,
             op=self,
             bpy=bpy
@@ -65,6 +53,25 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
         return {'FINISHED'}
 
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.enabled = False
+        row.label('%d items' % len(self.files))
+
+        row = layout.split()
+        row.label('Format Version:')
+        row.row().prop(self, 'fmt_version', expand=True)
+
+        layout.prop(self, 'import_motions')
+        layout.prop(self, 'shaped_bones')
+
+    def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
+        self.fmt_version = prefs.sdk_version
+        self.import_motions = prefs.object_motions_import
+        return super().invoke(context, event)
+
 
 class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.anm'
@@ -77,10 +84,7 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
     directory = bpy.props.StringProperty(subtype='DIR_PATH')
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
-    camera_animation = bpy.props.BoolProperty(
-        name='Create Linked Camera',
-        description='Create animated camera object (linked to "empty"-object)'
-    )
+    camera_animation = plugin_prefs.PropAnmCameraAnimation()
 
     def execute(self, context):
         if len(self.files) == 0:
@@ -99,6 +103,11 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
             else:
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
+        self.camera_animation = prefs.anm_create_camera
+        return super().invoke(context, event)
 
 
 class ModelExportHelper:
@@ -146,30 +155,19 @@ def find_objects_for_export(context):
     return roots
 
 
-def _texture_name_from_image_path():
-    return bpy.props.BoolProperty(
-        name='texture names from image paths',
-        description='generate texture names from image paths (by subtract <gamedata/textures> prefix & <file-extension> suffix)'
-    )
-
-
-def _mk_export_context(context, report, texname_from_path, soc_smoothing_groups=None, export_motions=True):
+def _mk_export_context(context, report, texname_from_path, fmt_version=None, export_motions=True):
         from .fmt_object_exp import ExportContext
         return ExportContext(
-            textures_folder=get_preferences().get_textures_folder(),
+            textures_folder=plugin_prefs.get_preferences().get_textures_folder(),
             report=report,
             export_motions=export_motions,
-            soc_sgroups=soc_smoothing_groups,
+            soc_sgroups=None if fmt_version is None else (fmt_version == 'soc'),
             texname_from_path=texname_from_path
         )
 
 
 class _WithExportMotions:
-    export_motions = bpy.props.BoolProperty(
-        name='Export Motions',
-        description='Export armatures actions as embedded motions',
-        default=True
-    )
+    export_motions = plugin_prefs.PropObjectMotionsExport()
 
 
 class OpExportObjects(bpy.types.Operator, _WithExportMotions):
@@ -180,13 +178,23 @@ class OpExportObjects(bpy.types.Operator, _WithExportMotions):
 
     directory = bpy.props.StringProperty(subtype="FILE_PATH")
 
-    texture_name_from_image_path = _texture_name_from_image_path()
+    texture_name_from_image_path = plugin_prefs.PropObjectTextureNamesFromPath()
 
-    soc_smoothing_groups = _create_prop_soc_smoothing_groups()
+    fmt_version = plugin_prefs.PropSDKVersion()
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.split()
+        row.label('Format Version:')
+        row.row().prop(self, 'fmt_version', expand=True)
+
+        layout.prop(self, 'export_motions')
+        layout.prop(self, 'texture_name_from_image_path')
 
     def execute(self, context):
         from .fmt_object_exp import export_file
-        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.soc_smoothing_groups, self.export_motions)
+        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.fmt_version, self.export_motions)
         import os.path
         try:
             for n in self.objects.split(','):
@@ -200,6 +208,7 @@ class OpExportObjects(bpy.types.Operator, _WithExportMotions):
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
         roots = None
         try:
             roots = find_objects_for_export(context)
@@ -209,8 +218,10 @@ class OpExportObjects(bpy.types.Operator, _WithExportMotions):
         if len(roots) == 1:
             return bpy.ops.xray_export.object('INVOKE_DEFAULT')
         self.objects = ','.join([o.name for o in roots])
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        self.fmt_version = prefs.sdk_version
+        self.export_motions = prefs.object_motions_export
+        self.texture_name_from_image_path = prefs.object_texture_names_from_path
+        return super().invoke(context, event)
 
 
 class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotions):
@@ -222,13 +233,23 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotio
     filename_ext = '.object'
     filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
 
-    texture_name_from_image_path = _texture_name_from_image_path()
+    texture_name_from_image_path = plugin_prefs.PropObjectTextureNamesFromPath()
 
-    soc_smoothing_groups = _create_prop_soc_smoothing_groups()
+    fmt_version = plugin_prefs.PropSDKVersion()
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.split()
+        row.label('Format Version:')
+        row.row().prop(self, 'fmt_version', expand=True)
+
+        layout.prop(self, 'export_motions')
+        layout.prop(self, 'texture_name_from_image_path')
 
     def execute(self, context):
         from .fmt_object_exp import export_file
-        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.soc_smoothing_groups, self.export_motions)
+        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.fmt_version, self.export_motions)
         try:
             export_file(context.scene.objects[self.object], self.filepath, cx)
         except AppError as err:
@@ -237,6 +258,7 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotio
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
         roots = None
         try:
             roots = find_objects_for_export(context)
@@ -250,8 +272,10 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotio
         self.filepath = self.object
         if not self.filepath.lower().endswith(self.filename_ext):
             self.filepath += self.filename_ext
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        self.fmt_version = prefs.sdk_version
+        self.export_motions = prefs.object_motions_export
+        self.texture_name_from_image_path = prefs.object_texture_names_from_path
+        return super().invoke(context, event)
 
 
 class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
@@ -261,13 +285,18 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
     filename_ext = '.ogf'
     filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
 
-    texture_name_from_image_path = _texture_name_from_image_path()
+    texture_name_from_image_path = plugin_prefs.PropObjectTextureNamesFromPath()
 
     def export(self, bpy_obj, context):
         from .fmt_ogf_exp import export_file
         cx = _mk_export_context(context, self.report, self.texture_name_from_image_path)
         export_file(bpy_obj, self.filepath, cx)
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
+        self.texture_name_from_image_path = prefs.object_texture_names_from_path
+        return super().invoke(context, event)
 
 
 class OpExportAnm(bpy.types.Operator, io_utils.ExportHelper):
@@ -329,7 +358,7 @@ def menu_func_export_ogf(self, context):
 
 
 def register():
-    bpy.utils.register_class(PluginPreferences)
+    plugin_prefs.register()
     bpy.utils.register_class(OpImportObject)
     bpy.utils.register_class(OpImportAnm)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
@@ -355,4 +384,4 @@ def unregister():
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.utils.unregister_class(OpImportAnm)
     bpy.utils.unregister_class(OpImportObject)
-    bpy.utils.unregister_class(PluginPreferences)
+    plugin_prefs.unregister()

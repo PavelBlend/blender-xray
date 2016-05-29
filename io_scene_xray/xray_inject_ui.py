@@ -50,7 +50,7 @@ class XRayPanel(bpy.types.Panel):
         self.layout.label(icon='PLUGIN')
 
 
-def draw_collapsible(layout, data, prop_show, text, enabled=None, icon=None):
+def draw_collapsible(layout, data, prop_show, text, enabled=None, icon=None, style=None):
     col = layout.column(align=True)
     row = col.row(align=True)
     rw = row
@@ -60,8 +60,19 @@ def draw_collapsible(layout, data, prop_show, text, enabled=None, icon=None):
     isshow = getattr(data, prop_show)
     if icon is None:
         icon = 'TRIA_DOWN' if isshow else 'TRIA_RIGHT'
-    rw.prop(data, prop_show, toggle=True, icon=icon, text=text)
-    return row, (col.box() if isshow else None)
+    box = col.box() if isshow else None
+    if style == 'tree':
+        rw = rw.row()
+        rw.alignment = 'LEFT'
+        rw.prop(data, prop_show, toggle=True, icon=icon, text=text, emboss=False)
+        if box:
+            bxr = box.row(align=True)
+            bxr.alignment = 'LEFT'
+            bxr.label('')
+            box = bxr.column()
+    else:
+        rw.prop(data, prop_show, toggle=True, icon=icon, text=text)
+    return row, box
 
 
 class XRayObjectPanel(XRayPanel):
