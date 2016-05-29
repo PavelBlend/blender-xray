@@ -564,7 +564,7 @@ def _import_main(fpath, cx, cr):
                 fps = pr.getf('f')[0]
                 ver = pr.getf('H')[0]
                 xr.fps = fps
-                if ver == 6:
+                if ver >= 6:
                     xr.flags, xr.bonepart = pr.getf('<BH')
                     xr.speed, xr.accrue, xr.falloff, xr.power = pr.getf('<ffff')
                     for _1 in range(pr.getf('H')[0]):
@@ -629,6 +629,11 @@ def _import_main(fpath, cx, cr):
                                 fcurve_set(fcs[_4 + 3], t, rt[_4])
                         for fc in tmpfc:
                             a.fcurves.remove(fc)
+                    if ver >= 7:
+                        for _1 in range(pr.getf('I')[0]):
+                            name = pr.gets()
+                            pr.skip((4 + 4) * pr.getf('I')[0])
+                            cx.report({'WARNING'}, 'Object motions: skipping unsupported feature: marker ' + name)
                 else:
                     raise Exception('unsupported motions version: {}'.format(ver))
         elif cid == Chunks.Object.LIB_VERSION:

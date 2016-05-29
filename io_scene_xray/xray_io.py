@@ -28,6 +28,9 @@ class PackedReader:
             onerror(e)
             return bb.decode('cp1251', errors='replace')
 
+    def skip(self, count):
+        self.__offs += count
+
 
 class ChunkedReader:
     __MASK_COMPRESSED = 0x80000000

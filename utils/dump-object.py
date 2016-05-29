@@ -290,6 +290,9 @@ def dump_object(cr, out, opts):
                 out('  range:', pr.getf('II'))
                 out('  fps:', pr.getf('f')[0])
                 ver = pr.getf('H')[0]
+                if ver < 6:
+                    out('UNSUPPORTED MOTIONS VERSION: {}'.format(ver))
+                    continue
                 out('  version:', ver)
                 out('  flags:', pr.getf('B')[0])
                 out('  bone_or_part:', pr.getf('H')[0])
@@ -323,6 +326,13 @@ def dump_object(cr, out, opts):
                         oout('    }]')
                     oout('  }]')
                 oout('}]')
+                if ver >= 7:
+                    oout('marks: [{')
+                    for _1 in range(pr.getf('I')[0]):
+                        if _1: oout('}, {')
+                        oout('  name:', pr.gets())
+                        oout('  intervals:', [pr.getf('ff') for _2 in range(pr.getf('I')[0])])
+                    oout('}]')
             out('}]')
         elif cid == Chunks.Object.SMOTIONS3:
             out('smotions3:', [pr.gets() for _ in range(pr.getf('I')[0])])
