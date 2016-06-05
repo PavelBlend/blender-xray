@@ -65,9 +65,14 @@ def calculate_mesh_bbox(verts):
 
 def gen_texture_name(tx, tx_folder):
     import os.path
-    a_tx_fpath, a_tx_folder = os.path.abspath(tx.image.filepath), os.path.abspath(tx_folder)
+    from bpy.path import abspath
+    a_tx_fpath, a_tx_folder = abspath(tx.image.filepath), abspath(tx_folder)
+    print(a_tx_fpath, a_tx_folder)
     a_tx_fpath = os.path.splitext(a_tx_fpath)[0]
-    return a_tx_fpath[len(a_tx_folder) + 1:].replace(os.path.sep, '\\')
+    a_tx_fpath = a_tx_fpath[len(a_tx_folder):].replace(os.path.sep, '\\')
+    if a_tx_fpath.startswith('\\'):
+        a_tx_fpath = a_tx_fpath[1:]
+    return a_tx_fpath
 
 
 def create_cached_file_data(ffname, fparser):
