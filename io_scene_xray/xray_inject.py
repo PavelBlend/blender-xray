@@ -5,6 +5,8 @@ import mathutils
 import time
 from .xray_inject_ui import inject_ui_init, inject_ui_done
 from .plugin_prefs import get_preferences
+from . import shape_edit_helper as seh
+from . import utils
 
 
 def _gen_time_prop(prop, description=''):
@@ -66,6 +68,8 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
 
     def get_isroot(self):
         if not self.root:
+            return False
+        if utils.is_helper_object(self.id_data):
             return False
         if self.id_data.parent:
             return not self.id_data.parent.xray.isroot
@@ -141,6 +145,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     motionrefs_collection = bpy.props.CollectionProperty(type=MotionRef)
     motionrefs_collection_index = bpy.props.IntProperty(options={'SKIP_SAVE'})
     show_motionsrefs = bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'})
+    helper_data = bpy.props.StringProperty()
 
 
 class XRayMeshProperties(bpy.types.PropertyGroup):
@@ -173,11 +178,26 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         torque = bpy.props.FloatProperty()
 
     class ShapeProperties(bpy.types.PropertyGroup):
+        def update_shape_type(self, context):
+            if not self.edit_mode:
+                return
+            if self.type == '0':
+                seh.deactivate()
+                return
+            seh.activate(bpy.context.active_object.data.bones[bpy.context.active_bone.name], from_chtype=True)
+
         type = bpy.props.EnumProperty(items=(
             ('0', 'None', ''),
             ('1', 'Box', ''),
             ('2', 'Sphere', ''),
-            ('3', 'Cylinder', '')))
+            ('3', 'Cylinder', '')),
+            update=update_shape_type
+        )
+        edit_mode = bpy.props.BoolProperty(
+            get=lambda self: seh.is_active(),
+            set=lambda self, value: seh.activate(bpy.context.active_object.data.bones[bpy.context.active_bone.name]) if value else seh.deactivate(),
+            options={'SKIP_SAVE'}
+        )
         flags = bpy.props.IntProperty()
         flags_nopickable = gen_flag_prop(mask=0x1)
         flags_removeafterbreak = gen_flag_prop(mask=0x2)
@@ -268,8 +288,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 m *= mathutils.Matrix.Translation(shape.cyl_pos)
                 bgl.glMultMatrixf(matrix_to_buffer(m.transposed()))
                 v_dir = mathutils.Vector(shape.cyl_dir)
-                v_rot = v_dir.cross((0, 1, 0))
-                q_rot = mathutils.Quaternion(v_rot.normalized(), math.asin(max(min(v_rot.length, 1), -1)))
+                q_rot = v_dir.rotation_difference((0, 1, 0))
                 bgl.glMultMatrixf(matrix_to_buffer(q_rot.to_matrix().to_4x4()))
                 draw_wire_cylinder(shape.cyl_rad, shape.cyl_hgh * 0.5, 16)
         finally:

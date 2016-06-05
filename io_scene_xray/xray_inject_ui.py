@@ -1,7 +1,7 @@
 import bpy
 from .plugin_prefs import get_preferences
-from . import ui_dynmenu, ui_list
-from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl
+from . import ui_dynmenu, ui_list, shape_edit_helper as seh
+from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl, is_helper_object
 
 
 class PropClipOp(bpy.types.Operator):
@@ -83,6 +83,7 @@ class XRayObjectPanel(XRayPanel):
     def poll(cls, context):
         return (
             context.active_object
+            and not is_helper_object(context.active_object)
         )
 
     def draw_header(self, context):
@@ -139,6 +140,7 @@ class XRayMeshPanel(XRayPanel):
         return (
             context.active_object
             and context.active_object.type in {'MESH'}
+            and not is_helper_object(context.active_object)
             and get_preferences().expert_mode
         )
 
@@ -150,6 +152,21 @@ class XRayMeshPanel(XRayPanel):
         r.prop(data, 'flags_locked', text='Locked', toggle=True)
         r.prop(data, 'flags_sgmask', text='SGMask', toggle=True)
         # r.prop(data, 'flags_other', text='Other')
+
+
+class XRayShapeEditHelperObjectPanel(XRayPanel):
+    bl_context = 'object'
+    bl_label = 'XRay - shape edit helper'
+
+    @classmethod
+    def poll(cls, context):
+        return (
+            context.active_object
+            and seh.is_helper_object(context.active_object)
+        )
+
+    def draw(self, context):
+        seh.draw_helper(self.layout, context.active_object)
 
 
 class XRayXrMenuTemplate(ui_dynmenu.DynamicMenu):
@@ -265,11 +282,14 @@ class XRayBonePanel(XRayPanel):
 
     def draw(self, context):
         layout = self.layout
-        data = context.active_object.data.bones[context.active_bone.name].xray
+        bone = context.active_object.data.bones[context.active_bone.name]
+        data = bone.xray
         layout.prop(data, 'length')
         _gen_xr_selector(layout, data, 'gamemtl', 'gamemtl')
         box = layout.box()
         box.prop(data.shape, 'type', 'shape type')
+        seh.draw(box.column(align=True), bone)
+
         row = box.row(align=True)
         row.prop(data.shape, 'flags_nopickable', text='No pickable', toggle=True)
         row.prop(data.shape, 'flags_nophysics', text='No physics', toggle=True)
@@ -349,6 +369,7 @@ classes = [
     PropClipOp,
     XRayObjectPanel
     , XRayMeshPanel
+    , XRayShapeEditHelperObjectPanel
     , XRayEShaderMenu
     , XRayCShaderMenu
     , XRayGameMtlMenu
@@ -364,9 +385,11 @@ def inject_ui_init():
         bpy.utils.register_class(c)
     ui_dynmenu.register()
     ui_list.register()
+    seh.register()
 
 
 def inject_ui_done():
+    seh.unregister()
     ui_list.unregister()
     ui_dynmenu.unregister()
     for c in reversed(classes):

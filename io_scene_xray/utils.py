@@ -127,3 +127,10 @@ def parse_shaders_xrlc(data):
         n = pr.gets()
         pr.getf('{}s'.format(127 - len(n) + 16))  # skip
         yield (n, '')
+
+
+HELPER_OBJECT_NAME_PREFIX = '.xray-helper--'
+
+
+def is_helper_object(obj):
+    return obj.name.startswith(HELPER_OBJECT_NAME_PREFIX)

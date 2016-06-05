@@ -4,7 +4,7 @@ import mathutils
 import io
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_object import Chunks
-from .utils import is_fake_bone, find_bone_real_parent, AppError, convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name
+from .utils import is_fake_bone, find_bone_real_parent, AppError, convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name, is_helper_object
 
 
 class ExportContext:
@@ -253,6 +253,8 @@ def _export_main(bpy_obj, cw, cx):
     bpy_root = bpy_obj
 
     def scan_r(bpy_obj):
+        if is_helper_object(bpy_obj):
+            return
         if bpy_obj.type == 'MESH':
             mw = ChunkedWriter()
             _export_mesh(bpy_obj, bpy_root, mw, cx)

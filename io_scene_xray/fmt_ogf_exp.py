@@ -6,6 +6,7 @@ import mathutils
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_ogf import Chunks, ModelType, VertexFormat
 from .utils import is_fake_bone, find_bone_real_parent, AppError, fix_ensure_lookup_table, convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name
+from .utils import is_helper_object
 
 
 def calculate_mesh_bsphere(bbox, vertices):
@@ -24,6 +25,8 @@ def calculate_mesh_bsphere(bbox, vertices):
 
 def calculate_bbox_and_bsphere(bpy_obj):
     def scan_meshes(bpy_obj, meshes):
+        if is_helper_object(bpy_obj):
+            return
         if (bpy_obj.type == 'MESH') and len(bpy_obj.data.vertices):
             meshes.append(bpy_obj)
         for c in bpy_obj.children:
@@ -207,6 +210,8 @@ def _export(bpy_obj, cw, cx):
         return r
 
     def scan_r(bpy_obj):
+        if is_helper_object(bpy_obj):
+            return
         if bpy_obj.type == 'MESH':
             vgm = {}
             for m in bpy_obj.modifiers:
