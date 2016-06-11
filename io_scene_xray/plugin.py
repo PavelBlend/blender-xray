@@ -18,6 +18,7 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
     import_motions = plugin_prefs.PropObjectMotionsImport()
+    mesh_split_by_materials = plugin_prefs.PropObjectMeshSplitByMaterials()
 
     shaped_bones = bpy.props.BoolProperty(
         name='custom shapes for bones',
@@ -40,6 +41,7 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
             textures=textures_folder,
             soc_sgroups=self.fmt_version == 'soc',
             import_motions=self.import_motions,
+            split_by_materials=self.mesh_split_by_materials,
             op=self,
             bpy=bpy
         )
@@ -64,12 +66,14 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
         row.row().prop(self, 'fmt_version', expand=True)
 
         layout.prop(self, 'import_motions')
+        layout.prop(self, 'mesh_split_by_materials')
         layout.prop(self, 'shaped_bones')
 
     def invoke(self, context, event):
         prefs = plugin_prefs.get_preferences()
         self.fmt_version = prefs.sdk_version
         self.import_motions = prefs.object_motions_import
+        self.mesh_split_by_materials = prefs.object_mesh_split_by_mat
         return super().invoke(context, event)
 
 
