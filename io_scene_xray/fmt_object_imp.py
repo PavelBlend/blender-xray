@@ -90,7 +90,7 @@ def _import_mesh(cx, cr, parent):
     vt_data = ()
     fc_data = ()
 
-    face_sg = lambda bmf, fi, edict: None
+    face_sg = None
     s_faces = []
     vm_refs = ()
     vmaps = []
@@ -179,21 +179,11 @@ def _import_mesh(cx, cr, parent):
         else:
             warn_imknown_chunk(cid, 'mesh')
 
-    bad_vtx_gidx = -1
+    bad_vgroup = None
 
     def mkface(fi, local):
         fr = fc_data[fi]
-        vv = (local.vtx(fr[0]), local.vtx(fr[4]), local.vtx(fr[2]))
-        try:
-            bmf = bm.faces.new(vv)
-        except ValueError as e:
-            vn = bm.verts.new(vv[0].co, vv[0])
-            bmf = bm.faces.new((vn, vv[1], vv[2]))
-            nonlocal bad_vtx_gidx
-            if bad_vtx_gidx == -1:
-                bad_vtx_gidx = len(bo_mesh.vertex_groups)
-                bo_mesh.vertex_groups.new(name=BAD_VTX_GROUP_NAME)
-            vn[bml_deform][bad_vtx_gidx] = 0
+        bmf = local.mkf(fr[0], fr[4], fr[2])
         for i, j in enumerate((1, 5, 3)):
             for vmr in vm_refs[fr[j]]:
                 vm = vmaps[vmr[0]]
@@ -202,19 +192,37 @@ def _import_mesh(cx, cr, parent):
                     bmf.loops[i][vm.lidx].uv = (ve[0], 1 - ve[1])
                 elif vm.type == 1:
                     bmf.verts[i][bml_deform][vm.lidx] = ve
-        face_sg(bmf, fi, local.edict)
         return bmf
 
     class Local:
-        def __init__(self):
+        def __init__(self, level = 0, badvg=None):
             self.__verts = [None] * len(vt_data)
-            self.edict = {}
+            self.__level = level
+            self.__badvg = badvg
+            self.__next = None
 
-        def vtx(self, vi):
+        def _vtx(self, vi):
             v = self.__verts[vi]
             if v is None:
                 self.__verts[vi] = v = bm.verts.new(vt_data[vi])
+                if self.__badvg:
+                    v[bml_deform][self.__badvg.index] = 0
             return v
+
+        def mkf(self, vi0, vi1, vi2):
+            vv = (self._vtx(vi0), self._vtx(vi1), self._vtx(vi2))
+            try:
+                return bm.faces.new(vv)
+            except ValueError:
+                if self.__next is None:
+                    lvl = self.__level
+                    if lvl > 100:
+                        raise Exception('too many duplicated polygons')
+                    nonlocal bad_vgroup
+                    if bad_vgroup is None:
+                        bad_vgroup = bo_mesh.vertex_groups.new(name=BAD_VTX_GROUP_NAME)
+                    self.__next = Local(lvl + 1, badvg=bad_vgroup)
+                return self.__next.mkf(vi0, vi1, vi2)
 
     bmfaces = [None] * len(fc_data)
 
@@ -235,6 +243,11 @@ def _import_mesh(cx, cr, parent):
             continue  # already instantiated
         bmfaces[fi] = bmf = mkface(fi, local)
 
+    if face_sg:
+        edict = {}
+        for fi, bmf in enumerate(bmfaces):
+            face_sg(bmf, fi, edict)
+
     if not cx.split_by_materials:
         assigned = [False] * len(bmfaces)
         for sf in s_faces:
@@ -246,8 +259,8 @@ def _import_mesh(cx, cr, parent):
                 bmf.material_index = sf.midx
                 assigned[fi] = True
 
-    if bad_vtx_gidx != -1:
-        msg = 'duplicate faces found, "{}" vertex groups created'.format(BAD_VTX_GROUP_NAME)
+    if bad_vgroup:
+        msg = 'duplicate faces found, "{}" vertex groups created'.format(bad_vgroup.name)
         if not cx.split_by_materials:
             msg += ' (try to use "{}" option)'.format(PropObjectMeshSplitByMaterials()[1].get('name'))
         cx.report({'WARNING'}, msg)
