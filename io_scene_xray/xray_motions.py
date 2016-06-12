@@ -7,7 +7,96 @@ __matrix_bone = Matrix(((1.0, 0.0, 0.0, 0.0), (0.0, 0.0, -1.0, 0.0), (0.0, 1.0, 
 __matrix_bone_inv = __matrix_bone.inverted()
 
 
-def export_motions(pw, bpy_act, cx, bpy_armature=None):
+def import_motion(pr, cx, bpy, bpy_armature, bonesmap, reported):
+    act = bpy.data.actions.new(name=pr.gets())
+    act.use_fake_user = True
+    xr = act.xray
+    pr.getf('II')  # range
+    fps, ver = pr.getf('fH')
+    xr.fps = fps
+    if ver >= 6:
+        xr.flags, xr.bonepart = pr.getf('<BH')
+        xr.speed, xr.accrue, xr.falloff, xr.power = pr.getf('<ffff')
+        for _1 in range(pr.getf('H')[0]):
+            tmpfc = [act.fcurves.new('temp', i) for i in range(6)]
+            try:
+                times = {}
+                bname = pr.gets()
+                flags = pr.getf('B')[0]
+                if flags != 0:
+                    cx.report({'WARNING'}, 'bone "{}" flags == {}'.format(bname, flags))
+                for i in range(6):
+                    behaviours = pr.getf('BB')
+                    if (behaviours[0] != 1) or (behaviours[1] != 1):
+                        cx.report({'WARNING'}, 'bone "{}" behaviours == {}'.format(bname, behaviours))
+                    fc = tmpfc[i]
+                    for _3 in range(pr.getf('H')[0]):
+                        v = pr.getf('f')[0]
+                        t = pr.getf('f')[0] * fps
+                        times[t] = True
+                        fc.keyframe_points.insert(t, v)
+                        shape = Shape(pr.getf('B')[0])
+                        if shape != Shape.STEPPED:
+                            pr.getf('HHH')
+                            pr.getf('HHHH')
+                bpy_bone = bpy_armature.data.bones.get(bname, None)
+                if bpy_bone is None:
+                    bpy_bone = bonesmap.get(bname.lower(), None)
+                    if bpy_bone is None:
+                        if bname not in reported:
+                            cx.report({'WARNING'}, 'Object motions: bone {} not found'.format(bname))
+                            reported.add(bname)
+                        continue
+                    if bname not in reported:
+                        cx.report({'WARNING'}, 'Object motions: bone {} reference replaced to {}'.format(bname, bpy_bone.name))
+                        reported.add(bname)
+                    bname = bpy_bone.name
+                dp = 'pose.bones["' + bname + '"]'
+                fcs = [
+                    act.fcurves.new(dp + '.location', 0, bname),
+                    act.fcurves.new(dp + '.location', 1, bname),
+                    act.fcurves.new(dp + '.location', 2, bname),
+                    act.fcurves.new(dp + '.rotation_euler', 0, bname),
+                    act.fcurves.new(dp + '.rotation_euler', 1, bname),
+                    act.fcurves.new(dp + '.rotation_euler', 2, bname)
+                ]
+                xm = bpy_bone.matrix_local.inverted()
+                real_parent = find_bone_real_parent(bpy_bone)
+                if real_parent:
+                    xm = xm * real_parent.matrix_local
+                else:
+                    xm = xm * __matrix_bone
+                for t in times.keys():
+                    tr = (tmpfc[0].evaluate(t), tmpfc[1].evaluate(t), -tmpfc[2].evaluate(t))
+                    rt = (-tmpfc[4].evaluate(t), -tmpfc[3].evaluate(t), tmpfc[5].evaluate(t))
+                    mat = xm * Matrix.Translation(tr) * Euler(rt, 'ZXY').to_matrix().to_4x4()
+                    tr = mat.to_translation()
+                    rt = mat.to_euler('ZXY')
+                    for _4 in range(3):
+                        fcs[_4 + 0].keyframe_points.insert(t, tr[_4])
+                    for _4 in range(3):
+                        fcs[_4 + 3].keyframe_points.insert(t, rt[_4])
+            finally:
+                for fc in tmpfc:
+                    act.fcurves.remove(fc)
+        if ver >= 7:
+            for _1 in range(pr.getf('I')[0]):
+                name = pr.gets()
+                pr.skip((4 + 4) * pr.getf('I')[0])
+                cx.report({'WARNING'}, 'Object motions: skipping unsupported feature: marker ' + name)
+    else:
+        raise Exception('unsupported motions version: {}'.format(ver))
+    return act
+
+
+def import_motions(pr, cx, bpy, bpy_armature):
+    bonesmap = {b.name.lower(): b for b in bpy_armature.data.bones}
+    reported = set()
+    for _ in range(pr.getf('I')[0]):
+        import_motion(pr, cx, bpy, bpy_armature, bonesmap, reported)
+
+
+def export_motion(pw, bpy_act, cx, bpy_armature):
     xr = bpy_act.xray
     pw.puts(bpy_act.name)
     fr = bpy_act.frame_range
@@ -74,3 +163,9 @@ def export_motions(pw, bpy_act, cx, bpy_armature=None):
             pw.putf('H', len(envdata))
             for e in envdata:
                 pw.putf('ffB', e[i + 1], e[0] / xr.fps, Shape.STEPPED.value)
+
+
+def export_motions(pw, actions, cx, bpy_armature):
+    pw.putf('I', len(actions))
+    for a in actions:
+        export_motion(pw, a, cx, bpy_armature)

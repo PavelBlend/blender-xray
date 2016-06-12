@@ -339,6 +339,7 @@ class XRayActionPanel(XRayPanel):
         )
 
     def draw(self, context):
+        from .plugin import OpExportSkl
         layout = self.layout
         obj = context.active_object
         a = obj.animation_data.action
@@ -363,6 +364,8 @@ class XRayActionPanel(XRayPanel):
             row.prop(data, 'flags_stopatend', text='Stop', toggle=True)
             row.prop(data, 'flags_nomix', text='!Mix', toggle=True)
             row.prop(data, 'flags_syncpart', text='Sync', toggle=True)
+        layout.context_pointer_set(OpExportSkl.bl_idname + '.action', a)
+        layout.operator(OpExportSkl.bl_idname, icon='EXPORT')
 
 
 classes = [

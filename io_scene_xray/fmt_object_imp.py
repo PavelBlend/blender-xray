@@ -7,8 +7,8 @@ import mathutils
 import os.path
 from .xray_io import ChunkedReader, PackedReader
 from .fmt_object import Chunks
-from .utils import find_bone_real_parent, fix_ensure_lookup_table
-from .xray_envelope import Shape
+from .utils import fix_ensure_lookup_table
+from .xray_motions import import_motions
 
 
 class ImportContext:
@@ -547,95 +547,8 @@ def _import_main(fpath, cx, cr):
         elif cid == Chunks.Object.MOTIONS:
             if not cx.import_motions:
                 continue
-
-            def fcurve_set(curve, time, value):
-                if curve.evaluate(time) != value:
-                    curve.keyframe_points.insert(time, value)
-
-            bonesmap = {b.name.lower(): b for b in bpy_armature.bones}
-            reported = set()
-
             pr = PackedReader(data)
-            for _ in range(pr.getf('I')[0]):
-                a = bpy.data.actions.new(name=pr.gets())
-                a.use_fake_user = True
-                xr = a.xray
-                pr.getf('II')  # range
-                fps = pr.getf('f')[0]
-                ver = pr.getf('H')[0]
-                xr.fps = fps
-                if ver >= 6:
-                    xr.flags, xr.bonepart = pr.getf('<BH')
-                    xr.speed, xr.accrue, xr.falloff, xr.power = pr.getf('<ffff')
-                    for _1 in range(pr.getf('H')[0]):
-                        tmpfc = [a.fcurves.new('temp', i) for i in range(6)]
-                        times = {}
-                        bname = pr.gets()
-                        flags = pr.getf('B')[0]
-                        if flags != 0:
-                            cx.report({'WARNING'}, 'bone "{}" flags == {}'.format(bname, flags))
-                        for i in range(6):
-                            behaviours = pr.getf('BB')
-                            if (behaviours[0] != 1) or (behaviours[1] != 1):
-                                cx.report({'WARNING'}, 'bone "{}" behaviours == {}'.format(bname, behaviours))
-                            fc = tmpfc[i]
-                            for _3 in range(pr.getf('H')[0]):
-                                v = pr.getf('f')[0]
-                                t = pr.getf('f')[0] * fps
-                                times[t] = True
-                                fc.keyframe_points.insert(t, v)
-                                shape = Shape(pr.getf('B')[0])
-                                if shape != Shape.STEPPED:
-                                    pr.getf('HHH')
-                                    pr.getf('HHHH')
-                        bpy_bone = bpy_armature.bones.get(bname, None)
-                        if bpy_bone is None:
-                            bpy_bone = bonesmap.get(bname.lower(), None)
-                            if bpy_bone is None:
-                                if bname not in reported:
-                                    cx.report({'WARNING'}, 'Object motions: bone {} not found'.format(bname))
-                                    reported.add(bname)
-                                for fc in tmpfc:  # try-finally angels cry once again
-                                    a.fcurves.remove(fc)
-                                continue
-                            if bname not in reported:
-                                cx.report({'WARNING'}, 'Object motions: bone {} reference replaced to {}'.format(bname, bpy_bone.name))
-                                reported.add(bname)
-                            bname = bpy_bone.name
-                        dp = 'pose.bones["' + bname + '"]'
-                        fcs = [
-                            a.fcurves.new(dp + '.location', 0, bname),
-                            a.fcurves.new(dp + '.location', 1, bname),
-                            a.fcurves.new(dp + '.location', 2, bname),
-                            a.fcurves.new(dp + '.rotation_euler', 0, bname),
-                            a.fcurves.new(dp + '.rotation_euler', 1, bname),
-                            a.fcurves.new(dp + '.rotation_euler', 2, bname)
-                        ]
-                        xm = bpy_bone.matrix_local.inverted()
-                        real_parent = find_bone_real_parent(bpy_bone)
-                        if real_parent:
-                            xm = xm * real_parent.matrix_local
-                        else:
-                            xm = xm * __matrix_bone
-                        for t in times.keys():
-                            tr = (tmpfc[0].evaluate(t), tmpfc[1].evaluate(t), -tmpfc[2].evaluate(t))
-                            rt = (-tmpfc[4].evaluate(t), -tmpfc[3].evaluate(t), tmpfc[5].evaluate(t))
-                            mat = xm * mathutils.Matrix.Translation(tr) * mathutils.Euler(rt, 'ZXY').to_matrix().to_4x4()
-                            tr = mat.to_translation()
-                            rt = mat.to_euler('ZXY')
-                            for _4 in range(3):
-                                fcurve_set(fcs[_4 + 0], t, tr[_4])
-                            for _4 in range(3):
-                                fcurve_set(fcs[_4 + 3], t, rt[_4])
-                        for fc in tmpfc:
-                            a.fcurves.remove(fc)
-                    if ver >= 7:
-                        for _1 in range(pr.getf('I')[0]):
-                            name = pr.gets()
-                            pr.skip((4 + 4) * pr.getf('I')[0])
-                            cx.report({'WARNING'}, 'Object motions: skipping unsupported feature: marker ' + name)
-                else:
-                    raise Exception('unsupported motions version: {}'.format(ver))
+            import_motions(pr, cx, bpy, bpy_arm_obj)
         elif cid == Chunks.Object.LIB_VERSION:
             pass  # skip obsolete chunk
         else:

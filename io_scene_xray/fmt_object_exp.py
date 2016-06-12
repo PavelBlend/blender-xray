@@ -328,9 +328,7 @@ def _export_main(bpy_obj, cw, cx):
         from .xray_motions import export_motions
         acts = bpy.data.actions
         pw = PackedWriter()
-        pw.putf('I', len(acts))
-        for a in acts:
-            export_motions(pw, a, cx, some_arm)
+        export_motions(pw, acts, cx, some_arm)
         if pw.data:
             cw.put(Chunks.Object.MOTIONS, pw)
 
