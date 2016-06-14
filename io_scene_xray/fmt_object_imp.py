@@ -7,12 +7,13 @@ import mathutils
 import os.path
 from .xray_io import ChunkedReader, PackedReader
 from .fmt_object import Chunks
-from .utils import find_bone_real_parent, fix_ensure_lookup_table
+from .plugin_prefs import PropObjectMeshSplitByMaterials
+from .utils import find_bone_real_parent, BAD_VTX_GROUP_NAME
 from .xray_envelope import Shape
 
 
 class ImportContext:
-    def __init__(self, textures, soc_sgroups, import_motions, report, op, bpy=None):
+    def __init__(self, textures, soc_sgroups, import_motions, split_by_materials, report, op, bpy=None):
         from . import bl_info
         from .utils import version_to_number
         self.version = version_to_number(*bl_info['version'])
@@ -21,6 +22,7 @@ class ImportContext:
         self.textures_folder = textures
         self.soc_sgroups = soc_sgroups
         self.import_motions = import_motions
+        self.split_by_materials = split_by_materials
         self.op = op
         self.used_materials = None
 
@@ -71,6 +73,7 @@ def _cop_sgfunc(ga, gb, ea, eb):
     return is_soft(ga, bfa, ea) and is_soft(gb, bfb, eb)
 
 
+_SFace = namedtuple('_SFace', ('faces', 'midx'))
 _VMap = namedtuple('_VMap', ['type', 'lidx', 'data'])
 
 
@@ -83,28 +86,23 @@ def _import_mesh(cx, cr, parent):
     bo_mesh.parent = parent
     cx.bpy.context.scene.objects.link(bo_mesh)
     bm = bmesh.new()
-    bmfaces = []
     sgfuncs = (-1, lambda ga, gb, ea, eb: ga == gb) if cx.soc_sgroups else (-1, _cop_sgfunc)
+    vt_data = ()
     fc_data = ()
+
+    face_sg = None
+    s_faces = []
     vm_refs = ()
     vmaps = []
-    bml_deform = None
+    bml_deform = bm.verts.layers.deform.verify()
     for (cid, data) in cr:
         if cid == Chunks.Mesh.VERTS:
             pr = PackedReader(data)
-            for _ in range(pr.getf('I')[0]):
-                bm.verts.new(read_v3f(pr))
+            vt_data = tuple(read_v3f(pr) for _ in range(pr.getf('I')[0]))
         elif cid == Chunks.Mesh.FACES:
-            fix_ensure_lookup_table(bm.verts)
             pr = PackedReader(data)
             cnt = pr.getf('I')[0]
             fc_data = tuple(pr.getf('IIIIII') for _ in range(cnt))
-            for fr in fc_data:
-                try:
-                    bmfaces.append(bm.faces.new((bm.verts[fr[0]], bm.verts[fr[4]], bm.verts[fr[2]])))
-                except ValueError:
-                    bmfaces.append(None)
-            bm.normal_update()
         elif cid == Chunks.Mesh.MESHNAME:
             bo_mesh.name = PackedReader(data).gets()
             bm_data.name = bo_mesh.name + '.mesh'
@@ -113,15 +111,13 @@ def _import_mesh(cx, cr, parent):
             bm_data.use_auto_smooth = True
             bm_data.auto_smooth_angle = math.pi
             bm_data.show_edge_sharp = True
-            edict = {}
-            for fi, sg in enumerate(pr.getf(str(len(data) // 4) + 'I')):
-                bmf = bmfaces[fi]
-                if bmf is None:
-                    debug('skip face: ' + str(fi))
-                    continue
+            sgroups = pr.getf(str(len(data) // 4) + 'I')
+
+            def face_sg_impl(bmf, fi, edict):
+                sg = sgroups[fi]
                 if sg == sgfuncs[0]:
                     bmf.smooth = False
-                    continue
+                    return
                 bmf.smooth = True
                 for ei, bme in enumerate(bmf.edges):
                     x = edict.get(bme)
@@ -129,6 +125,7 @@ def _import_mesh(cx, cr, parent):
                         edict[bme] = (sg, ei)
                     elif not sgfuncs[1](x[0], sg, x[1], ei):
                         bme.smooth = False
+            face_sg = face_sg_impl
         elif cid == Chunks.Mesh.SFACE:
             pr = PackedReader(data)
             for _ in range(pr.getf('H')[0]):
@@ -140,12 +137,7 @@ def _import_mesh(cx, cr, parent):
                 meshes.append(bm_data)
                 midx = len(bm_data.materials)
                 bm_data.materials.append(bmat)
-                for fi in pr.getf(str(pr.getf('I')[0]) + 'I'):
-                    bmf = bmfaces[fi]
-                    if bmf is None:
-                        debug('skip face: ' + str(fi))
-                        continue
-                    bmf.material_index = midx
+                s_faces.append(_SFace(pr.getf(str(pr.getf('I')[0]) + 'I'), midx))
         elif cid == Chunks.Mesh.VMREFS:
             pr = PackedReader(data)
             vm_refs = tuple(tuple(pr.getf('II') for __ in range(pr.getf('B')[0])) for _ in range(pr.getf('I')[0]))
@@ -167,7 +159,6 @@ def _import_mesh(cx, cr, parent):
                         fcs = pr.getf(str(sz) + 'I')
                     vmaps.append(_VMap(typ, bml, uvs))
                 elif typ == 1:  # weights
-                    bml_deform = bm.verts.layers.deform.verify()
                     vgi = len(bo_mesh.vertex_groups)
                     bo_mesh.vertex_groups.new(name=n)
                     wgs = pr.getf(str(sz) + 'f')
@@ -188,9 +179,11 @@ def _import_mesh(cx, cr, parent):
         else:
             warn_imknown_chunk(cid, 'mesh')
 
-    for bmf, fr in zip(bmfaces, fc_data):
-        if bmf is None:
-            continue
+    bad_vgroup = None
+
+    def mkface(fi, local):
+        fr = fc_data[fi]
+        bmf = local.mkf(fr[0], fr[4], fr[2])
         for i, j in enumerate((1, 5, 3)):
             for vmr in vm_refs[fr[j]]:
                 vm = vmaps[vmr[0]]
@@ -199,7 +192,80 @@ def _import_mesh(cx, cr, parent):
                     bmf.loops[i][vm.lidx].uv = (ve[0], 1 - ve[1])
                 elif vm.type == 1:
                     bmf.verts[i][bml_deform][vm.lidx] = ve
+        return bmf
 
+    class Local:
+        def __init__(self, level = 0, badvg=None):
+            self.__verts = [None] * len(vt_data)
+            self.__level = level
+            self.__badvg = badvg
+            self.__next = None
+
+        def _vtx(self, vi):
+            v = self.__verts[vi]
+            if v is None:
+                self.__verts[vi] = v = bm.verts.new(vt_data[vi])
+                if self.__badvg:
+                    v[bml_deform][self.__badvg.index] = 0
+            return v
+
+        def mkf(self, vi0, vi1, vi2):
+            vv = (self._vtx(vi0), self._vtx(vi1), self._vtx(vi2))
+            try:
+                return bm.faces.new(vv)
+            except ValueError:
+                if self.__next is None:
+                    lvl = self.__level
+                    if lvl > 100:
+                        raise Exception('too many duplicated polygons')
+                    nonlocal bad_vgroup
+                    if bad_vgroup is None:
+                        bad_vgroup = bo_mesh.vertex_groups.new(name=BAD_VTX_GROUP_NAME)
+                    self.__next = Local(lvl + 1, badvg=bad_vgroup)
+                return self.__next.mkf(vi0, vi1, vi2)
+
+    bmfaces = [None] * len(fc_data)
+
+    if cx.split_by_materials:
+        for sf in s_faces:
+            local = Local()
+            for fi in sf.faces:
+                bmf = bmfaces[fi]
+                if bmf is not None:
+                    cx.report({'WARNING'}, 'face {} has already been instantiated with material {}'.format(fi, bmf.material_index))
+                    continue
+                bmfaces[fi] = bmf = mkface(fi, local)
+                bmf.material_index = sf.midx
+
+    local = Local()
+    for fi, bmf in enumerate(bmfaces):
+        if bmf is not None:
+            continue  # already instantiated
+        bmfaces[fi] = bmf = mkface(fi, local)
+
+    if face_sg:
+        edict = {}
+        for fi, bmf in enumerate(bmfaces):
+            face_sg(bmf, fi, edict)
+
+    if not cx.split_by_materials:
+        assigned = [False] * len(bmfaces)
+        for sf in s_faces:
+            for fi in sf.faces:
+                bmf = bmfaces[fi]
+                if assigned[fi]:
+                    cx.report({'WARNING'}, 'face {} has already used material {}'.format(fi, bmf.material_index))
+                    continue
+                bmf.material_index = sf.midx
+                assigned[fi] = True
+
+    if bad_vgroup:
+        msg = 'duplicate faces found, "{}" vertex groups created'.format(bad_vgroup.name)
+        if not cx.split_by_materials:
+            msg += ' (try to use "{}" option)'.format(PropObjectMeshSplitByMaterials()[1].get('name'))
+        cx.report({'WARNING'}, msg)
+
+    bm.normal_update()
     bm.to_mesh(bm_data)
     return bo_mesh
 

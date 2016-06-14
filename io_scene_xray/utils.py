@@ -53,6 +53,7 @@ def calculate_mesh_bbox(verts):
         va.y = f(va.y, vb.y)
         va.z = f(va.z, vb.z)
 
+    fix_ensure_lookup_table(verts)
     mn = verts[0].co.copy()
     mx = mn.copy()
 
@@ -138,3 +139,5 @@ HELPER_OBJECT_NAME_PREFIX = '.xray-helper--'
 
 def is_helper_object(obj):
     return obj.name.startswith(HELPER_OBJECT_NAME_PREFIX)
+
+BAD_VTX_GROUP_NAME = '.xr-bad!'

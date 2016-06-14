@@ -5,6 +5,7 @@ import io
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_object import Chunks
 from .utils import is_fake_bone, find_bone_real_parent, AppError, convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name, is_helper_object
+from .utils import BAD_VTX_GROUP_NAME
 
 
 class ExportContext:
@@ -71,6 +72,12 @@ def _export_mesh(bpy_obj, bpy_root, cw, cx):
     cw.put(Chunks.Mesh.MESHNAME, PackedWriter().puts(bpy_obj.name))
 
     bm = convert_object_to_space_bmesh(bpy_obj, bpy_root.matrix_world)
+    bml = bm.verts.layers.deform.verify()
+    bad_vgroups = [vg.name.startswith(BAD_VTX_GROUP_NAME) for vg in bpy_obj.vertex_groups]
+    bad_verts = [v for v in bm.verts if any(bad_vgroups[k] for k in v[bml].keys())]
+    if bad_verts:
+        cx.report({'WARNING'}, 'skipping geometry from "{}"-s vertex groups'.format(BAD_VTX_GROUP_NAME))
+        bmesh.ops.delete(bm, geom=bad_verts, context=1)
 
     bbox = calculate_mesh_bbox(bm.verts)
     cw.put(Chunks.Mesh.BBOX, PackedWriter().putf('fff', *pw_v3f(bbox[0])).putf('fff', *pw_v3f(bbox[1])))
@@ -106,8 +113,15 @@ def _export_mesh(bpy_obj, bpy_root, cw, cx):
             fcs.append(f.index)
     cw.put(Chunks.Mesh.FACES, pw)
 
-    bml = bm.verts.layers.deform.verify()
-    wmaps = [[] for _ in bpy_obj.vertex_groups]
+    wmaps = []
+    wmaps_cnt = 0
+    for vg, bad in zip(bpy_obj.vertex_groups, bad_vgroups):
+        if bad:
+            wmaps.append(None)
+            continue
+        wmaps.append(([], wmaps_cnt))
+        ++wmaps_cnt
+
     wrefs = []
     for vi, v in enumerate(bm.verts):
         wr = []
@@ -115,8 +129,10 @@ def _export_mesh(bpy_obj, bpy_root, cw, cx):
         vw = v[bml]
         for vgi in vw.keys():
             wm = wmaps[vgi]
-            wr.append((1 + vgi, len(wm)))
-            wm.append(vi)
+            if wm is None:
+                continue
+            wr.append((1 + wm[1], len(wm[0])))
+            wm[0].append(vi)
 
     pw = PackedWriter()
     pw.putf('I', len(uvs))
@@ -156,7 +172,7 @@ def _export_mesh(bpy_obj, bpy_root, cw, cx):
     cw.put(Chunks.Mesh.SG, pw)
 
     pw = PackedWriter()
-    pw.putf('I', 1 + len(wmaps))
+    pw.putf('I', 1 + wmaps_cnt)
     at = bpy_obj.data.uv_textures.active
     pw.puts(at.name).putf('B', 2).putf('B', 1).putf('B', 0)
     pw.putf('I', len(uvs))
@@ -167,9 +183,12 @@ def _export_mesh(bpy_obj, bpy_root, cw, cx):
     for fi in fcs:
         pw.putf('I', fi)
     for vgi, vg in enumerate(bpy_obj.vertex_groups):
+        wm = wmaps[vgi]
+        if wm is None:
+            continue
+        vtx = wm[0]
         pw.puts(bpy_obj.vertex_groups[vgi].name)
         pw.putf('B', 1).putf('B', 0).putf('B', 1)
-        vtx = wmaps[vgi]
         pw.putf('I', len(vtx))
         for vi in vtx:
             pw.putf('f', bm.verts[vi][bml][vgi])
