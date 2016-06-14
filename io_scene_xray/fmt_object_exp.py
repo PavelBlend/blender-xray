@@ -120,7 +120,7 @@ def _export_mesh(bpy_obj, bpy_root, cw, cx):
             wmaps.append(None)
             continue
         wmaps.append(([], wmaps_cnt))
-        ++wmaps_cnt
+        wmaps_cnt += 1
 
     wrefs = []
     for vi, v in enumerate(bm.verts):
