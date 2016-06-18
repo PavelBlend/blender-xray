@@ -2,10 +2,13 @@
 XRay-engine import/export plugin for [blender](http://www.blender.org/)
 
 ## Supported formats
-- `.object` (import/export) - source models
-- `.skl`, `.skls` (import/export) - skeletal actions
-- `.anm` (import/export) - animation paths
-- `.ogf` (export) - compiled models
+| Extension | Description      | Can import | Can export | Remarks |
+|-----------|------------------|:----------:|:----------:|---------|
+| .object   | Source models    | Yes        | Yes        | |
+| .anm      | Animation paths  | Yes        | Yes        | |
+| .skl      | Skeletal action  | Yes        | Yes        | |
+| .skls     | Skeletal actions | Yes        | Yes        | |
+| .ogf      | Compiled models  | No         | Yes*       | *Extremely experimental |
 
 ## Installation
 follow [wiki instructions](https://github.com/igelbox/blender-xray/wiki/Installation)
