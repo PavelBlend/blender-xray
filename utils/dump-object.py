@@ -176,6 +176,58 @@ def dump_bone(cr, out):
             out('UNKNOWN BONE CHUNK: {:#x}'.format(cid))
 
 
+def dump_motion(pr, out):
+    out('name:', pr.gets())
+    out('range:', pr.getf('II'))
+    out('fps:', pr.getf('f')[0])
+    ver = pr.getf('H')[0]
+    if ver < 6:
+        out('UNSUPPORTED MOTIONS VERSION: {}'.format(ver))
+        return False
+    out('version:', ver)
+    out('flags:', pr.getf('B')[0])
+    out('bone_or_part:', pr.getf('H')[0])
+    out('speed:', pr.getf('f')[0])
+    out('accrue:', pr.getf('f')[0])
+    out('falloff:', pr.getf('f')[0])
+    out('power:', pr.getf('f')[0])
+    out('bone_motions: [{')
+    for _1 in range(pr.getf('H')[0]):
+        if _1: out('}, {')
+        out('  bone:', pr.gets())
+        out('  flags:', pr.getf('B')[0])
+        out('  envelopes: [{')
+        for _2 in range(6):
+            if _2: out('  }, {')
+            out('    behaviours:', pr.getf('BB'))
+            out('    keys: [{')
+            for _3 in range(pr.getf('H')[0]):
+                if _3: out('    }, {')
+                out('      value:', pr.getf('f')[0])
+                out('      time:', pr.getf('f')[0])
+                shape = pr.getf('B')[0]
+                out('      shape:', shape)
+                if shape != 4:
+                    def rfq16(pr, mn, mx):
+                        return pr.getf('H')[0] * (mx - mn) / 65536 + mn
+
+                    out('      tension:', rfq16(pr, -32, 32))
+                    out('      continuity:', rfq16(pr, -32, 32))
+                    out('      bias:', rfq16(pr, -32, 32))
+                    out('      params:', [rfq16(pr, -32, 32) for _4 in range(4)])
+            out('    }]')
+        out('  }]')
+    out('}]')
+    if ver >= 7:
+        out('marks: [{')
+        for _1 in range(pr.getf('I')[0]):
+            if _1: out('}, {')
+            out('  name:', pr.gets())
+            out('  intervals:', [pr.getf('ff') for _2 in range(pr.getf('I')[0])])
+        out('}]')
+    return True
+
+
 def dump_object(cr, out, opts):
     def oout(*args):
         out(' ', *args)
@@ -286,53 +338,7 @@ def dump_object(cr, out, opts):
             out('motions: [{')
             for _ in range(pr.getf('I')[0]):
                 if _: out('}, {')
-                out('  name:', pr.gets())
-                out('  range:', pr.getf('II'))
-                out('  fps:', pr.getf('f')[0])
-                ver = pr.getf('H')[0]
-                if ver < 6:
-                    out('UNSUPPORTED MOTIONS VERSION: {}'.format(ver))
-                    continue
-                out('  version:', ver)
-                out('  flags:', pr.getf('B')[0])
-                out('  bone_or_part:', pr.getf('H')[0])
-                out('  speed:', pr.getf('f')[0])
-                out('  accrue:', pr.getf('f')[0])
-                out('  falloff:', pr.getf('f')[0])
-                out('  power:', pr.getf('f')[0])
-                oout('bone_motions: [{')
-                for _1 in range(pr.getf('H')[0]):
-                    if _1: oout('}, {')
-                    oout('  bone:', pr.gets())
-                    oout('  flags:', pr.getf('B')[0])
-                    oout('  envelopes: [{')
-                    for _2 in range(6):
-                        if _2: oout('  }, {')
-                        oout('    behaviours:', pr.getf('BB'))
-                        oout('    keys: [{')
-                        for _3 in range(pr.getf('H')[0]):
-                            if _3: oout('    }, {')
-                            oout('      value:', pr.getf('f')[0])
-                            oout('      time:', pr.getf('f')[0])
-                            shape = pr.getf('B')[0]
-                            oout('      shape:', shape)
-                            if shape != 4:
-                                def rfq16(pr, mn, mx):
-                                    return pr.getf('H')[0] * (mx - mn) / 65536 + mn
-                                oout('      tension:', rfq16(pr, -32, 32))
-                                oout('      continuity:', rfq16(pr, -32, 32))
-                                oout('      bias:', rfq16(pr, -32, 32))
-                                oout('      params:', [rfq16(pr, -32, 32) for _4 in range(4)])
-                        oout('    }]')
-                    oout('  }]')
-                oout('}]')
-                if ver >= 7:
-                    oout('marks: [{')
-                    for _1 in range(pr.getf('I')[0]):
-                        if _1: oout('}, {')
-                        oout('  name:', pr.gets())
-                        oout('  intervals:', [pr.getf('ff') for _2 in range(pr.getf('I')[0])])
-                    oout('}]')
+                dump_motion(pr, oout)
             out('}]')
         elif cid == Chunks.Object.SMOTIONS3:
             out('smotions3:', [pr.gets() for _ in range(pr.getf('I')[0])])

@@ -114,6 +114,63 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
         return super().invoke(context, event)
 
 
+def invoke_require_armature(func):
+    def wrapper(self, context, event):
+        active = context.active_object
+        if (not active) or (active.type != 'ARMATURE'):
+            self.report({'ERROR'}, 'Active is not armature')
+            return {'CANCELLED'}
+        return func(self, context, event)
+
+    return wrapper
+
+
+class OpImportSkl(bpy.types.Operator, io_utils.ImportHelper):
+    bl_idname = 'xray_import.skl'
+    bl_label = 'Import .skl/.skls'
+    bl_description = 'Imports X-Ray skeletal amination'
+    bl_options = {'UNDO'}
+
+    filter_glob = bpy.props.StringProperty(default='*.skl;*.skls', options={'HIDDEN'})
+
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
+
+    def execute(self, context):
+        if len(self.files) == 0:
+            self.report({'ERROR'}, 'No files selected')
+            return {'CANCELLED'}
+        from .fmt_skl_imp import import_skl_file, import_skls_file, ImportContext
+        cx = ImportContext(
+            report=self.report,
+            armature=context.active_object
+        )
+        for file in self.files:
+            import os.path
+            ext = os.path.splitext(file.name)[-1].lower()
+            if ext == '.skl':
+                import_skl_file(self.directory + file.name, cx)
+            elif ext == '.skls':
+                import_skls_file(self.directory + file.name, cx)
+            else:
+                self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
+        return {'FINISHED'}
+
+    @invoke_require_armature
+    def invoke(self, context, event):
+        return super().invoke(context, event)
+
+
+def execute_require_filepath(func):
+    def wrapper(self, context):
+        if not self.filepath:
+            self.report({'ERROR'}, 'No file selected')
+            return {'CANCELLED'}
+        return func(self, context)
+
+    return wrapper
+
+
 class ModelExportHelper:
     selection_only = bpy.props.BoolProperty(
         name='Selection Only',
@@ -123,10 +180,8 @@ class ModelExportHelper:
     def export(self, bpy_obj):
         pass
 
+    @execute_require_filepath
     def execute(self, context):
-        if not self.filepath:
-            self.report({'ERROR'}, 'No file selected')
-            return {'CANCELLED'}
         objs = context.selected_objects if self.selection_only else context.scene.objects
         roots = [o for o in objs if o.xray.isroot]
         if not roots:
@@ -303,7 +358,23 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
         return super().invoke(context, event)
 
 
-class OpExportAnm(bpy.types.Operator, io_utils.ExportHelper):
+class FilenameExtHelper(io_utils.ExportHelper):
+    def export(self, context):
+        pass
+
+    @execute_require_filepath
+    def execute(self, context):
+        self.export(context)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.filepath = context.active_object.name
+        if not self.filepath.lower().endswith(self.filename_ext):
+            self.filepath += self.filename_ext
+        return super().invoke(context, event)
+
+
+class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.anm'
     bl_label = 'Export .anm'
     bl_description = 'Exports X-Ray animation'
@@ -311,23 +382,63 @@ class OpExportAnm(bpy.types.Operator, io_utils.ExportHelper):
     filename_ext = '.anm'
     filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
 
-    def execute(self, context):
-        if not self.filepath:
-            self.report({'ERROR'}, 'No file selected')
-            return {'CANCELLED'}
+    def export(self, context):
         from .fmt_anm_exp import export_file, ExportContext
         cx = ExportContext(
             report=self.report
         )
         export_file(context.active_object, self.filepath, cx)
+
+
+class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
+    bl_idname = 'xray_export.skl'
+    bl_label = 'Export .skl'
+    bl_description = 'Exports X-Ray skeletal animation'
+
+    filename_ext = '.skl'
+    filter_glob = bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'})
+    action = None
+
+    @execute_require_filepath
+    def execute(self, context):
+        from .fmt_skl_exp import export_skl_file, ExportContext
+        cx = ExportContext(
+            report=self.report,
+            armature=context.active_object,
+            action=self.action
+        )
+        export_skl_file(self.filepath, cx)
         return {'FINISHED'}
 
+    @invoke_require_armature
     def invoke(self, context, event):
-        self.filepath = context.active_object.name
+        self.action = getattr(context, OpExportSkl.bl_idname + '.action', None)
+        assert self.action
+        self.filepath = self.action.name
         if not self.filepath.lower().endswith(self.filename_ext):
             self.filepath += self.filename_ext
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return super().invoke(context, event)
+
+
+class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
+    bl_idname = 'xray_export.skls'
+    bl_label = 'Export .skls'
+    bl_description = 'Exports X-Ray skeletal animation'
+
+    filename_ext = '.skls'
+    filter_glob = bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'})
+
+    def export(self, context):
+        from .fmt_skl_exp import export_skls_file, ExportContext
+        cx = ExportContext(
+            report=self.report,
+            armature=context.active_object
+        )
+        export_skls_file(self.filepath, cx)
+
+    @invoke_require_armature
+    def invoke(self, context, event):
+        return super().invoke(context, event)
 
 
 def overlay_view_3d():
@@ -350,11 +461,13 @@ def overlay_view_3d():
 def menu_func_import(self, context):
     self.layout.operator(OpImportObject.bl_idname, text='X-Ray object (.object)')
     self.layout.operator(OpImportAnm.bl_idname, text='X-Ray animation (.anm)')
+    self.layout.operator(OpImportSkl.bl_idname, text='X-Ray skeletal animation (.skl, .skls)')
 
 
 def menu_func_export(self, context):
     self.layout.operator(OpExportObjects.bl_idname, text='X-Ray object (.object)')
     self.layout.operator(OpExportAnm.bl_idname, text='X-Ray animation (.anm)')
+    self.layout.operator(OpExportSkls.bl_idname, text='X-Ray animation (.skls)')
 
 
 def menu_func_export_ogf(self, context):
@@ -365,9 +478,12 @@ def register():
     plugin_prefs.register()
     bpy.utils.register_class(OpImportObject)
     bpy.utils.register_class(OpImportAnm)
+    bpy.utils.register_class(OpImportSkl)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.utils.register_class(OpExportObject)
     bpy.utils.register_class(OpExportAnm)
+    bpy.utils.register_class(OpExportSkl)
+    bpy.utils.register_class(OpExportSkls)
     bpy.types.INFO_MT_file_export.append(menu_func_export)
     bpy.utils.register_class(OpExportObjects)
     bpy.utils.register_class(OpExportOgf)
@@ -383,9 +499,12 @@ def unregister():
     bpy.utils.unregister_class(OpExportOgf)
     bpy.utils.unregister_class(OpExportObjects)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    bpy.utils.unregister_class(OpExportSkls)
+    bpy.utils.unregister_class(OpExportSkl)
     bpy.utils.unregister_class(OpExportAnm)
     bpy.utils.unregister_class(OpExportObject)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    bpy.utils.unregister_class(OpImportSkl)
     bpy.utils.unregister_class(OpImportAnm)
     bpy.utils.unregister_class(OpImportObject)
     plugin_prefs.unregister()
