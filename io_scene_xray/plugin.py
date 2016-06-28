@@ -20,10 +20,7 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
     import_motions = plugin_prefs.PropObjectMotionsImport()
     mesh_split_by_materials = plugin_prefs.PropObjectMeshSplitByMaterials()
 
-    shaped_bones = bpy.props.BoolProperty(
-        name='custom shapes for bones',
-        description='use custom shapes for imported bones'
-    )
+    shaped_bones = plugin_prefs.PropObjectBonesCustomShapes()
 
     fmt_version = plugin_prefs.PropSDKVersion()
 
@@ -74,6 +71,7 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
         self.fmt_version = prefs.sdk_version
         self.import_motions = prefs.object_motions_import
         self.mesh_split_by_materials = prefs.object_mesh_split_by_mat
+        self.shaped_bones = prefs.object_bones_custom_shapes
         return super().invoke(context, event)
 
 

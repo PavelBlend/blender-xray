@@ -50,6 +50,15 @@ def PropObjectTextureNamesFromPath():
 
 
 # noinspection PyPep8Naming
+def PropObjectBonesCustomShapes():
+    return bpy.props.BoolProperty(
+        name='Custom Shapes For Bones',
+        description='Use custom shapes for imported bones',
+        default=True
+    )
+
+
+# noinspection PyPep8Naming
 def PropAnmCameraAnimation():
     return bpy.props.BoolProperty(
         name='Create Linked Camera',
@@ -74,6 +83,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
     object_motions_export = PropObjectMotionsExport()
     object_mesh_split_by_mat = PropObjectMeshSplitByMaterials()
     object_texture_names_from_path = PropObjectTextureNamesFromPath()
+    object_bones_custom_shapes = PropObjectBonesCustomShapes()
     show_defaults_anm = bpy.props.BoolProperty(description='View defaults: Anm', options={'SKIP_SAVE'})
     anm_create_camera = PropAnmCameraAnimation()
 
@@ -113,6 +123,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 prop_bool(bx, self, 'object_motions_export')
                 prop_bool(bx, self, 'object_texture_names_from_path')
                 prop_bool(bx, self, 'object_mesh_split_by_mat')
+                prop_bool(bx, self, 'object_bones_custom_shapes')
 
             _, bx = draw_collapsible(box, self, 'show_defaults_anm', 'Animation', style='tree')
             if bx:
