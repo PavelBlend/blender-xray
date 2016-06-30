@@ -1,0 +1,13 @@
+sudo: false
+
+language: generic
+
+cache:
+  directories:
+  - blender
+
+install:
+  - sh ./tests/ci-prepare.sh
+
+script:
+  - ./blender/blender --factory-startup -noaudio -b --python-exit-code 1 --python tests/runner.py

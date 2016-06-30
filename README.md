@@ -1,4 +1,4 @@
-# blender-xray
+# blender-xray [![Build Status](https://travis-ci.org/igelbox/blender-xray.svg)](https://travis-ci.org/igelbox/blender-xray)
 XRay-engine import/export plugin for [blender](http://www.blender.org/)
 
 ## Supported formats
