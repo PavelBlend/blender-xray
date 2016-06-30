@@ -280,8 +280,8 @@ class OpExportObjects(bpy.types.Operator, _WithExportMotions):
         self.fmt_version = prefs.sdk_version
         self.export_motions = prefs.object_motions_export
         self.texture_name_from_image_path = prefs.object_texture_names_from_path
-        return super().invoke(context, event)
-
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
 class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotions):
     bl_idname = 'xray_export.object'
