@@ -31,6 +31,12 @@ class ImportContext:
 
     def image(self, relpath):
         relpath = relpath.lower().replace('\\', os.path.sep)
+        if not self.textures_folder:
+            result = self.bpy.data.images.new(os.path.basename(relpath), 0, 0)
+            result.source = 'FILE'
+            result.filepath = relpath + '.dds'
+            return result
+
         filepath = os.path.abspath(os.path.join(self.textures_folder, relpath + '.dds'))
         result = None
         for i in bpy.data.images:
