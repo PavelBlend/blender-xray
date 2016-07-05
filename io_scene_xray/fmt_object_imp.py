@@ -496,16 +496,20 @@ def _import_main(fpath, cx, cr):
                     bpy_material.xray.cshader = cshader
                     bpy_material.xray.gamemtl = gamemtl
                     bpy_material.use_shadeless = True
+                    bpy_material.use_transparency = True
+                    bpy_material.alpha = 0
                     if texture:
                         bpy_texture = cx.bpy.data.textures.get(texture)
                         if bpy_texture is None:
                             bpy_texture = cx.bpy.data.textures.new(texture, type='IMAGE')
                             bpy_texture.image = cx.image(texture)
+                            bpy_texture.use_preview_alpha = True
                         bpy_texture_slot = bpy_material.texture_slots.add()
                         bpy_texture_slot.texture = bpy_texture
                         bpy_texture_slot.texture_coords = 'UV'
                         bpy_texture_slot.uv_layer = vmap
                         bpy_texture_slot.use_map_color_diffuse = True
+                        bpy_texture_slot.use_map_alpha = True
         elif (cid == Chunks.Object.BONES) or (cid == Chunks.Object.BONES1):
             if cx.bpy and (bpy_armature is None):
                 bpy_armature = cx.bpy.data.armatures.new(object_name)
