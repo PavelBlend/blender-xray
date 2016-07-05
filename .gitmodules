@@ -1,0 +1,3 @@
+[submodule "tests/external"]
+	path = tests/external
+	url = ../blender-xray-tests
