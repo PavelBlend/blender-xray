@@ -235,7 +235,7 @@ class _WithExportMotions:
     export_motions = plugin_prefs.PropObjectMotionsExport()
 
 
-class OpExportObjects(bpy.types.Operator, _WithExportMotions):
+class OpExportObjects(TestReadyOperator, _WithExportMotions):
     bl_idname = 'export_object.xray_objects'
     bl_label = 'Export selected .object-s'
 

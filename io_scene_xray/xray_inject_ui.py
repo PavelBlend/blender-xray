@@ -264,9 +264,12 @@ class XRayArmaturePanel(XRayPanel):
     def draw(self, context):
         layout = self.layout
         data = context.active_object.data.xray
+        v = data.check_different_version_bones()
+        if v != 0:
+            from io_scene_xray.xray_inject import XRayBoneProperties
+            layout.label('Found bones, edited with ' + XRayBoneProperties.ShapeProperties.fmt_version_different(
+                v) + ' version of this plugin', icon='ERROR')
         layout.prop(data, 'display_bone_shapes')
-        if data.version < 4:
-            layout.label('This armature was imported with obsolete version of this plugin', icon='ERROR')
 
 
 class XRayBonePanel(XRayPanel):
@@ -288,6 +291,10 @@ class XRayBonePanel(XRayPanel):
         _gen_xr_selector(layout, data, 'gamemtl', 'gamemtl')
         box = layout.box()
         box.prop(data.shape, 'type', 'shape type')
+        v = data.shape.check_version_different()
+        if v != 0:
+            box.label('shape edited with ' + data.shape.fmt_version_different(v) + ' version of this plugin',
+                      icon='ERROR')
         seh.draw(box.column(align=True), bone)
 
         row = box.row(align=True)

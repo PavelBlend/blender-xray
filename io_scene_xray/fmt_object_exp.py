@@ -200,11 +200,11 @@ __matrix_bone = mathutils.Matrix(((1.0, 0.0, 0.0, 0.0), (0.0, 0.0, -1.0, 0.0), (
 __matrix_bone_inv = __matrix_bone.inverted()
 
 
-def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap):
+def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, cx):
     real_parent = find_bone_real_parent(bpy_bone)
     if real_parent:
         if bonemap.get(real_parent) is None:
-            _export_bone(bpy_arm_obj, bpy_root, real_parent, bonemap)
+            _export_bone(bpy_arm_obj, bpy_root, real_parent, bonemap, cx)
 
     xr = bpy_bone.xray
     cw = ChunkedWriter()
@@ -225,6 +225,12 @@ def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap):
            .putf('fff', -e.x, -e.z, -e.y)
            .putf('f', xr.length))
     cw.put(Chunks.Bone.MATERIAL, PackedWriter().puts(xr.gamemtl))
+    v = xr.shape.check_version_different()
+    if v != 0:
+        cx.report({'WARNING'}, 'bone {} edited with {} version of this plugin'.format(
+            bpy_bone.name,
+            xr.shape.fmt_version_different(v),
+        ))
     cw.put(Chunks.Bone.SHAPE, PackedWriter()
            .putf('H', int(xr.shape.type))
            .putf('H', xr.shape.flags)
@@ -298,7 +304,7 @@ def _export_main(bpy_obj, cw, cx):
         for b in bpy_arm_obj.data.bones:
             if is_fake_bone(b):
                 continue
-            _export_bone(bpy_arm_obj, bpy_root, b, bones, bonemap)
+            _export_bone(bpy_arm_obj, bpy_root, b, bones, bonemap, cx)
     for mw in meshes:
         msw.put(idx, mw)
         idx += 1

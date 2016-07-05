@@ -361,6 +361,7 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
         elif cid == Chunks.Bone.MATERIAL:
             xray.gamemtl = PackedReader(data).gets()
         elif cid == Chunks.Bone.SHAPE:
+            from io_scene_xray.xray_inject import XRayBoneProperties
             pr = PackedReader(data)
             _safe_assign_enum_property(cx, xray.shape, 'type', str(pr.getf('H')[0]), desc=('bone', name, 'shape'))
             xray.shape.flags = pr.getf('H')[0]
@@ -373,6 +374,7 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
             xray.shape.cyl_dir = pr.getf('fff')
             xray.shape.cyl_hgh = pr.getf('f')[0]
             xray.shape.cyl_rad = pr.getf('f')[0]
+            xray.shape.version_data = XRayBoneProperties.ShapeProperties.CURVER_DATA
         elif cid == Chunks.Bone.IK_JOINT:
             pr = PackedReader(data)
             bp = bpy_arm_obj.pose.bones[name]
@@ -515,7 +517,6 @@ def _import_main(fpath, cx, cr):
                 bpy_armature = cx.bpy.data.armatures.new(object_name)
                 bpy_armature.use_auto_ik = True
                 bpy_armature.draw_type = 'STICK'
-                bpy_armature.xray.version = cx.version
                 bpy_arm_obj = cx.bpy.data.objects.new(object_name, bpy_armature)
                 bpy_arm_obj.show_x_ray = True
                 bpy_arm_obj.parent = bpy_obj

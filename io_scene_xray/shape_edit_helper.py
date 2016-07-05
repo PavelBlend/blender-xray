@@ -154,6 +154,8 @@ class _ShapeEditApplyOp(bpy.types.Operator):
             xsh.cyl_dir = vr.to_tuple()
         else:
             raise AssertionError('unsupported shape type: ' + xsh.type)
+        from io_scene_xray.xray_inject import XRayBoneProperties
+        xsh.version_data = XRayBoneProperties.ShapeProperties.CURVER_DATA
         for obj in bpy.data.objects:
             if obj.data == bone.id_data:
                 bpy.context.scene.objects.active = obj

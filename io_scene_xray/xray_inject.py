@@ -168,8 +168,11 @@ class XRayMaterialProperties(bpy.types.PropertyGroup):
 
 class XRayArmatureProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Armature
-    version = bpy.props.IntProperty()
     display_bone_shapes = bpy.props.BoolProperty(name='Display Bone Shapes', default=False)
+
+    def check_different_version_bones(self):
+        from functools import reduce
+        return reduce(lambda x,y: x|y, [b.xray.shape.check_version_different() for b in self.id_data.bones], 0)
 
 
 class XRayBoneProperties(bpy.types.PropertyGroup):
@@ -178,6 +181,31 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         torque = bpy.props.FloatProperty()
 
     class ShapeProperties(bpy.types.PropertyGroup):
+        CURVER_DATA = 1
+
+        def check_version_different(self):
+            def iszero(vec):
+                return not any(v for v in vec)
+
+            if self.version_data == self.CURVER_DATA:
+                return 0
+            if self.type == '0':  # none
+                return 0
+            elif self.type == '1':  # box
+                if iszero(self.box_trn) and iszero(self.box_rot) and iszero(self.box_hsz):
+                    return 0  # default shape
+            elif self.type == '2':  # sphere
+                if iszero(self.sph_pos) and not self.sph_rad:
+                    return 0  # default shape
+            elif self.type == '3':  # cylinder
+                if iszero(self.cyl_pos) and iszero(self.cyl_dir) and not self.cyl_rad and not self.cyl_hgh:
+                    return 0  # default shape
+            return 1 if self.version_data < XRayBoneProperties.ShapeProperties.CURVER_DATA else 2
+
+        @staticmethod
+        def fmt_version_different(r):
+            return 'obsolete' if r == 1 else ('newest' if r == 2 else 'different')
+
         def update_shape_type(self, context):
             if not self.edit_mode:
                 return
@@ -212,6 +240,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         cyl_dir = bpy.props.FloatVectorProperty()
         cyl_hgh = bpy.props.FloatProperty()
         cyl_rad = bpy.props.FloatProperty()
+        version_data = bpy.props.IntProperty()
 
     class IKJointProperties(bpy.types.PropertyGroup):
         type = bpy.props.EnumProperty(items=(

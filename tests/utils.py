@@ -58,13 +58,13 @@ class XRayTestCase(unittest.TestCase):
                 continue
             m = re_message.match(r[1])
             if m is not None:
-                return m.group(1)
+                return m
 
     def assertReportsContains(self, type=None, re_message=None):
         r = self._findReport(type, re_message)
         if r is not None:
             return r
-        raise self.fail('Cannot find report with: type={}, message={}'.format(type, re_message))
+        raise self.fail('Cannot find report with: type={}, message={} in reports: {}'.format(type, re_message, self._reports))
 
     def assertReportsNotContains(self, type=None, re_message=None):
         r = self._findReport(type, re_message)
