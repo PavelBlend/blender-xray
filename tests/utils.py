@@ -9,6 +9,7 @@ from io_scene_xray.plugin import TestReadyOperator
 class XRayTestCase(unittest.TestCase):
     blend_file = None
     __tmp = '/tmp/io_scene_xray-tests-out'
+    _reports = []
 
     @classmethod
     def setUpClass(cls):
@@ -33,7 +34,12 @@ class XRayTestCase(unittest.TestCase):
             os.mkdir(cls.__tmp)
         return os.path.join(cls.__tmp, path)
 
+    def setUp(self):
+        self.__prev_report_catcher = TestReadyOperator.report_catcher
+        TestReadyOperator.report_catcher = lambda op, type, message: self._reports.append((type, message))
+
     def tearDown(self):
+        TestReadyOperator.report_catcher = self.__prev_report_catcher
         if os.path.exists(self.__tmp):
             for e in os.listdir(self.__tmp):
                 os.remove(os.path.join(self.__tmp, e))
@@ -44,19 +50,7 @@ class XRayTestCase(unittest.TestCase):
         if (not allow_empty) and (os.path.getsize(path) == 0):
             self.fail(self._formatMessage(msg, 'file {} is empty'.format(path)))
 
-
-class OpReportCatcher:
-    _reports = []
-
-    def __enter__(self):
-        self._prev = TestReadyOperator.report_catcher
-        TestReadyOperator.report_catcher = lambda op, type, message: self._reports.append((type, message))
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        TestReadyOperator.report_catcher = self._prev
-
-    def assertContains(self, type=None, re_message=None):
+    def _findReport(self, type=None, re_message=None):
         for r in self._reports:
             if (type is not None) and (type not in r[0]):
                 continue
@@ -65,4 +59,15 @@ class OpReportCatcher:
             m = re_message.match(r[1])
             if m is not None:
                 return m.group(1)
-        raise AssertionError('Cannot find report with: type={}, message={}'.format(type, re_message))
+
+    def assertReportsContains(self, type=None, re_message=None):
+        r = self._findReport(type, re_message)
+        if r is not None:
+            return r
+        raise self.fail('Cannot find report with: type={}, message={}'.format(type, re_message))
+
+    def assertReportsNotContains(self, type=None, re_message=None):
+        r = self._findReport(type, re_message)
+        if r is None:
+            return
+        raise self.fail('Found report with: type={}, message={}: {}'.format(type, re_message, r))
