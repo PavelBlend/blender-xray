@@ -332,6 +332,14 @@ def _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, re
     return bpy_bone
 
 
+def _safe_assign_enum_property(cx, obj, pname, val, desc=tuple()):
+    defval = getattr(obj, pname)
+    try:
+        setattr(obj, pname, val)
+    except TypeError as ex:
+        cx.report({'WARNING'}, 'Unsupported {} {} {}, using default {}'.format(' '.join(desc), pname, val, defval))
+
+
 def _import_bone(cx, cr, bpy_arm_obj, renamemap):
     ver = cr.nextf(Chunks.Bone.VERSION, 'H')[0]
     if ver != 0x2:
@@ -355,7 +363,7 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
             xray.gamemtl = PackedReader(data).gets()
         elif cid == Chunks.Bone.SHAPE:
             pr = PackedReader(data)
-            xray.shape.type = str(pr.getf('H')[0])
+            _safe_assign_enum_property(cx, xray.shape, 'type', str(pr.getf('H')[0]), desc=('bone', name, 'shape'))
             xray.shape.flags = pr.getf('H')[0]
             xray.shape.box_rot = pr.getf('fffffffff')
             xray.shape.box_trn = pr.getf('fff')
@@ -369,7 +377,7 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
         elif cid == Chunks.Bone.IK_JOINT:
             pr = PackedReader(data)
             bp = bpy_arm_obj.pose.bones[name]
-            xray.ikjoint.type = str(pr.getf('I')[0])
+            _safe_assign_enum_property(cx, xray.ikjoint, 'type', str(pr.getf('I')[0]), desc=('bone', name, 'ikjoint'))
             bp.use_ik_limit_x = True
             bp.ik_min_x, bp.ik_max_x = pr.getf('ff')
             xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp = pr.getf('ff')

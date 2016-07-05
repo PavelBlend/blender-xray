@@ -5,8 +5,17 @@ from .utils import AppError
 from . import plugin_prefs
 
 
+class TestReadyOperator(bpy.types.Operator):
+    report_catcher = None
+
+    def __getattribute__(self, item):
+        if (item == 'report') and (self.report_catcher is not None):
+            return self.report_catcher
+        return super().__getattribute__(item)
+
+
 #noinspection PyUnusedLocal
-class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
+class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
     bl_label = 'Import .object'
     bl_description = 'Imports X-Ray object'
@@ -49,7 +58,7 @@ class OpImportObject(bpy.types.Operator, io_utils.ImportHelper):
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.object':
                 cx.before_import_file();
-                import_file(self.directory + file.name, cx)
+                import_file(os.path.join(self.directory, file.name), cx)
             else:
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
         return {'FINISHED'}

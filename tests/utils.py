@@ -3,6 +3,7 @@ import addon_utils
 import inspect
 import os
 import bpy
+from io_scene_xray.plugin import TestReadyOperator
 
 
 class XRayTestCase(unittest.TestCase):
@@ -20,8 +21,11 @@ class XRayTestCase(unittest.TestCase):
         addon_utils.disable('io_scene_xray')
 
     @classmethod
-    def relpath(cls, path):
-        return os.path.join(os.path.dirname(inspect.getfile(cls)), path)
+    def relpath(cls, path=None):
+        result = os.path.dirname(inspect.getfile(cls))
+        if path is not None:
+            result = os.path.join(result, path)
+        return result
 
     @classmethod
     def outpath(cls, path=''):
@@ -39,3 +43,26 @@ class XRayTestCase(unittest.TestCase):
             self.fail(self._formatMessage(msg, 'file {} is not exists'.format(path)))
         if (not allow_empty) and (os.path.getsize(path) == 0):
             self.fail(self._formatMessage(msg, 'file {} is empty'.format(path)))
+
+
+class OpReportCatcher:
+    _reports = []
+
+    def __enter__(self):
+        self._prev = TestReadyOperator.report_catcher
+        TestReadyOperator.report_catcher = lambda op, type, message: self._reports.append((type, message))
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        TestReadyOperator.report_catcher = self._prev
+
+    def assertContains(self, type=None, re_message=None):
+        for r in self._reports:
+            if (type is not None) and (type not in r[0]):
+                continue
+            if re_message is None:
+                continue
+            m = re_message.match(r[1])
+            if m is not None:
+                return m.group(1)
+        raise AssertionError('Cannot find report with: type={}, message={}'.format(type, re_message))
