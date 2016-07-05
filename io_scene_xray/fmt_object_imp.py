@@ -289,7 +289,6 @@ def _get_real_bone_shape():
     if r is None:
         r = bpy.data.objects.new('real_bone_shape', None)
         r.empty_draw_type = 'SPHERE'
-        r.empty_draw_size = 0.3
     return r
 
 
@@ -317,7 +316,7 @@ def _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, re
                 mat = bpy_bone.parent.matrix * __matrix_bone_inv * mat
             else:
                 cx.report({'WARNING'}, 'Bone parent {} for {} not found'.format(parent, name))
-        bpy_bone.tail.y = 0.05
+        bpy_bone.tail.y = 0.02
         bpy_bone.matrix = mat
         name = bpy_bone.name
     finally:
@@ -511,6 +510,7 @@ def _import_main(fpath, cx, cr):
             if cx.bpy and (bpy_armature is None):
                 bpy_armature = cx.bpy.data.armatures.new(object_name)
                 bpy_armature.use_auto_ik = True
+                bpy_armature.draw_type = 'STICK'
                 bpy_armature.xray.version = cx.version
                 bpy_arm_obj = cx.bpy.data.objects.new(object_name, bpy_armature)
                 bpy_arm_obj.show_x_ray = True
@@ -548,14 +548,24 @@ def _import_main(fpath, cx, cr):
                         bone_childrens[p.name] = bc = []
                     bc.append(b)
                 fake_names = []
+                if cx.op.shaped_bones:
+                    bones = bpy_armature.edit_bones
+                    lengs = [0] * len(bones)
+                    for i, b in enumerate(bones):
+                        rad_sq = math.inf
+                        for j, c in enumerate(bones):
+                            if j == i:
+                                continue
+                            sq = (c.head - b.head).length_squared
+                            if sq < rad_sq:
+                                rad_sq = sq
+                        lengs[i] = math.sqrt(rad_sq)
+                    for b, l in zip(bones, lengs):
+                        b.length = min(max(l * 0.4, 0.01), 0.1)
+
                 for b in bpy_armature.edit_bones:
                     bc = bone_childrens.get(b.name)
                     if bc:
-                        if cx.op.shaped_bones:
-                            avg = mathutils.Vector()
-                            for c in bc:
-                                avg += c.head
-                            b.length = max(b.length, (avg / len(bc) - b.head).dot(b.vector.normalized()))
                         for c in bc:
                             if bpy_armature.bones[c.name].xray.ikjoint.type == '0':  # rigid
                                 continue
