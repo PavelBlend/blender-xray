@@ -229,7 +229,6 @@ def _import_mesh(cx, cr):
                 return self.__next.mkf(vi0, vi1, vi2)
 
     bmfaces = [None] * len(fc_data)
-    bml_tex = bm.faces.layers.tex.verify()
 
     bm_data = bpy.data.meshes.new(mesh_name + '.mesh')
     if face_sg:
@@ -679,8 +678,8 @@ def _import_main(fpath, cx, cr):
             if nn is not None:
                 vg.name = nn
 
-        bml_tex = bm.faces.layers.tex.active
-        if bml_tex is not None:
+        for uvl in bm.loops.layers.uv.values():
+            bml_tex = bm.faces.layers.tex.new(uvl.name)
             mats = m.data.materials
             for bmf in bm.faces:
                 bmf[bml_tex].image = mats[bmf.material_index].active_texture.image
