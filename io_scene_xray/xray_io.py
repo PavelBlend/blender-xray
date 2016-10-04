@@ -2,6 +2,8 @@ import struct
 
 
 class PackedReader:
+    __PREP_I = struct.Struct('<I')
+
     def __init__(self, data):
         self.__offs = 0
         self.__data = data
@@ -15,10 +17,31 @@ class PackedReader:
         self.__offs += s
         return struct.unpack_from(fmt, self.__data, self.__offs - s)
 
+    def rb(self):
+        o = self.__offs
+        self.__offs = o + 1
+        return self.__data[o]
+
+    def ri(self):
+        return self.getp(PackedReader.__PREP_I)[0]
+
+    @staticmethod
+    def prep(fmt):
+        return struct.Struct('<' + fmt)
+
+    def getp(self, prep):
+        o = self.__offs
+        self.__offs = o + prep.size
+        return prep.unpack_from(self.__data, o)
+
     def gets(self, onerror=None):
-        zpos = self.__data.find(0, self.__offs)
-        if zpos == -1:
-            zpos = len(self.__data)
+        # zpos = self.__data.find(0, self.__offs)
+        # if zpos == -1:
+        #     zpos = len(self.__data)
+        data, zpos = self.__data, self.__offs
+        dlen = len(data)
+        while (zpos != dlen) and (data[zpos] != 0):
+            zpos += 1
         bb = self.getf('{}sx'.format(zpos - self.__offs))[0]
         try:
             return bb.decode('cp1251')

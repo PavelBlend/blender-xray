@@ -1,6 +1,5 @@
 import bmesh
 import bpy
-from collections import namedtuple
 import io
 import math
 import mathutils
@@ -8,7 +7,7 @@ import os.path
 from .xray_io import ChunkedReader, PackedReader
 from .fmt_object import Chunks
 from .plugin_prefs import PropObjectMeshSplitByMaterials
-from .utils import find_bone_real_parent, BAD_VTX_GROUP_NAME
+from .utils import BAD_VTX_GROUP_NAME
 from .xray_motions import import_motions
 
 
@@ -63,8 +62,11 @@ def debug(m):
     pass
 
 
+_S_FFF = PackedReader.prep('fff')
+
+
 def read_v3f(packed_reader):
-    v = packed_reader.getf('fff')
+    v = packed_reader.getp(_S_FFF)
     return v[0], v[2], v[1]
 
 
@@ -79,18 +81,13 @@ def _cop_sgfunc(ga, gb, ea, eb):
     return is_soft(ga, bfa, ea) and is_soft(gb, bfb, eb)
 
 
-_SFace = namedtuple('_SFace', ('faces', 'midx'))
-_VMap = namedtuple('_VMap', ['type', 'lidx', 'data'])
-
-
-def _import_mesh(cx, cr, parent):
+def _import_mesh(cx, cr):
     ver = cr.nextf(Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
         raise Exception('unsupported MESH format version: {:#x}'.format(ver))
-    bm_data = bpy.data.meshes.new(name='tmp.mesh')
-    bo_mesh = cx.bpy.data.objects.new('tmp', bm_data)
-    bo_mesh.parent = parent
-    cx.bpy.context.scene.objects.link(bo_mesh)
+    mesh_name = None
+    mesh_flags = None
+    mesh_options = None
     bm = bmesh.new()
     sgfuncs = (-1, lambda ga, gb, ea, eb: ga == gb) if cx.soc_sgroups else (-1, _cop_sgfunc)
     vt_data = ()
@@ -100,24 +97,21 @@ def _import_mesh(cx, cr, parent):
     s_faces = []
     vm_refs = ()
     vmaps = []
+    vgroups = []
     bml_deform = bm.verts.layers.deform.verify()
     for (cid, data) in cr:
         if cid == Chunks.Mesh.VERTS:
             pr = PackedReader(data)
-            vt_data = tuple(read_v3f(pr) for _ in range(pr.getf('I')[0]))
+            vt_data = [read_v3f(pr) for _ in range(pr.ri())]
         elif cid == Chunks.Mesh.FACES:
+            s_6i = PackedReader.prep('IIIIII')
             pr = PackedReader(data)
-            cnt = pr.getf('I')[0]
-            fc_data = tuple(pr.getf('IIIIII') for _ in range(cnt))
+            cnt = pr.ri()
+            fc_data = [pr.getp(s_6i) for _ in range(cnt)]
         elif cid == Chunks.Mesh.MESHNAME:
-            bo_mesh.name = PackedReader(data).gets()
-            bm_data.name = bo_mesh.name + '.mesh'
+            mesh_name = PackedReader(data).gets()
         elif cid == Chunks.Mesh.SG:
-            pr = PackedReader(data)
-            bm_data.use_auto_smooth = True
-            bm_data.auto_smooth_angle = math.pi
-            bm_data.show_edge_sharp = True
-            sgroups = pr.getf(str(len(data) // 4) + 'I')
+            sgroups = data.cast('I')
 
             def face_sg_impl(bmf, fi, edict):
                 sg = sgroups[fi]
@@ -126,9 +120,9 @@ def _import_mesh(cx, cr, parent):
                     return
                 bmf.smooth = True
                 for ei, bme in enumerate(bmf.edges):
-                    x = edict.get(bme)
+                    x = edict[bme.index]
                     if x is None:
-                        edict[bme] = (sg, ei)
+                        edict[bme.index] = (sg, ei)
                     elif not sgfuncs[1](x[0], sg, x[1], ei):
                         bme.smooth = False
             face_sg = face_sg_impl
@@ -136,72 +130,75 @@ def _import_mesh(cx, cr, parent):
             pr = PackedReader(data)
             for _ in range(pr.getf('H')[0]):
                 n = pr.gets()
-                um = cx.used_materials.get(n)
-                if um is None:
-                    cx.used_materials[n] = um = (cx.bpy.data.materials.new(n), [])
-                bmat, meshes = um
-                meshes.append(bm_data)
-                midx = len(bm_data.materials)
-                bm_data.materials.append(bmat)
-                s_faces.append(_SFace(pr.getf(str(pr.getf('I')[0]) + 'I'), midx))
+                s_faces.append((n, pr.getb(pr.ri() * 4).cast('I')))
         elif cid == Chunks.Mesh.VMREFS:
+            s_ii = PackedReader.prep('II')
+
+            def read_vmref(pr):
+                rc = pr.rb()
+                if rc == 1:
+                    return (pr.getp(s_ii),)  # fast path
+                return [pr.getp(s_ii) for __ in range(rc)]
+
             pr = PackedReader(data)
-            vm_refs = tuple(tuple(pr.getf('II') for __ in range(pr.getf('B')[0])) for _ in range(pr.getf('I')[0]))
+            vm_refs = [read_vmref(pr) for _ in range(pr.ri())]
         elif cid == Chunks.Mesh.VMAPS2:
+            s_ff = PackedReader.prep('ff')
             pr = PackedReader(data)
-            for _ in range(pr.getf('I')[0]):
+            for _ in range(pr.ri()):
                 n = pr.gets()
-                dim = pr.getf('B')[0]    # dim
-                discon = pr.getf('B')[0] != 0
-                typ = pr.getf('B')[0] & 0x3
-                sz = pr.getf('I')[0]
+                dim = pr.rb()  # dim
+                discon = pr.rb() != 0
+                typ = pr.rb() & 0x3
+                sz = pr.ri()
                 if typ == 0:
                     bml = bm.loops.layers.uv.get(n)
                     if bml is None:
                         bml = bm.loops.layers.uv.new(n)
-                    uvs = [pr.getf('ff') for __ in range(sz)]
-                    vtx = pr.getf(str(sz) + 'I')
+                    uvs = pr.getb(sz * 8).cast('f')
+                    pr.skip(sz * 4)
                     if discon:
-                        fcs = pr.getf(str(sz) + 'I')
-                    vmaps.append(_VMap(typ, bml, uvs))
+                        pr.skip(sz * 4)
+                    vmaps.append((typ, bml, uvs))
                 elif typ == 1:  # weights
-                    vgi = len(bo_mesh.vertex_groups)
-                    bo_mesh.vertex_groups.new(name=n)
-                    wgs = pr.getf(str(sz) + 'f')
-                    vtx = pr.getf(str(sz) + 'I')
+                    vgi = len(vgroups)
+                    vgroups.append(n)
+                    wgs = pr.getb(sz * 4).cast('f')
+                    pr.skip(sz * 4)
                     if discon:
-                        fcs = pr.getf(str(sz) + 'I')
-                    vmaps.append(_VMap(typ, vgi, wgs))
+                        pr.skip(sz * 4)
+                    vmaps.append((typ, vgi, wgs))
                 else:
                     raise Exception('unknown vmap type: ' + str(typ))
         elif cid == Chunks.Mesh.FLAGS:
-            bo_mesh.data.xray.flags = PackedReader(data).getf('B')[0]
-            if bo_mesh.data.xray.flags & 0x4:  # sgmask
+            mesh_flags = PackedReader(data).getf('B')[0]
+            if mesh_flags & 0x4:  # sgmask
                 sgfuncs = (0, lambda ga, gb, ea, eb: bool(ga & gb))
         elif cid == Chunks.Mesh.BBOX:
             pass  # blender automatically calculates bbox
         elif cid == Chunks.Mesh.OPTIONS:
-            bo_mesh.data.xray.options = PackedReader(data).getf('II')
+            mesh_options = PackedReader(data).getf('II')
         else:
             warn_imknown_chunk(cid, 'mesh')
 
-    bad_vgroup = None
+    bo_mesh = None
+    bad_vgroup = -1
 
     def mkface(fi, local):
         fr = fc_data[fi]
         bmf = local.mkf(fr[0], fr[4], fr[2])
         for i, j in enumerate((1, 5, 3)):
-            for vmr in vm_refs[fr[j]]:
-                vm = vmaps[vmr[0]]
-                ve = vm.data[vmr[1]]
-                if vm.type == 0:
-                    bmf.loops[i][vm.lidx].uv = (ve[0], 1 - ve[1])
-                elif vm.type == 1:
-                    bmf.verts[i][bml_deform][vm.lidx] = ve
+            for vmi, vi in vm_refs[fr[j]]:
+                vmt, vml, vmd = vmaps[vmi]
+                if vmt == 0:
+                    vi *= 2
+                    bmf.loops[i][vml].uv = (vmd[vi], 1 - vmd[vi + 1])
+                elif vmt == 1:
+                    bmf.verts[i][bml_deform][vml] = vmd[vi]
         return bmf
 
     class Local:
-        def __init__(self, level = 0, badvg=None):
+        def __init__(self, level = 0, badvg=-1):
             self.__verts = [None] * len(vt_data)
             self.__level = level
             self.__badvg = badvg
@@ -211,8 +208,8 @@ def _import_mesh(cx, cr, parent):
             v = self.__verts[vi]
             if v is None:
                 self.__verts[vi] = v = bm.verts.new(vt_data[vi])
-                if self.__badvg:
-                    v[bml_deform][self.__badvg.index] = 0
+                if self.__badvg != -1:
+                    v[bml_deform][self.__badvg] = 0
             return v
 
         def mkf(self, vi0, vi1, vi2):
@@ -225,55 +222,81 @@ def _import_mesh(cx, cr, parent):
                     if lvl > 100:
                         raise Exception('too many duplicated polygons')
                     nonlocal bad_vgroup
-                    if bad_vgroup is None:
-                        bad_vgroup = bo_mesh.vertex_groups.new(name=BAD_VTX_GROUP_NAME)
+                    if bad_vgroup == -1:
+                        bad_vgroup = len(bo_mesh.vertex_groups)
+                        bo_mesh.vertex_groups.new(BAD_VTX_GROUP_NAME)
                     self.__next = Local(lvl + 1, badvg=bad_vgroup)
                 return self.__next.mkf(vi0, vi1, vi2)
 
     bmfaces = [None] * len(fc_data)
 
+    bm_data = bpy.data.meshes.new(mesh_name + '.mesh')
+    if face_sg:
+        bm_data.use_auto_smooth = True
+        bm_data.auto_smooth_angle = math.pi
+        bm_data.show_edge_sharp = True
+
+    bo_mesh = cx.bpy.data.objects.new(mesh_name, bm_data)
+    if mesh_flags is not None:
+        bo_mesh.data.xray.flags = mesh_flags
+    if mesh_options is not None:
+        bo_mesh.data.xray.options = mesh_options
+    for vg in vgroups:
+        bo_mesh.vertex_groups.new(vg)
+
+    f_facez = []
+    for n, faces in s_faces:
+        um = cx.used_materials.get(n)
+        if um is None:
+            cx.used_materials[n] = um = (cx.bpy.data.materials.new(n), [])
+        bmat, meshes = um
+        meshes.append(bm_data)
+        midx = len(bm_data.materials)
+        bm_data.materials.append(bmat)
+        f_facez.append((faces, midx))
+
     if cx.split_by_materials:
-        for sf in s_faces:
+        for faces, midx in f_facez:
             local = Local()
-            for fi in sf.faces:
+            for fi in faces:
                 bmf = bmfaces[fi]
                 if bmf is not None:
                     cx.report({'WARNING'}, 'face {} has already been instantiated with material {}'.format(fi, bmf.material_index))
                     continue
                 bmfaces[fi] = bmf = mkface(fi, local)
-                bmf.material_index = sf.midx
+                bmf.material_index = midx
 
     local = Local()
     for fi, bmf in enumerate(bmfaces):
         if bmf is not None:
             continue  # already instantiated
-        bmfaces[fi] = bmf = mkface(fi, local)
+        bmfaces[fi] = mkface(fi, local)
 
     if face_sg:
-        edict = {}
+        bm.edges.index_update()
+        edict = [None] * len(bm.edges)
         for fi, bmf in enumerate(bmfaces):
             face_sg(bmf, fi, edict)
 
     if not cx.split_by_materials:
         assigned = [False] * len(bmfaces)
-        for sf in s_faces:
-            for fi in sf.faces:
+        for faces, midx in f_facez:
+            for fi in faces:
                 bmf = bmfaces[fi]
                 if assigned[fi]:
                     cx.report({'WARNING'}, 'face {} has already used material {}'.format(fi, bmf.material_index))
                     continue
-                bmf.material_index = sf.midx
+                bmf.material_index = midx
                 assigned[fi] = True
 
-    if bad_vgroup:
-        msg = 'duplicate faces found, "{}" vertex groups created'.format(bad_vgroup.name)
+    if bad_vgroup != -1:
+        msg = 'duplicate faces found, "{}" vertex groups created'.format(bo_mesh.vertex_groups[bad_vgroup])
         if not cx.split_by_materials:
             msg += ' (try to use "{}" option)'.format(PropObjectMeshSplitByMaterials()[1].get('name'))
         cx.report({'WARNING'}, msg)
 
     bm.normal_update()
-    bm.to_mesh(bm_data)
-    return bo_mesh
+    return bo_mesh, bm
 
 
 def _get_fake_bone_shape():
@@ -424,10 +447,10 @@ def _import_main(fpath, cx, cr):
     for (cid, data) in cr:
         if cid == Chunks.Object.MESHES:
             for (_, mdat) in ChunkedReader(data):
-                meshes.append(_import_mesh(cx, ChunkedReader(mdat), bpy_obj))
+                meshes.append(_import_mesh(cx, ChunkedReader(mdat)))
         elif (cid == Chunks.Object.SURFACES1) or (cid == Chunks.Object.SURFACES2):
             uvmaps = {}
-            for mesh in meshes:
+            for mesh, _ in meshes:
                 for uvl in mesh.data.uv_layers:
                     key = uvl.name.lower()
                     layers = uvmaps.get(key, None)
@@ -595,7 +618,7 @@ def _import_main(fpath, cx, cr):
                 b = bpy_armature.bones.get(n)
                 if b:
                     b.hide = True
-            for o in meshes:
+            for o, _ in meshes:
                 bpy_armmod = o.modifiers.new(name='Armature', type='ARMATURE')
                 bpy_armmod.object = bpy_arm_obj
         elif cid == Chunks.Object.TRANSFORM:
@@ -648,14 +671,23 @@ def _import_main(fpath, cx, cr):
             pass  # skip obsolete chunk
         else:
             warn_imknown_chunk(cid, 'main')
-    for m in meshes:
+
+    for m, bm in meshes:
         for vg in m.vertex_groups:
             nn = bones_renamemap.get(vg.name, None)
             if nn is not None:
                 vg.name = nn
-        for p, u in zip(m.data.polygons, m.data.uv_textures[0].data):
-            bmat = m.data.materials[p.material_index]
-            u.image = bmat.active_texture.image
+
+        for uvl in bm.loops.layers.uv.values():
+            bml_tex = bm.faces.layers.tex.new(uvl.name)
+            mats = m.data.materials
+            for bmf in bm.faces:
+                bmf[bml_tex].image = mats[bmf.material_index].active_texture.image
+
+        bm.to_mesh(m.data)
+
+        m.parent = bpy_obj
+        cx.bpy.context.scene.objects.link(m)
 
 
 def _import(fpath, cx, cr):
@@ -668,4 +700,4 @@ def _import(fpath, cx, cr):
 
 def import_file(fpath, cx):
     with io.open(fpath, 'rb') as f:
-        _import(fpath, cx, ChunkedReader(f.read()))
+        _import(fpath, cx, ChunkedReader(memoryview(f.read())))
