@@ -2,6 +2,7 @@ import unittest
 import addon_utils
 import inspect
 import os
+import shutil
 import bpy
 from io_scene_xray.plugin import TestReadyOperator
 
@@ -41,8 +42,7 @@ class XRayTestCase(unittest.TestCase):
     def tearDown(self):
         TestReadyOperator.report_catcher = self.__prev_report_catcher
         if os.path.exists(self.__tmp):
-            for e in os.listdir(self.__tmp):
-                os.remove(os.path.join(self.__tmp, e))
+            shutil.rmtree(self.__tmp)
 
     def assertFileExists(self, path, allow_empty=False, msg=None):
         if not os.path.isfile(path):

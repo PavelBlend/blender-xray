@@ -247,6 +247,8 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
 
     fmt_version = plugin_prefs.PropSDKVersion()
 
+    use_export_paths = plugin_prefs.PropUseExportPaths()
+
     def draw(self, context):
         layout = self.layout
 
@@ -254,6 +256,7 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
         row.label('Format Version:')
         row.row().prop(self, 'fmt_version', expand=True)
 
+        layout.prop(self, 'use_export_paths')
         layout.prop(self, 'export_motions')
         layout.prop(self, 'texture_name_from_image_path')
 
@@ -266,7 +269,11 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
                 o = context.scene.objects[n]
                 if not n.lower().endswith('.object'):
                     n += '.object'
-                export_file(o, os.path.join(self.directory, n), cx)
+                path = self.directory
+                if self.use_export_paths and o.xray.export_path:
+                    path = os.path.join(path, o.xray.export_path)
+                    os.makedirs(path, exist_ok=True)
+                export_file(o, os.path.join(path, n), cx)
         except AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
