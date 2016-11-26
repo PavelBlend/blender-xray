@@ -395,6 +395,50 @@ class XRayActionPanel(XRayPanel):
         layout.operator(OpExportSkl.bl_idname, icon='EXPORT')
 
 
+class XRayScenePanel(XRayPanel):
+    bl_context = 'scene'
+    bl_label = 'X-Ray Engine Project'
+
+    def draw(self, context):
+        from .plugin import OpExportProject
+
+        obj = context.scene
+        data = obj.xray
+
+        def gen_op(layout, text, enabled=True, icon='NONE'):
+            if not enabled:
+                layout = layout.split()
+                layout.enabled = False
+            props = layout.operator(OpExportProject.bl_idname, text=text, icon=icon)
+            return props
+
+        layout = self.layout
+        row = layout.row()
+        if not data.export_root:
+            row.enabled = False
+        selection = OpExportProject.find_objects(context, use_selection=True)
+        if len(selection) == 0:
+            gen_op(row, 'No Roots Selected', enabled=False)
+        elif len(selection) == 1:
+            gen_op(row, text=selection[0].name + '.object', icon='OUTLINER_OB_MESH').use_selection = True
+        else:
+            gen_op(row, text='Selected Objects (%d)' % len(selection), icon='GROUP').use_selection = True
+        scene = OpExportProject.find_objects(context)
+        gen_op(row, text='Scene Export (%d)' % len(scene), icon='SCENE_DATA', enabled=len(scene) != 0).use_selection = False
+        l = layout
+        if len(data.export_root) == 0:
+            l = l.split()
+            l.alert = True
+        l.prop(data, 'export_root')
+        row = layout.split(0.33)
+        row.label('Format Version:')
+        row.row().prop(data, 'fmt_version', expand=True)
+        _, bx = draw_collapsible(layout, 'scene:object', 'Object Export Properties')
+        if bx:
+            bx.prop(data, 'object_export_motions')
+            bx.prop(data, 'object_texture_name_from_image_path')
+
+
 classes = [
     PropClipOp,
     _CollapsOp,
@@ -408,6 +452,7 @@ classes = [
     , XRayArmaturePanel
     , XRayBonePanel
     , XRayActionPanel
+    , XRayScenePanel
 ]
 
 
