@@ -50,28 +50,48 @@ class XRayPanel(bpy.types.Panel):
         self.layout.label(icon='PLUGIN')
 
 
-def draw_collapsible(layout, data, prop_show, text, enabled=None, icon=None, style=None):
+class _CollapsOp(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.collaps'
+    bl_label = ''
+    bl_description = 'Show / hide UI block'
+
+    key = bpy.props.StringProperty()
+
+    _DATA = {}
+
+    @classmethod
+    def get(cls, key):
+        return cls._DATA.get(key, False)
+
+    def execute(self, context):
+        _CollapsOp._DATA[self.key] = not _CollapsOp.get(self.key)
+        return {'FINISHED'}
+
+
+def draw_collapsible(layout, key, text=None, enabled=None, icon=None, style=None):
     col = layout.column(align=True)
     row = col.row(align=True)
     rw = row
     if (enabled is not None) and (not enabled):
         rw = rw.row(align=True)
         rw.enabled = False
-    isshow = getattr(data, prop_show)
+    isshow = _CollapsOp.get(key)
     if icon is None:
         icon = 'TRIA_DOWN' if isshow else 'TRIA_RIGHT'
+    kwargs = {}
+    if text is not None:
+        kwargs['text'] = text
     box = col.box() if isshow else None
     if style == 'tree':
         rw = rw.row()
         rw.alignment = 'LEFT'
-        rw.prop(data, prop_show, toggle=True, icon=icon, text=text, emboss=False)
         if box:
             bxr = box.row(align=True)
             bxr.alignment = 'LEFT'
             bxr.label('')
             box = bxr.column()
-    else:
-        rw.prop(data, prop_show, toggle=True, icon=icon, text=text)
+    op = rw.operator(_CollapsOp.bl_idname, icon=icon, emboss=style != 'tree', **kwargs)
+    op.key = key
     return row, box
 
 
@@ -109,7 +129,7 @@ class XRayObjectPanel(XRayPanel):
             row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
             row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
         layout.prop(data, 'lodref')
-        rw, box = draw_collapsible(layout, data, 'show_userdata', 'User Data', enabled=data.userdata != '', icon='VIEWZOOM')
+        rw, box = draw_collapsible(layout, 'object:userdata', 'User Data', enabled=data.userdata != '', icon='VIEWZOOM')
         PropClipOp.drawall(rw, 'object.xray.userdata', data.userdata)
         if box:
             box = box.column(align=True)
@@ -119,7 +139,7 @@ class XRayObjectPanel(XRayPanel):
             split = layout.split()
             split.alert = True
             split.prop(data, 'motionrefs')
-        rw, box = draw_collapsible(layout, data, 'show_motionsrefs', 'Motion Refs (%d)' % len(data.motionrefs_collection))
+        rw, box = draw_collapsible(layout, 'object:motionsrefs', 'Motion Refs (%d)' % len(data.motionrefs_collection))
         if box:
             row = box.row()
             row.template_list('UI_UL_list', 'name', data, 'motionrefs_collection', data, 'motionrefs_collection_index')
@@ -377,6 +397,7 @@ class XRayActionPanel(XRayPanel):
 
 classes = [
     PropClipOp,
+    _CollapsOp,
     XRayObjectPanel
     , XRayMeshPanel
     , XRayShapeEditHelperObjectPanel
