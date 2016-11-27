@@ -50,28 +50,48 @@ class XRayPanel(bpy.types.Panel):
         self.layout.label(icon='PLUGIN')
 
 
-def draw_collapsible(layout, data, prop_show, text, enabled=None, icon=None, style=None):
+class _CollapsOp(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.collaps'
+    bl_label = ''
+    bl_description = 'Show / hide UI block'
+
+    key = bpy.props.StringProperty()
+
+    _DATA = {}
+
+    @classmethod
+    def get(cls, key):
+        return cls._DATA.get(key, False)
+
+    def execute(self, context):
+        _CollapsOp._DATA[self.key] = not _CollapsOp.get(self.key)
+        return {'FINISHED'}
+
+
+def draw_collapsible(layout, key, text=None, enabled=None, icon=None, style=None):
     col = layout.column(align=True)
     row = col.row(align=True)
     rw = row
     if (enabled is not None) and (not enabled):
         rw = rw.row(align=True)
         rw.enabled = False
-    isshow = getattr(data, prop_show)
+    isshow = _CollapsOp.get(key)
     if icon is None:
         icon = 'TRIA_DOWN' if isshow else 'TRIA_RIGHT'
+    kwargs = {}
+    if text is not None:
+        kwargs['text'] = text
     box = col.box() if isshow else None
     if style == 'tree':
         rw = rw.row()
         rw.alignment = 'LEFT'
-        rw.prop(data, prop_show, toggle=True, icon=icon, text=text, emboss=False)
         if box:
             bxr = box.row(align=True)
             bxr.alignment = 'LEFT'
             bxr.label('')
             box = bxr.column()
-    else:
-        rw.prop(data, prop_show, toggle=True, icon=icon, text=text)
+    op = rw.operator(_CollapsOp.bl_idname, icon=icon, emboss=style != 'tree', **kwargs)
+    op.key = key
     return row, box
 
 
@@ -109,7 +129,7 @@ class XRayObjectPanel(XRayPanel):
             row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
             row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
         layout.prop(data, 'lodref')
-        rw, box = draw_collapsible(layout, data, 'show_userdata', 'User Data', enabled=data.userdata != '', icon='VIEWZOOM')
+        rw, box = draw_collapsible(layout, 'object:userdata', 'User Data', enabled=data.userdata != '', icon='VIEWZOOM')
         PropClipOp.drawall(rw, 'object.xray.userdata', data.userdata)
         if box:
             box = box.column(align=True)
@@ -119,7 +139,7 @@ class XRayObjectPanel(XRayPanel):
             split = layout.split()
             split.alert = True
             split.prop(data, 'motionrefs')
-        rw, box = draw_collapsible(layout, data, 'show_motionsrefs', 'Motion Refs (%d)' % len(data.motionrefs_collection))
+        rw, box = draw_collapsible(layout, 'object:motionsrefs', 'Motion Refs (%d)' % len(data.motionrefs_collection))
         if box:
             row = box.row()
             row.template_list('UI_UL_list', 'name', data, 'motionrefs_collection', data, 'motionrefs_collection_index')
@@ -375,8 +395,53 @@ class XRayActionPanel(XRayPanel):
         layout.operator(OpExportSkl.bl_idname, icon='EXPORT')
 
 
+class XRayScenePanel(XRayPanel):
+    bl_context = 'scene'
+    bl_label = 'X-Ray Engine Project'
+
+    def draw(self, context):
+        from .plugin import OpExportProject
+
+        obj = context.scene
+        data = obj.xray
+
+        def gen_op(layout, text, enabled=True, icon='NONE'):
+            if not enabled:
+                layout = layout.split()
+                layout.enabled = False
+            props = layout.operator(OpExportProject.bl_idname, text=text, icon=icon)
+            return props
+
+        layout = self.layout
+        row = layout.row()
+        if not data.export_root:
+            row.enabled = False
+        selection = OpExportProject.find_objects(context, use_selection=True)
+        if len(selection) == 0:
+            gen_op(row, 'No Roots Selected', enabled=False)
+        elif len(selection) == 1:
+            gen_op(row, text=selection[0].name + '.object', icon='OUTLINER_OB_MESH').use_selection = True
+        else:
+            gen_op(row, text='Selected Objects (%d)' % len(selection), icon='GROUP').use_selection = True
+        scene = OpExportProject.find_objects(context)
+        gen_op(row, text='Scene Export (%d)' % len(scene), icon='SCENE_DATA', enabled=len(scene) != 0).use_selection = False
+        l = layout
+        if len(data.export_root) == 0:
+            l = l.split()
+            l.alert = True
+        l.prop(data, 'export_root')
+        row = layout.split(0.33)
+        row.label('Format Version:')
+        row.row().prop(data, 'fmt_version', expand=True)
+        _, bx = draw_collapsible(layout, 'scene:object', 'Object Export Properties')
+        if bx:
+            bx.prop(data, 'object_export_motions')
+            bx.prop(data, 'object_texture_name_from_image_path')
+
+
 classes = [
     PropClipOp,
+    _CollapsOp,
     XRayObjectPanel
     , XRayMeshPanel
     , XRayShapeEditHelperObjectPanel
@@ -387,6 +452,7 @@ classes = [
     , XRayArmaturePanel
     , XRayBonePanel
     , XRayActionPanel
+    , XRayScenePanel
 ]
 
 
