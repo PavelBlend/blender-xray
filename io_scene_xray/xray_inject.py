@@ -4,7 +4,7 @@ import math
 import mathutils
 import time
 from .xray_inject_ui import inject_ui_init, inject_ui_done
-from .plugin_prefs import get_preferences
+from .plugin_prefs import get_preferences, PropObjectMotionsExport, PropObjectTextureNamesFromPath, PropSDKVersion
 from . import shape_edit_helper as seh
 from . import utils
 
@@ -364,6 +364,14 @@ class XRayActionProperties(bpy.types.PropertyGroup):
     power = bpy.props.FloatProperty()
 
 
+class XRaySceneProperties(bpy.types.PropertyGroup):
+    b_type = bpy.types.Scene
+    export_root = bpy.props.StringProperty(subtype='DIR_PATH', name='Export Root', description='The root folder for export')
+    fmt_version = PropSDKVersion()
+    object_export_motions = PropObjectMotionsExport()
+    object_texture_name_from_image_path = PropObjectTextureNamesFromPath()
+
+
 classes = [
     XRayObjectProperties
     , XRayMeshProperties
@@ -371,6 +379,7 @@ classes = [
     , XRayArmatureProperties
     , XRayBoneProperties
     , XRayActionProperties
+    , XRaySceneProperties
 ]
 
 

@@ -454,6 +454,44 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
         return super().invoke(context, event)
 
 
+class OpExportProject(TestReadyOperator):
+    bl_idname = 'export_scene.xray'
+    bl_label = 'Export XRay Project'
+
+    filepath = bpy.props.StringProperty(subtype='DIR_PATH', options={'SKIP_SAVE'})
+    use_selection = bpy.props.BoolProperty()
+
+    def execute(self, context):
+        from .fmt_object_exp import export_file
+        from bpy.path import abspath
+        import os.path
+        data = context.scene.xray
+        cx = _mk_export_context(context, self.report,
+                                data.object_texture_name_from_image_path, data.fmt_version, data.object_export_motions
+                                )
+        try:
+            path = abspath(self.filepath if self.filepath else data.export_root)
+            os.makedirs(path, exist_ok=True)
+            for o in OpExportProject.find_objects(context, self.use_selection):
+                n = o.name
+                if not n.lower().endswith('.object'):
+                    n += '.object'
+                opath = path
+                if o.xray.export_path:
+                    opath = os.path.join(opath, o.xray.export_path)
+                    os.makedirs(opath, exist_ok=True)
+                export_file(o, os.path.join(opath, n), cx)
+        except AppError as err:
+            self.report({'ERROR'}, str(err))
+            return {'CANCELLED'}
+        return {'FINISHED'}
+
+    @staticmethod
+    def find_objects(context, use_selection=False):
+        objects = context.selected_objects if use_selection else context.scene.objects
+        return [o for o in objects if o.xray.isroot]
+
+
 def overlay_view_3d():
     def try_draw(base_obj, obj):
         if not hasattr(obj, 'xray'):
@@ -502,11 +540,13 @@ def register():
     bpy.utils.register_class(OpExportOgf)
     bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(overlay_view_3d, (), 'WINDOW', 'POST_VIEW')
+    bpy.utils.register_class(OpExportProject)
     inject_init()
 
 
 def unregister():
     inject_done()
+    bpy.utils.unregister_class(OpExportProject)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
     bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
     bpy.utils.unregister_class(OpExportOgf)

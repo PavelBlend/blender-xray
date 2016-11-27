@@ -85,15 +85,12 @@ class PluginPreferences(bpy.types.AddonPreferences):
     eshader_file = bpy.props.StringProperty(name='EShader File', description='The path to the \'shaders.xr\' file', subtype='FILE_PATH')
     cshader_file = bpy.props.StringProperty(name='CShader File', description='The path to the \'shaders_xrlc.xr\' file', subtype='FILE_PATH')
     expert_mode = bpy.props.BoolProperty(name='Expert Mode', description='Show additional properties/controls')
-    show_defaults = bpy.props.BoolProperty(description='View defaults', options={'SKIP_SAVE'})
     sdk_version = PropSDKVersion()
-    show_defaults_object = bpy.props.BoolProperty(description='View defaults: Object', options={'SKIP_SAVE'})
     object_motions_import = PropObjectMotionsImport()
     object_motions_export = PropObjectMotionsExport()
     object_mesh_split_by_mat = PropObjectMeshSplitByMaterials()
     object_texture_names_from_path = PropObjectTextureNamesFromPath()
     object_bones_custom_shapes = PropObjectBonesCustomShapes()
-    show_defaults_anm = bpy.props.BoolProperty(description='View defaults: Anm', options={'SKIP_SAVE'})
     anm_create_camera = PropAnmCameraAnimation()
 
     def get_textures_folder(self):
@@ -120,13 +117,13 @@ class PluginPreferences(bpy.types.AddonPreferences):
         layout.prop(self, 'eshader_file')
         layout.prop(self, 'cshader_file')
 
-        _, box = draw_collapsible(layout, self, 'show_defaults', 'Defaults', style='tree')
+        _, box = draw_collapsible(layout, 'plugin_prefs:defaults', 'Defaults', style='tree')
         if box:
             row = box.row()
             row.label('SDK Version:')
             row.prop(self, 'sdk_version', expand=True)
 
-            _, bx = draw_collapsible(box, self, 'show_defaults_object', 'Object', style='tree')
+            _, bx = draw_collapsible(box, 'plugin_prefs:defaults.object', 'Object', style='tree')
             if bx:
                 prop_bool(bx, self, 'object_motions_import')
                 prop_bool(bx, self, 'object_motions_export')
@@ -134,7 +131,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 prop_bool(bx, self, 'object_mesh_split_by_mat')
                 prop_bool(bx, self, 'object_bones_custom_shapes')
 
-            _, bx = draw_collapsible(box, self, 'show_defaults_anm', 'Animation', style='tree')
+            _, bx = draw_collapsible(box, 'plugin_prefs:defaults.anm', 'Animation', style='tree')
             if bx:
                 prop_bool(bx, self, 'anm_create_camera')
 
