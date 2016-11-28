@@ -50,6 +50,26 @@ class XRayTestCase(unittest.TestCase):
         if (not allow_empty) and (os.path.getsize(path) == 0):
             self.fail(self._formatMessage(msg, 'file {} is empty'.format(path)))
 
+    def assertOutputFiles(self, expected):
+        tmp = XRayTestCase.__tmp
+
+        for path in expected:
+            self.assertFileExists(os.path.join(tmp, path))
+
+        def scan_dir(files, path=''):
+            for p in os.listdir(path):
+                pp = os.path.join(path, p)
+                if os.path.isdir(pp):
+                    scan_dir(files, pp)
+                else:
+                    files.add(pp[len(tmp) + 1:])
+
+        existing = set()
+        scan_dir(existing, tmp)
+        orphaned = existing - expected
+        if orphaned:
+            self.fail(self._formatMessage(None, 'files {} orphaned'.format(orphaned)))
+
     def _findReport(self, type=None, re_message=None):
         for r in self._reports:
             if (type is not None) and (type not in r[0]):
