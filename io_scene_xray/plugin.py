@@ -176,6 +176,72 @@ def execute_require_filepath(func):
 
     return wrapper
 
+    
+    
+    
+    
+    
+    
+    
+    
+class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
+    bl_idname = 'xray_import.dm'
+    bl_label = 'Import .dm'
+    bl_description = 'Imports X-Ray Detail Model (.dm)'
+    bl_options = {'UNDO'}
+
+    filter_glob = bpy.props.StringProperty(default='*.dm', options={'HIDDEN'})
+
+    directory = bpy.props.StringProperty(subtype="DIR_PATH")
+    files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
+
+    def execute(self, context):
+        textures_folder = plugin_prefs.get_preferences().get_textures_folder()
+        if not textures_folder:
+            self.report({'WARNING'}, 'No textures folder specified')
+        if len(self.files) == 0:
+            self.report({'ERROR'}, 'No files selected')
+            return {'CANCELLED'}
+        from .fmt_dm_imp import import_file, ImportContext
+        cx = ImportContext(
+            report=self.report,
+            textures=textures_folder,
+            op=self,
+            bpy=bpy
+        )
+        import os.path
+        for file in self.files:
+            ext = os.path.splitext(file.name)[-1].lower()
+            if ext == '.dm':
+                cx.before_import_file();
+                import_file(os.path.join(self.directory, file.name), cx)
+            else:
+                self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
+        return {'FINISHED'}
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.enabled = False
+        row.label('%d items' % len(self.files))
+
+    def invoke(self, context, event):
+        return super().invoke(context, event)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 class ModelExportHelper:
     selection_only = bpy.props.BoolProperty(
@@ -502,6 +568,7 @@ def menu_func_import(self, context):
     self.layout.operator(OpImportObject.bl_idname, text='X-Ray object (.object)')
     self.layout.operator(OpImportAnm.bl_idname, text='X-Ray animation (.anm)')
     self.layout.operator(OpImportSkl.bl_idname, text='X-Ray skeletal animation (.skl, .skls)')
+    self.layout.operator(OpImportDM.bl_idname, text='X-Ray detail model (.dm)')
 
 
 def menu_func_export(self, context):
@@ -519,6 +586,7 @@ def register():
     bpy.utils.register_class(OpImportObject)
     bpy.utils.register_class(OpImportAnm)
     bpy.utils.register_class(OpImportSkl)
+    bpy.utils.register_class(OpImportDM)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.utils.register_class(OpExportObject)
     bpy.utils.register_class(OpExportAnm)
@@ -546,6 +614,7 @@ def unregister():
     bpy.utils.unregister_class(OpExportAnm)
     bpy.utils.unregister_class(OpExportObject)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    bpy.utils.unregister_class(OpImportDM)
     bpy.utils.unregister_class(OpImportSkl)
     bpy.utils.unregister_class(OpImportAnm)
     bpy.utils.unregister_class(OpImportObject)
