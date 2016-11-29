@@ -29,6 +29,8 @@ def _import(fpath, cx, pr):
         absoluteImagePath = cx.textures_folder + texture
         uvMapName = 'Texture'
         bpy_material = None
+        bpy_image = None
+        bpy_texture = None
         for bm in cx.bpy.data.materials:
             if not bm.name.startswith(texture):
                 continue
@@ -104,6 +106,11 @@ def _import(fpath, cx, pr):
         for face in bm.faces:
             for loop in face.loops:
                 loop[uvLayer].uv = uvs[loop.vert]
+        if not bpy_image:
+            bpy_image = bpy_material.texture_slots[0].texture.image
+        bml_tex = bm.faces.layers.tex.new(uvMapName)
+        for bmf in bm.faces:
+            bmf[bml_tex].image = bpy_image
         bm.normal_update()
         bm.to_mesh(bpy_mesh)
 
