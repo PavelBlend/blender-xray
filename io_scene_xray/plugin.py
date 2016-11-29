@@ -176,14 +176,7 @@ def execute_require_filepath(func):
 
     return wrapper
 
-    
-    
-    
-    
-    
-    
-    
-    
+
 class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
     bl_idname = 'xray_import.dm'
     bl_label = 'Import .dm'
@@ -227,21 +220,7 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
 
     def invoke(self, context, event):
         return super().invoke(context, event)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
 
 class ModelExportHelper:
     selection_only = bpy.props.BoolProperty(
