@@ -174,6 +174,26 @@ class XRayMeshPanel(XRayPanel):
         # r.prop(data, 'flags_other', text='Other')
 
 
+class XRayDetailMeshPanel(XRayPanel):
+    bl_context = 'object'
+    bl_label = 'XRay - detail mesh'
+
+    @classmethod
+    def poll(cls, context):
+        return (
+            context.active_object
+            and context.active_object.type in {'MESH'}
+            and not is_helper_object(context.active_object)
+        )
+
+    def draw(self, context):
+        layout = self.layout
+        data = context.object.xray
+        layout.prop(data, 'no_waving', text='No Waving', toggle=True)
+        layout.prop(data, 'min_scale', text='Min Scale')
+        layout.prop(data, 'max_scale', text='Max Scale')
+
+
 class XRayShapeEditHelperObjectPanel(XRayPanel):
     bl_context = 'object'
     bl_label = 'XRay - shape edit helper'
@@ -443,6 +463,7 @@ classes = [
     PropClipOp,
     _CollapsOp,
     XRayObjectPanel
+    , XRayDetailMeshPanel
     , XRayMeshPanel
     , XRayShapeEditHelperObjectPanel
     , XRayEShaderMenu

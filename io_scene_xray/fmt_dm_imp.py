@@ -87,6 +87,9 @@ def _import(fpath, cx, pr):
                 bpy_texture_slot.texture = bpy_texture
         bpy_mesh.materials.append(bpy_material)
         flags, minScale, maxScale, vertsCnt, indicesCnt = pr.getf('<IffII')
+        bpy_obj.xray.no_waving = bool(flags)
+        bpy_obj.xray.min_scale = minScale
+        bpy_obj.xray.max_scale = maxScale
         if indicesCnt % 3 != 0:
             raise Exception(' ! bad dm triangle indices')
         bm = bmesh.new()

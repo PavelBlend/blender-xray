@@ -147,6 +147,12 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     show_motionsrefs = bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'})
     helper_data = bpy.props.StringProperty()
 
+    # Detail Mesh Options
+    no_waving = bpy.props.BoolProperty(description='No Waving', options={'SKIP_SAVE'}, default=False)
+    min_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
+    max_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
+    
+
 
 class XRayMeshProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Mesh
