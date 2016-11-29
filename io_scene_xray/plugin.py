@@ -206,7 +206,6 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.dm':
-                cx.before_import_file();
                 import_file(os.path.join(self.directory, file.name), cx)
             else:
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
