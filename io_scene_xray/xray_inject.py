@@ -146,6 +146,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     motionrefs_collection_index = bpy.props.IntProperty(options={'SKIP_SAVE'})
     show_motionsrefs = bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'})
     helper_data = bpy.props.StringProperty()
+    export_path = bpy.props.StringProperty(name='Export Path', description='Path relative to the root export folder')
 
     # Detail Mesh Options
     no_waving = bpy.props.BoolProperty(description='No Waving', options={'SKIP_SAVE'}, default=False)

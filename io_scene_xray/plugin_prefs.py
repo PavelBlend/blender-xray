@@ -67,6 +67,15 @@ def PropAnmCameraAnimation():
     )
 
 
+# noinspection PyPep8Naming
+def PropUseExportPaths():
+    return bpy.props.BoolProperty(
+        name='Use Export Paths',
+        description='Append the Object.ExportPath to the export directory for each object',
+        default=True
+    )
+
+
 class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
 

@@ -2,6 +2,7 @@ import unittest
 import addon_utils
 import inspect
 import os
+import shutil
 import bpy
 from io_scene_xray.plugin import TestReadyOperator
 
@@ -41,14 +42,33 @@ class XRayTestCase(unittest.TestCase):
     def tearDown(self):
         TestReadyOperator.report_catcher = self.__prev_report_catcher
         if os.path.exists(self.__tmp):
-            for e in os.listdir(self.__tmp):
-                os.remove(os.path.join(self.__tmp, e))
+            shutil.rmtree(self.__tmp)
 
     def assertFileExists(self, path, allow_empty=False, msg=None):
         if not os.path.isfile(path):
             self.fail(self._formatMessage(msg, 'file {} is not exists'.format(path)))
         if (not allow_empty) and (os.path.getsize(path) == 0):
             self.fail(self._formatMessage(msg, 'file {} is empty'.format(path)))
+
+    def assertOutputFiles(self, expected):
+        tmp = XRayTestCase.__tmp
+
+        for path in expected:
+            self.assertFileExists(os.path.join(tmp, path))
+
+        def scan_dir(files, path=''):
+            for p in os.listdir(path):
+                pp = os.path.join(path, p)
+                if os.path.isdir(pp):
+                    scan_dir(files, pp)
+                else:
+                    files.add(pp[len(tmp) + 1:])
+
+        existing = set()
+        scan_dir(existing, tmp)
+        orphaned = existing - expected
+        if orphaned:
+            self.fail(self._formatMessage(None, 'files {} orphaned'.format(orphaned)))
 
     def _findReport(self, type=None, re_message=None):
         for r in self._reports:

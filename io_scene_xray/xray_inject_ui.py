@@ -129,6 +129,7 @@ class XRayObjectPanel(XRayPanel):
             row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
             row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
         layout.prop(data, 'lodref')
+        layout.prop(data, 'export_path')
         rw, box = draw_collapsible(layout, 'object:userdata', 'User Data', enabled=data.userdata != '', icon='VIEWZOOM')
         PropClipOp.drawall(rw, 'object.xray.userdata', data.userdata)
         if box:
