@@ -394,6 +394,40 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotio
         return super().invoke(context, event)
 
 
+class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
+    bl_idname = 'xray_export.dm'
+    bl_label = 'Export .dm'
+
+    filename_ext = '.dm'
+    filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
+
+    texture_name_from_image_path = plugin_prefs.PropObjectTextureNamesFromPath()
+
+    def execute(self, context):
+        objs = context.selected_objects
+        if not objs:
+            self.report({'ERROR'}, 'Cannot find selected object')
+            return {'CANCELLED'}
+        if len(objs) > 1:
+            self.report({'ERROR'}, 'Too many selected objects found')
+            return {'CANCELLED'}
+        if objs[0].type != 'MESH':
+            self.report({'ERROR'}, 'The selected object is not a mesh')
+            return {'CANCELLED'}
+        return self.export(objs[0], context)
+
+    def export(self, bpy_obj, context):
+        from .fmt_dm_exp import export_file
+        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path)
+        export_file(bpy_obj, self.filepath, cx)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
+        self.texture_name_from_image_path = prefs.object_texture_names_from_path
+        return super().invoke(context, event)
+
+
 class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
@@ -564,6 +598,7 @@ def menu_func_export(self, context):
     self.layout.operator(OpExportObjects.bl_idname, text='X-Ray object (.object)')
     self.layout.operator(OpExportAnm.bl_idname, text='X-Ray animation (.anm)')
     self.layout.operator(OpExportSkls.bl_idname, text='X-Ray animation (.skls)')
+    self.layout.operator(OpExportDM.bl_idname, text='X-Ray detail model (.dm)')
 
 
 def menu_func_export_ogf(self, context):
@@ -584,6 +619,7 @@ def register():
     bpy.types.INFO_MT_file_export.append(menu_func_export)
     bpy.utils.register_class(OpExportObjects)
     bpy.utils.register_class(OpExportOgf)
+    bpy.utils.register_class(OpExportDM)
     bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(overlay_view_3d, (), 'WINDOW', 'POST_VIEW')
     bpy.utils.register_class(OpExportProject)
@@ -595,6 +631,7 @@ def unregister():
     bpy.utils.unregister_class(OpExportProject)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
     bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
+    bpy.utils.unregister_class(OpExportDM)
     bpy.utils.unregister_class(OpExportOgf)
     bpy.utils.unregister_class(OpExportObjects)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
