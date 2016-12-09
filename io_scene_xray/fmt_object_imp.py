@@ -184,36 +184,33 @@ def _import_mesh(cx, cr):
     bo_mesh = None
     bad_vgroup = -1
 
-    def mkface(fi, local):
-        fr = fc_data[fi]
-        bmf = local.mkf(fr[0], fr[4], fr[2])
-        for i, j in enumerate((1, 5, 3)):
-            for vmi, vi in vm_refs[fr[j]]:
-                vmt, vml, vmd = vmaps[vmi]
-                if vmt == 0:
-                    vi *= 2
-                    bmf.loops[i][vml].uv = (vmd[vi], 1 - vmd[vi + 1])
-                elif vmt == 1:
-                    bmf.verts[i][bml_deform][vml] = vmd[vi]
-        return bmf
-
-    class Local:
+    class LocalAbstract:
         def __init__(self, level = 0, badvg=-1):
-            self.__verts = [None] * len(vt_data)
             self.__level = level
             self.__badvg = badvg
             self.__next = None
 
-        def _vtx(self, vi):
-            v = self.__verts[vi]
-            if v is None:
-                self.__verts[vi] = v = bm.verts.new(vt_data[vi])
-                if self.__badvg != -1:
-                    v[bml_deform][self.__badvg] = 0
-            return v
+        def mkface(self, fi):
+            fr = fc_data[fi]
+            bmf = self._mkf(fr, 0, 4, 2)
+            for i, j in enumerate((1, 5, 3)):
+                for vmi, vi in vm_refs[fr[j]]:
+                    vm = vmaps[vmi]
+                    if vm[0] == 0:
+                        vi *= 2
+                        vd = vm[2]
+                        bmf.loops[i][vm[1]].uv = (vd[vi], 1 - vd[vi + 1])
+            return bmf
 
-        def mkf(self, vi0, vi1, vi2):
-            vv = (self._vtx(vi0), self._vtx(vi1), self._vtx(vi2))
+        def _vtx(self, fr, i):
+            raise 'abstract'
+
+        def _vgvtx(self, v):
+            if self.__badvg != -1:
+                v[bml_deform][self.__badvg] = 0
+
+        def _mkf(self, fr, i0, i1, i2):
+            vv = (self._vtx(fr, i0), self._vtx(fr, i1), self._vtx(fr, i2))
             try:
                 return bm.faces.new(vv)
             except ValueError:
@@ -225,8 +222,43 @@ def _import_mesh(cx, cr):
                     if bad_vgroup == -1:
                         bad_vgroup = len(bo_mesh.vertex_groups)
                         bo_mesh.vertex_groups.new(BAD_VTX_GROUP_NAME)
-                    self.__next = Local(lvl + 1, badvg=bad_vgroup)
-                return self.__next.mkf(vi0, vi1, vi2)
+                    self.__next = self.__class__(lvl + 1, badvg=bad_vgroup)
+                return self.__next._mkf(fr, i0, i1, i2)
+
+    class LocalSimple(LocalAbstract):  # fastpath
+        def __init__(self, level=0, badvg=-1):
+            super(LocalSimple, self).__init__(level, badvg)
+            self.__verts = [None] * len(vt_data)
+
+        def _vtx(self, fr, i):
+            vi = fr[i]
+            v = self.__verts[vi]
+            if v is None:
+                self.__verts[vi] = v = bm.verts.new(vt_data[vi])
+            self._vgvtx(v)
+            return v
+
+    class LocalComplex(LocalAbstract):
+        def __init__(self, level=0, badvg=-1):
+            super(LocalComplex, self).__init__(level, badvg)
+            self.__verts = {}
+
+        def _vtx(self, fr, i):
+            vi = fr[i]
+            vk = [vi]
+            for vmi, vei in vm_refs[fr[i + 1]]:
+                vm = vmaps[vmi]
+                if vm[0] == 1:
+                    vk.append((vm[1], vm[2][vei]))
+            vk = tuple(vk)
+
+            v = self.__verts.get(vk, None)
+            if v is None:
+                self.__verts[vk] = v = bm.verts.new(vt_data[vi])
+                for vl, vv in vk[1:]:
+                    v[bml_deform][vl] = vv
+            self._vgvtx(v)
+            return v
 
     bmfaces = [None] * len(fc_data)
 
@@ -255,22 +287,24 @@ def _import_mesh(cx, cr):
         bm_data.materials.append(bmat)
         f_facez.append((faces, midx))
 
+    local_class = LocalComplex if len(vgroups) != 0 else LocalSimple
+
     if cx.split_by_materials:
         for faces, midx in f_facez:
-            local = Local()
+            local = local_class()
             for fi in faces:
                 bmf = bmfaces[fi]
                 if bmf is not None:
                     cx.report({'WARNING'}, 'face {} has already been instantiated with material {}'.format(fi, bmf.material_index))
                     continue
-                bmfaces[fi] = bmf = mkface(fi, local)
+                bmfaces[fi] = bmf = local.mkface(fi)
                 bmf.material_index = midx
 
-    local = Local()
+    local = local_class()
     for fi, bmf in enumerate(bmfaces):
         if bmf is not None:
             continue  # already instantiated
-        bmfaces[fi] = mkface(fi, local)
+        bmfaces[fi] = local.mkface(fi)
 
     if face_sg:
         bm.edges.index_update()
