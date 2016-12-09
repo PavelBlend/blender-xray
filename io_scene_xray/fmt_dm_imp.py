@@ -18,7 +18,7 @@ class ImportContext:
         self.op = op
 
 
-def _import(fpath, cx, pr):
+def _import(fpath, cx, pr, mode='DM'):
     if cx.bpy:
         object_name = os.path.basename(fpath.lower())
         bpy_mesh = cx.bpy.data.meshes.new(object_name)
@@ -106,9 +106,17 @@ def _import(fpath, cx, pr):
             bm.faces.new((bm.verts[fi[0]], bm.verts[fi[2]], bm.verts[fi[1]]))
         bm.faces.ensure_lookup_table()
         uvLayer = bm.loops.layers.uv.new(uvMapName)
-        for face in bm.faces:
-            for loop in face.loops:
-                loop[uvLayer].uv = uvs[loop.vert]
+        if mode == 'DM':
+            for face in bm.faces:
+                for loop in face.loops:
+                    loop[uvLayer].uv = uvs[loop.vert]
+        elif mode == 'DETAILS':
+            for face in bm.faces:
+                for loop in face.loops:
+                    uv = uvs[loop.vert]
+                    loop[uvLayer].uv = uv[0], 1 - uv[1]
+        else:
+            raise Exception(' ! unknown dm import mode: {}'.format(mode))
         if not bpy_image:
             bpy_image = bpy_material.texture_slots[0].texture.image
         bml_tex = bm.faces.layers.tex.new(uvMapName)
@@ -116,6 +124,7 @@ def _import(fpath, cx, pr):
             bmf[bml_tex].image = bpy_image
         bm.normal_update()
         bm.to_mesh(bpy_mesh)
+        return bpy_obj
 
 
 def import_file(fpath, cx):

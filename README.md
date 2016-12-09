@@ -7,6 +7,7 @@ XRay-engine import/export plugin for [blender](http://www.blender.org/)
 | .object   | Source models    | Yes        | Yes        | |
 | .anm      | Animation paths  | Yes        | Yes        | |
 | .dm       | Detail model     | Yes        | No         | |
+| .details  | Level details    | Yes        | No         | |
 | .skl      | Skeletal action  | Yes        | Yes        | |
 | .skls     | Skeletal actions | Yes        | Yes        | |
 | .ogf      | Compiled models  | No         | Yes*       | *Extremely experimental |
