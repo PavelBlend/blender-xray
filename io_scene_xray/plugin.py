@@ -459,13 +459,18 @@ class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
         if objs[0].type != 'MESH':
             self.report({'ERROR'}, 'The selected object is not a mesh')
             return {'CANCELLED'}
-        return self.export(objs[0], context)
+        try:
+            self.export(objs[0], context)
+        except AppError as err:
+            self.report({'ERROR'}, str(err))
+            return {'CANCELLED'}
+        return {'FINISHED'}
 
     def export(self, bpy_obj, context):
         from .fmt_dm_exp import export_file
         cx = _mk_export_context(context, self.report, self.texture_name_from_image_path)
         export_file(bpy_obj, self.filepath, cx)
-        return {'FINISHED'}
+
 
     def invoke(self, context, event):
         prefs = plugin_prefs.get_preferences()
