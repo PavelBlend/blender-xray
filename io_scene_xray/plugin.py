@@ -179,11 +179,11 @@ def execute_require_filepath(func):
 
 class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
     bl_idname = 'xray_import.dm'
-    bl_label = 'Import .dm'
-    bl_description = 'Imports X-Ray Detail Model (.dm)'
+    bl_label = 'Import .dm/.details'
+    bl_description = 'Imports X-Ray Detail Model (.dm, .details)'
     bl_options = {'UNDO'}
 
-    filter_glob = bpy.props.StringProperty(default='*.dm', options={'HIDDEN'})
+    filter_glob = bpy.props.StringProperty(default='*.dm;*.details', options={'HIDDEN'})
 
     directory = bpy.props.StringProperty(subtype="DIR_PATH")
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
@@ -195,65 +195,31 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
         if len(self.files) == 0:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
-        from .fmt_dm_imp import import_file, ImportContext
+        from . import fmt_dm_imp
+        from . import fmt_details_imp
+        from .fmt_object_imp import ImportContext
         cx = ImportContext(
             report=self.report,
             textures=textures_folder,
+            soc_sgroups=None,
+            import_motions=None,
+            split_by_materials=None,
             op=self,
             bpy=bpy
         )
         import os.path
-        for file in self.files:
-            ext = os.path.splitext(file.name)[-1].lower()
-            if ext == '.dm':
-                import_file(os.path.join(self.directory, file.name), cx)
-            else:
-                self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
-        return {'FINISHED'}
-
-    def draw(self, context):
-        layout = self.layout
-        row = layout.row()
-        row.enabled = False
-        row.label('%d items' % len(self.files))
-
-    def invoke(self, context, event):
-        return super().invoke(context, event)
-
-
-class OpImportDetails(TestReadyOperator, io_utils.ImportHelper):
-    bl_idname = 'xray_import.details'
-    bl_label = 'Import .details'
-    bl_description = 'Imports X-Ray Level Details Models (.details)'
-    bl_options = {'UNDO'}
-
-    filter_glob = bpy.props.StringProperty(default='*.details', options={'HIDDEN'})
-
-    directory = bpy.props.StringProperty(subtype="DIR_PATH")
-    files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
-
-    def execute(self, context):
-        textures_folder = plugin_prefs.get_preferences().get_textures_folder()
-        if not textures_folder:
-            self.report({'WARNING'}, 'No textures folder specified')
-        if len(self.files) == 0:
-            self.report({'ERROR'}, 'No files selected')
+        try:
+            for file in self.files:
+                ext = os.path.splitext(file.name)[-1].lower()
+                if ext == '.dm':
+                    fmt_dm_imp.import_file(os.path.join(self.directory, file.name), cx)
+                elif ext == '.details':
+                    fmt_details_imp.import_file(os.path.join(self.directory, file.name), cx)
+                else:
+                    self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
+        except AppError as err:
+            self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
-        from .fmt_details_imp import import_file
-        from . fmt_dm_imp import ImportContext
-        cx = ImportContext(
-            report=self.report,
-            textures=textures_folder,
-            op=self,
-            bpy=bpy
-        )
-        import os.path
-        for file in self.files:
-            ext = os.path.splitext(file.name)[-1].lower()
-            if ext == '.details':
-                import_file(os.path.join(self.directory, file.name), cx)
-            else:
-                self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
         return {'FINISHED'}
 
     def draw(self, context):
@@ -459,13 +425,18 @@ class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
         if objs[0].type != 'MESH':
             self.report({'ERROR'}, 'The selected object is not a mesh')
             return {'CANCELLED'}
-        return self.export(objs[0], context)
+        try:
+            self.export(objs[0], context)
+        except AppError as err:
+            self.report({'ERROR'}, str(err))
+            return {'CANCELLED'}
+        return {'FINISHED'}
 
     def export(self, bpy_obj, context):
         from .fmt_dm_exp import export_file
         cx = _mk_export_context(context, self.report, self.texture_name_from_image_path)
         export_file(bpy_obj, self.filepath, cx)
-        return {'FINISHED'}
+
 
     def invoke(self, context, event):
         prefs = plugin_prefs.get_preferences()
@@ -636,8 +607,7 @@ def menu_func_import(self, context):
     self.layout.operator(OpImportObject.bl_idname, text='X-Ray object (.object)')
     self.layout.operator(OpImportAnm.bl_idname, text='X-Ray animation (.anm)')
     self.layout.operator(OpImportSkl.bl_idname, text='X-Ray skeletal animation (.skl, .skls)')
-    self.layout.operator(OpImportDM.bl_idname, text='X-Ray detail model (.dm)')
-    self.layout.operator(OpImportDetails.bl_idname, text='X-Ray level details models (.details)')
+    self.layout.operator(OpImportDM.bl_idname, text='X-Ray detail model (.dm, .details)')
 
 
 def menu_func_export(self, context):
@@ -657,7 +627,6 @@ def register():
     bpy.utils.register_class(OpImportAnm)
     bpy.utils.register_class(OpImportSkl)
     bpy.utils.register_class(OpImportDM)
-    bpy.utils.register_class(OpImportDetails)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.utils.register_class(OpExportObject)
     bpy.utils.register_class(OpExportAnm)
@@ -687,7 +656,6 @@ def unregister():
     bpy.utils.unregister_class(OpExportAnm)
     bpy.utils.unregister_class(OpExportObject)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
-    bpy.utils.unregister_class(OpImportDetails)
     bpy.utils.unregister_class(OpImportDM)
     bpy.utils.unregister_class(OpImportSkl)
     bpy.utils.unregister_class(OpImportAnm)

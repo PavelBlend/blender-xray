@@ -9,43 +9,49 @@ from .xray_io import PackedWriter
 
 def _export(bpy_obj, pw, cx):
     if not len(bpy_obj.data.uv_layers):
-        raise AppError('UV-map is required, but not found')
+        raise AppError('mesh "' + bpy_obj.data.name + '" has no UV-map')
     material_count = len(bpy_obj.material_slots)
     if material_count == 0:
         raise AppError('mesh "' + bpy_obj.data.name + '" has no material')
     elif material_count > 1:
-        raise AppError('mesh "' + bpy_obj.data.name + '" has more than one material')
+        raise AppError(
+            'mesh "' + bpy_obj.data.name + '" has more than one material'
+            )
     else:
         bpy_material = bpy_obj.material_slots[0].material
         if not bpy_material:
-            raise AppError('mesh "' + bpy_obj.data.name + '" has empty material slot')
+            raise AppError(
+                'mesh "' + bpy_obj.data.name + '" has empty material slot'
+                )
     bpy_texture = None
-    tex_index = None
-    for ts_index, ts in enumerate(bpy_material.texture_slots):
+    for ts in bpy_material.texture_slots:
         if ts:
             bpy_texture = ts.texture
             if bpy_texture:
-                tex_index = ts_index
                 break
     if bpy_texture:
         if bpy_texture.type == 'IMAGE':
             if not bpy_texture.image:
-                raise AppError('texture "' + bpy_texture.name + '" has no image')
+                raise AppError(
+                    'texture "' + bpy_texture.name + '" has no image'
+                    )
             if cx.texname_from_path:
-                tx_name = gen_texture_name(bpy_material.texture_slots[tex_index].texture, cx.textures_folder)
+                tx_name = gen_texture_name(bpy_texture, cx.textures_folder)
             else:
-                tx_name = bpy_material.active_texture.name
+                tx_name = bpy_texture.name
         else:
-            raise AppError('texture "' + bpy_texture.name + '" has no image')
+            raise AppError(
+                'texture "' + bpy_texture.name + \
+                '" has an incorrect type: ' + bpy_texture.type
+                )
     else:
         raise AppError('material "' + bpy_material.name + '" has no texture')
     pw.puts(bpy_material.xray.eshader)
     pw.puts(tx_name)
-    pw.putf('<I', bpy_obj.xray.no_waving)
+    pw.putf('<I', int(bpy_obj.xray.no_waving))
     pw.putf('<ff', bpy_obj.xray.min_scale, bpy_obj.xray.max_scale)
     bm = convert_object_to_space_bmesh(bpy_obj, mathutils.Matrix.Identity(4))
     bmesh.ops.triangulate(bm, faces=bm.faces)
-    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.00001)
     bpy_data = bpy.data.meshes.new('.export-dm')
     bm.to_mesh(bpy_data)
     bml_uv = bm.loops.layers.uv.active
@@ -64,7 +70,13 @@ def _export(bpy_obj, pw, cx):
                 vertices.append(vtx)
             ii.append(vi)
         indices.append(ii)
-    pw.putf('<I', len(vertices))
+    vertices_count = len(vertices)
+    if vertices_count > 0x10000:
+        raise AppError(
+            'mesh "' + bpy_obj.data.name + \
+            '" has too many vertices. Must be no more than 65536'
+            )
+    pw.putf('<I', vertices_count)
     pw.putf('<I', len(indices) * 3)
     for vtx in vertices:
         pw.putf('<fffff', vtx[0][0], vtx[0][2], vtx[0][1], vtx[1][0], vtx[1][1])
