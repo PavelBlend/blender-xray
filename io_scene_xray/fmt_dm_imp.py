@@ -56,6 +56,9 @@ def _import(fpath, cx, pr, mode='DM'):
         if not bpy_material:
             bpy_material = cx.bpy.data.materials.new(texture)
             bpy_material.xray.eshader = shader
+            bpy_material.use_shadeless = True
+            bpy_material.use_transparency = True
+            bpy_material.alpha = 0.0
             bpy_texture = cx.bpy.data.textures.get(texture)
             if bpy_texture:
                 if not hasattr(bpy_texture, 'image'):
@@ -81,6 +84,7 @@ def _import(fpath, cx, pr, mode='DM'):
                     bpy_image = cx.bpy.data.images.new(os.path.basename(texture), 0, 0)
                     bpy_image.source = 'FILE'
                     bpy_image.filepath = abs_image_path + '.dds'
+                    bpy_image.use_alpha = True
                 bpy_texture.image = bpy_image
             else:
                 bpy_texture_slot = bpy_material.texture_slots.add()
