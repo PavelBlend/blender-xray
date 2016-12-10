@@ -103,7 +103,10 @@ def _import(fpath, cx, pr, mode='DM'):
         S_HHH = PackedReader.prep('HHH')
         for _ in range(indicesCnt // 3):
             fi = pr.getp(S_HHH)    # face indices
-            bm.faces.new((bm.verts[fi[0]], bm.verts[fi[2]], bm.verts[fi[1]]))
+            try:
+                bm.faces.new((bm.verts[fi[0]], bm.verts[fi[2]], bm.verts[fi[1]]))
+            except ValueError:
+                pass
         bm.faces.ensure_lookup_table()
         uvLayer = bm.loops.layers.uv.new(uvMapName)
         if mode == 'DM':
