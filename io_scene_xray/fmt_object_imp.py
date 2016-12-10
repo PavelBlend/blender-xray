@@ -23,10 +23,10 @@ class ImportContext:
         self.import_motions = import_motions
         self.split_by_materials = split_by_materials
         self.op = op
-        self.used_materials = None
+        self.loaded_materials = None
 
     def before_import_file(self):
-        self.used_materials = {}
+        self.loaded_materials = {}
 
     def image(self, relpath):
         relpath = relpath.lower().replace('\\', os.path.sep)
@@ -81,7 +81,7 @@ def _cop_sgfunc(ga, gb, ea, eb):
     return is_soft(ga, bfa, ea) and is_soft(gb, bfb, eb)
 
 
-def _import_mesh(cx, cr):
+def _import_mesh(cx, cr, renamemap):
     ver = cr.nextf(Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
         raise Exception('unsupported MESH format version: {:#x}'.format(ver))
@@ -99,6 +99,7 @@ def _import_mesh(cx, cr):
     vmaps = []
     vgroups = []
     bml_deform = bm.verts.layers.deform.verify()
+    bml_texture = None
     for (cid, data) in cr:
         if cid == Chunks.Mesh.VERTS:
             pr = PackedReader(data)
@@ -143,6 +144,7 @@ def _import_mesh(cx, cr):
             pr = PackedReader(data)
             vm_refs = [read_vmref(pr) for _ in range(pr.ri())]
         elif cid == Chunks.Mesh.VMAPS2:
+            suppress_rename_warnings = {}
             s_ff = PackedReader.prep('ff')
             pr = PackedReader(data)
             for _ in range(pr.ri()):
@@ -152,15 +154,23 @@ def _import_mesh(cx, cr):
                 typ = pr.rb() & 0x3
                 sz = pr.ri()
                 if typ == 0:
+                    nn = renamemap.get(n.lower(), n)
+                    if nn != n:
+                        if suppress_rename_warnings.get(n, None) != nn:
+                            cx.report({'WARNING'}, 'Texture VMap: {} renamed to {}'.format(n, nn))
+                            suppress_rename_warnings[n] = nn
+                        n = nn
                     bml = bm.loops.layers.uv.get(n)
                     if bml is None:
                         bml = bm.loops.layers.uv.new(n)
+                        bml_texture = bm.faces.layers.tex.new(n)
                     uvs = pr.getb(sz * 8).cast('f')
                     pr.skip(sz * 4)
                     if discon:
                         pr.skip(sz * 4)
                     vmaps.append((typ, bml, uvs))
                 elif typ == 1:  # weights
+                    n = renamemap.get(n, n)
                     vgi = len(vgroups)
                     vgroups.append(n)
                     wgs = pr.getb(sz * 4).cast('f')
@@ -245,14 +255,14 @@ def _import_mesh(cx, cr):
         bo_mesh.vertex_groups.new(vg)
 
     f_facez = []
+    images = []
     for n, faces in s_faces:
-        um = cx.used_materials.get(n)
-        if um is None:
-            cx.used_materials[n] = um = (cx.bpy.data.materials.new(n), [])
-        bmat, meshes = um
-        meshes.append(bm_data)
+        bmat = cx.loaded_materials.get(n)
+        if bmat is None:
+            cx.loaded_materials[n] = bmat = cx.bpy.data.materials.new(n)
         midx = len(bm_data.materials)
         bm_data.materials.append(bmat)
+        images.append(bmat.active_texture.image)
         f_facez.append((faces, midx))
 
     if cx.split_by_materials:
@@ -265,6 +275,8 @@ def _import_mesh(cx, cr):
                     continue
                 bmfaces[fi] = bmf = mkface(fi, local)
                 bmf.material_index = midx
+                if bml_texture is not None:
+                    bmf[bml_texture].image = images[midx]
 
     local = Local()
     for fi, bmf in enumerate(bmfaces):
@@ -287,6 +299,8 @@ def _import_mesh(cx, cr):
                     cx.report({'WARNING'}, 'face {} has already used material {}'.format(fi, bmf.material_index))
                     continue
                 bmf.material_index = midx
+                if bml_texture is not None:
+                    bmf[bml_texture].image = images[midx]
                 assigned[fi] = True
 
     if bad_vgroup != -1:
@@ -296,7 +310,9 @@ def _import_mesh(cx, cr):
         cx.report({'WARNING'}, msg)
 
     bm.normal_update()
-    return bo_mesh, bm
+    bm.to_mesh(bm_data)
+
+    return bo_mesh
 
 
 def _get_fake_bone_shape():
@@ -441,23 +457,13 @@ def _import_main(fpath, cx, cr):
     else:
         bpy_obj = None
 
-    bpy_armature = None
-    bones_renamemap = {}
-    meshes = []
+    bpy_arm_obj = None
+    renamemap = {}
+    meshes_data = None
     for (cid, data) in cr:
         if cid == Chunks.Object.MESHES:
-            for (_, mdat) in ChunkedReader(data):
-                meshes.append(_import_mesh(cx, ChunkedReader(mdat)))
+            meshes_data = data
         elif (cid == Chunks.Object.SURFACES1) or (cid == Chunks.Object.SURFACES2):
-            uvmaps = {}
-            for mesh, _ in meshes:
-                for uvl in mesh.data.uv_layers:
-                    key = uvl.name.lower()
-                    layers = uvmaps.get(key, None)
-                    if layers is None:
-                        uvmaps[key] = layers = []
-                    layers.append(uvl)
-
             pr = PackedReader(data)
             for _ in range(pr.getf('I')[0]):
                 n = pr.gets()
@@ -466,18 +472,10 @@ def _import_main(fpath, cx, cr):
                 gamemtl = pr.gets() if cid == Chunks.Object.SURFACES2 else 'default'
                 texture = pr.gets()
                 vmap = pr.gets()
-                for l in uvmaps.get(vmap.lower(), []):
-                    if l.name != vmap:
-                        cx.report({'WARNING'}, 'Texture VMap: {} renamed to {}'.format(l.name, vmap))
-                        l.name = vmap
+                renamemap[vmap.lower()] = vmap
                 flags = pr.getf('I')[0]
                 pr.getf('I')    # fvf
                 pr.getf('I')    # ?
-                um = cx.used_materials.get(n)
-                if um is None:
-                    cx.report({'WARNING'}, 'No material found for surface: ' + n)
-                    continue
-                del cx.used_materials[n]
                 bpy_material = None
                 for bm in bpy.data.materials:
                     if not bm.name.startswith(n):
@@ -507,15 +505,8 @@ def _import_main(fpath, cx, cr):
                         continue
                     bpy_material = bm
                     break
-                if bpy_material:
-                    bmap, um_meshes = um
-                    for d in um_meshes:
-                        for i, m in enumerate(d.materials):
-                            if m == bmap:
-                                d.materials[i] = bpy_material
-                    bpy.data.materials.remove(bmap)
-                else:
-                    bpy_material = um[0]
+                if bpy_material is None:
+                    bpy_material = cx.bpy.data.materials.new(n)
                     bpy_material.xray.flags = flags
                     bpy_material.xray.eshader = eshader
                     bpy_material.xray.cshader = cshader
@@ -535,8 +526,9 @@ def _import_main(fpath, cx, cr):
                         bpy_texture_slot.uv_layer = vmap
                         bpy_texture_slot.use_map_color_diffuse = True
                         bpy_texture_slot.use_map_alpha = True
+                cx.loaded_materials[n] = bpy_material
         elif (cid == Chunks.Object.BONES) or (cid == Chunks.Object.BONES1):
-            if cx.bpy and (bpy_armature is None):
+            if cx.bpy and (bpy_arm_obj is None):
                 bpy_armature = cx.bpy.data.armatures.new(object_name)
                 bpy_armature.use_auto_ik = True
                 bpy_armature.draw_type = 'STICK'
@@ -551,7 +543,7 @@ def _import_main(fpath, cx, cr):
                     name, parent, vmap = pr.gets(), pr.gets(), pr.gets()
                     offset, rotate, length = read_v3f(pr), read_v3f(pr), pr.getf('f')[0]
                     rotate = rotate[2], rotate[1], rotate[0]
-                    bpy_bone = _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, bones_renamemap)
+                    bpy_bone = _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, renamemap)
                     xray = bpy_bone.xray
                     xray.mass.gamemtl = 'default_object'
                     xray.mass.value = 10
@@ -562,7 +554,7 @@ def _import_main(fpath, cx, cr):
                     xray.ikjoint.damping = 1
             else:
                 for (_, bdat) in ChunkedReader(data):
-                    _import_bone(cx, ChunkedReader(bdat), bpy_arm_obj, bones_renamemap)
+                    _import_bone(cx, ChunkedReader(bdat), bpy_arm_obj, renamemap)
             cx.bpy.ops.object.mode_set(mode='EDIT')
             try:
                 import mathutils
@@ -618,9 +610,6 @@ def _import_main(fpath, cx, cr):
                 b = bpy_armature.bones.get(n)
                 if b:
                     b.hide = True
-            for o, _ in meshes:
-                bpy_armmod = o.modifiers.new(name='Armature', type='ARMATURE')
-                bpy_armmod.object = bpy_arm_obj
         elif cid == Chunks.Object.TRANSFORM:
             pr = PackedReader(data)
             pos = read_v3f(pr)
@@ -672,19 +661,12 @@ def _import_main(fpath, cx, cr):
         else:
             warn_imknown_chunk(cid, 'main')
 
-    for m, bm in meshes:
-        for vg in m.vertex_groups:
-            nn = bones_renamemap.get(vg.name, None)
-            if nn is not None:
-                vg.name = nn
+    for (_, mdat) in ChunkedReader(meshes_data):
+        m = _import_mesh(cx, ChunkedReader(mdat), renamemap)
 
-        for uvl in bm.loops.layers.uv.values():
-            bml_tex = bm.faces.layers.tex.new(uvl.name)
-            mats = m.data.materials
-            for bmf in bm.faces:
-                bmf[bml_tex].image = mats[bmf.material_index].active_texture.image
-
-        bm.to_mesh(m.data)
+        if bpy_arm_obj:
+            bpy_armmod = m.modifiers.new(name='Armature', type='ARMATURE')
+            bpy_armmod.object = bpy_arm_obj
 
         m.parent = bpy_obj
         cx.bpy.context.scene.objects.link(m)
