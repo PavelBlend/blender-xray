@@ -6,7 +6,7 @@ from .utils import AppError
 from .xray_io import PackedReader
 
 
-def _import(fpath, cx, pr, mode='DM'):
+def import_(fpath, cx, pr, mode='DM'):
     if cx.bpy:
         object_name = os.path.basename(fpath.lower())
         bpy_mesh = cx.bpy.data.meshes.new(object_name)
@@ -134,4 +134,4 @@ def _import(fpath, cx, pr, mode='DM'):
 
 def import_file(fpath, cx):
     with io.open(fpath, 'rb') as f:
-        _import(fpath, cx, PackedReader(f.read()))
+        import_(fpath, cx, PackedReader(f.read()))
