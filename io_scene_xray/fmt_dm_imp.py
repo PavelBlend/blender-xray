@@ -6,17 +6,6 @@ from .utils import AppError
 from .xray_io import PackedReader
 
 
-class ImportContext:
-    def __init__(self, textures, report, op, bpy=None):
-        from . import bl_info
-        from .utils import version_to_number
-        self.version = version_to_number(*bl_info['version'])
-        self.report = report
-        self.bpy = bpy
-        self.textures_folder = textures
-        self.op = op
-
-
 def _import(fpath, cx, pr, mode='DM'):
     if cx.bpy:
         object_name = os.path.basename(fpath.lower())

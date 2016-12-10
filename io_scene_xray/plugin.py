@@ -197,9 +197,13 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
             return {'CANCELLED'}
         from . import fmt_dm_imp
         from . import fmt_details_imp
-        cx = fmt_dm_imp.ImportContext(
+        from .fmt_object_imp import ImportContext
+        cx = ImportContext(
             report=self.report,
             textures=textures_folder,
+            soc_sgroups=None,
+            import_motions=None,
+            split_by_materials=None,
             op=self,
             bpy=bpy
         )
