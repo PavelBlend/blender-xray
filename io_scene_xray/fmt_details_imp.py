@@ -3,12 +3,13 @@ import os
 import io
 from . import fmt_details
 from . import fmt_dm_imp
+from .utils import AppError
 from .xray_io import ChunkedReader, PackedReader
 
 
 def _read_header(data):
     if len(data) != 24:
-        raise Exception(' ! bad details header data. Header size not equal 24')
+        raise AppError('bad details header data. Header size not equal 24')
     pr = PackedReader(data)
     format_version, meshes_count, \
     offset_x, offset_z, \
@@ -25,7 +26,7 @@ def _get_details_format_version(data):
             format_version = _read_header(chunk_data)
             return format_version
     if not has_header:
-        raise Exception(' ! bad details file. Cannot find HEADER chunk')
+        raise AppError('bad details file. Cannot find HEADER chunk')
 
 
 def _read_details_meshes(fpath, cx, data):
@@ -53,4 +54,5 @@ def import_file(fpath, cx):
         if format_version in fmt_details.SUPPORT_FORMAT_VERSIONS:
             _import(fpath, cx, ChunkedReader(file_data))
         else:
-            raise Exception(' ! unssuported details format version: {}'.format(format_version))
+            raise AppError('unssuported details format version: {}'.format(
+                format_version))

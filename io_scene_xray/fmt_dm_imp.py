@@ -2,6 +2,7 @@
 import io
 import os
 import bmesh
+from .utils import AppError
 from .xray_io import PackedReader
 
 
@@ -81,7 +82,9 @@ def _import(fpath, cx, pr, mode='DM'):
                         bpy_image = bi
                         break
                 if not bpy_image:
-                    bpy_image = cx.bpy.data.images.new(os.path.basename(texture), 0, 0)
+                    bpy_image = cx.bpy.data.images.new(
+                        os.path.basename(texture), 0, 0
+                        )
                     bpy_image.source = 'FILE'
                     bpy_image.filepath = abs_image_path + '.dds'
                     bpy_image.use_alpha = True
@@ -95,7 +98,7 @@ def _import(fpath, cx, pr, mode='DM'):
         bpy_obj.xray.min_scale = min_scale
         bpy_obj.xray.max_scale = max_scale
         if indices_cnt % 3 != 0:
-            raise Exception(' ! bad dm triangle indices')
+            raise AppError('bad dm triangle indices')
         bm = bmesh.new()
         S_FFFFF = PackedReader.prep('fffff')    
         uvs = {}
@@ -108,7 +111,9 @@ def _import(fpath, cx, pr, mode='DM'):
         for _ in range(indices_cnt // 3):
             fi = pr.getp(S_HHH)    # face indices
             try:
-                bm.faces.new((bm.verts[fi[0]], bm.verts[fi[2]], bm.verts[fi[1]]))
+                bm.faces.new(
+                    (bm.verts[fi[0]], bm.verts[fi[2]], bm.verts[fi[1]])
+                    )
             except ValueError:
                 pass
         bm.faces.ensure_lookup_table()
@@ -123,7 +128,10 @@ def _import(fpath, cx, pr, mode='DM'):
                     uv = uvs[loop.vert]
                     loop[uv_layer].uv = uv[0], 1 - uv[1]
         else:
-            raise Exception(' ! unknown dm import mode: {}'.format(mode))
+            raise Exception(
+                'unknown dm import mode: {0}. ' \
+                'You must use DM or DETAILS'.format(mode)
+                )
         if not bpy_image:
             bpy_image = bpy_material.texture_slots[0].texture.image
         bml_tex = bm.faces.layers.tex.new(uv_map_name)

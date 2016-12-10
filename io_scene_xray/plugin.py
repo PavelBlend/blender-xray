@@ -204,14 +204,18 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
             bpy=bpy
         )
         import os.path
-        for file in self.files:
-            ext = os.path.splitext(file.name)[-1].lower()
-            if ext == '.dm':
-                fmt_dm_imp.import_file(os.path.join(self.directory, file.name), cx)
-            elif ext == '.details':
-                fmt_details_imp.import_file(os.path.join(self.directory, file.name), cx)
-            else:
-                self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
+        try:
+            for file in self.files:
+                ext = os.path.splitext(file.name)[-1].lower()
+                if ext == '.dm':
+                    fmt_dm_imp.import_file(os.path.join(self.directory, file.name), cx)
+                elif ext == '.details':
+                    fmt_details_imp.import_file(os.path.join(self.directory, file.name), cx)
+                else:
+                    self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
+        except AppError as err:
+            self.report({'ERROR'}, str(err))
+            return {'CANCELLED'}
         return {'FINISHED'}
 
     def draw(self, context):
