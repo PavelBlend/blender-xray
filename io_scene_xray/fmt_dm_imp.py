@@ -13,8 +13,6 @@ class ImportContext:
         self.version = version_to_number(*bl_info['version'])
         self.report = report
         self.bpy = bpy
-        if textures[-1] != os.sep:
-            textures += os.sep
         self.textures_folder = textures
         self.op = op
 
@@ -27,7 +25,7 @@ def _import(fpath, cx, pr, mode='DM'):
         cx.bpy.context.scene.objects.link(bpy_obj)
         shader = pr.gets()
         texture = pr.gets()
-        abs_image_path = cx.textures_folder + texture
+        abs_image_path = os.path.abspath(os.path.join(cx.textures_folder, texture + '.dds'))
         uv_map_name = 'Texture'
         bpy_material = None
         bpy_image = None
@@ -65,7 +63,7 @@ def _import(fpath, cx, pr, mode='DM'):
                 if not hasattr(bpy_texture, 'image'):
                     bpy_texture = None
                 else:
-                    if bpy_texture.image.filepath != abs_image_path + '.dds':
+                    if bpy_texture.image.filepath != abs_image_path:
                         bpy_texture = None
             if bpy_texture is None:
                 bpy_texture = cx.bpy.data.textures.new(texture, type='IMAGE')
@@ -78,7 +76,7 @@ def _import(fpath, cx, pr, mode='DM'):
                 bpy_texture_slot.use_map_alpha = True
                 bpy_image = None
                 for bi in cx.bpy.data.images:
-                    if abs_image_path in bi.filepath:
+                    if abs_image_path == bi.filepath:
                         bpy_image = bi
                         break
                 if not bpy_image:
@@ -86,7 +84,10 @@ def _import(fpath, cx, pr, mode='DM'):
                         os.path.basename(texture), 0, 0
                         )
                     bpy_image.source = 'FILE'
-                    bpy_image.filepath = abs_image_path + '.dds'
+                    if not cx.textures_folder:
+                        bpy_image.filepath = texture + '.dds'
+                    else:
+                        bpy_image.filepath = abs_image_path
                     bpy_image.use_alpha = True
                 bpy_texture.image = bpy_image
             else:
