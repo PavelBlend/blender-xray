@@ -74,7 +74,7 @@ def _export(bpy_obj, pw, cx):
     if vertices_count > 0x10000:
         raise AppError(
             'mesh "' + bpy_obj.data.name + \
-            '" has too many vertices. Must be no more than 65536'
+            '" has too many vertices. Must be less than 65536'
             )
     pw.putf('<I', vertices_count)
     pw.putf('<I', len(indices) * 3)
