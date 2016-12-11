@@ -1,4 +1,4 @@
-# blender-xray [![Build Status](https://travis-ci.org/igelbox/blender-xray.svg)](https://travis-ci.org/igelbox/blender-xray)
+# blender-xray [![Build Status](https://travis-ci.org/igelbox/blender-xray.svg)](https://travis-ci.org/igelbox/blender-xray) [![Code Coverage](https://codecov.io/github/igelbox/blender-xray/coverage.svg)](https://codecov.io/gh/igelbox/blender-xray)
 XRay-engine import/export plugin for [blender](http://www.blender.org/)
 
 ## Supported formats

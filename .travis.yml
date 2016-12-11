@@ -11,3 +11,6 @@ install:
 
 script:
   - ./blender/blender --factory-startup -noaudio -b --python-exit-code 1 --python tests/runner.py
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
