@@ -170,10 +170,20 @@ def _import_mesh(cx, cr, renamemap):
                         pr.skip(sz * 4)
                     vmaps.append((typ, bml, uvs))
                 elif typ == 1:  # weights
+                    MIN_WEIGHT = 0.0002
                     n = renamemap.get(n, n)
                     vgi = len(vgroups)
                     vgroups.append(n)
                     wgs = pr.getb(sz * 4).cast('f')
+                    bad = False
+                    for i, weight in enumerate(wgs):
+                        if weight < MIN_WEIGHT:
+                            if not bad:
+                                wgs = list(wgs)
+                            bad = True
+                            wgs[i] = MIN_WEIGHT
+                    if bad:
+                        cx.report({'WARNING'}, 'Weight VMap: %s has weights that are close to zero' % n)
                     pr.skip(sz * 4)
                     if discon:
                         pr.skip(sz * 4)
