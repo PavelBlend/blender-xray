@@ -1,6 +1,7 @@
 import coverage
 import os
 import unittest
+import sys
 
 cov = coverage.Coverage(
     branch=True,
@@ -14,3 +15,6 @@ if not unittest.TextTestRunner().run(suite).wasSuccessful():
 
 cov.stop()
 cov.xml_report()
+
+if '--save-html-report' in sys.argv:
+    cov.html_report()

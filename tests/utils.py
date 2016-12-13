@@ -3,6 +3,8 @@ import addon_utils
 import inspect
 import os
 import shutil
+import sys
+import tempfile
 import bmesh
 import bpy
 from io_scene_xray.plugin import TestReadyOperator
@@ -10,7 +12,9 @@ from io_scene_xray.plugin import TestReadyOperator
 
 class XRayTestCase(unittest.TestCase):
     blend_file = None
-    __tmp = '/tmp/io_scene_xray-tests-out'
+    __save_test_data = '--save-test-data' in sys.argv
+    __tmp_base = os.path.join(tempfile.gettempdir(), 'io_scene_xray-tests')
+    __tmp = __tmp_base + '/out'
     _reports = []
 
     @classmethod
@@ -36,7 +40,7 @@ class XRayTestCase(unittest.TestCase):
     @classmethod
     def outpath(cls, path=''):
         if not os.path.exists(cls.__tmp):
-            os.mkdir(cls.__tmp)
+            os.makedirs(cls.__tmp)
         return os.path.join(cls.__tmp, path)
 
     def setUp(self):
@@ -46,7 +50,12 @@ class XRayTestCase(unittest.TestCase):
     def tearDown(self):
         TestReadyOperator.report_catcher = self.__prev_report_catcher
         if os.path.exists(self.__tmp):
-            shutil.rmtree(self.__tmp)
+            if self.__save_test_data:
+                bpy.ops.wm.save_mainfile(filepath=os.path.join(self.__tmp, 'result.blend'))
+                new_path = os.path.join(self.__tmp_base, self.__class__.__name__, self._testMethodName)
+                os.renames(self.__tmp, new_path)
+            else:
+                shutil.rmtree(self.__tmp)
 
     def assertFileExists(self, path, allow_empty=False, msg=None):
         if not os.path.isfile(path):
