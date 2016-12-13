@@ -3,6 +3,7 @@ import addon_utils
 import inspect
 import os
 import shutil
+import bmesh
 import bpy
 from io_scene_xray.plugin import TestReadyOperator
 
@@ -14,9 +15,12 @@ class XRayTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        addon_utils.enable('io_scene_xray', default_set=True)
+        cls._reports = []
         if cls.blend_file:
             bpy.ops.wm.open_mainfile(filepath=cls.relpath(cls.blend_file))
+        else:
+            bpy.ops.wm.read_homefile()
+        addon_utils.enable('io_scene_xray', default_set=True)
 
     @classmethod
     def tearDownClass(cls):
@@ -91,3 +95,22 @@ class XRayTestCase(unittest.TestCase):
         if r is None:
             return
         raise self.fail('Found report with: type={}, message={}: {}'.format(type, re_message, r))
+
+
+def create_bmesh(vertexes, indexes):
+    bm = bmesh.new()
+    verts = [bm.verts.new(v) for v in vertexes]
+    for ii in indexes:
+        bm.faces.new((verts[i] for i in ii))
+    bm.loops.layers.uv.new('uv')
+    return bm
+
+
+def create_object(bm):
+    mesh = bpy.data.meshes.new('test')
+    bm.to_mesh(mesh)
+    mat = bpy.data.materials.new('mat')
+    mesh.materials.append(mat)
+    obj = bpy.data.objects.new('test', mesh)
+    bpy.context.scene.objects.link(obj)
+    return obj
