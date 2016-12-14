@@ -48,7 +48,7 @@ def _read_details_meshes(fpath, cx, cr):
 
 def _read_details_slots(fpath, cx, pr, header):
 
-    def generate_color_indices():
+    def _generate_color_indices():
         mesh_ids = []
         color_depth = 21
         current_mesh = [color_depth, 0, 0]
@@ -80,7 +80,7 @@ def _read_details_slots(fpath, cx, pr, header):
     light_hemi = []
     meshes_ids = []
     a_s = []
-    color_indices = generate_color_indices()
+    color_indices = _generate_color_indices()
     for _ in range(header.size.x * header.size.y):
         slot_data = pr.getp(S_IIHHHH)
         y_base = slot_data[0] & 0x3ff
@@ -139,7 +139,7 @@ def _read_details_slots(fpath, cx, pr, header):
             y_coords[slot_id]
             ))
 
-    def offset_vert_coord(vert_coord, offset_x, offset_y):
+    def _offset_vert_coord(vert_coord, offset_x, offset_y):
         return vert_coord[0] + offset_x, vert_coord[1] + offset_y, vert_coord[2]
 
     vertices = []
@@ -147,10 +147,10 @@ def _read_details_slots(fpath, cx, pr, header):
     cur_vert_id = 0
     for slot in slots:
         vertices.extend((
-            (offset_vert_coord(slot, -header.slot_half, -header.slot_half)),
-            (offset_vert_coord(slot, header.slot_half, -header.slot_half)),
-            (offset_vert_coord(slot, header.slot_half, header.slot_half)),
-            (offset_vert_coord(slot, -header.slot_half, header.slot_half))
+            (_offset_vert_coord(slot, -header.slot_half, -header.slot_half)),
+            (_offset_vert_coord(slot, header.slot_half, -header.slot_half)),
+            (_offset_vert_coord(slot, header.slot_half, header.slot_half)),
+            (_offset_vert_coord(slot, -header.slot_half, header.slot_half))
             ))
         faces.append((
             cur_vert_id,
@@ -161,27 +161,32 @@ def _read_details_slots(fpath, cx, pr, header):
         cur_vert_id += 4
     slots_mesh.from_pydata(vertices, (), faces)
 
-    def create_image(name):
+    def _create_image(name):
         return cx.bpy.data.images.new(
             'details {0}'.format(name),
             header.size.x,
             header.size.y
             )
 
-    light_image = create_image('lights')
-    shadows_image = create_image('shadows')
-    hemi_image = create_image('hemi')
+    light_image = _create_image('lights')
+    shadows_image = _create_image('shadows')
+    hemi_image = _create_image('hemi')
     # meshes ids
     meshes_images = []
     for index in range(4):
-        meshes_images.append(create_image('meshes {0}'.format(index)))
+        meshes_images.append(_create_image('meshes {0}'.format(index)))
     # meshes a
     mesh_a_images = []
     for mesh_id in range(4):
         for a_id in range(4):
             mesh_a_images.append(
-                create_image('mesh {0} a{1}'.format(mesh_id, a_id))
+                _create_image('mesh {0} a{1}'.format(mesh_id, a_id))
                 )
+    light_image_pixels = []
+    shadows_image_pixels = []
+    hemi_image_pixels = []
+    meshes_images_pixels = [[], [], [], []]
+    a_s_pixels = [[[] for __ in range(4)] for _ in range(4)]
     for slot_index in range(header.size.x * header.size.y):
         light = lights[slot_index]
         shadow = shadows[slot_index]
@@ -191,32 +196,33 @@ def _read_details_slots(fpath, cx, pr, header):
         red_channel = slot_index * 4
         green_channel = red_channel + 1
         blue_channel = green_channel + 1
-        # light
-        light_image.pixels[red_channel] = light[0]
-        light_image.pixels[green_channel] = light[1]
-        light_image.pixels[blue_channel] = light[2]
-        # shadow
-        shadows_image.pixels[red_channel] = shadow
-        shadows_image.pixels[green_channel] = shadow
-        shadows_image.pixels[blue_channel] = shadow
-        # hemi color
-        hemi_image.pixels[red_channel] = hemi
-        hemi_image.pixels[green_channel] = hemi
-        hemi_image.pixels[blue_channel] = hemi
+        light_image_pixels.extend((light[0], light[1], light[2], 1.0))
+        shadows_image_pixels.extend((shadow, shadow, shadow, 1.0))
+        hemi_image_pixels.extend((hemi, hemi, hemi, 1.0))
         # meshes id
         for i in range(4):
-            meshes_images[i].pixels[red_channel] = mesh_id[i][0]
-            meshes_images[i].pixels[green_channel] = mesh_id[i][1]
-            meshes_images[i].pixels[blue_channel] = mesh_id[i][2]
+            meshes_images_pixels[i].extend((
+                mesh_id[i][0],
+                mesh_id[i][1],
+                mesh_id[i][2],
+                1.0
+                ))
         # mesh a
-        image_id = 0
-        for mesh_index in range(4):
-            mesh_a = slot_a[mesh_index]
+        for mesh_id in range(4):
+            mesh_a = slot_a[mesh_id]
             for a_id in range(4):
-                mesh_a_images[image_id].pixels[red_channel] = mesh_a[a_id]
-                mesh_a_images[image_id].pixels[green_channel] = mesh_a[a_id]
-                mesh_a_images[image_id].pixels[blue_channel] = mesh_a[a_id]
-                image_id += 1
+                a_s_pixels[mesh_id][a_id].extend((mesh_a[a_id], mesh_a[a_id], mesh_a[a_id], 1.0))
+    # assign pixels
+    light_image.pixels = light_image_pixels
+    shadows_image.pixels = shadows_image_pixels
+    hemi_image.pixels = hemi_image_pixels
+    for image_id, pixels in enumerate(meshes_images_pixels):
+        meshes_images[image_id].pixels = pixels
+    image_id = 0
+    for mesh_id in range(4):
+        for a_id in range(4):
+            mesh_a_images[image_id].pixels = a_s_pixels[mesh_id][a_id]
+            image_id += 1
 
 
 def _import(fpath, cx, cr):
