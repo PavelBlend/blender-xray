@@ -35,8 +35,7 @@ def _read_header(pr):
     return header
 
 
-def _read_details_meshes(fpath, cx, cr):
-    base_name = os.path.basename(fpath.lower())
+def _read_details_meshes(base_name, cx, cr):
     bpy_obj_root = cx.bpy.data.objects.new('{} meshes'.format(base_name), None)
     cx.bpy.context.scene.objects.link(bpy_obj_root)
     for mesh_id, mesh_data in cr:
@@ -44,9 +43,10 @@ def _read_details_meshes(fpath, cx, cr):
         mesh_name = '{0} mesh_{1:0>2}'.format(base_name, mesh_id)
         bpy_obj_mesh = fmt_dm_imp.import_(mesh_name, cx, pr, mode='DETAILS')
         bpy_obj_mesh.parent = bpy_obj_root
+    return bpy_obj_root
 
 
-def _read_details_slots(fpath, cx, pr, header):
+def _read_details_slots(base_name, cx, pr, header):
 
     def _generate_color_indices():
         mesh_ids = []
@@ -117,7 +117,6 @@ def _read_details_slots(fpath, cx, pr, header):
             a3 = ((slot_data[i] >> 12) & 0xf) / 0xf
             a_0123[i - 2].extend((a0, a1, a2, a3))
         a_s.append(a_0123)
-    base_name = os.path.basename(fpath.lower())
     slots_name = '{0} slots'.format(base_name)
     slots_mesh = cx.bpy.data.meshes.new(slots_name)
     slots_object = cx.bpy.data.objects.new(slots_name, slots_mesh)
@@ -223,6 +222,7 @@ def _read_details_slots(fpath, cx, pr, header):
         for a_id in range(4):
             mesh_a_images[image_id].pixels = a_s_pixels[mesh_id][a_id]
             image_id += 1
+    return slots_object
 
 
 def _import(fpath, cx, cr):
@@ -255,8 +255,13 @@ def _import(fpath, cx, cr):
         raise AppError('bad details file. Cannot find MESHES chunk')
     if not has_slots:
         raise AppError('bad details file. Cannot find SLOTS chunk')
-    _read_details_meshes(fpath, cx, cr_meshes)
-    _read_details_slots(fpath, cx, pr_slots, header)
+    base_name = os.path.basename(fpath.lower())
+    bpy_details_root_object = cx.bpy.data.objects.new(base_name, None)
+    cx.bpy.context.scene.objects.link(bpy_details_root_object)
+    bpy_meshes_root_object = _read_details_meshes(base_name, cx, cr_meshes)
+    bpy_slots_object = _read_details_slots(base_name, cx, pr_slots, header)
+    bpy_meshes_root_object.parent = bpy_details_root_object
+    bpy_slots_object.parent = bpy_details_root_object
 
 
 def import_file(fpath, cx):
