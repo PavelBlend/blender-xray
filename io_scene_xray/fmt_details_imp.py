@@ -37,13 +37,13 @@ def _read_header(pr):
 
 def _read_details_meshes(fpath, cx, cr):
     base_name = os.path.basename(fpath.lower())
-    root_object = cx.bpy.data.objects.new(base_name, None)
-    cx.bpy.context.scene.objects.link(root_object)
+    bpy_obj_root = cx.bpy.data.objects.new('{} meshes'.format(base_name), None)
+    cx.bpy.context.scene.objects.link(bpy_obj_root)
     for mesh_id, mesh_data in cr:
         pr = PackedReader(mesh_data)
         mesh_name = '{0} mesh_{1:0>2}'.format(base_name, mesh_id)
-        bpy_obj = fmt_dm_imp.import_(mesh_name, cx, pr, mode='DETAILS')
-        bpy_obj.parent = root_object
+        bpy_obj_mesh = fmt_dm_imp.import_(mesh_name, cx, pr, mode='DETAILS')
+        bpy_obj_mesh.parent = bpy_obj_root
 
 
 def _read_details_slots(fpath, cx, pr, header):
