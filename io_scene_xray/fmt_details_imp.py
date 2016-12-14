@@ -259,9 +259,10 @@ def _import(fpath, cx, cr):
     bpy_details_root_object = cx.bpy.data.objects.new(base_name, None)
     cx.bpy.context.scene.objects.link(bpy_details_root_object)
     bpy_meshes_root_object = _read_details_meshes(base_name, cx, cr_meshes)
-    bpy_slots_object = _read_details_slots(base_name, cx, pr_slots, header)
     bpy_meshes_root_object.parent = bpy_details_root_object
-    bpy_slots_object.parent = bpy_details_root_object
+    if header.format_version == 3:
+        bpy_slots_object = _read_details_slots(base_name, cx, pr_slots, header)
+        bpy_slots_object.parent = bpy_details_root_object
 
 
 def import_file(fpath, cx):
