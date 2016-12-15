@@ -81,9 +81,9 @@ def _read_details_slots(base_name, cx, pr, header):
     color_indices = _generate_color_indices()
     if header.format_version == 3:
         y_coords = []
-        lights = []
-        shadows = []
-        light_hemi = []
+        lights_image_pixels = []
+        shadows_image_pixels = []
+        hemi_image_pixels = []
         meshes_ids = []
         a_s = []
         S_IIHHHH = PackedReader.prep('IIHHHH')
@@ -108,13 +108,13 @@ def _read_details_slots(base_name, cx, pr, header):
                 color_indices[mesh_id_3]
                 ))
             shadow = ((slot_data[1] >> 12) & 0xf) / 0xf
-            shadows.append(shadow)
+            shadows_image_pixels.extend((shadow, shadow, shadow, 1.0))
             hemi = ((slot_data[1] >> 16) & 0xf) / 0xf
-            light_hemi.append(hemi)
+            hemi_image_pixels.extend((hemi, hemi, hemi, 1.0))
             light_r = ((slot_data[1] >> 20) & 0xf) / 0xf
             light_g = ((slot_data[1] >> 24) & 0xf) / 0xf
             light_b = ((slot_data[1] >> 28) & 0xf) / 0xf
-            lights.append((light_r, light_g, light_b))
+            lights_image_pixels.extend((light_r, light_g, light_b, 1.0))
             a_0123 = [[], [], [], []]
             for i in range(2, 6):
                 a0 = ((slot_data[i] >> 0) & 0xf) / 0xf
@@ -215,23 +215,10 @@ def _read_details_slots(base_name, cx, pr, header):
             mesh_a_images.append(
                 _create_image('mesh {0} a{1}'.format(mesh_id, a_id))
                 )
-    light_image_pixels = []
-    shadows_image_pixels = []
-    hemi_image_pixels = []
+
     meshes_images_pixels = [[], [], [], []]
     a_s_pixels = [[[] for __ in range(4)] for _ in range(4)]
     for slot_index in range(header.slots_count):
-        if header.format_version == 3:
-
-            light = lights[slot_index]
-            light_image_pixels.extend((light[0], light[1], light[2], 1.0))
-
-            shadow = shadows[slot_index]
-            hemi = light_hemi[slot_index]
-
-            shadows_image_pixels.extend((shadow, shadow, shadow, 1.0))
-            hemi_image_pixels.extend((hemi, hemi, hemi, 1.0))
-
         mesh_id = meshes_ids[slot_index]
         slot_a = a_s[slot_index]
         red_channel = slot_index * 4
@@ -257,8 +244,8 @@ def _read_details_slots(base_name, cx, pr, header):
     if header.format_version == 3:
 
         light_image = _create_image('lights')
-        light_image.pixels = light_image_pixels
-        del light_image_pixels
+        light_image.pixels = lights_image_pixels
+        del lights_image_pixels
 
         shadows_image = _create_image('shadows')
         shadows_image.pixels = shadows_image_pixels
