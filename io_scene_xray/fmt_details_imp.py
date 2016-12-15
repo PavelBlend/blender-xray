@@ -73,7 +73,6 @@ def _read_details_slots(base_name, cx, pr, header):
             color_indices.append(color_index)
         return color_indices
 
-    S_IIHHHH = PackedReader.prep('IIHHHH')
     y_coords = []
     lights = []
     shadows = []
@@ -81,42 +80,76 @@ def _read_details_slots(base_name, cx, pr, header):
     meshes_ids = []
     a_s = []
     color_indices = _generate_color_indices()
-    for _ in range(header.size.x * header.size.y):
-        slot_data = pr.getp(S_IIHHHH)
-        y_base = slot_data[0] & 0x3ff
-        y_height = (slot_data[0] >> 12) & 0xff
-        y_coord = y_base * 0.2 + y_height * 0.1
-        if y_coord > 100.0 or y_coord == 0.0:
-            y_coord -= 200.0
-        else:
-            y_coord += 5.0
-        y_coords.append(y_coord)
-        mesh_id_0 = (slot_data[0] >> 20) & 0x3f
-        mesh_id_1 = (slot_data[0] >> 26) & 0x3f
-        mesh_id_2 = slot_data[1] & 0x3f
-        mesh_id_3 = (slot_data[1] >> 6) & 0x3f
-        meshes_ids.append((
-            color_indices[mesh_id_0],
-            color_indices[mesh_id_1],
-            color_indices[mesh_id_2],
-            color_indices[mesh_id_3]
-            ))
-        shadow = ((slot_data[1] >> 12) & 0xf) / 0xf
-        shadows.append(shadow)
-        hemi = ((slot_data[1] >> 16) & 0xf) / 0xf
-        light_hemi.append(hemi)
-        light_r = ((slot_data[1] >> 20) & 0xf) / 0xf
-        light_g = ((slot_data[1] >> 24) & 0xf) / 0xf
-        light_b = ((slot_data[1] >> 28) & 0xf) / 0xf
-        lights.append((light_r, light_g, light_b))
-        a_0123 = [[], [], [], []]
-        for i in range(2, 6):
-            a0 = ((slot_data[i] >> 0) & 0xf) / 0xf
-            a1 = ((slot_data[i] >> 4) & 0xf) / 0xf
-            a2 = ((slot_data[i] >> 8) & 0xf) / 0xf
-            a3 = ((slot_data[i] >> 12) & 0xf) / 0xf
-            a_0123[i - 2].extend((a0, a1, a2, a3))
-        a_s.append(a_0123)
+    if header.format_version == 3:
+        S_IIHHHH = PackedReader.prep('IIHHHH')
+        for _ in range(header.size.x * header.size.y):
+            slot_data = pr.getp(S_IIHHHH)
+            y_base = slot_data[0] & 0x3ff
+            y_height = (slot_data[0] >> 12) & 0xff
+            y_coord = y_base * 0.2 + y_height * 0.1
+            if y_coord > 100.0 or y_coord == 0.0:
+                y_coord -= 200.0
+            else:
+                y_coord += 5.0
+            y_coords.append(y_coord)
+            mesh_id_0 = (slot_data[0] >> 20) & 0x3f
+            mesh_id_1 = (slot_data[0] >> 26) & 0x3f
+            mesh_id_2 = slot_data[1] & 0x3f
+            mesh_id_3 = (slot_data[1] >> 6) & 0x3f
+            meshes_ids.append((
+                color_indices[mesh_id_0],
+                color_indices[mesh_id_1],
+                color_indices[mesh_id_2],
+                color_indices[mesh_id_3]
+                ))
+            shadow = ((slot_data[1] >> 12) & 0xf) / 0xf
+            shadows.append(shadow)
+            hemi = ((slot_data[1] >> 16) & 0xf) / 0xf
+            light_hemi.append(hemi)
+            light_r = ((slot_data[1] >> 20) & 0xf) / 0xf
+            light_g = ((slot_data[1] >> 24) & 0xf) / 0xf
+            light_b = ((slot_data[1] >> 28) & 0xf) / 0xf
+            lights.append((light_r, light_g, light_b))
+            a_0123 = [[], [], [], []]
+            for i in range(2, 6):
+                a0 = ((slot_data[i] >> 0) & 0xf) / 0xf
+                a1 = ((slot_data[i] >> 4) & 0xf) / 0xf
+                a2 = ((slot_data[i] >> 8) & 0xf) / 0xf
+                a3 = ((slot_data[i] >> 12) & 0xf) / 0xf
+                a_0123[i - 2].extend((a0, a1, a2, a3))
+            a_s.append(a_0123)
+    elif header.format_version == 2:
+        S_ffBHBHBHBHBBBB = PackedReader.prep('ffBHBHBHBHH')
+        light_v2 = []
+        for _ in range(header.size.x * header.size.y):
+            slot_data = pr.getp(S_ffBHBHBHBHBBBB)
+            y_base = slot_data[0]
+            y_top = slot_data[1]
+            y_coords.append(y_top)
+            dm_obj_in_slot_count = 4
+            data_index = 2
+            slot_meshes_ids = []
+            meshes_a_0123 = [[], [], [], []]
+            for dm_obj_in_slot_index in range(dm_obj_in_slot_count):
+                id = slot_data[data_index]
+                if id == 0xff:
+                    id = 0x3f
+                slot_meshes_ids.append(color_indices[id])
+                palette = slot_data[data_index + 1]
+                a_0123 = []
+                for a_index in range(4):
+                    a_i = ((palette >> a_index * 4) & 0xf) / 0xf
+                    a_0123.append(a_i)
+                meshes_a_0123[dm_obj_in_slot_index] = a_0123
+                data_index += 2
+            a_s.append(meshes_a_0123)
+            meshes_ids.append(slot_meshes_ids)
+            for i in range(4):    # R, G, B, A
+                light_v2.append((slot_data[10] >> (i * 4) & 0xf) / 0xf)
+        shadows = [0.5 for _ in range(header.size.x * header.size.y)]
+        light_hemi = shadows
+    else:
+        return
     slots_name = '{0} slots'.format(base_name)
     slots_mesh = cx.bpy.data.meshes.new(slots_name)
     slots_object = cx.bpy.data.objects.new(slots_name, slots_mesh)
@@ -187,7 +220,8 @@ def _read_details_slots(base_name, cx, pr, header):
     meshes_images_pixels = [[], [], [], []]
     a_s_pixels = [[[] for __ in range(4)] for _ in range(4)]
     for slot_index in range(header.size.x * header.size.y):
-        light = lights[slot_index]
+        if header.format_version == 3:
+            light = lights[slot_index]
         shadow = shadows[slot_index]
         hemi = light_hemi[slot_index]
         mesh_id = meshes_ids[slot_index]
@@ -195,7 +229,8 @@ def _read_details_slots(base_name, cx, pr, header):
         red_channel = slot_index * 4
         green_channel = red_channel + 1
         blue_channel = green_channel + 1
-        light_image_pixels.extend((light[0], light[1], light[2], 1.0))
+        if header.format_version == 3:
+            light_image_pixels.extend((light[0], light[1], light[2], 1.0))
         shadows_image_pixels.extend((shadow, shadow, shadow, 1.0))
         hemi_image_pixels.extend((hemi, hemi, hemi, 1.0))
         # meshes id
@@ -212,7 +247,10 @@ def _read_details_slots(base_name, cx, pr, header):
             for a_id in range(4):
                 a_s_pixels[mesh_id][a_id].extend((mesh_a[a_id], mesh_a[a_id], mesh_a[a_id], 1.0))
     # assign pixels
-    light_image.pixels = light_image_pixels
+    if header.format_version == 3:
+        light_image.pixels = light_image_pixels
+    elif header.format_version == 2:
+        light_image.pixels = light_v2
     shadows_image.pixels = shadows_image_pixels
     hemi_image.pixels = hemi_image_pixels
     for image_id, pixels in enumerate(meshes_images_pixels):
@@ -260,9 +298,8 @@ def _import(fpath, cx, cr):
     cx.bpy.context.scene.objects.link(bpy_details_root_object)
     bpy_meshes_root_object = _read_details_meshes(base_name, cx, cr_meshes)
     bpy_meshes_root_object.parent = bpy_details_root_object
-    if header.format_version == 3:
-        bpy_slots_object = _read_details_slots(base_name, cx, pr_slots, header)
-        bpy_slots_object.parent = bpy_details_root_object
+    bpy_slots_object = _read_details_slots(base_name, cx, pr_slots, header)
+    bpy_slots_object.parent = bpy_details_root_object
 
 
 def import_file(fpath, cx):
