@@ -78,14 +78,14 @@ def _read_details_slots(base_name, cx, pr, header):
             color_indices.append(color_index)
         return color_indices
 
-    y_coords = []
-    lights = []
-    shadows = []
-    light_hemi = []
-    meshes_ids = []
-    a_s = []
     color_indices = _generate_color_indices()
     if header.format_version == 3:
+        y_coords = []
+        lights = []
+        shadows = []
+        light_hemi = []
+        meshes_ids = []
+        a_s = []
         S_IIHHHH = PackedReader.prep('IIHHHH')
         for _ in range(header.slots_count):
             slot_data = pr.getp(S_IIHHHH)
@@ -125,6 +125,9 @@ def _read_details_slots(base_name, cx, pr, header):
             a_s.append(a_0123)
     elif header.format_version == 2:
         S_ffBHBHBHBHBBBB = PackedReader.prep('ffBHBHBHBHH')
+        y_coords = []
+        meshes_ids = []
+        a_s = []
         light_v2 = []
         for _ in range(header.slots_count):
             slot_data = pr.getp(S_ffBHBHBHBHBBBB)
@@ -151,10 +154,6 @@ def _read_details_slots(base_name, cx, pr, header):
             meshes_ids.append(slot_meshes_ids)
             for i in range(4):    # R, G, B, A
                 light_v2.append((slot_data[10] >> (i * 4) & 0xf) / 0xf)
-        shadows = [0.5 for _ in range(header.slots_count)]
-        light_hemi = shadows
-    else:
-        return
     slots_name = '{0} slots'.format(base_name)
     slots_mesh = cx.bpy.data.meshes.new(slots_name)
     slots_object = cx.bpy.data.objects.new(slots_name, slots_mesh)
@@ -204,13 +203,11 @@ def _read_details_slots(base_name, cx, pr, header):
             header.size.y
             )
 
-    light_image = _create_image('lights')
-    shadows_image = _create_image('shadows')
-    hemi_image = _create_image('hemi')
     # meshes ids
     meshes_images = []
     for index in range(4):
         meshes_images.append(_create_image('meshes {0}'.format(index)))
+
     # meshes a
     mesh_a_images = []
     for mesh_id in range(4):
@@ -225,18 +222,22 @@ def _read_details_slots(base_name, cx, pr, header):
     a_s_pixels = [[[] for __ in range(4)] for _ in range(4)]
     for slot_index in range(header.slots_count):
         if header.format_version == 3:
+
             light = lights[slot_index]
-        shadow = shadows[slot_index]
-        hemi = light_hemi[slot_index]
+            light_image_pixels.extend((light[0], light[1], light[2], 1.0))
+
+            shadow = shadows[slot_index]
+            hemi = light_hemi[slot_index]
+
+            shadows_image_pixels.extend((shadow, shadow, shadow, 1.0))
+            hemi_image_pixels.extend((hemi, hemi, hemi, 1.0))
+
         mesh_id = meshes_ids[slot_index]
         slot_a = a_s[slot_index]
         red_channel = slot_index * 4
         green_channel = red_channel + 1
         blue_channel = green_channel + 1
-        if header.format_version == 3:
-            light_image_pixels.extend((light[0], light[1], light[2], 1.0))
-        shadows_image_pixels.extend((shadow, shadow, shadow, 1.0))
-        hemi_image_pixels.extend((hemi, hemi, hemi, 1.0))
+
         # meshes id
         for i in range(4):
             meshes_images_pixels[i].extend((
@@ -245,25 +246,42 @@ def _read_details_slots(base_name, cx, pr, header):
                 mesh_id[i][2],
                 1.0
                 ))
+
         # mesh a
         for mesh_id in range(4):
             mesh_a = slot_a[mesh_id]
             for a_id in range(4):
                 a_s_pixels[mesh_id][a_id].extend((mesh_a[a_id], mesh_a[a_id], mesh_a[a_id], 1.0))
+
     # assign pixels
     if header.format_version == 3:
+
+        light_image = _create_image('lights')
         light_image.pixels = light_image_pixels
+        del light_image_pixels
+
+        shadows_image = _create_image('shadows')
+        shadows_image.pixels = shadows_image_pixels
+        del shadows_image_pixels
+
+        hemi_image = _create_image('hemi')
+        hemi_image.pixels = hemi_image_pixels
+        del hemi_image_pixels
+
     elif header.format_version == 2:
-        light_image.pixels = light_v2
-    shadows_image.pixels = shadows_image_pixels
-    hemi_image.pixels = hemi_image_pixels
+
+        lights_v2_image = _create_image('lights old version')
+        lights_v2_image.pixels = light_v2
+
     for image_id, pixels in enumerate(meshes_images_pixels):
         meshes_images[image_id].pixels = pixels
+
     image_id = 0
     for mesh_id in range(4):
         for a_id in range(4):
             mesh_a_images[image_id].pixels = a_s_pixels[mesh_id][a_id]
             image_id += 1
+
     return slots_object
 
 
