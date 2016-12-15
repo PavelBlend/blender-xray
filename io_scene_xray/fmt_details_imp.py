@@ -21,6 +21,10 @@ class DetailsHeader:
         self.meshes_count = None
         self.offset = self.Transform()
         self.size = self.Transform()
+        self.slots_count = 0
+
+    def calc_slots_count(self):
+        self.slots_count = self.size.x * self.size.y
 
 
 def _read_header(pr):
@@ -32,6 +36,7 @@ def _read_header(pr):
     header.offset.y = offs_z
     header.size.x = size_x
     header.size.y = size_z
+    header.calc_slots_count()
     return header
 
 
@@ -82,7 +87,7 @@ def _read_details_slots(base_name, cx, pr, header):
     color_indices = _generate_color_indices()
     if header.format_version == 3:
         S_IIHHHH = PackedReader.prep('IIHHHH')
-        for _ in range(header.size.x * header.size.y):
+        for _ in range(header.slots_count):
             slot_data = pr.getp(S_IIHHHH)
             y_base = slot_data[0] & 0x3ff
             y_height = (slot_data[0] >> 12) & 0xff
@@ -121,7 +126,7 @@ def _read_details_slots(base_name, cx, pr, header):
     elif header.format_version == 2:
         S_ffBHBHBHBHBBBB = PackedReader.prep('ffBHBHBHBHH')
         light_v2 = []
-        for _ in range(header.size.x * header.size.y):
+        for _ in range(header.slots_count):
             slot_data = pr.getp(S_ffBHBHBHBHBBBB)
             y_base = slot_data[0]
             y_top = slot_data[1]
@@ -146,7 +151,7 @@ def _read_details_slots(base_name, cx, pr, header):
             meshes_ids.append(slot_meshes_ids)
             for i in range(4):    # R, G, B, A
                 light_v2.append((slot_data[10] >> (i * 4) & 0xf) / 0xf)
-        shadows = [0.5 for _ in range(header.size.x * header.size.y)]
+        shadows = [0.5 for _ in range(header.slots_count)]
         light_hemi = shadows
     else:
         return
@@ -154,12 +159,11 @@ def _read_details_slots(base_name, cx, pr, header):
     slots_mesh = cx.bpy.data.meshes.new(slots_name)
     slots_object = cx.bpy.data.objects.new(slots_name, slots_mesh)
     cx.bpy.context.scene.objects.link(slots_object)
-    slots_count = header.size.x * header.size.y
     coord_x = 0
     coord_y = 0
     coord_z = 0
     slots = []
-    for slot_id in range(slots_count):
+    for slot_id in range(header.slots_count):
         if not slot_id % header.size.x and slot_id:
             coord_x -= header.size.x - 1
             coord_y += 1
@@ -219,7 +223,7 @@ def _read_details_slots(base_name, cx, pr, header):
     hemi_image_pixels = []
     meshes_images_pixels = [[], [], [], []]
     a_s_pixels = [[[] for __ in range(4)] for _ in range(4)]
-    for slot_index in range(header.size.x * header.size.y):
+    for slot_index in range(header.slots_count):
         if header.format_version == 3:
             light = lights[slot_index]
         shadow = shadows[slot_index]
