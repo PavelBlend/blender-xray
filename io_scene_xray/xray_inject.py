@@ -152,14 +152,27 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     no_waving = bpy.props.BoolProperty(description='No Waving', options={'SKIP_SAVE'}, default=False)
     min_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
     max_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
-    detail_index = bpy.props.IntProperty(default=0, min=0, max=62)
+
+    def update_detail_color(self, context):
+        if hasattr(context.object, 'xray'):
+            from . import fmt_details_imp
+            color_indices = fmt_details_imp._generate_color_indices()
+            context.object.xray.detail_color = color_indices[context.object.xray.detail_index][0 : 3]
+
+    detail_index = bpy.props.IntProperty(
+        default=0,
+        min=0,
+        max=62,
+        update=update_detail_color
+        )
     detail_color = bpy.props.FloatVectorProperty(
-                              default=(1.0, 0.0, 0.0),
-                              max=1.0,
-                              min=0.0,
-                              subtype='COLOR',
-                              size=3
-                              )
+        default=(1.0, 0.0, 0.0),
+        max=1.0,
+        min=0.0,
+        subtype='COLOR',
+        size=3,
+        update=update_detail_color
+        )
     details_meshes_object = bpy.props.StringProperty()
     details_slots_object = bpy.props.StringProperty()
     details_light_format = bpy.props.EnumProperty(
