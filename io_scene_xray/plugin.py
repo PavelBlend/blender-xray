@@ -188,6 +188,8 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
     directory = bpy.props.StringProperty(subtype="DIR_PATH")
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
+    load_slots = bpy.props.BoolProperty(name='Load Slots', default=True)
+
     def execute(self, context):
         textures_folder = plugin_prefs.get_preferences().get_textures_folder()
         if not textures_folder:
@@ -214,7 +216,7 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
                 if ext == '.dm':
                     fmt_dm_imp.import_file(os.path.join(self.directory, file.name), cx)
                 elif ext == '.details':
-                    fmt_details_imp.import_file(os.path.join(self.directory, file.name), cx)
+                    fmt_details_imp.import_file(os.path.join(self.directory, file.name), cx, self.load_slots)
                 else:
                     self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
         except AppError as err:
@@ -227,6 +229,8 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
         row = layout.row()
         row.enabled = False
         row.label('%d items' % len(self.files))
+        layout.label('Level Details Options:')
+        layout.prop(self, 'load_slots')
 
     def invoke(self, context, event):
         return super().invoke(context, event)

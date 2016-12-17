@@ -328,7 +328,7 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
     return slots_object
 
 
-def _import(fpath, cx, cr):
+def _import(fpath, cx, cr, load_slots):
     has_header = False
     has_meshes = False
     has_slots = False
@@ -350,39 +350,49 @@ def _import(fpath, cx, cr):
             cr_meshes = ChunkedReader(chunk_data)
             has_meshes = True
         elif chunk_id == fmt_details.Chunks.SLOTS:
-            pr_slots = PackedReader(chunk_data)
-            has_slots = True
+            if load_slots:
+                pr_slots = PackedReader(chunk_data)
+                has_slots = True
+            else:
+                has_slots = True
     if not has_header:
         raise AppError('bad details file. Cannot find HEADER chunk')
     if not has_meshes:
         raise AppError('bad details file. Cannot find MESHES chunk')
     if not has_slots:
         raise AppError('bad details file. Cannot find SLOTS chunk')
+
     base_name = os.path.basename(fpath.lower())
-    bpy_details_root_object = cx.bpy.data.objects.new(base_name, None)
-    cx.bpy.context.scene.objects.link(bpy_details_root_object)
-
     color_indices = _generate_color_indices()
-    bpy_meshes_root_object = _read_details_meshes(
-                                                  base_name,
-                                                  cx,
-                                                  cr_meshes,
-                                                  color_indices
-                                                  )
-    bpy_meshes_root_object.parent = bpy_details_root_object
-    bpy_slots_object = _read_details_slots(
-                                           base_name,
-                                           cx,
-                                           pr_slots,
-                                           header,
-                                           color_indices,
-                                           bpy_details_root_object
-                                           )
-    bpy_slots_object.parent = bpy_details_root_object
-    bpy_details_root_object.xray.details_meshes_object = bpy_meshes_root_object.name
-    bpy_details_root_object.xray.details_slots_object = bpy_slots_object.name
+
+    meshes_obj = _read_details_meshes(
+                                      base_name,
+                                      cx,
+                                      cr_meshes,
+                                      color_indices
+                                      )
+
+    if load_slots:
+
+        root_obj = cx.bpy.data.objects.new(base_name, None)
+        cx.bpy.context.scene.objects.link(root_obj)
+
+        meshes_obj.parent = root_obj
+
+        slots_obj = _read_details_slots(
+                                        base_name,
+                                        cx,
+                                        pr_slots,
+                                        header,
+                                        color_indices,
+                                        root_obj
+                                        )
+        slots_obj.parent = root_obj
+
+        root_obj.xray.details_meshes_object = meshes_obj.name
+        root_obj.xray.details_slots_object = slots_obj.name
 
 
-def import_file(fpath, cx):
+def import_file(fpath, cx, load_slots):
     with io.open(fpath, 'rb') as f:
-        _import(fpath, cx, ChunkedReader(f.read()))
+        _import(fpath, cx, ChunkedReader(f.read()), load_slots)
