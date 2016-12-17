@@ -134,6 +134,7 @@ def _create_images(
         header,
         meshes,
         a_s,
+        root_obj,
         lights=None,
         shadows=None,
         hemi=None,
@@ -157,28 +158,39 @@ def _create_images(
             a_image = _create_det_image('mesh {0} a{1}'.format(mesh_id, a_id))
             a_image.pixels = a_s[mesh_id][a_id]
 
+
+    xray = root_obj.xray
+
     if header.format_version == 3:
+
+        xray.details_light_format = 'VERSION_3'
 
         light_image = _create_det_image('lights')
         light_image.pixels = lights
         del lights
+        xray.lights_image = light_image.name
 
         shadows_image = _create_det_image('shadows')
         shadows_image.pixels = shadows
         del shadows
+        xray.shadows_image = shadows_image.name
 
         hemi_image = _create_det_image('hemi')
         hemi_image.pixels = hemi
         del hemi
+        xray.hemi_image = hemi_image.name
 
     elif header.format_version == 2:
+
+        xray.details_light_format = 'VERSION_2'
 
         lights_v2_image = _create_det_image('lights old')
         lights_v2_image.pixels = lights_old
         del lights_old
+        xray.lights_image = lights_v2_image.name
 
 
-def _read_details_slots(base_name, cx, pr, header, color_indices):
+def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
     # create meshes id pallete
     meshes_indices_pixels = []
     for color_index in color_indices:
@@ -240,6 +252,7 @@ def _read_details_slots(base_name, cx, pr, header, color_indices):
             header,
             meshes_images_pixels,
             a_s,
+            root_obj,
             lights=lights_image_pixels,
             shadows=shadows_image_pixels,
             hemi=hemi_image_pixels
@@ -284,6 +297,7 @@ def _read_details_slots(base_name, cx, pr, header, color_indices):
             header,
             meshes_images_pixels,
             a_s,
+            root_obj,
             lights_old=lights_old_image_pixels
             )
 
@@ -338,7 +352,8 @@ def _import(fpath, cx, cr):
                                            cx,
                                            pr_slots,
                                            header,
-                                           color_indices
+                                           color_indices,
+                                           bpy_details_root_object
                                            )
     bpy_slots_object.parent = bpy_details_root_object
     bpy_details_root_object.xray.details_meshes_object = bpy_meshes_root_object.name

@@ -175,7 +175,7 @@ class XRayMeshPanel(XRayPanel):
         # r.prop(data, 'flags_other', text='Other')
 
 
-class XRayDetailMeshPanel(XRayPanel):
+class XRayDetailsPanel(XRayPanel):
     bl_context = 'object'
     bl_label = 'XRay - details'
 
@@ -213,6 +213,33 @@ class XRayDetailMeshPanel(XRayPanel):
                 'objects',
                 text='Slots Object'
                 )
+            _, box = draw_collapsible(layout, 'object:lighting', 'Lighting Properties')
+            if box:
+                row = box.row()
+                row.label('Format:')
+                row.row().prop(data, 'details_light_format', expand=True, text='Format')
+                box.prop_search(
+                    data,
+                    'lights_image',
+                    bpy.data,
+                    'images',
+                    text='Lights'
+                    )
+                if data.details_light_format == 'VERSION_3':
+                    box.prop_search(
+                        data,
+                        'hemi_image',
+                        bpy.data,
+                        'images',
+                        text='Hemi'
+                        )
+                    box.prop_search(
+                        data,
+                        'shadows_image',
+                        bpy.data,
+                        'images',
+                        text='Shadows'
+                        )
 
 
 class XRayShapeEditHelperObjectPanel(XRayPanel):
@@ -484,7 +511,7 @@ classes = [
     PropClipOp,
     _CollapsOp,
     XRayObjectPanel
-    , XRayDetailMeshPanel
+    , XRayDetailsPanel
     , XRayMeshPanel
     , XRayShapeEditHelperObjectPanel
     , XRayEShaderMenu

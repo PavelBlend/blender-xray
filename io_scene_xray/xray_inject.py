@@ -162,6 +162,17 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
                               )
     details_meshes_object = bpy.props.StringProperty()
     details_slots_object = bpy.props.StringProperty()
+    details_light_format = bpy.props.EnumProperty(
+        name='Format',
+        items=(
+              ('VERSION_3', 'New', 'level.details version 3 (builds 1569-CoP)'),
+              ('VERSION_2', 'Old', 'level.details version 2 (builds 1096-1558)')
+              ),
+        default='VERSION_3'
+        )
+    lights_image = bpy.props.StringProperty()
+    hemi_image = bpy.props.StringProperty()
+    shadows_image = bpy.props.StringProperty()
 
 
 class XRayMeshProperties(bpy.types.PropertyGroup):
