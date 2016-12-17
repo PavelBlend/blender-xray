@@ -163,11 +163,13 @@ def _create_images(
         ):
 
     def _create_det_image(name):
-        return cx.bpy.data.images.new(
+        bpy_image = cx.bpy.data.images.new(
             'details {0}'.format(name),
             header.size.x,
             header.size.y
             )
+        bpy_image.use_fake_user = True
+        return bpy_image
 
     for mesh_id in range(4):
         meshes_image = _create_det_image('meshes {0}'.format(mesh_id))
