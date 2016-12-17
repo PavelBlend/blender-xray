@@ -215,11 +215,20 @@ def _create_images(
 
 def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
     # create meshes id pallete
-    meshes_indices_pixels = []
-    for color_index in color_indices:
-        meshes_indices_pixels.extend(color_index)
-    meshes_indices_image = cx.bpy.data.images.new('meshes indices', 64, 1)
-    meshes_indices_image.pixels = meshes_indices_pixels
+    pallete_name = 'details meshes pallete'
+    if cx.bpy.data.images.get(pallete_name) == None:
+        meshes_indices_pixels = []
+        for color_index in color_indices:
+            meshes_indices_pixels.extend(color_index)
+        meshes_indices_image = cx.bpy.data.images.new(pallete_name, 64, 1)
+        meshes_indices_image.pixels = meshes_indices_pixels
+        meshes_indices_image.use_fake_user = True
+    if cx.bpy.data.palettes.get(pallete_name) == None:
+        pallete = cx.bpy.data.palettes.new(pallete_name)
+        pallete.use_fake_user = True
+        for rgba in color_indices:
+            color = pallete.colors.new()
+            color.color = rgba[0 : 3]   # cut alpha
 
     y_coords = []
     meshes_images_pixels = [[], [], [], []]
