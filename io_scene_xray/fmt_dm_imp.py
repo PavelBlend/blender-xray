@@ -6,7 +6,15 @@ from .utils import AppError
 from .xray_io import PackedReader
 
 
-def import_(fpath, cx, pr, mode='DM', color_index=0):
+def import_(
+            fpath,
+            cx,
+            pr,
+            mode='DM',
+            detail_index=0,
+            detail_colors=[[1.0, 0.0, 0.0]]
+            ):
+
     if cx.bpy:
         object_name = os.path.basename(fpath.lower())
         bpy_mesh = cx.bpy.data.meshes.new(object_name)
@@ -87,7 +95,8 @@ def import_(fpath, cx, pr, mode='DM', color_index=0):
         bpy_obj.xray.no_waving = bool(flags)
         bpy_obj.xray.min_scale = min_scale
         bpy_obj.xray.max_scale = max_scale
-        bpy_obj.xray.color_index = color_index
+        bpy_obj.xray.detail_index = detail_index
+        bpy_obj.xray.detail_color = detail_colors[detail_index][0:3]
         if indices_cnt % 3 != 0:
             raise AppError('bad dm triangle indices')
         bm = bmesh.new()

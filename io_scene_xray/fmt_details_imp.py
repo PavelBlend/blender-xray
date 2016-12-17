@@ -40,7 +40,7 @@ def _read_header(pr):
     return header
 
 
-def _read_details_meshes(base_name, cx, cr):
+def _read_details_meshes(base_name, cx, cr, color_indices):
     bpy_obj_root = cx.bpy.data.objects.new('{} meshes'.format(base_name), None)
     cx.bpy.context.scene.objects.link(bpy_obj_root)
     for mesh_id, mesh_data in cr:
@@ -51,7 +51,8 @@ def _read_details_meshes(base_name, cx, cr):
             cx,
             pr,
             mode='DETAILS',
-            color_index=mesh_id
+            detail_index=mesh_id,
+            detail_colors=color_indices
             )
         bpy_obj_mesh.parent = bpy_obj_root
     return bpy_obj_root
@@ -177,9 +178,7 @@ def _create_images(
         del lights_old
 
 
-def _read_details_slots(base_name, cx, pr, header):
-    color_indices = _generate_color_indices()
-
+def _read_details_slots(base_name, cx, pr, header, color_indices):
     # create meshes id pallete
     meshes_indices_pixels = []
     for color_index in color_indices:
@@ -325,9 +324,22 @@ def _import(fpath, cx, cr):
     base_name = os.path.basename(fpath.lower())
     bpy_details_root_object = cx.bpy.data.objects.new(base_name, None)
     cx.bpy.context.scene.objects.link(bpy_details_root_object)
-    bpy_meshes_root_object = _read_details_meshes(base_name, cx, cr_meshes)
+
+    color_indices = _generate_color_indices()
+    bpy_meshes_root_object = _read_details_meshes(
+                                                  base_name,
+                                                  cx,
+                                                  cr_meshes,
+                                                  color_indices
+                                                  )
     bpy_meshes_root_object.parent = bpy_details_root_object
-    bpy_slots_object = _read_details_slots(base_name, cx, pr_slots, header)
+    bpy_slots_object = _read_details_slots(
+                                           base_name,
+                                           cx,
+                                           pr_slots,
+                                           header,
+                                           color_indices
+                                           )
     bpy_slots_object.parent = bpy_details_root_object
 
 

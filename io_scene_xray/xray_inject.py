@@ -152,7 +152,14 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     no_waving = bpy.props.BoolProperty(description='No Waving', options={'SKIP_SAVE'}, default=False)
     min_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
     max_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
-    color_index = bpy.props.IntProperty(default=0, min=0, max=62)
+    detail_index = bpy.props.IntProperty(default=0, min=0, max=62)
+    detail_color = bpy.props.FloatVectorProperty(
+                              default=(1.0, 0.0, 0.0),
+                              max=1.0,
+                              min=0.0,
+                              subtype='COLOR',
+                              size=3
+                              )
 
 
 class XRayMeshProperties(bpy.types.PropertyGroup):

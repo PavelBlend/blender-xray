@@ -193,7 +193,8 @@ class XRayDetailMeshPanel(XRayPanel):
         layout.prop(data, 'no_waving', text='No Waving', toggle=True)
         layout.prop(data, 'min_scale', text='Min Scale')
         layout.prop(data, 'max_scale', text='Max Scale')
-        layout.prop(data, 'color_index', text='Color Index')
+        layout.prop(data, 'detail_index', text='Detail Index')
+        layout.prop(data, 'detail_color', text='')
 
 
 class XRayShapeEditHelperObjectPanel(XRayPanel):
