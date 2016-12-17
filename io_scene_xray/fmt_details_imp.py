@@ -46,7 +46,13 @@ def _read_details_meshes(base_name, cx, cr):
     for mesh_id, mesh_data in cr:
         pr = PackedReader(mesh_data)
         mesh_name = '{0} mesh_{1:0>2}'.format(base_name, mesh_id)
-        bpy_obj_mesh = fmt_dm_imp.import_(mesh_name, cx, pr, mode='DETAILS')
+        bpy_obj_mesh = fmt_dm_imp.import_(
+            mesh_name,
+            cx,
+            pr,
+            mode='DETAILS',
+            color_index=mesh_id
+            )
         bpy_obj_mesh.parent = bpy_obj_root
     return bpy_obj_root
 
@@ -173,6 +179,14 @@ def _create_images(
 
 def _read_details_slots(base_name, cx, pr, header):
     color_indices = _generate_color_indices()
+
+    # create meshes id pallete
+    meshes_indices_pixels = []
+    for color_index in color_indices:
+        meshes_indices_pixels.extend(color_index)
+    meshes_indices_image = cx.bpy.data.images.new('meshes indices', 64, 1)
+    meshes_indices_image.pixels = meshes_indices_pixels
+
     y_coords = []
     meshes_images_pixels = [[], [], [], []]
     a_s = [[[] for __ in range(4)] for _ in range(4)]
