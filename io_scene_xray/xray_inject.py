@@ -160,6 +160,8 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
                               subtype='COLOR',
                               size=3
                               )
+    details_meshes_object = bpy.props.StringProperty()
+    details_slots_object = bpy.props.StringProperty()
 
 
 class XRayMeshProperties(bpy.types.PropertyGroup):

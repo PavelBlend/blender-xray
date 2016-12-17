@@ -177,24 +177,42 @@ class XRayMeshPanel(XRayPanel):
 
 class XRayDetailMeshPanel(XRayPanel):
     bl_context = 'object'
-    bl_label = 'XRay - detail mesh'
+    bl_label = 'XRay - details'
 
     @classmethod
     def poll(cls, context):
         return (
             context.active_object
-            and context.active_object.type in {'MESH'}
+            and context.active_object.type in {'MESH', 'EMPTY'}
             and not is_helper_object(context.active_object)
         )
 
     def draw(self, context):
         layout = self.layout
         data = context.object.xray
-        layout.prop(data, 'no_waving', text='No Waving', toggle=True)
-        layout.prop(data, 'min_scale', text='Min Scale')
-        layout.prop(data, 'max_scale', text='Max Scale')
-        layout.prop(data, 'detail_index', text='Detail Index')
-        layout.prop(data, 'detail_color', text='')
+        if context.active_object.type == 'MESH':
+            layout.label('Detail Model Options:')
+            layout.prop(data, 'no_waving', text='No Waving', toggle=True)
+            layout.prop(data, 'min_scale', text='Min Scale')
+            layout.prop(data, 'max_scale', text='Max Scale')
+            layout.prop(data, 'detail_index', text='Detail Index')
+            layout.prop(data, 'detail_color', text='')
+        elif context.active_object.type == 'EMPTY':
+            layout.label('Level Details Options:')
+            layout.prop_search(
+                data,
+                'details_meshes_object',
+                bpy.data,
+                'objects',
+                text='Meshes Object'
+                )
+            layout.prop_search(
+                data,
+                'details_slots_object',
+                bpy.data,
+                'objects',
+                text='Slots Object'
+                )
 
 
 class XRayShapeEditHelperObjectPanel(XRayPanel):

@@ -341,6 +341,8 @@ def _import(fpath, cx, cr):
                                            color_indices
                                            )
     bpy_slots_object.parent = bpy_details_root_object
+    bpy_details_root_object.xray.details_meshes_object = bpy_meshes_root_object.name
+    bpy_details_root_object.xray.details_slots_object = bpy_slots_object.name
 
 
 def import_file(fpath, cx):
