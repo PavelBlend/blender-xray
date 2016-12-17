@@ -63,20 +63,34 @@ def _create_details_slots_object(base_name, cx, header, y_coords):
     slots_mesh = cx.bpy.data.meshes.new(slots_name)
     slots_object = cx.bpy.data.objects.new(slots_name, slots_mesh)
     cx.bpy.context.scene.objects.link(slots_object)
-    coord_x = 0
-    coord_y = 0
     slots = []
-    for slot_id in range(header.slots_count):
-        if not slot_id % header.size.x and slot_id:
-            coord_x -= header.size.x - 1
-            coord_y += 1
-        else:
-            coord_x += 1
-        slots.append((
-            (coord_x - 1 - header.offset.x) * header.slot_size + header.slot_half,
-            (coord_y - header.offset.y) * header.slot_size + header.slot_half,
-            y_coords[slot_id]
-            ))
+    uv_face_size_x = 1.0 / header.size.x
+    uv_face_size_y = 1.0 / header.size.y
+    uvs = []
+    slot_id = 0
+    for coord_y in range(header.size.y):
+        for coord_x in range(header.size.x):
+
+            # append UV's
+            uv_x = coord_x * uv_face_size_x
+            uv_x_plus = uv_x + uv_face_size_x
+            uv_y = coord_y * uv_face_size_y
+            uv_y_plus = uv_y + uv_face_size_y
+            uvs.extend((
+                        (uv_x, uv_y),
+                        (uv_x_plus, uv_y),
+                        (uv_x_plus, uv_y_plus),
+                        (uv_x, uv_y_plus)
+                      ))
+
+            slots.append((
+                (coord_x - header.offset.x) * header.slot_size + header.slot_half,
+                (coord_y - header.offset.y) * header.slot_size + header.slot_half,
+                y_coords[slot_id]
+                ))
+
+            slot_id += 1
+
 
     def _offset_vert_coord(vert_coord, offset_x, offset_y):
         return vert_coord[0] + offset_x, vert_coord[1] + offset_y, vert_coord[2]
@@ -99,6 +113,13 @@ def _create_details_slots_object(base_name, cx, header, y_coords):
             ))
         cur_vert_id += 4
     slots_mesh.from_pydata(vertices, (), faces)
+
+    # create UV's
+    uv_textures = slots_mesh.uv_textures.new('UVMap')
+    uv_layer_data = slots_mesh.uv_layers['UVMap'].data
+    for uv_index, uv in enumerate(uvs):
+        uv_layer_data[uv_index].uv = uv
+
     return slots_object
 
 
