@@ -174,6 +174,12 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     hemi_image = bpy.props.StringProperty()
     shadows_image = bpy.props.StringProperty()
 
+    # slots meshes indices
+    slots_mesh_0 = bpy.props.StringProperty()
+    slots_mesh_1 = bpy.props.StringProperty()
+    slots_mesh_2 = bpy.props.StringProperty()
+    slots_mesh_3 = bpy.props.StringProperty()
+
 
 class XRayMeshProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Mesh

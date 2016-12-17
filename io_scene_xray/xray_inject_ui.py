@@ -213,7 +213,8 @@ class XRayDetailsPanel(XRayPanel):
                 'objects',
                 text='Slots Object'
                 )
-            _, box = draw_collapsible(layout, 'object:lighting', 'Lighting Properties')
+
+            _, box = draw_collapsible(layout, 'object:lighting', 'Lighting Coefficients')
             if box:
                 row = box.row()
                 row.label('Format:')
@@ -240,6 +241,37 @@ class XRayDetailsPanel(XRayPanel):
                         'images',
                         text='Shadows'
                         )
+
+            _, box = draw_collapsible(layout, 'object:slots', 'Slots Meshes Indices')
+            if box:
+                box.prop_search(
+                    data,
+                    'slots_mesh_0',
+                    bpy.data,
+                    'images',
+                    text='Mesh 0'
+                    )
+                box.prop_search(
+                    data,
+                    'slots_mesh_1',
+                    bpy.data,
+                    'images',
+                    text='Mesh 1'
+                    )
+                box.prop_search(
+                    data,
+                    'slots_mesh_2',
+                    bpy.data,
+                    'images',
+                    text='Mesh 2'
+                    )
+                box.prop_search(
+                    data,
+                    'slots_mesh_3',
+                    bpy.data,
+                    'images',
+                    text='Mesh 3'
+                    )
 
 
 class XRayShapeEditHelperObjectPanel(XRayPanel):

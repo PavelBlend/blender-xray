@@ -171,18 +171,24 @@ def _create_images(
         bpy_image.use_fake_user = True
         return bpy_image
 
+    xray = root_obj.xray
+
+    m_i = []    # meshes images
     for mesh_id in range(4):
         meshes_image = _create_det_image('meshes {0}'.format(mesh_id))
         meshes_image.pixels = meshes[mesh_id]
+        m_i.append(meshes_image)
+    xray.slots_mesh_0 = m_i[0].name
+    xray.slots_mesh_1 = m_i[1].name
+    xray.slots_mesh_2 = m_i[2].name
+    xray.slots_mesh_3 = m_i[3].name
+    del m_i
 
     mesh_a_images = []
     for mesh_id in range(4):
         for a_id in range(4):
             a_image = _create_det_image('mesh {0} a{1}'.format(mesh_id, a_id))
             a_image.pixels = a_s[mesh_id][a_id]
-
-
-    xray = root_obj.xray
 
     if header.format_version == 3:
 
