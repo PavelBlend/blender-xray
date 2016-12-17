@@ -244,34 +244,28 @@ class XRayDetailsPanel(XRayPanel):
 
             _, box = draw_collapsible(layout, 'object:slots', 'Slots Meshes Indices')
             if box:
-                box.prop_search(
-                    data,
-                    'slots_mesh_0',
-                    bpy.data,
-                    'images',
-                    text='Mesh 0'
-                    )
-                box.prop_search(
-                    data,
-                    'slots_mesh_1',
-                    bpy.data,
-                    'images',
-                    text='Mesh 1'
-                    )
-                box.prop_search(
-                    data,
-                    'slots_mesh_2',
-                    bpy.data,
-                    'images',
-                    text='Mesh 2'
-                    )
-                box.prop_search(
-                    data,
-                    'slots_mesh_3',
-                    bpy.data,
-                    'images',
-                    text='Mesh 3'
-                    )
+                for i in range(4):
+                    box.prop_search(
+                        data,
+                        'slots_mesh_{}'.format(i),
+                        bpy.data,
+                        'images',
+                        text='Mesh {}'.format(i)
+                        )
+
+            _, box = draw_collapsible(layout, 'object:density', 'Density')
+            if box:
+                for i in range(4):
+                    _, box_ = draw_collapsible(box, 'object:density_{}'.format(i), 'Mesh {}'.format(i))
+                    if box_:
+                        for ii in range(4):
+                            box.prop_search(
+                                data,
+                                'density_{0}_{1}'.format(i, ii),
+                                bpy.data,
+                                'images',
+                                text=''
+                                )
 
 
 class XRayShapeEditHelperObjectPanel(XRayPanel):

@@ -177,18 +177,38 @@ def _create_images(
     for mesh_id in range(4):
         meshes_image = _create_det_image('meshes {0}'.format(mesh_id))
         meshes_image.pixels = meshes[mesh_id]
-        m_i.append(meshes_image)
-    xray.slots_mesh_0 = m_i[0].name
-    xray.slots_mesh_1 = m_i[1].name
-    xray.slots_mesh_2 = m_i[2].name
-    xray.slots_mesh_3 = m_i[3].name
+        m_i.append(meshes_image.name)
+    xray.slots_mesh_0 = m_i[0]
+    xray.slots_mesh_1 = m_i[1]
+    xray.slots_mesh_2 = m_i[2]
+    xray.slots_mesh_3 = m_i[3]
     del m_i
 
-    mesh_a_images = []
+    d_i = []    # density images
     for mesh_id in range(4):
         for a_id in range(4):
             a_image = _create_det_image('mesh {0} a{1}'.format(mesh_id, a_id))
             a_image.pixels = a_s[mesh_id][a_id]
+            d_i.append(a_image.name)
+
+    xray.density_0_0 = d_i[0]
+    xray.density_0_1 = d_i[1]
+    xray.density_0_2 = d_i[2]
+    xray.density_0_3 = d_i[3]
+    xray.density_1_0 = d_i[4]
+    xray.density_1_1 = d_i[5]
+    xray.density_1_2 = d_i[6]
+    xray.density_1_3 = d_i[7]
+    xray.density_2_0 = d_i[8]
+    xray.density_2_1 = d_i[9]
+    xray.density_2_2 = d_i[10]
+    xray.density_2_3 = d_i[11]
+    xray.density_3_0 = d_i[12]
+    xray.density_3_1 = d_i[13]
+    xray.density_3_2 = d_i[14]
+    xray.density_3_3 = d_i[15]
+
+    del d_i
 
     if header.format_version == 3:
 
