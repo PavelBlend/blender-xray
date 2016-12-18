@@ -11,3 +11,6 @@ class TestFormatObject(utils.XRayTestCase):
             directory=self.relpath(),
             files=[{'name': 'test_fmt_invalid_face.object'}],
         )
+
+        # Assert
+        self.assertReportsContains('WARNING', re.compile('Mesh: invalid face found'))

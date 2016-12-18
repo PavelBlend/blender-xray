@@ -213,6 +213,8 @@ def _import_mesh(cx, cr, renamemap):
         def mkface(self, fi):
             fr = fc_data[fi]
             bmf = self._mkf(fr, 0, 4, 2)
+            if bmf is None:
+                return bmf
             for i, j in enumerate((1, 5, 3)):
                 for vmi, vi in vm_refs[fr[j]]:
                     vm = vmaps[vmi]
@@ -234,6 +236,9 @@ def _import_mesh(cx, cr, renamemap):
             try:
                 return bm.faces.new(vv)
             except ValueError:
+                if len(set(vv)) < 3:
+                    cx.report({'WARNING'}, 'Mesh: invalid face found')
+                    return None
                 if self.__next is None:
                     lvl = self.__level
                     if lvl > 100:
@@ -318,6 +323,8 @@ def _import_mesh(cx, cr, renamemap):
                     cx.report({'WARNING'}, 'face {} has already been instantiated with material {}'.format(fi, bmf.material_index))
                     continue
                 bmfaces[fi] = bmf = local.mkface(fi)
+                if bmf is None:
+                    continue
                 bmf.material_index = midx
                 if bml_texture is not None:
                     bmf[bml_texture].image = images[midx]
@@ -332,6 +339,8 @@ def _import_mesh(cx, cr, renamemap):
         bm.edges.index_update()
         edict = [None] * len(bm.edges)
         for fi, bmf in enumerate(bmfaces):
+            if bmf is None:
+                continue
             face_sg(bmf, fi, edict)
 
     if not cx.split_by_materials:
@@ -339,6 +348,8 @@ def _import_mesh(cx, cr, renamemap):
         for faces, midx in f_facez:
             for fi in faces:
                 bmf = bmfaces[fi]
+                if bmf is None:
+                    continue
                 if assigned[fi]:
                     cx.report({'WARNING'}, 'face {} has already used material {}'.format(fi, bmf.material_index))
                     continue
