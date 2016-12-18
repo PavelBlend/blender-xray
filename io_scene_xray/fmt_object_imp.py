@@ -541,7 +541,10 @@ def _import_main(fpath, cx, cr):
                             continue
                         if not hasattr(ts.texture, 'image'):
                             continue
-                        if not tx_filepart in ts.texture.image.filepath:
+                        img = ts.texture.image
+                        if img is None:
+                            continue
+                        if tx_filepart not in img.filepath:
                             continue
                         ts_found = True
                         break
