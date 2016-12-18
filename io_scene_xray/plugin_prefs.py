@@ -59,6 +59,15 @@ def PropObjectBonesCustomShapes():
 
 
 # noinspection PyPep8Naming
+def PropObjectColorizeMaterials():
+    return bpy.props.BoolProperty(
+        name='Colorize Materials',
+        description='Set a pseudo-random diffuse color for each surface (material)',
+        default=False
+    )
+
+
+# noinspection PyPep8Naming
 def PropAnmCameraAnimation():
     return bpy.props.BoolProperty(
         name='Create Linked Camera',
@@ -91,6 +100,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
     object_mesh_split_by_mat = PropObjectMeshSplitByMaterials()
     object_texture_names_from_path = PropObjectTextureNamesFromPath()
     object_bones_custom_shapes = PropObjectBonesCustomShapes()
+    object_colorize_materials = PropObjectColorizeMaterials()
     anm_create_camera = PropAnmCameraAnimation()
 
     def get_textures_folder(self):
@@ -130,6 +140,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 prop_bool(bx, self, 'object_texture_names_from_path')
                 prop_bool(bx, self, 'object_mesh_split_by_mat')
                 prop_bool(bx, self, 'object_bones_custom_shapes')
+                prop_bool(bx, self, 'object_colorize_materials')
 
             _, bx = draw_collapsible(box, 'plugin_prefs:defaults.anm', 'Animation', style='tree')
             if bx:
