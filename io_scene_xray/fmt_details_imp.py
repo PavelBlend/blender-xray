@@ -172,10 +172,12 @@ def _create_images(
         return bpy_image
 
     xray = root_obj.xray
+    images_list = []
 
     m_i = []    # meshes images
     for mesh_id in range(4):
         meshes_image = _create_det_image('meshes {0}'.format(mesh_id))
+        images_list.append(meshes_image.name)
         meshes_image.pixels = meshes[mesh_id]
         m_i.append(meshes_image.name)
     xray.slots_mesh_0 = m_i[0]
@@ -188,6 +190,7 @@ def _create_images(
     for mesh_id in range(4):
         for a_id in range(4):
             a_image = _create_det_image('mesh {0} a{1}'.format(mesh_id, a_id))
+            images_list.append(a_image.name)
             a_image.pixels = a_s[mesh_id][a_id]
             d_i.append(a_image.name)
 
@@ -215,16 +218,19 @@ def _create_images(
         xray.details_light_format = 'VERSION_3'
 
         light_image = _create_det_image('lights')
+        images_list.append(light_image.name)
         light_image.pixels = lights
         del lights
         xray.lights_image = light_image.name
 
         shadows_image = _create_det_image('shadows')
+        images_list.append(shadows_image.name)
         shadows_image.pixels = shadows
         del shadows
         xray.shadows_image = shadows_image.name
 
         hemi_image = _create_det_image('hemi')
+        images_list.append(hemi_image.name)
         hemi_image.pixels = hemi
         del hemi
         xray.hemi_image = hemi_image.name
@@ -238,10 +244,39 @@ def _create_images(
             header.size.x * 2,
             header.size.y * 2
             )
+        images_list.append(lights_v2_image.name)
         lights_v2_image.use_fake_user = True
         lights_v2_image.pixels = lights_old
         del lights_old
         xray.lights_image = lights_v2_image.name
+
+    if cx.details_save_slots:
+
+        settings = cx.bpy.context.scene.render.image_settings
+
+        file_format = settings.file_format
+        settings.file_format = 'PNG'
+
+        color_mode = settings.color_mode
+        color_depth = settings.color_depth
+        compression = settings.compression
+
+        settings.color_mode = 'RGB'
+        settings.color_depth = '8'
+        settings.compression = 100
+
+        for image_name in images_list:
+            image = cx.bpy.data.images[image_name]
+            image_path = cx.details_save_folder + image_name + '.png'
+            image.save_render(image_path)
+            image.source = 'FILE'
+            image.filepath = image_path
+
+        settings.color_mode = color_mode
+        settings.color_depth = color_depth
+        settings.compression = compression
+
+        settings.file_format = file_format
 
 
 def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):

@@ -189,6 +189,8 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
     load_slots = bpy.props.BoolProperty(name='Load Slots', default=True)
+    save_slots = bpy.props.BoolProperty(name='Save Slots', default=False)
+    save_folder = bpy.props.StringProperty(name='Save Folder')
 
     def execute(self, context):
         textures_folder = plugin_prefs.get_preferences().get_textures_folder()
@@ -209,7 +211,15 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
             op=self,
             bpy=bpy
         )
-        import os.path
+        if self.save_slots and len(self.save_folder) == 0:
+            self.report({'ERROR'}, 'No details slots folder specified')
+            return {'CANCELLED'}
+        import os
+        if self.save_slots:
+            if self.save_folder[-1] != os.sep:
+                self.save_folder += os.sep
+        cx.details_save_slots = self.save_slots
+        cx.details_save_folder = self.save_folder
         try:
             for file in self.files:
                 ext = os.path.splitext(file.name)[-1].lower()
@@ -231,6 +241,9 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
         row.label('%d items' % len(self.files))
         layout.label('Level Details Options:')
         layout.prop(self, 'load_slots')
+        layout.prop(self, 'save_slots')
+        if self.save_slots:
+            layout.prop(self, 'save_folder')
 
     def invoke(self, context, event):
         return super().invoke(context, event)
