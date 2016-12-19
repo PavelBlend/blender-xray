@@ -78,7 +78,7 @@ def import_(
                         break
                 if not bpy_image:
                     bpy_image = cx.bpy.data.images.new(
-                        os.path.basename(texture), 0, 0
+                        os.path.basename(texture) + '.dds', 0, 0
                         )
                     bpy_image.source = 'FILE'
                     if not cx.textures_folder:
