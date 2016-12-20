@@ -193,28 +193,6 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     slots_mesh_2 = bpy.props.StringProperty()
     slots_mesh_3 = bpy.props.StringProperty()
 
-    # slots meshes density
-
-    density_0_0 = bpy.props.StringProperty()
-    density_0_1 = bpy.props.StringProperty()
-    density_0_2 = bpy.props.StringProperty()
-    density_0_3 = bpy.props.StringProperty()
-
-    density_1_0 = bpy.props.StringProperty()
-    density_1_1 = bpy.props.StringProperty()
-    density_1_2 = bpy.props.StringProperty()
-    density_1_3 = bpy.props.StringProperty()
-
-    density_2_0 = bpy.props.StringProperty()
-    density_2_1 = bpy.props.StringProperty()
-    density_2_2 = bpy.props.StringProperty()
-    density_2_3 = bpy.props.StringProperty()
-
-    density_3_0 = bpy.props.StringProperty()
-    density_3_1 = bpy.props.StringProperty()
-    density_3_2 = bpy.props.StringProperty()
-    density_3_3 = bpy.props.StringProperty()
-
 
 class XRayMeshProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Mesh

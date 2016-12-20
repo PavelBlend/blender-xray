@@ -253,20 +253,6 @@ class XRayDetailsPanel(XRayPanel):
                         text='Mesh {}'.format(i)
                         )
 
-            _, box = draw_collapsible(layout, 'object:density', 'Density')
-            if box:
-                for i in range(4):
-                    _, box_ = draw_collapsible(box, 'object:density_{}'.format(i), 'Mesh {}'.format(i))
-                    if box_:
-                        for ii in range(4):
-                            box.prop_search(
-                                data,
-                                'density_{0}_{1}'.format(i, ii),
-                                bpy.data,
-                                'images',
-                                text=''
-                                )
-
 
 class XRayShapeEditHelperObjectPanel(XRayPanel):
     bl_context = 'object'

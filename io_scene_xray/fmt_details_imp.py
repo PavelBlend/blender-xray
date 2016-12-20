@@ -153,11 +153,15 @@ def _generate_color_indices():
 def _create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
         hemi=None, lights_old=None):
 
-    def _create_det_image(name):
+    def _create_det_image(name, double_size=False):
+        if double_size:
+            scale = 2
+        else:
+            scale = 1
         bpy_image = cx.bpy.data.images.new(
             'details {0}'.format(name),
-            header.size.x,
-            header.size.y
+            header.size.x*scale,
+            header.size.y*scale
             )
         bpy_image.use_fake_user = True
         return bpy_image
@@ -167,10 +171,9 @@ def _create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
 
     m_i = []    # meshes images
     for mesh_id in range(4):
-        meshes_image = cx.bpy.data.images.new(
-            'meshes {0}'.format(mesh_id),
-            header.size.x * 2,
-            header.size.y * 2
+        meshes_image = _create_det_image(
+            'meshes {}'.format(mesh_id),
+            double_size=True
             )
         meshes_image.use_fake_user = True
         images_list.append(meshes_image.name)
@@ -209,11 +212,7 @@ def _create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
 
         xray.details_light_format = 'VERSION_2'
 
-        lights_v2_image = cx.bpy.data.images.new(
-            'lights old',
-            header.size.x * 2,
-            header.size.y * 2
-            )
+        lights_v2_image = _create_det_image('lighting', double_size=True)
         images_list.append(lights_v2_image.name)
         lights_v2_image.use_fake_user = True
         lights_v2_image.pixels = lights_old
@@ -231,7 +230,7 @@ def _create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
         color_depth = settings.color_depth
         compression = settings.compression
 
-        settings.color_mode = 'RGB'
+        settings.color_mode = 'RGBA'
         settings.color_depth = '8'
         settings.compression = 100
 
