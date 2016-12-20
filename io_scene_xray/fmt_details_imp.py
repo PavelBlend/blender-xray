@@ -447,6 +447,8 @@ def _import(fpath, cx, cr, load_slots):
     has_meshes = False
     has_slots = False
     for chunk_id, chunk_data in cr:
+        if chunk_id == 0x0 and len(chunk_data) == 0:    # bad file (build 1233)
+            break
         if chunk_id == fmt_details.Chunks.HEADER:
             if len(chunk_data) != 24:
                 raise AppError(
