@@ -150,17 +150,8 @@ def _generate_color_indices():
     return color_indices
 
 
-def _create_images(
-        cx,
-        header,
-        meshes,
-        a_s,
-        root_obj,
-        lights=None,
-        shadows=None,
-        hemi=None,
-        lights_old=None
-        ):
+def _create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
+        hemi=None, lights_old=None):
 
     def _create_det_image(name):
         bpy_image = cx.bpy.data.images.new(
@@ -176,42 +167,21 @@ def _create_images(
 
     m_i = []    # meshes images
     for mesh_id in range(4):
-        meshes_image = _create_det_image('meshes {0}'.format(mesh_id))
+        meshes_image = cx.bpy.data.images.new(
+            'meshes {0}'.format(mesh_id),
+            header.size.x * 2,
+            header.size.y * 2
+            )
+        meshes_image.use_fake_user = True
         images_list.append(meshes_image.name)
         meshes_image.pixels = meshes[mesh_id]
         m_i.append(meshes_image.name)
+
     xray.slots_mesh_0 = m_i[0]
     xray.slots_mesh_1 = m_i[1]
     xray.slots_mesh_2 = m_i[2]
     xray.slots_mesh_3 = m_i[3]
     del m_i
-
-    d_i = []    # density images
-    for mesh_id in range(4):
-        for a_id in range(4):
-            a_image = _create_det_image('mesh {0} a{1}'.format(mesh_id, a_id))
-            images_list.append(a_image.name)
-            a_image.pixels = a_s[mesh_id][a_id]
-            d_i.append(a_image.name)
-
-    xray.density_0_0 = d_i[0]
-    xray.density_0_1 = d_i[1]
-    xray.density_0_2 = d_i[2]
-    xray.density_0_3 = d_i[3]
-    xray.density_1_0 = d_i[4]
-    xray.density_1_1 = d_i[5]
-    xray.density_1_2 = d_i[6]
-    xray.density_1_3 = d_i[7]
-    xray.density_2_0 = d_i[8]
-    xray.density_2_1 = d_i[9]
-    xray.density_2_2 = d_i[10]
-    xray.density_2_3 = d_i[11]
-    xray.density_3_0 = d_i[12]
-    xray.density_3_1 = d_i[13]
-    xray.density_3_2 = d_i[14]
-    xray.density_3_3 = d_i[15]
-
-    del d_i
 
     if header.format_version == 3:
 
@@ -239,7 +209,7 @@ def _create_images(
 
         xray.details_light_format = 'VERSION_2'
 
-        lights_v2_image = bpy_image = cx.bpy.data.images.new(
+        lights_v2_image = cx.bpy.data.images.new(
             'lights old',
             header.size.x * 2,
             header.size.y * 2
@@ -279,8 +249,9 @@ def _create_images(
         settings.file_format = file_format
 
 
-def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
-    # create meshes id pallete
+def _create_pallete(cx, color_indices):
+
+    # create image pallete
     pallete_name = 'details meshes pallete'
     if cx.bpy.data.images.get(pallete_name) == None:
         meshes_indices_pixels = []
@@ -289,6 +260,8 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
         meshes_indices_image = cx.bpy.data.images.new(pallete_name, 64, 1)
         meshes_indices_image.pixels = meshes_indices_pixels
         meshes_indices_image.use_fake_user = True
+
+    # create bpy pallete
     if cx.bpy.data.palettes.get(pallete_name) == None:
         pallete = cx.bpy.data.palettes.new(pallete_name)
         pallete.use_fake_user = True
@@ -296,10 +269,19 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
             color = pallete.colors.new()
             color.color = rgba[0 : 3]   # cut alpha
 
+
+def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
+
+    _create_pallete(cx, color_indices)
+
     y_coords = []
-    meshes_images_pixels = [[], [], [], []]
-    a_s = [[[] for __ in range(4)] for _ in range(4)]
-    dm_obj_in_slot_count = 4
+    meshes_images_pixels = [[1.0 for _ in range(header.slots_count * 4 * 4)] for _ in range(4)]
+    pixels_offset = {
+        0: (0, 0),
+        1: (1, 0),
+        2: (0, 1),
+        3: (1, 1),
+        }
 
     if header.format_version == 3:
         lights_image_pixels = []
@@ -307,74 +289,93 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
         hemi_image_pixels = []
         S_IIHHHH = PackedReader.prep('IIHHHH')
 
-        for _ in range(header.slots_count):
-            slot_data = pr.getp(S_IIHHHH)
+        for slot_y in range(header.size.y):
+            for slot_x in range(header.size.x):
 
-            y_base = slot_data[0] & 0x3ff
-            y_height = (slot_data[0] >> 12) & 0xff
-            y_coord = y_base * 0.2 + y_height * 0.1
-            if y_coord > 100.0 or y_coord == 0.0:
-                y_coord -= 200.0
-            else:
-                y_coord += 5.0
-            y_coords.append(y_coord)
+                slot_data = pr.getp(S_IIHHHH)
 
-            mesh_id_0 = (slot_data[0] >> 20) & 0x3f
-            mesh_id_1 = (slot_data[0] >> 26) & 0x3f
-            mesh_id_2 = slot_data[1] & 0x3f
-            mesh_id_3 = (slot_data[1] >> 6) & 0x3f
-            meshes_images_pixels[0].extend(color_indices[mesh_id_0])
-            meshes_images_pixels[1].extend(color_indices[mesh_id_1])
-            meshes_images_pixels[2].extend(color_indices[mesh_id_2])
-            meshes_images_pixels[3].extend(color_indices[mesh_id_3])
+                # slot Y coordinate
+                y_base = slot_data[0] & 0x3ff
+                y_height = (slot_data[0] >> 12) & 0xff
+                y_coord = y_base * 0.2 + y_height * 0.1
+                if y_coord > 100.0 or y_coord == 0.0:
+                    y_coord -= 200.0
+                else:
+                    y_coord += 5.0
+                y_coords.append(y_coord)
 
-            shadow = ((slot_data[1] >> 12) & 0xf) / 0xf
-            shadows_image_pixels.extend((shadow, shadow, shadow, 1.0))
+                # meshes indices
+                meshes = [
+                    (slot_data[0] >> 20) & 0x3f,
+                    (slot_data[0] >> 26) & 0x3f,
+                    slot_data[1] & 0x3f,
+                    (slot_data[1] >> 6) & 0x3f
+                    ]
 
-            hemi = ((slot_data[1] >> 16) & 0xf) / 0xf
-            hemi_image_pixels.extend((hemi, hemi, hemi, 1.0))
+                # lighting
+                shadow = ((slot_data[1] >> 12) & 0xf) / 0xf
+                shadows_image_pixels.extend((shadow, shadow, shadow, 1.0))
 
-            light_r = ((slot_data[1] >> 20) & 0xf) / 0xf
-            light_g = ((slot_data[1] >> 24) & 0xf) / 0xf
-            light_b = ((slot_data[1] >> 28) & 0xf) / 0xf
-            lights_image_pixels.extend((light_r, light_g, light_b, 1.0))
+                hemi = ((slot_data[1] >> 16) & 0xf) / 0xf
+                hemi_image_pixels.extend((hemi, hemi, hemi, 1.0))
 
-            meshes_a_data = slot_data[2 : 6]
-            for mesh_index, mesh_a_data in enumerate(meshes_a_data):
-                for a_index in range(4):
-                    a = ((mesh_a_data >> a_index * 4) & 0xf) / 0xf
-                    a_s[mesh_index][a_index].extend((a, a, a, 1.0))
+                light_r = ((slot_data[1] >> 20) & 0xf) / 0xf
+                light_g = ((slot_data[1] >> 24) & 0xf) / 0xf
+                light_b = ((slot_data[1] >> 28) & 0xf) / 0xf
+                lights_image_pixels.extend((light_r, light_g, light_b, 1.0))
+
+                # meshes density
+                meshes_density_data = slot_data[2 : 6]
+                for mesh_index, mesh_density in enumerate(meshes_density_data):
+                    for corner_index in range(4):
+
+                        corner_density = (
+                            (mesh_density >> corner_index * 4) & 0xf) / 0xf
+
+                        pixel_index = \
+                            slot_x * 2 + \
+                            pixels_offset[corner_index][0] + \
+                            header.size.x * 2 * \
+                            (slot_y * 2 + pixels_offset[corner_index][1])
+
+                        color = color_indices[meshes[mesh_index]]
+
+                        pixels = meshes_images_pixels[mesh_index]
+                        pixels[pixel_index * 4] = color[0]    # R
+                        pixels[pixel_index * 4 + 1] = color[1]    # G
+                        pixels[pixel_index * 4 + 2] = color[2]    # B
+                        pixels[pixel_index * 4 + 3] = corner_density    # A
 
         _create_images(
             cx,
             header,
             meshes_images_pixels,
-            a_s,
             root_obj,
             lights=lights_image_pixels,
             shadows=shadows_image_pixels,
             hemi=hemi_image_pixels
             )
-
+     
     elif header.format_version == 2:
         S_ffBHBHBHBHBBBB = PackedReader.prep('ffBHBHBHBHH')
-        lights_old_image_pixels = [1.0 for _ in range(header.slots_count * 4 * 4)]
+        lighting_image_pixels = [
+            1.0 for _ in range(header.slots_count * 4 * 4)
+            ]
 
-        # builds 1254-1558
         pixels_offset = {
             0: (0, 1),
             1: (1, 1),
             2: (0, 0),
             3: (1, 0),
             }
-        # build 1096-1233
-        '''
-        pixels_offset = {
+
+        density_pixels_offset = {
             0: (0, 0),
             1: (1, 0),
             2: (0, 1),
             3: (1, 1),
-            }'''
+            }
+
         for slot_y in range(header.size.y):
             for slot_x in range(header.size.x):
                 slot_data = pr.getp(S_ffBHBHBHBHBBBB)
@@ -385,39 +386,57 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
 
                 data_index = 2
 
-                for dm_obj_in_slot_index in range(dm_obj_in_slot_count):
+                for mesh_index in range(4):
     
                     dm_obj_id = slot_data[data_index]
                     if dm_obj_id == 0xff:
                         dm_obj_id = 0x3f
-                    meshes_images_pixels[dm_obj_in_slot_index].extend(
-                        color_indices[dm_obj_id]
-                        )
 
-                    palette = slot_data[data_index + 1]
-                    a_0123 = []
-                    for a_index in range(4):
-                        a = ((palette >> a_index * 4) & 0xf) / 0xf
-                        a_s[dm_obj_in_slot_index][a_index].extend((a, a, a, 1.0))
+                    density_data = slot_data[data_index + 1]
+
+                    color = color_indices[dm_obj_id]
+                    pixels = meshes_images_pixels[mesh_index]
+
+                    for corner_index in range(4):
+
+                        dens_pixel_index = \
+                            slot_x * 2 + \
+                            density_pixels_offset[corner_index][0] + \
+                            header.size.x * 2 * \
+                            (slot_y * 2 + \
+                            density_pixels_offset[corner_index][1])
+
+                        corner_density = (
+                            (density_data >> corner_index * 4) & 0xf) / 0xf
+
+                        pixels[dens_pixel_index * 4] = color[0]    # R
+                        pixels[dens_pixel_index * 4 + 1] = color[1]    # G
+                        pixels[dens_pixel_index * 4 + 2] = color[2]    # B
+                        pixels[dens_pixel_index * 4 + 3] = corner_density   # A
+
+                        light = (
+                            slot_data[10] >> (corner_index * 4) & 0xf) / 0xf
+
+                        pixel_index = \
+                            slot_x * 2 + \
+                            pixels_offset[corner_index][0] + \
+                            header.size.x * 2 * \
+                            (slot_y * 2 + \
+                            pixels_offset[corner_index][1])
+
+                        lighting_image_pixels[pixel_index * 4] = light  # R
+                        lighting_image_pixels[pixel_index * 4 + 1] = light  # G
+                        lighting_image_pixels[pixel_index * 4 + 2] = light  # B
+                        lighting_image_pixels[pixel_index * 4 + 3] = 1.0  # A
+
                     data_index += 2
-
-                for i in range(4):
-                    light = (slot_data[10] >> (i * 4) & 0xf) / 0xf
-
-                    pixel_index = slot_x * 2 + pixels_offset[i][0] + header.size.x * 2 * (slot_y * 2 + pixels_offset[i][1])
-
-                    lights_old_image_pixels[pixel_index * 4] = light    # R
-                    lights_old_image_pixels[pixel_index * 4 + 1] = light    # G
-                    lights_old_image_pixels[pixel_index * 4 + 2] = light    # B
-                    lights_old_image_pixels[pixel_index * 4 + 3] = 1.0    # A
 
         _create_images(
             cx,
             header,
             meshes_images_pixels,
-            a_s,
             root_obj,
-            lights_old=lights_old_image_pixels
+            lights_old=lighting_image_pixels
             )
 
     slots_object = _create_details_slots_object(base_name, cx, header, y_coords)
