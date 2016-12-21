@@ -190,6 +190,13 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
 
     load_slots = bpy.props.BoolProperty(name='Load Slots', default=True)
     save_slots = bpy.props.BoolProperty(name='Save Slots', default=False)
+    save_format = bpy.props.EnumProperty(
+        name='Images Format',
+        items=(
+            ('PNG', 'PNG', ''),
+            ('TGA', 'TGA', '')
+            )
+        )
     save_folder = bpy.props.StringProperty(name='Save Folder')
     lighting_old_format = bpy.props.EnumProperty(
         name='Lighting Old Format',
@@ -226,6 +233,7 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
             if self.save_folder[-1] != os.sep:
                 self.save_folder += os.sep
         cx.details_save_slots = self.save_slots
+        cx.save_format = self.save_format
         cx.lighting_old_format = self.lighting_old_format
         cx.details_save_folder = self.save_folder
         try:
@@ -254,6 +262,8 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
             layout.prop(self, 'lighting_old_format', expand=True)
         layout.prop(self, 'save_slots')
         if self.save_slots:
+            layout.label('Images Format:')
+            layout.prop(self, 'save_format', expand=True)
             layout.prop(self, 'save_folder')
 
     def invoke(self, context, event):

@@ -224,7 +224,12 @@ def _create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
         settings = cx.bpy.context.scene.render.image_settings
 
         file_format = settings.file_format
-        settings.file_format = 'PNG'
+        if cx.save_format == 'PNG':
+            settings.file_format = 'PNG'
+            ext = '.png'
+        if cx.save_format == 'TGA':
+            settings.file_format = 'TARGA'
+            ext = '.tga'
 
         color_mode = settings.color_mode
         color_depth = settings.color_depth
@@ -236,7 +241,7 @@ def _create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
 
         for image_name in images_list:
             image = cx.bpy.data.images[image_name]
-            image_path = cx.details_save_folder + image_name + '.png'
+            image_path = cx.details_save_folder + image_name + ext
             image.save_render(image_path)
             image.source = 'FILE'
             image.filepath = image_path
