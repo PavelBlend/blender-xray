@@ -76,16 +76,22 @@ def import_(
                     if abs_image_path == bi.filepath:
                         bpy_image = bi
                         break
+
                 if not bpy_image:
-                    bpy_image = cx.bpy.data.images.new(
-                        os.path.basename(texture) + '.dds', 0, 0
-                        )
-                    bpy_image.source = 'FILE'
-                    if not cx.textures_folder:
-                        bpy_image.filepath = texture + '.dds'
-                    else:
-                        bpy_image.filepath = abs_image_path
-                    bpy_image.use_alpha = True
+                    try:
+                        bpy_image = cx.bpy.data.images.load(abs_image_path)
+                    except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+                        cx.report({'WARNING'}, str(ex))
+                        bpy_image = cx.bpy.data.images.new(
+                            os.path.basename(texture) + '.dds', 0, 0
+                            )
+                        bpy_image.source = 'FILE'
+                        if not cx.textures_folder:
+                            bpy_image.filepath = texture + '.dds'
+                        else:
+                            bpy_image.filepath = abs_image_path
+                        bpy_image.use_alpha = True
+
                 bpy_texture.image = bpy_image
             else:
                 bpy_texture_slot = bpy_material.texture_slots.add()
