@@ -188,6 +188,9 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
     directory = bpy.props.StringProperty(subtype="DIR_PATH")
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
+    details_models_in_a_row = bpy.props.BoolProperty(
+        name='Details Models in a Row', default=True
+        )
     load_slots = bpy.props.BoolProperty(name='Load Slots', default=True)
     save_slots = bpy.props.BoolProperty(name='Save Slots', default=False)
     save_format = bpy.props.EnumProperty(
@@ -236,15 +239,30 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
         cx.save_format = self.save_format
         cx.lighting_old_format = self.lighting_old_format
         cx.details_save_folder = self.save_folder
+        cx.details_models_in_a_row = self.details_models_in_a_row
+        cx.load_slots = self.load_slots
         try:
             for file in self.files:
                 ext = os.path.splitext(file.name)[-1].lower()
+
                 if ext == '.dm':
-                    fmt_dm_imp.import_file(os.path.join(self.directory, file.name), cx)
+                    fmt_dm_imp.import_file(
+                        os.path.join(self.directory, file.name),
+                        cx
+                        )
+
                 elif ext == '.details':
-                    fmt_details_imp.import_file(os.path.join(self.directory, file.name), cx, self.load_slots)
+                    fmt_details_imp.import_file(
+                        os.path.join(self.directory, file.name),
+                        cx
+                        )
+
                 else:
-                    self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
+                    self.report(
+                        {'ERROR'},
+                        'Format of {} not recognised'.format(file)
+                        )
+
         except AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
@@ -256,6 +274,7 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
         row.enabled = False
         row.label('%d items' % len(self.files))
         layout.label('Level Details Options:')
+        layout.prop(self, 'details_models_in_a_row')
         layout.prop(self, 'load_slots')
         if self.load_slots:
             layout.label('Lighting Old Format:')
