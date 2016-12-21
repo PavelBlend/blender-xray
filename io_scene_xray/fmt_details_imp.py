@@ -1,8 +1,8 @@
 
 import os
 import io
-from . import fmt_details
 from . import fmt_dm_imp
+from .fmt_details import Chunks, SUPPORT_FORMAT_VERSIONS
 from .utils import AppError
 from .xray_io import ChunkedReader, PackedReader
 
@@ -89,16 +89,24 @@ def _create_details_slots_object(base_name, cx, header, y_coords):
                       ))
 
             slots.append((
-                (coord_x - header.offset.x) * header.slot_size + header.slot_half,
-                (coord_y - header.offset.y) * header.slot_size + header.slot_half,
+
+                (coord_x - header.offset.x) * header.slot_size + \
+                    header.slot_half,
+
+                (coord_y - header.offset.y) * header.slot_size + \
+                    header.slot_half,
+
                 y_coords[slot_id]
+
                 ))
 
             slot_id += 1
 
 
     def _offset_vert_coord(vert_coord, offset_x, offset_y):
-        return vert_coord[0] + offset_x, vert_coord[1] + offset_y, vert_coord[2]
+        return vert_coord[0] + offset_x, \
+               vert_coord[1] + offset_y, \
+               vert_coord[2]
 
     vertices = []
     faces = []
@@ -284,7 +292,9 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
     _create_pallete(cx, color_indices)
 
     y_coords = []
-    meshes_images_pixels = [[1.0 for _ in range(header.slots_count * 4 * 4)] for _ in range(4)]
+    meshes_images_pixels = [
+        [1.0 for _ in range(header.slots_count * 4 * 4)] for _ in range(4)
+        ]
     pixels_offset = {
         0: (0, 0),
         1: (1, 0),
@@ -350,10 +360,10 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
                         color = color_indices[meshes[mesh_index]]
 
                         pixels = meshes_images_pixels[mesh_index]
-                        pixels[pixel_index * 4] = color[0]    # R
-                        pixels[pixel_index * 4 + 1] = color[1]    # G
-                        pixels[pixel_index * 4 + 2] = color[2]    # B
-                        pixels[pixel_index * 4 + 3] = corner_density    # A
+                        pixels[pixel_index * 4] = color[0]    # Red
+                        pixels[pixel_index * 4 + 1] = color[1]    # Green
+                        pixels[pixel_index * 4 + 2] = color[2]    # Blue
+                        pixels[pixel_index * 4 + 3] = corner_density    # Alpha
 
         _create_images(
             cx,
@@ -426,10 +436,14 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
                         corner_density = (
                             (density_data >> corner_index * 4) & 0xf) / 0xf
 
-                        pixels[dens_pixel_index * 4] = color[0]    # R
-                        pixels[dens_pixel_index * 4 + 1] = color[1]    # G
-                        pixels[dens_pixel_index * 4 + 2] = color[2]    # B
-                        pixels[dens_pixel_index * 4 + 3] = corner_density   # A
+                        # Red
+                        pixels[dens_pixel_index * 4] = color[0]
+                        # Green
+                        pixels[dens_pixel_index * 4 + 1] = color[1]
+                        # Blue
+                        pixels[dens_pixel_index * 4 + 2] = color[2]
+                        # Alpha
+                        pixels[dens_pixel_index * 4 + 3] = corner_density
 
                         light = (
                             slot_data[10] >> (corner_index * 4) & 0xf) / 0xf
@@ -441,22 +455,25 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
                             (slot_y * 2 + \
                             pixels_offset[corner_index][1])
 
-                        lighting_image_pixels[pixel_index * 4] = light  # R
-                        lighting_image_pixels[pixel_index * 4 + 1] = light  # G
-                        lighting_image_pixels[pixel_index * 4 + 2] = light  # B
-                        lighting_image_pixels[pixel_index * 4 + 3] = 1.0  # A
+                        # Red
+                        lighting_image_pixels[pixel_index * 4] = light
+                        # Green
+                        lighting_image_pixels[pixel_index * 4 + 1] = light
+                        # Blue
+                        lighting_image_pixels[pixel_index * 4 + 2] = light
+                        # Alpha
+                        lighting_image_pixels[pixel_index * 4 + 3] = 1.0
 
                     data_index += 2
 
         _create_images(
-            cx,
-            header,
-            meshes_images_pixels,
-            root_obj,
+            cx, header, meshes_images_pixels, root_obj,
             lights_old=lighting_image_pixels
             )
 
-    slots_object = _create_details_slots_object(base_name, cx, header, y_coords)
+    slots_object = _create_details_slots_object(
+        base_name, cx, header, y_coords
+        )
     return slots_object
 
 
@@ -467,23 +484,26 @@ def _import(fpath, cx, cr):
     for chunk_id, chunk_data in cr:
         if chunk_id == 0x0 and len(chunk_data) == 0:    # bad file (build 1233)
             break
-        if chunk_id == fmt_details.Chunks.HEADER:
+        if chunk_id == Chunks.HEADER:
             if len(chunk_data) != 24:
                 raise AppError(
                     'bad details file. HEADER chunk size not equal 24'
                     )
             header = _read_header(PackedReader(chunk_data))
-            if header.format_version not in fmt_details.SUPPORT_FORMAT_VERSIONS:
+
+            if header.format_version not in SUPPORT_FORMAT_VERSIONS:
+
                 raise AppError(
                     'unssuported details format version: {}'.format(
                         header.format_version
                         )
                     )
+
             has_header = True
-        elif chunk_id == fmt_details.Chunks.MESHES:
+        elif chunk_id == Chunks.MESHES:
             cr_meshes = ChunkedReader(chunk_data)
             has_meshes = True
-        elif chunk_id == fmt_details.Chunks.SLOTS:
+        elif chunk_id == Chunks.SLOTS:
             if cx.load_slots:
                 pr_slots = PackedReader(chunk_data)
                 has_slots = True

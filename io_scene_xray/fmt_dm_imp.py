@@ -6,14 +6,8 @@ from .utils import AppError
 from .xray_io import PackedReader
 
 
-def import_(
-            fpath,
-            cx,
-            pr,
-            mode='DM',
-            detail_index=0,
-            detail_colors=[[1.0, 0.0, 0.0]]
-            ):
+def import_(fpath, cx, pr, mode='DM', detail_index=0,
+                detail_colors=[[1.0, 0.0, 0.0]]):
 
     if cx.bpy:
         object_name = os.path.basename(fpath.lower())
@@ -22,7 +16,9 @@ def import_(
         cx.bpy.context.scene.objects.link(bpy_obj)
         shader = pr.gets()
         texture = pr.gets()
-        abs_image_path = os.path.abspath(os.path.join(cx.textures_folder, texture + '.dds'))
+        abs_image_path = os.path.abspath(
+            os.path.join(cx.textures_folder, texture + '.dds')
+            )
         uv_map_name = 'Texture'
         bpy_material = None
         bpy_image = None
