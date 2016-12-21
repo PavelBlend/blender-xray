@@ -191,6 +191,13 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
     load_slots = bpy.props.BoolProperty(name='Load Slots', default=True)
     save_slots = bpy.props.BoolProperty(name='Save Slots', default=False)
     save_folder = bpy.props.StringProperty(name='Save Folder')
+    lighting_old_format = bpy.props.EnumProperty(
+        name='Lighting Old Format',
+        items=(
+            ('1096', 'Builds 1096-1230', ''),
+            ('1233', 'Builds 1233-1558', '')
+            )
+        )
 
     def execute(self, context):
         textures_folder = plugin_prefs.get_preferences().get_textures_folder()
@@ -219,6 +226,7 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
             if self.save_folder[-1] != os.sep:
                 self.save_folder += os.sep
         cx.details_save_slots = self.save_slots
+        cx.lighting_old_format = self.lighting_old_format
         cx.details_save_folder = self.save_folder
         try:
             for file in self.files:
@@ -241,6 +249,9 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
         row.label('%d items' % len(self.files))
         layout.label('Level Details Options:')
         layout.prop(self, 'load_slots')
+        if self.load_slots:
+            layout.label('Lighting Old Format:')
+            layout.prop(self, 'lighting_old_format', expand=True)
         layout.prop(self, 'save_slots')
         if self.save_slots:
             layout.prop(self, 'save_folder')

@@ -361,12 +361,20 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
             1.0 for _ in range(header.slots_count * 4 * 4)
             ]
 
-        pixels_offset = {
-            0: (0, 1),
-            1: (1, 1),
-            2: (0, 0),
-            3: (1, 0),
-            }
+        if cx.lighting_old_format == '1233':
+            pixels_offset = {
+                0: (0, 1),
+                1: (1, 1),
+                2: (0, 0),
+                3: (1, 0),
+                }
+        elif cx.lighting_old_format == '1096':
+            pixels_offset = {
+                0: (0, 0),
+                1: (1, 0),
+                2: (0, 1),
+                3: (1, 1),
+                }
 
         density_pixels_offset = {
             0: (0, 0),
