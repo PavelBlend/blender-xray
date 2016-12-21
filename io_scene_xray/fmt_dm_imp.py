@@ -115,7 +115,7 @@ def import_(fpath, cx, pr, mode='DM', detail_index=0,
             try:
                 bm.faces.new(
                     (bm.verts[fi[0]], bm.verts[fi[2]], bm.verts[fi[1]])
-                    )
+                    ).smooth = True
             except ValueError:
                 pass
         bm.faces.ensure_lookup_table()
