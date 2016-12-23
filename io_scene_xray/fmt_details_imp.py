@@ -28,8 +28,11 @@ class DetailsHeader:
 
 
 def _read_header(pr):
-    header = DetailsHeader()
+
     fmt_ver, meshes_count, offs_x, offs_z, size_x, size_z = pr.getf('<IIiiII')
+
+    header = DetailsHeader()
+
     header.format_version = fmt_ver
     header.meshes_count = meshes_count
     header.offset.x = offs_x
@@ -37,29 +40,34 @@ def _read_header(pr):
     header.size.x = size_x
     header.size.y = size_z
     header.calc_slots_count()
+
     return header
 
 
 def _read_details_meshes(base_name, cx, cr, color_indices, header):
+
     bpy_obj_root = cx.bpy.data.objects.new('{} meshes'.format(base_name), None)
     cx.bpy.context.scene.objects.link(bpy_obj_root)
+
     step_x = 0.5
+
     if cx.details_models_in_a_row:
         first_offset_x = -step_x * header.meshes_count / 2
+
     for mesh_id, mesh_data in cr:
         pr = PackedReader(mesh_data)
         mesh_name = '{0} mesh_{1:0>2}'.format(base_name, mesh_id)
+
         bpy_obj_mesh = fmt_dm_imp.import_(
-            mesh_name,
-            cx,
-            pr,
-            mode='DETAILS',
-            detail_index=mesh_id,
-            detail_colors=color_indices
+            mesh_name, cx, pr, mode='DETAILS',
+            detail_index=mesh_id, detail_colors=color_indices
             )
+
         bpy_obj_mesh.parent = bpy_obj_root
+
         if cx.details_models_in_a_row:
             bpy_obj_mesh.location[0] = first_offset_x + step_x * mesh_id
+
     return bpy_obj_root
 
 
@@ -137,10 +145,12 @@ def _create_details_slots_object(base_name, cx, header, y_coords):
 
 
 def _generate_color_indices():
+
     mesh_ids = []
     color_depth = 21
     current_mesh = [color_depth, 0, 0]
     color_channels_reverse = (1, 2, 0)
+
     for color_channel in range(3):    # R, G, B
         for _ in range(color_depth):
             mesh_ids.append((
@@ -150,8 +160,10 @@ def _generate_color_indices():
                 ))
             current_mesh[color_channel] -= 1
             current_mesh[color_channels_reverse[color_channel]] += 1
-    mesh_ids.append([0, 0, 0])
+
+    mesh_ids.append([0, 0, 0])    # color index 63 (empty detail mesh)
     color_indices = []
+
     for mesh_id in mesh_ids:
         color_index = (
             mesh_id[0] / color_depth,
@@ -160,6 +172,7 @@ def _generate_color_indices():
             1.0
             )
         color_indices.append(color_index)
+
     return color_indices
 
 
@@ -268,8 +281,9 @@ def _create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
 
 def _create_pallete(cx, color_indices):
 
-    # create image pallete
     pallete_name = 'details meshes pallete'
+
+    # create image pallete
     if cx.bpy.data.images.get(pallete_name) == None:
         meshes_indices_pixels = []
         for color_index in color_indices:
@@ -370,7 +384,7 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
             shadows=shadows_image_pixels,
             hemi=hemi_image_pixels
             )
-     
+
     elif header.format_version == 2:
         S_ffBHBHBHBHBBBB = PackedReader.prep('ffBHBHBHBHH')
         lighting_image_pixels = [
@@ -410,7 +424,7 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
                 data_index = 2
 
                 for mesh_index in range(4):
-    
+
                     dm_obj_id = slot_data[data_index]
                     if dm_obj_id == 0xff:
                         dm_obj_id = 0x3f
@@ -470,16 +484,21 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
     slots_object = _create_details_slots_object(
         base_name, cx, header, y_coords
         )
+
     return slots_object
 
 
 def _import(fpath, cx, cr):
+
     has_header = False
     has_meshes = False
     has_slots = False
+
     for chunk_id, chunk_data in cr:
+
         if chunk_id == 0x0 and len(chunk_data) == 0:    # bad file (build 1233)
             break
+
         if chunk_id == Chunks.HEADER:
             if len(chunk_data) != 24:
                 raise AppError(
@@ -488,7 +507,6 @@ def _import(fpath, cx, cr):
             header = _read_header(PackedReader(chunk_data))
 
             if header.format_version not in SUPPORT_FORMAT_VERSIONS:
-
                 raise AppError(
                     'unssuported details format version: {}'.format(
                         header.format_version
@@ -496,15 +514,16 @@ def _import(fpath, cx, cr):
                     )
 
             has_header = True
+
         elif chunk_id == Chunks.MESHES:
             cr_meshes = ChunkedReader(chunk_data)
             has_meshes = True
+
         elif chunk_id == Chunks.SLOTS:
             if cx.load_slots:
                 pr_slots = PackedReader(chunk_data)
-                has_slots = True
-            else:
-                has_slots = True
+            has_slots = True
+
     if not has_header:
         raise AppError('bad details file. Cannot find HEADER chunk')
     if not has_meshes:
@@ -516,12 +535,8 @@ def _import(fpath, cx, cr):
     color_indices = _generate_color_indices()
 
     meshes_obj = _read_details_meshes(
-                                      base_name,
-                                      cx,
-                                      cr_meshes,
-                                      color_indices,
-                                      header
-                                      )
+        base_name, cx, cr_meshes, color_indices, header
+        )
 
     if cx.load_slots:
 
@@ -531,13 +546,9 @@ def _import(fpath, cx, cr):
         meshes_obj.parent = root_obj
 
         slots_obj = _read_details_slots(
-                                        base_name,
-                                        cx,
-                                        pr_slots,
-                                        header,
-                                        color_indices,
-                                        root_obj
-                                        )
+            base_name, cx, pr_slots, header, color_indices, root_obj
+            )
+
         slots_obj.parent = root_obj
 
         root_obj.xray.details_meshes_object = meshes_obj.name
