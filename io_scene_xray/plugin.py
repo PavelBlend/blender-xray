@@ -501,6 +501,57 @@ class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
+class OpExportLevelDetails(bpy.types.Operator, io_utils.ExportHelper):
+
+    bl_idname = 'xray_export.details'
+    bl_label = 'Export .details'
+
+    filename_ext = '.details'
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext, options={'HIDDEN'}
+        )
+
+    texture_name_from_image_path = plugin_prefs.PropObjectTextureNamesFromPath()
+
+    def execute(self, context):
+        objs = context.selected_objects
+
+        if not objs:
+            self.report({'ERROR'}, 'Cannot find selected object')
+            return {'CANCELLED'}
+        if len(objs) > 1:
+            self.report({'ERROR'}, 'Too many selected objects found')
+            return {'CANCELLED'}
+        if objs[0].type != 'EMPTY':
+            self.report({'ERROR'}, 'The selected object is not a empty')
+            return {'CANCELLED'}
+
+        try:
+            self.export(objs[0], context)
+        except AppError as err:
+            self.report({'ERROR'}, str(err))
+            return {'CANCELLED'}
+
+        return {'FINISHED'}
+
+    def export(self, bpy_obj, context):
+
+        from .fmt_details_exp import export_file
+
+        cx = _mk_export_context(
+            context, self.report, self.texture_name_from_image_path
+            )
+
+        cx.bpy = bpy
+        export_file(bpy_obj, self.filepath, cx)
+
+
+    def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
+        self.texture_name_from_image_path = prefs.object_texture_names_from_path
+        return super().invoke(context, event)
+
+
 class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
@@ -672,6 +723,7 @@ def menu_func_export(self, context):
     self.layout.operator(OpExportAnm.bl_idname, text='X-Ray animation (.anm)')
     self.layout.operator(OpExportSkls.bl_idname, text='X-Ray animation (.skls)')
     self.layout.operator(OpExportDM.bl_idname, text='X-Ray detail model (.dm)')
+    self.layout.operator(OpExportLevelDetails.bl_idname, text='X-Ray level details (.details)')
 
 
 def menu_func_export_ogf(self, context):
@@ -693,6 +745,7 @@ def register():
     bpy.utils.register_class(OpExportObjects)
     bpy.utils.register_class(OpExportOgf)
     bpy.utils.register_class(OpExportDM)
+    bpy.utils.register_class(OpExportLevelDetails)
     bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(overlay_view_3d, (), 'WINDOW', 'POST_VIEW')
     bpy.utils.register_class(OpExportProject)
@@ -704,6 +757,7 @@ def unregister():
     bpy.utils.unregister_class(OpExportProject)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
     bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
+    bpy.utils.unregister_class(OpExportLevelDetails)
     bpy.utils.unregister_class(OpExportDM)
     bpy.utils.unregister_class(OpExportOgf)
     bpy.utils.unregister_class(OpExportObjects)
