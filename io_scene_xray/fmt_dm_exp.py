@@ -7,7 +7,7 @@ from .utils import convert_object_to_space_bmesh, AppError, gen_texture_name
 from .xray_io import PackedWriter
 
 
-def _export(bpy_obj, pw, cx):
+def export(bpy_obj, pw, cx, mode='DM'):
     if not len(bpy_obj.data.uv_layers):
         raise AppError('mesh "' + bpy_obj.data.name + '" has no UV-map')
     material_count = len(bpy_obj.material_slots)
@@ -50,7 +50,14 @@ def _export(bpy_obj, pw, cx):
     pw.puts(tx_name)
     pw.putf('<I', int(bpy_obj.xray.no_waving))
     pw.putf('<ff', bpy_obj.xray.min_scale, bpy_obj.xray.max_scale)
-    bm = convert_object_to_space_bmesh(bpy_obj, mathutils.Matrix.Identity(4))
+    if mode == 'DM':
+        bm = convert_object_to_space_bmesh(
+            bpy_obj, mathutils.Matrix.Identity(4)
+            )
+    else:
+        bm = convert_object_to_space_bmesh(
+            bpy_obj, mathutils.Matrix.Identity(4), local=True
+            )
     bmesh.ops.triangulate(bm, faces=bm.faces)
     bpy_data = bpy.data.meshes.new('.export-dm')
     bm.to_mesh(bpy_data)
@@ -90,5 +97,5 @@ def _export(bpy_obj, pw, cx):
 def export_file(bpy_obj, fpath, cx):
     with io.open(fpath, 'wb') as f:
         pw = PackedWriter()
-        _export(bpy_obj, pw, cx)
+        export(bpy_obj, pw, cx)
         f.write(pw.data)

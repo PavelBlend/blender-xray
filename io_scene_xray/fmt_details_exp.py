@@ -3,6 +3,7 @@ import io
 from .fmt_details import Chunks, FORMAT_VERSION_3
 from .xray_io import PackedWriter, ChunkedWriter
 from .utils import AppError
+from . import fmt_dm_exp
 
 
 class LevelDetails:
@@ -91,6 +92,49 @@ def _get_level_details(cx, bpy_obj):
     return ld
 
 
+def _write_details(cw, ld, cx):
+
+    dm_cw = ChunkedWriter()
+
+    mo = ld.meshes_object
+    dm_count = len(mo.children)
+
+    if dm_count == 0:
+        raise AppError(
+            'Meshes Object "' + mo.name + '" has no childrens'
+            )
+
+    dm_pws = {}
+    dm_indices = [0 for _ in range(dm_count)]
+    for dm in mo.children:
+    
+        if dm.type != 'MESH':
+            raise AppError(
+                'Meshes Object "' + mo.name + \
+                '" has incorrect children object type: {0}. ' \
+                'Children object type must be "MESH"'.format(dm.type)
+                )
+    
+        pw = PackedWriter()
+        fmt_dm_exp.export(dm, pw, cx, mode='DETAILS')
+        dm_index = dm.xray.detail_index
+        dm_indices[dm_index] += 1
+        dm_pws[dm_index] = pw
+
+    # validate meshes indices
+    for dm_index, count in enumerate(dm_indices):
+        if count == 0:
+            raise AppError('not detail model with index {0}'.format(dm_index))
+        elif count > 1:
+            raise AppError('duplicated index {0} in detail models'.format(dm_index))
+
+    for dm_index in range(dm_count):
+        pw = dm_pws[dm_index]
+        dm_cw.put(dm_index, pw)
+
+    cw.put(Chunks.MESHES, dm_cw)
+
+
 def _write_header(cw, ld):
     pw = PackedWriter()
     pw.putf('<I', FORMAT_VERSION_3)
@@ -151,6 +195,13 @@ def _export(bpy_obj, cw, cx):
     ld = _get_level_details(cx, bpy_obj)
 
     _calculate_slots_transforms(ld)
+    _write_details(cw, ld, cx)
+
+    # test export slots chunk
+    pw = PackedWriter()
+    pw.putf('<I', 0)
+    cw.put(0x2, pw)
+
     _write_header(cw, ld)
 
 

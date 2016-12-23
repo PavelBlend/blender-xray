@@ -23,7 +23,7 @@ def fix_ensure_lookup_table(bmv):
         bmv.ensure_lookup_table()
 
 
-def convert_object_to_space_bmesh(bpy_obj, space_matrix):
+def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
     import bmesh, bpy
     bm = bmesh.new()
     armmods = [m for m in bpy_obj.modifiers if m.type == 'ARMATURE' and m.show_viewport]
@@ -34,7 +34,10 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix):
     finally:
         for m in armmods:
             m.show_viewport = True
-    mt = bpy_obj.matrix_world
+    if local:
+        mt = bpy_obj.matrix_parent_inverse
+    else:
+        mt = bpy_obj.matrix_world
     mt = space_matrix.inverted() * mt
     bm.transform(mt)
     need_flip = False
