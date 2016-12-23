@@ -174,7 +174,8 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
         update=update_detail_color
         )
     details_meshes_object = bpy.props.StringProperty()
-    details_slots_object = bpy.props.StringProperty()
+    details_slots_base_object = bpy.props.StringProperty()
+    details_slots_top_object = bpy.props.StringProperty()
     details_light_format = bpy.props.EnumProperty(
         name='Format',
         items=(

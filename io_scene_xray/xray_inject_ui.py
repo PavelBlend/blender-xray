@@ -208,10 +208,17 @@ class XRayDetailsPanel(XRayPanel):
                 )
             layout.prop_search(
                 data,
-                'details_slots_object',
+                'details_slots_base_object',
                 bpy.data,
                 'objects',
-                text='Slots Object'
+                text='Slots Base Object'
+                )
+            layout.prop_search(
+                data,
+                'details_slots_top_object',
+                bpy.data,
+                'objects',
+                text='Slots Top Object'
                 )
 
             _, box = draw_collapsible(layout, 'object:lighting', 'Lighting Coefficients')

@@ -71,16 +71,31 @@ def _read_details_meshes(base_name, cx, cr, color_indices, header):
     return bpy_obj_root
 
 
-def _create_details_slots_object(base_name, cx, header, y_coords):
-    slots_name = '{0} slots'.format(base_name)
-    slots_mesh = cx.bpy.data.meshes.new(slots_name)
-    slots_object = cx.bpy.data.objects.new(slots_name, slots_mesh)
-    cx.bpy.context.scene.objects.link(slots_object)
-    slots = []
+def _create_details_slots_object(
+        base_name, cx, header, y_coords_top, y_coords_base
+        ):
+
+    slots_name_base = '{0} slots base'.format(base_name)
+    slots_base_mesh = cx.bpy.data.meshes.new(slots_name_base)
+    slots_base_object = cx.bpy.data.objects.new(
+        slots_name_base, slots_base_mesh
+        )
+    cx.bpy.context.scene.objects.link(slots_base_object)
+
+    slots_name_top = '{0} slots top'.format(base_name)
+    slots_top_mesh = cx.bpy.data.meshes.new(slots_name_top)
+    slots_top_object = cx.bpy.data.objects.new(
+        slots_name_top, slots_top_mesh
+        )
+    cx.bpy.context.scene.objects.link(slots_top_object)
+
+    slots_base = []
+    slots_top = []
+    uvs = []
     uv_face_size_x = 1.0 / header.size.x
     uv_face_size_y = 1.0 / header.size.y
-    uvs = []
     slot_id = 0
+
     for coord_y in range(header.size.y):
         for coord_x in range(header.size.x):
 
@@ -96,52 +111,103 @@ def _create_details_slots_object(base_name, cx, header, y_coords):
                         (uv_x, uv_y_plus)
                       ))
 
-            slots.append((
+            slot_x_coord = (coord_x - header.offset.x) * header.slot_size + \
+                               header.slot_half
 
-                (coord_x - header.offset.x) * header.slot_size + \
-                    header.slot_half,
+            slot_z_coord = (coord_y - header.offset.y) * header.slot_size + \
+                               header.slot_half
 
-                (coord_y - header.offset.y) * header.slot_size + \
-                    header.slot_half,
+            slots_base.append((
+                slot_x_coord, slot_z_coord, y_coords_base[slot_id]
+                ))
 
-                y_coords[slot_id]
-
+            slots_top.append((
+                slot_x_coord, slot_z_coord, y_coords_top[slot_id]
                 ))
 
             slot_id += 1
 
+    def _offset_vert_coord(vert_coord_x, vert_coord_y, offset_x, offset_y):
+        return vert_coord_x + offset_x, vert_coord_y + offset_y
 
-    def _offset_vert_coord(vert_coord, offset_x, offset_y):
-        return vert_coord[0] + offset_x, \
-               vert_coord[1] + offset_y, \
-               vert_coord[2]
-
-    vertices = []
+    vertices_base = []
+    vertices_top = []
     faces = []
     cur_vert_id = 0
-    for slot in slots:
-        vertices.extend((
-            (_offset_vert_coord(slot, -header.slot_half, -header.slot_half)),
-            (_offset_vert_coord(slot, header.slot_half, -header.slot_half)),
-            (_offset_vert_coord(slot, header.slot_half, header.slot_half)),
-            (_offset_vert_coord(slot, -header.slot_half, header.slot_half))
+
+    for slot_id in range(header.slots_count):
+
+        slot_x0, slot_y0 = _offset_vert_coord(
+            slots_base[slot_id][0],
+            slots_base[slot_id][1],
+            -header.slot_half,
+            -header.slot_half
+            )
+
+        slot_x1, slot_y1 = _offset_vert_coord(
+            slots_base[slot_id][0],
+            slots_base[slot_id][1],
+            header.slot_half,
+            -header.slot_half
+            )
+
+        slot_x2, slot_y2 = _offset_vert_coord(
+            slots_base[slot_id][0],
+            slots_base[slot_id][1],
+            header.slot_half,
+            header.slot_half
+            )
+
+        slot_x3, slot_y3 = _offset_vert_coord(
+            slots_base[slot_id][0],
+            slots_base[slot_id][1],
+            -header.slot_half,
+            header.slot_half
+            )
+
+        y_base = y_coords_base[slot_id]
+
+        vertices_base.extend((
+            (slot_x0, slot_y0, y_base),
+            (slot_x1, slot_y1, y_base),
+            (slot_x2, slot_y2, y_base),
+            (slot_x3, slot_y3, y_base)
             ))
+
+        y_top = y_coords_top[slot_id]
+
+        vertices_top.extend((
+            (slot_x0, slot_y0, y_top),
+            (slot_x1, slot_y1, y_top),
+            (slot_x2, slot_y2, y_top),
+            (slot_x3, slot_y3, y_top)
+            ))
+
         faces.append((
             cur_vert_id,
             cur_vert_id + 1,
             cur_vert_id + 2,
             cur_vert_id + 3
             ))
+
         cur_vert_id += 4
-    slots_mesh.from_pydata(vertices, (), faces)
+
+    slots_base_mesh.from_pydata(vertices_base, (), faces)
+    slots_top_mesh.from_pydata(vertices_top, (), faces)
 
     # create UV's
-    uv_textures = slots_mesh.uv_textures.new('UVMap')
-    uv_layer_data = slots_mesh.uv_layers['UVMap'].data
-    for uv_index, uv in enumerate(uvs):
-        uv_layer_data[uv_index].uv = uv
 
-    return slots_object
+    slots_base_mesh.uv_textures.new('UVMap')
+    slots_top_mesh.uv_textures.new('UVMap')
+
+    base_uv_layer_data = slots_base_mesh.uv_layers['UVMap'].data
+    top_uv_layer_data = slots_top_mesh.uv_layers['UVMap'].data
+
+    for uv_index, uv in enumerate(uvs):
+        base_uv_layer_data[uv_index].uv = uv
+        top_uv_layer_data[uv_index].uv = uv
+
+    return slots_base_object, slots_top_object
 
 
 def _generate_color_indices():
@@ -306,6 +372,7 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
     _create_pallete(cx, color_indices)
 
     y_coords = []
+    y_coords_base = []
     meshes_images_pixels = [
         [1.0 for _ in range(header.slots_count * 4 * 4)] for _ in range(4)
         ]
@@ -330,8 +397,15 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
                 # slot Y coordinate
                 y_base = slot_data[0] & 0x3ff
                 y_height = (slot_data[0] >> 12) & 0xff
-                y_coord = y_base * 0.2 - 200.0 + y_height * 0.1 + 0.05
+                y_coord_base = y_base * 0.2
+                y_coord = y_coord_base + y_height * 0.1 + 0.05
+
+                if y_coord > 100.0 or y_coord == 0.0:
+                    y_coord -= 200.0
+                    y_coord_base -= 200.0
+
                 y_coords.append(y_coord)
+                y_coords_base.append(y_coord_base)
 
                 # meshes indices
                 meshes = [
@@ -418,8 +492,9 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
                 slot_data = pr.getp(S_ffBHBHBHBHBBBB)
 
                 y_base = slot_data[0]
-                y_top = slot_data[1]    # ?
-                y_coords.append(y_base)
+                y_top = slot_data[1]
+                y_coords.append(y_top)
+                y_coords_base.append(y_base)
 
                 data_index = 2
 
@@ -481,11 +556,11 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
             lights_old=lighting_image_pixels
             )
 
-    slots_object = _create_details_slots_object(
-        base_name, cx, header, y_coords
+    slots_base_object, slots_top_object = _create_details_slots_object(
+        base_name, cx, header, y_coords, y_coords_base
         )
 
-    return slots_object
+    return slots_base_object, slots_top_object
 
 
 def _import(fpath, cx, cr):
@@ -545,14 +620,16 @@ def _import(fpath, cx, cr):
 
         meshes_obj.parent = root_obj
 
-        slots_obj = _read_details_slots(
+        slots_base_object, slots_top_object = _read_details_slots(
             base_name, cx, pr_slots, header, color_indices, root_obj
             )
 
-        slots_obj.parent = root_obj
+        slots_base_object.parent = root_obj
+        slots_top_object.parent = root_obj
 
         root_obj.xray.details_meshes_object = meshes_obj.name
-        root_obj.xray.details_slots_object = slots_obj.name
+        root_obj.xray.details_slots_base_object = slots_base_object.name
+        root_obj.xray.details_slots_top_object = slots_top_object.name
 
 
 def import_file(fpath, cx):
