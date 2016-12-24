@@ -124,9 +124,16 @@ def _write_details(cw, ld, cx):
     # validate meshes indices
     for dm_index, count in enumerate(dm_indices):
         if count == 0:
-            raise AppError('not detail model with index {0}'.format(dm_index))
+
+            raise AppError('not detail model with index {0}'.format(
+                dm_index
+                ))
+
         elif count > 1:
-            raise AppError('duplicated index {0} in detail models'.format(dm_index))
+
+            raise AppError('duplicated index {0} in detail models'.format(
+                dm_index
+                ))
 
     for dm_index in range(dm_count):
         pw = dm_pws[dm_index]
@@ -191,17 +198,58 @@ def _calculate_slots_transforms(ld):
     ld.slots_offset_y = -slots_bbox[1]
 
 
+def _calc_slot_index_by_location(ld, slot_location):
+
+    x_slot = int(round(
+        (slot_location[0] - 1.0) / ld.slot_size, 1)) + ld.slots_offset_x
+
+    y_slot = int(round(
+        (slot_location[1] - 1.0) / ld.slot_size, 1)) + ld.slots_offset_y
+
+    return y_slot * ld.slots_size_x + x_slot
+
+
+def _write_slots(cw, ld):
+    pw = PackedWriter()
+    base_slots_poly = ld.slots_base_object.data.polygons
+    top_slots_poly = ld.slots_top_object.data.polygons
+    slots = {}
+    ld.slot_size = 2.0
+
+    for slot_index in range(ld.slots_count):
+        slots[slot_index] = [None, None]
+
+    for slot_index in range(ld.slots_count):
+        polygon_base = base_slots_poly[slot_index]
+        polygon_top = top_slots_poly[slot_index]
+        slot_index_base = _calc_slot_index_by_location(ld, polygon_base.center)
+        slot_index_top = _calc_slot_index_by_location(ld, polygon_top.center)
+        slots[slot_index_base][0] = int(
+            round((polygon_base.center[2] + 200.0) / 0.2, 1)) & 0xfff
+
+        slots[slot_index_top][1] = (
+            int(
+                round(
+                    (polygon_top.center[2] - polygon_base.center[2] - 0.05) \
+                    / 0.1, 1
+                )
+            ) & 0xff) << 12
+
+    for slot_index in range(ld.slots_count):
+        slot = slots[slot_index]
+        pw.putf('<II', slots[slot_index][0] | slots[slot_index][1], 0x0)
+        pw.putf('<HHHH', 0xffff, 0xffff, 0xffff, 0xffff)
+
+    cw.put(Chunks.SLOTS, pw)
+
+
 def _export(bpy_obj, cw, cx):
     ld = _get_level_details(cx, bpy_obj)
 
     _calculate_slots_transforms(ld)
+
     _write_details(cw, ld, cx)
-
-    # test export slots chunk
-    pw = PackedWriter()
-    pw.putf('<I', 0)
-    cw.put(0x2, pw)
-
+    _write_slots(cw, ld)
     _write_header(cw, ld)
 
 

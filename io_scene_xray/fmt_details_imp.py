@@ -395,15 +395,10 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
                 slot_data = pr.getp(S_IIHHHH)
 
                 # slot Y coordinate
-                y_base = slot_data[0] & 0x3ff
+                y_base = slot_data[0] & 0xfff
                 y_height = (slot_data[0] >> 12) & 0xff
-                y_coord_base = y_base * 0.2
+                y_coord_base = y_base * 0.2 - 200.0
                 y_coord = y_coord_base + y_height * 0.1 + 0.05
-
-                if y_coord > 100.0 or y_coord == 0.0:
-                    y_coord -= 200.0
-                    y_coord_base -= 200.0
-
                 y_coords.append(y_coord)
                 y_coords_base.append(y_coord_base)
 
