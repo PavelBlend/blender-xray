@@ -104,6 +104,12 @@ def _write_details(cw, ld, cx):
             'Meshes Object "' + mo.name + '" has no childrens'
             )
 
+    if dm_count > 62:
+        raise AppError(
+            'Meshes Object "' + mo.name + '" has too many childrens: {0}. ' \
+            'Must be less than 62.'.format(dm_count)
+            )
+
     dm_pws = {}
     dm_indices = [0 for _ in range(dm_count)]
     for dm in mo.children:
@@ -145,7 +151,7 @@ def _write_details(cw, ld, cx):
 def _write_header(cw, ld):
     pw = PackedWriter()
     pw.putf('<I', FORMAT_VERSION_3)
-    pw.putf('<I', 0)    # meshes count
+    pw.putf('<I', len(ld.meshes_object.children))    # meshes count
     pw.putf('<ii', ld.slots_offset_x, ld.slots_offset_y)
     pw.putf('<II', ld.slots_size_x, ld.slots_size_y)
     cw.put(Chunks.HEADER, pw)
