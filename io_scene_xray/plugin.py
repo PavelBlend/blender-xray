@@ -208,6 +208,7 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
             soc_sgroups=None,
             import_motions=None,
             split_by_materials=None,
+            color_materials=False,
             op=self,
             bpy=bpy
         )
