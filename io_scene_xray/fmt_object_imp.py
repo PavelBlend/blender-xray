@@ -62,7 +62,7 @@ class ImportContext:
             mat.diffuse_color.hsv = (
                 (h & 0xFF) / 0xFF,
                 ((h >> 8) & 3) / 3 * 0.5 + 0.5,
-                ((h >> 2) & 1) * 0.5 + 0.5
+                ((h >> 2) & 1) * 0.6 + 0.2
             )
         return mat
 
