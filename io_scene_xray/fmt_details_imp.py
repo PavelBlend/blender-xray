@@ -90,7 +90,6 @@ def _create_details_slots_object(
     cx.bpy.context.scene.objects.link(slots_top_object)
 
     slots_base = []
-    slots_top = []
     uvs = []
     uv_face_size_x = 1.0 / header.size.x
     uv_face_size_y = 1.0 / header.size.y
@@ -119,10 +118,6 @@ def _create_details_slots_object(
 
             slots_base.append((
                 slot_x_coord, slot_z_coord, y_coords_base[slot_id]
-                ))
-
-            slots_top.append((
-                slot_x_coord, slot_z_coord, y_coords_top[slot_id]
                 ))
 
             slot_id += 1
@@ -192,8 +187,15 @@ def _create_details_slots_object(
 
         cur_vert_id += 4
 
+    del slots_base
+
     slots_base_mesh.from_pydata(vertices_base, (), faces)
+
+    del vertices_base
+
     slots_top_mesh.from_pydata(vertices_top, (), faces)
+
+    del vertices_top, faces
 
     # create UV's
 
@@ -276,7 +278,6 @@ def _create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
     xray.slots_mesh_1 = m_i[1]
     xray.slots_mesh_2 = m_i[2]
     xray.slots_mesh_3 = m_i[3]
-    del m_i
 
     if header.format_version == 3:
 
@@ -285,19 +286,16 @@ def _create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
         light_image = _create_det_image('lights')
         images_list.append(light_image.name)
         light_image.pixels = lights
-        del lights
         xray.lights_image = light_image.name
 
         shadows_image = _create_det_image('shadows')
         images_list.append(shadows_image.name)
         shadows_image.pixels = shadows
-        del shadows
         xray.shadows_image = shadows_image.name
 
         hemi_image = _create_det_image('hemi')
         images_list.append(hemi_image.name)
         hemi_image.pixels = hemi
-        del hemi
         xray.hemi_image = hemi_image.name
 
     elif header.format_version == 2:
@@ -308,7 +306,6 @@ def _create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
         images_list.append(lights_v2_image.name)
         lights_v2_image.use_fake_user = True
         lights_v2_image.pixels = lights_old
-        del lights_old
         xray.lights_image = lights_v2_image.name
 
     if cx.details_save_slots:
@@ -454,6 +451,11 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
             hemi=hemi_image_pixels
             )
 
+        del meshes_images_pixels
+        del lights_image_pixels
+        del shadows_image_pixels
+        del hemi_image_pixels
+
     elif header.format_version == 2:
         S_ffBHBHBHBHBBBB = PackedReader.prep('ffBHBHBHBHH')
         lighting_image_pixels = [
@@ -551,9 +553,15 @@ def _read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
             lights_old=lighting_image_pixels
             )
 
+        del meshes_images_pixels
+        del lighting_image_pixels
+
     slots_base_object, slots_top_object = _create_details_slots_object(
         base_name, cx, header, y_coords, y_coords_base
         )
+
+    del y_coords
+    del y_coords_base
 
     return slots_base_object, slots_top_object
 
@@ -594,6 +602,8 @@ def _import(fpath, cx, cr):
                 pr_slots = PackedReader(chunk_data)
             has_slots = True
 
+    del chunk_data, chunk_id, cr
+
     if not has_header:
         raise AppError('bad details file. Cannot find HEADER chunk')
     if not has_meshes:
@@ -608,6 +618,9 @@ def _import(fpath, cx, cr):
         base_name, cx, cr_meshes, color_indices, header
         )
 
+    del cr_meshes
+    del has_header, has_meshes, has_slots
+
     if cx.load_slots:
 
         root_obj = cx.bpy.data.objects.new(base_name, None)
@@ -618,6 +631,8 @@ def _import(fpath, cx, cr):
         slots_base_object, slots_top_object = _read_details_slots(
             base_name, cx, pr_slots, header, color_indices, root_obj
             )
+
+        del pr_slots
 
         slots_base_object.parent = root_obj
         slots_top_object.parent = root_obj
