@@ -107,7 +107,7 @@ def _write_details(cw, ld, cx):
     if dm_count > 62:
         raise AppError(
             'Meshes Object "' + mo.name + '" has too many childrens: {0}. ' \
-            'Must be less than 62.'.format(dm_count)
+            'Must be less than 63.'.format(dm_count)
             )
 
     dm_pws = {}
