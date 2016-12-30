@@ -215,6 +215,38 @@ def _calc_slot_index_by_location(ld, slot_location):
     return y_slot * ld.slots_size_x + x_slot
 
 
+def _generate_color_indices():
+
+    mesh_ids = {}
+    color_depth = 21
+    current_mesh = [color_depth, 0, 0]
+    color_channels_reverse = (1, 2, 0)
+
+    mesh_id = 0
+    for color_channel in range(3):    # R, G, B
+        for _ in range(color_depth):
+
+            mesh_ids[(current_mesh[0], current_mesh[1], current_mesh[2])] = \
+                mesh_id
+
+            mesh_id += 1
+            current_mesh[color_channel] -= 1
+            current_mesh[color_channels_reverse[color_channel]] += 1
+
+    mesh_ids[(0, 0, 0)] = 63    # color index 63 (empty detail mesh)
+    color_indices = {}
+
+    for mesh_color, mesh_id in mesh_ids.items():
+        color_index = (
+            round(mesh_color[0] / color_depth, 2),
+            round(mesh_color[1] / color_depth, 2),
+            round(mesh_color[2] / color_depth, 2)
+            )
+        color_indices[color_index] = mesh_id
+
+    return mesh_ids
+
+
 def _write_slots(cw, ld):
     pw = PackedWriter()
     base_slots_poly = ld.slots_base_object.data.polygons
@@ -245,34 +277,105 @@ def _write_slots(cw, ld):
     hemi_pixels = list(ld.hemi.pixels)
     shadows_pixels = list(ld.shadows.pixels)
 
-    for slot_index in range(ld.slots_count):
+    meshes_pixels = [
+        list(ld.mesh_0.pixels),
+        list(ld.mesh_1.pixels),
+        list(ld.mesh_2.pixels),
+        list(ld.mesh_3.pixels)
+        ]
 
-        pixel_index = slot_index * 4
+    color_indices = _generate_color_indices()
 
-        hemi = int(round(0xf * ((
-            hemi_pixels[pixel_index] + \
-            hemi_pixels[pixel_index + 1] + \
-            hemi_pixels[pixel_index + 2]
-            ) / 3), 1))
+    color_step = 1.0 / 21
 
-        shadow = int(round(0xf * ((
-            shadows_pixels[pixel_index] + \
-            shadows_pixels[pixel_index + 1] + \
-            shadows_pixels[pixel_index + 2]
-            ) / 3), 1))
+    slot_index = 0
+    for y in range(ld.slots_size_y):
+        for x in range(ld.slots_size_x):
 
-        light_r = int(round(0xf * (lights_pixels[pixel_index]), 1))
-        light_g = int(round(0xf * (lights_pixels[pixel_index + 1]), 1))
-        light_b = int(round(0xf * (lights_pixels[pixel_index + 2]), 1))
+            pixel_index = slot_index * 4
 
-        slot = slots[slot_index]
-        pw.putf(
-            '<II',
-            slots[slot_index][0] | slots[slot_index][1],
-            shadow << 12 | hemi << 16 | light_r << 20 | light_g << 24 | \
-            light_b << 28
-            )
-        pw.putf('<HHHH', 0xffff, 0xffff, 0xffff, 0xffff)
+            hemi = int(round(0xf * ((
+                hemi_pixels[pixel_index] + \
+                hemi_pixels[pixel_index + 1] + \
+                hemi_pixels[pixel_index + 2]
+                ) / 3), 1))
+
+            shadow = int(round(0xf * ((
+                shadows_pixels[pixel_index] + \
+                shadows_pixels[pixel_index + 1] + \
+                shadows_pixels[pixel_index + 2]
+                ) / 3), 1))
+
+            light_r = int(round(0xf * (lights_pixels[pixel_index]), 1))
+            light_g = int(round(0xf * (lights_pixels[pixel_index + 1]), 1))
+            light_b = int(round(0xf * (lights_pixels[pixel_index + 2]), 1))
+
+            mesh_pixel_index = pixel_index * 2 + ld.slots_size_x * y * 2 * 4
+
+            mesh_0_id = color_indices.get((
+
+                int(round(
+                    meshes_pixels[0][mesh_pixel_index] / color_step, 1)),
+
+                int(round(
+                    meshes_pixels[0][mesh_pixel_index + 1] / color_step, 1)),
+
+                int(round(
+                    meshes_pixels[0][mesh_pixel_index + 2] / color_step, 1)),
+
+                ), 63)
+
+            mesh_1_id = color_indices.get((
+
+                int(round(
+                    meshes_pixels[1][mesh_pixel_index] / color_step, 1)),
+
+                int(round(
+                    meshes_pixels[1][mesh_pixel_index + 1] / color_step, 1)),
+
+                int(round(
+                    meshes_pixels[1][mesh_pixel_index + 2] / color_step, 1)),
+
+                ), 63)
+
+            mesh_2_id = color_indices.get((
+
+                int(round(
+                    meshes_pixels[2][mesh_pixel_index] / color_step, 1)),
+
+                int(round(
+                    meshes_pixels[2][mesh_pixel_index + 1] / color_step, 1)),
+
+                int(round(
+                    meshes_pixels[2][mesh_pixel_index + 2] / color_step, 1)),
+
+                ), 63)
+
+            mesh_3_id = color_indices.get((
+
+                int(round(
+                    meshes_pixels[3][mesh_pixel_index] / color_step, 1)),
+
+                int(round(
+                    meshes_pixels[3][mesh_pixel_index + 1] / color_step, 1)),
+
+                int(round(
+                    meshes_pixels[3][mesh_pixel_index + 2] / color_step, 1)),
+
+                ), 63)
+
+            slot = slots[slot_index]
+            pw.putf(
+                '<II',
+                slots[slot_index][0] | slots[slot_index][1] | \
+                mesh_0_id << 20 | mesh_1_id << 26, \
+                mesh_2_id | mesh_3_id << 6 | \
+                shadow << 12 | hemi << 16 | light_r << 20 | light_g << 24 | \
+                light_b << 28
+                )
+            pw.putf('<HHHH', 0xffff, 0xffff, 0xffff, 0xffff)
+
+            slot_index += 1
 
     cw.put(Chunks.SLOTS, pw)
 

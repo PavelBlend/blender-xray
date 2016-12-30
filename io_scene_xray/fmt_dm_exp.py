@@ -65,18 +65,35 @@ def export(bpy_obj, pw, cx, mode='DM'):
     vertices = []
     indices = []
     vmap = {}
-    for f in bm.faces:
-        ii = []
-        for li, l in enumerate(f.loops):
-            dl = bpy_data.loops[f.index * 3 + li]
-            uv = l[bml_uv].uv
-            vtx = (l.vert.co.to_tuple(), (uv[0], uv[1]))
-            vi = vmap.get(vtx)
-            if vi is None:
-                vmap[vtx] = vi = len(vertices)
-                vertices.append(vtx)
-            ii.append(vi)
-        indices.append(ii)
+
+    if mode == 'DM':
+        for f in bm.faces:
+            ii = []
+            for li, l in enumerate(f.loops):
+                dl = bpy_data.loops[f.index * 3 + li]
+                uv = l[bml_uv].uv
+                vtx = (l.vert.co.to_tuple(), (uv[0], uv[1]))
+                vi = vmap.get(vtx)
+                if vi is None:
+                    vmap[vtx] = vi = len(vertices)
+                    vertices.append(vtx)
+                ii.append(vi)
+            indices.append(ii)
+
+    else:
+        for f in bm.faces:
+            ii = []
+            for li, l in enumerate(f.loops):
+                dl = bpy_data.loops[f.index * 3 + li]
+                uv = l[bml_uv].uv
+                vtx = (l.vert.co.to_tuple(), (uv[0], 1 - uv[1]))
+                vi = vmap.get(vtx)
+                if vi is None:
+                    vmap[vtx] = vi = len(vertices)
+                    vertices.append(vtx)
+                ii.append(vi)
+            indices.append(ii)
+
     vertices_count = len(vertices)
     if vertices_count > 0x10000:
         raise AppError(
