@@ -241,9 +241,37 @@ def _write_slots(cw, ld):
                 )
             ) & 0xff) << 12
 
+    lights_pixels = list(ld.lights.pixels)
+    hemi_pixels = list(ld.hemi.pixels)
+    shadows_pixels = list(ld.shadows.pixels)
+
     for slot_index in range(ld.slots_count):
+
+        pixel_index = slot_index * 4
+
+        hemi = int(round(0xf * ((
+            hemi_pixels[pixel_index] + \
+            hemi_pixels[pixel_index + 1] + \
+            hemi_pixels[pixel_index + 2]
+            ) / 3), 1))
+
+        shadow = int(round(0xf * ((
+            shadows_pixels[pixel_index] + \
+            shadows_pixels[pixel_index + 1] + \
+            shadows_pixels[pixel_index + 2]
+            ) / 3), 1))
+
+        light_r = int(round(0xf * (lights_pixels[pixel_index]), 1))
+        light_g = int(round(0xf * (lights_pixels[pixel_index + 1]), 1))
+        light_b = int(round(0xf * (lights_pixels[pixel_index + 2]), 1))
+
         slot = slots[slot_index]
-        pw.putf('<II', slots[slot_index][0] | slots[slot_index][1], 0x0)
+        pw.putf(
+            '<II',
+            slots[slot_index][0] | slots[slot_index][1],
+            shadow << 12 | hemi << 16 | light_r << 20 | light_g << 24 | \
+            light_b << 28
+            )
         pw.putf('<HHHH', 0xffff, 0xffff, 0xffff, 0xffff)
 
     cw.put(Chunks.SLOTS, pw)
