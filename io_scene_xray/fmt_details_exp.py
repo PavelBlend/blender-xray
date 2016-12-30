@@ -234,15 +234,6 @@ def _generate_color_indices():
             current_mesh[color_channels_reverse[color_channel]] += 1
 
     mesh_ids[(0, 0, 0)] = 63    # color index 63 (empty detail mesh)
-    color_indices = {}
-
-    for mesh_color, mesh_id in mesh_ids.items():
-        color_index = (
-            round(mesh_color[0] / color_depth, 2),
-            round(mesh_color[1] / color_depth, 2),
-            round(mesh_color[2] / color_depth, 2)
-            )
-        color_indices[color_index] = mesh_id
 
     return mesh_ids
 
