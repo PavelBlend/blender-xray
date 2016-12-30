@@ -169,7 +169,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
         default=(1.0, 0.0, 0.0),
         max=1.0,
         min=0.0,
-        subtype='COLOR',
+        subtype='COLOR_GAMMA',
         size=3,
         update=update_detail_color
         )
