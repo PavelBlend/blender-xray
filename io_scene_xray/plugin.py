@@ -279,11 +279,11 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
         if self.load_slots:
             layout.label('Lighting Old Format:')
             layout.prop(self, 'lighting_old_format', expand=True)
-        layout.prop(self, 'save_slots')
-        if self.save_slots:
-            layout.label('Images Format:')
-            layout.prop(self, 'save_format', expand=True)
-            layout.prop(self, 'save_folder')
+            layout.prop(self, 'save_slots')
+            if self.save_slots:
+                layout.label('Images Format:')
+                layout.prop(self, 'save_format', expand=True)
+                layout.prop(self, 'save_folder')
 
     def invoke(self, context, event):
         return super().invoke(context, event)
