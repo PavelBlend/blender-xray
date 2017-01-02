@@ -488,6 +488,13 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
         else:
             warn_imknown_chunk(cid, 'bone')
 
+def _is_compatible_texture(texture, filepart):
+    image = getattr(texture, 'image', None)
+    if image is None:
+        return False
+    if filepart not in image.filepath:
+        return False
+    return True
 
 def _import_main(fpath, cx, cr):
     object_name = os.path.basename(fpath.lower())
@@ -521,6 +528,7 @@ def _import_main(fpath, cx, cr):
                 pr.getf('I')    # fvf
                 pr.getf('I')    # ?
                 bpy_material = None
+                tx_filepart = texture.replace('\\', os.path.sep)
                 for bm in bpy.data.materials:
                     if not bm.name.startswith(n):
                         continue
@@ -533,18 +541,12 @@ def _import_main(fpath, cx, cr):
                     if bm.xray.gamemtl != gamemtl:
                         continue
                     ts_found = False
-                    tx_filepart = texture.replace('\\', os.path.sep)
                     for ts in bm.texture_slots:
                         if not ts:
                             continue
                         if ts.uv_layer != vmap:
                             continue
-                        if not hasattr(ts.texture, 'image'):
-                            continue
-                        img = ts.texture.image
-                        if img is None:
-                            continue
-                        if tx_filepart not in img.filepath:
+                        if not _is_compatible_texture(ts.texture, tx_filepart):
                             continue
                         ts_found = True
                         break
@@ -563,7 +565,7 @@ def _import_main(fpath, cx, cr):
                     bpy_material.alpha = 0
                     if texture:
                         bpy_texture = cx.bpy.data.textures.get(texture)
-                        if bpy_texture is None:
+                        if (bpy_texture is None) or not _is_compatible_texture(texture, tx_filepart):
                             bpy_texture = cx.bpy.data.textures.new(texture, type='IMAGE')
                             bpy_texture.image = cx.image(texture)
                             bpy_texture.use_preview_alpha = True
