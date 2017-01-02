@@ -12,8 +12,7 @@ from .xray_motions import import_motions
 
 
 class ImportContext:
-    def __init__(self, textures, soc_sgroups, import_motions,
-        split_by_materials, color_materials, report, op, bpy=None):
+    def __init__(self, textures, soc_sgroups, import_motions, split_by_materials, report, op, bpy=None):
         from . import bl_info
         from .utils import version_to_number
         self.version = version_to_number(*bl_info['version'])
@@ -23,7 +22,6 @@ class ImportContext:
         self.soc_sgroups = soc_sgroups
         self.import_motions = import_motions
         self.split_by_materials = split_by_materials
-        self.color_materials = color_materials
         self.op = op
         self.loaded_materials = None
 
@@ -53,18 +51,6 @@ class ImportContext:
                 result.source = 'FILE'
                 result.filepath = filepath
         return result
-
-    def new_material(self, name):
-        import zlib
-        mat = self.bpy.data.materials.new(name)
-        if self.color_materials:
-            h = zlib.crc32(bytes(mat.name, 'utf8'))
-            mat.diffuse_color.hsv = (
-                (h & 0xFF) / 0xFF,
-                ((h >> 8) & 3) / 3 * 0.5 + 0.5,
-                ((h >> 2) & 1) * 0.6 + 0.2
-            )
-        return mat
 
 
 def warn_imknown_chunk(cid, location):
@@ -315,7 +301,7 @@ def _import_mesh(cx, cr, renamemap):
     for n, faces in s_faces:
         bmat = cx.loaded_materials.get(n)
         if bmat is None:
-            cx.loaded_materials[n] = bmat = cx.new_material(n)
+            cx.loaded_materials[n] = bmat = cx.bpy.data.materials.new(n)
         midx = len(bm_data.materials)
         bm_data.materials.append(bmat)
         images.append(bmat.active_texture.image)
@@ -564,7 +550,7 @@ def _import_main(fpath, cx, cr):
                     bpy_material = bm
                     break
                 if bpy_material is None:
-                    bpy_material = cx.new_material(n)
+                    bpy_material = cx.bpy.data.materials.new(n)
                     bpy_material.xray.flags = flags
                     bpy_material.xray.eshader = eshader
                     bpy_material.xray.cshader = cshader

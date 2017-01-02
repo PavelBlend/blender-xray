@@ -376,6 +376,8 @@ class XRaySceneProperties(bpy.types.PropertyGroup):
     fmt_version = PropSDKVersion()
     object_export_motions = PropObjectMotionsExport()
     object_texture_name_from_image_path = PropObjectTextureNamesFromPath()
+    materials_colorize_random_seed = bpy.props.IntProperty(min=0, max=255, options={'SKIP_SAVE'})
+    materials_colorize_color_power = bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0, options={'SKIP_SAVE'})
 
 
 classes = [

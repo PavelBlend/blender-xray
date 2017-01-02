@@ -460,6 +460,61 @@ class XRayScenePanel(XRayPanel):
             bx.prop(data, 'object_texture_name_from_image_path')
 
 
+class XRayColorizeMaterials(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.colorize_materials'
+    bl_label = 'Colorize Materials'
+    bl_description = 'Set a pseudo-random diffuse color for each surface (material)'
+
+    seed = bpy.props.IntProperty(min=0, max=255)
+    power = bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0)
+
+    def execute(self, context):
+        from zlib import crc32
+
+        objects = context.selected_objects
+        if len(objects) == 0:
+            self.report({'ERROR'}, 'No objects selected')
+            return {'CANCELLED'}
+
+        seed = self.seed
+        power = self.power
+        materials = set()
+        for obj in objects:
+            for slot in obj.material_slots:
+                materials.add(slot.material)
+
+        for mat in materials:
+            data = bytearray(mat.name, 'utf8')
+            data.append(seed)
+            hsh = crc32(data)
+            mat.diffuse_color.hsv = (
+                (hsh & 0xFF) / 0xFF,
+                (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * power,
+                ((hsh >> 2) & 1) * (0.5 * power) + 0.5
+            )
+        return {'FINISHED'}
+
+
+class XRayMaterialToolsPanel(bpy.types.Panel):
+    bl_label = 'XRay Materials'
+    bl_category = 'Materials'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+
+    def draw_header(self, context):
+        self.layout.label(icon='PLUGIN')
+
+    def draw(self, context):
+        data = context.scene.xray
+        layout = self.layout
+        column = layout.column(align=True)
+        operator = column.operator(XRayColorizeMaterials.bl_idname, icon='COLOR')
+        operator.seed = data.materials_colorize_random_seed
+        operator.power = data.materials_colorize_color_power
+        column.prop(data, 'materials_colorize_random_seed', text='Seed')
+        column.prop(data, 'materials_colorize_color_power', text='Power', slider=True)
+
+
 classes = [
     PropClipOp,
     _CollapsOp,
@@ -475,6 +530,8 @@ classes = [
     , XRayBonePanel
     , XRayActionPanel
     , XRayScenePanel
+    , XRayColorizeMaterials
+    , XRayMaterialToolsPanel
 ]
 
 

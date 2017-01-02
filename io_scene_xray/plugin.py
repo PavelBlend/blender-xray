@@ -30,7 +30,6 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
     mesh_split_by_materials = plugin_prefs.PropObjectMeshSplitByMaterials()
 
     shaped_bones = plugin_prefs.PropObjectBonesCustomShapes()
-    colorize_mat = plugin_prefs.PropObjectColorizeMaterials()
 
     fmt_version = plugin_prefs.PropSDKVersion()
 
@@ -48,7 +47,6 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
             soc_sgroups=self.fmt_version == 'soc',
             import_motions=self.import_motions,
             split_by_materials=self.mesh_split_by_materials,
-            color_materials=self.colorize_mat,
             op=self,
             bpy=bpy
         )
@@ -75,7 +73,6 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
         layout.prop(self, 'import_motions')
         layout.prop(self, 'mesh_split_by_materials')
         layout.prop(self, 'shaped_bones')
-        layout.prop(self, 'colorize_mat')
 
     def invoke(self, context, event):
         prefs = plugin_prefs.get_preferences()
@@ -83,7 +80,6 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
         self.import_motions = prefs.object_motions_import
         self.mesh_split_by_materials = prefs.object_mesh_split_by_mat
         self.shaped_bones = prefs.object_bones_custom_shapes
-        self.colorize_mat = prefs.object_colorize_materials
         return super().invoke(context, event)
 
 
@@ -208,7 +204,6 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
             soc_sgroups=None,
             import_motions=None,
             split_by_materials=None,
-            color_materials=False,
             op=self,
             bpy=bpy
         )
