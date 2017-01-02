@@ -374,6 +374,7 @@ class XRayBonePanel(XRayPanel):
 
 
 class XRayActionPanel(XRayPanel):
+    bl_category = 'F-Curve'
     bl_space_type = 'GRAPH_EDITOR'
     bl_region_type = 'UI'
     bl_context = 'object'
