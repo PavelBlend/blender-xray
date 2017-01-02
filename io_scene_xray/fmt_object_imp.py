@@ -533,7 +533,7 @@ def _import_main(fpath, cx, cr):
                     if bm.xray.gamemtl != gamemtl:
                         continue
                     ts_found = False
-                    tx_filepart = texture.replace('\\', os.path.sep)
+                    tx_filepart = texture.replace('\\', os.path.sep).lower()
                     for ts in bm.texture_slots:
                         if not ts:
                             continue
