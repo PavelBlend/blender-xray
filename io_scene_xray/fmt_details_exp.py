@@ -238,6 +238,36 @@ def _generate_color_indices():
     return mesh_ids
 
 
+pixels_offset = {
+    0: (0, 0),
+    1: (1, 0),
+    2: (0, 1),
+    3: (1, 1),
+    }
+
+density_depth = 1.0 / 0xf
+
+
+def _get_density(ld, pixels, x, y):
+
+    density = []
+
+    for corner_index in range(4):
+
+        pixel_index = (
+            (x * 2 + pixels_offset[corner_index][0] + \
+            (y * 2 + pixels_offset[corner_index][1]) * ld.slots_size_x * 2) \
+            * 4 + 3
+            )
+
+        density.append(
+            int(round(pixels[pixel_index] / density_depth, 1)) \
+            << (4 * corner_index)
+            )
+
+    return density[0] | density[1] | density[2] | density[3]
+
+
 def _write_slots(cw, ld):
     pw = PackedWriter()
     base_slots_poly = ld.slots_base_object.data.polygons
@@ -355,7 +385,15 @@ def _write_slots(cw, ld):
 
                 ), 63)
 
+            density = (
+                _get_density(ld, meshes_pixels[0], x, y),
+                _get_density(ld, meshes_pixels[1], x, y),
+                _get_density(ld, meshes_pixels[2], x, y),
+                _get_density(ld, meshes_pixels[3], x, y)
+                )
+
             slot = slots[slot_index]
+
             pw.putf(
                 '<II',
                 slots[slot_index][0] | slots[slot_index][1] | \
@@ -364,7 +402,8 @@ def _write_slots(cw, ld):
                 shadow << 12 | hemi << 16 | light_r << 20 | light_g << 24 | \
                 light_b << 28
                 )
-            pw.putf('<HHHH', 0xffff, 0xffff, 0xffff, 0xffff)
+
+            pw.putf('<HHHH', density[0], density[1], density[2], density[3])
 
             slot_index += 1
 
