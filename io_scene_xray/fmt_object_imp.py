@@ -112,12 +112,14 @@ def _import_mesh(cx, cr, renamemap):
         elif cid == Chunks.Mesh.MESHNAME:
             mesh_name = PackedReader(data).gets()
         elif cid == Chunks.Mesh.SG:
-            sgroups = data.cast('I')
+            sgroups = data.cast('i')
 
             def face_sg_impl(bmf, fi, edict):
                 sg = sgroups[fi]
                 if sg == sgfuncs[0]:
                     bmf.smooth = False
+                    for bme in bmf.edges:
+                        bme.smooth = False
                     return
                 bmf.smooth = True
                 for ei, bme in enumerate(bmf.edges):
