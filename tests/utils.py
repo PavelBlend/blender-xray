@@ -18,19 +18,6 @@ class XRayTestCase(unittest.TestCase):
     _reports = []
 
     @classmethod
-    def setUpClass(cls):
-        cls._reports = []
-        if cls.blend_file:
-            bpy.ops.wm.open_mainfile(filepath=cls.relpath(cls.blend_file))
-        else:
-            bpy.ops.wm.read_homefile()
-        addon_utils.enable('io_scene_xray', default_set=True)
-
-    @classmethod
-    def tearDownClass(cls):
-        addon_utils.disable('io_scene_xray')
-
-    @classmethod
     def relpath(cls, path=None):
         result = os.path.dirname(inspect.getfile(cls))
         if path is not None:
@@ -44,6 +31,12 @@ class XRayTestCase(unittest.TestCase):
         return os.path.join(cls.__tmp, path)
 
     def setUp(self):
+        self._reports = []
+        if self.blend_file:
+            bpy.ops.wm.open_mainfile(filepath=self.relpath(self.blend_file))
+        else:
+            bpy.ops.wm.read_homefile()
+        addon_utils.enable('io_scene_xray', default_set=True)
         self.__prev_report_catcher = TestReadyOperator.report_catcher
         TestReadyOperator.report_catcher = lambda op, type, message: self._reports.append((type, message))
 
@@ -56,6 +49,7 @@ class XRayTestCase(unittest.TestCase):
                 os.renames(self.__tmp, new_path)
             else:
                 shutil.rmtree(self.__tmp)
+        addon_utils.disable('io_scene_xray')
 
     def assertFileExists(self, path, allow_empty=False, msg=None):
         if not os.path.isfile(path):
