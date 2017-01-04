@@ -81,6 +81,8 @@ def _cop_sgfunc(ga, gb, ea, eb):
     return is_soft(ga, bfa, ea) and is_soft(gb, bfb, eb)
 
 
+_SHARP = 0xffffffff
+
 def _import_mesh(cx, cr, renamemap):
     ver = cr.nextf(Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
@@ -89,7 +91,7 @@ def _import_mesh(cx, cr, renamemap):
     mesh_flags = None
     mesh_options = None
     bm = bmesh.new()
-    sgfuncs = (-1, lambda ga, gb, ea, eb: ga == gb) if cx.soc_sgroups else (-1, _cop_sgfunc)
+    sgfuncs = (_SHARP, lambda ga, gb, ea, eb: ga == gb) if cx.soc_sgroups else (_SHARP, _cop_sgfunc)
     vt_data = ()
     fc_data = ()
 
@@ -118,6 +120,8 @@ def _import_mesh(cx, cr, renamemap):
                 sg = sgroups[fi]
                 if sg == sgfuncs[0]:
                     bmf.smooth = False
+                    for bme in bmf.edges:
+                        bme.smooth = False
                     return
                 bmf.smooth = True
                 for ei, bme in enumerate(bmf.edges):
