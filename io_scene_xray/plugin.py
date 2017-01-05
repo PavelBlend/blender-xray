@@ -177,118 +177,6 @@ def execute_require_filepath(func):
     return wrapper
 
 
-class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
-    bl_idname = 'xray_import.dm'
-    bl_label = 'Import .dm/.details'
-    bl_description = 'Imports X-Ray Detail Model (.dm, .details)'
-    bl_options = {'UNDO'}
-
-    filter_glob = bpy.props.StringProperty(default='*.dm;*.details', options={'HIDDEN'})
-
-    directory = bpy.props.StringProperty(subtype="DIR_PATH")
-    files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
-
-    details_models_in_a_row = bpy.props.BoolProperty(
-        name='Details Models in a Row', default=True
-        )
-    load_slots = bpy.props.BoolProperty(name='Load Slots', default=True)
-    save_slots = bpy.props.BoolProperty(name='Save Slots', default=False)
-    save_format = bpy.props.EnumProperty(
-        name='Images Format',
-        items=(
-            ('PNG', 'PNG', ''),
-            ('TGA', 'TGA', '')
-            )
-        )
-    save_folder = bpy.props.StringProperty(name='Save Folder')
-    lighting_old_format = bpy.props.EnumProperty(
-        name='Lighting Old Format',
-        items=(
-            ('1096', 'Builds 1096-1230', ''),
-            ('1233', 'Builds 1233-1558', '')
-            )
-        )
-
-    def execute(self, context):
-        textures_folder = plugin_prefs.get_preferences().get_textures_folder()
-        if not textures_folder:
-            self.report({'WARNING'}, 'No textures folder specified')
-        if len(self.files) == 0:
-            self.report({'ERROR'}, 'No files selected')
-            return {'CANCELLED'}
-        from . import fmt_dm_imp
-        from . import fmt_details_imp
-        from .fmt_object_imp import ImportContext
-        cx = ImportContext(
-            report=self.report,
-            textures=textures_folder,
-            soc_sgroups=None,
-            import_motions=None,
-            split_by_materials=None,
-            op=self,
-            bpy=bpy
-        )
-        if self.save_slots and len(self.save_folder) == 0:
-            self.report({'ERROR'}, 'No details slots folder specified')
-            return {'CANCELLED'}
-        import os
-        if self.save_slots:
-            if self.save_folder[-1] != os.sep:
-                self.save_folder += os.sep
-        cx.details_save_slots = self.save_slots
-        cx.save_format = self.save_format
-        cx.lighting_old_format = self.lighting_old_format
-        cx.details_save_folder = self.save_folder
-        cx.details_models_in_a_row = self.details_models_in_a_row
-        cx.load_slots = self.load_slots
-        try:
-            for file in self.files:
-                ext = os.path.splitext(file.name)[-1].lower()
-
-                if ext == '.dm':
-                    fmt_dm_imp.import_file(
-                        os.path.join(self.directory, file.name),
-                        cx
-                        )
-
-                elif ext == '.details':
-                    fmt_details_imp.import_file(
-                        os.path.join(self.directory, file.name),
-                        cx
-                        )
-
-                else:
-                    self.report(
-                        {'ERROR'},
-                        'Format of {} not recognised'.format(file)
-                        )
-
-        except AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
-        return {'FINISHED'}
-
-    def draw(self, context):
-        layout = self.layout
-        row = layout.row()
-        row.enabled = False
-        row.label('%d items' % len(self.files))
-        layout.label('Level Details Options:')
-        layout.prop(self, 'details_models_in_a_row')
-        layout.prop(self, 'load_slots')
-        if self.load_slots:
-            layout.label('Lighting Old Format:')
-            layout.prop(self, 'lighting_old_format', expand=True)
-            layout.prop(self, 'save_slots')
-            if self.save_slots:
-                layout.label('Images Format:')
-                layout.prop(self, 'save_format', expand=True)
-                layout.prop(self, 'save_folder')
-
-    def invoke(self, context, event):
-        return super().invoke(context, event)
-
-
 class ModelExportHelper:
     selection_only = bpy.props.BoolProperty(
         name='Selection Only',
@@ -408,6 +296,7 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+
 class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotions):
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
@@ -458,96 +347,6 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotio
             self.filepath += self.filename_ext
         self.fmt_version = prefs.sdk_version
         self.export_motions = prefs.object_motions_export
-        self.texture_name_from_image_path = prefs.object_texture_names_from_path
-        return super().invoke(context, event)
-
-
-class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
-    bl_idname = 'xray_export.dm'
-    bl_label = 'Export .dm'
-
-    filename_ext = '.dm'
-    filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
-
-    texture_name_from_image_path = plugin_prefs.PropObjectTextureNamesFromPath()
-
-    def execute(self, context):
-        objs = context.selected_objects
-        if not objs:
-            self.report({'ERROR'}, 'Cannot find selected object')
-            return {'CANCELLED'}
-        if len(objs) > 1:
-            self.report({'ERROR'}, 'Too many selected objects found')
-            return {'CANCELLED'}
-        if objs[0].type != 'MESH':
-            self.report({'ERROR'}, 'The selected object is not a mesh')
-            return {'CANCELLED'}
-        try:
-            self.export(objs[0], context)
-        except AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
-        return {'FINISHED'}
-
-    def export(self, bpy_obj, context):
-        from .fmt_dm_exp import export_file
-        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path)
-        export_file(bpy_obj, self.filepath, cx)
-
-
-    def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.texture_name_from_image_path = prefs.object_texture_names_from_path
-        return super().invoke(context, event)
-
-
-class OpExportLevelDetails(bpy.types.Operator, io_utils.ExportHelper):
-
-    bl_idname = 'xray_export.details'
-    bl_label = 'Export .details'
-
-    filename_ext = '.details'
-    filter_glob = bpy.props.StringProperty(
-        default='*'+filename_ext, options={'HIDDEN'}
-        )
-
-    texture_name_from_image_path = plugin_prefs.PropObjectTextureNamesFromPath()
-
-    def execute(self, context):
-        objs = context.selected_objects
-
-        if not objs:
-            self.report({'ERROR'}, 'Cannot find selected object')
-            return {'CANCELLED'}
-        if len(objs) > 1:
-            self.report({'ERROR'}, 'Too many selected objects found')
-            return {'CANCELLED'}
-        if objs[0].type != 'EMPTY':
-            self.report({'ERROR'}, 'The selected object is not a empty')
-            return {'CANCELLED'}
-
-        try:
-            self.export(objs[0], context)
-        except AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
-
-        return {'FINISHED'}
-
-    def export(self, bpy_obj, context):
-
-        from .fmt_details_exp import export_file
-
-        cx = _mk_export_context(
-            context, self.report, self.texture_name_from_image_path
-            )
-
-        cx.bpy = bpy
-        export_file(bpy_obj, self.filepath, cx)
-
-
-    def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
         self.texture_name_from_image_path = prefs.object_texture_names_from_path
         return super().invoke(context, event)
 
@@ -715,19 +514,19 @@ def menu_func_import(self, context):
     self.layout.operator(OpImportObject.bl_idname, text='X-Ray object (.object)')
     self.layout.operator(OpImportAnm.bl_idname, text='X-Ray animation (.anm)')
     self.layout.operator(OpImportSkl.bl_idname, text='X-Ray skeletal animation (.skl, .skls)')
-    self.layout.operator(OpImportDM.bl_idname, text='X-Ray detail model (.dm, .details)')
 
 
 def menu_func_export(self, context):
     self.layout.operator(OpExportObjects.bl_idname, text='X-Ray object (.object)')
     self.layout.operator(OpExportAnm.bl_idname, text='X-Ray animation (.anm)')
     self.layout.operator(OpExportSkls.bl_idname, text='X-Ray animation (.skls)')
-    self.layout.operator(OpExportDM.bl_idname, text='X-Ray detail model (.dm)')
-    self.layout.operator(OpExportLevelDetails.bl_idname, text='X-Ray level details (.details)')
 
 
 def menu_func_export_ogf(self, context):
     self.layout.operator(OpExportOgf.bl_idname, text='X-Ray game object (.ogf)')
+
+
+from . import details
 
 
 def register():
@@ -735,7 +534,6 @@ def register():
     bpy.utils.register_class(OpImportObject)
     bpy.utils.register_class(OpImportAnm)
     bpy.utils.register_class(OpImportSkl)
-    bpy.utils.register_class(OpImportDM)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.utils.register_class(OpExportObject)
     bpy.utils.register_class(OpExportAnm)
@@ -744,21 +542,19 @@ def register():
     bpy.types.INFO_MT_file_export.append(menu_func_export)
     bpy.utils.register_class(OpExportObjects)
     bpy.utils.register_class(OpExportOgf)
-    bpy.utils.register_class(OpExportDM)
-    bpy.utils.register_class(OpExportLevelDetails)
     bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(overlay_view_3d, (), 'WINDOW', 'POST_VIEW')
     bpy.utils.register_class(OpExportProject)
+    details.operators.register_operators()
     inject_init()
 
 
 def unregister():
     inject_done()
+    details.operators.unregister_operators()
     bpy.utils.unregister_class(OpExportProject)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
     bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
-    bpy.utils.unregister_class(OpExportLevelDetails)
-    bpy.utils.unregister_class(OpExportDM)
     bpy.utils.unregister_class(OpExportOgf)
     bpy.utils.unregister_class(OpExportObjects)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
@@ -767,7 +563,6 @@ def unregister():
     bpy.utils.unregister_class(OpExportAnm)
     bpy.utils.unregister_class(OpExportObject)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
-    bpy.utils.unregister_class(OpImportDM)
     bpy.utils.unregister_class(OpImportSkl)
     bpy.utils.unregister_class(OpImportAnm)
     bpy.utils.unregister_class(OpImportObject)

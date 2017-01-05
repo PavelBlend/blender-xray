@@ -7,6 +7,7 @@ from .xray_inject_ui import inject_ui_init, inject_ui_done
 from .plugin_prefs import get_preferences, PropObjectMotionsExport, PropObjectTextureNamesFromPath, PropSDKVersion
 from . import shape_edit_helper as seh
 from . import utils
+from .details.types import XRayObjectDetailsProperties
 
 
 def _gen_time_prop(prop, description=''):
@@ -148,51 +149,8 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     helper_data = bpy.props.StringProperty()
     export_path = bpy.props.StringProperty(name='Export Path', description='Path relative to the root export folder')
 
-    # Detail Mesh Options
-    no_waving = bpy.props.BoolProperty(description='No Waving', options={'SKIP_SAVE'}, default=False)
-    min_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
-    max_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
-
-    def update_detail_color(self, context):
-        if hasattr(context.object, 'xray'):
-            from . import fmt_details_imp
-            color_indices = fmt_details_imp._generate_color_indices()
-            context.object.xray.detail_color = color_indices[context.object.xray.detail_index][0 : 3]
-
-    detail_index = bpy.props.IntProperty(
-        default=0,
-        min=0,
-        max=62,
-        update=update_detail_color
-        )
-    detail_color = bpy.props.FloatVectorProperty(
-        default=(1.0, 0.0, 0.0),
-        max=1.0,
-        min=0.0,
-        subtype='COLOR_GAMMA',
-        size=3,
-        update=update_detail_color
-        )
-    details_meshes_object = bpy.props.StringProperty()
-    details_slots_base_object = bpy.props.StringProperty()
-    details_slots_top_object = bpy.props.StringProperty()
-    details_light_format = bpy.props.EnumProperty(
-        name='Format',
-        items=(
-              ('VERSION_3', 'New', 'level.details version 3 (builds 1569-CoP)'),
-              ('VERSION_2', 'Old', 'level.details version 2 (builds 1096-1558)')
-              ),
-        default='VERSION_3'
-        )
-    lights_image = bpy.props.StringProperty()
-    hemi_image = bpy.props.StringProperty()
-    shadows_image = bpy.props.StringProperty()
-
-    # slots meshes indices
-    slots_mesh_0 = bpy.props.StringProperty()
-    slots_mesh_1 = bpy.props.StringProperty()
-    slots_mesh_2 = bpy.props.StringProperty()
-    slots_mesh_3 = bpy.props.StringProperty()
+    bpy.utils.register_class(XRayObjectDetailsProperties)
+    detail = bpy.props.PointerProperty(type=XRayObjectDetailsProperties)
 
 
 class XRayMeshProperties(bpy.types.PropertyGroup):

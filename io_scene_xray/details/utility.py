@@ -1,0 +1,98 @@
+
+from io_scene_xray.utils import AppError
+
+
+def _get_image(cx, bpy_obj, xray_prop, prop_name):
+
+    if xray_prop == '':
+        raise AppError(
+            'object "{0}" has no "{1}"'.format(bpy_obj.name, prop_name)
+            )
+
+    bpy_image = cx.bpy.data.images.get(xray_prop)
+    if bpy_image == None:
+        raise AppError(
+            'cannot find "{0}" image: "{1}"'.format(
+                prop_name, xray_prop
+                )
+            )
+
+    return bpy_image
+
+
+def _get_object(cx, bpy_obj, xray_prop, prop_name):
+
+    if xray_prop == '':
+        raise AppError(
+            'object "{0}" has no "{1}"'.format(bpy_obj.name, prop_name)
+            )
+
+    bpy_object = cx.bpy.data.objects.get(xray_prop)
+    if bpy_object == None:
+        raise AppError(
+            'cannot find "{0}": "{1}"'.format(
+                prop_name, xray_prop
+                )
+            )
+
+    return bpy_object
+
+
+def _validate_object_type(bpy_obj, type, prop_name):
+    if bpy_obj.type != type:
+        raise AppError('"{0}" must be of type "{1}"'.format(prop_name, type))
+
+
+def generate_meshes_color_indices_table():
+
+    mesh_ids = {}
+    color_depth = 21
+    current_mesh = [color_depth, 0, 0]
+    color_channels_reverse = (1, 2, 0)
+
+    mesh_id = 0
+    for color_channel in range(3):    # R, G, B
+        for _ in range(color_depth):
+
+            mesh_ids[(current_mesh[0], current_mesh[1], current_mesh[2])] = \
+                mesh_id
+
+            mesh_id += 1
+            current_mesh[color_channel] -= 1
+            current_mesh[color_channels_reverse[color_channel]] += 1
+
+    mesh_ids[(0, 0, 0)] = 63    # color index 63 (empty detail mesh)
+
+    return mesh_ids
+
+
+def generate_color_indices():
+
+    mesh_ids = []
+    color_depth = 21
+    current_mesh = [color_depth, 0, 0]
+    color_channels_reverse = (1, 2, 0)
+
+    for color_channel in range(3):    # R, G, B
+        for _ in range(color_depth):
+            mesh_ids.append((
+                current_mesh[0],
+                current_mesh[1],
+                current_mesh[2]
+                ))
+            current_mesh[color_channel] -= 1
+            current_mesh[color_channels_reverse[color_channel]] += 1
+
+    mesh_ids.append([0, 0, 0])    # color index 63 (empty detail mesh)
+    color_indices = []
+
+    for mesh_id in mesh_ids:
+        color_index = (
+            mesh_id[0] / color_depth,
+            mesh_id[1] / color_depth,
+            mesh_id[2] / color_depth,
+            1.0
+            )
+        color_indices.append(color_index)
+
+    return color_indices

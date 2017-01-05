@@ -175,92 +175,6 @@ class XRayMeshPanel(XRayPanel):
         # r.prop(data, 'flags_other', text='Other')
 
 
-class XRayDetailsPanel(XRayPanel):
-    bl_context = 'object'
-    bl_label = 'XRay - details'
-
-    @classmethod
-    def poll(cls, context):
-        return (
-            context.active_object
-            and context.active_object.type in {'MESH', 'EMPTY'}
-            and not is_helper_object(context.active_object)
-        )
-
-    def draw(self, context):
-        layout = self.layout
-        data = context.object.xray
-        if context.active_object.type == 'MESH':
-            layout.label('Detail Model Options:')
-            layout.prop(data, 'no_waving', text='No Waving', toggle=True)
-            layout.prop(data, 'min_scale', text='Min Scale')
-            layout.prop(data, 'max_scale', text='Max Scale')
-            layout.prop(data, 'detail_index', text='Detail Index')
-            layout.prop(data, 'detail_color', text='')
-        elif context.active_object.type == 'EMPTY':
-            layout.label('Level Details Options:')
-            layout.prop_search(
-                data,
-                'details_meshes_object',
-                bpy.data,
-                'objects',
-                text='Meshes Object'
-                )
-            layout.prop_search(
-                data,
-                'details_slots_base_object',
-                bpy.data,
-                'objects',
-                text='Slots Base Object'
-                )
-            layout.prop_search(
-                data,
-                'details_slots_top_object',
-                bpy.data,
-                'objects',
-                text='Slots Top Object'
-                )
-
-            _, box = draw_collapsible(layout, 'object:lighting', 'Lighting Coefficients')
-            if box:
-                row = box.row()
-                row.label('Format:')
-                row.row().prop(data, 'details_light_format', expand=True, text='Format')
-                box.prop_search(
-                    data,
-                    'lights_image',
-                    bpy.data,
-                    'images',
-                    text='Lights'
-                    )
-                if data.details_light_format == 'VERSION_3':
-                    box.prop_search(
-                        data,
-                        'hemi_image',
-                        bpy.data,
-                        'images',
-                        text='Hemi'
-                        )
-                    box.prop_search(
-                        data,
-                        'shadows_image',
-                        bpy.data,
-                        'images',
-                        text='Shadows'
-                        )
-
-            _, box = draw_collapsible(layout, 'object:slots', 'Slots Meshes Indices')
-            if box:
-                for i in range(4):
-                    box.prop_search(
-                        data,
-                        'slots_mesh_{}'.format(i),
-                        bpy.data,
-                        'images',
-                        text='Mesh {}'.format(i)
-                        )
-
-
 class XRayShapeEditHelperObjectPanel(XRayPanel):
     bl_context = 'object'
     bl_label = 'XRay - shape edit helper'
@@ -526,12 +440,14 @@ class XRayScenePanel(XRayPanel):
             bx.prop(data, 'object_texture_name_from_image_path')
 
 
+from .details.ui import XRayDetailsPanel
+
 classes = [
     PropClipOp,
     _CollapsOp,
     XRayObjectPanel
-    , XRayDetailsPanel
     , XRayMeshPanel
+    , XRayDetailsPanel
     , XRayShapeEditHelperObjectPanel
     , XRayEShaderMenu
     , XRayCShaderMenu

@@ -3,61 +3,36 @@ import io
 import bpy
 import bmesh
 import mathutils
-from .utils import convert_object_to_space_bmesh, AppError, gen_texture_name
-from .xray_io import PackedWriter
+
+from io_scene_xray.utils import (
+    convert_object_to_space_bmesh, AppError, gen_texture_name
+    )
+
+from io_scene_xray.xray_io import PackedWriter
+from .validate import validate_export_object
+from .format import VERTICES_COUNT_LIMIT
 
 
 def export(bpy_obj, pw, cx, mode='DM'):
-    if not len(bpy_obj.data.uv_layers):
-        raise AppError('mesh "' + bpy_obj.data.name + '" has no UV-map')
-    material_count = len(bpy_obj.material_slots)
-    if material_count == 0:
-        raise AppError('mesh "' + bpy_obj.data.name + '" has no material')
-    elif material_count > 1:
-        raise AppError(
-            'mesh "' + bpy_obj.data.name + '" has more than one material'
-            )
-    else:
-        bpy_material = bpy_obj.material_slots[0].material
-        if not bpy_material:
-            raise AppError(
-                'mesh "' + bpy_obj.data.name + '" has empty material slot'
-                )
-    bpy_texture = None
-    for ts in bpy_material.texture_slots:
-        if ts:
-            bpy_texture = ts.texture
-            if bpy_texture:
-                break
-    if bpy_texture:
-        if bpy_texture.type == 'IMAGE':
-            if not bpy_texture.image:
-                raise AppError(
-                    'texture "' + bpy_texture.name + '" has no image'
-                    )
-            if cx.texname_from_path:
-                tx_name = gen_texture_name(bpy_texture, cx.textures_folder)
-            else:
-                tx_name = bpy_texture.name
-        else:
-            raise AppError(
-                'texture "' + bpy_texture.name + \
-                '" has an incorrect type: ' + bpy_texture.type
-                )
-    else:
-        raise AppError('material "' + bpy_material.name + '" has no texture')
+
+    bpy_material, tx_name = validate_export_object(cx, bpy_obj)
+
+    m = bpy_obj.xray.detail.model
     pw.puts(bpy_material.xray.eshader)
     pw.puts(tx_name)
-    pw.putf('<I', int(bpy_obj.xray.no_waving))
-    pw.putf('<ff', bpy_obj.xray.min_scale, bpy_obj.xray.max_scale)
+    pw.putf('<I', int(m.no_waving))
+    pw.putf('<ff', m.min_scale, m.max_scale)
+
     if mode == 'DM':
         bm = convert_object_to_space_bmesh(
             bpy_obj, mathutils.Matrix.Identity(4)
             )
+
     else:
         bm = convert_object_to_space_bmesh(
             bpy_obj, mathutils.Matrix.Identity(4), local=True
             )
+
     bmesh.ops.triangulate(bm, faces=bm.faces)
     bpy_data = bpy.data.meshes.new('.export-dm')
     bm.to_mesh(bpy_data)
@@ -95,19 +70,25 @@ def export(bpy_obj, pw, cx, mode='DM'):
             indices.append(ii)
 
     vertices_count = len(vertices)
-    if vertices_count > 0x10000:
+    if vertices_count > VERTICES_COUNT_LIMIT:
         raise AppError(
             'mesh "' + bpy_obj.data.name + \
-            '" has too many vertices. Must be no more than 65536'
+            '" has too many vertices. Must be no more than {}'.format(
+                VERTICES_COUNT_LIMIT
+                )
             )
+
     pw.putf('<I', vertices_count)
     pw.putf('<I', len(indices) * 3)
+
     for vtx in vertices:
         pw.putf(
             '<fffff', vtx[0][0], vtx[0][2], vtx[0][1], vtx[1][0], vtx[1][1]
             )
+
     for tris in indices:
         pw.putf('<HHH', tris[0], tris[2], tris[1])
+
     bpy.data.meshes.remove(bpy_data)
 
 
