@@ -46,3 +46,13 @@ class TestFormatObject(utils.XRayTestCase):
 
         # Assert
         self.assertEqual(len(bpy.data.materials), original_materials_count + 1)
+
+    def test_import_with_empty_polygons(self):
+        # Act
+        bpy.ops.xray_import.object(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_invalid_face.object'}],
+        )
+
+        # Assert
+        self.assertReportsContains('WARNING', re.compile('Mesh: invalid face found'))
