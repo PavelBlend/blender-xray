@@ -2,9 +2,8 @@
 import io
 import os
 from io_scene_xray.xray_io import PackedReader
-from .create import create_object, search_material
+from .create import create_object, search_material, create_mesh
 from .format import DetailModel
-from .load import load_mesh
 
 
 def import_(fpath, cx, pr, mode='DM', detail_index=None, detail_colors=None):
@@ -40,7 +39,7 @@ def import_(fpath, cx, pr, mode='DM', detail_index=None, detail_colors=None):
         model.index = detail_index
         model.color = detail_colors[detail_index][0:3]
 
-    load_mesh(cx, pr, dm, PackedReader)
+    create_mesh(cx, pr, dm, PackedReader)
 
     return bpy_obj
 

@@ -1,7 +1,7 @@
 
 import io
 from io_scene_xray.xray_io import ChunkedWriter
-from .save import write_header, write_details, write_slots
+from .write import write_header, write_details, write_slots
 
 from .convert import (
     convert_bpy_data_to_level_details_struct,
