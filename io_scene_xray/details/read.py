@@ -141,7 +141,7 @@ def read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
 
     elif header.format_version == 2:
 
-        S_ffBHBHBHBHBBBB = PackedReader.prep('ffBHBHBHBHH')
+        S_ffBHBHBHBHH = PackedReader.prep('ffBHBHBHBHH')
 
         lighting_image_pixels = [
             1.0 for _ in range(header.slots_count * 4 * 4)
@@ -157,7 +157,7 @@ def read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
 
         for slot_y in range(header.size.y):
             for slot_x in range(header.size.x):
-                slot_data = pr.getp(S_ffBHBHBHBHBBBB)
+                slot_data = pr.getp(S_ffBHBHBHBHH)
 
                 y_base = slot_data[0]
                 y_top = slot_data[1]

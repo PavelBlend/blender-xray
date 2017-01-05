@@ -1,6 +1,7 @@
 
 from io_scene_xray.xray_io import PackedWriter, ChunkedWriter
 from .format import Chunks, FORMAT_VERSION_3
+from io_scene_xray.utils import AppError
 
 
 def write_details(cw, ld, cx):
@@ -63,14 +64,14 @@ def write_details(cw, ld, cx):
 
 def write_header(cw, ld):
     pw = PackedWriter()
-    pw.putf('<I', FORMAT_VERSION_3)
+    pw.putf('<I', ld.format_version)
     pw.putf('<I', len(ld.meshes_object.children))    # meshes count
     pw.putf('<ii', ld.slots_offset_x, ld.slots_offset_y)
     pw.putf('<II', ld.slots_size_x, ld.slots_size_y)
     cw.put(Chunks.HEADER, pw)
 
 
-def write_slots(cw, ld):
+def write_slots_v3(cw, ld):
 
     from .convert import convert_slot_location_to_slot_index
 
@@ -221,5 +222,88 @@ def write_slots(cw, ld):
             pw.putf('<HHHH', density[0], density[1], density[2], density[3])
 
             slot_index += 1
+
+    cw.put(Chunks.SLOTS, pw)
+
+
+def write_slots_v2(cw, ld):
+
+    from .convert import convert_slot_location_to_slot_index
+    from .convert import (
+        convert_pixel_color_to_density, convert_pixel_color_to_light
+        )
+
+    pw = PackedWriter()
+    base_slots_poly = ld.slots_base_object.data.polygons
+    top_slots_poly = ld.slots_top_object.data.polygons
+    slots = {}
+    ld.slot_size = 2.0
+
+    for slot_index in range(ld.slots_count):
+        slots[slot_index] = [None, None]
+
+    for slot_index in range(ld.slots_count):
+        polygon_base = base_slots_poly[slot_index]
+        polygon_top = top_slots_poly[slot_index]
+
+        slot_index_base = convert_slot_location_to_slot_index(
+            ld, polygon_base.center
+            )
+
+        slot_index_top = convert_slot_location_to_slot_index(
+            ld, polygon_top.center
+            )
+
+        slots[slot_index_base][0] = polygon_base.center[2]
+        slots[slot_index_top][1] = polygon_top.center[2]
+
+    lights_pixels = list(ld.lights.pixels)
+
+    meshes_pixels = [
+        list(ld.mesh_0.pixels),
+        list(ld.mesh_1.pixels),
+        list(ld.mesh_2.pixels),
+        list(ld.mesh_3.pixels)
+        ]
+
+    from .utility import generate_meshes_color_indices_table
+
+    color_indices = generate_meshes_color_indices_table()
+
+    slot_index = 0
+    color_step = 1.0 / 21
+    for y in range(ld.slots_size_y):
+        for x in range(ld.slots_size_x):
+
+            pw.putf('<ff', slots[slot_index][0], slots[slot_index][1])
+
+            pixel_index = slot_index * 4
+
+            for mesh_index in range(4):
+
+                mesh_pixel_index = (x * 2 + ld.slots_size_x * 2 * y * 2) * 4
+    
+                mesh_id = color_indices.get((
+    
+                    int(round(
+                        meshes_pixels[mesh_index][mesh_pixel_index] / color_step, 1)),
+    
+                    int(round(
+                        meshes_pixels[mesh_index][mesh_pixel_index + 1] / color_step, 1)),
+    
+                    int(round(
+                        meshes_pixels[mesh_index][mesh_pixel_index + 2] / color_step, 1)),
+    
+                    ), 63)
+
+                pw.putf('<B', mesh_id)
+
+                density = convert_pixel_color_to_density(ld, meshes_pixels[mesh_index], x, y)
+
+                pw.putf('<H', density)
+
+            lighting = convert_pixel_color_to_light(ld, lights_pixels, x, y)
+
+            pw.putf('<H', lighting)
 
     cw.put(Chunks.SLOTS, pw)

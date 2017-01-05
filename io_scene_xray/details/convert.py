@@ -1,4 +1,5 @@
 
+from io_scene_xray.utils import AppError
 from .format import pixels_offset_1, density_depth
 
 
@@ -12,7 +13,10 @@ def convert_bpy_data_to_level_details_struct(cx, bpy_obj):
     m = s.meshes
     ld = LevelDetails()
 
-    ld.format_version = 3
+    if cx.level_details_format_version == 'NEW':
+        ld.format_version = 3
+    else:
+        ld.format_version = 2
 
     ld.meshes_object = _get_object(
         cx, bpy_obj, s.meshes_object, 'Meshes Object'
@@ -30,15 +34,17 @@ def convert_bpy_data_to_level_details_struct(cx, bpy_obj):
     _validate_object_type(ld.slots_top_object, 'MESH', 'Slots Top Object')
 
     if l.format == 'VERSION_2':
-        raise AppError(
-            'object "' + bpy_obj.name + '" has not supported lighting format'
-            )
+        ld.light_format = 'OLD'
+
+        ld.lights = _get_image(cx, bpy_obj, l.lights_image, 'Lights')
+
     else:
         ld.light_format = '1569-COP'
 
-    ld.lights = _get_image(cx, bpy_obj, l.lights_image, 'Lights')
-    ld.hemi = _get_image(cx, bpy_obj, l.hemi_image, 'Hemi')
-    ld.shadows = _get_image(cx, bpy_obj, l.shadows_image, 'Shadows')
+        ld.lights = _get_image(cx, bpy_obj, l.lights_image, 'Lights')
+        ld.hemi = _get_image(cx, bpy_obj, l.hemi_image, 'Hemi')
+        ld.shadows = _get_image(cx, bpy_obj, l.shadows_image, 'Shadows')
+
     ld.mesh_0 = _get_image(cx, bpy_obj, m.mesh_0, 'Mesh 0')
     ld.mesh_1 = _get_image(cx, bpy_obj, m.mesh_1, 'Mesh 1')
     ld.mesh_2 = _get_image(cx, bpy_obj, m.mesh_2, 'Mesh 2')
@@ -123,3 +129,37 @@ def convert_pixel_color_to_density(ld, pixels, x, y):
             )
 
     return density[0] | density[1] | density[2] | density[3]
+
+
+def convert_pixel_color_to_light(ld, pixels, x, y):
+
+    light = []
+
+    for corner_index in range(4):
+
+        pixel_index_r = (
+            (x * 2 + pixels_offset_1[corner_index][0] + \
+            (y * 2 + pixels_offset_1[corner_index][1]) * ld.slots_size_x * 2) \
+            * 4
+            )
+
+        pixel_index_g = (
+            (x * 2 + pixels_offset_1[corner_index][0] + \
+            (y * 2 + pixels_offset_1[corner_index][1]) * ld.slots_size_x * 2) \
+            * 4 + 1
+            )
+
+        pixel_index_b = (
+            (x * 2 + pixels_offset_1[corner_index][0] + \
+            (y * 2 + pixels_offset_1[corner_index][1]) * ld.slots_size_x * 2) \
+            * 4 + 2
+            )
+
+        light.append(
+            int(round(((
+                pixels[pixel_index_r] + \
+                pixels[pixel_index_g] + \
+                pixels[pixel_index_b]) / 3) / density_depth, 1)) \
+                << (4 * corner_index))
+
+    return light[0] | light[1] | light[2] | light[3]

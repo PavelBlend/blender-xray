@@ -218,6 +218,23 @@ class OpExportLevelDetails(bpy.types.Operator, io_utils.ExportHelper):
     texture_name_from_image_path = \
         plugin_prefs.PropObjectTextureNamesFromPath()
 
+    format_version = bpy.props.EnumProperty(
+        name='Format',
+        items=(
+            ('NEW', 'Builds 1569-CoP', ''),
+            ('OLD_2', 'Builds 1233-1558', ''),
+            ('OLD_1', 'Builds 1096-1230', '')
+            ),
+        default='NEW'
+        )
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.label('Format:')
+        col = layout.column()
+        col.prop(self, 'format_version', expand=True)
+
     def execute(self, context):
 
         objs = context.selected_objects
@@ -251,6 +268,7 @@ class OpExportLevelDetails(bpy.types.Operator, io_utils.ExportHelper):
             )
 
         cx.bpy = bpy
+        cx.level_details_format_version = self.format_version
         export_file(bpy_obj, self.filepath, cx)
 
     def invoke(self, context, event):

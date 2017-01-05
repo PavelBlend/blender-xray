@@ -1,4 +1,7 @@
 
+from io_scene_xray.utils import AppError
+
+
 def validate_export_object(cx, bpy_obj):
 
     if not len(bpy_obj.data.uv_layers):
