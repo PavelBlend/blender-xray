@@ -33,15 +33,20 @@ def convert_bpy_data_to_level_details_struct(cx, bpy_obj):
         )
     _validate_object_type(ld.slots_top_object, 'MESH', 'Slots Top Object')
 
-    if l.format == 'VERSION_2':
-        ld.light_format = 'OLD'
+    ld.lights = _get_image(cx, bpy_obj, l.lights_image, 'Lights')
 
-        ld.lights = _get_image(cx, bpy_obj, l.lights_image, 'Lights')
+    if l.format == 'VERSION_2':
+
+        if cx.level_details_format_version == 'NEW':
+            raise AppError(
+                'Object "{0}" has incorrect light format: "Old". ' \
+                'Must be "New".'.format(bpy_obj.name))
+
+        ld.light_format = 'OLD'
 
     else:
         ld.light_format = '1569-COP'
 
-        ld.lights = _get_image(cx, bpy_obj, l.lights_image, 'Lights')
         ld.hemi = _get_image(cx, bpy_obj, l.hemi_image, 'Hemi')
         ld.shadows = _get_image(cx, bpy_obj, l.shadows_image, 'Shadows')
 
