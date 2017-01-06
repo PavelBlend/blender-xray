@@ -109,6 +109,27 @@ def convert_bpy_data_to_slots_transforms(ld):
     ld.slots_offset_y = -slots_bbox[1]
 
 
+def _validate_sizes(images, size_x, size_y):
+    for image in images:
+        if image.size[0] != size_x or image.size[1] != size_y:
+            raise AppError('Image "{0}" has incorrect size: {1} x {2}. ' \
+                'Must be {3} x {4}.'.format(
+                    image.name, image.size[0], image.size[1],
+                    size_x, size_y
+                    ))
+
+
+def validate_images_size(ld):
+    if ld.format_version == 3:
+        images_1 = (ld.lights, ld.hemi, ld.shadows)
+        images_2 = (ld.mesh_0, ld.mesh_1, ld.mesh_2, ld.mesh_3)
+        _validate_sizes(images_1, ld.slots_size_x, ld.slots_size_y)
+        _validate_sizes(images_2, ld.slots_size_x * 2, ld.slots_size_y * 2)
+    elif ld.format_version == 2:
+        images = (ld.lights, ld.mesh_0, ld.mesh_1, ld.mesh_2, ld.mesh_3)
+        _validate_sizes(images, ld.slots_size_x * 2, ld.slots_size_y * 2)
+
+
 def convert_slot_location_to_slot_index(ld, slot_location):
 
     x_slot = int(round(
