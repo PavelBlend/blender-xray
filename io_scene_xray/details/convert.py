@@ -13,15 +13,6 @@ def convert_bpy_data_to_level_details_struct(cx, bpy_obj):
     m = s.meshes
     ld = LevelDetails()
 
-    if cx.level_details_format_version == 'NEW':
-        ld.format_version = 3
-    else:
-        ld.format_version = 2
-        if cx.level_details_format_version == 'OLD_1':
-            ld.old_format = 1
-        elif cx.level_details_format_version == 'OLD_2':
-            ld.old_format = 2
-
     ld.meshes_object = _get_object(
         cx, bpy_obj, s.meshes_object, 'Meshes Object'
         )
@@ -39,20 +30,24 @@ def convert_bpy_data_to_level_details_struct(cx, bpy_obj):
 
     ld.lights = _get_image(cx, bpy_obj, l.lights_image, 'Lights')
 
-    if l.format == 'VERSION_2':
-
-        if cx.level_details_format_version == 'NEW':
-            raise AppError(
-                'Object "{0}" has incorrect light format: "Old". ' \
-                'Must be "New".'.format(bpy_obj.name))
-
-        ld.light_format = 'OLD'
-
-    else:
+    if cx.level_details_format_version == 'NEW':
+        if l.format != 'VERSION_3':
+            raise AppError('Object "{0}" has incorrect light format: "Old". ' \
+                'Must be "New"'.format(bpy_obj.name))
+        ld.format_version = 3
         ld.light_format = '1569-COP'
-
         ld.hemi = _get_image(cx, bpy_obj, l.hemi_image, 'Hemi')
         ld.shadows = _get_image(cx, bpy_obj, l.shadows_image, 'Shadows')
+    else:
+        if l.format != 'VERSION_2':
+            raise AppError('Object "{0}" has incorrect light format: "New". ' \
+                'Must be "Old"'.format(bpy_obj.name))
+        ld.format_version = 2
+        ld.light_format = 'OLD'
+        if cx.level_details_format_version == 'OLD_1':
+            ld.old_format = 1
+        elif cx.level_details_format_version == 'OLD_2':
+            ld.old_format = 2
 
     ld.mesh_0 = _get_image(cx, bpy_obj, m.mesh_0, 'Mesh 0')
     ld.mesh_1 = _get_image(cx, bpy_obj, m.mesh_1, 'Mesh 1')
