@@ -1,6 +1,6 @@
 
 from io_scene_xray.xray_io import PackedWriter, ChunkedWriter
-from .format import Chunks, FORMAT_VERSION_3
+from .format import Chunks, FORMAT_VERSION_3, pixels_offset_1, pixels_offset_2
 from io_scene_xray.utils import AppError
 
 
@@ -272,28 +272,34 @@ def write_slots_v2(cw, ld):
 
     slot_index = 0
     color_step = 1.0 / 21
+
+    if ld.old_format == 1:
+        pixels_offset = pixels_offset_1
+    elif ld.old_format == 2:
+        pixels_offset = pixels_offset_2
+
     for y in range(ld.slots_size_y):
         for x in range(ld.slots_size_x):
 
             pw.putf('<ff', slots[slot_index][0], slots[slot_index][1])
 
-            pixel_index = slot_index * 4
+            slot_index += 1
 
             for mesh_index in range(4):
 
                 mesh_pixel_index = (x * 2 + ld.slots_size_x * 2 * y * 2) * 4
-    
+
                 mesh_id = color_indices.get((
-    
+
                     int(round(
                         meshes_pixels[mesh_index][mesh_pixel_index] / color_step, 1)),
-    
+
                     int(round(
                         meshes_pixels[mesh_index][mesh_pixel_index + 1] / color_step, 1)),
-    
+
                     int(round(
                         meshes_pixels[mesh_index][mesh_pixel_index + 2] / color_step, 1)),
-    
+
                     ), 63)
 
                 pw.putf('<B', mesh_id)
@@ -302,7 +308,9 @@ def write_slots_v2(cw, ld):
 
                 pw.putf('<H', density)
 
-            lighting = convert_pixel_color_to_light(ld, lights_pixels, x, y)
+            lighting = convert_pixel_color_to_light(
+                ld, lights_pixels, x, y, pixels_offset
+                )
 
             pw.putf('<H', lighting)
 

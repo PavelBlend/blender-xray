@@ -155,12 +155,21 @@ def read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
 
         density_pixels_offset = pixels_offset_1
 
+        bad_y_base_count = 0
+        bad_y_top_count = 0
+
         for slot_y in range(header.size.y):
             for slot_x in range(header.size.x):
                 slot_data = pr.getp(S_ffBHBHBHBHH)
 
                 y_base = slot_data[0]
                 y_top = slot_data[1]
+                if y_base > 200.0:    # bad y_base coordinate (inf)
+                    y_base = 200.0
+                    bad_y_base_count += 1
+                if y_top < -200.0:    # bad y_top coordinate (-inf)
+                    y_top = -200.0
+                    bad_y_top_count += 1
                 y_coords.append(y_top)
                 y_coords_base.append(y_base)
 
@@ -226,6 +235,20 @@ def read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
 
         del meshes_images_pixels
         del lighting_image_pixels
+
+        if bad_y_base_count > 0:
+            cx.report({'WARNING'},
+                'details has {} bad base coordinates'.format(
+                    bad_y_base_count
+                    )
+                )
+
+        if bad_y_top_count > 0:
+            cx.report({'WARNING'},
+                'details has {} bad top coordinates'.format(
+                    bad_y_top_count
+                    )
+                )
 
     slots_base_object, slots_top_object = create_details_slots_object(
         base_name, cx, header, y_coords, y_coords_base

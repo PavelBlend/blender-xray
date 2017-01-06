@@ -17,6 +17,10 @@ def convert_bpy_data_to_level_details_struct(cx, bpy_obj):
         ld.format_version = 3
     else:
         ld.format_version = 2
+        if cx.level_details_format_version == 'OLD_1':
+            ld.old_format = 1
+        elif cx.level_details_format_version == 'OLD_2':
+            ld.old_format = 2
 
     ld.meshes_object = _get_object(
         cx, bpy_obj, s.meshes_object, 'Meshes Object'
@@ -136,27 +140,27 @@ def convert_pixel_color_to_density(ld, pixels, x, y):
     return density[0] | density[1] | density[2] | density[3]
 
 
-def convert_pixel_color_to_light(ld, pixels, x, y):
+def convert_pixel_color_to_light(ld, pixels, x, y, pixels_offset):
 
     light = []
 
     for corner_index in range(4):
 
         pixel_index_r = (
-            (x * 2 + pixels_offset_1[corner_index][0] + \
-            (y * 2 + pixels_offset_1[corner_index][1]) * ld.slots_size_x * 2) \
+            (x * 2 + pixels_offset[corner_index][0] + \
+            (y * 2 + pixels_offset[corner_index][1]) * ld.slots_size_x * 2) \
             * 4
             )
 
         pixel_index_g = (
-            (x * 2 + pixels_offset_1[corner_index][0] + \
-            (y * 2 + pixels_offset_1[corner_index][1]) * ld.slots_size_x * 2) \
+            (x * 2 + pixels_offset[corner_index][0] + \
+            (y * 2 + pixels_offset[corner_index][1]) * ld.slots_size_x * 2) \
             * 4 + 1
             )
 
         pixel_index_b = (
-            (x * 2 + pixels_offset_1[corner_index][0] + \
-            (y * 2 + pixels_offset_1[corner_index][1]) * ld.slots_size_x * 2) \
+            (x * 2 + pixels_offset[corner_index][0] + \
+            (y * 2 + pixels_offset[corner_index][1]) * ld.slots_size_x * 2) \
             * 4 + 2
             )
 
