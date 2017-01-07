@@ -285,7 +285,7 @@ def write_slots_v2(cw, ld):
     from .utility import generate_meshes_color_indices_table
 
     color_indices = generate_meshes_color_indices_table(
-        len(ld.meshes_object.children)
+        len(ld.meshes_object.children), format=2
         )
 
     slot_index = 0
@@ -318,7 +318,7 @@ def write_slots_v2(cw, ld):
                     int(round(
                         meshes_pixels[mesh_index][mesh_pixel_index + 2] / color_step, 1)),
 
-                    ), 63)
+                    ), 255)
 
                 pw.putf('<B', mesh_id)
 
