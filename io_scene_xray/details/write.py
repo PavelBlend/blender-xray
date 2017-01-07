@@ -1,7 +1,11 @@
 
 from io_scene_xray.xray_io import PackedWriter, ChunkedWriter
-from .format import Chunks, FORMAT_VERSION_3, pixels_offset_1, pixels_offset_2
 from io_scene_xray.utils import AppError
+
+from .format import (
+    Chunks, FORMAT_VERSION_3, pixels_offset_1, pixels_offset_2,
+    DETAIL_MODEL_COUNT_LIMIT
+    )
 
 
 def write_details(cw, ld, cx):
@@ -16,10 +20,12 @@ def write_details(cw, ld, cx):
             'Meshes Object "' + mo.name + '" has no childrens'
             )
 
-    if dm_count > 62:
+    if dm_count > DETAIL_MODEL_COUNT_LIMIT:
         raise AppError(
             'Meshes Object "' + mo.name + '" has too many childrens: {0}. ' \
-            'Must be less than 63.'.format(dm_count)
+            'Should be not more {1}.'.format(
+                dm_count, DETAIL_MODEL_COUNT_LIMIT
+                )
             )
 
     from .model import exp

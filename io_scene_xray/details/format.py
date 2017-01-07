@@ -49,3 +49,4 @@ pixels_offset_2 = {
     }
 
 density_depth = 1.0 / 0xf
+DETAIL_MODEL_COUNT_LIMIT = 0x3f
