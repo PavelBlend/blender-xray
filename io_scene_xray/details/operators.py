@@ -11,15 +11,22 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.dm'
     bl_label = 'Import .dm/.details'
     bl_description = 'Imports X-Ray Detail Model (.dm, .details)'
-    bl_options = {'UNDO'}
+    bl_options = {'REGISTER', 'PRESET', 'UNDO'}
 
     filter_glob = bpy.props.StringProperty(
         default='*.dm;*.details', options={'HIDDEN'}
         )
 
-    directory = bpy.props.StringProperty(subtype="DIR_PATH")
+    directory = bpy.props.StringProperty(
+        subtype="DIR_PATH", options={'SKIP_SAVE'}
+        )
+
+    filepath = bpy.props.StringProperty(
+        subtype="FILE_PATH", options={'SKIP_SAVE'}
+        )
+
     files = bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement
+        type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
         )
 
     details_models_in_a_row = bpy.props.BoolProperty(
