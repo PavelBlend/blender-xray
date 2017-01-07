@@ -43,7 +43,7 @@ def _validate_object_type(bpy_obj, type, prop_name):
         raise AppError('"{0}" must be of type "{1}"'.format(prop_name, type))
 
 
-def generate_meshes_color_indices_table():
+def generate_meshes_color_indices_table(detail_models_count):
 
     mesh_ids = {}
     color_depth = 21
@@ -60,6 +60,9 @@ def generate_meshes_color_indices_table():
             mesh_id += 1
             current_mesh[color_channel] -= 1
             current_mesh[color_channels_reverse[color_channel]] += 1
+
+            if mesh_id >= detail_models_count:
+                break
 
     mesh_ids[(0, 0, 0)] = 63    # color index 63 (empty detail mesh)
 

@@ -135,7 +135,9 @@ def write_slots_v3(cw, ld):
     from .utility import generate_meshes_color_indices_table
     from .convert import convert_pixel_color_to_density
 
-    color_indices = generate_meshes_color_indices_table()
+    color_indices = generate_meshes_color_indices_table(
+        len(ld.meshes_object.children)
+        )
 
     color_step = 1.0 / 21
 
@@ -282,7 +284,9 @@ def write_slots_v2(cw, ld):
 
     from .utility import generate_meshes_color_indices_table
 
-    color_indices = generate_meshes_color_indices_table()
+    color_indices = generate_meshes_color_indices_table(
+        len(ld.meshes_object.children)
+        )
 
     slot_index = 0
     color_step = 1.0 / 21
