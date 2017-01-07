@@ -27,17 +27,25 @@ def write_details(cw, ld, cx):
     dm_pws = {}
     dm_indices = [0 for _ in range(dm_count)]
     for dm in mo.children:
-    
+
         if dm.type != 'MESH':
             raise AppError(
                 'Meshes Object "' + mo.name + \
                 '" has incorrect children object type: {0}. ' \
                 'Children object type must be "MESH"'.format(dm.type)
                 )
-    
+
         pw = PackedWriter()
         exp.export(dm, pw, cx, mode='DETAILS')
         dm_index = dm.xray.detail.model.index
+
+        if dm_index >= dm_count:
+            raise AppError(
+                'Meshes Object "' + dm.name + \
+                '" has incorrect "Detail Index": {0}. ' \
+                'Must be less than {1}'.format(dm_index, dm_count)
+                )
+
         dm_indices[dm_index] += 1
         dm_pws[dm_index] = pw
 
