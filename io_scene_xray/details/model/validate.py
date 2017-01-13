@@ -1,5 +1,5 @@
 
-from io_scene_xray.utils import AppError
+from io_scene_xray.utils import AppError, gen_texture_name
 
 
 def validate_export_object(cx, bpy_obj):

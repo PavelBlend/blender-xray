@@ -238,6 +238,7 @@ class OpExportLevelDetails(bpy.types.Operator, io_utils.ExportHelper):
     def draw(self, context):
         layout = self.layout
 
+        layout.prop(self, 'texture_name_from_image_path')
         layout.label('Format:')
         col = layout.column()
         col.prop(self, 'format_version', expand=True)
