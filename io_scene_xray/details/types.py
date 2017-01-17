@@ -27,12 +27,10 @@ class XRayObjectDetailsSlotsLightingProperties(bpy.types.PropertyGroup):
 
 class XRayObjectDetailsSlotsProperties(bpy.types.PropertyGroup):
 
-    bpy.utils.register_class(XRayObjectDetailsSlotsMeshesProperties)
     meshes = bpy.props.PointerProperty(
         type=XRayObjectDetailsSlotsMeshesProperties
         )
 
-    bpy.utils.register_class(XRayObjectDetailsSlotsLightingProperties)
     ligthing = bpy.props.PointerProperty(
         type=XRayObjectDetailsSlotsLightingProperties
         )
@@ -83,9 +81,7 @@ class XRayObjectDetailsModelProperties(bpy.types.PropertyGroup):
 class XRayObjectDetailsProperties(bpy.types.PropertyGroup):
 
     # detail model options
-    bpy.utils.register_class(XRayObjectDetailsModelProperties)
     model = bpy.props.PointerProperty(type=XRayObjectDetailsModelProperties)
 
     # detail slots options
-    bpy.utils.register_class(XRayObjectDetailsSlotsProperties)
     slots = bpy.props.PointerProperty(type=XRayObjectDetailsSlotsProperties)

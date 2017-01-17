@@ -7,7 +7,13 @@ from .xray_inject_ui import inject_ui_init, inject_ui_done
 from .plugin_prefs import get_preferences, PropObjectMotionsExport, PropObjectTextureNamesFromPath, PropSDKVersion
 from . import shape_edit_helper as seh
 from . import utils
-from .details.types import XRayObjectDetailsProperties
+from .details.types import (
+    XRayObjectDetailsProperties,
+    XRayObjectDetailsModelProperties,
+    XRayObjectDetailsSlotsProperties,
+    XRayObjectDetailsSlotsLightingProperties,
+    XRayObjectDetailsSlotsMeshesProperties
+    )
 
 
 def _gen_time_prop(prop, description=''):
@@ -149,7 +155,6 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     helper_data = bpy.props.StringProperty()
     export_path = bpy.props.StringProperty(name='Export Path', description='Path relative to the root export folder')
 
-    bpy.utils.register_class(XRayObjectDetailsProperties)
     detail = bpy.props.PointerProperty(type=XRayObjectDetailsProperties)
 
 
@@ -376,6 +381,14 @@ class XRaySceneProperties(bpy.types.PropertyGroup):
     object_texture_name_from_image_path = PropObjectTextureNamesFromPath()
 
 
+subclasses = [
+    XRayObjectDetailsProperties,
+    XRayObjectDetailsModelProperties,
+    XRayObjectDetailsSlotsProperties,
+    XRayObjectDetailsSlotsLightingProperties,
+    XRayObjectDetailsSlotsMeshesProperties
+    ]
+
 classes = [
     XRayObjectProperties
     , XRayMeshProperties
@@ -388,6 +401,8 @@ classes = [
 
 
 def inject_init():
+    for subclass in reversed(subclasses):
+        bpy.utils.register_class(subclass)
     for c in classes:
         bpy.utils.register_class(c)
         c.b_type.xray = bpy.props.PointerProperty(type=c)
@@ -399,3 +414,5 @@ def inject_done():
     for c in reversed(classes):
         del c.b_type.xray
         bpy.utils.unregister_class(c)
+    for subclass in subclasses:
+        bpy.utils.unregister_class(subclass)
