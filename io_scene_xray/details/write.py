@@ -23,7 +23,7 @@ def write_details(cw, ld, cx):
     if dm_count > DETAIL_MODEL_COUNT_LIMIT:
         raise AppError(
             'Meshes Object "' + mo.name + '" has too many children: {0}. ' \
-            'Should be not more {1}.'.format(
+            'Not more than {1}.'.format(
                 dm_count, DETAIL_MODEL_COUNT_LIMIT
                 )
             )
