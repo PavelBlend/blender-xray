@@ -17,12 +17,12 @@ def write_details(cw, ld, cx):
 
     if dm_count == 0:
         raise AppError(
-            'Meshes Object "' + mo.name + '" has no childrens'
+            'Meshes Object "' + mo.name + '" has no children'
             )
 
     if dm_count > DETAIL_MODEL_COUNT_LIMIT:
         raise AppError(
-            'Meshes Object "' + mo.name + '" has too many childrens: {0}. ' \
+            'Meshes Object "' + mo.name + '" has too many children: {0}. ' \
             'Should be not more {1}.'.format(
                 dm_count, DETAIL_MODEL_COUNT_LIMIT
                 )
@@ -37,8 +37,8 @@ def write_details(cw, ld, cx):
         if dm.type != 'MESH':
             raise AppError(
                 'Meshes Object "' + mo.name + \
-                '" has incorrect children object type: {0}. ' \
-                'Children object type must be "MESH"'.format(dm.type)
+                '" has incorrect child object type: {0}. ' \
+                'Child object type must be "MESH"'.format(dm.type)
                 )
 
         pw = PackedWriter()
