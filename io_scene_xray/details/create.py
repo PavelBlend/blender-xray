@@ -179,7 +179,7 @@ def create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
 
     if header.format_version == 3:
 
-        l.format = 'VERSION_3'
+        l.format = 'builds_1569-cop'
 
         light_image = _create_det_image('lights')
         images_list.append(light_image.name)
@@ -198,7 +198,7 @@ def create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
 
     elif header.format_version == 2:
 
-        l.format = 'VERSION_2'
+        l.format = 'builds_1096-1558'
 
         lights_v2_image = _create_det_image('lighting', double_size=True)
         images_list.append(lights_v2_image.name)

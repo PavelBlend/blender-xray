@@ -26,7 +26,7 @@ class XRayDetailsPanel(bpy.types.Panel):
 
             m = context.object.xray.detail.model
 
-            layout.label('Detail Model Options:')
+            layout.label('Detail Model Properties:')
 
             layout.prop(m, 'no_waving', text='No Waving', toggle=True)
             layout.prop(m, 'min_scale', text='Min Scale')
@@ -38,7 +38,7 @@ class XRayDetailsPanel(bpy.types.Panel):
 
             s = context.object.xray.detail.slots
 
-            layout.label('Level Details Options:')
+            layout.label('Level Details Properties:')
 
             layout.prop_search(
                 s,
@@ -71,9 +71,9 @@ class XRayDetailsPanel(bpy.types.Panel):
             if box:
 
                 l = s.ligthing
+                box.label('Format:')
                 row = box.row()
-                row.label('Format:')
-                row.row().prop(l, 'format', expand=True, text='Format')
+                row.prop(l, 'format', expand=True, text='Format')
 
                 box.prop_search(
                     l,
@@ -83,7 +83,7 @@ class XRayDetailsPanel(bpy.types.Panel):
                     text='Lights'
                     )
 
-                if l.format == 'VERSION_3':
+                if l.format == 'builds_1569-cop':
 
                     box.prop_search(
                         l,

@@ -16,12 +16,14 @@ def _export(bpy_obj, cw, cx):
     convert_bpy_data_to_slots_transforms(ld)
     validate_images_size(ld)
 
-    if cx.level_details_format_version == 'NEW':
+    if cx.level_details_format_version == 'builds_1569-cop':
         write_details(cw, ld, cx)
         write_slots_v3(cw, ld)
         write_header(cw, ld)
 
-    elif cx.level_details_format_version in {'OLD_1', 'OLD_2'}:
+    elif cx.level_details_format_version in {
+            'builds_1096-1230', 'builds_1233-1558'
+            }:
         write_header(cw, ld)
         write_details(cw, ld, cx)
         write_slots_v2(cw, ld)

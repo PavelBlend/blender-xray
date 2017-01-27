@@ -30,23 +30,23 @@ def convert_bpy_data_to_level_details_struct(cx, bpy_obj):
 
     ld.lights = _get_image(cx, bpy_obj, l.lights_image, 'Lights')
 
-    if cx.level_details_format_version == 'NEW':
-        if l.format != 'VERSION_3':
-            raise AppError('Object "{0}" has incorrect light format: "Old". ' \
-                'Must be "New"'.format(bpy_obj.name))
+    if cx.level_details_format_version == 'builds_1569-cop':
+        if l.format != 'builds_1569-cop':
+            raise AppError('Object "{0}" has incorrect light format: "Builds 1096-1558". ' \
+                'Must be "Builds 1569-CoP"'.format(bpy_obj.name))
         ld.format_version = 3
         ld.light_format = '1569-COP'
         ld.hemi = _get_image(cx, bpy_obj, l.hemi_image, 'Hemi')
         ld.shadows = _get_image(cx, bpy_obj, l.shadows_image, 'Shadows')
     else:
-        if l.format != 'VERSION_2':
-            raise AppError('Object "{0}" has incorrect light format: "New". ' \
-                'Must be "Old"'.format(bpy_obj.name))
+        if l.format != 'builds_1096-1558':
+            raise AppError('Object "{0}" has incorrect light format: "Builds 1569-CoP". ' \
+                'Must be "Builds 1096-1558"'.format(bpy_obj.name))
         ld.format_version = 2
         ld.light_format = 'OLD'
-        if cx.level_details_format_version == 'OLD_1':
+        if cx.level_details_format_version == 'builds_1096-1230':
             ld.old_format = 1
-        elif cx.level_details_format_version == 'OLD_2':
+        elif cx.level_details_format_version == 'builds_1233-1558':
             ld.old_format = 2
 
     ld.mesh_0 = _get_image(cx, bpy_obj, m.mesh_0, 'Mesh 0')

@@ -46,11 +46,11 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
 
     save_folder = bpy.props.StringProperty(name='Save Folder')
 
-    lighting_old_format = bpy.props.EnumProperty(
-        name='Lighting Old Format',
+    format = bpy.props.EnumProperty(
+        name='Details Format',
         items=(
-            ('1096', 'Builds 1096-1230', ''),
-            ('1233', 'Builds 1233-1558', '')
+            ('builds_1096-1230', 'Builds 1096-1230', ''),
+            ('builds_1233-1558', 'Builds 1233-1558', '')
             )
         )
 
@@ -91,7 +91,7 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
 
         cx.details_save_slots = self.save_slots
         cx.save_format = self.save_format
-        cx.lighting_old_format = self.lighting_old_format
+        cx.format = self.format
         cx.details_save_folder = self.save_folder
         cx.details_models_in_a_row = self.details_models_in_a_row
         cx.load_slots = self.load_slots
@@ -138,9 +138,9 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
         box.prop(self, 'load_slots')
 
         if self.load_slots:
-            box.label('Lighting Old Format:')
+            box.label('Format:')
             row = box.row()
-            row.prop(self, 'lighting_old_format', expand=True)
+            row.prop(self, 'format', expand=True)
             box.prop(self, 'save_slots')
 
             if self.save_slots:
@@ -228,11 +228,11 @@ class OpExportLevelDetails(bpy.types.Operator, io_utils.ExportHelper):
     format_version = bpy.props.EnumProperty(
         name='Format',
         items=(
-            ('NEW', 'Builds 1569-CoP', ''),
-            ('OLD_2', 'Builds 1233-1558', ''),
-            ('OLD_1', 'Builds 1096-1230', '')
+            ('builds_1569-cop', 'Builds 1569-CoP', ''),
+            ('builds_1233-1558', 'Builds 1233-1558', ''),
+            ('builds_1096-1230', 'Builds 1096-1230', '')
             ),
-        default='NEW'
+        default='builds_1569-cop'
         )
 
     def draw(self, context):

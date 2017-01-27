@@ -147,10 +147,10 @@ def read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
             1.0 for _ in range(header.slots_count * 4 * 4)
             ]
 
-        if cx.lighting_old_format == '1233':
+        if cx.format == 'builds_1233-1558':
             pixels_offset = pixels_offset_2
 
-        elif cx.lighting_old_format == '1096':
+        elif cx.format == 'builds_1096-1230':
             pixels_offset = pixels_offset_1
 
         density_pixels_offset = pixels_offset_1
