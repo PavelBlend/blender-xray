@@ -7,15 +7,13 @@ import os.path
 from .xray_io import ChunkedReader, PackedReader
 from .fmt_object import Chunks
 from .plugin_prefs import PropObjectMeshSplitByMaterials
-from .utils import BAD_VTX_GROUP_NAME
+from .utils import BAD_VTX_GROUP_NAME, plugin_version_number
 from .xray_motions import import_motions
 
 
 class ImportContext:
     def __init__(self, textures, soc_sgroups, import_motions, split_by_materials, report, op, bpy=None):
-        from . import bl_info
-        from .utils import version_to_number
-        self.version = version_to_number(*bl_info['version'])
+        self.version = plugin_version_number()
         self.report = report
         self.bpy = bpy
         self.textures_folder = textures
