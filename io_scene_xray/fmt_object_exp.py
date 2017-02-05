@@ -4,7 +4,7 @@ import mathutils
 import io
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_object import Chunks
-from .utils import is_fake_bone, find_bone_real_parent, AppError, convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name, is_helper_object
+from .utils import is_exportable_bone, find_bone_exportable_parent, AppError, convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name, is_helper_object
 from .utils import BAD_VTX_GROUP_NAME
 
 
@@ -201,7 +201,7 @@ __matrix_bone_inv = __matrix_bone.inverted()
 
 
 def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, cx):
-    real_parent = find_bone_real_parent(bpy_bone)
+    real_parent = find_bone_exportable_parent(bpy_bone)
     if real_parent:
         if bonemap.get(real_parent) is None:
             _export_bone(bpy_arm_obj, bpy_root, real_parent, bonemap, cx)
@@ -302,7 +302,7 @@ def _export_main(bpy_obj, cw, cx):
     for bpy_arm_obj in armatures:
         bonemap = {}
         for b in bpy_arm_obj.data.bones:
-            if is_fake_bone(b):
+            if not is_exportable_bone(b):
                 continue
             _export_bone(bpy_arm_obj, bpy_root, b, bones, bonemap, cx)
     for mw in meshes:
@@ -358,11 +358,13 @@ def _export_main(bpy_obj, cw, cx):
             cw.put(Chunks.Object.MOTIONS, pw)
 
     if some_arm and len(some_arm.pose.bone_groups):
+        arm_bones = some_arm.data.bones
         pw = PackedWriter()
         pw.putf('I', len(some_arm.pose.bone_groups))
         for g in some_arm.pose.bone_groups:
             pw.puts(g.name)
-            bones = [b for b in some_arm.pose.bones if b.bone_group == g]
+            bones = [b for b in some_arm.pose.bones
+                     if b.bone_group == g and is_exportable_bone(arm_bones[b.name])]
             pw.putf('I', len(bones))
             for b in bones:
                 pw.puts(b.name)

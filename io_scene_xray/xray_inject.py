@@ -271,6 +271,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         center = bpy.props.FloatVectorProperty()
 
     b_type = bpy.types.Bone
+    exportable = bpy.props.BoolProperty(default=True, description='Enable Bone to be exported')
     version = bpy.props.IntProperty()
     length = bpy.props.FloatProperty()
     gamemtl = bpy.props.StringProperty(default='default_object')

@@ -1,5 +1,5 @@
 from mathutils import Matrix, Euler, Quaternion
-from .utils import find_bone_real_parent, AppError
+from .utils import is_exportable_bone, find_bone_exportable_parent, AppError
 from .xray_envelope import Behaviour, Shape
 
 
@@ -61,7 +61,7 @@ def import_motion(pr, cx, bpy, bpy_armature, bonesmap, reported):
                     act.fcurves.new(dp + '.rotation_euler', 2, bname)
                 ]
                 xm = bpy_bone.matrix_local.inverted()
-                real_parent = find_bone_real_parent(bpy_bone)
+                real_parent = find_bone_exportable_parent(bpy_bone)
                 if real_parent:
                     xm = xm * real_parent.matrix_local
                 else:
@@ -105,8 +105,9 @@ def export_motion(pw, bpy_act, cx, bpy_armature):
     pw.putf('H', 6)  # version
     pw.putf('<BH', xr.flags, xr.bonepart)
     pw.putf('<ffff', xr.speed, xr.accrue, xr.falloff, xr.power)
-    pw.putf('H', len(bpy_act.groups))
-    for g in bpy_act.groups:
+    exported_groups = [g for g in bpy_act.groups if is_exportable_bone(bpy_armature.data.bones[g.name])]
+    pw.putf('H', len(exported_groups))
+    for g in exported_groups:
         pw.puts(g.name)
         pw.putf('B', 0)  # flags
         bpy_bone = bpy_armature.data.bones[g.name]
@@ -146,7 +147,7 @@ def export_motion(pw, bpy_act, cx, bpy_armature):
             return (c.evaluate(time) if c else 0 for c in channels)
 
         xm = bpy_bone.matrix_local.inverted()
-        real_parent = find_bone_real_parent(bpy_bone)
+        real_parent = find_bone_exportable_parent(bpy_bone)
         if real_parent:
             xm = xm * real_parent.matrix_local
         else:

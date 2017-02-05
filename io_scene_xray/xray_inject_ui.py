@@ -324,10 +324,17 @@ class XRayBonePanel(XRayPanel):
             and context.active_bone
         )
 
+    def draw_header(self, context):
+        layout = self.layout
+        bone = context.active_object.data.bones[context.active_bone.name]
+        data = bone.xray
+        layout.prop(data, 'exportable', text='')
+
     def draw(self, context):
         layout = self.layout
         bone = context.active_object.data.bones[context.active_bone.name]
         data = bone.xray
+        layout.enabled = data.exportable
         layout.prop(data, 'length')
         _gen_xr_selector(layout, data, 'gamemtl', 'gamemtl')
         box = layout.box()
