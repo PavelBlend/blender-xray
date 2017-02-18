@@ -105,12 +105,28 @@ def export_motion(pw, bpy_act, cx, bpy_armature):
     pw.putf('H', 6)  # version
     pw.putf('<BH', xr.flags, xr.bonepart)
     pw.putf('<ffff', xr.speed, xr.accrue, xr.falloff, xr.power)
-    exported_groups = [g for g in bpy_act.groups if is_exportable_bone(bpy_armature.data.bones[g.name])]
-    pw.putf('H', len(exported_groups))
-    for g in exported_groups:
-        pw.puts(g.name)
+    exportable_bones = [b for b in bpy_armature.data.bones if is_exportable_bone(b)]
+    pw.putf('H', len(exportable_bones))
+    for bpy_bone in exportable_bones:
+        pw.puts(bpy_bone.name)
         pw.putf('B', 0)  # flags
-        bpy_bone = bpy_armature.data.bones[g.name]
+
+        xm = bpy_bone.matrix_local.inverted()
+        real_parent = find_bone_exportable_parent(bpy_bone)
+        if real_parent:
+            xm = xm * real_parent.matrix_local
+        else:
+            xm = xm * __matrix_bone
+        xm.invert()
+
+        g = bpy_act.groups.get(bpy_bone.name, None)
+        if g is None:
+            trn = xm.to_translation()
+            rot = xm.to_euler('ZXY')
+            for value in (trn[0], trn[1], -trn[2], -rot[1], -rot[0], rot[2]):
+                pw.putf('BBH', Behaviour.CONSTANT.value, Behaviour.CONSTANT.value, 1)
+                pw.putf('ffB', value, 0, Shape.STEPPED.value)
+            continue
         rotmode = bpy_armature.pose.bones[g.name].rotation_mode
         chs_tr, chs_rt = [None, None, None], None
 
@@ -146,13 +162,6 @@ def export_motion(pw, bpy_act, cx, bpy_armature):
         def evaluate_channels(channels, time):
             return (c.evaluate(time) if c else 0 for c in channels)
 
-        xm = bpy_bone.matrix_local.inverted()
-        real_parent = find_bone_exportable_parent(bpy_bone)
-        if real_parent:
-            xm = xm * real_parent.matrix_local
-        else:
-            xm = xm * __matrix_bone
-        xm.invert()
         envdata = []
         for t in range(int(fr[0]), int(fr[1]) + 1):
             mat = xm * Matrix.Translation(evaluate_channels(chs_tr, t)) * frotmatrix(evaluate_channels(chs_rt, t)).to_4x4()
