@@ -1,6 +1,8 @@
+import bpy
 from mathutils import Matrix, Euler, Quaternion
 from .utils import is_exportable_bone, find_bone_exportable_parent, AppError
 from .xray_envelope import Behaviour, Shape
+from .xray_io import PackedWriter
 
 
 __matrix_bone = Matrix(((1.0, 0.0, 0.0, 0.0), (0.0, 0.0, -1.0, 0.0), (0.0, 1.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)))
@@ -96,37 +98,26 @@ def import_motions(pr, cx, bpy, bpy_armature):
         import_motion(pr, cx, bpy, bpy_armature, bonesmap, reported)
 
 
-def export_motion(pw, bpy_act, cx, bpy_armature):
+def export_motion(pkw, action, ctx, armature):
+    prepared_bones = _prepare_bones(armature)
+    _ake_motion_data = _bake_motion_data if action.xray.autobake else _take_motion_data
+    bones_animations = _ake_motion_data(action, armature, ctx, prepared_bones)
+    _export_motion_data(pkw, action, bones_animations)
+
+
+def _take_motion_data(bpy_act, bpy_armature, cx, prepared_bones):
     xr = bpy_act.xray
-    pw.puts(bpy_act.name)
     fr = bpy_act.frame_range
-    pw.putf('II', int(fr[0]), int(fr[1]))
-    pw.putf('f', xr.fps)
-    pw.putf('H', 6)  # version
-    pw.putf('<BH', xr.flags, xr.bonepart)
-    pw.putf('<ffff', xr.speed, xr.accrue, xr.falloff, xr.power)
-    exportable_bones = [b for b in bpy_armature.data.bones if is_exportable_bone(b)]
-    pw.putf('H', len(exportable_bones))
-    for bpy_bone in exportable_bones:
-        pw.puts(bpy_bone.name)
-        pw.putf('B', 0)  # flags
+    result = []
+    for bone, xm in prepared_bones:
+        data = []
+        result.append((bone.name, data))
 
-        xm = bpy_bone.matrix_local.inverted()
-        real_parent = find_bone_exportable_parent(bpy_bone)
-        if real_parent:
-            xm = xm * real_parent.matrix_local
-        else:
-            xm = xm * __matrix_bone
-        xm.invert()
-
-        g = bpy_act.groups.get(bpy_bone.name, None)
+        g = bpy_act.groups.get(bone.name, None)
         if g is None:
-            trn = xm.to_translation()
-            rot = xm.to_euler('ZXY')
-            for value in (trn[0], trn[1], -trn[2], -rot[1], -rot[0], rot[2]):
-                pw.putf('BBH', Behaviour.CONSTANT.value, Behaviour.CONSTANT.value, 1)
-                pw.putf('ffB', value, 0, Shape.STEPPED.value)
+            data.append(xm)
             continue
+
         rotmode = bpy_armature.pose.bones[g.name].rotation_mode
         chs_tr, chs_rt = [None, None, None], None
 
@@ -162,17 +153,86 @@ def export_motion(pw, bpy_act, cx, bpy_armature):
         def evaluate_channels(channels, time):
             return (c.evaluate(time) if c else 0 for c in channels)
 
-        envdata = []
         for t in range(int(fr[0]), int(fr[1]) + 1):
             mat = xm * Matrix.Translation(evaluate_channels(chs_tr, t)) * frotmatrix(evaluate_channels(chs_rt, t)).to_4x4()
-            tr = mat.to_translation()
-            rt = mat.to_euler('ZXY')
-            envdata.append((t, tr[0], tr[1], -tr[2], -rt[1], -rt[0], rt[2]))
-        for i in range(6):
-            pw.putf('BB', Behaviour.CONSTANT.value, Behaviour.CONSTANT.value)
-            pw.putf('H', len(envdata))
-            for e in envdata:
-                pw.putf('ffB', e[i + 1], e[0] / xr.fps, Shape.STEPPED.value)
+            data.append(mat)
+
+    return result
+
+
+def _bake_motion_data(action, armature, _, prepared_bones):
+    exportable_bones = [(bone, matrix, []) for bone, matrix in prepared_bones]
+
+    old_act = armature.animation_data.action
+    old_frame = bpy.context.scene.frame_current
+    try:
+        armature.animation_data.action = action
+        for frm in range(int(action.frame_range[0]), int(action.frame_range[1]) + 1):
+            bpy.context.scene.frame_set(frm)
+            bpy.context.scene.update()
+            for pbone, mat, data in exportable_bones:
+                data.append(mat * armature.convert_space(pbone, pbone.matrix, 'POSE', 'LOCAL'))
+    finally:
+        armature.animation_data.action = old_act
+        bpy.context.scene.frame_set(old_frame)
+
+    return [(pbone.name, animation) for pbone, _, animation in exportable_bones]
+
+
+def _prepare_bones(armature):
+    def prepare_bone(bone):
+        mat = bone.matrix_local
+        real_parent = find_bone_exportable_parent(bone)
+        if real_parent:
+            mat = real_parent.matrix_local.inverted() * mat
+        else:
+            mat = __matrix_bone_inv * mat
+        return armature.pose.bones[bone.name], mat
+
+    return [
+        prepare_bone(bone)
+        for bone in armature.data.bones if is_exportable_bone(bone)
+    ]
+
+
+def _export_motion_data(pkw, action, bones_animations):
+    xray = action.xray
+    pkw.puts(action.name)
+    frange = action.frame_range
+    pkw.putf('II', int(frange[0]), int(frange[1]))
+    pkw.putf('f', xray.fps)
+    pkw.putf('H', 6)  # version
+    pkw.putf('<BH', xray.flags, xray.bonepart)
+    pkw.putf('<ffff', xray.speed, xray.accrue, xray.falloff, xray.power)
+    pkw.putf('H', len(bones_animations))
+    for name, animation in bones_animations:
+        pkw.puts(name)
+        pkw.putf('B', 0)  # flags
+        curves = ([], [], [], [], [], [])
+
+        for mat in animation:
+            trn = mat.to_translation()
+            rot = mat.to_euler('ZXY')
+            curves[0].append(+trn[0])
+            curves[1].append(+trn[1])
+            curves[2].append(-trn[2])
+            curves[3].append(-rot[1])
+            curves[4].append(-rot[0])
+            curves[5].append(+rot[2])
+
+        for curve in curves:
+            pkw.putf('BB', Behaviour.CONSTANT.value, Behaviour.CONSTANT.value)
+            cpkw = PackedWriter()
+            ccnt = 0
+            pval = 0
+            for frm, val in enumerate(curve):
+                if (frm != 0) and (abs(pval - val) < 0.0001):
+                    continue
+                cpkw.putf('ffB', val, frm / xray.fps, Shape.STEPPED.value)
+                pval = val
+                ccnt += 1
+            pkw.putf('H', ccnt)
+            pkw.putp(cpkw)
 
 
 def export_motions(pw, actions, cx, bpy_armature):

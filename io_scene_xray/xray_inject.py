@@ -369,6 +369,10 @@ class XRayActionProperties(bpy.types.PropertyGroup):
     accrue = bpy.props.FloatProperty(default=2, min=0, soft_max=10)
     falloff = bpy.props.FloatProperty(default=2, min=0, soft_max=10)
     power = bpy.props.FloatProperty()
+    autobake = bpy.props.BoolProperty(
+        name='Auto Bake',
+        description='Automatically bake this action on each export'
+    )
 
 
 class XRaySceneProperties(bpy.types.PropertyGroup):
