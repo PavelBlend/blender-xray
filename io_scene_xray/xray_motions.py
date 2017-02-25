@@ -100,7 +100,9 @@ def import_motions(pr, cx, bpy, bpy_armature):
 
 def export_motion(pkw, action, ctx, armature):
     prepared_bones = _prepare_bones(armature)
-    _ake_motion_data = _bake_motion_data if action.xray.autobake else _take_motion_data
+    _ake_motion_data = _take_motion_data
+    if action.xray.autobake_effective(armature):
+        _ake_motion_data = _bake_motion_data
     bones_animations = _ake_motion_data(action, armature, ctx, prepared_bones)
     _export_motion_data(pkw, action, bones_animations)
 

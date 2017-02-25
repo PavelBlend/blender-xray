@@ -27,7 +27,7 @@ class TestIOMotions(utils.XRayTestCase):
     def test_io_baked(self):
         # Arrange
         obj = _prepare_animation()
-        bpy.data.actions[0].xray.autobake = True
+        bpy.data.actions[0].xray.autobake = 'on'
 
         # Act
         bpy.ops.export_object.xray_objects(

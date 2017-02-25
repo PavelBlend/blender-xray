@@ -369,10 +369,44 @@ class XRayActionProperties(bpy.types.PropertyGroup):
     accrue = bpy.props.FloatProperty(default=2, min=0, soft_max=10)
     falloff = bpy.props.FloatProperty(default=2, min=0, soft_max=10)
     power = bpy.props.FloatProperty()
-    autobake = bpy.props.BoolProperty(
+    autobake = bpy.props.EnumProperty(
         name='Auto Bake',
+        items=(
+            ('auto', 'Auto', ''),
+            ('on', 'On', ''),
+            ('off', 'Off', '')
+        ),
         description='Automatically bake this action on each export'
     )
+
+    def _set_autobake_auto(self, value):
+        self.autobake = 'auto' if value else 'on'
+
+    autobake_auto = bpy.props.BoolProperty(
+        name='Auto Bake: Auto',
+        get=lambda self: self.autobake == 'auto',
+        set=_set_autobake_auto,
+        description='Detect when auto-baking is needed for this action on each export'
+    )
+
+    def _set_autobake_on(self, value):
+        self.autobake = 'on' if value else 'off'
+
+    autobake_on = bpy.props.BoolProperty(
+        name='Auto Bake',
+        get=lambda self: self.autobake == 'on',
+        set=_set_autobake_on,
+        description='Bake this action on each export'
+    )
+
+    def autobake_effective(self, bobject):
+        if not self.autobake_auto:
+            return self.autobake_on
+        if bobject.type == 'ARMATURE':
+            for pbone in bobject.pose.bones:
+                if len(pbone.constraints):
+                    return True
+        return False
 
 
 class XRaySceneProperties(bpy.types.PropertyGroup):

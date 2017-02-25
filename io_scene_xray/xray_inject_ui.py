@@ -400,7 +400,14 @@ class XRayActionPanel(XRayPanel):
         obj = context.active_object
         a = obj.animation_data.action
         data = a.xray
-        layout.prop(data, 'autobake', toggle=True, icon='RENDER_STILL')
+        if obj.type == 'ARMATURE':
+            if data.autobake_auto:
+                layout.prop(data, 'autobake_auto', toggle=True, icon='RENDER_STILL')
+            else:
+                row = layout.row(align=True)
+                row.prop(data, 'autobake_auto', toggle=True, text='Auto Bake:', icon='RENDER_STILL')
+                text = 'On' if data.autobake_on else 'Off'
+                row.prop(data, 'autobake_on', toggle=True, text=text)
         layout.prop(data, 'fps')
         if obj.type != 'ARMATURE':
             return
