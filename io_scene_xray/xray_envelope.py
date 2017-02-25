@@ -1,4 +1,6 @@
 from enum import Enum
+from .xray_io import PackedWriter
+from .utils import mkstruct
 
 
 class Behaviour(Enum):
@@ -59,7 +61,10 @@ def import_envelope(pr, fc, fps, kv, warn=print):
         warn('Envelope: unsupported shapes: {}, replaced by {}'.format(unsupported_occured, replace_unsupported_to))
 
 
-def export_envelope(pw, fc, fps, kv, warn=print):
+KF = mkstruct('KeyFrame', ['time', 'value', 'shape'])
+EPSILON = 0.0001
+
+def export_envelope(pw, fc, fps, kv, warn=print, epsilon=EPSILON):
     b = None
     if fc.extrapolation == 'CONSTANT':
         b = Behaviour.CONSTANT
@@ -72,25 +77,70 @@ def export_envelope(pw, fc, fps, kv, warn=print):
 
     replace_unsupported_to = Shape.TCB
     unsupported_occured = set()
-    fckf = fc.keyframe_points
-    pw.putf('H', len(fckf))
-    pkf = None
-    for kf in fckf:
-        pw.putf('ff', kf.co.y / kv, kf.co.x / fps)
-        sh = Shape.STEPPED
-        if pkf:
-            if pkf.interpolation == 'CONSTANT':
-                sh = Shape.STEPPED
-            elif pkf.interpolation == 'LINEAR':
-                sh = Shape.LINEAR
-            else:
-                unsupported_occured.add(pkf.interpolation)
-                sh = replace_unsupported_to
-        pw.putf('B', sh.value)
-        if sh != Shape.STEPPED:
-            pw.putf('HHH', 32768, 32768, 32768)
-            pw.putf('HHHH', 32768, 32768, 32768, 32768)
-        pkf = kf
+
+    def generate_keys(keyframe_points):
+        pkf = None
+        for ckf in keyframe_points:
+            shape = Shape.STEPPED
+            if pkf is not None:
+                if pkf.interpolation == 'CONSTANT':
+                    shape = Shape.STEPPED
+                elif pkf.interpolation == 'LINEAR':
+                    shape = Shape.LINEAR
+                else:
+                    unsupported_occured.add(pkf.interpolation)
+                    shape = replace_unsupported_to
+            pkf = ckf
+            yield KF(ckf.co.x / fps, ckf.co.y / kv, shape)
+
+    cpw = PackedWriter()
+    cnt = 0
+
+    for kfrm in _refine_keys(generate_keys(fc.keyframe_points), epsilon):
+        cnt += 1
+        cpw.putf('ff', kfrm.value, kfrm.time)
+        cpw.putf('B', kfrm.shape.value)
+        if kfrm.shape != Shape.STEPPED:
+            cpw.putf('HHH', 32768, 32768, 32768)
+            cpw.putf('HHHH', 32768, 32768, 32768, 32768)
+
+    pw.putf('H', cnt)
+    pw.putp(cpw)
 
     if len(unsupported_occured):
         warn('Envelope: unsupported shapes: {}, replaced by {}'.format(unsupported_occured, replace_unsupported_to.name))
+
+
+def _refine_keys(keyframes, epsilon=EPSILON):
+    def significant(pkf, ckf, nkf, skipped):
+        def is_oor(icf, nwk):
+            ccy = (icf.time - pkf.time) * nwk + pkf.value
+            return abs(ccy - icf.value) >= epsilon
+
+        if pkf is None:
+            return ckf is not None
+        if (ckf.shape == Shape.LINEAR) and (nkf.shape == Shape.LINEAR):
+            nwk = (nkf.value - pkf.value) / (nkf.time - pkf.time)
+            if is_oor(ckf, nwk):
+                return True
+            for icf in skipped:
+                if is_oor(icf, nwk):
+                    return True
+            return False
+        if (abs(pkf.value - ckf.value) + abs(ckf.value - nkf.value)) < epsilon:
+            return False
+        return True
+
+    pkf, ckf = None, None
+    skipped = []
+    for nkf in keyframes:
+        if significant(pkf, ckf, nkf, skipped):
+            skipped = []
+            pkf = ckf
+            yield ckf
+        elif ckf is not None:
+            skipped.append(ckf)
+        ckf = nkf
+
+    if ckf:
+        yield ckf

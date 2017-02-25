@@ -368,6 +368,24 @@ class XRayActionProperties(bpy.types.PropertyGroup):
     accrue = bpy.props.FloatProperty(default=2, min=0, soft_max=10)
     falloff = bpy.props.FloatProperty(default=2, min=0, soft_max=10)
     power = bpy.props.FloatProperty()
+    autobake = bpy.props.BoolProperty(
+        name='Auto Bake',
+        description='Automatically bake this action on each export'
+    )
+    autobake_custom_refine = bpy.props.BoolProperty(
+        name='Custom Thresholds',
+        description='Use custom thresholds for remove redundant keyframes'
+    )
+    autobake_refine_location = bpy.props.FloatProperty(
+        default=0.001, min=0, soft_max=1,
+        subtype='DISTANCE',
+        description='Skip threshold for redundant location keyframes'
+    )
+    autobake_refine_rotation = bpy.props.FloatProperty(
+        default=0.001, min=0, soft_max=1,
+        subtype='ANGLE',
+        description='Skip threshold for redundant rotation keyframes'
+    )
 
 
 class XRaySceneProperties(bpy.types.PropertyGroup):
