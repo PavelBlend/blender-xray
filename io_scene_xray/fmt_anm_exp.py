@@ -12,6 +12,7 @@ class ExportContext:
 
 
 def _export(bpy_obj, cw, cx):
+    assert bpy_obj.animation_data, 'Animation: object doesn\'t any animation data'
     pw = PackedWriter()
     bpy_act = bpy_obj.animation_data.action
     pw.puts('')
