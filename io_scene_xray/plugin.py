@@ -1,7 +1,7 @@
 import bpy
 from bpy_extras import io_utils
 from .xray_inject import inject_init, inject_done
-from .utils import AppError
+from .utils import AppError, plugin_version_number
 from . import plugin_prefs
 
 
@@ -602,6 +602,39 @@ def overlay_view_3d():
         try_draw(o, o)
 
 
+_prev_objects = set()
+
+@bpy.app.handlers.persistent
+def load_post(_):
+    curr_objects = bpy.data.objects
+    _prev_objects.clear()
+    for obj in curr_objects:
+        _prev_objects.add(hash(obj))
+        xray = obj.xray
+        if not xray.version:
+            xray.version = -1
+
+
+@bpy.app.handlers.persistent
+def scene_update_post(_):
+    global _prev_objects
+    curr_objects = bpy.data.objects
+    if len(curr_objects) == len(_prev_objects):
+        return
+    _objects = set()
+    version = plugin_version_number()
+    for obj in curr_objects:
+        hsc = hash(obj)
+        _objects.add(hsc)
+        if hsc in _prev_objects:
+            continue
+        xray = obj.xray
+        if not xray.version:
+            xray.version = version
+            xray.initialize(obj)
+    _prev_objects = _objects
+
+
 #noinspection PyUnusedLocal
 def menu_func_import(self, context):
     self.layout.operator(OpImportObject.bl_idname, text='X-Ray object (.object)')
@@ -640,9 +673,13 @@ def register():
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(overlay_view_3d, (), 'WINDOW', 'POST_VIEW')
     bpy.utils.register_class(OpExportProject)
     inject_init()
+    bpy.app.handlers.load_post.append(load_post)
+    bpy.app.handlers.scene_update_post.append(scene_update_post)
 
 
 def unregister():
+    bpy.app.handlers.scene_update_post.remove(scene_update_post)
+    bpy.app.handlers.load_post.remove(load_post)
     inject_done()
     bpy.utils.unregister_class(OpExportProject)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')

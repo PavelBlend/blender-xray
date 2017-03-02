@@ -13,6 +13,15 @@ def version_to_number(major, minor, release):
     return ((major & 0xff) << 24) | ((minor & 0xff) << 16) | (release & 0xffff)
 
 
+_plugin_version_number = 0
+def plugin_version_number():
+    global _plugin_version_number
+    if _plugin_version_number == 0:
+        from . import bl_info
+        _plugin_version_number = version_to_number(*bl_info['version'])
+    return _plugin_version_number
+
+
 class AppError(Exception):
     def __init__(self, message):
         super().__init__(message)
