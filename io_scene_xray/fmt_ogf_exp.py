@@ -5,7 +5,7 @@ import math
 import mathutils
 from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_ogf import Chunks, ModelType, VertexFormat
-from .utils import is_fake_bone, find_bone_real_parent, AppError, fix_ensure_lookup_table, convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name
+from .utils import is_exportable_bone, find_bone_exportable_parent, AppError, fix_ensure_lookup_table, convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name
 from .utils import is_helper_object
 
 
@@ -227,7 +227,7 @@ def _export(bpy_obj, cw, cx):
             meshes.append(mw)
         elif bpy_obj.type == 'ARMATURE':
             for b in bpy_obj.data.bones:
-                if is_fake_bone(b):
+                if not is_exportable_bone(b):
                     continue
                 reg_bone(b, bpy_obj)
         for c in bpy_obj.children:
@@ -245,7 +245,7 @@ def _export(bpy_obj, cw, cx):
     pw = PackedWriter()
     pw.putf('I', len(bones))
     for b, _ in bones:
-        b_parent = find_bone_real_parent(b)
+        b_parent = find_bone_exportable_parent(b)
         pw.puts(b.name)
         pw.puts(b_parent.name if b_parent else '')
         xr = b.xray
@@ -284,7 +284,7 @@ def _export(bpy_obj, cw, cx):
         pw.putf('f', xr.friction)
         mw = o.matrix_world
         tm = mw * b.matrix_local * __matrix_bone_inv
-        b_parent = find_bone_real_parent(b)
+        b_parent = find_bone_exportable_parent(b)
         if b_parent:
             tm = (mw * b_parent.matrix_local * __matrix_bone_inv).inverted() * tm
         e = tm.to_euler('YXZ')

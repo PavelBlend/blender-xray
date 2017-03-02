@@ -91,6 +91,10 @@ class PackedWriter():
     def __init__(self):
         self.data = bytearray()
 
+    def putp(self, pkw):
+        self.data += pkw.data
+        return self
+
     def putf(self, fmt, *args):
         self.data += struct.pack(fmt, *args)
         return self
