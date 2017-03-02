@@ -408,7 +408,24 @@ class XRayActionProperties(bpy.types.PropertyGroup):
             for pbone in bobject.pose.bones:
                 if len(pbone.constraints):
                     return True
+        if len(bobject.constraints):
+            return True
         return False
+
+    autobake_custom_refine = bpy.props.BoolProperty(
+        name='Custom Thresholds',
+        description='Use custom thresholds for remove redundant keyframes'
+    )
+    autobake_refine_location = bpy.props.FloatProperty(
+        default=0.001, min=0, soft_max=1,
+        subtype='DISTANCE',
+        description='Skip threshold for redundant location keyframes'
+    )
+    autobake_refine_rotation = bpy.props.FloatProperty(
+        default=0.001, min=0, soft_max=1,
+        subtype='ANGLE',
+        description='Skip threshold for redundant rotation keyframes'
+    )
 
 
 class XRaySceneProperties(bpy.types.PropertyGroup):

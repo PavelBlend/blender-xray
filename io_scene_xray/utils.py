@@ -1,3 +1,5 @@
+import math
+
 def is_exportable_bone(bpy_bone):
     return bpy_bone.xray.exportable and not bpy_bone.name.endswith('.fake')
 
@@ -150,3 +152,30 @@ def is_helper_object(obj):
     return obj.name.startswith(HELPER_OBJECT_NAME_PREFIX)
 
 BAD_VTX_GROUP_NAME = '.xr-bad!'
+
+
+def smooth_euler(current, previous):
+    for i in range(3):
+        current[i] = _smooth_angle(current[i], previous[i])
+
+
+def _smooth_angle(current, previous):
+    delta = abs(current - previous)
+    new_delta = (current - 2 * math.pi) - previous
+    if abs(new_delta) < delta:
+        return previous + new_delta
+    new_delta = (current + 2 * math.pi) - previous
+    if abs(new_delta) < delta:
+        return previous + new_delta
+    return current
+
+
+def mkstruct(name, fields):
+    template = 'class {n}:\n\t__slots__={f}\n\tdef __init__(self, {a}):\n\t\t{sf}={a}'\
+    .format(
+        n=name, f=fields, a=','.join(fields),
+        sf=','.join('self.' + f for f in fields)
+    )
+    tmp = {}
+    exec(template, tmp)
+    return tmp[name]

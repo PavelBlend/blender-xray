@@ -1,7 +1,7 @@
 import bpy
 from mathutils import Matrix, Euler, Quaternion
 from .utils import is_exportable_bone, find_bone_exportable_parent, AppError
-from .xray_envelope import Behaviour, Shape
+from .xray_envelope import Behaviour, Shape, KF, EPSILON, refine_keys, export_keyframes
 from .xray_io import PackedWriter
 
 
@@ -222,17 +222,18 @@ def _export_motion_data(pkw, action, bones_animations):
             curves[4].append(-rot[0])
             curves[5].append(+rot[2])
 
-        for curve in curves:
+        def curve2keys(curve):
+            for frm, val in enumerate(curve):
+                yield KF(frm / xray.fps, val, Shape.STEPPED)
+
+        for i, curve in enumerate(curves):
+            epsilon = EPSILON
+            if xray.autobake_custom_refine:
+                epsilon = xray.autobake_refine_location if i < 3 else xray.autobake_refine_rotation
+
             pkw.putf('BB', Behaviour.CONSTANT.value, Behaviour.CONSTANT.value)
             cpkw = PackedWriter()
-            ccnt = 0
-            pval = 0
-            for frm, val in enumerate(curve):
-                if (frm != 0) and (abs(pval - val) < 0.0001):
-                    continue
-                cpkw.putf('ffB', val, frm / xray.fps, Shape.STEPPED.value)
-                pval = val
-                ccnt += 1
+            ccnt = export_keyframes(cpkw, refine_keys(curve2keys(curve), epsilon))
             pkw.putf('H', ccnt)
             pkw.putp(cpkw)
 
