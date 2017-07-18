@@ -514,16 +514,13 @@ def _import_main(fpath, cx, cr):
     ver = cr.nextf(Chunks.Object.VERSION, 'H')[0]
     if ver != 0x10:
         raise Exception('unsupported OBJECT format version: {:#x}'.format(ver))
-    if cx.bpy:
-        bpy_obj = cx.bpy.data.objects.new(object_name, None)
-        bpy_obj.xray.version = cx.version
-        cx.bpy.context.scene.objects.link(bpy_obj)
-    else:
-        bpy_obj = None
 
     bpy_arm_obj = None
     renamemap = {}
     meshes_data = None
+
+    unread_chunks = []
+
     for (cid, data) in cr:
         if cid == Chunks.Object.MESHES:
             meshes_data = data
@@ -597,7 +594,6 @@ def _import_main(fpath, cx, cr):
                 bpy_armature.draw_type = 'STICK'
                 bpy_arm_obj = cx.bpy.data.objects.new(object_name, bpy_armature)
                 bpy_arm_obj.show_x_ray = True
-                bpy_arm_obj.parent = bpy_obj
                 cx.bpy.context.scene.objects.link(bpy_arm_obj)
                 cx.bpy.context.scene.objects.active = bpy_arm_obj
             if cid == Chunks.Object.BONES:
@@ -673,7 +669,56 @@ def _import_main(fpath, cx, cr):
                 b = bpy_armature.bones.get(n)
                 if b:
                     b.hide = True
-        elif cid == Chunks.Object.TRANSFORM:
+        elif (cid == Chunks.Object.PARTITIONS0) or (cid == Chunks.Object.PARTITIONS1):
+            cx.bpy.context.scene.objects.active = bpy_arm_obj
+            cx.bpy.ops.object.mode_set(mode='POSE')
+            try:
+                pr = PackedReader(data)
+                for _ in range(pr.getf('I')[0]):
+                    cx.bpy.ops.pose.group_add()
+                    bg = bpy_arm_obj.pose.bone_groups.active
+                    bg.name = pr.gets()
+                    for __ in range(pr.getf('I')[0]):
+                        bn = pr.gets() if cid == Chunks.Object.PARTITIONS1 else pr.getf('I')[0]
+                        bpy_arm_obj.pose.bones[bn].bone_group = bg
+            finally:
+                cx.bpy.ops.object.mode_set(mode='OBJECT')
+        elif cid == Chunks.Object.MOTIONS:
+            if not cx.import_motions:
+                continue
+            pr = PackedReader(data)
+            import_motions(pr, cx, bpy, bpy_arm_obj)
+        elif cid == Chunks.Object.LIB_VERSION:
+            pass  # skip obsolete chunk
+        else:
+            unread_chunks.append((cid, data))
+
+    mesh_objects = []
+    for (_, mdat) in ChunkedReader(meshes_data):
+        m = _import_mesh(cx, ChunkedReader(mdat), renamemap)
+
+        if bpy_arm_obj:
+            bpy_armmod = m.modifiers.new(name='Armature', type='ARMATURE')
+            bpy_armmod.object = bpy_arm_obj
+            m.parent = bpy_arm_obj
+
+        mesh_objects.append(m)
+        cx.bpy.context.scene.objects.link(m)
+
+    bpy_obj = bpy_arm_obj
+    if bpy_obj is None:
+        if len(mesh_objects) == 1:
+            bpy_obj = mesh_objects[0]
+        else:
+            bpy_obj = bpy.data.objects.new(object_name, None)
+            for m in mesh_objects:
+                m.parent = bpy_obj
+            cx.bpy.context.scene.objects.link(bpy_obj)
+
+    bpy_obj.xray.version = cx.version
+    bpy_obj.xray.isroot = True
+    for (cid, data) in unread_chunks:
+        if cid == Chunks.Object.TRANSFORM:
             pr = PackedReader(data)
             pos = read_v3f(pr)
             rot = read_v3f(pr)
@@ -691,20 +736,6 @@ def _import_main(fpath, cx, cr):
             bpy_obj.xray.revision.ctime = pr.getf('I')[0]
             bpy_obj.xray.revision.moder = pr.gets()
             bpy_obj.xray.revision.mtime = pr.getf('I')[0]
-        elif (cid == Chunks.Object.PARTITIONS0) or (cid == Chunks.Object.PARTITIONS1):
-            cx.bpy.context.scene.objects.active = bpy_arm_obj
-            cx.bpy.ops.object.mode_set(mode='POSE')
-            try:
-                pr = PackedReader(data)
-                for _ in range(pr.getf('I')[0]):
-                    cx.bpy.ops.pose.group_add()
-                    bg = bpy_arm_obj.pose.bone_groups.active
-                    bg.name = pr.gets()
-                    for __ in range(pr.getf('I')[0]):
-                        bn = pr.gets() if cid == Chunks.Object.PARTITIONS1 else pr.getf('I')[0]
-                        bpy_arm_obj.pose.bones[bn].bone_group = bg
-            finally:
-                cx.bpy.ops.object.mode_set(mode='OBJECT')
         elif cid == Chunks.Object.MOTION_REFS:
             mrefs = bpy_obj.xray.motionrefs_collection
             for mref in PackedReader(data).gets().split(','):
@@ -714,25 +745,8 @@ def _import_main(fpath, cx, cr):
             mrefs = bpy_obj.xray.motionrefs_collection
             for _ in range(pr.getf('I')[0]):
                 mrefs.add().name = pr.gets()
-        elif cid == Chunks.Object.MOTIONS:
-            if not cx.import_motions:
-                continue
-            pr = PackedReader(data)
-            import_motions(pr, cx, bpy, bpy_arm_obj)
-        elif cid == Chunks.Object.LIB_VERSION:
-            pass  # skip obsolete chunk
         else:
             warn_imknown_chunk(cid, 'main')
-
-    for (_, mdat) in ChunkedReader(meshes_data):
-        m = _import_mesh(cx, ChunkedReader(mdat), renamemap)
-
-        if bpy_arm_obj:
-            bpy_armmod = m.modifiers.new(name='Armature', type='ARMATURE')
-            bpy_armmod.object = bpy_arm_obj
-
-        m.parent = bpy_obj
-        cx.bpy.context.scene.objects.link(m)
 
 
 def _import(fpath, cx, cr):

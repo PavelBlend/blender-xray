@@ -17,7 +17,7 @@ class TestObjectInitialize(utils.XRayTestCase):
         plugin.scene_update_post(bpy.context.scene)
 
         # Assert
-        obj = bpy.data.objects['test_fmt.object']
+        obj = bpy.data.objects['Plane']
         self.assertEqual(obj.type, 'MESH')
         self.assertEqual(obj.xray.version, version)
         self.assertEqual(obj.xray.root, True)
