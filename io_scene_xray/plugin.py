@@ -1,7 +1,7 @@
 import bpy
 from bpy_extras import io_utils
 from .xray_inject import inject_init, inject_done
-from .utils import AppError, plugin_version_number
+from .utils import AppError, ObjectsInitializer
 from . import plugin_prefs
 
 
@@ -602,37 +602,17 @@ def overlay_view_3d():
         try_draw(o, o)
 
 
-_prev_objects = set()
+_INITIALIZER = ObjectsInitializer([
+    'objects',
+])
 
 @bpy.app.handlers.persistent
 def load_post(_):
-    curr_objects = bpy.data.objects
-    _prev_objects.clear()
-    for obj in curr_objects:
-        _prev_objects.add(hash(obj))
-        xray = obj.xray
-        if not xray.version:
-            xray.version = -1
-
+    _INITIALIZER.sync('LOADED', bpy.data)
 
 @bpy.app.handlers.persistent
 def scene_update_post(_):
-    global _prev_objects
-    curr_objects = bpy.data.objects
-    if len(curr_objects) == len(_prev_objects):
-        return
-    _objects = set()
-    version = plugin_version_number()
-    for obj in curr_objects:
-        hsc = hash(obj)
-        _objects.add(hsc)
-        if hsc in _prev_objects:
-            continue
-        xray = obj.xray
-        if not xray.version:
-            xray.version = version
-            xray.initialize(obj)
-    _prev_objects = _objects
+    _INITIALIZER.sync('CREATED', bpy.data)
 
 
 #noinspection PyUnusedLocal

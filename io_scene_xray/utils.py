@@ -179,3 +179,43 @@ def mkstruct(name, fields):
     tmp = {}
     exec(template, tmp)
     return tmp[name]
+
+
+class InitializationContext:
+    def __init__(self, operation):
+        self.operation = operation
+        self.plugin_version_number = plugin_version_number()
+        self.thing = None
+
+
+class ObjectSet:
+    def __init__(self):
+        self._set = set()
+
+    def sync(self, objects, callback):
+        _old = self._set
+        if len(objects) == len(_old):
+            return
+        _new = set()
+        for obj in objects:
+            hsh = hash(obj)
+            _new.add(hsh)
+            if hsh not in _old:
+                callback(obj)
+        self._set = _new
+
+class ObjectsInitializer:
+    def __init__(self, keys):
+        self._sets = [(key, ObjectSet()) for key in keys]
+
+    def sync(self, operation, collections):
+        ctx = InitializationContext(operation)
+
+        def init_thing(thing):
+            ctx.thing = thing
+            # print('sync:', ctx.operation, ctx.thing)
+            thing.xray.initialize(ctx)
+
+        for key, objset in self._sets:
+            things = getattr(collections, key)
+            objset.sync(things, init_thing)
