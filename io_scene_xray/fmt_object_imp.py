@@ -309,6 +309,7 @@ def _import_mesh(cx, cr, renamemap):
         bmat = cx.loaded_materials.get(n)
         if bmat is None:
             cx.loaded_materials[n] = bmat = cx.bpy.data.materials.new(n)
+            bmat.xray.version = cx.version
         midx = len(bm_data.materials)
         bm_data.materials.append(bmat)
         images.append(bmat.active_texture.image)
@@ -570,6 +571,7 @@ def _import_main(fpath, cx, cr):
                     break
                 if bpy_material is None:
                     bpy_material = cx.bpy.data.materials.new(n)
+                    bpy_material.xray.version = cx.version
                     bpy_material.xray.flags = flags
                     bpy_material.xray.eshader = eshader
                     bpy_material.xray.cshader = cshader

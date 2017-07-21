@@ -604,6 +604,7 @@ def overlay_view_3d():
 
 _INITIALIZER = ObjectsInitializer([
     'objects',
+    'materials',
 ])
 
 @bpy.app.handlers.persistent
