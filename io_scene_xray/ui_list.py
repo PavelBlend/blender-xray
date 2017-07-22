@@ -1,6 +1,8 @@
 import bpy
+from . import registry
 
 
+@registry.module_thing
 class _ListOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.list'
     bl_label = ''
@@ -46,11 +48,3 @@ def draw_list_ops(layout, dataptr, propname, active_propname):
     op('del', 'ZOOMOUT', enabled=(index >= 0) and (index < len(collection)))
     op('mup', 'TRIA_UP', enabled=(index > 0) and (index < len(collection)))
     op('mdown', 'TRIA_DOWN', enabled=(index >= 0) and (index < len(collection) - 1))
-
-
-def register():
-    bpy.utils.register_class(_ListOp)
-
-
-def unregister():
-    bpy.utils.unregister_class(_ListOp)
