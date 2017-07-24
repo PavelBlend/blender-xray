@@ -1,6 +1,8 @@
 import bpy
+from . import registry
 
 
+@registry.module_thing
 class _DynamicMenuOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.dynmenu'
     bl_label = ''
@@ -69,11 +71,3 @@ class DynamicMenu(bpy.types.Menu):
     @staticmethod
     def set_layout_context_data(layout, data):
         layout.context_pointer_set(_DynamicMenuOp.bl_idname + '.data', data)
-
-
-def register():
-    bpy.utils.register_class(_DynamicMenuOp)
-
-
-def unregister():
-    bpy.utils.unregister_class(_DynamicMenuOp)

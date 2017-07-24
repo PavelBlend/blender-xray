@@ -2,6 +2,7 @@ import bpy
 from .plugin_prefs import get_preferences
 from . import ui_dynmenu, ui_list, shape_edit_helper as seh
 from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl, is_helper_object
+from . import registry
 
 
 class PropClipOp(bpy.types.Operator):
@@ -95,6 +96,7 @@ def draw_collapsible(layout, key, text=None, enabled=None, icon=None, style=None
     return row, box
 
 
+@registry.requires(ui_list, PropClipOp)
 class XRayObjectPanel(XRayPanel):
     bl_context = 'object'
     bl_label = 'XRay - object root'
@@ -195,6 +197,7 @@ class XRayDetailMeshPanel(XRayPanel):
         layout.prop(data, 'max_scale', text='Max Scale')
 
 
+@registry.requires(seh)
 class XRayShapeEditHelperObjectPanel(XRayPanel):
     bl_context = 'object'
     bl_label = 'XRay - shape edit helper'
@@ -210,6 +213,7 @@ class XRayShapeEditHelperObjectPanel(XRayPanel):
         seh.draw_helper(self.layout, context.active_object)
 
 
+@registry.requires(ui_dynmenu)
 class XRayXrMenuTemplate(ui_dynmenu.DynamicMenu):
     @staticmethod
     def parse(data, fparse):
@@ -269,13 +273,14 @@ class XRayGameMtlMenu(XRayXrMenuTemplate):
     cached = XRayXrMenuTemplate.create_cached('gamemtl_file', parse_gamemtl)
 
 
-def _gen_xr_selector(layout, data, name, text):
+def _gen_xr_selector(layout, data, name, text, ui_dynmenu):
     s = layout.row(align=True)
     s.prop(data, name, text=text)
     ui_dynmenu.DynamicMenu.set_layout_context_data(s, data)
     s.menu('io_scene_xray.dynmenu.' + name, icon='TRIA_DOWN')
 
 
+@registry.requires(ui_dynmenu)
 class XRayMaterialPanel(XRayPanel):
     bl_context = 'material'
 
@@ -287,9 +292,9 @@ class XRayMaterialPanel(XRayPanel):
         layout = self.layout
         data = context.object.active_material.xray
         layout.prop(data, 'flags_twosided', 'Two sided', toggle=True)
-        _gen_xr_selector(layout, data, 'eshader', 'EShader')
-        _gen_xr_selector(layout, data, 'cshader', 'CShader')
-        _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
+        _gen_xr_selector(layout, data, 'eshader', 'EShader', ui_dynmenu)
+        _gen_xr_selector(layout, data, 'cshader', 'CShader', ui_dynmenu)
+        _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl', ui_dynmenu)
 
 
 class XRayArmaturePanel(XRayPanel):
@@ -313,6 +318,7 @@ class XRayArmaturePanel(XRayPanel):
         layout.prop(data, 'display_bone_shapes')
 
 
+@registry.requires(ui_dynmenu)
 class XRayBonePanel(XRayPanel):
     bl_context = 'bone'
 
@@ -336,7 +342,7 @@ class XRayBonePanel(XRayPanel):
         data = bone.xray
         layout.enabled = data.exportable
         layout.prop(data, 'length')
-        _gen_xr_selector(layout, data, 'gamemtl', 'gamemtl')
+        _gen_xr_selector(layout, data, 'gamemtl', 'gamemtl', ui_dynmenu)
         box = layout.box()
         box.prop(data.shape, 'type', 'shape type')
         v = data.shape.check_version_different()
@@ -543,8 +549,7 @@ class XRayMaterialToolsPanel(bpy.types.Panel):
         column.prop(data, 'materials_colorize_color_power', text='Power', slider=True)
 
 
-classes = [
-    PropClipOp,
+registry.module_requires(__name__, [
     _CollapsOp,
     XRayObjectPanel
     , XRayDetailMeshPanel
@@ -560,20 +565,4 @@ classes = [
     , XRayScenePanel
     , XRayColorizeMaterials
     , XRayMaterialToolsPanel
-]
-
-
-def inject_ui_init():
-    for c in classes:
-        bpy.utils.register_class(c)
-    ui_dynmenu.register()
-    ui_list.register()
-    seh.register()
-
-
-def inject_ui_done():
-    seh.unregister()
-    ui_list.unregister()
-    ui_dynmenu.unregister()
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
+])

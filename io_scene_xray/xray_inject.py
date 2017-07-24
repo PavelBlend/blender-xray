@@ -3,10 +3,10 @@ import bpy
 import math
 import mathutils
 import time
-from .xray_inject_ui import inject_ui_init, inject_ui_done
 from .plugin_prefs import get_preferences, PropObjectMotionsExport, PropObjectTextureNamesFromPath, PropSDKVersion
 from . import shape_edit_helper as seh
 from . import utils
+from . import registry
 
 
 def _gen_time_prop(prop, description=''):
@@ -62,6 +62,7 @@ def gen_other_flags_prop(mask):
     return bpy.props.IntProperty(get=getter, set=setter, options={'SKIP_SAVE'})
 
 
+@registry.requires(XRayObjectRevisionProperties, 'MotionRef')
 class XRayObjectProperties(bpy.types.PropertyGroup):
     class MotionRef(bpy.types.PropertyGroup):
         name = bpy.props.StringProperty()
@@ -138,10 +139,8 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
             self.show_userdata = False
     userdata = bpy.props.StringProperty(name='userdata', update=userdata_update)
     show_userdata = bpy.props.BoolProperty(description='View user data', options={'SKIP_SAVE'})
-    bpy.utils.register_class(XRayObjectRevisionProperties)
     revision = bpy.props.PointerProperty(type=XRayObjectRevisionProperties)
     motionrefs = bpy.props.StringProperty(description='!Legacy: use \'motionrefs_collection\' instead')
-    bpy.utils.register_class(MotionRef)
     motionrefs_collection = bpy.props.CollectionProperty(type=MotionRef)
     motionrefs_collection_index = bpy.props.IntProperty(options={'SKIP_SAVE'})
     show_motionsrefs = bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'})
@@ -184,6 +183,7 @@ class XRayArmatureProperties(bpy.types.PropertyGroup):
         return reduce(lambda x,y: x|y, [b.xray.shape.check_version_different() for b in self.id_data.bones], 0)
 
 
+@registry.requires('ShapeProperties', 'IKJointProperties', 'BreakProperties', 'MassProperties')
 class XRayBoneProperties(bpy.types.PropertyGroup):
     class BreakProperties(bpy.types.PropertyGroup):
         force = bpy.props.FloatProperty()
@@ -277,7 +277,6 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
     version = bpy.props.IntProperty()
     length = bpy.props.FloatProperty()
     gamemtl = bpy.props.StringProperty(default='default_object')
-    bpy.utils.register_class(ShapeProperties)
     shape = bpy.props.PointerProperty(type=ShapeProperties)
     ikflags = bpy.props.IntProperty()
 
@@ -285,12 +284,9 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         self.ikflags = self.ikflags | 0x1 if value else self.ikflags & ~0x1
 
     ikflags_breakable = bpy.props.BoolProperty(get=lambda self: self.ikflags & 0x1, set=set_ikflags_breakable, options={'SKIP_SAVE'})
-    bpy.utils.register_class(IKJointProperties)
     ikjoint = bpy.props.PointerProperty(type=IKJointProperties)
-    bpy.utils.register_class(BreakProperties)
     breakf = bpy.props.PointerProperty(type=BreakProperties)
     friction = bpy.props.FloatProperty()
-    bpy.utils.register_class(MassProperties)
     mass = bpy.props.PointerProperty(type=MassProperties)
 
     def ondraw_postview(self, obj_arm, bone):
@@ -449,15 +445,13 @@ classes = [
 ]
 
 
-def inject_init():
+def register():
     for c in classes:
-        bpy.utils.register_class(c)
+        registry.register_thing(c, __name__)
         c.b_type.xray = bpy.props.PointerProperty(type=c)
-    inject_ui_init()
 
 
-def inject_done():
-    inject_ui_done()
+def unregister():
     for c in reversed(classes):
         del c.b_type.xray
-        bpy.utils.unregister_class(c)
+        registry.unregister_thing(c, __name__)

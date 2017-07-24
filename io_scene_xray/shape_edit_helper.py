@@ -3,6 +3,7 @@ import bmesh
 import math
 import mathutils
 from . import utils
+from . import registry
 
 __HELPER_NAME = utils.HELPER_OBJECT_NAME_PREFIX + 'bone-shape-edit'
 
@@ -115,6 +116,7 @@ def is_helper_object(obj):
     return obj.name == __HELPER_NAME
 
 
+@registry.module_thing
 class _ShapeEditApplyOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.shape_edit_apply'
     bl_label = 'Apply Shape'
@@ -191,6 +193,7 @@ def _bone_vertices(bone):
                 yield v.co
 
 
+@registry.module_thing
 class _ShapeEditFitOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.shape_edit_fit'
     bl_label = 'Fit Shape'
@@ -262,13 +265,3 @@ def draw(layout, bone):
 def draw_helper(layout, obj):
     layout.operator(_ShapeEditFitOp.bl_idname, icon='BBOX')
     layout.operator(_ShapeEditApplyOp.bl_idname, icon='FILE_TICK')
-
-
-def register():
-    bpy.utils.register_class(_ShapeEditApplyOp)
-    bpy.utils.register_class(_ShapeEditFitOp)
-
-
-def unregister():
-    bpy.utils.unregister_class(_ShapeEditFitOp)
-    bpy.utils.unregister_class(_ShapeEditApplyOp)

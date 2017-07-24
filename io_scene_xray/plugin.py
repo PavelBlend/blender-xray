@@ -1,8 +1,9 @@
 import bpy
 from bpy_extras import io_utils
-from .xray_inject import inject_init, inject_done
+from . import xray_inject
 from .utils import AppError, plugin_version_number
 from . import plugin_prefs
+from . import registry
 
 
 class TestReadyOperator(bpy.types.Operator):
@@ -15,6 +16,7 @@ class TestReadyOperator(bpy.types.Operator):
 
 
 #noinspection PyUnusedLocal
+@registry.module_thing
 class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
     bl_label = 'Import .object'
@@ -83,6 +85,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
         return super().invoke(context, event)
 
 
+@registry.module_thing
 class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.anm'
     bl_label = 'Import .anm'
@@ -131,6 +134,7 @@ def invoke_require_armature(func):
     return wrapper
 
 
+@registry.module_thing
 class OpImportSkl(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.skl'
     bl_label = 'Import .skl/.skls'
@@ -177,6 +181,7 @@ def execute_require_filepath(func):
     return wrapper
 
 
+@registry.module_thing
 class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
     bl_idname = 'xray_import.dm'
     bl_label = 'Import .dm/.details'
@@ -290,6 +295,7 @@ class _WithExportMotions:
     export_motions = plugin_prefs.PropObjectMotionsExport()
 
 
+@registry.module_thing
 class OpExportObjects(TestReadyOperator, _WithExportMotions):
     bl_idname = 'export_object.xray_objects'
     bl_label = 'Export selected .object-s'
@@ -351,6 +357,8 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+
+@registry.module_thing
 class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotions):
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
@@ -405,6 +413,7 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotio
         return super().invoke(context, event)
 
 
+@registry.module_thing
 class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.dm'
     bl_label = 'Export .dm'
@@ -444,6 +453,7 @@ class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
+@registry.module_thing
 class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
@@ -481,6 +491,7 @@ class FilenameExtHelper(io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
+@registry.module_thing
 class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.anm'
     bl_label = 'Export .anm'
@@ -497,6 +508,7 @@ class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
         export_file(context.active_object, self.filepath, cx)
 
 
+@registry.module_thing
 class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.skl'
     bl_label = 'Export .skl'
@@ -527,6 +539,7 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
+@registry.module_thing
 class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.skls'
     bl_label = 'Export .skls'
@@ -548,6 +561,7 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
         return super().invoke(context, event)
 
 
+@registry.module_thing
 class OpExportProject(TestReadyOperator):
     bl_idname = 'export_scene.xray'
     bl_label = 'Export XRay Project'
@@ -654,25 +668,16 @@ def menu_func_export_ogf(self, context):
     self.layout.operator(OpExportOgf.bl_idname, text='X-Ray game object (.ogf)')
 
 
+registry.module_requires(__name__, [
+    plugin_prefs,
+    xray_inject,
+])
+
 def register():
-    plugin_prefs.register()
-    bpy.utils.register_class(OpImportObject)
-    bpy.utils.register_class(OpImportAnm)
-    bpy.utils.register_class(OpImportSkl)
-    bpy.utils.register_class(OpImportDM)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
-    bpy.utils.register_class(OpExportObject)
-    bpy.utils.register_class(OpExportAnm)
-    bpy.utils.register_class(OpExportSkl)
-    bpy.utils.register_class(OpExportSkls)
     bpy.types.INFO_MT_file_export.append(menu_func_export)
-    bpy.utils.register_class(OpExportObjects)
-    bpy.utils.register_class(OpExportOgf)
-    bpy.utils.register_class(OpExportDM)
     bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(overlay_view_3d, (), 'WINDOW', 'POST_VIEW')
-    bpy.utils.register_class(OpExportProject)
-    inject_init()
     bpy.app.handlers.load_post.append(load_post)
     bpy.app.handlers.scene_update_post.append(scene_update_post)
 
@@ -680,21 +685,7 @@ def register():
 def unregister():
     bpy.app.handlers.scene_update_post.remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)
-    inject_done()
-    bpy.utils.unregister_class(OpExportProject)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
     bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
-    bpy.utils.unregister_class(OpExportDM)
-    bpy.utils.unregister_class(OpExportOgf)
-    bpy.utils.unregister_class(OpExportObjects)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
-    bpy.utils.unregister_class(OpExportSkls)
-    bpy.utils.unregister_class(OpExportSkl)
-    bpy.utils.unregister_class(OpExportAnm)
-    bpy.utils.unregister_class(OpExportObject)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
-    bpy.utils.unregister_class(OpImportDM)
-    bpy.utils.unregister_class(OpImportSkl)
-    bpy.utils.unregister_class(OpImportAnm)
-    bpy.utils.unregister_class(OpImportObject)
-    plugin_prefs.unregister()

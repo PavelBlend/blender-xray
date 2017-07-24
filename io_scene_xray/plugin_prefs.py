@@ -1,4 +1,5 @@
 import bpy
+from . import registry
 
 
 def get_preferences():
@@ -76,6 +77,7 @@ def PropUseExportPaths():
     )
 
 
+@registry.module_thing
 class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
 
@@ -136,11 +138,3 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 prop_bool(bx, self, 'anm_create_camera')
 
         prop_bool(layout, self, 'expert_mode')
-
-
-def register():
-    bpy.utils.register_class(PluginPreferences)
-
-
-def unregister():
-    bpy.utils.unregister_class(PluginPreferences)
