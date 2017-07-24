@@ -1,5 +1,6 @@
 import unittest
 import addon_utils
+import io
 import inspect
 import os
 import shutil
@@ -78,6 +79,16 @@ class XRayTestCase(unittest.TestCase):
         orphaned = existing - expected
         if orphaned:
             self.fail(self._formatMessage(None, 'files {} orphaned'.format(orphaned)))
+
+    def assertFileContains(self, file_path, re_message=None):
+        full_path = os.path.join(XRayTestCase.__tmp, file_path)
+        content = ''
+        with io.open(full_path, 'rb') as f:
+            content = f.read()
+        match = re_message.match(content.replace(b'\x00', b''))
+        if match is not None:
+            raise self.fail('Cannot match the \'{}\' file content with \'{}\''
+                            .format(file_path, re_message))
 
     def _findReport(self, type=None, re_message=None):
         for r in self._reports:

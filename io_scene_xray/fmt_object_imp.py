@@ -289,7 +289,7 @@ def _import_mesh(cx, cr, renamemap):
 
     bmfaces = [None] * len(fc_data)
 
-    bm_data = bpy.data.meshes.new(mesh_name + '.mesh')
+    bm_data = bpy.data.meshes.new(mesh_name)
     if face_sg:
         bm_data.use_auto_smooth = True
         bm_data.auto_smooth_angle = math.pi
@@ -709,6 +709,7 @@ def _import_main(fpath, cx, cr):
     if bpy_obj is None:
         if len(mesh_objects) == 1:
             bpy_obj = mesh_objects[0]
+            bpy_obj.name = object_name
         else:
             bpy_obj = bpy.data.objects.new(object_name, None)
             for m in mesh_objects:

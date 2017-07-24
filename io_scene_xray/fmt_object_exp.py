@@ -69,7 +69,8 @@ def _export_sg_new(bmfaces):
 
 def _export_mesh(bpy_obj, bpy_root, cw, cx):
     cw.put(Chunks.Mesh.VERSION, PackedWriter().putf('H', 0x11))
-    cw.put(Chunks.Mesh.MESHNAME, PackedWriter().puts(bpy_obj.name))
+    mesh_name = bpy_obj.data.name if bpy_obj == bpy_root else bpy_obj.name
+    cw.put(Chunks.Mesh.MESHNAME, PackedWriter().puts(mesh_name))
 
     bm = convert_object_to_space_bmesh(bpy_obj, bpy_root.matrix_world)
     bml = bm.verts.layers.deform.verify()
