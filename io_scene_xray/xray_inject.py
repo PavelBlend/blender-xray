@@ -152,8 +152,13 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     min_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
     max_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
 
-    def initialize(self, obj):
-        self.root = obj.type == 'MESH'
+    def initialize(self, context):
+        if not self.version:
+            if context.operation == 'LOADED':
+                self.version = -1
+            elif context.operation == 'CREATED':
+                self.version = context.plugin_version_number
+                self.root = context.thing.type == 'MESH'
 
 
 class XRayMeshProperties(bpy.types.PropertyGroup):
@@ -172,6 +177,17 @@ class XRayMaterialProperties(bpy.types.PropertyGroup):
     eshader = bpy.props.StringProperty(default='models\\model')
     cshader = bpy.props.StringProperty(default='default')
     gamemtl = bpy.props.StringProperty(default='default')
+    version = bpy.props.IntProperty()
+
+    def initialize(self, context):
+        if not self.version:
+            if context.operation == 'LOADED':
+                self.version = -1
+            elif context.operation == 'CREATED':
+                self.version = context.plugin_version_number
+                obj = bpy.context.active_object
+                if obj and obj.xray.flags_custom_type == 'st':
+                    self.eshader = 'default'
 
 
 class XRayArmatureProperties(bpy.types.PropertyGroup):

@@ -166,6 +166,7 @@ class TestFormatObject(utils.XRayTestCase):
         tex = bpy.data.textures.new('Texture', type='IMAGE')
         tex.image = img
         mat = bpy.data.materials.new('Material')
+        mat.xray.version = -1  # otherwise, this material will be initialized with the default values (see #48)
         mts = mat.texture_slots.add()
         mts.texture = tex
         return mat, mts, tex

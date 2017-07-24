@@ -43,6 +43,7 @@ def import_(fpath, cx, pr, mode='DM'):
             break
         if not bpy_material:
             bpy_material = cx.bpy.data.materials.new(texture)
+            bpy_material.version = cx.version
             bpy_material.xray.eshader = shader
             bpy_material.use_shadeless = True
             bpy_material.use_transparency = True
