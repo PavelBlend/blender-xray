@@ -18,6 +18,8 @@ class TestObjectInitialize(utils.XRayTestCase):
 
         # Assert
         obj = bpy.data.objects['test_fmt.object']
+        self.assertEqual(obj.type, 'MESH')
+        self.assertEqual(obj.data.name, 'Plane')
         self.assertEqual(obj.xray.version, version)
         self.assertEqual(obj.xray.root, True)
 

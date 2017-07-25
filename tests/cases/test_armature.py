@@ -32,5 +32,10 @@ class TestArmature(utils.XRayTestCase):
             directory=self.outpath(),
             files=[{'name': 'test.object'}],
         )
+
+        obj_arm = bpy.data.objects[-1]
+        self.assertEqual(obj_arm.type, 'ARMATURE')
+        self.assertEqual(obj_arm.xray.isroot, True)
+
         imp_arm = bpy.data.armatures[1]
         self.assertEqual(len(imp_arm.bones), 1)

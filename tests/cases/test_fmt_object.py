@@ -137,7 +137,9 @@ class TestFormatObject(utils.XRayTestCase):
 
         # Assert
         self.assertReportsNotContains('WARNING')
-        imported_material = bpy.data.objects['Plane'].data.materials[0]
+        imported_object = bpy.data.objects['test_fmt.object']
+        self.assertEqual(imported_object.data.name, 'Plane')
+        imported_material = imported_object.data.materials[0]
         self.assertNotEqual(imported_material, mat)
         imported_texture = imported_material.texture_slots[0].texture
         self.assertNotEqual(imported_texture, tex)
@@ -154,10 +156,31 @@ class TestFormatObject(utils.XRayTestCase):
 
         # Assert
         self.assertReportsNotContains('WARNING')
-        imported_material = bpy.data.objects['Plane'].data.materials[0]
+        imported_material = bpy.data.objects['test_fmt.object'].data.materials[0]
         self.assertEqual(imported_material, mat)
         imported_texture = imported_material.texture_slots[0].texture
         self.assertEqual(imported_texture, tex)
+
+    def test_export_single_mesh(self):
+        # Arrange
+        bpy.ops.xray_import.object(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt.object'}],
+        )
+
+        obj = bpy.data.objects[-1]
+        obj.name = 'uniq-obj-name'
+        obj.data.name = 'uniq-msh-name'
+
+        # Act
+        bpy.ops.export_object.xray_objects(
+            objects=obj.name, directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False,
+        )
+
+        # Assert
+        self.assertFileContains('uniq-obj-name.object', re.compile(b'uniq-msh-name'))
 
     def _get_compatible_material(self):
         img = bpy.data.images.new('texture', 0, 0)
