@@ -1,6 +1,7 @@
 from tests import utils
 
 import bpy
+import io_scene_xray
 import re
 
 
@@ -22,11 +23,13 @@ class TestObjectExport(utils.XRayTestCase):
 
     def test_export_multi(self):
         # Arrange
-        self._create_objects()
+        objs = self._create_objects()
+        objs[0].location = (1, 2, 3)
 
         # Act
         bpy.ops.export_object.xray_objects(
             objects='tobj1,tobj2', directory=self.outpath(),
+            fmt_version='cscop',
             texture_name_from_image_path=False
         )
 
@@ -71,6 +74,8 @@ class TestObjectExport(utils.XRayTestCase):
 
     def test_obsolete_bones(self):
         # Arrange
+        objs = self._create_objects()
+
         arm = bpy.data.armatures.new('tarm')
         obj = bpy.data.objects.new('tobj', arm)
         bpy.context.scene.objects.link(obj)
@@ -83,6 +88,13 @@ class TestObjectExport(utils.XRayTestCase):
             bpy.ops.object.mode_set(mode='OBJECT')
         arm.bones['tbone'].xray.shape.type = '2'
         arm.bones['tbone'].xray.shape.sph_rad = 1
+
+        objs[0].modifiers.new(name='Armature', type='ARMATURE').object = obj
+        objs[0].parent = obj
+        grp = objs[0].vertex_groups.new()
+        grp.add(range(3), 1, 'REPLACE')
+        grp = objs[0].vertex_groups.new(io_scene_xray.utils.BAD_VTX_GROUP_NAME)
+        grp.add([3], 1, 'REPLACE')
 
         # Act
         bpy.ops.export_object.xray_objects(
