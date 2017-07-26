@@ -17,9 +17,10 @@ class TestObjectInitialize(utils.XRayTestCase):
         plugin.scene_update_post(bpy.context.scene)
 
         # Assert
+        self.assertReportsNotContains('WARNING')
         obj = bpy.data.objects['test_fmt.object']
         self.assertEqual(obj.type, 'MESH')
-        self.assertEqual(obj.data.name, 'Plane')
+        self.assertEqual(obj.data.name, 'plobj')
         self.assertEqual(obj.xray.version, version)
         self.assertEqual(obj.xray.root, True)
 
