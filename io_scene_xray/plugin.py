@@ -112,7 +112,7 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
             import os.path
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.anm':
-                import_file(self.directory + file.name, cx)
+                import_file(os.path.join(self.directory, file.name), cx)
             else:
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
         return {'FINISHED'}
@@ -135,7 +135,7 @@ def invoke_require_armature(func):
 
 
 @registry.module_thing
-class OpImportSkl(bpy.types.Operator, io_utils.ImportHelper):
+class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     bl_idname = 'xray_import.skl'
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
@@ -159,9 +159,9 @@ class OpImportSkl(bpy.types.Operator, io_utils.ImportHelper):
             import os.path
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.skl':
-                import_skl_file(self.directory + file.name, cx)
+                import_skl_file(os.path.join(self.directory, file.name), cx)
             elif ext == '.skls':
-                import_skls_file(self.directory + file.name, cx)
+                import_skls_file(os.path.join(self.directory, file.name), cx)
             else:
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
         return {'FINISHED'}

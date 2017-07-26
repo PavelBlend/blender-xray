@@ -138,7 +138,7 @@ class TestFormatObject(utils.XRayTestCase):
         # Assert
         self.assertReportsNotContains('WARNING')
         imported_object = bpy.data.objects['test_fmt.object']
-        self.assertEqual(imported_object.data.name, 'Plane')
+        self.assertEqual(imported_object.data.name, 'plobj')
         imported_material = imported_object.data.materials[0]
         self.assertNotEqual(imported_material, mat)
         imported_texture = imported_material.texture_slots[0].texture
@@ -185,11 +185,12 @@ class TestFormatObject(utils.XRayTestCase):
     def _get_compatible_material(self):
         img = bpy.data.images.new('texture', 0, 0)
         img.source = 'FILE'
-        img.filepath = 'gamedata/textures/Texture.dds'
-        tex = bpy.data.textures.new('Texture', type='IMAGE')
+        img.filepath = 'gamedata/textures/eye.dds'
+        tex = bpy.data.textures.new('eye', type='IMAGE')
         tex.image = img
-        mat = bpy.data.materials.new('Material')
+        mat = bpy.data.materials.new('plmat')
         mat.xray.version = -1  # otherwise, this material will be initialized with the default values (see #48)
         mts = mat.texture_slots.add()
+        mts.uv_layer = 'uvm'
         mts.texture = tex
         return mat, mts, tex
