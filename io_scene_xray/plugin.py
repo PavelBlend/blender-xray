@@ -135,7 +135,7 @@ def invoke_require_armature(func):
 
 
 @registry.module_thing
-class OpImportSkl(bpy.types.Operator, io_utils.ImportHelper):
+class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     bl_idname = 'xray_import.skl'
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
