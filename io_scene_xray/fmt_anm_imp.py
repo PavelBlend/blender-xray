@@ -27,7 +27,7 @@ def _import(fpath, cr, cx):
             bpy_obj = bpy.data.objects.new(name, None)
             bpy_obj.rotation_mode = 'YXZ'
             if cx.camera_animation:
-                bpy_cam = bpy.data.objects.new(name, bpy.data.cameras.new(name))
+                bpy_cam = bpy.data.objects.new(name + '.camera', bpy.data.cameras.new(name))
                 bpy_cam.parent = bpy_obj
                 bpy_cam.rotation_euler = (math.pi / 2, 0, 0)
                 bpy.context.scene.objects.link(bpy_cam)
