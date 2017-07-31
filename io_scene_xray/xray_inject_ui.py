@@ -5,6 +5,11 @@ from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, p
 from . import registry
 
 
+def _build_label(subtext=''):
+    prefix = 'X-Ray Engine'
+    return prefix + ': ' + subtext if subtext else prefix
+
+
 class PropClipOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.propclip'
     bl_label = ''
@@ -43,7 +48,7 @@ class PropClipOp(bpy.types.Operator):
 
 
 class XRayPanel(bpy.types.Panel):
-    bl_label = 'XRay'
+    bl_label = _build_label()
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
 
@@ -99,7 +104,7 @@ def draw_collapsible(layout, key, text=None, enabled=None, icon=None, style=None
 @registry.requires(ui_list, PropClipOp)
 class XRayObjectPanel(XRayPanel):
     bl_context = 'object'
-    bl_label = 'XRay - object root'
+    bl_label = _build_label('Object Root')
 
     @classmethod
     def poll(cls, context):
@@ -156,7 +161,7 @@ class XRayObjectPanel(XRayPanel):
 
 class XRayMeshPanel(XRayPanel):
     bl_context = 'object'
-    bl_label = 'XRay - mesh'
+    bl_label = _build_label('Mesh')
 
     @classmethod
     def poll(cls, context):
@@ -179,7 +184,7 @@ class XRayMeshPanel(XRayPanel):
 
 class XRayDetailMeshPanel(XRayPanel):
     bl_context = 'object'
-    bl_label = 'XRay - detail mesh'
+    bl_label = _build_label('Detail Mesh')
 
     @classmethod
     def poll(cls, context):
@@ -200,7 +205,7 @@ class XRayDetailMeshPanel(XRayPanel):
 @registry.requires(seh)
 class XRayShapeEditHelperObjectPanel(XRayPanel):
     bl_context = 'object'
-    bl_label = 'XRay - shape edit helper'
+    bl_label = _build_label('Shape Edit Helper')
 
     @classmethod
     def poll(cls, context):
@@ -283,6 +288,7 @@ def _gen_xr_selector(layout, data, name, text, ui_dynmenu):
 @registry.requires(ui_dynmenu)
 class XRayMaterialPanel(XRayPanel):
     bl_context = 'material'
+    bl_label = _build_label('Material')
 
     @classmethod
     def poll(cls, context):
@@ -299,6 +305,7 @@ class XRayMaterialPanel(XRayPanel):
 
 class XRayArmaturePanel(XRayPanel):
     bl_context = 'data'
+    bl_label = _build_label('Skeleton')
 
     @classmethod
     def poll(cls, context):
@@ -315,12 +322,13 @@ class XRayArmaturePanel(XRayPanel):
             from io_scene_xray.xray_inject import XRayBoneProperties
             layout.label('Found bones, edited with ' + XRayBoneProperties.ShapeProperties.fmt_version_different(
                 v) + ' version of this plugin', icon='ERROR')
-        layout.prop(data, 'display_bone_shapes')
+        layout.prop(data, 'display_bone_shapes', toggle=True)
 
 
 @registry.requires(ui_dynmenu)
 class XRayBonePanel(XRayPanel):
     bl_context = 'bone'
+    bl_label = _build_label('Bone')
 
     @classmethod
     def poll(cls, context):
@@ -342,9 +350,9 @@ class XRayBonePanel(XRayPanel):
         data = bone.xray
         layout.enabled = data.exportable
         layout.prop(data, 'length')
-        _gen_xr_selector(layout, data, 'gamemtl', 'gamemtl', ui_dynmenu)
+        _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl', ui_dynmenu)
         box = layout.box()
-        box.prop(data.shape, 'type', 'shape type')
+        box.prop(data.shape, 'type', text='Shape Type')
         v = data.shape.check_version_different()
         if v != 0:
             box.label('shape edited with ' + data.shape.fmt_version_different(v) + ' version of this plugin',
@@ -352,38 +360,37 @@ class XRayBonePanel(XRayPanel):
         seh.draw(box.column(align=True), bone)
 
         row = box.row(align=True)
-        row.prop(data.shape, 'flags_nopickable', text='No pickable', toggle=True)
-        row.prop(data.shape, 'flags_nophysics', text='No physics', toggle=True)
-        row.prop(data.shape, 'flags_removeafterbreak', text='Remove after break', toggle=True)
-        row.prop(data.shape, 'flags_nofogcollider', text='No fog collider', toggle=True)
+        row.prop(data.shape, 'flags_nopickable', text='No Pickable', toggle=True)
+        row.prop(data.shape, 'flags_nophysics', text='No Physics', toggle=True)
+        row.prop(data.shape, 'flags_removeafterbreak', text='Remove After Break', toggle=True)
+        row.prop(data.shape, 'flags_nofogcollider', text='No Fog Collider', toggle=True)
         box = layout.box()
-        box.prop(data.ikjoint, 'type', 'joint type')
+        box.prop(data.ikjoint, 'type', text='Joint Type')
         if int(data.ikjoint.type):
             box.prop(data, 'friction')
-        bx = box.box();
-        bx.label('limit x')
-        bx.prop(data.ikjoint, 'lim_x_spr', 'spring')
-        bx.prop(data.ikjoint, 'lim_x_dmp', 'damping')
-        bx = box.box();
-        bx.label('limit y')
-        bx.prop(data.ikjoint, 'lim_y_spr', 'spring')
-        bx.prop(data.ikjoint, 'lim_y_dmp', 'damping')
-        bx = box.box();
-        bx.label('limit z')
-        bx.prop(data.ikjoint, 'lim_z_spr', 'spring')
-        bx.prop(data.ikjoint, 'lim_z_dmp', 'damping')
-        box.prop(data.ikjoint, 'spring')
-        box.prop(data.ikjoint, 'damping')
+        col = box.column(align=True)
+        col.prop(data.ikjoint, 'spring', text='Spring')
+        col.prop(data.ikjoint, 'damping', text='Damping')
+        col = box.column(align=True)
+        col.label('Limit X:')
+        col.prop(data.ikjoint, 'lim_x_spr', 'Spring')
+        col.prop(data.ikjoint, 'lim_x_dmp', 'Damping')
+        col = box.column(align=True)
+        col.label('Limit Y:')
+        col.prop(data.ikjoint, 'lim_y_spr', 'Spring')
+        col.prop(data.ikjoint, 'lim_y_dmp', 'Damping')
+        col = box.column(align=True)
+        col.label('Limit Z:')
+        col.prop(data.ikjoint, 'lim_z_spr', 'Spring')
+        col.prop(data.ikjoint, 'lim_z_dmp', 'Damping')
+        col = box.column(align=True)
+        col.prop(data, 'ikflags_breakable', 'Breakable', toggle=True)
         if data.ikflags_breakable:
-            box = layout.box()
-            box.prop(data, 'ikflags_breakable', 'Breakable', toggle=True)
-            box.prop(data.breakf, 'force', 'break force')
-            box.prop(data.breakf, 'torque', 'break torque')
-        else:
-            layout.prop(data, 'ikflags_breakable', 'Breakable', toggle=True)
+            col.prop(data.breakf, 'force', text='Force')
+            col.prop(data.breakf, 'torque', text='Torque')
         box = layout.box()
-        box.prop(data.mass, 'value', 'mass')
-        box.prop(data.mass, 'center')
+        box.prop(data.mass, 'value', text='Mass')
+        box.prop(data.mass, 'center', text='Center')
 
 
 class XRayActionPanel(XRayPanel):
@@ -391,6 +398,7 @@ class XRayActionPanel(XRayPanel):
     bl_space_type = 'GRAPH_EDITOR'
     bl_region_type = 'UI'
     bl_context = 'object'
+    bl_label = _build_label('Action')
 
     @classmethod
     def poll(cls, context):
@@ -452,7 +460,7 @@ class XRayActionPanel(XRayPanel):
 
 class XRayScenePanel(XRayPanel):
     bl_context = 'scene'
-    bl_label = 'X-Ray Engine Project'
+    bl_label = _build_label('Project')
 
     def draw(self, context):
         from .plugin import OpExportProject

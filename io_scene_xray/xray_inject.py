@@ -132,7 +132,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
         ('pd', 'Progressive Dynamic', ''),
         ('dy', 'Dynamic', ''),
         ('st', 'Static', '')), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set)
-    lodref = bpy.props.StringProperty(name='lodref')
+    lodref = bpy.props.StringProperty(name='LOD Reference')
 
     def userdata_update(self, context):
         if self.userdata == '':
@@ -291,7 +291,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Bone
     exportable = bpy.props.BoolProperty(default=True, description='Enable Bone to be exported')
     version = bpy.props.IntProperty()
-    length = bpy.props.FloatProperty()
+    length = bpy.props.FloatProperty(name='Length')
     gamemtl = bpy.props.StringProperty(default='default_object')
     shape = bpy.props.PointerProperty(type=ShapeProperties)
     ikflags = bpy.props.IntProperty()
