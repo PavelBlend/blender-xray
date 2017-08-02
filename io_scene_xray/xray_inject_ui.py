@@ -395,7 +395,7 @@ class XRayBonePanel(XRayPanel):
 
 class XRayActionPanel(XRayPanel):
     bl_category = 'F-Curve'
-    bl_space_type = 'GRAPH_EDITOR'
+    bl_space_type = 'DOPESHEET_EDITOR' if bpy.app.version >= (2, 78, 0) else 'GRAPH_EDITOR'
     bl_region_type = 'UI'
     bl_context = 'object'
     bl_label = _build_label('Action')
