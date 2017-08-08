@@ -112,6 +112,55 @@ class TestObjectExport(utils.XRayTestCase):
             re.compile('bone .* edited with .* version of this plugin')
         )
 
+    def test_empty_bone_groups(self):
+        # Arrange
+        arm = bpy.data.armatures.new('tarm')
+        obj = bpy.data.objects.new('tobj', arm)
+        bpy.context.scene.objects.link(obj)
+        bpy.context.scene.objects.active = obj
+        b_exp0, b_non0, b_exp1, b_non1 = (
+            'b-exportable0', 'b-non-exportable0', 'b-exportable1', 'b-non-exportable1'
+        )
+        bpy.ops.object.mode_set(mode='EDIT')
+        try:
+            for n in (b_exp0, b_non0, b_exp1, b_non1):
+                bone = arm.edit_bones.new(n)
+                bone.tail.y = 1
+        finally:
+            bpy.ops.object.mode_set(mode='POSE')
+        bg_exp = obj.pose.bone_groups.new(name='bg-only-exportable')
+        bg_mix = obj.pose.bone_groups.new(name='bg-mixed')
+        bg_non = obj.pose.bone_groups.new(name='bg-only-non-exportable')
+        bg_emp = obj.pose.bone_groups.new(name='bg-empty')
+        obj.pose.bones[b_exp0].bone_group = bg_exp
+        obj.pose.bones[b_non0].bone_group = bg_mix
+        obj.pose.bones[b_exp1].bone_group = bg_mix
+        obj.pose.bones[b_non0].bone_group = bg_non
+        arm.bones[b_non0].xray.exportable = False
+        arm.bones[b_non1].xray.exportable = False
+
+        # Act
+        bpy.ops.export_object.xray_objects(
+            objects='tobj', directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False,
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({
+            'tobj.object',
+        })
+        content = self.getFileSafeContent('tobj.object')
+        self.assertRegex(content, re.compile(bytes(b_exp0, 'cp1251')))
+        self.assertRegex(content, re.compile(bytes(b_exp1, 'cp1251')))
+        self.assertNotRegex(content, re.compile(bytes(b_non0, 'cp1251')))
+        self.assertNotRegex(content, re.compile(bytes(b_non1, 'cp1251')))
+        self.assertRegex(content, re.compile(bytes(bg_exp.name, 'cp1251')))
+        self.assertRegex(content, re.compile(bytes(bg_mix.name, 'cp1251')))
+        self.assertNotRegex(content, re.compile(bytes(bg_non.name, 'cp1251')))
+        self.assertNotRegex(content, re.compile(bytes(bg_emp.name, 'cp1251')))
+
     def _create_objects(self):
         bmesh = utils.create_bmesh((
             (0, 0, 0),
