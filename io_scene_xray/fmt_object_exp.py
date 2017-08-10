@@ -359,17 +359,32 @@ def _export_main(bpy_obj, cw, cx):
             cw.put(Chunks.Object.MOTIONS, pw)
 
     if some_arm and len(some_arm.pose.bone_groups):
-        arm_bones = some_arm.data.bones
-        pw = PackedWriter()
-        pw.putf('I', len(some_arm.pose.bone_groups))
-        for g in some_arm.pose.bone_groups:
-            pw.puts(g.name)
-            bones = [b for b in some_arm.pose.bones
-                     if b.bone_group == g and is_exportable_bone(arm_bones[b.name])]
-            pw.putf('I', len(bones))
-            for b in bones:
-                pw.puts(b.name)
-        if pw.data:
+        exportable_bones = tuple(
+            bone
+            for bone in some_arm.pose.bones
+            if is_exportable_bone(some_arm.data.bones[bone.name])
+        )
+        all_groups = (
+            (group.name, tuple(
+                bone.name
+                for bone in exportable_bones
+                if bone.bone_group == group
+            ))
+            for group in some_arm.pose.bone_groups
+        )
+        non_empty_groups = tuple(
+            group
+            for group in all_groups
+            if group[1]
+        )
+        if non_empty_groups:
+            pw = PackedWriter()
+            pw.putf('I', len(non_empty_groups))
+            for name, bones in non_empty_groups:
+                pw.puts(name)
+                pw.putf('I', len(bones))
+                for bone in bones:
+                    pw.puts(bone)
             cw.put(Chunks.Object.PARTITIONS1, pw)
 
     motionrefs = xr.motionrefs_collection
