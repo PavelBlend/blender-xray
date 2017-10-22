@@ -25,8 +25,101 @@ def plugin_version_number():
 
 
 class AppError(Exception):
-    def __init__(self, message):
+    def __init__(self, message, data=None):
         super().__init__(message)
+        self.data = data
+
+class LogContext:
+    def __init__(self, data=dict(), parent=None, lightweight=False):
+        self.data = data
+        self.parent = parent
+        self.depth = (parent.depth + 1) if parent else 0
+        self.lightweight = lightweight
+
+    def set(self, **kwargs):
+        self.data.update(kwargs)
+        return self
+
+    def ext(self, **kwargs):
+        return LogContext(kwargs, self, True)
+
+    def nested(self, **kwargs):
+        return LogContext(kwargs, self)
+
+
+class Logger:
+    def __init__(self, report):
+        self._report = report
+        self._full = list()
+
+    def warn(self, message, ctx=None):
+        message = message.strip()
+        message = message[0].upper() + message[1:]
+        self._full.append((message, ctx))
+
+    def flush(self, logname='log'):
+        uniq = dict()
+        for msg, _ in self._full:
+            uniq[msg] = uniq.get(msg, 0) + 1
+        if not uniq:
+            return
+
+        lines = ['Digest:']
+        for msg, cnt in uniq.items():
+            line = msg
+            if cnt > 1:
+                line = ('[%dx] ' % cnt) + line
+            lines.append(' ' + line)
+            self._report({'WARNING'}, line)
+
+        lines.extend(['', 'Full log:'])
+        processed_groups = dict()
+        last_line_is_message = False
+
+        def ensure_group_processed(group):
+            nonlocal last_line_is_message
+            prefix = processed_groups.get(group, None)
+            if prefix is None:
+                if group is not None:
+                    if group.parent:
+                        ensure_group_processed(group.parent)
+                    prefix = '| ' * group.depth
+                    if last_line_is_message:
+                        lines.append(prefix + '|')
+                    lines.append('%s+-%s' % (prefix, group.data))
+                    last_line_is_message = False
+                    prefix += '|  '
+                else:
+                    prefix = ''
+                processed_groups[group] = prefix
+            return prefix
+
+
+        last_message = None
+        last_message_count = 0
+        for msg, ctx in self._full:
+            data = dict()
+            group = ctx
+            while group and group.lightweight:
+                data.update(group.data)
+                group = group.parent
+            prefix = ensure_group_processed(group)
+            if data:
+                msg += (': %s' % data)
+            if last_line_is_message and (last_message == msg):
+                last_message_count += 1
+                lines[-1] = '%s[%dx] %s' % (prefix, last_message_count, msg)
+            else:
+                lines.append(prefix + msg)
+                last_message = msg
+                last_message_count = 1
+                last_line_is_message = True
+
+        import bpy
+        text = bpy.data.texts.new(logname)
+        text.user_clear()
+        text.from_string('\n'.join(lines))
+        self._report({'INFO'}, 'The full log was stored as \'%s\' (in the Text Editor)' % text.name)
 
 
 def fix_ensure_lookup_table(bmv):

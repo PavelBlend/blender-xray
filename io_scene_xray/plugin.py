@@ -1,7 +1,7 @@
 import bpy
 from bpy_extras import io_utils
 from . import xray_inject
-from .utils import AppError, ObjectsInitializer
+from .utils import AppError, ObjectsInitializer, Logger
 from . import plugin_prefs
 from . import registry
 
@@ -44,7 +44,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
             return {'CANCELLED'}
         from .fmt_object_imp import import_file, ImportContext
         cx = ImportContext(
-            report=self.report,
+            logger=Logger(self.report),
             textures=textures_folder,
             soc_sgroups=self.fmt_version == 'soc',
             import_motions=self.import_motions,
@@ -60,6 +60,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
                 import_file(os.path.join(self.directory, file.name), cx)
             else:
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
+        cx.logger.flush('import object(s)')
         return {'FINISHED'}
 
     def draw(self, context):
@@ -204,7 +205,7 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
         from . import fmt_details_imp
         from .fmt_object_imp import ImportContext
         cx = ImportContext(
-            report=self.report,
+            logger=Logger(self.report),
             textures=textures_folder,
             soc_sgroups=None,
             import_motions=None,
@@ -225,6 +226,8 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
         except AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
+        finally:
+            cx.logger.flush('import dm/detail(s)')
         return {'FINISHED'}
 
     def draw(self, context):

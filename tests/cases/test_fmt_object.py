@@ -55,7 +55,7 @@ class TestFormatObject(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsContains('WARNING', re.compile('Mesh: invalid face found'))
+        self.assertReportsContains('WARNING', re.compile('Invalid face found'))
 
     def test_import_separate_materials_without_slots(self):
         # Arrange

@@ -7,14 +7,14 @@ import os.path
 from .xray_io import ChunkedReader, PackedReader
 from .fmt_object import Chunks
 from .plugin_prefs import PropObjectMeshSplitByMaterials
-from .utils import BAD_VTX_GROUP_NAME, plugin_version_number
+from .utils import BAD_VTX_GROUP_NAME, plugin_version_number, AppError, LogContext
 from .xray_motions import import_motions
 
 
 class ImportContext:
-    def __init__(self, textures, soc_sgroups, import_motions, split_by_materials, report, op, bpy=None):
+    def __init__(self, textures, soc_sgroups, import_motions, split_by_materials, logger, op, bpy=None):
         self.version = plugin_version_number()
-        self.report = report
+        self.logger = logger
         self.bpy = bpy
         self.textures_folder = textures
         self.soc_sgroups = soc_sgroups
@@ -26,7 +26,7 @@ class ImportContext:
     def before_import_file(self):
         self.loaded_materials = {}
 
-    def image(self, relpath):
+    def image(self, relpath, log_ctx):
         relpath = relpath.lower().replace('\\', os.path.sep)
         if not self.textures_folder:
             result = self.bpy.data.images.new(os.path.basename(relpath), 0, 0)
@@ -44,7 +44,7 @@ class ImportContext:
             try:
                 result = self.bpy.data.images.load(filepath)
             except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
-                self.report({'WARNING'}, str(ex))
+                self.logger.warn(str(ex), log_ctx)
                 result = self.bpy.data.images.new(os.path.basename(relpath), 0, 0)
                 result.source = 'FILE'
                 result.filepath = filepath
@@ -81,10 +81,10 @@ def _cop_sgfunc(ga, gb, ea, eb):
 
 _SHARP = 0xffffffff
 
-def _import_mesh(cx, cr, renamemap):
+def _import_mesh(cx, cr, renamemap, log_ctx):
     ver = cr.nextf(Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
-        raise Exception('unsupported MESH format version: {:#x}'.format(ver))
+        raise AppError('unsupported MESH format version', log_ctx.new(version=ver))
     mesh_name = None
     mesh_flags = None
     mesh_options = None
@@ -111,6 +111,7 @@ def _import_mesh(cx, cr, renamemap):
             fc_data = [pr.getp(s_6i) for _ in range(cnt)]
         elif cid == Chunks.Mesh.MESHNAME:
             mesh_name = PackedReader(data).gets()
+            log_ctx.set(mesh=mesh_name)
         elif cid == Chunks.Mesh.SG:
             sgroups = data.cast('I')
 
@@ -159,7 +160,10 @@ def _import_mesh(cx, cr, renamemap):
                     nn = renamemap.get(n.lower(), n)
                     if nn != n:
                         if suppress_rename_warnings.get(n, None) != nn:
-                            cx.report({'WARNING'}, 'Texture VMap: {} renamed to {}'.format(n, nn))
+                            cx.logger.warn('texture VMap has been renamed', log_ctx.ext(
+                                old=n,
+                                new=nn,
+                            ))
                             suppress_rename_warnings[n] = nn
                         n = nn
                     bml = bm.loops.layers.uv.get(n)
@@ -185,13 +189,16 @@ def _import_mesh(cx, cr, renamemap):
                             bad = True
                             wgs[i] = MIN_WEIGHT
                     if bad:
-                        cx.report({'WARNING'}, 'Weight VMap: %s has weights that are close to zero' % n)
+                        cx.logger.warn(
+                            'weight VMap has values that are close to zero',
+                            log_ctx.ext(vmap=n)
+                        )
                     pr.skip(sz * 4)
                     if discon:
                         pr.skip(sz * 4)
                     vmaps.append((typ, vgi, wgs))
                 else:
-                    raise Exception('unknown vmap type: ' + str(typ))
+                    raise AppError('unknown vmap type', log_ctx.ext(type=typ))
         elif cid == Chunks.Mesh.FLAGS:
             mesh_flags = PackedReader(data).getf('B')[0]
             if mesh_flags & 0x4:  # sgmask
@@ -239,12 +246,12 @@ def _import_mesh(cx, cr, renamemap):
                 return bm.faces.new(vv)
             except ValueError:
                 if len(set(vv)) < 3:
-                    cx.report({'WARNING'}, 'Mesh: invalid face found')
+                    cx.logger.warn('invalid face found', log_ctx)
                     return None
                 if self.__next is None:
                     lvl = self.__level
                     if lvl > 100:
-                        raise Exception('too many duplicated polygons')
+                        raise AppError('too many duplicated polygons', log_ctx)
                     nonlocal bad_vgroup
                     if bad_vgroup == -1:
                         bad_vgroup = len(bo_mesh.vertex_groups)
@@ -323,7 +330,10 @@ def _import_mesh(cx, cr, renamemap):
             for fi in faces:
                 bmf = bmfaces[fi]
                 if bmf is not None:
-                    cx.report({'WARNING'}, 'face {} has already been instantiated with material {}'.format(fi, bmf.material_index))
+                    cx.logger.warn('face has already been instantiated with material', log_ctx.ext(
+                        face=fi,
+                        material=bmf.material_index,
+                    ))
                     continue
                 bmfaces[fi] = bmf = local.mkface(fi)
                 if bmf is None:
@@ -354,7 +364,10 @@ def _import_mesh(cx, cr, renamemap):
                 if bmf is None:
                     continue
                 if assigned[fi]:
-                    cx.report({'WARNING'}, 'face {} has already used material {}'.format(fi, bmf.material_index))
+                    cx.logger.warn('face has already already used material', log_ctx.ext(
+                        face=fi,
+                        material=bmf.material_index,
+                    ))
                     continue
                 bmf.material_index = midx
                 if bml_texture is not None:
@@ -362,10 +375,10 @@ def _import_mesh(cx, cr, renamemap):
                 assigned[fi] = True
 
     if bad_vgroup != -1:
-        msg = 'duplicate faces found, "{}" vertex groups created'.format(bo_mesh.vertex_groups[bad_vgroup])
+        msg = 'duplicate faces found, "{}" vertex groups created'.format(bo_mesh.vertex_groups[bad_vgroup].name)
         if not cx.split_by_materials:
             msg += ' (try to use "{}" option)'.format(PropObjectMeshSplitByMaterials()[1].get('name'))
-        cx.report({'WARNING'}, msg)
+        cx.logger.warn(msg, log_ctx)
 
     bm.normal_update()
     bm.to_mesh(bm_data)
@@ -393,14 +406,14 @@ __matrix_bone = mathutils.Matrix(((1.0, 0.0, 0.0, 0.0), (0.0, 0.0, -1.0, 0.0), (
 __matrix_bone_inv = __matrix_bone.inverted()
 
 
-def _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, renamemap):
+def _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, renamemap, log_ctx):
     bpy_armature = bpy_arm_obj.data
     if name != vmap:
         ex = renamemap.get(vmap, None)
         if ex is None:
-            cx.report({'WARNING'}, 'Bone VMap: {} will be renamed to {}'.format(vmap, name))
+            cx.logger.warn('bone VMap: will be renamed', log_ctx.ext(vmap=vmap,name=name))
         elif ex != name:
-            cx.report({'WARNING'}, 'Bone VMap multiple renaming: {} will be renamed to {} and then to {}'.format(vmap, ex, name))
+            cx.logger.warn('bone VMap: is already renamed', log_ctx.ext(vmap=vmap,name1=ex,name2=name))
         renamemap[vmap] = name
     cx.bpy.ops.object.mode_set(mode='EDIT')
     try:
@@ -412,7 +425,7 @@ def _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, re
             if bpy_bone.parent:
                 mat = bpy_bone.parent.matrix * __matrix_bone_inv * mat
             else:
-                cx.report({'WARNING'}, 'Bone parent {} for {} not found'.format(parent, name))
+                cx.logger.warn('bone parent isn\'t found', log_ctx.ext(bone=name, parent=parent))
         bpy_bone.tail.y = 0.02
         bpy_bone.matrix = mat
         name = bpy_bone.name
@@ -428,39 +441,43 @@ def _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, re
     return bpy_bone
 
 
-def _safe_assign_enum_property(cx, obj, pname, val, desc=tuple()):
+def _safe_assign_enum_property(cx, obj, pname, val, desc, log_ctx):
     defval = getattr(obj, pname)
     try:
         setattr(obj, pname, val)
     except TypeError as ex:
-        cx.report({'WARNING'}, 'Unsupported {} {} {}, using default {}'.format(' '.join(desc), pname, val, defval))
+        cx.logger.warn('unsupported %s %s, using default' % (desc, pname), log_ctx.ext(
+            value=val,
+            default=defval,
+        ))
 
 
-def _import_bone(cx, cr, bpy_arm_obj, renamemap):
+def _import_bone(cx, cr, bpy_arm_obj, renamemap, log_ctx):
     ver = cr.nextf(Chunks.Bone.VERSION, 'H')[0]
     if ver != 0x2:
-        raise Exception('unsupported BONE format version: {}'.format(ver))
+        raise AppError('unsupported BONE format version', log_ctx.ext(version=ver))
     pr = PackedReader(cr.next(Chunks.Bone.DEF))
     name = pr.gets()
+    log_ctx.set(bone=name)
     parent = pr.gets()
     vmap = pr.gets()
     pr = PackedReader(cr.next(Chunks.Bone.BIND_POSE))
     offset = read_v3f(pr)
     rotate = read_v3f(pr)
     length = pr.getf('f')[0]
-    bpy_bone = _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, renamemap)
+    bpy_bone = _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, renamemap, log_ctx)
     xray = bpy_bone.xray
     for (cid, data) in cr:
         if cid == Chunks.Bone.DEF:
             s = PackedReader(data).gets()
             if name != s:
-                cx.report({'WARNING'}, 'Not supported yet! bone name({}) != bone def2({})'.format(name, s))
+                cx.logger.warn('Not supported yet! bone name != bone def2', log_ctx.ext(name=name, def2=s))
         elif cid == Chunks.Bone.MATERIAL:
             xray.gamemtl = PackedReader(data).gets()
         elif cid == Chunks.Bone.SHAPE:
             from io_scene_xray.xray_inject import XRayBoneProperties
             pr = PackedReader(data)
-            _safe_assign_enum_property(cx, xray.shape, 'type', str(pr.getf('H')[0]), desc=('bone', name, 'shape'))
+            _safe_assign_enum_property(cx, xray.shape, 'type', str(pr.getf('H')[0]), 'bone shape', log_ctx)
             xray.shape.flags = pr.getf('H')[0]
             xray.shape.box_rot = pr.getf('fffffffff')
             xray.shape.box_trn = pr.getf('fff')
@@ -475,7 +492,7 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
         elif cid == Chunks.Bone.IK_JOINT:
             pr = PackedReader(data)
             bp = bpy_arm_obj.pose.bones[name]
-            _safe_assign_enum_property(cx, xray.ikjoint, 'type', str(pr.getf('I')[0]), desc=('bone', name, 'ikjoint'))
+            _safe_assign_enum_property(cx, xray.ikjoint, 'type', str(pr.getf('I')[0]), 'bone ikjoint', log_ctx)
             bp.use_ik_limit_x = True
             bp.ik_min_x, bp.ik_max_x = pr.getf('ff')
             xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp = pr.getf('ff')
@@ -510,11 +527,12 @@ def _is_compatible_texture(texture, filepart):
         return False
     return True
 
-def _import_main(fpath, cx, cr):
+def _import_main(fpath, cx, cr, log_ctx):
     object_name = os.path.basename(fpath.lower())
+    log_ctx.set(object=object_name)
     ver = cr.nextf(Chunks.Object.VERSION, 'H')[0]
     if ver != 0x10:
-        raise Exception('unsupported OBJECT format version: {:#x}'.format(ver))
+        raise AppError('unsupported OBJECT format version', log_ctx.ext(version=ver))
 
     bpy_arm_obj = None
     renamemap = {}
@@ -580,7 +598,7 @@ def _import_main(fpath, cx, cr):
                         bpy_texture = cx.bpy.data.textures.get(texture)
                         if (bpy_texture is None) or not _is_compatible_texture(texture, tx_filepart):
                             bpy_texture = cx.bpy.data.textures.new(texture, type='IMAGE')
-                            bpy_texture.image = cx.image(texture)
+                            bpy_texture.image = cx.image(texture, log_ctx)
                             bpy_texture.use_preview_alpha = True
                         bpy_texture_slot = bpy_material.texture_slots.add()
                         bpy_texture_slot.texture = bpy_texture
@@ -604,7 +622,7 @@ def _import_main(fpath, cx, cr):
                     name, parent, vmap = pr.gets(), pr.gets(), pr.gets()
                     offset, rotate, length = read_v3f(pr), read_v3f(pr), pr.getf('f')[0]
                     rotate = rotate[2], rotate[1], rotate[0]
-                    bpy_bone = _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, renamemap)
+                    bpy_bone = _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, renamemap, log_ctx)
                     xray = bpy_bone.xray
                     xray.mass.gamemtl = 'default_object'
                     xray.mass.value = 10
@@ -615,7 +633,7 @@ def _import_main(fpath, cx, cr):
                     xray.ikjoint.damping = 1
             else:
                 for (_, bdat) in ChunkedReader(data):
-                    _import_bone(cx, ChunkedReader(bdat), bpy_arm_obj, renamemap)
+                    _import_bone(cx, ChunkedReader(bdat), bpy_arm_obj, renamemap, log_ctx.nested())
             cx.bpy.ops.object.mode_set(mode='EDIT')
             try:
                 import mathutils
@@ -697,7 +715,7 @@ def _import_main(fpath, cx, cr):
 
     mesh_objects = []
     for (_, mdat) in ChunkedReader(meshes_data):
-        m = _import_mesh(cx, ChunkedReader(mdat), renamemap)
+        m = _import_mesh(cx, ChunkedReader(mdat), renamemap, log_ctx.nested())
 
         if bpy_arm_obj:
             bpy_armmod = m.modifiers.new(name='Armature', type='ARMATURE')
@@ -730,7 +748,7 @@ def _import_main(fpath, cx, cr):
         elif cid == Chunks.Object.FLAGS:
             bpy_obj.xray.flags = PackedReader(data).getf('I')[0]
         elif cid == Chunks.Object.USERDATA:
-            bpy_obj.xray.userdata = PackedReader(data).gets(onerror=lambda e: cx.report({'WARNING'}, 'Object: bad userdata: {}'.format(e)))
+            bpy_obj.xray.userdata = PackedReader(data).gets(onerror=lambda e: cx.logger.warn('bad userdata', log_ctx.ext(error=e)))
         elif cid == Chunks.Object.LOD_REF:
             bpy_obj.xray.lodref = PackedReader(data).gets()
         elif cid == Chunks.Object.REVISION:
@@ -752,14 +770,15 @@ def _import_main(fpath, cx, cr):
             warn_imknown_chunk(cid, 'main')
 
 
-def _import(fpath, cx, cr):
+def _import(fpath, cx, cr, log_ctx):
     for (cid, data) in cr:
         if cid == Chunks.Object.MAIN:
-            _import_main(fpath, cx, ChunkedReader(data))
+            _import_main(fpath, cx, ChunkedReader(data), log_ctx)
         else:
             warn_imknown_chunk(cid, 'root')
 
 
 def import_file(fpath, cx):
+    log_ctx = LogContext({'file': fpath})
     with io.open(fpath, 'rb') as f:
-        _import(fpath, cx, ChunkedReader(memoryview(f.read())))
+        _import(fpath, cx, ChunkedReader(memoryview(f.read())), log_ctx)

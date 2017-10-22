@@ -11,8 +11,8 @@ class TestObjectImport(utils.XRayTestCase):
             directory=self.relpath(),
             files=[{'name': 'test_fmt_broken.object'}],
         )
-        self.assertReportsContains('WARNING', re.compile('Unsupported bone (\\w+) shape type'))
-        self.assertReportsContains('WARNING', re.compile('Unsupported bone (\\w+) ikjoint type'))
+        self.assertReportsContains('WARNING', re.compile('Unsupported bone shape type'))
+        self.assertReportsContains('WARNING', re.compile('Unsupported bone ikjoint type'))
 
     def test_import_no_bone_shapes(self):
         bpy.ops.xray_import.object(
