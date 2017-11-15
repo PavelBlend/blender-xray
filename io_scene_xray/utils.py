@@ -1,4 +1,6 @@
+from contextlib import contextmanager
 import math
+from . import log
 
 def is_exportable_bone(bpy_bone):
     return bpy_bone.xray.exportable and not bpy_bone.name.endswith('.fake')
@@ -25,26 +27,22 @@ def plugin_version_number():
 
 
 class AppError(Exception):
-    def __init__(self, message, data=None):
+    def __init__(self, message, ctx=log.props()):
         super().__init__(message)
-        self.data = data
+        self.ctx = ctx
 
-class LogContext:
-    def __init__(self, data=dict(), parent=None, lightweight=False):
-        self.data = data
-        self.parent = parent
-        self.depth = (parent.depth + 1) if parent else 0
-        self.lightweight = lightweight
 
-    def set(self, **kwargs):
-        self.data.update(kwargs)
-        return self
-
-    def ext(self, **kwargs):
-        return LogContext(kwargs, self, True)
-
-    def nested(self, **kwargs):
-        return LogContext(kwargs, self)
+@contextmanager
+def logger(name, report):
+    lgr = Logger(report)
+    try:
+        with log.using_logger(lgr):
+            yield
+    except AppError as err:
+        lgr.warn(str(err), err.ctx)
+        raise err
+    finally:
+        lgr.flush(name)
 
 
 class Logger:
@@ -53,6 +51,7 @@ class Logger:
         self._full = list()
 
     def warn(self, message, ctx=None):
+        message = str(message)
         message = message.strip()
         message = message[0].upper() + message[1:]
         self._full.append((message, ctx))

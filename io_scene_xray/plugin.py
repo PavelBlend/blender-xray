@@ -1,9 +1,18 @@
 import bpy
 from bpy_extras import io_utils
 from . import xray_inject
-from .utils import AppError, ObjectsInitializer, Logger
+from .utils import AppError, ObjectsInitializer, logger
 from . import plugin_prefs
 from . import registry
+from . import log
+
+
+def execute_with_logger(method):
+    def wrapper(self, context):
+        with logger(self.bl_idname, self.report):
+            return method(self, context)
+
+    return wrapper
 
 
 class TestReadyOperator(bpy.types.Operator):
@@ -35,6 +44,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
 
     fmt_version = plugin_prefs.PropSDKVersion()
 
+    @execute_with_logger
     def execute(self, context):
         textures_folder = plugin_prefs.get_preferences().get_textures_folder()
         if not textures_folder:
@@ -44,7 +54,6 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
             return {'CANCELLED'}
         from .fmt_object_imp import import_file, ImportContext
         cx = ImportContext(
-            logger=Logger(self.report),
             textures=textures_folder,
             soc_sgroups=self.fmt_version == 'soc',
             import_motions=self.import_motions,
@@ -60,7 +69,6 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
                 import_file(os.path.join(self.directory, file.name), cx)
             else:
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
-        cx.logger.flush('import object(s)')
         return {'FINISHED'}
 
     def draw(self, context):
@@ -194,6 +202,7 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
     directory = bpy.props.StringProperty(subtype="DIR_PATH")
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
+    @execute_with_logger
     def execute(self, context):
         textures_folder = plugin_prefs.get_preferences().get_textures_folder()
         if not textures_folder:
@@ -205,7 +214,6 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
         from . import fmt_details_imp
         from .fmt_object_imp import ImportContext
         cx = ImportContext(
-            logger=Logger(self.report),
             textures=textures_folder,
             soc_sgroups=None,
             import_motions=None,
@@ -223,11 +231,8 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
                     fmt_details_imp.import_file(os.path.join(self.directory, file.name), cx)
                 else:
                     self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
-        except AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
         finally:
-            cx.logger.flush('import dm/detail(s)')
+            pass
         return {'FINISHED'}
 
     def draw(self, context):
