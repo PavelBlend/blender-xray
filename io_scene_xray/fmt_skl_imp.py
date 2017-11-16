@@ -18,7 +18,7 @@ def _import_skl(fpath, cx, cr):
             act = import_motion(pr, cx.armature, bonesmap, set())
             act.name = splitext(basename(fpath.lower()))[0]
         else:
-            log.warn('unknown chunk', cid=cid)
+            log.debug('unknown chunk', cid=cid)
 
 
 def import_skl_file(fpath, cx):

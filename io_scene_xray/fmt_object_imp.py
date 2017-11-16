@@ -51,15 +51,6 @@ class ImportContext:
         return result
 
 
-def warn_imknown_chunk(cid, location):
-    print('WARNING: UNKNOWN CHUNK: {:#x} IN: {}'.format(cid, location))
-
-
-def debug(m):
-    #print(m)
-    pass
-
-
 _S_FFF = PackedReader.prep('fff')
 
 
@@ -203,7 +194,7 @@ def _import_mesh(cx, cr, renamemap):
         elif cid == Chunks.Mesh.OPTIONS:
             mesh_options = PackedReader(data).getf('II')
         else:
-            warn_imknown_chunk(cid, 'mesh')
+            log.debug('unknown chunk', cid=cid)
 
     bo_mesh = None
     bad_vgroup = -1
@@ -516,7 +507,7 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
         elif cid == Chunks.Bone.FRICTION:
             xray.friction = PackedReader(data).getf('f')[0]
         else:
-            warn_imknown_chunk(cid, 'bone')
+            log.debug('unknown chunk', cid=cid)
 
 def _is_compatible_texture(texture, filepart):
     image = getattr(texture, 'image', None)
@@ -765,7 +756,7 @@ def _import_main(fpath, cx, cr):
             for _ in range(pr.getf('I')[0]):
                 mrefs.add().name = pr.gets()
         else:
-            warn_imknown_chunk(cid, 'main')
+            log.debug('unknown chunk', cid=cid)
 
 
 def _import(fpath, cx, cr):
@@ -773,7 +764,7 @@ def _import(fpath, cx, cr):
         if cid == Chunks.Object.MAIN:
             _import_main(fpath, cx, ChunkedReader(data))
         else:
-            warn_imknown_chunk(cid, 'root')
+            log.debug('unknown chunk', cid=cid)
 
 
 @log.with_context(name='file')

@@ -11,6 +11,7 @@ cov = coverage.Coverage(
         'io_scene_xray/ui_*.py',
     ]
 )
+cov.exclude('[\\s\\.]debug\\(')
 cov.start()
 
 suite = unittest.defaultTestLoader.discover('.')

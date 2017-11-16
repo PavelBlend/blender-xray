@@ -29,6 +29,9 @@ __logger__ = [None]
 def warn(message, **kwargs):
     __logger__[0].warn(message, props(**kwargs))
 
+def debug(message, **kwargs):
+    print('debug: %s: %s' % (message, kwargs))
+
 @contextmanager
 def using_logger(logger):
     saved = __logger__[0]
