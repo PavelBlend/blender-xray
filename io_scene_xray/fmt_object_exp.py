@@ -6,12 +6,12 @@ from .xray_io import ChunkedWriter, PackedWriter
 from .fmt_object import Chunks
 from .utils import is_exportable_bone, find_bone_exportable_parent, AppError, convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name, is_helper_object
 from .utils import BAD_VTX_GROUP_NAME
+from . import log
 
 
 class ExportContext:
-    def __init__(self, textures_folder, report, export_motions, soc_sgroups, texname_from_path):
+    def __init__(self, textures_folder, export_motions, soc_sgroups, texname_from_path):
         self.textures_folder = textures_folder
-        self.report = report
         self.export_motions = export_motions
         self.soc_sgroups = soc_sgroups
         self.texname_from_path = texname_from_path
@@ -77,7 +77,7 @@ def _export_mesh(bpy_obj, bpy_root, cw, cx):
     bad_vgroups = [vg.name.startswith(BAD_VTX_GROUP_NAME) for vg in bpy_obj.vertex_groups]
     bad_verts = [v for v in bm.verts if any(bad_vgroups[k] for k in v[bml].keys())]
     if bad_verts:
-        cx.report({'WARNING'}, 'skipping geometry from "{}"-s vertex groups'.format(BAD_VTX_GROUP_NAME))
+        log.warn('skipping geometry from "{}"-s vertex groups'.format(BAD_VTX_GROUP_NAME))
         bmesh.ops.delete(bm, geom=bad_verts, context=1)
 
     bbox = calculate_mesh_bbox(bm.verts)
@@ -165,7 +165,7 @@ def _export_mesh(bpy_obj, bpy_root, cw, cx):
         sgroups = tuple(_export_sg_soc(bm.faces))
         err = _check_sg_soc(bm.edges, sgroups)  # check for Maya compatibility
         if err:
-            cx.report({'WARNING'}, err)
+            log.warn(err)
     else:
         sgroups = _export_sg_new(bm.faces)
     for sg in sgroups:
@@ -228,10 +228,11 @@ def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, cx):
     cw.put(Chunks.Bone.MATERIAL, PackedWriter().puts(xr.gamemtl))
     v = xr.shape.check_version_different()
     if v != 0:
-        cx.report({'WARNING'}, 'bone {} edited with {} version of this plugin'.format(
-            bpy_bone.name,
-            xr.shape.fmt_version_different(v),
-        ))
+        log.warn(
+            'bone edited with a different version of this plugin',
+            bone=bpy_bone.name,
+            version=xr.shape.fmt_version_different(v)
+        )
     cw.put(Chunks.Bone.SHAPE, PackedWriter()
            .putf('H', int(xr.shape.type))
            .putf('H', xr.shape.flags)
@@ -390,7 +391,7 @@ def _export_main(bpy_obj, cw, cx):
     motionrefs = xr.motionrefs_collection
     if len(motionrefs):
         if xr.motionrefs:
-            cx.report({'WARNING'}, 'MotionRefs: skipped legacy data \'%s\'' % xr.motionrefs)
+            log.warn('MotionRefs: skipped legacy data', data=xr.motionrefs)
         if cx.soc_sgroups:
             s = ','.join(mr.name for mr in motionrefs)
             cw.put(Chunks.Object.MOTION_REFS, PackedWriter().puts(s))
