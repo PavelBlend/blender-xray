@@ -1,50 +1,48 @@
 from contextlib import contextmanager
 
 # Context Handling
-_ctx = None
+__ctx__ = [None]
 
 def with_context(name=None):
     def decorator(func):
         def wrap(*args, **kwargs):
-            global _ctx
-            saved = _ctx
+            saved = __ctx__[0]
             try:
-                _ctx = LogContext({'@type':name}, _ctx)
+                __ctx__[0] = _Ctx({'@type':name}, saved)
                 return func(*args, **kwargs)
             finally:
-                _ctx = saved
+                __ctx__[0] = saved
         return wrap
     return decorator
 
 def update(**kwargs):
-    _ctx.data.update(**kwargs)
+    __ctx__[0].data.update(**kwargs)
 
 def props(**kwargs):
-    return LogContext(kwargs, _ctx, True)
+    return _Ctx(kwargs, __ctx__[0], True)
 
 
 # Logging
 
-_logger = None
+__logger__ = [None]
 
 def warn(message, **kwargs):
-    _logger.warn(message, props(**kwargs))
+    __logger__[0].warn(message, props(**kwargs))
 
 @contextmanager
 def using_logger(logger):
-    global _logger
-    saved = _logger
+    saved = __logger__[0]
     try:
-        _logger = logger
+        __logger__[0] = logger
         yield
     finally:
-        _logger = saved
+        __logger__[0] = saved
 
 
 # Implementation
 
-class LogContext:
-    def __init__(self, data=dict(), parent=None, lightweight=False):
+class _Ctx:
+    def __init__(self, data, parent=None, lightweight=False):
         self.data = data
         self.parent = parent
         self.depth = (parent.depth + 1) if parent else 0
