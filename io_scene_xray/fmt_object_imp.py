@@ -705,7 +705,7 @@ def _import_main(fpath, cx, cr):
             if not cx.import_motions:
                 continue
             pr = PackedReader(data)
-            import_motions(pr, cx, bpy, bpy_arm_obj)
+            import_motions(pr, bpy_arm_obj)
         elif cid == Chunks.Object.LIB_VERSION:
             pass  # skip obsolete chunk
         else:

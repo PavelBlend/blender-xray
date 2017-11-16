@@ -3,13 +3,14 @@ from mathutils import Matrix, Euler, Quaternion
 from .utils import is_exportable_bone, find_bone_exportable_parent, AppError
 from .xray_envelope import Behaviour, Shape, KF, EPSILON, refine_keys, export_keyframes
 from .xray_io import PackedWriter
+from .log import warn
 
 
 __matrix_bone = Matrix(((1.0, 0.0, 0.0, 0.0), (0.0, 0.0, -1.0, 0.0), (0.0, 1.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)))
 __matrix_bone_inv = __matrix_bone.inverted()
 
 
-def import_motion(pr, cx, bpy, bpy_armature, bonesmap, reported):
+def import_motion(pr, bpy_armature, bonesmap, reported):
     act = bpy.data.actions.new(name=pr.gets())
     act.use_fake_user = True
     xr = act.xray
@@ -26,11 +27,11 @@ def import_motion(pr, cx, bpy, bpy_armature, bonesmap, reported):
                 bname = pr.gets()
                 flags = pr.getf('B')[0]
                 if flags != 0:
-                    cx.report({'WARNING'}, 'bone "{}" flags == {}'.format(bname, flags))
+                    warn('bone has non-zero flags', bone=bname, flags=flags)
                 for i in range(6):
                     behaviours = pr.getf('BB')
                     if (behaviours[0] != 1) or (behaviours[1] != 1):
-                        cx.report({'WARNING'}, 'bone "{}" behaviours == {}'.format(bname, behaviours))
+                        warn('bone has different behaviors', bode=bname, behaviors=behaviours)
                     fc = tmpfc[i]
                     for _3 in range(pr.getf('H')[0]):
                         v = pr.getf('f')[0]
@@ -46,11 +47,11 @@ def import_motion(pr, cx, bpy, bpy_armature, bonesmap, reported):
                     bpy_bone = bonesmap.get(bname.lower(), None)
                     if bpy_bone is None:
                         if bname not in reported:
-                            cx.report({'WARNING'}, 'Object motions: bone {} not found'.format(bname))
+                            warn('Object motions: bone is not found', bone=bname)
                             reported.add(bname)
                         continue
                     if bname not in reported:
-                        cx.report({'WARNING'}, 'Object motions: bone {} reference replaced to {}'.format(bname, bpy_bone.name))
+                        warn('Object motions: bone\'s reference will be replaced', bone=bname, replacement=bpy_bone.name)
                         reported.add(bname)
                     bname = bpy_bone.name
                 dp = 'pose.bones["' + bname + '"]'
@@ -85,17 +86,17 @@ def import_motion(pr, cx, bpy, bpy_armature, bonesmap, reported):
             for _1 in range(pr.getf('I')[0]):
                 name = pr.gets()
                 pr.skip((4 + 4) * pr.getf('I')[0])
-                cx.report({'WARNING'}, 'Object motions: skipping unsupported feature: marker ' + name)
+                warn('Object motions: markers are not supported yet', name=name)
     else:
         raise Exception('unsupported motions version: {}'.format(ver))
     return act
 
 
-def import_motions(pr, cx, bpy, bpy_armature):
+def import_motions(pr, bpy_armature):
     bonesmap = {b.name.lower(): b for b in bpy_armature.data.bones}
     reported = set()
     for _ in range(pr.getf('I')[0]):
-        import_motion(pr, cx, bpy, bpy_armature, bonesmap, reported)
+        import_motion(pr, bpy_armature, bonesmap, reported)
 
 
 def export_motion(pkw, action, ctx, armature):
@@ -147,7 +148,13 @@ def _take_motion_data(bpy_act, bpy_armature, cx, prepared_bones):
                     chs = chs_rt
             if chs is None:
                 if path not in skipped_paths:
-                    cx.report({'WARNING'}, 'Motions: {} bone {} has curve {} which not supported by rotation mode {}, skipping'.format(bpy_act.name, g.name, path, rotmode))
+                    warn(
+                        'Motions: bone has curve which is not supported by rotation mode, skipping',
+                        motion=bpy_act.name,
+                        bone=g.name,
+                        curve=path,
+                        retation=rotmode
+                    )
                 skipped_paths.add(path)
                 continue
             chs[c.array_index] = c

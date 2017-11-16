@@ -1,6 +1,7 @@
 from enum import Enum
 from .xray_io import PackedWriter
 from .utils import mkstruct
+from .log import warn
 
 
 class Behaviour(Enum):
@@ -21,7 +22,7 @@ class Shape(Enum):
     BEZIER_2D = 5
 
 
-def import_envelope(pr, fc, fps, kv, warn=print):
+def import_envelope(pr, fc, fps, kv):
     b0, b1 = map(Behaviour, pr.getf('BB'))
 
     if b0 != b1:
@@ -64,7 +65,7 @@ def import_envelope(pr, fc, fps, kv, warn=print):
 KF = mkstruct('KeyFrame', ['time', 'value', 'shape'])
 EPSILON = 0.0001
 
-def export_envelope(pw, fc, fps, kv, warn=print, epsilon=EPSILON):
+def export_envelope(pw, fc, fps, kv, epsilon=EPSILON):
     b = None
     if fc.extrapolation == 'CONSTANT':
         b = Behaviour.CONSTANT
@@ -72,7 +73,7 @@ def export_envelope(pw, fc, fps, kv, warn=print, epsilon=EPSILON):
         b = Behaviour.LINEAR
     else:
         b = Behaviour.LINEAR
-        warn('Envelope: extrapolation {} not supported, replaced with {}'.format(fc.extrapolation, b.name))
+        warn('Envelope: extrapolation is not supported, and will be replaced', extrapolation=fc.extrapolation, replacement=b.name)
     pw.putf('BB', b.value, b.value)
 
     replace_unsupported_to = Shape.TCB
@@ -100,7 +101,11 @@ def export_envelope(pw, fc, fps, kv, warn=print, epsilon=EPSILON):
     pw.putp(cpw)
 
     if len(unsupported_occured):
-        warn('Envelope: unsupported shapes: {}, replaced by {}'.format(unsupported_occured, replace_unsupported_to.name))
+        warn(
+            'Envelope: unsupported shapes will be replaced by',
+            shapes=unsupported_occured,
+            replacement=replace_unsupported_to.name
+        )
 
 
 def export_keyframes(cpw, keyframes):

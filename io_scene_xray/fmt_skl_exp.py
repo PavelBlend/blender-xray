@@ -5,8 +5,7 @@ from .xray_motions import export_motion, export_motions
 
 
 class ExportContext:
-    def __init__(self, report, armature, action=None):
-        self.report = report
+    def __init__(self, armature, action=None):
         self.armature = armature
         self.action = action
 

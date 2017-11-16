@@ -108,13 +108,13 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
 
     camera_animation = plugin_prefs.PropAnmCameraAnimation()
 
+    @execute_with_logger
     def execute(self, context):
         if len(self.files) == 0:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         from .fmt_anm_imp import import_file, ImportContext
         cx = ImportContext(
-            report=self.report,
             camera_animation=self.camera_animation
         )
         for file in self.files:
@@ -155,13 +155,13 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     directory = bpy.props.StringProperty(subtype='DIR_PATH')
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
+    @execute_with_logger
     def execute(self, context):
         if len(self.files) == 0:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         from .fmt_skl_imp import import_skl_file, import_skls_file, ImportContext
         cx = ImportContext(
-            report=self.report,
             armature=context.active_object
         )
         for file in self.files:
@@ -251,7 +251,7 @@ class ModelExportHelper:
         description='Export only selected objects'
     )
 
-    def export(self, bpy_obj):
+    def export(self, bpy_obj, context):
         pass
 
     @execute_with_logger
@@ -488,6 +488,7 @@ class FilenameExtHelper(io_utils.ExportHelper):
     def export(self, context):
         pass
 
+    @execute_with_logger
     @execute_require_filepath
     def execute(self, context):
         self.export(context)
@@ -512,7 +513,6 @@ class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
     def export(self, context):
         from .fmt_anm_exp import export_file, ExportContext
         cx = ExportContext(
-            report=self.report
         )
         export_file(context.active_object, self.filepath, cx)
 
@@ -527,11 +527,11 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     filter_glob = bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'})
     action = None
 
+    @execute_with_logger
     @execute_require_filepath
     def execute(self, context):
         from .fmt_skl_exp import export_skl_file, ExportContext
         cx = ExportContext(
-            report=self.report,
             armature=context.active_object,
             action=self.action
         )
@@ -560,7 +560,6 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
     def export(self, context):
         from .fmt_skl_exp import export_skls_file, ExportContext
         cx = ExportContext(
-            report=self.report,
             armature=context.active_object
         )
         export_skls_file(self.filepath, cx)
