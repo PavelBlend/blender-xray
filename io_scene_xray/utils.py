@@ -118,7 +118,7 @@ class Logger:
         text = bpy.data.texts.new(logname)
         text.user_clear()
         text.from_string('\n'.join(lines))
-        self._report({'INFO'}, 'The full log was stored as \'%s\' (in the Text Editor)' % text.name)
+        self._report({'WARNING'}, 'The full log was stored as \'%s\' (in the Text Editor)' % text.name)
 
 
 def fix_ensure_lookup_table(bmv):
