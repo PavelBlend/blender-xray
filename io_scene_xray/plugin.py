@@ -1,9 +1,17 @@
 import bpy
 from bpy_extras import io_utils
 from . import xray_inject
-from .utils import AppError, ObjectsInitializer
+from .utils import AppError, ObjectsInitializer, logger
 from . import plugin_prefs
 from . import registry
+
+
+def execute_with_logger(method):
+    def wrapper(self, context):
+        with logger(self.__class__.bl_idname, self.report):
+            return method(self, context)
+
+    return wrapper
 
 
 class TestReadyOperator(bpy.types.Operator):
@@ -35,6 +43,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
 
     fmt_version = plugin_prefs.PropSDKVersion()
 
+    @execute_with_logger
     def execute(self, context):
         textures_folder = plugin_prefs.get_preferences().get_textures_folder()
         if not textures_folder:
@@ -44,7 +53,6 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
             return {'CANCELLED'}
         from .fmt_object_imp import import_file, ImportContext
         cx = ImportContext(
-            report=self.report,
             textures=textures_folder,
             soc_sgroups=self.fmt_version == 'soc',
             import_motions=self.import_motions,
@@ -99,13 +107,13 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
 
     camera_animation = plugin_prefs.PropAnmCameraAnimation()
 
+    @execute_with_logger
     def execute(self, context):
         if len(self.files) == 0:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         from .fmt_anm_imp import import_file, ImportContext
         cx = ImportContext(
-            report=self.report,
             camera_animation=self.camera_animation
         )
         for file in self.files:
@@ -146,13 +154,13 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     directory = bpy.props.StringProperty(subtype='DIR_PATH')
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
+    @execute_with_logger
     def execute(self, context):
         if len(self.files) == 0:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         from .fmt_skl_imp import import_skl_file, import_skls_file, ImportContext
         cx = ImportContext(
-            report=self.report,
             armature=context.active_object
         )
         for file in self.files:
@@ -193,6 +201,7 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
     directory = bpy.props.StringProperty(subtype="DIR_PATH")
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
+    @execute_with_logger
     def execute(self, context):
         textures_folder = plugin_prefs.get_preferences().get_textures_folder()
         if not textures_folder:
@@ -204,7 +213,6 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
         from . import fmt_details_imp
         from .fmt_object_imp import ImportContext
         cx = ImportContext(
-            report=self.report,
             textures=textures_folder,
             soc_sgroups=None,
             import_motions=None,
@@ -222,9 +230,8 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
                     fmt_details_imp.import_file(os.path.join(self.directory, file.name), cx)
                 else:
                     self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
-        except AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+        finally:
+            pass
         return {'FINISHED'}
 
     def draw(self, context):
@@ -243,9 +250,10 @@ class ModelExportHelper:
         description='Export only selected objects'
     )
 
-    def export(self, bpy_obj):
+    def export(self, bpy_obj, context):
         pass
 
+    @execute_with_logger
     @execute_require_filepath
     def execute(self, context):
         objs = context.selected_objects if self.selection_only else context.scene.objects
@@ -280,11 +288,10 @@ def find_objects_for_export(context):
     return roots
 
 
-def _mk_export_context(context, report, texname_from_path, fmt_version=None, export_motions=True):
+def _mk_export_context(context, texname_from_path, fmt_version=None, export_motions=True):
         from .fmt_object_exp import ExportContext
         return ExportContext(
             textures_folder=plugin_prefs.get_preferences().get_textures_folder(),
-            report=report,
             export_motions=export_motions,
             soc_sgroups=None if fmt_version is None else (fmt_version == 'soc'),
             texname_from_path=texname_from_path
@@ -321,9 +328,10 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
         layout.prop(self, 'export_motions')
         layout.prop(self, 'texture_name_from_image_path')
 
+    @execute_with_logger
     def execute(self, context):
         from .fmt_object_exp import export_file
-        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.fmt_version, self.export_motions)
+        cx = _mk_export_context(context, self.texture_name_from_image_path, self.fmt_version, self.export_motions)
         import os.path
         try:
             for n in self.objects.split(','):
@@ -336,8 +344,7 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
                     os.makedirs(path, exist_ok=True)
                 export_file(o, os.path.join(path, n), cx)
         except AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -382,14 +389,14 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotio
         layout.prop(self, 'export_motions')
         layout.prop(self, 'texture_name_from_image_path')
 
+    @execute_with_logger
     def execute(self, context):
         from .fmt_object_exp import export_file
-        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.fmt_version, self.export_motions)
+        cx = _mk_export_context(context, self.texture_name_from_image_path, self.fmt_version, self.export_motions)
         try:
             export_file(context.scene.objects[self.object], self.filepath, cx)
         except AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -423,6 +430,7 @@ class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
 
     texture_name_from_image_path = plugin_prefs.PropObjectTextureNamesFromPath()
 
+    @execute_with_logger
     def execute(self, context):
         objs = context.selected_objects
         if not objs:
@@ -443,7 +451,7 @@ class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
 
     def export(self, bpy_obj, context):
         from .fmt_dm_exp import export_file
-        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path)
+        cx = _mk_export_context(context, self.texture_name_from_image_path)
         export_file(bpy_obj, self.filepath, cx)
 
 
@@ -465,7 +473,7 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
 
     def export(self, bpy_obj, context):
         from .fmt_ogf_exp import export_file
-        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path)
+        cx = _mk_export_context(context, self.texture_name_from_image_path)
         export_file(bpy_obj, self.filepath, cx)
         return {'FINISHED'}
 
@@ -479,6 +487,7 @@ class FilenameExtHelper(io_utils.ExportHelper):
     def export(self, context):
         pass
 
+    @execute_with_logger
     @execute_require_filepath
     def execute(self, context):
         self.export(context)
@@ -503,7 +512,6 @@ class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
     def export(self, context):
         from .fmt_anm_exp import export_file, ExportContext
         cx = ExportContext(
-            report=self.report
         )
         export_file(context.active_object, self.filepath, cx)
 
@@ -518,11 +526,11 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     filter_glob = bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'})
     action = None
 
+    @execute_with_logger
     @execute_require_filepath
     def execute(self, context):
         from .fmt_skl_exp import export_skl_file, ExportContext
         cx = ExportContext(
-            report=self.report,
             armature=context.active_object,
             action=self.action
         )
@@ -551,7 +559,6 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
     def export(self, context):
         from .fmt_skl_exp import export_skls_file, ExportContext
         cx = ExportContext(
-            report=self.report,
             armature=context.active_object
         )
         export_skls_file(self.filepath, cx)
@@ -569,12 +576,13 @@ class OpExportProject(TestReadyOperator):
     filepath = bpy.props.StringProperty(subtype='DIR_PATH', options={'SKIP_SAVE'})
     use_selection = bpy.props.BoolProperty()
 
+    @execute_with_logger
     def execute(self, context):
         from .fmt_object_exp import export_file
         from bpy.path import abspath
         import os.path
         data = context.scene.xray
-        cx = _mk_export_context(context, self.report,
+        cx = _mk_export_context(context,
                                 data.object_texture_name_from_image_path, data.fmt_version, data.object_export_motions
                                 )
         try:
@@ -590,8 +598,7 @@ class OpExportProject(TestReadyOperator):
                     os.makedirs(opath, exist_ok=True)
                 export_file(o, os.path.join(opath, n), cx)
         except AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
         return {'FINISHED'}
 
     @staticmethod

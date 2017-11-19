@@ -7,8 +7,7 @@ from .utils import smooth_euler
 
 
 class ExportContext:
-    def __init__(self, report):
-        self.report = report
+    pass
 
 
 def _export(bpy_obj, cw, cx):
@@ -74,7 +73,6 @@ def _export_action_data(pkw, xray, fcurves, ctx):
         export_envelope(
             pkw, fcurve,
             xray.fps, kv,
-            warn=lambda msg: ctx.report({'WARNING'}, msg),
             epsilon=epsilon
         )
 

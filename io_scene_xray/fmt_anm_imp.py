@@ -8,8 +8,7 @@ from .xray_envelope import import_envelope
 
 
 class ImportContext:
-    def __init__(self, report, camera_animation=False):
-        self.report = report
+    def __init__(self, camera_animation=False):
         self.camera_animation = camera_animation
 
 
@@ -49,7 +48,7 @@ def _import(fpath, cr, cx):
             for i in range(6):
                 fc = fcs[(0, 2, 1, 5, 3, 4)[i]]
                 kv = (1, 1, 1, -1, -1, -1)[i]
-                import_envelope(pr, fc, fps, kv, lambda msg: cx.report({'WARNING'}, msg))
+                import_envelope(pr, fc, fps, kv)
 
 
 def import_file(fpath, cx):

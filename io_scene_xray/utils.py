@@ -1,4 +1,6 @@
+from contextlib import contextmanager
 import math
+from . import log
 
 def is_exportable_bone(bpy_bone):
     return bpy_bone.xray.exportable and not bpy_bone.name.endswith('.fake')
@@ -25,8 +27,111 @@ def plugin_version_number():
 
 
 class AppError(Exception):
-    def __init__(self, message):
+    def __init__(self, message, ctx=log.props()):
         super().__init__(message)
+        self.ctx = ctx
+
+
+@contextmanager
+def logger(name, report):
+    lgr = Logger(report)
+    try:
+        with log.using_logger(lgr):
+            yield
+    except AppError as err:
+        lgr.warn(str(err), err.ctx)
+        raise err
+    finally:
+        lgr.flush(name)
+
+
+class Logger:
+    def __init__(self, report):
+        self._report = report
+        self._full = list()
+
+    def warn(self, message, ctx=None):
+        message = str(message)
+        message = message.strip()
+        message = message[0].upper() + message[1:]
+        self._full.append((message, ctx))
+
+    def flush(self, logname='log'):
+        uniq = dict()
+        for msg, _ in self._full:
+            uniq[msg] = uniq.get(msg, 0) + 1
+        if not uniq:
+            return
+
+        lines = ['Digest:']
+        for msg, cnt in uniq.items():
+            line = msg
+            if cnt > 1:
+                line = ('[%dx] ' % cnt) + line
+            lines.append(' ' + line)
+            self._report({'WARNING'}, line)
+
+        lines.extend(['', 'Full log:'])
+        processed_groups = dict()
+        last_line_is_message = False
+
+        def fmt_data(data):
+            if log.CTX_NAME in data:
+                name = None
+                args = []
+                for k, v in data.items():
+                    if k is log.CTX_NAME:
+                        name = v
+                    else:
+                        args.append('%s=%s' % (k, repr(v)))
+                return '%s(%s)' % (name, ', '.join(args))
+            else:
+                return str(data)
+
+        def ensure_group_processed(group):
+            nonlocal last_line_is_message
+            prefix = processed_groups.get(group, None)
+            if prefix is None:
+                if group is not None:
+                    if group.parent:
+                        ensure_group_processed(group.parent)
+                    prefix = '| ' * group.depth
+                    if last_line_is_message:
+                        lines.append(prefix + '|')
+                    lines.append('%s+-%s' % (prefix, fmt_data(group.data)))
+                    last_line_is_message = False
+                    prefix += '|  '
+                else:
+                    prefix = ''
+                processed_groups[group] = prefix
+            return prefix
+
+
+        last_message = None
+        last_message_count = 0
+        for msg, ctx in self._full:
+            data = dict()
+            group = ctx
+            while group and group.lightweight:
+                data.update(group.data)
+                group = group.parent
+            prefix = ensure_group_processed(group)
+            if data:
+                msg += (': %s' % data)
+            if last_line_is_message and (last_message == msg):
+                last_message_count += 1
+                lines[-1] = '%s[%dx] %s' % (prefix, last_message_count, msg)
+            else:
+                lines.append(prefix + msg)
+                last_message = msg
+                last_message_count = 1
+                last_line_is_message = True
+
+        import bpy
+        text = bpy.data.texts.new(logname)
+        text.user_clear()
+        text.from_string('\n'.join(lines))
+        self._report({'WARNING'}, 'The full log was stored as \'%s\' (in the Text Editor)' % text.name)
 
 
 def fix_ensure_lookup_table(bmv):

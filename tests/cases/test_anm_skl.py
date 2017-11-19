@@ -16,7 +16,7 @@ class TestSklImport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsContains('WARNING', re.compile('Object motions: bone Bone not found'))
+        self.assertReportsContains('WARNING', re.compile('Object motions: bone is not found'))
 
     def test_skl(self):
         # Arrange

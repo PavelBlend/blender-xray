@@ -109,7 +109,7 @@ class TestObjectExport(utils.XRayTestCase):
         })
         self.assertReportsContains(
             'WARNING',
-            re.compile('bone .* edited with .* version of this plugin')
+            re.compile('Bone edited with a different version of this plugin')
         )
 
     def test_empty_bone_groups(self):
