@@ -114,6 +114,9 @@ class XRayTestCase(unittest.TestCase):
             return
         raise self.fail('Found report with: type={}, message={}: {}'.format(type, re_message, r))
 
+    def getFullLogAsText(self):
+        return bpy.data.texts[-1].as_string()
+
 
 def create_bmesh(vertexes, indexes):
     bm = bmesh.new()

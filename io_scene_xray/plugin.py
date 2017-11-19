@@ -4,12 +4,11 @@ from . import xray_inject
 from .utils import AppError, ObjectsInitializer, logger
 from . import plugin_prefs
 from . import registry
-from . import log
 
 
 def execute_with_logger(method):
     def wrapper(self, context):
-        with logger(self.bl_idname, self.report):
+        with logger(self.__class__.bl_idname, self.report):
             return method(self, context)
 
     return wrapper

@@ -75,6 +75,19 @@ class Logger:
         processed_groups = dict()
         last_line_is_message = False
 
+        def fmt_data(data):
+            if log.CTX_NAME in data:
+                name = None
+                args = []
+                for k, v in data.items():
+                    if k is log.CTX_NAME:
+                        name = v
+                    else:
+                        args.append('%s=%s' % (k, repr(v)))
+                return '%s(%s)' % (name, ', '.join(args))
+            else:
+                return str(data)
+
         def ensure_group_processed(group):
             nonlocal last_line_is_message
             prefix = processed_groups.get(group, None)
@@ -85,7 +98,7 @@ class Logger:
                     prefix = '| ' * group.depth
                     if last_line_is_message:
                         lines.append(prefix + '|')
-                    lines.append('%s+-%s' % (prefix, group.data))
+                    lines.append('%s+-%s' % (prefix, fmt_data(group.data)))
                     last_line_is_message = False
                     prefix += '|  '
                 else:

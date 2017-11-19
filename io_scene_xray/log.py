@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 
 # Context Handling
+CTX_NAME = '@context'
 __ctx__ = [None]
 
 def with_context(name=None):
@@ -8,7 +9,7 @@ def with_context(name=None):
         def wrap(*args, **kwargs):
             saved = __ctx__[0]
             try:
-                __ctx__[0] = _Ctx({'@type':name}, saved)
+                __ctx__[0] = _Ctx({CTX_NAME:name}, saved)
                 return func(*args, **kwargs)
             finally:
                 __ctx__[0] = saved
