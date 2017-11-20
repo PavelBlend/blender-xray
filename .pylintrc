@@ -1,2 +1,8 @@
 [BASIC]
 no-docstring-rgx=.
+
+[TYPECHECK]
+ignored-modules=addon_utils, bgl, bmesh, bpy, bpy_extras, mathutils
+
+[MESSAGES CONTROL]
+disable=C0111

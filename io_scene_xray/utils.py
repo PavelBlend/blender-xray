@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 import math
+
 from . import log
 
 def is_exportable_bone(bpy_bone):
@@ -7,23 +8,23 @@ def is_exportable_bone(bpy_bone):
 
 
 def find_bone_exportable_parent(bpy_bone):
-    r = bpy_bone.parent
-    while (r is not None) and not is_exportable_bone(r):
-        r = r.parent
-    return r
+    result = bpy_bone.parent
+    while (result is not None) and not is_exportable_bone(result):
+        result = result.parent
+    return result
 
 
 def version_to_number(major, minor, release):
     return ((major & 0xff) << 24) | ((minor & 0xff) << 16) | (release & 0xffff)
 
 
-_plugin_version_number = 0
+__plugin_version_number__ = 0
 def plugin_version_number():
-    global _plugin_version_number
-    if _plugin_version_number == 0:
+    global __plugin_version_number__
+    if __plugin_version_number__ == 0:
         from . import bl_info
-        _plugin_version_number = version_to_number(*bl_info['version'])
-    return _plugin_version_number
+        __plugin_version_number__ = version_to_number(*bl_info['version'])
+    return __plugin_version_number__
 
 
 class AppError(Exception):
@@ -79,11 +80,11 @@ class Logger:
             if log.CTX_NAME in data:
                 name = None
                 args = []
-                for k, v in data.items():
-                    if k is log.CTX_NAME:
-                        name = v
+                for key, val in data.items():
+                    if key is log.CTX_NAME:
+                        name = val
                     else:
-                        args.append('%s=%s' % (k, repr(v)))
+                        args.append('%s=%s' % (key, repr(val)))
                 return '%s(%s)' % (name, ', '.join(args))
             else:
                 return str(data)
@@ -131,7 +132,10 @@ class Logger:
         text = bpy.data.texts.new(logname)
         text.user_clear()
         text.from_string('\n'.join(lines))
-        self._report({'WARNING'}, 'The full log was stored as \'%s\' (in the Text Editor)' % text.name)
+        self._report(
+            {'WARNING'},
+            'The full log was stored as \'%s\' (in the Text Editor)' % text.name
+        )
 
 
 def fix_ensure_lookup_table(bmv):
@@ -140,50 +144,52 @@ def fix_ensure_lookup_table(bmv):
 
 
 def convert_object_to_space_bmesh(bpy_obj, space_matrix):
-    import bmesh, bpy
-    bm = bmesh.new()
-    armmods = [m for m in bpy_obj.modifiers if m.type == 'ARMATURE' and m.show_viewport]
+    import bmesh
+    import bpy
+    mesh = bmesh.new()
+    armmods = [mod for mod in bpy_obj.modifiers if mod.type == 'ARMATURE' and mod.show_viewport]
     try:
-        for m in armmods:
-            m.show_viewport = False
-        bm.from_object(bpy_obj, bpy.context.scene)
+        for mod in armmods:
+            mod.show_viewport = False
+        mesh.from_object(bpy_obj, bpy.context.scene)
     finally:
-        for m in armmods:
-            m.show_viewport = True
-    mt = bpy_obj.matrix_world
-    mt = space_matrix.inverted() * mt
-    bm.transform(mt)
+        for mod in armmods:
+            mod.show_viewport = True
+    mat = bpy_obj.matrix_world
+    mat = space_matrix.inverted() * mat
+    mesh.transform(mat)
     need_flip = False
-    for k in mt.to_scale():
+    for k in mat.to_scale():
         if k < 0:
             need_flip = not need_flip
     if need_flip:
-        bmesh.ops.reverse_faces(bm, faces=bm.faces)  # flip normals
-    fix_ensure_lookup_table(bm.verts)
-    return bm
+        bmesh.ops.reverse_faces(mesh, faces=mesh.faces)  # flip normals
+    fix_ensure_lookup_table(mesh.verts)
+    return mesh
 
 
 def calculate_mesh_bbox(verts):
-    def vf(va, vb, f):
-        va.x = f(va.x, vb.x)
-        va.y = f(va.y, vb.y)
-        va.z = f(va.z, vb.z)
+    def vfunc(dst, src, func):
+        dst.x = func(dst.x, src.x)
+        dst.y = func(dst.y, src.y)
+        dst.z = func(dst.z, src.z)
 
     fix_ensure_lookup_table(verts)
-    mn = verts[0].co.copy()
-    mx = mn.copy()
+    _min = verts[0].co.copy()
+    _max = _min.copy()
 
-    for v in verts:
-        vf(mn, v.co, min)
-        vf(mx, v.co, max)
+    for vertex in verts:
+        vfunc(_min, vertex.co, min)
+        vfunc(_max, vertex.co, max)
 
-    return mn, mx
+    return _min, _max
 
 
-def gen_texture_name(tx, tx_folder):
+def gen_texture_name(texture, tx_folder):
     import os.path
     from bpy.path import abspath
-    a_tx_fpath, a_tx_folder = os.path.normpath(abspath(tx.image.filepath)), os.path.abspath(tx_folder)
+    a_tx_fpath = os.path.normpath(abspath(texture.image.filepath))
+    a_tx_folder = os.path.abspath(tx_folder)
     a_tx_fpath = os.path.splitext(a_tx_fpath)[0]
     a_tx_fpath = a_tx_fpath[len(a_tx_folder):].replace(os.path.sep, '\\')
     if a_tx_fpath.startswith('\\'):
@@ -203,9 +209,8 @@ def create_cached_file_data(ffname, fparser):
                 return self._cdata
             tmp = None
             if fpath:
-                from io import open
-                with open(fpath, mode='rb') as f:
-                    tmp = fparser(f.read())
+                with open(fpath, mode='rb') as file:
+                    tmp = fparser(file.read())
             self._cpath = fpath
             self._cdata = tmp
             return self._cdata
@@ -218,9 +223,9 @@ def parse_shaders(data):
     from .xray_io import ChunkedReader, PackedReader
     for (cid, data) in ChunkedReader(data):
         if cid == 3:
-            pr = PackedReader(data)
-            for i in range(pr.getf('I')[0]):
-                yield (pr.gets(), '')
+            reader = PackedReader(data)
+            for _ in range(reader.int()):
+                yield (reader.gets(), '')
 
 
 def parse_gamemtl(data):
@@ -231,9 +236,9 @@ def parse_gamemtl(data):
                 name, desc = None, None
                 for (cccid, ccdata) in ChunkedReader(cdata):
                     if cccid == 0x1000:
-                        pr = PackedReader(ccdata)
-                        pr.getf('I')[0]
-                        name = pr.gets()
+                        reader = PackedReader(ccdata)
+                        reader.skip(4)
+                        name = reader.gets()
                     if cccid == 0x1005:
                         desc = PackedReader(ccdata).gets()
                 yield (name, desc)
@@ -243,11 +248,11 @@ def parse_shaders_xrlc(data):
     from .xray_io import PackedReader
     if len(data) % (128 + 16) != 0:
         exit(1)
-    pr = PackedReader(data)
+    reader = PackedReader(data)
     for _ in range(len(data) // (128 + 16)):
-        n = pr.gets()
-        pr.getf('{}s'.format(127 - len(n) + 16))  # skip
-        yield (n, '')
+        name = reader.gets()
+        reader.getf('{}s'.format(127 - len(name) + 16))  # skip
+        yield (name, '')
 
 
 HELPER_OBJECT_NAME_PREFIX = '.xray-helper--'

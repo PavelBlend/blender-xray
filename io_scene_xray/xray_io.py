@@ -13,16 +13,16 @@ class PackedReader:
         return self.__data[self.__offs - count:self.__offs]
 
     def getf(self, fmt):
-        s = struct.calcsize(fmt)
-        self.__offs += s
-        return struct.unpack_from(fmt, self.__data, self.__offs - s)
+        size = struct.calcsize(fmt)
+        self.__offs += size
+        return struct.unpack_from(fmt, self.__data, self.__offs - size)
 
-    def rb(self):
-        o = self.__offs
-        self.__offs = o + 1
-        return self.__data[o]
+    def byte(self):
+        offs = self.__offs
+        self.__offs = offs + 1
+        return self.__data[offs]
 
-    def ri(self):
+    def int(self):
         return self.getp(PackedReader.__PREP_I)[0]
 
     @staticmethod
@@ -30,9 +30,9 @@ class PackedReader:
         return struct.Struct('<' + fmt)
 
     def getp(self, prep):
-        o = self.__offs
-        self.__offs = o + prep.size
-        return prep.unpack_from(self.__data, o)
+        offs = self.__offs
+        self.__offs = offs + prep.size
+        return prep.unpack_from(self.__data, offs)
 
     def gets(self, onerror=None):
         # zpos = self.__data.find(0, self.__offs)
@@ -42,14 +42,14 @@ class PackedReader:
         dlen = len(data)
         while (zpos != dlen) and (data[zpos] != 0):
             zpos += 1
-        bb = self.getf('{}sx'.format(zpos - self.__offs))[0]
+        bts = self.getf('{}sx'.format(zpos - self.__offs))[0]
         try:
-            return bb.decode('cp1251')
-        except UnicodeError as e:
+            return bts.decode('cp1251')
+        except UnicodeError as error:
             if onerror is None:
                 raise
-            onerror(e)
-            return bb.decode('cp1251', errors='replace')
+            onerror(error)
+            return bts.decode('cp1251', errors='replace')
 
     def skip(self, count):
         self.__offs += count
@@ -70,12 +70,12 @@ class ChunkedReader:
         data = self.__data
         if offs >= len(data):
             raise StopIteration
-        i, s = struct.unpack_from('II', data, offs)
-        if (i & ChunkedReader.__MASK_COMPRESSED) != 0:
-            raise Exception('unsupported: compressed chunk {:#x}'.format(i))
-        offs += 8 + s
+        cid, size = struct.unpack_from('II', data, offs)
+        if (cid & ChunkedReader.__MASK_COMPRESSED) != 0:
+            raise Exception('unsupported: compressed chunk {:#x}'.format(cid))
+        offs += 8 + size
         self.__offs = offs
-        return i & ~ChunkedReader.__MASK_COMPRESSED, data[offs - s:offs]
+        return cid & ~ChunkedReader.__MASK_COMPRESSED, data[offs - size:offs]
 
     def next(self, expected_cid):
         cid, data = next(self)
@@ -99,8 +99,8 @@ class PackedWriter():
         self.data += struct.pack(fmt, *args)
         return self
 
-    def puts(self, s):
-        self.data += s.encode('cp1251')
+    def puts(self, string):
+        self.data += string.encode('cp1251')
         self.data += b'\x00'
         return self
 
@@ -109,7 +109,7 @@ class ChunkedWriter():
     def __init__(self):
         self.data = bytearray()
 
-    def put(self, cid, w):
-        self.data += struct.pack('II', cid, len(w.data))
-        self.data += w.data
+    def put(self, cid, writer):
+        self.data += struct.pack('II', cid, len(writer.data))
+        self.data += writer.data
         return self

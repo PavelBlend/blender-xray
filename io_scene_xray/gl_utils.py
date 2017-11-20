@@ -1,12 +1,13 @@
-import bgl
 import math
+
+import bgl
 
 
 def matrix_to_buffer(matrix):
-    mb = bgl.Buffer(bgl.GL_FLOAT, len(matrix.row) * len(matrix.col))
-    for i, r in enumerate(matrix.row):
-        mb[4 * i:4 * i + 4] = r
-    return mb
+    buff = bgl.Buffer(bgl.GL_FLOAT, len(matrix.row) * len(matrix.col))
+    for i, row in enumerate(matrix.row):
+        buff[4 * i:4 * i + 4] = row
+    return buff
 
 
 def draw_wire_cube(hsx, hsy, hsz):
@@ -38,7 +39,7 @@ def gen_circle(radius, num_segments, fconsumer):
     theta = 2.0 * math.pi / num_segments
     cos_th, sin_th = math.cos(theta), math.sin(theta)
     x, y = radius, 0
-    for i in range(num_segments):
+    for _ in range(num_segments):
         fconsumer(x, y)
         _ = x
         x = x * cos_th - y * sin_th
@@ -57,20 +58,20 @@ def draw_wire_sphere(radius, num_segments):
     bgl.glEnd()
 
 
-def draw_wire_cylinder(radius, hh, num_segments):
+def draw_wire_cylinder(radius, half_height, num_segments):
     bgl.glBegin(bgl.GL_LINE_LOOP)
-    gen_circle(radius, num_segments, lambda x, y: bgl.glVertex3f(x, -hh, y))
+    gen_circle(radius, num_segments, lambda x, y: bgl.glVertex3f(x, -half_height, y))
     bgl.glEnd()
     bgl.glBegin(bgl.GL_LINE_LOOP)
-    gen_circle(radius, num_segments, lambda x, y: bgl.glVertex3f(x, +hh, y))
+    gen_circle(radius, num_segments, lambda x, y: bgl.glVertex3f(x, +half_height, y))
     bgl.glEnd()
     bgl.glBegin(bgl.GL_LINES)
-    bgl.glVertex3f(-radius, -hh, 0)
-    bgl.glVertex3f(-radius, +hh, 0)
-    bgl.glVertex3f(+radius, -hh, 0)
-    bgl.glVertex3f(+radius, +hh, 0)
-    bgl.glVertex3f(0, -hh, -radius)
-    bgl.glVertex3f(0, +hh, -radius)
-    bgl.glVertex3f(0, -hh, +radius)
-    bgl.glVertex3f(0, +hh, +radius)
+    bgl.glVertex3f(-radius, -half_height, 0)
+    bgl.glVertex3f(-radius, +half_height, 0)
+    bgl.glVertex3f(+radius, -half_height, 0)
+    bgl.glVertex3f(+radius, +half_height, 0)
+    bgl.glVertex3f(0, -half_height, -radius)
+    bgl.glVertex3f(0, +half_height, -radius)
+    bgl.glVertex3f(0, -half_height, +radius)
+    bgl.glVertex3f(0, +half_height, +radius)
     bgl.glEnd()
