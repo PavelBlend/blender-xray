@@ -526,6 +526,20 @@ def _is_compatible_texture(texture, filepart):
         return False
     return True
 
+def _normalize_bones_lengths(bones):
+    lenghts = [0] * len(bones)
+    for i, bone in enumerate(bones):
+        min_rad_sq = math.inf
+        for j, bone1 in enumerate(bones):
+            if j == i:
+                continue
+            rad_sq = (bone1.head - bone.head).length_squared
+            if rad_sq < min_rad_sq:
+                min_rad_sq = rad_sq
+        lenghts[i] = math.sqrt(min_rad_sq)
+    for bone, length in zip(bones, lenghts):
+        bone.length = min(max(length * 0.4, 0.01), 0.1)
+
 def _import_main(fpath, context, creader):
     object_name = os.path.basename(fpath.lower())
     ver = creader.nextf(Chunks.Object.VERSION, 'H')[0]
@@ -648,22 +662,10 @@ def _import_main(fpath, context, creader):
                     if children is None:
                         bone_children[parent.name] = children = []
                     children.append(bone)
-                fake_names = []
-                if context.operator.shaped_bones:
-                    bones = bpy_armature.edit_bones
-                    lenghts = [0] * len(bones)
-                    for i, bone in enumerate(bones):
-                        min_rad_sq = math.inf
-                        for j, bone1 in enumerate(bones):
-                            if j == i:
-                                continue
-                            rad_sq = (bone1.head - bone.head).length_squared
-                            if rad_sq < min_rad_sq:
-                                min_rad_sq = rad_sq
-                        lenghts[i] = math.sqrt(min_rad_sq)
-                    for bone, length in zip(bones, lenghts):
-                        bone.length = min(max(length * 0.4, 0.01), 0.1)
 
+                _normalize_bones_lengths(bpy_armature.edit_bones)
+
+                fake_names = []
                 for bone in bpy_armature.edit_bones:
                     children = bone_children.get(bone.name)
                     if children:
