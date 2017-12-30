@@ -18,13 +18,14 @@ def version_to_number(major, minor, release):
     return ((major & 0xff) << 24) | ((minor & 0xff) << 16) | (release & 0xffff)
 
 
-__plugin_version_number__ = 0
+__PLUGIN_VERSION_NUMBER__ = [None]
 def plugin_version_number():
-    global __plugin_version_number__
-    if __plugin_version_number__ == 0:
+    number = __PLUGIN_VERSION_NUMBER__[0]
+    if number is None:
         from . import bl_info
-        __plugin_version_number__ = version_to_number(*bl_info['version'])
-    return __plugin_version_number__
+        number = version_to_number(*bl_info['version'])
+        __PLUGIN_VERSION_NUMBER__[0] = number
+    return number
 
 
 class AppError(Exception):
@@ -86,8 +87,7 @@ class Logger:
                     else:
                         args.append('%s=%s' % (key, repr(val)))
                 return '%s(%s)' % (name, ', '.join(args))
-            else:
-                return str(data)
+            return str(data)
 
         def ensure_group_processed(group):
             nonlocal last_line_is_message
@@ -221,9 +221,9 @@ def create_cached_file_data(ffname, fparser):
 
 def parse_shaders(data):
     from .xray_io import ChunkedReader, PackedReader
-    for (cid, data) in ChunkedReader(data):
+    for (cid, cdata) in ChunkedReader(data):
         if cid == 3:
-            reader = PackedReader(data)
+            reader = PackedReader(cdata)
             for _ in range(reader.int()):
                 yield (reader.gets(), '')
 

@@ -29,7 +29,7 @@ def import_motion(reader, bpy_armature, bonesmap, reported):
 
     xray.flags, xray.bonepart = reader.getf('<BH')
     xray.speed, xray.accrue, xray.falloff, xray.power = reader.getf('<ffff')
-    for _1 in range(reader.getf('H')[0]):
+    for _bone_idx in range(reader.getf('H')[0]):
         tmpfc = [act.fcurves.new('temp', i) for i in range(6)]
         try:
             times = {}
@@ -37,12 +37,11 @@ def import_motion(reader, bpy_armature, bonesmap, reported):
             flags = reader.getf('B')[0]
             if flags != 0:
                 warn('bone has non-zero flags', bone=bname, flags=flags)
-            for i in range(6):
+            for fcurve in tmpfc:
                 behaviors = reader.getf('BB')
                 if (behaviors[0] != 1) or (behaviors[1] != 1):
                     warn('bone has different behaviors', bode=bname, behaviors=behaviors)
-                fcurve = tmpfc[i]
-                for _3 in range(reader.getf('H')[0]):
+                for _keyframe_idx in range(reader.getf('H')[0]):
                     val = reader.getf('f')[0]
                     time = reader.getf('f')[0] * fps
                     times[time] = True
@@ -94,15 +93,15 @@ def import_motion(reader, bpy_armature, bonesmap, reported):
                 ), 'ZXY').to_matrix().to_4x4()
                 trn = mat.to_translation()
                 rot = mat.to_euler('ZXY')
-                for _4 in range(3):
-                    fcs[_4 + 0].keyframe_points.insert(time, trn[_4])
-                for _4 in range(3):
-                    fcs[_4 + 3].keyframe_points.insert(time, rot[_4])
+                for i in range(3):
+                    fcs[i + 0].keyframe_points.insert(time, trn[i])
+                for i in range(3):
+                    fcs[i + 3].keyframe_points.insert(time, rot[i])
         finally:
             for fcurve in tmpfc:
                 act.fcurves.remove(fcurve)
     if ver >= 7:
-        for _1 in range(reader.getf('I')[0]):
+        for _bone_idx in range(reader.getf('I')[0]):
             name = reader.gets()
             reader.skip((4 + 4) * reader.getf('I')[0])
             warn('markers are not supported yet', name=name)

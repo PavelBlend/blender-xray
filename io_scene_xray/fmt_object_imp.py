@@ -15,13 +15,13 @@ from . import log
 
 
 class ImportContext:
-    def __init__(self, textures, soc_sgroups, import_motions, split_by_materials, op):
+    def __init__(self, textures, soc_sgroups, import_motions, split_by_materials, operator):
         self.version = plugin_version_number()
         self.textures_folder = textures
         self.soc_sgroups = soc_sgroups
         self.import_motions = import_motions
         self.split_by_materials = split_by_materials
-        self.op = op
+        self.operator = operator
         self.loaded_materials = None
 
     def before_import_file(self):
@@ -56,8 +56,8 @@ _S_FFF = PackedReader.prep('fff')
 
 
 def read_v3f(packed_reader):
-    v = packed_reader.getp(_S_FFF)
-    return v[0], v[2], v[1]
+    vec = packed_reader.getp(_S_FFF)
+    return vec[0], vec[2], vec[1]
 
 
 def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
@@ -72,6 +72,7 @@ def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
 
 
 _SHARP = 0xffffffff
+_MIN_WEIGHT = 0.0002
 
 @log.with_context(name='mesh')
 def _import_mesh(context, creader, renamemap):
@@ -81,7 +82,7 @@ def _import_mesh(context, creader, renamemap):
     mesh_name = None
     mesh_flags = None
     mesh_options = None
-    bm = bmesh.new()
+    bmsh = bmesh.new()
     sgfuncs = (_SHARP, lambda ga, gb, ea, eb: ga == gb) if context.soc_sgroups else (_SHARP, _cop_sgfunc)
     vt_data = ()
     fc_data = ()
@@ -91,7 +92,7 @@ def _import_mesh(context, creader, renamemap):
     vm_refs = ()
     vmaps = []
     vgroups = []
-    bml_deform = bm.verts.layers.deform.verify()
+    bml_deform = bmsh.verts.layers.deform.verify()
     bml_texture = None
     for (cid, data) in creader:
         if cid == Chunks.Mesh.VERTS:
@@ -155,28 +156,27 @@ def _import_mesh(context, creader, renamemap):
                             log.warn('texture VMap has been renamed', old=name, new=new_name)
                             suppress_rename_warnings[name] = new_name
                         name = new_name
-                    bml = bm.loops.layers.uv.get(name)
+                    bml = bmsh.loops.layers.uv.get(name)
                     if bml is None:
-                        bml = bm.loops.layers.uv.new(name)
-                        bml_texture = bm.faces.layers.tex.new(name)
+                        bml = bmsh.loops.layers.uv.new(name)
+                        bml_texture = bmsh.faces.layers.tex.new(name)
                     uvs = reader.getb(size * 8).cast('f')
                     reader.skip(size * 4)
                     if discon:
                         reader.skip(size * 4)
                     vmaps.append((typ, bml, uvs))
                 elif typ == 1:  # weights
-                    MIN_WEIGHT = 0.0002
                     name = renamemap.get(name, name)
                     vgi = len(vgroups)
                     vgroups.append(name)
                     wgs = reader.getb(size * 4).cast('f')
                     bad = False
                     for i, weight in enumerate(wgs):
-                        if weight < MIN_WEIGHT:
+                        if weight < _MIN_WEIGHT:
                             if not bad:
                                 wgs = list(wgs)
                             bad = True
-                            wgs[i] = MIN_WEIGHT
+                            wgs[i] = _MIN_WEIGHT
                     if bad:
                         log.warn('weight VMap has values that are close to zero', vmap=name)
                     reader.skip(size * 4)
@@ -205,8 +205,8 @@ def _import_mesh(context, creader, renamemap):
             self.__badvg = badvg
             self.__next = None
 
-        def mkface(self, fi):
-            fr = fc_data[fi]
+        def mkface(self, face_index):
+            fr = fc_data[face_index]
             bmf = self._mkf(fr, 0, 4, 2)
             if bmf is None:
                 return bmf
@@ -229,7 +229,7 @@ def _import_mesh(context, creader, renamemap):
         def _mkf(self, fr, i0, i1, i2):
             vertexes = (self._vtx(fr, i0), self._vtx(fr, i1), self._vtx(fr, i2))
             try:
-                return bm.faces.new(vertexes)
+                return bmsh.faces.new(vertexes)
             except ValueError:
                 if len(set(vertexes)) < 3:
                     log.warn('invalid face found')
@@ -254,7 +254,7 @@ def _import_mesh(context, creader, renamemap):
             vidx = fr[i]
             vertex = self.__verts[vidx]
             if vertex is None:
-                self.__verts[vidx] = vertex = bm.verts.new(vt_data[vidx])
+                self.__verts[vidx] = vertex = bmsh.verts.new(vt_data[vidx])
             self._vgvtx(vertex)
             return vertex
 
@@ -274,7 +274,7 @@ def _import_mesh(context, creader, renamemap):
 
             vertex = self.__verts.get(vkey, None)
             if vertex is None:
-                self.__verts[vkey] = vertex = bm.verts.new(vt_data[vidx])
+                self.__verts[vkey] = vertex = bmsh.verts.new(vt_data[vidx])
                 for vl, vv in vkey[1:]:
                     vertex[bml_deform][vl] = vv
             self._vgvtx(vertex)
@@ -336,8 +336,8 @@ def _import_mesh(context, creader, renamemap):
         bmfaces[fidx] = local.mkface(fidx)
 
     if face_sg:
-        bm.edges.index_update()
-        edict = [None] * len(bm.edges)
+        bmsh.edges.index_update()
+        edict = [None] * len(bmsh.edges)
         for fidx, bmf in enumerate(bmfaces):
             if bmf is None:
                 continue
@@ -372,8 +372,8 @@ def _import_mesh(context, creader, renamemap):
             )
         log.warn(msg)
 
-    bm.normal_update()
-    bm.to_mesh(bm_data)
+    bmsh.normal_update()
+    bmsh.to_mesh(bm_data)
 
     return bo_mesh
 
@@ -420,7 +420,7 @@ def _create_bone(context, bpy_arm_obj, name, parent, vmap, offset, rotate, lengt
     finally:
         bpy.ops.object.mode_set(mode='OBJECT')
     pose_bone = bpy_arm_obj.pose.bones[name]
-    if context.op.shaped_bones:
+    if context.operator.shaped_bones:
         pose_bone.custom_shape = _get_real_bone_shape()
     bpy_bone = bpy_armature.bones[name]
     xray = bpy_bone.xray
@@ -649,7 +649,7 @@ def _import_main(fpath, context, creader):
                         bone_children[parent.name] = children = []
                     children.append(bone)
                 fake_names = []
-                if context.op.shaped_bones:
+                if context.operator.shaped_bones:
                     bones = bpy_armature.edit_bones
                     lenghts = [0] * len(bones)
                     for i, bone in enumerate(bones):
@@ -696,11 +696,11 @@ def _import_main(fpath, context, creader):
             bpy.ops.object.mode_set(mode='POSE')
             try:
                 reader = PackedReader(data)
-                for _ in range(reader.int()):
+                for _partition_idx in range(reader.int()):
                     bpy.ops.pose.group_add()
                     bone_group = bpy_arm_obj.pose.bone_groups.active
                     bone_group.name = reader.gets()
-                    for __ in range(reader.int()):
+                    for _bone_idx in range(reader.int()):
                         name = reader.gets() if cid == Chunks.Object.PARTITIONS1 else reader.int()
                         bpy_arm_obj.pose.bones[name].bone_group = bone_group
             finally:

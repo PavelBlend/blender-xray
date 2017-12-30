@@ -51,7 +51,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
         textures_folder = plugin_prefs.get_preferences().get_textures_folder()
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
-        if len(self.files) == 0:
+        if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         from .fmt_object_imp import import_file, ImportContext
@@ -60,7 +60,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
             soc_sgroups=self.fmt_version == 'soc',
             import_motions=self.import_motions,
             split_by_materials=self.mesh_split_by_materials,
-            op=self,
+            operator=self,
         )
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
@@ -71,7 +71,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
         return {'FINISHED'}
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         row = layout.row()
         row.enabled = False
@@ -110,7 +110,7 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
 
     @execute_with_logger
     def execute(self, _context):
-        if len(self.files) == 0:
+        if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         from .fmt_anm_imp import import_file, ImportContext
@@ -156,7 +156,7 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
 
     @execute_with_logger
     def execute(self, context):
-        if len(self.files) == 0:
+        if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         from .fmt_skl_imp import import_skl_file, import_skls_file, ImportContext
@@ -206,7 +206,7 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
         textures_folder = plugin_prefs.get_preferences().get_textures_folder()
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
-        if len(self.files) == 0:
+        if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         from . import fmt_dm_imp
@@ -217,7 +217,7 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
             soc_sgroups=None,
             import_motions=None,
             split_by_materials=None,
-            op=self,
+            operator=self,
         )
         try:
             for file in self.files:
@@ -284,14 +284,14 @@ def find_objects_for_export(context):
     return roots
 
 
-def _mk_export_context(context, texname_from_path, fmt_version=None, export_motions=True):
-        from .fmt_object_exp import ExportContext
-        return ExportContext(
-            textures_folder=plugin_prefs.get_preferences().get_textures_folder(),
-            export_motions=export_motions,
-            soc_sgroups=None if fmt_version is None else (fmt_version == 'soc'),
-            texname_from_path=texname_from_path
-        )
+def _mk_export_context(texname_from_path, fmt_version=None, export_motions=True):
+    from .fmt_object_exp import ExportContext
+    return ExportContext(
+        textures_folder=plugin_prefs.get_preferences().get_textures_folder(),
+        export_motions=export_motions,
+        soc_sgroups=None if fmt_version is None else (fmt_version == 'soc'),
+        texname_from_path=texname_from_path
+    )
 
 
 class _WithExportMotions:
@@ -328,7 +328,6 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
     def execute(self, context):
         from .fmt_object_exp import export_file
         export_context = _mk_export_context(
-            context,
             self.texture_name_from_image_path, self.fmt_version, self.export_motions
         )
         try:
@@ -345,7 +344,7 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
             raise err
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         prefs = plugin_prefs.get_preferences()
         roots = None
         try:
@@ -391,7 +390,6 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotio
     def execute(self, context):
         from .fmt_object_exp import export_file
         export_context = _mk_export_context(
-            context,
             self.texture_name_from_image_path, self.fmt_version, self.export_motions
         )
         try:
@@ -452,7 +450,7 @@ class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
 
     def export(self, bpy_obj, context):
         from .fmt_dm_exp import export_file
-        export_context = _mk_export_context(context, self.texture_name_from_image_path)
+        export_context = _mk_export_context(self.texture_name_from_image_path)
         export_file(bpy_obj, self.filepath, export_context)
 
 
@@ -474,7 +472,7 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
 
     def export(self, bpy_obj, context):
         from .fmt_ogf_exp import export_file
-        export_context = _mk_export_context(context, self.texture_name_from_image_path)
+        export_context = _mk_export_context(self.texture_name_from_image_path)
         export_file(bpy_obj, self.filepath, export_context)
         return {'FINISHED'}
 
@@ -581,7 +579,6 @@ class OpExportProject(TestReadyOperator):
         from bpy.path import abspath
         data = context.scene.xray
         export_context = _mk_export_context(
-            context,
             data.object_texture_name_from_image_path, data.fmt_version, data.object_export_motions
         )
         try:

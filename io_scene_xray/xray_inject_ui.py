@@ -188,8 +188,8 @@ class XRayShapeEditHelperObjectPanel(XRayPanel):
             and seh.is_helper_object(context.active_object)
         )
 
-    def draw(self, context):
-        seh.draw_helper(self.layout, context.active_object)
+    def draw(self, _context):
+        seh.draw_helper(self.layout)
 
 
 @registry.requires(dynamic_menu)
