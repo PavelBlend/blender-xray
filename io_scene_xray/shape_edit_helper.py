@@ -1,7 +1,9 @@
+import math
+
 import bpy
 import bmesh
-import math
 import mathutils
+
 from . import utils
 from . import registry
 
@@ -156,8 +158,7 @@ class _ShapeEditApplyOp(bpy.types.Operator):
             xsh.cyl_dir = vr.to_tuple()
         else:
             raise AssertionError('unsupported shape type: ' + xsh.type)
-        from io_scene_xray.xray_inject import XRayBoneProperties
-        xsh.version_data = XRayBoneProperties.ShapeProperties.CURVER_DATA
+        xsh.set_curver()
         for obj in bpy.data.objects:
             if obj.data == bone.id_data:
                 bpy.context.scene.objects.active = obj

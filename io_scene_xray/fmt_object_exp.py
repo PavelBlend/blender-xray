@@ -5,6 +5,7 @@ import bpy
 import mathutils
 
 from .xray_io import ChunkedWriter, PackedWriter
+from .xray_motions import export_motions, MATRIX_BONE_INVERTED
 from .fmt_object import Chunks
 from .utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
     convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name, is_helper_object
@@ -203,15 +204,6 @@ def _export_mesh(bpy_obj, bpy_root, cw, context):
     cw.put(Chunks.Mesh.VMAPS2, writer)
 
 
-__MATRIX_BONE__ = mathutils.Matrix((
-    (1.0, 0.0, 0.0, 0.0),
-    (0.0, 0.0, -1.0, 0.0),
-    (0.0, 1.0, 0.0, 0.0),
-    (0.0, 0.0, 0.0, 1.0)
-))
-__MATRIX_BONE_INVERTED__ = __MATRIX_BONE__.inverted()
-
-
 def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
     real_parent = find_bone_exportable_parent(bpy_bone)
     if real_parent:
@@ -228,9 +220,9 @@ def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
                .puts(real_parent.name if real_parent else '')
                .puts(bpy_bone.name))  # vmap
     xmat = bpy_root.matrix_world.inverted() * bpy_arm_obj.matrix_world
-    mat = xmat * bpy_bone.matrix_local * __MATRIX_BONE_INVERTED__
+    mat = xmat * bpy_bone.matrix_local * MATRIX_BONE_INVERTED
     if real_parent:
-        mat = (xmat * real_parent.matrix_local * __MATRIX_BONE_INVERTED__).inverted() * mat
+        mat = (xmat * real_parent.matrix_local * MATRIX_BONE_INVERTED).inverted() * mat
     eul = mat.to_euler('YXZ')
     writer.put(Chunks.Bone.BIND_POSE, PackedWriter()
                .putf('fff', *pw_v3f(mat.to_translation()))
@@ -371,7 +363,6 @@ def _export_main(bpy_obj, chunked_writer, context):
     some_arm = arm_list[0] if arm_list else None  # take care of static objects
 
     if some_arm and context.export_motions:
-        from .xray_motions import export_motions
         acts = bpy.data.actions
         writer = PackedWriter()
         export_motions(writer, acts, some_arm)

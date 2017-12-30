@@ -7,13 +7,13 @@ from .xray_io import PackedWriter
 from .log import warn, with_context, props as log_props
 
 
-__MATRIX_BONE__ = Matrix((
+MATRIX_BONE = Matrix((
     (1.0, 0.0, 0.0, 0.0),
     (0.0, 0.0, -1.0, 0.0),
     (0.0, 1.0, 0.0, 0.0),
     (0.0, 0.0, 0.0, 1.0)
-))
-__MATRIX_BONE_INVERTED__ = __MATRIX_BONE__.inverted()
+)).freeze()
+MATRIX_BONE_INVERTED = MATRIX_BONE.inverted().freeze()
 
 
 @with_context('import-motion')
@@ -24,82 +24,88 @@ def import_motion(reader, bpy_armature, bonesmap, reported):
     reader.getf('II')  # range
     fps, ver = reader.getf('fH')
     xray.fps = fps
-    if ver >= 6:
-        xray.flags, xray.bonepart = reader.getf('<BH')
-        xray.speed, xray.accrue, xray.falloff, xray.power = reader.getf('<ffff')
-        for _1 in range(reader.getf('H')[0]):
-            tmpfc = [act.fcurves.new('temp', i) for i in range(6)]
-            try:
-                times = {}
-                bname = reader.gets()
-                flags = reader.getf('B')[0]
-                if flags != 0:
-                    warn('bone has non-zero flags', bone=bname, flags=flags)
-                for i in range(6):
-                    behaviors = reader.getf('BB')
-                    if (behaviors[0] != 1) or (behaviors[1] != 1):
-                        warn('bone has different behaviors', bode=bname, behaviors=behaviors)
-                    fcurve = tmpfc[i]
-                    for _3 in range(reader.getf('H')[0]):
-                        val = reader.getf('f')[0]
-                        time = reader.getf('f')[0] * fps
-                        times[time] = True
-                        fcurve.keyframe_points.insert(time, val)
-                        shape = Shape(reader.getf('B')[0])
-                        if shape != Shape.STEPPED:
-                            reader.getf('HHH')
-                            reader.getf('HHHH')
-                bpy_bone = bpy_armature.data.bones.get(bname, None)
-                if bpy_bone is None:
-                    bpy_bone = bonesmap.get(bname.lower(), None)
-                    if bpy_bone is None:
-                        if bname not in reported:
-                            warn('bone is not found', bone=bname)
-                            reported.add(bname)
-                        continue
-                    if bname not in reported:
-                        warn(
-                            'bone\'s reference will be replaced',
-                            bone=bname,
-                            replacement=bpy_bone.name
-                        )
-                        reported.add(bname)
-                    bname = bpy_bone.name
-                data_path = 'pose.bones["' + bname + '"]'
-                fcs = [
-                    act.fcurves.new(data_path + '.location', 0, bname),
-                    act.fcurves.new(data_path + '.location', 1, bname),
-                    act.fcurves.new(data_path + '.location', 2, bname),
-                    act.fcurves.new(data_path + '.rotation_euler', 0, bname),
-                    act.fcurves.new(data_path + '.rotation_euler', 1, bname),
-                    act.fcurves.new(data_path + '.rotation_euler', 2, bname)
-                ]
-                xmat = bpy_bone.matrix_local.inverted()
-                real_parent = find_bone_exportable_parent(bpy_bone)
-                if real_parent:
-                    xmat = xmat * real_parent.matrix_local
-                else:
-                    xmat = xmat * __MATRIX_BONE__
-                for time in times:
-                    trn = (tmpfc[0].evaluate(time), tmpfc[1].evaluate(time), -tmpfc[2].evaluate(time))
-                    rot = (-tmpfc[4].evaluate(time), -tmpfc[3].evaluate(time), tmpfc[5].evaluate(time))
-                    mat = xmat * Matrix.Translation(trn) * Euler(rot, 'ZXY').to_matrix().to_4x4()
-                    trn = mat.to_translation()
-                    rot = mat.to_euler('ZXY')
-                    for _4 in range(3):
-                        fcs[_4 + 0].keyframe_points.insert(time, trn[_4])
-                    for _4 in range(3):
-                        fcs[_4 + 3].keyframe_points.insert(time, rot[_4])
-            finally:
-                for fcurve in tmpfc:
-                    act.fcurves.remove(fcurve)
-        if ver >= 7:
-            for _1 in range(reader.getf('I')[0]):
-                name = reader.gets()
-                reader.skip((4 + 4) * reader.getf('I')[0])
-                warn('markers are not supported yet', name=name)
-    else:
+    if ver < 6:
         raise AppError('unsupported motions version', log_props(version=ver))
+
+    xray.flags, xray.bonepart = reader.getf('<BH')
+    xray.speed, xray.accrue, xray.falloff, xray.power = reader.getf('<ffff')
+    for _1 in range(reader.getf('H')[0]):
+        tmpfc = [act.fcurves.new('temp', i) for i in range(6)]
+        try:
+            times = {}
+            bname = reader.gets()
+            flags = reader.getf('B')[0]
+            if flags != 0:
+                warn('bone has non-zero flags', bone=bname, flags=flags)
+            for i in range(6):
+                behaviors = reader.getf('BB')
+                if (behaviors[0] != 1) or (behaviors[1] != 1):
+                    warn('bone has different behaviors', bode=bname, behaviors=behaviors)
+                fcurve = tmpfc[i]
+                for _3 in range(reader.getf('H')[0]):
+                    val = reader.getf('f')[0]
+                    time = reader.getf('f')[0] * fps
+                    times[time] = True
+                    fcurve.keyframe_points.insert(time, val)
+                    shape = Shape(reader.getf('B')[0])
+                    if shape != Shape.STEPPED:
+                        reader.getf('HHH')
+                        reader.getf('HHHH')
+            bpy_bone = bpy_armature.data.bones.get(bname, None)
+            if bpy_bone is None:
+                bpy_bone = bonesmap.get(bname.lower(), None)
+                if bpy_bone is None:
+                    if bname not in reported:
+                        warn('bone is not found', bone=bname)
+                        reported.add(bname)
+                    continue
+                if bname not in reported:
+                    warn(
+                        'bone\'s reference will be replaced',
+                        bone=bname,
+                        replacement=bpy_bone.name
+                    )
+                    reported.add(bname)
+                bname = bpy_bone.name
+            data_path = 'pose.bones["' + bname + '"]'
+            fcs = [
+                act.fcurves.new(data_path + '.location', 0, bname),
+                act.fcurves.new(data_path + '.location', 1, bname),
+                act.fcurves.new(data_path + '.location', 2, bname),
+                act.fcurves.new(data_path + '.rotation_euler', 0, bname),
+                act.fcurves.new(data_path + '.rotation_euler', 1, bname),
+                act.fcurves.new(data_path + '.rotation_euler', 2, bname)
+            ]
+            xmat = bpy_bone.matrix_local.inverted()
+            real_parent = find_bone_exportable_parent(bpy_bone)
+            if real_parent:
+                xmat = xmat * real_parent.matrix_local
+            else:
+                xmat = xmat * MATRIX_BONE
+            for time in times:
+                mat = xmat * Matrix.Translation((
+                    +tmpfc[0].evaluate(time),
+                    +tmpfc[1].evaluate(time),
+                    -tmpfc[2].evaluate(time),
+                )) * Euler((
+                    -tmpfc[4].evaluate(time),
+                    -tmpfc[3].evaluate(time),
+                    +tmpfc[5].evaluate(time),
+                ), 'ZXY').to_matrix().to_4x4()
+                trn = mat.to_translation()
+                rot = mat.to_euler('ZXY')
+                for _4 in range(3):
+                    fcs[_4 + 0].keyframe_points.insert(time, trn[_4])
+                for _4 in range(3):
+                    fcs[_4 + 3].keyframe_points.insert(time, rot[_4])
+        finally:
+            for fcurve in tmpfc:
+                act.fcurves.remove(fcurve)
+    if ver >= 7:
+        for _1 in range(reader.getf('I')[0]):
+            name = reader.gets()
+            reader.skip((4 + 4) * reader.getf('I')[0])
+            warn('markers are not supported yet', name=name)
     return act
 
 
@@ -121,38 +127,44 @@ def export_motion(pkw, action, armature):
 
 
 def _take_motion_data(bpy_act, bpy_armature, prepared_bones):
+    def make_frotmatrix(rotmode, bone_name):
+        if len(rotmode) == 3:
+            return (
+                lambda rot: Euler(rot, rotmode).to_matrix(),
+                [None, None, None],
+            )
+        elif rotmode == 'QUATERNION':
+            return (
+                lambda rot: Quaternion(rot).to_matrix(),
+                [None, None, None, None],
+            )
+        else:
+            raise AppError(
+                'bone uses unsupported rotation mode', log_props(
+                    action=bpy_act.name,
+                    bone=bone_name,
+                    mode=rotmode
+                )
+            )
+
     frange = bpy_act.frame_range
     result = []
     for bone, xmat in prepared_bones:
         data = []
         result.append((bone.name, data))
 
-        g = bpy_act.groups.get(bone.name, None)
-        if g is None:
+        group = bpy_act.groups.get(bone.name, None)
+        if group is None:
             data.append(xmat)
             continue
 
-        rotmode = bpy_armature.pose.bones[g.name].rotation_mode
+        rotmode = bpy_armature.pose.bones[group.name].rotation_mode
         chs_tr, chs_rt = [None, None, None], None
 
-        def frotmatrix(rt): pass
-        if len(rotmode) == 3:
-            def frotmatrix(rt): return Euler(rt, rotmode).to_matrix()
-            chs_rt = [None, None, None]
-        elif rotmode == 'QUATERNION':
-            def frotmatrix(rt): return Quaternion(rt).to_matrix()
-            chs_rt = [None, None, None, None]
-        else:
-            raise AppError(
-                'bone uses unsupported rotation mode', log_props(
-                    action=bpy_act.name,
-                    bone=g.name,
-                    mode=rotmode
-                )
-            )
+        frotmatrix, chs_rt = make_frotmatrix(rotmode, group.name)
 
         skipped_paths = set()
-        for channel in g.channels:
+        for channel in group.channels:
             path = channel.data_path
             chs = None
             if path.endswith('.location'):
@@ -168,7 +180,7 @@ def _take_motion_data(bpy_act, bpy_armature, prepared_bones):
                     warn(
                         'Motions: bone has curve which is not supported by rotation mode, skipping',
                         motion=bpy_act.name,
-                        bone=g.name,
+                        bone=group.name,
                         curve=path,
                         retation=rotmode
                     )
@@ -213,7 +225,7 @@ def _prepare_bones(armature):
         if real_parent:
             mat = real_parent.matrix_local.inverted() * mat
         else:
-            mat = __MATRIX_BONE_INVERTED__ * mat
+            mat = MATRIX_BONE_INVERTED * mat
         return armature.pose.bones[bone.name], mat
 
     return [

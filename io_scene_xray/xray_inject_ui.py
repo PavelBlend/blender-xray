@@ -1,7 +1,8 @@
 import bpy
 
 from .plugin_prefs import get_preferences
-from . import ui_dynmenu, ui_list, shape_edit_helper as seh
+from .ui import dynamic_menu, list_helper, collapsible
+from . import shape_edit_helper as seh
 from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl, \
     is_helper_object
 from . import registry
@@ -58,51 +59,7 @@ class XRayPanel(bpy.types.Panel):
         self.layout.label(icon='PLUGIN')
 
 
-class _CollapsOp(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.collaps'
-    bl_label = ''
-    bl_description = 'Show / hide UI block'
-
-    key = bpy.props.StringProperty()
-
-    _DATA = {}
-
-    @classmethod
-    def get(cls, key):
-        return cls._DATA.get(key, False)
-
-    def execute(self, _context):
-        _CollapsOp._DATA[self.key] = not _CollapsOp.get(self.key)
-        return {'FINISHED'}
-
-
-def draw_collapsible(layout, key, text=None, enabled=None, icon=None, style=None):
-    col = layout.column(align=True)
-    row = col.row(align=True)
-    if (enabled is not None) and (not enabled):
-        row = row.row(align=True)
-        row.enabled = False
-    isshow = _CollapsOp.get(key)
-    if icon is None:
-        icon = 'TRIA_DOWN' if isshow else 'TRIA_RIGHT'
-    kwargs = {}
-    if text is not None:
-        kwargs['text'] = text
-    box = col.box() if isshow else None
-    if style == 'tree':
-        row = row.row()
-        row.alignment = 'LEFT'
-        if box:
-            bxr = box.row(align=True)
-            bxr.alignment = 'LEFT'
-            bxr.label('')
-            box = bxr.column()
-    oper = row.operator(_CollapsOp.bl_idname, icon=icon, emboss=style != 'tree', **kwargs)
-    oper.key = key
-    return row, box
-
-
-@registry.requires(ui_list, PropClipOp)
+@registry.requires(list_helper, PropClipOp)
 class XRayObjectPanel(XRayPanel):
     bl_context = 'object'
     bl_label = _build_label('Object Root')
@@ -138,7 +95,7 @@ class XRayObjectPanel(XRayPanel):
             row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
         layout.prop(data, 'lodref')
         layout.prop(data, 'export_path')
-        row, box = draw_collapsible(
+        row, box = collapsible.draw(
             layout,
             'object:userdata',
             'User Data',
@@ -154,7 +111,7 @@ class XRayObjectPanel(XRayPanel):
             split = layout.split()
             split.alert = True
             split.prop(data, 'motionrefs')
-        _, box = draw_collapsible(
+        _, box = collapsible.draw(
             layout,
             'object:motionsrefs',
             'Motion Refs (%d)' % len(data.motionrefs_collection)
@@ -167,7 +124,10 @@ class XRayObjectPanel(XRayPanel):
                 data, 'motionrefs_collection_index'
             )
             col = row.column(align=True)
-            ui_list.draw_list_ops(col, data, 'motionrefs_collection', 'motionrefs_collection_index')
+            list_helper.draw_list_ops(
+                col, data,
+                'motionrefs_collection', 'motionrefs_collection_index',
+            )
 
         box = layout.box()
         box.prop(data.revision, 'owner', text='Owner')
@@ -232,8 +192,8 @@ class XRayShapeEditHelperObjectPanel(XRayPanel):
         seh.draw_helper(self.layout, context.active_object)
 
 
-@registry.requires(ui_dynmenu)
-class XRayXrMenuTemplate(ui_dynmenu.DynamicMenu):
+@registry.requires(dynamic_menu)
+class XRayXrMenuTemplate(dynamic_menu.DynamicMenu):
     @staticmethod
     def parse(data, fparse):
         def push_dict(dct, split, value):
@@ -298,11 +258,11 @@ class XRayGameMtlMenu(XRayXrMenuTemplate):
 def _gen_xr_selector(layout, data, name, text):
     row = layout.row(align=True)
     row.prop(data, name, text=text)
-    ui_dynmenu.DynamicMenu.set_layout_context_data(row, data)
+    dynamic_menu.DynamicMenu.set_layout_context_data(row, data)
     row.menu('io_scene_xray.dynmenu.' + name, icon='TRIA_DOWN')
 
 
-@registry.requires(ui_dynmenu)
+@registry.requires(dynamic_menu)
 class XRayMaterialPanel(XRayPanel):
     bl_context = 'material'
     bl_label = _build_label('Material')
@@ -346,7 +306,7 @@ class XRayArmaturePanel(XRayPanel):
         layout.prop(data, 'display_bone_shapes', toggle=True)
 
 
-@registry.requires(ui_dynmenu)
+@registry.requires(dynamic_menu)
 class XRayBonePanel(XRayPanel):
     bl_context = 'bone'
     bl_label = _build_label('Bone')
@@ -533,7 +493,7 @@ class XRayScenePanel(XRayPanel):
         row = layout.split(0.33)
         row.label('Format Version:')
         row.row().prop(data, 'fmt_version', expand=True)
-        _, box = draw_collapsible(layout, 'scene:object', 'Object Export Properties')
+        _, box = collapsible.draw(layout, 'scene:object', 'Object Export Properties')
         if box:
             box.prop(data, 'object_export_motions')
             box.prop(data, 'object_texture_name_from_image_path')
@@ -595,7 +555,7 @@ class XRayMaterialToolsPanel(bpy.types.Panel):
 
 
 registry.module_requires(__name__, [
-    _CollapsOp,
+    collapsible,
     XRayObjectPanel
     , XRayDetailMeshPanel
     , XRayMeshPanel

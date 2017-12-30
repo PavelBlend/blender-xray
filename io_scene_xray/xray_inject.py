@@ -1,4 +1,3 @@
-import math
 import time
 
 import bgl
@@ -246,7 +245,18 @@ class XRayArmatureProperties(bpy.types.PropertyGroup):
 
     def check_different_version_bones(self):
         from functools import reduce
-        return reduce(lambda x,y: x|y, [b.xray.shape.check_version_different() for b in self.id_data.bones], 0)
+        return reduce(
+            lambda x, y: x | y,
+            [b.xray.shape.check_version_different() for b in self.id_data.bones],
+            0,
+        )
+
+
+def _seh_edit_mode_set(value):
+    if value:
+        seh.activate(bpy.context.active_object.data.bones[bpy.context.active_bone.name])
+    else:
+        seh.deactivate()
 
 
 @registry.requires('ShapeProperties', 'IKJointProperties', 'BreakProperties', 'MassProperties')
@@ -256,13 +266,13 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         torque = bpy.props.FloatProperty()
 
     class ShapeProperties(bpy.types.PropertyGroup):
-        CURVER_DATA = 1
+        _CURVER_DATA = 1
 
         def check_version_different(self):
             def iszero(vec):
                 return not any(v for v in vec)
 
-            if self.version_data == self.CURVER_DATA:
+            if self.version_data == self._CURVER_DATA:
                 return 0
             if self.type == '0':  # none
                 return 0
@@ -278,11 +288,14 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                     and not self.cyl_rad \
                     and not self.cyl_hgh:
                     return 0  # default shape
-            return 1 if self.version_data < XRayBoneProperties.ShapeProperties.CURVER_DATA else 2
+            return 1 if self.version_data < self._CURVER_DATA else 2
 
         @staticmethod
         def fmt_version_different(res):
             return 'obsolete' if res == 1 else ('newest' if res == 2 else 'different')
+
+        def set_curver(self):
+            self.version_data = self._CURVER_DATA
 
         def update_shape_type(self, _context):
             if not self.edit_mode:
@@ -305,14 +318,9 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             update=update_shape_type
         )
 
-        def _edit_mode_set(self, value):
-            if value:
-                seh.activate(bpy.context.active_object.data.bones[bpy.context.active_bone.name])
-            else:
-                seh.deactivate()
         edit_mode = bpy.props.BoolProperty(
             get=lambda self: seh.is_active(),
-            set=_edit_mode_set,
+            set=lambda self, value: _seh_edit_mode_set(value),
             options={'SKIP_SAVE'}
         )
         flags = bpy.props.IntProperty()
@@ -426,6 +434,14 @@ def _get_collection_item_attr(collection, index, name, special):
     return getattr(collection[index], name)
 
 
+def _get_collection_index(collection, value, special):
+    if value == '':
+        return special
+    return collection.find(value)
+
+
+_SPECIAL = 0xffff
+
 class XRayActionProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Action
     fps = bpy.props.FloatProperty(default=30, min=0, soft_min=1, soft_max=120)
@@ -434,21 +450,27 @@ class XRayActionProperties(bpy.types.PropertyGroup):
     flags_stopatend = gen_flag_prop(mask=0x02, description='Stop at end')
     flags_nomix = gen_flag_prop(mask=0x04, description='No mix')
     flags_syncpart = gen_flag_prop(mask=0x08, description='Sync part')
-    bonepart = bpy.props.IntProperty(default=0xffff)
-
-    def _set_search_collection_item(self, collection, value):
-        if value == '':
-            self.bonepart = 0xffff
-        else:
-            self.bonepart = collection.find(value)
+    bonepart = bpy.props.IntProperty(default=_SPECIAL)
 
     bonepart_name = bpy.props.StringProperty(
-        get=lambda self: _get_collection_item_attr(bpy.context.active_object.pose.bone_groups, self.bonepart, 'name', 0xffff),
-        set=lambda self, value: self._set_search_collection_item(bpy.context.active_object.pose.bone_groups, value), options={'SKIP_SAVE'}
+        get=lambda self: _get_collection_item_attr(
+            bpy.context.active_object.pose.bone_groups, self.bonepart,
+            'name', _SPECIAL,
+        ),
+        set=lambda self, value: setattr(self, 'bonepart', _get_collection_index(
+            bpy.context.active_object.pose.bone_groups, value, _SPECIAL,
+        )),
+        options={'SKIP_SAVE'},
     )
     bonestart_name = bpy.props.StringProperty(
-        get=lambda self: _get_collection_item_attr(bpy.context.active_object.pose.bones, self.bonepart, 'name', 0xffff),
-        set=lambda self, value: self._set_search_collection_item(bpy.context.active_object.pose.bones, value), options={'SKIP_SAVE'}
+        get=lambda self: _get_collection_item_attr(
+            bpy.context.active_object.pose.bones, self.bonepart,
+            'name', _SPECIAL,
+        ),
+        set=lambda self, value: setattr(self, 'bonepart', _get_collection_index(
+            bpy.context.active_object.pose.bones, value, _SPECIAL,
+        )),
+        options={'SKIP_SAVE'},
     )
     speed = bpy.props.FloatProperty(default=1, min=0, soft_max=10)
     accrue = bpy.props.FloatProperty(default=2, min=0, soft_max=10)

@@ -1,7 +1,9 @@
 # pylint: disable=C0103
 
 import bpy
+
 from . import registry
+from .ui import collapsible
 
 
 def get_preferences():
@@ -109,8 +111,6 @@ class PluginPreferences(bpy.types.AddonPreferences):
         return result
 
     def draw(self, _context):
-        from .xray_inject_ui import draw_collapsible
-
         def prop_bool(layout, data, prop):
             # row = layout.row()
             # row.label(text=getattr(self.__class__, prop)[1]['name'] + ':')
@@ -125,13 +125,13 @@ class PluginPreferences(bpy.types.AddonPreferences):
         layout.prop(self, 'eshader_file')
         layout.prop(self, 'cshader_file')
 
-        _, box = draw_collapsible(layout, 'plugin_prefs:defaults', 'Defaults', style='tree')
+        _, box = collapsible.draw(layout, 'plugin_prefs:defaults', 'Defaults', style='tree')
         if box:
             row = box.row()
             row.label('SDK Version:')
             row.prop(self, 'sdk_version', expand=True)
 
-            _, box_n = draw_collapsible(box, 'plugin_prefs:defaults.object', 'Object', style='tree')
+            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.object', 'Object', style='tree')
             if box_n:
                 prop_bool(box_n, self, 'object_motions_import')
                 prop_bool(box_n, self, 'object_motions_export')
@@ -139,7 +139,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 prop_bool(box_n, self, 'object_mesh_split_by_mat')
                 prop_bool(box_n, self, 'object_bones_custom_shapes')
 
-            _, box_n = draw_collapsible(box, 'plugin_prefs:defaults.anm', 'Animation', style='tree')
+            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.anm', 'Animation', style='tree')
             if box_n:
                 prop_bool(box_n, self, 'anm_create_camera')
 

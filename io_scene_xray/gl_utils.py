@@ -35,6 +35,7 @@ def draw_wire_cube(hsx, hsy, hsz):
     bgl.glEnd()
 
 
+# pylint: disable=C0103
 def gen_circle(radius, num_segments, fconsumer):
     theta = 2.0 * math.pi / num_segments
     cos_th, sin_th = math.cos(theta), math.sin(theta)

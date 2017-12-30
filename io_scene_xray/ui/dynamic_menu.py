@@ -1,5 +1,5 @@
 import bpy
-from . import registry
+from io_scene_xray import registry
 
 
 @registry.module_thing

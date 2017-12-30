@@ -10,7 +10,7 @@ from .xray_io import ChunkedReader, PackedReader
 from .fmt_object import Chunks
 from .plugin_prefs import PropObjectMeshSplitByMaterials
 from .utils import BAD_VTX_GROUP_NAME, plugin_version_number, AppError
-from .xray_motions import import_motions
+from .xray_motions import import_motions, MATRIX_BONE, MATRIX_BONE_INVERTED
 from . import log
 
 
@@ -60,29 +60,29 @@ def read_v3f(packed_reader):
     return v[0], v[2], v[1]
 
 
-def _cop_sgfunc(ga, gb, ea, eb):
-    bfa, bfb = bool(ga & 0x8), bool(gb & 0x8)  # test backface-s
+def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
+    bfa, bfb = bool(group_a & 0x8), bool(group_b & 0x8)  # test backface-s
     if bfa != bfb:
         return False
 
-    def is_soft(g, bf, e):
-        return not (g & (4, 2, 1)[(4 - e) % 3 if bf else e])
+    def is_soft(group, backface, edge):
+        return (group & (4, 2, 1)[(4 - edge) % 3 if backface else edge]) == 0
 
-    return is_soft(ga, bfa, ea) and is_soft(gb, bfb, eb)
+    return is_soft(group_a, bfa, edge_a) and is_soft(group_b, bfb, edge_b)
 
 
 _SHARP = 0xffffffff
 
 @log.with_context(name='mesh')
-def _import_mesh(cx, cr, renamemap):
-    ver = cr.nextf(Chunks.Mesh.VERSION, 'H')[0]
+def _import_mesh(context, creader, renamemap):
+    ver = creader.nextf(Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
         raise AppError('unsupported MESH format version', log.props(version=ver))
     mesh_name = None
     mesh_flags = None
     mesh_options = None
     bm = bmesh.new()
-    sgfuncs = (_SHARP, lambda ga, gb, ea, eb: ga == gb) if cx.soc_sgroups else (_SHARP, _cop_sgfunc)
+    sgfuncs = (_SHARP, lambda ga, gb, ea, eb: ga == gb) if context.soc_sgroups else (_SHARP, _cop_sgfunc)
     vt_data = ()
     fc_data = ()
 
@@ -93,7 +93,7 @@ def _import_mesh(cx, cr, renamemap):
     vgroups = []
     bml_deform = bm.verts.layers.deform.verify()
     bml_texture = None
-    for (cid, data) in cr:
+    for (cid, data) in creader:
         if cid == Chunks.Mesh.VERTS:
             reader = PackedReader(data)
             vt_data = [read_v3f(reader) for _ in range(reader.int())]
@@ -219,12 +219,12 @@ def _import_mesh(cx, cr, renamemap):
                         bmf.loops[i][vmap[1]].uv = (vd[vi], 1 - vd[vi + 1])
             return bmf
 
-        def _vtx(self, fr, i):
+        def _vtx(self, _fr, _i):
             raise 'abstract'
 
-        def _vgvtx(self, v):
+        def _vgvtx(self, vtx):
             if self.__badvg != -1:
-                v[bml_deform][self.__badvg] = 0
+                vtx[bml_deform][self.__badvg] = 0
 
         def _mkf(self, fr, i0, i1, i2):
             vertexes = (self._vtx(fr, i0), self._vtx(fr, i1), self._vtx(fr, i2))
@@ -299,10 +299,10 @@ def _import_mesh(cx, cr, renamemap):
     f_facez = []
     images = []
     for name, faces in s_faces:
-        bmat = cx.loaded_materials.get(name)
+        bmat = context.loaded_materials.get(name)
         if bmat is None:
-            cx.loaded_materials[name] = bmat = bpy.data.materials.new(name)
-            bmat.xray.version = cx.version
+            context.loaded_materials[name] = bmat = bpy.data.materials.new(name)
+            bmat.xray.version = context.version
         midx = len(bm_data.materials)
         bm_data.materials.append(bmat)
         images.append(bmat.active_texture.image)
@@ -310,7 +310,7 @@ def _import_mesh(cx, cr, renamemap):
 
     local_class = LocalComplex if vgroups else LocalSimple
 
-    if cx.split_by_materials:
+    if context.split_by_materials:
         for faces, midx in f_facez:
             local = local_class()
             for fidx in faces:
@@ -343,7 +343,7 @@ def _import_mesh(cx, cr, renamemap):
                 continue
             face_sg(bmf, fidx, edict)
 
-    if not cx.split_by_materials:
+    if not context.split_by_materials:
         assigned = [False] * len(bmfaces)
         for faces, midx in f_facez:
             for fidx in faces:
@@ -366,7 +366,7 @@ def _import_mesh(cx, cr, renamemap):
         msg = 'duplicate faces found, "{}" vertex groups created'.format(
             bo_mesh.vertex_groups[bad_vgroup].name
         )
-        if not cx.split_by_materials:
+        if not context.split_by_materials:
             msg += ' (try to use "{}" option)'.format(
                 PropObjectMeshSplitByMaterials()[1].get('name')
             )
@@ -394,16 +394,7 @@ def _get_real_bone_shape():
     return result
 
 
-__MATRIX_BONE__ = mathutils.Matrix((
-    (1.0, 0.0, 0.0, 0.0),
-    (0.0, 0.0, -1.0, 0.0),
-    (0.0, 1.0, 0.0, 0.0),
-    (0.0, 0.0, 0.0, 1.0)
-))
-__MATRIX_BONE_INVERTED__ = __MATRIX_BONE__.inverted()
-
-
-def _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, renamemap):
+def _create_bone(context, bpy_arm_obj, name, parent, vmap, offset, rotate, length, renamemap):
     bpy_armature = bpy_arm_obj.data
     if name != vmap:
         ex = renamemap.get(vmap, None)
@@ -416,11 +407,11 @@ def _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, re
     try:
         bpy_bone = bpy_armature.edit_bones.new(name=name)
         rot = mathutils.Euler((-rotate[0], -rotate[1], -rotate[2]), 'YXZ').to_matrix().to_4x4()
-        mat = mathutils.Matrix.Translation(offset) * rot * __MATRIX_BONE__
+        mat = mathutils.Matrix.Translation(offset) * rot * MATRIX_BONE
         if parent:
             bpy_bone.parent = bpy_armature.edit_bones.get(parent, None)
             if bpy_bone.parent:
-                mat = bpy_bone.parent.matrix * __MATRIX_BONE_INVERTED__ * mat
+                mat = bpy_bone.parent.matrix * MATRIX_BONE_INVERTED * mat
             else:
                 log.warn('bone parent isn\'t found', bone=name, parent=parent)
         bpy_bone.tail.y = 0.02
@@ -429,11 +420,11 @@ def _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, re
     finally:
         bpy.ops.object.mode_set(mode='OBJECT')
     pose_bone = bpy_arm_obj.pose.bones[name]
-    if cx.op.shaped_bones:
+    if context.op.shaped_bones:
         pose_bone.custom_shape = _get_real_bone_shape()
     bpy_bone = bpy_armature.bones[name]
     xray = bpy_bone.xray
-    xray.version = cx.version
+    xray.version = context.version
     xray.length = length
     return bpy_bone
 
@@ -451,25 +442,31 @@ def _safe_assign_enum_property(obj, pname, val, desc):
 
 
 @log.with_context(name='bone')
-def _import_bone(cx, cr, bpy_arm_obj, renamemap):
-    ver = cr.nextf(Chunks.Bone.VERSION, 'H')[0]
+def _import_bone(context, creader, bpy_arm_obj, renamemap):
+    ver = creader.nextf(Chunks.Bone.VERSION, 'H')[0]
     if ver != 0x2:
         raise AppError('unsupported BONE format version', log.props(version=ver))
 
-    reader = PackedReader(cr.next(Chunks.Bone.DEF))
+    reader = PackedReader(creader.next(Chunks.Bone.DEF))
     name = reader.gets()
     log.update(name=name)
     parent = reader.gets()
     vmap = reader.gets()
 
-    reader = PackedReader(cr.next(Chunks.Bone.BIND_POSE))
+    reader = PackedReader(creader.next(Chunks.Bone.BIND_POSE))
     offset = read_v3f(reader)
     rotate = read_v3f(reader)
     length = reader.getf('f')[0]
 
-    bpy_bone = _create_bone(cx, bpy_arm_obj, name, parent, vmap, offset, rotate, length, renamemap)
+    bpy_bone = _create_bone(
+        context, bpy_arm_obj,
+        name, parent,
+        vmap,
+        offset, rotate, length,
+        renamemap,
+    )
     xray = bpy_bone.xray
-    for (cid, data) in cr:
+    for (cid, data) in creader:
         if cid == Chunks.Bone.DEF:
             def2 = PackedReader(data).gets()
             if name != def2:
@@ -477,7 +474,6 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
         elif cid == Chunks.Bone.MATERIAL:
             xray.gamemtl = PackedReader(data).gets()
         elif cid == Chunks.Bone.SHAPE:
-            from io_scene_xray.xray_inject import XRayBoneProperties
             reader = PackedReader(data)
             _safe_assign_enum_property(xray.shape, 'type', str(reader.getf('H')[0]), 'bone shape')
             xray.shape.flags = reader.getf('H')[0]
@@ -490,7 +486,7 @@ def _import_bone(cx, cr, bpy_arm_obj, renamemap):
             xray.shape.cyl_dir = reader.getf('fff')
             xray.shape.cyl_hgh = reader.getf('f')[0]
             xray.shape.cyl_rad = reader.getf('f')[0]
-            xray.shape.version_data = XRayBoneProperties.ShapeProperties.CURVER_DATA
+            xray.shape.set_curver()
         elif cid == Chunks.Bone.IK_JOINT:
             reader = PackedReader(data)
             pose_bone = bpy_arm_obj.pose.bones[name]
@@ -530,9 +526,9 @@ def _is_compatible_texture(texture, filepart):
         return False
     return True
 
-def _import_main(fpath, cx, cr):
+def _import_main(fpath, context, creader):
     object_name = os.path.basename(fpath.lower())
-    ver = cr.nextf(Chunks.Object.VERSION, 'H')[0]
+    ver = creader.nextf(Chunks.Object.VERSION, 'H')[0]
     if ver != 0x10:
         raise AppError('unsupported OBJECT format version', log.props(version=ver))
 
@@ -542,7 +538,7 @@ def _import_main(fpath, cx, cr):
 
     unread_chunks = []
 
-    for (cid, data) in cr:
+    for (cid, data) in creader:
         if cid == Chunks.Object.MESHES:
             meshes_data = data
         elif (cid == Chunks.Object.SURFACES1) or (cid == Chunks.Object.SURFACES2):
@@ -587,7 +583,7 @@ def _import_main(fpath, cx, cr):
                     break
                 if bpy_material is None:
                     bpy_material = bpy.data.materials.new(name)
-                    bpy_material.xray.version = cx.version
+                    bpy_material.xray.version = context.version
                     bpy_material.xray.flags = flags
                     bpy_material.xray.eshader = eshader
                     bpy_material.xray.cshader = cshader
@@ -600,7 +596,7 @@ def _import_main(fpath, cx, cr):
                         if (bpy_texture is None) \
                             or not _is_compatible_texture(texture, tx_filepart):
                             bpy_texture = bpy.data.textures.new(texture, type='IMAGE')
-                            bpy_texture.image = cx.image(texture)
+                            bpy_texture.image = context.image(texture)
                             bpy_texture.use_preview_alpha = True
                         bpy_texture_slot = bpy_material.texture_slots.add()
                         bpy_texture_slot.texture = bpy_texture
@@ -608,7 +604,7 @@ def _import_main(fpath, cx, cr):
                         bpy_texture_slot.uv_layer = vmap
                         bpy_texture_slot.use_map_color_diffuse = True
                         bpy_texture_slot.use_map_alpha = True
-                cx.loaded_materials[name] = bpy_material
+                context.loaded_materials[name] = bpy_material
         elif (cid == Chunks.Object.BONES) or (cid == Chunks.Object.BONES1):
             if bpy and (bpy_arm_obj is None):
                 bpy_armature = bpy.data.armatures.new(object_name)
@@ -625,7 +621,7 @@ def _import_main(fpath, cx, cr):
                     offset, rotate, length = read_v3f(reader), read_v3f(reader), reader.getf('f')[0]
                     rotate = rotate[2], rotate[1], rotate[0]
                     bpy_bone = _create_bone(
-                        cx, bpy_arm_obj,
+                        context, bpy_arm_obj,
                         name, parent, vmap,
                         offset, rotate, length,
                         renamemap
@@ -640,7 +636,7 @@ def _import_main(fpath, cx, cr):
                     xray.ikjoint.damping = 1
             else:
                 for (_, bdat) in ChunkedReader(data):
-                    _import_bone(cx, ChunkedReader(bdat), bpy_arm_obj, renamemap)
+                    _import_bone(context, ChunkedReader(bdat), bpy_arm_obj, renamemap)
             bpy.ops.object.mode_set(mode='EDIT')
             try:
                 bone_children = {}
@@ -653,7 +649,7 @@ def _import_main(fpath, cx, cr):
                         bone_children[parent.name] = children = []
                     children.append(bone)
                 fake_names = []
-                if cx.op.shaped_bones:
+                if context.op.shaped_bones:
                     bones = bpy_armature.edit_bones
                     lenghts = [0] * len(bones)
                     for i, bone in enumerate(bones):
@@ -710,7 +706,7 @@ def _import_main(fpath, cx, cr):
             finally:
                 bpy.ops.object.mode_set(mode='OBJECT')
         elif cid == Chunks.Object.MOTIONS:
-            if not cx.import_motions:
+            if not context.import_motions:
                 continue
             reader = PackedReader(data)
             import_motions(reader, bpy_arm_obj)
@@ -721,7 +717,7 @@ def _import_main(fpath, cx, cr):
 
     mesh_objects = []
     for (_, mdat) in ChunkedReader(meshes_data):
-        mesh = _import_mesh(cx, ChunkedReader(mdat), renamemap)
+        mesh = _import_mesh(context, ChunkedReader(mdat), renamemap)
 
         if bpy_arm_obj:
             bpy_armmod = mesh.modifiers.new(name='Armature', type='ARMATURE')
@@ -742,7 +738,7 @@ def _import_main(fpath, cx, cr):
                 mesh.parent = bpy_obj
             bpy.context.scene.objects.link(bpy_obj)
 
-    bpy_obj.xray.version = cx.version
+    bpy_obj.xray.version = context.version
     bpy_obj.xray.isroot = True
     for (cid, data) in unread_chunks:
         if cid == Chunks.Object.TRANSFORM:
