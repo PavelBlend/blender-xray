@@ -1,10 +1,14 @@
+import io
+
 import bmesh
 import bpy
 import mathutils
-import io
+
 from .xray_io import ChunkedWriter, PackedWriter
+from .xray_motions import export_motions, MATRIX_BONE_INVERTED
 from .fmt_object import Chunks
-from .utils import is_exportable_bone, find_bone_exportable_parent, AppError, convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name, is_helper_object
+from .utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
+    convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name, is_helper_object
 from .utils import BAD_VTX_GROUP_NAME
 from . import log
 
@@ -17,40 +21,40 @@ class ExportContext:
         self.texname_from_path = texname_from_path
 
 
-def pw_v3f(v):
-    return v[0], v[2], v[1]
+def pw_v3f(vec):
+    return vec[0], vec[2], vec[1]
 
 
 def _export_sg_soc(bmfaces):
-    fsg = {}
+    face_sgroup = dict()
 
-    def mark_fsg(f, sg):
-        ff = [f]
-        for f in ff:
-            for e in f.edges:
-                if not e.smooth:
+    def mark_fsg(face, sgroup):
+        faces = [face]
+        for face in faces:
+            for edge in face.edges:
+                if not edge.smooth:
                     continue
-                for lf in e.link_faces:
-                    if fsg.get(lf) is None:
-                        fsg[lf] = sg
-                        ff.append(lf)
+                for linked_face in edge.link_faces:
+                    if face_sgroup.get(linked_face) is None:
+                        face_sgroup[linked_face] = sgroup
+                        faces.append(linked_face)
 
-    sgg = 0
-    for f in bmfaces:
-        sg = fsg.get(f)
-        if sg is None:
-            fsg[f] = sg = sgg
-            sgg += 1
-            mark_fsg(f, sg)
-        yield sg
+    sgroup_gen = 0
+    for face in bmfaces:
+        sgroup = face_sgroup.get(face)
+        if sgroup is None:
+            face_sgroup[face] = sgroup = sgroup_gen
+            sgroup_gen += 1
+            mark_fsg(face, sgroup)
+        yield sgroup
 
 
 def _check_sg_soc(bmedges, sgroups):
-    for e in bmedges:
-        if len(e.link_faces) != 2:
+    for edge in bmedges:
+        if len(edge.link_faces) != 2:
             continue
-        sg0, sg1 = sgroups[e.link_faces[0].index], sgroups[e.link_faces[1].index]
-        if e.smooth:
+        sg0, sg1 = sgroups[edge.link_faces[0].index], sgroups[edge.link_faces[1].index]
+        if edge.smooth:
             if sg0 != sg1:
                 return 'Maya-SG incompatible: smooth edge adjacents has different smoothing group'
         else:
@@ -59,29 +63,32 @@ def _check_sg_soc(bmedges, sgroups):
 
 
 def _export_sg_new(bmfaces):
-    for f in bmfaces:
-        sg = 0
-        for ei, e in enumerate(f.edges):
-            if not e.smooth:
-                sg |= (4, 2, 1)[ei]
-        yield sg
+    for face in bmfaces:
+        sm_group = 0
+        for eidx, edge in enumerate(face.edges):
+            if not edge.smooth:
+                sm_group |= (4, 2, 1)[eidx]
+        yield sm_group
 
 
-def _export_mesh(bpy_obj, bpy_root, cw, cx):
+def _export_mesh(bpy_obj, bpy_root, cw, context):
     cw.put(Chunks.Mesh.VERSION, PackedWriter().putf('H', 0x11))
     mesh_name = bpy_obj.data.name if bpy_obj == bpy_root else bpy_obj.name
     cw.put(Chunks.Mesh.MESHNAME, PackedWriter().puts(mesh_name))
 
     bm = convert_object_to_space_bmesh(bpy_obj, bpy_root.matrix_world)
     bml = bm.verts.layers.deform.verify()
-    bad_vgroups = [vg.name.startswith(BAD_VTX_GROUP_NAME) for vg in bpy_obj.vertex_groups]
-    bad_verts = [v for v in bm.verts if any(bad_vgroups[k] for k in v[bml].keys())]
+    bad_vgroups = [vertex_group.name.startswith(BAD_VTX_GROUP_NAME) for vertex_group in bpy_obj.vertex_groups]
+    bad_verts = [vertex for vertex in bm.verts if any(bad_vgroups[k] for k in vertex[bml].keys())]
     if bad_verts:
         log.warn('skipping geometry from "{}"-s vertex groups'.format(BAD_VTX_GROUP_NAME))
         bmesh.ops.delete(bm, geom=bad_verts, context=1)
 
     bbox = calculate_mesh_bbox(bm.verts)
-    cw.put(Chunks.Mesh.BBOX, PackedWriter().putf('fff', *pw_v3f(bbox[0])).putf('fff', *pw_v3f(bbox[1])))
+    cw.put(
+        Chunks.Mesh.BBOX,
+        PackedWriter().putf('fff', *pw_v3f(bbox[0])).putf('fff', *pw_v3f(bbox[1]))
+    )
     if hasattr(bpy_obj.data, 'xray'):
         flags = bpy_obj.data.xray.flags & ~Chunks.Mesh.Flags.SG_MASK  # MAX sg-format currently unsupported (we use Maya sg-format)
         cw.put(Chunks.Mesh.FLAGS, PackedWriter().putf('B', flags))
@@ -90,11 +97,11 @@ def _export_mesh(bpy_obj, bpy_root, cw, cx):
 
     bmesh.ops.triangulate(bm, faces=bm.faces)
 
-    pw = PackedWriter()
-    pw.putf('I', len(bm.verts))
-    for v in bm.verts:
-        pw.putf('fff', *pw_v3f(v.co))
-    cw.put(Chunks.Mesh.VERTS, pw)
+    writer = PackedWriter()
+    writer.putf('I', len(bm.verts))
+    for vertex in bm.verts:
+        writer.putf('fff', *pw_v3f(vertex.co))
+    cw.put(Chunks.Mesh.VERTS, writer)
 
     uvs = []
     vtx = []
@@ -103,20 +110,20 @@ def _export_mesh(bpy_obj, bpy_root, cw, cx):
     if not uv_layer:
         raise AppError('UV-map is required, but not found')
 
-    pw = PackedWriter()
-    pw.putf('I', len(bm.faces))
-    for f in bm.faces:
+    writer = PackedWriter()
+    writer.putf('I', len(bm.faces))
+    for fidx in bm.faces:
         for i in (0, 2, 1):
-            pw.putf('II', f.verts[i].index, len(uvs))
-            uv = f.loops[i][uv_layer].uv
-            uvs.append((uv[0], 1 - uv[1]))
-            vtx.append(f.verts[i].index)
-            fcs.append(f.index)
-    cw.put(Chunks.Mesh.FACES, pw)
+            writer.putf('II', fidx.verts[i].index, len(uvs))
+            uvc = fidx.loops[i][uv_layer].uv
+            uvs.append((uvc[0], 1 - uvc[1]))
+            vtx.append(fidx.verts[i].index)
+            fcs.append(fidx.index)
+    cw.put(Chunks.Mesh.FACES, writer)
 
     wmaps = []
     wmaps_cnt = 0
-    for vg, bad in zip(bpy_obj.vertex_groups, bad_vgroups):
+    for vertex_group, bad in zip(bpy_obj.vertex_groups, bad_vgroups):
         if bad:
             wmaps.append(None)
             continue
@@ -124,157 +131,156 @@ def _export_mesh(bpy_obj, bpy_root, cw, cx):
         wmaps_cnt += 1
 
     wrefs = []
-    for vi, v in enumerate(bm.verts):
+    for vidx, vertex in enumerate(bm.verts):
         wr = []
         wrefs.append(wr)
-        vw = v[bml]
+        vw = vertex[bml]
         for vgi in vw.keys():
-            wm = wmaps[vgi]
-            if wm is None:
+            wmap = wmaps[vgi]
+            if wmap is None:
                 continue
-            wr.append((1 + wm[1], len(wm[0])))
-            wm[0].append(vi)
+            wr.append((1 + wmap[1], len(wmap[0])))
+            wmap[0].append(vidx)
 
-    pw = PackedWriter()
-    pw.putf('I', len(uvs))
+    writer = PackedWriter()
+    writer.putf('I', len(uvs))
     for i in range(len(uvs)):
-        vi = vtx[i]
-        wr = wrefs[vi]
-        pw.putf('B', 1 + len(wr)).putf('II', 0, i)
-        for r in wr:
-            pw.putf('II', *r)
-    cw.put(Chunks.Mesh.VMREFS, pw)
+        vidx = vtx[i]
+        wref = wrefs[vidx]
+        writer.putf('B', 1 + len(wref)).putf('II', 0, i)
+        for ref in wref:
+            writer.putf('II', *ref)
+    cw.put(Chunks.Mesh.VMREFS, writer)
 
-    pw = PackedWriter()
+    writer = PackedWriter()
     sfaces = {
-        m.name: [fi for fi, f in enumerate(bm.faces) if f.material_index == mi]
+        m.name: [fidx for fidx, face in enumerate(bm.faces) if face.material_index == mi]
         for mi, m in enumerate(bpy_obj.data.materials)
     }
     if not sfaces:
         raise AppError('mesh "' + bpy_obj.data.name + '" has no material')
-    pw.putf('H', len(sfaces))
-    for n, ff in sfaces.items():
-        pw.puts(n).putf('I', len(ff))
-        for f in ff:
-            pw.putf('I', f)
-    cw.put(Chunks.Mesh.SFACE, pw)
+    writer.putf('H', len(sfaces))
+    for name, fidxs in sfaces.items():
+        writer.puts(name).putf('I', len(fidxs))
+        for fidx in fidxs:
+            writer.putf('I', fidx)
+    cw.put(Chunks.Mesh.SFACE, writer)
 
-    pw = PackedWriter()
+    writer = PackedWriter()
     sgroups = []
-    if cx.soc_sgroups:
+    if context.soc_sgroups:
         sgroups = tuple(_export_sg_soc(bm.faces))
         err = _check_sg_soc(bm.edges, sgroups)  # check for Maya compatibility
         if err:
             log.warn(err)
     else:
         sgroups = _export_sg_new(bm.faces)
-    for sg in sgroups:
-        pw.putf('I', sg)
-    cw.put(Chunks.Mesh.SG, pw)
+    for sgroup in sgroups:
+        writer.putf('I', sgroup)
+    cw.put(Chunks.Mesh.SG, writer)
 
-    pw = PackedWriter()
-    pw.putf('I', 1 + wmaps_cnt)
-    at = bpy_obj.data.uv_textures.active
-    pw.puts(at.name).putf('B', 2).putf('B', 1).putf('B', 0)
-    pw.putf('I', len(uvs))
-    for uv in uvs:
-        pw.putf('ff', *uv)
-    for vi in vtx:
-        pw.putf('I', vi)
-    for fi in fcs:
-        pw.putf('I', fi)
-    for vgi, vg in enumerate(bpy_obj.vertex_groups):
-        wm = wmaps[vgi]
-        if wm is None:
+    writer = PackedWriter()
+    writer.putf('I', 1 + wmaps_cnt)
+    texture = bpy_obj.data.uv_textures.active
+    writer.puts(texture.name).putf('B', 2).putf('B', 1).putf('B', 0)
+    writer.putf('I', len(uvs))
+    for uvc in uvs:
+        writer.putf('ff', *uvc)
+    for vidx in vtx:
+        writer.putf('I', vidx)
+    for fidx in fcs:
+        writer.putf('I', fidx)
+    for vgi, vertex_group in enumerate(bpy_obj.vertex_groups):
+        wmap = wmaps[vgi]
+        if wmap is None:
             continue
-        vtx = wm[0]
-        pw.puts(bpy_obj.vertex_groups[vgi].name)
-        pw.putf('B', 1).putf('B', 0).putf('B', 1)
-        pw.putf('I', len(vtx))
-        for vi in vtx:
-            pw.putf('f', bm.verts[vi][bml][vgi])
-        pw.putf(str(len(vtx)) + 'I', *vtx)
-    cw.put(Chunks.Mesh.VMAPS2, pw)
+        vtx = wmap[0]
+        writer.puts(vertex_group.name)
+        writer.putf('B', 1).putf('B', 0).putf('B', 1)
+        writer.putf('I', len(vtx))
+        for vidx in vtx:
+            writer.putf('f', bm.verts[vidx][bml][vgi])
+        writer.putf(str(len(vtx)) + 'I', *vtx)
+    cw.put(Chunks.Mesh.VMAPS2, writer)
 
 
-__matrix_bone = mathutils.Matrix(((1.0, 0.0, 0.0, 0.0), (0.0, 0.0, -1.0, 0.0), (0.0, 1.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)))
-__matrix_bone_inv = __matrix_bone.inverted()
-
-
-def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, cx):
+def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
     real_parent = find_bone_exportable_parent(bpy_bone)
     if real_parent:
         if bonemap.get(real_parent) is None:
-            _export_bone(bpy_arm_obj, bpy_root, real_parent, bonemap, cx)
+            _export_bone(bpy_arm_obj, bpy_root, real_parent, writers, bonemap, context)
 
-    xr = bpy_bone.xray
-    cw = ChunkedWriter()
-    writers.append(cw)
-    bonemap[bpy_bone] = cw
-    cw.put(Chunks.Bone.VERSION, PackedWriter().putf('H', 0x02))
-    cw.put(Chunks.Bone.DEF, PackedWriter()
-           .puts(bpy_bone.name)
-           .puts(real_parent.name if real_parent else '')
-           .puts(bpy_bone.name))  # vmap
-    mw = bpy_root.matrix_world.inverted() * bpy_arm_obj.matrix_world
-    tm = mw * bpy_bone.matrix_local * __matrix_bone_inv
+    xray = bpy_bone.xray
+    writer = ChunkedWriter()
+    writers.append(writer)
+    bonemap[bpy_bone] = writer
+    writer.put(Chunks.Bone.VERSION, PackedWriter().putf('H', 0x02))
+    writer.put(Chunks.Bone.DEF, PackedWriter()
+               .puts(bpy_bone.name)
+               .puts(real_parent.name if real_parent else '')
+               .puts(bpy_bone.name))  # vmap
+    xmat = bpy_root.matrix_world.inverted() * bpy_arm_obj.matrix_world
+    mat = xmat * bpy_bone.matrix_local * MATRIX_BONE_INVERTED
     if real_parent:
-        tm = (mw * real_parent.matrix_local * __matrix_bone_inv).inverted() * tm
-    e = tm.to_euler('YXZ')
-    cw.put(Chunks.Bone.BIND_POSE, PackedWriter()
-           .putf('fff', *pw_v3f(tm.to_translation()))
-           .putf('fff', -e.x, -e.z, -e.y)
-           .putf('f', xr.length))
-    cw.put(Chunks.Bone.MATERIAL, PackedWriter().puts(xr.gamemtl))
-    v = xr.shape.check_version_different()
-    if v != 0:
+        mat = (xmat * real_parent.matrix_local * MATRIX_BONE_INVERTED).inverted() * mat
+    eul = mat.to_euler('YXZ')
+    writer.put(Chunks.Bone.BIND_POSE, PackedWriter()
+               .putf('fff', *pw_v3f(mat.to_translation()))
+               .putf('fff', -eul.x, -eul.z, -eul.y)
+               .putf('f', xray.length))
+    writer.put(Chunks.Bone.MATERIAL, PackedWriter().puts(xray.gamemtl))
+    verdif = xray.shape.check_version_different()
+    if verdif != 0:
         log.warn(
             'bone edited with a different version of this plugin',
             bone=bpy_bone.name,
-            version=xr.shape.fmt_version_different(v)
+            version=xray.shape.fmt_version_different(verdif)
         )
-    cw.put(Chunks.Bone.SHAPE, PackedWriter()
-           .putf('H', int(xr.shape.type))
-           .putf('H', xr.shape.flags)
-           .putf('fffffffff', *xr.shape.box_rot)
-           .putf('fff', *xr.shape.box_trn)
-           .putf('fff', *xr.shape.box_hsz)
-           .putf('fff', *xr.shape.sph_pos)
-           .putf('f', xr.shape.sph_rad)
-           .putf('fff', *xr.shape.cyl_pos)
-           .putf('fff', *xr.shape.cyl_dir)
-           .putf('f', xr.shape.cyl_hgh)
-           .putf('f', xr.shape.cyl_rad))
-    bp = bpy_arm_obj.pose.bones[bpy_bone.name]
-    cw.put(Chunks.Bone.IK_JOINT, PackedWriter()
-           .putf('I', int(xr.ikjoint.type))
-           .putf('ff', bp.ik_min_x, bp.ik_max_x)
-           .putf('ff', xr.ikjoint.lim_x_spr, xr.ikjoint.lim_x_dmp)
-           .putf('ff', bp.ik_min_y, bp.ik_max_y)
-           .putf('ff', xr.ikjoint.lim_y_spr, xr.ikjoint.lim_y_dmp)
-           .putf('ff', bp.ik_min_z, bp.ik_max_z)
-           .putf('ff', xr.ikjoint.lim_z_spr, xr.ikjoint.lim_z_dmp)
-           .putf('ff', xr.ikjoint.spring, xr.ikjoint.damping))
-    if xr.ikflags:
-        cw.put(Chunks.Bone.IK_FLAGS, PackedWriter().putf('I', xr.ikflags))
-        if xr.ikflags_breakable:
-            cw.put(Chunks.Bone.BREAK_PARAMS, PackedWriter()
-                   .putf('f', xr.breakf.force)
-                   .putf('f', xr.breakf.torque))
-    if int(xr.ikjoint.type) and xr.friction:
-        cw.put(Chunks.Bone.FRICTION, PackedWriter()
-               .putf('f', xr.friction))
-    if xr.mass.value:
-        cw.put(Chunks.Bone.MASS_PARAMS, PackedWriter()
-               .putf('f', xr.mass.value)
-               .putf('fff', *pw_v3f(xr.mass.center)))
+    writer.put(Chunks.Bone.SHAPE, PackedWriter()
+               .putf('H', int(xray.shape.type))
+               .putf('H', xray.shape.flags)
+               .putf('fffffffff', *xray.shape.box_rot)
+               .putf('fff', *xray.shape.box_trn)
+               .putf('fff', *xray.shape.box_hsz)
+               .putf('fff', *xray.shape.sph_pos)
+               .putf('f', xray.shape.sph_rad)
+               .putf('fff', *xray.shape.cyl_pos)
+               .putf('fff', *xray.shape.cyl_dir)
+               .putf('f', xray.shape.cyl_hgh)
+               .putf('f', xray.shape.cyl_rad))
+    pose_bone = bpy_arm_obj.pose.bones[bpy_bone.name]
+    writer.put(Chunks.Bone.IK_JOINT, PackedWriter()
+               .putf('I', int(xray.ikjoint.type))
+               .putf('ff', pose_bone.ik_min_x, pose_bone.ik_max_x)
+               .putf('ff', xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp)
+               .putf('ff', pose_bone.ik_min_y, pose_bone.ik_max_y)
+               .putf('ff', xray.ikjoint.lim_y_spr, xray.ikjoint.lim_y_dmp)
+               .putf('ff', pose_bone.ik_min_z, pose_bone.ik_max_z)
+               .putf('ff', xray.ikjoint.lim_z_spr, xray.ikjoint.lim_z_dmp)
+               .putf('ff', xray.ikjoint.spring, xray.ikjoint.damping))
+    if xray.ikflags:
+        writer.put(Chunks.Bone.IK_FLAGS, PackedWriter().putf('I', xray.ikflags))
+        if xray.ikflags_breakable:
+            writer.put(Chunks.Bone.BREAK_PARAMS, PackedWriter()
+                       .putf('f', xray.breakf.force)
+                       .putf('f', xray.breakf.torque))
+    if int(xray.ikjoint.type) and xray.friction:
+        writer.put(Chunks.Bone.FRICTION, PackedWriter()
+                   .putf('f', xray.friction))
+    if xray.mass.value:
+        writer.put(Chunks.Bone.MASS_PARAMS, PackedWriter()
+                   .putf('f', xray.mass.value)
+                   .putf('fff', *pw_v3f(xray.mass.center)))
 
 
-def _export_main(bpy_obj, cw, cx):
-    cw.put(Chunks.Object.VERSION, PackedWriter().putf('H', 0x10))
-    xr = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
-    cw.put(Chunks.Object.FLAGS, PackedWriter().putf('I', xr.flags if xr is not None else 0))
-    meshes = []
+def _export_main(bpy_obj, chunked_writer, context):
+    chunked_writer.put(Chunks.Object.VERSION, PackedWriter().putf('H', 0x10))
+    xray = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
+    chunked_writer.put(
+        Chunks.Object.FLAGS,
+        PackedWriter().putf('I', xray.flags if xray is not None else 0)
+    )
+    mesh_writers = []
     armatures = set()
     materials = set()
     bpy_root = bpy_obj
@@ -283,83 +289,87 @@ def _export_main(bpy_obj, cw, cx):
         if is_helper_object(bpy_obj):
             return
         if bpy_obj.type == 'MESH':
-            mw = ChunkedWriter()
-            _export_mesh(bpy_obj, bpy_root, mw, cx)
-            meshes.append(mw)
-            for m in bpy_obj.modifiers:
-                if (m.type == 'ARMATURE') and m.object:
-                    armatures.add(m.object)
-            for m in bpy_obj.data.materials:
-                materials.add(m)
+            mesh_writer = ChunkedWriter()
+            _export_mesh(bpy_obj, bpy_root, mesh_writer, context)
+            mesh_writers.append(mesh_writer)
+            for modifier in bpy_obj.modifiers:
+                if (modifier.type == 'ARMATURE') and modifier.object:
+                    armatures.add(modifier.object)
+            for modifier in bpy_obj.data.materials:
+                materials.add(modifier)
         elif bpy_obj.type == 'ARMATURE':
             armatures.add(bpy_obj)
-        for c in bpy_obj.children:
-            scan_r(c)
+        for child in bpy_obj.children:
+            scan_r(child)
 
     scan_r(bpy_obj)
 
-    bones = []
-    msw = ChunkedWriter()
-    idx = 0
+    bone_writers = []
     for bpy_arm_obj in armatures:
         bonemap = {}
-        for b in bpy_arm_obj.data.bones:
-            if not is_exportable_bone(b):
+        for bone in bpy_arm_obj.data.bones:
+            if not is_exportable_bone(bone):
                 continue
-            _export_bone(bpy_arm_obj, bpy_root, b, bones, bonemap, cx)
-    for mw in meshes:
-        msw.put(idx, mw)
+            _export_bone(bpy_arm_obj, bpy_root, bone, bone_writers, bonemap, context)
+
+    msw = ChunkedWriter()
+    idx = 0
+    for mesh_writer in mesh_writers:
+        msw.put(idx, mesh_writer)
         idx += 1
-    cw.put(Chunks.Object.MESHES, msw)
+
+    chunked_writer.put(Chunks.Object.MESHES, msw)
     sfw = PackedWriter()
     sfw.putf('I', len(materials))
-    for m in materials:
-        sfw.puts(m.name)
-        if hasattr(m, 'xray'):
-            sfw.puts(m.xray.eshader).puts(m.xray.cshader).puts(m.xray.gamemtl)
+    for material in materials:
+        sfw.puts(material.name)
+        if hasattr(material, 'xray'):
+            sfw.puts(material.xray.eshader).puts(material.xray.cshader).puts(material.xray.gamemtl)
         else:
             sfw.puts('').puts('').puts('')
         tx_name = ''
-        if m.active_texture:
-            if cx.texname_from_path:
-                tx_name = gen_texture_name(m.active_texture, cx.textures_folder)
+        if material.active_texture:
+            if context.texname_from_path:
+                tx_name = gen_texture_name(material.active_texture, context.textures_folder)
             else:
-                tx_name = m.active_texture.name
+                tx_name = material.active_texture.name
         sfw.puts(tx_name)
-        ts = m.texture_slots[m.active_texture_index]
-        sfw.puts(ts.uv_layer if ts else '')
-        if hasattr(m, 'xray'):
-            sfw.putf('I', m.xray.flags)
+        slot = material.texture_slots[material.active_texture_index]
+        sfw.puts(slot.uv_layer if slot else '')
+        if hasattr(material, 'xray'):
+            sfw.putf('I', material.xray.flags)
         else:
             sfw.putf('I', 0)
         sfw.putf('I', 0x112).putf('I', 1)
-    cw.put(Chunks.Object.SURFACES2, sfw)
+    chunked_writer.put(Chunks.Object.SURFACES2, sfw)
 
-    if bones:
-        bw = ChunkedWriter()
+    if bone_writers:
+        writer = ChunkedWriter()
         idx = 0
-        for b in bones:
-            bw.put(idx, b)
+        for bone_writer in bone_writers:
+            writer.put(idx, bone_writer)
             idx += 1
-        cw.put(Chunks.Object.BONES1, bw)
+        chunked_writer.put(Chunks.Object.BONES1, writer)
 
-    if xr.userdata:
-        cw.put(Chunks.Object.USERDATA, PackedWriter().puts('\r\n'.join(xr.userdata.splitlines())))
-    if xr.lodref:
-        cw.put(Chunks.Object.LOD_REF, PackedWriter().puts(xr.lodref))
+    if xray.userdata:
+        chunked_writer.put(
+            Chunks.Object.USERDATA,
+            PackedWriter().puts('\r\n'.join(xray.userdata.splitlines()))
+        )
+    if xray.lodref:
+        chunked_writer.put(Chunks.Object.LOD_REF, PackedWriter().puts(xray.lodref))
 
     arm_list = list(armatures)
-    some_arm = arm_list[0] if len(arm_list) else None  # take care of static objects
+    some_arm = arm_list[0] if arm_list else None  # take care of static objects
 
-    if some_arm and cx.export_motions:
-        from .xray_motions import export_motions
+    if some_arm and context.export_motions:
         acts = bpy.data.actions
-        pw = PackedWriter()
-        export_motions(pw, acts, cx, some_arm)
-        if pw.data:
-            cw.put(Chunks.Object.MOTIONS, pw)
+        writer = PackedWriter()
+        export_motions(writer, acts, some_arm)
+        if writer.data:
+            chunked_writer.put(Chunks.Object.MOTIONS, writer)
 
-    if some_arm and len(some_arm.pose.bone_groups):
+    if some_arm and some_arm.pose.bone_groups:
         exportable_bones = tuple(
             bone
             for bone in some_arm.pose.bones
@@ -379,63 +389,63 @@ def _export_main(bpy_obj, cw, cx):
             if group[1]
         )
         if non_empty_groups:
-            pw = PackedWriter()
-            pw.putf('I', len(non_empty_groups))
+            writer = PackedWriter()
+            writer.putf('I', len(non_empty_groups))
             for name, bones in non_empty_groups:
-                pw.puts(name)
-                pw.putf('I', len(bones))
+                writer.puts(name)
+                writer.putf('I', len(bones))
                 for bone in bones:
-                    pw.puts(bone)
-            cw.put(Chunks.Object.PARTITIONS1, pw)
+                    writer.puts(bone)
+            chunked_writer.put(Chunks.Object.PARTITIONS1, writer)
 
-    motionrefs = xr.motionrefs_collection
-    if len(motionrefs):
-        if xr.motionrefs:
-            log.warn('MotionRefs: skipped legacy data', data=xr.motionrefs)
-        if cx.soc_sgroups:
-            s = ','.join(mr.name for mr in motionrefs)
-            cw.put(Chunks.Object.MOTION_REFS, PackedWriter().puts(s))
+    motionrefs = xray.motionrefs_collection
+    if motionrefs:
+        if xray.motionrefs:
+            log.warn('MotionRefs: skipped legacy data', data=xray.motionrefs)
+        if context.soc_sgroups:
+            refs = ','.join(ref.name for ref in motionrefs)
+            chunked_writer.put(Chunks.Object.MOTION_REFS, PackedWriter().puts(refs))
         else:
-            pw = PackedWriter()
-            pw.putf('I', len(motionrefs))
-            for mr in motionrefs:
-                pw.puts(mr.name)
-            cw.put(Chunks.Object.SMOTIONS3, pw)
-    elif xr.motionrefs:
-        cw.put(Chunks.Object.MOTION_REFS, PackedWriter().puts(xr.motionrefs))
+            writer = PackedWriter()
+            writer.putf('I', len(motionrefs))
+            for ref in motionrefs:
+                writer.puts(ref.name)
+            chunked_writer.put(Chunks.Object.SMOTIONS3, writer)
+    elif xray.motionrefs:
+        chunked_writer.put(Chunks.Object.MOTION_REFS, PackedWriter().puts(xray.motionrefs))
 
     root_matrix = bpy_root.matrix_world
     if root_matrix != mathutils.Matrix.Identity(4):
-        pw = PackedWriter()
-        pw.putf('fff', *pw_v3f(root_matrix.to_translation()))
-        pw.putf('fff', *pw_v3f(root_matrix.to_euler('YXZ')))
-        cw.put(Chunks.Object.TRANSFORM, pw)
+        writer = PackedWriter()
+        writer.putf('fff', *pw_v3f(root_matrix.to_translation()))
+        writer.putf('fff', *pw_v3f(root_matrix.to_euler('YXZ')))
+        chunked_writer.put(Chunks.Object.TRANSFORM, writer)
 
     import platform, getpass, time
     curruser = '\\\\{}\\{}'.format(platform.node(), getpass.getuser())
     currtime = int(time.time())
-    pw = PackedWriter()
-    if (not xr.revision.owner) or (xr.revision.owner == curruser):
-        pw.puts(curruser)
-        pw.putf('I', xr.revision.ctime if xr.revision.ctime else currtime)
-        pw.puts('')
-        pw.putf('I', 0)
+    writer = PackedWriter()
+    if (not xray.revision.owner) or (xray.revision.owner == curruser):
+        writer.puts(curruser)
+        writer.putf('I', xray.revision.ctime if xray.revision.ctime else currtime)
+        writer.puts('')
+        writer.putf('I', 0)
     else:
-        pw.puts(xr.revision.owner)
-        pw.putf('I', xr.revision.ctime)
-        pw.puts(curruser)
-        pw.putf('I', currtime)
-    cw.put(Chunks.Object.REVISION, pw)
+        writer.puts(xray.revision.owner)
+        writer.putf('I', xray.revision.ctime)
+        writer.puts(curruser)
+        writer.putf('I', currtime)
+    chunked_writer.put(Chunks.Object.REVISION, writer)
 
 
-def _export(bpy_obj, cw, cx):
-    w = ChunkedWriter()
-    _export_main(bpy_obj, w, cx)
-    cw.put(Chunks.Object.MAIN, w)
+def _export(bpy_obj, chunked_writer, context):
+    writer = ChunkedWriter()
+    _export_main(bpy_obj, writer, context)
+    chunked_writer.put(Chunks.Object.MAIN, writer)
 
 
-def export_file(bpy_obj, fpath, cx):
-    with io.open(fpath, 'wb') as f:
-        cw = ChunkedWriter()
-        _export(bpy_obj, cw, cx)
-        f.write(cw.data)
+def export_file(bpy_obj, fpath, context):
+    with io.open(fpath, 'wb') as file:
+        writer = ChunkedWriter()
+        _export(bpy_obj, writer, context)
+        file.write(writer.data)

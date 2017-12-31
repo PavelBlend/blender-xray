@@ -1,7 +1,10 @@
 import bpy
+
 from .plugin_prefs import get_preferences
-from . import ui_dynmenu, ui_list, shape_edit_helper as seh
-from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl, is_helper_object
+from .ui import dynamic_menu, list_helper, collapsible
+from . import shape_edit_helper as seh
+from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl, \
+    is_helper_object
 from . import registry
 
 
@@ -19,32 +22,32 @@ class PropClipOp(bpy.types.Operator):
         ('paste', '', '', 'PASTEDOWN', 1),
         ('clear', '', '', 'X', 2)
     )
-    op = bpy.props.EnumProperty(items=items)
+    oper = bpy.props.EnumProperty(items=items)
     path = bpy.props.StringProperty()
 
     def execute(self, context):
         *path, prop = self.path.split('.')
         obj = context
-        for pn in path:
-            obj = getattr(obj, pn)
-        if self.op == 'copy':
+        for name in path:
+            obj = getattr(obj, name)
+        if self.oper == 'copy':
             context.window_manager.clipboard = getattr(obj, prop)
-        elif self.op == 'paste':
+        elif self.oper == 'paste':
             setattr(obj, prop, context.window_manager.clipboard)
-        elif self.op == 'clear':
+        elif self.oper == 'clear':
             setattr(obj, prop, '')
         return {'FINISHED'}
 
     @classmethod
     def drawall(cls, layout, path, value):
-        for i in cls.items:
-            l = layout
-            if i[0] in ('copy', 'clear') and not value:
-                l = l.split(align=True)
-                l.enabled = False
-            p = l.operator(cls.bl_idname, icon=i[3])
-            p.op = i[0]
-            p.path = path
+        for item in cls.items:
+            lay = layout
+            if item[0] in ('copy', 'clear') and not value:
+                lay = lay.split(align=True)
+                lay.enabled = False
+            props = lay.operator(cls.bl_idname, icon=item[3])
+            props.oper = item[0]
+            props.path = path
 
 
 class XRayPanel(bpy.types.Panel):
@@ -52,56 +55,11 @@ class XRayPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
 
-    def draw_header(self, context):
+    def draw_header(self, _context):
         self.layout.label(icon='PLUGIN')
 
 
-class _CollapsOp(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.collaps'
-    bl_label = ''
-    bl_description = 'Show / hide UI block'
-
-    key = bpy.props.StringProperty()
-
-    _DATA = {}
-
-    @classmethod
-    def get(cls, key):
-        return cls._DATA.get(key, False)
-
-    def execute(self, context):
-        _CollapsOp._DATA[self.key] = not _CollapsOp.get(self.key)
-        return {'FINISHED'}
-
-
-def draw_collapsible(layout, key, text=None, enabled=None, icon=None, style=None):
-    col = layout.column(align=True)
-    row = col.row(align=True)
-    rw = row
-    if (enabled is not None) and (not enabled):
-        rw = rw.row(align=True)
-        rw.enabled = False
-    isshow = _CollapsOp.get(key)
-    if icon is None:
-        icon = 'TRIA_DOWN' if isshow else 'TRIA_RIGHT'
-    kwargs = {}
-    if text is not None:
-        kwargs['text'] = text
-    box = col.box() if isshow else None
-    if style == 'tree':
-        rw = rw.row()
-        rw.alignment = 'LEFT'
-        if box:
-            bxr = box.row(align=True)
-            bxr.alignment = 'LEFT'
-            bxr.label('')
-            box = bxr.column()
-    op = rw.operator(_CollapsOp.bl_idname, icon=icon, emboss=style != 'tree', **kwargs)
-    op.key = key
-    return row, box
-
-
-@registry.requires(ui_list, PropClipOp)
+@registry.requires(list_helper, PropClipOp)
 class XRayObjectPanel(XRayPanel):
     bl_context = 'object'
     bl_label = _build_label('Object Root')
@@ -137,8 +95,14 @@ class XRayObjectPanel(XRayPanel):
             row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
         layout.prop(data, 'lodref')
         layout.prop(data, 'export_path')
-        rw, box = draw_collapsible(layout, 'object:userdata', 'User Data', enabled=data.userdata != '', icon='VIEWZOOM')
-        PropClipOp.drawall(rw, 'object.xray.userdata', data.userdata)
+        row, box = collapsible.draw(
+            layout,
+            'object:userdata',
+            'User Data',
+            enabled=data.userdata != '',
+            icon='VIEWZOOM'
+        )
+        PropClipOp.drawall(row, 'object.xray.userdata', data.userdata)
         if box:
             box = box.column(align=True)
             for line in data.userdata.splitlines():
@@ -147,12 +111,23 @@ class XRayObjectPanel(XRayPanel):
             split = layout.split()
             split.alert = True
             split.prop(data, 'motionrefs')
-        rw, box = draw_collapsible(layout, 'object:motionsrefs', 'Motion Refs (%d)' % len(data.motionrefs_collection))
+        _, box = collapsible.draw(
+            layout,
+            'object:motionsrefs',
+            'Motion Refs (%d)' % len(data.motionrefs_collection)
+        )
         if box:
             row = box.row()
-            row.template_list('UI_UL_list', 'name', data, 'motionrefs_collection', data, 'motionrefs_collection_index')
+            row.template_list(
+                'UI_UL_list', 'name',
+                data, 'motionrefs_collection',
+                data, 'motionrefs_collection_index'
+            )
             col = row.column(align=True)
-            ui_list.draw_list_ops(col, data, 'motionrefs_collection', 'motionrefs_collection_index')
+            list_helper.draw_list_ops(
+                col, data,
+                'motionrefs_collection', 'motionrefs_collection_index',
+            )
 
         box = layout.box()
         box.prop(data.revision, 'owner', text='Owner')
@@ -175,11 +150,10 @@ class XRayMeshPanel(XRayPanel):
     def draw(self, context):
         layout = self.layout
         data = context.object.data.xray
-        r = layout.row(align=True)
-        r.prop(data, 'flags_visible', text='Visible', toggle=True)
-        r.prop(data, 'flags_locked', text='Locked', toggle=True)
-        r.prop(data, 'flags_sgmask', text='SGMask', toggle=True)
-        # r.prop(data, 'flags_other', text='Other')
+        row = layout.row(align=True)
+        row.prop(data, 'flags_visible', text='Visible', toggle=True)
+        row.prop(data, 'flags_locked', text='Locked', toggle=True)
+        row.prop(data, 'flags_sgmask', text='SGMask', toggle=True)
 
 
 class XRayDetailMeshPanel(XRayPanel):
@@ -214,49 +188,52 @@ class XRayShapeEditHelperObjectPanel(XRayPanel):
             and seh.is_helper_object(context.active_object)
         )
 
-    def draw(self, context):
-        seh.draw_helper(self.layout, context.active_object)
+    def draw(self, _context):
+        seh.draw_helper(self.layout)
 
 
-@registry.requires(ui_dynmenu)
-class XRayXrMenuTemplate(ui_dynmenu.DynamicMenu):
+@registry.requires(dynamic_menu)
+class XRayXrMenuTemplate(dynamic_menu.DynamicMenu):
     @staticmethod
     def parse(data, fparse):
-        def push_dict(d, sp, v):
-            if len(sp) == 1:
-                d[sp[0]] = v
+        def push_dict(dct, split, value):
+            if len(split) == 1:
+                dct[split[0]] = value
             else:
-                e = d.get(sp[0], None)
-                if e is None:
-                    d[sp[0]] = e = dict()
-                push_dict(e, sp[1:], v)
+                nested = dct.get(split[0], None)
+                if nested is None:
+                    dct[split[0]] = nested = dict()
+                push_dict(nested, split[1:], value)
 
-        def dict_to_array(d):
+        def dict_to_array(dct):
             result = []
-            for (k, v) in d.items():
-                if isinstance(v, str):
-                    result.append((k, v))
+            for (key, val) in dct.items():
+                if isinstance(val, str):
+                    result.append((key, val))
                 else:
-                    result.append((k, dict_to_array(v)))
+                    result.append((key, dict_to_array(val)))
             return sorted(result, key=lambda e: e[0])
 
         tmp = dict()
-        for (n, d) in fparse(data):
-            sp = n.split('\\')
-            push_dict(tmp, sp, n)
+        for (name, _) in fparse(data):
+            split = name.split('\\')
+            push_dict(tmp, split, name)
         return dict_to_array(tmp)
 
     @classmethod
     def create_cached(cls, pref_prop, fparse):
-        return create_cached_file_data(lambda: getattr(get_preferences(), pref_prop, None), lambda data: cls.parse(data, fparse))
+        return create_cached_file_data(
+            lambda: getattr(get_preferences(), pref_prop, None),
+            lambda data: cls.parse(data, fparse)
+        )
 
     @classmethod
     def items_for_path(cls, path):
         data = cls.cached()
         if data is None:
             return []
-        for p in path:
-            data = data[p][1]
+        for pth in path:
+            data = data[pth][1]
         return data
 
 
@@ -278,14 +255,14 @@ class XRayGameMtlMenu(XRayXrMenuTemplate):
     cached = XRayXrMenuTemplate.create_cached('gamemtl_file', parse_gamemtl)
 
 
-def _gen_xr_selector(layout, data, name, text, ui_dynmenu):
-    s = layout.row(align=True)
-    s.prop(data, name, text=text)
-    ui_dynmenu.DynamicMenu.set_layout_context_data(s, data)
-    s.menu('io_scene_xray.dynmenu.' + name, icon='TRIA_DOWN')
+def _gen_xr_selector(layout, data, name, text):
+    row = layout.row(align=True)
+    row.prop(data, name, text=text)
+    dynamic_menu.DynamicMenu.set_layout_context_data(row, data)
+    row.menu('io_scene_xray.dynmenu.' + name, icon='TRIA_DOWN')
 
 
-@registry.requires(ui_dynmenu)
+@registry.requires(dynamic_menu)
 class XRayMaterialPanel(XRayPanel):
     bl_context = 'material'
     bl_label = _build_label('Material')
@@ -298,9 +275,9 @@ class XRayMaterialPanel(XRayPanel):
         layout = self.layout
         data = context.object.active_material.xray
         layout.prop(data, 'flags_twosided', 'Two sided', toggle=True)
-        _gen_xr_selector(layout, data, 'eshader', 'EShader', ui_dynmenu)
-        _gen_xr_selector(layout, data, 'cshader', 'CShader', ui_dynmenu)
-        _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl', ui_dynmenu)
+        _gen_xr_selector(layout, data, 'eshader', 'EShader')
+        _gen_xr_selector(layout, data, 'cshader', 'CShader')
+        _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
 
 
 class XRayArmaturePanel(XRayPanel):
@@ -317,15 +294,19 @@ class XRayArmaturePanel(XRayPanel):
     def draw(self, context):
         layout = self.layout
         data = context.active_object.data.xray
-        v = data.check_different_version_bones()
-        if v != 0:
+        verdif = data.check_different_version_bones()
+        if verdif != 0:
             from io_scene_xray.xray_inject import XRayBoneProperties
-            layout.label('Found bones, edited with ' + XRayBoneProperties.ShapeProperties.fmt_version_different(
-                v) + ' version of this plugin', icon='ERROR')
+            layout.label(
+                'Found bones, edited with '
+                + XRayBoneProperties.ShapeProperties.fmt_version_different(verdif)
+                + ' version of this plugin',
+                icon='ERROR'
+            )
         layout.prop(data, 'display_bone_shapes', toggle=True)
 
 
-@registry.requires(ui_dynmenu)
+@registry.requires(dynamic_menu)
 class XRayBonePanel(XRayPanel):
     bl_context = 'bone'
     bl_label = _build_label('Bone')
@@ -350,13 +331,17 @@ class XRayBonePanel(XRayPanel):
         data = bone.xray
         layout.enabled = data.exportable
         layout.prop(data, 'length')
-        _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl', ui_dynmenu)
+        _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
         box = layout.box()
         box.prop(data.shape, 'type', text='Shape Type')
-        v = data.shape.check_version_different()
-        if v != 0:
-            box.label('shape edited with ' + data.shape.fmt_version_different(v) + ' version of this plugin',
-                      icon='ERROR')
+        verdif = data.shape.check_version_different()
+        if verdif != 0:
+            box.label(
+                'shape edited with '
+                + data.shape.fmt_version_different(verdif)
+                + ' version of this plugin',
+                icon='ERROR'
+            )
         seh.draw(box.column(align=True), bone)
 
         row = box.row(align=True)
@@ -412,28 +397,27 @@ class XRayActionPanel(XRayPanel):
         from .plugin import OpExportSkl
         layout = self.layout
         obj = context.active_object
-        a = obj.animation_data.action
-        data = a.xray
-        if True:
-            box = layout.column(align=True) if data.autobake != 'off' else layout
-            if data.autobake_auto:
-                box.prop(data, 'autobake_auto', toggle=True, icon='RENDER_STILL')
-            else:
+        action = obj.animation_data.action
+        data = action.xray
+        box = layout.column(align=True) if data.autobake != 'off' else layout
+        if data.autobake_auto:
+            box.prop(data, 'autobake_auto', toggle=True, icon='RENDER_STILL')
+        else:
+            row = box.row(align=True)
+            row.prop(data, 'autobake_auto', toggle=True, text='Auto Bake:', icon='RENDER_STILL')
+            text = 'On' if data.autobake_on else 'Off'
+            row.prop(data, 'autobake_on', toggle=True, text=text)
+        if box != layout:
+            if data.autobake_custom_refine:
                 row = box.row(align=True)
-                row.prop(data, 'autobake_auto', toggle=True, text='Auto Bake:', icon='RENDER_STILL')
-                text = 'On' if data.autobake_on else 'Off'
-                row.prop(data, 'autobake_on', toggle=True, text=text)
-            if box != layout:
-                if data.autobake_custom_refine:
-                    row = box.row(align=True)
-                    row.prop(
-                        data, 'autobake_custom_refine',
-                        toggle=True, text='', icon='BUTS'
-                    )
-                    row.prop(data, 'autobake_refine_location', text='L')
-                    row.prop(data, 'autobake_refine_rotation', text='R')
-                else:
-                    box.prop(data, 'autobake_custom_refine', toggle=True)
+                row.prop(
+                    data, 'autobake_custom_refine',
+                    toggle=True, text='', icon='BUTS'
+                )
+                row.prop(data, 'autobake_refine_location', text='L')
+                row.prop(data, 'autobake_refine_rotation', text='R')
+            else:
+                box.prop(data, 'autobake_custom_refine', toggle=True)
         layout.prop(data, 'fps')
         if obj.type != 'ARMATURE':
             return
@@ -454,7 +438,7 @@ class XRayActionPanel(XRayPanel):
             row.prop(data, 'flags_stopatend', text='Stop', toggle=True)
             row.prop(data, 'flags_nomix', text='!Mix', toggle=True)
             row.prop(data, 'flags_syncpart', text='Sync', toggle=True)
-        layout.context_pointer_set(OpExportSkl.bl_idname + '.action', a)
+        layout.context_pointer_set(OpExportSkl.bl_idname + '.action', action)
         layout.operator(OpExportSkl.bl_idname, icon='EXPORT')
 
 
@@ -480,26 +464,39 @@ class XRayScenePanel(XRayPanel):
         if not data.export_root:
             row.enabled = False
         selection = OpExportProject.find_objects(context, use_selection=True)
-        if len(selection) == 0:
+        if not selection:
             gen_op(row, 'No Roots Selected', enabled=False)
         elif len(selection) == 1:
-            gen_op(row, text=selection[0].name + '.object', icon='OUTLINER_OB_MESH').use_selection = True
+            gen_op(
+                row,
+                text=selection[0].name + '.object',
+                icon='OUTLINER_OB_MESH'
+            ).use_selection = True
         else:
-            gen_op(row, text='Selected Objects (%d)' % len(selection), icon='GROUP').use_selection = True
+            gen_op(
+                row,
+                text='Selected Objects (%d)' % len(selection),
+                icon='GROUP'
+            ).use_selection = True
         scene = OpExportProject.find_objects(context)
-        gen_op(row, text='Scene Export (%d)' % len(scene), icon='SCENE_DATA', enabled=len(scene) != 0).use_selection = False
-        l = layout
-        if len(data.export_root) == 0:
-            l = l.split()
-            l.alert = True
-        l.prop(data, 'export_root')
+        gen_op(
+            row,
+            text='Scene Export (%d)' % len(scene),
+            icon='SCENE_DATA',
+            enabled=len(scene) != 0
+        ).use_selection = False
+        lay = layout
+        if not data.export_root:
+            lay = lay.split()
+            lay.alert = True
+        lay.prop(data, 'export_root')
         row = layout.split(0.33)
         row.label('Format Version:')
         row.row().prop(data, 'fmt_version', expand=True)
-        _, bx = draw_collapsible(layout, 'scene:object', 'Object Export Properties')
-        if bx:
-            bx.prop(data, 'object_export_motions')
-            bx.prop(data, 'object_texture_name_from_image_path')
+        _, box = collapsible.draw(layout, 'scene:object', 'Object Export Properties')
+        if box:
+            box.prop(data, 'object_export_motions')
+            box.prop(data, 'object_texture_name_from_image_path')
 
 
 class XRayColorizeMaterials(bpy.types.Operator):
@@ -514,7 +511,7 @@ class XRayColorizeMaterials(bpy.types.Operator):
         from zlib import crc32
 
         objects = context.selected_objects
-        if len(objects) == 0:
+        if not objects:
             self.report({'ERROR'}, 'No objects selected')
             return {'CANCELLED'}
 
@@ -543,7 +540,7 @@ class XRayMaterialToolsPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
-    def draw_header(self, context):
+    def draw_header(self, _context):
         self.layout.label(icon='PLUGIN')
 
     def draw(self, context):
@@ -558,7 +555,7 @@ class XRayMaterialToolsPanel(bpy.types.Panel):
 
 
 registry.module_requires(__name__, [
-    _CollapsOp,
+    collapsible,
     XRayObjectPanel
     , XRayDetailMeshPanel
     , XRayMeshPanel

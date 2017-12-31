@@ -1,5 +1,6 @@
-import bpy
 import sys
+
+import bpy
 
 _REGISTERED_THINGS = dict()
 

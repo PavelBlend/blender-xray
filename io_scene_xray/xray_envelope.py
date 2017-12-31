@@ -1,10 +1,10 @@
 from enum import Enum
 from .xray_io import PackedWriter
 from .utils import mkstruct
-from .log import warn
+from .log import warn, with_context
 
 
-class Behaviour(Enum):
+class Behavior(Enum):
     RESET = 0
     CONSTANT = 1
     REPEAT = 2
@@ -22,85 +22,103 @@ class Shape(Enum):
     BEZIER_2D = 5
 
 
-def import_envelope(pr, fc, fps, kv):
-    b0, b1 = map(Behaviour, pr.getf('BB'))
+@with_context('import-envelope')
+def import_envelope(reader, fcurve, fps, koef):
+    bhv0, bhv1 = map(Behavior, reader.getf('BB'))
 
-    if b0 != b1:
-        warn('Envelope: different behaviours: {} != {}, {} replaced with {}'.format(b0.name, b1.name, b1.name, b0.name))
-        b1 = b0
-    if b0 == Behaviour.CONSTANT:
-        fc.extrapolation = 'CONSTANT'
-    elif b0 == Behaviour.LINEAR:
-        fc.extrapolation = 'LINEAR'
+    if bhv0 != bhv1:
+        warn(
+            'different behaviors, one will be replaced with another',
+            behavior=bhv1.name,
+            replacement=bhv0.name
+        )
+        bhv1 = bhv0
+    if bhv0 == Behavior.CONSTANT:
+        fcurve.extrapolation = 'CONSTANT'
+    elif bhv0 == Behavior.LINEAR:
+        fcurve.extrapolation = 'LINEAR'
     else:
-        b1 = Behaviour.CONSTANT
-        warn('Envelope: behaviour {} not supported, replaced with {}'.format(b0.name, b1.name))
-        b0 = b1
-        fc.extrapolation = 'CONSTANT'
+        bhv1 = Behavior.CONSTANT
+        warn(
+            'behavior isn\'t supported, and will be replaced',
+            behavior=bhv0.name,
+            replacement=bhv1.name
+        )
+        bhv0 = bhv1
+        fcurve.extrapolation = 'CONSTANT'
 
     replace_unsupported_to = 'BEZIER'
     unsupported_occured = set()
-    fckf = fc.keyframe_points
-    kf = None
-    for _ in range(pr.getf('H')[0]):
-        v, t = pr.getf('ff')
-        sh = Shape(pr.getf('B')[0])
-        if kf:
-            if sh == Shape.LINEAR:
-                kf.interpolation = 'LINEAR'
-            elif sh == Shape.STEPPED:
-                kf.interpolation = 'CONSTANT'
+    fckf = fcurve.keyframe_points
+    key_frame = None
+    for _ in range(reader.getf('H')[0]):
+        value, time = reader.getf('ff')
+        shape = Shape(reader.getf('B')[0])
+        if key_frame:
+            if shape == Shape.LINEAR:
+                key_frame.interpolation = 'LINEAR'
+            elif shape == Shape.STEPPED:
+                key_frame.interpolation = 'CONSTANT'
             else:
-                unsupported_occured.add(sh.name)
-                kf.interpolation = replace_unsupported_to
-        kf = fckf.insert(t * fps, v * kv)
-        if sh != Shape.STEPPED:
-            pr.getf('HHH')
-            pr.getf('HHHH')
+                unsupported_occured.add(shape.name)
+                key_frame.interpolation = replace_unsupported_to
+        key_frame = fckf.insert(time * fps, value * koef)
+        if shape != Shape.STEPPED:
+            reader.skip(14)
 
-    if len(unsupported_occured):
-        warn('Envelope: unsupported shapes: {}, replaced by {}'.format(unsupported_occured, replace_unsupported_to))
+    if unsupported_occured:
+        warn(
+            'unsupported shapes are found, and will be replaced',
+            shapes=unsupported_occured,
+            replacement=replace_unsupported_to
+        )
 
 
 KF = mkstruct('KeyFrame', ['time', 'value', 'shape'])
 EPSILON = 0.0001
 
-def export_envelope(pw, fc, fps, kv, epsilon=EPSILON):
-    b = None
-    if fc.extrapolation == 'CONSTANT':
-        b = Behaviour.CONSTANT
-    elif fc.extrapolation == 'LINEAR':
-        b = Behaviour.LINEAR
+@with_context('export-envelope')
+def export_envelope(writer, fcurve, fps, koef, epsilon=EPSILON):
+    behavior = None
+    if fcurve.extrapolation == 'CONSTANT':
+        behavior = Behavior.CONSTANT
+    elif fcurve.extrapolation == 'LINEAR':
+        behavior = Behavior.LINEAR
     else:
-        b = Behaviour.LINEAR
-        warn('Envelope: extrapolation is not supported, and will be replaced', extrapolation=fc.extrapolation, replacement=b.name)
-    pw.putf('BB', b.value, b.value)
+        behavior = Behavior.LINEAR
+        warn(
+            'Envelope: extrapolation is not supported, and will be replaced',
+            extrapolation=fcurve.extrapolation,
+            replacement=behavior.name
+        )
+    writer.putf('BB', behavior.value, behavior.value)
 
     replace_unsupported_to = Shape.TCB
     unsupported_occured = set()
 
     def generate_keys(keyframe_points):
-        pkf = None
-        for ckf in keyframe_points:
+        prev_kf = None
+        for curr_kf in keyframe_points:
             shape = Shape.STEPPED
-            if pkf is not None:
-                if pkf.interpolation == 'CONSTANT':
+            if prev_kf is not None:
+                if prev_kf.interpolation == 'CONSTANT':
                     shape = Shape.STEPPED
-                elif pkf.interpolation == 'LINEAR':
+                elif prev_kf.interpolation == 'LINEAR':
                     shape = Shape.LINEAR
                 else:
-                    unsupported_occured.add(pkf.interpolation)
+                    unsupported_occured.add(prev_kf.interpolation)
                     shape = replace_unsupported_to
-            pkf = ckf
-            yield KF(ckf.co.x / fps, ckf.co.y / kv, shape)
+            prev_kf = curr_kf
+            yield KF(curr_kf.co.x / fps, curr_kf.co.y / koef, shape)
 
-    cpw = PackedWriter()
-    cnt = export_keyframes(cpw, refine_keys(generate_keys(fc.keyframe_points), epsilon))
+    kf_writer = PackedWriter()
+    keyframes = refine_keys(generate_keys(fcurve.keyframe_points), epsilon)
+    count = export_keyframes(kf_writer, keyframes)
 
-    pw.putf('H', cnt)
-    pw.putp(cpw)
+    writer.putf('H', count)
+    writer.putp(kf_writer)
 
-    if len(unsupported_occured):
+    if unsupported_occured:
         warn(
             'Envelope: unsupported shapes will be replaced by',
             shapes=unsupported_occured,
@@ -108,50 +126,50 @@ def export_envelope(pw, fc, fps, kv, epsilon=EPSILON):
         )
 
 
-def export_keyframes(cpw, keyframes):
-    cnt = 0
+def export_keyframes(writer, keyframes):
+    count = 0
 
-    for kfrm in keyframes:
-        cnt += 1
-        cpw.putf('ff', kfrm.value, kfrm.time)
-        cpw.putf('B', kfrm.shape.value)
-        if kfrm.shape != Shape.STEPPED:
-            cpw.putf('HHH', 32768, 32768, 32768)
-            cpw.putf('HHHH', 32768, 32768, 32768, 32768)
+    for keyframe in keyframes:
+        count += 1
+        writer.putf('ff', keyframe.value, keyframe.time)
+        writer.putf('B', keyframe.shape.value)
+        if keyframe.shape != Shape.STEPPED:
+            writer.putf('HHH', 32768, 32768, 32768)
+            writer.putf('HHHH', 32768, 32768, 32768, 32768)
 
-    return cnt
+    return count
 
 
 def refine_keys(keyframes, epsilon=EPSILON):
-    def significant(pkf, ckf, nkf, skipped):
-        def is_oor(icf, nwk):
-            ccy = (icf.time - pkf.time) * nwk + pkf.value
-            return abs(ccy - icf.value) >= epsilon
+    def significant(prev_kf, curr_kf, next_kf, skipped):
+        def is_oor(keyframe, derivative):
+            expected_value = (keyframe.time - prev_kf.time) * derivative + prev_kf.value
+            return abs(expected_value - keyframe.value) >= epsilon
 
-        if pkf is None:
-            return ckf is not None
-        if (ckf.shape == Shape.LINEAR) and (nkf.shape == Shape.LINEAR):
-            nwk = (nkf.value - pkf.value) / (nkf.time - pkf.time)
-            if is_oor(ckf, nwk):
+        if prev_kf is None:
+            return curr_kf is not None
+        if (curr_kf.shape == Shape.LINEAR) and (next_kf.shape == Shape.LINEAR):
+            derivative = (next_kf.value - prev_kf.value) / (next_kf.time - prev_kf.time)
+            if is_oor(curr_kf, derivative):
                 return True
-            for icf in skipped:
-                if is_oor(icf, nwk):
+            for keyframe in skipped:
+                if is_oor(keyframe, derivative):
                     return True
             return False
-        if (abs(pkf.value - ckf.value) + abs(ckf.value - nkf.value)) < epsilon:
+        if (abs(prev_kf.value - curr_kf.value) + abs(curr_kf.value - next_kf.value)) < epsilon:
             return False
         return True
 
-    pkf, ckf = None, None
+    prev_kf, curr_kf = None, None
     skipped = []
-    for nkf in keyframes:
-        if significant(pkf, ckf, nkf, skipped):
+    for next_kf in keyframes:
+        if significant(prev_kf, curr_kf, next_kf, skipped):
             skipped = []
-            pkf = ckf
-            yield ckf
-        elif ckf is not None:
-            skipped.append(ckf)
-        ckf = nkf
+            prev_kf = curr_kf
+            yield curr_kf
+        elif curr_kf is not None:
+            skipped.append(curr_kf)
+        curr_kf = next_kf
 
-    if ckf and ((not pkf) or (abs(ckf.value - pkf.value) >= epsilon)):
-        yield ckf
+    if curr_kf and ((not prev_kf) or (abs(curr_kf.value - prev_kf.value) >= epsilon)):
+        yield curr_kf

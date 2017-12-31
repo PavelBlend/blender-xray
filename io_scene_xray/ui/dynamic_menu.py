@@ -1,5 +1,5 @@
 import bpy
-from . import registry
+from io_scene_xray import registry
 
 
 @registry.module_thing
@@ -22,10 +22,10 @@ def _path_to_prefix(path):
 
 def _detect_current_path(context):
     result = []
-    for l in range(20):
+    for _ in range(20):
         for i in range(100):
-            s = _path_to_prefix(result + [i])
-            if getattr(context, s, None) is None:
+            pfx = _path_to_prefix(result + [i])
+            if getattr(context, pfx, None) is None:
                 if i:
                     result.append(i - 1)
                 break
@@ -38,10 +38,10 @@ class DynamicMenu(bpy.types.Menu):
 
     @classmethod
     def items_for_path(cls, path):
-        s = '/'.join(map(str, path))
+        pfx = '/'.join(map(str, path))
         return [
-            (s + '/0', None),
-            (s + '/1', None),
+            (pfx + '/0', None),
+            (pfx + '/1', None),
             ('<text>', '<value>')
         ]
 
@@ -50,23 +50,23 @@ class DynamicMenu(bpy.types.Menu):
         path = _detect_current_path(context)
         path_len = len(path)
         if path_len:
-            s = _path_to_prefix(path[:-1] + [path[path_len - 1] + 1])  # next sibling
-            layout.context_pointer_set(s, None)  # stop
+            pfx = _path_to_prefix(path[:-1] + [path[path_len - 1] + 1])  # next sibling
+            layout.context_pointer_set(pfx, None)  # stop
 
         items = self.items_for_path(path)
-        for i, e in enumerate(items):
-            tx, vl = e
-            s = _path_to_prefix(path + [i])
-            layout.context_pointer_set(s, context)
-            if isinstance(vl, str):
-                op = layout.operator(_DynamicMenuOp.bl_idname, text=tx)
-                op.prop = self.prop_name
-                op.value = vl
+        for i, item in enumerate(items):
+            text, value = item
+            pfx = _path_to_prefix(path + [i])
+            layout.context_pointer_set(pfx, context)
+            if isinstance(value, str):
+                oper = layout.operator(_DynamicMenuOp.bl_idname, text=text)
+                oper.prop = self.prop_name
+                oper.value = value
             else:
-                layout.menu(self.bl_idname, text=tx)
+                layout.menu(self.bl_idname, text=text)
 
-        s = _path_to_prefix(path + [i + 1])  # after last child
-        layout.context_pointer_set(s, None)  # stop
+        pfx = _path_to_prefix(path + [len(items)])  # after last child
+        layout.context_pointer_set(pfx, None)  # stop
 
     @staticmethod
     def set_layout_context_data(layout, data):

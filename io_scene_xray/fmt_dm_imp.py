@@ -1,17 +1,19 @@
 
-import io
 import os
+
 import bmesh
+import bpy
+
 from .utils import AppError
 from .xray_io import PackedReader
 
 
 def import_(fpath, cx, pr, mode='DM'):
-    if cx.bpy:
+    if True:
         object_name = os.path.basename(fpath.lower())
-        bpy_mesh = cx.bpy.data.meshes.new(object_name)
-        bpy_obj = cx.bpy.data.objects.new(object_name, bpy_mesh)
-        cx.bpy.context.scene.objects.link(bpy_obj)
+        bpy_mesh = bpy.data.meshes.new(object_name)
+        bpy_obj = bpy.data.objects.new(object_name, bpy_mesh)
+        bpy.context.scene.objects.link(bpy_obj)
         shader = pr.gets()
         texture = pr.gets()
         abs_image_path = os.path.abspath(os.path.join(cx.textures_folder, texture + '.dds'))
@@ -19,7 +21,7 @@ def import_(fpath, cx, pr, mode='DM'):
         bpy_material = None
         bpy_image = None
         bpy_texture = None
-        for bm in cx.bpy.data.materials:
+        for bm in bpy.data.materials:
             if not bm.name.startswith(texture):
                 continue
             if bm.xray.eshader != shader:
@@ -42,13 +44,13 @@ def import_(fpath, cx, pr, mode='DM'):
             bpy_material = bm
             break
         if not bpy_material:
-            bpy_material = cx.bpy.data.materials.new(texture)
+            bpy_material = bpy.data.materials.new(texture)
             bpy_material.xray.version = cx.version
             bpy_material.xray.eshader = shader
             bpy_material.use_shadeless = True
             bpy_material.use_transparency = True
             bpy_material.alpha = 0.0
-            bpy_texture = cx.bpy.data.textures.get(texture)
+            bpy_texture = bpy.data.textures.get(texture)
             if bpy_texture:
                 if not hasattr(bpy_texture, 'image'):
                     bpy_texture = None
@@ -56,7 +58,7 @@ def import_(fpath, cx, pr, mode='DM'):
                     if bpy_texture.image.filepath != abs_image_path:
                         bpy_texture = None
             if bpy_texture is None:
-                bpy_texture = cx.bpy.data.textures.new(texture, type='IMAGE')
+                bpy_texture = bpy.data.textures.new(texture, type='IMAGE')
                 bpy_texture.use_preview_alpha = True
                 bpy_texture_slot = bpy_material.texture_slots.add()
                 bpy_texture_slot.texture = bpy_texture
@@ -65,12 +67,12 @@ def import_(fpath, cx, pr, mode='DM'):
                 bpy_texture_slot.use_map_color_diffuse = True
                 bpy_texture_slot.use_map_alpha = True
                 bpy_image = None
-                for bi in cx.bpy.data.images:
+                for bi in bpy.data.images:
                     if abs_image_path == bi.filepath:
                         bpy_image = bi
                         break
                 if not bpy_image:
-                    bpy_image = cx.bpy.data.images.new(
+                    bpy_image = bpy.data.images.new(
                         os.path.basename(texture), 0, 0
                         )
                     bpy_image.source = 'FILE'
@@ -133,6 +135,6 @@ def import_(fpath, cx, pr, mode='DM'):
         return bpy_obj
 
 
-def import_file(fpath, cx):
-    with io.open(fpath, 'rb') as f:
-        import_(fpath, cx, PackedReader(f.read()))
+def import_file(fpath, context):
+    with open(fpath, 'rb') as file:
+        import_(fpath, context, PackedReader(file.read()))
