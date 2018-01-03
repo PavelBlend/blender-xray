@@ -27,10 +27,36 @@ class TestObjectImport(utils.XRayTestCase):
         self.assertReportsNotContains('WARNING')
         pbones = bpy.context.active_object.pose.bones
         self.assertIsNone(pbones[0].custom_shape)
-        fakes = [b.name for b in bpy.context.active_object.data.bones if b.name.endswith('.fake')]
+        bones = bpy.context.active_object.data.bones
+        fakes = [b.name for b in bones if b.name.endswith('.fake')]
         self.assertEqual(fakes, ['Bone1.fake'])
         self.assertEqual(pbones['Bone'].bone_group.name, 'GroupA')
         self.assertEqual(pbones['Bone1'].bone_group.name, 'GroupB')
+        self.assertTrue(bones['Bone1'].use_connect)
+
+    def test_import_no_fakes(self):
+        bpy.ops.xray_import.object(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_armature.object'}],
+            fake_bones=False,
+        )
+        self.assertReportsNotContains('WARNING')
+        bones = bpy.context.active_object.data.bones
+        fakes = [b.name for b in bones if b.name.endswith('.fake')]
+        self.assertEqual(fakes, [])
+        self.assertFalse(bones['Bone1'].use_connect)
+
+    def test_import_pretty(self):
+        bpy.ops.xray_import.object(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_armature.object'}],
+            pretty_bones=True,
+        )
+        self.assertReportsNotContains('WARNING')
+        bones = bpy.context.active_object.data.bones
+        fakes = [b.name for b in bones if b.name.endswith('.fake')]
+        self.assertEqual(fakes, [])
+        self.assertTrue(bones['Bone1'].use_connect)
 
     def test_import_uv(self):
         bpy.ops.xray_import.object(

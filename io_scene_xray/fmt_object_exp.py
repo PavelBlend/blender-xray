@@ -219,10 +219,11 @@ def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
                .puts(bpy_bone.name)
                .puts(real_parent.name if real_parent else '')
                .puts(bpy_bone.name))  # vmap
-    xmat = bpy_root.matrix_world.inverted() * bpy_arm_obj.matrix_world
-    mat = xmat * bpy_bone.matrix_local * MATRIX_BONE_INVERTED
+    mat = bpy_bone.xray.matrix_local(bpy_bone) * MATRIX_BONE_INVERTED
     if real_parent:
-        mat = (xmat * real_parent.matrix_local * MATRIX_BONE_INVERTED).inverted() * mat
+        mat = (real_parent.xray.matrix_local(real_parent) * MATRIX_BONE_INVERTED).inverted() * mat
+    else:
+        mat = (bpy_root.matrix_world.inverted() * bpy_arm_obj.matrix_world) * mat
     eul = mat.to_euler('YXZ')
     writer.put(Chunks.Bone.BIND_POSE, PackedWriter()
                .putf('fff', *pw_v3f(mat.to_translation()))

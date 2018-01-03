@@ -73,6 +73,7 @@ def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
 
 _SHARP = 0xffffffff
 _MIN_WEIGHT = 0.0002
+_MIN_BONE_LENGTH = 0.01
 
 @log.with_context(name='mesh')
 def _import_mesh(context, creader, renamemap):
@@ -414,7 +415,7 @@ def _create_bone(context, bpy_arm_obj, name, parent, vmap, offset, rotate, lengt
                 mat = bpy_bone.parent.matrix * MATRIX_BONE_INVERTED * mat
             else:
                 log.warn('bone parent isn\'t found', bone=name, parent=parent)
-        bpy_bone.tail.y = 0.02
+        bpy_bone.tail.y = _MIN_BONE_LENGTH
         bpy_bone.matrix = mat
         name = bpy_bone.name
     finally:
@@ -492,15 +493,19 @@ def _import_bone(context, creader, bpy_arm_obj, renamemap):
             pose_bone = bpy_arm_obj.pose.bones[name]
             value = str(reader.int())
             _safe_assign_enum_property(xray.ikjoint, 'type', value, 'bone ikjoint')
-            pose_bone.use_ik_limit_x = True
-            pose_bone.ik_min_x, pose_bone.ik_max_x = reader.getf('ff')
-            xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp = reader.getf('ff')
-            pose_bone.use_ik_limit_y = True
-            pose_bone.ik_min_y, pose_bone.ik_max_y = reader.getf('ff')
-            xray.ikjoint.lim_y_spr, xray.ikjoint.lim_y_dmp = reader.getf('ff')
-            pose_bone.use_ik_limit_z = True
-            pose_bone.ik_min_z, pose_bone.ik_max_z = reader.getf('ff')
-            xray.ikjoint.lim_z_spr, xray.ikjoint.lim_z_dmp = reader.getf('ff')
+            if not context.operator.pretty_bones:
+                pose_bone.use_ik_limit_x = True
+                pose_bone.ik_min_x, pose_bone.ik_max_x = reader.getf('ff')
+                xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp = reader.getf('ff')
+                pose_bone.use_ik_limit_y = True
+                pose_bone.ik_min_y, pose_bone.ik_max_y = reader.getf('ff')
+                xray.ikjoint.lim_y_spr, xray.ikjoint.lim_y_dmp = reader.getf('ff')
+                pose_bone.use_ik_limit_z = True
+                pose_bone.ik_min_z, pose_bone.ik_max_z = reader.getf('ff')
+                xray.ikjoint.lim_z_spr, xray.ikjoint.lim_z_dmp = reader.getf('ff')
+            else:
+                xray.ikjoint.enabled = False
+                reader.skip(12 * 4)
             xray.ikjoint.spring = reader.getf('f')[0]
             xray.ikjoint.damping = reader.getf('f')[0]
         elif cid == Chunks.Bone.MASS_PARAMS:
@@ -538,7 +543,60 @@ def _normalize_bones_lengths(bones):
                 min_rad_sq = rad_sq
         lenghts[i] = math.sqrt(min_rad_sq)
     for bone, length in zip(bones, lenghts):
-        bone.length = min(max(length * 0.4, 0.01), 0.1)
+        bone.length = min(max(length * 0.4, _MIN_BONE_LENGTH), 0.1)
+
+def _prettify_bone(bone, children):
+    armature = bone.id_data
+    if not children:
+        if bone.parent is None:
+            return False
+        parent = armature.bones[bone.parent.name]
+        bone.matrix *= parent.xray.matrix_local(parent).inverted() * bone.parent.matrix
+        return True
+
+    if len(children) == 1:
+        child = children[0]
+        bone.tail = child.head
+        if not armature.bones[child.name].xray.ikjoint.is_rigid:
+            child.use_connect = True
+        return True
+
+    center = mathutils.Vector()
+    count = 0
+    for child in children:
+        # Here is a tricky logic to workaround the bip01_tail human bone
+        if child.name != 'bip01_tail':
+            center += child.head
+            count += 1
+    if count == 0:
+        return False
+    center /= count
+    bvec = center - bone.head
+    if bvec.length == 0:
+        return False
+    if bvec.length < _MIN_BONE_LENGTH:
+        center = bone.head + bvec.normalized() * _MIN_BONE_LENGTH
+    bone.tail = center
+    return True
+
+def _fakerify_bone(bone):
+    parent = bone.parent
+    if parent is None:
+        return None
+    if bone.head == parent.tail:
+        return None
+    armature = bone.id_data
+    if armature.bones[bone.name].xray.ikjoint.is_rigid:
+        return None
+    fake_bone = armature.edit_bones.new(name=bone.name+'.fake')
+    fake_bone.use_deform = False
+    fake_bone.hide = True
+    fake_bone.parent = parent
+    fake_bone.use_connect = True
+    fake_bone.tail = bone.head
+    bone.parent = fake_bone
+    bone.use_connect = True
+    return fake_bone.name
 
 def _import_main(fpath, context, creader):
     object_name = os.path.basename(fpath.lower())
@@ -622,7 +680,7 @@ def _import_main(fpath, context, creader):
         elif (cid == Chunks.Object.BONES) or (cid == Chunks.Object.BONES1):
             if bpy and (bpy_arm_obj is None):
                 bpy_armature = bpy.data.armatures.new(object_name)
-                bpy_armature.use_auto_ik = True
+                bpy_armature.use_auto_ik = not context.operator.pretty_bones
                 bpy_armature.draw_type = 'STICK'
                 bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
                 bpy_arm_obj.show_x_ray = True
@@ -651,6 +709,15 @@ def _import_main(fpath, context, creader):
             else:
                 for (_, bdat) in ChunkedReader(data):
                     _import_bone(context, ChunkedReader(bdat), bpy_arm_obj, renamemap)
+            for bone in bpy_armature.bones:
+                mloc = bone.matrix_local
+                bone.xray.org_matrix = (
+                    *mloc.row[0],
+                    *mloc.row[1],
+                    *mloc.row[2],
+                    *mloc.row[3],
+                )
+
             bpy.ops.object.mode_set(mode='EDIT')
             try:
                 bone_children = {}
@@ -665,22 +732,20 @@ def _import_main(fpath, context, creader):
 
                 _normalize_bones_lengths(bpy_armature.edit_bones)
 
-                fake_names = []
                 for bone in bpy_armature.edit_bones:
                     children = bone_children.get(bone.name)
-                    if children:
-                        for child in children:
-                            if bpy_armature.bones[child.name].xray.ikjoint.type == '0':  # rigid
-                                continue
-                            fake_bone = bpy_armature.edit_bones.new(name=child.name+'.fake')
-                            fake_bone.use_deform = False
-                            fake_bone.hide = True
-                            fake_bone.parent = bone
-                            fake_bone.use_connect = True
-                            fake_bone.tail = child.head
-                            child.parent = fake_bone
-                            child.use_connect = True
-                            fake_names.append(fake_bone.name)
+                    if context.operator.pretty_bones:
+                        pbone = bpy_arm_obj.pose.bones.get(bone.name)
+                        length = bone.length
+                        if _prettify_bone(bone, children):
+                            pbone.custom_shape_scale *= length / bone.length
+
+                fake_names = []
+                if context.operator.fake_bones:
+                    for bone in bpy_armature.edit_bones:
+                        fake_name = _fakerify_bone(bone)
+                        if fake_name is not None:
+                            fake_names.append(fake_name)
             finally:
                 bpy.ops.object.mode_set(mode='OBJECT')
             for bone in bpy_arm_obj.pose.bones:
@@ -689,7 +754,8 @@ def _import_main(fpath, context, creader):
                 bone = bpy_arm_obj.pose.bones.get(name)
                 if bone:
                     bone.lock_ik_x = bone.lock_ik_y = bone.lock_ik_z = True
-                    bone.custom_shape = _get_fake_bone_shape()
+                    if context.operator.shaped_bones:
+                        bone.custom_shape = _get_fake_bone_shape()
                 bone = bpy_armature.bones.get(name)
                 if bone:
                     bone.hide = True

@@ -259,6 +259,18 @@ def _seh_edit_mode_set(value):
         seh.deactivate()
 
 
+__MATRIX_IDENTITY__ = mathutils.Matrix.Identity(4)
+
+def _fvec16_to_matrix4(fvec):
+    return mathutils.Matrix((fvec[0:4], fvec[4:8], fvec[8:12], fvec[12:16]))
+
+def _is_fvec16_nonzero(fvec):
+    for v in fvec:
+        if v != 0:
+            return True
+    return False
+
+
 @registry.requires('ShapeProperties', 'IKJointProperties', 'BreakProperties', 'MassProperties')
 class XRayBoneProperties(bpy.types.PropertyGroup):
     class BreakProperties(bpy.types.PropertyGroup):
@@ -355,6 +367,8 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         lim_z_dmp = bpy.props.FloatProperty()
         spring = bpy.props.FloatProperty()
         damping = bpy.props.FloatProperty()
+        enabled = bpy.props.BoolProperty(default=True)
+        is_rigid = bpy.props.BoolProperty(get=lambda self: self.type == '0')
 
     class MassProperties(bpy.types.PropertyGroup):
         value = bpy.props.FloatProperty()
@@ -380,6 +394,19 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
     breakf = bpy.props.PointerProperty(type=BreakProperties)
     friction = bpy.props.FloatProperty()
     mass = bpy.props.PointerProperty(type=MassProperties)
+    org_matrix = bpy.props.FloatVectorProperty(size=16)
+
+    def matrix_local(self, bone):
+        data = self.org_matrix
+        if _is_fvec16_nonzero(data):
+            return _fvec16_to_matrix4(self.org_matrix)
+        return bone.matrix_local
+
+    def matrix_delta(self, bone):
+        data = self.org_matrix
+        if not _is_fvec16_nonzero(data):
+            return __MATRIX_IDENTITY__
+        return _fvec16_to_matrix4(data).inverted() * bone.matrix_local
 
     def ondraw_postview(self, obj_arm, bone):
         if obj_arm.hide or not obj_arm.data.xray.display_bone_shapes:
@@ -401,8 +428,11 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         bgl.glGetFloatv(bgl.GL_LINE_WIDTH, prev_line_width)
         bgl.glPushMatrix()
         try:
-            mat = obj_arm.matrix_world * obj_arm.pose.bones[bone.name].matrix \
-                * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+            matrix_pose = obj_arm.pose.bones[bone.name].matrix
+            org_matrix = self.org_matrix
+            if _is_fvec16_nonzero(org_matrix):
+                matrix_pose *= bone.matrix_local.inverted() * _fvec16_to_matrix4(org_matrix)
+            mat = obj_arm.matrix_world * matrix_pose * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
             bgl.glLineWidth(2)
             if shape.type == '1':  # box
                 rot = shape.box_rot

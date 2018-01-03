@@ -57,6 +57,21 @@ def PropObjectBonesCustomShapes():
     )
 
 
+def PropObjectBonesImportPretty():
+    return bpy.props.BoolProperty(
+        name='Import Pretty Bones',
+        description='Skip IK limits and import a nice skeleton',
+    )
+
+
+def PropObjectBonesImportFake():
+    return bpy.props.BoolProperty(
+        name='Import Fake Bones',
+        default=True,
+        description='Create fake bones to connect real ones',
+    )
+
+
 def PropAnmCameraAnimation():
     return bpy.props.BoolProperty(
         name='Create Linked Camera',
@@ -101,6 +116,8 @@ class PluginPreferences(bpy.types.AddonPreferences):
     object_mesh_split_by_mat = PropObjectMeshSplitByMaterials()
     object_texture_names_from_path = PropObjectTextureNamesFromPath()
     object_bones_custom_shapes = PropObjectBonesCustomShapes()
+    object_bones_import_pretty = PropObjectBonesImportPretty()
+    object_bones_import_fake = PropObjectBonesImportFake()
     anm_create_camera = PropAnmCameraAnimation()
 
     def get_textures_folder(self):
@@ -138,6 +155,8 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 prop_bool(box_n, self, 'object_texture_names_from_path')
                 prop_bool(box_n, self, 'object_mesh_split_by_mat')
                 prop_bool(box_n, self, 'object_bones_custom_shapes')
+                prop_bool(box_n, self, 'object_bones_import_fake')
+                prop_bool(box_n, self, 'object_bones_import_pretty')
 
             _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.anm', 'Animation', style='tree')
             if box_n:

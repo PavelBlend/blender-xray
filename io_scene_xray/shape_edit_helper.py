@@ -58,7 +58,7 @@ def _v2ms(vector):
 
 def _bone_matrix(bone):
     xsh = bone.xray.shape
-    mat = bone.matrix_local * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+    mat = bone.xray.matrix_local(bone) * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
     if xsh.type == '1':  # box
         rot = xsh.box_rot
         mat *= mathutils.Matrix.Translation(xsh.box_trn)
@@ -133,7 +133,7 @@ class _ShapeEditApplyOp(bpy.types.Operator):
 
         hobj, bone = _helper()
         xsh = bone.xray.shape
-        mat = (bone.matrix_local * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))).inverted() \
+        mat = (bone.xray.matrix_local(bone) * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))).inverted() \
             * hobj.matrix_local
         if xsh.type == '1':  # box
             xsh.box_trn = mat.to_translation().to_tuple()

@@ -43,6 +43,8 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
     mesh_split_by_materials = plugin_prefs.PropObjectMeshSplitByMaterials()
 
     shaped_bones = plugin_prefs.PropObjectBonesCustomShapes()
+    pretty_bones = plugin_prefs.PropObjectBonesImportPretty()
+    fake_bones = plugin_prefs.PropObjectBonesImportFake()
 
     fmt_version = plugin_prefs.PropSDKVersion()
 
@@ -84,6 +86,8 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
         layout.prop(self, 'import_motions')
         layout.prop(self, 'mesh_split_by_materials')
         layout.prop(self, 'shaped_bones')
+        layout.prop(self, 'fake_bones')
+        layout.prop(self, 'pretty_bones')
 
     def invoke(self, context, event):
         prefs = plugin_prefs.get_preferences()
@@ -91,6 +95,8 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
         self.import_motions = prefs.object_motions_import
         self.mesh_split_by_materials = prefs.object_mesh_split_by_mat
         self.shaped_bones = prefs.object_bones_custom_shapes
+        self.pretty_bones = prefs.object_bones_import_pretty
+        self.fake_bones = prefs.object_bones_import_fake
         return super().invoke(context, event)
 
 
