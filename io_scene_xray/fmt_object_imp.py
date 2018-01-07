@@ -378,14 +378,6 @@ def _import_mesh(context, creader, renamemap):
     return bo_mesh
 
 
-def _get_fake_bone_shape():
-    result = bpy.data.objects.get('fake_bone_shape')
-    if result is None:
-        result = bpy.data.objects.new('fake_bone_shape', None)
-        result.empty_draw_size = 0
-    return result
-
-
 def _get_real_bone_shape():
     result = bpy.data.objects.get('real_bone_shape')
     if result is None:
@@ -639,16 +631,6 @@ def _import_main(fpath, context, creader):
                     _import_bone(context, ChunkedReader(bdat), bpy_arm_obj, renamemap)
             bpy.ops.object.mode_set(mode='EDIT')
             try:
-                bone_children = {}
-                for bone in bpy_armature.edit_bones:
-                    parent = bone.parent
-                    if not parent:
-                        continue
-                    children = bone_children.get(parent.name)
-                    if children is None:
-                        bone_children[parent.name] = children = []
-                    children.append(bone)
-                fake_names = []
                 if context.operator.shaped_bones:
                     bones = bpy_armature.edit_bones
                     lenghts = [0] * len(bones)
@@ -663,34 +645,10 @@ def _import_main(fpath, context, creader):
                         lenghts[i] = math.sqrt(min_rad_sq)
                     for bone, length in zip(bones, lenghts):
                         bone.length = min(max(length * 0.4, 0.01), 0.1)
-
-                for bone in bpy_armature.edit_bones:
-                    children = bone_children.get(bone.name)
-                    if children:
-                        for child in children:
-                            if bpy_armature.bones[child.name].xray.ikjoint.type == '0':  # rigid
-                                continue
-                            fake_bone = bpy_armature.edit_bones.new(name=child.name+'.fake')
-                            fake_bone.use_deform = False
-                            fake_bone.hide = True
-                            fake_bone.parent = bone
-                            fake_bone.use_connect = True
-                            fake_bone.tail = child.head
-                            child.parent = fake_bone
-                            child.use_connect = True
-                            fake_names.append(fake_bone.name)
             finally:
                 bpy.ops.object.mode_set(mode='OBJECT')
             for bone in bpy_arm_obj.pose.bones:
                 bone.rotation_mode = 'ZXY'
-            for name in fake_names:
-                bone = bpy_arm_obj.pose.bones.get(name)
-                if bone:
-                    bone.lock_ik_x = bone.lock_ik_y = bone.lock_ik_z = True
-                    bone.custom_shape = _get_fake_bone_shape()
-                bone = bpy_armature.bones.get(name)
-                if bone:
-                    bone.hide = True
         elif (cid == Chunks.Object.PARTITIONS0) or (cid == Chunks.Object.PARTITIONS1):
             bpy.context.scene.objects.active = bpy_arm_obj
             bpy.ops.object.mode_set(mode='POSE')

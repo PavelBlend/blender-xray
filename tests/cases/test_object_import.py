@@ -27,8 +27,6 @@ class TestObjectImport(utils.XRayTestCase):
         self.assertReportsNotContains('WARNING')
         pbones = bpy.context.active_object.pose.bones
         self.assertIsNone(pbones[0].custom_shape)
-        fakes = [b.name for b in bpy.context.active_object.data.bones if b.name.endswith('.fake')]
-        self.assertEqual(fakes, ['Bone1.fake'])
         self.assertEqual(pbones['Bone'].bone_group.name, 'GroupA')
         self.assertEqual(pbones['Bone1'].bone_group.name, 'GroupB')
 

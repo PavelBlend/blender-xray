@@ -3,8 +3,16 @@ import math
 
 from . import log
 
+__FAKE_BONE_SUFFIX = '.fake'
+
+def is_fake_bone_name(bone_name):
+    return bone_name.endswith(__FAKE_BONE_SUFFIX)
+
+def build_fake_bone_name(bone_name):
+    return bone_name + __FAKE_BONE_SUFFIX
+
 def is_exportable_bone(bpy_bone):
-    return bpy_bone.xray.exportable and not bpy_bone.name.endswith('.fake')
+    return bpy_bone.xray.exportable and not is_fake_bone_name(bpy_bone.name)
 
 
 def find_bone_exportable_parent(bpy_bone):
@@ -329,3 +337,13 @@ class ObjectsInitializer:
         for key, objset in self._sets:
             things = getattr(collections, key)
             objset.sync(things, init_thing)
+
+@contextmanager
+def using_mode(mode):
+    import bpy
+    original = bpy.context.object.mode
+    bpy.ops.object.mode_set(mode=mode)
+    try:
+        yield
+    finally:
+        bpy.ops.object.mode_set(mode=original)
