@@ -11,16 +11,12 @@ from .base_bone import AbstractBoneEditHelper
 class _BoneShapeEditHelper(AbstractBoneEditHelper):
     def draw(self, layout, context):
         if self.is_active(context):
-            layout.operator(_ShapeEditApplyOp.bl_idname, icon='FILE_TICK')
-            layout.operator(_ShapeEditFitOp.bl_idname, icon='BBOX')
+            layout.operator(_ApplyShape.bl_idname, icon='FILE_TICK')
+            layout.operator(_FitShape.bl_idname, icon='BBOX')
             super().draw(layout, context)
             return
 
-        lay = layout
-        if context.active_bone.xray.shape.type == '0':
-            lay = lay.split(align=True)
-            lay.enabled = False
-        lay.operator(EditShape.bl_idname, text='Edit Shape')
+        layout.operator(_EditShape.bl_idname, text='Edit Shape')
 
     def _create_helper(self, name):
         mesh = bpy.data.meshes.new(name=name)
@@ -32,9 +28,14 @@ class _BoneShapeEditHelper(AbstractBoneEditHelper):
         bpy.data.meshes.remove(mesh)
 
     def _update_helper(self, helper, target):
-        super()._update_helper(helper, target)
         bone = target
-        mesh = _create_bmesh(bone.xray.shape.type)
+        shape_type = bone.xray.shape.type
+        if shape_type == '0':
+            self.deactivate()
+            return
+
+        super()._update_helper(helper, target)
+        mesh = _create_bmesh(shape_type)
         mesh.to_mesh(helper.data)
 
         mat = _bone_matrix(bone)
@@ -61,14 +62,16 @@ def _create_bmesh(shape_type):
 
 
 @registry.module_thing
-class EditShape(bpy.types.Operator):
+class _EditShape(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_shape'
     bl_label = 'Edit Bone Shape'
     bl_description = 'Create a helper object that can be used for adjusting bone shape'
 
     @classmethod
     def poll(cls, context):
-        return context.active_bone and not HELPER.is_active(context)
+        bone = context.active_bone
+        return bone and (bone.xray.shape.type != '0') and not HELPER.is_active(context)
+
 
     def execute(self, context):
         target = context.active_object.data.bones[context.active_bone.name]
@@ -105,7 +108,7 @@ def _bone_matrix(bone):
 
 
 @registry.module_thing
-class _ShapeEditApplyOp(bpy.types.Operator):
+class _ApplyShape(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_shape_apply'
     bl_label = 'Apply Shape'
     bl_options = {'UNDO'}
@@ -182,7 +185,7 @@ def _bone_vertices(bone):
 
 
 @registry.module_thing
-class _ShapeEditFitOp(bpy.types.Operator):
+class _FitShape(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_shape_fit'
     bl_label = 'Fit Shape'
     bl_options = {'UNDO'}

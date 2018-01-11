@@ -54,6 +54,8 @@ class AbstractHelper:
     def is_active(self, context=bpy.context):
         obj = context.active_object
         if utils.is_helper_object(obj):
+            if obj.name != self._name:
+                return False
             target = self._get_target_object(obj)
             return target is not None
         target = self.get_target()
@@ -75,6 +77,7 @@ class AbstractHelper:
         raise NotImplementedError()
 
     def _delete_helper(self, helper):
+        bpy.context.scene.objects.unlink(helper)
         bpy.data.objects.remove(helper)
 
     def _update_helper(self, helper, target):

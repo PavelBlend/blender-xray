@@ -9,15 +9,11 @@ from .base_bone import AbstractBoneEditHelper
 class _BoneCenterEditHelper(AbstractBoneEditHelper):
     def draw(self, layout, context):
         if self.is_active(context):
-            layout.operator(_CenterEditApplyOp.bl_idname, icon='FILE_TICK')
+            layout.operator(_ApplyCenter.bl_idname, icon='FILE_TICK')
             super().draw(layout, context)
             return
 
-        lay = layout
-        if context.active_bone.xray.shape.type == '0':
-            lay = lay.split(align=True)
-            lay.enabled = False
-        lay.operator(EditCenter.bl_idname, text='Edit Center')
+        layout.operator(_EditCenter.bl_idname, text='Edit Center')
 
     def _create_helper(self, name):
         helper = bpy.data.objects.new(name, None)
@@ -38,7 +34,7 @@ HELPER = _BoneCenterEditHelper('bone-center-edit')
 
 
 @registry.module_thing
-class EditCenter(bpy.types.Operator):
+class _EditCenter(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_center'
     bl_label = 'Edit Bone Center'
     bl_description = 'Create a helper object that can be used for adjusting bone center'
@@ -54,7 +50,7 @@ class EditCenter(bpy.types.Operator):
 
 
 @registry.module_thing
-class _CenterEditApplyOp(bpy.types.Operator):
+class _ApplyCenter(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_center_apply'
     bl_label = 'Apply Center'
     bl_options = {'UNDO'}
