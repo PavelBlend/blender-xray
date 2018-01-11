@@ -95,7 +95,7 @@ def get_object_helper(context):
 @registry.module_thing
 class EditCancel(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_cancel'
-    bl_label = 'Cancel Editing'
+    bl_label = 'Cancel'
     bl_description = 'Cancel editing and remove a helper object'
 
     @classmethod

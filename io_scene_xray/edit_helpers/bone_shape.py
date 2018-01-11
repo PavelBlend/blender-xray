@@ -10,10 +10,10 @@ from .base import AbstractHelper
 
 class _BoneShapeEditHelper(AbstractHelper):
     def draw(self, layout, context):
-        super().draw(layout, context)
         if self.is_active(context):
-            layout.operator(_ShapeEditFitOp.bl_idname, icon='BBOX')
             layout.operator(_ShapeEditApplyOp.bl_idname, icon='FILE_TICK')
+            layout.operator(_ShapeEditFitOp.bl_idname, icon='BBOX')
+            super().draw(layout, context)
             return
 
         lay = layout

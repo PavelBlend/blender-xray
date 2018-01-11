@@ -8,9 +8,9 @@ from .base import AbstractHelper
 
 class _BoneCenterEditHelper(AbstractHelper):
     def draw(self, layout, context):
-        super().draw(layout, context)
         if self.is_active(context):
             layout.operator(_CenterEditApplyOp.bl_idname, icon='FILE_TICK')
+            super().draw(layout, context)
             return
 
         lay = layout

@@ -372,10 +372,9 @@ class XRayBonePanel(XRayPanel):
             col.prop(data.breakf, 'force', text='Force')
             col.prop(data.breakf, 'torque', text='Torque')
         box = layout.box()
-        box.prop(data.mass, 'value', text='Mass')
-        lay = box.column(align=True)
-        bone_center.HELPER.draw(lay, context)
-        lay.prop(data.mass, 'center', text='')
+        box.prop(data.mass, 'value')
+        box.prop(data.mass, 'center')
+        bone_center.HELPER.draw(box.column(align=True), context)
 
 
 class XRayActionPanel(XRayPanel):

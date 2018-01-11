@@ -334,8 +334,8 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         damping = bpy.props.FloatProperty()
 
     class MassProperties(bpy.types.PropertyGroup):
-        value = bpy.props.FloatProperty()
-        center = bpy.props.FloatVectorProperty()
+        value = bpy.props.FloatProperty(name='Mass')
+        center = bpy.props.FloatVectorProperty(name='Center of Mass')
 
     b_type = bpy.types.Bone
     exportable = bpy.props.BoolProperty(default=True, description='Enable Bone to be exported')
