@@ -5,10 +5,10 @@ import bmesh
 import mathutils
 
 from io_scene_xray import registry, utils
-from .base import AbstractHelper
+from .base_bone import AbstractBoneEditHelper
 
 
-class _BoneShapeEditHelper(AbstractHelper):
+class _BoneShapeEditHelper(AbstractBoneEditHelper):
     def draw(self, layout, context):
         if self.is_active(context):
             layout.operator(_ShapeEditApplyOp.bl_idname, icon='FILE_TICK')
@@ -22,26 +22,6 @@ class _BoneShapeEditHelper(AbstractHelper):
             lay.enabled = False
         lay.operator(EditShape.bl_idname, text='Edit Shape')
 
-    def _is_active_target(self, target, context):
-        if target is None:
-            return False
-        bone = context.active_bone
-        if bone is None:
-            return False
-        return (bone.name == target.name) and (bone.id_data == target.id_data)
-
-    def _get_target_object(self, helper):
-        split = helper.xray.helper_data.split('/')
-        if len(split) != 2:
-            return
-        arm = bpy.data.armatures.get(split[0], None)
-        if arm is None:
-            return
-        bone = arm.bones.get(split[1], None)
-        if bone is None:
-            return
-        return bone
-
     def _create_helper(self, name):
         mesh = bpy.data.meshes.new(name=name)
         return bpy.data.objects.new(name, mesh)
@@ -52,13 +32,13 @@ class _BoneShapeEditHelper(AbstractHelper):
         bpy.data.meshes.remove(mesh)
 
     def _update_helper(self, helper, target):
+        super()._update_helper(helper, target)
         bone = target
         mesh = _create_bmesh(bone.xray.shape.type)
         mesh.to_mesh(helper.data)
 
         mat = _bone_matrix(bone)
         helper.matrix_local = mat
-        helper.xray.helper_data = bone.id_data.name + '/' + bone.name
 
         vscale = mat.to_scale()
         if not (vscale.x and vscale.y and vscale.z):
