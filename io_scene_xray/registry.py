@@ -39,12 +39,12 @@ def register_thing(thing, user=_default_user()):
             register_thing(req, thing)
         try:
             bpy.utils.register_class(thing)
-        except ValueError:
+        except ValueError as err:
             call = getattr(thing, 'register', None)
             if callable(call):
                 call()
             elif required == []:
-                raise Exception('Unsupported thing %s' % thing)
+                raise Exception('Unsupported thing %s' % thing, err, user)
     users.append(user)
 
 

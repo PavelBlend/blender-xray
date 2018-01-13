@@ -1,8 +1,8 @@
 import bpy
 
+from .edit_helpers import base as base_edit_helper, bone_shape, bone_center
 from .plugin_prefs import get_preferences
 from .ui import dynamic_menu, list_helper, collapsible
-from . import shape_edit_helper as seh
 from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl, \
     is_helper_object
 from . import registry
@@ -176,20 +176,18 @@ class XRayDetailMeshPanel(XRayPanel):
         layout.prop(data, 'max_scale', text='Max Scale')
 
 
-@registry.requires(seh)
-class XRayShapeEditHelperObjectPanel(XRayPanel):
+@registry.requires(base_edit_helper)
+class XRayEditHelperObjectPanel(XRayPanel):
     bl_context = 'object'
-    bl_label = _build_label('Shape Edit Helper')
+    bl_label = _build_label('Edit Helper')
 
     @classmethod
     def poll(cls, context):
-        return (
-            context.active_object
-            and seh.is_helper_object(context.active_object)
-        )
+        return base_edit_helper.get_object_helper(context) is not None
 
-    def draw(self, _context):
-        seh.draw_helper(self.layout)
+    def draw(self, context):
+        helper = base_edit_helper.get_object_helper(context)
+        helper.draw(self.layout, context)
 
 
 @registry.requires(dynamic_menu)
@@ -306,7 +304,7 @@ class XRayArmaturePanel(XRayPanel):
         layout.prop(data, 'display_bone_shapes', toggle=True)
 
 
-@registry.requires(dynamic_menu)
+@registry.requires(dynamic_menu, bone_shape, bone_center)
 class XRayBonePanel(XRayPanel):
     bl_context = 'bone'
     bl_label = _build_label('Bone')
@@ -342,7 +340,7 @@ class XRayBonePanel(XRayPanel):
                 + ' version of this plugin',
                 icon='ERROR'
             )
-        seh.draw(box.column(align=True), bone)
+        bone_shape.HELPER.draw(box.column(align=True), context)
 
         row = box.row(align=True)
         row.prop(data.shape, 'flags_nopickable', text='No Pickable', toggle=True)
@@ -374,8 +372,9 @@ class XRayBonePanel(XRayPanel):
             col.prop(data.breakf, 'force', text='Force')
             col.prop(data.breakf, 'torque', text='Torque')
         box = layout.box()
-        box.prop(data.mass, 'value', text='Mass')
-        box.prop(data.mass, 'center', text='Center')
+        box.prop(data.mass, 'value')
+        box.prop(data.mass, 'center')
+        bone_center.HELPER.draw(box.column(align=True), context)
 
 
 class XRayActionPanel(XRayPanel):
@@ -559,7 +558,7 @@ registry.module_requires(__name__, [
     XRayObjectPanel
     , XRayDetailMeshPanel
     , XRayMeshPanel
-    , XRayShapeEditHelperObjectPanel
+    , XRayEditHelperObjectPanel
     , XRayEShaderMenu
     , XRayCShaderMenu
     , XRayGameMtlMenu

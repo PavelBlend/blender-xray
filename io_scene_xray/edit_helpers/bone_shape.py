@@ -4,49 +4,79 @@ import bpy
 import bmesh
 import mathutils
 
-from . import utils
-from . import registry
-
-__HELPER_NAME = utils.HELPER_OBJECT_NAME_PREFIX + 'bone-shape-edit'
+from io_scene_xray import registry, utils
+from .base_bone import AbstractBoneEditHelper
 
 
-def _helper():
-    hobj = bpy.data.objects.get(__HELPER_NAME)
-    if hobj is None:
-        return
-    split = hobj.xray.helper_data.split('/')
-    if len(split) != 2:
-        return
-    arm = bpy.data.armatures.get(split[0], None)
-    if arm is None:
-        return
-    bone = arm.bones.get(split[1], None)
-    if bone is None:
-        return
-    return hobj, bone
+class _BoneShapeEditHelper(AbstractBoneEditHelper):
+    def draw(self, layout, context):
+        if self.is_active(context):
+            layout.operator(_ApplyShape.bl_idname, icon='FILE_TICK')
+            layout.operator(_FitShape.bl_idname, icon='BBOX')
+            super().draw(layout, context)
+            return
+
+        layout.operator(_EditShape.bl_idname, text='Edit Shape')
+
+    def _create_helper(self, name):
+        mesh = bpy.data.meshes.new(name=name)
+        return bpy.data.objects.new(name, mesh)
+
+    def _delete_helper(self, helper):
+        mesh = helper.data
+        super()._delete_helper(helper)
+        bpy.data.meshes.remove(mesh)
+
+    def _update_helper(self, helper, target):
+        bone = target
+        shape_type = bone.xray.shape.type
+        if shape_type == '0':
+            self.deactivate()
+            return
+
+        super()._update_helper(helper, target)
+        mesh = _create_bmesh(shape_type)
+        mesh.to_mesh(helper.data)
+
+        mat = _bone_matrix(bone)
+        helper.matrix_local = mat
+
+        vscale = mat.to_scale()
+        if not (vscale.x and vscale.y and vscale.z):
+            bpy.ops.io_scene_xray.edit_bone_shape_fit()
 
 
-def is_active():
-    helper = _helper()
-    if helper is None:
-        return False
-    bone = bpy.context.active_bone
-    if bone is None:
-        return False
-    return (helper[1].name == bone.name) and (helper[1].id_data == bone.id_data)
+HELPER = _BoneShapeEditHelper('bone-shape-edit')
 
-
-def _apply_type(mesh, type):
-    bmsh = bmesh.new()
-    if type == '1':
-        bmesh.ops.create_cube(bmsh, size=2)
-    elif type == '2':
-        bmesh.ops.create_icosphere(bmsh, subdivisions=2, diameter=1)
-    elif type == '3':
-        bmesh.ops.create_cone(bmsh, segments=16, diameter1=1, diameter2=1, depth=2)
+def _create_bmesh(shape_type):
+    mesh = bmesh.new()
+    if shape_type == '1':
+        bmesh.ops.create_cube(mesh, size=2)
+    elif shape_type == '2':
+        bmesh.ops.create_icosphere(mesh, subdivisions=2, diameter=1)
+    elif shape_type == '3':
+        bmesh.ops.create_cone(mesh, segments=16, diameter1=1, diameter2=1, depth=2)
     else:
-        raise AssertionError('unsupported shape type: ' + type)
-    bmsh.to_mesh(mesh)
+        raise AssertionError('unsupported bone shape type: ' + shape_type)
+    return mesh
+
+
+@registry.module_thing
+class _EditShape(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.edit_bone_shape'
+    bl_label = 'Edit Bone Shape'
+    bl_description = 'Create a helper object that can be used for adjusting bone shape'
+
+    @classmethod
+    def poll(cls, context):
+        bone = context.active_bone
+        return bone and (bone.xray.shape.type != '0') and not HELPER.is_active(context)
+
+
+    def execute(self, context):
+        target = context.active_object.data.bones[context.active_bone.name]
+        HELPER.activate(target)
+        return {'FINISHED'}
 
 
 def _v2ms(vector):
@@ -54,7 +84,6 @@ def _v2ms(vector):
     for i, val in enumerate(vector):
         matrix[i][i] = val
     return matrix
-
 
 def _bone_matrix(bone):
     xsh = bone.xray.shape
@@ -74,53 +103,13 @@ def _bone_matrix(bone):
         mat *= q_rot.to_matrix().transposed().to_4x4()
         mat *= _v2ms((xsh.cyl_rad, xsh.cyl_rad, xsh.cyl_hgh * 0.5))
     else:
-        raise AssertionError('unsupported shape type: ' + xsh.type)
+        raise AssertionError('unsupported bone shape type: ' + xsh.type)
     return mat
 
 
-def activate(bone, from_chtype=False):
-    helper = _helper()
-    if helper is None:
-        mesh = bpy.data.meshes.new(name=__HELPER_NAME + '.mesh')
-        hobj = bpy.data.objects.new(__HELPER_NAME, mesh)
-        hobj.draw_type = 'WIRE'
-        hobj.show_x_ray = True
-        hobj.hide_render = True
-        bpy.context.scene.objects.link(hobj)
-        helper = hobj, bone
-    else:
-        hobj, _ = helper
-    hobj.parent = bpy.context.active_object
-    _apply_type(hobj.data, bone.xray.shape.type)
-    mat = _bone_matrix(bone)
-    hobj.matrix_local = mat
-    hobj.xray.helper_data = bone.id_data.name + '/' + bone.name
-
-    vscale = mat.to_scale()
-    if not (vscale.x and vscale.y and vscale.z):
-        bpy.ops.io_scene_xray.shape_edit_fit()
-
-    if not from_chtype:
-        bpy.context.scene.objects.active = hobj
-        for obj in bpy.context.selectable_objects:
-            obj.select = obj == hobj
-
-
-def deactivate():
-    hobj, _ = _helper()
-    bpy.context.scene.objects.unlink(hobj)
-    mesh = hobj.data
-    bpy.data.objects.remove(hobj)
-    bpy.data.meshes.remove(mesh)
-
-
-def is_helper_object(obj):
-    return obj.name == __HELPER_NAME
-
-
 @registry.module_thing
-class _ShapeEditApplyOp(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.shape_edit_apply'
+class _ApplyShape(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.edit_bone_shape_apply'
     bl_label = 'Apply Shape'
     bl_options = {'UNDO'}
 
@@ -131,7 +120,7 @@ class _ShapeEditApplyOp(bpy.types.Operator):
                 result = max(result, abs(arg))
             return result
 
-        hobj, bone = _helper()
+        hobj, bone = HELPER.get_target()
         xsh = bone.xray.shape
         mat = (bone.matrix_local * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))).inverted() \
             * hobj.matrix_local
@@ -164,7 +153,7 @@ class _ShapeEditApplyOp(bpy.types.Operator):
             if obj.data == bone.id_data:
                 bpy.context.scene.objects.active = obj
                 break
-        deactivate()
+        HELPER.deactivate()
         bpy.context.scene.update()
         return {'FINISHED'}
 
@@ -196,8 +185,8 @@ def _bone_vertices(bone):
 
 
 @registry.module_thing
-class _ShapeEditFitOp(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.shape_edit_fit'
+class _FitShape(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.edit_bone_shape_fit'
     bl_label = 'Fit Shape'
     bl_options = {'UNDO'}
 
@@ -207,7 +196,7 @@ class _ShapeEditFitOp(bpy.types.Operator):
             vtx_a.y = func(vtx_a.y, vtx_b.y)
             vtx_a.z = func(vtx_a.z, vtx_b.z)
 
-        hobj, bone = _helper()
+        hobj, bone = HELPER.get_target()
         matrix = hobj.matrix_local
         matrix_inverted = matrix
         try:
@@ -252,20 +241,3 @@ class _ShapeEditFitOp(bpy.types.Operator):
                     raise AssertionError('unsupported shape type: ' + xsh.type)
         bpy.context.scene.update()
         return {'FINISHED'}
-
-
-def draw(layout, bone):
-    lay = layout
-    if bone.xray.shape.type == '0':
-        lay = lay.split(align=True)
-        lay.enabled = False
-    lay.prop(bone.xray.shape, 'edit_mode', text='Edit Shape', toggle=True)
-    if not bone.xray.shape.edit_mode:
-        return
-    layout.operator(_ShapeEditFitOp.bl_idname, icon='BBOX')
-    layout.operator(_ShapeEditApplyOp.bl_idname, icon='FILE_TICK')
-
-
-def draw_helper(layout):
-    layout.operator(_ShapeEditFitOp.bl_idname, icon='BBOX')
-    layout.operator(_ShapeEditApplyOp.bl_idname, icon='FILE_TICK')

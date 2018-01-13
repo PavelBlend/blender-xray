@@ -76,3 +76,13 @@ def draw_wire_cylinder(radius, half_height, num_segments):
     bgl.glVertex3f(0, -half_height, +radius)
     bgl.glVertex3f(0, +half_height, +radius)
     bgl.glEnd()
+
+def draw_cross(size):
+    bgl.glBegin(bgl.GL_LINES)
+    bgl.glVertex3f(-size, 0, 0)
+    bgl.glVertex3f(+size, 0, 0)
+    bgl.glVertex3f(0, -size, 0)
+    bgl.glVertex3f(0, +size, 0)
+    bgl.glVertex3f(0, 0, -size)
+    bgl.glVertex3f(0, 0, +size)
+    bgl.glEnd()

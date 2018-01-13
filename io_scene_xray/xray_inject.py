@@ -5,7 +5,7 @@ import bpy
 import mathutils
 
 from .plugin_prefs import PropObjectMotionsExport, PropObjectTextureNamesFromPath, PropSDKVersion
-from . import shape_edit_helper as seh
+from .edit_helpers.bone_shape import HELPER as seh
 from . import utils
 from . import registry
 
@@ -252,13 +252,6 @@ class XRayArmatureProperties(bpy.types.PropertyGroup):
         )
 
 
-def _seh_edit_mode_set(value):
-    if value:
-        seh.activate(bpy.context.active_object.data.bones[bpy.context.active_bone.name])
-    else:
-        seh.deactivate()
-
-
 @registry.requires('ShapeProperties', 'IKJointProperties', 'BreakProperties', 'MassProperties')
 class XRayBoneProperties(bpy.types.PropertyGroup):
     class BreakProperties(bpy.types.PropertyGroup):
@@ -297,17 +290,6 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         def set_curver(self):
             self.version_data = self._CURVER_DATA
 
-        def update_shape_type(self, _context):
-            if not self.edit_mode:
-                return
-            if self.type == '0':
-                seh.deactivate()
-                return
-            seh.activate(
-                bpy.context.active_object.data.bones[bpy.context.active_bone.name],
-                from_chtype=True
-            )
-
         type = bpy.props.EnumProperty(
             items=(
                 ('0', 'None', ''),
@@ -315,14 +297,9 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 ('2', 'Sphere', ''),
                 ('3', 'Cylinder', '')
             ),
-            update=update_shape_type
+            update=lambda self, ctx: seh.update(),
         )
 
-        edit_mode = bpy.props.BoolProperty(
-            get=lambda self: seh.is_active(),
-            set=lambda self, value: _seh_edit_mode_set(value),
-            options={'SKIP_SAVE'}
-        )
         flags = bpy.props.IntProperty()
         flags_nopickable = gen_flag_prop(mask=0x1)
         flags_removeafterbreak = gen_flag_prop(mask=0x2)
@@ -357,8 +334,8 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         damping = bpy.props.FloatProperty()
 
     class MassProperties(bpy.types.PropertyGroup):
-        value = bpy.props.FloatProperty()
-        center = bpy.props.FloatVectorProperty()
+        value = bpy.props.FloatProperty(name='Mass')
+        center = bpy.props.FloatVectorProperty(name='Center of Mass')
 
     b_type = bpy.types.Bone
     exportable = bpy.props.BoolProperty(default=True, description='Enable Bone to be exported')
@@ -385,7 +362,8 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         if obj_arm.hide or not obj_arm.data.xray.display_bone_shapes:
             return
 
-        from .gl_utils import matrix_to_buffer, draw_wire_cube, draw_wire_sphere, draw_wire_cylinder
+        from .gl_utils import matrix_to_buffer, \
+            draw_wire_cube, draw_wire_sphere, draw_wire_cylinder, draw_cross
 
         shape = self.shape
         if shape.type == '0':
@@ -403,6 +381,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         try:
             mat = obj_arm.matrix_world * obj_arm.pose.bones[bone.name].matrix \
                 * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+            bmat = mat
             bgl.glLineWidth(2)
             if shape.type == '1':  # box
                 rot = shape.box_rot
@@ -421,6 +400,12 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 q_rot = v_dir.rotation_difference((0, 1, 0))
                 bgl.glMultMatrixf(matrix_to_buffer(q_rot.to_matrix().to_4x4()))
                 draw_wire_cylinder(shape.cyl_rad, shape.cyl_hgh * 0.5, 16)
+            bgl.glPopMatrix()
+            bgl.glPushMatrix()
+            ctr = self.mass.center
+            trn = bmat * mathutils.Vector((ctr[0], ctr[2], ctr[1]))
+            bgl.glTranslatef(*trn)
+            draw_cross(0.05)
         finally:
             bgl.glPopMatrix()
             bgl.glLineWidth(prev_line_width[0])
