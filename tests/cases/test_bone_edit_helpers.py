@@ -106,6 +106,20 @@ class TestBoneEditHelpers(XRayTestCase):
         bpy.context.scene.objects.active = helper
 
         helper.location = (0, 0, 0)
+        self.assertFalse(bpy.ops.io_scene_xray.edit_bone_center_align.poll(), msg='no shape')
+
+        bone.xray.shape.type = '1'
+        bpy.ops.io_scene_xray.edit_bone_center_align()
+        self.assertEqual(round_vec(helper.location, 6), (0.1, 0, 0), msg='move helper to box')
+
+        bone.xray.shape.type = '2'
+        bpy.ops.io_scene_xray.edit_bone_center_align()
+        self.assertEqual(round_vec(helper.location, 6), (0, 0.2, 0), msg='move helper to sphere')
+
+        bone.xray.shape.type = '3'
+        bpy.ops.io_scene_xray.edit_bone_center_align()
+        self.assertEqual(round_vec(helper.location, 6), (0, 0, 0.3), msg='move helper to cylinder')
+
         bpy.ops.io_scene_xray.edit_bone_center_apply()
         self.assertIsNone(get_object_helper(bpy.context), msg='a helper is hidden')
         self.assertTrue(_has_nonzero(bone.xray.mass.center), msg='has center relative')
@@ -116,3 +130,6 @@ def _has_nonzero(vec):
         if val:
             return True
     return False
+
+def round_vec(vec, ndigits):
+    return tuple((round(val, ndigits) for val in vec))
