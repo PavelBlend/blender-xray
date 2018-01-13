@@ -2,8 +2,10 @@ import bpy
 
 from io_scene_xray import registry, utils
 
+from . import BaseOperator
+
 @registry.module_thing
-class CreateFakeBones(bpy.types.Operator):
+class CreateFakeBones(BaseOperator):
     bl_idname = 'io_scene_xray.create_fake_bones'
     bl_label = 'Create Fake Bones'
     bl_description = 'Connect non-rigid bone joints via fake bones to help with IK'
@@ -45,11 +47,12 @@ class CreateFakeBones(bpy.types.Operator):
                 bone = armature.bones[name]
                 bone.hide = True
 
+        self.report({'INFO'}, 'Created %d fake bones' % len(fake_names))
         return {'FINISHED'}
 
 
 @registry.module_thing
-class DeleteFakeBones(bpy.types.Operator):
+class DeleteFakeBones(BaseOperator):
     bl_idname = 'io_scene_xray.delete_fake_bones'
     bl_label = 'Delete Fake Bones'
     bl_description = 'Delete all previously created fake bones'
@@ -60,17 +63,23 @@ class DeleteFakeBones(bpy.types.Operator):
 
     def execute(self, context):
         armature = context.object.data
+        original_count = len(armature.bones)
         with utils.using_mode('EDIT'):
-            for bone in tuple(armature.edit_bones):
+            bones = armature.edit_bones
+            for bone in tuple(bones):
                 if not utils.is_fake_bone_name(bone.name):
                     continue
-                armature.edit_bones.remove(bone)
+                bones.remove(bone)
 
+        self.report(
+            {'INFO'},
+            'Removed %d fake bones' % (original_count - len(armature.bones)),
+        )
         return {'FINISHED'}
 
 
 @registry.module_thing
-class ToggleFakeBonesVisibility(bpy.types.Operator):
+class ToggleFakeBonesVisibility(BaseOperator):
     bl_idname = 'io_scene_xray.toggle_fake_bones_visibility'
     bl_label = 'Show/Hide Fake Bones'
     bl_description = 'Show/Hide all fake bones'

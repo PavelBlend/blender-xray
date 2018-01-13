@@ -1,3 +1,5 @@
+import re
+
 import bpy
 
 from tests import utils
@@ -15,10 +17,12 @@ class TestFakeBones(utils.XRayTestCase):
 
         operator()
         self.assertEqual(_fake_names(arm.bones), ['child1.fake', 'child2.fake'], msg='created')
+        self.assertReportsContains('INFO', re.compile('Created 2 fake bones'))
 
         arm = _create_armature('rigid', rigid=True)
         operator()
         self.assertEqual(_fake_names(arm.bones), [], msg='skip rigid')
+        self.assertReportsContains('INFO', re.compile('Created 0 fake bones'))
 
         arm = _create_armature('connected', connected=True)
         operator()
@@ -36,6 +40,7 @@ class TestFakeBones(utils.XRayTestCase):
 
         operator()
         self.assertEqual(_fake_names(arm.bones), [], msg='removed')
+        self.assertReportsContains('INFO', re.compile('Removed 2 fake bones'))
 
         self.assertFalse(operator.poll(), msg='removed')
 
