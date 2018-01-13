@@ -3,6 +3,7 @@ import bpy
 from .edit_helpers import base as base_edit_helper, bone_shape, bone_center
 from .plugin_prefs import get_preferences
 from .ui import dynamic_menu, list_helper, collapsible
+from .ops import fake_bones
 from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl, \
     is_helper_object
 from . import registry
@@ -303,6 +304,17 @@ class XRayArmaturePanel(XRayPanel):
             )
         layout.prop(data, 'display_bone_shapes', toggle=True)
 
+        lay = layout.column(align=True)
+        lay.label('Fake Bones:')
+        row = lay.row(align=True)
+        row.operator(fake_bones.CreateFakeBones.bl_idname, text='Create', icon='CONSTRAINT_BONE')
+        row.operator(fake_bones.DeleteFakeBones.bl_idname, text='Delete', icon='X')
+        lay.operator(
+            fake_bones.ToggleFakeBonesVisibility.bl_idname,
+            text='Show/Hide',
+            icon='VISIBLE_IPO_ON',
+        )
+
 
 @registry.requires(dynamic_menu, bone_shape, bone_center)
 class XRayBonePanel(XRayPanel):
@@ -555,6 +567,7 @@ class XRayMaterialToolsPanel(bpy.types.Panel):
 
 registry.module_requires(__name__, [
     collapsible,
+    fake_bones,
     XRayObjectPanel
     , XRayDetailMeshPanel
     , XRayMeshPanel

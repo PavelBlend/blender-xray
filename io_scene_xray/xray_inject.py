@@ -332,6 +332,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         lim_z_dmp = bpy.props.FloatProperty()
         spring = bpy.props.FloatProperty()
         damping = bpy.props.FloatProperty()
+        is_rigid = bpy.props.BoolProperty(get=lambda self: self.type == '0')
 
     class MassProperties(bpy.types.PropertyGroup):
         value = bpy.props.FloatProperty(name='Mass')

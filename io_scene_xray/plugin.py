@@ -4,6 +4,7 @@ import bpy
 from bpy_extras import io_utils
 
 from . import xray_inject
+from .ops import BaseOperator as TestReadyOperator
 from .utils import AppError, ObjectsInitializer, logger
 from . import plugin_prefs
 from . import registry
@@ -15,15 +16,6 @@ def execute_with_logger(method):
             return method(self, context)
 
     return wrapper
-
-
-class TestReadyOperator(bpy.types.Operator):
-    report_catcher = None
-
-    def __getattribute__(self, item):
-        if (item == 'report') and (self.report_catcher is not None):
-            return self.report_catcher
-        return super().__getattribute__(item)
 
 
 #noinspection PyUnusedLocal
