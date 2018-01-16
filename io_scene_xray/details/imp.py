@@ -2,8 +2,8 @@
 import os
 import io
 from .format import Chunks, SUPPORT_FORMAT_VERSIONS
-from io_scene_xray.utils import AppError
-from io_scene_xray.xray_io import ChunkedReader, PackedReader
+from ..utils import AppError
+from ..xray_io import ChunkedReader, PackedReader
 from .utility import generate_color_indices
 from . import read
 

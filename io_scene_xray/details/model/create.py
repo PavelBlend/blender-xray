@@ -115,7 +115,7 @@ def search_material(cx, dm):
 
 def create_mesh(cx, pr, dm, PackedReader):
 
-    from io_scene_xray.utils import AppError
+    from ...utils import AppError
 
     if dm.mesh.indices_count % 3 != 0:
         raise AppError('bad dm triangle indices')

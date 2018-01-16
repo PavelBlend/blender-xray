@@ -1,7 +1,7 @@
 
 import io
 import os
-from io_scene_xray.xray_io import PackedReader
+from ...xray_io import PackedReader
 from .create import create_object, search_material, create_mesh
 from .format import DetailModel
 

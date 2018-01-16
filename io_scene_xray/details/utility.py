@@ -1,5 +1,5 @@
 
-from io_scene_xray.utils import AppError
+from ..utils import AppError
 
 
 def _get_image(cx, bpy_obj, xray_prop, prop_name):

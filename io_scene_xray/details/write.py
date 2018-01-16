@@ -1,6 +1,6 @@
 
-from io_scene_xray.xray_io import PackedWriter, ChunkedWriter
-from io_scene_xray.utils import AppError
+from ..xray_io import PackedWriter, ChunkedWriter
+from ..utils import AppError
 
 from .format import (
     Chunks, FORMAT_VERSION_3, pixels_offset_1, pixels_offset_2,

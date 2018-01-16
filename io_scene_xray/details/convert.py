@@ -1,5 +1,5 @@
 
-from io_scene_xray.utils import AppError
+from ..utils import AppError
 from .format import pixels_offset_1, density_depth
 
 

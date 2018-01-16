@@ -1,6 +1,6 @@
 
 import io
-from io_scene_xray.xray_io import ChunkedWriter
+from ..xray_io import ChunkedWriter
 from .write import write_header, write_details, write_slots_v3, write_slots_v2
 
 from .convert import (

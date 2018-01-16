@@ -1,7 +1,7 @@
 
 import bpy
-from io_scene_xray.utils import is_helper_object
-from io_scene_xray.xray_inject_ui import draw_collapsible
+from ..utils import is_helper_object
+from ..xray_inject_ui import draw_collapsible
 
 
 class XRayDetailsPanel(bpy.types.Panel):

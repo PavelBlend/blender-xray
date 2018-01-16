@@ -1,9 +1,9 @@
 
 import bpy
 from bpy_extras import io_utils
-from io_scene_xray import plugin
-from io_scene_xray import plugin_prefs
-from io_scene_xray.utils import AppError
+from .. import plugin
+from .. import plugin_prefs
+from ..utils import AppError
 
 
 class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
@@ -56,7 +56,7 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
 
         from . import model
         from . import imp
-        from io_scene_xray.fmt_object_imp import ImportContext
+        from ..fmt_object_imp import ImportContext
 
         cx = ImportContext(
             report=self.report,

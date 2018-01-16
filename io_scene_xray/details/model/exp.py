@@ -4,11 +4,11 @@ import bpy
 import bmesh
 import mathutils
 
-from io_scene_xray.utils import (
+from ...utils import (
     convert_object_to_space_bmesh, AppError, gen_texture_name
     )
 
-from io_scene_xray.xray_io import PackedWriter
+from ...xray_io import PackedWriter
 from .validate import validate_export_object
 from .format import VERTICES_COUNT_LIMIT
 

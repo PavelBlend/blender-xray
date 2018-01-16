@@ -1,5 +1,5 @@
 
-from io_scene_xray.xray_io import PackedReader
+from ..xray_io import PackedReader
 from .format import DetailsHeader
 from .model import imp
 from .create import create_pallete, create_images, create_details_slots_object
