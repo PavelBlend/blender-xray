@@ -25,6 +25,7 @@ def read_header(pr):
 def read_details_meshes(base_name, cx, cr, color_indices, header):
 
     bpy_obj_root = cx.bpy.data.objects.new('{} meshes'.format(base_name), None)
+    bpy_obj_root.empty_draw_type = 'SPHERE'
     cx.bpy.context.scene.objects.link(bpy_obj_root)
 
     step_x = 0.5
