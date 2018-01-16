@@ -11,4 +11,8 @@ bl_info = {
     'warning':  'Under construction!'
 }
 
-from .plugin import register, unregister
+try:
+    #noinspection PyUnresolvedReferences
+    from .plugin import register, unregister
+except ImportError:
+    pass
