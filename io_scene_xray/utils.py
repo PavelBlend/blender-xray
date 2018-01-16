@@ -347,3 +347,35 @@ def using_mode(mode):
         yield
     finally:
         bpy.ops.object.mode_set(mode=original)
+
+def with_auto_property(prop_class, prop_id, getter, **kwargs):
+    def decorator(struct):
+        setattr(struct, prop_id, prop_class(
+            **kwargs,
+        ))
+
+        def get_value(self):
+            value = getattr(self, prop_id)
+            if not value:
+                value = getter(self)
+            return value
+
+        def set_value(self, value):
+            org_value = get_value(self)
+            if value != org_value:
+                setattr(self, prop_id, value)
+
+        kwargs2 = dict(kwargs)
+        if 'name' in kwargs2:
+            kwargs2['name'] += ' (auto)'
+        if 'description' in kwargs2:
+            kwargs2['description'] += ' (automatically calculated value)'
+
+        setattr(struct, prop_id + '_auto', prop_class(
+            **kwargs2,
+            get=get_value,
+            set=set_value,
+        ))
+        return struct
+
+    return decorator

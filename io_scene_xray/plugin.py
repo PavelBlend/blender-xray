@@ -40,7 +40,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
 
     @execute_with_logger
     def execute(self, _context):
-        textures_folder = plugin_prefs.get_preferences().get_textures_folder()
+        textures_folder = plugin_prefs.get_preferences().textures_folder_auto
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
         if not self.files:
@@ -195,7 +195,7 @@ class OpImportDM(TestReadyOperator, io_utils.ImportHelper):
 
     @execute_with_logger
     def execute(self, _context):
-        textures_folder = plugin_prefs.get_preferences().get_textures_folder()
+        textures_folder = plugin_prefs.get_preferences().textures_folder_auto
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
         if not self.files:
@@ -279,7 +279,7 @@ def find_objects_for_export(context):
 def _mk_export_context(texname_from_path, fmt_version=None, export_motions=True):
     from .fmt_object_exp import ExportContext
     return ExportContext(
-        textures_folder=plugin_prefs.get_preferences().get_textures_folder(),
+        textures_folder=plugin_prefs.get_preferences().textures_folder_auto,
         export_motions=export_motions,
         soc_sgroups=None if fmt_version is None else (fmt_version == 'soc'),
         texname_from_path=texname_from_path
