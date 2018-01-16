@@ -34,17 +34,6 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
         )
 
     load_slots = bpy.props.BoolProperty(name='Load Slots', default=True)
-    save_slots = bpy.props.BoolProperty(name='Save Slots', default=False)
-
-    save_format = bpy.props.EnumProperty(
-        name='Images Format',
-        items=(
-            ('PNG', 'PNG', ''),
-            ('TGA', 'TGA', '')
-            )
-        )
-
-    save_folder = bpy.props.StringProperty(name='Save Folder')
 
     format = bpy.props.EnumProperty(
         name='Details Format',
@@ -79,22 +68,11 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
             bpy=bpy
             )
 
-        if self.save_slots and len(self.save_folder) == 0:
-            self.report({'ERROR'}, 'No details slots folder specified')
-            return {'CANCELLED'}
-
-        import os
-
-        if self.save_slots:
-            if self.save_folder[-1] != os.sep:
-                self.save_folder += os.sep
-
-        cx.details_save_slots = self.save_slots
-        cx.save_format = self.save_format
         cx.format = self.format
-        cx.details_save_folder = self.save_folder
         cx.details_models_in_a_row = self.details_models_in_a_row
         cx.load_slots = self.load_slots
+
+        import os
 
         try:
             for file in self.files:
@@ -141,13 +119,6 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
             box.label('Format:')
             row = box.row()
             row.prop(self, 'format', expand=True)
-            box.prop(self, 'save_slots')
-
-            if self.save_slots:
-                box.label('Images Format:')
-                row = box.row()
-                row.prop(self, 'save_format', expand=True)
-                box.prop(self, 'save_folder')
 
     def invoke(self, context, event):
         return super().invoke(context, event)

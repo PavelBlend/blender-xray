@@ -170,6 +170,7 @@ def create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
         meshes_image.use_fake_user = True
         images_list.append(meshes_image.name)
         meshes_image.pixels = meshes[mesh_id]
+        meshes_image.pack(as_png=True)
         m_i.append(meshes_image.name)
 
     m.mesh_0 = m_i[0]
@@ -184,16 +185,19 @@ def create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
         light_image = _create_det_image('lights')
         images_list.append(light_image.name)
         light_image.pixels = lights
+        light_image.pack(as_png=True)
         l.lights_image = light_image.name
 
         shadows_image = _create_det_image('shadows')
         images_list.append(shadows_image.name)
         shadows_image.pixels = shadows
+        shadows_image.pack(as_png=True)
         l.shadows_image = shadows_image.name
 
         hemi_image = _create_det_image('hemi')
         images_list.append(hemi_image.name)
         hemi_image.pixels = hemi
+        hemi_image.pack(as_png=True)
         l.hemi_image = hemi_image.name
 
     elif header.format_version == 2:
@@ -204,40 +208,8 @@ def create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
         images_list.append(lights_v2_image.name)
         lights_v2_image.use_fake_user = True
         lights_v2_image.pixels = lights_old
+        lights_v2_image.pack(as_png=True)
         l.lights_image = lights_v2_image.name
-
-    if cx.details_save_slots:
-
-        settings = cx.bpy.context.scene.render.image_settings
-
-        file_format = settings.file_format
-        if cx.save_format == 'PNG':
-            settings.file_format = 'PNG'
-            ext = '.png'
-        if cx.save_format == 'TGA':
-            settings.file_format = 'TARGA'
-            ext = '.tga'
-
-        color_mode = settings.color_mode
-        color_depth = settings.color_depth
-        compression = settings.compression
-
-        settings.color_mode = 'RGBA'
-        settings.color_depth = '8'
-        settings.compression = 100
-
-        for image_name in images_list:
-            image = cx.bpy.data.images[image_name]
-            image_path = cx.details_save_folder + image_name + ext
-            image.save_render(image_path)
-            image.source = 'FILE'
-            image.filepath = image_path
-
-        settings.color_mode = color_mode
-        settings.color_depth = color_depth
-        settings.compression = compression
-
-        settings.file_format = file_format
 
 
 def create_pallete(cx, color_indices):
@@ -252,6 +224,7 @@ def create_pallete(cx, color_indices):
         meshes_indices_image = cx.bpy.data.images.new(pallete_name, 64, 1)
         meshes_indices_image.pixels = meshes_indices_pixels
         meshes_indices_image.use_fake_user = True
+        meshes_indices_image.pack(as_png=True)
 
     # create bpy pallete
     if cx.bpy.data.palettes.get(pallete_name) == None:
