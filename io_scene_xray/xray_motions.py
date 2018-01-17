@@ -3,7 +3,7 @@ from mathutils import Matrix, Euler, Quaternion
 
 from .utils import is_exportable_bone, find_bone_exportable_parent, AppError
 from .xray_envelope import Behavior, Shape, KF, EPSILON, refine_keys, export_keyframes
-from .xray_io import PackedWriter
+from .xray_io import PackedReader, PackedWriter
 from .log import warn, with_context, props as log_props
 
 
@@ -113,6 +113,40 @@ def import_motions(reader, bpy_armature):
     reported = set()
     for _ in range(reader.getf('I')[0]):
         import_motion(reader, bpy_armature, bonesmap, reported)
+
+
+__S_H__ = PackedReader.prep('H')
+
+@with_context('examine-motion')
+def examine_motion(reader):
+    name = reader.gets()
+    reader.skip(4 + 4 + 4)
+    ver = reader.getp(__S_H__)[0]
+    if ver < 6:
+        raise AppError('unsupported motions version', log_props(version=ver))
+
+    reader.skip(1 + 2 + 4 * 4)
+    for _bone_idx in range(reader.getp(__S_H__)[0]):
+        reader.skips()
+        reader.skip(1)
+        for _fcurve_idx in range(6):
+            reader.skip(1 + 1)
+            for _keyframe_idx in range(reader.getp(__S_H__)[0]):
+                reader.skip(4 + 4)
+                shape = reader.byte()
+                if shape != 4:
+                    reader.skip(2 * 3 + 2 * 4)
+    if ver >= 7:
+        for _bone_idx in range(reader.int()):
+            reader.skips()
+            reader.skip((4 + 4) * reader.int())
+
+    return name
+
+
+def examine_motions(reader):
+    for _ in range(reader.int()):
+        yield examine_motion(reader)
 
 
 @with_context('export-motion')

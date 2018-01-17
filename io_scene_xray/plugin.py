@@ -135,7 +135,11 @@ def invoke_require_armature(func):
 
 
 @registry.module_thing
+@registry.requires('Motion')
 class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
+    class Motion(bpy.types.PropertyGroup):
+        name = bpy.props.StringProperty()
+
     bl_idname = 'xray_import.skl'
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
@@ -145,6 +149,47 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
 
     directory = bpy.props.StringProperty(subtype='DIR_PATH')
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
+
+    motions_preview_items = bpy.props.CollectionProperty(type=Motion)
+    motions_preview_index = bpy.props.IntProperty()
+    __parsed_file_name = None
+
+    def draw(self, _context):
+        layout = self.layout
+        row = layout.row()
+        row.enabled = False
+        row.label('%d items' % len(self.files))
+
+        if len(self._get_motions()) > 1:
+            layout.template_list(
+                'UI_UL_list', 'name',
+                self, 'motions_preview_items',
+                self, 'motions_preview_index',
+            )
+
+    def _get_motions(self):
+        if len(self.files) == 1:
+            fpath = os.path.join(self.directory, self.files[0].name)
+            if self.__parsed_file_name != fpath:
+                items = self.motions_preview_items
+                items.clear()
+                for name in self._examine_file(fpath):
+                    items.add().name = name
+            self.__parsed_file_name = fpath
+        else:
+            self.motions_preview_items.clear()
+
+        return self.motions_preview_items
+
+    @staticmethod
+    def _examine_file(fpath):
+        if fpath.lower().endswith('.skls'):
+            from .xray_io import PackedReader
+            from .xray_motions import examine_motions
+            with open(fpath, 'rb') as file:
+                reader = PackedReader(file.read())
+                return examine_motions(reader)
+        return tuple()
 
     @execute_with_logger
     def execute(self, context):

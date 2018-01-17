@@ -54,6 +54,12 @@ class PackedReader:
     def skip(self, count):
         self.__offs += count
 
+    def skips(self):
+        zpos = self.__data.find(0, self.__offs)
+        if zpos == -1:
+            zpos = len(self.__data)
+        self.__offs = zpos + 1
+
 
 class ChunkedReader:
     __MASK_COMPRESSED = 0x80000000

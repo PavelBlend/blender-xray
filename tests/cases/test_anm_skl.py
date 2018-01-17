@@ -1,8 +1,9 @@
-from tests import utils
-
-import bpy
 import re
 
+import bpy
+
+from tests import utils
+from io_scene_xray.plugin import OpImportSkl
 
 class TestSklImport(utils.XRayTestCase):
     def test_skl_no_bone(self):
@@ -43,12 +44,14 @@ class TestSklImport(utils.XRayTestCase):
             directory=self.relpath(),
             files=[{'name': 'test_fmt.skls'}],
         )
+        motions = list(OpImportSkl._examine_file(self.relpath('test_fmt.skls')))
 
         # Assert
         self.assertReportsNotContains('WARNING')
         self.assertEqual(len(bpy.data.actions), 1)
         act = bpy.data.actions['xact']
         self.assertEqual(len(act.fcurves[0].keyframe_points), 3)
+        self.assertEqual(motions, ['xact'])
 
     def _create_armature(self, bone_name):
         arm = bpy.data.armatures.new('tarm')
