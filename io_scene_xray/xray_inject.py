@@ -1,11 +1,11 @@
+import time
+
 import bgl
 import bpy
-import math
 import mathutils
-import time
-from .xray_inject_ui import inject_ui_init, inject_ui_done
-from .plugin_prefs import get_preferences, PropObjectMotionsExport, PropObjectTextureNamesFromPath, PropSDKVersion
-from . import shape_edit_helper as seh
+
+from .plugin_prefs import PropObjectMotionsExport, PropObjectTextureNamesFromPath, PropSDKVersion
+from .edit_helpers.bone_shape import HELPER as seh
 from . import utils
 from .details.types import (
     XRayObjectDetailsProperties,
@@ -14,6 +14,7 @@ from .details.types import (
     XRayObjectDetailsSlotsLightingProperties,
     XRayObjectDetailsSlotsMeshesProperties
     )
+from . import registry
 
 
 def _gen_time_prop(prop, description=''):
@@ -21,22 +22,26 @@ def _gen_time_prop(prop, description=''):
     fmt_day = '%Y.%m.%d'
 
     def getter(self):
-        t = getattr(self, prop)
-        return time.strftime(fmt, time.localtime(t)) if t else ''
+        tval = getattr(self, prop)
+        return time.strftime(fmt, time.localtime(tval)) if tval else ''
 
     def setter(self, value):
         value = value.strip()
-        t = 0
+        tval = 0
         if value:
-            pt = None
+            ptime = None
             try:
-                pt = time.strptime(value, fmt)
+                ptime = time.strptime(value, fmt)
             except ValueError:
-                pt = time.strptime(value, fmt_day)
-            t = time.mktime(pt)
-        setattr(self, prop, t)
+                ptime = time.strptime(value, fmt_day)
+            tval = time.mktime(ptime)
+        setattr(self, prop, tval)
 
-    return bpy.props.StringProperty(description=description, get=getter, set=setter, options={'SKIP_SAVE'})
+    return bpy.props.StringProperty(
+        description=description,
+        get=getter, set=setter,
+        options={'SKIP_SAVE'}
+    )
 
 
 class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
@@ -56,7 +61,11 @@ def gen_flag_prop(mask, description='', customprop=''):
         if customprop and hasattr(self, customprop):
             setattr(self, customprop, True)
 
-    return bpy.props.BoolProperty(description=description, get=getter, set=setter, options={'SKIP_SAVE'})
+    return bpy.props.BoolProperty(
+        description=description,
+        get=getter, set=setter,
+        options={'SKIP_SAVE'}
+    )
 
 
 def gen_other_flags_prop(mask):
@@ -69,6 +78,7 @@ def gen_other_flags_prop(mask):
     return bpy.props.IntProperty(get=getter, set=setter, options={'SKIP_SAVE'})
 
 
+@registry.requires(XRayObjectRevisionProperties, 'MotionRef')
 class XRayObjectProperties(bpy.types.PropertyGroup):
     class MotionRef(bpy.types.PropertyGroup):
         name = bpy.props.StringProperty()
@@ -104,21 +114,52 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     ]
     _flags_simple_map = {v: k for k, v in enumerate(_flags_simple_inv_map)}
     flags_force_custom = bpy.props.BoolProperty(options={'SKIP_SAVE'})
-    flags_use_custom = bpy.props.BoolProperty(options={'SKIP_SAVE'}, get=lambda self:self.flags_force_custom or not (self.flags in self._flags_simple_map))
+    flags_use_custom = bpy.props.BoolProperty(
+        options={'SKIP_SAVE'},
+        get=lambda self: self.flags_force_custom or not (self.flags in self._flags_simple_map)
+    )
 
     def set_custom_type(self, value):
         self.flags = self.flags | 0x1 if value else self.flags & ~0x1
         self.flags_force_custom = True
 
-    flags_custom_type = bpy.props.EnumProperty(name='Custom Object Type', items=(
-        ('st', 'Static', ''),
-        ('dy', 'Dynamic', '')), options={'SKIP_SAVE'}, get=lambda self: self.flags & 0x1, set=set_custom_type)
-    flags_custom_progressive = gen_flag_prop(mask=0x02, description='Make Progressive', customprop='flags_force_custom')
-    flags_custom_lod = gen_flag_prop(mask=0x04, description='Using LOD', customprop='flags_force_custom')
-    flags_custom_hom = gen_flag_prop(mask=0x08, description='Hierarchical Occlusion Mapping', customprop='flags_force_custom')
-    flags_custom_musage = gen_flag_prop(mask=0x10, customprop='flags_force_custom')
-    flags_custom_soccl = gen_flag_prop(mask=0x20, customprop='flags_force_custom')
-    flags_custom_hqexp = gen_flag_prop(mask=0x40, description='HQ Geometry', customprop='flags_force_custom')
+    flags_custom_type = bpy.props.EnumProperty(
+        name='Custom Object Type',
+        items=(
+            ('st', 'Static', ''),
+            ('dy', 'Dynamic', '')
+        ),
+        options={'SKIP_SAVE'},
+        get=lambda self: self.flags & 0x1, set=set_custom_type
+    )
+    flags_custom_progressive = gen_flag_prop(
+        mask=0x02,
+        description='Make Progressive',
+        customprop='flags_force_custom'
+    )
+    flags_custom_lod = gen_flag_prop(
+        mask=0x04,
+        description='Using LOD',
+        customprop='flags_force_custom'
+    )
+    flags_custom_hom = gen_flag_prop(
+        mask=0x08,
+        description='Hierarchical Occlusion Mapping',
+        customprop='flags_force_custom'
+    )
+    flags_custom_musage = gen_flag_prop(
+        mask=0x10,
+        customprop='flags_force_custom'
+    )
+    flags_custom_soccl = gen_flag_prop(
+        mask=0x20,
+        customprop='flags_force_custom'
+    )
+    flags_custom_hqexp = gen_flag_prop(
+        mask=0x40,
+        description='HQ Geometry',
+        customprop='flags_force_custom'
+    )
 
     def flags_simple_get(self):
         if self.flags_force_custom:
@@ -138,24 +179,35 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
         ('pd', 'Progressive Dynamic', ''),
         ('dy', 'Dynamic', ''),
         ('st', 'Static', '')), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set)
-    lodref = bpy.props.StringProperty(name='lodref')
+    lodref = bpy.props.StringProperty(name='LOD Reference')
 
-    def userdata_update(self, context):
+    def userdata_update(self, _context):
         if self.userdata == '':
             self.show_userdata = False
     userdata = bpy.props.StringProperty(name='userdata', update=userdata_update)
     show_userdata = bpy.props.BoolProperty(description='View user data', options={'SKIP_SAVE'})
-    bpy.utils.register_class(XRayObjectRevisionProperties)
     revision = bpy.props.PointerProperty(type=XRayObjectRevisionProperties)
-    motionrefs = bpy.props.StringProperty(description='!Legacy: use \'motionrefs_collection\' instead')
-    bpy.utils.register_class(MotionRef)
+    motionrefs = bpy.props.StringProperty(
+        description='!Legacy: use \'motionrefs_collection\' instead'
+    )
     motionrefs_collection = bpy.props.CollectionProperty(type=MotionRef)
     motionrefs_collection_index = bpy.props.IntProperty(options={'SKIP_SAVE'})
     show_motionsrefs = bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'})
     helper_data = bpy.props.StringProperty()
-    export_path = bpy.props.StringProperty(name='Export Path', description='Path relative to the root export folder')
+    export_path = bpy.props.StringProperty(
+        name='Export Path',
+        description='Path relative to the root export folder'
+    )
 
     detail = bpy.props.PointerProperty(type=XRayObjectDetailsProperties)
+
+    def initialize(self, context):
+        if not self.version:
+            if context.operation == 'LOADED':
+                self.version = -1
+            elif context.operation == 'CREATED':
+                self.version = context.plugin_version_number
+                self.root = context.thing.type == 'MESH'
 
 
 class XRayMeshProperties(bpy.types.PropertyGroup):
@@ -174,6 +226,17 @@ class XRayMaterialProperties(bpy.types.PropertyGroup):
     eshader = bpy.props.StringProperty(default='models\\model')
     cshader = bpy.props.StringProperty(default='default')
     gamemtl = bpy.props.StringProperty(default='default')
+    version = bpy.props.IntProperty()
+
+    def initialize(self, context):
+        if not self.version:
+            if context.operation == 'LOADED':
+                self.version = -1
+            elif context.operation == 'CREATED':
+                self.version = context.plugin_version_number
+                obj = bpy.context.active_object
+                if obj and obj.xray.flags_custom_type == 'st':
+                    self.eshader = 'default'
 
 
 class XRayArmatureProperties(bpy.types.PropertyGroup):
@@ -182,22 +245,27 @@ class XRayArmatureProperties(bpy.types.PropertyGroup):
 
     def check_different_version_bones(self):
         from functools import reduce
-        return reduce(lambda x,y: x|y, [b.xray.shape.check_version_different() for b in self.id_data.bones], 0)
+        return reduce(
+            lambda x, y: x | y,
+            [b.xray.shape.check_version_different() for b in self.id_data.bones],
+            0,
+        )
 
 
+@registry.requires('ShapeProperties', 'IKJointProperties', 'BreakProperties', 'MassProperties')
 class XRayBoneProperties(bpy.types.PropertyGroup):
     class BreakProperties(bpy.types.PropertyGroup):
         force = bpy.props.FloatProperty()
         torque = bpy.props.FloatProperty()
 
     class ShapeProperties(bpy.types.PropertyGroup):
-        CURVER_DATA = 1
+        _CURVER_DATA = 1
 
         def check_version_different(self):
             def iszero(vec):
                 return not any(v for v in vec)
 
-            if self.version_data == self.CURVER_DATA:
+            if self.version_data == self._CURVER_DATA:
                 return 0
             if self.type == '0':  # none
                 return 0
@@ -208,34 +276,30 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 if iszero(self.sph_pos) and not self.sph_rad:
                     return 0  # default shape
             elif self.type == '3':  # cylinder
-                if iszero(self.cyl_pos) and iszero(self.cyl_dir) and not self.cyl_rad and not self.cyl_hgh:
+                if iszero(self.cyl_pos) \
+                    and iszero(self.cyl_dir) \
+                    and not self.cyl_rad \
+                    and not self.cyl_hgh:
                     return 0  # default shape
-            return 1 if self.version_data < XRayBoneProperties.ShapeProperties.CURVER_DATA else 2
+            return 1 if self.version_data < self._CURVER_DATA else 2
 
         @staticmethod
-        def fmt_version_different(r):
-            return 'obsolete' if r == 1 else ('newest' if r == 2 else 'different')
+        def fmt_version_different(res):
+            return 'obsolete' if res == 1 else ('newest' if res == 2 else 'different')
 
-        def update_shape_type(self, context):
-            if not self.edit_mode:
-                return
-            if self.type == '0':
-                seh.deactivate()
-                return
-            seh.activate(bpy.context.active_object.data.bones[bpy.context.active_bone.name], from_chtype=True)
+        def set_curver(self):
+            self.version_data = self._CURVER_DATA
 
-        type = bpy.props.EnumProperty(items=(
-            ('0', 'None', ''),
-            ('1', 'Box', ''),
-            ('2', 'Sphere', ''),
-            ('3', 'Cylinder', '')),
-            update=update_shape_type
+        type = bpy.props.EnumProperty(
+            items=(
+                ('0', 'None', ''),
+                ('1', 'Box', ''),
+                ('2', 'Sphere', ''),
+                ('3', 'Cylinder', '')
+            ),
+            update=lambda self, ctx: seh.update(),
         )
-        edit_mode = bpy.props.BoolProperty(
-            get=lambda self: seh.is_active(),
-            set=lambda self, value: seh.activate(bpy.context.active_object.data.bones[bpy.context.active_bone.name]) if value else seh.deactivate(),
-            options={'SKIP_SAVE'}
-        )
+
         flags = bpy.props.IntProperty()
         flags_nopickable = gen_flag_prop(mask=0x1)
         flags_removeafterbreak = gen_flag_prop(mask=0x2)
@@ -268,42 +332,47 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         lim_z_dmp = bpy.props.FloatProperty()
         spring = bpy.props.FloatProperty()
         damping = bpy.props.FloatProperty()
+        is_rigid = bpy.props.BoolProperty(get=lambda self: self.type == '0')
 
     class MassProperties(bpy.types.PropertyGroup):
-        value = bpy.props.FloatProperty()
-        center = bpy.props.FloatVectorProperty()
+        value = bpy.props.FloatProperty(name='Mass')
+        center = bpy.props.FloatVectorProperty(name='Center of Mass')
 
     b_type = bpy.types.Bone
+    exportable = bpy.props.BoolProperty(default=True, description='Enable Bone to be exported')
     version = bpy.props.IntProperty()
-    length = bpy.props.FloatProperty()
+    length = bpy.props.FloatProperty(name='Length')
     gamemtl = bpy.props.StringProperty(default='default_object')
-    bpy.utils.register_class(ShapeProperties)
     shape = bpy.props.PointerProperty(type=ShapeProperties)
     ikflags = bpy.props.IntProperty()
 
     def set_ikflags_breakable(self, value):
         self.ikflags = self.ikflags | 0x1 if value else self.ikflags & ~0x1
 
-    ikflags_breakable = bpy.props.BoolProperty(get=lambda self: self.ikflags & 0x1, set=set_ikflags_breakable, options={'SKIP_SAVE'})
-    bpy.utils.register_class(IKJointProperties)
+    ikflags_breakable = bpy.props.BoolProperty(
+        get=lambda self: self.ikflags & 0x1,
+        set=set_ikflags_breakable,
+        options={'SKIP_SAVE'}
+    )
     ikjoint = bpy.props.PointerProperty(type=IKJointProperties)
-    bpy.utils.register_class(BreakProperties)
     breakf = bpy.props.PointerProperty(type=BreakProperties)
     friction = bpy.props.FloatProperty()
-    bpy.utils.register_class(MassProperties)
     mass = bpy.props.PointerProperty(type=MassProperties)
 
     def ondraw_postview(self, obj_arm, bone):
         if obj_arm.hide or not obj_arm.data.xray.display_bone_shapes:
             return
 
-        from .gl_utils import matrix_to_buffer, draw_wire_cube, draw_wire_sphere, draw_wire_cylinder
+        from .gl_utils import matrix_to_buffer, \
+            draw_wire_cube, draw_wire_sphere, draw_wire_cylinder, draw_cross
 
         shape = self.shape
         if shape.type == '0':
             return
         bgl.glEnable(bgl.GL_BLEND)
-        if bpy.context.active_bone and (bpy.context.active_bone.id_data == obj_arm.data) and (bpy.context.active_bone.name == bone.name):
+        if bpy.context.active_bone \
+            and (bpy.context.active_bone.id_data == obj_arm.data) \
+            and (bpy.context.active_bone.name == bone.name):
             bgl.glColor4f(1.0, 0.0, 0.0, 0.7)
         else:
             bgl.glColor4f(0.0, 0.0, 1.0, 0.5)
@@ -311,25 +380,33 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         bgl.glGetFloatv(bgl.GL_LINE_WIDTH, prev_line_width)
         bgl.glPushMatrix()
         try:
-            m = obj_arm.matrix_world * obj_arm.pose.bones[bone.name].matrix * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+            mat = obj_arm.matrix_world * obj_arm.pose.bones[bone.name].matrix \
+                * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+            bmat = mat
             bgl.glLineWidth(2)
             if shape.type == '1':  # box
-                rt = shape.box_rot
-                mr = mathutils.Matrix((rt[0:3], rt[3:6], rt[6:9])).transposed()
-                m *= mathutils.Matrix.Translation(shape.box_trn) * mr.to_4x4()
-                bgl.glMultMatrixf(matrix_to_buffer(m.transposed()))
+                rot = shape.box_rot
+                mat *= mathutils.Matrix.Translation(shape.box_trn) \
+                    * mathutils.Matrix((rot[0:3], rot[3:6], rot[6:9])).transposed().to_4x4()
+                bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
                 draw_wire_cube(*shape.box_hsz)
             if shape.type == '2':  # sphere
-                m *= mathutils.Matrix.Translation(shape.sph_pos)
-                bgl.glMultMatrixf(matrix_to_buffer(m.transposed()))
+                mat *= mathutils.Matrix.Translation(shape.sph_pos)
+                bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
                 draw_wire_sphere(shape.sph_rad, 16)
             if shape.type == '3':  # cylinder
-                m *= mathutils.Matrix.Translation(shape.cyl_pos)
-                bgl.glMultMatrixf(matrix_to_buffer(m.transposed()))
+                mat *= mathutils.Matrix.Translation(shape.cyl_pos)
+                bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
                 v_dir = mathutils.Vector(shape.cyl_dir)
                 q_rot = v_dir.rotation_difference((0, 1, 0))
                 bgl.glMultMatrixf(matrix_to_buffer(q_rot.to_matrix().to_4x4()))
                 draw_wire_cylinder(shape.cyl_rad, shape.cyl_hgh * 0.5, 16)
+            bgl.glPopMatrix()
+            bgl.glPushMatrix()
+            ctr = self.mass.center
+            trn = bmat * mathutils.Vector((ctr[0], ctr[2], ctr[1]))
+            bgl.glTranslatef(*trn)
+            draw_cross(0.05)
         finally:
             bgl.glPopMatrix()
             bgl.glLineWidth(prev_line_width[0])
@@ -343,6 +420,14 @@ def _get_collection_item_attr(collection, index, name, special):
     return getattr(collection[index], name)
 
 
+def _get_collection_index(collection, value, special):
+    if value == '':
+        return special
+    return collection.find(value)
+
+
+_SPECIAL = 0xffff
+
 class XRayActionProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Action
     fps = bpy.props.FloatProperty(default=30, min=0, soft_min=1, soft_max=120)
@@ -351,37 +436,107 @@ class XRayActionProperties(bpy.types.PropertyGroup):
     flags_stopatend = gen_flag_prop(mask=0x02, description='Stop at end')
     flags_nomix = gen_flag_prop(mask=0x04, description='No mix')
     flags_syncpart = gen_flag_prop(mask=0x08, description='Sync part')
-    bonepart = bpy.props.IntProperty(default=0xffff)
-
-    def _set_search_collection_item(self, collection, value):
-        if value == '':
-            self.bonepart = 0xffff
-        else:
-            self.bonepart = collection.find(value)
+    bonepart = bpy.props.IntProperty(default=_SPECIAL)
 
     bonepart_name = bpy.props.StringProperty(
-        get=lambda self: _get_collection_item_attr(bpy.context.active_object.pose.bone_groups, self.bonepart, 'name', 0xffff),
-        set=lambda self, value: self._set_search_collection_item(bpy.context.active_object.pose.bone_groups, value), options={'SKIP_SAVE'}
+        get=lambda self: _get_collection_item_attr(
+            bpy.context.active_object.pose.bone_groups, self.bonepart,
+            'name', _SPECIAL,
+        ),
+        set=lambda self, value: setattr(self, 'bonepart', _get_collection_index(
+            bpy.context.active_object.pose.bone_groups, value, _SPECIAL,
+        )),
+        options={'SKIP_SAVE'},
     )
     bonestart_name = bpy.props.StringProperty(
-        get=lambda self: _get_collection_item_attr(bpy.context.active_object.pose.bones, self.bonepart, 'name', 0xffff),
-        set=lambda self, value: self._set_search_collection_item(bpy.context.active_object.pose.bones, value), options={'SKIP_SAVE'}
+        get=lambda self: _get_collection_item_attr(
+            bpy.context.active_object.pose.bones, self.bonepart,
+            'name', _SPECIAL,
+        ),
+        set=lambda self, value: setattr(self, 'bonepart', _get_collection_index(
+            bpy.context.active_object.pose.bones, value, _SPECIAL,
+        )),
+        options={'SKIP_SAVE'},
     )
     speed = bpy.props.FloatProperty(default=1, min=0, soft_max=10)
     accrue = bpy.props.FloatProperty(default=2, min=0, soft_max=10)
     falloff = bpy.props.FloatProperty(default=2, min=0, soft_max=10)
     power = bpy.props.FloatProperty()
+    autobake = bpy.props.EnumProperty(
+        name='Auto Bake',
+        items=(
+            ('auto', 'Auto', ''),
+            ('on', 'On', ''),
+            ('off', 'Off', '')
+        ),
+        description='Automatically bake this action on each export'
+    )
+
+    def _set_autobake_auto(self, value):
+        self.autobake = 'auto' if value else 'on'
+
+    autobake_auto = bpy.props.BoolProperty(
+        name='Auto Bake: Auto',
+        get=lambda self: self.autobake == 'auto',
+        set=_set_autobake_auto,
+        description='Detect when auto-baking is needed for this action on each export'
+    )
+
+    def _set_autobake_on(self, value):
+        self.autobake = 'on' if value else 'off'
+
+    autobake_on = bpy.props.BoolProperty(
+        name='Auto Bake',
+        get=lambda self: self.autobake == 'on',
+        set=_set_autobake_on,
+        description='Bake this action on each export'
+    )
+
+    def autobake_effective(self, bobject):
+        if not self.autobake_auto:
+            return self.autobake_on
+        if bobject.type == 'ARMATURE':
+            for pbone in bobject.pose.bones:
+                if pbone.constraints:
+                    return True
+        if bobject.constraints:
+            return True
+        return False
+
+    autobake_custom_refine = bpy.props.BoolProperty(
+        name='Custom Thresholds',
+        description='Use custom thresholds for remove redundant keyframes'
+    )
+    autobake_refine_location = bpy.props.FloatProperty(
+        default=0.001, min=0, soft_max=1,
+        subtype='DISTANCE',
+        description='Skip threshold for redundant location keyframes'
+    )
+    autobake_refine_rotation = bpy.props.FloatProperty(
+        default=0.001, min=0, soft_max=1,
+        subtype='ANGLE',
+        description='Skip threshold for redundant rotation keyframes'
+    )
 
 
 class XRaySceneProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Scene
-    export_root = bpy.props.StringProperty(subtype='DIR_PATH', name='Export Root', description='The root folder for export')
+    export_root = bpy.props.StringProperty(
+        name='Export Root',
+        description='The root folder for export',
+        subtype='DIR_PATH',
+    )
     fmt_version = PropSDKVersion()
     object_export_motions = PropObjectMotionsExport()
     object_texture_name_from_image_path = PropObjectTextureNamesFromPath()
+    materials_colorize_random_seed = bpy.props.IntProperty(min=0, max=255, options={'SKIP_SAVE'})
+    materials_colorize_color_power = bpy.props.FloatProperty(
+        default=0.5, min=0.0, max=1.0,
+        options={'SKIP_SAVE'},
+    )
 
 
-subclasses = [
+__SUBCLASSES__ = [
     XRayObjectDetailsProperties,
     XRayObjectDetailsModelProperties,
     XRayObjectDetailsSlotsProperties,
@@ -389,7 +544,7 @@ subclasses = [
     XRayObjectDetailsSlotsMeshesProperties
     ]
 
-classes = [
+__CLASSES__ = [
     XRayObjectProperties
     , XRayMeshProperties
     , XRayMaterialProperties
@@ -400,19 +555,17 @@ classes = [
 ]
 
 
-def inject_init():
-    for subclass in reversed(subclasses):
-        bpy.utils.register_class(subclass)
-    for c in classes:
-        bpy.utils.register_class(c)
-        c.b_type.xray = bpy.props.PointerProperty(type=c)
-    inject_ui_init()
+def register():
+    for subclass in reversed(__SUBCLASSES__):
+        registry.register_thing(subclass, __name__)
+    for clas in __CLASSES__:
+        registry.register_thing(clas, __name__)
+        clas.b_type.xray = bpy.props.PointerProperty(type=clas)
 
 
-def inject_done():
-    inject_ui_done()
-    for c in reversed(classes):
-        del c.b_type.xray
-        bpy.utils.unregister_class(c)
-    for subclass in subclasses:
-        bpy.utils.unregister_class(subclass)
+def unregister():
+    for clas in reversed(__CLASSES__):
+        del clas.b_type.xray
+        registry.unregister_thing(clas, __name__)
+    for subclass in __SUBCLASSES__:
+        registry.unregister_thing(subclass, __name__)

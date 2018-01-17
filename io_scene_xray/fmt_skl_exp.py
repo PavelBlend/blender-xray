@@ -1,31 +1,30 @@
 import bpy
-import io
+
 from .xray_io import ChunkedWriter, PackedWriter
 from .xray_motions import export_motion, export_motions
 
 
 class ExportContext:
-    def __init__(self, report, armature, action=None):
-        self.report = report
+    def __init__(self, armature, action=None):
         self.armature = armature
         self.action = action
 
 
-def _export_skl(cw, cx):
-    pw = PackedWriter()
-    export_motion(pw, cx.action, cx, cx.armature)
-    cw.put(0x1200, pw)
+def _export_skl(chunked_writer, context):
+    writer = PackedWriter()
+    export_motion(writer, context.action, context.armature)
+    chunked_writer.put(0x1200, writer)
 
 
-def export_skl_file(fpath, cx):
-    with io.open(fpath, 'wb') as f:
-        cw = ChunkedWriter()
-        _export_skl(cw, cx)
-        f.write(cw.data)
+def export_skl_file(fpath, context):
+    with open(fpath, 'wb') as file:
+        writer = ChunkedWriter()
+        _export_skl(writer, context)
+        file.write(writer.data)
 
 
-def export_skls_file(fpath, cx):
-    with io.open(fpath, 'wb') as f:
-        pw = PackedWriter()
-        export_motions(pw, bpy.data.actions, cx, cx.armature)
-        f.write(pw.data)
+def export_skls_file(fpath, context):
+    with open(fpath, 'wb') as file:
+        writer = PackedWriter()
+        export_motions(writer, bpy.data.actions, context.armature)
+        file.write(writer.data)

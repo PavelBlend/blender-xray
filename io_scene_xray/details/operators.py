@@ -59,18 +59,17 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
         from ..fmt_object_imp import ImportContext
 
         cx = ImportContext(
-            report=self.report,
             textures=textures_folder,
             soc_sgroups=None,
             import_motions=None,
             split_by_materials=None,
-            op=self,
-            bpy=bpy
+            operator=self
             )
 
         cx.format = self.format
         cx.details_models_in_a_row = self.details_models_in_a_row
         cx.load_slots = self.load_slots
+        cx.report = self.report
 
         import os
 

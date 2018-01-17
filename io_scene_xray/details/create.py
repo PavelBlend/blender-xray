@@ -1,20 +1,23 @@
 
+import bpy
+
+
 def create_details_slots_object(base_name, cx, header, y_coords_top,
         y_coords_base):
 
     slots_name_base = '{0} slots base'.format(base_name)
-    slots_base_mesh = cx.bpy.data.meshes.new(slots_name_base)
-    slots_base_object = cx.bpy.data.objects.new(
+    slots_base_mesh = bpy.data.meshes.new(slots_name_base)
+    slots_base_object = bpy.data.objects.new(
         slots_name_base, slots_base_mesh
         )
-    cx.bpy.context.scene.objects.link(slots_base_object)
+    bpy.context.scene.objects.link(slots_base_object)
 
     slots_name_top = '{0} slots top'.format(base_name)
-    slots_top_mesh = cx.bpy.data.meshes.new(slots_name_top)
-    slots_top_object = cx.bpy.data.objects.new(
+    slots_top_mesh = bpy.data.meshes.new(slots_name_top)
+    slots_top_object = bpy.data.objects.new(
         slots_name_top, slots_top_mesh
         )
-    cx.bpy.context.scene.objects.link(slots_top_object)
+    bpy.context.scene.objects.link(slots_top_object)
 
     slots_base = []
     uvs = []
@@ -147,7 +150,7 @@ def create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
             scale = 2
         else:
             scale = 1
-        bpy_image = cx.bpy.data.images.new(
+        bpy_image = bpy.data.images.new(
             'details {0}'.format(name),
             header.size.x*scale,
             header.size.y*scale
@@ -217,18 +220,18 @@ def create_pallete(cx, color_indices):
     pallete_name = 'details meshes pallete'
 
     # create image pallete
-    if cx.bpy.data.images.get(pallete_name) == None:
+    if bpy.data.images.get(pallete_name) == None:
         meshes_indices_pixels = []
         for color_index in color_indices:
             meshes_indices_pixels.extend(color_index)
-        meshes_indices_image = cx.bpy.data.images.new(pallete_name, 64, 1)
+        meshes_indices_image = bpy.data.images.new(pallete_name, 64, 1)
         meshes_indices_image.pixels = meshes_indices_pixels
         meshes_indices_image.use_fake_user = True
         meshes_indices_image.pack(as_png=True)
 
     # create bpy pallete
-    if cx.bpy.data.palettes.get(pallete_name) == None:
-        pallete = cx.bpy.data.palettes.new(pallete_name)
+    if bpy.data.palettes.get(pallete_name) == None:
+        pallete = bpy.data.palettes.new(pallete_name)
         pallete.use_fake_user = True
         for rgba in color_indices:
             color = pallete.colors.new()

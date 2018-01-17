@@ -1,20 +1,25 @@
+import os.path
+
 import bpy
 from bpy_extras import io_utils
-from .xray_inject import inject_init, inject_done
-from .utils import AppError
+
+from . import xray_inject
+from .ops import BaseOperator as TestReadyOperator
+from .utils import AppError, ObjectsInitializer, logger
 from . import plugin_prefs
+from . import registry
 
 
-class TestReadyOperator(bpy.types.Operator):
-    report_catcher = None
+def execute_with_logger(method):
+    def wrapper(self, context):
+        with logger(self.__class__.bl_idname, self.report):
+            return method(self, context)
 
-    def __getattribute__(self, item):
-        if (item == 'report') and (self.report_catcher is not None):
-            return self.report_catcher
-        return super().__getattribute__(item)
+    return wrapper
 
 
 #noinspection PyUnusedLocal
+@registry.module_thing
 class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
     bl_label = 'Import .object'
@@ -33,34 +38,32 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
 
     fmt_version = plugin_prefs.PropSDKVersion()
 
-    def execute(self, context):
+    @execute_with_logger
+    def execute(self, _context):
         textures_folder = plugin_prefs.get_preferences().get_textures_folder()
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
-        if len(self.files) == 0:
+        if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         from .fmt_object_imp import import_file, ImportContext
-        cx = ImportContext(
-            report=self.report,
+        import_context = ImportContext(
             textures=textures_folder,
             soc_sgroups=self.fmt_version == 'soc',
             import_motions=self.import_motions,
             split_by_materials=self.mesh_split_by_materials,
-            op=self,
-            bpy=bpy
+            operator=self,
         )
         for file in self.files:
-            import os.path
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.object':
-                cx.before_import_file();
-                import_file(os.path.join(self.directory, file.name), cx)
+                import_context.before_import_file()
+                import_file(os.path.join(self.directory, file.name), import_context)
             else:
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
         return {'FINISHED'}
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         row = layout.row()
         row.enabled = False
@@ -83,6 +86,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
         return super().invoke(context, event)
 
 
+@registry.module_thing
 class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.anm'
     bl_label = 'Import .anm'
@@ -96,20 +100,19 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
 
     camera_animation = plugin_prefs.PropAnmCameraAnimation()
 
-    def execute(self, context):
-        if len(self.files) == 0:
+    @execute_with_logger
+    def execute(self, _context):
+        if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         from .fmt_anm_imp import import_file, ImportContext
-        cx = ImportContext(
-            report=self.report,
+        import_context = ImportContext(
             camera_animation=self.camera_animation
         )
         for file in self.files:
-            import os.path
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.anm':
-                import_file(self.directory + file.name, cx)
+                import_file(os.path.join(self.directory, file.name), import_context)
             else:
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
         return {'FINISHED'}
@@ -131,7 +134,8 @@ def invoke_require_armature(func):
     return wrapper
 
 
-class OpImportSkl(bpy.types.Operator, io_utils.ImportHelper):
+@registry.module_thing
+class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     bl_idname = 'xray_import.skl'
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
@@ -142,22 +146,22 @@ class OpImportSkl(bpy.types.Operator, io_utils.ImportHelper):
     directory = bpy.props.StringProperty(subtype='DIR_PATH')
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
+    @execute_with_logger
     def execute(self, context):
-        if len(self.files) == 0:
+        if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         from .fmt_skl_imp import import_skl_file, import_skls_file, ImportContext
-        cx = ImportContext(
-            report=self.report,
+        import_context = ImportContext(
             armature=context.active_object
         )
         for file in self.files:
-            import os.path
             ext = os.path.splitext(file.name)[-1].lower()
+            fpath = os.path.join(self.directory, file.name)
             if ext == '.skl':
-                import_skl_file(self.directory + file.name, cx)
+                import_skl_file(fpath, import_context)
             elif ext == '.skls':
-                import_skls_file(self.directory + file.name, cx)
+                import_skls_file(fpath, import_context)
             else:
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
         return {'FINISHED'}
@@ -183,13 +187,14 @@ class ModelExportHelper:
         description='Export only selected objects'
     )
 
-    def export(self, bpy_obj):
+    def export(self, bpy_obj, context):
         pass
 
+    @execute_with_logger
     @execute_require_filepath
     def execute(self, context):
         objs = context.selected_objects if self.selection_only else context.scene.objects
-        roots = [o for o in objs if o.xray.isroot]
+        roots = [obj for obj in objs if obj.xray.isroot]
         if not roots:
             self.report({'ERROR'}, 'Cannot find object root')
             return {'CANCELLED'}
@@ -202,39 +207,39 @@ class ModelExportHelper:
 def find_objects_for_export(context):
     processed = set()
     roots = []
-    for o in context.selected_objects:
-        while o:
-            if o in processed:
+    for obj in context.selected_objects:
+        while obj:
+            if obj in processed:
                 break
-            processed.add(o)
-            if o.xray.isroot:
-                roots.append(o)
+            processed.add(obj)
+            if obj.xray.isroot:
+                roots.append(obj)
                 break
-            o = o.parent
-    if len(roots) == 0:
-        roots = [o for o in context.scene.objects if o.xray.isroot]
-        if len(roots) == 0:
+            obj = obj.parent
+    if not roots:
+        roots = [obj for obj in context.scene.objects if obj.xray.isroot]
+        if not roots:
             raise AppError('No \'root\'-objects found')
         if len(roots) > 1:
             raise AppError('Too many \'root\'-objects found, but none selected')
     return roots
 
 
-def _mk_export_context(context, report, texname_from_path, fmt_version=None, export_motions=True):
-        from .fmt_object_exp import ExportContext
-        return ExportContext(
-            textures_folder=plugin_prefs.get_preferences().get_textures_folder(),
-            report=report,
-            export_motions=export_motions,
-            soc_sgroups=None if fmt_version is None else (fmt_version == 'soc'),
-            texname_from_path=texname_from_path
-        )
+def _mk_export_context(texname_from_path, fmt_version=None, export_motions=True):
+    from .fmt_object_exp import ExportContext
+    return ExportContext(
+        textures_folder=plugin_prefs.get_preferences().get_textures_folder(),
+        export_motions=export_motions,
+        soc_sgroups=None if fmt_version is None else (fmt_version == 'soc'),
+        texname_from_path=texname_from_path
+    )
 
 
 class _WithExportMotions:
     export_motions = plugin_prefs.PropObjectMotionsExport()
 
 
+@registry.module_thing
 class OpExportObjects(TestReadyOperator, _WithExportMotions):
     bl_idname = 'export_object.xray_objects'
     bl_label = 'Export selected .object-s'
@@ -249,7 +254,7 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
 
     use_export_paths = plugin_prefs.PropUseExportPaths()
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         row = layout.split()
@@ -260,26 +265,27 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
         layout.prop(self, 'export_motions')
         layout.prop(self, 'texture_name_from_image_path')
 
+    @execute_with_logger
     def execute(self, context):
         from .fmt_object_exp import export_file
-        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.fmt_version, self.export_motions)
-        import os.path
+        export_context = _mk_export_context(
+            self.texture_name_from_image_path, self.fmt_version, self.export_motions
+        )
         try:
-            for n in self.objects.split(','):
-                o = context.scene.objects[n]
-                if not n.lower().endswith('.object'):
-                    n += '.object'
+            for name in self.objects.split(','):
+                obj = context.scene.objects[name]
+                if not name.lower().endswith('.object'):
+                    name += '.object'
                 path = self.directory
-                if self.use_export_paths and o.xray.export_path:
-                    path = os.path.join(path, o.xray.export_path)
+                if self.use_export_paths and obj.xray.export_path:
+                    path = os.path.join(path, obj.xray.export_path)
                     os.makedirs(path, exist_ok=True)
-                export_file(o, os.path.join(path, n), cx)
+                export_file(obj, os.path.join(path, name), export_context)
         except AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         prefs = plugin_prefs.get_preferences()
         roots = None
         try:
@@ -297,6 +303,7 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
         return {'RUNNING_MODAL'}
 
 
+@registry.module_thing
 class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotions):
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
@@ -310,7 +317,7 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotio
 
     fmt_version = plugin_prefs.PropSDKVersion()
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         row = layout.split()
@@ -320,14 +327,16 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotio
         layout.prop(self, 'export_motions')
         layout.prop(self, 'texture_name_from_image_path')
 
+    @execute_with_logger
     def execute(self, context):
         from .fmt_object_exp import export_file
-        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path, self.fmt_version, self.export_motions)
+        export_context = _mk_export_context(
+            self.texture_name_from_image_path, self.fmt_version, self.export_motions
+        )
         try:
-            export_file(context.scene.objects[self.object], self.filepath, cx)
+            export_file(context.scene.objects[self.object], self.filepath, export_context)
         except AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -351,6 +360,7 @@ class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotio
         return super().invoke(context, event)
 
 
+@registry.module_thing
 class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
@@ -362,8 +372,8 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
 
     def export(self, bpy_obj, context):
         from .fmt_ogf_exp import export_file
-        cx = _mk_export_context(context, self.report, self.texture_name_from_image_path)
-        export_file(bpy_obj, self.filepath, cx)
+        export_context = _mk_export_context(self.texture_name_from_image_path)
+        export_file(bpy_obj, self.filepath, export_context)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -376,6 +386,7 @@ class FilenameExtHelper(io_utils.ExportHelper):
     def export(self, context):
         pass
 
+    @execute_with_logger
     @execute_require_filepath
     def execute(self, context):
         self.export(context)
@@ -388,6 +399,7 @@ class FilenameExtHelper(io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
+@registry.module_thing
 class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.anm'
     bl_label = 'Export .anm'
@@ -397,13 +409,11 @@ class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
     filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
 
     def export(self, context):
-        from .fmt_anm_exp import export_file, ExportContext
-        cx = ExportContext(
-            report=self.report
-        )
-        export_file(context.active_object, self.filepath, cx)
+        from .fmt_anm_exp import export_file
+        export_file(context.active_object, self.filepath)
 
 
+@registry.module_thing
 class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.skl'
     bl_label = 'Export .skl'
@@ -413,15 +423,15 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     filter_glob = bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'})
     action = None
 
+    @execute_with_logger
     @execute_require_filepath
     def execute(self, context):
         from .fmt_skl_exp import export_skl_file, ExportContext
-        cx = ExportContext(
-            report=self.report,
+        export_context = ExportContext(
             armature=context.active_object,
             action=self.action
         )
-        export_skl_file(self.filepath, cx)
+        export_skl_file(self.filepath, export_context)
         return {'FINISHED'}
 
     @invoke_require_armature
@@ -434,6 +444,7 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
+@registry.module_thing
 class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.skls'
     bl_label = 'Export .skls'
@@ -444,17 +455,17 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
 
     def export(self, context):
         from .fmt_skl_exp import export_skls_file, ExportContext
-        cx = ExportContext(
-            report=self.report,
+        export_context = ExportContext(
             armature=context.active_object
         )
-        export_skls_file(self.filepath, cx)
+        export_skls_file(self.filepath, export_context)
 
     @invoke_require_armature
     def invoke(self, context, event):
         return super().invoke(context, event)
 
 
+@registry.module_thing
 class OpExportProject(TestReadyOperator):
     bl_idname = 'export_scene.xray'
     bl_label = 'Export XRay Project'
@@ -462,29 +473,28 @@ class OpExportProject(TestReadyOperator):
     filepath = bpy.props.StringProperty(subtype='DIR_PATH', options={'SKIP_SAVE'})
     use_selection = bpy.props.BoolProperty()
 
+    @execute_with_logger
     def execute(self, context):
         from .fmt_object_exp import export_file
         from bpy.path import abspath
-        import os.path
         data = context.scene.xray
-        cx = _mk_export_context(context, self.report,
-                                data.object_texture_name_from_image_path, data.fmt_version, data.object_export_motions
-                                )
+        export_context = _mk_export_context(
+            data.object_texture_name_from_image_path, data.fmt_version, data.object_export_motions
+        )
         try:
             path = abspath(self.filepath if self.filepath else data.export_root)
             os.makedirs(path, exist_ok=True)
-            for o in OpExportProject.find_objects(context, self.use_selection):
-                n = o.name
-                if not n.lower().endswith('.object'):
-                    n += '.object'
+            for obj in OpExportProject.find_objects(context, self.use_selection):
+                name = obj.name
+                if not name.lower().endswith('.object'):
+                    name += '.object'
                 opath = path
-                if o.xray.export_path:
-                    opath = os.path.join(opath, o.xray.export_path)
+                if obj.xray.export_path:
+                    opath = os.path.join(opath, obj.xray.export_path)
                     os.makedirs(opath, exist_ok=True)
-                export_file(o, os.path.join(opath, n), cx)
+                export_file(obj, os.path.join(opath, name), export_context)
         except AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
         return {'FINISHED'}
 
     @staticmethod
@@ -497,73 +507,76 @@ def overlay_view_3d():
     def try_draw(base_obj, obj):
         if not hasattr(obj, 'xray'):
             return
-        x = obj.xray
-        if hasattr(x, 'ondraw_postview'):
-            x.ondraw_postview(base_obj, obj)
+        xray = obj.xray
+        if hasattr(xray, 'ondraw_postview'):
+            xray.ondraw_postview(base_obj, obj)
         if hasattr(obj, 'type'):
             if obj.type == 'ARMATURE':
-                for b in obj.data.bones:
-                    try_draw(base_obj, b)
+                for bone in obj.data.bones:
+                    try_draw(base_obj, bone)
 
-    for o in bpy.data.objects:
-        try_draw(o, o)
+    for obj in bpy.data.objects:
+        try_draw(obj, obj)
+
+
+_INITIALIZER = ObjectsInitializer([
+    'objects',
+    'materials',
+])
+
+@bpy.app.handlers.persistent
+def load_post(_):
+    _INITIALIZER.sync('LOADED', bpy.data)
+
+@bpy.app.handlers.persistent
+def scene_update_post(_):
+    _INITIALIZER.sync('CREATED', bpy.data)
 
 
 #noinspection PyUnusedLocal
-def menu_func_import(self, context):
+def menu_func_import(self, _context):
     self.layout.operator(OpImportObject.bl_idname, text='X-Ray object (.object)')
     self.layout.operator(OpImportAnm.bl_idname, text='X-Ray animation (.anm)')
     self.layout.operator(OpImportSkl.bl_idname, text='X-Ray skeletal animation (.skl, .skls)')
 
 
-def menu_func_export(self, context):
+def menu_func_export(self, _context):
     self.layout.operator(OpExportObjects.bl_idname, text='X-Ray object (.object)')
     self.layout.operator(OpExportAnm.bl_idname, text='X-Ray animation (.anm)')
     self.layout.operator(OpExportSkls.bl_idname, text='X-Ray animation (.skls)')
 
 
-def menu_func_export_ogf(self, context):
+def menu_func_export_ogf(self, _context):
     self.layout.operator(OpExportOgf.bl_idname, text='X-Ray game object (.ogf)')
 
 
 from . import details
 
 
+registry.module_requires(__name__, [
+    plugin_prefs,
+    xray_inject,
+])
+
+
 def register():
-    plugin_prefs.register()
-    bpy.utils.register_class(OpImportObject)
-    bpy.utils.register_class(OpImportAnm)
-    bpy.utils.register_class(OpImportSkl)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
-    bpy.utils.register_class(OpExportObject)
-    bpy.utils.register_class(OpExportAnm)
-    bpy.utils.register_class(OpExportSkl)
-    bpy.utils.register_class(OpExportSkls)
     bpy.types.INFO_MT_file_export.append(menu_func_export)
-    bpy.utils.register_class(OpExportObjects)
-    bpy.utils.register_class(OpExportOgf)
     bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
-    overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(overlay_view_3d, (), 'WINDOW', 'POST_VIEW')
-    bpy.utils.register_class(OpExportProject)
+    overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(
+        overlay_view_3d, (),
+        'WINDOW', 'POST_VIEW'
+    )
+    bpy.app.handlers.load_post.append(load_post)
+    bpy.app.handlers.scene_update_post.append(scene_update_post)
     details.operators.register_operators()
-    inject_init()
 
 
 def unregister():
-    inject_done()
     details.operators.unregister_operators()
-    bpy.utils.unregister_class(OpExportProject)
+    bpy.app.handlers.scene_update_post.remove(scene_update_post)
+    bpy.app.handlers.load_post.remove(load_post)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
     bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
-    bpy.utils.unregister_class(OpExportOgf)
-    bpy.utils.unregister_class(OpExportObjects)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
-    bpy.utils.unregister_class(OpExportSkls)
-    bpy.utils.unregister_class(OpExportSkl)
-    bpy.utils.unregister_class(OpExportAnm)
-    bpy.utils.unregister_class(OpExportObject)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
-    bpy.utils.unregister_class(OpImportSkl)
-    bpy.utils.unregister_class(OpImportAnm)
-    bpy.utils.unregister_class(OpImportObject)
-    plugin_prefs.unregister()

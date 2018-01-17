@@ -1,4 +1,5 @@
 
+import bpy
 import os
 import io
 from .format import Chunks, SUPPORT_FORMAT_VERSIONS
@@ -67,8 +68,8 @@ def _import(fpath, cx, cr):
 
     if cx.load_slots:
 
-        root_obj = cx.bpy.data.objects.new(base_name, None)
-        cx.bpy.context.scene.objects.link(root_obj)
+        root_obj = bpy.data.objects.new(base_name, None)
+        bpy.context.scene.objects.link(root_obj)
 
         meshes_obj.parent = root_obj
 

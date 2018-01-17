@@ -1,7 +1,7 @@
 
 import bpy
 from ..utils import is_helper_object
-from ..xray_inject_ui import draw_collapsible
+from ..ui.collapsible import draw
 
 
 class XRayDetailsPanel(bpy.types.Panel):
@@ -64,7 +64,7 @@ class XRayDetailsPanel(bpy.types.Panel):
                 text='Slots Top Object'
                 )
 
-            _, box = draw_collapsible(
+            _, box = draw(
                 layout, 'object:lighting', 'Lighting Coefficients'
                 )
 
@@ -101,7 +101,7 @@ class XRayDetailsPanel(bpy.types.Panel):
                         text='Shadows'
                         )
 
-            _, box = draw_collapsible(
+            _, box = draw(
                 layout, 'object:slots', 'Slots Meshes Indices'
                 )
 

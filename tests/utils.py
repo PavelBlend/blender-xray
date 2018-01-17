@@ -1,5 +1,6 @@
 import unittest
 import addon_utils
+import io
 import inspect
 import os
 import shutil
@@ -18,19 +19,6 @@ class XRayTestCase(unittest.TestCase):
     _reports = []
 
     @classmethod
-    def setUpClass(cls):
-        cls._reports = []
-        if cls.blend_file:
-            bpy.ops.wm.open_mainfile(filepath=cls.relpath(cls.blend_file))
-        else:
-            bpy.ops.wm.read_homefile()
-        addon_utils.enable('io_scene_xray', default_set=True)
-
-    @classmethod
-    def tearDownClass(cls):
-        addon_utils.disable('io_scene_xray')
-
-    @classmethod
     def relpath(cls, path=None):
         result = os.path.dirname(inspect.getfile(cls))
         if path is not None:
@@ -44,6 +32,14 @@ class XRayTestCase(unittest.TestCase):
         return os.path.join(cls.__tmp, path)
 
     def setUp(self):
+        self._reports = []
+        if self.blend_file:
+            bpy.ops.wm.open_mainfile(filepath=self.relpath(self.blend_file))
+        else:
+            bpy.ops.wm.read_homefile()
+        addon_utils.enable('io_scene_xray', default_set=True)
+        from io_scene_xray import plugin
+        plugin.load_post(None)
         self.__prev_report_catcher = TestReadyOperator.report_catcher
         TestReadyOperator.report_catcher = lambda op, type, message: self._reports.append((type, message))
 
@@ -56,6 +52,7 @@ class XRayTestCase(unittest.TestCase):
                 os.renames(self.__tmp, new_path)
             else:
                 shutil.rmtree(self.__tmp)
+        addon_utils.disable('io_scene_xray')
 
     def assertFileExists(self, path, allow_empty=False, msg=None):
         if not os.path.isfile(path):
@@ -83,6 +80,18 @@ class XRayTestCase(unittest.TestCase):
         if orphaned:
             self.fail(self._formatMessage(None, 'files {} orphaned'.format(orphaned)))
 
+    def assertFileContains(self, file_path, re_message=None):
+        content = self.getFileSafeContent(file_path)
+        match = re_message.match(content)
+        if match is not None:
+            raise self.fail('Cannot match the \'{}\' file content with \'{}\''
+                            .format(file_path, re_message))
+
+    def getFileSafeContent(self, file_path):
+        full_path = os.path.join(XRayTestCase.__tmp, file_path)
+        with io.open(full_path, 'rb') as f:
+            return f.read().replace(b'\x00', b'')
+
     def _findReport(self, type=None, re_message=None):
         for r in self._reports:
             if (type is not None) and (type not in r[0]):
@@ -104,6 +113,9 @@ class XRayTestCase(unittest.TestCase):
         if r is None:
             return
         raise self.fail('Found report with: type={}, message={}: {}'.format(type, re_message, r))
+
+    def getFullLogAsText(self):
+        return bpy.data.texts[-1].as_string()
 
 
 def create_bmesh(vertexes, indexes):
