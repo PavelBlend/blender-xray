@@ -3,8 +3,7 @@ from ..xray_io import PackedWriter, ChunkedWriter
 from ..utils import AppError
 
 from .format import (
-    Chunks, FORMAT_VERSION_3, pixels_offset_1, pixels_offset_2,
-    DETAIL_MODEL_COUNT_LIMIT
+    Chunks, pixels_offset_1, pixels_offset_2, DETAIL_MODEL_COUNT_LIMIT
     )
 
 

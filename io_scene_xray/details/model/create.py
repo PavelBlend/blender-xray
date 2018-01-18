@@ -1,6 +1,5 @@
 
 import bpy
-from ... import log
 
 
 def create_object(cx, object_name):

@@ -5,7 +5,7 @@ import bmesh
 import mathutils
 
 from ...utils import (
-    convert_object_to_space_bmesh, AppError, gen_texture_name
+    convert_object_to_space_bmesh, AppError
     )
 
 from ...xray_io import PackedWriter
