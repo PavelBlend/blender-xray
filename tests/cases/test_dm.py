@@ -15,9 +15,9 @@ class TestDmImport(utils.XRayTestCase):
         self.assertReportsNotContains('WARNING')
 
         obj = bpy.data.objects['test_fmt.dm']
-        self.assertEqual(obj.xray.no_waving, False)
-        self.assertEqual(obj.xray.min_scale, 0.5)
-        self.assertEqual(obj.xray.max_scale, 2.0)
+        self.assertEqual(obj.xray.detail.model.no_waving, False)
+        self.assertEqual(obj.xray.detail.model.min_scale, 0.5)
+        self.assertEqual(obj.xray.detail.model.max_scale, 2.0)
 
         mat = obj.active_material
         self.assertEqual(mat.name, 'fx\\fx_rainsplash1')
