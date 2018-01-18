@@ -24,24 +24,24 @@ class XRayDetailsPanel(bpy.types.Panel):
 
         if context.active_object.type == 'MESH':
 
-            m = context.object.xray.detail.model
+            model = context.object.xray.detail.model
 
             layout.label('Detail Model Properties:')
 
-            layout.prop(m, 'no_waving', text='No Waving', toggle=True)
-            layout.prop(m, 'min_scale', text='Min Scale')
-            layout.prop(m, 'max_scale', text='Max Scale')
-            layout.prop(m, 'index', text='Detail Index')
-            layout.prop(m, 'color', text='')
+            layout.prop(model, 'no_waving', text='No Waving', toggle=True)
+            layout.prop(model, 'min_scale', text='Min Scale')
+            layout.prop(model, 'max_scale', text='Max Scale')
+            layout.prop(model, 'index', text='Detail Index')
+            layout.prop(model, 'color', text='')
 
         elif context.active_object.type == 'EMPTY':
 
-            s = context.object.xray.detail.slots
+            slots = context.object.xray.detail.slots
 
             layout.label('Level Details Properties:')
 
             layout.prop_search(
-                s,
+                slots,
                 'meshes_object',
                 bpy.data,
                 'objects',
@@ -49,7 +49,7 @@ class XRayDetailsPanel(bpy.types.Panel):
                 )
 
             layout.prop_search(
-                s,
+                slots,
                 'slots_base_object',
                 bpy.data,
                 'objects',
@@ -57,7 +57,7 @@ class XRayDetailsPanel(bpy.types.Panel):
                 )
 
             layout.prop_search(
-                s,
+                slots,
                 'slots_top_object',
                 bpy.data,
                 'objects',
@@ -70,23 +70,23 @@ class XRayDetailsPanel(bpy.types.Panel):
 
             if box:
 
-                l = s.ligthing
+                ligthing = slots.ligthing
                 box.label('Format:')
                 row = box.row()
-                row.prop(l, 'format', expand=True, text='Format')
+                row.prop(ligthing, 'format', expand=True, text='Format')
 
                 box.prop_search(
-                    l,
+                    ligthing,
                     'lights_image',
                     bpy.data,
                     'images',
                     text='Lights'
                     )
 
-                if l.format == 'builds_1569-cop':
+                if ligthing.format == 'builds_1569-cop':
 
                     box.prop_search(
-                        l,
+                        ligthing,
                         'hemi_image',
                         bpy.data,
                         'images',
@@ -94,7 +94,7 @@ class XRayDetailsPanel(bpy.types.Panel):
                         )
 
                     box.prop_search(
-                        l,
+                        ligthing,
                         'shadows_image',
                         bpy.data,
                         'images',
@@ -106,10 +106,9 @@ class XRayDetailsPanel(bpy.types.Panel):
                 )
 
             if box:
-                m = s.meshes
                 for i in range(4):
                     box.prop_search(
-                        m,
+                        slots.meshes,
                         'mesh_{}'.format(i),
                         bpy.data,
                         'images',

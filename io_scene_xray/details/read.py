@@ -1,14 +1,14 @@
 
 import bpy
 from ..xray_io import PackedReader
-from .format import DetailsHeader
+from .fmt import DetailsHeader
 from .model import imp
 from .create import create_pallete, create_images, create_details_slots_object
 
 
-def read_header(pr):
+def read_header(packed_reader):
 
-    fmt_ver, meshes_count, offs_x, offs_z, size_x, size_z = pr.getf('<IIiiII')
+    fmt_ver, meshes_count, offs_x, offs_z, size_x, size_z = packed_reader.getf('<IIiiII')
 
     header = DetailsHeader()
 
@@ -23,7 +23,7 @@ def read_header(pr):
     return header
 
 
-def read_details_meshes(base_name, cx, cr, color_indices, header):
+def read_details_meshes(base_name, context, cr, color_indices, header):
 
     bpy_obj_root = bpy.data.objects.new('{} meshes'.format(base_name), None)
     bpy_obj_root.empty_draw_type = 'SPHERE'
@@ -31,7 +31,7 @@ def read_details_meshes(base_name, cx, cr, color_indices, header):
 
     step_x = 0.5
 
-    if cx.details_models_in_a_row:
+    if context.details_models_in_a_row:
         first_offset_x = -step_x * header.meshes_count / 2
 
     for mesh_id, mesh_data in cr:
@@ -39,21 +39,21 @@ def read_details_meshes(base_name, cx, cr, color_indices, header):
         mesh_name = '{0} mesh_{1:0>2}'.format(base_name, mesh_id)
 
         bpy_obj_mesh = imp.import_(
-            mesh_name, cx, pr, mode='DETAILS',
+            mesh_name, context, pr, mode='DETAILS',
             detail_index=mesh_id, detail_colors=color_indices
             )
 
         bpy_obj_mesh.parent = bpy_obj_root
 
-        if cx.details_models_in_a_row:
+        if context.details_models_in_a_row:
             bpy_obj_mesh.location[0] = first_offset_x + step_x * mesh_id
 
     return bpy_obj_root
 
 
-def read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
+def read_details_slots(base_name, context, pr, header, color_indices, root_obj):
 
-    create_pallete(cx, color_indices)
+    create_pallete(color_indices)
 
     y_coords = []
     y_coords_base = []
@@ -62,7 +62,7 @@ def read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
         [1.0 for _ in range(header.slots_count * 4 * 4)] for _ in range(4)
         ]
 
-    from .format import pixels_offset_1, pixels_offset_2
+    from .fmt import PIXELS_OFFSET_1, PIXELS_OFFSET_2
 
     if header.format_version == 3:
 
@@ -114,9 +114,9 @@ def read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
 
                         pixel_index = \
                             slot_x * 2 + \
-                            pixels_offset_1[corner_index][0] + \
+                            PIXELS_OFFSET_1[corner_index][0] + \
                             header.size.x * 2 * \
-                            (slot_y * 2 + pixels_offset_1[corner_index][1])
+                            (slot_y * 2 + PIXELS_OFFSET_1[corner_index][1])
 
                         color = color_indices[meshes[mesh_index]]
 
@@ -127,7 +127,6 @@ def read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
                         pixels[pixel_index * 4 + 3] = corner_density    # Alpha
 
         create_images(
-            cx,
             header,
             meshes_images_pixels,
             root_obj,
@@ -149,13 +148,13 @@ def read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
             1.0 for _ in range(header.slots_count * 4 * 4)
             ]
 
-        if cx.format == 'builds_1233-1558':
-            pixels_offset = pixels_offset_2
+        if context.format == 'builds_1233-1558':
+            pixels_offset = PIXELS_OFFSET_2
 
-        elif cx.format == 'builds_1096-1230':
-            pixels_offset = pixels_offset_1
+        elif context.format == 'builds_1096-1230':
+            pixels_offset = PIXELS_OFFSET_1
 
-        density_pixels_offset = pixels_offset_1
+        density_pixels_offset = PIXELS_OFFSET_1
 
         bad_y_base_count = 0
         bad_y_top_count = 0
@@ -231,7 +230,7 @@ def read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
                     data_index += 2
 
         create_images(
-            cx, header, meshes_images_pixels, root_obj,
+            header, meshes_images_pixels, root_obj,
             lights_old=lighting_image_pixels
             )
 
@@ -239,21 +238,17 @@ def read_details_slots(base_name, cx, pr, header, color_indices, root_obj):
         del lighting_image_pixels
 
         if bad_y_base_count > 0:
-            cx.report({'WARNING'},
-                'details has {} bad base coordinates'.format(
-                    bad_y_base_count
-                    )
-                )
+            context.report({'WARNING'},
+                           'details has {} bad base coordinates'.format(
+                               bad_y_base_count))
 
         if bad_y_top_count > 0:
-            cx.report({'WARNING'},
-                'details has {} bad top coordinates'.format(
-                    bad_y_top_count
-                    )
-                )
+            context.report({'WARNING'},
+                           'details has {} bad top coordinates'.format(
+                               bad_y_top_count))
 
     slots_base_object, slots_top_object = create_details_slots_object(
-        base_name, cx, header, y_coords, y_coords_base
+        base_name, header, y_coords, y_coords_base
         )
 
     del y_coords

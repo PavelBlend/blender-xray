@@ -34,19 +34,19 @@ FORMAT_VERSION_2 = 2
 FORMAT_VERSION_3 = 3
 SUPPORT_FORMAT_VERSIONS = (FORMAT_VERSION_2, FORMAT_VERSION_3)
 
-pixels_offset_1 = {
+PIXELS_OFFSET_1 = {
     0: (0, 0),
     1: (1, 0),
     2: (0, 1),
     3: (1, 1),
     }
 
-pixels_offset_2 = {
+PIXELS_OFFSET_2 = {
     0: (0, 1),
     1: (1, 1),
     2: (0, 0),
     3: (1, 0),
     }
 
-density_depth = 1.0 / 0xf
+DENSITY_DEPTH = 1.0 / 0xf
 DETAIL_MODEL_COUNT_LIMIT = 0x3f

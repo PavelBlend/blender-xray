@@ -58,7 +58,7 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
         from . import imp
         from ..fmt_object_imp import ImportContext
 
-        cx = ImportContext(
+        context = ImportContext(
             textures=textures_folder,
             soc_sgroups=None,
             import_motions=None,
@@ -66,10 +66,10 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
             operator=self
             )
 
-        cx.format = self.format
-        cx.details_models_in_a_row = self.details_models_in_a_row
-        cx.load_slots = self.load_slots
-        cx.report = self.report
+        context.format = self.format
+        context.details_models_in_a_row = self.details_models_in_a_row
+        context.load_slots = self.load_slots
+        context.report = self.report
 
         import os
 
@@ -80,13 +80,13 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
                 if ext == '.dm':
                     model.imp.import_file(
                         os.path.join(self.directory, file.name),
-                        cx
+                        context
                         )
 
                 elif ext == '.details':
                     imp.import_file(
                         os.path.join(self.directory, file.name),
-                        cx
+                        context
                         )
 
                 else:
@@ -164,11 +164,11 @@ class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
 
         from .model.exp import export_file
 
-        cx = plugin._mk_export_context(
+        context = plugin._mk_export_context(
             context, self.report, self.texture_name_from_image_path
             )
 
-        export_file(bpy_obj, self.filepath, cx)
+        export_file(bpy_obj, self.filepath, context)
 
 
     def invoke(self, context, event):
@@ -241,13 +241,12 @@ class OpExportLevelDetails(bpy.types.Operator, io_utils.ExportHelper):
 
         from .exp import export_file
 
-        cx = plugin._mk_export_context(
+        context = plugin._mk_export_context(
             context, self.report, self.texture_name_from_image_path
             )
 
-        cx.bpy = bpy
-        cx.level_details_format_version = self.format_version
-        export_file(bpy_obj, self.filepath, cx)
+        context.level_details_format_version = self.format_version
+        export_file(bpy_obj, self.filepath, context)
 
     def invoke(self, context, event):
 

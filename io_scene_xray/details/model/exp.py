@@ -10,7 +10,7 @@ from ...utils import (
 
 from ...xray_io import PackedWriter
 from .validate import validate_export_object
-from .format import VERTICES_COUNT_LIMIT
+from .fmt import VERTICES_COUNT_LIMIT
 
 
 def export(bpy_obj, pw, cx, mode='DM'):

@@ -1,23 +1,25 @@
 
-import bpy
 import os
 import io
-from .format import Chunks, SUPPORT_FORMAT_VERSIONS
+
+import bpy
+
+from .fmt import Chunks, SUPPORT_FORMAT_VERSIONS
 from ..utils import AppError
 from ..xray_io import ChunkedReader, PackedReader
 from .utility import generate_color_indices
 from . import read
 
 
-def _import(fpath, cx, cr):
+def _import(fpath, context, chunked_reader):
 
     has_header = False
     has_meshes = False
     has_slots = False
 
-    for chunk_id, chunk_data in cr:
+    for chunk_id, chunk_data in chunked_reader:
 
-        if chunk_id == 0x0 and len(chunk_data) == 0:    # bad file (build 1233)
+        if chunk_id == 0x0 and chunk_data == b'':    # bad file (build 1233)
             break
 
         if chunk_id == Chunks.HEADER:
@@ -43,11 +45,11 @@ def _import(fpath, cx, cr):
             has_meshes = True
 
         elif chunk_id == Chunks.SLOTS:
-            if cx.load_slots:
+            if context.load_slots:
                 pr_slots = PackedReader(chunk_data)
             has_slots = True
 
-    del chunk_data, chunk_id, cr
+    del chunked_reader
 
     if not has_header:
         raise AppError('bad details file. Cannot find HEADER chunk')
@@ -60,13 +62,13 @@ def _import(fpath, cx, cr):
     color_indices = generate_color_indices()
 
     meshes_obj = read.read_details_meshes(
-        base_name, cx, cr_meshes, color_indices, header
+        base_name, context, cr_meshes, color_indices, header
         )
 
     del cr_meshes
     del has_header, has_meshes, has_slots
 
-    if cx.load_slots:
+    if context.load_slots:
 
         root_obj = bpy.data.objects.new(base_name, None)
         bpy.context.scene.objects.link(root_obj)
@@ -74,7 +76,7 @@ def _import(fpath, cx, cr):
         meshes_obj.parent = root_obj
 
         slots_base_object, slots_top_object = read.read_details_slots(
-            base_name, cx, pr_slots, header, color_indices, root_obj
+            base_name, context, pr_slots, header, color_indices, root_obj
             )
 
         del pr_slots
@@ -82,13 +84,13 @@ def _import(fpath, cx, cr):
         slots_base_object.parent = root_obj
         slots_top_object.parent = root_obj
 
-        s = root_obj.xray.detail.slots
+        slots = root_obj.xray.detail.slots
 
-        s.meshes_object = meshes_obj.name
-        s.slots_base_object = slots_base_object.name
-        s.slots_top_object = slots_top_object.name
+        slots.meshes_object = meshes_obj.name
+        slots.slots_base_object = slots_base_object.name
+        slots.slots_top_object = slots_top_object.name
 
 
-def import_file(fpath, cx):
-    with io.open(fpath, 'rb') as f:
-        _import(fpath, cx, ChunkedReader(f.read()))
+def import_file(fpath, context):
+    with io.open(fpath, 'rb') as file:
+        _import(fpath, context, ChunkedReader(file.read()))

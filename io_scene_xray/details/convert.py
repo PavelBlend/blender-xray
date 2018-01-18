@@ -1,75 +1,75 @@
 
 from ..utils import AppError
-from .format import pixels_offset_1, density_depth
+from .fmt import PIXELS_OFFSET_1, DENSITY_DEPTH
 
 
-def convert_bpy_data_to_level_details_struct(cx, bpy_obj):
+def bpy_data_to_lvl_dets_struct(context, bpy_obj):
 
-    from .format import LevelDetails
+    from .fmt import LevelDetails
     from .utility import _get_object, _get_image, _validate_object_type
 
-    s = bpy_obj.xray.detail.slots
-    l = s.ligthing
-    m = s.meshes
-    ld = LevelDetails()
+    slots = bpy_obj.xray.detail.slots
+    ligthing = slots.ligthing
+    meshes = slots.meshes
+    lvl_dets = LevelDetails()
 
-    ld.meshes_object = _get_object(
-        cx, bpy_obj, s.meshes_object, 'Meshes Object'
+    lvl_dets.meshes_object = _get_object(
+        bpy_obj, slots.meshes_object, 'Meshes Object'
         )
-    _validate_object_type(ld.meshes_object, 'EMPTY', 'Meshes Object')
+    _validate_object_type(lvl_dets.meshes_object, 'EMPTY', 'Meshes Object')
 
-    ld.slots_base_object = _get_object(
-        cx, bpy_obj, s.slots_base_object, 'Slots Base Object'
+    lvl_dets.slots_base_object = _get_object(
+        bpy_obj, slots.slots_base_object, 'Slots Base Object'
         )
-    _validate_object_type(ld.slots_base_object, 'MESH', 'Slots Base Object')
+    _validate_object_type(lvl_dets.slots_base_object, 'MESH', 'Slots Base Object')
 
-    ld.slots_top_object = _get_object(
-        cx, bpy_obj, s.slots_top_object, 'Slots Top Object'
+    lvl_dets.slots_top_object = _get_object(
+        bpy_obj, slots.slots_top_object, 'Slots Top Object'
         )
-    _validate_object_type(ld.slots_top_object, 'MESH', 'Slots Top Object')
+    _validate_object_type(lvl_dets.slots_top_object, 'MESH', 'Slots Top Object')
 
-    ld.lights = _get_image(cx, bpy_obj, l.lights_image, 'Lights')
+    lvl_dets.lights = _get_image(bpy_obj, ligthing.lights_image, 'Lights')
 
-    if cx.level_details_format_version == 'builds_1569-cop':
-        if l.format != 'builds_1569-cop':
+    if context.level_details_format_version == 'builds_1569-cop':
+        if ligthing.format != 'builds_1569-cop':
             raise AppError('Object "{0}" has incorrect light format: "Builds 1096-1558". ' \
                 'Must be "Builds 1569-CoP"'.format(bpy_obj.name))
-        ld.format_version = 3
-        ld.light_format = '1569-COP'
-        ld.hemi = _get_image(cx, bpy_obj, l.hemi_image, 'Hemi')
-        ld.shadows = _get_image(cx, bpy_obj, l.shadows_image, 'Shadows')
+        lvl_dets.format_version = 3
+        lvl_dets.light_format = '1569-COP'
+        lvl_dets.hemi = _get_image(bpy_obj, ligthing.hemi_image, 'Hemi')
+        lvl_dets.shadows = _get_image(bpy_obj, ligthing.shadows_image, 'Shadows')
     else:
-        if l.format != 'builds_1096-1558':
+        if ligthing.format != 'builds_1096-1558':
             raise AppError('Object "{0}" has incorrect light format: "Builds 1569-CoP". ' \
                 'Must be "Builds 1096-1558"'.format(bpy_obj.name))
-        ld.format_version = 2
-        ld.light_format = 'OLD'
-        if cx.level_details_format_version == 'builds_1096-1230':
-            ld.old_format = 1
-        elif cx.level_details_format_version == 'builds_1233-1558':
-            ld.old_format = 2
+        lvl_dets.format_version = 2
+        lvl_dets.light_format = 'OLD'
+        if context.level_details_format_version == 'builds_1096-1230':
+            lvl_dets.old_format = 1
+        elif context.level_details_format_version == 'builds_1233-1558':
+            lvl_dets.old_format = 2
 
-    ld.mesh_0 = _get_image(cx, bpy_obj, m.mesh_0, 'Mesh 0')
-    ld.mesh_1 = _get_image(cx, bpy_obj, m.mesh_1, 'Mesh 1')
-    ld.mesh_2 = _get_image(cx, bpy_obj, m.mesh_2, 'Mesh 2')
-    ld.mesh_3 = _get_image(cx, bpy_obj, m.mesh_3, 'Mesh 3')
+    lvl_dets.mesh_0 = _get_image(bpy_obj, meshes.mesh_0, 'Mesh 0')
+    lvl_dets.mesh_1 = _get_image(bpy_obj, meshes.mesh_1, 'Mesh 1')
+    lvl_dets.mesh_2 = _get_image(bpy_obj, meshes.mesh_2, 'Mesh 2')
+    lvl_dets.mesh_3 = _get_image(bpy_obj, meshes.mesh_3, 'Mesh 3')
 
-    return ld
+    return lvl_dets
 
 
-def convert_bpy_data_to_slots_transforms(ld):
+def bpy_data_to_slots_transforms(lvl_dets):
 
-    base_slots = ld.slots_base_object
+    base_slots = lvl_dets.slots_base_object
     bbox_base = base_slots.bound_box
 
-    top_slots = ld.slots_top_object
+    top_slots = lvl_dets.slots_top_object
     bbox_top = top_slots.bound_box
 
-    for i in range(8):
-        for ii in range(3):
-            if ii != 2:
-                coord_b = int(round(bbox_base[i][ii] / 2.0, 1))
-                coord_t = int(round(bbox_top[i][ii] / 2.0, 1))
+    for _ in range(8):
+        for __ in range(3):
+            if __ != 2:
+                coord_b = int(round(bbox_base[_][__] / 2.0, 1))
+                coord_t = int(round(bbox_top[_][__] / 2.0, 1))
 
                 if coord_b != coord_t:
                     raise AppError(
@@ -84,24 +84,24 @@ def convert_bpy_data_to_slots_transforms(ld):
         int(round(bbox_base[6][1] / 2.0, 1))
     )
 
-    ld.slots_size_x = slots_bbox[2] - slots_bbox[0]
-    ld.slots_size_y = slots_bbox[3] - slots_bbox[1]
-    ld.slots_count = ld.slots_size_x * ld.slots_size_y
+    lvl_dets.slots_size_x = slots_bbox[2] - slots_bbox[0]
+    lvl_dets.slots_size_y = slots_bbox[3] - slots_bbox[1]
+    lvl_dets.slots_count = lvl_dets.slots_size_x * lvl_dets.slots_size_y
 
-    if len(base_slots.data.polygons) != ld.slots_count:
+    if len(base_slots.data.polygons) != lvl_dets.slots_count:
         raise AppError(
             'Slots object "{0}" has an incorrect number of polygons. ' \
-            'Must be {1}'.format(base_slots.name, ld.slots_count)
+            'Must be {1}'.format(base_slots.name, lvl_dets.slots_count)
             )
 
-    if len(top_slots.data.polygons) != ld.slots_count:
+    if len(top_slots.data.polygons) != lvl_dets.slots_count:
         raise AppError(
             'Slots object "{0}" has an incorrect number of polygons. ' \
-            'Must be {1}'.format(top_slots.name, ld.slots_count)
+            'Must be {1}'.format(top_slots.name, lvl_dets.slots_count)
             )
 
-    ld.slots_offset_x = -slots_bbox[0]
-    ld.slots_offset_y = -slots_bbox[1]
+    lvl_dets.slots_offset_x = -slots_bbox[0]
+    lvl_dets.slots_offset_y = -slots_bbox[1]
 
 
 def _validate_sizes(images, size_x, size_y):
@@ -114,69 +114,75 @@ def _validate_sizes(images, size_x, size_y):
                     ))
 
 
-def validate_images_size(ld):
-    if ld.format_version == 3:
-        images_1 = (ld.lights, ld.hemi, ld.shadows)
-        images_2 = (ld.mesh_0, ld.mesh_1, ld.mesh_2, ld.mesh_3)
-        _validate_sizes(images_1, ld.slots_size_x, ld.slots_size_y)
-        _validate_sizes(images_2, ld.slots_size_x * 2, ld.slots_size_y * 2)
-    elif ld.format_version == 2:
-        images = (ld.lights, ld.mesh_0, ld.mesh_1, ld.mesh_2, ld.mesh_3)
-        _validate_sizes(images, ld.slots_size_x * 2, ld.slots_size_y * 2)
+def validate_images_size(lvl_dets):
+    if lvl_dets.format_version == 3:
+        images_1 = (lvl_dets.lights, lvl_dets.hemi, lvl_dets.shadows)
+        images_2 = (lvl_dets.mesh_0, lvl_dets.mesh_1, lvl_dets.mesh_2, lvl_dets.mesh_3)
+        _validate_sizes(images_1, lvl_dets.slots_size_x, lvl_dets.slots_size_y)
+        _validate_sizes(images_2, lvl_dets.slots_size_x * 2, lvl_dets.slots_size_y * 2)
+    elif lvl_dets.format_version == 2:
+        images = (
+            lvl_dets.lights,
+            lvl_dets.mesh_0,
+            lvl_dets.mesh_1,
+            lvl_dets.mesh_2,
+            lvl_dets.mesh_3
+            )
+        _validate_sizes(images, lvl_dets.slots_size_x * 2, lvl_dets.slots_size_y * 2)
 
 
-def convert_slot_location_to_slot_index(ld, slot_location):
+def slot_location_to_slot_index(lvl_dets, slot_location):
 
     x_slot = int(round(
-        (slot_location[0] - 1.0) / ld.slot_size, 1)) + ld.slots_offset_x
+        (slot_location[0] - 1.0) / lvl_dets.slot_size, 1)) + lvl_dets.slots_offset_x
 
     y_slot = int(round(
-        (slot_location[1] - 1.0) / ld.slot_size, 1)) + ld.slots_offset_y
+        (slot_location[1] - 1.0) / lvl_dets.slot_size, 1)) + lvl_dets.slots_offset_y
 
-    return y_slot * ld.slots_size_x + x_slot
+    return y_slot * lvl_dets.slots_size_x + x_slot
 
 
-def convert_pixel_color_to_density(ld, pixels, x, y):
+def pixel_color_to_density(lvl_dets, pixels, coord_x, coord_y):
 
     density = []
 
     for corner_index in range(4):
 
         pixel_index = (
-            (x * 2 + pixels_offset_1[corner_index][0] + \
-            (y * 2 + pixels_offset_1[corner_index][1]) * ld.slots_size_x * 2) \
+            (coord_x * 2 + PIXELS_OFFSET_1[corner_index][0] + \
+            (coord_y * 2 + PIXELS_OFFSET_1[corner_index][1]) * lvl_dets.slots_size_x * 2) \
             * 4 + 3
             )
 
         density.append(
-            int(round(pixels[pixel_index] / density_depth, 1)) \
+            int(round(pixels[pixel_index] / DENSITY_DEPTH, 1)) \
             << (4 * corner_index)
             )
 
     return density[0] | density[1] | density[2] | density[3]
 
 
-def convert_pixel_color_to_light(ld, pixels, x, y, pixels_offset):
+def pixel_color_to_light(lvl_dets, pixels, coord_x, coord_y, pixels_offset):
 
     light = []
 
     for corner_index in range(4):
 
         pixel_index_r = (
-            (x * 2 + pixels_offset[corner_index][0] + \
-            (y * 2 + pixels_offset[corner_index][1]) * ld.slots_size_x * 2) \
+            (coord_x * 2 + pixels_offset[corner_index][0] + \
+            (coord_y * 2 + pixels_offset[corner_index][1]) * lvl_dets.slots_size_x * 2) \
             * 4
             )
 
         pixel_index_g = (
-            (x * 2 + pixels_offset[corner_index][0] + \
-            (y * 2 + pixels_offset[corner_index][1]) * ld.slots_size_x * 2) \
+            (coord_x * 2 + pixels_offset[corner_index][0] + \
+            (coord_y * 2 + pixels_offset[corner_index][1]) * lvl_dets.slots_size_x * 2) \
             * 4 + 1
             )
 
         pixel_index_b = (
-            (x * 2 + pixels_offset[corner_index][0] + \
-            (y * 2 + pixels_offset[corner_index][1]) * ld.slots_size_x * 2) \
+            (coord_x * 2 + pixels_offset[corner_index][0] + \
+            (coord_y * 2 + pixels_offset[corner_index][1]) * lvl_dets.slots_size_x * 2) \
             * 4 + 2
             )
 
@@ -184,7 +190,7 @@ def convert_pixel_color_to_light(ld, pixels, x, y, pixels_offset):
             int(round(((
                 pixels[pixel_index_r] + \
                 pixels[pixel_index_g] + \
-                pixels[pixel_index_b]) / 3) / density_depth, 1)) \
+                pixels[pixel_index_b]) / 3) / DENSITY_DEPTH, 1)) \
                 << (4 * corner_index))
 
     return light[0] | light[1] | light[2] | light[3]

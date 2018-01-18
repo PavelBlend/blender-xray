@@ -1,16 +1,17 @@
 
+import bpy
 from ..utils import AppError
 
 
-def _get_image(cx, bpy_obj, xray_prop, prop_name):
+def _get_image(bpy_obj, xray_prop, prop_name):
 
     if xray_prop == '':
         raise AppError(
             'object "{0}" has no "{1}"'.format(bpy_obj.name, prop_name)
             )
 
-    bpy_image = cx.bpy.data.images.get(xray_prop)
-    if bpy_image == None:
+    bpy_image = bpy.data.images.get(xray_prop)
+    if bpy_image is None:
         raise AppError(
             'cannot find "{0}" image: "{1}"'.format(
                 prop_name, xray_prop
@@ -20,15 +21,15 @@ def _get_image(cx, bpy_obj, xray_prop, prop_name):
     return bpy_image
 
 
-def _get_object(cx, bpy_obj, xray_prop, prop_name):
+def _get_object(bpy_obj, xray_prop, prop_name):
 
     if xray_prop == '':
         raise AppError(
             'object "{0}" has no "{1}"'.format(bpy_obj.name, prop_name)
             )
 
-    bpy_object = cx.bpy.data.objects.get(xray_prop)
-    if bpy_object == None:
+    bpy_object = bpy.data.objects.get(xray_prop)
+    if bpy_object is None:
         raise AppError(
             'cannot find "{0}": "{1}"'.format(
                 prop_name, xray_prop
@@ -38,12 +39,12 @@ def _get_object(cx, bpy_obj, xray_prop, prop_name):
     return bpy_object
 
 
-def _validate_object_type(bpy_obj, type, prop_name):
-    if bpy_obj.type != type:
-        raise AppError('"{0}" must be of type "{1}"'.format(prop_name, type))
+def _validate_object_type(bpy_obj, obj_type, prop_name):
+    if bpy_obj.type != obj_type:
+        raise AppError('"{0}" must be of type "{1}"'.format(prop_name, obj_type))
 
 
-def generate_meshes_color_indices_table(detail_models_count, format=3):
+def gen_meshes_color_indices_table(detail_models_count, format_version=3):
 
     mesh_ids = {}
     color_depth = 21
@@ -64,9 +65,9 @@ def generate_meshes_color_indices_table(detail_models_count, format=3):
             if mesh_id >= detail_models_count:
                 break
 
-    if format == 3:
+    if format_version == 3:
         mesh_ids[(0, 0, 0)] = 63    # empty detail mesh (version 3)
-    elif format == 2:
+    elif format_version == 2:
         mesh_ids[(0, 0, 0)] = 255    # empty detail mesh (version 2)
 
     return mesh_ids

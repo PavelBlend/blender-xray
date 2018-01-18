@@ -4,33 +4,33 @@ from ..xray_io import ChunkedWriter
 from .write import write_header, write_details, write_slots_v3, write_slots_v2
 
 from .convert import (
-    convert_bpy_data_to_level_details_struct,
-    convert_bpy_data_to_slots_transforms,
+    bpy_data_to_lvl_dets_struct,
+    bpy_data_to_slots_transforms,
     validate_images_size
     )
 
 
-def _export(bpy_obj, cw, cx):
+def _export(bpy_obj, chunked_writer, context):
 
-    ld = convert_bpy_data_to_level_details_struct(cx, bpy_obj)
-    convert_bpy_data_to_slots_transforms(ld)
-    validate_images_size(ld)
+    lvl_dets = bpy_data_to_lvl_dets_struct(context, bpy_obj)
+    bpy_data_to_slots_transforms(lvl_dets)
+    validate_images_size(lvl_dets)
 
-    if cx.level_details_format_version == 'builds_1569-cop':
-        write_details(cw, ld, cx)
-        write_slots_v3(cw, ld)
-        write_header(cw, ld)
+    if context.level_details_format_version == 'builds_1569-cop':
+        write_details(chunked_writer, lvl_dets, context)
+        write_slots_v3(chunked_writer, lvl_dets)
+        write_header(chunked_writer, lvl_dets)
 
-    elif cx.level_details_format_version in {
+    elif context.level_details_format_version in {
             'builds_1096-1230', 'builds_1233-1558'
-            }:
-        write_header(cw, ld)
-        write_details(cw, ld, cx)
-        write_slots_v2(cw, ld)
+        }:
+        write_header(chunked_writer, lvl_dets)
+        write_details(chunked_writer, lvl_dets, context)
+        write_slots_v2(chunked_writer, lvl_dets)
 
 
-def export_file(bpy_obj, fpath, cx):
-    with io.open(fpath, 'wb') as f:
-        cw = ChunkedWriter()
-        _export(bpy_obj, cw, cx)
-        f.write(cw.data)
+def export_file(bpy_obj, fpath, context):
+    with io.open(fpath, 'wb') as file:
+        chunked_writer = ChunkedWriter()
+        _export(bpy_obj, chunked_writer, context)
+        file.write(chunked_writer.data)

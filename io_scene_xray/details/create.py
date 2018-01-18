@@ -2,9 +2,7 @@
 import bpy
 
 
-def create_details_slots_object(base_name, cx, header, y_coords_top,
-        y_coords_base):
-
+def create_details_slots_object(base_name, header, y_coords_top, y_coords_base):
     slots_name_base = '{0} slots base'.format(base_name)
     slots_base_mesh = bpy.data.meshes.new(slots_name_base)
     slots_base_object = bpy.data.objects.new(
@@ -34,11 +32,11 @@ def create_details_slots_object(base_name, cx, header, y_coords_top,
             uv_y = coord_y * uv_face_size_y
             uv_y_plus = uv_y + uv_face_size_y
             uvs.extend((
-                        (uv_x, uv_y),
-                        (uv_x_plus, uv_y),
-                        (uv_x_plus, uv_y_plus),
-                        (uv_x, uv_y_plus)
-                      ))
+                (uv_x, uv_y),
+                (uv_x_plus, uv_y),
+                (uv_x_plus, uv_y_plus),
+                (uv_x, uv_y_plus)
+            ))
 
             slot_x_coord = (coord_x - header.offset.x) * header.slot_size + \
                                header.slot_half
@@ -142,8 +140,8 @@ def create_details_slots_object(base_name, cx, header, y_coords_top,
     return slots_base_object, slots_top_object
 
 
-def create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
-        hemi=None, lights_old=None):
+def create_images(header, meshes, root_obj, lights=None, shadows=None,
+                  hemi=None, lights_old=None):
 
     def _create_det_image(name, double_size=False):
         if double_size:
@@ -158,9 +156,9 @@ def create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
         bpy_image.use_fake_user = True
         return bpy_image
 
-    s = root_obj.xray.detail.slots
-    m = s.meshes
-    l = s.ligthing
+    slots = root_obj.xray.detail.slots
+    dets_meshes = slots.meshes
+    ligthing = slots.ligthing
 
     images_list = []
 
@@ -176,51 +174,51 @@ def create_images(cx, header, meshes, root_obj, lights=None, shadows=None,
         meshes_image.pack(as_png=True)
         m_i.append(meshes_image.name)
 
-    m.mesh_0 = m_i[0]
-    m.mesh_1 = m_i[1]
-    m.mesh_2 = m_i[2]
-    m.mesh_3 = m_i[3]
+    dets_meshes.mesh_0 = m_i[0]
+    dets_meshes.mesh_1 = m_i[1]
+    dets_meshes.mesh_2 = m_i[2]
+    dets_meshes.mesh_3 = m_i[3]
 
     if header.format_version == 3:
 
-        l.format = 'builds_1569-cop'
+        ligthing.format = 'builds_1569-cop'
 
         light_image = _create_det_image('lights')
         images_list.append(light_image.name)
         light_image.pixels = lights
         light_image.pack(as_png=True)
-        l.lights_image = light_image.name
+        ligthing.lights_image = light_image.name
 
         shadows_image = _create_det_image('shadows')
         images_list.append(shadows_image.name)
         shadows_image.pixels = shadows
         shadows_image.pack(as_png=True)
-        l.shadows_image = shadows_image.name
+        ligthing.shadows_image = shadows_image.name
 
         hemi_image = _create_det_image('hemi')
         images_list.append(hemi_image.name)
         hemi_image.pixels = hemi
         hemi_image.pack(as_png=True)
-        l.hemi_image = hemi_image.name
+        ligthing.hemi_image = hemi_image.name
 
     elif header.format_version == 2:
 
-        l.format = 'builds_1096-1558'
+        ligthing.format = 'builds_1096-1558'
 
         lights_v2_image = _create_det_image('lighting', double_size=True)
         images_list.append(lights_v2_image.name)
         lights_v2_image.use_fake_user = True
         lights_v2_image.pixels = lights_old
         lights_v2_image.pack(as_png=True)
-        l.lights_image = lights_v2_image.name
+        ligthing.lights_image = lights_v2_image.name
 
 
-def create_pallete(cx, color_indices):
+def create_pallete(color_indices):
 
     pallete_name = 'details meshes pallete'
 
     # create image pallete
-    if bpy.data.images.get(pallete_name) == None:
+    if bpy.data.images.get(pallete_name) is None:
         meshes_indices_pixels = []
         for color_index in color_indices:
             meshes_indices_pixels.extend(color_index)
@@ -230,7 +228,7 @@ def create_pallete(cx, color_indices):
         meshes_indices_image.pack(as_png=True)
 
     # create bpy pallete
-    if bpy.data.palettes.get(pallete_name) == None:
+    if bpy.data.palettes.get(pallete_name) is None:
         pallete = bpy.data.palettes.new(pallete_name)
         pallete.use_fake_user = True
         for rgba in color_indices:
