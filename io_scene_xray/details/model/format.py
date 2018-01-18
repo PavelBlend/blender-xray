@@ -15,4 +15,5 @@ class DetailModel:
         self.mode = None
         self.mesh = self.Mesh()
 
+
 VERTICES_COUNT_LIMIT = 0x10000
