@@ -2,7 +2,7 @@
 from ...utils import AppError, gen_texture_name
 
 
-def validate_export_object(cx, bpy_obj):
+def validate_export_object(context, bpy_obj):
 
     if not len(bpy_obj.data.uv_layers):
         raise AppError('mesh "' + bpy_obj.data.name + '" has no UV-map')
@@ -39,8 +39,8 @@ def validate_export_object(cx, bpy_obj):
                 raise AppError(
                     'texture "' + bpy_texture.name + '" has no image'
                     )
-            if cx.texname_from_path:
-                tx_name = gen_texture_name(bpy_texture, cx.textures_folder)
+            if context.texname_from_path:
+                tx_name = gen_texture_name(bpy_texture, context.textures_folder)
             else:
                 tx_name = bpy_texture.name
 

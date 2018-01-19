@@ -6,28 +6,28 @@ from .create import create_object, search_material, create_mesh
 from .fmt import DetailModel
 
 
-def import_(fpath, cx, pr, mode='DM', detail_index=None, detail_colors=None):
+def import_(fpath, context, packed_reader, mode='DM', detail_index=None, detail_colors=None):
 
-    dm = DetailModel()
+    det_model = DetailModel()
 
     object_name = os.path.basename(fpath.lower())
-    bpy_obj, bpy_mesh = create_object(cx, object_name)
+    bpy_obj, bpy_mesh = create_object(object_name)
 
-    dm.shader = pr.gets()
-    dm.texture = pr.gets()
-    dm.mode = mode
-    dm.mesh.bpy_mesh = bpy_mesh
+    det_model.shader = packed_reader.gets()
+    det_model.texture = packed_reader.gets()
+    det_model.mode = mode
+    det_model.mesh.bpy_mesh = bpy_mesh
 
-    cx.os = os
-    bpy_material = search_material(cx, dm)
+    context.os = os
+    bpy_material = search_material(context, det_model)
 
-    dm.mesh.bpy_mesh.materials.append(bpy_material)
-    dm.mesh.bpy_material = bpy_material
+    det_model.mesh.bpy_mesh.materials.append(bpy_material)
+    det_model.mesh.bpy_material = bpy_material
 
-    flags, min_scale, max_scale, verts_cnt, indices_cnt = pr.getf('<IffII')
+    flags, min_scale, max_scale, verts_cnt, indices_cnt = packed_reader.getf('<IffII')
 
-    dm.mesh.vertices_count = verts_cnt
-    dm.mesh.indices_count = indices_cnt
+    det_model.mesh.vertices_count = verts_cnt
+    det_model.mesh.indices_count = indices_cnt
 
     model = bpy_obj.xray.detail.model
 
@@ -35,15 +35,15 @@ def import_(fpath, cx, pr, mode='DM', detail_index=None, detail_colors=None):
     model.min_scale = min_scale
     model.max_scale = max_scale
 
-    if dm.mode == 'DETAILS':
+    if det_model.mode == 'DETAILS':
         model.index = detail_index
         model.color = detail_colors[detail_index][0:3]
 
-    create_mesh(cx, pr, dm, PackedReader)
+    create_mesh(packed_reader, det_model)
 
     return bpy_obj
 
 
-def import_file(fpath, cx):
-    with io.open(fpath, 'rb') as f:
-        import_(fpath, cx, PackedReader(f.read()))
+def import_file(fpath, context):
+    with io.open(fpath, 'rb') as file:
+        import_(fpath, context, PackedReader(file.read()))

@@ -13,61 +13,59 @@ from .validate import validate_export_object
 from .fmt import VERTICES_COUNT_LIMIT
 
 
-def export(bpy_obj, pw, cx, mode='DM'):
+def export(bpy_obj, packed_writer, context, mode='DM'):
 
-    bpy_material, tx_name = validate_export_object(cx, bpy_obj)
+    bpy_material, tx_name = validate_export_object(context, bpy_obj)
 
-    m = bpy_obj.xray.detail.model
-    pw.puts(bpy_material.xray.eshader)
-    pw.puts(tx_name)
-    pw.putf('<I', int(m.no_waving))
-    pw.putf('<ff', m.min_scale, m.max_scale)
+    det_model = bpy_obj.xray.detail.model
+    packed_writer.puts(bpy_material.xray.eshader)
+    packed_writer.puts(tx_name)
+    packed_writer.putf('<I', int(det_model.no_waving))
+    packed_writer.putf('<ff', det_model.min_scale, det_model.max_scale)
 
     if mode == 'DM':
-        bm = convert_object_to_space_bmesh(
+        b_mesh = convert_object_to_space_bmesh(
             bpy_obj, mathutils.Matrix.Identity(4)
             )
 
     else:
-        bm = convert_object_to_space_bmesh(
+        b_mesh = convert_object_to_space_bmesh(
             bpy_obj, mathutils.Matrix.Identity(4), local=True
             )
 
-    bmesh.ops.triangulate(bm, faces=bm.faces)
+    bmesh.ops.triangulate(b_mesh, faces=b_mesh.faces)
     bpy_data = bpy.data.meshes.new('.export-dm')
-    bm.to_mesh(bpy_data)
-    bml_uv = bm.loops.layers.uv.active
+    b_mesh.to_mesh(bpy_data)
+    bml_uv = b_mesh.loops.layers.uv.active
     vertices = []
     indices = []
     vmap = {}
 
     if mode == 'DM':
-        for f in bm.faces:
-            ii = []
-            for li, l in enumerate(f.loops):
-                dl = bpy_data.loops[f.index * 3 + li]
-                uv = l[bml_uv].uv
-                vtx = (l.vert.co.to_tuple(), (uv[0], uv[1]))
+        for face in b_mesh.faces:
+            _ = []
+            for loop in face.loops:
+                uv = loop[bml_uv].uv
+                vtx = (loop.vert.co.to_tuple(), (uv[0], uv[1]))
                 vi = vmap.get(vtx)
                 if vi is None:
                     vmap[vtx] = vi = len(vertices)
                     vertices.append(vtx)
-                ii.append(vi)
-            indices.append(ii)
+                _.append(vi)
+            indices.append(_)
 
     else:
-        for f in bm.faces:
-            ii = []
-            for li, l in enumerate(f.loops):
-                dl = bpy_data.loops[f.index * 3 + li]
-                uv = l[bml_uv].uv
-                vtx = (l.vert.co.to_tuple(), (uv[0], 1 - uv[1]))
+        for face in b_mesh.faces:
+            _ = []
+            for loop in face.loops:
+                uv = loop[bml_uv].uv
+                vtx = (loop.vert.co.to_tuple(), (uv[0], 1 - uv[1]))
                 vi = vmap.get(vtx)
                 if vi is None:
                     vmap[vtx] = vi = len(vertices)
                     vertices.append(vtx)
-                ii.append(vi)
-            indices.append(ii)
+                _.append(vi)
+            indices.append(_)
 
     vertices_count = len(vertices)
     if vertices_count > VERTICES_COUNT_LIMIT:
@@ -78,22 +76,22 @@ def export(bpy_obj, pw, cx, mode='DM'):
                 )
             )
 
-    pw.putf('<I', vertices_count)
-    pw.putf('<I', len(indices) * 3)
+    packed_writer.putf('<I', vertices_count)
+    packed_writer.putf('<I', len(indices) * 3)
 
     for vtx in vertices:
-        pw.putf(
+        packed_writer.putf(
             '<fffff', vtx[0][0], vtx[0][2], vtx[0][1], vtx[1][0], vtx[1][1]
             )
 
     for tris in indices:
-        pw.putf('<HHH', tris[0], tris[2], tris[1])
+        packed_writer.putf('<HHH', tris[0], tris[2], tris[1])
 
     bpy.data.meshes.remove(bpy_data)
 
 
-def export_file(bpy_obj, fpath, cx):
-    with io.open(fpath, 'wb') as f:
-        pw = PackedWriter()
-        export(bpy_obj, pw, cx)
-        f.write(pw.data)
+def export_file(bpy_obj, fpath, context):
+    with io.open(fpath, 'wb') as file:
+        packed_writer = PackedWriter()
+        export(bpy_obj, packed_writer, context)
+        file.write(packed_writer.data)
