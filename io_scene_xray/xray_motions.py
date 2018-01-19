@@ -3,7 +3,7 @@ from mathutils import Matrix, Euler, Quaternion
 
 from .utils import is_exportable_bone, find_bone_exportable_parent, AppError
 from .xray_envelope import Behavior, Shape, KF, EPSILON, refine_keys, export_keyframes
-from .xray_io import PackedReader, PackedWriter
+from .xray_io import PackedWriter, FastBytes as fb
 from .log import warn, with_context, props as log_props
 
 
@@ -115,38 +115,38 @@ def import_motions(reader, bpy_armature):
         import_motion(reader, bpy_armature, bonesmap, reported)
 
 
-__S_H__ = PackedReader.prep('H')
-
 @with_context('examine-motion')
-def examine_motion(reader):
-    name = reader.gets()
-    reader.skip(4 + 4 + 4)
-    ver = reader.getp(__S_H__)[0]
+def examine_motion(data, offs):
+    name, ptr = fb.str_at(data, offs)
+    ptr += 4 + 4 + 4 + 2
+    ver = fb.short_at(data, ptr - 2)
     if ver < 6:
         raise AppError('unsupported motions version', log_props(version=ver))
 
-    reader.skip(1 + 2 + 4 * 4)
-    for _bone_idx in range(reader.getp(__S_H__)[0]):
-        reader.skips()
-        reader.skip(1)
+    ptr += (1 + 2 + 4 * 4) + 2
+    for _bone_idx in range(fb.short_at(data, ptr - 2)):
+        ptr = fb.skip_str(data, ptr) + 1
         for _fcurve_idx in range(6):
-            reader.skip(1 + 1)
-            for _keyframe_idx in range(reader.getp(__S_H__)[0]):
-                reader.skip(4 + 4)
-                shape = reader.byte()
+            ptr += 1 + 1 + 2
+            for _kf_idx in range(fb.short_at(data, ptr - 2)):
+                ptr += (4 + 4) + 1
+                shape = data[ptr - 1]
                 if shape != 4:
-                    reader.skip(2 * 3 + 2 * 4)
+                    ptr += (2 * 3 + 2 * 4)
     if ver >= 7:
-        for _bone_idx in range(reader.int()):
-            reader.skips()
-            reader.skip((4 + 4) * reader.int())
+        ptr += 4
+        for _bone_idx in range(fb.int_at(data, ptr - 4)):
+            ptr = fb.skip_str(data, ptr) + 4
+            ptr += (4 + 4) * fb.int_at(data, ptr - 4)
 
-    return name
+    return name, ptr
 
 
-def examine_motions(reader):
-    for _ in range(reader.int()):
-        yield examine_motion(reader)
+def examine_motions(data):
+    offs = 4
+    for _ in range(fb.int_at(data, offs - 4)):
+        name, offs = examine_motion(data, offs)
+        yield name
 
 
 @with_context('export-motion')

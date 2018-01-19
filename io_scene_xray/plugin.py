@@ -184,11 +184,9 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     @staticmethod
     def _examine_file(fpath):
         if fpath.lower().endswith('.skls'):
-            from .xray_io import PackedReader
             from .xray_motions import examine_motions
             with open(fpath, 'rb') as file:
-                reader = PackedReader(file.read())
-                return examine_motions(reader)
+                return examine_motions(file.read())
         return tuple()
 
     @execute_with_logger

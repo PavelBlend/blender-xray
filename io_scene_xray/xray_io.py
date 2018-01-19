@@ -1,7 +1,30 @@
 import struct
 
 
+class FastBytes:
+    @staticmethod
+    def short_at(data, offs):
+        return data[offs] | (data[offs + 1] << 8)
+
+    @staticmethod
+    def int_at(data, offs):
+        return data[offs] | (data[offs + 1] << 8) | (data[offs + 2] << 16) | (data[offs + 3] << 24)
+
+    @staticmethod
+    def skip_str(data, offs):
+        zpos = data.find(0, offs)
+        if zpos == -1:
+            return len(data)
+        return zpos + 1
+
+    @staticmethod
+    def str_at(data, offs):
+        new_offs = FastBytes.skip_str(data, offs)
+        return data[offs:new_offs - 1].decode('cp1251'), new_offs
+
+
 class PackedReader:
+    # __slots__ = ['__offs', '__data']
     __PREP_I = struct.Struct('<I')
 
     def __init__(self, data):
@@ -53,12 +76,6 @@ class PackedReader:
 
     def skip(self, count):
         self.__offs += count
-
-    def skips(self):
-        zpos = self.__data.find(0, self.__offs)
-        if zpos == -1:
-            zpos = len(self.__data)
-        self.__offs = zpos + 1
 
 
 class ChunkedReader:
