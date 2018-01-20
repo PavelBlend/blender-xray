@@ -162,6 +162,8 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 nprop = prop + '_auto'
                 if getattr(data, nprop):
                     prop = nprop
+                    layout = layout.split()
+                    layout.active = False
             layout.prop(data, prop)
 
         layout = self.layout
