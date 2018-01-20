@@ -159,7 +159,9 @@ class PluginPreferences(bpy.types.AddonPreferences):
 
         def prop_auto(layout, data, prop):
             if not getattr(data, prop):
-                prop += '_auto'
+                nprop = prop + '_auto'
+                if getattr(data, nprop):
+                    prop = nprop
             layout.prop(data, prop)
 
         layout = self.layout
