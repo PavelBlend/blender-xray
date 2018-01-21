@@ -125,7 +125,7 @@ def examine_motion(data, offs):
 
     ptr += (1 + 2 + 4 * 4) + 2
     for _bone_idx in range(fb.short_at(data, ptr - 2)):
-        ptr = fb.skip_str(data, ptr) + 1
+        ptr = fb.skip_str_at(data, ptr) + 1
         for _fcurve_idx in range(6):
             ptr += 1 + 1 + 2
             for _kf_idx in range(fb.short_at(data, ptr - 2)):
@@ -136,7 +136,7 @@ def examine_motion(data, offs):
     if ver >= 7:
         ptr += 4
         for _bone_idx in range(fb.int_at(data, ptr - 4)):
-            ptr = fb.skip_str(data, ptr) + 4
+            ptr = fb.skip_str_at(data, ptr) + 4
             ptr += (4 + 4) * fb.int_at(data, ptr - 4)
 
     return name, ptr

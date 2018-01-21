@@ -11,20 +11,19 @@ class FastBytes:
         return data[offs] | (data[offs + 1] << 8) | (data[offs + 2] << 16) | (data[offs + 3] << 24)
 
     @staticmethod
-    def skip_str(data, offs):
-        zpos = data.find(0, offs)
-        if zpos == -1:
-            return len(data)
-        return zpos + 1
+    def skip_str_at(data, offs):
+        dlen = len(data)
+        while (offs < dlen) and (data[offs] != 0):
+            offs += 1
+        return offs + 1
 
     @staticmethod
     def str_at(data, offs):
-        new_offs = FastBytes.skip_str(data, offs)
+        new_offs = FastBytes.skip_str_at(data, offs)
         return data[offs:new_offs - 1].decode('cp1251'), new_offs
 
 
 class PackedReader:
-    # __slots__ = ['__offs', '__data']
     __PREP_I = struct.Struct('<I')
 
     def __init__(self, data):
@@ -41,12 +40,15 @@ class PackedReader:
         return struct.unpack_from(fmt, self.__data, self.__offs - size)
 
     def byte(self):
-        offs = self.__offs
-        self.__offs = offs + 1
-        return self.__data[offs]
+        return self.__data[self._next(1)]
 
     def int(self):
-        return self.getp(PackedReader.__PREP_I)[0]
+        return FastBytes.int_at(self.__data, self._next(4))
+
+    def _next(self, size):
+        offs = self.__offs
+        self.__offs = offs + size
+        return offs
 
     @staticmethod
     def prep(fmt):
@@ -58,21 +60,16 @@ class PackedReader:
         return prep.unpack_from(self.__data, offs)
 
     def gets(self, onerror=None):
-        # zpos = self.__data.find(0, self.__offs)
-        # if zpos == -1:
-        #     zpos = len(self.__data)
-        data, zpos = self.__data, self.__offs
-        dlen = len(data)
-        while (zpos != dlen) and (data[zpos] != 0):
-            zpos += 1
-        bts = self.getf('{}sx'.format(zpos - self.__offs))[0]
+        data, offs = self.__data, self.__offs
+        new_offs = self.__offs = FastBytes.skip_str_at(data, offs)
+        bts = data[offs:new_offs - 1]
         try:
-            return bts.decode('cp1251')
+            return str(bts, 'cp1251')
         except UnicodeError as error:
             if onerror is None:
                 raise
             onerror(error)
-            return bts.decode('cp1251', errors='replace')
+            return str(bts, 'cp1251', errors='replace')
 
     def skip(self, count):
         self.__offs += count
