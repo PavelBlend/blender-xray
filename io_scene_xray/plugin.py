@@ -5,6 +5,7 @@ from bpy_extras import io_utils
 
 from . import xray_inject
 from .ops import BaseOperator as TestReadyOperator
+from .ui import collapsible
 from .utils import AppError, ObjectsInitializer, logger
 from . import plugin_prefs
 from . import registry
@@ -135,10 +136,23 @@ def invoke_require_armature(func):
 
 
 @registry.module_thing
+class _MotionsList(bpy.types.UIList):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname):
+        row = layout.row(align=True)
+        row.prop(
+            item, 'flag',
+            icon='CHECKBOX_HLT' if item.flag else 'CHECKBOX_DEHLT',
+            text='', emboss=False,
+        )
+        row.label(item.name)
+
+
+@registry.module_thing
 @registry.requires('Motion')
 class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     class Motion(bpy.types.PropertyGroup):
-        name = bpy.props.StringProperty()
+        flag = bpy.props.BoolProperty(name='Selected for Import')
+        name = bpy.props.StringProperty(name='Motion Name')
 
     bl_idname = 'xray_import.skl'
     bl_label = 'Import .skl/.skls'
@@ -160,9 +174,25 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
         row.enabled = False
         row.label('%d items' % len(self.files))
 
-        if len(self._get_motions()) > 1:
-            layout.template_list(
-                'UI_UL_list', 'name',
+        key = self.bl_idname
+        text = 'Filter Motions: '
+        if collapsible.is_opened(key):
+            count = len([m for m in self.motions_preview_items if m.flag])
+            text += str(count)
+        else:
+            text += 'All'
+
+        _, box = collapsible.draw(
+            layout,
+            self.bl_idname,
+            text,
+            enabled=len(self._get_motions()) > 1,
+            icon='FILTER',
+            style='nobox',
+        )
+        if box:
+            box.template_list(
+                '_MotionsList', 'name',
                 self, 'motions_preview_items',
                 self, 'motions_preview_index',
             )
@@ -195,8 +225,13 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         from .fmt_skl_imp import import_skl_file, import_skls_file, ImportContext
+        motions_filter = lambda name: True
+        if self.motions_preview_items:
+            selected_names = set(m.name for m in self.motions_preview_items if m.flag)
+            motions_filter = lambda name: name in selected_names
         import_context = ImportContext(
-            armature=context.active_object
+            armature=context.active_object,
+            motions_filter=motions_filter,
         )
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()

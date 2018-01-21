@@ -24,11 +24,13 @@ class FastBytes:
 
 
 class PackedReader:
+    __slots__ = ['__offs', '__data', '__view']
     __PREP_I = struct.Struct('<I')
 
     def __init__(self, data):
         self.__offs = 0
         self.__data = data
+        self.__view = None
 
     def getb(self, count):
         self.__offs += count
@@ -70,6 +72,12 @@ class PackedReader:
                 raise
             onerror(error)
             return str(bts, 'cp1251', errors='replace')
+
+    def getv(self):
+        view = self.__view
+        if view is None:
+            self.__view = view = memoryview(self.__data)
+        return view[self.__offs:]
 
     def skip(self, count):
         self.__offs += count

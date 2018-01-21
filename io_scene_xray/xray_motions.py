@@ -15,10 +15,16 @@ MATRIX_BONE = Matrix((
 )).freeze()
 MATRIX_BONE_INVERTED = MATRIX_BONE.inverted().freeze()
 
+MOTIONS_FILTER_ALL = lambda name: True
 
 @with_context('import-motion')
-def import_motion(reader, bpy_armature, bonesmap, reported):
-    act = bpy.data.actions.new(name=reader.gets())
+def import_motion(reader, bpy_armature, bonesmap, reported, motions_filter=MOTIONS_FILTER_ALL):
+    name = reader.gets()
+    if not motions_filter(name):
+        skip = _skip_motion_rest(reader.getv(), 0)
+        reader.skip(skip)
+        return
+    act = bpy.data.actions.new(name=name)
     act.use_fake_user = True
     xray = act.xray
     reader.getf('II')  # range
@@ -107,18 +113,21 @@ def import_motion(reader, bpy_armature, bonesmap, reported):
             warn('markers are not supported yet', name=name)
     return act
 
-
-def import_motions(reader, bpy_armature):
+def import_motions(reader, bpy_armature, motions_filter=MOTIONS_FILTER_ALL):
     bonesmap = {b.name.lower(): b for b in bpy_armature.data.bones}
     reported = set()
     for _ in range(reader.getf('I')[0]):
-        import_motion(reader, bpy_armature, bonesmap, reported)
+        import_motion(reader, bpy_armature, bonesmap, reported, motions_filter)
 
 
 @with_context('examine-motion')
-def examine_motion(data, offs):
+def _examine_motion(data, offs):
     name, ptr = fb.str_at(data, offs)
-    ptr += 4 + 4 + 4 + 2
+    ptr = _skip_motion_rest(data, ptr)
+    return name, ptr
+
+def _skip_motion_rest(data, offs):
+    ptr = offs + 4 + 4 + 4 + 2
     ver = fb.short_at(data, ptr - 2)
     if ver < 6:
         raise AppError('unsupported motions version', log_props(version=ver))
@@ -139,13 +148,12 @@ def examine_motion(data, offs):
             ptr = fb.skip_str_at(data, ptr) + 4
             ptr += (4 + 4) * fb.int_at(data, ptr - 4)
 
-    return name, ptr
-
+    return ptr
 
 def examine_motions(data):
     offs = 4
     for _ in range(fb.int_at(data, offs - 4)):
-        name, offs = examine_motion(data, offs)
+        name, offs = _examine_motion(data, offs)
         yield name
 
 

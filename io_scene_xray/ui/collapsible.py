@@ -32,7 +32,11 @@ def draw(layout, key, text=None, enabled=None, icon=None, style=None):
     kwargs = {}
     if text is not None:
         kwargs['text'] = text
-    box = col.box() if isshow else None
+    box = None
+    if isshow:
+        box = col
+        if style != 'nobox':
+            box = box.box()
     if style == 'tree':
         row = row.row()
         row.alignment = 'LEFT'
@@ -45,6 +49,8 @@ def draw(layout, key, text=None, enabled=None, icon=None, style=None):
     oper.key = key
     return row, box
 
+def is_opened(key):
+    return _CollapsOp.get(key)
 
 registry.module_requires(__name__, [
     _CollapsOp,
