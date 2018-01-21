@@ -4,7 +4,7 @@ from os import path
 import bpy
 
 from . import registry
-from .ui import collapsible
+from .ui import collapsible, xprop
 from .utils import with_auto_property
 
 
@@ -101,12 +101,28 @@ def _auto_path(obj, self_name, path_suffix, checker):
 
 
 @registry.module_thing
+class _ExplicitPathOp(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.explicit_path'
+    bl_label = 'Make Explicit'
+    bl_description = 'Make this path explicit using the automatically calculated value'
+
+    path = bpy.props.StringProperty()
+
+    def execute(self, _context):
+        prefs = get_preferences()
+        value = getattr(prefs, with_auto_property.build_auto_id(self.path))
+        setattr(prefs, self.path, value)
+        return {'FINISHED'}
+
+
+@registry.module_thing
 @with_auto_property(
     bpy.props.StringProperty, 'gamedata_folder',
     lambda self: _auto_path(self, 'gamedata_folder', '', path.isdir),
     name='Gamedata Folder',
     description='Path to the \'gamedata\' directory',
     subtype='DIR_PATH',
+    overrides={'subtype': 'NONE'},
 )
 @with_auto_property(
     bpy.props.StringProperty, 'textures_folder',
@@ -114,6 +130,7 @@ def _auto_path(obj, self_name, path_suffix, checker):
     name='Textures Folder',
     description='Path to the \'gamedata/textures\' directory',
     subtype='DIR_PATH',
+    overrides={'subtype': 'NONE'},
 )
 @with_auto_property(
     bpy.props.StringProperty, 'gamemtl_file',
@@ -121,6 +138,7 @@ def _auto_path(obj, self_name, path_suffix, checker):
     name='GameMtl File',
     description='Path to the \'gamemtl.xr\' file',
     subtype='FILE_PATH',
+    overrides={'subtype': 'NONE'},
 )
 @with_auto_property(
     bpy.props.StringProperty, 'eshader_file',
@@ -128,6 +146,7 @@ def _auto_path(obj, self_name, path_suffix, checker):
     name='EShader File',
     description='Path to the \'shaders.xr\' file',
     subtype='FILE_PATH',
+    overrides={'subtype': 'NONE'},
 )
 @with_auto_property(
     bpy.props.StringProperty, 'cshader_file',
@@ -135,6 +154,7 @@ def _auto_path(obj, self_name, path_suffix, checker):
     name='CShader File',
     description='Path to the \'shaders_xrlc.xr\' file',
     subtype='FILE_PATH',
+    overrides={'subtype': 'NONE'},
 )
 class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
@@ -158,13 +178,17 @@ class PluginPreferences(bpy.types.AddonPreferences):
             layout.prop(data, prop)
 
         def prop_auto(layout, data, prop):
+            eprop = prop
             if not getattr(data, prop):
-                nprop = prop + '_auto'
+                nprop = with_auto_property.build_auto_id(prop)
                 if getattr(data, nprop):
-                    prop = nprop
-                    layout = layout.split()
-                    layout.active = False
-            layout.prop(data, prop)
+                    eprop = nprop
+            if eprop == prop:
+                layout.prop(data, eprop)
+            else:
+                _, lay = xprop(layout, data, eprop, enabled=False)
+                operator = lay.operator(_ExplicitPathOp.bl_idname, icon='MODIFIER', text='')
+                operator.path = prop
 
         layout = self.layout
         prop_auto(layout, self, 'gamedata_folder')

@@ -348,7 +348,7 @@ def using_mode(mode):
     finally:
         bpy.ops.object.mode_set(mode=original)
 
-def with_auto_property(prop_class, prop_id, getter, **kwargs):
+def with_auto_property(prop_class, prop_id, getter, overrides=None, **kwargs):
     def decorator(struct):
         setattr(struct, prop_id, prop_class(
             **kwargs,
@@ -370,8 +370,10 @@ def with_auto_property(prop_class, prop_id, getter, **kwargs):
             kwargs2['name'] += ' (auto)'
         if 'description' in kwargs2:
             kwargs2['description'] += ' (automatically calculated value)'
+        if overrides:
+            kwargs2 = {**kwargs2, **overrides}
 
-        setattr(struct, prop_id + '_auto', prop_class(
+        setattr(struct, with_auto_property.build_auto_id(prop_id), prop_class(
             **kwargs2,
             get=get_value,
             set=set_value,
@@ -379,3 +381,4 @@ def with_auto_property(prop_class, prop_id, getter, **kwargs):
         return struct
 
     return decorator
+with_auto_property.build_auto_id = lambda id: id + '_auto'
