@@ -68,3 +68,18 @@ class TestPreferences(utils.XRayTestCase):
 
         prefs.gamemtl_file_auto = '/gdr/gamemtl.xrx'
         self.assertEqual(prefs.gamemtl_file, '/gdr/gamemtl.xrx')
+
+    @patch('os.path.isdir', new=lambda path: path == '/')
+    def test_auto_values_if_textures_is_root(self):
+        prefs = plugin_prefs.get_preferences()
+        prefs.textures_folder = '/'
+        self.assertEqual(prefs.textures_folder, '/')
+        self.assertEqual(prefs.textures_folder_auto, '/')
+        self.assertEqual(prefs.gamedata_folder, '')
+        self.assertEqual(prefs.gamedata_folder_auto, '')
+        self.assertEqual(prefs.gamemtl_file, '')
+        self.assertEqual(prefs.gamemtl_file_auto, '')
+        self.assertEqual(prefs.eshader_file, '')
+        self.assertEqual(prefs.eshader_file_auto, '')
+        self.assertEqual(prefs.cshader_file, '')
+        self.assertEqual(prefs.cshader_file_auto, '')

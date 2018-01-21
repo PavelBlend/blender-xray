@@ -91,7 +91,10 @@ def _auto_path(obj, self_name, path_suffix, checker):
             continue
         result = path.normpath(value)
         if prop != 'gamedata_folder':
-            result = path.dirname(result)
+            dirname = path.dirname(result)
+            if dirname == result:
+                continue  # path.dirname('T:') == 'T:'
+            result = dirname
         if path_suffix:
             result = path.join(result, path_suffix)
         if checker(result):
