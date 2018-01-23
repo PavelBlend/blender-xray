@@ -45,7 +45,7 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
 
     def execute(self, context):
 
-        textures_folder = plugin_prefs.get_preferences().get_textures_folder()
+        textures_folder = plugin_prefs.get_preferences().textures_folder_auto
 
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
