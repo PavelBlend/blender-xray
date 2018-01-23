@@ -128,6 +128,7 @@ class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
     bl_label = 'Export .dm'
 
     filename_ext = '.dm'
+    detail_model = bpy.props.StringProperty(options={'HIDDEN'})
 
     filter_glob = bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
@@ -137,27 +138,11 @@ class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
         plugin_prefs.PropObjectTextureNamesFromPath()
 
     def execute(self, context):
-
-        objs = context.selected_objects
-
-        if not objs:
-            self.report({'ERROR'}, 'Cannot find selected object')
-            return {'CANCELLED'}
-
-        if len(objs) > 1:
-            self.report({'ERROR'}, 'Too many selected objects found')
-            return {'CANCELLED'}
-
-        if objs[0].type != 'MESH':
-            self.report({'ERROR'}, 'The selected object is not a mesh')
-            return {'CANCELLED'}
-
         try:
-            self.export(objs[0], context)
+            self.export(context.scene.objects[self.detail_model], context)
         except AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
-
         return {'FINISHED'}
 
     def export(self, bpy_obj, context):
@@ -177,6 +162,23 @@ class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
 
         self.texture_name_from_image_path = \
             prefs.object_texture_names_from_path
+
+        objs = context.selected_objects
+
+        if not objs:
+            self.report({'ERROR'}, 'Cannot find selected object')
+            return {'CANCELLED'}
+
+        if len(objs) > 1:
+            self.report({'ERROR'}, 'Too many selected objects found')
+            return {'CANCELLED'}
+
+        if objs[0].type != 'MESH':
+            self.report({'ERROR'}, 'The selected object is not a mesh')
+            return {'CANCELLED'}
+
+        self.detail_model = objs[0].name
+        self.filepath = self.detail_model
 
         return super().invoke(context, event)
 
