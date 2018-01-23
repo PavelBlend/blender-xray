@@ -219,19 +219,19 @@ class XRayXrMenuTemplate(dynamic_menu.DynamicMenu):
 class XRayEShaderMenu(XRayXrMenuTemplate):
     bl_idname = 'io_scene_xray.dynmenu.eshader'
     prop_name = 'eshader'
-    cached = XRayXrMenuTemplate.create_cached('eshader_file', parse_shaders)
+    cached = XRayXrMenuTemplate.create_cached('eshader_file_auto', parse_shaders)
 
 
 class XRayCShaderMenu(XRayXrMenuTemplate):
     bl_idname = 'io_scene_xray.dynmenu.cshader'
     prop_name = 'cshader'
-    cached = XRayXrMenuTemplate.create_cached('cshader_file', parse_shaders_xrlc)
+    cached = XRayXrMenuTemplate.create_cached('cshader_file_auto', parse_shaders_xrlc)
 
 
 class XRayGameMtlMenu(XRayXrMenuTemplate):
     bl_idname = 'io_scene_xray.dynmenu.gamemtl'
     prop_name = 'gamemtl'
-    cached = XRayXrMenuTemplate.create_cached('gamemtl_file', parse_gamemtl)
+    cached = XRayXrMenuTemplate.create_cached('gamemtl_file_auto', parse_gamemtl)
 
 
 def _gen_xr_selector(layout, data, name, text):
