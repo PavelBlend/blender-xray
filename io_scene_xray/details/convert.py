@@ -65,11 +65,11 @@ def bpy_data_to_slots_transforms(lvl_dets):
     top_slots = lvl_dets.slots_top_object
     bbox_top = top_slots.bound_box
 
-    for _ in range(8):
-        for __ in range(3):
-            if __ != 2:
-                coord_b = int(round(bbox_base[_][__] / 2.0, 1))
-                coord_t = int(round(bbox_top[_][__] / 2.0, 1))
+    for bbox_corner_index in range(8):
+        for corner_coord_index in range(3):
+            if corner_coord_index != 2:    # disregard the z coordinate
+                coord_b = int(round(bbox_base[bbox_corner_index][corner_coord_index] / 2.0, 1))
+                coord_t = int(round(bbox_top[bbox_corner_index][corner_coord_index] / 2.0, 1))
 
                 if coord_b != coord_t:
                     raise AppError(

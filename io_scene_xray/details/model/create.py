@@ -144,9 +144,11 @@ def create_mesh(packed_reader, det_model):
         face_indices = packed_reader.getp(S_HHH)    # face indices
 
         try:
-            b_mesh.faces.new(
-                (b_mesh.verts[face_indices[0]], b_mesh.verts[face_indices[2]], b_mesh.verts[face_indices[1]])
-                ).smooth = True
+            b_mesh.faces.new((
+                b_mesh.verts[face_indices[0]],
+                b_mesh.verts[face_indices[2]],
+                b_mesh.verts[face_indices[1]])
+                            ).smooth = True
         except ValueError:
             pass
 

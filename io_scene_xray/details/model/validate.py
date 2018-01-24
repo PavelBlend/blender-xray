@@ -4,7 +4,7 @@ from ...utils import AppError, gen_texture_name
 
 def validate_export_object(context, bpy_obj):
 
-    if not len(bpy_obj.data.uv_layers):
+    if not bpy_obj.data.uv_layers:
         raise AppError('mesh "' + bpy_obj.data.name + '" has no UV-map')
 
     material_count = len(bpy_obj.material_slots)
@@ -26,9 +26,9 @@ def validate_export_object(context, bpy_obj):
 
     bpy_texture = None
 
-    for ts in bpy_material.texture_slots:
-        if ts:
-            bpy_texture = ts.texture
+    for texture_slot in bpy_material.texture_slots:
+        if texture_slot:
+            bpy_texture = texture_slot.texture
             if bpy_texture:
                 break
 

@@ -53,7 +53,7 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
 
-        if len(self.files) == 0:
+        if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
 
@@ -73,8 +73,6 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
         context.details_models_in_a_row = self.details_models_in_a_row
         context.load_slots = self.load_slots
         context.report = self.report
-
-        import os
 
         try:
             for file in self.files:

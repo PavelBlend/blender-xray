@@ -23,7 +23,7 @@ def read_header(packed_reader):
     return header
 
 
-def read_details_meshes(base_name, context, cr, color_indices, header):
+def read_details_meshes(base_name, context, chunked_reader, color_indices, header):
 
     bpy_obj_root = bpy.data.objects.new('{} meshes'.format(base_name), None)
     bpy_obj_root.empty_draw_type = 'SPHERE'
@@ -34,12 +34,12 @@ def read_details_meshes(base_name, context, cr, color_indices, header):
     if context.details_models_in_a_row:
         first_offset_x = -step_x * header.meshes_count / 2
 
-    for mesh_id, mesh_data in cr:
-        pr = PackedReader(mesh_data)
+    for mesh_id, mesh_data in chunked_reader:
+        packed_reader = PackedReader(mesh_data)
         mesh_name = '{0} mesh_{1:0>2}'.format(base_name, mesh_id)
 
         bpy_obj_mesh = imp.import_(
-            mesh_name, context, pr, mode='DETAILS',
+            mesh_name, context, packed_reader, mode='DETAILS',
             detail_index=mesh_id, detail_colors=color_indices
             )
 
@@ -51,7 +51,7 @@ def read_details_meshes(base_name, context, cr, color_indices, header):
     return bpy_obj_root
 
 
-def read_details_slots(base_name, context, pr, header, color_indices, root_obj):
+def read_details_slots(base_name, context, packed_reader, header, color_indices, root_obj):
 
     create_pallete(color_indices)
 
@@ -74,7 +74,7 @@ def read_details_slots(base_name, context, pr, header, color_indices, root_obj):
         for slot_y in range(header.size.y):
             for slot_x in range(header.size.x):
 
-                slot_data = pr.getp(S_IIHHHH)
+                slot_data = packed_reader.getp(S_IIHHHH)
 
                 # slot Y coordinate
                 y_base = slot_data[0] & 0xfff
@@ -161,7 +161,7 @@ def read_details_slots(base_name, context, pr, header, color_indices, root_obj):
 
         for slot_y in range(header.size.y):
             for slot_x in range(header.size.x):
-                slot_data = pr.getp(S_ffBHBHBHBHH)
+                slot_data = packed_reader.getp(S_ffBHBHBHBHH)
 
                 y_base = slot_data[0]
                 y_top = slot_data[1]
