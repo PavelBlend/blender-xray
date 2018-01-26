@@ -4,7 +4,7 @@ import io
 
 import bpy
 
-from .fmt import Chunks, SUPPORT_FORMAT_VERSIONS
+from .fmt import Chunks, SUPPORT_FORMAT_VERSIONS, HEADER_SIZE
 from ..utils import AppError
 from ..xray_io import ChunkedReader, PackedReader
 from .utility import generate_color_indices
@@ -19,12 +19,12 @@ def _import(fpath, context, chunked_reader):
 
     for chunk_id, chunk_data in chunked_reader:
 
-        if chunk_id == 0x0 and chunk_data == b'':    # bad file (build 1233)
+        if chunk_id == 0x0 and not chunk_data:    # bad file (build 1233)
             break
 
         if chunk_id == Chunks.HEADER:
 
-            if len(chunk_data) != 24:
+            if len(chunk_data) != HEADER_SIZE:
                 raise AppError(
                     'bad details file. HEADER chunk size not equal 24'
                     )
