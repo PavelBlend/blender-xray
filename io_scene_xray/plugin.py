@@ -8,6 +8,7 @@ from .ops import BaseOperator as TestReadyOperator
 from .utils import AppError, ObjectsInitializer, logger
 from . import plugin_prefs
 from . import registry
+from . import err
 
 
 def execute_with_logger(method):
@@ -659,9 +660,11 @@ def register():
     )
     bpy.app.handlers.load_post.append(load_post)
     bpy.app.handlers.scene_update_post.append(scene_update_post)
+    registry.register_thing(err.operators, __name__)
 
 
 def unregister():
+    registry.unregister_thing(err.operators, __name__)
     bpy.app.handlers.scene_update_post.remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
