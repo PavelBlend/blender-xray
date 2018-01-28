@@ -182,15 +182,36 @@ class TestFormatObject(utils.XRayTestCase):
         # Assert
         self.assertFileContains('uniq-obj-name.object', re.compile(b'uniq-msh-name'))
 
+    def test_import_no_texture(self):
+        # Arrange
+        mat = _create_compatible_material_object()
+
+        # Act
+        bpy.ops.xray_import.object(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_no_texture.object'}],
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        imported_material = bpy.data.objects['test_fmt_no_texture.object'].data.materials[0]
+        self.assertEqual(imported_material, mat)
+        all_slots_are_empty = all(not slot for slot in imported_material.texture_slots)
+        self.assertTrue(all_slots_are_empty)
+
     def _get_compatible_material(self):
         img = bpy.data.images.new('texture', 0, 0)
         img.source = 'FILE'
         img.filepath = 'gamedata/textures/eye.dds'
         tex = bpy.data.textures.new('eye', type='IMAGE')
         tex.image = img
-        mat = bpy.data.materials.new('plmat')
-        mat.xray.version = -1  # otherwise, this material will be initialized with the default values (see #48)
+        mat = _create_compatible_material_object()
         mts = mat.texture_slots.add()
         mts.uv_layer = 'uvm'
         mts.texture = tex
         return mat, mts, tex
+
+def _create_compatible_material_object():
+    mat = bpy.data.materials.new('plmat')
+    mat.xray.version = -1  # otherwise, this material will be initialized with the default values (see #48)
+    return mat
