@@ -3,15 +3,7 @@ import os
 import unittest
 import sys
 
-cov = coverage.Coverage(
-    branch=True,
-    source=['io_scene_xray'],
-    omit=[
-        'io_scene_xray/*_ui.py',
-        'io_scene_xray/ui_*.py',
-    ]
-)
-cov.exclude('[\\s\\.]debug\\(')
+cov = coverage.Coverage()
 cov.start()
 
 suite = unittest.defaultTestLoader.discover('.')

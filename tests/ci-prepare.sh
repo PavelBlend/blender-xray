@@ -16,4 +16,7 @@ if [ ! -e "blender/blender" ]; then
     tar zxf coverage-4.2.tar.gz
     mv coverage-4.2/coverage blender/2.77/python/lib/python3.5/
     rm -rf coverage-4.2
+
+    curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+    chmod +x ./cc-test-reporter
 fi

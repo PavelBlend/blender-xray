@@ -63,7 +63,11 @@ class XRayTestCase(unittest.TestCase):
     def assertOutputFiles(self, expected):
         tmp = XRayTestCase.__tmp
 
-        for path in expected:
+        normalized = {
+            path.replace('/', os.path.sep)
+            for path in expected
+        }
+        for path in normalized:
             self.assertFileExists(os.path.join(tmp, path))
 
         def scan_dir(files, path=''):
@@ -76,7 +80,7 @@ class XRayTestCase(unittest.TestCase):
 
         existing = set()
         scan_dir(existing, tmp)
-        orphaned = existing - expected
+        orphaned = existing - normalized
         if orphaned:
             self.fail(self._formatMessage(None, 'files {} orphaned'.format(orphaned)))
 
