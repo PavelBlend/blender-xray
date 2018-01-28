@@ -560,7 +560,8 @@ def _import_main(fpath, context, creader):
                         continue
 
                     if (not texture) and (not vmap):
-                        if all(not slot for slot in material.texture_slots):
+                        all_empty_slots = all(not slot for slot in material.texture_slots)
+                        if all_empty_slots:
                             bpy_material = material
                             break
 
