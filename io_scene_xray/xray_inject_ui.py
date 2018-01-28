@@ -157,26 +157,6 @@ class XRayMeshPanel(XRayPanel):
         row.prop(data, 'flags_sgmask', text='SGMask', toggle=True)
 
 
-class XRayDetailMeshPanel(XRayPanel):
-    bl_context = 'object'
-    bl_label = _build_label('Detail Mesh')
-
-    @classmethod
-    def poll(cls, context):
-        return (
-            context.active_object
-            and context.active_object.type in {'MESH'}
-            and not is_helper_object(context.active_object)
-        )
-
-    def draw(self, context):
-        layout = self.layout
-        data = context.object.xray
-        layout.prop(data, 'no_waving', text='No Waving', toggle=True)
-        layout.prop(data, 'min_scale', text='Min Scale')
-        layout.prop(data, 'max_scale', text='Max Scale')
-
-
 @registry.requires(base_edit_helper)
 class XRayEditHelperObjectPanel(XRayPanel):
     bl_context = 'object'
@@ -565,12 +545,15 @@ class XRayMaterialToolsPanel(bpy.types.Panel):
         column.prop(data, 'materials_colorize_color_power', text='Power', slider=True)
 
 
+from .details.ui import XRayDetailsPanel
+
+
 registry.module_requires(__name__, [
     collapsible,
     fake_bones,
     XRayObjectPanel
-    , XRayDetailMeshPanel
     , XRayMeshPanel
+    , XRayDetailsPanel
     , XRayEditHelperObjectPanel
     , XRayEShaderMenu
     , XRayCShaderMenu
