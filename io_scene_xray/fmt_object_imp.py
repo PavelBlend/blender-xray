@@ -305,7 +305,7 @@ def _import_mesh(context, creader, renamemap):
             bmat.xray.version = context.version
         midx = len(bm_data.materials)
         bm_data.materials.append(bmat)
-        images.append(bmat.active_texture.image)
+        images.append(bmat.active_texture.image if bmat.active_texture else None)
         f_facez.append((faces, midx))
 
     local_class = LocalComplex if vgroups else LocalSimple
@@ -546,7 +546,7 @@ def _import_main(fpath, context, creader):
                 flags = reader.int()
                 reader.skip(4 + 4)    # fvf and ?
                 bpy_material = None
-                tx_filepart = texture.replace('\\', os.path.sep)
+                tx_filepart = texture.replace('\\', os.path.sep).lower()
                 for material in bpy.data.materials:
                     if not material.name.startswith(name):
                         continue
@@ -558,8 +558,14 @@ def _import_main(fpath, context, creader):
                         continue
                     if material.xray.gamemtl != gamemtl:
                         continue
+
+                    if (not texture) and (not vmap):
+                        all_empty_slots = all(not slot for slot in material.texture_slots)
+                        if all_empty_slots:
+                            bpy_material = material
+                            break
+
                     ts_found = False
-                    tx_filepart = texture.replace('\\', os.path.sep).lower()
                     for slot in material.texture_slots:
                         if not slot:
                             continue
