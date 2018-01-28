@@ -1,3 +1,7 @@
+env:
+  global:
+    - CC_TEST_REPORTER_ID=6bdf928af38529955b976480e38018d63e64087331ba7ed6eb3c645934677833
+
 sudo: false
 
 language: generic
@@ -9,8 +13,12 @@ cache:
 install:
   - sh ./tests/ci-prepare.sh
 
+before_script:
+  - ./cc-test-reporter before-build
+
 script:
   - ./blender/blender --factory-startup -noaudio -b --python-exit-code 1 --python tests/runner.py
 
 after_success:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
   - bash <(curl -s https://codecov.io/bash)
