@@ -151,9 +151,10 @@ def fix_ensure_lookup_table(bmv):
         bmv.ensure_lookup_table()
 
 
-def convert_object_to_space_bmesh(bpy_obj, space_matrix):
+def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
     import bmesh
     import bpy
+    import mathutils
     mesh = bmesh.new()
     armmods = [mod for mod in bpy_obj.modifiers if mod.type == 'ARMATURE' and mod.show_viewport]
     try:
@@ -163,7 +164,10 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix):
     finally:
         for mod in armmods:
             mod.show_viewport = True
-    mat = bpy_obj.matrix_world
+    if local:
+        mat = mathutils.Matrix()
+    else:
+        mat = bpy_obj.matrix_world
     mat = space_matrix.inverted() * mat
     mesh.transform(mat)
     need_flip = False
@@ -347,3 +351,38 @@ def using_mode(mode):
         yield
     finally:
         bpy.ops.object.mode_set(mode=original)
+
+def with_auto_property(prop_class, prop_id, getter, overrides=None, **kwargs):
+    def decorator(struct):
+        setattr(struct, prop_id, prop_class(
+            **kwargs,
+        ))
+
+        def get_value(self):
+            value = getattr(self, prop_id)
+            if not value:
+                value = getter(self)
+            return value
+
+        def set_value(self, value):
+            org_value = get_value(self)
+            if value != org_value:
+                setattr(self, prop_id, value)
+
+        kwargs2 = dict(kwargs)
+        if 'name' in kwargs2:
+            kwargs2['name'] += ' (auto)'
+        if 'description' in kwargs2:
+            kwargs2['description'] += ' (automatically calculated value)'
+        if overrides:
+            kwargs2 = {**kwargs2, **overrides}
+
+        setattr(struct, with_auto_property.build_auto_id(prop_id), prop_class(
+            **kwargs2,
+            get=get_value,
+            set=set_value,
+        ))
+        return struct
+
+    return decorator
+with_auto_property.build_auto_id = lambda id: id + '_auto'

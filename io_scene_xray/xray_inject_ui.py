@@ -157,26 +157,6 @@ class XRayMeshPanel(XRayPanel):
         row.prop(data, 'flags_sgmask', text='SGMask', toggle=True)
 
 
-class XRayDetailMeshPanel(XRayPanel):
-    bl_context = 'object'
-    bl_label = _build_label('Detail Mesh')
-
-    @classmethod
-    def poll(cls, context):
-        return (
-            context.active_object
-            and context.active_object.type in {'MESH'}
-            and not is_helper_object(context.active_object)
-        )
-
-    def draw(self, context):
-        layout = self.layout
-        data = context.object.xray
-        layout.prop(data, 'no_waving', text='No Waving', toggle=True)
-        layout.prop(data, 'min_scale', text='Min Scale')
-        layout.prop(data, 'max_scale', text='Max Scale')
-
-
 @registry.requires(base_edit_helper)
 class XRayEditHelperObjectPanel(XRayPanel):
     bl_context = 'object'
@@ -239,19 +219,19 @@ class XRayXrMenuTemplate(dynamic_menu.DynamicMenu):
 class XRayEShaderMenu(XRayXrMenuTemplate):
     bl_idname = 'io_scene_xray.dynmenu.eshader'
     prop_name = 'eshader'
-    cached = XRayXrMenuTemplate.create_cached('eshader_file', parse_shaders)
+    cached = XRayXrMenuTemplate.create_cached('eshader_file_auto', parse_shaders)
 
 
 class XRayCShaderMenu(XRayXrMenuTemplate):
     bl_idname = 'io_scene_xray.dynmenu.cshader'
     prop_name = 'cshader'
-    cached = XRayXrMenuTemplate.create_cached('cshader_file', parse_shaders_xrlc)
+    cached = XRayXrMenuTemplate.create_cached('cshader_file_auto', parse_shaders_xrlc)
 
 
 class XRayGameMtlMenu(XRayXrMenuTemplate):
     bl_idname = 'io_scene_xray.dynmenu.gamemtl'
     prop_name = 'gamemtl'
-    cached = XRayXrMenuTemplate.create_cached('gamemtl_file', parse_gamemtl)
+    cached = XRayXrMenuTemplate.create_cached('gamemtl_file_auto', parse_gamemtl)
 
 
 def _gen_xr_selector(layout, data, name, text):
@@ -565,12 +545,15 @@ class XRayMaterialToolsPanel(bpy.types.Panel):
         column.prop(data, 'materials_colorize_color_power', text='Power', slider=True)
 
 
+from .details.ui import XRayDetailsPanel
+
+
 registry.module_requires(__name__, [
     collapsible,
     fake_bones,
     XRayObjectPanel
-    , XRayDetailMeshPanel
     , XRayMeshPanel
+    , XRayDetailsPanel
     , XRayEditHelperObjectPanel
     , XRayEShaderMenu
     , XRayCShaderMenu

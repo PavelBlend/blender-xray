@@ -1,9 +1,11 @@
 # pylint: disable=C0103
+from os import path
 
 import bpy
 
 from . import registry
-from .ui import collapsible
+from .ui import collapsible, xprop
+from .utils import with_auto_property
 
 
 def get_preferences():
@@ -73,25 +75,93 @@ def PropUseExportPaths():
     )
 
 
+__AUTO_PROPS__ = [
+    'gamedata_folder',
+    'textures_folder',
+    'gamemtl_file',
+    'eshader_file',
+    'cshader_file',
+]
+def _auto_path(obj, self_name, path_suffix, checker):
+    for prop in __AUTO_PROPS__:
+        if prop == self_name:
+            continue
+        value = getattr(obj, prop)
+        if not value:
+            continue
+        result = path.normpath(value)
+        if prop != 'gamedata_folder':
+            dirname = path.dirname(result)
+            if dirname == result:
+                continue  # path.dirname('T:') == 'T:'
+            result = dirname
+        if path_suffix:
+            result = path.join(result, path_suffix)
+        if checker(result):
+            return result
+
+    return ''
+
+
 @registry.module_thing
+class _ExplicitPathOp(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.explicit_path'
+    bl_label = 'Make Explicit'
+    bl_description = 'Make this path explicit using the automatically calculated value'
+
+    path = bpy.props.StringProperty()
+
+    def execute(self, _context):
+        prefs = get_preferences()
+        value = getattr(prefs, with_auto_property.build_auto_id(self.path))
+        setattr(prefs, self.path, value)
+        return {'FINISHED'}
+
+
+@registry.module_thing
+@with_auto_property(
+    bpy.props.StringProperty, 'gamedata_folder',
+    lambda self: _auto_path(self, 'gamedata_folder', '', path.isdir),
+    name='Gamedata Folder',
+    description='Path to the \'gamedata\' directory',
+    subtype='DIR_PATH',
+    overrides={'subtype': 'NONE'},
+)
+@with_auto_property(
+    bpy.props.StringProperty, 'textures_folder',
+    lambda self: _auto_path(self, 'textures_folder', 'textures', path.isdir),
+    name='Textures Folder',
+    description='Path to the \'gamedata/textures\' directory',
+    subtype='DIR_PATH',
+    overrides={'subtype': 'NONE'},
+)
+@with_auto_property(
+    bpy.props.StringProperty, 'gamemtl_file',
+    lambda self: _auto_path(self, 'gamemtl_file', 'gamemtl.xr', path.isfile),
+    name='GameMtl File',
+    description='Path to the \'gamemtl.xr\' file',
+    subtype='FILE_PATH',
+    overrides={'subtype': 'NONE'},
+)
+@with_auto_property(
+    bpy.props.StringProperty, 'eshader_file',
+    lambda self: _auto_path(self, 'eshader_file', 'shaders.xr', path.isfile),
+    name='EShader File',
+    description='Path to the \'shaders.xr\' file',
+    subtype='FILE_PATH',
+    overrides={'subtype': 'NONE'},
+)
+@with_auto_property(
+    bpy.props.StringProperty, 'cshader_file',
+    lambda self: _auto_path(self, 'cshader_file', 'shaders_xrlc.xr', path.isfile),
+    name='CShader File',
+    description='Path to the \'shaders_xrlc.xr\' file',
+    subtype='FILE_PATH',
+    overrides={'subtype': 'NONE'},
+)
 class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
 
-    gamedata_folder = bpy.props.StringProperty(
-        name='gamedata', description='The path to the \'gamedata\' directory',
-        subtype='DIR_PATH')
-    textures_folder = bpy.props.StringProperty(
-        name='Textures Folder', description='The path to the \'gamedata/textures\' directory',
-        subtype='DIR_PATH')
-    gamemtl_file = bpy.props.StringProperty(
-        name='GameMtl File', description='The path to the \'gamemtl.xr\' file',
-        subtype='FILE_PATH')
-    eshader_file = bpy.props.StringProperty(
-        name='EShader File', description='The path to the \'shaders.xr\' file',
-        subtype='FILE_PATH')
-    cshader_file = bpy.props.StringProperty(
-        name='CShader File', description='The path to the \'shaders_xrlc.xr\' file',
-        subtype='FILE_PATH')
     expert_mode = bpy.props.BoolProperty(
         name='Expert Mode', description='Show additional properties/controls'
     )
@@ -103,13 +173,6 @@ class PluginPreferences(bpy.types.AddonPreferences):
     object_bones_custom_shapes = PropObjectBonesCustomShapes()
     anm_create_camera = PropAnmCameraAnimation()
 
-    def get_textures_folder(self):
-        result = self.textures_folder
-        if not result and self.gamedata_folder:
-            import os.path
-            result = os.path.join(self.gamedata_folder, 'textures')
-        return result
-
     def draw(self, _context):
         def prop_bool(layout, data, prop):
             # row = layout.row()
@@ -117,13 +180,25 @@ class PluginPreferences(bpy.types.AddonPreferences):
             # row.prop(data, prop, text='')
             layout.prop(data, prop)
 
+        def prop_auto(layout, data, prop):
+            eprop = prop
+            if not getattr(data, prop):
+                nprop = with_auto_property.build_auto_id(prop)
+                if getattr(data, nprop):
+                    eprop = nprop
+            if eprop == prop:
+                layout.prop(data, eprop)
+            else:
+                _, lay = xprop(layout, data, eprop, enabled=False)
+                operator = lay.operator(_ExplicitPathOp.bl_idname, icon='MODIFIER', text='')
+                operator.path = prop
+
         layout = self.layout
-        if not self.textures_folder and self.gamedata_folder:
-            self.textures_folder = self.get_textures_folder()
-        layout.prop(self, 'textures_folder', expand=True)
-        layout.prop(self, 'gamemtl_file', emboss=True)
-        layout.prop(self, 'eshader_file')
-        layout.prop(self, 'cshader_file')
+        prop_auto(layout, self, 'gamedata_folder')
+        prop_auto(layout, self, 'textures_folder')
+        prop_auto(layout, self, 'gamemtl_file')
+        prop_auto(layout, self, 'eshader_file')
+        prop_auto(layout, self, 'cshader_file')
 
         _, box = collapsible.draw(layout, 'plugin_prefs:defaults', 'Defaults', style='tree')
         if box:
