@@ -37,7 +37,9 @@ def plugin_version_number():
 
 
 class AppError(Exception):
-    def __init__(self, message, ctx=log.props()):
+    def __init__(self, message, ctx=None):
+        if ctx is None:
+            ctx = log.props()
         super().__init__(message)
         self.ctx = ctx
 

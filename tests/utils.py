@@ -122,20 +122,22 @@ class XRayTestCase(unittest.TestCase):
         return bpy.data.texts[-1].as_string()
 
 
-def create_bmesh(vertexes, indexes):
+def create_bmesh(vertexes, indexes, create_uv=True):
     bm = bmesh.new()
     verts = [bm.verts.new(v) for v in vertexes]
     for ii in indexes:
         bm.faces.new((verts[i] for i in ii))
-    bm.loops.layers.uv.new('uv')
+    if create_uv:
+        bm.loops.layers.uv.new('uv')
     return bm
 
 
-def create_object(bm):
+def create_object(bm, create_material=True):
     mesh = bpy.data.meshes.new('test')
     bm.to_mesh(mesh)
-    mat = bpy.data.materials.new('mat')
-    mesh.materials.append(mat)
+    if create_material:
+        mat = bpy.data.materials.new('mat')
+        mesh.materials.append(mat)
     obj = bpy.data.objects.new('test', mesh)
     bpy.context.scene.objects.link(obj)
     return obj

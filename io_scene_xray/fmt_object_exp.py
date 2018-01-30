@@ -71,7 +71,9 @@ def _export_sg_new(bmfaces):
         yield sm_group
 
 
+@log.with_context('export-mesh')
 def _export_mesh(bpy_obj, bpy_root, cw, context):
+    log.update(mesh=bpy_obj.data.name)
     cw.put(Chunks.Mesh.VERSION, PackedWriter().putf('H', 0x11))
     mesh_name = bpy_obj.data.name if bpy_obj == bpy_root else bpy_obj.name
     cw.put(Chunks.Mesh.MESHNAME, PackedWriter().puts(mesh_name))
@@ -158,7 +160,7 @@ def _export_mesh(bpy_obj, bpy_root, cw, context):
         for mi, m in enumerate(bpy_obj.data.materials)
     }
     if not sfaces:
-        raise AppError('mesh "' + bpy_obj.data.name + '" has no material')
+        raise AppError('mesh has no material')
     writer.putf('H', len(sfaces))
     for name, fidxs in sfaces.items():
         writer.puts(name).putf('I', len(fidxs))
