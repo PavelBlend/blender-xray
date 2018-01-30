@@ -137,23 +137,19 @@ def invoke_require_armature(func):
     return wrapper
 
 
-__MOTIONS_LIST__ = [None]
-@registry.module_thing
-class _MotionsList(bpy.types.UIList):
-    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname):
-        __MOTIONS_LIST__[0] = self  # A dirty hack
-        row = layout.row(align=True)
-        row.prop(
-            item, 'flag',
-            icon='CHECKBOX_HLT' if item.flag else 'CHECKBOX_DEHLT',
-            text='', emboss=False,
-        )
-        row.label(item.name)
+class BaseSelectMotionsOp(bpy.types.Operator):
+    __ARGS__ = [None, None]
 
-class _BaseSelectMotionsOp(bpy.types.Operator):
-    def execute(self, context):
-        data = getattr(context, _DeselectMotionsOp.bl_idname + '.data')
-        mlist = __MOTIONS_LIST__[0]
+    @classmethod
+    def set_motions_list(cls, mlist):
+        cls.__ARGS__[0] = mlist
+
+    @classmethod
+    def set_data(cls, data):
+        cls.__ARGS__[1] = data
+
+    def execute(self, _context):
+        mlist, data = self.__ARGS__
         name_filter = MOTIONS_FILTER_ALL
         if mlist and mlist.filter_name:
             rgx = re.compile('.*' + re.escape(mlist.filter_name).replace('\\*', '.*') + '.*')
@@ -167,7 +163,7 @@ class _BaseSelectMotionsOp(bpy.types.Operator):
         pass
 
 @registry.module_thing
-class _SelectMotionsOp(_BaseSelectMotionsOp):
+class _SelectMotionsOp(BaseSelectMotionsOp):
     bl_idname = 'io_scene_xray.motions_select'
     bl_label = 'Select'
     bl_description = 'Select all displayed importing motions'
@@ -176,7 +172,7 @@ class _SelectMotionsOp(_BaseSelectMotionsOp):
         motion.flag = True
 
 @registry.module_thing
-class _DeselectMotionsOp(_BaseSelectMotionsOp):
+class _DeselectMotionsOp(BaseSelectMotionsOp):
     bl_idname = 'io_scene_xray.motions_deselect'
     bl_label = 'Deselect'
     bl_description = 'Deselect all displayed importing motions'
@@ -185,7 +181,7 @@ class _DeselectMotionsOp(_BaseSelectMotionsOp):
         motion.flag = False
 
 @registry.module_thing
-class _DeselectDuplicatedMotionsOp(_BaseSelectMotionsOp):
+class _DeselectDuplicatedMotionsOp(BaseSelectMotionsOp):
     bl_idname = 'io_scene_xray.motions_deselect_duplicated'
     bl_label = 'Dups'
     bl_description = 'Deselect displayed importing motions which already exist in the scene'
@@ -194,6 +190,18 @@ class _DeselectDuplicatedMotionsOp(_BaseSelectMotionsOp):
         if bpy.data.actions.get(motion.name):
             motion.flag = False
 
+@registry.module_thing
+class _MotionsList(bpy.types.UIList):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname):
+        BaseSelectMotionsOp.set_motions_list(self)  # A dirty hack
+
+        row = layout.row(align=True)
+        row.prop(
+            item, 'flag',
+            icon='CHECKBOX_HLT' if item.flag else 'CHECKBOX_DEHLT',
+            text='', emboss=False,
+        )
+        row.label(item.name)
 
 @registry.module_thing
 @registry.requires('Motion')
@@ -241,14 +249,14 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
         )
         if box:
             col = box.column(align=True)
-            __MOTIONS_LIST__[0] = None
+            BaseSelectMotionsOp.set_motions_list(None)
             col.template_list(
                 '_MotionsList', '',
                 self, 'motions',
                 context.scene.xray.import_skls, 'motion_index',
             )
             row = col.row(align=True)
-            row.context_pointer_set(_DeselectMotionsOp.bl_idname + '.data', self)
+            BaseSelectMotionsOp.set_data(self)
             row.operator(_SelectMotionsOp.bl_idname, icon='CHECKBOX_HLT')
             row.operator(_DeselectMotionsOp.bl_idname, icon='CHECKBOX_DEHLT')
             row.operator(_DeselectDuplicatedMotionsOp.bl_idname, icon='COPY_ID')
