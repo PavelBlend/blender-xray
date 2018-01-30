@@ -162,6 +162,7 @@ class BaseSelectMotionsOp(bpy.types.Operator):
     def _update_motion(self, motion):
         pass
 
+
 @registry.module_thing
 class _SelectMotionsOp(BaseSelectMotionsOp):
     bl_idname = 'io_scene_xray.motions_select'
@@ -170,6 +171,7 @@ class _SelectMotionsOp(BaseSelectMotionsOp):
 
     def _update_motion(self, motion):
         motion.flag = True
+
 
 @registry.module_thing
 class _DeselectMotionsOp(BaseSelectMotionsOp):
@@ -180,6 +182,7 @@ class _DeselectMotionsOp(BaseSelectMotionsOp):
     def _update_motion(self, motion):
         motion.flag = False
 
+
 @registry.module_thing
 class _DeselectDuplicatedMotionsOp(BaseSelectMotionsOp):
     bl_idname = 'io_scene_xray.motions_deselect_duplicated'
@@ -189,6 +192,7 @@ class _DeselectDuplicatedMotionsOp(BaseSelectMotionsOp):
     def _update_motion(self, motion):
         if bpy.data.actions.get(motion.name):
             motion.flag = False
+
 
 @registry.module_thing
 class _MotionsList(bpy.types.UIList):
@@ -202,6 +206,7 @@ class _MotionsList(bpy.types.UIList):
             text='', emboss=False,
         )
         row.label(item.name)
+
 
 @registry.module_thing
 @registry.requires('Motion')

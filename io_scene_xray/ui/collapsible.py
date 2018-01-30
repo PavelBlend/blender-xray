@@ -49,8 +49,10 @@ def draw(layout, key, text=None, enabled=None, icon=None, style=None):
     oper.key = key
     return row, box
 
+
 def is_opened(key):
     return _CollapsOp.get(key)
+
 
 registry.module_requires(__name__, [
     _CollapsOp,

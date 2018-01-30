@@ -17,6 +17,7 @@ MATRIX_BONE_INVERTED = MATRIX_BONE.inverted().freeze()
 
 MOTIONS_FILTER_ALL = lambda name: True
 
+
 @with_context('import-motion')
 def import_motion(reader, bpy_armature, bonesmap, reported, motions_filter=MOTIONS_FILTER_ALL):
     name = reader.gets()
@@ -113,6 +114,7 @@ def import_motion(reader, bpy_armature, bonesmap, reported, motions_filter=MOTIO
             warn('markers are not supported yet', name=name)
     return act
 
+
 def import_motions(reader, bpy_armature, motions_filter=MOTIONS_FILTER_ALL):
     bonesmap = {b.name.lower(): b for b in bpy_armature.data.bones}
     reported = set()
@@ -125,6 +127,7 @@ def _examine_motion(data, offs):
     name, ptr = fb.str_at(data, offs)
     ptr = _skip_motion_rest(data, ptr)
     return name, ptr
+
 
 def _skip_motion_rest(data, offs):
     ptr = offs + 4 + 4 + 4 + 2
@@ -149,6 +152,7 @@ def _skip_motion_rest(data, offs):
             ptr += (4 + 4) * fb.int_at(data, ptr - 4)
 
     return ptr
+
 
 def examine_motions(data):
     offs = 4
