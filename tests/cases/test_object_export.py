@@ -161,15 +161,45 @@ class TestObjectExport(utils.XRayTestCase):
         self.assertNotRegex(content, re.compile(bytes(bg_non.name, 'cp1251')))
         self.assertNotRegex(content, re.compile(bytes(bg_emp.name, 'cp1251')))
 
-    def _create_objects(self):
+    def test_export_no_uvmap(self):
+        # Arrange
+        self._create_objects(create_uv=False)
+
+        # Act
+        bpy.ops.xray_export.object(
+            object='tobj1', filepath=self.outpath('test.object'),
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('UV-map is required, but not found')
+        )
+
+    def test_export_no_material(self):
+        # Arrange
+        self._create_objects(create_material=False)
+
+        # Act
+        bpy.ops.xray_export.object(
+            object='tobj1', filepath=self.outpath('test.object'),
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Mesh has no material')
+        )
+
+    def _create_objects(self, create_uv=True, create_material=True):
         bmesh = utils.create_bmesh((
             (0, 0, 0),
             (-1, -1, 0), (+1, -1, 0), (+1, +1, 0), (-1, +1, 0),
-        ), ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)))
+        ), ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)), create_uv)
 
         objs = []
         for i in range(3):
-            obj = utils.create_object(bmesh)
+            obj = utils.create_object(bmesh, create_material)
             obj.name = 'tobj%d' % (i + 1)
             objs.append(obj)
         objs[1].xray.export_path = 'a/b'

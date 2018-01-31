@@ -12,8 +12,11 @@ from . import registry
 
 def execute_with_logger(method):
     def wrapper(self, context):
-        with logger(self.__class__.bl_idname, self.report):
-            return method(self, context)
+        try:
+            with logger(self.__class__.bl_idname, self.report):
+                return method(self, context)
+        except AppError:
+            return {'CANCELLED'}
 
     return wrapper
 
@@ -304,7 +307,7 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
 
 
 @registry.module_thing
-class OpExportObject(bpy.types.Operator, io_utils.ExportHelper, _WithExportMotions):
+class OpExportObject(TestReadyOperator, io_utils.ExportHelper, _WithExportMotions):
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
 
