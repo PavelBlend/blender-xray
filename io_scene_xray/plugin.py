@@ -1,11 +1,14 @@
 import os.path
+import re
 
 import bpy
 from bpy_extras import io_utils
 
 from . import xray_inject
 from .ops import BaseOperator as TestReadyOperator
+from .ui import collapsible
 from .utils import AppError, ObjectsInitializer, logger
+from .xray_motions import MOTIONS_FILTER_ALL
 from . import plugin_prefs
 from . import registry
 
@@ -137,8 +140,84 @@ def invoke_require_armature(func):
     return wrapper
 
 
+class BaseSelectMotionsOp(bpy.types.Operator):
+    __ARGS__ = [None, None]
+
+    @classmethod
+    def set_motions_list(cls, mlist):
+        cls.__ARGS__[0] = mlist
+
+    @classmethod
+    def set_data(cls, data):
+        cls.__ARGS__[1] = data
+
+    def execute(self, _context):
+        mlist, data = self.__ARGS__
+        name_filter = MOTIONS_FILTER_ALL
+        if mlist and mlist.filter_name:
+            rgx = re.compile('.*' + re.escape(mlist.filter_name).replace('\\*', '.*') + '.*')
+            name_filter = lambda name: (rgx.match(name) is not None) ^ mlist.use_filter_invert
+        for motion in data.motions:
+            if name_filter(motion.name):
+                self._update_motion(motion)
+        return {'FINISHED'}
+
+    def _update_motion(self, motion):
+        pass
+
+
 @registry.module_thing
+class _SelectMotionsOp(BaseSelectMotionsOp):
+    bl_idname = 'io_scene_xray.motions_select'
+    bl_label = 'Select'
+    bl_description = 'Select all displayed importing motions'
+
+    def _update_motion(self, motion):
+        motion.flag = True
+
+
+@registry.module_thing
+class _DeselectMotionsOp(BaseSelectMotionsOp):
+    bl_idname = 'io_scene_xray.motions_deselect'
+    bl_label = 'Deselect'
+    bl_description = 'Deselect all displayed importing motions'
+
+    def _update_motion(self, motion):
+        motion.flag = False
+
+
+@registry.module_thing
+class _DeselectDuplicatedMotionsOp(BaseSelectMotionsOp):
+    bl_idname = 'io_scene_xray.motions_deselect_duplicated'
+    bl_label = 'Dups'
+    bl_description = 'Deselect displayed importing motions which already exist in the scene'
+
+    def _update_motion(self, motion):
+        if bpy.data.actions.get(motion.name):
+            motion.flag = False
+
+
+@registry.module_thing
+class _MotionsList(bpy.types.UIList):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname):
+        BaseSelectMotionsOp.set_motions_list(self)  # A dirty hack
+
+        row = layout.row(align=True)
+        row.prop(
+            item, 'flag',
+            icon='CHECKBOX_HLT' if item.flag else 'CHECKBOX_DEHLT',
+            text='', emboss=False,
+        )
+        row.label(item.name)
+
+
+@registry.module_thing
+@registry.requires('Motion')
 class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
+    class Motion(bpy.types.PropertyGroup):
+        flag = bpy.props.BoolProperty(name='Selected for Import', default=True)
+        name = bpy.props.StringProperty(name='Motion Name')
+
     bl_idname = 'xray_import.skl'
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
@@ -149,14 +228,81 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     directory = bpy.props.StringProperty(subtype='DIR_PATH')
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
+    motions = bpy.props.CollectionProperty(type=Motion, name='Motions Filter')
+    __parsed_file_name = None
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.enabled = False
+        row.label('%d items' % len(self.files))
+
+        motions, count = self._get_motions(), 0
+        text = 'Filter Motions'
+        enabled = len(motions) > 1
+        if enabled:
+            text = 'Filter Motions: '
+            count = len([m for m in motions if m.flag])
+            if count == len(motions):
+                text += 'All (%d)' % count
+            else:
+                text += str(count)
+        _, box = collapsible.draw(
+            layout,
+            self.bl_idname,
+            text,
+            enabled=enabled,
+            icon='FILTER' if count < 100 else 'ERROR',
+            style='nobox',
+        )
+        if box:
+            col = box.column(align=True)
+            BaseSelectMotionsOp.set_motions_list(None)
+            col.template_list(
+                '_MotionsList', '',
+                self, 'motions',
+                context.scene.xray.import_skls, 'motion_index',
+            )
+            row = col.row(align=True)
+            BaseSelectMotionsOp.set_data(self)
+            row.operator(_SelectMotionsOp.bl_idname, icon='CHECKBOX_HLT')
+            row.operator(_DeselectMotionsOp.bl_idname, icon='CHECKBOX_DEHLT')
+            row.operator(_DeselectDuplicatedMotionsOp.bl_idname, icon='COPY_ID')
+
+    def _get_motions(self):
+        items = self.motions
+        if len(self.files) == 1:
+            fpath = os.path.join(self.directory, self.files[0].name)
+            if self.__parsed_file_name != fpath:
+                items.clear()
+                for name in self._examine_file(fpath):
+                    items.add().name = name
+                self.__parsed_file_name = fpath
+        else:
+            items.clear()
+        return items
+
+    @staticmethod
+    def _examine_file(fpath):
+        if fpath.lower().endswith('.skls'):
+            from .xray_motions import examine_motions
+            with open(fpath, 'rb') as file:
+                return examine_motions(file.read())
+        return tuple()
+
     @execute_with_logger
     def execute(self, context):
         if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         from .fmt_skl_imp import import_skl_file, import_skls_file, ImportContext
+        motions_filter = MOTIONS_FILTER_ALL
+        if self.motions:
+            selected_names = set(m.name for m in self.motions if m.flag)
+            motions_filter = lambda name: name in selected_names
         import_context = ImportContext(
-            armature=context.active_object
+            armature=context.active_object,
+            motions_filter=motions_filter,
         )
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()

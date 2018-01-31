@@ -519,7 +519,11 @@ class XRayActionProperties(bpy.types.PropertyGroup):
     )
 
 
+@registry.requires('ImportSkls')
 class XRaySceneProperties(bpy.types.PropertyGroup):
+    class ImportSkls(bpy.types.PropertyGroup):
+        motion_index = bpy.props.IntProperty()
+
     b_type = bpy.types.Scene
     export_root = bpy.props.StringProperty(
         name='Export Root',
@@ -534,6 +538,7 @@ class XRaySceneProperties(bpy.types.PropertyGroup):
         default=0.5, min=0.0, max=1.0,
         options={'SKIP_SAVE'},
     )
+    import_skls = bpy.props.PointerProperty(type=ImportSkls)
 
 
 __SUBCLASSES__ = [
