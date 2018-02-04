@@ -11,7 +11,22 @@ def create_object(object_name):
     return bpy_obj, bpy_mesh
 
 
-def search_material(context, det_model):
+def create_empty_image(context, det_model, abs_image_path):
+    bpy_image = bpy.data.images.new(
+        context.os.path.basename(det_model.texture) + '.dds', 0, 0
+        )
+
+    bpy_image.source = 'FILE'
+
+    if not context.textures_folder:
+        bpy_image.filepath = det_model.texture + '.dds'
+    else:
+        bpy_image.filepath = abs_image_path
+
+    bpy_image.use_alpha = True
+
+
+def search_material(context, det_model, fpath=None):
 
     abs_image_path = context.os.path.abspath(
         context.os.path.join(context.textures_folder, det_model.texture + '.dds')
@@ -43,6 +58,9 @@ def search_material(context, det_model):
             if not hasattr(texture_slot.texture, 'image'):
                 continue
 
+            if not texture_slot.texture.image:
+                continue
+
             if not tx_filepart in texture_slot.texture.image.filepath:
                 continue
 
@@ -67,6 +85,8 @@ def search_material(context, det_model):
 
         if bpy_texture:
             if not hasattr(bpy_texture, 'image'):
+                bpy_texture = None
+            elif not bpy_texture.image:
                 bpy_texture = None
             else:
                 if bpy_texture.image.filepath != abs_image_path:
@@ -94,20 +114,22 @@ def search_material(context, det_model):
                     bpy_image = bpy.data.images.load(abs_image_path)
 
                 except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
-                    context.report({'WARNING'}, str(ex))
 
-                    bpy_image = bpy.data.images.new(
-                        context.os.path.basename(det_model.texture) + '.dds', 0, 0
-                        )
+                    if det_model.mode == 'DETAILS':
+                        try:
+                            abs_image_path = context.os.path.abspath(
+                                context.os.path.join(
+                                    context.os.path.dirname(fpath),
+                                    det_model.texture + '.dds'
+                            ))
+                            bpy_image = bpy.data.images.load(abs_image_path)
+                        except RuntimeError as ex:
+                            context.report({'WARNING'}, str(ex))
+                            create_empty_image(context, det_model, abs_image_path)
 
-                    bpy_image.source = 'FILE'
-
-                    if not context.textures_folder:
-                        bpy_image.filepath = det_model.texture + '.dds'
                     else:
-                        bpy_image.filepath = abs_image_path
-
-                    bpy_image.use_alpha = True
+                        context.report({'WARNING'}, str(ex))
+                        create_empty_image(context, det_model, abs_image_path)
 
             bpy_texture.image = bpy_image
 

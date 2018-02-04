@@ -23,7 +23,7 @@ def read_header(packed_reader):
     return header
 
 
-def read_details_meshes(base_name, context, chunked_reader, color_indices, header):
+def read_details_meshes(fpath, base_name, context, chunked_reader, color_indices, header):
 
     bpy_obj_root = bpy.data.objects.new('{} meshes'.format(base_name), None)
     bpy_obj_root.empty_draw_type = 'SPHERE'
@@ -36,10 +36,10 @@ def read_details_meshes(base_name, context, chunked_reader, color_indices, heade
 
     for mesh_id, mesh_data in chunked_reader:
         packed_reader = PackedReader(mesh_data)
-        mesh_name = '{0} mesh_{1:0>2}'.format(base_name, mesh_id)
+        fpath_mesh = '{0} mesh_{1:0>2}'.format(fpath, mesh_id)
 
         bpy_obj_mesh = imp.import_(
-            mesh_name, context, packed_reader, mode='DETAILS',
+            fpath_mesh, context, packed_reader, mode='DETAILS',
             detail_index=mesh_id, detail_colors=color_indices
             )
 

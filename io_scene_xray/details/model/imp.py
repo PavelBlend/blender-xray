@@ -19,7 +19,7 @@ def import_(fpath, context, packed_reader, mode='DM', detail_index=None, detail_
     det_model.mesh.bpy_mesh = bpy_mesh
 
     context.os = os
-    bpy_material = search_material(context, det_model)
+    bpy_material = search_material(context, det_model, fpath=fpath)
 
     det_model.mesh.bpy_mesh.materials.append(bpy_material)
     det_model.mesh.bpy_material = bpy_material
