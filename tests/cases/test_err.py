@@ -10,3 +10,6 @@ class TestErrImport(utils.XRayTestCase):
 
         # Assert
         self.assertReportsNotContains('WARNING')
+
+        obj = bpy.data.objects['test_fmt.err']
+        self.assertNotEqual(len(obj.data.polygons), 0)
