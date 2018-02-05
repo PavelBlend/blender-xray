@@ -7,6 +7,13 @@ import mathutils
 from .plugin_prefs import PropObjectMotionsExport, PropObjectTextureNamesFromPath, PropSDKVersion
 from .edit_helpers.bone_shape import HELPER as seh
 from . import utils
+from .details.types import (
+    XRayObjectDetailsProperties,
+    XRayObjectDetailsModelProperties,
+    XRayObjectDetailsSlotsProperties,
+    XRayObjectDetailsSlotsLightingProperties,
+    XRayObjectDetailsSlotsMeshesProperties
+    )
 from . import registry
 
 
@@ -192,14 +199,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
         description='Path relative to the root export folder'
     )
 
-    # Detail Mesh Options
-    no_waving = bpy.props.BoolProperty(
-        description='No Waving',
-        options={'SKIP_SAVE'},
-        default=False
-    )
-    min_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
-    max_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
+    detail = bpy.props.PointerProperty(type=XRayObjectDetailsProperties)
 
     def initialize(self, context):
         if not self.version:
@@ -519,7 +519,11 @@ class XRayActionProperties(bpy.types.PropertyGroup):
     )
 
 
+@registry.requires('ImportSkls')
 class XRaySceneProperties(bpy.types.PropertyGroup):
+    class ImportSkls(bpy.types.PropertyGroup):
+        motion_index = bpy.props.IntProperty()
+
     b_type = bpy.types.Scene
     export_root = bpy.props.StringProperty(
         name='Export Root',
@@ -534,7 +538,16 @@ class XRaySceneProperties(bpy.types.PropertyGroup):
         default=0.5, min=0.0, max=1.0,
         options={'SKIP_SAVE'},
     )
+    import_skls = bpy.props.PointerProperty(type=ImportSkls)
 
+
+__SUBCLASSES__ = [
+    XRayObjectDetailsProperties,
+    XRayObjectDetailsModelProperties,
+    XRayObjectDetailsSlotsProperties,
+    XRayObjectDetailsSlotsLightingProperties,
+    XRayObjectDetailsSlotsMeshesProperties
+    ]
 
 __CLASSES__ = [
     XRayObjectProperties
@@ -548,6 +561,8 @@ __CLASSES__ = [
 
 
 def register():
+    for subclass in reversed(__SUBCLASSES__):
+        registry.register_thing(subclass, __name__)
     for clas in __CLASSES__:
         registry.register_thing(clas, __name__)
         clas.b_type.xray = bpy.props.PointerProperty(type=clas)
@@ -557,3 +572,5 @@ def unregister():
     for clas in reversed(__CLASSES__):
         del clas.b_type.xray
         registry.unregister_thing(clas, __name__)
+    for subclass in __SUBCLASSES__:
+        registry.unregister_thing(subclass, __name__)

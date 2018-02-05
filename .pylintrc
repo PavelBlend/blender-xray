@@ -1,6 +1,7 @@
 [BASIC]
 no-docstring-rgx=.
 variable-rgx=([a-z_][a-z0-9_]{2,30})|(x|y|z|uv)$
+max-line-length=100
 
 [TYPECHECK]
 ignored-modules=addon_utils, bgl, bmesh, bpy, bpy_extras, mathutils

@@ -37,7 +37,9 @@ def plugin_version_number():
 
 
 class AppError(Exception):
-    def __init__(self, message, ctx=log.props()):
+    def __init__(self, message, ctx=None):
+        if ctx is None:
+            ctx = log.props()
         super().__init__(message)
         self.ctx = ctx
 
@@ -151,9 +153,10 @@ def fix_ensure_lookup_table(bmv):
         bmv.ensure_lookup_table()
 
 
-def convert_object_to_space_bmesh(bpy_obj, space_matrix):
+def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
     import bmesh
     import bpy
+    import mathutils
     mesh = bmesh.new()
     armmods = [mod for mod in bpy_obj.modifiers if mod.type == 'ARMATURE' and mod.show_viewport]
     try:
@@ -163,7 +166,10 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix):
     finally:
         for mod in armmods:
             mod.show_viewport = True
-    mat = bpy_obj.matrix_world
+    if local:
+        mat = mathutils.Matrix()
+    else:
+        mat = bpy_obj.matrix_world
     mat = space_matrix.inverted() * mat
     mesh.transform(mat)
     need_flip = False
