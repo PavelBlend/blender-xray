@@ -741,10 +741,8 @@ def menu_func_xray_export(self, _context):
     self.layout.menu(XRayExportMenu.bl_idname)
 
 
-def append_menu_func(first_run=False):
+def append_menu_func():
     prefs = plugin_prefs.get_preferences()
-    if first_run:
-        details.operators.register_operators()
     if prefs.compact_menus:
         bpy.types.INFO_MT_file_import.remove(menu_func_import)
         bpy.types.INFO_MT_file_export.remove(menu_func_export)
@@ -770,7 +768,8 @@ registry.module_requires(__name__, [
 
 
 def register():
-    append_menu_func(first_run=True)
+    details.operators.register_operators()
+    append_menu_func()
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(
         overlay_view_3d, (),
         'WINDOW', 'POST_VIEW'
