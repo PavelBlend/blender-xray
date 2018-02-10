@@ -330,8 +330,6 @@ def register_operators():
     bpy.utils.register_class(OpExportDM)
     bpy.utils.register_class(OpExportDMs)
     bpy.utils.register_class(OpExportLevelDetails)
-    bpy.types.INFO_MT_file_import.append(menu_func_import)
-    bpy.types.INFO_MT_file_export.append(menu_func_export)
 
 
 def unregister_operators():

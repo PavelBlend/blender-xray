@@ -11,6 +11,7 @@ from .utils import AppError, ObjectsInitializer, logger
 from .xray_motions import MOTIONS_FILTER_ALL
 from . import plugin_prefs
 from . import registry
+from . import details
 
 
 def execute_with_logger(method):
@@ -652,6 +653,39 @@ class OpExportProject(TestReadyOperator):
         return [o for o in objects if o.xray.isroot]
 
 
+@registry.module_thing
+class XRayImportMenu(bpy.types.Menu):
+    bl_idname = 'INFO_MT_xray_import'
+    bl_label = 'X-Ray'
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator(OpImportObject.bl_idname, text='Source Object (.object)')
+        layout.operator(OpImportAnm.bl_idname, text='Animation (.anm)')
+        layout.operator(OpImportSkl.bl_idname, text='Skeletal Animation (.skl, .skls)')
+        layout.operator(details.operators.OpImportDM.bl_idname, text='Details (.dm, .details)')
+
+
+@registry.module_thing
+class XRayExportMenu(bpy.types.Menu):
+    bl_idname = 'INFO_MT_xray_export'
+    bl_label = 'X-Ray'
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator(OpExportObjects.bl_idname, text='Source Object (.object)')
+        layout.operator(OpExportAnm.bl_idname, text='Animation (.anm)')
+        layout.operator(OpExportSkls.bl_idname, text='Skeletal Animation (.skls)')
+        layout.operator(OpExportOgf.bl_idname, text='Game Object (.ogf)')
+        layout.operator(details.operators.OpExportDMs.bl_idname, text='Detail Model (.dm)')
+        layout.operator(
+            details.operators.OpExportLevelDetails.bl_idname,
+            text='Level Details (.details)'
+        )
+
+
 def overlay_view_3d():
     def try_draw(base_obj, obj):
         if not hasattr(obj, 'xray'):
@@ -699,7 +733,34 @@ def menu_func_export_ogf(self, _context):
     self.layout.operator(OpExportOgf.bl_idname, text='X-Ray game object (.ogf)')
 
 
-from . import details
+def menu_func_xray_import(self, _context):
+    self.layout.menu(XRayImportMenu.bl_idname)
+
+
+def menu_func_xray_export(self, _context):
+    self.layout.menu(XRayExportMenu.bl_idname)
+
+
+def append_menu_func(first_run=False):
+    prefs = plugin_prefs.get_preferences()
+    if first_run:
+        details.operators.register_operators()
+    if prefs.compact_menus:
+        bpy.types.INFO_MT_file_import.remove(menu_func_import)
+        bpy.types.INFO_MT_file_export.remove(menu_func_export)
+        bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
+        bpy.types.INFO_MT_file_import.remove(details.operators.menu_func_import)
+        bpy.types.INFO_MT_file_export.remove(details.operators.menu_func_export)
+        bpy.types.INFO_MT_file_import.prepend(menu_func_xray_import)
+        bpy.types.INFO_MT_file_export.prepend(menu_func_xray_export)
+    else:
+        bpy.types.INFO_MT_file_import.remove(menu_func_xray_import)
+        bpy.types.INFO_MT_file_export.remove(menu_func_xray_export)
+        bpy.types.INFO_MT_file_import.append(menu_func_import)
+        bpy.types.INFO_MT_file_export.append(menu_func_export)
+        bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
+        bpy.types.INFO_MT_file_import.append(details.operators.menu_func_import)
+        bpy.types.INFO_MT_file_export.append(details.operators.menu_func_export)
 
 
 registry.module_requires(__name__, [
@@ -709,16 +770,13 @@ registry.module_requires(__name__, [
 
 
 def register():
-    bpy.types.INFO_MT_file_import.append(menu_func_import)
-    bpy.types.INFO_MT_file_export.append(menu_func_export)
-    bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
+    append_menu_func(first_run=True)
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(
         overlay_view_3d, (),
         'WINDOW', 'POST_VIEW'
     )
     bpy.app.handlers.load_post.append(load_post)
     bpy.app.handlers.scene_update_post.append(scene_update_post)
-    details.operators.register_operators()
 
 
 def unregister():
@@ -729,3 +787,5 @@ def unregister():
     bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    bpy.types.INFO_MT_file_import.remove(menu_func_xray_import)
+    bpy.types.INFO_MT_file_export.remove(menu_func_xray_export)
