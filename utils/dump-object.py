@@ -91,14 +91,15 @@ def dump_mesh(cr, out, opts):
                 out('  uvs:', [pr.getf('ff') for __ in range(sz)])
                 out('  vtx:', [pr.getf('I')[0] for __ in range(sz)])
             out('}]')
-        elif cid == Chunks.Mesh.VMAPS2:
-            out('vmaps2: [{')
+        elif cid == Chunks.Mesh.VMAPS1 or cid == Chunks.Mesh.VMAPS2:
+            out('vmaps{}'.format(cid - Chunks.Mesh.VMAPS1 + 1) + ': [{')
             for _ in range(pr.getf('I')[0]):
                 if _: out('}, {')
                 out('  name:', pr.gets())
                 out('  dim:', pr.getf('B')[0] & 0x3)
-                dsc = pr.getf('B')[0] & 0x1
-                out('  dsc:', dsc)
+                if cid == Chunks.Mesh.VMAPS2:
+                    dsc = pr.getf('B')[0] & 0x1
+                    out('  dsc:', dsc)
                 typ = pr.getf('B')[0] & 0x3  # enum {VMT_UV,VMT_WEIGHT}
                 out('  type:', typ)
                 sz = pr.getf('I')[0]
@@ -107,17 +108,19 @@ def dump_mesh(cr, out, opts):
                         out('  uvs-hash:', calc_hash(pr.getb(sz * 2 * 4)))
                     elif typ == 1:
                         out('  wgh-hash:', calc_hash(pr.getb(sz * 4)))
-                    out('  vtx-hash:', calc_hash(pr.getb(sz * 4)))
-                    if dsc != 0:
-                        out('  fcs-hash:', calc_hash(pr.getb(sz * 4)))
-                    continue
+                    if cid == Chunks.Mesh.VMAPS2:
+                        out('  vtx-hash:', calc_hash(pr.getb(sz * 4)))
+                        if dsc != 0:
+                            out('  fcs-hash:', calc_hash(pr.getb(sz * 4)))
+                        continue
                 if typ == 0:
                     out('  uvs:', [pr.getf('ff') for __ in range(sz)])
                 elif typ == 1:
                     out('  wgh:', [pr.getf('f')[0] for __ in range(sz)])
-                out('  vtx:', [pr.getf('I')[0] for __ in range(sz)])
-                if dsc != 0:
-                    out('  fcs:', [pr.getf('I')[0] for __ in range(sz)])
+                if cid == Chunks.Mesh.VMAPS2:
+                    out('  vtx:', [pr.getf('I')[0] for __ in range(sz)])
+                    if dsc != 0:
+                        out('  fcs:', [pr.getf('I')[0] for __ in range(sz)])
             out('}]')
         else:
             out('UNKNOWN MESH CHUNK: {:#x}'.format(cid))

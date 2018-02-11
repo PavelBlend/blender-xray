@@ -35,6 +35,7 @@ class Chunks:
         VMREFS = 0x1008
         SFACE = 0x1009
         OPTIONS = 0x1010
+        VMAPS1 = 0x1011
         VMAPS2 = 0x1012
         SG = 0x1013
 

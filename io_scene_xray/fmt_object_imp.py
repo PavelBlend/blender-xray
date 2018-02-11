@@ -140,13 +140,14 @@ def _import_mesh(context, creader, renamemap):
 
             reader = PackedReader(data)
             vm_refs = [read_vmref(reader) for _ in range(reader.int())]
-        elif cid == Chunks.Mesh.VMAPS2:
+        elif cid == Chunks.Mesh.VMAPS1 or cid == Chunks.Mesh.VMAPS2:
             suppress_rename_warnings = {}
             reader = PackedReader(data)
             for _ in range(reader.int()):
                 name = reader.gets()
                 reader.skip(1)  # dim
-                discon = reader.byte() != 0
+                if cid == Chunks.Mesh.VMAPS2:
+                    discon = reader.byte() != 0
                 typ = reader.byte() & 0x3
                 size = reader.int()
                 if typ == 0:
@@ -161,9 +162,10 @@ def _import_mesh(context, creader, renamemap):
                         bml = bmsh.loops.layers.uv.new(name)
                         bml_texture = bmsh.faces.layers.tex.new(name)
                     uvs = reader.getb(size * 8).cast('f')
-                    reader.skip(size * 4)
-                    if discon:
+                    if cid == Chunks.Mesh.VMAPS2:
                         reader.skip(size * 4)
+                        if discon:
+                            reader.skip(size * 4)
                     vmaps.append((typ, bml, uvs))
                 elif typ == 1:  # weights
                     name = renamemap.get(name, name)
@@ -179,9 +181,10 @@ def _import_mesh(context, creader, renamemap):
                             wgs[i] = _MIN_WEIGHT
                     if bad:
                         log.warn('weight VMap has values that are close to zero', vmap=name)
-                    reader.skip(size * 4)
-                    if discon:
+                    if cid == Chunks.Mesh.VMAPS2:
                         reader.skip(size * 4)
+                        if discon:
+                            reader.skip(size * 4)
                     vmaps.append((typ, vgi, wgs))
                 else:
                     raise AppError('unknown vmap type', log.props(type=typ))
