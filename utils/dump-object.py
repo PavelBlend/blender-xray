@@ -30,6 +30,8 @@ def dump_mesh(cr, out, opts):
             out('bbox:', pr.getf('fff'), '-', pr.getf('fff'))
         elif cid == Chunks.Mesh.FLAGS:
             out('flags:', pr.getf('B')[0])
+        elif cid == Chunks.Mesh.NOT_USED_0:
+            out('not used:', pr.getf('B')[0])
         elif cid == Chunks.Mesh.OPTIONS:
             out('options:', pr.getf('II'))
         elif cid == Chunks.Mesh.VERTS:

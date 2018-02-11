@@ -193,6 +193,8 @@ def _import_mesh(context, creader, renamemap):
             pass  # blender automatically calculates bbox
         elif cid == Chunks.Mesh.OPTIONS:
             mesh_options = PackedReader(data).getf('II')
+        elif cid == Chunks.Mesh.NOT_USED_0:
+            pass  # not used chunk
         else:
             log.debug('unknown chunk', cid=cid)
 

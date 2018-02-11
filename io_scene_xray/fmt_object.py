@@ -25,6 +25,7 @@ class Chunks:
         VERSION = 0x1000
         MESHNAME = 0x1001
         FLAGS = 0x1002
+        NOT_USED_0 = 0x1003
         BBOX = 0x1004
         VERTS = 0x1005
         FACES = 0x1006
