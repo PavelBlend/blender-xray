@@ -535,18 +535,34 @@ def _import_main(fpath, context, creader):
     for (cid, data) in creader:
         if cid == Chunks.Object.MESHES:
             meshes_data = data
-        elif (cid == Chunks.Object.SURFACES1) or (cid == Chunks.Object.SURFACES2):
+        elif (cid == Chunks.Object.SURFACES) or (cid == Chunks.Object.SURFACES1) or \
+            (cid == Chunks.Object.SURFACES2):
             reader = PackedReader(data)
-            for _ in range(reader.int()):
-                name = reader.gets()
-                eshader = reader.gets()
-                cshader = reader.gets()
-                gamemtl = reader.gets() if cid == Chunks.Object.SURFACES2 else 'default'
-                texture = reader.gets()
-                vmap = reader.gets()
-                renamemap[vmap.lower()] = vmap
-                flags = reader.int()
-                reader.skip(4 + 4)    # fvf and ?
+            surfaces_count = reader.int()
+            if cid == Chunks.Object.SURFACES:
+                xrlc_reader = PackedReader(creader.next(Chunks.Object.SURFACES_XRLC))
+                xrlc_shaders = [xrlc_reader.gets() for _ in range(surfaces_count)]
+            for surface_index in range(surfaces_count):
+                if cid == Chunks.Object.SURFACES:
+                    name = reader.gets()
+                    eshader = reader.gets()
+                    flags = reader.getf('B')[0]
+                    reader.skip(4 + 4)    # fvf and TCs count
+                    texture = reader.gets()
+                    vmap = reader.gets()
+                    renamemap[vmap.lower()] = vmap
+                    gamemtl = 'default'
+                    cshader = xrlc_shaders[surface_index]
+                else:
+                    name = reader.gets()
+                    eshader = reader.gets()
+                    cshader = reader.gets()
+                    gamemtl = reader.gets() if cid == Chunks.Object.SURFACES2 else 'default'
+                    texture = reader.gets()
+                    vmap = reader.gets()
+                    renamemap[vmap.lower()] = vmap
+                    flags = reader.int()
+                    reader.skip(4 + 4)    # fvf and ?
                 bpy_material = None
                 tx_filepart = texture.replace('\\', os.path.sep).lower()
                 for material in bpy.data.materials:

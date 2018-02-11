@@ -265,6 +265,26 @@ def dump_object(cr, out, opts):
                 if _: out('}, {')
                 dump_mesh(ChunkedReader(d), oout, opts)
             out('}]')
+        elif cid == Chunks.Object.SURFACES:
+            out('surfaces: [{')
+            surfaces_count = pr.getf('I')[0]
+            for _ in range(surfaces_count):
+                if _: out('}, {')
+                out('  name:', pr.gets())
+                out('  eshader:', pr.gets())
+                out('  flags:', pr.getf('B')[0])
+                fvf = pr.getf('I')[0]
+                out('  fvf:', 'default' if fvf == 0x112 else fvf)
+                out('  tcs count:', pr.getf('I')[0])
+                out('  texture:', pr.gets())
+                out('  vmap:', pr.gets())
+            out('}]')
+        elif cid == Chunks.Object.SURFACES_XRLC:
+            out('surfaces xrlc: [{')
+            for _ in range(surfaces_count):
+                if _: out('}, {')
+                out('  cshader:', pr.gets())
+            out('}]')
         elif (cid == Chunks.Object.SURFACES1) or (cid == Chunks.Object.SURFACES2):
             out('surfaces{}'.format(cid - Chunks.Object.SURFACES1 + 1) + ': [{')
             for _ in range(pr.getf('I')[0]):
