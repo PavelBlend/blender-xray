@@ -199,6 +199,25 @@ class TestFormatObject(utils.XRayTestCase):
         all_slots_are_empty = all(not slot for slot in imported_material.texture_slots)
         self.assertTrue(all_slots_are_empty)
 
+    def test_import_old_format(self):
+        bpy.ops.xray_import.object(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_old.object'}],
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+
+        obj = bpy.data.objects['test_fmt_old.object']
+        material = obj.data.materials[0]
+        texture = material.texture_slots[0].texture
+        self.assertEqual(obj.data.name, 'Plane01')
+        self.assertEqual(material.name, '1 - Defaultsa')
+        self.assertEqual(material.xray.eshader, 'details\set')
+        self.assertEqual(material.xray.cshader, 'default')
+        self.assertEqual(material.xray.gamemtl, 'default')
+        self.assertEqual(texture.name, 'det\det_leaves')
+
     def _get_compatible_material(self):
         img = bpy.data.images.new('texture', 0, 0)
         img.source = 'FILE'

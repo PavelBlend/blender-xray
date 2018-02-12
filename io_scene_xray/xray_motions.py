@@ -116,10 +116,12 @@ def import_motion(reader, bpy_armature, bonesmap, reported, motions_filter=MOTIO
 
 
 def import_motions(reader, bpy_armature, motions_filter=MOTIONS_FILTER_ALL):
-    bonesmap = {b.name.lower(): b for b in bpy_armature.data.bones}
-    reported = set()
-    for _ in range(reader.getf('I')[0]):
-        import_motion(reader, bpy_armature, bonesmap, reported, motions_filter)
+    motions_count = reader.getf('I')[0]
+    if motions_count:
+        bonesmap = {b.name.lower(): b for b in bpy_armature.data.bones}
+        reported = set()
+        for _ in range(motions_count):
+            import_motion(reader, bpy_armature, bonesmap, reported, motions_filter)
 
 
 @with_context('examine-motion')
