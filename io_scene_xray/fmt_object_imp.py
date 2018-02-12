@@ -625,6 +625,11 @@ def _import_main(fpath, context, creader):
                         bpy_texture_slot.use_map_alpha = True
                 context.loaded_materials[name] = bpy_material
         elif (cid == Chunks.Object.BONES) or (cid == Chunks.Object.BONES1):
+            if cid == Chunks.Object.BONES:
+                reader = PackedReader(data)
+                bones_count = reader.int()
+                if not bones_count:
+                    continue    # Do not create an armature if zero bones
             if bpy and (bpy_arm_obj is None):
                 bpy_armature = bpy.data.armatures.new(object_name)
                 bpy_armature.use_auto_ik = True
@@ -634,8 +639,7 @@ def _import_main(fpath, context, creader):
                 bpy.context.scene.objects.link(bpy_arm_obj)
                 bpy.context.scene.objects.active = bpy_arm_obj
             if cid == Chunks.Object.BONES:
-                reader = PackedReader(data)
-                for _ in range(reader.int()):
+                for _ in range(bones_count):
                     name, parent, vmap = reader.gets(), reader.gets(), reader.gets()
                     offset, rotate, length = read_v3f(reader), read_v3f(reader), reader.getf('f')[0]
                     rotate = rotate[2], rotate[1], rotate[0]
