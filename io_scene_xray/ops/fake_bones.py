@@ -42,7 +42,6 @@ class CreateFakeBones(BaseOperator):
             for name in fake_names:
                 pbone = armature_object.pose.bones[name]
                 pbone.lock_ik_x = pbone.lock_ik_y = pbone.lock_ik_z = True
-                pbone.custom_shape = _get_fake_bone_shape()
 
                 bone = armature.bones[name]
                 bone.hide = True
