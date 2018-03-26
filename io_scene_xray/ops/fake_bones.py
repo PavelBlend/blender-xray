@@ -42,7 +42,6 @@ class CreateFakeBones(BaseOperator):
             for name in fake_names:
                 pbone = armature_object.pose.bones[name]
                 pbone.lock_ik_x = pbone.lock_ik_y = pbone.lock_ik_z = True
-                pbone.custom_shape = _get_fake_bone_shape()
 
                 bone = armature.bones[name]
                 bone.hide = True
@@ -122,11 +121,3 @@ def _is_armature_context_with_fake_bones(context):
         if utils.is_fake_bone_name(bone.name):
             return True
     return False
-
-
-def _get_fake_bone_shape():
-    result = bpy.data.objects.get('fake_bone_shape')
-    if result is None:
-        result = bpy.data.objects.new('fake_bone_shape', None)
-        result.empty_draw_size = 0
-    return result
