@@ -613,7 +613,7 @@ def _import_main(fpath, context, creader):
                     if texture:
                         bpy_texture = bpy.data.textures.get(texture)
                         if (bpy_texture is None) \
-                            or not _is_compatible_texture(texture, tx_filepart):
+                            or not _is_compatible_texture(bpy_texture, tx_filepart):
                             bpy_texture = bpy.data.textures.new(texture, type='IMAGE')
                             bpy_texture.image = context.image(texture)
                             bpy_texture.use_preview_alpha = True

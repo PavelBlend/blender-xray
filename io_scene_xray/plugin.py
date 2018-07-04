@@ -11,6 +11,7 @@ from .utils import AppError, ObjectsInitializer, logger
 from .xray_motions import MOTIONS_FILTER_ALL
 from . import plugin_prefs
 from . import registry
+from . import err
 
 
 def execute_with_logger(method):
@@ -719,9 +720,11 @@ def register():
     bpy.app.handlers.load_post.append(load_post)
     bpy.app.handlers.scene_update_post.append(scene_update_post)
     details.operators.register_operators()
+    registry.register_thing(err.operators, __name__)
 
 
 def unregister():
+    registry.unregister_thing(err.operators, __name__)
     details.operators.unregister_operators()
     bpy.app.handlers.scene_update_post.remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)

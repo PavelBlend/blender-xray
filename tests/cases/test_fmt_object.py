@@ -70,7 +70,7 @@ class TestFormatObject(utils.XRayTestCase):
         mat.name = 'DifferentName'
 
         # Act & Assert
-        self._test_import_separate_materials(mat, tex)
+        self._test_import_separate_materials(mat, tex, tex_equal=True)
 
     def test_import_separate_materials_with_different_flags(self):
         # Arrange
@@ -78,7 +78,7 @@ class TestFormatObject(utils.XRayTestCase):
         mat.xray.flags = 123
 
         # Act & Assert
-        self._test_import_separate_materials(mat, tex)
+        self._test_import_separate_materials(mat, tex, tex_equal=True)
 
     def test_import_separate_materials_with_different_eshader(self):
         # Arrange
@@ -86,7 +86,7 @@ class TestFormatObject(utils.XRayTestCase):
         mat.xray.eshader = 'different_eshader'
 
         # Act & Assert
-        self._test_import_separate_materials(mat, tex)
+        self._test_import_separate_materials(mat, tex, tex_equal=True)
 
     def test_import_separate_materials_with_different_cshader(self):
         # Arrange
@@ -94,7 +94,7 @@ class TestFormatObject(utils.XRayTestCase):
         mat.xray.cshader = 'different_cshader'
 
         # Act & Assert
-        self._test_import_separate_materials(mat, tex)
+        self._test_import_separate_materials(mat, tex, tex_equal=True)
 
     def test_import_separate_materials_with_different_gamemtl(self):
         # Arrange
@@ -102,7 +102,7 @@ class TestFormatObject(utils.XRayTestCase):
         mat.xray.gamemtl = 'different_gamemtl'
 
         # Act & Assert
-        self._test_import_separate_materials(mat, tex)
+        self._test_import_separate_materials(mat, tex, tex_equal=True)
 
     def test_import_separate_materials_with_different_vmap(self):
         # Arrange
@@ -110,7 +110,7 @@ class TestFormatObject(utils.XRayTestCase):
         mts.uv_layer = 'DifferentUVLayer'
 
         # Act & Assert
-        self._test_import_separate_materials(mat, tex)
+        self._test_import_separate_materials(mat, tex, tex_equal=True)
 
     def test_import_separate_materials_with_incompat_texture(self):
         # Arrange
@@ -128,7 +128,7 @@ class TestFormatObject(utils.XRayTestCase):
         # Act & Assert
         self._test_import_separate_materials(mat, tex)
 
-    def _test_import_separate_materials(self, mat, tex):
+    def _test_import_separate_materials(self, mat, tex, tex_equal=False):
         # Act
         bpy.ops.xray_import.object(
             directory=self.relpath(),
@@ -142,7 +142,10 @@ class TestFormatObject(utils.XRayTestCase):
         imported_material = imported_object.data.materials[0]
         self.assertNotEqual(imported_material, mat)
         imported_texture = imported_material.texture_slots[0].texture
-        self.assertNotEqual(imported_texture, tex)
+        if tex_equal:
+            self.assertEqual(imported_texture, tex)
+        else:
+            self.assertNotEqual(imported_texture, tex)
 
     def test_import_merge_materials(self):
         # Arrange

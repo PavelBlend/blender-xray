@@ -1,7 +1,9 @@
 
 import bpy
+
 from ..utils import is_helper_object
 from ..ui.collapsible import draw
+from .operators import PackDetailsImages
 
 
 class XRayDetailsPanel(bpy.types.Panel):
@@ -114,6 +116,8 @@ class XRayDetailsPanel(bpy.types.Panel):
                         'images',
                         text='Mesh {}'.format(i)
                         )
+
+            layout.operator(PackDetailsImages.bl_idname)
 
     def draw_header(self, context):
         self.layout.label(icon='PLUGIN')
