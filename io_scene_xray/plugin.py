@@ -12,6 +12,7 @@ from .xray_motions import MOTIONS_FILTER_ALL
 from . import plugin_prefs
 from . import registry
 from . import details
+from . import err
 
 
 def execute_with_logger(method):
@@ -665,6 +666,7 @@ class XRayImportMenu(bpy.types.Menu):
         layout.operator(OpImportAnm.bl_idname, text='Animation (.anm)')
         layout.operator(OpImportSkl.bl_idname, text='Skeletal Animation (.skl, .skls)')
         layout.operator(details.operators.OpImportDM.bl_idname, text='Details (.dm, .details)')
+        layout.operator(err.operators.OpImportERR.bl_idname, text='Error List (.err)')
 
 
 @registry.module_thing
@@ -747,6 +749,7 @@ def append_menu_func():
         bpy.types.INFO_MT_file_import.remove(menu_func_import)
         bpy.types.INFO_MT_file_export.remove(menu_func_export)
         bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
+        bpy.types.INFO_MT_file_import.remove(err.operators.menu_func_import)
         bpy.types.INFO_MT_file_import.remove(details.operators.menu_func_import)
         bpy.types.INFO_MT_file_export.remove(details.operators.menu_func_export)
         bpy.types.INFO_MT_file_import.prepend(menu_func_xray_import)
@@ -759,6 +762,7 @@ def append_menu_func():
         bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
         bpy.types.INFO_MT_file_import.append(details.operators.menu_func_import)
         bpy.types.INFO_MT_file_export.append(details.operators.menu_func_export)
+        bpy.types.INFO_MT_file_import.append(err.operators.menu_func_import)
 
 
 registry.module_requires(__name__, [
@@ -769,6 +773,7 @@ registry.module_requires(__name__, [
 
 def register():
     details.operators.register_operators()
+    registry.register_thing(err.operators, __name__)
     append_menu_func()
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(
         overlay_view_3d, (),
@@ -779,6 +784,7 @@ def register():
 
 
 def unregister():
+    registry.unregister_thing(err.operators, __name__)
     details.operators.unregister_operators()
     bpy.app.handlers.scene_update_post.remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)

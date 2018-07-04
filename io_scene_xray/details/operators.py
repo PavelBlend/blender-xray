@@ -312,6 +312,43 @@ class OpExportLevelDetails(bpy.types.Operator, io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
+class PackDetailsImages(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.pack_details_images'
+    bl_label = 'Pack Details Images'
+    bl_description = 'Pack Details Images as PNG'
+
+    @classmethod
+    def poll(cls, context):
+        if context.object:
+            if context.object.type == 'EMPTY':
+                return True
+        return False
+
+    def execute(self, context):
+        slots = context.object.xray.detail.slots
+        lighting = slots.ligthing
+        meshes = slots.meshes
+        images = bpy.data.images
+
+        lights_image = images.get(lighting.lights_image)
+        hemi_image = images.get(lighting.hemi_image)
+        shadows_image = images.get(lighting.shadows_image)
+
+        mesh_0_image = images.get(meshes.mesh_0)
+        mesh_1_image = images.get(meshes.mesh_1)
+        mesh_2_image = images.get(meshes.mesh_2)
+        mesh_3_image = images.get(meshes.mesh_3)
+
+        slots_images = [lights_image, hemi_image, shadows_image, mesh_0_image,
+            mesh_1_image, mesh_2_image, mesh_3_image]
+
+        for image in slots_images:
+            if image:
+                image.pack(as_png=True)
+
+        return {'FINISHED'}
+
+
 def menu_func_import(self, context):
     self.layout.operator(
         OpImportDM.bl_idname, text='X-Ray details (.dm, .details)'
@@ -330,9 +367,11 @@ def register_operators():
     bpy.utils.register_class(OpExportDM)
     bpy.utils.register_class(OpExportDMs)
     bpy.utils.register_class(OpExportLevelDetails)
+    bpy.utils.register_class(PackDetailsImages)
 
 
 def unregister_operators():
+    bpy.utils.unregister_class(PackDetailsImages)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.utils.unregister_class(OpExportLevelDetails)
