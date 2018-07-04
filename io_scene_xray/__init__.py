@@ -6,8 +6,8 @@ bl_info = {
     'category': 'Import-Export',
     'location': 'File > Import/Export',
     'description': 'Import/Export X-Ray objects',
-    'wiki_url': 'https://github.com/igelbox/blender-xray',
-    'tracker_url': 'https://github.com/igelbox/blender-xray/issues',
+    'wiki_url': 'https://github.com/PavelBlend/blender-xray',
+    'tracker_url': 'https://github.com/PavelBlend/blender-xray/issues',
     'warning':  'Under construction!'
 }
 

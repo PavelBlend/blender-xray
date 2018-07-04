@@ -14,7 +14,7 @@ XRay-engine import/export plugin for [blender](http://www.blender.org/).
 | .ogf      | Compiled models  | No         | Yes*       | *Extremely experimental |
 
 ## Installation
-Follow [wiki instructions](https://github.com/igelbox/blender-xray/wiki/Installation).
+Follow [wiki instructions](https://github.com/PavelBlend/blender-xray/wiki/Installation).
 
 ## License
 Published under the liberal terms of the BSD License, see the [LICENSE](LICENSE) file.
