@@ -525,9 +525,6 @@ def _is_compatible_texture(texture, filepart):
 
 def _import_main(fpath, context, creader):
     object_name = os.path.basename(fpath.lower())
-    ver = creader.nextf(Chunks.Object.VERSION, 'H')[0]
-    if ver != 0x10:
-        raise AppError('unsupported OBJECT format version', log.props(version=ver))
 
     bpy_arm_obj = None
     renamemap = {}
@@ -536,15 +533,23 @@ def _import_main(fpath, context, creader):
     unread_chunks = []
 
     for (cid, data) in creader:
-        if cid == Chunks.Object.MESHES:
+        if cid == Chunks.Object.VERSION:
+            reader = PackedReader(data)
+            ver = reader.getf('H')[0]
+            if ver != 0x10:
+                raise AppError('unsupported OBJECT format version', log.props(version=ver))
+        elif cid == Chunks.Object.MESHES:
             meshes_data = data
         elif (cid == Chunks.Object.SURFACES) or (cid == Chunks.Object.SURFACES1) or \
             (cid == Chunks.Object.SURFACES2):
             reader = PackedReader(data)
             surfaces_count = reader.int()
             if cid == Chunks.Object.SURFACES:
-                xrlc_reader = PackedReader(creader.next(Chunks.Object.SURFACES_XRLC))
-                xrlc_shaders = [xrlc_reader.gets() for _ in range(surfaces_count)]
+                try:
+                    xrlc_reader = PackedReader(creader.next(Chunks.Object.SURFACES_XRLC))
+                    xrlc_shaders = [xrlc_reader.gets() for _ in range(surfaces_count)]
+                except:
+                    xrlc_shaders = ['default' for _ in range(surfaces_count)]
             for surface_index in range(surfaces_count):
                 if cid == Chunks.Object.SURFACES:
                     name = reader.gets()
