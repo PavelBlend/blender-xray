@@ -62,7 +62,7 @@ def _import(fpath, context, chunked_reader):
     color_indices = generate_color_indices()
 
     meshes_obj = read.read_details_meshes(
-        base_name, context, cr_meshes, color_indices, header
+        fpath, base_name, context, cr_meshes, color_indices, header
         )
 
     del cr_meshes

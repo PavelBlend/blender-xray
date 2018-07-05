@@ -40,6 +40,8 @@ class TestDetailsImport(utils.XRayTestCase):
                 self.assertEqual(len(child_object.children), 4)
                 for mesh_object in child_object.children:
                     mat = mesh_object.active_material
-                    self.assertEqual(mat.name, 'build_details')
                     tex = mat.active_texture
-                    self.assertEqual(tex.name, 'build_details')
+                    image = tex.image
+                    if image:
+                        self.assertEqual(mat.name, 'build_details')
+                        self.assertEqual(tex.name, 'build_details')
