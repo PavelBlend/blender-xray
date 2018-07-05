@@ -140,6 +140,37 @@ def search_material(context, det_model, fpath=None):
     return bpy_material
 
 
+def reconstruct_mesh(vertices, uvs, triangles):
+
+    # remove doubles vertices
+    loaded_vertices = {}
+    remap_vertices = []
+    remap_indices = {}
+    remap_index = 0
+    for vertex_index, vertex_coord in enumerate(vertices):
+        if loaded_vertices.get(vertex_coord):
+            remap_indices[vertex_index] = loaded_vertices[vertex_coord]
+        else:
+            loaded_vertices[vertex_coord] = remap_index
+            remap_indices[vertex_index] = remap_index
+            remap_vertices.append(vertex_coord)
+            remap_index += 1
+
+    # generate new triangles indices and uvs
+    remap_triangles = []
+    remap_uvs = []
+    for triangle in triangles:
+        remap_triangles.append((
+            remap_indices[triangle[0]],
+            remap_indices[triangle[1]],
+            remap_indices[triangle[2]]
+        ))
+        for vertex_index in triangle:
+            remap_uvs.append(uvs[vertex_index])
+
+    return remap_vertices, remap_uvs, remap_triangles
+
+
 def create_mesh(packed_reader, det_model):
 
     from ...utils import AppError
@@ -149,44 +180,59 @@ def create_mesh(packed_reader, det_model):
 
     b_mesh = bmesh.new()
 
+    # read vertices coordinates and uvs
     S_FFFFF = PackedReader.prep('fffff')
-
-    uvs = {}
-
+    vertices = []
+    uvs = []
     for _ in range(det_model.mesh.vertices_count):
         vertex = packed_reader.getp(S_FFFFF)    # x, y, z, u, v
-        bm_vert = b_mesh.verts.new((vertex[0], vertex[2], vertex[1]))
-        uvs[bm_vert] = (vertex[3], vertex[4])
+        vertices.append((vertex[0], vertex[2], vertex[1]))
+        uvs.append((vertex[3], vertex[4]))
 
-    b_mesh.verts.ensure_lookup_table()
+    # read triangles indices
     S_HHH = PackedReader.prep('HHH')
-
+    triangles = []
     for _ in range(det_model.mesh.indices_count // 3):
+        face_indices = packed_reader.getp(S_HHH)
+        triangles.append((face_indices[0], face_indices[2], face_indices[1]))
 
-        face_indices = packed_reader.getp(S_HHH)    # face indices
+    # reconstruct mesh
+    vertices, uvs, triangles = reconstruct_mesh(vertices, uvs, triangles)
 
+    # create vertices
+    for vertex_coord in vertices:
+        b_mesh.verts.new(vertex_coord)
+    b_mesh.verts.ensure_lookup_table()
+
+    # create triangles
+    for triangle in triangles:
         try:
             b_mesh.faces.new((
-                b_mesh.verts[face_indices[0]],
-                b_mesh.verts[face_indices[2]],
-                b_mesh.verts[face_indices[1]])
-                            ).smooth = True
+                b_mesh.verts[triangle[0]],
+                b_mesh.verts[triangle[1]],
+                b_mesh.verts[triangle[2]]
+            )).smooth = True
         except ValueError:
             pass
-
     b_mesh.faces.ensure_lookup_table()
+
+    # create uvs
     uv_layer = b_mesh.loops.layers.uv.new(det_model.mesh.uv_map_name)
 
     if det_model.mode == 'DM':
+        uv_index = 0
         for face in b_mesh.faces:
             for loop in face.loops:
-                loop[uv_layer].uv = uvs[loop.vert]
+                loop[uv_layer].uv = uvs[uv_index]
+                uv_index += 1
 
     elif det_model.mode == 'DETAILS':
+        uv_index = 0
         for face in b_mesh.faces:
             for loop in face.loops:
-                uv = uvs[loop.vert]
+                uv = uvs[uv_index]
                 loop[uv_layer].uv = uv[0], 1 - uv[1]
+                uv_index += 1
 
     else:
         raise Exception(
@@ -194,6 +240,7 @@ def create_mesh(packed_reader, det_model):
             'You must use DM or DETAILS'.format(det_model.mode)
             )
 
+    # assign images
     bml_tex = b_mesh.faces.layers.tex.new(det_model.mesh.uv_map_name)
     bpy_image = det_model.mesh.bpy_material.texture_slots[0].texture.image
 
