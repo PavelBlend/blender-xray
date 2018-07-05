@@ -94,6 +94,7 @@ def _import_mesh(context, creader, renamemap):
     vgroups = []
     bml_deform = bmsh.verts.layers.deform.verify()
     bml_texture = None
+    has_sg_chunk = False
     for (cid, data) in creader:
         if cid == Chunks.Mesh.VERTS:
             reader = PackedReader(data)
@@ -107,6 +108,7 @@ def _import_mesh(context, creader, renamemap):
             mesh_name = PackedReader(data).gets()
             log.update(name=mesh_name)
         elif cid == Chunks.Mesh.SG:
+            has_sg_chunk = True
             sgroups = data.cast('I')
 
             def face_sg_impl(bmf, fidx, edict):
@@ -377,6 +379,10 @@ def _import_mesh(context, creader, renamemap):
             )
         log.warn(msg)
 
+    if not has_sg_chunk:    # old object format
+        for face in bmsh.faces:
+            face.smooth = True
+
     bmsh.normal_update()
     bmsh.to_mesh(bm_data)
 
@@ -525,9 +531,6 @@ def _is_compatible_texture(texture, filepart):
 
 def _import_main(fpath, context, creader):
     object_name = os.path.basename(fpath.lower())
-    ver = creader.nextf(Chunks.Object.VERSION, 'H')[0]
-    if ver != 0x10:
-        raise AppError('unsupported OBJECT format version', log.props(version=ver))
 
     bpy_arm_obj = None
     renamemap = {}
@@ -536,15 +539,23 @@ def _import_main(fpath, context, creader):
     unread_chunks = []
 
     for (cid, data) in creader:
-        if cid == Chunks.Object.MESHES:
+        if cid == Chunks.Object.VERSION:
+            reader = PackedReader(data)
+            ver = reader.getf('H')[0]
+            if ver != 0x10:
+                raise AppError('unsupported OBJECT format version', log.props(version=ver))
+        elif cid == Chunks.Object.MESHES:
             meshes_data = data
         elif (cid == Chunks.Object.SURFACES) or (cid == Chunks.Object.SURFACES1) or \
             (cid == Chunks.Object.SURFACES2):
             reader = PackedReader(data)
             surfaces_count = reader.int()
             if cid == Chunks.Object.SURFACES:
-                xrlc_reader = PackedReader(creader.next(Chunks.Object.SURFACES_XRLC))
-                xrlc_shaders = [xrlc_reader.gets() for _ in range(surfaces_count)]
+                try:
+                    xrlc_reader = PackedReader(creader.next(Chunks.Object.SURFACES_XRLC))
+                    xrlc_shaders = [xrlc_reader.gets() for _ in range(surfaces_count)]
+                except:
+                    xrlc_shaders = ['default' for _ in range(surfaces_count)]
             for surface_index in range(surfaces_count):
                 if cid == Chunks.Object.SURFACES:
                     name = reader.gets()
@@ -553,7 +564,12 @@ def _import_main(fpath, context, creader):
                     reader.skip(4 + 4)    # fvf and TCs count
                     texture = reader.gets()
                     vmap = reader.gets()
-                    renamemap[vmap.lower()] = vmap
+                    if texture != vmap:
+                        old_object_format = False
+                        renamemap[vmap.lower()] = vmap
+                    else:    # old format (Objects\Rainbow\lest.object)
+                        old_object_format = True
+                        vmap = 'UVMap'
                     gamemtl = 'default'
                     cshader = xrlc_shaders[surface_index]
                 else:
@@ -737,7 +753,11 @@ def _import_main(fpath, context, creader):
             bpy_obj.matrix_basis *= mathutils.Matrix.Translation(pos) \
                 * mathutils.Euler(rot, 'YXZ').to_matrix().to_4x4()
         elif cid == Chunks.Object.FLAGS:
-            bpy_obj.xray.flags = PackedReader(data).int()
+            length_data = len(data)
+            if length_data == 4:
+                bpy_obj.xray.flags = PackedReader(data).int()
+            elif length_data == 1:    # old object format
+                bpy_obj.xray.flags = PackedReader(data).getf('B')[0]
         elif cid == Chunks.Object.USERDATA:
             bpy_obj.xray.userdata = \
                 PackedReader(data).gets(onerror=lambda e: log.warn('bad userdata', error=e))
