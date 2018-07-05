@@ -737,7 +737,11 @@ def _import_main(fpath, context, creader):
             bpy_obj.matrix_basis *= mathutils.Matrix.Translation(pos) \
                 * mathutils.Euler(rot, 'YXZ').to_matrix().to_4x4()
         elif cid == Chunks.Object.FLAGS:
-            bpy_obj.xray.flags = PackedReader(data).int()
+            length_data = len(data)
+            if length_data == 4:
+                bpy_obj.xray.flags = PackedReader(data).int()
+            elif length_data == 1:    # old object format
+                bpy_obj.xray.flags = PackedReader(data).getf('B')[0]
         elif cid == Chunks.Object.USERDATA:
             bpy_obj.xray.userdata = \
                 PackedReader(data).gets(onerror=lambda e: log.warn('bad userdata', error=e))
