@@ -553,7 +553,12 @@ def _import_main(fpath, context, creader):
                     reader.skip(4 + 4)    # fvf and TCs count
                     texture = reader.gets()
                     vmap = reader.gets()
-                    renamemap[vmap.lower()] = vmap
+                    if texture != vmap:
+                        old_object_format = False
+                        renamemap[vmap.lower()] = vmap
+                    else:    # old format (Objects\Rainbow\lest.object)
+                        old_object_format = True
+                        vmap = 'UVMap'
                     gamemtl = 'default'
                     cshader = xrlc_shaders[surface_index]
                 else:
