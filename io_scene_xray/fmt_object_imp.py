@@ -140,13 +140,14 @@ def _import_mesh(context, creader, renamemap):
 
             reader = PackedReader(data)
             vm_refs = [read_vmref(reader) for _ in range(reader.int())]
-        elif cid == Chunks.Mesh.VMAPS2:
+        elif cid == Chunks.Mesh.VMAPS1 or cid == Chunks.Mesh.VMAPS2:
             suppress_rename_warnings = {}
             reader = PackedReader(data)
             for _ in range(reader.int()):
                 name = reader.gets()
                 reader.skip(1)  # dim
-                discon = reader.byte() != 0
+                if cid == Chunks.Mesh.VMAPS2:
+                    discon = reader.byte() != 0
                 typ = reader.byte() & 0x3
                 size = reader.int()
                 if typ == 0:
@@ -161,9 +162,10 @@ def _import_mesh(context, creader, renamemap):
                         bml = bmsh.loops.layers.uv.new(name)
                         bml_texture = bmsh.faces.layers.tex.new(name)
                     uvs = reader.getb(size * 8).cast('f')
-                    reader.skip(size * 4)
-                    if discon:
+                    if cid == Chunks.Mesh.VMAPS2:
                         reader.skip(size * 4)
+                        if discon:
+                            reader.skip(size * 4)
                     vmaps.append((typ, bml, uvs))
                 elif typ == 1:  # weights
                     name = renamemap.get(name, name)
@@ -179,9 +181,10 @@ def _import_mesh(context, creader, renamemap):
                             wgs[i] = _MIN_WEIGHT
                     if bad:
                         log.warn('weight VMap has values that are close to zero', vmap=name)
-                    reader.skip(size * 4)
-                    if discon:
+                    if cid == Chunks.Mesh.VMAPS2:
                         reader.skip(size * 4)
+                        if discon:
+                            reader.skip(size * 4)
                     vmaps.append((typ, vgi, wgs))
                 else:
                     raise AppError('unknown vmap type', log.props(type=typ))
@@ -193,6 +196,8 @@ def _import_mesh(context, creader, renamemap):
             pass  # blender automatically calculates bbox
         elif cid == Chunks.Mesh.OPTIONS:
             mesh_options = PackedReader(data).getf('II')
+        elif cid == Chunks.Mesh.NOT_USED_0:
+            pass  # not used chunk
         else:
             log.debug('unknown chunk', cid=cid)
 
@@ -533,18 +538,34 @@ def _import_main(fpath, context, creader):
     for (cid, data) in creader:
         if cid == Chunks.Object.MESHES:
             meshes_data = data
-        elif (cid == Chunks.Object.SURFACES1) or (cid == Chunks.Object.SURFACES2):
+        elif (cid == Chunks.Object.SURFACES) or (cid == Chunks.Object.SURFACES1) or \
+            (cid == Chunks.Object.SURFACES2):
             reader = PackedReader(data)
-            for _ in range(reader.int()):
-                name = reader.gets()
-                eshader = reader.gets()
-                cshader = reader.gets()
-                gamemtl = reader.gets() if cid == Chunks.Object.SURFACES2 else 'default'
-                texture = reader.gets()
-                vmap = reader.gets()
-                renamemap[vmap.lower()] = vmap
-                flags = reader.int()
-                reader.skip(4 + 4)    # fvf and ?
+            surfaces_count = reader.int()
+            if cid == Chunks.Object.SURFACES:
+                xrlc_reader = PackedReader(creader.next(Chunks.Object.SURFACES_XRLC))
+                xrlc_shaders = [xrlc_reader.gets() for _ in range(surfaces_count)]
+            for surface_index in range(surfaces_count):
+                if cid == Chunks.Object.SURFACES:
+                    name = reader.gets()
+                    eshader = reader.gets()
+                    flags = reader.getf('B')[0]
+                    reader.skip(4 + 4)    # fvf and TCs count
+                    texture = reader.gets()
+                    vmap = reader.gets()
+                    renamemap[vmap.lower()] = vmap
+                    gamemtl = 'default'
+                    cshader = xrlc_shaders[surface_index]
+                else:
+                    name = reader.gets()
+                    eshader = reader.gets()
+                    cshader = reader.gets()
+                    gamemtl = reader.gets() if cid == Chunks.Object.SURFACES2 else 'default'
+                    texture = reader.gets()
+                    vmap = reader.gets()
+                    renamemap[vmap.lower()] = vmap
+                    flags = reader.int()
+                    reader.skip(4 + 4)    # fvf and ?
                 bpy_material = None
                 tx_filepart = texture.replace('\\', os.path.sep).lower()
                 for material in bpy.data.materials:
@@ -604,6 +625,11 @@ def _import_main(fpath, context, creader):
                         bpy_texture_slot.use_map_alpha = True
                 context.loaded_materials[name] = bpy_material
         elif (cid == Chunks.Object.BONES) or (cid == Chunks.Object.BONES1):
+            if cid == Chunks.Object.BONES:
+                reader = PackedReader(data)
+                bones_count = reader.int()
+                if not bones_count:
+                    continue    # Do not create an armature if zero bones
             if bpy and (bpy_arm_obj is None):
                 bpy_armature = bpy.data.armatures.new(object_name)
                 bpy_armature.use_auto_ik = True
@@ -613,8 +639,7 @@ def _import_main(fpath, context, creader):
                 bpy.context.scene.objects.link(bpy_arm_obj)
                 bpy.context.scene.objects.active = bpy_arm_obj
             if cid == Chunks.Object.BONES:
-                reader = PackedReader(data)
-                for _ in range(reader.int()):
+                for _ in range(bones_count):
                     name, parent, vmap = reader.gets(), reader.gets(), reader.gets()
                     offset, rotate, length = read_v3f(reader), read_v3f(reader), reader.getf('f')[0]
                     rotate = rotate[2], rotate[1], rotate[0]

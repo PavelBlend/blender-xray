@@ -30,6 +30,8 @@ def dump_mesh(cr, out, opts):
             out('bbox:', pr.getf('fff'), '-', pr.getf('fff'))
         elif cid == Chunks.Mesh.FLAGS:
             out('flags:', pr.getf('B')[0])
+        elif cid == Chunks.Mesh.NOT_USED_0:
+            out('not used:', pr.getf('B')[0])
         elif cid == Chunks.Mesh.OPTIONS:
             out('options:', pr.getf('II'))
         elif cid == Chunks.Mesh.VERTS:
@@ -89,14 +91,15 @@ def dump_mesh(cr, out, opts):
                 out('  uvs:', [pr.getf('ff') for __ in range(sz)])
                 out('  vtx:', [pr.getf('I')[0] for __ in range(sz)])
             out('}]')
-        elif cid == Chunks.Mesh.VMAPS2:
-            out('vmaps2: [{')
+        elif cid == Chunks.Mesh.VMAPS1 or cid == Chunks.Mesh.VMAPS2:
+            out('vmaps{}'.format(cid - Chunks.Mesh.VMAPS1 + 1) + ': [{')
             for _ in range(pr.getf('I')[0]):
                 if _: out('}, {')
                 out('  name:', pr.gets())
                 out('  dim:', pr.getf('B')[0] & 0x3)
-                dsc = pr.getf('B')[0] & 0x1
-                out('  dsc:', dsc)
+                if cid == Chunks.Mesh.VMAPS2:
+                    dsc = pr.getf('B')[0] & 0x1
+                    out('  dsc:', dsc)
                 typ = pr.getf('B')[0] & 0x3  # enum {VMT_UV,VMT_WEIGHT}
                 out('  type:', typ)
                 sz = pr.getf('I')[0]
@@ -105,17 +108,19 @@ def dump_mesh(cr, out, opts):
                         out('  uvs-hash:', calc_hash(pr.getb(sz * 2 * 4)))
                     elif typ == 1:
                         out('  wgh-hash:', calc_hash(pr.getb(sz * 4)))
-                    out('  vtx-hash:', calc_hash(pr.getb(sz * 4)))
-                    if dsc != 0:
-                        out('  fcs-hash:', calc_hash(pr.getb(sz * 4)))
-                    continue
+                    if cid == Chunks.Mesh.VMAPS2:
+                        out('  vtx-hash:', calc_hash(pr.getb(sz * 4)))
+                        if dsc != 0:
+                            out('  fcs-hash:', calc_hash(pr.getb(sz * 4)))
+                        continue
                 if typ == 0:
                     out('  uvs:', [pr.getf('ff') for __ in range(sz)])
                 elif typ == 1:
                     out('  wgh:', [pr.getf('f')[0] for __ in range(sz)])
-                out('  vtx:', [pr.getf('I')[0] for __ in range(sz)])
-                if dsc != 0:
-                    out('  fcs:', [pr.getf('I')[0] for __ in range(sz)])
+                if cid == Chunks.Mesh.VMAPS2:
+                    out('  vtx:', [pr.getf('I')[0] for __ in range(sz)])
+                    if dsc != 0:
+                        out('  fcs:', [pr.getf('I')[0] for __ in range(sz)])
             out('}]')
         else:
             out('UNKNOWN MESH CHUNK: {:#x}'.format(cid))
@@ -262,6 +267,26 @@ def dump_object(cr, out, opts):
             for (_, d) in ChunkedReader(data):
                 if _: out('}, {')
                 dump_mesh(ChunkedReader(d), oout, opts)
+            out('}]')
+        elif cid == Chunks.Object.SURFACES:
+            out('surfaces: [{')
+            surfaces_count = pr.getf('I')[0]
+            for _ in range(surfaces_count):
+                if _: out('}, {')
+                out('  name:', pr.gets())
+                out('  eshader:', pr.gets())
+                out('  flags:', pr.getf('B')[0])
+                fvf = pr.getf('I')[0]
+                out('  fvf:', 'default' if fvf == 0x112 else fvf)
+                out('  tcs count:', pr.getf('I')[0])
+                out('  texture:', pr.gets())
+                out('  vmap:', pr.gets())
+            out('}]')
+        elif cid == Chunks.Object.SURFACES_XRLC:
+            out('surfaces xrlc: [{')
+            for _ in range(surfaces_count):
+                if _: out('}, {')
+                out('  cshader:', pr.gets())
             out('}]')
         elif (cid == Chunks.Object.SURFACES1) or (cid == Chunks.Object.SURFACES2):
             out('surfaces{}'.format(cid - Chunks.Object.SURFACES1 + 1) + ': [{')
