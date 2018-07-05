@@ -363,6 +363,19 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         if obj_arm.hide or not obj_arm.data.xray.display_bone_shapes or not bone.xray.exportable:
             return
 
+        if not obj_arm.name in bpy.context.scene.objects:
+            return
+
+        visible_armature_object = False
+        for layer_index, layer in enumerate(obj_arm.layers):
+            scene_layer = bpy.context.scene.layers[layer_index]
+            if scene_layer and layer:
+                visible_armature_object = True
+                break
+
+        if not visible_armature_object:
+            return
+
         from .gl_utils import matrix_to_buffer, \
             draw_wire_cube, draw_wire_sphere, draw_wire_cylinder, draw_cross
 
