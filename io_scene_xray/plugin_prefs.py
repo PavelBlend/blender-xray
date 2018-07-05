@@ -103,6 +103,11 @@ def _auto_path(obj, self_name, path_suffix, checker):
     return ''
 
 
+def update_menu_func(self, context):
+    from . import plugin
+    plugin.append_menu_func()
+
+
 @registry.module_thing
 class _ExplicitPathOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.explicit_path'
@@ -165,6 +170,9 @@ class PluginPreferences(bpy.types.AddonPreferences):
     expert_mode = bpy.props.BoolProperty(
         name='Expert Mode', description='Show additional properties/controls'
     )
+    compact_menus = bpy.props.BoolProperty(
+        name='Compact Import/Export Menus', update=update_menu_func
+    )
     sdk_version = PropSDKVersion()
     object_motions_import = PropObjectMotionsImport()
     object_motions_export = PropObjectMotionsExport()
@@ -219,3 +227,4 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 prop_bool(box_n, self, 'anm_create_camera')
 
         prop_bool(layout, self, 'expert_mode')
+        prop_bool(layout, self, 'compact_menus')

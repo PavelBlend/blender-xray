@@ -31,8 +31,8 @@ def menu_func_import(self, _context):
 
 
 def register():
-    bpy.types.INFO_MT_file_import.append(menu_func_import)
+    pass
 
 
 def unregister():
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    pass
