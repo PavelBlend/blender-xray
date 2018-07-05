@@ -94,6 +94,7 @@ def _import_mesh(context, creader, renamemap):
     vgroups = []
     bml_deform = bmsh.verts.layers.deform.verify()
     bml_texture = None
+    has_sg_chunk = False
     for (cid, data) in creader:
         if cid == Chunks.Mesh.VERTS:
             reader = PackedReader(data)
@@ -107,6 +108,7 @@ def _import_mesh(context, creader, renamemap):
             mesh_name = PackedReader(data).gets()
             log.update(name=mesh_name)
         elif cid == Chunks.Mesh.SG:
+            has_sg_chunk = True
             sgroups = data.cast('I')
 
             def face_sg_impl(bmf, fidx, edict):
@@ -376,6 +378,10 @@ def _import_mesh(context, creader, renamemap):
                 PropObjectMeshSplitByMaterials()[1].get('name')
             )
         log.warn(msg)
+
+    if not has_sg_chunk:    # old object format
+        for face in bmsh.faces:
+            face.smooth = True
 
     bmsh.normal_update()
     bmsh.to_mesh(bm_data)
