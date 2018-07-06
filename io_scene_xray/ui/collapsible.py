@@ -24,8 +24,10 @@ def draw(layout, key, text=None, enabled=None, icon=None, style=None):
     col = layout.column(align=True)
     row = col.row(align=True)
     if (enabled is not None) and (not enabled):
-        row = row.row(align=True)
-        row.enabled = False
+        row_operator = row.row(align=True)
+        row_operator.enabled = False
+    else:
+        row_operator = row
     isshow = _CollapsOp.get(key)
     if icon is None:
         icon = 'TRIA_DOWN' if isshow else 'TRIA_RIGHT'
@@ -38,14 +40,14 @@ def draw(layout, key, text=None, enabled=None, icon=None, style=None):
         if style != 'nobox':
             box = box.box()
     if style == 'tree':
-        row = row.row()
         row.alignment = 'LEFT'
+        row = row_operator.row()
         if box:
             bxr = box.row(align=True)
             bxr.alignment = 'LEFT'
             bxr.label('')
             box = bxr.column()
-    oper = row.operator(_CollapsOp.bl_idname, icon=icon, emboss=style != 'tree', **kwargs)
+    oper = row_operator.operator(_CollapsOp.bl_idname, icon=icon, emboss=style != 'tree', **kwargs)
     oper.key = key
     return row, box
 
