@@ -108,6 +108,8 @@ def _import_mesh(context, creader, renamemap):
             mesh_name = PackedReader(data).gets()
             log.update(name=mesh_name)
         elif cid == Chunks.Mesh.SG:
+            if not data:    # old object format
+                continue
             has_sg_chunk = True
             sgroups = data.cast('I')
 
