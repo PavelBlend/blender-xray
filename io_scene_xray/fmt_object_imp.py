@@ -149,6 +149,8 @@ def _import_mesh(context, creader, renamemap):
             reader = PackedReader(data)
             for _ in range(reader.int()):
                 name = reader.gets()
+                if not name:
+                    name = 'Texture'
                 reader.skip(1)  # dim
                 if cid == Chunks.Mesh.VMAPS2:
                     discon = reader.byte() != 0
@@ -571,7 +573,7 @@ def _import_main(fpath, context, creader):
                         renamemap[vmap.lower()] = vmap
                     else:    # old format (Objects\Rainbow\lest.object)
                         old_object_format = True
-                        vmap = 'UVMap'
+                        vmap = 'Texture'
                     gamemtl = 'default'
                     cshader = xrlc_shaders[surface_index]
                 else:
@@ -581,6 +583,12 @@ def _import_main(fpath, context, creader):
                     gamemtl = reader.gets() if cid == Chunks.Object.SURFACES2 else 'default'
                     texture = reader.gets()
                     vmap = reader.gets()
+                    if texture != vmap:
+                        old_object_format = False
+                        renamemap[vmap.lower()] = vmap
+                    else:    # old format (Objects\corps\corp_BYAKA.object)
+                        old_object_format = True
+                        vmap = 'Texture'
                     renamemap[vmap.lower()] = vmap
                     flags = reader.int()
                     reader.skip(4 + 4)    # fvf and ?
