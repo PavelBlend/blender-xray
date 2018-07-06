@@ -568,7 +568,7 @@ def _import_main(fpath, context, creader):
                     reader.skip(4 + 4)    # fvf and TCs count
                     texture = reader.gets()
                     vmap = reader.gets()
-                    if texture != vmap:
+                    if texture != vmap or not (texture and vmap):
                         old_object_format = False
                         renamemap[vmap.lower()] = vmap
                     else:    # old format (Objects\Rainbow\lest.object)
@@ -583,7 +583,7 @@ def _import_main(fpath, context, creader):
                     gamemtl = reader.gets() if cid == Chunks.Object.SURFACES2 else 'default'
                     texture = reader.gets()
                     vmap = reader.gets()
-                    if texture != vmap:
+                    if texture != vmap or not (texture and vmap):
                         old_object_format = False
                         renamemap[vmap.lower()] = vmap
                     else:    # old format (Objects\corps\corp_BYAKA.object)
