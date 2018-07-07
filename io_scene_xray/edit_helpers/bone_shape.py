@@ -87,7 +87,9 @@ def _v2ms(vector):
 
 def _bone_matrix(bone):
     xsh = bone.xray.shape
-    mat = bone.matrix_local * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+    global pose_bone
+    pose_bone = bpy.context.object.pose.bones[bone.name]
+    mat = pose_bone.matrix * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
     if xsh.type == '1':  # box
         rot = xsh.box_rot
         mat *= mathutils.Matrix.Translation(xsh.box_trn)
@@ -122,7 +124,7 @@ class _ApplyShape(bpy.types.Operator):
 
         hobj, bone = HELPER.get_target()
         xsh = bone.xray.shape
-        mat = (bone.matrix_local * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))).inverted() \
+        mat = (pose_bone.matrix * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))).inverted() \
             * hobj.matrix_local
         if xsh.type == '1':  # box
             xsh.box_trn = mat.to_translation().to_tuple()

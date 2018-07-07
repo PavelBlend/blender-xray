@@ -26,7 +26,9 @@ class _BoneCenterEditHelper(AbstractBoneEditHelper):
         super()._update_helper(helper, target)
         bone = target
 
-        mat = bone.matrix_local * MATRIX_BONE_INVERTED
+        global pose_bone
+        pose_bone = bpy.context.object.pose.bones[bone.name]
+        mat = pose_bone.matrix * MATRIX_BONE_INVERTED
         mat *= mathutils.Matrix.Translation(bone.xray.mass.center)
         helper.location = mat.to_translation()
 
@@ -63,7 +65,7 @@ class _AlignCenter(bpy.types.Operator):
     def execute(self, _context):
         helper, bone = HELPER.get_target()
         shape = bone.xray.shape
-        mat = bone.matrix_local * MATRIX_BONE_INVERTED
+        mat = pose_bone.matrix * MATRIX_BONE_INVERTED
         pos = None
         if shape.type == '1':
             pos = shape.box_trn
@@ -84,7 +86,7 @@ class _ApplyCenter(bpy.types.Operator):
 
     def execute(self, _context):
         helper, bone = HELPER.get_target()
-        mat = MATRIX_BONE * bone.matrix_local.inverted() * helper.matrix_local
+        mat = MATRIX_BONE * pose_bone.matrix.inverted() * helper.matrix_local
         bone.xray.mass.center = mat.to_translation()
         HELPER.deactivate()
         bpy.context.scene.update()
