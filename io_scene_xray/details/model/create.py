@@ -205,15 +205,18 @@ def create_mesh(packed_reader, det_model):
     b_mesh.verts.ensure_lookup_table()
 
     # create triangles
+    bmesh_faces = []
     for triangle in triangles:
         try:
-            b_mesh.faces.new((
+            bmesh_face = b_mesh.faces.new((
                 b_mesh.verts[triangle[0]],
                 b_mesh.verts[triangle[1]],
                 b_mesh.verts[triangle[2]]
-            )).smooth = True
+            ))
+            bmesh_face.smooth = True
+            bmesh_faces.append(bmesh_face)
         except ValueError:
-            pass
+            bmesh_faces.append(None)
     b_mesh.faces.ensure_lookup_table()
 
     # create uvs
@@ -221,18 +224,24 @@ def create_mesh(packed_reader, det_model):
 
     if det_model.mode == 'DM':
         uv_index = 0
-        for face in b_mesh.faces:
-            for loop in face.loops:
-                loop[uv_layer].uv = uvs[uv_index]
-                uv_index += 1
+        for face in bmesh_faces:
+            if face:
+                for loop in face.loops:
+                    loop[uv_layer].uv = uvs[uv_index]
+                    uv_index += 1
+            else:
+                uv_index += 3    # skip 3 loop
 
     elif det_model.mode == 'DETAILS':
         uv_index = 0
-        for face in b_mesh.faces:
-            for loop in face.loops:
-                uv = uvs[uv_index]
-                loop[uv_layer].uv = uv[0], 1 - uv[1]
-                uv_index += 1
+        for face in bmesh_faces:
+            if face:
+                for loop in face.loops:
+                    uv = uvs[uv_index]
+                    loop[uv_layer].uv = uv[0], 1 - uv[1]
+                    uv_index += 1
+            else:
+                uv_index += 3    # skip 3 loop
 
     else:
         raise Exception(
