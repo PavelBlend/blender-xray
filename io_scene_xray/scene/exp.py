@@ -22,6 +22,8 @@ def write_object_body(chunked_writer, bpy_obj):
         if bpy_obj.xray.export_path[-1] != '\\':
             bpy_obj.xray.export_path += '\\'
     object_name = bpy_obj.xray.export_path + bpy_obj.name
+    if object_name.endswith('.object'):
+        object_name = object_name[0 : -len('.object')]
 
     packed_reader = xray_io.PackedWriter()
     packed_reader.puts(object_name)
@@ -70,8 +72,11 @@ def write_scene_object(bpy_obj, objects_chunked_writer, object_index):
 
 def write_scene_objects(chunked_writer, bpy_objs):
     objects_chunked_writer = xray_io.ChunkedWriter()
+    export_object_index = 0
     for object_index, bpy_obj in enumerate(bpy_objs):
-        write_scene_object(bpy_obj, objects_chunked_writer, object_index)
+        if bpy_obj.xray.isroot:
+            write_scene_object(bpy_obj, objects_chunked_writer, export_object_index)
+            export_object_index += 1
     chunked_writer.put(fmt.Chunks.SCENE_OBJECTS_CHUNK, objects_chunked_writer)
 
 
