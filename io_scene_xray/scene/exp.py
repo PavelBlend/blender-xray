@@ -1,5 +1,6 @@
 
 import io
+import string
 
 from .. import xray_io
 from . import fmt
@@ -47,6 +48,11 @@ def write_object_body(chunked_writer, bpy_obj):
     body_chunked_writer.put(fmt.Chunks.SCENEOBJ_CHUNK_VERSION, packed_reader)
 
     packed_reader = xray_io.PackedWriter()
+    if object_name[-4] == '.':
+        if object_name[-1] in string.digits and \
+           object_name[-2] in string.digits and \
+           object_name[-3] in string.digits:
+            object_name = object_name[0 : -4]
     packed_reader.puts(object_name)
     body_chunked_writer.put(fmt.Chunks.SCENEOBJ_CHUNK_REFERENCE, packed_reader)
 
