@@ -50,6 +50,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
     @execute_with_logger
     def execute(self, _context):
         textures_folder = plugin_prefs.get_preferences().textures_folder_auto
+        objects_folder = plugin_prefs.get_preferences().objects_folder
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
         if not self.files:
@@ -58,6 +59,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
         from .fmt_object_imp import import_file, ImportContext
         import_context = ImportContext(
             textures=textures_folder,
+            objects=objects_folder,
             soc_sgroups=self.fmt_version == 'soc',
             import_motions=self.import_motions,
             split_by_materials=self.mesh_split_by_materials,
