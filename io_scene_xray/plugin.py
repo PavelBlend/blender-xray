@@ -13,6 +13,7 @@ from . import plugin_prefs
 from . import registry
 from . import details
 from . import err
+from . import scene
 
 
 def execute_with_logger(method):
@@ -763,6 +764,7 @@ def append_menu_func():
         bpy.types.INFO_MT_file_import.append(details.operators.menu_func_import)
         bpy.types.INFO_MT_file_export.append(details.operators.menu_func_export)
         bpy.types.INFO_MT_file_import.append(err.operators.menu_func_import)
+        bpy.types.INFO_MT_file_export.append(scene.operators.menu_func_export)
 
 
 registry.module_requires(__name__, [
@@ -772,6 +774,7 @@ registry.module_requires(__name__, [
 
 
 def register():
+    scene.operators.register_operators()
     details.operators.register_operators()
     registry.register_thing(err.operators, __name__)
     append_menu_func()
@@ -786,6 +789,7 @@ def register():
 def unregister():
     registry.unregister_thing(err.operators, __name__)
     details.operators.unregister_operators()
+    scene.operators.unregister_operators()
     bpy.app.handlers.scene_update_post.remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
