@@ -59,11 +59,11 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
         from .fmt_object_imp import import_file, ImportContext
         import_context = ImportContext(
             textures=textures_folder,
-            objects=objects_folder,
             soc_sgroups=self.fmt_version == 'soc',
             import_motions=self.import_motions,
             split_by_materials=self.mesh_split_by_materials,
             operator=self,
+            objects=objects_folder
         )
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()

@@ -15,7 +15,7 @@ from . import log
 
 
 class ImportContext:
-    def __init__(self, textures, objects, soc_sgroups, import_motions, split_by_materials, operator):
+    def __init__(self, textures, soc_sgroups, import_motions, split_by_materials, operator, objects=''):
         self.version = plugin_version_number()
         self.textures_folder = textures
         self.objects_folder = objects
