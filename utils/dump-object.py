@@ -227,7 +227,7 @@ def dump_motion(pr, out):
         out('marks: [{')
         for _1 in range(pr.getf('I')[0]):
             if _1: out('}, {')
-            out('  name:', pr.gets())
+            out('  name:', pr.gets_a())
             out('  intervals:', [pr.getf('ff') for _2 in range(pr.getf('I')[0])])
         out('}]')
     return True

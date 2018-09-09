@@ -18,6 +18,13 @@ class FastBytes:
         return offs + 1
 
     @staticmethod
+    def skip_str_at_a(data, offs):
+        dlen = len(data)
+        while (offs < dlen) and (data[offs] != 0xa):
+            offs += 1
+        return offs + 1
+
+    @staticmethod
     def str_at(data, offs):
         new_offs = FastBytes.skip_str_at(data, offs)
         return data[offs:new_offs - 1].decode('cp1251'), new_offs
@@ -64,6 +71,18 @@ class PackedReader:
     def gets(self, onerror=None):
         data, offs = self.__data, self.__offs
         new_offs = self.__offs = FastBytes.skip_str_at(data, offs)
+        bts = data[offs:new_offs - 1]
+        try:
+            return str(bts, 'cp1251')
+        except UnicodeError as error:
+            if onerror is None:
+                raise
+            onerror(error)
+            return str(bts, 'cp1251', errors='replace')
+
+    def gets_a(self, onerror=None):
+        data, offs = self.__data, self.__offs
+        new_offs = self.__offs = FastBytes.skip_str_at_a(data, offs)
         bts = data[offs:new_offs - 1]
         try:
             return str(bts, 'cp1251')
