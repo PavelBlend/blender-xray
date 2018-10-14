@@ -15,9 +15,10 @@ from . import log
 
 
 class ImportContext:
-    def __init__(self, textures, soc_sgroups, import_motions, split_by_materials, operator):
+    def __init__(self, textures, soc_sgroups, import_motions, split_by_materials, operator, objects=''):
         self.version = plugin_version_number()
         self.textures_folder = textures
+        self.objects_folder = objects
         self.soc_sgroups = soc_sgroups
         self.import_motions = import_motions
         self.split_by_materials = split_by_materials
@@ -755,6 +756,10 @@ def _import_main(fpath, context, creader):
 
     bpy_obj.xray.version = context.version
     bpy_obj.xray.isroot = True
+    if fpath.lower().startswith(context.objects_folder.lower()) and context.objects_folder:
+        object_folder_length = len(context.objects_folder)
+        bpy_obj.xray.export_path = os.path.dirname(fpath.lower())[object_folder_length : ]
+
     for (cid, data) in unread_chunks:
         if cid == Chunks.Object.TRANSFORM:
             reader = PackedReader(data)

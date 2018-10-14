@@ -181,6 +181,13 @@ class PluginPreferences(bpy.types.AddonPreferences):
     object_bones_custom_shapes = PropObjectBonesCustomShapes()
     anm_create_camera = PropAnmCameraAnimation()
 
+    objects_folder = bpy.props.StringProperty(
+        name='Objects Folder',
+        default='',
+        description='Path to the \'rawdata/objects\' directory',
+        subtype='DIR_PATH'
+    )
+
     def draw(self, _context):
         def prop_bool(layout, data, prop):
             # row = layout.row()
@@ -207,6 +214,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
         prop_auto(layout, self, 'gamemtl_file')
         prop_auto(layout, self, 'eshader_file')
         prop_auto(layout, self, 'cshader_file')
+        layout.prop(self, 'objects_folder')
 
         _, box = collapsible.draw(layout, 'plugin_prefs:defaults', 'Defaults', style='tree')
         if box:

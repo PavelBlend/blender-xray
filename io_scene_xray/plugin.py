@@ -13,6 +13,7 @@ from . import plugin_prefs
 from . import registry
 from . import details
 from . import err
+from . import scene
 
 
 def execute_with_logger(method):
@@ -49,6 +50,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
     @execute_with_logger
     def execute(self, _context):
         textures_folder = plugin_prefs.get_preferences().textures_folder_auto
+        objects_folder = plugin_prefs.get_preferences().objects_folder
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
         if not self.files:
@@ -61,6 +63,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
             import_motions=self.import_motions,
             split_by_materials=self.mesh_split_by_materials,
             operator=self,
+            objects=objects_folder
         )
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
@@ -763,6 +766,7 @@ def append_menu_func():
         bpy.types.INFO_MT_file_import.append(details.operators.menu_func_import)
         bpy.types.INFO_MT_file_export.append(details.operators.menu_func_export)
         bpy.types.INFO_MT_file_import.append(err.operators.menu_func_import)
+        bpy.types.INFO_MT_file_export.append(scene.operators.menu_func_export)
 
 
 registry.module_requires(__name__, [
@@ -772,6 +776,7 @@ registry.module_requires(__name__, [
 
 
 def register():
+    scene.operators.register_operators()
     details.operators.register_operators()
     registry.register_thing(err.operators, __name__)
     append_menu_func()
@@ -786,6 +791,7 @@ def register():
 def unregister():
     registry.unregister_thing(err.operators, __name__)
     details.operators.unregister_operators()
+    scene.operators.unregister_operators()
     bpy.app.handlers.scene_update_post.remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
