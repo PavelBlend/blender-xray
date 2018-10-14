@@ -109,7 +109,7 @@ def import_motion(reader, bpy_armature, bonesmap, reported, motions_filter=MOTIO
                 act.fcurves.remove(fcurve)
     if ver >= 7:
         for _bone_idx in range(reader.getf('I')[0]):
-            name = reader.gets()
+            name = reader.gets_a()
             reader.skip((4 + 4) * reader.getf('I')[0])
             warn('markers are not supported yet', name=name)
     return act
@@ -150,7 +150,7 @@ def _skip_motion_rest(data, offs):
     if ver >= 7:
         ptr += 4
         for _bone_idx in range(fb.int_at(data, ptr - 4)):
-            ptr = fb.skip_str_at(data, ptr) + 4
+            ptr = fb.skip_str_at_a(data, ptr) + 4
             ptr += (4 + 4) * fb.int_at(data, ptr - 4)
 
     return ptr
