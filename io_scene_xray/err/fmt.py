@@ -3,3 +3,6 @@ class Chunks:
     TJUNCTION = 0x0
     MULTIEDGE = 0x1
     INVALID = 0x2
+    TJUNCTION_EXPORT = 0xa
+    MULTIEDGE_EXPORT = 0xb
+    INVALID_EXPORT = 0xc
