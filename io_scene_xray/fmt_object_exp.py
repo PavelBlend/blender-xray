@@ -156,16 +156,23 @@ def _export_mesh(bpy_obj, bpy_root, cw, context):
 
     writer = PackedWriter()
     sfaces = {
-        m.name: [fidx for fidx, face in enumerate(bm.faces) if face.material_index == mi]
+        m.name if m else None: [fidx for fidx, face in enumerate(bm.faces) if face.material_index == mi]
         for mi, m in enumerate(bpy_obj.data.materials)
     }
+
+    used_material_names = set()
+    for material_name, faces_indices in sfaces.items():
+        if faces_indices:
+            used_material_names.add(material_name)
+
     if not sfaces:
         raise AppError('mesh has no material')
-    writer.putf('H', len(sfaces))
+    writer.putf('H', len(used_material_names))
     for name, fidxs in sfaces.items():
-        writer.puts(name).putf('I', len(fidxs))
-        for fidx in fidxs:
-            writer.putf('I', fidx)
+        if name in used_material_names:
+            writer.puts(name).putf('I', len(fidxs))
+            for fidx in fidxs:
+                writer.putf('I', fidx)
     cw.put(Chunks.Mesh.SFACE, writer)
 
     writer = PackedWriter()
@@ -204,6 +211,7 @@ def _export_mesh(bpy_obj, bpy_root, cw, context):
             writer.putf('f', bm.verts[vidx][bml][vgi])
         writer.putf(str(len(vtx)) + 'I', *vtx)
     cw.put(Chunks.Mesh.VMAPS2, writer)
+    return used_material_names
 
 
 def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
@@ -292,13 +300,21 @@ def _export_main(bpy_obj, chunked_writer, context):
             return
         if bpy_obj.type == 'MESH':
             mesh_writer = ChunkedWriter()
-            _export_mesh(bpy_obj, bpy_root, mesh_writer, context)
+            used_material_names = _export_mesh(
+                bpy_obj,
+                bpy_root,
+                mesh_writer,
+                context
+            )
             mesh_writers.append(mesh_writer)
             for modifier in bpy_obj.modifiers:
                 if (modifier.type == 'ARMATURE') and modifier.object:
                     armatures.add(modifier.object)
-            for modifier in bpy_obj.data.materials:
-                materials.add(modifier)
+            for material in bpy_obj.data.materials:
+                if not material:
+                    continue
+                if material.name in used_material_names:
+                    materials.add(material)
         elif bpy_obj.type == 'ARMATURE':
             armatures.add(bpy_obj)
         for child in bpy_obj.children:
