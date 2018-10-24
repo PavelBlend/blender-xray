@@ -462,10 +462,7 @@ def _export_main(bpy_obj, chunked_writer, context):
 
 def _export(bpy_obj, chunked_writer, context):
     writer = ChunkedWriter()
-    import time
-    start_time = time.time()
     _export_main(bpy_obj, writer, context)
-    print(time.time() - start_time)
     chunked_writer.put(Chunks.Object.MAIN, writer)
 
 
