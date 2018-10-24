@@ -30,6 +30,52 @@ class _ListOp(bpy.types.Operator):
         return {'FINISHED'}
 
 
+@registry.module_thing
+class _ListAddElementOp(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.list_add_element'
+    bl_label = 'Add Motion'
+
+    def execute(self, context):
+        data = context.object.xray
+        collection_element = data.motions_collection.add()
+        collection_element.name = ''
+        return {'FINISHED'}
+
+
+@registry.module_thing
+class _ListRemoveElementOp(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.list_remove_element'
+    bl_label = ''
+
+    index = bpy.props.IntProperty()
+
+    def execute(self, context):
+        data = context.object.xray
+        data.motions_collection.remove(self.index)
+        return {'FINISHED'}
+
+
+@registry.module_thing
+class _ListMoveElementOp(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.list_move_element'
+    bl_label = ''
+
+    operation = bpy.props.StringProperty()
+    index = bpy.props.IntProperty()
+
+    def execute(self, context):
+        data = context.object.xray
+        collection = data.motions_collection
+        index = self.index
+
+        if self.operation == 'move_up':
+            collection.move(index, index - 1)
+        elif self.operation == 'move_down':
+            collection.move(index, index + 1)
+
+        return {'FINISHED'}
+
+
 def draw_list_ops(layout, dataptr, propname, active_propname):
     def operator(operation, icon, enabled=None):
         lay = layout

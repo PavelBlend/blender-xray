@@ -34,6 +34,9 @@ def import_motion(reader, bpy_armature, bonesmap, reported, motions_filter=MOTIO
     if ver < 6:
         raise AppError('unsupported motions version', log_props(version=ver))
 
+    motion = bpy_armature.xray.motions_collection.add()
+    motion.name = name
+
     xray.flags, xray.bonepart = reader.getf('<BH')
     xray.speed, xray.accrue, xray.falloff, xray.power = reader.getf('<ffff')
     for _bone_idx in range(reader.getf('H')[0]):

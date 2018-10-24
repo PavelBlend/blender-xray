@@ -381,7 +381,11 @@ def _export_main(bpy_obj, chunked_writer, context):
     some_arm = arm_list[0] if arm_list else None  # take care of static objects
 
     if some_arm and context.export_motions:
-        acts = bpy.data.actions
+        acts = [motion.name for motion in bpy_obj.xray.motions_collection]
+        acts = set(acts)
+        acts = list(acts)
+        acts.sort()
+        acts = [bpy.data.actions[name] for name in acts]
         writer = PackedWriter()
         export_motions(writer, acts, some_arm)
         if writer.data:
@@ -458,7 +462,10 @@ def _export_main(bpy_obj, chunked_writer, context):
 
 def _export(bpy_obj, chunked_writer, context):
     writer = ChunkedWriter()
+    import time
+    start_time = time.time()
     _export_main(bpy_obj, writer, context)
+    print(time.time() - start_time)
     chunked_writer.put(Chunks.Object.MAIN, writer)
 
 
