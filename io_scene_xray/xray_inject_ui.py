@@ -108,6 +108,36 @@ class XRayObjectPanel(XRayPanel):
             box = box.column(align=True)
             for line in data.userdata.splitlines():
                 box.label(line)
+
+        if data.motions:
+            split = layout.split()
+            split.alert = True
+            split.prop(data, 'motions')
+        _, box = collapsible.draw(
+            layout,
+            'object:motions',
+            'Motions (%d)' % len(data.motions_collection)
+        )
+        if box:
+            box.operator('io_scene_xray.list_add_element')
+            row = box.row()
+            col = row.column(align=True)
+            if len(data.motions_collection):
+                for motion_index, motion in enumerate(data.motions_collection):
+                    row = col.row(align=True)
+                    row.prop_search(motion, 'name', bpy.data, 'actions', text='')
+
+                    operator = row.operator('io_scene_xray.list_move_element', icon='TRIA_UP')
+                    operator.index = motion_index
+                    operator.operation = 'move_up'
+
+                    operator = row.operator('io_scene_xray.list_move_element', icon='TRIA_DOWN')
+                    operator.index = motion_index
+                    operator.operation = 'move_down'
+
+                    operator = row.operator('io_scene_xray.list_remove_element', icon='PANEL_CLOSE')
+                    operator.index = motion_index
+
         if data.motionrefs:
             split = layout.split()
             split.alert = True

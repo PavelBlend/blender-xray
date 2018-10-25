@@ -66,4 +66,7 @@ def _prepare_animation():
     pbone.location = (1, 2, 3)
     pbone.keyframe_insert('location', frame=5, group='bone')
 
+    motion = obj.xray.motions_collection.add()
+    motion.name = bpy.data.actions[0].name
+
     return obj

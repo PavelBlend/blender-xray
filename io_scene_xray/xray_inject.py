@@ -193,6 +193,14 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     motionrefs_collection = bpy.props.CollectionProperty(type=MotionRef)
     motionrefs_collection_index = bpy.props.IntProperty(options={'SKIP_SAVE'})
     show_motionsrefs = bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'})
+
+    motions = bpy.props.StringProperty(
+        description='!Legacy: use \'motions_collection\' instead'
+    )
+    motions_collection = bpy.props.CollectionProperty(type=MotionRef)
+    motions_collection_index = bpy.props.IntProperty(options={'SKIP_SAVE'})
+    show_motions = bpy.props.BoolProperty(description='View motions', options={'SKIP_SAVE'})
+
     helper_data = bpy.props.StringProperty()
     export_path = bpy.props.StringProperty(
         name='Export Path',
