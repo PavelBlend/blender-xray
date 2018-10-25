@@ -689,6 +689,7 @@ class XRayExportMenu(bpy.types.Menu):
             details.operators.OpExportLevelDetails.bl_idname,
             text='Level Details (.details)'
         )
+        layout.operator(scene.operators.OpExportLevelScene.bl_idname, text='Level Scene (.level)')
 
 
 def overlay_view_3d():
@@ -755,6 +756,7 @@ def append_menu_func():
         bpy.types.INFO_MT_file_import.remove(err.operators.menu_func_import)
         bpy.types.INFO_MT_file_import.remove(details.operators.menu_func_import)
         bpy.types.INFO_MT_file_export.remove(details.operators.menu_func_export)
+        bpy.types.INFO_MT_file_export.remove(scene.operators.menu_func_export)
         bpy.types.INFO_MT_file_import.prepend(menu_func_xray_import)
         bpy.types.INFO_MT_file_export.prepend(menu_func_xray_export)
     else:
