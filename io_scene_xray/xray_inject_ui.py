@@ -7,6 +7,7 @@ from .ops import fake_bones
 from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl, \
     is_helper_object
 from . import registry
+from . import details
 
 
 def _build_label(subtext=''):
@@ -63,7 +64,7 @@ class XRayPanel(bpy.types.Panel):
 @registry.requires(list_helper, PropClipOp)
 class XRayObjectPanel(XRayPanel):
     bl_context = 'object'
-    bl_label = _build_label('Object Root')
+    bl_label = _build_label('Object')
 
     @classmethod
     def poll(cls, context):
@@ -72,97 +73,102 @@ class XRayObjectPanel(XRayPanel):
             and not is_helper_object(context.active_object)
         )
 
-    def draw_header(self, context):
-        self.layout.prop(context.object.xray, 'isroot', text='')
-
     def draw(self, context):
         layout = self.layout
         data = context.object.xray
-        layout.enabled = data.isroot
-        if not data.flags_use_custom:
-            layout.prop(data, 'flags_simple', text='Type')
-        else:
-            row = layout.row(align=True)
-            row.prop(data, 'flags_simple', text='Type')
-            row.prop(data, 'flags_custom_type', text='')
-            col = layout.column(align=True)
-            row = col.row(align=True)
-            row.prop(data, 'flags_custom_progressive', text='Progressive', toggle=True)
-            row.prop(data, 'flags_custom_lod', text='LOD', toggle=True)
-            row.prop(data, 'flags_custom_hom', text='HOM', toggle=True)
-            row = col.row(align=True)
-            row.prop(data, 'flags_custom_musage', text='Multi Usage', toggle=True)
-            row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
-            row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
-        layout.prop(data, 'lodref')
-        layout.prop(data, 'export_path')
-        row, box = collapsible.draw(
-            layout,
-            'object:userdata',
-            'User Data',
-            enabled=data.userdata != '',
-            icon='VIEWZOOM'
-        )
-        PropClipOp.drawall(row, 'object.xray.userdata', data.userdata)
-        if box:
-            box = box.column(align=True)
-            for line in data.userdata.splitlines():
-                box.label(line)
+        layout.prop(data, 'isroot', text='Object', toggle=True)
 
-        if data.motions:
-            split = layout.split()
-            split.alert = True
-            split.prop(data, 'motions')
-        _, box = collapsible.draw(
-            layout,
-            'object:motions',
-            'Motions (%d)' % len(data.motions_collection)
-        )
-        if box:
-            box.operator('io_scene_xray.list_add_element')
-            row = box.row()
-            col = row.column(align=True)
-            if len(data.motions_collection):
-                for motion_index, motion in enumerate(data.motions_collection):
-                    row = col.row(align=True)
-                    row.prop_search(motion, 'name', bpy.data, 'actions', text='')
-
-                    operator = row.operator('io_scene_xray.list_move_element', icon='TRIA_UP')
-                    operator.index = motion_index
-                    operator.operation = 'move_up'
-
-                    operator = row.operator('io_scene_xray.list_move_element', icon='TRIA_DOWN')
-                    operator.index = motion_index
-                    operator.operation = 'move_down'
-
-                    operator = row.operator('io_scene_xray.list_remove_element', icon='PANEL_CLOSE')
-                    operator.index = motion_index
-
-        if data.motionrefs:
-            split = layout.split()
-            split.alert = True
-            split.prop(data, 'motionrefs')
-        _, box = collapsible.draw(
-            layout,
-            'object:motionsrefs',
-            'Motion Refs (%d)' % len(data.motionrefs_collection)
-        )
-        if box:
-            row = box.row()
-            row.template_list(
-                'UI_UL_list', 'name',
-                data, 'motionrefs_collection',
-                data, 'motionrefs_collection_index'
+        if data.isroot:
+            object_box = layout.box()
+            if not data.flags_use_custom:
+                object_box.prop(data, 'flags_simple', text='Type')
+            else:
+                row = object_box.row(align=True)
+                row.prop(data, 'flags_simple', text='Type')
+                row.prop(data, 'flags_custom_type', text='')
+                col = object_box.column(align=True)
+                row = col.row(align=True)
+                row.prop(data, 'flags_custom_progressive', text='Progressive', toggle=True)
+                row.prop(data, 'flags_custom_lod', text='LOD', toggle=True)
+                row.prop(data, 'flags_custom_hom', text='HOM', toggle=True)
+                row = col.row(align=True)
+                row.prop(data, 'flags_custom_musage', text='Multi Usage', toggle=True)
+                row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
+                row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
+            object_box.prop(data, 'lodref')
+            object_box.prop(data, 'export_path')
+            row, box = collapsible.draw(
+                object_box,
+                'object:userdata',
+                'User Data',
+                enabled=data.userdata != '',
+                icon='VIEWZOOM'
             )
-            col = row.column(align=True)
-            list_helper.draw_list_ops(
-                col, data,
-                'motionrefs_collection', 'motionrefs_collection_index',
-            )
+            PropClipOp.drawall(row, 'object.xray.userdata', data.userdata)
+            if box:
+                box = box.column(align=True)
+                for line in data.userdata.splitlines():
+                    box.label(line)
 
-        box = layout.box()
-        box.prop(data.revision, 'owner', text='Owner')
-        box.prop(data.revision, 'ctime_str', text='Created')
+            if data.motions:
+                split = object_box.split()
+                split.alert = True
+                split.prop(data, 'motions')
+            _, box = collapsible.draw(
+                object_box,
+                'object:motions',
+                'Motions (%d)' % len(data.motions_collection)
+            )
+            if box:
+                box.operator('io_scene_xray.list_add_element')
+                row = box.row()
+                col = row.column(align=True)
+                if len(data.motions_collection):
+                    for motion_index, motion in enumerate(data.motions_collection):
+                        row = col.row(align=True)
+                        row.prop_search(motion, 'name', bpy.data, 'actions', text='')
+
+                        operator = row.operator('io_scene_xray.list_move_element', icon='TRIA_UP')
+                        operator.index = motion_index
+                        operator.operation = 'move_up'
+
+                        operator = row.operator('io_scene_xray.list_move_element', icon='TRIA_DOWN')
+                        operator.index = motion_index
+                        operator.operation = 'move_down'
+
+                        operator = row.operator('io_scene_xray.list_remove_element', icon='PANEL_CLOSE')
+                        operator.index = motion_index
+
+            if data.motionrefs:
+                split = object_box.split()
+                split.alert = True
+                split.prop(data, 'motionrefs')
+            _, box = collapsible.draw(
+                object_box,
+                'object:motionsrefs',
+                'Motion Refs (%d)' % len(data.motionrefs_collection)
+            )
+            if box:
+                row = box.row()
+                row.template_list(
+                    'UI_UL_list', 'name',
+                    data, 'motionrefs_collection',
+                    data, 'motionrefs_collection_index'
+                )
+                col = row.column(align=True)
+                list_helper.draw_list_ops(
+                    col, data,
+                    'motionrefs_collection', 'motionrefs_collection_index',
+                )
+
+            box = object_box.box()
+            box.prop(data.revision, 'owner', text='Owner')
+            box.prop(data.revision, 'ctime_str', text='Created')
+
+        if context.object.type in {'MESH', 'EMPTY'}:
+            layout.prop(data, 'is_details', text='Details', toggle=True)
+            if data.is_details:
+                details.ui.draw_function(self, context)
 
 
 class XRayMeshPanel(XRayPanel):
@@ -575,15 +581,11 @@ class XRayMaterialToolsPanel(bpy.types.Panel):
         column.prop(data, 'materials_colorize_color_power', text='Power', slider=True)
 
 
-from .details.ui import XRayDetailsPanel
-
-
 registry.module_requires(__name__, [
     collapsible,
     fake_bones,
     XRayObjectPanel
     , XRayMeshPanel
-    , XRayDetailsPanel
     , XRayEditHelperObjectPanel
     , XRayEShaderMenu
     , XRayCShaderMenu

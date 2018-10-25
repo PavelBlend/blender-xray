@@ -6,118 +6,101 @@ from ..ui.collapsible import draw
 from .operators import PackDetailsImages
 
 
-class XRayDetailsPanel(bpy.types.Panel):
-    bl_context = 'object'
-    bl_label = 'XRay - details'
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+def draw_function(self, context):
 
-    @classmethod
-    def poll(cls, context):
-        return (
-            context.active_object
-            and context.active_object.type in {'MESH', 'EMPTY'}
-            and not is_helper_object(context.active_object)
-        )
+    box = self.layout.box()
 
-    def draw(self, context):
+    if context.active_object.type == 'MESH':
 
-        layout = self.layout
+        model = context.object.xray.detail.model
 
-        if context.active_object.type == 'MESH':
+        box.label('Detail Model Properties:')
 
-            model = context.object.xray.detail.model
+        box.prop(model, 'no_waving', text='No Waving', toggle=True)
+        box.prop(model, 'min_scale', text='Min Scale')
+        box.prop(model, 'max_scale', text='Max Scale')
+        box.prop(model, 'index', text='Detail Index')
+        box.prop(model, 'color', text='')
 
-            layout.label('Detail Model Properties:')
+    elif context.active_object.type == 'EMPTY':
 
-            layout.prop(model, 'no_waving', text='No Waving', toggle=True)
-            layout.prop(model, 'min_scale', text='Min Scale')
-            layout.prop(model, 'max_scale', text='Max Scale')
-            layout.prop(model, 'index', text='Detail Index')
-            layout.prop(model, 'color', text='')
+        slots = context.object.xray.detail.slots
 
-        elif context.active_object.type == 'EMPTY':
+        box.label('Level Details Properties:')
 
-            slots = context.object.xray.detail.slots
+        box.prop_search(
+            slots,
+            'meshes_object',
+            bpy.data,
+            'objects',
+            text='Meshes Object'
+            )
 
-            layout.label('Level Details Properties:')
+        box.prop_search(
+            slots,
+            'slots_base_object',
+            bpy.data,
+            'objects',
+            text='Slots Base Object'
+            )
 
-            layout.prop_search(
-                slots,
-                'meshes_object',
+        box.prop_search(
+            slots,
+            'slots_top_object',
+            bpy.data,
+            'objects',
+            text='Slots Top Object'
+            )
+
+        _, box_ = draw(
+            box, 'object:lighting', 'Lighting Coefficients'
+            )
+
+        if box_:
+
+            ligthing = slots.ligthing
+            box_.label('Format:')
+            row = box_.row()
+            row.prop(ligthing, 'format', expand=True, text='Format')
+
+            box_.prop_search(
+                ligthing,
+                'lights_image',
                 bpy.data,
-                'objects',
-                text='Meshes Object'
+                'images',
+                text='Lights'
                 )
 
-            layout.prop_search(
-                slots,
-                'slots_base_object',
-                bpy.data,
-                'objects',
-                text='Slots Base Object'
-                )
+            if ligthing.format == 'builds_1569-cop':
 
-            layout.prop_search(
-                slots,
-                'slots_top_object',
-                bpy.data,
-                'objects',
-                text='Slots Top Object'
-                )
-
-            _, box = draw(
-                layout, 'object:lighting', 'Lighting Coefficients'
-                )
-
-            if box:
-
-                ligthing = slots.ligthing
-                box.label('Format:')
-                row = box.row()
-                row.prop(ligthing, 'format', expand=True, text='Format')
-
-                box.prop_search(
+                box_.prop_search(
                     ligthing,
-                    'lights_image',
+                    'hemi_image',
                     bpy.data,
                     'images',
-                    text='Lights'
+                    text='Hemi'
                     )
 
-                if ligthing.format == 'builds_1569-cop':
+                box_.prop_search(
+                    ligthing,
+                    'shadows_image',
+                    bpy.data,
+                    'images',
+                    text='Shadows'
+                    )
 
-                    box.prop_search(
-                        ligthing,
-                        'hemi_image',
-                        bpy.data,
-                        'images',
-                        text='Hemi'
-                        )
+        _, box_ = draw(
+            box, 'object:slots', 'Slots Meshes Indices'
+            )
 
-                    box.prop_search(
-                        ligthing,
-                        'shadows_image',
-                        bpy.data,
-                        'images',
-                        text='Shadows'
-                        )
+        if box_:
+            for i in range(4):
+                box_.prop_search(
+                    slots.meshes,
+                    'mesh_{}'.format(i),
+                    bpy.data,
+                    'images',
+                    text='Mesh {}'.format(i)
+                    )
 
-            _, box = draw(
-                layout, 'object:slots', 'Slots Meshes Indices'
-                )
-
-            if box:
-                for i in range(4):
-                    box.prop_search(
-                        slots.meshes,
-                        'mesh_{}'.format(i),
-                        bpy.data,
-                        'images',
-                        text='Mesh {}'.format(i)
-                        )
-
-            layout.operator(PackDetailsImages.bl_idname)
-
-    def draw_header(self, context):
-        self.layout.label(icon='PLUGIN')
+        box.operator(PackDetailsImages.bl_idname)

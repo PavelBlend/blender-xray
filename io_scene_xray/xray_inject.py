@@ -100,6 +100,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Object
     root = bpy.props.BoolProperty(default=True)  # default=True - to backward compatibility
     isroot = bpy.props.BoolProperty(get=get_isroot, set=set_isroot, options={'SKIP_SAVE'})
+    is_details = bpy.props.BoolProperty(default=False)
     version = bpy.props.IntProperty()
     flags = bpy.props.IntProperty(name='flags')
 
