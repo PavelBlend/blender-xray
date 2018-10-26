@@ -18,4 +18,5 @@ XRay-engine import/export plugin for [blender](http://www.blender.org/).
 Follow [wiki instructions](https://github.com/PavelBlend/blender-xray/wiki/Installation).
 
 ## License
-Published under the liberal terms of the BSD License, see the [LICENSE](LICENSE) file.
+Almost all the code is published under the liberal terms of the BSD License, see the [LICENSE](LICENSE) file.
+The only exception is the LZHUF module (see special copyrights there).
