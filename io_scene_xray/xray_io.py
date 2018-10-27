@@ -1,4 +1,5 @@
 import struct
+from .lzhuf import decompress_buffer
 
 
 class FastBytes:
@@ -117,12 +118,16 @@ class ChunkedReader:
         data = self.__data
         if offs >= len(data):
             raise StopIteration
-        cid, size = struct.unpack_from('II', data, offs)
-        if (cid & ChunkedReader.__MASK_COMPRESSED) != 0:
-            raise Exception('unsupported: compressed chunk {:#x}'.format(cid))
-        offs += 8 + size
-        self.__offs = offs
-        return cid & ~ChunkedReader.__MASK_COMPRESSED, data[offs - size:offs]
+        cid = FastBytes.int_at(data, offs)
+        size = FastBytes.int_at(data, offs + 4)
+        offs += 8
+        self.__offs = offs + size
+        if cid & ChunkedReader.__MASK_COMPRESSED:
+            cid &= ~ChunkedReader.__MASK_COMPRESSED
+            textsize = FastBytes.int_at(data, offs)
+            buffer = data[offs + 4:offs + size]
+            return cid, memoryview(decompress_buffer(buffer, textsize))
+        return cid, data[offs:offs + size]
 
     def next(self, expected_cid):
         cid, data = next(self)
