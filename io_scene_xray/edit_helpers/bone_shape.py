@@ -121,8 +121,9 @@ class _ApplyShape(bpy.types.Operator):
             * hobj.matrix_local
         if xsh.type == '1':  # box
             xsh.box_trn = mat.to_translation().to_tuple()
-            xsh.box_hsz = (1, 1, 1)
-            mrt = mat.to_3x3().transposed()
+            scale = mat.to_scale()
+            xsh.box_hsz = scale.to_tuple()
+            mrt = (mat * _v2ms(scale).inverted()).to_3x3().transposed()
             for i in range(3):
                 xsh.box_rot[i * 3:i * 3 + 3] = mrt[i].to_tuple()
         elif xsh.type == '2':  # sphere
