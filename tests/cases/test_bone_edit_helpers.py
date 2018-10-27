@@ -46,6 +46,8 @@ class TestBoneEditHelpers(XRayTestCase):
         self.assertTrue(_has_nonzero(bone.xray.shape.box_rot), msg='has box_rot')
         self.assertFalse(_has_nonzero(bone.xray.shape.box_trn), msg='has zero box_trn')
         self.assertTrue(_has_nonzero(bone.xray.shape.box_hsz), msg='has box_hsz')
+        scale = bone.xray.shape.get_matrix_basis().to_scale().to_tuple()
+        self.assertGreater(scale, (0.999, 0.999, 0.999), msg='close to 1:1 scale')
 
         bone.xray.shape.type = '2'
         op_edit()

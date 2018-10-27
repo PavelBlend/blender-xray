@@ -90,19 +90,12 @@ def _bone_matrix(bone):
     global pose_bone
     pose_bone = bpy.context.object.pose.bones[bone.name]
     mat = pose_bone.matrix * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+    mat *= xsh.get_matrix_basis()
     if xsh.type == '1':  # box
-        rot = xsh.box_rot
-        mat *= mathutils.Matrix.Translation(xsh.box_trn)
-        mat *= mathutils.Matrix((rot[0:3], rot[3:6], rot[6:9])).transposed().to_4x4()
         mat *= _v2ms(xsh.box_hsz)
     elif xsh.type == '2':  # sphere
-        mat *= mathutils.Matrix.Translation(xsh.sph_pos)
         mat *= _v2ms((xsh.sph_rad, xsh.sph_rad, xsh.sph_rad))
     elif xsh.type == '3':  # cylinder
-        mat *= mathutils.Matrix.Translation(xsh.cyl_pos)
-        v_dir = mathutils.Vector(xsh.cyl_dir)
-        q_rot = v_dir.rotation_difference((0, 0, 1))
-        mat *= q_rot.to_matrix().transposed().to_4x4()
         mat *= _v2ms((xsh.cyl_rad, xsh.cyl_rad, xsh.cyl_hgh * 0.5))
     else:
         raise AssertionError('unsupported bone shape type: ' + xsh.type)
