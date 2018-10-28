@@ -325,6 +325,20 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         cyl_rad = bpy.props.FloatProperty()
         version_data = bpy.props.IntProperty()
 
+        def get_matrix_basis(self) -> mathutils.Matrix:
+            typ = self.type
+            if typ == '1':  # box
+                rot = self.box_rot
+                return mathutils.Matrix.Translation(self.box_trn) \
+                    * mathutils.Matrix((rot[0:3], rot[3:6], rot[6:9])).transposed().to_4x4()
+            if typ == '2':  # sphere
+                return mathutils.Matrix.Translation(self.sph_pos)
+            if typ == '3':  # cylinder
+                v_dir = mathutils.Vector(self.cyl_dir)
+                q_rot = v_dir.rotation_difference((0, 1, 0))
+                return mathutils.Matrix.Translation(self.cyl_pos) \
+                    * q_rot.to_matrix().transposed().to_4x4()
+
     class IKJointProperties(bpy.types.PropertyGroup):
         type = bpy.props.EnumProperty(items=(
             ('0', 'Rigid', ''),
@@ -406,22 +420,13 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
             bmat = mat
             bgl.glLineWidth(2)
+            mat *= shape.get_matrix_basis()
+            bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
             if shape.type == '1':  # box
-                rot = shape.box_rot
-                mat *= mathutils.Matrix.Translation(shape.box_trn) \
-                    * mathutils.Matrix((rot[0:3], rot[3:6], rot[6:9])).transposed().to_4x4()
-                bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
                 draw_wire_cube(*shape.box_hsz)
             if shape.type == '2':  # sphere
-                mat *= mathutils.Matrix.Translation(shape.sph_pos)
-                bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
                 draw_wire_sphere(shape.sph_rad, 16)
             if shape.type == '3':  # cylinder
-                mat *= mathutils.Matrix.Translation(shape.cyl_pos)
-                bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
-                v_dir = mathutils.Vector(shape.cyl_dir)
-                q_rot = v_dir.rotation_difference((0, 1, 0))
-                bgl.glMultMatrixf(matrix_to_buffer(q_rot.to_matrix().to_4x4()))
                 draw_wire_cylinder(shape.cyl_rad, shape.cyl_hgh * 0.5, 16)
             bgl.glPopMatrix()
             bgl.glPushMatrix()
