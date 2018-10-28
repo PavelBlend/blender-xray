@@ -191,6 +191,29 @@ class TestObjectExport(utils.XRayTestCase):
             re.compile('Mesh has no material')
         )
 
+    def test_export_fix_smoothing_groups(self):
+        # Arrange
+        bmesh = utils.create_bmesh((
+            (0, 0, 0), (1, 0, 0),
+            (1, 1, 0), (1, 1, 0),
+        ), ((0, 1, 2), (1, 0, 3)), True)
+
+        obj = utils.create_object(bmesh, True)
+
+        # Act
+        bpy.ops.xray_export.object(
+            object=obj.name, filepath=self.outpath('test.object'),
+        )
+
+        # Assert
+        bpy.ops.xray_import.object(
+            directory=self.outpath(),
+            files=[{'name': 'test.object'}],
+        )
+        edges = bpy.data.objects['test.object'].data.edges
+        sharp_edges = [e for e in edges if e.use_edge_sharp]
+        self.assertEqual(len(sharp_edges), 1)
+
     def _create_objects(self, create_uv=True, create_material=True):
         bmesh = utils.create_bmesh((
             (0, 0, 0),
