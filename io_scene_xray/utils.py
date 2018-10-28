@@ -199,6 +199,23 @@ def calculate_mesh_bbox(verts):
     return _min, _max
 
 
+EPS_S = 0.0000001
+EPS_S_SQUARED = EPS_S * EPS_S
+
+def fix_smooth_edges(edges):
+    for edge in edges:
+        if not edge.smooth:
+            continue
+        faces = edge.link_faces
+        num_faces = len(faces)
+        if num_faces < 2:
+            continue
+        if num_faces > 2:
+            edge.smooth = False
+        elif (faces[0].normal + faces[1].normal).length_squared <= EPS_S_SQUARED:
+            edge.smooth = False
+
+
 def gen_texture_name(texture, tx_folder):
     import os.path
     from bpy.path import abspath

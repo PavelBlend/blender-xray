@@ -8,6 +8,7 @@ from .xray_io import ChunkedWriter, PackedWriter
 from .xray_motions import export_motions, MATRIX_BONE_INVERTED
 from .fmt_object import Chunks
 from .utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
+    fix_smooth_edges, \
     convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name, is_helper_object
 from .utils import BAD_VTX_GROUP_NAME
 from . import log
@@ -98,6 +99,7 @@ def _export_mesh(bpy_obj, bpy_root, cw, context):
         cw.put(Chunks.Mesh.FLAGS, PackedWriter().putf('B', 1))
 
     bmesh.ops.triangulate(bm, faces=bm.faces)
+    fix_smooth_edges(bm.edges)
 
     writer = PackedWriter()
     writer.putf('I', len(bm.verts))
