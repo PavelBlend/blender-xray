@@ -208,10 +208,8 @@ def fix_smooth_edges(edges):
             continue
         faces = edge.link_faces
         num_faces = len(faces)
-        if num_faces < 2:
+        if num_faces != 2:
             continue
-        if num_faces > 2:
-            edge.smooth = False
         elif (faces[0].normal + faces[1].normal).length_squared <= EPS_S_SQUARED:
             edge.smooth = False
 
