@@ -61,6 +61,22 @@ class XRayPanel(bpy.types.Panel):
         self.layout.label(icon='PLUGIN')
 
 
+@registry.module_thing
+class XRayMotionList(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        data = context.object.xray
+        motion = data.motions_collection[index]
+
+        if data.motions_collection_index == index:
+            icon = 'TRIA_RIGHT'
+        else:
+            icon = 'RIGHTARROW'
+
+        row = layout.row()
+        row.label(text='', icon=icon)
+        row.prop_search(motion, 'name', bpy.data, 'actions', text='')
+
+
 @registry.requires(list_helper, PropClipOp)
 class XRayObjectPanel(XRayPanel):
     bl_context = 'object'
@@ -120,24 +136,17 @@ class XRayObjectPanel(XRayPanel):
                 'Motions (%d)' % len(data.motions_collection)
             )
             if box:
-                box.operator('io_scene_xray.list_add_element')
                 row = box.row()
+                row.template_list(
+                    'XRayMotionList', 'name',
+                    data, 'motions_collection',
+                    data, 'motions_collection_index'
+                )
                 col = row.column(align=True)
-                if len(data.motions_collection):
-                    for motion_index, motion in enumerate(data.motions_collection):
-                        row = col.row(align=True)
-                        row.prop_search(motion, 'name', bpy.data, 'actions', text='')
-
-                        operator = row.operator('io_scene_xray.list_move_element', icon='TRIA_UP')
-                        operator.index = motion_index
-                        operator.operation = 'move_up'
-
-                        operator = row.operator('io_scene_xray.list_move_element', icon='TRIA_DOWN')
-                        operator.index = motion_index
-                        operator.operation = 'move_down'
-
-                        operator = row.operator('io_scene_xray.list_remove_element', icon='PANEL_CLOSE')
-                        operator.index = motion_index
+                list_helper.draw_list_ops(
+                    col, data,
+                    'motions_collection', 'motions_collection_index',
+                )
 
             if data.motionrefs:
                 split = object_box.split()
