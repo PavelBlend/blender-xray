@@ -68,9 +68,9 @@ class XRayMotionList(bpy.types.UIList):
         motion = data.motions_collection[index]
 
         if data.motions_collection_index == index:
-            icon = 'TRIA_RIGHT'
+            icon = 'CHECKBOX_HLT'
         else:
-            icon = 'RIGHTARROW'
+            icon = 'CHECKBOX_DEHLT'
 
         row = layout.row()
         row.label(text='', icon=icon)
