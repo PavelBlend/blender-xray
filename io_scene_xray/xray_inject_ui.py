@@ -231,12 +231,16 @@ class XRayXrMenuTemplate(dynamic_menu.DynamicMenu):
 
         def dict_to_array(dct):
             result = []
+            root_result = []
             for (key, val) in dct.items():
                 if isinstance(val, str):
-                    result.append((key, val))
+                    root_result.append((key, val))
                 else:
                     result.append((key, dict_to_array(val)))
-            return sorted(result, key=lambda e: e[0])
+            result = sorted(result, key=lambda e: e[0])
+            root_result = sorted(root_result, key=lambda e: e[0])
+            result.extend(root_result)
+            return result
 
         tmp = dict()
         for (name, _) in fparse(data):
