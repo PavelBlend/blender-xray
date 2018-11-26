@@ -5,8 +5,16 @@ from tests import utils
 
 from io_scene_xray import plugin_prefs
 
+
 def np(path):
     return path.replace('/', sep)
+
+
+def reset_settings(preferences):
+    for prop_name in plugin_prefs.__AUTO_PROPS__:
+        preferences[prop_name] = ''
+        preferences[prop_name + '_auto'] = ''
+
 
 class TestPreferences(utils.XRayTestCase):
     def test_auto_values_default(self):
@@ -19,6 +27,7 @@ class TestPreferences(utils.XRayTestCase):
     @patch('os.path.isdir', new=lambda path: path.endswith(np('/textures')))
     def test_auto_values_from_gamedata(self):
         prefs = plugin_prefs.get_preferences()
+        reset_settings(prefs)
         prefs.gamedata_folder_auto = np('/gd')
         self.assertEqual(prefs.gamedata_folder, np('/gd'))
         self.assertEqual(prefs.gamedata_folder_auto, np('/gd'))
@@ -35,6 +44,7 @@ class TestPreferences(utils.XRayTestCase):
     @patch('os.path.isdir', new=lambda path: not path.endswith('.xr'))
     def test_auto_values_from_some_file(self):
         prefs = plugin_prefs.get_preferences()
+        reset_settings(prefs)
         prefs.gamemtl_file_auto = np('/gdf/gamemtl.xr')
         self.assertEqual(prefs.gamedata_folder, '')
         self.assertEqual(prefs.gamedata_folder_auto, np('/gdf'))
@@ -49,6 +59,7 @@ class TestPreferences(utils.XRayTestCase):
     @patch('os.path.isdir', new=lambda path: False)
     def test_auto_values_if_no_paths(self):
         prefs = plugin_prefs.get_preferences()
+        reset_settings(prefs)
         prefs.textures_folder_auto = np('/gdx/textures')
         self.assertEqual(prefs.gamedata_folder, '')
         self.assertEqual(prefs.gamedata_folder_auto, '')
@@ -62,6 +73,7 @@ class TestPreferences(utils.XRayTestCase):
     @patch('os.path.isfile', new=lambda path: True)
     def test_auto_values_no_reassign(self):
         prefs = plugin_prefs.get_preferences()
+        reset_settings(prefs)
         prefs.textures_folder_auto = np('/gdr/textures')
         self.assertEqual(prefs.textures_folder, np('/gdr/textures'))
         self.assertEqual(prefs.gamemtl_file, '')
@@ -76,6 +88,7 @@ class TestPreferences(utils.XRayTestCase):
     @patch('os.path.isdir', new=lambda path: path == np('/'))
     def test_auto_values_if_textures_is_root(self):
         prefs = plugin_prefs.get_preferences()
+        reset_settings(prefs)
         prefs.textures_folder = np('/')
         self.assertEqual(prefs.textures_folder, np('/'))
         self.assertEqual(prefs.textures_folder_auto, np('/'))
