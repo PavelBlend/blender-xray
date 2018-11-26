@@ -71,6 +71,7 @@ def _import(fpath, context, chunked_reader):
     if context.load_slots:
 
         root_obj = bpy.data.objects.new(base_name, None)
+        root_obj.xray.is_details = True
         bpy.context.scene.objects.link(root_obj)
 
         meshes_obj.parent = root_obj
