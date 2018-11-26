@@ -25,15 +25,15 @@ class TestDetailsImport(utils.XRayTestCase):
 
         ligthing = slots.ligthing
         self.assertEqual(ligthing.format, 'builds_1569-cop')
-        self.assertEqual(ligthing.lights_image, 'details lights')
-        self.assertEqual(ligthing.hemi_image, 'details hemi')
-        self.assertEqual(ligthing.shadows_image, 'details shadows')
+        self.assertEqual(ligthing.lights_image, 'details lights.png')
+        self.assertEqual(ligthing.hemi_image, 'details hemi.png')
+        self.assertEqual(ligthing.shadows_image, 'details shadows.png')
 
         meshes = slots.meshes
-        self.assertEqual(meshes.mesh_0, 'details meshes 0')
-        self.assertEqual(meshes.mesh_1, 'details meshes 1')
-        self.assertEqual(meshes.mesh_2, 'details meshes 2')
-        self.assertEqual(meshes.mesh_3, 'details meshes 3')
+        self.assertEqual(meshes.mesh_0, 'details meshes 0.png')
+        self.assertEqual(meshes.mesh_1, 'details meshes 1.png')
+        self.assertEqual(meshes.mesh_2, 'details meshes 2.png')
+        self.assertEqual(meshes.mesh_3, 'details meshes 3.png')
 
         for child_object in obj.children:
             if child_object.name == meshes_object_name:
