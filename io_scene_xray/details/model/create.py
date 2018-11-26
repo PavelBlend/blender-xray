@@ -17,13 +17,9 @@ def create_empty_image(context, det_model, abs_image_path):
         )
 
     bpy_image.source = 'FILE'
-
-    if not context.textures_folder:
-        bpy_image.filepath = det_model.texture + '.dds'
-    else:
-        bpy_image.filepath = abs_image_path
-
+    bpy_image.filepath = abs_image_path
     bpy_image.use_alpha = True
+    return bpy_image
 
 
 def search_material(context, det_model, fpath=None):
@@ -125,11 +121,11 @@ def search_material(context, det_model, fpath=None):
                             bpy_image = bpy.data.images.load(abs_image_path)
                         except RuntimeError as ex:
                             context.report({'WARNING'}, str(ex))
-                            create_empty_image(context, det_model, abs_image_path)
+                            bpy_image = create_empty_image(context, det_model, abs_image_path)
 
                     else:
                         context.report({'WARNING'}, str(ex))
-                        create_empty_image(context, det_model, abs_image_path)
+                        bpy_image = create_empty_image(context, det_model, abs_image_path)
 
             bpy_texture.image = bpy_image
 

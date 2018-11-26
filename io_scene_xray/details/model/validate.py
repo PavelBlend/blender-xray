@@ -35,10 +35,6 @@ def validate_export_object(context, bpy_obj):
     if bpy_texture:
 
         if bpy_texture.type == 'IMAGE':
-            if not bpy_texture.image:
-                raise AppError(
-                    'texture "' + bpy_texture.name + '" has no image'
-                    )
             if context.texname_from_path:
                 tx_name = gen_texture_name(bpy_texture, context.textures_folder)
             else:
