@@ -6,8 +6,7 @@ class Chunks:
 
 
 class LevelDetails:
-    def __init__(self):
-        pass
+    pass
 
 
 class DetailsHeader:
