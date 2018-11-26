@@ -181,7 +181,7 @@ class XRayObjectPanel(XRayPanel):
 
 
 class XRayMeshPanel(XRayPanel):
-    bl_context = 'object'
+    bl_context = 'data'
     bl_label = _build_label('Mesh')
 
     @classmethod
