@@ -165,7 +165,7 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
     m_i = []    # meshes images
     for mesh_id in range(4):
         meshes_image = _create_det_image(
-            'meshes {}'.format(mesh_id),
+            'meshes {}.png'.format(mesh_id),
             double_size=True
             )
         meshes_image.use_fake_user = True
@@ -183,19 +183,19 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
 
         ligthing.format = 'builds_1569-cop'
 
-        light_image = _create_det_image('lights')
+        light_image = _create_det_image('lights.png')
         images_list.append(light_image.name)
         light_image.pixels = lights
         light_image.pack(as_png=True)
         ligthing.lights_image = light_image.name
 
-        shadows_image = _create_det_image('shadows')
+        shadows_image = _create_det_image('shadows.png')
         images_list.append(shadows_image.name)
         shadows_image.pixels = shadows
         shadows_image.pack(as_png=True)
         ligthing.shadows_image = shadows_image.name
 
-        hemi_image = _create_det_image('hemi')
+        hemi_image = _create_det_image('hemi.png')
         images_list.append(hemi_image.name)
         hemi_image.pixels = hemi
         hemi_image.pack(as_png=True)
@@ -205,7 +205,7 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
 
         ligthing.format = 'builds_1096-1558'
 
-        lights_v2_image = _create_det_image('lighting', double_size=True)
+        lights_v2_image = _create_det_image('lighting.png', double_size=True)
         images_list.append(lights_v2_image.name)
         lights_v2_image.use_fake_user = True
         lights_v2_image.pixels = lights_old
@@ -215,7 +215,7 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
 
 def create_pallete(color_indices):
 
-    pallete_name = 'details meshes pallete'
+    pallete_name = 'details meshes pallete.png'
 
     # create image pallete
     if bpy.data.images.get(pallete_name) is None:
