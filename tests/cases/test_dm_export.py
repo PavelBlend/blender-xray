@@ -1,0 +1,39 @@
+from tests import utils
+
+import bpy
+
+
+class TestObjectExport(utils.XRayTestCase):
+    def test_export_single(self):
+        # Arrange
+        self._create_dm_objects()
+
+        # Act
+        bpy.ops.xray_export.dm(
+            detail_model='tdm1', filepath=self.outpath('test.dm'),
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertOutputFiles({
+            'test.dm'
+        })
+
+    def _create_dm_objects(self, create_uv=True, create_material=True):
+        bmesh = utils.create_bmesh((
+            (0, 0, 0),
+            (-1, -1, 0), (+1, -1, 0), (+1, +1, 0), (-1, +1, 0),
+        ), ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)), create_uv)
+
+        objs = []
+        for i in range(3):
+            obj = utils.create_object(bmesh, create_material)
+            obj.name = 'tdm%d' % (i + 1)
+            objs.append(obj)
+            bpy_texture = bpy.data.textures.new('test_texture', 'IMAGE')
+            bpy_image = bpy.data.images.new('test_image.dds', 0, 0)
+            bpy_image.source = 'FILE'
+            bpy_image.filepath = 'test_image.dds'
+            texture_slot = obj.data.materials[0].texture_slots.add()
+            texture_slot.texture = bpy_texture
+        return objs
