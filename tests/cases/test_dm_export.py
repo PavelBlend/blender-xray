@@ -3,7 +3,7 @@ from tests import utils
 import bpy
 
 
-class TestObjectExport(utils.XRayTestCase):
+class TestDmExport(utils.XRayTestCase):
     def test_export_single(self):
         # Arrange
         self._create_dm_objects()
