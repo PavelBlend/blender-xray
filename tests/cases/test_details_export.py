@@ -101,6 +101,7 @@ class TestDetailsExport(utils.XRayTestCase):
         ), ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)), create_uv)
 
         root_object = bpy.data.objects.new('Details', None)
+        bpy.ops.object.select_all(action='DESELECT')
         root_object.select = True
         bpy.context.scene.objects.link(root_object)
         root_object.xray.is_details = True
