@@ -33,6 +33,7 @@ class XRayVerifyUVOperator(bpy.types.Operator):
             return self.CORRECT_UV
         context.scene.objects.active = bpy_object
         bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.reveal()
         bpy.ops.mesh.select_all(action='DESELECT')
         bpy.ops.object.mode_set(mode='OBJECT')
         mesh = bpy_object.data
