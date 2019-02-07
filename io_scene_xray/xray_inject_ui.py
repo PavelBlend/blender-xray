@@ -8,6 +8,7 @@ from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, p
     is_helper_object
 from . import registry
 from . import details
+from . import verify
 
 
 def _build_label(subtext=''):
@@ -576,7 +577,7 @@ class XRayColorizeMaterials(bpy.types.Operator):
 
 class XRayMaterialToolsPanel(bpy.types.Panel):
     bl_label = 'XRay Materials'
-    bl_category = 'Materials'
+    bl_category = 'XRay'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
@@ -610,4 +611,6 @@ registry.module_requires(__name__, [
     , XRayScenePanel
     , XRayColorizeMaterials
     , XRayMaterialToolsPanel
+    , verify.uv.XRayVerifyUVOperator
+    , verify.ui.XRayVerifyToolsPanel
 ])
