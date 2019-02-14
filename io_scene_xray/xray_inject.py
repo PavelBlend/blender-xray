@@ -253,6 +253,10 @@ class XRayArmatureProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Armature
     display_bone_shapes = bpy.props.BoolProperty(name='Display Bone Shapes', default=False)
     display_bone_limits = bpy.props.BoolProperty(name='Display Bone Limits', default=False)
+    display_bone_limits_radius = bpy.props.FloatProperty(name='Gizmo Radius', default=0.1, min=0.0)
+    display_bone_limit_x = bpy.props.BoolProperty(name='Limit X', default=True)
+    display_bone_limit_y = bpy.props.BoolProperty(name='Limit Y', default=True)
+    display_bone_limit_z = bpy.props.BoolProperty(name='Limit Z', default=True)
 
     def check_different_version_bones(self):
         from functools import reduce
@@ -396,7 +400,8 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
 
     def ondraw_postview(self, obj_arm, bone):
         # draw limits
-        if not obj_arm.hide and obj_arm.data.xray.display_bone_limits and \
+        arm_xray = obj_arm.data.xray
+        if not obj_arm.hide and arm_xray.display_bone_limits and \
                         bone.xray.exportable and obj_arm.mode == 'POSE':
             if bone.select:
 
@@ -418,9 +423,24 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 rotate = obj_arm.pose.bones[bone.name].rotation_euler
 
                 ik = bone.xray.ikjoint
-                draw_joint_limits(math.degrees(rotate.x), ik.lim_x_min, ik.lim_x_max, 'X')
-                draw_joint_limits(math.degrees(rotate.y), ik.lim_y_min, ik.lim_y_max, 'Y')
-                draw_joint_limits(math.degrees(rotate.z), ik.lim_z_min, ik.lim_z_max, 'Z')
+
+                if arm_xray.display_bone_limit_x:
+                    draw_joint_limits(
+                        math.degrees(rotate.x), ik.lim_x_min, ik.lim_x_max, 'X',
+                        arm_xray.display_bone_limits_radius
+                    )
+
+                if arm_xray.display_bone_limit_y:
+                    draw_joint_limits(
+                        math.degrees(rotate.y), ik.lim_y_min, ik.lim_y_max, 'Y',
+                        arm_xray.display_bone_limits_radius
+                    )
+
+                if arm_xray.display_bone_limit_z:
+                    draw_joint_limits(
+                        math.degrees(rotate.z), ik.lim_z_min, ik.lim_z_max, 'Z',
+                        arm_xray.display_bone_limits_radius
+                    )
 
                 bgl.glPopMatrix()
 

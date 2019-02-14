@@ -334,6 +334,12 @@ class XRayArmaturePanel(XRayPanel):
             )
         layout.prop(data, 'display_bone_shapes', toggle=True)
         layout.prop(data, 'display_bone_limits', toggle=True)
+        if data.display_bone_limits:
+            layout.prop(data, 'display_bone_limits_radius')
+            row = layout.row(align=True)
+            row.prop(data, 'display_bone_limit_x', toggle=True)
+            row.prop(data, 'display_bone_limit_y', toggle=True)
+            row.prop(data, 'display_bone_limit_z', toggle=True)
 
         lay = layout.column(align=True)
         lay.label('Fake Bones:')

@@ -123,7 +123,7 @@ def gen_limit_circle(axis, rotate, radius, num_segments, fconsumer, color, min_l
     bgl.glEnd()
 
 
-def draw_joint_limits(rotate, min_limit, max_limit, axis):
+def draw_joint_limits(rotate, min_limit, max_limit, axis, radius):
     colors = {
         'X': (1.0, 0.0, 0.0, 1.0),
         'Y': (0.0, 1.0, 0.0, 1.0),
@@ -135,7 +135,6 @@ def draw_joint_limits(rotate, min_limit, max_limit, axis):
         'Z': (lambda x, y: bgl.glVertex3f(-x, -y, 0))
     }
     color = colors[axis]
-    radius = 0.1
     num_segments = 360
     gen_limit_circle(
         axis, rotate, radius, num_segments, draw_functions[axis], color,
