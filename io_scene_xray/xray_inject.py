@@ -347,12 +347,22 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             ('3', 'Wheel', ''),
             ('4', 'None', ''),
             ('5', 'Slider', '')))
+
+        lim_x_min = bpy.props.FloatProperty()
+        lim_x_max = bpy.props.FloatProperty()
         lim_x_spr = bpy.props.FloatProperty()
         lim_x_dmp = bpy.props.FloatProperty()
+
+        lim_y_min = bpy.props.FloatProperty()
+        lim_y_max = bpy.props.FloatProperty()
         lim_y_spr = bpy.props.FloatProperty()
         lim_y_dmp = bpy.props.FloatProperty()
+
+        lim_z_min = bpy.props.FloatProperty()
+        lim_z_max = bpy.props.FloatProperty()
         lim_z_spr = bpy.props.FloatProperty()
         lim_z_dmp = bpy.props.FloatProperty()
+
         spring = bpy.props.FloatProperty()
         damping = bpy.props.FloatProperty()
         is_rigid = bpy.props.BoolProperty(get=lambda self: self.type == '0')

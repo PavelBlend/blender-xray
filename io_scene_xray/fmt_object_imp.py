@@ -499,18 +499,21 @@ def _import_bone(context, creader, bpy_arm_obj, renamemap):
             reader = PackedReader(data)
             pose_bone = bpy_arm_obj.pose.bones[name]
             value = str(reader.int())
-            _safe_assign_enum_property(xray.ikjoint, 'type', value, 'bone ikjoint')
-            pose_bone.use_ik_limit_x = True
-            pose_bone.ik_min_x, pose_bone.ik_max_x = reader.getf('ff')
-            xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp = reader.getf('ff')
-            pose_bone.use_ik_limit_y = True
-            pose_bone.ik_min_y, pose_bone.ik_max_y = reader.getf('ff')
-            xray.ikjoint.lim_y_spr, xray.ikjoint.lim_y_dmp = reader.getf('ff')
-            pose_bone.use_ik_limit_z = True
-            pose_bone.ik_min_z, pose_bone.ik_max_z = reader.getf('ff')
-            xray.ikjoint.lim_z_spr, xray.ikjoint.lim_z_dmp = reader.getf('ff')
-            xray.ikjoint.spring = reader.getf('f')[0]
-            xray.ikjoint.damping = reader.getf('f')[0]
+            ik = xray.ikjoint
+            _safe_assign_enum_property(ik, 'type', value, 'bone ikjoint')
+
+            ik.lim_x_min, ik.lim_x_max = map(math.degrees, reader.getf('ff'))
+            ik.lim_x_spr, ik.lim_x_dmp = reader.getf('ff')
+
+            ik.lim_y_min, ik.lim_y_max = map(math.degrees, reader.getf('ff'))
+            ik.lim_y_spr, ik.lim_y_dmp = reader.getf('ff')
+
+            ik.lim_z_min, ik.lim_z_max = map(math.degrees, reader.getf('ff'))
+            ik.lim_z_spr, ik.lim_z_dmp = reader.getf('ff')
+
+            ik.spring = reader.getf('f')[0]
+            ik.damping = reader.getf('f')[0]
+
         elif cid == Chunks.Bone.MASS_PARAMS:
             reader = PackedReader(data)
             xray.mass.value = reader.getf('f')[0]
@@ -679,11 +682,19 @@ def _import_main(fpath, context, creader):
                     xray = bpy_bone.xray
                     xray.mass.gamemtl = 'default_object'
                     xray.mass.value = 10
-                    xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp = 1, 1
-                    xray.ikjoint.lim_y_spr, xray.ikjoint.lim_y_dmp = 1, 1
-                    xray.ikjoint.lim_z_spr, xray.ikjoint.lim_z_dmp = 1, 1
-                    xray.ikjoint.spring = 1
-                    xray.ikjoint.damping = 1
+                    ik = xray.ikjoint
+
+                    ik.lim_x_min, ik.lim_x_max = 0, 0
+                    ik.lim_x_spr, ik.lim_x_dmp = 1, 1
+
+                    ik.lim_y_min, ik.lim_y_max = 0, 0
+                    ik.lim_y_spr, ik.lim_y_dmp = 1, 1
+
+                    ik.lim_z_min, ik.lim_z_max = 0, 0
+                    ik.lim_z_spr, ik.lim_z_dmp = 1, 1
+
+                    ik.spring = 1
+                    ik.damping = 1
             else:
                 for (_, bdat) in ChunkedReader(data):
                     _import_bone(context, ChunkedReader(bdat), bpy_arm_obj, renamemap)
