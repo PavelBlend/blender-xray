@@ -51,7 +51,6 @@ def gen_circle(radius, num_segments, fconsumer):
 def gen_limit_circle(radius, num_segments, fconsumer, color, min_limit, max_limit):
     theta = 2.0 * math.pi / num_segments
     cos_th, sin_th = math.cos(theta), math.sin(theta)
-    x, y = radius, 0
     cos_min = math.cos(math.radians(min_limit))
     sin_min = math.sin(math.radians(min_limit))
 
@@ -61,12 +60,13 @@ def gen_limit_circle(radius, num_segments, fconsumer, color, min_limit, max_limi
     # positive arc
     bgl.glColor4f(*color)
     bgl.glBegin(bgl.GL_LINE_STRIP)
+    x, y = radius, 0
     for _ in range(0, 181):
         if _ > max_limit or _ <= min_limit:
             bgl.glColor4f(*grey_color)
         else:
             bgl.glColor4f(*color)
-        fconsumer(x, y)
+        fconsumer(-x, -y)
         _ = x
         x = x * cos_th - y * sin_th
         y = _ * sin_th + y * cos_th
@@ -81,7 +81,7 @@ def gen_limit_circle(radius, num_segments, fconsumer, color, min_limit, max_limi
             bgl.glColor4f(*grey_color)
         else:
             bgl.glColor4f(*color)
-        fconsumer(x, -y)
+        fconsumer(-x, y)
         _ = x
         x = x * cos_th - y * sin_th
         y = _ * sin_th + y * cos_th
@@ -95,9 +95,9 @@ def draw_joint_limits(min_limit, max_limit, axis):
         'Z': (0.0, 0.0, 1.0, 1.0)
     }
     draw_functions = {
-        'X': (lambda x, y: bgl.glVertex3f(0, x, y)),
+        'X': (lambda x, y: bgl.glVertex3f(0, -x, y)),
         'Y': (lambda x, y: bgl.glVertex3f(y, 0, x)),
-        'Z': (lambda x, y: bgl.glVertex3f(x, y, 0))
+        'Z': (lambda x, y: bgl.glVertex3f(-x, -y, 0))
     }
     color = colors[axis]
     radius = 0.1
