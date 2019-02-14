@@ -251,6 +251,7 @@ class XRayMaterialProperties(bpy.types.PropertyGroup):
 class XRayArmatureProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Armature
     display_bone_shapes = bpy.props.BoolProperty(name='Display Bone Shapes', default=False)
+    display_bone_limits = bpy.props.BoolProperty(name='Display Bone Limits', default=False)
 
     def check_different_version_bones(self):
         from functools import reduce
@@ -393,7 +394,33 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
     mass = bpy.props.PointerProperty(type=MassProperties)
 
     def ondraw_postview(self, obj_arm, bone):
-        if obj_arm.hide or not obj_arm.data.xray.display_bone_shapes or not bone.xray.exportable:
+        # draw limits
+        if not obj_arm.hide and obj_arm.data.xray.display_bone_limits and \
+                        bone.xray.exportable and obj_arm.mode == 'POSE':
+            if obj_arm.data.bones.active.name == bone.name:
+
+                from .gl_utils import draw_joint_limits, matrix_to_buffer
+
+                bgl.glPushMatrix()
+                bgl.glEnable(bgl.GL_BLEND)
+                mat_translate = mathutils.Matrix.Translation(obj_arm.pose.bones[bone.name].matrix.to_translation())
+                mat_rotate = obj_arm.data.bones[bone.name].matrix_local.to_euler().to_matrix().to_4x4()
+                mat_rotate_parent = obj_arm.pose.bones[bone.parent.name].matrix_basis.to_euler().to_matrix().to_4x4()
+
+                mat = obj_arm.matrix_world * mat_translate * (mat_rotate * mat_rotate_parent) \
+                    * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+                bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
+
+                ik = bone.xray.ikjoint
+                draw_joint_limits(ik.lim_x_min, ik.lim_x_max, 'X')
+                draw_joint_limits(ik.lim_y_min, ik.lim_y_max, 'Y')
+                draw_joint_limits(ik.lim_z_min, ik.lim_z_max, 'Z')
+
+                bgl.glPopMatrix()
+
+        # draw shapes
+        if obj_arm.hide or not obj_arm.data.xray.display_bone_shapes or \
+                        not bone.xray.exportable or obj_arm.mode == 'EDIT':
             return
 
         if not obj_arm.name in bpy.context.scene.objects:

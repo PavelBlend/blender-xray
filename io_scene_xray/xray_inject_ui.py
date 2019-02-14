@@ -333,6 +333,7 @@ class XRayArmaturePanel(XRayPanel):
                 icon='ERROR'
             )
         layout.prop(data, 'display_bone_shapes', toggle=True)
+        layout.prop(data, 'display_bone_limits', toggle=True)
 
         lay = layout.column(align=True)
         lay.label('Fake Bones:')
