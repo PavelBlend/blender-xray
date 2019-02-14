@@ -3,7 +3,7 @@ import bpy
 from .edit_helpers import base as base_edit_helper, bone_shape, bone_center
 from .plugin_prefs import get_preferences
 from .ui import dynamic_menu, list_helper, collapsible
-from .ops import fake_bones
+from .ops import fake_bones, joint_limits
 from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl, \
     is_helper_object
 from . import registry
@@ -340,6 +340,15 @@ class XRayArmaturePanel(XRayPanel):
             row.prop(data, 'display_bone_limit_x', toggle=True)
             row.prop(data, 'display_bone_limit_y', toggle=True)
             row.prop(data, 'display_bone_limit_z', toggle=True)
+        col = layout.column(align=True)
+        col.operator(
+            joint_limits.ConvertJointLimitsToConstraints.bl_idname,
+            icon='CONSTRAINT_BONE'
+        )
+        col.operator(
+            joint_limits.RemoveJointLimitsConstraints.bl_idname,
+            icon='X'
+        )
 
         lay = layout.column(align=True)
         lay.label('Fake Bones:')
@@ -614,6 +623,7 @@ class XRayMaterialToolsPanel(bpy.types.Panel):
 registry.module_requires(__name__, [
     collapsible,
     fake_bones,
+    joint_limits,
     XRayObjectPanel
     , XRayMeshPanel
     , XRayEditHelperObjectPanel
