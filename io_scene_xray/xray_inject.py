@@ -1,4 +1,5 @@
 import time
+import math
 
 import bgl
 import bpy
@@ -414,10 +415,12 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                     * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
                 bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
 
+                rotate = obj_arm.pose.bones[bone.name].rotation_euler
+
                 ik = bone.xray.ikjoint
-                draw_joint_limits(ik.lim_x_min, ik.lim_x_max, 'X')
-                draw_joint_limits(ik.lim_y_min, ik.lim_y_max, 'Y')
-                draw_joint_limits(ik.lim_z_min, ik.lim_z_max, 'Z')
+                draw_joint_limits(math.degrees(rotate.x), ik.lim_x_min, ik.lim_x_max, 'X')
+                draw_joint_limits(math.degrees(rotate.y), ik.lim_y_min, ik.lim_y_max, 'Y')
+                draw_joint_limits(math.degrees(rotate.z), ik.lim_z_min, ik.lim_z_max, 'Z')
 
                 bgl.glPopMatrix()
 

@@ -48,7 +48,7 @@ def gen_circle(radius, num_segments, fconsumer):
 
 
 # pylint: disable=C0103
-def gen_limit_circle(radius, num_segments, fconsumer, color, min_limit, max_limit):
+def gen_limit_circle(axis, rotate, radius, num_segments, fconsumer, color, min_limit, max_limit):
     theta = 2.0 * math.pi / num_segments
     cos_th, sin_th = math.cos(theta), math.sin(theta)
     cos_min = math.cos(math.radians(min_limit))
@@ -56,6 +56,9 @@ def gen_limit_circle(radius, num_segments, fconsumer, color, min_limit, max_limi
 
     bgl.glLineWidth(2)
     grey_color = (0.5, 0.5, 0.5, 0.8)
+
+    rotate_point_x = None
+    rotate_point_y = None
 
     # positive arc
     bgl.glColor4f(*color)
@@ -67,6 +70,20 @@ def gen_limit_circle(radius, num_segments, fconsumer, color, min_limit, max_limi
         else:
             bgl.glColor4f(*color)
         fconsumer(-x, -y)
+
+        if rotate >= 0.0:
+            rotate_int = abs(int(round(rotate, 0)))
+            if 0 < rotate_int <= 180:
+                if rotate_int == _:
+                    rotate_point_x = -x
+                    rotate_point_y = -y
+            elif rotate_int == 0:
+                rotate_point_x = -radius
+                rotate_point_y = 0
+            else:
+                rotate_point_x = radius
+                rotate_point_y = 0
+
         _ = x
         x = x * cos_th - y * sin_th
         y = _ * sin_th + y * cos_th
@@ -82,13 +99,31 @@ def gen_limit_circle(radius, num_segments, fconsumer, color, min_limit, max_limi
         else:
             bgl.glColor4f(*color)
         fconsumer(-x, y)
+
+        if rotate < 0.0:
+            rotate_int = abs(int(round(rotate, 0)))
+            if 0 < rotate_int <= 180:
+                if rotate_int == _:
+                    rotate_point_x = -x
+                    rotate_point_y = y
+            elif rotate_int > 180:
+                rotate_point_x = radius
+                rotate_point_y = 0
+
         _ = x
         x = x * cos_th - y * sin_th
         y = _ * sin_th + y * cos_th
     bgl.glEnd()
 
+    bgl.glPointSize(6)
+    bgl.glColor4f(1.0, 1.0, 0.0, 1.0)
+    bgl.glBegin(bgl.GL_POINTS)
+    if rotate_point_x is not None and rotate_point_y is not None:
+        fconsumer(rotate_point_x, rotate_point_y)
+    bgl.glEnd()
 
-def draw_joint_limits(min_limit, max_limit, axis):
+
+def draw_joint_limits(rotate, min_limit, max_limit, axis):
     colors = {
         'X': (1.0, 0.0, 0.0, 1.0),
         'Y': (0.0, 1.0, 0.0, 1.0),
@@ -96,14 +131,14 @@ def draw_joint_limits(min_limit, max_limit, axis):
     }
     draw_functions = {
         'X': (lambda x, y: bgl.glVertex3f(0, -x, y)),
-        'Y': (lambda x, y: bgl.glVertex3f(y, 0, x)),
+        'Y': (lambda x, y: bgl.glVertex3f(-y, 0, x)),
         'Z': (lambda x, y: bgl.glVertex3f(-x, -y, 0))
     }
     color = colors[axis]
     radius = 0.1
     num_segments = 360
     gen_limit_circle(
-        radius, num_segments, draw_functions[axis], color,
+        axis, rotate, radius, num_segments, draw_functions[axis], color,
         round(min_limit, 0), round(max_limit, 0)
     )
 
