@@ -397,7 +397,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         # draw limits
         if not obj_arm.hide and obj_arm.data.xray.display_bone_limits and \
                         bone.xray.exportable and obj_arm.mode == 'POSE':
-            if obj_arm.data.bones.active.name == bone.name:
+            if bone.select:
 
                 from .gl_utils import draw_joint_limits, matrix_to_buffer
 
@@ -405,7 +405,10 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 bgl.glEnable(bgl.GL_BLEND)
                 mat_translate = mathutils.Matrix.Translation(obj_arm.pose.bones[bone.name].matrix.to_translation())
                 mat_rotate = obj_arm.data.bones[bone.name].matrix_local.to_euler().to_matrix().to_4x4()
-                mat_rotate_parent = obj_arm.pose.bones[bone.parent.name].matrix_basis.to_euler().to_matrix().to_4x4()
+                if bone.parent:
+                    mat_rotate_parent = obj_arm.pose.bones[bone.parent.name].matrix_basis.to_euler().to_matrix().to_4x4()
+                else:
+                    mat_rotate_parent = mathutils.Matrix()
 
                 mat = obj_arm.matrix_world * mat_translate * (mat_rotate * mat_rotate_parent) \
                     * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
