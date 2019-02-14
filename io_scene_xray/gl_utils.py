@@ -62,7 +62,7 @@ def gen_limit_circle(radius, num_segments, fconsumer, color, min_limit, max_limi
     bgl.glColor4f(*color)
     bgl.glBegin(bgl.GL_LINE_STRIP)
     for _ in range(0, 181):
-        if _ > max_limit or _ < min_limit:
+        if _ > max_limit or _ <= min_limit:
             bgl.glColor4f(*grey_color)
         else:
             bgl.glColor4f(*color)
@@ -77,7 +77,7 @@ def gen_limit_circle(radius, num_segments, fconsumer, color, min_limit, max_limi
     bgl.glBegin(bgl.GL_LINE_STRIP)
     x, y = radius, 0
     for _ in range(0, 181):
-        if -_ > max_limit or -_ < min_limit:
+        if -_ >= max_limit or -_ < min_limit:
             bgl.glColor4f(*grey_color)
         else:
             bgl.glColor4f(*color)
