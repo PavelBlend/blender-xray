@@ -11,6 +11,8 @@ CONSTRAINT_NAME = '!-XRAY-JOINT-LIMITS'
 
 def update_limit(self, context):
     bone = context.object.data.bones.active
+    if bone is None:
+        return
     ik = bone.xray.ikjoint
     pose_bone = context.object.pose.bones[bone.name]
     constraint = pose_bone.constraints.get(CONSTRAINT_NAME, None)
@@ -106,6 +108,9 @@ class ConvertXRayLimitsToIKLimits(bpy.types.Operator):
             xray = bone.xray
             if bone.select:
                 pose_bone = obj.pose.bones[bone.name]
+                pose_bone.use_ik_limit_x = True
+                pose_bone.use_ik_limit_y = True
+                pose_bone.use_ik_limit_z = True
                 ik = xray.ikjoint
                 pose_bone.ik_min_x = math.radians(ik.lim_x_min)
                 pose_bone.ik_max_x = math.radians(ik.lim_x_max)
@@ -129,6 +134,9 @@ class ClearIKLimits(bpy.types.Operator):
             if bone.select:
                 pose_bone = obj.pose.bones[bone.name]
                 ik = xray.ikjoint
+                pose_bone.use_ik_limit_x = False
+                pose_bone.use_ik_limit_y = False
+                pose_bone.use_ik_limit_z = False
                 pose_bone.ik_min_x = -math.pi
                 pose_bone.ik_max_x = math.pi
                 pose_bone.ik_min_y = -math.pi
