@@ -349,6 +349,9 @@ class XRayArmaturePanel(XRayPanel):
             joint_limits.RemoveJointLimitsConstraints.bl_idname,
             icon='X'
         )
+        col.operator(
+            joint_limits.ConvertIKLimitsToXRayLimits.bl_idname
+        )
 
         lay = layout.column(align=True)
         lay.label('Fake Bones:')

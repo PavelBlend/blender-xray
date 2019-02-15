@@ -68,3 +68,25 @@ class RemoveJointLimitsConstraints(bpy.types.Operator):
                 if constraint:
                     pose_bone.constraints.remove(constraint)
         return {'FINISHED'}
+
+
+@registry.module_thing
+class ConvertIKLimitsToXRayLimits(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.convert_ik_to_xary_limits'
+    bl_label = 'Convert IK Limits to XRay Limits'
+    bl_description = 'Convert selected bones IK limits to XRay joint limits.'
+
+    def execute(self, context):
+        obj = context.object
+        for bone in obj.data.bones:
+            xray = bone.xray
+            if bone.select:
+                pose_bone = obj.pose.bones[bone.name]
+                ik = xray.ikjoint
+                ik.lim_x_min = math.degrees(pose_bone.ik_min_x)
+                ik.lim_x_max = math.degrees(pose_bone.ik_max_x)
+                ik.lim_y_min = math.degrees(pose_bone.ik_min_y)
+                ik.lim_y_max = math.degrees(pose_bone.ik_max_y)
+                ik.lim_z_min = math.degrees(pose_bone.ik_min_z)
+                ik.lim_z_max = math.degrees(pose_bone.ik_max_z)
+        return {'FINISHED'}
