@@ -72,7 +72,7 @@ class RemoveJointLimitsConstraints(bpy.types.Operator):
 
 @registry.module_thing
 class ConvertIKLimitsToXRayLimits(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.convert_ik_to_xary_limits'
+    bl_idname = 'io_scene_xray.convert_ik_to_xray_limits'
     bl_label = 'Convert IK Limits to XRay Limits'
     bl_description = 'Convert selected bones IK limits to XRay joint limits.'
 
@@ -89,4 +89,48 @@ class ConvertIKLimitsToXRayLimits(bpy.types.Operator):
                 ik.lim_y_max = math.degrees(pose_bone.ik_max_y)
                 ik.lim_z_min = math.degrees(pose_bone.ik_min_z)
                 ik.lim_z_max = math.degrees(pose_bone.ik_max_z)
+        return {'FINISHED'}
+
+
+@registry.module_thing
+class ConvertXRayLimitsToIKLimits(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.convert_xray_to_ik_limits'
+    bl_label = 'Convert XRay Limits to IK Limits'
+    bl_description = 'Convert selected bones XRay joint limits to IK limits.'
+
+    def execute(self, context):
+        obj = context.object
+        for bone in obj.data.bones:
+            xray = bone.xray
+            if bone.select:
+                pose_bone = obj.pose.bones[bone.name]
+                ik = xray.ikjoint
+                pose_bone.ik_min_x = math.radians(ik.lim_x_min)
+                pose_bone.ik_max_x = math.radians(ik.lim_x_max)
+                pose_bone.ik_min_y = math.radians(ik.lim_y_min)
+                pose_bone.ik_max_y = math.radians(ik.lim_y_max)
+                pose_bone.ik_min_z = math.radians(ik.lim_z_min)
+                pose_bone.ik_max_z = math.radians(ik.lim_z_max)
+        return {'FINISHED'}
+
+
+@registry.module_thing
+class ClearIKLimits(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.clear_ik_limits'
+    bl_label = 'Clear IK Limits'
+    bl_description = 'Clear selected bones IK limits.'
+
+    def execute(self, context):
+        obj = context.object
+        for bone in obj.data.bones:
+            xray = bone.xray
+            if bone.select:
+                pose_bone = obj.pose.bones[bone.name]
+                ik = xray.ikjoint
+                pose_bone.ik_min_x = -math.pi
+                pose_bone.ik_max_x = math.pi
+                pose_bone.ik_min_y = -math.pi
+                pose_bone.ik_max_y = math.pi
+                pose_bone.ik_min_z = -math.pi
+                pose_bone.ik_max_z = math.pi
         return {'FINISHED'}

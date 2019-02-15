@@ -333,14 +333,16 @@ class XRayArmaturePanel(XRayPanel):
                 icon='ERROR'
             )
         layout.prop(data, 'display_bone_shapes', toggle=True)
-        layout.prop(data, 'display_bone_limits', toggle=True)
+        box = layout.box()
+        box.label('Joint Limits:')
+        box.prop(data, 'display_bone_limits', toggle=True)
         if data.display_bone_limits:
-            layout.prop(data, 'display_bone_limits_radius')
-            row = layout.row(align=True)
+            box.prop(data, 'display_bone_limits_radius')
+            row = box.row(align=True)
             row.prop(data, 'display_bone_limit_x', toggle=True)
             row.prop(data, 'display_bone_limit_y', toggle=True)
             row.prop(data, 'display_bone_limit_z', toggle=True)
-        col = layout.column(align=True)
+        col = box.column(align=True)
         col.operator(
             joint_limits.ConvertJointLimitsToConstraints.bl_idname,
             icon='CONSTRAINT_BONE'
@@ -351,6 +353,12 @@ class XRayArmaturePanel(XRayPanel):
         )
         col.operator(
             joint_limits.ConvertIKLimitsToXRayLimits.bl_idname
+        )
+        col.operator(
+            joint_limits.ConvertXRayLimitsToIKLimits.bl_idname
+        )
+        col.operator(
+            joint_limits.ClearIKLimits.bl_idname
         )
 
         lay = layout.column(align=True)
