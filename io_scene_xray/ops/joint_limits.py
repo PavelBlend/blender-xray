@@ -33,7 +33,8 @@ class ConvertJointLimitsToConstraints(bpy.types.Operator):
     def execute(self, context):
         obj = context.object
         for bone in obj.data.bones:
-            if bone.select:
+            xray = bone.xray
+            if bone.select and xray.exportable and xray.ikjoint.type in {'2', '3', '5'}:
                 pose_bone = obj.pose.bones[bone.name]
                 constraint = pose_bone.constraints.new(type='LIMIT_ROTATION')
                 constraint.name = CONSTRAINT_NAME
@@ -42,7 +43,7 @@ class ConvertJointLimitsToConstraints(bpy.types.Operator):
                 constraint.use_limit_z = True
                 constraint.use_transform_limit = True
                 constraint.owner_space = 'LOCAL'
-                ik = bone.xray.ikjoint
+                ik = xray.ikjoint
                 constraint.min_x = math.radians(ik.lim_x_min)
                 constraint.max_x = math.radians(ik.lim_x_max)
                 constraint.min_y = math.radians(ik.lim_y_min)
