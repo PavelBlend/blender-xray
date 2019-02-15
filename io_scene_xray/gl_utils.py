@@ -106,6 +106,9 @@ def gen_limit_circle(axis, rotate, radius, num_segments, fconsumer, color, min_l
                 if rotate_int == _:
                     rotate_point_x = -x
                     rotate_point_y = y
+            elif rotate_int == 0:
+                rotate_point_x = -radius
+                rotate_point_y = 0
             elif rotate_int > 180:
                 rotate_point_x = radius
                 rotate_point_y = 0
