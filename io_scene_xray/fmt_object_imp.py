@@ -502,13 +502,13 @@ def _import_bone(context, creader, bpy_arm_obj, renamemap):
             ik = xray.ikjoint
             _safe_assign_enum_property(ik, 'type', value, 'bone ikjoint')
 
-            ik.lim_x_min, ik.lim_x_max = map(math.degrees, reader.getf('ff'))
+            ik.lim_x_min, ik.lim_x_max = reader.getf('ff')
             ik.lim_x_spr, ik.lim_x_dmp = reader.getf('ff')
 
-            ik.lim_y_min, ik.lim_y_max = map(math.degrees, reader.getf('ff'))
+            ik.lim_y_min, ik.lim_y_max = reader.getf('ff')
             ik.lim_y_spr, ik.lim_y_dmp = reader.getf('ff')
 
-            ik.lim_z_min, ik.lim_z_max = map(math.degrees, reader.getf('ff'))
+            ik.lim_z_min, ik.lim_z_max = reader.getf('ff')
             ik.lim_z_spr, ik.lim_z_dmp = reader.getf('ff')
 
             ik.spring = reader.getf('f')[0]
@@ -666,6 +666,7 @@ def _import_main(fpath, context, creader):
                 bpy_armature.draw_type = 'STICK'
                 bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
                 bpy_arm_obj.show_x_ray = True
+                bpy_armature.xray.joint_limits_type = 'XRAY'
                 bpy.context.scene.objects.link(bpy_arm_obj)
                 bpy.context.scene.objects.active = bpy_arm_obj
             if cid == Chunks.Object.BONES:

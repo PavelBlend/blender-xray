@@ -219,6 +219,8 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
             elif context.operation == 'CREATED':
                 self.version = context.plugin_version_number
                 self.root = context.thing.type == 'MESH'
+                if context.thing.type == 'ARMATURE':
+                    context.thing.data.xray.joint_limits_type = 'XRAY'
 
 
 class XRayMeshProperties(bpy.types.PropertyGroup):
@@ -253,6 +255,13 @@ class XRayMaterialProperties(bpy.types.PropertyGroup):
 class XRayArmatureProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Armature
     display_bone_shapes = bpy.props.BoolProperty(name='Display Bone Shapes', default=False)
+    joint_limit_type_items = (
+        ('IK', 'IK Limits', ''),
+        ('XRAY', 'X-Ray Limits', '')
+    )
+    joint_limits_type = bpy.props.EnumProperty(
+        items=joint_limit_type_items, name='Export Limits From', default='IK'
+    )
     display_bone_limits = bpy.props.BoolProperty(name='Display Bone Limits', default=False)
     display_bone_limits_radius = bpy.props.FloatProperty(name='Gizmo Radius', default=0.1, min=0.0)
     display_bone_limit_x = bpy.props.BoolProperty(name='Limit X', default=True)
@@ -355,18 +364,30 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             ('4', 'None', ''),
             ('5', 'Slider', '')))
 
-        lim_x_min = bpy.props.FloatProperty(min=-180.0, max=180, update=joint_limits.update_limit)
-        lim_x_max = bpy.props.FloatProperty(min=-180.0, max=180, update=joint_limits.update_limit)
+        lim_x_min = bpy.props.FloatProperty(
+            min=-180.0, max=180, update=joint_limits.update_limit, subtype='ANGLE'
+        )
+        lim_x_max = bpy.props.FloatProperty(
+            min=-180.0, max=180, update=joint_limits.update_limit, subtype='ANGLE'
+        )
         lim_x_spr = bpy.props.FloatProperty()
         lim_x_dmp = bpy.props.FloatProperty()
 
-        lim_y_min = bpy.props.FloatProperty(min=-180.0, max=180, update=joint_limits.update_limit)
-        lim_y_max = bpy.props.FloatProperty(min=-180.0, max=180, update=joint_limits.update_limit)
+        lim_y_min = bpy.props.FloatProperty(
+            min=-180.0, max=180, update=joint_limits.update_limit, subtype='ANGLE'
+        )
+        lim_y_max = bpy.props.FloatProperty(
+            min=-180.0, max=180, update=joint_limits.update_limit, subtype='ANGLE'
+        )
         lim_y_spr = bpy.props.FloatProperty()
         lim_y_dmp = bpy.props.FloatProperty()
 
-        lim_z_min = bpy.props.FloatProperty(min=-180.0, max=180, update=joint_limits.update_limit)
-        lim_z_max = bpy.props.FloatProperty(min=-180.0, max=180, update=joint_limits.update_limit)
+        lim_z_min = bpy.props.FloatProperty(
+            min=-180.0, max=180, update=joint_limits.update_limit, subtype='ANGLE'
+        )
+        lim_z_max = bpy.props.FloatProperty(
+            min=-180.0, max=180, update=joint_limits.update_limit, subtype='ANGLE'
+        )
         lim_z_spr = bpy.props.FloatProperty()
         lim_z_dmp = bpy.props.FloatProperty()
 

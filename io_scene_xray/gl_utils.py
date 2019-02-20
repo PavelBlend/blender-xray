@@ -141,7 +141,7 @@ def draw_joint_limits(rotate, min_limit, max_limit, axis, radius):
     num_segments = 360
     gen_limit_circle(
         axis, rotate, radius, num_segments, draw_functions[axis], color,
-        round(min_limit, 0), round(max_limit, 0)
+        round(math.degrees(min_limit), 0), round(math.degrees(max_limit), 0)
     )
 
 

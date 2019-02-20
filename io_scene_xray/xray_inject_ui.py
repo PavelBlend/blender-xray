@@ -335,6 +335,7 @@ class XRayArmaturePanel(XRayPanel):
         layout.prop(data, 'display_bone_shapes', toggle=True)
         box = layout.box()
         box.label('Joint Limits:')
+        box.prop(data, 'joint_limits_type')
         box.prop(data, 'display_bone_limits', toggle=True)
         if data.display_bone_limits:
             box.prop(data, 'display_bone_limits_radius')

@@ -261,15 +261,26 @@ def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
                .putf('f', xray.shape.cyl_rad))
     pose_bone = bpy_arm_obj.pose.bones[bpy_bone.name]
     ik = xray.ikjoint
-    writer.put(Chunks.Bone.IK_JOINT, PackedWriter()
-               .putf('I', int(ik.type))
-               .putf('ff', math.radians(ik.lim_x_min), math.radians(ik.lim_x_max))
-               .putf('ff', ik.lim_x_spr, ik.lim_x_dmp)
-               .putf('ff', math.radians(ik.lim_y_min), math.radians(ik.lim_y_max))
-               .putf('ff', ik.lim_y_spr, ik.lim_y_dmp)
-               .putf('ff', math.radians(ik.lim_z_min), math.radians(ik.lim_z_max))
-               .putf('ff', ik.lim_z_spr, ik.lim_z_dmp)
-               .putf('ff', ik.spring, ik.damping))
+    if bpy_arm_obj.data.xray.joint_limits_type == 'XRAY':
+        writer.put(Chunks.Bone.IK_JOINT, PackedWriter()
+                .putf('I', int(ik.type))
+                .putf('ff', ik.lim_x_min, ik.lim_x_max)
+                .putf('ff', ik.lim_x_spr, ik.lim_x_dmp)
+                .putf('ff', ik.lim_y_min, ik.lim_y_max)
+                .putf('ff', ik.lim_y_spr, ik.lim_y_dmp)
+                .putf('ff', ik.lim_z_min, ik.lim_z_max)
+                .putf('ff', ik.lim_z_spr, ik.lim_z_dmp)
+                .putf('ff', ik.spring, ik.damping))
+    else:
+        writer.put(Chunks.Bone.IK_JOINT, PackedWriter()
+                .putf('I', int(ik.type))
+                .putf('ff', pose_bone.ik_min_x, pose_bone.ik_max_x)
+                .putf('ff', ik.lim_x_spr, ik.lim_x_dmp)
+                .putf('ff', pose_bone.ik_min_y, pose_bone.ik_max_y)
+                .putf('ff', ik.lim_y_spr, ik.lim_y_dmp)
+                .putf('ff', pose_bone.ik_min_z, pose_bone.ik_max_z)
+                .putf('ff', ik.lim_z_spr, ik.lim_z_dmp)
+                .putf('ff', ik.spring, ik.damping))
     if xray.ikflags:
         writer.put(Chunks.Bone.IK_FLAGS, PackedWriter().putf('I', xray.ikflags))
         if xray.ikflags_breakable:
