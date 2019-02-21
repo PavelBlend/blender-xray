@@ -86,7 +86,12 @@ def update_motion_collection_index(self, context):
     if not xray.play_active_motion:
         return
 
-    motion = bpy.data.actions[xray.motions_collection[xray.motions_collection_index].name]
+    motion_name = xray.motions_collection[xray.motions_collection_index].name
+
+    if not bpy.data.actions.get(motion_name):
+        return
+
+    motion = bpy.data.actions[motion_name]
     anim_data = obj.animation_data_create()
     anim_data.action = motion
     scene.frame_start = motion.frame_range[0]
