@@ -78,6 +78,22 @@ def gen_other_flags_prop(mask):
     return bpy.props.IntProperty(get=getter, set=setter, options={'SKIP_SAVE'})
 
 
+def update_motion_collection_index(self, context):
+    scene = context.scene
+    obj = context.object
+    xray = obj.xray
+
+    if not xray.play_active_motion:
+        return
+
+    motion = bpy.data.actions[xray.motions_collection[xray.motions_collection_index].name]
+    anim_data = obj.animation_data_create()
+    anim_data.action = motion
+    scene.frame_start = motion.frame_range[0]
+    scene.frame_end = motion.frame_range[1]
+    scene.frame_set(motion.frame_range[0])
+
+
 @registry.requires(XRayObjectRevisionProperties, 'MotionRef')
 class XRayObjectProperties(bpy.types.PropertyGroup):
     class MotionRef(bpy.types.PropertyGroup):
@@ -199,8 +215,11 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
         description='!Legacy: use \'motions_collection\' instead'
     )
     motions_collection = bpy.props.CollectionProperty(type=MotionRef)
-    motions_collection_index = bpy.props.IntProperty(options={'SKIP_SAVE'})
+    motions_collection_index = bpy.props.IntProperty(
+        options={'SKIP_SAVE'}, update=update_motion_collection_index
+    )
     show_motions = bpy.props.BoolProperty(description='View motions', options={'SKIP_SAVE'})
+    play_active_motion = bpy.props.BoolProperty(name='Play Active Motion', default=False)
 
     helper_data = bpy.props.StringProperty()
     export_path = bpy.props.StringProperty(
