@@ -7,6 +7,7 @@ from .ops import fake_bones
 from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl, \
     is_helper_object
 from . import registry
+from . import plugin
 from . import details
 from . import verify
 
@@ -59,7 +60,7 @@ class XRayPanel(bpy.types.Panel):
     bl_region_type = 'WINDOW'
 
     def draw_header(self, _context):
-        self.layout.label(icon='PLUGIN')
+        self.layout.label(icon_value=plugin.get_stalker_icon())
 
 
 @registry.module_thing
@@ -363,6 +364,7 @@ class XRayBonePanel(XRayPanel):
         layout = self.layout
         bone = context.active_object.data.bones[context.active_bone.name]
         data = bone.xray
+        layout.label(icon_value=plugin.get_stalker_icon())
         layout.prop(data, 'exportable', text='')
 
     def draw(self, context):

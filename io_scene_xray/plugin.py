@@ -2,6 +2,7 @@ import os.path
 import re
 
 import bpy
+import bpy.utils.previews
 from bpy_extras import io_utils
 
 from . import xray_inject
@@ -724,27 +725,32 @@ def scene_update_post(_):
 
 #noinspection PyUnusedLocal
 def menu_func_import(self, _context):
-    self.layout.operator(OpImportObject.bl_idname, text='X-Ray object (.object)')
-    self.layout.operator(OpImportAnm.bl_idname, text='X-Ray animation (.anm)')
-    self.layout.operator(OpImportSkl.bl_idname, text='X-Ray skeletal animation (.skl, .skls)')
+    icon = get_stalker_icon()
+    self.layout.operator(OpImportObject.bl_idname, text='X-Ray object (.object)', icon_value=icon)
+    self.layout.operator(OpImportAnm.bl_idname, text='X-Ray animation (.anm)', icon_value=icon)
+    self.layout.operator(OpImportSkl.bl_idname, text='X-Ray skeletal animation (.skl, .skls)', icon_value=icon)
 
 
 def menu_func_export(self, _context):
-    self.layout.operator(OpExportObjects.bl_idname, text='X-Ray object (.object)')
-    self.layout.operator(OpExportAnm.bl_idname, text='X-Ray animation (.anm)')
-    self.layout.operator(OpExportSkls.bl_idname, text='X-Ray animation (.skls)')
+    icon = get_stalker_icon()
+    self.layout.operator(OpExportObjects.bl_idname, text='X-Ray object (.object)', icon_value=icon)
+    self.layout.operator(OpExportAnm.bl_idname, text='X-Ray animation (.anm)', icon_value=icon)
+    self.layout.operator(OpExportSkls.bl_idname, text='X-Ray animation (.skls)', icon_value=icon)
 
 
 def menu_func_export_ogf(self, _context):
-    self.layout.operator(OpExportOgf.bl_idname, text='X-Ray game object (.ogf)')
+    icon = get_stalker_icon()
+    self.layout.operator(OpExportOgf.bl_idname, text='X-Ray game object (.ogf)', icon_value=icon)
 
 
 def menu_func_xray_import(self, _context):
-    self.layout.menu(XRayImportMenu.bl_idname)
+    icon = get_stalker_icon()
+    self.layout.menu(XRayImportMenu.bl_idname, icon_value=icon)
 
 
 def menu_func_xray_export(self, _context):
-    self.layout.menu(XRayExportMenu.bl_idname)
+    icon = get_stalker_icon()
+    self.layout.menu(XRayExportMenu.bl_idname, icon_value=icon)
 
 
 def append_menu_func():
@@ -777,7 +783,23 @@ registry.module_requires(__name__, [
 ])
 
 
+preview_collections = {}
+STALKER_ICON_NAME = 'stalker'
+
+
+def get_stalker_icon():
+    pcoll = preview_collections['main']
+    icon = pcoll[STALKER_ICON_NAME]
+    return icon.icon_id
+
+
 def register():
+    # load icon
+    pcoll = bpy.utils.previews.new()
+    icons_dir = os.path.join(os.path.dirname(__file__), 'icons')
+    pcoll.load(STALKER_ICON_NAME, os.path.join(icons_dir, 'stalker.png'), 'IMAGE')
+    preview_collections['main'] = pcoll
+
     scene.operators.register_operators()
     details.operators.register_operators()
     registry.register_thing(err.operators, __name__)
@@ -802,3 +824,8 @@ def unregister():
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.types.INFO_MT_file_import.remove(menu_func_xray_import)
     bpy.types.INFO_MT_file_export.remove(menu_func_xray_export)
+
+    # remove icon
+    for pcoll in preview_collections.values():
+        bpy.utils.previews.remove(pcoll)
+    preview_collections.clear()
