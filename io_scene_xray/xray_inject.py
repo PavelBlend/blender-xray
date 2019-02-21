@@ -425,7 +425,8 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         arm_xray = obj_arm.data.xray
         if not obj_arm.hide and arm_xray.display_bone_limits and \
                         bone.xray.exportable and obj_arm.mode == 'POSE':
-            if bone.select and bone.xray.ikjoint.type in {'2', '3', '5'}:
+            if bone.select and bone.xray.ikjoint.type in {'2', '3', '5'} and \
+                    bpy.context.object.name == obj_arm.name:
 
                 from .gl_utils import draw_joint_limits, matrix_to_buffer
 
