@@ -96,6 +96,7 @@ def _bone_matrix(bone):
     elif xsh.type == '2':  # sphere
         mat *= _v2ms((xsh.sph_rad, xsh.sph_rad, xsh.sph_rad))
     elif xsh.type == '3':  # cylinder
+        mat *= mathutils.Matrix.Scale(-1, 4, (0, 0.5, 0.5))
         mat *= _v2ms((xsh.cyl_rad, xsh.cyl_rad, xsh.cyl_hgh * 0.5))
     else:
         raise AssertionError('unsupported bone shape type: ' + xsh.type)
