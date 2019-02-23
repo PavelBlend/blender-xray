@@ -55,11 +55,13 @@ def import_motion(reader, bpy_armature, bonesmap, reported, motions_filter=MOTIO
                     val = reader.getf('f')[0]
                     time = reader.getf('f')[0] * fps
                     times[time] = True
-                    fcurve.keyframe_points.insert(time, val)
+                    key_frame = fcurve.keyframe_points.insert(time, val)
                     shape = Shape(reader.getf('B')[0])
                     if shape != Shape.STEPPED:
                         reader.getf('HHH')
                         reader.getf('HHHH')
+                    else:
+                        key_frame.interpolation = 'CONSTANT'
             bpy_bone = bpy_armature.data.bones.get(bname, None)
             if bpy_bone is None:
                 bpy_bone = bonesmap.get(bname.lower(), None)
