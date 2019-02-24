@@ -48,6 +48,7 @@ class TestBoneEditHelpers(XRayTestCase):
         self.assertTrue(_has_nonzero(bone.xray.shape.box_hsz), msg='has box_hsz')
         scale = bone.xray.shape.get_matrix_basis().to_scale().to_tuple()
         self.assertGreater(scale, (0.999, 0.999, 0.999), msg='close to 1:1 scale')
+        self.assertLess(reapply_max_difference(bone.xray.shape), 0.1, msg='box reapplies almost the same')
 
         bone.xray.shape.type = '2'
         op_edit()
@@ -58,6 +59,7 @@ class TestBoneEditHelpers(XRayTestCase):
         self.assertLess(helper.location.length, 0.1, msg='fit shape sphere location')
         bpy.ops.io_scene_xray.edit_bone_shape_apply()
         self.assertGreater(bone.xray.shape.sph_rad, 0.01, msg='has sph_rad')
+        self.assertLess(reapply_max_difference(bone.xray.shape), 0.1, msg='sphere reapplies almost the same')
 
         op_edit()
         bone.xray.shape.type = '3'
@@ -67,8 +69,8 @@ class TestBoneEditHelpers(XRayTestCase):
         bpy.ops.io_scene_xray.edit_bone_shape_fit()
         self.assertLess(helper.location.length, 0.1, msg='fit shape cylinder location')
         bpy.ops.io_scene_xray.edit_bone_shape_apply()
-        bpy.context.scene.update()
         self.assertGreater(bone.xray.shape.cyl_hgh, 0.01, msg='has cyl_hgh')
+        self.assertLess(reapply_max_difference(bone.xray.shape), 0.1, msg='cylinder reapplies almost the same')
 
         op_edit()
         self.assertIsNotNone(get_object_helper(bpy.context), msg='anedit helper again')
@@ -135,3 +137,20 @@ def _has_nonzero(vec):
 
 def round_vec(vec, ndigits):
     return tuple((round(val, ndigits) for val in vec))
+
+def reapply_max_difference(shape):
+    def shape_to_plain(sh):
+        return [
+            *sh.box_rot, *sh.box_trn, *sh.box_hsz,
+            *sh.sph_pos, sh.sph_rad,
+            *sh.cyl_dir, sh.cyl_hgh, sh.cyl_rad,
+        ]
+
+    old = shape_to_plain(shape)
+    bpy.ops.io_scene_xray.edit_bone_shape()
+    bpy.ops.io_scene_xray.edit_bone_shape_apply()
+    new = shape_to_plain(shape)
+    result = 0
+    for o, n in zip(old, new):
+        result = max(result, abs(o - n))
+    return result
