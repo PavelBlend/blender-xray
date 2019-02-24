@@ -6,6 +6,7 @@ import mathutils
 
 from io_scene_xray import registry, utils
 from .base_bone import AbstractBoneEditHelper
+from ..xray_motions import MATRIX_BONE_INVERTED
 
 
 class _BoneShapeEditHelper(AbstractBoneEditHelper):
@@ -96,6 +97,7 @@ def _bone_matrix(bone):
     elif xsh.type == '2':  # sphere
         mat *= _v2ms((xsh.sph_rad, xsh.sph_rad, xsh.sph_rad))
     elif xsh.type == '3':  # cylinder
+        mat *= MATRIX_BONE_INVERTED
         mat *= _v2ms((xsh.cyl_rad, xsh.cyl_rad, xsh.cyl_hgh * 0.5))
     else:
         raise AssertionError('unsupported bone shape type: ' + xsh.type)
