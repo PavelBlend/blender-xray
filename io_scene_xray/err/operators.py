@@ -35,4 +35,4 @@ def register():
 
 
 def unregister():
-    pass
+    bpy.types.INFO_MT_file_import.remove(menu_func_import)
