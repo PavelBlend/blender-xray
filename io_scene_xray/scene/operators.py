@@ -3,6 +3,7 @@ import bpy
 from bpy_extras import io_utils
 
 from .. import utils
+from .. import plugin
 
 
 class OpExportLevelScene(bpy.types.Operator, io_utils.ExportHelper):
@@ -44,7 +45,12 @@ class OpExportLevelScene(bpy.types.Operator, io_utils.ExportHelper):
 
 
 def menu_func_export(self, context):
-    self.layout.operator(OpExportLevelScene.bl_idname, text='X-Ray level scene (.level)')
+    icon = plugin.get_stalker_icon()
+    self.layout.operator(
+        OpExportLevelScene.bl_idname,
+        text='X-Ray level scene (.level)',
+        icon_value=icon
+        )
 
 
 def register_operators():

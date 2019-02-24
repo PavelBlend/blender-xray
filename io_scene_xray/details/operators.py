@@ -350,15 +350,20 @@ class PackDetailsImages(bpy.types.Operator):
 
 
 def menu_func_import(self, context):
+    icon = plugin.get_stalker_icon()
     self.layout.operator(
-        OpImportDM.bl_idname, text='X-Ray details (.dm, .details)'
+        OpImportDM.bl_idname, text='X-Ray details (.dm, .details)',
+        icon_value=icon
         )
 
 
 def menu_func_export(self, context):
-    self.layout.operator(OpExportDMs.bl_idname, text='X-Ray detail model (.dm)')
+    icon = plugin.get_stalker_icon()
     self.layout.operator(
-        OpExportLevelDetails.bl_idname, text='X-Ray level details (.details)'
+        OpExportDMs.bl_idname, text='X-Ray detail model (.dm)', icon_value=icon)
+    self.layout.operator(
+        OpExportLevelDetails.bl_idname, text='X-Ray level details (.details)',
+        icon_value=icon
         )
 
 
