@@ -138,6 +138,7 @@ class XRayObjectPanel(XRayPanel):
                 'Motions (%d)' % len(data.motions_collection)
             )
             if box:
+                box.prop(data, 'play_active_motion', toggle=True, icon='PLAY')
                 row = box.row()
                 row.template_list(
                     'XRayMotionList', 'name',
