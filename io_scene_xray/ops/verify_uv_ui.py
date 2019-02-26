@@ -1,7 +1,7 @@
 
 import bpy
 
-from . import uv
+from . import verify_uv
 
 
 class XRayVerifyToolsPanel(bpy.types.Panel):
@@ -16,4 +16,4 @@ class XRayVerifyToolsPanel(bpy.types.Panel):
     def draw(self, context):
         data = context.scene.xray
         layout = self.layout
-        layout.operator(uv.XRayVerifyUVOperator.bl_idname, icon='GROUP_UVS')
+        layout.operator(verify_uv.XRayVerifyUVOperator.bl_idname, icon='GROUP_UVS')

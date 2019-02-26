@@ -3,13 +3,12 @@ import bpy
 from .edit_helpers import base as base_edit_helper, bone_shape, bone_center
 from .plugin_prefs import get_preferences
 from .ui import dynamic_menu, list_helper, collapsible
-from .ops import fake_bones
+from .ops import fake_bones, verify_uv, verify_uv_ui
 from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl, \
     is_helper_object
 from . import registry
 from . import plugin
 from . import details
-from . import verify
 
 
 def _build_label(subtext=''):
@@ -614,6 +613,6 @@ registry.module_requires(__name__, [
     , XRayScenePanel
     , XRayColorizeMaterials
     , XRayMaterialToolsPanel
-    , verify.uv.XRayVerifyUVOperator
-    , verify.ui.XRayVerifyToolsPanel
+    , verify_uv.XRayVerifyUVOperator
+    , verify_uv_ui.XRayVerifyToolsPanel
 ])
