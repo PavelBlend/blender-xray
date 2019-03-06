@@ -36,93 +36,45 @@ def draw_wire_cube(hsx, hsy, hsz):
 
 
 # pylint: disable=C0103
-def gen_circle(radius, num_segments, fconsumer):
-    theta = 2.0 * math.pi / num_segments
+def gen_arc(radius, start, end, num_segments, fconsumer, close=False):
+    theta = (end - start) / num_segments
     cos_th, sin_th = math.cos(theta), math.sin(theta)
-    x, y = radius, 0
+    x, y = radius * math.cos(start), radius * math.sin(start)
     for _ in range(num_segments):
         fconsumer(x, y)
         _ = x
         x = x * cos_th - y * sin_th
         y = _ * sin_th + y * cos_th
+    if close:
+        fconsumer(x, y)
 
 
 # pylint: disable=C0103
-def gen_limit_circle(axis, rotate, radius, num_segments, fconsumer, color, min_limit, max_limit):
-    theta = 2.0 * math.pi / num_segments
-    cos_th, sin_th = math.cos(theta), math.sin(theta)
-    cos_min = math.cos(math.radians(min_limit))
-    sin_min = math.sin(math.radians(min_limit))
+def gen_circle(radius, num_segments, fconsumer):
+    gen_arc(radius, 0, 2.0 * math.pi, num_segments, fconsumer)
 
-    bgl.glLineWidth(2)
+
+# pylint: disable=C0103
+def gen_limit_circle(rotate, radius, num_segments, fconsumer, color, min_limit, max_limit):
+    def gen_arc_vary(radius, start, end):
+        num_segs = math.ceil(num_segments * abs(end - start) / (math.pi * 2.0))
+        if num_segs:
+            gen_arc(radius, start, end, num_segs, fconsumer, close=True)
+
     grey_color = (0.5, 0.5, 0.5, 0.8)
 
-    rotate_point_x = None
-    rotate_point_y = None
-
-    # positive arc
-    bgl.glColor4f(*color)
+    bgl.glLineWidth(2)
     bgl.glBegin(bgl.GL_LINE_STRIP)
-    x, y = radius, 0
-    for _ in range(0, 181):
-        if _ > max_limit or _ <= min_limit:
-            bgl.glColor4f(*grey_color)
-        else:
-            bgl.glColor4f(*color)
-        fconsumer(-x, -y)
-
-        if rotate >= 0.0:
-            rotate_int = abs(int(round(rotate, 0)))
-            if 0 < rotate_int <= 180:
-                if rotate_int == _:
-                    rotate_point_x = -x
-                    rotate_point_y = -y
-            elif rotate_int == 0:
-                rotate_point_x = -radius
-                rotate_point_y = 0
-            else:
-                rotate_point_x = radius
-                rotate_point_y = 0
-
-        _ = x
-        x = x * cos_th - y * sin_th
-        y = _ * sin_th + y * cos_th
-    bgl.glEnd()
-
-    # negative arc
     bgl.glColor4f(*color)
-    bgl.glBegin(bgl.GL_LINE_STRIP)
-    x, y = radius, 0
-    for _ in range(0, 181):
-        if -_ >= max_limit or -_ < min_limit:
-            bgl.glColor4f(*grey_color)
-        else:
-            bgl.glColor4f(*color)
-        fconsumer(-x, y)
-
-        if rotate < 0.0:
-            rotate_int = abs(int(round(rotate, 0)))
-            if 0 < rotate_int <= 180:
-                if rotate_int == _:
-                    rotate_point_x = -x
-                    rotate_point_y = y
-            elif rotate_int == 0:
-                rotate_point_x = -radius
-                rotate_point_y = 0
-            elif rotate_int > 180:
-                rotate_point_x = radius
-                rotate_point_y = 0
-
-        _ = x
-        x = x * cos_th - y * sin_th
-        y = _ * sin_th + y * cos_th
+    gen_arc_vary(radius, min_limit, max_limit)
+    bgl.glColor4f(*grey_color)
+    gen_arc_vary(radius, max_limit, 2.0 * math.pi + min_limit)
     bgl.glEnd()
 
     bgl.glPointSize(6)
     bgl.glColor4f(1.0, 1.0, 0.0, 1.0)
     bgl.glBegin(bgl.GL_POINTS)
-    if rotate_point_x is not None and rotate_point_y is not None:
-        fconsumer(rotate_point_x, rotate_point_y)
+    gen_arc(radius, rotate, rotate + 1, 1, fconsumer)
     bgl.glEnd()
 
 
@@ -138,10 +90,9 @@ def draw_joint_limits(rotate, min_limit, max_limit, axis, radius):
         'Z': (lambda x, y: bgl.glVertex3f(-x, -y, 0))
     }
     color = colors[axis]
-    num_segments = 360
     gen_limit_circle(
-        axis, rotate, radius, num_segments, draw_functions[axis], color,
-        round(math.degrees(min_limit), 0), round(math.degrees(max_limit), 0)
+        rotate, radius, 24, draw_functions[axis], color,
+        min_limit, max_limit
     )
 
 

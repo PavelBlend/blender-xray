@@ -1,5 +1,4 @@
 import io
-import math
 
 import bmesh
 import bpy

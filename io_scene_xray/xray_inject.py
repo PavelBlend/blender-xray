@@ -1,5 +1,4 @@
 import time
-import math
 
 import bgl
 import bpy
@@ -449,19 +448,19 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
 
                 if arm_xray.display_bone_limit_x:
                     draw_joint_limits(
-                        math.degrees(rotate.x), ik.lim_x_min, ik.lim_x_max, 'X',
+                        rotate.x, ik.lim_x_min, ik.lim_x_max, 'X',
                         arm_xray.display_bone_limits_radius
                     )
 
                 if arm_xray.display_bone_limit_y:
                     draw_joint_limits(
-                        math.degrees(rotate.y), ik.lim_y_min, ik.lim_y_max, 'Y',
+                        rotate.y, ik.lim_y_min, ik.lim_y_max, 'Y',
                         arm_xray.display_bone_limits_radius
                     )
 
                 if arm_xray.display_bone_limit_z:
                     draw_joint_limits(
-                        math.degrees(rotate.z), ik.lim_z_min, ik.lim_z_max, 'Z',
+                        rotate.z, ik.lim_z_min, ik.lim_z_max, 'Z',
                         arm_xray.display_bone_limits_radius
                     )
 
