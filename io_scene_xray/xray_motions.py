@@ -241,12 +241,20 @@ def _take_motion_data(bpy_act, bpy_armature, prepared_bones):
             chs[channel.array_index] = channel
 
         def evaluate_channels(channels, time):
+            print(type(channels[0]))
             return (channel.evaluate(time) if channel else 0 for channel in channels)
 
+        scene = bpy.context.scene
+        old_current_frame = scene.frame_current
         for time in range(int(frange[0]), int(frange[1]) + 1):
-            mat = xmat * Matrix.Translation(evaluate_channels(chs_tr, time)) \
-                * frotmatrix(evaluate_channels(chs_rt, time)).to_4x4()
+            if not is_root:
+                mat = xmat * Matrix.Translation(evaluate_channels(chs_tr, time)) \
+                    * frotmatrix(evaluate_channels(chs_rt, time)).to_4x4()
+            else:
+                scene.frame_set(time)
+                mat = MATRIX_BONE_INVERTED * bone.matrix
             data.append(mat)
+        scene.frame_set(old_current_frame)
 
     return result
 
