@@ -3,7 +3,7 @@ import bpy
 from .edit_helpers import base as base_edit_helper, bone_shape, bone_center
 from .plugin_prefs import get_preferences
 from .ui import dynamic_menu, list_helper, collapsible
-from .ops import fake_bones, verify_uv, verify_uv_ui
+from .ops import fake_bones, verify_uv, verify_uv_ui, joint_limits
 from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, parse_gamemtl, \
     is_helper_object
 from . import registry
@@ -334,6 +334,34 @@ class XRayArmaturePanel(XRayPanel):
                 icon='ERROR'
             )
         layout.prop(data, 'display_bone_shapes', toggle=True)
+        box = layout.box()
+        box.label('Joint Limits:')
+        box.prop(data, 'joint_limits_type')
+        box.prop(data, 'display_bone_limits', toggle=True)
+        if data.display_bone_limits:
+            box.prop(data, 'display_bone_limits_radius')
+            row = box.row(align=True)
+            row.prop(data, 'display_bone_limit_x', toggle=True)
+            row.prop(data, 'display_bone_limit_y', toggle=True)
+            row.prop(data, 'display_bone_limit_z', toggle=True)
+        col = box.column(align=True)
+        col.operator(
+            joint_limits.ConvertJointLimitsToConstraints.bl_idname,
+            icon='CONSTRAINT_BONE'
+        )
+        col.operator(
+            joint_limits.RemoveJointLimitsConstraints.bl_idname,
+            icon='X'
+        )
+        col.operator(
+            joint_limits.ConvertIKLimitsToXRayLimits.bl_idname
+        )
+        col.operator(
+            joint_limits.ConvertXRayLimitsToIKLimits.bl_idname
+        )
+        col.operator(
+            joint_limits.ClearIKLimits.bl_idname
+        )
 
         lay = layout.column(align=True)
         lay.label('Fake Bones:')
@@ -400,14 +428,23 @@ class XRayBonePanel(XRayPanel):
         col.prop(data.ikjoint, 'damping', text='Damping')
         col = box.column(align=True)
         col.label('Limit X:')
+        row = col.row(align=True)
+        row.prop(data.ikjoint, 'lim_x_min', 'Min')
+        row.prop(data.ikjoint, 'lim_x_max', 'Max')
         col.prop(data.ikjoint, 'lim_x_spr', 'Spring')
         col.prop(data.ikjoint, 'lim_x_dmp', 'Damping')
         col = box.column(align=True)
         col.label('Limit Y:')
+        row = col.row(align=True)
+        row.prop(data.ikjoint, 'lim_y_min', 'Min')
+        row.prop(data.ikjoint, 'lim_y_max', 'Max')
         col.prop(data.ikjoint, 'lim_y_spr', 'Spring')
         col.prop(data.ikjoint, 'lim_y_dmp', 'Damping')
         col = box.column(align=True)
         col.label('Limit Z:')
+        row = col.row(align=True)
+        row.prop(data.ikjoint, 'lim_z_min', 'Min')
+        row.prop(data.ikjoint, 'lim_z_max', 'Max')
         col.prop(data.ikjoint, 'lim_z_spr', 'Spring')
         col.prop(data.ikjoint, 'lim_z_dmp', 'Damping')
         col = box.column(align=True)
@@ -600,6 +637,7 @@ class XRayMaterialToolsPanel(bpy.types.Panel):
 registry.module_requires(__name__, [
     collapsible,
     fake_bones,
+    joint_limits,
     XRayObjectPanel
     , XRayMeshPanel
     , XRayEditHelperObjectPanel

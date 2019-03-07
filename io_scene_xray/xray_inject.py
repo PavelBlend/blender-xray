@@ -15,6 +15,7 @@ from .details.types import (
     XRayObjectDetailsSlotsMeshesProperties
     )
 from . import registry
+from .ops import joint_limits
 
 
 def _gen_time_prop(prop, description=''):
@@ -241,6 +242,8 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
             elif context.operation == 'CREATED':
                 self.version = context.plugin_version_number
                 self.root = context.thing.type == 'MESH'
+                if context.thing.type == 'ARMATURE':
+                    context.thing.data.xray.joint_limits_type = 'XRAY'
 
 
 class XRayMeshProperties(bpy.types.PropertyGroup):
@@ -275,6 +278,18 @@ class XRayMaterialProperties(bpy.types.PropertyGroup):
 class XRayArmatureProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Armature
     display_bone_shapes = bpy.props.BoolProperty(name='Display Bone Shapes', default=False)
+    joint_limit_type_items = (
+        ('IK', 'IK Limits', ''),
+        ('XRAY', 'X-Ray Limits', '')
+    )
+    joint_limits_type = bpy.props.EnumProperty(
+        items=joint_limit_type_items, name='Export Limits From', default='IK'
+    )
+    display_bone_limits = bpy.props.BoolProperty(name='Display Bone Limits', default=False)
+    display_bone_limits_radius = bpy.props.FloatProperty(name='Gizmo Radius', default=0.1, min=0.0)
+    display_bone_limit_x = bpy.props.BoolProperty(name='Limit X', default=True)
+    display_bone_limit_y = bpy.props.BoolProperty(name='Limit Y', default=True)
+    display_bone_limit_z = bpy.props.BoolProperty(name='Limit Z', default=True)
 
     def check_different_version_bones(self):
         from functools import reduce
@@ -371,12 +386,34 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             ('3', 'Wheel', ''),
             ('4', 'None', ''),
             ('5', 'Slider', '')))
+
+        lim_x_min = bpy.props.FloatProperty(
+            min=-180.0, max=180, update=joint_limits.update_limit, subtype='ANGLE'
+        )
+        lim_x_max = bpy.props.FloatProperty(
+            min=-180.0, max=180, update=joint_limits.update_limit, subtype='ANGLE'
+        )
         lim_x_spr = bpy.props.FloatProperty()
         lim_x_dmp = bpy.props.FloatProperty()
+
+        lim_y_min = bpy.props.FloatProperty(
+            min=-180.0, max=180, update=joint_limits.update_limit, subtype='ANGLE'
+        )
+        lim_y_max = bpy.props.FloatProperty(
+            min=-180.0, max=180, update=joint_limits.update_limit, subtype='ANGLE'
+        )
         lim_y_spr = bpy.props.FloatProperty()
         lim_y_dmp = bpy.props.FloatProperty()
+
+        lim_z_min = bpy.props.FloatProperty(
+            min=-180.0, max=180, update=joint_limits.update_limit, subtype='ANGLE'
+        )
+        lim_z_max = bpy.props.FloatProperty(
+            min=-180.0, max=180, update=joint_limits.update_limit, subtype='ANGLE'
+        )
         lim_z_spr = bpy.props.FloatProperty()
         lim_z_dmp = bpy.props.FloatProperty()
+
         spring = bpy.props.FloatProperty()
         damping = bpy.props.FloatProperty()
         is_rigid = bpy.props.BoolProperty(get=lambda self: self.type == '0')
@@ -407,7 +444,55 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
     mass = bpy.props.PointerProperty(type=MassProperties)
 
     def ondraw_postview(self, obj_arm, bone):
-        if obj_arm.hide or not obj_arm.data.xray.display_bone_shapes or not bone.xray.exportable:
+        # draw limits
+        arm_xray = obj_arm.data.xray
+        if not obj_arm.hide and arm_xray.display_bone_limits and \
+                        bone.xray.exportable and obj_arm.mode == 'POSE':
+            if bone.select and bone.xray.ikjoint.type in {'2', '3', '5'} and \
+                    bpy.context.object.name == obj_arm.name:
+
+                from .gl_utils import draw_joint_limits, matrix_to_buffer
+
+                bgl.glPushMatrix()
+                bgl.glEnable(bgl.GL_BLEND)
+                mat_translate = mathutils.Matrix.Translation(obj_arm.pose.bones[bone.name].matrix.to_translation())
+                mat_rotate = obj_arm.data.bones[bone.name].matrix_local.to_euler().to_matrix().to_4x4()
+                if bone.parent:
+                    mat_rotate_parent = obj_arm.pose.bones[bone.parent.name].matrix_basis.to_euler().to_matrix().to_4x4()
+                else:
+                    mat_rotate_parent = mathutils.Matrix()
+
+                mat = obj_arm.matrix_world * mat_translate * (mat_rotate * mat_rotate_parent) \
+                    * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+                bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
+
+                rotate = obj_arm.pose.bones[bone.name].rotation_euler
+
+                ik = bone.xray.ikjoint
+
+                if arm_xray.display_bone_limit_x:
+                    draw_joint_limits(
+                        rotate.x, ik.lim_x_min, ik.lim_x_max, 'X',
+                        arm_xray.display_bone_limits_radius
+                    )
+
+                if arm_xray.display_bone_limit_y:
+                    draw_joint_limits(
+                        rotate.y, ik.lim_y_min, ik.lim_y_max, 'Y',
+                        arm_xray.display_bone_limits_radius
+                    )
+
+                if arm_xray.display_bone_limit_z:
+                    draw_joint_limits(
+                        rotate.z, ik.lim_z_min, ik.lim_z_max, 'Z',
+                        arm_xray.display_bone_limits_radius
+                    )
+
+                bgl.glPopMatrix()
+
+        # draw shapes
+        if obj_arm.hide or not obj_arm.data.xray.display_bone_shapes or \
+                        not bone.xray.exportable or obj_arm.mode == 'EDIT':
             return
 
         if not obj_arm.name in bpy.context.scene.objects:
