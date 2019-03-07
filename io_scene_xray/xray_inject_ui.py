@@ -375,6 +375,39 @@ class XRayArmaturePanel(XRayPanel):
         )
 
 
+BONE_TEXT_JOINT = []
+for axis in ('X', 'Y', 'Z'):
+    BONE_TEXT_JOINT.append((
+        'Limit {}'.format(axis),
+        ('Min', 'Max'),
+        'Spring',
+        'Damping'
+    ))
+
+BONE_TEXT_WHEEL = (('Steer', ('Limit Min', 'Limit Max')), )
+
+BONE_TEXT_SLIDER = []
+for transform in ('Slide', 'Rotate'):
+    BONE_TEXT_SLIDER.append(
+        ('{} Axis Z'.format(transform), ('Limits Min', 'Limits Max'), 'Spring', 'Damping')
+    )
+
+BONE_TEXT = {
+    2: BONE_TEXT_JOINT,
+    3: BONE_TEXT_WHEEL,
+    5: BONE_TEXT_SLIDER
+}
+
+BONE_PROPS = []
+for axis in ('x', 'y', 'z'):
+    BONE_PROPS.extend((
+        'lim_{}_min'.format(axis),
+        'lim_{}_max'.format(axis),
+        'lim_{}_spr'.format(axis),
+        'lim_{}_dmp'.format(axis)
+    ))
+
+
 @registry.requires(dynamic_menu, bone_shape, bone_center)
 class XRayBonePanel(XRayPanel):
     bl_context = 'bone'
@@ -421,32 +454,31 @@ class XRayBonePanel(XRayPanel):
         row.prop(data.shape, 'flags_nofogcollider', text='No Fog Collider', toggle=True)
         box = layout.box()
         box.prop(data.ikjoint, 'type', text='Joint Type')
-        if int(data.ikjoint.type):
-            box.prop(data, 'friction')
-        col = box.column(align=True)
-        col.prop(data.ikjoint, 'spring', text='Spring')
-        col.prop(data.ikjoint, 'damping', text='Damping')
-        col = box.column(align=True)
-        col.label('Limit X:')
-        row = col.row(align=True)
-        row.prop(data.ikjoint, 'lim_x_min', 'Min')
-        row.prop(data.ikjoint, 'lim_x_max', 'Max')
-        col.prop(data.ikjoint, 'lim_x_spr', 'Spring')
-        col.prop(data.ikjoint, 'lim_x_dmp', 'Damping')
-        col = box.column(align=True)
-        col.label('Limit Y:')
-        row = col.row(align=True)
-        row.prop(data.ikjoint, 'lim_y_min', 'Min')
-        row.prop(data.ikjoint, 'lim_y_max', 'Max')
-        col.prop(data.ikjoint, 'lim_y_spr', 'Spring')
-        col.prop(data.ikjoint, 'lim_y_dmp', 'Damping')
-        col = box.column(align=True)
-        col.label('Limit Z:')
-        row = col.row(align=True)
-        row.prop(data.ikjoint, 'lim_z_min', 'Min')
-        row.prop(data.ikjoint, 'lim_z_max', 'Max')
-        col.prop(data.ikjoint, 'lim_z_spr', 'Spring')
-        col.prop(data.ikjoint, 'lim_z_dmp', 'Damping')
+        joint_type = int(data.ikjoint.type)
+
+        if joint_type and joint_type != 4:    # 4 - None type
+            if joint_type == 3:    # Wheel
+                box.label('Steer-X / Roll-Z')
+            box.prop(data, 'friction', text='Friction')
+            col = box.column(align=True)
+            col.prop(data.ikjoint, 'spring', text='Spring')
+            col.prop(data.ikjoint, 'damping', text='Damping')
+
+            if joint_type > 1:
+                prop_index = 0
+                for text in BONE_TEXT[joint_type]:
+                    col = box.column(align=True)
+                    col.label(text[0])
+                    for prop_text in text[1 : ]:
+                        if type(prop_text) == tuple:
+                            row = col.row(align=True)
+                            for property_text in prop_text:
+                                row.prop(data.ikjoint, BONE_PROPS[prop_index], property_text)
+                                prop_index += 1
+                        else:
+                            col.prop(data.ikjoint, BONE_PROPS[prop_index], prop_text)
+                            prop_index += 1
+
         col = box.column(align=True)
         col.prop(data, 'ikflags_breakable', 'Breakable', toggle=True)
         if data.ikflags_breakable:
