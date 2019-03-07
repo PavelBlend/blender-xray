@@ -241,7 +241,6 @@ def _take_motion_data(bpy_act, bpy_armature, prepared_bones):
             chs[channel.array_index] = channel
 
         def evaluate_channels(channels, time):
-            print(type(channels[0]))
             return (channel.evaluate(time) if channel else 0 for channel in channels)
 
         scene = bpy.context.scene
