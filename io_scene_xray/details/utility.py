@@ -1,18 +1,19 @@
 
 import bpy
-from ..utils import AppError
+
+from .. import utils
 
 
 def _get_image(bpy_obj, xray_prop, prop_name):
 
     if xray_prop == '':
-        raise AppError(
+        raise utils.AppError(
             'object "{0}" has no "{1}"'.format(bpy_obj.name, prop_name)
             )
 
     bpy_image = bpy.data.images.get(xray_prop)
     if bpy_image is None:
-        raise AppError(
+        raise utils.AppError(
             'cannot find "{0}" image: "{1}"'.format(
                 prop_name, xray_prop
                 )
@@ -24,13 +25,13 @@ def _get_image(bpy_obj, xray_prop, prop_name):
 def _get_object(bpy_obj, xray_prop, prop_name):
 
     if xray_prop == '':
-        raise AppError(
+        raise utils.AppError(
             'object "{0}" has no "{1}"'.format(bpy_obj.name, prop_name)
             )
 
     bpy_object = bpy.data.objects.get(xray_prop)
     if bpy_object is None:
-        raise AppError(
+        raise utils.AppError(
             'cannot find "{0}": "{1}"'.format(
                 prop_name, xray_prop
                 )
@@ -41,7 +42,7 @@ def _get_object(bpy_obj, xray_prop, prop_name):
 
 def _validate_object_type(bpy_obj, obj_type, prop_name):
     if bpy_obj.type != obj_type:
-        raise AppError('"{0}" must be of type "{1}"'.format(prop_name, obj_type))
+        raise utils.AppError('"{0}" must be of type "{1}"'.format(prop_name, obj_type))
 
 
 def gen_meshes_color_indices_table(detail_models_count, format_version=3):

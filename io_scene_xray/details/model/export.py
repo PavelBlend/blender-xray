@@ -1,21 +1,19 @@
 
 import io
+
 import bpy
 import bmesh
 import mathutils
 
-from ...utils import (
-    convert_object_to_space_bmesh, AppError
-    )
-
-from ...xray_io import PackedWriter
-from .validate import validate_export_object
-from .format_ import VERTICES_COUNT_LIMIT
+from ... import utils
+from ... import xray_io
+from . import validate
+from . import format_
 
 
 def export(bpy_obj, packed_writer, context, mode='DM'):
 
-    bpy_material, tx_name = validate_export_object(context, bpy_obj)
+    bpy_material, tx_name = validate.validate_export_object(context, bpy_obj)
 
     det_model = bpy_obj.xray.detail.model
     packed_writer.puts(bpy_material.xray.eshader)
@@ -24,12 +22,12 @@ def export(bpy_obj, packed_writer, context, mode='DM'):
     packed_writer.putf('<ff', det_model.min_scale, det_model.max_scale)
 
     if mode == 'DM':
-        b_mesh = convert_object_to_space_bmesh(
+        b_mesh = utils.convert_object_to_space_bmesh(
             bpy_obj, mathutils.Matrix.Identity(4)
             )
 
     else:
-        b_mesh = convert_object_to_space_bmesh(
+        b_mesh = utils.convert_object_to_space_bmesh(
             bpy_obj, mathutils.Matrix.Identity(4), local=True
             )
 
@@ -68,11 +66,11 @@ def export(bpy_obj, packed_writer, context, mode='DM'):
             indices.append(_)
 
     vertices_count = len(vertices)
-    if vertices_count > VERTICES_COUNT_LIMIT:
-        raise AppError(
+    if vertices_count > format_.VERTICES_COUNT_LIMIT:
+        raise utils.AppError(
             'mesh "' + bpy_obj.data.name + \
-            '" has too many vertices. Must be no more than {}'.format(
-                VERTICES_COUNT_LIMIT
+            '" has too many vertices: {}. Must be no more than {}'.format(
+                vertices_count, format_.VERTICES_COUNT_LIMIT
                 )
             )
 
@@ -92,6 +90,6 @@ def export(bpy_obj, packed_writer, context, mode='DM'):
 
 def export_file(bpy_obj, fpath, context):
     with io.open(fpath, 'wb') as file:
-        packed_writer = PackedWriter()
+        packed_writer = xray_io.PackedWriter()
         export(bpy_obj, packed_writer, context)
         file.write(packed_writer.data)

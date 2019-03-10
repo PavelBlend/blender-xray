@@ -1,17 +1,18 @@
 
 import io
 import os
-from ...xray_io import PackedReader
-from .create import create_object, search_material, create_mesh
-from .format_ import DetailModel
+
+from ... import xray_io
+from . import create
+from . import format_
 
 
 def import_(fpath, context, packed_reader, mode='DM', detail_index=None, detail_colors=None):
 
-    det_model = DetailModel()
+    det_model = format_.DetailModel()
 
     object_name = os.path.basename(fpath.lower())
-    bpy_obj, bpy_mesh = create_object(object_name)
+    bpy_obj, bpy_mesh = create.create_object(object_name)
 
     det_model.shader = packed_reader.gets()
     det_model.texture = packed_reader.gets()
@@ -19,7 +20,7 @@ def import_(fpath, context, packed_reader, mode='DM', detail_index=None, detail_
     det_model.mesh.bpy_mesh = bpy_mesh
 
     context.os = os
-    bpy_material = search_material(context, det_model, fpath=fpath)
+    bpy_material = create.search_material(context, det_model, fpath=fpath)
 
     det_model.mesh.bpy_mesh.materials.append(bpy_material)
     det_model.mesh.bpy_material = bpy_material
@@ -39,11 +40,11 @@ def import_(fpath, context, packed_reader, mode='DM', detail_index=None, detail_
         model.index = detail_index
         model.color = detail_colors[detail_index][0:3]
 
-    create_mesh(packed_reader, det_model)
+    create.create_mesh(packed_reader, det_model)
 
     return bpy_obj
 
 
 def import_file(fpath, context):
     with io.open(fpath, 'rb') as file:
-        import_(fpath, context, PackedReader(file.read()))
+        import_(fpath, context, xray_io.PackedReader(file.read()))

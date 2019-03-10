@@ -1,51 +1,49 @@
 
-from ..xray_io import PackedWriter, ChunkedWriter
-from ..utils import AppError
-
-from .format_ import (
-    Chunks, PIXELS_OFFSET_1, PIXELS_OFFSET_2, DETAIL_MODEL_COUNT_LIMIT
-    )
+from .. import xray_io
+from .. import utils
+from . import format_
+from . import model
+from . import convert
+from . import utility
 
 
 def write_details(chunked_writer, lvl_dets, context):
 
-    dm_cw = ChunkedWriter()
+    dm_cw = xray_io.ChunkedWriter()
 
     meshes_object = lvl_dets.meshes_object
     dm_count = len(meshes_object.children)
 
     if dm_count == 0:
-        raise AppError(
+        raise utils.AppError(
             'Meshes Object "' + meshes_object.name + '" has no children'
             )
 
-    if dm_count > DETAIL_MODEL_COUNT_LIMIT:
-        raise AppError(
+    if dm_count > format_.DETAIL_MODEL_COUNT_LIMIT:
+        raise utils.AppError(
             'Meshes Object "' + meshes_object.name + '" has too many children: {0}. ' \
             'Not more than {1}.'.format(
-                dm_count, DETAIL_MODEL_COUNT_LIMIT
+                dm_count, format_.DETAIL_MODEL_COUNT_LIMIT
                 )
             )
-
-    from .model import export
 
     dm_pws = {}
     dm_indices = [0 for _ in range(dm_count)]
     for detail_model in meshes_object.children:
 
         if detail_model.type != 'MESH':
-            raise AppError(
+            raise utils.AppError(
                 'Meshes Object "' + meshes_object.name + \
                 '" has incorrect child object type: {0}. ' \
                 'Child object type must be "MESH"'.format(detail_model.type)
                 )
 
-        packed_writer = PackedWriter()
-        export.export(detail_model, packed_writer, context, mode='DETAILS')
+        packed_writer = xray_io.PackedWriter()
+        model.export.export(detail_model, packed_writer, context, mode='DETAILS')
         dm_index = detail_model.xray.detail.model.index
 
         if dm_index >= dm_count:
-            raise AppError(
+            raise utils.AppError(
                 'Meshes Object "' + detail_model.name + \
                 '" has incorrect "Detail Index": {0}. ' \
                 'Must be less than {1}'.format(dm_index, dm_count)
@@ -58,13 +56,13 @@ def write_details(chunked_writer, lvl_dets, context):
     for dm_index, count in enumerate(dm_indices):
         if count == 0:
 
-            raise AppError('not detail model with index {0}'.format(
+            raise utils.AppError('not detail model with index {0}'.format(
                 dm_index
                 ))
 
         elif count > 1:
 
-            raise AppError('duplicated index {0} in detail models'.format(
+            raise utils.AppError('duplicated index {0} in detail models'.format(
                 dm_index
                 ))
 
@@ -72,23 +70,20 @@ def write_details(chunked_writer, lvl_dets, context):
         packed_writer = dm_pws[dm_index]
         dm_cw.put(dm_index, packed_writer)
 
-    chunked_writer.put(Chunks.MESHES, dm_cw)
+    chunked_writer.put(format_.Chunks.MESHES, dm_cw)
 
 
 def write_header(chunked_writer, lvl_dets):
-    packed_writer = PackedWriter()
+    packed_writer = xray_io.PackedWriter()
     packed_writer.putf('<I', lvl_dets.format_version)
     packed_writer.putf('<I', len(lvl_dets.meshes_object.children))    # meshes count
     packed_writer.putf('<ii', lvl_dets.slots_offset_x, lvl_dets.slots_offset_y)
     packed_writer.putf('<II', lvl_dets.slots_size_x, lvl_dets.slots_size_y)
-    chunked_writer.put(Chunks.HEADER, packed_writer)
+    chunked_writer.put(format_.Chunks.HEADER, packed_writer)
 
 
 def write_slots_v3(chunked_writer, lvl_dets):
-
-    from .convert import slot_location_to_slot_index
-
-    packed_writer = PackedWriter()
+    packed_writer = xray_io.PackedWriter()
     base_slots_poly = lvl_dets.slots_base_object.data.polygons
     top_slots_poly = lvl_dets.slots_top_object.data.polygons
     slots = {}
@@ -101,11 +96,11 @@ def write_slots_v3(chunked_writer, lvl_dets):
         polygon_base = base_slots_poly[slot_index]
         polygon_top = top_slots_poly[slot_index]
 
-        slot_index_base = slot_location_to_slot_index(
+        slot_index_base = convert.slot_location_to_slot_index(
             lvl_dets, polygon_base.center
             )
 
-        slot_index_top = slot_location_to_slot_index(
+        slot_index_top = convert.slot_location_to_slot_index(
             lvl_dets, polygon_top.center
             )
 
@@ -131,10 +126,7 @@ def write_slots_v3(chunked_writer, lvl_dets):
         list(lvl_dets.mesh_3.pixels)
         ]
 
-    from .utility import gen_meshes_color_indices_table
-    from .convert import pixel_color_to_density
-
-    color_indices = gen_meshes_color_indices_table(
+    color_indices = utility.gen_meshes_color_indices_table(
         len(lvl_dets.meshes_object.children)
         )
 
@@ -217,10 +209,10 @@ def write_slots_v3(chunked_writer, lvl_dets):
                 ), 63)
 
             density = (
-                pixel_color_to_density(lvl_dets, meshes_pixels[0], coord_x, coord_y),
-                pixel_color_to_density(lvl_dets, meshes_pixels[1], coord_x, coord_y),
-                pixel_color_to_density(lvl_dets, meshes_pixels[2], coord_x, coord_y),
-                pixel_color_to_density(lvl_dets, meshes_pixels[3], coord_x, coord_y)
+                convert.pixel_color_to_density(lvl_dets, meshes_pixels[0], coord_x, coord_y),
+                convert.pixel_color_to_density(lvl_dets, meshes_pixels[1], coord_x, coord_y),
+                convert.pixel_color_to_density(lvl_dets, meshes_pixels[2], coord_x, coord_y),
+                convert.pixel_color_to_density(lvl_dets, meshes_pixels[3], coord_x, coord_y)
                 )
 
             slot = slots[slot_index]
@@ -238,17 +230,11 @@ def write_slots_v3(chunked_writer, lvl_dets):
 
             slot_index += 1
 
-    chunked_writer.put(Chunks.SLOTS, packed_writer)
+    chunked_writer.put(format_.Chunks.SLOTS, packed_writer)
 
 
 def write_slots_v2(chunked_writer, lvl_dets):
-
-    from .convert import slot_location_to_slot_index
-    from .convert import (
-        pixel_color_to_density, pixel_color_to_light
-        )
-
-    packed_writer = PackedWriter()
+    packed_writer = xray_io.PackedWriter()
     base_slots_poly = lvl_dets.slots_base_object.data.polygons
     top_slots_poly = lvl_dets.slots_top_object.data.polygons
     slots = {}
@@ -261,11 +247,11 @@ def write_slots_v2(chunked_writer, lvl_dets):
         polygon_base = base_slots_poly[slot_index]
         polygon_top = top_slots_poly[slot_index]
 
-        slot_index_base = slot_location_to_slot_index(
+        slot_index_base = convert.slot_location_to_slot_index(
             lvl_dets, polygon_base.center
             )
 
-        slot_index_top = slot_location_to_slot_index(
+        slot_index_top = convert.slot_location_to_slot_index(
             lvl_dets, polygon_top.center
             )
 
@@ -281,9 +267,7 @@ def write_slots_v2(chunked_writer, lvl_dets):
         list(lvl_dets.mesh_3.pixels)
         ]
 
-    from .utility import gen_meshes_color_indices_table
-
-    color_indices = gen_meshes_color_indices_table(
+    color_indices = utility.gen_meshes_color_indices_table(
         len(lvl_dets.meshes_object.children), format_version=2
         )
 
@@ -291,9 +275,9 @@ def write_slots_v2(chunked_writer, lvl_dets):
     color_step = 1.0 / 21
 
     if lvl_dets.old_format == 1:
-        pixels_offset = PIXELS_OFFSET_1
+        pixels_offset = format_.PIXELS_OFFSET_1
     elif lvl_dets.old_format == 2:
-        pixels_offset = PIXELS_OFFSET_2
+        pixels_offset = format_.PIXELS_OFFSET_2
 
     for coord_y in range(lvl_dets.slots_size_y):
         for coord_x in range(lvl_dets.slots_size_x):
@@ -321,7 +305,7 @@ def write_slots_v2(chunked_writer, lvl_dets):
 
                 packed_writer.putf('<B', mesh_id)
 
-                density = pixel_color_to_density(
+                density = convert.pixel_color_to_density(
                     lvl_dets,
                     meshes_pixels[mesh_index],
                     coord_x,
@@ -330,10 +314,10 @@ def write_slots_v2(chunked_writer, lvl_dets):
 
                 packed_writer.putf('<H', density)
 
-            lighting = pixel_color_to_light(
+            lighting = convert.pixel_color_to_light(
                 lvl_dets, lights_pixels, coord_x, coord_y, pixels_offset
                 )
 
             packed_writer.putf('<H', lighting)
 
-    chunked_writer.put(Chunks.SLOTS, packed_writer)
+    chunked_writer.put(format_.Chunks.SLOTS, packed_writer)

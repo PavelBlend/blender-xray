@@ -1,7 +1,9 @@
 
 import bpy
 import bmesh
-from ...xray_io import PackedReader
+
+from ... import xray_io
+from ... import utils
 
 
 def create_object(object_name):
@@ -169,16 +171,13 @@ def reconstruct_mesh(vertices, uvs, triangles):
 
 
 def create_mesh(packed_reader, det_model):
-
-    from ...utils import AppError
-
     if det_model.mesh.indices_count % 3 != 0:
-        raise AppError('bad dm triangle indices')
+        raise utils.AppError('bad dm triangle indices')
 
     b_mesh = bmesh.new()
 
     # read vertices coordinates and uvs
-    S_FFFFF = PackedReader.prep('fffff')
+    S_FFFFF = xray_io.PackedReader.prep('fffff')
     vertices = []
     uvs = []
     for _ in range(det_model.mesh.vertices_count):
@@ -187,7 +186,7 @@ def create_mesh(packed_reader, det_model):
         uvs.append((vertex[3], vertex[4]))
 
     # read triangles indices
-    S_HHH = PackedReader.prep('HHH')
+    S_HHH = xray_io.PackedReader.prep('HHH')
     triangles = []
     for _ in range(det_model.mesh.indices_count // 3):
         face_indices = packed_reader.getp(S_HHH)
