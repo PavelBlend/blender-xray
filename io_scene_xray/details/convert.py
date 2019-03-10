@@ -1,11 +1,11 @@
 
 from ..utils import AppError
-from .fmt import PIXELS_OFFSET_1, DENSITY_DEPTH
+from .format_ import PIXELS_OFFSET_1, DENSITY_DEPTH
 
 
 def bpy_data_to_lvl_dets_struct(context, bpy_obj):
 
-    from .fmt import LevelDetails
+    from .format_ import LevelDetails
     from .utility import _get_object, _get_image, _validate_object_type
 
     slots = bpy_obj.xray.detail.slots

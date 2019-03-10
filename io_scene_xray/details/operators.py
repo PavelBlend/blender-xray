@@ -58,7 +58,7 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
             return {'CANCELLED'}
 
         from . import model
-        from . import imp
+        from . import import_
         from ..fmt_object_imp import ImportContext
 
         import_context = ImportContext(
@@ -79,13 +79,13 @@ class OpImportDM(bpy.types.Operator, io_utils.ImportHelper):
                 ext = os.path.splitext(file.name)[-1].lower()
 
                 if ext == '.dm':
-                    model.imp.import_file(
+                    model.import_.import_file(
                         os.path.join(self.directory, file.name),
                         import_context
                         )
 
                 elif ext == '.details':
-                    imp.import_file(
+                    import_.import_file(
                         os.path.join(self.directory, file.name),
                         import_context
                         )
@@ -142,7 +142,7 @@ class OpExportDMs(bpy.types.Operator):
                     name += '.dm'
                 path = self.directory
 
-                from .model.exp import export_file
+                from .model.export import export_file
 
                 export_context = plugin._mk_export_context(
                     self.texture_name_from_image_path
@@ -200,7 +200,7 @@ class OpExportDM(bpy.types.Operator, io_utils.ExportHelper):
 
     def export(self, bpy_obj, context):
 
-        from .model.exp import export_file
+        from .model.export import export_file
 
         export_context = plugin._mk_export_context(
             self.texture_name_from_image_path
@@ -293,7 +293,7 @@ class OpExportLevelDetails(bpy.types.Operator, io_utils.ExportHelper):
 
     def export(self, bpy_obj, context):
 
-        from .exp import export_file
+        from .export import export_file
 
         export_context = plugin._mk_export_context(
             self.texture_name_from_image_path

@@ -4,7 +4,7 @@ import io
 
 import bpy
 
-from .fmt import Chunks, SUPPORT_FORMAT_VERSIONS, HEADER_SIZE
+from .format_ import Chunks, SUPPORT_FORMAT_VERSIONS, HEADER_SIZE
 from ..utils import AppError
 from ..xray_io import ChunkedReader, PackedReader
 from .utility import generate_color_indices

@@ -1,8 +1,8 @@
 
 import bpy
 from ..xray_io import PackedReader
-from .fmt import DetailsHeader
-from .model import imp
+from .format_ import DetailsHeader
+from .model import import_
 from .create import create_pallete, create_images, create_details_slots_object
 
 
@@ -38,7 +38,7 @@ def read_details_meshes(fpath, base_name, context, chunked_reader, color_indices
         packed_reader = PackedReader(mesh_data)
         fpath_mesh = '{0} mesh_{1:0>2}'.format(fpath, mesh_id)
 
-        bpy_obj_mesh = imp.import_(
+        bpy_obj_mesh = import_.import_(
             fpath_mesh, context, packed_reader, mode='DETAILS',
             detail_index=mesh_id, detail_colors=color_indices
             )
@@ -62,7 +62,7 @@ def read_details_slots(base_name, context, packed_reader, header, color_indices,
         [1.0 for _ in range(header.slots_count * 4 * 4)] for _ in range(4)
         ]
 
-    from .fmt import PIXELS_OFFSET_1, PIXELS_OFFSET_2
+    from .format_ import PIXELS_OFFSET_1, PIXELS_OFFSET_2
 
     if header.format_version == 3:
 

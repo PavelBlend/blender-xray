@@ -2,7 +2,7 @@
 from ..xray_io import PackedWriter, ChunkedWriter
 from ..utils import AppError
 
-from .fmt import (
+from .format_ import (
     Chunks, PIXELS_OFFSET_1, PIXELS_OFFSET_2, DETAIL_MODEL_COUNT_LIMIT
     )
 
@@ -27,7 +27,7 @@ def write_details(chunked_writer, lvl_dets, context):
                 )
             )
 
-    from .model import exp
+    from .model import export
 
     dm_pws = {}
     dm_indices = [0 for _ in range(dm_count)]
@@ -41,7 +41,7 @@ def write_details(chunked_writer, lvl_dets, context):
                 )
 
         packed_writer = PackedWriter()
-        exp.export(detail_model, packed_writer, context, mode='DETAILS')
+        export.export(detail_model, packed_writer, context, mode='DETAILS')
         dm_index = detail_model.xray.detail.model.index
 
         if dm_index >= dm_count:

@@ -3,7 +3,7 @@ import io
 import os
 from ...xray_io import PackedReader
 from .create import create_object, search_material, create_mesh
-from .fmt import DetailModel
+from .format_ import DetailModel
 
 
 def import_(fpath, context, packed_reader, mode='DM', detail_index=None, detail_colors=None):
