@@ -79,11 +79,11 @@ def export(bpy_obj, packed_writer, context, mode='DM'):
 
     for vtx in vertices:
         packed_writer.putf(
-            '<fffff', vtx[0][0], vtx[0][2], vtx[0][1], vtx[1][0], vtx[1][1]
+            '<5f', vtx[0][0], vtx[0][2], vtx[0][1], vtx[1][0], vtx[1][1]
             )
 
     for tris in indices:
-        packed_writer.putf('<HHH', tris[0], tris[2], tris[1])
+        packed_writer.putf('<3H', tris[0], tris[2], tris[1])
 
     bpy.data.meshes.remove(bpy_data)
 

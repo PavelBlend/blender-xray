@@ -10,7 +10,9 @@ def validate_export_object(context, bpy_obj):
     material_count = len(bpy_obj.material_slots)
 
     if material_count == 0:
-        raise utils.AppError('mesh "' + bpy_obj.data.name + '" has no material')
+        raise utils.AppError(
+            'mesh "' + bpy_obj.data.name + '" has no material'
+        )
 
     elif material_count > 1:
         raise utils.AppError(
@@ -36,9 +38,11 @@ def validate_export_object(context, bpy_obj):
 
         if bpy_texture.type == 'IMAGE':
             if context.texname_from_path:
-                tx_name = utils.gen_texture_name(bpy_texture, context.textures_folder)
+                texture_name = utils.gen_texture_name(
+                    bpy_texture, context.textures_folder
+                )
             else:
-                tx_name = bpy_texture.name
+                texture_name = bpy_texture.name
 
         else:
             raise utils.AppError(
@@ -47,6 +51,8 @@ def validate_export_object(context, bpy_obj):
                 )
 
     else:
-        raise utils.AppError('material "' + bpy_material.name + '" has no texture')
+        raise utils.AppError(
+            'material "' + bpy_material.name + '" has no texture'
+        )
 
-    return bpy_material, tx_name
+    return bpy_material, texture_name

@@ -7,7 +7,8 @@ from . import create
 from . import format_
 
 
-def import_(fpath, context, packed_reader, mode='DM', detail_index=None, detail_colors=None):
+def import_(fpath, context, packed_reader, mode='DM', detail_index=None,
+        detail_colors=None):
 
     det_model = format_.DetailModel()
 
@@ -25,7 +26,8 @@ def import_(fpath, context, packed_reader, mode='DM', detail_index=None, detail_
     det_model.mesh.bpy_mesh.materials.append(bpy_material)
     det_model.mesh.bpy_material = bpy_material
 
-    flags, min_scale, max_scale, verts_cnt, indices_cnt = packed_reader.getf('<IffII')
+    flags, min_scale, max_scale, verts_cnt, indices_cnt = \
+        packed_reader.getf('<IffII')
 
     det_model.mesh.vertices_count = verts_cnt
     det_model.mesh.indices_count = indices_cnt
