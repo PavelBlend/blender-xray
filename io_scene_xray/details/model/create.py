@@ -1,138 +1,187 @@
 
+import os
+
 import bpy
 import bmesh
-from ...xray_io import PackedReader
+
+from ... import xray_io
+from ... import utils
 
 
 def create_object(object_name):
     bpy_mesh = bpy.data.meshes.new(object_name)
-    bpy_obj = bpy.data.objects.new(object_name, bpy_mesh)
-    bpy_obj.xray.is_details = True
-    bpy.context.scene.objects.link(bpy_obj)
-    return bpy_obj, bpy_mesh
+    bpy_object = bpy.data.objects.new(object_name, bpy_mesh)
+    bpy_object.xray.is_details = True
+    bpy.context.scene.objects.link(bpy_object)
+
+    return bpy_object, bpy_mesh
 
 
-def create_empty_image(context, det_model, abs_image_path):
+def create_empty_image(context, detail_model, absolute_image_path):
     bpy_image = bpy.data.images.new(
-        context.os.path.basename(det_model.texture) + '.dds', 0, 0
+        os.path.basename(detail_model.texture) + '.dds', 0, 0
         )
 
     bpy_image.source = 'FILE'
-    bpy_image.filepath = abs_image_path
+    bpy_image.filepath = absolute_image_path
     bpy_image.use_alpha = True
+
     return bpy_image
+
+
+def check_estimated_material(material, det_model):
+    if not material.name.startswith(det_model.texture):
+        return False
+
+    if material.xray.eshader != det_model.shader:
+        return False
+
+    return True
+
+
+def check_estimated_material_texture(material, det_model):
+    texture_filepart = det_model.texture.replace('\\', os.path.sep)
+    texture_found = False
+
+    for texture_slot in material.texture_slots:
+
+        if not texture_slot:
+            continue
+
+        if texture_slot.uv_layer != det_model.mesh.uv_map_name:
+            continue
+
+        if not hasattr(texture_slot.texture, 'image'):
+            continue
+
+        if not texture_slot.texture.image:
+            continue
+
+        if not texture_filepart in texture_slot.texture.image.filepath:
+            continue
+
+        texture_found = True
+
+        break
+
+    return texture_found
+
+
+def find_bpy_texture(det_model, abs_image_path):
+    bpy_texture = bpy.data.textures.get(det_model.texture)
+
+    if bpy_texture:
+        if not hasattr(bpy_texture, 'image'):
+            bpy_texture = None
+        elif not bpy_texture.image:
+            bpy_texture = None
+        elif bpy_texture.image.filepath != abs_image_path:
+            bpy_texture = None
+
+    return bpy_texture
+
+
+def create_bpy_image(det_model, abs_image_path):
+    try:
+        bpy_image = bpy.data.images.load(abs_image_path)
+
+    except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+
+        if det_model.mode == 'DETAILS':
+            try:
+                abs_image_path = os.path.abspath(
+                    os.path.join(
+                        os.path.dirname(det_model.fpath),
+                        det_model.texture + '.dds'
+                ))
+                bpy_image = bpy.data.images.load(abs_image_path)
+            except RuntimeError as ex:
+                det_model.context.report({'WARNING'}, str(ex))
+                bpy_image = create_empty_image(
+                    det_model.context, det_model, abs_image_path
+                )
+
+        else:
+            det_model.context.report({'WARNING'}, str(ex))
+            bpy_image = create_empty_image(
+                det_model.context, det_model, abs_image_path
+            )
+
+    return bpy_image
+
+
+def find_bpy_image(det_model, abs_image_path):
+    bpy_image = None
+
+    for image in bpy.data.images:
+        if abs_image_path == image.filepath:
+            bpy_image = image
+            break
+
+    if not bpy_image:
+        bpy_image = create_bpy_image(det_model, abs_image_path)
+
+    return bpy_image
+
+
+def create_bpy_texture(det_model, bpy_material, abs_image_path):
+    bpy_texture = bpy.data.textures.new(
+        det_model.texture, type='IMAGE'
+    )
+    bpy_texture.use_preview_alpha = True
+    bpy_texture_slot = bpy_material.texture_slots.add()
+    bpy_texture_slot.texture = bpy_texture
+    bpy_texture_slot.texture_coords = 'UV'
+    bpy_texture_slot.uv_layer = det_model.mesh.uv_map_name
+    bpy_texture_slot.use_map_color_diffuse = True
+    bpy_texture_slot.use_map_alpha = True
+    bpy_image = find_bpy_image(det_model, abs_image_path)
+    bpy_texture.image = bpy_image
+
+
+def create_material(det_model, abs_image_path):
+    bpy_material = bpy.data.materials.new(det_model.texture)
+    bpy_material.xray.eshader = det_model.shader
+    bpy_material.use_shadeless = True
+    bpy_material.use_transparency = True
+    bpy_material.alpha = 0.0
+
+    bpy_texture = find_bpy_texture(det_model, abs_image_path)
+
+    if bpy_texture is None:
+        create_bpy_texture(det_model, bpy_material, abs_image_path)
+    else:
+        bpy_texture_slot = bpy_material.texture_slots.add()
+        bpy_texture_slot.texture = bpy_texture
+
+    return bpy_material
 
 
 def search_material(context, det_model, fpath=None):
 
-    abs_image_path = context.os.path.abspath(
-        context.os.path.join(context.textures_folder, det_model.texture + '.dds')
-        )
+    abs_image_path = os.path.abspath(os.path.join(
+            context.textures_folder, det_model.texture + '.dds'
+    ))
 
     bpy_material = None
     bpy_image = None
     bpy_texture = None
+    det_model.fpath = fpath
+    det_model.context = context
 
     for material in bpy.data.materials:
 
-        if not material.name.startswith(det_model.texture):
+        if not check_estimated_material(material, det_model):
             continue
 
-        if material.xray.eshader != det_model.shader:
-            continue
-
-        tx_filepart = det_model.texture.replace('\\', context.os.path.sep)
-        ts_found = False
-
-        for texture_slot in material.texture_slots:
-
-            if not texture_slot:
-                continue
-
-            if texture_slot.uv_layer != det_model.mesh.uv_map_name:
-                continue
-
-            if not hasattr(texture_slot.texture, 'image'):
-                continue
-
-            if not texture_slot.texture.image:
-                continue
-
-            if not tx_filepart in texture_slot.texture.image.filepath:
-                continue
-
-            ts_found = True
-
-            break
-
-        if not ts_found:
+        if not check_estimated_material_texture(material, det_model):
             continue
 
         bpy_material = material
         break
 
     if not bpy_material:
-
-        bpy_material = bpy.data.materials.new(det_model.texture)
-        bpy_material.xray.eshader = det_model.shader
-        bpy_material.use_shadeless = True
-        bpy_material.use_transparency = True
-        bpy_material.alpha = 0.0
-        bpy_texture = bpy.data.textures.get(det_model.texture)
-
-        if bpy_texture:
-            if not hasattr(bpy_texture, 'image'):
-                bpy_texture = None
-            elif not bpy_texture.image:
-                bpy_texture = None
-            else:
-                if bpy_texture.image.filepath != abs_image_path:
-                    bpy_texture = None
-
-        if bpy_texture is None:
-            bpy_texture = bpy.data.textures.new(det_model.texture, type='IMAGE')
-            bpy_texture.use_preview_alpha = True
-            bpy_texture_slot = bpy_material.texture_slots.add()
-            bpy_texture_slot.texture = bpy_texture
-            bpy_texture_slot.texture_coords = 'UV'
-            bpy_texture_slot.uv_layer = det_model.mesh.uv_map_name
-            bpy_texture_slot.use_map_color_diffuse = True
-            bpy_texture_slot.use_map_alpha = True
-            bpy_image = None
-
-            for image in bpy.data.images:
-                if abs_image_path == image.filepath:
-                    bpy_image = image
-                    break
-
-            if not bpy_image:
-
-                try:
-                    bpy_image = bpy.data.images.load(abs_image_path)
-
-                except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
-
-                    if det_model.mode == 'DETAILS':
-                        try:
-                            abs_image_path = context.os.path.abspath(
-                                context.os.path.join(
-                                    context.os.path.dirname(fpath),
-                                    det_model.texture + '.dds'
-                            ))
-                            bpy_image = bpy.data.images.load(abs_image_path)
-                        except RuntimeError as ex:
-                            context.report({'WARNING'}, str(ex))
-                            bpy_image = create_empty_image(context, det_model, abs_image_path)
-
-                    else:
-                        context.report({'WARNING'}, str(ex))
-                        bpy_image = create_empty_image(context, det_model, abs_image_path)
-
-            bpy_texture.image = bpy_image
-
-        else:
-            bpy_texture_slot = bpy_material.texture_slots.add()
-            bpy_texture_slot.texture = bpy_texture
+        bpy_material = create_material(det_model, abs_image_path)
 
     return bpy_material
 
@@ -168,17 +217,9 @@ def reconstruct_mesh(vertices, uvs, triangles):
     return remap_vertices, remap_uvs, remap_triangles
 
 
-def create_mesh(packed_reader, det_model):
-
-    from ...utils import AppError
-
-    if det_model.mesh.indices_count % 3 != 0:
-        raise AppError('bad dm triangle indices')
-
-    b_mesh = bmesh.new()
-
+def read_mesh_data(packed_reader, det_model):
     # read vertices coordinates and uvs
-    S_FFFFF = PackedReader.prep('fffff')
+    S_FFFFF = xray_io.PackedReader.prep('fffff')
     vertices = []
     uvs = []
     for _ in range(det_model.mesh.vertices_count):
@@ -187,15 +228,16 @@ def create_mesh(packed_reader, det_model):
         uvs.append((vertex[3], vertex[4]))
 
     # read triangles indices
-    S_HHH = PackedReader.prep('HHH')
+    S_HHH = xray_io.PackedReader.prep('HHH')
     triangles = []
     for _ in range(det_model.mesh.indices_count // 3):
         face_indices = packed_reader.getp(S_HHH)
         triangles.append((face_indices[0], face_indices[2], face_indices[1]))
 
-    # reconstruct mesh
-    vertices, uvs, triangles = reconstruct_mesh(vertices, uvs, triangles)
+    return vertices, uvs, triangles
 
+
+def create_geometry(b_mesh, vertices, triangles):
     # create vertices
     for vertex_coord in vertices:
         b_mesh.verts.new(vertex_coord)
@@ -216,7 +258,10 @@ def create_mesh(packed_reader, det_model):
             bmesh_faces.append(None)
     b_mesh.faces.ensure_lookup_table()
 
-    # create uvs
+    return bmesh_faces
+
+
+def create_uv(b_mesh, det_model, bmesh_faces, uvs):
     uv_layer = b_mesh.loops.layers.uv.new(det_model.mesh.uv_map_name)
 
     if det_model.mode == 'DM':
@@ -246,12 +291,24 @@ def create_mesh(packed_reader, det_model):
             'You must use DM or DETAILS'.format(det_model.mode)
             )
 
+
+def create_mesh(packed_reader, det_model):
+    if det_model.mesh.indices_count % 3 != 0:
+        raise utils.AppError('bad dm triangle indices')
+
+    b_mesh = bmesh.new()
+
+    vertices, uvs, triangles = read_mesh_data(packed_reader, det_model)
+    vertices, uvs, triangles = reconstruct_mesh(vertices, uvs, triangles)
+    bmesh_faces = create_geometry(b_mesh, vertices, triangles)
+    create_uv(b_mesh, det_model, bmesh_faces, uvs)
+
     # assign images
-    bml_tex = b_mesh.faces.layers.tex.new(det_model.mesh.uv_map_name)
+    texture_layer = b_mesh.faces.layers.tex.new(det_model.mesh.uv_map_name)
     bpy_image = det_model.mesh.bpy_material.texture_slots[0].texture.image
 
-    for bmf in b_mesh.faces:
-        bmf[bml_tex].image = bpy_image
+    for face in b_mesh.faces:
+        face[texture_layer].image = bpy_image
 
     b_mesh.normal_update()
     b_mesh.to_mesh(det_model.mesh.bpy_mesh)

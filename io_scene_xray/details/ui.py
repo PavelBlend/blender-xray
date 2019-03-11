@@ -1,9 +1,8 @@
 
 import bpy
 
-from ..utils import is_helper_object
-from ..ui.collapsible import draw
-from .operators import PackDetailsImages
+from .. import ui
+from . import operators
 
 
 def draw_function(self, context):
@@ -52,7 +51,7 @@ def draw_function(self, context):
             text='Slots Top Object'
             )
 
-        _, box_ = draw(
+        _, box_ = ui.collapsible.draw(
             box, 'object:lighting', 'Lighting Coefficients'
             )
 
@@ -89,7 +88,7 @@ def draw_function(self, context):
                     text='Shadows'
                     )
 
-        _, box_ = draw(
+        _, box_ = ui.collapsible.draw(
             box, 'object:slots', 'Slots Meshes Indices'
             )
 
@@ -103,4 +102,4 @@ def draw_function(self, context):
                     text='Mesh {}'.format(i)
                     )
 
-        box.operator(PackDetailsImages.bl_idname)
+        box.operator(operators.PackDetailsImages.bl_idname)

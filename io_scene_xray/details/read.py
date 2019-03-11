@@ -1,16 +1,18 @@
 
 import bpy
-from ..xray_io import PackedReader
-from .fmt import DetailsHeader
-from .model import imp
-from .create import create_pallete, create_images, create_details_slots_object
+
+from .. import xray_io
+from . import format_
+from . import model
+from . import create
 
 
 def read_header(packed_reader):
 
-    fmt_ver, meshes_count, offs_x, offs_z, size_x, size_z = packed_reader.getf('<IIiiII')
+    fmt_ver, meshes_count, offs_x, offs_z, size_x, size_z = \
+        packed_reader.getf('<IIiiII')
 
-    header = DetailsHeader()
+    header = format_.DetailsHeader()
 
     header.format_version = fmt_ver
     header.meshes_count = meshes_count
@@ -23,7 +25,9 @@ def read_header(packed_reader):
     return header
 
 
-def read_details_meshes(fpath, base_name, context, chunked_reader, color_indices, header):
+def read_details_meshes(
+    fpath, base_name, context, chunked_reader, color_indices, header
+    ):
 
     bpy_obj_root = bpy.data.objects.new('{} meshes'.format(base_name), None)
     bpy_obj_root.empty_draw_type = 'SPHERE'
@@ -35,10 +39,10 @@ def read_details_meshes(fpath, base_name, context, chunked_reader, color_indices
         first_offset_x = -step_x * header.meshes_count / 2
 
     for mesh_id, mesh_data in chunked_reader:
-        packed_reader = PackedReader(mesh_data)
+        packed_reader = xray_io.PackedReader(mesh_data)
         fpath_mesh = '{0} mesh_{1:0>2}'.format(fpath, mesh_id)
 
-        bpy_obj_mesh = imp.import_(
+        bpy_obj_mesh = model.import_.import_(
             fpath_mesh, context, packed_reader, mode='DETAILS',
             detail_index=mesh_id, detail_colors=color_indices
             )
@@ -51,9 +55,11 @@ def read_details_meshes(fpath, base_name, context, chunked_reader, color_indices
     return bpy_obj_root
 
 
-def read_details_slots(base_name, context, packed_reader, header, color_indices, root_obj):
+def read_details_slots(
+    base_name, context, packed_reader, header, color_indices, root_obj
+    ):
 
-    create_pallete(color_indices)
+    create.create_pallete(color_indices)
 
     y_coords = []
     y_coords_base = []
@@ -62,14 +68,12 @@ def read_details_slots(base_name, context, packed_reader, header, color_indices,
         [1.0 for _ in range(header.slots_count * 4 * 4)] for _ in range(4)
         ]
 
-    from .fmt import PIXELS_OFFSET_1, PIXELS_OFFSET_2
-
     if header.format_version == 3:
 
         lights_image_pixels = []
         shadows_image_pixels = []
         hemi_image_pixels = []
-        S_IIHHHH = PackedReader.prep('IIHHHH')
+        S_IIHHHH = xray_io.PackedReader.prep('IIHHHH')
 
         for slot_y in range(header.size.y):
             for slot_x in range(header.size.x):
@@ -114,9 +118,9 @@ def read_details_slots(base_name, context, packed_reader, header, color_indices,
 
                         pixel_index = \
                             slot_x * 2 + \
-                            PIXELS_OFFSET_1[corner_index][0] + \
-                            header.size.x * 2 * \
-                            (slot_y * 2 + PIXELS_OFFSET_1[corner_index][1])
+                            format_.PIXELS_OFFSET_1[corner_index][0] + \
+                            header.size.x * 2 * (slot_y * 2 + \
+                            format_.PIXELS_OFFSET_1[corner_index][1])
 
                         color = color_indices[meshes[mesh_index]]
 
@@ -126,7 +130,7 @@ def read_details_slots(base_name, context, packed_reader, header, color_indices,
                         pixels[pixel_index * 4 + 2] = color[2]    # Blue
                         pixels[pixel_index * 4 + 3] = corner_density    # Alpha
 
-        create_images(
+        create.create_images(
             header,
             meshes_images_pixels,
             root_obj,
@@ -142,19 +146,19 @@ def read_details_slots(base_name, context, packed_reader, header, color_indices,
 
     elif header.format_version == 2:
 
-        S_ffBHBHBHBHH = PackedReader.prep('ffBHBHBHBHH')
+        S_ffBHBHBHBHH = xray_io.PackedReader.prep('ffBHBHBHBHH')
 
         lighting_image_pixels = [
             1.0 for _ in range(header.slots_count * 4 * 4)
             ]
 
         if context.format == 'builds_1233-1558':
-            pixels_offset = PIXELS_OFFSET_2
+            pixels_offset = format_.PIXELS_OFFSET_2
 
         elif context.format == 'builds_1096-1230':
-            pixels_offset = PIXELS_OFFSET_1
+            pixels_offset = format_.PIXELS_OFFSET_1
 
-        density_pixels_offset = PIXELS_OFFSET_1
+        density_pixels_offset = format_.PIXELS_OFFSET_1
 
         bad_y_base_count = 0
         bad_y_top_count = 0
@@ -229,7 +233,7 @@ def read_details_slots(base_name, context, packed_reader, header, color_indices,
 
                     data_index += 2
 
-        create_images(
+        create.create_images(
             header, meshes_images_pixels, root_obj,
             lights_old=lighting_image_pixels
             )
@@ -247,7 +251,7 @@ def read_details_slots(base_name, context, packed_reader, header, color_indices,
                            'details has {} bad top coordinates'.format(
                                bad_y_top_count))
 
-    slots_base_object, slots_top_object = create_details_slots_object(
+    slots_base_object, slots_top_object = create.create_details_slots_object(
         base_name, header, y_coords, y_coords_base
         )
 
