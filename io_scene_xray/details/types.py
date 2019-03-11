@@ -16,9 +16,17 @@ class XRayObjectDetailsSlotsLightingProperties(bpy.types.PropertyGroup):
     format = bpy.props.EnumProperty(
         name='Format',
         items=(
-            ('builds_1569-cop', 'Builds 1569-CoP', 'level.details version 3 (builds 1569-CoP)'),
-            ('builds_1096-1558', 'Builds 1096-1558', 'level.details version 2 (builds 1096-1558)')
+            (
+                'builds_1569-cop',
+                'Builds 1569-CoP',
+                'level.details version 3 (builds 1569-CoP)'
             ),
+            (
+                'builds_1096-1558',
+                'Builds 1096-1558',
+                'level.details version 2 (builds 1096-1558)'
+            )
+        ),
         default='builds_1569-cop'
         )
 

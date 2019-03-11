@@ -171,7 +171,9 @@ class OpExportDMs(bpy.types.Operator):
         if len(objs) == 1:
             bpy.ops.xray_export.dm('INVOKE_DEFAULT')
         else:
-            self.detail_models = ','.join([o.name for o in objs if o.type == 'MESH'])
+            self.detail_models = ','.join(
+                [o.name for o in objs if o.type == 'MESH']
+            )
             context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -232,7 +234,9 @@ class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
-class OpExportLevelDetails(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
+class OpExportLevelDetails(
+    bpy.types.Operator, bpy_extras.io_utils.ExportHelper
+    ):
 
     bl_idname = 'xray_export.details'
     bl_label = 'Export .details'

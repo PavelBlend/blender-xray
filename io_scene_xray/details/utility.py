@@ -4,7 +4,7 @@ import bpy
 from .. import utils
 
 
-def _get_image(bpy_obj, xray_prop, prop_name):
+def get_image(bpy_obj, xray_prop, prop_name):
 
     if xray_prop == '':
         raise utils.AppError(
@@ -22,7 +22,7 @@ def _get_image(bpy_obj, xray_prop, prop_name):
     return bpy_image
 
 
-def _get_object(bpy_obj, xray_prop, prop_name):
+def get_object(bpy_obj, xray_prop, prop_name):
 
     if xray_prop == '':
         raise utils.AppError(
@@ -40,9 +40,11 @@ def _get_object(bpy_obj, xray_prop, prop_name):
     return bpy_object
 
 
-def _validate_object_type(bpy_obj, obj_type, prop_name):
+def validate_object_type(bpy_obj, obj_type, prop_name):
     if bpy_obj.type != obj_type:
-        raise utils.AppError('"{0}" must be of type "{1}"'.format(prop_name, obj_type))
+        raise utils.AppError(
+            '"{0}" must be of type "{1}"'.format(prop_name, obj_type)
+            )
 
 
 def gen_meshes_color_indices_table(detail_models_count, format_version=3):

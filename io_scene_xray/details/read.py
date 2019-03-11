@@ -9,7 +9,8 @@ from . import create
 
 def read_header(packed_reader):
 
-    fmt_ver, meshes_count, offs_x, offs_z, size_x, size_z = packed_reader.getf('<IIiiII')
+    fmt_ver, meshes_count, offs_x, offs_z, size_x, size_z = \
+        packed_reader.getf('<IIiiII')
 
     header = format_.DetailsHeader()
 
@@ -24,7 +25,9 @@ def read_header(packed_reader):
     return header
 
 
-def read_details_meshes(fpath, base_name, context, chunked_reader, color_indices, header):
+def read_details_meshes(
+    fpath, base_name, context, chunked_reader, color_indices, header
+    ):
 
     bpy_obj_root = bpy.data.objects.new('{} meshes'.format(base_name), None)
     bpy_obj_root.empty_draw_type = 'SPHERE'
@@ -52,7 +55,9 @@ def read_details_meshes(fpath, base_name, context, chunked_reader, color_indices
     return bpy_obj_root
 
 
-def read_details_slots(base_name, context, packed_reader, header, color_indices, root_obj):
+def read_details_slots(
+    base_name, context, packed_reader, header, color_indices, root_obj
+    ):
 
     create.create_pallete(color_indices)
 
@@ -114,8 +119,8 @@ def read_details_slots(base_name, context, packed_reader, header, color_indices,
                         pixel_index = \
                             slot_x * 2 + \
                             format_.PIXELS_OFFSET_1[corner_index][0] + \
-                            header.size.x * 2 * \
-                            (slot_y * 2 + format_.PIXELS_OFFSET_1[corner_index][1])
+                            header.size.x * 2 * (slot_y * 2 + \
+                            format_.PIXELS_OFFSET_1[corner_index][1])
 
                         color = color_indices[meshes[mesh_index]]
 

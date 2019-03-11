@@ -1,21 +1,25 @@
 
 import bpy
 
+from . import format_
+
+
+def create_object(object_name):
+    bpy_mesh = bpy.data.meshes.new(object_name)
+    bpy_object = bpy.data.objects.new(
+        object_name, bpy_mesh
+        )
+    bpy.context.scene.objects.link(bpy_object)
+    return bpy_object, bpy_mesh
+
 
 def create_details_slots_object(base_name, header, y_coords_top, y_coords_base):
-    slots_name_base = '{0} slots base'.format(base_name)
-    slots_base_mesh = bpy.data.meshes.new(slots_name_base)
-    slots_base_object = bpy.data.objects.new(
-        slots_name_base, slots_base_mesh
-        )
-    bpy.context.scene.objects.link(slots_base_object)
-
-    slots_name_top = '{0} slots top'.format(base_name)
-    slots_top_mesh = bpy.data.meshes.new(slots_name_top)
-    slots_top_object = bpy.data.objects.new(
-        slots_name_top, slots_top_mesh
-        )
-    bpy.context.scene.objects.link(slots_top_object)
+    slots_base_object, slots_base_mesh = create_object(
+        '{0} slots base'.format(base_name)
+    )
+    slots_top_object, slots_top_mesh = create_object(
+        '{0} slots top'.format(base_name)
+    )
 
     slots_base = []
     uvs = []
@@ -58,53 +62,22 @@ def create_details_slots_object(base_name, header, y_coords_top, y_coords_base):
     faces = []
     cur_vert_id = 0
 
+    offset_signs = ((-1, -1), (+1, -1), (+1, +1), (-1, +1))
+
     for slot_id in range(header.slots_count):
 
-        slot_x0, slot_y0 = _offset_vert_coord(
-            slots_base[slot_id][0],
-            slots_base[slot_id][1],
-            -header.slot_half,
-            -header.slot_half
-            )
-
-        slot_x1, slot_y1 = _offset_vert_coord(
-            slots_base[slot_id][0],
-            slots_base[slot_id][1],
-            header.slot_half,
-            -header.slot_half
-            )
-
-        slot_x2, slot_y2 = _offset_vert_coord(
-            slots_base[slot_id][0],
-            slots_base[slot_id][1],
-            header.slot_half,
-            header.slot_half
-            )
-
-        slot_x3, slot_y3 = _offset_vert_coord(
-            slots_base[slot_id][0],
-            slots_base[slot_id][1],
-            -header.slot_half,
-            header.slot_half
-            )
-
         y_base = y_coords_base[slot_id]
-
-        vertices_base.extend((
-            (slot_x0, slot_y0, y_base),
-            (slot_x1, slot_y1, y_base),
-            (slot_x2, slot_y2, y_base),
-            (slot_x3, slot_y3, y_base)
-            ))
-
         y_top = y_coords_top[slot_id]
 
-        vertices_top.extend((
-            (slot_x0, slot_y0, y_top),
-            (slot_x1, slot_y1, y_top),
-            (slot_x2, slot_y2, y_top),
-            (slot_x3, slot_y3, y_top)
-            ))
+        for corner_index in range(4):
+            slot_x, slot_y = _offset_vert_coord(
+                slots_base[slot_id][0],
+                slots_base[slot_id][1],
+                offset_signs[corner_index][0] * header.slot_half,
+                offset_signs[corner_index][1] * header.slot_half
+                )
+            vertices_base.append((slot_x, slot_y, y_base))
+            vertices_top.append((slot_x, slot_y, y_top))
 
         faces.append((
             cur_vert_id,
@@ -179,29 +152,22 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
     dets_meshes.mesh_2 = m_i[2]
     dets_meshes.mesh_3 = m_i[3]
 
-    if header.format_version == 3:
+    if header.format_version == format_.FORMAT_VERSION_3:
 
         ligthing.format = 'builds_1569-cop'
 
-        light_image = _create_det_image('lights.png')
-        images_list.append(light_image.name)
-        light_image.pixels = lights
-        light_image.pack(as_png=True)
-        ligthing.lights_image = light_image.name
+        image_names = ('lights', 'shadows', 'hemi')
+        pixels = (lights, shadows, hemi)
+        props = ('lights_image', 'shadows_image', 'hemi_image')
 
-        shadows_image = _create_det_image('shadows.png')
-        images_list.append(shadows_image.name)
-        shadows_image.pixels = shadows
-        shadows_image.pack(as_png=True)
-        ligthing.shadows_image = shadows_image.name
+        for image_name, pixels, prop_name in zip(image_names, pixels, props):
+            bpy_image = _create_det_image('{}.png'.format(image_name))
+            images_list.append(bpy_image.name)
+            bpy_image.pixels = pixels
+            bpy_image.pack(as_png=True)
+            setattr(ligthing, prop_name, bpy_image.name)
 
-        hemi_image = _create_det_image('hemi.png')
-        images_list.append(hemi_image.name)
-        hemi_image.pixels = hemi
-        hemi_image.pack(as_png=True)
-        ligthing.hemi_image = hemi_image.name
-
-    elif header.format_version == 2:
+    elif header.format_version == format_.FORMAT_VERSION_2:
 
         ligthing.format = 'builds_1096-1558'
 
@@ -222,7 +188,9 @@ def create_pallete(color_indices):
         meshes_indices_pixels = []
         for color_index in color_indices:
             meshes_indices_pixels.extend(color_index)
-        meshes_indices_image = bpy.data.images.new(pallete_name, 64, 1)
+        meshes_indices_image = bpy.data.images.new(
+            pallete_name, format_.DETAIL_MODEL_COUNT_LIMIT + 1, 1
+        )
         meshes_indices_image.pixels = meshes_indices_pixels
         meshes_indices_image.use_fake_user = True
         meshes_indices_image.pack(as_png=True)
