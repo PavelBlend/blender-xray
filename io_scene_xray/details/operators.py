@@ -61,7 +61,7 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
 
-        import_context = object_.fmt_object_imp.ImportContext(
+        import_context = object_.import_.ImportContext(
             textures=textures_folder,
             soc_sgroups=None,
             import_motions=None,

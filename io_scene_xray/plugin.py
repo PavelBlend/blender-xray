@@ -57,7 +57,7 @@ class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
         if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
-        from .object_.fmt_object_imp import import_file, ImportContext
+        from .object_.import_ import import_file, ImportContext
         import_context = ImportContext(
             textures=textures_folder,
             soc_sgroups=self.fmt_version == 'soc',
@@ -381,7 +381,7 @@ def find_objects_for_export(context):
 
 
 def _mk_export_context(texname_from_path, fmt_version=None, export_motions=True):
-    from .object_.fmt_object_exp import ExportContext
+    from .object_.export import ExportContext
     return ExportContext(
         textures_folder=plugin_prefs.get_preferences().textures_folder_auto,
         export_motions=export_motions,
@@ -422,7 +422,7 @@ class OpExportObjects(TestReadyOperator, _WithExportMotions):
 
     @execute_with_logger
     def execute(self, context):
-        from .object_.fmt_object_exp import export_file
+        from .object_.export import export_file
         export_context = _mk_export_context(
             self.texture_name_from_image_path, self.fmt_version, self.export_motions
         )
@@ -484,7 +484,7 @@ class OpExportObject(TestReadyOperator, io_utils.ExportHelper, _WithExportMotion
 
     @execute_with_logger
     def execute(self, context):
-        from .object_.fmt_object_exp import export_file
+        from .object_.export import export_file
         export_context = _mk_export_context(
             self.texture_name_from_image_path, self.fmt_version, self.export_motions
         )
@@ -630,7 +630,7 @@ class OpExportProject(TestReadyOperator):
 
     @execute_with_logger
     def execute(self, context):
-        from .object_.fmt_object_exp import export_file
+        from .object_.export import export_file
         from bpy.path import abspath
         data = context.scene.xray
         export_context = _mk_export_context(
