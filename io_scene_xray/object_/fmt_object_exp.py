@@ -4,13 +4,13 @@ import bmesh
 import bpy
 import mathutils
 
-from .xray_io import ChunkedWriter, PackedWriter
-from .xray_motions import export_motions, MATRIX_BONE_INVERTED
+from ..xray_io import ChunkedWriter, PackedWriter
+from ..xray_motions import export_motions, MATRIX_BONE_INVERTED
 from .fmt_object import Chunks
-from .utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
+from ..utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
     convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name, is_helper_object
-from .utils import BAD_VTX_GROUP_NAME
-from . import log
+from ..utils import BAD_VTX_GROUP_NAME
+from .. import log
 
 
 class ExportContext:

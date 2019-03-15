@@ -6,12 +6,12 @@ import bmesh
 import bpy
 import mathutils
 
-from .xray_io import ChunkedReader, PackedReader
+from ..xray_io import ChunkedReader, PackedReader
 from .fmt_object import Chunks
-from .plugin_prefs import PropObjectMeshSplitByMaterials
-from .utils import BAD_VTX_GROUP_NAME, plugin_version_number, AppError
-from .xray_motions import import_motions, MATRIX_BONE, MATRIX_BONE_INVERTED
-from . import log
+from ..plugin_prefs import PropObjectMeshSplitByMaterials
+from ..utils import BAD_VTX_GROUP_NAME, plugin_version_number, AppError
+from ..xray_motions import import_motions, MATRIX_BONE, MATRIX_BONE_INVERTED
+from .. import log
 
 
 class ImportContext:
