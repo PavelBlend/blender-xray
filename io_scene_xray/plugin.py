@@ -8,94 +8,14 @@ from bpy_extras import io_utils
 from . import xray_inject
 from .ops import BaseOperator as TestReadyOperator
 from .ui import collapsible
-from .utils import AppError, ObjectsInitializer, logger
+from .utils import AppError, ObjectsInitializer, logger, execute_with_logger
 from .xray_motions import MOTIONS_FILTER_ALL
 from . import plugin_prefs
 from . import registry
 from . import details
 from . import err
 from . import scene
-
-
-def execute_with_logger(method):
-    def wrapper(self, context):
-        try:
-            with logger(self.__class__.bl_idname, self.report):
-                return method(self, context)
-        except AppError:
-            return {'CANCELLED'}
-
-    return wrapper
-
-
-#noinspection PyUnusedLocal
-@registry.module_thing
-class OpImportObject(TestReadyOperator, io_utils.ImportHelper):
-    bl_idname = 'xray_import.object'
-    bl_label = 'Import .object'
-    bl_description = 'Imports X-Ray object'
-    bl_options = {'UNDO'}
-
-    filter_glob = bpy.props.StringProperty(default='*.object', options={'HIDDEN'})
-
-    directory = bpy.props.StringProperty(subtype="DIR_PATH")
-    files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
-
-    import_motions = plugin_prefs.PropObjectMotionsImport()
-    mesh_split_by_materials = plugin_prefs.PropObjectMeshSplitByMaterials()
-
-    shaped_bones = plugin_prefs.PropObjectBonesCustomShapes()
-
-    fmt_version = plugin_prefs.PropSDKVersion()
-
-    @execute_with_logger
-    def execute(self, _context):
-        textures_folder = plugin_prefs.get_preferences().textures_folder_auto
-        objects_folder = plugin_prefs.get_preferences().objects_folder
-        if not textures_folder:
-            self.report({'WARNING'}, 'No textures folder specified')
-        if not self.files:
-            self.report({'ERROR'}, 'No files selected')
-            return {'CANCELLED'}
-        from .object_.import_ import import_file, ImportContext
-        import_context = ImportContext(
-            textures=textures_folder,
-            soc_sgroups=self.fmt_version == 'soc',
-            import_motions=self.import_motions,
-            split_by_materials=self.mesh_split_by_materials,
-            operator=self,
-            objects=objects_folder
-        )
-        for file in self.files:
-            ext = os.path.splitext(file.name)[-1].lower()
-            if ext == '.object':
-                import_context.before_import_file()
-                import_file(os.path.join(self.directory, file.name), import_context)
-            else:
-                self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
-        return {'FINISHED'}
-
-    def draw(self, _context):
-        layout = self.layout
-        row = layout.row()
-        row.enabled = False
-        row.label('%d items' % len(self.files))
-
-        row = layout.split()
-        row.label('Format Version:')
-        row.row().prop(self, 'fmt_version', expand=True)
-
-        layout.prop(self, 'import_motions')
-        layout.prop(self, 'mesh_split_by_materials')
-        layout.prop(self, 'shaped_bones')
-
-    def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.fmt_version = prefs.sdk_version
-        self.import_motions = prefs.object_motions_import
-        self.mesh_split_by_materials = prefs.object_mesh_split_by_mat
-        self.shaped_bones = prefs.object_bones_custom_shapes
-        return super().invoke(context, event)
+from . import object_
 
 
 @registry.module_thing
@@ -359,28 +279,7 @@ class ModelExportHelper:
         return self.export(roots[0], context)
 
 
-def find_objects_for_export(context):
-    processed = set()
-    roots = []
-    for obj in context.selected_objects:
-        while obj:
-            if obj in processed:
-                break
-            processed.add(obj)
-            if obj.xray.isroot:
-                roots.append(obj)
-                break
-            obj = obj.parent
-    if not roots:
-        roots = [obj for obj in context.scene.objects if obj.xray.isroot]
-        if not roots:
-            raise AppError('No \'root\'-objects found')
-        if len(roots) > 1:
-            raise AppError('Too many \'root\'-objects found, but none selected')
-    return roots
-
-
-def _mk_export_context(texname_from_path, fmt_version=None, export_motions=True):
+def mk_export_context(texname_from_path, fmt_version=None, export_motions=True):
     from .object_.export import ExportContext
     return ExportContext(
         textures_folder=plugin_prefs.get_preferences().textures_folder_auto,
@@ -388,131 +287,6 @@ def _mk_export_context(texname_from_path, fmt_version=None, export_motions=True)
         soc_sgroups=None if fmt_version is None else (fmt_version == 'soc'),
         texname_from_path=texname_from_path
     )
-
-
-class _WithExportMotions:
-    export_motions = plugin_prefs.PropObjectMotionsExport()
-
-
-@registry.module_thing
-class OpExportObjects(TestReadyOperator, _WithExportMotions):
-    bl_idname = 'export_object.xray_objects'
-    bl_label = 'Export selected .object-s'
-
-    objects = bpy.props.StringProperty(options={'HIDDEN'})
-
-    directory = bpy.props.StringProperty(subtype="FILE_PATH")
-
-    texture_name_from_image_path = plugin_prefs.PropObjectTextureNamesFromPath()
-
-    fmt_version = plugin_prefs.PropSDKVersion()
-
-    use_export_paths = plugin_prefs.PropUseExportPaths()
-
-    def draw(self, _context):
-        layout = self.layout
-
-        row = layout.split()
-        row.label('Format Version:')
-        row.row().prop(self, 'fmt_version', expand=True)
-
-        layout.prop(self, 'use_export_paths')
-        layout.prop(self, 'export_motions')
-        layout.prop(self, 'texture_name_from_image_path')
-
-    @execute_with_logger
-    def execute(self, context):
-        from .object_.export import export_file
-        export_context = _mk_export_context(
-            self.texture_name_from_image_path, self.fmt_version, self.export_motions
-        )
-        try:
-            for name in self.objects.split(','):
-                obj = context.scene.objects[name]
-                if not name.lower().endswith('.object'):
-                    name += '.object'
-                path = self.directory
-                if self.use_export_paths and obj.xray.export_path:
-                    path = os.path.join(path, obj.xray.export_path)
-                    os.makedirs(path, exist_ok=True)
-                export_file(obj, os.path.join(path, name), export_context)
-        except AppError as err:
-            raise err
-        return {'FINISHED'}
-
-    def invoke(self, context, _event):
-        prefs = plugin_prefs.get_preferences()
-        roots = None
-        try:
-            roots = find_objects_for_export(context)
-        except AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
-        if len(roots) == 1:
-            return bpy.ops.xray_export.object('INVOKE_DEFAULT')
-        self.objects = ','.join([o.name for o in roots])
-        self.fmt_version = prefs.sdk_version
-        self.export_motions = prefs.object_motions_export
-        self.texture_name_from_image_path = prefs.object_texture_names_from_path
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
-
-@registry.module_thing
-class OpExportObject(TestReadyOperator, io_utils.ExportHelper, _WithExportMotions):
-    bl_idname = 'xray_export.object'
-    bl_label = 'Export .object'
-
-    object = bpy.props.StringProperty(options={'HIDDEN'})
-
-    filename_ext = '.object'
-    filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
-
-    texture_name_from_image_path = plugin_prefs.PropObjectTextureNamesFromPath()
-
-    fmt_version = plugin_prefs.PropSDKVersion()
-
-    def draw(self, _context):
-        layout = self.layout
-
-        row = layout.split()
-        row.label('Format Version:')
-        row.row().prop(self, 'fmt_version', expand=True)
-
-        layout.prop(self, 'export_motions')
-        layout.prop(self, 'texture_name_from_image_path')
-
-    @execute_with_logger
-    def execute(self, context):
-        from .object_.export import export_file
-        export_context = _mk_export_context(
-            self.texture_name_from_image_path, self.fmt_version, self.export_motions
-        )
-        try:
-            export_file(context.scene.objects[self.object], self.filepath, export_context)
-        except AppError as err:
-            raise err
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        roots = None
-        try:
-            roots = find_objects_for_export(context)
-        except AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
-        if len(roots) > 1:
-            self.report({'ERROR'}, 'Too many \'root\'-objects selected')
-            return {'CANCELLED'}
-        self.object = roots[0].name
-        self.filepath = self.object
-        if not self.filepath.lower().endswith(self.filename_ext):
-            self.filepath += self.filename_ext
-        self.fmt_version = prefs.sdk_version
-        self.export_motions = prefs.object_motions_export
-        self.texture_name_from_image_path = prefs.object_texture_names_from_path
-        return super().invoke(context, event)
 
 
 @registry.module_thing
@@ -527,7 +301,7 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
 
     def export(self, bpy_obj, context):
         from .fmt_ogf_exp import export_file
-        export_context = _mk_export_context(self.texture_name_from_image_path)
+        export_context = mk_export_context(self.texture_name_from_image_path)
         export_file(bpy_obj, self.filepath, export_context)
         return {'FINISHED'}
 
@@ -633,7 +407,7 @@ class OpExportProject(TestReadyOperator):
         from .object_.export import export_file
         from bpy.path import abspath
         data = context.scene.xray
-        export_context = _mk_export_context(
+        export_context = mk_export_context(
             data.object_texture_name_from_image_path, data.fmt_version, data.object_export_motions
         )
         try:
@@ -666,7 +440,10 @@ class XRayImportMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator(OpImportObject.bl_idname, text='Source Object (.object)')
+        layout.operator(
+            object_.import_.operators.OpImportObject.bl_idname,
+            text='Source Object (.object)'
+        )
         layout.operator(OpImportAnm.bl_idname, text='Animation (.anm)')
         layout.operator(OpImportSkl.bl_idname, text='Skeletal Animation (.skl, .skls)')
         layout.operator(details.operators.OpImportDM.bl_idname, text='Details (.dm, .details)')
@@ -681,7 +458,10 @@ class XRayExportMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator(OpExportObjects.bl_idname, text='Source Object (.object)')
+        layout.operator(
+            object_.export.operators.OpExportObjects.bl_idname,
+            text='Source Object (.object)'
+        )
         layout.operator(OpExportAnm.bl_idname, text='Animation (.anm)')
         layout.operator(OpExportSkls.bl_idname, text='Skeletal Animation (.skls)')
         layout.operator(OpExportOgf.bl_idname, text='Game Object (.ogf)')
@@ -726,14 +506,22 @@ def scene_update_post(_):
 #noinspection PyUnusedLocal
 def menu_func_import(self, _context):
     icon = get_stalker_icon()
-    self.layout.operator(OpImportObject.bl_idname, text='X-Ray object (.object)', icon_value=icon)
+    self.layout.operator(
+        object_.import_.operators.OpImportObject.bl_idname,
+        text='X-Ray object (.object)',
+        icon_value=icon
+    )
     self.layout.operator(OpImportAnm.bl_idname, text='X-Ray animation (.anm)', icon_value=icon)
     self.layout.operator(OpImportSkl.bl_idname, text='X-Ray skeletal animation (.skl, .skls)', icon_value=icon)
 
 
 def menu_func_export(self, _context):
     icon = get_stalker_icon()
-    self.layout.operator(OpExportObjects.bl_idname, text='X-Ray object (.object)', icon_value=icon)
+    self.layout.operator(
+        object_.export.operators.OpExportObjects.bl_idname,
+        text='X-Ray object (.object)',
+        icon_value=icon
+    )
     self.layout.operator(OpExportAnm.bl_idname, text='X-Ray animation (.anm)', icon_value=icon)
     self.layout.operator(OpExportSkls.bl_idname, text='X-Ray animation (.skls)', icon_value=icon)
 
@@ -800,6 +588,8 @@ def register():
     pcoll.load(STALKER_ICON_NAME, os.path.join(icons_dir, 'stalker.png'), 'IMAGE')
     preview_collections['main'] = pcoll
 
+    registry.register_thing(object_.import_.operators, __name__)
+    registry.register_thing(object_.export.operators, __name__)
     scene.operators.register_operators()
     details.operators.register_operators()
     registry.register_thing(err.operators, __name__)
@@ -816,6 +606,9 @@ def unregister():
     registry.unregister_thing(err.operators, __name__)
     details.operators.unregister_operators()
     scene.operators.unregister_operators()
+    registry.unregister_thing(object_.export.operators, __name__)
+    registry.unregister_thing(object_.import_.operators, __name__)
+
     bpy.app.handlers.scene_update_post.remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')

@@ -142,7 +142,7 @@ class OpExportDMs(bpy.types.Operator):
                     name += '.dm'
                 path = self.directory
 
-                export_context = plugin._mk_export_context(
+                export_context = plugin.mk_export_context(
                     self.texture_name_from_image_path
                     )
 
@@ -201,7 +201,7 @@ class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return {'FINISHED'}
 
     def export(self, bpy_obj, context):
-        export_context = plugin._mk_export_context(
+        export_context = plugin.mk_export_context(
             self.texture_name_from_image_path
             )
 
@@ -293,7 +293,7 @@ class OpExportLevelDetails(
         return {'FINISHED'}
 
     def export(self, bpy_obj, context):
-        export_context = plugin._mk_export_context(
+        export_context = plugin.mk_export_context(
             self.texture_name_from_image_path
             )
 

@@ -9,6 +9,7 @@ from ... import utils
 from ... import log
 from .. import format_
 from . import main
+from . import operators
 
 
 class ImportContext:

@@ -388,3 +388,14 @@ def with_auto_property(prop_class, prop_id, getter, overrides=None, **kwargs):
 
     return decorator
 with_auto_property.build_auto_id = lambda id: id + '_auto'
+
+
+def execute_with_logger(method):
+    def wrapper(self, context):
+        try:
+            with logger(self.__class__.bl_idname, self.report):
+                return method(self, context)
+        except AppError:
+            return {'CANCELLED'}
+
+    return wrapper

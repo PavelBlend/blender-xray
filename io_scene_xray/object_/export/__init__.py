@@ -4,6 +4,7 @@ import io
 from ... import xray_io
 from .. import format_
 from . import main
+from . import operators
 
 
 class ExportContext:
