@@ -11,13 +11,17 @@ def export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
     real_parent = utils.find_bone_exportable_parent(bpy_bone)
     if real_parent:
         if bonemap.get(real_parent) is None:
-            export_bone(bpy_arm_obj, bpy_root, real_parent, writers, bonemap, context)
+            export_bone(
+                bpy_arm_obj, bpy_root, real_parent, writers, bonemap, context
+            )
 
     xray = bpy_bone.xray
     writer = xray_io.ChunkedWriter()
     writers.append(writer)
     bonemap[bpy_bone] = writer
-    writer.put(format_.Chunks.Bone.VERSION, xray_io.PackedWriter().putf('H', 0x02))
+    writer.put(
+        format_.Chunks.Bone.VERSION, xray_io.PackedWriter().putf('H', 0x02)
+    )
     writer.put(format_.Chunks.Bone.DEF, xray_io.PackedWriter()
                .puts(bpy_bone.name)
                .puts(real_parent.name if real_parent else '')
@@ -25,13 +29,16 @@ def export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
     xmat = bpy_root.matrix_world.inverted() * bpy_arm_obj.matrix_world
     mat = xmat * bpy_bone.matrix_local * xray_motions.MATRIX_BONE_INVERTED
     if real_parent:
-        mat = (xmat * real_parent.matrix_local * xray_motions.MATRIX_BONE_INVERTED).inverted() * mat
+        mat = (xmat * real_parent.matrix_local * \
+            xray_motions.MATRIX_BONE_INVERTED).inverted() * mat
     eul = mat.to_euler('YXZ')
     writer.put(format_.Chunks.Bone.BIND_POSE, xray_io.PackedWriter()
                .putf('fff', *main.pw_v3f(mat.to_translation()))
                .putf('fff', -eul.x, -eul.z, -eul.y)
                .putf('f', xray.length))
-    writer.put(format_.Chunks.Bone.MATERIAL, xray_io.PackedWriter().puts(xray.gamemtl))
+    writer.put(
+        format_.Chunks.Bone.MATERIAL, xray_io.PackedWriter().puts(xray.gamemtl)
+    )
     verdif = xray.shape.check_version_different()
     if verdif != 0:
         log.warn(
@@ -74,7 +81,10 @@ def export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
                 .putf('ff', ik.lim_z_spr, ik.lim_z_dmp)
                 .putf('ff', ik.spring, ik.damping))
     if xray.ikflags:
-        writer.put(format_.Chunks.Bone.IK_FLAGS, xray_io.PackedWriter().putf('I', xray.ikflags))
+        writer.put(
+            format_.Chunks.Bone.IK_FLAGS,
+            xray_io.PackedWriter().putf('I', xray.ikflags)
+        )
         if xray.ikflags_breakable:
             writer.put(format_.Chunks.Bone.BREAK_PARAMS, xray_io.PackedWriter()
                        .putf('f', xray.breakf.force)

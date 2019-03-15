@@ -21,13 +21,16 @@ def _check_sg_soc(bmedges, sgroups):
     for edge in bmedges:
         if len(edge.link_faces) != 2:
             continue
-        sg0, sg1 = sgroups[edge.link_faces[0].index], sgroups[edge.link_faces[1].index]
+        sg0 = sgroups[edge.link_faces[0].index]
+        sg1 = sgroups[edge.link_faces[1].index]
         if edge.smooth:
             if sg0 != sg1:
-                return 'Maya-SG incompatible: smooth edge adjacents has different smoothing group'
+                return 'Maya-SG incompatible: ' \
+                    'smooth edge adjacents has different smoothing group'
         else:
             if sg0 == sg1:
-                return 'Maya-SG incompatible: sharp edge adjacents has same smoothing group'
+                return 'Maya-SG incompatible: ' \
+                    'sharp edge adjacents has same smoothing group'
 
 
 def _mark_fsg(face, sgroup, face_sgroup):
@@ -59,25 +62,44 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
     log.update(mesh=bpy_obj.data.name)
     cw.put(format_.Chunks.Mesh.VERSION, xray_io.PackedWriter().putf('H', 0x11))
     mesh_name = bpy_obj.data.name if bpy_obj == bpy_root else bpy_obj.name
-    cw.put(format_.Chunks.Mesh.MESHNAME, xray_io.PackedWriter().puts(mesh_name))
+    cw.put(
+        format_.Chunks.Mesh.MESHNAME, xray_io.PackedWriter().puts(mesh_name)
+    )
 
     bm = utils.convert_object_to_space_bmesh(bpy_obj, bpy_root.matrix_world)
     bml = bm.verts.layers.deform.verify()
-    bad_vgroups = [vertex_group.name.startswith(utils.BAD_VTX_GROUP_NAME) for vertex_group in bpy_obj.vertex_groups]
-    bad_verts = [vertex for vertex in bm.verts if any(bad_vgroups[k] for k in vertex[bml].keys())]
+    bad_vgroups = [
+        vertex_group.name.startswith(utils.BAD_VTX_GROUP_NAME) \
+        for vertex_group in bpy_obj.vertex_groups
+    ]
+    bad_verts = [
+        vertex for vertex in bm.verts \
+        if any(bad_vgroups[k] for k in vertex[bml].keys())
+    ]
     if bad_verts:
-        log.warn('skipping geometry from "{}"-s vertex groups'.format(utils.BAD_VTX_GROUP_NAME))
+        log.warn(
+            'skipping geometry from "{}"-s vertex groups'.format(
+                utils.BAD_VTX_GROUP_NAME
+            )
+        )
         bmesh.ops.delete(bm, geom=bad_verts, context=1)
 
     bbox = utils.calculate_mesh_bbox(bm.verts)
     cw.put(
         format_.Chunks.Mesh.BBOX,
-        xray_io.PackedWriter().putf('fff', *main.pw_v3f(bbox[0])).putf('fff', *main.pw_v3f(bbox[1]))
+        xray_io.PackedWriter().putf(
+            'fff', *main.pw_v3f(bbox[0])
+        ).putf(
+            'fff', *main.pw_v3f(bbox[1])
+        )
     )
     if hasattr(bpy_obj.data, 'xray'):
         # MAX sg-format currently unsupported (we use Maya sg-format)
         flags = bpy_obj.data.xray.flags & ~format_.Chunks.Mesh.Flags.SG_MASK
-        cw.put(format_.Chunks.Mesh.FLAGS, xray_io.PackedWriter().putf('B', flags))
+        cw.put(
+            format_.Chunks.Mesh.FLAGS,
+            xray_io.PackedWriter().putf('B', flags)
+        )
     else:
         cw.put(format_.Chunks.Mesh.FLAGS, xray_io.PackedWriter().putf('B', 1))
 
@@ -140,7 +162,10 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
 
     writer = xray_io.PackedWriter()
     sfaces = {
-        m.name if m else None: [fidx for fidx, face in enumerate(bm.faces) if face.material_index == mi]
+        m.name if m else None: [
+            fidx for fidx, face in enumerate(bm.faces) \
+            if face.material_index == mi
+        ]
         for mi, m in enumerate(bpy_obj.data.materials)
     }
 
@@ -163,7 +188,8 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
     sgroups = []
     if context.soc_sgroups:
         sgroups = tuple(_export_sg_soc(bm.faces))
-        err = _check_sg_soc(bm.edges, sgroups)  # check for Maya compatibility
+        # check for Maya compatibility
+        err = _check_sg_soc(bm.edges, sgroups)
         if err:
             log.warn(err)
     else:

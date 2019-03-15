@@ -20,7 +20,10 @@ def pw_v3f(vec):
 
 
 def export_main(bpy_obj, chunked_writer, context):
-    chunked_writer.put(format_.Chunks.Object.VERSION, xray_io.PackedWriter().putf('H', 0x10))
+    chunked_writer.put(
+        format_.Chunks.Object.VERSION,
+        xray_io.PackedWriter().putf('H', 0x10)
+    )
     xray = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
     chunked_writer.put(
         format_.Chunks.Object.FLAGS,
@@ -64,7 +67,9 @@ def export_main(bpy_obj, chunked_writer, context):
         for bone_ in bpy_arm_obj.data.bones:
             if not utils.is_exportable_bone(bone_):
                 continue
-            bone.export_bone(bpy_arm_obj, bpy_root, bone_, bone_writers, bonemap, context)
+            bone.export_bone(
+                bpy_arm_obj, bpy_root, bone_, bone_writers, bonemap, context
+            )
 
     msw = xray_io.ChunkedWriter()
     idx = 0
@@ -78,13 +83,21 @@ def export_main(bpy_obj, chunked_writer, context):
     for material in materials:
         sfw.puts(material.name)
         if hasattr(material, 'xray'):
-            sfw.puts(material.xray.eshader).puts(material.xray.cshader).puts(material.xray.gamemtl)
+            sfw.puts(
+                material.xray.eshader
+            ).puts(
+                material.xray.cshader
+            ).puts(
+                material.xray.gamemtl
+            )
         else:
             sfw.puts('').puts('').puts('')
         tx_name = ''
         if material.active_texture:
             if context.texname_from_path:
-                tx_name = utils.gen_texture_name(material.active_texture, context.textures_folder)
+                tx_name = utils.gen_texture_name(
+                    material.active_texture, context.textures_folder
+                )
             else:
                 tx_name = material.active_texture.name
         sfw.puts(tx_name)
@@ -108,13 +121,20 @@ def export_main(bpy_obj, chunked_writer, context):
     if xray.userdata:
         chunked_writer.put(
             format_.Chunks.Object.USERDATA,
-            xray_io.PackedWriter().puts('\r\n'.join(xray.userdata.splitlines()))
+            xray_io.PackedWriter().puts(
+                '\r\n'.join(xray.userdata.splitlines())
+            )
         )
     if xray.lodref:
-        chunked_writer.put(format_.Chunks.Object.LOD_REF, xray_io.PackedWriter().puts(xray.lodref))
+        chunked_writer.put(
+            format_.Chunks.Object.LOD_REF,
+            xray_io.PackedWriter().puts(xray.lodref)
+        )
 
     arm_list = list(armatures)
-    some_arm = arm_list[0] if arm_list else None  # take care of static objects
+
+    # take care of static objects
+    some_arm = arm_list[0] if arm_list else None
 
     if some_arm and context.export_motions:
         acts = [motion.name for motion in bpy_obj.xray.motions_collection]
@@ -162,7 +182,10 @@ def export_main(bpy_obj, chunked_writer, context):
             log.warn('MotionRefs: skipped legacy data', data=xray.motionrefs)
         if context.soc_sgroups:
             refs = ','.join(ref.name for ref in motionrefs)
-            chunked_writer.put(format_.Chunks.Object.MOTION_REFS, xray_io.PackedWriter().puts(refs))
+            chunked_writer.put(
+                format_.Chunks.Object.MOTION_REFS,
+                xray_io.PackedWriter().puts(refs)
+            )
         else:
             writer = xray_io.PackedWriter()
             writer.putf('I', len(motionrefs))
@@ -170,7 +193,10 @@ def export_main(bpy_obj, chunked_writer, context):
                 writer.puts(ref.name)
             chunked_writer.put(format_.Chunks.Object.SMOTIONS3, writer)
     elif xray.motionrefs:
-        chunked_writer.put(format_.Chunks.Object.MOTION_REFS, xray_io.PackedWriter().puts(xray.motionrefs))
+        chunked_writer.put(
+            format_.Chunks.Object.MOTION_REFS,
+            xray_io.PackedWriter().puts(xray.motionrefs)
+        )
 
     root_matrix = bpy_root.matrix_world
     if root_matrix != mathutils.Matrix.Identity(4):
@@ -184,7 +210,9 @@ def export_main(bpy_obj, chunked_writer, context):
     writer = xray_io.PackedWriter()
     if (not xray.revision.owner) or (xray.revision.owner == curruser):
         writer.puts(curruser)
-        writer.putf('I', xray.revision.ctime if xray.revision.ctime else currtime)
+        writer.putf(
+            'I', xray.revision.ctime if xray.revision.ctime else currtime
+        )
         writer.puts('')
         writer.putf('I', 0)
     else:

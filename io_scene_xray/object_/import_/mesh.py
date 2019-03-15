@@ -31,12 +31,15 @@ def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
 def import_mesh(context, creader, renamemap):
     ver = creader.nextf(format_.Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
-        raise utils.AppError('unsupported MESH format version', log.props(version=ver))
+        raise utils.AppError(
+            'unsupported MESH format version', log.props(version=ver)
+        )
     mesh_name = None
     mesh_flags = None
     mesh_options = None
     bmsh = bmesh.new()
-    sgfuncs = (_SHARP, lambda ga, gb, ea, eb: ga == gb) if context.soc_sgroups else (_SHARP, _cop_sgfunc)
+    sgfuncs = (_SHARP, lambda ga, gb, ea, eb: ga == gb) \
+        if context.soc_sgroups else (_SHARP, _cop_sgfunc)
     vt_data = ()
     fc_data = ()
 
@@ -97,7 +100,7 @@ def import_mesh(context, creader, renamemap):
 
             reader = xray_io.PackedReader(data)
             vm_refs = [read_vmref(reader) for _ in range(reader.int())]
-        elif cid == format_.Chunks.Mesh.VMAPS1 or cid == format_.Chunks.Mesh.VMAPS2:
+        elif cid in (format_.Chunks.Mesh.VMAPS1, format_.Chunks.Mesh.VMAPS2):
             suppress_rename_warnings = {}
             reader = xray_io.PackedReader(data)
             for _ in range(reader.int()):
@@ -113,7 +116,11 @@ def import_mesh(context, creader, renamemap):
                     new_name = renamemap.get(name.lower(), name)
                     if new_name != name:
                         if suppress_rename_warnings.get(name, None) != new_name:
-                            log.warn('texture VMap has been renamed', old=name, new=new_name)
+                            log.warn(
+                                'texture VMap has been renamed',
+                                old=name,
+                                new=new_name
+                            )
                             suppress_rename_warnings[name] = new_name
                         name = new_name
                     bml = bmsh.loops.layers.uv.get(name)
@@ -139,14 +146,19 @@ def import_mesh(context, creader, renamemap):
                             bad = True
                             wgs[i] = _MIN_WEIGHT
                     if bad:
-                        log.warn('weight VMap has values that are close to zero', vmap=name)
+                        log.warn(
+                            'weight VMap has values that are close to zero',
+                            vmap=name
+                        )
                     if cid == format_.Chunks.Mesh.VMAPS2:
                         reader.skip(size * 4)
                         if discon:
                             reader.skip(size * 4)
                     vmaps.append((typ, vgi, wgs))
                 else:
-                    raise utils.AppError('unknown vmap type', log.props(type=typ))
+                    raise utils.AppError(
+                        'unknown vmap type', log.props(type=typ)
+                    )
         elif cid == format_.Chunks.Mesh.FLAGS:
             mesh_flags = xray_io.PackedReader(data).getf('B')[0]
             if mesh_flags & 0x4:  # sgmask
@@ -191,7 +203,9 @@ def import_mesh(context, creader, renamemap):
                 vtx[bml_deform][self.__badvg] = 0
 
         def _mkf(self, fr, i0, i1, i2):
-            vertexes = (self._vtx(fr, i0), self._vtx(fr, i1), self._vtx(fr, i2))
+            vertexes = (
+                self._vtx(fr, i0), self._vtx(fr, i1), self._vtx(fr, i2)
+            )
             try:
                 return bmsh.faces.new(vertexes)
             except ValueError:
@@ -265,11 +279,14 @@ def import_mesh(context, creader, renamemap):
     for name, faces in s_faces:
         bmat = context.loaded_materials.get(name)
         if bmat is None:
-            context.loaded_materials[name] = bmat = bpy.data.materials.new(name)
+            context.loaded_materials[name] = bmat = \
+                bpy.data.materials.new(name)
             bmat.xray.version = context.version
         midx = len(bm_data.materials)
         bm_data.materials.append(bmat)
-        images.append(bmat.active_texture.image if bmat.active_texture else None)
+        images.append(
+            bmat.active_texture.image if bmat.active_texture else None
+        )
         f_facez.append((faces, midx))
 
     local_class = LocalComplex if vgroups else LocalSimple

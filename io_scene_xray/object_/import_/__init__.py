@@ -12,7 +12,16 @@ from . import main
 
 
 class ImportContext:
-    def __init__(self, textures, soc_sgroups, import_motions, split_by_materials, operator, objects=''):
+    def __init__(
+            self,
+            textures,
+            soc_sgroups,
+            import_motions,
+            split_by_materials,
+            operator,
+            objects=''
+        ):
+
         self.version = utils.plugin_version_number()
         self.textures_folder = textures
         self.objects_folder = objects
@@ -33,7 +42,9 @@ class ImportContext:
             result.filepath = relpath + '.dds'
             return result
 
-        filepath = os.path.abspath(os.path.join(self.textures_folder, relpath + '.dds'))
+        filepath = os.path.abspath(
+            os.path.join(self.textures_folder, relpath + '.dds')
+        )
         result = None
         for i in bpy.data.images:
             if bpy.path.abspath(i.filepath) == filepath:

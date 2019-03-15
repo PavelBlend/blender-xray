@@ -45,17 +45,28 @@ def import_main(fpath, context, creader):
             reader = xray_io.PackedReader(data)
             ver = reader.getf('H')[0]
             if ver != 0x10:
-                raise utils.AppError('unsupported OBJECT format version', log.props(version=ver))
+                raise utils.AppError(
+                    'unsupported OBJECT format version',
+                    log.props(version=ver)
+                )
         elif cid == format_.Chunks.Object.MESHES:
             meshes_data = data
-        elif (cid == format_.Chunks.Object.SURFACES) or (cid == format_.Chunks.Object.SURFACES1) or \
-            (cid == format_.Chunks.Object.SURFACES2):
+        elif cid in (
+                format_.Chunks.Object.SURFACES,
+                format_.Chunks.Object.SURFACES1,
+                format_.Chunks.Object.SURFACES2
+            ):
+
             reader = xray_io.PackedReader(data)
             surfaces_count = reader.int()
             if cid == format_.Chunks.Object.SURFACES:
                 try:
-                    xrlc_reader = xray_io.PackedReader(creader.next(format_.Chunks.Object.SURFACES_XRLC))
-                    xrlc_shaders = [xrlc_reader.gets() for _ in range(surfaces_count)]
+                    xrlc_reader = xray_io.PackedReader(
+                        creader.next(format_.Chunks.Object.SURFACES_XRLC)
+                    )
+                    xrlc_shaders = [
+                        xrlc_reader.gets() for _ in range(surfaces_count)
+                    ]
                 except:
                     xrlc_shaders = ['default' for _ in range(surfaces_count)]
             for surface_index in range(surfaces_count):
@@ -78,7 +89,9 @@ def import_main(fpath, context, creader):
                     name = reader.gets()
                     eshader = reader.gets()
                     cshader = reader.gets()
-                    gamemtl = reader.gets() if cid == format_.Chunks.Object.SURFACES2 else 'default'
+                    gamemtl = reader.gets() \
+                        if cid == format_.Chunks.Object.SURFACES2 \
+                        else 'default'
                     texture = reader.gets()
                     vmap = reader.gets()
                     if texture != vmap or not (texture and vmap):
@@ -105,7 +118,9 @@ def import_main(fpath, context, creader):
                         continue
 
                     if (not texture) and (not vmap):
-                        all_empty_slots = all(not slot for slot in material.texture_slots)
+                        all_empty_slots = all(
+                            not slot for slot in material.texture_slots
+                        )
                         if all_empty_slots:
                             bpy_material = material
                             break
@@ -116,7 +131,9 @@ def import_main(fpath, context, creader):
                             continue
                         if slot.uv_layer != vmap:
                             continue
-                        if not _is_compatible_texture(slot.texture, tx_filepart):
+                        if not _is_compatible_texture(
+                            slot.texture, tx_filepart
+                        ):
                             continue
                         ts_found = True
                         break
@@ -137,8 +154,12 @@ def import_main(fpath, context, creader):
                     if texture:
                         bpy_texture = bpy.data.textures.get(texture)
                         if (bpy_texture is None) \
-                            or not _is_compatible_texture(bpy_texture, tx_filepart):
-                            bpy_texture = bpy.data.textures.new(texture, type='IMAGE')
+                            or not _is_compatible_texture(
+                                bpy_texture, tx_filepart
+                            ):
+                            bpy_texture = bpy.data.textures.new(
+                                texture, type='IMAGE'
+                            )
                             bpy_texture.image = context.image(texture)
                             bpy_texture.use_preview_alpha = True
                         bpy_texture_slot = bpy_material.texture_slots.add()
@@ -148,7 +169,10 @@ def import_main(fpath, context, creader):
                         bpy_texture_slot.use_map_color_diffuse = True
                         bpy_texture_slot.use_map_alpha = True
                 context.loaded_materials[name] = bpy_material
-        elif (cid == format_.Chunks.Object.BONES) or (cid == format_.Chunks.Object.BONES1):
+        elif cid in (
+                format_.Chunks.Object.BONES,
+                format_.Chunks.Object.BONES1
+            ):
             if cid == format_.Chunks.Object.BONES:
                 reader = xray_io.PackedReader(data)
                 bones_count = reader.int()
@@ -165,8 +189,12 @@ def import_main(fpath, context, creader):
                 bpy.context.scene.objects.active = bpy_arm_obj
             if cid == format_.Chunks.Object.BONES:
                 for _ in range(bones_count):
-                    name, parent, vmap = reader.gets(), reader.gets(), reader.gets()
-                    offset, rotate, length = read_v3f(reader), read_v3f(reader), reader.getf('f')[0]
+                    name = reader.gets()
+                    parent = reader.gets()
+                    vmap = reader.gets()
+                    offset = read_v3f(reader)
+                    rotate = read_v3f(reader)
+                    length = reader.getf('f')[0]
                     rotate = rotate[2], rotate[1], rotate[0]
                     bpy_bone = _create_bone(
                         context, bpy_arm_obj,
@@ -192,7 +220,12 @@ def import_main(fpath, context, creader):
                     ik.damping = 1
             else:
                 for (_, bdat) in xray_io.ChunkedReader(data):
-                    bone.import_bone(context, xray_io.ChunkedReader(bdat), bpy_arm_obj, renamemap)
+                    bone.import_bone(
+                        context,
+                        xray_io.ChunkedReader(bdat),
+                        bpy_arm_obj,
+                        renamemap
+                    )
             bpy.ops.object.mode_set(mode='EDIT')
             try:
                 if context.operator.shaped_bones:
@@ -213,7 +246,10 @@ def import_main(fpath, context, creader):
                 bpy.ops.object.mode_set(mode='OBJECT')
             for bone_ in bpy_arm_obj.pose.bones:
                 bone_.rotation_mode = 'ZXY'
-        elif (cid == format_.Chunks.Object.PARTITIONS0) or (cid == format_.Chunks.Object.PARTITIONS1):
+        elif cid in (
+                format_.Chunks.Object.PARTITIONS0,
+                format_.Chunks.Object.PARTITIONS1
+            ):
             bpy.context.scene.objects.active = bpy_arm_obj
             bpy.ops.object.mode_set(mode='POSE')
             try:
@@ -223,7 +259,9 @@ def import_main(fpath, context, creader):
                     bone_group = bpy_arm_obj.pose.bone_groups.active
                     bone_group.name = reader.gets()
                     for _bone_idx in range(reader.int()):
-                        name = reader.gets() if cid == format_.Chunks.Object.PARTITIONS1 else reader.int()
+                        name = reader.gets() \
+                            if cid == format_.Chunks.Object.PARTITIONS1 \
+                            else reader.int()
                         bpy_arm_obj.pose.bones[name].bone_group = bone_group
             finally:
                 bpy.ops.object.mode_set(mode='OBJECT')
@@ -239,7 +277,9 @@ def import_main(fpath, context, creader):
 
     mesh_objects = []
     for (_, mdat) in xray_io.ChunkedReader(meshes_data):
-        mesh_ = mesh.import_mesh(context, xray_io.ChunkedReader(mdat), renamemap)
+        mesh_ = mesh.import_mesh(
+            context, xray_io.ChunkedReader(mdat), renamemap
+        )
 
         if bpy_arm_obj:
             bpy_armmod = mesh_.modifiers.new(name='Armature', type='ARMATURE')
@@ -262,9 +302,15 @@ def import_main(fpath, context, creader):
 
     bpy_obj.xray.version = context.version
     bpy_obj.xray.isroot = True
-    if fpath.lower().startswith(context.objects_folder.lower()) and context.objects_folder:
+
+    if fpath.lower().startswith(
+            context.objects_folder.lower()
+        ) and context.objects_folder:
+
         object_folder_length = len(context.objects_folder)
-        bpy_obj.xray.export_path = os.path.dirname(fpath.lower())[object_folder_length : ]
+        bpy_obj.xray.export_path = os.path.dirname(
+            fpath.lower()
+        )[object_folder_length : ]
 
     for (cid, data) in unread_chunks:
         if cid == format_.Chunks.Object.TRANSFORM:
@@ -280,8 +326,11 @@ def import_main(fpath, context, creader):
             elif length_data == 1:    # old object format
                 bpy_obj.xray.flags = xray_io.PackedReader(data).getf('B')[0]
         elif cid == format_.Chunks.Object.USERDATA:
-            bpy_obj.xray.userdata = \
-                xray_io.PackedReader(data).gets(onerror=lambda e: log.warn('bad userdata', error=e))
+            bpy_obj.xray.userdata = xray_io.PackedReader(
+                data
+            ).gets(
+                onerror=lambda e: log.warn('bad userdata', error=e)
+            )
         elif cid == format_.Chunks.Object.LOD_REF:
             bpy_obj.xray.lodref = xray_io.PackedReader(data).gets()
         elif cid == format_.Chunks.Object.REVISION:

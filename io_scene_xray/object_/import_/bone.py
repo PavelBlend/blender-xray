@@ -18,24 +18,44 @@ def _get_real_bone_shape():
     return result
 
 
-def _create_bone(context, bpy_arm_obj, name, parent, vmap, offset, rotate, length, renamemap):
+def _create_bone(
+        context,
+        bpy_arm_obj,
+        name,
+        parent,
+        vmap,
+        offset,
+        rotate,
+        length,
+        renamemap
+    ):
+
     bpy_armature = bpy_arm_obj.data
     if name != vmap:
         ex = renamemap.get(vmap, None)
         if ex is None:
             log.warn('bone VMap: will be renamed', vmap=vmap, name=name)
         elif ex != name:
-            log.warn('bone VMap: is already renamed', vmap=vmap, name1=ex, name2=name)
+            log.warn(
+                'bone VMap: is already renamed',
+                vmap=vmap,
+                name1=ex,
+                name2=name
+            )
         renamemap[vmap] = name
     bpy.ops.object.mode_set(mode='EDIT')
     try:
         bpy_bone = bpy_armature.edit_bones.new(name=name)
-        rot = mathutils.Euler((-rotate[0], -rotate[1], -rotate[2]), 'YXZ').to_matrix().to_4x4()
-        mat = mathutils.Matrix.Translation(offset) * rot * xray_motions.MATRIX_BONE
+        rot = mathutils.Euler(
+            (-rotate[0], -rotate[1], -rotate[2]), 'YXZ'
+        ).to_matrix().to_4x4()
+        mat = mathutils.Matrix.Translation(offset) * \
+            rot * xray_motions.MATRIX_BONE
         if parent:
             bpy_bone.parent = bpy_armature.edit_bones.get(parent, None)
             if bpy_bone.parent:
-                mat = bpy_bone.parent.matrix * xray_motions.MATRIX_BONE_INVERTED * mat
+                mat = bpy_bone.parent.matrix * \
+                    xray_motions.MATRIX_BONE_INVERTED * mat
             else:
                 log.warn('bone parent isn\'t found', bone=name, parent=parent)
         bpy_bone.tail.y = 0.02
@@ -69,7 +89,9 @@ def _safe_assign_enum_property(obj, pname, val, desc):
 def import_bone(context, creader, bpy_arm_obj, renamemap):
     ver = creader.nextf(format_.Chunks.Bone.VERSION, 'H')[0]
     if ver != 0x2:
-        raise utils.AppError('unsupported BONE format version', log.props(version=ver))
+        raise utils.AppError(
+            'unsupported BONE format version', log.props(version=ver)
+        )
 
     reader = xray_io.PackedReader(creader.next(format_.Chunks.Bone.DEF))
     name = reader.gets()
@@ -94,12 +116,21 @@ def import_bone(context, creader, bpy_arm_obj, renamemap):
         if cid == format_.Chunks.Bone.DEF:
             def2 = xray_io.PackedReader(data).gets()
             if name != def2:
-                log.warn('Not supported yet! bone name != bone def2', name=name, def2=def2)
+                log.warn(
+                    'Not supported yet! bone name != bone def2',
+                    name=name,
+                    def2=def2
+                )
         elif cid == format_.Chunks.Bone.MATERIAL:
             xray.gamemtl = xray_io.PackedReader(data).gets()
         elif cid == format_.Chunks.Bone.SHAPE:
             reader = xray_io.PackedReader(data)
-            _safe_assign_enum_property(xray.shape, 'type', str(reader.getf('H')[0]), 'bone shape')
+            _safe_assign_enum_property(
+                xray.shape,
+                'type',
+                str(reader.getf('H')[0]),
+                'bone shape'
+            )
             xray.shape.flags = reader.getf('H')[0]
             xray.shape.box_rot = reader.getf('fffffffff')
             xray.shape.box_trn = reader.getf('fff')
