@@ -1,3 +1,4 @@
+
 import io
 import math
 import os.path
@@ -6,17 +7,17 @@ import bmesh
 import bpy
 import mathutils
 
-from ..xray_io import ChunkedReader, PackedReader
-from .format_ import Chunks
-from ..plugin_prefs import PropObjectMeshSplitByMaterials
-from ..utils import BAD_VTX_GROUP_NAME, plugin_version_number, AppError
-from ..xray_motions import import_motions, MATRIX_BONE, MATRIX_BONE_INVERTED
+from .. import xray_io
+from .. import plugin_prefs
+from .. import utils
+from .. import xray_motions
 from .. import log
+from . import format_
 
 
 class ImportContext:
     def __init__(self, textures, soc_sgroups, import_motions, split_by_materials, operator, objects=''):
-        self.version = plugin_version_number()
+        self.version = utils.plugin_version_number()
         self.textures_folder = textures
         self.objects_folder = objects
         self.soc_sgroups = soc_sgroups
@@ -53,7 +54,7 @@ class ImportContext:
         return result
 
 
-_S_FFF = PackedReader.prep('fff')
+_S_FFF = xray_io.PackedReader.prep('fff')
 
 
 def read_v3f(packed_reader):
@@ -77,9 +78,9 @@ _MIN_WEIGHT = 0.0002
 
 @log.with_context(name='mesh')
 def _import_mesh(context, creader, renamemap):
-    ver = creader.nextf(Chunks.Mesh.VERSION, 'H')[0]
+    ver = creader.nextf(format_.Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
-        raise AppError('unsupported MESH format version', log.props(version=ver))
+        raise utils.AppError('unsupported MESH format version', log.props(version=ver))
     mesh_name = None
     mesh_flags = None
     mesh_options = None
@@ -97,18 +98,18 @@ def _import_mesh(context, creader, renamemap):
     bml_texture = None
     has_sg_chunk = False
     for (cid, data) in creader:
-        if cid == Chunks.Mesh.VERTS:
-            reader = PackedReader(data)
+        if cid == format_.Chunks.Mesh.VERTS:
+            reader = xray_io.PackedReader(data)
             vt_data = [read_v3f(reader) for _ in range(reader.int())]
-        elif cid == Chunks.Mesh.FACES:
-            s_6i = PackedReader.prep('IIIIII')
-            reader = PackedReader(data)
+        elif cid == format_.Chunks.Mesh.FACES:
+            s_6i = xray_io.PackedReader.prep('IIIIII')
+            reader = xray_io.PackedReader(data)
             count = reader.int()
             fc_data = [reader.getp(s_6i) for _ in range(count)]
-        elif cid == Chunks.Mesh.MESHNAME:
-            mesh_name = PackedReader(data).gets()
+        elif cid == format_.Chunks.Mesh.MESHNAME:
+            mesh_name = xray_io.PackedReader(data).gets()
             log.update(name=mesh_name)
-        elif cid == Chunks.Mesh.SG:
+        elif cid == format_.Chunks.Mesh.SG:
             if not data:    # old object format
                 continue
             has_sg_chunk = True
@@ -129,13 +130,13 @@ def _import_mesh(context, creader, renamemap):
                     elif not sgfuncs[1](prev[0], sm_group, prev[1], eidx):
                         bme.smooth = False
             face_sg = face_sg_impl
-        elif cid == Chunks.Mesh.SFACE:
-            reader = PackedReader(data)
+        elif cid == format_.Chunks.Mesh.SFACE:
+            reader = xray_io.PackedReader(data)
             for _ in range(reader.getf('H')[0]):
                 name = reader.gets()
                 s_faces.append((name, reader.getb(reader.int() * 4).cast('I')))
-        elif cid == Chunks.Mesh.VMREFS:
-            s_ii = PackedReader.prep('II')
+        elif cid == format_.Chunks.Mesh.VMREFS:
+            s_ii = xray_io.PackedReader.prep('II')
 
             def read_vmref(reader):
                 count = reader.byte()
@@ -143,17 +144,17 @@ def _import_mesh(context, creader, renamemap):
                     return (reader.getp(s_ii),)  # fast path
                 return [reader.getp(s_ii) for __ in range(count)]
 
-            reader = PackedReader(data)
+            reader = xray_io.PackedReader(data)
             vm_refs = [read_vmref(reader) for _ in range(reader.int())]
-        elif cid == Chunks.Mesh.VMAPS1 or cid == Chunks.Mesh.VMAPS2:
+        elif cid == format_.Chunks.Mesh.VMAPS1 or cid == format_.Chunks.Mesh.VMAPS2:
             suppress_rename_warnings = {}
-            reader = PackedReader(data)
+            reader = xray_io.PackedReader(data)
             for _ in range(reader.int()):
                 name = reader.gets()
                 if not name:
                     name = 'Texture'
                 reader.skip(1)  # dim
-                if cid == Chunks.Mesh.VMAPS2:
+                if cid == format_.Chunks.Mesh.VMAPS2:
                     discon = reader.byte() != 0
                 typ = reader.byte() & 0x3
                 size = reader.int()
@@ -169,7 +170,7 @@ def _import_mesh(context, creader, renamemap):
                         bml = bmsh.loops.layers.uv.new(name)
                         bml_texture = bmsh.faces.layers.tex.new(name)
                     uvs = reader.getb(size * 8).cast('f')
-                    if cid == Chunks.Mesh.VMAPS2:
+                    if cid == format_.Chunks.Mesh.VMAPS2:
                         reader.skip(size * 4)
                         if discon:
                             reader.skip(size * 4)
@@ -188,22 +189,22 @@ def _import_mesh(context, creader, renamemap):
                             wgs[i] = _MIN_WEIGHT
                     if bad:
                         log.warn('weight VMap has values that are close to zero', vmap=name)
-                    if cid == Chunks.Mesh.VMAPS2:
+                    if cid == format_.Chunks.Mesh.VMAPS2:
                         reader.skip(size * 4)
                         if discon:
                             reader.skip(size * 4)
                     vmaps.append((typ, vgi, wgs))
                 else:
-                    raise AppError('unknown vmap type', log.props(type=typ))
-        elif cid == Chunks.Mesh.FLAGS:
-            mesh_flags = PackedReader(data).getf('B')[0]
+                    raise utils.AppError('unknown vmap type', log.props(type=typ))
+        elif cid == format_.Chunks.Mesh.FLAGS:
+            mesh_flags = xray_io.PackedReader(data).getf('B')[0]
             if mesh_flags & 0x4:  # sgmask
                 sgfuncs = (0, lambda ga, gb, ea, eb: bool(ga & gb))
-        elif cid == Chunks.Mesh.BBOX:
+        elif cid == format_.Chunks.Mesh.BBOX:
             pass  # blender automatically calculates bbox
-        elif cid == Chunks.Mesh.OPTIONS:
-            mesh_options = PackedReader(data).getf('II')
-        elif cid == Chunks.Mesh.NOT_USED_0:
+        elif cid == format_.Chunks.Mesh.OPTIONS:
+            mesh_options = xray_io.PackedReader(data).getf('II')
+        elif cid == format_.Chunks.Mesh.NOT_USED_0:
             pass  # not used chunk
         else:
             log.debug('unknown chunk', cid=cid)
@@ -249,11 +250,11 @@ def _import_mesh(context, creader, renamemap):
                 if self.__next is None:
                     lvl = self.__level
                     if lvl > 100:
-                        raise AppError('too many duplicated polygons')
+                        raise utils.AppError('too many duplicated polygons')
                     nonlocal bad_vgroup
                     if bad_vgroup == -1:
                         bad_vgroup = len(bo_mesh.vertex_groups)
-                        bo_mesh.vertex_groups.new(BAD_VTX_GROUP_NAME)
+                        bo_mesh.vertex_groups.new(utils.BAD_VTX_GROUP_NAME)
                     self.__next = self.__class__(lvl + 1, badvg=bad_vgroup)
                 return self.__next._mkf(fr, i0, i1, i2)
 
@@ -380,7 +381,7 @@ def _import_mesh(context, creader, renamemap):
         )
         if not context.split_by_materials:
             msg += ' (try to use "{}" option)'.format(
-                PropObjectMeshSplitByMaterials()[1].get('name')
+                plugin_prefs.PropObjectMeshSplitByMaterials()[1].get('name')
             )
         log.warn(msg)
 
@@ -415,11 +416,11 @@ def _create_bone(context, bpy_arm_obj, name, parent, vmap, offset, rotate, lengt
     try:
         bpy_bone = bpy_armature.edit_bones.new(name=name)
         rot = mathutils.Euler((-rotate[0], -rotate[1], -rotate[2]), 'YXZ').to_matrix().to_4x4()
-        mat = mathutils.Matrix.Translation(offset) * rot * MATRIX_BONE
+        mat = mathutils.Matrix.Translation(offset) * rot * xray_motions.MATRIX_BONE
         if parent:
             bpy_bone.parent = bpy_armature.edit_bones.get(parent, None)
             if bpy_bone.parent:
-                mat = bpy_bone.parent.matrix * MATRIX_BONE_INVERTED * mat
+                mat = bpy_bone.parent.matrix * xray_motions.MATRIX_BONE_INVERTED * mat
             else:
                 log.warn('bone parent isn\'t found', bone=name, parent=parent)
         bpy_bone.tail.y = 0.02
@@ -451,17 +452,17 @@ def _safe_assign_enum_property(obj, pname, val, desc):
 
 @log.with_context(name='bone')
 def _import_bone(context, creader, bpy_arm_obj, renamemap):
-    ver = creader.nextf(Chunks.Bone.VERSION, 'H')[0]
+    ver = creader.nextf(format_.Chunks.Bone.VERSION, 'H')[0]
     if ver != 0x2:
-        raise AppError('unsupported BONE format version', log.props(version=ver))
+        raise utils.AppError('unsupported BONE format version', log.props(version=ver))
 
-    reader = PackedReader(creader.next(Chunks.Bone.DEF))
+    reader = xray_io.PackedReader(creader.next(format_.Chunks.Bone.DEF))
     name = reader.gets()
     log.update(name=name)
     parent = reader.gets()
     vmap = reader.gets()
 
-    reader = PackedReader(creader.next(Chunks.Bone.BIND_POSE))
+    reader = xray_io.PackedReader(creader.next(format_.Chunks.Bone.BIND_POSE))
     offset = read_v3f(reader)
     rotate = read_v3f(reader)
     length = reader.getf('f')[0]
@@ -475,14 +476,14 @@ def _import_bone(context, creader, bpy_arm_obj, renamemap):
     )
     xray = bpy_bone.xray
     for (cid, data) in creader:
-        if cid == Chunks.Bone.DEF:
-            def2 = PackedReader(data).gets()
+        if cid == format_.Chunks.Bone.DEF:
+            def2 = xray_io.PackedReader(data).gets()
             if name != def2:
                 log.warn('Not supported yet! bone name != bone def2', name=name, def2=def2)
-        elif cid == Chunks.Bone.MATERIAL:
-            xray.gamemtl = PackedReader(data).gets()
-        elif cid == Chunks.Bone.SHAPE:
-            reader = PackedReader(data)
+        elif cid == format_.Chunks.Bone.MATERIAL:
+            xray.gamemtl = xray_io.PackedReader(data).gets()
+        elif cid == format_.Chunks.Bone.SHAPE:
+            reader = xray_io.PackedReader(data)
             _safe_assign_enum_property(xray.shape, 'type', str(reader.getf('H')[0]), 'bone shape')
             xray.shape.flags = reader.getf('H')[0]
             xray.shape.box_rot = reader.getf('fffffffff')
@@ -495,8 +496,8 @@ def _import_bone(context, creader, bpy_arm_obj, renamemap):
             xray.shape.cyl_hgh = reader.getf('f')[0]
             xray.shape.cyl_rad = reader.getf('f')[0]
             xray.shape.set_curver()
-        elif cid == Chunks.Bone.IK_JOINT:
-            reader = PackedReader(data)
+        elif cid == format_.Chunks.Bone.IK_JOINT:
+            reader = xray_io.PackedReader(data)
             pose_bone = bpy_arm_obj.pose.bones[name]
             value = str(reader.int())
             ik = xray.ikjoint
@@ -514,18 +515,18 @@ def _import_bone(context, creader, bpy_arm_obj, renamemap):
             ik.spring = reader.getf('f')[0]
             ik.damping = reader.getf('f')[0]
 
-        elif cid == Chunks.Bone.MASS_PARAMS:
-            reader = PackedReader(data)
+        elif cid == format_.Chunks.Bone.MASS_PARAMS:
+            reader = xray_io.PackedReader(data)
             xray.mass.value = reader.getf('f')[0]
             xray.mass.center = read_v3f(reader)
-        elif cid == Chunks.Bone.IK_FLAGS:
-            xray.ikflags = PackedReader(data).int()
-        elif cid == Chunks.Bone.BREAK_PARAMS:
-            reader = PackedReader(data)
+        elif cid == format_.Chunks.Bone.IK_FLAGS:
+            xray.ikflags = xray_io.PackedReader(data).int()
+        elif cid == format_.Chunks.Bone.BREAK_PARAMS:
+            reader = xray_io.PackedReader(data)
             xray.breakf.force = reader.getf('f')[0]
             xray.breakf.torque = reader.getf('f')[0]
-        elif cid == Chunks.Bone.FRICTION:
-            xray.friction = PackedReader(data).getf('f')[0]
+        elif cid == format_.Chunks.Bone.FRICTION:
+            xray.friction = xray_io.PackedReader(data).getf('f')[0]
         else:
             log.debug('unknown chunk', cid=cid)
 
@@ -547,25 +548,25 @@ def _import_main(fpath, context, creader):
     unread_chunks = []
 
     for (cid, data) in creader:
-        if cid == Chunks.Object.VERSION:
-            reader = PackedReader(data)
+        if cid == format_.Chunks.Object.VERSION:
+            reader = xray_io.PackedReader(data)
             ver = reader.getf('H')[0]
             if ver != 0x10:
-                raise AppError('unsupported OBJECT format version', log.props(version=ver))
-        elif cid == Chunks.Object.MESHES:
+                raise utils.AppError('unsupported OBJECT format version', log.props(version=ver))
+        elif cid == format_.Chunks.Object.MESHES:
             meshes_data = data
-        elif (cid == Chunks.Object.SURFACES) or (cid == Chunks.Object.SURFACES1) or \
-            (cid == Chunks.Object.SURFACES2):
-            reader = PackedReader(data)
+        elif (cid == format_.Chunks.Object.SURFACES) or (cid == format_.Chunks.Object.SURFACES1) or \
+            (cid == format_.Chunks.Object.SURFACES2):
+            reader = xray_io.PackedReader(data)
             surfaces_count = reader.int()
-            if cid == Chunks.Object.SURFACES:
+            if cid == format_.Chunks.Object.SURFACES:
                 try:
-                    xrlc_reader = PackedReader(creader.next(Chunks.Object.SURFACES_XRLC))
+                    xrlc_reader = xray_io.PackedReader(creader.next(format_.Chunks.Object.SURFACES_XRLC))
                     xrlc_shaders = [xrlc_reader.gets() for _ in range(surfaces_count)]
                 except:
                     xrlc_shaders = ['default' for _ in range(surfaces_count)]
             for surface_index in range(surfaces_count):
-                if cid == Chunks.Object.SURFACES:
+                if cid == format_.Chunks.Object.SURFACES:
                     name = reader.gets()
                     eshader = reader.gets()
                     flags = reader.getf('B')[0]
@@ -584,7 +585,7 @@ def _import_main(fpath, context, creader):
                     name = reader.gets()
                     eshader = reader.gets()
                     cshader = reader.gets()
-                    gamemtl = reader.gets() if cid == Chunks.Object.SURFACES2 else 'default'
+                    gamemtl = reader.gets() if cid == format_.Chunks.Object.SURFACES2 else 'default'
                     texture = reader.gets()
                     vmap = reader.gets()
                     if texture != vmap or not (texture and vmap):
@@ -654,9 +655,9 @@ def _import_main(fpath, context, creader):
                         bpy_texture_slot.use_map_color_diffuse = True
                         bpy_texture_slot.use_map_alpha = True
                 context.loaded_materials[name] = bpy_material
-        elif (cid == Chunks.Object.BONES) or (cid == Chunks.Object.BONES1):
-            if cid == Chunks.Object.BONES:
-                reader = PackedReader(data)
+        elif (cid == format_.Chunks.Object.BONES) or (cid == format_.Chunks.Object.BONES1):
+            if cid == format_.Chunks.Object.BONES:
+                reader = xray_io.PackedReader(data)
                 bones_count = reader.int()
                 if not bones_count:
                     continue    # Do not create an armature if zero bones
@@ -669,7 +670,7 @@ def _import_main(fpath, context, creader):
                 bpy_armature.xray.joint_limits_type = 'XRAY'
                 bpy.context.scene.objects.link(bpy_arm_obj)
                 bpy.context.scene.objects.active = bpy_arm_obj
-            if cid == Chunks.Object.BONES:
+            if cid == format_.Chunks.Object.BONES:
                 for _ in range(bones_count):
                     name, parent, vmap = reader.gets(), reader.gets(), reader.gets()
                     offset, rotate, length = read_v3f(reader), read_v3f(reader), reader.getf('f')[0]
@@ -697,8 +698,8 @@ def _import_main(fpath, context, creader):
                     ik.spring = 1
                     ik.damping = 1
             else:
-                for (_, bdat) in ChunkedReader(data):
-                    _import_bone(context, ChunkedReader(bdat), bpy_arm_obj, renamemap)
+                for (_, bdat) in xray_io.ChunkedReader(data):
+                    _import_bone(context, xray_io.ChunkedReader(bdat), bpy_arm_obj, renamemap)
             bpy.ops.object.mode_set(mode='EDIT')
             try:
                 if context.operator.shaped_bones:
@@ -719,33 +720,33 @@ def _import_main(fpath, context, creader):
                 bpy.ops.object.mode_set(mode='OBJECT')
             for bone in bpy_arm_obj.pose.bones:
                 bone.rotation_mode = 'ZXY'
-        elif (cid == Chunks.Object.PARTITIONS0) or (cid == Chunks.Object.PARTITIONS1):
+        elif (cid == format_.Chunks.Object.PARTITIONS0) or (cid == format_.Chunks.Object.PARTITIONS1):
             bpy.context.scene.objects.active = bpy_arm_obj
             bpy.ops.object.mode_set(mode='POSE')
             try:
-                reader = PackedReader(data)
+                reader = xray_io.PackedReader(data)
                 for _partition_idx in range(reader.int()):
                     bpy.ops.pose.group_add()
                     bone_group = bpy_arm_obj.pose.bone_groups.active
                     bone_group.name = reader.gets()
                     for _bone_idx in range(reader.int()):
-                        name = reader.gets() if cid == Chunks.Object.PARTITIONS1 else reader.int()
+                        name = reader.gets() if cid == format_.Chunks.Object.PARTITIONS1 else reader.int()
                         bpy_arm_obj.pose.bones[name].bone_group = bone_group
             finally:
                 bpy.ops.object.mode_set(mode='OBJECT')
-        elif cid == Chunks.Object.MOTIONS:
+        elif cid == format_.Chunks.Object.MOTIONS:
             if not context.import_motions:
                 continue
-            reader = PackedReader(data)
-            import_motions(reader, bpy_arm_obj)
-        elif cid == Chunks.Object.LIB_VERSION:
+            reader = xray_io.PackedReader(data)
+            xray_motions.import_motions(reader, bpy_arm_obj)
+        elif cid == format_.Chunks.Object.LIB_VERSION:
             pass  # skip obsolete chunk
         else:
             unread_chunks.append((cid, data))
 
     mesh_objects = []
-    for (_, mdat) in ChunkedReader(meshes_data):
-        mesh = _import_mesh(context, ChunkedReader(mdat), renamemap)
+    for (_, mdat) in xray_io.ChunkedReader(meshes_data):
+        mesh = _import_mesh(context, xray_io.ChunkedReader(mdat), renamemap)
 
         if bpy_arm_obj:
             bpy_armmod = mesh.modifiers.new(name='Armature', type='ARMATURE')
@@ -773,35 +774,35 @@ def _import_main(fpath, context, creader):
         bpy_obj.xray.export_path = os.path.dirname(fpath.lower())[object_folder_length : ]
 
     for (cid, data) in unread_chunks:
-        if cid == Chunks.Object.TRANSFORM:
-            reader = PackedReader(data)
+        if cid == format_.Chunks.Object.TRANSFORM:
+            reader = xray_io.PackedReader(data)
             pos = read_v3f(reader)
             rot = read_v3f(reader)
             bpy_obj.matrix_basis *= mathutils.Matrix.Translation(pos) \
                 * mathutils.Euler(rot, 'YXZ').to_matrix().to_4x4()
-        elif cid == Chunks.Object.FLAGS:
+        elif cid == format_.Chunks.Object.FLAGS:
             length_data = len(data)
             if length_data == 4:
-                bpy_obj.xray.flags = PackedReader(data).int()
+                bpy_obj.xray.flags = xray_io.PackedReader(data).int()
             elif length_data == 1:    # old object format
-                bpy_obj.xray.flags = PackedReader(data).getf('B')[0]
-        elif cid == Chunks.Object.USERDATA:
+                bpy_obj.xray.flags = xray_io.PackedReader(data).getf('B')[0]
+        elif cid == format_.Chunks.Object.USERDATA:
             bpy_obj.xray.userdata = \
-                PackedReader(data).gets(onerror=lambda e: log.warn('bad userdata', error=e))
-        elif cid == Chunks.Object.LOD_REF:
-            bpy_obj.xray.lodref = PackedReader(data).gets()
-        elif cid == Chunks.Object.REVISION:
-            reader = PackedReader(data)
+                xray_io.PackedReader(data).gets(onerror=lambda e: log.warn('bad userdata', error=e))
+        elif cid == format_.Chunks.Object.LOD_REF:
+            bpy_obj.xray.lodref = xray_io.PackedReader(data).gets()
+        elif cid == format_.Chunks.Object.REVISION:
+            reader = xray_io.PackedReader(data)
             bpy_obj.xray.revision.owner = reader.gets()
             bpy_obj.xray.revision.ctime = reader.int()
             bpy_obj.xray.revision.moder = reader.gets()
             bpy_obj.xray.revision.mtime = reader.int()
-        elif cid == Chunks.Object.MOTION_REFS:
+        elif cid == format_.Chunks.Object.MOTION_REFS:
             mrefs = bpy_obj.xray.motionrefs_collection
-            for mref in PackedReader(data).gets().split(','):
+            for mref in xray_io.PackedReader(data).gets().split(','):
                 mrefs.add().name = mref
-        elif cid == Chunks.Object.SMOTIONS3:
-            reader = PackedReader(data)
+        elif cid == format_.Chunks.Object.SMOTIONS3:
+            reader = xray_io.PackedReader(data)
             mrefs = bpy_obj.xray.motionrefs_collection
             for _ in range(reader.int()):
                 mrefs.add().name = reader.gets()
@@ -811,8 +812,8 @@ def _import_main(fpath, context, creader):
 
 def _import(fpath, context, reader):
     for (cid, data) in reader:
-        if cid == Chunks.Object.MAIN:
-            _import_main(fpath, context, ChunkedReader(data))
+        if cid == format_.Chunks.Object.MAIN:
+            _import_main(fpath, context, xray_io.ChunkedReader(data))
         else:
             log.debug('unknown chunk', cid=cid)
 
@@ -821,4 +822,4 @@ def _import(fpath, context, reader):
 def import_file(fpath, context):
     log.update(path=fpath)
     with io.open(fpath, 'rb') as file:
-        _import(fpath, context, ChunkedReader(memoryview(file.read())))
+        _import(fpath, context, xray_io.ChunkedReader(memoryview(file.read())))

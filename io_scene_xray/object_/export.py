@@ -1,16 +1,18 @@
+
 import io
+import platform
+import getpass
+import time
 
 import bmesh
 import bpy
 import mathutils
 
-from ..xray_io import ChunkedWriter, PackedWriter
-from ..xray_motions import export_motions, MATRIX_BONE_INVERTED
-from .format_ import Chunks
-from ..utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
-    convert_object_to_space_bmesh, calculate_mesh_bbox, gen_texture_name, is_helper_object
-from ..utils import BAD_VTX_GROUP_NAME
+from .. import xray_io
+from .. import xray_motions
+from .. import utils
 from .. import log
+from . import format_
 
 
 class ExportContext:
@@ -74,45 +76,46 @@ def _export_sg_new(bmfaces):
 @log.with_context('export-mesh')
 def _export_mesh(bpy_obj, bpy_root, cw, context):
     log.update(mesh=bpy_obj.data.name)
-    cw.put(Chunks.Mesh.VERSION, PackedWriter().putf('H', 0x11))
+    cw.put(format_.Chunks.Mesh.VERSION, xray_io.PackedWriter().putf('H', 0x11))
     mesh_name = bpy_obj.data.name if bpy_obj == bpy_root else bpy_obj.name
-    cw.put(Chunks.Mesh.MESHNAME, PackedWriter().puts(mesh_name))
+    cw.put(format_.Chunks.Mesh.MESHNAME, xray_io.PackedWriter().puts(mesh_name))
 
-    bm = convert_object_to_space_bmesh(bpy_obj, bpy_root.matrix_world)
+    bm = utils.convert_object_to_space_bmesh(bpy_obj, bpy_root.matrix_world)
     bml = bm.verts.layers.deform.verify()
-    bad_vgroups = [vertex_group.name.startswith(BAD_VTX_GROUP_NAME) for vertex_group in bpy_obj.vertex_groups]
+    bad_vgroups = [vertex_group.name.startswith(utils.BAD_VTX_GROUP_NAME) for vertex_group in bpy_obj.vertex_groups]
     bad_verts = [vertex for vertex in bm.verts if any(bad_vgroups[k] for k in vertex[bml].keys())]
     if bad_verts:
-        log.warn('skipping geometry from "{}"-s vertex groups'.format(BAD_VTX_GROUP_NAME))
+        log.warn('skipping geometry from "{}"-s vertex groups'.format(utils.BAD_VTX_GROUP_NAME))
         bmesh.ops.delete(bm, geom=bad_verts, context=1)
 
-    bbox = calculate_mesh_bbox(bm.verts)
+    bbox = utils.calculate_mesh_bbox(bm.verts)
     cw.put(
-        Chunks.Mesh.BBOX,
-        PackedWriter().putf('fff', *pw_v3f(bbox[0])).putf('fff', *pw_v3f(bbox[1]))
+        format_.Chunks.Mesh.BBOX,
+        xray_io.PackedWriter().putf('fff', *pw_v3f(bbox[0])).putf('fff', *pw_v3f(bbox[1]))
     )
     if hasattr(bpy_obj.data, 'xray'):
-        flags = bpy_obj.data.xray.flags & ~Chunks.Mesh.Flags.SG_MASK  # MAX sg-format currently unsupported (we use Maya sg-format)
-        cw.put(Chunks.Mesh.FLAGS, PackedWriter().putf('B', flags))
+        # MAX sg-format currently unsupported (we use Maya sg-format)
+        flags = bpy_obj.data.xray.flags & ~format_.Chunks.Mesh.Flags.SG_MASK
+        cw.put(format_.Chunks.Mesh.FLAGS, xray_io.PackedWriter().putf('B', flags))
     else:
-        cw.put(Chunks.Mesh.FLAGS, PackedWriter().putf('B', 1))
+        cw.put(format_.Chunks.Mesh.FLAGS, xray_io.PackedWriter().putf('B', 1))
 
     bmesh.ops.triangulate(bm, faces=bm.faces)
 
-    writer = PackedWriter()
+    writer = xray_io.PackedWriter()
     writer.putf('I', len(bm.verts))
     for vertex in bm.verts:
         writer.putf('fff', *pw_v3f(vertex.co))
-    cw.put(Chunks.Mesh.VERTS, writer)
+    cw.put(format_.Chunks.Mesh.VERTS, writer)
 
     uvs = []
     vtx = []
     fcs = []
     uv_layer = bm.loops.layers.uv.active
     if not uv_layer:
-        raise AppError('UV-map is required, but not found')
+        raise utils.AppError('UV-map is required, but not found')
 
-    writer = PackedWriter()
+    writer = xray_io.PackedWriter()
     writer.putf('I', len(bm.faces))
     for fidx in bm.faces:
         for i in (0, 2, 1):
@@ -121,7 +124,7 @@ def _export_mesh(bpy_obj, bpy_root, cw, context):
             uvs.append((uvc[0], 1 - uvc[1]))
             vtx.append(fidx.verts[i].index)
             fcs.append(fidx.index)
-    cw.put(Chunks.Mesh.FACES, writer)
+    cw.put(format_.Chunks.Mesh.FACES, writer)
 
     wmaps = []
     wmaps_cnt = 0
@@ -144,7 +147,7 @@ def _export_mesh(bpy_obj, bpy_root, cw, context):
             wr.append((1 + wmap[1], len(wmap[0])))
             wmap[0].append(vidx)
 
-    writer = PackedWriter()
+    writer = xray_io.PackedWriter()
     writer.putf('I', len(uvs))
     for i in range(len(uvs)):
         vidx = vtx[i]
@@ -152,9 +155,9 @@ def _export_mesh(bpy_obj, bpy_root, cw, context):
         writer.putf('B', 1 + len(wref)).putf('II', 0, i)
         for ref in wref:
             writer.putf('II', *ref)
-    cw.put(Chunks.Mesh.VMREFS, writer)
+    cw.put(format_.Chunks.Mesh.VMREFS, writer)
 
-    writer = PackedWriter()
+    writer = xray_io.PackedWriter()
     sfaces = {
         m.name if m else None: [fidx for fidx, face in enumerate(bm.faces) if face.material_index == mi]
         for mi, m in enumerate(bpy_obj.data.materials)
@@ -166,16 +169,16 @@ def _export_mesh(bpy_obj, bpy_root, cw, context):
             used_material_names.add(material_name)
 
     if not sfaces:
-        raise AppError('mesh has no material')
+        raise utils.AppError('mesh has no material')
     writer.putf('H', len(used_material_names))
     for name, fidxs in sfaces.items():
         if name in used_material_names:
             writer.puts(name).putf('I', len(fidxs))
             for fidx in fidxs:
                 writer.putf('I', fidx)
-    cw.put(Chunks.Mesh.SFACE, writer)
+    cw.put(format_.Chunks.Mesh.SFACE, writer)
 
-    writer = PackedWriter()
+    writer = xray_io.PackedWriter()
     sgroups = []
     if context.soc_sgroups:
         sgroups = tuple(_export_sg_soc(bm.faces))
@@ -186,9 +189,9 @@ def _export_mesh(bpy_obj, bpy_root, cw, context):
         sgroups = _export_sg_new(bm.faces)
     for sgroup in sgroups:
         writer.putf('I', sgroup)
-    cw.put(Chunks.Mesh.SG, writer)
+    cw.put(format_.Chunks.Mesh.SG, writer)
 
-    writer = PackedWriter()
+    writer = xray_io.PackedWriter()
     writer.putf('I', 1 + wmaps_cnt)
     texture = bpy_obj.data.uv_textures.active
     writer.puts(texture.name).putf('B', 2).putf('B', 1).putf('B', 0)
@@ -210,35 +213,35 @@ def _export_mesh(bpy_obj, bpy_root, cw, context):
         for vidx in vtx:
             writer.putf('f', bm.verts[vidx][bml][vgi])
         writer.putf(str(len(vtx)) + 'I', *vtx)
-    cw.put(Chunks.Mesh.VMAPS2, writer)
+    cw.put(format_.Chunks.Mesh.VMAPS2, writer)
     return used_material_names
 
 
 def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
-    real_parent = find_bone_exportable_parent(bpy_bone)
+    real_parent = utils.find_bone_exportable_parent(bpy_bone)
     if real_parent:
         if bonemap.get(real_parent) is None:
             _export_bone(bpy_arm_obj, bpy_root, real_parent, writers, bonemap, context)
 
     xray = bpy_bone.xray
-    writer = ChunkedWriter()
+    writer = xray_io.ChunkedWriter()
     writers.append(writer)
     bonemap[bpy_bone] = writer
-    writer.put(Chunks.Bone.VERSION, PackedWriter().putf('H', 0x02))
-    writer.put(Chunks.Bone.DEF, PackedWriter()
+    writer.put(format_.Chunks.Bone.VERSION, xray_io.PackedWriter().putf('H', 0x02))
+    writer.put(format_.Chunks.Bone.DEF, xray_io.PackedWriter()
                .puts(bpy_bone.name)
                .puts(real_parent.name if real_parent else '')
                .puts(bpy_bone.name))  # vmap
     xmat = bpy_root.matrix_world.inverted() * bpy_arm_obj.matrix_world
-    mat = xmat * bpy_bone.matrix_local * MATRIX_BONE_INVERTED
+    mat = xmat * bpy_bone.matrix_local * xray_motions.MATRIX_BONE_INVERTED
     if real_parent:
-        mat = (xmat * real_parent.matrix_local * MATRIX_BONE_INVERTED).inverted() * mat
+        mat = (xmat * real_parent.matrix_local * xray_motions.MATRIX_BONE_INVERTED).inverted() * mat
     eul = mat.to_euler('YXZ')
-    writer.put(Chunks.Bone.BIND_POSE, PackedWriter()
+    writer.put(format_.Chunks.Bone.BIND_POSE, xray_io.PackedWriter()
                .putf('fff', *pw_v3f(mat.to_translation()))
                .putf('fff', -eul.x, -eul.z, -eul.y)
                .putf('f', xray.length))
-    writer.put(Chunks.Bone.MATERIAL, PackedWriter().puts(xray.gamemtl))
+    writer.put(format_.Chunks.Bone.MATERIAL, xray_io.PackedWriter().puts(xray.gamemtl))
     verdif = xray.shape.check_version_different()
     if verdif != 0:
         log.warn(
@@ -246,7 +249,7 @@ def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
             bone=bpy_bone.name,
             version=xray.shape.fmt_version_different(verdif)
         )
-    writer.put(Chunks.Bone.SHAPE, PackedWriter()
+    writer.put(format_.Chunks.Bone.SHAPE, xray_io.PackedWriter()
                .putf('H', int(xray.shape.type))
                .putf('H', xray.shape.flags)
                .putf('fffffffff', *xray.shape.box_rot)
@@ -261,7 +264,7 @@ def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
     pose_bone = bpy_arm_obj.pose.bones[bpy_bone.name]
     ik = xray.ikjoint
     if bpy_arm_obj.data.xray.joint_limits_type == 'XRAY':
-        writer.put(Chunks.Bone.IK_JOINT, PackedWriter()
+        writer.put(format_.Chunks.Bone.IK_JOINT, xray_io.PackedWriter()
                 .putf('I', int(ik.type))
                 .putf('ff', ik.lim_x_min, ik.lim_x_max)
                 .putf('ff', ik.lim_x_spr, ik.lim_x_dmp)
@@ -271,7 +274,7 @@ def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
                 .putf('ff', ik.lim_z_spr, ik.lim_z_dmp)
                 .putf('ff', ik.spring, ik.damping))
     else:
-        writer.put(Chunks.Bone.IK_JOINT, PackedWriter()
+        writer.put(format_.Chunks.Bone.IK_JOINT, xray_io.PackedWriter()
                 .putf('I', int(ik.type))
                 .putf('ff', pose_bone.ik_min_x, pose_bone.ik_max_x)
                 .putf('ff', ik.lim_x_spr, ik.lim_x_dmp)
@@ -281,26 +284,26 @@ def _export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
                 .putf('ff', ik.lim_z_spr, ik.lim_z_dmp)
                 .putf('ff', ik.spring, ik.damping))
     if xray.ikflags:
-        writer.put(Chunks.Bone.IK_FLAGS, PackedWriter().putf('I', xray.ikflags))
+        writer.put(format_.Chunks.Bone.IK_FLAGS, xray_io.PackedWriter().putf('I', xray.ikflags))
         if xray.ikflags_breakable:
-            writer.put(Chunks.Bone.BREAK_PARAMS, PackedWriter()
+            writer.put(format_.Chunks.Bone.BREAK_PARAMS, xray_io.PackedWriter()
                        .putf('f', xray.breakf.force)
                        .putf('f', xray.breakf.torque))
     if int(ik.type) and xray.friction:
-        writer.put(Chunks.Bone.FRICTION, PackedWriter()
+        writer.put(format_.Chunks.Bone.FRICTION, xray_io.PackedWriter()
                    .putf('f', xray.friction))
     if xray.mass.value:
-        writer.put(Chunks.Bone.MASS_PARAMS, PackedWriter()
+        writer.put(format_.Chunks.Bone.MASS_PARAMS, xray_io.PackedWriter()
                    .putf('f', xray.mass.value)
                    .putf('fff', *pw_v3f(xray.mass.center)))
 
 
 def _export_main(bpy_obj, chunked_writer, context):
-    chunked_writer.put(Chunks.Object.VERSION, PackedWriter().putf('H', 0x10))
+    chunked_writer.put(format_.Chunks.Object.VERSION, xray_io.PackedWriter().putf('H', 0x10))
     xray = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
     chunked_writer.put(
-        Chunks.Object.FLAGS,
-        PackedWriter().putf('I', xray.flags if xray is not None else 0)
+        format_.Chunks.Object.FLAGS,
+        xray_io.PackedWriter().putf('I', xray.flags if xray is not None else 0)
     )
     mesh_writers = []
     armatures = set()
@@ -308,10 +311,10 @@ def _export_main(bpy_obj, chunked_writer, context):
     bpy_root = bpy_obj
 
     def scan_r(bpy_obj):
-        if is_helper_object(bpy_obj):
+        if utils.is_helper_object(bpy_obj):
             return
         if bpy_obj.type == 'MESH':
-            mesh_writer = ChunkedWriter()
+            mesh_writer = xray_io.ChunkedWriter()
             used_material_names = _export_mesh(
                 bpy_obj,
                 bpy_root,
@@ -338,18 +341,18 @@ def _export_main(bpy_obj, chunked_writer, context):
     for bpy_arm_obj in armatures:
         bonemap = {}
         for bone in bpy_arm_obj.data.bones:
-            if not is_exportable_bone(bone):
+            if not utils.is_exportable_bone(bone):
                 continue
             _export_bone(bpy_arm_obj, bpy_root, bone, bone_writers, bonemap, context)
 
-    msw = ChunkedWriter()
+    msw = xray_io.ChunkedWriter()
     idx = 0
     for mesh_writer in mesh_writers:
         msw.put(idx, mesh_writer)
         idx += 1
 
-    chunked_writer.put(Chunks.Object.MESHES, msw)
-    sfw = PackedWriter()
+    chunked_writer.put(format_.Chunks.Object.MESHES, msw)
+    sfw = xray_io.PackedWriter()
     sfw.putf('I', len(materials))
     for material in materials:
         sfw.puts(material.name)
@@ -360,7 +363,7 @@ def _export_main(bpy_obj, chunked_writer, context):
         tx_name = ''
         if material.active_texture:
             if context.texname_from_path:
-                tx_name = gen_texture_name(material.active_texture, context.textures_folder)
+                tx_name = utils.gen_texture_name(material.active_texture, context.textures_folder)
             else:
                 tx_name = material.active_texture.name
         sfw.puts(tx_name)
@@ -371,23 +374,23 @@ def _export_main(bpy_obj, chunked_writer, context):
         else:
             sfw.putf('I', 0)
         sfw.putf('I', 0x112).putf('I', 1)
-    chunked_writer.put(Chunks.Object.SURFACES2, sfw)
+    chunked_writer.put(format_.Chunks.Object.SURFACES2, sfw)
 
     if bone_writers:
-        writer = ChunkedWriter()
+        writer = xray_io.ChunkedWriter()
         idx = 0
         for bone_writer in bone_writers:
             writer.put(idx, bone_writer)
             idx += 1
-        chunked_writer.put(Chunks.Object.BONES1, writer)
+        chunked_writer.put(format_.Chunks.Object.BONES1, writer)
 
     if xray.userdata:
         chunked_writer.put(
-            Chunks.Object.USERDATA,
-            PackedWriter().puts('\r\n'.join(xray.userdata.splitlines()))
+            format_.Chunks.Object.USERDATA,
+            xray_io.PackedWriter().puts('\r\n'.join(xray.userdata.splitlines()))
         )
     if xray.lodref:
-        chunked_writer.put(Chunks.Object.LOD_REF, PackedWriter().puts(xray.lodref))
+        chunked_writer.put(format_.Chunks.Object.LOD_REF, xray_io.PackedWriter().puts(xray.lodref))
 
     arm_list = list(armatures)
     some_arm = arm_list[0] if arm_list else None  # take care of static objects
@@ -398,16 +401,16 @@ def _export_main(bpy_obj, chunked_writer, context):
         acts = list(acts)
         acts.sort()
         acts = [bpy.data.actions[name] for name in acts]
-        writer = PackedWriter()
-        export_motions(writer, acts, some_arm)
+        writer = xray_io.PackedWriter()
+        xray_motions.export_motions(writer, acts, some_arm)
         if writer.data:
-            chunked_writer.put(Chunks.Object.MOTIONS, writer)
+            chunked_writer.put(format_.Chunks.Object.MOTIONS, writer)
 
     if some_arm and some_arm.pose.bone_groups:
         exportable_bones = tuple(
             bone
             for bone in some_arm.pose.bones
-            if is_exportable_bone(some_arm.data.bones[bone.name])
+            if utils.is_exportable_bone(some_arm.data.bones[bone.name])
         )
         all_groups = (
             (group.name, tuple(
@@ -423,14 +426,14 @@ def _export_main(bpy_obj, chunked_writer, context):
             if group[1]
         )
         if non_empty_groups:
-            writer = PackedWriter()
+            writer = xray_io.PackedWriter()
             writer.putf('I', len(non_empty_groups))
             for name, bones in non_empty_groups:
                 writer.puts(name)
                 writer.putf('I', len(bones))
                 for bone in bones:
                     writer.puts(bone)
-            chunked_writer.put(Chunks.Object.PARTITIONS1, writer)
+            chunked_writer.put(format_.Chunks.Object.PARTITIONS1, writer)
 
     motionrefs = xray.motionrefs_collection
     if motionrefs:
@@ -438,27 +441,26 @@ def _export_main(bpy_obj, chunked_writer, context):
             log.warn('MotionRefs: skipped legacy data', data=xray.motionrefs)
         if context.soc_sgroups:
             refs = ','.join(ref.name for ref in motionrefs)
-            chunked_writer.put(Chunks.Object.MOTION_REFS, PackedWriter().puts(refs))
+            chunked_writer.put(format_.Chunks.Object.MOTION_REFS, xray_io.PackedWriter().puts(refs))
         else:
-            writer = PackedWriter()
+            writer = xray_io.PackedWriter()
             writer.putf('I', len(motionrefs))
             for ref in motionrefs:
                 writer.puts(ref.name)
-            chunked_writer.put(Chunks.Object.SMOTIONS3, writer)
+            chunked_writer.put(format_.Chunks.Object.SMOTIONS3, writer)
     elif xray.motionrefs:
-        chunked_writer.put(Chunks.Object.MOTION_REFS, PackedWriter().puts(xray.motionrefs))
+        chunked_writer.put(format_.Chunks.Object.MOTION_REFS, xray_io.PackedWriter().puts(xray.motionrefs))
 
     root_matrix = bpy_root.matrix_world
     if root_matrix != mathutils.Matrix.Identity(4):
-        writer = PackedWriter()
+        writer = xray_io.PackedWriter()
         writer.putf('fff', *pw_v3f(root_matrix.to_translation()))
         writer.putf('fff', *pw_v3f(root_matrix.to_euler('YXZ')))
-        chunked_writer.put(Chunks.Object.TRANSFORM, writer)
+        chunked_writer.put(format_.Chunks.Object.TRANSFORM, writer)
 
-    import platform, getpass, time
     curruser = '\\\\{}\\{}'.format(platform.node(), getpass.getuser())
     currtime = int(time.time())
-    writer = PackedWriter()
+    writer = xray_io.PackedWriter()
     if (not xray.revision.owner) or (xray.revision.owner == curruser):
         writer.puts(curruser)
         writer.putf('I', xray.revision.ctime if xray.revision.ctime else currtime)
@@ -469,17 +471,17 @@ def _export_main(bpy_obj, chunked_writer, context):
         writer.putf('I', xray.revision.ctime)
         writer.puts(curruser)
         writer.putf('I', currtime)
-    chunked_writer.put(Chunks.Object.REVISION, writer)
+    chunked_writer.put(format_.Chunks.Object.REVISION, writer)
 
 
 def _export(bpy_obj, chunked_writer, context):
-    writer = ChunkedWriter()
+    writer = xray_io.ChunkedWriter()
     _export_main(bpy_obj, writer, context)
-    chunked_writer.put(Chunks.Object.MAIN, writer)
+    chunked_writer.put(format_.Chunks.Object.MAIN, writer)
 
 
 def export_file(bpy_obj, fpath, context):
     with io.open(fpath, 'wb') as file:
-        writer = ChunkedWriter()
+        writer = xray_io.ChunkedWriter()
         _export(bpy_obj, writer, context)
         file.write(writer.data)
