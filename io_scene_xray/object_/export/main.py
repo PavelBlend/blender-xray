@@ -19,16 +19,21 @@ def pw_v3f(vec):
     return vec[0], vec[2], vec[1]
 
 
-def export_main(bpy_obj, chunked_writer, context):
+def export_version(chunked_writer):
     chunked_writer.put(
         format_.Chunks.Object.VERSION,
         xray_io.PackedWriter().putf('H', 0x10)
     )
-    xray = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
+
+
+def export_flags(chunked_writer, xray):
     chunked_writer.put(
         format_.Chunks.Object.FLAGS,
         xray_io.PackedWriter().putf('I', xray.flags if xray is not None else 0)
     )
+
+
+def export_meshes(chunked_writer, bpy_obj, context):
     mesh_writers = []
     armatures = set()
     materials = set()
@@ -78,6 +83,16 @@ def export_main(bpy_obj, chunked_writer, context):
         idx += 1
 
     chunked_writer.put(format_.Chunks.Object.MESHES, msw)
+
+    arm_list = list(armatures)
+
+    # take care of static objects
+    some_arm = arm_list[0] if arm_list else None
+
+    return materials, bone_writers, some_arm, bpy_root
+
+
+def export_surfaces(chunked_writer, context, materials):
     sfw = xray_io.PackedWriter()
     sfw.putf('I', len(materials))
     for material in materials:
@@ -110,6 +125,8 @@ def export_main(bpy_obj, chunked_writer, context):
         sfw.putf('I', 0x112).putf('I', 1)
     chunked_writer.put(format_.Chunks.Object.SURFACES2, sfw)
 
+
+def export_bones(chunked_writer, bone_writers):
     if bone_writers:
         writer = xray_io.ChunkedWriter()
         idx = 0
@@ -118,6 +135,8 @@ def export_main(bpy_obj, chunked_writer, context):
             idx += 1
         chunked_writer.put(format_.Chunks.Object.BONES1, writer)
 
+
+def export_user_data(chunked_writer, xray):
     if xray.userdata:
         chunked_writer.put(
             format_.Chunks.Object.USERDATA,
@@ -125,17 +144,17 @@ def export_main(bpy_obj, chunked_writer, context):
                 '\r\n'.join(xray.userdata.splitlines())
             )
         )
+
+
+def export_loddef(chunked_writer, xray):
     if xray.lodref:
         chunked_writer.put(
             format_.Chunks.Object.LOD_REF,
             xray_io.PackedWriter().puts(xray.lodref)
         )
 
-    arm_list = list(armatures)
 
-    # take care of static objects
-    some_arm = arm_list[0] if arm_list else None
-
+def export_motions(chunked_writer, some_arm, context, bpy_obj):
     if some_arm and context.export_motions:
         acts = [motion.name for motion in bpy_obj.xray.motions_collection]
         acts = set(acts)
@@ -147,6 +166,8 @@ def export_main(bpy_obj, chunked_writer, context):
         if writer.data:
             chunked_writer.put(format_.Chunks.Object.MOTIONS, writer)
 
+
+def export_partitions(chunked_writer, some_arm):
     if some_arm and some_arm.pose.bone_groups:
         exportable_bones = tuple(
             bone_
@@ -176,6 +197,8 @@ def export_main(bpy_obj, chunked_writer, context):
                     writer.puts(bone_)
             chunked_writer.put(format_.Chunks.Object.PARTITIONS1, writer)
 
+
+def export_motion_refs(chunked_writer, xray, context):
     motionrefs = xray.motionrefs_collection
     if motionrefs:
         if xray.motionrefs:
@@ -198,6 +221,8 @@ def export_main(bpy_obj, chunked_writer, context):
             xray_io.PackedWriter().puts(xray.motionrefs)
         )
 
+
+def export_transform(chunked_writer, bpy_root):
     root_matrix = bpy_root.matrix_world
     if root_matrix != mathutils.Matrix.Identity(4):
         writer = xray_io.PackedWriter()
@@ -205,6 +230,8 @@ def export_main(bpy_obj, chunked_writer, context):
         writer.putf('fff', *pw_v3f(root_matrix.to_euler('YXZ')))
         chunked_writer.put(format_.Chunks.Object.TRANSFORM, writer)
 
+
+def export_revision(chunked_writer, xray):
     curruser = '\\\\{}\\{}'.format(platform.node(), getpass.getuser())
     currtime = int(time.time())
     writer = xray_io.PackedWriter()
@@ -221,3 +248,22 @@ def export_main(bpy_obj, chunked_writer, context):
         writer.puts(curruser)
         writer.putf('I', currtime)
     chunked_writer.put(format_.Chunks.Object.REVISION, writer)
+
+
+def export_main(bpy_obj, chunked_writer, context):
+    xray = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
+
+    export_version(chunked_writer)
+    export_flags(chunked_writer, xray)
+    materials, bone_writers, some_arm, bpy_root = export_meshes(
+        chunked_writer, bpy_obj, context
+    )
+    export_surfaces(chunked_writer, context, materials)
+    export_bones(chunked_writer, bone_writers)
+    export_user_data(chunked_writer, xray)
+    export_loddef(chunked_writer, xray)
+    export_motions(chunked_writer, some_arm, context, bpy_obj)
+    export_partitions(chunked_writer, some_arm)
+    export_motion_refs(chunked_writer, xray, context)
+    export_transform(chunked_writer, bpy_root)
+    export_revision(chunked_writer, xray)
