@@ -1,7 +1,6 @@
-
 import bpy
 
-from . import format_
+from . import fmt
 
 
 def create_object(object_name):
@@ -152,7 +151,7 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
     dets_meshes.mesh_2 = m_i[2]
     dets_meshes.mesh_3 = m_i[3]
 
-    if header.format_version == format_.FORMAT_VERSION_3:
+    if header.format_version == fmt.FORMAT_VERSION_3:
 
         ligthing.format = 'builds_1569-cop'
 
@@ -167,7 +166,7 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
             bpy_image.pack(as_png=True)
             setattr(ligthing, prop_name, bpy_image.name)
 
-    elif header.format_version == format_.FORMAT_VERSION_2:
+    elif header.format_version == fmt.FORMAT_VERSION_2:
 
         ligthing.format = 'builds_1096-1558'
 
@@ -189,7 +188,7 @@ def create_pallete(color_indices):
         for color_index in color_indices:
             meshes_indices_pixels.extend(color_index)
         meshes_indices_image = bpy.data.images.new(
-            pallete_name, format_.DETAIL_MODEL_COUNT_LIMIT + 1, 1
+            pallete_name, fmt.DETAIL_MODEL_COUNT_LIMIT + 1, 1
         )
         meshes_indices_image.pixels = meshes_indices_pixels
         meshes_indices_image.use_fake_user = True

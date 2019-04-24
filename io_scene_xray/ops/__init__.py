@@ -1,8 +1,6 @@
 
 import bpy
 
-from . import joint_limits
-
 
 class BaseOperator(bpy.types.Operator):
     report_catcher = None

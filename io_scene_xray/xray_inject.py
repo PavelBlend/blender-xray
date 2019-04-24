@@ -9,7 +9,7 @@ from .details.types import (
     XRayObjectDetailsSlotsMeshesProperties
     )
 from . import registry
-from . import properties
+from . import props
 
 
 __SUBCLASSES__ = [
@@ -21,13 +21,13 @@ __SUBCLASSES__ = [
     ]
 
 __CLASSES__ = [
-    properties.object_.XRayObjectProperties,
-    properties.mesh.XRayMeshProperties,
-    properties.material.XRayMaterialProperties,
-    properties.armature.XRayArmatureProperties,
-    properties.bone.XRayBoneProperties,
-    properties.action.XRayActionProperties,
-    properties.scene.XRaySceneProperties
+    props.obj.XRayObjectProperties,
+    props.mesh.XRayMeshProperties,
+    props.material.XRayMaterialProperties,
+    props.armature.XRayArmatureProperties,
+    props.bone.XRayBoneProperties,
+    props.action.XRayActionProperties,
+    props.scene.XRaySceneProperties
 ]
 
 

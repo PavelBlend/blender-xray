@@ -12,11 +12,11 @@ from .utils import AppError, ObjectsInitializer, logger, execute_with_logger
 from .xray_motions import MOTIONS_FILTER_ALL
 from . import plugin_prefs
 from . import registry
-from . import details
-from . import err
-from . import scene
-from .object_.export import operators as object_exp_ops
-from .object_.import_ import operators as object_imp_ops
+from .details import ops as det_ops
+from .err import ops as err_ops
+from .scene import ops as scene_ops
+from .obj.exp import ops as object_exp_ops
+from .obj.imp import ops as object_imp_ops
 
 
 @registry.module_thing
@@ -281,7 +281,7 @@ class ModelExportHelper:
 
 
 def mk_export_context(texname_from_path, fmt_version=None, export_motions=True):
-    from .object_.export import ExportContext
+    from .obj.exp import ExportContext
     return ExportContext(
         textures_folder=plugin_prefs.get_preferences().textures_folder_auto,
         export_motions=export_motions,
@@ -405,7 +405,7 @@ class OpExportProject(TestReadyOperator):
 
     @execute_with_logger
     def execute(self, context):
-        from .object_.export import export_file
+        from .obj.exp import export_file
         from bpy.path import abspath
         data = context.scene.xray
         export_context = mk_export_context(
@@ -447,8 +447,8 @@ class XRayImportMenu(bpy.types.Menu):
         )
         layout.operator(OpImportAnm.bl_idname, text='Animation (.anm)')
         layout.operator(OpImportSkl.bl_idname, text='Skeletal Animation (.skl, .skls)')
-        layout.operator(details.operators.OpImportDM.bl_idname, text='Details (.dm, .details)')
-        layout.operator(err.operators.OpImportERR.bl_idname, text='Error List (.err)')
+        layout.operator(det_ops.OpImportDM.bl_idname, text='Details (.dm, .details)')
+        layout.operator(err_ops.OpImportERR.bl_idname, text='Error List (.err)')
 
 
 @registry.module_thing
@@ -466,12 +466,12 @@ class XRayExportMenu(bpy.types.Menu):
         layout.operator(OpExportAnm.bl_idname, text='Animation (.anm)')
         layout.operator(OpExportSkls.bl_idname, text='Skeletal Animation (.skls)')
         layout.operator(OpExportOgf.bl_idname, text='Game Object (.ogf)')
-        layout.operator(details.operators.OpExportDMs.bl_idname, text='Detail Model (.dm)')
+        layout.operator(det_ops.OpExportDMs.bl_idname, text='Detail Model (.dm)')
         layout.operator(
-            details.operators.OpExportLevelDetails.bl_idname,
+            det_ops.OpExportLevelDetails.bl_idname,
             text='Level Details (.details)'
         )
-        layout.operator(scene.operators.OpExportLevelScene.bl_idname, text='Level Scene (.level)')
+        layout.operator(scene_ops.OpExportLevelScene.bl_idname, text='Level Scene (.level)')
 
 
 def overlay_view_3d():
@@ -548,10 +548,10 @@ def append_menu_func():
         bpy.types.INFO_MT_file_import.remove(menu_func_import)
         bpy.types.INFO_MT_file_export.remove(menu_func_export)
         bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
-        bpy.types.INFO_MT_file_import.remove(err.operators.menu_func_import)
-        bpy.types.INFO_MT_file_import.remove(details.operators.menu_func_import)
-        bpy.types.INFO_MT_file_export.remove(details.operators.menu_func_export)
-        bpy.types.INFO_MT_file_export.remove(scene.operators.menu_func_export)
+        bpy.types.INFO_MT_file_import.remove(err_ops.menu_func_import)
+        bpy.types.INFO_MT_file_import.remove(det_ops.menu_func_import)
+        bpy.types.INFO_MT_file_export.remove(det_ops.menu_func_export)
+        bpy.types.INFO_MT_file_export.remove(scene_ops.menu_func_export)
         bpy.types.INFO_MT_file_import.prepend(menu_func_xray_import)
         bpy.types.INFO_MT_file_export.prepend(menu_func_xray_export)
     else:
@@ -560,10 +560,10 @@ def append_menu_func():
         bpy.types.INFO_MT_file_import.append(menu_func_import)
         bpy.types.INFO_MT_file_export.append(menu_func_export)
         bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
-        bpy.types.INFO_MT_file_import.append(details.operators.menu_func_import)
-        bpy.types.INFO_MT_file_export.append(details.operators.menu_func_export)
-        bpy.types.INFO_MT_file_import.append(err.operators.menu_func_import)
-        bpy.types.INFO_MT_file_export.append(scene.operators.menu_func_export)
+        bpy.types.INFO_MT_file_import.append(det_ops.menu_func_import)
+        bpy.types.INFO_MT_file_export.append(det_ops.menu_func_export)
+        bpy.types.INFO_MT_file_import.append(err_ops.menu_func_import)
+        bpy.types.INFO_MT_file_export.append(scene_ops.menu_func_export)
 
 
 registry.module_requires(__name__, [
@@ -591,9 +591,9 @@ def register():
 
     registry.register_thing(object_imp_ops, __name__)
     registry.register_thing(object_exp_ops, __name__)
-    scene.operators.register_operators()
-    details.operators.register_operators()
-    registry.register_thing(err.operators, __name__)
+    scene_ops.register_operators()
+    det_ops.register_operators()
+    registry.register_thing(err_ops, __name__)
     append_menu_func()
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(
         overlay_view_3d, (),
@@ -604,9 +604,9 @@ def register():
 
 
 def unregister():
-    registry.unregister_thing(err.operators, __name__)
-    details.operators.unregister_operators()
-    scene.operators.unregister_operators()
+    registry.unregister_thing(err_ops, __name__)
+    det_ops.unregister_operators()
+    scene_ops.unregister_operators()
     registry.unregister_thing(object_exp_ops, __name__)
     registry.unregister_thing(object_imp_ops, __name__)
 
