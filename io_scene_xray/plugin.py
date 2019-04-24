@@ -15,7 +15,8 @@ from . import registry
 from . import details
 from . import err
 from . import scene
-from . import object_
+from .object_.export import operators as object_exp_ops
+from .object_.import_ import operators as object_imp_ops
 
 
 @registry.module_thing
@@ -441,7 +442,7 @@ class XRayImportMenu(bpy.types.Menu):
         layout = self.layout
 
         layout.operator(
-            object_.import_.operators.OpImportObject.bl_idname,
+            object_imp_ops.OpImportObject.bl_idname,
             text='Source Object (.object)'
         )
         layout.operator(OpImportAnm.bl_idname, text='Animation (.anm)')
@@ -459,7 +460,7 @@ class XRayExportMenu(bpy.types.Menu):
         layout = self.layout
 
         layout.operator(
-            object_.export.operators.OpExportObjects.bl_idname,
+            object_exp_ops.OpExportObjects.bl_idname,
             text='Source Object (.object)'
         )
         layout.operator(OpExportAnm.bl_idname, text='Animation (.anm)')
@@ -507,7 +508,7 @@ def scene_update_post(_):
 def menu_func_import(self, _context):
     icon = get_stalker_icon()
     self.layout.operator(
-        object_.import_.operators.OpImportObject.bl_idname,
+        object_imp_ops.OpImportObject.bl_idname,
         text='X-Ray object (.object)',
         icon_value=icon
     )
@@ -518,7 +519,7 @@ def menu_func_import(self, _context):
 def menu_func_export(self, _context):
     icon = get_stalker_icon()
     self.layout.operator(
-        object_.export.operators.OpExportObjects.bl_idname,
+        object_exp_ops.OpExportObjects.bl_idname,
         text='X-Ray object (.object)',
         icon_value=icon
     )
@@ -588,8 +589,8 @@ def register():
     pcoll.load(STALKER_ICON_NAME, os.path.join(icons_dir, 'stalker.png'), 'IMAGE')
     preview_collections['main'] = pcoll
 
-    registry.register_thing(object_.import_.operators, __name__)
-    registry.register_thing(object_.export.operators, __name__)
+    registry.register_thing(object_imp_ops, __name__)
+    registry.register_thing(object_exp_ops, __name__)
     scene.operators.register_operators()
     details.operators.register_operators()
     registry.register_thing(err.operators, __name__)
@@ -606,8 +607,8 @@ def unregister():
     registry.unregister_thing(err.operators, __name__)
     details.operators.unregister_operators()
     scene.operators.unregister_operators()
-    registry.unregister_thing(object_.export.operators, __name__)
-    registry.unregister_thing(object_.import_.operators, __name__)
+    registry.unregister_thing(object_exp_ops, __name__)
+    registry.unregister_thing(object_imp_ops, __name__)
 
     bpy.app.handlers.scene_update_post.remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)

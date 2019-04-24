@@ -57,17 +57,42 @@ def _export_sg_soc(bmfaces):
         yield sgroup
 
 
-@log.with_context('export-mesh')
-def export_mesh(bpy_obj, bpy_root, cw, context):
-    log.update(mesh=bpy_obj.data.name)
+def export_version(cw):
     cw.put(format_.Chunks.Mesh.VERSION, xray_io.PackedWriter().putf('H', 0x11))
+
+
+def export_mesh_name(cw, bpy_obj, bpy_root):
     mesh_name = bpy_obj.data.name if bpy_obj == bpy_root else bpy_obj.name
     cw.put(
         format_.Chunks.Mesh.MESHNAME, xray_io.PackedWriter().puts(mesh_name)
     )
 
-    bm = utils.convert_object_to_space_bmesh(bpy_obj, bpy_root.matrix_world)
-    bml = bm.verts.layers.deform.verify()
+
+def export_bbox(cw, bm):
+    bbox = utils.calculate_mesh_bbox(bm.verts)
+    cw.put(
+        format_.Chunks.Mesh.BBOX,
+        xray_io.PackedWriter().putf(
+            'fff', *main.pw_v3f(bbox[0])
+        ).putf(
+            'fff', *main.pw_v3f(bbox[1])
+        )
+    )
+
+
+def export_flags(cw, bpy_obj):
+    if hasattr(bpy_obj.data, 'xray'):
+        # MAX sg-format currently unsupported (we use Maya sg-format)
+        flags = bpy_obj.data.xray.flags & ~format_.Chunks.Mesh.Flags.SG_MASK
+        cw.put(
+            format_.Chunks.Mesh.FLAGS,
+            xray_io.PackedWriter().putf('B', flags)
+        )
+    else:
+        cw.put(format_.Chunks.Mesh.FLAGS, xray_io.PackedWriter().putf('B', 1))
+
+
+def remove_bad_geometry(bm, bml, bpy_obj):
     bad_vgroups = [
         vertex_group.name.startswith(utils.BAD_VTX_GROUP_NAME) \
         for vertex_group in bpy_obj.vertex_groups
@@ -84,33 +109,18 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
         )
         bmesh.ops.delete(bm, geom=bad_verts, context=1)
 
-    bbox = utils.calculate_mesh_bbox(bm.verts)
-    cw.put(
-        format_.Chunks.Mesh.BBOX,
-        xray_io.PackedWriter().putf(
-            'fff', *main.pw_v3f(bbox[0])
-        ).putf(
-            'fff', *main.pw_v3f(bbox[1])
-        )
-    )
-    if hasattr(bpy_obj.data, 'xray'):
-        # MAX sg-format currently unsupported (we use Maya sg-format)
-        flags = bpy_obj.data.xray.flags & ~format_.Chunks.Mesh.Flags.SG_MASK
-        cw.put(
-            format_.Chunks.Mesh.FLAGS,
-            xray_io.PackedWriter().putf('B', flags)
-        )
-    else:
-        cw.put(format_.Chunks.Mesh.FLAGS, xray_io.PackedWriter().putf('B', 1))
+    return bad_vgroups
 
-    bmesh.ops.triangulate(bm, faces=bm.faces)
 
+def export_vertices(cw, bm):
     writer = xray_io.PackedWriter()
     writer.putf('I', len(bm.verts))
     for vertex in bm.verts:
         writer.putf('fff', *main.pw_v3f(vertex.co))
     cw.put(format_.Chunks.Mesh.VERTS, writer)
 
+
+def export_faces(cw, bm):
     uvs = []
     vtx = []
     fcs = []
@@ -128,6 +138,29 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
             vtx.append(fidx.verts[i].index)
             fcs.append(fidx.index)
     cw.put(format_.Chunks.Mesh.FACES, writer)
+
+    return uvs, vtx, fcs
+
+
+@log.with_context('export-mesh')
+def export_mesh(bpy_obj, bpy_root, cw, context):
+    log.update(mesh=bpy_obj.data.name)
+    export_version(cw)
+    export_mesh_name(cw, bpy_obj, bpy_root)
+
+    bm = utils.convert_object_to_space_bmesh(bpy_obj, bpy_root.matrix_world)
+    bml = bm.verts.layers.deform.verify()
+
+    bad_vgroups = remove_bad_geometry(bm, bml, bpy_obj)
+
+    export_bbox(cw, bm)
+    export_flags(cw, bpy_obj)
+
+    bmesh.ops.triangulate(bm, faces=bm.faces)
+
+    export_vertices(cw, bm)
+
+    uvs, vtx, fcs = export_faces(cw, bm)
 
     wmaps = []
     wmaps_cnt = 0
