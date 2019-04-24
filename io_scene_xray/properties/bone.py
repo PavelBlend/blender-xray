@@ -7,7 +7,7 @@ import mathutils
 
 from .. import properties
 from .. import registry
-from .. import ops
+from ..ops import joint_limits
 from ..edit_helpers.bone_shape import HELPER as seh
 
 
@@ -99,28 +99,28 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             ('5', 'Slider', '')))
 
         lim_x_min = bpy.props.FloatProperty(
-            min=-math.pi, max=0, update=ops.joint_limits.update_limit, subtype='ANGLE'
+            min=-math.pi, max=0, update=joint_limits.update_limit, subtype='ANGLE'
         )
         lim_x_max = bpy.props.FloatProperty(
-            min=0, max=math.pi, update=ops.joint_limits.update_limit, subtype='ANGLE'
+            min=0, max=math.pi, update=joint_limits.update_limit, subtype='ANGLE'
         )
         lim_x_spr = bpy.props.FloatProperty(min=0)
         lim_x_dmp = bpy.props.FloatProperty(min=0)
 
         lim_y_min = bpy.props.FloatProperty(
-            min=-math.pi, max=0, update=ops.joint_limits.update_limit, subtype='ANGLE'
+            min=-math.pi, max=0, update=joint_limits.update_limit, subtype='ANGLE'
         )
         lim_y_max = bpy.props.FloatProperty(
-            min=0, max=math.pi, update=ops.joint_limits.update_limit, subtype='ANGLE'
+            min=0, max=math.pi, update=joint_limits.update_limit, subtype='ANGLE'
         )
         lim_y_spr = bpy.props.FloatProperty(min=0)
         lim_y_dmp = bpy.props.FloatProperty(min=0)
 
         lim_z_min = bpy.props.FloatProperty(
-            min=-math.pi, max=0, update=ops.joint_limits.update_limit, subtype='ANGLE'
+            min=-math.pi, max=0, update=joint_limits.update_limit, subtype='ANGLE'
         )
         lim_z_max = bpy.props.FloatProperty(
-            min=0, max=math.pi, update=ops.joint_limits.update_limit, subtype='ANGLE'
+            min=0, max=math.pi, update=joint_limits.update_limit, subtype='ANGLE'
         )
         lim_z_spr = bpy.props.FloatProperty(min=0)
         lim_z_dmp = bpy.props.FloatProperty(min=0)
