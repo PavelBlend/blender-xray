@@ -1,4 +1,3 @@
-
 import os
 
 import bpy
@@ -11,7 +10,6 @@ from ... import utils
 from .. import import_
 
 
-#noinspection PyUnusedLocal
 @registry.module_thing
 class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
