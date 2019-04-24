@@ -1,12 +1,12 @@
 import bpy
 
-from .. import props
+from . import utils
 
 
 class XRayMaterialProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Material
     flags = bpy.props.IntProperty(name='flags')
-    flags_twosided = props.gen_flag_prop(mask=0x01)
+    flags_twosided = utils.gen_flag_prop(mask=0x01)
     eshader = bpy.props.StringProperty(default='models\\model')
     cshader = bpy.props.StringProperty(default='default')
     gamemtl = bpy.props.StringProperty(default='default')

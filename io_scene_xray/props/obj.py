@@ -5,7 +5,7 @@ import bpy
 from .. import registry
 from ..details import types as det_types
 from .. import utils
-from .. import props
+from . import utils as utils_props
 
 
 def _gen_time_prop(prop, description=''):
@@ -119,30 +119,30 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
         options={'SKIP_SAVE'},
         get=lambda self: self.flags & 0x1, set=set_custom_type
     )
-    flags_custom_progressive = props.gen_flag_prop(
+    flags_custom_progressive = utils_props.gen_flag_prop(
         mask=0x02,
         description='Make Progressive',
         customprop='flags_force_custom'
     )
-    flags_custom_lod = props.gen_flag_prop(
+    flags_custom_lod = utils_props.gen_flag_prop(
         mask=0x04,
         description='Using LOD',
         customprop='flags_force_custom'
     )
-    flags_custom_hom = props.gen_flag_prop(
+    flags_custom_hom = utils_props.gen_flag_prop(
         mask=0x08,
         description='Hierarchical Occlusion Mapping',
         customprop='flags_force_custom'
     )
-    flags_custom_musage = props.gen_flag_prop(
+    flags_custom_musage = utils_props.gen_flag_prop(
         mask=0x10,
         customprop='flags_force_custom'
     )
-    flags_custom_soccl = props.gen_flag_prop(
+    flags_custom_soccl = utils_props.gen_flag_prop(
         mask=0x20,
         customprop='flags_force_custom'
     )
-    flags_custom_hqexp = props.gen_flag_prop(
+    flags_custom_hqexp = utils_props.gen_flag_prop(
         mask=0x40,
         description='HQ Geometry',
         customprop='flags_force_custom'

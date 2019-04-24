@@ -1,6 +1,6 @@
 import bpy
 
-from .. import props
+from . import utils
 
 
 def gen_other_flags_prop(mask):
@@ -16,7 +16,7 @@ def gen_other_flags_prop(mask):
 class XRayMeshProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Mesh
     flags = bpy.props.IntProperty(name='flags', default=0x1)
-    flags_visible = props.gen_flag_prop(mask=0x01)
-    flags_locked = props.gen_flag_prop(mask=0x02)
-    flags_sgmask = props.gen_flag_prop(mask=0x04)
+    flags_visible = utils.gen_flag_prop(mask=0x01)
+    flags_locked = utils.gen_flag_prop(mask=0x02)
+    flags_sgmask = utils.gen_flag_prop(mask=0x04)
     # flags_other = gen_other_flags_prop(mask=~0x01)

@@ -1,6 +1,6 @@
 import bpy
 
-from .. import props
+from . import utils
 
 
 def _get_collection_item_attr(collection, index, name, special):
@@ -24,10 +24,10 @@ class XRayActionProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Action
     fps = bpy.props.FloatProperty(default=30, min=0, soft_min=1, soft_max=120)
     flags = bpy.props.IntProperty()
-    flags_fx = props.gen_flag_prop(mask=0x01, description='Type FX')
-    flags_stopatend = props.gen_flag_prop(mask=0x02, description='Stop at end')
-    flags_nomix = props.gen_flag_prop(mask=0x04, description='No mix')
-    flags_syncpart = props.gen_flag_prop(mask=0x08, description='Sync part')
+    flags_fx = utils.gen_flag_prop(mask=0x01, description='Type FX')
+    flags_stopatend = utils.gen_flag_prop(mask=0x02, description='Stop at end')
+    flags_nomix = utils.gen_flag_prop(mask=0x04, description='No mix')
+    flags_syncpart = utils.gen_flag_prop(mask=0x08, description='Sync part')
     bonepart = bpy.props.IntProperty(default=_SPECIAL)
 
     bonepart_name = bpy.props.StringProperty(

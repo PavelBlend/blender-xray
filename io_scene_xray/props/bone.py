@@ -4,7 +4,7 @@ import bpy
 import bgl
 import mathutils
 
-from .. import props
+from . import utils
 from .. import registry
 from ..ops import joint_limits
 from ..edit_helpers.bone_shape import HELPER as seh
@@ -59,10 +59,10 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         )
 
         flags = bpy.props.IntProperty()
-        flags_nopickable = props.gen_flag_prop(mask=0x1)
-        flags_removeafterbreak = props.gen_flag_prop(mask=0x2)
-        flags_nophysics = props.gen_flag_prop(mask=0x4)
-        flags_nofogcollider = props.gen_flag_prop(mask=0x8)
+        flags_nopickable = utils.gen_flag_prop(mask=0x1)
+        flags_removeafterbreak = utils.gen_flag_prop(mask=0x2)
+        flags_nophysics = utils.gen_flag_prop(mask=0x4)
+        flags_nofogcollider = utils.gen_flag_prop(mask=0x8)
         box_rot = bpy.props.FloatVectorProperty(size=9)
         box_trn = bpy.props.FloatVectorProperty()
         box_hsz = bpy.props.FloatVectorProperty()
