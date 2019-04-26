@@ -38,7 +38,7 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
         if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
-        from .fmt_anm_imp import import_file, ImportContext
+        from .anm.imp import import_file, ImportContext
         import_context = ImportContext(
             camera_animation=self.camera_animation
         )
@@ -339,7 +339,7 @@ class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
     filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
 
     def export(self, context):
-        from .fmt_anm_exp import export_file
+        from .anm.exp import export_file
         export_file(context.active_object, self.filepath)
 
 

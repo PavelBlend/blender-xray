@@ -1,4 +1,3 @@
-
 import bpy
 
 from .details.types import (
