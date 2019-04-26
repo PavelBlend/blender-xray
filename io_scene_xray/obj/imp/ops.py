@@ -8,6 +8,7 @@ from ... import plugin_prefs
 from ... import registry
 from ... import utils
 from .. import imp
+from . import utils as imp_utils
 
 
 @registry.module_thing
@@ -42,7 +43,7 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
         if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
-        import_context = imp.ImportContext(
+        import_context = imp_utils.ImportContext(
             textures=textures_folder,
             soc_sgroups=self.fmt_version == 'soc',
             import_motions=self.import_motions,

@@ -6,7 +6,7 @@ import bpy_extras
 from .. import plugin
 from .. import plugin_prefs
 from .. import utils
-from .. import obj
+from ..obj.imp.utils import ImportContext
 from .model import imp as model_imp
 from .model import exp as model_exp
 from . import imp
@@ -61,7 +61,7 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
 
-        import_context = obj.imp.ImportContext(
+        import_context = ImportContext(
             textures=textures_folder,
             soc_sgroups=None,
             import_motions=None,
