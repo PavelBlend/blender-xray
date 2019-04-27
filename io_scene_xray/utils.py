@@ -5,6 +5,7 @@ from bpy_extras import io_utils
 
 from . import log
 
+
 __FAKE_BONE_SUFFIX = '.fake'
 
 def is_fake_bone_name(bone_name):
@@ -428,3 +429,25 @@ class FilenameExtHelper(io_utils.ExportHelper):
         if not self.filepath.lower().endswith(self.filename_ext):
             self.filepath += self.filename_ext
         return super().invoke(context, event)
+
+
+def invoke_require_armature(func):
+    def wrapper(self, context, event):
+        active = context.active_object
+        if (not active) or (active.type != 'ARMATURE'):
+            self.report({'ERROR'}, 'Active is not armature')
+            return {'CANCELLED'}
+        return func(self, context, event)
+
+    return wrapper
+
+
+def mk_export_context(texname_from_path, fmt_version=None, export_motions=True):
+    from .obj.exp import ExportContext
+    from . import plugin_prefs
+    return ExportContext(
+        textures_folder=plugin_prefs.get_preferences().textures_folder_auto,
+        export_motions=export_motions,
+        soc_sgroups=None if fmt_version is None else (fmt_version == 'soc'),
+        texname_from_path=texname_from_path
+    )

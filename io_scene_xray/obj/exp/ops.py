@@ -6,7 +6,6 @@ import bpy_extras
 from ... import registry
 from ... import ops
 from ... import plugin_prefs
-from ... import plugin
 from ... import utils
 from .. import exp
 
@@ -67,7 +66,7 @@ class OpExportObjects(ops.BaseOperator, _WithExportMotions):
 
     @utils.execute_with_logger
     def execute(self, context):
-        export_context = plugin.mk_export_context(
+        export_context = utils.mk_export_context(
             self.texture_name_from_image_path,
             self.fmt_version, self.export_motions
         )
@@ -141,7 +140,7 @@ class OpExportObject(
 
     @utils.execute_with_logger
     def execute(self, context):
-        export_context = plugin.mk_export_context(
+        export_context = utils.mk_export_context(
             self.texture_name_from_image_path,
             self.fmt_version,
             self.export_motions
