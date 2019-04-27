@@ -222,7 +222,7 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
         if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
-        from .fmt_skl_imp import import_skl_file, import_skls_file, ImportContext
+        from .skl.imp import import_skl_file, import_skls_file, ImportContext
         motions_filter = MOTIONS_FILTER_ALL
         if self.motions:
             selected_names = set(m.name for m in self.motions if m.flag)
@@ -301,9 +301,9 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
     texture_name_from_image_path = plugin_prefs.PropObjectTextureNamesFromPath()
 
     def export(self, bpy_obj, context):
-        from .fmt_ogf_exp import export_file
+        from .ogf import exp
         export_context = mk_export_context(self.texture_name_from_image_path)
-        export_file(bpy_obj, self.filepath, export_context)
+        exp.export_file(bpy_obj, self.filepath, export_context)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -356,7 +356,7 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     @execute_with_logger
     @execute_require_filepath
     def execute(self, context):
-        from .fmt_skl_exp import export_skl_file, ExportContext
+        from .skl.exp import export_skl_file, ExportContext
         export_context = ExportContext(
             armature=context.active_object,
             action=self.action
@@ -384,7 +384,7 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
     filter_glob = bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'})
 
     def export(self, context):
-        from .fmt_skl_exp import export_skls_file, ExportContext
+        from .skl.exp import export_skls_file, ExportContext
         export_context = ExportContext(
             armature=context.active_object
         )
