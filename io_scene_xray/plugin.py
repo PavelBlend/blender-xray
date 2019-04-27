@@ -8,7 +8,10 @@ from bpy_extras import io_utils
 from . import xray_inject
 from .ops import BaseOperator as TestReadyOperator
 from .ui import collapsible
-from .utils import AppError, ObjectsInitializer, logger, execute_with_logger
+from .utils import (
+    AppError, ObjectsInitializer, logger, execute_with_logger,
+    execute_require_filepath, FilenameExtHelper
+)
 from .xray_motions import MOTIONS_FILTER_ALL
 from . import plugin_prefs
 from . import registry
@@ -17,43 +20,7 @@ from .err import ops as err_ops
 from .scene import ops as scene_ops
 from .obj.exp import ops as object_exp_ops
 from .obj.imp import ops as object_imp_ops
-
-
-@registry.module_thing
-class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
-    bl_idname = 'xray_import.anm'
-    bl_label = 'Import .anm'
-    bl_description = 'Imports X-Ray animation'
-    bl_options = {'UNDO'}
-
-    filter_glob = bpy.props.StringProperty(default='*.anm', options={'HIDDEN'})
-
-    directory = bpy.props.StringProperty(subtype='DIR_PATH')
-    files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
-
-    camera_animation = plugin_prefs.PropAnmCameraAnimation()
-
-    @execute_with_logger
-    def execute(self, _context):
-        if not self.files:
-            self.report({'ERROR'}, 'No files selected')
-            return {'CANCELLED'}
-        from .anm.imp import import_file, ImportContext
-        import_context = ImportContext(
-            camera_animation=self.camera_animation
-        )
-        for file in self.files:
-            ext = os.path.splitext(file.name)[-1].lower()
-            if ext == '.anm':
-                import_file(os.path.join(self.directory, file.name), import_context)
-            else:
-                self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.camera_animation = prefs.anm_create_camera
-        return super().invoke(context, event)
+from .anm import ops as anm_ops
 
 
 def invoke_require_armature(func):
@@ -247,16 +214,6 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
         return super().invoke(context, event)
 
 
-def execute_require_filepath(func):
-    def wrapper(self, context):
-        if not self.filepath:
-            self.report({'ERROR'}, 'No file selected')
-            return {'CANCELLED'}
-        return func(self, context)
-
-    return wrapper
-
-
 class ModelExportHelper:
     selection_only = bpy.props.BoolProperty(
         name='Selection Only',
@@ -310,37 +267,6 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
         prefs = plugin_prefs.get_preferences()
         self.texture_name_from_image_path = prefs.object_texture_names_from_path
         return super().invoke(context, event)
-
-
-class FilenameExtHelper(io_utils.ExportHelper):
-    def export(self, context):
-        pass
-
-    @execute_with_logger
-    @execute_require_filepath
-    def execute(self, context):
-        self.export(context)
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.filepath = context.active_object.name
-        if not self.filepath.lower().endswith(self.filename_ext):
-            self.filepath += self.filename_ext
-        return super().invoke(context, event)
-
-
-@registry.module_thing
-class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
-    bl_idname = 'xray_export.anm'
-    bl_label = 'Export .anm'
-    bl_description = 'Exports X-Ray animation'
-
-    filename_ext = '.anm'
-    filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
-
-    def export(self, context):
-        from .anm.exp import export_file
-        export_file(context.active_object, self.filepath)
 
 
 @registry.module_thing
@@ -445,7 +371,7 @@ class XRayImportMenu(bpy.types.Menu):
             object_imp_ops.OpImportObject.bl_idname,
             text='Source Object (.object)'
         )
-        layout.operator(OpImportAnm.bl_idname, text='Animation (.anm)')
+        layout.operator(anm_ops.OpImportAnm.bl_idname, text='Animation (.anm)')
         layout.operator(OpImportSkl.bl_idname, text='Skeletal Animation (.skl, .skls)')
         layout.operator(det_ops.OpImportDM.bl_idname, text='Details (.dm, .details)')
         layout.operator(err_ops.OpImportERR.bl_idname, text='Error List (.err)')
@@ -463,7 +389,7 @@ class XRayExportMenu(bpy.types.Menu):
             object_exp_ops.OpExportObjects.bl_idname,
             text='Source Object (.object)'
         )
-        layout.operator(OpExportAnm.bl_idname, text='Animation (.anm)')
+        layout.operator(anm_ops.OpExportAnm.bl_idname, text='Animation (.anm)')
         layout.operator(OpExportSkls.bl_idname, text='Skeletal Animation (.skls)')
         layout.operator(OpExportOgf.bl_idname, text='Game Object (.ogf)')
         layout.operator(det_ops.OpExportDMs.bl_idname, text='Detail Model (.dm)')
@@ -512,7 +438,7 @@ def menu_func_import(self, _context):
         text='X-Ray object (.object)',
         icon_value=icon
     )
-    self.layout.operator(OpImportAnm.bl_idname, text='X-Ray animation (.anm)', icon_value=icon)
+    self.layout.operator(anm_ops.OpImportAnm.bl_idname, text='X-Ray animation (.anm)', icon_value=icon)
     self.layout.operator(OpImportSkl.bl_idname, text='X-Ray skeletal animation (.skl, .skls)', icon_value=icon)
 
 
@@ -523,7 +449,7 @@ def menu_func_export(self, _context):
         text='X-Ray object (.object)',
         icon_value=icon
     )
-    self.layout.operator(OpExportAnm.bl_idname, text='X-Ray animation (.anm)', icon_value=icon)
+    self.layout.operator(anm_ops.OpExportAnm.bl_idname, text='X-Ray animation (.anm)', icon_value=icon)
     self.layout.operator(OpExportSkls.bl_idname, text='X-Ray animation (.skls)', icon_value=icon)
 
 
@@ -591,6 +517,7 @@ def register():
 
     registry.register_thing(object_imp_ops, __name__)
     registry.register_thing(object_exp_ops, __name__)
+    registry.register_thing(anm_ops, __name__)
     scene_ops.register_operators()
     det_ops.register_operators()
     registry.register_thing(err_ops, __name__)
@@ -607,6 +534,7 @@ def unregister():
     registry.unregister_thing(err_ops, __name__)
     det_ops.unregister_operators()
     scene_ops.unregister_operators()
+    registry.unregister_thing(anm_ops, __name__)
     registry.unregister_thing(object_exp_ops, __name__)
     registry.unregister_thing(object_imp_ops, __name__)
 

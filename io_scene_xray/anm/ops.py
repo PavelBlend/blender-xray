@@ -1,0 +1,59 @@
+import os
+
+import bpy
+from bpy_extras import io_utils
+
+from .. import plugin_prefs
+from .. import registry
+from ..utils import execute_with_logger, FilenameExtHelper
+
+
+@registry.module_thing
+class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
+    bl_idname = 'xray_import.anm'
+    bl_label = 'Import .anm'
+    bl_description = 'Imports X-Ray animation'
+    bl_options = {'UNDO'}
+
+    filter_glob = bpy.props.StringProperty(default='*.anm', options={'HIDDEN'})
+
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
+
+    camera_animation = plugin_prefs.PropAnmCameraAnimation()
+
+    @execute_with_logger
+    def execute(self, _context):
+        if not self.files:
+            self.report({'ERROR'}, 'No files selected')
+            return {'CANCELLED'}
+        from .imp import import_file, ImportContext
+        import_context = ImportContext(
+            camera_animation=self.camera_animation
+        )
+        for file in self.files:
+            ext = os.path.splitext(file.name)[-1].lower()
+            if ext == '.anm':
+                import_file(os.path.join(self.directory, file.name), import_context)
+            else:
+                self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
+        self.camera_animation = prefs.anm_create_camera
+        return super().invoke(context, event)
+
+
+@registry.module_thing
+class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
+    bl_idname = 'xray_export.anm'
+    bl_label = 'Export .anm'
+    bl_description = 'Exports X-Ray animation'
+
+    filename_ext = '.anm'
+    filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
+
+    def export(self, context):
+        from .exp import export_file
+        export_file(context.active_object, self.filepath)

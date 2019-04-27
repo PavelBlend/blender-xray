@@ -1,6 +1,8 @@
 from contextlib import contextmanager
 import math
 
+from bpy_extras import io_utils
+
 from . import log
 
 __FAKE_BONE_SUFFIX = '.fake'
@@ -399,3 +401,30 @@ def execute_with_logger(method):
             return {'CANCELLED'}
 
     return wrapper
+
+
+def execute_require_filepath(func):
+    def wrapper(self, context):
+        if not self.filepath:
+            self.report({'ERROR'}, 'No file selected')
+            return {'CANCELLED'}
+        return func(self, context)
+
+    return wrapper
+
+
+class FilenameExtHelper(io_utils.ExportHelper):
+    def export(self, context):
+        pass
+
+    @execute_with_logger
+    @execute_require_filepath
+    def execute(self, context):
+        self.export(context)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.filepath = context.active_object.name
+        if not self.filepath.lower().endswith(self.filename_ext):
+            self.filepath += self.filename_ext
+        return super().invoke(context, event)
