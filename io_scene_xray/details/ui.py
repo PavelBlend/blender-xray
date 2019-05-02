@@ -1,7 +1,7 @@
 import bpy
 
 from .. import ui
-from . import operators
+from . import ops
 
 
 def draw_function(self, context):

@@ -8,7 +8,7 @@ from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, p
     is_helper_object
 from . import registry
 from . import plugin
-from . import details
+from .details import ui as det_ui
 
 
 def _build_label(subtext=''):
@@ -179,7 +179,7 @@ class XRayObjectPanel(XRayPanel):
         if context.object.type in {'MESH', 'EMPTY'}:
             layout.prop(data, 'is_details', text='Details', toggle=True)
             if data.is_details:
-                details.ui.draw_function(self, context)
+                det_ui.draw_function(self, context)
 
 
 class XRayMeshPanel(XRayPanel):
