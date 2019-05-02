@@ -3,10 +3,7 @@ import math
 import bpy
 import bmesh
 
-from ... import xray_io
-from ... import utils
-from ... import plugin_prefs
-from ... import log
+from ... import xray_io, utils, plugin_prefs, log
 from .. import fmt
 from . import main
 

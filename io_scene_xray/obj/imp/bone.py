@@ -1,10 +1,7 @@
 import bpy
 import mathutils
 
-from ... import log
-from ... import xray_io
-from ... import xray_motions
-from ... import utils
+from ... import log, xray_io, xray_motions, utils
 from .. import fmt
 from . import main
 

@@ -2,8 +2,7 @@ import bpy
 from bpy_extras import io_utils
 
 from ..ops import BaseOperator as TestReadyOperator
-from .. import registry
-from .. import plugin
+from .. import registry, plugin
 from . import imp
 
 

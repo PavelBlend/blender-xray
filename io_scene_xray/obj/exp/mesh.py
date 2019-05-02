@@ -1,8 +1,6 @@
 import bmesh
 
-from ... import xray_io
-from ... import utils
-from ... import log
+from ... import xray_io, utils, log
 from .. import fmt
 from . import main
 

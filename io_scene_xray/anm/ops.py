@@ -3,8 +3,7 @@ import os
 import bpy
 from bpy_extras import io_utils
 
-from .. import plugin_prefs
-from .. import registry
+from .. import plugin_prefs, registry
 from ..utils import execute_with_logger, FilenameExtHelper
 
 

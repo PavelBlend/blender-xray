@@ -1,7 +1,6 @@
 import io
 
-from ... import xray_io
-from ... import log
+from ... import xray_io, log
 from .. import fmt
 from . import main
 

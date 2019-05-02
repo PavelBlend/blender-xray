@@ -3,10 +3,7 @@ import os
 import bpy
 import bpy_extras
 
-from ... import ops
-from ... import plugin_prefs
-from ... import registry
-from ... import utils
+from ... import ops, plugin_prefs, registry, utils
 from .. import imp
 from . import utils as imp_utils
 

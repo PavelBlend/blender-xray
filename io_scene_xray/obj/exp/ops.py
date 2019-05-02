@@ -3,10 +3,7 @@ import os
 import bpy
 import bpy_extras
 
-from ... import registry
-from ... import ops
-from ... import plugin_prefs
-from ... import utils
+from ... import registry, ops, plugin_prefs, utils
 from .. import exp
 
 

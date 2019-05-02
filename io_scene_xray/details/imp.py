@@ -3,11 +3,9 @@ import io
 
 import bpy
 
-from .. import utils
-from .. import xray_io
-from . import fmt
+from .. import utils, xray_io
+from . import fmt, read
 from . import utils as det_utils
-from . import read
 
 
 def _import(fpath, context, chunked_reader):

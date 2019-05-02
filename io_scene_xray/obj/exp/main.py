@@ -5,13 +5,9 @@ import time
 import bpy
 import mathutils
 
-from ... import xray_io
-from ... import utils
-from ... import log
-from ... import xray_motions
+from ... import xray_io, utils, log, xray_motions
 from .. import fmt
-from . import mesh
-from . import bone
+from . import mesh, bone
 
 
 def pw_v3f(vec):

@@ -1,8 +1,7 @@
 import io
 
 from .. import xray_io
-from . import write
-from . import convert
+from . import write, convert
 
 
 def _export(bpy_obj, chunked_writer, context):

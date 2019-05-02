@@ -1,9 +1,8 @@
 import bpy
 
 from .. import xray_io
-from . import fmt
+from . import fmt, create
 from .model import imp as model_imp
-from . import create
 
 
 def read_header(packed_reader):

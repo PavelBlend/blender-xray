@@ -3,14 +3,11 @@ import os
 import bpy
 import bpy_extras
 
-from .. import plugin
-from .. import plugin_prefs
-from .. import utils
+from .. import plugin, plugin_prefs, utils
 from ..obj.imp.utils import ImportContext
 from .model import imp as model_imp
 from .model import exp as model_exp
-from . import imp
-from . import exp
+from . import imp, exp
 
 
 class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):

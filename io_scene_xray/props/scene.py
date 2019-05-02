@@ -1,7 +1,6 @@
 import bpy
 
-from .. import registry
-from .. import plugin_prefs
+from .. import registry, plugin_prefs
 
 
 @registry.requires('ImportSkls')

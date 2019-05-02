@@ -4,8 +4,7 @@ from bpy_extras import io_utils
 from ..utils import (
     execute_with_logger, execute_require_filepath, mk_export_context
 )
-from .. import registry
-from .. import plugin_prefs
+from .. import registry, plugin_prefs
 from . import exp
 
 

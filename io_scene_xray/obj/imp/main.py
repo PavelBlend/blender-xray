@@ -4,13 +4,9 @@ import math
 import bpy
 import mathutils
 
-from ... import xray_io
-from ... import xray_motions
-from ... import log
-from ... import utils
+from ... import xray_io, xray_motions, log, utils
 from .. import fmt
-from . import bone
-from . import mesh
+from . import bone, mesh
 
 
 def _is_compatible_texture(texture, filepart):

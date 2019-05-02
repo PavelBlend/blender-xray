@@ -2,9 +2,8 @@ import time
 
 import bpy
 
-from .. import registry
+from .. import registry, utils
 from ..details import types as det_types
-from .. import utils
 from . import utils as utils_props
 
 
