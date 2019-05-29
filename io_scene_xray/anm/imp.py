@@ -4,9 +4,9 @@ import os.path
 
 import bpy
 
-from .xray_io import ChunkedReader, PackedReader
-from .fmt_anm import Chunks
-from .xray_envelope import import_envelope
+from ..xray_io import ChunkedReader, PackedReader
+from .fmt import Chunks
+from ..xray_envelope import import_envelope
 
 
 class ImportContext:

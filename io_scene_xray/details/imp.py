@@ -1,14 +1,11 @@
-
 import os
 import io
 
 import bpy
 
-from .. import utils
-from .. import xray_io
-from . import format_
-from . import utility
-from . import read
+from .. import utils, xray_io
+from . import fmt, read
+from . import utils as det_utils
 
 
 def _import(fpath, context, chunked_reader):
@@ -22,16 +19,16 @@ def _import(fpath, context, chunked_reader):
         if chunk_id == 0x0 and not chunk_data:    # bad file (build 1233)
             break
 
-        if chunk_id == format_.Chunks.HEADER:
+        if chunk_id == fmt.Chunks.HEADER:
 
-            if len(chunk_data) != format_.HEADER_SIZE:
+            if len(chunk_data) != fmt.HEADER_SIZE:
                 raise utils.AppError(
                     'bad details file. HEADER chunk size not equal 24'
                     )
 
             header = read.read_header(xray_io.PackedReader(chunk_data))
 
-            if header.format_version not in format_.SUPPORT_FORMAT_VERSIONS:
+            if header.format_version not in fmt.SUPPORT_FORMAT_VERSIONS:
                 raise utils.AppError(
                     'unssuported details format version: {}'.format(
                         header.format_version
@@ -40,11 +37,11 @@ def _import(fpath, context, chunked_reader):
 
             has_header = True
 
-        elif chunk_id == format_.Chunks.MESHES:
+        elif chunk_id == fmt.Chunks.MESHES:
             cr_meshes = xray_io.ChunkedReader(chunk_data)
             has_meshes = True
 
-        elif chunk_id == format_.Chunks.SLOTS:
+        elif chunk_id == fmt.Chunks.SLOTS:
             if context.load_slots:
                 pr_slots = xray_io.PackedReader(chunk_data)
             has_slots = True
@@ -59,7 +56,7 @@ def _import(fpath, context, chunked_reader):
         raise utils.AppError('bad details file. Cannot find SLOTS chunk')
 
     base_name = os.path.basename(fpath.lower())
-    color_indices = utility.generate_color_indices()
+    color_indices = det_utils.generate_color_indices()
 
     meshes_obj = read.read_details_meshes(
         fpath, base_name, context, cr_meshes, color_indices, header

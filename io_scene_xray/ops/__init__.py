@@ -1,4 +1,6 @@
+
 import bpy
+
 
 class BaseOperator(bpy.types.Operator):
     report_catcher = None

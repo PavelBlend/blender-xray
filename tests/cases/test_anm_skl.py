@@ -3,7 +3,8 @@ import re
 import bpy
 
 from tests import utils
-from io_scene_xray.plugin import OpImportSkl, BaseSelectMotionsOp
+from io_scene_xray.skl.ops import OpImportSkl
+from io_scene_xray.plugin import BaseSelectMotionsOp
 
 class TestSklImport(utils.XRayTestCase):
     def test_skl_no_bone(self):

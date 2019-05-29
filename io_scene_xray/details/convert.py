@@ -1,7 +1,6 @@
-
 from .. import utils
-from . import format_
-from . import utility
+from . import fmt
+from . import utils as det_utils
 
 
 incorrect_light_1569_message = 'Object "{0}" has incorrect light format: ' \
@@ -15,31 +14,31 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
     slots = bpy_obj.xray.detail.slots
     ligthing = slots.ligthing
     meshes = slots.meshes
-    lvl_dets = format_.LevelDetails()
+    lvl_dets = fmt.LevelDetails()
 
     # Meshes object
-    lvl_dets.meshes_object = utility.get_object(
+    lvl_dets.meshes_object = det_utils.get_object(
         bpy_obj, slots.meshes_object, 'Meshes Object'
         )
-    utility.validate_object_type(
+    det_utils.validate_object_type(
         lvl_dets.meshes_object, 'EMPTY', 'Meshes Object'
     )
     # Slots base object
-    lvl_dets.slots_base_object = utility.get_object(
+    lvl_dets.slots_base_object = det_utils.get_object(
         bpy_obj, slots.slots_base_object, 'Slots Base Object'
     )
-    utility.validate_object_type(
+    det_utils.validate_object_type(
         lvl_dets.slots_base_object, 'MESH', 'Slots Base Object'
     )
     # Slots top object
-    lvl_dets.slots_top_object = utility.get_object(
+    lvl_dets.slots_top_object = det_utils.get_object(
         bpy_obj, slots.slots_top_object, 'Slots Top Object'
     )
-    utility.validate_object_type(
+    det_utils.validate_object_type(
         lvl_dets.slots_top_object, 'MESH', 'Slots Top Object'
     )
     # lights
-    lvl_dets.lights = utility.get_image(
+    lvl_dets.lights = det_utils.get_image(
         bpy_obj, ligthing.lights_image, 'Lights'
     )
 
@@ -49,10 +48,10 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
             raise utils.AppError(
                 incorrect_light_1569_message.format(bpy_obj.name)
                 )
-        lvl_dets.format_version = format_.FORMAT_VERSION_3
+        lvl_dets.format_version = fmt.FORMAT_VERSION_3
         lvl_dets.light_format = '1569-COP'
-        lvl_dets.hemi = utility.get_image(bpy_obj, ligthing.hemi_image, 'Hemi')
-        lvl_dets.shadows = utility.get_image(
+        lvl_dets.hemi = det_utils.get_image(bpy_obj, ligthing.hemi_image, 'Hemi')
+        lvl_dets.shadows = det_utils.get_image(
             bpy_obj, ligthing.shadows_image, 'Shadows'
         )
 
@@ -62,7 +61,7 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
             raise utils.AppError(
                 incorrect_light_1096_message.format(bpy_obj.name)
                 )
-        lvl_dets.format_version = format_.FORMAT_VERSION_2
+        lvl_dets.format_version = fmt.FORMAT_VERSION_2
         lvl_dets.light_format = 'OLD'
         if context.level_details_format_version == 'builds_1096-1230':
             lvl_dets.old_format = 1
@@ -70,10 +69,10 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
             lvl_dets.old_format = 2
 
     # Meshes
-    lvl_dets.mesh_0 = utility.get_image(bpy_obj, meshes.mesh_0, 'Mesh 0')
-    lvl_dets.mesh_1 = utility.get_image(bpy_obj, meshes.mesh_1, 'Mesh 1')
-    lvl_dets.mesh_2 = utility.get_image(bpy_obj, meshes.mesh_2, 'Mesh 2')
-    lvl_dets.mesh_3 = utility.get_image(bpy_obj, meshes.mesh_3, 'Mesh 3')
+    lvl_dets.mesh_0 = det_utils.get_image(bpy_obj, meshes.mesh_0, 'Mesh 0')
+    lvl_dets.mesh_1 = det_utils.get_image(bpy_obj, meshes.mesh_1, 'Mesh 1')
+    lvl_dets.mesh_2 = det_utils.get_image(bpy_obj, meshes.mesh_2, 'Mesh 2')
+    lvl_dets.mesh_3 = det_utils.get_image(bpy_obj, meshes.mesh_3, 'Mesh 3')
 
     return lvl_dets
 
@@ -140,7 +139,7 @@ def validate_sizes(images, size_x, size_y):
 
 
 def validate_images_size(lvl_dets):
-    if lvl_dets.format_version == format_.FORMAT_VERSION_3:
+    if lvl_dets.format_version == fmt.FORMAT_VERSION_3:
         images_1 = (lvl_dets.lights, lvl_dets.hemi, lvl_dets.shadows)
         images_2 = (
             lvl_dets.mesh_0, lvl_dets.mesh_1, lvl_dets.mesh_2, lvl_dets.mesh_3
@@ -149,7 +148,7 @@ def validate_images_size(lvl_dets):
         validate_sizes(
             images_2, lvl_dets.slots_size_x * 2, lvl_dets.slots_size_y * 2
         )
-    elif lvl_dets.format_version == format_.FORMAT_VERSION_2:
+    elif lvl_dets.format_version == fmt.FORMAT_VERSION_2:
         images = (
             lvl_dets.lights,
             lvl_dets.mesh_0,
@@ -180,13 +179,13 @@ def pixel_color_to_density(lvl_dets, pixels, coord_x, coord_y):
     for corner_index in range(4):
 
         pixel_index = (
-            (coord_x * 2 + format_.PIXELS_OFFSET_1[corner_index][0] + \
-            (coord_y * 2 + format_.PIXELS_OFFSET_1[corner_index][1]) * \
+            (coord_x * 2 + fmt.PIXELS_OFFSET_1[corner_index][0] + \
+            (coord_y * 2 + fmt.PIXELS_OFFSET_1[corner_index][1]) * \
             lvl_dets.slots_size_x * 2) * 4 + 3
             )
 
         density.append(
-            int(round(pixels[pixel_index] / format_.DENSITY_DEPTH, 0)) \
+            int(round(pixels[pixel_index] / fmt.DENSITY_DEPTH, 0)) \
             << (4 * corner_index)
             )
 
@@ -212,7 +211,7 @@ def pixel_color_to_light(lvl_dets, pixels, coord_x, coord_y, pixels_offset):
         ) / 3
 
         light_value = int(round(
-            average_color / format_.DENSITY_DEPTH, 0
+            average_color / fmt.DENSITY_DEPTH, 0
         )) << (4 * corner_index)
 
         light.append(light_value)

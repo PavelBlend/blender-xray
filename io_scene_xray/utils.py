@@ -1,7 +1,10 @@
 from contextlib import contextmanager
 import math
 
+from bpy_extras import io_utils
+
 from . import log
+
 
 __FAKE_BONE_SUFFIX = '.fake'
 
@@ -388,3 +391,63 @@ def with_auto_property(prop_class, prop_id, getter, overrides=None, **kwargs):
 
     return decorator
 with_auto_property.build_auto_id = lambda id: id + '_auto'
+
+
+def execute_with_logger(method):
+    def wrapper(self, context):
+        try:
+            with logger(self.__class__.bl_idname, self.report):
+                return method(self, context)
+        except AppError:
+            return {'CANCELLED'}
+
+    return wrapper
+
+
+def execute_require_filepath(func):
+    def wrapper(self, context):
+        if not self.filepath:
+            self.report({'ERROR'}, 'No file selected')
+            return {'CANCELLED'}
+        return func(self, context)
+
+    return wrapper
+
+
+class FilenameExtHelper(io_utils.ExportHelper):
+    def export(self, context):
+        pass
+
+    @execute_with_logger
+    @execute_require_filepath
+    def execute(self, context):
+        self.export(context)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.filepath = context.active_object.name
+        if not self.filepath.lower().endswith(self.filename_ext):
+            self.filepath += self.filename_ext
+        return super().invoke(context, event)
+
+
+def invoke_require_armature(func):
+    def wrapper(self, context, event):
+        active = context.active_object
+        if (not active) or (active.type != 'ARMATURE'):
+            self.report({'ERROR'}, 'Active is not armature')
+            return {'CANCELLED'}
+        return func(self, context, event)
+
+    return wrapper
+
+
+def mk_export_context(texname_from_path, fmt_version=None, export_motions=True):
+    from .obj.exp import ExportContext
+    from . import plugin_prefs
+    return ExportContext(
+        textures_folder=plugin_prefs.get_preferences().textures_folder_auto,
+        export_motions=export_motions,
+        soc_sgroups=None if fmt_version is None else (fmt_version == 'soc'),
+        texname_from_path=texname_from_path
+    )

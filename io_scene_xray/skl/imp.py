@@ -1,8 +1,8 @@
 from os.path import splitext, basename
 
-from .xray_io import ChunkedReader, PackedReader
-from .xray_motions import import_motion, import_motions
-from . import log
+from ..xray_io import ChunkedReader, PackedReader
+from ..xray_motions import import_motion, import_motions
+from .. import log
 
 
 class ImportContext:

@@ -1,4 +1,3 @@
-
 class Chunks:
     HEADER = 0x0
     MESHES = 0x1

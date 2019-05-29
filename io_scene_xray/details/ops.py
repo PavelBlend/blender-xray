@@ -1,16 +1,13 @@
-
 import os
 
 import bpy
 import bpy_extras
 
-from .. import plugin
-from .. import plugin_prefs
-from .. import utils
-from .. import fmt_object_imp
-from . import model
-from . import import_
-from . import export
+from .. import plugin, plugin_prefs, utils
+from ..obj.imp.utils import ImportContext
+from .model import imp as model_imp
+from .model import exp as model_exp
+from . import imp, exp
 
 
 class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
@@ -61,7 +58,7 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
 
-        import_context = fmt_object_imp.ImportContext(
+        import_context = ImportContext(
             textures=textures_folder,
             soc_sgroups=None,
             import_motions=None,
@@ -79,13 +76,13 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
                 ext = os.path.splitext(file.name)[-1].lower()
 
                 if ext == '.dm':
-                    model.import_.import_file(
+                    model_imp.import_file(
                         os.path.join(self.directory, file.name),
                         import_context
                         )
 
                 elif ext == '.details':
-                    import_.import_file(
+                    imp.import_file(
                         os.path.join(self.directory, file.name),
                         import_context
                         )
@@ -142,11 +139,11 @@ class OpExportDMs(bpy.types.Operator):
                     name += '.dm'
                 path = self.directory
 
-                export_context = plugin._mk_export_context(
+                export_context = plugin.mk_export_context(
                     self.texture_name_from_image_path
                     )
 
-                model.export.export_file(
+                model_exp.export_file(
                     detail_model, os.path.join(path, name), export_context
                 )
 
@@ -194,18 +191,18 @@ class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
 
     def execute(self, context):
         try:
-            self.export(context.scene.objects[self.detail_model], context)
+            self.exp(context.scene.objects[self.detail_model], context)
         except utils.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
         return {'FINISHED'}
 
-    def export(self, bpy_obj, context):
-        export_context = plugin._mk_export_context(
+    def exp(self, bpy_obj, context):
+        export_context = plugin.mk_export_context(
             self.texture_name_from_image_path
             )
 
-        model.export.export_file(bpy_obj, self.filepath, export_context)
+        model_exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):
 
@@ -285,20 +282,20 @@ class OpExportLevelDetails(
             return {'CANCELLED'}
 
         try:
-            self.export(objs[0], context)
+            self.exp(objs[0], context)
         except utils.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
 
         return {'FINISHED'}
 
-    def export(self, bpy_obj, context):
-        export_context = plugin._mk_export_context(
+    def exp(self, bpy_obj, context):
+        export_context = plugin.mk_export_context(
             self.texture_name_from_image_path
             )
 
         export_context.level_details_format_version = self.format_version
-        export.export_file(bpy_obj, self.filepath, export_context)
+        exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):
 

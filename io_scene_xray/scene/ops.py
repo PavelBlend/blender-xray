@@ -1,9 +1,7 @@
-
 import bpy
 from bpy_extras import io_utils
 
-from .. import utils
-from .. import plugin
+from .. import utils, plugin
 
 
 class OpExportLevelScene(bpy.types.Operator, io_utils.ExportHelper):

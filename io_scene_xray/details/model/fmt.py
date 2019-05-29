@@ -1,4 +1,3 @@
-
 class DetailModel:
 
     class Mesh:

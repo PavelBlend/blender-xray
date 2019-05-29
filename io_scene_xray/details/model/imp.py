@@ -1,16 +1,15 @@
-
 import io
 import os
 
 from ... import xray_io
 from . import create
-from . import format_
+from . import fmt
 
 
 def import_(fpath, context, packed_reader, mode='DM', detail_index=None,
         detail_colors=None):
 
-    det_model = format_.DetailModel()
+    det_model = fmt.DetailModel()
 
     object_name = os.path.basename(fpath.lower())
     bpy_obj, bpy_mesh = create.create_object(object_name)

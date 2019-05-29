@@ -1,4 +1,3 @@
-
 class Chunks:
     VERSION_CHUNK = 0x9df3
     OBJECTS_CHUNK = 0x8002

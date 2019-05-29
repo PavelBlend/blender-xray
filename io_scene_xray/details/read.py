@@ -1,10 +1,8 @@
-
 import bpy
 
 from .. import xray_io
-from . import format_
-from . import model
-from . import create
+from . import fmt, create
+from .model import imp as model_imp
 
 
 def read_header(packed_reader):
@@ -12,7 +10,7 @@ def read_header(packed_reader):
     fmt_ver, meshes_count, offs_x, offs_z, size_x, size_z = \
         packed_reader.getf('<IIiiII')
 
-    header = format_.DetailsHeader()
+    header = fmt.DetailsHeader()
 
     header.format_version = fmt_ver
     header.meshes_count = meshes_count
@@ -42,7 +40,7 @@ def read_details_meshes(
         packed_reader = xray_io.PackedReader(mesh_data)
         fpath_mesh = '{0} mesh_{1:0>2}'.format(fpath, mesh_id)
 
-        bpy_obj_mesh = model.import_.import_(
+        bpy_obj_mesh = model_imp.import_(
             fpath_mesh, context, packed_reader, mode='DETAILS',
             detail_index=mesh_id, detail_colors=color_indices
             )
@@ -118,9 +116,9 @@ def read_details_slots(
 
                         pixel_index = \
                             slot_x * 2 + \
-                            format_.PIXELS_OFFSET_1[corner_index][0] + \
+                            fmt.PIXELS_OFFSET_1[corner_index][0] + \
                             header.size.x * 2 * (slot_y * 2 + \
-                            format_.PIXELS_OFFSET_1[corner_index][1])
+                            fmt.PIXELS_OFFSET_1[corner_index][1])
 
                         color = color_indices[meshes[mesh_index]]
 
@@ -153,12 +151,12 @@ def read_details_slots(
             ]
 
         if context.format == 'builds_1233-1558':
-            pixels_offset = format_.PIXELS_OFFSET_2
+            pixels_offset = fmt.PIXELS_OFFSET_2
 
         elif context.format == 'builds_1096-1230':
-            pixels_offset = format_.PIXELS_OFFSET_1
+            pixels_offset = fmt.PIXELS_OFFSET_1
 
-        density_pixels_offset = format_.PIXELS_OFFSET_1
+        density_pixels_offset = fmt.PIXELS_OFFSET_1
 
         bad_y_base_count = 0
         bad_y_top_count = 0

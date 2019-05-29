@@ -1,7 +1,6 @@
-
 import bpy
 
-from . import utility
+from . import utils
 
 
 class XRayObjectDetailsSlotsMeshesProperties(bpy.types.PropertyGroup):
@@ -64,7 +63,7 @@ class XRayObjectDetailsModelProperties(bpy.types.PropertyGroup):
     def _update_detail_color_by_index(self, context):
 
         if hasattr(context.object, 'xray'):
-            color_indices = utility.generate_color_indices()
+            color_indices = utils.generate_color_indices()
 
             context.object.xray.detail.model.color = \
                 color_indices[context.object.xray.detail.model.index][0 : 3]

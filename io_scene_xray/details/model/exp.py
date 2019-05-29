@@ -1,4 +1,3 @@
-
 import io
 
 import bpy
@@ -8,7 +7,7 @@ import mathutils
 from ... import utils
 from ... import xray_io
 from . import validate
-from . import format_
+from . import fmt
 
 
 def export(bpy_obj, packed_writer, context, mode='DM'):
@@ -66,11 +65,11 @@ def export(bpy_obj, packed_writer, context, mode='DM'):
             indices.append(_)
 
     vertices_count = len(vertices)
-    if vertices_count > format_.VERTICES_COUNT_LIMIT:
+    if vertices_count > fmt.VERTICES_COUNT_LIMIT:
         raise utils.AppError(
             'mesh "' + bpy_obj.data.name + \
             '" has too many vertices: {}. Must be no more than {}'.format(
-                vertices_count, format_.VERTICES_COUNT_LIMIT
+                vertices_count, fmt.VERTICES_COUNT_LIMIT
                 )
             )
 

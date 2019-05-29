@@ -1,7 +1,7 @@
 import bpy
 
-from .xray_io import ChunkedWriter, PackedWriter
-from .xray_motions import export_motion, export_motions
+from ..xray_io import ChunkedWriter, PackedWriter
+from ..xray_motions import export_motion, export_motions
 
 
 class ExportContext:
