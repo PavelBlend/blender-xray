@@ -3,6 +3,7 @@ import os.path
 import bpy
 
 from ... import utils
+from ... import log
 
 
 class ImportContext:
