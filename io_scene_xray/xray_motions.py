@@ -170,7 +170,7 @@ def examine_motions(data):
 
 @with_context('export-motion')
 def export_motion(pkw, action, armature):
-    dependency_object = bpy.data.objects[armature.xray.dependency_object]
+    dependency_object = bpy.data.objects.get(armature.xray.dependency_object)
     if dependency_object:
         old_action = dependency_object.animation_data.action
         dependency_object.animation_data.action = action
