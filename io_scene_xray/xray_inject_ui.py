@@ -78,6 +78,18 @@ class XRayMotionList(bpy.types.UIList):
         row.prop_search(motion, 'name', bpy.data, 'actions', text='')
 
 
+class XRayAddAllActions(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.add_all_actions'
+    bl_label = 'Add All Actions'
+
+    def execute(self, context):
+        obj = context.object
+        for action in bpy.data.actions:
+            motion = obj.xray.motions_collection.add()
+            motion.name = action.name
+        return {'FINISHED'}
+
+
 @registry.requires(list_helper, PropClipOp)
 class XRayObjectPanel(XRayPanel):
     bl_context = 'object'
@@ -138,6 +150,8 @@ class XRayObjectPanel(XRayPanel):
             )
             if box:
                 box.prop(data, 'play_active_motion', toggle=True, icon='PLAY')
+                box.operator('io_scene_xray.add_all_actions')
+                box.prop_search(data, 'dependency_object', bpy.data, 'objects')
                 row = box.row()
                 row.template_list(
                     'XRayMotionList', 'name',
@@ -506,7 +520,7 @@ class XRayActionPanel(XRayPanel):
         )
 
     def draw(self, context):
-        from .plugin import OpExportSkl
+        from .skl.ops import OpExportSkl
         layout = self.layout
         obj = context.active_object
         action = obj.animation_data.action
@@ -670,6 +684,7 @@ registry.module_requires(__name__, [
     collapsible,
     fake_bones,
     joint_limits,
+    XRayAddAllActions,
     XRayObjectPanel
     , XRayMeshPanel
     , XRayEditHelperObjectPanel

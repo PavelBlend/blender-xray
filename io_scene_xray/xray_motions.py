@@ -170,12 +170,21 @@ def examine_motions(data):
 
 @with_context('export-motion')
 def export_motion(pkw, action, armature):
+    dependency_object = bpy.data.objects[armature.xray.dependency_object]
+    if dependency_object:
+        old_action = dependency_object.animation_data.action
+        dependency_object.animation_data.action = action
+        bpy.context.scene.update()
+
     prepared_bones = _prepare_bones(armature)
     _ake_motion_data = _take_motion_data
     if action.xray.autobake_effective(armature):
         _ake_motion_data = _bake_motion_data
     bones_animations = _ake_motion_data(action, armature, prepared_bones)
     _export_motion_data(pkw, action, bones_animations)
+
+    if dependency_object:
+        dependency_object.animation_data.action = old_action
 
 
 def _take_motion_data(bpy_act, bpy_armature, prepared_bones):
