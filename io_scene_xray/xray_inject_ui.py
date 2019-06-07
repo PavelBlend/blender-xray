@@ -85,8 +85,19 @@ class XRayAddAllActions(bpy.types.Operator):
     def execute(self, context):
         obj = context.object
         for action in bpy.data.actions:
-            motion = obj.xray.motions_collection.add()
-            motion.name = action.name
+            if not obj.xray.motions_collection.get(action.name):
+                motion = obj.xray.motions_collection.add()
+                motion.name = action.name
+        return {'FINISHED'}
+
+
+class XRayRemoveAllActions(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.remove_all_actions'
+    bl_label = 'Remove All Actions'
+
+    def execute(self, context):
+        obj = context.object
+        obj.xray.motions_collection.clear()
         return {'FINISHED'}
 
 
@@ -150,7 +161,9 @@ class XRayObjectPanel(XRayPanel):
             )
             if box:
                 box.prop(data, 'play_active_motion', toggle=True, icon='PLAY')
-                box.operator('io_scene_xray.add_all_actions')
+                col = box.column(align=True)
+                col.operator('io_scene_xray.add_all_actions')
+                col.operator('io_scene_xray.remove_all_actions')
                 box.prop_search(data, 'dependency_object', bpy.data, 'objects')
                 row = box.row()
                 row.template_list(
@@ -685,6 +698,7 @@ registry.module_requires(__name__, [
     fake_bones,
     joint_limits,
     XRayAddAllActions,
+    XRayRemoveAllActions,
     XRayObjectPanel
     , XRayMeshPanel
     , XRayEditHelperObjectPanel
