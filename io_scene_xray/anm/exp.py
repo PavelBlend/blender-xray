@@ -3,11 +3,10 @@ import bpy
 from ..xray_io import ChunkedWriter, PackedWriter
 from .fmt import Chunks
 from ..xray_envelope import export_envelope, EPSILON
-from ..utils import smooth_euler
+from ..utils import smooth_euler, AppError
 
 
 def _export(bpy_obj, chunked_writer):
-    assert bpy_obj.animation_data, 'Animation: object doesn\'t any animation data'
     packed_writer = PackedWriter()
     bpy_act = bpy_obj.animation_data.action
     packed_writer.puts('')

@@ -4,7 +4,7 @@ import bpy
 from bpy_extras import io_utils
 
 from .. import plugin_prefs, registry
-from ..utils import execute_with_logger, FilenameExtHelper
+from ..utils import execute_with_logger, FilenameExtHelper, AppError
 
 
 @registry.module_thing
@@ -55,4 +55,9 @@ class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
 
     def export(self, context):
         from .exp import export_file
-        export_file(context.active_object, self.filepath)
+
+        obj = context.active_object
+        if not obj.animation_data:
+            self.report({'ERROR'}, 'Object \'{}\' has no animation data'.format(obj.name))
+            return {'CANCELLED'}
+        export_file(obj, self.filepath)

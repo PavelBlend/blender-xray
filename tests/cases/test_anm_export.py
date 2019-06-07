@@ -9,7 +9,7 @@ class TestAnmExport(utils.XRayTestCase):
         self._create_active_object()
 
         # Act & Assert
-        with self.assertRaisesRegex(Exception, 'Animation: object doesn\'t any animation data'):
+        with self.assertRaisesRegex(Exception, 'Object \'{}\' has no animation data'.format(bpy.context.object.name)):
             bpy.ops.xray_export.anm(
                 filepath=self.outpath('test.anm'),
             )

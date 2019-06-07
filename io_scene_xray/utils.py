@@ -425,10 +425,14 @@ class FilenameExtHelper(io_utils.ExportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.filepath = context.active_object.name
-        if not self.filepath.lower().endswith(self.filename_ext):
-            self.filepath += self.filename_ext
-        return super().invoke(context, event)
+        if context.active_object:
+            self.filepath = context.active_object.name
+            if not self.filepath.lower().endswith(self.filename_ext):
+                self.filepath += self.filename_ext
+            return super().invoke(context, event)
+        else:
+            self.report({'ERROR'}, 'No active objects')
+            return {'CANCELLED'}
 
 
 def invoke_require_armature(func):
