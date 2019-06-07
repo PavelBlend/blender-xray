@@ -70,6 +70,8 @@ class _EditShape(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        if context.mode == 'EDIT_ARMATURE':
+            return False
         bone = context.active_bone
         return bone and (bone.xray.shape.type != '0') and not HELPER.is_active(context)
 
