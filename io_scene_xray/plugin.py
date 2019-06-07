@@ -7,12 +7,11 @@ from bpy_extras import io_utils
 
 from . import xray_inject
 from .ops import BaseOperator as TestReadyOperator
-from .ui import collapsible
+from .ui import collapsible, motion_list
 from .utils import (
     AppError, ObjectsInitializer, logger, execute_with_logger,
     execute_require_filepath, FilenameExtHelper, mk_export_context
 )
-from .xray_motions import MOTIONS_FILTER_ALL
 from . import plugin_prefs
 from . import registry
 from .details import ops as det_ops
@@ -23,77 +22,6 @@ from .obj.imp import ops as object_imp_ops
 from .anm import ops as anm_ops
 from .skl import ops as skl_ops
 from .ogf import ops as ogf_ops
-
-
-class BaseSelectMotionsOp(bpy.types.Operator):
-    __ARGS__ = [None, None]
-
-    @classmethod
-    def set_motions_list(cls, mlist):
-        cls.__ARGS__[0] = mlist
-
-    @classmethod
-    def set_data(cls, data):
-        cls.__ARGS__[1] = data
-
-    def execute(self, _context):
-        mlist, data = self.__ARGS__
-        name_filter = MOTIONS_FILTER_ALL
-        if mlist and mlist.filter_name:
-            rgx = re.compile('.*' + re.escape(mlist.filter_name).replace('\\*', '.*') + '.*')
-            name_filter = lambda name: (rgx.match(name) is not None) ^ mlist.use_filter_invert
-        for motion in data.motions:
-            if name_filter(motion.name):
-                self._update_motion(motion)
-        return {'FINISHED'}
-
-    def _update_motion(self, motion):
-        pass
-
-
-@registry.module_thing
-class _SelectMotionsOp(BaseSelectMotionsOp):
-    bl_idname = 'io_scene_xray.motions_select'
-    bl_label = 'Select'
-    bl_description = 'Select all displayed importing motions'
-
-    def _update_motion(self, motion):
-        motion.flag = True
-
-
-@registry.module_thing
-class _DeselectMotionsOp(BaseSelectMotionsOp):
-    bl_idname = 'io_scene_xray.motions_deselect'
-    bl_label = 'Deselect'
-    bl_description = 'Deselect all displayed importing motions'
-
-    def _update_motion(self, motion):
-        motion.flag = False
-
-
-@registry.module_thing
-class _DeselectDuplicatedMotionsOp(BaseSelectMotionsOp):
-    bl_idname = 'io_scene_xray.motions_deselect_duplicated'
-    bl_label = 'Dups'
-    bl_description = 'Deselect displayed importing motions which already exist in the scene'
-
-    def _update_motion(self, motion):
-        if bpy.data.actions.get(motion.name):
-            motion.flag = False
-
-
-@registry.module_thing
-class _MotionsList(bpy.types.UIList):
-    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname):
-        BaseSelectMotionsOp.set_motions_list(self)  # A dirty hack
-
-        row = layout.row(align=True)
-        row.prop(
-            item, 'flag',
-            icon='CHECKBOX_HLT' if item.flag else 'CHECKBOX_DEHLT',
-            text='', emboss=False,
-        )
-        row.label(item.name)
 
 
 @registry.module_thing
@@ -295,6 +223,7 @@ def register():
     registry.register_thing(anm_ops, __name__)
     registry.register_thing(skl_ops, __name__)
     registry.register_thing(ogf_ops, __name__)
+    registry.register_thing(motion_list, __name__)
     scene_ops.register_operators()
     det_ops.register_operators()
     registry.register_thing(err_ops, __name__)
@@ -311,6 +240,7 @@ def unregister():
     registry.unregister_thing(err_ops, __name__)
     det_ops.unregister_operators()
     scene_ops.unregister_operators()
+    registry.unregister_thing(motion_list, __name__)
     registry.unregister_thing(ogf_ops, __name__)
     registry.unregister_thing(skl_ops, __name__)
     registry.unregister_thing(anm_ops, __name__)

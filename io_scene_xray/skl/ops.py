@@ -4,6 +4,14 @@ import bpy
 from bpy_extras import io_utils
 
 from .. import registry
+from ..ui import collapsible
+from ..ui.motion_list import (
+    BaseSelectMotionsOp,
+    _SelectMotionsOp,
+    _DeselectMotionsOp,
+    _DeselectDuplicatedMotionsOp,
+    _MotionsList
+)
 from ..ops import BaseOperator as TestReadyOperator
 from ..utils import (
     execute_with_logger, invoke_require_armature, execute_require_filepath,
