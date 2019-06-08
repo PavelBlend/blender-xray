@@ -26,5 +26,9 @@ def export_skl_file(fpath, context):
 def export_skls_file(fpath, context):
     with open(fpath, 'wb') as file:
         writer = PackedWriter()
-        export_motions(writer, bpy.data.actions, context.armature)
+        actions = []
+        for motion in bpy.context.object.xray.motions_collection:
+            action = bpy.data.actions[motion.name]
+            actions.append(action)
+        export_motions(writer, actions, context.armature)
         file.write(writer.data)
