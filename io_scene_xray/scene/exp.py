@@ -15,13 +15,18 @@ def write_object_body(chunked_writer, bpy_obj):
     body_chunked_writer = xray_io.ChunkedWriter()
 
     packed_reader = xray_io.PackedWriter()
-    packed_reader.putf('I', 0)
+    packed_reader.putf('I', 3)   # flags
     body_chunked_writer.put(fmt.Chunks.CUSTOMOBJECT_CHUNK_FLAGS, packed_reader)
 
     if bpy_obj.xray.export_path:
         if bpy_obj.xray.export_path[-1] != '\\':
             bpy_obj.xray.export_path += '\\'
     object_name = bpy_obj.xray.export_path + bpy_obj.name
+    if object_name[-4] == '.':
+        if object_name[-1] in string.digits and \
+           object_name[-2] in string.digits and \
+           object_name[-3] in string.digits:
+            object_name = object_name[0 : -4]
     if object_name.endswith('.object'):
         object_name = object_name[0 : -len('.object')]
 
@@ -43,15 +48,12 @@ def write_object_body(chunked_writer, bpy_obj):
     body_chunked_writer.put(fmt.Chunks.CUSTOMOBJECT_CHUNK_TRANSFORM, packed_reader)
 
     packed_reader = xray_io.PackedWriter()
-    packed_reader.putf('H', fmt.SCENEOBJ_CURRENT_VERSION)
+    packed_reader.putf('H', fmt.SCENEOBJ_VERSION_SOC)
     body_chunked_writer.put(fmt.Chunks.SCENEOBJ_CHUNK_VERSION, packed_reader)
 
     packed_reader = xray_io.PackedWriter()
-    if object_name[-4] == '.':
-        if object_name[-1] in string.digits and \
-           object_name[-2] in string.digits and \
-           object_name[-3] in string.digits:
-            object_name = object_name[0 : -4]
+    packed_reader.putf('I', 0)    # version
+    packed_reader.putf('I', 0)    # reserved
     packed_reader.puts(object_name)
     body_chunked_writer.put(fmt.Chunks.SCENEOBJ_CHUNK_REFERENCE, packed_reader)
 

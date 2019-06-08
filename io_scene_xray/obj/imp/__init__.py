@@ -8,7 +8,8 @@ from . import main
 def _import(fpath, context, reader):
     for (cid, data) in reader:
         if cid == fmt.Chunks.Object.MAIN:
-            main.import_main(fpath, context, xray_io.ChunkedReader(data))
+            bpy_obj = main.import_main(fpath, context, xray_io.ChunkedReader(data))
+            return bpy_obj
         else:
             log.debug('unknown chunk', cid=cid)
 
@@ -17,4 +18,5 @@ def _import(fpath, context, reader):
 def import_file(fpath, context):
     log.update(path=fpath)
     with io.open(fpath, 'rb') as file:
-        _import(fpath, context, xray_io.ChunkedReader(memoryview(file.read())))
+        bpy_obj = _import(fpath, context, xray_io.ChunkedReader(memoryview(file.read())))
+        return bpy_obj
