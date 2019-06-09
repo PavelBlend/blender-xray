@@ -8,6 +8,7 @@ from ..xray_io import ChunkedReader, PackedReader
 from ..plugin_prefs import get_preferences
 from ..obj.imp import utils as object_imp_utils
 from ..obj import imp as object_import
+from .. import log
 
 
 def _read_scene_version(scene_version_chunk):
@@ -55,14 +56,17 @@ def _read_object_body(data, imported_objects, import_context):
         elif chunk_id == fmt.Chunks.SCENEOBJ_CHUNK_VERSION:
             scene_obj_version = packed_reader.getf('H')[0]
 
-    import_path = get_preferences().objects_folder + os.sep + object_path + '.object'
+    import_path = get_preferences().objects_folder + object_path + '.object'
     if not imported_objects.get(object_path):
-        imported_object = object_import.import_file(import_path, import_context)
-        imported_object.location = position[0], position[2], position[1]
-        imported_object.rotation_euler = rotation[0], rotation[2], rotation[1]
-        imported_object.scale = scale[0], scale[2], scale[1]
-        imported_object.xray.export_path = os.path.dirname(object_path) + os.sep
-        imported_objects[object_path] = imported_object
+        if os.path.exists(import_path):
+            imported_object = object_import.import_file(import_path, import_context)
+            imported_object.location = position[0], position[2], position[1]
+            imported_object.rotation_euler = rotation[0], rotation[2], rotation[1]
+            imported_object.scale = scale[0], scale[2], scale[1]
+            imported_object.xray.export_path = os.path.dirname(object_path) + os.sep
+            imported_objects[object_path] = imported_object
+        else:
+            log.warn('Cannot find file: {}'.format(import_path))
     else:
         imported_object = imported_objects.get(object_path)
         if imported_object.type == 'EMPTY':
@@ -72,8 +76,8 @@ def _read_object_body(data, imported_objects, import_context):
             new_empty.xray.revision.owner = imported_object.xray.revision.owner
             new_empty.xray.revision.ctime_str = imported_object.xray.revision.ctime_str
             bpy.context.scene.objects.link(new_empty)
-            for mesh in imported_object.childern:
-                new_object = bpy.data.object.new(mesh.name, mesh.data)
+            for mesh in imported_object.children:
+                new_object = bpy.data.objects.new(mesh.name, mesh.data)
                 new_object.parent = new_empty
                 new_object.xray.isroot = False
                 bpy.context.scene.objects.link(new_object)
