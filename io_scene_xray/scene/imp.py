@@ -56,7 +56,10 @@ def _read_object_body(data, imported_objects, import_context):
         elif chunk_id == fmt.Chunks.SCENEOBJ_CHUNK_VERSION:
             scene_obj_version = packed_reader.getf('H')[0]
 
-    import_path = get_preferences().objects_folder + object_path + '.object'
+    import_path = os.path.join(
+        os.path.abspath(get_preferences().objects_folder),
+        object_path + '.object'
+    )
     if not imported_objects.get(object_path):
         if os.path.exists(import_path):
             imported_object = object_import.import_file(import_path, import_context)
