@@ -345,3 +345,5 @@ def import_main(fpath, context, creader):
                 mrefs.add().name = reader.gets()
         else:
             log.debug('unknown chunk', cid=cid)
+
+    return bpy_obj

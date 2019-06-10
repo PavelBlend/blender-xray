@@ -78,6 +78,7 @@ class XRayImportMenu(bpy.types.Menu):
         layout.operator(skl_ops.OpImportSkl.bl_idname, text='Skeletal Animation (.skl, .skls)')
         layout.operator(det_ops.OpImportDM.bl_idname, text='Details (.dm, .details)')
         layout.operator(err_ops.OpImportERR.bl_idname, text='Error List (.err)')
+        layout.operator(scene_ops.OpImportLevelScene.bl_idname, text='Scene Selection (.level)')
 
 
 @registry.module_thing
@@ -100,7 +101,7 @@ class XRayExportMenu(bpy.types.Menu):
             det_ops.OpExportLevelDetails.bl_idname,
             text='Level Details (.details)'
         )
-        layout.operator(scene_ops.OpExportLevelScene.bl_idname, text='Level Scene (.level)')
+        layout.operator(scene_ops.OpExportLevelScene.bl_idname, text='Scene Selection (.level)')
 
 
 def overlay_view_3d():
@@ -181,6 +182,7 @@ def append_menu_func():
         bpy.types.INFO_MT_file_import.remove(det_ops.menu_func_import)
         bpy.types.INFO_MT_file_export.remove(det_ops.menu_func_export)
         bpy.types.INFO_MT_file_export.remove(scene_ops.menu_func_export)
+        bpy.types.INFO_MT_file_import.remove(scene_ops.menu_func_import)
         bpy.types.INFO_MT_file_import.prepend(menu_func_xray_import)
         bpy.types.INFO_MT_file_export.prepend(menu_func_xray_export)
     else:
@@ -193,6 +195,7 @@ def append_menu_func():
         bpy.types.INFO_MT_file_export.append(det_ops.menu_func_export)
         bpy.types.INFO_MT_file_import.append(err_ops.menu_func_import)
         bpy.types.INFO_MT_file_export.append(scene_ops.menu_func_export)
+        bpy.types.INFO_MT_file_import.append(scene_ops.menu_func_import)
 
 
 registry.module_requires(__name__, [
