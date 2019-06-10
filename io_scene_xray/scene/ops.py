@@ -17,6 +17,7 @@ class OpExportLevelScene(bpy.types.Operator, io_utils.ExportHelper):
         default='*'+filename_ext, options={'HIDDEN'}
         )
 
+    @utils.set_cursor_state
     def execute(self, context):
 
         try:
@@ -69,6 +70,7 @@ class OpImportLevelScene(bpy.types.Operator, io_utils.ImportHelper):
         layout.prop(self, 'mesh_split_by_materials')
 
     @utils.execute_with_logger
+    @utils.set_cursor_state
     def execute(self, context):
         try:
             import_file(self.filepath, self)

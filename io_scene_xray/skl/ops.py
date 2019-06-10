@@ -15,7 +15,7 @@ from ..ui.motion_list import (
 from ..ops import BaseOperator as TestReadyOperator
 from ..utils import (
     execute_with_logger, invoke_require_armature, execute_require_filepath,
-    FilenameExtHelper
+    FilenameExtHelper, set_cursor_state
 )
 from ..xray_motions import MOTIONS_FILTER_ALL
 
@@ -100,6 +100,7 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
         return tuple()
 
     @execute_with_logger
+    @set_cursor_state
     def execute(self, context):
         if not self.files:
             self.report({'ERROR'}, 'No files selected')
@@ -141,6 +142,7 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
 
     @execute_with_logger
     @execute_require_filepath
+    @set_cursor_state
     def execute(self, context):
         from .exp import export_skl_file, ExportContext
         export_context = ExportContext(

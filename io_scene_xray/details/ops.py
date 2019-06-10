@@ -47,6 +47,7 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             )
         )
 
+    @utils.set_cursor_state
     def execute(self, context):
 
         textures_folder = plugin_prefs.get_preferences().textures_folder_auto
@@ -131,6 +132,7 @@ class OpExportDMs(bpy.types.Operator):
     texture_name_from_image_path = \
         plugin_prefs.PropObjectTextureNamesFromPath()
 
+    @utils.set_cursor_state
     def execute(self, context):
         try:
             for name in self.detail_models.split(','):
@@ -189,6 +191,7 @@ class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
     texture_name_from_image_path = \
         plugin_prefs.PropObjectTextureNamesFromPath()
 
+    @utils.set_cursor_state
     def execute(self, context):
         try:
             self.exp(context.scene.objects[self.detail_model], context)
@@ -265,6 +268,7 @@ class OpExportLevelDetails(
         col = layout.column()
         col.prop(self, 'format_version', expand=True)
 
+    @utils.set_cursor_state
     def execute(self, context):
 
         objs = context.selected_objects
@@ -319,6 +323,7 @@ class PackDetailsImages(bpy.types.Operator):
                 return True
         return False
 
+    @utils.set_cursor_state
     def execute(self, context):
         slots = context.object.xray.detail.slots
         lighting = slots.ligthing

@@ -2,7 +2,10 @@ import bpy
 from bpy_extras import io_utils
 
 from ..utils import (
-    execute_with_logger, execute_require_filepath, mk_export_context
+    execute_with_logger,
+    execute_require_filepath,
+    mk_export_context,
+    set_cursor_state
 )
 from .. import registry, plugin_prefs
 from . import exp
@@ -19,6 +22,7 @@ class ModelExportHelper:
 
     @execute_with_logger
     @execute_require_filepath
+    @set_cursor_state
     def execute(self, context):
         objs = context.selected_objects if self.selection_only else context.scene.objects
         roots = [obj for obj in objs if obj.xray.isroot]

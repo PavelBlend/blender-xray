@@ -62,6 +62,7 @@ class OpExportObjects(ops.BaseOperator, _WithExportMotions):
         layout.prop(self, 'texture_name_from_image_path')
 
     @utils.execute_with_logger
+    @utils.set_cursor_state
     def execute(self, context):
         export_context = utils.mk_export_context(
             self.texture_name_from_image_path,
@@ -136,6 +137,7 @@ class OpExportObject(
         layout.prop(self, 'texture_name_from_image_path')
 
     @utils.execute_with_logger
+    @utils.set_cursor_state
     def execute(self, context):
         export_context = utils.mk_export_context(
             self.texture_name_from_image_path,

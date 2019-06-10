@@ -2,7 +2,7 @@ import bpy
 from bpy_extras import io_utils
 
 from ..ops import BaseOperator as TestReadyOperator
-from .. import registry, plugin
+from .. import registry, plugin, utils
 from . import imp
 
 
@@ -16,6 +16,7 @@ class OpImportERR(TestReadyOperator, io_utils.ImportHelper):
     filepath = bpy.props.StringProperty(subtype="FILE_PATH")
     filter_glob = bpy.props.StringProperty(default='*.err', options={'HIDDEN'})
 
+    @utils.set_cursor_state
     def execute(self, context):
         imp.import_file(self.filepath, self)
         return {'FINISHED'}

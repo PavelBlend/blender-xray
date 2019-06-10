@@ -414,12 +414,24 @@ def execute_require_filepath(func):
     return wrapper
 
 
+def set_cursor_state(method):
+    def wrapper(self, context):
+        try:
+            context.window.cursor_set('WAIT')
+            return method(self, context)
+        finally:
+            context.window.cursor_set('DEFAULT')
+
+    return wrapper
+
+
 class FilenameExtHelper(io_utils.ExportHelper):
     def export(self, context):
         pass
 
     @execute_with_logger
     @execute_require_filepath
+    @set_cursor_state
     def execute(self, context):
         self.export(context)
         return {'FINISHED'}

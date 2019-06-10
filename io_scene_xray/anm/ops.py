@@ -4,7 +4,7 @@ import bpy
 from bpy_extras import io_utils
 
 from .. import plugin_prefs, registry
-from ..utils import execute_with_logger, FilenameExtHelper, AppError
+from ..utils import execute_with_logger, FilenameExtHelper, AppError, set_cursor_state
 
 
 @registry.module_thing
@@ -22,6 +22,7 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
     camera_animation = plugin_prefs.PropAnmCameraAnimation()
 
     @execute_with_logger
+    @set_cursor_state
     def execute(self, _context):
         if not self.files:
             self.report({'ERROR'}, 'No files selected')
@@ -53,6 +54,7 @@ class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
     filename_ext = '.anm'
     filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
 
+    @set_cursor_state
     def export(self, context):
         from .exp import export_file
 
