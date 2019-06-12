@@ -226,7 +226,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     show_motions = bpy.props.BoolProperty(description='View motions', options={'SKIP_SAVE'})
     play_active_motion = bpy.props.BoolProperty(name='Play Active Motion', default=False)
     dependency_object = bpy.props.StringProperty(name='Dependency', default='')
-    use_custom_names = bpy.props.BoolProperty(name='Custom Names', default=False)
+    use_custom_motion_names = bpy.props.BoolProperty(name='Custom Names', default=False)
 
     helper_data = bpy.props.StringProperty()
     export_path = bpy.props.StringProperty(

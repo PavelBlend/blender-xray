@@ -37,6 +37,10 @@ def import_motion(reader, bpy_armature, bonesmap, reported, motions_filter=MOTIO
     motion = bpy_armature.xray.motions_collection.add()
     motion.name = act.name
 
+    if name != act.name:
+        bpy_armature.xray.use_custom_motion_names = True
+        motion.export_name = name
+
     xray.flags, xray.bonepart = reader.getf('<BH')
     xray.speed, xray.accrue, xray.falloff, xray.power = reader.getf('<ffff')
     for _bone_idx in range(reader.getf('H')[0]):
@@ -311,7 +315,7 @@ def _prepare_bones(armature):
 def _export_motion_data(pkw, action, bones_animations, armature):
     xray = action.xray
 
-    if armature.xray.use_custom_names:
+    if armature.xray.use_custom_motion_names:
         motion = armature.xray.motions_collection.get(action.name)
         if motion.export_name:
             motion_name = motion.export_name
