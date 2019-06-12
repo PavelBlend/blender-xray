@@ -170,18 +170,19 @@ def examine_motions(data):
 
 @with_context('export-motion')
 def export_motion(pkw, action, armature):
-    dependency_object = bpy.data.objects.get(armature.xray.dependency_object)
-    if dependency_object:
-        old_action = dependency_object.animation_data.action
-        dependency_object.animation_data.action = action
-        bpy.context.scene.update()
+    dependency_object = None
+    if armature.xray.dependency_object:
+        dependency_object = bpy.data.objects.get(armature.xray.dependency_object)
+        if dependency_object:
+            old_action = dependency_object.animation_data.action
+            dependency_object.animation_data.action = action
 
     prepared_bones = _prepare_bones(armature)
     _ake_motion_data = _take_motion_data
     if action.xray.autobake_effective(armature):
         _ake_motion_data = _bake_motion_data
     bones_animations = _ake_motion_data(action, armature, prepared_bones)
-    _export_motion_data(pkw, action, bones_animations)
+    _export_motion_data(pkw, action, bones_animations, armature)
 
     if dependency_object:
         dependency_object.animation_data.action = old_action
@@ -255,12 +256,12 @@ def _take_motion_data(bpy_act, bpy_armature, prepared_bones):
         scene = bpy.context.scene
         old_current_frame = scene.frame_current
         for time in range(int(frange[0]), int(frange[1]) + 1):
-            if not is_root:
-                mat = xmat * Matrix.Translation(evaluate_channels(chs_tr, time)) \
-                    * frotmatrix(evaluate_channels(chs_rt, time)).to_4x4()
-            else:
+            if is_root and bone.parent:
                 scene.frame_set(time)
                 mat = MATRIX_BONE_INVERTED * bone.matrix
+            else:
+                mat = xmat * Matrix.Translation(evaluate_channels(chs_tr, time)) \
+                    * frotmatrix(evaluate_channels(chs_rt, time)).to_4x4()
             data.append(mat)
         scene.frame_set(old_current_frame)
 
@@ -307,9 +308,20 @@ def _prepare_bones(armature):
     ]
 
 
-def _export_motion_data(pkw, action, bones_animations):
+def _export_motion_data(pkw, action, bones_animations, armature):
     xray = action.xray
-    pkw.puts(action.name)
+
+    if armature.xray.use_custom_names:
+        motion = armature.xray.motions_collection.get(action.name)
+        if motion.export_name:
+            motion_name = motion.export_name
+        else:
+            motion_name = action.name
+    else:
+        motion_name = action.name
+
+    pkw.puts(motion_name)
+    motion_name
     frange = action.frame_range
     pkw.putf('II', int(frange[0]), int(frange[1]))
     pkw.putf('f', xray.fps)

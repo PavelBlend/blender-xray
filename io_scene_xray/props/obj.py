@@ -63,10 +63,35 @@ class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
     mtime = bpy.props.IntProperty(name='mtime')
 
 
+def update_export_name(self, context):
+    data = context.object.xray
+    used_names = []
+
+    if not self.export_name:
+        return
+
+    for motion in data.motions_collection:
+        if motion != self:
+            used_names.append(motion.export_name)
+
+    if used_names.count(self.export_name):
+        for name in used_names:
+            if self.export_name == name:
+                if len(self.export_name) >= 4:
+                    if self.export_name[-4] == '.' and self.export_name[-3:].isdigit():
+                        number = int(self.export_name[-3 : ]) + 1
+                        self.export_name = self.export_name[ : -3] + '{:0>3}'.format(number)
+                    else:
+                        self.export_name += '.001'
+                else:
+                    self.export_name += '.001'
+
+
 @registry.requires(XRayObjectRevisionProperties, 'MotionRef')
 class XRayObjectProperties(bpy.types.PropertyGroup):
     class MotionRef(bpy.types.PropertyGroup):
         name = bpy.props.StringProperty()
+        export_name = bpy.props.StringProperty(update=update_export_name)
 
     def get_isroot(self):
         if not self.root:
@@ -190,6 +215,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     show_motions = bpy.props.BoolProperty(description='View motions', options={'SKIP_SAVE'})
     play_active_motion = bpy.props.BoolProperty(name='Play Active Motion', default=False)
     dependency_object = bpy.props.StringProperty(name='Dependency', default='')
+    use_custom_names = bpy.props.BoolProperty(name='Custom Names', default=False)
 
     helper_data = bpy.props.StringProperty()
     export_path = bpy.props.StringProperty(

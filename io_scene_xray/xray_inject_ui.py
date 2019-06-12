@@ -76,6 +76,8 @@ class XRayMotionList(bpy.types.UIList):
         row = layout.row()
         row.label(text='', icon=icon)
         row.prop_search(motion, 'name', bpy.data, 'actions', text='')
+        if data.use_custom_names:
+            row.prop(motion, 'export_name', icon_only=True)
 
 
 class XRayAddAllActions(bpy.types.Operator):
@@ -161,6 +163,7 @@ class XRayObjectPanel(XRayPanel):
             )
             if box:
                 box.prop(data, 'play_active_motion', toggle=True, icon='PLAY')
+                box.prop(data, 'use_custom_names', toggle=True)
                 col = box.column(align=True)
                 col.operator('io_scene_xray.add_all_actions')
                 col.operator('io_scene_xray.remove_all_actions')
