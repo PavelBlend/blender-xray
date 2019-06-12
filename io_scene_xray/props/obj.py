@@ -63,28 +63,39 @@ class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
     mtime = bpy.props.IntProperty(name='mtime')
 
 
+def find_duplicate_name(motion, used_names):
+    if used_names.count(motion.export_name):
+        for name in used_names:
+            if motion.export_name == name:
+                if len(motion.export_name) >= 4:
+                    if motion.export_name[-4] == '.' and motion.export_name[-3:].isdigit():
+                        number = int(motion.export_name[-3 : ]) + 1
+                        motion.export_name = motion.export_name[ : -3] + '{:0>3}'.format(number)
+                    else:
+                        motion.export_name += '.001'
+                else:
+                    motion.export_name += '.001'
+
+
 def update_export_name(self, context):
     data = context.object.xray
-    used_names = []
 
     if not self.export_name:
         return
 
+    used_names = []
     for motion in data.motions_collection:
         if motion != self:
             used_names.append(motion.export_name)
 
-    if used_names.count(self.export_name):
-        for name in used_names:
-            if self.export_name == name:
-                if len(self.export_name) >= 4:
-                    if self.export_name[-4] == '.' and self.export_name[-3:].isdigit():
-                        number = int(self.export_name[-3 : ]) + 1
-                        self.export_name = self.export_name[ : -3] + '{:0>3}'.format(number)
-                    else:
-                        self.export_name += '.001'
-                else:
-                    self.export_name += '.001'
+    find_duplicate_name(self, used_names)
+
+    used_names = []
+    for motion in data.motions_collection:
+        if motion != self and not motion.export_name:
+            used_names.append(motion.name)
+
+    find_duplicate_name(self, used_names)
 
 
 @registry.requires(XRayObjectRevisionProperties, 'MotionRef')
