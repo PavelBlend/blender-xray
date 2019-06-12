@@ -580,6 +580,12 @@ class XRayActionPanel(XRayPanel):
             row.prop(data, 'flags_stopatend', text='Stop', toggle=True)
             row.prop(data, 'flags_nomix', text='!Mix', toggle=True)
             row.prop(data, 'flags_syncpart', text='Sync', toggle=True)
+            row = layout.row(align=True)
+            row.prop(data, 'flags_footsteps', text='Foot Steps', toggle=True)
+            row.prop(data, 'flags_movexform', text='Move XForm', toggle=True)
+            row = layout.row(align=True)
+            row.prop(data, 'flags_idle', text='Idle', toggle=True)
+            row.prop(data, 'flags_weaponbone', text='Weapon Bone', toggle=True)
         layout.context_pointer_set(OpExportSkl.bl_idname + '.action', action)
         layout.operator(OpExportSkl.bl_idname, icon='EXPORT')
 

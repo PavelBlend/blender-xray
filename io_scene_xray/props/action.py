@@ -28,6 +28,10 @@ class XRayActionProperties(bpy.types.PropertyGroup):
     flags_stopatend = utils.gen_flag_prop(mask=0x02, description='Stop at end')
     flags_nomix = utils.gen_flag_prop(mask=0x04, description='No mix')
     flags_syncpart = utils.gen_flag_prop(mask=0x08, description='Sync part')
+    flags_footsteps = utils.gen_flag_prop(mask=0x10, description='Use Foot Steps')
+    flags_movexform = utils.gen_flag_prop(mask=0x20, description='Move XForm')
+    flags_idle = utils.gen_flag_prop(mask=0x40, description='Idle')
+    flags_weaponbone = utils.gen_flag_prop(mask=0x80, description='Use Weapon Bone')
     bonepart = bpy.props.IntProperty(default=_SPECIAL)
 
     bonepart_name = bpy.props.StringProperty(
