@@ -81,6 +81,7 @@ __AUTO_PROPS__ = [
     'gamemtl_file',
     'eshader_file',
     'cshader_file',
+    'objects_folder'
 ]
 def _auto_path(obj, self_name, path_suffix, checker):
     for prop in __AUTO_PROPS__:
@@ -96,9 +97,9 @@ def _auto_path(obj, self_name, path_suffix, checker):
                 continue  # path.dirname('T:') == 'T:'
             result = dirname
         if path_suffix:
-            result = path.join(result, path_suffix)
-        if checker(result):
-            return result
+            result = path.abspath(path.join(result, path_suffix))
+        '''if checker(result):'''
+        return result
 
     return ''
 
@@ -126,7 +127,7 @@ class _ExplicitPathOp(bpy.types.Operator):
 @registry.module_thing
 @with_auto_property(
     bpy.props.StringProperty, 'gamedata_folder',
-    lambda self: _auto_path(self, 'gamedata_folder', '', path.isdir),
+    lambda self: _auto_path(self, 'gamedata_folder', path.join('..', 'gamedata'), path.isdir),
     name='Gamedata Folder',
     description='Path to the \'gamedata\' directory',
     subtype='DIR_PATH',
@@ -134,7 +135,7 @@ class _ExplicitPathOp(bpy.types.Operator):
 )
 @with_auto_property(
     bpy.props.StringProperty, 'textures_folder',
-    lambda self: _auto_path(self, 'textures_folder', 'textures', path.isdir),
+    lambda self: _auto_path(self, 'textures_folder', path.join('..', 'gamedata', 'textures'), path.isdir),
     name='Textures Folder',
     description='Path to the \'gamedata/textures\' directory',
     subtype='DIR_PATH',
@@ -142,7 +143,7 @@ class _ExplicitPathOp(bpy.types.Operator):
 )
 @with_auto_property(
     bpy.props.StringProperty, 'gamemtl_file',
-    lambda self: _auto_path(self, 'gamemtl_file', 'gamemtl.xr', path.isfile),
+    lambda self: _auto_path(self, 'gamemtl_file', path.join('..', 'gamedata', 'gamemtl.xr'), path.isfile),
     name='GameMtl File',
     description='Path to the \'gamemtl.xr\' file',
     subtype='FILE_PATH',
@@ -150,7 +151,7 @@ class _ExplicitPathOp(bpy.types.Operator):
 )
 @with_auto_property(
     bpy.props.StringProperty, 'eshader_file',
-    lambda self: _auto_path(self, 'eshader_file', 'shaders.xr', path.isfile),
+    lambda self: _auto_path(self, 'eshader_file', path.join('..', 'gamedata', 'shaders.xr'), path.isfile),
     name='EShader File',
     description='Path to the \'shaders.xr\' file',
     subtype='FILE_PATH',
@@ -158,10 +159,18 @@ class _ExplicitPathOp(bpy.types.Operator):
 )
 @with_auto_property(
     bpy.props.StringProperty, 'cshader_file',
-    lambda self: _auto_path(self, 'cshader_file', 'shaders_xrlc.xr', path.isfile),
+    lambda self: _auto_path(self, 'cshader_file', path.join('..', 'gamedata', 'shaders_xrlc.xr'), path.isfile),
     name='CShader File',
     description='Path to the \'shaders_xrlc.xr\' file',
     subtype='FILE_PATH',
+    overrides={'subtype': 'NONE'},
+)
+@with_auto_property(
+    bpy.props.StringProperty, 'objects_folder',
+    lambda self: _auto_path(self, 'objects_folder', path.join('..', 'rawdata', 'objects'), path.isdir),
+    name='Objects Folder',
+    description='Path to the \'rawdata/objects\' directory',
+    subtype='DIR_PATH',
     overrides={'subtype': 'NONE'},
 )
 class PluginPreferences(bpy.types.AddonPreferences):
@@ -180,13 +189,6 @@ class PluginPreferences(bpy.types.AddonPreferences):
     object_texture_names_from_path = PropObjectTextureNamesFromPath()
     object_bones_custom_shapes = PropObjectBonesCustomShapes()
     anm_create_camera = PropAnmCameraAnimation()
-
-    objects_folder = bpy.props.StringProperty(
-        name='Objects Folder',
-        default='',
-        description='Path to the \'rawdata/objects\' directory',
-        subtype='DIR_PATH'
-    )
 
     def draw(self, _context):
         def prop_bool(layout, data, prop):
@@ -214,7 +216,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
         prop_auto(layout, self, 'gamemtl_file')
         prop_auto(layout, self, 'eshader_file')
         prop_auto(layout, self, 'cshader_file')
-        layout.prop(self, 'objects_folder')
+        prop_auto(layout, self, 'objects_folder')
 
         _, box = collapsible.draw(layout, 'plugin_prefs:defaults', 'Defaults', style='tree')
         if box:
