@@ -98,8 +98,8 @@ def _auto_path(obj, self_name, path_suffix, checker):
             result = dirname
         if path_suffix:
             result = path.abspath(path.join(result, path_suffix))
-        '''if checker(result):'''
-        return result
+        if checker(result):
+            return result
 
     return ''
 
