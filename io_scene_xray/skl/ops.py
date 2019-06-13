@@ -95,8 +95,9 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     def _examine_file(fpath):
         if fpath.lower().endswith('.skls'):
             from ..xray_motions import examine_motions
-            with open(fpath, 'rb') as file:
-                return examine_motions(file.read())
+            if os.path.exists(fpath):
+                with open(fpath, 'rb') as file:
+                    return examine_motions(file.read())
         return tuple()
 
     @execute_with_logger
