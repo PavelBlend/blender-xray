@@ -80,8 +80,7 @@ __AUTO_PROPS__ = [
     'textures_folder',
     'gamemtl_file',
     'eshader_file',
-    'cshader_file',
-    'objects_folder'
+    'cshader_file'
 ]
 def _auto_path(obj, self_name, path_suffix, checker):
     for prop in __AUTO_PROPS__:
@@ -97,7 +96,7 @@ def _auto_path(obj, self_name, path_suffix, checker):
                 continue  # path.dirname('T:') == 'T:'
             result = dirname
         if path_suffix:
-            result = path.abspath(path.join(result, path_suffix))
+            result = path.join(result, path_suffix)
         if checker(result):
             return result
 
@@ -127,7 +126,7 @@ class _ExplicitPathOp(bpy.types.Operator):
 @registry.module_thing
 @with_auto_property(
     bpy.props.StringProperty, 'gamedata_folder',
-    lambda self: _auto_path(self, 'gamedata_folder', path.join('..', 'gamedata'), path.isdir),
+    lambda self: _auto_path(self, 'gamedata_folder', '', path.isdir),
     name='Gamedata Folder',
     description='Path to the \'gamedata\' directory',
     subtype='DIR_PATH',
@@ -135,7 +134,7 @@ class _ExplicitPathOp(bpy.types.Operator):
 )
 @with_auto_property(
     bpy.props.StringProperty, 'textures_folder',
-    lambda self: _auto_path(self, 'textures_folder', path.join('..', 'gamedata', 'textures'), path.isdir),
+    lambda self: _auto_path(self, 'textures_folder', 'textures', path.isdir),
     name='Textures Folder',
     description='Path to the \'gamedata/textures\' directory',
     subtype='DIR_PATH',
@@ -143,7 +142,7 @@ class _ExplicitPathOp(bpy.types.Operator):
 )
 @with_auto_property(
     bpy.props.StringProperty, 'gamemtl_file',
-    lambda self: _auto_path(self, 'gamemtl_file', path.join('..', 'gamedata', 'gamemtl.xr'), path.isfile),
+    lambda self: _auto_path(self, 'gamemtl_file', 'gamemtl.xr', path.isfile),
     name='GameMtl File',
     description='Path to the \'gamemtl.xr\' file',
     subtype='FILE_PATH',
@@ -151,7 +150,7 @@ class _ExplicitPathOp(bpy.types.Operator):
 )
 @with_auto_property(
     bpy.props.StringProperty, 'eshader_file',
-    lambda self: _auto_path(self, 'eshader_file', path.join('..', 'gamedata', 'shaders.xr'), path.isfile),
+    lambda self: _auto_path(self, 'eshader_file', 'shaders.xr', path.isfile),
     name='EShader File',
     description='Path to the \'shaders.xr\' file',
     subtype='FILE_PATH',
@@ -159,7 +158,7 @@ class _ExplicitPathOp(bpy.types.Operator):
 )
 @with_auto_property(
     bpy.props.StringProperty, 'cshader_file',
-    lambda self: _auto_path(self, 'cshader_file', path.join('..', 'gamedata', 'shaders_xrlc.xr'), path.isfile),
+    lambda self: _auto_path(self, 'cshader_file', 'shaders_xrlc.xr', path.isfile),
     name='CShader File',
     description='Path to the \'shaders_xrlc.xr\' file',
     subtype='FILE_PATH',
