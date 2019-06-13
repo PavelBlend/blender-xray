@@ -54,6 +54,12 @@ def update_motion_collection_index(self, context):
     scene.frame_end = motion.frame_range[1]
     scene.frame_set(motion.frame_range[0])
 
+    if xray.dependency_object:
+        dependency = bpy.data.objects.get(xray.dependency_object)
+        if dependency:
+            anim_data = dependency.animation_data_create()
+            anim_data.action = motion
+
 
 class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
     owner = bpy.props.StringProperty(name='owner')
