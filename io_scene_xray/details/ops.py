@@ -64,7 +64,8 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             soc_sgroups=None,
             import_motions=None,
             split_by_materials=None,
-            operator=self
+            operator=self,
+            use_motion_prefix_name=False
             )
 
         import_context.format = self.format

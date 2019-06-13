@@ -19,8 +19,10 @@ MOTIONS_FILTER_ALL = lambda name: True
 
 
 @with_context('import-motion')
-def import_motion(reader, bpy_armature, bonesmap, reported, motions_filter=MOTIONS_FILTER_ALL):
+def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FILTER_ALL):
+    bpy_armature = context.armature
     name = reader.gets()
+
     if not motions_filter(name):
         skip = _skip_motion_rest(reader.getv(), 0)
         reader.skip(skip)
@@ -36,8 +38,16 @@ def import_motion(reader, bpy_armature, bonesmap, reported, motions_filter=MOTIO
 
     motion = bpy_armature.xray.motions_collection.add()
     motion.name = act.name
+    if context.use_motion_prefix_name:
+        bpy_armature.xray.use_custom_motion_names = True
+        motion.export_name = name
+        # cut extension
+        filename = context.filename[0 : -len(context.filename.split('.')[-1]) - 1]
+        name = '{0}_{1}'.format(filename, name)
+        act.name = name
+        motion.name = name
 
-    if name != act.name:
+    if name != act.name and not context.use_motion_prefix_name:
         bpy_armature.xray.use_custom_motion_names = True
         motion.export_name = name
 
@@ -124,13 +134,14 @@ def import_motion(reader, bpy_armature, bonesmap, reported, motions_filter=MOTIO
     return act
 
 
-def import_motions(reader, bpy_armature, motions_filter=MOTIONS_FILTER_ALL):
+def import_motions(reader, context, motions_filter=MOTIONS_FILTER_ALL):
+    bpy_armature = context.armature
     motions_count = reader.getf('I')[0]
     if motions_count:
         bonesmap = {b.name.lower(): b for b in bpy_armature.data.bones}
         reported = set()
         for _ in range(motions_count):
-            import_motion(reader, bpy_armature, bonesmap, reported, motions_filter)
+            import_motion(reader, context, bonesmap, reported, motions_filter)
 
 
 @with_context('examine-motion')

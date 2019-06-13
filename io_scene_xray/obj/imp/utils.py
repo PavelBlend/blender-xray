@@ -14,6 +14,7 @@ class ImportContext:
             import_motions,
             split_by_materials,
             operator,
+            use_motion_prefix_name,
             objects=''
         ):
 
@@ -25,6 +26,7 @@ class ImportContext:
         self.split_by_materials = split_by_materials
         self.operator = operator
         self.loaded_materials = None
+        self.use_motion_prefix_name = use_motion_prefix_name
 
     def before_import_file(self):
         self.loaded_materials = {}

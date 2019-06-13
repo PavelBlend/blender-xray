@@ -26,6 +26,7 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
 
     import_motions = plugin_prefs.PropObjectMotionsImport()
     mesh_split_by_materials = plugin_prefs.PropObjectMeshSplitByMaterials()
+    use_motion_prefix_name = bpy.props.BoolProperty(default=False, name='Motion Prefix Name')
 
     shaped_bones = plugin_prefs.PropObjectBonesCustomShapes()
 
@@ -47,6 +48,7 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
             import_motions=self.import_motions,
             split_by_materials=self.mesh_split_by_materials,
             operator=self,
+            use_motion_prefix_name=self.use_motion_prefix_name,
             objects=objects_folder
         )
         for file in self.files:
@@ -73,6 +75,9 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
         row.row().prop(self, 'fmt_version', expand=True)
 
         layout.prop(self, 'import_motions')
+        row = layout.row()
+        row.active = self.import_motions
+        row.prop(self, 'use_motion_prefix_name')
         layout.prop(self, 'mesh_split_by_materials')
         layout.prop(self, 'shaped_bones')
 

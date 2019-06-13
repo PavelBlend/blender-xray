@@ -4,6 +4,7 @@ import math
 import bpy
 import mathutils
 
+from ...skl import imp as skl_imp
 from ... import xray_io, xray_motions, log, utils
 from .. import fmt
 from . import bone, mesh
@@ -264,7 +265,13 @@ def import_main(fpath, context, creader):
             if not context.import_motions:
                 continue
             reader = xray_io.PackedReader(data)
-            xray_motions.import_motions(reader, bpy_arm_obj)
+            skl_context = skl_imp.ImportContext(
+                armature=bpy_arm_obj,
+                motions_filter=xray_motions.MOTIONS_FILTER_ALL,
+                prefix=context.use_motion_prefix_name,
+                filename=object_name
+            )
+            xray_motions.import_motions(reader, skl_context)
         elif cid == fmt.Chunks.Object.LIB_VERSION:
             pass  # skip obsolete chunk
         else:

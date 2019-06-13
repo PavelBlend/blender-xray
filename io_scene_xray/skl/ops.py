@@ -38,10 +38,12 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
 
     motions = bpy.props.CollectionProperty(type=Motion, name='Motions Filter')
+    use_motion_prefix_name = bpy.props.BoolProperty(default=False, name='Motion Prefix Name')
     __parsed_file_name = None
 
     def draw(self, context):
         layout = self.layout
+        layout.prop(self, 'use_motion_prefix_name')
         row = layout.row()
         row.enabled = False
         row.label('%d items' % len(self.files))
@@ -114,10 +116,13 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
         import_context = ImportContext(
             armature=context.active_object,
             motions_filter=motions_filter,
+            prefix=self.use_motion_prefix_name,
+            filename=None
         )
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
             fpath = os.path.join(self.directory, file.name)
+            import_context.filename = file.name
             if ext == '.skl':
                 import_skl_file(fpath, import_context)
             elif ext == '.skls':
