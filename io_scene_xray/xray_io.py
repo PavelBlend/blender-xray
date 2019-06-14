@@ -102,6 +102,12 @@ class PackedReader:
     def skip(self, count):
         self.__offs += count
 
+    def offset(self) -> int:
+        return self.__offs
+
+    def set_offset(self, offset: int):
+        self.__offs = offset
+
 
 class ChunkedReader:
     __MASK_COMPRESSED = 0x80000000
