@@ -19,6 +19,7 @@ def reset_settings(preferences):
 class TestPreferences(utils.XRayTestCase):
     def test_auto_values_default(self):
         prefs = plugin_prefs.get_preferences()
+        reset_settings(prefs)
         for prop in plugin_prefs.__AUTO_PROPS__:
             self.assertEqual(getattr(prefs, prop), '', msg=prop)
             self.assertEqual(getattr(prefs, prop + '_auto'), '', msg=prop + '_auto')

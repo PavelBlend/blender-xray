@@ -80,7 +80,8 @@ __AUTO_PROPS__ = [
     'textures_folder',
     'gamemtl_file',
     'eshader_file',
-    'cshader_file'
+    'cshader_file',
+    'objects_folder'
 ]
 def _auto_path(obj, self_name, path_suffix, checker):
     for prop in __AUTO_PROPS__:
@@ -88,6 +89,8 @@ def _auto_path(obj, self_name, path_suffix, checker):
             continue
         value = getattr(obj, prop)
         if not value:
+            continue
+        if prop == 'objects_folder':
             continue
         result = path.normpath(value)
         if prop != 'gamedata_folder':
@@ -97,6 +100,8 @@ def _auto_path(obj, self_name, path_suffix, checker):
             result = dirname
         if path_suffix:
             result = path.join(result, path_suffix)
+            if self_name == 'objects_folder':
+                result = path.abspath(result)
         if checker(result):
             return result
 
