@@ -26,7 +26,7 @@ class VIEW3D_PT_skls_animations(bpy.types.Panel):
 
 class UI_SklsList_item(bpy.types.UIList):
 
-    def draw_item(self, _context, layout, _data, item : 'XRaySklsAnimationProperties', _icon, _active_data, _active_propname):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname):
         row = layout.row()
         row = row.split(percentage=.30)
         row.alignment = 'RIGHT'
@@ -59,9 +59,9 @@ class OpBrowseSklsFile(bpy.types.Operator):
         '''
         __slots__ = 'pr', 'file_path', 'animations'
 
-        def __init__(self, file_path: str):
+        def __init__(self, file_path):
             self.file_path = file_path
-            self.animations: Dict[str, Tuple(int, int)] = {} # cached animations info (name: (file_offset, frames_count))
+            self.animations = {} # cached animations info (name: (file_offset, frames_count))
             with io.open(file_path, mode='rb') as f:
                 # read entire .skls file into memory
                 self.pr = PackedReader(f.read())
@@ -86,7 +86,7 @@ class OpBrowseSklsFile(bpy.types.Operator):
     filepath = bpy.props.StringProperty(subtype='FILE_PATH')
     filter_glob = bpy.props.StringProperty(default='*.skls', options={'HIDDEN'})
 
-    skls_file: Optional[SklsFile] = None # pure python hold variable of .skls file buffer instance
+    skls_file = None # pure python hold variable of .skls file buffer instance
 
     @classmethod
     def poll(cls, context):
@@ -113,7 +113,7 @@ class OpBrowseSklsFile(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-def skls_animations_index_changed(self: 'OpBrowseSklsFile', context):
+def skls_animations_index_changed(self, context):
     'Selected animation changed in .skls list'
 
     # get new animation name
@@ -162,7 +162,7 @@ def skls_animations_index_changed(self: 'OpBrowseSklsFile', context):
         OpBrowseSklsFile.skls_file.pr.set_offset(OpBrowseSklsFile.skls_file.animations[animation_name][0])
         # bpy_armature = context.armature
         bonesmap = { b.name.lower(): b for b in ob.data.bones } # used to bone's reference detection
-        reported: List[str] = set() # bones names that has problems while import
+        reported = set() # bones names that has problems while import
         import_motion(OpBrowseSklsFile.skls_file.pr, ob, bonesmap, reported)
         sk.skls_animations_prev_name = animation_name
         context.window.cursor_set('DEFAULT')

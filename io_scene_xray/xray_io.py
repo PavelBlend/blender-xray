@@ -102,10 +102,10 @@ class PackedReader:
     def skip(self, count):
         self.__offs += count
 
-    def offset(self) -> int:
+    def offset(self):
         return self.__offs
 
-    def set_offset(self, offset: int):
+    def set_offset(self, offset):
         self.__offs = offset
 
 
