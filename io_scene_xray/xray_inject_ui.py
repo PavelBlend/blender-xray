@@ -9,6 +9,7 @@ from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, p
 from . import registry
 from . import plugin
 from .details import ui as det_ui
+from .skls_browser import UI_SklsList_item, OpBrowseSklsFile
 
 
 def _build_label(subtext=''):
@@ -60,6 +61,24 @@ class XRayPanel(bpy.types.Panel):
 
     def draw_header(self, _context):
         self.layout.label(icon_value=plugin.get_stalker_icon())
+
+
+@registry.requires(UI_SklsList_item)
+class VIEW3D_PT_skls_animations(XRayPanel):
+    'Contains open .skls file operator, animations list'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = _build_label('Skls File Browser')
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.operator(operator=OpBrowseSklsFile.bl_idname, text='Open skls file...')
+        if hasattr(context.object.xray, 'skls_browser'):
+            layout.template_list(listtype_name='UI_SklsList_item', list_id='compact',
+                dataptr=context.object.xray.skls_browser, propname='animations',
+                active_dataptr=context.object.xray.skls_browser, active_propname='animations_index', rows=5)
 
 
 @registry.module_thing
@@ -723,4 +742,5 @@ registry.module_requires(__name__, [
     , XRayMaterialToolsPanel
     , verify_uv.XRayVerifyUVOperator
     , verify_uv_ui.XRayVerifyToolsPanel
+    , VIEW3D_PT_skls_animations
 ])

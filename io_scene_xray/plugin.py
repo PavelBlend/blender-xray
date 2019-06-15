@@ -22,6 +22,7 @@ from .obj.imp import ops as object_imp_ops
 from .anm import ops as anm_ops
 from .skl import ops as skl_ops
 from .ogf import ops as ogf_ops
+from . import skls_browser
 
 
 @registry.module_thing
@@ -237,9 +238,11 @@ def register():
     )
     bpy.app.handlers.load_post.append(load_post)
     bpy.app.handlers.scene_update_post.append(scene_update_post)
+    registry.register_thing(skls_browser, __name__)
 
 
 def unregister():
+    registry.unregister_thing(skls_browser, __name__)
     registry.unregister_thing(err_ops, __name__)
     det_ops.unregister_operators()
     scene_ops.unregister_operators()
