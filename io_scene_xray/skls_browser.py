@@ -6,7 +6,6 @@ import bpy
 from . import registry
 from .xray_io import PackedReader
 from .xray_motions import (import_motion, _skip_motion_rest, MOTIONS_FILTER_ALL)
-from .xray_inject_ui import _build_label, XRayPanel
 from .skl.imp import ImportContext
 
 
@@ -19,24 +18,6 @@ class UI_SklsList_item(bpy.types.UIList):
         row.label(text=str(item.frames))
         row.alignment = 'LEFT'
         row.label(text=item.name)
-
-
-@registry.requires(UI_SklsList_item)
-class VIEW3D_PT_skls_animations(XRayPanel):
-    'Contains open .skls file operator, animations list'
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_label = _build_label('Skls File Browser')
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.operator(operator=OpBrowseSklsFile.bl_idname, text='Open skls file...')
-        if hasattr(context.object.xray, 'skls_browser'):
-            layout.template_list(listtype_name='UI_SklsList_item', list_id='compact',
-                dataptr=context.object.xray.skls_browser, propname='animations',
-                active_dataptr=context.object.xray.skls_browser, active_propname='animations_index', rows=5)
 
 
 @registry.module_thing
@@ -206,6 +187,3 @@ class XRayObjectSklsBrowserProperties(bpy.types.PropertyGroup):
     animations = bpy.props.CollectionProperty(type=XRaySklsAnimationProperties)
     animations_index = bpy.props.IntProperty(update=skls_animations_index_changed)
     animations_prev_name = bpy.props.StringProperty()
-
-
-registry.module_requires(__name__, [VIEW3D_PT_skls_animations, ])
