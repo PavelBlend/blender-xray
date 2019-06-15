@@ -16,9 +16,13 @@ def register():
     from . import registry, plugin, xray_inject_ui
     registry.register_thing(plugin, __name__)
     registry.register_thing(xray_inject_ui, __name__)
+    from . import skls_browser
+    registry.register_thing(skls_browser, __name__)
 
 
 def unregister():
     from . import registry, plugin, xray_inject_ui
     registry.unregister_thing(xray_inject_ui, __name__)
     registry.unregister_thing(plugin, __name__)
+    from . import skls_browser
+    registry.unregister_thing(skls_browser, __name__)
