@@ -5,6 +5,11 @@ import bpy
 from .. import registry, utils
 from ..details import types as det_types
 from . import utils as utils_props
+from ..skls_browser import (
+    skls_animations_index_changed,
+    XRaySklsAnimationProperties,
+    XRayObjectSklsBrowserProperties
+)
 
 
 def _gen_time_prop(prop, description=''):
@@ -104,7 +109,7 @@ def update_export_name(self, context):
     find_duplicate_name(self, used_names)
 
 
-@registry.requires(XRayObjectRevisionProperties, 'MotionRef')
+@registry.requires(XRayObjectRevisionProperties, XRayObjectSklsBrowserProperties, 'MotionRef')
 class XRayObjectProperties(bpy.types.PropertyGroup):
     class MotionRef(bpy.types.PropertyGroup):
         name = bpy.props.StringProperty()
@@ -243,6 +248,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     detail = bpy.props.PointerProperty(
         type=det_types.XRayObjectDetailsProperties
     )
+    skls_browser = bpy.props.PointerProperty(type=XRayObjectSklsBrowserProperties)
 
     def initialize(self, context):
         if not self.version:
