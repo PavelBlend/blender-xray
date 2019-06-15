@@ -159,12 +159,24 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
 
     uvs, vtx, fcs = export_faces(cw, bm)
 
+    if bpy_root.type == 'ARMATURE':
+        bones_names = []
+        for bone in bpy_root.data.bones:
+            if bone.xray.exportable:
+                bones_names.append(bone.name)
+    else:
+        bones_names = None
+
     wmaps = []
     wmaps_cnt = 0
     for vertex_group, bad in zip(bpy_obj.vertex_groups, bad_vgroups):
         if bad:
             wmaps.append(None)
             continue
+        if not bones_names is None:
+            if vertex_group.name not in bones_names:
+                wmaps.append(None)
+                continue
         wmaps.append(([], wmaps_cnt))
         wmaps_cnt += 1
 
