@@ -286,7 +286,12 @@ def _take_motion_data(bpy_act, bpy_armature, prepared_bones):
 def _bake_motion_data(action, armature, prepared_bones):
     exportable_bones = [(bone, matrix, is_root, []) for bone, matrix, is_root in prepared_bones]
 
-    old_act = armature.animation_data.action
+    has_old_action = False
+    if armature.animation_data:
+        old_act = armature.animation_data.action
+        has_old_action = True
+    else:
+        armature.animation_data_create()
     old_frame = bpy.context.scene.frame_current
     try:
         armature.animation_data.action = action
@@ -299,7 +304,8 @@ def _bake_motion_data(action, armature, prepared_bones):
                 else:
                     data.append(MATRIX_BONE_INVERTED * pbone.matrix)
     finally:
-        armature.animation_data.action = old_act
+        if has_old_action:
+            armature.animation_data.action = old_act
         bpy.context.scene.frame_set(old_frame)
 
     return [(pbone.name, animation) for pbone, _, _, animation in exportable_bones]
