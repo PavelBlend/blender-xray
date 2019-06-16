@@ -126,6 +126,10 @@ class TestObjectExport(utils.XRayTestCase):
             for n in (b_exp0, b_non0, b_exp1, b_non1):
                 bone = arm.edit_bones.new(n)
                 bone.tail.y = 1
+            for n in (b_non0, b_exp1, b_non1):
+                bone = arm.edit_bones[n]
+                parent = arm.edit_bones[b_exp0]
+                bone.parent = parent
         finally:
             bpy.ops.object.mode_set(mode='POSE')
         bg_exp = obj.pose.bone_groups.new(name='bg-only-exportable')

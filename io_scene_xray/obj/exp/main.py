@@ -68,14 +68,23 @@ def export_meshes(chunked_writer, bpy_obj, context):
         raise utils.AppError(
             'Root object "{}" has no meshes'.format(bpy_obj.name)
         )
+    if len(mesh_writers) > 1 and len(armatures):
+        raise utils.AppError(
+            'Skeletal object "{}" has more than one mesh'.format(bpy_obj.name)
+        )
 
     bone_writers = []
+    root_bones = []
+    armatures = list(armatures)
     if armatures:
-        bpy_arm_obj = list(armatures)[0]
+        bpy_arm_obj = armatures[0]
         bonemap = {}
         for bone_ in bpy_arm_obj.data.bones:
             if not utils.is_exportable_bone(bone_):
                 continue
+            real_parent = utils.find_bone_exportable_parent(bone_)
+            if not real_parent:
+                root_bones.append(bone_.name)
             bone.export_bone(
                 bpy_arm_obj, bpy_root, bone_, bone_writers, bonemap, context
             )
@@ -93,6 +102,11 @@ def export_meshes(chunked_writer, bpy_obj, context):
                 'Invalid bone parts: not all bones are tied to the Bone Part',
                 data=invalid_bones
             )
+    if len(root_bones) > 1:
+        raise utils.AppError(
+            'Invalid armature object "{}". Has more than one parent: {}'.format(
+                bpy_arm_obj.name, root_bones
+        ))
 
     msw = xray_io.ChunkedWriter()
     idx = 0
