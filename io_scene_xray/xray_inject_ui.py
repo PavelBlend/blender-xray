@@ -9,7 +9,7 @@ from .utils import create_cached_file_data, parse_shaders, parse_shaders_xrlc, p
 from . import registry
 from . import plugin
 from .details import ui as det_ui
-from .skls_browser import UI_SklsList_item, OpBrowseSklsFile
+from .skls_browser import UI_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
 
 
 def _build_label(subtext=''):
@@ -76,6 +76,8 @@ class VIEW3D_PT_skls_animations(XRayPanel):
         col = layout.column(align=True)
         col.operator(operator=OpBrowseSklsFile.bl_idname, text='Open skls file...')
         if hasattr(context.object.xray, 'skls_browser'):
+            if len(context.object.xray.skls_browser.animations):
+                layout.operator(OpCloseSklsFile.bl_idname)
             layout.template_list(listtype_name='UI_SklsList_item', list_id='compact',
                 dataptr=context.object.xray.skls_browser, propname='animations',
                 active_dataptr=context.object.xray.skls_browser, active_propname='animations_index', rows=5)

@@ -21,6 +21,31 @@ class UI_SklsList_item(bpy.types.UIList):
 
 
 @registry.module_thing
+class OpCloseSklsFile(bpy.types.Operator):
+    'Close *.skls animations list'
+    bl_idname = 'xray.close_skls_file'
+    bl_label = 'Close .skls file'
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None and hasattr(context.active_object.data, 'bones')
+
+    def execute(self, context):
+        context.window.cursor_set('WAIT')
+        ob = context.active_object
+        sk = ob.xray.skls_browser
+        if ob.animation_data:
+            act = ob.animation_data.action
+            ob.animation_data_clear()
+            act.user_clear()
+            bpy.data.actions.remove(action=act)
+        sk.animations.clear()
+        bpy.ops.screen.animation_cancel()
+        context.window.cursor_set('DEFAULT')
+        return {'FINISHED'}
+
+
+@registry.module_thing
 class OpBrowseSklsFile(bpy.types.Operator):
     'Shows file open dialog, reads .skls file to buffer, clears & populates animations list'
     bl_idname = 'xray.browse_skls_file'
