@@ -6,6 +6,11 @@ from os import path, walk
 
 with ZipFile('blender-xray-' + ('.'.join(map(str, bl_info['version']))) + '.zip', 'w') as z:
     z.write('LICENSE', 'io_scene_xray/LICENSE', compress_type=ZIP_DEFLATED)
+    z.write(
+        'io_scene_xray/icons/stalker.png',
+        'io_scene_xray/icons/stalker.png',
+        compress_type=ZIP_DEFLATED
+    )
     for root, _, files in walk('io_scene_xray'):
         for file in files:
             if not file.endswith('.py'):
