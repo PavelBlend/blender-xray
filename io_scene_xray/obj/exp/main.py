@@ -174,11 +174,21 @@ def export_loddef(chunked_writer, xray):
 
 def export_motions(chunked_writer, some_arm, context, bpy_obj):
     if some_arm and context.export_motions:
-        acts = [motion.name for motion in bpy_obj.xray.motions_collection]
-        acts = set(acts)
-        acts = list(acts)
-        acts.sort()
-        acts = [bpy.data.actions[name] for name in acts]
+        motions = [motion.name for motion in bpy_obj.xray.motions_collection]
+        motions = set(motions)
+        motions = list(motions)
+        motions.sort()
+        acts = []
+        for act_name in motions:
+            act = bpy.data.actions.get(act_name, None)
+            if act:
+                acts.append(act)
+            else:
+                log.warn(
+                    'Cannot find action "{0}" in object "{1}"'.format(
+                        act_name, bpy_obj.name
+                    ),
+                )
         writer = xray_io.PackedWriter()
         xray_motions.export_motions(writer, acts, some_arm)
         if writer.data:
