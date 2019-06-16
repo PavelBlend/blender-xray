@@ -69,4 +69,12 @@ def _prepare_animation():
     motion = obj.xray.motions_collection.add()
     motion.name = bpy.data.actions[0].name
 
+    bmesh = utils.create_bmesh((
+        (0, 0, 0),
+        (-1, -1, 0), (+1, -1, 0), (+1, +1, 0), (-1, +1, 0),
+    ), ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)), True)
+    obj_me = utils.create_object(bmesh, True)
+    obj_me.parent = obj
+    obj_me.xray.isroot = False
+
     return obj

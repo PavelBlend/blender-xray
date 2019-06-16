@@ -139,6 +139,14 @@ class TestObjectExport(utils.XRayTestCase):
         arm.bones[b_non0].xray.exportable = False
         arm.bones[b_non1].xray.exportable = False
 
+        bmesh = utils.create_bmesh((
+            (0, 0, 0),
+            (-1, -1, 0), (+1, -1, 0), (+1, +1, 0), (-1, +1, 0),
+        ), ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)), True)
+        obj_me = utils.create_object(bmesh, True)
+        obj_me.parent = obj
+        obj_me.xray.isroot = False
+
         # Act
         bpy.ops.export_object.xray_objects(
             objects='tobj', directory=self.outpath(),
