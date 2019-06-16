@@ -1,14 +1,16 @@
 import time
+import os
 
 import bpy
 
-from .. import registry, utils
+from .. import registry, utils, plugin_prefs
 from ..details import types as det_types
 from . import utils as utils_props
 from ..skls_browser import (
     skls_animations_index_changed,
     XRaySklsAnimationProperties,
-    XRayObjectSklsBrowserProperties
+    XRayObjectSklsBrowserProperties,
+    init_skls_browser
 )
 
 
@@ -107,6 +109,22 @@ def update_export_name(self, context):
             used_names.append(motion.name)
 
     find_duplicate_name(self, used_names)
+
+
+def load_motion_refs(self, context):
+    if not self.load_active_motion_refs:
+        return
+    if self.motionrefs_collection:
+        objects_folder = plugin_prefs.get_preferences().objects_folder_auto
+        motion_refs = self.motionrefs_collection[self.motionrefs_collection_index]
+        file_path = os.path.join(objects_folder, motion_refs.name + os.extsep + 'skls')
+        if os.path.exists(file_path):
+            init_skls_browser(self, context, file_path)
+
+
+def update_load_active_motion_refs(self, context):
+    if not self.load_active_motion_refs:
+        bpy.ops.xray.close_skls_file()
 
 
 @registry.requires(XRayObjectRevisionProperties, XRayObjectSklsBrowserProperties, 'MotionRef')
@@ -220,11 +238,17 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
     userdata = bpy.props.StringProperty(name='userdata', update=userdata_update)
     show_userdata = bpy.props.BoolProperty(description='View user data', options={'SKIP_SAVE'})
     revision = bpy.props.PointerProperty(type=XRayObjectRevisionProperties)
+    load_active_motion_refs = bpy.props.BoolProperty(
+        name='Load Active Motion Refs', default=False,
+        update=update_load_active_motion_refs
+    )
     motionrefs = bpy.props.StringProperty(
         description='!Legacy: use \'motionrefs_collection\' instead'
     )
     motionrefs_collection = bpy.props.CollectionProperty(type=MotionRef)
-    motionrefs_collection_index = bpy.props.IntProperty(options={'SKIP_SAVE'})
+    motionrefs_collection_index = bpy.props.IntProperty(
+        options={'SKIP_SAVE'}, update=load_motion_refs
+    )
     show_motionsrefs = bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'})
 
     motions = bpy.props.StringProperty(

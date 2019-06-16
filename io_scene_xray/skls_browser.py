@@ -45,6 +45,23 @@ class OpCloseSklsFile(bpy.types.Operator):
         return {'FINISHED'}
 
 
+def init_skls_browser(self, context, filepath):
+    if getattr(self, 'report', None):
+        self.report({'INFO'}, 'Loading animations from .skls file: "{}"'.format(filepath))
+    context.window.cursor_set('WAIT')
+    sk = context.object.xray.skls_browser
+    sk.animations.clear()
+    OpBrowseSklsFile.skls_file = OpBrowseSklsFile.SklsFile(file_path=filepath)
+    if getattr(self, 'report', None):
+        self.report({'INFO'}, 'Done: {} animation(s)'.format(len(OpBrowseSklsFile.skls_file.animations)))
+    # fill list with animations names
+    for name, offset_frames in OpBrowseSklsFile.skls_file.animations.items():
+        newitem = sk.animations.add()
+        newitem.name = name    # animation name
+        newitem.frames = offset_frames[1]    # frames count
+    context.window.cursor_set('DEFAULT')
+
+
 @registry.module_thing
 class OpBrowseSklsFile(bpy.types.Operator):
     'Shows file open dialog, reads .skls file to buffer, clears & populates animations list'
@@ -97,18 +114,7 @@ class OpBrowseSklsFile(bpy.types.Operator):
         return context.active_object is not None and hasattr(context.active_object.data, 'bones')
 
     def execute(self, context):
-        self.report({'INFO'}, 'Loading animations from .skls file: "{}"'.format(self.filepath))
-        context.window.cursor_set('WAIT')
-        sk = context.object.xray.skls_browser
-        sk.animations.clear()
-        OpBrowseSklsFile.skls_file = OpBrowseSklsFile.SklsFile(file_path=self.filepath)
-        self.report({'INFO'}, 'Done: {} animation(s)'.format(len(OpBrowseSklsFile.skls_file.animations)))
-        # fill list with animations names
-        for name, offset_frames in OpBrowseSklsFile.skls_file.animations.items():
-            newitem = sk.animations.add()
-            newitem.name = name    # animation name
-            newitem.frames = offset_frames[1]    # frames count
-        context.window.cursor_set('DEFAULT')
+        init_skls_browser(self, context, self.filepath)
         return {'FINISHED'}
 
     def invoke(self, context, event):

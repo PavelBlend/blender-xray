@@ -211,6 +211,7 @@ class XRayObjectPanel(XRayPanel):
                 'Motion Refs (%d)' % len(data.motionrefs_collection)
             )
             if box:
+                box.prop(data, 'load_active_motion_refs', toggle=True)
                 row = box.row()
                 row.template_list(
                     'UI_UL_list', 'name',
