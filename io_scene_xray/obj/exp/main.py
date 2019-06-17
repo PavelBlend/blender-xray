@@ -93,10 +93,12 @@ def export_meshes(chunked_writer, bpy_obj, context):
         has_bone_groups = False
         if len(bpy_arm_obj.pose.bone_groups):
             for bone_ in bpy_arm_obj.pose.bones:
-                if bone_.bone_group is None:
-                    invalid_bones.append(bone_.name)
-                else:
-                    has_bone_groups = True
+                xray = bpy_arm_obj.data.bones[bone_.name].xray
+                if xray.exportable:
+                    if bone_.bone_group is None:
+                        invalid_bones.append(bone_.name)
+                    else:
+                        has_bone_groups = True
         if invalid_bones and has_bone_groups:
             log.warn(
                 'Invalid bone parts: not all bones are tied to the Bone Part',
