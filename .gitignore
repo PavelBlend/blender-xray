@@ -2,3 +2,4 @@ __pycache__
 htmlcov
 coverage.xml
 *.bat
+*.zip
