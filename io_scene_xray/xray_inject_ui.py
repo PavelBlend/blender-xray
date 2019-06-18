@@ -716,7 +716,8 @@ class XRayMaterialToolsPanel(bpy.types.Panel):
     bl_region_type = 'TOOLS'
 
     def draw_header(self, _context):
-        self.layout.label(icon='PLUGIN')
+        icon = plugin.get_stalker_icon()
+        self.layout.label(icon_value=icon)
 
     def draw(self, context):
         data = context.scene.xray
