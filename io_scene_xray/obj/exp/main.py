@@ -282,10 +282,10 @@ def export_revision(chunked_writer, xray):
     if (not xray.revision.owner) or (xray.revision.owner == curruser):
         writer.puts(curruser)
         writer.putf(
-            'I', xray.revision.ctime if xray.revision.ctime else currtime
+            'i', xray.revision.ctime if xray.revision.ctime else currtime
         )
         writer.puts('')
-        writer.putf('I', 0)
+        writer.putf('i', 0)
     else:
         writer.puts(xray.revision.owner)
         writer.putf('I', xray.revision.ctime)

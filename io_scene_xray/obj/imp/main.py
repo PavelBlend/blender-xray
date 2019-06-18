@@ -338,9 +338,9 @@ def import_main(fpath, context, creader):
         elif cid == fmt.Chunks.Object.REVISION:
             reader = xray_io.PackedReader(data)
             bpy_obj.xray.revision.owner = reader.gets()
-            bpy_obj.xray.revision.ctime = reader.int()
+            bpy_obj.xray.revision.ctime = reader.getf('i')[0]
             bpy_obj.xray.revision.moder = reader.gets()
-            bpy_obj.xray.revision.mtime = reader.int()
+            bpy_obj.xray.revision.mtime = reader.getf('i')[0]
         elif cid == fmt.Chunks.Object.MOTION_REFS:
             mrefs = bpy_obj.xray.motionrefs_collection
             for mref in xray_io.PackedReader(data).gets().split(','):
