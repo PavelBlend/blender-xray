@@ -30,7 +30,7 @@ class _ListOp(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def draw_list_ops(layout, dataptr, propname, active_propname):
+def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_func=None):
     def operator(operation, icon, enabled=None):
         lay = layout
         if (enabled is not None) and (not enabled):
@@ -48,3 +48,5 @@ def draw_list_ops(layout, dataptr, propname, active_propname):
     operator('remove', 'ZOOMOUT', enabled=(index >= 0) and (index < len(collection)))
     operator('move_up', 'TRIA_UP', enabled=(index > 0) and (index < len(collection)))
     operator('move_down', 'TRIA_DOWN', enabled=(index >= 0) and (index < len(collection) - 1))
+    if custom_elements_func:
+        custom_elements_func(layout)

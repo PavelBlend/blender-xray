@@ -104,6 +104,7 @@ class XRayMotionList(bpy.types.UIList):
 class XRayAddAllActions(bpy.types.Operator):
     bl_idname = 'io_scene_xray.add_all_actions'
     bl_label = 'Add All Actions'
+    bl_description = 'Add All Actions'
 
     def execute(self, context):
         obj = context.object
@@ -117,11 +118,17 @@ class XRayAddAllActions(bpy.types.Operator):
 class XRayRemoveAllActions(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_all_actions'
     bl_label = 'Remove All Actions'
+    bl_description = 'Remove All Actions'
 
     def execute(self, context):
         obj = context.object
         obj.xray.motions_collection.clear()
         return {'FINISHED'}
+
+
+def draw_motion_list_custom_elements(layout):
+    layout.operator(XRayAddAllActions.bl_idname, text='', icon='ACTION')
+    layout.operator(XRayRemoveAllActions.bl_idname, text='', icon='X')
 
 
 @registry.requires(list_helper, PropClipOp)
@@ -185,9 +192,6 @@ class XRayObjectPanel(XRayPanel):
             if box:
                 box.prop(data, 'play_active_motion', toggle=True, icon='PLAY')
                 box.prop(data, 'use_custom_motion_names', toggle=True)
-                col = box.column(align=True)
-                col.operator('io_scene_xray.add_all_actions')
-                col.operator('io_scene_xray.remove_all_actions')
                 box.prop_search(data, 'dependency_object', bpy.data, 'objects')
                 row = box.row()
                 row.template_list(
@@ -199,6 +203,7 @@ class XRayObjectPanel(XRayPanel):
                 list_helper.draw_list_ops(
                     col, data,
                     'motions_collection', 'motions_collection_index',
+                    custom_elements_func=draw_motion_list_custom_elements
                 )
 
             if data.motionrefs:
