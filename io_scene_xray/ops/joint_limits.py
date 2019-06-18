@@ -30,7 +30,7 @@ def update_limit(self, context):
 class ConvertJointLimitsToConstraints(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_joint_limits'
     bl_label = 'Convert Limits to Constraints'
-    bl_description = 'Convert selected bones joint limits to constraints.'
+    bl_description = 'Convert selected bones joint limits to constraints'
 
     def execute(self, context):
         obj = context.object
@@ -61,7 +61,7 @@ class ConvertJointLimitsToConstraints(bpy.types.Operator):
 class RemoveJointLimitsConstraints(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_joint_limits'
     bl_label = 'Remove Limits Constraints'
-    bl_description = 'Remove selected bones joint limits constraints.'
+    bl_description = 'Remove selected bones joint limits constraints'
 
     def execute(self, context):
         obj = context.object
@@ -78,7 +78,7 @@ class RemoveJointLimitsConstraints(bpy.types.Operator):
 class ConvertIKLimitsToXRayLimits(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_ik_to_xray_limits'
     bl_label = 'Convert IK Limits to XRay Limits'
-    bl_description = 'Convert selected bones IK limits to XRay joint limits.'
+    bl_description = 'Convert selected bones IK limits to XRay joint limits'
 
     def execute(self, context):
         obj = context.object
@@ -100,7 +100,7 @@ class ConvertIKLimitsToXRayLimits(bpy.types.Operator):
 class ConvertXRayLimitsToIKLimits(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_xray_to_ik_limits'
     bl_label = 'Convert XRay Limits to IK Limits'
-    bl_description = 'Convert selected bones XRay joint limits to IK limits.'
+    bl_description = 'Convert selected bones XRay joint limits to IK limits'
 
     def execute(self, context):
         obj = context.object
@@ -125,7 +125,7 @@ class ConvertXRayLimitsToIKLimits(bpy.types.Operator):
 class ClearIKLimits(bpy.types.Operator):
     bl_idname = 'io_scene_xray.clear_ik_limits'
     bl_label = 'Clear IK Limits'
-    bl_description = 'Clear selected bones IK limits.'
+    bl_description = 'Clear selected bones IK limits'
 
     def execute(self, context):
         obj = context.object

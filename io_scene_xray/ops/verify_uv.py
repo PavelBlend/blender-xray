@@ -5,7 +5,7 @@ import bpy
 class XRayVerifyUVOperator(bpy.types.Operator):
     bl_idname = 'io_scene_xray.verify_uv'
     bl_label = 'Verify UV'
-    bl_description = 'Find UV-maps errors in selected objects.'
+    bl_description = 'Find UV-maps errors in selected objects'
 
     MINIMUM_VALUE = -32.0
     MAXIMUM_VALUE = 32.0
