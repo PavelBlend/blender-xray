@@ -2,7 +2,9 @@ import bpy
 
 from io_scene_xray import registry, utils
 
+
 __HELPERS__ = dict()
+
 
 class AbstractHelper:
     def __init__(self, name):
