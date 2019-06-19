@@ -1,8 +1,10 @@
 import bpy
-from io_scene_xray import registry
+
+from .. import registry
+from ..utils import create_cached_file_data
+from ..plugin_prefs import get_preferences
 
 
-@registry.module_thing
 class _DynamicMenuOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.dynmenu'
     bl_label = ''
@@ -32,6 +34,7 @@ def _detect_current_path(context):
     return result
 
 
+@registry.requires(_DynamicMenuOp)
 class DynamicMenu(bpy.types.Menu):
     bl_label = ''
     prop_name = '<prop>'
@@ -71,3 +74,52 @@ class DynamicMenu(bpy.types.Menu):
     @staticmethod
     def set_layout_context_data(layout, data):
         layout.context_pointer_set(_DynamicMenuOp.bl_idname + '.data', data)
+
+
+@registry.requires(DynamicMenu)
+class XRayXrMenuTemplate(DynamicMenu):
+    @staticmethod
+    def parse(data, fparse):
+        def push_dict(dct, split, value):
+            if len(split) == 1:
+                dct[split[0]] = value
+            else:
+                nested = dct.get(split[0], None)
+                if nested is None:
+                    dct[split[0]] = nested = dict()
+                push_dict(nested, split[1:], value)
+
+        def dict_to_array(dct):
+            result = []
+            root_result = []
+            for (key, val) in dct.items():
+                if isinstance(val, str):
+                    root_result.append((key, val))
+                else:
+                    result.append((key, dict_to_array(val)))
+            result = sorted(result, key=lambda e: e[0])
+            root_result = sorted(root_result, key=lambda e: e[0])
+            result.extend(root_result)
+            return result
+
+        tmp = dict()
+        for (name, _) in fparse(data):
+            split = name.split('\\')
+            push_dict(tmp, split, name)
+        return dict_to_array(tmp)
+
+    @classmethod
+    def create_cached(cls, pref_prop, fparse):
+        return create_cached_file_data(
+            lambda: getattr(get_preferences(), pref_prop, None),
+            lambda data: cls.parse(data, fparse)
+        )
+
+    @classmethod
+    def items_for_path(cls, path):
+        data = cls.cached()
+        if data is None:
+            return []
+        for pth in path:
+            data = data[pth][1]
+        return data
