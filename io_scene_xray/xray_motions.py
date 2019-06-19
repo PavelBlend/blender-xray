@@ -297,7 +297,6 @@ def _bake_motion_data(action, armature, prepared_bones):
         armature.animation_data.action = action
         for frm in range(int(action.frame_range[0]), int(action.frame_range[1]) + 1):
             bpy.context.scene.frame_set(frm)
-            bpy.context.scene.update()
             for pbone, mat, is_root, data in exportable_bones:
                 if not is_root:
                     data.append(mat * armature.convert_space(pbone, pbone.matrix, 'POSE', 'LOCAL'))
