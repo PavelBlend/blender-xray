@@ -1,7 +1,7 @@
 import bpy
 
 from . import utils
-from ..version_utils import assign_props
+from ..version_utils import assign_props, IS_28
 
 
 xray_object_details_slots_meshes_properties = {
@@ -13,7 +13,9 @@ xray_object_details_slots_meshes_properties = {
 
 
 class XRayObjectDetailsSlotsMeshesProperties(bpy.types.PropertyGroup):
-    pass
+    if not IS_28:
+        for prop_name, prop_value in xray_object_details_slots_meshes_properties.items():
+            exec('{0} = xray_object_details_slots_meshes_properties.get("{0}")'.format(prop_name))
 
 
 xray_object_details_slots_lighting_properties = {
@@ -40,7 +42,9 @@ xray_object_details_slots_lighting_properties = {
 
 
 class XRayObjectDetailsSlotsLightingProperties(bpy.types.PropertyGroup):
-    pass
+    if not IS_28:
+        for prop_name, prop_value in xray_object_details_slots_lighting_properties.items():
+            exec('{0} = xray_object_details_slots_lighting_properties.get("{0}")'.format(prop_name))
 
 
 xray_object_details_slots_properties = {
@@ -57,7 +61,9 @@ xray_object_details_slots_properties = {
 
 
 class XRayObjectDetailsSlotsProperties(bpy.types.PropertyGroup):
-    pass
+    if not IS_28:
+        for prop_name, prop_value in xray_object_details_slots_properties.items():
+            exec('{0} = xray_object_details_slots_properties.get("{0}")'.format(prop_name))
 
 
 def _update_detail_color_by_index(self, context):
@@ -94,7 +100,9 @@ xray_object_details_model_properties = {
 
 
 class XRayObjectDetailsModelProperties(bpy.types.PropertyGroup):
-    pass
+    if not IS_28:
+        for prop_name, prop_value in xray_object_details_model_properties.items():
+            exec('{0} = xray_object_details_model_properties.get("{0}")'.format(prop_name))
 
 
 xray_object_details_properties = {
@@ -104,7 +112,9 @@ xray_object_details_properties = {
 
 
 class XRayObjectDetailsProperties(bpy.types.PropertyGroup):
-    pass
+    if not IS_28:
+        for prop_name, prop_value in xray_object_details_properties.items():
+            exec('{0} = xray_object_details_properties.get("{0}")'.format(prop_name))
 
 
 assign_props([

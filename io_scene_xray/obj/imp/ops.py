@@ -4,7 +4,7 @@ import bpy
 import bpy_extras
 
 from ... import ops, plugin_prefs, registry, utils
-from ...version_utils import assign_props
+from ...version_utils import assign_props, IS_28
 from .. import imp
 from . import utils as imp_utils
 
@@ -31,6 +31,10 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
     bl_label = 'Import .object'
     bl_description = 'Imports X-Ray object'
     bl_options = {'UNDO'}
+
+    if not IS_28:
+        for prop_name, prop_value in op_import_object_props.items():
+            exec('{0} = op_import_object_props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state

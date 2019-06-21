@@ -5,7 +5,7 @@ from bpy_extras import io_utils
 
 from .. import plugin_prefs, registry
 from ..utils import execute_with_logger, FilenameExtHelper, AppError, set_cursor_state
-from ..version_utils import assign_props
+from ..version_utils import assign_props, IS_28
 
 
 op_import_anm_props = {
@@ -22,6 +22,10 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
     bl_label = 'Import .anm'
     bl_description = 'Imports X-Ray animation'
     bl_options = {'UNDO'}
+
+    if not IS_28:
+        for prop_name, prop_value in op_import_anm_props.items():
+            exec('{0} = op_import_anm_props.get("{0}")'.format(prop_name))
 
     @execute_with_logger
     @set_cursor_state
@@ -58,6 +62,12 @@ class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.anm'
     bl_label = 'Export .anm'
     bl_description = 'Exports X-Ray animation'
+
+    filename_ext = '.anm'
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_anm_props.items():
+            exec('{0} = op_export_anm_props.get("{0}")'.format(prop_name))
 
     @set_cursor_state
     def export(self, context):

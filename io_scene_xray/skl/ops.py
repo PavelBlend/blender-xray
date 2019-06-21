@@ -18,7 +18,7 @@ from ..utils import (
     FilenameExtHelper, set_cursor_state
 )
 from ..xray_motions import MOTIONS_FILTER_ALL
-from ..version_utils import assign_props
+from ..version_utils import assign_props, IS_28
 
 
 motion_props = {
@@ -28,7 +28,9 @@ motion_props = {
 
 
 class Motion(bpy.types.PropertyGroup):
-    pass
+    if not IS_28:
+        exec('{0} = motion_props.get("{0}")'.format('flag'))
+        exec('{0} = motion_props.get("{0}")'.format('name'))
 
 
 op_import_skl_props = {
@@ -47,6 +49,10 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
     bl_options = {'UNDO'}
+
+    if not IS_28:
+        for prop_name, prop_value in op_import_skl_props.items():
+            exec('{0} = op_import_skl_props.get("{0}")'.format(prop_name))
 
     __parsed_file_name = None
 
@@ -157,6 +163,12 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animation'
 
+    filename_ext = '.skl'
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_skl_props.items():
+            exec('{0} = op_export_skl_props.get("{0}")'.format(prop_name))
+
     action = None
 
     @execute_with_logger
@@ -192,6 +204,12 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.skls'
     bl_label = 'Export .skls'
     bl_description = 'Exports X-Ray skeletal animation'
+
+    filename_ext = '.skls'
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_skls_props.items():
+            exec('{0} = op_export_skls_props.get("{0}")'.format(prop_name))
 
     def export(self, context):
         from .exp import export_skls_file, ExportContext

@@ -8,7 +8,7 @@ from . import utils
 from .. import registry
 from ..ops import joint_limits
 from ..edit_helpers.bone_shape import HELPER as seh
-from ..version_utils import assign_props
+from ..version_utils import assign_props, IS_28
 
 
 shape_properties = {
@@ -41,6 +41,10 @@ shape_properties = {
 
 class ShapeProperties(bpy.types.PropertyGroup):
     _CURVER_DATA = 1
+
+    if not IS_28:
+        for prop_name, prop_value in shape_properties.items():
+            exec('{0} = shape_properties.get("{0}")'.format(prop_name))
 
     def check_version_different(self):
         def iszero(vec):
@@ -93,7 +97,9 @@ break_properties = {
 
 
 class BreakProperties(bpy.types.PropertyGroup):
-    pass
+    if not IS_28:
+        for prop_name, prop_value in break_properties.items():
+            exec('{0} = break_properties.get("{0}")'.format(prop_name))
 
 
 ik_joint_properties = {
@@ -136,7 +142,9 @@ ik_joint_properties = {
 
 
 class IKJointProperties(bpy.types.PropertyGroup):
-    pass
+    if not IS_28:
+        for prop_name, prop_value in ik_joint_properties.items():
+            exec('{0} = ik_joint_properties.get("{0}")'.format(prop_name))
 
 
 mass_properties = {
@@ -145,7 +153,9 @@ mass_properties = {
 }
 
 class MassProperties(bpy.types.PropertyGroup):
-    pass
+    if not IS_28:
+        for prop_name, prop_value in mass_properties.items():
+            exec('{0} = mass_properties.get("{0}")'.format(prop_name))
 
 
 def set_ikflags_breakable(self, value):
@@ -174,6 +184,10 @@ xray_bone_properties = {
 @registry.requires(ShapeProperties, IKJointProperties, BreakProperties, MassProperties)
 class XRayBoneProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Bone
+
+    if not IS_28:
+        for prop_name, prop_value in xray_bone_properties.items():
+            exec('{0} = xray_bone_properties.get("{0}")'.format(prop_name))
 
     def ondraw_postview(self, obj_arm, bone):
         # draw limits

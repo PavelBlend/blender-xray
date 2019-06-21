@@ -5,7 +5,7 @@ from .. import utils, plugin
 from ..utils import AppError
 from .. import plugin_prefs
 from .imp import import_file
-from ..version_utils import get_import_export_menus, assign_props
+from ..version_utils import get_import_export_menus, assign_props, IS_28
 
 
 filename_ext = '.level'
@@ -19,6 +19,12 @@ op_export_level_scene_props = {
 class OpExportLevelScene(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.scene'
     bl_label = 'Export .level'
+
+    filename_ext = '.level'
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_level_scene_props.items():
+            exec('{0} = op_export_level_scene_props.get("{0}")'.format(prop_name))
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -63,6 +69,12 @@ class OpImportLevelScene(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.scene'
     bl_label = 'Import .level'
     bl_options = {'REGISTER', 'UNDO'}
+
+    filename_ext = '.level'
+
+    if not IS_28:
+        for prop_name, prop_value in op_import_level_scene_props.items():
+            exec('{0} = op_import_level_scene_props.get("{0}")'.format(prop_name))
 
     def draw(self, _context):
         layout = self.layout

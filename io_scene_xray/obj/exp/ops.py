@@ -4,7 +4,7 @@ import bpy
 import bpy_extras
 
 from ... import registry, ops, plugin_prefs, utils
-from ...version_utils import assign_props
+from ...version_utils import assign_props, IS_28
 from .. import exp
 
 
@@ -37,7 +37,9 @@ _with_export_motions_props = {
 
 
 class _WithExportMotions:
-    pass
+    if not IS_28:
+        for prop_name, prop_value in _with_export_motions_props.items():
+            exec('{0} = _with_export_motions_props.get("{0}")'.format(prop_name))
 
 
 op_export_objects_props = {
@@ -56,6 +58,10 @@ op_export_objects_props = {
 class OpExportObjects(ops.BaseOperator, _WithExportMotions):
     bl_idname = 'export_object.xray_objects'
     bl_label = 'Export selected .object-s'
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_objects_props.items():
+            exec('{0} = op_export_objects_props.get("{0}")'.format(prop_name))
 
     def draw(self, _context):
         layout = self.layout
@@ -132,6 +138,12 @@ class OpExportObject(
 
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
+
+    filename_ext = '.object'
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_object_props.items():
+            exec('{0} = op_export_object_props.get("{0}")'.format(prop_name))
 
     def draw(self, _context):
         layout = self.layout

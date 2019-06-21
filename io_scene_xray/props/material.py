@@ -1,7 +1,7 @@
 import bpy
 
 from . import utils
-from ..version_utils import assign_props
+from ..version_utils import assign_props, IS_28
 
 
 xray_material_properties = {
@@ -16,6 +16,10 @@ xray_material_properties = {
 
 class XRayMaterialProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Material
+
+    if not IS_28:
+        for prop_name, prop_value in xray_material_properties.items():
+            exec('{0} = xray_material_properties.get("{0}")'.format(prop_name))
 
     def initialize(self, context):
         if not self.version:

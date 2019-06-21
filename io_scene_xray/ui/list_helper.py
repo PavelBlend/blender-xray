@@ -1,6 +1,6 @@
 import bpy
 from .. import registry
-from ..version_utils import get_icon, assign_props
+from ..version_utils import get_icon, assign_props, IS_28
 
 
 _list_op_props = {
@@ -14,6 +14,10 @@ _list_op_props = {
 class _ListOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.list'
     bl_label = ''
+
+    if not IS_28:
+        for prop_name, prop_value in _list_op_props.items():
+            exec('{0} = _list_op_props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
         data = getattr(context, _ListOp.bl_idname + '.data')

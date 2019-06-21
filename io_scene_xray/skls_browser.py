@@ -7,7 +7,7 @@ from . import registry
 from .xray_io import PackedReader
 from .xray_motions import (import_motion, _skip_motion_rest, MOTIONS_FILTER_ALL)
 from .skl.imp import ImportContext
-from .version_utils import layout_split, assign_props
+from .version_utils import layout_split, assign_props, IS_28
 
 
 class UI_UL_SklsList_item(bpy.types.UIList):
@@ -76,6 +76,10 @@ class OpBrowseSklsFile(bpy.types.Operator):
     bl_label = 'Open .skls file'
     bl_description = 'Opens .skls file with collection of animations. Used to import X-Ray engine animations.'+\
         ' To import select object with X-Ray struct of bones'
+
+    if not IS_28:
+        for prop_name, prop_value in op_browse_skls_file_props.items():
+            exec('{0} = op_browse_skls_file_props.get("{0}")'.format(prop_name))
 
     class SklsFile():
         '''
@@ -218,6 +222,10 @@ xray_skls_animation_properties_props = {
 class XRaySklsAnimationProperties(bpy.types.PropertyGroup):
     'Contains animation properties in animations list of .skls file'
 
+    if not IS_28:
+        for prop_name, prop_value in xray_skls_animation_properties_props.items():
+            exec('{0} = xray_skls_animation_properties_props.get("{0}")'.format(prop_name))
+
 
 xray_object_skls_browser_properties_props = {
     'animations': bpy.props.CollectionProperty(type=XRaySklsAnimationProperties),
@@ -228,7 +236,9 @@ xray_object_skls_browser_properties_props = {
 
 @registry.requires(XRaySklsAnimationProperties)
 class XRayObjectSklsBrowserProperties(bpy.types.PropertyGroup):
-    pass
+    if not IS_28:
+        for prop_name, prop_value in xray_object_skls_browser_properties_props.items():
+            exec('{0} = xray_object_skls_browser_properties_props.get("{0}")'.format(prop_name))
 
 
 assign_props([

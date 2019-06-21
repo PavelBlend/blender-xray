@@ -129,6 +129,10 @@ class _ExplicitPathOp(bpy.types.Operator):
     bl_label = 'Make Explicit'
     bl_description = 'Make this path explicit using the automatically calculated value'
 
+    if not IS_28:
+        for prop_name, prop_value in _explicit_path_op_props.items():
+            exec('{0} = _explicit_path_op_props.get("{0}")'.format(prop_name))
+
     def execute(self, _context):
         prefs = get_preferences()
         value = getattr(prefs, with_auto_property.build_auto_id(self.path))
@@ -204,6 +208,10 @@ plugin_preferences_props = {
 )
 class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
+
+    if not IS_28:
+        for prop_name, prop_value in plugin_preferences_props.items():
+            exec('{0} = plugin_preferences_props.get("{0}")'.format(prop_name))
 
     def draw(self, _context):
         def prop_bool(layout, data, prop):

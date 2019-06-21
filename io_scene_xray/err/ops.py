@@ -4,7 +4,7 @@ from bpy_extras import io_utils
 from ..ops import BaseOperator as TestReadyOperator
 from .. import registry, plugin, utils
 from . import imp
-from ..version_utils import get_import_export_menus, assign_props
+from ..version_utils import get_import_export_menus, assign_props, IS_28
 
 
 op_import_err_props = {
@@ -19,6 +19,10 @@ class OpImportERR(TestReadyOperator, io_utils.ImportHelper):
     bl_label = 'Import .err'
     bl_description = 'Imports X-Ray Error List (.err)'
     bl_options = {'REGISTER', 'UNDO'}
+
+    if not IS_28:
+        for prop_name, prop_value in op_import_err_props.items():
+            exec('{0} = op_import_err_props.get("{0}")'.format(prop_name))
 
     @utils.set_cursor_state
     def execute(self, context):

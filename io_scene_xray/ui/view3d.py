@@ -41,6 +41,10 @@ class XRayColorizeMaterials(bpy.types.Operator):
     bl_label = 'Colorize Materials'
     bl_description = 'Set a pseudo-random diffuse color for each surface (material)'
 
+    if not IS_28:
+        for prop_name, prop_value in xray_colorize_materials_props.items():
+            exec('{0} = xray_colorize_materials_props.get("{0}")'.format(prop_name))
+
     def execute(self, context):
         from zlib import crc32
 

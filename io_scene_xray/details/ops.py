@@ -8,7 +8,7 @@ from ..obj.imp.utils import ImportContext
 from .model import imp as model_imp
 from .model import exp as model_exp
 from . import imp, exp
-from ..version_utils import get_import_export_menus, assign_props
+from ..version_utils import get_import_export_menus, assign_props, IS_28
 
 
 op_import_dm_props = {
@@ -44,6 +44,10 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
     bl_label = 'Import .dm/.details'
     bl_description = 'Imports X-Ray Detail Model (.dm, .details)'
     bl_options = {'REGISTER', 'PRESET', 'UNDO'}
+
+    if not IS_28:
+        for prop_name, prop_value in op_import_dm_props.items():
+            exec('{0} = op_import_dm_props.get("{0}")'.format(prop_name))
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -131,6 +135,10 @@ class OpExportDMs(bpy.types.Operator):
     bl_idname = 'xray_export.dms'
     bl_label = 'Export .dm'
 
+    if not IS_28:
+        for prop_name, prop_value in op_export_dms_props.items():
+            exec('{0} = op_export_dms_props.get("{0}")'.format(prop_name))
+
     @utils.set_cursor_state
     def execute(self, context):
         try:
@@ -189,6 +197,12 @@ op_export_dm_props = {
 class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
     bl_idname = 'xray_export.dm'
     bl_label = 'Export .dm'
+
+    filename_ext = '.dm'
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_dm_props.items():
+            exec('{0} = op_export_dm_props.get("{0}")'.format(prop_name))
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -260,6 +274,12 @@ class OpExportLevelDetails(
 
     bl_idname = 'xray_export.details'
     bl_label = 'Export .details'
+
+    filename_ext = '.details'
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_level_details_props.items():
+            exec('{0} = op_export_level_details_props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout

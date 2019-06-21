@@ -1,7 +1,7 @@
 import bpy
 
 from .. import registry
-from ..version_utils import assign_props
+from ..version_utils import assign_props, IS_28
 
 
 _collaps_op_props = {
@@ -13,6 +13,10 @@ class _CollapsOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.collaps'
     bl_label = ''
     bl_description = 'Show / hide UI block'
+
+    if not IS_28:
+        for prop_name, prop_value in _collaps_op_props.items():
+            exec('{0} = _collaps_op_props.get("{0}")'.format(prop_name))
 
     _DATA = {}
 

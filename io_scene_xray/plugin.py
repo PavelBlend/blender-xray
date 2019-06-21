@@ -24,7 +24,7 @@ from .skl import ops as skl_ops
 from .ogf import ops as ogf_ops
 from . import skls_browser
 from .version_utils import (
-    get_import_export_menus, get_scene_update_post, assign_props
+    get_import_export_menus, get_scene_update_post, assign_props, IS_28
 )
 
 
@@ -37,6 +37,10 @@ op_export_project_props = {
 class OpExportProject(TestReadyOperator):
     bl_idname = 'export_scene.xray'
     bl_label = 'Export XRay Project'
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_project_props.items():
+            exec('{0} = op_export_project_props.get("{0}")'.format(prop_name))
 
     @execute_with_logger
     def execute(self, context):

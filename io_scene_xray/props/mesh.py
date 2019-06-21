@@ -1,7 +1,7 @@
 import bpy
 
 from . import utils
-from ..version_utils import assign_props
+from ..version_utils import assign_props, IS_28
 
 
 def gen_other_flags_prop(mask):
@@ -24,6 +24,10 @@ xray_mesh_properties = {
 
 class XRayMeshProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Mesh
+
+    if not IS_28:
+        for prop_name, prop_value in xray_mesh_properties.items():
+            exec('{0} = xray_mesh_properties.get("{0}")'.format(prop_name))
 
 
 assign_props([

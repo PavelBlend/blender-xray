@@ -1,7 +1,7 @@
 import bpy
 
 from . import utils
-from ..version_utils import assign_props
+from ..version_utils import assign_props, IS_28
 
 
 def _get_collection_item_attr(collection, index, name, special):
@@ -106,6 +106,10 @@ xray_action_properties = {
 
 class XRayActionProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Action
+
+    if not IS_28:
+        for prop_name, prop_value in xray_action_properties.items():
+            exec('{0} = xray_action_properties.get("{0}")'.format(prop_name))
 
     def autobake_effective(self, bobject):
         if not self.autobake_auto:

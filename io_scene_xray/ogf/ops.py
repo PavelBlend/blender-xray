@@ -7,7 +7,7 @@ from ..utils import (
     mk_export_context,
     set_cursor_state
 )
-from ..version_utils import assign_props
+from ..version_utils import assign_props, IS_28
 from .. import registry, plugin_prefs
 from . import exp
 
@@ -21,6 +21,10 @@ model_export_helper_props = {
 
 
 class ModelExportHelper:
+    if not IS_28:
+        for prop_name, prop_value in model_export_helper_props.items():
+            exec('{0} = model_export_helper_props.get("{0}")'.format(prop_name))
+
     def export(self, bpy_obj, context):
         pass
 
@@ -50,6 +54,12 @@ op_export_ogf_props = {
 class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
+
+    filename_ext = '.ogf'
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_ogf_props.items():
+            exec('{0} = op_export_ogf_props.get("{0}")'.format(prop_name))
 
     def export(self, bpy_obj, context):
         export_context = mk_export_context(self.texture_name_from_image_path)

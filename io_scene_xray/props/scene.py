@@ -1,7 +1,7 @@
 import bpy
 
 from .. import registry, plugin_prefs
-from ..version_utils import assign_props
+from ..version_utils import assign_props, IS_28
 
 
 import_skls_props = {
@@ -10,7 +10,9 @@ import_skls_props = {
 
 
 class ImportSkls(bpy.types.PropertyGroup):
-    pass
+    if not IS_28:
+        for prop_name, prop_value in import_skls_props.items():
+            exec('{0} = import_skls_props.get("{0}")'.format(prop_name))
 
 
 xray_scene_properties = {
@@ -34,6 +36,10 @@ xray_scene_properties = {
 @registry.requires(ImportSkls)
 class XRaySceneProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Scene
+
+    if not IS_28:
+        for prop_name, prop_value in xray_scene_properties.items():
+            exec('{0} = xray_scene_properties.get("{0}")'.format(prop_name))
 
 
 assign_props([

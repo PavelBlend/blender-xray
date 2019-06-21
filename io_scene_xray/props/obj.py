@@ -12,7 +12,7 @@ from ..skls_browser import (
     XRayObjectSklsBrowserProperties,
     init_skls_browser
 )
-from ..version_utils import assign_props
+from ..version_utils import assign_props, IS_28
 
 
 def _gen_time_prop(prop, description=''):
@@ -79,7 +79,9 @@ xray_object_revision_properties = {
 
 
 class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
-    pass
+    if not IS_28:
+        for prop_name, prop_value in xray_object_revision_properties.items():
+            exec('{0} = xray_object_revision_properties.get("{0}")'.format(prop_name))
 
 
 def find_duplicate_name(motion, used_names):
@@ -140,7 +142,9 @@ motion_ref_props = {
 
 
 class MotionRef(bpy.types.PropertyGroup):
-    pass
+    if not IS_28:
+        for prop_name, prop_value in motion_ref_props.items():
+            exec('{0} = motion_ref_props.get("{0}")'.format(prop_name))
 
 
 def get_isroot(self):
@@ -291,6 +295,10 @@ xray_object_properties = {
 @registry.requires(XRayObjectRevisionProperties, XRayObjectSklsBrowserProperties, MotionRef)
 class XRayObjectProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Object
+
+    if not IS_28:
+        for prop_name, prop_value in xray_object_properties.items():
+            exec('{0} = xray_object_properties.get("{0}")'.format(prop_name))
 
     def initialize(self, context):
         if not self.version:

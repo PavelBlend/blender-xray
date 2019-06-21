@@ -4,7 +4,7 @@ from . import list_helper, collapsible, base
 from .. import registry
 from ..utils import is_helper_object
 from ..details import ui as det_ui
-from ..version_utils import assign_props
+from ..version_utils import assign_props, IS_28
 
 
 items = (
@@ -21,6 +21,10 @@ prop_clip_op_props = {
 class PropClipOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.propclip'
     bl_label = ''
+
+    if not IS_28:
+        for prop_name, prop_value in prop_clip_op_props.items():
+            exec('{0} = prop_clip_op_props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
         *path, prop = self.path.split('.')
