@@ -1,18 +1,21 @@
 import bpy
 
 from .base import XRayPanel, build_label
-from ..skls_browser import UI_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
+from ..skls_browser import UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
 from .. import registry
 from .. import plugin
+from ..version_utils import IS_28, assign_props
 
 
-@registry.requires(UI_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile)
+@registry.requires(UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile)
 @registry.module_thing
 class VIEW3D_PT_skls_animations(XRayPanel):
     'Contains open .skls file operator, animations list'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = build_label('Skls File Browser')
+    if IS_28:
+        bl_category = 'XRay'
 
     def draw(self, context):
         layout = self.layout
@@ -22,18 +25,21 @@ class VIEW3D_PT_skls_animations(XRayPanel):
         if hasattr(context.object.xray, 'skls_browser'):
             if len(context.object.xray.skls_browser.animations):
                 layout.operator(OpCloseSklsFile.bl_idname)
-            layout.template_list(listtype_name='UI_SklsList_item', list_id='compact',
+            layout.template_list(listtype_name='UI_UL_SklsList_item', list_id='compact',
                 dataptr=context.object.xray.skls_browser, propname='animations',
                 active_dataptr=context.object.xray.skls_browser, active_propname='animations_index', rows=5)
+
+
+xray_colorize_materials_props = {
+    'seed': bpy.props.IntProperty(min=0, max=255),
+    'power': bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0)
+}
 
 
 class XRayColorizeMaterials(bpy.types.Operator):
     bl_idname = 'io_scene_xray.colorize_materials'
     bl_label = 'Colorize Materials'
     bl_description = 'Set a pseudo-random diffuse color for each surface (material)'
-
-    seed = bpy.props.IntProperty(min=0, max=255)
-    power = bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0)
 
     def execute(self, context):
         from zlib import crc32
@@ -62,13 +68,21 @@ class XRayColorizeMaterials(bpy.types.Operator):
         return {'FINISHED'}
 
 
+assign_props([
+    (xray_colorize_materials_props, XRayColorizeMaterials),
+])
+
+
 @registry.requires(XRayColorizeMaterials)
 @registry.module_thing
-class XRayMaterialToolsPanel(bpy.types.Panel):
+class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
     bl_label = 'XRay Material'
     bl_category = 'XRay'
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    if IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
 
     def draw_header(self, _context):
         icon = plugin.get_stalker_icon()

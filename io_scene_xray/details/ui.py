@@ -12,7 +12,7 @@ def draw_function(self, context):
 
         model = context.object.xray.detail.model
 
-        box.label('Detail Model Properties:')
+        box.label(text='Detail Model Properties:')
 
         box.prop(model, 'no_waving', text='No Waving', toggle=True)
         box.prop(model, 'min_scale', text='Min Scale')
@@ -24,7 +24,7 @@ def draw_function(self, context):
 
         slots = context.object.xray.detail.slots
 
-        box.label('Level Details Properties:')
+        box.label(text='Level Details Properties:')
 
         box.prop_search(
             slots,
@@ -57,7 +57,7 @@ def draw_function(self, context):
         if box_:
 
             ligthing = slots.ligthing
-            box_.label('Format:')
+            box_.label(text='Format:')
             row = box_.row()
             row.prop(ligthing, 'format', expand=True, text='Format')
 

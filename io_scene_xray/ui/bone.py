@@ -40,7 +40,7 @@ for axis in ('x', 'y', 'z'):
 
 @registry.requires(base, bone_shape, bone_center, XRayGameMtlMenu)
 @registry.module_thing
-class XRayBonePanel(XRayPanel):
+class XRAY_PT_BonePanel(XRayPanel):
     bl_context = 'bone'
     bl_label = build_label('Bone')
 
@@ -71,7 +71,7 @@ class XRayBonePanel(XRayPanel):
         verdif = data.shape.check_version_different()
         if verdif != 0:
             box.label(
-                'shape edited with '
+                text='shape edited with '
                 + data.shape.fmt_version_different(verdif)
                 + ' version of this plugin',
                 icon='ERROR'
@@ -89,7 +89,7 @@ class XRayBonePanel(XRayPanel):
 
         if joint_type and joint_type != 4:    # 4 - None type
             if joint_type == 3:    # Wheel
-                box.label('Steer-X / Roll-Z')
+                box.label(text='Steer-X / Roll-Z')
             box.prop(data, 'friction', text='Friction')
             col = box.column(align=True)
             col.prop(data.ikjoint, 'spring', text='Spring')
@@ -99,7 +99,7 @@ class XRayBonePanel(XRayPanel):
                 prop_index = 0
                 for text in BONE_TEXT[joint_type]:
                     col = box.column(align=True)
-                    col.label(text[0])
+                    col.label(text=text[0])
                     for prop_text in text[1 : ]:
                         if type(prop_text) == tuple:
                             row = col.row(align=True)

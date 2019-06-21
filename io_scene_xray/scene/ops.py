@@ -5,17 +5,20 @@ from .. import utils, plugin
 from ..utils import AppError
 from .. import plugin_prefs
 from .imp import import_file
+from ..version_utils import get_import_export_menus, assign_props
+
+
+filename_ext = '.level'
+op_export_level_scene_props = {
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext, options={'HIDDEN'}
+    ),
+}
 
 
 class OpExportLevelScene(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.scene'
     bl_label = 'Export .level'
-
-    filename_ext = '.level'
-
-    filter_glob = bpy.props.StringProperty(
-        default='*'+filename_ext, options={'HIDDEN'}
-        )
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -45,26 +48,27 @@ class OpExportLevelScene(bpy.types.Operator, io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
+filename_ext = '.level'
+op_import_level_scene_props = {
+    'filepath': bpy.props.StringProperty(subtype="FILE_PATH"),
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext, options={'HIDDEN'}
+    ),
+    'mesh_split_by_materials': plugin_prefs.PropObjectMeshSplitByMaterials(),
+    'fmt_version': plugin_prefs.PropSDKVersion()
+}
+
+
 class OpImportLevelScene(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.scene'
     bl_label = 'Import .level'
     bl_options = {'REGISTER', 'UNDO'}
 
-    filename_ext = '.level'
-
-    filepath = bpy.props.StringProperty(subtype="FILE_PATH")
-    filter_glob = bpy.props.StringProperty(
-        default='*'+filename_ext, options={'HIDDEN'}
-        )
-
-    mesh_split_by_materials = plugin_prefs.PropObjectMeshSplitByMaterials()
-    fmt_version = plugin_prefs.PropSDKVersion()
-
     def draw(self, _context):
         layout = self.layout
 
         row = layout.split()
-        row.label('Format Version:')
+        row.label(text='Format Version:')
         row.row().prop(self, 'fmt_version', expand=True)
 
         layout.prop(self, 'mesh_split_by_materials')
@@ -82,6 +86,12 @@ class OpImportLevelScene(bpy.types.Operator, io_utils.ImportHelper):
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+
+assign_props([
+    (op_export_level_scene_props, OpExportLevelScene),
+    (op_import_level_scene_props, OpImportLevelScene)
+])
 
 
 def menu_func_export(self, context):
@@ -108,7 +118,8 @@ def register_operators():
 
 
 def unregister_operators():
-    bpy.types.INFO_MT_file_export.remove(menu_func_export)
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    import_menu, export_menu = get_import_export_menus()
+    export_menu.remove(menu_func_export)
+    import_menu.remove(menu_func_import)
     bpy.utils.unregister_class(OpExportLevelScene)
     bpy.utils.unregister_class(OpImportLevelScene)

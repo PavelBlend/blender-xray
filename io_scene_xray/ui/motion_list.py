@@ -64,7 +64,7 @@ class _DeselectDuplicatedMotionsOp(BaseSelectMotionsOp):
 
 
 @registry.module_thing
-class _MotionsList(bpy.types.UIList):
+class XRAY_UL_MotionsList(bpy.types.UIList):
     def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname):
         BaseSelectMotionsOp.set_motions_list(self)  # A dirty hack
 
@@ -74,4 +74,4 @@ class _MotionsList(bpy.types.UIList):
             icon='CHECKBOX_HLT' if item.flag else 'CHECKBOX_DEHLT',
             text='', emboss=False,
         )
-        row.label(item.name)
+        row.label(text=item.name)

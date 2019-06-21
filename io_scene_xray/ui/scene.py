@@ -2,10 +2,11 @@ from .. import registry
 from ..plugin import OpExportProject
 from .base import XRayPanel, build_label
 from . import collapsible
+from ..version_utils import layout_split
 
 
 @registry.module_thing
-class XRayScenePanel(XRayPanel):
+class XRAY_PT_ScenePanel(XRayPanel):
     bl_context = 'scene'
     bl_label = build_label('Project')
 
@@ -51,8 +52,8 @@ class XRayScenePanel(XRayPanel):
             lay = lay.split()
             lay.alert = True
         lay.prop(data, 'export_root')
-        row = layout.split(0.33)
-        row.label('Format Version:')
+        row = layout_split(layout, 0.33)
+        row.label(text='Format Version:')
         row.row().prop(data, 'fmt_version', expand=True)
         _, box = collapsible.draw(layout, 'scene:object', 'Object Export Properties')
         if box:

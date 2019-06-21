@@ -8,6 +8,34 @@ from ..obj.imp.utils import ImportContext
 from .model import imp as model_imp
 from .model import exp as model_exp
 from . import imp, exp
+from ..version_utils import get_import_export_menus, assign_props
+
+
+op_import_dm_props = {
+    'filter_glob': bpy.props.StringProperty(
+        default='*.dm;*.details', options={'HIDDEN'}
+    ),
+    'directory': bpy.props.StringProperty(
+        subtype="DIR_PATH", options={'SKIP_SAVE'}
+    ),
+    'filepath': bpy.props.StringProperty(
+        subtype="FILE_PATH", options={'SKIP_SAVE'}
+    ),
+    'files': bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
+    ),
+    'details_models_in_a_row': bpy.props.BoolProperty(
+        name='Details Models in a Row', default=True
+    ),
+    'load_slots': bpy.props.BoolProperty(name='Load Slots', default=True),
+    'format': bpy.props.EnumProperty(
+        name='Details Format',
+        items=(
+            ('builds_1096-1230', 'Builds 1096-1230', ''),
+            ('builds_1233-1558', 'Builds 1233-1558', '')
+        )
+    )
+}
 
 
 class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
@@ -16,36 +44,6 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
     bl_label = 'Import .dm/.details'
     bl_description = 'Imports X-Ray Detail Model (.dm, .details)'
     bl_options = {'REGISTER', 'PRESET', 'UNDO'}
-
-    filter_glob = bpy.props.StringProperty(
-        default='*.dm;*.details', options={'HIDDEN'}
-        )
-
-    directory = bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE'}
-        )
-
-    filepath = bpy.props.StringProperty(
-        subtype="FILE_PATH", options={'SKIP_SAVE'}
-        )
-
-    files = bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
-        )
-
-    details_models_in_a_row = bpy.props.BoolProperty(
-        name='Details Models in a Row', default=True
-        )
-
-    load_slots = bpy.props.BoolProperty(name='Load Slots', default=True)
-
-    format = bpy.props.EnumProperty(
-        name='Details Format',
-        items=(
-            ('builds_1096-1230', 'Builds 1096-1230', ''),
-            ('builds_1233-1558', 'Builds 1233-1558', '')
-            )
-        )
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -106,16 +104,16 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
         layout = self.layout
         row = layout.row()
         row.enabled = False
-        row.label('%d items' % len(self.files))
+        row.label(text='%d items' % len(self.files))
 
         box = layout.box()
-        box.label('Level Details Options:')
+        box.label(text='Level Details Options:')
 
         box.prop(self, 'details_models_in_a_row')
         box.prop(self, 'load_slots')
 
         if self.load_slots:
-            box.label('Format:')
+            box.label(text='Format:')
             row = box.row()
             row.prop(self, 'format', expand=True)
 
@@ -123,15 +121,15 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
         return super().invoke(context, event)
 
 
+op_export_dms_props = {
+    'detail_models': bpy.props.StringProperty(options={'HIDDEN'}),
+    'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
+    'texture_name_from_image_path': plugin_prefs.PropObjectTextureNamesFromPath()
+}
+
 class OpExportDMs(bpy.types.Operator):
     bl_idname = 'xray_export.dms'
     bl_label = 'Export .dm'
-
-    detail_models = bpy.props.StringProperty(options={'HIDDEN'})
-    directory = bpy.props.StringProperty(subtype="FILE_PATH")
-
-    texture_name_from_image_path = \
-        plugin_prefs.PropObjectTextureNamesFromPath()
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -178,19 +176,19 @@ class OpExportDMs(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
+filename_ext = '.dm'
+op_export_dm_props = {
+    'detail_model': bpy.props.StringProperty(options={'HIDDEN'}),
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext, options={'HIDDEN'}
+        ),
+    'texture_name_from_image_path': plugin_prefs.PropObjectTextureNamesFromPath()
+}
+
+
 class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
     bl_idname = 'xray_export.dm'
     bl_label = 'Export .dm'
-
-    filename_ext = '.dm'
-    detail_model = bpy.props.StringProperty(options={'HIDDEN'})
-
-    filter_glob = bpy.props.StringProperty(
-        default='*'+filename_ext, options={'HIDDEN'}
-        )
-
-    texture_name_from_image_path = \
-        plugin_prefs.PropObjectTextureNamesFromPath()
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -235,6 +233,27 @@ class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
+filename_ext = '.details'
+op_export_level_details_props = {
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext, options={'HIDDEN'}
+        ),
+
+    'texture_name_from_image_path': \
+        plugin_prefs.PropObjectTextureNamesFromPath(),
+
+    'format_version': bpy.props.EnumProperty(
+        name='Format',
+        items=(
+            ('builds_1569-cop', 'Builds 1569-CoP', ''),
+            ('builds_1233-1558', 'Builds 1233-1558', ''),
+            ('builds_1096-1230', 'Builds 1096-1230', '')
+        ),
+        default='builds_1569-cop'
+    )
+}
+
+
 class OpExportLevelDetails(
     bpy.types.Operator, bpy_extras.io_utils.ExportHelper
     ):
@@ -242,30 +261,11 @@ class OpExportLevelDetails(
     bl_idname = 'xray_export.details'
     bl_label = 'Export .details'
 
-    filename_ext = '.details'
-
-    filter_glob = bpy.props.StringProperty(
-        default='*'+filename_ext, options={'HIDDEN'}
-        )
-
-    texture_name_from_image_path = \
-        plugin_prefs.PropObjectTextureNamesFromPath()
-
-    format_version = bpy.props.EnumProperty(
-        name='Format',
-        items=(
-            ('builds_1569-cop', 'Builds 1569-CoP', ''),
-            ('builds_1233-1558', 'Builds 1233-1558', ''),
-            ('builds_1096-1230', 'Builds 1096-1230', '')
-            ),
-        default='builds_1569-cop'
-        )
-
     def draw(self, context):
         layout = self.layout
 
         layout.prop(self, 'texture_name_from_image_path')
-        layout.label('Format:')
+        layout.label(text='Format:')
         col = layout.column()
         col.prop(self, 'format_version', expand=True)
 
@@ -350,6 +350,14 @@ class PackDetailsImages(bpy.types.Operator):
         return {'FINISHED'}
 
 
+assign_props([
+    (op_import_dm_props, OpImportDM),
+    (op_export_dms_props, OpExportDMs),
+    (op_export_dm_props, OpExportDM),
+    (op_export_level_details_props, OpExportLevelDetails)
+])
+
+
 def menu_func_import(self, context):
     icon = plugin.get_stalker_icon()
     self.layout.operator(
@@ -377,9 +385,10 @@ def register_operators():
 
 
 def unregister_operators():
+    import_menu, export_menu = get_import_export_menus()
     bpy.utils.unregister_class(PackDetailsImages)
-    bpy.types.INFO_MT_file_export.remove(menu_func_export)
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    export_menu.remove(menu_func_export)
+    import_menu.remove(menu_func_import)
     bpy.utils.unregister_class(OpExportLevelDetails)
     bpy.utils.unregister_class(OpExportDMs)
     bpy.utils.unregister_class(OpExportDM)

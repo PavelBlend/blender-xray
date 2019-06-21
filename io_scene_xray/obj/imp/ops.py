@@ -4,8 +4,25 @@ import bpy
 import bpy_extras
 
 from ... import ops, plugin_prefs, registry, utils
+from ...version_utils import assign_props
 from .. import imp
 from . import utils as imp_utils
+
+
+op_import_object_props = {
+    'filter_glob': bpy.props.StringProperty(
+        default='*.object', options={'HIDDEN'}
+    ),
+    'directory': bpy.props.StringProperty(subtype="DIR_PATH"),
+    'files': bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement
+    ),
+    'import_motions': plugin_prefs.PropObjectMotionsImport(),
+    'mesh_split_by_materials': plugin_prefs.PropObjectMeshSplitByMaterials(),
+    'use_motion_prefix_name': bpy.props.BoolProperty(default=False, name='Motion Prefix Name'),
+    'shaped_bones': plugin_prefs.PropObjectBonesCustomShapes(),
+    'fmt_version': plugin_prefs.PropSDKVersion()
+}
 
 
 @registry.module_thing
@@ -14,23 +31,6 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
     bl_label = 'Import .object'
     bl_description = 'Imports X-Ray object'
     bl_options = {'UNDO'}
-
-    filter_glob = bpy.props.StringProperty(
-        default='*.object', options={'HIDDEN'}
-    )
-
-    directory = bpy.props.StringProperty(subtype="DIR_PATH")
-    files = bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement
-    )
-
-    import_motions = plugin_prefs.PropObjectMotionsImport()
-    mesh_split_by_materials = plugin_prefs.PropObjectMeshSplitByMaterials()
-    use_motion_prefix_name = bpy.props.BoolProperty(default=False, name='Motion Prefix Name')
-
-    shaped_bones = plugin_prefs.PropObjectBonesCustomShapes()
-
-    fmt_version = plugin_prefs.PropSDKVersion()
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -68,10 +68,10 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
         layout = self.layout
         row = layout.row()
         row.enabled = False
-        row.label('%d items' % len(self.files))
+        row.label(text='%d items' % len(self.files))
 
         row = layout.split()
-        row.label('Format Version:')
+        row.label(text='Format Version:')
         row.row().prop(self, 'fmt_version', expand=True)
 
         layout.prop(self, 'import_motions')
@@ -88,3 +88,8 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
         self.mesh_split_by_materials = prefs.object_mesh_split_by_mat
         self.shaped_bones = prefs.object_bones_custom_shapes
         return super().invoke(context, event)
+
+
+assign_props([
+    (op_import_object_props, OpImportObject),
+])

@@ -11,7 +11,7 @@ registry.module_requires(__name__, [
     fake_bones,
     joint_limits,
     verify_uv.XRayVerifyUVOperator,
-    verify_uv_ui.XRayVerifyToolsPanel,
+    verify_uv_ui.XRAY_PT_VerifyToolsPanel,
     obj,
     mesh,
     material,

@@ -7,16 +7,20 @@ from ..utils import (
     mk_export_context,
     set_cursor_state
 )
+from ..version_utils import assign_props
 from .. import registry, plugin_prefs
 from . import exp
 
 
-class ModelExportHelper:
-    selection_only = bpy.props.BoolProperty(
+model_export_helper_props = {
+    'selection_only': bpy.props.BoolProperty(
         name='Selection Only',
         description='Export only selected objects'
-    )
+    ),
+}
 
+
+class ModelExportHelper:
     def export(self, bpy_obj, context):
         pass
 
@@ -35,15 +39,17 @@ class ModelExportHelper:
         return self.export(roots[0], context)
 
 
+filename_ext = '.ogf'
+op_export_ogf_props = {
+    'filter_glob': bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'}),
+    'texture_name_from_image_path': plugin_prefs.PropObjectTextureNamesFromPath()
+}
+
+
 @registry.module_thing
 class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
-
-    filename_ext = '.ogf'
-    filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
-
-    texture_name_from_image_path = plugin_prefs.PropObjectTextureNamesFromPath()
 
     def export(self, bpy_obj, context):
         export_context = mk_export_context(self.texture_name_from_image_path)
@@ -54,3 +60,9 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
         prefs = plugin_prefs.get_preferences()
         self.texture_name_from_image_path = prefs.object_texture_names_from_path
         return super().invoke(context, event)
+
+
+assign_props([
+    (model_export_helper_props, ModelExportHelper),
+    (op_export_ogf_props, OpExportOgf)
+])

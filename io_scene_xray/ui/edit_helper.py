@@ -5,7 +5,7 @@ from ..edit_helpers import base as base_edit_helper
 
 @registry.requires(base_edit_helper)
 @registry.module_thing
-class XRayEditHelperObjectPanel(XRayPanel):
+class XRAY_PT_EditHelperObjectPanel(XRayPanel):
     bl_context = 'object'
     bl_label = build_label('Edit Helper')
 

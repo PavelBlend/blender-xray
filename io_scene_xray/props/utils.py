@@ -3,7 +3,7 @@ import bpy
 
 def gen_flag_prop(mask, description='', customprop=''):
     def getter(self):
-        return self.flags & mask
+        return bool(self.flags & mask)
 
     def setter(self, value):
         self.flags = self.flags | mask if value else self.flags & ~mask

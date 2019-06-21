@@ -8,150 +8,172 @@ from . import utils
 from .. import registry
 from ..ops import joint_limits
 from ..edit_helpers.bone_shape import HELPER as seh
+from ..version_utils import assign_props
 
 
-@registry.requires('ShapeProperties', 'IKJointProperties', 'BreakProperties', 'MassProperties')
-class XRayBoneProperties(bpy.types.PropertyGroup):
-    class BreakProperties(bpy.types.PropertyGroup):
-        force = bpy.props.FloatProperty()
-        torque = bpy.props.FloatProperty()
+shape_properties = {
+    'type': bpy.props.EnumProperty(
+        items=(
+            ('0', 'None', ''),
+            ('1', 'Box', ''),
+            ('2', 'Sphere', ''),
+            ('3', 'Cylinder', '')
+        ),
+        update=lambda self, ctx: seh.update(),
+    ),
+    'flags': bpy.props.IntProperty(),
+    'flags_nopickable': utils.gen_flag_prop(mask=0x1),
+    'flags_removeafterbreak': utils.gen_flag_prop(mask=0x2),
+    'flags_nophysics': utils.gen_flag_prop(mask=0x4),
+    'flags_nofogcollider': utils.gen_flag_prop(mask=0x8),
+    'box_rot': bpy.props.FloatVectorProperty(size=9),
+    'box_trn': bpy.props.FloatVectorProperty(),
+    'box_hsz': bpy.props.FloatVectorProperty(),
+    'sph_pos': bpy.props.FloatVectorProperty(),
+    'sph_rad': bpy.props.FloatProperty(),
+    'cyl_pos': bpy.props.FloatVectorProperty(),
+    'cyl_dir': bpy.props.FloatVectorProperty(),
+    'cyl_hgh': bpy.props.FloatProperty(),
+    'cyl_rad': bpy.props.FloatProperty(),
+    'version_data': bpy.props.IntProperty()
+}
 
-    class ShapeProperties(bpy.types.PropertyGroup):
-        _CURVER_DATA = 1
 
-        def check_version_different(self):
-            def iszero(vec):
-                return not any(v for v in vec)
+class ShapeProperties(bpy.types.PropertyGroup):
+    _CURVER_DATA = 1
 
-            if self.version_data == self._CURVER_DATA:
-                return 0
-            if self.type == '0':  # none
-                return 0
-            elif self.type == '1':  # box
-                if iszero(self.box_trn) and iszero(self.box_rot) and iszero(self.box_hsz):
-                    return 0  # default shape
-            elif self.type == '2':  # sphere
-                if iszero(self.sph_pos) and not self.sph_rad:
-                    return 0  # default shape
-            elif self.type == '3':  # cylinder
-                if iszero(self.cyl_pos) \
-                    and iszero(self.cyl_dir) \
-                    and not self.cyl_rad \
-                    and not self.cyl_hgh:
-                    return 0  # default shape
-            return 1 if self.version_data < self._CURVER_DATA else 2
+    def check_version_different(self):
+        def iszero(vec):
+            return not any(v for v in vec)
 
-        @staticmethod
-        def fmt_version_different(res):
-            return 'obsolete' if res == 1 else ('newest' if res == 2 else 'different')
+        if self.version_data == self._CURVER_DATA:
+            return 0
+        if self.type == '0':  # none
+            return 0
+        elif self.type == '1':  # box
+            if iszero(self.box_trn) and iszero(self.box_rot) and iszero(self.box_hsz):
+                return 0  # default shape
+        elif self.type == '2':  # sphere
+            if iszero(self.sph_pos) and not self.sph_rad:
+                return 0  # default shape
+        elif self.type == '3':  # cylinder
+            if iszero(self.cyl_pos) \
+                and iszero(self.cyl_dir) \
+                and not self.cyl_rad \
+                and not self.cyl_hgh:
+                return 0  # default shape
+        return 1 if self.version_data < self._CURVER_DATA else 2
 
-        def set_curver(self):
-            self.version_data = self._CURVER_DATA
+    @staticmethod
+    def fmt_version_different(res):
+        return 'obsolete' if res == 1 else ('newest' if res == 2 else 'different')
 
-        type = bpy.props.EnumProperty(
-            items=(
-                ('0', 'None', ''),
-                ('1', 'Box', ''),
-                ('2', 'Sphere', ''),
-                ('3', 'Cylinder', '')
-            ),
-            update=lambda self, ctx: seh.update(),
-        )
+    def set_curver(self):
+        self.version_data = self._CURVER_DATA
 
-        flags = bpy.props.IntProperty()
-        flags_nopickable = utils.gen_flag_prop(mask=0x1)
-        flags_removeafterbreak = utils.gen_flag_prop(mask=0x2)
-        flags_nophysics = utils.gen_flag_prop(mask=0x4)
-        flags_nofogcollider = utils.gen_flag_prop(mask=0x8)
-        box_rot = bpy.props.FloatVectorProperty(size=9)
-        box_trn = bpy.props.FloatVectorProperty()
-        box_hsz = bpy.props.FloatVectorProperty()
-        sph_pos = bpy.props.FloatVectorProperty()
-        sph_rad = bpy.props.FloatProperty()
-        cyl_pos = bpy.props.FloatVectorProperty()
-        cyl_dir = bpy.props.FloatVectorProperty()
-        cyl_hgh = bpy.props.FloatProperty()
-        cyl_rad = bpy.props.FloatProperty()
-        version_data = bpy.props.IntProperty()
+    def get_matrix_basis(self) -> mathutils.Matrix:
+        typ = self.type
+        if typ == '1':  # box
+            rot = self.box_rot
+            return mathutils.Matrix.Translation(self.box_trn) \
+                * mathutils.Matrix((rot[0:3], rot[3:6], rot[6:9])).transposed().to_4x4()
+        if typ == '2':  # sphere
+            return mathutils.Matrix.Translation(self.sph_pos)
+        if typ == '3':  # cylinder
+            v_dir = mathutils.Vector(self.cyl_dir)
+            q_rot = v_dir.rotation_difference((0, 1, 0))
+            return mathutils.Matrix.Translation(self.cyl_pos) \
+                * q_rot.to_matrix().transposed().to_4x4()
 
-        def get_matrix_basis(self) -> mathutils.Matrix:
-            typ = self.type
-            if typ == '1':  # box
-                rot = self.box_rot
-                return mathutils.Matrix.Translation(self.box_trn) \
-                    * mathutils.Matrix((rot[0:3], rot[3:6], rot[6:9])).transposed().to_4x4()
-            if typ == '2':  # sphere
-                return mathutils.Matrix.Translation(self.sph_pos)
-            if typ == '3':  # cylinder
-                v_dir = mathutils.Vector(self.cyl_dir)
-                q_rot = v_dir.rotation_difference((0, 1, 0))
-                return mathutils.Matrix.Translation(self.cyl_pos) \
-                    * q_rot.to_matrix().transposed().to_4x4()
 
-    class IKJointProperties(bpy.types.PropertyGroup):
-        type = bpy.props.EnumProperty(items=(
-            ('0', 'Rigid', ''),
-            ('1', 'Cloth', ''),
-            ('2', 'Joint', ''),
-            ('3', 'Wheel', ''),
-            ('4', 'None', ''),
-            ('5', 'Slider', '')))
+break_properties = {
+    'force': bpy.props.FloatProperty(),
+    'torque': bpy.props.FloatProperty()
+}
 
-        lim_x_min = bpy.props.FloatProperty(
-            min=-math.pi, max=0, update=joint_limits.update_limit, subtype='ANGLE'
-        )
-        lim_x_max = bpy.props.FloatProperty(
-            min=0, max=math.pi, update=joint_limits.update_limit, subtype='ANGLE'
-        )
-        lim_x_spr = bpy.props.FloatProperty(min=0)
-        lim_x_dmp = bpy.props.FloatProperty(min=0)
 
-        lim_y_min = bpy.props.FloatProperty(
-            min=-math.pi, max=0, update=joint_limits.update_limit, subtype='ANGLE'
-        )
-        lim_y_max = bpy.props.FloatProperty(
-            min=0, max=math.pi, update=joint_limits.update_limit, subtype='ANGLE'
-        )
-        lim_y_spr = bpy.props.FloatProperty(min=0)
-        lim_y_dmp = bpy.props.FloatProperty(min=0)
+class BreakProperties(bpy.types.PropertyGroup):
+    pass
 
-        lim_z_min = bpy.props.FloatProperty(
-            min=-math.pi, max=0, update=joint_limits.update_limit, subtype='ANGLE'
-        )
-        lim_z_max = bpy.props.FloatProperty(
-            min=0, max=math.pi, update=joint_limits.update_limit, subtype='ANGLE'
-        )
-        lim_z_spr = bpy.props.FloatProperty(min=0)
-        lim_z_dmp = bpy.props.FloatProperty(min=0)
 
-        spring = bpy.props.FloatProperty()
-        damping = bpy.props.FloatProperty()
-        is_rigid = bpy.props.BoolProperty(get=lambda self: self.type == '0')
+ik_joint_properties = {
+    'type': bpy.props.EnumProperty(items=(
+        ('0', 'Rigid', ''),
+        ('1', 'Cloth', ''),
+        ('2', 'Joint', ''),
+        ('3', 'Wheel', ''),
+        ('4', 'None', ''),
+        ('5', 'Slider', ''))
+    ),
+    'lim_x_min': bpy.props.FloatProperty(
+        min=-math.pi, max=0, update=joint_limits.update_limit, subtype='ANGLE'
+    ),
+    'lim_x_max': bpy.props.FloatProperty(
+        min=0, max=math.pi, update=joint_limits.update_limit, subtype='ANGLE'
+    ),
+    'lim_x_spr': bpy.props.FloatProperty(min=0),
+    'lim_x_dmp': bpy.props.FloatProperty(min=0),
+    'lim_y_min': bpy.props.FloatProperty(
+        min=-math.pi, max=0, update=joint_limits.update_limit, subtype='ANGLE'
+    ),
+    'lim_y_max': bpy.props.FloatProperty(
+        min=0, max=math.pi, update=joint_limits.update_limit, subtype='ANGLE'
+    ),
+    'lim_y_spr': bpy.props.FloatProperty(min=0),
+    'lim_y_dmp': bpy.props.FloatProperty(min=0),
+    'lim_z_min': bpy.props.FloatProperty(
+        min=-math.pi, max=0, update=joint_limits.update_limit, subtype='ANGLE'
+    ),
+    'lim_z_max': bpy.props.FloatProperty(
+        min=0, max=math.pi, update=joint_limits.update_limit, subtype='ANGLE'
+    ),
+    'lim_z_spr': bpy.props.FloatProperty(min=0),
+    'lim_z_dmp': bpy.props.FloatProperty(min=0),
+    'spring': bpy.props.FloatProperty(),
+    'damping': bpy.props.FloatProperty(),
+    'is_rigid': bpy.props.BoolProperty(get=lambda self: self.type == '0')
+}
 
-    class MassProperties(bpy.types.PropertyGroup):
-        value = bpy.props.FloatProperty(name='Mass')
-        center = bpy.props.FloatVectorProperty(name='Center of Mass')
 
-    b_type = bpy.types.Bone
-    exportable = bpy.props.BoolProperty(default=True, description='Enable Bone to be exported')
-    version = bpy.props.IntProperty()
-    length = bpy.props.FloatProperty(name='Length')
-    gamemtl = bpy.props.StringProperty(default='default_object')
-    shape = bpy.props.PointerProperty(type=ShapeProperties)
-    ikflags = bpy.props.IntProperty()
+class IKJointProperties(bpy.types.PropertyGroup):
+    pass
 
-    def set_ikflags_breakable(self, value):
-        self.ikflags = self.ikflags | 0x1 if value else self.ikflags & ~0x1
 
-    ikflags_breakable = bpy.props.BoolProperty(
+mass_properties = {
+    'value': bpy.props.FloatProperty(name='Mass'),
+    'center': bpy.props.FloatVectorProperty(name='Center of Mass')
+}
+
+class MassProperties(bpy.types.PropertyGroup):
+    pass
+
+
+def set_ikflags_breakable(self, value):
+    self.ikflags = self.ikflags | 0x1 if value else self.ikflags & ~0x1
+
+
+xray_bone_properties = {
+    'exportable': bpy.props.BoolProperty(default=True, description='Enable Bone to be exported'),
+    'version': bpy.props.IntProperty(),
+    'length': bpy.props.FloatProperty(name='Length'),
+    'gamemtl': bpy.props.StringProperty(default='default_object'),
+    'shape': bpy.props.PointerProperty(type=ShapeProperties),
+    'ikflags': bpy.props.IntProperty(),
+    'ikflags_breakable': bpy.props.BoolProperty(
         get=lambda self: self.ikflags & 0x1,
         set=set_ikflags_breakable,
         options={'SKIP_SAVE'}
-    )
-    ikjoint = bpy.props.PointerProperty(type=IKJointProperties)
-    breakf = bpy.props.PointerProperty(type=BreakProperties)
-    friction = bpy.props.FloatProperty()
-    mass = bpy.props.PointerProperty(type=MassProperties)
+    ),
+    'ikjoint': bpy.props.PointerProperty(type=IKJointProperties),
+    'breakf': bpy.props.PointerProperty(type=BreakProperties),
+    'friction': bpy.props.FloatProperty(),
+    'mass': bpy.props.PointerProperty(type=MassProperties)
+}
+
+
+@registry.requires(ShapeProperties, IKJointProperties, BreakProperties, MassProperties)
+class XRayBoneProperties(bpy.types.PropertyGroup):
+    b_type = bpy.types.Bone
 
     def ondraw_postview(self, obj_arm, bone):
         # draw limits
@@ -256,3 +278,12 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         finally:
             bgl.glPopMatrix()
             bgl.glLineWidth(prev_line_width[0])
+
+
+assign_props([
+    (shape_properties, ShapeProperties),
+    (break_properties, BreakProperties),
+    (ik_joint_properties, IKJointProperties),
+    (mass_properties, MassProperties),
+    (xray_bone_properties, XRayBoneProperties)
+])

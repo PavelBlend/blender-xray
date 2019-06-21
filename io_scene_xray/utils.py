@@ -4,6 +4,7 @@ import math
 from bpy_extras import io_utils
 
 from . import log
+from .version_utils import IS_28
 
 
 __FAKE_BONE_SUFFIX = '.fake'
@@ -359,9 +360,15 @@ def using_mode(mode):
 
 def with_auto_property(prop_class, prop_id, getter, overrides=None, **kwargs):
     def decorator(struct):
-        setattr(struct, prop_id, prop_class(
-            **kwargs,
-        ))
+        if IS_28:
+            if hasattr(struct, '__annotations__'):
+                struct.__annotations__[prop_id] = prop_class(**kwargs)
+            else:
+                struct.__annotations__ = {prop_id: prop_class(**kwargs), }
+        else:
+            setattr(struct, prop_id, prop_class(
+                **kwargs,
+            ))
 
         def get_value(self):
             value = getattr(self, prop_id)
@@ -382,11 +389,16 @@ def with_auto_property(prop_class, prop_id, getter, overrides=None, **kwargs):
         if overrides:
             kwargs2 = {**kwargs2, **overrides}
 
-        setattr(struct, with_auto_property.build_auto_id(prop_id), prop_class(
-            **kwargs2,
-            get=get_value,
-            set=set_value,
-        ))
+        if IS_28:
+            struct.__annotations__[with_auto_property.build_auto_id(prop_id)] = prop_class(
+                **kwargs2, get=get_value, set=set_value
+            )
+        else:
+            setattr(struct, with_auto_property.build_auto_id(prop_id), prop_class(
+                **kwargs2,
+                get=get_value,
+                set=set_value,
+            ))
         return struct
 
     return decorator

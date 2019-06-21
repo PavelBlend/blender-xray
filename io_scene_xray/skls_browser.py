@@ -7,13 +7,14 @@ from . import registry
 from .xray_io import PackedReader
 from .xray_motions import (import_motion, _skip_motion_rest, MOTIONS_FILTER_ALL)
 from .skl.imp import ImportContext
+from .version_utils import layout_split, assign_props
 
 
-class UI_SklsList_item(bpy.types.UIList):
+class UI_UL_SklsList_item(bpy.types.UIList):
 
     def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname):
         row = layout.row()
-        row = row.split(percentage=0.30)
+        row = layout_split(row, 0.30)
         row.alignment = 'RIGHT'
         row.label(text=str(item.frames))
         row.alignment = 'LEFT'
@@ -62,6 +63,12 @@ def init_skls_browser(self, context, filepath):
     context.window.cursor_set('DEFAULT')
 
 
+op_browse_skls_file_props = {
+    'filepath': bpy.props.StringProperty(subtype='FILE_PATH'),
+    'filter_glob': bpy.props.StringProperty(default='*.skls', options={'HIDDEN'})
+}
+
+
 @registry.module_thing
 class OpBrowseSklsFile(bpy.types.Operator):
     'Shows file open dialog, reads .skls file to buffer, clears & populates animations list'
@@ -69,7 +76,6 @@ class OpBrowseSklsFile(bpy.types.Operator):
     bl_label = 'Open .skls file'
     bl_description = 'Opens .skls file with collection of animations. Used to import X-Ray engine animations.'+\
         ' To import select object with X-Ray struct of bones'
-
 
     class SklsFile():
         '''
@@ -102,10 +108,6 @@ class OpBrowseSklsFile(bpy.types.Operator):
                 self.pr.set_offset(offset2)
                 skip = _skip_motion_rest(self.pr.getv(), 0)
                 self.pr.skip(skip)
-
-
-    filepath = bpy.props.StringProperty(subtype='FILE_PATH')
-    filter_glob = bpy.props.StringProperty(default='*.skls', options={'HIDDEN'})
 
     skls_file = None    # pure python hold variable of .skls file buffer instance
 
@@ -207,14 +209,30 @@ def skls_animations_index_changed(self, context):
             pass
 
 
+xray_skls_animation_properties_props = {
+    'name': bpy.props.StringProperty(name='Name'),    # animation name in .skls file
+    'frames': bpy.props.IntProperty(name='Frames')
+}
+
+
 class XRaySklsAnimationProperties(bpy.types.PropertyGroup):
     'Contains animation properties in animations list of .skls file'
-    name = bpy.props.StringProperty(name='Name')    # animation name in .skls file
-    frames = bpy.props.IntProperty(name='Frames')
+
+
+xray_object_skls_browser_properties_props = {
+    'animations': bpy.props.CollectionProperty(type=XRaySklsAnimationProperties),
+    'animations_index': bpy.props.IntProperty(update=skls_animations_index_changed),
+    'animations_prev_name': bpy.props.StringProperty()
+}
 
 
 @registry.requires(XRaySklsAnimationProperties)
 class XRayObjectSklsBrowserProperties(bpy.types.PropertyGroup):
-    animations = bpy.props.CollectionProperty(type=XRaySklsAnimationProperties)
-    animations_index = bpy.props.IntProperty(update=skls_animations_index_changed)
-    animations_prev_name = bpy.props.StringProperty()
+    pass
+
+
+assign_props([
+    (op_browse_skls_file_props, OpBrowseSklsFile),
+    (xray_skls_animation_properties_props, XRaySklsAnimationProperties),
+    (xray_object_skls_browser_properties_props, XRayObjectSklsBrowserProperties)
+])

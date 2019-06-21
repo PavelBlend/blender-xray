@@ -6,10 +6,15 @@ import bpy
 from . import registry
 from .ui import collapsible, xprop
 from .utils import with_auto_property
+from .version_utils import IS_28, assign_props
 
 
 def get_preferences():
-    return bpy.context.user_preferences.addons['io_scene_xray'].preferences
+    if IS_28:
+        return bpy.context.preferences.addons['io_scene_xray'].preferences
+    else:
+        return bpy.context.user_preferences.addons['io_scene_xray'].preferences
+
 
 def PropSDKVersion():
     return bpy.props.EnumProperty(
@@ -113,19 +118,39 @@ def update_menu_func(self, context):
     plugin.append_menu_func()
 
 
+_explicit_path_op_props = {
+    'path': bpy.props.StringProperty(),
+}
+
+
 @registry.module_thing
 class _ExplicitPathOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.explicit_path'
     bl_label = 'Make Explicit'
     bl_description = 'Make this path explicit using the automatically calculated value'
 
-    path = bpy.props.StringProperty()
-
     def execute(self, _context):
         prefs = get_preferences()
         value = getattr(prefs, with_auto_property.build_auto_id(self.path))
         setattr(prefs, self.path, value)
         return {'FINISHED'}
+
+
+plugin_preferences_props = {
+    'expert_mode': bpy.props.BoolProperty(
+        name='Expert Mode', description='Show additional properties/controls'
+    ),
+    'compact_menus': bpy.props.BoolProperty(
+        name='Compact Import/Export Menus', update=update_menu_func
+    ),
+    'sdk_version': PropSDKVersion(),
+    'object_motions_import': PropObjectMotionsImport(),
+    'object_motions_export': PropObjectMotionsExport(),
+    'object_mesh_split_by_mat': PropObjectMeshSplitByMaterials(),
+    'object_texture_names_from_path': PropObjectTextureNamesFromPath(),
+    'object_bones_custom_shapes': PropObjectBonesCustomShapes(),
+    'anm_create_camera': PropAnmCameraAnimation()
+}
 
 
 @registry.module_thing
@@ -180,20 +205,6 @@ class _ExplicitPathOp(bpy.types.Operator):
 class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
 
-    expert_mode = bpy.props.BoolProperty(
-        name='Expert Mode', description='Show additional properties/controls'
-    )
-    compact_menus = bpy.props.BoolProperty(
-        name='Compact Import/Export Menus', update=update_menu_func
-    )
-    sdk_version = PropSDKVersion()
-    object_motions_import = PropObjectMotionsImport()
-    object_motions_export = PropObjectMotionsExport()
-    object_mesh_split_by_mat = PropObjectMeshSplitByMaterials()
-    object_texture_names_from_path = PropObjectTextureNamesFromPath()
-    object_bones_custom_shapes = PropObjectBonesCustomShapes()
-    anm_create_camera = PropAnmCameraAnimation()
-
     def draw(self, _context):
         def prop_bool(layout, data, prop):
             # row = layout.row()
@@ -225,7 +236,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
         _, box = collapsible.draw(layout, 'plugin_prefs:defaults', 'Defaults', style='tree')
         if box:
             row = box.row()
-            row.label('SDK Version:')
+            row.label(text='SDK Version:')
             row.prop(self, 'sdk_version', expand=True)
 
             _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.object', 'Object', style='tree')
@@ -242,3 +253,11 @@ class PluginPreferences(bpy.types.AddonPreferences):
 
         prop_bool(layout, self, 'expert_mode')
         prop_bool(layout, self, 'compact_menus')
+
+
+assign_props([
+    (_explicit_path_op_props, _ExplicitPathOp),
+])
+assign_props([
+    (plugin_preferences_props, PluginPreferences),
+], replace=False)

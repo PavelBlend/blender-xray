@@ -4,7 +4,7 @@ from ..ops import fake_bones, joint_limits
 
 
 @registry.module_thing
-class XRayArmaturePanel(XRayPanel):
+class XRAY_PT_ArmaturePanel(XRayPanel):
     bl_context = 'data'
     bl_label = build_label('Skeleton')
 
@@ -22,14 +22,14 @@ class XRayArmaturePanel(XRayPanel):
         if verdif != 0:
             from ..xray_inject import XRayBoneProperties
             layout.label(
-                'Found bones, edited with '
+                text='Found bones, edited with '
                 + XRayBoneProperties.ShapeProperties.fmt_version_different(verdif)
                 + ' version of this plugin',
                 icon='ERROR'
             )
         layout.prop(data, 'display_bone_shapes', toggle=True)
         box = layout.box()
-        box.label('Joint Limits:')
+        box.label(text='Joint Limits:')
         box.prop(data, 'joint_limits_type')
         box.prop(data, 'display_bone_limits', toggle=True)
         if data.display_bone_limits:
@@ -58,7 +58,7 @@ class XRayArmaturePanel(XRayPanel):
         )
 
         lay = layout.column(align=True)
-        lay.label('Fake Bones:')
+        lay.label(text='Fake Bones:')
         row = lay.row(align=True)
         row.operator(fake_bones.CreateFakeBones.bl_idname, text='Create', icon='CONSTRAINT_BONE')
         row.operator(fake_bones.DeleteFakeBones.bl_idname, text='Delete', icon='X')

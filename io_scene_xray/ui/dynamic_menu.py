@@ -3,19 +3,28 @@ import bpy
 from .. import registry
 from ..utils import create_cached_file_data
 from ..plugin_prefs import get_preferences
+from ..version_utils import assign_props
+
+
+_dynamic_menu_op_props = {
+    'prop': bpy.props.StringProperty(),
+    'value': bpy.props.StringProperty()
+}
 
 
 class _DynamicMenuOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.dynmenu'
     bl_label = ''
 
-    prop = bpy.props.StringProperty()
-    value = bpy.props.StringProperty()
-
     def execute(self, context):
         data = getattr(context, _DynamicMenuOp.bl_idname + '.data')
         setattr(data, self.prop, self.value)
         return {'FINISHED'}
+
+
+assign_props([
+    (_dynamic_menu_op_props, _DynamicMenuOp),
+])
 
 
 def _path_to_prefix(path):
@@ -37,6 +46,7 @@ def _detect_current_path(context):
 @registry.requires(_DynamicMenuOp)
 class DynamicMenu(bpy.types.Menu):
     bl_label = ''
+    bl_idname = 'XRAY_MT_DynamicMenu'
     prop_name = '<prop>'
 
     @classmethod

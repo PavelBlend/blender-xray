@@ -4,19 +4,23 @@ from . import list_helper, collapsible, base
 from .. import registry
 from ..utils import is_helper_object
 from ..details import ui as det_ui
+from ..version_utils import assign_props
+
+
+items = (
+    ('copy', '', '', 'COPYDOWN', 0),
+    ('paste', '', '', 'PASTEDOWN', 1),
+    ('clear', '', '', 'X', 2)
+)
+prop_clip_op_props = {
+    'oper': bpy.props.EnumProperty(items=items),
+    'path': bpy.props.StringProperty()
+}
 
 
 class PropClipOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.propclip'
     bl_label = ''
-
-    items = (
-        ('copy', '', '', 'COPYDOWN', 0),
-        ('paste', '', '', 'PASTEDOWN', 1),
-        ('clear', '', '', 'X', 2)
-    )
-    oper = bpy.props.EnumProperty(items=items)
-    path = bpy.props.StringProperty()
 
     def execute(self, context):
         *path, prop = self.path.split('.')
@@ -33,7 +37,7 @@ class PropClipOp(bpy.types.Operator):
 
     @classmethod
     def drawall(cls, layout, path, value):
-        for item in cls.items:
+        for item in items:
             lay = layout
             if item[0] in ('copy', 'clear') and not value:
                 lay = lay.split(align=True)
@@ -43,8 +47,15 @@ class PropClipOp(bpy.types.Operator):
             props.path = path
 
 
+assign_props([
+    (prop_clip_op_props, PropClipOp),
+])
+
+
 @registry.module_thing
 class XRayMotionList(bpy.types.UIList):
+    bl_idname = 'XRAY_UL_MotionList'
+
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         data = context.object.xray
         motion = data.motions_collection[index]
@@ -93,7 +104,7 @@ def draw_motion_list_custom_elements(layout):
 
 @registry.requires(list_helper, PropClipOp, XRayAddAllActions, XRayRemoveAllActions)
 @registry.module_thing
-class XRayObjectPanel(base.XRayPanel):
+class XRAY_PT_ObjectPanel(base.XRayPanel):
     bl_context = 'object'
     bl_label = base.build_label('Object')
 
@@ -139,7 +150,7 @@ class XRayObjectPanel(base.XRayPanel):
             if box:
                 box = box.column(align=True)
                 for line in data.userdata.splitlines():
-                    box.label(line)
+                    box.label(text=line)
 
             if data.motions:
                 split = object_box.split()
@@ -156,7 +167,7 @@ class XRayObjectPanel(base.XRayPanel):
                 box.prop_search(data, 'dependency_object', bpy.data, 'objects')
                 row = box.row()
                 row.template_list(
-                    'XRayMotionList', 'name',
+                    'XRAY_UL_MotionList', 'name',
                     data, 'motions_collection',
                     data, 'motions_collection_index'
                 )
