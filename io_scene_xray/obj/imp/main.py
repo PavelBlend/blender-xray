@@ -6,17 +6,28 @@ import mathutils
 
 from ...skl import imp as skl_imp
 from ... import xray_io, xray_motions, log, utils
+from ...version_utils import (
+    is_all_empty_textures, IS_28, link_object, set_active_object, multiply
+)
 from .. import fmt
 from . import bone, mesh
 
 
 def _is_compatible_texture(texture, filepart):
-    image = getattr(texture, 'image', None)
-    if image is None:
-        return False
-    if filepart not in image.filepath:
-        return False
-    return True
+    if IS_28:
+        image = texture.image
+        if not image:
+            return False
+        if filepart not in image.filepath:
+            return False
+        return True
+    else:
+        image = getattr(texture, 'image', None)
+        if image is None:
+            return False
+        if filepart not in image.filepath:
+            return False
+        return True
 
 
 _S_FFF = xray_io.PackedReader.prep('fff')
@@ -114,29 +125,48 @@ def import_main(fpath, context, creader):
                         continue
 
                     if (not texture) and (not vmap):
-                        all_empty_slots = all(
-                            not slot for slot in material.texture_slots
-                        )
-                        if all_empty_slots:
+                        all_empty_textures = is_all_empty_textures(material)
+                        if all_empty_textures:
                             bpy_material = material
                             break
 
-                    ts_found = False
-                    for slot in material.texture_slots:
-                        if not slot:
+                    if IS_28:
+                        tex_nodes = []
+                        ts_found = False
+                        for node in material.node_tree.nodes:
+                            if node.type != 'TEX_IMAGE':
+                                continue
+                            tex_nodes.append(node)
+                        if len(tex_nodes) != 1:
+                            ts_found = False
+                        else:
+                            tex_node = tex_nodes[0]
+                            if not _is_compatible_texture(
+                                tex_node, tx_filepart
+                            ):
+                                continue
+                            ts_found = True
+                        if not ts_found:
                             continue
-                        if slot.uv_layer != vmap:
-                            continue
-                        if not _is_compatible_texture(
-                            slot.texture, tx_filepart
-                        ):
-                            continue
-                        ts_found = True
+                        bpy_material = material
                         break
-                    if not ts_found:
-                        continue
-                    bpy_material = material
-                    break
+                    else:
+                        ts_found = False
+                        for slot in material.texture_slots:
+                            if not slot:
+                                continue
+                            if slot.uv_layer != vmap:
+                                continue
+                            if not _is_compatible_texture(
+                                slot.texture, tx_filepart
+                            ):
+                                continue
+                            ts_found = True
+                            break
+                        if not ts_found:
+                            continue
+                        bpy_material = material
+                        break
                 if bpy_material is None:
                     bpy_material = bpy.data.materials.new(name)
                     bpy_material.xray.version = context.version
@@ -144,26 +174,40 @@ def import_main(fpath, context, creader):
                     bpy_material.xray.eshader = eshader
                     bpy_material.xray.cshader = cshader
                     bpy_material.xray.gamemtl = gamemtl
-                    bpy_material.use_shadeless = True
-                    bpy_material.use_transparency = True
-                    bpy_material.alpha = 0
+                    if IS_28:
+                        bpy_material.use_nodes = True
+                    else:
+                        bpy_material.use_shadeless = True
+                        bpy_material.use_transparency = True
+                        bpy_material.alpha = 0
                     if texture:
-                        bpy_texture = bpy.data.textures.get(texture)
-                        if (bpy_texture is None) \
-                            or not _is_compatible_texture(
-                                bpy_texture, tx_filepart
-                            ):
-                            bpy_texture = bpy.data.textures.new(
-                                texture, type='IMAGE'
+                        if IS_28:
+                            node_tree = bpy_material.node_tree
+                            texture_node = node_tree.nodes.new('ShaderNodeTexImage')
+                            texture_node.image = context.image(texture)
+                            texture_node.location.x -= 500
+                            princ_shader = node_tree.nodes['Principled BSDF']
+                            node_tree.links.new(
+                                texture_node.outputs['Color'],
+                                princ_shader.inputs['Base Color']
                             )
-                            bpy_texture.image = context.image(texture)
-                            bpy_texture.use_preview_alpha = True
-                        bpy_texture_slot = bpy_material.texture_slots.add()
-                        bpy_texture_slot.texture = bpy_texture
-                        bpy_texture_slot.texture_coords = 'UV'
-                        bpy_texture_slot.uv_layer = vmap
-                        bpy_texture_slot.use_map_color_diffuse = True
-                        bpy_texture_slot.use_map_alpha = True
+                        else:
+                            bpy_texture = bpy.data.textures.get(texture)
+                            if (bpy_texture is None) \
+                                or not _is_compatible_texture(
+                                    bpy_texture, tx_filepart
+                                ):
+                                bpy_texture = bpy.data.textures.new(
+                                    texture, type='IMAGE'
+                                )
+                                bpy_texture.image = context.image(texture)
+                                bpy_texture.use_preview_alpha = True
+                            bpy_texture_slot = bpy_material.texture_slots.add()
+                            bpy_texture_slot.texture = bpy_texture
+                            bpy_texture_slot.texture_coords = 'UV'
+                            bpy_texture_slot.uv_layer = vmap
+                            bpy_texture_slot.use_map_color_diffuse = True
+                            bpy_texture_slot.use_map_alpha = True
                 context.loaded_materials[name] = bpy_material
         elif cid in (
                 fmt.Chunks.Object.BONES,
@@ -176,13 +220,19 @@ def import_main(fpath, context, creader):
                     continue    # Do not create an armature if zero bones
             if bpy and (bpy_arm_obj is None):
                 bpy_armature = bpy.data.armatures.new(object_name)
-                bpy_armature.use_auto_ik = True
-                bpy_armature.draw_type = 'STICK'
-                bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
-                bpy_arm_obj.show_x_ray = True
-                bpy_armature.xray.joint_limits_type = 'XRAY'
-                bpy.context.scene.objects.link(bpy_arm_obj)
-                bpy.context.scene.objects.active = bpy_arm_obj
+                if IS_28:
+                    bpy_armature.display_type = 'STICK'
+                    bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
+                    bpy_arm_obj.show_in_front = True
+                    bpy_armature.xray.joint_limits_type = 'XRAY'
+                else:
+                    bpy_armature.use_auto_ik = True
+                    bpy_armature.draw_type = 'STICK'
+                    bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
+                    bpy_arm_obj.show_x_ray = True
+                    bpy_armature.xray.joint_limits_type = 'XRAY'
+                link_object(bpy_arm_obj)
+                set_active_object(bpy_arm_obj)
             if cid == fmt.Chunks.Object.BONES:
                 for _ in range(bones_count):
                     name = reader.gets()
@@ -246,7 +296,7 @@ def import_main(fpath, context, creader):
                 fmt.Chunks.Object.PARTITIONS0,
                 fmt.Chunks.Object.PARTITIONS1
             ):
-            bpy.context.scene.objects.active = bpy_arm_obj
+            set_active_object(bpy_arm_obj)
             bpy.ops.object.mode_set(mode='POSE')
             try:
                 reader = xray_io.PackedReader(data)
@@ -289,7 +339,7 @@ def import_main(fpath, context, creader):
             mesh_.parent = bpy_arm_obj
 
         mesh_objects.append(mesh_)
-        bpy.context.scene.objects.link(mesh_)
+        link_object(mesh_)
 
     bpy_obj = bpy_arm_obj
     if bpy_obj is None:
@@ -319,8 +369,11 @@ def import_main(fpath, context, creader):
             reader = xray_io.PackedReader(data)
             pos = read_v3f(reader)
             rot = read_v3f(reader)
-            bpy_obj.matrix_basis *= mathutils.Matrix.Translation(pos) \
-                * mathutils.Euler(rot, 'YXZ').to_matrix().to_4x4()
+            bpy_obj.matrix_basis = multiply(
+                bpy_obj.matrix_basis,
+                mathutils.Matrix.Translation(pos),
+                mathutils.Euler(rot, 'YXZ').to_matrix().to_4x4()
+            )
         elif cid == fmt.Chunks.Object.FLAGS:
             length_data = len(data)
             if length_data == 4:

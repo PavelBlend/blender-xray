@@ -61,3 +61,35 @@ def assign_props(items, replace=True):
             props, clas = item
             for prop_name, prop_value in props.items():
                 setattr(clas, prop_name, prop_value)
+
+
+def is_all_empty_textures(material):
+    if IS_28:
+        return all(node.type != 'TEX_IMAGE' for node in material.node_tree.nodes)
+    else:
+        return all(not slot for slot in material.texture_slots)
+
+
+def link_object(obj):
+    if IS_28:
+        bpy.context.scene.collection.objects.link(obj)
+    else:
+        bpy.context.scene.objects.link(obj)
+
+
+def set_active_object(obj):
+    if IS_28:
+        bpy.context.view_layer.objects.active = obj
+    else:
+        bpy.context.scene.objects.active = obj
+
+
+def multiply(*elements):
+    result = elements[0]
+    if IS_28:
+        for element in elements[1 : ]:
+            result @= element
+    else:
+        for element in elements[1 : ]:
+            result *= element
+    return result

@@ -2,6 +2,7 @@ import bpy
 import mathutils
 
 from ... import log, xray_io, xray_motions, utils
+from ...version_utils import multiply, IS_28
 from .. import fmt
 from . import main
 
@@ -10,7 +11,11 @@ def _get_real_bone_shape():
     result = bpy.data.objects.get('real_bone_shape')
     if result is None:
         result = bpy.data.objects.new('real_bone_shape', None)
-        result.empty_draw_type = 'SPHERE'
+        display_type = 'SPHERE'
+        if IS_28:
+            result.empty_display_type = display_type
+        else:
+            result.empty_draw_type = display_type
     return result
 
 
@@ -45,13 +50,19 @@ def _create_bone(
         rot = mathutils.Euler(
             (-rotate[0], -rotate[1], -rotate[2]), 'YXZ'
         ).to_matrix().to_4x4()
-        mat = mathutils.Matrix.Translation(offset) * \
-            rot * xray_motions.MATRIX_BONE
+        mat = multiply(
+            mathutils.Matrix.Translation(offset),
+            rot,
+            xray_motions.MATRIX_BONE
+        )
         if parent:
             bpy_bone.parent = bpy_armature.edit_bones.get(parent, None)
             if bpy_bone.parent:
-                mat = bpy_bone.parent.matrix * \
-                    xray_motions.MATRIX_BONE_INVERTED * mat
+                mat = multiply(
+                    bpy_bone.parent.matrix,
+                    xray_motions.MATRIX_BONE_INVERTED,
+                    mat
+                )
             else:
                 log.warn('bone parent isn\'t found', bone=name, parent=parent)
         bpy_bone.tail.y = 0.02
