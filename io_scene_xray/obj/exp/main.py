@@ -152,8 +152,8 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
         tx_name = ''
         if IS_28:
             if material.use_nodes:
+                tex_nodes = []
                 for node in material.node_tree.nodes:
-                    tex_nodes = []
                     if node.type == 'TEX_IMAGE':
                         tex_nodes.append(node)
                     if len(tex_nodes) == 1:
@@ -162,7 +162,7 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
                             tx_name = utils.gen_texture_name(
                                 tex_node, context.textures_folder
                             )
-                    else:
+                    elif len(tex_nodes) > 1:
                         raise utils.AppError(
                             'Material "{}" has more than one texture.'.format(
                                 material.name
