@@ -29,6 +29,7 @@ def get_scene_update_post():
 ICONS_279_TO_280 = {
     'ZOOMIN': 'ADD',
     'ZOOMOUT': 'REMOVE',
+    'BBOX': 'SHADING_BBOX'
 }
 
 

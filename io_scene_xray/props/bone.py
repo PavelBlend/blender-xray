@@ -196,7 +196,11 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
     def ondraw_postview(self, obj_arm, bone):
         # draw limits
         arm_xray = obj_arm.data.xray
-        if not obj_arm.hide and arm_xray.display_bone_limits and \
+        if IS_28:
+            hide = obj_arm.hide_viewport
+        else:
+            hide = obj_arm.hide
+        if not hide and arm_xray.display_bone_limits and \
                         bone.xray.exportable and obj_arm.mode == 'POSE':
             if bone.select and bone.xray.ikjoint.type in {'2', '3', '5'} and \
                     bpy.context.object.name == obj_arm.name:
@@ -241,22 +245,29 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 bgl.glPopMatrix()
 
         # draw shapes
-        if obj_arm.hide or not obj_arm.data.xray.display_bone_shapes or \
+        if IS_28:
+            arm_hide = obj_arm.hide_viewport
+        else:
+            arm_hide = obj_arm.hide
+        if arm_hide or not obj_arm.data.xray.display_bone_shapes or \
                         not bone.xray.exportable or obj_arm.mode == 'EDIT':
             return
 
-        if not obj_arm.name in bpy.context.scene.objects:
-            return
+        if IS_28:
+            if not obj_arm.name in bpy.context.view_layer.objects:
+                return
+        else:
+            if not obj_arm.name in bpy.context.scene.objects:
+                return
+            visible_armature_object = False
+            for layer_index, layer in enumerate(obj_arm.layers):
+                scene_layer = bpy.context.scene.layers[layer_index]
+                if scene_layer and layer:
+                    visible_armature_object = True
+                    break
 
-        visible_armature_object = False
-        for layer_index, layer in enumerate(obj_arm.layers):
-            scene_layer = bpy.context.scene.layers[layer_index]
-            if scene_layer and layer:
-                visible_armature_object = True
-                break
-
-        if not visible_armature_object:
-            return
+            if not visible_armature_object:
+                return
 
         from ..gl_utils import matrix_to_buffer, \
             draw_wire_cube, draw_wire_sphere, draw_wire_cylinder, draw_cross

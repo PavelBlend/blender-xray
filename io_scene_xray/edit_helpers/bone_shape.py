@@ -5,7 +5,7 @@ import bmesh
 import mathutils
 
 from .. import registry, utils
-from ..version_utils import IS_28, multiply, set_active_object
+from ..version_utils import IS_28, multiply, set_active_object, get_icon
 from .base_bone import AbstractBoneEditHelper
 from ..xray_motions import MATRIX_BONE_INVERTED
 
@@ -14,7 +14,7 @@ class _BoneShapeEditHelper(AbstractBoneEditHelper):
     def draw(self, layout, context):
         if self.is_active(context):
             layout.operator(_ApplyShape.bl_idname, icon='FILE_TICK')
-            layout.operator(_FitShape.bl_idname, icon='BBOX')
+            layout.operator(_FitShape.bl_idname, icon=get_icon('BBOX'))
             super().draw(layout, context)
             return
 
