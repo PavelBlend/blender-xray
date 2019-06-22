@@ -5,6 +5,7 @@ from .utils import is_exportable_bone, find_bone_exportable_parent, AppError
 from .xray_envelope import Behavior, Shape, KF, EPSILON, refine_keys, export_keyframes
 from .xray_io import PackedWriter, FastBytes as fb
 from .log import warn, with_context, props as log_props
+from .version_utils import multiply
 
 
 MATRIX_BONE = Matrix((
@@ -54,7 +55,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
     xray.flags, xray.bonepart = reader.getf('<BH')
     xray.speed, xray.accrue, xray.falloff, xray.power = reader.getf('<ffff')
     for _bone_idx in range(reader.getf('H')[0]):
-        tmpfc = [act.fcurves.new('temp', i) for i in range(6)]
+        tmpfc = [act.fcurves.new('temp', index=i) for i in range(6)]
         try:
             times = {}
             bname = reader.gets()
@@ -94,29 +95,33 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                 bname = bpy_bone.name
             data_path = 'pose.bones["' + bname + '"]'
             fcs = [
-                act.fcurves.new(data_path + '.location', 0, bname),
-                act.fcurves.new(data_path + '.location', 1, bname),
-                act.fcurves.new(data_path + '.location', 2, bname),
-                act.fcurves.new(data_path + '.rotation_euler', 0, bname),
-                act.fcurves.new(data_path + '.rotation_euler', 1, bname),
-                act.fcurves.new(data_path + '.rotation_euler', 2, bname)
+                act.fcurves.new(data_path + '.location', index=0, action_group=bname),
+                act.fcurves.new(data_path + '.location', index=1, action_group=bname),
+                act.fcurves.new(data_path + '.location', index=2, action_group=bname),
+                act.fcurves.new(data_path + '.rotation_euler', index=0, action_group=bname),
+                act.fcurves.new(data_path + '.rotation_euler', index=1, action_group=bname),
+                act.fcurves.new(data_path + '.rotation_euler', index=2, action_group=bname)
             ]
             xmat = bpy_bone.matrix_local.inverted()
             real_parent = find_bone_exportable_parent(bpy_bone)
             if real_parent:
-                xmat = xmat * real_parent.matrix_local
+                xmat = multiply(xmat, real_parent.matrix_local)
             else:
-                xmat = xmat * MATRIX_BONE
+                xmat = multiply(xmat, MATRIX_BONE)
             for time in times:
-                mat = xmat * Matrix.Translation((
-                    +tmpfc[0].evaluate(time),
-                    +tmpfc[1].evaluate(time),
-                    -tmpfc[2].evaluate(time),
-                )) * Euler((
-                    -tmpfc[4].evaluate(time),
-                    -tmpfc[3].evaluate(time),
-                    +tmpfc[5].evaluate(time),
-                ), 'ZXY').to_matrix().to_4x4()
+                mat = multiply(
+                    xmat,
+                    Matrix.Translation((
+                        +tmpfc[0].evaluate(time),
+                        +tmpfc[1].evaluate(time),
+                        -tmpfc[2].evaluate(time),
+                    )),
+                    Euler((
+                        -tmpfc[4].evaluate(time),
+                        -tmpfc[3].evaluate(time),
+                        +tmpfc[5].evaluate(time),
+                    ), 'ZXY').to_matrix().to_4x4()
+                )
                 trn = mat.to_translation()
                 rot = mat.to_euler('ZXY')
                 for i in range(3):
@@ -273,10 +278,13 @@ def _take_motion_data(bpy_act, bpy_armature, prepared_bones):
         for time in range(int(frange[0]), int(frange[1]) + 1):
             if is_root and bone.parent:
                 scene.frame_set(time)
-                mat = MATRIX_BONE_INVERTED * bone.matrix
+                mat = multiply(MATRIX_BONE_INVERTED, bone.matrix)
             else:
-                mat = xmat * Matrix.Translation(evaluate_channels(chs_tr, time)) \
-                    * frotmatrix(evaluate_channels(chs_rt, time)).to_4x4()
+                mat = multiply(
+                    xmat,
+                    Matrix.Translation(evaluate_channels(chs_tr, time)),
+                    frotmatrix(evaluate_channels(chs_rt, time)).to_4x4()
+                )
             data.append(mat)
         scene.frame_set(old_current_frame)
 
@@ -299,9 +307,9 @@ def _bake_motion_data(action, armature, prepared_bones):
             bpy.context.scene.frame_set(frm)
             for pbone, mat, is_root, data in exportable_bones:
                 if not is_root:
-                    data.append(mat * armature.convert_space(pbone, pbone.matrix, 'POSE', 'LOCAL'))
+                    data.append(multiply(mat, armature.convert_space(pbone, pbone.matrix, 'POSE', 'LOCAL')))
                 else:
-                    data.append(MATRIX_BONE_INVERTED * pbone.matrix)
+                    data.append(multiply(MATRIX_BONE_INVERTED, pbone.matrix))
     finally:
         if has_old_action:
             armature.animation_data.action = old_act
@@ -316,10 +324,10 @@ def _prepare_bones(armature):
         real_parent = find_bone_exportable_parent(bone)
         if real_parent:
             root_bone = False
-            mat = real_parent.matrix_local.inverted() * mat
+            mat = multiply(real_parent.matrix_local.inverted(), mat)
         else:
             root_bone = True
-            mat = MATRIX_BONE_INVERTED * mat
+            mat = multiply(MATRIX_BONE_INVERTED, mat)
         return armature.pose.bones[bone.name], mat, root_bone
 
     return [

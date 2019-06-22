@@ -40,12 +40,12 @@ def _import(fpath, creader, context):
             action.xray.fps = fps
             bpy_obj.animation_data_create().action = action
             fcs = (
-                action.fcurves.new('location', 0, name),
-                action.fcurves.new('location', 1, name),
-                action.fcurves.new('location', 2, name),
-                action.fcurves.new('rotation_euler', 0, name),
-                action.fcurves.new('rotation_euler', 1, name),
-                action.fcurves.new('rotation_euler', 2, name)
+                action.fcurves.new('location', index=0, action_group=name),
+                action.fcurves.new('location', index=1, action_group=name),
+                action.fcurves.new('location', index=2, action_group=name),
+                action.fcurves.new('rotation_euler', index=0, action_group=name),
+                action.fcurves.new('rotation_euler', index=1, action_group=name),
+                action.fcurves.new('rotation_euler', index=2, action_group=name)
             )
             for i in range(6):
                 fcurve = fcs[(0, 2, 1, 5, 3, 4)[i]]

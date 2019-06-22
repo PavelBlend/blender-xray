@@ -88,7 +88,7 @@ def multiply(*elements):
     result = elements[0]
     if IS_28:
         for element in elements[1 : ]:
-            result @= element
+            result = result @ element
     else:
         for element in elements[1 : ]:
             result *= element
