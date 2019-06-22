@@ -58,7 +58,7 @@ def _read_object_body(data, imported_objects, import_context):
             scene_obj_version = packed_reader.getf('H')[0]
 
     import_path = os.path.join(
-        os.path.abspath(get_preferences().objects_folder),
+        os.path.abspath(get_preferences().objects_folder_auto),
         object_path + '.object'
     )
     if not imported_objects.get(object_path):
