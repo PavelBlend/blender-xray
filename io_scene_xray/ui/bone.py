@@ -104,10 +104,10 @@ class XRAY_PT_BonePanel(XRayPanel):
                         if type(prop_text) == tuple:
                             row = col.row(align=True)
                             for property_text in prop_text:
-                                row.prop(data.ikjoint, BONE_PROPS[prop_index], property_text)
+                                row.prop(data.ikjoint, BONE_PROPS[prop_index], text=property_text)
                                 prop_index += 1
                         else:
-                            col.prop(data.ikjoint, BONE_PROPS[prop_index], prop_text)
+                            col.prop(data.ikjoint, BONE_PROPS[prop_index], text=prop_text)
                             prop_index += 1
 
         col = box.column(align=True)
