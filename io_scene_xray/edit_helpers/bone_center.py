@@ -1,9 +1,13 @@
 import bpy
 import mathutils
 
-from io_scene_xray import registry
-from io_scene_xray.xray_motions import MATRIX_BONE, MATRIX_BONE_INVERTED
+from .. import registry
+from ..xray_motions import MATRIX_BONE, MATRIX_BONE_INVERTED
 from .base_bone import AbstractBoneEditHelper
+from ..version_utils import IS_28
+
+
+DISPLAY_SIZE = 0.5
 
 
 class _BoneCenterEditHelper(AbstractBoneEditHelper):
@@ -18,7 +22,10 @@ class _BoneCenterEditHelper(AbstractBoneEditHelper):
 
     def _create_helper(self, name):
         helper = bpy.data.objects.new(name, None)
-        helper.empty_draw_size = 0.05
+        if IS_28:
+            helper.empty_display_size = DISPLAY_SIZE
+        else:
+            helper.empty_draw_size = DISPLAY_SIZE
         helper.lock_rotation = helper.lock_scale = (True, True, True)
         return helper
 

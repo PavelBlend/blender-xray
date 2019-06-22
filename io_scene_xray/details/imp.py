@@ -6,6 +6,7 @@ import bpy
 from .. import utils, xray_io
 from . import fmt, read
 from . import utils as det_utils
+from ..version_utils import link_object
 
 
 def _import(fpath, context, chunked_reader):
@@ -69,7 +70,7 @@ def _import(fpath, context, chunked_reader):
 
         root_obj = bpy.data.objects.new(base_name, None)
         root_obj.xray.is_details = True
-        bpy.context.scene.objects.link(root_obj)
+        link_object(root_obj)
 
         meshes_obj.parent = root_obj
 

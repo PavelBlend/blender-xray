@@ -7,6 +7,10 @@ import bpy
 from ..xray_io import ChunkedReader, PackedReader
 from .fmt import Chunks
 from ..xray_envelope import import_envelope
+from ..version_utils import link_object, IS_28
+
+
+DISPLAY_SIZE = 0.5
 
 
 class ImportContext:
@@ -31,11 +35,18 @@ def _import(fpath, creader, context):
                 bpy_cam = bpy.data.objects.new(name + '.camera', bpy.data.cameras.new(name))
                 bpy_cam.parent = bpy_obj
                 bpy_cam.rotation_euler = (math.pi / 2, 0, 0)
-                bpy.context.scene.objects.link(bpy_cam)
+                link_object(bpy_cam)
             else:
-                bpy_obj.empty_draw_type = 'SPHERE'
-            bpy_obj.empty_draw_size = 0.5
-            bpy.context.scene.objects.link(bpy_obj)
+                display_type = 'SPHERE'
+                if IS_28:
+                    bpy_obj.empty_display_type = display_type
+                else:
+                    bpy_obj.empty_draw_type = display_type
+            if IS_28:
+                bpy_obj.empty_display_size = DISPLAY_SIZE
+            else:
+                bpy_obj.empty_draw_size = DISPLAY_SIZE
+            link_object(bpy_obj)
             action = bpy.data.actions.new(name=name)
             action.xray.fps = fps
             bpy_obj.animation_data_create().action = action

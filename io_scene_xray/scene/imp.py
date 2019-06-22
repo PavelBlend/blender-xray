@@ -9,6 +9,7 @@ from ..plugin_prefs import get_preferences
 from ..obj.imp import utils as object_imp_utils
 from ..obj import imp as object_import
 from .. import log
+from ..version_utils import link_object
 
 
 def _read_scene_version(scene_version_chunk):
@@ -78,12 +79,12 @@ def _read_object_body(data, imported_objects, import_context):
             new_empty.xray.export_path = imported_object.xray.export_path
             new_empty.xray.revision.owner = imported_object.xray.revision.owner
             new_empty.xray.revision.ctime_str = imported_object.xray.revision.ctime_str
-            bpy.context.scene.objects.link(new_empty)
+            link_object(new_empty)
             for mesh in imported_object.children:
                 new_object = bpy.data.objects.new(mesh.name, mesh.data)
                 new_object.parent = new_empty
                 new_object.xray.isroot = False
-                bpy.context.scene.objects.link(new_object)
+                link_object(new_object)
             new_empty.location = position[0], position[2], position[1]
             new_empty.rotation_euler = rotation[0], rotation[2], rotation[1]
             new_empty.scale = scale[0], scale[2], scale[1]
@@ -93,7 +94,7 @@ def _read_object_body(data, imported_objects, import_context):
             new_object.xray.export_path = imported_object.xray.export_path
             new_object.xray.revision.owner = imported_object.xray.revision.owner
             new_object.xray.revision.ctime_str = imported_object.xray.revision.ctime_str
-            bpy.context.scene.objects.link(new_object)
+            link_object(new_object)
             new_object.location = position[0], position[2], position[1]
             new_object.rotation_euler = rotation[0], rotation[2], rotation[1]
             new_object.scale = scale[0], scale[2], scale[1]

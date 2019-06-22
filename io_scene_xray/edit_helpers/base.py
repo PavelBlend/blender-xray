@@ -1,6 +1,7 @@
 import bpy
 
-from io_scene_xray import registry, utils
+from .. import registry, utils
+from ..version_utils import link_object
 
 
 __HELPERS__ = dict()
@@ -29,7 +30,7 @@ class AbstractHelper:
             helper.draw_type = 'WIRE'
             helper.show_x_ray = True
             helper.hide_render = True
-            bpy.context.scene.objects.link(helper)
+            link_object(helper)
 
         helper.parent = bpy.context.active_object
         self._update_helper(helper, target)

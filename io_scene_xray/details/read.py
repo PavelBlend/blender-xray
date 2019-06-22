@@ -3,6 +3,7 @@ import bpy
 from .. import xray_io
 from . import fmt, create
 from .model import imp as model_imp
+from ..version_utils import link_object, IS_28
 
 
 def read_header(packed_reader):
@@ -28,8 +29,12 @@ def read_details_meshes(
     ):
 
     bpy_obj_root = bpy.data.objects.new('{} meshes'.format(base_name), None)
-    bpy_obj_root.empty_draw_type = 'SPHERE'
-    bpy.context.scene.objects.link(bpy_obj_root)
+    display_type = 'SPHERE'
+    if IS_28:
+        bpy_obj_root.empty_display_type = display_type
+    else:
+        bpy_obj_root.empty_draw_type = display_type
+    link_object(bpy_obj_root)
 
     step_x = 0.5
 

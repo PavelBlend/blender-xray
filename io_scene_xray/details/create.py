@@ -1,6 +1,7 @@
 import bpy
 
 from . import fmt
+from ..version_utils import link_object
 
 
 def create_object(object_name):
@@ -8,7 +9,7 @@ def create_object(object_name):
     bpy_object = bpy.data.objects.new(
         object_name, bpy_mesh
         )
-    bpy.context.scene.objects.link(bpy_object)
+    link_object(bpy_object)
     return bpy_object, bpy_mesh
 
 

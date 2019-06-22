@@ -4,6 +4,7 @@ import bpy
 
 from ..xray_io import PackedReader, ChunkedReader
 from .fmt import Chunks
+from ..version_utils import link_object
 
 
 def import_(filepath, chunked_reader, operator):
@@ -17,7 +18,7 @@ def import_(filepath, chunked_reader, operator):
                 bpy_mesh = bpy.data.meshes.new(object_name)
                 bpy_obj = bpy.data.objects.new(object_name, bpy_mesh)
                 bpy_obj.show_x_ray = True
-                bpy.context.scene.objects.link(bpy_obj)
+                link_object(bpy_obj)
 
                 vertices = []
                 faces = []

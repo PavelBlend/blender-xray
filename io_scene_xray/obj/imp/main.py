@@ -350,7 +350,7 @@ def import_main(fpath, context, creader):
             bpy_obj = bpy.data.objects.new(object_name, None)
             for mesh_ in mesh_objects:
                 mesh_.parent = bpy_obj
-            bpy.context.scene.objects.link(bpy_obj)
+            link_object(bpy_obj)
 
     bpy_obj.xray.version = context.version
     bpy_obj.xray.isroot = True
