@@ -271,11 +271,12 @@ def unregister():
     get_scene_update_post().remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
-    bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
-    bpy.types.INFO_MT_file_export.remove(menu_func_export)
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
-    bpy.types.INFO_MT_file_import.remove(menu_func_xray_import)
-    bpy.types.INFO_MT_file_export.remove(menu_func_xray_export)
+    import_menu, export_menu = get_import_export_menus()
+    export_menu.remove(menu_func_export_ogf)
+    export_menu.remove(menu_func_export)
+    import_menu.remove(menu_func_import)
+    import_menu.remove(menu_func_xray_import)
+    export_menu.remove(menu_func_xray_export)
 
     # remove icon
     for pcoll in preview_collections.values():
