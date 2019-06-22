@@ -307,7 +307,12 @@ def _bake_motion_data(action, armature, prepared_bones):
             bpy.context.scene.frame_set(frm)
             for pbone, mat, is_root, data in exportable_bones:
                 if not is_root:
-                    data.append(multiply(mat, armature.convert_space(pbone, pbone.matrix, 'POSE', 'LOCAL')))
+                    data.append(multiply(mat, armature.convert_space(
+                        pose_bone=pbone,
+                        matrix=pbone.matrix,
+                        from_space='POSE',
+                        to_space='LOCAL'
+                    )))
                 else:
                     data.append(multiply(MATRIX_BONE_INVERTED, pbone.matrix))
     finally:

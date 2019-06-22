@@ -11,6 +11,7 @@ from ..utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
     calculate_mesh_bbox, gen_texture_name
 from ..utils import is_helper_object
 from ..xray_motions import MATRIX_BONE_INVERTED
+from ..version_utils import multiply
 
 
 def calculate_mesh_bsphere(bbox, vertices):
@@ -306,10 +307,12 @@ def _export(bpy_obj, cwriter, context):
         pwriter.putf('ff', xray.breakf.force, xray.breakf.torque)
         pwriter.putf('f', xray.friction)
         mwriter = obj.matrix_world
-        mat = mwriter * bone.matrix_local * MATRIX_BONE_INVERTED
+        mat = multiply(mwriter, bone.matrix_local, MATRIX_BONE_INVERTED)
         b_parent = find_bone_exportable_parent(bone)
         if b_parent:
-            mat = (mwriter * b_parent.matrix_local * MATRIX_BONE_INVERTED).inverted() * mat
+            mat = multiply(multiply(
+                mwriter, b_parent.matrix_local, MATRIX_BONE_INVERTED
+            ).inverted(), mat)
         euler = mat.to_euler('YXZ')
         pwriter.putf('fff', -euler.x, -euler.z, -euler.y)
         pwriter.putf('fff', *pw_v3f(mat.to_translation()))

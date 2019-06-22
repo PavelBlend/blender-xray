@@ -133,23 +133,24 @@ def import_main(fpath, context, creader):
                     if IS_28:
                         tex_nodes = []
                         ts_found = False
-                        for node in material.node_tree.nodes:
-                            if node.type != 'TEX_IMAGE':
+                        if material.use_nodes:
+                            for node in material.node_tree.nodes:
+                                if node.type != 'TEX_IMAGE':
+                                    continue
+                                tex_nodes.append(node)
+                            if len(tex_nodes) != 1:
+                                ts_found = False
+                            else:
+                                tex_node = tex_nodes[0]
+                                if not _is_compatible_texture(
+                                    tex_node, tx_filepart
+                                ):
+                                    continue
+                                ts_found = True
+                            if not ts_found:
                                 continue
-                            tex_nodes.append(node)
-                        if len(tex_nodes) != 1:
-                            ts_found = False
-                        else:
-                            tex_node = tex_nodes[0]
-                            if not _is_compatible_texture(
-                                tex_node, tx_filepart
-                            ):
-                                continue
-                            ts_found = True
-                        if not ts_found:
-                            continue
-                        bpy_material = material
-                        break
+                            bpy_material = material
+                            break
                     else:
                         ts_found = False
                         for slot in material.texture_slots:

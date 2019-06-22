@@ -4,7 +4,7 @@ import mathutils
 from .. import registry
 from ..xray_motions import MATRIX_BONE, MATRIX_BONE_INVERTED
 from .base_bone import AbstractBoneEditHelper
-from ..version_utils import IS_28
+from ..version_utils import IS_28, multiply
 
 
 DISPLAY_SIZE = 0.5
@@ -35,8 +35,8 @@ class _BoneCenterEditHelper(AbstractBoneEditHelper):
 
         global pose_bone
         pose_bone = bpy.context.object.pose.bones[bone.name]
-        mat = pose_bone.matrix * MATRIX_BONE_INVERTED
-        mat *= mathutils.Matrix.Translation(bone.xray.mass.center)
+        mat = multiply(pose_bone.matrix, MATRIX_BONE_INVERTED)
+        mat = multiply(mat, mathutils.Matrix.Translation(bone.xray.mass.center))
         helper.location = mat.to_translation()
 
 
@@ -72,7 +72,7 @@ class _AlignCenter(bpy.types.Operator):
     def execute(self, _context):
         helper, bone = HELPER.get_target()
         shape = bone.xray.shape
-        mat = pose_bone.matrix * MATRIX_BONE_INVERTED
+        mat = multiply(pose_bone.matrix, MATRIX_BONE_INVERTED)
         pos = None
         if shape.type == '1':
             pos = shape.box_trn
@@ -80,7 +80,9 @@ class _AlignCenter(bpy.types.Operator):
             pos = shape.sph_pos
         elif shape.type == '3':
             pos = shape.cyl_pos
-        mat *= mathutils.Matrix.Translation((pos[0], pos[2], pos[1]))
+        mat = multiply(
+            mat, mathutils.Matrix.Translation((pos[0], pos[2], pos[1]))
+        )
         helper.location = mat.to_translation()
         return {'FINISHED'}
 
@@ -93,8 +95,13 @@ class _ApplyCenter(bpy.types.Operator):
 
     def execute(self, _context):
         helper, bone = HELPER.get_target()
-        mat = MATRIX_BONE * pose_bone.matrix.inverted() * helper.matrix_local
+        mat = multiply(
+            MATRIX_BONE, pose_bone.matrix.inverted(), helper.matrix_local
+        )
         bone.xray.mass.center = mat.to_translation()
         HELPER.deactivate()
-        bpy.context.scene.update()
+        if IS_28:
+            bpy.context.view_layer.update()
+        else:
+            bpy.context.scene.update()
         return {'FINISHED'}

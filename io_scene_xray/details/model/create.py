@@ -24,7 +24,8 @@ def create_empty_image(context, detail_model, absolute_image_path):
 
     bpy_image.source = 'FILE'
     bpy_image.filepath = absolute_image_path
-    bpy_image.use_alpha = True
+    if not IS_28:
+        bpy_image.use_alpha = True
 
     return bpy_image
 

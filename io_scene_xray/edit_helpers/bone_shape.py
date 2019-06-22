@@ -4,7 +4,8 @@ import bpy
 import bmesh
 import mathutils
 
-from io_scene_xray import registry, utils
+from .. import registry, utils
+from ..version_utils import IS_28, multiply, set_active_object
 from .base_bone import AbstractBoneEditHelper
 from ..xray_motions import MATRIX_BONE_INVERTED
 
@@ -92,15 +93,18 @@ def _bone_matrix(bone):
     xsh = bone.xray.shape
     global pose_bone
     pose_bone = bpy.context.object.pose.bones[bone.name]
-    mat = pose_bone.matrix * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
-    mat *= xsh.get_matrix_basis()
+    mat = multiply(
+        pose_bone.matrix,
+        mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+    )
+    mat = multiply(mat, xsh.get_matrix_basis())
     if xsh.type == '1':  # box
-        mat *= _v2ms(xsh.box_hsz)
+        mat = multiply(mat, _v2ms(xsh.box_hsz))
     elif xsh.type == '2':  # sphere
-        mat *= _v2ms((xsh.sph_rad, xsh.sph_rad, xsh.sph_rad))
+        mat = multiply(mat, _v2ms((xsh.sph_rad, xsh.sph_rad, xsh.sph_rad)))
     elif xsh.type == '3':  # cylinder
-        mat *= MATRIX_BONE_INVERTED
-        mat *= _v2ms((xsh.cyl_rad, xsh.cyl_rad, xsh.cyl_hgh * 0.5))
+        mat = multiply(mat, MATRIX_BONE_INVERTED)
+        mat = multiply(mat, _v2ms((xsh.cyl_rad, xsh.cyl_rad, xsh.cyl_hgh * 0.5)))
     else:
         raise AssertionError('unsupported bone shape type: ' + xsh.type)
     return mat
@@ -121,13 +125,14 @@ class _ApplyShape(bpy.types.Operator):
 
         hobj, bone = HELPER.get_target()
         xsh = bone.xray.shape
-        mat = (pose_bone.matrix * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))).inverted() \
-            * hobj.matrix_local
+        mat = multiply(multiply(
+            pose_bone.matrix , mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+        ).inverted(), hobj.matrix_local)
         if xsh.type == '1':  # box
             xsh.box_trn = mat.to_translation().to_tuple()
             scale = mat.to_scale()
             xsh.box_hsz = scale.to_tuple()
-            mrt = (mat * _v2ms(scale).inverted()).to_3x3().transposed()
+            mrt = multiply(mat, _v2ms(scale).inverted()).to_3x3().transposed()
             for i in range(3):
                 xsh.box_rot[i * 3:i * 3 + 3] = mrt[i].to_tuple()
         elif xsh.type == '2':  # sphere
@@ -142,19 +147,22 @@ class _ApplyShape(bpy.types.Operator):
             mscale = mathutils.Matrix.Identity(3)
             for i in range(3):
                 mscale[i][i] = 1 / vscale[i]
-            mat3 *= mscale
+            mat3 = multiply(mat3, mscale)
             qrot = mat3.transposed().to_quaternion().inverted()
-            vrot = qrot * mathutils.Vector((0, 0, 1))
+            vrot = multiply(qrot, mathutils.Vector((0, 0, 1)))
             xsh.cyl_dir = vrot.to_tuple()
         else:
             raise AssertionError('unsupported shape type: ' + xsh.type)
         xsh.set_curver()
         for obj in bpy.data.objects:
             if obj.data == bone.id_data:
-                bpy.context.scene.objects.active = obj
+                set_active_object(obj)
                 break
         HELPER.deactivate()
-        bpy.context.scene.update()
+        if IS_28:
+            bpy.context.view_layer.update()
+        else:
+            bpy.context.scene.update()
         return {'FINISHED'}
 
 
@@ -175,7 +183,10 @@ def _bone_objects(bone):
 def _bone_vertices(bone):
     for obj, vgi in _bone_objects(bone):
         bmsh = bmesh.new()
-        bmsh.from_object(obj, bpy.context.scene)
+        if IS_28:
+            bmsh.from_object(obj, bpy.context.view_layer.depsgraph)
+        else:
+            bmsh.from_object(obj, bpy.context.scene)
         layer_deform = bmsh.verts.layers.deform.verify()
         utils.fix_ensure_lookup_table(bmsh.verts)
         for vtx in bmsh.verts:
@@ -210,17 +221,21 @@ class _FitShape(bpy.types.Operator):
         xsh = bone.xray.shape
         if xsh.type == '1':  # box
             for vtx in _bone_vertices(bone):
-                vtx = matrix_inverted * vtx
+                vtx = multiply(matrix_inverted, vtx)
                 vfunc(vmin, vtx, min)
                 vfunc(vmax, vtx, max)
             if vmax.x > vmin.x:
                 vcenter = (vmax + vmin) / 2
                 vscale = (vmax - vmin) / 2
-                hobj.matrix_local = matrix * mathutils.Matrix.Translation(vcenter) * _v2ms(vscale)
+                hobj.matrix_local = multiply(
+                    matrix,
+                    mathutils.Matrix.Translation(vcenter),
+                    _v2ms(vscale)
+                )
         else:
             vertices = []
             for vtx in _bone_vertices(bone):
-                vtx = matrix_inverted * vtx
+                vtx = multiply(matrix_inverted, vtx)
                 vfunc(vmin, vtx, min)
                 vfunc(vmax, vtx, max)
                 vertices.append(vtx)
@@ -230,14 +245,23 @@ class _FitShape(bpy.types.Operator):
                 if xsh.type == '2':  # sphere
                     for vtx in vertices:
                         radius = max(radius, (vtx - vcenter).length)
-                    hobj.matrix_local = matrix * mathutils.Matrix.Translation(vcenter) \
-                        * _v2ms((radius, radius, radius))
+                    hobj.matrix_local = multiply(
+                        matrix,
+                        mathutils.Matrix.Translation(vcenter),
+                        _v2ms((radius, radius, radius))
+                    )
                 elif xsh.type == '3':  # cylinder
                     for vtx in vertices:
                         radius = max(radius, (vtx - vcenter).xy.length)
-                    hobj.matrix_local = matrix * mathutils.Matrix.Translation(vcenter) \
-                        * _v2ms((radius, radius, (vmax.z - vmin.z) * 0.5))
+                    hobj.matrix_local = multiply(
+                        matrix,
+                        mathutils.Matrix.Translation(vcenter),
+                        _v2ms((radius, radius, (vmax.z - vmin.z) * 0.5))
+                    )
                 else:
                     raise AssertionError('unsupported shape type: ' + xsh.type)
-        bpy.context.scene.update()
+        if IS_28:
+            bpy.context.view_layer.update()
+        else:
+            bpy.context.scene.update()
         return {'FINISHED'}

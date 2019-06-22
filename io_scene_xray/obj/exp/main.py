@@ -6,6 +6,7 @@ import bpy
 import mathutils
 
 from ... import xray_io, utils, log, xray_motions
+from ...version_utils import IS_28
 from .. import fmt
 from . import mesh, bone
 
@@ -32,6 +33,7 @@ def export_meshes(chunked_writer, bpy_obj, context):
     mesh_writers = []
     armatures = set()
     materials = set()
+    uv_maps_names = {}
     bpy_root = bpy_obj
 
     def scan_r(bpy_obj):
@@ -54,6 +56,12 @@ def export_meshes(chunked_writer, bpy_obj, context):
                     continue
                 if material.name in used_material_names:
                     materials.add(material)
+                    uv_layers = bpy_obj.data.uv_layers
+                    if len(uv_layers) > 1:
+                        raise utils.AppError(
+                            'Object "{}" has more than one UV-map'.format(bpy_obj.name)
+                        )
+                    uv_maps_names[material.name] = uv_layers[0].name
         elif bpy_obj.type == 'ARMATURE':
             armatures.add(bpy_obj)
         for child in bpy_obj.children:
@@ -123,10 +131,10 @@ def export_meshes(chunked_writer, bpy_obj, context):
     # take care of static objects
     some_arm = arm_list[0] if arm_list else None
 
-    return materials, bone_writers, some_arm, bpy_root
+    return materials, bone_writers, some_arm, bpy_root, uv_maps_names
 
 
-def export_surfaces(chunked_writer, context, materials):
+def export_surfaces(chunked_writer, context, materials, uv_map_names):
     sfw = xray_io.PackedWriter()
     sfw.putf('I', len(materials))
     for material in materials:
@@ -142,16 +150,37 @@ def export_surfaces(chunked_writer, context, materials):
         else:
             sfw.puts('').puts('').puts('')
         tx_name = ''
-        if material.active_texture:
-            if context.texname_from_path:
-                tx_name = utils.gen_texture_name(
-                    material.active_texture, context.textures_folder
-                )
-            else:
-                tx_name = material.active_texture.name
+        if IS_28:
+            if material.use_nodes:
+                for node in material.node_tree.nodes:
+                    tex_nodes = []
+                    if node.type == 'TEX_IMAGE':
+                        tex_nodes.append(node)
+                    if len(tex_nodes) == 1:
+                        tex_node = tex_nodes[0]
+                        if tex_node.image:
+                            tx_name = utils.gen_texture_name(
+                                tex_node, context.textures_folder
+                            )
+                    else:
+                        raise utils.AppError(
+                            'Material "{}" has more than one texture.'.format(
+                                material.name
+                        ))
+        else:
+            if material.active_texture:
+                if context.texname_from_path:
+                    tx_name = utils.gen_texture_name(
+                        material.active_texture, context.textures_folder
+                    )
+                else:
+                    tx_name = material.active_texture.name
         sfw.puts(tx_name)
-        slot = material.texture_slots[material.active_texture_index]
-        sfw.puts(slot.uv_layer if slot else '')
+        if IS_28:
+            sfw.puts(uv_map_names[material.name])
+        else:
+            slot = material.texture_slots[material.active_texture_index]
+            sfw.puts(slot.uv_layer if slot else '')
         if hasattr(material, 'xray'):
             sfw.putf('I', material.xray.flags)
         else:
@@ -299,10 +328,10 @@ def export_main(bpy_obj, chunked_writer, context):
 
     export_version(chunked_writer)
     export_flags(chunked_writer, xray)
-    materials, bone_writers, some_arm, bpy_root = export_meshes(
+    materials, bone_writers, some_arm, bpy_root, uv_map_names = export_meshes(
         chunked_writer, bpy_obj, context
     )
-    export_surfaces(chunked_writer, context, materials)
+    export_surfaces(chunked_writer, context, materials, uv_map_names)
     export_bones(chunked_writer, bone_writers)
     export_user_data(chunked_writer, xray)
     export_loddef(chunked_writer, xray)

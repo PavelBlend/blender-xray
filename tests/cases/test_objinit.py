@@ -38,7 +38,10 @@ class TestObjectInitialize(utils.XRayTestCase):
         # Arrange
         obj_mesh = bpy.data.objects.new('mesh', bpy.data.meshes.new('mesh'))
         obj_arma = bpy.data.objects.new('arma', bpy.data.armatures.new('arma'))
-        obj_lamp = bpy.data.objects.new('lamp', bpy.data.lamps.new('lamp', 'POINT'))
+        if bpy.app.version >= (2, 80, 0):
+            obj_lamp = bpy.data.objects.new('lamp', bpy.data.lights.new('lamp', 'POINT'))
+        else:
+            obj_lamp = bpy.data.objects.new('lamp', bpy.data.lamps.new('lamp', 'POINT'))
 
         # Act
         plugin.scene_update_post(bpy.context.scene)

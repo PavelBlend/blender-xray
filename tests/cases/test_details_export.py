@@ -89,8 +89,8 @@ class TestDetailsExport(utils.XRayTestCase):
         mesh_2.from_pydata(vertices_2, (), polygons)
         object_1 = bpy.data.objects.new('slots_1', mesh_1)
         object_2 = bpy.data.objects.new('slots_2', mesh_2)
-        bpy.context.scene.objects.link(object_1)
-        bpy.context.scene.objects.link(object_2)
+        utils.link_object(object_1)
+        utils.link_object(object_2)
         data.slots.slots_base_object = object_1.name
         data.slots.slots_top_object = object_2.name
 
@@ -102,8 +102,11 @@ class TestDetailsExport(utils.XRayTestCase):
 
         root_object = bpy.data.objects.new('Details', None)
         bpy.ops.object.select_all(action='DESELECT')
-        root_object.select = True
-        bpy.context.scene.objects.link(root_object)
+        utils.link_object(root_object)
+        if bpy.app.version >= (2, 80, 0):
+            root_object.select_set(True)
+        else:
+            root_object.select = True
         root_object.xray.is_details = True
         data = root_object.xray.detail
 
@@ -111,7 +114,7 @@ class TestDetailsExport(utils.XRayTestCase):
         self._create_details_slots_objects(data)
 
         meshes_object = bpy.data.objects.new('DM Meshes', None)
-        bpy.context.scene.objects.link(meshes_object)
+        utils.link_object(meshes_object)
         meshes_object.parent = root_object
 
         data.slots.meshes_object = meshes_object.name
@@ -128,8 +131,20 @@ class TestDetailsExport(utils.XRayTestCase):
             bpy_image = bpy.data.images.new('test_image.dds', 0, 0)
             bpy_image.source = 'FILE'
             bpy_image.filepath = 'test_image.dds'
-            texture_slot = obj.data.materials[0].texture_slots.add()
-            texture_slot.texture = bpy_texture
+            if bpy.app.version >= (2, 80, 0):
+                obj.data.materials[0].use_nodes = True
+                node_tree = obj.data.materials[0].node_tree
+                texture_node = node_tree.nodes.new('ShaderNodeTexImage')
+                texture_node.image = bpy_image
+                texture_node.location.x -= 500
+                princ_shader = node_tree.nodes['Principled BSDF']
+                node_tree.links.new(
+                    texture_node.outputs['Color'],
+                    princ_shader.inputs['Base Color']
+                )
+            else:
+                texture_slot = obj.data.materials[0].texture_slots.add()
+                texture_slot.texture = bpy_texture
         return objs
 
     def _create_details_images(self, data, version):

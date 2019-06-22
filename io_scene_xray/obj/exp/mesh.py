@@ -1,6 +1,7 @@
 import bmesh
 
 from ... import xray_io, utils, log
+from ...version_utils import IS_28
 from .. import fmt
 from . import main
 
@@ -104,7 +105,11 @@ def remove_bad_geometry(bm, bml, bpy_obj):
                 utils.BAD_VTX_GROUP_NAME
             )
         )
-        bmesh.ops.delete(bm, geom=bad_verts, context=1)
+        if IS_28:
+            ops_context = 'VERTS'
+        else:
+            ops_context = 1
+        bmesh.ops.delete(bm, geom=bad_verts, context=ops_context)
 
     return bad_vgroups
 
@@ -242,7 +247,10 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
 
     writer = xray_io.PackedWriter()
     writer.putf('I', 1 + wmaps_cnt)
-    texture = bpy_obj.data.uv_textures.active
+    if IS_28:
+        texture = bpy_obj.data.uv_layers.active
+    else:
+        texture = bpy_obj.data.uv_textures.active
     writer.puts(texture.name).putf('B', 2).putf('B', 1).putf('B', 0)
     writer.putf('I', len(uvs))
     for uvc in uvs:

@@ -40,11 +40,22 @@ class TestDetailsImport(utils.XRayTestCase):
                 self.assertEqual(len(child_object.children), 4)
                 for mesh_object in child_object.children:
                     mat = mesh_object.active_material
-                    tex = mat.active_texture
-                    image = tex.image
-                    if image:
-                        self.assertEqual(mat.name, 'build_details')
-                        self.assertEqual(tex.name, 'build_details')
+                    if bpy.app.version >= (2, 80, 0):
+                        tex_nodes = []
+                        for node in mat.node_tree.nodes:
+                            if node.type == 'TEX_IMAGE':
+                                tex_nodes.append(node)
+                        self.assertEqual(len(tex_nodes), 1)
+                        tex = tex_nodes[0]
+                        image = tex.image
+                        if image:
+                            self.assertEqual(mat.name, 'build_details')
+                    else:
+                        tex = mat.active_texture
+                        image = tex.image
+                        if image:
+                            self.assertEqual(mat.name, 'build_details')
+                            self.assertEqual(tex.name, 'build_details')
 
     def test_format_version_2(self):
         # Act

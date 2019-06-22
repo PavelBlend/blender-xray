@@ -4,7 +4,7 @@ import math
 from bpy_extras import io_utils
 
 from . import log
-from .version_utils import IS_28
+from .version_utils import IS_28, multiply
 
 
 __FAKE_BONE_SUFFIX = '.fake'
@@ -166,7 +166,10 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
     try:
         for mod in armmods:
             mod.show_viewport = False
-        mesh.from_object(bpy_obj, bpy.context.scene)
+        if IS_28:
+            mesh.from_object(bpy_obj, bpy.context.view_layer.depsgraph)
+        else:
+            mesh.from_object(bpy_obj, bpy.context.scene)
     finally:
         for mod in armmods:
             mod.show_viewport = True
@@ -174,7 +177,7 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
         mat = mathutils.Matrix()
     else:
         mat = bpy_obj.matrix_world
-    mat = space_matrix.inverted() * mat
+    mat = multiply(space_matrix.inverted(), mat)
     mesh.transform(mat)
     need_flip = False
     for k in mat.to_scale():

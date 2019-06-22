@@ -5,10 +5,20 @@ from io_scene_xray.edit_helpers.base import get_object_helper
 from io_scene_xray.utils import is_helper_object
 
 
+def set_active_object(obj):
+    if bpy.app.version >= (2, 80, 0):
+        bpy.context.view_layer.objects.active = obj
+    else:
+        bpy.context.scene.objects.active = obj
+
+
 class TestBoneEditHelpers(XRayTestCase):
     def test_edit_shape(self):
         op_edit = bpy.ops.io_scene_xray.edit_bone_shape
-        bpy.context.scene.objects.active = None
+        if bpy.app.version >= (2, 80, 0):
+            bpy.context.view_layer.objects.active = None
+        else:
+            bpy.context.scene.objects.active = None
         self.assertFalse(op_edit.poll(), msg='no armature')
 
         bpy.ops.xray_import.object(
@@ -31,9 +41,9 @@ class TestBoneEditHelpers(XRayTestCase):
         self.assertTrue(is_helper_object(helper), msg='active is helper')
         self.assertGreater(helper.scale.length, 0.001, 'a helper with some size')
 
-        bpy.context.scene.objects.active = arm
+        set_active_object(arm)
         self.assertFalse(op_edit.poll(), msg='a helper is still active')
-        bpy.context.scene.objects.active = helper
+        set_active_object(helper)
 
         helper.location = helper.scale = (1, 2, 3)
         bpy.ops.io_scene_xray.edit_bone_shape_fit()
@@ -84,7 +94,7 @@ class TestBoneEditHelpers(XRayTestCase):
 
     def test_edit_center(self):
         op_edit = bpy.ops.io_scene_xray.edit_bone_center
-        bpy.context.scene.objects.active = None
+        set_active_object(None)
         self.assertFalse(op_edit.poll(), msg='no armature')
 
         bpy.ops.xray_import.object(
@@ -105,9 +115,9 @@ class TestBoneEditHelpers(XRayTestCase):
         self.assertTrue(is_helper_object(helper), msg='active is helper')
         self.assertGreater(helper.location.length, 0.001, 'a helper with some location')
 
-        bpy.context.scene.objects.active = arm
+        set_active_object(arm)
         self.assertFalse(op_edit.poll(), msg='a helper is still active')
-        bpy.context.scene.objects.active = helper
+        set_active_object(helper)
 
         helper.location = (0, 0, 0)
         self.assertFalse(bpy.ops.io_scene_xray.edit_bone_center_align.poll(), msg='no shape')

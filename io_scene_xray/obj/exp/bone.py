@@ -1,6 +1,7 @@
 from ... import xray_io, log, utils, xray_motions
 from .. import fmt
 from . import main
+from ...version_utils import multiply
 
 
 def export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
@@ -22,11 +23,14 @@ def export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
                .puts(bpy_bone.name)
                .puts(real_parent.name if real_parent else '')
                .puts(bpy_bone.name))  # vmap
-    xmat = bpy_root.matrix_world.inverted() * bpy_arm_obj.matrix_world
-    mat = xmat * bpy_bone.matrix_local * xray_motions.MATRIX_BONE_INVERTED
+    xmat = multiply(bpy_root.matrix_world.inverted(), bpy_arm_obj.matrix_world)
+    mat = multiply(xmat, bpy_bone.matrix_local, xray_motions.MATRIX_BONE_INVERTED)
     if real_parent:
-        mat = (xmat * real_parent.matrix_local * \
-            xray_motions.MATRIX_BONE_INVERTED).inverted() * mat
+        mat = multiply(multiply(
+            xmat,
+            real_parent.matrix_local,
+            xray_motions.MATRIX_BONE_INVERTED
+        ).inverted(), mat)
     eul = mat.to_euler('YXZ')
     writer.put(fmt.Chunks.Bone.BIND_POSE, xray_io.PackedWriter()
                .putf('fff', *main.pw_v3f(mat.to_translation()))

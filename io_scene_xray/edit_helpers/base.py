@@ -1,7 +1,7 @@
 import bpy
 
 from .. import registry, utils
-from ..version_utils import link_object
+from ..version_utils import link_object, IS_28
 
 
 __HELPERS__ = dict()
@@ -27,8 +27,12 @@ class AbstractHelper:
         helper = self.get_helper()
         if helper is None:
             helper = self._create_helper(self._name)
-            helper.draw_type = 'WIRE'
-            helper.show_x_ray = True
+            if IS_28:
+                helper.display_type = 'WIRE'
+                helper.show_in_front = True
+            else:
+                helper.show_x_ray = True
+                helper.draw_type = 'WIRE'
             helper.hide_render = True
             link_object(helper)
 
@@ -66,9 +70,14 @@ class AbstractHelper:
 
     @staticmethod
     def _select_object(_object):
-        bpy.context.scene.objects.active = _object
-        for obj in bpy.context.selectable_objects:
-            obj.select = obj == _object
+        if IS_28:
+            bpy.context.view_layer.objects.active = _object
+            for obj in bpy.context.selectable_objects:
+                obj.select_set(obj == _object)
+        else:
+            bpy.context.scene.objects.active = _object
+            for obj in bpy.context.selectable_objects:
+                obj.select = obj == _object
 
     def _is_active_target(self, target, context):
         raise NotImplementedError()
@@ -80,7 +89,10 @@ class AbstractHelper:
         raise NotImplementedError()
 
     def _delete_helper(self, helper):
-        bpy.context.scene.objects.unlink(helper)
+        if IS_28:
+            bpy.context.scene.collection.objects.unlink(helper)
+        else:
+            bpy.context.scene.objects.unlink(helper)
         bpy.data.objects.remove(helper)
 
     def _update_helper(self, helper, target):

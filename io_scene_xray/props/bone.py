@@ -8,7 +8,7 @@ from . import utils
 from .. import registry
 from ..ops import joint_limits
 from ..edit_helpers.bone_shape import HELPER as seh
-from ..version_utils import assign_props, IS_28
+from ..version_utils import assign_props, IS_28, multiply
 
 
 shape_properties = {
@@ -79,15 +79,19 @@ class ShapeProperties(bpy.types.PropertyGroup):
         typ = self.type
         if typ == '1':  # box
             rot = self.box_rot
-            return mathutils.Matrix.Translation(self.box_trn) \
-                * mathutils.Matrix((rot[0:3], rot[3:6], rot[6:9])).transposed().to_4x4()
+            return multiply(
+                mathutils.Matrix.Translation(self.box_trn),
+                mathutils.Matrix((rot[0:3], rot[3:6], rot[6:9])).transposed().to_4x4()
+            )
         if typ == '2':  # sphere
             return mathutils.Matrix.Translation(self.sph_pos)
         if typ == '3':  # cylinder
             v_dir = mathutils.Vector(self.cyl_dir)
             q_rot = v_dir.rotation_difference((0, 1, 0))
-            return mathutils.Matrix.Translation(self.cyl_pos) \
-                * q_rot.to_matrix().transposed().to_4x4()
+            return multiply(
+                mathutils.Matrix.Translation(self.cyl_pos),
+                q_rot.to_matrix().transposed().to_4x4()
+            )
 
 
 break_properties = {

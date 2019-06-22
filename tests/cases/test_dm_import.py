@@ -21,5 +21,6 @@ class TestDmImport(utils.XRayTestCase):
 
         mat = obj.active_material
         self.assertEqual(mat.name, 'fx\\fx_rainsplash1')
-        tex = mat.active_texture
-        self.assertEqual(tex.name, 'fx\\fx_rainsplash1')
+        if not bpy.app.version >= (2, 80, 0):
+            tex = mat.active_texture
+            self.assertEqual(tex.name, 'fx\\fx_rainsplash1')

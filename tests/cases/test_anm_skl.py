@@ -125,8 +125,8 @@ class TestSklImport(utils.XRayTestCase):
     def _create_armature(self, bone_name):
         arm = bpy.data.armatures.new('tarm')
         obj = bpy.data.objects.new('tobj', arm)
-        bpy.context.scene.objects.link(obj)
-        bpy.context.scene.objects.active = obj
+        utils.link_object(obj)
+        utils.set_active_object(obj)
         bpy.ops.object.mode_set(mode='EDIT')
         try:
             bone = arm.edit_bones.new(bone_name)

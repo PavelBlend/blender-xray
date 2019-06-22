@@ -107,10 +107,11 @@ class TestFormatObject(utils.XRayTestCase):
     def test_import_separate_materials_with_different_vmap(self):
         # Arrange
         mat, mts, tex = self._get_compatible_material()
-        mts.uv_layer = 'DifferentUVLayer'
+        if not bpy.app.version >= (2, 80, 0):
+            mts.uv_layer = 'DifferentUVLayer'
 
-        # Act & Assert
-        self._test_import_separate_materials(mat, tex, tex_equal=True)
+            # Act & Assert
+            self._test_import_separate_materials(mat, tex, tex_equal=True)
 
     def test_import_separate_materials_with_incompat_texture(self):
         # Arrange
@@ -141,11 +142,12 @@ class TestFormatObject(utils.XRayTestCase):
         self.assertEqual(imported_object.data.name, 'plobj')
         imported_material = imported_object.data.materials[0]
         self.assertNotEqual(imported_material, mat)
-        imported_texture = imported_material.texture_slots[0].texture
-        if tex_equal:
-            self.assertEqual(imported_texture, tex)
-        else:
-            self.assertNotEqual(imported_texture, tex)
+        if not bpy.app.version >= (2, 80, 0):
+            imported_texture = imported_material.texture_slots[0].texture
+            if tex_equal:
+                self.assertEqual(imported_texture, tex)
+            else:
+                self.assertNotEqual(imported_texture, tex)
 
     def test_import_merge_materials(self):
         # Arrange
@@ -161,8 +163,9 @@ class TestFormatObject(utils.XRayTestCase):
         self.assertReportsNotContains('WARNING')
         imported_material = bpy.data.objects['test_fmt.object'].data.materials[0]
         self.assertEqual(imported_material, mat)
-        imported_texture = imported_material.texture_slots[0].texture
-        self.assertEqual(imported_texture, tex)
+        if not bpy.app.version >= (2, 80, 0):
+            imported_texture = imported_material.texture_slots[0].texture
+            self.assertEqual(imported_texture, tex)
 
     def test_export_single_mesh(self):
         # Arrange
@@ -199,8 +202,9 @@ class TestFormatObject(utils.XRayTestCase):
         self.assertReportsNotContains('WARNING')
         imported_material = bpy.data.objects['test_fmt_no_texture.object'].data.materials[0]
         self.assertEqual(imported_material, mat)
-        all_slots_are_empty = all(not slot for slot in imported_material.texture_slots)
-        self.assertTrue(all_slots_are_empty)
+        if not bpy.app.version >= (2, 80, 0):
+            all_slots_are_empty = all(not slot for slot in imported_material.texture_slots)
+            self.assertTrue(all_slots_are_empty)
 
     def test_import_old_format(self):
         bpy.ops.xray_import.object(
@@ -213,27 +217,42 @@ class TestFormatObject(utils.XRayTestCase):
 
         obj = bpy.data.objects['test_fmt_old.object']
         material = obj.data.materials[0]
-        texture = material.texture_slots[0].texture
         self.assertEqual(obj.data.name, 'Plane01')
         self.assertEqual(material.name, '1 - Defaultsa')
         self.assertEqual(material.xray.eshader, 'details\set')
         self.assertEqual(material.xray.cshader, 'default')
         self.assertEqual(material.xray.gamemtl, 'default')
-        self.assertEqual(texture.name, 'det\det_leaves')
+        if not bpy.app.version >= (2, 80, 0):
+            texture = material.texture_slots[0].texture
+            self.assertEqual(texture.name, 'det\det_leaves')
 
     def _get_compatible_material(self):
         img = bpy.data.images.new('texture', 0, 0)
         img.source = 'FILE'
         img.filepath = 'gamedata/textures/eye.dds'
-        tex = bpy.data.textures.new('eye', type='IMAGE')
-        tex.image = img
         mat = _create_compatible_material_object()
-        mts = mat.texture_slots.add()
-        mts.uv_layer = 'uvm'
-        mts.texture = tex
+        if bpy.app.version >= (2, 80, 0):
+            node_tree = mat.node_tree
+            tex = node_tree.nodes.new('ShaderNodeTexImage')
+            tex.image = img
+            tex.location.x -= 500
+            princ_shader = node_tree.nodes['Principled BSDF']
+            node_tree.links.new(
+                tex.outputs['Color'],
+                princ_shader.inputs['Base Color']
+            )
+            mts = None
+        else:
+            tex = bpy.data.textures.new('eye', type='IMAGE')
+            tex.image = img
+            mts = mat.texture_slots.add()
+            mts.uv_layer = 'uvm'
+            mts.texture = tex
         return mat, mts, tex
 
 def _create_compatible_material_object():
     mat = bpy.data.materials.new('plmat')
     mat.xray.version = -1  # otherwise, this material will be initialized with the default values (see #48)
+    if bpy.app.version >= (2, 80, 0):
+        mat.use_nodes = True
     return mat

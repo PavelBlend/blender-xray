@@ -111,7 +111,7 @@ class XRAY_PT_BonePanel(XRayPanel):
                             prop_index += 1
 
         col = box.column(align=True)
-        col.prop(data, 'ikflags_breakable', 'Breakable', toggle=True)
+        col.prop(data, 'ikflags_breakable', text='Breakable', toggle=True)
         if data.ikflags_breakable:
             col.prop(data.breakf, 'force', text='Force')
             col.prop(data.breakf, 'torque', text='Torque')
