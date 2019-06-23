@@ -185,6 +185,8 @@ def import_main(fpath, context, creader):
                         if IS_28:
                             node_tree = bpy_material.node_tree
                             texture_node = node_tree.nodes.new('ShaderNodeTexImage')
+                            texture_node.name = texture
+                            texture_node.label = texture
                             texture_node.image = context.image(texture)
                             texture_node.location.x -= 500
                             princ_shader = node_tree.nodes['Principled BSDF']

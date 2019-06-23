@@ -170,6 +170,8 @@ def create_material(det_model, abs_image_path):
         bpy_material.use_nodes = True
         node_tree = bpy_material.node_tree
         texture_node = node_tree.nodes.new('ShaderNodeTexImage')
+        texture_node.name = det_model.texture
+        texture_node.label = det_model.texture
         bpy_image = find_bpy_image(det_model, abs_image_path)
         texture_node.image = bpy_image
         texture_node.location.x -= 500

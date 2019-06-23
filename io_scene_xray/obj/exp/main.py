@@ -159,9 +159,12 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
                     if len(tex_nodes) == 1:
                         tex_node = tex_nodes[0]
                         if tex_node.image:
-                            tx_name = utils.gen_texture_name(
-                                tex_node, context.textures_folder
-                            )
+                            if context.texname_from_path:
+                                tx_name = utils.gen_texture_name(
+                                    tex_node, context.textures_folder
+                                )
+                            else:
+                                tx_name = tex_node.name
                     elif len(tex_nodes) > 1:
                         raise utils.AppError(
                             'Material "{}" has more than one texture.'.format(

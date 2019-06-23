@@ -11,7 +11,7 @@ from ..utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
     calculate_mesh_bbox, gen_texture_name
 from ..utils import is_helper_object
 from ..xray_motions import MATRIX_BONE_INVERTED
-from ..version_utils import multiply
+from ..version_utils import multiply, IS_28
 
 
 def calculate_mesh_bsphere(bbox, vertices):
@@ -103,13 +103,23 @@ def _export_child(bpy_obj, cwriter, context, vgm):
     )
 
     material = bpy_obj.data.materials[0]
+    texture = None
+    if IS_28:
+        if material.use_nodes:
+            for node in material.node_tree.nodes:
+                if node.type == 'TEX_IMAGE':
+                    texture = node
+        else:
+            raise AppError('Material "{}" cannot use nodes.'.format(material.name))
+    else:
+        texture = material.active_texture
     cwriter.put(
         Chunks.TEXTURE,
         PackedWriter()
         .puts(
-            gen_texture_name(material.active_texture, context.textures_folder)
+            gen_texture_name(texture, context.textures_folder)
             if context.texname_from_path else
-            material.active_texture.name
+            texture.name
         )
         .puts(material.xray.eshader)
     )

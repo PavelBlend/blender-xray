@@ -1,6 +1,7 @@
 from .base import XRayPanel, build_label
 from .. import registry
 from ..ops import fake_bones, joint_limits
+from ..version_utils import get_icon
 
 
 @registry.module_thing
@@ -65,5 +66,5 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
         lay.operator(
             fake_bones.ToggleFakeBonesVisibility.bl_idname,
             text='Show/Hide',
-            icon='VISIBLE_IPO_ON',
+            icon=get_icon('VISIBLE_IPO_ON'),
         )
