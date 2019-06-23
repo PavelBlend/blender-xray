@@ -275,38 +275,76 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         shape = self.shape
         if shape.type == '0':
             return
-        bgl.glEnable(bgl.GL_BLEND)
-        if bpy.context.active_bone \
-            and (bpy.context.active_bone.id_data == obj_arm.data) \
-            and (bpy.context.active_bone.name == bone.name):
-            bgl.glColor4f(1.0, 0.0, 0.0, 0.7)
+        if IS_28:
+            import gpu
+            from ..gpu_utils import draw_wire_cube, draw_wire_sphere, \
+                draw_wire_cylinder, draw_cross
+            if bpy.context.active_bone \
+                and (bpy.context.active_bone.id_data == obj_arm.data) \
+                and (bpy.context.active_bone.name == bone.name):
+                color = (1.0, 0.0, 0.0, 0.7)
+            else:
+                color = (0.0, 0.0, 1.0, 0.5)
+            gpu.matrix.push()
+            try:
+                mat = multiply(
+                    obj_arm.matrix_world,
+                    obj_arm.pose.bones[bone.name].matrix,
+                    mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+                )
+                bmat = mat
+                mat = multiply(mat, shape.get_matrix_basis())
+                gpu.matrix.multiply_matrix(mat)
+                if shape.type == '1':  # box
+                    draw_wire_cube(*shape.box_hsz, color)
+                if shape.type == '2':  # sphere
+                    draw_wire_sphere(shape.sph_rad, 16, color)
+                if shape.type == '3':  # cylinder
+                    draw_wire_cylinder(shape.cyl_rad, shape.cyl_hgh * 0.5, 16, color)
+                gpu.matrix.pop()
+                gpu.matrix.push()
+                ctr = self.mass.center
+                trn = multiply(bmat, mathutils.Vector((ctr[0], ctr[2], ctr[1])))
+                gpu.matrix.translate(trn)
+                draw_cross(0.05, color)
+            finally:
+                gpu.matrix.pop()
         else:
-            bgl.glColor4f(0.0, 0.0, 1.0, 0.5)
-        prev_line_width = bgl.Buffer(bgl.GL_FLOAT, [1])
-        bgl.glGetFloatv(bgl.GL_LINE_WIDTH, prev_line_width)
-        bgl.glPushMatrix()
-        try:
-            mat = obj_arm.matrix_world * obj_arm.pose.bones[bone.name].matrix \
-                * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
-            bmat = mat
-            bgl.glLineWidth(2)
-            mat *= shape.get_matrix_basis()
-            bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
-            if shape.type == '1':  # box
-                draw_wire_cube(*shape.box_hsz)
-            if shape.type == '2':  # sphere
-                draw_wire_sphere(shape.sph_rad, 16)
-            if shape.type == '3':  # cylinder
-                draw_wire_cylinder(shape.cyl_rad, shape.cyl_hgh * 0.5, 16)
-            bgl.glPopMatrix()
+            bgl.glEnable(bgl.GL_BLEND)
+            if bpy.context.active_bone \
+                and (bpy.context.active_bone.id_data == obj_arm.data) \
+                and (bpy.context.active_bone.name == bone.name):
+                bgl.glColor4f(1.0, 0.0, 0.0, 0.7)
+            else:
+                bgl.glColor4f(0.0, 0.0, 1.0, 0.5)
+            prev_line_width = bgl.Buffer(bgl.GL_FLOAT, [1])
+            bgl.glGetFloatv(bgl.GL_LINE_WIDTH, prev_line_width)
             bgl.glPushMatrix()
-            ctr = self.mass.center
-            trn = bmat * mathutils.Vector((ctr[0], ctr[2], ctr[1]))
-            bgl.glTranslatef(*trn)
-            draw_cross(0.05)
-        finally:
-            bgl.glPopMatrix()
-            bgl.glLineWidth(prev_line_width[0])
+            try:
+                mat = multiply(
+                    obj_arm.matrix_world,
+                    obj_arm.pose.bones[bone.name].matrix,
+                    mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+                )
+                bmat = mat
+                bgl.glLineWidth(2)
+                mat = multiply(mat, shape.get_matrix_basis())
+                bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
+                if shape.type == '1':  # box
+                    draw_wire_cube(*shape.box_hsz)
+                if shape.type == '2':  # sphere
+                    draw_wire_sphere(shape.sph_rad, 16)
+                if shape.type == '3':  # cylinder
+                    draw_wire_cylinder(shape.cyl_rad, shape.cyl_hgh * 0.5, 16)
+                bgl.glPopMatrix()
+                bgl.glPushMatrix()
+                ctr = self.mass.center
+                trn = multiply(bmat, mathutils.Vector((ctr[0], ctr[2], ctr[1])))
+                bgl.glTranslatef(*trn)
+                draw_cross(0.05)
+            finally:
+                bgl.glPopMatrix()
+                bgl.glLineWidth(prev_line_width[0])
 
 
 assign_props([

@@ -54,14 +54,18 @@ class XRAY_PT_BonePanel(XRayPanel):
 
     def draw_header(self, context):
         layout = self.layout
-        bone = context.active_object.data.bones[context.active_bone.name]
+        bone = context.active_object.data.bones.get(context.active_bone.name, None)
+        if not bone:
+            return
         data = bone.xray
         layout.label(icon_value=plugin.get_stalker_icon())
         layout.prop(data, 'exportable', text='')
 
     def draw(self, context):
         layout = self.layout
-        bone = context.active_object.data.bones[context.active_bone.name]
+        bone = context.active_object.data.bones.get(context.active_bone.name, None)
+        if not bone:
+            return
         data = bone.xray
         layout.enabled = data.exportable
         layout.prop(data, 'length')
