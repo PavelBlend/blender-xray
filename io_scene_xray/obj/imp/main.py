@@ -177,6 +177,7 @@ def import_main(fpath, context, creader):
                     bpy_material.xray.gamemtl = gamemtl
                     if IS_28:
                         bpy_material.use_nodes = True
+                        bpy_material.blend_method = 'CLIP'
                     else:
                         bpy_material.use_shadeless = True
                         bpy_material.use_transparency = True
@@ -193,6 +194,10 @@ def import_main(fpath, context, creader):
                             node_tree.links.new(
                                 texture_node.outputs['Color'],
                                 princ_shader.inputs['Base Color']
+                            )
+                            node_tree.links.new(
+                                texture_node.outputs['Alpha'],
+                                princ_shader.inputs['Alpha']
                             )
                         else:
                             bpy_texture = bpy.data.textures.get(texture)

@@ -168,6 +168,7 @@ def create_material(det_model, abs_image_path):
             bpy_texture_slot.texture = bpy_texture
     else:
         bpy_material.use_nodes = True
+        bpy_material.blend_method = 'CLIP'
         node_tree = bpy_material.node_tree
         texture_node = node_tree.nodes.new('ShaderNodeTexImage')
         texture_node.name = det_model.texture
@@ -179,6 +180,10 @@ def create_material(det_model, abs_image_path):
         node_tree.links.new(
             texture_node.outputs['Color'],
             princ_shader.inputs['Base Color']
+        )
+        node_tree.links.new(
+            texture_node.outputs['Alpha'],
+            princ_shader.inputs['Alpha']
         )
 
     return bpy_material
