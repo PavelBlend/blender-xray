@@ -3,6 +3,7 @@ import math
 import bpy
 import bgl
 import mathutils
+import gpu
 
 from . import utils
 from .. import registry
@@ -205,10 +206,13 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             if bone.select and bone.xray.ikjoint.type in {'2', '3', '5'} and \
                     bpy.context.object.name == obj_arm.name:
 
-                from ..gl_utils import draw_joint_limits, matrix_to_buffer
-
-                bgl.glPushMatrix()
-                bgl.glEnable(bgl.GL_BLEND)
+                if IS_28:
+                    from ..gpu_utils import draw_joint_limits
+                    gpu.matrix.push()
+                else:
+                    from ..gl_utils import draw_joint_limits, matrix_to_buffer
+                    bgl.glPushMatrix()
+                    bgl.glEnable(bgl.GL_BLEND)
                 mat_translate = mathutils.Matrix.Translation(obj_arm.pose.bones[bone.name].matrix.to_translation())
                 mat_rotate = obj_arm.data.bones[bone.name].matrix_local.to_euler().to_matrix().to_4x4()
                 if bone.parent:
@@ -216,11 +220,22 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 else:
                     mat_rotate_parent = mathutils.Matrix()
 
-                mat = obj_arm.matrix_world * mat_translate * (mat_rotate * mat_rotate_parent) \
-                    * mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
-                bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
+                mat = multiply(
+                    obj_arm.matrix_world,
+                    mat_translate,
+                    multiply(mat_rotate, mat_rotate_parent),
+                    mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+                )
+                if IS_28:
+                    gpu.matrix.multiply_matrix(mat)
+                else:
+                    bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
 
-                rotate = obj_arm.pose.bones[bone.name].rotation_euler
+                pose_bone = obj_arm.pose.bones[bone.name]
+                if pose_bone.rotation_mode == 'QUATERNION':
+                    rotate = pose_bone.rotation_quaternion.to_euler('XYZ')
+                else:
+                    rotate = obj_arm.pose.bones[bone.name].rotation_euler
 
                 ik = bone.xray.ikjoint
 
@@ -242,7 +257,10 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                         arm_xray.display_bone_limits_radius
                     )
 
-                bgl.glPopMatrix()
+                if IS_28:
+                    gpu.matrix.pop()
+                else:
+                    bgl.glPopMatrix()
 
         # draw shapes
         if IS_28:
@@ -276,7 +294,6 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         if shape.type == '0':
             return
         if IS_28:
-            import gpu
             from ..gpu_utils import draw_wire_cube, draw_wire_sphere, \
                 draw_wire_cylinder, draw_cross
             if bpy.context.active_bone \
