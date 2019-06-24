@@ -1,5 +1,7 @@
 import bpy
 
+from ..version_utils import set_active_object, IS_28
+
 
 class XRayVerifyUVOperator(bpy.types.Operator):
     bl_idname = 'io_scene_xray.verify_uv'
@@ -23,14 +25,17 @@ class XRayVerifyUVOperator(bpy.types.Operator):
                 bad_objects.append(bpy_object.name)
         bpy.ops.object.select_all(action='DESELECT')
         for bad_object_name in bad_objects:
-            bpy.data.objects[bad_object_name].select = True
-        context.scene.objects.active = None
+            if IS_28:
+                bpy.data.objects[bad_object_name].select_set(True)
+            else:
+                bpy.data.objects[bad_object_name].select = True
+        set_active_object(None)
         return {'FINISHED'}
 
     def verify_uv(self, context, bpy_object):
         if bpy_object.type != 'MESH':
             return self.CORRECT_UV
-        context.scene.objects.active = bpy_object
+        set_active_object(bpy_object)
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.reveal()
         bpy.ops.mesh.select_all(action='DESELECT')
