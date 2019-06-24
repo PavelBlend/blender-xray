@@ -1,4 +1,5 @@
 import bpy
+from mathutils import Color
 
 from .base import XRayPanel, build_label
 from ..skls_browser import UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
@@ -64,11 +65,16 @@ class XRayColorizeMaterials(bpy.types.Operator):
             data = bytearray(mat.name, 'utf8')
             data.append(seed)
             hsh = crc32(data)
-            mat.diffuse_color.hsv = (
+            color = Color()
+            color.hsv = (
                 (hsh & 0xFF) / 0xFF,
                 (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * power,
                 ((hsh >> 2) & 1) * (0.5 * power) + 0.5
             )
+            color = [color.r, color.g, color.b]
+            if IS_28:
+                color.append(1.0)    # alpha
+            mat.diffuse_color = color
         return {'FINISHED'}
 
 
