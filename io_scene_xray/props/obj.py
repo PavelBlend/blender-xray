@@ -172,19 +172,6 @@ def userdata_update(self, _context):
     if self.userdata == '':
         self.show_userdata = False
 
-
-def flags_simple_get(self):
-    if self.flags_force_custom:
-        return 0
-    return _flags_simple_map.get(self.flags, 0)
-
-
-def flags_simple_set(self, value):
-    self.flags_force_custom = value == 0
-    if value != 0:  # !custom
-        self.flags = self._flags_simple_inv_map[value]
-
-
 _flags_simple_inv_map = [
     None,  # other
     0x20,  # sound occluder
@@ -195,6 +182,19 @@ _flags_simple_inv_map = [
     0x00   # static
 ]
 _flags_simple_map = {v: k for k, v in enumerate(_flags_simple_inv_map)}
+
+
+def flags_simple_get(self):
+    if self.flags_force_custom:
+        return 0
+    return _flags_simple_map.get(self.flags, 0)
+
+
+def flags_simple_set(self, value):
+    self.flags_force_custom = value == 0
+    if value != 0:  # !custom
+        self.flags = _flags_simple_inv_map[value]
+
 
 xray_object_properties = {
     'root': bpy.props.BoolProperty(default=True),    # default=True - to backward compatibility
