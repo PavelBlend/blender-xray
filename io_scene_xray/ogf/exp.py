@@ -126,7 +126,7 @@ def _export_child(bpy_obj, cwriter, context, vgm):
 
     bml_uv = bmesh.loops.layers.uv.active
     bml_vw = bmesh.verts.layers.deform.verify()
-    bpy_data.calc_tangents(bml_uv.name)
+    bpy_data.calc_tangents(uvmap=bml_uv.name)
     vertices = []
     indices = []
     vmap = {}
