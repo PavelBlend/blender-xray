@@ -14,9 +14,10 @@ env: # build matrix
   - BLENDER_VERSION=2.77
   - BLENDER_VERSION=2.78
   - BLENDER_VERSION=2.79
+  - BLENDER_VERSION=2.80
 
 install:
-  - sh ./tests/ci-prepare.sh
+  - bash ./tests/ci-prepare.sh
 
 before_script:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
@@ -27,4 +28,4 @@ script:
   - ./blender-$BLENDER_VERSION/blender --factory-startup -noaudio -b --python-exit-code 1 --python tests/runner.py
 
 after_success:
-  - sh ./tests/ci-report.sh
+  - bash ./tests/ci-report.sh
