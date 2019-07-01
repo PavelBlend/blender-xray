@@ -28,4 +28,7 @@ script:
   - ./blender/$BLENDER_VERSION/blender --factory-startup -noaudio -b --python-exit-code 1 --python tests/runner.py
 
 after_success:
-  - bash ./tests/ci-report.sh
+  - if [[ "$BLENDER_VERSION" == "2.80" ]; then
+  -   ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+  -   bash <(curl -s https://codecov.io/bash)
+  - fi
