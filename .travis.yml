@@ -10,6 +10,11 @@ cache:
   directories:
   - blender
 
+env: # build matrix
+  - BLENDER_VERSION=2.77
+  - BLENDER_VERSION=2.78
+  - BLENDER_VERSION=2.79
+
 install:
   - sh ./tests/ci-prepare.sh
 
@@ -19,8 +24,7 @@ before_script:
   - ./cc-test-reporter before-build
 
 script:
-  - ./blender/blender --factory-startup -noaudio -b --python-exit-code 1 --python tests/runner.py
+  - ./blender-$BLENDER_VERSION/blender --factory-startup -noaudio -b --python-exit-code 1 --python tests/runner.py
 
 after_success:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
-  - bash <(curl -s https://codecov.io/bash)
+  - sh ./tests/ci-report.sh
