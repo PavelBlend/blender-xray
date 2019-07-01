@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-DIR="blender-$BLENDER_VERSION"
+DIR="blender/$BLENDER_VERSION"
 if [ ! -e "$DIR/blender" ]; then
     FROM="http://download.blender.org/release/Blender$BLENDER_VERSION"
     PYTHON_VERSION="3.5"

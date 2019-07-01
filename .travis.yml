@@ -25,7 +25,7 @@ before_script:
   - ./cc-test-reporter before-build
 
 script:
-  - ./blender-$BLENDER_VERSION/blender --factory-startup -noaudio -b --python-exit-code 1 --python tests/runner.py
+  - ./blender/$BLENDER_VERSION/blender --factory-startup -noaudio -b --python-exit-code 1 --python tests/runner.py
 
 after_success:
   - bash ./tests/ci-report.sh
