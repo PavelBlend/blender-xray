@@ -4,12 +4,12 @@ from . import main
 from ...version_utils import multiply
 
 
-def export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
+def export_bone(bpy_arm_obj, bpy_bone, writers, bonemap, edit_mode_matrices):
     real_parent = utils.find_bone_exportable_parent(bpy_bone)
     if real_parent:
         if bonemap.get(real_parent) is None:
             export_bone(
-                bpy_arm_obj, bpy_root, real_parent, writers, bonemap, context
+                bpy_arm_obj, real_parent, writers, bonemap, edit_mode_matrices
             )
 
     xray = bpy_bone.xray
@@ -23,14 +23,11 @@ def export_bone(bpy_arm_obj, bpy_root, bpy_bone, writers, bonemap, context):
                .puts(bpy_bone.name)
                .puts(real_parent.name if real_parent else '')
                .puts(bpy_bone.name))  # vmap
-    xmat = multiply(bpy_root.matrix_world.inverted(), bpy_arm_obj.matrix_world)
-    mat = multiply(xmat, bpy_bone.matrix_local, xray_motions.MATRIX_BONE_INVERTED)
+    mat = edit_mode_matrices[bpy_bone.name]
     if real_parent:
-        mat = multiply(multiply(
-            xmat,
-            real_parent.matrix_local,
-            xray_motions.MATRIX_BONE_INVERTED
-        ).inverted(), mat)
+        pm = edit_mode_matrices[real_parent.name]
+        mat = multiply(multiply(pm, xray_motions.MATRIX_BONE_INVERTED).inverted(), mat)
+    mat = multiply(mat, xray_motions.MATRIX_BONE_INVERTED)
     eul = mat.to_euler('YXZ')
     writer.put(fmt.Chunks.Bone.BIND_POSE, xray_io.PackedWriter()
                .putf('fff', *main.pw_v3f(mat.to_translation()))
