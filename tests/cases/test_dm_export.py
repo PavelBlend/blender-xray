@@ -34,6 +34,18 @@ class TestDmExport(utils.XRayTestCase):
             bpy_image = bpy.data.images.new('test_image.dds', 0, 0)
             bpy_image.source = 'FILE'
             bpy_image.filepath = 'test_image.dds'
-            texture_slot = obj.data.materials[0].texture_slots.add()
-            texture_slot.texture = bpy_texture
+            if bpy.app.version >= (2, 80, 0):
+                obj.data.materials[0].use_nodes = True
+                node_tree = obj.data.materials[0].node_tree
+                texture_node = node_tree.nodes.new('ShaderNodeTexImage')
+                texture_node.image = bpy_image
+                texture_node.location.x -= 500
+                princ_shader = node_tree.nodes['Principled BSDF']
+                node_tree.links.new(
+                    texture_node.outputs['Color'],
+                    princ_shader.inputs['Base Color']
+                )
+            else:
+                texture_slot = obj.data.materials[0].texture_slots.add()
+                texture_slot.texture = bpy_texture
         return objs

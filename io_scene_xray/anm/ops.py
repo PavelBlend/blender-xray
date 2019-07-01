@@ -5,6 +5,15 @@ from bpy_extras import io_utils
 
 from .. import plugin_prefs, registry
 from ..utils import execute_with_logger, FilenameExtHelper, AppError, set_cursor_state
+from ..version_utils import assign_props, IS_28
+
+
+op_import_anm_props = {
+    'filter_glob': bpy.props.StringProperty(default='*.anm', options={'HIDDEN'}),
+    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
+    'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
+    'camera_animation': plugin_prefs.PropAnmCameraAnimation()
+}
 
 
 @registry.module_thing
@@ -14,12 +23,9 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
     bl_description = 'Imports X-Ray animation'
     bl_options = {'UNDO'}
 
-    filter_glob = bpy.props.StringProperty(default='*.anm', options={'HIDDEN'})
-
-    directory = bpy.props.StringProperty(subtype='DIR_PATH')
-    files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
-
-    camera_animation = plugin_prefs.PropAnmCameraAnimation()
+    if not IS_28:
+        for prop_name, prop_value in op_import_anm_props.items():
+            exec('{0} = op_import_anm_props.get("{0}")'.format(prop_name))
 
     @execute_with_logger
     @set_cursor_state
@@ -45,6 +51,12 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
         return super().invoke(context, event)
 
 
+filename_ext = '.anm'
+op_export_anm_props = {
+    'filter_glob': bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'}),
+}
+
+
 @registry.module_thing
 class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.anm'
@@ -52,7 +64,10 @@ class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
     bl_description = 'Exports X-Ray animation'
 
     filename_ext = '.anm'
-    filter_glob = bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'})
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_anm_props.items():
+            exec('{0} = op_export_anm_props.get("{0}")'.format(prop_name))
 
     @set_cursor_state
     def export(self, context):
@@ -63,3 +78,9 @@ class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
             self.report({'ERROR'}, 'Object \'{}\' has no animation data'.format(obj.name))
             return {'CANCELLED'}
         export_file(obj, self.filepath)
+
+
+assign_props([
+    (op_import_anm_props, OpImportAnm),
+    (op_export_anm_props, OpExportAnm)
+])

@@ -9,7 +9,10 @@ from io_scene_xray.utils import using_mode, is_fake_bone_name
 class TestFakeBones(utils.XRayTestCase):
     def test_create(self):
         operator = bpy.ops.io_scene_xray.create_fake_bones
-        bpy.context.scene.objects.active = None
+        if bpy.app.version >= (2, 80, 0):
+            bpy.context.view_layer.objects.active = None
+        else:
+            bpy.context.scene.objects.active = None
         self.assertFalse(operator.poll(), msg='no armature')
 
         arm = _create_armature('normal')
@@ -79,8 +82,8 @@ def _fake_hides(bones):
 def _create_armature(name, connected=False, rigid=False):
     arm = bpy.data.armatures.new(name)
     obj = bpy.data.objects.new(name, arm)
-    bpy.context.scene.objects.link(obj)
-    bpy.context.scene.objects.active = obj
+    utils.link_object(obj)
+    utils.set_active_object(obj)
 
     children = []
     with using_mode(mode='EDIT'):

@@ -10,7 +10,7 @@ from ..ui.motion_list import (
     _SelectMotionsOp,
     _DeselectMotionsOp,
     _DeselectDuplicatedMotionsOp,
-    _MotionsList
+    XRAY_UL_MotionsList
 )
 from ..ops import BaseOperator as TestReadyOperator
 from ..utils import (
@@ -18,27 +18,42 @@ from ..utils import (
     FilenameExtHelper, set_cursor_state
 )
 from ..xray_motions import MOTIONS_FILTER_ALL
+from ..version_utils import assign_props, IS_28
+
+
+motion_props = {
+    'flag': bpy.props.BoolProperty(name='Selected for Import', default=True),
+    'name': bpy.props.StringProperty(name='Motion Name')
+}
+
+
+class Motion(bpy.types.PropertyGroup):
+    if not IS_28:
+        exec('{0} = motion_props.get("{0}")'.format('flag'))
+        exec('{0} = motion_props.get("{0}")'.format('name'))
+
+
+op_import_skl_props = {
+    'filter_glob': bpy.props.StringProperty(default='*.skl;*.skls', options={'HIDDEN'}),
+    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
+    'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
+    'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
+    'use_motion_prefix_name': bpy.props.BoolProperty(default=False, name='Motion Prefix Name')
+}
 
 
 @registry.module_thing
-@registry.requires('Motion')
+@registry.requires(Motion)
 class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
-    class Motion(bpy.types.PropertyGroup):
-        flag = bpy.props.BoolProperty(name='Selected for Import', default=True)
-        name = bpy.props.StringProperty(name='Motion Name')
-
     bl_idname = 'xray_import.skl'
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
     bl_options = {'UNDO'}
 
-    filter_glob = bpy.props.StringProperty(default='*.skl;*.skls', options={'HIDDEN'})
+    if not IS_28:
+        for prop_name, prop_value in op_import_skl_props.items():
+            exec('{0} = op_import_skl_props.get("{0}")'.format(prop_name))
 
-    directory = bpy.props.StringProperty(subtype='DIR_PATH')
-    files = bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)
-
-    motions = bpy.props.CollectionProperty(type=Motion, name='Motions Filter')
-    use_motion_prefix_name = bpy.props.BoolProperty(default=False, name='Motion Prefix Name')
     __parsed_file_name = None
 
     def draw(self, context):
@@ -46,7 +61,7 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
         layout.prop(self, 'use_motion_prefix_name')
         row = layout.row()
         row.enabled = False
-        row.label('%d items' % len(self.files))
+        row.label(text='%d items' % len(self.files))
 
         motions, count = self._get_motions(), 0
         text = 'Filter Motions'
@@ -70,7 +85,7 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
             col = box.column(align=True)
             BaseSelectMotionsOp.set_motions_list(None)
             col.template_list(
-                '_MotionsList', '',
+                'XRAY_UL_MotionsList', '',
                 self, 'motions',
                 context.scene.xray.import_skls, 'motion_index',
             )
@@ -136,6 +151,12 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
         return super().invoke(context, event)
 
 
+filename_ext = '.skl'
+op_export_skl_props = {
+    'filter_glob': bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'}),
+}
+
+
 @registry.module_thing
 class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.skl'
@@ -143,7 +164,11 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     bl_description = 'Exports X-Ray skeletal animation'
 
     filename_ext = '.skl'
-    filter_glob = bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'})
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_skl_props.items():
+            exec('{0} = op_export_skl_props.get("{0}")'.format(prop_name))
+
     action = None
 
     @execute_with_logger
@@ -163,9 +188,15 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
         self.action = getattr(context, OpExportSkl.bl_idname + '.action', None)
         assert self.action
         self.filepath = self.action.name
-        if not self.filepath.lower().endswith(self.filename_ext):
-            self.filepath += self.filename_ext
+        if not self.filepath.lower().endswith(filename_ext):
+            self.filepath += filename_ext
         return super().invoke(context, event)
+
+
+filename_ext = '.skls'
+op_export_skls_props = {
+    'filter_glob': bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'}),
+}
 
 
 @registry.module_thing
@@ -175,7 +206,10 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
     bl_description = 'Exports X-Ray skeletal animation'
 
     filename_ext = '.skls'
-    filter_glob = bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'})
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_skls_props.items():
+            exec('{0} = op_export_skls_props.get("{0}")'.format(prop_name))
 
     def export(self, context):
         from .exp import export_skls_file, ExportContext
@@ -187,3 +221,11 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
     @invoke_require_armature
     def invoke(self, context, event):
         return super().invoke(context, event)
+
+
+assign_props([
+    (motion_props, Motion),
+    (op_import_skl_props, OpImportSkl),
+    (op_export_skl_props, OpExportSkl),
+    (op_export_skls_props, OpExportSkls)
+])

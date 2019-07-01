@@ -132,6 +132,20 @@ def create_bmesh(vertexes, indexes, create_uv=True):
     return bm
 
 
+def link_object(obj):
+    if bpy.app.version >= (2, 80, 0):
+        bpy.context.scene.collection.objects.link(obj)
+    else:
+        bpy.context.scene.objects.link(obj)
+
+
+def set_active_object(obj):
+    if bpy.app.version >= (2, 80, 0):
+        bpy.context.view_layer.objects.active = obj
+    else:
+        bpy.context.scene.objects.active = obj
+
+
 def create_object(bm, create_material=True):
     mesh = bpy.data.meshes.new('test')
     bm.to_mesh(mesh)
@@ -139,5 +153,5 @@ def create_object(bm, create_material=True):
         mat = bpy.data.materials.new('mat')
         mesh.materials.append(mat)
     obj = bpy.data.objects.new('test', mesh)
-    bpy.context.scene.objects.link(obj)
+    link_object(obj)
     return obj

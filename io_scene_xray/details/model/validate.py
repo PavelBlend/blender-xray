@@ -1,4 +1,5 @@
 from ... import utils
+from ...version_utils import IS_28
 
 
 def validate_export_object(context, bpy_obj):
@@ -27,15 +28,28 @@ def validate_export_object(context, bpy_obj):
 
     bpy_texture = None
 
-    for texture_slot in bpy_material.texture_slots:
-        if texture_slot:
-            bpy_texture = texture_slot.texture
-            if bpy_texture:
-                break
+    if IS_28:
+        if bpy_material.use_nodes:
+            tex_nodes = []
+            for node in bpy_material.node_tree.nodes:
+                if node.type == 'TEX_IMAGE':
+                    tex_nodes.append(node)
+            if len(tex_nodes) == 1:
+                bpy_texture = tex_nodes[0]
+            else:
+                raise utils.AppError(
+                    'material "' + bpy_material.name + '" has more than one texture.'
+                )
+    else:
+        for texture_slot in bpy_material.texture_slots:
+            if texture_slot:
+                bpy_texture = texture_slot.texture
+                if bpy_texture:
+                    break
 
     if bpy_texture:
 
-        if bpy_texture.type == 'IMAGE':
+        if bpy_texture.type == 'IMAGE' or bpy_texture.type == 'TEX_IMAGE':
             if context.texname_from_path:
                 texture_name = utils.gen_texture_name(
                     bpy_texture, context.textures_folder

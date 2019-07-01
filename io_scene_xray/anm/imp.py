@@ -7,6 +7,10 @@ import bpy
 from ..xray_io import ChunkedReader, PackedReader
 from .fmt import Chunks
 from ..xray_envelope import import_envelope
+from ..version_utils import link_object, IS_28
+
+
+DISPLAY_SIZE = 0.5
 
 
 class ImportContext:
@@ -31,21 +35,28 @@ def _import(fpath, creader, context):
                 bpy_cam = bpy.data.objects.new(name + '.camera', bpy.data.cameras.new(name))
                 bpy_cam.parent = bpy_obj
                 bpy_cam.rotation_euler = (math.pi / 2, 0, 0)
-                bpy.context.scene.objects.link(bpy_cam)
+                link_object(bpy_cam)
             else:
-                bpy_obj.empty_draw_type = 'SPHERE'
-            bpy_obj.empty_draw_size = 0.5
-            bpy.context.scene.objects.link(bpy_obj)
+                display_type = 'SPHERE'
+                if IS_28:
+                    bpy_obj.empty_display_type = display_type
+                else:
+                    bpy_obj.empty_draw_type = display_type
+            if IS_28:
+                bpy_obj.empty_display_size = DISPLAY_SIZE
+            else:
+                bpy_obj.empty_draw_size = DISPLAY_SIZE
+            link_object(bpy_obj)
             action = bpy.data.actions.new(name=name)
             action.xray.fps = fps
             bpy_obj.animation_data_create().action = action
             fcs = (
-                action.fcurves.new('location', 0, name),
-                action.fcurves.new('location', 1, name),
-                action.fcurves.new('location', 2, name),
-                action.fcurves.new('rotation_euler', 0, name),
-                action.fcurves.new('rotation_euler', 1, name),
-                action.fcurves.new('rotation_euler', 2, name)
+                action.fcurves.new('location', index=0, action_group=name),
+                action.fcurves.new('location', index=1, action_group=name),
+                action.fcurves.new('location', index=2, action_group=name),
+                action.fcurves.new('rotation_euler', index=0, action_group=name),
+                action.fcurves.new('rotation_euler', index=1, action_group=name),
+                action.fcurves.new('rotation_euler', index=2, action_group=name)
             )
             for i in range(6):
                 fcurve = fcs[(0, 2, 1, 5, 3, 4)[i]]

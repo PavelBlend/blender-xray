@@ -60,7 +60,10 @@ class TestObjectExport(utils.XRayTestCase):
         # Arrange
         self._create_objects()
         for obj in bpy.data.objects:
-            obj.select = obj.name in {'tobj1', 'tobj2'}
+            if bpy.app.version >= (2, 80, 0):
+                obj.select_set(obj.name in {'tobj1', 'tobj2'})
+            else:
+                obj.select = obj.name in {'tobj1', 'tobj2'}
 
         # Act
         bpy.ops.export_scene.xray(
@@ -78,8 +81,8 @@ class TestObjectExport(utils.XRayTestCase):
 
         arm = bpy.data.armatures.new('tarm')
         obj = bpy.data.objects.new('tobj', arm)
-        bpy.context.scene.objects.link(obj)
-        bpy.context.scene.objects.active = obj
+        utils.link_object(obj)
+        utils.set_active_object(obj)
         bpy.ops.object.mode_set(mode='EDIT')
         try:
             bone = arm.edit_bones.new('tbone')
@@ -93,7 +96,7 @@ class TestObjectExport(utils.XRayTestCase):
         objs[0].parent = obj
         grp = objs[0].vertex_groups.new()
         grp.add(range(3), 1, 'REPLACE')
-        grp = objs[0].vertex_groups.new(io_scene_xray.utils.BAD_VTX_GROUP_NAME)
+        grp = objs[0].vertex_groups.new(name=io_scene_xray.utils.BAD_VTX_GROUP_NAME)
         grp.add([3], 1, 'REPLACE')
 
         # Act
@@ -116,8 +119,8 @@ class TestObjectExport(utils.XRayTestCase):
         # Arrange
         arm = bpy.data.armatures.new('tarm')
         obj = bpy.data.objects.new('tobj', arm)
-        bpy.context.scene.objects.link(obj)
-        bpy.context.scene.objects.active = obj
+        utils.link_object(obj)
+        utils.set_active_object(obj)
         b_exp0, b_non0, b_exp1, b_non1 = (
             'b-exportable0', 'b-non-exportable0', 'b-exportable1', 'b-non-exportable1'
         )

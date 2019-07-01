@@ -5,7 +5,7 @@ from ..utils import is_helper_object
 
 
 @registry.module_thing
-class XRayMeshPanel(base.XRayPanel):
+class XRAY_PT_MeshPanel(base.XRayPanel):
     bl_context = 'data'
     bl_label = base.build_label('Mesh')
 

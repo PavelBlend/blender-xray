@@ -4,6 +4,7 @@ import math
 from bpy_extras import io_utils
 
 from . import log
+from .version_utils import IS_28, multiply
 
 
 __FAKE_BONE_SUFFIX = '.fake'
@@ -165,7 +166,10 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
     try:
         for mod in armmods:
             mod.show_viewport = False
-        mesh.from_object(bpy_obj, bpy.context.scene)
+        if IS_28:
+            mesh.from_object(bpy_obj, bpy.context.view_layer.depsgraph)
+        else:
+            mesh.from_object(bpy_obj, bpy.context.scene)
     finally:
         for mod in armmods:
             mod.show_viewport = True
@@ -173,7 +177,7 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
         mat = mathutils.Matrix()
     else:
         mat = bpy_obj.matrix_world
-    mat = space_matrix.inverted() * mat
+    mat = multiply(space_matrix.inverted(), mat)
     mesh.transform(mat)
     need_flip = False
     for k in mat.to_scale():
@@ -359,9 +363,15 @@ def using_mode(mode):
 
 def with_auto_property(prop_class, prop_id, getter, overrides=None, **kwargs):
     def decorator(struct):
-        setattr(struct, prop_id, prop_class(
-            **kwargs,
-        ))
+        if IS_28:
+            if hasattr(struct, '__annotations__'):
+                struct.__annotations__[prop_id] = prop_class(**kwargs)
+            else:
+                struct.__annotations__ = {prop_id: prop_class(**kwargs), }
+        else:
+            setattr(struct, prop_id, prop_class(
+                **kwargs,
+            ))
 
         def get_value(self):
             value = getattr(self, prop_id)
@@ -382,11 +392,16 @@ def with_auto_property(prop_class, prop_id, getter, overrides=None, **kwargs):
         if overrides:
             kwargs2 = {**kwargs2, **overrides}
 
-        setattr(struct, with_auto_property.build_auto_id(prop_id), prop_class(
-            **kwargs2,
-            get=get_value,
-            set=set_value,
-        ))
+        if IS_28:
+            struct.__annotations__[with_auto_property.build_auto_id(prop_id)] = prop_class(
+                **kwargs2, get=get_value, set=set_value
+            )
+        else:
+            setattr(struct, with_auto_property.build_auto_id(prop_id), prop_class(
+                **kwargs2,
+                get=get_value,
+                set=set_value,
+            ))
         return struct
 
     return decorator

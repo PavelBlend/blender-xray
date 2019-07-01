@@ -1,6 +1,14 @@
 import bpy
 
 from . import fmt
+from ..version_utils import link_object, IS_28
+
+
+def pack_image(image):
+    if IS_28:
+        image.pack()
+    else:
+        image.pack(as_png=True)
 
 
 def create_object(object_name):
@@ -8,7 +16,7 @@ def create_object(object_name):
     bpy_object = bpy.data.objects.new(
         object_name, bpy_mesh
         )
-    bpy.context.scene.objects.link(bpy_object)
+    link_object(bpy_object)
     return bpy_object, bpy_mesh
 
 
@@ -99,8 +107,12 @@ def create_details_slots_object(base_name, header, y_coords_top, y_coords_base):
 
     # create UV's
 
-    slots_base_mesh.uv_textures.new('UVMap')
-    slots_top_mesh.uv_textures.new('UVMap')
+    if IS_28:
+        slots_base_mesh.uv_layers.new(name='UVMap')
+        slots_top_mesh.uv_layers.new(name='UVMap')
+    else:
+        slots_base_mesh.uv_textures.new('UVMap')
+        slots_top_mesh.uv_textures.new('UVMap')
 
     base_uv_layer_data = slots_base_mesh.uv_layers['UVMap'].data
     top_uv_layer_data = slots_top_mesh.uv_layers['UVMap'].data
@@ -143,7 +155,7 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
         meshes_image.use_fake_user = True
         images_list.append(meshes_image.name)
         meshes_image.pixels = meshes[mesh_id]
-        meshes_image.pack(as_png=True)
+        pack_image(meshes_image)
         m_i.append(meshes_image.name)
 
     dets_meshes.mesh_0 = m_i[0]
@@ -163,7 +175,7 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
             bpy_image = _create_det_image('{}.png'.format(image_name))
             images_list.append(bpy_image.name)
             bpy_image.pixels = pixels
-            bpy_image.pack(as_png=True)
+            pack_image(bpy_image)
             setattr(ligthing, prop_name, bpy_image.name)
 
     elif header.format_version == fmt.FORMAT_VERSION_2:
@@ -174,7 +186,7 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
         images_list.append(lights_v2_image.name)
         lights_v2_image.use_fake_user = True
         lights_v2_image.pixels = lights_old
-        lights_v2_image.pack(as_png=True)
+        pack_image(lights_v2_image)
         ligthing.lights_image = lights_v2_image.name
 
 
@@ -192,7 +204,7 @@ def create_pallete(color_indices):
         )
         meshes_indices_image.pixels = meshes_indices_pixels
         meshes_indices_image.use_fake_user = True
-        meshes_indices_image.pack(as_png=True)
+        pack_image(meshes_indices_image)
 
     # create bpy pallete
     if bpy.data.palettes.get(pallete_name) is None:

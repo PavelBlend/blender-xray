@@ -1,5 +1,13 @@
 import bpy
-from io_scene_xray import registry
+from .. import registry
+from ..version_utils import get_icon, assign_props, IS_28
+
+
+_list_op_props = {
+    'operation': bpy.props.StringProperty(),
+    'collection': bpy.props.StringProperty(),
+    'index': bpy.props.StringProperty()
+}
 
 
 @registry.module_thing
@@ -7,9 +15,9 @@ class _ListOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.list'
     bl_label = ''
 
-    operation = bpy.props.StringProperty()
-    collection = bpy.props.StringProperty()
-    index = bpy.props.StringProperty()
+    if not IS_28:
+        for prop_name, prop_value in _list_op_props.items():
+            exec('{0} = _list_op_props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
         data = getattr(context, _ListOp.bl_idname + '.data')
@@ -30,6 +38,11 @@ class _ListOp(bpy.types.Operator):
         return {'FINISHED'}
 
 
+assign_props([
+    (_list_op_props, _ListOp),
+])
+
+
 def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_func=None):
     def operator(operation, icon, enabled=None):
         lay = layout
@@ -42,10 +55,10 @@ def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_fu
         operator.index = active_propname
 
     layout.context_pointer_set(_ListOp.bl_idname + '.data', dataptr)
-    operator('add', 'ZOOMIN')
+    operator('add', get_icon('ZOOMIN'))
     collection = getattr(dataptr, propname)
     index = getattr(dataptr, active_propname)
-    operator('remove', 'ZOOMOUT', enabled=(index >= 0) and (index < len(collection)))
+    operator('remove', get_icon('ZOOMOUT'), enabled=(index >= 0) and (index < len(collection)))
     operator('move_up', 'TRIA_UP', enabled=(index > 0) and (index < len(collection)))
     operator('move_down', 'TRIA_DOWN', enabled=(index >= 0) and (index < len(collection) - 1))
     if custom_elements_func:

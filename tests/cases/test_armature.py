@@ -8,8 +8,8 @@ class TestArmature(utils.XRayTestCase):
         # Arrange
         arm = bpy.data.armatures.new('test')
         obj = bpy.data.objects.new('test', arm)
-        bpy.context.scene.objects.link(obj)
-        bpy.context.scene.objects.active = obj
+        utils.link_object(obj)
+        utils.set_active_object(obj)
         bpy.ops.object.mode_set(mode='EDIT')
         try:
             bone = arm.edit_bones.new('non-exp')

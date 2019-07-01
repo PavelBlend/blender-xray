@@ -29,8 +29,8 @@ class TestMaterialInitialize(utils.XRayTestCase):
 
         obj = bpy.data.objects.new('', None)
         obj.xray.flags_custom_type = 'st'
-        bpy.context.scene.objects.link(obj)
-        bpy.context.scene.objects.active = obj
+        utils.link_object(obj)
+        utils.set_active_object(obj)
 
         mat = bpy.data.materials.new('')
 
@@ -47,8 +47,8 @@ class TestMaterialInitialize(utils.XRayTestCase):
 
         obj = bpy.data.objects.new('', None)
         obj.xray.flags_custom_type = 'dy'
-        bpy.context.scene.objects.link(obj)
-        bpy.context.scene.objects.active = obj
+        utils.link_object(obj)
+        utils.set_active_object(obj)
 
         mat = bpy.data.materials.new('')
 

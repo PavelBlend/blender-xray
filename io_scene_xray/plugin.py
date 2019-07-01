@@ -23,15 +23,24 @@ from .anm import ops as anm_ops
 from .skl import ops as skl_ops
 from .ogf import ops as ogf_ops
 from . import skls_browser
+from .version_utils import (
+    get_import_export_menus, get_scene_update_post, assign_props, IS_28
+)
 
+
+op_export_project_props = {
+    'filepath': bpy.props.StringProperty(subtype='DIR_PATH', options={'SKIP_SAVE'}),
+    'use_selection': bpy.props.BoolProperty()
+}
 
 @registry.module_thing
 class OpExportProject(TestReadyOperator):
     bl_idname = 'export_scene.xray'
     bl_label = 'Export XRay Project'
 
-    filepath = bpy.props.StringProperty(subtype='DIR_PATH', options={'SKIP_SAVE'})
-    use_selection = bpy.props.BoolProperty()
+    if not IS_28:
+        for prop_name, prop_value in op_export_project_props.items():
+            exec('{0} = op_export_project_props.get("{0}")'.format(prop_name))
 
     @execute_with_logger
     def execute(self, context):
@@ -61,6 +70,11 @@ class OpExportProject(TestReadyOperator):
     def find_objects(context, use_selection=False):
         objects = context.selected_objects if use_selection else context.scene.objects
         return [o for o in objects if o.xray.isroot]
+
+
+assign_props([
+    (op_export_project_props, OpExportProject),
+])
 
 
 @registry.module_thing
@@ -175,28 +189,29 @@ def menu_func_xray_export(self, _context):
 
 def append_menu_func():
     prefs = plugin_prefs.get_preferences()
+    import_menu, export_menu = get_import_export_menus()
     if prefs.compact_menus:
-        bpy.types.INFO_MT_file_import.remove(menu_func_import)
-        bpy.types.INFO_MT_file_export.remove(menu_func_export)
-        bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
-        bpy.types.INFO_MT_file_import.remove(err_ops.menu_func_import)
-        bpy.types.INFO_MT_file_import.remove(det_ops.menu_func_import)
-        bpy.types.INFO_MT_file_export.remove(det_ops.menu_func_export)
-        bpy.types.INFO_MT_file_export.remove(scene_ops.menu_func_export)
-        bpy.types.INFO_MT_file_import.remove(scene_ops.menu_func_import)
-        bpy.types.INFO_MT_file_import.prepend(menu_func_xray_import)
-        bpy.types.INFO_MT_file_export.prepend(menu_func_xray_export)
+        import_menu.remove(menu_func_import)
+        export_menu.remove(menu_func_export)
+        export_menu.remove(menu_func_export_ogf)
+        import_menu.remove(err_ops.menu_func_import)
+        import_menu.remove(det_ops.menu_func_import)
+        export_menu.remove(det_ops.menu_func_export)
+        export_menu.remove(scene_ops.menu_func_export)
+        import_menu.remove(scene_ops.menu_func_import)
+        import_menu.prepend(menu_func_xray_import)
+        export_menu.prepend(menu_func_xray_export)
     else:
-        bpy.types.INFO_MT_file_import.remove(menu_func_xray_import)
-        bpy.types.INFO_MT_file_export.remove(menu_func_xray_export)
-        bpy.types.INFO_MT_file_import.append(menu_func_import)
-        bpy.types.INFO_MT_file_export.append(menu_func_export)
-        bpy.types.INFO_MT_file_export.append(menu_func_export_ogf)
-        bpy.types.INFO_MT_file_import.append(det_ops.menu_func_import)
-        bpy.types.INFO_MT_file_export.append(det_ops.menu_func_export)
-        bpy.types.INFO_MT_file_import.append(err_ops.menu_func_import)
-        bpy.types.INFO_MT_file_export.append(scene_ops.menu_func_export)
-        bpy.types.INFO_MT_file_import.append(scene_ops.menu_func_import)
+        import_menu.remove(menu_func_xray_import)
+        export_menu.remove(menu_func_xray_export)
+        import_menu.append(menu_func_import)
+        export_menu.append(menu_func_export)
+        export_menu.append(menu_func_export_ogf)
+        import_menu.append(det_ops.menu_func_import)
+        export_menu.append(det_ops.menu_func_export)
+        import_menu.append(err_ops.menu_func_import)
+        export_menu.append(scene_ops.menu_func_export)
+        import_menu.append(scene_ops.menu_func_import)
 
 
 registry.module_requires(__name__, [
@@ -237,7 +252,7 @@ def register():
         'WINDOW', 'POST_VIEW'
     )
     bpy.app.handlers.load_post.append(load_post)
-    bpy.app.handlers.scene_update_post.append(scene_update_post)
+    get_scene_update_post().append(scene_update_post)
     registry.register_thing(skls_browser, __name__)
 
 
@@ -253,14 +268,15 @@ def unregister():
     registry.unregister_thing(object_exp_ops, __name__)
     registry.unregister_thing(object_imp_ops, __name__)
 
-    bpy.app.handlers.scene_update_post.remove(scene_update_post)
+    get_scene_update_post().remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
-    bpy.types.INFO_MT_file_export.remove(menu_func_export_ogf)
-    bpy.types.INFO_MT_file_export.remove(menu_func_export)
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
-    bpy.types.INFO_MT_file_import.remove(menu_func_xray_import)
-    bpy.types.INFO_MT_file_export.remove(menu_func_xray_export)
+    import_menu, export_menu = get_import_export_menus()
+    export_menu.remove(menu_func_export_ogf)
+    export_menu.remove(menu_func_export)
+    import_menu.remove(menu_func_import)
+    import_menu.remove(menu_func_xray_import)
+    export_menu.remove(menu_func_xray_export)
 
     # remove icon
     for pcoll in preview_collections.values():

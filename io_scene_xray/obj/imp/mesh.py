@@ -4,6 +4,7 @@ import bpy
 import bmesh
 
 from ... import xray_io, utils, plugin_prefs, log
+from ...version_utils import IS_28
 from .. import fmt
 from . import main
 
@@ -122,7 +123,10 @@ def import_mesh(context, creader, renamemap):
                     bml = bmsh.loops.layers.uv.get(name)
                     if bml is None:
                         bml = bmsh.loops.layers.uv.new(name)
-                        bml_texture = bmsh.faces.layers.tex.new(name)
+                        if IS_28:
+                            bml_texture = None
+                        else:
+                            bml_texture = bmsh.faces.layers.tex.new(name)
                     uvs = reader.getb(size * 8).cast('f')
                     if cid == fmt.Chunks.Mesh.VMAPS2:
                         reader.skip(size * 4)
@@ -215,7 +219,7 @@ def import_mesh(context, creader, renamemap):
                     nonlocal bad_vgroup
                     if bad_vgroup == -1:
                         bad_vgroup = len(bo_mesh.vertex_groups)
-                        bo_mesh.vertex_groups.new(utils.BAD_VTX_GROUP_NAME)
+                        bo_mesh.vertex_groups.new(name=utils.BAD_VTX_GROUP_NAME)
                     self.__next = self.__class__(lvl + 1, badvg=bad_vgroup)
                 return self.__next._mkf(fr, i0, i1, i2)
 
@@ -260,7 +264,8 @@ def import_mesh(context, creader, renamemap):
     if face_sg:
         bm_data.use_auto_smooth = True
         bm_data.auto_smooth_angle = math.pi
-        bm_data.show_edge_sharp = True
+        if not IS_28:
+            bm_data.show_edge_sharp = True
 
     bo_mesh = bpy.data.objects.new(mesh_name, bm_data)
     if mesh_flags is not None:
@@ -268,7 +273,7 @@ def import_mesh(context, creader, renamemap):
     if mesh_options is not None:
         bo_mesh.data.xray.options = mesh_options
     for vgroup in vgroups:
-        bo_mesh.vertex_groups.new(vgroup)
+        bo_mesh.vertex_groups.new(name=vgroup)
 
     f_facez = []
     images = []
@@ -280,9 +285,10 @@ def import_mesh(context, creader, renamemap):
             bmat.xray.version = context.version
         midx = len(bm_data.materials)
         bm_data.materials.append(bmat)
-        images.append(
-            bmat.active_texture.image if bmat.active_texture else None
-        )
+        if not IS_28:
+            images.append(
+                bmat.active_texture.image if bmat.active_texture else None
+            )
         f_facez.append((faces, midx))
 
     local_class = LocalComplex if vgroups else LocalSimple

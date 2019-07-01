@@ -51,6 +51,6 @@ class TestAnmExport(utils.XRayTestCase):
 
     def _create_active_object(self):
         obj = bpy.data.objects.new('tobj', None)
-        bpy.context.scene.objects.link(obj)
-        bpy.context.scene.objects.active = obj
+        utils.link_object(obj)
+        utils.set_active_object(obj)
         return obj

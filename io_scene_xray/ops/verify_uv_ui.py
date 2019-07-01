@@ -1,15 +1,18 @@
-
 import bpy
 
 from . import verify_uv
 from .. import plugin
+from ..version_utils import IS_28
 
 
-class XRayVerifyToolsPanel(bpy.types.Panel):
+class XRAY_PT_VerifyToolsPanel(bpy.types.Panel):
     bl_label = 'XRay Verify'
-    bl_category = 'XRay'
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    bl_category = 'XRay'
+    if IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
 
     def draw_header(self, _context):
         icon = plugin.get_stalker_icon()

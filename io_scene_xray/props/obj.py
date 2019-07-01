@@ -12,6 +12,7 @@ from ..skls_browser import (
     XRayObjectSklsBrowserProperties,
     init_skls_browser
 )
+from ..version_utils import assign_props, IS_28
 
 
 def _gen_time_prop(prop, description=''):
@@ -68,12 +69,19 @@ def update_motion_collection_index(self, context):
             anim_data.action = motion
 
 
+xray_object_revision_properties = {
+    'owner': bpy.props.StringProperty(name='owner'),
+    'ctime': bpy.props.IntProperty(name='ctime'),
+    'ctime_str': _gen_time_prop('ctime', description='Creation time'),
+    'moder': bpy.props.StringProperty(name='moder'),
+    'mtime': bpy.props.IntProperty(name='mtime')
+}
+
+
 class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
-    owner = bpy.props.StringProperty(name='owner')
-    ctime = bpy.props.IntProperty(name='ctime')
-    ctime_str = _gen_time_prop('ctime', description='Creation time')
-    moder = bpy.props.StringProperty(name='moder')
-    mtime = bpy.props.IntProperty(name='mtime')
+    if not IS_28:
+        for prop_name, prop_value in xray_object_revision_properties.items():
+            exec('{0} = xray_object_revision_properties.get("{0}")'.format(prop_name))
 
 
 def find_duplicate_name(motion, used_names):
@@ -127,54 +135,79 @@ def update_load_active_motion_refs(self, context):
         bpy.ops.xray.close_skls_file()
 
 
-@registry.requires(XRayObjectRevisionProperties, XRayObjectSklsBrowserProperties, 'MotionRef')
-class XRayObjectProperties(bpy.types.PropertyGroup):
-    class MotionRef(bpy.types.PropertyGroup):
-        name = bpy.props.StringProperty()
-        export_name = bpy.props.StringProperty(update=update_export_name)
+motion_ref_props = {
+    'name': bpy.props.StringProperty(),
+    'export_name': bpy.props.StringProperty(update=update_export_name)
+}
 
-    def get_isroot(self):
-        if not self.root:
-            return False
-        if utils.is_helper_object(self.id_data):
-            return False
-        if self.id_data.parent:
-            return not self.id_data.parent.xray.isroot
-        return True
 
-    def set_isroot(self, value):
-        if self.id_data.parent:
-            self.id_data.parent.xray.isroot = not value
-        self.root = value
+class MotionRef(bpy.types.PropertyGroup):
+    if not IS_28:
+        for prop_name, prop_value in motion_ref_props.items():
+            exec('{0} = motion_ref_props.get("{0}")'.format(prop_name))
 
-    b_type = bpy.types.Object
-    root = bpy.props.BoolProperty(default=True)  # default=True - to backward compatibility
-    isroot = bpy.props.BoolProperty(get=get_isroot, set=set_isroot, options={'SKIP_SAVE'})
-    is_details = bpy.props.BoolProperty(default=False)
-    version = bpy.props.IntProperty()
-    flags = bpy.props.IntProperty(name='flags')
 
-    _flags_simple_inv_map = [
-        None,  # other
-        0x20,  # sound occluder
-        0x14,  # multi. usage
-        0x08,  # hom
-        0x03,  # dynamic progressive
-        0x01,  # dynamic
-        0x00   # static
-    ]
-    _flags_simple_map = {v: k for k, v in enumerate(_flags_simple_inv_map)}
-    flags_force_custom = bpy.props.BoolProperty(options={'SKIP_SAVE'})
-    flags_use_custom = bpy.props.BoolProperty(
+def get_isroot(self):
+    if not self.root:
+        return False
+    if utils.is_helper_object(self.id_data):
+        return False
+    if self.id_data.parent:
+        return not self.id_data.parent.xray.isroot
+    return True
+
+
+def set_isroot(self, value):
+    if self.id_data.parent:
+        self.id_data.parent.xray.isroot = not value
+    self.root = value
+
+
+def set_custom_type(self, value):
+    self.flags = self.flags | 0x1 if value else self.flags & ~0x1
+    self.flags_force_custom = True
+
+
+def userdata_update(self, _context):
+    if self.userdata == '':
+        self.show_userdata = False
+
+_flags_simple_inv_map = [
+    None,  # other
+    0x20,  # sound occluder
+    0x14,  # multi. usage
+    0x08,  # hom
+    0x03,  # dynamic progressive
+    0x01,  # dynamic
+    0x00   # static
+]
+_flags_simple_map = {v: k for k, v in enumerate(_flags_simple_inv_map)}
+
+
+def flags_simple_get(self):
+    if self.flags_force_custom:
+        return 0
+    return _flags_simple_map.get(self.flags, 0)
+
+
+def flags_simple_set(self, value):
+    self.flags_force_custom = value == 0
+    if value != 0:  # !custom
+        self.flags = _flags_simple_inv_map[value]
+
+
+xray_object_properties = {
+    'root': bpy.props.BoolProperty(default=True),    # default=True - to backward compatibility
+    'isroot': bpy.props.BoolProperty(get=get_isroot, set=set_isroot, options={'SKIP_SAVE'}),
+    'is_details': bpy.props.BoolProperty(default=False),
+    'version': bpy.props.IntProperty(),
+    'flags': bpy.props.IntProperty(name='flags'),
+    'flags_force_custom': bpy.props.BoolProperty(options={'SKIP_SAVE'}),
+    'flags_use_custom': bpy.props.BoolProperty(
         options={'SKIP_SAVE'},
-        get=lambda self: self.flags_force_custom or not (self.flags in self._flags_simple_map)
-    )
-
-    def set_custom_type(self, value):
-        self.flags = self.flags | 0x1 if value else self.flags & ~0x1
-        self.flags_force_custom = True
-
-    flags_custom_type = bpy.props.EnumProperty(
+        get=lambda self: self.flags_force_custom or not (self.flags in _flags_simple_map)
+    ),
+    'flags_custom_type': bpy.props.EnumProperty(
         name='Custom Object Type',
         items=(
             ('st', 'Static', ''),
@@ -182,97 +215,90 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
         ),
         options={'SKIP_SAVE'},
         get=lambda self: self.flags & 0x1, set=set_custom_type
-    )
-    flags_custom_progressive = utils_props.gen_flag_prop(
+    ),
+    'flags_custom_progressive': utils_props.gen_flag_prop(
         mask=0x02,
         description='Make Progressive',
         customprop='flags_force_custom'
-    )
-    flags_custom_lod = utils_props.gen_flag_prop(
+    ),
+    'flags_custom_lod': utils_props.gen_flag_prop(
         mask=0x04,
         description='Using LOD',
         customprop='flags_force_custom'
-    )
-    flags_custom_hom = utils_props.gen_flag_prop(
+    ),
+    'flags_custom_hom': utils_props.gen_flag_prop(
         mask=0x08,
         description='Hierarchical Occlusion Mapping',
         customprop='flags_force_custom'
-    )
-    flags_custom_musage = utils_props.gen_flag_prop(
+    ),
+    'flags_custom_musage': utils_props.gen_flag_prop(
         mask=0x10,
         customprop='flags_force_custom'
-    )
-    flags_custom_soccl = utils_props.gen_flag_prop(
+    ),
+    'flags_custom_soccl': utils_props.gen_flag_prop(
         mask=0x20,
         customprop='flags_force_custom'
-    )
-    flags_custom_hqexp = utils_props.gen_flag_prop(
+    ),
+    'flags_custom_hqexp': utils_props.gen_flag_prop(
         mask=0x40,
         description='HQ Geometry',
         customprop='flags_force_custom'
-    )
-
-    def flags_simple_get(self):
-        if self.flags_force_custom:
-            return 0
-        return self._flags_simple_map.get(self.flags, 0)
-
-    def flags_simple_set(self, value):
-        self.flags_force_custom = value == 0
-        if value != 0:  # !custom
-            self.flags = self._flags_simple_inv_map[value]
-
-    flags_simple = bpy.props.EnumProperty(name='Object Type', items=(
+    ),
+    'flags_simple': bpy.props.EnumProperty(name='Object Type', items=(
         ('??', 'Custom', ''),
         ('so', 'Sound Occluder', ''),
         ('mu', 'Multiple Usage', ''),
         ('ho', 'HOM', 'Hierarchical Occlusion Mapping'),
         ('pd', 'Progressive Dynamic', ''),
         ('dy', 'Dynamic', ''),
-        ('st', 'Static', '')), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set)
-    lodref = bpy.props.StringProperty(name='LOD Reference')
-
-    def userdata_update(self, _context):
-        if self.userdata == '':
-            self.show_userdata = False
-    userdata = bpy.props.StringProperty(name='userdata', update=userdata_update)
-    show_userdata = bpy.props.BoolProperty(description='View user data', options={'SKIP_SAVE'})
-    revision = bpy.props.PointerProperty(type=XRayObjectRevisionProperties)
-    load_active_motion_refs = bpy.props.BoolProperty(
+        ('st', 'Static', '')), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set),
+    'lodref': bpy.props.StringProperty(name='LOD Reference'),
+    'userdata': bpy.props.StringProperty(name='userdata', update=userdata_update),
+    'show_userdata': bpy.props.BoolProperty(description='View user data', options={'SKIP_SAVE'}),
+    'revision': bpy.props.PointerProperty(type=XRayObjectRevisionProperties),
+    'load_active_motion_refs': bpy.props.BoolProperty(
         name='Load Active Motion Refs', default=False,
         update=update_load_active_motion_refs
-    )
-    motionrefs = bpy.props.StringProperty(
+    ),
+    'motionrefs': bpy.props.StringProperty(
         description='!Legacy: use \'motionrefs_collection\' instead'
-    )
-    motionrefs_collection = bpy.props.CollectionProperty(type=MotionRef)
-    motionrefs_collection_index = bpy.props.IntProperty(
+    ),
+    'motionrefs_collection': bpy.props.CollectionProperty(type=MotionRef),
+    'motionrefs_collection_index': bpy.props.IntProperty(
         options={'SKIP_SAVE'}, update=load_motion_refs
-    )
-    show_motionsrefs = bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'})
+    ),
+    'show_motionsrefs': bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'}),
 
-    motions = bpy.props.StringProperty(
+    'motions': bpy.props.StringProperty(
         description='!Legacy: use \'motions_collection\' instead'
-    )
-    motions_collection = bpy.props.CollectionProperty(type=MotionRef)
-    motions_collection_index = bpy.props.IntProperty(
+    ),
+    'motions_collection': bpy.props.CollectionProperty(type=MotionRef),
+    'motions_collection_index': bpy.props.IntProperty(
         options={'SKIP_SAVE'}, update=update_motion_collection_index
-    )
-    show_motions = bpy.props.BoolProperty(description='View motions', options={'SKIP_SAVE'})
-    play_active_motion = bpy.props.BoolProperty(name='Play Active Motion', default=False)
-    dependency_object = bpy.props.StringProperty(name='Dependency', default='')
-    use_custom_motion_names = bpy.props.BoolProperty(name='Custom Names', default=False)
-
-    helper_data = bpy.props.StringProperty()
-    export_path = bpy.props.StringProperty(
+    ),
+    'show_motions': bpy.props.BoolProperty(description='View motions', options={'SKIP_SAVE'}),
+    'play_active_motion': bpy.props.BoolProperty(name='Play Active Motion', default=False),
+    'dependency_object': bpy.props.StringProperty(name='Dependency', default=''),
+    'use_custom_motion_names': bpy.props.BoolProperty(name='Custom Names', default=False),
+    'helper_data': bpy.props.StringProperty(),
+    'export_path': bpy.props.StringProperty(
         name='Export Path',
         description='Path relative to the root export folder'
-    )
-
-    detail = bpy.props.PointerProperty(
+    ),
+    'detail': bpy.props.PointerProperty(
         type=det_types.XRayObjectDetailsProperties
-    )
-    skls_browser = bpy.props.PointerProperty(type=XRayObjectSklsBrowserProperties)
+    ),
+    'skls_browser': bpy.props.PointerProperty(type=XRayObjectSklsBrowserProperties)
+}
+
+
+@registry.requires(XRayObjectRevisionProperties, XRayObjectSklsBrowserProperties, MotionRef)
+class XRayObjectProperties(bpy.types.PropertyGroup):
+    b_type = bpy.types.Object
+
+    if not IS_28:
+        for prop_name, prop_value in xray_object_properties.items():
+            exec('{0} = xray_object_properties.get("{0}")'.format(prop_name))
 
     def initialize(self, context):
         if not self.version:
@@ -283,3 +309,10 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
                 self.root = context.thing.type == 'MESH'
                 if context.thing.type == 'ARMATURE':
                     context.thing.data.xray.joint_limits_type = 'XRAY'
+
+
+assign_props([
+    (xray_object_revision_properties, XRayObjectRevisionProperties),
+    (motion_ref_props, MotionRef),
+    (xray_object_properties, XRayObjectProperties)
+])

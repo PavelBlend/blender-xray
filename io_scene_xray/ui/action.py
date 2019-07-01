@@ -6,7 +6,7 @@ from .. import registry
 
 
 @registry.module_thing
-class XRayActionPanel(XRayPanel):
+class XRAY_PT_ActionPanel(XRayPanel):
     bl_category = 'F-Curve'
     bl_space_type = 'DOPESHEET_EDITOR' if bpy.app.version >= (2, 78, 0) else 'GRAPH_EDITOR'
     bl_region_type = 'UI'
@@ -54,12 +54,12 @@ class XRayActionPanel(XRayPanel):
         layout.prop(data, 'flags_fx', text='Type FX', toggle=True)
         if data.flags_fx:
             row = layout.row(align=True)
-            row.label('Start Bone:')
+            row.label(text='Start Bone:')
             row.prop_search(data, 'bonestart_name', obj.pose, 'bones', text='')
             layout.prop(data, 'power', text='Power')
         else:
             row = layout.row(align=True)
-            row.label('Bone Part:')
+            row.label(text='Bone Part:')
             row.prop_search(data, 'bonepart_name', obj.pose, 'bone_groups', text='')
             row = layout.row(align=True)
             row.prop(data, 'flags_stopatend', text='Stop', toggle=True)

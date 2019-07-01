@@ -37,11 +37,16 @@ class TestObjectImport(utils.XRayTestCase):
         )
         self.assertReportsNotContains('WARNING')
         obj = bpy.data.objects['test_fmt.object']
-        self.assertEqual(obj.material_slots[0].material.texture_slots[0].uv_layer, 'uvm')
+        if not bpy.app.version >= (2, 80, 0):
+            self.assertEqual(obj.material_slots[0].material.texture_slots[0].uv_layer, 'uvm')
         self.assertEqual(len(obj.data.uv_layers), 1)
         self.assertEqual(obj.data.uv_layers[0].name, 'uvm')
-        self.assertEqual(len(obj.data.uv_textures), 1)
-        self.assertEqual(obj.data.uv_textures[0].name, 'uvm')
+        if bpy.app.version >= (2, 80, 0):
+            self.assertEqual(len(obj.data.uv_layers), 1)
+            self.assertEqual(obj.data.uv_layers[0].name, 'uvm')
+        else:
+            self.assertEqual(len(obj.data.uv_textures), 1)
+            self.assertEqual(obj.data.uv_textures[0].name, 'uvm')
         bm = bmesh.new()
         bm.from_mesh(obj.data)
         uvl = bm.loops.layers.uv.verify()

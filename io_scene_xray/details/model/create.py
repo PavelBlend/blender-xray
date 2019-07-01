@@ -5,13 +5,14 @@ import bmesh
 
 from ... import xray_io
 from ... import utils
+from ...version_utils import link_object, IS_28
 
 
 def create_object(object_name):
     bpy_mesh = bpy.data.meshes.new(object_name)
     bpy_object = bpy.data.objects.new(object_name, bpy_mesh)
     bpy_object.xray.is_details = True
-    bpy.context.scene.objects.link(bpy_object)
+    link_object(bpy_object)
 
     return bpy_object, bpy_mesh
 
@@ -23,7 +24,8 @@ def create_empty_image(context, detail_model, absolute_image_path):
 
     bpy_image.source = 'FILE'
     bpy_image.filepath = absolute_image_path
-    bpy_image.use_alpha = True
+    if not IS_28:
+        bpy_image.use_alpha = True
 
     return bpy_image
 
@@ -42,26 +44,37 @@ def check_estimated_material_texture(material, det_model):
     texture_filepart = det_model.texture.replace('\\', os.path.sep)
     texture_found = False
 
-    for texture_slot in material.texture_slots:
+    if IS_28:
+        texture_nodes = []
+        for node in material.node_tree.nodes:
+            if node.type == 'TEX_IMAGE':
+                texture_nodes.append(node)
+        if len(texture_nodes) == 1:
+            texture_node = texture_nodes[0]
+            if texture_node.image:
+                if texture_filepart in texture_node.image.filepath:
+                    texture_found = True
+    else:
+        for texture_slot in material.texture_slots:
 
-        if not texture_slot:
-            continue
+            if not texture_slot:
+                continue
 
-        if texture_slot.uv_layer != det_model.mesh.uv_map_name:
-            continue
+            if texture_slot.uv_layer != det_model.mesh.uv_map_name:
+                continue
 
-        if not hasattr(texture_slot.texture, 'image'):
-            continue
+            if not hasattr(texture_slot.texture, 'image'):
+                continue
 
-        if not texture_slot.texture.image:
-            continue
+            if not texture_slot.texture.image:
+                continue
 
-        if not texture_filepart in texture_slot.texture.image.filepath:
-            continue
+            if not texture_filepart in texture_slot.texture.image.filepath:
+                continue
 
-        texture_found = True
+            texture_found = True
 
-        break
+            break
 
     return texture_found
 
@@ -141,17 +154,37 @@ def create_bpy_texture(det_model, bpy_material, abs_image_path):
 def create_material(det_model, abs_image_path):
     bpy_material = bpy.data.materials.new(det_model.texture)
     bpy_material.xray.eshader = det_model.shader
-    bpy_material.use_shadeless = True
-    bpy_material.use_transparency = True
-    bpy_material.alpha = 0.0
+    if not IS_28:
+        bpy_material.use_shadeless = True
+        bpy_material.use_transparency = True
+        bpy_material.alpha = 0.0
 
-    bpy_texture = find_bpy_texture(det_model, abs_image_path)
+        bpy_texture = find_bpy_texture(det_model, abs_image_path)
 
-    if bpy_texture is None:
-        create_bpy_texture(det_model, bpy_material, abs_image_path)
+        if bpy_texture is None:
+            create_bpy_texture(det_model, bpy_material, abs_image_path)
+        else:
+            bpy_texture_slot = bpy_material.texture_slots.add()
+            bpy_texture_slot.texture = bpy_texture
     else:
-        bpy_texture_slot = bpy_material.texture_slots.add()
-        bpy_texture_slot.texture = bpy_texture
+        bpy_material.use_nodes = True
+        bpy_material.blend_method = 'CLIP'
+        node_tree = bpy_material.node_tree
+        texture_node = node_tree.nodes.new('ShaderNodeTexImage')
+        texture_node.name = det_model.texture
+        texture_node.label = det_model.texture
+        bpy_image = find_bpy_image(det_model, abs_image_path)
+        texture_node.image = bpy_image
+        texture_node.location.x -= 500
+        princ_shader = node_tree.nodes['Principled BSDF']
+        node_tree.links.new(
+            texture_node.outputs['Color'],
+            princ_shader.inputs['Base Color']
+        )
+        node_tree.links.new(
+            texture_node.outputs['Alpha'],
+            princ_shader.inputs['Alpha']
+        )
 
     return bpy_material
 
@@ -303,11 +336,12 @@ def create_mesh(packed_reader, det_model):
     create_uv(b_mesh, det_model, bmesh_faces, uvs)
 
     # assign images
-    texture_layer = b_mesh.faces.layers.tex.new(det_model.mesh.uv_map_name)
-    bpy_image = det_model.mesh.bpy_material.texture_slots[0].texture.image
+    if not IS_28:
+        texture_layer = b_mesh.faces.layers.tex.new(det_model.mesh.uv_map_name)
+        bpy_image = det_model.mesh.bpy_material.texture_slots[0].texture.image
 
-    for face in b_mesh.faces:
-        face[texture_layer].image = bpy_image
+        for face in b_mesh.faces:
+            face[texture_layer].image = bpy_image
 
     b_mesh.normal_update()
     b_mesh.to_mesh(det_model.mesh.bpy_mesh)

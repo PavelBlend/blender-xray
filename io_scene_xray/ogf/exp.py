@@ -11,6 +11,7 @@ from ..utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
     calculate_mesh_bbox, gen_texture_name
 from ..utils import is_helper_object
 from ..xray_motions import MATRIX_BONE_INVERTED
+from ..version_utils import multiply, IS_28
 
 
 def calculate_mesh_bsphere(bbox, vertices):
@@ -102,20 +103,30 @@ def _export_child(bpy_obj, cwriter, context, vgm):
     )
 
     material = bpy_obj.data.materials[0]
+    texture = None
+    if IS_28:
+        if material.use_nodes:
+            for node in material.node_tree.nodes:
+                if node.type == 'TEX_IMAGE':
+                    texture = node
+        else:
+            raise AppError('Material "{}" cannot use nodes.'.format(material.name))
+    else:
+        texture = material.active_texture
     cwriter.put(
         Chunks.TEXTURE,
         PackedWriter()
         .puts(
-            gen_texture_name(material.active_texture, context.textures_folder)
+            gen_texture_name(texture, context.textures_folder)
             if context.texname_from_path else
-            material.active_texture.name
+            texture.name
         )
         .puts(material.xray.eshader)
     )
 
     bml_uv = bmesh.loops.layers.uv.active
     bml_vw = bmesh.verts.layers.deform.verify()
-    bpy_data.calc_tangents(bml_uv.name)
+    bpy_data.calc_tangents(uvmap=bml_uv.name)
     vertices = []
     indices = []
     vmap = {}
@@ -306,10 +317,12 @@ def _export(bpy_obj, cwriter, context):
         pwriter.putf('ff', xray.breakf.force, xray.breakf.torque)
         pwriter.putf('f', xray.friction)
         mwriter = obj.matrix_world
-        mat = mwriter * bone.matrix_local * MATRIX_BONE_INVERTED
+        mat = multiply(mwriter, bone.matrix_local, MATRIX_BONE_INVERTED)
         b_parent = find_bone_exportable_parent(bone)
         if b_parent:
-            mat = (mwriter * b_parent.matrix_local * MATRIX_BONE_INVERTED).inverted() * mat
+            mat = multiply(multiply(
+                mwriter, b_parent.matrix_local, MATRIX_BONE_INVERTED
+            ).inverted(), mat)
         euler = mat.to_euler('YXZ')
         pwriter.putf('fff', -euler.x, -euler.z, -euler.y)
         pwriter.putf('fff', *pw_v3f(mat.to_translation()))

@@ -4,6 +4,7 @@ import bpy
 import bpy_extras
 
 from ... import registry, ops, plugin_prefs, utils
+from ...version_utils import assign_props, IS_28
 from .. import exp
 
 
@@ -30,8 +31,27 @@ def find_objects_for_export(context):
     return roots
 
 
+_with_export_motions_props = {
+    'export_motions': plugin_prefs.PropObjectMotionsExport(),
+}
+
+
 class _WithExportMotions:
-    export_motions = plugin_prefs.PropObjectMotionsExport()
+    if not IS_28:
+        for prop_name, prop_value in _with_export_motions_props.items():
+            exec('{0} = _with_export_motions_props.get("{0}")'.format(prop_name))
+
+
+op_export_objects_props = {
+    'objects': bpy.props.StringProperty(options={'HIDDEN'}),
+    'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
+
+    'texture_name_from_image_path': \
+        plugin_prefs.PropObjectTextureNamesFromPath(),
+
+    'fmt_version': plugin_prefs.PropSDKVersion(),
+    'use_export_paths': plugin_prefs.PropUseExportPaths()
+}
 
 
 @registry.module_thing
@@ -39,22 +59,15 @@ class OpExportObjects(ops.BaseOperator, _WithExportMotions):
     bl_idname = 'export_object.xray_objects'
     bl_label = 'Export selected .object-s'
 
-    objects = bpy.props.StringProperty(options={'HIDDEN'})
-
-    directory = bpy.props.StringProperty(subtype="FILE_PATH")
-
-    texture_name_from_image_path = \
-        plugin_prefs.PropObjectTextureNamesFromPath()
-
-    fmt_version = plugin_prefs.PropSDKVersion()
-
-    use_export_paths = plugin_prefs.PropUseExportPaths()
+    if not IS_28:
+        for prop_name, prop_value in op_export_objects_props.items():
+            exec('{0} = op_export_objects_props.get("{0}")'.format(prop_name))
 
     def draw(self, _context):
         layout = self.layout
 
         row = layout.split()
-        row.label('Format Version:')
+        row.label(text='Format Version:')
         row.row().prop(self, 'fmt_version', expand=True)
 
         layout.prop(self, 'use_export_paths')
@@ -103,6 +116,19 @@ class OpExportObjects(ops.BaseOperator, _WithExportMotions):
         return {'RUNNING_MODAL'}
 
 
+filename_ext = '.object'
+op_export_object_props = {
+    'object': bpy.props.StringProperty(options={'HIDDEN'}),
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    ),
+    'texture_name_from_image_path': \
+        plugin_prefs.PropObjectTextureNamesFromPath(),
+    'fmt_version': plugin_prefs.PropSDKVersion()
+}
+
+
 @registry.module_thing
 class OpExportObject(
         ops.BaseOperator,
@@ -113,24 +139,17 @@ class OpExportObject(
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
 
-    object = bpy.props.StringProperty(options={'HIDDEN'})
-
     filename_ext = '.object'
-    filter_glob = bpy.props.StringProperty(
-        default='*'+filename_ext,
-        options={'HIDDEN'}
-    )
 
-    texture_name_from_image_path = \
-        plugin_prefs.PropObjectTextureNamesFromPath()
-
-    fmt_version = plugin_prefs.PropSDKVersion()
+    if not IS_28:
+        for prop_name, prop_value in op_export_object_props.items():
+            exec('{0} = op_export_object_props.get("{0}")'.format(prop_name))
 
     def draw(self, _context):
         layout = self.layout
 
         row = layout.split()
-        row.label('Format Version:')
+        row.label(text='Format Version:')
         row.row().prop(self, 'fmt_version', expand=True)
 
         layout.prop(self, 'export_motions')
@@ -166,10 +185,17 @@ class OpExportObject(
             return {'CANCELLED'}
         self.object = roots[0].name
         self.filepath = self.object
-        if not self.filepath.lower().endswith(self.filename_ext):
-            self.filepath += self.filename_ext
+        if not self.filepath.lower().endswith(filename_ext):
+            self.filepath += filename_ext
         self.fmt_version = prefs.sdk_version
         self.export_motions = prefs.object_motions_export
         self.texture_name_from_image_path = \
             prefs.object_texture_names_from_path
         return super().invoke(context, event)
+
+
+assign_props([
+    (_with_export_motions_props, _WithExportMotions),
+    (op_export_objects_props, OpExportObjects),
+    (op_export_object_props, OpExportObject)
+])

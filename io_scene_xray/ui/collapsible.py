@@ -1,13 +1,22 @@
 import bpy
 
-from io_scene_xray import registry
+from .. import registry
+from ..version_utils import assign_props, IS_28
+
+
+_collaps_op_props = {
+    'key': bpy.props.StringProperty(),
+}
+
 
 class _CollapsOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.collaps'
     bl_label = ''
     bl_description = 'Show / hide UI block'
 
-    key = bpy.props.StringProperty()
+    if not IS_28:
+        for prop_name, prop_value in _collaps_op_props.items():
+            exec('{0} = _collaps_op_props.get("{0}")'.format(prop_name))
 
     _DATA = {}
 
@@ -18,6 +27,11 @@ class _CollapsOp(bpy.types.Operator):
     def execute(self, _context):
         _CollapsOp._DATA[self.key] = not _CollapsOp.get(self.key)
         return {'FINISHED'}
+
+
+assign_props([
+    (_collaps_op_props, _CollapsOp),
+])
 
 
 def draw(layout, key, text=None, enabled=None, icon=None, style=None):
@@ -45,7 +59,7 @@ def draw(layout, key, text=None, enabled=None, icon=None, style=None):
         if box:
             bxr = box.row(align=True)
             bxr.alignment = 'LEFT'
-            bxr.label('')
+            bxr.label(text='')
             box = bxr.column()
     oper = row_operator.operator(_CollapsOp.bl_idname, icon=icon, emboss=style != 'tree', **kwargs)
     oper.key = key

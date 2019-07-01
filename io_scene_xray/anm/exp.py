@@ -32,14 +32,14 @@ def _bake_to_action(bobject, action, frange):
     try:
         group_name = 'LocRot'
         fc_trn = [
-            action.fcurves.new('location', 0, group_name),
-            action.fcurves.new('location', 1, group_name),
-            action.fcurves.new('location', 2, group_name),
+            action.fcurves.new('location', index=0, action_group=group_name),
+            action.fcurves.new('location', index=1, action_group=group_name),
+            action.fcurves.new('location', index=2, action_group=group_name),
         ]
         fc_rot = [
-            action.fcurves.new('rotation_euler', 0, group_name),
-            action.fcurves.new('rotation_euler', 1, group_name),
-            action.fcurves.new('rotation_euler', 2, group_name)
+            action.fcurves.new('rotation_euler', index=0, action_group=group_name),
+            action.fcurves.new('rotation_euler', index=1, action_group=group_name),
+            action.fcurves.new('rotation_euler', index=2, action_group=group_name)
         ]
         prev_rot = None
         for frm in range(int(frange[0]), int(frange[1]) + 1):
