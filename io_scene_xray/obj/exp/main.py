@@ -87,6 +87,10 @@ def export_meshes(chunked_writer, bpy_obj, context):
     if armatures:
         bpy_arm_obj = armatures[0]
         bonemap = {}
+        edit_mode_matrices = {}
+        with utils.using_mode('EDIT'):
+            for bone_ in bpy_arm_obj.data.edit_bones:
+                edit_mode_matrices[bone_.name] = bone_.matrix
         for bone_ in bpy_arm_obj.data.bones:
             if not utils.is_exportable_bone(bone_):
                 continue
@@ -94,7 +98,7 @@ def export_meshes(chunked_writer, bpy_obj, context):
             if not real_parent:
                 root_bones.append(bone_.name)
             bone.export_bone(
-                bpy_arm_obj, bpy_root, bone_, bone_writers, bonemap, context
+                bpy_arm_obj, bone_, bone_writers, bonemap, edit_mode_matrices
             )
 
         invalid_bones = []
