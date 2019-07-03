@@ -6,7 +6,7 @@ import bpy
 import mathutils
 
 from ... import xray_io, utils, log, xray_motions
-from ...version_utils import IS_28
+from ...version_utils import IS_28, using_active_object
 from .. import fmt
 from . import mesh, bone
 
@@ -88,7 +88,7 @@ def export_meshes(chunked_writer, bpy_obj, context):
         bpy_arm_obj = armatures[0]
         bonemap = {}
         edit_mode_matrices = {}
-        with utils.using_mode('EDIT'):
+        with using_active_object(bpy_arm_obj), utils.using_mode('EDIT'):
             for bone_ in bpy_arm_obj.data.edit_bones:
                 edit_mode_matrices[bone_.name] = bone_.matrix
         for bone_ in bpy_arm_obj.data.bones:

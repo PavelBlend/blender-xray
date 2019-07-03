@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import bpy
 
 
@@ -84,6 +85,17 @@ def set_active_object(obj):
         bpy.context.view_layer.objects.active = obj
     else:
         bpy.context.scene.objects.active = obj
+
+
+@contextmanager
+def using_active_object(obj):
+    objects = bpy.context.view_layer.objects if IS_28 else bpy.context.scene.objects
+    original = objects.active
+    objects.active = obj
+    try:
+        yield
+    finally:
+        objects.active = original
 
 
 def multiply(*elements):
