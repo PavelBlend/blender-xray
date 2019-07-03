@@ -79,25 +79,11 @@ class TestObjectExport(utils.XRayTestCase):
         # Arrange
         objs = self._create_objects()
 
-        arm = bpy.data.armatures.new('tarm')
-        obj = bpy.data.objects.new('tobj', arm)
-        utils.link_object(obj)
+        obj = _create_armature(objs[0])
         utils.set_active_object(obj)
-        bpy.ops.object.mode_set(mode='EDIT')
-        try:
-            bone = arm.edit_bones.new('tbone')
-            bone.tail.y = 1
-        finally:
-            bpy.ops.object.mode_set(mode='OBJECT')
+        arm = obj.data
         arm.bones['tbone'].xray.shape.type = '2'
         arm.bones['tbone'].xray.shape.sph_rad = 1
-
-        objs[0].modifiers.new(name='Armature', type='ARMATURE').object = obj
-        objs[0].parent = obj
-        grp = objs[0].vertex_groups.new()
-        grp.add(range(3), 1, 'REPLACE')
-        grp = objs[0].vertex_groups.new(name=io_scene_xray.utils.BAD_VTX_GROUP_NAME)
-        grp.add([3], 1, 'REPLACE')
 
         # Act
         bpy.ops.export_object.xray_objects(
@@ -176,6 +162,28 @@ class TestObjectExport(utils.XRayTestCase):
         self.assertNotRegex(content, re.compile(bytes(bg_non.name, 'cp1251')))
         self.assertNotRegex(content, re.compile(bytes(bg_emp.name, 'cp1251')))
 
+    def test_export_with_empty(self):
+        # Arrange
+        root = bpy.data.objects.new('empty', None)
+        utils.link_object(root)
+
+        objs = self._create_objects()
+        obj = _create_armature(objs[0])
+        obj.parent = root
+
+        utils.set_active_object(root)
+
+        # Act
+        bpy.ops.xray_export.object(
+            object='empty', filepath=self.outpath('test.object'),
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertOutputFiles({
+            'test.object'
+        })
+
     def test_export_no_uvmap(self):
         # Arrange
         self._create_objects(create_uv=False)
@@ -219,3 +227,26 @@ class TestObjectExport(utils.XRayTestCase):
             objs.append(obj)
         objs[1].xray.export_path = 'a/b'
         return objs
+
+
+def _create_armature(target):
+    arm = bpy.data.armatures.new('tarm')
+    obj = bpy.data.objects.new('tobj', arm)
+    utils.link_object(obj)
+    utils.set_active_object(obj)
+
+    bpy.ops.object.mode_set(mode='EDIT')
+    try:
+        bone = arm.edit_bones.new('tbone')
+        bone.tail.y = 1
+    finally:
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+    target.modifiers.new(name='Armature', type='ARMATURE').object = obj
+    target.parent = obj
+    grp = target.vertex_groups.new()
+    grp.add(range(3), 1, 'REPLACE')
+    grp = target.vertex_groups.new(name=io_scene_xray.utils.BAD_VTX_GROUP_NAME)
+    grp.add([3], 1, 'REPLACE')
+
+    return obj
