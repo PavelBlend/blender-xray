@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 import math
+from time import time
 
 from bpy_extras import io_utils
 
@@ -482,3 +483,15 @@ def mk_export_context(texname_from_path, fmt_version=None, export_motions=True):
         soc_sgroups=None if fmt_version is None else (fmt_version == 'soc'),
         texname_from_path=texname_from_path
     )
+
+def time_log():
+    def decorator(func):
+        name = func.__name__
+        def wrap(*args, **kwargs):
+            start = time()
+            try:
+                return func(*args, **kwargs)
+            finally:
+                log.debug('time', func=name, time=(time() - start))
+        return wrap
+    return decorator

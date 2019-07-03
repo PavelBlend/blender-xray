@@ -198,101 +198,15 @@ def export_motion(pkw, action, armature):
             dependency_object.animation_data.action = action
 
     prepared_bones = _prepare_bones(armature)
-    _ake_motion_data = _take_motion_data
-    if action.xray.autobake_effective(armature):
-        _ake_motion_data = _bake_motion_data
-    bones_animations = _ake_motion_data(action, armature, prepared_bones)
+    bones_animations = _bake_motion_data(action, armature, prepared_bones)
     _export_motion_data(pkw, action, bones_animations, armature)
 
     if dependency_object:
         dependency_object.animation_data.action = old_action
 
 
-def _take_motion_data(bpy_act, bpy_armature, prepared_bones):
-    def make_frotmatrix(rotmode, bone_name):
-        if len(rotmode) == 3:
-            return (
-                lambda rot: Euler(rot, rotmode).to_matrix(),
-                [None, None, None],
-            )
-        elif rotmode == 'QUATERNION':
-            return (
-                lambda rot: Quaternion(rot).to_matrix(),
-                [None, None, None, None],
-            )
-        else:
-            raise AppError(
-                'bone uses unsupported rotation mode', log_props(
-                    action=bpy_act.name,
-                    bone=bone_name,
-                    mode=rotmode
-                )
-            )
-
-    frange = bpy_act.frame_range
-    result = []
-    for bone, xmat, is_root in prepared_bones:
-        data = []
-        result.append((bone.name, data))
-
-        group = bpy_act.groups.get(bone.name, None)
-        if group is None:
-            data.append(xmat)
-            continue
-
-        rotmode = bpy_armature.pose.bones[group.name].rotation_mode
-        chs_tr, chs_rt = [None, None, None], None
-
-        frotmatrix, chs_rt = make_frotmatrix(rotmode, group.name)
-
-        skipped_paths = set()
-        for channel in group.channels:
-            path = channel.data_path
-            chs = None
-            if path.endswith('.location'):
-                chs = chs_tr
-            elif path.endswith('.rotation_euler'):
-                if len(rotmode) == 3:
-                    chs = chs_rt
-            elif path.endswith('.rotation_quaternion'):
-                if rotmode == 'QUATERNION':
-                    chs = chs_rt
-            if chs is None:
-                if path not in skipped_paths:
-                    warn(
-                        'Motions: bone has curve which is not supported by rotation mode, skipping',
-                        motion=bpy_act.name,
-                        bone=group.name,
-                        curve=path,
-                        retation=rotmode
-                    )
-                skipped_paths.add(path)
-                continue
-            chs[channel.array_index] = channel
-
-        def evaluate_channels(channels, time):
-            return (channel.evaluate(time) if channel else 0 for channel in channels)
-
-        scene = bpy.context.scene
-        old_current_frame = scene.frame_current
-        for time in range(int(frange[0]), int(frange[1]) + 1):
-            if is_root and bone.parent:
-                scene.frame_set(time)
-                mat = multiply(MATRIX_BONE_INVERTED, bone.matrix)
-            else:
-                mat = multiply(
-                    xmat,
-                    Matrix.Translation(evaluate_channels(chs_tr, time)),
-                    frotmatrix(evaluate_channels(chs_rt, time)).to_4x4()
-                )
-            data.append(mat)
-        scene.frame_set(old_current_frame)
-
-    return result
-
-
 def _bake_motion_data(action, armature, prepared_bones):
-    exportable_bones = [(bone, matrix, is_root, []) for bone, matrix, is_root in prepared_bones]
+    exportable_bones = [(bone, parent, []) for bone, parent in prepared_bones]
 
     has_old_action = False
     if armature.animation_data:
@@ -305,35 +219,27 @@ def _bake_motion_data(action, armature, prepared_bones):
         armature.animation_data.action = action
         for frm in range(int(action.frame_range[0]), int(action.frame_range[1]) + 1):
             bpy.context.scene.frame_set(frm)
-            for pbone, mat, is_root, data in exportable_bones:
-                if not is_root:
-                    data.append(multiply(mat, armature.convert_space(
-                        pose_bone=pbone,
-                        matrix=pbone.matrix,
-                        from_space='POSE',
-                        to_space='LOCAL'
-                    )))
-                else:
-                    data.append(multiply(MATRIX_BONE_INVERTED, pbone.matrix))
+            for pbone, parent, data in exportable_bones:
+                parent_matrix = parent.matrix.inverted() if parent else MATRIX_BONE_INVERTED
+                data.append(multiply(parent_matrix, pbone.matrix))
     finally:
         if has_old_action:
             armature.animation_data.action = old_act
         bpy.context.scene.frame_set(old_frame)
 
-    return [(pbone.name, animation) for pbone, _, _, animation in exportable_bones]
+    return [
+        (pbone.name, animation)
+        for pbone, _, animation in exportable_bones
+    ]
 
 
 def _prepare_bones(armature):
     def prepare_bone(bone):
-        mat = bone.matrix_local
         real_parent = find_bone_exportable_parent(bone)
-        if real_parent:
-            root_bone = False
-            mat = multiply(real_parent.matrix_local.inverted(), mat)
-        else:
-            root_bone = True
-            mat = multiply(MATRIX_BONE_INVERTED, mat)
-        return armature.pose.bones[bone.name], mat, root_bone
+        return (
+            armature.pose.bones[bone.name],
+            armature.pose.bones[real_parent.name] if real_parent else None
+        )
 
     return [
         prepare_bone(bone)

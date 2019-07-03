@@ -330,6 +330,7 @@ def export_revision(chunked_writer, xray):
     chunked_writer.put(fmt.Chunks.Object.REVISION, writer)
 
 
+# @utils.time_log()
 def export_main(bpy_obj, chunked_writer, context):
     xray = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
 
