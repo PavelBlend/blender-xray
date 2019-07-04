@@ -64,7 +64,7 @@ def init_skls_browser(self, context, filepath):
 
 
 op_browse_skls_file_props = {
-    'filepath': bpy.props.StringProperty(subtype='FILE_PATH'),
+    'filepath': bpy.props.StringProperty(subtype='FILE_PATH', options={'HIDDEN'}),
     'filter_glob': bpy.props.StringProperty(default='*.skls', options={'HIDDEN'})
 }
 

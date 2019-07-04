@@ -18,6 +18,14 @@ class VIEW3D_PT_skls_animations(XRayPanel):
     if IS_28:
         bl_category = 'XRay'
 
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if obj is None:
+            return False
+        if obj.type == 'ARMATURE':
+            return True
+
     def draw(self, context):
         layout = self.layout
 
