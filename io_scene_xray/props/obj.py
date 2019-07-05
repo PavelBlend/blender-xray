@@ -55,18 +55,35 @@ def update_motion_collection_index(self, context):
     if not bpy.data.actions.get(motion_name):
         return
 
-    motion = bpy.data.actions[motion_name]
-    anim_data = obj.animation_data_create()
-    anim_data.action = motion
-    scene.frame_start = motion.frame_range[0]
-    scene.frame_end = motion.frame_range[1]
-    scene.frame_set(motion.frame_range[0])
+    armatures = []
 
-    if xray.dependency_object:
-        dependency = bpy.data.objects.get(xray.dependency_object)
-        if dependency:
-            anim_data = dependency.animation_data_create()
-            anim_data.action = motion
+    def find_armature(obj):
+        for child in obj.children:
+            if child.type == 'ARMATURE':
+                armatures.append(child)
+            find_armature(child)
+
+    arm_obj = None
+    if obj.type != 'ARMATURE':
+        find_armature(obj)
+        if len(armatures) == 1:
+            arm_obj = armatures[0]
+    else:
+        arm_obj = obj
+
+    if arm_obj:
+        motion = bpy.data.actions[motion_name]
+        anim_data = arm_obj.animation_data_create()
+        anim_data.action = motion
+        scene.frame_start = motion.frame_range[0]
+        scene.frame_end = motion.frame_range[1]
+        scene.frame_set(motion.frame_range[0])
+
+        if xray.dependency_object:
+            dependency = bpy.data.objects.get(xray.dependency_object)
+            if dependency:
+                anim_data = dependency.animation_data_create()
+                anim_data.action = motion
 
 
 xray_object_revision_properties = {
