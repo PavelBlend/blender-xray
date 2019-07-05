@@ -29,10 +29,24 @@ def export_flags(chunked_writer, xray):
     )
 
 
+def validate_vertex_weights(bpy_obj):
+    has_ungrouped_vertices = None
+    ungrouped_vertices_count = 0
+    for vertex in bpy_obj.data.vertices:
+        if not len(vertex.groups):
+            has_ungrouped_vertices = True
+            ungrouped_vertices_count += 1
+    if has_ungrouped_vertices:
+        raise utils.AppError('Mesh "{0}" has {1} ungrouped vertices'.format(
+            bpy_obj.data.name, ungrouped_vertices_count
+        ))
+
+
 def export_meshes(chunked_writer, bpy_obj, context):
     mesh_writers = []
     armatures = set()
     materials = set()
+    meshes = set()
     uv_maps_names = {}
     bpy_root = bpy_obj
 
@@ -40,6 +54,7 @@ def export_meshes(chunked_writer, bpy_obj, context):
         if utils.is_helper_object(bpy_obj):
             return
         if bpy_obj.type == 'MESH':
+            meshes.add(bpy_obj)
             mesh_writer = xray_io.ChunkedWriter()
             used_material_names = mesh.export_mesh(
                 bpy_obj,
@@ -80,6 +95,10 @@ def export_meshes(chunked_writer, bpy_obj, context):
         raise utils.AppError(
             'Skeletal object "{}" has more than one mesh'.format(bpy_obj.name)
         )
+
+    if len(armatures) == 1:
+        for mesh_obj in meshes:
+            validate_vertex_weights(mesh_obj)
 
     bone_writers = []
     root_bones = []
