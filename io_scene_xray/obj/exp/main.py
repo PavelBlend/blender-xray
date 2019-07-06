@@ -29,15 +29,29 @@ def export_flags(chunked_writer, xray):
     )
 
 
-def validate_vertex_weights(bpy_obj):
+def validate_vertex_weights(bpy_obj, arm_obj):
+    exportable_bones_names = [
+        bone.name for bone in arm_obj.data.bones if bone.xray.exportable
+    ]
+    exportable_groups_indices = [
+        group.index for group in bpy_obj.vertex_groups if group.name in exportable_bones_names
+    ]
     has_ungrouped_vertices = None
     ungrouped_vertices_count = 0
     for vertex in bpy_obj.data.vertices:
         if not len(vertex.groups):
             has_ungrouped_vertices = True
             ungrouped_vertices_count += 1
+        else:
+            exportable_groups_count = 0
+            for vertex_group in vertex.groups:
+                if vertex_group.group in exportable_groups_indices:
+                    exportable_groups_count += 1
+            if not exportable_groups_count:
+                has_ungrouped_vertices = True
+                ungrouped_vertices_count += 1
     if has_ungrouped_vertices:
-        raise utils.AppError('Mesh "{0}" has {1} ungrouped vertices'.format(
+        raise utils.AppError('Mesh "{0}" has {1} vertices that are not tied to any exportable bones'.format(
             bpy_obj.data.name, ungrouped_vertices_count
         ))
 
@@ -98,7 +112,7 @@ def export_meshes(chunked_writer, bpy_obj, context):
 
     if len(armatures) == 1:
         for mesh_obj in meshes:
-            validate_vertex_weights(mesh_obj)
+            validate_vertex_weights(mesh_obj, list(armatures)[0])
 
     bone_writers = []
     root_bones = []

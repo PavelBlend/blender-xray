@@ -148,19 +148,11 @@ class TestObjectExport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
-        self.assertOutputFiles({
-            'tobj.object',
-        })
-        content = self.getFileSafeContent('tobj.object')
-        self.assertRegex(content, re.compile(bytes(b_exp0, 'cp1251')))
-        self.assertRegex(content, re.compile(bytes(b_exp1, 'cp1251')))
-        self.assertNotRegex(content, re.compile(bytes(b_non0, 'cp1251')))
-        self.assertNotRegex(content, re.compile(bytes(b_non1, 'cp1251')))
-        self.assertRegex(content, re.compile(bytes(bg_exp.name, 'cp1251')))
-        self.assertRegex(content, re.compile(bytes(bg_mix.name, 'cp1251')))
-        self.assertNotRegex(content, re.compile(bytes(bg_non.name, 'cp1251')))
-        self.assertNotRegex(content, re.compile(bytes(bg_emp.name, 'cp1251')))
+        self.assertReportsContains('WARNING', re.compile(
+            'Mesh "{0}" has {1} vertices that are not tied to any exportable bones'.format(
+                obj_me.name, len(obj_me.data.vertices
+            ))
+        ))
 
     def test_export_with_empty(self):
         # Arrange
@@ -244,9 +236,10 @@ def _create_armature(target):
 
     target.modifiers.new(name='Armature', type='ARMATURE').object = obj
     target.parent = obj
-    grp = target.vertex_groups.new()
-    grp.add(range(3), 1, 'REPLACE')
+    grp = target.vertex_groups.new(name='tbone')
+    vertices_count = len(target.data.vertices)
+    grp.add(range(vertices_count), 1, 'REPLACE')
     grp = target.vertex_groups.new(name=io_scene_xray.utils.BAD_VTX_GROUP_NAME)
-    grp.add([3], 1, 'REPLACE')
+    grp.add([vertices_count], 1, 'REPLACE')
 
     return obj
