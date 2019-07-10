@@ -122,13 +122,13 @@ def export_vertices(cw, bm):
     cw.put(fmt.Chunks.Mesh.VERTS, writer)
 
 
-def export_faces(cw, bm):
+def export_faces(cw, bm, bpy_obj):
     uvs = []
     vtx = []
     fcs = []
     uv_layer = bm.loops.layers.uv.active
     if not uv_layer:
-        raise utils.AppError('UV-map is required, but not found')
+        raise utils.AppError('UV-map is required, but not found on the "{0}" object'.format(bpy_obj.name))
 
     writer = xray_io.PackedWriter()
     writer.putf('I', len(bm.faces))
@@ -162,7 +162,7 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
 
     export_vertices(cw, bm)
 
-    uvs, vtx, fcs = export_faces(cw, bm)
+    uvs, vtx, fcs = export_faces(cw, bm, bpy_obj)
 
     if bpy_root.type == 'ARMATURE':
         bones_names = []
@@ -222,7 +222,7 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
             used_material_names.add(material_name)
 
     if not sfaces:
-        raise utils.AppError('mesh has no material')
+        raise utils.AppError('mesh "{0}" has no material'.format(bpy_obj.data.name))
     writer.putf('H', len(used_material_names))
     for name, fidxs in sfaces.items():
         if name in used_material_names:
