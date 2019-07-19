@@ -73,8 +73,6 @@ def update_motion_collection_index(self, context):
 
     if arm_obj:
         motion = bpy.data.actions[motion_name]
-        anim_data = arm_obj.animation_data_create()
-        anim_data.action = motion
         scene.frame_start = motion.frame_range[0]
         scene.frame_end = motion.frame_range[1]
         scene.frame_set(motion.frame_range[0])
@@ -84,6 +82,9 @@ def update_motion_collection_index(self, context):
             if dependency:
                 anim_data = dependency.animation_data_create()
                 anim_data.action = motion
+        else:
+            anim_data = arm_obj.animation_data_create()
+            anim_data.action = motion
 
 
 xray_object_revision_properties = {
