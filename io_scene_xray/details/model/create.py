@@ -151,9 +151,10 @@ def create_bpy_texture(det_model, bpy_material, abs_image_path):
     bpy_texture.image = bpy_image
 
 
-def create_material(det_model, abs_image_path):
+def create_material(det_model, abs_image_path, context):
     bpy_material = bpy.data.materials.new(det_model.texture)
     bpy_material.xray.eshader = det_model.shader
+    bpy_material.xray.version = context.version
     if not IS_28:
         bpy_material.use_shadeless = True
         bpy_material.use_transparency = True
@@ -213,7 +214,7 @@ def search_material(context, det_model, fpath=None):
         break
 
     if not bpy_material:
-        bpy_material = create_material(det_model, abs_image_path)
+        bpy_material = create_material(det_model, abs_image_path, context)
 
     return bpy_material
 
