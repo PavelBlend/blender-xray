@@ -49,10 +49,6 @@ class AppError(Exception):
         self.ctx = ctx
 
 
-class AppWarning(AppError):
-    pass
-
-
 @contextmanager
 def logger(name, report):
     lgr = Logger(report)
@@ -62,9 +58,6 @@ def logger(name, report):
     except AppError as err:
         lgr.err(str(err), err.ctx)
         raise err
-    except AppWarning as warn:
-        lgr.warn(str(warn), warn.ctx)
-        raise warn
     finally:
         lgr.flush(name)
 
