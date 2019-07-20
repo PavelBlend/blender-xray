@@ -1,5 +1,3 @@
-import io
-
 from .. import xray_io
 from . import write, convert
 
@@ -24,7 +22,8 @@ def _export(bpy_obj, chunked_writer, context):
 
 
 def export_file(bpy_obj, fpath, context):
-    with io.open(fpath, 'wb') as file:
-        chunked_writer = xray_io.ChunkedWriter()
-        _export(bpy_obj, chunked_writer, context)
-        file.write(chunked_writer.data)
+    chunked_writer = xray_io.ChunkedWriter()
+    _export(bpy_obj, chunked_writer, context)
+    file = open(fpath, 'wb')
+    file.write(chunked_writer.data)
+    file.close()

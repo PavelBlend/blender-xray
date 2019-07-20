@@ -17,18 +17,20 @@ def _export_skl(chunked_writer, context):
 
 
 def export_skl_file(fpath, context):
-    with open(fpath, 'wb') as file:
-        writer = ChunkedWriter()
-        _export_skl(writer, context)
-        file.write(writer.data)
+    writer = ChunkedWriter()
+    _export_skl(writer, context)
+    file = open(fpath, 'wb')
+    file.write(writer.data)
+    file.close()
 
 
 def export_skls_file(fpath, context):
-    with open(fpath, 'wb') as file:
-        writer = PackedWriter()
-        actions = []
-        for motion in bpy.context.object.xray.motions_collection:
-            action = bpy.data.actions[motion.name]
-            actions.append(action)
-        export_motions(writer, actions, context.armature)
-        file.write(writer.data)
+    writer = PackedWriter()
+    actions = []
+    for motion in bpy.context.object.xray.motions_collection:
+        action = bpy.data.actions[motion.name]
+        actions.append(action)
+    export_motions(writer, actions, context.armature)
+    file = open(fpath, 'wb')
+    file.write(writer.data)
+    file.close()

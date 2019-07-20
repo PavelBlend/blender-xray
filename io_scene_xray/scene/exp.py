@@ -1,4 +1,3 @@
-import io
 import string
 
 from .. import xray_io
@@ -113,7 +112,8 @@ def _export(bpy_objs, chunked_writer):
 
 
 def export_file(bpy_objs, filepath):
-    with io.open(filepath, 'wb') as file:
-        writer = xray_io.ChunkedWriter()
-        _export(bpy_objs, writer)
-        file.write(writer.data)
+    writer = xray_io.ChunkedWriter()
+    _export(bpy_objs, writer)
+    file = open(filepath, 'wb')
+    file.write(writer.data)
+    file.close()
