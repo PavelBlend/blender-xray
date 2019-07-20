@@ -4,7 +4,7 @@ import bpy
 from bpy_extras import io_utils
 
 from .. import plugin_prefs, registry
-from ..utils import execute_with_logger, FilenameExtHelper, AppError, set_cursor_state
+from ..utils import execute_with_logger, FilenameExtHelper, set_cursor_state
 from ..version_utils import assign_props, IS_28
 
 

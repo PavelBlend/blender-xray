@@ -148,7 +148,7 @@ class TestObjectExport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsContains('WARNING', re.compile(
+        self.assertReportsContains('ERROR', re.compile(
             'Mesh "{0}" has {1} vertices that are not tied to any exportable bones'.format(
                 obj_me.name, len(obj_me.data.vertices
             ))
@@ -187,7 +187,7 @@ class TestObjectExport(utils.XRayTestCase):
 
         # Assert
         self.assertReportsContains(
-            'WARNING',
+            'ERROR',
             re.compile('UV-map is required, but not found')
         )
 
@@ -203,7 +203,7 @@ class TestObjectExport(utils.XRayTestCase):
         # Assert
         mesh_name = bpy.data.objects['tobj1'].data.name
         self.assertReportsContains(
-            'WARNING',
+            'ERROR',
             re.compile('Mesh "{0}" has no material'.format(mesh_name))
         )
 

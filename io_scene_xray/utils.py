@@ -49,6 +49,10 @@ class AppError(Exception):
         self.ctx = ctx
 
 
+class AppWarning(AppError):
+    pass
+
+
 @contextmanager
 def logger(name, report):
     lgr = Logger(report)
@@ -56,8 +60,11 @@ def logger(name, report):
         with log.using_logger(lgr):
             yield
     except AppError as err:
-        lgr.warn(str(err), err.ctx)
+        lgr.err(str(err), err.ctx)
         raise err
+    except AppWarning as warn:
+        lgr.warn(str(warn), warn.ctx)
+        raise warn
     finally:
         lgr.flush(name)
 
@@ -67,26 +74,34 @@ class Logger:
         self._report = report
         self._full = list()
 
-    def warn(self, message, ctx=None):
+    def message_format(self, message):
         message = str(message)
         message = message.strip()
         message = message[0].upper() + message[1:]
-        self._full.append((message, ctx))
+        return message
+
+    def warn(self, message, ctx=None):
+        message = self.message_format(message)
+        self._full.append((message, ctx, 'WARNING'))
+
+    def err(self, message, ctx=None):
+        message = self.message_format(message)
+        self._full.append((message, ctx, 'ERROR'))
 
     def flush(self, logname='log'):
         uniq = dict()
-        for msg, _ in self._full:
-            uniq[msg] = uniq.get(msg, 0) + 1
+        for msg, _, typ in self._full:
+            uniq[msg] = uniq.get(msg, 0) + 1, typ
         if not uniq:
             return
 
         lines = ['Digest:']
-        for msg, cnt in uniq.items():
+        for msg, (cnt, typ) in uniq.items():
             line = msg
             if cnt > 1:
                 line = ('[%dx] ' % cnt) + line
             lines.append(' ' + line)
-            self._report({'WARNING'}, line)
+            self._report({typ}, line)
 
         lines.extend(['', 'Full log:'])
         processed_groups = dict()
@@ -125,7 +140,7 @@ class Logger:
 
         last_message = None
         last_message_count = 0
-        for msg, ctx in self._full:
+        for msg, ctx, typ in self._full:
             data = dict()
             group = ctx
             while group and group.lightweight:

@@ -3,7 +3,7 @@ import bpy
 from ..xray_io import ChunkedWriter, PackedWriter
 from .fmt import Chunks
 from ..xray_envelope import export_envelope, EPSILON
-from ..utils import smooth_euler, AppError
+from ..utils import smooth_euler
 
 
 def _export(bpy_obj, chunked_writer):
