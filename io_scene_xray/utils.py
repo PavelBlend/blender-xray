@@ -84,7 +84,7 @@ class Logger:
     def flush(self, logname='log'):
         uniq = dict()
         for msg, _, typ in self._full:
-            uniq[msg] = uniq.get(msg, 0) + 1, typ
+            uniq[msg] = uniq.get(msg, (0, typ))[0] + 1, typ
         if not uniq:
             return
 
