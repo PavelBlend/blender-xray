@@ -60,9 +60,6 @@ def check_estimated_material_texture(material, det_model):
             if not texture_slot:
                 continue
 
-            if texture_slot.uv_layer != det_model.mesh.uv_map_name:
-                continue
-
             if not hasattr(texture_slot.texture, 'image'):
                 continue
 
@@ -79,7 +76,7 @@ def check_estimated_material_texture(material, det_model):
     return texture_found
 
 
-def find_bpy_texture(det_model, abs_image_path):
+def find_bpy_texture(det_model, abs_image_path, alternative_image_path):
     bpy_texture = bpy.data.textures.get(det_model.texture)
 
     if bpy_texture:
@@ -88,7 +85,8 @@ def find_bpy_texture(det_model, abs_image_path):
         elif not bpy_texture.image:
             bpy_texture = None
         elif bpy_texture.image.filepath != abs_image_path:
-            bpy_texture = None
+            if bpy_texture.image.filepath != alternative_image_path:
+                bpy_texture = None
 
     return bpy_texture
 
@@ -159,8 +157,13 @@ def create_material(det_model, abs_image_path, context):
         bpy_material.use_shadeless = True
         bpy_material.use_transparency = True
         bpy_material.alpha = 0.0
+        alternative_image_path = os.path.join(
+            os.path.dirname(det_model.fpath), det_model.texture + '.dds'
+        )
 
-        bpy_texture = find_bpy_texture(det_model, abs_image_path)
+        bpy_texture = find_bpy_texture(
+            det_model, abs_image_path, alternative_image_path
+        )
 
         if bpy_texture is None:
             create_bpy_texture(det_model, bpy_material, abs_image_path)
