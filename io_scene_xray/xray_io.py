@@ -1,5 +1,6 @@
 import struct
 from .lzhuf import decompress_buffer
+from .utils import AppError
 
 
 class FastBytes:
@@ -158,7 +159,10 @@ class PackedWriter():
         return self
 
     def puts(self, string):
-        self.data += string.encode('cp1251')
+        try:
+            self.data += string.encode('cp1251')
+        except UnicodeEncodeError:
+            raise AppError('Not valid string: {}'.format(string))
         self.data += b'\x00'
         return self
 
