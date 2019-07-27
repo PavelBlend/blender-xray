@@ -1,3 +1,5 @@
+import io
+
 from bmesh.ops import triangulate
 import bpy
 import mathutils
@@ -335,6 +337,5 @@ def _export(bpy_obj, cwriter, context):
 def export_file(bpy_obj, fpath, context):
     cwriter = ChunkedWriter()
     _export(bpy_obj, cwriter, context)
-    file = open(fpath, 'wb')
-    file.write(cwriter.data)
-    file.close()
+    with io.open(fpath, 'wb') as file:
+        file.write(cwriter.data)

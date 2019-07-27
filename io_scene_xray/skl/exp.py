@@ -19,9 +19,8 @@ def _export_skl(chunked_writer, context):
 def export_skl_file(fpath, context):
     writer = ChunkedWriter()
     _export_skl(writer, context)
-    file = open(fpath, 'wb')
-    file.write(writer.data)
-    file.close()
+    with open(fpath, 'wb') as file:
+        file.write(writer.data)
 
 
 def export_skls_file(fpath, context):
@@ -31,6 +30,5 @@ def export_skls_file(fpath, context):
         action = bpy.data.actions[motion.name]
         actions.append(action)
     export_motions(writer, actions, context.armature)
-    file = open(fpath, 'wb')
-    file.write(writer.data)
-    file.close()
+    with open(fpath, 'wb') as file:
+        file.write(writer.data)

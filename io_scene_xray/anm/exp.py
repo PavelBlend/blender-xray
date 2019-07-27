@@ -1,3 +1,5 @@
+import io
+
 import bpy
 
 from ..xray_io import ChunkedWriter, PackedWriter
@@ -75,6 +77,5 @@ def _export_action_data(pkw, xray, fcurves):
 def export_file(bpy_obj, fpath):
     writer = ChunkedWriter()
     _export(bpy_obj, writer)
-    file = open(fpath, 'wb')
-    file.write(writer.data)
-    file.close()
+    with io.open(fpath, 'wb') as file:
+        file.write(writer.data)

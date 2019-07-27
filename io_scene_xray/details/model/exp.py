@@ -1,3 +1,5 @@
+import io
+
 import bpy
 import bmesh
 import mathutils
@@ -88,6 +90,5 @@ def export(bpy_obj, packed_writer, context, mode='DM'):
 def export_file(bpy_obj, fpath, context):
     packed_writer = xray_io.PackedWriter()
     export(bpy_obj, packed_writer, context)
-    file = open(fpath, 'wb')
-    file.write(packed_writer.data)
-    file.close()
+    with io.open(fpath, 'wb') as file:
+        file.write(packed_writer.data)

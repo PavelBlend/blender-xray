@@ -1,3 +1,5 @@
+import io
+
 from ... import xray_io
 from .. import fmt
 from . import main
@@ -27,6 +29,5 @@ def _export(bpy_obj, chunked_writer, context):
 def export_file(bpy_obj, fpath, context):
     writer = xray_io.ChunkedWriter()
     _export(bpy_obj, writer, context)
-    file = open(fpath, 'wb')
-    file.write(writer.data)
-    file.close()
+    with io.open(fpath, 'wb') as file:
+        file.write(writer.data)
