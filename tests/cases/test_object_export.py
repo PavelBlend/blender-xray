@@ -139,6 +139,8 @@ class TestObjectExport(utils.XRayTestCase):
         obj_me = utils.create_object(bmesh, True)
         obj_me.parent = obj
         obj_me.xray.isroot = False
+        vertex_group = obj_me.vertex_groups.new(name='b-exportable0')
+        vertex_group.add(range(len(obj_me.data.vertices)), 1.0, 'REPLACE')
 
         # Act
         bpy.ops.export_object.xray_objects(
@@ -148,11 +150,19 @@ class TestObjectExport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsContains('ERROR', re.compile(
-            'Mesh "{0}" has {1} vertices that are not tied to any exportable bones'.format(
-                obj_me.name, len(obj_me.data.vertices
-            ))
-        ))
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({
+            'tobj.object',
+        })
+        content = self.getFileSafeContent('tobj.object')
+        self.assertRegex(content, re.compile(bytes(b_exp0, 'cp1251')))
+        self.assertRegex(content, re.compile(bytes(b_exp1, 'cp1251')))
+        self.assertNotRegex(content, re.compile(bytes(b_non0, 'cp1251')))
+        self.assertNotRegex(content, re.compile(bytes(b_non1, 'cp1251')))
+        self.assertRegex(content, re.compile(bytes(bg_exp.name, 'cp1251')))
+        self.assertRegex(content, re.compile(bytes(bg_mix.name, 'cp1251')))
+        self.assertNotRegex(content, re.compile(bytes(bg_non.name, 'cp1251')))
+        self.assertNotRegex(content, re.compile(bytes(bg_emp.name, 'cp1251')))
 
     def test_export_with_empty(self):
         # Arrange
