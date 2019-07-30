@@ -4,6 +4,11 @@ env:
 
 sudo: false
 
+addons:
+  apt:
+    packages:
+    - libglu1-mesa
+
 language: generic
 
 cache:
@@ -15,6 +20,7 @@ env: # build matrix
   - BLENDER_VERSION=2.78
   - BLENDER_VERSION=2.79
   - BLENDER_VERSION=2.80
+  - BLENDER_VERSION=2.81
 
 install:
   - bash ./tests/ci-prepare.sh
