@@ -4,6 +4,11 @@ env:
 
 sudo: false
 
+addons:
+  apt:
+    packages:
+    - libglu1-mesa
+
 language: generic
 
 cache:
