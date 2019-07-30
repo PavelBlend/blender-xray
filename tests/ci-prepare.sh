@@ -16,9 +16,13 @@ if [ ! -e "$DIR/blender" ]; then
             TBZ="blender-$BLENDER_VERSION-linux-glibc219-x86_64.tar.bz2"
             ;;
         "2.80")
+            TBZ="blender-$BLENDER_VERSION-linux-glibc217-x86_64.tar.bz2"
+            PYTHON_VERSION="3.7"
+            ;;
+        "2.81")
             FROM="https://builder.blender.org/download"
             HTML=$(curl $FROM/)
-            if [[ "$HTML" =~ blender-2.80-[a-z0-9]+-linux-glibc[0-9]+-x86_64.tar.bz2 ]]; then
+            if [[ "$HTML" =~ blender-$BLENDER_VERSION-[a-z0-9]+-linux-glibc[0-9]+-x86_64.tar.bz2 ]]; then
                 TBZ="${BASH_REMATCH[0]}"
             else
                 echo "Cannot parse file name from: $HTML"
