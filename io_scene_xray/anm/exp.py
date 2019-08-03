@@ -1,11 +1,9 @@
-import io
-
 import bpy
 
 from ..xray_io import ChunkedWriter, PackedWriter
 from .fmt import Chunks
 from ..xray_envelope import export_envelope, EPSILON
-from ..utils import smooth_euler
+from ..utils import smooth_euler, save_file
 
 
 def _export(bpy_obj, chunked_writer):
@@ -77,5 +75,4 @@ def _export_action_data(pkw, xray, fcurves):
 def export_file(bpy_obj, fpath):
     writer = ChunkedWriter()
     _export(bpy_obj, writer)
-    with io.open(fpath, 'wb') as file:
-        file.write(writer.data)
+    save_file(fpath, writer)

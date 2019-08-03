@@ -1,5 +1,3 @@
-import io
-
 from bmesh.ops import triangulate
 import bpy
 import mathutils
@@ -9,7 +7,7 @@ from .fmt import Chunks, ModelType, VertexFormat
 from ..utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
     fix_ensure_lookup_table, convert_object_to_space_bmesh, \
     calculate_mesh_bbox, gen_texture_name
-from ..utils import is_helper_object
+from ..utils import is_helper_object, save_file
 from ..xray_motions import MATRIX_BONE_INVERTED
 from ..version_utils import multiply, IS_28
 
@@ -337,5 +335,4 @@ def _export(bpy_obj, cwriter, context):
 def export_file(bpy_obj, fpath, context):
     cwriter = ChunkedWriter()
     _export(bpy_obj, cwriter, context)
-    with io.open(fpath, 'wb') as file:
-        file.write(cwriter.data)
+    save_file(fpath, cwriter)

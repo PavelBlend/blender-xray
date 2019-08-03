@@ -503,3 +503,8 @@ def time_log():
                 log.debug('time', func=name, time=(time() - start))
         return wrap
     return decorator
+
+
+def save_file(file_path, writer):
+    with open(file_path, 'wb') as file:
+        file.write(writer.data)
