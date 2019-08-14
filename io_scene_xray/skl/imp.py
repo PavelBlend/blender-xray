@@ -6,10 +6,11 @@ from .. import log
 
 
 class ImportContext:
-    def __init__(self, armature, motions_filter, prefix, filename):
+    def __init__(self, armature, motions_filter, prefix, scale, filename):
         self.armature = armature
         self.motions_filter = motions_filter
         self.use_motion_prefix_name = prefix
+        self.motion_scale = scale
         self.filename = filename
 
 

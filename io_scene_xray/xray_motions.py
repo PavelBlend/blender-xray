@@ -112,9 +112,9 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                 mat = multiply(
                     xmat,
                     Matrix.Translation((
-                        +tmpfc[0].evaluate(time),
-                        +tmpfc[1].evaluate(time),
-                        -tmpfc[2].evaluate(time),
+                        +tmpfc[0].evaluate(time) * context.motion_scale,
+                        +tmpfc[1].evaluate(time) * context.motion_scale,
+                        -tmpfc[2].evaluate(time) * context.motion_scale,
                     )),
                     Euler((
                         -tmpfc[4].evaluate(time),

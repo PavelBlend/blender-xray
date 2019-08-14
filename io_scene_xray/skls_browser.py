@@ -180,6 +180,7 @@ def skls_animations_index_changed(self, context):
             armature=ob,
             motions_filter=MOTIONS_FILTER_ALL,
             prefix=False,
+            scale=1,
             filename=OpBrowseSklsFile.skls_file.file_path
         )
         import_motion(OpBrowseSklsFile.skls_file.pr, import_context, bonesmap, reported)

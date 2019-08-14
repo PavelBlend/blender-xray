@@ -327,6 +327,7 @@ def import_main(fpath, context, creader):
                 armature=bpy_arm_obj,
                 motions_filter=xray_motions.MOTIONS_FILTER_ALL,
                 prefix=context.use_motion_prefix_name,
+                scale=1,
                 filename=object_name
             )
             xray_motions.import_motions(reader, skl_context)
