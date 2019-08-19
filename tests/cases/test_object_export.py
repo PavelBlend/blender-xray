@@ -139,6 +139,8 @@ class TestObjectExport(utils.XRayTestCase):
         obj_me = utils.create_object(bmesh, True)
         obj_me.parent = obj
         obj_me.xray.isroot = False
+        vertex_group = obj_me.vertex_groups.new(name='b-exportable0')
+        vertex_group.add(range(len(obj_me.data.vertices)), 1.0, 'REPLACE')
 
         # Act
         bpy.ops.export_object.xray_objects(
@@ -195,7 +197,7 @@ class TestObjectExport(utils.XRayTestCase):
 
         # Assert
         self.assertReportsContains(
-            'WARNING',
+            'ERROR',
             re.compile('UV-map is required, but not found')
         )
 
@@ -209,9 +211,10 @@ class TestObjectExport(utils.XRayTestCase):
         )
 
         # Assert
+        mesh_name = bpy.data.objects['tobj1'].data.name
         self.assertReportsContains(
-            'WARNING',
-            re.compile('Mesh has no material')
+            'ERROR',
+            re.compile('Mesh "{0}" has no material'.format(mesh_name))
         )
 
     def _create_objects(self, create_uv=True, create_material=True):
@@ -244,9 +247,10 @@ def _create_armature(target):
 
     target.modifiers.new(name='Armature', type='ARMATURE').object = obj
     target.parent = obj
-    grp = target.vertex_groups.new()
-    grp.add(range(3), 1, 'REPLACE')
+    grp = target.vertex_groups.new(name='tbone')
+    vertices_count = len(target.data.vertices)
+    grp.add(range(vertices_count), 1, 'REPLACE')
     grp = target.vertex_groups.new(name=io_scene_xray.utils.BAD_VTX_GROUP_NAME)
-    grp.add([3], 1, 'REPLACE')
+    grp.add([vertices_count], 1, 'REPLACE')
 
     return obj

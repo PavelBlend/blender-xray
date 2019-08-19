@@ -27,6 +27,8 @@ class TestArmature(utils.XRayTestCase):
         obj_me = utils.create_object(bmesh, True)
         obj_me.parent = obj
         obj_me.xray.isroot = False
+        group = obj_me.vertex_groups.new(name='exp')
+        group.add(range(len(obj_me.data.vertices)), 1, 'REPLACE')
 
         # Act
         bpy.ops.export_object.xray_objects(

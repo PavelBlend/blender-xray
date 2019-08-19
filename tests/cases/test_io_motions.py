@@ -74,6 +74,8 @@ def _prepare_animation():
         (-1, -1, 0), (+1, -1, 0), (+1, +1, 0), (-1, +1, 0),
     ), ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)), True)
     obj_me = utils.create_object(bmesh, True)
+    group = obj_me.vertex_groups.new(name='bone')
+    group.add(range(len(obj_me.data.vertices)), 1, 'REPLACE')
     obj_me.parent = obj
     obj_me.xray.isroot = False
 
