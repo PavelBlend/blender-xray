@@ -1,6 +1,11 @@
 import struct
 from .lzhuf import decompress_buffer
-from .utils import AppError
+
+try:
+    from .utils import AppError
+    error = AppError
+except:
+    error = BaseException
 
 
 class FastBytes:
