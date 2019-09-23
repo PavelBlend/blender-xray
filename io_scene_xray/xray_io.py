@@ -167,7 +167,7 @@ class PackedWriter():
         try:
             self.data += string.encode('cp1251')
         except UnicodeEncodeError:
-            raise AppError('Not valid string: {}'.format(string))
+            raise error('Not valid string: {}'.format(string))
         self.data += b'\x00'
         return self
 
