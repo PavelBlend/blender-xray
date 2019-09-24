@@ -1,11 +1,8 @@
 import struct
 from .lzhuf import decompress_buffer
 
-try:
-    from .utils import AppError
-    error = AppError
-except:
-    error = BaseException
+
+ENCODE_ERROR = BaseException
 
 
 class FastBytes:
@@ -167,7 +164,7 @@ class PackedWriter():
         try:
             self.data += string.encode('cp1251')
         except UnicodeEncodeError:
-            raise error('Not valid string: {}'.format(string))
+            raise ENCODE_ERROR('Not valid string: {}'.format(string))
         self.data += b'\x00'
         return self
 

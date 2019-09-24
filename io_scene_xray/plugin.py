@@ -5,7 +5,7 @@ import bpy
 import bpy.utils.previews
 from bpy_extras import io_utils
 
-from . import xray_inject
+from . import xray_inject, xray_io
 from .ops import BaseOperator as TestReadyOperator
 from .ui import collapsible, motion_list
 from .utils import (
@@ -27,6 +27,8 @@ from .version_utils import (
     get_import_export_menus, get_scene_update_post, assign_props, IS_28
 )
 
+
+xray_io.ENCODE_ERROR = AppError
 
 op_export_project_props = {
     'filepath': bpy.props.StringProperty(subtype='DIR_PATH', options={'SKIP_SAVE'}),
