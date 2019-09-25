@@ -22,6 +22,7 @@ from .obj.imp import ops as object_imp_ops
 from .anm import ops as anm_ops
 from .skl import ops as skl_ops
 from .ogf import ops as ogf_ops
+from .level import ops as level_ops
 from . import skls_browser
 from .version_utils import (
     get_import_export_menus, get_scene_update_post, assign_props, IS_28
@@ -96,6 +97,7 @@ class XRayImportMenu(bpy.types.Menu):
         layout.operator(det_ops.OpImportDM.bl_idname, text='Details (.dm, .details)')
         layout.operator(err_ops.OpImportERR.bl_idname, text='Error List (.err)')
         layout.operator(scene_ops.OpImportLevelScene.bl_idname, text='Scene Selection (.level)')
+        layout.operator(level_ops.IMPORT_OT_xray_level.bl_idname, text='Game Level (level)')
 
 
 @registry.module_thing
@@ -201,6 +203,7 @@ def append_menu_func():
         export_menu.remove(det_ops.menu_func_export)
         export_menu.remove(scene_ops.menu_func_export)
         import_menu.remove(scene_ops.menu_func_import)
+        import_menu.remove(level_ops.menu_func_import)
         import_menu.prepend(menu_func_xray_import)
         export_menu.prepend(menu_func_xray_export)
     else:
@@ -214,6 +217,7 @@ def append_menu_func():
         import_menu.append(err_ops.menu_func_import)
         export_menu.append(scene_ops.menu_func_export)
         import_menu.append(scene_ops.menu_func_import)
+        import_menu.append(level_ops.menu_func_import)
 
 
 registry.module_requires(__name__, [
@@ -246,6 +250,7 @@ def register():
     registry.register_thing(ogf_ops, __name__)
     registry.register_thing(motion_list, __name__)
     scene_ops.register_operators()
+    level_ops.register_operators()
     det_ops.register_operators()
     registry.register_thing(err_ops, __name__)
     append_menu_func()
@@ -262,6 +267,7 @@ def unregister():
     registry.unregister_thing(skls_browser, __name__)
     registry.unregister_thing(err_ops, __name__)
     det_ops.unregister_operators()
+    level_ops.unregister_operators()
     scene_ops.unregister_operators()
     registry.unregister_thing(motion_list, __name__)
     registry.unregister_thing(ogf_ops, __name__)

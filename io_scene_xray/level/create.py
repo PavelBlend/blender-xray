@@ -1,6 +1,6 @@
 import os
 
-import bpy
+import bpy, mathutils
 
 from . import utils
 
@@ -11,13 +11,61 @@ def remove_default_shader_nodes(bpy_material):
         nodes.remove(node)
 
 
-def create_shader_image_node(bpy_material, bpy_image):
+def link_nodes(bpy_material, input_, output):
+    links = bpy_material.node_tree.links
+    links.new(input_, output)
+
+
+def create_shader_output_node(bpy_material, offset):
+    output_node = bpy_material.node_tree.nodes.new('ShaderNodeOutputMaterial')
+    offset.x += 400.0
+    output_node.location = offset
+    return output_node
+
+
+def create_shader_principled_node(bpy_material, offset):
+    principled_node = bpy_material.node_tree.nodes.new(
+        'ShaderNodeBsdfPrincipled'
+    )
+    offset.x += 400.0
+    principled_node.location = offset
+    return principled_node
+
+
+def create_shader_image_node(bpy_material, bpy_image, offset):
     image_node = bpy_material.node_tree.nodes.new('ShaderNodeTexImage')
     image_node.image = bpy_image
+    offset.x -= 600.0
+    offset.y -= 200.0
+    image_node.location = offset
+    offset.y += 200.0
+    return image_node
+
+
+def links_nodes(bpy_material, output_node, principled_node, image_node):
+    link_nodes(
+        bpy_material,
+        image_node.outputs['Color'],
+        principled_node.inputs['Base Color']
+    )
+    link_nodes(
+        bpy_material,
+        image_node.outputs['Alpha'],
+        principled_node.inputs['Alpha']
+    )
+    link_nodes(
+        bpy_material,
+        principled_node.outputs['BSDF'],
+        output_node.inputs['Surface']
+    )
 
 
 def create_shader_nodes(bpy_material, bpy_image):
-    create_shader_image_node(bpy_material, bpy_image)
+    offset = mathutils.Vector((0.0, 0.0))
+    image_node = create_shader_image_node(bpy_material, bpy_image, offset)
+    principled_node = create_shader_principled_node(bpy_material, offset)
+    output_node = create_shader_output_node(bpy_material, offset)
+    links_nodes(bpy_material, output_node, principled_node, image_node)
 
 
 def is_same_image_paths(bpy_image, absolute_texture_path):
