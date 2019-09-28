@@ -413,8 +413,28 @@ def get_image(context, texture, light_maps):
     return bpy_image
 
 
-def is_same_light_maps(material, light_maps):
-    return True
+def is_same_light_maps(context, bpy_material, light_maps):
+    has_images = []
+    for light_map in light_maps:
+        level_dir = utils.get_level_dir(context.file_path)
+        absolute_texture_path_in_level_folder = get_absolute_texture_path(
+            level_dir, light_map
+        )
+        has_correct_lmap_image = False
+        for node in bpy_material.node_tree.nodes:
+            if node.type == 'TEX_IMAGE':
+                bpy_image = node.image
+                if not bpy_image:
+                    continue
+                if not is_same_image_paths(
+                        bpy_image, absolute_texture_path_in_level_folder
+                    ):
+                    continue
+                has_correct_lmap_image = True
+        if has_correct_lmap_image:
+            has_images.append(has_correct_lmap_image)
+    if len(has_images) == len(light_maps):
+        return True
 
 
 def is_same_image(context, bpy_material, texture):
@@ -446,7 +466,7 @@ def search_material(context, texture, engine_shader, *light_maps):
             continue
         if not is_same_image(context, material, texture):
             continue
-        if not is_same_light_maps(material, light_maps):
+        if not is_same_light_maps(context, material, light_maps):
             continue
         return material
 
