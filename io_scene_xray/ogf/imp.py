@@ -9,7 +9,7 @@ def assign_material(bpy_object, shader_id, materials):
     bpy_object.data.materials.append(materials[shader_id])
 
 
-def create_visual(name, vertices, uvs, triangles):
+def create_visual(name, vertices, uvs, uv_lmap, triangles):
     mesh = bmesh.new()
 
     # import vertices
@@ -31,9 +31,19 @@ def create_visual(name, vertices, uvs, triangles):
 
     # import uvs
     uv_layer = mesh.loops.layers.uv.new('Texture')
-    for face in mesh.faces:
-        for loop in face.loops:
-            loop[uv_layer].uv = uvs[loop.vert.index]
+    if uv_lmap:
+        lmap_uv_layer = mesh.loops.layers.uv.new('Light Map')
+        for face in mesh.faces:
+            for loop in face.loops:
+                loop[uv_layer].uv = uvs[loop.vert.index]
+                loop[lmap_uv_layer].uv = uv_lmap[loop.vert.index]
+    else:
+        for face in mesh.faces:
+            for loop in face.loops:
+                loop[uv_layer].uv = uvs[loop.vert.index]
+
+    # normals
+    mesh.normal_update()
 
     # create mesh and object
     bpy_mesh = bpy.data.meshes.new(name)
@@ -58,9 +68,10 @@ def import_gcontainer(data, vertex_buffers, indices_buffers):
     vb_slice = slice(vb_offset, vb_offset + vb_size)
     vertices = vertex_buffers[vb_index].position[vb_slice]
     uvs = vertex_buffers[vb_index].uv[vb_slice]
+    uv_lmap = vertex_buffers[vb_index].uv_lmap[vb_slice]
     indices = indices_buffers[ib_index][ib_offset : ib_offset + ib_size]
 
-    return vertices, uvs, indices, ib_size
+    return vertices, uvs, uv_lmap, indices, ib_size
 
 
 def import_vcontainer(data):
@@ -111,7 +122,7 @@ def import_geometry(
         vertex_buffers=None, indices_buffers=None, swis=None
     ):
     gcontainer_data = chunks.pop(fmt.Chunks.GCONTAINER)
-    vertices, uvs, indices, indices_count = import_gcontainer(
+    vertices, uvs, uv_lmap, indices, indices_count = import_gcontainer(
         gcontainer_data, vertex_buffers, indices_buffers
     )
     del gcontainer_data
@@ -120,7 +131,7 @@ def import_geometry(
     if fastpath_data:
         import_fastpath(fastpath_data)
     del fastpath_data
-    return vertices, uvs, indices, indices_count
+    return vertices, uvs, uv_lmap, indices, indices_count
 
 
 def convert_indices_to_triangles(indices, indices_count):
@@ -140,7 +151,7 @@ def import_normal_visual(
     ):
 
 
-    vertices, uvs, indices, indices_count = import_geometry(
+    vertices, uvs, uv_lmap, indices, indices_count = import_geometry(
         chunks, format_version, shader_id,
         vertex_buffers, indices_buffers, swis
     )
@@ -148,7 +159,7 @@ def import_normal_visual(
 
     triangles = convert_indices_to_triangles(indices, indices_count)
 
-    bpy_object = create_visual('NORMAL', vertices, uvs, triangles)
+    bpy_object = create_visual('NORMAL', vertices, uvs, uv_lmap, triangles)
     assign_material(bpy_object, shader_id, materials)
 
 
@@ -190,13 +201,13 @@ def import_tree_st_visual(
             vertex_buffers, indices_buffers, swis, materials
         ):
 
-    vertices, uvs, indices, indices_count = import_geometry(
+    vertices, uvs, uv_lmap, indices, indices_count = import_geometry(
         chunks, format_version, shader_id,
         vertex_buffers, indices_buffers, swis
     )
     tree_xform = import_tree_def_2(chunks)
     triangles = convert_indices_to_triangles(indices, indices_count)
-    bpy_object = create_visual('TREE_ST', vertices, uvs, triangles)
+    bpy_object = create_visual('TREE_ST', vertices, uvs, uv_lmap, triangles)
     assign_material(bpy_object, shader_id, materials)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks)
@@ -220,7 +231,7 @@ def import_progressive_visual(
         vertex_buffers, indices_buffers, swis, materials
     ):
 
-    vertices, uvs, indices, indices_count = import_geometry(
+    vertices, uvs, uv_lmap, indices, indices_count = import_geometry(
         chunks, format_version, shader_id,
         vertex_buffers, indices_buffers, swis
     )
@@ -235,7 +246,7 @@ def import_progressive_visual(
 
     check_unread_chunks(chunks)
 
-    bpy_object = create_visual('PROGRESSIVE', vertices, uvs, triangles)
+    bpy_object = create_visual('PROGRESSIVE', vertices, uvs, uv_lmap, triangles)
     assign_material(bpy_object, shader_id, materials)
 
 
@@ -279,7 +290,7 @@ def import_tree_pm_visual(
         vertex_buffers, indices_buffers, swis, materials
     ):
 
-    vertices, uvs, indices, indices_count = import_geometry(
+    vertices, uvs, uv_lmap, indices, indices_count = import_geometry(
         chunks, format_version, shader_id,
         vertex_buffers, indices_buffers, swis
     )
@@ -290,7 +301,7 @@ def import_tree_pm_visual(
     triangles = convert_indices_to_triangles(indices, indices_count)
 
     tree_xform = import_tree_def_2(chunks)
-    bpy_object = create_visual('TREE_PM', vertices, uvs, triangles)
+    bpy_object = create_visual('TREE_PM', vertices, uvs, uv_lmap, triangles)
     assign_material(bpy_object, shader_id, materials)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks)
