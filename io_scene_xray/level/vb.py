@@ -93,9 +93,9 @@ def import_vertices_tree(packed_reader, vertex_buffer, vertices_count):
         binormal = packed_reader.getf('4B')
         # texture coordinates
         coord_u, coord_v = packed_reader.getf('2h')
-        vertex_buffer.uv.append(
-            (coord_u / fmt.UV_COEFFICIENT, 1 - coord_v / fmt.UV_COEFFICIENT)
-        )
+        vertex_buffer.uv.append((
+            coord_u / fmt.UV_COEFFICIENT_2, 1 - coord_v / fmt.UV_COEFFICIENT_2
+        ))
         shader_data, unused = packed_reader.getf('2H')
         vertex_buffer.shader_data.append(shader_data)
 

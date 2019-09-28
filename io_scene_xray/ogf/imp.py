@@ -1,13 +1,44 @@
-import bpy, mathutils
+import bpy, mathutils, bmesh
 
 from .. import xray_io
 from ..level import swi as imp_swi
 from . import fmt
 
 
-def create_visual(name, vertices, triangles):
+def assign_material(bpy_object, shader_id, materials):
+    bpy_object.data.materials.append(materials[shader_id])
+
+
+def create_visual(name, vertices, uvs, triangles):
+    mesh = bmesh.new()
+
+    # import vertices
+    for vertex_coord in vertices:
+        mesh.verts.new(vertex_coord)
+
+    mesh.verts.ensure_lookup_table()
+    mesh.verts.index_update()
+
+    # import triangles
+    for triangle in triangles:
+        mesh.faces.new((
+            mesh.verts[triangle[0]],
+            mesh.verts[triangle[1]],
+            mesh.verts[triangle[2]]
+        ))
+
+    mesh.faces.ensure_lookup_table()
+
+    # import uvs
+    uv_layer = mesh.loops.layers.uv.new('Texture')
+    for face in mesh.faces:
+        for loop in face.loops:
+            loop[uv_layer].uv = uvs[loop.vert.index]
+
+    # create mesh and object
     bpy_mesh = bpy.data.meshes.new(name)
-    bpy_mesh.from_pydata(vertices, (), triangles)
+    mesh.to_mesh(bpy_mesh)
+    del mesh
     bpy_object = bpy.data.objects.new(name, bpy_mesh)
     bpy.context.scene.collection.objects.link(bpy_object)
     return bpy_object
@@ -24,10 +55,12 @@ def import_gcontainer(data, vertex_buffers, indices_buffers):
     ib_offset = packed_reader.getf('<I')[0]
     ib_size = packed_reader.getf('<I')[0]
 
-    vertices = vertex_buffers[vb_index].position[vb_offset : vb_offset + vb_size]
+    vb_slice = slice(vb_offset, vb_offset + vb_size)
+    vertices = vertex_buffers[vb_index].position[vb_slice]
+    uvs = vertex_buffers[vb_index].uv[vb_slice]
     indices = indices_buffers[ib_index][ib_offset : ib_offset + ib_size]
 
-    return vertices, indices, ib_size
+    return vertices, uvs, indices, ib_size
 
 
 def import_vcontainer(data):
@@ -44,46 +77,6 @@ def import_vertices(data):
 
 def import_texture(data):
     pass
-
-
-def import_model_old(
-        chunks, format_version, model_type, shader_id,
-        vertex_buffers=None, indices_buffers=None, swis=None
-    ):
-
-    swi_index = None
-    swi = None
-    gcontainer_data = None
-    vertices = None
-    triangles = None
-    chunks_ids = list(chunks.keys())
-
-    for chunk_id in chunks_ids:
-        chunk_data = chunks.pop(chunk_id)
-        if chunk_id == fmt.Chunks.TEXTURE:
-            import_texture(chunk_data)
-        elif chunk_id == fmt.Chunks.VERTICES:
-            import_vertices(chunk_data)
-        elif chunk_id == fmt.Chunks.INDICES:
-            import_indices(chunk_data)
-        elif chunk_id == fmt.Chunks.SWIDATA:
-            packed_reader = xray_io.PackedReader(chunk_data)
-            swi = imp_swi.import_slide_window_item(packed_reader)
-            del packed_reader
-        elif chunk_id == fmt.Chunks.SWICONTAINER:
-            swi_index = import_swicontainer(chunk_data, swis)
-        elif chunk_id == fmt.Chunks.VCONTAINER:
-            import_vcontainer(chunk_data)
-        elif chunk_id == fmt.Chunks.GCONTAINER:
-            gcontainer_data = chunk_data
-
-    if gcontainer_data:
-        vertices, triangles = import_gcontainer(
-            gcontainer_data, vertex_buffers, indices_buffers,
-            swi_index, swis, swi
-        )
-
-    create_visual('1', vertices, triangles)
 
 
 def import_fastpath(data):
@@ -105,11 +98,7 @@ def import_children_l(data):
         child = packed_reader.getf('I')[0]
 
 
-def import_hierrarhy_visual(
-        chunks, format_version, shader_id,
-        vertex_buffers=None, indices_buffers=None, swis=None
-    ):
-
+def import_hierrarhy_visual(chunks):
     children_l_data = chunks.pop(fmt.Chunks.CHILDREN_L)
     import_children_l(children_l_data)
     del children_l_data
@@ -122,7 +111,7 @@ def import_geometry(
         vertex_buffers=None, indices_buffers=None, swis=None
     ):
     gcontainer_data = chunks.pop(fmt.Chunks.GCONTAINER)
-    vertices, indices, indices_count = import_gcontainer(
+    vertices, uvs, indices, indices_count = import_gcontainer(
         gcontainer_data, vertex_buffers, indices_buffers
     )
     del gcontainer_data
@@ -131,7 +120,7 @@ def import_geometry(
     if fastpath_data:
         import_fastpath(fastpath_data)
     del fastpath_data
-    return vertices, indices, indices_count
+    return vertices, uvs, indices, indices_count
 
 
 def convert_indices_to_triangles(indices, indices_count):
@@ -147,11 +136,11 @@ def convert_indices_to_triangles(indices, indices_count):
 
 def import_normal_visual(
         chunks, format_version, shader_id,
-        vertex_buffers=None, indices_buffers=None, swis=None
+        vertex_buffers=None, indices_buffers=None, swis=None, materials=None
     ):
 
 
-    vertices, indices, indices_count = import_geometry(
+    vertices, uvs, indices, indices_count = import_geometry(
         chunks, format_version, shader_id,
         vertex_buffers, indices_buffers, swis
     )
@@ -159,7 +148,8 @@ def import_normal_visual(
 
     triangles = convert_indices_to_triangles(indices, indices_count)
 
-    bpy_object = create_visual('NORMAL', vertices, triangles)
+    bpy_object = create_visual('NORMAL', vertices, uvs, triangles)
+    assign_material(bpy_object, shader_id, materials)
 
 
 def ogf_color(packed_reader):
@@ -197,16 +187,17 @@ def set_tree_transforms(bpy_object, xform):
 
 def import_tree_st_visual(
             chunks, format_version, shader_id,
-            vertex_buffers, indices_buffers, swis
+            vertex_buffers, indices_buffers, swis, materials
         ):
 
-    vertices, indices, indices_count = import_geometry(
+    vertices, uvs, indices, indices_count = import_geometry(
         chunks, format_version, shader_id,
         vertex_buffers, indices_buffers, swis
     )
     tree_xform = import_tree_def_2(chunks)
     triangles = convert_indices_to_triangles(indices, indices_count)
-    bpy_object = create_visual('TREE_ST', vertices, triangles)
+    bpy_object = create_visual('TREE_ST', vertices, uvs, triangles)
+    assign_material(bpy_object, shader_id, materials)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks)
 
@@ -226,10 +217,10 @@ def import_swidata(
 
 def import_progressive_visual(
         chunks, format_version, shader_id,
-        vertex_buffers, indices_buffers, swis
+        vertex_buffers, indices_buffers, swis, materials
     ):
 
-    vertices, indices, indices_count = import_geometry(
+    vertices, uvs, indices, indices_count = import_geometry(
         chunks, format_version, shader_id,
         vertex_buffers, indices_buffers, swis
     )
@@ -244,7 +235,8 @@ def import_progressive_visual(
 
     check_unread_chunks(chunks)
 
-    bpy_object = create_visual('PROGRESSIVE', vertices, triangles)
+    bpy_object = create_visual('PROGRESSIVE', vertices, uvs, triangles)
+    assign_material(bpy_object, shader_id, materials)
 
 
 def import_swicontainer(chunks):
@@ -268,7 +260,7 @@ def import_lod_def_2(data):
 
 def import_lod_visual(
         chunks, format_version, shader_id,
-        vertex_buffers, indices_buffers, swis
+        vertex_buffers, indices_buffers, swis, materials
     ):
 
     children_l_data = chunks.pop(fmt.Chunks.CHILDREN_L)
@@ -284,10 +276,10 @@ def import_lod_visual(
 
 def import_tree_pm_visual(
         chunks, format_version, shader_id,
-        vertex_buffers, indices_buffers, swis
+        vertex_buffers, indices_buffers, swis, materials
     ):
 
-    vertices, indices, indices_count = import_geometry(
+    vertices, uvs, indices, indices_count = import_geometry(
         chunks, format_version, shader_id,
         vertex_buffers, indices_buffers, swis
     )
@@ -298,45 +290,43 @@ def import_tree_pm_visual(
     triangles = convert_indices_to_triangles(indices, indices_count)
 
     tree_xform = import_tree_def_2(chunks)
-    bpy_object = create_visual('TREE_PM', vertices, triangles)
+    bpy_object = create_visual('TREE_PM', vertices, uvs, triangles)
+    assign_material(bpy_object, shader_id, materials)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks)
 
 
 def import_model(
         chunks, format_version, model_type, shader_id,
-        vertex_buffers=None, indices_buffers=None, swis=None
+        vertex_buffers=None, indices_buffers=None, swis=None, materials=None
     ):
 
     if model_type == fmt.ModelType.NORMAL:
         import_normal_visual(
             chunks, format_version, shader_id,
-            vertex_buffers, indices_buffers, swis
+            vertex_buffers, indices_buffers, swis, materials
         )
     elif model_type == fmt.ModelType.HIERRARHY:
-        import_hierrarhy_visual(
-            chunks, format_version, shader_id,
-            vertex_buffers, indices_buffers, swis
-        )
+        import_hierrarhy_visual(chunks)
     elif model_type == fmt.ModelType.PROGRESSIVE:
         import_progressive_visual(
             chunks, format_version, shader_id,
-            vertex_buffers, indices_buffers, swis
+            vertex_buffers, indices_buffers, swis, materials
         )
     elif model_type == fmt.ModelType.TREE_ST:
         import_tree_st_visual(
             chunks, format_version, shader_id,
-            vertex_buffers, indices_buffers, swis
+            vertex_buffers, indices_buffers, swis, materials
         )
     elif model_type == fmt.ModelType.TREE_PM:
         import_tree_pm_visual(
             chunks, format_version, shader_id,
-            vertex_buffers, indices_buffers, swis
+            vertex_buffers, indices_buffers, swis, materials
         )
     elif model_type == fmt.ModelType.LOD:
         import_lod_visual(
             chunks, format_version, shader_id,
-            vertex_buffers, indices_buffers, swis
+            vertex_buffers, indices_buffers, swis, materials
         )
     else:
         raise BaseException('unsupported model type: {:x}'.format(model_type))
@@ -366,12 +356,16 @@ def import_header(data):
     return format_version, model_type, shader_id
 
 
-def import_main(chunks, vertex_buffers=None, indices_buffers=None, swis=None):
+def import_main(
+        chunks, vertex_buffers=None, indices_buffers=None,
+        swis=None, materials=None
+    ):
+
     header_chunk_data = chunks.pop(fmt.Chunks.HEADER)
     format_version, model_type, shader_id = import_header(header_chunk_data)
     import_model(
         chunks, format_version, model_type, shader_id,
-        vertex_buffers, indices_buffers, swis
+        vertex_buffers, indices_buffers, swis, materials
     )
     return model_type
 
@@ -394,4 +388,6 @@ def import_(
     ):
 
     chunks, visual_chunks_ids = get_ogf_chunks(data)
-    visual_type = import_main(chunks, vertex_buffers, indices_buffers, swis)
+    visual_type = import_main(
+        chunks, vertex_buffers, indices_buffers, swis, materials
+    )
