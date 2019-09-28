@@ -116,10 +116,20 @@ def create_shader_mix_rgb_lmap_nodes(bpy_material, offset):
     shadows_node.select = False
     offset.x += 400.0
     shadows_node.location = offset
-    shadows_node.label = '+ Shadows'
+    shadows_node.label = '+ Sun'
     shadows_node.blend_type = 'ADD'
     nodes.append(shadows_node)
     shadows_node.inputs['Fac'].default_value = 1.0
+    # + ambient
+    ambient_node = bpy_material.node_tree.nodes.new('ShaderNodeMixRGB')
+    ambient_node.select = False
+    offset.x += 400.0
+    ambient_node.location = offset
+    ambient_node.label = '+ Ambient'
+    ambient_node.blend_type = 'ADD'
+    ambient_node.inputs['Color2'].default_value = (0.2, 0.2, 0.2, 1.0)
+    nodes.append(ambient_node)
+    ambient_node.inputs['Fac'].default_value = 1.0
     # + light maps
     light_maps_node = bpy_material.node_tree.nodes.new('ShaderNodeMixRGB')
     light_maps_node.select = False
@@ -180,17 +190,22 @@ def links_nodes(
             )
             link_nodes(
                 bpy_material,
-                image_node.outputs['Color'],
+                mix_rgb_nodes[1].outputs['Color'],
                 mix_rgb_nodes[2].inputs['Color1']
             )
             link_nodes(
                 bpy_material,
-                mix_rgb_nodes[1].outputs['Color'],
-                mix_rgb_nodes[2].inputs['Color2']
+                image_node.outputs['Color'],
+                mix_rgb_nodes[3].inputs['Color1']
             )
             link_nodes(
                 bpy_material,
-                mix_rgb_nodes[-1].outputs['Color'],
+                mix_rgb_nodes[2].outputs['Color'],
+                mix_rgb_nodes[3].inputs['Color2']
+            )
+            link_nodes(
+                bpy_material,
+                mix_rgb_nodes[3].outputs['Color'],
                 principled_node.inputs['Base Color']
             )
         elif len(lmap_image_nodes) == 1:
@@ -217,19 +232,26 @@ def links_nodes(
                 lmap_image_nodes[0].outputs['Alpha'],
                 mix_rgb_nodes[1].inputs['Color2']
             )
-            link_nodes(
-                bpy_material,
-                image_node.outputs['Color'],
-                mix_rgb_nodes[2].inputs['Color1']
-            )
+            # ambient
             link_nodes(
                 bpy_material,
                 mix_rgb_nodes[1].outputs['Color'],
-                mix_rgb_nodes[2].inputs['Color2']
+                mix_rgb_nodes[2].inputs['Color1']
+            )
+            # light map + texture
+            link_nodes(
+                bpy_material,
+                image_node.outputs['Color'],
+                mix_rgb_nodes[3].inputs['Color1']
             )
             link_nodes(
                 bpy_material,
-                mix_rgb_nodes[-1].outputs['Color'],
+                mix_rgb_nodes[2].outputs['Color'],
+                mix_rgb_nodes[3].inputs['Color2']
+            )
+            link_nodes(
+                bpy_material,
+                mix_rgb_nodes[3].outputs['Color'],
                 principled_node.inputs['Base Color']
             )
     else:
@@ -432,7 +454,7 @@ def search_material(context, texture, engine_shader, *light_maps):
 def set_material_settings(bpy_material):
     bpy_material.use_nodes = True
     bpy_material.use_backface_culling = True
-    bpy_material.blend_method = 'BLEND'
+    bpy_material.blend_method = 'CLIP'
 
 
 def create_material(context, texture, engine_shader, *light_maps):
