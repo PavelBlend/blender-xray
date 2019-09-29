@@ -43,7 +43,7 @@ def create_collection(collection_name, parent_collection):
 
 def create_level_collections(level):
     level_collection = create_collection(
-        LEVEL_COLLECTION_NAME, bpy.context.scene.collection
+        level.name, bpy.context.scene.collection
     )
     level.collections[LEVEL_COLLECTION_NAME] = level_collection
     visuals_collection = create_collection(

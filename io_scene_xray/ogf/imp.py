@@ -141,11 +141,12 @@ def check_unread_chunks(chunks):
         raise BaseException('There are unread chunks: {}'.format(chunks_ids))
 
 
-def import_children_l(data, visual, level):
+def import_children_l(data, visual, level, visual_type):
     packed_reader = xray_io.PackedReader(data)
     hierrarhy_visual = HierrarhyVisual()
     hierrarhy_visual.children_count = packed_reader.getf('I')[0]
     hierrarhy_visual.index = visual.visual_id
+    hierrarhy_visual.visual_type = visual_type
 
     for child_index in range(hierrarhy_visual.children_count):
         child = packed_reader.getf('I')[0]
@@ -157,7 +158,7 @@ def import_children_l(data, visual, level):
 def import_hierrarhy_visual(chunks, visual, level):
     visual.name = 'hierrarhy'
     children_l_data = chunks.pop(fmt.Chunks.CHILDREN_L)
-    import_children_l(children_l_data, visual, level)
+    import_children_l(children_l_data, visual, level, 'HIERRARHY')
     del children_l_data
     bpy_object = create_object(visual.name, None)
     check_unread_chunks(chunks)
@@ -302,7 +303,7 @@ def import_lod_def_2(data):
 def import_lod_visual(chunks, visual, level):
     visual.name = 'lod'
     children_l_data = chunks.pop(fmt.Chunks.CHILDREN_L)
-    import_children_l(children_l_data, visual, level)
+    import_children_l(children_l_data, visual, level, 'LOD')
     del children_l_data
 
     lod_def_2_data = chunks.pop(fmt.Chunks.LODDEF2)
@@ -312,6 +313,8 @@ def import_lod_visual(chunks, visual, level):
     check_unread_chunks(chunks)
 
     bpy_object = create_object(visual.name, None)
+    bpy_object.empty_display_type = 'SPHERE'
+    bpy_object.empty_display_size = 2.0
     return bpy_object
 
 
