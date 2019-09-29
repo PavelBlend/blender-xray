@@ -16,6 +16,8 @@ class Level(object):
         self.indices_buffers = None
         self.swis = None
         self.loaded_geometry = {}
+        self.hierrarhy_visuals = []
+        self.visuals = []
 
 
 def import_sectors(data):
@@ -98,6 +100,7 @@ def import_level(level, context, chunks):
             print('Unknown level chunk: {:x}'.format(chunk_id))
 
     visuals.import_visuals(visuals_chunk_data, level)
+    visuals.import_hierrarhy_visuals(level)
 
 
 def import_main(context, chunked_reader, level):

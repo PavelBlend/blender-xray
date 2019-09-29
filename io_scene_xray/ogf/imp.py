@@ -7,6 +7,7 @@ from . import fmt
 
 class Visual(object):
     def __init__(self):
+        self.visual_id = None
         self.format_version = None
         self.model_type = None
         self.shader_id = None
@@ -19,12 +20,19 @@ class Visual(object):
         self.indices = None
 
 
+class HierrarhyVisual(object):
+    def __init__(self):
+        self.index = None
+        self.children = []
+        self.children_count = None
+
+
 def assign_material(bpy_object, shader_id, materials):
     bpy_object.data.materials.append(materials[shader_id])
 
 
-def create_object(name, bpy_mesh):
-    bpy_object = bpy.data.objects.new(name, bpy_mesh)
+def create_object(name, obj_data):
+    bpy_object = bpy.data.objects.new(name, obj_data)
     bpy.context.scene.collection.objects.link(bpy_object)
     return bpy_object
 
@@ -133,20 +141,27 @@ def check_unread_chunks(chunks):
         raise BaseException('There are unread chunks: {}'.format(chunks_ids))
 
 
-def import_children_l(data):
+def import_children_l(data, visual, level):
     packed_reader = xray_io.PackedReader(data)
-    children_count = packed_reader.getf('I')[0]
+    hierrarhy_visual = HierrarhyVisual()
+    hierrarhy_visual.children_count = packed_reader.getf('I')[0]
+    hierrarhy_visual.index = visual.visual_id
 
-    for child_index in range(children_count):
+    for child_index in range(hierrarhy_visual.children_count):
         child = packed_reader.getf('I')[0]
+        hierrarhy_visual.children.append(child)
+
+    level.hierrarhy_visuals.append(hierrarhy_visual)
 
 
-def import_hierrarhy_visual(chunks):
+def import_hierrarhy_visual(chunks, visual, level):
+    visual.name = 'hierrarhy'
     children_l_data = chunks.pop(fmt.Chunks.CHILDREN_L)
-    import_children_l(children_l_data)
+    import_children_l(children_l_data, visual, level)
     del children_l_data
-
+    bpy_object = create_object(visual.name, None)
     check_unread_chunks(chunks)
+    return bpy_object
 
 
 def import_geometry(chunks, visual, level):
@@ -174,7 +189,7 @@ def convert_indices_to_triangles(visual):
 
 
 def import_normal_visual(chunks, visual, level):
-    visual.name = 'NORMAL'
+    visual.name = 'normal'
     bpy_mesh, geometry_key = import_geometry(chunks, visual, level)
     check_unread_chunks(chunks)
 
@@ -183,7 +198,9 @@ def import_normal_visual(chunks, visual, level):
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
         assign_material(bpy_object, visual.shader_id, level.materials)
     else:
-        bpy_object = create_object('NORMAL', bpy_mesh)
+        bpy_object = create_object(visual.name, bpy_mesh)
+
+    return bpy_object
 
 
 def ogf_color(packed_reader):
@@ -220,7 +237,7 @@ def set_tree_transforms(bpy_object, xform):
 
 
 def import_tree_st_visual(chunks, visual, level):
-    visual.name = 'TREE_ST'
+    visual.name = 'tree_st'
     bpy_mesh, geometry_key = import_geometry(chunks, visual, level)
     tree_xform = import_tree_def_2(chunks)
     if not bpy_mesh:
@@ -228,12 +245,13 @@ def import_tree_st_visual(chunks, visual, level):
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
         assign_material(bpy_object, visual.shader_id, level.materials)
     else:
-        bpy_object = create_object('TREE_ST', bpy_mesh)
+        bpy_object = create_object(visual.name, bpy_mesh)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks)
+    return bpy_object
 
 
-def import_swidata(chunks, visual, level):
+def import_swidata(chunks):
     swi_data = chunks.pop(fmt.Chunks.SWIDATA)
     packed_reader = xray_io.PackedReader(swi_data)
     del swi_data
@@ -243,9 +261,9 @@ def import_swidata(chunks, visual, level):
 
 
 def import_progressive_visual(chunks, visual, level):
-    visual.name = 'PROGRESSIVE'
+    visual.name = 'progressive'
     bpy_mesh, geometry_key = import_geometry(chunks, visual, level)
-    swi = import_swidata(chunks, visual, level)
+    swi = import_swidata(chunks)
 
     visual.indices = visual.indices[swi[0].offset : ]
     visual.indices_count = swi[0].triangles_count * 3
@@ -257,7 +275,9 @@ def import_progressive_visual(chunks, visual, level):
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
         assign_material(bpy_object, visual.shader_id, level.materials)
     else:
-        bpy_object = create_object('PROGRESSIVE', bpy_mesh)
+        bpy_object = create_object(visual.name, bpy_mesh)
+
+    return bpy_object
 
 
 def import_swicontainer(chunks):
@@ -280,9 +300,9 @@ def import_lod_def_2(data):
 
 
 def import_lod_visual(chunks, visual, level):
-
+    visual.name = 'progressive'
     children_l_data = chunks.pop(fmt.Chunks.CHILDREN_L)
-    import_children_l(children_l_data)
+    import_children_l(children_l_data, visual, level)
     del children_l_data
 
     lod_def_2_data = chunks.pop(fmt.Chunks.LODDEF2)
@@ -291,9 +311,12 @@ def import_lod_visual(chunks, visual, level):
 
     check_unread_chunks(chunks)
 
+    bpy_object = create_object(visual.name, None)
+    return bpy_object
+
 
 def import_tree_pm_visual(chunks, visual, level):
-    visual.name = 'TREE_PM'
+    visual.name = 'tree_pm'
     bpy_mesh, geometry_key = import_geometry(chunks, visual, level)
     swi_index = import_swicontainer(chunks)
     tree_xform = import_tree_def_2(chunks)
@@ -307,18 +330,19 @@ def import_tree_pm_visual(chunks, visual, level):
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
         assign_material(bpy_object, visual.shader_id, level.materials)
     else:
-        bpy_object = create_object('TREE_PM', bpy_mesh)
+        bpy_object = create_object(visual.name, bpy_mesh)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks)
+    return bpy_object
 
 
 def import_model(chunks, visual, level):
 
     if visual.model_type == fmt.ModelType.NORMAL:
-        import_normal_visual(chunks, visual, level)
+        bpy_obj = import_normal_visual(chunks, visual, level)
 
     elif visual.model_type == fmt.ModelType.HIERRARHY:
-        bpy_obj = import_hierrarhy_visual(chunks)
+        bpy_obj = import_hierrarhy_visual(chunks, visual, level)
 
     elif visual.model_type == fmt.ModelType.PROGRESSIVE:
         bpy_obj = import_progressive_visual(chunks, visual, level)
@@ -336,6 +360,8 @@ def import_model(chunks, visual, level):
         raise BaseException('unsupported model type: {:x}'.format(
             visual.model_type
         ))
+
+    level.visuals.append(bpy_obj)
 
 
 def import_bounding_sphere(packed_reader):
@@ -383,7 +409,8 @@ def get_ogf_chunks(data):
     return chunks, chunks_ids
 
 
-def import_(data, level, chunks):
+def import_(data, visual_id, level, chunks):
     chunks, visual_chunks_ids = get_ogf_chunks(data)
     visual = Visual()
+    visual.visual_id = visual_id
     import_main(chunks, visual, level)
