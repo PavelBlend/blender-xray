@@ -2,7 +2,7 @@ import os, time
 
 import bpy
 
-from . import utils as level_utils, fmt, shaders, visuals, vb, ib, swi
+from . import utils as level_utils, create, fmt, shaders, visuals, vb, ib, swi
 from .. import xray_io, utils
 
 
@@ -18,6 +18,7 @@ class Level(object):
         self.loaded_geometry = {}
         self.hierrarhy_visuals = []
         self.visuals = []
+        self.collections = {}
 
 
 def import_sectors(data):
@@ -99,6 +100,7 @@ def import_level(level, context, chunks):
         else:
             print('Unknown level chunk: {:x}'.format(chunk_id))
 
+    create.create_level_collections(level)
     visuals.import_visuals(visuals_chunk_data, level)
     visuals.import_hierrarhy_visuals(level)
 

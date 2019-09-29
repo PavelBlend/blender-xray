@@ -1,7 +1,7 @@
 import bpy, mathutils, bmesh
 
 from .. import xray_io
-from ..level import swi as imp_swi
+from ..level import swi as imp_swi, create as level_create
 from . import fmt
 
 
@@ -300,7 +300,7 @@ def import_lod_def_2(data):
 
 
 def import_lod_visual(chunks, visual, level):
-    visual.name = 'progressive'
+    visual.name = 'lod'
     children_l_data = chunks.pop(fmt.Chunks.CHILDREN_L)
     import_children_l(children_l_data, visual, level)
     del children_l_data
@@ -361,6 +361,11 @@ def import_model(chunks, visual, level):
             visual.model_type
         ))
 
+    scene_collection = bpy.context.scene.collection
+    collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
+    collection = level.collections[collection_name]
+    collection.objects.link(bpy_obj)
+    scene_collection.objects.unlink(bpy_obj)
     level.visuals.append(bpy_obj)
 
 

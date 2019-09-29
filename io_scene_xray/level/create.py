@@ -5,6 +5,58 @@ import bpy, mathutils
 from . import utils
 
 
+LEVEL_COLLECTION_NAME = 'Level'
+LEVEL_VISUALS_COLLECTION_NAME = 'Visuals'
+
+# visuals collections
+LEVEL_VISUALS_NORMAL_COLLECTION_NAME = 'Normal'
+LEVEL_VISUALS_HIERRARHY_COLLECTION_NAME = 'Hierrarhy'
+LEVEL_VISUALS_PROGRESSIVE_COLLECTION_NAME = 'Progressive'
+LEVEL_VISUALS_LOD_COLLECTION_NAME = 'LoD'
+LEVEL_VISUALS_TREE_PM_COLLECTION_NAME = 'Tree Progressive'
+LEVEL_VISUALS_TREE_ST_COLLECTION_NAME = 'Tree Static'
+
+LEVEL_VISUALS_COLLECTIONS_NAMES = (
+    LEVEL_VISUALS_NORMAL_COLLECTION_NAME,
+    LEVEL_VISUALS_HIERRARHY_COLLECTION_NAME,
+    LEVEL_VISUALS_PROGRESSIVE_COLLECTION_NAME,
+    LEVEL_VISUALS_LOD_COLLECTION_NAME,
+    LEVEL_VISUALS_TREE_PM_COLLECTION_NAME,
+    LEVEL_VISUALS_TREE_ST_COLLECTION_NAME
+)
+
+LEVEL_COLLECTIONS_NAMES_TABLE = {
+    'normal': LEVEL_VISUALS_NORMAL_COLLECTION_NAME,
+    'hierrarhy': LEVEL_VISUALS_HIERRARHY_COLLECTION_NAME,
+    'progressive': LEVEL_VISUALS_PROGRESSIVE_COLLECTION_NAME,
+    'lod': LEVEL_VISUALS_LOD_COLLECTION_NAME,
+    'tree_pm': LEVEL_VISUALS_TREE_PM_COLLECTION_NAME,
+    'tree_st': LEVEL_VISUALS_TREE_ST_COLLECTION_NAME
+}
+
+
+def create_collection(collection_name, parent_collection):
+    collection = bpy.data.collections.new(collection_name)
+    parent_collection.children.link(collection)
+    return collection
+
+
+def create_level_collections(level):
+    level_collection = create_collection(
+        LEVEL_COLLECTION_NAME, bpy.context.scene.collection
+    )
+    level.collections[LEVEL_COLLECTION_NAME] = level_collection
+    visuals_collection = create_collection(
+        LEVEL_VISUALS_COLLECTION_NAME, level_collection
+    )
+    level.collections[LEVEL_VISUALS_COLLECTION_NAME] = visuals_collection
+
+    for collection_name in LEVEL_VISUALS_COLLECTIONS_NAMES:
+        collection = create_collection(collection_name, visuals_collection)
+        level.collections[collection_name] = collection
+        
+
+
 def remove_default_shader_nodes(bpy_material):
     nodes = bpy_material.node_tree.nodes
     for node in nodes:
