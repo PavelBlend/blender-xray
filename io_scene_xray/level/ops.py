@@ -72,7 +72,7 @@ def menu_func_import(self, context):
         IMPORT_OT_xray_level.bl_idname,
         text='X-Ray game level (level)',
         icon_value=icon
-        )
+    )
 
 
 def register_operators():

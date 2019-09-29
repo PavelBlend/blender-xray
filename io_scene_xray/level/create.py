@@ -127,7 +127,7 @@ def create_shader_mix_rgb_lmap_nodes(bpy_material, offset):
     ambient_node.location = offset
     ambient_node.label = '+ Ambient'
     ambient_node.blend_type = 'ADD'
-    ambient_node.inputs['Color2'].default_value = (0.2, 0.2, 0.2, 1.0)
+    ambient_node.inputs['Color2'].default_value = (0.0, 0.0, 0.0, 1.0)
     nodes.append(ambient_node)
     ambient_node.inputs['Fac'].default_value = 1.0
     # + light maps
