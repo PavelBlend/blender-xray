@@ -121,6 +121,7 @@ class XRayExportMenu(bpy.types.Menu):
             text='Level Details (.details)'
         )
         layout.operator(scene_ops.OpExportLevelScene.bl_idname, text='Scene Selection (.level)')
+        layout.operator(level_ops.EXPORT_OT_xray_level.bl_idname, text='Game Level (level)')
 
 
 def overlay_view_3d():
@@ -204,6 +205,7 @@ def append_menu_func():
         export_menu.remove(scene_ops.menu_func_export)
         import_menu.remove(scene_ops.menu_func_import)
         import_menu.remove(level_ops.menu_func_import)
+        export_menu.remove(level_ops.menu_func_export)
         import_menu.prepend(menu_func_xray_import)
         export_menu.prepend(menu_func_xray_export)
     else:
@@ -218,6 +220,7 @@ def append_menu_func():
         export_menu.append(scene_ops.menu_func_export)
         import_menu.append(scene_ops.menu_func_import)
         import_menu.append(level_ops.menu_func_import)
+        export_menu.append(level_ops.menu_func_export)
 
 
 registry.module_requires(__name__, [

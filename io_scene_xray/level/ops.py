@@ -3,7 +3,7 @@ import bpy, bpy_extras
 from .. import utils, plugin, plugin_prefs
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 from ..obj.imp import utils as obj_imp_utils
-from . import imp
+from . import imp, exp
 
 
 op_import_level_props = {
@@ -61,8 +61,38 @@ class IMPORT_OT_xray_level(
         return super().invoke(context, event)
 
 
+op_export_level_props = {
+    'filter_glob': bpy.props.StringProperty(default='level', options={'HIDDEN'}),
+}
+
+
+class EXPORT_OT_xray_level(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
+    bl_idname = 'xray_export.level'
+    bl_label = 'Export Level'
+
+    filename_ext = ''
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_level_props.items():
+            exec('{0} = op_export_level_props.get("{0}")'.format(prop_name))
+
+    def export(self, level_object, context):
+        exp.export_file(level_object, self.filepath)
+        return {'FINISHED'}
+
+    @utils.set_cursor_state
+    def execute(self, context):
+        level_object = context.object
+        return self.export(level_object, context)
+
+    def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
+        return super().invoke(context, event)
+
+
 assign_props([
     (op_import_level_props, IMPORT_OT_xray_level),
+    (op_export_level_props, EXPORT_OT_xray_level)
 ])
 
 
@@ -75,9 +105,20 @@ def menu_func_import(self, context):
     )
 
 
+def menu_func_export(self, context):
+    icon = plugin.get_stalker_icon()
+    self.layout.operator(
+        EXPORT_OT_xray_level.bl_idname,
+        text='X-Ray game level (level)',
+        icon_value=icon
+    )
+
+
 def register_operators():
     bpy.utils.register_class(IMPORT_OT_xray_level)
+    bpy.utils.register_class(EXPORT_OT_xray_level)
 
 
 def unregister_operators():
+    bpy.utils.unregister_class(EXPORT_OT_xray_level)
     bpy.utils.unregister_class(IMPORT_OT_xray_level)

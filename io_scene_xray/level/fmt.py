@@ -11,6 +11,16 @@ class Chunks:
     SWIS = 0xb
 
 
+class SectorChunks:
+    PORTALS = 0x1
+    ROOT = 0x2
+
+
+SECTOR_PORTAL_SIZE = 2
+PORTAL_SIZE = 80
+PORTAL_VERTEX_COUNT = 6
+GLOW_SIZE = 18
+
 VERSION_14 = 14
 SUPPORTED_VERSIONS = (VERSION_14, )
 

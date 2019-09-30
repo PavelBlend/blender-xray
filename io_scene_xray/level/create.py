@@ -35,6 +35,28 @@ LEVEL_COLLECTIONS_NAMES_TABLE = {
 }
 
 
+def create_object(object_name, object_data):
+    bpy_object = bpy.data.objects.new(object_name, object_data)
+    return bpy_object
+
+
+def create_level_object(level, level_collection):
+    level_object = create_object(level.name, None)
+    level_collection.objects.link(level_object)
+    return level_object
+
+
+def create_sectors_object(level_collection):
+    sectors_object = create_object('sectors', None)
+    level_collection.objects.link(sectors_object)
+    return sectors_object
+
+
+def create_level_objects(level, level_collection):
+    level_object = create_level_object(level, level_collection)
+    return level_object
+
+
 def create_collection(collection_name, parent_collection):
     collection = bpy.data.collections.new(collection_name)
     parent_collection.children.link(collection)
@@ -54,7 +76,8 @@ def create_level_collections(level):
     for collection_name in LEVEL_VISUALS_COLLECTIONS_NAMES:
         collection = create_collection(collection_name, visuals_collection)
         level.collections[collection_name] = collection
-        
+
+    return level_collection
 
 
 def remove_default_shader_nodes(bpy_material):
