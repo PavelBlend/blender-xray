@@ -1,4 +1,4 @@
-import os, time
+import os, time, math
 
 import bpy
 
@@ -162,8 +162,52 @@ def import_glows(data, materials, level_collection):
     return glows_object
 
 
-def import_light_dynamic(data):
-    pass
+def import_light_dynamic(packed_reader, light_object):
+    controller_id = packed_reader.getf('I')[0] # ???
+    light_type = packed_reader.getf('I')[0] # ???
+    diffuse = packed_reader.getf('4f')
+    specular = packed_reader.getf('4f')
+    ambient = packed_reader.getf('4f')
+    position = packed_reader.getf('3f')
+    direction = packed_reader.getf('3f')
+    range_ = packed_reader.getf('f')[0]
+    falloff = packed_reader.getf('f')[0]
+    attenuation_0 = packed_reader.getf('f')[0]
+    attenuation_1 = packed_reader.getf('f')[0]
+    attenuation_2 = packed_reader.getf('f')[0]
+    theta = packed_reader.getf('f')[0]
+    phi = packed_reader.getf('f')[0]
+
+    light_object.location = position[0], position[2], position[1]
+    light_object.rotation_euler = direction[0], direction[2], direction[1]
+
+
+def create_light_object(light_index, level_collection):
+    object_name = 'light_dynamic_{:0>3}'.format(light_index)
+    light = bpy.data.lights.new(object_name, 'SPOT')
+    bpy_object = create.create_object(object_name, light)
+    level_collection.objects.link(bpy_object)
+    return bpy_object
+
+
+def create_lights_object(level_collection):
+    object_name = 'light dynamic'
+    bpy_object = create.create_object(object_name, None)
+    level_collection.objects.link(bpy_object)
+    return bpy_object
+
+
+def import_lights_dynamic(data, level_collection):
+    packed_reader = xray_io.PackedReader(data)
+    light_count = len(data) // fmt.LIGHT_DYNAMIC_SIZE
+    lights_dynamic_object = create_lights_object(level_collection)
+
+    for light_index in range(light_count):
+        light_object = create_light_object(light_index, level_collection)
+        import_light_dynamic(packed_reader, light_object)
+        light_object.parent = lights_dynamic_object
+
+    return lights_dynamic_object
 
 
 def generate_portal_face(vertices):
@@ -256,26 +300,29 @@ def import_geom(level, chunks, context):
 
 
 def import_level(level, context, chunks):
-    for chunk_id, chunk_data in chunks.items():
-        if chunk_id == fmt.Chunks.SHADERS:
-            level.materials = shaders.import_shaders(context, chunk_data)
-        elif chunk_id == fmt.Chunks.VISUALS:
-            visuals_chunk_data = chunk_data
-        elif chunk_id == fmt.Chunks.LIGHT_DYNAMIC:
-            import_light_dynamic(chunk_data)
-        elif chunk_id == fmt.Chunks.VB:
-            level.vertex_buffers = vb.import_vertex_buffers(chunk_data)
-        elif chunk_id == fmt.Chunks.IB:
-            level.indices_buffers = ib.import_indices_buffers(chunk_data)
-        elif chunk_id == fmt.Chunks.SWIS:
-            level.swis = swi.import_slide_window_items(chunk_data)
-        else:
-            print('Unknown level chunk: {:x}'.format(chunk_id))
+    shaders_chunk_data = chunks.pop(fmt.Chunks.SHADERS)
+    level.materials = shaders.import_shaders(context, shaders_chunk_data)
+    del shaders_chunk_data
+
+    vb_chunk_data = chunks.pop(fmt.Chunks.VB)
+    level.vertex_buffers = vb.import_vertex_buffers(vb_chunk_data)
+    del vb_chunk_data
+
+    ib_chunk_data = chunks.pop(fmt.Chunks.IB)
+    level.indices_buffers = ib.import_indices_buffers(ib_chunk_data)
+    del ib_chunk_data
+
+    swis_chunk_data = chunks.pop(fmt.Chunks.SWIS)
+    level.swis = swi.import_slide_window_items(swis_chunk_data)
+    del swis_chunk_data
 
     level_collection = create.create_level_collections(level)
     level_object = create.create_level_objects(level, level_collection)
+
+    visuals_chunk_data = chunks.pop(fmt.Chunks.VISUALS)
     visuals.import_visuals(visuals_chunk_data, level)
     visuals.import_hierrarhy_visuals(level)
+    del visuals_chunk_data
 
     sectors_chunk_data = chunks.pop(fmt.Chunks.SECTORS)
     import_sectors(sectors_chunk_data, level, level_collection, level_object)
@@ -294,6 +341,16 @@ def import_level(level, context, chunks):
     )
     del glows_chunk_data
     glows_object.parent = level_object
+
+    light_chunk_data = chunks.pop(fmt.Chunks.LIGHT_DYNAMIC)
+    lights_dynamic_object = import_lights_dynamic(
+        light_chunk_data, level_collection
+    )
+    lights_dynamic_object.parent = level_object
+    del light_chunk_data
+
+    for chunk_id, chunk_data in chunks.items():
+        print('Unknown level chunk: {:x}'.format(chunk_id))
 
 
 def import_main(context, chunked_reader, level):
