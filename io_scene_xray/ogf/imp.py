@@ -18,6 +18,9 @@ class Visual(object):
         self.triangles = None
         self.indices_count = None
         self.indices = None
+        self.hemi = None
+        self.sun = None
+        self.light = None
 
 
 class HierrarhyVisual(object):
@@ -59,18 +62,55 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
 
         mesh.faces.ensure_lookup_table()
 
-        # import uvs
+        # import uvs and vertex colors
         uv_layer = mesh.loops.layers.uv.new('Texture')
-        if visual.uvs_lmap:
+        hemi_vertex_color = mesh.loops.layers.color.new('Hemi')
+        if visual.uvs_lmap:    # light maps
             lmap_uv_layer = mesh.loops.layers.uv.new('Light Map')
             for face in mesh.faces:
                 for loop in face.loops:
                     loop[uv_layer].uv = visual.uvs[loop.vert.index]
                     loop[lmap_uv_layer].uv = visual.uvs_lmap[loop.vert.index]
-        else:
+                    # hemi vertex color
+                    hemi = visual.hemi[loop.vert.index]
+                    bmesh_hemi_color = loop[hemi_vertex_color]
+                    bmesh_hemi_color[0] = hemi
+                    bmesh_hemi_color[1] = hemi
+                    bmesh_hemi_color[2] = hemi
+        elif visual.light:    # vertex colors
+            sun_vertex_color = mesh.loops.layers.color.new('Sun')
+            light_vertex_color = mesh.loops.layers.color.new('Light')
             for face in mesh.faces:
                 for loop in face.loops:
                     loop[uv_layer].uv = visual.uvs[loop.vert.index]
+                    # hemi vertex color
+                    hemi = visual.hemi[loop.vert.index]
+                    bmesh_hemi_color = loop[hemi_vertex_color]
+                    bmesh_hemi_color[0] = hemi
+                    bmesh_hemi_color[1] = hemi
+                    bmesh_hemi_color[2] = hemi
+                    # light vertex color
+                    light = visual.light[loop.vert.index]
+                    bmesh_light_color = loop[light_vertex_color]
+                    bmesh_light_color[0] = light[0]
+                    bmesh_light_color[1] = light[1]
+                    bmesh_light_color[2] = light[2]
+                    # sun vertex color
+                    sun = visual.sun[loop.vert.index]
+                    bmesh_sun_color = loop[sun_vertex_color]
+                    bmesh_sun_color[0] = sun
+                    bmesh_sun_color[1] = sun
+                    bmesh_sun_color[2] = sun
+        else:    # trees
+            for face in mesh.faces:
+                for loop in face.loops:
+                    loop[uv_layer].uv = visual.uvs[loop.vert.index]
+                    # hemi vertex color
+                    hemi = visual.hemi[loop.vert.index]
+                    bmesh_hemi_color = loop[hemi_vertex_color]
+                    bmesh_hemi_color[0] = hemi
+                    bmesh_hemi_color[1] = hemi
+                    bmesh_hemi_color[2] = hemi
 
         # normals
         mesh.normal_update()
@@ -106,6 +146,13 @@ def import_gcontainer(data, visual, level):
     visual.vertices = level.vertex_buffers[vb_index].position[vb_slice]
     visual.uvs = level.vertex_buffers[vb_index].uv[vb_slice]
     visual.uvs_lmap = level.vertex_buffers[vb_index].uv_lmap[vb_slice]
+    visual.hemi = level.vertex_buffers[vb_index].color_hemi[vb_slice]
+
+    if level.vertex_buffers[vb_index].color_light:
+        visual.light = level.vertex_buffers[vb_index].color_light[vb_slice]
+    if level.vertex_buffers[vb_index].color_sun:
+        visual.sun = level.vertex_buffers[vb_index].color_sun[vb_slice]
+
     visual.indices = level.indices_buffers[ib_index][
         ib_offset : ib_offset + ib_size
     ]

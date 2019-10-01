@@ -1,4 +1,4 @@
-import os, time, math
+import os, time
 
 import bpy
 
