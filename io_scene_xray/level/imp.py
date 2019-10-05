@@ -242,6 +242,8 @@ def import_portal(packed_reader, portal_index, level_collection):
     used_vertices_count = packed_reader.getf('I')[0]
     vertices = vertices[ : used_vertices_count]
     portal_object = create_portal(portal_index, vertices, level_collection)
+    portal_object.xray.sector_front = sector_front
+    portal_object.xray.sector_back = sector_back
     return portal_object
 
 

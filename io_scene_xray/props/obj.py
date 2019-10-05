@@ -306,7 +306,13 @@ xray_object_properties = {
     'detail': bpy.props.PointerProperty(
         type=det_types.XRayObjectDetailsProperties
     ),
-    'skls_browser': bpy.props.PointerProperty(type=XRayObjectSklsBrowserProperties)
+    'skls_browser': bpy.props.PointerProperty(type=XRayObjectSklsBrowserProperties),
+    'bbox_min': bpy.props.FloatVectorProperty(),
+    'bbox_max': bpy.props.FloatVectorProperty(),
+    'center': bpy.props.FloatVectorProperty(),
+    'radius': bpy.props.FloatProperty(),
+    'sector_front': bpy.props.IntProperty(),
+    'sector_back': bpy.props.IntProperty()
 }
 
 

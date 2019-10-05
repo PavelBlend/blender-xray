@@ -54,11 +54,14 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
 
         # import triangles
         for triangle in visual.triangles:
-            mesh.faces.new((
-                mesh.verts[triangle[0]],
-                mesh.verts[triangle[1]],
-                mesh.verts[triangle[2]]
-            ))
+            try:
+                mesh.faces.new((
+                    mesh.verts[triangle[0]],
+                    mesh.verts[triangle[1]],
+                    mesh.verts[triangle[2]]
+                ))
+            except:
+                pass
 
         mesh.faces.ensure_lookup_table()
 
@@ -411,6 +414,11 @@ def import_model(chunks, visual, level):
             visual.model_type
         ))
 
+    data = bpy_obj.xray
+    data.bbox_min = visual.bbox_min
+    data.bbox_max = visual.bbox_max
+    data.center = visual.center
+    data.radius = visual.radius
     scene_collection = bpy.context.scene.collection
     collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
     collection = level.collections[collection_name]
@@ -419,14 +427,14 @@ def import_model(chunks, visual, level):
     level.visuals.append(bpy_obj)
 
 
-def import_bounding_sphere(packed_reader):
-    center = packed_reader.getf('<3f')[0]
-    redius = packed_reader.getf('<f')[0]
+def import_bounding_sphere(packed_reader, visual):
+    visual.center = packed_reader.getf('<3f')
+    visual.radius = packed_reader.getf('<f')[0]
 
 
-def import_bounding_box(packed_reader):
-    bbox_min = packed_reader.getf('<3f')[0]
-    bbox_max = packed_reader.getf('<3f')[0]
+def import_bounding_box(packed_reader, visual):
+    visual.bbox_min = packed_reader.getf('<3f')
+    visual.bbox_max = packed_reader.getf('<3f')
 
 
 def check_version(visual):
@@ -442,8 +450,8 @@ def import_header(data, visual):
     check_version(visual)
     visual.model_type = packed_reader.getf('<B')[0]
     visual.shader_id = packed_reader.getf('<H')[0]
-    import_bounding_box(packed_reader)
-    import_bounding_sphere(packed_reader)
+    import_bounding_box(packed_reader, visual)
+    import_bounding_sphere(packed_reader, visual)
 
 
 def import_main(chunks, visual, level):
@@ -464,7 +472,7 @@ def get_ogf_chunks(data):
     return chunks, chunks_ids
 
 
-def import_(data, visual_id, level, chunks):
+def import_(data, visual_id, level, chunks, visuals_ids):
     chunks, visual_chunks_ids = get_ogf_chunks(data)
     visual = Visual()
     visual.visual_id = visual_id

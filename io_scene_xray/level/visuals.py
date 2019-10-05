@@ -17,13 +17,14 @@ def import_hierrarhy_visuals(level):
             child_obj.parent = hierrarhy_obj
 
 
-
 def import_visuals(data, level):
     chunked_reader = xray_io.ChunkedReader(data)
 
     chunks = set()
+    visuals_ids = set()
     for visual_id, visual_data in chunked_reader:
-        imp.import_(visual_data, visual_id, level, chunks)
+        visuals_ids.add(visual_id)
+        imp.import_(visual_data, visual_id, level, chunks, visuals_ids)
     chunks = list(chunks)
     chunks.sort()
     for i in chunks:
