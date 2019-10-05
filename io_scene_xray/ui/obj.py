@@ -122,6 +122,10 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
     def draw(self, context):
         layout = self.layout
         data = context.object.xray
+        layout.prop(data, 'bbox_min')
+        layout.prop(data, 'bbox_max')
+        layout.prop(data, 'center')
+        layout.prop(data, 'radius')
         layout.prop(data, 'isroot', text='Object', toggle=True)
 
         if data.isroot:

@@ -415,10 +415,20 @@ def import_model(chunks, visual, level):
         ))
 
     data = bpy_obj.xray
-    data.bbox_min = visual.bbox_min
-    data.bbox_max = visual.bbox_max
-    data.center = visual.center
+    # bbox min
+    data.bbox_min[0] = visual.bbox_min[0]
+    data.bbox_min[1] = visual.bbox_min[2]
+    data.bbox_min[2] = visual.bbox_min[1]
+    # bbox max
+    data.bbox_max[0] = visual.bbox_max[0]
+    data.bbox_max[1] = visual.bbox_max[2]
+    data.bbox_max[2] = visual.bbox_max[1]
+    # bsphere
+    data.center[0] = visual.center[0]
+    data.center[1] = visual.center[2]
+    data.center[2] = visual.center[1]
     data.radius = visual.radius
+
     scene_collection = bpy.context.scene.collection
     collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
     collection = level.collections[collection_name]

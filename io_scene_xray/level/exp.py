@@ -163,7 +163,7 @@ def write_shaders(level):
 
 
 def write_visual_bounding_sphere(packed_writer, bpy_obj, center, radius):
-    packed_writer.putf('<3f', *center)    # center
+    packed_writer.putf('<3f', center[0], center[2], center[1])    # center
     packed_writer.putf('<f', radius)    # radius
 
 
