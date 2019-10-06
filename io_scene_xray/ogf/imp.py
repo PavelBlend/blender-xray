@@ -341,13 +341,23 @@ def import_swicontainer(chunks):
 
 def import_lod_def_2(data):
     packed_reader = xray_io.PackedReader(data)
+    verts = []
+    uvs = []
+    faces = []
     for i in range(8):
+        face = []
         for j in range(4):
             coord_x, coord_y, coord_z = packed_reader.getf('3f')
+            verts.append((coord_x, coord_z, coord_y))
+            face.append(i * 4 + j)
             coord_u, coord_v = packed_reader.getf('2f')
+            uvs.append((coord_u, 1 - coord_v))
+            # TODO: import vertex light
             hemi = packed_reader.getf('I')[0]
             sun = packed_reader.getf('B')[0]
             pad = packed_reader.getf('3B')
+        faces.append(face)
+    return verts, uvs, faces
 
 
 def import_lod_visual(chunks, visual, level):
@@ -357,14 +367,22 @@ def import_lod_visual(chunks, visual, level):
     del children_l_data
 
     lod_def_2_data = chunks.pop(fmt.Chunks.LODDEF2)
-    import_lod_def_2(lod_def_2_data)
+    verts, uvs, faces = import_lod_def_2(lod_def_2_data)
     del lod_def_2_data
 
     check_unread_chunks(chunks)
 
-    bpy_object = create_object(visual.name, None)
-    bpy_object.empty_display_type = 'SPHERE'
-    bpy_object.empty_display_size = 2.0
+    bpy_mesh = bpy.data.meshes.new(visual.name)
+    bpy_mesh.from_pydata(verts, (), faces)
+    uv_layer = bpy_mesh.uv_layers.new(name='Texture')
+    for face in bpy_mesh.polygons:
+        for loop_index in face.loop_indices:
+            loop = bpy_mesh.loops[loop_index]
+            vert_index = loop.vertex_index
+            uv = uvs[vert_index]
+            uv_layer.data[loop.index].uv = uv
+    bpy_object = create_object(visual.name, bpy_mesh)
+    assign_material(bpy_object, visual.shader_id, level.materials)
     return bpy_object
 
 
