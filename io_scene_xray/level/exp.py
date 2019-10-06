@@ -1,4 +1,4 @@
-import os, random
+import os, time
 
 import bpy, bmesh
 
@@ -215,39 +215,73 @@ def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
     indices_count = 0
     vertex_index = 0
 
+    unique_verts = {}
+    verts_indices = {}
     for face in bm.faces:
         for loop in face.loops:
             vert = loop.vert
-            ib.append(vertex_index)
-            vertex_index += 1
-            vertices_count += 1
-            indices_count += 1
-            vb.position.append((vert.co[0], vert.co[2], vert.co[1]))
-            vb.normal.append((
-                int(round(((vert.normal[0] + 1.0) / 2) * 255, 0)),
-                int(round(((vert.normal[2] + 1.0) / 2) * 255, 0)),
-                int(round(((vert.normal[1] + 1.0) / 2) * 255, 0))
-            ))
-            uv = loop[uv_layer].uv
-            tex_coord_u = int(round(uv[0] * fmt.UV_COEFFICIENT, 0))
-            tex_coord_v = int(round(1 - uv[1] * fmt.UV_COEFFICIENT, 0))
-            if not (-0x8000 < tex_coord_u < 0x7fff):
-                tex_coord_u = 0x7fff
-            if not (-0x8000 < tex_coord_v < 0x7fff):
-                tex_coord_v = 0x7fff
-            vb.uv.append((
-                tex_coord_u,
-                tex_coord_v
-            ))
-            if uv_layer_lmap:
-                uv_lmap = loop[uv_layer_lmap].uv
-                uv = loop[uv_layer].uv
-                vb.uv_lmap.append((
-                    int(round(uv_lmap[0] * fmt.LIGHT_MAP_UV_COEFFICIENT, 0)),
-                    int(round((1 - uv_lmap[1]) * fmt.LIGHT_MAP_UV_COEFFICIENT, 0))
-                ))
+            vert_co = (vert.co[0], vert.co[1], vert.co[2])
+            normal = (vert.normal[0], vert.normal[1], vert.normal[2])
+            uv = loop[uv_layer].uv[0], loop[uv_layer].uv[1]
+            if unique_verts.get(vert_co, None):
+                if not (uv, normal) in unique_verts[vert_co]:
+                    unique_verts[vert_co].append((uv, normal))
+                    verts_indices[vert_co].append(vertex_index)
+                    vertex_index += 1
             else:
-                vb.uv_lmap.append((0, 0))
+                unique_verts[vert_co] = [(uv, normal), ]
+                verts_indices[vert_co] = [vertex_index, ]
+                vertex_index += 1
+
+    vertex_index = 0
+    saved_verts = set()
+    for face in bm.faces:
+        for loop in face.loops:
+            vert = loop.vert
+            vert_co = (vert.co[0], vert.co[1], vert.co[2])
+            vert_data = unique_verts[vert_co]
+            uv = loop[uv_layer].uv
+            for index, data in enumerate(vert_data):
+                if data[0] == (uv[0], uv[1]) and data[1] == (vert.normal[0], vert.normal[1], vert.normal[2]):
+                    tex_uv, normal = data
+                    vert_index = verts_indices[vert_co][index]
+                    break
+            ib.append(vert_index)
+            indices_count += 1
+            if not vert_index in saved_verts:
+                saved_verts.add(vert_index)
+                vertex_index += 1
+                vertices_count += 1
+                final_vertex_co = bpy_obj.matrix_world @ vert.co
+                vb.position.append((
+                    final_vertex_co[0],
+                    final_vertex_co[2],
+                    final_vertex_co[1]
+                ))
+                vb.normal.append((
+                    int(round(((normal[0] + 1.0) / 2) * 255, 0)),
+                    int(round(((normal[2] + 1.0) / 2) * 255, 0)),
+                    int(round(((normal[1] + 1.0) / 2) * 255, 0))
+                ))
+                tex_coord_u = int(round(tex_uv[0] * fmt.UV_COEFFICIENT, 0))
+                tex_coord_v = int(round(1 - tex_uv[1] * fmt.UV_COEFFICIENT, 0))
+                if not (-0x8000 < tex_coord_u < 0x7fff):
+                    tex_coord_u = 0x7fff
+                if not (-0x8000 < tex_coord_v < 0x7fff):
+                    tex_coord_v = 0x7fff
+                vb.uv.append((
+                    tex_coord_u,
+                    tex_coord_v
+                ))
+                if uv_layer_lmap:
+                    uv_lmap = loop[uv_layer_lmap].uv
+                    uv = loop[uv_layer].uv
+                    vb.uv_lmap.append((
+                        int(round(uv_lmap[0] * fmt.LIGHT_MAP_UV_COEFFICIENT, 0)),
+                        int(round((1 - uv_lmap[1]) * fmt.LIGHT_MAP_UV_COEFFICIENT, 0))
+                    ))
+                else:
+                    vb.uv_lmap.append((0, 0))
 
     packed_writer.putf('<I', 0)    # vb_index
     packed_writer.putf('<I', vb_offset)    # vb_offset
@@ -512,6 +546,8 @@ def get_writer():
 
 
 def export_file(level_object, file_path):
+    start_time = time.time()
+
     level_chunked_writer = get_writer()
     vb, ib = write_level(level_chunked_writer, level_object)
 
@@ -525,3 +561,5 @@ def export_file(level_object, file_path):
     with open(file_path + os.extsep + 'geom', 'wb') as file:
         file.write(level_geom_chunked_writer.data)
     del level_geom_chunked_writer
+
+    print('total time: {}s'.format(time.time() - start_time))
