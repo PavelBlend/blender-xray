@@ -76,10 +76,17 @@ def write_level_geom_vb(vb):
             vb.normal[vertex_index][1],
             31
         )    # normal, hemi
-        packed_writer.putf('4B', 127, 127, 127, 127)    # tangent
-        packed_writer.putf('4B', 127, 127, 127, 127)    # binormal
-        packed_writer.putf('2h', vb.uv[vertex_index][0], vb.uv[vertex_index][1])    # texture coordinate
-        packed_writer.putf('2h', vb.uv_lmap[vertex_index][0], vb.uv_lmap[vertex_index][1])    # light map texture coordinate
+        uv_fix = vb.uv_fix[vertex_index]
+        packed_writer.putf('4B', 127, 127, 127, uv_fix[0])    # tangent
+        packed_writer.putf('4B', 127, 127, 127, uv_fix[1])    # binormal
+        # texture coordinate
+        packed_writer.putf(
+            '2h', vb.uv[vertex_index][0], vb.uv[vertex_index][1]
+        )
+        # light map texture coordinate
+        packed_writer.putf(
+            '2h', vb.uv_lmap[vertex_index][0], vb.uv_lmap[vertex_index][1]
+        )
 
     return packed_writer
 
@@ -110,8 +117,10 @@ def write_sector_root(root_index):
 
 def write_sector_portals(sectors_map, sector_index):
     packed_writer = xray_io.PackedWriter()
-    for portal in sectors_map[sector_index]:
-        packed_writer.putf('<H', portal)
+    # None - when there are no sectors
+    if sectors_map.get(sector_index, None):
+        for portal in sectors_map[sector_index]:
+            packed_writer.putf('<H', portal)
     return packed_writer
 
 
@@ -197,6 +206,17 @@ def write_visual_header(bpy_obj, visual=None, visual_type=0, shader_id=1):
     return packed_writer
 
 
+def get_tex_coord_correct(tex_coord_f, tex_coord_h, uv_coeff):
+    if tex_coord_f > 0:
+        tex_coord_diff = tex_coord_f - (tex_coord_h / uv_coeff)
+    else:
+        tex_coord_diff = (1 + (tex_coord_f * uv_coeff - tex_coord_h)) / uv_coeff
+        tex_coord_h -= 1
+
+    tex_correct = (255 * 0x8000 * tex_coord_diff) / 32
+    return int(round(tex_correct, 0)), tex_coord_h
+
+
 def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
     visual = Visual()
     material = bpy_obj.data.materials[0]
@@ -272,8 +292,18 @@ def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
                     int(round(((normal[2] + 1.0) / 2) * 255, 0)),
                     int(round(((normal[1] + 1.0) / 2) * 255, 0))
                 ))
-                tex_coord_u = int(round(tex_uv[0] * uv_coeff, 0))
-                tex_coord_v = int(round(1 - tex_uv[1] * uv_coeff, 0))
+                # uv
+                tex_coord_u = int(tex_uv[0] * uv_coeff)
+                tex_coord_v = int((1 - tex_uv[1]) * uv_coeff)
+                # uv correct
+                tex_coord_u_correct, tex_coord_u = get_tex_coord_correct(tex_uv[0], tex_coord_u, uv_coeff)
+                tex_coord_v_correct, tex_coord_v = get_tex_coord_correct(1 - tex_uv[1], tex_coord_v, uv_coeff)
+                pw = xray_io.PackedWriter()
+                try:
+                    pw.putf('<2B', tex_coord_u_correct, tex_coord_v_correct)
+                except:
+                    raise BaseException('1')
+                # set uv limits
                 if not (-0x8000 < tex_coord_u < 0x7fff):
                     tex_coord_u = 0x7fff
                 if not (-0x8000 < tex_coord_v < 0x7fff):
@@ -281,6 +311,10 @@ def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
                 vb.uv.append((
                     tex_coord_u,
                     tex_coord_v
+                ))
+                vb.uv_fix.append((
+                    tex_coord_u_correct,
+                    tex_coord_v_correct
                 ))
                 if uv_layer_lmap:
                     uv_lmap = loop[uv_layer_lmap].uv

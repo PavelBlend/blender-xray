@@ -10,12 +10,13 @@ class VertexBuffer(object):
         self.color_light = []
         self.color_sun = []
         self.uv = []
+        self.uv_fix = []
         self.uv_lmap = []
         self.shader_data = []
 
 
 def get_uv_corrector(value):
-    uv_corrector = (value / 255) * (32/0x8000)
+    uv_corrector = (value / 255) * (32 / 0x8000)
     return uv_corrector
 
 
