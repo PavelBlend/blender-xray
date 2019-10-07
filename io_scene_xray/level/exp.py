@@ -249,13 +249,17 @@ def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
             vert_co = (vert.co[0], vert.co[1], vert.co[2])
             normal = (vert.normal[0], vert.normal[1], vert.normal[2])
             uv = loop[uv_layer].uv[0], loop[uv_layer].uv[1]
+            if uv_layer_lmap:
+                uv_lmap = loop[uv_layer_lmap].uv[0], loop[uv_layer_lmap].uv[1]
+            else:
+                uv_lmap = (0.0, 0.0)
             if unique_verts.get(vert_co, None):
-                if not (uv, normal) in unique_verts[vert_co]:
-                    unique_verts[vert_co].append((uv, normal))
+                if not (uv, uv_lmap, normal) in unique_verts[vert_co]:
+                    unique_verts[vert_co].append((uv, uv_lmap, normal))
                     verts_indices[vert_co].append(vertex_index)
                     vertex_index += 1
             else:
-                unique_verts[vert_co] = [(uv, normal), ]
+                unique_verts[vert_co] = [(uv, uv_lmap, normal), ]
                 verts_indices[vert_co] = [vertex_index, ]
                 vertex_index += 1
 
@@ -271,9 +275,15 @@ def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
             vert_co = (vert.co[0], vert.co[1], vert.co[2])
             vert_data = unique_verts[vert_co]
             uv = loop[uv_layer].uv
+            if uv_layer_lmap:
+                uv_lmap = loop[uv_layer_lmap].uv
+            else:
+                uv_lmap = (0.0, 0.0)
             for index, data in enumerate(vert_data):
-                if data[0] == (uv[0], uv[1]) and data[1] == (vert.normal[0], vert.normal[1], vert.normal[2]):
-                    tex_uv, normal = data
+                if data[0] == (uv[0], uv[1]) and \
+                        data[1] == (uv_lmap[0], uv_lmap[1]) and \
+                        data[2] == (vert.normal[0], vert.normal[1], vert.normal[2]):
+                    tex_uv, tex_uv_lmap, normal = data
                     vert_index = verts_indices[vert_co][index]
                     break
             ib.append(vert_index)
@@ -316,15 +326,10 @@ def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
                     tex_coord_u_correct,
                     tex_coord_v_correct
                 ))
-                if uv_layer_lmap:
-                    uv_lmap = loop[uv_layer_lmap].uv
-                    uv = loop[uv_layer].uv
-                    vb.uv_lmap.append((
-                        int(round(uv_lmap[0] * fmt.LIGHT_MAP_UV_COEFFICIENT, 0)),
-                        int(round((1 - uv_lmap[1]) * fmt.LIGHT_MAP_UV_COEFFICIENT, 0))
-                    ))
-                else:
-                    vb.uv_lmap.append((0, 0))
+                vb.uv_lmap.append((
+                    int(round(tex_uv_lmap[0] * fmt.LIGHT_MAP_UV_COEFFICIENT, 0)),
+                    int(round((1 - tex_uv_lmap[1]) * fmt.LIGHT_MAP_UV_COEFFICIENT, 0))
+                ))
 
     packed_writer.putf('<I', 0)    # vb_index
     packed_writer.putf('<I', vb_offset)    # vb_offset
@@ -375,7 +380,7 @@ def write_tree_def_2(bpy_obj, chunked_writer):
         -bpy_obj.rotation_euler[0],
         -bpy_obj.rotation_euler[2],
         -bpy_obj.rotation_euler[1]
-    ))
+    ), 'ZXY')
     rotation_mat = rotation.to_matrix().to_4x4()
 
     scale = mathutils.Vector((
