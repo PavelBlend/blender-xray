@@ -74,7 +74,7 @@ def write_level_geom_vb(vb):
             vb.normal[vertex_index][0],
             vb.normal[vertex_index][2],
             vb.normal[vertex_index][1],
-            127
+            31
         )    # normal, hemi
         packed_writer.putf('4B', 127, 127, 127, 127)    # tangent
         packed_writer.putf('4B', 127, 127, 127, 127)    # binormal
@@ -183,11 +183,15 @@ def write_visual_header(bpy_obj, visual=None, visual_type=0, shader_id=1):
         packed_writer.putf('<H', visual.shader_index + 1)
     else:
         packed_writer.putf('<H', shader_id)    # shader id
-    # bbox, (center, radius) = ogf_exp.calculate_bbox_and_bsphere(bpy_obj)
     data = bpy_obj.xray
-    bbox = (data.bbox_min, data.bbox_max)
-    center = data.center
-    radius = data.radius
+    if bpy_obj.type == 'MESH':
+        bbox, (center, radius) = ogf_exp.calculate_bbox_and_bsphere(
+            bpy_obj, apply_transforms=True
+        )
+    else:
+        bbox = (data.bbox_min, data.bbox_max)
+        center = data.center
+        radius = data.radius
     write_visual_bounding_box(packed_writer, bpy_obj, bbox)
     write_visual_bounding_sphere(packed_writer, bpy_obj, center, radius)
     return packed_writer

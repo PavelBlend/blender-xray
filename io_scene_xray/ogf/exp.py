@@ -26,7 +26,7 @@ def calculate_mesh_bsphere(bbox, vertices):
     return center, max_radius
 
 
-def calculate_bbox_and_bsphere(bpy_obj):
+def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False):
     def scan_meshes(bpy_obj, meshes):
         if is_helper_object(bpy_obj):
             return
@@ -40,9 +40,13 @@ def calculate_bbox_and_bsphere(bpy_obj):
 
     bbox = None
     spheres = []
+    if apply_transforms:
+        mat_world = bpy_obj.matrix_world
+    else:
+        mat_world = mathutils.Matrix()
     for mesh in meshes:
         bmesh = convert_object_to_space_bmesh(mesh, bpy_obj.matrix_world)
-        bbx = calculate_mesh_bbox(bmesh.verts)
+        bbx = calculate_mesh_bbox(bmesh.verts, mat=mat_world)
         if bbox is None:
             bbox = bbx
         else:

@@ -3,6 +3,7 @@ import math
 from time import time
 
 from bpy_extras import io_utils
+import mathutils
 
 from . import log
 from .version_utils import IS_28, multiply
@@ -198,7 +199,7 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
     return mesh
 
 
-def calculate_mesh_bbox(verts):
+def calculate_mesh_bbox(verts, mat=mathutils.Matrix()):
     def vfunc(dst, src, func):
         dst.x = func(dst.x, src.x)
         dst.y = func(dst.y, src.y)
@@ -209,8 +210,8 @@ def calculate_mesh_bbox(verts):
     _max = _min.copy()
 
     for vertex in verts:
-        vfunc(_min, vertex.co, min)
-        vfunc(_max, vertex.co, max)
+        vfunc(_min, multiply(mat, vertex.co), min)
+        vfunc(_max, multiply(mat, vertex.co), max)
 
     return _min, _max
 

@@ -54,14 +54,11 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
 
         # import triangles
         for triangle in visual.triangles:
-            try:
-                mesh.faces.new((
-                    mesh.verts[triangle[0]],
-                    mesh.verts[triangle[1]],
-                    mesh.verts[triangle[2]]
-                ))
-            except:
-                pass
+            mesh.faces.new((
+                mesh.verts[triangle[0]],
+                mesh.verts[triangle[1]],
+                mesh.verts[triangle[2]]
+            ))
 
         mesh.faces.ensure_lookup_table()
 
