@@ -13,6 +13,7 @@ class VertexBuffer(object):
         self.uv_fix = []
         self.uv_lmap = []
         self.shader_data = []
+        self.vertex_format = None
 
 
 def get_uv_corrector(value):

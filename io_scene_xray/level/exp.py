@@ -4,7 +4,7 @@ import bpy, bmesh, mathutils
 
 from .. import xray_io, utils, plugin_prefs
 from ..ogf import exp as ogf_exp
-from . import fmt, vb
+from . import fmt, vb as imp_vb
 
 
 class Visual(object):
@@ -17,6 +17,7 @@ class Level(object):
         self.materials = {}
         self.visuals = []
         self.active_material_index = 0
+        self.vbs_offsets = []
 
 
 def write_level_geom_swis():
@@ -42,61 +43,121 @@ def write_level_geom_ib(ib):
     return packed_writer
 
 
-def write_level_geom_vb(vb):
+def write_level_geom_vb(vbs):
     packed_writer = xray_io.PackedWriter()
 
-    packed_writer.putf('<I', 1)    # vertex buffers count
+    packed_writer.putf('<I', len(vbs))    # vertex buffers count
 
-    offsets = (0, 12, 16, 20, 24, 28)    # normal visual vertex buffer offsets
-    usage_indices = (0, 0, 0, 0, 0, 1)
+    for vb in vbs:
+        if vb.vertex_format == 'NORMAL':
+            offsets = (0, 12, 16, 20, 24, 28)    # normal visual vertex buffer offsets
+            usage_indices = (0, 0, 0, 0, 0, 1)
+            vertex_type = fmt.VERTEX_TYPE_BRUSH
+        elif vb.vertex_format == 'TREE':
+            offsets = (0, 12, 16, 20, 24)
+            usage_indices = (0, 0, 0, 0, 0)
+            vertex_type = fmt.VERTEX_TYPE_TREE
+        elif vb.vertex_format == 'COLOR':
+            offsets = (0, 12, 16, 20, 24, 28)
+            usage_indices = (0, 0, 0, 0, 0, 0)
+            vertex_type = fmt.VERTEX_TYPE_COLOR
+        else:
+            raise BaseException('Unknown VB format:', vb.vertex_format)
 
-    for index, (usage, type_) in enumerate(fmt.VERTEX_TYPE_BRUSH):
-        packed_writer.putf('<H', 0)    # stream
-        packed_writer.putf('<H', offsets[index])    # offset
-        packed_writer.putf('<B', type_)    # type
+        for index, (usage, type_) in enumerate(vertex_type):
+            packed_writer.putf('<H', 0)    # stream
+            packed_writer.putf('<H', offsets[index])    # offset
+            packed_writer.putf('<B', type_)    # type
+            packed_writer.putf('<B', 0)    # method
+            packed_writer.putf('<B', usage)    # usage
+            packed_writer.putf('<B', usage_indices[index])    # usage_index
+
+        packed_writer.putf('<H', 255)    # stream
+        packed_writer.putf('<H', 0)    # offset
+        packed_writer.putf('<B', 17)   # type UNUSED
         packed_writer.putf('<B', 0)    # method
-        packed_writer.putf('<B', usage)    # usage
-        packed_writer.putf('<B', usage_indices[index])    # usage_index
+        packed_writer.putf('<B', 0)    # usage
+        packed_writer.putf('<B', 0)    # usage_index
 
-    packed_writer.putf('<H', 255)    # stream
-    packed_writer.putf('<H', 0)    # offset
-    packed_writer.putf('<B', 17)   # type UNUSED
-    packed_writer.putf('<B', 0)    # method
-    packed_writer.putf('<B', 0)    # usage
-    packed_writer.putf('<B', 0)    # usage_index
+        packed_writer.putf('<I', len(vb.position))    # vertices count
 
-    packed_writer.putf('<I', len(vb.position))    # vertices count
+        if vb.vertex_format == 'NORMAL':
+            for vertex_index, vertex_pos in enumerate(vb.position):
+                packed_writer.putf('3f', *vertex_pos)
+                packed_writer.putf(
+                    '4B',
+                    vb.normal[vertex_index][0],
+                    vb.normal[vertex_index][2],
+                    vb.normal[vertex_index][1],
+                    vb.color_hemi[vertex_index]
+                )    # normal, hemi
+                uv_fix = vb.uv_fix[vertex_index]
+                packed_writer.putf('4B', 127, 127, 127, uv_fix[0])    # tangent
+                packed_writer.putf('4B', 127, 127, 127, uv_fix[1])    # binormal
+                # texture coordinate
+                packed_writer.putf(
+                    '2h', vb.uv[vertex_index][0], vb.uv[vertex_index][1]
+                )
+                # light map texture coordinate
+                packed_writer.putf(
+                    '2h', vb.uv_lmap[vertex_index][0], vb.uv_lmap[vertex_index][1]
+                )
 
-    for vertex_index, vertex_pos in enumerate(vb.position):
-        packed_writer.putf('3f', *vertex_pos)
-        packed_writer.putf(
-            '4B',
-            vb.normal[vertex_index][0],
-            vb.normal[vertex_index][2],
-            vb.normal[vertex_index][1],
-            31
-        )    # normal, hemi
-        uv_fix = vb.uv_fix[vertex_index]
-        packed_writer.putf('4B', 127, 127, 127, uv_fix[0])    # tangent
-        packed_writer.putf('4B', 127, 127, 127, uv_fix[1])    # binormal
-        # texture coordinate
-        packed_writer.putf(
-            '2h', vb.uv[vertex_index][0], vb.uv[vertex_index][1]
-        )
-        # light map texture coordinate
-        packed_writer.putf(
-            '2h', vb.uv_lmap[vertex_index][0], vb.uv_lmap[vertex_index][1]
-        )
+        elif vb.vertex_format == 'TREE':
+            for vertex_index, vertex_pos in enumerate(vb.position):
+                packed_writer.putf('3f', *vertex_pos)
+                packed_writer.putf(
+                    '4B',
+                    vb.normal[vertex_index][0],
+                    vb.normal[vertex_index][2],
+                    vb.normal[vertex_index][1],
+                    vb.color_hemi[vertex_index]
+                )    # normal, hemi
+                uv_fix = vb.uv_fix[vertex_index]
+                packed_writer.putf('4B', 127, 127, 127, uv_fix[0])    # tangent
+                packed_writer.putf('4B', 127, 127, 127, uv_fix[1])    # binormal
+                # texture coordinate
+                packed_writer.putf(
+                    '2h', vb.uv[vertex_index][0], vb.uv[vertex_index][1]
+                )
+                # tree shader data (wind coefficient and unused 2 bytes)
+                packed_writer.putf('2H', 0, 0)
+
+        elif vb.vertex_format == 'COLOR':
+            for vertex_index, vertex_pos in enumerate(vb.position):
+                packed_writer.putf('3f', *vertex_pos)
+                packed_writer.putf(
+                    '4B',
+                    vb.normal[vertex_index][0],
+                    vb.normal[vertex_index][2],
+                    vb.normal[vertex_index][1],
+                    vb.color_hemi[vertex_index]
+                )    # normal, hemi
+                uv_fix = vb.uv_fix[vertex_index]
+                packed_writer.putf('4B', 127, 127, 127, uv_fix[0])    # tangent
+                packed_writer.putf('4B', 127, 127, 127, uv_fix[1])    # binormal
+                # vertex color
+                packed_writer.putf(
+                    '4B',
+                    vb.color_light[vertex_index][0],
+                    vb.color_light[vertex_index][1],
+                    vb.color_light[vertex_index][2],
+                    vb.color_sun[vertex_index]
+                )
+                # texture coordinate
+                packed_writer.putf(
+                    '2h', vb.uv[vertex_index][0], vb.uv[vertex_index][1]
+                )
 
     return packed_writer
 
 
-def write_level_geom(chunked_writer, vb, ib):
+def write_level_geom(chunked_writer, vbs, ib):
     header_packed_writer = write_header()
     chunked_writer.put(fmt.Chunks.HEADER, header_packed_writer)
     del header_packed_writer
 
-    vb_packed_writer = write_level_geom_vb(vb)
+    vb_packed_writer = write_level_geom_vb(vbs)
     chunked_writer.put(fmt.Chunks.VB, vb_packed_writer)
     del vb_packed_writer
 
@@ -155,20 +216,30 @@ def write_shaders(level):
         eshader = material.xray.eshader
 
         lmap_1_node = material.node_tree.nodes.get('Image Texture.001', None)
-        if lmap_1_node:
-            lmap_1_path = lmap_1_node.image.name
-        else:
-            lmap_1_path = 'lmap#1_1'
-
         lmap_2_node = material.node_tree.nodes.get('Image Texture.002', None)
-        if lmap_2_node:
-            lmap_2_path = lmap_2_node.image.name
-        else:
-            lmap_2_path = 'lmap#1_1'
 
-        packed_writer.puts('{0}/{1},{2},{3}'.format(
-            eshader, texture_path, lmap_1_path, lmap_2_path
-        ))
+        if lmap_1_node:
+            lmap_1_path = lmap_1_node.image.name[0 : -4]    # cut .dds extension
+        else:
+            lmap_1_path = None
+
+        if lmap_2_node:
+            lmap_2_path = lmap_2_node.image.name[0 : -4]    # cut .dds extension
+        else:
+            lmap_2_path = None
+
+        if lmap_1_node and lmap_2_node:
+            packed_writer.puts('{0}/{1},{2},{3}'.format(
+                eshader, texture_path, lmap_1_path, lmap_2_path
+            ))
+        elif lmap_1_node and not lmap_2_node:
+            packed_writer.puts('{0}/{1},{2}'.format(
+                eshader, texture_path, lmap_1_path
+            ))
+        else:
+            packed_writer.puts('{0}/{1}'.format(
+                eshader, texture_path
+            ))
     return packed_writer
 
 
@@ -217,7 +288,7 @@ def get_tex_coord_correct(tex_coord_f, tex_coord_h, uv_coeff):
     return int(round(tex_correct, 0)), tex_coord_h
 
 
-def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
+def write_gcontainer(bpy_obj, vbs, ib, ib_offset, level):
     visual = Visual()
     material = bpy_obj.data.materials[0]
     if level.materials.get(material, None) is None:
@@ -236,6 +307,38 @@ def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
     uv_layer = bm.loops.layers.uv['Texture']
     uv_layer_lmap = bm.loops.layers.uv.get('Light Map', None)
     vertex_color_sun = bm.loops.layers.color.get('Sun', None)
+    vertex_color_hemi = bm.loops.layers.color.get('Hemi', None)
+    vertex_color_light = bm.loops.layers.color.get('Light', None)
+
+    if vertex_color_sun:
+        vertex_size = 36
+        vertex_format = 'COLOR'
+    elif uv_layer_lmap:
+        vertex_size = 40
+        vertex_format = 'NORMAL'
+    else:
+        vertex_size = 40
+        vertex_format = 'TREE'
+
+    if vbs:
+        vb = None
+        for vertex_buffer in vbs:
+            if vertex_buffer.vertex_format == vertex_format:
+                if len(vertex_buffer.position) * vertex_size > 1024 * 1024 * 2:    # vb size 2 MB
+                    continue
+                else:
+                    vb = vertex_buffer
+                    break
+        if vb is None:
+            vb = imp_vb.VertexBuffer()
+            vb.vertex_format = vertex_format
+            vbs.append(vb)
+            level.vbs_offsets.append(0)
+    else:
+        vb = imp_vb.VertexBuffer()
+        vb.vertex_format = vertex_format
+        vbs.append(vb)
+        level.vbs_offsets.append(0)
 
     vertices_count = 0
     indices_count = 0
@@ -249,17 +352,33 @@ def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
             vert_co = (vert.co[0], vert.co[1], vert.co[2])
             normal = (vert.normal[0], vert.normal[1], vert.normal[2])
             uv = loop[uv_layer].uv[0], loop[uv_layer].uv[1]
+            # UV-LightMaps
             if uv_layer_lmap:
                 uv_lmap = loop[uv_layer_lmap].uv[0], loop[uv_layer_lmap].uv[1]
             else:
                 uv_lmap = (0.0, 0.0)
+            # Vertex Color Hemi
+            if vertex_color_hemi:
+                hemi = loop[vertex_color_hemi][0]
+            else:
+                hemi = 0
+            # Vertex Color Sun
+            if vertex_color_sun:
+                sun = loop[vertex_color_sun][0]
+            else:
+                sun = 0
+            # Vertex Color Light
+            if vertex_color_light:
+                light = loop[vertex_color_light]
+            else:
+                light = (0, 0, 0)
             if unique_verts.get(vert_co, None):
-                if not (uv, uv_lmap, normal) in unique_verts[vert_co]:
-                    unique_verts[vert_co].append((uv, uv_lmap, normal))
+                if not (uv, uv_lmap, normal, hemi, sun, light) in unique_verts[vert_co]:
+                    unique_verts[vert_co].append((uv, uv_lmap, normal, hemi, sun, light))
                     verts_indices[vert_co].append(vertex_index)
                     vertex_index += 1
             else:
-                unique_verts[vert_co] = [(uv, uv_lmap, normal), ]
+                unique_verts[vert_co] = [(uv, uv_lmap, normal, hemi, sun, light), ]
                 verts_indices[vert_co] = [vertex_index, ]
                 vertex_index += 1
 
@@ -283,7 +402,7 @@ def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
                 if data[0] == (uv[0], uv[1]) and \
                         data[1] == (uv_lmap[0], uv_lmap[1]) and \
                         data[2] == (vert.normal[0], vert.normal[1], vert.normal[2]):
-                    tex_uv, tex_uv_lmap, normal = data
+                    tex_uv, tex_uv_lmap, normal, hemi, sun, light = data
                     vert_index = verts_indices[vert_co][index]
                     break
             ib.append(vert_index)
@@ -302,6 +421,15 @@ def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
                     int(round(((normal[2] + 1.0) / 2) * 255, 0)),
                     int(round(((normal[1] + 1.0) / 2) * 255, 0))
                 ))
+                # vertex color light
+                vb.color_hemi.append(int(round(hemi * 255, 0)))
+                if vertex_color_sun:
+                    vb.color_sun.append(int(round(sun * 255, 0)))
+                    vb.color_light.append((
+                        (int(round(light[2] * 255, 0))),
+                        (int(round(light[1] * 255, 0))),
+                        (int(round(light[0] * 255, 0)))
+                    ))
                 # uv
                 tex_coord_u = int(tex_uv[0] * uv_coeff)
                 tex_coord_v = int((1 - tex_uv[1]) * uv_coeff)
@@ -309,10 +437,7 @@ def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
                 tex_coord_u_correct, tex_coord_u = get_tex_coord_correct(tex_uv[0], tex_coord_u, uv_coeff)
                 tex_coord_v_correct, tex_coord_v = get_tex_coord_correct(1 - tex_uv[1], tex_coord_v, uv_coeff)
                 pw = xray_io.PackedWriter()
-                try:
-                    pw.putf('<2B', tex_coord_u_correct, tex_coord_v_correct)
-                except:
-                    raise BaseException('1')
+                pw.putf('<2B', tex_coord_u_correct, tex_coord_v_correct)
                 # set uv limits
                 if not (-0x8000 < tex_coord_u < 0x7fff):
                     tex_coord_u = 0x7fff
@@ -326,16 +451,20 @@ def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
                     tex_coord_u_correct,
                     tex_coord_v_correct
                 ))
-                vb.uv_lmap.append((
-                    int(round(tex_uv_lmap[0] * fmt.LIGHT_MAP_UV_COEFFICIENT, 0)),
-                    int(round((1 - tex_uv_lmap[1]) * fmt.LIGHT_MAP_UV_COEFFICIENT, 0))
-                ))
+                if uv_layer_lmap:
+                    vb.uv_lmap.append((
+                        int(round(tex_uv_lmap[0] * fmt.LIGHT_MAP_UV_COEFFICIENT, 0)),
+                        int(round((1 - tex_uv_lmap[1]) * fmt.LIGHT_MAP_UV_COEFFICIENT, 0))
+                    ))
+                if not (uv_layer_lmap and vertex_color_sun and vertex_color_light):
+                    vb.shader_data.append(0)    # wind coefficient
 
-    packed_writer.putf('<I', 0)    # vb_index
-    packed_writer.putf('<I', vb_offset)    # vb_offset
+    vertex_buffer_index = vbs.index(vb)
+    packed_writer.putf('<I', vertex_buffer_index)    # vb_index
+    packed_writer.putf('<I', level.vbs_offsets[vertex_buffer_index])    # vb_offset
     packed_writer.putf('<I', vertices_count)    # vb_size
 
-    vb_offset += vertices_count
+    level.vbs_offsets[vertex_buffer_index] += vertices_count
 
     packed_writer.putf('<I', 0)    # ib_index
     packed_writer.putf('<I', ib_offset)    # ib_offset
@@ -343,27 +472,27 @@ def write_gcontainer(bpy_obj, vb, ib, vb_offset, ib_offset, level):
 
     ib_offset += indices_count
 
-    return packed_writer, vb_offset, ib_offset, visual
+    return packed_writer, ib_offset, visual
 
 
-def write_normal_visual(bpy_obj, vb, ib, vb_offset, ib_offset, level):
-    gcontainer_writer, vb_offset, ib_offset, visual = write_gcontainer(
-        bpy_obj, vb, ib, vb_offset, ib_offset, level
+def write_normal_visual(bpy_obj, vb, ib, ib_offset, level):
+    gcontainer_writer, ib_offset, visual = write_gcontainer(
+        bpy_obj, vb, ib, ib_offset, level
     )
-    return gcontainer_writer, vb_offset, ib_offset, visual
+    return gcontainer_writer, ib_offset, visual
 
 
-def write_model(bpy_obj, vb, ib, vb_offset, ib_offset, level):
-    gcontainer_writer, vb_offset, ib_offset, visual = write_normal_visual(
-        bpy_obj, vb, ib, vb_offset, ib_offset, level
+def write_model(bpy_obj, vbs, ib, ib_offset, level):
+    gcontainer_writer, ib_offset, visual = write_normal_visual(
+        bpy_obj, vbs, ib, ib_offset, level
     )
-    return gcontainer_writer, vb_offset, ib_offset, visual
+    return gcontainer_writer, ib_offset, visual
 
 
 def write_ogf_color(packed_writer):
     packed_writer.putf('<3f', 0.0, 0.0, 0.0)    # rgb
-    packed_writer.putf('<f', 0.5)    # hemi
-    packed_writer.putf('<f', 0.5)    # sun
+    packed_writer.putf('<f', 0.25)    # hemi
+    packed_writer.putf('<f', 0.25)    # sun
 
 
 def write_tree_def_2(bpy_obj, chunked_writer):
@@ -403,23 +532,23 @@ def write_tree_def_2(bpy_obj, chunked_writer):
 
 
 def write_visual(
-        bpy_obj, vb, ib, vb_offset, ib_offset,
+        bpy_obj, vbs, ib, ib_offset,
         hierrarhy, visuals_ids, level
     ):
     if bpy_obj.name.startswith('hierrarhy'):
         chunked_writer = write_hierrarhy_visual(
             bpy_obj, hierrarhy, visuals_ids
         )
-        return chunked_writer, vb_offset, ib_offset
+        return chunked_writer, ib_offset
     elif bpy_obj.name.startswith('lod'):
         chunked_writer = write_lod_visual(
             bpy_obj, hierrarhy, visuals_ids, level
         )
-        return chunked_writer, vb_offset, ib_offset
+        return chunked_writer, ib_offset
     else:
         chunked_writer = xray_io.ChunkedWriter()
-        gcontainer_writer, vb_offset, ib_offset, visual = write_model(
-            bpy_obj, vb, ib, vb_offset, ib_offset, level
+        gcontainer_writer, ib_offset, visual = write_model(
+            bpy_obj, vbs, ib, ib_offset, level
         )
         if bpy_obj.name.startswith('tree_st') or bpy_obj.name.startswith('tree_pm'):
             header_writer = write_visual_header(bpy_obj, visual=visual, visual_type=7)
@@ -431,7 +560,7 @@ def write_visual(
             header_writer = write_visual_header(bpy_obj, visual=visual)
             chunked_writer.put(0x1, header_writer)
             chunked_writer.put(0x15, gcontainer_writer)
-        return chunked_writer, vb_offset, ib_offset
+        return chunked_writer, ib_offset
 
 
 def write_children_l(bpy_obj, hierrarhy, visuals_ids):
@@ -501,20 +630,20 @@ def write_lod_visual(bpy_obj, hierrarhy, visuals_ids, level):
 
 
 def write_visual_children(
-        chunked_writer, vb, ib, vb_offset,
+        chunked_writer, vbs, ib,
         ib_offset, visual_index, hierrarhy,
         visuals_ids, visuals, level
     ):
 
     for visual_obj in visuals:
-        visual_chunked_writer, vb_offset, ib_offset = write_visual(
-            visual_obj, vb, ib, vb_offset, ib_offset,
+        visual_chunked_writer, ib_offset = write_visual(
+            visual_obj, vbs, ib, ib_offset,
             hierrarhy, visuals_ids, level
         )
         if visual_chunked_writer:
             chunked_writer.put(visual_index, visual_chunked_writer)
             visual_index += 1
-    return vb_offset, ib_offset, visual_index
+    return ib_offset, visual_index
 
 
 def find_hierrarhy(visual_obj, visuals_hierrarhy, visual_index, visuals):
@@ -537,9 +666,8 @@ def write_visuals(level_object, sectors_map, level):
     chunked_writer = xray_io.ChunkedWriter()
     sectors_chunked_writer = xray_io.ChunkedWriter()
     visuals_collection = bpy.data.collections['Visuals']
-    vb_offset = 0
     ib_offset = 0
-    vertex_buffer = vb.VertexBuffer()
+    vertex_buffers = []
     ib = []
     visual_index = 0
     sector_id = 0
@@ -570,13 +698,13 @@ def write_visuals(level_object, sectors_map, level):
                     sectors_chunked_writer.put(sector_id, sector_chunked_writer)
                 sector_id += 1
 
-    vb_offset, ib_offset, visual_index = write_visual_children(
-        chunked_writer, vertex_buffer, ib,
-        vb_offset, ib_offset,
+    ib_offset, visual_index = write_visual_children(
+        chunked_writer, vertex_buffers, ib,
+        ib_offset,
         visual_index, visuals_hierrarhy, visuals_ids, visuals, level
     )
     return (
-        chunked_writer, vertex_buffer, ib, visual_index,
+        chunked_writer, vertex_buffers, ib, visual_index,
         sectors_chunked_writer
     )
 
@@ -671,7 +799,7 @@ def write_level(chunked_writer, level_object):
     del glows_writer
 
     # visuals
-    (visuals_writer, vb, ib, last_visual_index,
+    (visuals_writer, vbs, ib, last_visual_index,
     sectors_chunked_writer) = write_visuals(
         level_object, sectors_map, level
     )
@@ -687,7 +815,7 @@ def write_level(chunked_writer, level_object):
     chunked_writer.put(fmt.Chunks.SECTORS, sectors_chunked_writer)
     del sectors_chunked_writer
 
-    return vb, ib
+    return vbs, ib
 
 
 def get_writer():
@@ -699,14 +827,14 @@ def export_file(level_object, file_path):
     start_time = time.time()
 
     level_chunked_writer = get_writer()
-    vb, ib = write_level(level_chunked_writer, level_object)
+    vbs, ib = write_level(level_chunked_writer, level_object)
 
     with open(file_path, 'wb') as file:
         file.write(level_chunked_writer.data)
     del level_chunked_writer
 
     level_geom_chunked_writer = get_writer()
-    write_level_geom(level_geom_chunked_writer, vb, ib)
+    write_level_geom(level_geom_chunked_writer, vbs, ib)
 
     with open(file_path + os.extsep + 'geom', 'wb') as file:
         file.write(level_geom_chunked_writer.data)
