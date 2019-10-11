@@ -18,6 +18,7 @@ class Level(object):
         self.visuals = []
         self.active_material_index = 0
         self.vbs_offsets = []
+        self.saved_visuals = {}
 
 
 def write_level_geom_swis():
@@ -300,6 +301,19 @@ def write_gcontainer(bpy_obj, vbs, ib, ib_offset, level):
 
     packed_writer = xray_io.PackedWriter()
 
+    # multiple usage visuals
+    gcontainer = level.saved_visuals.get(bpy_obj.data.name, None)
+    if gcontainer:
+        packed_writer.putf('<I', gcontainer[0])    # vb_index
+        packed_writer.putf('<I', gcontainer[1])    # vb_offset
+        packed_writer.putf('<I', gcontainer[2])    # vb_size
+
+        packed_writer.putf('<I', gcontainer[3])    # ib_index
+        packed_writer.putf('<I', gcontainer[4])    # ib_offset
+        packed_writer.putf('<I', gcontainer[5])    # ib_size
+
+        return packed_writer, ib_offset, visual
+
     bm = bmesh.new()
     bm.from_mesh(bpy_obj.data)
     bmesh.ops.triangulate(bm, faces=bm.faces)
@@ -310,14 +324,12 @@ def write_gcontainer(bpy_obj, vbs, ib, ib_offset, level):
     vertex_color_hemi = bm.loops.layers.color.get('Hemi', None)
     vertex_color_light = bm.loops.layers.color.get('Light', None)
 
+    vertex_size = 32
     if vertex_color_sun:
-        vertex_size = 36
         vertex_format = 'COLOR'
     elif uv_layer_lmap:
-        vertex_size = 40
         vertex_format = 'NORMAL'
     else:
-        vertex_size = 40
         vertex_format = 'TREE'
 
     if vbs:
@@ -464,12 +476,23 @@ def write_gcontainer(bpy_obj, vbs, ib, ib_offset, level):
     packed_writer.putf('<I', level.vbs_offsets[vertex_buffer_index])    # vb_offset
     packed_writer.putf('<I', vertices_count)    # vb_size
 
-    level.vbs_offsets[vertex_buffer_index] += vertices_count
-
     packed_writer.putf('<I', 0)    # ib_index
     packed_writer.putf('<I', ib_offset)    # ib_offset
     packed_writer.putf('<I', indices_count)    # ib_size
 
+    level.saved_visuals[bpy_obj.data.name] = (
+        # vertices info
+        vertex_buffer_index,
+        level.vbs_offsets[vertex_buffer_index],
+        vertices_count,
+
+        # indices info
+        0,
+        ib_offset,
+        indices_count
+    )
+
+    level.vbs_offsets[vertex_buffer_index] += vertices_count
     ib_offset += indices_count
 
     return packed_writer, ib_offset, visual
