@@ -635,10 +635,26 @@ def write_hierrarhy_visual(bpy_obj, hierrarhy, visuals_ids):
     return visual_writer
 
 
+def write_rgb_hemi(red, green, blue, hemi):
+    red = int(round(red * 0xff, 0))
+    green = int(round(green * 0xff, 0))
+    blue = int(round(blue * 0xff, 0))
+    hemi = int(round(hemi * 0xff, 0))
+    int_color = \
+        ((hemi & 0xff) << 24) | \
+        ((red & 0xff) << 16) | \
+        ((green & 0xff) << 8) | \
+        (blue & 0xff)
+    return int_color
+
+
 def write_lod_def_2(bpy_obj, hierrarhy, visuals_ids, level):
     packed_writer = xray_io.PackedWriter()
     me = bpy_obj.data
     uv_layer = me.uv_layers['Texture']
+    rgb_layer = me.vertex_colors['Light']
+    hemi_layer = me.vertex_colors['Hemi']
+    sun_layer = me.vertex_colors['Sun']
 
     visual = Visual()
     material = bpy_obj.data.materials[0]
@@ -649,19 +665,30 @@ def write_lod_def_2(bpy_obj, hierrarhy, visuals_ids, level):
     else:
         visual.shader_index = level.materials[material]
 
+    data = bpy_obj.xray.ogf
+    if len(me.polygons) != 8:
+        raise BaseException('LOD mesh "{}" has not 8 polygons'.format(bpy_obj.data))
+    if len(me.vertices) != 32:
+        raise BaseException('LOD mesh "{}"  has not 32 vertices'.format(bpy_obj.data))
     for face_index in range(8):
         face = me.polygons[face_index]
-        for vertex_index in range(4):
-            vert_index = face.vertices[vertex_index]
+        for face_vertex_index in range(4):
+            vert_index = face.vertices[face_vertex_index]
             vert = me.vertices[vert_index]
             packed_writer.putf('<3f', vert.co.x, vert.co.z, vert.co.y)
-            loop_index = range(face.loop_start, face.loop_start + face.loop_total)[vertex_index]
+            loop_index = range(face.loop_start, face.loop_start + face.loop_total)[face_vertex_index]
             uv = uv_layer.data[loop_index].uv
             packed_writer.putf('<2f', uv[0], 1 - uv[1])
-            # TODO: export vertex light
-            packed_writer.putf('<I', 0xffff)
-            packed_writer.putf('<B', 127)
-            packed_writer.putf('<3B', 127, 127, 127)
+            # export vertex light
+            rgb = rgb_layer.data[loop_index].color
+            red = rgb[0]
+            green = rgb[1]
+            blue = rgb[2]
+            hemi = sum(hemi_layer.data[loop_index].color[0 : 3]) / 3
+            sun = sum(sun_layer.data[loop_index].color[0 : 3]) / 3
+            packed_writer.putf('<I', write_rgb_hemi(red, green, blue, hemi))
+            packed_writer.putf('<B', int(round(sun * 0xff, 0)))
+            packed_writer.putf('<3B', 0, 0, 0)
     return packed_writer, visual
 
 

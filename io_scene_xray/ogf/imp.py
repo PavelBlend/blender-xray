@@ -344,25 +344,40 @@ def import_swicontainer(chunks):
     return swi_index
 
 
+def get_float_rgb_hemi(rgb_hemi):
+    hemi = (rgb_hemi & (0xff << 24)) >> 24
+    r = (rgb_hemi & (0xff << 16)) >> 16
+    g = (rgb_hemi & (0xff << 8)) >> 8
+    b = rgb_hemi & 0xff
+    return r / 0xff, g / 0xff, b / 0xff, hemi / 0xff
+
+
 def import_lod_def_2(data):
     packed_reader = xray_io.PackedReader(data)
     verts = []
     uvs = []
+    lights = {'rgb': [], 'hemi': [], 'sun': [], 'pad': []}
     faces = []
     for i in range(8):
         face = []
         for j in range(4):
-            coord_x, coord_y, coord_z = packed_reader.getf('3f')
+            coord_x, coord_y, coord_z = packed_reader.getf('<3f')
             verts.append((coord_x, coord_z, coord_y))
             face.append(i * 4 + j)
-            coord_u, coord_v = packed_reader.getf('2f')
+            coord_u, coord_v = packed_reader.getf('<2f')
             uvs.append((coord_u, 1 - coord_v))
-            # TODO: import vertex light
-            hemi = packed_reader.getf('I')[0]
-            sun = packed_reader.getf('B')[0]
-            pad = packed_reader.getf('3B')
+            # import vertex light
+            rgb_hemi = packed_reader.getf('<I')[0]
+            r, g, b, hemi = get_float_rgb_hemi(rgb_hemi)
+            sun = packed_reader.getf('<B')[0]
+            sun = sun / 0xff
+            pad = packed_reader.getf('<3B')
+            lights['rgb'].append((r, g, b, 1.0))
+            lights['hemi'].append((hemi, hemi, hemi, 1.0))
+            lights['sun'].append((sun, sun, sun, 1.0))
+            lights['pad'].append((pad[0], pad[1], pad[2], 1.0))
         faces.append(face)
-    return verts, uvs, faces
+    return verts, uvs, lights, faces
 
 
 def import_lod_visual(chunks, visual, level):
@@ -372,7 +387,7 @@ def import_lod_visual(chunks, visual, level):
     del children_l_data
 
     lod_def_2_data = chunks.pop(fmt.Chunks.LODDEF2)
-    verts, uvs, faces = import_lod_def_2(lod_def_2_data)
+    verts, uvs, lights, faces = import_lod_def_2(lod_def_2_data)
     del lod_def_2_data
 
     check_unread_chunks(chunks)
@@ -380,12 +395,21 @@ def import_lod_visual(chunks, visual, level):
     bpy_mesh = bpy.data.meshes.new(visual.name)
     bpy_mesh.from_pydata(verts, (), faces)
     uv_layer = bpy_mesh.uv_layers.new(name='Texture')
+    rgb_color = bpy_mesh.vertex_colors.new(name='Light')
+    hemi_color = bpy_mesh.vertex_colors.new(name='Hemi')
+    sun_color = bpy_mesh.vertex_colors.new(name='Sun')
     for face in bpy_mesh.polygons:
         for loop_index in face.loop_indices:
             loop = bpy_mesh.loops[loop_index]
             vert_index = loop.vertex_index
             uv = uvs[vert_index]
+            rgb = lights['rgb'][vert_index]
+            hemi = lights['hemi'][vert_index]
+            sun = lights['sun'][vert_index]
             uv_layer.data[loop.index].uv = uv
+            rgb_color.data[loop.index].color = rgb
+            hemi_color.data[loop.index].color = hemi
+            sun_color.data[loop.index].color = sun
     bpy_object = create_object(visual.name, bpy_mesh)
     assign_material(bpy_object, visual.shader_id, level.materials)
     return bpy_object
