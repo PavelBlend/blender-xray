@@ -537,10 +537,16 @@ def write_model(bpy_obj, vbs, ibs, level):
     return gcontainer_writer, visual
 
 
-def write_ogf_color(packed_writer):
-    packed_writer.putf('<3f', 0.0, 0.0, 0.0)    # rgb
-    packed_writer.putf('<f', 0.25)    # hemi
-    packed_writer.putf('<f', 0.25)    # sun
+def write_ogf_color(packed_writer, bpy_obj, mode='SCALE'):
+    if mode == 'SCALE':
+        property_group = bpy_obj.xray.ogf.color_scale
+    elif mode == 'BIAS':
+        property_group = bpy_obj.xray.ogf.color_bias
+    else:
+        raise BaseException('Unknown ogf color mode: {}'.format(mode))
+    packed_writer.putf('<3f', *property_group.rgb)    # rgb
+    packed_writer.putf('<f', sum(property_group.hemi) / 3)    # hemi
+    packed_writer.putf('<f', sum(property_group.sun) / 3)    # sun
 
 
 def write_tree_def_2(bpy_obj, chunked_writer):
@@ -573,8 +579,8 @@ def write_tree_def_2(bpy_obj, chunked_writer):
     matrix = (location_mat @ rotation_mat @ scale_mat).transposed()
     for i in matrix:
         packed_writer.putf('<4f', *i)
-    write_ogf_color(packed_writer)
-    write_ogf_color(packed_writer)
+    write_ogf_color(packed_writer, bpy_obj, mode='SCALE')
+    write_ogf_color(packed_writer, bpy_obj, mode='BIAS')
 
     return packed_writer
 

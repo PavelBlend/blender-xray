@@ -87,6 +87,32 @@ def update_motion_collection_index(self, context):
             anim_data.action = motion
 
 
+xray_object_ogf_color_properties = {
+    'rgb': bpy.props.FloatVectorProperty(name='Light', min=0.0, max=1.0, subtype='COLOR'),
+    'hemi': bpy.props.FloatVectorProperty(name='Hemi', min=0.0, max=1.0, subtype='COLOR'),
+    'sun': bpy.props.FloatVectorProperty(name='Sun', min=0.0, max=1.0, subtype='COLOR')
+}
+
+
+class XRayObjectOgfColorProperties(bpy.types.PropertyGroup):
+    if not IS_28:
+        for prop_name, prop_value in xray_object_ogf_color_properties.items():
+            exec('{0} = xray_object_ogf_color_properties.get("{0}")'.format(prop_name))
+
+
+xray_object_ogf_properties = {
+    'color_scale': bpy.props.PointerProperty(type=XRayObjectOgfColorProperties),
+    'color_bias': bpy.props.PointerProperty(type=XRayObjectOgfColorProperties)
+}
+
+
+@registry.requires(XRayObjectOgfColorProperties)
+class XRayObjectOgfProperties(bpy.types.PropertyGroup):
+    if not IS_28:
+        for prop_name, prop_value in xray_object_ogf_properties.items():
+            exec('{0} = xray_object_ogf_properties.get("{0}")'.format(prop_name))
+
+
 xray_object_revision_properties = {
     'owner': bpy.props.StringProperty(name='owner'),
     'ctime': bpy.props.IntProperty(name='ctime'),
@@ -218,6 +244,7 @@ xray_object_properties = {
     'root': bpy.props.BoolProperty(default=True),    # default=True - to backward compatibility
     'isroot': bpy.props.BoolProperty(get=get_isroot, set=set_isroot, options={'SKIP_SAVE'}),
     'is_details': bpy.props.BoolProperty(default=False),
+    'is_ogf': bpy.props.BoolProperty(default=False),
     'version': bpy.props.IntProperty(),
     'flags': bpy.props.IntProperty(name='flags'),
     'flags_force_custom': bpy.props.BoolProperty(options={'SKIP_SAVE'}),
@@ -307,6 +334,8 @@ xray_object_properties = {
         type=det_types.XRayObjectDetailsProperties
     ),
     'skls_browser': bpy.props.PointerProperty(type=XRayObjectSklsBrowserProperties),
+    'ogf': bpy.props.PointerProperty(type=XRayObjectOgfProperties),
+    # Temp properties
     'bbox_min': bpy.props.FloatVectorProperty(),
     'bbox_max': bpy.props.FloatVectorProperty(),
     'center': bpy.props.FloatVectorProperty(),
@@ -316,7 +345,10 @@ xray_object_properties = {
 }
 
 
-@registry.requires(XRayObjectRevisionProperties, XRayObjectSklsBrowserProperties, MotionRef)
+@registry.requires(
+    XRayObjectRevisionProperties, XRayObjectSklsBrowserProperties, MotionRef,
+    XRayObjectOgfProperties
+)
 class XRayObjectProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Object
 
@@ -336,6 +368,8 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
 
 
 assign_props([
+    (xray_object_ogf_color_properties, XRayObjectOgfColorProperties),
+    (xray_object_ogf_properties, XRayObjectOgfProperties),
     (xray_object_revision_properties, XRayObjectRevisionProperties),
     (motion_ref_props, MotionRef),
     (xray_object_properties, XRayObjectProperties)

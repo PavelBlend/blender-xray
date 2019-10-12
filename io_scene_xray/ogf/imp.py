@@ -251,20 +251,28 @@ def import_normal_visual(chunks, visual, level):
     return bpy_object
 
 
-def ogf_color(packed_reader):
-    rgb = packed_reader.getf('3f')
+def ogf_color(packed_reader, bpy_obj, mode='SCALE'):
+    if mode == 'SCALE':
+        property_group = bpy_obj.xray.ogf.color_scale
+    elif mode == 'BIAS':
+        property_group = bpy_obj.xray.ogf.color_bias
+    else:
+        raise BaseException('Unknown ogf color mode: {}'.format(mode))
+    property_group.rgb = packed_reader.getf('3f')
     hemi = packed_reader.getf('f')[0]
+    property_group.hemi = (hemi, hemi, hemi)
     sun = packed_reader.getf('f')[0]
+    property_group.sun = (sun, sun, sun)
 
 
-def import_tree_def_2(chunks):
+def import_tree_def_2(chunks, bpy_object):
     tree_def_2_data = chunks.pop(fmt.Chunks.TREEDEF2)
     packed_reader = xray_io.PackedReader(tree_def_2_data)
     del tree_def_2_data
 
     tree_xform = packed_reader.getf('16f')
-    ogf_color(packed_reader)    # c_scale
-    ogf_color(packed_reader)    # c_bias
+    ogf_color(packed_reader, bpy_object, mode='SCALE')    # c_scale
+    ogf_color(packed_reader, bpy_object, mode='BIAS')    # c_bias
 
     return tree_xform
 
@@ -287,13 +295,13 @@ def set_tree_transforms(bpy_object, xform):
 def import_tree_st_visual(chunks, visual, level):
     visual.name = 'tree_st'
     bpy_mesh, geometry_key = import_geometry(chunks, visual, level)
-    tree_xform = import_tree_def_2(chunks)
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
         assign_material(bpy_object, visual.shader_id, level.materials)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
+    tree_xform = import_tree_def_2(chunks, bpy_object)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks)
     return bpy_object
@@ -387,8 +395,6 @@ def import_tree_pm_visual(chunks, visual, level):
     visual.name = 'tree_pm'
     bpy_mesh, geometry_key = import_geometry(chunks, visual, level)
     swi_index = import_swicontainer(chunks)
-    tree_xform = import_tree_def_2(chunks)
-
     if not bpy_mesh:
         swi = level.swis[swi_index]
         visual.indices = visual.indices[swi[0].offset : ]
@@ -399,6 +405,7 @@ def import_tree_pm_visual(chunks, visual, level):
         assign_material(bpy_object, visual.shader_id, level.materials)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
+    tree_xform = import_tree_def_2(chunks, bpy_object)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks)
     return bpy_object
@@ -430,6 +437,7 @@ def import_model(chunks, visual, level):
         ))
 
     data = bpy_obj.xray
+    data.is_ogf = True
     # bbox min
     data.bbox_min[0] = visual.bbox_min[0]
     data.bbox_min[1] = visual.bbox_min[2]

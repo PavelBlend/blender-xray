@@ -122,10 +122,6 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
     def draw(self, context):
         layout = self.layout
         data = context.object.xray
-        layout.prop(data, 'bbox_min')
-        layout.prop(data, 'bbox_max')
-        layout.prop(data, 'center')
-        layout.prop(data, 'radius')
         layout.prop(data, 'isroot', text='Object', toggle=True)
 
         if data.isroot:
@@ -217,3 +213,38 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
             layout.prop(data, 'is_details', text='Details', toggle=True)
             if data.is_details:
                 det_ui.draw_function(self, context)
+
+        layout.prop(data, 'is_ogf', text='Ogf', toggle=True)
+        if data.is_ogf:
+            ogf_box = layout.box()
+
+            ogf_box.prop(data, 'bbox_min')
+            ogf_box.prop(data, 'bbox_max')
+            ogf_box.prop(data, 'center')
+            ogf_box.prop(data, 'radius')
+
+            # color scale
+            color_scale_box = ogf_box.box()
+            color_scale_box.label(text='Color Scale:')
+
+            col = color_scale_box.row()
+            col.prop(data.ogf.color_scale, 'rgb')
+
+            col = color_scale_box.row()
+            col.prop(data.ogf.color_scale, 'hemi')
+
+            col = color_scale_box.row()
+            col.prop(data.ogf.color_scale, 'sun')
+
+            # color bias
+            color_bias_box = ogf_box.box()
+            color_bias_box.label(text='Color Bias:')
+
+            col = color_bias_box.row()
+            col.prop(data.ogf.color_bias, 'rgb')
+
+            col = color_bias_box.row()
+            col.prop(data.ogf.color_bias, 'hemi')
+
+            col = color_bias_box.row()
+            col.prop(data.ogf.color_bias, 'sun')

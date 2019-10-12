@@ -26,7 +26,7 @@ class IMPORT_OT_xray_level(
     bl_idname = 'xray_import.level'
     bl_label = 'Import level'
     bl_description = 'Import X-Ray Game Level (level)'
-    bl_options = {'REGISTER', 'PRESET', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO'}
 
     if not IS_28:
         for prop_name, prop_value in op_import_level_props.items():
