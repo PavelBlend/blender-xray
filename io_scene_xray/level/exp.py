@@ -7,6 +7,9 @@ from ..ogf import exp as ogf_exp
 from . import fmt, vb as imp_vb
 
 
+TWO_MEGABYTES = 1024 * 1024 * 2
+
+
 class Visual(object):
     def __init__(self):
         self.shader_index = None
@@ -18,6 +21,7 @@ class Level(object):
         self.visuals = []
         self.active_material_index = 0
         self.vbs_offsets = []
+        self.ibs_offsets = []
         self.saved_visuals = {}
 
 
@@ -29,17 +33,18 @@ def write_level_geom_swis():
     return packed_writer
 
 
-def write_level_geom_ib(ib):
+def write_level_geom_ib(ibs):
     packed_writer = xray_io.PackedWriter()
+    packed_writer.putf('<I', len(ibs))    # indices buffers count
 
-    indices_count = len(ib)
-    packed_writer.putf('<I', 1)    # indices buffers count
-    packed_writer.putf('<I', indices_count)    # indices count
+    for ib in ibs:
+        indices_count = len(ib)
+        packed_writer.putf('<I', indices_count)    # indices count
 
-    for index in range(0, indices_count, 3):
-        packed_writer.putf('<H', ib[index])
-        packed_writer.putf('<H', ib[index + 2])
-        packed_writer.putf('<H', ib[index + 1])
+        for index in range(0, indices_count, 3):
+            packed_writer.putf('<H', ib[index])
+            packed_writer.putf('<H', ib[index + 2])
+            packed_writer.putf('<H', ib[index + 1])
 
     return packed_writer
 
@@ -153,7 +158,7 @@ def write_level_geom_vb(vbs):
     return packed_writer
 
 
-def write_level_geom(chunked_writer, vbs, ib):
+def write_level_geom(chunked_writer, vbs, ibs):
     header_packed_writer = write_header()
     chunked_writer.put(fmt.Chunks.HEADER, header_packed_writer)
     del header_packed_writer
@@ -162,7 +167,7 @@ def write_level_geom(chunked_writer, vbs, ib):
     chunked_writer.put(fmt.Chunks.VB, vb_packed_writer)
     del vb_packed_writer
 
-    ib_packed_writer = write_level_geom_ib(ib)
+    ib_packed_writer = write_level_geom_ib(ibs)
     chunked_writer.put(fmt.Chunks.IB, ib_packed_writer)
     del ib_packed_writer
 
@@ -289,7 +294,7 @@ def get_tex_coord_correct(tex_coord_f, tex_coord_h, uv_coeff):
     return int(round(tex_correct, 0)), tex_coord_h
 
 
-def write_gcontainer(bpy_obj, vbs, ib, ib_offset, level):
+def write_gcontainer(bpy_obj, vbs, ibs, level):
     visual = Visual()
     material = bpy_obj.data.materials[0]
     if level.materials.get(material, None) is None:
@@ -312,7 +317,7 @@ def write_gcontainer(bpy_obj, vbs, ib, ib_offset, level):
         packed_writer.putf('<I', gcontainer[4])    # ib_offset
         packed_writer.putf('<I', gcontainer[5])    # ib_size
 
-        return packed_writer, ib_offset, visual
+        return packed_writer, visual
 
     bm = bmesh.new()
     bm.from_mesh(bpy_obj.data)
@@ -332,11 +337,12 @@ def write_gcontainer(bpy_obj, vbs, ib, ib_offset, level):
     else:
         vertex_format = 'TREE'
 
+    # find vertex buffer
     if vbs:
         vb = None
         for vertex_buffer in vbs:
             if vertex_buffer.vertex_format == vertex_format:
-                if len(vertex_buffer.position) * vertex_size > 1024 * 1024 * 2:    # vb size 2 MB
+                if len(vertex_buffer.position) * vertex_size > TWO_MEGABYTES:    # vb size 2 MB
                     continue
                 else:
                     vb = vertex_buffer
@@ -351,6 +357,25 @@ def write_gcontainer(bpy_obj, vbs, ib, ib_offset, level):
         vb.vertex_format = vertex_format
         vbs.append(vb)
         level.vbs_offsets.append(0)
+
+    # find indices buffer
+    vertex_index_size = 2
+    if ibs:
+        ib = ibs[-1]
+        ib_offset = level.ibs_offsets[-1]
+        indices_buffer_index = ibs.index(ib)
+        if len(ib) * vertex_index_size > TWO_MEGABYTES:
+            ib = []
+            ibs.append(ib)
+            ib_offset = 0
+            indices_buffer_index += 1
+            level.ibs_offsets.append(ib_offset)
+    else:
+        ib = []
+        ibs.append(ib)
+        ib_offset = 0
+        level.ibs_offsets.append(ib_offset)
+        indices_buffer_index = 0
 
     vertices_count = 0
     indices_count = 0
@@ -476,7 +501,7 @@ def write_gcontainer(bpy_obj, vbs, ib, ib_offset, level):
     packed_writer.putf('<I', level.vbs_offsets[vertex_buffer_index])    # vb_offset
     packed_writer.putf('<I', vertices_count)    # vb_size
 
-    packed_writer.putf('<I', 0)    # ib_index
+    packed_writer.putf('<I', indices_buffer_index)    # ib_index
     packed_writer.putf('<I', ib_offset)    # ib_offset
     packed_writer.putf('<I', indices_count)    # ib_size
 
@@ -487,29 +512,29 @@ def write_gcontainer(bpy_obj, vbs, ib, ib_offset, level):
         vertices_count,
 
         # indices info
-        0,
+        indices_buffer_index,
         ib_offset,
         indices_count
     )
 
     level.vbs_offsets[vertex_buffer_index] += vertices_count
-    ib_offset += indices_count
+    level.ibs_offsets[-1] += indices_count
 
-    return packed_writer, ib_offset, visual
+    return packed_writer, visual
 
 
-def write_normal_visual(bpy_obj, vb, ib, ib_offset, level):
-    gcontainer_writer, ib_offset, visual = write_gcontainer(
-        bpy_obj, vb, ib, ib_offset, level
+def write_normal_visual(bpy_obj, vb, ibs, level):
+    gcontainer_writer, visual = write_gcontainer(
+        bpy_obj, vb, ibs, level
     )
-    return gcontainer_writer, ib_offset, visual
+    return gcontainer_writer, visual
 
 
-def write_model(bpy_obj, vbs, ib, ib_offset, level):
-    gcontainer_writer, ib_offset, visual = write_normal_visual(
-        bpy_obj, vbs, ib, ib_offset, level
+def write_model(bpy_obj, vbs, ibs, level):
+    gcontainer_writer, visual = write_normal_visual(
+        bpy_obj, vbs, ibs, level
     )
-    return gcontainer_writer, ib_offset, visual
+    return gcontainer_writer, visual
 
 
 def write_ogf_color(packed_writer):
@@ -555,23 +580,23 @@ def write_tree_def_2(bpy_obj, chunked_writer):
 
 
 def write_visual(
-        bpy_obj, vbs, ib, ib_offset,
+        bpy_obj, vbs, ibs,
         hierrarhy, visuals_ids, level
     ):
     if bpy_obj.name.startswith('hierrarhy'):
         chunked_writer = write_hierrarhy_visual(
             bpy_obj, hierrarhy, visuals_ids
         )
-        return chunked_writer, ib_offset
+        return chunked_writer
     elif bpy_obj.name.startswith('lod'):
         chunked_writer = write_lod_visual(
             bpy_obj, hierrarhy, visuals_ids, level
         )
-        return chunked_writer, ib_offset
+        return chunked_writer
     else:
         chunked_writer = xray_io.ChunkedWriter()
-        gcontainer_writer, ib_offset, visual = write_model(
-            bpy_obj, vbs, ib, ib_offset, level
+        gcontainer_writer, visual = write_model(
+            bpy_obj, vbs, ibs, level
         )
         if bpy_obj.name.startswith('tree_st') or bpy_obj.name.startswith('tree_pm'):
             header_writer = write_visual_header(bpy_obj, visual=visual, visual_type=7)
@@ -583,7 +608,7 @@ def write_visual(
             header_writer = write_visual_header(bpy_obj, visual=visual)
             chunked_writer.put(0x1, header_writer)
             chunked_writer.put(0x15, gcontainer_writer)
-        return chunked_writer, ib_offset
+        return chunked_writer
 
 
 def write_children_l(bpy_obj, hierrarhy, visuals_ids):
@@ -653,20 +678,20 @@ def write_lod_visual(bpy_obj, hierrarhy, visuals_ids, level):
 
 
 def write_visual_children(
-        chunked_writer, vbs, ib,
-        ib_offset, visual_index, hierrarhy,
+        chunked_writer, vbs, ibs,
+        visual_index, hierrarhy,
         visuals_ids, visuals, level
     ):
 
     for visual_obj in visuals:
-        visual_chunked_writer, ib_offset = write_visual(
-            visual_obj, vbs, ib, ib_offset,
+        visual_chunked_writer = write_visual(
+            visual_obj, vbs, ibs,
             hierrarhy, visuals_ids, level
         )
         if visual_chunked_writer:
             chunked_writer.put(visual_index, visual_chunked_writer)
             visual_index += 1
-    return ib_offset, visual_index
+    return visual_index
 
 
 def find_hierrarhy(visual_obj, visuals_hierrarhy, visual_index, visuals):
@@ -689,9 +714,8 @@ def write_visuals(level_object, sectors_map, level):
     chunked_writer = xray_io.ChunkedWriter()
     sectors_chunked_writer = xray_io.ChunkedWriter()
     visuals_collection = bpy.data.collections['Visuals']
-    ib_offset = 0
     vertex_buffers = []
-    ib = []
+    indices_buffers = []
     visual_index = 0
     sector_id = 0
     visuals_hierrarhy = {}
@@ -721,13 +745,12 @@ def write_visuals(level_object, sectors_map, level):
                     sectors_chunked_writer.put(sector_id, sector_chunked_writer)
                 sector_id += 1
 
-    ib_offset, visual_index = write_visual_children(
-        chunked_writer, vertex_buffers, ib,
-        ib_offset,
+    visual_index = write_visual_children(
+        chunked_writer, vertex_buffers, indices_buffers,
         visual_index, visuals_hierrarhy, visuals_ids, visuals, level
     )
     return (
-        chunked_writer, vertex_buffers, ib, visual_index,
+        chunked_writer, vertex_buffers, indices_buffers, visual_index,
         sectors_chunked_writer
     )
 
@@ -822,7 +845,7 @@ def write_level(chunked_writer, level_object):
     del glows_writer
 
     # visuals
-    (visuals_writer, vbs, ib, last_visual_index,
+    (visuals_writer, vbs, ibs, last_visual_index,
     sectors_chunked_writer) = write_visuals(
         level_object, sectors_map, level
     )
@@ -838,7 +861,7 @@ def write_level(chunked_writer, level_object):
     chunked_writer.put(fmt.Chunks.SECTORS, sectors_chunked_writer)
     del sectors_chunked_writer
 
-    return vbs, ib
+    return vbs, ibs
 
 
 def get_writer():
@@ -850,14 +873,14 @@ def export_file(level_object, file_path):
     start_time = time.time()
 
     level_chunked_writer = get_writer()
-    vbs, ib = write_level(level_chunked_writer, level_object)
+    vbs, ibs = write_level(level_chunked_writer, level_object)
 
     with open(file_path, 'wb') as file:
         file.write(level_chunked_writer.data)
     del level_chunked_writer
 
     level_geom_chunked_writer = get_writer()
-    write_level_geom(level_geom_chunked_writer, vbs, ib)
+    write_level_geom(level_geom_chunked_writer, vbs, ibs)
 
     with open(file_path + os.extsep + 'geom', 'wb') as file:
         file.write(level_geom_chunked_writer.data)
