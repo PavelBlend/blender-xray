@@ -356,7 +356,7 @@ def import_lod_def_2(data):
     packed_reader = xray_io.PackedReader(data)
     verts = []
     uvs = []
-    lights = {'rgb': [], 'hemi': [], 'sun': [], 'pad': []}
+    lights = {'rgb': [], 'hemi': [], 'sun': []}
     faces = []
     for i in range(8):
         face = []
@@ -371,11 +371,10 @@ def import_lod_def_2(data):
             r, g, b, hemi = get_float_rgb_hemi(rgb_hemi)
             sun = packed_reader.getf('<B')[0]
             sun = sun / 0xff
-            pad = packed_reader.getf('<3B')
+            packed_reader.getf('<3B')    # pad (unused)
             lights['rgb'].append((r, g, b, 1.0))
-            lights['hemi'].append((hemi, hemi, hemi, 1.0))
-            lights['sun'].append((sun, sun, sun, 1.0))
-            lights['pad'].append((pad[0], pad[1], pad[2], 1.0))
+            lights['hemi'].append(hemi)
+            lights['sun'].append(sun)
         faces.append(face)
     return verts, uvs, lights, faces
 
@@ -408,8 +407,8 @@ def import_lod_visual(chunks, visual, level):
             sun = lights['sun'][vert_index]
             uv_layer.data[loop.index].uv = uv
             rgb_color.data[loop.index].color = rgb
-            hemi_color.data[loop.index].color = hemi
-            sun_color.data[loop.index].color = sun
+            hemi_color.data[loop.index].color = (hemi, hemi, hemi, 1.0)
+            sun_color.data[loop.index].color = (sun, sun, sun, 1.0)
     bpy_object = create_object(visual.name, bpy_mesh)
     assign_material(bpy_object, visual.shader_id, level.materials)
     return bpy_object

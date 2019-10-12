@@ -688,6 +688,7 @@ def write_lod_def_2(bpy_obj, hierrarhy, visuals_ids, level):
             sun = sum(sun_layer.data[loop_index].color[0 : 3]) / 3
             packed_writer.putf('<I', write_rgb_hemi(red, green, blue, hemi))
             packed_writer.putf('<B', int(round(sun * 0xff, 0)))
+            # fill with bytes so that the size of the structure is a multiple of 4
             packed_writer.putf('<3B', 0, 0, 0)
     return packed_writer, visual
 
