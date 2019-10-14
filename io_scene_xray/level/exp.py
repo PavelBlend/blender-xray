@@ -23,6 +23,7 @@ class Level(object):
         self.vbs_offsets = []
         self.ibs_offsets = []
         self.saved_visuals = {}
+        self.sectors_indices = {}
 
 
 def write_level_geom_swis():
@@ -182,19 +183,19 @@ def write_sector_root(root_index):
     return packed_writer
 
 
-def write_sector_portals(sectors_map, sector_index):
+def write_sector_portals(sectors_map, sector_name):
     packed_writer = xray_io.PackedWriter()
     # None - when there are no sectors
-    if sectors_map.get(sector_index, None):
-        for portal in sectors_map[sector_index]:
+    if sectors_map.get(sector_name, None):
+        for portal in sectors_map[sector_name]:
             packed_writer.putf('<H', portal)
     return packed_writer
 
 
-def write_sector(root_index, sectors_map, sector_index):
+def write_sector(root_index, sectors_map, sector_name):
     chunked_writer = xray_io.ChunkedWriter()
 
-    sector_portals_writer = write_sector_portals(sectors_map, sector_index)
+    sector_portals_writer = write_sector_portals(sectors_map, sector_name)
     chunked_writer.put(0x1, sector_portals_writer)    # portals
 
     sector_root_writer = write_sector_root(root_index)
@@ -539,14 +540,18 @@ def write_model(bpy_obj, vbs, ibs, level):
 
 def write_ogf_color(packed_writer, bpy_obj, mode='SCALE'):
     if mode == 'SCALE':
-        property_group = bpy_obj.xray.ogf.color_scale
+        rgb = bpy_obj.xray.level.color_scale_rgb
+        hemi = bpy_obj.xray.level.color_scale_hemi
+        sun = bpy_obj.xray.level.color_scale_sun
     elif mode == 'BIAS':
-        property_group = bpy_obj.xray.ogf.color_bias
+        rgb = bpy_obj.xray.level.color_bias_rgb
+        hemi = bpy_obj.xray.level.color_bias_hemi
+        sun = bpy_obj.xray.level.color_bias_sun
     else:
         raise BaseException('Unknown ogf color mode: {}'.format(mode))
-    packed_writer.putf('<3f', *property_group.rgb)    # rgb
-    packed_writer.putf('<f', sum(property_group.hemi) / 3)    # hemi
-    packed_writer.putf('<f', sum(property_group.sun) / 3)    # sun
+    packed_writer.putf('<3f', *rgb)    # rgb
+    packed_writer.putf('<f', sum(hemi) / 3)    # hemi
+    packed_writer.putf('<f', sum(sun) / 3)    # sun
 
 
 def write_tree_def_2(bpy_obj, chunked_writer):
@@ -665,7 +670,6 @@ def write_lod_def_2(bpy_obj, hierrarhy, visuals_ids, level):
     else:
         visual.shader_index = level.materials[material]
 
-    data = bpy_obj.xray.ogf
     if len(me.polygons) != 8:
         raise BaseException('LOD mesh "{}" has not 8 polygons'.format(bpy_obj.data))
     if len(me.vertices) != 32:
@@ -770,11 +774,12 @@ def write_visuals(level_object, sectors_map, level):
     for child_obj in level_object.children:
         if child_obj.name.startswith('sectors'):
             for sector_obj in child_obj.children:
+                level.sectors_indices[sector_obj.name] = sector_id
                 for root_obj in sector_obj.children:
                     # write sector
                     root_index = visuals_ids[root_obj]
                     sector_chunked_writer = write_sector(
-                        root_index, sectors_map, sector_id
+                        root_index, sectors_map, sector_obj.name
                     )
                     sectors_chunked_writer.put(sector_id, sector_chunked_writer)
                 sector_id += 1
@@ -784,7 +789,7 @@ def write_visuals(level_object, sectors_map, level):
         visual_index, visuals_hierrarhy, visuals_ids, visuals, level
     )
     return (
-        chunked_writer, vertex_buffers, indices_buffers, visual_index,
+        chunked_writer, vertex_buffers, indices_buffers,
         sectors_chunked_writer
     )
 
@@ -823,19 +828,13 @@ def append_portal(sectors_map, sector_index, portal_index):
         sectors_map[sector_index] = [portal_index, ]
 
 
-def write_portals(level_object, sectors_map):
+def write_portals(level, level_object):
     packed_writer = xray_io.PackedWriter()
     for child_obj in level_object.children:
         if child_obj.name.startswith('portals'):
             for portal_index, portal_obj in enumerate(child_obj.children):
-                packed_writer.putf('<H', portal_obj.xray.sector_front)
-                packed_writer.putf('<H', portal_obj.xray.sector_back)
-                append_portal(
-                    sectors_map, portal_obj.xray.sector_front, portal_index
-                )
-                append_portal(
-                    sectors_map, portal_obj.xray.sector_back, portal_index
-                )
+                packed_writer.putf('<H', level.sectors_indices[portal_obj.xray.level.sector_front])
+                packed_writer.putf('<H', level.sectors_indices[portal_obj.xray.level.sector_back])
                 for vertex in portal_obj.data.vertices:
                     packed_writer.putf(
                         '<3f', vertex.co.x, vertex.co.z, vertex.co.y
@@ -845,6 +844,20 @@ def write_portals(level_object, sectors_map):
                     packed_writer.putf('<3f', 0.0, 0.0, 0.0)
                 packed_writer.putf('<I', vertices_count)
     return packed_writer
+
+
+def get_sectors_map(level_object):
+    sectors_map = {}
+    for child_obj in level_object.children:
+        if child_obj.name.startswith('portals'):
+            for portal_index, portal_obj in enumerate(child_obj.children):
+                append_portal(
+                    sectors_map, portal_obj.xray.level.sector_front, portal_index
+                )
+                append_portal(
+                    sectors_map, portal_obj.xray.level.sector_back, portal_index
+                )
+    return sectors_map
 
 
 def write_header():
@@ -862,9 +875,16 @@ def write_level(chunked_writer, level_object):
     chunked_writer.put(fmt.Chunks.HEADER, header_writer)
     del header_writer
 
+    sectors_map = get_sectors_map(level_object)
+
+    # visuals
+    (visuals_writer, vbs, ibs,
+    sectors_chunked_writer) = write_visuals(
+        level_object, sectors_map, level
+    )
+
     # portals
-    sectors_map = {}
-    portals_writer = write_portals(level_object, sectors_map)
+    portals_writer = write_portals(level, level_object)
     chunked_writer.put(fmt.Chunks.PORTALS, portals_writer)
     del portals_writer
 
@@ -878,11 +898,7 @@ def write_level(chunked_writer, level_object):
     chunked_writer.put(fmt.Chunks.GLOWS, glows_writer)
     del glows_writer
 
-    # visuals
-    (visuals_writer, vbs, ibs, last_visual_index,
-    sectors_chunked_writer) = write_visuals(
-        level_object, sectors_map, level
-    )
+    # write visuals chunk
     chunked_writer.put(fmt.Chunks.VISUALS, visuals_writer)
     del visuals_writer
 

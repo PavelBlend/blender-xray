@@ -87,30 +87,41 @@ def update_motion_collection_index(self, context):
             anim_data.action = motion
 
 
-xray_object_ogf_color_properties = {
-    'rgb': bpy.props.FloatVectorProperty(name='Light', min=0.0, max=1.0, subtype='COLOR'),
-    'hemi': bpy.props.FloatVectorProperty(name='Hemi', min=0.0, max=1.0, subtype='COLOR'),
-    'sun': bpy.props.FloatVectorProperty(name='Sun', min=0.0, max=1.0, subtype='COLOR')
+object_type_items = (
+    ('VISUAL', 'Visual', ''),
+    ('PORTAL', 'Portal', '')
+)
+visual_type_items = (
+    ('NORMAL', 'Normal', ''),
+    ('HIERRARHY', 'Hierrarhy', ''),
+    ('PROGRESSIVE', 'Progressive', ''),
+    ('TREE_ST', 'Tree Static', ''),
+    ('TREE_PM', 'Tree Progressive', ''),
+    ('LOD', 'LoD', '')
+)
+
+
+xray_object_level_properties = {
+    'object_type': bpy.props.EnumProperty(name='Type', items=object_type_items, default='VISUAL'),
+    'visual_type': bpy.props.EnumProperty(name='Visual Type', items=visual_type_items, default='NORMAL'),
+    # Tree Color Scale
+    'color_scale_rgb': bpy.props.FloatVectorProperty(name='Light', min=0.0, max=1.0, subtype='COLOR'),
+    'color_scale_hemi': bpy.props.FloatVectorProperty(name='Hemi', min=0.0, max=1.0, subtype='COLOR'),
+    'color_scale_sun': bpy.props.FloatVectorProperty(name='Sun', min=0.0, max=1.0, subtype='COLOR'),
+    # Tree Color Bias
+    'color_bias_rgb': bpy.props.FloatVectorProperty(name='Light', min=0.0, max=1.0, subtype='COLOR'),
+    'color_bias_hemi': bpy.props.FloatVectorProperty(name='Hemi', min=0.0, max=1.0, subtype='COLOR'),
+    'color_bias_sun': bpy.props.FloatVectorProperty(name='Sun', min=0.0, max=1.0, subtype='COLOR'),
+    # Portal Properties
+    'sector_front': bpy.props.StringProperty(name='Sector Front'),
+    'sector_back': bpy.props.StringProperty(name='Sector Back')
 }
 
 
-class XRayObjectOgfColorProperties(bpy.types.PropertyGroup):
+class XRayObjectLevelProperties(bpy.types.PropertyGroup):
     if not IS_28:
-        for prop_name, prop_value in xray_object_ogf_color_properties.items():
-            exec('{0} = xray_object_ogf_color_properties.get("{0}")'.format(prop_name))
-
-
-xray_object_ogf_properties = {
-    'color_scale': bpy.props.PointerProperty(type=XRayObjectOgfColorProperties),
-    'color_bias': bpy.props.PointerProperty(type=XRayObjectOgfColorProperties)
-}
-
-
-@registry.requires(XRayObjectOgfColorProperties)
-class XRayObjectOgfProperties(bpy.types.PropertyGroup):
-    if not IS_28:
-        for prop_name, prop_value in xray_object_ogf_properties.items():
-            exec('{0} = xray_object_ogf_properties.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in xray_object_level_properties.items():
+            exec('{0} = xray_object_level_properties.get("{0}")'.format(prop_name))
 
 
 xray_object_revision_properties = {
@@ -244,7 +255,7 @@ xray_object_properties = {
     'root': bpy.props.BoolProperty(default=True),    # default=True - to backward compatibility
     'isroot': bpy.props.BoolProperty(get=get_isroot, set=set_isroot, options={'SKIP_SAVE'}),
     'is_details': bpy.props.BoolProperty(default=False),
-    'is_ogf': bpy.props.BoolProperty(default=False),
+    'is_level': bpy.props.BoolProperty(default=False),
     'version': bpy.props.IntProperty(),
     'flags': bpy.props.IntProperty(name='flags'),
     'flags_force_custom': bpy.props.BoolProperty(options={'SKIP_SAVE'}),
@@ -334,20 +345,18 @@ xray_object_properties = {
         type=det_types.XRayObjectDetailsProperties
     ),
     'skls_browser': bpy.props.PointerProperty(type=XRayObjectSklsBrowserProperties),
-    'ogf': bpy.props.PointerProperty(type=XRayObjectOgfProperties),
+    'level': bpy.props.PointerProperty(type=XRayObjectLevelProperties),
     # Temp properties
     'bbox_min': bpy.props.FloatVectorProperty(),
     'bbox_max': bpy.props.FloatVectorProperty(),
     'center': bpy.props.FloatVectorProperty(),
-    'radius': bpy.props.FloatProperty(),
-    'sector_front': bpy.props.IntProperty(),
-    'sector_back': bpy.props.IntProperty()
+    'radius': bpy.props.FloatProperty()
 }
 
 
 @registry.requires(
     XRayObjectRevisionProperties, XRayObjectSklsBrowserProperties, MotionRef,
-    XRayObjectOgfProperties
+    XRayObjectLevelProperties
 )
 class XRayObjectProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Object
@@ -368,8 +377,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
 
 
 assign_props([
-    (xray_object_ogf_color_properties, XRayObjectOgfColorProperties),
-    (xray_object_ogf_properties, XRayObjectOgfProperties),
+    (xray_object_level_properties, XRayObjectLevelProperties),
     (xray_object_revision_properties, XRayObjectRevisionProperties),
     (motion_ref_props, MotionRef),
     (xray_object_properties, XRayObjectProperties)

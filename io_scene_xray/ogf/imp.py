@@ -209,6 +209,9 @@ def import_hierrarhy_visual(chunks, visual, level):
     del children_l_data
     bpy_object = create_object(visual.name, None)
     check_unread_chunks(chunks)
+    bpy_object.xray.is_level = True
+    bpy_object.xray.level.object_type = 'VISUAL'
+    bpy_object.xray.level.visual_type = 'HIERRARHY'
     return bpy_object
 
 
@@ -248,21 +251,29 @@ def import_normal_visual(chunks, visual, level):
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
 
+    bpy_object.xray.is_level = True
+    bpy_object.xray.level.object_type = 'VISUAL'
+    bpy_object.xray.level.visual_type = 'NORMAL'
     return bpy_object
 
 
 def ogf_color(packed_reader, bpy_obj, mode='SCALE'):
+    level = bpy_obj.xray.level
+
+    rgb = packed_reader.getf('3f')
+    hemi = packed_reader.getf('f')[0]
+    sun = packed_reader.getf('f')[0]
+
     if mode == 'SCALE':
-        property_group = bpy_obj.xray.ogf.color_scale
+        level.color_scale_rgb = rgb
+        level.color_scale_hemi = (hemi, hemi, hemi)
+        level.color_scale_sun = (sun, sun, sun)
     elif mode == 'BIAS':
-        property_group = bpy_obj.xray.ogf.color_bias
+        level.color_bias_rgb = rgb
+        level.color_bias_hemi = (hemi, hemi, hemi)
+        level.color_bias_sun = (sun, sun, sun)
     else:
         raise BaseException('Unknown ogf color mode: {}'.format(mode))
-    property_group.rgb = packed_reader.getf('3f')
-    hemi = packed_reader.getf('f')[0]
-    property_group.hemi = (hemi, hemi, hemi)
-    sun = packed_reader.getf('f')[0]
-    property_group.sun = (sun, sun, sun)
 
 
 def import_tree_def_2(chunks, bpy_object):
@@ -304,6 +315,9 @@ def import_tree_st_visual(chunks, visual, level):
     tree_xform = import_tree_def_2(chunks, bpy_object)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks)
+    bpy_object.xray.is_level = True
+    bpy_object.xray.level.object_type = 'VISUAL'
+    bpy_object.xray.level.visual_type = 'TREE_ST'
     return bpy_object
 
 
@@ -333,6 +347,9 @@ def import_progressive_visual(chunks, visual, level):
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
 
+    bpy_object.xray.is_level = True
+    bpy_object.xray.level.object_type = 'VISUAL'
+    bpy_object.xray.level.visual_type = 'PROGRESSIVE'
     return bpy_object
 
 
@@ -411,6 +428,9 @@ def import_lod_visual(chunks, visual, level):
             sun_color.data[loop.index].color = (sun, sun, sun, 1.0)
     bpy_object = create_object(visual.name, bpy_mesh)
     assign_material(bpy_object, visual.shader_id, level.materials)
+    bpy_object.xray.is_level = True
+    bpy_object.xray.level.object_type = 'VISUAL'
+    bpy_object.xray.level.visual_type = 'LOD'
     return bpy_object
 
 
@@ -431,6 +451,9 @@ def import_tree_pm_visual(chunks, visual, level):
     tree_xform = import_tree_def_2(chunks, bpy_object)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks)
+    bpy_object.xray.is_level = True
+    bpy_object.xray.level.object_type = 'VISUAL'
+    bpy_object.xray.level.visual_type = 'TREE_PM'
     return bpy_object
 
 

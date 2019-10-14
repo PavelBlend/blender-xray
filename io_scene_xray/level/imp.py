@@ -19,6 +19,7 @@ class Level(object):
         self.hierrarhy_visuals = []
         self.visuals = []
         self.collections = {}
+        self.sectors_objects = {}
 
 
 def create_sector_object(sector_id, level_collection, sectors_object):
@@ -72,6 +73,7 @@ def import_sectors(data, level, level_collection, level_object):
         sector_object = create_sector_object(
             sector_id, level_collection, sectors_object
         )
+        level.sectors_objects[sector_id] = sector_object
         import_sector(sector_data, level, sector_object)
 
 
@@ -230,7 +232,7 @@ def create_portal(portal_index, vertices, level_collection):
     return portal_object
 
 
-def import_portal(packed_reader, portal_index, level_collection):
+def import_portal(packed_reader, portal_index, level_collection, level):
     sector_front = packed_reader.getf('H')[0]
     sector_back = packed_reader.getf('H')[0]
     vertices = []
@@ -242,19 +244,21 @@ def import_portal(packed_reader, portal_index, level_collection):
     used_vertices_count = packed_reader.getf('I')[0]
     vertices = vertices[ : used_vertices_count]
     portal_object = create_portal(portal_index, vertices, level_collection)
-    portal_object.xray.sector_front = sector_front
-    portal_object.xray.sector_back = sector_back
+    portal_object.xray.is_level = True
+    portal_object.xray.level.object_type = 'PORTAL'
+    portal_object.xray.level.sector_front = level.sectors_objects[sector_front].name
+    portal_object.xray.level.sector_back = level.sectors_objects[sector_back].name
     return portal_object
 
 
-def import_portals(data, level_collection):
+def import_portals(data, level_collection, level):
     packed_reader = xray_io.PackedReader(data)
     portals_count = len(data) // fmt.PORTAL_SIZE
     portals_object = create.create_object('portals', None)
 
     for portal_index in range(portals_count):
         portal_object = import_portal(
-            packed_reader, portal_index, level_collection
+            packed_reader, portal_index, level_collection, level
         )
         portal_object.parent = portals_object
 
@@ -331,7 +335,7 @@ def import_level(level, context, chunks):
     del sectors_chunk_data
 
     portals_chunk_data = chunks.pop(fmt.Chunks.PORTALS)
-    portals_object = import_portals(portals_chunk_data, level_collection)
+    portals_object = import_portals(portals_chunk_data, level_collection, level)
     del portals_chunk_data
 
     level_collection.objects.link(portals_object)
