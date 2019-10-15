@@ -183,7 +183,7 @@ def import_file(filepath, operator):
             soc_sgroups=operator.fmt_version == 'soc',
             import_motions=False,
             split_by_materials=operator.mesh_split_by_materials,
-            operator=None,
+            operator=operator,
             use_motion_prefix_name=False,
             objects=objects_folder
         )

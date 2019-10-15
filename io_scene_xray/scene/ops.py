@@ -61,6 +61,7 @@ op_import_level_scene_props = {
         default='*'+filename_ext, options={'HIDDEN'}
     ),
     'mesh_split_by_materials': plugin_prefs.PropObjectMeshSplitByMaterials(),
+    'shaped_bones': plugin_prefs.PropObjectBonesCustomShapes(),
     'fmt_version': plugin_prefs.PropSDKVersion()
 }
 
