@@ -52,6 +52,7 @@ def gen_meshes_color_indices_table(detail_models_count, format_version=3):
     color_depth = 21
     current_mesh = [color_depth, 0, 0]
     color_channels_reverse = (1, 2, 0)
+    append_last_mesh_color = False
 
     mesh_id = 0
     for color_channel in range(3):    # R, G, B
@@ -65,7 +66,11 @@ def gen_meshes_color_indices_table(detail_models_count, format_version=3):
             current_mesh[color_channels_reverse[color_channel]] += 1
 
             if mesh_id >= detail_models_count:
+                append_last_mesh_color = True
                 break
+
+        if append_last_mesh_color:
+            break
 
     if format_version == 3:
         mesh_ids[(0, 0, 0)] = 63    # empty detail mesh (version 3)
