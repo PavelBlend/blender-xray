@@ -135,7 +135,8 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
         bpy_image = bpy.data.images.new(
             'details {0}'.format(name),
             header.size.x*scale,
-            header.size.y*scale
+            header.size.y*scale,
+            alpha=True
             )
         bpy_image.use_fake_user = True
         return bpy_image
