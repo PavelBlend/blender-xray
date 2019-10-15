@@ -365,7 +365,10 @@ class PackDetailsImages(bpy.types.Operator):
 
         for image in slots_images:
             if image:
-                image.pack(as_png=True)
+                if IS_28:
+                    image.pack()
+                else:
+                    image.pack(as_png=True)
 
         return {'FINISHED'}
 
