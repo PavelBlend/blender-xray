@@ -219,6 +219,10 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
     used_material_names = set()
     for material_name, faces_indices in sfaces.items():
         if faces_indices:
+            if material_name is None:
+                raise utils.AppError(
+                    'mesh "{0}" has empty material slot'.format(bpy_obj.data.name)
+                )
             used_material_names.add(material_name)
 
     if not sfaces:
