@@ -52,7 +52,7 @@ def validate_export_object(context, bpy_obj):
         if bpy_texture.type == 'IMAGE' or bpy_texture.type == 'TEX_IMAGE':
             if context.texname_from_path:
                 texture_name = utils.gen_texture_name(
-                    bpy_texture, context.textures_folder
+                    bpy_texture, context.textures_folder, mode='DETAILS'
                 )
             else:
                 texture_name = bpy_texture.name

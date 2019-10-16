@@ -215,15 +215,28 @@ def calculate_mesh_bbox(verts):
     return _min, _max
 
 
-def gen_texture_name(texture, tx_folder):
+def make_relative_texture_path(a_tx_fpath, a_tx_folder):
+    a_tx_fpath = a_tx_fpath[len(a_tx_folder):].replace(os.path.sep, '\\')
+    if a_tx_fpath.startswith('\\'):
+        a_tx_fpath = a_tx_fpath[1:]
+    return a_tx_fpath
+
+
+def gen_texture_name(texture, tx_folder, mode='DEFAULT'):
     import os.path
     from bpy.path import abspath
     a_tx_fpath = os.path.normpath(abspath(texture.image.filepath))
     a_tx_folder = os.path.abspath(tx_folder)
     a_tx_fpath = os.path.splitext(a_tx_fpath)[0]
-    a_tx_fpath = a_tx_fpath[len(a_tx_folder):].replace(os.path.sep, '\\')
-    if a_tx_fpath.startswith('\\'):
-        a_tx_fpath = a_tx_fpath[1:]
+    if mode == 'DEFAULT':    # find texture in gamedata\textures folder
+        a_tx_fpath = make_relative_texture_path(a_tx_fpath, a_tx_folder)
+    elif mode == 'DETAILS':
+        if a_tx_fpath.startswith(a_tx_folder):    # gamedata\textures folder
+            a_tx_fpath = make_relative_texture_path(a_tx_fpath, a_tx_folder)
+        else:    # gamedata\levels\level_name folder
+            a_tx_fpath = os.path.split(a_tx_fpath)[-1]
+    else:
+        raise BaseException('Unknown generate texture name mode: {}'.format(mode))
     return a_tx_fpath
 
 
