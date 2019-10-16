@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-import math
+import math, os
 from time import time
 
 from bpy_extras import io_utils
@@ -223,7 +223,6 @@ def make_relative_texture_path(a_tx_fpath, a_tx_folder):
 
 
 def gen_texture_name(texture, tx_folder, mode='DEFAULT'):
-    import os.path
     from bpy.path import abspath
     a_tx_fpath = os.path.normpath(abspath(texture.image.filepath))
     a_tx_folder = os.path.abspath(tx_folder)
