@@ -1,8 +1,10 @@
+import os
+
 from ... import utils
 from ...version_utils import IS_28
 
 
-def validate_export_object(context, bpy_obj):
+def validate_export_object(context, bpy_obj, fpath):
 
     if not bpy_obj.data.uv_layers:
         raise utils.AppError('mesh "' + bpy_obj.data.name + '" has no UV-map')
@@ -51,8 +53,10 @@ def validate_export_object(context, bpy_obj):
 
         if bpy_texture.type == 'IMAGE' or bpy_texture.type == 'TEX_IMAGE':
             if context.texname_from_path:
+                level_folder = os.path.dirname(fpath) + os.sep
                 texture_name = utils.gen_texture_name(
-                    bpy_texture, context.textures_folder, mode='DETAILS'
+                    bpy_texture, context.textures_folder,
+                    level_folder=level_folder
                 )
             else:
                 texture_name = bpy_texture.name

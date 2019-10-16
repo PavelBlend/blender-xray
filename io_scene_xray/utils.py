@@ -222,20 +222,20 @@ def make_relative_texture_path(a_tx_fpath, a_tx_folder):
     return a_tx_fpath
 
 
-def gen_texture_name(texture, tx_folder, mode='DEFAULT'):
+def gen_texture_name(texture, tx_folder, level_folder=None):
     from bpy.path import abspath
     a_tx_fpath = os.path.normpath(abspath(texture.image.filepath))
     a_tx_folder = os.path.abspath(tx_folder)
     a_tx_fpath = os.path.splitext(a_tx_fpath)[0]
-    if mode == 'DEFAULT':    # find texture in gamedata\textures folder
+    if not level_folder:    # find texture in gamedata\textures folder
         a_tx_fpath = make_relative_texture_path(a_tx_fpath, a_tx_folder)
-    elif mode == 'DETAILS':
+    else:
         if a_tx_fpath.startswith(a_tx_folder):    # gamedata\textures folder
             a_tx_fpath = make_relative_texture_path(a_tx_fpath, a_tx_folder)
-        else:    # gamedata\levels\level_name folder
+        elif a_tx_fpath.startswith(level_folder):    # gamedata\levels\level_name folder
+            a_tx_fpath = make_relative_texture_path(a_tx_fpath, level_folder)
+        else:    # gamedata\levels\level_name\texture_name
             a_tx_fpath = os.path.split(a_tx_fpath)[-1]
-    else:
-        raise BaseException('Unknown generate texture name mode: {}'.format(mode))
     return a_tx_fpath
 
 

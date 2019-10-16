@@ -4,7 +4,7 @@ from .model import exp as model_exp
 from . import utils as det_utils
 
 
-def write_details(chunked_writer, lvl_dets, context):
+def write_details(chunked_writer, lvl_dets, context, fpath):
 
     dm_cw = xray_io.ChunkedWriter()
 
@@ -36,7 +36,9 @@ def write_details(chunked_writer, lvl_dets, context):
                 )
 
         packed_writer = xray_io.PackedWriter()
-        model_exp.export(detail_model, packed_writer, context, mode='DETAILS')
+        model_exp.export(
+            detail_model, packed_writer, context, fpath, mode='DETAILS'
+        )
         dm_index = detail_model.xray.detail.model.index
 
         if dm_index >= dm_count:
