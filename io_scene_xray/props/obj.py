@@ -345,12 +345,7 @@ xray_object_properties = {
         type=det_types.XRayObjectDetailsProperties
     ),
     'skls_browser': bpy.props.PointerProperty(type=XRayObjectSklsBrowserProperties),
-    'level': bpy.props.PointerProperty(type=XRayObjectLevelProperties),
-    # Temp properties
-    'bbox_min': bpy.props.FloatVectorProperty(),
-    'bbox_max': bpy.props.FloatVectorProperty(),
-    'center': bpy.props.FloatVectorProperty(),
-    'radius': bpy.props.FloatProperty()
+    'level': bpy.props.PointerProperty(type=XRayObjectLevelProperties)
 }
 
 

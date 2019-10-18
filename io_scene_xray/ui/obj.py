@@ -218,11 +218,6 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
         if data.is_level:
             ogf_box = layout.box()
 
-            ogf_box.prop(data, 'bbox_min')
-            ogf_box.prop(data, 'bbox_max')
-            ogf_box.prop(data, 'center')
-            ogf_box.prop(data, 'radius')
-
             ogf_box.prop(data.level, 'object_type')
             object_type = data.level.object_type
 

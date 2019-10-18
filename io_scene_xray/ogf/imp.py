@@ -484,19 +484,6 @@ def import_model(chunks, visual, level):
 
     data = bpy_obj.xray
     data.is_ogf = True
-    # bbox min
-    data.bbox_min[0] = visual.bbox_min[0]
-    data.bbox_min[1] = visual.bbox_min[2]
-    data.bbox_min[2] = visual.bbox_min[1]
-    # bbox max
-    data.bbox_max[0] = visual.bbox_max[0]
-    data.bbox_max[1] = visual.bbox_max[2]
-    data.bbox_max[2] = visual.bbox_max[1]
-    # bsphere
-    data.center[0] = visual.center[0]
-    data.center[1] = visual.center[2]
-    data.center[2] = visual.center[1]
-    data.radius = visual.radius
 
     scene_collection = bpy.context.scene.collection
     collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
@@ -506,14 +493,14 @@ def import_model(chunks, visual, level):
     level.visuals.append(bpy_obj)
 
 
-def import_bounding_sphere(packed_reader, visual):
-    visual.center = packed_reader.getf('<3f')
-    visual.radius = packed_reader.getf('<f')[0]
+def import_bounding_sphere(packed_reader):
+    center = packed_reader.getf('<3f')
+    radius = packed_reader.getf('<f')[0]
 
 
 def import_bounding_box(packed_reader, visual):
-    visual.bbox_min = packed_reader.getf('<3f')
-    visual.bbox_max = packed_reader.getf('<3f')
+    bbox_min = packed_reader.getf('<3f')
+    bbox_max = packed_reader.getf('<3f')
 
 
 def check_version(visual):
@@ -529,8 +516,8 @@ def import_header(data, visual):
     check_version(visual)
     visual.model_type = packed_reader.getf('<B')[0]
     visual.shader_id = packed_reader.getf('<H')[0]
-    import_bounding_box(packed_reader, visual)
-    import_bounding_sphere(packed_reader, visual)
+    import_bounding_box(packed_reader)
+    import_bounding_sphere(packed_reader)
 
 
 def import_main(chunks, visual, level):

@@ -24,6 +24,9 @@ class Level(object):
         self.ibs_offsets = []
         self.saved_visuals = {}
         self.sectors_indices = {}
+        self.visuals_bbox = {}
+        self.visuals_center = {}
+        self.visuals_radius = {}
 
 
 def write_level_geom_swis():
@@ -262,10 +265,17 @@ def write_visual_bounding_box(packed_writer, bpy_obj, bbox):
     packed_writer.putf('<3f', bbox_max[0], bbox_max[2], bbox_max[1])    # max
 
 
-def write_visual_header(bpy_obj, visual=None, visual_type=0, shader_id=1):
+def get_general_bbox(bbox_1, bbox_2, funct):
+    bbox_x = funct(bbox_1[0], bbox_2[0])
+    bbox_y = funct(bbox_1[1], bbox_2[1])
+    bbox_z = funct(bbox_1[2], bbox_2[2])
+    return mathutils.Vector((bbox_x, bbox_y, bbox_z))
+
+
+def write_visual_header(level, bpy_obj, visual=None, visual_type=0, shader_id=1):
     packed_writer = xray_io.PackedWriter()
     packed_writer.putf('<B', 4)    # format version
-    packed_writer.putf('<B', visual_type)    # model type NORMAL
+    packed_writer.putf('<B', visual_type)
     if visual:
         packed_writer.putf('<H', visual.shader_index + 1)
     else:
@@ -275,10 +285,37 @@ def write_visual_header(bpy_obj, visual=None, visual_type=0, shader_id=1):
         bbox, (center, radius) = ogf_exp.calculate_bbox_and_bsphere(
             bpy_obj, apply_transforms=True
         )
+        level.visuals_bbox[bpy_obj.name] = bbox
+        level.visuals_center[bpy_obj.name] = center
+        level.visuals_radius[bpy_obj.name] = radius
     else:
-        bbox = (data.bbox_min, data.bbox_max)
-        center = data.center
-        radius = data.radius
+        bbox = (mathutils.Vector(), mathutils.Vector())
+        center = mathutils.Vector()
+        children_count = 0
+        for child_obj in bpy_obj.children:
+            child_bbox = level.visuals_bbox[child_obj.name]
+            child_center = level.visuals_center[child_obj.name]
+            child_radius = level.visuals_radius[child_obj.name]
+            bbox_min = get_general_bbox(bbox[0], child_bbox[0], min)
+            bbox_max = get_general_bbox(bbox[1], child_bbox[1], max)
+            bbox = (bbox_min, bbox_max)
+            center[0] += child_center[0]
+            center[1] += child_center[1]
+            center[2] += child_center[2]
+            children_count += 1
+        center = (
+            center[0] / children_count,
+            center[1] / children_count,
+            center[2] / children_count
+        )
+        radius = max(
+            center[0] - bbox[0][0],
+            center[1] - bbox[0][1],
+            center[2] - bbox[0][2]
+        )
+        level.visuals_bbox[bpy_obj.name] = bbox
+        level.visuals_center[bpy_obj.name] = center
+        level.visuals_radius[bpy_obj.name] = radius
     write_visual_bounding_box(packed_writer, bpy_obj, bbox)
     write_visual_bounding_sphere(packed_writer, bpy_obj, center, radius)
     return packed_writer
@@ -596,7 +633,7 @@ def write_visual(
     ):
     if bpy_obj.name.startswith('hierrarhy'):
         chunked_writer = write_hierrarhy_visual(
-            bpy_obj, hierrarhy, visuals_ids
+            bpy_obj, hierrarhy, visuals_ids, level
         )
         return chunked_writer
     elif bpy_obj.name.startswith('lod'):
@@ -610,13 +647,13 @@ def write_visual(
             bpy_obj, vbs, ibs, level
         )
         if bpy_obj.name.startswith('tree_st') or bpy_obj.name.startswith('tree_pm'):
-            header_writer = write_visual_header(bpy_obj, visual=visual, visual_type=7)
+            header_writer = write_visual_header(level, bpy_obj, visual=visual, visual_type=7)
             tree_def_2_writer = write_tree_def_2(bpy_obj, chunked_writer)
             chunked_writer.put(0x1, header_writer)
             chunked_writer.put(0x15, gcontainer_writer)
             chunked_writer.put(0xc, tree_def_2_writer)
         else:
-            header_writer = write_visual_header(bpy_obj, visual=visual)
+            header_writer = write_visual_header(level, bpy_obj, visual=visual)
             chunked_writer.put(0x1, header_writer)
             chunked_writer.put(0x15, gcontainer_writer)
         return chunked_writer
@@ -631,9 +668,11 @@ def write_children_l(bpy_obj, hierrarhy, visuals_ids):
     return packed_writer
 
 
-def write_hierrarhy_visual(bpy_obj, hierrarhy, visuals_ids):
+def write_hierrarhy_visual(bpy_obj, hierrarhy, visuals_ids, level):
     visual_writer = xray_io.ChunkedWriter()
-    header_writer = write_visual_header(bpy_obj, visual_type=0x1, shader_id=0)
+    header_writer = write_visual_header(
+        level, bpy_obj, visual_type=0x1, shader_id=0
+    )
     visual_writer.put(0x1, header_writer)
     children_l_writer = write_children_l(bpy_obj, hierrarhy, visuals_ids)
     visual_writer.put(0xa, children_l_writer)
@@ -705,7 +744,7 @@ def write_lod_visual(bpy_obj, hierrarhy, visuals_ids, level):
         bpy_obj, hierrarhy, visuals_ids, level
     )
     header_writer = write_visual_header(
-        bpy_obj, visual=visual, visual_type=0x6
+        level, bpy_obj, visual=visual, visual_type=0x6
     )
 
     visual_writer.put(0x1, header_writer)
