@@ -12,21 +12,21 @@ from ..xray_motions import MATRIX_BONE_INVERTED
 from ..version_utils import multiply, IS_28
 
 
-def calculate_mesh_bsphere(bbox, vertices):
+def calculate_mesh_bsphere(bbox, vertices, mat=mathutils.Matrix()):
     center = (bbox[0] + bbox[1]) / 2
     _delta = bbox[1] - bbox[0]
     max_radius = max(abs(_delta.x), abs(_delta.y), abs(_delta.z)) / 2
     for vtx in vertices:
-        relative = vtx.co - center
+        relative = multiply(mat, vtx.co) - center
         radius = relative.length
         if radius > max_radius:
             offset = center - relative.normalized() * max_radius
-            center = (vtx.co + offset) / 2
+            center = (multiply(mat, vtx.co) + offset) / 2
             max_radius = (center - offset).length
     return center, max_radius
 
 
-def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False):
+def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache={}):
     def scan_meshes(bpy_obj, meshes):
         if is_helper_object(bpy_obj):
             return
@@ -40,20 +40,26 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False):
 
     bbox = None
     spheres = []
-    if apply_transforms:
-        mat_world = bpy_obj.matrix_world
-    else:
-        mat_world = mathutils.Matrix()
     for mesh in meshes:
-        bmesh = convert_object_to_space_bmesh(mesh, bpy_obj.matrix_world)
-        bbx = calculate_mesh_bbox(bmesh.verts, mat=mat_world)
+        if cache.get(mesh.name, None):
+            bbx, center, radius = cache[mesh.name]
+        else:
+            if apply_transforms:
+                mat_world = mesh.matrix_world
+            else:
+                mat_world = mathutils.Matrix()
+            bmesh = convert_object_to_space_bmesh(mesh, mat_world)
+            bbx = calculate_mesh_bbox(bmesh.verts, mesh, mat=mat_world)
+            center, radius = calculate_mesh_bsphere(bbx, bmesh.verts, mat=mat_world)
+            cache[mesh.name] = bbx, center, radius
+
         if bbox is None:
             bbox = bbx
         else:
             for i in range(3):
                 bbox[0][i] = min(bbox[0][i], bbx[0][i])
                 bbox[1][i] = max(bbox[1][i], bbx[1][i])
-        spheres.append(calculate_mesh_bsphere(bbx, bmesh.verts))
+        spheres.append((center, radius))
 
     center = mathutils.Vector()
     radius = 0

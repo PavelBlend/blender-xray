@@ -27,6 +27,7 @@ class Level(object):
         self.visuals_bbox = {}
         self.visuals_center = {}
         self.visuals_radius = {}
+        self.bbox_cache = {}
 
 
 def write_level_geom_swis():
@@ -283,41 +284,12 @@ def write_visual_header(level, bpy_obj, visual=None, visual_type=0, shader_id=0)
     else:
         packed_writer.putf('<H', shader_id)    # shader id
     data = bpy_obj.xray
-    if bpy_obj.type == 'MESH':
-        bbox, (center, radius) = ogf_exp.calculate_bbox_and_bsphere(
-            bpy_obj, apply_transforms=True
-        )
-        level.visuals_bbox[bpy_obj.name] = bbox
-        level.visuals_center[bpy_obj.name] = center
-        level.visuals_radius[bpy_obj.name] = radius
-    else:
-        bbox = (mathutils.Vector(), mathutils.Vector())
-        center = mathutils.Vector()
-        children_count = 0
-        for child_obj in bpy_obj.children:
-            child_bbox = level.visuals_bbox[child_obj.name]
-            child_center = level.visuals_center[child_obj.name]
-            child_radius = level.visuals_radius[child_obj.name]
-            bbox_min = get_general_bbox(bbox[0], child_bbox[0], min)
-            bbox_max = get_general_bbox(bbox[1], child_bbox[1], max)
-            bbox = (bbox_min, bbox_max)
-            center[0] += child_center[0]
-            center[1] += child_center[1]
-            center[2] += child_center[2]
-            children_count += 1
-        center = (
-            center[0] / children_count,
-            center[1] / children_count,
-            center[2] / children_count
-        )
-        radius = max(
-            center[0] - bbox[0][0],
-            center[1] - bbox[0][1],
-            center[2] - bbox[0][2]
-        )
-        level.visuals_bbox[bpy_obj.name] = bbox
-        level.visuals_center[bpy_obj.name] = center
-        level.visuals_radius[bpy_obj.name] = radius
+    bbox, (center, radius) = ogf_exp.calculate_bbox_and_bsphere(
+        bpy_obj, apply_transforms=True, cache=level.bbox_cache
+    )
+    level.visuals_bbox[bpy_obj.name] = bbox
+    level.visuals_center[bpy_obj.name] = center
+    level.visuals_radius[bpy_obj.name] = radius
     write_visual_bounding_box(packed_writer, bpy_obj, bbox)
     write_visual_bounding_sphere(packed_writer, bpy_obj, center, radius)
     return packed_writer
@@ -984,6 +956,8 @@ def write_level(chunked_writer, level_object):
     # sectors
     chunked_writer.put(fmt.Chunks.SECTORS, sectors_chunked_writer)
     del sectors_chunked_writer
+
+    # TODO: export cform and fastpath geometry
 
     return vbs, ibs
 

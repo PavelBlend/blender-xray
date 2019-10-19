@@ -199,19 +199,21 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
     return mesh
 
 
-def calculate_mesh_bbox(verts, mat=mathutils.Matrix()):
+def calculate_mesh_bbox(verts, mesh, mat=mathutils.Matrix()):
     def vfunc(dst, src, func):
         dst.x = func(dst.x, src.x)
         dst.y = func(dst.y, src.y)
         dst.z = func(dst.z, src.z)
 
     fix_ensure_lookup_table(verts)
-    _min = verts[0].co.copy()
+    _min = multiply(mat, verts[0].co).copy()
     _max = _min.copy()
 
+    vs = []
     for vertex in verts:
         vfunc(_min, multiply(mat, vertex.co), min)
         vfunc(_max, multiply(mat, vertex.co), max)
+        vs.append(_max)
 
     return _min, _max
 
