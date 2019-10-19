@@ -49,7 +49,7 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache={}):
             else:
                 mat_world = mathutils.Matrix()
             bmesh = convert_object_to_space_bmesh(mesh, mat_world)
-            bbx = calculate_mesh_bbox(bmesh.verts, mesh, mat=mat_world)
+            bbx = calculate_mesh_bbox(bmesh.verts, mat=mat_world)
             center, radius = calculate_mesh_bsphere(bbx, bmesh.verts, mat=mat_world)
             cache[mesh.name] = bbx, center, radius
 

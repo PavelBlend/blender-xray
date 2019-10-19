@@ -199,7 +199,7 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
     return mesh
 
 
-def calculate_mesh_bbox(verts, mesh, mat=mathutils.Matrix()):
+def calculate_mesh_bbox(verts, mat=mathutils.Matrix()):
     def vfunc(dst, src, func):
         dst.x = func(dst.x, src.x)
         dst.y = func(dst.y, src.y)
