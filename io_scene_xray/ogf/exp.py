@@ -64,7 +64,7 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache={}):
     center = mathutils.Vector()
     radius = 0
     if not spheres:
-        return center, 0
+        return (mathutils.Vector(), mathutils.Vector()), (center, radius)
     for sphere in spheres:
         center += sphere[0]
     center /= len(spheres)
