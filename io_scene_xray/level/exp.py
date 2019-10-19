@@ -3,7 +3,7 @@ import os, time
 import bpy, bmesh, mathutils
 
 from .. import xray_io, utils, plugin_prefs
-from ..ogf import exp as ogf_exp
+from ..ogf import exp as ogf_exp, fmt as ogf_fmt
 from . import fmt, vb as imp_vb
 
 
@@ -32,6 +32,7 @@ class Level(object):
 def write_level_geom_swis():
     packed_writer = xray_io.PackedWriter()
 
+    # TODO: export swis data
     packed_writer.putf('<I', 0)    # swis count
 
     return packed_writer
@@ -102,6 +103,7 @@ def write_level_geom_vb(vbs):
                     vb.color_hemi[vertex_index]
                 )    # normal, hemi
                 uv_fix = vb.uv_fix[vertex_index]
+                # TODO: export tangent and binormal
                 packed_writer.putf('4B', 127, 127, 127, uv_fix[0])    # tangent
                 packed_writer.putf('4B', 127, 127, 127, uv_fix[1])    # binormal
                 # texture coordinate
@@ -124,6 +126,7 @@ def write_level_geom_vb(vbs):
                     vb.color_hemi[vertex_index]
                 )    # normal, hemi
                 uv_fix = vb.uv_fix[vertex_index]
+                # TODO: export tangent and binormal
                 packed_writer.putf('4B', 127, 127, 127, uv_fix[0])    # tangent
                 packed_writer.putf('4B', 127, 127, 127, uv_fix[1])    # binormal
                 # texture coordinate
@@ -144,6 +147,7 @@ def write_level_geom_vb(vbs):
                     vb.color_hemi[vertex_index]
                 )    # normal, hemi
                 uv_fix = vb.uv_fix[vertex_index]
+                # TODO: export tangent and binormal
                 packed_writer.putf('4B', 127, 127, 127, uv_fix[0])    # tangent
                 packed_writer.putf('4B', 127, 127, 127, uv_fix[1])    # binormal
                 # vertex color
@@ -199,10 +203,10 @@ def write_sector(root_index, sectors_map, sector_name):
     chunked_writer = xray_io.ChunkedWriter()
 
     sector_portals_writer = write_sector_portals(sectors_map, sector_name)
-    chunked_writer.put(0x1, sector_portals_writer)    # portals
+    chunked_writer.put(fmt.SectorChunks.PORTALS, sector_portals_writer)    # portals
 
     sector_root_writer = write_sector_root(root_index)
-    chunked_writer.put(0x2, sector_root_writer)    # root
+    chunked_writer.put(fmt.SectorChunks.ROOT, sector_root_writer)    # root
 
     return chunked_writer
 
@@ -210,15 +214,12 @@ def write_sector(root_index, sectors_map, sector_name):
 def write_shaders(level):
     texture_folder = plugin_prefs.get_preferences().textures_folder_auto
     materials = {}
-    max_index = 0
     for material, shader_index in level.materials.items():
-        if shader_index > max_index:
-            max_index = shader_index
         materials[shader_index] = material
     materials_count = len(materials)
     packed_writer = xray_io.PackedWriter()
     packed_writer.putf('<I', materials_count + 1)    # shaders count
-    packed_writer.puts('')
+    packed_writer.puts('')    # first empty shader
     for shader_index in range(materials_count):
         material = materials[shader_index]
         texture_node = material.node_tree.nodes['Image Texture']
@@ -272,11 +273,12 @@ def get_general_bbox(bbox_1, bbox_2, funct):
     return mathutils.Vector((bbox_x, bbox_y, bbox_z))
 
 
-def write_visual_header(level, bpy_obj, visual=None, visual_type=0, shader_id=1):
+def write_visual_header(level, bpy_obj, visual=None, visual_type=0, shader_id=0):
     packed_writer = xray_io.PackedWriter()
-    packed_writer.putf('<B', 4)    # format version
+    packed_writer.putf('<B', ogf_fmt.FORMAT_VERSION_4)    # format version
     packed_writer.putf('<B', visual_type)
     if visual:
+        # +1 - skip first empty shader
         packed_writer.putf('<H', visual.shader_index + 1)
     else:
         packed_writer.putf('<H', shader_id)    # shader id
@@ -491,6 +493,7 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                     vert.co[2],
                     vert.co[1]
                 ))
+                # TODO: export correct normals (smoothing groups)
                 vb.normal.append((
                     int(round(((normal[0] + 1.0) / 2) * 255, 0)),
                     int(round(((normal[2] + 1.0) / 2) * 255, 0)),
@@ -513,11 +516,18 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                 tex_coord_v_correct, tex_coord_v = get_tex_coord_correct(1 - tex_uv[1], tex_coord_v, uv_coeff)
                 pw = xray_io.PackedWriter()
                 pw.putf('<2B', tex_coord_u_correct, tex_coord_v_correct)
+
                 # set uv limits
-                if not (-0x8000 < tex_coord_u < 0x7fff):
+                if tex_coord_u > 0x7fff:
                     tex_coord_u = 0x7fff
-                if not (-0x8000 < tex_coord_v < 0x7fff):
+                elif tex_coord_u < -0x8000:
+                    tex_coord_u = -0x8000
+
+                if tex_coord_v > 0x7fff:
                     tex_coord_v = 0x7fff
+                elif tex_coord_v < -0x8000:
+                    tex_coord_v = -0x8000
+
                 vb.uv.append((
                     tex_coord_u,
                     tex_coord_v
@@ -631,12 +641,12 @@ def write_visual(
         bpy_obj, vbs, ibs,
         hierrarhy, visuals_ids, level
     ):
-    if bpy_obj.name.startswith('hierrarhy'):
+    if bpy_obj.xray.level.visual_type == 'HIERRARHY':
         chunked_writer = write_hierrarhy_visual(
             bpy_obj, hierrarhy, visuals_ids, level
         )
         return chunked_writer
-    elif bpy_obj.name.startswith('lod'):
+    elif bpy_obj.xray.level.visual_type == 'LOD':
         chunked_writer = write_lod_visual(
             bpy_obj, hierrarhy, visuals_ids, level
         )
@@ -646,16 +656,16 @@ def write_visual(
         gcontainer_writer, visual = write_model(
             bpy_obj, vbs, ibs, level
         )
-        if bpy_obj.name.startswith('tree_st') or bpy_obj.name.startswith('tree_pm'):
+        if bpy_obj.xray.level.visual_type in ('TREE_ST', 'TREE_PM'):
             header_writer = write_visual_header(level, bpy_obj, visual=visual, visual_type=7)
             tree_def_2_writer = write_tree_def_2(bpy_obj, chunked_writer)
-            chunked_writer.put(0x1, header_writer)
-            chunked_writer.put(0x15, gcontainer_writer)
-            chunked_writer.put(0xc, tree_def_2_writer)
-        else:
+            chunked_writer.put(ogf_fmt.Chunks.HEADER, header_writer)
+            chunked_writer.put(ogf_fmt.Chunks.GCONTAINER, gcontainer_writer)
+            chunked_writer.put(ogf_fmt.Chunks.TREEDEF2, tree_def_2_writer)
+        else:    # NORMAL or PROGRESSIVE visual
             header_writer = write_visual_header(level, bpy_obj, visual=visual)
-            chunked_writer.put(0x1, header_writer)
-            chunked_writer.put(0x15, gcontainer_writer)
+            chunked_writer.put(ogf_fmt.Chunks.HEADER, header_writer)
+            chunked_writer.put(ogf_fmt.Chunks.GCONTAINER, gcontainer_writer)
         return chunked_writer
 
 
@@ -671,11 +681,11 @@ def write_children_l(bpy_obj, hierrarhy, visuals_ids):
 def write_hierrarhy_visual(bpy_obj, hierrarhy, visuals_ids, level):
     visual_writer = xray_io.ChunkedWriter()
     header_writer = write_visual_header(
-        level, bpy_obj, visual_type=0x1, shader_id=0
+        level, bpy_obj, visual_type=ogf_fmt.ModelType.HIERRARHY, shader_id=0
     )
-    visual_writer.put(0x1, header_writer)
+    visual_writer.put(ogf_fmt.Chunks.HEADER, header_writer)
     children_l_writer = write_children_l(bpy_obj, hierrarhy, visuals_ids)
-    visual_writer.put(0xa, children_l_writer)
+    visual_writer.put(ogf_fmt.Chunks.CHILDREN_L, children_l_writer)
     return visual_writer
 
 
@@ -744,12 +754,12 @@ def write_lod_visual(bpy_obj, hierrarhy, visuals_ids, level):
         bpy_obj, hierrarhy, visuals_ids, level
     )
     header_writer = write_visual_header(
-        level, bpy_obj, visual=visual, visual_type=0x6
+        level, bpy_obj, visual=visual, visual_type=ogf_fmt.ModelType.LOD
     )
 
-    visual_writer.put(0x1, header_writer)
-    visual_writer.put(0xa, children_l_writer)
-    visual_writer.put(0xb, lod_def_2_writer)
+    visual_writer.put(ogf_fmt.Chunks.HEADER, header_writer)
+    visual_writer.put(ogf_fmt.Chunks.CHILDREN_L, children_l_writer)
+    visual_writer.put(ogf_fmt.Chunks.LODDEF2, lod_def_2_writer)
 
     return visual_writer
 
@@ -833,15 +843,40 @@ def write_visuals(level_object, sectors_map, level):
     )
 
 
-def write_glow():
+def write_glow(packed_writer, glow_obj, level):
+    # position
+    packed_writer.putf(
+        '<3f',
+        glow_obj.location[0],
+        glow_obj.location[2],
+        glow_obj.location[1]
+    )
+    packed_writer.putf('<f', glow_obj.dimensions[0] / 2)    # radius
+    if not len(glow_obj.data.materials):
+        raise BaseException('glow object "{}" has no material'.format(glow_obj.name))
+    material = glow_obj.data.materials[0]
+    if level.materials.get(material, None) is None:
+        level.materials[material] = level.active_material_index
+        shader_index = level.active_material_index
+        level.active_material_index += 1
+    else:
+        shader_index = level.materials[material]
+    # shader index
+    # +1 - skip first empty shader
+    packed_writer.putf('<H', shader_index + 1)
+
+
+def write_glows(level_object, level):
     packed_writer = xray_io.PackedWriter()
-    packed_writer.putf('<3f', 0.0, 0.0, 0.0)    # position
-    packed_writer.putf('<f', 1.0)    # radius
-    packed_writer.putf('<H', 1)    # shader index
+    for child_obj in level_object.children:
+        if child_obj.name.startswith('glows'):
+            for glow_obj in child_obj.children:
+                write_glow(packed_writer, glow_obj, level)
     return packed_writer
 
 
 def write_light():
+    # TODO: export lights
     packed_writer = xray_io.PackedWriter()
     packed_writer.putf('I', 1)
     packed_writer.putf('I', 3)
@@ -933,7 +968,7 @@ def write_level(chunked_writer, level_object):
     del light_writer
 
     # glow
-    glows_writer = write_glow()
+    glows_writer = write_glows(level_object, level)
     chunked_writer.put(fmt.Chunks.GLOWS, glows_writer)
     del glows_writer
 

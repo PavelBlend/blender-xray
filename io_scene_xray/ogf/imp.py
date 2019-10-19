@@ -498,7 +498,7 @@ def import_bounding_sphere(packed_reader):
     radius = packed_reader.getf('<f')[0]
 
 
-def import_bounding_box(packed_reader, visual):
+def import_bounding_box(packed_reader):
     bbox_min = packed_reader.getf('<3f')
     bbox_max = packed_reader.getf('<3f')
 
