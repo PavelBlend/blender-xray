@@ -224,7 +224,9 @@ def write_shaders(level):
     for shader_index in range(materials_count):
         material = materials[shader_index]
         texture_node = material.node_tree.nodes['Image Texture']
-        texture_path = utils.gen_texture_name(texture_node, texture_folder)
+        texture_path = utils.gen_texture_name(
+            texture_node, texture_folder, level_folder=level.source_level_path
+        )
         eshader = material.xray.eshader
 
         lmap_1_node = material.node_tree.nodes.get('Image Texture.001', None)
@@ -245,6 +247,9 @@ def write_shaders(level):
                 eshader, texture_path, lmap_1_path, lmap_2_path
             ))
         elif lmap_1_node and not lmap_2_node:
+            lmap_1_path = utils.gen_texture_name(
+                lmap_1_node, texture_folder, level_folder=level.source_level_path
+            )    # terrain\terrain_name_lm.dds file
             packed_writer.puts('{0}/{1},{2}'.format(
                 eshader, texture_path, lmap_1_path
             ))
@@ -901,8 +906,9 @@ def write_header():
     return packed_writer
 
 
-def write_level(chunked_writer, level_object):
+def write_level(chunked_writer, level_object, file_path):
     level = Level()
+    level.source_level_path = level_object.xray.level.source_path
 
     # header
     header_writer = write_header()
@@ -959,7 +965,7 @@ def export_file(level_object, file_path):
     start_time = time.time()
 
     level_chunked_writer = get_writer()
-    vbs, ibs = write_level(level_chunked_writer, level_object)
+    vbs, ibs = write_level(level_chunked_writer, level_object, file_path)
 
     with open(file_path, 'wb') as file:
         file.write(level_chunked_writer.data)

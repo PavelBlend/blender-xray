@@ -238,6 +238,7 @@ def gen_texture_name(texture, tx_folder, level_folder=None):
         elif a_tx_fpath.startswith(level_folder):    # gamedata\levels\level_name folder
             a_tx_fpath = make_relative_texture_path(a_tx_fpath, level_folder)
         else:    # gamedata\levels\level_name\texture_name
+            log.warn('Image "{}" has an invalid path'.format(texture.image.name))
             a_tx_fpath = os.path.split(a_tx_fpath)[-1]
     return a_tx_fpath
 

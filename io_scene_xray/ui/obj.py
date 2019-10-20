@@ -221,7 +221,10 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
             ogf_box.prop(data.level, 'object_type')
             object_type = data.level.object_type
 
-            if object_type == 'PORTAL':
+            if object_type == 'LEVEL':
+                ogf_box.prop(data.level, 'source_path')
+
+            elif object_type == 'PORTAL':
                 ogf_box.prop_search(data.level, 'sector_front', bpy.data, 'objects')
                 ogf_box.prop_search(data.level, 'sector_back', bpy.data, 'objects')
 

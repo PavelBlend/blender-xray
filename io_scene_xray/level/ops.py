@@ -81,6 +81,7 @@ class EXPORT_OT_xray_level(bpy.types.Operator, bpy_extras.io_utils.ExportHelper)
         return {'FINISHED'}
 
     @utils.set_cursor_state
+    @utils.execute_with_logger
     def execute(self, context):
         level_object = context.object
         return self.export(level_object, context)

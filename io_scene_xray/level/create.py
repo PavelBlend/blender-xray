@@ -43,6 +43,9 @@ def create_object(object_name, object_data):
 def create_level_object(level, level_collection):
     level_object = create_object(level.name, None)
     level_collection.objects.link(level_object)
+    level_object.xray.is_level = True
+    level_object.xray.level.object_type = 'LEVEL'
+    level_object.xray.level.source_path = level.path
     return level_object
 
 
