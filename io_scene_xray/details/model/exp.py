@@ -8,9 +8,14 @@ from . import validate
 from . import fmt
 
 
-def export(bpy_obj, packed_writer, context, mode='DM'):
+def export(bpy_obj, packed_writer, context, fpath, mode='DM'):
 
-    bpy_material, tx_name = validate.validate_export_object(context, bpy_obj)
+    if mode == 'DM':
+        fpath = None    # level folder not use
+
+    bpy_material, tx_name = validate.validate_export_object(
+        context, bpy_obj, fpath
+    )
 
     det_model = bpy_obj.xray.detail.model
     packed_writer.puts(bpy_material.xray.eshader)
@@ -87,5 +92,5 @@ def export(bpy_obj, packed_writer, context, mode='DM'):
 
 def export_file(bpy_obj, fpath, context):
     packed_writer = xray_io.PackedWriter()
-    export(bpy_obj, packed_writer, context)
+    export(bpy_obj, packed_writer, context, fpath)
     utils.save_file(fpath, packed_writer)

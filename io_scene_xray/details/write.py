@@ -4,7 +4,7 @@ from .model import exp as model_exp
 from . import utils as det_utils
 
 
-def write_details(chunked_writer, lvl_dets, context):
+def write_details(chunked_writer, lvl_dets, context, fpath):
 
     dm_cw = xray_io.ChunkedWriter()
 
@@ -36,7 +36,9 @@ def write_details(chunked_writer, lvl_dets, context):
                 )
 
         packed_writer = xray_io.PackedWriter()
-        model_exp.export(detail_model, packed_writer, context, mode='DETAILS')
+        model_exp.export(
+            detail_model, packed_writer, context, fpath, mode='DETAILS'
+        )
         dm_index = detail_model.xray.detail.model.index
 
         if dm_index >= dm_count:
@@ -102,13 +104,13 @@ def write_slots_v3(chunked_writer, lvl_dets):
             )
 
         slots[slot_index_base][0] = int(
-            round((polygon_base.center[2] + 200.0) / 0.2, 1)) & 0xfff
+            round((polygon_base.center[2] + 200.0) / 0.2, 0)) & 0xfff
 
         slots[slot_index_top][1] = (
             int(
                 round(
                     (polygon_top.center[2] - polygon_base.center[2] - 0.05) \
-                    / 0.1, 1
+                    / 0.1, 0
                 )
             ) & 0xff) << 12
 
@@ -139,69 +141,69 @@ def write_slots_v3(chunked_writer, lvl_dets):
                 hemi_pixels[pixel_index] + \
                 hemi_pixels[pixel_index + 1] + \
                 hemi_pixels[pixel_index + 2]
-                ) / 3), 1))
+                ) / 3), 0))
 
             shadow = int(round(0xf * ((
                 shadows_pixels[pixel_index] + \
                 shadows_pixels[pixel_index + 1] + \
                 shadows_pixels[pixel_index + 2]
-                ) / 3), 1))
+                ) / 3), 0))
 
-            light_r = int(round(0xf * (lights_pixels[pixel_index]), 1))
-            light_g = int(round(0xf * (lights_pixels[pixel_index + 1]), 1))
-            light_b = int(round(0xf * (lights_pixels[pixel_index + 2]), 1))
+            light_r = int(round(0xf * (lights_pixels[pixel_index]), 0))
+            light_g = int(round(0xf * (lights_pixels[pixel_index + 1]), 0))
+            light_b = int(round(0xf * (lights_pixels[pixel_index + 2]), 0))
 
             mesh_pixel_index = pixel_index * 2 + lvl_dets.slots_size_x * coord_y * 2 * 4
 
             mesh_0_id = color_indices.get((
 
                 int(round(
-                    meshes_pixels[0][mesh_pixel_index] / color_step, 1)),
+                    meshes_pixels[0][mesh_pixel_index] / color_step, 0)),
 
                 int(round(
-                    meshes_pixels[0][mesh_pixel_index + 1] / color_step, 1)),
+                    meshes_pixels[0][mesh_pixel_index + 1] / color_step, 0)),
 
                 int(round(
-                    meshes_pixels[0][mesh_pixel_index + 2] / color_step, 1)),
+                    meshes_pixels[0][mesh_pixel_index + 2] / color_step, 0)),
 
                 ), 63)
 
             mesh_1_id = color_indices.get((
 
                 int(round(
-                    meshes_pixels[1][mesh_pixel_index] / color_step, 1)),
+                    meshes_pixels[1][mesh_pixel_index] / color_step, 0)),
 
                 int(round(
-                    meshes_pixels[1][mesh_pixel_index + 1] / color_step, 1)),
+                    meshes_pixels[1][mesh_pixel_index + 1] / color_step, 0)),
 
                 int(round(
-                    meshes_pixels[1][mesh_pixel_index + 2] / color_step, 1)),
+                    meshes_pixels[1][mesh_pixel_index + 2] / color_step, 0)),
 
                 ), 63)
 
             mesh_2_id = color_indices.get((
 
                 int(round(
-                    meshes_pixels[2][mesh_pixel_index] / color_step, 1)),
+                    meshes_pixels[2][mesh_pixel_index] / color_step, 0)),
 
                 int(round(
-                    meshes_pixels[2][mesh_pixel_index + 1] / color_step, 1)),
+                    meshes_pixels[2][mesh_pixel_index + 1] / color_step, 0)),
 
                 int(round(
-                    meshes_pixels[2][mesh_pixel_index + 2] / color_step, 1)),
+                    meshes_pixels[2][mesh_pixel_index + 2] / color_step, 0)),
 
                 ), 63)
 
             mesh_3_id = color_indices.get((
 
                 int(round(
-                    meshes_pixels[3][mesh_pixel_index] / color_step, 1)),
+                    meshes_pixels[3][mesh_pixel_index] / color_step, 0)),
 
                 int(round(
-                    meshes_pixels[3][mesh_pixel_index + 1] / color_step, 1)),
+                    meshes_pixels[3][mesh_pixel_index + 1] / color_step, 0)),
 
                 int(round(
-                    meshes_pixels[3][mesh_pixel_index + 2] / color_step, 1)),
+                    meshes_pixels[3][mesh_pixel_index + 2] / color_step, 0)),
 
                 ), 63)
 
@@ -290,13 +292,13 @@ def write_slots_v2(chunked_writer, lvl_dets):
                 mesh_id = color_indices.get((
 
                     int(round(
-                        meshes_pixels[mesh_index][mesh_pixel_index] / color_step, 1)),
+                        meshes_pixels[mesh_index][mesh_pixel_index] / color_step, 0)),
 
                     int(round(
-                        meshes_pixels[mesh_index][mesh_pixel_index + 1] / color_step, 1)),
+                        meshes_pixels[mesh_index][mesh_pixel_index + 1] / color_step, 0)),
 
                     int(round(
-                        meshes_pixels[mesh_index][mesh_pixel_index + 2] / color_step, 1)),
+                        meshes_pixels[mesh_index][mesh_pixel_index + 2] / color_step, 0)),
 
                     ), 255)
 
