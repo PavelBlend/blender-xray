@@ -22,6 +22,8 @@ class Level(object):
         self.active_material_index = 0
         self.vbs_offsets = []
         self.ibs_offsets = []
+        self.fp_vbs_offsets = []
+        self.fp_ibs_offsets = []
         self.saved_visuals = {}
         self.sectors_indices = {}
         self.visuals_bbox = {}
@@ -73,6 +75,10 @@ def write_level_geom_vb(vbs):
             offsets = (0, 12, 16, 20, 24, 28)
             usage_indices = (0, 0, 0, 0, 0, 0)
             vertex_type = fmt.VERTEX_TYPE_COLOR
+        elif vb.vertex_format == 'FASTPATH':
+            offsets = (0, )
+            usage_indices = (0, )
+            vertex_type = fmt.VERTEX_TYPE_FASTPATH
         else:
             raise BaseException('Unknown VB format:', vb.vertex_format)
 
@@ -163,6 +169,10 @@ def write_level_geom_vb(vbs):
                 packed_writer.putf(
                     '2h', vb.uv[vertex_index][0], vb.uv[vertex_index][1]
                 )
+
+        elif vb.vertex_format == 'FASTPATH':
+            for vertex_pos in vb.position:
+                packed_writer.putf('3f', *vertex_pos)
 
     return packed_writer
 
@@ -593,9 +603,106 @@ def write_tree_def_2(bpy_obj, chunked_writer):
     return packed_writer
 
 
+def write_fastpath_gcontainer(fastpath_obj, fp_vbs, fp_ibs, level):
+    packed_writer = xray_io.PackedWriter()
+
+    bm = bmesh.new()
+    bm.from_mesh(fastpath_obj.data)
+    bmesh.ops.triangulate(bm, faces=bm.faces)
+    vertex_size = 12
+    vertex_format = 'FASTPATH'
+
+    # find fast path vertex buffer
+    if fp_vbs:
+        vb = None
+        for vertex_buffer in fp_vbs:
+            if vertex_buffer.vertex_format == vertex_format:
+                if len(vertex_buffer.position) * vertex_size > TWO_MEGABYTES:    # vb size 2 MB
+                    continue
+                else:
+                    vb = vertex_buffer
+                    break
+        if vb is None:
+            vb = imp_vb.VertexBuffer()
+            vb.vertex_format = vertex_format
+            fp_vbs.append(vb)
+            level.vbs_offsets.append(0)
+    else:
+        vb = imp_vb.VertexBuffer()
+        vb.vertex_format = vertex_format
+        fp_vbs.append(vb)
+        level.fp_vbs_offsets.append(0)
+
+    # find indices buffer
+    vertex_index_size = 2
+    if fp_ibs:
+        ib = fp_ibs[-1]
+        ib_offset = level.fp_ibs_offsets[-1]
+        indices_buffer_index = fp_ibs.index(ib)
+        if len(ib) * vertex_index_size > TWO_MEGABYTES:
+            ib = []
+            fp_ibs.append(ib)
+            ib_offset = 0
+            indices_buffer_index += 1
+            level.fp_ibs_offsets.append(ib_offset)
+    else:
+        ib = []
+        fp_ibs.append(ib)
+        ib_offset = 0
+        level.fp_ibs_offsets.append(ib_offset)
+        indices_buffer_index = 0
+
+    vertices_count = 0
+    indices_count = 0
+    vertex_index = 0
+
+    unique_verts = {}
+    verts_indices = {}
+    for face in bm.faces:
+        for vert in face.verts:
+            vert_co = (vert.co[0], vert.co[1], vert.co[2])
+
+            if not unique_verts.get(vert_co, None):
+                unique_verts[vert_co] = vertex_index
+                verts_indices[vert.index] = vertex_index
+                vb.position.append((vert.co[0], vert.co[2], vert.co[1]))
+                vertices_count += 1
+                vertex_index += 1
+            else:
+                duplicate_vertex_index = unique_verts[vert_co]
+                verts_indices[vert.index] = duplicate_vertex_index
+
+    for face in bm.faces:
+        for vert in face.verts:
+            vert_index = verts_indices[vert.index]
+            ib.append(vert_index)
+            indices_count += 1
+
+    vertex_buffer_index = fp_vbs.index(vb)
+    packed_writer.putf('<I', vertex_buffer_index)    # vb_index
+    packed_writer.putf('<I', level.fp_vbs_offsets[vertex_buffer_index])    # vb_offset
+    packed_writer.putf('<I', vertices_count)    # vb_size
+
+    packed_writer.putf('<I', indices_buffer_index)    # ib_index
+    packed_writer.putf('<I', ib_offset)    # ib_offset
+    packed_writer.putf('<I', indices_count)    # ib_size
+
+    level.fp_vbs_offsets[vertex_buffer_index] += vertices_count
+    level.fp_ibs_offsets[-1] += indices_count
+
+    return packed_writer
+
+
+def write_fastpath(fastpath_obj, fp_vbs, fp_ibs, level):
+    chunked_writer = xray_io.ChunkedWriter()
+    writer = write_fastpath_gcontainer(fastpath_obj, fp_vbs, fp_ibs, level)
+    chunked_writer.put(ogf_fmt.Chunks.GCONTAINER, writer)
+    return chunked_writer
+
+
 def write_visual(
         bpy_obj, vbs, ibs,
-        hierrarhy, visuals_ids, level
+        hierrarhy, visuals_ids, level, fp_vbs, fp_ibs
     ):
     if bpy_obj.xray.level.visual_type == 'HIERRARHY':
         chunked_writer = write_hierrarhy_visual(
@@ -622,6 +729,12 @@ def write_visual(
             header_writer = write_visual_header(level, bpy_obj, visual=visual)
             chunked_writer.put(ogf_fmt.Chunks.HEADER, header_writer)
             chunked_writer.put(ogf_fmt.Chunks.GCONTAINER, gcontainer_writer)
+            if len(bpy_obj.children) > 1:
+                raise utils.AppError('Object "{}" has more than one children'.format(bpy_obj.name))
+            if bpy_obj.children:
+                fastpath_obj = bpy_obj.children[0]
+                fastpath_writer = write_fastpath(fastpath_obj, fp_vbs, fp_ibs, level)
+                chunked_writer.put(ogf_fmt.Chunks.FASTPATH, fastpath_writer)
         return chunked_writer
 
 
@@ -723,13 +836,13 @@ def write_lod_visual(bpy_obj, hierrarhy, visuals_ids, level):
 def write_visual_children(
         chunked_writer, vbs, ibs,
         visual_index, hierrarhy,
-        visuals_ids, visuals, level
+        visuals_ids, visuals, level, fp_vbs, fp_ibs
     ):
 
     for visual_obj in visuals:
         visual_chunked_writer = write_visual(
             visual_obj, vbs, ibs,
-            hierrarhy, visuals_ids, level
+            hierrarhy, visuals_ids, level, fp_vbs, fp_ibs
         )
         if visual_chunked_writer:
             chunked_writer.put(visual_index, visual_chunked_writer)
@@ -747,9 +860,10 @@ def find_hierrarhy(visual_obj, visuals_hierrarhy, visual_index, visuals):
         visuals_hierrarhy[visual_obj.name].append(child_obj)
 
     for child_child_obj in children_objs:
-        visuals_hierrarhy, visual_index = find_hierrarhy(
-            child_child_obj, visuals_hierrarhy, visual_index, visuals
-        )
+        if child_child_obj.xray.level.visual_type != 'FASTPATH':
+            visuals_hierrarhy, visual_index = find_hierrarhy(
+                child_child_obj, visuals_hierrarhy, visual_index, visuals
+            )
     return visuals_hierrarhy, visual_index
 
 
@@ -759,6 +873,8 @@ def write_visuals(level_object, sectors_map, level):
     visuals_collection = bpy.data.collections['Visuals']
     vertex_buffers = []
     indices_buffers = []
+    fastpath_vertex_buffers = []
+    fastpath_indices_buffers = []
     visual_index = 0
     sector_id = 0
     visuals_hierrarhy = {}
@@ -791,11 +907,13 @@ def write_visuals(level_object, sectors_map, level):
 
     visual_index = write_visual_children(
         chunked_writer, vertex_buffers, indices_buffers,
-        visual_index, visuals_hierrarhy, visuals_ids, visuals, level
+        visual_index, visuals_hierrarhy, visuals_ids, visuals, level,
+        fastpath_vertex_buffers, fastpath_indices_buffers
     )
     return (
         chunked_writer, vertex_buffers, indices_buffers,
-        sectors_chunked_writer
+        sectors_chunked_writer, fastpath_vertex_buffers,
+        fastpath_indices_buffers
     )
 
 
@@ -919,7 +1037,7 @@ def write_level(chunked_writer, level_object, file_path):
 
     # visuals
     (visuals_writer, vbs, ibs,
-    sectors_chunked_writer) = write_visuals(
+    sectors_chunked_writer, fp_vbs, fp_ibs) = write_visuals(
         level_object, sectors_map, level
     )
 
@@ -953,7 +1071,7 @@ def write_level(chunked_writer, level_object, file_path):
 
     # TODO: export cform and fastpath geometry
 
-    return vbs, ibs
+    return vbs, ibs, fp_vbs, fp_ibs
 
 
 def get_writer():
@@ -965,17 +1083,26 @@ def export_file(level_object, file_path):
     start_time = time.time()
 
     level_chunked_writer = get_writer()
-    vbs, ibs = write_level(level_chunked_writer, level_object, file_path)
+    vbs, ibs, fp_vbs, fp_ibs = write_level(level_chunked_writer, level_object, file_path)
 
     with open(file_path, 'wb') as file:
         file.write(level_chunked_writer.data)
     del level_chunked_writer
 
+    # geometry
     level_geom_chunked_writer = get_writer()
     write_level_geom(level_geom_chunked_writer, vbs, ibs)
 
     with open(file_path + os.extsep + 'geom', 'wb') as file:
         file.write(level_geom_chunked_writer.data)
     del level_geom_chunked_writer
+
+    # fast path geometry
+    level_geomx_chunked_writer = get_writer()
+    write_level_geom(level_geomx_chunked_writer, fp_vbs, fp_ibs)
+
+    with open(file_path + os.extsep + 'geomx', 'wb') as file:
+        file.write(level_geomx_chunked_writer.data)
+    del level_geomx_chunked_writer
 
     print('total time: {}s'.format(time.time() - start_time))
