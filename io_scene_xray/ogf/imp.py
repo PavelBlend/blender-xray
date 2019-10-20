@@ -348,9 +348,10 @@ def import_normal_visual(chunks, visual, level):
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
-        if visual.fastpath:
-            create_fastpath_visual(visual.fastpath, level, geometry_key)
         assign_material(bpy_object, visual.shader_id, level.materials)
+        if visual.fastpath:
+            fastpath_object = create_fastpath_visual(visual.fastpath, level, geometry_key)
+            fastpath_object.parent = bpy_object
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
 
@@ -448,7 +449,8 @@ def import_progressive_visual(chunks, visual, level):
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
         assign_material(bpy_object, visual.shader_id, level.materials)
         if visual.fastpath:
-            create_fastpath_visual(visual.fastpath, level, geometry_key)
+            fastpath_object = create_fastpath_visual(visual.fastpath, level, geometry_key)
+            fastpath_object.parent = bpy_object
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
 
