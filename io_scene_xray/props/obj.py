@@ -99,7 +99,8 @@ visual_type_items = (
     ('PROGRESSIVE', 'Progressive', ''),
     ('TREE_ST', 'Tree Static', ''),
     ('TREE_PM', 'Tree Progressive', ''),
-    ('LOD', 'LoD', '')
+    ('LOD', 'LoD', ''),
+    ('FASTPATH', 'Fast Path', '')
 )
 
 

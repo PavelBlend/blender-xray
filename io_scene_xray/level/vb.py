@@ -21,6 +21,13 @@ def get_uv_corrector(value):
     return uv_corrector
 
 
+def import_vertices_fastpath(packed_reader, vertex_buffer, vertices_count):
+    for vertex_index in range(vertices_count):
+        # position
+        coord_x, coord_y, coord_z = packed_reader.getf('<3f')
+        vertex_buffer.position.append((coord_x, coord_z, coord_y))
+
+
 def import_vertices_color(packed_reader, vertex_buffer, vertices_count):
     for vertex_index in range(vertices_count):
         # position
@@ -117,8 +124,10 @@ def import_vertices(packed_reader, vertex_buffer, vertices_count, usage_list):
         import_vertices_brush(packed_reader, vertex_buffer, vertices_count)
     elif usage_list == fmt.VERTEX_TYPE_COLOR:
         import_vertices_color(packed_reader, vertex_buffer, vertices_count)
+    elif usage_list == fmt.VERTEX_TYPE_FASTPATH:
+        import_vertices_fastpath(packed_reader, vertex_buffer, vertices_count)
     else:
-        raise BaseException('Unsupported vertex buffer format')
+        raise BaseException('Unsupported vertex buffer format', usage_list)
 
 
 def import_vertex_buffer_declaration(packed_reader):

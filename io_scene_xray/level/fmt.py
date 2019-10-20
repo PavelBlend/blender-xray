@@ -145,6 +145,9 @@ VERTEX_TYPE_COLOR = [
     (usage_values[COLOR], types_values[D3DCOLOR]),
     (usage_values[TEXCOORD], types_values[SHORT2])
 ]
+VERTEX_TYPE_FASTPATH = [
+    (usage_values[POSITION], types_values[FLOAT3]),
+]
 
 UV_COEFFICIENT = 1024
 UV_COEFFICIENT_2 = 2048

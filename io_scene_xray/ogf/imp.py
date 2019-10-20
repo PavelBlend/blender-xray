@@ -21,6 +21,7 @@ class Visual(object):
         self.hemi = None
         self.sun = None
         self.light = None
+        self.fastpath = None
 
 
 class HierrarhyVisual(object):
@@ -37,6 +38,54 @@ def assign_material(bpy_object, shader_id, materials):
 def create_object(name, obj_data):
     bpy_object = bpy.data.objects.new(name, obj_data)
     bpy.context.scene.collection.objects.link(bpy_object)
+    return bpy_object
+
+
+def create_fastpath_visual(visual, level, geometry_key):
+    bpy_mesh = level.loaded_fastpath_geometry.get(geometry_key, None)
+
+    if not bpy_mesh:
+        mesh = bmesh.new()
+
+        # import vertices
+        for vertex_coord in visual.vertices:
+            mesh.verts.new(vertex_coord)
+
+        mesh.verts.ensure_lookup_table()
+        mesh.verts.index_update()
+
+        # import triangles
+        for triangle in visual.triangles:
+            try:
+                mesh.faces.new((
+                    mesh.verts[triangle[0]],
+                    mesh.verts[triangle[1]],
+                    mesh.verts[triangle[2]]
+                ))
+            except ValueError:    # face already exists
+                pass
+
+        mesh.faces.ensure_lookup_table()
+
+        # normals
+        mesh.normal_update()
+
+        # create mesh
+        bpy_mesh = bpy.data.meshes.new(visual.name)
+        mesh.to_mesh(bpy_mesh)
+        del mesh
+        level.loaded_fastpath_geometry[geometry_key] = bpy_mesh
+
+    bpy_object = create_object(visual.name, bpy_mesh)
+    bpy_object.display_type = 'WIRE'
+    bpy_object.xray.is_level = True
+    bpy_object.xray.level.object_type = 'VISUAL'
+    bpy_object.xray.level.visual_type = 'FASTPATH'
+    scene_collection = bpy.context.scene.collection
+    collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
+    collection = level.collections[collection_name]
+    collection.objects.link(bpy_object)
+    scene_collection.objects.unlink(bpy_object)
     return bpy_object
 
 
@@ -128,6 +177,33 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
     return bpy_object
 
 
+def import_fastpath_gcontainer(data, visual, level):
+    packed_reader = xray_io.PackedReader(data)
+
+    vb_index = packed_reader.getf('<I')[0]
+    vb_offset = packed_reader.getf('<I')[0]
+    vb_size = packed_reader.getf('<I')[0]
+    ib_index = packed_reader.getf('<I')[0]
+    ib_offset = packed_reader.getf('<I')[0]
+    ib_size = packed_reader.getf('<I')[0]
+
+    vb_slice = slice(vb_offset, vb_offset + vb_size)
+    geometry_key = (vb_index, vb_offset, vb_size, ib_index, ib_offset, ib_size)
+    bpy_mesh = level.loaded_fastpath_geometry.get(geometry_key, None)
+    if bpy_mesh:
+        return bpy_mesh, geometry_key
+    vertex_buffers = level.fastpath_vertex_buffers
+    indices_buffers = level.fastpath_indices_buffers
+    visual.vertices = vertex_buffers[vb_index].position[vb_slice]
+
+    visual.indices = indices_buffers[ib_index][
+        ib_offset : ib_offset + ib_size
+    ]
+    visual.indices_count = ib_size
+
+    return bpy_mesh, geometry_key
+
+
 def import_gcontainer(data, visual, level):
     packed_reader = xray_io.PackedReader(data)
 
@@ -143,17 +219,19 @@ def import_gcontainer(data, visual, level):
     bpy_mesh = level.loaded_geometry.get(geometry_key, None)
     if bpy_mesh:
         return bpy_mesh, geometry_key
-    visual.vertices = level.vertex_buffers[vb_index].position[vb_slice]
-    visual.uvs = level.vertex_buffers[vb_index].uv[vb_slice]
-    visual.uvs_lmap = level.vertex_buffers[vb_index].uv_lmap[vb_slice]
-    visual.hemi = level.vertex_buffers[vb_index].color_hemi[vb_slice]
+    vertex_buffers = level.vertex_buffers
+    indices_buffers = level.indices_buffers
+    visual.vertices = vertex_buffers[vb_index].position[vb_slice]
+    visual.uvs = vertex_buffers[vb_index].uv[vb_slice]
+    visual.uvs_lmap = vertex_buffers[vb_index].uv_lmap[vb_slice]
+    visual.hemi = vertex_buffers[vb_index].color_hemi[vb_slice]
 
-    if level.vertex_buffers[vb_index].color_light:
-        visual.light = level.vertex_buffers[vb_index].color_light[vb_slice]
-    if level.vertex_buffers[vb_index].color_sun:
-        visual.sun = level.vertex_buffers[vb_index].color_sun[vb_slice]
+    if vertex_buffers[vb_index].color_light:
+        visual.light = vertex_buffers[vb_index].color_light[vb_slice]
+    if vertex_buffers[vb_index].color_sun:
+        visual.sun = vertex_buffers[vb_index].color_sun[vb_slice]
 
-    visual.indices = level.indices_buffers[ib_index][
+    visual.indices = indices_buffers[ib_index][
         ib_offset : ib_offset + ib_size
     ]
     visual.indices_count = ib_size
@@ -177,8 +255,27 @@ def import_texture(data):
     pass
 
 
-def import_fastpath(data):
-    pass
+def import_fastpath(data, visual, level):
+    chunked_reader = xray_io.ChunkedReader(data)
+    chunks = {}
+    for chunk_id, chunkd_data in chunked_reader:
+        chunks[chunk_id] = chunkd_data
+    del chunked_reader
+
+    gcontainer_chunk_data = chunks.pop(fmt.Chunks.GCONTAINER)
+    import_fastpath_gcontainer(gcontainer_chunk_data, visual, level)
+    del gcontainer_chunk_data
+
+    swi_chunk_data = chunks.pop(fmt.Chunks.SWIDATA, None)
+    if swi_chunk_data:
+        packed_reader = xray_io.PackedReader(swi_chunk_data)
+        swi = imp_swi.import_slide_window_item(packed_reader)
+        visual.indices = visual.indices[swi[0].offset : ]
+        visual.indices_count = swi[0].triangles_count * 3
+        del swi_chunk_data
+
+    for chunk_id in chunks.keys():
+        print('UNKNOW OGF FASTPATH CHUNK: {0:#x}'.format(chunk_id))
 
 
 def check_unread_chunks(chunks):
@@ -222,7 +319,11 @@ def import_geometry(chunks, visual, level):
 
     fastpath_data = chunks.pop(fmt.Chunks.FASTPATH, None)    # optional chunk
     if fastpath_data:
-        import_fastpath(fastpath_data)
+        fastpath_visual = Visual()
+        fastpath_visual.name = 'fastpath'
+        import_fastpath(fastpath_data, fastpath_visual, level)
+        convert_indices_to_triangles(fastpath_visual)
+        visual.fastpath = fastpath_visual
     del fastpath_data
     return bpy_mesh, geometry_key
 
@@ -247,6 +348,8 @@ def import_normal_visual(chunks, visual, level):
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
+        if visual.fastpath:
+            create_fastpath_visual(visual.fastpath, level, geometry_key)
         assign_material(bpy_object, visual.shader_id, level.materials)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
@@ -344,6 +447,8 @@ def import_progressive_visual(chunks, visual, level):
     if not bpy_mesh:
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
         assign_material(bpy_object, visual.shader_id, level.materials)
+        if visual.fastpath:
+            create_fastpath_visual(visual.fastpath, level, geometry_key)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
 

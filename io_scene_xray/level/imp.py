@@ -16,7 +16,11 @@ class Level(object):
         self.vertex_buffers = None
         self.indices_buffers = None
         self.swis = None
+        self.fastpath_vertex_buffers = None
+        self.fastpath_indices_buffers = None
+        self.fastpath_swis = None
         self.loaded_geometry = {}
+        self.loaded_fastpath_geometry = {}
         self.hierrarhy_visuals = []
         self.visuals = []
         self.collections = {}
@@ -297,6 +301,20 @@ def get_version(chunks):
     return xrlc_version
 
 
+def import_geomx(level, context):
+    if level.xrlc_version == fmt.VERSION_14:
+        geomx_chunks = {}
+        geomx_chunked_reader = level_utils.get_level_reader(
+            context.file_path + os.extsep + 'geomx'
+        )
+        chunks = get_chunks(geomx_chunked_reader)
+        del geomx_chunked_reader
+        level.xrlc_version_geom = get_version(chunks)
+        geomx_chunks.update(chunks)
+        del chunks
+        return geomx_chunks
+
+
 def import_geom(level, chunks, context):
     if level.xrlc_version == fmt.VERSION_14:
         geom_chunked_reader = level_utils.get_level_reader(
@@ -309,11 +327,12 @@ def import_geom(level, chunks, context):
         del geom_chunks
 
 
-def import_level(level, context, chunks):
+def import_level(level, context, chunks, geomx_chunks):
     shaders_chunk_data = chunks.pop(fmt.Chunks.SHADERS)
     level.materials = shaders.import_shaders(context, shaders_chunk_data)
     del shaders_chunk_data
 
+    # geometry
     vb_chunk_data = chunks.pop(fmt.Chunks.VB)
     level.vertex_buffers = vb.import_vertex_buffers(vb_chunk_data)
     del vb_chunk_data
@@ -325,6 +344,19 @@ def import_level(level, context, chunks):
     swis_chunk_data = chunks.pop(fmt.Chunks.SWIS)
     level.swis = swi.import_slide_window_items(swis_chunk_data)
     del swis_chunk_data
+
+    # fastpath geometry
+    fastpath_vb_chunk_data = geomx_chunks.pop(fmt.Chunks.VB)
+    level.fastpath_vertex_buffers = vb.import_vertex_buffers(fastpath_vb_chunk_data)
+    del fastpath_vb_chunk_data
+
+    fastpath_ib_chunk_data = geomx_chunks.pop(fmt.Chunks.IB)
+    level.fastpath_indices_buffers = ib.import_indices_buffers(fastpath_ib_chunk_data)
+    del fastpath_ib_chunk_data
+
+    fastpath_swis_chunk_data = geomx_chunks.pop(fmt.Chunks.SWIS)
+    level.fastpath_swis = swi.import_slide_window_items(fastpath_swis_chunk_data)
+    del fastpath_swis_chunk_data
 
     level_collection = create.create_level_collections(level)
     level_object = create.create_level_objects(level, level_collection)
@@ -368,7 +400,8 @@ def import_main(context, chunked_reader, level):
     del chunked_reader
     level.xrlc_version = get_version(chunks)
     import_geom(level, chunks, context)
-    import_level(level, context, chunks)
+    geomx_chunks = import_geomx(level, context)
+    import_level(level, context, chunks, geomx_chunks)
 
 
 def import_file(context, operator):
