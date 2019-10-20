@@ -165,20 +165,23 @@ def import_glows(data, materials, level_collection):
 
 
 def import_light_dynamic(packed_reader, light_object):
-    controller_id = packed_reader.getf('I')[0] # ???
-    light_type = packed_reader.getf('I')[0] # ???
-    diffuse = packed_reader.getf('4f')
-    specular = packed_reader.getf('4f')
-    ambient = packed_reader.getf('4f')
+    data = light_object.xray.level
+    data.object_type = 'LIGHT_DYNAMIC'
+    light_object.xray.is_level = True
+    data.controller_id = packed_reader.getf('I')[0] # ???
+    data.light_type = packed_reader.getf('I')[0] # ???
+    data.diffuse = packed_reader.getf('4f')
+    data.specular = packed_reader.getf('4f')
+    data.ambient = packed_reader.getf('4f')
     position = packed_reader.getf('3f')
     direction = packed_reader.getf('3f')
-    range_ = packed_reader.getf('f')[0]
-    falloff = packed_reader.getf('f')[0]
-    attenuation_0 = packed_reader.getf('f')[0]
-    attenuation_1 = packed_reader.getf('f')[0]
-    attenuation_2 = packed_reader.getf('f')[0]
-    theta = packed_reader.getf('f')[0]
-    phi = packed_reader.getf('f')[0]
+    data.range_ = packed_reader.getf('f')[0]
+    data.falloff = packed_reader.getf('f')[0]
+    data.attenuation_0 = packed_reader.getf('f')[0]
+    data.attenuation_1 = packed_reader.getf('f')[0]
+    data.attenuation_2 = packed_reader.getf('f')[0]
+    data.theta = packed_reader.getf('f')[0]
+    data.phi = packed_reader.getf('f')[0]
 
     light_object.location = position[0], position[2], position[1]
     light_object.rotation_euler = direction[0], direction[2], direction[1]

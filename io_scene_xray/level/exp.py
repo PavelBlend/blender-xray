@@ -267,13 +267,6 @@ def write_visual_bounding_box(packed_writer, bpy_obj, bbox):
     packed_writer.putf('<3f', bbox_max[0], bbox_max[2], bbox_max[1])    # max
 
 
-def get_general_bbox(bbox_1, bbox_2, funct):
-    bbox_x = funct(bbox_1[0], bbox_2[0])
-    bbox_y = funct(bbox_1[1], bbox_2[1])
-    bbox_z = funct(bbox_1[2], bbox_2[2])
-    return mathutils.Vector((bbox_x, bbox_y, bbox_z))
-
-
 def write_visual_header(level, bpy_obj, visual=None, visual_type=0, shader_id=0):
     packed_writer = xray_io.PackedWriter()
     packed_writer.putf('<B', ogf_fmt.FORMAT_VERSION_4)    # format version
@@ -543,20 +536,6 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     return packed_writer, visual
 
 
-def write_normal_visual(bpy_obj, vb, ibs, level):
-    gcontainer_writer, visual = write_gcontainer(
-        bpy_obj, vb, ibs, level
-    )
-    return gcontainer_writer, visual
-
-
-def write_model(bpy_obj, vbs, ibs, level):
-    gcontainer_writer, visual = write_normal_visual(
-        bpy_obj, vbs, ibs, level
-    )
-    return gcontainer_writer, visual
-
-
 def write_ogf_color(packed_writer, bpy_obj, mode='SCALE'):
     if mode == 'SCALE':
         rgb = bpy_obj.xray.level.color_scale_rgb
@@ -625,7 +604,7 @@ def write_visual(
         return chunked_writer
     else:
         chunked_writer = xray_io.ChunkedWriter()
-        gcontainer_writer, visual = write_model(
+        gcontainer_writer, visual = write_gcontainer(
             bpy_obj, vbs, ibs, level
         )
         if bpy_obj.xray.level.visual_type in ('TREE_ST', 'TREE_PM'):
@@ -847,24 +826,33 @@ def write_glows(level_object, level):
     return packed_writer
 
 
-def write_light():
-    # TODO: export lights
+def write_light(level_object):
     packed_writer = xray_io.PackedWriter()
-    packed_writer.putf('I', 1)
-    packed_writer.putf('I', 3)
-    packed_writer.putf('4f', 1, 1, 1, 1)
-    packed_writer.putf('4f', 1, 1, 1, 1)
-    packed_writer.putf('4f', 1, 1, 1, 1)
-    packed_writer.putf('3f', 1, 1, 1)
-    packed_writer.putf('3f', 1, 1, 1)
-    packed_writer.putf('f', 1)
-    packed_writer.putf('f', 1)
-    packed_writer.putf('f', 1)
-    packed_writer.putf('f', 1)
-    packed_writer.putf('f', 1)
-    packed_writer.putf('f', 1)
-    packed_writer.putf('f', 1)
-    return packed_writer
+    for child_obj in level_object.children:
+        if child_obj.name.startswith('light dynamic'):
+            for light_obj in child_obj.children:
+                data = light_obj.xray.level
+                packed_writer.putf('I', data.controller_id)
+                packed_writer.putf('I', data.light_type)
+                packed_writer.putf('4f', *data.diffuse)
+                packed_writer.putf('4f', *data.specular)
+                packed_writer.putf('4f', *data.ambient)
+                packed_writer.putf(
+                    '3f',
+                    light_obj.location[0],
+                    light_obj.location[2],
+                    light_obj.location[1]
+                )
+                euler = light_obj.matrix_world.to_euler('ZXY')
+                packed_writer.putf('3f', -euler[0], -euler[2], -euler[1])
+                packed_writer.putf('f', data.range_)
+                packed_writer.putf('f', data.falloff)
+                packed_writer.putf('f', data.attenuation_0)
+                packed_writer.putf('f', data.attenuation_1)
+                packed_writer.putf('f', data.attenuation_2)
+                packed_writer.putf('f', data.theta)
+                packed_writer.putf('f', data.phi)
+            return packed_writer
 
 
 def append_portal(sectors_map, sector_index, portal_index):
@@ -935,7 +923,7 @@ def write_level(chunked_writer, level_object):
     del portals_writer
 
     # light dynamic
-    light_writer = write_light()
+    light_writer = write_light(level_object)
     chunked_writer.put(fmt.Chunks.LIGHT_DYNAMIC, light_writer)
     del light_writer
 

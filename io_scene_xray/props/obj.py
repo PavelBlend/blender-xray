@@ -89,7 +89,8 @@ def update_motion_collection_index(self, context):
 
 object_type_items = (
     ('VISUAL', 'Visual', ''),
-    ('PORTAL', 'Portal', '')
+    ('PORTAL', 'Portal', ''),
+    ('LIGHT_DYNAMIC', 'Light Dynamic', '')
 )
 visual_type_items = (
     ('NORMAL', 'Normal', ''),
@@ -114,7 +115,26 @@ xray_object_level_properties = {
     'color_bias_sun': bpy.props.FloatVectorProperty(name='Sun', min=0.0, max=1.0, subtype='COLOR'),
     # Portal Properties
     'sector_front': bpy.props.StringProperty(name='Sector Front'),
-    'sector_back': bpy.props.StringProperty(name='Sector Back')
+    'sector_back': bpy.props.StringProperty(name='Sector Back'),
+    # Light Dynamic Properties
+    'controller_id': bpy.props.IntProperty(name='Controller ID'),
+    'light_type': bpy.props.IntProperty(name='Light Type'),
+    'diffuse': bpy.props.FloatVectorProperty(
+        name='Diffuse', min=0, max=1, subtype='COLOR', size=4
+    ),
+    'specular': bpy.props.FloatVectorProperty(
+        name='Specular', min=0, max=1, subtype='COLOR', size=4
+    ),
+    'ambient': bpy.props.FloatVectorProperty(
+        name='Ambient', min=0, max=1, subtype='COLOR', size=4
+    ),
+    'range_': bpy.props.FloatProperty(name='Range'),
+    'falloff': bpy.props.FloatProperty(name='Falloff'),
+    'attenuation_0': bpy.props.FloatProperty(name='Attenuation 0'),
+    'attenuation_1': bpy.props.FloatProperty(name='Attenuation 1'),
+    'attenuation_2': bpy.props.FloatProperty(name='Attenuation 2'),
+    'theta': bpy.props.FloatProperty(name='Theta'),
+    'phi': bpy.props.FloatProperty(name='Phi')
 }
 
 

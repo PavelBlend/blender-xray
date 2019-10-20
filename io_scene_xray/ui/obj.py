@@ -253,3 +253,17 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
 
                     col = color_bias_box.row()
                     col.prop(data.level, 'color_bias_sun')
+
+            elif object_type == 'LIGHT_DYNAMIC':
+                ogf_box.prop(data.level, 'controller_id')
+                ogf_box.prop(data.level, 'light_type')
+                ogf_box.prop(data.level, 'diffuse')
+                ogf_box.prop(data.level, 'specular')
+                ogf_box.prop(data.level, 'ambient')
+                ogf_box.prop(data.level, 'range_')
+                ogf_box.prop(data.level, 'falloff')
+                ogf_box.prop(data.level, 'attenuation_0')
+                ogf_box.prop(data.level, 'attenuation_1')
+                ogf_box.prop(data.level, 'attenuation_2')
+                ogf_box.prop(data.level, 'theta')
+                ogf_box.prop(data.level, 'phi')
