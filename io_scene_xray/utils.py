@@ -283,11 +283,11 @@ def parse_gamemtl(data):
                 for (cccid, ccdata) in ChunkedReader(cdata):
                     if cccid == 0x1000:
                         reader = PackedReader(ccdata)
-                        reader.skip(4)
+                        material_id = reader.getf('<I')[0]
                         name = reader.gets()
                     if cccid == 0x1005:
                         desc = PackedReader(ccdata).gets()
-                yield (name, desc)
+                yield (name, desc, material_id)
 
 
 def parse_shaders_xrlc(data):

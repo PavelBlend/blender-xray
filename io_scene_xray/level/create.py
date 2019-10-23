@@ -7,6 +7,7 @@ from . import utils
 
 LEVEL_COLLECTION_NAME = 'Level'
 LEVEL_VISUALS_COLLECTION_NAME = 'Visuals'
+LEVEL_CFORM_COLLECTION_NAME = 'CForm'
 
 # visuals collections
 LEVEL_VISUALS_NORMAL_COLLECTION_NAME = 'Normal'
@@ -78,6 +79,10 @@ def create_level_collections(level):
         LEVEL_VISUALS_COLLECTION_NAME, level_collection
     )
     level.collections[LEVEL_VISUALS_COLLECTION_NAME] = visuals_collection
+    cform_collection = create_collection(
+        LEVEL_CFORM_COLLECTION_NAME, level_collection
+    )
+    level.collections[LEVEL_CFORM_COLLECTION_NAME] = cform_collection
 
     for collection_name in LEVEL_VISUALS_COLLECTIONS_NAMES:
         collection = create_collection(collection_name, visuals_collection)

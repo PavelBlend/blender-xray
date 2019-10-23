@@ -140,6 +140,7 @@ def write_level_geom_vb(vbs):
                 packed_writer.putf(
                     '2h', vb.uv[vertex_index][0], vb.uv[vertex_index][1]
                 )
+                # TODO: export shader data
                 # tree shader data (wind coefficient and unused 2 bytes)
                 packed_writer.putf('2H', 0, 0)
 
@@ -860,10 +861,11 @@ def find_hierrarhy(visual_obj, visuals_hierrarhy, visual_index, visuals):
         visuals_hierrarhy[visual_obj.name].append(child_obj)
 
     for child_child_obj in children_objs:
-        if child_child_obj.xray.level.visual_type != 'FASTPATH':
-            visuals_hierrarhy, visual_index = find_hierrarhy(
-                child_child_obj, visuals_hierrarhy, visual_index, visuals
-            )
+        if child_child_obj.xray.level.object_type == 'VISUAL':
+            if child_child_obj.xray.level.visual_type != 'FASTPATH':
+                visuals_hierrarhy, visual_index = find_hierrarhy(
+                    child_child_obj, visuals_hierrarhy, visual_index, visuals
+                )
     return visuals_hierrarhy, visual_index
 
 
@@ -883,10 +885,11 @@ def write_visuals(level_object, sectors_map, level):
         if child_obj.name.startswith('sectors'):
             for sector_obj in child_obj.children:
                 for visual_obj in sector_obj.children:
-                    visuals_hierrarhy, visual_index = find_hierrarhy(
-                        visual_obj, visuals_hierrarhy, visual_index, visuals
-                    )
-                    visual_index += 1
+                    if visual_obj.xray.level.object_type == 'VISUAL':
+                        visuals_hierrarhy, visual_index = find_hierrarhy(
+                            visual_obj, visuals_hierrarhy, visual_index, visuals
+                        )
+                        visual_index += 1
     visuals.reverse()
     visuals_ids = {}
     for visual_index, visual_obj in enumerate(visuals):
@@ -897,12 +900,13 @@ def write_visuals(level_object, sectors_map, level):
             for sector_obj in child_obj.children:
                 level.sectors_indices[sector_obj.name] = sector_id
                 for root_obj in sector_obj.children:
-                    # write sector
-                    root_index = visuals_ids[root_obj]
-                    sector_chunked_writer = write_sector(
-                        root_index, sectors_map, sector_obj.name
-                    )
-                    sectors_chunked_writer.put(sector_id, sector_chunked_writer)
+                    if root_obj.xray.level.object_type == 'VISUAL':
+                        # write sector
+                        root_index = visuals_ids[root_obj]
+                        sector_chunked_writer = write_sector(
+                            root_index, sectors_map, sector_obj.name
+                        )
+                        sectors_chunked_writer.put(sector_id, sector_chunked_writer)
                 sector_id += 1
 
     visual_index = write_visual_children(
@@ -1069,7 +1073,7 @@ def write_level(chunked_writer, level_object, file_path):
     chunked_writer.put(fmt.Chunks.SECTORS, sectors_chunked_writer)
     del sectors_chunked_writer
 
-    # TODO: export cform and fastpath geometry
+    # TODO: export cform
 
     return vbs, ibs, fp_vbs, fp_ibs
 

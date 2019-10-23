@@ -2,7 +2,7 @@ import os, time
 
 import bpy
 
-from . import utils as level_utils, create, fmt, shaders, visuals, vb, ib, swi
+from . import utils as level_utils, create, fmt, shaders, visuals, vb, ib, swi, cform
 from .. import xray_io, utils
 
 
@@ -402,6 +402,7 @@ def import_main(context, chunked_reader, level):
     import_geom(level, chunks, context)
     geomx_chunks = import_geomx(level, context)
     import_level(level, context, chunks, geomx_chunks)
+    cform.import_main(level)
 
 
 def import_file(context, operator):
