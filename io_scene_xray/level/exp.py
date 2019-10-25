@@ -140,9 +140,9 @@ def write_level_geom_vb(vbs):
                 packed_writer.putf(
                     '2h', vb.uv[vertex_index][0], vb.uv[vertex_index][1]
                 )
-                # TODO: export shader data
                 # tree shader data (wind coefficient and unused 2 bytes)
-                packed_writer.putf('2H', 0, 0)
+                frac = vb.shader_data[vertex_index]
+                packed_writer.putf('2H', frac, 0)
 
         elif vb.vertex_format == 'COLOR':
             for vertex_index, vertex_pos in enumerate(vb.position):
@@ -304,6 +304,44 @@ def write_visual_header(level, bpy_obj, visual=None, visual_type=0, shader_id=0)
     return packed_writer
 
 
+def get_bbox_center(bbox):
+    bbox_min = bbox[0]
+    bbox_max = bbox[6]
+    bbox_center = [
+        bbox_max[0] - (bbox_max[0] - bbox_min[0]) / 2,
+        bbox_max[1] - (bbox_max[1] - bbox_min[1]) / 2,
+        bbox_max[2] - (bbox_max[2] - bbox_min[2]) / 2
+    ]
+    return bbox_center
+
+
+def find_distance(vertex_1, vertex_2):
+    distance = (
+        (vertex_2[0] - vertex_1[0]) ** 2 + \
+        (vertex_2[1] - vertex_1[1]) ** 2 + \
+        (vertex_2[2] - vertex_1[2]) ** 2
+    ) ** (1 / 2)
+    return distance
+
+
+MAX_TILE = 16
+QUANT = 32768 / MAX_TILE
+
+
+def clamp(value, min_value, max_value):
+    if value > max_value:
+        value = max_value
+    elif value < min_value:
+        value = min_value
+    return value
+
+
+def quant_value(float_value):
+    t = int(float_value * QUANT)
+    t = clamp(t, -32768, 32767)
+    return t
+
+
 def get_tex_coord_correct(tex_coord_f, tex_coord_h, uv_coeff):
     if tex_coord_f > 0:
         tex_coord_diff = tex_coord_f - (tex_coord_h / uv_coeff)
@@ -446,6 +484,10 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
         uv_coeff = fmt.UV_COEFFICIENT
     else:
         uv_coeff = fmt.UV_COEFFICIENT_2
+    # tree shader params
+    frac_low = get_bbox_center(bpy_obj.bound_box)
+    frac_low[2] = bpy_obj.bound_box[0][2]
+    frac_y_size = bpy_obj.bound_box[6][2] - bpy_obj.bound_box[0][2]
     for face in bm.faces:
         for loop in face.loops:
             vert = loop.vert
@@ -522,8 +564,14 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                         int(round(tex_uv_lmap[0] * fmt.LIGHT_MAP_UV_COEFFICIENT, 0)),
                         int(round((1 - tex_uv_lmap[1]) * fmt.LIGHT_MAP_UV_COEFFICIENT, 0))
                     ))
-                if not (uv_layer_lmap and vertex_color_sun and vertex_color_light):
-                    vb.shader_data.append(0)    # wind coefficient
+                # tree shader data (wind coefficient)
+                if not (uv_layer_lmap or vertex_color_sun or vertex_color_light):
+                    f1 = (vert.co[2] - frac_low[2]) / frac_y_size
+                    f2 = find_distance(vert.co, frac_low) / frac_y_size
+                    frac = quant_value((f1 + f2) / 2)
+                    vb.shader_data.append(frac)    # wind coefficient
+                else:
+                    vb.shader_data.append(0)
 
     vertex_buffer_index = vbs.index(vb)
     packed_writer.putf('<I', vertex_buffer_index)    # vb_index
