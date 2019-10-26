@@ -402,7 +402,7 @@ def import_main(context, chunked_reader, level):
     import_geom(level, chunks, context)
     geomx_chunks = import_geomx(level, context)
     import_level(level, context, chunks, geomx_chunks)
-    cform.import_main(level)
+    cform.import_main(context, level)
 
 
 def import_file(context, operator):

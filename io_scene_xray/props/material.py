@@ -10,7 +10,9 @@ xray_material_properties = {
     'eshader': bpy.props.StringProperty(default='models\\model'),
     'cshader': bpy.props.StringProperty(default='default'),
     'gamemtl': bpy.props.StringProperty(default='default'),
-    'version': bpy.props.IntProperty()
+    'version': bpy.props.IntProperty(),
+    'suppress_shadows': bpy.props.BoolProperty(),
+    'suppress_wm': bpy.props.BoolProperty()
 }
 
 

@@ -30,6 +30,7 @@ class Level(object):
         self.visuals_center = {}
         self.visuals_radius = {}
         self.bbox_cache = {}
+        self.cform_objects = {}
 
 
 def write_level_geom_swis():
@@ -932,10 +933,10 @@ def write_visuals(level_object, sectors_map, level):
     for child_obj in level_object.children:
         if child_obj.name.startswith('sectors'):
             for sector_obj in child_obj.children:
-                for visual_obj in sector_obj.children:
-                    if visual_obj.xray.level.object_type == 'VISUAL':
+                for obj in sector_obj.children:
+                    if obj.xray.level.object_type == 'VISUAL':
                         visuals_hierrarhy, visual_index = find_hierrarhy(
-                            visual_obj, visuals_hierrarhy, visual_index, visuals
+                            obj, visuals_hierrarhy, visual_index, visuals
                         )
                         visual_index += 1
     visuals.reverse()
@@ -955,6 +956,8 @@ def write_visuals(level_object, sectors_map, level):
                             root_index, sectors_map, sector_obj.name
                         )
                         sectors_chunked_writer.put(sector_id, sector_chunked_writer)
+                    elif root_obj.xray.level.object_type == 'CFORM':
+                        level.cform_objects[sector_id] = root_obj
                 sector_id += 1
 
     visual_index = write_visual_children(
@@ -1121,9 +1124,88 @@ def write_level(chunked_writer, level_object, file_path):
     chunked_writer.put(fmt.Chunks.SECTORS, sectors_chunked_writer)
     del sectors_chunked_writer
 
-    # TODO: export cform
+    return vbs, ibs, fp_vbs, fp_ibs, level
 
-    return vbs, ibs, fp_vbs, fp_ibs
+
+def write_level_cform(packed_writer, level):
+    sectors_count = len(level.cform_objects)
+    cform_header_packed_writer = xray_io.PackedWriter()
+    cform_header_packed_writer.putf('<I', 4)    # version
+    vertices_packed_writer = xray_io.PackedWriter()
+    tris_packed_writer = xray_io.PackedWriter()
+    vertex_index_offset = 0
+    faces_count = 0
+    face_vert_indices = (0, 2, 1)
+
+    materials = set()
+    bbox_min = None
+    bbox_max = None
+    for _, cform_object in level.cform_objects.items():
+        if not bbox_min:
+            bbox_min = cform_object.bound_box[0]
+        else:
+            bbox_min = min(bbox_min, cform_object.bound_box[0])
+        if not bbox_max:
+            bbox_max = cform_object.bound_box[6]
+        else:
+            bbox_max = max(bbox_max, cform_object.bound_box[6])
+        for material in cform_object.data.materials:
+            materials.add(material)
+
+    prefs = plugin_prefs.get_preferences()
+    gamemtl_file_path = prefs.gamemtl_file_auto
+    if os.path.exists(gamemtl_file_path):
+        with open(gamemtl_file_path, 'rb') as gamemtl_file:
+            gamemtl_data = gamemtl_file.read()
+    else:
+        raise utils.AppError('GameMtl File not found: {}'.format(gamemtl_file))
+
+    game_mtls = {}
+    for game_mtl_name, _, game_mtl_id in utils.parse_gamemtl(gamemtl_data):
+        game_mtls[game_mtl_name] = game_mtl_id
+
+    game_materials = {}
+    for material in materials:
+        gamemtl_id = game_mtls[material.xray.gamemtl]
+        game_materials[material.name] = gamemtl_id
+
+    for sector_index in range(sectors_count):
+        cform_object = level.cform_objects[sector_index]
+        bm = bmesh.new()
+        bm.from_mesh(cform_object.data)
+        bmesh.ops.triangulate(bm, faces=bm.faces)
+        vertices_count = 0
+        for vert in bm.verts:
+            vertices_packed_writer.putf(
+                '<3f', vert.co.x, vert.co.z, vert.co.y
+            )
+            vertices_count += 1
+        for face in bm.faces:
+            for vert_index in face_vert_indices:
+                vert = face.verts[vert_index]
+                tris_packed_writer.putf('<I', vert.index + vertex_index_offset)
+            material = cform_object.data.materials[face.material_index]
+            material_id = game_materials[material.name]
+            suppress_shadows = (int(material.xray.suppress_shadows) << 14) & 0x4000
+            suppress_wm = (int(material.xray.suppress_wm << 15)) & 0x8000
+            cform_material = material_id | suppress_shadows | suppress_wm
+            tris_packed_writer.putf('<2H', cform_material, sector_index)
+            faces_count += 1
+        vertex_index_offset += vertices_count
+
+    cform_header_packed_writer.putf('<I', vertex_index_offset)    # vertices count
+    cform_header_packed_writer.putf('<I', faces_count)
+    cform_header_packed_writer.putf('<3f', bbox_min[0], bbox_min[2], bbox_min[1])    # bbox min
+    cform_header_packed_writer.putf('<3f', bbox_max[0], bbox_max[2], bbox_max[1])    # bbox max
+
+    packed_writer.putp(cform_header_packed_writer)
+    del cform_header_packed_writer
+
+    packed_writer.putp(vertices_packed_writer)
+    del vertices_packed_writer
+
+    packed_writer.putp(tris_packed_writer)
+    del tris_packed_writer
 
 
 def get_writer():
@@ -1135,7 +1217,7 @@ def export_file(level_object, file_path):
     start_time = time.time()
 
     level_chunked_writer = get_writer()
-    vbs, ibs, fp_vbs, fp_ibs = write_level(level_chunked_writer, level_object, file_path)
+    vbs, ibs, fp_vbs, fp_ibs, level = write_level(level_chunked_writer, level_object, file_path)
 
     with open(file_path, 'wb') as file:
         file.write(level_chunked_writer.data)
@@ -1156,5 +1238,12 @@ def export_file(level_object, file_path):
     with open(file_path + os.extsep + 'geomx', 'wb') as file:
         file.write(level_geomx_chunked_writer.data)
     del level_geomx_chunked_writer
+
+    # cform
+    level_cform_packed_writer = xray_io.PackedWriter()
+    write_level_cform(level_cform_packed_writer, level)
+    with open(file_path + os.extsep + 'cform', 'wb') as file:
+        file.write(level_cform_packed_writer.data)
+    del level_cform_packed_writer
 
     print('total time: {}s'.format(time.time() - start_time))

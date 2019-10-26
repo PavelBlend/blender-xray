@@ -10,10 +10,12 @@ def get_cform_material(gamemtl_name, mat_name, suppress_shadows, suppress_wm):
     for bpy_mat in bpy.data.materials:
         if bpy_mat.name.startswith(mat_name):
             if bpy_mat.xray.gamemtl == gamemtl_name:
-                return bpy_mat
+                if bpy_mat.xray.suppress_shadows == suppress_shadows:
+                    if bpy_mat.xray.suppress_wm == suppress_wm:
+                        return bpy_mat
 
 
-def import_cform(data, level):
+def import_cform(context, data, level):
     packed_reader = xray_io.PackedReader(data)
     version = packed_reader.getf('<I')[0]
     if version not in fmt.CFORM_SUPPORT_VERSIONS:
@@ -45,8 +47,8 @@ def import_cform(data, level):
         vert_1, vert_2, vert_3 = packed_reader.getf('<3I')
         material, sector_index = packed_reader.getf('<2H')
         material_id = material & 0x3fff    # 14 bit
-        suppress_shadows = material & 0x4000 >> 14    # 15 bit
-        suppress_wm = material & 0x8000 >> 15    # 16 bit
+        suppress_shadows = bool((material & 0x4000) >> 14)    # 15 bit
+        suppress_wm = bool((material & 0x8000) >> 15)    # 16 bit
         tris.append((vert_1, vert_2, vert_3, material_id, suppress_shadows, suppress_wm))
         unique_materials.add((material_id, suppress_shadows, suppress_wm))
         if sectors.get(sector_index):
@@ -64,11 +66,16 @@ def import_cform(data, level):
     bpy_materials = {}
     for material_id, suppress_shadows, suppress_wm in unique_materials:
         game_mtl = game_mtl_names[material_id]
-        material_name = '{0}_{1}_{2}'.format(game_mtl, suppress_shadows, suppress_wm)
+        material_name = '{0}_{1}_{2}'.format(game_mtl, int(suppress_shadows), int(suppress_wm))
         material = get_cform_material(game_mtl, material_name, suppress_shadows, suppress_wm)
         if not material:
             material = bpy.data.materials.new(material_name)
+            material.xray.version = context.version
+            material.xray.eshader = 'default'
+            material.xray.cshader = 'default'
             material.xray.gamemtl = game_mtl
+            material.xray.suppress_shadows = suppress_shadows
+            material.xray.suppress_wm = suppress_wm
         bpy_materials[material_id] = material
     for sector_index, triangles in sectors.items():
         sector_verts = sectors_verts[sector_index]
@@ -114,8 +121,8 @@ def import_cform(data, level):
         level.collections[create.LEVEL_CFORM_COLLECTION_NAME].objects.link(bpy_obj)
 
 
-def import_main(level):
+def import_main(context, level):
     cform_path = os.path.join(level.path, 'level.cform')
     with open(cform_path, 'rb') as file:
         data = file.read()
-    import_cform(data, level)
+    import_cform(context, data, level)

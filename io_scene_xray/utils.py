@@ -271,7 +271,7 @@ def parse_shaders(data):
         if cid == 3:
             reader = PackedReader(cdata)
             for _ in range(reader.int()):
-                yield (reader.gets(), '')
+                yield (reader.gets(), '', None)
 
 
 def parse_gamemtl(data):
@@ -298,7 +298,7 @@ def parse_shaders_xrlc(data):
     for _ in range(len(data) // (128 + 16)):
         name = reader.gets()
         reader.getf('{}s'.format(127 - len(name) + 16))  # skip
-        yield (name, '')
+        yield (name, '', None)
 
 
 HELPER_OBJECT_NAME_PREFIX = '.xray-helper--'
