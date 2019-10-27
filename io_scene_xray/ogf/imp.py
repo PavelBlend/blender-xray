@@ -57,11 +57,12 @@ def create_fastpath_visual(visual, level, geometry_key):
         # import triangles
         for triangle in visual.triangles:
             try:
-                mesh.faces.new((
+                face = mesh.faces.new((
                     mesh.verts[triangle[0]],
                     mesh.verts[triangle[1]],
                     mesh.verts[triangle[2]]
                 ))
+                face.smooth = True
             except ValueError:    # face already exists
                 pass
 
@@ -95,71 +96,93 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
         mesh = bmesh.new()
 
         # import vertices
-        for vertex_coord in visual.vertices:
-            mesh.verts.new(vertex_coord)
+        remap_vertex_index = 0
+        remap_vertices = {}
+        unique_verts = {}
+        for vertex_index, vertex_coord in enumerate(visual.vertices):
+            if not (unique_verts.get(vertex_coord, None) is None):
+                current_remap_vertex_index = unique_verts[vertex_coord]
+                remap_vertices[vertex_index] = current_remap_vertex_index
+            else:
+                mesh.verts.new(vertex_coord)
+                remap_vertices[vertex_index] = remap_vertex_index
+                unique_verts[vertex_coord] = remap_vertex_index
+                current_remap_vertex_index = remap_vertex_index
+                remap_vertex_index += 1
 
         mesh.verts.ensure_lookup_table()
         mesh.verts.index_update()
 
         # import triangles
+        remap_loops = []
         for triangle in visual.triangles:
-            mesh.faces.new((
-                mesh.verts[triangle[0]],
-                mesh.verts[triangle[1]],
-                mesh.verts[triangle[2]]
-            ))
+            try:
+                face = mesh.faces.new((
+                    mesh.verts[remap_vertices[triangle[0]]],
+                    mesh.verts[remap_vertices[triangle[1]]],
+                    mesh.verts[remap_vertices[triangle[2]]]
+                ))
+                face.smooth = True
+                for vert_index in triangle:
+                    remap_loops.append(vert_index)
+            except ValueError:    # face already exists
+                pass
 
         mesh.faces.ensure_lookup_table()
 
         # import uvs and vertex colors
         uv_layer = mesh.loops.layers.uv.new('Texture')
         hemi_vertex_color = mesh.loops.layers.color.new('Hemi')
+        current_loop = 0
         if visual.uvs_lmap:    # light maps
             lmap_uv_layer = mesh.loops.layers.uv.new('Light Map')
             for face in mesh.faces:
                 for loop in face.loops:
-                    loop[uv_layer].uv = visual.uvs[loop.vert.index]
-                    loop[lmap_uv_layer].uv = visual.uvs_lmap[loop.vert.index]
+                    loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
+                    loop[lmap_uv_layer].uv = visual.uvs_lmap[remap_loops[current_loop]]
                     # hemi vertex color
-                    hemi = visual.hemi[loop.vert.index]
+                    hemi = visual.hemi[remap_loops[current_loop]]
                     bmesh_hemi_color = loop[hemi_vertex_color]
                     bmesh_hemi_color[0] = hemi
                     bmesh_hemi_color[1] = hemi
                     bmesh_hemi_color[2] = hemi
+                    current_loop += 1
         elif visual.light:    # vertex colors
             sun_vertex_color = mesh.loops.layers.color.new('Sun')
             light_vertex_color = mesh.loops.layers.color.new('Light')
             for face in mesh.faces:
                 for loop in face.loops:
-                    loop[uv_layer].uv = visual.uvs[loop.vert.index]
+                    loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
                     # hemi vertex color
-                    hemi = visual.hemi[loop.vert.index]
+                    hemi = visual.hemi[remap_loops[current_loop]]
                     bmesh_hemi_color = loop[hemi_vertex_color]
                     bmesh_hemi_color[0] = hemi
                     bmesh_hemi_color[1] = hemi
                     bmesh_hemi_color[2] = hemi
                     # light vertex color
-                    light = visual.light[loop.vert.index]
+                    light = visual.light[remap_loops[current_loop]]
                     bmesh_light_color = loop[light_vertex_color]
                     bmesh_light_color[0] = light[0]
                     bmesh_light_color[1] = light[1]
                     bmesh_light_color[2] = light[2]
                     # sun vertex color
-                    sun = visual.sun[loop.vert.index]
+                    sun = visual.sun[remap_loops[current_loop]]
                     bmesh_sun_color = loop[sun_vertex_color]
                     bmesh_sun_color[0] = sun
                     bmesh_sun_color[1] = sun
                     bmesh_sun_color[2] = sun
+                    current_loop += 1
         else:    # trees
             for face in mesh.faces:
                 for loop in face.loops:
-                    loop[uv_layer].uv = visual.uvs[loop.vert.index]
+                    loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
                     # hemi vertex color
-                    hemi = visual.hemi[loop.vert.index]
+                    hemi = visual.hemi[remap_loops[current_loop]]
                     bmesh_hemi_color = loop[hemi_vertex_color]
                     bmesh_hemi_color[0] = hemi
                     bmesh_hemi_color[1] = hemi
                     bmesh_hemi_color[2] = hemi
+                    current_loop += 1
 
         # normals
         mesh.normal_update()
