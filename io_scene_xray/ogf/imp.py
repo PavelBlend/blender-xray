@@ -1,3 +1,5 @@
+import math
+
 import bpy, mathutils, bmesh
 
 from .. import xray_io
@@ -91,7 +93,6 @@ def create_fastpath_visual(visual, level, geometry_key):
 
 
 def create_visual(bpy_mesh, visual, level, geometry_key):
-
     if not bpy_mesh:
         mesh = bmesh.new()
 
@@ -112,23 +113,54 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
 
         mesh.verts.ensure_lookup_table()
         mesh.verts.index_update()
+        edge_normals_1 = {}
+        edge_normals_2 = {}
 
         # import triangles
         remap_loops = []
         for triangle in visual.triangles:
             try:
+                vert_1 = remap_vertices[triangle[0]]
+                vert_2 = remap_vertices[triangle[1]]
+                vert_3 = remap_vertices[triangle[2]]
                 face = mesh.faces.new((
-                    mesh.verts[remap_vertices[triangle[0]]],
-                    mesh.verts[remap_vertices[triangle[1]]],
-                    mesh.verts[remap_vertices[triangle[2]]]
+                    mesh.verts[vert_1],
+                    mesh.verts[vert_2],
+                    mesh.verts[vert_3]
                 ))
                 face.smooth = True
                 for vert_index in triangle:
                     remap_loops.append(vert_index)
+                normal_1 = visual.normals[triangle[0]]
+                normal_2 = visual.normals[triangle[1]]
+                normal_3 = visual.normals[triangle[2]]
+                normals = {}
+                normals[vert_1] = normal_1
+                normals[vert_2] = normal_2
+                normals[vert_3] = normal_3
+                for edge in face.edges:
+                    edge_verts = (edge.verts[0].index, edge.verts[1].index)
+                    if edge_normals_1.get(edge, None) is None:
+                        edge_normals_1[edge] = []
+                        edge_normals_2[edge] = []
+                    edge_normals_1[edge].append(normals[edge_verts[0]])
+                    edge_normals_2[edge].append(normals[edge_verts[1]])
             except ValueError:    # face already exists
                 pass
 
         mesh.faces.ensure_lookup_table()
+
+        for edge, normals_1 in edge_normals_1.items():
+            normals_2 = edge_normals_2[edge]
+
+            normals_1_count = len(normals_1)
+            unique_normals_1_count = len(set(normals_1))
+
+            normals_2_count = len(normals_2)
+            unique_normals_2_count = len(set(normals_2))
+
+            if unique_normals_1_count > 1 or unique_normals_2_count > 1:
+                edge.smooth = False
 
         # import uvs and vertex colors
         uv_layer = mesh.loops.layers.uv.new('Texture')
@@ -189,6 +221,8 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
 
         # create mesh
         bpy_mesh = bpy.data.meshes.new(visual.name)
+        bpy_mesh.use_auto_smooth = True
+        bpy_mesh.auto_smooth_angle = math.pi
         mesh.to_mesh(bpy_mesh)
         del mesh
         level.loaded_geometry[geometry_key] = bpy_mesh
@@ -245,6 +279,7 @@ def import_gcontainer(data, visual, level):
     vertex_buffers = level.vertex_buffers
     indices_buffers = level.indices_buffers
     visual.vertices = vertex_buffers[vb_index].position[vb_slice]
+    visual.normals = vertex_buffers[vb_index].normal[vb_slice]
     visual.uvs = vertex_buffers[vb_index].uv[vb_slice]
     visual.uvs_lmap = vertex_buffers[vb_index].uv_lmap[vb_slice]
     visual.hemi = vertex_buffers[vb_index].color_hemi[vb_slice]
