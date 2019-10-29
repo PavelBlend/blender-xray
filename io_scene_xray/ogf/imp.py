@@ -141,10 +141,10 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
                 for edge in face.edges:
                     edge_verts = (edge.verts[0].index, edge.verts[1].index)
                     if edge_normals_1.get(edge, None) is None:
-                        edge_normals_1[edge] = []
-                        edge_normals_2[edge] = []
-                    edge_normals_1[edge].append(normals[edge_verts[0]])
-                    edge_normals_2[edge].append(normals[edge_verts[1]])
+                        edge_normals_1[edge] = set()
+                        edge_normals_2[edge] = set()
+                    edge_normals_1[edge].add(normals[edge_verts[0]])
+                    edge_normals_2[edge].add(normals[edge_verts[1]])
             except ValueError:    # face already exists
                 pass
 
@@ -152,13 +152,8 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
 
         for edge, normals_1 in edge_normals_1.items():
             normals_2 = edge_normals_2[edge]
-
-            normals_1_count = len(normals_1)
-            unique_normals_1_count = len(set(normals_1))
-
-            normals_2_count = len(normals_2)
-            unique_normals_2_count = len(set(normals_2))
-
+            unique_normals_1_count = len(normals_1)
+            unique_normals_2_count = len(normals_2)
             if unique_normals_1_count > 1 or unique_normals_2_count > 1:
                 edge.smooth = False
 
