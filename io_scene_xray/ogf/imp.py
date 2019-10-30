@@ -101,20 +101,24 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
         remap_vertices = {}
         unique_verts = {}
         for vertex_index, vertex_coord in enumerate(visual.vertices):
-            if not (unique_verts.get(vertex_coord, None) is None):
-                current_remap_vertex_index = unique_verts[vertex_coord]
-                remap_vertices[vertex_index] = current_remap_vertex_index
-            else:
+            if unique_verts.get(vertex_coord, None) is None:
                 mesh.verts.new(vertex_coord)
                 remap_vertices[vertex_index] = remap_vertex_index
                 unique_verts[vertex_coord] = remap_vertex_index
-                current_remap_vertex_index = remap_vertex_index
                 remap_vertex_index += 1
+            else:
+                current_remap_vertex_index = unique_verts[vertex_coord]
+                remap_vertices[vertex_index] = current_remap_vertex_index
 
         mesh.verts.ensure_lookup_table()
         mesh.verts.index_update()
         edge_normals_1 = {}
         edge_normals_2 = {}
+
+        max_index = 0
+        for tris in visual.triangles:
+            for vert in tris:
+                max_index = max(vert, max_index)
 
         # import triangles
         remap_loops = []

@@ -1,4 +1,4 @@
-import os, time
+import os, time, math
 
 import bpy, bmesh, mathutils
 
@@ -382,6 +382,11 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     bm = bmesh.new()
     bm.from_mesh(bpy_obj.data)
     bmesh.ops.triangulate(bm, faces=bm.faces)
+    export_mesh = bpy.data.meshes.new('temp_mesh')
+    export_mesh.use_auto_smooth = True
+    export_mesh.auto_smooth_angle = math.pi
+    bm.to_mesh(export_mesh)
+    export_mesh.calc_normals_split()
 
     uv_layer = bm.loops.layers.uv['Texture']
     uv_layer_lmap = bm.loops.layers.uv.get('Light Map', None)
@@ -447,7 +452,8 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
         for loop in face.loops:
             vert = loop.vert
             vert_co = (vert.co[0], vert.co[1], vert.co[2])
-            normal = (vert.normal[0], vert.normal[1], vert.normal[2])
+            split_normal = export_mesh.loops[loop.index].normal
+            normal = (split_normal[0], split_normal[1], split_normal[2])
             uv = loop[uv_layer].uv[0], loop[uv_layer].uv[1]
             # UV-LightMaps
             if uv_layer_lmap:
@@ -495,14 +501,31 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
             vert_co = (vert.co[0], vert.co[1], vert.co[2])
             vert_data = unique_verts[vert_co]
             uv = loop[uv_layer].uv
+            split_normal = export_mesh.loops[loop.index].normal
             if uv_layer_lmap:
                 uv_lmap = loop[uv_layer_lmap].uv
             else:
                 uv_lmap = (0.0, 0.0)
+            # Vertex Color Hemi
+            if vertex_color_hemi:
+                hemi = loop[vertex_color_hemi][0]
+            else:
+                hemi = 0
+            # Vertex Color Sun
+            if vertex_color_sun:
+                sun = loop[vertex_color_sun][0]
+            else:
+                sun = 0
+            # Vertex Color Light
+            if vertex_color_light:
+                light = loop[vertex_color_light]
+            else:
+                light = (0, 0, 0)
             for index, data in enumerate(vert_data):
                 if data[0] == (uv[0], uv[1]) and \
                         data[1] == (uv_lmap[0], uv_lmap[1]) and \
-                        data[2] == (vert.normal[0], vert.normal[1], vert.normal[2]):
+                        data[2] == (split_normal[0], split_normal[1], split_normal[2]) and \
+                        data[3] == hemi and data[4] == sun and data[5] == light:
                     tex_uv, tex_uv_lmap, normal, hemi, sun, light = data
                     vert_index = verts_indices[vert_co][index]
                     break
@@ -517,7 +540,6 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                     vert.co[2],
                     vert.co[1]
                 ))
-                # TODO: export correct normals (smoothing groups)
                 vb.normal.append((
                     int(round(((normal[0] + 1.0) / 2) * 255, 0)),
                     int(round(((normal[2] + 1.0) / 2) * 255, 0)),
@@ -597,6 +619,8 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
 
     level.vbs_offsets[vertex_buffer_index] += vertices_count
     level.ibs_offsets[-1] += indices_count
+
+    bpy.data.meshes.remove(export_mesh)
 
     return packed_writer, visual
 
@@ -1127,6 +1151,13 @@ def write_level(chunked_writer, level_object, file_path):
     return vbs, ibs, fp_vbs, fp_ibs, level
 
 
+def get_bbox(bbox_1, bbox_2, function):
+    bbox_x = function(bbox_1[0], bbox_2[0])
+    bbox_y = function(bbox_1[1], bbox_2[1])
+    bbox_z = function(bbox_1[2], bbox_2[2])
+    return (bbox_x, bbox_y, bbox_z)
+
+
 def write_level_cform(packed_writer, level):
     sectors_count = len(level.cform_objects)
     cform_header_packed_writer = xray_io.PackedWriter()
@@ -1144,11 +1175,11 @@ def write_level_cform(packed_writer, level):
         if not bbox_min:
             bbox_min = cform_object.bound_box[0]
         else:
-            bbox_min = min(bbox_min, cform_object.bound_box[0])
+            bbox_min = get_bbox(bbox_min, cform_object.bound_box[0], min)
         if not bbox_max:
             bbox_max = cform_object.bound_box[6]
         else:
-            bbox_max = max(bbox_max, cform_object.bound_box[6])
+            bbox_max = get_bbox(bbox_max, cform_object.bound_box[6], max)
         for material in cform_object.data.materials:
             materials.add(material)
 
