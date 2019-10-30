@@ -6,6 +6,8 @@ class VertexBuffer(object):
     def __init__(self):
         self.position = []
         self.normal = []
+        self.tangent = []
+        self.binormal = []
         self.color_hemi = []
         self.color_light = []
         self.color_sun = []

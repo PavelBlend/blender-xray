@@ -106,14 +106,27 @@ def write_level_geom_vb(vbs):
                 packed_writer.putf(
                     '4B',
                     vb.normal[vertex_index][0],
-                    vb.normal[vertex_index][2],
                     vb.normal[vertex_index][1],
+                    vb.normal[vertex_index][2],
                     vb.color_hemi[vertex_index]
                 )    # normal, hemi
                 uv_fix = vb.uv_fix[vertex_index]
-                # TODO: export tangent and binormal
-                packed_writer.putf('4B', 127, 127, 127, uv_fix[0])    # tangent
-                packed_writer.putf('4B', 127, 127, 127, uv_fix[1])    # binormal
+                # tangent
+                packed_writer.putf(
+                    '4B',
+                    vb.tangent[vertex_index][0],
+                    vb.tangent[vertex_index][1],
+                    vb.tangent[vertex_index][2],
+                    uv_fix[0]
+                )
+                # binormal
+                packed_writer.putf(
+                    '4B',
+                    vb.binormal[vertex_index][0],
+                    vb.binormal[vertex_index][1],
+                    vb.binormal[vertex_index][2],
+                    uv_fix[1]
+                )
                 # texture coordinate
                 packed_writer.putf(
                     '2h', vb.uv[vertex_index][0], vb.uv[vertex_index][1]
@@ -129,14 +142,27 @@ def write_level_geom_vb(vbs):
                 packed_writer.putf(
                     '4B',
                     vb.normal[vertex_index][0],
-                    vb.normal[vertex_index][2],
                     vb.normal[vertex_index][1],
+                    vb.normal[vertex_index][2],
                     vb.color_hemi[vertex_index]
                 )    # normal, hemi
                 uv_fix = vb.uv_fix[vertex_index]
-                # TODO: export tangent and binormal
-                packed_writer.putf('4B', 127, 127, 127, uv_fix[0])    # tangent
-                packed_writer.putf('4B', 127, 127, 127, uv_fix[1])    # binormal
+                # tangent
+                packed_writer.putf(
+                    '4B',
+                    vb.tangent[vertex_index][0],
+                    vb.tangent[vertex_index][1],
+                    vb.tangent[vertex_index][2],
+                    uv_fix[0]
+                )
+                # binormal
+                packed_writer.putf(
+                    '4B',
+                    vb.binormal[vertex_index][0],
+                    vb.binormal[vertex_index][1],
+                    vb.binormal[vertex_index][2],
+                    uv_fix[1]
+                )
                 # texture coordinate
                 packed_writer.putf(
                     '2h', vb.uv[vertex_index][0], vb.uv[vertex_index][1]
@@ -151,14 +177,27 @@ def write_level_geom_vb(vbs):
                 packed_writer.putf(
                     '4B',
                     vb.normal[vertex_index][0],
-                    vb.normal[vertex_index][2],
                     vb.normal[vertex_index][1],
+                    vb.normal[vertex_index][2],
                     vb.color_hemi[vertex_index]
                 )    # normal, hemi
                 uv_fix = vb.uv_fix[vertex_index]
-                # TODO: export tangent and binormal
-                packed_writer.putf('4B', 127, 127, 127, uv_fix[0])    # tangent
-                packed_writer.putf('4B', 127, 127, 127, uv_fix[1])    # binormal
+                # tangent
+                packed_writer.putf(
+                    '4B',
+                    vb.tangent[vertex_index][0],
+                    vb.tangent[vertex_index][1],
+                    vb.tangent[vertex_index][2],
+                    uv_fix[0]
+                )
+                # binormal
+                packed_writer.putf(
+                    '4B',
+                    vb.binormal[vertex_index][0],
+                    vb.binormal[vertex_index][1],
+                    vb.binormal[vertex_index][2],
+                    uv_fix[1]
+                )
                 # vertex color
                 packed_writer.putf(
                     '4B',
@@ -541,9 +580,22 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                     vert.co[1]
                 ))
                 vb.normal.append((
-                    int(round(((normal[0] + 1.0) / 2) * 255, 0)),
+                    int(round(((normal[1] + 1.0) / 2) * 255, 0)),
                     int(round(((normal[2] + 1.0) / 2) * 255, 0)),
-                    int(round(((normal[1] + 1.0) / 2) * 255, 0))
+                    int(round(((normal[0] + 1.0) / 2) * 255, 0))
+                ))
+                tangent = export_mesh.loops[loop.index].tangent
+                vb.tangent.append((
+                    int(round(((tangent[1] + 1.0) / 2) * 255, 0)),
+                    int(round(((tangent[2] + 1.0) / 2) * 255, 0)),
+                    int(round(((tangent[0] + 1.0) / 2) * 255, 0))
+                ))
+                normal = mathutils.Vector(normal)
+                binormal = normal.cross(tangent).normalized()
+                vb.binormal.append((
+                    int(round(((binormal[1] + 1.0) / 2) * 255, 0)),
+                    int(round(((binormal[2] + 1.0) / 2) * 255, 0)),
+                    int(round(((binormal[0] + 1.0) / 2) * 255, 0))
                 ))
                 # vertex color light
                 vb.color_hemi.append(int(round(hemi * 255, 0)))
