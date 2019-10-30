@@ -115,11 +115,6 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
         edge_normals_1 = {}
         edge_normals_2 = {}
 
-        max_index = 0
-        for tris in visual.triangles:
-            for vert in tris:
-                max_index = max(vert, max_index)
-
         # import triangles
         remap_loops = []
         for triangle in visual.triangles:
