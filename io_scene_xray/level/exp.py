@@ -753,7 +753,7 @@ def write_fastpath_gcontainer(fastpath_obj, fp_vbs, fp_ibs, level):
             vb = imp_vb.VertexBuffer()
             vb.vertex_format = vertex_format
             fp_vbs.append(vb)
-            level.vbs_offsets.append(0)
+            level.fp_vbs_offsets.append(0)
     else:
         vb = imp_vb.VertexBuffer()
         vb.vertex_format = vertex_format
@@ -1311,6 +1311,13 @@ def export_file(level_object, file_path):
     level_geom_chunked_writer = get_writer()
     write_level_geom(level_geom_chunked_writer, vbs, ibs)
 
+    del (
+        vbs, ibs, level.materials, level.visuals, level.vbs_offsets,
+        level.ibs_offsets, level.saved_visuals, level.sectors_indices,
+        level.visuals_bbox, level.visuals_center, level.visuals_radius,
+        level.bbox_cache
+    )
+
     with open(file_path + os.extsep + 'geom', 'wb') as file:
         file.write(level_geom_chunked_writer.data)
     del level_geom_chunked_writer
@@ -1318,6 +1325,7 @@ def export_file(level_object, file_path):
     # fast path geometry
     level_geomx_chunked_writer = get_writer()
     write_level_geom(level_geomx_chunked_writer, fp_vbs, fp_ibs)
+    del fp_vbs, fp_ibs, level.fp_vbs_offsets, level.fp_ibs_offsets
 
     with open(file_path + os.extsep + 'geomx', 'wb') as file:
         file.write(level_geomx_chunked_writer.data)
@@ -1328,6 +1336,6 @@ def export_file(level_object, file_path):
     write_level_cform(level_cform_packed_writer, level)
     with open(file_path + os.extsep + 'cform', 'wb') as file:
         file.write(level_cform_packed_writer.data)
-    del level_cform_packed_writer
+    del level_cform_packed_writer, level
 
     print('total time: {}s'.format(time.time() - start_time))
