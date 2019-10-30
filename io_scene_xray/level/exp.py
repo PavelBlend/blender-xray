@@ -432,6 +432,7 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     vertex_color_sun = bm.loops.layers.color.get('Sun', None)
     vertex_color_hemi = bm.loops.layers.color.get('Hemi', None)
     vertex_color_light = bm.loops.layers.color.get('Light', None)
+    export_mesh.calc_tangents(uvmap=uv_layer.name)
 
     vertex_size = 32
     if vertex_color_sun:
