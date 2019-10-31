@@ -396,6 +396,7 @@ def get_tex_coord_correct(tex_coord_f, tex_coord_h, uv_coeff):
 def write_gcontainer(bpy_obj, vbs, ibs, level):
     visual = Visual()
     material = bpy_obj.data.materials[0]
+    two_sided = material.xray.flags_twosided
     if level.materials.get(material, None) is None:
         level.materials[material] = level.active_material_index
         visual.shader_index = level.active_material_index
@@ -421,6 +422,14 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     bm = bmesh.new()
     bm.from_mesh(bpy_obj.data)
     bmesh.ops.triangulate(bm, faces=bm.faces)
+    if two_sided:
+        dupli_geom = bmesh.ops.duplicate(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:])
+        geom = dupli_geom['geom']
+        dupli_faces = []
+        for element in geom:
+            if isinstance(element, bmesh.types.BMFace):
+                dupli_faces.append(element)
+        bmesh.ops.reverse_faces(bm, faces=dupli_faces)
     export_mesh = bpy.data.meshes.new('temp_mesh')
     export_mesh.use_auto_smooth = True
     export_mesh.auto_smooth_angle = math.pi
