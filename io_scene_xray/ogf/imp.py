@@ -24,6 +24,7 @@ class Visual(object):
         self.sun = None
         self.light = None
         self.fastpath = None
+        self.use_two_sided_tris = False
 
 
 class HierrarhyVisual(object):
@@ -33,8 +34,12 @@ class HierrarhyVisual(object):
         self.children_count = None
 
 
-def assign_material(bpy_object, shader_id, materials):
-    bpy_object.data.materials.append(materials[shader_id])
+def assign_material(bpy_object, visual, materials):
+    shader_id = visual.shader_id
+    material = materials[shader_id]
+    if visual.use_two_sided_tris:
+        material.xray.flags_twosided = True
+    bpy_object.data.materials.append(material)
 
 
 def create_object(name, obj_data):
@@ -117,6 +122,7 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
 
         # import triangles
         remap_loops = []
+        two_sided_tris_count = 0
         for triangle in visual.triangles:
             try:
                 vert_1 = remap_vertices[triangle[0]]
@@ -145,7 +151,11 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
                     edge_normals_1[edge].add(normals[edge_verts[0]])
                     edge_normals_2[edge].add(normals[edge_verts[1]])
             except ValueError:    # face already exists
-                pass
+                two_sided_tris_count += 1
+
+        if two_sided_tris_count:
+            if round(len(visual.triangles) / two_sided_tris_count, 0) == 2:
+                visual.use_two_sided_tris = True
 
         mesh.faces.ensure_lookup_table()
 
@@ -400,7 +410,7 @@ def import_normal_visual(chunks, visual, level):
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
-        assign_material(bpy_object, visual.shader_id, level.materials)
+        assign_material(bpy_object, visual, level.materials)
         if visual.fastpath:
             fastpath_object = create_fastpath_visual(visual.fastpath, level, geometry_key)
             fastpath_object.parent = bpy_object
@@ -465,7 +475,7 @@ def import_tree_st_visual(chunks, visual, level):
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
-        assign_material(bpy_object, visual.shader_id, level.materials)
+        assign_material(bpy_object, visual, level.materials)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(chunks, bpy_object)
@@ -499,7 +509,7 @@ def import_progressive_visual(chunks, visual, level):
 
     if not bpy_mesh:
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
-        assign_material(bpy_object, visual.shader_id, level.materials)
+        assign_material(bpy_object, visual, level.materials)
         if visual.fastpath:
             fastpath_object = create_fastpath_visual(visual.fastpath, level, geometry_key)
             fastpath_object.parent = bpy_object
@@ -586,7 +596,7 @@ def import_lod_visual(chunks, visual, level):
             hemi_color.data[loop.index].color = (hemi, hemi, hemi, 1.0)
             sun_color.data[loop.index].color = (sun, sun, sun, 1.0)
     bpy_object = create_object(visual.name, bpy_mesh)
-    assign_material(bpy_object, visual.shader_id, level.materials)
+    assign_material(bpy_object, visual, level.materials)
     bpy_object.xray.is_level = True
     bpy_object.xray.level.object_type = 'VISUAL'
     bpy_object.xray.level.visual_type = 'LOD'
@@ -604,7 +614,7 @@ def import_tree_pm_visual(chunks, visual, level):
         convert_indices_to_triangles(visual)
 
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
-        assign_material(bpy_object, visual.shader_id, level.materials)
+        assign_material(bpy_object, visual, level.materials)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(chunks, bpy_object)
