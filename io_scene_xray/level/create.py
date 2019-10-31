@@ -117,6 +117,19 @@ def create_shader_lmaps_nodes(bpy_material, bpy_image_lmaps, offset):
     return image_nodes
 
 
+def create_shader_vertex_colors_nodes(bpy_material, vertex_colors_names, offset):
+    vertex_colors_nodes = []
+    offset_y = offset.y - 500.0
+    for vertex_color_name in vertex_colors_names:
+        vertex_colors_node = bpy_material.node_tree.nodes.new('ShaderNodeVertexColor')
+        vertex_colors_node.select = False
+        vertex_colors_node.layer_name = vertex_color_name
+        offset_y -= 200.0
+        vertex_colors_node.location = (offset.x, offset_y)
+        vertex_colors_nodes.append(vertex_colors_node)
+    return vertex_colors_nodes
+
+
 def create_shader_output_node(bpy_material, offset):
     output_node = bpy_material.node_tree.nodes.new('ShaderNodeOutputMaterial')
     output_node.select = False
@@ -213,7 +226,7 @@ def create_shader_mix_rgb_lmap_nodes(bpy_material, offset):
     ambient_node.location = offset
     ambient_node.label = '+ Ambient'
     ambient_node.blend_type = 'ADD'
-    ambient_node.inputs['Color2'].default_value = (0.0, 0.0, 0.0, 1.0)
+    ambient_node.inputs['Color2'].default_value = (0.2, 0.2, 0.2, 1.0)
     nodes.append(ambient_node)
     ambient_node.inputs['Fac'].default_value = 1.0
     # + light maps
@@ -229,15 +242,13 @@ def create_shader_mix_rgb_lmap_nodes(bpy_material, offset):
 
 
 def create_shader_mix_rgb_nodes(bpy_material, offset, bpy_image_lmaps):
-    nodes = None
-    if bpy_image_lmaps:
-        nodes = create_shader_mix_rgb_lmap_nodes(bpy_material, offset)
+    nodes = create_shader_mix_rgb_lmap_nodes(bpy_material, offset)
     return nodes
 
 
 def links_nodes(
         bpy_material, output_node, principled_node, image_node,
-        uv_map_nodes, lmap_image_nodes, mix_rgb_nodes
+        uv_map_nodes, lights_nodes, mix_rgb_nodes
     ):
 
     link_nodes(
@@ -246,22 +257,22 @@ def links_nodes(
         image_node.inputs['Vector']
     )
     if uv_map_nodes[1]:    # light map uv
-        for lmap_image_node in lmap_image_nodes:
+        for lmap_image_node in lights_nodes:
             link_nodes(
                 bpy_material,
                 uv_map_nodes[1].outputs['UV'],
                 lmap_image_node.inputs['Vector']
             )
         # brush light maps links
-        if len(lmap_image_nodes) == 2:
+        if len(lights_nodes) == 2:
             link_nodes(
                 bpy_material,
-                lmap_image_nodes[0].outputs['Color'],
+                lights_nodes[0].outputs['Color'],
                 mix_rgb_nodes[0].inputs['Color1']
             )
             link_nodes(
                 bpy_material,
-                lmap_image_nodes[1].outputs['Color'],
+                lights_nodes[1].outputs['Color'],
                 mix_rgb_nodes[0].inputs['Color2']
             )
             link_nodes(
@@ -271,7 +282,7 @@ def links_nodes(
             )
             link_nodes(
                 bpy_material,
-                lmap_image_nodes[0].outputs['Alpha'],
+                lights_nodes[0].outputs['Alpha'],
                 mix_rgb_nodes[1].inputs['Color2']
             )
             link_nodes(
@@ -294,11 +305,11 @@ def links_nodes(
                 mix_rgb_nodes[3].outputs['Color'],
                 principled_node.inputs['Base Color']
             )
-        elif len(lmap_image_nodes) == 1:
+        elif len(lights_nodes) == 1:
             # static lights
             link_nodes(
                 bpy_material,
-                lmap_image_nodes[0].outputs['Color'],
+                lights_nodes[0].outputs['Color'],
                 mix_rgb_nodes[0].inputs['Color1']
             )
             # hemi
@@ -315,7 +326,7 @@ def links_nodes(
             # shadows
             link_nodes(
                 bpy_material,
-                lmap_image_nodes[0].outputs['Alpha'],
+                lights_nodes[0].outputs['Alpha'],
                 mix_rgb_nodes[1].inputs['Color2']
             )
             # ambient
@@ -340,14 +351,50 @@ def links_nodes(
                 mix_rgb_nodes[3].outputs['Color'],
                 principled_node.inputs['Base Color']
             )
-    else:
+    else:    # vertex colors
+        link_nodes(
+            bpy_material,
+            lights_nodes[0].outputs['Color'],
+            mix_rgb_nodes[0].inputs['Color1']
+        )
+        link_nodes(
+            bpy_material,
+            lights_nodes[1].outputs['Color'],
+            mix_rgb_nodes[0].inputs['Color2']
+        )
+        link_nodes(
+            bpy_material,
+            mix_rgb_nodes[0].outputs['Color'],
+            mix_rgb_nodes[1].inputs['Color1']
+        )
+        link_nodes(
+            bpy_material,
+            lights_nodes[2].outputs['Color'],
+            mix_rgb_nodes[1].inputs['Color2']
+        )
+        link_nodes(
+            bpy_material,
+            mix_rgb_nodes[1].outputs['Color'],
+            mix_rgb_nodes[2].inputs['Color1']
+        )
         link_nodes(
             bpy_material,
             image_node.outputs['Color'],
+            mix_rgb_nodes[3].inputs['Color1']
+        )
+        link_nodes(
+            bpy_material,
+            mix_rgb_nodes[2].outputs['Color'],
+            mix_rgb_nodes[3].inputs['Color2']
+        )
+        link_nodes(
+            bpy_material,
+            mix_rgb_nodes[3].outputs['Color'],
             principled_node.inputs['Base Color']
         )
-    if lmap_image_nodes:
-        if len(lmap_image_nodes) != 1:
+
+    if lights_nodes:
+        if len(lights_nodes) != 1:    # != terrain
             link_nodes(
                 bpy_material,
                 image_node.outputs['Alpha'],
@@ -373,11 +420,14 @@ def create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps):
     )
     image_node = create_shader_image_node(bpy_material, bpy_image, offset)
     if bpy_image_lmaps:
-        lmap_image_nodes = create_shader_lmaps_nodes(
+        lights_nodes = create_shader_lmaps_nodes(
             bpy_material, bpy_image_lmaps, offset
         )
-    else:
-        lmap_image_nodes = None
+    else:    # vertex colors
+        vertex_colors_names = ('Light', 'Hemi', 'Sun')
+        lights_nodes = create_shader_vertex_colors_nodes(
+            bpy_material, vertex_colors_names, offset
+        )
     mix_rgb_nodes = create_shader_mix_rgb_nodes(
         bpy_material, offset, bpy_image_lmaps
     )
@@ -385,7 +435,7 @@ def create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps):
     output_node = create_shader_output_node(bpy_material, offset)
     links_nodes(
         bpy_material, output_node, principled_node, image_node,
-        uv_map_nodes, lmap_image_nodes, mix_rgb_nodes
+        uv_map_nodes, lights_nodes, mix_rgb_nodes
     )
 
 
