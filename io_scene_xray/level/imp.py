@@ -27,18 +27,18 @@ class Level(object):
         self.sectors_objects = {}
 
 
-def create_sector_object(sector_id, level_collection, sectors_object):
+def create_sector_object(sector_id, collection, sectors_object):
     object_name = 'sector_{:0>3}'.format(sector_id)
     bpy_object = create.create_object(object_name, None)
     bpy_object.parent = sectors_object
-    level_collection.objects.link(bpy_object)
+    collection.objects.link(bpy_object)
     return bpy_object
 
 
-def create_sectors_object(level_collection):
+def create_sectors_object(collection):
     object_name = 'sectors'
     bpy_object = create.create_object(object_name, None)
-    level_collection.objects.link(bpy_object)
+    collection.objects.link(bpy_object)
     return bpy_object
 
 
@@ -69,14 +69,15 @@ def import_sector(data, level, sector_object):
             print('UNKNOW LEVEL SECTOR CHUNK: {0:#x}'.format(chunk_id))
 
 
-def import_sectors(data, level, level_collection, level_object):
+def import_sectors(data, level, level_object):
     chunked_reader = xray_io.ChunkedReader(data)
-    sectors_object = create_sectors_object(level_collection)
+    collection = level.collections[create.LEVEL_SECTORS_COLLECTION_NAME]
+    sectors_object = create_sectors_object(collection)
     sectors_object.parent = level_object
 
     for sector_id, sector_data in chunked_reader:
         sector_object = create_sector_object(
-            sector_id, level_collection, sectors_object
+            sector_id, collection, sectors_object
         )
         level.sectors_objects[sector_id] = sector_object
         import_sector(sector_data, level, sector_object)
@@ -149,22 +150,24 @@ def import_glow(packed_reader, glow_index, materials):
     return glow_object
 
 
-def create_glows_object(level_collection):
+def create_glows_object(collection):
     object_name = 'glows'
     bpy_object = create.create_object(object_name, None)
-    level_collection.objects.link(bpy_object)
+    collection.objects.link(bpy_object)
     return bpy_object
 
 
-def import_glows(data, materials, level_collection):
+def import_glows(data, level):
     packed_reader = xray_io.PackedReader(data)
     glows_count = len(data) // fmt.GLOW_SIZE
-    glows_object = create_glows_object(level_collection)
+    collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
+    glows_object = create_glows_object(collection)
+    materials = level.materials
 
     for glow_index in range(glows_count):
         glow_object = import_glow(packed_reader, glow_index, materials)
         glow_object.parent = glows_object
-        level_collection.objects.link(glow_object)
+        collection.objects.link(glow_object)
 
     return glows_object
 
@@ -192,28 +195,29 @@ def import_light_dynamic(packed_reader, light_object):
     light_object.rotation_euler = direction[0], direction[2], direction[1]
 
 
-def create_light_object(light_index, level_collection):
+def create_light_object(light_index, collection):
     object_name = 'light_dynamic_{:0>3}'.format(light_index)
     light = bpy.data.lights.new(object_name, 'SPOT')
     bpy_object = create.create_object(object_name, light)
-    level_collection.objects.link(bpy_object)
+    collection.objects.link(bpy_object)
     return bpy_object
 
 
-def create_lights_object(level_collection):
+def create_lights_object(collection):
     object_name = 'light dynamic'
     bpy_object = create.create_object(object_name, None)
-    level_collection.objects.link(bpy_object)
+    collection.objects.link(bpy_object)
     return bpy_object
 
 
-def import_lights_dynamic(data, level_collection):
+def import_lights_dynamic(data, level):
     packed_reader = xray_io.PackedReader(data)
     light_count = len(data) // fmt.LIGHT_DYNAMIC_SIZE
-    lights_dynamic_object = create_lights_object(level_collection)
+    collection = level.collections[create.LEVEL_LIGHTS_COLLECTION_NAME]
+    lights_dynamic_object = create_lights_object(collection)
 
     for light_index in range(light_count):
-        light_object = create_light_object(light_index, level_collection)
+        light_object = create_light_object(light_index, collection)
         import_light_dynamic(packed_reader, light_object)
         light_object.parent = lights_dynamic_object
 
@@ -232,15 +236,15 @@ def create_portal_mesh(object_name, vertices):
     return mesh
 
 
-def create_portal(portal_index, vertices, level_collection):
+def create_portal(portal_index, vertices, collection):
     object_name = 'portal_{:0>3}'.format(portal_index)
     object_data = create_portal_mesh(object_name, vertices)
     portal_object = create.create_object(object_name, object_data)
-    level_collection.objects.link(portal_object)
+    collection.objects.link(portal_object)
     return portal_object
 
 
-def import_portal(packed_reader, portal_index, level_collection, level):
+def import_portal(packed_reader, portal_index, collection, level):
     sector_front = packed_reader.getf('H')[0]
     sector_back = packed_reader.getf('H')[0]
     vertices = []
@@ -251,7 +255,7 @@ def import_portal(packed_reader, portal_index, level_collection, level):
 
     used_vertices_count = packed_reader.getf('I')[0]
     vertices = vertices[ : used_vertices_count]
-    portal_object = create_portal(portal_index, vertices, level_collection)
+    portal_object = create_portal(portal_index, vertices, collection)
     portal_object.xray.is_level = True
     portal_object.xray.level.object_type = 'PORTAL'
     portal_object.xray.level.sector_front = level.sectors_objects[sector_front].name
@@ -259,14 +263,16 @@ def import_portal(packed_reader, portal_index, level_collection, level):
     return portal_object
 
 
-def import_portals(data, level_collection, level):
+def import_portals(data, level):
     packed_reader = xray_io.PackedReader(data)
     portals_count = len(data) // fmt.PORTAL_SIZE
     portals_object = create.create_object('portals', None)
+    collection = level.collections[create.LEVEL_PORTALS_COLLECTION_NAME]
+    collection.objects.link(portals_object)
 
     for portal_index in range(portals_count):
         portal_object = import_portal(
-            packed_reader, portal_index, level_collection, level
+            packed_reader, portal_index, collection, level
         )
         portal_object.parent = portals_object
 
@@ -367,26 +373,25 @@ def import_level(level, context, chunks, geomx_chunks):
     del visuals_chunk_data
 
     sectors_chunk_data = chunks.pop(fmt.Chunks.SECTORS)
-    import_sectors(sectors_chunk_data, level, level_collection, level_object)
+    import_sectors(sectors_chunk_data, level, level_object)
     del sectors_chunk_data
 
     portals_chunk_data = chunks.pop(fmt.Chunks.PORTALS)
-    portals_object = import_portals(portals_chunk_data, level_collection, level)
+    portals_object = import_portals(portals_chunk_data, level)
     del portals_chunk_data
 
-    level_collection.objects.link(portals_object)
     portals_object.parent = level_object
 
     glows_chunk_data = chunks.pop(fmt.Chunks.GLOWS)
     glows_object = import_glows(
-        glows_chunk_data, level.materials, level_collection
+        glows_chunk_data, level
     )
     del glows_chunk_data
     glows_object.parent = level_object
 
     light_chunk_data = chunks.pop(fmt.Chunks.LIGHT_DYNAMIC)
     lights_dynamic_object = import_lights_dynamic(
-        light_chunk_data, level_collection
+        light_chunk_data, level
     )
     lights_dynamic_object.parent = level_object
     del light_chunk_data

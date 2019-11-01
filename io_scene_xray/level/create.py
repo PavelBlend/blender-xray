@@ -8,6 +8,19 @@ from . import utils
 LEVEL_COLLECTION_NAME = 'Level'
 LEVEL_VISUALS_COLLECTION_NAME = 'Visuals'
 LEVEL_CFORM_COLLECTION_NAME = 'CForm'
+LEVEL_GLOWS_COLLECTION_NAME = 'Glows'
+LEVEL_LIGHTS_COLLECTION_NAME = 'Lights'
+LEVEL_PORTALS_COLLECTION_NAME = 'Portals'
+LEVEL_SECTORS_COLLECTION_NAME = 'Sectors'
+
+LEVEL_COLLECTIONS_NAMES = (
+    LEVEL_VISUALS_COLLECTION_NAME,
+    LEVEL_CFORM_COLLECTION_NAME,
+    LEVEL_GLOWS_COLLECTION_NAME,
+    LEVEL_LIGHTS_COLLECTION_NAME,
+    LEVEL_PORTALS_COLLECTION_NAME,
+    LEVEL_SECTORS_COLLECTION_NAME
+)
 
 # visuals collections
 LEVEL_VISUALS_NORMAL_COLLECTION_NAME = 'Normal'
@@ -75,15 +88,14 @@ def create_level_collections(level):
         level.name, bpy.context.scene.collection
     )
     level.collections[LEVEL_COLLECTION_NAME] = level_collection
-    visuals_collection = create_collection(
-        LEVEL_VISUALS_COLLECTION_NAME, level_collection
-    )
-    level.collections[LEVEL_VISUALS_COLLECTION_NAME] = visuals_collection
-    cform_collection = create_collection(
-        LEVEL_CFORM_COLLECTION_NAME, level_collection
-    )
-    level.collections[LEVEL_CFORM_COLLECTION_NAME] = cform_collection
 
+    for collection_name in LEVEL_COLLECTIONS_NAMES:
+        collection = create_collection(
+            collection_name, level_collection
+        )
+        level.collections[collection_name] = collection
+
+    visuals_collection = level.collections[LEVEL_VISUALS_COLLECTION_NAME]
     for collection_name in LEVEL_VISUALS_COLLECTIONS_NAMES:
         collection = create_collection(collection_name, visuals_collection)
         level.collections[collection_name] = collection
