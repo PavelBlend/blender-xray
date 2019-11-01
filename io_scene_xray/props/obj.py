@@ -100,8 +100,7 @@ visual_type_items = (
     ('PROGRESSIVE', 'Progressive', ''),
     ('TREE_ST', 'Tree Static', ''),
     ('TREE_PM', 'Tree Progressive', ''),
-    ('LOD', 'LoD', ''),
-    ('FASTPATH', 'Fast Path', '')
+    ('LOD', 'LoD', '')
 )
 
 
@@ -138,7 +137,8 @@ xray_object_level_properties = {
     'attenuation_1': bpy.props.FloatProperty(name='Attenuation 1'),
     'attenuation_2': bpy.props.FloatProperty(name='Attenuation 2'),
     'theta': bpy.props.FloatProperty(name='Theta'),
-    'phi': bpy.props.FloatProperty(name='Phi')
+    'phi': bpy.props.FloatProperty(name='Phi'),
+    'use_fastpath': bpy.props.BoolProperty(name='Use Fastpath Geometry', default=True)
 }
 
 

@@ -867,9 +867,8 @@ def write_visual(
             chunked_writer.put(ogf_fmt.Chunks.GCONTAINER, gcontainer_writer)
             if len(bpy_obj.children) > 1:
                 raise utils.AppError('Object "{}" has more than one children'.format(bpy_obj.name))
-            if bpy_obj.children:
-                fastpath_obj = bpy_obj.children[0]
-                fastpath_writer = write_fastpath(fastpath_obj, fp_vbs, fp_ibs, level)
+            if bpy_obj.xray.level.use_fastpath:
+                fastpath_writer = write_fastpath(bpy_obj, fp_vbs, fp_ibs, level)
                 chunked_writer.put(ogf_fmt.Chunks.FASTPATH, fastpath_writer)
         return chunked_writer
 

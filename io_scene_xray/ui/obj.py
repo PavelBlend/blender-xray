@@ -257,6 +257,9 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
                     col = color_bias_box.row()
                     col.prop(data.level, 'color_bias_sun')
 
+                elif data.level.visual_type in {'NORMAL', 'PROGRESSIVE'}:
+                    ogf_box.prop(data.level, 'use_fastpath')
+
             elif object_type == 'LIGHT_DYNAMIC':
                 ogf_box.prop(data.level, 'controller_id')
                 ogf_box.prop(data.level, 'light_type')

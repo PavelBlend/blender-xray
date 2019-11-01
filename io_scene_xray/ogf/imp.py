@@ -23,7 +23,7 @@ class Visual(object):
         self.hemi = None
         self.sun = None
         self.light = None
-        self.fastpath = None
+        self.fastpath = False
         self.use_two_sided_tris = False
 
 
@@ -45,55 +45,6 @@ def assign_material(bpy_object, visual, materials):
 def create_object(name, obj_data):
     bpy_object = bpy.data.objects.new(name, obj_data)
     bpy.context.scene.collection.objects.link(bpy_object)
-    return bpy_object
-
-
-def create_fastpath_visual(visual, level, geometry_key):
-    bpy_mesh = level.loaded_fastpath_geometry.get(geometry_key, None)
-
-    if not bpy_mesh:
-        mesh = bmesh.new()
-
-        # import vertices
-        for vertex_coord in visual.vertices:
-            mesh.verts.new(vertex_coord)
-
-        mesh.verts.ensure_lookup_table()
-        mesh.verts.index_update()
-
-        # import triangles
-        for triangle in visual.triangles:
-            try:
-                face = mesh.faces.new((
-                    mesh.verts[triangle[0]],
-                    mesh.verts[triangle[1]],
-                    mesh.verts[triangle[2]]
-                ))
-                face.smooth = True
-            except ValueError:    # face already exists
-                pass
-
-        mesh.faces.ensure_lookup_table()
-
-        # normals
-        mesh.normal_update()
-
-        # create mesh
-        bpy_mesh = bpy.data.meshes.new(visual.name)
-        mesh.to_mesh(bpy_mesh)
-        del mesh
-        level.loaded_fastpath_geometry[geometry_key] = bpy_mesh
-
-    bpy_object = create_object(visual.name, bpy_mesh)
-    bpy_object.display_type = 'WIRE'
-    bpy_object.xray.is_level = True
-    bpy_object.xray.level.object_type = 'VISUAL'
-    bpy_object.xray.level.visual_type = 'FASTPATH'
-    scene_collection = bpy.context.scene.collection
-    collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
-    collection = level.collections[collection_name]
-    collection.objects.link(bpy_object)
-    scene_collection.objects.unlink(bpy_object)
     return bpy_object
 
 
@@ -381,11 +332,9 @@ def import_geometry(chunks, visual, level):
 
     fastpath_data = chunks.pop(fmt.Chunks.FASTPATH, None)    # optional chunk
     if fastpath_data:
-        fastpath_visual = Visual()
-        fastpath_visual.name = 'fastpath'
-        import_fastpath(fastpath_data, fastpath_visual, level)
-        convert_indices_to_triangles(fastpath_visual)
-        visual.fastpath = fastpath_visual
+        visual.fastpath = True
+    else:
+        visual.fastpath = False
     del fastpath_data
     return bpy_mesh, geometry_key
 
@@ -412,8 +361,9 @@ def import_normal_visual(chunks, visual, level):
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
         assign_material(bpy_object, visual, level.materials)
         if visual.fastpath:
-            fastpath_object = create_fastpath_visual(visual.fastpath, level, geometry_key)
-            fastpath_object.parent = bpy_object
+            bpy_object.xray.level.use_fastpath = True
+        else:
+            bpy_object.xray.level.use_fastpath = False
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
 
@@ -511,8 +461,9 @@ def import_progressive_visual(chunks, visual, level):
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
         assign_material(bpy_object, visual, level.materials)
         if visual.fastpath:
-            fastpath_object = create_fastpath_visual(visual.fastpath, level, geometry_key)
-            fastpath_object.parent = bpy_object
+            bpy_object.xray.level.use_fastpath = True
+        else:
+            bpy_object.xray.level.use_fastpath = False
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
 
