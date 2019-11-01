@@ -1305,9 +1305,10 @@ def get_writer():
     return chunked_writer
 
 
-def export_file(level_object, file_path):
+def export_file(level_object, dir_path):
     start_time = time.time()
 
+    file_path = dir_path + os.sep + 'level'
     level_chunked_writer = get_writer()
     vbs, ibs, fp_vbs, fp_ibs, level = write_level(level_chunked_writer, level_object, file_path)
 

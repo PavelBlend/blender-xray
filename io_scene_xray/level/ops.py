@@ -62,11 +62,15 @@ class IMPORT_OT_xray_level(
 
 
 op_export_level_props = {
-    'filter_glob': bpy.props.StringProperty(default='level', options={'HIDDEN'}),
+    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
+    'filter_glob': bpy.props.StringProperty(
+        default='level;level.geom;level.geomx;level.cform',
+        options={'HIDDEN'}
+    )
 }
 
 
-class EXPORT_OT_xray_level(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
+class EXPORT_OT_xray_level(bpy.types.Operator):
     bl_idname = 'xray_export.level'
     bl_label = 'Export Level'
 
@@ -77,7 +81,7 @@ class EXPORT_OT_xray_level(bpy.types.Operator, bpy_extras.io_utils.ExportHelper)
             exec('{0} = op_export_level_props.get("{0}")'.format(prop_name))
 
     def export(self, level_object, context):
-        exp.export_file(level_object, self.filepath)
+        exp.export_file(level_object, self.directory)
         return {'FINISHED'}
 
     @utils.set_cursor_state
@@ -88,7 +92,8 @@ class EXPORT_OT_xray_level(bpy.types.Operator, bpy_extras.io_utils.ExportHelper)
 
     def invoke(self, context, event):
         prefs = plugin_prefs.get_preferences()
-        return super().invoke(context, event)
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
 
 assign_props([
