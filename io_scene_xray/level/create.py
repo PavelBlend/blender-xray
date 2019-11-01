@@ -3,6 +3,7 @@ import os
 import bpy, mathutils
 
 from . import utils
+from .. import version_utils
 
 
 LEVEL_COLLECTION_NAME = 'Level'
@@ -130,9 +131,13 @@ def create_shader_vertex_colors_nodes(bpy_material, vertex_colors_names, offset)
     vertex_colors_nodes = []
     offset_y = offset.y - 500.0
     for vertex_color_name in vertex_colors_names:
-        vertex_colors_node = bpy_material.node_tree.nodes.new('ShaderNodeVertexColor')
+        if version_utils.IS_281:
+            vertex_colors_node = bpy_material.node_tree.nodes.new('ShaderNodeVertexColor')
+            vertex_colors_node.layer_name = vertex_color_name
+        else:
+            vertex_colors_node = bpy_material.node_tree.nodes.new('ShaderNodeAttribute')
+            vertex_colors_node.attribute_name = vertex_color_name
         vertex_colors_node.select = False
-        vertex_colors_node.layer_name = vertex_color_name
         offset_y -= 200.0
         vertex_colors_node.location = (offset.x, offset_y)
         vertex_colors_nodes.append(vertex_colors_node)
