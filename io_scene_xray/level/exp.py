@@ -1250,7 +1250,7 @@ def write_level_cform(packed_writer, level):
         with open(gamemtl_file_path, 'rb') as gamemtl_file:
             gamemtl_data = gamemtl_file.read()
     else:
-        raise utils.AppError('GameMtl File not found: {}'.format(gamemtl_file))
+        gamemtl_data = b''
 
     game_mtls = {}
     for game_mtl_name, _, game_mtl_id in utils.parse_gamemtl(gamemtl_data):
@@ -1258,7 +1258,7 @@ def write_level_cform(packed_writer, level):
 
     game_materials = {}
     for material in materials:
-        gamemtl_id = game_mtls[material.xray.gamemtl]
+        gamemtl_id = game_mtls.get(material.xray.gamemtl, 0)
         game_materials[material.name] = gamemtl_id
 
     for sector_index in range(sectors_count):

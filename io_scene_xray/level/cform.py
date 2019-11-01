@@ -34,7 +34,7 @@ def import_cform(context, data, level):
         with open(gamemtl_file_path, 'rb') as gamemtl_file:
             gamemtl_data = gamemtl_file.read()
     else:
-        raise utils.AppError('GameMtl File not found: {}'.format(gamemtl_file))
+        gamemtl_data = b''
     game_mtl_names = {}
     for game_mtl_name, _, game_mtl_id in utils.parse_gamemtl(gamemtl_data):
         game_mtl_names[game_mtl_id] = game_mtl_name
@@ -65,7 +65,7 @@ def import_cform(context, data, level):
         unique_sectors_materials[sector_index] = sector_materials
     bpy_materials = {}
     for material_id, suppress_shadows, suppress_wm in unique_materials:
-        game_mtl = game_mtl_names[material_id]
+        game_mtl = game_mtl_names.get(material_id, str(material_id))
         material_name = '{0}_{1}_{2}'.format(game_mtl, int(suppress_shadows), int(suppress_wm))
         material = get_cform_material(game_mtl, material_name, suppress_shadows, suppress_wm)
         if not material:
