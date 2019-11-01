@@ -214,6 +214,8 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
             if data.is_details:
                 det_ui.draw_function(self, context)
 
+        if not IS_28:
+            return
         layout.prop(data, 'is_level', text='Level', toggle=True)
         if data.is_level:
             ogf_box = layout.box()
