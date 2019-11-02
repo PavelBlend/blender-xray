@@ -289,6 +289,7 @@ class OpExportLevelDetails(
         col = layout.column()
         col.prop(self, 'format_version', expand=True)
 
+    @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
 
