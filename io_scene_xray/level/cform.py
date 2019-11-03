@@ -89,6 +89,7 @@ def import_cform(context, data, level):
             bm.verts.new(vert_co)
             remap_verts[vert_index] = current_vertex_index
             current_vertex_index += 1
+        vertices_count = current_vertex_index
         bm.verts.ensure_lookup_table()
         bm.verts.index_update()
         obj_name = 'cform_{:0>3}'.format(sector_index)
@@ -96,6 +97,8 @@ def import_cform(context, data, level):
         for material_id, suppress_shadows, suppress_wm in unique_sectors_materials[sector_index]:
             bpy_material = bpy_materials[material_id]
             bpy_mesh.materials.append(bpy_material)
+        two_sided_tris = []
+        two_sided_verts = set()
         for tris_index in triangles:
             vert_1, vert_2, vert_3, material_id, suppress_shadows, suppress_wm = tris[tris_index]
             try:
@@ -105,11 +108,30 @@ def import_cform(context, data, level):
                     bm.verts[remap_verts[vert_2]]
                 ))
                 face.smooth = True
-            except ValueError:
-                face = None
-            if face:
                 material = unique_sectors_materials[sector_index].index((material_id, suppress_shadows, suppress_wm))
                 face.material_index = material
+            except ValueError:
+                face = None
+                two_sided_tris.append((vert_1, vert_2, vert_3, material_id, suppress_shadows, suppress_wm))
+                two_sided_verts.update((vert_1, vert_2, vert_3))
+        current_vertex_index = vertices_count
+        remap_vertices = {}
+        for vertex_index in sorted(list(two_sided_verts)):
+            vert_co = verts[vertex_index]
+            bm.verts.new(vert_co)
+            remap_vertices[vertex_index] = current_vertex_index
+            current_vertex_index += 1
+        bm.verts.ensure_lookup_table()
+        bm.verts.index_update()
+        for vert_1, vert_2, vert_3, material_id, suppress_shadows, suppress_wm in two_sided_tris:
+            face = bm.faces.new((
+                bm.verts[remap_vertices[vert_1]],
+                bm.verts[remap_vertices[vert_3]],
+                bm.verts[remap_vertices[vert_2]]
+            ))
+            face.smooth = True
+            material = unique_sectors_materials[sector_index].index((material_id, suppress_shadows, suppress_wm))
+            face.material_index = material
         bm.faces.ensure_lookup_table()
         bm.faces.index_update()
         bm.normal_update()
