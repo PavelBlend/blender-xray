@@ -1,9 +1,9 @@
-import os, time
+import os, time, math
 
-import bpy
+import bpy, mathutils
 
 from . import utils as level_utils, create, fmt, shaders, visuals, vb, ib, swi, cform
-from .. import xray_io, utils
+from .. import xray_io, utils, version_utils
 
 
 class Level(object):
@@ -172,6 +172,18 @@ def import_glows(data, level):
     return glows_object
 
 
+def direction_to_angles(direction):
+    cathetus_a_1 = direction[1]
+    cathetus_b_1 = (direction[0] ** 2 + direction[2] ** 2) ** (1 / 2)
+    rotation_x = math.atan(cathetus_a_1 / cathetus_b_1)
+
+    cathetus_a_2 = direction[2]
+    hypotenuse = cathetus_b_1
+    rotation_y = math.acos(cathetus_a_2 / hypotenuse)
+
+    return rotation_x, rotation_y, 0.0
+
+
 def import_light_dynamic(packed_reader, light_object):
     data = light_object.xray.level
     data.object_type = 'LIGHT_DYNAMIC'
@@ -191,8 +203,10 @@ def import_light_dynamic(packed_reader, light_object):
     data.theta = packed_reader.getf('f')[0]
     data.phi = packed_reader.getf('f')[0]
 
+    euler = direction_to_angles(direction)
+    euler = mathutils.Euler((euler[0] + math.pi / 2, euler[2], euler[1]), 'YXZ').to_matrix().to_euler('XYZ')
     light_object.location = position[0], position[2], position[1]
-    light_object.rotation_euler = direction[0], direction[2], direction[1]
+    light_object.rotation_euler = euler[0], euler[1], euler[2]
 
 
 def create_light_object(light_index, collection):
