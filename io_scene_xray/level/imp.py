@@ -204,7 +204,7 @@ def import_light_dynamic(packed_reader, light_object):
     data.phi = packed_reader.getf('f')[0]
 
     euler = direction_to_angles(direction)
-    euler = mathutils.Euler((euler[0] + math.pi / 2, euler[2], euler[1]), 'YXZ').to_matrix().to_euler('XYZ')
+    euler = mathutils.Euler((euler[0], euler[2], euler[1]), 'YXZ').to_matrix().to_euler('XYZ')
     light_object.location = position[0], position[2], position[1]
     light_object.rotation_euler = euler[0], euler[1], euler[2]
 
