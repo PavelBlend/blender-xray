@@ -1117,8 +1117,10 @@ def write_light(level_object):
                     light_obj.location[2],
                     light_obj.location[1]
                 )
-                euler = light_obj.matrix_world.to_euler('ZXY')
-                packed_writer.putf('3f', -euler[0], -euler[2], -euler[1])
+                euler = light_obj.matrix_world.to_euler('YXZ')
+                matrix = euler.to_matrix().to_3x3()
+                direction = (matrix[0][1], matrix[2][1], matrix[1][1])
+                packed_writer.putf('3f', direction[0], direction[1], direction[2])
                 packed_writer.putf('f', data.range_)
                 packed_writer.putf('f', data.falloff)
                 packed_writer.putf('f', data.attenuation_0)
