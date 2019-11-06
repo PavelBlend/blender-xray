@@ -7,7 +7,7 @@ def is_blender_2_80():
 
 
 def is_blender_2_81():
-    if bpy.app.version[0] > 2 and bpy.app.version[1] > 80:
+    if bpy.app.version[0] == 2 and bpy.app.version[1] > 80:
         return True
     else:
         return False

@@ -115,10 +115,13 @@ def link_nodes(bpy_material, input_, output):
 def create_shader_lmaps_nodes(bpy_material, bpy_image_lmaps, offset):
     image_nodes = []
     offset_y = offset.y - 200.0
-    for lmap in bpy_image_lmaps:
+    for lmap_index, lmap in enumerate(bpy_image_lmaps):
         if not lmap:
             continue
         image_node = bpy_material.node_tree.nodes.new('ShaderNodeTexImage')
+        image_name = 'Light Map {}'.format(lmap_index)
+        image_node.name = image_name
+        image_node.label = image_name
         image_node.select = False
         image_node.image = lmap
         offset_y -= 350.0
@@ -205,6 +208,8 @@ def create_shader_uv_map_nodes(
 
 def create_shader_image_node(bpy_material, bpy_image, offset):
     image_node = bpy_material.node_tree.nodes.new('ShaderNodeTexImage')
+    image_node.name = 'Texture'
+    image_node.label = 'Texture'
     image_node.select = False
     image_node.image = bpy_image
     offset.x += 400.0
@@ -213,7 +218,7 @@ def create_shader_image_node(bpy_material, bpy_image, offset):
     return image_node
 
 
-def create_shader_mix_rgb_lmap_nodes(bpy_material, offset):
+def create_shader_mix_rgb_lmap_nodes(bpy_material, offset, bpy_image_lmaps):
     nodes = []
     # lights + hemi node
     light_hemi_node = bpy_material.node_tree.nodes.new('ShaderNodeMixRGB')
@@ -240,7 +245,11 @@ def create_shader_mix_rgb_lmap_nodes(bpy_material, offset):
     ambient_node.location = offset
     ambient_node.label = '+ Ambient'
     ambient_node.blend_type = 'ADD'
-    ambient_node.inputs['Color2'].default_value = (0.2, 0.2, 0.2, 1.0)
+    if bpy_image_lmaps:
+        ambient_color = (0.2, 0.2, 0.2, 1.0)
+    else:   # trees has no light maps
+        ambient_color = (0.75, 0.75, 0.75, 1.0)
+    ambient_node.inputs['Color2'].default_value = ambient_color
     nodes.append(ambient_node)
     ambient_node.inputs['Fac'].default_value = 1.0
     # + light maps
@@ -256,7 +265,7 @@ def create_shader_mix_rgb_lmap_nodes(bpy_material, offset):
 
 
 def create_shader_mix_rgb_nodes(bpy_material, offset, bpy_image_lmaps):
-    nodes = create_shader_mix_rgb_lmap_nodes(bpy_material, offset)
+    nodes = create_shader_mix_rgb_lmap_nodes(bpy_material, offset, bpy_image_lmaps)
     return nodes
 
 

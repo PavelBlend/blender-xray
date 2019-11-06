@@ -288,14 +288,14 @@ def write_shaders(level):
     packed_writer.puts('')    # first empty shader
     for shader_index in range(materials_count):
         material = materials[shader_index]
-        texture_node = material.node_tree.nodes['Image Texture']
+        texture_node = material.node_tree.nodes['Texture']
         texture_path = utils.gen_texture_name(
             texture_node, texture_folder, level_folder=level.source_level_path
         )
         eshader = material.xray.eshader
 
-        lmap_1_node = material.node_tree.nodes.get('Image Texture.001', None)
-        lmap_2_node = material.node_tree.nodes.get('Image Texture.002', None)
+        lmap_1_node = material.node_tree.nodes.get('Light Map 0', None)
+        lmap_2_node = material.node_tree.nodes.get('Light Map 1', None)
 
         if lmap_1_node:
             lmap_1_path = lmap_1_node.image.name[0 : -4]    # cut .dds extension
