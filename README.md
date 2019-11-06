@@ -12,6 +12,7 @@ XRay-engine import/export plugin for [blender](http://www.blender.org/).
 | .skls     | Skeletal actions | Yes        | Yes        | |
 | .err      | Error list       | Yes        | No         | |
 | .level    | Scene Selection  | Yes        | Yes        | |
+| level     | Game Level       | Yes        | Yes        | |
 | .ogf      | Compiled models  | No         | Yes*       | *Extremely experimental |
 
 ## Installation
