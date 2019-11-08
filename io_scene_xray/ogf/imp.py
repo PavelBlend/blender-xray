@@ -48,18 +48,6 @@ def create_object(name, obj_data):
     return bpy_object
 
 
-def get_norm_sign(normal):
-    signs = []
-    for component in normal:
-        if component > 0:
-            signs.append(1)
-        elif component < 0:
-            signs.append(-1)
-        else:
-            signs.append(0)
-    return tuple(signs)
-
-
 def create_visual(bpy_mesh, visual, level, geometry_key):
     if not bpy_mesh:
         mesh = bmesh.new()
