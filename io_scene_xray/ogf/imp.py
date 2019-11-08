@@ -48,22 +48,82 @@ def create_object(name, obj_data):
     return bpy_object
 
 
+def get_norm_sign(normal):
+    signs = []
+    for component in normal:
+        if component > 0:
+            signs.append(1)
+        elif component < 0:
+            signs.append(-1)
+        else:
+            signs.append(0)
+    return tuple(signs)
+
+
 def create_visual(bpy_mesh, visual, level, geometry_key):
     if not bpy_mesh:
         mesh = bmesh.new()
+
+        temp_mesh = bmesh.new()
+
+        remap_vertex_index = 0
+        remap_vertices = {}
+        unique_verts = {}
+        vert_normals = {}
+        for vertex_index, vertex_coord in enumerate(visual.vertices):
+            vert = temp_mesh.verts.new(vertex_coord)
+            vert_normals[tuple(vert.co)] = []
+
+        temp_mesh.verts.ensure_lookup_table()
+        temp_mesh.verts.index_update()
+
+        for triangle in visual.triangles:
+            temp_mesh.faces.new((
+                temp_mesh.verts[triangle[0]],
+                temp_mesh.verts[triangle[1]],
+                temp_mesh.verts[triangle[2]]
+            ))
+
+        temp_mesh.faces.ensure_lookup_table()
+        temp_mesh.normal_update()
+
+        back_side = {}
+
+        for vert in temp_mesh.verts:
+            norm = (
+                round(vert.normal[0], 3),
+                round(vert.normal[1], 3),
+                round(vert.normal[2], 3)
+            )
+            vert_normals[tuple(vert.co)].append((vert.index, norm))
+
+        temp_mesh.clear()
+        del temp_mesh
+
+        for vertex_co, norms in vert_normals.items():
+            back_side_norms = set()
+            for vertex_index, normal in norms:
+                normal = tuple(normal)
+                back_norm = (-normal[0], -normal[1], -normal[2])
+                if back_norm in back_side_norms:
+                    back_side[vertex_index] = True
+                else:
+                    back_side[vertex_index] = False
+                    back_side_norms.add(normal)
 
         # import vertices
         remap_vertex_index = 0
         remap_vertices = {}
         unique_verts = {}
         for vertex_index, vertex_coord in enumerate(visual.vertices):
-            if unique_verts.get(vertex_coord, None) is None:
+            is_back_vert = back_side[vertex_index]
+            if unique_verts.get((vertex_coord, is_back_vert), None) is None:
                 mesh.verts.new(vertex_coord)
                 remap_vertices[vertex_index] = remap_vertex_index
-                unique_verts[vertex_coord] = remap_vertex_index
+                unique_verts[(vertex_coord, is_back_vert)] = remap_vertex_index
                 remap_vertex_index += 1
             else:
-                current_remap_vertex_index = unique_verts[vertex_coord]
+                current_remap_vertex_index = unique_verts[(vertex_coord, is_back_vert)]
                 remap_vertices[vertex_index] = current_remap_vertex_index
 
         mesh.verts.ensure_lookup_table()
@@ -73,7 +133,6 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
 
         # import triangles
         remap_loops = []
-        two_sided_tris_count = 0
         for triangle in visual.triangles:
             try:
                 vert_1 = remap_vertices[triangle[0]]
@@ -102,11 +161,7 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
                     edge_normals_1[edge].add(normals[edge_verts[0]])
                     edge_normals_2[edge].add(normals[edge_verts[1]])
             except ValueError:    # face already exists
-                two_sided_tris_count += 1
-
-        if two_sided_tris_count:
-            if round(len(visual.triangles) / two_sided_tris_count, 0) == 2:
-                visual.use_two_sided_tris = True
+                pass
 
         mesh.faces.ensure_lookup_table()
 
