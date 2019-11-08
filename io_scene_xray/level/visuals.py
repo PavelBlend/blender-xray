@@ -20,5 +20,3 @@ def import_visuals(data, level):
         imp.import_(visual_data, visual_id, level, chunks, visuals_ids)
     chunks = list(chunks)
     chunks.sort()
-    for i in chunks:
-        print(i)

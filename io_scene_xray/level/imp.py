@@ -1,4 +1,4 @@
-import os, time, math
+import os, math
 
 import bpy, mathutils
 
@@ -412,10 +412,8 @@ def import_main(context, chunked_reader, level):
 
 
 def import_file(context, operator):
-    start_time = time.time()
     level = Level()
     chunked_reader = level_utils.get_level_reader(context.file_path)
     level.name = level_utils.get_level_name(context.file_path)
     level.path = os.path.dirname(context.file_path)
     import_main(context, chunked_reader, level)
-    print('total time: {}'.format(time.time() - start_time))

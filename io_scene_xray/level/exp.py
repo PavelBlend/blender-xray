@@ -1,4 +1,4 @@
-import os, time, math, struct
+import os, math, struct
 
 import bpy, bmesh, mathutils
 
@@ -1350,5 +1350,3 @@ def export_file(level_object, dir_path):
     with open(file_path + os.extsep + 'cform', 'wb') as file:
         file.write(level_cform_packed_writer.data)
     del level_cform_packed_writer, level
-
-    print('total time: {}s'.format(time.time() - start_time))
