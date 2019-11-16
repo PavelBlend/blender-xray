@@ -213,3 +213,65 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
             layout.prop(data, 'is_details', text='Details', toggle=True)
             if data.is_details:
                 det_ui.draw_function(self, context)
+
+        if not IS_28:
+            return
+        layout.prop(data, 'is_level', text='Level', toggle=True)
+        if data.is_level:
+            ogf_box = layout.box()
+
+            ogf_box.prop(data.level, 'object_type')
+            object_type = data.level.object_type
+
+            if object_type == 'LEVEL':
+                ogf_box.prop(data.level, 'source_path')
+
+            elif object_type == 'PORTAL':
+                ogf_box.prop_search(data.level, 'sector_front', bpy.data, 'objects')
+                ogf_box.prop_search(data.level, 'sector_back', bpy.data, 'objects')
+
+            elif object_type == 'VISUAL':
+                ogf_box.prop(data.level, 'visual_type')
+                if data.level.visual_type in {'TREE_ST', 'TREE_PM'}:
+                    # color scale
+                    color_scale_box = ogf_box.box()
+                    color_scale_box.label(text='Color Scale:')
+
+                    col = color_scale_box.row()
+                    col.prop(data.level, 'color_scale_rgb')
+
+                    col = color_scale_box.row()
+                    col.prop(data.level, 'color_scale_hemi')
+
+                    col = color_scale_box.row()
+                    col.prop(data.level, 'color_scale_sun')
+
+                    # color bias
+                    color_bias_box = ogf_box.box()
+                    color_bias_box.label(text='Color Bias:')
+
+                    col = color_bias_box.row()
+                    col.prop(data.level, 'color_bias_rgb')
+
+                    col = color_bias_box.row()
+                    col.prop(data.level, 'color_bias_hemi')
+
+                    col = color_bias_box.row()
+                    col.prop(data.level, 'color_bias_sun')
+
+                elif data.level.visual_type in {'NORMAL', 'PROGRESSIVE'}:
+                    ogf_box.prop(data.level, 'use_fastpath')
+
+            elif object_type == 'LIGHT_DYNAMIC':
+                ogf_box.prop(data.level, 'controller_id')
+                ogf_box.prop(data.level, 'light_type')
+                ogf_box.prop(data.level, 'diffuse')
+                ogf_box.prop(data.level, 'specular')
+                ogf_box.prop(data.level, 'ambient')
+                ogf_box.prop(data.level, 'range_')
+                ogf_box.prop(data.level, 'falloff')
+                ogf_box.prop(data.level, 'attenuation_0')
+                ogf_box.prop(data.level, 'attenuation_1')
+                ogf_box.prop(data.level, 'attenuation_2')
+                ogf_box.prop(data.level, 'theta')
+                ogf_box.prop(data.level, 'phi')

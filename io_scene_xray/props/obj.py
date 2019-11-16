@@ -87,6 +87,67 @@ def update_motion_collection_index(self, context):
             anim_data.action = motion
 
 
+object_type_items = (
+    ('LEVEL', 'Level', ''),
+    ('VISUAL', 'Visual', ''),
+    ('PORTAL', 'Portal', ''),
+    ('LIGHT_DYNAMIC', 'Light Dynamic', ''),
+    ('CFORM', 'CForm', '')
+)
+visual_type_items = (
+    ('NORMAL', 'Normal', ''),
+    ('HIERRARHY', 'Hierrarhy', ''),
+    ('PROGRESSIVE', 'Progressive', ''),
+    ('TREE_ST', 'Tree Static', ''),
+    ('TREE_PM', 'Tree Progressive', ''),
+    ('LOD', 'LoD', '')
+)
+
+
+xray_object_level_properties = {
+    'object_type': bpy.props.EnumProperty(name='Type', items=object_type_items, default='VISUAL'),
+    'visual_type': bpy.props.EnumProperty(name='Visual Type', items=visual_type_items, default='NORMAL'),
+    'source_path': bpy.props.StringProperty(name='Source Level Path', subtype='DIR_PATH'),
+    # Tree Color Scale
+    'color_scale_rgb': bpy.props.FloatVectorProperty(name='Light', min=0.0, max=1.0, subtype='COLOR'),
+    'color_scale_hemi': bpy.props.FloatVectorProperty(name='Hemi', min=0.0, max=1.0, subtype='COLOR'),
+    'color_scale_sun': bpy.props.FloatVectorProperty(name='Sun', min=0.0, max=1.0, subtype='COLOR'),
+    # Tree Color Bias
+    'color_bias_rgb': bpy.props.FloatVectorProperty(name='Light', min=0.0, max=1.0, subtype='COLOR'),
+    'color_bias_hemi': bpy.props.FloatVectorProperty(name='Hemi', min=0.0, max=1.0, subtype='COLOR'),
+    'color_bias_sun': bpy.props.FloatVectorProperty(name='Sun', min=0.0, max=1.0, subtype='COLOR'),
+    # Portal Properties
+    'sector_front': bpy.props.StringProperty(name='Sector Front'),
+    'sector_back': bpy.props.StringProperty(name='Sector Back'),
+    # Light Dynamic Properties
+    'controller_id': bpy.props.IntProperty(name='Controller ID'),
+    'light_type': bpy.props.IntProperty(name='Light Type'),
+    'diffuse': bpy.props.FloatVectorProperty(
+        name='Diffuse', min=0, max=1, subtype='COLOR', size=4
+    ),
+    'specular': bpy.props.FloatVectorProperty(
+        name='Specular', min=0, max=1, subtype='COLOR', size=4
+    ),
+    'ambient': bpy.props.FloatVectorProperty(
+        name='Ambient', min=0, max=1, subtype='COLOR', size=4
+    ),
+    'range_': bpy.props.FloatProperty(name='Range'),
+    'falloff': bpy.props.FloatProperty(name='Falloff'),
+    'attenuation_0': bpy.props.FloatProperty(name='Attenuation 0'),
+    'attenuation_1': bpy.props.FloatProperty(name='Attenuation 1'),
+    'attenuation_2': bpy.props.FloatProperty(name='Attenuation 2'),
+    'theta': bpy.props.FloatProperty(name='Theta'),
+    'phi': bpy.props.FloatProperty(name='Phi'),
+    'use_fastpath': bpy.props.BoolProperty(name='Use Fastpath Geometry', default=True)
+}
+
+
+class XRayObjectLevelProperties(bpy.types.PropertyGroup):
+    if not IS_28:
+        for prop_name, prop_value in xray_object_level_properties.items():
+            exec('{0} = xray_object_level_properties.get("{0}")'.format(prop_name))
+
+
 xray_object_revision_properties = {
     'owner': bpy.props.StringProperty(name='owner'),
     'ctime': bpy.props.IntProperty(name='ctime'),
@@ -218,6 +279,7 @@ xray_object_properties = {
     'root': bpy.props.BoolProperty(default=True),    # default=True - to backward compatibility
     'isroot': bpy.props.BoolProperty(get=get_isroot, set=set_isroot, options={'SKIP_SAVE'}),
     'is_details': bpy.props.BoolProperty(default=False),
+    'is_level': bpy.props.BoolProperty(default=False),
     'version': bpy.props.IntProperty(),
     'flags': bpy.props.IntProperty(name='flags'),
     'flags_force_custom': bpy.props.BoolProperty(options={'SKIP_SAVE'}),
@@ -306,11 +368,15 @@ xray_object_properties = {
     'detail': bpy.props.PointerProperty(
         type=det_types.XRayObjectDetailsProperties
     ),
-    'skls_browser': bpy.props.PointerProperty(type=XRayObjectSklsBrowserProperties)
+    'skls_browser': bpy.props.PointerProperty(type=XRayObjectSklsBrowserProperties),
+    'level': bpy.props.PointerProperty(type=XRayObjectLevelProperties)
 }
 
 
-@registry.requires(XRayObjectRevisionProperties, XRayObjectSklsBrowserProperties, MotionRef)
+@registry.requires(
+    XRayObjectRevisionProperties, XRayObjectSklsBrowserProperties, MotionRef,
+    XRayObjectLevelProperties
+)
 class XRayObjectProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Object
 
@@ -330,6 +396,7 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
 
 
 assign_props([
+    (xray_object_level_properties, XRayObjectLevelProperties),
     (xray_object_revision_properties, XRayObjectRevisionProperties),
     (motion_ref_props, MotionRef),
     (xray_object_properties, XRayObjectProperties)

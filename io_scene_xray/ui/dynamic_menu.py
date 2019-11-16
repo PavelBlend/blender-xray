@@ -117,7 +117,7 @@ class XRayXrMenuTemplate(DynamicMenu):
             return result
 
         tmp = dict()
-        for (name, _) in fparse(data):
+        for (name, _, _) in fparse(data):
             split = name.split('\\')
             push_dict(tmp, split, name)
         return dict_to_array(tmp)

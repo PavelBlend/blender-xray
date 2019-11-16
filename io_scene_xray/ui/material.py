@@ -1,6 +1,7 @@
 from . import base
 from .dynamic_menu import XRayXrMenuTemplate, DynamicMenu
 from ..utils import parse_shaders, parse_shaders_xrlc, parse_gamemtl
+from ..version_utils import IS_28
 from .. import registry
 
 
@@ -49,3 +50,7 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
         _gen_xr_selector(layout, data, 'eshader', 'EShader')
         _gen_xr_selector(layout, data, 'cshader', 'CShader')
         _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
+        if IS_28:
+            layout.label(text='Suppress:')
+            layout.prop(data, 'suppress_shadows', text='Shadows')
+            layout.prop(data, 'suppress_wm', text='Wallmarks')

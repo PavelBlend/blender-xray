@@ -6,7 +6,15 @@ def is_blender_2_80():
     return bpy.app.version >= (2, 80, 0)
 
 
+def is_blender_2_81():
+    if bpy.app.version[0] == 2 and bpy.app.version[1] > 80:
+        return True
+    else:
+        return False
+
+
 IS_28 = is_blender_2_80()
+IS_281 = is_blender_2_81()
 
 
 def get_import_export_menus():

@@ -3,6 +3,7 @@ import math, os
 from time import time
 
 from bpy_extras import io_utils
+import mathutils
 
 from . import log
 from .version_utils import IS_28, multiply
@@ -200,19 +201,21 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
     return mesh
 
 
-def calculate_mesh_bbox(verts):
+def calculate_mesh_bbox(verts, mat=mathutils.Matrix()):
     def vfunc(dst, src, func):
         dst.x = func(dst.x, src.x)
         dst.y = func(dst.y, src.y)
         dst.z = func(dst.z, src.z)
 
     fix_ensure_lookup_table(verts)
-    _min = verts[0].co.copy()
+    _min = multiply(mat, verts[0].co).copy()
     _max = _min.copy()
 
+    vs = []
     for vertex in verts:
-        vfunc(_min, vertex.co, min)
-        vfunc(_max, vertex.co, max)
+        vfunc(_min, multiply(mat, vertex.co), min)
+        vfunc(_max, multiply(mat, vertex.co), max)
+        vs.append(_max)
 
     return _min, _max
 
@@ -237,6 +240,7 @@ def gen_texture_name(texture, tx_folder, level_folder=None):
         elif a_tx_fpath.startswith(level_folder):    # gamedata\levels\level_name folder
             a_tx_fpath = make_relative_texture_path(a_tx_fpath, level_folder)
         else:    # gamedata\levels\level_name\texture_name
+            log.warn('Image "{}" has an invalid path'.format(texture.image.name))
             a_tx_fpath = os.path.split(a_tx_fpath)[-1]
     return a_tx_fpath
 
@@ -269,7 +273,7 @@ def parse_shaders(data):
         if cid == 3:
             reader = PackedReader(cdata)
             for _ in range(reader.int()):
-                yield (reader.gets(), '')
+                yield (reader.gets(), '', None)
 
 
 def parse_gamemtl(data):
@@ -281,11 +285,11 @@ def parse_gamemtl(data):
                 for (cccid, ccdata) in ChunkedReader(cdata):
                     if cccid == 0x1000:
                         reader = PackedReader(ccdata)
-                        reader.skip(4)
+                        material_id = reader.getf('<I')[0]
                         name = reader.gets()
                     if cccid == 0x1005:
                         desc = PackedReader(ccdata).gets()
-                yield (name, desc)
+                yield (name, desc, material_id)
 
 
 def parse_shaders_xrlc(data):
@@ -296,7 +300,7 @@ def parse_shaders_xrlc(data):
     for _ in range(len(data) // (128 + 16)):
         name = reader.gets()
         reader.getf('{}s'.format(127 - len(name) + 16))  # skip
-        yield (name, '')
+        yield (name, '', None)
 
 
 HELPER_OBJECT_NAME_PREFIX = '.xray-helper--'
@@ -522,3 +526,9 @@ def time_log():
 def save_file(file_path, writer):
     with open(file_path, 'wb') as file:
         file.write(writer.data)
+
+
+def read_file(file_path):
+    with open(file_path, 'rb') as file:
+        data = file.read()
+    return data
