@@ -5,6 +5,8 @@ DIR="blender/$BLENDER_VERSION"
 if [ ! -e "$DIR/blender" ]; then
     FROM="http://download.blender.org/release/Blender$BLENDER_VERSION"
     PYTHON_VERSION="3.5"
+    NONE="NONE"
+    TAR="NONE"
     case "$BLENDER_VERSION" in
         "2.77")
             TBZ="blender-$BLENDER_VERSION-linux-glibc211-x86_64.tar.bz2"
@@ -20,10 +22,18 @@ if [ ! -e "$DIR/blender" ]; then
             PYTHON_VERSION="3.7"
             ;;
         "2.81")
+            TBZ="blender-$BLENDER_VERSION-linux-glibc217-x86_64.tar.bz2"
+            PYTHON_VERSION="3.7"
+            ;;
+        "2.82")
+            TAR="blender-$BLENDER_VERSION-linux64.tar.xz"
+            PYTHON_VERSION="3.7"
+            ;;
+        "2.83")
             FROM="https://builder.blender.org/download"
             HTML=$(curl $FROM/)
-            if [[ "$HTML" =~ blender-$BLENDER_VERSION-[a-z0-9]+-linux-glibc[0-9]+-x86_64.tar.bz2 ]]; then
-                TBZ="${BASH_REMATCH[0]}"
+            if [[ "$HTML" =~ blender-$BLENDER_VERSION-[a-z0-9]+-linux64.tar.xz ]]; then
+                TAR="${BASH_REMATCH[0]}"
             else
                 echo "Cannot parse file name from: $HTML"
                 exit 1
@@ -36,8 +46,15 @@ if [ ! -e "$DIR/blender" ]; then
             ;;
     esac
     mkdir -p "$DIR"
-    wget "$FROM/$TBZ"
-    tar jxf "$TBZ" -C "$DIR" --strip-components 1
+
+    echo "$NONE"
+    if [ "$TAR" = "$NONE" ]; then
+        wget "$FROM/$TBZ"
+        tar jxf "$TBZ" -C "$DIR" --strip-components 1
+    else
+        wget "$FROM/$TAR"
+        tar -xf "$TAR" -C "$DIR" --strip-components 1
+    fi
 
     TGT=$HOME/.config/blender/$BLENDER_VERSION/scripts/addons
     mkdir -p $TGT

@@ -14,4 +14,9 @@ cov.stop()
 cov.xml_report()
 
 if '--save-html-report' in sys.argv:
-    cov.html_report()
+    save_html_index = sys.argv.index('--save-html-report')
+    if len(sys.argv) > save_html_index:
+        save_directory = sys.argv[save_html_index + 1]
+        cov.html_report(directory=save_directory)
+    else:
+        cov.html_report()
