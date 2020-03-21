@@ -36,6 +36,30 @@ def get_image_nodes(node, image_nodes):
             get_image_nodes(from_node, image_nodes)
 
 
+class MATERIAL_OT_xray_switch_render(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.switch_render'
+    bl_label = 'Switch Render'
+    bl_description = 'Switch Cycles/Internal Render'
+
+    def execute(self, context):
+        scene = context.scene
+        if scene.render.engine == 'CYCLES':
+            scene.render.engine = 'BLENDER_RENDER'
+        elif scene.render.engine == 'BLENDER_RENDER':
+            scene.render.engine = 'CYCLES'
+
+        materials = get_materials(context, scene)
+
+        if scene.render.engine == 'CYCLES':
+            for material in materials:
+                material.use_nodes = True
+        elif scene.render.engine == 'BLENDER_RENDER':
+            for material in materials:
+                material.use_nodes = False
+
+        return {'FINISHED'}
+
+
 class MATERIAL_OT_xray_convert_to_internal(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_to_internal'
     bl_label = 'Convert to Internal'
@@ -165,8 +189,10 @@ class MATERIAL_OT_xray_convert_to_cycles(bpy.types.Operator):
 def register():
     bpy.utils.register_class(MATERIAL_OT_xray_convert_to_cycles)
     bpy.utils.register_class(MATERIAL_OT_xray_convert_to_internal)
+    bpy.utils.register_class(MATERIAL_OT_xray_switch_render)
 
 
 def unregister():
+    bpy.utils.unregister_class(MATERIAL_OT_xray_switch_render)
     bpy.utils.unregister_class(MATERIAL_OT_xray_convert_to_internal)
     bpy.utils.unregister_class(MATERIAL_OT_xray_convert_to_cycles)

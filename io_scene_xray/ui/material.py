@@ -62,3 +62,8 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
                 box.prop(context.scene.xray, 'convert_materials_mode')
                 box.operator('io_scene_xray.convert_to_cycles')
                 box.operator('io_scene_xray.convert_to_internal')
+                if context.scene.render.engine == 'CYCLES':
+                    text = 'Switch Render (Internal)'
+                elif context.scene.render.engine == 'BLENDER_RENDER':
+                    text = 'Switch Render (Cycles)'
+                box.operator('io_scene_xray.switch_render', text=text)
