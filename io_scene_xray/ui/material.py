@@ -60,6 +60,7 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
             )
             if box:
                 box.prop(context.scene.xray, 'convert_materials_mode')
+                box.prop(context.scene.xray, 'convert_materials_shader_type')
                 box.operator('io_scene_xray.convert_to_cycles')
                 box.operator('io_scene_xray.convert_to_internal')
                 if context.scene.render.engine == 'CYCLES':

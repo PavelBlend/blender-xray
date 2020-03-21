@@ -21,6 +21,11 @@ convert_materials_mode_items = (
     ('SELECTED_OBJECTS', 'Selected Objects', ''),
     ('ALL_MATERIALS', 'All Materials', '')
 )
+convert_materials_shader_type_items = (
+    ('PRINCIPLED', 'Principled', ''),
+    ('DIFFUSE', 'Diffuse', ''),
+    ('EMISSION', 'Emission', '')
+)
 
 
 xray_scene_properties = {
@@ -40,6 +45,9 @@ xray_scene_properties = {
     'import_skls': bpy.props.PointerProperty(type=ImportSkls),
     'convert_materials_mode': bpy.props.EnumProperty(
         name='Mode', items=convert_materials_mode_items, default='ACTIVE_MATERIAL'
+    ),
+    'convert_materials_shader_type': bpy.props.EnumProperty(
+        name='Shader', items=convert_materials_shader_type_items, default='PRINCIPLED'
     )
 }
 

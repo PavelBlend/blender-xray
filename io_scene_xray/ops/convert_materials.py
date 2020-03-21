@@ -128,6 +128,12 @@ class MATERIAL_OT_xray_convert_to_internal(bpy.types.Operator):
         return {'FINISHED'}
 
 
+shader_keys = {
+    'PRINCIPLED': ['ShaderNodeBsdfPrincipled', 'Base Color', 'BSDF'],
+    'DIFFUSE': ['ShaderNodeBsdfDiffuse', 'Color', 'BSDF'],
+    'EMISSION': ['ShaderNodeEmission', 'Color', 'Emission']
+}
+
 class MATERIAL_OT_xray_convert_to_cycles(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_to_cycles'
     bl_label = 'Convert to Cycles'
@@ -174,15 +180,17 @@ class MATERIAL_OT_xray_convert_to_cycles(bpy.types.Operator):
             image_node.location = location
             location[0] += 300.0
             image_node.image = image
-            princilped_node = nodes.new('ShaderNodeBsdfPrincipled')
-            princilped_node.location = location
+            shader_node = nodes.new(shader_keys[scene.xray.convert_materials_shader_type][0])
+            shader_node.location = location
             location[0] += 300.0
             output_node = nodes.new('ShaderNodeOutputMaterial')
             output_node.location = location
             location[0] += 300.0
             node_tree.links.new(uv_node.outputs['UV'], image_node.inputs['Vector'])
-            node_tree.links.new(image_node.outputs['Color'], princilped_node.inputs['Base Color'])
-            node_tree.links.new(princilped_node.outputs['BSDF'], output_node.inputs['Surface'])
+            color_name = shader_keys[scene.xray.convert_materials_shader_type][1]
+            output_name = shader_keys[scene.xray.convert_materials_shader_type][2]
+            node_tree.links.new(image_node.outputs['Color'], shader_node.inputs[color_name])
+            node_tree.links.new(shader_node.outputs[output_name], output_node.inputs['Surface'])
         return {'FINISHED'}
 
 
