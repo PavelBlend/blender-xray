@@ -1,4 +1,4 @@
-from . import base
+from . import base, collapsible
 from .dynamic_menu import XRayXrMenuTemplate, DynamicMenu
 from ..utils import parse_shaders, parse_shaders_xrlc, parse_gamemtl
 from ..version_utils import IS_28
@@ -54,3 +54,10 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
             layout.label(text='Suppress:')
             layout.prop(data, 'suppress_shadows', text='Shadows')
             layout.prop(data, 'suppress_wm', text='Wallmarks')
+        else:
+            row, box = collapsible.draw(
+                layout, 'test_key', text='Material Converter'
+            )
+            if box:
+                box.prop(context.scene.xray, 'convert_materials_mode')
+                box.operator('io_scene_xray.convert_to_cycles')

@@ -15,6 +15,14 @@ class ImportSkls(bpy.types.PropertyGroup):
             exec('{0} = import_skls_props.get("{0}")'.format(prop_name))
 
 
+convert_materials_mode_items = (
+    ('ACTIVE_MATERIAL', 'Active Material', ''),
+    ('ACTIVE_OBJECT', 'Active Object', ''),
+    ('SELECTED_OBJECTS', 'Selected Objects', ''),
+    ('ALL_MATERIALS', 'All Materials', '')
+)
+
+
 xray_scene_properties = {
     'export_root': bpy.props.StringProperty(
         name='Export Root',
@@ -29,7 +37,10 @@ xray_scene_properties = {
         default=0.5, min=0.0, max=1.0,
         options={'SKIP_SAVE'},
     ),
-    'import_skls': bpy.props.PointerProperty(type=ImportSkls)
+    'import_skls': bpy.props.PointerProperty(type=ImportSkls),
+    'convert_materials_mode': bpy.props.EnumProperty(
+        name='Mode', items=convert_materials_mode_items, default='ACTIVE_MATERIAL'
+    )
 }
 
 
