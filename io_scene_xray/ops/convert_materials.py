@@ -1,6 +1,109 @@
 import bpy
 
 
+def get_object_materials(bpy_object, materials):
+    for material_slot in bpy_object.material_slots:
+        material = material_slot.material
+        if material:
+            materials.append(material)
+
+
+def get_materials(context, scene):
+    mode = scene.xray.convert_materials_mode
+    materials = []
+    if mode == 'ACTIVE_MATERIAL':
+        materials.append(context.material)
+    elif mode == 'ACTIVE_OBJECT':
+        get_object_materials(context.object, materials)
+    elif mode == 'SELECTED_OBJECTS':
+        for bpy_object in context.selected_objects:
+            get_object_materials(bpy_object, materials)
+    elif mode == 'ALL_MATERIALS':
+        for material in bpy.data.materials:
+            materials.append(material)
+    return materials
+
+
+def get_image_nodes(node, image_nodes):
+    for node_input in node.inputs:
+        from_node = None
+        for link in node_input.links:
+            from_node = link.from_node
+            break
+        if from_node:
+            if from_node.type == 'TEX_IMAGE':
+                image_nodes.append(from_node)
+            get_image_nodes(from_node, image_nodes)
+
+
+class MATERIAL_OT_xray_convert_to_internal(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.convert_to_internal'
+    bl_label = 'Convert to Internal'
+    bl_description = ''
+
+    def execute(self, context):
+        scene = context.scene
+        if scene.render.engine == 'CYCLES':
+            scene.render.engine = 'BLENDER_RENDER'
+
+        materials = get_materials(context, scene)
+
+        for material in materials:
+            if not material.use_nodes:
+                self.report({'WARNING'}, 'Material "{}" does not use cycles nodes.'.format(material.name))
+                continue
+            node_tree = material.node_tree
+            nodes = node_tree.nodes
+            output_node = None
+            for node in nodes:
+                if node.type == 'OUTPUT_MATERIAL':
+                    if node.is_active_output:
+                        output_node = node
+                        break
+            if not output_node:
+                self.report({'WARNING'}, 'Material "{}" has no output node.'.format(material.name))
+                continue
+            image_nodes = []
+            get_image_nodes(output_node, image_nodes)
+            images = []
+            for image_node in image_nodes:
+                images.append(image_node.image)
+            if len(images) != 1:
+                self.report({'WARNING'}, 'Material "{}" has to many image nodes'.format(material.name))
+                continue
+            image = images[0]
+            uv_map = None
+            if len(image_nodes[0].inputs['Vector'].links):
+                from_node = image_nodes[0].inputs['Vector'].links[0].from_node
+                if from_node.type == 'UVMAP':
+                    uv_map = from_node.uv_map
+            material.use_nodes = False
+            texture_slot = None
+            find_texture = False
+            for index, texture_slot in enumerate(material.texture_slots):
+                if not find_texture:
+                    if texture_slot:
+                        texture = texture_slot.texture
+                        texture.type = 'IMAGE'
+                        texture.image = image
+                        texture.name = image.name
+                        if uv_map:
+                            texture_slot.uv_layer = uv_map
+                        break
+                else:
+                    material.texture_slots[index] = None
+            if not texture_slot:
+                bpy_texture = bpy.data.textures.new(image.name, 'IMAGE')
+                bpy_texture.type = 'IMAGE'
+                bpy_texture.image = image
+                texture_slot = material.texture_slots.add()
+                texture_slot.texture = bpy_texture
+                if uv_map:
+                    texture_slot.uv_layer = uv_map
+
+        return {'FINISHED'}
+
+
 class MATERIAL_OT_xray_convert_to_cycles(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_to_cycles'
     bl_label = 'Convert to Cycles'
@@ -11,24 +114,7 @@ class MATERIAL_OT_xray_convert_to_cycles(bpy.types.Operator):
         if scene.render.engine == 'BLENDER_RENDER':
             scene.render.engine = 'CYCLES'
 
-        def get_object_materials(bpy_object, materials):
-            for material_slot in bpy_object.material_slots:
-                material = material_slot.material
-                if material:
-                    materials.append(material)
-
-        mode = scene.xray.convert_materials_mode
-        materials = []
-        if mode == 'ACTIVE_MATERIAL':
-            materials.append(context.material)
-        elif mode == 'ACTIVE_OBJECT':
-            get_object_materials(context.object, materials)
-        elif mode == 'SELECTED_OBJECTS':
-            for bpy_object in context.selected_objects:
-                get_object_materials(bpy_object, materials)
-        elif mode == 'ALL_MATERIALS':
-            for material in bpy.data.materials:
-                materials.append(material)
+        materials = get_materials(context, scene)
 
         for material in materials:
             material.use_nodes = True
@@ -78,7 +164,9 @@ class MATERIAL_OT_xray_convert_to_cycles(bpy.types.Operator):
 
 def register():
     bpy.utils.register_class(MATERIAL_OT_xray_convert_to_cycles)
+    bpy.utils.register_class(MATERIAL_OT_xray_convert_to_internal)
 
 
 def unregister():
+    bpy.utils.unregister_class(MATERIAL_OT_xray_convert_to_internal)
     bpy.utils.unregister_class(MATERIAL_OT_xray_convert_to_cycles)

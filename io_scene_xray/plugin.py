@@ -257,11 +257,9 @@ def register():
     registry.register_thing(ogf_ops, __name__)
     registry.register_thing(motion_list, __name__)
     scene_ops.register_operators()
-    print('0' * 79)
     if IS_28:
         level_ops.register_operators()
     else:
-        print(10)
         convert_materials.register()
     det_ops.register_operators()
     registry.register_thing(err_ops, __name__)
