@@ -46,6 +46,7 @@ class TestDmExport(utils.XRayTestCase):
                     princ_shader.inputs['Base Color']
                 )
             else:
+                bpy_texture.image = bpy_image
                 texture_slot = obj.data.materials[0].texture_slots.add()
                 texture_slot.texture = bpy_texture
         return objs
