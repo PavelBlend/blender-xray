@@ -259,8 +259,7 @@ def register():
     scene_ops.register_operators()
     if IS_28:
         level_ops.register_operators()
-    else:
-        convert_materials.register()
+    convert_materials.register()
     det_ops.register_operators()
     registry.register_thing(err_ops, __name__)
     append_menu_func()
@@ -279,8 +278,7 @@ def unregister():
     det_ops.unregister_operators()
     if IS_28:
         level_ops.unregister_operators()
-    else:
-        convert_materials.unregister()
+    convert_materials.unregister()
     scene_ops.unregister_operators()
     registry.unregister_thing(motion_list, __name__)
     registry.unregister_thing(ogf_ops, __name__)

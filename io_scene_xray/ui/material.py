@@ -50,16 +50,18 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
         _gen_xr_selector(layout, data, 'eshader', 'EShader')
         _gen_xr_selector(layout, data, 'cshader', 'CShader')
         _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
+        collapsible_text = 'Converter'
         if IS_28:
             layout.label(text='Suppress:')
             layout.prop(data, 'suppress_shadows', text='Shadows')
             layout.prop(data, 'suppress_wm', text='Wallmarks')
-        else:
-            row, box = collapsible.draw(
-                layout, 'test_key', text='Material Converter'
-            )
-            if box:
-                box.prop(context.scene.xray, 'convert_materials_mode')
+            collapsible_text = 'Utils'
+        row, box = collapsible.draw(
+            layout, 'test_key', text='Material {0}'.format(collapsible_text)
+        )
+        if box:
+            box.prop(context.scene.xray, 'convert_materials_mode')
+            if not IS_28:
                 box.prop(context.scene.xray, 'convert_materials_shader_type')
                 box.operator('io_scene_xray.convert_to_cycles')
                 box.operator('io_scene_xray.convert_to_internal')
@@ -68,3 +70,6 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
                 elif context.scene.render.engine == 'BLENDER_RENDER':
                     text = 'Switch Render (Cycles)'
                 box.operator('io_scene_xray.switch_render', text=text)
+            else:
+                box.prop(context.scene.xray, 'materials_set_alpha_mode')
+                box.operator('io_scene_xray.set_texture_alpha')
