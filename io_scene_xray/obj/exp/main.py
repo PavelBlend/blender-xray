@@ -22,10 +22,26 @@ def export_version(chunked_writer):
     )
 
 
-def export_flags(chunked_writer, xray):
+def get_object_flags(xray):
+    if xray is not None:
+        flags = xray.flags
+    else:
+        flags = 0
+    return flags
+
+
+def export_flags(chunked_writer, xray, some_arm):
+    flags = get_object_flags(xray)
+    if not some_arm is None:
+        # 1 - Dynamic
+        # 3 - Progressive Dynamic
+        if not flags in (1, 3):
+            # set Dynamic flag
+            # so that it is possible to export to ogf from ActorEditor
+            flags = 1
     chunked_writer.put(
         fmt.Chunks.Object.FLAGS,
-        xray_io.PackedWriter().putf('I', xray.flags if xray is not None else 0)
+        xray_io.PackedWriter().putf('I', flags)
     )
 
 
@@ -56,7 +72,7 @@ def validate_vertex_weights(bpy_obj, arm_obj):
         ))
 
 
-def export_meshes(chunked_writer, bpy_obj, context):
+def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
     mesh_writers = []
     armatures = set()
     materials = set()
@@ -155,6 +171,12 @@ def export_meshes(chunked_writer, bpy_obj, context):
                 bpy_arm_obj.name, root_bones
         ))
 
+    arm_list = list(armatures)
+
+    # take care of static objects
+    some_arm = arm_list[0] if arm_list else None
+    export_flags(chunked_writer, obj_xray, some_arm)
+
     msw = xray_io.ChunkedWriter()
     idx = 0
     for mesh_writer in mesh_writers:
@@ -162,11 +184,6 @@ def export_meshes(chunked_writer, bpy_obj, context):
         idx += 1
 
     chunked_writer.put(fmt.Chunks.Object.MESHES, msw)
-
-    arm_list = list(armatures)
-
-    # take care of static objects
-    some_arm = arm_list[0] if arm_list else None
 
     return materials, bone_writers, some_arm, bpy_root, uv_maps_names
 
@@ -368,9 +385,8 @@ def export_main(bpy_obj, chunked_writer, context):
     xray = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
 
     export_version(chunked_writer)
-    export_flags(chunked_writer, xray)
     materials, bone_writers, some_arm, bpy_root, uv_map_names = export_meshes(
-        chunked_writer, bpy_obj, context
+        chunked_writer, bpy_obj, context, xray
     )
     export_surfaces(chunked_writer, context, materials, uv_map_names)
     export_bones(chunked_writer, bone_writers)

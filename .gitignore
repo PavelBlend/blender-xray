@@ -4,5 +4,4 @@ coverage.xml
 *.bat
 *.zip
 test_fmt_level_export
-!run_tests.bat
 .coverage
