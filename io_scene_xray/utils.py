@@ -524,8 +524,14 @@ def time_log():
 
 
 def save_file(file_path, writer):
-    with open(file_path, 'wb') as file:
-        file.write(writer.data)
+    try:
+        with open(file_path, 'wb') as file:
+            file.write(writer.data)
+    except PermissionError:
+        raise AppError(
+            'Unable to write file: {}. '
+            'The file is open in another program.'.format(file_path)
+        )
 
 
 def read_file(file_path):
