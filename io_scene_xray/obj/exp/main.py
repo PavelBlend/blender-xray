@@ -175,11 +175,12 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
 
     # take care of static objects
     some_arm = arm_list[0] if arm_list else None
-    if some_arm.scale != mathutils.Vector((1.0, 1.0, 1.0)):
-        raise utils.AppError(
-            'Armature object "{}" has incorrect scale.'
-            'The scale must be (1.0, 1.0, 1.0).'.format(some_arm.name)
-        )
+    if some_arm:
+        if some_arm.scale != mathutils.Vector((1.0, 1.0, 1.0)):
+            raise utils.AppError(
+                'Armature object "{}" has incorrect scale.'
+                'The scale must be (1.0, 1.0, 1.0).'.format(some_arm.name)
+            )
     export_flags(chunked_writer, obj_xray, some_arm)
 
     msw = xray_io.ChunkedWriter()
