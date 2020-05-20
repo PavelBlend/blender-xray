@@ -3,7 +3,7 @@ from os import path
 
 import bpy
 
-from . import registry
+from . import registry, xray_ltx
 from .ui import collapsible, xprop
 from .utils import with_auto_property
 from .version_utils import IS_28, assign_props
@@ -89,7 +89,30 @@ __AUTO_PROPS__ = [
     'cshader_file',
     'objects_folder'
 ]
+fs_props = {
+    'gamedata_folder': ('$game_data$', None),
+    'textures_folder': ('$game_textures$', None),
+    'gamemtl_file': ('$game_data$', 'gamemtl.xr'),
+    'eshader_file': ('$game_data$', 'shaders.xr'),
+    'cshader_file': ('$game_data$', 'shaders_xrlc.xr'),
+    'objects_folder': ('$objects$', None)
+}
 def _auto_path(obj, self_name, path_suffix, checker):
+    if obj.fs_ltx_file:
+        if not path.exists(obj.fs_ltx_file):
+            return ''
+        try:
+            fs = xray_ltx.StalkerLtxParser(obj.fs_ltx_file)
+        except:
+            print('Invalid fs.ltx syntax')
+            return ''
+        prop_key, file_name = fs_props[self_name]
+        dir_path = fs.values[prop_key]
+        if file_name:
+            result = path.join(dir_path, file_name)
+        else:
+            result = dir_path
+        return result
     for prop in __AUTO_PROPS__:
         if prop == self_name:
             continue
@@ -141,6 +164,15 @@ class _ExplicitPathOp(bpy.types.Operator):
         return {'FINISHED'}
 
 
+def update_paths(self, context):
+    self.gamedata_folder = ''
+    self.textures_folder = ''
+    self.gamemtl_file = ''
+    self.eshader_file = ''
+    self.cshader_file = ''
+    self.objects_folder = ''
+
+
 plugin_preferences_props = {
     'expert_mode': bpy.props.BoolProperty(
         name='Expert Mode', description='Show additional properties/controls'
@@ -154,7 +186,10 @@ plugin_preferences_props = {
     'object_mesh_split_by_mat': PropObjectMeshSplitByMaterials(),
     'object_texture_names_from_path': PropObjectTextureNamesFromPath(),
     'object_bones_custom_shapes': PropObjectBonesCustomShapes(),
-    'anm_create_camera': PropAnmCameraAnimation()
+    'anm_create_camera': PropAnmCameraAnimation(),
+    'fs_ltx_file': bpy.props.StringProperty(
+        subtype='FILE_PATH', update=update_paths, name='fs.ltx File'
+    )
 }
 
 
@@ -240,6 +275,8 @@ class PluginPreferences(bpy.types.AddonPreferences):
         row.menu(PREFS_MT_xray_presets.__name__, text=PREFS_MT_xray_presets.bl_label)
         row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='ADD')
         row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='REMOVE').remove_active = True
+
+        layout.prop(self, 'fs_ltx_file')
 
         prop_auto(layout, self, 'gamedata_folder')
         prop_auto(layout, self, 'textures_folder')
