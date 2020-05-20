@@ -6,11 +6,12 @@ from .. import log
 
 
 class ImportContext:
-    def __init__(self, armature, motions_filter, prefix, filename):
+    def __init__(self, armature, motions_filter, prefix, filename, add_to_list):
         self.armature = armature
         self.motions_filter = motions_filter
         self.use_motion_prefix_name = prefix
         self.filename = filename
+        self.add_to_list = add_to_list
 
 
 def _import_skl(fpath, context, chunked_reader):

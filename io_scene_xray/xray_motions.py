@@ -37,18 +37,23 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
     if ver < 6:
         raise AppError('unsupported motions version', log_props(version=ver))
 
-    motion = bpy_armature.xray.motions_collection.add()
-    motion.name = act.name
+    if context.add_to_list:
+        motion = bpy_armature.xray.motions_collection.add()
+        motion.name = act.name
+    else:
+        motion = None
+
     if context.use_motion_prefix_name:
         bpy_armature.xray.use_custom_motion_names = True
-        motion.export_name = name
         # cut extension
         filename = context.filename[0 : -len(context.filename.split('.')[-1]) - 1]
         name = '{0}_{1}'.format(filename, name)
         act.name = name
-        motion.name = name
+        if motion:
+            motion.export_name = name
+            motion.name = name
 
-    if name != act.name and not context.use_motion_prefix_name:
+    if name != act.name and not context.use_motion_prefix_name and motion:
         bpy_armature.xray.use_custom_motion_names = True
         motion.export_name = name
 
