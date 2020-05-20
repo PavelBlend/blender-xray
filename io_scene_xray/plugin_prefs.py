@@ -7,6 +7,7 @@ from . import registry
 from .ui import collapsible, xprop
 from .utils import with_auto_property
 from .version_utils import IS_28, assign_props
+from bl_operators.presets import AddPresetBase
 
 
 def get_preferences():
@@ -234,6 +235,12 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 operator.path = prop
 
         layout = self.layout
+
+        row = layout.row(align=True)
+        row.menu(PREFS_MT_xray_presets.__name__, text=PREFS_MT_xray_presets.bl_label)
+        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='ZOOM_IN')
+        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='ZOOM_OUT').remove_active = True
+
         prop_auto(layout, self, 'gamedata_folder')
         prop_auto(layout, self, 'textures_folder')
         prop_auto(layout, self, 'gamemtl_file')
@@ -269,3 +276,40 @@ assign_props([
 assign_props([
     (plugin_preferences_props, PluginPreferences),
 ], replace=False)
+
+
+@registry.module_thing
+class PREFS_MT_xray_presets(bpy.types.Menu):
+    bl_label = 'Settings Presets'
+    preset_subdir = 'io_scene_xray/preferences'
+    preset_operator = 'script.execute_preset'
+    draw = bpy.types.Menu.draw_preset
+
+
+@registry.module_thing
+class AddPresetXrayPrefs(AddPresetBase, bpy.types.Operator):
+    bl_idname = 'xray.prefs_preset_add'
+    bl_label = 'Add Object Display Preset'
+    preset_menu = 'PREFS_MT_xray_presets'
+
+    preset_defines = [
+        'prefs = bpy.context.preferences.addons["io_scene_xray"].preferences'
+    ]
+    preset_values = [
+        'prefs.gamedata_folder',
+        'prefs.textures_folder',
+        'prefs.gamemtl_file',
+        'prefs.eshader_file',
+        'prefs.cshader_file',
+        'prefs.objects_folder',
+        'prefs.sdk_version',
+        'prefs.object_motions_import',
+        'prefs.object_motions_export',
+        'prefs.object_texture_names_from_path',
+        'prefs.object_mesh_split_by_mat',
+        'prefs.object_bones_custom_shapes',
+        'prefs.anm_create_camera',
+        'prefs.expert_mode',
+        'prefs.compact_menus'
+    ]
+    preset_subdir = 'io_scene_xray/preferences'
