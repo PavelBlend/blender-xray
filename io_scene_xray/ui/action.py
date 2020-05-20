@@ -2,6 +2,7 @@ import bpy
 
 from .base import XRayPanel, build_label
 from ..skl.ops import OpExportSkl
+from ..ops import action_utils
 from .. import registry
 
 
@@ -73,3 +74,7 @@ class XRAY_PT_ActionPanel(XRayPanel):
             row.prop(data, 'flags_weaponbone', text='Weapon Bone', toggle=True)
         layout.context_pointer_set(OpExportSkl.bl_idname + '.action', action)
         layout.operator(OpExportSkl.bl_idname, icon='EXPORT')
+        layout.label(text='Settings:')
+        row = layout.row(align=True)
+        row.operator(action_utils.XRayCopyActionSettingsOperator.bl_idname)
+        row.operator(action_utils.XRayPasteActionSettingsOperator.bl_idname)
