@@ -175,7 +175,11 @@ class OpExportDMs(bpy.types.Operator):
             return {'CANCELLED'}
 
         if len(objs) == 1:
-            bpy.ops.xray_export.dm('INVOKE_DEFAULT')
+            if objs[0].type != 'MESH':
+                self.report({'ERROR'}, 'The select object is not a mesh')
+                return {'CANCELLED'}
+            else:
+                bpy.ops.xray_export.dm('INVOKE_DEFAULT')
         else:
             self.detail_models = ','.join(
                 [o.name for o in objs if o.type == 'MESH']
@@ -274,6 +278,7 @@ class OpExportLevelDetails(
 
     bl_idname = 'xray_export.details'
     bl_label = 'Export .details'
+    bl_options = {'PRESET'}
 
     filename_ext = '.details'
 

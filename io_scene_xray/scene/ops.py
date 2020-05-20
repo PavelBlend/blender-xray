@@ -69,7 +69,7 @@ op_import_level_scene_props = {
 class OpImportLevelScene(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.scene'
     bl_label = 'Import .level'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     filename_ext = '.level'
 

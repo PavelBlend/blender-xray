@@ -58,6 +58,7 @@ op_export_objects_props = {
 class OpExportObjects(ops.BaseOperator, _WithExportMotions):
     bl_idname = 'export_object.xray_objects'
     bl_label = 'Export selected .object-s'
+    bl_options = {'PRESET'}
 
     if not IS_28:
         for prop_name, prop_value in op_export_objects_props.items():
@@ -138,6 +139,7 @@ class OpExportObject(
 
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
+    bl_options = {'PRESET'}
 
     filename_ext = '.object'
 

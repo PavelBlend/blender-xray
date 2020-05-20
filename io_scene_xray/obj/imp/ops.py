@@ -30,7 +30,7 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
     bl_label = 'Import .object'
     bl_description = 'Imports X-Ray object'
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'PRESET'}
 
     if not IS_28:
         for prop_name, prop_value in op_import_object_props.items():
