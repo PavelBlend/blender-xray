@@ -238,8 +238,8 @@ class PluginPreferences(bpy.types.AddonPreferences):
 
         row = layout.row(align=True)
         row.menu(PREFS_MT_xray_presets.__name__, text=PREFS_MT_xray_presets.bl_label)
-        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='ZOOM_IN')
-        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='ZOOM_OUT').remove_active = True
+        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='ADD')
+        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='REMOVE').remove_active = True
 
         prop_auto(layout, self, 'gamedata_folder')
         prop_auto(layout, self, 'textures_folder')
