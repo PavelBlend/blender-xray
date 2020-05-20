@@ -289,7 +289,7 @@ class PREFS_MT_xray_presets(bpy.types.Menu):
 @registry.module_thing
 class AddPresetXrayPrefs(AddPresetBase, bpy.types.Operator):
     bl_idname = 'xray.prefs_preset_add'
-    bl_label = 'Add Object Display Preset'
+    bl_label = 'Add XRay Preferences Preset'
     preset_menu = 'PREFS_MT_xray_presets'
 
     preset_defines = [
