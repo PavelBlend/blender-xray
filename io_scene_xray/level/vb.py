@@ -61,7 +61,7 @@ def import_vertices_color(packed_reader, vertex_buffer, vertices_count):
         ))
 
 
-def import_vertices_brush(packed_reader, vertex_buffer, vertices_count):
+def import_vertices_brush_14(packed_reader, vertex_buffer, vertices_count):
     for vertex_index in range(vertices_count):
         # position
         coord_x, coord_y, coord_z = packed_reader.getf('<3f')
@@ -84,6 +84,34 @@ def import_vertices_brush(packed_reader, vertex_buffer, vertices_count):
             coord_u / fmt.UV_COEFFICIENT + get_uv_corrector(correct_u),
             1 - coord_v / fmt.UV_COEFFICIENT - get_uv_corrector(correct_v)
         ))
+        # light map texture coordinates
+        lmap_u, lmap_v = packed_reader.getf('<2h')
+        vertex_buffer.uv_lmap.append((
+            lmap_u / fmt.LIGHT_MAP_UV_COEFFICIENT,
+            1 - lmap_v / fmt.LIGHT_MAP_UV_COEFFICIENT
+        ))
+
+
+def import_vertices_brush_13(packed_reader, vertex_buffer, vertices_count):
+    for vertex_index in range(vertices_count):
+        # position
+        coord_x, coord_y, coord_z = packed_reader.getf('<3f')
+        vertex_buffer.position.append((coord_x, coord_z, coord_y))
+        # normal
+        norm_x, norm_y, norm_z, hemi = packed_reader.getf('<4B')
+        vertex_buffer.normal.append((
+            (2.0 * norm_z / 255.0 - 1.0),
+            (2.0 * norm_x / 255.0 - 1.0),
+            (2.0 * norm_y / 255.0 - 1.0)
+        ))
+        vertex_buffer.color_hemi.append(hemi / 255)
+        # tangent and corrector of texture u coordinate
+        tangent_x, tangent_y, tangent_z, correct_u = packed_reader.getf('<4B')
+        # binormal and corrector of texture v coordinate
+        binorm_x, binorm_y, binorm_z, correct_v = packed_reader.getf('<4B')
+        # texture coordinates
+        coord_u, coord_v = packed_reader.getf('<2f')
+        vertex_buffer.uv.append((coord_u, 1 - coord_v))
         # light map texture coordinates
         lmap_u, lmap_v = packed_reader.getf('<2h')
         vertex_buffer.uv_lmap.append((
@@ -120,14 +148,18 @@ def import_vertices_tree(packed_reader, vertex_buffer, vertices_count):
 
 
 def import_vertices(packed_reader, vertex_buffer, vertices_count, usage_list):
+    # version 14
     if usage_list == fmt.VERTEX_TYPE_TREE:
         import_vertices_tree(packed_reader, vertex_buffer, vertices_count)
-    elif usage_list == fmt.VERTEX_TYPE_BRUSH:
-        import_vertices_brush(packed_reader, vertex_buffer, vertices_count)
+    elif usage_list == fmt.VERTEX_TYPE_BRUSH_14:
+        import_vertices_brush_14(packed_reader, vertex_buffer, vertices_count)
     elif usage_list == fmt.VERTEX_TYPE_COLOR:
         import_vertices_color(packed_reader, vertex_buffer, vertices_count)
     elif usage_list == fmt.VERTEX_TYPE_FASTPATH:
         import_vertices_fastpath(packed_reader, vertex_buffer, vertices_count)
+    # version 13
+    elif usage_list == fmt.VERTEX_TYPE_BRUSH_13:
+        import_vertices_brush_13(packed_reader, vertex_buffer, vertices_count)
     else:
         raise BaseException('Unsupported vertex buffer format', usage_list)
 

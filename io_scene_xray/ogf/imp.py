@@ -338,7 +338,7 @@ def check_unread_chunks(chunks):
     chunks_ids = list(chunks.keys())
     chunks_ids.sort()
     if chunks:
-        raise BaseException('There are unread chunks: {}'.format(chunks_ids))
+        print('There are unread chunks: {}'.format(list(map(hex, chunks_ids))))
 
 
 def import_children_l(data, visual, level, visual_type):
@@ -348,8 +348,16 @@ def import_children_l(data, visual, level, visual_type):
     hierrarhy_visual.index = visual.visual_id
     hierrarhy_visual.visual_type = visual_type
 
+    if len(data) == 4 + 4 * hierrarhy_visual.children_count:
+        child_format = 'I'
+    elif len(data) == 4 + 2 * hierrarhy_visual.children_count:
+        # used in agroprom 2215 (version 13)
+        child_format = 'H'
+    else:
+        raise BaseException('Bad OGF CHILDREN_L data')
+
     for child_index in range(hierrarhy_visual.children_count):
-        child = packed_reader.getf('I')[0]
+        child = packed_reader.getf(child_format)[0]
         hierrarhy_visual.children.append(child)
 
     level.hierrarhy_visuals.append(hierrarhy_visual)

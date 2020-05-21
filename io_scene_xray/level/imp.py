@@ -323,7 +323,7 @@ def import_geomx(level, context):
 
 
 def import_geom(level, chunks, context):
-    if level.xrlc_version == fmt.VERSION_14:
+    if level.xrlc_version in fmt.SUPPORTED_VERSIONS:
         geom_chunked_reader = level_utils.get_level_reader(
             context.file_path + os.extsep + 'geom'
         )
@@ -336,7 +336,7 @@ def import_geom(level, chunks, context):
 
 def import_level(level, context, chunks, geomx_chunks):
     shaders_chunk_data = chunks.pop(fmt.Chunks.SHADERS)
-    level.materials = shaders.import_shaders(context, shaders_chunk_data)
+    level.materials = shaders.import_shaders(level, context, shaders_chunk_data)
     del shaders_chunk_data
 
     # geometry
@@ -353,17 +353,18 @@ def import_level(level, context, chunks, geomx_chunks):
     del swis_chunk_data
 
     # fastpath geometry
-    fastpath_vb_chunk_data = geomx_chunks.pop(fmt.Chunks.VB)
-    level.fastpath_vertex_buffers = vb.import_vertex_buffers(fastpath_vb_chunk_data)
-    del fastpath_vb_chunk_data
+    if level.xrlc_version == fmt.VERSION_14:
+        fastpath_vb_chunk_data = geomx_chunks.pop(fmt.Chunks.VB)
+        level.fastpath_vertex_buffers = vb.import_vertex_buffers(fastpath_vb_chunk_data)
+        del fastpath_vb_chunk_data
 
-    fastpath_ib_chunk_data = geomx_chunks.pop(fmt.Chunks.IB)
-    level.fastpath_indices_buffers = ib.import_indices_buffers(fastpath_ib_chunk_data)
-    del fastpath_ib_chunk_data
+        fastpath_ib_chunk_data = geomx_chunks.pop(fmt.Chunks.IB)
+        level.fastpath_indices_buffers = ib.import_indices_buffers(fastpath_ib_chunk_data)
+        del fastpath_ib_chunk_data
 
-    fastpath_swis_chunk_data = geomx_chunks.pop(fmt.Chunks.SWIS)
-    level.fastpath_swis = swi.import_slide_window_items(fastpath_swis_chunk_data)
-    del fastpath_swis_chunk_data
+        fastpath_swis_chunk_data = geomx_chunks.pop(fmt.Chunks.SWIS)
+        level.fastpath_swis = swi.import_slide_window_items(fastpath_swis_chunk_data)
+        del fastpath_swis_chunk_data
 
     level_collection = create.create_level_collections(level)
     level_object = create.create_level_objects(level, level_collection)

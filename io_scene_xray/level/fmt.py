@@ -23,7 +23,8 @@ GLOW_SIZE = 18
 LIGHT_DYNAMIC_SIZE = 108
 
 VERSION_14 = 14
-SUPPORTED_VERSIONS = (VERSION_14, )
+VERSION_13 = 13
+SUPPORTED_VERSIONS = (VERSION_14, VERSION_13)
 
 # vertex buffer type names
 FLOAT2 = 'FLOAT2'
@@ -128,12 +129,23 @@ VERTEX_TYPE_TREE = [
     (usage_values[TEXCOORD], types_values[SHORT4])
 ]
 
-VERTEX_TYPE_BRUSH = [
+# version 14
+VERTEX_TYPE_BRUSH_14 = [
     (usage_values[POSITION], types_values[FLOAT3]),
     (usage_values[NORMAL], types_values[D3DCOLOR]),
     (usage_values[TANGENT], types_values[D3DCOLOR]),
     (usage_values[BINORMAL], types_values[D3DCOLOR]),
     (usage_values[TEXCOORD], types_values[SHORT2]),
+    (usage_values[TEXCOORD], types_values[SHORT2])
+]
+
+# version 13
+VERTEX_TYPE_BRUSH_13 = [
+    (usage_values[POSITION], types_values[FLOAT3]),
+    (usage_values[NORMAL], types_values[D3DCOLOR]),
+    (usage_values[TANGENT], types_values[D3DCOLOR]),
+    (usage_values[BINORMAL], types_values[D3DCOLOR]),
+    (usage_values[TEXCOORD], types_values[FLOAT2]),
     (usage_values[TEXCOORD], types_values[SHORT2])
 ]
 
