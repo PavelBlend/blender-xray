@@ -11,12 +11,17 @@ class StalkerLtxParser:
             self.parent = parent
             self.params = {}
 
-    def __init__(self, path):
-        self.path = path
-        file = open(self.path, 'r')
-        self.data = file.read()
-        file.close()
-        self.parse()
+    def __init__(self, path, data=None):
+        if not data:
+            self.path = path
+            file = open(self.path, 'r')
+            self.data = file.read()
+            file.close()
+            self.parse()
+        else:
+            self.path = ''
+            self.data = data
+            self.parse()
 
     def parse(self):
         parse_lines = []

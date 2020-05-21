@@ -1,12 +1,9 @@
-import os
-
 import bpy
 
-from .. import xray_io
+from .. import xray_ltx
 
 
-BUFFER_FILE_NAME = 'blender-xray-buffer-file.bin'
-ACTION_SETTINGS_HEADER = 'ACTION_SETTINGS'
+SECTION_NAME = 'action_xray_settings'
 
 
 def get_xray_settings():
@@ -21,52 +18,38 @@ def get_xray_settings():
 
 
 def write_buffer_data():
-    folder = get_temp_folder()
-    filepath = os.path.join(folder, BUFFER_FILE_NAME)
-    packed_writer = xray_io.PackedWriter()
     xray = get_xray_settings()
+    buffer_text = ''
     if xray:
-        packed_writer.puts(ACTION_SETTINGS_HEADER)
-        packed_writer.putf('<f', xray.fps)
-        packed_writer.putf('<I', xray.flags)
-        packed_writer.putf('<f', xray.speed)
-        packed_writer.putf('<f', xray.accrue)
-        packed_writer.putf('<f', xray.falloff)
-        packed_writer.putf('<f', xray.power)
-        packed_writer.puts(xray.bonepart_name)
-        packed_writer.puts(xray.bonestart_name)
-    with open(filepath, 'wb') as file:
-        file.write(packed_writer.data)
+        buffer_text += '[{}]:\n'.format(SECTION_NAME)
+        buffer_text += 'fps = {}\n'.format(xray.fps)
+        buffer_text += 'flags = {}\n'.format(xray.flags)
+        buffer_text += 'speed = {}\n'.format(xray.speed)
+        buffer_text += 'accrue = {}\n'.format(xray.accrue)
+        buffer_text += 'falloff = {}\n'.format(xray.falloff)
+        buffer_text += 'power = {}\n'.format(xray.power)
+        buffer_text += 'bonepart_name = "{}"\n'.format(xray.bonepart_name)
+        buffer_text += 'bonestart_name = "{}"\n'.format(xray.bonestart_name)
+    bpy.context.window_manager.clipboard = buffer_text
 
 
 def read_buffer_data():
-    folder = get_temp_folder()
-    filepath = os.path.join(folder, BUFFER_FILE_NAME)
-    if not os.path.exists(filepath):
-        return
     xray = get_xray_settings()
     if xray:
-        with open(filepath, 'rb') as file:
-            data = file.read()
-        packed_reader = xray_io.PackedReader(data)
-        header = packed_reader.gets()
-        if header == ACTION_SETTINGS_HEADER:
-            xray.fps = packed_reader.getf('<f')[0]
-            xray.flags = packed_reader.getf('<I')[0]
-            xray.speed = packed_reader.getf('<f')[0]
-            xray.accrue = packed_reader.getf('<f')[0]
-            xray.falloff = packed_reader.getf('<f')[0]
-            xray.power = packed_reader.getf('<f')[0]
-            xray.bonepart_name = packed_reader.gets()
-            xray.bonestart_name = packed_reader.gets()
-
-
-def get_temp_folder():
-    context = bpy.context
-    prefs = context.preferences
-    filepaths = prefs.filepaths
-    temp_folder = bpy.path.abspath(filepaths.temporary_directory)
-    return temp_folder
+        buffer_text = bpy.context.window_manager.clipboard
+        ltx = xray_ltx.StalkerLtxParser(None, data=buffer_text)
+        section = ltx.sections.get(SECTION_NAME, None)
+        if not section:
+            return
+        params = section.params
+        xray.fps = float(params.get('fps'))
+        xray.flags = int(params.get('flags'))
+        xray.speed = float(params.get('speed'))
+        xray.accrue = float(params.get('accrue'))
+        xray.falloff = float(params.get('falloff'))
+        xray.power = float(params.get('power'))
+        xray.bonepart_name = params.get('bonepart_name')
+        xray.bonestart_name = params.get('bonestart_name')
 
 
 class XRayCopyActionSettingsOperator(bpy.types.Operator):
