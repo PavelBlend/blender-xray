@@ -447,52 +447,139 @@ def links_nodes_v13(
         image_node.inputs['Vector']
     )
 
-    for lmap_image_node in lights_nodes:
+    if uv_map_nodes[1]:    # light map uv
+        for lmap_image_node in lights_nodes:
+            link_nodes(
+                bpy_material,
+                uv_map_nodes[1].outputs['UV'],
+                lmap_image_node.inputs['Vector']
+            )
+
+        # brush light maps links
+        if len(lights_nodes) == 2:
+            # light + hemi
+            link_nodes(
+                bpy_material,
+                lights_nodes[0].outputs['Color'],
+                mix_rgb_nodes[0].inputs['Color1']
+            )
+            link_nodes(
+                bpy_material,
+                lights_nodes[0].outputs['Alpha'],
+                mix_rgb_nodes[0].inputs['Color2']
+            )
+            # +sun
+            link_nodes(
+                bpy_material,
+                lights_nodes[1].outputs['Color'],
+                mix_rgb_nodes[1].inputs['Color2']
+            )
+            link_nodes(
+                bpy_material,
+                mix_rgb_nodes[0].outputs['Color'],
+                mix_rgb_nodes[1].inputs['Color1']
+            )
+            # + ambient
+            link_nodes(
+                bpy_material,
+                mix_rgb_nodes[1].outputs['Color'],
+                mix_rgb_nodes[2].inputs['Color1']
+            )
+            # + light maps
+            link_nodes(
+                bpy_material,
+                image_node.outputs['Color'],
+                mix_rgb_nodes[3].inputs['Color1']
+            )
+            link_nodes(
+                bpy_material,
+                mix_rgb_nodes[2].outputs['Color'],
+                mix_rgb_nodes[3].inputs['Color2']
+            )
+        # terrain light maps links
+        if len(lights_nodes) == 1:
+            # static lights
+            link_nodes(
+                bpy_material,
+                lights_nodes[0].outputs['Color'],
+                mix_rgb_nodes[0].inputs['Color1']
+            )
+            # hemi
+            link_nodes(
+                bpy_material,
+                image_node.outputs['Alpha'],
+                mix_rgb_nodes[0].inputs['Color2']
+            )
+            link_nodes(
+                bpy_material,
+                mix_rgb_nodes[0].outputs['Color'],
+                mix_rgb_nodes[1].inputs['Color1']
+            )
+            # shadows
+            link_nodes(
+                bpy_material,
+                lights_nodes[0].outputs['Alpha'],
+                mix_rgb_nodes[1].inputs['Color2']
+            )
+            # ambient
+            link_nodes(
+                bpy_material,
+                mix_rgb_nodes[1].outputs['Color'],
+                mix_rgb_nodes[2].inputs['Color1']
+            )
+            # light map + texture
+            link_nodes(
+                bpy_material,
+                image_node.outputs['Color'],
+                mix_rgb_nodes[3].inputs['Color1']
+            )
+            link_nodes(
+                bpy_material,
+                mix_rgb_nodes[2].outputs['Color'],
+                mix_rgb_nodes[3].inputs['Color2']
+            )
+            link_nodes(
+                bpy_material,
+                mix_rgb_nodes[3].outputs['Color'],
+                principled_node.inputs['Base Color']
+            )
+
+    else:    # vertex colors
         link_nodes(
             bpy_material,
-            uv_map_nodes[1].outputs['UV'],
-            lmap_image_node.inputs['Vector']
+            lights_nodes[0].outputs['Color'],
+            mix_rgb_nodes[0].inputs['Color1']
         )
-
-    # light + hemi
-    link_nodes(
-        bpy_material,
-        lights_nodes[0].outputs['Color'],
-        mix_rgb_nodes[0].inputs['Color1']
-    )
-    link_nodes(
-        bpy_material,
-        lights_nodes[0].outputs['Alpha'],
-        mix_rgb_nodes[0].inputs['Color2']
-    )
-    # +sun
-    link_nodes(
-        bpy_material,
-        lights_nodes[1].outputs['Color'],
-        mix_rgb_nodes[1].inputs['Color2']
-    )
-    link_nodes(
-        bpy_material,
-        mix_rgb_nodes[0].outputs['Color'],
-        mix_rgb_nodes[1].inputs['Color1']
-    )
-    # + ambient
-    link_nodes(
-        bpy_material,
-        mix_rgb_nodes[1].outputs['Color'],
-        mix_rgb_nodes[2].inputs['Color1']
-    )
-    # + light maps
-    link_nodes(
-        bpy_material,
-        image_node.outputs['Color'],
-        mix_rgb_nodes[3].inputs['Color1']
-    )
-    link_nodes(
-        bpy_material,
-        mix_rgb_nodes[2].outputs['Color'],
-        mix_rgb_nodes[3].inputs['Color2']
-    )
+        link_nodes(
+            bpy_material,
+            lights_nodes[1].outputs['Color'],
+            mix_rgb_nodes[0].inputs['Color2']
+        )
+        link_nodes(
+            bpy_material,
+            mix_rgb_nodes[0].outputs['Color'],
+            mix_rgb_nodes[1].inputs['Color1']
+        )
+        link_nodes(
+            bpy_material,
+            lights_nodes[2].outputs['Color'],
+            mix_rgb_nodes[1].inputs['Color2']
+        )
+        link_nodes(
+            bpy_material,
+            mix_rgb_nodes[1].outputs['Color'],
+            mix_rgb_nodes[2].inputs['Color1']
+        )
+        link_nodes(
+            bpy_material,
+            image_node.outputs['Color'],
+            mix_rgb_nodes[3].inputs['Color1']
+        )
+        link_nodes(
+            bpy_material,
+            mix_rgb_nodes[2].outputs['Color'],
+            mix_rgb_nodes[3].inputs['Color2']
+        )
 
     link_nodes(
         bpy_material,
@@ -500,11 +587,12 @@ def links_nodes_v13(
         principled_node.inputs['Base Color']
     )
 
-    link_nodes(
-        bpy_material,
-        image_node.outputs['Alpha'],
-        principled_node.inputs['Alpha']
-    )
+    if len(lights_nodes) != 1:    # != terrain
+        link_nodes(
+            bpy_material,
+            image_node.outputs['Alpha'],
+            principled_node.inputs['Alpha']
+        )
 
     link_nodes(
         bpy_material,
@@ -567,11 +655,13 @@ def create_empty_image(texture, absolute_image_path):
     bpy_image = bpy.data.images.new(add_extension_to_texture(texture), 0, 0)
     bpy_image.source = 'FILE'
     bpy_image.filepath = absolute_image_path
+    bpy_image.alpha_mode = 'PREMUL'
     return bpy_image
 
 
 def load_image(absolute_texture_path):
     bpy_image = bpy.data.images.load(absolute_texture_path)
+    bpy_image.alpha_mode = 'PREMUL'
     return bpy_image
 
 

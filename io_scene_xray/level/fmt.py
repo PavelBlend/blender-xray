@@ -149,7 +149,18 @@ VERTEX_TYPE_BRUSH_13 = [
     (usage_values[TEXCOORD], types_values[SHORT2])
 ]
 
-VERTEX_TYPE_COLOR = [
+# version 13
+VERTEX_TYPE_COLOR_13 = [
+    (usage_values[POSITION], types_values[FLOAT3]),
+    (usage_values[NORMAL], types_values[D3DCOLOR]),
+    (usage_values[TANGENT], types_values[D3DCOLOR]),
+    (usage_values[BINORMAL], types_values[D3DCOLOR]),
+    (usage_values[COLOR], types_values[D3DCOLOR]),
+    (usage_values[TEXCOORD], types_values[FLOAT2])
+]
+
+# version 14
+VERTEX_TYPE_COLOR_14 = [
     (usage_values[POSITION], types_values[FLOAT3]),
     (usage_values[NORMAL], types_values[D3DCOLOR]),
     (usage_values[TANGENT], types_values[D3DCOLOR]),
@@ -157,6 +168,7 @@ VERTEX_TYPE_COLOR = [
     (usage_values[COLOR], types_values[D3DCOLOR]),
     (usage_values[TEXCOORD], types_values[SHORT2])
 ]
+# version 14
 VERTEX_TYPE_FASTPATH = [
     (usage_values[POSITION], types_values[FLOAT3]),
 ]

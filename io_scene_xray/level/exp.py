@@ -92,7 +92,7 @@ def write_level_geom_vb(vbs):
         elif vb.vertex_format == 'COLOR':
             offsets = (0, 12, 16, 20, 24, 28)
             usage_indices = (0, 0, 0, 0, 0, 0)
-            vertex_type = fmt.VERTEX_TYPE_COLOR
+            vertex_type = fmt.VERTEX_TYPE_COLOR_14
         elif vb.vertex_format == 'FASTPATH':
             offsets = (0, )
             usage_indices = (0, )
