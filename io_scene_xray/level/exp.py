@@ -84,7 +84,7 @@ def write_level_geom_vb(vbs):
         if vb.vertex_format == 'NORMAL':
             offsets = (0, 12, 16, 20, 24, 28)    # normal visual vertex buffer offsets
             usage_indices = (0, 0, 0, 0, 0, 1)
-            vertex_type = fmt.VERTEX_TYPE_BRUSH
+            vertex_type = fmt.VERTEX_TYPE_BRUSH_14
         elif vb.vertex_format == 'TREE':
             offsets = (0, 12, 16, 20, 24)
             usage_indices = (0, 0, 0, 0, 0)
