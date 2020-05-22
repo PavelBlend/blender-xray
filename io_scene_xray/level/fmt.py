@@ -1,5 +1,8 @@
-class Chunks:
-    HEADER = 0x1
+# header chunk id
+HEADER = 0x1
+
+
+class Chunks13:
     SHADERS = 0x2
     VISUALS = 0x3
     PORTALS = 0x4
@@ -8,6 +11,18 @@ class Chunks:
     SECTORS = 0x8
     VB = 0x9
     IB = 0xa
+    SWIS = 0xb
+
+
+class Chunks12:
+    SHADERS = 0x2
+    VISUALS = 0x3
+    PORTALS = 0x4
+    LIGHT_DYNAMIC = 0x6
+    GLOWS = 0x7
+    SECTORS = 0x8
+    IB = 0x9
+    VB = 0xa
     SWIS = 0xb
 
 
@@ -24,7 +39,8 @@ LIGHT_DYNAMIC_SIZE = 108
 
 VERSION_14 = 14
 VERSION_13 = 13
-SUPPORTED_VERSIONS = (VERSION_14, VERSION_13)
+VERSION_12 = 12
+SUPPORTED_VERSIONS = (VERSION_14, VERSION_13, VERSION_12)
 
 # vertex buffer type names
 FLOAT2 = 'FLOAT2'
@@ -148,6 +164,13 @@ VERTEX_TYPE_BRUSH_13 = [
     (usage_values[TEXCOORD], types_values[FLOAT2]),
     (usage_values[TEXCOORD], types_values[SHORT2])
 ]
+# version 12
+VERTEX_TYPE_BRUSH_12 = [
+    (usage_values[POSITION], types_values[FLOAT3]),
+    (usage_values[NORMAL], types_values[D3DCOLOR]),
+    (usage_values[TEXCOORD], types_values[FLOAT2]),
+    (usage_values[TEXCOORD], types_values[SHORT2])
+]
 
 # version 13
 VERTEX_TYPE_COLOR_13 = [
@@ -155,6 +178,13 @@ VERTEX_TYPE_COLOR_13 = [
     (usage_values[NORMAL], types_values[D3DCOLOR]),
     (usage_values[TANGENT], types_values[D3DCOLOR]),
     (usage_values[BINORMAL], types_values[D3DCOLOR]),
+    (usage_values[COLOR], types_values[D3DCOLOR]),
+    (usage_values[TEXCOORD], types_values[FLOAT2])
+]
+# version 12
+VERTEX_TYPE_COLOR_12 = [
+    (usage_values[POSITION], types_values[FLOAT3]),
+    (usage_values[NORMAL], types_values[D3DCOLOR]),
     (usage_values[COLOR], types_values[D3DCOLOR]),
     (usage_values[TEXCOORD], types_values[FLOAT2])
 ]

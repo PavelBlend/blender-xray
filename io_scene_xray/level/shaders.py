@@ -1,11 +1,19 @@
 from .. import xray_io
-from . import create
+from . import create, fmt
 
 
 def import_brush_shader(level, context, engine_shader, textures):
     texture, light_map_1, light_map_2 = textures.split(',')
     bpy_material = create.get_material(
         level, context, texture, engine_shader, light_map_1, light_map_2
+    )
+    return bpy_material
+
+
+def import_brush_shader_v12(level, context, engine_shader, textures):
+    texture, light_map = textures.split(',')
+    bpy_material = create.get_material(
+        level, context, texture, engine_shader, light_map
     )
     return bpy_material
 
@@ -33,9 +41,14 @@ def import_shader(level, context, shader_data):
         )
 
     elif light_maps_count == 1:
-        bpy_material = import_terrain_shader(
-            level, context, engine_shader, textures
-        )
+        if level.xrlc_version >= fmt.VERSION_13:
+            bpy_material = import_terrain_shader(
+                level, context, engine_shader, textures
+            )
+        else:
+            bpy_material = import_brush_shader_v12(
+                level, context, engine_shader, textures
+            )
 
     elif light_maps_count == 2:
         bpy_material = import_brush_shader(

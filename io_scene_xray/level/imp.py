@@ -303,7 +303,7 @@ def get_chunks(chunked_reader):
 
 
 def get_version(chunks):
-    header_chunk_data = chunks.pop(fmt.Chunks.HEADER)
+    header_chunk_data = chunks.pop(fmt.HEADER)
     xrlc_version = import_header(header_chunk_data)
     return xrlc_version
 
@@ -323,6 +323,8 @@ def import_geomx(level, context):
 
 
 def import_geom(level, chunks, context):
+    if level.xrlc_version < fmt.VERSION_13:
+        return
     if level.xrlc_version in fmt.SUPPORTED_VERSIONS:
         geom_chunked_reader = level_utils.get_level_reader(
             context.file_path + os.extsep + 'geom'
@@ -335,63 +337,72 @@ def import_geom(level, chunks, context):
 
 
 def import_level(level, context, chunks, geomx_chunks):
-    shaders_chunk_data = chunks.pop(fmt.Chunks.SHADERS)
+    if level.xrlc_version >= fmt.VERSION_13:
+        chunks_ids = fmt.Chunks13
+    elif level.xrlc_version == fmt.VERSION_12:
+        chunks_ids = fmt.Chunks12
+    shaders_chunk_data = chunks.pop(chunks_ids.SHADERS)
     level.materials = shaders.import_shaders(level, context, shaders_chunk_data)
     del shaders_chunk_data
 
     # geometry
-    vb_chunk_data = chunks.pop(fmt.Chunks.VB)
-    level.vertex_buffers = vb.import_vertex_buffers(vb_chunk_data)
+    vb_chunk_data = chunks.pop(chunks_ids.VB)
+    level.vertex_buffers = vb.import_vertex_buffers(
+        vb_chunk_data, level.xrlc_version
+    )
     del vb_chunk_data
 
-    ib_chunk_data = chunks.pop(fmt.Chunks.IB)
+    ib_chunk_data = chunks.pop(chunks_ids.IB)
     level.indices_buffers = ib.import_indices_buffers(ib_chunk_data)
     del ib_chunk_data
 
-    swis_chunk_data = chunks.pop(fmt.Chunks.SWIS)
-    level.swis = swi.import_slide_window_items(swis_chunk_data)
-    del swis_chunk_data
+    swis_chunk_data = chunks.pop(chunks_ids.SWIS, None)
+    if swis_chunk_data:
+        level.swis = swi.import_slide_window_items(swis_chunk_data)
+        del swis_chunk_data
 
     # fastpath geometry
     if level.xrlc_version == fmt.VERSION_14:
-        fastpath_vb_chunk_data = geomx_chunks.pop(fmt.Chunks.VB)
-        level.fastpath_vertex_buffers = vb.import_vertex_buffers(fastpath_vb_chunk_data)
+        fastpath_vb_chunk_data = geomx_chunks.pop(chunks_ids.VB)
+        level.fastpath_vertex_buffers = vb.import_vertex_buffers(
+            fastpath_vb_chunk_data, level.xrlc_version
+        )
         del fastpath_vb_chunk_data
 
-        fastpath_ib_chunk_data = geomx_chunks.pop(fmt.Chunks.IB)
+        fastpath_ib_chunk_data = geomx_chunks.pop(chunks_ids.IB)
         level.fastpath_indices_buffers = ib.import_indices_buffers(fastpath_ib_chunk_data)
         del fastpath_ib_chunk_data
 
-        fastpath_swis_chunk_data = geomx_chunks.pop(fmt.Chunks.SWIS)
+        fastpath_swis_chunk_data = geomx_chunks.pop(chunks_ids.SWIS)
         level.fastpath_swis = swi.import_slide_window_items(fastpath_swis_chunk_data)
         del fastpath_swis_chunk_data
 
     level_collection = create.create_level_collections(level)
     level_object = create.create_level_objects(level, level_collection)
 
-    visuals_chunk_data = chunks.pop(fmt.Chunks.VISUALS)
+    visuals_chunk_data = chunks.pop(chunks_ids.VISUALS)
     visuals.import_visuals(visuals_chunk_data, level)
     visuals.import_hierrarhy_visuals(level)
     del visuals_chunk_data
 
-    sectors_chunk_data = chunks.pop(fmt.Chunks.SECTORS)
+    sectors_chunk_data = chunks.pop(chunks_ids.SECTORS)
     import_sectors(sectors_chunk_data, level, level_object)
     del sectors_chunk_data
 
-    portals_chunk_data = chunks.pop(fmt.Chunks.PORTALS)
+    portals_chunk_data = chunks.pop(chunks_ids.PORTALS)
     portals_object = import_portals(portals_chunk_data, level)
     del portals_chunk_data
 
     portals_object.parent = level_object
 
-    glows_chunk_data = chunks.pop(fmt.Chunks.GLOWS)
+    glows_chunk_data = chunks.pop(chunks_ids.GLOWS)
     glows_object = import_glows(
         glows_chunk_data, level
     )
     del glows_chunk_data
     glows_object.parent = level_object
 
-    light_chunk_data = chunks.pop(fmt.Chunks.LIGHT_DYNAMIC)
+    light_chunk_data = chunks.pop(chunks_ids.LIGHT_DYNAMIC)
     lights_dynamic_object = import_lights_dynamic(
         light_chunk_data, level
     )

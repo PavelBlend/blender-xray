@@ -626,7 +626,7 @@ def create_shader_nodes(level, bpy_material, bpy_image, bpy_image_lmaps):
             bpy_material, output_node, principled_node, image_node,
             uv_map_nodes, lights_nodes, mix_rgb_nodes
         )
-    elif level.xrlc_version == fmt.VERSION_13:
+    elif level.xrlc_version <= fmt.VERSION_13:
         links_nodes_v13(
             bpy_material, output_node, principled_node, image_node,
             uv_map_nodes, lights_nodes, mix_rgb_nodes
@@ -678,6 +678,7 @@ def create_image(context, texture, absolute_texture_path):
     try:
         bpy_image = load_image(absolute_texture_path)
     except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+        print(absolute_texture_path)
         try:
             bpy_image = load_image_from_level_folder(context, texture)
         except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
@@ -730,8 +731,8 @@ def get_image_lmap(context, light_maps):
         return image_lmap_1, image_lmap_2
 
 
-def get_image(context, texture, light_maps):
-    if len(light_maps) == 1:
+def get_image(context, texture, light_maps, terrain=False):
+    if terrain:
         # level dir (terrain texture)
         texture_dir = utils.get_level_dir(context.file_path)
     else:
@@ -814,7 +815,10 @@ def create_material(level, context, texture, engine_shader, *light_maps):
     bpy_material.xray.version = context.version
     bpy_material.xray.eshader = engine_shader
     set_material_settings(bpy_material)
-    bpy_image = get_image(context, texture, light_maps)
+    if len(light_maps) == 1 and level.xrlc_version >= fmt.VERSION_13:
+        bpy_image = get_image(context, texture, light_maps, terrain=True)
+    else:
+        bpy_image = get_image(context, texture, light_maps)
     bpy_image_lmaps = get_image_lmap(context, light_maps)
     remove_default_shader_nodes(bpy_material)
     create_shader_nodes(level, bpy_material, bpy_image, bpy_image_lmaps)

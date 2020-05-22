@@ -259,7 +259,7 @@ def import_fastpath_gcontainer(data, visual, level):
     return bpy_mesh, geometry_key
 
 
-def import_gcontainer(data, visual, level):
+def read_gcontainer_v4(data):
     packed_reader = xray_io.PackedReader(data)
 
     vb_index = packed_reader.getf('<I')[0]
@@ -268,6 +268,15 @@ def import_gcontainer(data, visual, level):
     ib_index = packed_reader.getf('<I')[0]
     ib_offset = packed_reader.getf('<I')[0]
     ib_size = packed_reader.getf('<I')[0]
+
+    return vb_index, vb_offset, vb_size, ib_index, ib_offset, ib_size
+
+
+def import_gcontainer(
+        visual, level,
+        vb_index, vb_offset, vb_size,
+        ib_index, ib_offset, ib_size
+    ):
 
     vb_slice = slice(vb_offset, vb_offset + vb_size)
     geometry_key = (vb_index, vb_offset, vb_size, ib_index, ib_offset, ib_size)
@@ -318,11 +327,11 @@ def import_fastpath(data, visual, level):
         chunks[chunk_id] = chunkd_data
     del chunked_reader
 
-    gcontainer_chunk_data = chunks.pop(fmt.Chunks.GCONTAINER)
+    gcontainer_chunk_data = chunks.pop(fmt.Chunks_v4.GCONTAINER)
     import_fastpath_gcontainer(gcontainer_chunk_data, visual, level)
     del gcontainer_chunk_data
 
-    swi_chunk_data = chunks.pop(fmt.Chunks.SWIDATA, None)
+    swi_chunk_data = chunks.pop(fmt.Chunks_v4.SWIDATA, None)
     if swi_chunk_data:
         packed_reader = xray_io.PackedReader(swi_chunk_data)
         swi = imp_swi.import_slide_window_item(packed_reader)
@@ -364,8 +373,12 @@ def import_children_l(data, visual, level, visual_type):
 
 
 def import_hierrarhy_visual(chunks, visual, level):
+    if visual.format_version == fmt.FORMAT_VERSION_4:
+        chunks_ids = fmt.Chunks_v4
+    elif visual.format_version == fmt.FORMAT_VERSION_3:
+        chunks_ids = fmt.Chunks_v3
     visual.name = 'hierrarhy'
-    children_l_data = chunks.pop(fmt.Chunks.CHILDREN_L)
+    children_l_data = chunks.pop(chunks_ids.CHILDREN_L)
     import_children_l(children_l_data, visual, level, 'HIERRARHY')
     del children_l_data
     bpy_object = create_object(visual.name, None)
@@ -376,17 +389,70 @@ def import_hierrarhy_visual(chunks, visual, level):
     return bpy_object
 
 
-def import_geometry(chunks, visual, level):
-    gcontainer_data = chunks.pop(fmt.Chunks.GCONTAINER)
-    bpy_mesh, geometry_key = import_gcontainer(gcontainer_data, visual, level)
-    del gcontainer_data
+def read_bbox_v3(data):
+    packed_reader = xray_io.PackedReader(data)
 
-    fastpath_data = chunks.pop(fmt.Chunks.FASTPATH, None)    # optional chunk
-    if fastpath_data:
-        visual.fastpath = True
-    else:
-        visual.fastpath = False
-    del fastpath_data
+    bbox_min = packed_reader.getf('3f')
+    bbox_max = packed_reader.getf('3f')
+
+
+def read_bsphere_v3(data):
+    packed_reader = xray_io.PackedReader(data)
+
+    center = packed_reader.getf('3f')
+    radius = packed_reader.getf('f')[0]
+
+
+def read_container_v3(data):
+    packed_reader = xray_io.PackedReader(data)
+
+    buffer_index = packed_reader.getf('I')[0]
+    buffer_offset = packed_reader.getf('I')[0]
+    buffer_size = packed_reader.getf('I')[0]
+
+    return buffer_index, buffer_offset, buffer_size
+
+
+def import_geometry(chunks, visual, level):
+    if visual.format_version == fmt.FORMAT_VERSION_4:
+        chunks_ids = fmt.Chunks_v4
+        gcontainer_data = chunks.pop(chunks_ids.GCONTAINER)
+        vb_index, vb_offset, vb_size, ib_index, ib_offset, ib_size = read_gcontainer_v4(gcontainer_data)
+        del gcontainer_data
+
+        fastpath_data = chunks.pop(chunks_ids.FASTPATH, None)    # optional chunk
+        if fastpath_data:
+            visual.fastpath = True
+        else:
+            visual.fastpath = False
+        del fastpath_data
+
+    elif visual.format_version == fmt.FORMAT_VERSION_3:
+
+        chunks_ids = fmt.Chunks_v3
+
+        # bbox
+        bbox_data = chunks.pop(chunks_ids.BBOX)
+        read_bbox_v3(bbox_data)
+
+        # bsphere
+        bsphere_data = chunks.pop(chunks_ids.BSPHERE)
+        read_bsphere_v3(bsphere_data)
+
+        # vcontainer
+        vcontainer_data = chunks.pop(chunks_ids.VCONTAINER)
+        vb_index, vb_offset, vb_size = read_container_v3(vcontainer_data)
+
+        # icontainer
+        icontainer_data = chunks.pop(chunks_ids.ICONTAINER)
+        ib_index, ib_offset, ib_size = read_container_v3(icontainer_data)
+
+    bpy_mesh, geometry_key = import_gcontainer(
+        visual, level,
+        vb_index, vb_offset, vb_size,
+        ib_index, ib_offset, ib_size
+    )
+
     return bpy_mesh, geometry_key
 
 
@@ -444,7 +510,7 @@ def ogf_color(packed_reader, bpy_obj, mode='SCALE'):
 
 
 def import_tree_def_2(chunks, bpy_object):
-    tree_def_2_data = chunks.pop(fmt.Chunks.TREEDEF2)
+    tree_def_2_data = chunks.pop(fmt.Chunks_v4.TREEDEF2)
     packed_reader = xray_io.PackedReader(tree_def_2_data)
     del tree_def_2_data
 
@@ -489,7 +555,7 @@ def import_tree_st_visual(chunks, visual, level):
 
 
 def import_swidata(chunks):
-    swi_data = chunks.pop(fmt.Chunks.SWIDATA)
+    swi_data = chunks.pop(fmt.Chunks_v4.SWIDATA)
     packed_reader = xray_io.PackedReader(swi_data)
     del swi_data
     swi = imp_swi.import_slide_window_item(packed_reader)
@@ -525,7 +591,7 @@ def import_progressive_visual(chunks, visual, level):
 
 
 def import_swicontainer(chunks):
-    swicontainer_data = chunks.pop(fmt.Chunks.SWICONTAINER)
+    swicontainer_data = chunks.pop(fmt.Chunks_v4.SWICONTAINER)
     packed_reader = xray_io.PackedReader(swicontainer_data)
     del swicontainer_data
     swi_index = packed_reader.getf('I')[0]
@@ -569,11 +635,11 @@ def import_lod_def_2(data):
 
 def import_lod_visual(chunks, visual, level):
     visual.name = 'lod'
-    children_l_data = chunks.pop(fmt.Chunks.CHILDREN_L)
+    children_l_data = chunks.pop(fmt.Chunks_v4.CHILDREN_L)
     import_children_l(children_l_data, visual, level, 'LOD')
     del children_l_data
 
-    lod_def_2_data = chunks.pop(fmt.Chunks.LODDEF2)
+    lod_def_2_data = chunks.pop(fmt.Chunks_v4.LODDEF2)
     verts, uvs, lights, faces = import_lod_def_2(lod_def_2_data)
     del lod_def_2_data
 
@@ -628,25 +694,48 @@ def import_tree_pm_visual(chunks, visual, level):
     return bpy_object
 
 
-def import_model(chunks, visual, level):
+def import_model_v4(chunks, visual, level):
 
-    if visual.model_type == fmt.ModelType.NORMAL:
+    if visual.model_type == fmt.ModelType_v4.NORMAL:
         bpy_obj = import_normal_visual(chunks, visual, level)
 
-    elif visual.model_type == fmt.ModelType.HIERRARHY:
+    elif visual.model_type == fmt.ModelType_v4.HIERRARHY:
         bpy_obj = import_hierrarhy_visual(chunks, visual, level)
 
-    elif visual.model_type == fmt.ModelType.PROGRESSIVE:
+    elif visual.model_type == fmt.ModelType_v4.PROGRESSIVE:
         bpy_obj = import_progressive_visual(chunks, visual, level)
 
-    elif visual.model_type == fmt.ModelType.TREE_ST:
+    elif visual.model_type == fmt.ModelType_v4.TREE_ST:
         bpy_obj = import_tree_st_visual(chunks, visual, level)
 
-    elif visual.model_type == fmt.ModelType.TREE_PM:
+    elif visual.model_type == fmt.ModelType_v4.TREE_PM:
         bpy_obj = import_tree_pm_visual(chunks, visual, level)
 
-    elif visual.model_type == fmt.ModelType.LOD:
+    elif visual.model_type == fmt.ModelType_v4.LOD:
         bpy_obj = import_lod_visual(chunks, visual, level)
+
+    else:
+        raise BaseException('unsupported model type: {:x}'.format(
+            visual.model_type
+        ))
+
+    data = bpy_obj.xray
+    data.is_ogf = True
+
+    scene_collection = bpy.context.scene.collection
+    collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
+    collection = level.collections[collection_name]
+    collection.objects.link(bpy_obj)
+    scene_collection.objects.unlink(bpy_obj)
+    level.visuals.append(bpy_obj)
+
+
+def import_model_v3(chunks, visual, level):
+    if visual.model_type == fmt.ModelType_v3.NORMAL:
+        bpy_obj = import_normal_visual(chunks, visual, level)
+
+    elif visual.model_type == fmt.ModelType_v3.HIERRARHY:
+        bpy_obj = import_hierrarhy_visual(chunks, visual, level)
 
     else:
         raise BaseException('unsupported model type: {:x}'.format(
@@ -685,16 +774,24 @@ def import_header(data, visual):
     packed_reader = xray_io.PackedReader(data)
     visual.format_version = packed_reader.getf('<B')[0]
     check_version(visual)
-    visual.model_type = packed_reader.getf('<B')[0]
-    visual.shader_id = packed_reader.getf('<H')[0]
-    import_bounding_box(packed_reader)
-    import_bounding_sphere(packed_reader)
+    if visual.format_version == fmt.FORMAT_VERSION_4:
+        visual.model_type = packed_reader.getf('<B')[0]
+        visual.shader_id = packed_reader.getf('<H')[0]
+        import_bounding_box(packed_reader)
+        import_bounding_sphere(packed_reader)
+    elif visual.format_version == fmt.FORMAT_VERSION_3:
+        visual.model_type = packed_reader.getf('<B')[0]
+        visual.shader_id = packed_reader.getf('<H')[0]
+        print(visual.shader_id)
 
 
 def import_main(chunks, visual, level):
-    header_chunk_data = chunks.pop(fmt.Chunks.HEADER)
+    header_chunk_data = chunks.pop(fmt.HEADER)
     import_header(header_chunk_data, visual)
-    import_model(chunks, visual, level)
+    if visual.format_version == fmt.FORMAT_VERSION_4:
+        import_model_v4(chunks, visual, level)
+    elif visual.format_version == fmt.FORMAT_VERSION_3:
+        import_model_v3(chunks, visual, level)
 
 
 def get_ogf_chunks(data):
