@@ -23,228 +23,66 @@ def get_uv_corrector(value):
     return uv_corrector
 
 
-def import_vertices_fastpath(packed_reader, vertex_buffer, vertices_count):
-    for vertex_index in range(vertices_count):
-        # position
-        coord_x, coord_y, coord_z = packed_reader.getf('<3f')
-        vertex_buffer.position.append((coord_x, coord_z, coord_y))
-
-
-def import_vertices_color_14(packed_reader, vertex_buffer, vertices_count):
-    for vertex_index in range(vertices_count):
-        # position
-        coord_x, coord_y, coord_z = packed_reader.getf('<3f')
-        vertex_buffer.position.append((coord_x, coord_z, coord_y))
-        # normal
-        norm_x, norm_y, norm_z, hemi = packed_reader.getf('<4B')
-        vertex_buffer.normal.append((
-            (2.0 * norm_z / 255.0 - 1.0),
-            (2.0 * norm_x / 255.0 - 1.0),
-            (2.0 * norm_y / 255.0 - 1.0)
-        ))
-        vertex_buffer.color_hemi.append(hemi / 255)
-        # tangent
-        tangent_x, tangent_y, tangent_z, correct_u = packed_reader.getf('<4B')
-        # binormal
-        binorm_x, binorm_y, binorm_z, correct_v = packed_reader.getf('<4B')
-        # vertex color
-        color = packed_reader.getf('<4B')
-        vertex_buffer.color_light.append((
-            color[2] / 255, color[1] / 255, color[0] / 255
-        ))
-        vertex_buffer.color_sun.append(color[3])
-        # texture coordinates
-        coord_u, coord_v = packed_reader.getf('<2h')
-        vertex_buffer.uv.append((
-            coord_u / fmt.UV_COEFFICIENT  + get_uv_corrector(correct_u),
-            1 - coord_v / fmt.UV_COEFFICIENT - get_uv_corrector(correct_v)
-        ))
-
-
-def import_vertices_color_13(packed_reader, vertex_buffer, vertices_count):
-    for vertex_index in range(vertices_count):
-        # position
-        coord_x, coord_y, coord_z = packed_reader.getf('<3f')
-        vertex_buffer.position.append((coord_x, coord_z, coord_y))
-        # normal
-        norm_x, norm_y, norm_z, hemi = packed_reader.getf('<4B')
-        vertex_buffer.normal.append((
-            (2.0 * norm_z / 255.0 - 1.0),
-            (2.0 * norm_x / 255.0 - 1.0),
-            (2.0 * norm_y / 255.0 - 1.0)
-        ))
-        vertex_buffer.color_hemi.append(hemi / 255)
-        # tangent
-        tangent_x, tangent_y, tangent_z, correct_u = packed_reader.getf('<4B')
-        # binormal
-        binorm_x, binorm_y, binorm_z, correct_v = packed_reader.getf('<4B')
-        # vertex color
-        color = packed_reader.getf('<4B')
-        vertex_buffer.color_light.append((
-            color[2] / 255, color[1] / 255, color[0] / 255
-        ))
-        vertex_buffer.color_sun.append(color[3])
-        # texture coordinates
-        coord_u, coord_v = packed_reader.getf('<2f')
-        vertex_buffer.uv.append((coord_u, 1 - coord_v))
-
-
-def import_vertices_color_12(packed_reader, vertex_buffer, vertices_count):
-    for vertex_index in range(vertices_count):
-        # position
-        coord_x, coord_y, coord_z = packed_reader.getf('<3f')
-        vertex_buffer.position.append((coord_x, coord_z, coord_y))
-        # normal
-        norm_x, norm_y, norm_z, hemi = packed_reader.getf('<4B')
-        vertex_buffer.normal.append((
-            (2.0 * norm_z / 255.0 - 1.0),
-            (2.0 * norm_x / 255.0 - 1.0),
-            (2.0 * norm_y / 255.0 - 1.0)
-        ))
-        vertex_buffer.color_hemi.append(hemi / 255)
-        # vertex color
-        color = packed_reader.getf('<4B')
-        vertex_buffer.color_light.append((
-            color[2] / 255, color[1] / 255, color[0] / 255
-        ))
-        vertex_buffer.color_sun.append(color[3])
-        # texture coordinates
-        coord_u, coord_v = packed_reader.getf('<2f')
-        vertex_buffer.uv.append((coord_u, 1 - coord_v))
-
-
-def import_vertices_brush_14(packed_reader, vertex_buffer, vertices_count):
-    for vertex_index in range(vertices_count):
-        # position
-        coord_x, coord_y, coord_z = packed_reader.getf('<3f')
-        vertex_buffer.position.append((coord_x, coord_z, coord_y))
-        # normal
-        norm_x, norm_y, norm_z, hemi = packed_reader.getf('<4B')
-        vertex_buffer.normal.append((
-            (2.0 * norm_z / 255.0 - 1.0),
-            (2.0 * norm_x / 255.0 - 1.0),
-            (2.0 * norm_y / 255.0 - 1.0)
-        ))
-        vertex_buffer.color_hemi.append(hemi / 255)
-        # tangent and corrector of texture u coordinate
-        tangent_x, tangent_y, tangent_z, correct_u = packed_reader.getf('<4B')
-        # binormal and corrector of texture v coordinate
-        binorm_x, binorm_y, binorm_z, correct_v = packed_reader.getf('<4B')
-        # texture coordinates
-        coord_u, coord_v = packed_reader.getf('<2h')
-        vertex_buffer.uv.append((
-            coord_u / fmt.UV_COEFFICIENT + get_uv_corrector(correct_u),
-            1 - coord_v / fmt.UV_COEFFICIENT - get_uv_corrector(correct_v)
-        ))
-        # light map texture coordinates
-        lmap_u, lmap_v = packed_reader.getf('<2h')
-        vertex_buffer.uv_lmap.append((
-            lmap_u / fmt.LIGHT_MAP_UV_COEFFICIENT,
-            1 - lmap_v / fmt.LIGHT_MAP_UV_COEFFICIENT
-        ))
-
-
-def import_vertices_brush_13(packed_reader, vertex_buffer, vertices_count):
-    for vertex_index in range(vertices_count):
-        # position
-        coord_x, coord_y, coord_z = packed_reader.getf('<3f')
-        vertex_buffer.position.append((coord_x, coord_z, coord_y))
-        # normal
-        norm_x, norm_y, norm_z, hemi = packed_reader.getf('<4B')
-        vertex_buffer.normal.append((
-            (2.0 * norm_z / 255.0 - 1.0),
-            (2.0 * norm_x / 255.0 - 1.0),
-            (2.0 * norm_y / 255.0 - 1.0)
-        ))
-        vertex_buffer.color_hemi.append(hemi / 255)
-        # tangent and corrector of texture u coordinate
-        tangent_x, tangent_y, tangent_z, correct_u = packed_reader.getf('<4B')
-        # binormal and corrector of texture v coordinate
-        binorm_x, binorm_y, binorm_z, correct_v = packed_reader.getf('<4B')
-        # texture coordinates
-        coord_u, coord_v = packed_reader.getf('<2f')
-        vertex_buffer.uv.append((coord_u, 1 - coord_v))
-        # light map texture coordinates
-        lmap_u, lmap_v = packed_reader.getf('<2h')
-        vertex_buffer.uv_lmap.append((
-            lmap_u / fmt.LIGHT_MAP_UV_COEFFICIENT,
-            1 - lmap_v / fmt.LIGHT_MAP_UV_COEFFICIENT
-        ))
-
-
-def import_vertices_brush_12(packed_reader, vertex_buffer, vertices_count):
-    for vertex_index in range(vertices_count):
-        # position
-        coord_x, coord_y, coord_z = packed_reader.getf('<3f')
-        vertex_buffer.position.append((coord_x, coord_z, coord_y))
-        # normal
-        norm_x, norm_y, norm_z, hemi = packed_reader.getf('<4B')
-        vertex_buffer.normal.append((
-            (2.0 * norm_z / 255.0 - 1.0),
-            (2.0 * norm_x / 255.0 - 1.0),
-            (2.0 * norm_y / 255.0 - 1.0)
-        ))
-        vertex_buffer.color_hemi.append(hemi / 255)
-        # texture coordinates
-        coord_u, coord_v = packed_reader.getf('<2f')
-        vertex_buffer.uv.append((coord_u, 1 - coord_v))
-        # light map texture coordinates
-        lmap_u, lmap_v = packed_reader.getf('<2h')
-        vertex_buffer.uv_lmap.append((
-            lmap_u / fmt.LIGHT_MAP_UV_COEFFICIENT,
-            1 - lmap_v / fmt.LIGHT_MAP_UV_COEFFICIENT
-        ))
-
-
-def import_vertices_tree(packed_reader, vertex_buffer, vertices_count):
-    for vertex_index in range(vertices_count):
-        # position
-        coord_x, coord_y, coord_z = packed_reader.getf('<3f')
-        vertex_buffer.position.append((coord_x, coord_z, coord_y))
-        # normal
-        norm_x, norm_y, norm_z, hemi = packed_reader.getf('<4B')
-        vertex_buffer.normal.append((
-            (2.0 * norm_z / 255.0 - 1.0),
-            (2.0 * norm_x / 255.0 - 1.0),
-            (2.0 * norm_y / 255.0 - 1.0)
-        ))
-        vertex_buffer.color_hemi.append(hemi / 255)
-        # tangent and corrector of texture u coordinate
-        tangent_x, tangent_y, tangent_z, correct_u = packed_reader.getf('<4B')
-        # binormal and corrector of texture v coordinate
-        binorm_x, binorm_y, binorm_z, correct_v = packed_reader.getf('<4B')
-        # texture coordinates
-        coord_u, coord_v = packed_reader.getf('<2h')
-        vertex_buffer.uv.append((
-            coord_u / fmt.UV_COEFFICIENT_2  + get_uv_corrector(correct_u),
-            1 - coord_v / fmt.UV_COEFFICIENT_2 - get_uv_corrector(correct_v)
-        ))
-        shader_data, unused = packed_reader.getf('<2H')
-        vertex_buffer.shader_data.append(shader_data)
-
-
 def import_vertices(packed_reader, vertex_buffer, vertices_count, usage_list):
-    # version 14
-    if usage_list == fmt.VERTEX_TYPE_TREE:
-        import_vertices_tree(packed_reader, vertex_buffer, vertices_count)
-    elif usage_list == fmt.VERTEX_TYPE_BRUSH_14:
-        import_vertices_brush_14(packed_reader, vertex_buffer, vertices_count)
-    elif usage_list == fmt.VERTEX_TYPE_COLOR_14:
-        import_vertices_color_14(packed_reader, vertex_buffer, vertices_count)
-    elif usage_list == fmt.VERTEX_TYPE_FASTPATH:
-        import_vertices_fastpath(packed_reader, vertex_buffer, vertices_count)
-    # version 13
-    elif usage_list == fmt.VERTEX_TYPE_BRUSH_13:
-        import_vertices_brush_13(packed_reader, vertex_buffer, vertices_count)
-    elif usage_list == fmt.VERTEX_TYPE_COLOR_13:
-        import_vertices_color_13(packed_reader, vertex_buffer, vertices_count)
-    # version 12
-    elif usage_list == fmt.VERTEX_TYPE_BRUSH_12:
-        import_vertices_brush_12(packed_reader, vertex_buffer, vertices_count)
-    elif usage_list == fmt.VERTEX_TYPE_COLOR_12:
-        import_vertices_color_12(packed_reader, vertex_buffer, vertices_count)
-    else:
-        raise BaseException('Unsupported vertex buffer format', usage_list)
+    code = ''
+    code += 'for vertex_index in range({}):\n'.format(vertices_count)
+    for usage, data_type, usage_index in usage_list:
+        data_format = fmt.types_struct[data_type]
+        data_type = fmt.types[data_type]
+        usage = fmt.usage[usage]
+        if usage == fmt.POSITION:
+            code += '    coord_x, coord_y, coord_z = packed_reader.getf("<{}")\n'.format(data_format)
+            code += '    vertex_buffer.position.append((coord_x, coord_z, coord_y))\n'
+        elif usage == fmt.NORMAL:
+            code += '    norm_x, norm_y, norm_z, hemi = packed_reader.getf("<{}")\n'.format(data_format)
+            code += '    vertex_buffer.normal.append((\n' \
+                    '       (2.0 * norm_z / 255.0 - 1.0),\n' \
+                    '       (2.0 * norm_x / 255.0 - 1.0),\n' \
+                    '       (2.0 * norm_y / 255.0 - 1.0)\n' \
+                    '    ))\n'
+            code += '    vertex_buffer.color_hemi.append(hemi / 255)\n'
+        elif usage == fmt.TANGENT:
+            code += '    tangent_x, tangent_y, tangent_z, correct_u = packed_reader.getf("<{}")\n'.format(data_format)
+        elif usage == fmt.BINORMAL:
+            code += '    binorm_x, binorm_y, binorm_z, correct_v = packed_reader.getf("<{}")\n'.format(data_format)
+        elif usage == fmt.TEXCOORD:
+            if usage_index == 0:    # texture uv
+                if data_type in (fmt.FLOAT2, fmt.SHORT2):
+                    code += '    coord_u, coord_v = packed_reader.getf("<{}")\n'.format(data_format)
+                elif data_type == fmt.SHORT4:
+                    code += '    coord_u, coord_v, shader_data, unused = packed_reader.getf("<{}")\n'.format(data_format)
+                if data_type == fmt.FLOAT2:
+                    code += '    vertex_buffer.uv.append((coord_u, 1 - coord_v))\n'
+                elif data_type == fmt.SHORT2:
+                    code += '    vertex_buffer.uv.append((\n' \
+                            '        coord_u / fmt.UV_COEFFICIENT + get_uv_corrector(correct_u),\n' \
+                            '        1 - coord_v / fmt.UV_COEFFICIENT - get_uv_corrector(correct_v)\n' \
+                            '    ))\n'
+                elif data_type == fmt.SHORT4:
+                    code += '    vertex_buffer.uv.append((\n' \
+                            '        coord_u / fmt.UV_COEFFICIENT_2 + get_uv_corrector(correct_u),\n' \
+                            '        1 - coord_v / fmt.UV_COEFFICIENT_2 - get_uv_corrector(correct_v)\n' \
+                            '    ))\n'
+                    code += '    vertex_buffer.shader_data.append(shader_data)\n'
+            elif usage_index == 1:    # lmap uv
+                code += '    lmap_u, lmap_v = packed_reader.getf("<{}")\n'.format(data_format)
+                if data_type == fmt.SHORT2:
+                    code += '    lmap_u = lmap_u / fmt.LIGHT_MAP_UV_COEFFICIENT\n'
+                    code += '    lmap_v = 1 - lmap_v / fmt.LIGHT_MAP_UV_COEFFICIENT\n'
+                code += '    vertex_buffer.uv_lmap.append((lmap_u, lmap_v))\n'
+            else:
+                raise BaseException('Unsupported uv usage index: {}'.format(usage_index))
+        elif usage == fmt.COLOR:
+            code += '    blue, green, red, sun = packed_reader.getf("<{}")\n'.format(data_format)
+            if data_type == fmt.D3DCOLOR:
+                code += '    red = red / 255\n'
+                code += '    green = green / 255\n'
+                code += '    blue = blue / 255\n'
+            code += '    vertex_buffer.color_light.append((\n' \
+                    '       red, green, blue\n' \
+                    '    ))\n'
+            code += '    vertex_buffer.color_sun.append(sun)\n'
+    exec(code)
 
 
 def import_vertex_buffer_declaration(packed_reader):
@@ -261,7 +99,7 @@ def import_vertex_buffer_declaration(packed_reader):
         if fmt.types[type_] == fmt.UNUSED:
             break
         else:
-            usage_list.append((usage, type_))
+            usage_list.append((usage, type_, usage_index))
 
     return usage_list
 

@@ -84,6 +84,15 @@ types = {
     17: UNUSED
 }
 
+types_struct = {
+    1: '2f',    # FLOAT2
+    2: '3f',    # FLOAT3
+    3: '4f',    # FLOAT4
+    4: '4B',    # D3DCOLOR
+    6: '2h',    # SHORT2
+    7: '2h2H'    # SHORT4
+}
+
 types_values = {
     FLOAT2: 1,
     FLOAT3: 2,
@@ -135,73 +144,6 @@ usage_values = {
     DEPTH: 12,
     SAMPLE: 12    # ???
 }
-
-# vertex types
-VERTEX_TYPE_TREE = [
-    (usage_values[POSITION], types_values[FLOAT3]),
-    (usage_values[NORMAL], types_values[D3DCOLOR]),
-    (usage_values[TANGENT], types_values[D3DCOLOR]),
-    (usage_values[BINORMAL], types_values[D3DCOLOR]),
-    (usage_values[TEXCOORD], types_values[SHORT4])
-]
-
-# version 14
-VERTEX_TYPE_BRUSH_14 = [
-    (usage_values[POSITION], types_values[FLOAT3]),
-    (usage_values[NORMAL], types_values[D3DCOLOR]),
-    (usage_values[TANGENT], types_values[D3DCOLOR]),
-    (usage_values[BINORMAL], types_values[D3DCOLOR]),
-    (usage_values[TEXCOORD], types_values[SHORT2]),
-    (usage_values[TEXCOORD], types_values[SHORT2])
-]
-
-# version 13
-VERTEX_TYPE_BRUSH_13 = [
-    (usage_values[POSITION], types_values[FLOAT3]),
-    (usage_values[NORMAL], types_values[D3DCOLOR]),
-    (usage_values[TANGENT], types_values[D3DCOLOR]),
-    (usage_values[BINORMAL], types_values[D3DCOLOR]),
-    (usage_values[TEXCOORD], types_values[FLOAT2]),
-    (usage_values[TEXCOORD], types_values[SHORT2])
-]
-# version 12
-VERTEX_TYPE_BRUSH_12 = [
-    (usage_values[POSITION], types_values[FLOAT3]),
-    (usage_values[NORMAL], types_values[D3DCOLOR]),
-    (usage_values[TEXCOORD], types_values[FLOAT2]),
-    (usage_values[TEXCOORD], types_values[SHORT2])
-]
-
-# version 13
-VERTEX_TYPE_COLOR_13 = [
-    (usage_values[POSITION], types_values[FLOAT3]),
-    (usage_values[NORMAL], types_values[D3DCOLOR]),
-    (usage_values[TANGENT], types_values[D3DCOLOR]),
-    (usage_values[BINORMAL], types_values[D3DCOLOR]),
-    (usage_values[COLOR], types_values[D3DCOLOR]),
-    (usage_values[TEXCOORD], types_values[FLOAT2])
-]
-# version 12
-VERTEX_TYPE_COLOR_12 = [
-    (usage_values[POSITION], types_values[FLOAT3]),
-    (usage_values[NORMAL], types_values[D3DCOLOR]),
-    (usage_values[COLOR], types_values[D3DCOLOR]),
-    (usage_values[TEXCOORD], types_values[FLOAT2])
-]
-
-# version 14
-VERTEX_TYPE_COLOR_14 = [
-    (usage_values[POSITION], types_values[FLOAT3]),
-    (usage_values[NORMAL], types_values[D3DCOLOR]),
-    (usage_values[TANGENT], types_values[D3DCOLOR]),
-    (usage_values[BINORMAL], types_values[D3DCOLOR]),
-    (usage_values[COLOR], types_values[D3DCOLOR]),
-    (usage_values[TEXCOORD], types_values[SHORT2])
-]
-# version 14
-VERTEX_TYPE_FASTPATH = [
-    (usage_values[POSITION], types_values[FLOAT3]),
-]
 
 UV_COEFFICIENT = 1024
 UV_COEFFICIENT_2 = 2048
