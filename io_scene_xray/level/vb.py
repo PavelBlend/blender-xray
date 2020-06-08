@@ -26,6 +26,7 @@ def get_uv_corrector(value):
 def import_vertices(packed_reader, vertex_buffer, vertices_count, usage_list):
     code = ''
     code += 'for vertex_index in range({}):\n'.format(vertices_count)
+    has_uv_corrector = False
     for usage, data_type, usage_index in usage_list:
         data_format = fmt.types_struct[data_type]
         data_type = fmt.types[data_type]
@@ -43,8 +44,10 @@ def import_vertices(packed_reader, vertex_buffer, vertices_count, usage_list):
             code += '    vertex_buffer.color_hemi.append(hemi / 255)\n'
         elif usage == fmt.TANGENT:
             code += '    tangent_x, tangent_y, tangent_z, correct_u = packed_reader.getf("<{}")\n'.format(data_format)
+            has_uv_corrector = True
         elif usage == fmt.BINORMAL:
             code += '    binorm_x, binorm_y, binorm_z, correct_v = packed_reader.getf("<{}")\n'.format(data_format)
+            has_uv_corrector = True
         elif usage == fmt.TEXCOORD:
             if usage_index == 0:    # texture uv
                 if data_type in (fmt.FLOAT2, fmt.SHORT2):
@@ -54,15 +57,27 @@ def import_vertices(packed_reader, vertex_buffer, vertices_count, usage_list):
                 if data_type == fmt.FLOAT2:
                     code += '    vertex_buffer.uv.append((coord_u, 1 - coord_v))\n'
                 elif data_type == fmt.SHORT2:
-                    code += '    vertex_buffer.uv.append((\n' \
-                            '        coord_u / fmt.UV_COEFFICIENT + get_uv_corrector(correct_u),\n' \
-                            '        1 - coord_v / fmt.UV_COEFFICIENT - get_uv_corrector(correct_v)\n' \
-                            '    ))\n'
+                    if has_uv_corrector:
+                        code += '    vertex_buffer.uv.append((\n' \
+                                '        coord_u / fmt.UV_COEFFICIENT + get_uv_corrector(correct_u),\n' \
+                                '        1 - coord_v / fmt.UV_COEFFICIENT - get_uv_corrector(correct_v)\n' \
+                                '    ))\n'
+                    else:
+                        code += '    vertex_buffer.uv.append((\n' \
+                                '        coord_u / fmt.UV_COEFFICIENT,\n' \
+                                '        1 - coord_v / fmt.UV_COEFFICIENT\n' \
+                                '    ))\n'
                 elif data_type == fmt.SHORT4:
-                    code += '    vertex_buffer.uv.append((\n' \
-                            '        coord_u / fmt.UV_COEFFICIENT_2 + get_uv_corrector(correct_u),\n' \
-                            '        1 - coord_v / fmt.UV_COEFFICIENT_2 - get_uv_corrector(correct_v)\n' \
-                            '    ))\n'
+                    if has_uv_corrector:
+                        code += '    vertex_buffer.uv.append((\n' \
+                                '        coord_u / fmt.UV_COEFFICIENT_2 + get_uv_corrector(correct_u),\n' \
+                                '        1 - coord_v / fmt.UV_COEFFICIENT_2 - get_uv_corrector(correct_v)\n' \
+                                '    ))\n'
+                    else:
+                        code += '    vertex_buffer.uv.append((\n' \
+                                '        coord_u / fmt.UV_COEFFICIENT_2,\n' \
+                                '        1 - coord_v / fmt.UV_COEFFICIENT_2\n' \
+                                '    ))\n'
                     code += '    vertex_buffer.shader_data.append(shader_data)\n'
             elif usage_index == 1:    # lmap uv
                 code += '    lmap_u, lmap_v = packed_reader.getf("<{}")\n'.format(data_format)

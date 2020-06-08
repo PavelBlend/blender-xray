@@ -416,9 +416,18 @@ def read_container_v3(data):
 def import_geometry(chunks, visual, level):
     if visual.format_version == fmt.FORMAT_VERSION_4:
         chunks_ids = fmt.Chunks_v4
-        gcontainer_data = chunks.pop(chunks_ids.GCONTAINER)
-        vb_index, vb_offset, vb_size, ib_index, ib_offset, ib_size = read_gcontainer_v4(gcontainer_data)
-        del gcontainer_data
+        gcontainer_data = chunks.get(chunks_ids.GCONTAINER, None)
+        if gcontainer_data:
+            vb_index, vb_offset, vb_size, ib_index, ib_offset, ib_size = read_gcontainer_v4(gcontainer_data)
+            del gcontainer_data
+        else:
+            # vcontainer
+            vcontainer_data = chunks.pop(chunks_ids.VCONTAINER)
+            vb_index, vb_offset, vb_size = read_container_v3(vcontainer_data)
+
+            # icontainer
+            icontainer_data = chunks.pop(chunks_ids.ICONTAINER)
+            ib_index, ib_offset, ib_size = read_container_v3(icontainer_data)
 
         fastpath_data = chunks.pop(chunks_ids.FASTPATH, None)    # optional chunk
         if fastpath_data:

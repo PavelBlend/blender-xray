@@ -678,7 +678,6 @@ def create_image(context, texture, absolute_texture_path):
     try:
         bpy_image = load_image(absolute_texture_path)
     except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
-        print(absolute_texture_path)
         try:
             bpy_image = load_image_from_level_folder(context, texture)
         except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
