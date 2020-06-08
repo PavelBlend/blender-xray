@@ -15,6 +15,9 @@ def decompress_chunks(data):
     chunked_reader = xray_io.ChunkedReader(data)
     chunked_writer = xray_io.ChunkedWriter()
     for chunk_id, chunk_data in chunked_reader:
+        # bad file
+        if chunk_id == 0x0 and len(chunk_data) == 0:
+            break
         packed_writer = xray_io.PackedWriter()
         packed_writer.data = chunk_data
         chunked_writer.put(chunk_id, packed_writer)
