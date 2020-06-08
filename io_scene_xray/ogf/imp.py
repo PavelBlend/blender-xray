@@ -518,8 +518,13 @@ def ogf_color(packed_reader, bpy_obj, mode='SCALE'):
         raise BaseException('Unknown ogf color mode: {}'.format(mode))
 
 
-def import_tree_def_2(chunks, bpy_object):
-    tree_def_2_data = chunks.pop(fmt.Chunks_v4.TREEDEF2)
+def import_tree_def_2(visual, chunks, bpy_object):
+    if visual.format_version == fmt.FORMAT_VERSION_4:
+        chunks_ids = fmt.Chunks_v4
+    elif visual.format_version == fmt.FORMAT_VERSION_3:
+        chunks_ids = fmt.Chunks_v3
+
+    tree_def_2_data = chunks.pop(chunks_ids.TREEDEF2)
     packed_reader = xray_io.PackedReader(tree_def_2_data)
     del tree_def_2_data
 
@@ -554,7 +559,7 @@ def import_tree_st_visual(chunks, visual, level):
         assign_material(bpy_object, visual, level.materials)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
-    tree_xform = import_tree_def_2(chunks, bpy_object)
+    tree_xform = import_tree_def_2(visual, chunks, bpy_object)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks)
     bpy_object.xray.is_level = True
@@ -643,12 +648,17 @@ def import_lod_def_2(data):
 
 
 def import_lod_visual(chunks, visual, level):
+    if visual.format_version == fmt.FORMAT_VERSION_4:
+        chunks_ids = fmt.Chunks_v4
+    elif visual.format_version == fmt.FORMAT_VERSION_3:
+        chunks_ids = fmt.Chunks_v3
+
     visual.name = 'lod'
-    children_l_data = chunks.pop(fmt.Chunks_v4.CHILDREN_L)
+    children_l_data = chunks.pop(chunks_ids.CHILDREN_L)
     import_children_l(children_l_data, visual, level, 'LOD')
     del children_l_data
 
-    lod_def_2_data = chunks.pop(fmt.Chunks_v4.LODDEF2)
+    lod_def_2_data = chunks.pop(chunks_ids.LODDEF2)
     verts, uvs, lights, faces = import_lod_def_2(lod_def_2_data)
     del lod_def_2_data
 
@@ -694,7 +704,7 @@ def import_tree_pm_visual(chunks, visual, level):
         assign_material(bpy_object, visual, level.materials)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
-    tree_xform = import_tree_def_2(chunks, bpy_object)
+    tree_xform = import_tree_def_2(visual, chunks, bpy_object)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks)
     bpy_object.xray.is_level = True
@@ -746,8 +756,14 @@ def import_model_v3(chunks, visual, level):
     elif visual.model_type == fmt.ModelType_v3.HIERRARHY:
         bpy_obj = import_hierrarhy_visual(chunks, visual, level)
 
+    elif visual.model_type == fmt.ModelType_v3.TREE:
+        bpy_obj = import_tree_st_visual(chunks, visual, level)
+
+    elif visual.model_type == fmt.ModelType_v3.LOD:
+        bpy_obj = import_lod_visual(chunks, visual, level)
+
     else:
-        raise BaseException('unsupported model type: {:x}'.format(
+        raise BaseException('unsupported model type: 0x{:x}'.format(
             visual.model_type
         ))
 
@@ -791,7 +807,6 @@ def import_header(data, visual):
     elif visual.format_version == fmt.FORMAT_VERSION_3:
         visual.model_type = packed_reader.getf('<B')[0]
         visual.shader_id = packed_reader.getf('<H')[0]
-        print(visual.shader_id)
 
 
 def import_main(chunks, visual, level):
