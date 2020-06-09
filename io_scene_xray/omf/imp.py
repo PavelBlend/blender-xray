@@ -5,10 +5,6 @@ from .. import xray_io
 from ..version_utils import multiply
 
 
-FL_T_KEY_PRESENT = 1 << 0
-FL_R_KEY_ABSENT = 1 << 1
-KPF_T_HQ = 1 << 2
-
 MATRIX_BONE = mathutils.Matrix((
     (1.0, 0.0, 0.0, 0.0),
     (0.0, 0.0, -1.0, 0.0),
@@ -65,9 +61,9 @@ def read_motion(data, arm_obj):
             rotate_fcurves.append(rotate_fcurve)
 
         flags = packed_reader.getf('B')[0]
-        t_present = flags & FL_T_KEY_PRESENT
-        r_absent = flags & FL_R_KEY_ABSENT
-        hq = flags & KPF_T_HQ
+        t_present = flags & fmt.FL_T_KEY_PRESENT
+        r_absent = flags & fmt.FL_R_KEY_ABSENT
+        hq = flags & fmt.KPF_T_HQ
 
         # rotation
         bone_rotations = []
