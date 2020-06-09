@@ -23,6 +23,7 @@ from .anm import ops as anm_ops
 from .skl import ops as skl_ops
 from .ogf import ops as ogf_ops
 from .level import ops as level_ops
+from .omf import ops as omf_ops
 from . import skls_browser
 from .version_utils import (
     get_import_export_menus, get_scene_update_post, assign_props, IS_28
@@ -97,6 +98,7 @@ class XRayImportMenu(bpy.types.Menu):
         layout.operator(det_ops.OpImportDM.bl_idname, text='Details (.dm, .details)')
         layout.operator(err_ops.OpImportERR.bl_idname, text='Error List (.err)')
         layout.operator(scene_ops.OpImportLevelScene.bl_idname, text='Scene Selection (.level)')
+        layout.operator(omf_ops.IMPORT_OT_xray_omf.bl_idname, text='Game Motion (.omf)')
         if IS_28:
             layout.operator(level_ops.IMPORT_OT_xray_level.bl_idname, text='Game Level (level)')
 
@@ -222,6 +224,7 @@ def append_menu_func():
         import_menu.append(err_ops.menu_func_import)
         export_menu.append(scene_ops.menu_func_export)
         import_menu.append(scene_ops.menu_func_import)
+        import_menu.append(omf_ops.menu_func_import)
         if IS_28:
             import_menu.append(level_ops.menu_func_import)
             export_menu.append(level_ops.menu_func_export)
@@ -256,6 +259,7 @@ def register():
     registry.register_thing(skl_ops, __name__)
     registry.register_thing(ogf_ops, __name__)
     registry.register_thing(motion_list, __name__)
+    registry.register_thing(omf_ops, __name__)
     scene_ops.register_operators()
     if IS_28:
         level_ops.register_operators()
@@ -280,6 +284,7 @@ def unregister():
         level_ops.unregister_operators()
     convert_materials.unregister()
     scene_ops.unregister_operators()
+    registry.unregister_thing(omf_ops, __name__)
     registry.unregister_thing(motion_list, __name__)
     registry.unregister_thing(ogf_ops, __name__)
     registry.unregister_thing(skl_ops, __name__)
