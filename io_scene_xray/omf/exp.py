@@ -1,7 +1,7 @@
-import bpy
+import bpy, mathutils
 
 from . import fmt, imp
-from .. import xray_io, utils
+from .. import xray_io, utils, version_utils
 
 
 def export_omf_file(filepath, bpy_obj):
@@ -47,33 +47,52 @@ def export_omf_file(filepath, bpy_obj):
         length = int(action.frame_range[1] - action.frame_range[0] + 1)
         packed_writer.putf('I', length)
         bone_matrices = {}
-        bone_parent_matrices = {}
+        xmatrices = {}
+        min_tr = mathutils.Vector((10000.0, 10000.0, 10000.0))
+        max_tr = mathutils.Vector((-10000.0, -10000.0, -10000.0))
         for frame_index in range(int(action.frame_range[0]), int(action.frame_range[1]) + 1):
             scn.frame_set(frame_index)
             for pose_bone in pose_bones:
                 if not bone_matrices.get(pose_bone.name):
                     bone_matrices[pose_bone.name] = []
-                    bone_parent_matrices[pose_bone.name] = []
-                bone_matrices[pose_bone.name].append(pose_bone.matrix)
+                    xmatrices[pose_bone.name] = []
+                bpy_bone = bpy_obj.data.bones[pose_bone.name]
+                xmat = bpy_bone.matrix_local.inverted()
                 if pose_bone.parent:
-                    bone_parent_matrices[pose_bone.name].append(pose_bone.parent.matrix.copy())
+                    xmat = version_utils.multiply(xmat, bpy_bone.parent.matrix_local)
                 else:
-                    bone_parent_matrices[pose_bone.name].append(imp.MATRIX_BONE)
+                    xmat = version_utils.multiply(xmat, imp.MATRIX_BONE)
+                matrix = version_utils.multiply(pose_bone.matrix, xmat)
+                translate = matrix.to_translation()
+                for index in range(3):
+                    min_tr[index] = min(min_tr[index], translate[index])
+                    max_tr[index] = max(max_tr[index], translate[index])
+                bone_matrices[pose_bone.name].append(matrix)
+        tr_init = min_tr + (max_tr - min_tr) / 2
+        tr_size = (max_tr - min_tr) / 255
         for pose_bone in pose_bones:
             flags = fmt.FL_T_KEY_PRESENT
             packed_writer.putf('B', flags)
             motion_crc32 = 0x0    # temp value
             packed_writer.putf('I', motion_crc32)
-            for matrix_index, matrix in enumerate(bone_matrices[pose_bone.name]):
-                # quaternion
-                packed_writer.putf('4h', 1, 1, 1, 1)    # temp values
+            for matrix in bone_matrices[pose_bone.name]:
+                quaternion = matrix.to_quaternion()
+                q = int(round(quaternion[3] * 0x7fff, 0))
+                x = int(round(quaternion[0] * 0x7fff, 0))
+                y = int(round(quaternion[1] * 0x7fff, 0))
+                z = -int(round(quaternion[2] * 0x7fff, 0))
+                packed_writer.putf('4h', q, x, y, z)
             motion_crc32 = 0x0    # temp value
             packed_writer.putf('I', motion_crc32)
-            for matrix_index, matrix in enumerate(bone_matrices[pose_bone.name]):
-                # translation
-                packed_writer.putf('3b', 0, 0, 0)    # temp values
-            packed_writer.putf('3f', 1, 1, 1)    # t_size
-            packed_writer.putf('3f', 0, 0, 0)    # t_init
+            for matrix in bone_matrices[pose_bone.name]:
+                translate_final = [None, None, None]
+                translate = matrix.to_translation()
+                for index in range(3):
+                    translate_final[index] = int(round((translate[index] - tr_init[index]) / tr_size[index], 0))
+                    print(translate_final)
+                packed_writer.putf('3b', *translate_final)
+            packed_writer.putf('3f', *tr_size)
+            packed_writer.putf('3f', *tr_init)
         chunked_writer.put(chunk_id, packed_writer)
         chunk_id += 1
     main_chunked_writer = xray_io.ChunkedWriter()
