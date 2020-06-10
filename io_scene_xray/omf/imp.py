@@ -149,12 +149,12 @@ def read_motions(data, bpy_armature_obj):
 
 
 def motion_def(packed_reader):
-	bone_or_part = packed_reader.getf('H')[0]
-	motion = packed_reader.getf('H')[0]
-	speed = packed_reader.getf('f')[0]
-	power = packed_reader.getf('f')[0]
-	accrue = packed_reader.getf('f')[0]
-	falloff = packed_reader.getf('f')[0]
+    bone_or_part = packed_reader.getf('H')[0]
+    motion = packed_reader.getf('H')[0]
+    speed = packed_reader.getf('f')[0]
+    power = packed_reader.getf('f')[0]
+    accrue = packed_reader.getf('f')[0]
+    falloff = packed_reader.getf('f')[0]
 
 
 def read_params(data):

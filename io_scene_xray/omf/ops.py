@@ -84,7 +84,11 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
     @utils.set_cursor_state
     def execute(self, context):
         obj = context.object
-        exp.export_omf_file(self.filepath, obj)
+        try:
+            exp.export_omf_file(self.filepath, obj)
+        except utils.AppError as err:
+            self.report({'ERROR'}, str(err))
+            return {'CANCELLED'}
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -103,6 +107,9 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
             return {'CANCELLED'}
         if not len(obj.xray.motions_collection):
             self.report({'ERROR'}, 'Armature object "{}" has no actions'.format(obj.name))
+            return {'CANCELLED'}
+        if not len(obj.pose.bone_groups):
+            self.report({'ERROR'}, 'Armature object "{}" has no bone groups'.format(obj.name))
             return {'CANCELLED'}
         if not self.filepath.lower().endswith(filename_ext):
             self.filepath += filename_ext
