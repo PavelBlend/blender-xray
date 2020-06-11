@@ -158,7 +158,7 @@ def motion_def(packed_reader):
     falloff = packed_reader.getf('f')[0]
 
 
-def read_params(data):
+def read_params(data, bpy_armature_obj):
     packed_reader = xray_io.PackedReader(data)
 
     params_version = packed_reader.getf('H')[0]
@@ -167,17 +167,25 @@ def read_params(data):
     for partition_index in range(partition_count):
         partition_name = packed_reader.gets()
         bone_count = packed_reader.getf('H')[0]
+        bone_group = bpy_armature_obj.pose.bone_groups.new(name=partition_name)
 
         for bone in range(bone_count):
             if params_version == 1:
                 bone_id = packed_reader.getf('I')[0]
+                bone_name = None
             elif params_version == 2:
+                bone_id = None
                 bone_name = packed_reader.gets()
             elif params_version == 3 or params_version == 4:
                 bone_name = packed_reader.gets()
                 bone_id = packed_reader.getf('I')[0]
             else:
                 raise BaseException('Unknown params version')
+            if bone_name:
+                pose_bone = bpy_armature_obj.pose.bones[bone_name]
+            else:
+                pose_bone = bpy_armature_obj.pose.bones[bone_id]
+            pose_bone.bone_group = bone_group
 
     motion_count = packed_reader.getf('H')[0]
 
@@ -193,7 +201,7 @@ def read_params(data):
                 motion_mark(packed_reader)
 
 
-def read_main(data, bpy_armature_obj):
+def read_main(data, bpy_armature_obj, import_bone_parts):
     chunked_reader = xray_io.ChunkedReader(data)
     chunks = {}
 
@@ -201,7 +209,8 @@ def read_main(data, bpy_armature_obj):
         chunks[chunk_id] = chunk_data
 
     params_chunk_data = chunks.pop(fmt.Chunks.S_SMPARAMS)
-    read_params(params_chunk_data)
+    if import_bone_parts:
+        read_params(params_chunk_data, bpy_armature_obj)
 
     motions_chunk_data = chunks.pop(fmt.Chunks.S_MOTIONS)
     read_motions(motions_chunk_data, bpy_armature_obj)
@@ -210,7 +219,7 @@ def read_main(data, bpy_armature_obj):
         print('Unknown OMF chunk: 0x{:x}', chunk_id)
 
 
-def import_file(filepath, bpy_armature_obj):
+def import_file(filepath, bpy_armature_obj, import_bone_parts):
     with open(filepath, 'rb') as file:
         data = file.read()
-    read_main(data, bpy_armature_obj)
+    read_main(data, bpy_armature_obj, import_bone_parts)

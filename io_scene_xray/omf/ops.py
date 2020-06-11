@@ -17,7 +17,10 @@ op_import_omf_props = {
     ),
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
-    )
+    ),
+    'import_bone_parts': bpy.props.BoolProperty(
+        name='Import Bone Parts', default=False
+    ),
 }
 
 
@@ -44,7 +47,8 @@ class IMPORT_OT_xray_omf(
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.omf':
                 imp.import_file(
-                    os.path.join(self.directory, file.name), context.object
+                    os.path.join(self.directory, file.name), context.object,
+                    self.import_bone_parts
                 )
             else:
                 self.report(
