@@ -4,6 +4,27 @@ from . import fmt, imp
 from .. import xray_io, utils, version_utils
 
 
+def get_flags(xray):
+    flags = 0x0
+    if xray.flags_fx:
+        flags |= fmt.FX
+    if xray.flags_stopatend:
+        flags |= fmt.STOP_AT_END
+    if xray.flags_nomix:
+        flags |= fmt.NO_MIX
+    if xray.flags_syncpart:
+        flags |= fmt.SYNC_PART
+    if xray.flags_footsteps:
+        flags |= fmt.USE_FOOT_STEPS
+    if xray.flags_movexform:
+        flags |= fmt.ROOT_MOVER
+    if xray.flags_idle:
+        flags |= fmt.IDLE
+    if xray.flags_weaponbone:
+        flags |= fmt.USE_WEAPON_BONE
+    return flags
+
+
 def export_omf_file(filepath, bpy_obj):
     scn = bpy.context.scene
     pose_bones = []
@@ -118,7 +139,7 @@ def export_omf_file(filepath, bpy_obj):
     for motion_name, motion_params in motions.items():
         action = bpy.data.actions.get(motion_name)
         packed_writer.puts(motion_name)
-        motion_flags = 0    # temp value
+        motion_flags = get_flags(action.xray)
         packed_writer.putf('I', motion_flags)
         bone_or_part = action.xray.bonepart
         packed_writer.putf('H', bone_or_part)

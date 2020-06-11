@@ -43,6 +43,7 @@ def read_motion(data, arm_obj, motions_params):
     motion_params = motions_params[name]
 
     act = bpy.data.actions.new(name)
+    act.use_fake_user = True
     xray_motion = arm_obj.xray.motions_collection.add()
     xray_motion.name = name
     flags = motion_params.flags
