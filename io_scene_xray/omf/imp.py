@@ -14,6 +14,18 @@ MATRIX_BONE = mathutils.Matrix((
 MATRIX_BONE_INVERTED = MATRIX_BONE.inverted().freeze()
 
 
+class MotionParams:
+    def __init__(self):
+        self.name = None
+        self.flags = None
+        self.bone_or_part = None
+        self.motion = None
+        self.speed = None
+        self.power = None
+        self.accrue = None
+        self.falloff = None
+
+
 def convert_to_euler(quaternion):
     euler = mathutils.Quaternion((
         quaternion[3] / 0x7fff,
@@ -24,14 +36,31 @@ def convert_to_euler(quaternion):
     return euler
 
 
-def read_motion(data, arm_obj):
+def read_motion(data, arm_obj, motions_params):
     packed_reader = xray_io.PackedReader(data)
     name = packed_reader.gets()
     length = packed_reader.getf('I')[0]
+    motion_params = motions_params[name]
 
     act = bpy.data.actions.new(name)
     xray_motion = arm_obj.xray.motions_collection.add()
     xray_motion.name = name
+    flags = motion_params.flags
+
+    # set flags
+    act.xray.flags_fx = bool(flags & fmt.FX)
+    act.xray.flags_stopatend = bool(flags & fmt.STOP_AT_END)
+    act.xray.flags_nomix = bool(flags & fmt.NO_MIX)
+    act.xray.flags_syncpart = bool(flags & fmt.SYNC_PART)
+    act.xray.flags_footsteps = bool(flags & fmt.USE_FOOT_STEPS)
+    act.xray.flags_movexform = bool(flags & fmt.ROOT_MOVER)
+    act.xray.flags_idle = bool(flags & fmt.IDLE)
+    act.xray.flags_weaponbone = bool(flags & fmt.USE_WEAPON_BONE)
+
+    act.xray.bonepart = motion_params.bone_or_part
+    act.xray.power = motion_params.power
+    act.xray.accrue = motion_params.accrue
+    act.xray.falloff = motion_params.falloff
 
     for bone_index, bpy_bone in enumerate(arm_obj.data.bones):
         bone_name = bpy_bone.name
@@ -138,7 +167,7 @@ def read_motion(data, arm_obj):
                     rotate_fcurves[i].keyframe_points.insert(rot_index, rot[i])
 
 
-def read_motions(data, bpy_armature_obj):
+def read_motions(data, bpy_armature_obj, motions_params):
     chunked_reader = xray_io.ChunkedReader(data)
 
     chunk_motion_count_data = chunked_reader.next(fmt.MOTIONS_COUNT_CHUNK)
@@ -146,19 +175,10 @@ def read_motions(data, bpy_armature_obj):
     motions_count = motion_count_packed_reader.getf('I')[0]
 
     for chunk_id, chunk_data in chunked_reader:
-        read_motion(chunk_data, bpy_armature_obj)
+        read_motion(chunk_data, bpy_armature_obj, motions_params)
 
 
-def motion_def(packed_reader):
-    bone_or_part = packed_reader.getf('H')[0]
-    motion = packed_reader.getf('H')[0]
-    speed = packed_reader.getf('f')[0]
-    power = packed_reader.getf('f')[0]
-    accrue = packed_reader.getf('f')[0]
-    falloff = packed_reader.getf('f')[0]
-
-
-def read_params(data, bpy_armature_obj):
+def read_params(data, bpy_armature_obj, import_bone_parts):
     packed_reader = xray_io.PackedReader(data)
 
     params_version = packed_reader.getf('H')[0]
@@ -167,7 +187,8 @@ def read_params(data, bpy_armature_obj):
     for partition_index in range(partition_count):
         partition_name = packed_reader.gets()
         bone_count = packed_reader.getf('H')[0]
-        bone_group = bpy_armature_obj.pose.bone_groups.new(name=partition_name)
+        if import_bone_parts:
+            bone_group = bpy_armature_obj.pose.bone_groups.new(name=partition_name)
 
         for bone in range(bone_count):
             if params_version == 1:
@@ -185,20 +206,32 @@ def read_params(data, bpy_armature_obj):
                 pose_bone = bpy_armature_obj.pose.bones[bone_name]
             else:
                 pose_bone = bpy_armature_obj.pose.bones[bone_id]
-            pose_bone.bone_group = bone_group
+            if import_bone_parts:
+                pose_bone.bone_group = bone_group
 
     motion_count = packed_reader.getf('H')[0]
+    motions_params = {}
 
     for motion_index in range(motion_count):
-        motion_name = packed_reader.gets()
-        motion_flags = packed_reader.getf('I')[0]
+        motion_params = MotionParams()
 
-        motion_def(packed_reader)
+        motion_params.name = packed_reader.gets()
+        motion_params.flags = packed_reader.getf('I')[0]
+        motion_params.bone_or_part = packed_reader.getf('H')[0]
+        motion_params.motion = packed_reader.getf('H')[0]
+        motion_params.speed = packed_reader.getf('f')[0]
+        motion_params.power = packed_reader.getf('f')[0]
+        motion_params.accrue = packed_reader.getf('f')[0]
+        motion_params.falloff = packed_reader.getf('f')[0]
+
+        motions_params[motion_params.name] = motion_params
 
         if params_version == 4:
             num_marks = packed_reader.getf('I')[0]
             for mark_index in range(num_marks):
                 motion_mark(packed_reader)
+
+    return motions_params
 
 
 def read_main(data, bpy_armature_obj, import_bone_parts):
@@ -209,11 +242,12 @@ def read_main(data, bpy_armature_obj, import_bone_parts):
         chunks[chunk_id] = chunk_data
 
     params_chunk_data = chunks.pop(fmt.Chunks.S_SMPARAMS)
-    if import_bone_parts:
-        read_params(params_chunk_data, bpy_armature_obj)
+    motions_params = read_params(
+        params_chunk_data, bpy_armature_obj, import_bone_parts
+    )
 
     motions_chunk_data = chunks.pop(fmt.Chunks.S_MOTIONS)
-    read_motions(motions_chunk_data, bpy_armature_obj)
+    read_motions(motions_chunk_data, bpy_armature_obj, motions_params)
 
     for chunk_id, chunk_data in chunks.items():
         print('Unknown OMF chunk: 0x{:x}', chunk_id)

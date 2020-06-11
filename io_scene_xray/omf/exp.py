@@ -120,9 +120,7 @@ def export_omf_file(filepath, bpy_obj):
         packed_writer.puts(motion_name)
         motion_flags = 0    # temp value
         packed_writer.putf('I', motion_flags)
-        if not action.xray.bonepart_name:
-            raise utils.AppError('The action "{}" does not have a bone part'.format(action.name))
-        bone_or_part = bone_groups_indices[action.xray.bonepart_name]
+        bone_or_part = action.xray.bonepart
         packed_writer.putf('H', bone_or_part)
         motion = motion_params[0]
         packed_writer.putf('H', motion)
