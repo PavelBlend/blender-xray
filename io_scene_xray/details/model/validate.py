@@ -52,7 +52,7 @@ def validate_export_object(context, bpy_obj, fpath):
     if bpy_texture:
 
         if bpy_texture.type == 'IMAGE' or bpy_texture.type == 'TEX_IMAGE':
-            if not context.texname_from_path:
+            if context.texname_from_path:
                 if not fpath:
                     level_folder = None
                 else:

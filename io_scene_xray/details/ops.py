@@ -321,6 +321,8 @@ class OpExportLevelDetails(
         return {'FINISHED'}
 
     def exp(self, bpy_obj, context):
+        print(79 * "#")
+        print(self.texture_name_from_image_path)
         export_context = plugin.mk_export_context(
             self.texture_name_from_image_path
             )
