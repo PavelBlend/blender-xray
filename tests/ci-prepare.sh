@@ -33,10 +33,10 @@ if [ ! -e "$DIR/blender" ]; then
             TAR="blender-$BLENDER_VERSION-linux64.tar.xz"
             PYTHON_VERSION="3.7"
             ;;
-        "2.90.0")
+        "2.90")
             FROM="https://builder.blender.org/download"
             HTML=$(curl $FROM/)
-            if [[ "$HTML" =~ blender-$BLENDER_VERSION-[a-z0-9]+-linux64.tar.xz ]]; then
+            if [[ "$HTML" =~ blender-$BLENDER_VERSION.0-[a-z0-9]+-linux64.tar.xz ]]; then
                 TAR="${BASH_REMATCH[0]}"
             else
                 echo "Cannot parse file name from: $HTML"
