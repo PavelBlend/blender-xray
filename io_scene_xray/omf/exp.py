@@ -129,7 +129,7 @@ def export_omf_file(filepath, bpy_obj):
                 motion_crc32 = 0x0    # temp value
                 packed_writer.putf('I', motion_crc32)
                 for translate in translations:
-                    packed_writer.putf('3b', *translate_final)
+                    packed_writer.putf('3b', *translate)
                 packed_writer.putf('3f', *tr_size)
                 packed_writer.putf('3f', *tr_init)
             else:
