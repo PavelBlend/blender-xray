@@ -108,10 +108,14 @@ def export_omf_file(filepath, bpy_obj):
                 # translation
                 translate = matrix.to_translation()
                 translate[2] = -translate[2]
-                translate_final = [None, None, None]
-                for index in range(3):
-                    translate_final[index] = int((translate[index] - tr_init[index]) / tr_size[index])
-                translations.append(tuple(translate_final))
+                if tr_size.length > 0.000001:
+                    translate_final = [None, None, None]
+                    for index in range(3):
+                        if tr_size[index] > 1e-9:
+                            translate_final[index] = int((translate[index] - tr_init[index]) / tr_size[index])
+                        else:
+                            translate_final[index] = 0
+                    translations.append(tuple(translate_final))
                 translate_float = tuple(translate)
             if tr_size.length > 0.000001:
                 flags |= fmt.FL_T_KEY_PRESENT
