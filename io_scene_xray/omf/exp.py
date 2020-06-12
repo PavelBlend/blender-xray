@@ -69,30 +69,34 @@ def export_omf_file(filepath, bpy_obj):
         packed_writer.putf('I', length)
         bone_matrices = {}
         xmatrices = {}
-        min_tr = mathutils.Vector((10000.0, 10000.0, 10000.0))
-        max_tr = mathutils.Vector((-10000.0, -10000.0, -10000.0))
+        min_trns = {}
+        max_trns = {}
         for frame_index in range(int(action.frame_range[0]), int(action.frame_range[1]) + 1):
             scn.frame_set(frame_index)
             for pose_bone in pose_bones:
                 if not bone_matrices.get(pose_bone.name):
                     bone_matrices[pose_bone.name] = []
                     xmatrices[pose_bone.name] = []
+                    min_trns[pose_bone.name] = mathutils.Vector((10000.0, 10000.0, 10000.0))
+                    max_trns[pose_bone.name] = mathutils.Vector((-10000.0, -10000.0, -10000.0))
                 bpy_bone = bpy_obj.data.bones[pose_bone.name]
                 parent = pose_bone.parent
                 parent_matrix = parent.matrix.inverted() if parent else imp.MATRIX_BONE_INVERTED
                 matrix = version_utils.multiply(parent_matrix, pose_bone.matrix)
                 translate = matrix.to_translation()
                 for index in range(3):
-                    min_tr[index] = min(min_tr[index], translate[index])
-                    max_tr[index] = max(max_tr[index], translate[index])
+                    min_trns[pose_bone.name][index] = min(min_trns[pose_bone.name][index], translate[index])
+                    max_trns[pose_bone.name][index] = max(max_trns[pose_bone.name][index], translate[index])
                 bone_matrices[pose_bone.name].append(matrix)
-        tr_init = min_tr + (max_tr - min_tr) / 2
-        tr_init[2] = -tr_init[2]
-        tr_size = (max_tr - min_tr) / 255
         for pose_bone in pose_bones:
             flags = 0x0
             quaternions = []
             translations = []
+            min_tr = min_trns[pose_bone.name]
+            max_tr = max_trns[pose_bone.name]
+            tr_init = min_tr + (max_tr - min_tr) / 2
+            tr_init[2] = -tr_init[2]
+            tr_size = (max_tr - min_tr) / 255
             for matrix in bone_matrices[pose_bone.name]:
                 # rotation
                 quaternion = matrix.to_quaternion()
@@ -109,7 +113,7 @@ def export_omf_file(filepath, bpy_obj):
                     translate_final[index] = int((translate[index] - tr_init[index]) / tr_size[index])
                 translations.append(tuple(translate_final))
                 translate_float = tuple(translate)
-            if len(set(translations)) != 1:
+            if tr_size.length > 0.000001:
                 flags |= fmt.FL_T_KEY_PRESENT
             if len(set(quaternions)) != 1:
                 packed_writer.putf('B', flags)
