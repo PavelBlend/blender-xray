@@ -90,28 +90,46 @@ def export_omf_file(filepath, bpy_obj):
         tr_init[2] = -tr_init[2]
         tr_size = (max_tr - min_tr) / 255
         for pose_bone in pose_bones:
-            flags = fmt.FL_T_KEY_PRESENT
-            packed_writer.putf('B', flags)
-            motion_crc32 = 0x0    # temp value
-            packed_writer.putf('I', motion_crc32)
+            flags = 0x0
+            quaternions = []
+            translations = []
             for matrix in bone_matrices[pose_bone.name]:
+                # rotation
                 quaternion = matrix.to_quaternion()
-                q = -int(round(quaternion[3] * 0x7fff, 0))
-                x = int(round(quaternion[0] * 0x7fff, 0))
                 y = int(round(quaternion[1] * 0x7fff, 0))
                 z = int(round(quaternion[2] * 0x7fff, 0))
-                packed_writer.putf('4h', y, z, q, x)
-            motion_crc32 = 0x0    # temp value
-            packed_writer.putf('I', motion_crc32)
-            for matrix in bone_matrices[pose_bone.name]:
-                translate_final = [None, None, None]
+                q = int(round(-quaternion[3] * 0x7fff, 0))
+                x = int(round(quaternion[0] * 0x7fff, 0))
+                quaternions.append((y, z, q, x))
+                # translation
                 translate = matrix.to_translation()
                 translate[2] = -translate[2]
+                translate_final = [None, None, None]
                 for index in range(3):
                     translate_final[index] = int((translate[index] - tr_init[index]) / tr_size[index])
-                packed_writer.putf('3b', *translate_final)
-            packed_writer.putf('3f', *tr_size)
-            packed_writer.putf('3f', *tr_init)
+                translations.append(tuple(translate_final))
+                translate_float = tuple(translate)
+            if len(set(translations)) != 1:
+                flags |= fmt.FL_T_KEY_PRESENT
+            if len(set(quaternions)) != 1:
+                packed_writer.putf('B', flags)
+                motion_crc32 = 0x0    # temp value
+                packed_writer.putf('I', motion_crc32)
+                for y, z, q, x in quaternions:
+                    packed_writer.putf('4h', y, z, q, x)
+            else:
+                flags |= fmt.FL_R_KEY_ABSENT
+                packed_writer.putf('B', flags)
+                packed_writer.putf('4h', *quaternions[0])
+            if flags & fmt.FL_T_KEY_PRESENT:
+                motion_crc32 = 0x0    # temp value
+                packed_writer.putf('I', motion_crc32)
+                for translate in translations:
+                    packed_writer.putf('3b', *translate_final)
+                packed_writer.putf('3f', *tr_size)
+                packed_writer.putf('3f', *tr_init)
+            else:
+                packed_writer.putf('3f', *translate_float)
         chunked_writer.put(chunk_id, packed_writer)
         chunk_id += 1
     main_chunked_writer = xray_io.ChunkedWriter()
