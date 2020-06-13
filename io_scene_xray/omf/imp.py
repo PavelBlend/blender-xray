@@ -2,7 +2,7 @@ import bpy, mathutils
 
 from . import fmt
 from .. import xray_io
-from ..version_utils import multiply
+from ..version_utils import get_multiply
 
 
 MATRIX_BONE = mathutils.Matrix((
@@ -62,6 +62,8 @@ def read_motion(data, arm_obj, motions_params):
     act.xray.power = motion_params.power
     act.xray.accrue = motion_params.accrue
     act.xray.falloff = motion_params.falloff
+
+    multiply = get_multiply()
 
     for bone_index, bpy_bone in enumerate(arm_obj.data.bones):
         bone_name = bpy_bone.name

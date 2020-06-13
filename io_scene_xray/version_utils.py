@@ -115,3 +115,24 @@ def multiply(*elements):
         for element in elements[1 : ]:
             result *= element
     return result
+
+
+def multiply_27x(*elements):
+    result = elements[0]
+    for element in elements[1 : ]:
+        result *= element
+    return result
+
+
+def multiply_28x(*elements):
+    result = elements[0]
+    for element in elements[1 : ]:
+        result = result @ element
+    return result
+
+
+def get_multiply():
+    if IS_28:
+        return multiply_28x
+    else:
+        return multiply_27x
