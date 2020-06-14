@@ -124,14 +124,17 @@ def import_cform(context, data, level):
         bm.verts.ensure_lookup_table()
         bm.verts.index_update()
         for vert_1, vert_2, vert_3, material_id, suppress_shadows, suppress_wm in two_sided_tris:
-            face = bm.faces.new((
-                bm.verts[remap_vertices[vert_1]],
-                bm.verts[remap_vertices[vert_3]],
-                bm.verts[remap_vertices[vert_2]]
-            ))
-            face.smooth = True
-            material = unique_sectors_materials[sector_index].index((material_id, suppress_shadows, suppress_wm))
-            face.material_index = material
+            try:
+                face = bm.faces.new((
+                    bm.verts[remap_vertices[vert_1]],
+                    bm.verts[remap_vertices[vert_3]],
+                    bm.verts[remap_vertices[vert_2]]
+                ))
+                face.smooth = True
+                material = unique_sectors_materials[sector_index].index((material_id, suppress_shadows, suppress_wm))
+                face.material_index = material
+            except ValueError:
+                pass
         bm.faces.ensure_lookup_table()
         bm.faces.index_update()
         bm.normal_update()
