@@ -1,7 +1,7 @@
 import bpy, mathutils
 
 from . import fmt
-from .. import xray_io
+from .. import xray_io, utils
 from ..version_utils import get_multiply
 
 
@@ -237,7 +237,13 @@ def read_params(data, bpy_armature_obj, import_bone_parts):
     return motions_params
 
 
-def read_main(data, bpy_armature_obj, import_bone_parts):
+def read_main(data, bpy_armature_obj, import_bone_parts, import_motions):
+    if not import_motions and not import_bone_parts:
+        raise utils.AppError(
+            'Nothing was imported. Change the import settings.'
+        )
+        return
+
     chunked_reader = xray_io.ChunkedReader(data)
     chunks = {}
 
@@ -248,15 +254,18 @@ def read_main(data, bpy_armature_obj, import_bone_parts):
     motions_params = read_params(
         params_chunk_data, bpy_armature_obj, import_bone_parts
     )
+    del params_chunk_data
 
-    motions_chunk_data = chunks.pop(fmt.Chunks.S_MOTIONS)
-    read_motions(motions_chunk_data, bpy_armature_obj, motions_params)
+    if import_motions:
+        motions_chunk_data = chunks.pop(fmt.Chunks.S_MOTIONS)
+        read_motions(motions_chunk_data, bpy_armature_obj, motions_params)
+        del motions_chunk_data
 
     for chunk_id, chunk_data in chunks.items():
         print('Unknown OMF chunk: 0x{:x}', chunk_id)
 
 
-def import_file(filepath, bpy_armature_obj, import_bone_parts):
+def import_file(filepath, bpy_armature_obj, import_bone_parts, import_motions):
     with open(filepath, 'rb') as file:
         data = file.read()
-    read_main(data, bpy_armature_obj, import_bone_parts)
+    read_main(data, bpy_armature_obj, import_bone_parts, import_motions)

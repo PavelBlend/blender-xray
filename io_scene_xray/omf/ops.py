@@ -18,9 +18,12 @@ op_import_omf_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
+    'import_motions': bpy.props.BoolProperty(
+        name='Import Motions', default=True
+    ),
     'import_bone_parts': bpy.props.BoolProperty(
         name='Import Bone Parts', default=False
-    ),
+    )
 }
 
 
@@ -46,10 +49,14 @@ class IMPORT_OT_xray_omf(
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.omf':
-                imp.import_file(
-                    os.path.join(self.directory, file.name), context.object,
-                    self.import_bone_parts
-                )
+                try:
+                    imp.import_file(
+                        os.path.join(self.directory, file.name), context.object,
+                        self.import_bone_parts, self.import_motions
+                    )
+                except utils.AppError as err:
+                    self.report({'ERROR'}, str(err))
+                    return {'CANCELLED'}
             else:
                 self.report(
                     {'ERROR'}, 'Format of {} not recognised'.format(file)
