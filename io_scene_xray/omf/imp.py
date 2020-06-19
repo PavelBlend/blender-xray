@@ -97,6 +97,10 @@ def read_motion(data, context, motions_params):
         if context.add_actions_to_motion_list:
             xray_motion = context.bpy_armature_obj.xray.motions_collection.add()
             xray_motion.name = name
+            xray_motion.export_name = name
+            if xray_motion.name != act.name:
+                xray_motion.name = act.name
+                context.bpy_armature_obj.xray.use_custom_motion_names = True
         flags = motion_params.flags
 
         # set flags
