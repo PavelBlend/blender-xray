@@ -85,17 +85,17 @@ def convert_to_euler(quaternion):
     return euler
 
 
-def read_motion(data, arm_obj, motions_params, selected_names, add_actions_to_motion_list):
+def read_motion(data, context, motions_params):
     packed_reader = xray_io.PackedReader(data)
     name = packed_reader.gets()
     length = packed_reader.getf('I')[0]
     motion_params = motions_params[name]
 
-    if name in selected_names:
+    if name in context.selected_names:
         act = bpy.data.actions.new(name)
         act.use_fake_user = True
-        if add_actions_to_motion_list:
-            xray_motion = arm_obj.xray.motions_collection.add()
+        if context.add_actions_to_motion_list:
+            xray_motion = context.bpy_armature_obj.xray.motions_collection.add()
             xray_motion.name = name
         flags = motion_params.flags
 
@@ -116,7 +116,7 @@ def read_motion(data, arm_obj, motions_params, selected_names, add_actions_to_mo
 
         multiply = get_multiply()
 
-        for bone_index, bpy_bone in enumerate(arm_obj.data.bones):
+        for bone_index, bpy_bone in enumerate(context.bpy_armature_obj.data.bones):
             bone_name = bpy_bone.name
             bpy_bone_parent = bpy_bone.parent
 
@@ -221,7 +221,7 @@ def read_motion(data, arm_obj, motions_params, selected_names, add_actions_to_mo
                         rotate_fcurves[i].keyframe_points.insert(rot_index, rot[i])
 
     else:
-        for bpy_bone in arm_obj.data.bones:
+        for bpy_bone in context.bpy_armature_obj.data.bones:
             flags = packed_reader.getf('B')[0]
             t_present = flags & fmt.FL_T_KEY_PRESENT
             r_absent = flags & fmt.FL_R_KEY_ABSENT
@@ -242,7 +242,7 @@ def read_motion(data, arm_obj, motions_params, selected_names, add_actions_to_mo
                 packed_reader.skip(12)
 
 
-def read_motions(data, bpy_armature_obj, motions_params, selected_names, add_actions_to_motion_list):
+def read_motions(data, context, motions_params):
     chunked_reader = xray_io.ChunkedReader(data)
 
     chunk_motion_count_data = chunked_reader.next(fmt.MOTIONS_COUNT_CHUNK)
@@ -250,10 +250,10 @@ def read_motions(data, bpy_armature_obj, motions_params, selected_names, add_act
     motions_count = motion_count_packed_reader.getf('I')[0]
 
     for chunk_id, chunk_data in chunked_reader:
-        read_motion(chunk_data, bpy_armature_obj, motions_params, selected_names, add_actions_to_motion_list)
+        read_motion(chunk_data, context, motions_params)
 
 
-def read_params(data, bpy_armature_obj, import_bone_parts):
+def read_params(data, context):
     packed_reader = xray_io.PackedReader(data)
 
     params_version = packed_reader.getf('H')[0]
@@ -262,8 +262,8 @@ def read_params(data, bpy_armature_obj, import_bone_parts):
     for partition_index in range(partition_count):
         partition_name = packed_reader.gets()
         bone_count = packed_reader.getf('H')[0]
-        if import_bone_parts:
-            bone_group = bpy_armature_obj.pose.bone_groups.new(name=partition_name)
+        if context.import_bone_parts:
+            bone_group = context.bpy_armature_obj.pose.bone_groups.new(name=partition_name)
 
         for bone in range(bone_count):
             if params_version == 1:
@@ -278,10 +278,10 @@ def read_params(data, bpy_armature_obj, import_bone_parts):
             else:
                 raise BaseException('Unknown params version')
             if bone_name:
-                pose_bone = bpy_armature_obj.pose.bones[bone_name]
+                pose_bone = context.bpy_armature_obj.pose.bones[bone_name]
             else:
-                pose_bone = bpy_armature_obj.pose.bones[bone_id]
-            if import_bone_parts:
+                pose_bone = context.bpy_armature_obj.pose.bones[bone_id]
+            if context.import_bone_parts:
                 pose_bone.bone_group = bone_group
 
     motion_count = packed_reader.getf('H')[0]
@@ -309,8 +309,8 @@ def read_params(data, bpy_armature_obj, import_bone_parts):
     return motions_params
 
 
-def read_main(data, bpy_armature_obj, import_bone_parts, import_motions, selected_names, add_actions_to_motion_list):
-    if not import_motions and not import_bone_parts:
+def read_main(data, context):
+    if not context.import_motions and not context.import_bone_parts:
         raise utils.AppError(
             'Nothing was imported. Change the import settings.'
         )
@@ -323,21 +323,19 @@ def read_main(data, bpy_armature_obj, import_bone_parts, import_motions, selecte
         chunks[chunk_id] = chunk_data
 
     params_chunk_data = chunks.pop(fmt.Chunks.S_SMPARAMS)
-    motions_params = read_params(
-        params_chunk_data, bpy_armature_obj, import_bone_parts
-    )
+    motions_params = read_params(params_chunk_data, context)
     del params_chunk_data
 
-    if import_motions:
+    if context.import_motions:
         motions_chunk_data = chunks.pop(fmt.Chunks.S_MOTIONS)
-        read_motions(motions_chunk_data, bpy_armature_obj, motions_params, selected_names, add_actions_to_motion_list)
+        read_motions(motions_chunk_data, context, motions_params)
         del motions_chunk_data
 
     for chunk_id, chunk_data in chunks.items():
         print('Unknown OMF chunk: 0x{:x}', chunk_id)
 
 
-def import_file(filepath, bpy_armature_obj, import_bone_parts, import_motions, selected_names, add_actions_to_motion_list):
-    with open(filepath, 'rb') as file:
+def import_file(context):
+    with open(context.filepath, 'rb') as file:
         data = file.read()
-    read_main(data, bpy_armature_obj, import_bone_parts, import_motions, selected_names, add_actions_to_motion_list)
+    read_main(data, context)

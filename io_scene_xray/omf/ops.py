@@ -15,6 +15,16 @@ from ..ui.motion_list import (
 from ..version_utils import IS_28, assign_props
 
 
+class ImportContext:
+    def __init__(self):
+        self.bpy_armature_obj = None
+        self.filepath = None
+        self.import_bone_parts = None
+        self.import_motions = None
+        self.add_actions_to_motion_list = None
+        self.selected_names = None
+
+
 motion_props = {
     'flag': bpy.props.BoolProperty(name='Selected for Import', default=True),
     'name': bpy.props.StringProperty(name='Motion Name'),
@@ -76,14 +86,21 @@ class IMPORT_OT_xray_omf(
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.omf':
+                import_context = ImportContext()
+                import_context.bpy_armature_obj = context.object
+                import_context.filepath = os.path.join(
+                    self.directory, file.name
+                )
+                import_context.import_bone_parts = self.import_bone_parts
+                import_context.import_motions = self.import_motions
+                import_context.add_actions_to_motion_list = \
+                    self.add_actions_to_motion_list
                 if self.motions:
-                    selected_names = set(m.name for m in self.motions if m.flag)
-                try:
-                    imp.import_file(
-                        os.path.join(self.directory, file.name), context.object,
-                        self.import_bone_parts, self.import_motions,
-                        selected_names, self.add_actions_to_motion_list
+                    import_context.selected_names = set(
+                        m.name for m in self.motions if m.flag
                     )
+                try:
+                    imp.import_file(import_context)
                 except utils.AppError as err:
                     self.report({'ERROR'}, str(err))
                     return {'CANCELLED'}
