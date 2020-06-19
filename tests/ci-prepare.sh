@@ -30,7 +30,7 @@ if [ ! -e "$DIR/blender" ]; then
             PYTHON_VERSION="3.7"
             ;;
         "2.83")
-            TAR="blender-$BLENDER_VERSION-linux64.tar.xz"
+            TAR="blender-$BLENDER_VERSION.0-linux64.tar.xz"
             PYTHON_VERSION="3.7"
             ;;
         "2.90")
