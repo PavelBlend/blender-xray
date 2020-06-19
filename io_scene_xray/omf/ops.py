@@ -44,7 +44,10 @@ op_import_omf_props = {
     'import_bone_parts': bpy.props.BoolProperty(
         name='Import Bone Parts', default=False
     ),
-    'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter')
+    'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
+    'add_actions_to_motion_list': bpy.props.BoolProperty(
+        default=True, name='Add Actions to Motion List'
+    ),
 }
 
 
@@ -79,7 +82,7 @@ class IMPORT_OT_xray_omf(
                     imp.import_file(
                         os.path.join(self.directory, file.name), context.object,
                         self.import_bone_parts, self.import_motions,
-                        selected_names
+                        selected_names, self.add_actions_to_motion_list
                     )
                 except utils.AppError as err:
                     self.report({'ERROR'}, str(err))
@@ -104,6 +107,9 @@ class IMPORT_OT_xray_omf(
         layout = self.layout
         layout.prop(self, 'import_motions')
         layout.prop(self, 'import_bone_parts')
+        row = layout.row()
+        row.active = self.import_motions
+        row.prop(self, 'add_actions_to_motion_list')
         motions = self._get_motions()
         count = 0
         text = 'Filter Motions'
