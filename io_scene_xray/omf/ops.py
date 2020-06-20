@@ -25,6 +25,15 @@ class ImportContext:
         self.selected_names = None
 
 
+class ExportContext:
+    def __init__(self):
+        self.bpy_obj = None
+        self.filepath = None
+        self.export_mode = None
+        self.export_motions = None
+        self.export_bone_parts = None
+
+
 motion_props = {
     'flag': bpy.props.BoolProperty(name='Selected for Import', default=True),
     'name': bpy.props.StringProperty(name='Motion Name'),
@@ -185,8 +194,22 @@ class IMPORT_OT_xray_omf(
 
 
 filename_ext = '.omf'
+export_mode_items = (
+    ('OVERWRITE', 'Overwrite', ''),
+    ('ADD', 'Add', ''),
+    ('REPLACE', 'Replace', '')
+)
 op_export_omf_props = {
     'filter_glob': bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'}),
+    'export_mode': bpy.props.EnumProperty(
+        name='Export Mode', items=export_mode_items
+    ),
+    'export_motions': bpy.props.BoolProperty(
+        name='Export Motions', default=True
+    ),
+    'export_bone_parts': bpy.props.BoolProperty(
+        name='Export Bone Parts', default=False
+    )
 }
 
 
@@ -202,11 +225,28 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         for prop_name, prop_value in op_export_omf_props.items():
             exec('{0} = op_export_omf_props.get("{0}")'.format(prop_name))
 
+    def draw(self, context):
+        layout = self.layout
+        row = layout.split(factor=0.5)
+        row.label(text='Export Mode:')
+        row.prop(self, 'export_mode', text='')
+        row = layout.row()
+        row.active = not self.export_mode in ('OVERWRITE', 'ADD')
+        row.prop(self, 'export_motions')
+        row = layout.row()
+        row.active = not self.export_mode in ('OVERWRITE', 'ADD')
+        row.prop(self, 'export_bone_parts')
+
     @utils.set_cursor_state
     def execute(self, context):
-        obj = context.object
+        export_context = ExportContext()
+        export_context.bpy_obj = context.object
+        export_context.filepath = self.filepath
+        export_context.export_mode = self.export_mode
+        export_context.export_motions = self.export_motions
+        export_context.export_bone_parts = self.export_bone_parts
         try:
-            exp.export_omf_file(self.filepath, obj)
+            exp.export_omf_file(export_context)
         except utils.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
