@@ -398,8 +398,8 @@ def export_omf_file(context):
         write_motions(packed_writer, motions)
         main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
     else:
-        packed_writer.putf('H', len(available_params) + new_motions_count)
         if context.export_mode == 'ADD':
+            packed_writer.putf('H', len(available_params) + new_motions_count)
             for motion_name, motion_params in available_params.items():
                 packed_writer.puts(motion_name)
                 packed_writer.putp(motion_params.writer)
@@ -409,14 +409,21 @@ def export_omf_file(context):
                     motions_new[motion_name] = (motion_id, has_available)
             write_motions(packed_writer, motions_new)
         elif context.export_mode == 'REPLACE':
-            for motion_name, motion_params in available_params.items():
-                motion_id, has_available = motions.get(motion_name, None)
-                if has_available:
+            if context.export_motions:
+                packed_writer.putf('H', len(available_params) + new_motions_count)
+                for motion_name, motion_params in available_params.items():
+                    motion_id, has_available = motions.get(motion_name, None)
+                    if has_available:
+                        packed_writer.puts(motion_name)
+                        packed_writer.putp(motion_params.writer)
+                    else:
+                        params = motion
+                        write_motion(packed_writer, motion_name, params)
+            else:
+                packed_writer.putf('H', len(available_params))
+                for motion_name, motion_params in available_params.items():
                     packed_writer.puts(motion_name)
                     packed_writer.putp(motion_params.writer)
-                else:
-                    params = motion
-                    write_motion(packed_writer, motion_name, params)
         main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
     bpy.ops.object.mode_set(mode='OBJECT')
     with open(context.filepath, 'wb') as file:
