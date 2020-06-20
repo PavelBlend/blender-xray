@@ -133,6 +133,8 @@ class IMPORT_OT_xray_omf(
         layout = self.layout
         layout.prop(self, 'import_motions')
         layout.prop(self, 'import_bone_parts')
+        if not self.import_motions:
+            return
         row = layout.row()
         row.active = self.import_motions
         row.prop(self, 'add_actions_to_motion_list')
