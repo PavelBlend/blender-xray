@@ -3,7 +3,7 @@ import bpy
 from .. import registry
 
 
-COPY_TRANSFORMS_NAME = 'blender-xray-link'
+COPY_TRANSFORMS_NAME = '!-xray-link'
 
 
 @registry.module_thing
