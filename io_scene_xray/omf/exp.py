@@ -193,6 +193,12 @@ def write_motions(packed_writer, motions):
 
 
 def export_omf_file(context):
+    current_frame = bpy.context.scene.frame_current
+    mode = context.bpy_obj.mode
+    if not context.bpy_obj.animation_data:
+        current_action = None
+    else:
+        current_action = context.bpy_obj.animation_data.action
     motion_names = set()
     for motion in context.bpy_obj.xray.motions_collection:
         motion_names.add(motion.name)
@@ -425,6 +431,11 @@ def export_omf_file(context):
                     packed_writer.puts(motion_name)
                     packed_writer.putp(motion_params.writer)
         main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
-    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.mode_set(mode=mode)
+    bpy.context.scene.frame_set(current_frame)
+    if current_action:
+        context.bpy_obj.animation_data.action = current_action
+    else:
+        context.bpy_obj.animation_data_clear()
     with open(context.filepath, 'wb') as file:
         file.write(main_chunked_writer.data)
