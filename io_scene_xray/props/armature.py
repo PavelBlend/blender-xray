@@ -23,7 +23,8 @@ xray_armature_properties = {
     ),
     'display_bone_limit_x': bpy.props.BoolProperty(name='Limit X', default=True),
     'display_bone_limit_y': bpy.props.BoolProperty(name='Limit Y', default=True),
-    'display_bone_limit_z': bpy.props.BoolProperty(name='Limit Z', default=True)
+    'display_bone_limit_z': bpy.props.BoolProperty(name='Limit Z', default=True),
+    'link_to_armature': bpy.props.StringProperty(name='Link to Armature')
 }
 
 
