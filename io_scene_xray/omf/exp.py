@@ -172,8 +172,10 @@ def get_motions(context):
     return motions, motion_names, chunks
 
 
-def write_motion(packed_writer, motion_name, motion_params):
+def write_motion(context, packed_writer, motion_name, motion_params):
     action = bpy.data.actions.get(motion_name)
+    if context.bpy_obj.xray.use_custom_motion_names:
+        motion_name = context.motion_export_names[motion_name]
     packed_writer.puts(motion_name)
     motion_flags = get_flags(action.xray)
     packed_writer.putf('I', motion_flags)
@@ -187,9 +189,9 @@ def write_motion(packed_writer, motion_name, motion_params):
     packed_writer.putf('f', action.xray.falloff)
 
 
-def write_motions(packed_writer, motions):
+def write_motions(context, packed_writer, motions):
     for motion_name, motion_params in motions.items():
-        write_motion(packed_writer, motion_name, motion_params)
+        write_motion(context, packed_writer, motion_name, motion_params)
 
 
 def export_omf_file(context):
@@ -200,8 +202,13 @@ def export_omf_file(context):
     else:
         current_action = context.bpy_obj.animation_data.action
     motion_names = set()
+    context.motion_export_names = {}
     for motion in context.bpy_obj.xray.motions_collection:
         motion_names.add(motion.name)
+        if motion.export_name:
+            context.motion_export_names[motion.name] = motion.export_name
+        else:
+            context.motion_export_names[motion.name] = motion.name
     if context.export_mode in ('ADD', 'REPLACE'):
         available_motions, available_motion_names, chunks = get_motions(context)
         available_motion_names.extend(
@@ -279,6 +286,8 @@ def export_omf_file(context):
                 continue
         packed_writer = xray_io.PackedWriter()
         context.bpy_obj.animation_data.action = action
+        if context.bpy_obj.xray.use_custom_motion_names:
+            motion_name = context.motion_export_names[motion_name]
         packed_writer.puts(motion_name)
         if context.export_mode == 'ADD':
             new_motions_count += 1
@@ -401,7 +410,7 @@ def export_omf_file(context):
                 packed_writer.putf('I', bone.index)
     if not available_params:
         packed_writer.putf('H', motion_count)
-        write_motions(packed_writer, motions)
+        write_motions(context, packed_writer, motions)
         main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
     else:
         if context.export_mode == 'ADD':
@@ -413,7 +422,7 @@ def export_omf_file(context):
             for motion_name, (motion_id, has_available) in motions.items():
                 if not has_available:
                     motions_new[motion_name] = (motion_id, has_available)
-            write_motions(packed_writer, motions_new)
+            write_motions(context, packed_writer, motions_new)
         elif context.export_mode == 'REPLACE':
             if context.export_motions:
                 packed_writer.putf('H', len(available_params) + new_motions_count)
@@ -424,7 +433,9 @@ def export_omf_file(context):
                         packed_writer.putp(motion_params.writer)
                     else:
                         params = motion
-                        write_motion(packed_writer, motion_name, params)
+                        if context.bpy_obj.xray.use_custom_motion_names:
+                            motion_name = context.motion_export_names[motion_name]
+                        write_motion(context, packed_writer, motion_name, params)
             else:
                 packed_writer.putf('H', len(available_params))
                 for motion_name, motion_params in available_params.items():
