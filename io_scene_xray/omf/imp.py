@@ -91,7 +91,14 @@ def read_motion(data, context, motions_params):
     length = packed_reader.getf('I')[0]
     motion_params = motions_params[name]
 
-    if name in context.selected_names:
+    import_motion = False
+    if not context.selected_names is None:
+        if name in context.selected_names:
+            import_motion = True
+    else:
+        import_motion = True
+
+    if import_motion:
         act = bpy.data.actions.new(name)
         act.use_fake_user = True
         if context.add_actions_to_motion_list:
