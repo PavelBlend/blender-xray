@@ -20,9 +20,7 @@ class TestLevel(utils.XRayTestCase):
             # Export
             level_obj = bpy.data.objects['test_fmt_level']
             level_obj.select_set(True)
-            directory = os.path.join(
-                self.relpath(), 'test_fmt_level_export'
-            )
+            directory = self.outpath('test_fmt_level_export')
             if not os.path.exists(directory):
                 os.makedirs(directory)
             bpy.context.view_layer.objects.active = level_obj

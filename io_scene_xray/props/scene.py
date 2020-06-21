@@ -4,15 +4,21 @@ from .. import registry, plugin_prefs
 from ..version_utils import assign_props, IS_28
 
 
-import_skls_props = {
+import_motion_props = {
     'motion_index': bpy.props.IntProperty(),
 }
 
 
 class ImportSkls(bpy.types.PropertyGroup):
     if not IS_28:
-        for prop_name, prop_value in import_skls_props.items():
-            exec('{0} = import_skls_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in import_motion_props.items():
+            exec('{0} = import_motion_props.get("{0}")'.format(prop_name))
+
+
+class ImportOmf(bpy.types.PropertyGroup):
+    if not IS_28:
+        for prop_name, prop_value in import_motion_props.items():
+            exec('{0} = import_motion_props.get("{0}")'.format(prop_name))
 
 
 convert_materials_mode_items = (
@@ -43,6 +49,7 @@ xray_scene_properties = {
         options={'SKIP_SAVE'},
     ),
     'import_skls': bpy.props.PointerProperty(type=ImportSkls),
+    'import_omf': bpy.props.PointerProperty(type=ImportOmf),
     'convert_materials_mode': bpy.props.EnumProperty(
         name='Mode', items=convert_materials_mode_items, default='ACTIVE_MATERIAL'
     ),
@@ -54,6 +61,7 @@ xray_scene_properties = {
 
 
 @registry.requires(ImportSkls)
+@registry.requires(ImportOmf)
 class XRaySceneProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Scene
 
@@ -63,6 +71,7 @@ class XRaySceneProperties(bpy.types.PropertyGroup):
 
 
 assign_props([
-    (import_skls_props, ImportSkls),
+    (import_motion_props, ImportSkls),
+    (import_motion_props, ImportOmf),
     (xray_scene_properties, XRaySceneProperties)
 ])
