@@ -1,3 +1,5 @@
+import bpy
+
 from .base import XRayPanel, build_label
 from .. import registry
 from ..ops import fake_bones, joint_limits
@@ -68,3 +70,8 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
             text='Show/Hide',
             icon=get_icon('VISIBLE_IPO_ON'),
         )
+        box = layout.box()
+        box.label(text='Link/Unlink Bones:')
+        box.prop_search(data, 'link_to_armature', bpy.data, 'objects', text='')
+        box.operator('io_scene_xray.link_bones')
+        box.operator('io_scene_xray.unlink_bones')
