@@ -79,7 +79,7 @@ class IMPORT_OT_xray_omf(
     bl_idname = 'xray_import.omf'
     bl_label = 'Import OMF'
     bl_description = 'Import X-Ray Game Motion (omf)'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     __parsed_file_name = None
 
@@ -220,6 +220,7 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
     bl_idname = 'xray_export.omf'
     bl_label = 'Export .omf'
     bl_description = 'Exports X-Ray skeletal game motions'
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     filename_ext = '.omf'
 
