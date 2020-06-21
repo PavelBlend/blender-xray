@@ -152,3 +152,70 @@ LIGHT_MAP_UV_COEFFICIENT = 2 ** 15 - 1
 # cform
 CFORM_VERSION_4 = 4
 CFORM_SUPPORT_VERSIONS = (CFORM_VERSION_4, )
+
+# vertex types
+VERTEX_TYPE_TREE = [
+    (usage_values[POSITION], types_values[FLOAT3]),
+    (usage_values[NORMAL], types_values[D3DCOLOR]),
+    (usage_values[TANGENT], types_values[D3DCOLOR]),
+    (usage_values[BINORMAL], types_values[D3DCOLOR]),
+    (usage_values[TEXCOORD], types_values[SHORT4])
+]
+
+# version 14
+VERTEX_TYPE_BRUSH_14 = [
+    (usage_values[POSITION], types_values[FLOAT3]),
+    (usage_values[NORMAL], types_values[D3DCOLOR]),
+    (usage_values[TANGENT], types_values[D3DCOLOR]),
+    (usage_values[BINORMAL], types_values[D3DCOLOR]),
+    (usage_values[TEXCOORD], types_values[SHORT2]),
+    (usage_values[TEXCOORD], types_values[SHORT2])
+]
+
+# version 13
+VERTEX_TYPE_BRUSH_13 = [
+    (usage_values[POSITION], types_values[FLOAT3]),
+    (usage_values[NORMAL], types_values[D3DCOLOR]),
+    (usage_values[TANGENT], types_values[D3DCOLOR]),
+    (usage_values[BINORMAL], types_values[D3DCOLOR]),
+    (usage_values[TEXCOORD], types_values[FLOAT2]),
+    (usage_values[TEXCOORD], types_values[SHORT2])
+]
+# version 12
+VERTEX_TYPE_BRUSH_12 = [
+    (usage_values[POSITION], types_values[FLOAT3]),
+    (usage_values[NORMAL], types_values[D3DCOLOR]),
+    (usage_values[TEXCOORD], types_values[FLOAT2]),
+    (usage_values[TEXCOORD], types_values[SHORT2])
+]
+
+# version 13
+VERTEX_TYPE_COLOR_13 = [
+    (usage_values[POSITION], types_values[FLOAT3]),
+    (usage_values[NORMAL], types_values[D3DCOLOR]),
+    (usage_values[TANGENT], types_values[D3DCOLOR]),
+    (usage_values[BINORMAL], types_values[D3DCOLOR]),
+    (usage_values[COLOR], types_values[D3DCOLOR]),
+    (usage_values[TEXCOORD], types_values[FLOAT2])
+]
+# version 12
+VERTEX_TYPE_COLOR_12 = [
+    (usage_values[POSITION], types_values[FLOAT3]),
+    (usage_values[NORMAL], types_values[D3DCOLOR]),
+    (usage_values[COLOR], types_values[D3DCOLOR]),
+    (usage_values[TEXCOORD], types_values[FLOAT2])
+]
+
+# version 14
+VERTEX_TYPE_COLOR_14 = [
+    (usage_values[POSITION], types_values[FLOAT3]),
+    (usage_values[NORMAL], types_values[D3DCOLOR]),
+    (usage_values[TANGENT], types_values[D3DCOLOR]),
+    (usage_values[BINORMAL], types_values[D3DCOLOR]),
+    (usage_values[COLOR], types_values[D3DCOLOR]),
+    (usage_values[TEXCOORD], types_values[SHORT2])
+]
+# version 14
+VERTEX_TYPE_FASTPATH = [
+    (usage_values[POSITION], types_values[FLOAT3]),
+]
