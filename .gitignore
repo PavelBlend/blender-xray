@@ -3,5 +3,4 @@ htmlcov
 coverage.xml
 *.bat
 *.zip
-test_fmt_level_export
 .coverage
