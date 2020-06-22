@@ -178,7 +178,7 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
             mod.show_viewport = False
         if IS_28:
             depsgraph = bpy.context.view_layer.depsgraph
-            depsgraph.update()
+            # depsgraph.update()
             mesh.from_object(bpy_obj, depsgraph)
         else:
             mesh.from_object(bpy_obj, bpy.context.scene)

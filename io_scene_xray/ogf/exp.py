@@ -26,7 +26,7 @@ def calculate_mesh_bsphere(bbox, vertices, mat=mathutils.Matrix()):
     return center, max_radius
 
 
-def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache={}):
+def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
     def scan_meshes(bpy_obj, meshes):
         if is_helper_object(bpy_obj):
             return
@@ -35,14 +35,26 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache={}):
         for child in bpy_obj.children:
             scan_meshes(child, meshes)
 
+    def scan_meshes_using_cache(bpy_obj, meshes, cache):
+        if is_helper_object(bpy_obj):
+            return
+        if (bpy_obj.type == 'MESH') and bpy_obj.data.vertices:
+            meshes.append(bpy_obj)
+        for child_name in cache.children[bpy_obj.name]:
+            child = bpy.data.objects[child_name]
+            scan_meshes_using_cache(child, meshes, cache)
+
     meshes = []
-    scan_meshes(bpy_obj, meshes)
+    if cache:
+        scan_meshes_using_cache(bpy_obj, meshes, cache)
+    else:
+        scan_meshes(bpy_obj, meshes)
 
     bbox = None
     spheres = []
     for mesh in meshes:
-        if cache.get(mesh.name, None):
-            bbx, center, radius = cache[mesh.name]
+        if cache.bounds.get(mesh.name, None):
+            bbx, center, radius = cache.bounds[mesh.name]
         else:
             if apply_transforms:
                 mat_world = mesh.matrix_world
@@ -51,7 +63,7 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache={}):
             bmesh = convert_object_to_space_bmesh(mesh, mat_world)
             bbx = calculate_mesh_bbox(bmesh.verts, mat=mat_world)
             center, radius = calculate_mesh_bsphere(bbx, bmesh.verts, mat=mat_world)
-            cache[mesh.name] = bbx, center, radius
+            cache.bounds[mesh.name] = bbx, center, radius
 
         if bbox is None:
             bbox = bbx
