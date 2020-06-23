@@ -247,6 +247,8 @@ STALKER_ICON_NAME = 'stalker'
 def get_stalker_icon():
     pcoll = preview_collections['main']
     icon = pcoll[STALKER_ICON_NAME]
+    # without this line in some cases the icon is not visible
+    len(icon.icon_pixels)
     return icon.icon_id
 
 

@@ -32,6 +32,20 @@ class Visual(object):
         self.shader_index = None
 
 
+class VisualsCache:
+    def __init__(self):
+        self.bounds = {}
+        self.children = {}
+
+    def find_children(self):
+        for obj in bpy.data.objects:
+            self.children[obj.name] = []
+        for child_obj in bpy.data.objects:
+            parent = child_obj.parent
+            if parent:
+                self.children[parent.name].append(child_obj.name)
+
+
 class Level(object):
     def __init__(self):
         self.materials = {}
@@ -46,7 +60,8 @@ class Level(object):
         self.visuals_bbox = {}
         self.visuals_center = {}
         self.visuals_radius = {}
-        self.bbox_cache = {}
+        self.visuals_cache = VisualsCache()
+        self.visuals_cache.find_children()
         self.cform_objects = {}
 
 
@@ -348,7 +363,7 @@ def write_visual_header(level, bpy_obj, visual=None, visual_type=0, shader_id=0)
         packed_writer.putf('<H', shader_id)    # shader id
     data = bpy_obj.xray
     bbox, (center, radius) = ogf_exp.calculate_bbox_and_bsphere(
-        bpy_obj, apply_transforms=True, cache=level.bbox_cache
+        bpy_obj, apply_transforms=True, cache=level.visuals_cache
     )
     level.visuals_bbox[bpy_obj.name] = bbox
     level.visuals_center[bpy_obj.name] = center
@@ -867,7 +882,7 @@ def write_visual(
             header_writer = write_visual_header(level, bpy_obj, visual=visual)
             chunked_writer.put(ogf_fmt.HEADER, header_writer)
             chunked_writer.put(ogf_fmt.Chunks_v4.GCONTAINER, gcontainer_writer)
-            if len(bpy_obj.children) > 1:
+            if len(level.visuals_cache.children[bpy_obj.name]) > 1:
                 raise utils.AppError('Object "{}" has more than one children'.format(bpy_obj.name))
             if bpy_obj.xray.level.use_fastpath:
                 fastpath_writer = write_fastpath(bpy_obj, fp_vbs, fp_ibs, level)
@@ -987,11 +1002,12 @@ def write_visual_children(
     return visual_index
 
 
-def find_hierrarhy(visual_obj, visuals_hierrarhy, visual_index, visuals):
+def find_hierrarhy(level, visual_obj, visuals_hierrarhy, visual_index, visuals):
     visuals.append(visual_obj)
     visuals_hierrarhy[visual_obj.name] = []
     children_objs = []
-    for child_obj in visual_obj.children:
+    for child_obj_name in level.visuals_cache.children[visual_obj.name]:
+        child_obj = bpy.data.objects[child_obj_name]
         children_objs.append(child_obj)
         visual_index += 1
         visuals_hierrarhy[visual_obj.name].append(child_obj)
@@ -1000,7 +1016,7 @@ def find_hierrarhy(visual_obj, visuals_hierrarhy, visual_index, visuals):
         if child_child_obj.xray.level.object_type == 'VISUAL':
             if child_child_obj.xray.level.visual_type != 'FASTPATH':
                 visuals_hierrarhy, visual_index = find_hierrarhy(
-                    child_child_obj, visuals_hierrarhy, visual_index, visuals
+                    level, child_child_obj, visuals_hierrarhy, visual_index, visuals
                 )
     return visuals_hierrarhy, visual_index
 
@@ -1017,13 +1033,16 @@ def write_visuals(level_object, sectors_map, level):
     sector_id = 0
     visuals_hierrarhy = {}
     visuals = []
-    for child_obj in level_object.children:
+    for child_obj_name in level.visuals_cache.children[level_object.name]:
+        child_obj = bpy.data.objects[child_obj_name]
         if child_obj.name.startswith('sectors'):
-            for sector_obj in child_obj.children:
-                for obj in sector_obj.children:
+            for sector_obj_name in level.visuals_cache.children[child_obj.name]:
+                sector_obj = bpy.data.objects[sector_obj_name]
+                for obj_name in level.visuals_cache.children[sector_obj.name]:
+                    obj = bpy.data.objects[obj_name]
                     if obj.xray.level.object_type == 'VISUAL':
                         visuals_hierrarhy, visual_index = find_hierrarhy(
-                            obj, visuals_hierrarhy, visual_index, visuals
+                            level, obj, visuals_hierrarhy, visual_index, visuals
                         )
                         visual_index += 1
     visuals.reverse()
@@ -1031,11 +1050,14 @@ def write_visuals(level_object, sectors_map, level):
     for visual_index, visual_obj in enumerate(visuals):
         visuals_ids[visual_obj] = visual_index
     visual_index = 0
-    for child_obj in level_object.children:
+    for child_obj_name in level.visuals_cache.children[level_object.name]:
+        child_obj = bpy.data.objects[child_obj_name]
         if child_obj.name.startswith('sectors'):
-            for sector_obj in child_obj.children:
+            for sector_obj_name in level.visuals_cache.children[child_obj.name]:
+                sector_obj = bpy.data.objects[sector_obj_name]
                 level.sectors_indices[sector_obj.name] = sector_id
-                for root_obj in sector_obj.children:
+                for root_obj_name in level.visuals_cache.children[sector_obj.name]:
+                    root_obj = bpy.data.objects[root_obj_name]
                     if root_obj.xray.level.object_type == 'VISUAL':
                         # write sector
                         root_index = visuals_ids[root_obj]
@@ -1084,18 +1106,22 @@ def write_glow(packed_writer, glow_obj, level):
 
 def write_glows(level_object, level):
     packed_writer = xray_io.PackedWriter()
-    for child_obj in level_object.children:
+    for child_obj_name in level.visuals_cache.children[level_object.name]:
+        child_obj = bpy.data.objects[child_obj_name]
         if child_obj.name.startswith('glows'):
-            for glow_obj in child_obj.children:
+            for glow_obj_name in level.visuals_cache.children[child_obj.name]:
+                glow_obj = bpy.data.objects[glow_obj_name]
                 write_glow(packed_writer, glow_obj, level)
     return packed_writer
 
 
-def write_light(level_object):
+def write_light(level, level_object):
     packed_writer = xray_io.PackedWriter()
-    for child_obj in level_object.children:
+    for child_obj_name in level.visuals_cache.children[level_object.name]:
+        child_obj = bpy.data.objects[child_obj_name]
         if child_obj.name.startswith('light dynamic'):
-            for light_obj in child_obj.children:
+            for light_obj_name in level.visuals_cache.children[child_obj.name]:
+                light_obj = bpy.data.objects[light_obj_name]
                 data = light_obj.xray.level
                 packed_writer.putf('I', data.controller_id)
                 packed_writer.putf('I', data.light_type)
@@ -1131,9 +1157,11 @@ def append_portal(sectors_map, sector_index, portal_index):
 
 def write_portals(level, level_object):
     packed_writer = xray_io.PackedWriter()
-    for child_obj in level_object.children:
+    for child_obj_name in level.visuals_cache.children[level_object.name]:
+        child_obj = bpy.data.objects[child_obj_name]
         if child_obj.name.startswith('portals'):
-            for portal_index, portal_obj in enumerate(child_obj.children):
+            for portal_index, portal_obj_name in enumerate(level.visuals_cache.children[child_obj.name]):
+                portal_obj = bpy.data.objects[portal_obj_name]
                 packed_writer.putf('<H', level.sectors_indices[portal_obj.xray.level.sector_front])
                 packed_writer.putf('<H', level.sectors_indices[portal_obj.xray.level.sector_back])
                 for vertex in portal_obj.data.vertices:
@@ -1147,11 +1175,13 @@ def write_portals(level, level_object):
     return packed_writer
 
 
-def get_sectors_map(level_object):
+def get_sectors_map(level, level_object):
     sectors_map = {}
-    for child_obj in level_object.children:
+    for child_obj_name in level.visuals_cache.children[level_object.name]:
+        child_obj = bpy.data.objects[child_obj_name]
         if child_obj.name.startswith('portals'):
-            for portal_index, portal_obj in enumerate(child_obj.children):
+            for portal_index, portal_obj_name in enumerate(level.visuals_cache.children[child_obj.name]):
+                portal_obj = bpy.data.objects[portal_obj_name]
                 append_portal(
                     sectors_map, portal_obj.xray.level.sector_front, portal_index
                 )
@@ -1177,7 +1207,7 @@ def write_level(chunked_writer, level_object, file_path):
     chunked_writer.put(fmt.HEADER, header_writer)
     del header_writer
 
-    sectors_map = get_sectors_map(level_object)
+    sectors_map = get_sectors_map(level, level_object)
 
     # visuals
     (visuals_writer, vbs, ibs,
@@ -1191,7 +1221,7 @@ def write_level(chunked_writer, level_object, file_path):
     del portals_writer
 
     # light dynamic
-    light_writer = write_light(level_object)
+    light_writer = write_light(level, level_object)
     chunked_writer.put(fmt.Chunks13.LIGHT_DYNAMIC, light_writer)
     del light_writer
 
@@ -1326,7 +1356,7 @@ def export_file(level_object, dir_path):
         vbs, ibs, level.materials, level.visuals, level.vbs_offsets,
         level.ibs_offsets, level.saved_visuals, level.sectors_indices,
         level.visuals_bbox, level.visuals_center, level.visuals_radius,
-        level.bbox_cache
+        level.visuals_cache
     )
 
     with open(file_path + os.extsep + 'geom', 'wb') as file:
