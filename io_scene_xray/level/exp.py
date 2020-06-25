@@ -309,8 +309,8 @@ def write_shaders(level):
         )
         eshader = material.xray.eshader
 
-        lmap_1_node = material.node_tree.nodes.get('Light Map 0', None)
-        lmap_2_node = material.node_tree.nodes.get('Light Map 1', None)
+        lmap_1_node = material.node_tree.nodes.get(material.xray.lmap_0, None)
+        lmap_2_node = material.node_tree.nodes.get(material.xray.lmap_1, None)
 
         if lmap_1_node:
             lmap_1_path = lmap_1_node.image.name[0 : -4]    # cut .dds extension
@@ -458,9 +458,15 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
 
     uv_layer = bm.loops.layers.uv['Texture']
     uv_layer_lmap = bm.loops.layers.uv.get('Light Map', None)
-    vertex_color_sun = bm.loops.layers.color.get('Sun', None)
-    vertex_color_hemi = bm.loops.layers.color.get('Hemi', None)
-    vertex_color_light = bm.loops.layers.color.get('Light', None)
+    vertex_color_sun = bm.loops.layers.color.get(
+        material.xray.sun_vert_color, None
+    )
+    vertex_color_hemi = bm.loops.layers.color.get(
+        material.xray.hemi_vert_color, None
+    )
+    vertex_color_light = bm.loops.layers.color.get(
+        material.xray.light_vert_color, None
+    )
     export_mesh.calc_tangents(uvmap=uv_layer.name)
 
     vertex_size = 32
@@ -926,13 +932,13 @@ def write_rgb_hemi(red, green, blue, hemi):
 def write_lod_def_2(bpy_obj, hierrarhy, visuals_ids, level):
     packed_writer = xray_io.PackedWriter()
     me = bpy_obj.data
+    material = bpy_obj.data.materials[0]
     uv_layer = me.uv_layers['Texture']
-    rgb_layer = me.vertex_colors['Light']
-    hemi_layer = me.vertex_colors['Hemi']
-    sun_layer = me.vertex_colors['Sun']
+    rgb_layer = me.vertex_colors[material.xray.light_vert_color]
+    hemi_layer = me.vertex_colors[material.xray.hemi_vert_color]
+    sun_layer = me.vertex_colors[material.xray.sun_vert_color]
 
     visual = Visual()
-    material = bpy_obj.data.materials[0]
     if level.materials.get(material, None) is None:
         level.materials[material] = level.active_material_index
         visual.shader_index = level.active_material_index
