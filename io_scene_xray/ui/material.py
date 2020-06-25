@@ -45,16 +45,32 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
 
     def draw(self, context):
         layout = self.layout
-        data = context.object.active_material.xray
+        material = context.object.active_material
+        data = material.xray
         layout.prop(data, 'flags_twosided', text='Two sided', toggle=True)
         _gen_xr_selector(layout, data, 'eshader', 'EShader')
         _gen_xr_selector(layout, data, 'cshader', 'CShader')
         _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
         collapsible_text = 'Converter'
         if IS_28:
-            layout.label(text='Suppress:')
-            layout.prop(data, 'suppress_shadows', text='Shadows')
-            layout.prop(data, 'suppress_wm', text='Wallmarks')
+            def draw_level_prop(prop_name, prop_text, light_type='LMAP'):
+                row = box.split(factor=0.45)
+                row.label(text=prop_text)
+                if light_type == 'LMAP':
+                    row.prop_search(data, prop_name, material.node_tree, 'nodes', text='')
+                else:
+                    row.prop_search(data, prop_name, context.object.data, 'vertex_colors', text='')
+            box = layout.box()
+            box.label(text='Level CForm:')
+            box.prop(data, 'suppress_shadows', text='Suppress Shadows')
+            box.prop(data, 'suppress_wm', text='Suppress Wallmarks')
+            box = layout.box()
+            box.label(text='Level Visual:')
+            draw_level_prop('lmap_0', 'Light Map 1:')
+            draw_level_prop('lmap_1', 'Light Map 2:')
+            draw_level_prop('light_vert_color', 'Light Vertex Color:', light_type='VERTEX')
+            draw_level_prop('sun_vert_color', 'Sun Vertex Color:', light_type='VERTEX')
+            draw_level_prop('hemi_vert_color', 'Hemi Vertex Color:', light_type='VERTEX')
             collapsible_text = 'Utils'
         row, box = collapsible.draw(
             layout, 'test_key', text='Material {0}'.format(collapsible_text)
