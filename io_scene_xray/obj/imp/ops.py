@@ -91,6 +91,7 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
         self.import_motions = prefs.object_motions_import
         self.mesh_split_by_materials = prefs.object_mesh_split_by_mat
         self.shaped_bones = prefs.object_bones_custom_shapes
+        self.use_motion_prefix_name = prefs.use_motion_prefix_name
         return super().invoke(context, event)
 
 

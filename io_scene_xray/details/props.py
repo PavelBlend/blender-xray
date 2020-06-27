@@ -18,3 +18,16 @@ def prop_details_format():
             ('builds_1233-1558', 'Builds 1233-1558', '')
         )
     )
+
+
+# export props
+def prop_details_format_version():
+    return bpy.props.EnumProperty(
+        name='Format',
+        items=(
+            ('builds_1569-cop', 'Builds 1569-CoP', ''),
+            ('builds_1233-1558', 'Builds 1233-1558', ''),
+            ('builds_1096-1230', 'Builds 1096-1230', '')
+        ),
+        default='builds_1569-cop'
+    )

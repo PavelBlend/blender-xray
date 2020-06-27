@@ -125,7 +125,7 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
 op_export_dms_props = {
     'detail_models': bpy.props.StringProperty(options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
-    'texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': obj_exp_props.prop_details_texture_names_from_path()
 }
 
 class OpExportDMs(bpy.types.Operator):
@@ -191,7 +191,7 @@ op_export_dm_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
         ),
-    'texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': obj_exp_props.prop_details_texture_names_from_path()
 }
 
 
@@ -255,17 +255,9 @@ op_export_level_details_props = {
         ),
 
     'texture_name_from_image_path': \
-        obj_exp_props.PropObjectTextureNamesFromPath(),
+        obj_exp_props.prop_details_texture_names_from_path(),
 
-    'format_version': bpy.props.EnumProperty(
-        name='Format',
-        items=(
-            ('builds_1569-cop', 'Builds 1569-CoP', ''),
-            ('builds_1233-1558', 'Builds 1233-1558', ''),
-            ('builds_1096-1230', 'Builds 1096-1230', '')
-        ),
-        default='builds_1569-cop'
-    )
+    'format_version': prop_details_format_version()
 }
 
 
@@ -331,6 +323,7 @@ class OpExportLevelDetails(
 
         self.texture_name_from_image_path = \
             prefs.object_texture_names_from_path
+        self.format_version = prefs.format_version
 
         return super().invoke(context, event)
 

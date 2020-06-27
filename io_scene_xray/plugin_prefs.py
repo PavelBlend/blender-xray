@@ -156,7 +156,9 @@ plugin_preferences_props = {
     # details import props
     'details_models_in_a_row': details_props.prop_details_models_in_a_row(),
     'load_slots': details_props.prop_details_load_slots(),
-    'details_format': details_props.prop_details_format()
+    'details_format': details_props.prop_details_format(),
+    # details export props
+    'format_version': details_props.prop_details_format_version(),
 }
 
 
