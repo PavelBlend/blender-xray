@@ -7,6 +7,7 @@ from . import registry, xray_ltx
 from .details import props as details_props
 from .obj.imp import props as obj_imp_props
 from .skl import props as skl_props
+from .omf import props as omf_props
 from .obj.exp import props as obj_exp_props
 from .ui import collapsible, xprop
 from .utils import with_auto_property
@@ -161,7 +162,11 @@ plugin_preferences_props = {
     # details export props
     'format_version': details_props.prop_details_format_version(),
     # skl props
-    'add_actions_to_motion_list': skl_props.prop_skl_add_actions_to_motion_list()
+    'add_actions_to_motion_list': skl_props.prop_skl_add_actions_to_motion_list(),
+    # omf props
+    'import_bone_parts': omf_props.prop_omf_import_bone_parts(),
+    'omf_export_bone_parts': omf_props.prop_omf_export_bone_parts(),
+    'omf_export_mode': omf_props.prop_omf_export_mode()
 }
 
 
@@ -295,6 +300,15 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 box_n.label(text='Export:')
                 row = box_n.row()
                 row.prop(self, 'format_version', expand=True)
+
+            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.omf', 'Game Motion (.omf)', style='tree')
+            if box_n:
+                box_n.label(text='Import:')
+                prop_bool(box_n, self, 'import_bone_parts')
+                box_n.label(text='Export:')
+                prop_bool(box_n, self, 'omf_export_bone_parts')
+                row = box_n.row()
+                row.prop(self, 'omf_export_mode', expand=True)
 
         prop_bool(layout, self, 'expert_mode')
         prop_bool(layout, self, 'compact_menus')
