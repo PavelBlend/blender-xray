@@ -6,6 +6,7 @@ import bpy
 from . import registry, xray_ltx
 from .details import props as details_props
 from .obj.imp import props as obj_imp_props
+from .skl import props as skl_props
 from .obj.exp import props as obj_exp_props
 from .ui import collapsible, xprop
 from .utils import with_auto_property
@@ -159,6 +160,8 @@ plugin_preferences_props = {
     'details_format': details_props.prop_details_format(),
     # details export props
     'format_version': details_props.prop_details_format_version(),
+    # skl props
+    'add_actions_to_motion_list': skl_props.prop_skl_add_actions_to_motion_list()
 }
 
 
@@ -256,26 +259,33 @@ class PluginPreferences(bpy.types.AddonPreferences):
 
         _, box = collapsible.draw(layout, 'plugin_prefs:defaults', 'Defaults', style='tree')
         if box:
-            row = box.row()
-            row.label(text='SDK Version:')
-            row.prop(self, 'sdk_version', expand=True)
-            box.prop(self, 'object_texture_names_from_path')
 
-            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.object', 'Object', style='tree')
+            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.common', 'Common', style='tree')
+            if box_n:
+                row = box_n.row()
+                row.label(text='SDK Version:')
+                row.prop(self, 'sdk_version', expand=True)
+                box_n.prop(self, 'object_texture_names_from_path')
+                box_n.prop(self, 'use_motion_prefix_name')
+
+            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.object', 'Source Object (.object)', style='tree')
             if box_n:
                 box_n.label(text='Import:')
                 prop_bool(box_n, self, 'object_motions_import')
                 prop_bool(box_n, self, 'object_mesh_split_by_mat')
                 prop_bool(box_n, self, 'object_bones_custom_shapes')
-                prop_bool(box_n, self, 'use_motion_prefix_name')
                 box_n.label(text='Export:')
                 prop_bool(box_n, self, 'object_motions_export')
 
-            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.anm', 'Animation', style='tree')
+            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.skl', 'Skeletal Animation (.skl, .skls)', style='tree')
+            if box_n:
+                prop_bool(box_n, self, 'add_actions_to_motion_list')
+
+            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.anm', 'Animation (.anm)', style='tree')
             if box_n:
                 prop_bool(box_n, self, 'anm_create_camera')
 
-            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.details', 'Details', style='tree')
+            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.details', 'Details (.dm, .details)', style='tree')
             if box_n:
                 box_n.label(text='Import:')
                 prop_bool(box_n, self, 'details_models_in_a_row')
