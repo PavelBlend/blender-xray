@@ -99,9 +99,9 @@ class OpImportLevelScene(bpy.types.Operator, io_utils.ImportHelper):
 
     def invoke(self, context, event):
         prefs = plugin_prefs.get_preferences()
-        self.mesh_split_by_materials = prefs.mesh_split_by_materials
-        self.shaped_bones = prefs.shaped_bones
-        self.fmt_version = prefs.fmt_version
+        self.mesh_split_by_materials = prefs.object_mesh_split_by_mat
+        self.shaped_bones = prefs.object_bones_custom_shapes
+        self.fmt_version = prefs.sdk_version
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

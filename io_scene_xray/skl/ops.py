@@ -170,7 +170,7 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.skl'
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animation'
-    bl_options = {'UNDO', 'PRESET'}
+    bl_options = {'UNDO'}
 
     filename_ext = '.skl'
 
@@ -213,7 +213,7 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.skls'
     bl_label = 'Export .skls'
     bl_description = 'Exports X-Ray skeletal animation'
-    bl_options = {'UNDO', 'PRESET'}
+    bl_options = {'UNDO'}
 
     filename_ext = '.skls'
 
