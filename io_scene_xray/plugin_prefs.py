@@ -259,6 +259,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
             row = box.row()
             row.label(text='SDK Version:')
             row.prop(self, 'sdk_version', expand=True)
+            box.prop(self, 'object_texture_names_from_path')
 
             _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.object', 'Object', style='tree')
             if box_n:
@@ -269,7 +270,6 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 prop_bool(box_n, self, 'use_motion_prefix_name')
                 box_n.label(text='Export:')
                 prop_bool(box_n, self, 'object_motions_export')
-                prop_bool(box_n, self, 'object_texture_names_from_path')
 
             _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.anm', 'Animation', style='tree')
             if box_n:
