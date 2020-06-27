@@ -24,17 +24,9 @@ op_import_dm_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
     ),
-    'details_models_in_a_row': bpy.props.BoolProperty(
-        name='Details Models in a Row', default=True
-    ),
-    'load_slots': bpy.props.BoolProperty(name='Load Slots', default=True),
-    'format': bpy.props.EnumProperty(
-        name='Details Format',
-        items=(
-            ('builds_1096-1230', 'Builds 1096-1230', ''),
-            ('builds_1233-1558', 'Builds 1233-1558', '')
-        )
-    )
+    'details_models_in_a_row': plugin_prefs.prop_details_models_in_a_row(),
+    'load_slots': plugin_prefs.prop_details_load_slots(),
+    'details_format': plugin_prefs.prop_details_format()
 }
 
 
@@ -70,7 +62,7 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             use_motion_prefix_name=False
             )
 
-        import_context.format = self.format
+        import_context.format = self.details_format
         import_context.details_models_in_a_row = self.details_models_in_a_row
         import_context.load_slots = self.load_slots
         import_context.report = self.report
@@ -119,9 +111,13 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
         if self.load_slots:
             box.label(text='Format:')
             row = box.row()
-            row.prop(self, 'format', expand=True)
+            row.prop(self, 'details_format', expand=True)
 
     def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
+        self.details_models_in_a_row = prefs.details_models_in_a_row
+        self.load_slots = prefs.load_slots
+        self.details_format = prefs.details_format
         return super().invoke(context, event)
 
 

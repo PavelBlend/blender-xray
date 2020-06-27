@@ -81,6 +81,24 @@ def PropUseExportPaths():
     )
 
 
+def prop_details_models_in_a_row():
+    return bpy.props.BoolProperty(name='Details Models in a Row', default=True)
+
+
+def prop_details_load_slots():
+    return bpy.props.BoolProperty(name='Load Slots', default=True)
+
+
+def prop_details_format():
+    return bpy.props.EnumProperty(
+        name='Details Format',
+        items=(
+            ('builds_1096-1230', 'Builds 1096-1230', ''),
+            ('builds_1233-1558', 'Builds 1233-1558', '')
+        )
+    )
+
+
 __AUTO_PROPS__ = [
     'gamedata_folder',
     'textures_folder',
@@ -189,7 +207,10 @@ plugin_preferences_props = {
     'anm_create_camera': PropAnmCameraAnimation(),
     'fs_ltx_file': bpy.props.StringProperty(
         subtype='FILE_PATH', update=update_paths, name='fs.ltx File'
-    )
+    ),
+    'details_models_in_a_row': prop_details_models_in_a_row(),
+    'load_slots': prop_details_load_slots(),
+    'details_format': prop_details_format()
 }
 
 
@@ -302,6 +323,14 @@ class PluginPreferences(bpy.types.AddonPreferences):
             _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.anm', 'Animation', style='tree')
             if box_n:
                 prop_bool(box_n, self, 'anm_create_camera')
+
+            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.details', 'Details', style='tree')
+            if box_n:
+                prop_bool(box_n, self, 'details_models_in_a_row')
+                prop_bool(box_n, self, 'load_slots')
+                box_n.label(text='Format:')
+                row = box_n.row()
+                row.prop(self, 'details_format', expand=True)
 
         prop_bool(layout, self, 'expert_mode')
         prop_bool(layout, self, 'compact_menus')
