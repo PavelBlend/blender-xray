@@ -19,7 +19,7 @@ op_import_object_props = {
     ),
     'import_motions': props.PropObjectMotionsImport(),
     'mesh_split_by_materials': props.PropObjectMeshSplitByMaterials(),
-    'use_motion_prefix_name': bpy.props.BoolProperty(default=False, name='Motion Prefix Name'),
+    'use_motion_prefix_name': props.PropObjectUseMotionPrefixName(),
     'shaped_bones': props.PropObjectBonesCustomShapes(),
     'fmt_version': plugin_prefs.PropSDKVersion()
 }

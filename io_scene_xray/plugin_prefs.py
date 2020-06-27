@@ -148,6 +148,7 @@ plugin_preferences_props = {
     'object_mesh_split_by_mat': obj_imp_props.PropObjectMeshSplitByMaterials(),
     'object_texture_names_from_path': obj_exp_props.PropObjectTextureNamesFromPath(),
     'object_bones_custom_shapes': obj_imp_props.PropObjectBonesCustomShapes(),
+    'use_motion_prefix_name': obj_imp_props.PropObjectUseMotionPrefixName(),
     'anm_create_camera': PropAnmCameraAnimation(),
     'fs_ltx_file': bpy.props.StringProperty(
         subtype='FILE_PATH', update=update_paths, name='fs.ltx File'
@@ -259,11 +260,14 @@ class PluginPreferences(bpy.types.AddonPreferences):
 
             _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.object', 'Object', style='tree')
             if box_n:
+                box_n.label(text='Import:')
                 prop_bool(box_n, self, 'object_motions_import')
-                prop_bool(box_n, self, 'object_motions_export')
-                prop_bool(box_n, self, 'object_texture_names_from_path')
                 prop_bool(box_n, self, 'object_mesh_split_by_mat')
                 prop_bool(box_n, self, 'object_bones_custom_shapes')
+                prop_bool(box_n, self, 'use_motion_prefix_name')
+                box_n.label(text='Export:')
+                prop_bool(box_n, self, 'object_motions_export')
+                prop_bool(box_n, self, 'object_texture_names_from_path')
 
             _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.anm', 'Animation', style='tree')
             if box_n:

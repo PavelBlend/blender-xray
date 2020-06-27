@@ -23,3 +23,7 @@ def PropObjectBonesCustomShapes():
         description='Use custom shapes for imported bones',
         default=True
     )
+
+
+def PropObjectUseMotionPrefixName():
+    return bpy.props.BoolProperty(default=False, name='Motion Prefix Name')
