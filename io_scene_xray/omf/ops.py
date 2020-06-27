@@ -2,10 +2,12 @@ import os
 
 import bpy, bpy_extras
 
-from . import imp
-from . import exp
+from . import imp, exp, props
 from .. import plugin_prefs, registry, utils, plugin
 from ..ui import collapsible
+from ..skl import props as skl_props
+from ..obj.imp import props as obj_imp_props
+from ..obj.exp import props as obj_exp_props
 from ..ui.motion_list import (
     BaseSelectMotionsOp,
     _SelectMotionsOp,
@@ -57,16 +59,10 @@ op_import_omf_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
-    'import_motions': bpy.props.BoolProperty(
-        name='Import Motions', default=True
-    ),
-    'import_bone_parts': bpy.props.BoolProperty(
-        name='Import Bone Parts', default=False
-    ),
+    'import_motions': obj_imp_props.PropObjectMotionsImport(),
+    'import_bone_parts': props.prop_omf_import_bone_parts(),
     'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
-    'add_actions_to_motion_list': bpy.props.BoolProperty(
-        default=True, name='Add Actions to Motion List'
-    ),
+    'add_actions_to_motion_list': skl_props.prop_skl_add_actions_to_motion_list()
 }
 
 
@@ -120,6 +116,10 @@ class IMPORT_OT_xray_omf(
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
+        self.import_motions = prefs.object_motions_import
+        self.import_bone_parts = prefs.import_bone_parts
+        self.add_actions_to_motion_list = prefs.add_actions_to_motion_list
         obj = context.object
         if not obj:
             self.report({'ERROR'}, 'No active object')
@@ -196,22 +196,11 @@ class IMPORT_OT_xray_omf(
 
 
 filename_ext = '.omf'
-export_mode_items = (
-    ('OVERWRITE', 'Overwrite', ''),
-    ('ADD', 'Add', ''),
-    ('REPLACE', 'Replace', '')
-)
 op_export_omf_props = {
     'filter_glob': bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'}),
-    'export_mode': bpy.props.EnumProperty(
-        name='Export Mode', items=export_mode_items
-    ),
-    'export_motions': bpy.props.BoolProperty(
-        name='Export Motions', default=True
-    ),
-    'export_bone_parts': bpy.props.BoolProperty(
-        name='Export Bone Parts', default=False
-    )
+    'export_mode': props.prop_omf_export_mode(),
+    'export_motions': obj_exp_props.PropObjectMotionsExport(),
+    'export_bone_parts': props.prop_omf_export_bone_parts()
 }
 
 
@@ -256,6 +245,10 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
+        self.export_mode = prefs.omf_export_mode
+        self.export_bone_parts = prefs.omf_export_bone_parts
+        self.export_motions = prefs.object_motions_export
         if len(context.selected_objects) > 1:
             self.report({'ERROR'}, 'Too many selected objects')
             return {'CANCELLED'}
