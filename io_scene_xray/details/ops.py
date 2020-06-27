@@ -5,9 +5,10 @@ import bpy_extras
 
 from .. import plugin, plugin_prefs, utils
 from ..obj.imp.utils import ImportContext
+from ..obj.exp import props as obj_exp_props
 from .model import imp as model_imp
 from .model import exp as model_exp
-from . import imp, exp
+from . import imp, exp, props
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 
 
@@ -24,17 +25,9 @@ op_import_dm_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
     ),
-    'details_models_in_a_row': bpy.props.BoolProperty(
-        name='Details Models in a Row', default=True
-    ),
-    'load_slots': bpy.props.BoolProperty(name='Load Slots', default=True),
-    'format': bpy.props.EnumProperty(
-        name='Details Format',
-        items=(
-            ('builds_1096-1230', 'Builds 1096-1230', ''),
-            ('builds_1233-1558', 'Builds 1233-1558', '')
-        )
-    )
+    'details_models_in_a_row': props.prop_details_models_in_a_row(),
+    'load_slots': props.prop_details_load_slots(),
+    'details_format': props.prop_details_format()
 }
 
 
@@ -70,7 +63,7 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             use_motion_prefix_name=False
             )
 
-        import_context.format = self.format
+        import_context.format = self.details_format
         import_context.details_models_in_a_row = self.details_models_in_a_row
         import_context.load_slots = self.load_slots
         import_context.report = self.report
@@ -119,16 +112,20 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
         if self.load_slots:
             box.label(text='Format:')
             row = box.row()
-            row.prop(self, 'format', expand=True)
+            row.prop(self, 'details_format', expand=True)
 
     def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
+        self.details_models_in_a_row = prefs.details_models_in_a_row
+        self.load_slots = prefs.load_slots
+        self.details_format = prefs.details_format
         return super().invoke(context, event)
 
 
 op_export_dms_props = {
     'detail_models': bpy.props.StringProperty(options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
-    'texture_name_from_image_path': plugin_prefs.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath()
 }
 
 class OpExportDMs(bpy.types.Operator):
@@ -194,7 +191,7 @@ op_export_dm_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
         ),
-    'texture_name_from_image_path': plugin_prefs.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath()
 }
 
 
@@ -258,17 +255,9 @@ op_export_level_details_props = {
         ),
 
     'texture_name_from_image_path': \
-        plugin_prefs.PropObjectTextureNamesFromPath(),
+        obj_exp_props.PropObjectTextureNamesFromPath(),
 
-    'format_version': bpy.props.EnumProperty(
-        name='Format',
-        items=(
-            ('builds_1569-cop', 'Builds 1569-CoP', ''),
-            ('builds_1233-1558', 'Builds 1233-1558', ''),
-            ('builds_1096-1230', 'Builds 1096-1230', '')
-        ),
-        default='builds_1569-cop'
-    )
+    'format_version': props.prop_details_format_version()
 }
 
 
@@ -334,6 +323,7 @@ class OpExportLevelDetails(
 
         self.texture_name_from_image_path = \
             prefs.object_texture_names_from_path
+        self.format_version = prefs.format_version
 
         return super().invoke(context, event)
 

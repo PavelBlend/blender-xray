@@ -21,7 +21,7 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.anm'
     bl_label = 'Import .anm'
     bl_description = 'Imports X-Ray animation'
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'PRESET'}
 
     if not IS_28:
         for prop_name, prop_value in op_import_anm_props.items():

@@ -6,6 +6,7 @@ import bpy_extras
 from ... import registry, ops, plugin_prefs, utils
 from ...version_utils import assign_props, IS_28
 from .. import exp
+from . import props
 
 
 def find_objects_for_export(context):
@@ -32,7 +33,7 @@ def find_objects_for_export(context):
 
 
 _with_export_motions_props = {
-    'export_motions': plugin_prefs.PropObjectMotionsExport(),
+    'export_motions': props.PropObjectMotionsExport(),
 }
 
 
@@ -47,7 +48,7 @@ op_export_objects_props = {
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
 
     'texture_name_from_image_path': \
-        plugin_prefs.PropObjectTextureNamesFromPath(),
+        props.PropObjectTextureNamesFromPath(),
 
     'fmt_version': plugin_prefs.PropSDKVersion(),
     'use_export_paths': plugin_prefs.PropUseExportPaths()
@@ -125,7 +126,7 @@ op_export_object_props = {
         options={'HIDDEN'}
     ),
     'texture_name_from_image_path': \
-        plugin_prefs.PropObjectTextureNamesFromPath(),
+        props.PropObjectTextureNamesFromPath(),
     'fmt_version': plugin_prefs.PropSDKVersion()
 }
 

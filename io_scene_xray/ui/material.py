@@ -51,7 +51,6 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
         _gen_xr_selector(layout, data, 'eshader', 'EShader')
         _gen_xr_selector(layout, data, 'cshader', 'CShader')
         _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
-        collapsible_text = 'Converter'
         if IS_28:
             def draw_level_prop(prop_name, prop_text, light_type='LMAP'):
                 row = box.split(factor=0.45)
@@ -71,21 +70,3 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
             draw_level_prop('light_vert_color', 'Light Vertex Color:', light_type='VERTEX')
             draw_level_prop('sun_vert_color', 'Sun Vertex Color:', light_type='VERTEX')
             draw_level_prop('hemi_vert_color', 'Hemi Vertex Color:', light_type='VERTEX')
-            collapsible_text = 'Utils'
-        row, box = collapsible.draw(
-            layout, 'test_key', text='Material {0}'.format(collapsible_text)
-        )
-        if box:
-            box.prop(context.scene.xray, 'convert_materials_mode')
-            if not IS_28:
-                box.prop(context.scene.xray, 'convert_materials_shader_type')
-                box.operator('io_scene_xray.convert_to_cycles')
-                box.operator('io_scene_xray.convert_to_internal')
-                if context.scene.render.engine == 'CYCLES':
-                    text = 'Switch Render (Internal)'
-                elif context.scene.render.engine == 'BLENDER_RENDER':
-                    text = 'Switch Render (Cycles)'
-                box.operator('io_scene_xray.switch_render', text=text)
-            else:
-                box.prop(context.scene.xray, 'materials_set_alpha_mode')
-                box.operator('io_scene_xray.set_texture_alpha')

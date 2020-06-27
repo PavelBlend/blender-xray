@@ -3,7 +3,7 @@ import os
 import bpy
 from bpy_extras import io_utils
 
-from .. import registry
+from .. import registry, plugin_prefs
 from ..ui import collapsible
 from ..ui.motion_list import (
     BaseSelectMotionsOp,
@@ -19,6 +19,8 @@ from ..utils import (
 )
 from ..xray_motions import MOTIONS_FILTER_ALL
 from ..version_utils import assign_props, IS_28
+from . import props
+from ..obj.imp import props as obj_imp_props
 
 
 motion_props = {
@@ -38,8 +40,8 @@ op_import_skl_props = {
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
     'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
-    'use_motion_prefix_name': bpy.props.BoolProperty(default=False, name='Motion Prefix Name'),
-    'add_actions_to_motion_list': bpy.props.BoolProperty(default=True, name='Add Actions to Motion List'),
+    'use_motion_prefix_name': obj_imp_props.PropObjectUseMotionPrefixName(),
+    'add_actions_to_motion_list': props.prop_skl_add_actions_to_motion_list()
 }
 
 
@@ -49,7 +51,7 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     bl_idname = 'xray_import.skl'
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'PRESET'}
 
     if not IS_28:
         for prop_name, prop_value in op_import_skl_props.items():
@@ -151,6 +153,9 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
 
     @invoke_require_armature
     def invoke(self, context, event):
+        prefs = plugin_prefs.get_preferences()
+        self.use_motion_prefix_name = prefs.use_motion_prefix_name
+        self.add_actions_to_motion_list = prefs.add_actions_to_motion_list
         return super().invoke(context, event)
 
 
@@ -165,6 +170,7 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.skl'
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animation'
+    bl_options = {'UNDO'}
 
     filename_ext = '.skl'
 
@@ -207,6 +213,7 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.skls'
     bl_label = 'Export .skls'
     bl_description = 'Exports X-Ray skeletal animation'
+    bl_options = {'UNDO'}
 
     filename_ext = '.skls'
 

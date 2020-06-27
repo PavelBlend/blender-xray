@@ -9,6 +9,7 @@ from ..utils import (
 )
 from ..version_utils import assign_props, IS_28
 from .. import registry, plugin_prefs
+from ..obj.exp import props as obj_exp_props
 from . import exp
 
 
@@ -46,7 +47,7 @@ class ModelExportHelper:
 filename_ext = '.ogf'
 op_export_ogf_props = {
     'filter_glob': bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'}),
-    'texture_name_from_image_path': plugin_prefs.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath()
 }
 
 

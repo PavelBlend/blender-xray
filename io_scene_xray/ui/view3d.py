@@ -1,6 +1,7 @@
 import bpy
 from mathutils import Color
 
+from . import collapsible
 from .base import XRayPanel, build_label
 from ..skls_browser import UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
 from .. import registry
@@ -115,3 +116,29 @@ class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
         operator.power = data.materials_colorize_color_power
         column.prop(data, 'materials_colorize_random_seed', text='Seed')
         column.prop(data, 'materials_colorize_color_power', text='Power', slider=True)
+
+        collapsible_text = 'Converter'
+        if IS_28:
+            collapsible_text = 'Utils'
+        row, box = collapsible.draw(
+            layout, 'test_key', text='Material {0}'.format(collapsible_text)
+        )
+        if box:
+            box.prop(context.scene.xray, 'convert_materials_mode')
+            utils_box = box.box()
+            utils_col = utils_box.column(align=True)
+            utils_col.label(text='Principled Shader Utils:')
+            if not IS_28:
+                utils_col.prop(context.scene.xray, 'convert_materials_shader_type')
+                utils_col.operator('io_scene_xray.convert_to_cycles')
+                utils_col.operator('io_scene_xray.convert_to_internal')
+                if context.scene.render.engine == 'CYCLES':
+                    text = 'Switch Render (Internal)'
+                elif context.scene.render.engine == 'BLENDER_RENDER':
+                    text = 'Switch Render (Cycles)'
+                utils_col.operator('io_scene_xray.switch_render', text=text)
+            else:
+                utils_col.prop(context.scene.xray, 'materials_set_alpha_mode', toggle=True)
+            utils_col.prop(context.scene.xray, 'shader_specular_value')
+            utils_col.prop(context.scene.xray, 'shader_roughness_value')
+            utils_col.operator('io_scene_xray.change_shader_params')
