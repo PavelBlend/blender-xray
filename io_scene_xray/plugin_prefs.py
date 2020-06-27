@@ -4,6 +4,7 @@ from os import path
 import bpy
 
 from . import registry, xray_ltx
+from .details import props as details_props
 from .ui import collapsible, xprop
 from .utils import with_auto_property
 from .version_utils import IS_28, assign_props
@@ -78,24 +79,6 @@ def PropUseExportPaths():
         name='Use Export Paths',
         description='Append the Object.ExportPath to the export directory for each object',
         default=True
-    )
-
-
-def prop_details_models_in_a_row():
-    return bpy.props.BoolProperty(name='Details Models in a Row', default=True)
-
-
-def prop_details_load_slots():
-    return bpy.props.BoolProperty(name='Load Slots', default=True)
-
-
-def prop_details_format():
-    return bpy.props.EnumProperty(
-        name='Details Format',
-        items=(
-            ('builds_1096-1230', 'Builds 1096-1230', ''),
-            ('builds_1233-1558', 'Builds 1233-1558', '')
-        )
     )
 
 
@@ -208,9 +191,10 @@ plugin_preferences_props = {
     'fs_ltx_file': bpy.props.StringProperty(
         subtype='FILE_PATH', update=update_paths, name='fs.ltx File'
     ),
-    'details_models_in_a_row': prop_details_models_in_a_row(),
-    'load_slots': prop_details_load_slots(),
-    'details_format': prop_details_format()
+    # details import props
+    'details_models_in_a_row': details_props.prop_details_models_in_a_row(),
+    'load_slots': details_props.prop_details_load_slots(),
+    'details_format': details_props.prop_details_format()
 }
 
 

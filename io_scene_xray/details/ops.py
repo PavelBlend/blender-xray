@@ -7,7 +7,7 @@ from .. import plugin, plugin_prefs, utils
 from ..obj.imp.utils import ImportContext
 from .model import imp as model_imp
 from .model import exp as model_exp
-from . import imp, exp
+from . import imp, exp, props
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 
 
@@ -24,9 +24,9 @@ op_import_dm_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
     ),
-    'details_models_in_a_row': plugin_prefs.prop_details_models_in_a_row(),
-    'load_slots': plugin_prefs.prop_details_load_slots(),
-    'details_format': plugin_prefs.prop_details_format()
+    'details_models_in_a_row': props.prop_details_models_in_a_row(),
+    'load_slots': props.prop_details_load_slots(),
+    'details_format': props.prop_details_format()
 }
 
 
