@@ -6,7 +6,7 @@ import bpy_extras
 from ... import ops, plugin_prefs, registry, utils
 from ...version_utils import assign_props, IS_28
 from .. import imp
-from . import utils as imp_utils
+from . import utils as imp_utils, props
 
 
 op_import_object_props = {
@@ -17,10 +17,10 @@ op_import_object_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
-    'import_motions': plugin_prefs.PropObjectMotionsImport(),
-    'mesh_split_by_materials': plugin_prefs.PropObjectMeshSplitByMaterials(),
+    'import_motions': props.PropObjectMotionsImport(),
+    'mesh_split_by_materials': props.PropObjectMeshSplitByMaterials(),
     'use_motion_prefix_name': bpy.props.BoolProperty(default=False, name='Motion Prefix Name'),
-    'shaped_bones': plugin_prefs.PropObjectBonesCustomShapes(),
+    'shaped_bones': props.PropObjectBonesCustomShapes(),
     'fmt_version': plugin_prefs.PropSDKVersion()
 }
 

@@ -5,6 +5,8 @@ import bpy
 
 from . import registry, xray_ltx
 from .details import props as details_props
+from .obj.imp import props as obj_imp_props
+from .obj.exp import props as obj_exp_props
 from .ui import collapsible, xprop
 from .utils import with_auto_property
 from .version_utils import IS_28, assign_props
@@ -22,47 +24,6 @@ def PropSDKVersion():
     return bpy.props.EnumProperty(
         name='SDK Version',
         items=(('soc', 'SoC', ''), ('cscop', 'CS/CoP', ''))
-    )
-
-
-def PropObjectMotionsImport():
-    return bpy.props.BoolProperty(
-        name='Import Motions',
-        description='Import embedded motions as actions',
-        default=True
-    )
-
-
-def PropObjectMeshSplitByMaterials():
-    return bpy.props.BoolProperty(
-        name='Split Mesh By Materials',
-        description='Import each surface (material) as separate set of faces',
-        default=False
-    )
-
-
-def PropObjectMotionsExport():
-    return bpy.props.BoolProperty(
-        name='Export Motions',
-        description='Export armatures actions as embedded motions',
-        default=True
-    )
-
-
-def PropObjectTextureNamesFromPath():
-    return bpy.props.BoolProperty(
-        name='Texture Names From Image Paths',
-        description='Generate texture names from image paths ' \
-        + '(by subtract <gamedata/textures> prefix and <file-extension> suffix)',
-        default=True
-    )
-
-
-def PropObjectBonesCustomShapes():
-    return bpy.props.BoolProperty(
-        name='Custom Shapes For Bones',
-        description='Use custom shapes for imported bones',
-        default=True
     )
 
 
@@ -182,11 +143,11 @@ plugin_preferences_props = {
         name='Compact Import/Export Menus', update=update_menu_func
     ),
     'sdk_version': PropSDKVersion(),
-    'object_motions_import': PropObjectMotionsImport(),
-    'object_motions_export': PropObjectMotionsExport(),
-    'object_mesh_split_by_mat': PropObjectMeshSplitByMaterials(),
-    'object_texture_names_from_path': PropObjectTextureNamesFromPath(),
-    'object_bones_custom_shapes': PropObjectBonesCustomShapes(),
+    'object_motions_import': obj_imp_props.PropObjectMotionsImport(),
+    'object_motions_export': obj_exp_props.PropObjectMotionsExport(),
+    'object_mesh_split_by_mat': obj_imp_props.PropObjectMeshSplitByMaterials(),
+    'object_texture_names_from_path': obj_exp_props.PropObjectTextureNamesFromPath(),
+    'object_bones_custom_shapes': obj_imp_props.PropObjectBonesCustomShapes(),
     'anm_create_camera': PropAnmCameraAnimation(),
     'fs_ltx_file': bpy.props.StringProperty(
         subtype='FILE_PATH', update=update_paths, name='fs.ltx File'

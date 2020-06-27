@@ -4,6 +4,7 @@ from bpy_extras import io_utils
 from .. import utils, plugin
 from ..utils import AppError
 from .. import plugin_prefs
+from ..obj.imp import props as obj_imp_props
 from .imp import import_file
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 
@@ -60,8 +61,8 @@ op_import_level_scene_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
     ),
-    'mesh_split_by_materials': plugin_prefs.PropObjectMeshSplitByMaterials(),
-    'shaped_bones': plugin_prefs.PropObjectBonesCustomShapes(),
+    'mesh_split_by_materials': obj_imp_props.PropObjectMeshSplitByMaterials(),
+    'shaped_bones': obj_imp_props.PropObjectBonesCustomShapes(),
     'fmt_version': plugin_prefs.PropSDKVersion()
 }
 

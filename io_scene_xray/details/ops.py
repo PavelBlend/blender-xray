@@ -5,6 +5,7 @@ import bpy_extras
 
 from .. import plugin, plugin_prefs, utils
 from ..obj.imp.utils import ImportContext
+from ..obj.exp import props as obj_exp_props
 from .model import imp as model_imp
 from .model import exp as model_exp
 from . import imp, exp, props
@@ -124,7 +125,7 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
 op_export_dms_props = {
     'detail_models': bpy.props.StringProperty(options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
-    'texture_name_from_image_path': plugin_prefs.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath()
 }
 
 class OpExportDMs(bpy.types.Operator):
@@ -190,7 +191,7 @@ op_export_dm_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
         ),
-    'texture_name_from_image_path': plugin_prefs.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath()
 }
 
 
@@ -254,7 +255,7 @@ op_export_level_details_props = {
         ),
 
     'texture_name_from_image_path': \
-        plugin_prefs.PropObjectTextureNamesFromPath(),
+        obj_exp_props.PropObjectTextureNamesFromPath(),
 
     'format_version': bpy.props.EnumProperty(
         name='Format',
