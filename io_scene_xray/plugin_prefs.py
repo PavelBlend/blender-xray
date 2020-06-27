@@ -277,11 +277,14 @@ class PluginPreferences(bpy.types.AddonPreferences):
 
             _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.details', 'Details', style='tree')
             if box_n:
+                box_n.label(text='Import:')
                 prop_bool(box_n, self, 'details_models_in_a_row')
                 prop_bool(box_n, self, 'load_slots')
-                box_n.label(text='Format:')
                 row = box_n.row()
                 row.prop(self, 'details_format', expand=True)
+                box_n.label(text='Export:')
+                row = box_n.row()
+                row.prop(self, 'format_version', expand=True)
 
         prop_bool(layout, self, 'expert_mode')
         prop_bool(layout, self, 'compact_menus')
