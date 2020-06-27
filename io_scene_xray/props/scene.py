@@ -56,7 +56,13 @@ xray_scene_properties = {
     'convert_materials_shader_type': bpy.props.EnumProperty(
         name='Shader', items=convert_materials_shader_type_items, default='PRINCIPLED'
     ),
-    'materials_set_alpha_mode': bpy.props.BoolProperty(name='Use Alpha', default=True)
+    'materials_set_alpha_mode': bpy.props.BoolProperty(name='Use Alpha', default=True),
+    'shader_specular_value': bpy.props.FloatProperty(
+        name='Specular', default=0.0
+    ),
+    'shader_roughness_value': bpy.props.FloatProperty(
+        name='Roughness', default=0.0
+    ),
 }
 
 

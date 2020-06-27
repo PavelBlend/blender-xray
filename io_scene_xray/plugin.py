@@ -6,7 +6,9 @@ import bpy.utils.previews
 from bpy_extras import io_utils
 
 from . import xray_inject, xray_io
-from .ops import BaseOperator as TestReadyOperator, convert_materials
+from .ops import (
+    BaseOperator as TestReadyOperator, convert_materials, shader_tools
+)
 from .ui import collapsible, motion_list
 from .utils import (
     AppError, ObjectsInitializer, logger, execute_with_logger,
@@ -270,6 +272,7 @@ def register():
     if IS_28:
         level_ops.register_operators()
     convert_materials.register()
+    shader_tools.register()
     det_ops.register_operators()
     registry.register_thing(err_ops, __name__)
     append_menu_func()
@@ -288,6 +291,7 @@ def unregister():
     det_ops.unregister_operators()
     if IS_28:
         level_ops.unregister_operators()
+    shader_tools.unregister()
     convert_materials.unregister()
     scene_ops.unregister_operators()
     registry.unregister_thing(omf_ops, __name__)

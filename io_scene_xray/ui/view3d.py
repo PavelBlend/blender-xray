@@ -125,15 +125,20 @@ class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
         )
         if box:
             box.prop(context.scene.xray, 'convert_materials_mode')
+            utils_box = box.box()
+            utils_col = utils_box.column(align=True)
+            utils_col.label(text='Principled Shader Utils:')
             if not IS_28:
-                box.prop(context.scene.xray, 'convert_materials_shader_type')
-                box.operator('io_scene_xray.convert_to_cycles')
-                box.operator('io_scene_xray.convert_to_internal')
+                utils_col.prop(context.scene.xray, 'convert_materials_shader_type')
+                utils_col.operator('io_scene_xray.convert_to_cycles')
+                utils_col.operator('io_scene_xray.convert_to_internal')
                 if context.scene.render.engine == 'CYCLES':
                     text = 'Switch Render (Internal)'
                 elif context.scene.render.engine == 'BLENDER_RENDER':
                     text = 'Switch Render (Cycles)'
-                box.operator('io_scene_xray.switch_render', text=text)
+                utils_col.operator('io_scene_xray.switch_render', text=text)
             else:
-                box.prop(context.scene.xray, 'materials_set_alpha_mode')
-                box.operator('io_scene_xray.set_texture_alpha')
+                utils_col.prop(context.scene.xray, 'materials_set_alpha_mode', toggle=True)
+            utils_col.prop(context.scene.xray, 'shader_specular_value')
+            utils_col.prop(context.scene.xray, 'shader_roughness_value')
+            utils_col.operator('io_scene_xray.change_shader_params')
