@@ -284,16 +284,16 @@ def export_omf_file(context):
                     continue
             else:
                 continue
-        packed_writer = xray_io.PackedWriter()
-        context.bpy_obj.animation_data.action = action
-        if context.bpy_obj.xray.use_custom_motion_names:
-            motion_name = context.motion_export_names[motion_name]
-        packed_writer.puts(motion_name)
         if context.export_mode == 'ADD':
             new_motions_count += 1
         elif context.export_mode == 'REPLACE':
             if packed_writer is None:
                 new_motions_count += 1
+        packed_writer = xray_io.PackedWriter()
+        context.bpy_obj.animation_data.action = action
+        if context.bpy_obj.xray.use_custom_motion_names:
+            motion_name = context.motion_export_names[motion_name]
+        packed_writer.puts(motion_name)
         length = int(action.frame_range[1] - action.frame_range[0] + 1)
         packed_writer.putf('I', length)
         bone_matrices = {}
@@ -436,6 +436,11 @@ def export_omf_file(context):
                         if context.bpy_obj.xray.use_custom_motion_names:
                             motion_name = context.motion_export_names[motion_name]
                         write_motion(context, packed_writer, motion_name, params)
+                motions_new = {}
+                for motion_name, (motion_id, has_available) in motions.items():
+                    if not has_available:
+                        motions_new[motion_name] = (motion_id, has_available)
+                write_motions(context, packed_writer, motions_new)
             else:
                 packed_writer.putf('H', len(available_params))
                 for motion_name, motion_params in available_params.items():
