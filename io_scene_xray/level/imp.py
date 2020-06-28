@@ -66,7 +66,7 @@ def import_sector(data, level, sector_object):
             root_visual_index = import_sector_root(chunk_data)
             level.visuals[root_visual_index].parent = sector_object
         else:
-            print('UNKNOW LEVEL SECTOR CHUNK: {0:#x}'.format(chunk_id))
+            print('UNKNOWN LEVEL SECTOR CHUNK: {0:#x}'.format(chunk_id))
 
 
 def import_sectors(data, level, level_object):
