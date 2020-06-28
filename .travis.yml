@@ -10,6 +10,8 @@ cache:
   - blender
 
 env: # build matrix
+  global:
+    - CC_TEST_REPORTER_ID=6bdf928af38529955b976480e38018d63e64087331ba7ed6eb3c645934677833
   - BLENDER_VERSION=2.77
   - BLENDER_VERSION=2.78
   - BLENDER_VERSION=2.79
