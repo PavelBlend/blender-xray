@@ -343,7 +343,7 @@ def read_main(data, context):
         del motions_chunk_data
 
     for chunk_id, chunk_data in chunks.items():
-        print('Unknown OMF chunk: 0x{:x}', chunk_id)
+        print('Unknown OMF chunk: 0x{:x}'.format(chunk_id))
 
 
 def import_file(context):
