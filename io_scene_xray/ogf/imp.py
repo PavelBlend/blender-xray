@@ -343,11 +343,13 @@ def import_fastpath(data, visual, level):
         print('UNKNOW OGF FASTPATH CHUNK: {0:#x}'.format(chunk_id))
 
 
-def check_unread_chunks(chunks):
+def check_unread_chunks(chunks, context=''):
     chunks_ids = list(chunks.keys())
     chunks_ids.sort()
     if chunks:
-        print('There are unread chunks: {}'.format(list(map(hex, chunks_ids))))
+        print('There are OGF unread {1} chunks: {0}'.format(
+            list(map(hex, chunks_ids)), context
+        ))
 
 
 def import_children_l(data, visual, level, visual_type):
@@ -382,7 +384,7 @@ def import_hierrarhy_visual(chunks, visual, level):
     import_children_l(children_l_data, visual, level, 'HIERRARHY')
     del children_l_data
     bpy_object = create_object(visual.name, None)
-    check_unread_chunks(chunks)
+    check_unread_chunks(chunks, context='HIERRARHY_VISUAL')
     bpy_object.xray.is_level = True
     bpy_object.xray.level.object_type = 'VISUAL'
     bpy_object.xray.level.visual_type = 'HIERRARHY'
@@ -416,7 +418,7 @@ def read_container_v3(data):
 def import_geometry(chunks, visual, level):
     if visual.format_version == fmt.FORMAT_VERSION_4:
         chunks_ids = fmt.Chunks_v4
-        gcontainer_data = chunks.get(chunks_ids.GCONTAINER, None)
+        gcontainer_data = chunks.pop(chunks_ids.GCONTAINER, None)
         if gcontainer_data:
             vb_index, vb_offset, vb_size, ib_index, ib_offset, ib_size = read_gcontainer_v4(gcontainer_data)
             del gcontainer_data
@@ -480,7 +482,7 @@ def convert_indices_to_triangles(visual):
 def import_normal_visual(chunks, visual, level):
     visual.name = 'normal'
     bpy_mesh, geometry_key = import_geometry(chunks, visual, level)
-    check_unread_chunks(chunks)
+    check_unread_chunks(chunks, context='NORMAL_VISUAL')
 
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
@@ -561,7 +563,7 @@ def import_tree_st_visual(chunks, visual, level):
         bpy_object = create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(visual, chunks, bpy_object)
     set_tree_transforms(bpy_object, tree_xform)
-    check_unread_chunks(chunks)
+    check_unread_chunks(chunks, context='TREE_ST_VISUAL')
     bpy_object.xray.is_level = True
     bpy_object.xray.level.object_type = 'VISUAL'
     bpy_object.xray.level.visual_type = 'TREE_ST'
@@ -586,7 +588,7 @@ def import_progressive_visual(chunks, visual, level):
     visual.indices_count = swi[0].triangles_count * 3
     convert_indices_to_triangles(visual)
 
-    check_unread_chunks(chunks)
+    check_unread_chunks(chunks, context='PROGRESSIVE_VISUAL')
 
     if not bpy_mesh:
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
@@ -662,7 +664,7 @@ def import_lod_visual(chunks, visual, level):
     verts, uvs, lights, faces = import_lod_def_2(lod_def_2_data)
     del lod_def_2_data
 
-    check_unread_chunks(chunks)
+    check_unread_chunks(chunks, context='LOD_VISUAL')
 
     bpy_mesh = bpy.data.meshes.new(visual.name)
     bpy_mesh.from_pydata(verts, (), faces)
@@ -706,7 +708,7 @@ def import_tree_pm_visual(chunks, visual, level):
         bpy_object = create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(visual, chunks, bpy_object)
     set_tree_transforms(bpy_object, tree_xform)
-    check_unread_chunks(chunks)
+    check_unread_chunks(chunks, context='TREE_PM_VISUAL')
     bpy_object.xray.is_level = True
     bpy_object.xray.level.object_type = 'VISUAL'
     bpy_object.xray.level.visual_type = 'TREE_PM'
