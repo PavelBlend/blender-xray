@@ -12,6 +12,8 @@ class MATERIAL_OT_change_shader_params(bpy.types.Operator):
         scene = context.scene
         materials = convert_materials.get_materials(context, scene)
         for material in materials:
+            if not material.node_tree:
+                continue
             output_node = None
             for node in material.node_tree.nodes:
                 if node.type == 'OUTPUT_MATERIAL':
