@@ -7,7 +7,7 @@ import mathutils
 from ...skl import imp as skl_imp
 from ... import xray_io, xray_motions, log, utils
 from ...version_utils import (
-    is_all_empty_textures, IS_28, link_object, set_active_object, multiply
+    is_all_empty_textures, IS_28, link_object, set_active_object
 )
 from .. import fmt
 from . import bone, mesh
@@ -377,7 +377,7 @@ def import_main(fpath, context, creader):
             reader = xray_io.PackedReader(data)
             pos = read_v3f(reader)
             rot = read_v3f(reader)
-            bpy_obj.matrix_basis = multiply(
+            bpy_obj.matrix_basis = context.multiply(
                 bpy_obj.matrix_basis,
                 mathutils.Matrix.Translation(pos),
                 mathutils.Euler(rot, 'YXZ').to_matrix().to_4x4()

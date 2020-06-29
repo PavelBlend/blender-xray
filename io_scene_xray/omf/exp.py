@@ -3,7 +3,7 @@ import struct
 import bpy, mathutils
 
 from . import fmt, imp
-from .. import xray_io, utils, version_utils
+from .. import xray_io, utils
 
 
 def get_flags(xray):
@@ -311,7 +311,7 @@ def export_omf_file(context):
                 bpy_bone = context.bpy_obj.data.bones[pose_bone.name]
                 parent = pose_bone.parent
                 parent_matrix = parent.matrix.inverted() if parent else imp.MATRIX_BONE_INVERTED
-                matrix = version_utils.multiply(parent_matrix, pose_bone.matrix)
+                matrix = context.multiply(parent_matrix, pose_bone.matrix)
                 translate = matrix.to_translation()
                 for index in range(3):
                     min_trns[pose_bone.name][index] = min(min_trns[pose_bone.name][index], translate[index])

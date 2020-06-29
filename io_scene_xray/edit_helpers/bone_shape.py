@@ -5,7 +5,9 @@ import bmesh
 import mathutils
 
 from .. import registry, utils
-from ..version_utils import IS_28, multiply, set_active_object, get_icon
+from ..version_utils import (
+    IS_28, multiply, set_active_object, get_icon, get_multiply
+)
 from .base_bone import AbstractBoneEditHelper
 from ..xray_motions import MATRIX_BONE_INVERTED
 
@@ -219,6 +221,7 @@ class _FitShape(bpy.types.Operator):
         vmin = mathutils.Vector((+math.inf, +math.inf, +math.inf))
         vmax = mathutils.Vector((-math.inf, -math.inf, -math.inf))
         xsh = bone.xray.shape
+        multiply = get_multiply()
         if xsh.type == '1':  # box
             for vtx in _bone_vertices(bone):
                 vtx = multiply(matrix_inverted, vtx)

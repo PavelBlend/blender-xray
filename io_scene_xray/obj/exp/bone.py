@@ -1,15 +1,17 @@
 from ... import xray_io, log, utils, xray_motions
 from .. import fmt
 from . import main
-from ...version_utils import multiply
 
 
-def export_bone(bpy_arm_obj, bpy_bone, writers, bonemap, edit_mode_matrices):
+def export_bone(
+        bpy_arm_obj, bpy_bone, writers, bonemap, edit_mode_matrices, multiply
+    ):
     real_parent = utils.find_bone_exportable_parent(bpy_bone)
     if real_parent:
         if bonemap.get(real_parent) is None:
             export_bone(
-                bpy_arm_obj, real_parent, writers, bonemap, edit_mode_matrices
+                bpy_arm_obj, real_parent, writers, bonemap,
+                edit_mode_matrices, multiply
             )
 
     xray = bpy_bone.xray

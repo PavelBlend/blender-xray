@@ -6,7 +6,7 @@ import bpy
 import mathutils
 
 from ... import xray_io, utils, log, xray_motions
-from ...version_utils import IS_28, using_active_object
+from ...version_utils import IS_28, using_active_object, get_multiply
 from .. import fmt
 from . import mesh, bone
 
@@ -147,7 +147,8 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
             if not real_parent:
                 root_bones.append(bone_.name)
             bone.export_bone(
-                bpy_arm_obj, bone_, bone_writers, bonemap, edit_mode_matrices
+                bpy_arm_obj, bone_, bone_writers, bonemap,
+                edit_mode_matrices, context.multiply
             )
 
         invalid_bones = []

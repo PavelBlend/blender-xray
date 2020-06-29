@@ -2,7 +2,7 @@ import os.path
 
 import bpy
 
-from ... import utils
+from ... import utils, version_utils
 from ... import log
 
 
@@ -27,6 +27,7 @@ class ImportContext:
         self.operator = operator
         self.loaded_materials = None
         self.use_motion_prefix_name = use_motion_prefix_name
+        self.multiply = version_utils.get_multiply()
 
     def before_import_file(self):
         self.loaded_materials = {}

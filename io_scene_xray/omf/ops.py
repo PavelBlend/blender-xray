@@ -14,7 +14,7 @@ from ..ui.motion_list import (
     _DeselectMotionsOp,
     _DeselectDuplicatedMotionsOp
 )
-from ..version_utils import IS_28, assign_props
+from ..version_utils import IS_28, assign_props, get_multiply
 
 
 class ImportContext:
@@ -25,6 +25,7 @@ class ImportContext:
         self.import_motions = None
         self.add_actions_to_motion_list = None
         self.selected_names = None
+        self.multiply = get_multiply()
 
 
 class ExportContext:
@@ -34,6 +35,7 @@ class ExportContext:
         self.export_mode = None
         self.export_motions = None
         self.export_bone_parts = None
+        self.multiply = get_multiply()
 
 
 motion_props = {

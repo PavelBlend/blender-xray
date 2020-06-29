@@ -1,4 +1,4 @@
-from ... import xray_io, utils
+from ... import xray_io, utils, version_utils
 from .. import fmt
 from . import main
 
@@ -16,6 +16,7 @@ class ExportContext:
         self.export_motions = export_motions
         self.soc_sgroups = soc_sgroups
         self.texname_from_path = texname_from_path
+        self.multiply = version_utils.get_multiply()
 
 
 def _export(bpy_obj, chunked_writer, context):

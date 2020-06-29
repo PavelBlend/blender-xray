@@ -2,7 +2,6 @@ import bpy, mathutils
 
 from . import fmt
 from .. import xray_io, utils
-from ..version_utils import get_multiply
 
 
 MATRIX_BONE = mathutils.Matrix((
@@ -125,17 +124,15 @@ def read_motion(data, context, motions_params):
         act.xray.accrue = motion_params.accrue
         act.xray.falloff = motion_params.falloff
 
-        multiply = get_multiply()
-
         for bone_index, bpy_bone in enumerate(context.bpy_armature_obj.data.bones):
             bone_name = bpy_bone.name
             bpy_bone_parent = bpy_bone.parent
 
             xmat = bpy_bone.matrix_local.inverted()
             if bpy_bone_parent:
-                xmat = multiply(xmat, bpy_bone_parent.matrix_local)
+                xmat = context.multiply(xmat, bpy_bone_parent.matrix_local)
             else:
-                xmat = multiply(xmat, MATRIX_BONE)
+                xmat = context.multiply(xmat, MATRIX_BONE)
 
             translate_fcurves = []
             for translate_index in range(3):    # x, y, z
@@ -215,7 +212,7 @@ def read_motion(data, context, motions_params):
                 location = bone_translations[tr_index]
                 rotation = bone_rotations[rot_index]
 
-                mat = multiply(
+                mat = context.multiply(
                     xmat,
                     mathutils.Matrix.Translation(location),
                     rotation.to_matrix().to_4x4()

@@ -5,7 +5,7 @@ from .utils import is_exportable_bone, find_bone_exportable_parent, AppError
 from .xray_envelope import Behavior, Shape, KF, EPSILON, refine_keys, export_keyframes
 from .xray_io import PackedWriter, FastBytes as fb
 from .log import warn, with_context, props as log_props
-from .version_utils import multiply
+from .version_utils import multiply, get_multiply
 
 
 MATRIX_BONE = Matrix((
@@ -59,6 +59,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
 
     xray.flags, xray.bonepart = reader.getf('<BH')
     xray.speed, xray.accrue, xray.falloff, xray.power = reader.getf('<ffff')
+    multiply = get_multiply()
     for _bone_idx in range(reader.getf('H')[0]):
         tmpfc = [act.fcurves.new('temp', index=i) for i in range(6)]
         try:
