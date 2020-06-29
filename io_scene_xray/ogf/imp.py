@@ -379,6 +379,15 @@ def import_hierrarhy_visual(chunks, visual, level):
         chunks_ids = fmt.Chunks_v4
     elif visual.format_version == fmt.FORMAT_VERSION_3:
         chunks_ids = fmt.Chunks_v3
+
+        # bbox
+        bbox_data = chunks.pop(chunks_ids.BBOX)
+        read_bbox_v3(bbox_data)
+
+        # bsphere
+        bsphere_data = chunks.pop(chunks_ids.BSPHERE)
+        read_bsphere_v3(bsphere_data)
+
     visual.name = 'hierrarhy'
     children_l_data = chunks.pop(chunks_ids.CHILDREN_L)
     import_children_l(children_l_data, visual, level, 'HIERRARHY')
@@ -654,6 +663,14 @@ def import_lod_visual(chunks, visual, level):
         chunks_ids = fmt.Chunks_v4
     elif visual.format_version == fmt.FORMAT_VERSION_3:
         chunks_ids = fmt.Chunks_v3
+
+        # bbox
+        bbox_data = chunks.pop(chunks_ids.BBOX)
+        read_bbox_v3(bbox_data)
+
+        # bsphere
+        bsphere_data = chunks.pop(chunks_ids.BSPHERE)
+        read_bsphere_v3(bsphere_data)
 
     visual.name = 'lod'
     children_l_data = chunks.pop(chunks_ids.CHILDREN_L)
