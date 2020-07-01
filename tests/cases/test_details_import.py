@@ -6,7 +6,7 @@ import bpy
 class TestDetailsImport(utils.XRayTestCase):
     def test_format_version_3(self):
         # Act
-        bpy.ops.xray_import.dm(
+        bpy.ops.xray_import.details(
             directory=self.relpath(),
             files=[{'name': 'test_fmt_v3.details'}],
         )
@@ -59,7 +59,7 @@ class TestDetailsImport(utils.XRayTestCase):
 
     def test_format_version_2(self):
         # Act
-        bpy.ops.xray_import.dm(
+        bpy.ops.xray_import.details(
             directory=self.relpath(),
             files=[{'name': 'test_fmt_v2.details'}],
         )

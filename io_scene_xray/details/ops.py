@@ -6,15 +6,15 @@ import bpy_extras
 from .. import plugin, plugin_prefs, utils
 from ..obj.imp.utils import ImportContext
 from ..obj.exp import props as obj_exp_props
-from .model import imp as model_imp
-from .model import exp as model_exp
+from ..dm import imp as model_imp
+from ..dm import exp as model_exp
 from . import imp, exp, props
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 
 
-op_import_dm_props = {
+op_import_details_props = {
     'filter_glob': bpy.props.StringProperty(
-        default='*.dm;*.details', options={'HIDDEN'}
+        default='*.details', options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
         subtype="DIR_PATH", options={'SKIP_SAVE'}
@@ -31,16 +31,16 @@ op_import_dm_props = {
 }
 
 
-class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
+class OpImportDetails(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
 
-    bl_idname = 'xray_import.dm'
-    bl_label = 'Import .dm/.details'
-    bl_description = 'Imports X-Ray Detail Model (.dm, .details)'
+    bl_idname = 'xray_import.details'
+    bl_label = 'Import .details'
+    bl_description = 'Imports X-Ray Level Details Models (.details)'
     bl_options = {'REGISTER', 'PRESET', 'UNDO'}
 
     if not IS_28:
-        for prop_name, prop_value in op_import_dm_props.items():
-            exec('{0} = op_import_dm_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in op_import_details_props.items():
+            exec('{0} = op_import_details_props.get("{0}")'.format(prop_name))
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -72,13 +72,7 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             for file in self.files:
                 ext = os.path.splitext(file.name)[-1].lower()
 
-                if ext == '.dm':
-                    model_imp.import_file(
-                        os.path.join(self.directory, file.name),
-                        import_context
-                        )
-
-                elif ext == '.details':
+                if ext == '.details':
                     imp.import_file(
                         os.path.join(self.directory, file.name),
                         import_context
@@ -122,134 +116,8 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
         return super().invoke(context, event)
 
 
-op_export_dms_props = {
-    'detail_models': bpy.props.StringProperty(options={'HIDDEN'}),
-    'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
-    'texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath()
-}
-
-class OpExportDMs(bpy.types.Operator):
-    bl_idname = 'xray_export.dms'
-    bl_label = 'Export .dm'
-
-    if not IS_28:
-        for prop_name, prop_value in op_export_dms_props.items():
-            exec('{0} = op_export_dms_props.get("{0}")'.format(prop_name))
-
-    @utils.set_cursor_state
-    def execute(self, context):
-        try:
-            for name in self.detail_models.split(','):
-                detail_model = context.scene.objects[name]
-                if not name.lower().endswith('.dm'):
-                    name += '.dm'
-                path = self.directory
-
-                export_context = plugin.mk_export_context(
-                    self.texture_name_from_image_path
-                    )
-
-                model_exp.export_file(
-                    detail_model, os.path.join(path, name), export_context
-                )
-
-        except utils.AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-
-        prefs = plugin_prefs.get_preferences()
-
-        self.texture_name_from_image_path = \
-            prefs.object_texture_names_from_path
-
-        objs = context.selected_objects
-
-        if not objs:
-            self.report({'ERROR'}, 'Cannot find selected object')
-            return {'CANCELLED'}
-
-        if len(objs) == 1:
-            if objs[0].type != 'MESH':
-                self.report({'ERROR'}, 'The select object is not a mesh')
-                return {'CANCELLED'}
-            else:
-                bpy.ops.xray_export.dm('INVOKE_DEFAULT')
-        else:
-            self.detail_models = ','.join(
-                [o.name for o in objs if o.type == 'MESH']
-            )
-            context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
-
-filename_ext = '.dm'
-op_export_dm_props = {
-    'detail_model': bpy.props.StringProperty(options={'HIDDEN'}),
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext, options={'HIDDEN'}
-        ),
-    'texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath()
-}
-
-
-class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
-    bl_idname = 'xray_export.dm'
-    bl_label = 'Export .dm'
-
-    filename_ext = '.dm'
-
-    if not IS_28:
-        for prop_name, prop_value in op_export_dm_props.items():
-            exec('{0} = op_export_dm_props.get("{0}")'.format(prop_name))
-
-    @utils.set_cursor_state
-    def execute(self, context):
-        try:
-            self.exp(context.scene.objects[self.detail_model], context)
-        except utils.AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
-        return {'FINISHED'}
-
-    def exp(self, bpy_obj, context):
-        export_context = plugin.mk_export_context(
-            self.texture_name_from_image_path
-            )
-
-        model_exp.export_file(bpy_obj, self.filepath, export_context)
-
-    def invoke(self, context, event):
-
-        prefs = plugin_prefs.get_preferences()
-
-        self.texture_name_from_image_path = \
-            prefs.object_texture_names_from_path
-
-        objs = context.selected_objects
-
-        if not objs:
-            self.report({'ERROR'}, 'Cannot find selected object')
-            return {'CANCELLED'}
-
-        if len(objs) > 1:
-            self.report({'ERROR'}, 'Too many selected objects found')
-            return {'CANCELLED'}
-
-        if objs[0].type != 'MESH':
-            self.report({'ERROR'}, 'The selected object is not a mesh')
-            return {'CANCELLED'}
-
-        self.detail_model = objs[0].name
-        self.filepath = self.detail_model
-
-        return super().invoke(context, event)
-
-
 filename_ext = '.details'
-op_export_level_details_props = {
+op_export_details_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
         ),
@@ -261,7 +129,7 @@ op_export_level_details_props = {
 }
 
 
-class OpExportLevelDetails(
+class OpExportDetails(
     bpy.types.Operator, bpy_extras.io_utils.ExportHelper
     ):
 
@@ -272,8 +140,8 @@ class OpExportLevelDetails(
     filename_ext = '.details'
 
     if not IS_28:
-        for prop_name, prop_value in op_export_level_details_props.items():
-            exec('{0} = op_export_level_details_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in op_export_details_props.items():
+            exec('{0} = op_export_details_props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout
@@ -370,36 +238,30 @@ class PackDetailsImages(bpy.types.Operator):
 
 
 assign_props([
-    (op_import_dm_props, OpImportDM),
-    (op_export_dms_props, OpExportDMs),
-    (op_export_dm_props, OpExportDM),
-    (op_export_level_details_props, OpExportLevelDetails)
+    (op_import_details_props, OpImportDetails),
+    (op_export_details_props, OpExportDetails)
 ])
 
 
 def menu_func_import(self, context):
     icon = plugin.get_stalker_icon()
     self.layout.operator(
-        OpImportDM.bl_idname, text='X-Ray details (.dm, .details)',
+        OpImportDetails.bl_idname, text='X-Ray level details (.details)',
         icon_value=icon
-        )
+    )
 
 
 def menu_func_export(self, context):
     icon = plugin.get_stalker_icon()
     self.layout.operator(
-        OpExportDMs.bl_idname, text='X-Ray detail model (.dm)', icon_value=icon)
-    self.layout.operator(
-        OpExportLevelDetails.bl_idname, text='X-Ray level details (.details)',
+        OpExportDetails.bl_idname, text='X-Ray level details (.details)',
         icon_value=icon
-        )
+    )
 
 
 def register_operators():
-    bpy.utils.register_class(OpImportDM)
-    bpy.utils.register_class(OpExportDM)
-    bpy.utils.register_class(OpExportDMs)
-    bpy.utils.register_class(OpExportLevelDetails)
+    bpy.utils.register_class(OpImportDetails)
+    bpy.utils.register_class(OpExportDetails)
     bpy.utils.register_class(PackDetailsImages)
 
 
@@ -408,7 +270,5 @@ def unregister_operators():
     bpy.utils.unregister_class(PackDetailsImages)
     export_menu.remove(menu_func_export)
     import_menu.remove(menu_func_import)
-    bpy.utils.unregister_class(OpExportLevelDetails)
-    bpy.utils.unregister_class(OpExportDMs)
-    bpy.utils.unregister_class(OpExportDM)
-    bpy.utils.unregister_class(OpImportDM)
+    bpy.utils.unregister_class(OpExportDetails)
+    bpy.utils.unregister_class(OpImportDetails)

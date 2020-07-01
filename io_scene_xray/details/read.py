@@ -2,7 +2,7 @@ import bpy
 
 from .. import xray_io
 from . import fmt, create
-from .model import imp as model_imp
+from ..dm import imp as model_imp
 from ..version_utils import link_object, IS_28
 
 

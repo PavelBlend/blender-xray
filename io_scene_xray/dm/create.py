@@ -3,9 +3,9 @@ import os
 import bpy
 import bmesh
 
-from ... import xray_io
-from ... import utils
-from ...version_utils import link_object, IS_28
+from .. import xray_io
+from .. import utils
+from ..version_utils import link_object, IS_28
 
 
 def create_object(object_name):

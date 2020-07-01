@@ -1,6 +1,6 @@
 from .. import xray_io, utils
 from . import fmt, convert
-from .model import exp as model_exp
+from ..dm import exp as model_exp
 from . import utils as det_utils
 
 
