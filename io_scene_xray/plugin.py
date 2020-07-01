@@ -15,6 +15,7 @@ from .utils import (
     execute_require_filepath, FilenameExtHelper, mk_export_context
 )
 from . import plugin_prefs
+from . import hotkeys
 from . import registry
 from .details import ops as det_ops
 from .dm import ops as dm_ops
@@ -290,9 +291,11 @@ def register():
     bpy.app.handlers.load_post.append(load_post)
     get_scene_update_post().append(scene_update_post)
     registry.register_thing(skls_browser, __name__)
+    hotkeys.register_hotkeys()
 
 
 def unregister():
+    hotkeys.unregister_hotkeys()
     registry.unregister_thing(skls_browser, __name__)
     registry.unregister_thing(err_ops, __name__)
     dm_ops.unregister_operators()
