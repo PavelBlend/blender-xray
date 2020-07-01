@@ -2,8 +2,8 @@ import bpy
 import bmesh
 import mathutils
 
-from ... import utils
-from ... import xray_io
+from .. import utils
+from .. import xray_io
 from . import validate
 from . import fmt
 

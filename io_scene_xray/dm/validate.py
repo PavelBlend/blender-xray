@@ -1,7 +1,7 @@
 import os
 
-from ... import utils
-from ...version_utils import IS_28
+from .. import utils
+from ..version_utils import IS_28
 
 
 def validate_export_object(context, bpy_obj, fpath):

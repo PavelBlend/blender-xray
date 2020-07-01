@@ -6,8 +6,8 @@ import bpy_extras
 from .. import plugin, plugin_prefs, utils
 from ..obj.imp.utils import ImportContext
 from ..obj.exp import props as obj_exp_props
-from .model import imp as model_imp
-from .model import exp as model_exp
+from ..dm import imp as model_imp
+from ..dm import exp as model_exp
 from . import imp, exp, props
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 
