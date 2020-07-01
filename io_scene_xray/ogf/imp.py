@@ -48,6 +48,13 @@ def create_object(name, obj_data):
     return bpy_object
 
 
+def convert_normal(norm_in):
+    norm_out_x = 2.0 * norm_in[0] / 255 - 1.0
+    norm_out_y = 2.0 * norm_in[1] / 255 - 1.0
+    norm_out_z = 2.0 * norm_in[2] / 255 - 1.0
+    return mathutils.Vector((norm_out_x, norm_out_z, norm_out_y))
+
+
 def create_visual(bpy_mesh, visual, level, geometry_key):
     if not bpy_mesh:
         mesh = bmesh.new()
@@ -121,6 +128,7 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
 
         # import triangles
         remap_loops = []
+        custom_normals = []
         for triangle in visual.triangles:
             try:
                 vert_1 = remap_vertices[triangle[0]]
@@ -137,6 +145,11 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
                 normal_1 = visual.normals[triangle[0]]
                 normal_2 = visual.normals[triangle[1]]
                 normal_3 = visual.normals[triangle[2]]
+                custom_normals.extend((
+                    convert_normal(normal_1),
+                    convert_normal(normal_2),
+                    convert_normal(normal_3)
+                ))
                 normals = {}
                 normals[vert_1] = normal_1
                 normals[vert_2] = normal_2
@@ -158,7 +171,8 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
             unique_normals_1_count = len(normals_1)
             unique_normals_2_count = len(normals_2)
             if unique_normals_1_count > 1 or unique_normals_2_count > 1:
-                edge.smooth = False
+                pass
+                # edge.smooth = False
 
         # import uvs and vertex colors
         uv_layer = mesh.loops.layers.uv.new('Texture')
@@ -222,6 +236,7 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
         bpy_mesh.use_auto_smooth = True
         bpy_mesh.auto_smooth_angle = math.pi
         mesh.to_mesh(bpy_mesh)
+        bpy_mesh.normals_split_custom_set(custom_normals)
         del mesh
         level.loaded_geometry[geometry_key] = bpy_mesh
 
