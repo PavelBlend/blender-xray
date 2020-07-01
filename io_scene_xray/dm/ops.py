@@ -13,7 +13,7 @@ from ..version_utils import get_import_export_menus, assign_props, IS_28
 
 op_import_dm_props = {
     'filter_glob': bpy.props.StringProperty(
-        default='*.details', options={'HIDDEN'}
+        default='*.dm', options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
         subtype="DIR_PATH", options={'SKIP_SAVE'}

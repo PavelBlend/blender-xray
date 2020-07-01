@@ -9,6 +9,11 @@ def validate_export_object(context, bpy_obj, fpath):
     if not bpy_obj.data.uv_layers:
         raise utils.AppError('mesh "' + bpy_obj.data.name + '" has no UV-map')
 
+    if len(bpy_obj.data.uv_layers) > 1:
+        raise utils.AppError('mesh "{}" has more than one UV-map'.format(
+            bpy_obj.data.name
+        ))
+
     material_count = len(bpy_obj.material_slots)
 
     if material_count == 0:
