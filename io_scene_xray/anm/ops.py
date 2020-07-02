@@ -33,10 +33,9 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
         if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
-        from .imp import import_file, ImportContext
-        import_context = ImportContext(
-            camera_animation=self.camera_animation
-        )
+        from .imp import import_file, ImportAnmContext
+        import_context = ImportAnmContext()
+        import_context.camera_animation = self.camera_animation
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.anm':

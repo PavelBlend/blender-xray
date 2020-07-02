@@ -2,16 +2,13 @@ from os.path import splitext, basename
 
 from ..xray_io import ChunkedReader, PackedReader
 from ..xray_motions import import_motion, import_motions
-from .. import log
+from .. import log, context
 
 
-class ImportContext:
-    def __init__(self, armature, motions_filter, prefix, filename, add_to_list=True):
-        self.armature = armature
-        self.motions_filter = motions_filter
-        self.use_motion_prefix_name = prefix
-        self.filename = filename
-        self.add_to_list = add_to_list
+class ImportSklContext(context.ImportAnimationOnlyContext):
+    def __init__(self):
+        context.ImportAnimationOnlyContext.__init__(self)
+        self.filename = None
 
 
 def _import_skl(fpath, context, chunked_reader):
@@ -21,7 +18,7 @@ def _import_skl(fpath, context, chunked_reader):
     for cid, cdata in chunked_reader:
         if cid == 0x1200:
             reader = PackedReader(cdata)
-            bonesmap = {b.name.lower(): b for b in context.armature.data.bones}
+            bonesmap = {b.name.lower(): b for b in context.bpy_arm_obj.data.bones}
             act = import_motion(reader, context, bonesmap, set())
             act.name = name
         else:

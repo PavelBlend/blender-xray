@@ -4,12 +4,20 @@ import bpy
 import bpy_extras
 
 from .. import plugin, plugin_prefs, utils
-from ..obj.imp.utils import ImportContext
+from .. import context
 from ..obj.exp import props as obj_exp_props
 from ..dm import imp as model_imp
 from ..dm import exp as model_exp
 from . import imp, exp, props
 from ..version_utils import get_import_export_menus, assign_props, IS_28
+
+
+class ImportDetailsContext(context.ImportMeshContext):
+    def __init__(self):
+        context.ImportMeshContext.__init__(self)
+        self.format_version = None
+        self.details_models_in_a_row = None
+        self.load_slots = None
 
 
 op_import_details_props = {
@@ -54,19 +62,12 @@ class OpImportDetails(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
 
-        import_context = ImportContext(
-            textures=textures_folder,
-            soc_sgroups=None,
-            import_motions=None,
-            split_by_materials=None,
-            operator=self,
-            use_motion_prefix_name=False
-            )
-
-        import_context.format = self.details_format
+        import_context = ImportDetailsContext()
+        import_context.textures_folder=textures_folder
+        import_context.operator=self
+        import_context.format_version = self.details_format
         import_context.details_models_in_a_row = self.details_models_in_a_row
         import_context.load_slots = self.load_slots
-        import_context.report = self.report
 
         try:
             for file in self.files:

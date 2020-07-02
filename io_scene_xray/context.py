@@ -1,0 +1,45 @@
+import os
+
+import bpy
+
+from . import utils, version_utils
+
+
+class Context:
+    def __init__(self):
+        self.filepath = None
+        self.operator = None
+        self.multiply = version_utils.get_multiply()
+        self.version = utils.plugin_version_number()
+
+
+class ImportContext(Context):
+    def __init__(self):
+        Context.__init__(self)
+
+
+class ImportMeshContext(ImportContext):
+    def __init__(self):
+        ImportContext.__init__(self)
+        self.textures_folder = None
+
+
+class ImportAnimationBaseContext(ImportContext):
+    def __init__(self):
+        ImportContext.__init__(self)
+        self.add_actions_to_motion_list = None
+        self.selected_names = None
+        self.use_motion_prefix_name = None
+        self.motions_filter = None
+
+
+class ImportAnimationContext(ImportAnimationBaseContext):
+    def __init__(self):
+        ImportAnimationBaseContext.__init__(self)
+        self.import_motions = None
+
+
+class ImportAnimationOnlyContext(ImportAnimationBaseContext):
+    def __init__(self):
+        ImportAnimationBaseContext.__init__(self)
+        self.bpy_arm_obj = None

@@ -4,11 +4,16 @@ import bpy
 import bpy_extras
 
 from .. import plugin, plugin_prefs, utils
-from ..obj.imp.utils import ImportContext
+from .. import context
 from ..obj.exp import props as obj_exp_props
 from . import imp
 from . import exp
 from ..version_utils import get_import_export_menus, assign_props, IS_28
+
+
+class ImportDmContext(context.ImportMeshContext):
+    def __init__(self):
+        context.ImportMeshContext.__init__(self)
 
 
 op_import_dm_props = {
@@ -49,16 +54,9 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
 
-        import_context = ImportContext(
-            textures=textures_folder,
-            soc_sgroups=None,
-            import_motions=None,
-            split_by_materials=None,
-            operator=self,
-            use_motion_prefix_name=False
-        )
-
-        import_context.report = self.report
+        import_context = ImportDmContext()
+        import_context.textures_folder=textures_folder
+        import_context.operator=self
 
         try:
             for file in self.files:
