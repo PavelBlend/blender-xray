@@ -128,15 +128,6 @@ class _ExplicitPathOp(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def update_paths(self, context):
-    self.gamedata_folder = ''
-    self.textures_folder = ''
-    self.gamemtl_file = ''
-    self.eshader_file = ''
-    self.cshader_file = ''
-    self.objects_folder = ''
-
-
 def update_keymap(self, context):
     from . import hotkeys
 
@@ -174,7 +165,7 @@ plugin_preferences_props = {
     'use_motion_prefix_name': obj_imp_props.PropObjectUseMotionPrefixName(),
     'anm_create_camera': PropAnmCameraAnimation(),
     'fs_ltx_file': bpy.props.StringProperty(
-        subtype='FILE_PATH', update=update_paths, name='fs.ltx File'
+        subtype='FILE_PATH', name='fs.ltx File'
     ),
     # details import props
     'details_models_in_a_row': details_props.prop_details_models_in_a_row(),
@@ -275,6 +266,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 nprop = with_auto_property.build_auto_id(prop)
                 if getattr(data, nprop):
                     eprop = nprop
+            setattr(data, eprop, bpy.path.abspath(getattr(data, eprop)))
             if eprop == prop:
                 layout.prop(data, eprop)
             else:
@@ -289,6 +281,12 @@ class PluginPreferences(bpy.types.AddonPreferences):
         row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='ADD')
         row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='REMOVE').remove_active = True
 
+        if self.fs_ltx_file:
+            setattr(
+                self,
+                'fs_ltx_file',
+                bpy.path.abspath(getattr(self, 'fs_ltx_file'))
+            )
         layout.prop(self, 'fs_ltx_file')
 
         prop_auto(layout, self, 'gamedata_folder')
