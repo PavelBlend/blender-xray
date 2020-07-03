@@ -16,6 +16,11 @@ class ImportDmContext(context.ImportMeshContext):
         context.ImportMeshContext.__init__(self)
 
 
+class ExportDmContext(context.ExportMeshContext):
+    def __init__(self):
+        context.ExportMeshContext.__init__(self)
+
+
 op_import_dm_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.dm', options={'HIDDEN'}
@@ -104,9 +109,8 @@ class OpExportDMs(bpy.types.Operator):
                     name += '.dm'
                 path = self.directory
 
-                export_context = plugin.mk_export_context(
-                    self.texture_name_from_image_path
-                    )
+                export_context = ExportDmContext()
+                export_context.texname_from_path = self.texture_name_from_image_path
 
                 model_exp.export_file(
                     detail_model, os.path.join(path, name), export_context
@@ -174,10 +178,8 @@ class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return {'FINISHED'}
 
     def exp(self, bpy_obj, context):
-        export_context = plugin.mk_export_context(
-            self.texture_name_from_image_path
-            )
-
+        export_context = ExportDmContext()
+        export_context.texname_from_path = self.texture_name_from_image_path
         exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):

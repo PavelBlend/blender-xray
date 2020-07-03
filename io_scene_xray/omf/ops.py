@@ -26,14 +26,15 @@ class ImportOmfContext(
         self.import_bone_parts = None
 
 
-class ExportContext:
+class ExportOmfContext(
+        context.ExportAnimationOnlyContext,
+        context.ExportAnimationContext
+    ):
     def __init__(self):
-        self.bpy_obj = None
-        self.filepath = None
+        context.ExportAnimationOnlyContext.__init__(self)
+        context.ExportAnimationContext.__init__(self)
         self.export_mode = None
-        self.export_motions = None
         self.export_bone_parts = None
-        self.multiply = get_multiply()
 
 
 motion_props = {
@@ -231,8 +232,8 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
 
     @utils.set_cursor_state
     def execute(self, context):
-        export_context = ExportContext()
-        export_context.bpy_obj = context.object
+        export_context = ExportOmfContext()
+        export_context.bpy_arm_obj = context.object
         export_context.filepath = self.filepath
         export_context.export_mode = self.export_mode
         export_context.export_motions = self.export_motions

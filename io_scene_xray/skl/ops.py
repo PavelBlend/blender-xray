@@ -183,11 +183,10 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     @execute_require_filepath
     @set_cursor_state
     def execute(self, context):
-        from .exp import export_skl_file, ExportContext
-        export_context = ExportContext(
-            armature=context.active_object,
-            action=self.action
-        )
+        from .exp import export_skl_file, ExportSklsContext
+        export_context = ExportSklsContext()
+        export_context.bpy_arm_obj = context.active_object
+        export_context.action = self.action
         export_skl_file(self.filepath, export_context)
         return {'FINISHED'}
 
@@ -221,10 +220,9 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
             exec('{0} = op_export_skls_props.get("{0}")'.format(prop_name))
 
     def export(self, context):
-        from .exp import export_skls_file, ExportContext
-        export_context = ExportContext(
-            armature=context.active_object
-        )
+        from .exp import export_skls_file, ExportSklsContext
+        export_context = ExportSklsContext()
+        export_context.bpy_arm_obj = context.active_object
         export_skls_file(self.filepath, export_context)
 
     @invoke_require_armature

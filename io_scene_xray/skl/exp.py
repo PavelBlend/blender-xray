@@ -3,12 +3,13 @@ import bpy
 from ..xray_io import ChunkedWriter, PackedWriter
 from ..xray_motions import export_motion, export_motions
 from ..utils import save_file
+from .. import context
 
 
-class ExportContext:
-    def __init__(self, armature, action=None):
-        self.armature = armature
-        self.action = action
+class ExportSklsContext(context.ExportAnimationOnlyContext):
+    def __init__(self):
+        context.ExportAnimationOnlyContext.__init__(self)
+        self.action = None
 
 
 def _export_skl(chunked_writer, context):

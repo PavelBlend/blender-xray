@@ -511,16 +511,6 @@ def invoke_require_armature(func):
     return wrapper
 
 
-def mk_export_context(texname_from_path, fmt_version=None, export_motions=True):
-    from .obj.exp import ExportContext
-    from . import plugin_prefs
-    return ExportContext(
-        textures_folder=plugin_prefs.get_preferences().textures_folder_auto,
-        export_motions=export_motions,
-        soc_sgroups=None if fmt_version is None else (fmt_version == 'soc'),
-        texname_from_path=texname_from_path
-    )
-
 def time_log():
     def decorator(func):
         name = func.__name__

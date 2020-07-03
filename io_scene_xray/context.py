@@ -5,6 +5,7 @@ import bpy
 from . import utils, version_utils
 
 
+# base context
 class Context:
     def __init__(self):
         self.filepath = None
@@ -13,6 +14,7 @@ class Context:
         self.version = utils.plugin_version_number()
 
 
+# import contexts
 class ImportContext(Context):
     def __init__(self):
         Context.__init__(self)
@@ -42,4 +44,29 @@ class ImportAnimationContext(ImportAnimationBaseContext):
 class ImportAnimationOnlyContext(ImportAnimationBaseContext):
     def __init__(self):
         ImportAnimationBaseContext.__init__(self)
+        self.bpy_arm_obj = None
+
+
+# export contexts
+class ExportContext(Context):
+    def __init__(self):
+        Context.__init__(self)
+
+
+class ExportMeshContext(ExportContext):
+    def __init__(self):
+        ExportContext.__init__(self)
+        self.textures_folder = None
+        self.texname_from_path = None
+
+
+class ExportAnimationContext(ExportContext):
+    def __init__(self):
+        ExportContext.__init__(self)
+        self.export_motions = None
+
+
+class ExportAnimationOnlyContext(ExportContext):
+    def __init__(self):
+        ExportContext.__init__(self)
         self.bpy_arm_obj = None
