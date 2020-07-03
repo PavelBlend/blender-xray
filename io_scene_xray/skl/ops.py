@@ -127,18 +127,17 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
         if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
-        from .imp import import_skl_file, import_skls_file, ImportContext
+        from .imp import import_skl_file, import_skls_file, ImportSklContext
         motions_filter = MOTIONS_FILTER_ALL
         if self.motions:
             selected_names = set(m.name for m in self.motions if m.flag)
             motions_filter = lambda name: name in selected_names
-        import_context = ImportContext(
-            armature=context.active_object,
-            motions_filter=motions_filter,
-            prefix=self.use_motion_prefix_name,
-            filename=None,
-            add_to_list=self.add_actions_to_motion_list
-        )
+        import_context = ImportSklContext()
+        import_context.bpy_arm_obj = context.active_object
+        import_context.motions_filter = motions_filter
+        import_context.use_motion_prefix_name = self.use_motion_prefix_name
+        import_context.filename = None
+        import_context.add_actions_to_motion_list = self.add_actions_to_motion_list
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
             fpath = os.path.join(self.directory, file.name)
@@ -184,11 +183,10 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     @execute_require_filepath
     @set_cursor_state
     def execute(self, context):
-        from .exp import export_skl_file, ExportContext
-        export_context = ExportContext(
-            armature=context.active_object,
-            action=self.action
-        )
+        from .exp import export_skl_file, ExportSklsContext
+        export_context = ExportSklsContext()
+        export_context.bpy_arm_obj = context.active_object
+        export_context.action = self.action
         export_skl_file(self.filepath, export_context)
         return {'FINISHED'}
 
@@ -222,10 +220,9 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
             exec('{0} = op_export_skls_props.get("{0}")'.format(prop_name))
 
     def export(self, context):
-        from .exp import export_skls_file, ExportContext
-        export_context = ExportContext(
-            armature=context.active_object
-        )
+        from .exp import export_skls_file, ExportSklsContext
+        export_context = ExportSklsContext()
+        export_context.bpy_arm_obj = context.active_object
         export_skls_file(self.filepath, export_context)
 
     @invoke_require_armature

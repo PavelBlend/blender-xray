@@ -8,8 +8,14 @@ from ..xray_io import ChunkedReader, PackedReader
 from ..plugin_prefs import get_preferences
 from ..obj.imp import utils as object_imp_utils
 from ..obj import imp as object_import
+from ..obj.imp import utils as obj_imp_utils
 from .. import log
 from ..version_utils import link_object
+
+
+class ImportSceneContext(obj_imp_utils.ImportObjectMeshContext):
+    def __init__(self):
+        obj_imp_utils.ImportObjectMeshContext.__init__(self)
 
 
 def _read_scene_version(scene_version_chunk):
@@ -178,14 +184,13 @@ def import_file(filepath, operator):
     with open(filepath, 'rb') as file:
         textures_folder = get_preferences().textures_folder_auto
         objects_folder = get_preferences().objects_folder
-        import_context = object_imp_utils.ImportContext(
-            textures=textures_folder,
-            soc_sgroups=operator.fmt_version == 'soc',
-            import_motions=False,
-            split_by_materials=operator.mesh_split_by_materials,
-            operator=operator,
-            use_motion_prefix_name=False,
-            objects=objects_folder
-        )
+        import_context = ImportSceneContext()
+        import_context.textures_folder=textures_folder
+        import_context.soc_sgroups=operator.fmt_version == 'soc'
+        import_context.import_motions=False
+        import_context.split_by_materials=operator.mesh_split_by_materials
+        import_context.operator=operator
+        import_context.use_motion_prefix_name=False
+        import_context.objects_folder=objects_folder
         import_context.before_import_file()
         import_(filepath, ChunkedReader(file.read()), import_context)

@@ -21,7 +21,7 @@ MOTIONS_FILTER_ALL = lambda name: True
 
 @with_context('import-motion')
 def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FILTER_ALL):
-    bpy_armature = context.armature
+    bpy_armature = context.bpy_arm_obj
     name = reader.gets()
 
     if not motions_filter(name):
@@ -37,7 +37,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
     if ver < 6:
         raise AppError('unsupported motions version', log_props(version=ver))
 
-    if context.add_to_list:
+    if context.add_actions_to_motion_list:
         motion = bpy_armature.xray.motions_collection.add()
         motion.name = act.name
     else:
@@ -146,7 +146,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
 
 
 def import_motions(reader, context, motions_filter=MOTIONS_FILTER_ALL):
-    bpy_armature = context.armature
+    bpy_armature = context.bpy_arm_obj
     motions_count = reader.getf('I')[0]
     if motions_count:
         bonesmap = {b.name.lower(): b for b in bpy_armature.data.bones}

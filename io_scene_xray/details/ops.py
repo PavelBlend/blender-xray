@@ -4,12 +4,26 @@ import bpy
 import bpy_extras
 
 from .. import plugin, plugin_prefs, utils
-from ..obj.imp.utils import ImportContext
+from .. import context
 from ..obj.exp import props as obj_exp_props
 from ..dm import imp as model_imp
 from ..dm import exp as model_exp
 from . import imp, exp, props
 from ..version_utils import get_import_export_menus, assign_props, IS_28
+
+
+class ImportDetailsContext(context.ImportMeshContext):
+    def __init__(self):
+        context.ImportMeshContext.__init__(self)
+        self.format_version = None
+        self.details_models_in_a_row = None
+        self.load_slots = None
+
+
+class ExportDetailsContext(context.ExportMeshContext):
+    def __init__(self):
+        context.ExportMeshContext.__init__(self)
+        self.level_details_format_version = None
 
 
 op_import_details_props = {
@@ -54,19 +68,12 @@ class OpImportDetails(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
 
-        import_context = ImportContext(
-            textures=textures_folder,
-            soc_sgroups=None,
-            import_motions=None,
-            split_by_materials=None,
-            operator=self,
-            use_motion_prefix_name=False
-            )
-
-        import_context.format = self.details_format
+        import_context = ImportDetailsContext()
+        import_context.textures_folder=textures_folder
+        import_context.operator=self
+        import_context.format_version = self.details_format
         import_context.details_models_in_a_row = self.details_models_in_a_row
         import_context.load_slots = self.load_slots
-        import_context.report = self.report
 
         try:
             for file in self.files:
@@ -130,7 +137,7 @@ op_export_details_props = {
 
 
 class OpExportDetails(
-    bpy.types.Operator, bpy_extras.io_utils.ExportHelper
+        bpy.types.Operator, bpy_extras.io_utils.ExportHelper
     ):
 
     bl_idname = 'xray_export.details'
@@ -178,10 +185,8 @@ class OpExportDetails(
         return {'FINISHED'}
 
     def exp(self, bpy_obj, context):
-        export_context = plugin.mk_export_context(
-            self.texture_name_from_image_path
-            )
-
+        export_context = ExportDetailsContext()
+        export_context.texname_from_path = self.texture_name_from_image_path
         export_context.level_details_format_version = self.format_version
         exp.export_file(bpy_obj, self.filepath, export_context)
 

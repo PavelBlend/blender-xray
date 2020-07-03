@@ -118,7 +118,7 @@ def menu_func_export(self, context):
         OpExportLevelScene.bl_idname,
         text='X-Ray scene selection (.level)',
         icon_value=icon
-        )
+    )
 
 
 def menu_func_import(self, context):
@@ -127,7 +127,7 @@ def menu_func_import(self, context):
         OpImportLevelScene.bl_idname,
         text='X-Ray scene selection (.level)',
         icon_value=icon
-        )
+    )
 
 
 def register_operators():

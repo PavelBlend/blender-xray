@@ -3,10 +3,21 @@ import os
 import bpy
 import bpy_extras
 
-from ... import registry, ops, plugin_prefs, utils
+from ... import registry, ops, plugin_prefs, utils, context
 from ...version_utils import assign_props, IS_28
 from .. import exp
 from . import props
+
+
+class ExportObjectContext(
+        context.ExportMeshContext,
+        context.ExportAnimationContext
+    ):
+
+    def __init__(self):
+        context.ExportMeshContext.__init__(self)
+        context.ExportAnimationContext.__init__(self)
+        self.soc_sgroups = None
 
 
 def find_objects_for_export(context):
@@ -79,10 +90,10 @@ class OpExportObjects(ops.BaseOperator, _WithExportMotions):
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
-        export_context = utils.mk_export_context(
-            self.texture_name_from_image_path,
-            self.fmt_version, self.export_motions
-        )
+        export_context = ExportObjectContext()
+        export_context.texname_from_path = self.texture_name_from_image_path
+        export_context.soc_sgroups = self.fmt_version == 'soc'
+        export_context.export_motions = self.export_motions
         try:
             for name in self.objects.split(','):
                 obj = context.scene.objects[name]
@@ -161,11 +172,10 @@ class OpExportObject(
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
-        export_context = utils.mk_export_context(
-            self.texture_name_from_image_path,
-            self.fmt_version,
-            self.export_motions
-        )
+        export_context = ExportObjectContext()
+        export_context.texname_from_path = self.texture_name_from_image_path
+        export_context.soc_sgroups = self.fmt_version == 'soc'
+        export_context.export_motions = self.export_motions
         try:
             exp.export_file(
                 context.scene.objects[self.object],

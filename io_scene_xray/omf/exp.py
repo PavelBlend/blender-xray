@@ -136,7 +136,7 @@ def get_motions(context):
         packed_writer.puts(name)
         length = packed_reader.getf('I')[0]
         packed_writer.putf('I', length)
-        for bone_index in range(len(context.bpy_obj.data.bones)):
+        for bone_index in range(len(context.bpy_arm_obj.data.bones)):
             flags = packed_reader.getf('B')[0]
             t_present = flags & fmt.FL_T_KEY_PRESENT
             r_absent = flags & fmt.FL_R_KEY_ABSENT
@@ -174,7 +174,7 @@ def get_motions(context):
 
 def write_motion(context, packed_writer, motion_name, motion_params):
     action = bpy.data.actions.get(motion_name)
-    if context.bpy_obj.xray.use_custom_motion_names:
+    if context.bpy_arm_obj.xray.use_custom_motion_names:
         motion_name = context.motion_export_names[motion_name]
     packed_writer.puts(motion_name)
     motion_flags = get_flags(action.xray)
@@ -196,14 +196,14 @@ def write_motions(context, packed_writer, motions):
 
 def export_omf_file(context):
     current_frame = bpy.context.scene.frame_current
-    mode = context.bpy_obj.mode
-    if not context.bpy_obj.animation_data:
+    mode = context.bpy_arm_obj.mode
+    if not context.bpy_arm_obj.animation_data:
         current_action = None
     else:
-        current_action = context.bpy_obj.animation_data.action
+        current_action = context.bpy_arm_obj.animation_data.action
     motion_names = set()
     context.motion_export_names = {}
-    for motion in context.bpy_obj.xray.motions_collection:
+    for motion in context.bpy_arm_obj.xray.motions_collection:
         motion_names.add(motion.name)
         if motion.export_name:
             context.motion_export_names[motion.name] = motion.export_name
@@ -222,13 +222,13 @@ def export_omf_file(context):
     pose_bones = []
     bpy.ops.object.mode_set(mode='POSE')
     bone_groups = {}
-    for bone_index, bone in enumerate(context.bpy_obj.data.bones):
+    for bone_index, bone in enumerate(context.bpy_arm_obj.data.bones):
         if bone.xray.exportable:
-            pose_bone = context.bpy_obj.pose.bones[bone.name]
+            pose_bone = context.bpy_arm_obj.pose.bones[bone.name]
             if not pose_bone.bone_group:
                 raise utils.AppError(
                     'Bone "{}" of "{}" armature does not have a bone group'.format(
-                        pose_bone.name, context.bpy_obj.name)
+                        pose_bone.name, context.bpy_arm_obj.name)
                     )
             if not bone_groups.get(pose_bone.bone_group.name, None):
                 bone_groups[pose_bone.bone_group.name] = []
@@ -260,7 +260,7 @@ def export_omf_file(context):
     packed_writer.putf('I', motion_count)
     chunked_writer.put(fmt.MOTIONS_COUNT_CHUNK, packed_writer)
     chunk_id = fmt.MOTIONS_COUNT_CHUNK + 1
-    context.bpy_obj.animation_data_create()
+    context.bpy_arm_obj.animation_data_create()
     new_motions_count = 0
     for motion_name in export_motion_names:
         action = bpy.data.actions.get(motion_name)
@@ -290,8 +290,8 @@ def export_omf_file(context):
             if packed_writer is None:
                 new_motions_count += 1
         packed_writer = xray_io.PackedWriter()
-        context.bpy_obj.animation_data.action = action
-        if context.bpy_obj.xray.use_custom_motion_names:
+        context.bpy_arm_obj.animation_data.action = action
+        if context.bpy_arm_obj.xray.use_custom_motion_names:
             motion_name = context.motion_export_names[motion_name]
         packed_writer.puts(motion_name)
         length = int(action.frame_range[1] - action.frame_range[0] + 1)
@@ -308,7 +308,7 @@ def export_omf_file(context):
                     xmatrices[pose_bone.name] = []
                     min_trns[pose_bone.name] = mathutils.Vector((10000.0, 10000.0, 10000.0))
                     max_trns[pose_bone.name] = mathutils.Vector((-10000.0, -10000.0, -10000.0))
-                bpy_bone = context.bpy_obj.data.bones[pose_bone.name]
+                bpy_bone = context.bpy_arm_obj.data.bones[pose_bone.name]
                 parent = pose_bone.parent
                 parent_matrix = parent.matrix.inverted() if parent else imp.MATRIX_BONE_INVERTED
                 matrix = context.multiply(parent_matrix, pose_bone.matrix)
@@ -384,14 +384,14 @@ def export_omf_file(context):
         packed_writer.putf('H', partition_version)
         partitions_count = len(bone_groups)
         packed_writer.putf('H', partitions_count)
-        for bone_group in context.bpy_obj.pose.bone_groups:
+        for bone_group in context.bpy_arm_obj.pose.bone_groups:
             partition_name = bone_group.name
             packed_writer.puts(partition_name)
             bones = bone_groups[partition_name]
             if not bones:
                 raise utils.AppError(
                     'Armature "{}" has an empty bone group'.format(
-                        context.bpy_obj.name
+                        context.bpy_arm_obj.name
                     )
                 )
             bones_count = len(bones)
@@ -433,7 +433,7 @@ def export_omf_file(context):
                         packed_writer.putp(motion_params.writer)
                     else:
                         params = motion
-                        if context.bpy_obj.xray.use_custom_motion_names:
+                        if context.bpy_arm_obj.xray.use_custom_motion_names:
                             motion_name = context.motion_export_names[motion_name]
                         write_motion(context, packed_writer, motion_name, params)
                 motions_new = {}
@@ -450,8 +450,8 @@ def export_omf_file(context):
     bpy.ops.object.mode_set(mode=mode)
     bpy.context.scene.frame_set(current_frame)
     if current_action:
-        context.bpy_obj.animation_data.action = current_action
+        context.bpy_arm_obj.animation_data.action = current_action
     else:
-        context.bpy_obj.animation_data_clear()
+        context.bpy_arm_obj.animation_data_clear()
     with open(context.filepath, 'wb') as file:
         file.write(main_chunked_writer.data)

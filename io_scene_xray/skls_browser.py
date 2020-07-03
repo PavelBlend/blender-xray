@@ -6,7 +6,7 @@ import bpy
 from . import registry
 from .xray_io import PackedReader
 from .xray_motions import (import_motion, _skip_motion_rest, MOTIONS_FILTER_ALL)
-from .skl.imp import ImportContext
+from .skl.imp import ImportSklContext
 from .version_utils import layout_split, assign_props, IS_28
 
 
@@ -176,12 +176,11 @@ def skls_animations_index_changed(self, context):
         # bpy_armature = context.armature
         bonesmap = {b.name.lower(): b for b in ob.data.bones}    # used to bone's reference detection
         reported = set()    # bones names that has problems while import
-        import_context = ImportContext(
-            armature=ob,
-            motions_filter=MOTIONS_FILTER_ALL,
-            prefix=False,
-            filename=OpBrowseSklsFile.skls_file.file_path
-        )
+        import_context = ImportSklContext()
+        import_context.bpy_arm_obj=ob
+        import_context.motions_filter=MOTIONS_FILTER_ALL
+        import_context.use_motion_prefix_name=False
+        import_context.filename=OpBrowseSklsFile.skls_file.file_path
         import_motion(OpBrowseSklsFile.skls_file.pr, import_context, bonesmap, reported)
         sk.animations_prev_name = animation_name
         context.window.cursor_set('DEFAULT')

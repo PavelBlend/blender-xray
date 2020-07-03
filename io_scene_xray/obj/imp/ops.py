@@ -46,15 +46,14 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
         if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
-        import_context = imp_utils.ImportContext(
-            textures=textures_folder,
-            soc_sgroups=self.fmt_version == 'soc',
-            import_motions=self.import_motions,
-            split_by_materials=self.mesh_split_by_materials,
-            operator=self,
-            use_motion_prefix_name=self.use_motion_prefix_name,
-            objects=objects_folder
-        )
+        import_context = imp_utils.ImportObjectContext()
+        import_context.textures_folder=textures_folder
+        import_context.soc_sgroups=self.fmt_version == 'soc'
+        import_context.import_motions=self.import_motions
+        import_context.split_by_materials=self.mesh_split_by_materials
+        import_context.operator=self
+        import_context.use_motion_prefix_name=self.use_motion_prefix_name
+        import_context.objects_folder=objects_folder
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.object':

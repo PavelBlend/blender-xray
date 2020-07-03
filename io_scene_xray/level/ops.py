@@ -1,9 +1,13 @@
 import bpy, bpy_extras
 
-from .. import utils, plugin, plugin_prefs
+from .. import utils, plugin, plugin_prefs, context
 from ..version_utils import get_import_export_menus, assign_props, IS_28
-from ..obj.imp import utils as obj_imp_utils
 from . import imp, exp
+
+
+class ImportLevelContext(context.ImportMeshContext):
+    def __init__(self):
+        context.ImportMeshContext.__init__(self)
 
 
 op_import_level_props = {
@@ -40,16 +44,10 @@ class IMPORT_OT_xray_level(
         if not self.filepath:
             self.report({'ERROR'}, 'No file selected')
             return {'CANCELLED'}
-        import_context = obj_imp_utils.ImportContext(
-            textures=textures_folder,
-            soc_sgroups=None,
-            import_motions=None,
-            split_by_materials=None,
-            operator=self,
-            use_motion_prefix_name=None,
-            objects=None
-        )
-        import_context.file_path = self.filepath
+        import_context = ImportLevelContext()
+        import_context.textures_folder=textures_folder
+        import_context.operator=self
+        import_context.filepath = self.filepath
         try:
             imp.import_file(import_context, self)
         except utils.AppError as ex:

@@ -12,7 +12,7 @@ from .ops import (
 from .ui import collapsible, motion_list
 from .utils import (
     AppError, ObjectsInitializer, logger, execute_with_logger,
-    execute_require_filepath, FilenameExtHelper, mk_export_context
+    execute_require_filepath, FilenameExtHelper
 )
 from . import plugin_prefs
 from . import hotkeys
@@ -55,9 +55,11 @@ class OpExportProject(TestReadyOperator):
         from .obj.exp import export_file
         from bpy.path import abspath
         data = context.scene.xray
-        export_context = mk_export_context(
-            data.object_texture_name_from_image_path, data.fmt_version, data.object_export_motions
-        )
+
+        export_context = object_exp_ops.ExportObjectContext()
+        export_context.texname_from_path = data.object_texture_name_from_image_path
+        export_context.soc_sgroups = data.fmt_version == 'soc'
+        export_context.export_motions = data.object_export_motions
         try:
             path = abspath(self.filepath if self.filepath else data.export_root)
             os.makedirs(path, exist_ok=True)
