@@ -312,7 +312,7 @@ def import_geomx(level, context):
     if level.xrlc_version == fmt.VERSION_14:
         geomx_chunks = {}
         geomx_chunked_reader = level_utils.get_level_reader(
-            context.file_path + os.extsep + 'geomx'
+            context.filepath + os.extsep + 'geomx'
         )
         chunks = get_chunks(geomx_chunked_reader)
         del geomx_chunked_reader
@@ -327,7 +327,7 @@ def import_geom(level, chunks, context):
         return
     if level.xrlc_version in fmt.SUPPORTED_VERSIONS:
         geom_chunked_reader = level_utils.get_level_reader(
-            context.file_path + os.extsep + 'geom'
+            context.filepath + os.extsep + 'geom'
         )
         geom_chunks = get_chunks(geom_chunked_reader)
         del geom_chunked_reader
@@ -425,7 +425,7 @@ def import_main(context, chunked_reader, level):
 
 def import_file(context, operator):
     level = Level()
-    chunked_reader = level_utils.get_level_reader(context.file_path)
-    level.name = level_utils.get_level_name(context.file_path)
-    level.path = os.path.dirname(context.file_path)
+    chunked_reader = level_utils.get_level_reader(context.filepath)
+    level.name = level_utils.get_level_name(context.filepath)
+    level.path = os.path.dirname(context.filepath)
     import_main(context, chunked_reader, level)

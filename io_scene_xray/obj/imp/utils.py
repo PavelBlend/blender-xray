@@ -2,31 +2,15 @@ import os.path
 
 import bpy
 
-from ... import utils
-from ... import log
+from ... import version_utils, log, context
 
 
-class ImportContext:
-    def __init__(
-            self,
-            textures,
-            soc_sgroups,
-            import_motions,
-            split_by_materials,
-            operator,
-            use_motion_prefix_name,
-            objects=''
-        ):
-
-        self.version = utils.plugin_version_number()
-        self.textures_folder = textures
-        self.objects_folder = objects
-        self.soc_sgroups = soc_sgroups
-        self.import_motions = import_motions
-        self.split_by_materials = split_by_materials
-        self.operator = operator
-        self.loaded_materials = None
-        self.use_motion_prefix_name = use_motion_prefix_name
+class ImportObjectMeshContext(context.ImportMeshContext):
+    def __init__(self):
+        context.ImportMeshContext.__init__(self)
+        self.soc_sgroups = None
+        self.split_by_materials = None
+        self.objects_folder = None
 
     def before_import_file(self):
         self.loaded_materials = {}
@@ -56,3 +40,16 @@ class ImportContext:
                 result.source = 'FILE'
                 result.filepath = filepath
         return result
+
+
+class ImportObjectAnimationContext(context.ImportAnimationContext):
+    def __init__(self):
+        context.ImportAnimationContext.__init__(self)
+
+
+class ImportObjectContext(
+        ImportObjectMeshContext, ImportObjectAnimationContext
+    ):
+    def __init__(self):
+        ImportObjectMeshContext.__init__(self)
+        ImportObjectAnimationContext.__init__(self)

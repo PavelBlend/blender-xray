@@ -2,8 +2,8 @@ import bpy
 import bmesh
 import mathutils
 
-from ... import utils
-from ... import xray_io
+from .. import utils
+from .. import xray_io
 from . import validate
 from . import fmt
 
@@ -36,7 +36,7 @@ def export(bpy_obj, packed_writer, context, fpath, mode='DM'):
     bmesh.ops.triangulate(b_mesh, faces=b_mesh.faces)
     bpy_data = bpy.data.meshes.new('.export-dm')
     b_mesh.to_mesh(bpy_data)
-    bml_uv = b_mesh.loops.layers.uv.active
+    bml_uv = b_mesh.loops.layers.uv[0]
     vertices = []
     indices = []
     vmap = {}

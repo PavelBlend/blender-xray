@@ -128,13 +128,25 @@ class _ExplicitPathOp(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def update_paths(self, context):
-    self.gamedata_folder = ''
-    self.textures_folder = ''
-    self.gamemtl_file = ''
-    self.eshader_file = ''
-    self.cshader_file = ''
-    self.objects_folder = ''
+def update_keymap(self, context):
+    from . import hotkeys
+
+    keymaps, keymap_item = hotkeys.io_scene_xray_keymaps[hotkeys.obj_imp_keymap.operator_id]
+    keymap_item.type = self.import_object_key
+    keymap_item.shift = self.import_object_shift
+
+    keymaps, keymap_item = hotkeys.io_scene_xray_keymaps[hotkeys.obj_exp_keymap.operator_id]
+    keymap_item.type = self.export_object_key
+    keymap_item.shift = self.export_object_shift
+
+
+key_items = (
+    ('F5', 'F5', ''),
+    ('F6', 'F6', ''),
+    ('F7', 'F7', ''),
+    ('F8', 'F8', ''),
+    ('F9', 'F9', ''),
+)
 
 
 plugin_preferences_props = {
@@ -153,7 +165,7 @@ plugin_preferences_props = {
     'use_motion_prefix_name': obj_imp_props.PropObjectUseMotionPrefixName(),
     'anm_create_camera': PropAnmCameraAnimation(),
     'fs_ltx_file': bpy.props.StringProperty(
-        subtype='FILE_PATH', update=update_paths, name='fs.ltx File'
+        subtype='FILE_PATH', name='fs.ltx File'
     ),
     # details import props
     'details_models_in_a_row': details_props.prop_details_models_in_a_row(),
@@ -166,7 +178,22 @@ plugin_preferences_props = {
     # omf props
     'import_bone_parts': omf_props.prop_omf_import_bone_parts(),
     'omf_export_bone_parts': omf_props.prop_omf_export_bone_parts(),
-    'omf_export_mode': omf_props.prop_omf_export_mode()
+    'omf_export_mode': omf_props.prop_omf_export_mode(),
+    # keymap
+    'import_object_key': bpy.props.EnumProperty(
+        default='F8', update=update_keymap, items=key_items,
+        name='Import Object Key'
+    ),
+    'import_object_shift': bpy.props.BoolProperty(
+        default=False, update=update_keymap
+    ),
+    'export_object_key': bpy.props.EnumProperty(
+        default='F8', update=update_keymap, items=key_items,
+        name='Export Object Key'
+    ),
+    'export_object_shift': bpy.props.BoolProperty(
+        default=True, update=update_keymap
+    )
 }
 
 
@@ -239,6 +266,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 nprop = with_auto_property.build_auto_id(prop)
                 if getattr(data, nprop):
                     eprop = nprop
+            setattr(data, eprop, bpy.path.abspath(getattr(data, eprop)))
             if eprop == prop:
                 layout.prop(data, eprop)
             else:
@@ -253,6 +281,12 @@ class PluginPreferences(bpy.types.AddonPreferences):
         row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='ADD')
         row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='REMOVE').remove_active = True
 
+        if self.fs_ltx_file:
+            setattr(
+                self,
+                'fs_ltx_file',
+                bpy.path.abspath(getattr(self, 'fs_ltx_file'))
+            )
         layout.prop(self, 'fs_ltx_file')
 
         prop_auto(layout, self, 'gamedata_folder')
@@ -309,6 +343,18 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 prop_bool(box_n, self, 'omf_export_bone_parts')
                 row = box_n.row()
                 row.prop(self, 'omf_export_mode', expand=True)
+
+        _, box = collapsible.draw(layout, 'plugin_prefs:keymap', 'Keymap', style='tree')
+        if box:
+            row = box.row()
+            row.label(text='Import Object:')
+            row.prop(self, 'import_object_key', text='')
+            row.prop(self, 'import_object_shift', text='Shift', toggle=True)
+
+            row = box.row()
+            row.label(text='Export Object:')
+            row.prop(self, 'export_object_key', text='')
+            row.prop(self, 'export_object_shift', text='Shift', toggle=True)
 
         prop_bool(layout, self, 'expert_mode')
         prop_bool(layout, self, 'compact_menus')

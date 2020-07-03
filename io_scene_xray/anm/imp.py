@@ -5,6 +5,7 @@ import os.path
 import bpy
 
 from ..xray_io import ChunkedReader, PackedReader
+from .. import context
 from .fmt import Chunks
 from ..xray_envelope import import_envelope
 from ..version_utils import link_object, IS_28
@@ -13,9 +14,10 @@ from ..version_utils import link_object, IS_28
 DISPLAY_SIZE = 0.5
 
 
-class ImportContext:
-    def __init__(self, camera_animation=False):
-        self.camera_animation = camera_animation
+class ImportAnmContext(context.ImportContext):
+    def __init__(self):
+        context.ImportContext.__init__(self)
+        self.camera_animation = None
 
 
 def _import(fpath, creader, context):

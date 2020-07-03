@@ -9,7 +9,10 @@ from ..utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
     calculate_mesh_bbox, gen_texture_name
 from ..utils import is_helper_object, save_file
 from ..xray_motions import MATRIX_BONE_INVERTED
-from ..version_utils import multiply, IS_28
+from ..version_utils import get_multiply, IS_28
+
+
+multiply = get_multiply()
 
 
 def calculate_mesh_bsphere(bbox, vertices, mat=mathutils.Matrix()):

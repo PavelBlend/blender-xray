@@ -12,11 +12,13 @@ from .ops import (
 from .ui import collapsible, motion_list
 from .utils import (
     AppError, ObjectsInitializer, logger, execute_with_logger,
-    execute_require_filepath, FilenameExtHelper, mk_export_context
+    execute_require_filepath, FilenameExtHelper
 )
 from . import plugin_prefs
+from . import hotkeys
 from . import registry
 from .details import ops as det_ops
+from .dm import ops as dm_ops
 from .err import ops as err_ops
 from .scene import ops as scene_ops
 from .obj.exp import ops as object_exp_ops
@@ -53,9 +55,11 @@ class OpExportProject(TestReadyOperator):
         from .obj.exp import export_file
         from bpy.path import abspath
         data = context.scene.xray
-        export_context = mk_export_context(
-            data.object_texture_name_from_image_path, data.fmt_version, data.object_export_motions
-        )
+
+        export_context = object_exp_ops.ExportObjectContext()
+        export_context.texname_from_path = data.object_texture_name_from_image_path
+        export_context.soc_sgroups = data.fmt_version == 'soc'
+        export_context.export_motions = data.object_export_motions
         try:
             path = abspath(self.filepath if self.filepath else data.export_root)
             os.makedirs(path, exist_ok=True)
@@ -97,7 +101,8 @@ class XRayImportMenu(bpy.types.Menu):
         )
         layout.operator(anm_ops.OpImportAnm.bl_idname, text='Animation (.anm)')
         layout.operator(skl_ops.OpImportSkl.bl_idname, text='Skeletal Animation (.skl, .skls)')
-        layout.operator(det_ops.OpImportDM.bl_idname, text='Details (.dm, .details)')
+        layout.operator(det_ops.OpImportDetails.bl_idname, text='Level Details (.details)')
+        layout.operator(dm_ops.OpImportDM.bl_idname, text='Detail Model (.dm)')
         layout.operator(err_ops.OpImportERR.bl_idname, text='Error List (.err)')
         layout.operator(scene_ops.OpImportLevelScene.bl_idname, text='Scene Selection (.level)')
         layout.operator(omf_ops.IMPORT_OT_xray_omf.bl_idname, text='Game Motion (.omf)')
@@ -120,9 +125,9 @@ class XRayExportMenu(bpy.types.Menu):
         layout.operator(anm_ops.OpExportAnm.bl_idname, text='Animation (.anm)')
         layout.operator(skl_ops.OpExportSkls.bl_idname, text='Skeletal Animation (.skls)')
         layout.operator(ogf_ops.OpExportOgf.bl_idname, text='Game Object (.ogf)')
-        layout.operator(det_ops.OpExportDMs.bl_idname, text='Detail Model (.dm)')
+        layout.operator(dm_ops.OpExportDMs.bl_idname, text='Detail Model (.dm)')
         layout.operator(
-            det_ops.OpExportLevelDetails.bl_idname,
+            det_ops.OpExportDetails.bl_idname,
             text='Level Details (.details)'
         )
         layout.operator(scene_ops.OpExportLevelScene.bl_idname, text='Scene Selection (.level)')
@@ -209,6 +214,8 @@ def append_menu_func():
         import_menu.remove(err_ops.menu_func_import)
         import_menu.remove(det_ops.menu_func_import)
         export_menu.remove(det_ops.menu_func_export)
+        import_menu.remove(dm_ops.menu_func_import)
+        export_menu.remove(dm_ops.menu_func_export)
         export_menu.remove(scene_ops.menu_func_export)
         import_menu.remove(scene_ops.menu_func_import)
         import_menu.remove(omf_ops.menu_func_import)
@@ -226,6 +233,8 @@ def append_menu_func():
         export_menu.append(menu_func_export_ogf)
         import_menu.append(det_ops.menu_func_import)
         export_menu.append(det_ops.menu_func_export)
+        import_menu.append(dm_ops.menu_func_import)
+        export_menu.append(dm_ops.menu_func_export)
         import_menu.append(err_ops.menu_func_import)
         export_menu.append(scene_ops.menu_func_export)
         import_menu.append(scene_ops.menu_func_import)
@@ -274,6 +283,7 @@ def register():
     convert_materials.register()
     shader_tools.register()
     det_ops.register_operators()
+    dm_ops.register_operators()
     registry.register_thing(err_ops, __name__)
     append_menu_func()
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(
@@ -283,11 +293,14 @@ def register():
     bpy.app.handlers.load_post.append(load_post)
     get_scene_update_post().append(scene_update_post)
     registry.register_thing(skls_browser, __name__)
+    hotkeys.register_hotkeys()
 
 
 def unregister():
+    hotkeys.unregister_hotkeys()
     registry.unregister_thing(skls_browser, __name__)
     registry.unregister_thing(err_ops, __name__)
+    dm_ops.unregister_operators()
     det_ops.unregister_operators()
     if IS_28:
         level_ops.unregister_operators()

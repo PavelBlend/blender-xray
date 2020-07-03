@@ -14,8 +14,12 @@ def get_materials(context, scene):
     mode = scene.xray.convert_materials_mode
     materials = []
     if mode == 'ACTIVE_MATERIAL':
+        if not context.object:
+            return materials
         materials.append(context.object.active_material)
     elif mode == 'ACTIVE_OBJECT':
+        if not context.object:
+            return materials
         get_object_materials(context.object, materials)
     elif mode == 'SELECTED_OBJECTS':
         for bpy_object in context.selected_objects:

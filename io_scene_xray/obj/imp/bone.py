@@ -2,7 +2,7 @@ import bpy
 import mathutils
 
 from ... import log, xray_io, xray_motions, utils
-from ...version_utils import multiply, IS_28
+from ...version_utils import IS_28
 from .. import fmt
 from . import main
 
@@ -50,7 +50,7 @@ def _create_bone(
         rot = mathutils.Euler(
             (-rotate[0], -rotate[1], -rotate[2]), 'YXZ'
         ).to_matrix().to_4x4()
-        mat = multiply(
+        mat = context.multiply(
             mathutils.Matrix.Translation(offset),
             rot,
             xray_motions.MATRIX_BONE
@@ -58,7 +58,7 @@ def _create_bone(
         if parent:
             bpy_bone.parent = bpy_armature.edit_bones.get(parent, None)
             if bpy_bone.parent:
-                mat = multiply(
+                mat = context.multiply(
                     bpy_bone.parent.matrix,
                     xray_motions.MATRIX_BONE_INVERTED,
                     mat

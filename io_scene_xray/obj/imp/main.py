@@ -7,7 +7,7 @@ import mathutils
 from ...skl import imp as skl_imp
 from ... import xray_io, xray_motions, log, utils
 from ...version_utils import (
-    is_all_empty_textures, IS_28, link_object, set_active_object, multiply
+    is_all_empty_textures, IS_28, link_object, set_active_object
 )
 from .. import fmt
 from . import bone, mesh
@@ -323,12 +323,11 @@ def import_main(fpath, context, creader):
             if not context.import_motions:
                 continue
             reader = xray_io.PackedReader(data)
-            skl_context = skl_imp.ImportContext(
-                armature=bpy_arm_obj,
-                motions_filter=xray_motions.MOTIONS_FILTER_ALL,
-                prefix=context.use_motion_prefix_name,
-                filename=object_name
-            )
+            skl_context = skl_imp.ImportSklContext()
+            skl_context.bpy_arm_obj=bpy_arm_obj
+            skl_context.motions_filter=xray_motions.MOTIONS_FILTER_ALL
+            skl_context.use_motion_prefix_name=context.use_motion_prefix_name
+            skl_context.filename=object_name
             xray_motions.import_motions(reader, skl_context)
         elif cid == fmt.Chunks.Object.LIB_VERSION:
             pass  # skip obsolete chunk
@@ -377,7 +376,7 @@ def import_main(fpath, context, creader):
             reader = xray_io.PackedReader(data)
             pos = read_v3f(reader)
             rot = read_v3f(reader)
-            bpy_obj.matrix_basis = multiply(
+            bpy_obj.matrix_basis = context.multiply(
                 bpy_obj.matrix_basis,
                 mathutils.Matrix.Translation(pos),
                 mathutils.Euler(rot, 'YXZ').to_matrix().to_4x4()

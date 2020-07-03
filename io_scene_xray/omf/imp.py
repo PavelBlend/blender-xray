@@ -2,7 +2,6 @@ import bpy, mathutils
 
 from . import fmt
 from .. import xray_io, utils
-from ..version_utils import get_multiply
 
 
 MATRIX_BONE = mathutils.Matrix((
@@ -102,12 +101,12 @@ def read_motion(data, context, motions_params):
         act = bpy.data.actions.new(name)
         act.use_fake_user = True
         if context.add_actions_to_motion_list:
-            xray_motion = context.bpy_armature_obj.xray.motions_collection.add()
+            xray_motion = context.bpy_arm_obj.xray.motions_collection.add()
             xray_motion.name = name
             xray_motion.export_name = name
             if xray_motion.name != act.name:
                 xray_motion.name = act.name
-                context.bpy_armature_obj.xray.use_custom_motion_names = True
+                context.bpy_arm_obj.xray.use_custom_motion_names = True
         flags = motion_params.flags
 
         # set flags
@@ -125,17 +124,15 @@ def read_motion(data, context, motions_params):
         act.xray.accrue = motion_params.accrue
         act.xray.falloff = motion_params.falloff
 
-        multiply = get_multiply()
-
-        for bone_index, bpy_bone in enumerate(context.bpy_armature_obj.data.bones):
+        for bone_index, bpy_bone in enumerate(context.bpy_arm_obj.data.bones):
             bone_name = bpy_bone.name
             bpy_bone_parent = bpy_bone.parent
 
             xmat = bpy_bone.matrix_local.inverted()
             if bpy_bone_parent:
-                xmat = multiply(xmat, bpy_bone_parent.matrix_local)
+                xmat = context.multiply(xmat, bpy_bone_parent.matrix_local)
             else:
-                xmat = multiply(xmat, MATRIX_BONE)
+                xmat = context.multiply(xmat, MATRIX_BONE)
 
             translate_fcurves = []
             for translate_index in range(3):    # x, y, z
@@ -215,7 +212,7 @@ def read_motion(data, context, motions_params):
                 location = bone_translations[tr_index]
                 rotation = bone_rotations[rot_index]
 
-                mat = multiply(
+                mat = context.multiply(
                     xmat,
                     mathutils.Matrix.Translation(location),
                     rotation.to_matrix().to_4x4()
@@ -232,7 +229,7 @@ def read_motion(data, context, motions_params):
                         rotate_fcurves[i].keyframe_points.insert(rot_index, rot[i])
 
     else:
-        for bpy_bone in context.bpy_armature_obj.data.bones:
+        for bpy_bone in context.bpy_arm_obj.data.bones:
             flags = packed_reader.getf('B')[0]
             t_present = flags & fmt.FL_T_KEY_PRESENT
             r_absent = flags & fmt.FL_R_KEY_ABSENT
@@ -274,7 +271,7 @@ def read_params(data, context):
         partition_name = packed_reader.gets()
         bone_count = packed_reader.getf('H')[0]
         if context.import_bone_parts:
-            bone_group = context.bpy_armature_obj.pose.bone_groups.new(name=partition_name)
+            bone_group = context.bpy_arm_obj.pose.bone_groups.new(name=partition_name)
 
         for bone in range(bone_count):
             if params_version == 1:
@@ -289,9 +286,9 @@ def read_params(data, context):
             else:
                 raise BaseException('Unknown params version')
             if bone_name:
-                pose_bone = context.bpy_armature_obj.pose.bones[bone_name]
+                pose_bone = context.bpy_arm_obj.pose.bones[bone_name]
             else:
-                pose_bone = context.bpy_armature_obj.pose.bones[bone_id]
+                pose_bone = context.bpy_arm_obj.pose.bones[bone_id]
             if context.import_bone_parts:
                 pose_bone.bone_group = bone_group
 

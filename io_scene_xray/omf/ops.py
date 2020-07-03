@@ -3,7 +3,7 @@ import os
 import bpy, bpy_extras
 
 from . import imp, exp, props
-from .. import plugin_prefs, registry, utils, plugin
+from .. import plugin_prefs, registry, utils, plugin, context
 from ..ui import collapsible
 from ..skl import props as skl_props
 from ..obj.imp import props as obj_imp_props
@@ -14,25 +14,26 @@ from ..ui.motion_list import (
     _DeselectMotionsOp,
     _DeselectDuplicatedMotionsOp
 )
-from ..version_utils import IS_28, assign_props
+from ..version_utils import IS_28, assign_props, get_multiply
 
 
-class ImportContext:
+class ImportOmfContext(
+        context.ImportAnimationContext, context.ImportAnimationOnlyContext
+    ):
     def __init__(self):
-        self.bpy_armature_obj = None
-        self.filepath = None
+        context.ImportAnimationContext.__init__(self)
+        context.ImportAnimationOnlyContext.__init__(self)
         self.import_bone_parts = None
-        self.import_motions = None
-        self.add_actions_to_motion_list = None
-        self.selected_names = None
 
 
-class ExportContext:
+class ExportOmfContext(
+        context.ExportAnimationOnlyContext,
+        context.ExportAnimationContext
+    ):
     def __init__(self):
-        self.bpy_obj = None
-        self.filepath = None
+        context.ExportAnimationOnlyContext.__init__(self)
+        context.ExportAnimationContext.__init__(self)
         self.export_mode = None
-        self.export_motions = None
         self.export_bone_parts = None
 
 
@@ -91,8 +92,8 @@ class IMPORT_OT_xray_omf(
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.omf':
-                import_context = ImportContext()
-                import_context.bpy_armature_obj = context.object
+                import_context = ImportOmfContext()
+                import_context.bpy_arm_obj = context.object
                 import_context.filepath = os.path.join(
                     self.directory, file.name
                 )
@@ -231,8 +232,8 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
 
     @utils.set_cursor_state
     def execute(self, context):
-        export_context = ExportContext()
-        export_context.bpy_obj = context.object
+        export_context = ExportOmfContext()
+        export_context.bpy_arm_obj = context.object
         export_context.filepath = self.filepath
         export_context.export_mode = self.export_mode
         export_context.export_motions = self.export_motions

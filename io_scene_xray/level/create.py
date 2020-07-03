@@ -687,7 +687,7 @@ def load_image(absolute_texture_path):
 
 
 def load_image_from_level_folder(context, texture):
-    level_dir = utils.get_level_dir(context.file_path)
+    level_dir = utils.get_level_dir(context.filepath)
     absolute_texture_path = get_absolute_texture_path(
         level_dir, texture
     )
@@ -725,14 +725,14 @@ def find_image_lmap(context, lmap, level_dir):
 
 
 def get_image_lmap_terrain(context, lmap):
-    level_dir = utils.get_level_dir(context.file_path)
+    level_dir = utils.get_level_dir(context.filepath)
     bpy_image = find_image_lmap(context, lmap, level_dir)
     return bpy_image
 
 
 def get_image_lmap_brush(context, lmap_1, lmap_2):
     bpy_images = []
-    level_dir = utils.get_level_dir(context.file_path)
+    level_dir = utils.get_level_dir(context.filepath)
     for lmap in (lmap_1, lmap_2):
         bpy_image = find_image_lmap(context, lmap, level_dir)
         bpy_images.append(bpy_image)
@@ -754,7 +754,7 @@ def get_image_lmap(context, light_maps):
 def get_image(context, texture, light_maps, terrain=False):
     if terrain:
         # level dir (terrain texture)
-        texture_dir = utils.get_level_dir(context.file_path)
+        texture_dir = utils.get_level_dir(context.filepath)
     else:
         texture_dir = context.textures_folder
     absolute_texture_path = get_absolute_texture_path(
@@ -797,7 +797,7 @@ def is_same_image(context, bpy_material, texture):
     absolute_texture_path = get_absolute_texture_path(
         context.textures_folder, texture
     )
-    level_dir = utils.get_level_dir(context.file_path)
+    level_dir = utils.get_level_dir(context.filepath)
     absolute_texture_path_in_level_folder = get_absolute_texture_path(
         level_dir, texture
     )

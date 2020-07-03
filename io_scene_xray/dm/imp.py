@@ -1,7 +1,7 @@
 import io
 import os
 
-from ... import xray_io
+from .. import xray_io
 from . import create
 from . import fmt
 

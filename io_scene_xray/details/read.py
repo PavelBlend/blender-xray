@@ -2,7 +2,7 @@ import bpy
 
 from .. import xray_io
 from . import fmt, create
-from .model import imp as model_imp
+from ..dm import imp as model_imp
 from ..version_utils import link_object, IS_28
 
 
@@ -155,10 +155,10 @@ def read_details_slots(
             1.0 for _ in range(header.slots_count * 4 * 4)
             ]
 
-        if context.format == 'builds_1233-1558':
+        if context.format_version == 'builds_1233-1558':
             pixels_offset = fmt.PIXELS_OFFSET_2
 
-        elif context.format == 'builds_1096-1230':
+        elif context.format_version == 'builds_1096-1230':
             pixels_offset = fmt.PIXELS_OFFSET_1
 
         density_pixels_offset = fmt.PIXELS_OFFSET_1
@@ -245,12 +245,12 @@ def read_details_slots(
         del lighting_image_pixels
 
         if bad_y_base_count > 0:
-            context.report({'WARNING'},
+            context.operator.report({'WARNING'},
                            'details has {} bad base coordinates'.format(
                                bad_y_base_count))
 
         if bad_y_top_count > 0:
-            context.report({'WARNING'},
+            context.operator.report({'WARNING'},
                            'details has {} bad top coordinates'.format(
                                bad_y_top_count))
 

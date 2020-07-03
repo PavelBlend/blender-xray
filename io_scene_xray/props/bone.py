@@ -9,7 +9,7 @@ from . import utils
 from .. import registry
 from ..ops import joint_limits
 from ..edit_helpers.bone_shape import HELPER as seh
-from ..version_utils import assign_props, IS_28, multiply
+from ..version_utils import assign_props, IS_28, multiply, get_multiply
 
 
 shape_properties = {
@@ -201,6 +201,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             hide = obj_arm.hide_viewport
         else:
             hide = obj_arm.hide
+        multiply = get_multiply()
         if not hide and arm_xray.display_bone_limits and \
                         bone.xray.exportable and obj_arm.mode == 'POSE':
             if bone.select and bone.xray.ikjoint.type in {'2', '3', '5'} and \

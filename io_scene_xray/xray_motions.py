@@ -5,7 +5,7 @@ from .utils import is_exportable_bone, find_bone_exportable_parent, AppError
 from .xray_envelope import Behavior, Shape, KF, EPSILON, refine_keys, export_keyframes
 from .xray_io import PackedWriter, FastBytes as fb
 from .log import warn, with_context, props as log_props
-from .version_utils import multiply
+from .version_utils import multiply, get_multiply
 
 
 MATRIX_BONE = Matrix((
@@ -21,7 +21,7 @@ MOTIONS_FILTER_ALL = lambda name: True
 
 @with_context('import-motion')
 def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FILTER_ALL):
-    bpy_armature = context.armature
+    bpy_armature = context.bpy_arm_obj
     name = reader.gets()
 
     if not motions_filter(name):
@@ -37,7 +37,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
     if ver < 6:
         raise AppError('unsupported motions version', log_props(version=ver))
 
-    if context.add_to_list:
+    if context.add_actions_to_motion_list:
         motion = bpy_armature.xray.motions_collection.add()
         motion.name = act.name
     else:
@@ -59,6 +59,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
 
     xray.flags, xray.bonepart = reader.getf('<BH')
     xray.speed, xray.accrue, xray.falloff, xray.power = reader.getf('<ffff')
+    multiply = get_multiply()
     for _bone_idx in range(reader.getf('H')[0]):
         tmpfc = [act.fcurves.new('temp', index=i) for i in range(6)]
         try:
@@ -145,7 +146,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
 
 
 def import_motions(reader, context, motions_filter=MOTIONS_FILTER_ALL):
-    bpy_armature = context.armature
+    bpy_armature = context.bpy_arm_obj
     motions_count = reader.getf('I')[0]
     if motions_count:
         bonesmap = {b.name.lower(): b for b in bpy_armature.data.bones}
