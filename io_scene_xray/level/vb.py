@@ -37,9 +37,9 @@ def import_vertices(packed_reader, vertex_buffer, vertices_count, usage_list):
         elif usage == fmt.NORMAL:
             code += '    norm_x, norm_y, norm_z, hemi = packed_reader.getf("<{}")\n'.format(data_format)
             code += '    vertex_buffer.normal.append((\n' \
-                    '       (2.0 * norm_z / 255.0 - 1.0),\n' \
-                    '       (2.0 * norm_x / 255.0 - 1.0),\n' \
-                    '       (2.0 * norm_y / 255.0 - 1.0)\n' \
+                    '       norm_x,\n' \
+                    '       norm_y,\n' \
+                    '       norm_z\n' \
                     '    ))\n'
             code += '    vertex_buffer.color_hemi.append(hemi / 255)\n'
         elif usage == fmt.TANGENT:
