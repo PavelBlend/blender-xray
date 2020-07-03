@@ -52,7 +52,7 @@ def convert_normal(norm_in):
     norm_out_x = 2.0 * norm_in[0] / 255 - 1.0
     norm_out_y = 2.0 * norm_in[1] / 255 - 1.0
     norm_out_z = 2.0 * norm_in[2] / 255 - 1.0
-    return (norm_out_z, norm_out_x, norm_out_y)
+    return mathutils.Vector((norm_out_z, norm_out_x, norm_out_y)).normalized()
 
 
 def create_visual(bpy_mesh, visual, level, geometry_key):
