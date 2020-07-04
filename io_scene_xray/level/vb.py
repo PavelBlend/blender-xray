@@ -174,7 +174,7 @@ def import_vertex_buffer(packed_reader, xrlc_version):
 
 
 def import_vertex_buffer_d3d7(packed_reader, xrlc_version):
-    if xrlc_version == fmt.VERSION_9:
+    if xrlc_version <= fmt.VERSION_9:
         vertex_format = packed_reader.getf('I')[0]
         vertices_count = packed_reader.getf('I')[0]
         vertex_buffer = VertexBuffer()

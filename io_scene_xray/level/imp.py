@@ -397,6 +397,8 @@ def import_level(level, context, chunks, geomx_chunks):
         chunks_ids = fmt.Chunks10
     elif level.xrlc_version == fmt.VERSION_9:
         chunks_ids = fmt.Chunks9
+    elif level.xrlc_version == fmt.VERSION_8:
+        chunks_ids = fmt.Chunks8
     shaders_chunk_data = chunks.pop(chunks_ids.SHADERS)
     level.materials = shaders.import_shaders(level, context, shaders_chunk_data)
     del shaders_chunk_data
@@ -404,6 +406,8 @@ def import_level(level, context, chunks, geomx_chunks):
     # geometry
     vb_chunk_data = chunks.pop(chunks_ids.VB, None)
     directx_3d_7_mode = False
+    if level.xrlc_version == fmt.VERSION_8:
+        directx_3d_7_mode = True
     if not vb_chunk_data and level.xrlc_version == fmt.VERSION_9:
         directx_3d_7_mode = True
         vb_chunk_data = chunks.pop(chunks_ids.VB_OLD)
@@ -412,9 +416,10 @@ def import_level(level, context, chunks, geomx_chunks):
     )
     del vb_chunk_data
 
-    ib_chunk_data = chunks.pop(chunks_ids.IB)
-    level.indices_buffers = ib.import_indices_buffers(ib_chunk_data)
-    del ib_chunk_data
+    if level.xrlc_version >= fmt.VERSION_9:
+        ib_chunk_data = chunks.pop(chunks_ids.IB)
+        level.indices_buffers = ib.import_indices_buffers(ib_chunk_data)
+        del ib_chunk_data
 
     if level.xrlc_version == fmt.VERSION_12:
         swis_chunk_data = chunks.pop(chunks_ids.SWIS, None)

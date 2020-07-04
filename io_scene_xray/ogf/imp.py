@@ -394,10 +394,11 @@ def import_gcontainer(
     if vertex_buffers[vb_index].color_sun:
         visual.sun = vertex_buffers[vb_index].color_sun[vb_slice]
 
-    visual.indices = indices_buffers[ib_index][
-        ib_offset : ib_offset + ib_size
-    ]
-    visual.indices_count = ib_size
+    if ib_offset and ib_size:
+        visual.indices = indices_buffers[ib_index][
+            ib_offset : ib_offset + ib_size
+        ]
+        visual.indices_count = ib_size
 
     return bpy_mesh, geometry_key
 
@@ -408,6 +409,13 @@ def import_vcontainer(data):
 
 def import_indices(data):
     pass
+
+
+def read_indices_v3(data, visual):
+    packed_reader = xray_io.PackedReader(data)
+    indices_count = packed_reader.getf('I')[0]
+    visual.indices_count = indices_count
+    visual.indices = [packed_reader.getf('H')[0] for i in range(indices_count)]
 
 
 def import_vertices(data):
@@ -483,8 +491,9 @@ def import_hierrarhy_visual(chunks, visual, level):
         read_bbox_v3(bbox_data)
 
         # bsphere
-        bsphere_data = chunks.pop(chunks_ids.BSPHERE)
-        read_bsphere_v3(bsphere_data)
+        bsphere_data = chunks.pop(chunks_ids.BSPHERE, None)
+        if bsphere_data:
+            read_bsphere_v3(bsphere_data)
 
     visual.name = 'hierrarhy'
     children_l_data = chunks.pop(chunks_ids.CHILDREN_L)
@@ -562,8 +571,15 @@ def import_geometry(chunks, visual, level):
         vb_index, vb_offset, vb_size = read_container_v3(vcontainer_data)
 
         # icontainer
-        icontainer_data = chunks.pop(chunks_ids.ICONTAINER)
-        ib_index, ib_offset, ib_size = read_container_v3(icontainer_data)
+        icontainer_data = chunks.pop(chunks_ids.ICONTAINER, None)
+        if icontainer_data:
+            ib_index, ib_offset, ib_size = read_container_v3(icontainer_data)
+        else:
+            indices_data = chunks.pop(chunks_ids.INDICES)
+            read_indices_v3(indices_data, visual)
+            ib_index = None
+            ib_offset = None
+            ib_size = None
 
     bpy_mesh, geometry_key = import_gcontainer(
         visual, level,

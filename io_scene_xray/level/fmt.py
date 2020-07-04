@@ -51,6 +51,17 @@ class Chunks9:
     VB = 0xc
 
 
+class Chunks8:
+    SHADERS = 0x2
+    VISUALS = 0x3
+    VB = 0x4
+    CFORM = 0x5
+    PORTALS = 0x6
+    LIGHT_DYNAMIC = 0x7
+    GLOWS = 0x9
+    SECTORS = 0xa
+
+
 class SectorChunks:
     PORTALS = 0x1
     ROOT = 0x2
@@ -69,8 +80,10 @@ VERSION_12 = 12
 VERSION_11 = 11
 VERSION_10 = 10
 VERSION_9 = 9
+VERSION_8 = 8
 SUPPORTED_VERSIONS = (
-    VERSION_14, VERSION_13, VERSION_12, VERSION_11, VERSION_10, VERSION_9
+    VERSION_14, VERSION_13, VERSION_12, VERSION_11,
+    VERSION_10, VERSION_9, VERSION_8
 )
 
 # vertex buffer type names
