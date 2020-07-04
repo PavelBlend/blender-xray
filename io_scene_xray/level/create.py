@@ -769,7 +769,7 @@ def get_image(context, texture, light_maps, terrain=False):
 def is_same_light_maps(context, bpy_material, light_maps):
     has_images = []
     for index, light_map in enumerate(light_maps):
-        level_dir = utils.get_level_dir(context.file_path)
+        level_dir = utils.get_level_dir(context.filepath)
         absolute_texture_path_in_level_folder = get_absolute_texture_path(
             level_dir, light_map
         )

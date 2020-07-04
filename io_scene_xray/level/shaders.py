@@ -66,12 +66,19 @@ def import_first_empty_shader(packed_reader, materials):
 def import_shaders(level, context, data):
     packed_reader = xray_io.PackedReader(data)
     shaders_count = packed_reader.getf('I')[0]
-    materials = []
-    import_first_empty_shader(packed_reader, materials)
 
-    for shader_index in range(1, shaders_count):
-        shader_data = packed_reader.gets()
-        bpy_material = import_shader(level, context, shader_data)
-        materials.append(bpy_material)
+    if level.xrlc_version >= fmt.VERSION_12:
+        materials = []
+        import_first_empty_shader(packed_reader, materials)
+        for shader_index in range(1, shaders_count):
+            shader_data = packed_reader.gets()
+            bpy_material = import_shader(level, context, shader_data)
+            materials.append(bpy_material)
+    else:
+        level.shaders_or_textures = []
+        materials = {}
+        for shader_index in range(shaders_count):
+            shader_data = packed_reader.gets()
+            level.shaders_or_textures.append(shader_data)
 
     return materials

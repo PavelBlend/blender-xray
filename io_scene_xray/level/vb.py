@@ -23,7 +23,9 @@ def get_uv_corrector(value):
     return uv_corrector
 
 
-def import_vertices(packed_reader, vertex_buffer, vertices_count, usage_list):
+def import_vertices(
+        xrlc_version, packed_reader, vertex_buffer, vertices_count, usage_list
+    ):
     code = ''
     code += 'for vertex_index in range({}):\n'.format(vertices_count)
     has_uv_corrector = False
@@ -53,7 +55,10 @@ def import_vertices(packed_reader, vertex_buffer, vertices_count, usage_list):
                 if data_type in (fmt.FLOAT2, fmt.SHORT2):
                     code += '    coord_u, coord_v = packed_reader.getf("<{}")\n'.format(data_format)
                 elif data_type == fmt.SHORT4:
-                    code += '    coord_u, coord_v, shader_data, unused = packed_reader.getf("<{}")\n'.format(data_format)
+                    if xrlc_version >= fmt.VERSION_12:
+                        code += '    coord_u, coord_v, shader_data, unused = packed_reader.getf("<{}")\n'.format(data_format)
+                    else:
+                        code += '    coord_u, coord_v, lmap_u, lmap_v = packed_reader.getf("<{}")\n'.format(data_format)
                 if data_type == fmt.FLOAT2:
                     code += '    vertex_buffer.uv.append((coord_u, 1 - coord_v))\n'
                 elif data_type == fmt.SHORT2:
@@ -68,17 +73,27 @@ def import_vertices(packed_reader, vertex_buffer, vertices_count, usage_list):
                                 '        1 - coord_v / fmt.UV_COEFFICIENT\n' \
                                 '    ))\n'
                 elif data_type == fmt.SHORT4:
-                    if has_uv_corrector:
-                        code += '    vertex_buffer.uv.append((\n' \
-                                '        coord_u / fmt.UV_COEFFICIENT_2 + get_uv_corrector(correct_u),\n' \
-                                '        1 - coord_v / fmt.UV_COEFFICIENT_2 - get_uv_corrector(correct_v)\n' \
-                                '    ))\n'
+                    if xrlc_version >= fmt.VERSION_12:
+                        if has_uv_corrector:
+                            code += '    vertex_buffer.uv.append((\n' \
+                                    '        coord_u / fmt.UV_COEFFICIENT_2 + get_uv_corrector(correct_u),\n' \
+                                    '        1 - coord_v / fmt.UV_COEFFICIENT_2 - get_uv_corrector(correct_v)\n' \
+                                    '    ))\n'
+                        else:
+                            code += '    vertex_buffer.uv.append((\n' \
+                                    '        coord_u / fmt.UV_COEFFICIENT_2,\n' \
+                                    '        1 - coord_v / fmt.UV_COEFFICIENT_2\n' \
+                                    '    ))\n'
+                        code += '    vertex_buffer.shader_data.append(shader_data)\n'
                     else:
                         code += '    vertex_buffer.uv.append((\n' \
-                                '        coord_u / fmt.UV_COEFFICIENT_2,\n' \
-                                '        1 - coord_v / fmt.UV_COEFFICIENT_2\n' \
+                                '        coord_u / fmt.UV_COEFFICIENT,\n' \
+                                '        1 - coord_v / fmt.UV_COEFFICIENT\n' \
+                                '    ))\n' \
+                                '    vertex_buffer.uv_lmap.append((\n' \
+                                '        lmap_u / fmt.LIGHT_MAP_UV_COEFFICIENT,\n' \
+                                '        1 - lmap_v / fmt.LIGHT_MAP_UV_COEFFICIENT\n' \
                                 '    ))\n'
-                    code += '    vertex_buffer.shader_data.append(shader_data)\n'
             elif usage_index == 1:    # lmap uv
                 code += '    lmap_u, lmap_v = packed_reader.getf("<{}")\n'.format(data_format)
                 if data_type == fmt.SHORT2:
@@ -120,11 +135,14 @@ def import_vertex_buffer_declaration(packed_reader):
 
 
 def import_vertex_buffer(packed_reader, xrlc_version):
-    if xrlc_version >= fmt.VERSION_12:
+    if xrlc_version >= fmt.VERSION_11:
         usage_list = import_vertex_buffer_declaration(packed_reader)
         vertex_buffer = VertexBuffer()
         vertices_count = packed_reader.getf('I')[0]
-        import_vertices(packed_reader, vertex_buffer, vertices_count, usage_list)
+        import_vertices(
+            xrlc_version, packed_reader, vertex_buffer,
+            vertices_count, usage_list
+        )
     return vertex_buffer
 
 

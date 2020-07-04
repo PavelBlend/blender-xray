@@ -4,6 +4,7 @@ import bpy, mathutils
 
 from . import utils as level_utils, create, fmt, shaders, visuals, vb, ib, swi, cform
 from .. import xray_io, utils, version_utils
+from ..ogf import imp as ogf_imp
 
 
 class Level(object):
@@ -140,12 +141,44 @@ def create_glow_object(glow_index, position, radius, shader_index, materials):
     return glow_object
 
 
+def create_glow_object_v5(
+        level, glow_index, position,
+        radius, shader_index, texture_index,
+        materials, shaders_or_textures
+    ):
+    object_name = 'glow_{:0>3}'.format(glow_index)
+    vertices, faces, uvs = generate_glow_mesh_data(radius)
+    mesh = create_glow_mesh(object_name, vertices, faces, uvs)
+    material = ogf_imp.get_material(level, shader_index, texture_index)
+    material.use_backface_culling = False
+    material.blend_method = 'BLEND'
+    mesh.materials.append(material)
+    glow_object = create.create_object(object_name, mesh)
+    glow_object.location = position[0], position[2], position[1]
+    return glow_object
+
+
 def import_glow(packed_reader, glow_index, materials):
     position = packed_reader.getf('3f')
     radius = packed_reader.getf('f')[0]
     shader_index = packed_reader.getf('H')[0]
     glow_object = create_glow_object(
         glow_index, position, radius, shader_index, materials
+    )
+    return glow_object
+
+
+def import_glow_v5(
+        level, packed_reader, glow_index, materials, shaders_or_textures
+    ):
+    position = packed_reader.getf('3f')
+    radius = packed_reader.getf('f')[0]
+    texture_index = packed_reader.getf('I')[0]
+    shader_index = packed_reader.getf('I')[0]
+    glow_object = create_glow_object_v5(
+        level, glow_index, position, radius,
+        shader_index, texture_index,
+        materials, shaders_or_textures
     )
     return glow_object
 
@@ -166,6 +199,23 @@ def import_glows(data, level):
 
     for glow_index in range(glows_count):
         glow_object = import_glow(packed_reader, glow_index, materials)
+        glow_object.parent = glows_object
+        collection.objects.link(glow_object)
+
+    return glows_object
+
+
+def import_glows_v5(data, level):
+    packed_reader = xray_io.PackedReader(data)
+    glows_count = len(data) // fmt.GLOW_SIZE_V5
+    collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
+    glows_object = create_glows_object(collection)
+
+    for glow_index in range(glows_count):
+        glow_object = import_glow_v5(
+            level, packed_reader, glow_index,
+            level.materials, level.shaders_or_textures
+        )
         glow_object.parent = glows_object
         collection.objects.link(glow_object)
 
@@ -341,6 +391,8 @@ def import_level(level, context, chunks, geomx_chunks):
         chunks_ids = fmt.Chunks13
     elif level.xrlc_version == fmt.VERSION_12:
         chunks_ids = fmt.Chunks12
+    elif level.xrlc_version == fmt.VERSION_11:
+        chunks_ids = fmt.Chunks10
     shaders_chunk_data = chunks.pop(chunks_ids.SHADERS)
     level.materials = shaders.import_shaders(level, context, shaders_chunk_data)
     del shaders_chunk_data
@@ -356,10 +408,11 @@ def import_level(level, context, chunks, geomx_chunks):
     level.indices_buffers = ib.import_indices_buffers(ib_chunk_data)
     del ib_chunk_data
 
-    swis_chunk_data = chunks.pop(chunks_ids.SWIS, None)
-    if swis_chunk_data:
-        level.swis = swi.import_slide_window_items(swis_chunk_data)
-        del swis_chunk_data
+    if level.xrlc_version == fmt.VERSION_12:
+        swis_chunk_data = chunks.pop(chunks_ids.SWIS, None)
+        if swis_chunk_data:
+            level.swis = swi.import_slide_window_items(swis_chunk_data)
+            del swis_chunk_data
 
     # fastpath geometry
     if level.xrlc_version == fmt.VERSION_14:
@@ -396,9 +449,14 @@ def import_level(level, context, chunks, geomx_chunks):
     portals_object.parent = level_object
 
     glows_chunk_data = chunks.pop(chunks_ids.GLOWS)
-    glows_object = import_glows(
-        glows_chunk_data, level
-    )
+    if level.xrlc_version >= fmt.VERSION_12:
+        glows_object = import_glows(
+            glows_chunk_data, level
+        )
+    else:
+        glows_object = import_glows_v5(
+            glows_chunk_data, level
+        )
     del glows_chunk_data
     glows_object.parent = level_object
 
@@ -425,6 +483,7 @@ def import_main(context, chunked_reader, level):
 
 def import_file(context, operator):
     level = Level()
+    level.context = context
     chunked_reader = level_utils.get_level_reader(context.filepath)
     level.name = level_utils.get_level_name(context.filepath)
     level.path = os.path.dirname(context.filepath)
