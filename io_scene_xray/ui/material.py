@@ -63,6 +63,8 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
             box.label(text='Level CForm:')
             box.prop(data, 'suppress_shadows', text='Suppress Shadows')
             box.prop(data, 'suppress_wm', text='Suppress Wallmarks')
+            if not material.node_tree:
+                return
             box = layout.box()
             box.label(text='Level Visual:')
             draw_level_prop('lmap_0', 'Light Map 1:')

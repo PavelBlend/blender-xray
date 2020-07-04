@@ -18,7 +18,7 @@ def get_cform_material(gamemtl_name, mat_name, suppress_shadows, suppress_wm):
 def import_cform(context, data, level):
     packed_reader = xray_io.PackedReader(data)
     version = packed_reader.getf('<I')[0]
-    if version not in fmt.CFORM_SUPPORT_VERSIONS:
+    if not version in fmt.CFORM_SUPPORT_VERSIONS:
         raise utils.AppError('Unsupported cform version: {}'.format(version))
     verts_count = packed_reader.getf('<I')[0]
     tris_count = packed_reader.getf('<I')[0]
@@ -38,6 +38,20 @@ def import_cform(context, data, level):
     game_mtl_names = {}
     for game_mtl_name, _, game_mtl_id in utils.parse_gamemtl(gamemtl_data):
         game_mtl_names[game_mtl_id] = game_mtl_name
+    if version == fmt.CFORM_VERSION_4:
+        read_code = ''
+        read_code += 'material, sector_index = packed_reader.getf("<2H")\n'
+        read_code += 'globals()["sector_index"] = sector_index\n'
+        read_code += 'globals()["material_id"] = material & 0x3fff\n'    # 14 bit
+        read_code += 'globals()["suppress_shadows"] = bool((material & 0x4000) >> 14)\n'    # 15 bit
+        read_code += 'globals()["suppress_wm"] = bool((material & 0x8000) >> 15)\n'    # 16 bit
+    elif version == fmt.CFORM_VERSION_3:
+        read_code = ''
+        read_code += 'packed_reader.skip(12 + 2)\n'    # ?
+        read_code += 'globals()["sector_index"] = packed_reader.getf("<H")[0]\n'
+        read_code += 'globals()["material_id"] = packed_reader.getf("<I")[0]\n'
+        read_code += 'globals()["suppress_shadows"] = False\n'
+        read_code += 'globals()["suppress_wm"] = False\n'
     sectors = {}
     sectors_verts = {}
     tris = []
@@ -45,10 +59,8 @@ def import_cform(context, data, level):
     unique_materials = set()
     for tris_index in range(tris_count):
         vert_1, vert_2, vert_3 = packed_reader.getf('<3I')
-        material, sector_index = packed_reader.getf('<2H')
-        material_id = material & 0x3fff    # 14 bit
-        suppress_shadows = bool((material & 0x4000) >> 14)    # 15 bit
-        suppress_wm = bool((material & 0x8000) >> 15)    # 16 bit
+        exec(read_code)
+        global material_id, sector_index, suppress_shadows, suppress_wm
         tris.append((vert_1, vert_2, vert_3, material_id, suppress_shadows, suppress_wm))
         unique_materials.add((material_id, suppress_shadows, suppress_wm))
         if sectors.get(sector_index):

@@ -135,7 +135,7 @@ def import_vertex_buffer_declaration(packed_reader):
 
 
 def import_vertex_buffer(packed_reader, xrlc_version):
-    if xrlc_version >= fmt.VERSION_11:
+    if xrlc_version >= fmt.VERSION_10:
         usage_list = import_vertex_buffer_declaration(packed_reader)
         vertex_buffer = VertexBuffer()
         vertices_count = packed_reader.getf('I')[0]

@@ -4,7 +4,8 @@ import bpy, mathutils, bmesh
 
 from .. import xray_io
 from ..level import (
-    swi as imp_swi, create as level_create, shaders as level_shaders
+    swi as imp_swi, create as level_create, shaders as level_shaders,
+    fmt as level_fmt
 )
 from . import fmt
 
@@ -143,110 +144,162 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
 
         mesh.verts.ensure_lookup_table()
         mesh.verts.index_update()
-        edge_normals_1 = {}
-        edge_normals_2 = {}
 
         # import triangles
         remap_loops = []
         custom_normals = []
-        for triangle in visual.triangles:
-            try:
-                vert_1 = remap_vertices[triangle[0]]
-                vert_2 = remap_vertices[triangle[1]]
-                vert_3 = remap_vertices[triangle[2]]
-                face = mesh.faces.new((
-                    mesh.verts[vert_1],
-                    mesh.verts[vert_2],
-                    mesh.verts[vert_3]
-                ))
-                face.smooth = True
-                for vert_index in triangle:
-                    remap_loops.append(vert_index)
-                normal_1 = visual.normals[triangle[0]]
-                normal_2 = visual.normals[triangle[1]]
-                normal_3 = visual.normals[triangle[2]]
-                custom_normals.extend((
-                    convert_normal(normal_1),
-                    convert_normal(normal_2),
-                    convert_normal(normal_3)
-                ))
-                normals = {}
-                normals[vert_1] = normal_1
-                normals[vert_2] = normal_2
-                normals[vert_3] = normal_3
-                for edge in face.edges:
-                    edge_verts = (edge.verts[0].index, edge.verts[1].index)
-                    if edge_normals_1.get(edge, None) is None:
-                        edge_normals_1[edge] = set()
-                        edge_normals_2[edge] = set()
-                    edge_normals_1[edge].add(normals[edge_verts[0]])
-                    edge_normals_2[edge].add(normals[edge_verts[1]])
-            except ValueError:    # face already exists
-                pass
+        if level.xrlc_version >= level_fmt.VERSION_11:
+            for triangle in visual.triangles:
+                try:
+                    vert_1 = remap_vertices[triangle[0]]
+                    vert_2 = remap_vertices[triangle[1]]
+                    vert_3 = remap_vertices[triangle[2]]
+                    face = mesh.faces.new((
+                        mesh.verts[vert_1],
+                        mesh.verts[vert_2],
+                        mesh.verts[vert_3]
+                    ))
+                    face.smooth = True
+                    for vert_index in triangle:
+                        remap_loops.append(vert_index)
+                    normal_1 = visual.normals[triangle[0]]
+                    normal_2 = visual.normals[triangle[1]]
+                    normal_3 = visual.normals[triangle[2]]
+                    custom_normals.extend((
+                        convert_normal(normal_1),
+                        convert_normal(normal_2),
+                        convert_normal(normal_3)
+                    ))
+                except ValueError:    # face already exists
+                    pass
 
-        mesh.faces.ensure_lookup_table()
+            mesh.faces.ensure_lookup_table()
 
-        for edge, normals_1 in edge_normals_1.items():
-            normals_2 = edge_normals_2[edge]
-            unique_normals_1_count = len(normals_1)
-            unique_normals_2_count = len(normals_2)
-            if unique_normals_1_count > 1 or unique_normals_2_count > 1:
-                pass
-                # edge.smooth = False
+            # import uvs and vertex colors
+            uv_layer = mesh.loops.layers.uv.new('Texture')
+            hemi_vertex_color = mesh.loops.layers.color.new('Hemi')
+            current_loop = 0
+            if visual.uvs_lmap:    # light maps
+                lmap_uv_layer = mesh.loops.layers.uv.new('Light Map')
+                for face in mesh.faces:
+                    for loop in face.loops:
+                        loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
+                        loop[lmap_uv_layer].uv = visual.uvs_lmap[remap_loops[current_loop]]
+                        # hemi vertex color
+                        hemi = visual.hemi[remap_loops[current_loop]]
+                        bmesh_hemi_color = loop[hemi_vertex_color]
+                        bmesh_hemi_color[0] = hemi
+                        bmesh_hemi_color[1] = hemi
+                        bmesh_hemi_color[2] = hemi
+                        current_loop += 1
+            elif visual.light:    # vertex colors
+                sun_vertex_color = mesh.loops.layers.color.new('Sun')
+                light_vertex_color = mesh.loops.layers.color.new('Light')
+                for face in mesh.faces:
+                    for loop in face.loops:
+                        loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
+                        # hemi vertex color
+                        hemi = visual.hemi[remap_loops[current_loop]]
+                        bmesh_hemi_color = loop[hemi_vertex_color]
+                        bmesh_hemi_color[0] = hemi
+                        bmesh_hemi_color[1] = hemi
+                        bmesh_hemi_color[2] = hemi
+                        # light vertex color
+                        light = visual.light[remap_loops[current_loop]]
+                        bmesh_light_color = loop[light_vertex_color]
+                        bmesh_light_color[0] = light[0]
+                        bmesh_light_color[1] = light[1]
+                        bmesh_light_color[2] = light[2]
+                        # sun vertex color
+                        sun = visual.sun[remap_loops[current_loop]]
+                        bmesh_sun_color = loop[sun_vertex_color]
+                        bmesh_sun_color[0] = sun
+                        bmesh_sun_color[1] = sun
+                        bmesh_sun_color[2] = sun
+                        current_loop += 1
+            else:    # trees
+                for face in mesh.faces:
+                    for loop in face.loops:
+                        loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
+                        # hemi vertex color
+                        hemi = visual.hemi[remap_loops[current_loop]]
+                        bmesh_hemi_color = loop[hemi_vertex_color]
+                        bmesh_hemi_color[0] = hemi
+                        bmesh_hemi_color[1] = hemi
+                        bmesh_hemi_color[2] = hemi
+                        current_loop += 1
 
-        # import uvs and vertex colors
-        uv_layer = mesh.loops.layers.uv.new('Texture')
-        hemi_vertex_color = mesh.loops.layers.color.new('Hemi')
-        current_loop = 0
-        if visual.uvs_lmap:    # light maps
-            lmap_uv_layer = mesh.loops.layers.uv.new('Light Map')
-            for face in mesh.faces:
-                for loop in face.loops:
-                    loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
-                    loop[lmap_uv_layer].uv = visual.uvs_lmap[remap_loops[current_loop]]
-                    # hemi vertex color
-                    hemi = visual.hemi[remap_loops[current_loop]]
-                    bmesh_hemi_color = loop[hemi_vertex_color]
-                    bmesh_hemi_color[0] = hemi
-                    bmesh_hemi_color[1] = hemi
-                    bmesh_hemi_color[2] = hemi
-                    current_loop += 1
-        elif visual.light:    # vertex colors
-            sun_vertex_color = mesh.loops.layers.color.new('Sun')
-            light_vertex_color = mesh.loops.layers.color.new('Light')
-            for face in mesh.faces:
-                for loop in face.loops:
-                    loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
-                    # hemi vertex color
-                    hemi = visual.hemi[remap_loops[current_loop]]
-                    bmesh_hemi_color = loop[hemi_vertex_color]
-                    bmesh_hemi_color[0] = hemi
-                    bmesh_hemi_color[1] = hemi
-                    bmesh_hemi_color[2] = hemi
-                    # light vertex color
-                    light = visual.light[remap_loops[current_loop]]
-                    bmesh_light_color = loop[light_vertex_color]
-                    bmesh_light_color[0] = light[0]
-                    bmesh_light_color[1] = light[1]
-                    bmesh_light_color[2] = light[2]
-                    # sun vertex color
-                    sun = visual.sun[remap_loops[current_loop]]
-                    bmesh_sun_color = loop[sun_vertex_color]
-                    bmesh_sun_color[0] = sun
-                    bmesh_sun_color[1] = sun
-                    bmesh_sun_color[2] = sun
-                    current_loop += 1
-        else:    # trees
-            for face in mesh.faces:
-                for loop in face.loops:
-                    loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
-                    # hemi vertex color
-                    hemi = visual.hemi[remap_loops[current_loop]]
-                    bmesh_hemi_color = loop[hemi_vertex_color]
-                    bmesh_hemi_color[0] = hemi
-                    bmesh_hemi_color[1] = hemi
-                    bmesh_hemi_color[2] = hemi
-                    current_loop += 1
+        else:    # xrlc version <= 10
+            if visual.normals:
+                for triangle in visual.triangles:
+                    try:
+                        vert_1 = remap_vertices[triangle[0]]
+                        vert_2 = remap_vertices[triangle[1]]
+                        vert_3 = remap_vertices[triangle[2]]
+                        face = mesh.faces.new((
+                            mesh.verts[vert_1],
+                            mesh.verts[vert_2],
+                            mesh.verts[vert_3]
+                        ))
+                        face.smooth = True
+                        for vert_index in triangle:
+                            remap_loops.append(vert_index)
+                        normal_1 = visual.normals[triangle[0]]
+                        normal_2 = visual.normals[triangle[1]]
+                        normal_3 = visual.normals[triangle[2]]
+                        custom_normals.extend((
+                            convert_normal(normal_1),
+                            convert_normal(normal_2),
+                            convert_normal(normal_3)
+                        ))
+                    except ValueError:    # face already exists
+                        pass
+            else:
+                for triangle in visual.triangles:
+                    try:
+                        vert_1 = remap_vertices[triangle[0]]
+                        vert_2 = remap_vertices[triangle[1]]
+                        vert_3 = remap_vertices[triangle[2]]
+                        face = mesh.faces.new((
+                            mesh.verts[vert_1],
+                            mesh.verts[vert_2],
+                            mesh.verts[vert_3]
+                        ))
+                        face.smooth = True
+                        for vert_index in triangle:
+                            remap_loops.append(vert_index)
+                    except ValueError:    # face already exists
+                        pass
+
+            mesh.faces.ensure_lookup_table()
+
+            # import uvs and vertex colors
+            uv_layer = mesh.loops.layers.uv.new('Texture')
+            current_loop = 0
+            if visual.uvs_lmap:    # light maps
+                lmap_uv_layer = mesh.loops.layers.uv.new('Light Map')
+                for face in mesh.faces:
+                    for loop in face.loops:
+                        loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
+                        loop[lmap_uv_layer].uv = visual.uvs_lmap[remap_loops[current_loop]]
+                        current_loop += 1
+            elif visual.light:    # vertex colors
+                light_vertex_color = mesh.loops.layers.color.new('Light')
+                for face in mesh.faces:
+                    for loop in face.loops:
+                        loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
+                        # light vertex color
+                        light = visual.light[remap_loops[current_loop]]
+                        bmesh_light_color = loop[light_vertex_color]
+                        bmesh_light_color[0] = light[0]
+                        bmesh_light_color[1] = light[1]
+                        bmesh_light_color[2] = light[2]
+                        current_loop += 1
+            else:
+                for face in mesh.faces:
+                    for loop in face.loops:
+                        loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
+                        current_loop += 1
 
         # normals
         mesh.normal_update()
@@ -256,7 +309,8 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
         bpy_mesh.use_auto_smooth = True
         bpy_mesh.auto_smooth_angle = math.pi
         mesh.to_mesh(bpy_mesh)
-        bpy_mesh.normals_split_custom_set(custom_normals)
+        if custom_normals:
+            bpy_mesh.normals_split_custom_set(custom_normals)
         del mesh
         level.loaded_geometry[geometry_key] = bpy_mesh
 
@@ -545,26 +599,31 @@ def import_normal_visual(chunks, visual, level):
     return bpy_object
 
 
-def ogf_color(packed_reader, bpy_obj, mode='SCALE'):
-    level = bpy_obj.xray.level
+def ogf_color(level, packed_reader, bpy_obj, mode='SCALE'):
+    xray_level = bpy_obj.xray.level
 
-    rgb = packed_reader.getf('3f')
-    hemi = packed_reader.getf('f')[0]
-    sun = packed_reader.getf('f')[0]
+    if level.xrlc_version >= level_fmt.VERSION_11:
+        rgb = packed_reader.getf('3f')
+        hemi = packed_reader.getf('f')[0]
+        sun = packed_reader.getf('f')[0]
+    else:
+        rgb = packed_reader.getf('3f')
+        hemi = packed_reader.getf('f')[0]    # unkonwn
+        sun = 1.0
 
     if mode == 'SCALE':
-        level.color_scale_rgb = rgb
-        level.color_scale_hemi = (hemi, hemi, hemi)
-        level.color_scale_sun = (sun, sun, sun)
+        xray_level.color_scale_rgb = rgb
+        xray_level.color_scale_hemi = (hemi, hemi, hemi)
+        xray_level.color_scale_sun = (sun, sun, sun)
     elif mode == 'BIAS':
-        level.color_bias_rgb = rgb
-        level.color_bias_hemi = (hemi, hemi, hemi)
-        level.color_bias_sun = (sun, sun, sun)
+        xray_level.color_bias_rgb = rgb
+        xray_level.color_bias_hemi = (hemi, hemi, hemi)
+        xray_level.color_bias_sun = (sun, sun, sun)
     else:
         raise BaseException('Unknown ogf color mode: {}'.format(mode))
 
 
-def import_tree_def_2(visual, chunks, bpy_object):
+def import_tree_def_2(level, visual, chunks, bpy_object):
     if visual.format_version == fmt.FORMAT_VERSION_4:
         chunks_ids = fmt.Chunks_v4
     elif visual.format_version == fmt.FORMAT_VERSION_3:
@@ -575,8 +634,8 @@ def import_tree_def_2(visual, chunks, bpy_object):
     del tree_def_2_data
 
     tree_xform = packed_reader.getf('16f')
-    ogf_color(packed_reader, bpy_object, mode='SCALE')    # c_scale
-    ogf_color(packed_reader, bpy_object, mode='BIAS')    # c_bias
+    ogf_color(level, packed_reader, bpy_object, mode='SCALE')    # c_scale
+    ogf_color(level, packed_reader, bpy_object, mode='BIAS')    # c_bias
 
     return tree_xform
 
@@ -605,7 +664,7 @@ def import_tree_st_visual(chunks, visual, level):
         assign_material(bpy_object, visual, level)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
-    tree_xform = import_tree_def_2(visual, chunks, bpy_object)
+    tree_xform = import_tree_def_2(level, visual, chunks, bpy_object)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks, context='TREE_ST_VISUAL')
     bpy_object.xray.is_level = True
@@ -666,30 +725,47 @@ def get_float_rgb_hemi(rgb_hemi):
     return r / 0xff, g / 0xff, b / 0xff, hemi / 0xff
 
 
-def import_lod_def_2(data):
+def import_lod_def_2(level, data):
     packed_reader = xray_io.PackedReader(data)
     verts = []
     uvs = []
     lights = {'rgb': [], 'hemi': [], 'sun': []}
     faces = []
-    for i in range(8):
-        face = []
-        for j in range(4):
-            coord_x, coord_y, coord_z = packed_reader.getf('<3f')
-            verts.append((coord_x, coord_z, coord_y))
-            face.append(i * 4 + j)
-            coord_u, coord_v = packed_reader.getf('<2f')
-            uvs.append((coord_u, 1 - coord_v))
-            # import vertex light
-            rgb_hemi = packed_reader.getf('<I')[0]
-            r, g, b, hemi = get_float_rgb_hemi(rgb_hemi)
-            sun = packed_reader.getf('<B')[0]
-            sun = sun / 0xff
-            packed_reader.getf('<3B')    # pad (unused)
-            lights['rgb'].append((r, g, b, 1.0))
-            lights['hemi'].append(hemi)
-            lights['sun'].append(sun)
-        faces.append(face)
+    if level.xrlc_version >= level_fmt.VERSION_11:
+        for i in range(8):
+            face = []
+            for j in range(4):
+                coord_x, coord_y, coord_z = packed_reader.getf('<3f')
+                verts.append((coord_x, coord_z, coord_y))
+                face.append(i * 4 + j)
+                coord_u, coord_v = packed_reader.getf('<2f')
+                uvs.append((coord_u, 1 - coord_v))
+                # import vertex light
+                rgb_hemi = packed_reader.getf('<I')[0]
+                r, g, b, hemi = get_float_rgb_hemi(rgb_hemi)
+                sun = packed_reader.getf('<B')[0]
+                sun = sun / 0xff
+                packed_reader.getf('<3B')    # pad (unused)
+                lights['rgb'].append((r, g, b, 1.0))
+                lights['hemi'].append(hemi)
+                lights['sun'].append(sun)
+            faces.append(face)
+    else:
+        for i in range(8):
+            face = []
+            for j in range(4):
+                coord_x, coord_y, coord_z = packed_reader.getf('<3f')
+                verts.append((coord_x, coord_z, coord_y))
+                face.append(i * 4 + j)
+                coord_u, coord_v = packed_reader.getf('<2f')
+                uvs.append((coord_u, 1 - coord_v))
+                # import vertex light
+                rgb_hemi = packed_reader.getf('<I')[0]
+                r, g, b, hemi = get_float_rgb_hemi(rgb_hemi)
+                lights['rgb'].append((r, g, b, 1.0))
+                lights['hemi'].append(1.0)
+                lights['sun'].append(1.0)
+            faces.append(face)
     return verts, uvs, lights, faces
 
 
@@ -713,7 +789,7 @@ def import_lod_visual(chunks, visual, level):
     del children_l_data
 
     lod_def_2_data = chunks.pop(chunks_ids.LODDEF2)
-    verts, uvs, lights, faces = import_lod_def_2(lod_def_2_data)
+    verts, uvs, lights, faces = import_lod_def_2(level, lod_def_2_data)
     del lod_def_2_data
 
     check_unread_chunks(chunks, context='LOD_VISUAL')
@@ -758,7 +834,7 @@ def import_tree_pm_visual(chunks, visual, level):
         assign_material(bpy_object, visual, level)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
-    tree_xform = import_tree_def_2(visual, chunks, bpy_object)
+    tree_xform = import_tree_def_2(level, visual, chunks, bpy_object)
     set_tree_transforms(bpy_object, tree_xform)
     check_unread_chunks(chunks, context='TREE_PM_VISUAL')
     bpy_object.xray.is_level = True

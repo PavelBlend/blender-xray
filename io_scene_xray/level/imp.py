@@ -67,7 +67,9 @@ def import_sector(data, level, sector_object):
             root_visual_index = import_sector_root(chunk_data)
             level.visuals[root_visual_index].parent = sector_object
         else:
-            print('UNKNOWN LEVEL SECTOR CHUNK: {0:#x}'.format(chunk_id))
+            print('UNKNOWN LEVEL SECTOR CHUNK: {0:#x}, SIZE = {1}'.format(
+                chunk_id, len(chunk_data)
+            ))
 
 
 def import_sectors(data, level, level_object):
@@ -391,7 +393,7 @@ def import_level(level, context, chunks, geomx_chunks):
         chunks_ids = fmt.Chunks13
     elif level.xrlc_version == fmt.VERSION_12:
         chunks_ids = fmt.Chunks12
-    elif level.xrlc_version == fmt.VERSION_11:
+    elif level.xrlc_version in (fmt.VERSION_11, fmt.VERSION_10):
         chunks_ids = fmt.Chunks10
     shaders_chunk_data = chunks.pop(chunks_ids.SHADERS)
     level.materials = shaders.import_shaders(level, context, shaders_chunk_data)
@@ -468,7 +470,9 @@ def import_level(level, context, chunks, geomx_chunks):
     del light_chunk_data
 
     for chunk_id, chunk_data in chunks.items():
-        print('Unknown level chunk: {:x}'.format(chunk_id))
+        print('UNKNOWN LEVEL CHUNK: {0:#x}, SIZE = {1}'.format(
+            chunk_id, len(chunk_data)
+        ))
 
 
 def import_main(context, chunked_reader, level):
