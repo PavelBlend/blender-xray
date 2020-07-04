@@ -394,7 +394,7 @@ def import_gcontainer(
     if vertex_buffers[vb_index].color_sun:
         visual.sun = vertex_buffers[vb_index].color_sun[vb_slice]
 
-    if ib_offset and ib_size:
+    if not (ib_offset is None and ib_size is None):
         visual.indices = indices_buffers[ib_index][
             ib_offset : ib_offset + ib_size
         ]
