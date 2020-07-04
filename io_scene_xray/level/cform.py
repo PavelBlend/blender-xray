@@ -45,7 +45,7 @@ def import_cform(context, data, level):
         read_code += 'globals()["material_id"] = material & 0x3fff\n'    # 14 bit
         read_code += 'globals()["suppress_shadows"] = bool((material & 0x4000) >> 14)\n'    # 15 bit
         read_code += 'globals()["suppress_wm"] = bool((material & 0x8000) >> 15)\n'    # 16 bit
-    elif version == fmt.CFORM_VERSION_3:
+    elif version in (fmt.CFORM_VERSION_3, fmt.CFORM_VERSION_2):
         read_code = ''
         read_code += 'packed_reader.skip(12 + 2)\n'    # ?
         read_code += 'globals()["sector_index"] = packed_reader.getf("<H")[0]\n'
@@ -158,8 +158,9 @@ def import_cform(context, data, level):
         level.collections[create.LEVEL_CFORM_COLLECTION_NAME].objects.link(bpy_obj)
 
 
-def import_main(context, level):
-    cform_path = os.path.join(level.path, 'level.cform')
-    with open(cform_path, 'rb') as file:
-        data = file.read()
+def import_main(context, level, data=None):
+    if level.xrlc_version >= fmt.VERSION_10:
+        cform_path = os.path.join(level.path, 'level.cform')
+        with open(cform_path, 'rb') as file:
+            data = file.read()
     import_cform(context, data, level)

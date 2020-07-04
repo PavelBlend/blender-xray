@@ -37,6 +37,20 @@ class Chunks10:
     VB = 0xa
 
 
+class Chunks9:
+    SHADERS = 0x2
+    VISUALS = 0x3
+    VB_OLD = 0x4
+    CFORM = 0x5
+    PORTALS = 0x6
+    SHADER_CONSTANT = 0x7
+    LIGHT_DYNAMIC = 0x8
+    GLOWS = 0x9
+    SECTORS = 0xa
+    IB = 0xb
+    VB = 0xc
+
+
 class SectorChunks:
     PORTALS = 0x1
     ROOT = 0x2
@@ -54,8 +68,9 @@ VERSION_13 = 13
 VERSION_12 = 12
 VERSION_11 = 11
 VERSION_10 = 10
+VERSION_9 = 9
 SUPPORTED_VERSIONS = (
-    VERSION_14, VERSION_13, VERSION_12, VERSION_11, VERSION_10
+    VERSION_14, VERSION_13, VERSION_12, VERSION_11, VERSION_10, VERSION_9
 )
 
 # vertex buffer type names
@@ -168,7 +183,8 @@ LIGHT_MAP_UV_COEFFICIENT = 2 ** 15 - 1
 # cform
 CFORM_VERSION_4 = 4
 CFORM_VERSION_3 = 3
-CFORM_SUPPORT_VERSIONS = (CFORM_VERSION_4, CFORM_VERSION_3)
+CFORM_VERSION_2 = 2
+CFORM_SUPPORT_VERSIONS = (CFORM_VERSION_4, CFORM_VERSION_3, CFORM_VERSION_2)
 
 # vertex types
 VERTEX_TYPE_TREE = [
@@ -236,3 +252,18 @@ VERTEX_TYPE_COLOR_14 = [
 VERTEX_TYPE_FASTPATH = [
     (usage_values[POSITION], types_values[FLOAT3]),
 ]
+
+# directx 3d 7 vertex formats
+class D3D7FVF:
+    POSITION_MASK = 0x00e
+    XYZ = 0x002    # x, y, z
+
+    NORMAL = 0x010    # not used
+    DIFFUSE = 0x040    # quantized normal
+    SPECULAR = 0x080    # not used
+    NC_MASK = 0x0f0    # not used
+
+    TEX1 = 0x100    # base texture
+    TEX2 = 0x200    # base texture + light map
+    TEXCOUNT_MASK = 0xf00
+    TEXCOUNT_SHIFT = 8

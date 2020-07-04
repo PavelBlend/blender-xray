@@ -395,14 +395,20 @@ def import_level(level, context, chunks, geomx_chunks):
         chunks_ids = fmt.Chunks12
     elif level.xrlc_version in (fmt.VERSION_11, fmt.VERSION_10):
         chunks_ids = fmt.Chunks10
+    elif level.xrlc_version == fmt.VERSION_9:
+        chunks_ids = fmt.Chunks9
     shaders_chunk_data = chunks.pop(chunks_ids.SHADERS)
     level.materials = shaders.import_shaders(level, context, shaders_chunk_data)
     del shaders_chunk_data
 
     # geometry
-    vb_chunk_data = chunks.pop(chunks_ids.VB)
+    vb_chunk_data = chunks.pop(chunks_ids.VB, None)
+    directx_3d_7_mode = False
+    if not vb_chunk_data and level.xrlc_version == fmt.VERSION_9:
+        directx_3d_7_mode = True
+        vb_chunk_data = chunks.pop(chunks_ids.VB_OLD)
     level.vertex_buffers = vb.import_vertex_buffers(
-        vb_chunk_data, level.xrlc_version
+        vb_chunk_data, level.xrlc_version, d3d7=directx_3d_7_mode
     )
     del vb_chunk_data
 
@@ -469,10 +475,15 @@ def import_level(level, context, chunks, geomx_chunks):
     lights_dynamic_object.parent = level_object
     del light_chunk_data
 
+    cform_data_v2 = None
+    if level.xrlc_version <= fmt.VERSION_9:
+        cform_data_v2 = chunks.pop(chunks_ids.CFORM)
+
     for chunk_id, chunk_data in chunks.items():
         print('UNKNOWN LEVEL CHUNK: {0:#x}, SIZE = {1}'.format(
             chunk_id, len(chunk_data)
         ))
+    return cform_data_v2
 
 
 def import_main(context, chunked_reader, level):
@@ -481,8 +492,11 @@ def import_main(context, chunked_reader, level):
     level.xrlc_version = get_version(chunks)
     import_geom(level, chunks, context)
     geomx_chunks = import_geomx(level, context)
-    import_level(level, context, chunks, geomx_chunks)
-    cform.import_main(context, level)
+    cform_data_v2 = import_level(level, context, chunks, geomx_chunks)
+    if level.xrlc_version >= fmt.VERSION_10:
+        cform.import_main(context, level)
+    else:
+        cform.import_main(context, level, data=cform_data_v2)
 
 
 def import_file(context, operator):

@@ -16,6 +16,7 @@ class VertexBuffer(object):
         self.uv_lmap = []
         self.shader_data = []
         self.vertex_format = None
+        self.float_normals = False
 
 
 def get_uv_corrector(value):
@@ -115,6 +116,32 @@ def import_vertices(
     exec(code)
 
 
+def import_vertices_d3d7(
+        xrlc_version, packed_reader, vertex_buffer,
+        vertices_count, vertex_format
+    ):
+    code = ''
+    code += 'for vertex_index in range({0}):\n'.format(vertices_count)
+    if (vertex_format & fmt.D3D7FVF.POSITION_MASK) == fmt.D3D7FVF.XYZ:
+        code += '    coord_x, coord_y, coord_z = packed_reader.getf("<3f")\n'
+        code += '    vertex_buffer.position.append((coord_x, coord_z, coord_y))\n'
+    if vertex_format & fmt.D3D7FVF.NORMAL:
+        vertex_buffer.float_normals = True
+        code += '    norm_x, norm_y, norm_z = packed_reader.getf("<3f")\n'
+        code += '    vertex_buffer.normal.append((norm_x, norm_y, norm_z))\n'
+    if vertex_format & fmt.D3D7FVF.DIFFUSE:
+        code += '    norm_x, norm_y, norm_z, unknown = packed_reader.getf("<4B")\n'
+        code += '    vertex_buffer.normal.append((norm_x, norm_y, norm_z))\n'
+    tex_coord = (vertex_format & fmt.D3D7FVF.TEXCOUNT_MASK) >> fmt.D3D7FVF.TEXCOUNT_SHIFT
+    if tex_coord == 1 or tex_coord == 2:
+        code += '    coord_u, coord_v = packed_reader.getf("<2f")\n'
+        code += '    vertex_buffer.uv.append((coord_u, 1 - coord_v))\n'
+    if tex_coord == 2:
+        code += '    lmap_u, lmap_v = packed_reader.getf("<2f")\n'
+        code += '    vertex_buffer.uv_lmap.append((lmap_u, lmap_v))\n'
+    exec(code)
+
+
 def import_vertex_buffer_declaration(packed_reader):
     usage_list = []
 
@@ -135,7 +162,7 @@ def import_vertex_buffer_declaration(packed_reader):
 
 
 def import_vertex_buffer(packed_reader, xrlc_version):
-    if xrlc_version >= fmt.VERSION_10:
+    if xrlc_version >= fmt.VERSION_9:
         usage_list = import_vertex_buffer_declaration(packed_reader)
         vertex_buffer = VertexBuffer()
         vertices_count = packed_reader.getf('I')[0]
@@ -146,13 +173,31 @@ def import_vertex_buffer(packed_reader, xrlc_version):
     return vertex_buffer
 
 
-def import_vertex_buffers(data, xrlc_version):
+def import_vertex_buffer_d3d7(packed_reader, xrlc_version):
+    if xrlc_version == fmt.VERSION_9:
+        vertex_format = packed_reader.getf('I')[0]
+        vertices_count = packed_reader.getf('I')[0]
+        vertex_buffer = VertexBuffer()
+        import_vertices_d3d7(
+            xrlc_version, packed_reader, vertex_buffer,
+            vertices_count, vertex_format
+        )
+    return vertex_buffer
+
+
+def import_vertex_buffers(data, xrlc_version, d3d7=False):
     packed_reader = xray_io.PackedReader(data)
     vertex_buffers_count = packed_reader.getf('<I')[0]
     vertex_buffers = []
+    if not d3d7:
+        import_vertex_buffer_function = import_vertex_buffer
+    else:
+        import_vertex_buffer_function = import_vertex_buffer_d3d7
 
     for vertex_buffer_index in range(vertex_buffers_count):
-        vertex_buffer = import_vertex_buffer(packed_reader, xrlc_version)
+        vertex_buffer = import_vertex_buffer_function(
+            packed_reader, xrlc_version
+        )
         vertex_buffers.append(vertex_buffer)
 
     return vertex_buffers

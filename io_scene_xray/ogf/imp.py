@@ -76,6 +76,10 @@ def convert_normal(norm_in):
     return mathutils.Vector((norm_out_z, norm_out_x, norm_out_y)).normalized()
 
 
+def convert_float_normal(norm_in):
+    return mathutils.Vector((norm_in[2], norm_in[0], norm_in[1])).normalized()
+
+
 def create_visual(bpy_mesh, visual, level, geometry_key):
     if not bpy_mesh:
         mesh = bmesh.new()
@@ -148,6 +152,10 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
         # import triangles
         remap_loops = []
         custom_normals = []
+        if not level.vertex_buffers[visual.vb_index].float_normals:
+            convert_normal_function = convert_normal
+        else:
+            convert_normal_function = convert_float_normal
         if level.xrlc_version >= level_fmt.VERSION_11:
             for triangle in visual.triangles:
                 try:
@@ -166,9 +174,9 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
                     normal_2 = visual.normals[triangle[1]]
                     normal_3 = visual.normals[triangle[2]]
                     custom_normals.extend((
-                        convert_normal(normal_1),
-                        convert_normal(normal_2),
-                        convert_normal(normal_3)
+                        convert_normal_function(normal_1),
+                        convert_normal_function(normal_2),
+                        convert_normal_function(normal_3)
                     ))
                 except ValueError:    # face already exists
                     pass
@@ -379,6 +387,7 @@ def import_gcontainer(
     visual.uvs = vertex_buffers[vb_index].uv[vb_slice]
     visual.uvs_lmap = vertex_buffers[vb_index].uv_lmap[vb_slice]
     visual.hemi = vertex_buffers[vb_index].color_hemi[vb_slice]
+    visual.vb_index = vb_index
 
     if vertex_buffers[vb_index].color_light:
         visual.light = vertex_buffers[vb_index].color_light[vb_slice]
