@@ -691,7 +691,17 @@ def load_image_from_level_folder(context, texture):
     absolute_texture_path = get_absolute_texture_path(
         level_dir, texture
     )
-    bpy_image = load_image(absolute_texture_path)
+    try:
+        bpy_image = load_image(absolute_texture_path)
+    except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+        absolute_texture_path = get_absolute_texture_path(
+            context.textures_folder, texture
+        )
+        try:
+            bpy_image = load_image(absolute_texture_path)
+        except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+            context.operator.report({'WARNING'}, str(ex))
+            bpy_image = create_empty_image(texture, absolute_texture_path)
     return bpy_image
 
 

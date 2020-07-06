@@ -14,6 +14,8 @@ class Level(object):
         self.xrlc_version = None
         self.xrlc_version_geom = None
         self.materials = None
+        self.shaders = None
+        self.textures = None
         self.vertex_buffers = None
         self.indices_buffers = None
         self.swis = None
@@ -146,7 +148,7 @@ def create_glow_object(glow_index, position, radius, shader_index, materials):
 def create_glow_object_v5(
         level, glow_index, position,
         radius, shader_index, texture_index,
-        materials, shaders_or_textures
+        materials, shaders, textures
     ):
     object_name = 'glow_{:0>3}'.format(glow_index)
     vertices, faces, uvs = generate_glow_mesh_data(radius)
@@ -171,7 +173,7 @@ def import_glow(packed_reader, glow_index, materials):
 
 
 def import_glow_v5(
-        level, packed_reader, glow_index, materials, shaders_or_textures
+        level, packed_reader, glow_index, materials, shaders, textures
     ):
     position = packed_reader.getf('3f')
     radius = packed_reader.getf('f')[0]
@@ -180,7 +182,7 @@ def import_glow_v5(
     glow_object = create_glow_object_v5(
         level, glow_index, position, radius,
         shader_index, texture_index,
-        materials, shaders_or_textures
+        materials, shaders, textures
     )
     return glow_object
 
@@ -213,10 +215,17 @@ def import_glows_v5(data, level):
     collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
     glows_object = create_glows_object(collection)
 
+    if level.xrlc_version <= fmt.VERSION_5:
+        shaders = level.shaders
+        textures = level.textures
+    else:
+        shaders = level.shaders_or_textures
+        textures = None
+
     for glow_index in range(glows_count):
         glow_object = import_glow_v5(
             level, packed_reader, glow_index,
-            level.materials, level.shaders_or_textures
+            level.materials, shaders, textures
         )
         glow_object.parent = glows_object
         collection.objects.link(glow_object)
@@ -248,6 +257,65 @@ def import_light_dynamic(packed_reader, light_object):
     light_object.rotation_euler = euler[0], euler[1], euler[2]
 
 
+def import_light_dynamic_v8(packed_reader, light_object):
+    data = light_object.xray.level
+    data.object_type = 'LIGHT_DYNAMIC'
+    light_object.xray.is_level = True
+    data.light_type = packed_reader.getf('I')[0] # ???
+    data.diffuse = packed_reader.getf('4f')
+    data.specular = packed_reader.getf('4f')
+    data.ambient = packed_reader.getf('4f')
+    position = packed_reader.getf('3f')
+    direction = packed_reader.getf('3f')
+    data.range_ = packed_reader.getf('f')[0]
+    data.falloff = packed_reader.getf('f')[0]
+    data.attenuation_0 = packed_reader.getf('f')[0]
+    data.attenuation_1 = packed_reader.getf('f')[0]
+    data.attenuation_2 = packed_reader.getf('f')[0]
+    data.theta = packed_reader.getf('f')[0]
+    data.phi = packed_reader.getf('f')[0]
+    unknown = packed_reader.getf('2I')
+    name = packed_reader.getf('{}s'.format(fmt.B_LIGHT_V8_NAME_LEN))
+
+    if data.light_type == fmt.D3D_LIGHT_POINT:
+        data.controller_id = 2
+    elif data.light_type == fmt.D3D_LIGHT_DIRECTIONAL:
+        data.controller_id = 1
+
+    euler = mathutils.Vector((direction[0], direction[2], direction[1])).to_track_quat('Y', 'Z').to_euler('XYZ')
+    light_object.location = position[0], position[2], position[1]
+    light_object.rotation_euler = euler[0], euler[1], euler[2]
+
+
+def import_light_dynamic_v5(packed_reader, light_object):
+    data = light_object.xray.level
+    data.object_type = 'LIGHT_DYNAMIC'
+    light_object.xray.is_level = True
+    data.light_type = packed_reader.getf('I')[0] # ???
+    data.diffuse = packed_reader.getf('4f')
+    data.specular = packed_reader.getf('4f')
+    data.ambient = packed_reader.getf('4f')
+    position = packed_reader.getf('3f')
+    direction = packed_reader.getf('3f')
+    data.range_ = packed_reader.getf('f')[0]
+    data.falloff = packed_reader.getf('f')[0]
+    data.attenuation_0 = packed_reader.getf('f')[0]
+    data.attenuation_1 = packed_reader.getf('f')[0]
+    data.attenuation_2 = packed_reader.getf('f')[0]
+    data.theta = packed_reader.getf('f')[0]
+    data.phi = packed_reader.getf('f')[0]
+    unknown = packed_reader.getf('5I')
+
+    if data.light_type == fmt.D3D_LIGHT_POINT:
+        data.controller_id = 2
+    elif data.light_type == fmt.D3D_LIGHT_DIRECTIONAL:
+        data.controller_id = 1
+
+    euler = mathutils.Vector((direction[0], direction[2], direction[1])).to_track_quat('Y', 'Z').to_euler('XYZ')
+    light_object.location = position[0], position[2], position[1]
+    light_object.rotation_euler = euler[0], euler[1], euler[2]
+
+
 def create_light_object(light_index, collection):
     object_name = 'light_dynamic_{:0>3}'.format(light_index)
     light = bpy.data.lights.new(object_name, 'SPOT')
@@ -265,14 +333,27 @@ def create_lights_object(collection):
 
 def import_lights_dynamic(data, level):
     packed_reader = xray_io.PackedReader(data)
-    light_count = len(data) // fmt.LIGHT_DYNAMIC_SIZE
     collection = level.collections[create.LEVEL_LIGHTS_COLLECTION_NAME]
     lights_dynamic_object = create_lights_object(collection)
 
-    for light_index in range(light_count):
-        light_object = create_light_object(light_index, collection)
-        import_light_dynamic(packed_reader, light_object)
-        light_object.parent = lights_dynamic_object
+    if level.xrlc_version >= fmt.VERSION_8:
+        light_count = len(data) // fmt.LIGHT_DYNAMIC_SIZE
+        for light_index in range(light_count):
+            light_object = create_light_object(light_index, collection)
+            import_light_dynamic(packed_reader, light_object)
+            light_object.parent = lights_dynamic_object
+    elif level.xrlc_version == fmt.VERSION_8:
+        light_count = len(data) // fmt.LIGHT_DYNAMIC_SIZE_V8
+        for light_index in range(light_count):
+            light_object = create_light_object(light_index, collection)
+            import_light_dynamic_v8(packed_reader, light_object)
+            light_object.parent = lights_dynamic_object
+    else:
+        light_count = len(data) // fmt.LIGHT_DYNAMIC_SIZE_V5
+        for light_index in range(light_count):
+            light_object = create_light_object(light_index, collection)
+            import_light_dynamic_v5(packed_reader, light_object)
+            light_object.parent = lights_dynamic_object
 
     return lights_dynamic_object
 
@@ -300,13 +381,16 @@ def create_portal(portal_index, vertices, collection):
 def import_portal(packed_reader, portal_index, collection, level):
     sector_front = packed_reader.getf('H')[0]
     sector_back = packed_reader.getf('H')[0]
+    if level.xrlc_version <= fmt.VERSION_5:
+        used_vertices_count = packed_reader.getf('I')[0]
     vertices = []
 
     for vertex_index in range(fmt.PORTAL_VERTEX_COUNT):
         coord_x, coord_y, coord_z = packed_reader.getf('fff')
         vertices.append((coord_x, coord_z, coord_y))
 
-    used_vertices_count = packed_reader.getf('I')[0]
+    if level.xrlc_version >= fmt.VERSION_8:
+        used_vertices_count = packed_reader.getf('I')[0]
     vertices = vertices[ : used_vertices_count]
     portal_object = create_portal(portal_index, vertices, collection)
     portal_object.xray.is_level = True
@@ -399,14 +483,21 @@ def import_level(level, context, chunks, geomx_chunks):
         chunks_ids = fmt.Chunks9
     elif level.xrlc_version == fmt.VERSION_8:
         chunks_ids = fmt.Chunks8
+    elif level.xrlc_version == fmt.VERSION_5:
+        chunks_ids = fmt.Chunks5
     shaders_chunk_data = chunks.pop(chunks_ids.SHADERS)
     level.materials = shaders.import_shaders(level, context, shaders_chunk_data)
     del shaders_chunk_data
 
+    if level.xrlc_version <= fmt.VERSION_5:
+        textures_chunk_data = chunks.pop(chunks_ids.TEXTURES)
+        shaders.import_textures(level, context, textures_chunk_data)
+        del textures_chunk_data
+
     # geometry
     vb_chunk_data = chunks.pop(chunks_ids.VB, None)
     directx_3d_7_mode = False
-    if level.xrlc_version == fmt.VERSION_8:
+    if level.xrlc_version <= fmt.VERSION_8:
         directx_3d_7_mode = True
     if not vb_chunk_data and level.xrlc_version == fmt.VERSION_9:
         directx_3d_7_mode = True

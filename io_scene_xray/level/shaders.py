@@ -18,6 +18,14 @@ def import_brush_shader_v12(level, context, engine_shader, textures):
     return bpy_material
 
 
+def import_shader_v5(level, context, engine_shader, textures):
+    light_map, texture = textures.split(',')
+    bpy_material = create.get_material(
+        level, context, texture, engine_shader, light_map
+    )
+    return bpy_material
+
+
 def import_terrain_shader(level, context, engine_shader, textures):
     texture, light_map = textures.split(',')
     bpy_material = create.get_material(
@@ -45,8 +53,12 @@ def import_shader(level, context, shader_data):
             bpy_material = import_terrain_shader(
                 level, context, engine_shader, textures
             )
-        else:
+        elif level.xrlc_version >= fmt.VERSION_8 and level.xrlc_version <= fmt.VERSION_12:
             bpy_material = import_brush_shader_v12(
+                level, context, engine_shader, textures
+            )
+        else:
+            bpy_material = import_shader_v5(
                 level, context, engine_shader, textures
             )
 
@@ -74,11 +86,26 @@ def import_shaders(level, context, data):
             shader_data = packed_reader.gets()
             bpy_material = import_shader(level, context, shader_data)
             materials.append(bpy_material)
-    else:
+    elif level.xrlc_version >= fmt.VERSION_8 and level.xrlc_version <= fmt.VERSION_11:
         level.shaders_or_textures = []
         materials = {}
         for shader_index in range(shaders_count):
             shader_data = packed_reader.gets()
             level.shaders_or_textures.append(shader_data)
+    elif level.xrlc_version <= fmt.VERSION_5:
+        level.shaders = []
+        materials = {}
+        for shader_index in range(shaders_count):
+            shader_data = packed_reader.gets()
+            level.shaders.append(shader_data)
 
     return materials
+
+
+def import_textures(level, context, data):
+    packed_reader = xray_io.PackedReader(data)
+    textures_count = packed_reader.getf('I')[0]
+    level.textures = []
+    for texture_index in range(textures_count):
+        texture = packed_reader.gets()
+        level.textures.append(texture)

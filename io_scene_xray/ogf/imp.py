@@ -5,7 +5,7 @@ import bpy, mathutils, bmesh
 from .. import xray_io
 from ..level import (
     swi as imp_swi, create as level_create, shaders as level_shaders,
-    fmt as level_fmt
+    fmt as level_fmt, vb as level_vb
 )
 from . import fmt
 
@@ -29,6 +29,7 @@ class Visual(object):
         self.light = None
         self.fastpath = False
         self.use_two_sided_tris = False
+        self.vb_index = None
 
 
 class HierrarhyVisual(object):
@@ -42,12 +43,20 @@ def get_material(level, shader_id, texture_id):
     material_key = (shader_id, texture_id)
     bpy_material = level.materials.get(material_key, None)
     if not bpy_material:
-        shader_raw = level.shaders_or_textures[shader_id]
-        texture_raw = level.shaders_or_textures[texture_id]
-        shader_data = shader_raw + '/' + texture_raw
-        bpy_material = level_shaders.import_shader(
-            level, level.context, shader_data
-        )
+        if not (level.shaders and level.textures):
+            shader_raw = level.shaders_or_textures[shader_id]
+            texture_raw = level.shaders_or_textures[texture_id]
+            shader_data = shader_raw + '/' + texture_raw
+            bpy_material = level_shaders.import_shader(
+                level, level.context, shader_data
+            )
+        else:
+            shader_raw = level.shaders[shader_id]
+            texture_raw = level.textures[texture_id]
+            shader_data = shader_raw + '/' + texture_raw
+            bpy_material = level_shaders.import_shader(
+                level, level.context, shader_data
+            )
     level.materials[material_key] = bpy_material
     return bpy_material
 
@@ -152,8 +161,9 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
         # import triangles
         remap_loops = []
         custom_normals = []
-        if not level.vertex_buffers[visual.vb_index].float_normals:
-            convert_normal_function = convert_normal
+        if visual.vb_index:
+            if not level.vertex_buffers[visual.vb_index].float_normals:
+                convert_normal_function = convert_normal
         else:
             convert_normal_function = convert_float_normal
         if level.xrlc_version >= level_fmt.VERSION_11:
@@ -375,26 +385,30 @@ def import_gcontainer(
         ib_index, ib_offset, ib_size
     ):
 
-    vb_slice = slice(vb_offset, vb_offset + vb_size)
-    geometry_key = (vb_index, vb_offset, vb_size, ib_index, ib_offset, ib_size)
-    bpy_mesh = level.loaded_geometry.get(geometry_key, None)
-    if bpy_mesh:
-        return bpy_mesh, geometry_key
-    vertex_buffers = level.vertex_buffers
-    indices_buffers = level.indices_buffers
-    visual.vertices = vertex_buffers[vb_index].position[vb_slice]
-    visual.normals = vertex_buffers[vb_index].normal[vb_slice]
-    visual.uvs = vertex_buffers[vb_index].uv[vb_slice]
-    visual.uvs_lmap = vertex_buffers[vb_index].uv_lmap[vb_slice]
-    visual.hemi = vertex_buffers[vb_index].color_hemi[vb_slice]
-    visual.vb_index = vb_index
+    if not (vb_index is None and vb_offset is None and vb_size is None):
+        vb_slice = slice(vb_offset, vb_offset + vb_size)
+        geometry_key = (vb_index, vb_offset, vb_size, ib_index, ib_offset, ib_size)
+        bpy_mesh = level.loaded_geometry.get(geometry_key, None)
+        if bpy_mesh:
+            return bpy_mesh, geometry_key
+        vertex_buffers = level.vertex_buffers
+        indices_buffers = level.indices_buffers
+        visual.vertices = vertex_buffers[vb_index].position[vb_slice]
+        visual.normals = vertex_buffers[vb_index].normal[vb_slice]
+        visual.uvs = vertex_buffers[vb_index].uv[vb_slice]
+        visual.uvs_lmap = vertex_buffers[vb_index].uv_lmap[vb_slice]
+        visual.hemi = vertex_buffers[vb_index].color_hemi[vb_slice]
+        visual.vb_index = vb_index
 
-    if vertex_buffers[vb_index].color_light:
-        visual.light = vertex_buffers[vb_index].color_light[vb_slice]
-    if vertex_buffers[vb_index].color_sun:
-        visual.sun = vertex_buffers[vb_index].color_sun[vb_slice]
+        if vertex_buffers[vb_index].color_light:
+            visual.light = vertex_buffers[vb_index].color_light[vb_slice]
+        if vertex_buffers[vb_index].color_sun:
+            visual.sun = vertex_buffers[vb_index].color_sun[vb_slice]
+    else:
+        bpy_mesh = None
+        geometry_key = None
 
-    if not (ib_offset is None and ib_size is None):
+    if not (ib_index is None and ib_offset is None and ib_size is None):
         visual.indices = indices_buffers[ib_index][
             ib_offset : ib_offset + ib_size
         ]
@@ -416,6 +430,15 @@ def read_indices_v3(data, visual):
     indices_count = packed_reader.getf('I')[0]
     visual.indices_count = indices_count
     visual.indices = [packed_reader.getf('H')[0] for i in range(indices_count)]
+
+
+def read_vertices_v3(data, visual, level):
+    packed_reader = xray_io.PackedReader(data)
+    vb = level_vb.import_vertex_buffer_d3d7(packed_reader, level.xrlc_version)
+    visual.vertices = vb.position
+    visual.normals = vb.normal
+    visual.uvs = vb.uv
+    visual.uvs_lmap = vb.uv_lmap
 
 
 def import_vertices(data):
@@ -567,8 +590,15 @@ def import_geometry(chunks, visual, level):
         read_bsphere_v3(bsphere_data)
 
         # vcontainer
-        vcontainer_data = chunks.pop(chunks_ids.VCONTAINER)
-        vb_index, vb_offset, vb_size = read_container_v3(vcontainer_data)
+        vcontainer_data = chunks.pop(chunks_ids.VCONTAINER, None)
+        if vcontainer_data:
+            vb_index, vb_offset, vb_size = read_container_v3(vcontainer_data)
+        else:
+            vertices_data = chunks.pop(chunks_ids.VERTICES)
+            read_vertices_v3(vertices_data, visual, level)
+            vb_index = None
+            vb_offset = None
+            vb_size = None
 
         # icontainer
         icontainer_data = chunks.pop(chunks_ids.ICONTAINER, None)
@@ -929,6 +959,11 @@ def import_model_v3(chunks, visual, level):
         texture_l_data = chunks.pop(chunks_ids.TEXTURE_L)
         import_texture_and_shader_v3(visual, level, texture_l_data)
         bpy_obj = import_lod_visual(chunks, visual, level)
+
+    elif visual.model_type == fmt.ModelType_v3.CACHED:
+        texture_l_data = chunks.pop(chunks_ids.TEXTURE_L)
+        import_texture_and_shader_v3(visual, level, texture_l_data)
+        bpy_obj = import_normal_visual(chunks, visual, level)
 
     else:
         raise BaseException('unsupported model type: 0x{:x}'.format(
