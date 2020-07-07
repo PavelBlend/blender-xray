@@ -95,6 +95,13 @@ def set_active_object(obj):
         bpy.context.scene.objects.active = obj
 
 
+def select_object(obj):
+    if IS_28:
+        obj.select_set(True)
+    else:
+        obj.select = True
+
+
 @contextmanager
 def using_active_object(obj):
     objects = bpy.context.view_layer.objects if IS_28 else bpy.context.scene.objects

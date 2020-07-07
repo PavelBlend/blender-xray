@@ -231,6 +231,21 @@ class TestObjectExport(utils.XRayTestCase):
         objs[1].xray.export_path = 'a/b'
         return objs
 
+    def test_export_split_normals(self):
+        # Arrange
+        self._create_objects()
+
+        # Act
+        bpy.ops.xray_export.object(
+            object='tobj1', filepath=self.outpath('test_split_normals.object'),
+            texture_name_from_image_path=False, smoothing_out_of='SPLIT_NORMALS'
+        )
+
+        # Assert
+        self.assertOutputFiles({
+            'test_split_normals.object'
+        })
+
 
 def _create_armature(target):
     arm = bpy.data.armatures.new('tarm')
