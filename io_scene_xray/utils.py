@@ -210,7 +210,7 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
     if need_flip:
         bmesh.ops.reverse_faces(mesh, faces=mesh.faces)  # flip normals
     fix_ensure_lookup_table(mesh.verts)
-    if split_normals:
+    if split_normals and bpy.app.version >= (2, 79, 0):
         bpy.data.objects.remove(bpy_obj)
         bpy.data.meshes.remove(temp_mesh)
     return mesh
