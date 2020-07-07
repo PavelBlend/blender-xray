@@ -102,6 +102,8 @@ class OpExportObjects(ops.BaseOperator, _WithExportMotions):
         export_context.soc_sgroups = self.fmt_version == 'soc'
         export_context.export_motions = self.export_motions
         export_context.smoothing_out_of = self.smoothing_out_of
+        prefs = plugin_prefs.get_preferences()
+        export_context.textures_folder = prefs.textures_folder_auto
         try:
             for name in self.objects.split(','):
                 obj = context.scene.objects[name]
@@ -195,6 +197,8 @@ class OpExportObject(
         export_context.export_motions = self.export_motions
         export_context.smoothing_out_of = self.smoothing_out_of
         obj = context.scene.objects[self.object]
+        prefs = plugin_prefs.get_preferences()
+        export_context.textures_folder = prefs.textures_folder_auto
         try:
             exp.export_file(obj, self.filepath, export_context)
         except utils.AppError as err:
