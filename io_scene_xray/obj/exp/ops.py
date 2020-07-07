@@ -223,6 +223,7 @@ class OpExportObject(
         self.export_motions = prefs.object_motions_export
         self.texture_name_from_image_path = \
             prefs.object_texture_names_from_path
+        self.smoothing_out_of = prefs.smoothing_out_of
         return super().invoke(context, event)
 
 
