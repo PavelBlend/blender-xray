@@ -16,3 +16,16 @@ def PropObjectTextureNamesFromPath():
         + '(by subtract <gamedata/textures> prefix and <file-extension> suffix)',
         default=True
     )
+
+
+items = (
+    ('SHARP_EDGES', 'Sharp Edges', ''),
+    ('SPLIT_NORMALS', 'Split Normals', '')
+)
+def prop_smoothing_out_of():
+    return bpy.props.EnumProperty(
+        name='Smoothing Out of',
+        description='',
+        default='SHARP_EDGES',
+        items=items
+    )

@@ -6,7 +6,9 @@ from bpy_extras import io_utils
 import mathutils
 
 from . import log
-from .version_utils import IS_28, multiply, get_multiply
+from .version_utils import (
+    IS_28, multiply, get_multiply, set_active_object, link_object
+)
 
 
 __FAKE_BONE_SUFFIX = '.fake'
@@ -167,12 +169,22 @@ def fix_ensure_lookup_table(bmv):
         bmv.ensure_lookup_table()
 
 
-def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
+def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_normals=False):
     import bmesh
     import bpy
     import mathutils
     mesh = bmesh.new()
     armmods = [mod for mod in bpy_obj.modifiers if mod.type == 'ARMATURE' and mod.show_viewport]
+    if split_normals and bpy.app.version >= (2, 79, 0):
+        temp_mesh = bpy_obj.data.copy()
+        bpy_obj = bpy_obj.copy()
+        bpy_obj.data = temp_mesh
+        link_object(bpy_obj)
+        set_active_object(bpy_obj)
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.set_normals_from_faces()
+        bpy.ops.object.mode_set(mode='OBJECT')
     try:
         for mod in armmods:
             mod.show_viewport = False
@@ -198,6 +210,9 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False):
     if need_flip:
         bmesh.ops.reverse_faces(mesh, faces=mesh.faces)  # flip normals
     fix_ensure_lookup_table(mesh.verts)
+    if split_normals and bpy.app.version >= (2, 79, 0):
+        bpy.data.objects.remove(bpy_obj)
+        bpy.data.meshes.remove(temp_mesh)
     return mesh
 
 

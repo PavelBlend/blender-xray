@@ -150,7 +150,13 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
     export_version(cw)
     export_mesh_name(cw, bpy_obj, bpy_root)
 
-    bm = utils.convert_object_to_space_bmesh(bpy_obj, bpy_root.matrix_world)
+    if context.smoothing_out_of == 'SHARP_EDGES':
+        use_split_normals = False
+    else:
+        use_split_normals = True
+    bm = utils.convert_object_to_space_bmesh(
+        bpy_obj, bpy_root.matrix_world, local=False, split_normals=use_split_normals
+    )
     bml = bm.verts.layers.deform.verify()
 
     bad_vgroups = remove_bad_geometry(bm, bml, bpy_obj)
