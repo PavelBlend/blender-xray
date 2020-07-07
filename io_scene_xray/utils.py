@@ -175,7 +175,7 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
     import mathutils
     mesh = bmesh.new()
     armmods = [mod for mod in bpy_obj.modifiers if mod.type == 'ARMATURE' and mod.show_viewport]
-    if split_normals:
+    if split_normals and bpy.app.version >= (2, 79, 0):
         temp_mesh = bpy_obj.data.copy()
         bpy_obj = bpy_obj.copy()
         bpy_obj.data = temp_mesh
