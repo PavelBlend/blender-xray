@@ -31,8 +31,10 @@ class MATERIAL_OT_change_shader_params(bpy.types.Operator):
             if shader_node.type != 'BSDF_PRINCIPLED':
                 self.report({'WARNING'}, 'Material "{}" has no principled shader.'.format(material.name))
                 continue
-            shader_node.inputs['Specular'].default_value = scene.xray.shader_specular_value
-            shader_node.inputs['Roughness'].default_value = scene.xray.shader_roughness_value
+            if scene.xray.change_specular:
+                shader_node.inputs['Specular'].default_value = scene.xray.shader_specular_value
+            if scene.xray.change_roughness:
+                shader_node.inputs['Roughness'].default_value = scene.xray.shader_roughness_value
             links = shader_node.inputs['Base Color'].links
             if not len(links):
                 self.report({'WARNING'}, 'Material "{}" has no texture.'.format(material.name))
@@ -41,12 +43,13 @@ class MATERIAL_OT_change_shader_params(bpy.types.Operator):
             if image_node.type != 'TEX_IMAGE':
                 self.report({'WARNING'}, 'Material "{}" has no image.'.format(material.name))
                 continue
-            if scene.xray.materials_set_alpha_mode:
-                material.node_tree.links.new(image_node.outputs['Alpha'], shader_node.inputs['Alpha'])
-            else:
-                links = shader_node.inputs['Alpha'].links
-                if len(links):
-                    material.node_tree.links.remove(links[0])
+            if scene.xray.change_materials_alpha:
+                if scene.xray.materials_set_alpha_mode:
+                    material.node_tree.links.new(image_node.outputs['Alpha'], shader_node.inputs['Alpha'])
+                else:
+                    links = shader_node.inputs['Alpha'].links
+                    if len(links):
+                        material.node_tree.links.remove(links[0])
             material.update_tag()
         return {'FINISHED'}
 
