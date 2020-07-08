@@ -16,7 +16,10 @@ def get_materials(context, scene):
     if mode == 'ACTIVE_MATERIAL':
         if not context.object:
             return materials
-        materials.append(context.object.active_material)
+        if context.object.active_material:
+            materials.append(context.object.active_material)
+        else:
+            return materials
     elif mode == 'ACTIVE_OBJECT':
         if not context.object:
             return materials
