@@ -219,7 +219,7 @@ def append_menu_func():
         export_menu.remove(scene_ops.menu_func_export)
         import_menu.remove(scene_ops.menu_func_import)
         import_menu.remove(omf_ops.menu_func_import)
-        import_menu.remove(omf_ops.menu_func_export)
+        export_menu.remove(omf_ops.menu_func_export)
         if IS_28:
             import_menu.remove(level_ops.menu_func_import)
             export_menu.remove(level_ops.menu_func_export)
@@ -239,7 +239,7 @@ def append_menu_func():
         export_menu.append(scene_ops.menu_func_export)
         import_menu.append(scene_ops.menu_func_import)
         import_menu.append(omf_ops.menu_func_import)
-        import_menu.append(omf_ops.menu_func_export)
+        export_menu.append(omf_ops.menu_func_export)
         if IS_28:
             import_menu.append(level_ops.menu_func_import)
             export_menu.append(level_ops.menu_func_export)
