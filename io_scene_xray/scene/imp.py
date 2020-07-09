@@ -183,7 +183,7 @@ def import_(filepath, chunked_reader, import_context):
 def import_file(filepath, operator):
     with open(filepath, 'rb') as file:
         textures_folder = get_preferences().textures_folder_auto
-        objects_folder = get_preferences().objects_folder
+        objects_folder = get_preferences().objects_folder_auto
         import_context = ImportSceneContext()
         import_context.textures_folder=textures_folder
         import_context.soc_sgroups=operator.fmt_version == 'soc'
