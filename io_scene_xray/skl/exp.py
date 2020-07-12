@@ -14,7 +14,7 @@ class ExportSklsContext(context.ExportAnimationOnlyContext):
 
 def _export_skl(chunked_writer, context):
     writer = PackedWriter()
-    export_motion(writer, context.action, context.armature)
+    export_motion(writer, context.action, context.bpy_arm_obj)
     chunked_writer.put(0x1200, writer)
 
 
@@ -30,5 +30,5 @@ def export_skls_file(fpath, context):
     for motion in bpy.context.object.xray.motions_collection:
         action = bpy.data.actions[motion.name]
         actions.append(action)
-    export_motions(writer, actions, context.armature)
+    export_motions(writer, actions, context.bpy_arm_obj)
     save_file(fpath, writer)
