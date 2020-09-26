@@ -285,7 +285,7 @@ def menu_func_import(self, context):
     icon = plugin.get_stalker_icon()
     self.layout.operator(
         IMPORT_OT_xray_omf.bl_idname,
-        text='Game Motion (.omf)',
+        text='X-Ray Game Motion (.omf)',
         icon_value=icon
     )
 
@@ -294,6 +294,6 @@ def menu_func_export(self, context):
     icon = plugin.get_stalker_icon()
     self.layout.operator(
         EXPORT_OT_xray_omf.bl_idname,
-        text='Game Motion (.omf)',
+        text='X-Ray Game Motion (.omf)',
         icon_value=icon
     )
