@@ -94,20 +94,17 @@ class XRayImportMenu(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
+        prefs = plugin_prefs.get_preferences()
+        funct_list = []
+        funct_list.extend(import_draw_functions)
 
-        layout.operator(
-            object_imp_ops.OpImportObject.bl_idname,
-            text='Source Object (.object)'
-        )
-        layout.operator(anm_ops.OpImportAnm.bl_idname, text='Animation (.anm)')
-        layout.operator(skl_ops.OpImportSkl.bl_idname, text='Skeletal Animation (.skl, .skls)')
-        layout.operator(det_ops.OpImportDetails.bl_idname, text='Level Details (.details)')
-        layout.operator(dm_ops.OpImportDM.bl_idname, text='Detail Model (.dm)')
-        layout.operator(err_ops.OpImportERR.bl_idname, text='Error List (.err)')
-        layout.operator(scene_ops.OpImportLevelScene.bl_idname, text='Scene Selection (.level)')
-        layout.operator(omf_ops.IMPORT_OT_xray_omf.bl_idname, text='Game Motion (.omf)')
         if IS_28:
-            layout.operator(level_ops.IMPORT_OT_xray_level.bl_idname, text='Game Level (level)')
+            funct_list.extend(import_draw_functions_28)
+
+        for _, enable_prop, id_name, text in funct_list:
+            enable = getattr(prefs, enable_prop)
+            if enable:
+                layout.operator(id_name, text=text)
 
 
 @registry.module_thing
@@ -117,23 +114,17 @@ class XRayExportMenu(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
+        prefs = plugin_prefs.get_preferences()
+        funct_list = []
+        funct_list.extend(export_draw_functions)
 
-        layout.operator(
-            object_exp_ops.OpExportObjects.bl_idname,
-            text='Source Object (.object)'
-        )
-        layout.operator(anm_ops.OpExportAnm.bl_idname, text='Animation (.anm)')
-        layout.operator(skl_ops.OpExportSkls.bl_idname, text='Skeletal Animation (.skls)')
-        layout.operator(ogf_ops.OpExportOgf.bl_idname, text='Game Object (.ogf)')
-        layout.operator(dm_ops.OpExportDMs.bl_idname, text='Detail Model (.dm)')
-        layout.operator(
-            det_ops.OpExportDetails.bl_idname,
-            text='Level Details (.details)'
-        )
-        layout.operator(scene_ops.OpExportLevelScene.bl_idname, text='Scene Selection (.level)')
-        layout.operator(omf_ops.EXPORT_OT_xray_omf.bl_idname, text='Game Motion (.omf)')
         if IS_28:
-            layout.operator(level_ops.EXPORT_OT_xray_level.bl_idname, text='Game Level (level)')
+            funct_list.extend(export_draw_functions_28)
+
+        for _, enable_prop, id_name, text in funct_list:
+            enable = getattr(prefs, enable_prop)
+            if enable:
+                layout.operator(id_name, text=text)
 
 
 def overlay_view_3d():
@@ -166,34 +157,6 @@ def scene_update_post(_):
     _INITIALIZER.sync('CREATED', bpy.data)
 
 
-#noinspection PyUnusedLocal
-def menu_func_import(self, _context):
-    icon = get_stalker_icon()
-    self.layout.operator(
-        object_imp_ops.OpImportObject.bl_idname,
-        text='X-Ray object (.object)',
-        icon_value=icon
-    )
-    self.layout.operator(anm_ops.OpImportAnm.bl_idname, text='X-Ray animation (.anm)', icon_value=icon)
-    self.layout.operator(skl_ops.OpImportSkl.bl_idname, text='X-Ray skeletal animation (.skl, .skls)', icon_value=icon)
-
-
-def menu_func_export(self, _context):
-    icon = get_stalker_icon()
-    self.layout.operator(
-        object_exp_ops.OpExportObjects.bl_idname,
-        text='X-Ray object (.object)',
-        icon_value=icon
-    )
-    self.layout.operator(anm_ops.OpExportAnm.bl_idname, text='X-Ray animation (.anm)', icon_value=icon)
-    self.layout.operator(skl_ops.OpExportSkls.bl_idname, text='X-Ray animation (.skls)', icon_value=icon)
-
-
-def menu_func_export_ogf(self, _context):
-    icon = get_stalker_icon()
-    self.layout.operator(ogf_ops.OpExportOgf.bl_idname, text='X-Ray game object (.ogf)', icon_value=icon)
-
-
 def menu_func_xray_import(self, _context):
     icon = get_stalker_icon()
     self.layout.menu(XRayImportMenu.bl_idname, icon_value=icon)
@@ -204,69 +167,168 @@ def menu_func_xray_export(self, _context):
     self.layout.menu(XRayExportMenu.bl_idname, icon_value=icon)
 
 
+# import draw functions
+import_draw_functions = [
+    (
+        object_imp_ops.menu_func_import,
+        'enable_object_import',
+        object_imp_ops.OpImportObject.bl_idname,
+        'Source Object (.object)'
+    ),
+    (
+        anm_ops.menu_func_import,
+        'enable_anm_import',
+        anm_ops.OpImportAnm.bl_idname,
+        'Animation (.anm)'
+    ),
+    (
+        skl_ops.menu_func_import,
+        'enable_skls_import',
+        skl_ops.OpExportSkls.bl_idname,
+        'Skeletal Animation (.skls)'
+    ),
+    (
+        err_ops.menu_func_import,
+        'enable_err_import',
+        err_ops.OpImportERR.bl_idname,
+        'Error List (.err)'
+    ),
+    (
+        det_ops.menu_func_import,
+        'enable_details_import',
+        det_ops.OpImportDetails.bl_idname,
+        'Level Details (.details)'
+    ),
+    (
+        dm_ops.menu_func_import,
+        'enable_dm_import',
+        dm_ops.OpImportDM.bl_idname,
+        'Detail Model (.dm)'
+    ),
+    (
+        scene_ops.menu_func_import,
+        'enable_level_import',
+        scene_ops.OpImportLevelScene.bl_idname,
+        'Scene Selection (.level)'
+    ),
+    (
+        omf_ops.menu_func_import,
+        'enable_omf_import',
+        omf_ops.IMPORT_OT_xray_omf.bl_idname,
+        'Game Motion (.omf)'
+    )
+]
+import_draw_functions_28 = [
+    (
+        level_ops.menu_func_import,
+        'enable_game_level_import',
+        level_ops.EXPORT_OT_xray_level.bl_idname,
+        'Game Level (level)'
+    ),
+]
+# export draw functions
+export_draw_functions = [
+    (
+        object_exp_ops.menu_func_export,
+        'enable_object_export',
+        object_exp_ops.OpExportObjects.bl_idname,
+        'Source Object (.object)'
+    ),
+    (
+        anm_ops.menu_func_export,
+        'enable_anm_export',
+        anm_ops.OpExportAnm.bl_idname,
+        'Animation (.anm)'
+    ),
+    (
+        skl_ops.menu_func_export,
+        'enable_skls_export',
+        skl_ops.OpExportSkls.bl_idname,
+        'Skeletal Animation (.skls)'
+    ),
+    (
+        ogf_ops.menu_func_export,
+        'enable_ogf_export',
+        ogf_ops.OpExportOgf.bl_idname,
+        'Game Object (.ogf)'
+    ),
+    (
+        det_ops.menu_func_export,
+        'enable_details_export',
+        det_ops.OpExportDetails.bl_idname,
+        'Level Details (.details)'
+    ),
+    (
+        dm_ops.menu_func_export,
+        'enable_dm_export',
+        dm_ops.OpExportDMs.bl_idname,
+        'Detail Model (.dm)'
+    ),
+    (
+        scene_ops.menu_func_export,
+        'enable_level_export',
+        scene_ops.OpExportLevelScene.bl_idname,
+        'Scene Selection (.level)'
+    ),
+    (
+        omf_ops.menu_func_export,
+        'enable_omf_export',
+        omf_ops.EXPORT_OT_xray_omf.bl_idname,
+        'Game Motion (.omf)'
+    )
+]
+export_draw_functions_28 = [
+    (
+        level_ops.menu_func_export,
+        'enable_game_level_export',
+        level_ops.EXPORT_OT_xray_level.bl_idname,
+        'Game Level (level)'
+    ),
+]
+
+
+def remove_draw_functions(funct_list, menu):
+    for draw_function, _, _, _ in funct_list:
+        menu.remove(draw_function)
+
+
+def append_draw_functions(funct_list, menu):
+    prefs = plugin_prefs.get_preferences()
+    for draw_function, enable_prop, _, _ in funct_list:
+        enable = getattr(prefs, enable_prop)
+        if enable:
+            menu.append(draw_function)
+
+
 def append_menu_func():
     prefs = plugin_prefs.get_preferences()
     import_menu, export_menu = get_import_export_menus()
-    # import draw functions
-    import_draw_functions = [
-        menu_func_import,
-        err_ops.menu_func_import,
-        det_ops.menu_func_import,
-        dm_ops.menu_func_import,
-        scene_ops.menu_func_import,
-        omf_ops.menu_func_import
-    ]
-    import_draw_functions_28 = [
-        level_ops.menu_func_import,
-    ]
-    # export draw functions
-    export_draw_functions = [
-        menu_func_export,
-        menu_func_export_ogf,
-        det_ops.menu_func_export,
-        dm_ops.menu_func_export,
-        scene_ops.menu_func_export,
-        omf_ops.menu_func_export
-    ]
-    export_draw_functions_28 = [
-        level_ops.menu_func_export,
-    ]
+    funct_imp_list = []
+    funct_imp_list.extend(import_draw_functions)
+    funct_exp_list = []
+    funct_exp_list.extend(import_draw_functions)
+
+    if IS_28:
+        funct_imp_list.extend(import_draw_functions_28)
+        funct_exp_list.extend(export_draw_functions_28)
+
+    # remove import menus
+    remove_draw_functions(funct_imp_list, import_menu)
+    # remove export menus
+    remove_draw_functions(funct_exp_list, export_menu)
+    # remove compact menus
+    import_menu.remove(menu_func_xray_import)
+    export_menu.remove(menu_func_xray_export)
 
     if prefs.compact_menus:
-        # remove import menus
-        for import_draw_function in import_draw_functions:
-            import_menu.remove(import_draw_function)
-        if IS_28:
-            for import_draw_function in import_draw_functions_28:
-                import_menu.remove(import_draw_function)
-        # remove export menus
-        for export_draw_function in export_draw_functions:
-            export_menu.remove(export_draw_function)
-        if IS_28:
-            for export_draw_function in export_draw_functions_28:
-                export_menu.remove(export_draw_function)
-        # remove compact menus
-        import_menu.remove(menu_func_xray_import)
-        export_menu.remove(menu_func_xray_export)
         # create compact menus
         import_menu.prepend(menu_func_xray_import)
         export_menu.prepend(menu_func_xray_export)
     else:
-        # remove compact menus
-        import_menu.remove(menu_func_xray_import)
-        export_menu.remove(menu_func_xray_export)
         # create standart import menus
-        for import_draw_function in import_draw_functions:
-            import_menu.append(import_draw_function)
-        if IS_28:
-            for import_draw_function in import_draw_functions_28:
-                import_menu.append(import_draw_function)
+        append_draw_functions(funct_imp_list, import_menu)
         # create standart export menus
-        for export_draw_function in export_draw_functions:
-            export_menu.append(export_draw_function)
-        if IS_28:
-            for export_draw_function in export_draw_functions_28:
-                export_menu.append(export_draw_function)
+        append_draw_functions(funct_exp_list, export_menu)
 
 
 registry.module_requires(__name__, [
@@ -343,11 +405,6 @@ def unregister():
     bpy.app.handlers.load_post.remove(load_post)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
     import_menu, export_menu = get_import_export_menus()
-    export_menu.remove(menu_func_export_ogf)
-    export_menu.remove(menu_func_export)
-    import_menu.remove(menu_func_import)
-    import_menu.remove(menu_func_xray_import)
-    export_menu.remove(menu_func_xray_export)
 
     # remove icon
     for pcoll in preview_collections.values():

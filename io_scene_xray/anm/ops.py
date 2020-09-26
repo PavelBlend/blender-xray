@@ -3,7 +3,7 @@ import os
 import bpy
 from bpy_extras import io_utils
 
-from .. import plugin_prefs, registry
+from .. import plugin, plugin_prefs, registry
 from ..utils import execute_with_logger, FilenameExtHelper, set_cursor_state
 from ..version_utils import assign_props, IS_28
 
@@ -83,3 +83,19 @@ assign_props([
     (op_import_anm_props, OpImportAnm),
     (op_export_anm_props, OpExportAnm)
 ])
+
+
+def menu_func_import(self, _context):
+    icon = plugin.get_stalker_icon()
+    self.layout.operator(
+        OpImportAnm.bl_idname, text='X-Ray animation (.anm)', icon_value=icon
+    )
+
+
+def menu_func_export(self, _context):
+    icon = plugin.get_stalker_icon()
+    self.layout.operator(
+        OpExportAnm.bl_idname,
+        text='X-Ray animation (.anm)',
+        icon_value=icon
+    )

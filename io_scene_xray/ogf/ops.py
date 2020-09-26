@@ -7,7 +7,7 @@ from ..utils import (
     set_cursor_state
 )
 from ..version_utils import assign_props, IS_28
-from .. import registry, plugin_prefs, context
+from .. import registry, plugin, plugin_prefs, context
 from ..obj.exp import props as obj_exp_props
 from . import exp
 
@@ -82,3 +82,12 @@ assign_props([
     (model_export_helper_props, ModelExportHelper),
     (op_export_ogf_props, OpExportOgf)
 ])
+
+
+def menu_func_export(self, _context):
+    icon = plugin.get_stalker_icon()
+    self.layout.operator(
+        OpExportOgf.bl_idname,
+        text='X-Ray game object (.ogf)',
+        icon_value=icon
+    )
