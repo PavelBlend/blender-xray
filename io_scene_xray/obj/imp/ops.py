@@ -3,7 +3,7 @@ import os
 import bpy
 import bpy_extras
 
-from ... import ops, plugin_prefs, registry, utils
+from ... import ops, plugin, plugin_prefs, registry, utils
 from ...version_utils import assign_props, IS_28
 from .. import imp
 from . import utils as imp_utils, props
@@ -97,3 +97,12 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
 assign_props([
     (op_import_object_props, OpImportObject),
 ])
+
+
+def menu_func_import(self, _context):
+    icon = plugin.get_stalker_icon()
+    self.layout.operator(
+        OpImportObject.bl_idname,
+        text='X-Ray object (.object)',
+        icon_value=icon
+    )

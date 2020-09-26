@@ -3,7 +3,7 @@ import os
 import bpy
 import bpy_extras
 
-from ... import registry, ops, plugin_prefs, utils, context
+from ... import registry, ops, plugin, plugin_prefs, utils, context
 from ...version_utils import (
     assign_props, IS_28, set_active_object, select_object
 )
@@ -236,3 +236,12 @@ assign_props([
     (op_export_objects_props, OpExportObjects),
     (op_export_object_props, OpExportObject)
 ])
+
+
+def menu_func_export(self, _context):
+    icon = plugin.get_stalker_icon()
+    self.layout.operator(
+        OpExportObjects.bl_idname,
+        text='X-Ray object (.object)',
+        icon_value=icon
+    )

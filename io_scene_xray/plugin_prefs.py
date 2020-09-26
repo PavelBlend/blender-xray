@@ -194,7 +194,27 @@ plugin_preferences_props = {
     ),
     'export_object_shift': bpy.props.BoolProperty(
         default=True, update=update_keymap
-    )
+    ),
+    # enable import plugins
+    'enable_object_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_anm_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_dm_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_details_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_skls_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_err_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_level_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_game_level_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_omf_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    # enable export plugins
+    'enable_object_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_anm_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_dm_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_details_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_skls_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_game_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_omf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_ogf_export': bpy.props.BoolProperty(default=True, update=update_menu_func)
 }
 
 
@@ -359,6 +379,43 @@ class PluginPreferences(bpy.types.AddonPreferences):
             row.label(text='Export Object:')
             row.prop(self, 'export_object_key', text='')
             row.prop(self, 'export_object_shift', text='Shift', toggle=True)
+
+        # enable plugins
+        _, box = collapsible.draw(
+            layout,
+            'plugin_prefs:enable_plugins',
+            'Enable/Disable Plugins',
+            style='tree'
+        )
+        if box:
+            row = box.row()
+
+            column_1 = row.column()
+            column_2 = row.column()
+
+            column_1.label(text='Import Plugins:')
+            column_1.prop(self, 'enable_object_import', text='*.object')
+            column_1.prop(self, 'enable_anm_import', text='*.anm')
+            column_1.prop(self, 'enable_dm_import', text='*.dm')
+            column_1.prop(self, 'enable_details_import', text='*.details')
+            column_1.prop(self, 'enable_skls_import', text='*.skls')
+            column_1.prop(self, 'enable_level_import', text='*.level')
+            column_1.prop(self, 'enable_omf_import', text='*.omf')
+            if IS_28:
+                column_1.prop(self, 'enable_game_level_import', text='level')
+            column_1.prop(self, 'enable_err_import', text='*.err')
+
+            column_2.label(text='Export Plugins:')
+            column_2.prop(self, 'enable_object_export', text='*.object')
+            column_2.prop(self, 'enable_anm_export', text='*.anm')
+            column_2.prop(self, 'enable_dm_export', text='*.dm')
+            column_2.prop(self, 'enable_details_export', text='*.details')
+            column_2.prop(self, 'enable_skls_export', text='*.skls')
+            column_2.prop(self, 'enable_level_export', text='*.level')
+            column_2.prop(self, 'enable_omf_export', text='*.omf')
+            if IS_28:
+                column_2.prop(self, 'enable_game_level_export', text='level')
+            column_2.prop(self, 'enable_ogf_export', text='*.ogf')
 
         prop_bool(layout, self, 'expert_mode')
         prop_bool(layout, self, 'compact_menus')
