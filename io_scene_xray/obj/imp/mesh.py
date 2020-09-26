@@ -161,8 +161,8 @@ def import_mesh(context, creader, renamemap):
                     )
         elif cid == fmt.Chunks.Mesh.FLAGS:
             mesh_flags = xray_io.PackedReader(data).getf('B')[0]
-            if mesh_flags & 0x4:  # sgmask
-                sgfuncs = (0, lambda ga, gb, ea, eb: bool(ga & gb))
+            if mesh_flags & 0x4 and context.soc_sgroups:  # sgmask
+                sgfuncs = (0, lambda ga, gb, ea, eb: ga == gb)
         elif cid == fmt.Chunks.Mesh.BBOX:
             pass  # blender automatically calculates bbox
         elif cid == fmt.Chunks.Mesh.OPTIONS:

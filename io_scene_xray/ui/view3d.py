@@ -138,7 +138,13 @@ class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
                     text = 'Switch Render (Cycles)'
                 utils_col.operator('io_scene_xray.switch_render', text=text)
             else:
-                utils_col.prop(context.scene.xray, 'materials_set_alpha_mode', toggle=True)
-            utils_col.prop(context.scene.xray, 'shader_specular_value')
-            utils_col.prop(context.scene.xray, 'shader_roughness_value')
+                row = utils_col.row(align=True)
+                row.prop(context.scene.xray, 'change_materials_alpha', text='')
+                row.prop(context.scene.xray, 'materials_set_alpha_mode', toggle=True)
+            row = utils_col.row(align=True)
+            row.prop(context.scene.xray, 'change_specular', text='')
+            row.prop(context.scene.xray, 'shader_specular_value')
+            row = utils_col.row(align=True)
+            row.prop(context.scene.xray, 'change_roughness', text='')
+            row.prop(context.scene.xray, 'shader_roughness_value')
             utils_col.operator('io_scene_xray.change_shader_params')

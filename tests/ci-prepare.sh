@@ -34,6 +34,10 @@ if [ ! -e "$DIR/blender" ]; then
             PYTHON_VERSION="3.7"
             ;;
         "2.90")
+            TAR="blender-$BLENDER_VERSION.1-linux64.tar.xz"
+            PYTHON_VERSION="3.7"
+            ;;
+        "2.91")
             FROM="https://builder.blender.org/download"
             HTML=$(curl $FROM/)
             if [[ "$HTML" =~ blender-$BLENDER_VERSION.0-[a-z0-9]+-linux64.tar.xz ]]; then

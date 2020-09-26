@@ -2,7 +2,7 @@ import os
 
 import bpy
 
-from . import utils, version_utils
+from . import utils, version_utils, plugin_prefs
 
 
 # base context
@@ -56,7 +56,8 @@ class ExportContext(Context):
 class ExportMeshContext(ExportContext):
     def __init__(self):
         ExportContext.__init__(self)
-        self.textures_folder = None
+        prefs = plugin_prefs.get_preferences()
+        self.textures_folder = prefs.textures_folder_auto
         self.texname_from_path = None
 
 

@@ -51,6 +51,7 @@ xray_scene_properties = {
     ),
     'import_skls': bpy.props.PointerProperty(type=ImportSkls),
     'import_omf': bpy.props.PointerProperty(type=ImportOmf),
+    # material utils parameters
     'convert_materials_mode': bpy.props.EnumProperty(
         name='Mode', items=convert_materials_mode_items, default='ACTIVE_MATERIAL'
     ),
@@ -58,12 +59,15 @@ xray_scene_properties = {
         name='Shader', items=convert_materials_shader_type_items, default='PRINCIPLED'
     ),
     'materials_set_alpha_mode': bpy.props.BoolProperty(name='Use Alpha', default=True),
+    'change_materials_alpha': bpy.props.BoolProperty(name='Change Alpha', default=True),
     'shader_specular_value': bpy.props.FloatProperty(
         name='Specular', default=0.0
     ),
+    'change_specular': bpy.props.BoolProperty(name='Change Specular', default=True),
     'shader_roughness_value': bpy.props.FloatProperty(
         name='Roughness', default=0.0
     ),
+    'change_roughness': bpy.props.BoolProperty(name='Change Roughness', default=True)
 }
 
 

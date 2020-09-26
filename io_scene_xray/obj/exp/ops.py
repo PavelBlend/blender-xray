@@ -4,7 +4,9 @@ import bpy
 import bpy_extras
 
 from ... import registry, ops, plugin_prefs, utils, context
-from ...version_utils import assign_props, IS_28
+from ...version_utils import (
+    assign_props, IS_28, set_active_object, select_object
+)
 from .. import exp
 from . import props
 
@@ -18,6 +20,7 @@ class ExportObjectContext(
         context.ExportMeshContext.__init__(self)
         context.ExportAnimationContext.__init__(self)
         self.soc_sgroups = None
+        self.smoothing_out_of = None
 
 
 def find_objects_for_export(context):
@@ -62,7 +65,8 @@ op_export_objects_props = {
         props.PropObjectTextureNamesFromPath(),
 
     'fmt_version': plugin_prefs.PropSDKVersion(),
-    'use_export_paths': plugin_prefs.PropUseExportPaths()
+    'use_export_paths': plugin_prefs.PropUseExportPaths(),
+    'smoothing_out_of': props.prop_smoothing_out_of()
 }
 
 
@@ -82,6 +86,9 @@ class OpExportObjects(ops.BaseOperator, _WithExportMotions):
         row = layout.split()
         row.label(text='Format Version:')
         row.row().prop(self, 'fmt_version', expand=True)
+        row = layout.row()
+        row.label(text='Smoothing Out of:')
+        row.prop(self, 'smoothing_out_of', text='')
 
         layout.prop(self, 'use_export_paths')
         layout.prop(self, 'export_motions')
@@ -94,6 +101,9 @@ class OpExportObjects(ops.BaseOperator, _WithExportMotions):
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.soc_sgroups = self.fmt_version == 'soc'
         export_context.export_motions = self.export_motions
+        export_context.smoothing_out_of = self.smoothing_out_of
+        prefs = plugin_prefs.get_preferences()
+        export_context.textures_folder = prefs.textures_folder_auto
         try:
             for name in self.objects.split(','):
                 obj = context.scene.objects[name]
@@ -106,6 +116,10 @@ class OpExportObjects(ops.BaseOperator, _WithExportMotions):
                 exp.export_file(
                     obj, os.path.join(path, name), export_context
                 )
+            if self.smoothing_out_of == 'SPLIT_NORMALS':
+                for name in self.objects.split(','):
+                    obj = context.scene.objects[name]
+                    select_object(obj)
         except utils.AppError as err:
             raise err
         return {'FINISHED'}
@@ -125,6 +139,7 @@ class OpExportObjects(ops.BaseOperator, _WithExportMotions):
         self.export_motions = prefs.object_motions_export
         self.texture_name_from_image_path = \
             prefs.object_texture_names_from_path
+        self.smoothing_out_of = prefs.smoothing_out_of
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -138,7 +153,8 @@ op_export_object_props = {
     ),
     'texture_name_from_image_path': \
         props.PropObjectTextureNamesFromPath(),
-    'fmt_version': plugin_prefs.PropSDKVersion()
+    'fmt_version': plugin_prefs.PropSDKVersion(),
+    'smoothing_out_of': props.prop_smoothing_out_of()
 }
 
 
@@ -165,6 +181,9 @@ class OpExportObject(
         row = layout.split()
         row.label(text='Format Version:')
         row.row().prop(self, 'fmt_version', expand=True)
+        row = layout.row()
+        row.label(text='Smoothing Out of:')
+        row.prop(self, 'smoothing_out_of', text='')
 
         layout.prop(self, 'export_motions')
         layout.prop(self, 'texture_name_from_image_path')
@@ -176,13 +195,17 @@ class OpExportObject(
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.soc_sgroups = self.fmt_version == 'soc'
         export_context.export_motions = self.export_motions
+        export_context.smoothing_out_of = self.smoothing_out_of
+        obj = context.scene.objects[self.object]
+        prefs = plugin_prefs.get_preferences()
+        export_context.textures_folder = prefs.textures_folder_auto
         try:
-            exp.export_file(
-                context.scene.objects[self.object],
-                self.filepath, export_context
-            )
+            exp.export_file(obj, self.filepath, export_context)
         except utils.AppError as err:
             raise err
+        if self.smoothing_out_of == 'SPLIT_NORMALS':
+            set_active_object(obj)
+            select_object(obj)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -204,6 +227,7 @@ class OpExportObject(
         self.export_motions = prefs.object_motions_export
         self.texture_name_from_image_path = \
             prefs.object_texture_names_from_path
+        self.smoothing_out_of = prefs.smoothing_out_of
         return super().invoke(context, event)
 
 

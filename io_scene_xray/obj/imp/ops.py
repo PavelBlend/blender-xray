@@ -40,7 +40,7 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
     @utils.set_cursor_state
     def execute(self, _context):
         textures_folder = plugin_prefs.get_preferences().textures_folder_auto
-        objects_folder = plugin_prefs.get_preferences().objects_folder
+        objects_folder = plugin_prefs.get_preferences().objects_folder_auto
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
         if not self.files:

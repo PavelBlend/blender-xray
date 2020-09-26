@@ -207,42 +207,66 @@ def menu_func_xray_export(self, _context):
 def append_menu_func():
     prefs = plugin_prefs.get_preferences()
     import_menu, export_menu = get_import_export_menus()
+    # import draw functions
+    import_draw_functions = [
+        menu_func_import,
+        err_ops.menu_func_import,
+        det_ops.menu_func_import,
+        dm_ops.menu_func_import,
+        scene_ops.menu_func_import,
+        omf_ops.menu_func_import
+    ]
+    import_draw_functions_28 = [
+        level_ops.menu_func_import,
+    ]
+    # export draw functions
+    export_draw_functions = [
+        menu_func_export,
+        menu_func_export_ogf,
+        det_ops.menu_func_export,
+        dm_ops.menu_func_export,
+        scene_ops.menu_func_export,
+        omf_ops.menu_func_export
+    ]
+    export_draw_functions_28 = [
+        level_ops.menu_func_export,
+    ]
+
     if prefs.compact_menus:
-        import_menu.remove(menu_func_import)
-        export_menu.remove(menu_func_export)
-        export_menu.remove(menu_func_export_ogf)
-        import_menu.remove(err_ops.menu_func_import)
-        import_menu.remove(det_ops.menu_func_import)
-        export_menu.remove(det_ops.menu_func_export)
-        import_menu.remove(dm_ops.menu_func_import)
-        export_menu.remove(dm_ops.menu_func_export)
-        export_menu.remove(scene_ops.menu_func_export)
-        import_menu.remove(scene_ops.menu_func_import)
-        import_menu.remove(omf_ops.menu_func_import)
-        import_menu.remove(omf_ops.menu_func_export)
+        # remove import menus
+        for import_draw_function in import_draw_functions:
+            import_menu.remove(import_draw_function)
         if IS_28:
-            import_menu.remove(level_ops.menu_func_import)
-            export_menu.remove(level_ops.menu_func_export)
+            for import_draw_function in import_draw_functions_28:
+                import_menu.remove(import_draw_function)
+        # remove export menus
+        for export_draw_function in export_draw_functions:
+            export_menu.remove(export_draw_function)
+        if IS_28:
+            for export_draw_function in export_draw_functions_28:
+                export_menu.remove(export_draw_function)
+        # remove compact menus
+        import_menu.remove(menu_func_xray_import)
+        export_menu.remove(menu_func_xray_export)
+        # create compact menus
         import_menu.prepend(menu_func_xray_import)
         export_menu.prepend(menu_func_xray_export)
     else:
+        # remove compact menus
         import_menu.remove(menu_func_xray_import)
         export_menu.remove(menu_func_xray_export)
-        import_menu.append(menu_func_import)
-        export_menu.append(menu_func_export)
-        export_menu.append(menu_func_export_ogf)
-        import_menu.append(det_ops.menu_func_import)
-        export_menu.append(det_ops.menu_func_export)
-        import_menu.append(dm_ops.menu_func_import)
-        export_menu.append(dm_ops.menu_func_export)
-        import_menu.append(err_ops.menu_func_import)
-        export_menu.append(scene_ops.menu_func_export)
-        import_menu.append(scene_ops.menu_func_import)
-        import_menu.append(omf_ops.menu_func_import)
-        import_menu.append(omf_ops.menu_func_export)
+        # create standart import menus
+        for import_draw_function in import_draw_functions:
+            import_menu.append(import_draw_function)
         if IS_28:
-            import_menu.append(level_ops.menu_func_import)
-            export_menu.append(level_ops.menu_func_export)
+            for import_draw_function in import_draw_functions_28:
+                import_menu.append(import_draw_function)
+        # create standart export menus
+        for export_draw_function in export_draw_functions:
+            export_menu.append(export_draw_function)
+        if IS_28:
+            for export_draw_function in export_draw_functions_28:
+                export_menu.append(export_draw_function)
 
 
 registry.module_requires(__name__, [

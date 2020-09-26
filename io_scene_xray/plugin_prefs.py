@@ -161,6 +161,7 @@ plugin_preferences_props = {
     'object_motions_export': obj_exp_props.PropObjectMotionsExport(),
     'object_mesh_split_by_mat': obj_imp_props.PropObjectMeshSplitByMaterials(),
     'object_texture_names_from_path': obj_exp_props.PropObjectTextureNamesFromPath(),
+    'smoothing_out_of': obj_exp_props.prop_smoothing_out_of(),
     'object_bones_custom_shapes': obj_imp_props.PropObjectBonesCustomShapes(),
     'use_motion_prefix_name': obj_imp_props.PropObjectUseMotionPrefixName(),
     'anm_create_camera': PropAnmCameraAnimation(),
@@ -315,6 +316,9 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 prop_bool(box_n, self, 'object_bones_custom_shapes')
                 box_n.label(text='Export:')
                 prop_bool(box_n, self, 'object_motions_export')
+                row = box_n.row()
+                row.label(text='Smoothing Out of:')
+                row.prop(self, 'smoothing_out_of', text='')
 
             _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.skl', 'Skeletal Animation (.skl, .skls)', style='tree')
             if box_n:

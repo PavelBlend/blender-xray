@@ -185,9 +185,11 @@ class OpExportDetails(
         return {'FINISHED'}
 
     def exp(self, bpy_obj, context):
+        textures_folder = plugin_prefs.get_preferences().textures_folder_auto
         export_context = ExportDetailsContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.level_details_format_version = self.format_version
+        export_context.textures_folder=textures_folder
         exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):
