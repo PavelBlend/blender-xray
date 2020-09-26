@@ -405,11 +405,6 @@ def unregister():
     bpy.app.handlers.load_post.remove(load_post)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
     import_menu, export_menu = get_import_export_menus()
-    export_menu.remove(menu_func_export_ogf)
-    export_menu.remove(menu_func_export)
-    import_menu.remove(menu_func_import)
-    import_menu.remove(menu_func_xray_import)
-    export_menu.remove(menu_func_xray_export)
 
     # remove icon
     for pcoll in preview_collections.values():
