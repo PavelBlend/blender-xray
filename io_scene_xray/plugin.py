@@ -237,7 +237,7 @@ def append_menu_func():
         for import_draw_function in import_draw_functions:
             import_menu.remove(import_draw_function)
         if IS_28:
-            for import_draw_function in export_draw_functions_28:
+            for import_draw_function in import_draw_functions_28:
                 import_menu.remove(import_draw_function)
         # remove export menus
         for export_draw_function in export_draw_functions:
@@ -259,7 +259,7 @@ def append_menu_func():
         for import_draw_function in import_draw_functions:
             import_menu.append(import_draw_function)
         if IS_28:
-            for import_draw_function in export_draw_functions_28:
+            for import_draw_function in import_draw_functions_28:
                 import_menu.append(import_draw_function)
         # create standart export menus
         for export_draw_function in export_draw_functions:
