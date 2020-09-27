@@ -184,7 +184,7 @@ import_draw_functions = [
     (
         skl_ops.menu_func_import,
         'enable_skls_import',
-        skl_ops.OpExportSkls.bl_idname,
+        skl_ops.OpImportSkl.bl_idname,
         'Skeletal Animation (.skls)'
     ),
     (
@@ -222,7 +222,7 @@ import_draw_functions_28 = [
     (
         level_ops.menu_func_import,
         'enable_game_level_import',
-        level_ops.EXPORT_OT_xray_level.bl_idname,
+        level_ops.IMPORT_OT_xray_level.bl_idname,
         'Game Level (level)'
     ),
 ]
