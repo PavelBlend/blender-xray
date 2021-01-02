@@ -39,7 +39,7 @@ def validate_export_object(context, bpy_obj, fpath):
         if bpy_material.use_nodes:
             tex_nodes = []
             for node in bpy_material.node_tree.nodes:
-                if node.type == 'TEX_IMAGE':
+                if node.type in utils.IMAGE_NODES:
                     tex_nodes.append(node)
             if len(tex_nodes) == 1:
                 bpy_texture = tex_nodes[0]
@@ -56,7 +56,7 @@ def validate_export_object(context, bpy_obj, fpath):
 
     if bpy_texture:
 
-        if bpy_texture.type == 'IMAGE' or bpy_texture.type == 'TEX_IMAGE':
+        if bpy_texture.type == 'IMAGE' or bpy_texture.type in utils.IMAGE_NODES:
             if context.texname_from_path:
                 if not fpath:
                     level_folder = None
