@@ -151,6 +151,7 @@ def create_object(bm, create_material=True):
     bm.to_mesh(mesh)
     if create_material:
         mat = bpy.data.materials.new('mat')
+        mat.use_nodes = True
         mesh.materials.append(mat)
     obj = bpy.data.objects.new('test', mesh)
     link_object(obj)
