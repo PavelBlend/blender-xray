@@ -1,6 +1,8 @@
 from contextlib import contextmanager
 import bpy
 
+from . import utils
+
 
 def is_blender_2_80():
     return bpy.app.version >= (2, 80, 0)
@@ -76,7 +78,7 @@ def assign_props(items, replace=True):
 
 def is_all_empty_textures(material):
     if IS_28:
-        return all(node.type != 'TEX_IMAGE' for node in material.node_tree.nodes)
+        return all(not node.type in utils.IMAGE_NODES for node in material.node_tree.nodes)
     else:
         return all(not slot for slot in material.texture_slots)
 

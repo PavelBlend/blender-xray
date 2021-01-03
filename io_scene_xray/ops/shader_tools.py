@@ -1,6 +1,7 @@
 import bpy
 
 from . import convert_materials
+from .. import utils
 
 
 class MATERIAL_OT_change_shader_params(bpy.types.Operator):
@@ -40,7 +41,7 @@ class MATERIAL_OT_change_shader_params(bpy.types.Operator):
                 self.report({'WARNING'}, 'Material "{}" has no texture.'.format(material.name))
                 continue
             image_node = links[0].from_node
-            if image_node.type != 'TEX_IMAGE':
+            if not image_node.type in utils.IMAGE_NODES:
                 self.report({'WARNING'}, 'Material "{}" has no image.'.format(material.name))
                 continue
             if scene.xray.change_materials_alpha:

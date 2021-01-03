@@ -1,6 +1,7 @@
 import bpy
 
 from ..version_utils import IS_28
+from .. import utils
 
 
 def get_object_materials(bpy_object, materials):
@@ -40,7 +41,7 @@ def get_image_nodes(node, image_nodes):
             from_node = link.from_node
             break
         if from_node:
-            if from_node.type == 'TEX_IMAGE':
+            if from_node.type in utils.IMAGE_NODES:
                 image_nodes.append(from_node)
             get_image_nodes(from_node, image_nodes)
 
