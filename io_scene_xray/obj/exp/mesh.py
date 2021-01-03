@@ -215,15 +215,22 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
 
     writer = xray_io.PackedWriter()
     sfaces = {
-        m.name if m else None: [
+        (m.name, mi) if m else None: [
             fidx for fidx, face in enumerate(bm.faces) \
             if face.material_index == mi
         ]
         for mi, m in enumerate(bpy_obj.data.materials)
     }
 
+    materials = {}
+    for (mat_name, mat_id), face_ids in sfaces.items():
+        if not materials.get(mat_name, None):
+            materials[mat_name] = {'materials_ids': [], 'faces_count': []}
+        materials[mat_name]['materials_ids'].append(mat_id)
+        materials[mat_name]['faces_count'].append(len(face_ids))
+
     used_material_names = set()
-    for material_name, faces_indices in sfaces.items():
+    for (material_name, material_index), faces_indices in sfaces.items():
         if faces_indices:
             if material_name is None:
                 raise utils.AppError(
@@ -234,11 +241,14 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
     if not sfaces:
         raise utils.AppError('mesh "{0}" has no material'.format(bpy_obj.data.name))
     writer.putf('H', len(used_material_names))
-    for name, fidxs in sfaces.items():
-        if name in used_material_names:
-            writer.puts(name).putf('I', len(fidxs))
-            for fidx in fidxs:
-                writer.putf('I', fidx)
+    for mat_name, mat_data in materials.items():
+        if mat_name in used_material_names:
+            faces_count = sum(mat_data['faces_count'])
+            writer.puts(mat_name).putf('I', faces_count)
+            for mat_id in mat_data['materials_ids']:
+                fidxs = sfaces[(mat_name, mat_id)]
+                for fidx in fidxs:
+                    writer.putf('I', fidx)
     cw.put(fmt.Chunks.Mesh.SFACE, writer)
 
     writer = xray_io.PackedWriter()
