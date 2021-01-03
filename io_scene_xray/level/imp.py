@@ -512,7 +512,7 @@ def import_level(level, context, chunks, geomx_chunks):
         level.indices_buffers = ib.import_indices_buffers(ib_chunk_data)
         del ib_chunk_data
 
-    if level.xrlc_version == fmt.VERSION_12:
+    if level.xrlc_version >= fmt.VERSION_12:
         swis_chunk_data = chunks.pop(chunks_ids.SWIS, None)
         if swis_chunk_data:
             level.swis = swi.import_slide_window_items(swis_chunk_data)
