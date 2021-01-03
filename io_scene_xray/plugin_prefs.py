@@ -11,7 +11,7 @@ from .omf import props as omf_props
 from .obj.exp import props as obj_exp_props
 from .ui import collapsible, xprop
 from .utils import with_auto_property
-from .version_utils import IS_28, assign_props
+from .version_utils import IS_28, assign_props, get_icon
 from bl_operators.presets import AddPresetBase
 
 
@@ -299,8 +299,8 @@ class PluginPreferences(bpy.types.AddonPreferences):
 
         row = layout.row(align=True)
         row.menu(PREFS_MT_xray_presets.__name__, text=PREFS_MT_xray_presets.bl_label)
-        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='ADD')
-        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon='REMOVE').remove_active = True
+        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon=get_icon('ZOOMIN'))
+        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon=get_icon('ZOOMOUT')).remove_active = True
 
         if self.fs_ltx_file:
             setattr(
