@@ -47,7 +47,7 @@ def check_estimated_material_texture(material, det_model):
     if IS_28:
         texture_nodes = []
         for node in material.node_tree.nodes:
-            if node.type == 'TEX_IMAGE':
+            if node.type in utils.IMAGE_NODES:
                 texture_nodes.append(node)
         if len(texture_nodes) == 1:
             texture_node = texture_nodes[0]

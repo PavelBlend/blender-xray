@@ -135,7 +135,7 @@ def import_main(fpath, context, creader):
                         ts_found = False
                         if material.use_nodes:
                             for node in material.node_tree.nodes:
-                                if node.type != 'TEX_IMAGE':
+                                if not node.type in utils.IMAGE_NODES:
                                     continue
                                 tex_nodes.append(node)
                             if len(tex_nodes) != 1:

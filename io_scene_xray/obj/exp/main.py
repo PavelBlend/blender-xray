@@ -215,22 +215,30 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
             if material.use_nodes:
                 tex_nodes = []
                 for node in material.node_tree.nodes:
-                    if node.type == 'TEX_IMAGE':
+                    if node.type in utils.IMAGE_NODES:
                         tex_nodes.append(node)
-                    if len(tex_nodes) == 1:
-                        tex_node = tex_nodes[0]
-                        if tex_node.image:
-                            if context.texname_from_path:
-                                tx_name = utils.gen_texture_name(
-                                    tex_node, context.textures_folder
+                if len(tex_nodes) == 1:
+                    tex_node = tex_nodes[0]
+                    if tex_node.image:
+                        if context.texname_from_path:
+                            tx_name = utils.gen_texture_name(
+                                tex_node, context.textures_folder
+                            )
+                            if tex_node.type == 'TEX_ENVIRONMENT':
+                                log.warn(
+                                    'material "{}" has incorrect image node type (Environment Texture)'.format(material.name),
+                                    material_name=material.name,
+                                    node_name=tex_node.name,
                                 )
-                            else:
-                                tx_name = tex_node.name
-                    elif len(tex_nodes) > 1:
-                        raise utils.AppError(
-                            'Material "{}" has more than one texture.'.format(
-                                material.name
-                        ))
+                        else:
+                            tx_name = tex_node.name
+                elif len(tex_nodes) > 1:
+                    raise utils.AppError(
+                        'Material "{}" has more than one texture.'.format(
+                            material.name
+                    ))
+            else:
+                raise utils.AppError('material "{}" does not use nodes'.format(material.name))
         else:
             if material.active_texture:
                 if context.texname_from_path:

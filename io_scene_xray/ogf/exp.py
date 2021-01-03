@@ -7,7 +7,7 @@ from .fmt import Chunks, ModelType, VertexFormat
 from ..utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
     fix_ensure_lookup_table, convert_object_to_space_bmesh, \
     calculate_mesh_bbox, gen_texture_name
-from ..utils import is_helper_object, save_file
+from ..utils import is_helper_object, save_file, IMAGE_NODES
 from ..xray_motions import MATRIX_BONE_INVERTED
 from ..version_utils import get_multiply, IS_28
 
@@ -130,7 +130,7 @@ def _export_child(bpy_obj, cwriter, context, vgm):
     if IS_28:
         if material.use_nodes:
             for node in material.node_tree.nodes:
-                if node.type == 'TEX_IMAGE':
+                if node.type in IMAGE_NODES:
                     texture = node
         else:
             raise AppError('Material "{}" cannot use nodes.'.format(material.name))

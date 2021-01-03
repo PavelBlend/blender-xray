@@ -100,6 +100,7 @@ class OpExportDMs(bpy.types.Operator):
         for prop_name, prop_value in op_export_dms_props.items():
             exec('{0} = op_export_dms_props.get("{0}")'.format(prop_name))
 
+    @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         try:
@@ -168,6 +169,7 @@ class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         for prop_name, prop_value in op_export_dm_props.items():
             exec('{0} = op_export_dm_props.get("{0}")'.format(prop_name))
 
+    @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         try:

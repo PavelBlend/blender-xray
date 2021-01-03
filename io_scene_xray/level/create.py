@@ -2,8 +2,9 @@ import os
 
 import bpy, mathutils
 
-from . import utils
+from . import utils as level_utils
 from .. import version_utils
+from .. import utils
 
 
 LEVEL_COLLECTION_NAME = 'Level'
@@ -493,7 +494,7 @@ def load_image(absolute_texture_path):
 
 
 def load_image_from_level_folder(context, texture):
-    level_dir = utils.get_level_dir(context.filepath)
+    level_dir = level_utils.get_level_dir(context.filepath)
     absolute_texture_path = get_absolute_texture_path(
         level_dir, texture
     )
@@ -531,14 +532,14 @@ def find_image_lmap(context, lmap, level_dir):
 
 
 def get_image_lmap_terrain(context, lmap):
-    level_dir = utils.get_level_dir(context.filepath)
+    level_dir = level_utils.get_level_dir(context.filepath)
     bpy_image = find_image_lmap(context, lmap, level_dir)
     return bpy_image
 
 
 def get_image_lmap_brush(context, lmap_1, lmap_2):
     bpy_images = []
-    level_dir = utils.get_level_dir(context.filepath)
+    level_dir = level_utils.get_level_dir(context.filepath)
     for lmap in (lmap_1, lmap_2):
         bpy_image = find_image_lmap(context, lmap, level_dir)
         bpy_images.append(bpy_image)
@@ -560,7 +561,7 @@ def get_image_lmap(context, light_maps):
 def get_image(context, texture, light_maps):
     if len(light_maps) == 1:
         # level dir (terrain texture)
-        texture_dir = utils.get_level_dir(context.filepath)
+        texture_dir = level_utils.get_level_dir(context.filepath)
     else:
         texture_dir = context.textures_folder
     absolute_texture_path = get_absolute_texture_path(
@@ -575,13 +576,13 @@ def get_image(context, texture, light_maps):
 def is_same_light_maps(context, bpy_material, light_maps):
     has_images = []
     for light_map in light_maps:
-        level_dir = utils.get_level_dir(context.filepath)
+        level_dir = level_utils.get_level_dir(context.filepath)
         absolute_texture_path_in_level_folder = get_absolute_texture_path(
             level_dir, light_map
         )
         has_correct_lmap_image = False
         for node in bpy_material.node_tree.nodes:
-            if node.type == 'TEX_IMAGE':
+            if node.type in utils.IMAGE_NODES:
                 bpy_image = node.image
                 if not bpy_image:
                     continue
@@ -600,12 +601,12 @@ def is_same_image(context, bpy_material, texture):
     absolute_texture_path = get_absolute_texture_path(
         context.textures_folder, texture
     )
-    level_dir = utils.get_level_dir(context.filepath)
+    level_dir = level_utils.get_level_dir(context.filepath)
     absolute_texture_path_in_level_folder = get_absolute_texture_path(
         level_dir, texture
     )
     for node in bpy_material.node_tree.nodes:
-        if node.type == 'TEX_IMAGE':
+        if node.type in utils.IMAGE_NODES:
             bpy_image = node.image
             if not bpy_image:
                 continue
