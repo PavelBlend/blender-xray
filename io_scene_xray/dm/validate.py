@@ -73,7 +73,7 @@ def validate_export_object(context, bpy_obj, fpath):
                 else:
                     level_folder = os.path.dirname(fpath) + os.sep
                 texture_name = utils.gen_texture_name(
-                    bpy_texture, context.textures_folder,
+                    bpy_texture.image, context.textures_folder,
                     level_folder=level_folder
                 )
             else:

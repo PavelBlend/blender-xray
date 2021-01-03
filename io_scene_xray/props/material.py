@@ -11,6 +11,8 @@ xray_material_properties = {
     'cshader': bpy.props.StringProperty(default='default'),
     'gamemtl': bpy.props.StringProperty(default='default'),
     'version': bpy.props.IntProperty(),
+    'uv_texture': bpy.props.StringProperty(default=''),
+    'uv_light_map': bpy.props.StringProperty(default=''),
     'lmap_0': bpy.props.StringProperty(default=''),
     'lmap_1': bpy.props.StringProperty(default=''),
     'light_vert_color': bpy.props.StringProperty(default=''),

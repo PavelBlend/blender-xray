@@ -305,30 +305,30 @@ def write_shaders(level):
         material = materials[shader_index]
         texture_node = material.node_tree.nodes['Texture']
         texture_path = utils.gen_texture_name(
-            texture_node, texture_folder, level_folder=level.source_level_path
+            texture_node.image, texture_folder, level_folder=level.source_level_path
         )
         eshader = material.xray.eshader
 
-        lmap_1_node = material.node_tree.nodes.get(material.xray.lmap_0, None)
-        lmap_2_node = material.node_tree.nodes.get(material.xray.lmap_1, None)
+        lmap_1_image = bpy.data.images.get(material.xray.lmap_0, None)
+        lmap_2_image = bpy.data.images.get(material.xray.lmap_1, None)
 
-        if lmap_1_node:
-            lmap_1_path = lmap_1_node.image.name[0 : -4]    # cut .dds extension
+        if lmap_1_image:
+            lmap_1_path = lmap_1_image.name[0 : -4]    # cut .dds extension
         else:
             lmap_1_path = None
 
-        if lmap_2_node:
-            lmap_2_path = lmap_2_node.image.name[0 : -4]    # cut .dds extension
+        if lmap_2_image:
+            lmap_2_path = lmap_2_image.name[0 : -4]    # cut .dds extension
         else:
             lmap_2_path = None
 
-        if lmap_1_node and lmap_2_node:
+        if lmap_1_image and lmap_2_image:
             packed_writer.puts('{0}/{1},{2},{3}'.format(
                 eshader, texture_path, lmap_1_path, lmap_2_path
             ))
-        elif lmap_1_node and not lmap_2_node:
+        elif lmap_1_image and not lmap_2_image:
             lmap_1_path = utils.gen_texture_name(
-                lmap_1_node, texture_folder, level_folder=level.source_level_path
+                lmap_1_image, texture_folder, level_folder=level.source_level_path
             )    # terrain\terrain_name_lm.dds file
             packed_writer.puts('{0}/{1},{2}'.format(
                 eshader, texture_path, lmap_1_path
@@ -456,8 +456,8 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     bm.to_mesh(export_mesh)
     export_mesh.calc_normals_split()
 
-    uv_layer = bm.loops.layers.uv['Texture']
-    uv_layer_lmap = bm.loops.layers.uv.get('Light Map', None)
+    uv_layer = bm.loops.layers.uv[material.xray.uv_texture]
+    uv_layer_lmap = bm.loops.layers.uv.get(material.xray.uv_light_map, None)
     vertex_color_sun = bm.loops.layers.color.get(
         material.xray.sun_vert_color, None
     )
@@ -933,7 +933,7 @@ def write_lod_def_2(bpy_obj, hierrarhy, visuals_ids, level):
     packed_writer = xray_io.PackedWriter()
     me = bpy_obj.data
     material = bpy_obj.data.materials[0]
-    uv_layer = me.uv_layers['Texture']
+    uv_layer = me.uv_layers[material.xray.uv_texture]
     rgb_layer = me.vertex_colors[material.xray.light_vert_color]
     hemi_layer = me.vertex_colors[material.xray.hemi_vert_color]
     sun_layer = me.vertex_colors[material.xray.sun_vert_color]

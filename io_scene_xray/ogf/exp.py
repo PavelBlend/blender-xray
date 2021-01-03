@@ -140,7 +140,7 @@ def _export_child(bpy_obj, cwriter, context, vgm):
         Chunks.TEXTURE,
         PackedWriter()
         .puts(
-            gen_texture_name(texture, context.textures_folder)
+            gen_texture_name(texture.image, context.textures_folder)
             if context.texname_from_path else
             texture.name
         )
