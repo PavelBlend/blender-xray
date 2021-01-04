@@ -68,12 +68,13 @@ def import_mesh(context, creader, renamemap):
 
             def face_sg_impl(bmf, fidx, edict):
                 sm_group = sgroups[fidx]
+                # smoothing is stored in the edges
+                # triangles should always be smoothed
+                bmf.smooth = True
                 if sm_group == sgfuncs[0]:
-                    bmf.smooth = False
                     for bme in bmf.edges:
                         bme.smooth = False
                     return
-                bmf.smooth = True
                 for eidx, bme in enumerate(bmf.edges):
                     prev = edict[bme.index]
                     if prev is None:
