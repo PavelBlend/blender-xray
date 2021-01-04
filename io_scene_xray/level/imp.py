@@ -438,8 +438,7 @@ def get_chunks(chunked_reader):
     return chunks
 
 
-def get_version(chunks):
-    header_chunk_data = chunks.pop(fmt.HEADER)
+def get_version(header_chunk_data):
     xrlc_version = import_header(header_chunk_data)
     return xrlc_version
 
@@ -452,7 +451,7 @@ def import_geomx(level, context):
         )
         chunks = get_chunks(geomx_chunked_reader)
         del geomx_chunked_reader
-        level.xrlc_version_geom = get_version(chunks)
+        level.xrlc_version_geom = get_version(chunks.pop(fmt.HEADER))
         geomx_chunks.update(chunks)
         del chunks
         return geomx_chunks
@@ -467,7 +466,7 @@ def import_geom(level, chunks, context):
         )
         geom_chunks = get_chunks(geom_chunked_reader)
         del geom_chunked_reader
-        level.xrlc_version_geom = get_version(geom_chunks)
+        level.xrlc_version_geom = get_version(geom_chunks.pop(fmt.HEADER))
         chunks.update(geom_chunks)
         del geom_chunks
 
@@ -583,9 +582,9 @@ def import_level(level, context, chunks, geomx_chunks):
 
 
 def import_main(context, chunked_reader, level):
+    level.xrlc_version = get_version(chunked_reader.next(fmt.HEADER))
     chunks = get_chunks(chunked_reader)
     del chunked_reader
-    level.xrlc_version = get_version(chunks)
     import_geom(level, chunks, context)
     geomx_chunks = import_geomx(level, context)
     cform_data_v2 = import_level(level, context, chunks, geomx_chunks)
