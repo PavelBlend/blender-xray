@@ -43,7 +43,7 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
         objects_folder = plugin_prefs.get_preferences().objects_folder_auto
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
-        if not self.files:
+        if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
         import_context = imp_utils.ImportObjectContext()
