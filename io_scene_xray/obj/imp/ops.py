@@ -63,7 +63,7 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
                 )
             else:
                 self.report(
-                    {'ERROR'}, 'Format of {} not recognised'.format(file)
+                    {'ERROR'}, 'Format of "{}" not recognised'.format(file.name)
                 )
         return {'FINISHED'}
 
