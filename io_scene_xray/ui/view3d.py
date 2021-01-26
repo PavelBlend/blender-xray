@@ -63,8 +63,9 @@ class XRayColorizeMaterials(bpy.types.Operator):
             self.report({'ERROR'}, 'No objects selected')
             return {'CANCELLED'}
 
-        seed = self.seed
-        power = self.power
+        xr_data = context.scene.xray
+        self.seed = xr_data.materials_colorize_random_seed
+        self.power = xr_data.materials_colorize_color_power
         materials = set()
         for obj in objects:
             for slot in obj.material_slots:
@@ -72,13 +73,13 @@ class XRayColorizeMaterials(bpy.types.Operator):
 
         for mat in materials:
             data = bytearray(mat.name, 'utf8')
-            data.append(seed)
+            data.append(self.seed)
             hsh = crc32(data)
             color = Color()
             color.hsv = (
                 (hsh & 0xFF) / 0xFF,
-                (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * power,
-                ((hsh >> 2) & 1) * (0.5 * power) + 0.5
+                (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * self.power,
+                ((hsh >> 2) & 1) * (0.5 * self.power) + 0.5
             )
             color = [color.r, color.g, color.b]
             if IS_28:
