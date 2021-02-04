@@ -161,7 +161,7 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
         # import triangles
         remap_loops = []
         custom_normals = []
-        if visual.vb_index:
+        if not visual.vb_index is None:
             if not level.vertex_buffers[visual.vb_index].float_normals:
                 convert_normal_function = convert_normal
         else:
