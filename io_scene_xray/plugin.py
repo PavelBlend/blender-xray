@@ -306,7 +306,7 @@ def append_menu_func():
     funct_imp_list = []
     funct_imp_list.extend(import_draw_functions)
     funct_exp_list = []
-    funct_exp_list.extend(import_draw_functions)
+    funct_exp_list.extend(export_draw_functions)
 
     if IS_28:
         funct_imp_list.extend(import_draw_functions_28)

@@ -336,7 +336,7 @@ def import_mesh(context, creader, renamemap):
                     continue
                 if assigned[fidx]:
                     log.warn(
-                        'face has already already used material',
+                        'face has already used material',
                         face=fidx,
                         material=bmf.material_index,
                     )

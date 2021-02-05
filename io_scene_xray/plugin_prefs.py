@@ -446,21 +446,10 @@ class AddPresetXrayPrefs(AddPresetBase, bpy.types.Operator):
     preset_defines = [
         'prefs = bpy.context.preferences.addons["io_scene_xray"].preferences'
     ]
-    preset_values = [
-        'prefs.gamedata_folder',
-        'prefs.textures_folder',
-        'prefs.gamemtl_file',
-        'prefs.eshader_file',
-        'prefs.cshader_file',
-        'prefs.objects_folder',
-        'prefs.sdk_version',
-        'prefs.object_motions_import',
-        'prefs.object_motions_export',
-        'prefs.object_texture_names_from_path',
-        'prefs.object_mesh_split_by_mat',
-        'prefs.object_bones_custom_shapes',
-        'prefs.anm_create_camera',
-        'prefs.expert_mode',
-        'prefs.compact_menus'
-    ]
+    preset_values = []
+    for prop_key in plugin_preferences_props.keys():
+        preset_values.append('prefs.{}'.format(prop_key))
+    for auto_prop_key in __AUTO_PROPS__:
+        preset_values.append('prefs.{}'.format(auto_prop_key))
+        preset_values.append('prefs.{}_auto'.format(auto_prop_key))
     preset_subdir = 'io_scene_xray/preferences'
