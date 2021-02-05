@@ -106,6 +106,11 @@ def import_textures(level, context, data):
     packed_reader = xray_io.PackedReader(data)
     textures_count = packed_reader.getf('I')[0]
     level.textures = []
-    for texture_index in range(textures_count):
-        texture = packed_reader.gets()
-        level.textures.append(texture)
+    if level.xrlc_version > fmt.VERSION_4:
+        for texture_index in range(textures_count):
+            texture = packed_reader.gets()
+            level.textures.append(texture)
+    else:
+        for texture_index in range(textures_count):
+            texture = packed_reader.gets().split(':')[-1]
+            level.textures.append(texture)

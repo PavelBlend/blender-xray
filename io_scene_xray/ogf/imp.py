@@ -434,7 +434,7 @@ def read_indices_v3(data, visual):
 
 def read_vertices_v3(data, visual, level):
     packed_reader = xray_io.PackedReader(data)
-    vb = level_vb.import_vertex_buffer_d3d7(packed_reader, level.xrlc_version)
+    vb = level_vb.import_vertex_buffer_d3d7(packed_reader, level.xrlc_version, level.usage_list)
     visual.vertices = vb.position
     visual.normals = vb.normal
     visual.uvs = vb.uv
@@ -506,8 +506,12 @@ def import_children_l(data, visual, level, visual_type):
 def import_hierrarhy_visual(chunks, visual, level):
     if visual.format_version == fmt.FORMAT_VERSION_4:
         chunks_ids = fmt.Chunks_v4
-    elif visual.format_version == fmt.FORMAT_VERSION_3:
-        chunks_ids = fmt.Chunks_v3
+    elif visual.format_version in (fmt.FORMAT_VERSION_3, fmt.FORMAT_VERSION_2):
+
+        if visual.format_version == fmt.FORMAT_VERSION_3:
+            chunks_ids = fmt.Chunks_v3
+        else:
+            chunks_ids = fmt.Chunks_v2
 
         # bbox
         bbox_data = chunks.pop(chunks_ids.BBOX)
@@ -577,9 +581,12 @@ def import_geometry(chunks, visual, level):
             visual.fastpath = False
         del fastpath_data
 
-    elif visual.format_version == fmt.FORMAT_VERSION_3:
+    elif visual.format_version in (fmt.FORMAT_VERSION_3, fmt.FORMAT_VERSION_2):
 
-        chunks_ids = fmt.Chunks_v3
+        if visual.format_version == fmt.FORMAT_VERSION_3:
+            chunks_ids = fmt.Chunks_v3
+        else:
+            chunks_ids = fmt.Chunks_v2
 
         # bbox
         bbox_data = chunks.pop(chunks_ids.BBOX)
@@ -965,6 +972,39 @@ def import_model_v3(chunks, visual, level):
         import_texture_and_shader_v3(visual, level, texture_l_data)
         bpy_obj = import_normal_visual(chunks, visual, level)
 
+    elif visual.model_type == fmt.ModelType_v3.PROGRESSIVE2:
+        ####################################################
+        # DELETE
+        ####################################################
+        bpy_obj = bpy.data.objects.new('PROGRESSIVE2', None)
+        bpy.context.scene.collection.objects.link(bpy_obj)
+        visual.name = 'progressive'
+
+    else:
+        raise BaseException('unsupported model type: 0x{:x}'.format(
+            visual.model_type
+        ))
+
+    data = bpy_obj.xray
+    data.is_ogf = True
+
+    scene_collection = bpy.context.scene.collection
+    collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
+    collection = level.collections[collection_name]
+    collection.objects.link(bpy_obj)
+    scene_collection.objects.unlink(bpy_obj)
+    level.visuals.append(bpy_obj)
+
+
+def import_model_v2(chunks, visual, level):
+    chunks_ids = fmt.Chunks_v2
+    if visual.model_type == fmt.ModelType_v2.NORMAL:
+        texture_l_data = chunks.pop(chunks_ids.TEXTURE_L)
+        import_texture_and_shader_v3(visual, level, texture_l_data)
+        bpy_obj = import_normal_visual(chunks, visual, level)
+
+    elif visual.model_type == fmt.ModelType_v2.HIERRARHY:
+        bpy_obj = import_hierrarhy_visual(chunks, visual, level)
     else:
         raise BaseException('unsupported model type: 0x{:x}'.format(
             visual.model_type
@@ -1007,7 +1047,7 @@ def import_header(data, visual):
         visual.shader_id = packed_reader.getf('<H')[0]
         import_bounding_box(packed_reader)
         import_bounding_sphere(packed_reader)
-    elif visual.format_version == fmt.FORMAT_VERSION_3:
+    elif visual.format_version in (fmt.FORMAT_VERSION_3, fmt.FORMAT_VERSION_2):
         visual.model_type = packed_reader.getf('<B')[0]
         shader_id = packed_reader.getf('<H')[0]    # unused
 
@@ -1015,10 +1055,20 @@ def import_header(data, visual):
 def import_main(chunks, visual, level):
     header_chunk_data = chunks.pop(fmt.HEADER)
     import_header(header_chunk_data, visual)
+    key = []
+    for chunk_id in chunks.keys():
+        key.append(fmt.chunks_names_v4[chunk_id])
+    key.append('HEADER')
+    key.sort()
+    key.insert(0, fmt.model_type_names_v4[visual.model_type])
+    key = tuple(key)
+    level.visual_keys.add(key)
     if visual.format_version == fmt.FORMAT_VERSION_4:
         import_model_v4(chunks, visual, level)
     elif visual.format_version == fmt.FORMAT_VERSION_3:
         import_model_v3(chunks, visual, level)
+    elif visual.format_version == fmt.FORMAT_VERSION_2:
+        import_model_v2(chunks, visual, level)
 
 
 def get_ogf_chunks(data):

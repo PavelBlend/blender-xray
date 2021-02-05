@@ -28,6 +28,8 @@ class Level(object):
         self.visuals = []
         self.collections = {}
         self.sectors_objects = {}
+        self.visual_keys = set()
+        self.stats = ''
 
 
 def create_sector_object(sector_id, collection, sectors_object):
@@ -484,6 +486,8 @@ def import_level(level, context, chunks, geomx_chunks):
         chunks_ids = fmt.Chunks8
     elif level.xrlc_version == fmt.VERSION_5:
         chunks_ids = fmt.Chunks5
+    elif level.xrlc_version == fmt.VERSION_4:
+        chunks_ids = fmt.Chunks4
     shaders_chunk_data = chunks.pop(chunks_ids.SHADERS)
     level.materials = shaders.import_shaders(level, context, shaders_chunk_data)
     del shaders_chunk_data
@@ -501,9 +505,10 @@ def import_level(level, context, chunks, geomx_chunks):
     if not vb_chunk_data and level.xrlc_version == fmt.VERSION_9:
         directx_3d_7_mode = True
         vb_chunk_data = chunks.pop(chunks_ids.VB_OLD)
-    level.vertex_buffers = vb.import_vertex_buffers(
-        vb_chunk_data, level.xrlc_version, d3d7=directx_3d_7_mode
+    level.vertex_buffers, stats = vb.import_vertex_buffers(
+        vb_chunk_data, level, fast=False, d3d7=directx_3d_7_mode
     )
+    level.stats += stats
     del vb_chunk_data
 
     if level.xrlc_version >= fmt.VERSION_9:
@@ -520,9 +525,10 @@ def import_level(level, context, chunks, geomx_chunks):
     # fastpath geometry
     if level.xrlc_version == fmt.VERSION_14:
         fastpath_vb_chunk_data = geomx_chunks.pop(chunks_ids.VB)
-        level.fastpath_vertex_buffers = vb.import_vertex_buffers(
-            fastpath_vb_chunk_data, level.xrlc_version
+        level.fastpath_vertex_buffers, stats = vb.import_vertex_buffers(
+            fastpath_vb_chunk_data, level, fast=True
         )
+        level.stats += stats
         del fastpath_vb_chunk_data
 
         fastpath_ib_chunk_data = geomx_chunks.pop(chunks_ids.IB)
@@ -595,9 +601,24 @@ def import_main(context, chunked_reader, level):
 
 
 def import_file(context, operator):
+    build = context.filepath[48 : 48 + 4]
+    index = context.filepath[36 : 36 + 2]
     level = Level()
     level.context = context
+    level.usage_list = set()
     chunked_reader = level_utils.get_level_reader(context.filepath)
     level.name = level_utils.get_level_name(context.filepath)
+    print(build, index, level.name)
     level.path = os.path.dirname(context.filepath)
     import_main(context, chunked_reader, level)
+    stats = '\nOGFs Info:\n'
+    for key in level.visual_keys:
+        stats += '  ' + key[0] + ': ' + ' '.join(key[1:]) + '\n'
+    level.stats += stats
+    temp_folder = 'D:\\stalker\\_TEMP\\'
+    stats_name = '{0:0>2}_{1}_{2}_{3}.txt'.format(
+        level.xrlc_version, build, level.name, index
+    )
+    stats_path = os.path.join(temp_folder, stats_name)
+    with open(stats_path, 'w') as stats_file:
+        stats_file.write(level.stats)

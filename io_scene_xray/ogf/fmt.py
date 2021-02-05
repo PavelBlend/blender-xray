@@ -55,6 +55,16 @@ class Chunks_v3:
     S_MOTION_REFS = 0x1D    # build 1842
 
 
+class Chunks_v2:
+    TEXTURE_L = 0x3
+    BBOX = 0x6
+    INDICES = 0x8
+    VCONTAINER = 0xb
+    ICONTAINER = 0xffff    # 0xffff - unknown value (replace)
+    BSPHERE = 0xc
+    CHILDREN_L = 0xd
+
+
 class ModelType_v4:
     NORMAL = 0x0
     HIERRARHY = 0x1
@@ -88,6 +98,11 @@ class ModelType_v3:
     SKELETON_RIGID = 0xf    # CSkeletonRigid 1844
 
 
+class ModelType_v2:
+    NORMAL = 0x0
+    HIERRARHY = 0x1
+
+
 class VertexFormat:
     FVF_1L = 1 * 0x12071980
     FVF_2L = 2 * 0x12071980
@@ -99,4 +114,44 @@ class VertexFormat:
 
 FORMAT_VERSION_4 = 4
 FORMAT_VERSION_3 = 3
-SUPPORT_FORMAT_VERSIONS = (FORMAT_VERSION_4, FORMAT_VERSION_3)
+FORMAT_VERSION_2 = 2
+SUPPORT_FORMAT_VERSIONS = (FORMAT_VERSION_4, FORMAT_VERSION_3, FORMAT_VERSION_2)
+
+# chunk names
+chunks_names_v4 = {
+    Chunks_v4.TEXTURE: 'TEXTURE',
+    Chunks_v4.VERTICES: 'VERTICES',
+    Chunks_v4.INDICES: 'INDICES',
+    Chunks_v4.SWIDATA: 'SWIDATA',
+    Chunks_v4.VCONTAINER: 'VCONTAINER',
+    Chunks_v4.ICONTAINER: 'ICONTAINER',
+    Chunks_v4.CHILDREN: 'CHILDREN',
+    Chunks_v4.CHILDREN_L: 'CHILDREN_L',
+    Chunks_v4.LODDEF2: 'LODDEF2',
+    Chunks_v4.TREEDEF2: 'TREEDEF2',
+    Chunks_v4.S_BONE_NAMES: 'S_BONE_NAMES',
+    Chunks_v4.S_MOTIONS: 'S_MOTIONS',
+    Chunks_v4.S_SMPARAMS: 'S_SMPARAMS',
+    Chunks_v4.S_IKDATA: 'S_IKDATA',
+    Chunks_v4.S_USERDATA: 'S_USERDATA',
+    Chunks_v4.S_DESC: 'S_DESC',
+    Chunks_v4.S_MOTION_REFS_0: 'S_MOTION_REFS_0',
+    Chunks_v4.SWICONTAINER: 'SWICONTAINER',
+    Chunks_v4.GCONTAINER: 'GCONTAINER',
+    Chunks_v4.FASTPATH: 'FASTPATH'
+}
+
+model_type_names_v4 = {
+    ModelType_v4.NORMAL: 'NORMAL',
+    ModelType_v4.HIERRARHY: 'HIERRARHY',
+    ModelType_v4.PROGRESSIVE: 'PROGRESSIVE',
+    ModelType_v4.SKELETON_ANIM: 'SKELETON_ANIM',
+    ModelType_v4.SKELETON_GEOMDEF_PM: 'SKELETON_GEOMDEF_PM',
+    ModelType_v4.SKELETON_GEOMDEF_ST: 'SKELETON_GEOMDEF_ST',
+    ModelType_v4.LOD: 'LOD',
+    ModelType_v4.TREE_ST: 'TREE_ST',
+    ModelType_v4.PARTICLE_EFFECT: 'PARTICLE_EFFECT',
+    ModelType_v4.PARTICLE_GROUP: 'PARTICLE_GROUP',
+    ModelType_v4.SKELETON_RIGID: 'SKELETON_RIGID',
+    ModelType_v4.TREE_PM: 'TREE_PM'
+}
