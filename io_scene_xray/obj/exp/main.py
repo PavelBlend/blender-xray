@@ -222,7 +222,7 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
                     if tex_node.image:
                         if context.texname_from_path:
                             tx_name = utils.gen_texture_name(
-                                tex_node, context.textures_folder
+                                tex_node.image, context.textures_folder
                             )
                             if tex_node.type == 'TEX_ENVIRONMENT':
                                 log.warn(
@@ -243,7 +243,7 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
             if material.active_texture:
                 if context.texname_from_path:
                     tx_name = utils.gen_texture_name(
-                        material.active_texture, context.textures_folder
+                        material.active_texture.image, context.textures_folder
                     )
                 else:
                     tx_name = material.active_texture.name

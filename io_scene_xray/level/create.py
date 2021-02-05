@@ -2,7 +2,7 @@ import os
 
 import bpy, mathutils
 
-from . import utils as level_utils
+from . import utils as level_utils, fmt
 from .. import version_utils
 from .. import utils
 
@@ -113,41 +113,6 @@ def link_nodes(bpy_material, input_, output):
     links.new(input_, output)
 
 
-def create_shader_lmaps_nodes(bpy_material, bpy_image_lmaps, offset):
-    image_nodes = []
-    offset_y = offset.y - 200.0
-    for lmap_index, lmap in enumerate(bpy_image_lmaps):
-        if not lmap:
-            continue
-        image_node = bpy_material.node_tree.nodes.new('ShaderNodeTexImage')
-        image_name = 'Light Map {}'.format(lmap_index)
-        image_node.name = image_name
-        image_node.label = image_name
-        image_node.select = False
-        image_node.image = lmap
-        offset_y -= 350.0
-        image_node.location = (offset.x, offset_y)
-        image_nodes.append(image_node)
-    return image_nodes
-
-
-def create_shader_vertex_colors_nodes(bpy_material, vertex_colors_names, offset):
-    vertex_colors_nodes = []
-    offset_y = offset.y - 500.0
-    for vertex_color_name in vertex_colors_names:
-        if version_utils.IS_281:
-            vertex_colors_node = bpy_material.node_tree.nodes.new('ShaderNodeVertexColor')
-            vertex_colors_node.layer_name = vertex_color_name
-        else:
-            vertex_colors_node = bpy_material.node_tree.nodes.new('ShaderNodeAttribute')
-            vertex_colors_node.attribute_name = vertex_color_name
-        vertex_colors_node.select = False
-        offset_y -= 200.0
-        vertex_colors_node.location = (offset.x, offset_y)
-        vertex_colors_nodes.append(vertex_colors_node)
-    return vertex_colors_nodes
-
-
 def create_shader_output_node(bpy_material, offset):
     output_node = bpy_material.node_tree.nodes.new('ShaderNodeOutputMaterial')
     output_node.select = False
@@ -167,44 +132,13 @@ def create_shader_principled_node(bpy_material, offset):
     return principled_node
 
 
-def create_shader_uv_map_texture_node(
-        bpy_material, bpy_image_lmaps, offset
-    ):
-
+def create_shader_uv_map_texture_node(bpy_material, offset):
     uv_map_node = bpy_material.node_tree.nodes.new('ShaderNodeUVMap')
     offset_y = offset.y - 200.0
     uv_map_node.location = offset.x, offset_y
     uv_map_node.uv_map = 'Texture'
     uv_map_node.select = False
     return uv_map_node
-
-
-def create_shader_uv_map_lmap_node(
-        bpy_material, bpy_image_lmaps, offset
-    ):
-
-    uv_map_node = bpy_material.node_tree.nodes.new('ShaderNodeUVMap')
-    offset_y = offset.y - 600.0
-    uv_map_node.location = offset.x, offset_y
-    uv_map_node.uv_map = 'Light Map'
-    uv_map_node.select = False
-    return uv_map_node
-
-
-def create_shader_uv_map_nodes(
-        bpy_material, bpy_image_lmaps, offset
-    ):
-
-    uv_map_node = create_shader_uv_map_texture_node(
-        bpy_material, bpy_image_lmaps, offset
-    )
-    if bpy_image_lmaps:
-        uv_map_lmap_node = create_shader_uv_map_lmap_node(
-            bpy_material, bpy_image_lmaps, offset
-        )
-    else:
-        uv_map_lmap_node = None
-    return uv_map_node, uv_map_lmap_node
 
 
 def create_shader_image_node(bpy_material, bpy_image, offset):
@@ -219,247 +153,46 @@ def create_shader_image_node(bpy_material, bpy_image, offset):
     return image_node
 
 
-def create_shader_mix_rgb_lmap_nodes(bpy_material, offset, bpy_image_lmaps):
-    nodes = []
-    # lights + hemi node
-    light_hemi_node = bpy_material.node_tree.nodes.new('ShaderNodeMixRGB')
-    light_hemi_node.select = False
-    offset.x += 400.0
-    light_hemi_node.location = offset
-    light_hemi_node.label = 'Light + Hemi'
-    light_hemi_node.blend_type = 'ADD'
-    nodes.append(light_hemi_node)
-    light_hemi_node.inputs['Fac'].default_value = 1.0
-    # + shadows
-    shadows_node = bpy_material.node_tree.nodes.new('ShaderNodeMixRGB')
-    shadows_node.select = False
-    offset.x += 400.0
-    shadows_node.location = offset
-    shadows_node.label = '+ Sun'
-    shadows_node.blend_type = 'ADD'
-    nodes.append(shadows_node)
-    shadows_node.inputs['Fac'].default_value = 1.0
-    # + ambient
-    ambient_node = bpy_material.node_tree.nodes.new('ShaderNodeMixRGB')
-    ambient_node.select = False
-    offset.x += 400.0
-    ambient_node.location = offset
-    ambient_node.label = '+ Ambient'
-    ambient_node.blend_type = 'ADD'
-    if bpy_image_lmaps:
-        ambient_color = (0.2, 0.2, 0.2, 1.0)
-    else:   # trees has no light maps
-        ambient_color = (0.75, 0.75, 0.75, 1.0)
-    ambient_node.inputs['Color2'].default_value = ambient_color
-    nodes.append(ambient_node)
-    ambient_node.inputs['Fac'].default_value = 1.0
-    # + light maps
-    light_maps_node = bpy_material.node_tree.nodes.new('ShaderNodeMixRGB')
-    light_maps_node.select = False
-    offset.x += 400.0
-    light_maps_node.location = offset
-    light_maps_node.label = '+ Light Maps'
-    light_maps_node.blend_type = 'MULTIPLY'
-    nodes.append(light_maps_node)
-    light_maps_node.inputs['Fac'].default_value = 1.0
-    return nodes
-
-
-def create_shader_mix_rgb_nodes(bpy_material, offset, bpy_image_lmaps):
-    nodes = create_shader_mix_rgb_lmap_nodes(bpy_material, offset, bpy_image_lmaps)
-    return nodes
-
-
 def links_nodes(
         bpy_material, output_node, principled_node, image_node,
-        uv_map_nodes, lights_nodes, mix_rgb_nodes
-    ):
-
-    link_nodes(
-        bpy_material,
-        uv_map_nodes[0].outputs['UV'],
-        image_node.inputs['Vector']
-    )
-    if uv_map_nodes[1]:    # light map uv
-        for lmap_image_node in lights_nodes:
-            link_nodes(
-                bpy_material,
-                uv_map_nodes[1].outputs['UV'],
-                lmap_image_node.inputs['Vector']
-            )
-        # brush light maps links
-        if len(lights_nodes) == 2:
-            link_nodes(
-                bpy_material,
-                lights_nodes[0].outputs['Color'],
-                mix_rgb_nodes[0].inputs['Color1']
-            )
-            link_nodes(
-                bpy_material,
-                lights_nodes[1].outputs['Color'],
-                mix_rgb_nodes[0].inputs['Color2']
-            )
-            link_nodes(
-                bpy_material,
-                mix_rgb_nodes[0].outputs['Color'],
-                mix_rgb_nodes[1].inputs['Color1']
-            )
-            link_nodes(
-                bpy_material,
-                lights_nodes[0].outputs['Alpha'],
-                mix_rgb_nodes[1].inputs['Color2']
-            )
-            link_nodes(
-                bpy_material,
-                mix_rgb_nodes[1].outputs['Color'],
-                mix_rgb_nodes[2].inputs['Color1']
-            )
-            link_nodes(
-                bpy_material,
-                image_node.outputs['Color'],
-                mix_rgb_nodes[3].inputs['Color1']
-            )
-            link_nodes(
-                bpy_material,
-                mix_rgb_nodes[2].outputs['Color'],
-                mix_rgb_nodes[3].inputs['Color2']
-            )
-            link_nodes(
-                bpy_material,
-                mix_rgb_nodes[3].outputs['Color'],
-                principled_node.inputs['Base Color']
-            )
-        elif len(lights_nodes) == 1:
-            # static lights
-            link_nodes(
-                bpy_material,
-                lights_nodes[0].outputs['Color'],
-                mix_rgb_nodes[0].inputs['Color1']
-            )
-            # hemi
-            link_nodes(
-                bpy_material,
-                image_node.outputs['Alpha'],
-                mix_rgb_nodes[0].inputs['Color2']
-            )
-            link_nodes(
-                bpy_material,
-                mix_rgb_nodes[0].outputs['Color'],
-                mix_rgb_nodes[1].inputs['Color1']
-            )
-            # shadows
-            link_nodes(
-                bpy_material,
-                lights_nodes[0].outputs['Alpha'],
-                mix_rgb_nodes[1].inputs['Color2']
-            )
-            # ambient
-            link_nodes(
-                bpy_material,
-                mix_rgb_nodes[1].outputs['Color'],
-                mix_rgb_nodes[2].inputs['Color1']
-            )
-            # light map + texture
-            link_nodes(
-                bpy_material,
-                image_node.outputs['Color'],
-                mix_rgb_nodes[3].inputs['Color1']
-            )
-            link_nodes(
-                bpy_material,
-                mix_rgb_nodes[2].outputs['Color'],
-                mix_rgb_nodes[3].inputs['Color2']
-            )
-            link_nodes(
-                bpy_material,
-                mix_rgb_nodes[3].outputs['Color'],
-                principled_node.inputs['Base Color']
-            )
-    else:    # vertex colors
-        link_nodes(
-            bpy_material,
-            lights_nodes[0].outputs['Color'],
-            mix_rgb_nodes[0].inputs['Color1']
-        )
-        link_nodes(
-            bpy_material,
-            lights_nodes[1].outputs['Color'],
-            mix_rgb_nodes[0].inputs['Color2']
-        )
-        link_nodes(
-            bpy_material,
-            mix_rgb_nodes[0].outputs['Color'],
-            mix_rgb_nodes[1].inputs['Color1']
-        )
-        link_nodes(
-            bpy_material,
-            lights_nodes[2].outputs['Color'],
-            mix_rgb_nodes[1].inputs['Color2']
-        )
-        link_nodes(
-            bpy_material,
-            mix_rgb_nodes[1].outputs['Color'],
-            mix_rgb_nodes[2].inputs['Color1']
-        )
-        link_nodes(
-            bpy_material,
-            image_node.outputs['Color'],
-            mix_rgb_nodes[3].inputs['Color1']
-        )
-        link_nodes(
-            bpy_material,
-            mix_rgb_nodes[2].outputs['Color'],
-            mix_rgb_nodes[3].inputs['Color2']
-        )
-        link_nodes(
-            bpy_material,
-            mix_rgb_nodes[3].outputs['Color'],
-            principled_node.inputs['Base Color']
-        )
-
-    if lights_nodes:
-        if len(lights_nodes) != 1:    # != terrain
-            link_nodes(
-                bpy_material,
-                image_node.outputs['Alpha'],
-                principled_node.inputs['Alpha']
-            )
-    else:
-        link_nodes(
-            bpy_material,
-            image_node.outputs['Alpha'],
-            principled_node.inputs['Alpha']
-        )
+        uv_map_node, lmap_count
+        ):
     link_nodes(
         bpy_material,
         principled_node.outputs['BSDF'],
         output_node.inputs['Surface']
     )
+    link_nodes(
+        bpy_material,
+        image_node.outputs['Color'],
+        principled_node.inputs['Base Color']
+    )
+    link_nodes(
+        bpy_material,
+        uv_map_node.outputs['UV'],
+        image_node.inputs['Vector']
+    )
+    if lmap_count != 1:    # != terrain
+        link_nodes(
+            bpy_material,
+            image_node.outputs['Alpha'],
+            principled_node.inputs['Alpha']
+        )
 
 
-def create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps):
+def create_shader_nodes(level, bpy_material, bpy_image, bpy_image_lmaps):
     offset = mathutils.Vector((-1000.0, 0.0))
-    uv_map_nodes = create_shader_uv_map_nodes(
-            bpy_material, bpy_image_lmaps, offset
-    )
+    uv_map_node = create_shader_uv_map_texture_node(bpy_material, offset)
     image_node = create_shader_image_node(bpy_material, bpy_image, offset)
-    if bpy_image_lmaps:
-        lights_nodes = create_shader_lmaps_nodes(
-            bpy_material, bpy_image_lmaps, offset
-        )
-    else:    # vertex colors
-        vertex_colors_names = ('Light', 'Hemi', 'Sun')
-        lights_nodes = create_shader_vertex_colors_nodes(
-            bpy_material, vertex_colors_names, offset
-        )
-    mix_rgb_nodes = create_shader_mix_rgb_nodes(
-        bpy_material, offset, bpy_image_lmaps
-    )
     principled_node = create_shader_principled_node(bpy_material, offset)
     output_node = create_shader_output_node(bpy_material, offset)
+    if bpy_image_lmaps:
+        lmaps_count = len(bpy_image_lmaps)
+    else:
+        lmaps_count = 0
     links_nodes(
         bpy_material, output_node, principled_node, image_node,
-        uv_map_nodes, lights_nodes, mix_rgb_nodes
+        uv_map_node, lmaps_count
     )
 
 
@@ -485,11 +218,13 @@ def create_empty_image(texture, absolute_image_path):
     bpy_image = bpy.data.images.new(add_extension_to_texture(texture), 0, 0)
     bpy_image.source = 'FILE'
     bpy_image.filepath = absolute_image_path
+    bpy_image.alpha_mode = 'STRAIGHT'
     return bpy_image
 
 
 def load_image(absolute_texture_path):
     bpy_image = bpy.data.images.load(absolute_texture_path)
+    bpy_image.alpha_mode = 'STRAIGHT'
     return bpy_image
 
 
@@ -498,7 +233,17 @@ def load_image_from_level_folder(context, texture):
     absolute_texture_path = get_absolute_texture_path(
         level_dir, texture
     )
-    bpy_image = load_image(absolute_texture_path)
+    try:
+        bpy_image = load_image(absolute_texture_path)
+    except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+        absolute_texture_path = get_absolute_texture_path(
+            context.textures_folder, texture
+        )
+        try:
+            bpy_image = load_image(absolute_texture_path)
+        except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+            context.operator.report({'WARNING'}, str(ex))
+            bpy_image = create_empty_image(texture, absolute_texture_path)
     return bpy_image
 
 
@@ -552,14 +297,14 @@ def get_image_lmap(context, light_maps):
     light_maps_count = len(light_maps)
     if light_maps_count == 1:
         image_lmap = get_image_lmap_terrain(context, light_maps[0])
-        return image_lmap, None
+        return (image_lmap, )
     elif light_maps_count == 2:
         image_lmap_1, image_lmap_2 = get_image_lmap_brush(context, *light_maps)
-        return image_lmap_1, image_lmap_2
+        return (image_lmap_1, image_lmap_2)
 
 
-def get_image(context, texture, light_maps):
-    if len(light_maps) == 1:
+def get_image(context, texture, light_maps, terrain=False):
+    if terrain:
         # level dir (terrain texture)
         texture_dir = level_utils.get_level_dir(context.filepath)
     else:
@@ -575,22 +320,25 @@ def get_image(context, texture, light_maps):
 
 def is_same_light_maps(context, bpy_material, light_maps):
     has_images = []
-    for light_map in light_maps:
+    for index, light_map in enumerate(light_maps):
         level_dir = level_utils.get_level_dir(context.filepath)
         absolute_texture_path_in_level_folder = get_absolute_texture_path(
             level_dir, light_map
         )
         has_correct_lmap_image = False
-        for node in bpy_material.node_tree.nodes:
-            if node.type in utils.IMAGE_NODES:
-                bpy_image = node.image
-                if not bpy_image:
-                    continue
-                if not is_same_image_paths(
-                        bpy_image, absolute_texture_path_in_level_folder
-                    ):
-                    continue
-                has_correct_lmap_image = True
+        node_name = getattr(bpy_material.xray, 'lmap_{}'.format(index))
+        node = bpy_material.node_tree.nodes.get(node_name)
+        if not node:
+            continue
+        if node.type == 'TEX_IMAGE':
+            bpy_image = node.image
+            if not bpy_image:
+                continue
+            if not is_same_image_paths(
+                    bpy_image, absolute_texture_path_in_level_folder
+                ):
+                continue
+            has_correct_lmap_image = True
         if has_correct_lmap_image:
             has_images.append(has_correct_lmap_image)
     if len(has_images) == len(light_maps):
@@ -637,22 +385,38 @@ def set_material_settings(bpy_material):
     bpy_material.blend_method = 'CLIP'
 
 
-def create_material(context, texture, engine_shader, *light_maps):
+def create_material(level, context, texture, engine_shader, *light_maps):
     bpy_material = bpy.data.materials.new(name=texture)
     bpy_material.xray.version = context.version
     bpy_material.xray.eshader = engine_shader
-    set_material_settings(bpy_material)
-    bpy_image = get_image(context, texture, light_maps)
+    bpy_material.xray.uv_texture = 'Texture'
+    if len(light_maps) == 1 and level.xrlc_version >= fmt.VERSION_13:
+        bpy_image = get_image(context, texture, light_maps, terrain=True)
+    else:
+        bpy_image = get_image(context, texture, light_maps)
     bpy_image_lmaps = get_image_lmap(context, light_maps)
+    if bpy_image_lmaps:
+        bpy_material.xray.uv_light_map = 'Light Map'
+        for index, light_map_image in enumerate(bpy_image_lmaps):
+            setattr(
+                bpy_material.xray,
+                'lmap_{}'.format(index),
+                light_map_image.name
+            )
+    else:
+        bpy_material.xray.light_vert_color = 'Light'
+        bpy_material.xray.sun_vert_color = 'Sun'
+    bpy_material.xray.hemi_vert_color = 'Hemi'
+    set_material_settings(bpy_material)
     remove_default_shader_nodes(bpy_material)
-    create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps)
+    create_shader_nodes(level, bpy_material, bpy_image, bpy_image_lmaps)
     return bpy_material
 
 
-def get_material(context, texture, engine_shader, *light_maps):
+def get_material(level, context, texture, engine_shader, *light_maps):
     bpy_material = search_material(context, texture, engine_shader, *light_maps)
     if not bpy_material:
         bpy_material = create_material(
-            context, texture, engine_shader, *light_maps
+            level, context, texture, engine_shader, *light_maps
         )
     return bpy_material

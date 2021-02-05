@@ -3,7 +3,7 @@ import bpy
 import mathutils
 
 from ..xray_io import ChunkedWriter, PackedWriter
-from .fmt import Chunks, ModelType, VertexFormat
+from .fmt import Chunks_v4, ModelType_v4, VertexFormat
 from ..utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
     fix_ensure_lookup_table, convert_object_to_space_bmesh, \
     calculate_mesh_bbox, gen_texture_name
@@ -140,7 +140,7 @@ def _export_child(bpy_obj, cwriter, context, vgm):
         Chunks.TEXTURE,
         PackedWriter()
         .puts(
-            gen_texture_name(texture, context.textures_folder)
+            gen_texture_name(texture.image, context.textures_folder)
             if context.texname_from_path else
             texture.name
         )
