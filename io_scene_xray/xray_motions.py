@@ -2,10 +2,13 @@ import bpy
 from mathutils import Matrix, Euler, Quaternion
 
 from .utils import is_exportable_bone, find_bone_exportable_parent, AppError
-from .xray_envelope import Behavior, Shape, KF, EPSILON, refine_keys, export_keyframes
+from .xray_envelope import (
+    Behavior, Shape, KF, EPSILON, refine_keys, export_keyframes
+)
 from .xray_io import PackedWriter, FastBytes as fb
 from .log import warn, with_context, props as log_props
 from .version_utils import multiply, get_multiply
+from . import xray_interpolation
 
 
 MATRIX_BONE = Matrix((
@@ -17,6 +20,60 @@ MATRIX_BONE = Matrix((
 MATRIX_BONE_INVERTED = MATRIX_BONE.inverted().freeze()
 
 MOTIONS_FILTER_ALL = lambda name: True
+CURVE_COUNT = 6    # translation xyz, rotation xyz
+
+
+def interpolate_keys(fps, start, end, name, values, times, shapes, tcb):
+    interpolated_values = []
+    interpolated_times = []
+    keys_count = len(values)
+    for index, key_info in enumerate(zip(values, times, shapes, tcb)):
+        value_1, time_1, shape_1, (tension_1, continuity_1, bias_1) = key_info
+        if shape_1 != Shape.TCB:
+            raise AppError('Unsupported shape: {}'.format(shape_1.name))
+        index_2 = index + 1
+        if keys_count == 1:
+            # constant values
+            for frame_index in range(start, end + 1):
+                interpolated_values.append(value_1)
+                interpolated_times.append(frame_index)
+            continue
+        if index_2 >= keys_count:
+            interpolated_values.append(value_1)
+            interpolated_times.append(int(round(time_1, 0)))
+            continue
+        value_2 = values[index_2]
+        time_2 = times[index_2]
+        shape_2 = shapes[index_2]
+        tension_2, continuity_2, bias_2 = tcb[index_2]
+        if index > 0:
+            prev_time = times[index - 1]
+            prev_value = values[index - 1]
+        else:
+            prev_time = None
+            prev_value = None
+        index_next = index_2 + 1
+        if index_next < keys_count:
+            next_time = times[index_next]
+            next_value = values[index_next]
+        else:
+            next_time = None
+            next_value = None
+        start_frame = int(round(time_1, 0))
+        end_frame = int(round(time_2, 0))
+        for frame_index in range(start_frame, end_frame):
+            interpolated_value = xray_interpolation.evaluate_tcb(
+                time_1, value_1, tension_1, continuity_1, bias_1,
+                time_2, value_2, tension_2, continuity_2, bias_2,
+                prev_time, prev_value, next_time, next_value, frame_index
+            )
+            interpolated_values.append(interpolated_value)
+            interpolated_times.append(frame_index)
+    return interpolated_values, interpolated_times
+
+
+def convert_u16_to_float(u16_value, min_value, max_value):
+    return (u16_value * (max_value - min_value)) / 65535 + min_value
 
 
 @with_context('import-motion')
@@ -31,7 +88,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
     act = bpy.data.actions.new(name=name)
     act.use_fake_user = True
     xray = act.xray
-    reader.getf('II')  # range
+    start_frame, end_frame = reader.getf('II')  # range
     fps, ver = reader.getf('fH')
     xray.fps = fps
     if ver < 6:
@@ -61,82 +118,156 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
     xray.speed, xray.accrue, xray.falloff, xray.power = reader.getf('<ffff')
     multiply = get_multiply()
     for _bone_idx in range(reader.getf('H')[0]):
-        tmpfc = [act.fcurves.new('temp', index=i) for i in range(6)]
-        try:
-            times = {}
-            bname = reader.gets()
-            flags = reader.getf('B')[0]
-            if flags != 0:
-                warn('bone has non-zero flags', bone=bname, flags=flags)
-            for fcurve in tmpfc:
-                behaviors = reader.getf('BB')
-                if (behaviors[0] != 1) or (behaviors[1] != 1):
-                    warn('bone has different behaviors', bode=bname, behaviors=behaviors)
-                for _keyframe_idx in range(reader.getf('H')[0]):
-                    val = reader.getf('f')[0]
-                    time = reader.getf('f')[0] * fps
-                    times[time] = True
-                    key_frame = fcurve.keyframe_points.insert(time, val)
-                    shape = Shape(reader.getf('B')[0])
-                    if shape != Shape.STEPPED:
-                        reader.getf('HHH')
-                        reader.getf('HHHH')
-                    else:
-                        key_frame.interpolation = 'CONSTANT'
-            bpy_bone = bpy_armature.data.bones.get(bname, None)
+        bname = reader.gets()
+        flags = reader.getf('B')[0]
+        if flags != 0:
+            warn('bone has non-zero flags', bone=bname, flags=flags)
+        curves = [None, ] * CURVE_COUNT
+        used_times = set()
+        has_interpolate = False
+        for curve_index in range(CURVE_COUNT):
+            values = []
+            times = []
+            shapes = []
+            tcb = []
+            use_interpolate = False
+            converted_shapes = []
+            behaviors = reader.getf('BB')
+            if (behaviors[0] != 1) or (behaviors[1] != 1):
+                warn('bone has different behaviors', bode=bname, behaviors=behaviors)
+            for _keyframe_idx in range(reader.getf('H')[0]):
+                val = reader.getf('f')[0]
+                time = reader.getf('f')[0] * fps
+                shape = Shape(reader.getf('B')[0])
+                values.append(val)
+                times.append(time)
+                shapes.append(shape)
+                used_times.add(time)
+                if shape != Shape.STEPPED:
+                    tension, continuity, bias = reader.getf('HHH')
+                    reader.getf('HHHH')
+                    tcb.append((
+                        convert_u16_to_float(tension, -32.0, 32.0),
+                        convert_u16_to_float(continuity, -32.0, 32.0),
+                        convert_u16_to_float(bias, -32.0, 32.0)
+                    ))
+                    use_interpolate = True
+                    has_interpolate = True
+                    converted_shapes.append(shape)
+                else:
+                    tcb.append((None, None, None))
+            if use_interpolate:
+                curve_end_time = int(round(times[-1], 0))
+                if curve_end_time < end_frame and curve_end_time:
+                    times.append(end_frame)
+                    values.append(values[-1])
+                    shapes.append(shapes[-1])
+                    tcb.append(tcb[-1])
+                values, times = interpolate_keys(fps, start_frame, end_frame, name, values, times, shapes, tcb)
+                for shape in converted_shapes:
+                    warn(
+                        'motion shape converted from {} to STEPPED'.format(
+                            shape.name
+                        ),
+                        motion=name,
+                        bone=bname
+                    )
+            curves[curve_index] = values, times
+        used_times = set()
+        if not has_interpolate:
+            tmpfc = [act.fcurves.new('temp', index=i) for i in range(6)]
+            for curve_index in range(CURVE_COUNT):
+                fcurve = tmpfc[curve_index]
+                for value, time in zip(*curves[curve_index]):
+                    key_frame = fcurve.keyframe_points.insert(time, value)
+                    key_frame.interpolation = 'CONSTANT'
+                    used_times.add(time)
+        bpy_bone = bpy_armature.data.bones.get(bname, None)
+        if bpy_bone is None:
+            bpy_bone = bonesmap.get(bname.lower(), None)
             if bpy_bone is None:
-                bpy_bone = bonesmap.get(bname.lower(), None)
+                if bname.isdigit():
+                    bone_id = int(bname)
+                    if bone_id < len(bpy_armature.data.bones):
+                        bpy_bone = bpy_armature.data.bones[bone_id]
                 if bpy_bone is None:
                     if bname not in reported:
                         warn('bone is not found', bone=bname)
                         reported.add(bname)
                     continue
-                if bname not in reported:
-                    warn(
-                        'bone\'s reference will be replaced',
-                        bone=bname,
-                        replacement=bpy_bone.name
+            if bname not in reported:
+                warn(
+                    'bone\'s reference will be replaced',
+                    bone=bname,
+                    replacement=bpy_bone.name
+                )
+                reported.add(bname)
+            bname = bpy_bone.name
+        data_path = 'pose.bones["' + bname + '"]'
+        fcs = [
+            act.fcurves.new(data_path + '.location', index=0, action_group=bname),
+            act.fcurves.new(data_path + '.location', index=1, action_group=bname),
+            act.fcurves.new(data_path + '.location', index=2, action_group=bname),
+            act.fcurves.new(data_path + '.rotation_euler', index=0, action_group=bname),
+            act.fcurves.new(data_path + '.rotation_euler', index=1, action_group=bname),
+            act.fcurves.new(data_path + '.rotation_euler', index=2, action_group=bname)
+        ]
+        xmat = bpy_bone.matrix_local.inverted()
+        real_parent = find_bone_exportable_parent(bpy_bone)
+        if real_parent:
+            xmat = multiply(xmat, real_parent.matrix_local)
+        else:
+            xmat = multiply(xmat, MATRIX_BONE)
+        if not has_interpolate:
+            try:
+                for time in used_times:
+                    mat = multiply(
+                        xmat,
+                        Matrix.Translation((
+                            +tmpfc[0].evaluate(time),
+                            +tmpfc[1].evaluate(time),
+                            -tmpfc[2].evaluate(time),
+                        )),
+                        Euler((
+                            -tmpfc[4].evaluate(time),
+                            -tmpfc[3].evaluate(time),
+                            +tmpfc[5].evaluate(time),
+                        ), 'ZXY').to_matrix().to_4x4()
                     )
-                    reported.add(bname)
-                bname = bpy_bone.name
-            data_path = 'pose.bones["' + bname + '"]'
-            fcs = [
-                act.fcurves.new(data_path + '.location', index=0, action_group=bname),
-                act.fcurves.new(data_path + '.location', index=1, action_group=bname),
-                act.fcurves.new(data_path + '.location', index=2, action_group=bname),
-                act.fcurves.new(data_path + '.rotation_euler', index=0, action_group=bname),
-                act.fcurves.new(data_path + '.rotation_euler', index=1, action_group=bname),
-                act.fcurves.new(data_path + '.rotation_euler', index=2, action_group=bname)
-            ]
-            xmat = bpy_bone.matrix_local.inverted()
-            real_parent = find_bone_exportable_parent(bpy_bone)
-            if real_parent:
-                xmat = multiply(xmat, real_parent.matrix_local)
-            else:
-                xmat = multiply(xmat, MATRIX_BONE)
-            for time in times:
+                    trn = mat.to_translation()
+                    rot = mat.to_euler('ZXY')
+                    for i in range(3):
+                        key_frame = fcs[i + 0].keyframe_points.insert(time, trn[i])
+                        key_frame.interpolation = 'LINEAR'
+                    for i in range(3):
+                        key_frame = fcs[i + 3].keyframe_points.insert(time, rot[i])
+                        key_frame.interpolation = 'LINEAR'
+            finally:
+                for fcurve in tmpfc:
+                    act.fcurves.remove(fcurve)
+        else:
+            for index in range(end_frame - start_frame + 1):
                 mat = multiply(
                     xmat,
                     Matrix.Translation((
-                        +tmpfc[0].evaluate(time),
-                        +tmpfc[1].evaluate(time),
-                        -tmpfc[2].evaluate(time),
+                        +curves[0][0][index],
+                        +curves[1][0][index],
+                        -curves[2][0][index],
                     )),
                     Euler((
-                        -tmpfc[4].evaluate(time),
-                        -tmpfc[3].evaluate(time),
-                        +tmpfc[5].evaluate(time),
+                        -curves[4][0][index],
+                        -curves[3][0][index],
+                        +curves[5][0][index],
                     ), 'ZXY').to_matrix().to_4x4()
                 )
                 trn = mat.to_translation()
                 rot = mat.to_euler('ZXY')
                 for i in range(3):
-                    fcs[i + 0].keyframe_points.insert(time, trn[i])
+                    key_frame = fcs[i + 0].keyframe_points.insert(curves[i][1][index], trn[i])
+                    key_frame.interpolation = 'LINEAR'
                 for i in range(3):
-                    fcs[i + 3].keyframe_points.insert(time, rot[i])
-        finally:
-            for fcurve in tmpfc:
-                act.fcurves.remove(fcurve)
+                    key_frame = fcs[i + 3].keyframe_points.insert(curves[i + 3][1][index], rot[i])
+                    key_frame.interpolation = 'LINEAR'
     if ver >= 7:
         for _bone_idx in range(reader.getf('I')[0]):
             name = reader.gets_a()
