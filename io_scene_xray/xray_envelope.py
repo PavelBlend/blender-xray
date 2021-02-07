@@ -22,6 +22,15 @@ class Shape(Enum):
     BEZIER_2D = 5
 
 
+SHAPE_NAMES = {
+    0: 'TCB',
+    1: 'HERMITE',
+    2: 'BEZIER_1D',
+    3: 'LINEAR',
+    4: 'STEPPED',
+    5: 'BEZIER_2D'
+}
+
 @with_context('import-envelope')
 def import_envelope(reader, fcurve, fps, koef):
     bhv0, bhv1 = map(Behavior, reader.getf('BB'))
