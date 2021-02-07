@@ -124,6 +124,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
             warn('bone has non-zero flags', bone=bname, flags=flags)
         curves = [None, ] * CURVE_COUNT
         used_times = set()
+        has_interpolate = False
         for curve_index in range(CURVE_COUNT):
             values = []
             times = []
@@ -151,6 +152,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                         convert_u16_to_float(bias, -32.0, 32.0)
                     ))
                     use_interpolate = True
+                    has_interpolate = True
                     converted_shapes.append(shape)
                 else:
                     tcb.append((None, None, None))
@@ -171,6 +173,15 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                         bone=bname
                     )
             curves[curve_index] = values, times
+        used_times = set()
+        if not has_interpolate:
+            tmpfc = [act.fcurves.new('temp', index=i) for i in range(6)]
+            for curve_index in range(CURVE_COUNT):
+                fcurve = tmpfc[curve_index]
+                for value, time in zip(*curves[curve_index]):
+                    key_frame = fcurve.keyframe_points.insert(time, value)
+                    key_frame.interpolation = 'CONSTANT'
+                    used_times.add(time)
         bpy_bone = bpy_armature.data.bones.get(bname, None)
         if bpy_bone is None:
             bpy_bone = bonesmap.get(bname.lower(), None)
@@ -207,26 +218,56 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
             xmat = multiply(xmat, real_parent.matrix_local)
         else:
             xmat = multiply(xmat, MATRIX_BONE)
-        for index in range(end_frame - start_frame + 1):
-            mat = multiply(
-                xmat,
-                Matrix.Translation((
-                    +curves[0][0][index],
-                    +curves[1][0][index],
-                    -curves[2][0][index],
-                )),
-                Euler((
-                    -curves[4][0][index],
-                    -curves[3][0][index],
-                    +curves[5][0][index],
-                ), 'ZXY').to_matrix().to_4x4()
-            )
-            trn = mat.to_translation()
-            rot = mat.to_euler('ZXY')
-            for i in range(3):
-                fcs[i + 0].keyframe_points.insert(curves[i][1][index], trn[i])
-            for i in range(3):
-                fcs[i + 3].keyframe_points.insert(curves[i + 3][1][index], rot[i])
+        if not has_interpolate:
+            try:
+                for time in used_times:
+                    mat = multiply(
+                        xmat,
+                        Matrix.Translation((
+                            +tmpfc[0].evaluate(time),
+                            +tmpfc[1].evaluate(time),
+                            -tmpfc[2].evaluate(time),
+                        )),
+                        Euler((
+                            -tmpfc[4].evaluate(time),
+                            -tmpfc[3].evaluate(time),
+                            +tmpfc[5].evaluate(time),
+                        ), 'ZXY').to_matrix().to_4x4()
+                    )
+                    trn = mat.to_translation()
+                    rot = mat.to_euler('ZXY')
+                    for i in range(3):
+                        key_frame = fcs[i + 0].keyframe_points.insert(time, trn[i])
+                        key_frame.interpolation = 'LINEAR'
+                    for i in range(3):
+                        key_frame = fcs[i + 3].keyframe_points.insert(time, rot[i])
+                        key_frame.interpolation = 'LINEAR'
+            finally:
+                for fcurve in tmpfc:
+                    act.fcurves.remove(fcurve)
+        else:
+            for index in range(end_frame - start_frame + 1):
+                mat = multiply(
+                    xmat,
+                    Matrix.Translation((
+                        +curves[0][0][index],
+                        +curves[1][0][index],
+                        -curves[2][0][index],
+                    )),
+                    Euler((
+                        -curves[4][0][index],
+                        -curves[3][0][index],
+                        +curves[5][0][index],
+                    ), 'ZXY').to_matrix().to_4x4()
+                )
+                trn = mat.to_translation()
+                rot = mat.to_euler('ZXY')
+                for i in range(3):
+                    key_frame = fcs[i + 0].keyframe_points.insert(curves[i][1][index], trn[i])
+                    key_frame.interpolation = 'LINEAR'
+                for i in range(3):
+                    key_frame = fcs[i + 3].keyframe_points.insert(curves[i + 3][1][index], rot[i])
+                    key_frame.interpolation = 'LINEAR'
     if ver >= 7:
         for _bone_idx in range(reader.getf('I')[0]):
             name = reader.gets_a()
