@@ -3,7 +3,7 @@ from mathutils import Matrix, Euler, Quaternion
 
 from .utils import is_exportable_bone, find_bone_exportable_parent, AppError
 from .xray_envelope import (
-    Behavior, Shape, KF, EPSILON, refine_keys, export_keyframes, SHAPE_NAMES
+    Behavior, Shape, KF, EPSILON, refine_keys, export_keyframes
 )
 from .xray_io import PackedWriter, FastBytes as fb
 from .log import warn, with_context, props as log_props
@@ -29,8 +29,8 @@ def interpolate_keys(fps, start, end, name, values, times, shapes, tcb):
     keys_count = len(values)
     for index, key_info in enumerate(zip(values, times, shapes, tcb)):
         value_1, time_1, shape_1, (tension_1, continuity_1, bias_1) = key_info
-        if shape_1 != 0:    # 0 - TCB
-            raise AppError('Unsupported shape: {}'.format(SHAPE_NAMES[shape_1]))
+        if shape_1 != Shape.TCB:
+            raise AppError('Unsupported shape: {}'.format(shape_1.name))
         index_2 = index + 1
         if keys_count == 1:
             # constant values
@@ -46,7 +46,7 @@ def interpolate_keys(fps, start, end, name, values, times, shapes, tcb):
         time_2 = times[index_2]
         shape_2 = shapes[index_2]
         tension_2, continuity_2, bias_2 = tcb[index_2]
-        if index >= 0:
+        if index > 0:
             prev_time = times[index - 1]
             prev_value = values[index - 1]
         else:
@@ -130,18 +130,17 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
             shapes = []
             tcb = []
             use_interpolate = False
-            used_shapes = []
+            converted_shapes = []
             behaviors = reader.getf('BB')
             if (behaviors[0] != 1) or (behaviors[1] != 1):
                 warn('bone has different behaviors', bode=bname, behaviors=behaviors)
             for _keyframe_idx in range(reader.getf('H')[0]):
                 val = reader.getf('f')[0]
                 time = reader.getf('f')[0] * fps
-                shape_id = reader.getf('B')[0]
-                shape = Shape(shape_id)
+                shape = Shape(reader.getf('B')[0])
                 values.append(val)
                 times.append(time)
-                shapes.append(shape_id)
+                shapes.append(shape)
                 used_times.add(time)
                 if shape != Shape.STEPPED:
                     tension, continuity, bias = reader.getf('HHH')
@@ -152,16 +151,26 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                         convert_u16_to_float(bias, -32.0, 32.0)
                     ))
                     use_interpolate = True
-                    used_shapes.append(shape_id)
+                    converted_shapes.append(shape)
                 else:
                     key_frame.interpolation = 'CONSTANT'
                     tcb.append((None, None, None))
             if use_interpolate:
+                curve_end_time = int(round(times[-1], 0))
+                if curve_end_time < end_frame and curve_end_time:
+                    times.append(end_frame)
+                    values.append(values[-1])
+                    shapes.append(shapes[-1])
+                    tcb.append(tcb[-1])
                 values, times = interpolate_keys(fps, start_frame, end_frame, name, values, times, shapes, tcb)
-                for shape_id in used_shapes:
-                    warn('motion shape converted from {} to STEPPED'.format(
-                        SHAPE_NAMES[shape_id]
-                    ), motion=name, bone=bname)
+                for shape in converted_shapes:
+                    warn(
+                        'motion shape converted from {} to STEPPED'.format(
+                            shape.name
+                        ),
+                        motion=name,
+                        bone=bname
+                    )
             curves[curve_index] = values, times
         bpy_bone = bpy_armature.data.bones.get(bname, None)
         if bpy_bone is None:
