@@ -153,7 +153,6 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                     use_interpolate = True
                     converted_shapes.append(shape)
                 else:
-                    key_frame.interpolation = 'CONSTANT'
                     tcb.append((None, None, None))
             if use_interpolate:
                 curve_end_time = int(round(times[-1], 0))
@@ -208,7 +207,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
             xmat = multiply(xmat, real_parent.matrix_local)
         else:
             xmat = multiply(xmat, MATRIX_BONE)
-        for index in range(len(curves[0][0])):
+        for index in range(end_frame - start_frame + 1):
             mat = multiply(
                 xmat,
                 Matrix.Translation((
