@@ -23,7 +23,7 @@ MOTIONS_FILTER_ALL = lambda name: True
 CURVE_COUNT = 6    # translation xyz, rotation xyz
 
 
-def interpolate_keys(fps, name, values, times, shapes, tcb):
+def interpolate_keys(fps, start, end, name, values, times, shapes, tcb):
     interpolated_values = []
     interpolated_times = []
     keys_count = len(values)
@@ -32,6 +32,12 @@ def interpolate_keys(fps, name, values, times, shapes, tcb):
         if shape_1 != 0:    # 0 - TCB
             raise AppError('Unsupported shape: {}'.format(SHAPE_NAMES[shape_1]))
         index_2 = index + 1
+        if keys_count == 1:
+            # constant values
+            for frame_index in range(start, end + 1):
+                interpolated_values.append(value_1)
+                interpolated_times.append(frame_index)
+            continue
         if index_2 >= keys_count:
             interpolated_values.append(value_1)
             interpolated_times.append(int(round(time_1, 0)))
@@ -82,7 +88,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
     act = bpy.data.actions.new(name=name)
     act.use_fake_user = True
     xray = act.xray
-    reader.getf('II')  # range
+    start_frame, end_frame = reader.getf('II')  # range
     fps, ver = reader.getf('fH')
     xray.fps = fps
     if ver < 6:
@@ -151,7 +157,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                     key_frame.interpolation = 'CONSTANT'
                     tcb.append((None, None, None))
             if use_interpolate:
-                values, times = interpolate_keys(fps, name, values, times, shapes, tcb)
+                values, times = interpolate_keys(fps, start_frame, end_frame, name, values, times, shapes, tcb)
                 for shape_id in used_shapes:
                     warn('motion shape converted from {} to STEPPED'.format(
                         SHAPE_NAMES[shape_id]
@@ -161,10 +167,15 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
         if bpy_bone is None:
             bpy_bone = bonesmap.get(bname.lower(), None)
             if bpy_bone is None:
-                if bname not in reported:
-                    warn('bone is not found', bone=bname)
-                    reported.add(bname)
-                continue
+                if bname.isdigit():
+                    bone_id = int(bname)
+                    if bone_id < len(bpy_armature.data.bones):
+                        bpy_bone = bpy_armature.data.bones[bone_id]
+                if bpy_bone is None:
+                    if bname not in reported:
+                        warn('bone is not found', bone=bname)
+                        reported.add(bname)
+                    continue
             if bname not in reported:
                 warn(
                     'bone\'s reference will be replaced',
