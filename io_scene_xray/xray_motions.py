@@ -62,7 +62,7 @@ def interpolate_keys(fps, start, end, name, values, times, shapes, tcb):
         start_frame = int(round(time_1, 0))
         end_frame = int(round(time_2, 0))
         for frame_index in range(start_frame, end_frame):
-            interpolated_value = xray_interpolation.evaluate_tcb(
+            interpolated_value = xray_interpolation.evaluate(
                 shape_1.value,
                 time_1, value_1, tension_1, continuity_1, bias_1,
                 time_2, value_2, tension_2, continuity_2, bias_2,

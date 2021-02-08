@@ -32,7 +32,7 @@ def hermite(t):    # t - time
    return h1, h2, h3, h4
 
 
-def evaluate_tcb(
+def evaluate(
         k1s,
         k1t, k1v, k1ts, k1c, k1b,
         k2t, k2v, k2ts, k2c, k2b,
