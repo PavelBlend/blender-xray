@@ -82,7 +82,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
     bpy_armature = context.bpy_arm_obj
     name = reader.gets()
     bone_maps = {}
-    converted_warrnings = set()
+    converted_warrnings = []
 
     if not motions_filter(name):
         skip = _skip_motion_rest(reader.getv(), 0)
@@ -121,6 +121,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
     xray.speed, xray.accrue, xray.falloff, xray.power = reader.getf('<ffff')
     multiply = get_multiply()
     converted_shapes = []
+    converted_shapes_names = set()
     for _bone_idx in range(reader.getf('H')[0]):
         bname = reader.gets()
         flags = reader.getf('B')[0]
@@ -201,11 +202,12 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
             bname = bpy_bone.name
             bone_maps[bone_key] = bname
         for shape, motion_name, bone_name in converted_shapes:
-            converted_warrnings.add((
-                'motion shape converted from {} to STEPPED'.format(shape.name),
+            converted_warrnings.append((
+                'motion shape converted to STEPPED',
                 motion_name,
                 bone_maps[bone_name]
             ))
+            converted_shapes_names.add(shape.name)
         data_path = 'pose.bones["' + bname + '"]'
         fcs = [
             act.fcurves.new(data_path + '.location', index=0, action_group=bname),
@@ -271,8 +273,16 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                 for i in range(3):
                     key_frame = fcs[i + 3].keyframe_points.insert(curves[i + 3][1][index], rot[i])
                     key_frame.interpolation = 'LINEAR'
-    for warn_message, motion_name, bone_name in converted_warrnings:
-        warn(warn_message, motion=motion_name, bone=bone_name)
+    for warn_message, motion_name, bone_name in set(converted_warrnings):
+        keys_count = converted_warrnings.count((
+            warn_message, motion_name, bone_name
+        ))
+        warn(
+            warn_message,
+            shapes=tuple(converted_shapes_names),
+            motion=motion_name, bone=bone_name,
+            keys_count=keys_count
+        )
     if ver >= 7:
         for _bone_idx in range(reader.getf('I')[0]):
             name = reader.gets_a()
