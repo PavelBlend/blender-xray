@@ -29,7 +29,7 @@ def interpolate_keys(fps, start, end, name, values, times, shapes, tcb):
     keys_count = len(values)
     for index, key_info in enumerate(zip(values, times, shapes, tcb)):
         value_1, time_1, shape_1, (tension_1, continuity_1, bias_1) = key_info
-        if shape_1 != Shape.TCB:
+        if not shape_1 in (Shape.TCB, Shape.LINEAR):
             raise AppError('Unsupported shape: {}'.format(shape_1.name))
         index_2 = index + 1
         if keys_count == 1:
@@ -63,6 +63,7 @@ def interpolate_keys(fps, start, end, name, values, times, shapes, tcb):
         end_frame = int(round(time_2, 0))
         for frame_index in range(start_frame, end_frame):
             interpolated_value = xray_interpolation.evaluate_tcb(
+                shape_1.value,
                 time_1, value_1, tension_1, continuity_1, bias_1,
                 time_2, value_2, tension_2, continuity_2, bias_2,
                 prev_time, prev_value, next_time, next_value, frame_index
@@ -80,6 +81,8 @@ def convert_u16_to_float(u16_value, min_value, max_value):
 def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FILTER_ALL):
     bpy_armature = context.bpy_arm_obj
     name = reader.gets()
+    bone_maps = {}
+    converted_warrnings = set()
 
     if not motions_filter(name):
         skip = _skip_motion_rest(reader.getv(), 0)
@@ -117,6 +120,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
     xray.flags, xray.bonepart = reader.getf('<BH')
     xray.speed, xray.accrue, xray.falloff, xray.power = reader.getf('<ffff')
     multiply = get_multiply()
+    converted_shapes = []
     for _bone_idx in range(reader.getf('H')[0]):
         bname = reader.gets()
         flags = reader.getf('B')[0]
@@ -131,10 +135,9 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
             shapes = []
             tcb = []
             use_interpolate = False
-            converted_shapes = []
             behaviors = reader.getf('BB')
             if (behaviors[0] != 1) or (behaviors[1] != 1):
-                warn('bone has different behaviors', bode=bname, behaviors=behaviors)
+                warn('bone has different behaviors', bone=bname, behaviors=behaviors)
             for _keyframe_idx in range(reader.getf('H')[0]):
                 val = reader.getf('f')[0]
                 time = reader.getf('f')[0] * fps
@@ -153,7 +156,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                     ))
                     use_interpolate = True
                     has_interpolate = True
-                    converted_shapes.append(shape)
+                    converted_shapes.append((shape, name, bname))
                 else:
                     tcb.append((None, None, None))
             if use_interpolate:
@@ -164,14 +167,6 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                     shapes.append(shapes[-1])
                     tcb.append(tcb[-1])
                 values, times = interpolate_keys(fps, start_frame, end_frame, name, values, times, shapes, tcb)
-                for shape in converted_shapes:
-                    warn(
-                        'motion shape converted from {} to STEPPED'.format(
-                            shape.name
-                        ),
-                        motion=name,
-                        bone=bname
-                    )
             curves[curve_index] = values, times
         used_times = set()
         if not has_interpolate:
@@ -182,6 +177,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                     key_frame = fcurve.keyframe_points.insert(time, value)
                     key_frame.interpolation = 'CONSTANT'
                     used_times.add(time)
+        bone_key = bname
         bpy_bone = bpy_armature.data.bones.get(bname, None)
         if bpy_bone is None:
             bpy_bone = bonesmap.get(bname.lower(), None)
@@ -203,6 +199,13 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                 )
                 reported.add(bname)
             bname = bpy_bone.name
+            bone_maps[bone_key] = bname
+        for shape, motion_name, bone_name in converted_shapes:
+            converted_warrnings.add((
+                'motion shape converted from {} to STEPPED'.format(shape.name),
+                motion_name,
+                bone_maps[bone_name]
+            ))
         data_path = 'pose.bones["' + bname + '"]'
         fcs = [
             act.fcurves.new(data_path + '.location', index=0, action_group=bname),
@@ -268,6 +271,8 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                 for i in range(3):
                     key_frame = fcs[i + 3].keyframe_points.insert(curves[i + 3][1][index], rot[i])
                     key_frame.interpolation = 'LINEAR'
+    for warn_message, motion_name, bone_name in converted_warrnings:
+        warn(warn_message, motion=motion_name, bone=bone_name)
     if ver >= 7:
         for _bone_idx in range(reader.getf('I')[0]):
             name = reader.gets_a()

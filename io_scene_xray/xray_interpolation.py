@@ -33,10 +33,13 @@ def hermite(t):    # t - time
 
 
 def evaluate_tcb(
+        k1s,
         k1t, k1v, k1ts, k1c, k1b,
         k2t, k2v, k2ts, k2c, k2b,
         p1t, p1v, n2t, n2v, t
     ):
+
+    # k1s - key 1 shape
 
     # k1t - key 1 time
     # k1v - key 1 value
@@ -64,7 +67,10 @@ def evaluate_tcb(
         return k2v
 
     tn = (t - k1t) / (k2t - k1t)    # normalized time in [0, 1]
-    out = outgoing(k1v, k1t, k1ts, k1c, k1b, k2v, k2t, p1v, p1t)
-    in_ = incoming(k1v, k1t, k2v, k2t, k2ts, k2c, k2b, n2v, n2t)
-    h1, h2, h3, h4 = hermite(tn)    # hermite basics
-    return h1 * k1v + h2 * k2v + h3 * out + h4 * in_
+    if k1s == 0:    # TCB
+        out = outgoing(k1v, k1t, k1ts, k1c, k1b, k2v, k2t, p1v, p1t)
+        in_ = incoming(k1v, k1t, k2v, k2t, k2ts, k2c, k2b, n2v, n2t)
+        h1, h2, h3, h4 = hermite(tn)    # hermite basics
+        return h1 * k1v + h2 * k2v + h3 * out + h4 * in_
+    elif k1s == 3:    # LINEAR
+        return k1v + tn * (k2v - k1v)
