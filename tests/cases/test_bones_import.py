@@ -11,7 +11,7 @@ class TestBonesImport(utils.XRayTestCase):
             files=[{'name': 'test_fmt_bones.object'}],
         )
         arm_obj = bpy.data.objects['test_fmt_bones.object']
-        bpy.context.view_layer.objects.active = arm_obj
+        utils.set_active_object(arm_obj)
 
         # Act
         bpy.ops.xray_import.bones(
