@@ -8,6 +8,35 @@ from ..obj.imp.main import read_v3f
 from ..obj.imp import bone as imp_bone
 
 
+@log.with_context(name='bones-partitions')
+def _import_partitions(data, arm_obj, bpy_bones):
+    packed_reader = xray_io.PackedReader(data)
+    partitions_count = packed_reader.int()
+    current_mode = arm_obj.mode
+    bpy.ops.object.mode_set(mode='POSE')
+    try:
+        for partition_id in range(partitions_count):
+            bpy.ops.pose.group_add()
+            bone_group = arm_obj.pose.bone_groups.active
+            partition_name = packed_reader.gets()
+            bone_group.name = partition_name
+            bones_count = packed_reader.int()
+            for bone_id in range(bones_count):
+                bone_name = packed_reader.gets()
+                bpy_bone = bpy_bones.get(bone_name, None)
+                if not bpy_bone:
+                    log.warn(
+                        'partition "{}" contains missing bone'.format(
+                            partition_name
+                        ),
+                        bone=bone_name
+                    )
+                else:
+                    arm_obj.pose.bones[bone_name].bone_group = bone_group
+    finally:
+        bpy.ops.object.mode_set(mode=current_mode)
+
+
 @log.with_context(name='bone')
 def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
     chunked_reader = xray_io.ChunkedReader(data)
@@ -88,7 +117,7 @@ def _import_main(data):
         bpy_bones[bpy_bone.name.lower()] = bpy_bone
     for chunk_id, chunk_data in chunked_reader:
         if chunk_id == chunks.PARTITIONS1:
-            pass
+            _import_partitions(chunk_data, arm_obj, bpy_bones)
         else:
             bone_index = chunk_id
             _import_bone_data(chunk_data, arm_obj.name, bpy_bones, bone_index)
