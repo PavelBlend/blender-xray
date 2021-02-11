@@ -2,14 +2,14 @@ import bpy
 
 
 # import props
-def prop_omf_import_bone_parts():
+def prop_import_bone_parts():
     return bpy.props.BoolProperty(
         name='Import Bone Parts', default=False
     )
 
 
 # export props
-def prop_omf_export_bone_parts():
+def prop_export_bone_parts():
     return bpy.props.BoolProperty(
         name='Export Bone Parts', default=False
     )

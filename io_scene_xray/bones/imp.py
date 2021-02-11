@@ -16,10 +16,12 @@ def _import_partitions(data, arm_obj, bpy_bones):
     bpy.ops.object.mode_set(mode='POSE')
     try:
         for partition_id in range(partitions_count):
-            bpy.ops.pose.group_add()
-            bone_group = arm_obj.pose.bone_groups.active
             partition_name = packed_reader.gets()
-            bone_group.name = partition_name
+            bone_group = arm_obj.pose.bone_groups.get(partition_name, None)
+            if not bone_group:
+                bpy.ops.pose.group_add()
+                bone_group = arm_obj.pose.bone_groups.active
+                bone_group.name = partition_name
             bones_count = packed_reader.int()
             for bone_id in range(bones_count):
                 bone_name = packed_reader.gets()
@@ -108,7 +110,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
             log.debug('unknown chunk', chunk_id=chunk_id)
 
 
-def _import_main(data):
+def _import_main(data, import_context):
     chunked_reader = xray_io.ChunkedReader(data)
     chunks = fmt.Chunks.Object
     arm_obj = bpy.context.object
@@ -117,13 +119,16 @@ def _import_main(data):
         bpy_bones[bpy_bone.name.lower()] = bpy_bone
     for chunk_id, chunk_data in chunked_reader:
         if chunk_id == chunks.PARTITIONS1:
-            _import_partitions(chunk_data, arm_obj, bpy_bones)
+            if import_context.import_bone_parts:
+                _import_partitions(chunk_data, arm_obj, bpy_bones)
         else:
+            if not import_context.import_bone_properties:
+                continue
             bone_index = chunk_id
             _import_bone_data(chunk_data, arm_obj.name, bpy_bones, bone_index)
 
 
-def import_file(filepath):
+def import_file(filepath, import_context):
     with open(filepath, 'rb') as file:
         data = file.read()
-    _import_main(data)
+    _import_main(data, import_context)

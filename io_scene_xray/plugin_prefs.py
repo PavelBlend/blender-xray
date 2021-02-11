@@ -7,6 +7,7 @@ from . import registry, xray_ltx
 from .details import props as details_props
 from .obj.imp import props as obj_imp_props
 from .skl import props as skl_props
+from .bones import props as bones_props
 from .omf import props as omf_props
 from .obj.exp import props as obj_exp_props
 from .ui import collapsible, xprop
@@ -176,9 +177,12 @@ plugin_preferences_props = {
     'format_version': details_props.prop_details_format_version(),
     # skl props
     'add_actions_to_motion_list': skl_props.prop_skl_add_actions_to_motion_list(),
+    # bones props
+    'bones_import_bone_parts': omf_props.prop_import_bone_parts(),
+    'bones_import_bone_properties': bones_props.prop_import_bone_properties(),
     # omf props
-    'import_bone_parts': omf_props.prop_omf_import_bone_parts(),
-    'omf_export_bone_parts': omf_props.prop_omf_export_bone_parts(),
+    'import_bone_parts': omf_props.prop_import_bone_parts(),
+    'omf_export_bone_parts': omf_props.prop_export_bone_parts(),
     'omf_export_mode': omf_props.prop_omf_export_mode(),
     # keymap
     'import_object_key': bpy.props.EnumProperty(
@@ -344,6 +348,12 @@ class PluginPreferences(bpy.types.AddonPreferences):
             _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.skl', 'Skeletal Animation (.skl, .skls)', style='tree')
             if box_n:
                 prop_bool(box_n, self, 'add_actions_to_motion_list')
+
+            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.bones', 'Bones Data (.bones)', style='tree')
+            if box_n:
+                box_n.label(text='Import:')
+                prop_bool(box_n, self, 'bones_import_bone_properties')
+                prop_bool(box_n, self, 'bones_import_bone_parts')
 
             _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.anm', 'Animation (.anm)', style='tree')
             if box_n:

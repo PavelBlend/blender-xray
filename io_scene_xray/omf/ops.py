@@ -61,7 +61,7 @@ op_import_omf_props = {
         type=bpy.types.OperatorFileListElement
     ),
     'import_motions': obj_imp_props.PropObjectMotionsImport(),
-    'import_bone_parts': props.prop_omf_import_bone_parts(),
+    'import_bone_parts': props.prop_import_bone_parts(),
     'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
     'add_actions_to_motion_list': skl_props.prop_skl_add_actions_to_motion_list()
 }
@@ -201,7 +201,7 @@ op_export_omf_props = {
     'filter_glob': bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'}),
     'export_mode': props.prop_omf_export_mode(),
     'export_motions': obj_exp_props.PropObjectMotionsExport(),
-    'export_bone_parts': props.prop_omf_export_bone_parts()
+    'export_bone_parts': props.prop_export_bone_parts()
 }
 
 
