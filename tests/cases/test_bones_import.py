@@ -17,6 +17,8 @@ class TestBonesImport(utils.XRayTestCase):
         bpy.ops.xray_import.bones(
             directory=self.relpath(),
             files=[{'name': 'test_fmt.bones'}],
+            import_bone_parts=True,
+            import_bone_properties=True
         )
 
         # Assert
