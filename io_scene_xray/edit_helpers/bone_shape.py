@@ -12,9 +12,6 @@ from .base_bone import AbstractBoneEditHelper
 from ..xray_motions import MATRIX_BONE_INVERTED
 
 
-SCALE_MATRIX = mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
-
-
 class _BoneShapeEditHelper(AbstractBoneEditHelper):
     def draw(self, layout, context):
         if self.is_active(context):
@@ -100,7 +97,7 @@ def _bone_matrix(bone):
     pose_bone = bpy.context.object.pose.bones[bone.name]
     mat = multiply(
         pose_bone.matrix,
-        SCALE_MATRIX
+        mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
     )
     mat = multiply(mat, xsh.get_matrix_basis())
     if xsh.type == '1':  # box
@@ -131,7 +128,7 @@ class _ApplyShape(bpy.types.Operator):
         hobj, bone = HELPER.get_target()
         xsh = bone.xray.shape
         mat = multiply(multiply(
-            pose_bone.matrix , SCALE_MATRIX
+            pose_bone.matrix , mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
         ).inverted(), hobj.matrix_local)
         if xsh.type == '1':  # box
             xsh.box_trn = mat.to_translation().to_tuple()
@@ -236,8 +233,7 @@ class _FitShape(bpy.types.Operator):
                 hobj.matrix_local = multiply(
                     matrix,
                     mathutils.Matrix.Translation(vcenter),
-                    _v2ms(vscale),
-                    SCALE_MATRIX
+                    _v2ms(vscale)
                 )
         else:
             vertices = []
