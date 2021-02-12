@@ -216,6 +216,7 @@ plugin_preferences_props = {
     'enable_dm_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_details_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_skls_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_bones_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_game_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_omf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
@@ -410,11 +411,11 @@ class PluginPreferences(bpy.types.AddonPreferences):
             column_1.prop(self, 'enable_dm_import', text='*.dm')
             column_1.prop(self, 'enable_details_import', text='*.details')
             column_1.prop(self, 'enable_skls_import', text='*.skls')
+            column_1.prop(self, 'enable_bones_import', text='*.bones')
             column_1.prop(self, 'enable_level_import', text='*.level')
             column_1.prop(self, 'enable_omf_import', text='*.omf')
             if IS_28:
                 column_1.prop(self, 'enable_game_level_import', text='level')
-            column_1.prop(self, 'enable_bones_import', text='*.bones')
             column_1.prop(self, 'enable_err_import', text='*.err')
 
             column_2.label(text='Export Plugins:')
@@ -423,6 +424,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
             column_2.prop(self, 'enable_dm_export', text='*.dm')
             column_2.prop(self, 'enable_details_export', text='*.details')
             column_2.prop(self, 'enable_skls_export', text='*.skls')
+            column_2.prop(self, 'enable_bones_export', text='*.bones')
             column_2.prop(self, 'enable_level_export', text='*.level')
             column_2.prop(self, 'enable_omf_export', text='*.omf')
             if IS_28:

@@ -4,8 +4,8 @@ import bpy
 # addon modules
 from .. import utils, xray_io, log
 from ..obj import fmt
-from ..obj.imp.main import read_v3f
 from ..obj.imp import bone as imp_bone
+from ..obj.imp.main import read_v3f
 
 
 @log.with_context(name='bones-partitions')
