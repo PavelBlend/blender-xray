@@ -4,11 +4,12 @@ from ..obj import fmt as object_format
 from ..obj.exp.main import pw_v3f
 
 
-def _export_partitions(bpy_obj):
+def _export_partitions(context, bpy_obj):
     packed_writer = xray_io.PackedWriter()
     groups_count = len(bpy_obj.pose.bone_groups)
-    if not groups_count:
-        packed_writer.putf('I', groups_count)
+    if not groups_count or not context.export_bone_parts:
+        packed_writer.putf('I', 0)
+        return packed_writer
     exportable_bones = tuple(
         bone
         for bone in bpy_obj.pose.bones
@@ -130,19 +131,21 @@ def _export_bone_data(bpy_obj, bone):
     return chunked_writer
 
 
-def export_file(bpy_obj, filepath):
+def export_file(context):
+    bpy_obj = context.bpy_arm_obj
     chunked_writer = xray_io.ChunkedWriter()
     bone_index = 0
-    for bone in bpy_obj.data.bones:
-        if not utils.is_exportable_bone(bone):
-            continue
-        bone_chunked_writer = _export_bone_data(bpy_obj, bone)
-        chunked_writer.put(bone_index, bone_chunked_writer)
-        bone_index += 1
-    partitions_packed_writer = _export_partitions(bpy_obj)
+    if context.export_bone_properties:
+        for bone in bpy_obj.data.bones:
+            if not utils.is_exportable_bone(bone):
+                continue
+            bone_chunked_writer = _export_bone_data(bpy_obj, bone)
+            chunked_writer.put(bone_index, bone_chunked_writer)
+            bone_index += 1
+    partitions_packed_writer = _export_partitions(context, bpy_obj)
     chunked_writer.put(
         object_format.Chunks.Object.PARTITIONS1,
         partitions_packed_writer
     )
-    with open(filepath, 'wb') as file:
+    with open(context.filepath, 'wb') as file:
         file.write(chunked_writer.data)

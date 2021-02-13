@@ -180,6 +180,8 @@ plugin_preferences_props = {
     # bones props
     'bones_import_bone_parts': omf_props.prop_import_bone_parts(),
     'bones_import_bone_properties': bones_props.prop_import_bone_properties(),
+    'bones_export_bone_parts': omf_props.prop_export_bone_parts(),
+    'bones_export_bone_properties': bones_props.prop_export_bone_properties(),
     # omf props
     'import_bone_parts': omf_props.prop_import_bone_parts(),
     'omf_export_bone_parts': omf_props.prop_export_bone_parts(),
@@ -355,6 +357,9 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 box_n.label(text='Import:')
                 prop_bool(box_n, self, 'bones_import_bone_properties')
                 prop_bool(box_n, self, 'bones_import_bone_parts')
+                box_n.label(text='Export:')
+                prop_bool(box_n, self, 'bones_export_bone_properties')
+                prop_bool(box_n, self, 'bones_export_bone_parts')
 
             _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.anm', 'Animation (.anm)', style='tree')
             if box_n:
