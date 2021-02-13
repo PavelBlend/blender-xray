@@ -254,6 +254,12 @@ export_draw_functions = [
         'Skeletal Animation (.skls)'
     ),
     (
+        bones_ops.menu_func_export,
+        'enable_bones_export',
+        bones_ops.EXPORT_OT_xray_bones.bl_idname,
+        'Bones Data (.bones)'
+    ),
+    (
         ogf_ops.menu_func_export,
         'enable_ogf_export',
         ogf_ops.OpExportOgf.bl_idname,

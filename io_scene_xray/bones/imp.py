@@ -4,8 +4,8 @@ import bpy
 # addon modules
 from .. import utils, xray_io, log
 from ..obj import fmt
-from ..obj.imp.main import read_v3f
 from ..obj.imp import bone as imp_bone
+from ..obj.imp.main import read_v3f
 
 
 @log.with_context(name='bones-partitions')
@@ -113,7 +113,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
 def _import_main(data, import_context):
     chunked_reader = xray_io.ChunkedReader(data)
     chunks = fmt.Chunks.Object
-    arm_obj = bpy.context.object
+    arm_obj = import_context.bpy_arm_obj
     bpy_bones = {}
     for bpy_bone in arm_obj.data.bones:
         bpy_bones[bpy_bone.name.lower()] = bpy_bone
@@ -128,7 +128,7 @@ def _import_main(data, import_context):
             _import_bone_data(chunk_data, arm_obj.name, bpy_bones, bone_index)
 
 
-def import_file(filepath, import_context):
-    with open(filepath, 'rb') as file:
+def import_file(import_context):
+    with open(import_context.filepath, 'rb') as file:
         data = file.read()
     _import_main(data, import_context)

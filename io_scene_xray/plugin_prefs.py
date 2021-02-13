@@ -180,6 +180,8 @@ plugin_preferences_props = {
     # bones props
     'bones_import_bone_parts': omf_props.prop_import_bone_parts(),
     'bones_import_bone_properties': bones_props.prop_import_bone_properties(),
+    'bones_export_bone_parts': omf_props.prop_export_bone_parts(),
+    'bones_export_bone_properties': bones_props.prop_export_bone_properties(),
     # omf props
     'import_bone_parts': omf_props.prop_import_bone_parts(),
     'omf_export_bone_parts': omf_props.prop_export_bone_parts(),
@@ -216,6 +218,7 @@ plugin_preferences_props = {
     'enable_dm_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_details_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_skls_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_bones_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_game_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_omf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
@@ -354,6 +357,9 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 box_n.label(text='Import:')
                 prop_bool(box_n, self, 'bones_import_bone_properties')
                 prop_bool(box_n, self, 'bones_import_bone_parts')
+                box_n.label(text='Export:')
+                prop_bool(box_n, self, 'bones_export_bone_properties')
+                prop_bool(box_n, self, 'bones_export_bone_parts')
 
             _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.anm', 'Animation (.anm)', style='tree')
             if box_n:
@@ -410,11 +416,11 @@ class PluginPreferences(bpy.types.AddonPreferences):
             column_1.prop(self, 'enable_dm_import', text='*.dm')
             column_1.prop(self, 'enable_details_import', text='*.details')
             column_1.prop(self, 'enable_skls_import', text='*.skls')
+            column_1.prop(self, 'enable_bones_import', text='*.bones')
             column_1.prop(self, 'enable_level_import', text='*.level')
             column_1.prop(self, 'enable_omf_import', text='*.omf')
             if IS_28:
                 column_1.prop(self, 'enable_game_level_import', text='level')
-            column_1.prop(self, 'enable_bones_import', text='*.bones')
             column_1.prop(self, 'enable_err_import', text='*.err')
 
             column_2.label(text='Export Plugins:')
@@ -423,6 +429,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
             column_2.prop(self, 'enable_dm_export', text='*.dm')
             column_2.prop(self, 'enable_details_export', text='*.details')
             column_2.prop(self, 'enable_skls_export', text='*.skls')
+            column_2.prop(self, 'enable_bones_export', text='*.bones')
             column_2.prop(self, 'enable_level_export', text='*.level')
             column_2.prop(self, 'enable_omf_export', text='*.omf')
             if IS_28:
