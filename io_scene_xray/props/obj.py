@@ -372,10 +372,10 @@ xray_object_properties = {
     'level': bpy.props.PointerProperty(type=XRayObjectLevelProperties),
     # transforms utils properties
     'position': bpy.props.FloatVectorProperty(
-        name='Position', precision=3
+        name='Position', precision=3, subtype='TRANSLATION'
     ),
     'orientation': bpy.props.FloatVectorProperty(
-        name='Orientation', precision=3
+        name='Orientation', precision=3, subtype='EULER'
     )
 }
 

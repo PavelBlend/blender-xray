@@ -18,11 +18,7 @@ def get_object_transforms():
     rotation = matrix.to_euler('YXZ')
     # convert to x-ray engine transforms
     xray_translation = (translation[0], translation[2], translation[1])
-    xray_rotation = (
-        math.degrees(rotation[2]),
-        math.degrees(rotation[0]),
-        math.degrees(rotation[1])
-    )
+    xray_rotation = (rotation[2], rotation[0], rotation[1])
     return xray_translation, xray_rotation
 
 
@@ -31,7 +27,13 @@ def write_buffer_data():
     buffer_text = ''
     buffer_text += '[{}]\n'.format(SECTION_NAME)
     buffer_text += 'position = {}, {}, {}\n'.format(*xray_translation)
-    buffer_text += 'orientation = {}, {}, {}\n'.format(*xray_rotation)
+    scene = bpy.context.scene
+    if scene.unit_settings.system_rotation == 'DEGREES':
+        buffer_text += 'orientation = {}, {}, {}\n'.format(
+            *map(math.degrees, xray_rotation)
+        )
+    else:
+        buffer_text += 'orientation = {}, {}, {}\n'.format(*xray_rotation)
     bpy.context.window_manager.clipboard = buffer_text
 
 
@@ -92,14 +94,7 @@ class XRAY_OT_UpdateBlenderObjectTranforms(bpy.types.Operator):
             obj.location = pos_mat.to_translation()
             # update rotation
             rot = data.orientation
-            rot_euler = mathutils.Euler(
-                (
-                    math.radians(rot[1]),
-                    math.radians(rot[2]),
-                    math.radians(rot[0])
-                ),
-                'YXZ'
-            )
+            rot_euler = mathutils.Euler((rot[1], rot[2], rot[0]), 'YXZ')
             if obj.rotation_mode == 'QUATERNION':
                 obj.rotation_quaternion = rot_euler.to_quaternion()
             else:
