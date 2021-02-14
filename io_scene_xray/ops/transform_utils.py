@@ -8,14 +8,14 @@ import bpy, mathutils
 from .. import registry
 
 
-SECTION_NAME = 'xray_transforms'
-
-
 def get_object_transforms():
     # get blender transforms
-    matrix = bpy.context.object.matrix_world
-    translation = matrix.to_translation()
-    rotation = matrix.to_euler('YXZ')
+    obj = bpy.context.object
+    translation = obj.location
+    if obj.rotation_mode == 'QUATERNION':
+        rotation = obj.rotation_quaternion.to_euler('YXZ')
+    else:
+        rotation = obj.rotation_euler.to_matrix().to_euler('YXZ')
     # convert to x-ray engine transforms
     xray_translation = (translation[0], translation[2], translation[1])
     xray_rotation = (rotation[2], rotation[0], rotation[1])
@@ -25,15 +25,17 @@ def get_object_transforms():
 def write_buffer_data():
     xray_translation, xray_rotation = get_object_transforms()
     buffer_text = ''
-    buffer_text += '[{}]\n'.format(SECTION_NAME)
-    buffer_text += 'position = {}, {}, {}\n'.format(*xray_translation)
-    scene = bpy.context.scene
-    if scene.unit_settings.system_rotation == 'DEGREES':
-        buffer_text += 'orientation = {}, {}, {}\n'.format(
-            *map(math.degrees, xray_rotation)
-        )
-    else:
-        buffer_text += 'orientation = {}, {}, {}\n'.format(*xray_rotation)
+    buffer_text += '; hud transforms\n'
+    buffer_text += 'position = {:.6f}, {:.6f}, {:.6f}\n'.format(*xray_translation)
+    buffer_text += 'orientation = {:.6f}, {:.6f}, {:.6f}\n'.format(
+        math.degrees(xray_rotation[0]),
+        math.degrees(xray_rotation[1]),
+        math.degrees(xray_rotation[2])
+    )
+    buffer_text += '\n; hud offset\n'
+    buffer_text += 'zoom_offset = {:.6f}, {:.6f}, {:.6f}\n'.format(*xray_translation)
+    buffer_text += 'zoom_rotate_x = {:.6f}\n'.format(-xray_rotation[1])
+    buffer_text += 'zoom_rotate_y = {:.6f}\n'.format(-xray_rotation[0])
     bpy.context.window_manager.clipboard = buffer_text
 
 
