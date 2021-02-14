@@ -138,8 +138,8 @@ class EXPORT_OT_xray_bones_batch(bpy.types.Operator):
     objects_list = []
 
     if not IS_28:
-        for prop_name, prop_value in op_export_bones_props.items():
-            exec('{0} = op_export_bones_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in op_export_bones_batch_props.items():
+            exec('{0} = op_export_bones_batch_props.get("{0}")'.format(prop_name))
 
     def get_objects(self, context):
         if not self.objects:
