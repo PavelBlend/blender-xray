@@ -290,7 +290,7 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
             'Utils'
         )
         if box:
-            box.label(text='Transforms Info:')
+            box.label(text='X-Ray Engine Transforms:')
             box.prop(data, 'position')
             box.prop(data, 'orientation')
             column = box.column(align=True)
