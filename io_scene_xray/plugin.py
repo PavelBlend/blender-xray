@@ -7,7 +7,8 @@ from bpy_extras import io_utils
 
 from . import xray_inject, xray_io
 from .ops import (
-    BaseOperator as TestReadyOperator, convert_materials, shader_tools
+    BaseOperator as TestReadyOperator,
+    convert_materials, shader_tools, transform_utils
 )
 from .ui import collapsible, motion_list
 from .utils import (

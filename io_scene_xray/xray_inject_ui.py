@@ -1,6 +1,6 @@
 from .ops import (
     fake_bones, verify_uv, verify_uv_ui, joint_limits, action_utils,
-    armature_utils
+    armature_utils, transform_utils
 )
 from . import registry
 from .ui import (
@@ -14,6 +14,7 @@ registry.module_requires(__name__, [
     fake_bones,
     armature_utils,
     joint_limits,
+    transform_utils,
     verify_uv.XRayVerifyUVOperator,
     verify_uv_ui.XRAY_PT_VerifyToolsPanel,
     action_utils.XRayCopyActionSettingsOperator,
