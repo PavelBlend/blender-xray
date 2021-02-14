@@ -31,6 +31,7 @@ class TestBonesImport(utils.XRayTestCase):
         NAME_TEST = 'test.bones'
         NAME_IK_LIMITS = 'ik_limits.bones'
         NAME_NULL_BONEPARTS = 'null_boneparts.bones'
+        NAME_BATCH_EXPORT = 'batch_export.bones'
 
         # Act export
         arm_obj.name = NAME_TEST
@@ -65,9 +66,19 @@ class TestBonesImport(utils.XRayTestCase):
             export_bone_properties=True
         )
 
+        # Batch export test
+        arm_obj.name = NAME_BATCH_EXPORT
+        bpy.ops.xray_export.bones_batch(
+            directory=self.outpath(),
+            objects=arm_obj.name,
+            export_bone_parts=True,
+            export_bone_properties=True
+        )
+
         # Assert
         self.assertOutputFiles({
             NAME_TEST,
             NAME_IK_LIMITS,
-            NAME_NULL_BONEPARTS
+            NAME_NULL_BONEPARTS,
+            NAME_BATCH_EXPORT
         })

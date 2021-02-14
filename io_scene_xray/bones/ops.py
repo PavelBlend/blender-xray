@@ -141,9 +141,19 @@ class EXPORT_OT_xray_bones_batch(bpy.types.Operator):
         for prop_name, prop_value in op_export_bones_props.items():
             exec('{0} = op_export_bones_props.get("{0}")'.format(prop_name))
 
+    def get_objects(self, context):
+        if not self.objects:
+            self.objects = ','.join((
+                obj.name
+                for obj in context.selected_objects
+                    if obj.type == 'ARMATURE'
+            ))
+        self.objects_list = [name for name in self.objects.split(',') if name]
+
     @execute_with_logger
     @set_cursor_state
     def execute(self, context):
+        self.get_objects(context)
         for object_name in self.objects_list:
             filepath = os.path.join(self.directory, object_name)
             if not filepath.lower().endswith(self.filename_ext):
@@ -174,12 +184,7 @@ class EXPORT_OT_xray_bones_batch(bpy.types.Operator):
         if not selected_objects_count:
             self.report({'ERROR'}, 'There is no selected object')
             return {'CANCELLED'}
-        self.objects = ','.join((
-            obj.name
-            for obj in context.selected_objects
-                if obj.type == 'ARMATURE'
-        ))
-        self.objects_list = [name for name in self.objects.split(',') if name]
+        self.get_objects(context)
         if not self.objects_list:
             self.report({'ERROR'}, 'No selected armatures')
             return {'CANCELLED'}
