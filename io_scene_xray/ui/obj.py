@@ -7,7 +7,11 @@ from .. import registry
 from ..utils import is_helper_object
 from ..details import ui as det_ui
 from ..version_utils import assign_props, IS_28
-from ..ops import transform_utils
+from ..ops.transform_utils import (
+    XRAY_OT_UpdateXRayObjectTranforms,
+    XRAY_OT_UpdateBlenderObjectTranforms,
+    XRAY_OT_CopyObjectTranforms
+)
 
 
 items = (
@@ -287,13 +291,9 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
         )
         if box:
             box.label(text='Transforms Info:')
-            # get transforms
-            translation, rotation = transform_utils.get_object_transforms()
-            # draw transforms info
-            box.label(text='    {: <16} {:.3f}, {:.3f}, {:.3f}'.format(
-                TRANSLATION_TEXT + ':', *translation
-            ))
-            box.label(text='    {: <16} {:.3f}, {:.3f}, {:.3f}'.format(
-                ROTATION_TEXT + ':', *rotation
-            ))
-            box.operator(transform_utils.XRAY_OT_CopyObjectTranforms.bl_idname)
+            box.prop(data, 'position')
+            box.prop(data, 'orientation')
+            column = box.column(align=True)
+            column.operator(XRAY_OT_UpdateBlenderObjectTranforms.bl_idname)
+            column.operator(XRAY_OT_UpdateXRayObjectTranforms.bl_idname)
+            column.operator(XRAY_OT_CopyObjectTranforms.bl_idname)

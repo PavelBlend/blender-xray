@@ -2,7 +2,7 @@
 import math
 
 # blender modules
-import bpy
+import bpy, mathutils
 
 # addon modules
 from .. import registry
@@ -38,11 +38,70 @@ def write_buffer_data():
 @registry.module_thing
 class XRAY_OT_CopyObjectTranforms(bpy.types.Operator):
     bl_idname = 'io_scene_xray.copy_object_transforms'
-    bl_label = 'Copy'
+    bl_label = 'Copy X-Ray Transforms'
 
     def execute(self, context):
         if not context.object:
             return {'FINISHED'}
         else:
             write_buffer_data()
+            return {'FINISHED'}
+
+
+@registry.module_thing
+class XRAY_OT_UpdateXRayObjectTranforms(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.update_xray_object_transforms'
+    bl_label = 'Update X-Ray Transforms'
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        obj = context.object
+        if not obj:
+            return {'FINISHED'}
+        else:
+            xray_translation, xray_rotation = get_object_transforms()
+            data = obj.xray
+            data.position = xray_translation
+            data.orientation = xray_rotation
+            return {'FINISHED'}
+
+
+@registry.module_thing
+class XRAY_OT_UpdateBlenderObjectTranforms(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.update_blender_object_transforms'
+    bl_label = 'Update Blender Transforms'
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        obj = context.object
+        if not obj:
+            return {'FINISHED'}
+        else:
+            if obj.rotation_mode == 'AXIS_ANGLE':
+                self.report(
+                    {'ERROR'},
+                    'Object has unsupported rotation mode: {}'.format(
+                        obj.rotation_mode
+                    )
+                )
+                return {'CANCELLED'}
+            data = obj.xray
+            # update location
+            pos = data.position
+            pos_mat = mathutils.Matrix.Translation((pos[0], pos[2], pos[1]))
+            obj.location = pos_mat.to_translation()
+            # update rotation
+            rot = data.orientation
+            rot_euler = mathutils.Euler(
+                (
+                    math.radians(rot[1]),
+                    math.radians(rot[2]),
+                    math.radians(rot[0])
+                ),
+                'YXZ'
+            )
+            if obj.rotation_mode == 'QUATERNION':
+                obj.rotation_quaternion = rot_euler.to_quaternion()
+            else:
+                obj.rotation_euler = rot_euler.to_matrix().to_euler(obj.rotation_mode)
             return {'FINISHED'}

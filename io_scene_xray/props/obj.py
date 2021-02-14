@@ -369,7 +369,14 @@ xray_object_properties = {
         type=det_types.XRayObjectDetailsProperties
     ),
     'skls_browser': bpy.props.PointerProperty(type=XRayObjectSklsBrowserProperties),
-    'level': bpy.props.PointerProperty(type=XRayObjectLevelProperties)
+    'level': bpy.props.PointerProperty(type=XRayObjectLevelProperties),
+    # transforms utils properties
+    'position': bpy.props.FloatVectorProperty(
+        name='Position', precision=3
+    ),
+    'orientation': bpy.props.FloatVectorProperty(
+        name='Orientation', precision=3
+    )
 }
 
 
