@@ -28,20 +28,24 @@ class TestBonesImport(utils.XRayTestCase):
         # Assert
         self.assertReportsNotContains('WARNING')
 
+        NAME_TEST = 'test.bones'
+        NAME_IK_LIMITS = 'ik_limits.bones'
+        NAME_NULL_BONEPARTS = 'null_boneparts.bones'
+
         # Act export
+        arm_obj.name = NAME_TEST
         bpy.ops.xray_export.bones(
-            directory=self.relpath(),
-            filepath=self.outpath('test.bones'),
+            filepath=self.outpath(NAME_TEST),
             object_name=arm_obj.name,
             export_bone_parts=True,
             export_bone_properties=True
         )
 
         # test blender ik limits
+        arm_obj.name = NAME_IK_LIMITS
         arm_obj.data.xray.joint_limits_type = 'IK'
         bpy.ops.xray_export.bones(
-            directory=self.relpath(),
-            filepath=self.outpath('test_blender_ik.bones'),
+            filepath=self.outpath(NAME_IK_LIMITS),
             object_name=arm_obj.name,
             export_bone_parts=True,
             export_bone_properties=True
@@ -53,9 +57,9 @@ class TestBonesImport(utils.XRayTestCase):
             arm_obj.pose.bone_groups.remove(bone_group)
 
         # Act export
+        arm_obj.name = NAME_NULL_BONEPARTS
         bpy.ops.xray_export.bones(
-            directory=self.relpath(),
-            filepath=self.outpath('test_nul_boneparts.bones'),
+            filepath=self.outpath(NAME_NULL_BONEPARTS),
             object_name=arm_obj.name,
             export_bone_parts=True,
             export_bone_properties=True
@@ -63,5 +67,7 @@ class TestBonesImport(utils.XRayTestCase):
 
         # Assert
         self.assertOutputFiles({
-            'test.bones', 'test_blender_ik.bones', 'test_nul_boneparts.bones'
+            NAME_TEST,
+            NAME_IK_LIMITS,
+            NAME_NULL_BONEPARTS
         })
