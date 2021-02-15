@@ -12,6 +12,7 @@ from ..ops.transform_utils import (
     XRAY_OT_UpdateBlenderObjectTranforms,
     XRAY_OT_CopyObjectTranforms
 )
+from ..ops import xray_camera
 
 
 items = (
@@ -297,3 +298,5 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
             column.operator(XRAY_OT_UpdateBlenderObjectTranforms.bl_idname)
             column.operator(XRAY_OT_UpdateXRayObjectTranforms.bl_idname)
             column.operator(XRAY_OT_CopyObjectTranforms.bl_idname)
+            box.label(text='X-Ray Engine Camera:')
+            box.operator(xray_camera.XRAY_OT_AddCamera.bl_idname)
