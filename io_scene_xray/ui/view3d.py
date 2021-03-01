@@ -6,6 +6,7 @@ from .base import XRayPanel, build_label
 from ..skls_browser import UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
 from .. import registry
 from .. import plugin
+from ..ops import fbx_utils
 from ..version_utils import IS_28, assign_props
 
 
@@ -149,3 +150,24 @@ class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
             row.prop(context.scene.xray, 'change_roughness', text='')
             row.prop(context.scene.xray, 'shader_roughness_value')
             utils_col.operator('io_scene_xray.change_shader_params')
+
+
+@registry.requires(fbx_utils.XRAY_OT_FbxExport)
+@registry.module_thing
+class XRAY_PT_FbxUtilsPanel(bpy.types.Panel):
+    bl_label = 'XRay FBX Utils'
+    bl_category = 'XRay'
+    bl_space_type = 'VIEW_3D'
+    if IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    def draw_header(self, _context):
+        icon = plugin.get_stalker_icon()
+        self.layout.label(icon_value=icon)
+
+    def draw(self, context):
+        lay = self.layout
+        lay.label(text='Export with X-Ray Properties')
+        lay.operator(fbx_utils.XRAY_OT_FbxExport.bl_idname)

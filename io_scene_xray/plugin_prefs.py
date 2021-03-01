@@ -222,7 +222,33 @@ plugin_preferences_props = {
     'enable_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_game_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_omf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_ogf_export': bpy.props.BoolProperty(default=True, update=update_menu_func)
+    'enable_ogf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    # fbx utils properties
+    # object custom properties names
+    'fbx_object_flags': bpy.props.StringProperty(
+        name='Flags', default='flags'
+    ),
+    'fbx_object_userdata': bpy.props.StringProperty(
+        name='Userdata', default='userdata'
+    ),
+    'fbx_object_lod_reference': bpy.props.StringProperty(
+        name='LOD Reference', default='lod_reference'
+    ),
+    'fbx_object_owner_name': bpy.props.StringProperty(
+        name='Owner Name', default='owner_name'
+    ),
+    'fbx_object_creation_time': bpy.props.StringProperty(
+        name='Creation Time', default='creation_time'
+    ),
+    'fbx_object_modif_name': bpy.props.StringProperty(
+        name='Modif Name', default='modif_name'
+    ),
+    'fbx_object_modified_time': bpy.props.StringProperty(
+        name='Modified Time', default='modified_time'
+    ),
+    'fbx_object_motion_references': bpy.props.StringProperty(
+        name='Motion References', default='motion_references'
+    )
 }
 
 
@@ -435,6 +461,36 @@ class PluginPreferences(bpy.types.AddonPreferences):
             if IS_28:
                 column_2.prop(self, 'enable_game_level_export', text='level')
             column_2.prop(self, 'enable_ogf_export', text='*.ogf')
+
+        # fbx settings
+        _, box = collapsible.draw(
+            layout,
+            'plugin_prefs:fbx_settings',
+            'FBX Settings',
+            style='tree'
+        )
+        if box:
+            box.label(text='Custom Property Names:')
+            row = box.row()
+            _, box_n = collapsible.draw(
+                box,
+                'plugin_prefs:fbx_settings.object',
+                'Object',
+                style='tree'
+            )
+            def draw_fbx_prop_name(name, param):
+                row = box_n.row()
+                row.label(text=name)
+                row.prop(self, param, text='')
+            if box_n:
+                draw_fbx_prop_name('Flags:', 'fbx_object_flags')
+                draw_fbx_prop_name('Userdata:', 'fbx_object_userdata')
+                draw_fbx_prop_name('LOD Reference:', 'fbx_object_lod_reference')
+                draw_fbx_prop_name('Owner Name:', 'fbx_object_owner_name')
+                draw_fbx_prop_name('Creation Time:', 'fbx_object_creation_time')
+                draw_fbx_prop_name('Modif Name:', 'fbx_object_modif_name')
+                draw_fbx_prop_name('Modified Time:', 'fbx_object_modified_time')
+                draw_fbx_prop_name('Motion References:', 'fbx_object_motion_references')
 
         prop_bool(layout, self, 'expert_mode')
         prop_bool(layout, self, 'compact_menus')
