@@ -33,7 +33,19 @@ convert_materials_shader_type_items = (
     ('DIFFUSE', 'Diffuse', ''),
     ('EMISSION', 'Emission', '')
 )
-
+custom_properties_edit_data_items = (
+    ('ALL', 'All', ''),
+    ('OBJECT', 'Object', ''),
+    ('MESH', 'Mesh', ''),
+    ('MATERIAL', 'Material', ''),
+    ('ARMATURE', 'Armature', ''),
+    ('ACTION', 'Action', '')
+)
+custom_properties_edit_mode_items = (
+    ('ALL', 'All', ''),
+    ('SELECTED', 'Selected', ''),
+    ('ACTIVE', 'Active', '')
+)
 
 xray_scene_properties = {
     'export_root': bpy.props.StringProperty(
@@ -67,7 +79,14 @@ xray_scene_properties = {
     'shader_roughness_value': bpy.props.FloatProperty(
         name='Roughness', default=0.0
     ),
-    'change_roughness': bpy.props.BoolProperty(name='Change Roughness', default=True)
+    'change_roughness': bpy.props.BoolProperty(name='Change Roughness', default=True),
+    # custom properties utils
+    'custom_properties_edit_data': bpy.props.EnumProperty(
+        name='Edit Data', items=custom_properties_edit_data_items, default='ALL'
+    ),
+    'custom_properties_edit_mode': bpy.props.EnumProperty(
+        name='Edit Mode', items=custom_properties_edit_mode_items, default='ALL'
+    ),
 }
 
 

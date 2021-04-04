@@ -6,7 +6,7 @@ from .base import XRayPanel, build_label
 from ..skls_browser import UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
 from .. import registry
 from .. import plugin
-from ..ops import fbx_utils
+from ..ops import custom_props_utils
 from ..version_utils import IS_28, assign_props
 
 
@@ -152,10 +152,13 @@ class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
             utils_col.operator('io_scene_xray.change_shader_params')
 
 
-@registry.requires(fbx_utils.XRAY_OT_FbxExport)
+@registry.requires(
+    custom_props_utils.XRAY_OT_SetCustomToXRayProperties,
+    custom_props_utils.XRAY_OT_SetXRayToCustomProperties
+)
 @registry.module_thing
-class XRAY_PT_FbxUtilsPanel(bpy.types.Panel):
-    bl_label = 'XRay FBX Utils'
+class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
+    bl_label = 'XRay Custom Properties'
     bl_category = 'XRay'
     bl_space_type = 'VIEW_3D'
     if IS_28:
@@ -169,5 +172,12 @@ class XRAY_PT_FbxUtilsPanel(bpy.types.Panel):
 
     def draw(self, context):
         lay = self.layout
-        lay.label(text='Export with X-Ray Properties')
-        lay.operator(fbx_utils.XRAY_OT_FbxExport.bl_idname)
+        scn = context.scene.xray
+        split = lay.split(factor=0.4)
+        split.label(text='Edit Data:')
+        split.prop(scn, 'custom_properties_edit_data', text='')
+        split = lay.split(factor=0.4)
+        split.label(text='Edit Mode:')
+        split.prop(scn, 'custom_properties_edit_mode', text='')
+        lay.operator(custom_props_utils.XRAY_OT_SetCustomToXRayProperties.bl_idname)
+        lay.operator(custom_props_utils.XRAY_OT_SetXRayToCustomProperties.bl_idname)
