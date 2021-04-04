@@ -181,7 +181,21 @@ class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
         split = lay.split(factor=0.4)
         split.label(text='Edit Mode:')
         split.prop(scn, 'custom_properties_edit_mode', text='')
-        lay.operator(custom_props_utils.XRAY_OT_SetCustomToXRayProperties.bl_idname)
-        lay.operator(custom_props_utils.XRAY_OT_SetXRayToCustomProperties.bl_idname)
-        lay.operator(custom_props_utils.XRAY_OT_RemoveXRayCustomProperties.bl_idname)
-        lay.operator(custom_props_utils.XRAY_OT_RemoveAllCustomProperties.bl_idname)
+        lay.label(text='Set Properties:')
+        lay.operator(
+            custom_props_utils.XRAY_OT_SetXRayToCustomProperties.bl_idname,
+            text='X-Ray to Custom'
+        )
+        lay.operator(
+            custom_props_utils.XRAY_OT_SetCustomToXRayProperties.bl_idname,
+            text='Custom to X-Ray'
+        )
+        lay.label(text='Remove Custom Properties:')
+        lay.operator(
+            custom_props_utils.XRAY_OT_RemoveXRayCustomProperties.bl_idname,
+            text='X-Ray'
+        )
+        lay.operator(
+            custom_props_utils.XRAY_OT_RemoveAllCustomProperties.bl_idname,
+            text='All'
+        )

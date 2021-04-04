@@ -50,7 +50,7 @@ def find_data(context):
                 materials.add(material)
 
     # find bones
-    if scn.custom_properties_edit_data in ('ARMATURE', 'ALL'):
+    if scn.custom_properties_edit_data in ('BONE', 'ALL'):
         if scn.custom_properties_edit_mode == 'ACTIVE':
             if context.object.type == 'ARMATURE':
                 armatures.add(context.object.data)

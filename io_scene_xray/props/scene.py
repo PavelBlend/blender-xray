@@ -38,7 +38,7 @@ custom_properties_edit_data_items = (
     ('OBJECT', 'Object', ''),
     ('MESH', 'Mesh', ''),
     ('MATERIAL', 'Material', ''),
-    ('ARMATURE', 'Armature', ''),
+    ('BONE', 'Bone', ''),
     ('ACTION', 'Action', '')
 )
 custom_properties_edit_mode_items = (
