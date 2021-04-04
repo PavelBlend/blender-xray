@@ -655,7 +655,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
         _, box = collapsible.draw(
             layout,
             'plugin_prefs:custom_properties_settings',
-            'Custom Properties Settings',
+            'Custom Properties Names',
             style='tree'
         )
         if box:

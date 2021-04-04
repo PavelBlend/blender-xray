@@ -3,10 +3,11 @@ import bpy
 from . import verify_uv
 from .. import plugin
 from ..version_utils import IS_28
+from ..ui import base
 
 
 class XRAY_PT_VerifyToolsPanel(bpy.types.Panel):
-    bl_label = 'XRay Verify'
+    bl_label = base.build_label('Verify')
     bl_space_type = 'VIEW_3D'
     bl_category = 'XRay'
     if IS_28:

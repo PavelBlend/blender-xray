@@ -97,7 +97,7 @@ assign_props([
 @registry.requires(XRayColorizeMaterials)
 @registry.module_thing
 class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
-    bl_label = 'XRay Material'
+    bl_label = build_label('Material')
     bl_category = 'XRay'
     bl_space_type = 'VIEW_3D'
     if IS_28:
@@ -160,7 +160,7 @@ class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
 )
 @registry.module_thing
 class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
-    bl_label = 'XRay Custom Properties'
+    bl_label = build_label('Custom Properties')
     bl_category = 'XRay'
     bl_space_type = 'VIEW_3D'
     if IS_28:
@@ -181,7 +181,7 @@ class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
         split = lay.split(factor=0.4)
         split.label(text='Edit Mode:')
         split.prop(scn, 'custom_properties_edit_mode', text='')
-        lay.label(text='Set Properties:')
+        lay.label(text='Set Custom Properties:')
         lay.operator(
             custom_props_utils.XRAY_OT_SetXRayToCustomProperties.bl_idname,
             text='X-Ray to Custom'
