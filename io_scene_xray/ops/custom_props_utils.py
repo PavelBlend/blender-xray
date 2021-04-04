@@ -178,3 +178,28 @@ class XRAY_OT_SetXRayToCustomProperties(bpy.types.Operator):
             action[stgs.action_flags] = xray.flags
             action[stgs.action_power] = xray.power
         return {'FINISHED'}
+
+
+class XRAY_OT_RemoveXRayCustomProperties(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.remove_xray_custom_props'
+    bl_label = 'Remove X-Ray Custom Properties'
+
+    def execute(self, context):
+        prefs = plugin_prefs.get_preferences()
+        props_list = plugin_prefs.xray_custom_properties.keys()
+        props_values = []
+        for prop_name in props_list:
+            prop_value = getattr(prefs.custom_props, prop_name, None)
+            props_values.append(prop_value)
+        objects, meshes, materials, armatures, actions = find_data(context)
+        data_list = []
+        data_list.extend(objects)
+        data_list.extend(meshes)
+        data_list.extend(materials)
+        data_list.extend(armatures)
+        data_list.extend(actions)
+        for data in data_list:
+            for prop in props_values:
+                if not data.get(prop, None) is None:
+                    del data[prop]
+        return {'FINISHED'}
