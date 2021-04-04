@@ -82,16 +82,94 @@ class XRAY_OT_SetCustomToXRayProperties(bpy.types.Operator):
     bl_idname = 'io_scene_xray.set_custom_to_xray_properties'
     bl_label = 'Set Custom to X-Ray'
 
-    def set_custom(self, prop, custom):
-        if self.obj.get(custom):
-            prop = self.obj[custom]
+    def set_custom(self, owner, prop, custom):
+        if not self.obj.get(custom, None) is None:
+            setattr(owner, prop, self.obj[custom])
 
     def execute(self, context):
         prefs = plugin_prefs.get_preferences()
-        custom_props = prefs.custom_props
+        stgs = prefs.custom_props    # settings
         objects, meshes, materials, armatures, actions = find_data(context)
+        # object
         for obj in objects:
-            print(obj)
+            self.obj = obj
+            xray = obj.xray
+            self.set_custom(xray, 'flags', stgs.object_flags)
+            self.set_custom(xray, 'userdata', stgs.object_userdata)
+            self.set_custom(xray, 'lodref', stgs.object_lod_reference)
+            self.set_custom(xray.revision, 'owner', stgs.object_owner_name)
+            self.set_custom(xray.revision, 'ctime', stgs.object_creation_time)
+            self.set_custom(xray.revision, 'moder', stgs.object_modif_name)
+            self.set_custom(xray.revision, 'mtime', stgs.object_modified_time)
+            motion_refs = obj.get(stgs.object_motion_references, None)
+            if not motion_refs is None:
+                motion_refs_list = motion_refs.split(',')
+                for motion_ref in motion_refs_list:
+                    xray.motionrefs_collection.add().name = motion_ref
+        # mesh
+        for mesh in meshes:
+            self.obj = mesh
+            self.set_custom(mesh.xray, 'flags', stgs.mesh_flags)
+        # material
+        for material in materials:
+            self.obj = material
+            xray = material.xray
+            self.set_custom(xray, 'flags_twosided', stgs.material_two_sided)
+            self.set_custom(xray, 'eshader', stgs.material_shader)
+            self.set_custom(xray, 'cshader', stgs.material_compile)
+            self.set_custom(xray, 'gamemtl', stgs.material_game_mtl)
+        # bone
+        for armature in armatures:
+            for bone in armature.bones:
+                self.obj = bone
+                xray = bone.xray
+                if not xray.exportable:
+                    continue
+                self.set_custom(xray, 'gamemtl', stgs.bone_game_mtl)
+                self.set_custom(xray, 'length', stgs.bone_length)
+                self.set_custom(xray.shape, 'type', stgs.bone_shape_type)
+                self.set_custom(xray.shape, 'flags', stgs.bone_shape_flags)
+                self.set_custom(xray.shape, 'box_rot', stgs.bone_box_shape_rotation)
+                self.set_custom(xray.shape, 'box_trn', stgs.bone_box_shape_translate)
+                self.set_custom(xray.shape, 'box_hsz', stgs.bone_box_shape_half_size)
+                self.set_custom(xray.shape, 'sph_pos', stgs.bone_sphere_shape_position)
+                self.set_custom(xray.shape, 'sph_rad', stgs.bone_sphere_shape_radius)
+                self.set_custom(xray.shape, 'cyl_pos', stgs.bone_cylinder_shape_position)
+                self.set_custom(xray.shape, 'cyl_dir', stgs.bone_cylinder_shape_direction)
+                self.set_custom(xray.shape, 'cyl_hgh', stgs.bone_cylinder_shape_hight)
+                self.set_custom(xray.shape, 'cyl_rad', stgs.bone_cylinder_shape_radius)
+                self.set_custom(xray.ikjoint, 'type', stgs.bone_ik_joint_type)
+                self.set_custom(xray.ikjoint, 'lim_x_min', stgs.bone_limit_x_min)
+                self.set_custom(xray.ikjoint, 'lim_x_max', stgs.bone_limit_x_max)
+                self.set_custom(xray.ikjoint, 'lim_y_min', stgs.bone_limit_y_min)
+                self.set_custom(xray.ikjoint, 'lim_y_max', stgs.bone_limit_y_max)
+                self.set_custom(xray.ikjoint, 'lim_z_min', stgs.bone_limit_z_min)
+                self.set_custom(xray.ikjoint, 'lim_z_max', stgs.bone_limit_z_max)
+                self.set_custom(xray.ikjoint, 'lim_x_spr', stgs.bone_limit_x_spring)
+                self.set_custom(xray.ikjoint, 'lim_y_spr', stgs.bone_limit_y_spring)
+                self.set_custom(xray.ikjoint, 'lim_z_spr', stgs.bone_limit_z_spring)
+                self.set_custom(xray.ikjoint, 'lim_x_dmp', stgs.bone_limit_x_damping)
+                self.set_custom(xray.ikjoint, 'lim_y_dmp', stgs.bone_limit_y_damping)
+                self.set_custom(xray.ikjoint, 'lim_z_dmp', stgs.bone_limit_z_damping)
+                self.set_custom(xray.ikjoint, 'spring', stgs.bone_spring)
+                self.set_custom(xray.ikjoint, 'damping', stgs.bone_damping)
+                self.set_custom(xray.mass, 'value', stgs.bone_mass)
+                self.set_custom(xray.mass, 'center', stgs.bone_center_of_mass)
+                self.set_custom(xray, 'ikflags', stgs.bone_ik_flags)
+                self.set_custom(xray.breakf, 'force', stgs.bone_breakable_force)
+                self.set_custom(xray.breakf, 'torque', stgs.bone_breakable_torque)
+                self.set_custom(xray, 'friction', stgs.bone_friction)
+        # action
+        for action in actions:
+            self.obj = action
+            xray = action.xray
+            self.set_custom(xray, 'fps', stgs.action_fps)
+            self.set_custom(xray, 'speed', stgs.action_speed)
+            self.set_custom(xray, 'accrue', stgs.action_accrue)
+            self.set_custom(xray, 'falloff', stgs.action_falloff)
+            self.set_custom(xray, 'bonepart', stgs.action_bone_part)
+            self.set_custom(xray, 'flags', stgs.action_flags)
+            self.set_custom(xray, 'power', stgs.action_power)
         return {'FINISHED'}
 
 
