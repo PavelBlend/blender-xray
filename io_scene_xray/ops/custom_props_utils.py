@@ -201,7 +201,8 @@ class XRAY_OT_SetXRayToCustomProperties(bpy.types.Operator):
             motion_refs = []
             for motion_ref in xray.motionrefs_collection:
                 motion_refs.append(motion_ref.name)
-            obj[stgs.object_motion_references] = ','.join(motion_refs)
+            if motion_refs:
+                obj[stgs.object_motion_references] = ','.join(motion_refs)
         # mesh
         for mesh in meshes:
             mesh[stgs.mesh_flags] = mesh.xray.flags
