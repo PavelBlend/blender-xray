@@ -150,12 +150,6 @@ key_items = (
 )
 
 
-class XRayObjectLevelProperties(bpy.types.PropertyGroup):
-    if not IS_28:
-        for prop_name, prop_value in xray_object_level_properties.items():
-            exec('{0} = xray_object_level_properties.get("{0}")'.format(prop_name))
-
-
 custom_props_category_items = (
     ('OBJECT', 'Object', ''),
     ('MESH', 'Mesh', ''),
