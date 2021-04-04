@@ -40,11 +40,13 @@ def find_data(context):
     # find materials
     if scn.custom_properties_edit_data in ('MATERIAL', 'ALL'):
         if scn.custom_properties_edit_mode == 'ACTIVE':
-            materials.add(context.object.active_material)
+            if context.object.type == 'MESH':
+                materials.add(context.object.active_material)
         elif scn.custom_properties_edit_mode == 'SELECTED':
             for obj in context.selected_objects:
-                for material in obj.data.materials:
-                    materials.add(material)
+                if obj.type == 'MESH':
+                    for material in obj.data.materials:
+                        materials.add(material)
         elif scn.custom_properties_edit_mode == 'ALL':
             for material in bpy.data.materials:
                 materials.add(material)
@@ -70,11 +72,19 @@ def find_data(context):
                 actions.add(context.object.animation_data.action)
         elif scn.custom_properties_edit_mode == 'SELECTED':
             for obj in context.selected_objects:
+                for motion in obj.xray.motions_collection:
+                    action = bpy.data.actions.get(motion.name)
+                    if action:
+                        actions.add(action)
                 if obj.animation_data:
                     actions.add(obj.animation_data.action)
         elif scn.custom_properties_edit_mode == 'ALL':
             for action in bpy.data.actions:
                 actions.add(action)
+
+    for collection in (objects, meshes, materials, armatures, actions):
+        if None in collection:
+            collection.remove(None)
 
     return objects, meshes, materials, armatures, actions
 
