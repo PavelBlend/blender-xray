@@ -155,7 +155,8 @@ class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
 @registry.requires(
     custom_props_utils.XRAY_OT_SetCustomToXRayProperties,
     custom_props_utils.XRAY_OT_SetXRayToCustomProperties,
-    custom_props_utils.XRAY_OT_RemoveXRayCustomProperties
+    custom_props_utils.XRAY_OT_RemoveXRayCustomProperties,
+    custom_props_utils.XRAY_OT_RemoveAllCustomProperties
 )
 @registry.module_thing
 class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
@@ -183,3 +184,4 @@ class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
         lay.operator(custom_props_utils.XRAY_OT_SetCustomToXRayProperties.bl_idname)
         lay.operator(custom_props_utils.XRAY_OT_SetXRayToCustomProperties.bl_idname)
         lay.operator(custom_props_utils.XRAY_OT_RemoveXRayCustomProperties.bl_idname)
+        lay.operator(custom_props_utils.XRAY_OT_RemoveAllCustomProperties.bl_idname)

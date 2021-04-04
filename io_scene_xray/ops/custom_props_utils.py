@@ -196,10 +196,42 @@ class XRAY_OT_RemoveXRayCustomProperties(bpy.types.Operator):
         data_list.extend(objects)
         data_list.extend(meshes)
         data_list.extend(materials)
-        data_list.extend(armatures)
         data_list.extend(actions)
+        for armature in armatures:
+            for bone in armature.bones:
+                xray = bone.xray
+                if not xray.exportable:
+                    continue
+                data_list.append(bone)
         for data in data_list:
             for prop in props_values:
                 if not data.get(prop, None) is None:
                     del data[prop]
+        return {'FINISHED'}
+
+
+class XRAY_OT_RemoveAllCustomProperties(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.remove_all_custom_props'
+    bl_label = 'Remove All Custom Properties'
+
+    def execute(self, context):
+        objects, meshes, materials, armatures, actions = find_data(context)
+        data_list = []
+        data_list.extend(objects)
+        data_list.extend(meshes)
+        data_list.extend(materials)
+        data_list.extend(actions)
+        for armature in armatures:
+            for bone in armature.bones:
+                xray = bone.xray
+                if not xray.exportable:
+                    continue
+                data_list.append(bone)
+        for data in data_list:
+            for prop in data.keys():
+                if prop.startswith('cycles'):
+                    continue
+                if prop == 'xray':
+                    continue
+                del data[prop]
         return {'FINISHED'}
