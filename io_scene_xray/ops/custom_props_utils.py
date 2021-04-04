@@ -53,14 +53,15 @@ def find_data(context):
     if scn.custom_properties_edit_data in ('BONE', 'ALL'):
         if scn.custom_properties_edit_mode == 'ACTIVE':
             if context.object.type == 'ARMATURE':
-                armatures.add(context.object.data)
+                armatures.add(context.object)
         elif scn.custom_properties_edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 if obj.type == 'ARMATURE':
-                    armatures.add(obj.data)
+                    armatures.add(obj)
         elif scn.custom_properties_edit_mode == 'ALL':
-            for armature in bpy.data.armatures:
-                armatures.add(armature)
+            for obj in bpy.data.objects:
+                if obj.type == 'ARMATURE':
+                    armatures.add(obj)
 
     # find actions
     if scn.custom_properties_edit_data in ('ACTION', 'ALL'):
@@ -120,7 +121,7 @@ class XRAY_OT_SetCustomToXRayProperties(bpy.types.Operator):
             self.set_custom(xray, 'gamemtl', stgs.material_game_mtl)
         # bone
         for armature in armatures:
-            for bone in armature.bones:
+            for bone in armature.data.bones:
                 self.obj = bone
                 xray = bone.xray
                 if not xray.exportable:
@@ -159,6 +160,12 @@ class XRAY_OT_SetCustomToXRayProperties(bpy.types.Operator):
                 self.set_custom(xray.breakf, 'force', stgs.bone_breakable_force)
                 self.set_custom(xray.breakf, 'torque', stgs.bone_breakable_torque)
                 self.set_custom(xray, 'friction', stgs.bone_friction)
+                bone_group_name = bone.get(stgs.bone_part, None)
+                if not bone_group_name is None:
+                    group = armature.pose.bone_groups.get(bone_group_name)
+                    if not group:
+                        group = armature.pose.bone_groups.new(name=bone_group_name)
+                    armature.pose.bones[bone.name].bone_group = group
         # action
         for action in actions:
             self.obj = action
@@ -207,7 +214,7 @@ class XRAY_OT_SetXRayToCustomProperties(bpy.types.Operator):
             material[stgs.material_game_mtl] = xray.gamemtl
         # bone
         for armature in armatures:
-            for bone in armature.bones:
+            for bone in armature.data.bones:
                 xray = bone.xray
                 if not xray.exportable:
                     continue
@@ -245,6 +252,9 @@ class XRAY_OT_SetXRayToCustomProperties(bpy.types.Operator):
                 bone[stgs.bone_breakable_force] = xray.breakf.force
                 bone[stgs.bone_breakable_torque] = xray.breakf.torque
                 bone[stgs.bone_friction] = xray.friction
+                bone_group = armature.pose.bones[bone.name].bone_group
+                if bone_group:
+                    bone[stgs.bone_part] = bone_group.name
         # action
         for action in actions:
             xray = action.xray
@@ -276,7 +286,7 @@ class XRAY_OT_RemoveXRayCustomProperties(bpy.types.Operator):
         data_list.extend(materials)
         data_list.extend(actions)
         for armature in armatures:
-            for bone in armature.bones:
+            for bone in armature.data.bones:
                 xray = bone.xray
                 if not xray.exportable:
                     continue
@@ -300,7 +310,7 @@ class XRAY_OT_RemoveAllCustomProperties(bpy.types.Operator):
         data_list.extend(materials)
         data_list.extend(actions)
         for armature in armatures:
-            for bone in armature.bones:
+            for bone in armature.data.bones:
                 xray = bone.xray
                 if not xray.exportable:
                     continue

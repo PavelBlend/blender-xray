@@ -229,6 +229,9 @@ xray_custom_properties = {
     'bone_shape_type': bpy.props.StringProperty(
         name='Shape Type', default='shape_type'
     ),
+    'bone_part': bpy.props.StringProperty(
+        name='Bone Part', default='bone_part'
+    ),
     # box shape
     'bone_box_shape_rotation': bpy.props.StringProperty(
         name='Box Shape Rotation', default='box_shape_rotation'
