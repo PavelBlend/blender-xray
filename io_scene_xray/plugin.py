@@ -10,7 +10,7 @@ from .ops import (
     BaseOperator as TestReadyOperator,
     convert_materials, shader_tools
 )
-from .ui import collapsible, motion_list
+from .ui import collapsible, motion_list, base
 from .utils import (
     AppError, ObjectsInitializer, logger, execute_with_logger,
     execute_require_filepath, FilenameExtHelper
@@ -92,41 +92,45 @@ assign_props([
 @registry.module_thing
 class XRayImportMenu(bpy.types.Menu):
     bl_idname = 'INFO_MT_xray_import'
-    bl_label = 'X-Ray'
+    bl_label = base.build_label()
 
     def draw(self, context):
         layout = self.layout
-        prefs = plugin_prefs.get_preferences()
-        funct_list = []
-        funct_list.extend(import_draw_functions)
+        enabled_import_operators = get_enabled_operators(
+            import_draw_functions, import_draw_functions_28
+        )
+        for id_name, text in enabled_import_operators:
+            layout.operator(id_name, text=text)
 
-        if IS_28:
-            funct_list.extend(import_draw_functions_28)
 
-        for _, enable_prop, id_name, text in funct_list:
-            enable = getattr(prefs, enable_prop)
-            if enable:
-                layout.operator(id_name, text=text)
+def get_enabled_operators(draw_functions, draw_functions_28):
+    prefs = plugin_prefs.get_preferences()
+    funct_list = []
+    funct_list.extend(draw_functions)
+
+    if IS_28:
+        funct_list.extend(draw_functions_28)
+
+    operators = []
+    for _, enable_prop, id_name, text in funct_list:
+        enable = getattr(prefs, enable_prop)
+        if enable:
+            operators.append((id_name, text))
+    return operators
 
 
 @registry.module_thing
 class XRayExportMenu(bpy.types.Menu):
     bl_idname = 'INFO_MT_xray_export'
-    bl_label = 'X-Ray'
+    bl_label = base.build_label()
 
     def draw(self, context):
         layout = self.layout
-        prefs = plugin_prefs.get_preferences()
-        funct_list = []
-        funct_list.extend(export_draw_functions)
-
-        if IS_28:
-            funct_list.extend(export_draw_functions_28)
-
-        for _, enable_prop, id_name, text in funct_list:
-            enable = getattr(prefs, enable_prop)
-            if enable:
-                layout.operator(id_name, text=text)
+        enabled_export_operators = get_enabled_operators(
+            export_draw_functions, export_draw_functions_28
+        )
+        for id_name, text in enabled_export_operators:
+            layout.operator(id_name, text=text)
 
 
 def overlay_view_3d():
@@ -336,8 +340,18 @@ def append_menu_func():
 
     if prefs.compact_menus:
         # create compact menus
-        import_menu.prepend(menu_func_xray_import)
-        export_menu.prepend(menu_func_xray_export)
+        # import
+        enabled_import_operators = get_enabled_operators(
+            import_draw_functions, import_draw_functions_28
+        )
+        if enabled_import_operators:
+            import_menu.prepend(menu_func_xray_import)
+        # export
+        enabled_export_operators = get_enabled_operators(
+            export_draw_functions, export_draw_functions_28
+        )
+        if enabled_export_operators:
+            export_menu.prepend(menu_func_xray_export)
     else:
         # create standart import menus
         append_draw_functions(funct_imp_list, import_menu)
