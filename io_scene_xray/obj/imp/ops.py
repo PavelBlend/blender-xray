@@ -57,10 +57,14 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.object':
-                import_context.before_import_file()
-                imp.import_file(
-                    os.path.join(self.directory, file.name), import_context
-                )
+                file_path = os.path.join(self.directory, file.name)
+                if not os.path.exists(file_path):
+                    self.report(
+                        {'ERROR'}, 'File not found "{}"'.format(file_path)
+                    )
+                else:
+                    import_context.before_import_file()
+                    imp.import_file(file_path, import_context)
             else:
                 self.report(
                     {'ERROR'}, 'Format of "{}" not recognised'.format(file.name)
