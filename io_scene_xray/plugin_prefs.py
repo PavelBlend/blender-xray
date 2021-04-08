@@ -110,6 +110,25 @@ _explicit_path_op_props = {
 }
 
 
+@registry.module_thing
+class XRAY_OT_ResetPreferencesSettings(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.reset_preferences_settings'
+    bl_label = 'Reset All Settings'
+
+    def execute(self, _context):
+        prefs = get_preferences()
+        # reset main settings
+        for prop_name in plugin_preferences_props.keys():
+            prefs.property_unset(prop_name)
+        # reset custom properties settings
+        for prop_name in xray_custom_properties.keys():
+            prefs.custom_props.property_unset(prop_name)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_confirm(self, event)
+
+
 def build_auto_id(prop):
     return prop + '_auto'
 
@@ -514,7 +533,10 @@ path_props_names = {
 }
 
 
-@registry.requires(XRayPrefsCustomProperties)
+@registry.requires(
+    XRayPrefsCustomProperties,
+    XRAY_OT_ResetPreferencesSettings
+)
 @registry.module_thing
 class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
@@ -755,6 +777,10 @@ class PluginPreferences(bpy.types.AddonPreferences):
         elif self.category == 'OTHERS':
             prop_bool(layout, self, 'expert_mode')
             prop_bool(layout, self, 'compact_menus')
+
+        split = layout_split(layout, 0.6)
+        split.label(text='')
+        split.operator(XRAY_OT_ResetPreferencesSettings.bl_idname)
 
 
 assign_props([
