@@ -780,7 +780,9 @@ class PluginPreferences(bpy.types.AddonPreferences):
 
         split = layout_split(layout, 0.6)
         split.label(text='')
-        split.operator(XRAY_OT_ResetPreferencesSettings.bl_idname)
+        split.operator(
+            XRAY_OT_ResetPreferencesSettings.bl_idname, icon='CANCEL'
+        )
 
 
 assign_props([

@@ -11,11 +11,21 @@ class XRAY_PT_MeshPanel(base.XRayPanel):
 
     @classmethod
     def poll(cls, context):
+        prefs = get_preferences()
+        panel_used = (
+            # import plugins
+            prefs.enable_object_import or
+            prefs.enable_level_import or
+            # export plugins
+            prefs.enable_object_export or
+            prefs.enable_level_export
+        )
         return (
-            context.active_object
-            and context.active_object.type in {'MESH'}
-            and not is_helper_object(context.active_object)
-            and get_preferences().expert_mode
+            context.active_object and
+            context.active_object.type in {'MESH'} and
+            not is_helper_object(context.active_object) and
+            get_preferences().expert_mode and
+            panel_used
         )
 
     def draw(self, context):
