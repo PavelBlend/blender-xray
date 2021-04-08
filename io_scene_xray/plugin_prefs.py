@@ -10,9 +10,8 @@ from .skl import props as skl_props
 from .bones import props as bones_props
 from .omf import props as omf_props
 from .obj.exp import props as obj_exp_props
-from .ui import collapsible, xprop
-from .utils import with_auto_property
-from .version_utils import IS_28, assign_props, get_icon
+from .ui import collapsible
+from .version_utils import IS_28, assign_props, get_icon, layout_split
 from bl_operators.presets import AddPresetBase
 
 
@@ -62,12 +61,12 @@ fs_props = {
     'cshader_file': ('$game_data$', 'shaders_xrlc.xr'),
     'objects_folder': ('$objects$', None)
 }
-def _auto_path(obj, self_name, path_suffix, checker):
-    if obj.fs_ltx_file:
-        if not path.exists(obj.fs_ltx_file):
+def _auto_path(prefs, self_name, path_suffix, checker):
+    if prefs.fs_ltx_file:
+        if not path.exists(prefs.fs_ltx_file):
             return ''
         try:
-            fs = xray_ltx.StalkerLtxParser(obj.fs_ltx_file)
+            fs = xray_ltx.StalkerLtxParser(prefs.fs_ltx_file)
         except:
             print('Invalid fs.ltx syntax')
             return ''
@@ -81,7 +80,7 @@ def _auto_path(obj, self_name, path_suffix, checker):
     for prop in __AUTO_PROPS__:
         if prop == self_name:
             continue
-        value = getattr(obj, prop)
+        value = getattr(prefs, prop)
         if not value:
             continue
         if prop == 'objects_folder':
@@ -98,7 +97,6 @@ def _auto_path(obj, self_name, path_suffix, checker):
                 result = path.abspath(result)
         if checker(result):
             return result
-
     return ''
 
 
@@ -110,6 +108,10 @@ def update_menu_func(self, context):
 _explicit_path_op_props = {
     'path': bpy.props.StringProperty(),
 }
+
+
+def build_auto_id(prop):
+    return prop + '_auto'
 
 
 @registry.module_thing
@@ -124,8 +126,10 @@ class _ExplicitPathOp(bpy.types.Operator):
 
     def execute(self, _context):
         prefs = get_preferences()
-        value = getattr(prefs, with_auto_property.build_auto_id(self.path))
+        auto_prop = build_auto_id(self.path)
+        value = getattr(prefs, auto_prop)
         setattr(prefs, self.path, value)
+        setattr(prefs, auto_prop, '')
         return {'FINISHED'}
 
 
@@ -150,7 +154,66 @@ key_items = (
 )
 
 
+path_props_suffix_values = {
+    'gamedata_folder': '',
+    'textures_folder': 'textures',
+    'gamemtl_file': 'gamemtl.xr',
+    'eshader_file': 'shaders.xr',
+    'cshader_file': 'shaders_xrlc.xr',
+    'objects_folder': path.join('..', 'rawdata', 'objects')
+}
+FILE = 'FILE'
+DIRECTORY = 'DIRECTORY'
+path_props_types = {
+    'gamedata_folder': DIRECTORY,
+    'textures_folder': DIRECTORY,
+    'gamemtl_file': FILE,
+    'eshader_file': FILE,
+    'cshader_file': FILE,
+    'objects_folder': DIRECTORY
+}
+
+
+def update_paths(prefs, context):
+    for path_prop, suffix in path_props_suffix_values.items():
+        if getattr(prefs, path_prop):
+            setattr(prefs, build_auto_id(path_prop), getattr(prefs, path_prop))
+            continue
+        prop_type = path_props_types[path_prop]
+        if prop_type == DIRECTORY:
+            cheker_function = path.isdir
+        elif prop_type == FILE:
+            cheker_function = path.isfile
+        path_value = _auto_path(prefs, path_prop, suffix, cheker_function)
+        setattr(prefs, build_auto_id(path_prop), path_value)
+
+
+category_items = (
+    ('PATHS', 'Paths', ''),
+    ('DEFAULTS', 'Defaults', ''),
+    ('PLUGINS', 'Plugins', ''),
+    ('KEYMAP', 'Keymap', ''),
+    ('OTHERS', 'Others', '')
+)
 plugin_preferences_props = {
+    # path props
+    'fs_ltx_file': bpy.props.StringProperty(
+        subtype='FILE_PATH', name='fs.ltx File', update=update_paths
+    ),
+    'gamedata_folder': bpy.props.StringProperty(subtype='DIR_PATH', update=update_paths),
+    'textures_folder': bpy.props.StringProperty(subtype='DIR_PATH', update=update_paths),
+    'gamemtl_file': bpy.props.StringProperty(subtype='FILE_PATH', update=update_paths),
+    'eshader_file': bpy.props.StringProperty(subtype='FILE_PATH', update=update_paths),
+    'cshader_file': bpy.props.StringProperty(subtype='FILE_PATH', update=update_paths),
+    'objects_folder': bpy.props.StringProperty(subtype='DIR_PATH', update=update_paths),
+    # path auto props
+    'gamedata_folder_auto': bpy.props.StringProperty(),
+    'textures_folder_auto': bpy.props.StringProperty(),
+    'gamemtl_file_auto': bpy.props.StringProperty(),
+    'eshader_file_auto': bpy.props.StringProperty(),
+    'cshader_file_auto': bpy.props.StringProperty(),
+    'objects_folder_auto': bpy.props.StringProperty(),
+
     'expert_mode': bpy.props.BoolProperty(
         name='Expert Mode', description='Show additional properties/controls'
     ),
@@ -166,9 +229,6 @@ plugin_preferences_props = {
     'object_bones_custom_shapes': obj_imp_props.PropObjectBonesCustomShapes(),
     'use_motion_prefix_name': obj_imp_props.PropObjectUseMotionPrefixName(),
     'anm_create_camera': PropAnmCameraAnimation(),
-    'fs_ltx_file': bpy.props.StringProperty(
-        subtype='FILE_PATH', name='fs.ltx File'
-    ),
     # details import props
     'details_models_in_a_row': details_props.prop_details_models_in_a_row(),
     'load_slots': details_props.prop_details_load_slots(),
@@ -222,59 +282,24 @@ plugin_preferences_props = {
     'enable_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_game_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_omf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_ogf_export': bpy.props.BoolProperty(default=True, update=update_menu_func)
+    'enable_ogf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+
+    'category': bpy.props.EnumProperty(default='PATHS', items=category_items)
+}
+
+
+path_props_names = {
+    'fs_ltx_file': 'fs.ltx File',
+    'gamedata_folder': 'Gamedata Folder',
+    'textures_folder': 'Textures Folder',
+    'gamemtl_file': 'GameMtl File',
+    'eshader_file': 'EShader File',
+    'cshader_file': 'CShader File',
+    'objects_folder': 'Objects Folder'
 }
 
 
 @registry.module_thing
-@with_auto_property(
-    bpy.props.StringProperty, 'gamedata_folder',
-    lambda self: _auto_path(self, 'gamedata_folder', '', path.isdir),
-    name='Gamedata Folder',
-    description='Path to the \'gamedata\' directory',
-    subtype='DIR_PATH',
-    overrides={'subtype': 'NONE'},
-)
-@with_auto_property(
-    bpy.props.StringProperty, 'textures_folder',
-    lambda self: _auto_path(self, 'textures_folder', 'textures', path.isdir),
-    name='Textures Folder',
-    description='Path to the \'gamedata/textures\' directory',
-    subtype='DIR_PATH',
-    overrides={'subtype': 'NONE'},
-)
-@with_auto_property(
-    bpy.props.StringProperty, 'gamemtl_file',
-    lambda self: _auto_path(self, 'gamemtl_file', 'gamemtl.xr', path.isfile),
-    name='GameMtl File',
-    description='Path to the \'gamemtl.xr\' file',
-    subtype='FILE_PATH',
-    overrides={'subtype': 'NONE'},
-)
-@with_auto_property(
-    bpy.props.StringProperty, 'eshader_file',
-    lambda self: _auto_path(self, 'eshader_file', 'shaders.xr', path.isfile),
-    name='EShader File',
-    description='Path to the \'shaders.xr\' file',
-    subtype='FILE_PATH',
-    overrides={'subtype': 'NONE'},
-)
-@with_auto_property(
-    bpy.props.StringProperty, 'cshader_file',
-    lambda self: _auto_path(self, 'cshader_file', 'shaders_xrlc.xr', path.isfile),
-    name='CShader File',
-    description='Path to the \'shaders_xrlc.xr\' file',
-    subtype='FILE_PATH',
-    overrides={'subtype': 'NONE'},
-)
-@with_auto_property(
-    bpy.props.StringProperty, 'objects_folder',
-    lambda self: _auto_path(self, 'objects_folder', path.join('..', 'rawdata', 'objects'), path.isdir),
-    name='Objects Folder',
-    description='Path to the \'rawdata/objects\' directory',
-    subtype='DIR_PATH',
-    overrides={'subtype': 'NONE'},
-)
 class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
 
@@ -282,26 +307,28 @@ class PluginPreferences(bpy.types.AddonPreferences):
         for prop_name, prop_value in plugin_preferences_props.items():
             exec('{0} = plugin_preferences_props.get("{0}")'.format(prop_name))
 
-    def draw(self, _context):
-        def prop_bool(layout, data, prop):
-            # row = layout.row()
-            # row.label(text=getattr(self.__class__, prop)[1]['name'] + ':')
-            # row.prop(data, prop, text='')
-            layout.prop(data, prop)
+    def get_split(self, layout):
+        return layout_split(layout, 0.3)
 
-        def prop_auto(layout, data, prop):
-            eprop = prop
-            if not getattr(data, prop):
-                nprop = with_auto_property.build_auto_id(prop)
-                if getattr(data, nprop):
-                    eprop = nprop
-            setattr(data, eprop, bpy.path.abspath(getattr(data, eprop)))
-            if eprop == prop:
-                layout.prop(data, eprop)
-            else:
-                _, lay = xprop(layout, data, eprop, enabled=False)
-                operator = lay.operator(_ExplicitPathOp.bl_idname, icon='MODIFIER', text='')
-                operator.path = prop
+    def draw_path_prop(self, prop):
+        layout = self.layout
+        split = self.get_split(layout)
+        split.label(text=path_props_names[prop] + ':')
+        auto_prop = build_auto_id(prop)
+        if getattr(self, auto_prop):
+            row = split.row(align=True)
+            row_prop = row.row(align=True)
+            row_prop.enabled = False
+            row_prop.prop(self, auto_prop, text='')
+            operator = row.operator(_ExplicitPathOp.bl_idname, icon='MODIFIER', text='')
+            operator.path = prop
+        else:
+            split.prop(self, prop, text='')
+
+    def draw(self, _context):
+
+        def prop_bool(layout, data, prop):
+            layout.prop(data, prop)
 
         layout = self.layout
 
@@ -310,25 +337,20 @@ class PluginPreferences(bpy.types.AddonPreferences):
         row.operator(AddPresetXrayPrefs.bl_idname, text='', icon=get_icon('ZOOMIN'))
         row.operator(AddPresetXrayPrefs.bl_idname, text='', icon=get_icon('ZOOMOUT')).remove_active = True
 
-        if self.fs_ltx_file:
-            setattr(
-                self,
-                'fs_ltx_file',
-                bpy.path.abspath(getattr(self, 'fs_ltx_file'))
-            )
-        layout.prop(self, 'fs_ltx_file')
+        layout.row().prop(self, 'category', expand=True)
 
-        prop_auto(layout, self, 'gamedata_folder')
-        prop_auto(layout, self, 'textures_folder')
-        prop_auto(layout, self, 'gamemtl_file')
-        prop_auto(layout, self, 'eshader_file')
-        prop_auto(layout, self, 'cshader_file')
-        prop_auto(layout, self, 'objects_folder')
-
-        _, box = collapsible.draw(layout, 'plugin_prefs:defaults', 'Defaults', style='tree')
-        if box:
-
-            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.common', 'Common', style='tree')
+        if self.category == 'PATHS':
+            split = self.get_split(layout)
+            split.label(text=path_props_names['fs_ltx_file'] + ':')
+            split.prop(self, 'fs_ltx_file', text='')
+            self.draw_path_prop('gamedata_folder')
+            self.draw_path_prop('textures_folder')
+            self.draw_path_prop('gamemtl_file')
+            self.draw_path_prop('eshader_file')
+            self.draw_path_prop('cshader_file')
+            self.draw_path_prop('objects_folder')
+        elif self.category == 'DEFAULTS':
+            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.common', 'Common', style='tree')
             if box_n:
                 row = box_n.row()
                 row.label(text='SDK Version:')
@@ -336,7 +358,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 box_n.prop(self, 'object_texture_names_from_path')
                 box_n.prop(self, 'use_motion_prefix_name')
 
-            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.object', 'Source Object (.object)', style='tree')
+            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.object', 'Source Object (.object)', style='tree')
             if box_n:
                 box_n.label(text='Import:')
                 prop_bool(box_n, self, 'object_motions_import')
@@ -348,11 +370,11 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 row.label(text='Smoothing Out of:')
                 row.prop(self, 'smoothing_out_of', text='')
 
-            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.skl', 'Skeletal Animation (.skl, .skls)', style='tree')
+            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.skl', 'Skeletal Animation (.skl, .skls)', style='tree')
             if box_n:
                 prop_bool(box_n, self, 'add_actions_to_motion_list')
 
-            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.bones', 'Bones Data (.bones)', style='tree')
+            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.bones', 'Bones Data (.bones)', style='tree')
             if box_n:
                 box_n.label(text='Import:')
                 prop_bool(box_n, self, 'bones_import_bone_properties')
@@ -361,11 +383,11 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 prop_bool(box_n, self, 'bones_export_bone_properties')
                 prop_bool(box_n, self, 'bones_export_bone_parts')
 
-            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.anm', 'Animation (.anm)', style='tree')
+            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.anm', 'Animation (.anm)', style='tree')
             if box_n:
                 prop_bool(box_n, self, 'anm_create_camera')
 
-            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.details', 'Details (.dm, .details)', style='tree')
+            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.details', 'Details (.dm, .details)', style='tree')
             if box_n:
                 box_n.label(text='Import:')
                 prop_bool(box_n, self, 'details_models_in_a_row')
@@ -376,7 +398,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 row = box_n.row()
                 row.prop(self, 'format_version', expand=True)
 
-            _, box_n = collapsible.draw(box, 'plugin_prefs:defaults.omf', 'Game Motion (.omf)', style='tree')
+            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.omf', 'Game Motion (.omf)', style='tree')
             if box_n:
                 box_n.label(text='Import:')
                 prop_bool(box_n, self, 'import_bone_parts')
@@ -385,27 +407,8 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 row = box_n.row()
                 row.prop(self, 'omf_export_mode', expand=True)
 
-        _, box = collapsible.draw(layout, 'plugin_prefs:keymap', 'Keymap', style='tree')
-        if box:
-            row = box.row()
-            row.label(text='Import Object:')
-            row.prop(self, 'import_object_key', text='')
-            row.prop(self, 'import_object_shift', text='Shift', toggle=True)
-
-            row = box.row()
-            row.label(text='Export Object:')
-            row.prop(self, 'export_object_key', text='')
-            row.prop(self, 'export_object_shift', text='Shift', toggle=True)
-
-        # enable plugins
-        _, box = collapsible.draw(
-            layout,
-            'plugin_prefs:enable_plugins',
-            'Enable/Disable Plugins',
-            style='tree'
-        )
-        if box:
-            row = box.row()
+        elif self.category == 'PLUGINS':
+            row = layout.row()
 
             column_1 = row.column()
             column_2 = row.column()
@@ -436,8 +439,20 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 column_2.prop(self, 'enable_game_level_export', text='level')
             column_2.prop(self, 'enable_ogf_export', text='*.ogf')
 
-        prop_bool(layout, self, 'expert_mode')
-        prop_bool(layout, self, 'compact_menus')
+        elif self.category == 'KEYMAP':
+            row = layout.row()
+            row.label(text='Import Object:')
+            row.prop(self, 'import_object_key', text='')
+            row.prop(self, 'import_object_shift', text='Shift', toggle=True)
+
+            row = layout.row()
+            row.label(text='Export Object:')
+            row.prop(self, 'export_object_key', text='')
+            row.prop(self, 'export_object_shift', text='Shift', toggle=True)
+
+        elif self.category == 'OTHERS':
+            prop_bool(layout, self, 'expert_mode')
+            prop_bool(layout, self, 'compact_menus')
 
 
 assign_props([
@@ -445,7 +460,7 @@ assign_props([
 ])
 assign_props([
     (plugin_preferences_props, PluginPreferences),
-], replace=False)
+])
 
 
 @registry.module_thing
