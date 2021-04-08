@@ -42,6 +42,10 @@ if [ ! -e "$DIR/blender" ]; then
             PYTHON_VERSION="3.7"
             ;;
         "2.92")
+            TAR="blender-$BLENDER_VERSION.0-linux64.tar.xz"
+            PYTHON_VERSION="3.7"
+            ;;
+        "2.93")
             FROM="https://builder.blender.org/download"
             HTML=$(curl $FROM/)
             if [[ "$HTML" =~ blender-$BLENDER_VERSION.0-[a-z0-9]+-linux64.tar.xz ]]; then
@@ -50,7 +54,7 @@ if [ ! -e "$DIR/blender" ]; then
                 echo "Cannot parse file name from: $HTML"
                 exit 1
             fi
-            PYTHON_VERSION="3.7"
+            PYTHON_VERSION="3.9"
             ;;
         *)
             echo "Unsupported version: $BLENDER_VERSION"

@@ -193,8 +193,222 @@ category_items = (
     ('DEFAULTS', 'Defaults', ''),
     ('PLUGINS', 'Plugins', ''),
     ('KEYMAP', 'Keymap', ''),
+    ('CUSTOM_PROPS', 'Custom Props', ''),
     ('OTHERS', 'Others', '')
 )
+custom_props_category_items = (
+    ('OBJECT', 'Object', ''),
+    ('MESH', 'Mesh', ''),
+    ('MATERIAL', 'Material', ''),
+    ('BONE', 'Bone', ''),
+    ('ACTION', 'Action', '')
+)
+custom_props_bone_category_items = (
+    ('MAIN', 'Main', ''),
+    ('SHAPE', 'Shape', ''),
+    ('IK', 'IK', '')
+)
+
+xray_custom_properties = {
+    'category': bpy.props.EnumProperty(
+        name='Custom Property Category',
+        default='OBJECT',
+        items=custom_props_category_items
+    ),
+    'bone_category': bpy.props.EnumProperty(
+        name='Custom Property Bone Category',
+        default='MAIN',
+        items=custom_props_bone_category_items
+    ),
+    # object custom properties names
+    'object_flags': bpy.props.StringProperty(
+        name='Flags', default='flags'
+    ),
+    'object_userdata': bpy.props.StringProperty(
+        name='Userdata', default='userdata'
+    ),
+    'object_lod_reference': bpy.props.StringProperty(
+        name='LOD Reference', default='lod_reference'
+    ),
+    'object_owner_name': bpy.props.StringProperty(
+        name='Owner Name', default='owner_name'
+    ),
+    'object_creation_time': bpy.props.StringProperty(
+        name='Creation Time', default='creation_time'
+    ),
+    'object_modif_name': bpy.props.StringProperty(
+        name='Modif Name', default='modif_name'
+    ),
+    'object_modified_time': bpy.props.StringProperty(
+        name='Modified Time', default='modified_time'
+    ),
+    'object_motion_references': bpy.props.StringProperty(
+        name='Motion References', default='motion_references'
+    ),
+    # mesh custom properties names
+    'mesh_flags': bpy.props.StringProperty(
+        name='Flags', default='flags'
+    ),
+    # material custom properties names
+    'material_two_sided': bpy.props.StringProperty(
+        name='Two Sided', default='two_sided'
+    ),
+    'material_shader': bpy.props.StringProperty(
+        name='Shader', default='shader'
+    ),
+    'material_compile': bpy.props.StringProperty(
+        name='Compile', default='compile'
+    ),
+    'material_game_mtl': bpy.props.StringProperty(
+        name='Game Mtl', default='game_mtl'
+    ),
+    # bone custom properties names
+    'bone_game_mtl': bpy.props.StringProperty(
+        name='Game Mtl', default='game_mtl'
+    ),
+    'bone_length': bpy.props.StringProperty(
+        name='Length', default='length'
+    ),
+    'bone_shape_flags': bpy.props.StringProperty(
+        name='Shape Flags', default='shape_flags'
+    ),
+    'bone_shape_type': bpy.props.StringProperty(
+        name='Shape Type', default='shape_type'
+    ),
+    'bone_part': bpy.props.StringProperty(
+        name='Bone Part', default='bone_part'
+    ),
+    # box shape
+    'bone_box_shape_rotation': bpy.props.StringProperty(
+        name='Box Shape Rotation', default='box_shape_rotation'
+    ),
+    'bone_box_shape_translate': bpy.props.StringProperty(
+        name='Box Shape Translate', default='box_shape_translate'
+    ),
+    'bone_box_shape_half_size': bpy.props.StringProperty(
+        name='Box Shape Half Size', default='box_shape_half_size'
+    ),
+    # sphere shape
+    'bone_sphere_shape_position': bpy.props.StringProperty(
+        name='Sphere Shape Position', default='sphere_shape_position'
+    ),
+    'bone_sphere_shape_radius': bpy.props.StringProperty(
+        name='Sphere Shape Radius', default='sphere_shape_radius'
+    ),
+    # cylinder shape
+    'bone_cylinder_shape_position': bpy.props.StringProperty(
+        name='Cylinder Shape Position', default='cylinder_shape_position'
+    ),
+    'bone_cylinder_shape_direction': bpy.props.StringProperty(
+        name='Cylinder Shape Direction', default='cylinder_shape_direction'
+    ),
+    'bone_cylinder_shape_hight': bpy.props.StringProperty(
+        name='Cylinder Shape Hight', default='cylinder_shape_hight'
+    ),
+    'bone_cylinder_shape_radius': bpy.props.StringProperty(
+        name='Cylinder Shape Radius', default='cylinder_shape_radius'
+    ),
+    # ik joint type
+    'bone_ik_joint_type': bpy.props.StringProperty(
+        name='IK Joint Type', default='ik_joint_type'
+    ),
+    # limit
+    'bone_limit_x_min': bpy.props.StringProperty(
+        name='Limit X Min', default='limit_x_min'
+    ),
+    'bone_limit_x_max': bpy.props.StringProperty(
+        name='Limit X Max', default='limit_x_max'
+    ),
+    'bone_limit_y_min': bpy.props.StringProperty(
+        name='Limit Y Min', default='limit_y_min'
+    ),
+    'bone_limit_y_max': bpy.props.StringProperty(
+        name='Limit Y Max', default='limit_y_max'
+    ),
+    'bone_limit_z_min': bpy.props.StringProperty(
+        name='Limit Z Min', default='limit_z_min'
+    ),
+    'bone_limit_z_max': bpy.props.StringProperty(
+        name='Limit Z Max', default='limit_z_max'
+    ),
+    # spring limit
+    'bone_limit_x_spring': bpy.props.StringProperty(
+        name='Limit X Spring', default='limit_x_spring'
+    ),
+    'bone_limit_y_spring': bpy.props.StringProperty(
+        name='Limit Y Spring', default='limit_y_spring'
+    ),
+    'bone_limit_z_spring': bpy.props.StringProperty(
+        name='Limit Z Spring', default='limit_z_spring'
+    ),
+    # damping limit
+    'bone_limit_x_damping': bpy.props.StringProperty(
+        name='Limit X Damping', default='limit_x_damping'
+    ),
+    'bone_limit_y_damping': bpy.props.StringProperty(
+        name='Limit Y Damping', default='limit_y_damping'
+    ),
+    'bone_limit_z_damping': bpy.props.StringProperty(
+        name='Limit Z Damping', default='limit_z_damping'
+    ),
+    # spring and damping
+    'bone_spring': bpy.props.StringProperty(
+        name='Spring', default='spring'
+    ),
+    'bone_damping': bpy.props.StringProperty(
+        name='Damping', default='damping'
+    ),
+    # mass
+    'bone_mass': bpy.props.StringProperty(
+        name='Mass', default='mass'
+    ),
+    'bone_center_of_mass': bpy.props.StringProperty(
+        name='Center of Mass', default='center_of_mass'
+    ),
+    # other
+    'bone_ik_flags': bpy.props.StringProperty(
+        name='IK Flags', default='ik_flags'
+    ),
+    'bone_breakable_force': bpy.props.StringProperty(
+        name='Breakable Force', default='breakable_force'
+    ),
+    'bone_breakable_torque': bpy.props.StringProperty(
+        name='Breakable Torque', default='breakable_torque'
+    ),
+    'bone_friction': bpy.props.StringProperty(
+        name='Friction', default='friction'
+    ),
+    # action custom properties names
+    'action_fps': bpy.props.StringProperty(
+        name='FPS', default='fps'
+    ),
+    'action_speed': bpy.props.StringProperty(
+        name='Speed', default='speed'
+    ),
+    'action_accrue': bpy.props.StringProperty(
+        name='Accrue', default='accrue'
+    ),
+    'action_falloff': bpy.props.StringProperty(
+        name='Falloff', default='falloff'
+    ),
+    'action_bone_part': bpy.props.StringProperty(
+        name='Bone Part', default='bone_part'
+    ),
+    'action_flags': bpy.props.StringProperty(
+        name='Flags', default='flags'
+    ),
+    'action_power': bpy.props.StringProperty(
+        name='Power', default='power'
+    )
+}
+
+
+class XRayPrefsCustomProperties(bpy.types.PropertyGroup):
+    if not IS_28:
+        for prop_name, prop_value in xray_custom_properties.items():
+            exec('{0} = xray_custom_properties.get("{0}")'.format(prop_name))
+
+
 plugin_preferences_props = {
     # path props
     'fs_ltx_file': bpy.props.StringProperty(
@@ -284,7 +498,8 @@ plugin_preferences_props = {
     'enable_omf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_ogf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
 
-    'category': bpy.props.EnumProperty(default='PATHS', items=category_items)
+    'category': bpy.props.EnumProperty(default='PATHS', items=category_items),
+    'custom_props': bpy.props.PointerProperty(type=XRayPrefsCustomProperties)
 }
 
 
@@ -299,6 +514,7 @@ path_props_names = {
 }
 
 
+@registry.requires(XRayPrefsCustomProperties)
 @registry.module_thing
 class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
@@ -450,6 +666,92 @@ class PluginPreferences(bpy.types.AddonPreferences):
             row.prop(self, 'export_object_key', text='')
             row.prop(self, 'export_object_shift', text='Shift', toggle=True)
 
+        # custom properties settings
+        elif self.category == 'CUSTOM_PROPS':
+            layout.row().prop(self.custom_props, 'category', expand=True)
+            def draw_prop_name(name, param):
+                row = layout.row()
+                row.label(text=name)
+                row.prop(self.custom_props, param, text='')
+            # object
+            if self.custom_props.category == 'OBJECT':
+                draw_prop_name('Flags:', 'object_flags')
+                draw_prop_name('Userdata:', 'object_userdata')
+                draw_prop_name('LOD Reference:', 'object_lod_reference')
+                draw_prop_name('Owner Name:', 'object_owner_name')
+                draw_prop_name('Creation Time:', 'object_creation_time')
+                draw_prop_name('Modif Name:', 'object_modif_name')
+                draw_prop_name('Modified Time:', 'object_modified_time')
+                draw_prop_name('Motion References:', 'object_motion_references')
+            # mesh
+            elif self.custom_props.category == 'MESH':
+                draw_prop_name('Flags:', 'mesh_flags')
+            # material
+            elif self.custom_props.category == 'MATERIAL':
+                draw_prop_name('Two Sided:', 'material_two_sided')
+                draw_prop_name('Shader:', 'material_shader')
+                draw_prop_name('Compile:', 'material_compile')
+                draw_prop_name('Game Mtl:', 'material_game_mtl')
+            # bone
+            elif self.custom_props.category == 'BONE':
+                layout.row().prop(self.custom_props, 'bone_category', expand=True)
+                if self.custom_props.bone_category == 'MAIN':
+                    draw_prop_name('Game Mtl:', 'bone_game_mtl')
+                    draw_prop_name('Length:', 'bone_length')
+                    # mass
+                    draw_prop_name('Mass:', 'bone_mass')
+                    draw_prop_name('Center of Mass:', 'bone_center_of_mass')
+                    # other
+                    draw_prop_name('Breakable Force:', 'bone_breakable_force')
+                    draw_prop_name('Breakable Torque:', 'bone_breakable_torque')
+                    draw_prop_name('Friction:', 'bone_friction')
+                elif self.custom_props.bone_category == 'SHAPE':
+                    draw_prop_name('Shape Flags:', 'bone_shape_flags')
+                    draw_prop_name('Shape Type:', 'bone_shape_type')
+                    # box shape
+                    draw_prop_name('Box Shape Rotation:', 'bone_box_shape_rotation')
+                    draw_prop_name('Box Shape Translate:', 'bone_box_shape_translate')
+                    draw_prop_name('Box Shape Half Size:', 'bone_box_shape_half_size')
+                    # sphere shape
+                    draw_prop_name('Sphere Shape Position:', 'bone_sphere_shape_position')
+                    draw_prop_name('Sphere Shape Radius:', 'bone_sphere_shape_radius')
+                    # cylinder shape
+                    draw_prop_name('Cylinder Shape Position:', 'bone_cylinder_shape_position')
+                    draw_prop_name('Cylinder Shape Direction:', 'bone_cylinder_shape_direction')
+                    draw_prop_name('Cylinder Shape Hight:', 'bone_cylinder_shape_hight')
+                    draw_prop_name('Cylinder Shape Radius:', 'bone_cylinder_shape_radius')
+                elif self.custom_props.bone_category == 'IK':
+                    # ik
+                    draw_prop_name('IK Joint Type:', 'bone_ik_joint_type')
+                    draw_prop_name('IK Flags:', 'bone_ik_flags')
+                    # limit
+                    draw_prop_name('Limit X Min:', 'bone_limit_x_min')
+                    draw_prop_name('Limit X Max:', 'bone_limit_x_max')
+                    draw_prop_name('Limit Y Min:', 'bone_limit_y_min')
+                    draw_prop_name('Limit Y Max:', 'bone_limit_y_max')
+                    draw_prop_name('Limit Z Min:', 'bone_limit_z_min')
+                    draw_prop_name('Limit Z Max:', 'bone_limit_z_max')
+                    # spring
+                    draw_prop_name('Limit X Spring:', 'bone_limit_x_spring')
+                    draw_prop_name('Limit Y Spring:', 'bone_limit_y_spring')
+                    draw_prop_name('Limit Z Spring:', 'bone_limit_z_spring')
+                    # damping
+                    draw_prop_name('Limit X Damping:', 'bone_limit_x_damping')
+                    draw_prop_name('Limit Y Damping:', 'bone_limit_y_damping')
+                    draw_prop_name('Limit Z Damping:', 'bone_limit_z_damping')
+                    # spring and damping
+                    draw_prop_name('Spring:', 'bone_spring')
+                    draw_prop_name('Damping:', 'bone_damping')
+            # action
+            elif self.custom_props.category == 'ACTION':
+                draw_prop_name('FPS:', 'action_fps')
+                draw_prop_name('Speed:', 'action_speed')
+                draw_prop_name('Accrue:', 'action_accrue')
+                draw_prop_name('Falloff:', 'action_falloff')
+                draw_prop_name('Bone Part:', 'action_bone_part')
+                draw_prop_name('Flags:', 'action_flags')
+                draw_prop_name('Power:', 'action_power')
+
         elif self.category == 'OTHERS':
             prop_bool(layout, self, 'expert_mode')
             prop_bool(layout, self, 'compact_menus')
@@ -457,6 +759,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
 
 assign_props([
     (_explicit_path_op_props, _ExplicitPathOp),
+    (xray_custom_properties, XRayPrefsCustomProperties)
 ])
 assign_props([
     (plugin_preferences_props, PluginPreferences),
