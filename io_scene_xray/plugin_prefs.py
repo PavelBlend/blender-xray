@@ -428,6 +428,17 @@ class XRayPrefsCustomProperties(bpy.types.PropertyGroup):
             exec('{0} = xray_custom_properties.get("{0}")'.format(prop_name))
 
 
+defaults_category_items = (
+    ('OBJECT', 'Object', ''),
+    ('ANM', 'Anm', ''),
+    ('SKLS', 'Skls', ''),
+    ('BONES', 'Bones', ''),
+    ('DETAILS', 'Details', ''),
+    ('DM', 'Dm', ''),
+    ('OMF', 'Omf', ''),
+    ('SCENE', 'Scene', '')
+)
+
 plugin_preferences_props = {
     # path props
     'fs_ltx_file': bpy.props.StringProperty(
@@ -453,32 +464,57 @@ plugin_preferences_props = {
     'compact_menus': bpy.props.BoolProperty(
         name='Compact Import/Export Menus', update=update_menu_func
     ),
+
+    # defaults
+    'defaults_category': bpy.props.EnumProperty(
+        default='OBJECT', items=defaults_category_items
+    ),
+
+    # object import props
     'sdk_version': PropSDKVersion(),
     'object_motions_import': obj_imp_props.PropObjectMotionsImport(),
-    'object_motions_export': obj_exp_props.PropObjectMotionsExport(),
-    'object_mesh_split_by_mat': obj_imp_props.PropObjectMeshSplitByMaterials(),
-    'object_texture_names_from_path': obj_exp_props.PropObjectTextureNamesFromPath(),
-    'smoothing_out_of': obj_exp_props.prop_smoothing_out_of(),
-    'object_bones_custom_shapes': obj_imp_props.PropObjectBonesCustomShapes(),
     'use_motion_prefix_name': obj_imp_props.PropObjectUseMotionPrefixName(),
+    'object_mesh_split_by_mat': obj_imp_props.PropObjectMeshSplitByMaterials(),
+    'object_bones_custom_shapes': obj_imp_props.PropObjectBonesCustomShapes(),
+    # object export props
+    'export_object_sdk_version': PropSDKVersion(),
+    'smoothing_out_of': obj_exp_props.prop_smoothing_out_of(),
+    'object_motions_export': obj_exp_props.PropObjectMotionsExport(),
+    'object_texture_names_from_path': obj_exp_props.PropObjectTextureNamesFromPath(),
+    'export_object_use_export_paths': PropUseExportPaths(),
+    # anm import props
     'anm_create_camera': PropAnmCameraAnimation(),
+    # skl/skls import props
+    'skls_use_motion_prefix_name': obj_imp_props.PropObjectUseMotionPrefixName(),
+    'add_actions_to_motion_list': skl_props.prop_skl_add_actions_to_motion_list(),
+    # bones import props
+    'bones_import_bone_parts': omf_props.prop_import_bone_parts(),
+    'bones_import_bone_properties': bones_props.prop_import_bone_properties(),
+    # bones export props
+    'bones_export_bone_parts': omf_props.prop_export_bone_parts(),
+    'bones_export_bone_properties': bones_props.prop_export_bone_properties(),
     # details import props
     'details_models_in_a_row': details_props.prop_details_models_in_a_row(),
     'load_slots': details_props.prop_details_load_slots(),
     'details_format': details_props.prop_details_format(),
     # details export props
+    'details_texture_names_from_path': obj_exp_props.PropObjectTextureNamesFromPath(),
     'format_version': details_props.prop_details_format_version(),
-    # skl props
-    'add_actions_to_motion_list': skl_props.prop_skl_add_actions_to_motion_list(),
-    # bones props
-    'bones_import_bone_parts': omf_props.prop_import_bone_parts(),
-    'bones_import_bone_properties': bones_props.prop_import_bone_properties(),
-    'bones_export_bone_parts': omf_props.prop_export_bone_parts(),
-    'bones_export_bone_properties': bones_props.prop_export_bone_properties(),
-    # omf props
+    # dm export props
+    'dm_texture_names_from_path': obj_exp_props.PropObjectTextureNamesFromPath(),
+    # omf import props
+    'omf_import_motions': obj_imp_props.PropObjectMotionsImport(),
     'import_bone_parts': omf_props.prop_import_bone_parts(),
+    'omf_add_actions_to_motion_list': skl_props.prop_skl_add_actions_to_motion_list(),
+    # omf export props
     'omf_export_bone_parts': omf_props.prop_export_bone_parts(),
     'omf_export_mode': omf_props.prop_omf_export_mode(),
+    'omf_motions_export': obj_exp_props.PropObjectMotionsExport(),
+    # scene selection import props
+    'scene_selection_sdk_version': PropSDKVersion(),
+    'scene_selection_mesh_split_by_mat': obj_imp_props.PropObjectMeshSplitByMaterials(),
+    'scene_selection_shaped_bones': obj_imp_props.PropObjectBonesCustomShapes(),
+
     # keymap
     'import_object_key': bpy.props.EnumProperty(
         default='F8', update=update_keymap, items=key_items,
@@ -588,62 +624,90 @@ class PluginPreferences(bpy.types.AddonPreferences):
             self.draw_path_prop('cshader_file')
             self.draw_path_prop('objects_folder')
         elif self.category == 'DEFAULTS':
-            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.common', 'Common', style='tree')
-            if box_n:
-                row = box_n.row()
+            layout.row().prop(self, 'defaults_category', expand=True)
+            if self.defaults_category == 'OBJECT':
+                # import object props
+                box = layout.box()
+                box.label(text='Import:')
+                row = box.row()
                 row.label(text='SDK Version:')
-                row.prop(self, 'sdk_version', expand=True)
-                box_n.prop(self, 'object_texture_names_from_path')
-                box_n.prop(self, 'use_motion_prefix_name')
-
-            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.object', 'Source Object (.object)', style='tree')
-            if box_n:
-                box_n.label(text='Import:')
-                prop_bool(box_n, self, 'object_motions_import')
-                prop_bool(box_n, self, 'object_mesh_split_by_mat')
-                prop_bool(box_n, self, 'object_bones_custom_shapes')
-                box_n.label(text='Export:')
-                prop_bool(box_n, self, 'object_motions_export')
-                row = box_n.row()
+                row.prop(self, 'sdk_version', text='')
+                box.prop(self, 'object_motions_import')
+                box.prop(self, 'use_motion_prefix_name')
+                box.prop(self, 'object_mesh_split_by_mat')
+                box.prop(self, 'object_bones_custom_shapes')
+                # export object props
+                box = layout.box()
+                box.label(text='Export:')
+                row = box.row()
+                row.label(text='SDK Version:')
+                row.prop(self, 'export_object_sdk_version', text='')
+                row = box.row()
                 row.label(text='Smoothing Out of:')
                 row.prop(self, 'smoothing_out_of', text='')
-
-            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.skl', 'Skeletal Animation (.skl, .skls)', style='tree')
-            if box_n:
-                prop_bool(box_n, self, 'add_actions_to_motion_list')
-
-            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.bones', 'Bones Data (.bones)', style='tree')
-            if box_n:
-                box_n.label(text='Import:')
-                prop_bool(box_n, self, 'bones_import_bone_properties')
-                prop_bool(box_n, self, 'bones_import_bone_parts')
-                box_n.label(text='Export:')
-                prop_bool(box_n, self, 'bones_export_bone_properties')
-                prop_bool(box_n, self, 'bones_export_bone_parts')
-
-            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.anm', 'Animation (.anm)', style='tree')
-            if box_n:
-                prop_bool(box_n, self, 'anm_create_camera')
-
-            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.details', 'Details (.dm, .details)', style='tree')
-            if box_n:
-                box_n.label(text='Import:')
-                prop_bool(box_n, self, 'details_models_in_a_row')
-                prop_bool(box_n, self, 'load_slots')
-                row = box_n.row()
-                row.prop(self, 'details_format', expand=True)
-                box_n.label(text='Export:')
-                row = box_n.row()
-                row.prop(self, 'format_version', expand=True)
-
-            _, box_n = collapsible.draw(layout, 'plugin_prefs:defaults.omf', 'Game Motion (.omf)', style='tree')
-            if box_n:
-                box_n.label(text='Import:')
-                prop_bool(box_n, self, 'import_bone_parts')
-                box_n.label(text='Export:')
-                prop_bool(box_n, self, 'omf_export_bone_parts')
-                row = box_n.row()
-                row.prop(self, 'omf_export_mode', expand=True)
+                box.prop(self, 'object_motions_export')
+                box.prop(self, 'object_texture_names_from_path')
+                box.prop(self, 'export_object_use_export_paths')
+            elif self.defaults_category == 'ANM':
+                box = layout.box()
+                box.label(text='Import:')
+                box.prop(self, 'anm_create_camera')
+            elif self.defaults_category == 'SKLS':
+                box = layout.box()
+                box.label(text='Import:')
+                box.prop(self, 'skls_use_motion_prefix_name')
+                box.prop(self, 'add_actions_to_motion_list')
+            elif self.defaults_category == 'BONES':
+                box = layout.box()
+                # import
+                box.label(text='Import:')
+                box.prop(self, 'bones_import_bone_parts')
+                box.prop(self, 'bones_import_bone_properties')
+                # export
+                box.label(text='Export:')
+                box.prop(self, 'bones_export_bone_parts')
+                box.prop(self, 'bones_export_bone_properties')
+            elif self.defaults_category == 'DETAILS':
+                box = layout.box()
+                # import
+                box.label(text='Import:')
+                box.prop(self, 'details_models_in_a_row')
+                box.prop(self, 'load_slots')
+                row = box.row()
+                row.label(text='Details Format:')
+                row.prop(self, 'details_format', text='')
+                # export
+                box.label(text='Export:')
+                box.prop(self, 'details_texture_names_from_path')
+                row = box.row()
+                row.label(text='Details Format:')
+                row.prop(self, 'format_version', text='')
+            elif self.defaults_category == 'DM':
+                box = layout.box()
+                box.label(text='Export:')
+                box.prop(self, 'dm_texture_names_from_path')
+            elif self.defaults_category == 'OMF':
+                box = layout.box()
+                # import
+                box.label(text='Import:')
+                box.prop(self, 'omf_import_motions')
+                box.prop(self, 'import_bone_parts')
+                box.prop(self, 'omf_add_actions_to_motion_list')
+                # export
+                box.label(text='Export:')
+                box.prop(self, 'omf_export_bone_parts')
+                row = box.row()
+                row.label(text='Export Mode:')
+                row.prop(self, 'omf_export_mode', text='')
+                box.prop(self, 'omf_motions_export')
+            elif self.defaults_category == 'SCENE':
+                box = layout.box()
+                box.label(text='Import:')
+                row = box.row()
+                row.label(text='SDK Version:')
+                row.prop(self, 'scene_selection_sdk_version', text='')
+                box.prop(self, 'scene_selection_mesh_split_by_mat')
+                box.prop(self, 'scene_selection_shaped_bones')
 
         elif self.category == 'PLUGINS':
             row = layout.row()

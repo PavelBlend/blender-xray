@@ -153,7 +153,7 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     @invoke_require_armature
     def invoke(self, context, event):
         prefs = plugin_prefs.get_preferences()
-        self.use_motion_prefix_name = prefs.use_motion_prefix_name
+        self.use_motion_prefix_name = prefs.skls_use_motion_prefix_name
         self.add_actions_to_motion_list = prefs.add_actions_to_motion_list
         return super().invoke(context, event)
 

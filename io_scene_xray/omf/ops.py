@@ -118,9 +118,9 @@ class IMPORT_OT_xray_omf(
 
     def invoke(self, context, event):
         prefs = plugin_prefs.get_preferences()
-        self.import_motions = prefs.object_motions_import
+        self.import_motions = prefs.omf_import_motions
         self.import_bone_parts = prefs.import_bone_parts
-        self.add_actions_to_motion_list = prefs.add_actions_to_motion_list
+        self.add_actions_to_motion_list = prefs.omf_add_actions_to_motion_list
         obj = context.object
         if not obj:
             self.report({'ERROR'}, 'No active object')
@@ -249,7 +249,7 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         prefs = plugin_prefs.get_preferences()
         self.export_mode = prefs.omf_export_mode
         self.export_bone_parts = prefs.omf_export_bone_parts
-        self.export_motions = prefs.object_motions_export
+        self.export_motions = prefs.omf_motions_export
         if len(context.selected_objects) > 1:
             self.report({'ERROR'}, 'Too many selected objects')
             return {'CANCELLED'}

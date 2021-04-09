@@ -135,11 +135,12 @@ class OpExportObjects(ops.BaseOperator, _WithExportMotions):
         if len(roots) == 1:
             return bpy.ops.xray_export.object('INVOKE_DEFAULT')
         self.objects = ','.join([o.name for o in roots])
-        self.fmt_version = prefs.sdk_version
+        self.fmt_version = prefs.export_object_sdk_version
         self.export_motions = prefs.object_motions_export
         self.texture_name_from_image_path = \
             prefs.object_texture_names_from_path
         self.smoothing_out_of = prefs.smoothing_out_of
+        self.use_export_paths = prefs.export_object_use_export_paths
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -223,7 +224,7 @@ class OpExportObject(
         self.filepath = self.object
         if not self.filepath.lower().endswith(filename_ext):
             self.filepath += filename_ext
-        self.fmt_version = prefs.sdk_version
+        self.fmt_version = prefs.export_object_sdk_version
         self.export_motions = prefs.object_motions_export
         self.texture_name_from_image_path = \
             prefs.object_texture_names_from_path
