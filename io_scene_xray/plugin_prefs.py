@@ -664,6 +664,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 box.prop(self, 'bones_import_bone_parts')
                 box.prop(self, 'bones_import_bone_properties')
                 # export
+                box = layout.box()
                 box.label(text='Export:')
                 box.prop(self, 'bones_export_bone_parts')
                 box.prop(self, 'bones_export_bone_properties')
@@ -677,6 +678,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 row.label(text='Details Format:')
                 row.prop(self, 'details_format', text='')
                 # export
+                box = layout.box()
                 box.label(text='Export:')
                 box.prop(self, 'details_texture_names_from_path')
                 row = box.row()
@@ -694,6 +696,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 box.prop(self, 'import_bone_parts')
                 box.prop(self, 'omf_add_actions_to_motion_list')
                 # export
+                box = layout.box()
                 box.label(text='Export:')
                 box.prop(self, 'omf_export_bone_parts')
                 row = box.row()
