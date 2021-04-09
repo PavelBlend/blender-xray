@@ -193,13 +193,10 @@ class OpExportDetails(
         exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):
-
         prefs = plugin_prefs.get_preferences()
-
         self.texture_name_from_image_path = \
-            prefs.object_texture_names_from_path
+            prefs.details_texture_names_from_path
         self.format_version = prefs.format_version
-
         return super().invoke(context, event)
 
 
