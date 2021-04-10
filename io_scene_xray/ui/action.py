@@ -1,9 +1,11 @@
+# blender modules
 import bpy
 
+# addon modules
 from .base import XRayPanel, build_label
 from ..skl.ops import OpExportSkl
 from ..ops import action_utils
-from .. import registry
+from .. import registry, version_utils, plugin_prefs
 
 
 @registry.module_thing
@@ -16,10 +18,24 @@ class XRAY_PT_ActionPanel(XRayPanel):
 
     @classmethod
     def poll(cls, context):
+        prefs = plugin_prefs.get_preferences()
+        panel_used = (
+            # import plugins
+            prefs.enable_object_import or
+            prefs.enable_anm_import or
+            prefs.enable_skls_import or
+            prefs.enable_omf_import or
+            # export plugins
+            prefs.enable_object_export or
+            prefs.enable_anm_export or
+            prefs.enable_skls_export or
+            prefs.enable_omf_export
+        )
         return (
             context.active_object and
             context.active_object.animation_data and
-            context.active_object.animation_data.action
+            context.active_object.animation_data.action and
+            panel_used
         )
 
     def draw(self, context):
@@ -40,7 +56,7 @@ class XRAY_PT_ActionPanel(XRayPanel):
                 row = box.row(align=True)
                 row.prop(
                     data, 'autobake_custom_refine',
-                    toggle=True, text='', icon='BUTS'
+                    toggle=True, text='', icon=version_utils.get_icon('BUTS')
                 )
                 row.prop(data, 'autobake_refine_location', text='L')
                 row.prop(data, 'autobake_refine_rotation', text='R')

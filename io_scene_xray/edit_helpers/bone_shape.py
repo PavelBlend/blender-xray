@@ -101,6 +101,7 @@ def _bone_matrix(bone):
     )
     mat = multiply(mat, xsh.get_matrix_basis())
     if xsh.type == '1':  # box
+        mat = multiply(mat, mathutils.Matrix.Scale(-1, 4, (0, 0, 1)))
         mat = multiply(mat, _v2ms(xsh.box_hsz))
     elif xsh.type == '2':  # sphere
         mat = multiply(mat, _v2ms((xsh.sph_rad, xsh.sph_rad, xsh.sph_rad)))
@@ -127,10 +128,15 @@ class _ApplyShape(bpy.types.Operator):
 
         hobj, bone = HELPER.get_target()
         xsh = bone.xray.shape
-        mat = multiply(multiply(
-            pose_bone.matrix , mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
-        ).inverted(), hobj.matrix_local)
+        mat = multiply(
+            multiply(
+                pose_bone.matrix,
+                mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+            ).inverted(),
+            hobj.matrix_local
+        )
         if xsh.type == '1':  # box
+            mat = multiply(mat, mathutils.Matrix.Scale(-1, 4, (0, 0, 1)))
             xsh.box_trn = mat.to_translation().to_tuple()
             scale = mat.to_scale()
             xsh.box_hsz = scale.to_tuple()

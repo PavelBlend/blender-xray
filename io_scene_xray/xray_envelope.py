@@ -23,7 +23,7 @@ class Shape(Enum):
 
 
 @with_context('import-envelope')
-def import_envelope(reader, fcurve, fps, koef):
+def import_envelope(reader, fcurve, fps, koef, name, warn_list):
     bhv0, bhv1 = map(Behavior, reader.getf('BB'))
 
     if bhv0 != bhv1:
@@ -67,11 +67,11 @@ def import_envelope(reader, fcurve, fps, koef):
             reader.skip(14)
 
     if unsupported_occured:
-        warn(
-            'unsupported shapes are found, and will be replaced',
-            shapes=unsupported_occured,
-            replacement=replace_unsupported_to
-        )
+        warn_list.append((
+            tuple(unsupported_occured),
+            replace_unsupported_to,
+            name
+        ))
 
 
 KF = mkstruct('KeyFrame', ['time', 'value', 'shape'])

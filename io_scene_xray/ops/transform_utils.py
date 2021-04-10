@@ -1,0 +1,104 @@
+# standart modules
+import math
+
+# blender modules
+import bpy, mathutils
+
+# addon modules
+from .. import registry
+
+
+def get_object_transforms():
+    # get blender transforms
+    obj = bpy.context.object
+    translation = obj.location
+    if obj.rotation_mode == 'QUATERNION':
+        rotation = obj.rotation_quaternion.to_euler('YXZ')
+    else:
+        rotation = obj.rotation_euler.to_matrix().to_euler('YXZ')
+    # convert to x-ray engine transforms
+    xray_translation = (translation[0], translation[2], translation[1])
+    xray_rotation = (rotation[2], rotation[0], rotation[1])
+    return xray_translation, xray_rotation
+
+
+def write_buffer_data():
+    xray_translation, xray_rotation = get_object_transforms()
+    buffer_text = ''
+    buffer_text += '; hud transforms\n'
+    buffer_text += 'position = {:.6f}, {:.6f}, {:.6f}\n'.format(*xray_translation)
+    buffer_text += 'orientation = {:.6f}, {:.6f}, {:.6f}\n'.format(
+        math.degrees(xray_rotation[0]),
+        math.degrees(xray_rotation[1]),
+        math.degrees(xray_rotation[2])
+    )
+    buffer_text += '\n; hud offset\n'
+    buffer_text += 'zoom_offset = {:.6f}, {:.6f}, {:.6f}\n'.format(*xray_translation)
+    buffer_text += 'zoom_rotate_x = {:.6f}\n'.format(-xray_rotation[1])
+    buffer_text += 'zoom_rotate_y = {:.6f}\n'.format(-xray_rotation[0])
+    bpy.context.window_manager.clipboard = buffer_text
+
+
+@registry.module_thing
+class XRAY_OT_CopyObjectTranforms(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.copy_object_transforms'
+    bl_label = 'Copy X-Ray Transforms'
+
+    def execute(self, context):
+        if not context.object:
+            return {'FINISHED'}
+        else:
+            write_buffer_data()
+            return {'FINISHED'}
+
+
+@registry.module_thing
+class XRAY_OT_UpdateXRayObjectTranforms(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.update_xray_object_transforms'
+    bl_label = 'Update X-Ray Transforms'
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        obj = context.object
+        if not obj:
+            return {'FINISHED'}
+        else:
+            xray_translation, xray_rotation = get_object_transforms()
+            data = obj.xray
+            data.position = xray_translation
+            data.orientation = xray_rotation
+            return {'FINISHED'}
+
+
+@registry.module_thing
+class XRAY_OT_UpdateBlenderObjectTranforms(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.update_blender_object_transforms'
+    bl_label = 'Update Blender Transforms'
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        obj = context.object
+        if not obj:
+            return {'FINISHED'}
+        else:
+            if obj.rotation_mode == 'AXIS_ANGLE':
+                self.report(
+                    {'ERROR'},
+                    'Object has unsupported rotation mode: {}'.format(
+                        obj.rotation_mode
+                    )
+                )
+                return {'CANCELLED'}
+            data = obj.xray
+            # update location
+            pos = data.position
+            pos_mat = mathutils.Matrix.Translation((pos[0], pos[2], pos[1]))
+            obj.location = pos_mat.to_translation()
+            # update rotation
+            rot = data.orientation
+            rot_euler = mathutils.Euler((rot[1], rot[2], rot[0]), 'YXZ')
+            if obj.rotation_mode == 'QUATERNION':
+                obj.rotation_quaternion = rot_euler.to_quaternion()
+            else:
+                obj.rotation_euler = rot_euler.to_matrix().to_euler(obj.rotation_mode)
+            return {'FINISHED'}

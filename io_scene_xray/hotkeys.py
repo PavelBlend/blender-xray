@@ -1,7 +1,7 @@
 import bpy
 
 from .obj.imp.ops import OpImportObject
-from .obj.exp.ops import OpExportObject
+from .obj.exp.ops import OpExportObjects
 
 
 class KayMap():
@@ -28,8 +28,8 @@ obj_imp_keymap.text = OpImportObject.bl_label
 # export object
 obj_exp_keymap = KayMap()
 obj_exp_keymap.key = 'F8'
-obj_exp_keymap.operator_id = OpExportObject.bl_idname
-obj_exp_keymap.text = OpExportObject.bl_label
+obj_exp_keymap.operator_id = OpExportObjects.bl_idname
+obj_exp_keymap.text = OpExportObjects.bl_label
 obj_exp_keymap.shift = True
 
 keymaps_list = [

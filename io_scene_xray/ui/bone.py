@@ -1,5 +1,5 @@
 from ..edit_helpers import base, bone_shape, bone_center
-from .. import plugin
+from .. import plugin, plugin_prefs
 from .. import registry
 from .material import XRayGameMtlMenu, _gen_xr_selector
 from .base import XRayPanel, build_label
@@ -46,10 +46,25 @@ class XRAY_PT_BonePanel(XRayPanel):
 
     @classmethod
     def poll(cls, context):
+        prefs = plugin_prefs.get_preferences()
+        panel_used = (
+            # import plugins
+            prefs.enable_object_import or
+            prefs.enable_skls_import or
+            prefs.enable_bones_import or
+            prefs.enable_omf_import or
+            # export plugins
+            prefs.enable_object_export or
+            prefs.enable_skls_export or
+            prefs.enable_bones_export or
+            prefs.enable_omf_export or
+            prefs.enable_ogf_export
+        )
         return (
-            context.active_object
-            and context.active_object.type in {'ARMATURE'}
-            and context.active_bone
+            context.active_object and
+            context.active_object.type in {'ARMATURE'} and
+            context.active_bone and
+            panel_used
         )
 
     def draw_header(self, context):
@@ -71,7 +86,9 @@ class XRAY_PT_BonePanel(XRayPanel):
         layout.prop(data, 'length')
         _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
         box = layout.box()
-        box.prop(data.shape, 'type', text='Shape Type')
+        row = box.row()
+        row.label(text='Shape Type:')
+        row.prop(data.shape, 'type', text='')
         verdif = data.shape.check_version_different()
         if verdif != 0:
             box.label(
@@ -82,13 +99,17 @@ class XRAY_PT_BonePanel(XRayPanel):
             )
         bone_shape.HELPER.draw(box.column(align=True), context)
 
-        row = box.row(align=True)
+        column = box.column(align=True)
+        row = column.row(align=True)
         row.prop(data.shape, 'flags_nopickable', text='No Pickable', toggle=True)
         row.prop(data.shape, 'flags_nophysics', text='No Physics', toggle=True)
+        row = column.row(align=True)
         row.prop(data.shape, 'flags_removeafterbreak', text='Remove After Break', toggle=True)
         row.prop(data.shape, 'flags_nofogcollider', text='No Fog Collider', toggle=True)
         box = layout.box()
-        box.prop(data.ikjoint, 'type', text='Joint Type')
+        row = box.row()
+        row.label(text='Joint Type:')
+        row.prop(data.ikjoint, 'type', text='')
         joint_type = int(data.ikjoint.type)
 
         if joint_type and joint_type != 4:    # 4 - None type
@@ -120,6 +141,7 @@ class XRAY_PT_BonePanel(XRayPanel):
             col.prop(data.breakf, 'force', text='Force')
             col.prop(data.breakf, 'torque', text='Torque')
         box = layout.box()
-        box.prop(data.mass, 'value')
-        box.prop(data.mass, 'center')
-        bone_center.HELPER.draw(box.column(align=True), context)
+        column = box.column(align=True)
+        column.prop(data.mass, 'value')
+        column.prop(data.mass, 'center')
+        bone_center.HELPER.draw(column, context)

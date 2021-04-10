@@ -21,7 +21,7 @@ def write_buffer_data():
     xray = get_xray_settings()
     buffer_text = ''
     if xray:
-        buffer_text += '[{}]:\n'.format(SECTION_NAME)
+        buffer_text += '[{}]\n'.format(SECTION_NAME)
         buffer_text += 'fps = {}\n'.format(xray.fps)
         buffer_text += 'flags = {}\n'.format(xray.flags)
         buffer_text += 'speed = {}\n'.format(xray.speed)

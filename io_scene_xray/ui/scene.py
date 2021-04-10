@@ -1,4 +1,4 @@
-from .. import registry
+from .. import registry, plugin_prefs
 from ..plugin import OpExportProject
 from .base import XRayPanel, build_label
 from . import collapsible
@@ -9,6 +9,17 @@ from ..version_utils import layout_split
 class XRAY_PT_ScenePanel(XRayPanel):
     bl_context = 'scene'
     bl_label = build_label('Project')
+
+    @classmethod
+    def poll(cls, context):
+        prefs = plugin_prefs.get_preferences()
+        panel_used = (
+            # import plugins
+            prefs.enable_object_import or
+            # export plugins
+            prefs.enable_object_export
+        )
+        return panel_used
 
     def draw(self, context):
         obj = context.scene

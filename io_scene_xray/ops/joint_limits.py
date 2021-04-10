@@ -10,11 +10,14 @@ CONSTRAINT_NAME = '!-XRAY-JOINT-LIMITS'
 
 
 def update_limit(self, context):
-    bone = context.object.data.bones.active
+    obj = context.object
+    if obj.type != 'ARMATURE':
+        return
+    bone = obj.data.bones.active
     if bone is None:
         return
     ik = bone.xray.ikjoint
-    pose_bone = context.object.pose.bones[bone.name]
+    pose_bone = obj.pose.bones[bone.name]
     constraint = pose_bone.constraints.get(CONSTRAINT_NAME, None)
     if not constraint:
         return

@@ -417,52 +417,6 @@ def using_mode(mode):
     finally:
         bpy.ops.object.mode_set(mode=original)
 
-def with_auto_property(prop_class, prop_id, getter, overrides=None, **kwargs):
-    def decorator(struct):
-        if IS_28:
-            if hasattr(struct, '__annotations__'):
-                struct.__annotations__[prop_id] = prop_class(**kwargs)
-            else:
-                struct.__annotations__ = {prop_id: prop_class(**kwargs), }
-        else:
-            setattr(struct, prop_id, prop_class(
-                **kwargs,
-            ))
-
-        def get_value(self):
-            value = getattr(self, prop_id)
-            if not value:
-                value = getter(self)
-            return value
-
-        def set_value(self, value):
-            org_value = get_value(self)
-            if value != org_value:
-                setattr(self, prop_id, value)
-
-        kwargs2 = dict(kwargs)
-        if 'name' in kwargs2:
-            kwargs2['name'] += ' (auto)'
-        if 'description' in kwargs2:
-            kwargs2['description'] += ' (automatically calculated value)'
-        if overrides:
-            kwargs2 = {**kwargs2, **overrides}
-
-        if IS_28:
-            struct.__annotations__[with_auto_property.build_auto_id(prop_id)] = prop_class(
-                **kwargs2, get=get_value, set=set_value
-            )
-        else:
-            setattr(struct, with_auto_property.build_auto_id(prop_id), prop_class(
-                **kwargs2,
-                get=get_value,
-                set=set_value,
-            ))
-        return struct
-
-    return decorator
-with_auto_property.build_auto_id = lambda id: id + '_auto'
-
 
 def execute_with_logger(method):
     def wrapper(self, context):

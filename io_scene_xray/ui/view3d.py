@@ -1,12 +1,27 @@
+# blender modules
 import bpy
 from mathutils import Color
 
+# addon modules
 from . import collapsible
 from .base import XRayPanel, build_label
 from ..skls_browser import UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
 from .. import registry
-from .. import plugin
+from .. import plugin, plugin_prefs
+from ..ops import custom_props_utils
 from ..version_utils import IS_28, assign_props
+from ..obj.imp import ops as obj_imp_ops
+from ..obj.exp import ops as obj_exp_ops
+from ..anm import ops as anm_ops
+from ..bones import ops as bones_ops
+from ..details import ops as details_ops
+from ..dm import ops as dm_ops
+from ..err import ops as err_ops
+from ..level import ops as level_ops
+from ..ogf import ops as ogf_ops
+from ..omf import ops as omf_ops
+from ..scene import ops as scene_ops
+from ..skl import ops as skl_ops
 
 
 @registry.requires(UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile)
@@ -16,6 +31,7 @@ class VIEW3D_PT_skls_animations(XRayPanel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = build_label('Skls File Browser')
+    bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
         bl_category = 'XRay'
 
@@ -63,8 +79,9 @@ class XRayColorizeMaterials(bpy.types.Operator):
             self.report({'ERROR'}, 'No objects selected')
             return {'CANCELLED'}
 
-        seed = self.seed
-        power = self.power
+        xr_data = context.scene.xray
+        self.seed = xr_data.materials_colorize_random_seed
+        self.power = xr_data.materials_colorize_color_power
         materials = set()
         for obj in objects:
             for slot in obj.material_slots:
@@ -72,13 +89,13 @@ class XRayColorizeMaterials(bpy.types.Operator):
 
         for mat in materials:
             data = bytearray(mat.name, 'utf8')
-            data.append(seed)
+            data.append(self.seed)
             hsh = crc32(data)
             color = Color()
             color.hsv = (
                 (hsh & 0xFF) / 0xFF,
-                (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * power,
-                ((hsh >> 2) & 1) * (0.5 * power) + 0.5
+                (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * self.power,
+                ((hsh >> 2) & 1) * (0.5 * self.power) + 0.5
             )
             color = [color.r, color.g, color.b]
             if IS_28:
@@ -95,9 +112,10 @@ assign_props([
 @registry.requires(XRayColorizeMaterials)
 @registry.module_thing
 class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
-    bl_label = 'XRay Material'
+    bl_label = build_label('Material')
     bl_category = 'XRay'
     bl_space_type = 'VIEW_3D'
+    bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
         bl_region_type = 'UI'
     else:
@@ -148,3 +166,147 @@ class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
             row.prop(context.scene.xray, 'change_roughness', text='')
             row.prop(context.scene.xray, 'shader_roughness_value')
             utils_col.operator('io_scene_xray.change_shader_params')
+
+
+@registry.requires(
+    custom_props_utils.XRAY_OT_SetCustomToXRayProperties,
+    custom_props_utils.XRAY_OT_SetXRayToCustomProperties,
+    custom_props_utils.XRAY_OT_RemoveXRayCustomProperties,
+    custom_props_utils.XRAY_OT_RemoveAllCustomProperties
+)
+@registry.module_thing
+class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
+    bl_label = build_label('Custom Properties')
+    bl_category = 'XRay'
+    bl_space_type = 'VIEW_3D'
+    bl_options = {'DEFAULT_CLOSED'}
+    if IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    def draw_header(self, _context):
+        icon = plugin.get_stalker_icon()
+        self.layout.label(icon_value=icon)
+
+    def draw(self, context):
+        lay = self.layout
+        scn = context.scene.xray
+        split = lay.split(factor=0.4)
+        split.label(text='Edit Data:')
+        split.prop(scn, 'custom_properties_edit_data', text='')
+        split = lay.split(factor=0.4)
+        split.label(text='Edit Mode:')
+        split.prop(scn, 'custom_properties_edit_mode', text='')
+        lay.label(text='Set Custom Properties:')
+        lay.operator(
+            custom_props_utils.XRAY_OT_SetXRayToCustomProperties.bl_idname,
+            text='X-Ray to Custom'
+        )
+        lay.operator(
+            custom_props_utils.XRAY_OT_SetCustomToXRayProperties.bl_idname,
+            text='Custom to X-Ray'
+        )
+        lay.label(text='Remove Custom Properties:')
+        lay.operator(
+            custom_props_utils.XRAY_OT_RemoveXRayCustomProperties.bl_idname,
+            text='X-Ray'
+        )
+        lay.operator(
+            custom_props_utils.XRAY_OT_RemoveAllCustomProperties.bl_idname,
+            text='All'
+        )
+
+
+@registry.module_thing
+class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
+    bl_label = build_label('Import')
+    bl_category = 'XRay'
+    bl_space_type = 'VIEW_3D'
+    bl_options = {'DEFAULT_CLOSED'}
+    if IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    def draw_header(self, _context):
+        icon = plugin.get_stalker_icon()
+        self.layout.label(icon_value=icon)
+
+    def draw(self, context):
+        lay = self.layout
+        prefs = plugin_prefs.get_preferences()
+        # object
+        if prefs.enable_object_import:
+            lay.operator(obj_imp_ops.OpImportObject.bl_idname, text='Object')
+        # skls
+        if prefs.enable_skls_import:
+            lay.operator(skl_ops.OpImportSkl.bl_idname, text='Skls')
+        # anm
+        if prefs.enable_anm_import:
+            lay.operator(anm_ops.OpImportAnm.bl_idname, text='Anm')
+        # bones
+        if prefs.enable_bones_import:
+            lay.operator(bones_ops.IMPORT_OT_xray_bones.bl_idname, text='Bones')
+        # details
+        if prefs.enable_details_import:
+            lay.operator(details_ops.OpImportDetails.bl_idname, text='Details')
+        # dm
+        if prefs.enable_dm_import:
+            lay.operator(dm_ops.OpImportDM.bl_idname, text='Dm')
+        # scene
+        if prefs.enable_level_import:
+            lay.operator(scene_ops.OpImportLevelScene.bl_idname, text='Scene')
+        # omf
+        if prefs.enable_omf_import:
+            lay.operator(omf_ops.IMPORT_OT_xray_omf.bl_idname, text='Omf')
+        # err
+        if prefs.enable_err_import:
+            lay.operator(err_ops.OpImportERR.bl_idname, text='Err')
+
+
+@registry.module_thing
+class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
+    bl_label = build_label('Export')
+    bl_category = 'XRay'
+    bl_space_type = 'VIEW_3D'
+    bl_options = {'DEFAULT_CLOSED'}
+    if IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    def draw_header(self, _context):
+        icon = plugin.get_stalker_icon()
+        self.layout.label(icon_value=icon)
+
+    def draw(self, context):
+        lay = self.layout
+        prefs = plugin_prefs.get_preferences()
+        # object
+        if prefs.enable_object_export:
+            lay.operator(obj_exp_ops.OpExportObjects.bl_idname, text='Object')
+        # skls
+        if prefs.enable_skls_export:
+            lay.operator(skl_ops.OpExportSkls.bl_idname, text='Skls')
+        # anm
+        if prefs.enable_anm_export:
+            lay.operator(anm_ops.OpExportAnm.bl_idname, text='Anm')
+        # bones
+        if prefs.enable_bones_export:
+            lay.operator(bones_ops.EXPORT_OT_xray_bones_batch.bl_idname, text='Bones')
+        # details
+        if prefs.enable_details_export:
+            lay.operator(details_ops.OpExportDetails.bl_idname, text='Details')
+        # dm
+        if prefs.enable_dm_export:
+            lay.operator(dm_ops.OpExportDMs.bl_idname, text='Dm')
+        # scene
+        if prefs.enable_level_export:
+            lay.operator(scene_ops.OpExportLevelScene.bl_idname, text='Scene')
+        # omf
+        if prefs.enable_omf_export:
+            lay.operator(omf_ops.EXPORT_OT_xray_omf.bl_idname, text='Omf')
+        # ogf
+        if prefs.enable_ogf_export:
+            lay.operator(ogf_ops.OpExportOgf.bl_idname, text='Ogf')

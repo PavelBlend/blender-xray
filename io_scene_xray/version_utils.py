@@ -41,7 +41,8 @@ ICONS_279_TO_280 = {
     'ZOOMIN': 'ADD',
     'ZOOMOUT': 'REMOVE',
     'BBOX': 'SHADING_BBOX',
-    'VISIBLE_IPO_ON': 'HIDE_OFF'
+    'VISIBLE_IPO_ON': 'HIDE_OFF',
+    'BUTS': 'PROPERTIES'
 }
 
 

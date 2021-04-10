@@ -9,6 +9,7 @@ from .. import context
 from .fmt import Chunks
 from ..xray_envelope import import_envelope
 from ..version_utils import link_object, IS_28
+from ..log import warn, with_context
 
 
 DISPLAY_SIZE = 0.5
@@ -20,7 +21,9 @@ class ImportAnmContext(context.ImportContext):
         self.camera_animation = None
 
 
+@with_context('import-anm-path')
 def _import(fpath, creader, context):
+    warn_list = []
     for cid, data in creader:
         if cid == Chunks.MAIN:
             preader = PackedReader(data)
@@ -63,7 +66,16 @@ def _import(fpath, creader, context):
             for i in range(6):
                 fcurve = fcs[(0, 2, 1, 5, 3, 4)[i]]
                 koef = (1, 1, 1, -1, -1, -1)[i]
-                import_envelope(preader, fcurve, fps, koef)
+                import_envelope(preader, fcurve, fps, koef, name, warn_list)
+    for (shapes, replacement, name) in set(warn_list):
+        keys_count = warn_list.count((shapes, replacement, name))
+        warn(
+            'unsupported shapes are found, and will be replaced',
+            shapes=shapes,
+            replacement=replacement,
+            filename=name,
+            keys_count=keys_count
+        )
 
 
 def import_file(fpath, context):

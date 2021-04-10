@@ -127,7 +127,7 @@ class OpExportDMs(bpy.types.Operator):
         prefs = plugin_prefs.get_preferences()
 
         self.texture_name_from_image_path = \
-            prefs.object_texture_names_from_path
+            prefs.dm_texture_names_from_path
 
         objs = context.selected_objects
 
@@ -189,7 +189,7 @@ class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         prefs = plugin_prefs.get_preferences()
 
         self.texture_name_from_image_path = \
-            prefs.object_texture_names_from_path
+            prefs.dm_texture_names_from_path
 
         objs = context.selected_objects
 

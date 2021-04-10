@@ -7,9 +7,10 @@ from bpy_extras import io_utils
 
 from . import xray_inject, xray_io
 from .ops import (
-    BaseOperator as TestReadyOperator, convert_materials, shader_tools
+    BaseOperator as TestReadyOperator,
+    convert_materials, shader_tools
 )
-from .ui import collapsible, motion_list
+from .ui import collapsible, motion_list, base
 from .utils import (
     AppError, ObjectsInitializer, logger, execute_with_logger,
     execute_require_filepath, FilenameExtHelper
@@ -25,6 +26,7 @@ from .obj.exp import ops as object_exp_ops
 from .obj.imp import ops as object_imp_ops
 from .anm import ops as anm_ops
 from .skl import ops as skl_ops
+from .bones import ops as bones_ops
 from .ogf import ops as ogf_ops
 from .level import ops as level_ops
 from .omf import ops as omf_ops
@@ -90,41 +92,45 @@ assign_props([
 @registry.module_thing
 class XRayImportMenu(bpy.types.Menu):
     bl_idname = 'INFO_MT_xray_import'
-    bl_label = 'X-Ray'
+    bl_label = base.build_label()
 
     def draw(self, context):
         layout = self.layout
-        prefs = plugin_prefs.get_preferences()
-        funct_list = []
-        funct_list.extend(import_draw_functions)
+        enabled_import_operators = get_enabled_operators(
+            import_draw_functions, import_draw_functions_28
+        )
+        for id_name, text in enabled_import_operators:
+            layout.operator(id_name, text=text)
 
-        if IS_28:
-            funct_list.extend(import_draw_functions_28)
 
-        for _, enable_prop, id_name, text in funct_list:
-            enable = getattr(prefs, enable_prop)
-            if enable:
-                layout.operator(id_name, text=text)
+def get_enabled_operators(draw_functions, draw_functions_28):
+    prefs = plugin_prefs.get_preferences()
+    funct_list = []
+    funct_list.extend(draw_functions)
+
+    if IS_28:
+        funct_list.extend(draw_functions_28)
+
+    operators = []
+    for _, enable_prop, id_name, text in funct_list:
+        enable = getattr(prefs, enable_prop)
+        if enable:
+            operators.append((id_name, text))
+    return operators
 
 
 @registry.module_thing
 class XRayExportMenu(bpy.types.Menu):
     bl_idname = 'INFO_MT_xray_export'
-    bl_label = 'X-Ray'
+    bl_label = base.build_label()
 
     def draw(self, context):
         layout = self.layout
-        prefs = plugin_prefs.get_preferences()
-        funct_list = []
-        funct_list.extend(export_draw_functions)
-
-        if IS_28:
-            funct_list.extend(export_draw_functions_28)
-
-        for _, enable_prop, id_name, text in funct_list:
-            enable = getattr(prefs, enable_prop)
-            if enable:
-                layout.operator(id_name, text=text)
+        enabled_export_operators = get_enabled_operators(
+            export_draw_functions, export_draw_functions_28
+        )
+        for id_name, text in enabled_export_operators:
+            layout.operator(id_name, text=text)
 
 
 def overlay_view_3d():
@@ -188,6 +194,12 @@ import_draw_functions = [
         'Skeletal Animation (.skls)'
     ),
     (
+        bones_ops.menu_func_import,
+        'enable_bones_import',
+        bones_ops.IMPORT_OT_xray_bones.bl_idname,
+        'Bones Data (.bones)'
+    ),
+    (
         err_ops.menu_func_import,
         'enable_err_import',
         err_ops.OpImportERR.bl_idname,
@@ -245,6 +257,12 @@ export_draw_functions = [
         'enable_skls_export',
         skl_ops.OpExportSkls.bl_idname,
         'Skeletal Animation (.skls)'
+    ),
+    (
+        bones_ops.menu_func_export,
+        'enable_bones_export',
+        bones_ops.EXPORT_OT_xray_bones_batch.bl_idname,
+        'Bones Data (.bones)'
     ),
     (
         ogf_ops.menu_func_export,
@@ -306,7 +324,7 @@ def append_menu_func():
     funct_imp_list = []
     funct_imp_list.extend(import_draw_functions)
     funct_exp_list = []
-    funct_exp_list.extend(import_draw_functions)
+    funct_exp_list.extend(export_draw_functions)
 
     if IS_28:
         funct_imp_list.extend(import_draw_functions_28)
@@ -322,8 +340,18 @@ def append_menu_func():
 
     if prefs.compact_menus:
         # create compact menus
-        import_menu.prepend(menu_func_xray_import)
-        export_menu.prepend(menu_func_xray_export)
+        # import
+        enabled_import_operators = get_enabled_operators(
+            import_draw_functions, import_draw_functions_28
+        )
+        if enabled_import_operators:
+            import_menu.prepend(menu_func_xray_import)
+        # export
+        enabled_export_operators = get_enabled_operators(
+            export_draw_functions, export_draw_functions_28
+        )
+        if enabled_export_operators:
+            export_menu.prepend(menu_func_xray_export)
     else:
         # create standart import menus
         append_draw_functions(funct_imp_list, import_menu)
@@ -360,6 +388,7 @@ def register():
     registry.register_thing(object_exp_ops, __name__)
     registry.register_thing(anm_ops, __name__)
     registry.register_thing(skl_ops, __name__)
+    registry.register_thing(bones_ops, __name__)
     registry.register_thing(ogf_ops, __name__)
     registry.register_thing(motion_list, __name__)
     registry.register_thing(omf_ops, __name__)
@@ -396,6 +425,7 @@ def unregister():
     registry.unregister_thing(omf_ops, __name__)
     registry.unregister_thing(motion_list, __name__)
     registry.unregister_thing(ogf_ops, __name__)
+    registry.unregister_thing(bones_ops, __name__)
     registry.unregister_thing(skl_ops, __name__)
     registry.unregister_thing(anm_ops, __name__)
     registry.unregister_thing(object_exp_ops, __name__)
@@ -404,7 +434,25 @@ def unregister():
     get_scene_update_post().remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
+
+    funct_imp_list = []
+    funct_imp_list.extend(import_draw_functions)
+    funct_exp_list = []
+    funct_exp_list.extend(export_draw_functions)
+
+    if IS_28:
+        funct_imp_list.extend(import_draw_functions_28)
+        funct_exp_list.extend(export_draw_functions_28)
+
     import_menu, export_menu = get_import_export_menus()
+
+    # remove import menus
+    remove_draw_functions(funct_imp_list, import_menu)
+    # remove export menus
+    remove_draw_functions(funct_exp_list, export_menu)
+    # remove compact menus
+    import_menu.remove(menu_func_xray_import)
+    export_menu.remove(menu_func_xray_export)
 
     # remove icon
     for pcoll in preview_collections.values():

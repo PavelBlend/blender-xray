@@ -1,9 +1,12 @@
+# blender modules
 import bpy
-from . import base, collapsible
+
+# addon modules
+from . import base
 from .dynamic_menu import XRayXrMenuTemplate, DynamicMenu
 from ..utils import parse_shaders, parse_shaders_xrlc, parse_gamemtl
 from ..version_utils import IS_28
-from .. import registry
+from .. import registry, plugin_prefs
 
 
 @registry.requires(XRayXrMenuTemplate)
@@ -53,6 +56,15 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
         _gen_xr_selector(layout, data, 'cshader', 'CShader')
         _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
         if IS_28:
+            prefs = plugin_prefs.get_preferences()
+            panel_used = (
+                # import plugins
+                prefs.enable_game_level_import or
+                # export plugins
+                prefs.enable_game_level_export
+            )
+            if not panel_used:
+                return
             def draw_level_prop(prop_name, prop_text, prop_type):
                 row = box.split(factor=0.45)
                 row.label(text=prop_text)
