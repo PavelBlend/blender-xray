@@ -260,6 +260,9 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
         # omf
         if prefs.enable_omf_import:
             lay.operator(omf_ops.IMPORT_OT_xray_omf.bl_idname, text='Omf')
+        # level
+        if prefs.enable_game_level_import and IS_28:
+            lay.operator(level_ops.IMPORT_OT_xray_level.bl_idname, text='Level')
         # err
         if prefs.enable_err_import:
             lay.operator(err_ops.OpImportERR.bl_idname, text='Err')
@@ -307,6 +310,9 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
         # omf
         if prefs.enable_omf_export:
             lay.operator(omf_ops.EXPORT_OT_xray_omf.bl_idname, text='Omf')
+        # level
+        if prefs.enable_game_level_export and IS_28:
+            lay.operator(level_ops.EXPORT_OT_xray_level.bl_idname, text='Level')
         # ogf
         if prefs.enable_ogf_export:
             lay.operator(ogf_ops.OpExportOgf.bl_idname, text='Ogf')
