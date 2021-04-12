@@ -627,9 +627,12 @@ def import_file(context, operator):
     stats_name = '{0:0>2}_{1}_{2}_{3}.txt'.format(
         level.xrlc_version, build, level.name, index
     )
+    if len(chunked_reader._ChunkedReader__data) > 1024 * 1024 * 2:
+        print('skip big level:', stats_name)
+        return
     stats_path = os.path.join(temp_folder, stats_name)
     if os.path.exists(stats_path):
-        print('skip', stats_name)
+        print('skip:', stats_name)
         return
     print(build, index, level.name)
     level.path = os.path.dirname(context.filepath)

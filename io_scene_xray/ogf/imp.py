@@ -41,7 +41,7 @@ class HierrarhyVisual(object):
 
 def get_material(level, shader_id, texture_id):
     material_key = (shader_id, texture_id)
-    bpy_material = level.materials[shader_id]
+    bpy_material = level.materials.get(material_key, None)
     if not bpy_material:
         if not (level.shaders and level.textures):
             shader_raw = level.shaders_or_textures[shader_id]
