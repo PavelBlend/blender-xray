@@ -1087,7 +1087,10 @@ def import_main(chunks, visual, level):
 
     key = []
     for chunk_id in chunks.keys():
-        key.append(chunks_names[chunk_id])
+        key.append(chunks_names.get(
+            chunk_id, 'UNKNOWN_{}'.format(hex(chunk_id))
+            )
+        )
     key.append('HEADER')
     key.sort()
     key.insert(0, model_type_names[visual.model_type])
