@@ -41,7 +41,7 @@ class HierrarhyVisual(object):
 
 def get_material(level, shader_id, texture_id):
     material_key = (shader_id, texture_id)
-    bpy_material = level.materials.get(material_key, None)
+    bpy_material = level.materials[shader_id]
     if not bpy_material:
         if not (level.shaders and level.textures):
             shader_raw = level.shaders_or_textures[shader_id]
@@ -62,7 +62,10 @@ def get_material(level, shader_id, texture_id):
 
 
 def assign_material(bpy_object, visual, level):
-    if visual.format_version == fmt.FORMAT_VERSION_4:
+    if (
+            visual.format_version == fmt.FORMAT_VERSION_4 or
+            level.xrlc_version >= level_fmt.VERSION_12
+        ):
         shader_id = visual.shader_id
         bpy_material = level.materials[shader_id]
         if visual.use_two_sided_tris:
@@ -434,7 +437,7 @@ def read_indices_v3(data, visual):
 
 def read_vertices_v3(data, visual, level):
     packed_reader = xray_io.PackedReader(data)
-    vb = level_vb.import_vertex_buffer_d3d7(packed_reader, level.xrlc_version, level.usage_list)
+    vb = level_vb.import_vertex_buffer_d3d7(packed_reader, level)
     visual.vertices = vb.position
     visual.normals = vb.normal
     visual.uvs = vb.uv
@@ -950,26 +953,34 @@ def import_texture_and_shader_v3(visual, level, data):
 def import_model_v3(chunks, visual, level):
     chunks_ids = fmt.Chunks_v3
     if visual.model_type == fmt.ModelType_v3.NORMAL:
-        texture_l_data = chunks.pop(chunks_ids.TEXTURE_L)
-        import_texture_and_shader_v3(visual, level, texture_l_data)
+        texture_l_data = chunks.get(chunks_ids.TEXTURE_L)
+        if texture_l_data:
+            chunks.pop(chunks_ids.TEXTURE_L)
+            import_texture_and_shader_v3(visual, level, texture_l_data)
         bpy_obj = import_normal_visual(chunks, visual, level)
 
     elif visual.model_type == fmt.ModelType_v3.HIERRARHY:
         bpy_obj = import_hierrarhy_visual(chunks, visual, level)
 
     elif visual.model_type == fmt.ModelType_v3.TREE:
-        texture_l_data = chunks.pop(chunks_ids.TEXTURE_L)
-        import_texture_and_shader_v3(visual, level, texture_l_data)
+        texture_l_data = chunks.get(chunks_ids.TEXTURE_L)
+        if texture_l_data:
+            chunks.pop(chunks_ids.TEXTURE_L)
+            import_texture_and_shader_v3(visual, level, texture_l_data)
         bpy_obj = import_tree_st_visual(chunks, visual, level)
 
     elif visual.model_type == fmt.ModelType_v3.LOD:
-        texture_l_data = chunks.pop(chunks_ids.TEXTURE_L)
-        import_texture_and_shader_v3(visual, level, texture_l_data)
+        texture_l_data = chunks.get(chunks_ids.TEXTURE_L)
+        if texture_l_data:
+            chunks.pop(chunks_ids.TEXTURE_L)
+            import_texture_and_shader_v3(visual, level, texture_l_data)
         bpy_obj = import_lod_visual(chunks, visual, level)
 
     elif visual.model_type == fmt.ModelType_v3.CACHED:
-        texture_l_data = chunks.pop(chunks_ids.TEXTURE_L)
-        import_texture_and_shader_v3(visual, level, texture_l_data)
+        texture_l_data = chunks.get(chunks_ids.TEXTURE_L)
+        if texture_l_data:
+            chunks.pop(chunks_ids.TEXTURE_L)
+            import_texture_and_shader_v3(visual, level, texture_l_data)
         bpy_obj = import_normal_visual(chunks, visual, level)
 
     elif visual.model_type == fmt.ModelType_v3.PROGRESSIVE2:
@@ -1049,26 +1060,40 @@ def import_header(data, visual):
         import_bounding_sphere(packed_reader)
     elif visual.format_version in (fmt.FORMAT_VERSION_3, fmt.FORMAT_VERSION_2):
         visual.model_type = packed_reader.getf('<B')[0]
-        shader_id = packed_reader.getf('<H')[0]    # unused
+        visual.shader_id = packed_reader.getf('<H')[0]
 
 
 def import_main(chunks, visual, level):
     header_chunk_data = chunks.pop(fmt.HEADER)
     import_header(header_chunk_data, visual)
+
+    # version 4
+    if visual.format_version == fmt.FORMAT_VERSION_4:
+        import_function = import_model_v4
+        chunks_names = fmt.chunks_names_v4
+        model_type_names = fmt.model_type_names_v4
+
+    # version 3
+    elif visual.format_version == fmt.FORMAT_VERSION_3:
+        import_function = import_model_v3
+        chunks_names = fmt.chunks_names_v3
+        model_type_names = fmt.model_type_names_v3
+
+    # version 2
+    elif visual.format_version == fmt.FORMAT_VERSION_2:
+        import_function = import_model_v2
+        chunks_names = fmt.chunks_names_v2
+        model_type_names = fmt.model_type_names_v2
+
     key = []
     for chunk_id in chunks.keys():
-        key.append(fmt.chunks_names_v4[chunk_id])
+        key.append(chunks_names[chunk_id])
     key.append('HEADER')
     key.sort()
-    key.insert(0, fmt.model_type_names_v4[visual.model_type])
+    key.insert(0, model_type_names[visual.model_type])
     key = tuple(key)
     level.visual_keys.add(key)
-    if visual.format_version == fmt.FORMAT_VERSION_4:
-        import_model_v4(chunks, visual, level)
-    elif visual.format_version == fmt.FORMAT_VERSION_3:
-        import_model_v3(chunks, visual, level)
-    elif visual.format_version == fmt.FORMAT_VERSION_2:
-        import_model_v2(chunks, visual, level)
+    import_function(chunks, visual, level)
 
 
 def get_ogf_chunks(data):

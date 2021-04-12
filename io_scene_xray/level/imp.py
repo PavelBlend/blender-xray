@@ -235,12 +235,26 @@ def import_glows_v5(data, level):
     return glows_object
 
 
+INT_MAX = 2 ** 31 - 1
+
+
 def import_light_dynamic(packed_reader, light_object):
     data = light_object.xray.level
     data.object_type = 'LIGHT_DYNAMIC'
     light_object.xray.is_level = True
-    data.controller_id = packed_reader.getf('I')[0] # ???
-    data.light_type = packed_reader.getf('I')[0] # ???
+
+    # controller id
+    controller_id = packed_reader.getf('I')[0] # ???
+    if controller_id > INT_MAX:
+        controller_id = -1
+    data.controller_id = controller_id
+
+    # light type
+    light_type = packed_reader.getf('I')[0] # ???
+    if light_type > INT_MAX:
+        light_type = -1
+    data.light_type = light_type
+
     data.diffuse = packed_reader.getf('4f')
     data.specular = packed_reader.getf('4f')
     data.ambient = packed_reader.getf('4f')
@@ -588,7 +602,6 @@ def import_level(level, context, chunks, geomx_chunks):
 
 
 def import_main(context, chunked_reader, level):
-    level.xrlc_version = get_version(chunked_reader.next(fmt.HEADER))
     chunks = get_chunks(chunked_reader)
     del chunked_reader
     import_geom(level, chunks, context)
@@ -606,8 +619,18 @@ def import_file(context, operator):
     level = Level()
     level.context = context
     level.usage_list = set()
+    level.vertex_format_list = set()
     chunked_reader = level_utils.get_level_reader(context.filepath)
     level.name = level_utils.get_level_name(context.filepath)
+    level.xrlc_version = get_version(chunked_reader.next(fmt.HEADER))
+    temp_folder = 'E:\\stalker\\_TEMP\\utils\\level_format_stats\\'
+    stats_name = '{0:0>2}_{1}_{2}_{3}.txt'.format(
+        level.xrlc_version, build, level.name, index
+    )
+    stats_path = os.path.join(temp_folder, stats_name)
+    if os.path.exists(stats_path):
+        print('skip', stats_name)
+        return
     print(build, index, level.name)
     level.path = os.path.dirname(context.filepath)
     import_main(context, chunked_reader, level)
@@ -615,10 +638,5 @@ def import_file(context, operator):
     for key in level.visual_keys:
         stats += '  ' + key[0] + ': ' + ' '.join(key[1:]) + '\n'
     level.stats += stats
-    temp_folder = 'D:\\stalker\\_TEMP\\'
-    stats_name = '{0:0>2}_{1}_{2}_{3}.txt'.format(
-        level.xrlc_version, build, level.name, index
-    )
-    stats_path = os.path.join(temp_folder, stats_name)
     with open(stats_path, 'w') as stats_file:
         stats_file.write(level.stats)

@@ -1,7 +1,10 @@
+# standart modules
 import os
 
+# blender modules
 import bmesh, bpy
 
+# addon modules
 from .. import xray_io, utils, plugin_prefs
 from . import fmt, create
 

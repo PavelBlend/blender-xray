@@ -17,7 +17,7 @@ __SUBCLASSES__ = [
     XRayObjectDetailsSlotsProperties,
     XRayObjectDetailsSlotsLightingProperties,
     XRayObjectDetailsSlotsMeshesProperties
-    ]
+]
 
 __CLASSES__ = [
     props.obj.XRayObjectProperties,
