@@ -461,16 +461,16 @@ def get_version(header_chunk_data):
 
 def import_geomx(level, context):
     if level.xrlc_version == fmt.VERSION_14:
-        geomx_chunks = {}
-        geomx_chunked_reader = level_utils.get_level_reader(
-            context.filepath + os.extsep + 'geomx'
-        )
-        chunks = get_chunks(geomx_chunked_reader)
-        del geomx_chunked_reader
-        level.xrlc_version_geom = get_version(chunks.pop(fmt.HEADER))
-        geomx_chunks.update(chunks)
-        del chunks
-        return geomx_chunks
+        geomx_path = context.filepath + os.extsep + 'geomx'
+        if os.path.exists(geomx_path):
+            geomx_chunks = {}
+            geomx_chunked_reader = level_utils.get_level_reader(geomx_path)
+            chunks = get_chunks(geomx_chunked_reader)
+            del geomx_chunked_reader
+            level.xrlc_version_geom = get_version(chunks.pop(fmt.HEADER))
+            geomx_chunks.update(chunks)
+            del chunks
+            return geomx_chunks
 
 
 def import_geom(level, chunks, context):
@@ -537,7 +537,7 @@ def import_level(level, context, chunks, geomx_chunks):
             del swis_chunk_data
 
     # fastpath geometry
-    if level.xrlc_version == fmt.VERSION_14:
+    if level.xrlc_version == fmt.VERSION_14 and geomx_chunks:
         fastpath_vb_chunk_data = geomx_chunks.pop(chunks_ids.VB)
         level.fastpath_vertex_buffers, stats = vb.import_vertex_buffers(
             fastpath_vb_chunk_data, level, fast=True
