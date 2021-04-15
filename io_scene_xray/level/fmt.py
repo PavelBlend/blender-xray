@@ -1,4 +1,4 @@
-EXPERIMENTAL_MODE = False
+EXPERIMENTAL_MODE = True
 # header chunk id
 HEADER = 0x1
 
@@ -76,6 +76,19 @@ class Chunks5:
     SECTORS = 0xb
 
 
+class Chunks4:
+    TEXTURES = 0x2
+    SHADERS = 0x3
+    VISUALS = 0x4
+    VB = 0x5
+    CFORM = 0x6
+    PORTALS = 0x7
+    LIGHT_DYNAMIC = 0x8
+    LIGHT_KEY_FRAMES = 0x9
+    GLOWS = 0xa
+    SECTORS = 0xb
+
+
 class SectorChunks:
     PORTALS = 0x1
     ROOT = 0x2
@@ -103,11 +116,12 @@ VERSION_10 = 10
 VERSION_9 = 9
 VERSION_8 = 8
 VERSION_5 = 5
+VERSION_4 = 4
 
 if EXPERIMENTAL_MODE:
     SUPPORTED_VERSIONS = (
         VERSION_14, VERSION_13, VERSION_12, VERSION_11,
-        VERSION_10, VERSION_9, VERSION_8, VERSION_5
+        VERSION_10, VERSION_9, VERSION_8, VERSION_5, VERSION_4
     )
 else:
     SUPPORTED_VERSIONS = (VERSION_14, )

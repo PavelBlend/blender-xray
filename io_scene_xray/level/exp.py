@@ -36,8 +36,9 @@ class VisualsCache:
     def __init__(self):
         self.bounds = {}
         self.children = {}
+        self._find_children()
 
-    def find_children(self):
+    def _find_children(self):
         for obj in bpy.data.objects:
             self.children[obj.name] = []
         for child_obj in bpy.data.objects:
@@ -61,7 +62,6 @@ class Level(object):
         self.visuals_center = {}
         self.visuals_radius = {}
         self.visuals_cache = VisualsCache()
-        self.visuals_cache.find_children()
         self.cform_objects = {}
 
 
@@ -1129,7 +1129,10 @@ def write_light(level, level_object):
             for light_obj_name in level.visuals_cache.children[child_obj.name]:
                 light_obj = bpy.data.objects[light_obj_name]
                 data = light_obj.xray.level
-                packed_writer.putf('I', data.controller_id)
+                controller_id = data.controller_id
+                if controller_id == -1:
+                    controller_id = 2 ** 32
+                packed_writer.putf('I', controller_id)
                 packed_writer.putf('I', data.light_type)
                 packed_writer.putf('4f', *data.diffuse)
                 packed_writer.putf('4f', *data.specular)

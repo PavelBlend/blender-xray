@@ -25,12 +25,18 @@ def get_uv_corrector(value):
 
 
 def import_vertices(
-        xrlc_version, packed_reader, vertex_buffer, vertices_count, usage_list
+        xrlc_version, packed_reader, vertex_buffer,
+        vertices_count, usage_list, global_usage_list
     ):
     code = ''
     code += 'for vertex_index in range({}):\n'.format(vertices_count)
     has_uv_corrector = False
-    for usage, data_type, usage_index in usage_list:
+    usages = []
+    for usage_info in usage_list:
+        data_type = usage_info[2]
+        usage = usage_info[4]
+        usage_index = usage_info[5]
+        usages.append(usage_info)
         data_format = fmt.types_struct[data_type]
         data_type = fmt.types[data_type]
         usage = fmt.usage[usage]
@@ -113,32 +119,50 @@ def import_vertices(
                     '       red, green, blue\n' \
                     '    ))\n'
             code += '    vertex_buffer.color_sun.append(sun)\n'
+    global_usage_list.add(tuple(usages))
     exec(code)
 
 
 def import_vertices_d3d7(
-        xrlc_version, packed_reader, vertex_buffer,
+        level, packed_reader, vertex_buffer,
         vertices_count, vertex_format
     ):
     code = ''
     code += 'for vertex_index in range({0}):\n'.format(vertices_count)
+    # xyz, normal, diffuse, tex coord
+    vertex_format_key = [False, ] * 4
     if (vertex_format & fmt.D3D7FVF.POSITION_MASK) == fmt.D3D7FVF.XYZ:
+        vertex_format_key[0] = True    # xyz
         code += '    coord_x, coord_y, coord_z = packed_reader.getf("<3f")\n'
         code += '    vertex_buffer.position.append((coord_x, coord_z, coord_y))\n'
     if vertex_format & fmt.D3D7FVF.NORMAL:
+        vertex_format_key[1] = True    # normal
         vertex_buffer.float_normals = True
         code += '    norm_x, norm_y, norm_z = packed_reader.getf("<3f")\n'
         code += '    vertex_buffer.normal.append((norm_x, norm_y, norm_z))\n'
     if vertex_format & fmt.D3D7FVF.DIFFUSE:
-        code += '    norm_x, norm_y, norm_z, unknown = packed_reader.getf("<4B")\n'
-        code += '    vertex_buffer.normal.append((norm_x, norm_y, norm_z))\n'
+        vertex_format_key[2] = True    # diffuse
+        code += '    red, green, blue, unknown = packed_reader.getf("<4B")\n'
+        code += '    red = red / 255\n'
+        code += '    green = green / 255\n'
+        code += '    blue = blue / 255\n'
+        code += '    vertex_buffer.color_light.append((red, green, blue))\n'
     tex_coord = (vertex_format & fmt.D3D7FVF.TEXCOUNT_MASK) >> fmt.D3D7FVF.TEXCOUNT_SHIFT
-    if tex_coord == 1 or tex_coord == 2:
-        code += '    coord_u, coord_v = packed_reader.getf("<2f")\n'
-        code += '    vertex_buffer.uv.append((coord_u, 1 - coord_v))\n'
+    vertex_format_key[3] = tex_coord    # texture coord count
+    lmap_uv_code = ''
+    if tex_coord in (1, 2):
+        tex_uv_code = '    coord_u, coord_v = packed_reader.getf("<2f")\n'
+        tex_uv_code += '    vertex_buffer.uv.append((coord_u, 1 - coord_v))\n'
     if tex_coord == 2:
-        code += '    lmap_u, lmap_v = packed_reader.getf("<2f")\n'
-        code += '    vertex_buffer.uv_lmap.append((lmap_u, lmap_v))\n'
+        lmap_uv_code = '    lmap_u, lmap_v = packed_reader.getf("<2f")\n'
+        lmap_uv_code += '    vertex_buffer.uv_lmap.append((lmap_u, lmap_v))\n'
+    if level.xrlc_version >= fmt.VERSION_5:
+        code += tex_uv_code
+        code += lmap_uv_code
+    else:
+        code += lmap_uv_code
+        code += tex_uv_code
+    level.vertex_format_list.add(tuple(vertex_format_key))
     exec(code)
 
 
@@ -147,45 +171,47 @@ def import_vertex_buffer_declaration(packed_reader):
 
     while True:
         stream = packed_reader.getf('H')[0]             # ?
-        offset = packed_reader.getf('H')[0]             # ?
-        type_ = packed_reader.getf('B')[0]              # ?
+        offset = packed_reader.getf('H')[0]
+        type_ = packed_reader.getf('B')[0]
         method = packed_reader.getf('B')[0]             # ?
-        usage = packed_reader.getf('B')[0]              # ?
-        usage_index = packed_reader.getf('B')[0]        # ?
+        usage = packed_reader.getf('B')[0]
+        usage_index = packed_reader.getf('B')[0]
 
         if fmt.types[type_] == fmt.UNUSED:
             break
         else:
-            usage_list.append((usage, type_, usage_index))
+            usage_list.append((
+                stream, offset, type_, method, usage, usage_index
+            ))
 
     return usage_list
 
 
-def import_vertex_buffer(packed_reader, xrlc_version):
-    if xrlc_version >= fmt.VERSION_9:
+def import_vertex_buffer(packed_reader, level):
+    if level.xrlc_version >= fmt.VERSION_9:
         usage_list = import_vertex_buffer_declaration(packed_reader)
         vertex_buffer = VertexBuffer()
         vertices_count = packed_reader.getf('I')[0]
         import_vertices(
-            xrlc_version, packed_reader, vertex_buffer,
-            vertices_count, usage_list
+            level.xrlc_version, packed_reader, vertex_buffer,
+            vertices_count, usage_list, level.usage_list
         )
     return vertex_buffer
 
 
-def import_vertex_buffer_d3d7(packed_reader, xrlc_version):
-    if xrlc_version <= fmt.VERSION_9:
+def import_vertex_buffer_d3d7(packed_reader, level):
+    if level.xrlc_version <= fmt.VERSION_9:
         vertex_format = packed_reader.getf('I')[0]
         vertices_count = packed_reader.getf('I')[0]
         vertex_buffer = VertexBuffer()
         import_vertices_d3d7(
-            xrlc_version, packed_reader, vertex_buffer,
+            level, packed_reader, vertex_buffer,
             vertices_count, vertex_format
         )
     return vertex_buffer
 
 
-def import_vertex_buffers(data, xrlc_version, d3d7=False):
+def import_vertex_buffers(data, level, fast=False, d3d7=False):
     packed_reader = xray_io.PackedReader(data)
     vertex_buffers_count = packed_reader.getf('<I')[0]
     vertex_buffers = []
@@ -195,9 +221,35 @@ def import_vertex_buffers(data, xrlc_version, d3d7=False):
         import_vertex_buffer_function = import_vertex_buffer_d3d7
 
     for vertex_buffer_index in range(vertex_buffers_count):
-        vertex_buffer = import_vertex_buffer_function(
-            packed_reader, xrlc_version
-        )
+        vertex_buffer = import_vertex_buffer_function(packed_reader, level)
         vertex_buffers.append(vertex_buffer)
 
-    return vertex_buffers
+    stats = ''
+    if fast:
+        stats += '\n\nFAST_PATH VBs Info\n'
+    else:
+        stats += '\n\nVISUALS VBs Info\n'
+    if not d3d7:
+        for usages in level.usage_list:
+            stats += '-' * 79 + '\n'
+            for usage_info in usages:
+                stream, offset, data_type, method, usage, usage_index = usage_info
+                stats += 'Stream:{0} Offset:{1} Type:{2} Method:{3} Usage:{4} UsageIndex:{5}\n'.format(
+                    stream,
+                    offset,
+                    fmt.types[data_type],
+                    fmt.methods[method],
+                    fmt.usage[usage],
+                    usage_index
+                )
+        stats += '-' * 79 + '\n\n'
+    else:
+        for vertex_format in level.vertex_format_list:
+            stats += '-' * 79 + '\n'
+            xyz, normal, diffuse, tex_coord = vertex_format
+            stats += 'XYZ:{0} Normal:{1} Diffuse:{2} Tex Coord:{3}\n'.format(
+                xyz, normal, diffuse, tex_coord
+            )
+        stats += '-' * 79 + '\n\n'
+
+    return vertex_buffers, stats

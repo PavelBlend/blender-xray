@@ -28,6 +28,8 @@ class Level(object):
         self.visuals = []
         self.collections = {}
         self.sectors_objects = {}
+        self.visual_keys = set()
+        self.stats = ''
 
 
 def create_sector_object(sector_id, collection, sectors_object):
@@ -233,12 +235,26 @@ def import_glows_v5(data, level):
     return glows_object
 
 
+INT_MAX = 2 ** 31 - 1
+
+
 def import_light_dynamic(packed_reader, light_object):
     data = light_object.xray.level
     data.object_type = 'LIGHT_DYNAMIC'
     light_object.xray.is_level = True
-    data.controller_id = packed_reader.getf('I')[0] # ???
-    data.light_type = packed_reader.getf('I')[0] # ???
+
+    # controller id
+    controller_id = packed_reader.getf('I')[0] # ???
+    if controller_id > INT_MAX:
+        controller_id = -1
+    data.controller_id = controller_id
+
+    # light type
+    light_type = packed_reader.getf('I')[0] # ???
+    if light_type > INT_MAX:
+        light_type = -1
+    data.light_type = light_type
+
     data.diffuse = packed_reader.getf('4f')
     data.specular = packed_reader.getf('4f')
     data.ambient = packed_reader.getf('4f')
@@ -445,16 +461,16 @@ def get_version(header_chunk_data):
 
 def import_geomx(level, context):
     if level.xrlc_version == fmt.VERSION_14:
-        geomx_chunks = {}
-        geomx_chunked_reader = level_utils.get_level_reader(
-            context.filepath + os.extsep + 'geomx'
-        )
-        chunks = get_chunks(geomx_chunked_reader)
-        del geomx_chunked_reader
-        level.xrlc_version_geom = get_version(chunks.pop(fmt.HEADER))
-        geomx_chunks.update(chunks)
-        del chunks
-        return geomx_chunks
+        geomx_path = context.filepath + os.extsep + 'geomx'
+        if os.path.exists(geomx_path):
+            geomx_chunks = {}
+            geomx_chunked_reader = level_utils.get_level_reader(geomx_path)
+            chunks = get_chunks(geomx_chunked_reader)
+            del geomx_chunked_reader
+            level.xrlc_version_geom = get_version(chunks.pop(fmt.HEADER))
+            geomx_chunks.update(chunks)
+            del chunks
+            return geomx_chunks
 
 
 def import_geom(level, chunks, context):
@@ -484,6 +500,8 @@ def import_level(level, context, chunks, geomx_chunks):
         chunks_ids = fmt.Chunks8
     elif level.xrlc_version == fmt.VERSION_5:
         chunks_ids = fmt.Chunks5
+    elif level.xrlc_version == fmt.VERSION_4:
+        chunks_ids = fmt.Chunks4
     shaders_chunk_data = chunks.pop(chunks_ids.SHADERS)
     level.materials = shaders.import_shaders(level, context, shaders_chunk_data)
     del shaders_chunk_data
@@ -501,9 +519,10 @@ def import_level(level, context, chunks, geomx_chunks):
     if not vb_chunk_data and level.xrlc_version == fmt.VERSION_9:
         directx_3d_7_mode = True
         vb_chunk_data = chunks.pop(chunks_ids.VB_OLD)
-    level.vertex_buffers = vb.import_vertex_buffers(
-        vb_chunk_data, level.xrlc_version, d3d7=directx_3d_7_mode
+    level.vertex_buffers, stats = vb.import_vertex_buffers(
+        vb_chunk_data, level, fast=False, d3d7=directx_3d_7_mode
     )
+    level.stats += stats
     del vb_chunk_data
 
     if level.xrlc_version >= fmt.VERSION_9:
@@ -518,11 +537,12 @@ def import_level(level, context, chunks, geomx_chunks):
             del swis_chunk_data
 
     # fastpath geometry
-    if level.xrlc_version == fmt.VERSION_14:
+    if level.xrlc_version == fmt.VERSION_14 and geomx_chunks:
         fastpath_vb_chunk_data = geomx_chunks.pop(chunks_ids.VB)
-        level.fastpath_vertex_buffers = vb.import_vertex_buffers(
-            fastpath_vb_chunk_data, level.xrlc_version
+        level.fastpath_vertex_buffers, stats = vb.import_vertex_buffers(
+            fastpath_vb_chunk_data, level, fast=True
         )
+        level.stats += stats
         del fastpath_vb_chunk_data
 
         fastpath_ib_chunk_data = geomx_chunks.pop(chunks_ids.IB)
@@ -582,7 +602,6 @@ def import_level(level, context, chunks, geomx_chunks):
 
 
 def import_main(context, chunked_reader, level):
-    level.xrlc_version = get_version(chunked_reader.next(fmt.HEADER))
     chunks = get_chunks(chunked_reader)
     del chunked_reader
     import_geom(level, chunks, context)
@@ -594,10 +613,40 @@ def import_main(context, chunked_reader, level):
         cform.import_main(context, level, data=cform_data_v2)
 
 
+TEST_MODE = False
+MAX_LEVEL_SIZE = 1024 * 1024 * 32    # 32 MB
+
+
 def import_file(context, operator):
+    build = context.filepath[48 : 48 + 4]
+    index = context.filepath[36 : 36 + 2]
     level = Level()
     level.context = context
+    level.usage_list = set()
+    level.vertex_format_list = set()
     chunked_reader = level_utils.get_level_reader(context.filepath)
     level.name = level_utils.get_level_name(context.filepath)
+    level.xrlc_version = get_version(chunked_reader.next(fmt.HEADER))
+    temp_folder = 'E:\\stalker\\_TEMP\\utils\\level_format_stats\\'
+    stats_name = '{0:0>2}_{1}_{2}_{3}.txt'.format(
+        level.xrlc_version, build, level.name, index
+    )
+    if len(chunked_reader._ChunkedReader__data) > MAX_LEVEL_SIZE and TEST_MODE:
+        print('skip big level:', stats_name)
+        return
+    stats_path = os.path.join(temp_folder, stats_name)
+    if os.path.exists(stats_path) and TEST_MODE:
+        print('skip:', stats_name)
+        return
+    if TEST_MODE:
+        print(build, index, level.name)
     level.path = os.path.dirname(context.filepath)
     import_main(context, chunked_reader, level)
+    if TEST_MODE:
+        stats = '\nOGFs Info:\n'
+        for key in level.visual_keys:
+            stats += '  ' + key[0] + ': ' + ' '.join(key[1:]) + '\n'
+        level.stats += stats
+        with open(stats_path, 'w') as stats_file:
+            stats_file.write(level.stats)
+        print('\t\t', level.name)

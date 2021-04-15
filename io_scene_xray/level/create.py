@@ -1,7 +1,10 @@
+# standart modules
 import os
 
+# blender modules
 import bpy, mathutils
 
+# addon modules
 from . import utils as level_utils, fmt
 from .. import version_utils
 from .. import utils
