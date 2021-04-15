@@ -613,6 +613,10 @@ def import_main(context, chunked_reader, level):
         cform.import_main(context, level, data=cform_data_v2)
 
 
+TEST_MODE = False
+MAX_LEVEL_SIZE = 1024 * 1024 * 32    # 32 MB
+
+
 def import_file(context, operator):
     build = context.filepath[48 : 48 + 4]
     index = context.filepath[36 : 36 + 2]
@@ -627,19 +631,22 @@ def import_file(context, operator):
     stats_name = '{0:0>2}_{1}_{2}_{3}.txt'.format(
         level.xrlc_version, build, level.name, index
     )
-    if len(chunked_reader._ChunkedReader__data) > 1024 * 1024 * 2:
+    if len(chunked_reader._ChunkedReader__data) > MAX_LEVEL_SIZE and TEST_MODE:
         print('skip big level:', stats_name)
         return
     stats_path = os.path.join(temp_folder, stats_name)
-    if os.path.exists(stats_path):
+    if os.path.exists(stats_path) and TEST_MODE:
         print('skip:', stats_name)
         return
-    print(build, index, level.name)
+    if TEST_MODE:
+        print(build, index, level.name)
     level.path = os.path.dirname(context.filepath)
     import_main(context, chunked_reader, level)
-    stats = '\nOGFs Info:\n'
-    for key in level.visual_keys:
-        stats += '  ' + key[0] + ': ' + ' '.join(key[1:]) + '\n'
-    level.stats += stats
-    with open(stats_path, 'w') as stats_file:
-        stats_file.write(level.stats)
+    if TEST_MODE:
+        stats = '\nOGFs Info:\n'
+        for key in level.visual_keys:
+            stats += '  ' + key[0] + ': ' + ' '.join(key[1:]) + '\n'
+        level.stats += stats
+        with open(stats_path, 'w') as stats_file:
+            stats_file.write(level.stats)
+        print('\t\t', level.name)
