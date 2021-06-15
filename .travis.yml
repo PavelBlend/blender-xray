@@ -23,6 +23,7 @@ env: # build matrix
     - BLENDER_VERSION=2.90
     - BLENDER_VERSION=2.91
     - BLENDER_VERSION=2.92
+    - BLENDER_VERSION=2.93
 
 install:
   - bash ./tests/ci-prepare.sh
