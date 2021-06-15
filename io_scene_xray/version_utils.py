@@ -9,7 +9,14 @@ def is_blender_2_80():
 
 
 def is_blender_2_81():
-    if bpy.app.version[0] == 2 and bpy.app.version[1] > 80:
+    if bpy.app.version[0] == 2 and bpy.app.version[1] >= 81:
+        return True
+    else:
+        return False
+
+
+def is_blender_2_93():
+    if bpy.app.version[0] == 2 and bpy.app.version[1] >= 93:
         return True
     else:
         return False
@@ -17,6 +24,7 @@ def is_blender_2_81():
 
 IS_28 = is_blender_2_80()
 IS_281 = is_blender_2_81()
+IS_293 = is_blender_2_93()
 
 
 def get_import_export_menus():
@@ -146,3 +154,11 @@ def get_multiply():
         return multiply_28x
     else:
         return multiply_27x
+
+
+def get_prop_name(prop):
+    if IS_293:
+        name = prop.keywords.get('name', '')
+    else:
+        name = prop[1].get('name', '')
+    return name

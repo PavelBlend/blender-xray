@@ -1,10 +1,12 @@
+# standart modules
 import math
 
+# blender modules
 import bpy
 import bmesh
 
-from ... import xray_io, utils, plugin_prefs, log
-from ...version_utils import IS_28
+# addon modules
+from ... import xray_io, utils, plugin_prefs, log, version_utils
 from .. import fmt
 from . import main, props
 
@@ -124,7 +126,7 @@ def import_mesh(context, creader, renamemap):
                     bml = bmsh.loops.layers.uv.get(name)
                     if bml is None:
                         bml = bmsh.loops.layers.uv.new(name)
-                        if IS_28:
+                        if version_utils.IS_28:
                             bml_texture = None
                         else:
                             bml_texture = bmsh.faces.layers.tex.new(name)
@@ -265,7 +267,7 @@ def import_mesh(context, creader, renamemap):
     if face_sg:
         bm_data.use_auto_smooth = True
         bm_data.auto_smooth_angle = math.pi
-        if not IS_28:
+        if not version_utils.IS_28:
             bm_data.show_edge_sharp = True
 
     bo_mesh = bpy.data.objects.new(mesh_name, bm_data)
@@ -286,7 +288,7 @@ def import_mesh(context, creader, renamemap):
             bmat.xray.version = context.version
         midx = len(bm_data.materials)
         bm_data.materials.append(bmat)
-        if not IS_28:
+        if not version_utils.IS_28:
             images.append(
                 bmat.active_texture.image if bmat.active_texture else None
             )
@@ -352,7 +354,9 @@ def import_mesh(context, creader, renamemap):
         )
         if not context.split_by_materials:
             msg += ' (try to use "{}" option)'.format(
-                props.PropObjectMeshSplitByMaterials()[1].get('name')
+                version_utils.get_prop_name(
+                    props.PropObjectMeshSplitByMaterials()
+                )
             )
         log.warn(msg)
 
