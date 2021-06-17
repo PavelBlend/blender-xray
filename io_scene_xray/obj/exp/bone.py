@@ -21,10 +21,19 @@ def export_bone(
     writer.put(
         fmt.Chunks.Bone.VERSION, xray_io.PackedWriter().putf('H', 0x02)
     )
-    writer.put(fmt.Chunks.Bone.DEF, xray_io.PackedWriter()
-               .puts(bpy_bone.name)
-               .puts(real_parent.name if real_parent else '')
-               .puts(bpy_bone.name))  # vmap
+    bone_name = bpy_bone.name.lower()
+    if bone_name != bpy_bone.name:
+        log.warn(
+            'the bone name has been saved without uppercase characters',
+            old=bpy_bone.name,
+            new=bone_name
+        )
+    writer.put(
+        fmt.Chunks.Bone.DEF, xray_io.PackedWriter()
+        .puts(bone_name)
+        .puts(real_parent.name if real_parent else '')
+        .puts(bone_name)    # vmap
+    )
     mat = edit_mode_matrices[bpy_bone.name]
     if real_parent:
         pm = edit_mode_matrices[real_parent.name]

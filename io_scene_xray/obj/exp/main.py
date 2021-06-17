@@ -72,6 +72,27 @@ def validate_vertex_weights(bpy_obj, arm_obj):
         ))
 
 
+@log.with_context('export-armature-object')
+def _check_bone_names(armature_object):
+    bone_names = {}
+    bone_duplicates = {}
+    for bone in armature_object.data.bones:
+        name = bone.name
+        name_lower = name.lower()
+        if bone_names.get(name_lower, None):
+            if not bone_duplicates.get(name_lower, None):
+                bone_duplicates[name_lower] = [bone_names.get(name_lower), ]
+            bone_duplicates[name_lower].append(name)
+        else:
+            bone_names[name_lower] = name
+    if bone_duplicates:
+        log.update(object=armature_object.name)
+        raise utils.AppError(
+            'The object has duplicate bones',
+            log.props(bones=tuple(bone_duplicates.values()))
+        )
+
+
 def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
     mesh_writers = []
     armatures = set()
@@ -135,6 +156,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
     armatures = list(armatures)
     if armatures:
         bpy_arm_obj = armatures[0]
+        _check_bone_names(bpy_arm_obj)
         bonemap = {}
         edit_mode_matrices = {}
         with using_active_object(bpy_arm_obj), utils.using_mode('EDIT'):
@@ -162,9 +184,9 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
                     else:
                         has_bone_groups = True
         if invalid_bones and has_bone_groups:
-            log.warn(
+            raise utils.AppError(
                 'Invalid bone parts: not all bones are tied to the Bone Part',
-                data=invalid_bones
+                log.props(bones=invalid_bones)
             )
     if len(root_bones) > 1:
         raise utils.AppError(
@@ -339,7 +361,7 @@ def export_partitions(chunked_writer, some_arm):
                 writer.puts(name)
                 writer.putf('I', len(bones))
                 for bone_ in bones:
-                    writer.puts(bone_)
+                    writer.puts(bone_.lower())
             chunked_writer.put(fmt.Chunks.Object.PARTITIONS1, writer)
 
 

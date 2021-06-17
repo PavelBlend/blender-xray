@@ -284,7 +284,7 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
         if wmap is None:
             continue
         vtx = wmap[0]
-        writer.puts(vertex_group.name)
+        writer.puts(vertex_group.name.lower())
         writer.putf('B', 1).putf('B', 0).putf('B', 1)
         writer.putf('I', len(vtx))
         for vidx in vtx:
