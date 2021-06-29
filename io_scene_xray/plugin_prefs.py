@@ -196,7 +196,7 @@ path_props_types = {
 def update_paths(prefs, context):
     for path_prop, suffix in path_props_suffix_values.items():
         if getattr(prefs, path_prop):
-            setattr(prefs, build_auto_id(path_prop), getattr(prefs, path_prop))
+            setattr(prefs, build_auto_id(path_prop), '')
             continue
         prop_type = path_props_types[path_prop]
         if prop_type == DIRECTORY:
