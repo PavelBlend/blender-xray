@@ -24,14 +24,6 @@ def get_preferences():
         return bpy.context.user_preferences.addons['io_scene_xray'].preferences
 
 
-def PropUseExportPaths():
-    return bpy.props.BoolProperty(
-        name='Use Export Paths',
-        description='Append the Object.ExportPath to the export directory for each object',
-        default=True
-    )
-
-
 __AUTO_PROPS__ = [
     'gamedata_folder',
     'textures_folder',
@@ -468,7 +460,7 @@ plugin_preferences_props = {
     'smoothing_out_of': obj_exp_props.prop_smoothing_out_of(),
     'object_motions_export': obj_exp_props.PropObjectMotionsExport(),
     'object_texture_names_from_path': obj_exp_props.PropObjectTextureNamesFromPath(),
-    'export_object_use_export_paths': PropUseExportPaths(),
+    'export_object_use_export_paths': obj_exp_props.PropUseExportPaths(),
     # anm import props
     'anm_create_camera': anm_props.PropAnmCameraAnimation(),
     # skl/skls import props

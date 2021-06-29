@@ -18,6 +18,14 @@ def PropObjectTextureNamesFromPath():
     )
 
 
+def PropUseExportPaths():
+    return bpy.props.BoolProperty(
+        name='Use Export Paths',
+        description='Append the Object.ExportPath to the export directory for each object',
+        default=True
+    )
+
+
 items = (
     ('SHARP_EDGES', 'Sharp Edges', ''),
     ('SPLIT_NORMALS', 'Split Normals', '')

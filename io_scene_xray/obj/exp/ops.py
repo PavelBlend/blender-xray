@@ -65,7 +65,7 @@ op_export_objects_props = {
         props.PropObjectTextureNamesFromPath(),
 
     'fmt_version': general_obj_props.PropSDKVersion(),
-    'use_export_paths': plugin_prefs.PropUseExportPaths(),
+    'use_export_paths': props.PropUseExportPaths(),
     'smoothing_out_of': props.prop_smoothing_out_of()
 }
 
