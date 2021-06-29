@@ -10,6 +10,7 @@ from .skl import props as skl_props
 from .bones import props as bones_props
 from .omf import props as omf_props
 from .obj.exp import props as obj_exp_props
+from .obj import props as general_obj_props
 from .ui import collapsible
 from .version_utils import IS_28, assign_props, get_icon, layout_split
 from bl_operators.presets import AddPresetBase
@@ -20,13 +21,6 @@ def get_preferences():
         return bpy.context.preferences.addons['io_scene_xray'].preferences
     else:
         return bpy.context.user_preferences.addons['io_scene_xray'].preferences
-
-
-def PropSDKVersion():
-    return bpy.props.EnumProperty(
-        name='SDK Version',
-        items=(('soc', 'SoC', ''), ('cscop', 'CS/CoP', ''))
-    )
 
 
 def PropAnmCameraAnimation():
@@ -471,13 +465,13 @@ plugin_preferences_props = {
     ),
 
     # object import props
-    'sdk_version': PropSDKVersion(),
+    'sdk_version': general_obj_props.PropSDKVersion(),
     'object_motions_import': obj_imp_props.PropObjectMotionsImport(),
     'use_motion_prefix_name': obj_imp_props.PropObjectUseMotionPrefixName(),
     'object_mesh_split_by_mat': obj_imp_props.PropObjectMeshSplitByMaterials(),
     'object_bones_custom_shapes': obj_imp_props.PropObjectBonesCustomShapes(),
     # object export props
-    'export_object_sdk_version': PropSDKVersion(),
+    'export_object_sdk_version': general_obj_props.PropSDKVersion(),
     'smoothing_out_of': obj_exp_props.prop_smoothing_out_of(),
     'object_motions_export': obj_exp_props.PropObjectMotionsExport(),
     'object_texture_names_from_path': obj_exp_props.PropObjectTextureNamesFromPath(),
@@ -511,7 +505,7 @@ plugin_preferences_props = {
     'omf_export_mode': omf_props.prop_omf_export_mode(),
     'omf_motions_export': obj_exp_props.PropObjectMotionsExport(),
     # scene selection import props
-    'scene_selection_sdk_version': PropSDKVersion(),
+    'scene_selection_sdk_version': general_obj_props.PropSDKVersion(),
     'scene_selection_mesh_split_by_mat': obj_imp_props.PropObjectMeshSplitByMaterials(),
     'scene_selection_shaped_bones': obj_imp_props.PropObjectBonesCustomShapes(),
 

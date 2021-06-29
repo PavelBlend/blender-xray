@@ -7,7 +7,7 @@ from ... import registry, ops, plugin, plugin_prefs, utils, context
 from ...version_utils import (
     assign_props, IS_28, set_active_object, select_object
 )
-from .. import exp
+from .. import exp, props as general_obj_props
 from . import props
 
 
@@ -64,7 +64,7 @@ op_export_objects_props = {
     'texture_name_from_image_path': \
         props.PropObjectTextureNamesFromPath(),
 
-    'fmt_version': plugin_prefs.PropSDKVersion(),
+    'fmt_version': general_obj_props.PropSDKVersion(),
     'use_export_paths': plugin_prefs.PropUseExportPaths(),
     'smoothing_out_of': props.prop_smoothing_out_of()
 }
@@ -154,7 +154,7 @@ op_export_object_props = {
     ),
     'texture_name_from_image_path': \
         props.PropObjectTextureNamesFromPath(),
-    'fmt_version': plugin_prefs.PropSDKVersion(),
+    'fmt_version': general_obj_props.PropSDKVersion(),
     'smoothing_out_of': props.prop_smoothing_out_of()
 }
 

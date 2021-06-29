@@ -2,6 +2,7 @@ import bpy
 
 from .. import registry, plugin_prefs
 from ..obj.exp import props as obj_exp_props
+from ..obj import props as general_obj_props
 from ..version_utils import assign_props, IS_28
 
 
@@ -53,7 +54,7 @@ xray_scene_properties = {
         description='The root folder for export',
         subtype='DIR_PATH',
     ),
-    'fmt_version': plugin_prefs.PropSDKVersion(),
+    'fmt_version': general_obj_props.PropSDKVersion(),
     'object_export_motions': obj_exp_props.PropObjectMotionsExport(),
     'object_texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath(),
     'materials_colorize_random_seed': bpy.props.IntProperty(min=0, max=255, options={'SKIP_SAVE'}),

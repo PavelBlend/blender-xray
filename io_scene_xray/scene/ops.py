@@ -5,6 +5,7 @@ from .. import utils, plugin
 from ..utils import AppError
 from .. import plugin_prefs
 from ..obj.imp import props as obj_imp_props
+from ..obj import props as general_obj_props
 from .imp import import_file
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 
@@ -63,7 +64,7 @@ op_import_level_scene_props = {
     ),
     'mesh_split_by_materials': obj_imp_props.PropObjectMeshSplitByMaterials(),
     'shaped_bones': obj_imp_props.PropObjectBonesCustomShapes(),
-    'fmt_version': plugin_prefs.PropSDKVersion()
+    'fmt_version': general_obj_props.PropSDKVersion()
 }
 
 

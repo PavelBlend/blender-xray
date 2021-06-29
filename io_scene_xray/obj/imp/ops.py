@@ -5,7 +5,7 @@ import bpy_extras
 
 from ... import ops, plugin, plugin_prefs, registry, utils
 from ...version_utils import assign_props, IS_28
-from .. import imp
+from .. import imp, props as general_obj_props
 from . import utils as imp_utils, props
 
 
@@ -21,7 +21,7 @@ op_import_object_props = {
     'mesh_split_by_materials': props.PropObjectMeshSplitByMaterials(),
     'use_motion_prefix_name': props.PropObjectUseMotionPrefixName(),
     'shaped_bones': props.PropObjectBonesCustomShapes(),
-    'fmt_version': plugin_prefs.PropSDKVersion()
+    'fmt_version': general_obj_props.PropSDKVersion()
 }
 
 
