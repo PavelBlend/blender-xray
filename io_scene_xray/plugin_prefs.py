@@ -11,6 +11,7 @@ from .bones import props as bones_props
 from .omf import props as omf_props
 from .obj.exp import props as obj_exp_props
 from .obj import props as general_obj_props
+from .anm import props as anm_props
 from .ui import collapsible
 from .version_utils import IS_28, assign_props, get_icon, layout_split
 from bl_operators.presets import AddPresetBase
@@ -21,14 +22,6 @@ def get_preferences():
         return bpy.context.preferences.addons['io_scene_xray'].preferences
     else:
         return bpy.context.user_preferences.addons['io_scene_xray'].preferences
-
-
-def PropAnmCameraAnimation():
-    return bpy.props.BoolProperty(
-        name='Create Linked Camera',
-        description='Create animated camera object (linked to "empty"-object)',
-        default=True
-    )
 
 
 def PropUseExportPaths():
@@ -477,7 +470,7 @@ plugin_preferences_props = {
     'object_texture_names_from_path': obj_exp_props.PropObjectTextureNamesFromPath(),
     'export_object_use_export_paths': PropUseExportPaths(),
     # anm import props
-    'anm_create_camera': PropAnmCameraAnimation(),
+    'anm_create_camera': anm_props.PropAnmCameraAnimation(),
     # skl/skls import props
     'skls_use_motion_prefix_name': obj_imp_props.PropObjectUseMotionPrefixName(),
     'add_actions_to_motion_list': skl_props.prop_skl_add_actions_to_motion_list(),

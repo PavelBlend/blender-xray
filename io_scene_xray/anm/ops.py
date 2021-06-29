@@ -3,6 +3,7 @@ import os
 import bpy
 from bpy_extras import io_utils
 
+from . import props
 from .. import plugin, plugin_prefs, registry
 from ..utils import execute_with_logger, FilenameExtHelper, set_cursor_state
 from ..version_utils import assign_props, IS_28
@@ -12,7 +13,7 @@ op_import_anm_props = {
     'filter_glob': bpy.props.StringProperty(default='*.anm', options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
-    'camera_animation': plugin_prefs.PropAnmCameraAnimation()
+    'camera_animation': props.PropAnmCameraAnimation()
 }
 
 
