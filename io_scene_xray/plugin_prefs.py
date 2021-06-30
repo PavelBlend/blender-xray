@@ -17,27 +17,7 @@ from .version_utils import IS_28, assign_props, get_icon, layout_split
 from bl_operators.presets import AddPresetBase
 
 
-_explicit_path_op_props = {
-    'path': bpy.props.StringProperty(),
-}
 
-
-class _ExplicitPathOp(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.explicit_path'
-    bl_label = 'Make Explicit'
-    bl_description = 'Make this path explicit using the automatically calculated value'
-
-    if not IS_28:
-        for prop_name, prop_value in _explicit_path_op_props.items():
-            exec('{0} = _explicit_path_op_props.get("{0}")'.format(prop_name))
-
-    def execute(self, _context):
-        preferences = prefs.utils.get_preferences()
-        auto_prop = prefs.utils.build_auto_id(self.path)
-        value = getattr(preferences, auto_prop)
-        setattr(preferences, self.path, value)
-        setattr(preferences, auto_prop, '')
-        return {'FINISHED'}
 
 
 path_props_names = {
@@ -71,7 +51,9 @@ class PluginPreferences(bpy.types.AddonPreferences):
             row_prop = row.row(align=True)
             row_prop.enabled = False
             row_prop.prop(self, auto_prop, text='')
-            operator = row.operator(_ExplicitPathOp.bl_idname, icon='MODIFIER', text='')
+            operator = row.operator(
+                prefs.ops._ExplicitPathOp.bl_idname, icon='MODIFIER', text=''
+            )
             operator.path = prop
         else:
             split.prop(self, prop, text='')
@@ -354,7 +336,6 @@ class AddPresetXrayPrefs(AddPresetBase, bpy.types.Operator):
 
 
 classes = (
-    _ExplicitPathOp,
     PREFS_MT_xray_presets,
     AddPresetXrayPrefs,
     PluginPreferences
@@ -363,8 +344,7 @@ classes = (
 
 def register():
     assign_props([
-        (_explicit_path_op_props, _ExplicitPathOp),
-        (prefs.props.plugin_preferences_props, PluginPreferences)
+        (prefs.props.plugin_preferences_props, PluginPreferences),
     ])
     prefs.register()
     for clas in classes:

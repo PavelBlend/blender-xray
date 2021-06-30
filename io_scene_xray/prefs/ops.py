@@ -1,6 +1,7 @@
 import bpy
 
 from . import utils
+from .. import version_utils
 
 
 class XRAY_OT_ResetPreferencesSettings(bpy.types.Operator):
@@ -21,9 +22,43 @@ class XRAY_OT_ResetPreferencesSettings(bpy.types.Operator):
         return context.window_manager.invoke_confirm(self, event)
 
 
+_explicit_path_op_props = {
+    'path': bpy.props.StringProperty(),
+}
+
+
+class _ExplicitPathOp(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.explicit_path'
+    bl_label = 'Make Explicit'
+    bl_description = 'Make this path explicit using the automatically calculated value'
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in _explicit_path_op_props.items():
+            exec('{0} = _explicit_path_op_props.get("{0}")'.format(prop_name))
+
+    def execute(self, _context):
+        preferences = utils.get_preferences()
+        auto_prop = utils.build_auto_id(self.path)
+        value = getattr(preferences, auto_prop)
+        setattr(preferences, self.path, value)
+        setattr(preferences, auto_prop, '')
+        return {'FINISHED'}
+
+
+classes = (
+    _ExplicitPathOp,
+    XRAY_OT_ResetPreferencesSettings
+)
+
+
 def register():
-    bpy.utils.register_class(XRAY_OT_ResetPreferencesSettings)
+    version_utils.assign_props([
+        (_explicit_path_op_props, _ExplicitPathOp),
+    ])
+    for clas in classes:
+        bpy.utils.register_class(clas)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_OT_ResetPreferencesSettings)
+    for clas in reversed(classes):
+        bpy.utils.unregister_class(clas)
