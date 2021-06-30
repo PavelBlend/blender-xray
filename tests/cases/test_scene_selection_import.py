@@ -8,7 +8,7 @@ from io_scene_xray import plugin_prefs
 
 class TestSceneSelectionImport(utils.XRayTestCase):
     def test_default(self):
-        prefs = plugin_prefs.get_preferences()
+        prefs = utils.get_preferences()
         prefs.objects_folder = os.path.join(os.curdir, 'tests', 'cases')
 
         # Act

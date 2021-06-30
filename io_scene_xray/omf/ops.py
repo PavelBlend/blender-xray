@@ -3,7 +3,7 @@ import os
 import bpy, bpy_extras
 
 from . import imp, exp, props
-from .. import plugin_prefs, registry, utils, plugin, context
+from .. import plugin_prefs, registry, utils, plugin, context, prefs
 from ..ui import collapsible
 from ..skl import props as skl_props
 from ..obj.imp import props as obj_imp_props
@@ -117,10 +117,10 @@ class IMPORT_OT_xray_omf(
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.import_motions = prefs.omf_import_motions
-        self.import_bone_parts = prefs.import_bone_parts
-        self.add_actions_to_motion_list = prefs.omf_add_actions_to_motion_list
+        preferences = prefs.utils.get_preferences()
+        self.import_motions = preferences.omf_import_motions
+        self.import_bone_parts = preferences.import_bone_parts
+        self.add_actions_to_motion_list = preferences.omf_add_actions_to_motion_list
         obj = context.object
         if not obj:
             self.report({'ERROR'}, 'No active object')
@@ -246,10 +246,10 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.export_mode = prefs.omf_export_mode
-        self.export_bone_parts = prefs.omf_export_bone_parts
-        self.export_motions = prefs.omf_motions_export
+        preferences = prefs.utils.get_preferences()
+        self.export_mode = preferences.omf_export_mode
+        self.export_bone_parts = preferences.omf_export_bone_parts
+        self.export_motions = preferences.omf_motions_export
         if len(context.selected_objects) > 1:
             self.report({'ERROR'}, 'Too many selected objects')
             return {'CANCELLED'}

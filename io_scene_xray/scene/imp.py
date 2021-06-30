@@ -5,7 +5,7 @@ import bpy
 from . import fmt
 from ..utils import AppError
 from ..xray_io import ChunkedReader, PackedReader
-from ..plugin_prefs import get_preferences
+from ..prefs.utils import get_preferences
 from ..obj.imp import utils as object_imp_utils
 from ..obj import imp as object_import
 from ..obj.imp import utils as obj_imp_utils

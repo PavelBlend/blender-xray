@@ -1,5 +1,5 @@
 from . import base
-from ..plugin_prefs import get_preferences
+from ..prefs.utils import get_preferences
 from .. import registry
 from ..utils import is_helper_object
 
@@ -11,14 +11,14 @@ class XRAY_PT_MeshPanel(base.XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        prefs = get_preferences()
+        preferences = get_preferences()
         panel_used = (
             # import plugins
-            prefs.enable_object_import or
-            prefs.enable_level_import or
+            preferences.enable_object_import or
+            preferences.enable_level_import or
             # export plugins
-            prefs.enable_object_export or
-            prefs.enable_level_export
+            preferences.enable_object_export or
+            preferences.enable_level_export
         )
         return (
             context.active_object and

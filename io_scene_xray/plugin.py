@@ -15,7 +15,7 @@ from .utils import (
     AppError, ObjectsInitializer, logger, execute_with_logger,
     execute_require_filepath, FilenameExtHelper
 )
-from . import plugin_prefs
+from . import plugin_prefs, prefs
 from . import hotkeys
 from . import registry
 from .details import ops as det_ops
@@ -43,7 +43,7 @@ op_export_project_props = {
     'use_selection': bpy.props.BoolProperty()
 }
 
-@registry.module_thing
+
 class OpExportProject(TestReadyOperator):
     bl_idname = 'export_scene.xray'
     bl_label = 'Export XRay Project'
@@ -89,7 +89,6 @@ assign_props([
 ])
 
 
-@registry.module_thing
 class XRayImportMenu(bpy.types.Menu):
     bl_idname = 'INFO_MT_xray_import'
     bl_label = base.build_label()
@@ -104,7 +103,7 @@ class XRayImportMenu(bpy.types.Menu):
 
 
 def get_enabled_operators(draw_functions, draw_functions_28):
-    prefs = plugin_prefs.get_preferences()
+    preferences = prefs.utils.get_preferences()
     funct_list = []
     funct_list.extend(draw_functions)
 
@@ -113,13 +112,12 @@ def get_enabled_operators(draw_functions, draw_functions_28):
 
     operators = []
     for _, enable_prop, id_name, text in funct_list:
-        enable = getattr(prefs, enable_prop)
+        enable = getattr(preferences, enable_prop)
         if enable:
             operators.append((id_name, text))
     return operators
 
 
-@registry.module_thing
 class XRayExportMenu(bpy.types.Menu):
     bl_idname = 'INFO_MT_xray_export'
     bl_label = base.build_label()
@@ -311,15 +309,15 @@ def remove_draw_functions(funct_list, menu):
 
 
 def append_draw_functions(funct_list, menu):
-    prefs = plugin_prefs.get_preferences()
+    preferences = prefs.utils.get_preferences()
     for draw_function, enable_prop, _, _ in funct_list:
-        enable = getattr(prefs, enable_prop)
+        enable = getattr(preferences, enable_prop)
         if enable:
             menu.append(draw_function)
 
 
 def append_menu_func():
-    prefs = plugin_prefs.get_preferences()
+    preferences = prefs.utils.get_preferences()
     import_menu, export_menu = get_import_export_menus()
     funct_imp_list = []
     funct_imp_list.extend(import_draw_functions)
@@ -338,7 +336,7 @@ def append_menu_func():
     import_menu.remove(menu_func_xray_import)
     export_menu.remove(menu_func_xray_export)
 
-    if prefs.compact_menus:
+    if preferences.compact_menus:
         # create compact menus
         # import
         enabled_import_operators = get_enabled_operators(
@@ -360,7 +358,6 @@ def append_menu_func():
 
 
 registry.module_requires(__name__, [
-    plugin_prefs,
     xray_inject,
 ])
 
@@ -377,7 +374,18 @@ def get_stalker_icon():
     return icon.icon_id
 
 
+classes = (
+    OpExportProject,
+    XRayImportMenu,
+    XRayExportMenu
+)
+
+
 def register():
+    for clas in classes:
+        bpy.utils.register_class(clas)
+    plugin_prefs.register()
+
     # load icon
     pcoll = bpy.utils.previews.new()
     icons_dir = os.path.join(os.path.dirname(__file__), 'icons')
@@ -458,3 +466,7 @@ def unregister():
     for pcoll in preview_collections.values():
         bpy.utils.previews.remove(pcoll)
     preview_collections.clear()
+
+    plugin_prefs.unregister()
+    for clas in reversed(classes):
+        bpy.utils.unregister_class(clas)

@@ -6,7 +6,7 @@ import bpy
 from bpy_extras import io_utils
 
 # addon modules
-from .. import plugin, plugin_prefs, registry, context as xray_context
+from .. import plugin, plugin_prefs, registry, context as xray_context, prefs
 from ..utils import execute_with_logger, set_cursor_state, AppError
 from ..version_utils import assign_props, IS_28
 from ..omf import props as omf_props
@@ -109,11 +109,11 @@ class IMPORT_OT_xray_bones(bpy.types.Operator, io_utils.ImportHelper):
         if obj.type != 'ARMATURE':
             self.report({'ERROR'}, 'The active object is not an armature')
             return {'CANCELLED'}
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         # import bone parts
-        self.import_bone_parts = prefs.bones_import_bone_parts
+        self.import_bone_parts = preferences.bones_import_bone_parts
         # import bone properties
-        self.import_bone_properties = prefs.bones_import_bone_properties
+        self.import_bone_properties = preferences.bones_import_bone_properties
         return super().invoke(context, event)
 
 
@@ -190,11 +190,11 @@ class EXPORT_OT_xray_bones_batch(bpy.types.Operator):
             return {'CANCELLED'}
         if len(self.objects_list) == 1:
             return bpy.ops.xray_export.bones('INVOKE_DEFAULT')
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         # export bone parts
-        self.export_bone_parts = prefs.bones_export_bone_parts
+        self.export_bone_parts = preferences.bones_export_bone_parts
         # export bone properties
-        self.export_bone_properties = prefs.bones_export_bone_properties
+        self.export_bone_properties = preferences.bones_export_bone_properties
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -260,11 +260,11 @@ class EXPORT_OT_xray_bones(bpy.types.Operator, io_utils.ExportHelper):
         self.filepath = os.path.join(self.directory, self.object_name)
         if not self.filepath.lower().endswith(self.filename_ext):
             self.filepath += self.filename_ext
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         # export bone parts
-        self.export_bone_parts = prefs.bones_export_bone_parts
+        self.export_bone_parts = preferences.bones_export_bone_parts
         # export bone properties
-        self.export_bone_properties = prefs.bones_export_bone_properties
+        self.export_bone_properties = preferences.bones_export_bone_properties
         return super().invoke(context, event)
 
 

@@ -4,7 +4,7 @@ import bpy
 from bpy_extras import io_utils
 
 from . import props
-from .. import plugin, plugin_prefs, registry
+from .. import plugin, plugin_prefs, registry, prefs
 from ..utils import execute_with_logger, FilenameExtHelper, set_cursor_state
 from ..version_utils import assign_props, IS_28
 
@@ -46,8 +46,8 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.camera_animation = prefs.anm_create_camera
+        preferences = prefs.utils.get_preferences()
+        self.camera_animation = preferences.anm_create_camera
         return super().invoke(context, event)
 
 

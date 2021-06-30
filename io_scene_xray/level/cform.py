@@ -5,7 +5,7 @@ import os
 import bmesh, bpy
 
 # addon modules
-from .. import xray_io, utils, plugin_prefs
+from .. import xray_io, utils, plugin_prefs, prefs
 from . import fmt, create
 
 
@@ -31,8 +31,8 @@ def import_cform(context, data, level):
     for vert_index in range(verts_count):
         vert_co_x, vert_co_y, vert_co_z = packed_reader.getf('<3f')
         verts.append((vert_co_x, vert_co_z, vert_co_y))
-    prefs = plugin_prefs.get_preferences()
-    gamemtl_file_path = prefs.gamemtl_file_auto
+    preferences = prefs.utils.get_preferences()
+    gamemtl_file_path = preferences.gamemtl_file_auto
     if os.path.exists(gamemtl_file_path):
         with open(gamemtl_file_path, 'rb') as gamemtl_file:
             gamemtl_data = gamemtl_file.read()

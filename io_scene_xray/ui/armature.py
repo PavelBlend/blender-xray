@@ -3,7 +3,7 @@ import bpy
 
 # addon modules
 from .base import XRayPanel, build_label
-from .. import registry, plugin_prefs
+from .. import registry, plugin_prefs, prefs
 from ..ops import fake_bones, joint_limits
 from ..version_utils import get_icon, layout_split
 from . import collapsible
@@ -16,19 +16,19 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         panel_used = (
             # import plugins
-            prefs.enable_object_import or
-            prefs.enable_skls_import or
-            prefs.enable_bones_import or
-            prefs.enable_omf_import or
+            preferences.enable_object_import or
+            preferences.enable_skls_import or
+            preferences.enable_bones_import or
+            preferences.enable_omf_import or
             # export plugins
-            prefs.enable_object_export or
-            prefs.enable_skls_export or
-            prefs.enable_bones_export or
-            prefs.enable_omf_export or
-            prefs.enable_ogf_export
+            preferences.enable_object_export or
+            preferences.enable_skls_export or
+            preferences.enable_bones_export or
+            preferences.enable_omf_export or
+            preferences.enable_ogf_export
         )
         return (
             context.active_object and

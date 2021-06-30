@@ -3,7 +3,7 @@ import os
 import bpy
 import bpy_extras
 
-from .. import plugin, plugin_prefs, utils
+from .. import plugin, plugin_prefs, utils, prefs
 from .. import context
 from ..obj.exp import props as obj_exp_props
 from . import imp
@@ -50,7 +50,7 @@ class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
     @utils.set_cursor_state
     def execute(self, context):
 
-        textures_folder = plugin_prefs.get_preferences().textures_folder_auto
+        textures_folder = prefs.utils.get_preferences().textures_folder_auto
 
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
@@ -124,10 +124,10 @@ class OpExportDMs(bpy.types.Operator):
 
     def invoke(self, context, event):
 
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
 
         self.texture_name_from_image_path = \
-            prefs.dm_texture_names_from_path
+            preferences.dm_texture_names_from_path
 
         objs = context.selected_objects
 
@@ -186,10 +186,10 @@ class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
 
     def invoke(self, context, event):
 
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
 
         self.texture_name_from_image_path = \
-            prefs.dm_texture_names_from_path
+            preferences.dm_texture_names_from_path
 
         objs = context.selected_objects
 

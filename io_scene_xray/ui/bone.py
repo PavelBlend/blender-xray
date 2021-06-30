@@ -1,5 +1,5 @@
 from ..edit_helpers import base, bone_shape, bone_center
-from .. import plugin, plugin_prefs
+from .. import plugin, plugin_prefs, prefs
 from .. import registry
 from .material import XRayGameMtlMenu, _gen_xr_selector
 from .base import XRayPanel, build_label
@@ -46,19 +46,19 @@ class XRAY_PT_BonePanel(XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         panel_used = (
             # import plugins
-            prefs.enable_object_import or
-            prefs.enable_skls_import or
-            prefs.enable_bones_import or
-            prefs.enable_omf_import or
+            preferences.enable_object_import or
+            preferences.enable_skls_import or
+            preferences.enable_bones_import or
+            preferences.enable_omf_import or
             # export plugins
-            prefs.enable_object_export or
-            prefs.enable_skls_export or
-            prefs.enable_bones_export or
-            prefs.enable_omf_export or
-            prefs.enable_ogf_export
+            preferences.enable_object_export or
+            preferences.enable_skls_export or
+            preferences.enable_bones_export or
+            preferences.enable_omf_export or
+            preferences.enable_ogf_export
         )
         return (
             context.active_object and

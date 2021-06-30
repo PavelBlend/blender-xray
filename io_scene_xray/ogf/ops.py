@@ -7,7 +7,7 @@ from ..utils import (
     set_cursor_state
 )
 from ..version_utils import assign_props, IS_28
-from .. import registry, plugin, plugin_prefs, context
+from .. import registry, plugin, plugin_prefs, context, prefs
 from ..obj.exp import props as obj_exp_props
 from . import exp
 
@@ -73,8 +73,8 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.texture_name_from_image_path = prefs.object_texture_names_from_path
+        preferences = prefs.utils.get_preferences()
+        self.texture_name_from_image_path = preferences.object_texture_names_from_path
         return super().invoke(context, event)
 
 

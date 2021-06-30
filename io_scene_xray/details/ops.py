@@ -3,7 +3,7 @@ import os
 import bpy
 import bpy_extras
 
-from .. import plugin, plugin_prefs, utils
+from .. import plugin, plugin_prefs, utils, prefs
 from .. import context
 from ..obj.exp import props as obj_exp_props
 from ..dm import imp as model_imp
@@ -59,7 +59,7 @@ class OpImportDetails(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
     @utils.set_cursor_state
     def execute(self, context):
 
-        textures_folder = plugin_prefs.get_preferences().textures_folder_auto
+        textures_folder = prefs.utils.get_preferences().textures_folder_auto
 
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
@@ -116,10 +116,10 @@ class OpImportDetails(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             row.prop(self, 'details_format', expand=True)
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.details_models_in_a_row = prefs.details_models_in_a_row
-        self.load_slots = prefs.load_slots
-        self.details_format = prefs.details_format
+        preferences = prefs.utils.get_preferences()
+        self.details_models_in_a_row = preferences.details_models_in_a_row
+        self.load_slots = preferences.load_slots
+        self.details_format = preferences.details_format
         return super().invoke(context, event)
 
 
@@ -185,7 +185,7 @@ class OpExportDetails(
         return {'FINISHED'}
 
     def exp(self, bpy_obj, context):
-        textures_folder = plugin_prefs.get_preferences().textures_folder_auto
+        textures_folder = prefs.utils.get_preferences().textures_folder_auto
         export_context = ExportDetailsContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.level_details_format_version = self.format_version
@@ -193,10 +193,10 @@ class OpExportDetails(
         exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         self.texture_name_from_image_path = \
-            prefs.details_texture_names_from_path
-        self.format_version = prefs.format_version
+            preferences.details_texture_names_from_path
+        self.format_version = preferences.format_version
         return super().invoke(context, event)
 
 

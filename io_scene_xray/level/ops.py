@@ -1,6 +1,6 @@
 import bpy, bpy_extras
 
-from .. import utils, plugin, plugin_prefs, context
+from .. import utils, plugin, plugin_prefs, context, prefs
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 from . import imp, exp
 
@@ -38,7 +38,7 @@ class IMPORT_OT_xray_level(
 
     @utils.set_cursor_state
     def execute(self, context):
-        textures_folder = plugin_prefs.get_preferences().textures_folder_auto
+        textures_folder = prefs.utils.get_preferences().textures_folder_auto
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
         if not self.filepath:
@@ -98,7 +98,7 @@ class EXPORT_OT_xray_level(bpy.types.Operator):
         return self.export(level_object, context)
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

@@ -1,7 +1,7 @@
 import bpy
 from bpy_extras import io_utils
 
-from .. import utils, plugin
+from .. import utils, plugin, prefs
 from ..utils import AppError
 from .. import plugin_prefs
 from ..obj.imp import props as obj_imp_props
@@ -100,10 +100,10 @@ class OpImportLevelScene(bpy.types.Operator, io_utils.ImportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.mesh_split_by_materials = prefs.scene_selection_mesh_split_by_mat
-        self.shaped_bones = prefs.scene_selection_shaped_bones
-        self.fmt_version = prefs.scene_selection_sdk_version
+        preferences = prefs.utils.get_preferences()
+        self.mesh_split_by_materials = preferences.scene_selection_mesh_split_by_mat
+        self.shaped_bones = preferences.scene_selection_shaped_bones
+        self.fmt_version = preferences.scene_selection_sdk_version
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

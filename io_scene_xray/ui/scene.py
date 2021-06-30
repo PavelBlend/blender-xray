@@ -1,4 +1,4 @@
-from .. import registry, plugin_prefs
+from .. import registry, plugin_prefs, prefs
 from ..plugin import OpExportProject
 from .base import XRayPanel, build_label
 from . import collapsible
@@ -12,12 +12,12 @@ class XRAY_PT_ScenePanel(XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         panel_used = (
             # import plugins
-            prefs.enable_object_import or
+            preferences.enable_object_import or
             # export plugins
-            prefs.enable_object_export
+            preferences.enable_object_export
         )
         return panel_used
 

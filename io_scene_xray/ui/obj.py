@@ -3,7 +3,7 @@ import bpy
 
 # addon modules
 from . import list_helper, collapsible, base
-from .. import registry, plugin_prefs
+from .. import registry, plugin_prefs, prefs
 from ..utils import is_helper_object
 from ..details import ui as det_ui
 from ..version_utils import assign_props, IS_28
@@ -130,19 +130,19 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
         )
 
     def draw(self, context):
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         object_used = (
             # import plugins
-            prefs.enable_object_import or
-            prefs.enable_skls_import or
-            prefs.enable_level_import or
-            prefs.enable_omf_import or
+            preferences.enable_object_import or
+            preferences.enable_skls_import or
+            preferences.enable_level_import or
+            preferences.enable_omf_import or
             # export plugins
-            prefs.enable_object_export or
-            prefs.enable_skls_export or
-            prefs.enable_level_export or
-            prefs.enable_omf_export or
-            prefs.enable_ogf_export
+            preferences.enable_object_export or
+            preferences.enable_skls_export or
+            preferences.enable_level_export or
+            preferences.enable_omf_export or
+            preferences.enable_ogf_export
         )
 
         layout = self.layout
@@ -237,11 +237,11 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
 
         details_used = (
             # import plugins
-            prefs.enable_dm_import or
-            prefs.enable_details_import or
+            preferences.enable_dm_import or
+            preferences.enable_details_import or
             # export plugins
-            prefs.enable_dm_export or
-            prefs.enable_details_export
+            preferences.enable_dm_export or
+            preferences.enable_details_export
         )
 
         if context.object.type in {'MESH', 'EMPTY'} and details_used:
@@ -251,9 +251,9 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
 
         game_level_used = (
             # import plugins
-            prefs.enable_game_level_import or
+            preferences.enable_game_level_import or
             # export plugins
-            prefs.enable_game_level_export
+            preferences.enable_game_level_export
         )
 
         if IS_28 and game_level_used:

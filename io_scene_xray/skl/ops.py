@@ -3,7 +3,7 @@ import os
 import bpy
 from bpy_extras import io_utils
 
-from .. import registry, plugin, plugin_prefs
+from .. import registry, plugin, plugin_prefs, prefs
 from ..ui import collapsible
 from ..ui.motion_list import (
     BaseSelectMotionsOp,
@@ -152,9 +152,9 @@ class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
 
     @invoke_require_armature
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.use_motion_prefix_name = prefs.skls_use_motion_prefix_name
-        self.add_actions_to_motion_list = prefs.add_actions_to_motion_list
+        preferences = prefs.utils.get_preferences()
+        self.use_motion_prefix_name = preferences.skls_use_motion_prefix_name
+        self.add_actions_to_motion_list = preferences.add_actions_to_motion_list
         return super().invoke(context, event)
 
 

@@ -7,7 +7,7 @@ from . import collapsible
 from .base import XRayPanel, build_label
 from ..skls_browser import UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
 from .. import registry
-from .. import plugin, plugin_prefs
+from .. import plugin, plugin_prefs, prefs
 from ..ops import custom_props_utils
 from ..version_utils import IS_28, assign_props
 from ..obj.imp import ops as obj_imp_ops
@@ -235,36 +235,36 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
 
     def draw(self, context):
         lay = self.layout
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         # object
-        if prefs.enable_object_import:
+        if preferences.enable_object_import:
             lay.operator(obj_imp_ops.OpImportObject.bl_idname, text='Object')
         # skls
-        if prefs.enable_skls_import:
+        if preferences.enable_skls_import:
             lay.operator(skl_ops.OpImportSkl.bl_idname, text='Skls')
         # anm
-        if prefs.enable_anm_import:
+        if preferences.enable_anm_import:
             lay.operator(anm_ops.OpImportAnm.bl_idname, text='Anm')
         # bones
-        if prefs.enable_bones_import:
+        if preferences.enable_bones_import:
             lay.operator(bones_ops.IMPORT_OT_xray_bones.bl_idname, text='Bones')
         # details
-        if prefs.enable_details_import:
+        if preferences.enable_details_import:
             lay.operator(details_ops.OpImportDetails.bl_idname, text='Details')
         # dm
-        if prefs.enable_dm_import:
+        if preferences.enable_dm_import:
             lay.operator(dm_ops.OpImportDM.bl_idname, text='Dm')
         # scene
-        if prefs.enable_level_import:
+        if preferences.enable_level_import:
             lay.operator(scene_ops.OpImportLevelScene.bl_idname, text='Scene')
         # omf
-        if prefs.enable_omf_import:
+        if preferences.enable_omf_import:
             lay.operator(omf_ops.IMPORT_OT_xray_omf.bl_idname, text='Omf')
         # level
-        if prefs.enable_game_level_import and IS_28:
+        if preferences.enable_game_level_import and IS_28:
             lay.operator(level_ops.IMPORT_OT_xray_level.bl_idname, text='Level')
         # err
-        if prefs.enable_err_import:
+        if preferences.enable_err_import:
             lay.operator(err_ops.OpImportERR.bl_idname, text='Err')
 
 
@@ -285,34 +285,34 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
 
     def draw(self, context):
         lay = self.layout
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         # object
-        if prefs.enable_object_export:
+        if preferences.enable_object_export:
             lay.operator(obj_exp_ops.OpExportObjects.bl_idname, text='Object')
         # skls
-        if prefs.enable_skls_export:
+        if preferences.enable_skls_export:
             lay.operator(skl_ops.OpExportSkls.bl_idname, text='Skls')
         # anm
-        if prefs.enable_anm_export:
+        if preferences.enable_anm_export:
             lay.operator(anm_ops.OpExportAnm.bl_idname, text='Anm')
         # bones
-        if prefs.enable_bones_export:
+        if preferences.enable_bones_export:
             lay.operator(bones_ops.EXPORT_OT_xray_bones_batch.bl_idname, text='Bones')
         # details
-        if prefs.enable_details_export:
+        if preferences.enable_details_export:
             lay.operator(details_ops.OpExportDetails.bl_idname, text='Details')
         # dm
-        if prefs.enable_dm_export:
+        if preferences.enable_dm_export:
             lay.operator(dm_ops.OpExportDMs.bl_idname, text='Dm')
         # scene
-        if prefs.enable_level_export:
+        if preferences.enable_level_export:
             lay.operator(scene_ops.OpExportLevelScene.bl_idname, text='Scene')
         # omf
-        if prefs.enable_omf_export:
+        if preferences.enable_omf_export:
             lay.operator(omf_ops.EXPORT_OT_xray_omf.bl_idname, text='Omf')
         # level
-        if prefs.enable_game_level_export and IS_28:
+        if preferences.enable_game_level_export and IS_28:
             lay.operator(level_ops.EXPORT_OT_xray_level.bl_idname, text='Level')
         # ogf
-        if prefs.enable_ogf_export:
+        if preferences.enable_ogf_export:
             lay.operator(ogf_ops.OpExportOgf.bl_idname, text='Ogf')

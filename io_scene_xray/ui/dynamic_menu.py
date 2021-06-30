@@ -2,7 +2,7 @@ import bpy
 
 from .. import registry
 from ..utils import create_cached_file_data
-from ..plugin_prefs import get_preferences
+from ..prefs.utils import get_preferences
 from ..version_utils import assign_props, IS_28
 
 

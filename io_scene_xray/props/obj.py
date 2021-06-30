@@ -3,7 +3,7 @@ import os
 
 import bpy
 
-from .. import registry, utils, plugin_prefs
+from .. import registry, utils, plugin_prefs, prefs
 from ..details import types as det_types
 from . import utils as utils_props
 from ..skls_browser import (
@@ -202,7 +202,7 @@ def load_motion_refs(self, context):
     if not self.load_active_motion_refs:
         return
     if self.motionrefs_collection:
-        objects_folder = plugin_prefs.get_preferences().objects_folder_auto
+        objects_folder = prefs.utils.get_preferences().objects_folder_auto
         motion_refs = self.motionrefs_collection[self.motionrefs_collection_index]
         file_path = os.path.join(objects_folder, motion_refs.name + os.extsep + 'skls')
         if os.path.exists(file_path):
