@@ -399,7 +399,7 @@ def register():
     registry.register_thing(omf_ops, __name__)
     scene_ops.register_operators()
     if IS_28:
-        level_ops.register_operators()
+        level_ops.register()
     convert_materials.register()
     shader_tools.register()
     err_ops.register()
@@ -423,7 +423,7 @@ def unregister():
     dm_ops.unregister()
     det_ops.unregister()
     if IS_28:
-        level_ops.unregister_operators()
+        level_ops.unregister()
     shader_tools.unregister()
     convert_materials.unregister()
     scene_ops.unregister_operators()

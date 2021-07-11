@@ -1,4 +1,5 @@
-import bpy, bpy_extras
+import bpy
+import bpy_extras
 
 from .. import utils, plugin, plugin_prefs, context, prefs
 from ..version_utils import get_import_export_menus, assign_props, IS_28
@@ -103,12 +104,6 @@ class EXPORT_OT_xray_level(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-assign_props([
-    (op_import_level_props, IMPORT_OT_xray_level),
-    (op_export_level_props, EXPORT_OT_xray_level)
-])
-
-
 def menu_func_import(self, context):
     icon = plugin.get_stalker_icon()
     self.layout.operator(
@@ -127,11 +122,15 @@ def menu_func_export(self, context):
     )
 
 
-def register_operators():
+def register():
+    assign_props([
+        (op_import_level_props, IMPORT_OT_xray_level),
+        (op_export_level_props, EXPORT_OT_xray_level)
+    ])
     bpy.utils.register_class(IMPORT_OT_xray_level)
     bpy.utils.register_class(EXPORT_OT_xray_level)
 
 
-def unregister_operators():
+def unregister():
     bpy.utils.unregister_class(EXPORT_OT_xray_level)
     bpy.utils.unregister_class(IMPORT_OT_xray_level)

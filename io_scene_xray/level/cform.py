@@ -2,7 +2,8 @@
 import os
 
 # blender modules
-import bmesh, bpy
+import bpy
+import bmesh
 
 # addon modules
 from .. import xray_io, utils, plugin_prefs, prefs

@@ -2,7 +2,8 @@
 import os
 
 # blender modules
-import bpy, mathutils
+import bpy
+import mathutils
 
 # addon modules
 from . import utils as level_utils, fmt

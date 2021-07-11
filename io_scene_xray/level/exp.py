@@ -1,6 +1,10 @@
-import os, math, struct
+import os
+import math
+import struct
 
-import bpy, bmesh, mathutils
+import bpy
+import bmesh
+import mathutils
 
 from .. import xray_io, utils, plugin_prefs, prefs
 from ..ogf import exp as ogf_exp, fmt as ogf_fmt
