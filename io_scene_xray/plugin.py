@@ -388,7 +388,7 @@ def register():
     preview_collections['main'] = pcoll
 
     registry.register_thing(object_imp_ops, __name__)
-    registry.register_thing(object_exp_ops, __name__)
+    object_exp_ops.register()
     anm_ops.register()
     det_ops.register()
     dm_ops.register()
@@ -433,7 +433,7 @@ def unregister():
     registry.unregister_thing(bones_ops, __name__)
     registry.unregister_thing(skl_ops, __name__)
     anm_ops.unregister()
-    registry.unregister_thing(object_exp_ops, __name__)
+    object_exp_ops.unregister()
     registry.unregister_thing(object_imp_ops, __name__)
 
     get_scene_update_post().remove(scene_update_post)

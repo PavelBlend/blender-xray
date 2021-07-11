@@ -3,7 +3,7 @@ import os
 import bpy
 import bpy_extras
 
-from ... import registry, ops, plugin, plugin_prefs, utils, context, prefs
+from ... import ops, plugin, plugin_prefs, utils, context, prefs
 from ...version_utils import (
     assign_props, IS_28, set_active_object, select_object
 )
@@ -70,7 +70,6 @@ op_export_objects_props = {
 }
 
 
-@registry.module_thing
 class OpExportObjects(ops.BaseOperator, _WithExportMotions):
     bl_idname = 'export_object.xray_objects'
     bl_label = 'Export selected .object-s'
@@ -159,7 +158,6 @@ op_export_object_props = {
 }
 
 
-@registry.module_thing
 class OpExportObject(
         ops.BaseOperator,
         bpy_extras.io_utils.ExportHelper,
@@ -232,13 +230,6 @@ class OpExportObject(
         return super().invoke(context, event)
 
 
-assign_props([
-    (_with_export_motions_props, _WithExportMotions),
-    (op_export_objects_props, OpExportObjects),
-    (op_export_object_props, OpExportObject)
-])
-
-
 def menu_func_export(self, _context):
     icon = plugin.get_stalker_icon()
     self.layout.operator(
@@ -246,3 +237,21 @@ def menu_func_export(self, _context):
         text='X-Ray object (.object)',
         icon_value=icon
     )
+
+
+classes = (
+    (OpExportObjects, op_export_objects_props),
+    (OpExportObject, op_export_object_props)
+)
+
+
+def register():
+    assign_props([(_with_export_motions_props, _WithExportMotions), ])
+    for operator, props in classes:
+        assign_props([(props, operator), ])
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator, props in reversed(classes):
+        bpy.utils.unregister_class(operator)
