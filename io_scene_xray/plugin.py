@@ -387,7 +387,7 @@ def register():
     pcoll.load(STALKER_ICON_NAME, os.path.join(icons_dir, 'stalker.png'), 'IMAGE')
     preview_collections['main'] = pcoll
 
-    registry.register_thing(object_imp_ops, __name__)
+    object_imp_ops.register()
     object_exp_ops.register()
     anm_ops.register()
     det_ops.register()
@@ -434,7 +434,7 @@ def unregister():
     registry.unregister_thing(skl_ops, __name__)
     anm_ops.unregister()
     object_exp_ops.unregister()
-    registry.unregister_thing(object_imp_ops, __name__)
+    object_imp_ops.unregister()
 
     get_scene_update_post().remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)
