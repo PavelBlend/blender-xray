@@ -8,8 +8,8 @@ from .. import context
 from ..obj.exp import props as obj_exp_props
 from ..dm import imp as model_imp
 from ..dm import exp as model_exp
-from . import imp, exp, props
 from ..version_utils import get_import_export_menus, assign_props, IS_28
+from . import imp, exp, props, types
 
 
 class ImportDetailsContext(context.ImportMeshContext):
@@ -241,12 +241,6 @@ class PackDetailsImages(bpy.types.Operator):
         return {'FINISHED'}
 
 
-assign_props([
-    (op_import_details_props, OpImportDetails),
-    (op_export_details_props, OpExportDetails)
-])
-
-
 def menu_func_import(self, context):
     icon = plugin.get_stalker_icon()
     self.layout.operator(
@@ -263,16 +257,25 @@ def menu_func_export(self, context):
     )
 
 
-def register_operators():
-    bpy.utils.register_class(OpImportDetails)
-    bpy.utils.register_class(OpExportDetails)
-    bpy.utils.register_class(PackDetailsImages)
+classes = (
+    (OpImportDetails, op_import_details_props),
+    (OpExportDetails, op_export_details_props),
+    (PackDetailsImages, None)
+)
 
 
-def unregister_operators():
+def register():
+    types.register()
+    for operator, props in classes:
+        if props:
+            assign_props([(props, operator), ])
+        bpy.utils.register_class(operator)
+
+
+def unregister():
     import_menu, export_menu = get_import_export_menus()
-    bpy.utils.unregister_class(PackDetailsImages)
     export_menu.remove(menu_func_export)
     import_menu.remove(menu_func_import)
-    bpy.utils.unregister_class(OpExportDetails)
-    bpy.utils.unregister_class(OpImportDetails)
+    for operator, props in reversed(classes):
+        bpy.utils.unregister_class(operator)
+    types.unregister()

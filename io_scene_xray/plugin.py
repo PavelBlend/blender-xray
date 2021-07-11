@@ -357,11 +357,6 @@ def append_menu_func():
         append_draw_functions(funct_exp_list, export_menu)
 
 
-registry.module_requires(__name__, [
-    xray_inject,
-])
-
-
 preview_collections = {}
 STALKER_ICON_NAME = 'stalker'
 
@@ -395,6 +390,7 @@ def register():
     registry.register_thing(object_imp_ops, __name__)
     registry.register_thing(object_exp_ops, __name__)
     anm_ops.register()
+    det_ops.register()
     registry.register_thing(skl_ops, __name__)
     registry.register_thing(bones_ops, __name__)
     registry.register_thing(ogf_ops, __name__)
@@ -405,7 +401,6 @@ def register():
         level_ops.register_operators()
     convert_materials.register()
     shader_tools.register()
-    det_ops.register_operators()
     dm_ops.register_operators()
     registry.register_thing(err_ops, __name__)
     append_menu_func()
@@ -417,14 +412,16 @@ def register():
     get_scene_update_post().append(scene_update_post)
     registry.register_thing(skls_browser, __name__)
     hotkeys.register_hotkeys()
+    xray_inject.register()
 
 
 def unregister():
+    xray_inject.unregister()
     hotkeys.unregister_hotkeys()
     registry.unregister_thing(skls_browser, __name__)
     registry.unregister_thing(err_ops, __name__)
     dm_ops.unregister_operators()
-    det_ops.unregister_operators()
+    det_ops.unregister()
     if IS_28:
         level_ops.unregister_operators()
     shader_tools.unregister()
