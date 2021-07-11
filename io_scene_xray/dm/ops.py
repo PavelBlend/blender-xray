@@ -3,12 +3,11 @@ import os
 import bpy
 import bpy_extras
 
-from .. import plugin, plugin_prefs, utils, prefs
-from .. import context
+from .. import plugin, plugin_prefs, utils, prefs, context
 from ..obj.exp import props as obj_exp_props
+from ..version_utils import get_import_export_menus, assign_props, IS_28
 from . import imp
 from . import exp
-from ..version_utils import get_import_export_menus, assign_props, IS_28
 
 
 class ImportDmContext(context.ImportMeshContext):
@@ -211,19 +210,12 @@ class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
-assign_props([
-    (op_import_dm_props, OpImportDM),
-    (op_export_dms_props, OpExportDMs),
-    (op_export_dm_props, OpExportDM)
-])
-
-
 def menu_func_import(self, context):
     icon = plugin.get_stalker_icon()
     self.layout.operator(
         OpImportDM.bl_idname, text='X-Ray detail model (.dm)',
         icon_value=icon
-        )
+    )
 
 
 def menu_func_export(self, context):
@@ -233,16 +225,22 @@ def menu_func_export(self, context):
     )
 
 
-def register_operators():
-    bpy.utils.register_class(OpImportDM)
-    bpy.utils.register_class(OpExportDM)
-    bpy.utils.register_class(OpExportDMs)
+classes = (
+    (OpImportDM, op_import_dm_props),
+    (OpExportDM, op_export_dm_props),
+    (OpExportDMs, op_export_dms_props)
+)
 
 
-def unregister_operators():
+def register():
+    for operator, props in classes:
+        assign_props([(props, operator), ])
+        bpy.utils.register_class(operator)
+
+
+def unregister():
     import_menu, export_menu = get_import_export_menus()
     export_menu.remove(menu_func_export)
     import_menu.remove(menu_func_import)
-    bpy.utils.unregister_class(OpExportDMs)
-    bpy.utils.unregister_class(OpExportDM)
-    bpy.utils.unregister_class(OpImportDM)
+    for operator, props in reversed(classes):
+        bpy.utils.unregister_class(operator)

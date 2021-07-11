@@ -391,6 +391,7 @@ def register():
     registry.register_thing(object_exp_ops, __name__)
     anm_ops.register()
     det_ops.register()
+    dm_ops.register()
     registry.register_thing(skl_ops, __name__)
     registry.register_thing(bones_ops, __name__)
     registry.register_thing(ogf_ops, __name__)
@@ -401,7 +402,6 @@ def register():
         level_ops.register_operators()
     convert_materials.register()
     shader_tools.register()
-    dm_ops.register_operators()
     registry.register_thing(err_ops, __name__)
     append_menu_func()
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(
@@ -420,7 +420,7 @@ def unregister():
     hotkeys.unregister_hotkeys()
     registry.unregister_thing(skls_browser, __name__)
     registry.unregister_thing(err_ops, __name__)
-    dm_ops.unregister_operators()
+    dm_ops.unregister()
     det_ops.unregister()
     if IS_28:
         level_ops.unregister_operators()
