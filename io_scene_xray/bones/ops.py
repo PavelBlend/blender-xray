@@ -6,7 +6,7 @@ import bpy
 from bpy_extras import io_utils
 
 # addon modules
-from .. import plugin, plugin_prefs, registry, context as xray_context, prefs
+from .. import plugin, plugin_prefs, context as xray_context, prefs
 from ..utils import execute_with_logger, set_cursor_state, AppError
 from ..version_utils import assign_props, IS_28
 from ..omf import props as omf_props
@@ -42,7 +42,6 @@ op_import_bones_props = {
 }
 
 
-@registry.module_thing
 class IMPORT_OT_xray_bones(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.bones'
     bl_label = 'Import .bones'
@@ -129,7 +128,6 @@ op_export_bones_batch_props = {
 }
 
 
-@registry.module_thing
 class EXPORT_OT_xray_bones_batch(bpy.types.Operator):
     bl_idname = 'xray_export.bones_batch'
     bl_label = 'Export .bones'
@@ -211,7 +209,6 @@ op_export_bones_props = {
 }
 
 
-@registry.module_thing
 class EXPORT_OT_xray_bones(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.bones'
     bl_label = 'Export .bones'
@@ -268,13 +265,6 @@ class EXPORT_OT_xray_bones(bpy.types.Operator, io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
-assign_props([
-    (op_import_bones_props, IMPORT_OT_xray_bones),
-    (op_export_bones_props, EXPORT_OT_xray_bones),
-    (op_export_bones_batch_props, EXPORT_OT_xray_bones_batch),
-])
-
-
 def menu_func_import(self, _context):
     icon = plugin.get_stalker_icon()
     self.layout.operator(
@@ -289,3 +279,21 @@ def menu_func_export(self, _context):
         EXPORT_OT_xray_bones_batch.bl_idname,
         text='X-Ray Bones Data (.bones)', icon_value=icon
     )
+
+
+classes = (
+    (IMPORT_OT_xray_bones, op_import_bones_props),
+    (EXPORT_OT_xray_bones, op_export_bones_props),
+    (EXPORT_OT_xray_bones_batch, op_export_bones_batch_props)
+)
+
+
+def register():
+    for operator_class, operator_props in classes:
+        assign_props([(operator_props, operator_class), ])
+        bpy.utils.register_class(operator_class)
+
+
+def unregister():
+    for operator_class, operator_props in reversed(classes):
+        bpy.utils.unregister_class(operator_class)
