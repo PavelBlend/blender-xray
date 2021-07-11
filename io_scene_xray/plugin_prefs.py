@@ -17,9 +17,6 @@ from .version_utils import IS_28, assign_props, get_icon, layout_split
 from bl_operators.presets import AddPresetBase
 
 
-
-
-
 path_props_names = {
     'fs_ltx_file': 'fs.ltx File',
     'gamedata_folder': 'Gamedata Folder',

@@ -394,7 +394,7 @@ def register():
 
     registry.register_thing(object_imp_ops, __name__)
     registry.register_thing(object_exp_ops, __name__)
-    registry.register_thing(anm_ops, __name__)
+    anm_ops.register()
     registry.register_thing(skl_ops, __name__)
     registry.register_thing(bones_ops, __name__)
     registry.register_thing(ogf_ops, __name__)
@@ -435,7 +435,7 @@ def unregister():
     registry.unregister_thing(ogf_ops, __name__)
     registry.unregister_thing(bones_ops, __name__)
     registry.unregister_thing(skl_ops, __name__)
-    registry.unregister_thing(anm_ops, __name__)
+    anm_ops.unregister()
     registry.unregister_thing(object_exp_ops, __name__)
     registry.unregister_thing(object_imp_ops, __name__)
 
