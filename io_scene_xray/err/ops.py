@@ -2,7 +2,7 @@ import bpy
 from bpy_extras import io_utils
 
 from ..ops import BaseOperator as TestReadyOperator
-from .. import registry, plugin, utils
+from .. import plugin, utils
 from . import imp
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 
@@ -13,7 +13,6 @@ op_import_err_props = {
 }
 
 
-@registry.module_thing
 class OpImportERR(TestReadyOperator, io_utils.ImportHelper):
     bl_idname = 'xray_import.err'
     bl_label = 'Import .err'
@@ -43,15 +42,12 @@ def menu_func_import(self, _context):
         )
 
 
-assign_props([
-    (op_import_err_props, OpImportERR),
-])
-
-
 def register():
-    pass
+    assign_props([(op_import_err_props, OpImportERR), ])
+    bpy.utils.register_class(OpImportERR)
 
 
 def unregister():
     import_menu, _ = get_import_export_menus()
     import_menu.remove(menu_func_import)
+    bpy.utils.unregister_class(OpImportERR)
