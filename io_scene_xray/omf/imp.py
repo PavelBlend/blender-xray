@@ -1,4 +1,5 @@
-import bpy, mathutils
+import bpy
+import mathutils
 
 from . import fmt
 from .. import xray_io, utils

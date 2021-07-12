@@ -396,7 +396,7 @@ def register():
     ogf_ops.register()
     registry.register_thing(skl_ops, __name__)
     registry.register_thing(motion_list, __name__)
-    registry.register_thing(omf_ops, __name__)
+    omf_ops.register()
     scene_ops.register_operators()
     if IS_28:
         level_ops.register()
@@ -429,7 +429,7 @@ def unregister():
     shader_tools.unregister()
     convert_materials.unregister()
     scene_ops.unregister_operators()
-    registry.unregister_thing(omf_ops, __name__)
+    omf_ops.unregister()
     registry.unregister_thing(motion_list, __name__)
     registry.unregister_thing(skl_ops, __name__)
     anm_ops.unregister()

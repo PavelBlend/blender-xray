@@ -1,6 +1,7 @@
 import os
 
-import bpy, bpy_extras
+import bpy
+import bpy_extras
 
 from . import imp, exp, props
 from .. import plugin_prefs, registry, utils, plugin, context, prefs
@@ -67,8 +68,6 @@ op_import_omf_props = {
 }
 
 
-@registry.module_thing
-@registry.requires(Motion)
 class IMPORT_OT_xray_omf(
         bpy.types.Operator, bpy_extras.io_utils.ImportHelper
     ):
@@ -205,7 +204,6 @@ op_export_omf_props = {
 }
 
 
-@registry.module_thing
 class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
     bl_idname = 'xray_export.omf'
     bl_label = 'Export .omf'
@@ -274,13 +272,6 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
-assign_props([
-    (motion_props, Motion),
-    (op_import_omf_props, IMPORT_OT_xray_omf),
-    (op_export_omf_props, EXPORT_OT_xray_omf)
-])
-
-
 def menu_func_import(self, context):
     icon = plugin.get_stalker_icon()
     self.layout.operator(
@@ -297,3 +288,21 @@ def menu_func_export(self, context):
         text='X-Ray Game Motion (.omf)',
         icon_value=icon
     )
+
+
+classes = (
+    (Motion, motion_props),
+    (IMPORT_OT_xray_omf, op_import_omf_props),
+    (EXPORT_OT_xray_omf, op_export_omf_props)
+)
+
+
+def register():
+    for operator, props in classes:
+        assign_props([(props, operator), ])
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator, props in reversed(classes):
+        bpy.utils.unregister_class(operator)
