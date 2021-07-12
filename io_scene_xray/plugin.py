@@ -11,7 +11,7 @@ from .utils import (
     AppError, ObjectsInitializer, logger,
     execute_require_filepath, FilenameExtHelper
 )
-from . import plugin_prefs, prefs, edit_helpers, hotkeys, registry, props
+from . import plugin_prefs, prefs, edit_helpers, hotkeys, props
 from . import details
 from .details import ops as det_ops
 from .dm import ops as dm_ops

@@ -1,6 +1,5 @@
 import bpy
 
-from .. import registry
 from ..version_utils import assign_props, IS_28
 
 

@@ -6,7 +6,6 @@ from mathutils import Color
 from . import collapsible
 from .base import XRayPanel, build_label
 from ..skls_browser import UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
-from .. import registry
 from .. import plugin, plugin_prefs, prefs
 from ..ops import custom_props_utils
 from ..version_utils import IS_28, assign_props
