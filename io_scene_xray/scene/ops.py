@@ -108,12 +108,6 @@ class OpImportLevelScene(bpy.types.Operator, io_utils.ImportHelper):
         return {'RUNNING_MODAL'}
 
 
-assign_props([
-    (op_export_level_scene_props, OpExportLevelScene),
-    (op_import_level_scene_props, OpImportLevelScene)
-])
-
-
 def menu_func_export(self, context):
     icon = plugin.get_stalker_icon()
     self.layout.operator(
@@ -132,12 +126,16 @@ def menu_func_import(self, context):
     )
 
 
-def register_operators():
+def register():
+    assign_props([
+        (op_export_level_scene_props, OpExportLevelScene),
+        (op_import_level_scene_props, OpImportLevelScene)
+    ])
     bpy.utils.register_class(OpExportLevelScene)
     bpy.utils.register_class(OpImportLevelScene)
 
 
-def unregister_operators():
+def unregister():
     import_menu, export_menu = get_import_export_menus()
     export_menu.remove(menu_func_export)
     import_menu.remove(menu_func_import)
