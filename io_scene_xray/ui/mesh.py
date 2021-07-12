@@ -1,10 +1,10 @@
+import bpy
+
 from . import base
 from ..prefs.utils import get_preferences
-from .. import registry
 from ..utils import is_helper_object
 
 
-@registry.module_thing
 class XRAY_PT_MeshPanel(base.XRayPanel):
     bl_context = 'data'
     bl_label = base.build_label('Mesh')
@@ -35,3 +35,11 @@ class XRAY_PT_MeshPanel(base.XRayPanel):
         row.prop(data, 'flags_visible', text='Visible', toggle=True)
         row.prop(data, 'flags_locked', text='Locked', toggle=True)
         row.prop(data, 'flags_sgmask', text='SGMask', toggle=True)
+
+
+def register():
+    bpy.utils.register_class(XRAY_PT_MeshPanel)
+
+
+def unregister():
+    bpy.utils.unregister_class(XRAY_PT_MeshPanel)

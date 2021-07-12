@@ -5,11 +5,10 @@ import bpy
 import bpy.utils.previews
 from bpy_extras import io_utils
 
-from . import xray_io, ops
-from .ops.base import BaseOperator as TestReadyOperator
-from .ui import collapsible, motion_list, base
+from . import xray_io, ops, ui
+from .ui import base
 from .utils import (
-    AppError, ObjectsInitializer, logger, execute_with_logger,
+    AppError, ObjectsInitializer, logger,
     execute_require_filepath, FilenameExtHelper
 )
 from . import plugin_prefs, prefs, edit_helpers, hotkeys, registry, props
@@ -33,56 +32,6 @@ from .version_utils import (
 
 
 xray_io.ENCODE_ERROR = AppError
-
-op_export_project_props = {
-    'filepath': bpy.props.StringProperty(subtype='DIR_PATH', options={'SKIP_SAVE'}),
-    'use_selection': bpy.props.BoolProperty()
-}
-
-
-class OpExportProject(TestReadyOperator):
-    bl_idname = 'export_scene.xray'
-    bl_label = 'Export XRay Project'
-
-    if not IS_28:
-        for prop_name, prop_value in op_export_project_props.items():
-            exec('{0} = op_export_project_props.get("{0}")'.format(prop_name))
-
-    @execute_with_logger
-    def execute(self, context):
-        from .obj.exp import export_file
-        from bpy.path import abspath
-        data = context.scene.xray
-
-        export_context = object_exp_ops.ExportObjectContext()
-        export_context.texname_from_path = data.object_texture_name_from_image_path
-        export_context.soc_sgroups = data.fmt_version == 'soc'
-        export_context.export_motions = data.object_export_motions
-        try:
-            path = abspath(self.filepath if self.filepath else data.export_root)
-            os.makedirs(path, exist_ok=True)
-            for obj in OpExportProject.find_objects(context, self.use_selection):
-                name = obj.name
-                if not name.lower().endswith('.object'):
-                    name += '.object'
-                opath = path
-                if obj.xray.export_path:
-                    opath = os.path.join(opath, obj.xray.export_path)
-                    os.makedirs(opath, exist_ok=True)
-                export_file(obj, os.path.join(opath, name), export_context)
-        except AppError as err:
-            raise err
-        return {'FINISHED'}
-
-    @staticmethod
-    def find_objects(context, use_selection=False):
-        objects = context.selected_objects if use_selection else context.scene.objects
-        return [o for o in objects if o.xray.isroot]
-
-
-assign_props([
-    (op_export_project_props, OpExportProject),
-])
 
 
 class XRayImportMenu(bpy.types.Menu):
@@ -366,7 +315,6 @@ def get_stalker_icon():
 
 
 classes = (
-    OpExportProject,
     XRayImportMenu,
     XRayExportMenu
 )
@@ -394,7 +342,6 @@ def register():
     bones_ops.register()
     ogf_ops.register()
     skl_ops.register()
-    registry.register_thing(motion_list, __name__)
     omf_ops.register()
     scene_ops.register()
     if IS_28:
@@ -410,9 +357,11 @@ def register():
     hotkeys.register_hotkeys()
     edit_helpers.register()
     ops.register()
+    ui.register()
 
 
 def unregister():
+    ui.unregister()
     ops.unregister()
     edit_helpers.unregister()
     hotkeys.unregister_hotkeys()
@@ -424,7 +373,6 @@ def unregister():
         level_ops.unregister()
     scene_ops.unregister()
     omf_ops.unregister()
-    registry.unregister_thing(motion_list, __name__)
     skl_ops.unregister()
     anm_ops.unregister()
     object_exp_ops.unregister()

@@ -3,7 +3,7 @@ import bpy
 
 # addon modules
 from . import list_helper, collapsible, base
-from .. import registry, plugin_prefs, prefs
+from .. import plugin_prefs, prefs
 from ..utils import is_helper_object
 from ..details import ui as det_ui
 from ..version_utils import assign_props, IS_28
@@ -61,12 +61,6 @@ class PropClipOp(bpy.types.Operator):
             props.path = path
 
 
-assign_props([
-    (prop_clip_op_props, PropClipOp),
-])
-
-
-@registry.module_thing
 class XRayMotionList(bpy.types.UIList):
     bl_idname = 'XRAY_UL_MotionList'
 
@@ -116,8 +110,6 @@ def draw_motion_list_custom_elements(layout):
     layout.operator(XRayRemoveAllActions.bl_idname, text='', icon='X')
 
 
-@registry.requires(list_helper, PropClipOp, XRayAddAllActions, XRayRemoveAllActions)
-@registry.module_thing
 class XRAY_PT_ObjectPanel(base.XRayPanel):
     bl_context = 'object'
     bl_label = base.build_label('Object')
@@ -332,3 +324,23 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
             column.operator(XRAY_OT_CopyObjectTranforms.bl_idname)
             box.label(text='X-Ray Engine Camera:')
             box.operator(xray_camera.XRAY_OT_AddCamera.bl_idname)
+
+
+classes = (
+    PropClipOp,
+    XRayMotionList,
+    XRayAddAllActions,
+    XRayRemoveAllActions,
+    XRAY_PT_ObjectPanel
+)
+
+
+def register():
+    assign_props([(prop_clip_op_props, PropClipOp), ])
+    for clas in classes:
+        bpy.utils.register_class(clas)
+
+
+def unregister():
+    for clas in reversed(classes):
+        bpy.utils.unregister_class(clas)

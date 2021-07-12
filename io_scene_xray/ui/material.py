@@ -6,24 +6,21 @@ from . import base
 from .dynamic_menu import XRayXrMenuTemplate, DynamicMenu
 from ..utils import parse_shaders, parse_shaders_xrlc, parse_gamemtl
 from ..version_utils import IS_28
-from .. import registry, plugin_prefs, prefs
+from .. import plugin_prefs, prefs
 
 
-@registry.requires(XRayXrMenuTemplate)
 class XRayEShaderMenu(XRayXrMenuTemplate):
     bl_idname = 'XRAY_MT_EShaderMenu'
     prop_name = 'eshader'
     cached = XRayXrMenuTemplate.create_cached('eshader_file_auto', parse_shaders)
 
 
-@registry.requires(XRayXrMenuTemplate)
 class XRayCShaderMenu(XRayXrMenuTemplate):
     bl_idname = 'XRAY_MT_CShaderMenu'
     prop_name = 'cshader'
     cached = XRayXrMenuTemplate.create_cached('cshader_file_auto', parse_shaders_xrlc)
 
 
-@registry.requires(XRayXrMenuTemplate)
 class XRayGameMtlMenu(XRayXrMenuTemplate):
     bl_idname = 'XRAY_MT_GameMtlMenu'
     prop_name = 'gamemtl'
@@ -37,8 +34,6 @@ def _gen_xr_selector(layout, data, name, text):
     row.menu('XRAY_MT_{}Menu'.format(text), icon='TRIA_DOWN')
 
 
-@registry.requires(XRayEShaderMenu, XRayCShaderMenu, XRayGameMtlMenu)
-@registry.module_thing
 class XRAY_PT_MaterialPanel(base.XRayPanel):
     bl_context = 'material'
     bl_label = base.build_label('Material')
@@ -90,3 +85,21 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
             draw_level_prop('light_vert_color', 'Light Vertex Color:', 'VERTEX_COLOR')
             draw_level_prop('sun_vert_color', 'Sun Vertex Color:', 'VERTEX_COLOR')
             draw_level_prop('hemi_vert_color', 'Hemi Vertex Color:', 'VERTEX_COLOR')
+
+
+classes = (
+    XRayEShaderMenu,
+    XRayCShaderMenu,
+    XRayGameMtlMenu,
+    XRAY_PT_MaterialPanel
+)
+
+
+def register():
+    for clas in classes:
+        bpy.utils.register_class(clas)
+
+
+def unregister():
+    for clas in reversed(classes):
+        bpy.utils.unregister_class(clas)

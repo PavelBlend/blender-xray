@@ -1,6 +1,7 @@
+import bpy
+
 from ..edit_helpers import bone_shape, bone_center
 from .. import plugin, plugin_prefs, prefs
-from .. import registry
 from .material import XRayGameMtlMenu, _gen_xr_selector
 from .base import XRayPanel, build_label
 
@@ -38,8 +39,6 @@ for axis in ('x', 'y', 'z'):
     ))
 
 
-@registry.requires(XRayGameMtlMenu)
-@registry.module_thing
 class XRAY_PT_BonePanel(XRayPanel):
     bl_context = 'bone'
     bl_label = build_label('Bone')
@@ -145,3 +144,11 @@ class XRAY_PT_BonePanel(XRayPanel):
         column.prop(data.mass, 'value')
         column.prop(data.mass, 'center')
         bone_center.HELPER.draw(column, context)
+
+
+def register():
+    bpy.utils.register_class(XRAY_PT_BonePanel)
+
+
+def unregister():
+    bpy.utils.unregister_class(XRAY_PT_BonePanel)

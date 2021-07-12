@@ -3,13 +3,12 @@ import bpy
 
 # addon modules
 from .base import XRayPanel, build_label
-from .. import registry, plugin_prefs, prefs
+from .. import plugin_prefs, prefs
 from ..ops import fake_bones, joint_limits
 from ..version_utils import get_icon, layout_split
 from . import collapsible
 
 
-@registry.module_thing
 class XRAY_PT_ArmaturePanel(XRayPanel):
     bl_context = 'data'
     bl_label = build_label('Skeleton')
@@ -115,3 +114,11 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
             column = box.column(align=True)
             column.operator('io_scene_xray.link_bones')
             column.operator('io_scene_xray.unlink_bones')
+
+
+def register():
+    bpy.utils.register_class(XRAY_PT_ArmaturePanel)
+
+
+def unregister():
+    bpy.utils.unregister_class(XRAY_PT_ArmaturePanel)

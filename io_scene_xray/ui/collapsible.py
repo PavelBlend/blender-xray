@@ -29,11 +29,6 @@ class _CollapsOp(bpy.types.Operator):
         return {'FINISHED'}
 
 
-assign_props([
-    (_collaps_op_props, _CollapsOp),
-])
-
-
 def draw(layout, key, text=None, enabled=None, icon=None, style=None):
     col = layout.column(align=True)
     row = col.row(align=True)
@@ -70,6 +65,10 @@ def is_opened(key):
     return _CollapsOp.get(key)
 
 
-registry.module_requires(__name__, [
-    _CollapsOp,
-])
+def register():
+    assign_props([(_collaps_op_props, _CollapsOp), ])
+    bpy.utils.register_class(_CollapsOp)
+
+
+def unregister():
+    bpy.utils.unregister_class(_CollapsOp)

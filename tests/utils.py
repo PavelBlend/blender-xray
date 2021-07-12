@@ -8,7 +8,7 @@ import sys
 import tempfile
 import bmesh
 import bpy
-from io_scene_xray.plugin import TestReadyOperator
+from io_scene_xray.ops.base import BaseOperator as TestReadyOperator
 
 
 class XRayTestCase(unittest.TestCase):

@@ -5,10 +5,9 @@ import bpy
 from .base import XRayPanel, build_label
 from ..skl.ops import OpExportSkl
 from ..ops import action_utils
-from .. import registry, version_utils, plugin_prefs, prefs
+from .. import version_utils, plugin_prefs, prefs
 
 
-@registry.module_thing
 class XRAY_PT_ActionPanel(XRayPanel):
     bl_category = 'F-Curve'
     bl_space_type = 'DOPESHEET_EDITOR' if bpy.app.version >= (2, 78, 0) else 'GRAPH_EDITOR'
@@ -94,3 +93,11 @@ class XRAY_PT_ActionPanel(XRayPanel):
         row = layout.row(align=True)
         row.operator(action_utils.XRayCopyActionSettingsOperator.bl_idname)
         row.operator(action_utils.XRayPasteActionSettingsOperator.bl_idname)
+
+
+def register():
+    bpy.utils.register_class(XRAY_PT_ActionPanel)
+
+
+def unregister():
+    bpy.utils.unregister_class(XRAY_PT_ActionPanel)

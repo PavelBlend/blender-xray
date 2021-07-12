@@ -24,8 +24,6 @@ from ..scene import ops as scene_ops
 from ..skl import ops as skl_ops
 
 
-@registry.requires(UI_UL_SklsList_item)
-@registry.module_thing
 class VIEW3D_PT_skls_animations(XRayPanel):
     'Contains open .skls file operator, animations list'
     bl_space_type = 'VIEW_3D'
@@ -104,13 +102,6 @@ class XRayColorizeMaterials(bpy.types.Operator):
         return {'FINISHED'}
 
 
-assign_props([
-    (xray_colorize_materials_props, XRayColorizeMaterials),
-])
-
-
-@registry.requires(XRayColorizeMaterials)
-@registry.module_thing
 class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
     bl_label = build_label('Material')
     bl_category = 'XRay'
@@ -168,7 +159,6 @@ class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
             utils_col.operator('io_scene_xray.change_shader_params')
 
 
-@registry.module_thing
 class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
     bl_label = build_label('Custom Properties')
     bl_category = 'XRay'
@@ -212,7 +202,6 @@ class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
         )
 
 
-@registry.module_thing
 class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
     bl_label = build_label('Import')
     bl_category = 'XRay'
@@ -262,7 +251,6 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
             lay.operator(err_ops.OpImportERR.bl_idname, text='Err')
 
 
-@registry.module_thing
 class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
     bl_label = build_label('Export')
     bl_category = 'XRay'
@@ -310,3 +298,25 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
         # ogf
         if preferences.enable_ogf_export:
             lay.operator(ogf_ops.OpExportOgf.bl_idname, text='Ogf')
+
+
+classes = (
+    VIEW3D_PT_skls_animations,
+    XRayColorizeMaterials,
+    XRAY_PT_MaterialToolsPanel,
+    XRAY_PT_CustomPropertiesUtilsPanel,
+    XRAY_PT_ImportPluginsPanel,
+    XRAY_PT_ExportPluginsPanel
+    
+)
+
+
+def register():
+    assign_props([(xray_colorize_materials_props, XRayColorizeMaterials), ])
+    for clas in classes:
+        bpy.utils.register_class(clas)
+
+
+def unregister():
+    for clas in reversed(classes):
+        bpy.utils.unregister_class(clas)

@@ -8,6 +8,7 @@ from ...version_utils import (
     assign_props, IS_28, set_active_object, select_object
 )
 from .. import exp, props as general_obj_props
+from ...ops.base import BaseOperator as TestReadyOperator
 from . import props
 
 
@@ -239,9 +240,56 @@ def menu_func_export(self, _context):
     )
 
 
+op_export_project_props = {
+    'filepath': bpy.props.StringProperty(subtype='DIR_PATH', options={'SKIP_SAVE'}),
+    'use_selection': bpy.props.BoolProperty()
+}
+
+
+class OpExportProject(TestReadyOperator):
+    bl_idname = 'export_scene.xray'
+    bl_label = 'Export XRay Project'
+
+    if not IS_28:
+        for prop_name, prop_value in op_export_project_props.items():
+            exec('{0} = op_export_project_props.get("{0}")'.format(prop_name))
+
+    @utils.execute_with_logger
+    def execute(self, context):
+        from ..exp import export_file, ops as object_exp_ops
+        from bpy.path import abspath
+        data = context.scene.xray
+
+        export_context = object_exp_ops.ExportObjectContext()
+        export_context.texname_from_path = data.object_texture_name_from_image_path
+        export_context.soc_sgroups = data.fmt_version == 'soc'
+        export_context.export_motions = data.object_export_motions
+        try:
+            path = abspath(self.filepath if self.filepath else data.export_root)
+            os.makedirs(path, exist_ok=True)
+            for obj in OpExportProject.find_objects(context, self.use_selection):
+                name = obj.name
+                if not name.lower().endswith('.object'):
+                    name += '.object'
+                opath = path
+                if obj.xray.export_path:
+                    opath = os.path.join(opath, obj.xray.export_path)
+                    os.makedirs(opath, exist_ok=True)
+                export_file(obj, os.path.join(opath, name), export_context)
+        except utils.AppError as err:
+            raise err
+        return {'FINISHED'}
+
+    @staticmethod
+    def find_objects(context, use_selection=False):
+        objects = context.selected_objects if use_selection else context.scene.objects
+        return [o for o in objects if o.xray.isroot]
+
+
 classes = (
     (OpExportObjects, op_export_objects_props),
-    (OpExportObject, op_export_object_props)
+    (OpExportObject, op_export_object_props),
+    (OpExportProject, op_export_project_props)
 )
 
 
