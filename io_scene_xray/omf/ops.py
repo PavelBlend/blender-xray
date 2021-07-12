@@ -4,7 +4,7 @@ import bpy
 import bpy_extras
 
 from . import imp, exp, props
-from .. import plugin_prefs, registry, utils, plugin, context, prefs
+from .. import plugin_prefs, utils, plugin, context, prefs
 from ..ui import collapsible
 from ..skl import props as skl_props
 from ..obj.imp import props as obj_imp_props
