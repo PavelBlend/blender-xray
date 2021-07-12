@@ -3,12 +3,11 @@ import os
 
 import bpy
 
-from .. import registry, utils, plugin_prefs, prefs
+from .. import utils, plugin_prefs, prefs
 from ..details import types as det_types
 from . import utils as utils_props
 from ..skls_browser import (
     skls_animations_index_changed,
-    XRaySklsAnimationProperties,
     XRayObjectSklsBrowserProperties,
     init_skls_browser
 )
@@ -380,10 +379,6 @@ xray_object_properties = {
 }
 
 
-@registry.requires(
-    XRayObjectRevisionProperties, XRayObjectSklsBrowserProperties, MotionRef,
-    XRayObjectLevelProperties
-)
 class XRayObjectProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Object
 
@@ -402,9 +397,26 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
                     context.thing.data.xray.joint_limits_type = 'XRAY'
 
 
-assign_props([
-    (xray_object_level_properties, XRayObjectLevelProperties),
-    (xray_object_revision_properties, XRayObjectRevisionProperties),
-    (motion_ref_props, MotionRef),
-    (xray_object_properties, XRayObjectProperties)
-])
+prop_groups = (
+    (XRayObjectLevelProperties, xray_object_level_properties, False),
+    (XRayObjectRevisionProperties, xray_object_revision_properties, False),
+    (MotionRef, motion_ref_props, False),
+    (XRayObjectProperties, xray_object_properties, True)
+)
+
+
+def register():
+    for prop_group, props, is_group in prop_groups:
+        assign_props([
+            (props, prop_group),
+        ])
+        bpy.utils.register_class(prop_group)
+        if is_group:
+            prop_group.b_type.xray = bpy.props.PointerProperty(type=prop_group)
+
+
+def unregister():
+    for prop_group, props, is_group in reversed(prop_groups):
+        if is_group:
+            del prop_group.b_type.xray
+        bpy.utils.unregister_class(prop_group)

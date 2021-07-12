@@ -41,7 +41,7 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
         data = context.active_object.data.xray
         verdif = data.check_different_version_bones()
         if verdif != 0:
-            from ..xray_inject import XRayBoneProperties
+            from ..props.bone import XRayBoneProperties
             layout.label(
                 text='Found bones, edited with '
                 + XRayBoneProperties.ShapeProperties.fmt_version_different(verdif)

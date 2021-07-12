@@ -14,11 +14,11 @@ bl_info = {
 
 def register():
     from . import registry, plugin, xray_inject_ui
-    registry.register_thing(plugin, __name__)
+    plugin.register()
     registry.register_thing(xray_inject_ui, __name__)
 
 
 def unregister():
     from . import registry, plugin, xray_inject_ui
     registry.unregister_thing(xray_inject_ui, __name__)
-    registry.unregister_thing(plugin, __name__)
+    plugin.unregister()

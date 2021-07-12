@@ -5,7 +5,7 @@ import bmesh
 
 from .. import xray_io
 from .. import utils
-from ..version_utils import link_object, IS_28
+from ..version_utils import link_object, IS_28, IMAGE_NODES
 
 
 def create_object(object_name):
@@ -47,7 +47,7 @@ def check_estimated_material_texture(material, det_model):
     if IS_28:
         texture_nodes = []
         for node in material.node_tree.nodes:
-            if node.type in utils.IMAGE_NODES:
+            if node.type in IMAGE_NODES:
                 texture_nodes.append(node)
         if len(texture_nodes) == 1:
             texture_node = texture_nodes[0]

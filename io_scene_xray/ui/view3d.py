@@ -24,7 +24,7 @@ from ..scene import ops as scene_ops
 from ..skl import ops as skl_ops
 
 
-@registry.requires(UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile)
+@registry.requires(UI_UL_SklsList_item)
 @registry.module_thing
 class VIEW3D_PT_skls_animations(XRayPanel):
     'Contains open .skls file operator, animations list'

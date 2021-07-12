@@ -1,6 +1,6 @@
 import bpy
 
-from .. import registry, plugin_prefs
+from .. import plugin_prefs
 from ..obj.exp import props as obj_exp_props
 from ..obj import props as general_obj_props
 from ..version_utils import assign_props, IS_28
@@ -91,8 +91,6 @@ xray_scene_properties = {
 }
 
 
-@registry.requires(ImportSkls)
-@registry.requires(ImportOmf)
 class XRaySceneProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Scene
 
@@ -101,8 +99,25 @@ class XRaySceneProperties(bpy.types.PropertyGroup):
             exec('{0} = xray_scene_properties.get("{0}")'.format(prop_name))
 
 
-assign_props([
-    (import_motion_props, ImportSkls),
-    (import_motion_props, ImportOmf),
-    (xray_scene_properties, XRaySceneProperties)
-])
+prop_groups = (
+    (ImportSkls, import_motion_props, False),
+    (ImportOmf, import_motion_props, False),
+    (XRaySceneProperties, xray_scene_properties, True)
+)
+
+
+def register():
+    for prop_group, props, is_group in prop_groups:
+        assign_props([
+            (props, prop_group),
+        ])
+        bpy.utils.register_class(prop_group)
+        if is_group:
+            prop_group.b_type.xray = bpy.props.PointerProperty(type=prop_group)
+
+
+def unregister():
+    for prop_group, props, is_group in reversed(prop_groups):
+        if is_group:
+            del prop_group.b_type.xray
+        bpy.utils.unregister_class(prop_group)

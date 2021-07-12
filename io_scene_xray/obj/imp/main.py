@@ -7,7 +7,7 @@ import mathutils
 from ...skl import imp as skl_imp
 from ... import xray_io, xray_motions, log, utils
 from ...version_utils import (
-    is_all_empty_textures, IS_28, link_object, set_active_object
+    is_all_empty_textures, IS_28, link_object, set_active_object, IMAGE_NODES
 )
 from .. import fmt
 from . import bone, mesh
@@ -135,7 +135,7 @@ def import_main(fpath, context, creader):
                         ts_found = False
                         if material.use_nodes:
                             for node in material.node_tree.nodes:
-                                if not node.type in utils.IMAGE_NODES:
+                                if not node.type in IMAGE_NODES:
                                     continue
                                 tex_nodes.append(node)
                             if len(tex_nodes) != 1:

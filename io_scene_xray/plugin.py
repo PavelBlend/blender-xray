@@ -5,16 +5,15 @@ import bpy
 import bpy.utils.previews
 from bpy_extras import io_utils
 
-from . import xray_inject, xray_io, ops
+from . import xray_io, ops
 from .ops.base import BaseOperator as TestReadyOperator
 from .ui import collapsible, motion_list, base
 from .utils import (
     AppError, ObjectsInitializer, logger, execute_with_logger,
     execute_require_filepath, FilenameExtHelper
 )
-from . import plugin_prefs, prefs, edit_helpers
-from . import hotkeys
-from . import registry
+from . import plugin_prefs, prefs, edit_helpers, hotkeys, registry, props
+from . import details
 from .details import ops as det_ops
 from .dm import ops as dm_ops
 from .err import ops as err_ops
@@ -374,6 +373,10 @@ classes = (
 
 
 def register():
+    details.register()
+    skls_browser.register()
+    props.register()
+
     for clas in classes:
         bpy.utils.register_class(clas)
     plugin_prefs.register()
@@ -387,7 +390,6 @@ def register():
     object_imp_ops.register()
     object_exp_ops.register()
     anm_ops.register()
-    det_ops.register()
     dm_ops.register()
     bones_ops.register()
     ogf_ops.register()
@@ -405,9 +407,7 @@ def register():
     )
     bpy.app.handlers.load_post.append(load_post)
     get_scene_update_post().append(scene_update_post)
-    registry.register_thing(skls_browser, __name__)
     hotkeys.register_hotkeys()
-    xray_inject.register()
     edit_helpers.register()
     ops.register()
 
@@ -415,12 +415,9 @@ def register():
 def unregister():
     ops.unregister()
     edit_helpers.unregister()
-    xray_inject.unregister()
     hotkeys.unregister_hotkeys()
-    registry.unregister_thing(skls_browser, __name__)
     err_ops.unregister()
     dm_ops.unregister()
-    det_ops.unregister()
     bones_ops.unregister()
     ogf_ops.unregister()
     if IS_28:
@@ -464,3 +461,7 @@ def unregister():
     plugin_prefs.unregister()
     for clas in reversed(classes):
         bpy.utils.unregister_class(clas)
+
+    props.unregister()
+    skls_browser.unregister()
+    details.unregister()

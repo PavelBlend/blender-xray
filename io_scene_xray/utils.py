@@ -11,7 +11,6 @@ from .version_utils import (
 )
 
 
-IMAGE_NODES = ('TEX_IMAGE', 'TEX_ENVIRONMENT')
 __FAKE_BONE_SUFFIX = '.fake'
 
 

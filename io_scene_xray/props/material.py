@@ -41,6 +41,21 @@ class XRayMaterialProperties(bpy.types.PropertyGroup):
                     self.eshader = 'default'
 
 
-assign_props([
-    (xray_material_properties, XRayMaterialProperties),
-])
+prop_groups = (
+    (XRayMaterialProperties, xray_material_properties),
+)
+
+
+def register():
+    for prop_group, props in prop_groups:
+        assign_props([
+            (props, prop_group),
+        ])
+    bpy.utils.register_class(prop_group)
+    prop_group.b_type.xray = bpy.props.PointerProperty(type=prop_group)
+
+
+def unregister():
+    for prop_group, props in reversed(prop_groups):
+        del prop_group.b_type.xray
+        bpy.utils.unregister_class(prop_group)

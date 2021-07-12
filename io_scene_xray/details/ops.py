@@ -9,7 +9,7 @@ from ..obj.exp import props as obj_exp_props
 from ..dm import imp as model_imp
 from ..dm import exp as model_exp
 from ..version_utils import get_import_export_menus, assign_props, IS_28
-from . import imp, exp, props, types
+from . import imp, exp, props
 
 
 class ImportDetailsContext(context.ImportMeshContext):
@@ -265,7 +265,6 @@ classes = (
 
 
 def register():
-    types.register()
     for operator, props in classes:
         if props:
             assign_props([(props, operator), ])
@@ -278,4 +277,3 @@ def unregister():
     import_menu.remove(menu_func_import)
     for operator, props in reversed(classes):
         bpy.utils.unregister_class(operator)
-    types.unregister()

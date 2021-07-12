@@ -2,10 +2,8 @@
 import math
 
 # blender modules
-import bpy, mathutils
-
-# addon modules
-from .. import registry
+import bpy
+import mathutils
 
 
 def get_object_transforms():

@@ -44,6 +44,21 @@ class XRayArmatureProperties(bpy.types.PropertyGroup):
         )
 
 
-assign_props([
-    (xray_armature_properties, XRayArmatureProperties),
-])
+prop_groups = (
+    (XRayArmatureProperties, xray_armature_properties),
+)
+
+
+def register():
+    for prop_group, props in prop_groups:
+        assign_props([
+            (props, prop_group),
+        ])
+    bpy.utils.register_class(prop_group)
+    prop_group.b_type.xray = bpy.props.PointerProperty(type=prop_group)
+
+
+def unregister():
+    for prop_group, props in reversed(prop_groups):
+        del prop_group.b_type.xray
+        bpy.utils.unregister_class(prop_group)

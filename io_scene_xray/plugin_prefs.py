@@ -3,16 +3,8 @@ from os import path
 
 import bpy
 
-from . import xray_ltx, prefs
-from .details import props as details_props
-from .obj.imp import props as obj_imp_props
-from .skl import props as skl_props
-from .bones import props as bones_props
-from .omf import props as omf_props
-from .obj.exp import props as obj_exp_props
-from .obj import props as general_obj_props
-from .anm import props as anm_props
-from .ui import collapsible
+from . import prefs
+
 from .version_utils import IS_28, assign_props, get_icon, layout_split
 from bl_operators.presets import AddPresetBase
 
