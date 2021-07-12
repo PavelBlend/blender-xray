@@ -56,3 +56,11 @@ class XRayVerifyUVOperator(bpy.types.Operator):
             return self.BAD_UV
         else:
             return self.CORRECT_UV
+
+
+def register():
+    bpy.utils.register_class(XRayVerifyUVOperator)
+
+
+def unregister():
+    bpy.utils.unregister_class(XRayVerifyUVOperator)

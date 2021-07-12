@@ -204,15 +204,20 @@ class MATERIAL_OT_xray_convert_to_cycles(bpy.types.Operator):
         return {'FINISHED'}
 
 
+classes = (
+    MATERIAL_OT_xray_convert_to_cycles,
+    MATERIAL_OT_xray_convert_to_internal,
+    MATERIAL_OT_xray_switch_render
+)
+
+
 def register():
     if not IS_28:
-        bpy.utils.register_class(MATERIAL_OT_xray_convert_to_cycles)
-        bpy.utils.register_class(MATERIAL_OT_xray_convert_to_internal)
-        bpy.utils.register_class(MATERIAL_OT_xray_switch_render)
+        for operator in classes:
+            bpy.utils.register_class(operator)
 
 
 def unregister():
     if not IS_28:
-        bpy.utils.unregister_class(MATERIAL_OT_xray_switch_render)
-        bpy.utils.unregister_class(MATERIAL_OT_xray_convert_to_internal)
-        bpy.utils.unregister_class(MATERIAL_OT_xray_convert_to_cycles)
+        for operator in reversed(classes):
+            bpy.utils.unregister_class(operator)

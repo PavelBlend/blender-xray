@@ -12,7 +12,7 @@ from ..ui.motion_list import (
     _DeselectDuplicatedMotionsOp,
     XRAY_UL_MotionsList
 )
-from ..ops import BaseOperator as TestReadyOperator
+from ..ops.base import BaseOperator as TestReadyOperator
 from ..utils import (
     execute_with_logger, invoke_require_armature, execute_require_filepath,
     FilenameExtHelper, set_cursor_state

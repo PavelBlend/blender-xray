@@ -1,11 +1,10 @@
 import bpy
 
-from io_scene_xray import registry, utils
+from .. import utils
+from . import base
 
-from . import BaseOperator
 
-@registry.module_thing
-class CreateFakeBones(BaseOperator):
+class CreateFakeBones(base.BaseOperator):
     bl_idname = 'io_scene_xray.create_fake_bones'
     bl_label = 'Create Fake Bones'
     bl_description = 'Connect non-rigid bone joints via fake bones to help with IK'
@@ -50,8 +49,7 @@ class CreateFakeBones(BaseOperator):
         return {'FINISHED'}
 
 
-@registry.module_thing
-class DeleteFakeBones(BaseOperator):
+class DeleteFakeBones(base.BaseOperator):
     bl_idname = 'io_scene_xray.delete_fake_bones'
     bl_label = 'Delete Fake Bones'
     bl_description = 'Delete all previously created fake bones'
@@ -77,8 +75,7 @@ class DeleteFakeBones(BaseOperator):
         return {'FINISHED'}
 
 
-@registry.module_thing
-class ToggleFakeBonesVisibility(BaseOperator):
+class ToggleFakeBonesVisibility(base.BaseOperator):
     bl_idname = 'io_scene_xray.toggle_fake_bones_visibility'
     bl_label = 'Show/Hide Fake Bones'
     bl_description = 'Show/Hide all fake bones'
@@ -121,3 +118,20 @@ def _is_armature_context_with_fake_bones(context):
         if utils.is_fake_bone_name(bone.name):
             return True
     return False
+
+
+classes = (
+    CreateFakeBones,
+    DeleteFakeBones,
+    ToggleFakeBonesVisibility
+)
+
+
+def register():
+    for operator in classes:
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)

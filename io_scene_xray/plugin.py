@@ -5,11 +5,8 @@ import bpy
 import bpy.utils.previews
 from bpy_extras import io_utils
 
-from . import xray_inject, xray_io
-from .ops import (
-    BaseOperator as TestReadyOperator,
-    convert_materials, shader_tools
-)
+from . import xray_inject, xray_io, ops
+from .ops.base import BaseOperator as TestReadyOperator
 from .ui import collapsible, motion_list, base
 from .utils import (
     AppError, ObjectsInitializer, logger, execute_with_logger,
@@ -400,8 +397,6 @@ def register():
     scene_ops.register()
     if IS_28:
         level_ops.register()
-    convert_materials.register()
-    shader_tools.register()
     err_ops.register()
     append_menu_func()
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(
@@ -414,9 +409,11 @@ def register():
     hotkeys.register_hotkeys()
     xray_inject.register()
     edit_helpers.register()
+    ops.register()
 
 
 def unregister():
+    ops.unregister()
     edit_helpers.unregister()
     xray_inject.unregister()
     hotkeys.unregister_hotkeys()
@@ -428,8 +425,6 @@ def unregister():
     ogf_ops.unregister()
     if IS_28:
         level_ops.unregister()
-    shader_tools.unregister()
-    convert_materials.unregister()
     scene_ops.unregister()
     omf_ops.unregister()
     registry.unregister_thing(motion_list, __name__)

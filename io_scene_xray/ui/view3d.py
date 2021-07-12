@@ -168,12 +168,6 @@ class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
             utils_col.operator('io_scene_xray.change_shader_params')
 
 
-@registry.requires(
-    custom_props_utils.XRAY_OT_SetCustomToXRayProperties,
-    custom_props_utils.XRAY_OT_SetXRayToCustomProperties,
-    custom_props_utils.XRAY_OT_RemoveXRayCustomProperties,
-    custom_props_utils.XRAY_OT_RemoveAllCustomProperties
-)
 @registry.module_thing
 class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
     bl_label = build_label('Custom Properties')

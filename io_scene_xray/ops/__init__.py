@@ -1,10 +1,39 @@
-import bpy
+from . import (
+    base,
+    action_utils,
+    armature_utils,
+    convert_materials,
+    custom_props_utils,
+    fake_bones,
+    joint_limits,
+    shader_tools,
+    transform_utils,
+    verify_uv,
+    verify_uv_ui,
+    xray_camera
+)
 
 
-class BaseOperator(bpy.types.Operator):
-    report_catcher = None
+modules = (
+    action_utils,
+    armature_utils,
+    convert_materials,
+    custom_props_utils,
+    fake_bones,
+    joint_limits,
+    shader_tools,
+    transform_utils,
+    verify_uv,
+    verify_uv_ui,
+    xray_camera
+)
 
-    def __getattribute__(self, item):
-        if (item == 'report') and (self.report_catcher is not None):
-            return self.report_catcher
-        return super().__getattribute__(item)
+
+def register():
+    for module in modules:
+        module.register()
+
+
+def unregister():
+    for module in reversed(modules):
+        module.unregister()

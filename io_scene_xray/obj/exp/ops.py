@@ -70,7 +70,7 @@ op_export_objects_props = {
 }
 
 
-class OpExportObjects(ops.BaseOperator, _WithExportMotions):
+class OpExportObjects(ops.base.BaseOperator, _WithExportMotions):
     bl_idname = 'export_object.xray_objects'
     bl_label = 'Export selected .object-s'
     bl_options = {'PRESET'}
@@ -159,7 +159,7 @@ op_export_object_props = {
 
 
 class OpExportObject(
-        ops.BaseOperator,
+        ops.base.BaseOperator,
         bpy_extras.io_utils.ExportHelper,
         _WithExportMotions
     ):

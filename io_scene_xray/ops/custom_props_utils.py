@@ -337,3 +337,21 @@ class XRAY_OT_RemoveAllCustomProperties(bpy.types.Operator):
                     continue
                 del data[prop]
         return {'FINISHED'}
+
+
+classes = (
+    XRAY_OT_SetCustomToXRayProperties,
+    XRAY_OT_SetXRayToCustomProperties,
+    XRAY_OT_RemoveXRayCustomProperties,
+    XRAY_OT_RemoveAllCustomProperties
+)
+
+
+def register():
+    for operator in classes:
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)

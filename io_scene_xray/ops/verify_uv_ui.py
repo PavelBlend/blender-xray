@@ -24,3 +24,11 @@ class XRAY_PT_VerifyToolsPanel(bpy.types.Panel):
         data = context.scene.xray
         layout = self.layout
         layout.operator(verify_uv.XRayVerifyUVOperator.bl_idname, icon='GROUP_UVS')
+
+
+def register():
+    bpy.utils.register_class(XRAY_PT_VerifyToolsPanel)
+
+
+def unregister():
+    bpy.utils.unregister_class(XRAY_PT_VerifyToolsPanel)
