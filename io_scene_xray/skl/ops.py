@@ -3,7 +3,7 @@ import os
 import bpy
 from bpy_extras import io_utils
 
-from .. import registry, plugin, plugin_prefs, prefs
+from .. import plugin, plugin_prefs, prefs
 from ..ui import collapsible
 from ..ui.motion_list import (
     BaseSelectMotionsOp,
@@ -45,8 +45,6 @@ op_import_skl_props = {
 }
 
 
-@registry.module_thing
-@registry.requires(Motion)
 class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
     bl_idname = 'xray_import.skl'
     bl_label = 'Import .skl/.skls'
@@ -164,7 +162,6 @@ op_export_skl_props = {
 }
 
 
-@registry.module_thing
 class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.skl'
     bl_label = 'Export .skl'
@@ -206,7 +203,6 @@ op_export_skls_props = {
 }
 
 
-@registry.module_thing
 class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.skls'
     bl_label = 'Export .skls'
@@ -230,14 +226,6 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
         return super().invoke(context, event)
 
 
-assign_props([
-    (motion_props, Motion),
-    (op_import_skl_props, OpImportSkl),
-    (op_export_skl_props, OpExportSkl),
-    (op_export_skls_props, OpExportSkls)
-])
-
-
 def menu_func_import(self, _context):
     icon = plugin.get_stalker_icon()
     self.layout.operator(
@@ -254,3 +242,22 @@ def menu_func_export(self, _context):
         text='X-Ray animation (.skls)',
         icon_value=icon
     )
+
+
+classes = (
+    (Motion, motion_props),
+    (OpImportSkl, op_import_skl_props),
+    (OpExportSkl, op_export_skl_props),
+    (OpExportSkls, op_export_skls_props)
+)
+
+
+def register():
+    for operator, props in classes:
+        assign_props([(props, operator), ])
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator, props in reversed(classes):
+        bpy.utils.unregister_class(operator)
