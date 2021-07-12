@@ -15,7 +15,7 @@ from .utils import (
     AppError, ObjectsInitializer, logger, execute_with_logger,
     execute_require_filepath, FilenameExtHelper
 )
-from . import plugin_prefs, prefs
+from . import plugin_prefs, prefs, edit_helpers
 from . import hotkeys
 from . import registry
 from .details import ops as det_ops
@@ -413,9 +413,11 @@ def register():
     registry.register_thing(skls_browser, __name__)
     hotkeys.register_hotkeys()
     xray_inject.register()
+    edit_helpers.register()
 
 
 def unregister():
+    edit_helpers.unregister()
     xray_inject.unregister()
     hotkeys.unregister_hotkeys()
     registry.unregister_thing(skls_browser, __name__)

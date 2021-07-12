@@ -1,6 +1,6 @@
 import bpy
 
-from .. import registry, utils
+from .. import utils
 from ..version_utils import link_object, IS_28
 
 
@@ -110,7 +110,6 @@ def get_object_helper(context):
     return helper
 
 
-@registry.module_thing
 class EditCancel(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_cancel'
     bl_label = 'Cancel'
@@ -131,3 +130,11 @@ def _get_active_helper(context):
         if helper.is_active(context):
             return helper
     return None
+
+
+def register():
+    bpy.utils.register_class(EditCancel)
+
+
+def unregister():
+    bpy.utils.unregister_class(EditCancel)

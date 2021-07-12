@@ -4,7 +4,7 @@ import bpy
 import bmesh
 import mathutils
 
-from .. import registry, utils
+from .. import utils
 from ..version_utils import (
     IS_28, multiply, set_active_object, get_icon, get_multiply
 )
@@ -65,7 +65,6 @@ def _create_bmesh(shape_type):
     return mesh
 
 
-@registry.module_thing
 class _EditShape(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_shape'
     bl_label = 'Edit Bone Shape'
@@ -113,7 +112,6 @@ def _bone_matrix(bone):
     return mat
 
 
-@registry.module_thing
 class _ApplyShape(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_shape_apply'
     bl_label = 'Apply Shape'
@@ -203,7 +201,6 @@ def _bone_vertices(bone):
                 yield vtx.co
 
 
-@registry.module_thing
 class _FitShape(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_shape_fit'
     bl_label = 'Fit Shape'
@@ -274,3 +271,20 @@ class _FitShape(bpy.types.Operator):
         else:
             bpy.context.scene.update()
         return {'FINISHED'}
+
+
+classes = (
+    _EditShape,
+    _ApplyShape,
+    _FitShape
+)
+
+
+def register():
+    for operator in classes:
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)

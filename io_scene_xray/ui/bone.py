@@ -1,4 +1,4 @@
-from ..edit_helpers import base, bone_shape, bone_center
+from ..edit_helpers import bone_shape, bone_center
 from .. import plugin, plugin_prefs, prefs
 from .. import registry
 from .material import XRayGameMtlMenu, _gen_xr_selector
@@ -38,7 +38,7 @@ for axis in ('x', 'y', 'z'):
     ))
 
 
-@registry.requires(base, bone_shape, bone_center, XRayGameMtlMenu)
+@registry.requires(XRayGameMtlMenu)
 @registry.module_thing
 class XRAY_PT_BonePanel(XRayPanel):
     bl_context = 'bone'

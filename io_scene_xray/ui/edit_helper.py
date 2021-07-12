@@ -3,7 +3,6 @@ from .base import XRayPanel, build_label
 from ..edit_helpers import base as base_edit_helper
 
 
-@registry.requires(base_edit_helper)
 @registry.module_thing
 class XRAY_PT_EditHelperObjectPanel(XRayPanel):
     bl_context = 'object'
