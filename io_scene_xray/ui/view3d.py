@@ -85,6 +85,8 @@ class XRayColorizeMaterials(bpy.types.Operator):
                 materials.add(slot.material)
 
         for mat in materials:
+            if not mat:
+                continue
             data = bytearray(mat.name, 'utf8')
             data.append(self.seed)
             hsh = crc32(data)
