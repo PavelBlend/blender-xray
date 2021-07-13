@@ -8,7 +8,7 @@ from .base import XRayPanel, build_label
 from ..skls_browser import UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
 from .. import plugin, plugin_prefs, prefs
 from ..ops import custom_props_utils
-from ..version_utils import IS_28, assign_props
+from ..version_utils import IS_28, assign_props, layout_split
 from ..obj.imp import ops as obj_imp_ops
 from ..obj.exp import ops as obj_exp_ops
 from ..anm import ops as anm_ops
@@ -175,10 +175,10 @@ class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
     def draw(self, context):
         lay = self.layout
         scn = context.scene.xray
-        split = lay.split(factor=0.4)
+        split = layout_split(lay, 0.4)
         split.label(text='Edit Data:')
         split.prop(scn, 'custom_properties_edit_data', text='')
-        split = lay.split(factor=0.4)
+        split = layout_split(lay, 0.4)
         split.label(text='Edit Mode:')
         split.prop(scn, 'custom_properties_edit_mode', text='')
         lay.label(text='Set Custom Properties:')

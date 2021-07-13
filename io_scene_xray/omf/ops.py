@@ -15,7 +15,7 @@ from ..ui.motion_list import (
     _DeselectMotionsOp,
     _DeselectDuplicatedMotionsOp
 )
-from ..version_utils import IS_28, assign_props, get_multiply
+from ..version_utils import IS_28, assign_props, get_multiply, layout_split
 
 
 class ImportOmfContext(
@@ -218,7 +218,7 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
 
     def draw(self, context):
         layout = self.layout
-        row = layout.split(factor=0.5)
+        row = layout_split(layout, 0.5)
         row.label(text='Export Mode:')
         row.prop(self, 'export_mode', text='')
         row = layout.row()

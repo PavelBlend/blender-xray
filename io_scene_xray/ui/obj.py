@@ -6,7 +6,7 @@ from . import list_helper, collapsible, base
 from .. import plugin_prefs, prefs
 from ..utils import is_helper_object
 from ..details import ui as det_ui
-from ..version_utils import assign_props, IS_28
+from ..version_utils import assign_props, IS_28, layout_split
 from ..ops.transform_utils import (
     XRAY_OT_UpdateXRayObjectTranforms,
     XRAY_OT_UpdateBlenderObjectTranforms,
@@ -53,8 +53,8 @@ class PropClipOp(bpy.types.Operator):
     def drawall(cls, layout, path, value):
         for item in items:
             lay = layout
+            lay = layout_split(lay, 1.0, align=True)
             if item[0] in ('copy', 'clear') and not value:
-                lay = lay.split(align=True)
                 lay.enabled = False
             props = lay.operator(cls.bl_idname, icon=item[3])
             props.oper = item[0]
@@ -156,7 +156,7 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
                     row.prop(data, 'flags_custom_lod', text='LOD', toggle=True)
                     row.prop(data, 'flags_custom_hom', text='HOM', toggle=True)
                     row = col.row(align=True)
-                    row.prop(data, 'flags_custom_musage', text='Multi Usage', toggle=True)
+                    row.prop(data, 'flags_custom_musage', text='Multiple Usage', toggle=True)
                     row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
                     row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
                 object_box.prop(data, 'lodref')

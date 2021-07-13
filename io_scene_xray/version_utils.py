@@ -60,11 +60,11 @@ def get_icon(icon):
     return icon
 
 
-def layout_split(layout, percentage):
+def layout_split(layout, percentage, align=False):
     if IS_28:
-        split = layout.split(factor=percentage)
+        split = layout.split(factor=percentage, align=align)
     else:
-        split = layout.split(percentage=percentage)
+        split = layout.split(percentage=percentage, align=align)
     return split
 
 

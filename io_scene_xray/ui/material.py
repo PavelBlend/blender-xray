@@ -5,7 +5,7 @@ import bpy
 from . import base
 from .dynamic_menu import XRayXrMenuTemplate, DynamicMenu
 from ..utils import parse_shaders, parse_shaders_xrlc, parse_gamemtl
-from ..version_utils import IS_28
+from ..version_utils import IS_28, layout_split
 from .. import plugin_prefs, prefs
 
 
@@ -61,7 +61,7 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
             if not panel_used:
                 return
             def draw_level_prop(prop_name, prop_text, prop_type):
-                row = box.split(factor=0.45)
+                row = layout_split(box, 0.45)
                 row.label(text=prop_text)
                 if prop_type == 'NODES':
                     row.prop_search(data, prop_name, material.node_tree, 'nodes', text='')
