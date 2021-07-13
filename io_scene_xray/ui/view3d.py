@@ -127,17 +127,15 @@ class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
         column.prop(data, 'materials_colorize_random_seed', text='Seed')
         column.prop(data, 'materials_colorize_color_power', text='Power', slider=True)
 
-        collapsible_text = 'Converter'
+        collapsible_text = 'Material Converter'
         if IS_28:
-            collapsible_text = 'Utils'
-        row, box = collapsible.draw(
-            layout, 'test_key', text='Material {0}'.format(collapsible_text)
-        )
+            collapsible_text = 'Principled Shader Utils'
+        row, box = collapsible.draw(layout, 'test_key', text=collapsible_text)
         if box:
-            box.prop(context.scene.xray, 'convert_materials_mode')
-            utils_box = box.box()
-            utils_col = utils_box.column(align=True)
-            utils_col.label(text='Principled Shader Utils:')
+            split = layout_split(box, 0.3)
+            split.label(text='Mode:')
+            split.prop(context.scene.xray, 'convert_materials_mode', text='')
+            utils_col = box.column(align=True)
             if not IS_28:
                 utils_col.prop(context.scene.xray, 'convert_materials_shader_type')
                 utils_col.operator('io_scene_xray.convert_to_cycles')
@@ -157,7 +155,7 @@ class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
             row = utils_col.row(align=True)
             row.prop(context.scene.xray, 'change_roughness', text='')
             row.prop(context.scene.xray, 'shader_roughness_value')
-            utils_col.operator('io_scene_xray.change_shader_params')
+            box.operator('io_scene_xray.change_shader_params')
 
 
 class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):

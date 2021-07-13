@@ -74,11 +74,11 @@ xray_scene_properties = {
     'materials_set_alpha_mode': bpy.props.BoolProperty(name='Use Alpha', default=True),
     'change_materials_alpha': bpy.props.BoolProperty(name='Change Alpha', default=True),
     'shader_specular_value': bpy.props.FloatProperty(
-        name='Specular', default=0.0
+        name='Specular', default=0.0, min=0.0, max=1.0
     ),
     'change_specular': bpy.props.BoolProperty(name='Change Specular', default=True),
     'shader_roughness_value': bpy.props.FloatProperty(
-        name='Roughness', default=0.0
+        name='Roughness', default=0.0, min=0.0, max=1.0
     ),
     'change_roughness': bpy.props.BoolProperty(name='Change Roughness', default=True),
     # custom properties utils
