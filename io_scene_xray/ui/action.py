@@ -79,7 +79,7 @@ class XRAY_PT_ActionPanel(XRayPanel):
             row.prop_search(data, 'bonepart_name', obj.pose, 'bone_groups', text='')
             row = layout.row(align=True)
             row.prop(data, 'flags_stopatend', text='Stop', toggle=True)
-            row.prop(data, 'flags_nomix', text='!Mix', toggle=True)
+            row.prop(data, 'flags_nomix', text='No Mix', toggle=True)
             row.prop(data, 'flags_syncpart', text='Sync', toggle=True)
             row = layout.row(align=True)
             row.prop(data, 'flags_footsteps', text='Foot Steps', toggle=True)
