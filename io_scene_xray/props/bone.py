@@ -152,9 +152,10 @@ class IKJointProperties(bpy.types.PropertyGroup):
 
 
 mass_properties = {
-    'value': bpy.props.FloatProperty(name='Mass', precision=3),
+    'value': bpy.props.FloatProperty(name='Mass', precision=3, min=0),
     'center': bpy.props.FloatVectorProperty(name='Center of Mass', precision=3)
 }
+
 
 class MassProperties(bpy.types.PropertyGroup):
     if not IS_28:
