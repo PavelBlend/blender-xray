@@ -288,7 +288,7 @@ class XRAY_OT_RemoveXRayCustomProperties(bpy.types.Operator):
 
     def execute(self, context):
         preferences = prefs.utils.get_preferences()
-        props_list = plugin_prefs.xray_custom_properties.keys()
+        props_list = prefs.props.xray_custom_properties.keys()
         props_values = []
         for prop_name in props_list:
             prop_value = getattr(preferences.custom_props, prop_name, None)
