@@ -30,7 +30,10 @@ def _gen_time_prop(prop, description=''):
             try:
                 ptime = time.strptime(value, fmt)
             except ValueError:
-                ptime = time.strptime(value, fmt_day)
+                try:
+                    ptime = time.strptime(value, fmt_day)
+                except ValueError:
+                    pass
             tval = time.mktime(ptime)
         setattr(self, prop, tval)
 

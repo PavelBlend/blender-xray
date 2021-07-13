@@ -223,9 +223,27 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
                         'motionrefs_collection', 'motionrefs_collection_index',
                     )
 
-                box = object_box.box()
-                box.prop(data.revision, 'owner', text='Owner')
-                box.prop(data.revision, 'ctime_str', text='Created')
+                _, box = collapsible.draw(
+                    object_box,
+                    'object:revision',
+                    'Revision'
+                )
+                if box:
+                    # owner
+                    split = layout_split(box, 0.35)
+                    split.label(text='Owner:')
+                    split.prop(data.revision, 'owner', text='')
+                    # created time
+                    split = layout_split(box, 0.35)
+                    split.label(text='Created Time:')
+                    split.prop(data.revision, 'ctime_str', text='')
+                    # time formats
+                    subbox = box.box()
+                    split = layout_split(subbox, 0.25)
+                    split.label(text='')
+                    split.label(text='Time Formats:', icon='INFO')
+                    subbox.label(text='Year.Month.Day Hours:Minutes')
+                    subbox.label(text='Year.Month.Day')
 
         details_used = (
             # import plugins
