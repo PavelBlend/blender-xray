@@ -215,7 +215,7 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
 
     writer = xray_io.PackedWriter()
     sfaces = {
-        (m.name, mi) if m else None: [
+        (m.name, mi) if m else (None, mi): [
             fidx for fidx, face in enumerate(bm.faces) \
             if face.material_index == mi
         ]
