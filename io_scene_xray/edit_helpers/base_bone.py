@@ -2,6 +2,7 @@ import bpy
 
 from .base import AbstractHelper
 
+
 #pylint: disable=W0223
 class AbstractBoneEditHelper(AbstractHelper):
     def _is_active_target(self, target, context):

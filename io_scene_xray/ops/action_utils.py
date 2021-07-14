@@ -68,3 +68,19 @@ class XRayPasteActionSettingsOperator(bpy.types.Operator):
     def execute(self, context):
         read_buffer_data()
         return {'FINISHED'}
+
+
+classes = (
+    XRayCopyActionSettingsOperator,
+    XRayPasteActionSettingsOperator
+)
+
+
+def register():
+    for operator in classes:
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)

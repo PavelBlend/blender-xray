@@ -1,6 +1,6 @@
 import bpy
 
-from ..version_utils import IS_28
+from ..version_utils import IS_28, IMAGE_NODES
 from .. import utils
 
 
@@ -41,7 +41,7 @@ def get_image_nodes(node, image_nodes):
             from_node = link.from_node
             break
         if from_node:
-            if from_node.type in utils.IMAGE_NODES:
+            if from_node.type in IMAGE_NODES:
                 image_nodes.append(from_node)
             get_image_nodes(from_node, image_nodes)
 
@@ -204,15 +204,20 @@ class MATERIAL_OT_xray_convert_to_cycles(bpy.types.Operator):
         return {'FINISHED'}
 
 
+classes = (
+    MATERIAL_OT_xray_convert_to_cycles,
+    MATERIAL_OT_xray_convert_to_internal,
+    MATERIAL_OT_xray_switch_render
+)
+
+
 def register():
     if not IS_28:
-        bpy.utils.register_class(MATERIAL_OT_xray_convert_to_cycles)
-        bpy.utils.register_class(MATERIAL_OT_xray_convert_to_internal)
-        bpy.utils.register_class(MATERIAL_OT_xray_switch_render)
+        for operator in classes:
+            bpy.utils.register_class(operator)
 
 
 def unregister():
     if not IS_28:
-        bpy.utils.unregister_class(MATERIAL_OT_xray_switch_render)
-        bpy.utils.unregister_class(MATERIAL_OT_xray_convert_to_internal)
-        bpy.utils.unregister_class(MATERIAL_OT_xray_convert_to_cycles)
+        for operator in reversed(classes):
+            bpy.utils.unregister_class(operator)

@@ -1,8 +1,7 @@
 import bpy
 
-from .. import registry
 from ..utils import create_cached_file_data
-from ..plugin_prefs import get_preferences
+from ..prefs.utils import get_preferences
 from ..version_utils import assign_props, IS_28
 
 
@@ -26,11 +25,6 @@ class _DynamicMenuOp(bpy.types.Operator):
         return {'FINISHED'}
 
 
-assign_props([
-    (_dynamic_menu_op_props, _DynamicMenuOp),
-])
-
-
 def _path_to_prefix(path):
     return _DynamicMenuOp.bl_idname + '.idx.' + '.'.join(map(str, path))
 
@@ -47,7 +41,6 @@ def _detect_current_path(context):
     return result
 
 
-@registry.requires(_DynamicMenuOp)
 class DynamicMenu(bpy.types.Menu):
     bl_label = ''
     bl_idname = 'XRAY_MT_DynamicMenu'
@@ -90,7 +83,6 @@ class DynamicMenu(bpy.types.Menu):
         layout.context_pointer_set(_DynamicMenuOp.bl_idname + '.data', data)
 
 
-@registry.requires(DynamicMenu)
 class XRayXrMenuTemplate(DynamicMenu):
     @staticmethod
     def parse(data, fparse):
@@ -137,3 +129,20 @@ class XRayXrMenuTemplate(DynamicMenu):
         for pth in path:
             data = data[pth][1]
         return data
+
+
+classes = (
+    _DynamicMenuOp,
+    XRayXrMenuTemplate
+)
+
+
+def register():
+    assign_props([(_dynamic_menu_op_props, _DynamicMenuOp), ])
+    for operator in classes:
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)

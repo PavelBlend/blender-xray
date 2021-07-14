@@ -2,10 +2,8 @@
 import math
 
 # blender modules
-import bpy, mathutils
-
-# addon modules
-from .. import registry
+import bpy
+import mathutils
 
 
 def get_object_transforms():
@@ -39,7 +37,6 @@ def write_buffer_data():
     bpy.context.window_manager.clipboard = buffer_text
 
 
-@registry.module_thing
 class XRAY_OT_CopyObjectTranforms(bpy.types.Operator):
     bl_idname = 'io_scene_xray.copy_object_transforms'
     bl_label = 'Copy X-Ray Transforms'
@@ -52,7 +49,6 @@ class XRAY_OT_CopyObjectTranforms(bpy.types.Operator):
             return {'FINISHED'}
 
 
-@registry.module_thing
 class XRAY_OT_UpdateXRayObjectTranforms(bpy.types.Operator):
     bl_idname = 'io_scene_xray.update_xray_object_transforms'
     bl_label = 'Update X-Ray Transforms'
@@ -70,7 +66,6 @@ class XRAY_OT_UpdateXRayObjectTranforms(bpy.types.Operator):
             return {'FINISHED'}
 
 
-@registry.module_thing
 class XRAY_OT_UpdateBlenderObjectTranforms(bpy.types.Operator):
     bl_idname = 'io_scene_xray.update_blender_object_transforms'
     bl_label = 'Update Blender Transforms'
@@ -102,3 +97,20 @@ class XRAY_OT_UpdateBlenderObjectTranforms(bpy.types.Operator):
             else:
                 obj.rotation_euler = rot_euler.to_matrix().to_euler(obj.rotation_mode)
             return {'FINISHED'}
+
+
+classes = (
+    XRAY_OT_CopyObjectTranforms,
+    XRAY_OT_UpdateXRayObjectTranforms,
+    XRAY_OT_UpdateBlenderObjectTranforms
+)
+
+
+def register():
+    for operator in classes:
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)

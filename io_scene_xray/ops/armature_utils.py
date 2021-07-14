@@ -1,12 +1,9 @@
 import bpy
 
-from .. import registry
-
 
 COPY_TRANSFORMS_NAME = '!-xray-link'
 
 
-@registry.module_thing
 class ARMATURE_OT_link_bones(bpy.types.Operator):
     bl_idname = 'io_scene_xray.link_bones'
     bl_label = 'Link Bones'
@@ -43,7 +40,6 @@ class ARMATURE_OT_link_bones(bpy.types.Operator):
         return {'FINISHED'}
 
 
-@registry.module_thing
 class ARMATURE_OT_unlink_bones(bpy.types.Operator):
     bl_idname = 'io_scene_xray.unlink_bones'
     bl_label = 'Unlink Bones'
@@ -65,3 +61,19 @@ class ARMATURE_OT_unlink_bones(bpy.types.Operator):
                 continue
             pose_bone.constraints.remove(constraint)
         return {'FINISHED'}
+
+
+classes = (
+    ARMATURE_OT_link_bones,
+    ARMATURE_OT_unlink_bones
+)
+
+
+def register():
+    for operator in classes:
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)

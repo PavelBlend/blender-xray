@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from .. import plugin_prefs
+from .. import plugin_prefs, prefs
 
 
 def find_data(context):
@@ -98,8 +98,8 @@ class XRAY_OT_SetCustomToXRayProperties(bpy.types.Operator):
             setattr(owner, prop, self.obj[custom])
 
     def execute(self, context):
-        prefs = plugin_prefs.get_preferences()
-        stgs = prefs.custom_props    # settings
+        preferences = prefs.utils.get_preferences()
+        stgs = preferences.custom_props    # settings
         objects, meshes, materials, armatures, actions = find_data(context)
         # object
         for obj in objects:
@@ -195,8 +195,8 @@ class XRAY_OT_SetXRayToCustomProperties(bpy.types.Operator):
     bl_label = 'Set X-Ray to Custom'
 
     def execute(self, context):
-        prefs = plugin_prefs.get_preferences()
-        stgs = prefs.custom_props    # settings
+        preferences = prefs.utils.get_preferences()
+        stgs = preferences.custom_props    # settings
         objects, meshes, materials, armatures, actions = find_data(context)
         # object
         for obj in objects:
@@ -287,11 +287,11 @@ class XRAY_OT_RemoveXRayCustomProperties(bpy.types.Operator):
     bl_label = 'Remove X-Ray Custom Properties'
 
     def execute(self, context):
-        prefs = plugin_prefs.get_preferences()
-        props_list = plugin_prefs.xray_custom_properties.keys()
+        preferences = prefs.utils.get_preferences()
+        props_list = prefs.props.xray_custom_properties.keys()
         props_values = []
         for prop_name in props_list:
-            prop_value = getattr(prefs.custom_props, prop_name, None)
+            prop_value = getattr(preferences.custom_props, prop_name, None)
             props_values.append(prop_value)
         objects, meshes, materials, armatures, actions = find_data(context)
         data_list = []
@@ -337,3 +337,21 @@ class XRAY_OT_RemoveAllCustomProperties(bpy.types.Operator):
                     continue
                 del data[prop]
         return {'FINISHED'}
+
+
+classes = (
+    XRAY_OT_SetCustomToXRayProperties,
+    XRAY_OT_SetXRayToCustomProperties,
+    XRAY_OT_RemoveXRayCustomProperties,
+    XRAY_OT_RemoveAllCustomProperties
+)
+
+
+def register():
+    for operator in classes:
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)

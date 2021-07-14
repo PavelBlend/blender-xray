@@ -3,7 +3,8 @@ import os
 import bpy
 from bpy_extras import io_utils
 
-from .. import plugin, plugin_prefs, registry
+from . import props
+from .. import ui, prefs
 from ..utils import execute_with_logger, FilenameExtHelper, set_cursor_state
 from ..version_utils import assign_props, IS_28
 
@@ -12,11 +13,10 @@ op_import_anm_props = {
     'filter_glob': bpy.props.StringProperty(default='*.anm', options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
-    'camera_animation': plugin_prefs.PropAnmCameraAnimation()
+    'camera_animation': props.PropAnmCameraAnimation()
 }
 
 
-@registry.module_thing
 class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.anm'
     bl_label = 'Import .anm'
@@ -45,8 +45,8 @@ class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.camera_animation = prefs.anm_create_camera
+        preferences = prefs.utils.get_preferences()
+        self.camera_animation = preferences.anm_create_camera
         return super().invoke(context, event)
 
 
@@ -56,7 +56,6 @@ op_export_anm_props = {
 }
 
 
-@registry.module_thing
 class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.anm'
     bl_label = 'Export .anm'
@@ -79,23 +78,31 @@ class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
         export_file(obj, self.filepath)
 
 
-assign_props([
-    (op_import_anm_props, OpImportAnm),
-    (op_export_anm_props, OpExportAnm)
-])
-
-
 def menu_func_import(self, _context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpImportAnm.bl_idname, text='X-Ray animation (.anm)', icon_value=icon
     )
 
 
 def menu_func_export(self, _context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpExportAnm.bl_idname,
         text='X-Ray animation (.anm)',
         icon_value=icon
     )
+
+
+def register():
+    assign_props([
+        (op_import_anm_props, OpImportAnm),
+        (op_export_anm_props, OpExportAnm)
+    ])
+    bpy.utils.register_class(OpImportAnm)
+    bpy.utils.register_class(OpExportAnm)
+
+
+def unregister():
+    bpy.utils.unregister_class(OpExportAnm)
+    bpy.utils.unregister_class(OpImportAnm)

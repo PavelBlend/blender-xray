@@ -3,7 +3,6 @@ from typing import List, Dict, Tuple, Optional
 
 import bpy
 
-from . import registry
 from .xray_io import PackedReader
 from .xray_motions import (import_motion, _skip_motion_rest, MOTIONS_FILTER_ALL)
 from .skl.imp import ImportSklContext
@@ -21,7 +20,6 @@ class UI_UL_SklsList_item(bpy.types.UIList):
         row.label(text=item.name)
 
 
-@registry.module_thing
 class OpCloseSklsFile(bpy.types.Operator):
     'Close *.skls animations list'
     bl_idname = 'xray.close_skls_file'
@@ -69,7 +67,6 @@ op_browse_skls_file_props = {
 }
 
 
-@registry.module_thing
 class OpBrowseSklsFile(bpy.types.Operator):
     'Shows file open dialog, reads .skls file to buffer, clears & populates animations list'
     bl_idname = 'xray.browse_skls_file'
@@ -233,15 +230,27 @@ xray_object_skls_browser_properties_props = {
 }
 
 
-@registry.requires(XRaySklsAnimationProperties)
 class XRayObjectSklsBrowserProperties(bpy.types.PropertyGroup):
     if not IS_28:
         for prop_name, prop_value in xray_object_skls_browser_properties_props.items():
             exec('{0} = xray_object_skls_browser_properties_props.get("{0}")'.format(prop_name))
 
 
-assign_props([
-    (op_browse_skls_file_props, OpBrowseSklsFile),
-    (xray_skls_animation_properties_props, XRaySklsAnimationProperties),
-    (xray_object_skls_browser_properties_props, XRayObjectSklsBrowserProperties)
-])
+classes = (
+    (XRaySklsAnimationProperties, xray_skls_animation_properties_props),
+    (XRayObjectSklsBrowserProperties, xray_object_skls_browser_properties_props),
+    (OpBrowseSklsFile, op_browse_skls_file_props),
+    (OpCloseSklsFile, None)
+)
+
+
+def register():
+    for clas, props in classes:
+        if props:
+            assign_props([(props, clas), ])
+        bpy.utils.register_class(clas)
+
+
+def unregister():
+    for clas, props in reversed(classes):
+        bpy.utils.unregister_class(clas)

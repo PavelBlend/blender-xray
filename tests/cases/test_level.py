@@ -3,13 +3,12 @@ import os
 import bpy
 
 from tests import utils
-from io_scene_xray import plugin_prefs
 
 
 class TestLevel(utils.XRayTestCase):
     def test_default(self):
         if bpy.app.version >= (2, 80, 0):
-            prefs = plugin_prefs.get_preferences()
+            prefs = utils.get_preferences()
             prefs.gamemtl_file = os.path.join(self.relpath(), 'gamemtl.xr')
 
             # Import

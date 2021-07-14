@@ -1,11 +1,7 @@
-from . import base, bone_center, bone_shape
+from . import ops, props, utils
 
 
-modules = (
-    base,
-    bone_center,
-    bone_shape
-)
+modules = (ops, props)
 
 
 def register():

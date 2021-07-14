@@ -8,7 +8,7 @@ import sys
 import tempfile
 import bmesh
 import bpy
-from io_scene_xray.plugin import TestReadyOperator
+from io_scene_xray.ops.base import BaseOperator as TestReadyOperator
 
 
 class XRayTestCase(unittest.TestCase):
@@ -156,3 +156,10 @@ def create_object(bm, create_material=True):
     obj = bpy.data.objects.new('test', mesh)
     link_object(obj)
     return obj
+
+
+def get_preferences():
+    if bpy.app.version >= (2, 80, 0):
+        return bpy.context.preferences.addons['io_scene_xray'].preferences
+    else:
+        return bpy.context.user_preferences.addons['io_scene_xray'].preferences

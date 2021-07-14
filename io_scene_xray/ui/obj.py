@@ -3,10 +3,10 @@ import bpy
 
 # addon modules
 from . import list_helper, collapsible, base
-from .. import registry, plugin_prefs
+from .. import plugin_prefs, prefs
 from ..utils import is_helper_object
 from ..details import ui as det_ui
-from ..version_utils import assign_props, IS_28
+from ..version_utils import assign_props, IS_28, layout_split
 from ..ops.transform_utils import (
     XRAY_OT_UpdateXRayObjectTranforms,
     XRAY_OT_UpdateBlenderObjectTranforms,
@@ -53,20 +53,14 @@ class PropClipOp(bpy.types.Operator):
     def drawall(cls, layout, path, value):
         for item in items:
             lay = layout
+            lay = layout_split(lay, 1.0, align=True)
             if item[0] in ('copy', 'clear') and not value:
-                lay = lay.split(align=True)
                 lay.enabled = False
             props = lay.operator(cls.bl_idname, icon=item[3])
             props.oper = item[0]
             props.path = path
 
 
-assign_props([
-    (prop_clip_op_props, PropClipOp),
-])
-
-
-@registry.module_thing
 class XRayMotionList(bpy.types.UIList):
     bl_idname = 'XRAY_UL_MotionList'
 
@@ -116,8 +110,6 @@ def draw_motion_list_custom_elements(layout):
     layout.operator(XRayRemoveAllActions.bl_idname, text='', icon='X')
 
 
-@registry.requires(list_helper, PropClipOp, XRayAddAllActions, XRayRemoveAllActions)
-@registry.module_thing
 class XRAY_PT_ObjectPanel(base.XRayPanel):
     bl_context = 'object'
     bl_label = base.build_label('Object')
@@ -130,19 +122,19 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
         )
 
     def draw(self, context):
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         object_used = (
             # import plugins
-            prefs.enable_object_import or
-            prefs.enable_skls_import or
-            prefs.enable_level_import or
-            prefs.enable_omf_import or
+            preferences.enable_object_import or
+            preferences.enable_skls_import or
+            preferences.enable_level_import or
+            preferences.enable_omf_import or
             # export plugins
-            prefs.enable_object_export or
-            prefs.enable_skls_export or
-            prefs.enable_level_export or
-            prefs.enable_omf_export or
-            prefs.enable_ogf_export
+            preferences.enable_object_export or
+            preferences.enable_skls_export or
+            preferences.enable_level_export or
+            preferences.enable_omf_export or
+            preferences.enable_ogf_export
         )
 
         layout = self.layout
@@ -164,7 +156,7 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
                     row.prop(data, 'flags_custom_lod', text='LOD', toggle=True)
                     row.prop(data, 'flags_custom_hom', text='HOM', toggle=True)
                     row = col.row(align=True)
-                    row.prop(data, 'flags_custom_musage', text='Multi Usage', toggle=True)
+                    row.prop(data, 'flags_custom_musage', text='Multiple Usage', toggle=True)
                     row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
                     row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
                 object_box.prop(data, 'lodref')
@@ -231,17 +223,35 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
                         'motionrefs_collection', 'motionrefs_collection_index',
                     )
 
-                box = object_box.box()
-                box.prop(data.revision, 'owner', text='Owner')
-                box.prop(data.revision, 'ctime_str', text='Created')
+                _, box = collapsible.draw(
+                    object_box,
+                    'object:revision',
+                    'Revision'
+                )
+                if box:
+                    # owner
+                    split = layout_split(box, 0.35)
+                    split.label(text='Owner:')
+                    split.prop(data.revision, 'owner', text='')
+                    # created time
+                    split = layout_split(box, 0.35)
+                    split.label(text='Created Time:')
+                    split.prop(data.revision, 'ctime_str', text='')
+                    # time formats
+                    subbox = box.box()
+                    split = layout_split(subbox, 0.25)
+                    split.label(text='')
+                    split.label(text='Time Formats:', icon='INFO')
+                    subbox.label(text='Year.Month.Day Hours:Minutes')
+                    subbox.label(text='Year.Month.Day')
 
         details_used = (
             # import plugins
-            prefs.enable_dm_import or
-            prefs.enable_details_import or
+            preferences.enable_dm_import or
+            preferences.enable_details_import or
             # export plugins
-            prefs.enable_dm_export or
-            prefs.enable_details_export
+            preferences.enable_dm_export or
+            preferences.enable_details_export
         )
 
         if context.object.type in {'MESH', 'EMPTY'} and details_used:
@@ -251,9 +261,9 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
 
         game_level_used = (
             # import plugins
-            prefs.enable_game_level_import or
+            preferences.enable_game_level_import or
             # export plugins
-            prefs.enable_game_level_export
+            preferences.enable_game_level_export
         )
 
         if IS_28 and game_level_used:
@@ -332,3 +342,23 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
             column.operator(XRAY_OT_CopyObjectTranforms.bl_idname)
             box.label(text='X-Ray Engine Camera:')
             box.operator(xray_camera.XRAY_OT_AddCamera.bl_idname)
+
+
+classes = (
+    PropClipOp,
+    XRayMotionList,
+    XRayAddAllActions,
+    XRayRemoveAllActions,
+    XRAY_PT_ObjectPanel
+)
+
+
+def register():
+    assign_props([(prop_clip_op_props, PropClipOp), ])
+    for clas in classes:
+        bpy.utils.register_class(clas)
+
+
+def unregister():
+    for clas in reversed(classes):
+        bpy.utils.unregister_class(clas)

@@ -2,7 +2,6 @@ import re
 
 import bpy
 
-from .. import registry
 from ..xray_motions import MOTIONS_FILTER_ALL
 
 
@@ -32,7 +31,6 @@ class BaseSelectMotionsOp(bpy.types.Operator):
         pass
 
 
-@registry.module_thing
 class _SelectMotionsOp(BaseSelectMotionsOp):
     bl_idname = 'io_scene_xray.motions_select'
     bl_label = 'Select'
@@ -42,7 +40,6 @@ class _SelectMotionsOp(BaseSelectMotionsOp):
         motion.flag = True
 
 
-@registry.module_thing
 class _DeselectMotionsOp(BaseSelectMotionsOp):
     bl_idname = 'io_scene_xray.motions_deselect'
     bl_label = 'Deselect'
@@ -52,7 +49,6 @@ class _DeselectMotionsOp(BaseSelectMotionsOp):
         motion.flag = False
 
 
-@registry.module_thing
 class _DeselectDuplicatedMotionsOp(BaseSelectMotionsOp):
     bl_idname = 'io_scene_xray.motions_deselect_duplicated'
     bl_label = 'Dups'
@@ -63,7 +59,6 @@ class _DeselectDuplicatedMotionsOp(BaseSelectMotionsOp):
             motion.flag = False
 
 
-@registry.module_thing
 class XRAY_UL_MotionsList(bpy.types.UIList):
     def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname):
         BaseSelectMotionsOp.set_motions_list(self)  # A dirty hack
@@ -75,3 +70,21 @@ class XRAY_UL_MotionsList(bpy.types.UIList):
             text='', emboss=False,
         )
         row.label(text=item.name)
+
+
+classes = (
+    _SelectMotionsOp,
+    _DeselectMotionsOp,
+    _DeselectDuplicatedMotionsOp,
+    XRAY_UL_MotionsList
+)
+
+
+def register():
+    for clas in classes:
+        bpy.utils.register_class(clas)
+
+
+def unregister():
+    for clas in reversed(classes):
+        bpy.utils.unregister_class(clas)

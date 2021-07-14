@@ -30,6 +30,21 @@ class XRayMeshProperties(bpy.types.PropertyGroup):
             exec('{0} = xray_mesh_properties.get("{0}")'.format(prop_name))
 
 
-assign_props([
-    (xray_mesh_properties, XRayMeshProperties),
-])
+prop_groups = (
+    (XRayMeshProperties, xray_mesh_properties),
+)
+
+
+def register():
+    for prop_group, props in prop_groups:
+        assign_props([
+            (props, prop_group),
+        ])
+    bpy.utils.register_class(prop_group)
+    prop_group.b_type.xray = bpy.props.PointerProperty(type=prop_group)
+
+
+def unregister():
+    for prop_group, props in reversed(prop_groups):
+        del prop_group.b_type.xray
+        bpy.utils.unregister_class(prop_group)

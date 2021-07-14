@@ -6,7 +6,7 @@ import bpy
 import mathutils
 
 from ... import xray_io, utils, log, xray_motions
-from ...version_utils import IS_28, using_active_object, get_multiply
+from ...version_utils import IS_28, using_active_object, get_multiply, IMAGE_NODES
 from .. import fmt
 from . import mesh, bone
 
@@ -237,7 +237,7 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
             if material.use_nodes:
                 tex_nodes = []
                 for node in material.node_tree.nodes:
-                    if node.type in utils.IMAGE_NODES:
+                    if node.type in IMAGE_NODES:
                         tex_nodes.append(node)
                 if len(tex_nodes) == 1:
                     tex_node = tex_nodes[0]

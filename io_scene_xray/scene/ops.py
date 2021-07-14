@@ -1,10 +1,10 @@
 import bpy
 from bpy_extras import io_utils
 
-from .. import utils, plugin
+from .. import utils, ui, prefs
 from ..utils import AppError
-from .. import plugin_prefs
 from ..obj.imp import props as obj_imp_props
+from ..obj import props as general_obj_props
 from .imp import import_file
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 
@@ -63,7 +63,7 @@ op_import_level_scene_props = {
     ),
     'mesh_split_by_materials': obj_imp_props.PropObjectMeshSplitByMaterials(),
     'shaped_bones': obj_imp_props.PropObjectBonesCustomShapes(),
-    'fmt_version': plugin_prefs.PropSDKVersion()
+    'fmt_version': general_obj_props.PropSDKVersion()
 }
 
 
@@ -99,22 +99,16 @@ class OpImportLevelScene(bpy.types.Operator, io_utils.ImportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.mesh_split_by_materials = prefs.scene_selection_mesh_split_by_mat
-        self.shaped_bones = prefs.scene_selection_shaped_bones
-        self.fmt_version = prefs.scene_selection_sdk_version
+        preferences = prefs.utils.get_preferences()
+        self.mesh_split_by_materials = preferences.scene_selection_mesh_split_by_mat
+        self.shaped_bones = preferences.scene_selection_shaped_bones
+        self.fmt_version = preferences.scene_selection_sdk_version
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 
-assign_props([
-    (op_export_level_scene_props, OpExportLevelScene),
-    (op_import_level_scene_props, OpImportLevelScene)
-])
-
-
 def menu_func_export(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpExportLevelScene.bl_idname,
         text='X-Ray scene selection (.level)',
@@ -123,7 +117,7 @@ def menu_func_export(self, context):
 
 
 def menu_func_import(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpImportLevelScene.bl_idname,
         text='X-Ray scene selection (.level)',
@@ -131,12 +125,16 @@ def menu_func_import(self, context):
     )
 
 
-def register_operators():
+def register():
+    assign_props([
+        (op_export_level_scene_props, OpExportLevelScene),
+        (op_import_level_scene_props, OpImportLevelScene)
+    ])
     bpy.utils.register_class(OpExportLevelScene)
     bpy.utils.register_class(OpImportLevelScene)
 
 
-def unregister_operators():
+def unregister():
     import_menu, export_menu = get_import_export_menus()
     export_menu.remove(menu_func_export)
     import_menu.remove(menu_func_import)

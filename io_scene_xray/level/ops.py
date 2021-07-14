@@ -1,6 +1,7 @@
-import bpy, bpy_extras
+import bpy
+import bpy_extras
 
-from .. import utils, plugin, plugin_prefs, context
+from .. import utils, ui, context, prefs
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 from . import imp, exp
 
@@ -38,7 +39,7 @@ class IMPORT_OT_xray_level(
 
     @utils.set_cursor_state
     def execute(self, context):
-        textures_folder = plugin_prefs.get_preferences().textures_folder_auto
+        textures_folder = prefs.utils.get_preferences().textures_folder_auto
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
         if not self.filepath:
@@ -98,19 +99,13 @@ class EXPORT_OT_xray_level(bpy.types.Operator):
         return self.export(level_object, context)
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 
-assign_props([
-    (op_import_level_props, IMPORT_OT_xray_level),
-    (op_export_level_props, EXPORT_OT_xray_level)
-])
-
-
 def menu_func_import(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         IMPORT_OT_xray_level.bl_idname,
         text='X-Ray game level (level)',
@@ -119,7 +114,7 @@ def menu_func_import(self, context):
 
 
 def menu_func_export(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         EXPORT_OT_xray_level.bl_idname,
         text='X-Ray game level (level)',
@@ -127,11 +122,15 @@ def menu_func_export(self, context):
     )
 
 
-def register_operators():
+def register():
+    assign_props([
+        (op_import_level_props, IMPORT_OT_xray_level),
+        (op_export_level_props, EXPORT_OT_xray_level)
+    ])
     bpy.utils.register_class(IMPORT_OT_xray_level)
     bpy.utils.register_class(EXPORT_OT_xray_level)
 
 
-def unregister_operators():
+def unregister():
     bpy.utils.unregister_class(EXPORT_OT_xray_level)
     bpy.utils.unregister_class(IMPORT_OT_xray_level)

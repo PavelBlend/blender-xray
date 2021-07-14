@@ -1,8 +1,12 @@
-import os, math, struct
+import os
+import math
+import struct
 
-import bpy, bmesh, mathutils
+import bpy
+import bmesh
+import mathutils
 
-from .. import xray_io, utils, plugin_prefs
+from .. import xray_io, utils, plugin_prefs, prefs
 from ..ogf import exp as ogf_exp, fmt as ogf_fmt
 from . import fmt
 
@@ -293,7 +297,7 @@ def write_sector(root_index, sectors_map, sector_name):
 
 
 def write_shaders(level):
-    texture_folder = plugin_prefs.get_preferences().textures_folder_auto
+    texture_folder = prefs.utils.get_preferences().textures_folder_auto
     materials = {}
     for material, shader_index in level.materials.items():
         materials[shader_index] = material
@@ -1287,8 +1291,8 @@ def write_level_cform(packed_writer, level):
         for material in cform_object.data.materials:
             materials.add(material)
 
-    prefs = plugin_prefs.get_preferences()
-    gamemtl_file_path = prefs.gamemtl_file_auto
+    preferences = prefs.utils.get_preferences()
+    gamemtl_file_path = preferences.gamemtl_file_auto
     if os.path.exists(gamemtl_file_path):
         with open(gamemtl_file_path, 'rb') as gamemtl_file:
             gamemtl_data = gamemtl_file.read()

@@ -6,7 +6,6 @@ import mathutils
 import gpu
 
 from . import utils
-from .. import registry
 from ..ops import joint_limits
 from ..edit_helpers.bone_shape import HELPER as seh
 from ..version_utils import assign_props, IS_28, multiply, get_multiply
@@ -153,9 +152,10 @@ class IKJointProperties(bpy.types.PropertyGroup):
 
 
 mass_properties = {
-    'value': bpy.props.FloatProperty(name='Mass', precision=3),
+    'value': bpy.props.FloatProperty(name='Mass', precision=3, min=0),
     'center': bpy.props.FloatVectorProperty(name='Center of Mass', precision=3)
 }
+
 
 class MassProperties(bpy.types.PropertyGroup):
     if not IS_28:
@@ -186,7 +186,6 @@ xray_bone_properties = {
 }
 
 
-@registry.requires(ShapeProperties, IKJointProperties, BreakProperties, MassProperties)
 class XRayBoneProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Bone
 
@@ -365,10 +364,27 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 bgl.glLineWidth(prev_line_width[0])
 
 
-assign_props([
-    (shape_properties, ShapeProperties),
-    (break_properties, BreakProperties),
-    (ik_joint_properties, IKJointProperties),
-    (mass_properties, MassProperties),
-    (xray_bone_properties, XRayBoneProperties)
-])
+prop_groups = (
+    (ShapeProperties, shape_properties, False),
+    (BreakProperties, break_properties, False),
+    (IKJointProperties, ik_joint_properties, False),
+    (MassProperties, mass_properties, False),
+    (XRayBoneProperties, xray_bone_properties, True),
+)
+
+
+def register():
+    for prop_group, props, is_group in prop_groups:
+        assign_props([
+            (props, prop_group),
+        ])
+        bpy.utils.register_class(prop_group)
+        if is_group:
+            prop_group.b_type.xray = bpy.props.PointerProperty(type=prop_group)
+
+
+def unregister():
+    for prop_group, props, is_group in reversed(prop_groups):
+        if is_group:
+            del prop_group.b_type.xray
+        bpy.utils.unregister_class(prop_group)

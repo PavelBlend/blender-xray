@@ -2,7 +2,8 @@
 import os
 
 # blender modules
-import bpy, mathutils
+import bpy
+import mathutils
 
 # addon modules
 from . import utils as level_utils, fmt
@@ -357,7 +358,7 @@ def is_same_image(context, bpy_material, texture):
         level_dir, texture
     )
     for node in bpy_material.node_tree.nodes:
-        if node.type in utils.IMAGE_NODES:
+        if node.type in version_utils.IMAGE_NODES:
             bpy_image = node.image
             if not bpy_image:
                 continue

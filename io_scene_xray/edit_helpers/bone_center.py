@@ -1,7 +1,6 @@
 import bpy
 import mathutils
 
-from .. import registry
 from ..xray_motions import MATRIX_BONE, MATRIX_BONE_INVERTED
 from .base_bone import AbstractBoneEditHelper
 from ..version_utils import IS_28, multiply
@@ -43,7 +42,6 @@ class _BoneCenterEditHelper(AbstractBoneEditHelper):
 HELPER = _BoneCenterEditHelper('bone-center-edit')
 
 
-@registry.module_thing
 class _EditCenter(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_center'
     bl_label = 'Edit Bone Center'
@@ -59,7 +57,6 @@ class _EditCenter(bpy.types.Operator):
         return {'FINISHED'}
 
 
-@registry.module_thing
 class _AlignCenter(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_center_align'
     bl_label = 'Align Center'
@@ -87,7 +84,6 @@ class _AlignCenter(bpy.types.Operator):
         return {'FINISHED'}
 
 
-@registry.module_thing
 class _ApplyCenter(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_center_apply'
     bl_label = 'Apply Center'
@@ -105,3 +101,20 @@ class _ApplyCenter(bpy.types.Operator):
         else:
             bpy.context.scene.update()
         return {'FINISHED'}
+
+
+classes = (
+    _EditCenter,
+    _AlignCenter,
+    _ApplyCenter
+)
+
+
+def register():
+    for operator in classes:
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)

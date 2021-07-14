@@ -1,8 +1,10 @@
-from ..edit_helpers import base, bone_shape, bone_center
-from .. import plugin, plugin_prefs
-from .. import registry
+import bpy
+
+from ..edit_helpers import bone_shape, bone_center
+from .. import prefs
 from .material import XRayGameMtlMenu, _gen_xr_selector
 from .base import XRayPanel, build_label
+from . import icons
 
 
 BONE_TEXT_JOINT = []
@@ -38,27 +40,25 @@ for axis in ('x', 'y', 'z'):
     ))
 
 
-@registry.requires(base, bone_shape, bone_center, XRayGameMtlMenu)
-@registry.module_thing
 class XRAY_PT_BonePanel(XRayPanel):
     bl_context = 'bone'
     bl_label = build_label('Bone')
 
     @classmethod
     def poll(cls, context):
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         panel_used = (
             # import plugins
-            prefs.enable_object_import or
-            prefs.enable_skls_import or
-            prefs.enable_bones_import or
-            prefs.enable_omf_import or
+            preferences.enable_object_import or
+            preferences.enable_skls_import or
+            preferences.enable_bones_import or
+            preferences.enable_omf_import or
             # export plugins
-            prefs.enable_object_export or
-            prefs.enable_skls_export or
-            prefs.enable_bones_export or
-            prefs.enable_omf_export or
-            prefs.enable_ogf_export
+            preferences.enable_object_export or
+            preferences.enable_skls_export or
+            preferences.enable_bones_export or
+            preferences.enable_omf_export or
+            preferences.enable_ogf_export
         )
         return (
             context.active_object and
@@ -73,7 +73,7 @@ class XRAY_PT_BonePanel(XRayPanel):
         if not bone:
             return
         data = bone.xray
-        layout.label(icon_value=plugin.get_stalker_icon())
+        layout.label(icon_value=icons.get_stalker_icon())
         layout.prop(data, 'exportable', text='')
 
     def draw(self, context):
@@ -145,3 +145,11 @@ class XRAY_PT_BonePanel(XRayPanel):
         column.prop(data.mass, 'value')
         column.prop(data.mass, 'center')
         bone_center.HELPER.draw(column, context)
+
+
+def register():
+    bpy.utils.register_class(XRAY_PT_BonePanel)
+
+
+def unregister():
+    bpy.utils.unregister_class(XRAY_PT_BonePanel)

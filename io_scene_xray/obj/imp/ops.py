@@ -3,9 +3,9 @@ import os
 import bpy
 import bpy_extras
 
-from ... import ops, plugin, plugin_prefs, registry, utils
+from ... import ops, ui, utils, prefs
 from ...version_utils import assign_props, IS_28
-from .. import imp
+from .. import imp, props as general_obj_props
 from . import utils as imp_utils, props
 
 
@@ -21,12 +21,11 @@ op_import_object_props = {
     'mesh_split_by_materials': props.PropObjectMeshSplitByMaterials(),
     'use_motion_prefix_name': props.PropObjectUseMotionPrefixName(),
     'shaped_bones': props.PropObjectBonesCustomShapes(),
-    'fmt_version': plugin_prefs.PropSDKVersion()
+    'fmt_version': general_obj_props.PropSDKVersion()
 }
 
 
-@registry.module_thing
-class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
+class OpImportObject(ops.base.BaseOperator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
     bl_label = 'Import .object'
     bl_description = 'Imports X-Ray object'
@@ -39,8 +38,8 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, _context):
-        textures_folder = plugin_prefs.get_preferences().textures_folder_auto
-        objects_folder = plugin_prefs.get_preferences().objects_folder_auto
+        textures_folder = prefs.utils.get_preferences().textures_folder_auto
+        objects_folder = prefs.utils.get_preferences().objects_folder_auto
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
@@ -89,24 +88,30 @@ class OpImportObject(ops.BaseOperator, bpy_extras.io_utils.ImportHelper):
         layout.prop(self, 'shaped_bones')
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.fmt_version = prefs.sdk_version
-        self.import_motions = prefs.object_motions_import
-        self.mesh_split_by_materials = prefs.object_mesh_split_by_mat
-        self.shaped_bones = prefs.object_bones_custom_shapes
-        self.use_motion_prefix_name = prefs.use_motion_prefix_name
+        preferences = prefs.utils.get_preferences()
+        self.fmt_version = preferences.sdk_version
+        self.import_motions = preferences.object_motions_import
+        self.mesh_split_by_materials = preferences.object_mesh_split_by_mat
+        self.shaped_bones = preferences.object_bones_custom_shapes
+        self.use_motion_prefix_name = preferences.use_motion_prefix_name
         return super().invoke(context, event)
 
 
-assign_props([
-    (op_import_object_props, OpImportObject),
-])
-
-
 def menu_func_import(self, _context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpImportObject.bl_idname,
         text='X-Ray object (.object)',
         icon_value=icon
     )
+
+
+def register():
+    assign_props([
+        (op_import_object_props, OpImportObject),
+    ])
+    bpy.utils.register_class(OpImportObject)
+
+
+def unregister():
+    bpy.utils.unregister_class(OpImportObject)

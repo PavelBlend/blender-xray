@@ -1,9 +1,10 @@
 import os
 
-import bpy, bpy_extras
+import bpy
+import bpy_extras
 
 from . import imp, exp, props
-from .. import plugin_prefs, registry, utils, plugin, context
+from .. import utils, ui, context, prefs
 from ..ui import collapsible
 from ..skl import props as skl_props
 from ..obj.imp import props as obj_imp_props
@@ -14,7 +15,7 @@ from ..ui.motion_list import (
     _DeselectMotionsOp,
     _DeselectDuplicatedMotionsOp
 )
-from ..version_utils import IS_28, assign_props, get_multiply
+from ..version_utils import IS_28, assign_props, get_multiply, layout_split
 
 
 class ImportOmfContext(
@@ -67,8 +68,6 @@ op_import_omf_props = {
 }
 
 
-@registry.module_thing
-@registry.requires(Motion)
 class IMPORT_OT_xray_omf(
         bpy.types.Operator, bpy_extras.io_utils.ImportHelper
     ):
@@ -117,10 +116,10 @@ class IMPORT_OT_xray_omf(
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.import_motions = prefs.omf_import_motions
-        self.import_bone_parts = prefs.import_bone_parts
-        self.add_actions_to_motion_list = prefs.omf_add_actions_to_motion_list
+        preferences = prefs.utils.get_preferences()
+        self.import_motions = preferences.omf_import_motions
+        self.import_bone_parts = preferences.import_bone_parts
+        self.add_actions_to_motion_list = preferences.omf_add_actions_to_motion_list
         obj = context.object
         if not obj:
             self.report({'ERROR'}, 'No active object')
@@ -205,7 +204,6 @@ op_export_omf_props = {
 }
 
 
-@registry.module_thing
 class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
     bl_idname = 'xray_export.omf'
     bl_label = 'Export .omf'
@@ -220,7 +218,7 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
 
     def draw(self, context):
         layout = self.layout
-        row = layout.split(factor=0.5)
+        row = layout_split(layout, 0.5)
         row.label(text='Export Mode:')
         row.prop(self, 'export_mode', text='')
         row = layout.row()
@@ -246,10 +244,10 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.export_mode = prefs.omf_export_mode
-        self.export_bone_parts = prefs.omf_export_bone_parts
-        self.export_motions = prefs.omf_motions_export
+        preferences = prefs.utils.get_preferences()
+        self.export_mode = preferences.omf_export_mode
+        self.export_bone_parts = preferences.omf_export_bone_parts
+        self.export_motions = preferences.omf_motions_export
         if len(context.selected_objects) > 1:
             self.report({'ERROR'}, 'Too many selected objects')
             return {'CANCELLED'}
@@ -274,15 +272,8 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return super().invoke(context, event)
 
 
-assign_props([
-    (motion_props, Motion),
-    (op_import_omf_props, IMPORT_OT_xray_omf),
-    (op_export_omf_props, EXPORT_OT_xray_omf)
-])
-
-
 def menu_func_import(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         IMPORT_OT_xray_omf.bl_idname,
         text='X-Ray Game Motion (.omf)',
@@ -291,9 +282,27 @@ def menu_func_import(self, context):
 
 
 def menu_func_export(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         EXPORT_OT_xray_omf.bl_idname,
         text='X-Ray Game Motion (.omf)',
         icon_value=icon
     )
+
+
+classes = (
+    (Motion, motion_props),
+    (IMPORT_OT_xray_omf, op_import_omf_props),
+    (EXPORT_OT_xray_omf, op_export_omf_props)
+)
+
+
+def register():
+    for operator, props in classes:
+        assign_props([(props, operator), ])
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator, props in reversed(classes):
+        bpy.utils.unregister_class(operator)

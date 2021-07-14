@@ -1,5 +1,5 @@
 import bpy
-from .. import registry
+
 from ..version_utils import get_icon, assign_props, IS_28
 
 
@@ -10,7 +10,6 @@ _list_op_props = {
 }
 
 
-@registry.module_thing
 class _ListOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.list'
     bl_label = ''
@@ -38,11 +37,6 @@ class _ListOp(bpy.types.Operator):
         return {'FINISHED'}
 
 
-assign_props([
-    (_list_op_props, _ListOp),
-])
-
-
 def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_func=None):
     def operator(operation, icon, enabled=None):
         lay = layout
@@ -63,3 +57,12 @@ def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_fu
     operator('move_down', 'TRIA_DOWN', enabled=(index >= 0) and (index < len(collection) - 1))
     if custom_elements_func:
         custom_elements_func(layout)
+
+
+def register():
+    assign_props([(_list_op_props, _ListOp), ])
+    bpy.utils.register_class(_ListOp)
+
+
+def unregister():
+    bpy.utils.unregister_class(_ListOp)

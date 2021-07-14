@@ -5,19 +5,14 @@ import bpy
 import bpy.utils.previews
 from bpy_extras import io_utils
 
-from . import xray_inject, xray_io
-from .ops import (
-    BaseOperator as TestReadyOperator,
-    convert_materials, shader_tools
-)
-from .ui import collapsible, motion_list, base
+from . import xray_io, ops, ui
+from .ui import base, icons
 from .utils import (
-    AppError, ObjectsInitializer, logger, execute_with_logger,
+    AppError, ObjectsInitializer, logger,
     execute_require_filepath, FilenameExtHelper
 )
-from . import plugin_prefs
-from . import hotkeys
-from . import registry
+from . import plugin_prefs, prefs, edit_helpers, hotkeys, props
+from . import details
 from .details import ops as det_ops
 from .dm import ops as dm_ops
 from .err import ops as err_ops
@@ -38,58 +33,7 @@ from .version_utils import (
 
 xray_io.ENCODE_ERROR = AppError
 
-op_export_project_props = {
-    'filepath': bpy.props.StringProperty(subtype='DIR_PATH', options={'SKIP_SAVE'}),
-    'use_selection': bpy.props.BoolProperty()
-}
 
-@registry.module_thing
-class OpExportProject(TestReadyOperator):
-    bl_idname = 'export_scene.xray'
-    bl_label = 'Export XRay Project'
-
-    if not IS_28:
-        for prop_name, prop_value in op_export_project_props.items():
-            exec('{0} = op_export_project_props.get("{0}")'.format(prop_name))
-
-    @execute_with_logger
-    def execute(self, context):
-        from .obj.exp import export_file
-        from bpy.path import abspath
-        data = context.scene.xray
-
-        export_context = object_exp_ops.ExportObjectContext()
-        export_context.texname_from_path = data.object_texture_name_from_image_path
-        export_context.soc_sgroups = data.fmt_version == 'soc'
-        export_context.export_motions = data.object_export_motions
-        try:
-            path = abspath(self.filepath if self.filepath else data.export_root)
-            os.makedirs(path, exist_ok=True)
-            for obj in OpExportProject.find_objects(context, self.use_selection):
-                name = obj.name
-                if not name.lower().endswith('.object'):
-                    name += '.object'
-                opath = path
-                if obj.xray.export_path:
-                    opath = os.path.join(opath, obj.xray.export_path)
-                    os.makedirs(opath, exist_ok=True)
-                export_file(obj, os.path.join(opath, name), export_context)
-        except AppError as err:
-            raise err
-        return {'FINISHED'}
-
-    @staticmethod
-    def find_objects(context, use_selection=False):
-        objects = context.selected_objects if use_selection else context.scene.objects
-        return [o for o in objects if o.xray.isroot]
-
-
-assign_props([
-    (op_export_project_props, OpExportProject),
-])
-
-
-@registry.module_thing
 class XRayImportMenu(bpy.types.Menu):
     bl_idname = 'INFO_MT_xray_import'
     bl_label = base.build_label()
@@ -104,7 +48,7 @@ class XRayImportMenu(bpy.types.Menu):
 
 
 def get_enabled_operators(draw_functions, draw_functions_28):
-    prefs = plugin_prefs.get_preferences()
+    preferences = prefs.utils.get_preferences()
     funct_list = []
     funct_list.extend(draw_functions)
 
@@ -113,13 +57,12 @@ def get_enabled_operators(draw_functions, draw_functions_28):
 
     operators = []
     for _, enable_prop, id_name, text in funct_list:
-        enable = getattr(prefs, enable_prop)
+        enable = getattr(preferences, enable_prop)
         if enable:
             operators.append((id_name, text))
     return operators
 
 
-@registry.module_thing
 class XRayExportMenu(bpy.types.Menu):
     bl_idname = 'INFO_MT_xray_export'
     bl_label = base.build_label()
@@ -164,12 +107,12 @@ def scene_update_post(_):
 
 
 def menu_func_xray_import(self, _context):
-    icon = get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.menu(XRayImportMenu.bl_idname, icon_value=icon)
 
 
 def menu_func_xray_export(self, _context):
-    icon = get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.menu(XRayExportMenu.bl_idname, icon_value=icon)
 
 
@@ -311,15 +254,15 @@ def remove_draw_functions(funct_list, menu):
 
 
 def append_draw_functions(funct_list, menu):
-    prefs = plugin_prefs.get_preferences()
+    preferences = prefs.utils.get_preferences()
     for draw_function, enable_prop, _, _ in funct_list:
-        enable = getattr(prefs, enable_prop)
+        enable = getattr(preferences, enable_prop)
         if enable:
             menu.append(draw_function)
 
 
 def append_menu_func():
-    prefs = plugin_prefs.get_preferences()
+    preferences = prefs.utils.get_preferences()
     import_menu, export_menu = get_import_export_menus()
     funct_imp_list = []
     funct_imp_list.extend(import_draw_functions)
@@ -338,7 +281,7 @@ def append_menu_func():
     import_menu.remove(menu_func_xray_import)
     export_menu.remove(menu_func_xray_export)
 
-    if prefs.compact_menus:
+    if preferences.compact_menus:
         # create compact menus
         # import
         enabled_import_operators = get_enabled_operators(
@@ -359,47 +302,34 @@ def append_menu_func():
         append_draw_functions(funct_exp_list, export_menu)
 
 
-registry.module_requires(__name__, [
-    plugin_prefs,
-    xray_inject,
-])
-
-
-preview_collections = {}
-STALKER_ICON_NAME = 'stalker'
-
-
-def get_stalker_icon():
-    pcoll = preview_collections['main']
-    icon = pcoll[STALKER_ICON_NAME]
-    # without this line in some cases the icon is not visible
-    len(icon.icon_pixels)
-    return icon.icon_id
+classes = (
+    XRayImportMenu,
+    XRayExportMenu
+)
 
 
 def register():
-    # load icon
-    pcoll = bpy.utils.previews.new()
-    icons_dir = os.path.join(os.path.dirname(__file__), 'icons')
-    pcoll.load(STALKER_ICON_NAME, os.path.join(icons_dir, 'stalker.png'), 'IMAGE')
-    preview_collections['main'] = pcoll
+    icons.register()
+    details.register()
+    skls_browser.register()
+    props.register()
 
-    registry.register_thing(object_imp_ops, __name__)
-    registry.register_thing(object_exp_ops, __name__)
-    registry.register_thing(anm_ops, __name__)
-    registry.register_thing(skl_ops, __name__)
-    registry.register_thing(bones_ops, __name__)
-    registry.register_thing(ogf_ops, __name__)
-    registry.register_thing(motion_list, __name__)
-    registry.register_thing(omf_ops, __name__)
-    scene_ops.register_operators()
+    for clas in classes:
+        bpy.utils.register_class(clas)
+    plugin_prefs.register()
+
+    object_imp_ops.register()
+    object_exp_ops.register()
+    anm_ops.register()
+    dm_ops.register()
+    bones_ops.register()
+    ogf_ops.register()
+    skl_ops.register()
+    omf_ops.register()
+    scene_ops.register()
     if IS_28:
-        level_ops.register_operators()
-    convert_materials.register()
-    shader_tools.register()
-    det_ops.register_operators()
-    dm_ops.register_operators()
-    registry.register_thing(err_ops, __name__)
+        level_ops.register()
+    err_ops.register()
     append_menu_func()
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(
         overlay_view_3d, (),
@@ -407,29 +337,29 @@ def register():
     )
     bpy.app.handlers.load_post.append(load_post)
     get_scene_update_post().append(scene_update_post)
-    registry.register_thing(skls_browser, __name__)
     hotkeys.register_hotkeys()
+    edit_helpers.register()
+    ops.register()
+    ui.register()
 
 
 def unregister():
+    ui.unregister()
+    ops.unregister()
+    edit_helpers.unregister()
     hotkeys.unregister_hotkeys()
-    registry.unregister_thing(skls_browser, __name__)
-    registry.unregister_thing(err_ops, __name__)
-    dm_ops.unregister_operators()
-    det_ops.unregister_operators()
+    err_ops.unregister()
+    dm_ops.unregister()
+    bones_ops.unregister()
+    ogf_ops.unregister()
     if IS_28:
-        level_ops.unregister_operators()
-    shader_tools.unregister()
-    convert_materials.unregister()
-    scene_ops.unregister_operators()
-    registry.unregister_thing(omf_ops, __name__)
-    registry.unregister_thing(motion_list, __name__)
-    registry.unregister_thing(ogf_ops, __name__)
-    registry.unregister_thing(bones_ops, __name__)
-    registry.unregister_thing(skl_ops, __name__)
-    registry.unregister_thing(anm_ops, __name__)
-    registry.unregister_thing(object_exp_ops, __name__)
-    registry.unregister_thing(object_imp_ops, __name__)
+        level_ops.unregister()
+    scene_ops.unregister()
+    omf_ops.unregister()
+    skl_ops.unregister()
+    anm_ops.unregister()
+    object_exp_ops.unregister()
+    object_imp_ops.unregister()
 
     get_scene_update_post().remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)
@@ -454,7 +384,11 @@ def unregister():
     import_menu.remove(menu_func_xray_import)
     export_menu.remove(menu_func_xray_export)
 
-    # remove icon
-    for pcoll in preview_collections.values():
-        bpy.utils.previews.remove(pcoll)
-    preview_collections.clear()
+    plugin_prefs.unregister()
+    for clas in reversed(classes):
+        bpy.utils.unregister_class(clas)
+
+    props.unregister()
+    skls_browser.unregister()
+    details.unregister()
+    icons.unregister()

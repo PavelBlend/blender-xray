@@ -37,14 +37,14 @@ PIXELS_OFFSET_1 = {
     1: (1, 0),
     2: (0, 1),
     3: (1, 1),
-    }
+}
 
 PIXELS_OFFSET_2 = {
     0: (0, 1),
     1: (1, 1),
     2: (0, 0),
     3: (1, 0),
-    }
+}
 
 DENSITY_DEPTH = 1.0 / 0xf
 DETAIL_MODEL_COUNT_LIMIT = 0x3f

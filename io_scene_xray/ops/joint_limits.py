@@ -1,9 +1,6 @@
-
 import math
 
 import bpy
-
-from io_scene_xray import registry
 
 
 CONSTRAINT_NAME = '!-XRAY-JOINT-LIMITS'
@@ -29,7 +26,6 @@ def update_limit(self, context):
     constraint.max_z = ik.lim_z_max
 
 
-@registry.module_thing
 class ConvertJointLimitsToConstraints(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_joint_limits'
     bl_label = 'Convert Limits to Constraints'
@@ -60,7 +56,6 @@ class ConvertJointLimitsToConstraints(bpy.types.Operator):
         return {'FINISHED'}
 
 
-@registry.module_thing
 class RemoveJointLimitsConstraints(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_joint_limits'
     bl_label = 'Remove Limits Constraints'
@@ -77,7 +72,6 @@ class RemoveJointLimitsConstraints(bpy.types.Operator):
         return {'FINISHED'}
 
 
-@registry.module_thing
 class ConvertIKLimitsToXRayLimits(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_ik_to_xray_limits'
     bl_label = 'Convert IK Limits to XRay Limits'
@@ -99,7 +93,6 @@ class ConvertIKLimitsToXRayLimits(bpy.types.Operator):
         return {'FINISHED'}
 
 
-@registry.module_thing
 class ConvertXRayLimitsToIKLimits(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_xray_to_ik_limits'
     bl_label = 'Convert XRay Limits to IK Limits'
@@ -124,7 +117,6 @@ class ConvertXRayLimitsToIKLimits(bpy.types.Operator):
         return {'FINISHED'}
 
 
-@registry.module_thing
 class ClearIKLimits(bpy.types.Operator):
     bl_idname = 'io_scene_xray.clear_ik_limits'
     bl_label = 'Clear IK Limits'
@@ -147,3 +139,22 @@ class ClearIKLimits(bpy.types.Operator):
                 pose_bone.ik_min_z = -math.pi
                 pose_bone.ik_max_z = math.pi
         return {'FINISHED'}
+
+
+classes = (
+    ConvertJointLimitsToConstraints,
+    RemoveJointLimitsConstraints,
+    ConvertIKLimitsToXRayLimits,
+    ConvertXRayLimitsToIKLimits,
+    ClearIKLimits
+)
+
+
+def register():
+    for operator in classes:
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)

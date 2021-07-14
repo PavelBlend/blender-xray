@@ -6,7 +6,7 @@ import bpy
 from bpy_extras import io_utils
 
 # addon modules
-from .. import plugin, plugin_prefs, registry, context as xray_context
+from .. import ui, context as xray_context, prefs
 from ..utils import execute_with_logger, set_cursor_state, AppError
 from ..version_utils import assign_props, IS_28
 from ..omf import props as omf_props
@@ -42,7 +42,6 @@ op_import_bones_props = {
 }
 
 
-@registry.module_thing
 class IMPORT_OT_xray_bones(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.bones'
     bl_label = 'Import .bones'
@@ -109,11 +108,11 @@ class IMPORT_OT_xray_bones(bpy.types.Operator, io_utils.ImportHelper):
         if obj.type != 'ARMATURE':
             self.report({'ERROR'}, 'The active object is not an armature')
             return {'CANCELLED'}
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         # import bone parts
-        self.import_bone_parts = prefs.bones_import_bone_parts
+        self.import_bone_parts = preferences.bones_import_bone_parts
         # import bone properties
-        self.import_bone_properties = prefs.bones_import_bone_properties
+        self.import_bone_properties = preferences.bones_import_bone_properties
         return super().invoke(context, event)
 
 
@@ -129,7 +128,6 @@ op_export_bones_batch_props = {
 }
 
 
-@registry.module_thing
 class EXPORT_OT_xray_bones_batch(bpy.types.Operator):
     bl_idname = 'xray_export.bones_batch'
     bl_label = 'Export .bones'
@@ -190,11 +188,11 @@ class EXPORT_OT_xray_bones_batch(bpy.types.Operator):
             return {'CANCELLED'}
         if len(self.objects_list) == 1:
             return bpy.ops.xray_export.bones('INVOKE_DEFAULT')
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         # export bone parts
-        self.export_bone_parts = prefs.bones_export_bone_parts
+        self.export_bone_parts = preferences.bones_export_bone_parts
         # export bone properties
-        self.export_bone_properties = prefs.bones_export_bone_properties
+        self.export_bone_properties = preferences.bones_export_bone_properties
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -211,7 +209,6 @@ op_export_bones_props = {
 }
 
 
-@registry.module_thing
 class EXPORT_OT_xray_bones(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.bones'
     bl_label = 'Export .bones'
@@ -260,23 +257,16 @@ class EXPORT_OT_xray_bones(bpy.types.Operator, io_utils.ExportHelper):
         self.filepath = os.path.join(self.directory, self.object_name)
         if not self.filepath.lower().endswith(self.filename_ext):
             self.filepath += self.filename_ext
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         # export bone parts
-        self.export_bone_parts = prefs.bones_export_bone_parts
+        self.export_bone_parts = preferences.bones_export_bone_parts
         # export bone properties
-        self.export_bone_properties = prefs.bones_export_bone_properties
+        self.export_bone_properties = preferences.bones_export_bone_properties
         return super().invoke(context, event)
 
 
-assign_props([
-    (op_import_bones_props, IMPORT_OT_xray_bones),
-    (op_export_bones_props, EXPORT_OT_xray_bones),
-    (op_export_bones_batch_props, EXPORT_OT_xray_bones_batch),
-])
-
-
 def menu_func_import(self, _context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         IMPORT_OT_xray_bones.bl_idname,
         text='X-Ray Bones Data (.bones)', icon_value=icon
@@ -284,8 +274,26 @@ def menu_func_import(self, _context):
 
 
 def menu_func_export(self, _context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         EXPORT_OT_xray_bones_batch.bl_idname,
         text='X-Ray Bones Data (.bones)', icon_value=icon
     )
+
+
+classes = (
+    (IMPORT_OT_xray_bones, op_import_bones_props),
+    (EXPORT_OT_xray_bones, op_export_bones_props),
+    (EXPORT_OT_xray_bones_batch, op_export_bones_batch_props)
+)
+
+
+def register():
+    for operator_class, operator_props in classes:
+        assign_props([(operator_props, operator_class), ])
+        bpy.utils.register_class(operator_class)
+
+
+def unregister():
+    for operator_class, operator_props in reversed(classes):
+        bpy.utils.unregister_class(operator_class)

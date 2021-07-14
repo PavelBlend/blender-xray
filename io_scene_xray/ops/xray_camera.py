@@ -5,13 +5,12 @@ import math
 import bpy
 
 # addon modules
-from .. import registry, version_utils
+from .. import version_utils
 
 
 SOC_HUD_FOV = 30.5
 
 
-@registry.module_thing
 class XRAY_OT_AddCamera(bpy.types.Operator):
     bl_idname = 'io_scene_xray.add_camera'
     bl_label = 'Add X-Ray Camera'
@@ -37,3 +36,11 @@ class XRAY_OT_AddCamera(bpy.types.Operator):
         camera.sensor_fit = 'VERTICAL'
         camera.angle = math.radians(SOC_HUD_FOV)
         return {'FINISHED'}
+
+
+def register():
+    bpy.utils.register_class(XRAY_OT_AddCamera)
+
+
+def unregister():
+    bpy.utils.unregister_class(XRAY_OT_AddCamera)

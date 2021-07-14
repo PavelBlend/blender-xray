@@ -3,13 +3,13 @@ import os
 import bpy
 import bpy_extras
 
-from .. import plugin, plugin_prefs, utils
+from .. import ui, utils, prefs
 from .. import context
 from ..obj.exp import props as obj_exp_props
 from ..dm import imp as model_imp
 from ..dm import exp as model_exp
-from . import imp, exp, props
 from ..version_utils import get_import_export_menus, assign_props, IS_28
+from . import imp, exp, props
 
 
 class ImportDetailsContext(context.ImportMeshContext):
@@ -59,7 +59,7 @@ class OpImportDetails(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
     @utils.set_cursor_state
     def execute(self, context):
 
-        textures_folder = plugin_prefs.get_preferences().textures_folder_auto
+        textures_folder = prefs.utils.get_preferences().textures_folder_auto
 
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
@@ -116,10 +116,10 @@ class OpImportDetails(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             row.prop(self, 'details_format', expand=True)
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
-        self.details_models_in_a_row = prefs.details_models_in_a_row
-        self.load_slots = prefs.load_slots
-        self.details_format = prefs.details_format
+        preferences = prefs.utils.get_preferences()
+        self.details_models_in_a_row = preferences.details_models_in_a_row
+        self.load_slots = preferences.load_slots
+        self.details_format = preferences.details_format
         return super().invoke(context, event)
 
 
@@ -185,7 +185,7 @@ class OpExportDetails(
         return {'FINISHED'}
 
     def exp(self, bpy_obj, context):
-        textures_folder = plugin_prefs.get_preferences().textures_folder_auto
+        textures_folder = prefs.utils.get_preferences().textures_folder_auto
         export_context = ExportDetailsContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.level_details_format_version = self.format_version
@@ -193,10 +193,10 @@ class OpExportDetails(
         exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         self.texture_name_from_image_path = \
-            prefs.details_texture_names_from_path
-        self.format_version = prefs.format_version
+            preferences.details_texture_names_from_path
+        self.format_version = preferences.format_version
         return super().invoke(context, event)
 
 
@@ -241,14 +241,8 @@ class PackDetailsImages(bpy.types.Operator):
         return {'FINISHED'}
 
 
-assign_props([
-    (op_import_details_props, OpImportDetails),
-    (op_export_details_props, OpExportDetails)
-])
-
-
 def menu_func_import(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpImportDetails.bl_idname, text='X-Ray level details (.details)',
         icon_value=icon
@@ -256,23 +250,30 @@ def menu_func_import(self, context):
 
 
 def menu_func_export(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpExportDetails.bl_idname, text='X-Ray level details (.details)',
         icon_value=icon
     )
 
 
-def register_operators():
-    bpy.utils.register_class(OpImportDetails)
-    bpy.utils.register_class(OpExportDetails)
-    bpy.utils.register_class(PackDetailsImages)
+classes = (
+    (OpImportDetails, op_import_details_props),
+    (OpExportDetails, op_export_details_props),
+    (PackDetailsImages, None)
+)
 
 
-def unregister_operators():
+def register():
+    for operator, props in classes:
+        if props:
+            assign_props([(props, operator), ])
+        bpy.utils.register_class(operator)
+
+
+def unregister():
     import_menu, export_menu = get_import_export_menus()
-    bpy.utils.unregister_class(PackDetailsImages)
     export_menu.remove(menu_func_export)
     import_menu.remove(menu_func_import)
-    bpy.utils.unregister_class(OpExportDetails)
-    bpy.utils.unregister_class(OpImportDetails)
+    for operator, props in reversed(classes):
+        bpy.utils.unregister_class(operator)

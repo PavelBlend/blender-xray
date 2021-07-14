@@ -7,9 +7,9 @@ from .fmt import Chunks_v4, ModelType_v4, VertexFormat
 from ..utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
     fix_ensure_lookup_table, convert_object_to_space_bmesh, \
     calculate_mesh_bbox, gen_texture_name
-from ..utils import is_helper_object, save_file, IMAGE_NODES
+from ..utils import is_helper_object, save_file
 from ..xray_motions import MATRIX_BONE_INVERTED
-from ..version_utils import get_multiply, IS_28
+from ..version_utils import get_multiply, IS_28, IMAGE_NODES
 
 
 multiply = get_multiply()

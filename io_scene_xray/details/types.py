@@ -4,7 +4,7 @@ from . import utils
 from ..version_utils import assign_props, IS_28
 
 
-xray_object_details_slots_meshes_properties = {
+slots_meshes_props = {
     'mesh_0': bpy.props.StringProperty(),
     'mesh_1': bpy.props.StringProperty(),
     'mesh_2': bpy.props.StringProperty(),
@@ -14,11 +14,11 @@ xray_object_details_slots_meshes_properties = {
 
 class XRayObjectDetailsSlotsMeshesProperties(bpy.types.PropertyGroup):
     if not IS_28:
-        for prop_name, prop_value in xray_object_details_slots_meshes_properties.items():
-            exec('{0} = xray_object_details_slots_meshes_properties.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in slots_meshes_props.items():
+            exec('{0} = slots_meshes_props.get("{0}")'.format(prop_name))
 
 
-xray_object_details_slots_lighting_properties = {
+slots_lighting_props = {
     'format': bpy.props.EnumProperty(
         name='Format',
         items=(
@@ -43,11 +43,11 @@ xray_object_details_slots_lighting_properties = {
 
 class XRayObjectDetailsSlotsLightingProperties(bpy.types.PropertyGroup):
     if not IS_28:
-        for prop_name, prop_value in xray_object_details_slots_lighting_properties.items():
-            exec('{0} = xray_object_details_slots_lighting_properties.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in slots_lighting_props.items():
+            exec('{0} = slots_lighting_props.get("{0}")'.format(prop_name))
 
 
-xray_object_details_slots_properties = {
+slots_props = {
     'meshes': bpy.props.PointerProperty(
         type=XRayObjectDetailsSlotsMeshesProperties
     ),
@@ -62,8 +62,8 @@ xray_object_details_slots_properties = {
 
 class XRayObjectDetailsSlotsProperties(bpy.types.PropertyGroup):
     if not IS_28:
-        for prop_name, prop_value in xray_object_details_slots_properties.items():
-            exec('{0} = xray_object_details_slots_properties.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in slots_props.items():
+            exec('{0} = slots_props.get("{0}")'.format(prop_name))
 
 
 def _update_detail_color_by_index(self, context):
@@ -75,7 +75,7 @@ def _update_detail_color_by_index(self, context):
             color_indices[context.object.xray.detail.model.index][0 : 3]
 
 
-xray_object_details_model_properties = {
+model_props = {
     'no_waving': bpy.props.BoolProperty(
         description='No Waving',
         options={'SKIP_SAVE'},
@@ -101,11 +101,11 @@ xray_object_details_model_properties = {
 
 class XRayObjectDetailsModelProperties(bpy.types.PropertyGroup):
     if not IS_28:
-        for prop_name, prop_value in xray_object_details_model_properties.items():
-            exec('{0} = xray_object_details_model_properties.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in model_props.items():
+            exec('{0} = model_props.get("{0}")'.format(prop_name))
 
 
-xray_object_details_properties = {
+details_props = {
     'model': bpy.props.PointerProperty(type=XRayObjectDetailsModelProperties),
     'slots': bpy.props.PointerProperty(type=XRayObjectDetailsSlotsProperties)
 }
@@ -113,14 +113,25 @@ xray_object_details_properties = {
 
 class XRayObjectDetailsProperties(bpy.types.PropertyGroup):
     if not IS_28:
-        for prop_name, prop_value in xray_object_details_properties.items():
-            exec('{0} = xray_object_details_properties.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in details_props.items():
+            exec('{0} = details_props.get("{0}")'.format(prop_name))
 
 
-assign_props([
-    (xray_object_details_slots_meshes_properties, XRayObjectDetailsSlotsMeshesProperties),
-    (xray_object_details_slots_lighting_properties, XRayObjectDetailsSlotsLightingProperties),
-    (xray_object_details_slots_properties, XRayObjectDetailsSlotsProperties),
-    (xray_object_details_model_properties, XRayObjectDetailsModelProperties),
-    (xray_object_details_properties, XRayObjectDetailsProperties)
-])
+classes = (
+    (XRayObjectDetailsSlotsMeshesProperties, slots_meshes_props),
+    (XRayObjectDetailsSlotsLightingProperties, slots_lighting_props),
+    (XRayObjectDetailsSlotsProperties, slots_props),
+    (XRayObjectDetailsModelProperties, model_props),
+    (XRayObjectDetailsProperties, details_props),
+)
+
+
+def register():
+    for operator, props in classes:
+        assign_props([(props, operator), ])
+        bpy.utils.register_class(operator)
+
+
+def unregister():
+    for operator, props in reversed(classes):
+        bpy.utils.unregister_class(operator)

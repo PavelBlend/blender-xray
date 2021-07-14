@@ -5,10 +5,9 @@ import bpy
 from .base import XRayPanel, build_label
 from ..skl.ops import OpExportSkl
 from ..ops import action_utils
-from .. import registry, version_utils, plugin_prefs
+from .. import version_utils, plugin_prefs, prefs
 
 
-@registry.module_thing
 class XRAY_PT_ActionPanel(XRayPanel):
     bl_category = 'F-Curve'
     bl_space_type = 'DOPESHEET_EDITOR' if bpy.app.version >= (2, 78, 0) else 'GRAPH_EDITOR'
@@ -18,18 +17,18 @@ class XRAY_PT_ActionPanel(XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         panel_used = (
             # import plugins
-            prefs.enable_object_import or
-            prefs.enable_anm_import or
-            prefs.enable_skls_import or
-            prefs.enable_omf_import or
+            preferences.enable_object_import or
+            preferences.enable_anm_import or
+            preferences.enable_skls_import or
+            preferences.enable_omf_import or
             # export plugins
-            prefs.enable_object_export or
-            prefs.enable_anm_export or
-            prefs.enable_skls_export or
-            prefs.enable_omf_export
+            preferences.enable_object_export or
+            preferences.enable_anm_export or
+            preferences.enable_skls_export or
+            preferences.enable_omf_export
         )
         return (
             context.active_object and
@@ -80,7 +79,7 @@ class XRAY_PT_ActionPanel(XRayPanel):
             row.prop_search(data, 'bonepart_name', obj.pose, 'bone_groups', text='')
             row = layout.row(align=True)
             row.prop(data, 'flags_stopatend', text='Stop', toggle=True)
-            row.prop(data, 'flags_nomix', text='!Mix', toggle=True)
+            row.prop(data, 'flags_nomix', text='No Mix', toggle=True)
             row.prop(data, 'flags_syncpart', text='Sync', toggle=True)
             row = layout.row(align=True)
             row.prop(data, 'flags_footsteps', text='Foot Steps', toggle=True)
@@ -94,3 +93,11 @@ class XRAY_PT_ActionPanel(XRayPanel):
         row = layout.row(align=True)
         row.operator(action_utils.XRayCopyActionSettingsOperator.bl_idname)
         row.operator(action_utils.XRayPasteActionSettingsOperator.bl_idname)
+
+
+def register():
+    bpy.utils.register_class(XRAY_PT_ActionPanel)
+
+
+def unregister():
+    bpy.utils.unregister_class(XRAY_PT_ActionPanel)

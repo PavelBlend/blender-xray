@@ -1,23 +1,24 @@
-from .. import registry, plugin_prefs
-from ..plugin import OpExportProject
+import bpy
+
+from .. import prefs
+from ..obj.exp.ops import OpExportProject
 from .base import XRayPanel, build_label
 from . import collapsible
 from ..version_utils import layout_split
 
 
-@registry.module_thing
 class XRAY_PT_ScenePanel(XRayPanel):
     bl_context = 'scene'
     bl_label = build_label('Project')
 
     @classmethod
     def poll(cls, context):
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         panel_used = (
             # import plugins
-            prefs.enable_object_import or
+            preferences.enable_object_import or
             # export plugins
-            prefs.enable_object_export
+            preferences.enable_object_export
         )
         return panel_used
 
@@ -70,3 +71,11 @@ class XRAY_PT_ScenePanel(XRayPanel):
         if box:
             box.prop(data, 'object_export_motions')
             box.prop(data, 'object_texture_name_from_image_path')
+
+
+def register():
+    bpy.utils.register_class(XRAY_PT_ScenePanel)
+
+
+def unregister():
+    bpy.utils.unregister_class(XRAY_PT_ScenePanel)

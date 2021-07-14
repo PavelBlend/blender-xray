@@ -1,8 +1,6 @@
 from contextlib import contextmanager
 import bpy
 
-from . import utils
-
 
 def is_blender_2_80():
     return bpy.app.version >= (2, 80, 0)
@@ -62,11 +60,11 @@ def get_icon(icon):
     return icon
 
 
-def layout_split(layout, percentage):
+def layout_split(layout, percentage, align=False):
     if IS_28:
-        split = layout.split(factor=percentage)
+        split = layout.split(factor=percentage, align=align)
     else:
-        split = layout.split(percentage=percentage)
+        split = layout.split(percentage=percentage, align=align)
     return split
 
 
@@ -85,9 +83,12 @@ def assign_props(items, replace=True):
                 setattr(clas, prop_name, prop_value)
 
 
+IMAGE_NODES = ('TEX_IMAGE', 'TEX_ENVIRONMENT')
+
+
 def is_all_empty_textures(material):
     if IS_28:
-        return all(not node.type in utils.IMAGE_NODES for node in material.node_tree.nodes)
+        return all(not node.type in IMAGE_NODES for node in material.node_tree.nodes)
     else:
         return all(not slot for slot in material.texture_slots)
 

@@ -3,32 +3,31 @@ import bpy
 
 # addon modules
 from .base import XRayPanel, build_label
-from .. import registry, plugin_prefs
+from .. import plugin_prefs, prefs
 from ..ops import fake_bones, joint_limits
 from ..version_utils import get_icon, layout_split
 from . import collapsible
 
 
-@registry.module_thing
 class XRAY_PT_ArmaturePanel(XRayPanel):
     bl_context = 'data'
     bl_label = build_label('Skeleton')
 
     @classmethod
     def poll(cls, context):
-        prefs = plugin_prefs.get_preferences()
+        preferences = prefs.utils.get_preferences()
         panel_used = (
             # import plugins
-            prefs.enable_object_import or
-            prefs.enable_skls_import or
-            prefs.enable_bones_import or
-            prefs.enable_omf_import or
+            preferences.enable_object_import or
+            preferences.enable_skls_import or
+            preferences.enable_bones_import or
+            preferences.enable_omf_import or
             # export plugins
-            prefs.enable_object_export or
-            prefs.enable_skls_export or
-            prefs.enable_bones_export or
-            prefs.enable_omf_export or
-            prefs.enable_ogf_export
+            preferences.enable_object_export or
+            preferences.enable_skls_export or
+            preferences.enable_bones_export or
+            preferences.enable_omf_export or
+            preferences.enable_ogf_export
         )
         return (
             context.active_object and
@@ -41,7 +40,7 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
         data = context.active_object.data.xray
         verdif = data.check_different_version_bones()
         if verdif != 0:
-            from ..xray_inject import XRayBoneProperties
+            from ..props.bone import XRayBoneProperties
             layout.label(
                 text='Found bones, edited with '
                 + XRayBoneProperties.ShapeProperties.fmt_version_different(verdif)
@@ -115,3 +114,11 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
             column = box.column(align=True)
             column.operator('io_scene_xray.link_bones')
             column.operator('io_scene_xray.unlink_bones')
+
+
+def register():
+    bpy.utils.register_class(XRAY_PT_ArmaturePanel)
+
+
+def unregister():
+    bpy.utils.unregister_class(XRAY_PT_ArmaturePanel)
