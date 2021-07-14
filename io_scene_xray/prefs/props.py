@@ -2,7 +2,7 @@ import os
 
 import bpy
 
-from .. import xray_ltx, version_utils, hotkeys
+from .. import xray_ltx, version_utils
 from ..obj import props as general_obj_props
 from ..obj.imp import props as obj_imp_props
 from ..obj.exp import props as obj_exp_props
@@ -116,6 +116,7 @@ def update_paths(prefs, context):
 
 
 def update_keymap(self, context):
+    from .. import hotkeys
     keymaps, keymap_item = hotkeys.io_scene_xray_keymaps[hotkeys.obj_imp_keymap.operator_id]
     keymap_item.type = self.import_object_key
     keymap_item.shift = self.import_object_shift
