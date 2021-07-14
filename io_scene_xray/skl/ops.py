@@ -3,7 +3,7 @@ import os
 import bpy
 from bpy_extras import io_utils
 
-from .. import plugin, plugin_prefs, prefs
+from .. import ui, prefs
 from ..ui import collapsible
 from ..ui.motion_list import (
     BaseSelectMotionsOp,
@@ -227,7 +227,7 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
 
 
 def menu_func_import(self, _context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpImportSkl.bl_idname,
         text='X-Ray skeletal animation (.skl, .skls)',
@@ -236,7 +236,7 @@ def menu_func_import(self, _context):
 
 
 def menu_func_export(self, _context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpExportSkls.bl_idname,
         text='X-Ray animation (.skls)',

@@ -7,7 +7,7 @@ from ..utils import (
     set_cursor_state
 )
 from ..version_utils import assign_props, IS_28
-from .. import plugin, plugin_prefs, context, prefs
+from .. import ui, context, prefs
 from ..obj.exp import props as obj_exp_props
 from . import exp
 
@@ -78,7 +78,7 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
 
 
 def menu_func_export(self, _context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpExportOgf.bl_idname,
         text='X-Ray game object (.ogf)',

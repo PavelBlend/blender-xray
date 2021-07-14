@@ -1,9 +1,8 @@
 import bpy
 from bpy_extras import io_utils
 
-from .. import utils, plugin, prefs
+from .. import utils, ui, prefs
 from ..utils import AppError
-from .. import plugin_prefs
 from ..obj.imp import props as obj_imp_props
 from ..obj import props as general_obj_props
 from .imp import import_file
@@ -109,7 +108,7 @@ class OpImportLevelScene(bpy.types.Operator, io_utils.ImportHelper):
 
 
 def menu_func_export(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpExportLevelScene.bl_idname,
         text='X-Ray scene selection (.level)',
@@ -118,7 +117,7 @@ def menu_func_export(self, context):
 
 
 def menu_func_import(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpImportLevelScene.bl_idname,
         text='X-Ray scene selection (.level)',

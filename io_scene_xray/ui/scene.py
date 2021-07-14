@@ -1,6 +1,6 @@
 import bpy
 
-from .. import plugin_prefs, prefs
+from .. import prefs
 from ..obj.exp.ops import OpExportProject
 from .base import XRayPanel, build_label
 from . import collapsible

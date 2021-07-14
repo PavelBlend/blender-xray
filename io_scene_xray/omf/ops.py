@@ -4,7 +4,7 @@ import bpy
 import bpy_extras
 
 from . import imp, exp, props
-from .. import plugin_prefs, utils, plugin, context, prefs
+from .. import utils, ui, context, prefs
 from ..ui import collapsible
 from ..skl import props as skl_props
 from ..obj.imp import props as obj_imp_props
@@ -273,7 +273,7 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
 
 
 def menu_func_import(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         IMPORT_OT_xray_omf.bl_idname,
         text='X-Ray Game Motion (.omf)',
@@ -282,7 +282,7 @@ def menu_func_import(self, context):
 
 
 def menu_func_export(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         EXPORT_OT_xray_omf.bl_idname,
         text='X-Ray Game Motion (.omf)',

@@ -3,7 +3,7 @@ import os
 import bpy
 import bpy_extras
 
-from .. import plugin, plugin_prefs, utils, prefs
+from .. import ui, utils, prefs
 from .. import context
 from ..obj.exp import props as obj_exp_props
 from ..dm import imp as model_imp
@@ -242,7 +242,7 @@ class PackDetailsImages(bpy.types.Operator):
 
 
 def menu_func_import(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpImportDetails.bl_idname, text='X-Ray level details (.details)',
         icon_value=icon
@@ -250,7 +250,7 @@ def menu_func_import(self, context):
 
 
 def menu_func_export(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpExportDetails.bl_idname, text='X-Ray level details (.details)',
         icon_value=icon

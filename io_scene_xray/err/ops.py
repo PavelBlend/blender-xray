@@ -2,7 +2,7 @@ import bpy
 from bpy_extras import io_utils
 
 from ..ops.base import BaseOperator as TestReadyOperator
-from .. import plugin, utils
+from .. import ui, utils
 from . import imp
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 
@@ -34,7 +34,7 @@ class OpImportERR(TestReadyOperator, io_utils.ImportHelper):
 
 
 def menu_func_import(self, _context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpImportERR.bl_idname,
         text='X-Ray error list (.err)',

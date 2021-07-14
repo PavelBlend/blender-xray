@@ -1,7 +1,7 @@
 import bpy
 import bpy_extras
 
-from .. import utils, plugin, plugin_prefs, context, prefs
+from .. import utils, ui, context, prefs
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 from . import imp, exp
 
@@ -105,7 +105,7 @@ class EXPORT_OT_xray_level(bpy.types.Operator):
 
 
 def menu_func_import(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         IMPORT_OT_xray_level.bl_idname,
         text='X-Ray game level (level)',
@@ -114,7 +114,7 @@ def menu_func_import(self, context):
 
 
 def menu_func_export(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         EXPORT_OT_xray_level.bl_idname,
         text='X-Ray game level (level)',

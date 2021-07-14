@@ -1,9 +1,10 @@
 import bpy
 
 from ..edit_helpers import bone_shape, bone_center
-from .. import plugin, plugin_prefs, prefs
+from .. import prefs
 from .material import XRayGameMtlMenu, _gen_xr_selector
 from .base import XRayPanel, build_label
+from . import icons
 
 
 BONE_TEXT_JOINT = []
@@ -72,7 +73,7 @@ class XRAY_PT_BonePanel(XRayPanel):
         if not bone:
             return
         data = bone.xray
-        layout.label(icon_value=plugin.get_stalker_icon())
+        layout.label(icon_value=icons.get_stalker_icon())
         layout.prop(data, 'exportable', text='')
 
     def draw(self, context):

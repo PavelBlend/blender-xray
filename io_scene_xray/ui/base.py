@@ -1,6 +1,6 @@
 import bpy
 
-from .. import plugin
+from . import icons
 
 
 def build_label(subtext=''):
@@ -14,4 +14,4 @@ class XRayPanel(bpy.types.Panel):
     bl_region_type = 'WINDOW'
 
     def draw_header(self, _context):
-        self.layout.label(icon_value=plugin.get_stalker_icon())
+        self.layout.label(icon_value=icons.get_stalker_icon())

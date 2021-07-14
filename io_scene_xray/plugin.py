@@ -6,7 +6,7 @@ import bpy.utils.previews
 from bpy_extras import io_utils
 
 from . import xray_io, ops, ui
-from .ui import base
+from .ui import base, icons
 from .utils import (
     AppError, ObjectsInitializer, logger,
     execute_require_filepath, FilenameExtHelper
@@ -107,12 +107,12 @@ def scene_update_post(_):
 
 
 def menu_func_xray_import(self, _context):
-    icon = get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.menu(XRayImportMenu.bl_idname, icon_value=icon)
 
 
 def menu_func_xray_export(self, _context):
-    icon = get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.menu(XRayExportMenu.bl_idname, icon_value=icon)
 
 
@@ -302,18 +302,6 @@ def append_menu_func():
         append_draw_functions(funct_exp_list, export_menu)
 
 
-preview_collections = {}
-STALKER_ICON_NAME = 'stalker'
-
-
-def get_stalker_icon():
-    pcoll = preview_collections['main']
-    icon = pcoll[STALKER_ICON_NAME]
-    # without this line in some cases the icon is not visible
-    len(icon.icon_pixels)
-    return icon.icon_id
-
-
 classes = (
     XRayImportMenu,
     XRayExportMenu
@@ -321,6 +309,7 @@ classes = (
 
 
 def register():
+    icons.register()
     details.register()
     skls_browser.register()
     props.register()
@@ -328,12 +317,6 @@ def register():
     for clas in classes:
         bpy.utils.register_class(clas)
     plugin_prefs.register()
-
-    # load icon
-    pcoll = bpy.utils.previews.new()
-    icons_dir = os.path.join(os.path.dirname(__file__), 'icons')
-    pcoll.load(STALKER_ICON_NAME, os.path.join(icons_dir, 'stalker.png'), 'IMAGE')
-    preview_collections['main'] = pcoll
 
     object_imp_ops.register()
     object_exp_ops.register()
@@ -401,11 +384,6 @@ def unregister():
     import_menu.remove(menu_func_xray_import)
     export_menu.remove(menu_func_xray_export)
 
-    # remove icon
-    for pcoll in preview_collections.values():
-        bpy.utils.previews.remove(pcoll)
-    preview_collections.clear()
-
     plugin_prefs.unregister()
     for clas in reversed(classes):
         bpy.utils.unregister_class(clas)
@@ -413,3 +391,4 @@ def unregister():
     props.unregister()
     skls_browser.unregister()
     details.unregister()
+    icons.unregister()

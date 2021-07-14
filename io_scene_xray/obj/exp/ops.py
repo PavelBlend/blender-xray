@@ -3,7 +3,7 @@ import os
 import bpy
 import bpy_extras
 
-from ... import ops, plugin, plugin_prefs, utils, context, prefs
+from ... import ops, ui, utils, context, prefs
 from ...version_utils import (
     assign_props, IS_28, set_active_object, select_object
 )
@@ -232,7 +232,7 @@ class OpExportObject(
 
 
 def menu_func_export(self, _context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpExportObjects.bl_idname,
         text='X-Ray object (.object)',

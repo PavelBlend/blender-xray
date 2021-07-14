@@ -3,7 +3,7 @@ import os
 import bpy
 import bpy_extras
 
-from .. import plugin, plugin_prefs, utils, prefs, context
+from .. import ui, utils, prefs, context
 from ..obj.exp import props as obj_exp_props
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 from . import imp
@@ -211,7 +211,7 @@ class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
 
 
 def menu_func_import(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpImportDM.bl_idname, text='X-Ray detail model (.dm)',
         icon_value=icon
@@ -219,7 +219,7 @@ def menu_func_import(self, context):
 
 
 def menu_func_export(self, context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         OpExportDMs.bl_idname, text='X-Ray detail model (.dm)', icon_value=icon
     )

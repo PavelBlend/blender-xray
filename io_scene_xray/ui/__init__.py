@@ -11,7 +11,8 @@ from . import (
     motion_list,
     obj,
     scene,
-    view3d
+    view3d,
+    icons
 )
 
 

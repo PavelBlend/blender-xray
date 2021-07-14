@@ -6,7 +6,7 @@ import bpy
 from bpy_extras import io_utils
 
 # addon modules
-from .. import plugin, plugin_prefs, context as xray_context, prefs
+from .. import ui, context as xray_context, prefs
 from ..utils import execute_with_logger, set_cursor_state, AppError
 from ..version_utils import assign_props, IS_28
 from ..omf import props as omf_props
@@ -266,7 +266,7 @@ class EXPORT_OT_xray_bones(bpy.types.Operator, io_utils.ExportHelper):
 
 
 def menu_func_import(self, _context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         IMPORT_OT_xray_bones.bl_idname,
         text='X-Ray Bones Data (.bones)', icon_value=icon
@@ -274,7 +274,7 @@ def menu_func_import(self, _context):
 
 
 def menu_func_export(self, _context):
-    icon = plugin.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         EXPORT_OT_xray_bones_batch.bl_idname,
         text='X-Ray Bones Data (.bones)', icon_value=icon
