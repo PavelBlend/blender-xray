@@ -18,7 +18,9 @@ def get_stalker_icon():
 def register():
     # load icon
     pcoll = bpy.utils.previews.new()
-    icons_dir = os.path.join(os.path.dirname(__file__), 'icons')
+    module_dir = os.path.dirname(__file__)
+    addon_dir = os.path.dirname(module_dir)
+    icons_dir = os.path.join(addon_dir, 'icons')
     pcoll.load(STALKER_ICON_NAME, os.path.join(icons_dir, 'stalker.png'), 'IMAGE')
     preview_collections['main'] = pcoll
 
