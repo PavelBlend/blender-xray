@@ -200,7 +200,7 @@ def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FI
                 )
                 reported.add(bname)
             bname = bpy_bone.name
-            bone_maps[bone_key] = bname
+        bone_maps[bone_key] = bname
         for shape, motion_name, bone_name in converted_shapes:
             converted_warrnings.append((
                 'motion shape converted to STEPPED',
