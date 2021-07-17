@@ -1,4 +1,4 @@
-# blender-xray [![Build Status](https://travis-ci.org/PavelBlend/blender-xray.svg)](https://travis-ci.org/PavelBlend/blender-xray) [![Code Coverage](https://codecov.io/gh/PavelBlend/blender-xray/graph/badge.svg)](https://codecov.io/gh/PavelBlend/blender-xray)
+# blender-xray [![Build Status](https://travis-ci.com/PavelBlend/blender-xray.svg)](https://travis-ci.com/PavelBlend/blender-xray) [![Code Coverage](https://codecov.io/gh/PavelBlend/blender-xray/graph/badge.svg)](https://codecov.io/gh/PavelBlend/blender-xray)
 XRay-engine import/export plugin for [blender](http://www.blender.org/).
 
 ## Supported formats
