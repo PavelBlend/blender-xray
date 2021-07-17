@@ -412,7 +412,6 @@ def _export_motion_data(pkw, action, bones_animations, armature):
         motion_name = action.name
 
     pkw.puts(motion_name)
-    motion_name
     frange = action.frame_range
     pkw.putf('II', int(frange[0]), int(frange[1]))
     pkw.putf('f', xray.fps)
