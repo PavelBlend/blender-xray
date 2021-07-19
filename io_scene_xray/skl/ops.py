@@ -15,7 +15,7 @@ from ..ui.motion_list import (
 from ..ops.base import BaseOperator as TestReadyOperator
 from ..utils import (
     execute_with_logger, invoke_require_armature, execute_require_filepath,
-    FilenameExtHelper, set_cursor_state
+    FilenameExtHelper, set_cursor_state, AppError
 )
 from ..xray_motions import MOTIONS_FILTER_ALL
 from ..version_utils import assign_props, IS_28
@@ -219,7 +219,11 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
         from .exp import export_skls_file, ExportSklsContext
         export_context = ExportSklsContext()
         export_context.bpy_arm_obj = context.active_object
-        export_skls_file(self.filepath, export_context)
+        try:
+            export_skls_file(self.filepath, export_context)
+        except AppError as err:
+            self.report({'ERROR'}, str(err))
+            return {'CANCELLED'}
 
     @invoke_require_armature
     def invoke(self, context, event):
