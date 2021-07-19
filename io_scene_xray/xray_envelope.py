@@ -127,7 +127,7 @@ def export_envelope(writer, fcurve, fps, koef, epsilon=EPSILON):
         )
 
 
-def export_keyframes(writer, keyframes):
+def export_keyframes(writer, keyframes, time_end=None):
     count = 0
 
     for keyframe in keyframes:
@@ -137,6 +137,12 @@ def export_keyframes(writer, keyframes):
         if keyframe.shape != Shape.STEPPED:
             writer.putf('HHH', 32768, 32768, 32768)
             writer.putf('HHHH', 32768, 32768, 32768, 32768)
+
+    # so that the animation doesn't change its length
+    if not time_end is None:
+        writer.putf('ff', keyframe.value, time_end)
+        writer.putf('B', Shape.STEPPED.value)
+        count += 1
 
     return count
 

@@ -355,8 +355,8 @@ def export_motion(pkw, action, armature):
             dependency_object.animation_data.action = action
 
     prepared_bones = _prepare_bones(armature)
-    bones_animations = _bake_motion_data(action, armature, prepared_bones)
-    _export_motion_data(pkw, action, bones_animations, armature)
+    bones_animations, root_bone_names = _bake_motion_data(action, armature, prepared_bones)
+    _export_motion_data(pkw, action, bones_animations, armature, root_bone_names)
 
     if dependency_object:
         dependency_object.animation_data.action = old_action
@@ -372,12 +372,17 @@ def _bake_motion_data(action, armature, prepared_bones):
     else:
         armature.animation_data_create()
     old_frame = bpy.context.scene.frame_current
+    root_bone_names = []
     try:
         armature.animation_data.action = action
         for frm in range(int(action.frame_range[0]), int(action.frame_range[1]) + 1):
             bpy.context.scene.frame_set(frm)
             for pbone, parent, data in exportable_bones:
-                parent_matrix = parent.matrix.inverted() if parent else MATRIX_BONE_INVERTED
+                if parent:
+                    parent_matrix = parent.matrix.inverted()
+                else:
+                    parent_matrix = MATRIX_BONE_INVERTED
+                    root_bone_names.append(pbone.name)
                 data.append(multiply(parent_matrix, pbone.matrix))
     finally:
         if has_old_action:
@@ -387,7 +392,7 @@ def _bake_motion_data(action, armature, prepared_bones):
     return [
         (pbone.name, animation)
         for pbone, _, animation in exportable_bones
-    ]
+    ], root_bone_names
 
 
 def _prepare_bones(armature):
@@ -404,7 +409,7 @@ def _prepare_bones(armature):
     ]
 
 
-def _export_motion_data(pkw, action, bones_animations, armature):
+def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names):
     xray = action.xray
 
     if armature.xray.use_custom_motion_names:
@@ -443,6 +448,12 @@ def _export_motion_data(pkw, action, bones_animations, armature):
             for frm, val in enumerate(curve):
                 yield KF(frm / xray.fps, val, Shape.STEPPED)
 
+        if name in root_bone_names:
+            frange = action.frame_range
+            time_end = (frange[1] - frange[0]) / xray.fps
+        else:
+            time_end = None
+
         for i, curve in enumerate(curves):
             epsilon = EPSILON
             if xray.autobake_custom_refine:
@@ -450,7 +461,11 @@ def _export_motion_data(pkw, action, bones_animations, armature):
 
             pkw.putf('BB', Behavior.CONSTANT.value, Behavior.CONSTANT.value)
             cpkw = PackedWriter()
-            ccnt = export_keyframes(cpkw, refine_keys(curve2keys(curve), epsilon))
+            ccnt = export_keyframes(
+                cpkw,
+                refine_keys(curve2keys(curve), epsilon),
+                time_end=time_end
+            )
             pkw.putf('H', ccnt)
             pkw.putp(cpkw)
 
