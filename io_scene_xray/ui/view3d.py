@@ -6,7 +6,7 @@ from mathutils import Color
 from . import collapsible, icons
 from .base import XRayPanel, build_label
 from ..skls_browser import UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
-from .. import prefs
+from .. import prefs, plugin
 from ..ops import custom_props_utils
 from ..version_utils import IS_28, assign_props, layout_split
 from ..obj.imp import ops as obj_imp_ops
@@ -211,6 +211,13 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
     else:
         bl_region_type = 'TOOLS'
 
+    @classmethod
+    def poll(cls, context):
+        enabled_import_operators = plugin.get_enabled_operators(
+            plugin.import_draw_functions, plugin.import_draw_functions_28
+        )
+        return bool(enabled_import_operators)
+
     def draw_header(self, _context):
         icon = icons.get_stalker_icon()
         self.layout.label(icon_value=icon)
@@ -259,6 +266,13 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
+
+    @classmethod
+    def poll(cls, context):
+        enabled_export_operators = plugin.get_enabled_operators(
+            plugin.export_draw_functions, plugin.export_draw_functions_28
+        )
+        return bool(enabled_export_operators)
 
     def draw_header(self, _context):
         icon = icons.get_stalker_icon()

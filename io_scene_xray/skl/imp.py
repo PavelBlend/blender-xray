@@ -16,7 +16,9 @@ def _import_skl(fpath, context, chunked_reader):
         if cid == 0x1200:
             reader = PackedReader(cdata)
             bonesmap = {b.name.lower(): b for b in context.bpy_arm_obj.data.bones}
-            act = import_motion(reader, context, bonesmap, set())
+            act = import_motion(
+                reader, context, bonesmap, set(), context.motions_filter
+            )
         else:
             log.debug('unknown chunk', cid=cid)
 
