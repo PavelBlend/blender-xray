@@ -78,9 +78,14 @@ def convert_u16_to_float(u16_value, min_value, max_value):
 
 
 @with_context('import-motion')
-def import_motion(reader, context, bonesmap, reported, motions_filter=MOTIONS_FILTER_ALL):
+def import_motion(
+        reader, context, bonesmap, reported,
+        motions_filter=MOTIONS_FILTER_ALL, skl_file_name=None
+    ):
     bpy_armature = context.bpy_arm_obj
     name = reader.gets()
+    if skl_file_name:
+        name = skl_file_name
     bone_maps = {}
     converted_warrnings = []
 
