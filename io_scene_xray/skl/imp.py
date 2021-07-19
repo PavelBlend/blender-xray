@@ -12,15 +12,11 @@ class ImportSklContext(context.ImportAnimationOnlyContext):
 
 
 def _import_skl(fpath, context, chunked_reader):
-    name = splitext(basename(fpath.lower()))[0]
-    if not context.motions_filter(name):
-        return
     for cid, cdata in chunked_reader:
         if cid == 0x1200:
             reader = PackedReader(cdata)
             bonesmap = {b.name.lower(): b for b in context.bpy_arm_obj.data.bones}
             act = import_motion(reader, context, bonesmap, set())
-            act.name = name
         else:
             log.debug('unknown chunk', cid=cid)
 
