@@ -92,12 +92,12 @@ xray_action_properties = {
         description='Use custom thresholds for remove redundant keyframes'
     ),
     'autobake_refine_location': bpy.props.FloatProperty(
-        default=0.001, min=0, soft_max=1,
+        default=0.00001, min=0, soft_max=1,
         subtype='DISTANCE',
         description='Skip threshold for redundant location keyframes'
     ),
     'autobake_refine_rotation': bpy.props.FloatProperty(
-        default=0.001, min=0, soft_max=1,
+        default=0.00001, min=0, soft_max=1,
         subtype='ANGLE',
         description='Skip threshold for redundant rotation keyframes'
     )

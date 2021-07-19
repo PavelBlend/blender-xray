@@ -75,7 +75,8 @@ def import_envelope(reader, fcurve, fps, koef, name, warn_list):
 
 
 KF = mkstruct('KeyFrame', ['time', 'value', 'shape'])
-EPSILON = 0.0001
+EPSILON = 0.00001
+
 
 @with_context('export-envelope')
 def export_envelope(writer, fcurve, fps, koef, epsilon=EPSILON):
