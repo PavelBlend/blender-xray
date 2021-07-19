@@ -33,7 +33,7 @@ class TestSklImport(utils.XRayTestCase):
         # Assert
         self.assertReportsNotContains('WARNING')
         self.assertEqual(len(bpy.data.actions), 1)
-        act = bpy.data.actions['xact']
+        act = bpy.data.actions['test_fmt']
         self.assertEqual(len(act.fcurves[0].keyframe_points), 3)
 
     def test_skls(self):
