@@ -5,7 +5,7 @@ import time
 import bpy
 import mathutils
 
-from ... import xray_io, utils, log, xray_motions
+from ... import xray_io, utils, log, xray_motions, prefs
 from ...version_utils import IS_28, using_active_object, get_multiply, IMAGE_NODES
 from .. import fmt
 from . import mesh, bone
@@ -399,7 +399,11 @@ def export_transform(chunked_writer, bpy_root):
 
 
 def export_revision(chunked_writer, xray):
-    curruser = '\\\\{}\\{}'.format(platform.node(), getpass.getuser())
+    preferences = prefs.utils.get_preferences()
+    if preferences.custom_owner_name:
+        curruser = preferences.custom_owner_name
+    else:
+        curruser = '\\\\{}\\{}'.format(platform.node(), getpass.getuser())
     currtime = int(time.time())
     writer = xray_io.PackedWriter()
     if (not xray.revision.owner) or (xray.revision.owner == curruser):

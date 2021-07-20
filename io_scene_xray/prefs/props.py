@@ -483,7 +483,8 @@ plugin_preferences_props = {
     'enable_ogf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
 
     'category': bpy.props.EnumProperty(default='PATHS', items=category_items),
-    'custom_props': bpy.props.PointerProperty(type=XRayPrefsCustomProperties)
+    'custom_props': bpy.props.PointerProperty(type=XRayPrefsCustomProperties),
+    'custom_owner_name': bpy.props.StringProperty()
 }
 
 

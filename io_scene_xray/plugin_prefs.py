@@ -290,6 +290,9 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 draw_prop_name('Power:', 'action_power')
 
         elif self.category == 'OTHERS':
+            split = layout_split(layout, 0.4)
+            split.label(text='Custom Owner Name:')
+            split.prop(self, 'custom_owner_name', text='')
             prop_bool(layout, self, 'expert_mode')
             prop_bool(layout, self, 'compact_menus')
 
