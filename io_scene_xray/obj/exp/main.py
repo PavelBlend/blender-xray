@@ -5,7 +5,7 @@ import time
 import bpy
 import mathutils
 
-from ... import xray_io, utils, log, xray_motions, prefs
+from ... import xray_io, utils, log, xray_motions
 from ...version_utils import IS_28, using_active_object, get_multiply, IMAGE_NODES
 from .. import fmt
 from . import mesh, bone
@@ -399,6 +399,7 @@ def export_transform(chunked_writer, bpy_root):
 
 
 def export_revision(chunked_writer, xray):
+    from ... import prefs
     preferences = prefs.utils.get_preferences()
     if preferences.custom_owner_name:
         curruser = preferences.custom_owner_name
