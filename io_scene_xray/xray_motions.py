@@ -464,7 +464,8 @@ def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names
             ccnt = export_keyframes(
                 cpkw,
                 refine_keys(curve2keys(curve), epsilon),
-                time_end=time_end
+                time_end=time_end,
+                fps=xray.fps
             )
             pkw.putf('H', ccnt)
             pkw.putp(cpkw)

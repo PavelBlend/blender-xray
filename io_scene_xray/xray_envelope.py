@@ -127,7 +127,7 @@ def export_envelope(writer, fcurve, fps, koef, epsilon=EPSILON):
         )
 
 
-def export_keyframes(writer, keyframes, time_end=None):
+def export_keyframes(writer, keyframes, time_end=None, fps=None):
     count = 0
 
     for keyframe in keyframes:
@@ -140,9 +140,10 @@ def export_keyframes(writer, keyframes, time_end=None):
 
     # so that the animation doesn't change its length
     if not time_end is None:
-        writer.putf('ff', keyframe.value, time_end)
-        writer.putf('B', Shape.STEPPED.value)
-        count += 1
+        if (time_end - keyframe.time) > (1 / fps):
+            writer.putf('ff', keyframe.value, time_end)
+            writer.putf('B', Shape.STEPPED.value)
+            count += 1
 
     return count
 
