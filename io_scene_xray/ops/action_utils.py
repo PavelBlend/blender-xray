@@ -1,6 +1,6 @@
 import bpy
 
-from .. import xray_ltx
+from .. import xray_ltx, version_utils
 
 
 SECTION_NAME = 'action_xray_settings'
@@ -70,13 +70,132 @@ class XRayPasteActionSettingsOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
+change_action_bake_settings_props = {
+    'change_mode': bpy.props.EnumProperty(
+        name='Mode',
+        items=(
+            ('active', 'Active', ''),
+            ('selected', 'Selected', ''),
+            ('all', 'All', '')
+        ),
+        default='active'
+    ),
+    'change_auto_bake_mode': bpy.props.BoolProperty(
+        name='Change Auto Bake Mode', default=True
+    ),
+    'auto_bake_mode': bpy.props.EnumProperty(
+        name='Auto Bake Mode',
+        items=(
+            ('auto', 'Auto', ''),
+            ('on', 'On', ''),
+            ('off', 'Off', '')
+        ),
+        default='auto'
+    ),
+    'change_use_custom_thresholds': bpy.props.BoolProperty(
+        name='Change Use Custom Thresholds', default=True
+    ),
+    'use_custom_threshold': bpy.props.BoolProperty(
+        name='Use Custom Thresholds', default=True
+    ),
+    'change_location_threshold': bpy.props.BoolProperty(
+        name='Change Location Threshold', default=True
+    ),
+    'change_rotation_threshold': bpy.props.BoolProperty(
+        name='Change Rotation Threshold', default=True
+    ),
+    'value_location_threshold': bpy.props.FloatProperty(
+        name='Location Threshold', default=0.00001, precision=6
+    ),
+    'value_rotation_threshold': bpy.props.FloatProperty(
+        name='Rotation Threshold', default=0.00001, precision=6,
+        subtype='ANGLE'
+    )
+}
+
+
+class XRAY_OT_ChangeActionBakeSettings(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.change_action_bake_settings'
+    bl_label = 'Change Action Bake Settings'
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in change_action_bake_settings_props.items():
+            exec('{0} = change_action_bake_settings_props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text='Mode:')
+        layout.prop(self, 'change_mode', expand=True)
+        # auto bake mode
+        layout.prop(self, 'change_auto_bake_mode')
+        row = layout.row()
+        row.active = self.change_auto_bake_mode
+        row.prop(self, 'auto_bake_mode', expand=True)
+        # custom thresholds
+        layout.prop(self, 'change_use_custom_thresholds')
+        row = layout.row()
+        row.active = self.change_use_custom_thresholds
+        row.prop(self, 'use_custom_threshold', toggle=True)
+        # location
+        layout.prop(self, 'change_location_threshold')
+        row = layout.row()
+        row.active = self.change_location_threshold
+        row.prop(self, 'value_location_threshold')
+        # rotation
+        layout.prop(self, 'change_rotation_threshold')
+        row = layout.row()
+        row.active = self.change_rotation_threshold
+        row.prop(self, 'value_rotation_threshold')
+
+    def execute(self, context):
+        actions = set()
+        if self.change_mode == 'active':
+            obj = context.object
+            if obj.animation_data:
+                if obj.animation_data.action:
+                    actions.add(obj.animation_data.action)
+        elif self.change_mode == 'selected':
+            for obj in context.selected_objects:
+                for motion in obj.xray.motions_collection:
+                    action = bpy.data.actions.get(motion.name)
+                    if action:
+                        actions.add(action)
+        elif self.change_mode == 'all':
+            for action in bpy.data.actions:
+                actions.add(action)
+        for action in actions:
+            xray = action.xray
+            # mode
+            if self.change_auto_bake_mode:
+                xray.autobake = self.auto_bake_mode
+            # custom thresholds
+            if self.change_use_custom_thresholds:
+                xray.autobake_custom_refine = self.use_custom_threshold
+            # location
+            if self.change_location_threshold:
+                xray.autobake_refine_location = self.value_location_threshold
+            # rotation
+            if self.change_rotation_threshold:
+                xray.autobake_refine_rotation = self.value_rotation_threshold
+        self.report({'INFO'}, 'Changed {} action(s)'.format(len(actions)))
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
 classes = (
     XRayCopyActionSettingsOperator,
-    XRayPasteActionSettingsOperator
+    XRayPasteActionSettingsOperator,
+    XRAY_OT_ChangeActionBakeSettings
 )
 
 
 def register():
+    version_utils.assign_props([
+        (change_action_bake_settings_props, XRAY_OT_ChangeActionBakeSettings),
+    ])
     for operator in classes:
         bpy.utils.register_class(operator)
 

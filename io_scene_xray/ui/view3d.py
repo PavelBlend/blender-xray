@@ -7,7 +7,7 @@ from . import collapsible, icons
 from .base import XRayPanel, build_label
 from ..skls_browser import UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
 from .. import prefs, plugin
-from ..ops import custom_props_utils
+from ..ops import custom_props_utils, action_utils
 from ..version_utils import IS_28, assign_props, layout_split
 from ..obj.imp import ops as obj_imp_ops
 from ..obj.exp import ops as obj_exp_ops
@@ -103,8 +103,8 @@ class XRayColorizeMaterials(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
-    bl_label = build_label('Material')
+class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
+    bl_label = build_label('Batch Tools')
     bl_category = 'XRay'
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
@@ -126,6 +126,8 @@ class XRAY_PT_MaterialToolsPanel(bpy.types.Panel):
         operator.power = data.materials_colorize_color_power
         column.prop(data, 'materials_colorize_random_seed', text='Seed')
         column.prop(data, 'materials_colorize_color_power', text='Power', slider=True)
+
+        layout.operator(action_utils.XRAY_OT_ChangeActionBakeSettings.bl_idname)
 
         collapsible_text = 'Material Converter'
         if IS_28:
@@ -316,7 +318,7 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
 classes = (
     VIEW3D_PT_skls_animations,
     XRayColorizeMaterials,
-    XRAY_PT_MaterialToolsPanel,
+    XRAY_PT_BatchToolsPanel,
     XRAY_PT_CustomPropertiesUtilsPanel,
     XRAY_PT_ImportPluginsPanel,
     XRAY_PT_ExportPluginsPanel
