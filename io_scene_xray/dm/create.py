@@ -261,7 +261,7 @@ def read_mesh_data(packed_reader, det_model):
     for _ in range(det_model.mesh.vertices_count):
         vertex = packed_reader.getp(S_FFFFF)    # x, y, z, u, v
         vertices.append((vertex[0], vertex[2], vertex[1]))
-        uvs.append((vertex[3], vertex[4]))
+        uvs.append((vertex[3], 1 - vertex[4]))
 
     # read triangles indices
     S_HHH = xray_io.PackedReader.prep('HHH')

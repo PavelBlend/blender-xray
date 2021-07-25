@@ -41,31 +41,17 @@ def export(bpy_obj, packed_writer, context, fpath, mode='DM'):
     indices = []
     vmap = {}
 
-    if mode == 'DM':
-        for face in b_mesh.faces:
-            _ = []
-            for loop in face.loops:
-                uv = loop[bml_uv].uv
-                vtx = (loop.vert.co.to_tuple(), (uv[0], uv[1]))
-                vi = vmap.get(vtx)
-                if vi is None:
-                    vmap[vtx] = vi = len(vertices)
-                    vertices.append(vtx)
-                _.append(vi)
-            indices.append(_)
-
-    else:
-        for face in b_mesh.faces:
-            _ = []
-            for loop in face.loops:
-                uv = loop[bml_uv].uv
-                vtx = (loop.vert.co.to_tuple(), (uv[0], 1 - uv[1]))
-                vi = vmap.get(vtx)
-                if vi is None:
-                    vmap[vtx] = vi = len(vertices)
-                    vertices.append(vtx)
-                _.append(vi)
-            indices.append(_)
+    for face in b_mesh.faces:
+        _ = []
+        for loop in face.loops:
+            uv = loop[bml_uv].uv
+            vtx = (loop.vert.co.to_tuple(), (uv[0], 1 - uv[1]))
+            vi = vmap.get(vtx)
+            if vi is None:
+                vmap[vtx] = vi = len(vertices)
+                vertices.append(vtx)
+            _.append(vi)
+        indices.append(_)
 
     vertices_count = len(vertices)
     if vertices_count > fmt.VERTICES_COUNT_LIMIT:
