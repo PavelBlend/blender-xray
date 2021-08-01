@@ -1,6 +1,7 @@
 import bpy
+from mathutils import Color
 
-from ..version_utils import IS_28, IMAGE_NODES
+from ..version_utils import IS_28, IMAGE_NODES, assign_props
 from .. import utils
 
 
@@ -204,6 +205,56 @@ class MATERIAL_OT_xray_convert_to_cycles(bpy.types.Operator):
         return {'FINISHED'}
 
 
+xray_colorize_materials_props = {
+    'seed': bpy.props.IntProperty(min=0, max=255),
+    'power': bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0)
+}
+
+
+class MATERIAL_OT_colorize_materials(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.colorize_materials'
+    bl_label = 'Colorize Materials'
+    bl_description = 'Set a pseudo-random diffuse color for each surface (material)'
+
+    if not IS_28:
+        for prop_name, prop_value in xray_colorize_materials_props.items():
+            exec('{0} = xray_colorize_materials_props.get("{0}")'.format(prop_name))
+
+    def execute(self, context):
+        from zlib import crc32
+
+        objects = context.selected_objects
+        if not objects:
+            self.report({'ERROR'}, 'No objects selected')
+            return {'CANCELLED'}
+
+        xr_data = context.scene.xray
+        self.seed = xr_data.materials_colorize_random_seed
+        self.power = xr_data.materials_colorize_color_power
+        materials = set()
+        for obj in objects:
+            for slot in obj.material_slots:
+                materials.add(slot.material)
+
+        for mat in materials:
+            if not mat:
+                continue
+            data = bytearray(mat.name, 'utf8')
+            data.append(self.seed)
+            hsh = crc32(data)
+            color = Color()
+            color.hsv = (
+                (hsh & 0xFF) / 0xFF,
+                (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * self.power,
+                ((hsh >> 2) & 1) * (0.5 * self.power) + 0.5
+            )
+            color = [color.r, color.g, color.b]
+            if IS_28:
+                color.append(1.0)    # alpha
+            mat.diffuse_color = color
+        return {'FINISHED'}
+
+
 classes = (
     MATERIAL_OT_xray_convert_to_cycles,
     MATERIAL_OT_xray_convert_to_internal,
@@ -212,6 +263,8 @@ classes = (
 
 
 def register():
+    assign_props([(xray_colorize_materials_props, MATERIAL_OT_colorize_materials), ])
+    bpy.utils.register_class(MATERIAL_OT_colorize_materials)
     if not IS_28:
         for operator in classes:
             bpy.utils.register_class(operator)
@@ -221,3 +274,4 @@ def unregister():
     if not IS_28:
         for operator in reversed(classes):
             bpy.utils.unregister_class(operator)
+    bpy.utils.unregister_class(MATERIAL_OT_colorize_materials)
