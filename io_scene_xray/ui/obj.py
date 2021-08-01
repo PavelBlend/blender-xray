@@ -7,12 +7,6 @@ from .. import plugin_prefs, prefs
 from ..utils import is_helper_object
 from ..details import ui as det_ui
 from ..version_utils import assign_props, IS_28, layout_split
-from ..ops.transform_utils import (
-    XRAY_OT_UpdateXRayObjectTranforms,
-    XRAY_OT_UpdateBlenderObjectTranforms,
-    XRAY_OT_CopyObjectTranforms
-)
-from ..ops import xray_camera
 
 
 items = (
@@ -326,22 +320,6 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
                     ogf_box.prop(data.level, 'attenuation_2')
                     ogf_box.prop(data.level, 'theta')
                     ogf_box.prop(data.level, 'phi')
-
-        row, box = collapsible.draw(
-            layout,
-            'object:utils',
-            'Utils'
-        )
-        if box:
-            box.label(text='X-Ray Engine Transforms:')
-            box.prop(data, 'position')
-            box.prop(data, 'orientation')
-            column = box.column(align=True)
-            column.operator(XRAY_OT_UpdateBlenderObjectTranforms.bl_idname)
-            column.operator(XRAY_OT_UpdateXRayObjectTranforms.bl_idname)
-            column.operator(XRAY_OT_CopyObjectTranforms.bl_idname)
-            box.label(text='X-Ray Engine Camera:')
-            box.operator(xray_camera.XRAY_OT_AddCamera.bl_idname)
 
 
 classes = (

@@ -21,6 +21,12 @@ from ..ogf import ops as ogf_ops
 from ..omf import ops as omf_ops
 from ..scene import ops as scene_ops
 from ..skl import ops as skl_ops
+from ..ops.transform_utils import (
+    XRAY_OT_UpdateXRayObjectTranforms,
+    XRAY_OT_UpdateBlenderObjectTranforms,
+    XRAY_OT_CopyObjectTranforms
+)
+from ..ops import xray_camera
 
 
 class VIEW3D_PT_skls_animations(XRayPanel):
@@ -101,6 +107,54 @@ class XRayColorizeMaterials(bpy.types.Operator):
                 color.append(1.0)    # alpha
             mat.diffuse_color = color
         return {'FINISHED'}
+
+
+class XRAY_PT_TransformsPanel(bpy.types.Panel):
+    bl_label = build_label('Transforms')
+    bl_category = 'XRay'
+    bl_space_type = 'VIEW_3D'
+    bl_options = {'DEFAULT_CLOSED'}
+    if IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    def draw_header(self, _context):
+        icon = icons.get_stalker_icon()
+        self.layout.label(icon_value=icon)
+
+    def draw(self, context):
+        lay = self.layout
+        if not context.object:
+            lay.label(text='No selected objects!', icon='ERROR')
+            return
+        data = context.object.xray
+        column = lay.column()
+        column.prop(data, 'position')
+        column.prop(data, 'orientation')
+        column = lay.column(align=True)
+        column.operator(XRAY_OT_UpdateBlenderObjectTranforms.bl_idname)
+        column.operator(XRAY_OT_UpdateXRayObjectTranforms.bl_idname)
+        column.operator(XRAY_OT_CopyObjectTranforms.bl_idname)
+
+
+class XRAY_PT_AddPanel(bpy.types.Panel):
+    bl_label = build_label('Add')
+    bl_category = 'XRay'
+    bl_space_type = 'VIEW_3D'
+    bl_options = {'DEFAULT_CLOSED'}
+    if IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    def draw_header(self, _context):
+        icon = icons.get_stalker_icon()
+        self.layout.label(icon_value=icon)
+
+    def draw(self, context):
+        lay = self.layout
+        lay.operator(xray_camera.XRAY_OT_AddCamera.bl_idname)
 
 
 class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
@@ -318,6 +372,8 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
 classes = (
     VIEW3D_PT_skls_animations,
     XRayColorizeMaterials,
+    XRAY_PT_TransformsPanel,
+    XRAY_PT_AddPanel,
     XRAY_PT_BatchToolsPanel,
     XRAY_PT_CustomPropertiesUtilsPanel,
     XRAY_PT_ImportPluginsPanel,
