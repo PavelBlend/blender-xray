@@ -30,7 +30,10 @@ class XRAY_OT_AddCamera(bpy.types.Operator):
         camera_obj.rotation_euler = (math.pi / 2, 0, 0)
         camera_obj.scale = (1, 1, 1)
         # set camera settings
-        camera.display_size = 0.1
+        if version_utils.IS_28:
+            camera.display_size = 0.1
+        else:
+            camera.draw_size = 0.1
         camera.clip_start = 0.2
         camera.lens_unit = 'FOV'
         camera.sensor_fit = 'VERTICAL'
