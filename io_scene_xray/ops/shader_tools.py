@@ -1,6 +1,6 @@
 import bpy
 
-from . import convert_materials
+from . import material
 from .. import version_utils
 
 
@@ -11,7 +11,7 @@ class MATERIAL_OT_change_shader_params(bpy.types.Operator):
 
     def execute(self, context):
         scene = context.scene
-        materials = convert_materials.get_materials(context, scene)
+        materials = materials.get_materials(context, scene)
         for material in materials:
             if not material.node_tree:
                 continue

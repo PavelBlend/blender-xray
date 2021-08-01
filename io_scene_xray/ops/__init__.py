@@ -2,7 +2,7 @@ from . import (
     base,
     action_utils,
     armature_utils,
-    convert_materials,
+    material,
     custom_props_utils,
     fake_bones,
     joint_limits,
@@ -17,7 +17,7 @@ from . import (
 modules = (
     action_utils,
     armature_utils,
-    convert_materials,
+    material,
     custom_props_utils,
     fake_bones,
     joint_limits,
