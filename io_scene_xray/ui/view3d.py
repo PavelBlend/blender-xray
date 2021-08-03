@@ -4,7 +4,7 @@ import bpy
 # addon modules
 from . import collapsible, icons
 from .base import XRayPanel, build_label
-from ..skls_browser import UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
+from ..skls_browser import OpBrowseSklsFile, OpCloseSklsFile
 from .. import prefs, plugin
 from ..ops import custom_props_utils, action_utils, material
 from ..version_utils import IS_28, assign_props, layout_split
@@ -25,42 +25,78 @@ from ..ops.transform_utils import (
     XRAY_OT_UpdateBlenderObjectTranforms,
     XRAY_OT_CopyObjectTranforms
 )
-from ..ops import xray_camera
+from ..ops import xray_camera, verify_uv
 
 
-class VIEW3D_PT_skls_animations(XRayPanel):
+CATEGORY = 'X-Ray'
+
+
+class XRAY_PT_skls_animations(XRayPanel):
     'Contains open .skls file operator, animations list'
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_label = build_label('Skls File Browser')
+    bl_label = 'Skls Browser'
     bl_options = {'DEFAULT_CLOSED'}
+    bl_category = CATEGORY
     if IS_28:
-        bl_category = 'XRay'
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        if obj is None:
-            return False
-        if obj.type == 'ARMATURE':
-            return True
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
 
     def draw(self, context):
         layout = self.layout
 
+        obj = context.object
+        active = False
+        if not obj is None:
+            if obj.type == 'ARMATURE':
+                active = True
+        if not active:
+            layout.label(text='Active object is not Armature!', icon='ERROR')
         col = layout.column(align=True)
+        col.active = active
         col.operator(operator=OpBrowseSklsFile.bl_idname, text='Open skls file...')
-        if hasattr(context.object.xray, 'skls_browser'):
-            if len(context.object.xray.skls_browser.animations):
+        if not obj:
+            return
+        if hasattr(obj.xray, 'skls_browser'):
+            if len(obj.xray.skls_browser.animations):
                 layout.operator(OpCloseSklsFile.bl_idname)
-            layout.template_list(listtype_name='UI_UL_SklsList_item', list_id='compact',
-                dataptr=context.object.xray.skls_browser, propname='animations',
-                active_dataptr=context.object.xray.skls_browser, active_propname='animations_index', rows=5)
+            layout.template_list(
+                listtype_name='UI_UL_SklsList_item',
+                list_id='compact',
+                dataptr=obj.xray.skls_browser,
+                propname='animations',
+                active_dataptr=obj.xray.skls_browser,
+                active_propname='animations_index',
+                rows=5
+            )
+
+
+class XRAY_PT_VerifyToolsPanel(bpy.types.Panel):
+    bl_label = 'Verify'
+    bl_space_type = 'VIEW_3D'
+    bl_category = CATEGORY
+    bl_options = {'DEFAULT_CLOSED'}
+    if IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    def draw_header(self, _context):
+        icon = icons.get_stalker_icon()
+        self.layout.label(icon_value=icon)
+
+    def draw(self, context):
+        data = context.scene.xray
+        layout = self.layout
+        layout.operator(
+            verify_uv.XRayVerifyUVOperator.bl_idname,
+            icon='GROUP_UVS'
+        )
 
 
 class XRAY_PT_TransformsPanel(bpy.types.Panel):
-    bl_label = build_label('Transforms')
-    bl_category = 'XRay'
+    bl_label = 'Transforms'
+    bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
@@ -88,8 +124,8 @@ class XRAY_PT_TransformsPanel(bpy.types.Panel):
 
 
 class XRAY_PT_AddPanel(bpy.types.Panel):
-    bl_label = build_label('Add')
-    bl_category = 'XRay'
+    bl_label = 'Add'
+    bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
@@ -107,8 +143,8 @@ class XRAY_PT_AddPanel(bpy.types.Panel):
 
 
 class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
-    bl_label = build_label('Batch Tools')
-    bl_category = 'XRay'
+    bl_label = 'Batch Tools'
+    bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
@@ -166,8 +202,8 @@ class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
 
 
 class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
-    bl_label = build_label('Custom Properties')
-    bl_category = 'XRay'
+    bl_label = 'Custom Properties'
+    bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
@@ -209,8 +245,8 @@ class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
 
 
 class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
-    bl_label = build_label('Import')
-    bl_category = 'XRay'
+    bl_label = 'Import'
+    bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
@@ -221,7 +257,7 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         enabled_import_operators = plugin.get_enabled_operators(
-            plugin.import_draw_functions, plugin.import_draw_functions_28
+            plugin.import_draw_functions
         )
         return bool(enabled_import_operators)
 
@@ -257,7 +293,7 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
         if preferences.enable_omf_import:
             lay.operator(omf_ops.IMPORT_OT_xray_omf.bl_idname, text='Omf')
         # level
-        if preferences.enable_game_level_import and IS_28:
+        if preferences.enable_game_level_import:
             lay.operator(level_ops.IMPORT_OT_xray_level.bl_idname, text='Level')
         # err
         if preferences.enable_err_import:
@@ -265,8 +301,8 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
 
 
 class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
-    bl_label = build_label('Export')
-    bl_category = 'XRay'
+    bl_label = 'Export'
+    bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
@@ -277,7 +313,7 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         enabled_export_operators = plugin.get_enabled_operators(
-            plugin.export_draw_functions, plugin.export_draw_functions_28
+            plugin.export_draw_functions
         )
         return bool(enabled_export_operators)
 
@@ -313,7 +349,7 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
         if preferences.enable_omf_export:
             lay.operator(omf_ops.EXPORT_OT_xray_omf.bl_idname, text='Omf')
         # level
-        if preferences.enable_game_level_export and IS_28:
+        if preferences.enable_game_level_export:
             lay.operator(level_ops.EXPORT_OT_xray_level.bl_idname, text='Level')
         # ogf
         if preferences.enable_ogf_export:
@@ -321,9 +357,10 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
 
 
 classes = (
-    VIEW3D_PT_skls_animations,
+    XRAY_PT_skls_animations,
     XRAY_PT_TransformsPanel,
     XRAY_PT_AddPanel,
+    XRAY_PT_VerifyToolsPanel,
     XRAY_PT_BatchToolsPanel,
     XRAY_PT_CustomPropertiesUtilsPanel,
     XRAY_PT_ImportPluginsPanel,
