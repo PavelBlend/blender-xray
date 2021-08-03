@@ -8,10 +8,10 @@ import mathutils
 # addon modules
 from . import utils as level_utils, fmt
 from .. import version_utils
-from .. import utils
 
 
-LEVEL_COLLECTION_NAME = 'Level'
+# level collection names
+LEVEL_MAIN_COLLECTION_NAME = 'Level'
 LEVEL_VISUALS_COLLECTION_NAME = 'Visuals'
 LEVEL_CFORM_COLLECTION_NAME = 'CForm'
 LEVEL_GLOWS_COLLECTION_NAME = 'Glows'
@@ -19,7 +19,7 @@ LEVEL_LIGHTS_COLLECTION_NAME = 'Lights'
 LEVEL_PORTALS_COLLECTION_NAME = 'Portals'
 LEVEL_SECTORS_COLLECTION_NAME = 'Sectors'
 
-LEVEL_COLLECTIONS_NAMES = (
+LEVEL_COLLECTION_NAMES = (
     LEVEL_VISUALS_COLLECTION_NAME,
     LEVEL_CFORM_COLLECTION_NAME,
     LEVEL_GLOWS_COLLECTION_NAME,
@@ -28,7 +28,7 @@ LEVEL_COLLECTIONS_NAMES = (
     LEVEL_SECTORS_COLLECTION_NAME
 )
 
-# visuals collections
+# visuals collection names
 LEVEL_VISUALS_NORMAL_COLLECTION_NAME = 'Normal'
 LEVEL_VISUALS_HIERRARHY_COLLECTION_NAME = 'Hierrarhy'
 LEVEL_VISUALS_PROGRESSIVE_COLLECTION_NAME = 'Progressive'
@@ -36,7 +36,7 @@ LEVEL_VISUALS_LOD_COLLECTION_NAME = 'LoD'
 LEVEL_VISUALS_TREE_PM_COLLECTION_NAME = 'Tree Progressive'
 LEVEL_VISUALS_TREE_ST_COLLECTION_NAME = 'Tree Static'
 
-LEVEL_VISUALS_COLLECTIONS_NAMES = (
+LEVEL_VISUALS_COLLECTION_NAMES = (
     LEVEL_VISUALS_NORMAL_COLLECTION_NAME,
     LEVEL_VISUALS_HIERRARHY_COLLECTION_NAME,
     LEVEL_VISUALS_PROGRESSIVE_COLLECTION_NAME,
@@ -45,7 +45,7 @@ LEVEL_VISUALS_COLLECTIONS_NAMES = (
     LEVEL_VISUALS_TREE_ST_COLLECTION_NAME
 )
 
-LEVEL_COLLECTIONS_NAMES_TABLE = {
+LEVEL_VISUALS_COLLECTION_NAMES_TABLE = {
     'normal': LEVEL_VISUALS_NORMAL_COLLECTION_NAME,
     'hierrarhy': LEVEL_VISUALS_HIERRARHY_COLLECTION_NAME,
     'progressive': LEVEL_VISUALS_PROGRESSIVE_COLLECTION_NAME,
@@ -75,11 +75,6 @@ def create_sectors_object(level_collection):
     return sectors_object
 
 
-def create_level_objects(level, level_collection):
-    level_object = create_level_object(level, level_collection)
-    return level_object
-
-
 def create_collection(collection_name, parent_collection):
     collection = bpy.data.collections.new(collection_name)
     parent_collection.children.link(collection)
@@ -87,19 +82,20 @@ def create_collection(collection_name, parent_collection):
 
 
 def create_level_collections(level):
+    # create main collection
     level_collection = create_collection(
         level.name, bpy.context.scene.collection
     )
-    level.collections[LEVEL_COLLECTION_NAME] = level_collection
+    level.collections[LEVEL_MAIN_COLLECTION_NAME] = level_collection
 
-    for collection_name in LEVEL_COLLECTIONS_NAMES:
-        collection = create_collection(
-            collection_name, level_collection
-        )
+    # create level collections
+    for collection_name in LEVEL_COLLECTION_NAMES:
+        collection = create_collection(collection_name, level_collection)
         level.collections[collection_name] = collection
 
+    # create visuals collections
     visuals_collection = level.collections[LEVEL_VISUALS_COLLECTION_NAME]
-    for collection_name in LEVEL_VISUALS_COLLECTIONS_NAMES:
+    for collection_name in LEVEL_VISUALS_COLLECTION_NAMES:
         collection = create_collection(collection_name, visuals_collection)
         level.collections[collection_name] = collection
 
@@ -126,14 +122,12 @@ def create_shader_output_node(bpy_material, offset):
 
 
 def create_shader_principled_node(bpy_material, offset):
-    principled_node = bpy_material.node_tree.nodes.new(
-        'ShaderNodeBsdfPrincipled'
-    )
-    principled_node.select = False
-    principled_node.inputs['Specular'].default_value = 0.0
+    node = bpy_material.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+    node.select = False
+    node.inputs['Specular'].default_value = 0.0
     offset.x += 400.0
-    principled_node.location = offset
-    return principled_node
+    node.location = offset
+    return node
 
 
 def create_shader_uv_map_texture_node(bpy_material, offset):
@@ -195,7 +189,8 @@ def create_shader_nodes(level, bpy_material, bpy_image, bpy_image_lmaps):
     else:
         lmaps_count = 0
     links_nodes(
-        bpy_material, output_node, principled_node, image_node,
+        bpy_material, output_node,
+        principled_node, image_node,
         uv_map_node, lmaps_count
     )
 
@@ -270,9 +265,7 @@ def search_image(context, texture, absolute_texture_path):
 
 
 def find_image_lmap(context, lmap, level_dir):
-    absolute_lmap_path = get_absolute_texture_path(
-        level_dir, lmap
-    )
+    absolute_lmap_path = get_absolute_texture_path(level_dir, lmap)
     bpy_image = search_image(context, lmap, absolute_lmap_path)
     if not bpy_image:
         bpy_image = create_image(context, lmap, absolute_lmap_path)
@@ -334,7 +327,7 @@ def is_same_light_maps(context, bpy_material, light_maps):
         node = bpy_material.node_tree.nodes.get(node_name)
         if not node:
             continue
-        if node.type == 'TEX_IMAGE':
+        if node.type in version_utils.IMAGE_NODES:
             bpy_image = node.image
             if not bpy_image:
                 continue

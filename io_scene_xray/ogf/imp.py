@@ -937,7 +937,7 @@ def import_model_v4(chunks, visual, level):
     data.is_ogf = True
 
     scene_collection = bpy.context.scene.collection
-    collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
+    collection_name = level_create.LEVEL_VISUALS_COLLECTION_NAMES_TABLE[visual.name]
     collection = level.collections[collection_name]
     collection.objects.link(bpy_obj)
     scene_collection.objects.unlink(bpy_obj)
@@ -1000,7 +1000,7 @@ def import_model_v3(chunks, visual, level):
     data.is_ogf = True
 
     scene_collection = bpy.context.scene.collection
-    collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
+    collection_name = level_create.LEVEL_VISUALS_COLLECTION_NAMES_TABLE[visual.name]
     collection = level.collections[collection_name]
     collection.objects.link(bpy_obj)
     scene_collection.objects.unlink(bpy_obj)
@@ -1025,7 +1025,7 @@ def import_model_v2(chunks, visual, level):
     data.is_ogf = True
 
     scene_collection = bpy.context.scene.collection
-    collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
+    collection_name = level_create.LEVEL_VISUALS_COLLECTION_NAMES_TABLE[visual.name]
     collection = level.collections[collection_name]
     collection.objects.link(bpy_obj)
     scene_collection.objects.unlink(bpy_obj)
