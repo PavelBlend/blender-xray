@@ -618,8 +618,6 @@ MAX_LEVEL_SIZE = 1024 * 1024 * 32    # 32 MB
 
 
 def import_file(context, operator):
-    build = context.filepath[48 : 48 + 4]
-    index = context.filepath[36 : 36 + 2]
     level = Level()
     level.context = context
     level.usage_list = set()
@@ -627,21 +625,28 @@ def import_file(context, operator):
     chunked_reader = level_utils.get_level_reader(context.filepath)
     level.name = level_utils.get_level_name(context.filepath)
     level.xrlc_version = get_version(chunked_reader.next(fmt.HEADER))
-    temp_folder = 'E:\\stalker\\_TEMP\\utils\\level_format_stats\\'
-    stats_name = '{0:0>2}_{1}_{2}_{3}.txt'.format(
-        level.xrlc_version, build, level.name, index
-    )
-    if len(chunked_reader._ChunkedReader__data) > MAX_LEVEL_SIZE and TEST_MODE:
-        print('skip big level:', stats_name)
-        return
-    stats_path = os.path.join(temp_folder, stats_name)
-    if os.path.exists(stats_path) and TEST_MODE:
-        print('skip:', stats_name)
-        return
+
+    # test code
     if TEST_MODE:
+        build = context.filepath[48 : 48 + 4]
+        index = context.filepath[36 : 36 + 2]
+        temp_folder = 'E:\\stalker\\_TEMP\\utils\\level_format_stats\\'
+        stats_name = '{0:0>2}_{1}_{2}_{3}.txt'.format(
+            level.xrlc_version, build, level.name, index
+        )
+        if len(chunked_reader._ChunkedReader__data) > MAX_LEVEL_SIZE:
+            print('skip big level:', stats_name)
+            return
+        stats_path = os.path.join(temp_folder, stats_name)
+        if os.path.exists(stats_path):
+            print('skip:', stats_name)
+            return
         print(build, index, level.name)
+
     level.path = os.path.dirname(context.filepath)
     import_main(context, chunked_reader, level)
+
+    # test code
     if TEST_MODE:
         stats = '\nOGFs Info:\n'
         for key in level.visual_keys:
