@@ -7,7 +7,7 @@ import bpy
 import bmesh
 
 # addon modules
-from .. import xray_io, utils, plugin_prefs, prefs
+from .. import xray_io, utils, prefs
 from . import fmt, create
 
 
@@ -31,8 +31,8 @@ def import_main(context, level, data=None):
     bbox_max = packed_reader.getf('<3f')
 
     # read verts
-    S_FFF = xray_io.PackedReader.prep('fff')
-    verts = [packed_reader.getp(S_FFF) for _ in range(verts_count)]
+    prep_fff = xray_io.PackedReader.prep('fff')
+    verts = [packed_reader.getp(prep_fff) for _ in range(verts_count)]
 
     # read game materials
     preferences = prefs.utils.get_preferences()
@@ -48,8 +48,7 @@ def import_main(context, level, data=None):
 
     sectors_tris = {}
     sectors_verts = {}
-    # unique sectors materials
-    sectors_mats = {}
+    sectors_mats = {}    # unique sectors materials
     tris = []
     unique_materials = set()
 
@@ -74,7 +73,7 @@ def import_main(context, level, data=None):
             sectors_mats[sector].add((mat_id, shadows, wallmarks))
 
     # version 2 or 3
-    elif version in (fmt.CFORM_VERSION_3, fmt.CFORM_VERSION_2):
+    elif version in (fmt.CFORM_VERSION_2, fmt.CFORM_VERSION_3):
         for tris_index in range(tris_count):
             (
                 vert_1, vert_2, vert_3,
@@ -93,11 +92,10 @@ def import_main(context, level, data=None):
             sectors_verts[sector].update((vert_1, vert_2, vert_3))
             sectors_mats[sector].add((mat_id, shadows, wallmarks))
 
-    # sort sector materials
-    for sector_index, sector_materials in sectors_mats.items():
-        sector_materials = list(sector_materials)
-        sector_materials.sort()
-        sectors_mats[sector_index] = sector_materials
+    # sector sets to lists
+    for sector_index in sectors_tris.keys():
+        sectors_mats[sector_index] = list(sectors_mats[sector_index])
+        sectors_verts[sector_index] = list(sectors_verts[sector_index])
 
     # create bpy materials
     bpy_materials = {}
@@ -136,8 +134,6 @@ def import_main(context, level, data=None):
 
         # create verts
         sector_verts = sectors_verts[sector]
-        sector_verts = list(sector_verts)
-        sector_verts.sort()
         bm = bmesh.new()
         current_vertex_index = 0
         remap_verts = {}
@@ -152,10 +148,8 @@ def import_main(context, level, data=None):
 
         # create tris
 
-        # two sided tris
-        tris_2 = []
-        # two sided verts
-        verts_2 = set()
+        tris_2 = []    # two sided tris
+        verts_2 = set()    # two sided verts
         for tris_index in triangles:
             vert_1, vert_2, vert_3, mat_id, shadow, wm = tris[tris_index]
             try:
@@ -175,7 +169,7 @@ def import_main(context, level, data=None):
         # create two sided verts
         current_vertex_index = vertices_count
         remap_vertices = {}
-        for vertex_index in sorted(list(verts_2)):
+        for vertex_index in verts_2:
             vert_co = verts[vertex_index]
             bm.verts.new((vert_co[0], vert_co[2], vert_co[1]))
             remap_vertices[vertex_index] = current_vertex_index
