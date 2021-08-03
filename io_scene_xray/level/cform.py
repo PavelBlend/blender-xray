@@ -31,10 +31,8 @@ def import_main(context, level, data=None):
     bbox_max = packed_reader.getf('<3f')
 
     # read verts
-    verts = []
-    for vert_index in range(verts_count):
-        vert_co_x, vert_co_y, vert_co_z = packed_reader.getf('<3f')
-        verts.append((vert_co_x, vert_co_z, vert_co_y))
+    S_FFF = xray_io.PackedReader.prep('fff')
+    verts = [packed_reader.getp(S_FFF) for _ in range(verts_count)]
 
     # read game materials
     preferences = prefs.utils.get_preferences()
@@ -46,46 +44,54 @@ def import_main(context, level, data=None):
         for gmtl_name, _, gmtl_id in utils.parse_gamemtl(gmtl_data):
             game_mtl_names[gmtl_id] = gmtl_name
 
-    # read face code
-    if version == fmt.CFORM_VERSION_4:
-        code = ''
-        # sector index
-        code += 'material, sector = packed_reader.getf("<2H")\n'
-        code += 'globals()["sector"] = sector\n'
-        # 14 bit material id
-        code += 'globals()["mat_id"] = material & 0x3fff\n'
-        # 15 bit suppress shadows
-        code += 'globals()["shadows"] = bool((material & 0x4000) >> 14)\n'
-        # 16 bit suppress wallmarks
-        code += 'globals()["wallmarks"] = bool((material & 0x8000) >> 15)\n'
-    elif version in (fmt.CFORM_VERSION_3, fmt.CFORM_VERSION_2):
-        code = ''
-        code += 'packed_reader.skip(12 + 2)\n'    # ?
-        code += 'globals()["sector"] = packed_reader.getf("<H")[0]\n'
-        code += 'globals()["mat_id"] = packed_reader.getf("<I")[0]\n'
-        code += 'globals()["shadows"] = False\n'
-        code += 'globals()["wallmarks"] = False\n'
-
     # read tris
+
     sectors_tris = {}
     sectors_verts = {}
     # unique sectors materials
     sectors_mats = {}
     tris = []
     unique_materials = set()
-    for tris_index in range(tris_count):
-        vert_1, vert_2, vert_3 = packed_reader.getf('<3I')
-        exec(code)
-        global mat_id, sector, shadows, wallmarks
-        tris.append((vert_1, vert_2, vert_3, mat_id, shadows, wallmarks))
-        unique_materials.add((mat_id, shadows, wallmarks))
-        if not sectors_tris.get(sector):
-            sectors_tris[sector] = []
-            sectors_verts[sector] = set()
-            sectors_mats[sector] = set()
-        sectors_tris[sector].append(tris_index)
-        sectors_verts[sector].update((vert_1, vert_2, vert_3))
-        sectors_mats[sector].add((mat_id, shadows, wallmarks))
+
+    # version 4
+    if version == fmt.CFORM_VERSION_4:
+        for tris_index in range(tris_count):
+            vert_1, vert_2, vert_3, mat, sector = packed_reader.getf('<3I2H')
+            # 14 bit material id
+            mat_id = mat & 0x3fff
+            # 15 bit suppress shadows
+            shadows = bool((mat & 0x4000) >> 14)
+            # 16 bit suppress wallmarks
+            wallmarks = bool((mat & 0x8000) >> 15)
+            tris.append((vert_1, vert_2, vert_3, mat_id, shadows, wallmarks))
+            unique_materials.add((mat_id, shadows, wallmarks))
+            if not sectors_tris.get(sector):
+                sectors_tris[sector] = []
+                sectors_verts[sector] = set()
+                sectors_mats[sector] = set()
+            sectors_tris[sector].append(tris_index)
+            sectors_verts[sector].update((vert_1, vert_2, vert_3))
+            sectors_mats[sector].add((mat_id, shadows, wallmarks))
+
+    # version 2 or 3
+    elif version in (fmt.CFORM_VERSION_3, fmt.CFORM_VERSION_2):
+        for tris_index in range(tris_count):
+            (
+                vert_1, vert_2, vert_3,
+                _, _, _, _,
+                sector, mat_id
+            ) = packed_reader.getf('<6I2HI')
+            shadows = False
+            wallmarks = False
+            tris.append((vert_1, vert_2, vert_3, mat_id, shadows, wallmarks))
+            unique_materials.add((mat_id, shadows, wallmarks))
+            if not sectors_tris.get(sector):
+                sectors_tris[sector] = []
+                sectors_verts[sector] = set()
+                sectors_mats[sector] = set()
+            sectors_tris[sector].append(tris_index)
+            sectors_verts[sector].update((vert_1, vert_2, vert_3))
+            sectors_mats[sector].add((mat_id, shadows, wallmarks))
 
     # sort sector materials
     for sector_index, sector_materials in sectors_mats.items():
@@ -137,7 +143,7 @@ def import_main(context, level, data=None):
         remap_verts = {}
         for vert_index in sector_verts:
             vert_co = verts[vert_index]
-            bm.verts.new(vert_co)
+            bm.verts.new((vert_co[0], vert_co[2], vert_co[1]))
             remap_verts[vert_index] = current_vertex_index
             current_vertex_index += 1
         vertices_count = current_vertex_index
@@ -171,7 +177,7 @@ def import_main(context, level, data=None):
         remap_vertices = {}
         for vertex_index in sorted(list(verts_2)):
             vert_co = verts[vertex_index]
-            bm.verts.new(vert_co)
+            bm.verts.new((vert_co[0], vert_co[2], vert_co[1]))
             remap_vertices[vertex_index] = current_vertex_index
             current_vertex_index += 1
         bm.verts.ensure_lookup_table()
