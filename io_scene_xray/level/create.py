@@ -63,6 +63,8 @@ def create_object(object_name, object_data):
 def create_level_object(level, level_collection):
     level_object = create_object(level.name, None)
     level_collection.objects.link(level_object)
+    if not version_utils.IS_28:
+        version_utils.link_object(level_object)
     level_object.xray.is_level = True
     level_object.xray.level.object_type = 'LEVEL'
     level_object.xray.level.source_path = level.path
@@ -72,19 +74,28 @@ def create_level_object(level, level_collection):
 def create_sectors_object(level_collection):
     sectors_object = create_object('sectors', None)
     level_collection.objects.link(sectors_object)
+    if not version_utils.IS_28:
+        version_utils.link_object(sectors_object)
     return sectors_object
 
 
 def create_collection(collection_name, parent_collection):
-    collection = bpy.data.collections.new(collection_name)
-    parent_collection.children.link(collection)
+    if version_utils.IS_28:
+        collection = bpy.data.collections.new(collection_name)
+        parent_collection.children.link(collection)
+    else:
+        collection = bpy.data.groups.new(collection_name)
     return collection
 
 
 def create_level_collections(level):
+    if version_utils.IS_28:
+        scene_collection = bpy.context.scene.collection
+    else:
+        scene_collection = None
     # create main collection
     level_collection = create_collection(
-        level.name, bpy.context.scene.collection
+        level.name, scene_collection
     )
     level.collections[LEVEL_MAIN_COLLECTION_NAME] = level_collection
 
@@ -322,22 +333,15 @@ def is_same_light_maps(context, bpy_material, light_maps):
         absolute_texture_path_in_level_folder = get_absolute_texture_path(
             level_dir, light_map
         )
-        has_correct_lmap_image = False
-        node_name = getattr(bpy_material.xray, 'lmap_{}'.format(index))
-        node = bpy_material.node_tree.nodes.get(node_name)
-        if not node:
+        image_name = getattr(bpy_material.xray, 'lmap_{}'.format(index))
+        bpy_image = bpy.data.images.get(image_name)
+        if not bpy_image:
             continue
-        if node.type in version_utils.IMAGE_NODES:
-            bpy_image = node.image
-            if not bpy_image:
-                continue
-            if not is_same_image_paths(
-                    bpy_image, absolute_texture_path_in_level_folder
-                ):
-                continue
-            has_correct_lmap_image = True
-        if has_correct_lmap_image:
-            has_images.append(has_correct_lmap_image)
+        if not is_same_image_paths(
+                bpy_image, absolute_texture_path_in_level_folder
+            ):
+            continue
+        has_images.append(True)
     if len(has_images) == len(light_maps):
         return True
 
@@ -350,9 +354,25 @@ def is_same_image(context, bpy_material, texture):
     absolute_texture_path_in_level_folder = get_absolute_texture_path(
         level_dir, texture
     )
-    for node in bpy_material.node_tree.nodes:
-        if node.type in version_utils.IMAGE_NODES:
-            bpy_image = node.image
+    if version_utils.IS_28:
+        for node in bpy_material.node_tree.nodes:
+            if node.type in version_utils.IMAGE_NODES:
+                bpy_image = node.image
+                if not bpy_image:
+                    continue
+                if not is_same_image_paths(bpy_image, absolute_texture_path):
+                    if not is_same_image_paths(
+                            bpy_image, absolute_texture_path_in_level_folder
+                        ):
+                        continue
+                return bpy_image
+    else:
+        for texture_slot in bpy_material.texture_slots:
+            if not texture_slot:
+                continue
+            if not hasattr(texture_slot.texture, 'image'):
+                continue
+            bpy_image = texture_slot.texture.image
             if not bpy_image:
                 continue
             if not is_same_image_paths(bpy_image, absolute_texture_path):
@@ -404,9 +424,23 @@ def create_material(level, context, texture, engine_shader, *light_maps):
         bpy_material.xray.light_vert_color = 'Light'
         bpy_material.xray.sun_vert_color = 'Sun'
     bpy_material.xray.hemi_vert_color = 'Hemi'
-    set_material_settings(bpy_material)
-    remove_default_shader_nodes(bpy_material)
-    create_shader_nodes(level, bpy_material, bpy_image, bpy_image_lmaps)
+    if version_utils.IS_28:
+        set_material_settings(bpy_material)
+        remove_default_shader_nodes(bpy_material)
+        create_shader_nodes(level, bpy_material, bpy_image, bpy_image_lmaps)
+    else:
+        tex_slot = bpy_material.texture_slots.add()
+        # find texture
+        bpy_texture = None
+        for tex in bpy.data.textures:
+            if hasattr(tex, 'image'):
+                image_path = bpy.path.abspath(tex.image.filepath)
+                if is_same_image_paths(bpy_image, image_path):
+                    bpy_texture = tex
+        if not bpy_texture:
+            bpy_texture = bpy.data.textures.new(texture, 'IMAGE')
+            bpy_texture.image = bpy_image
+        tex_slot.texture = bpy_texture
     return bpy_material
 
 

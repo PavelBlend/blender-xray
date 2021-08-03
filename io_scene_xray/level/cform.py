@@ -7,7 +7,7 @@ import bpy
 import bmesh
 
 # addon modules
-from .. import xray_io, utils, prefs
+from .. import xray_io, utils, prefs, version_utils
 from . import fmt, create
 
 
@@ -211,6 +211,8 @@ def import_main(context, level, data=None):
         bpy_obj.xray.level.object_type = 'CFORM'
         collection = level.collections[create.LEVEL_CFORM_COLLECTION_NAME]
         collection.objects.link(bpy_obj)
+        if not version_utils.IS_28:
+            version_utils.link_object(bpy_obj)
 
     # statistics
     STATISTICS = False

@@ -1,8 +1,10 @@
 import math
 
-import bpy, mathutils, bmesh
+import bpy
+import bmesh
+import mathutils
 
-from .. import xray_io
+from .. import xray_io, version_utils
 from ..level import (
     swi as imp_swi, create as level_create, shaders as level_shaders,
     fmt as level_fmt, vb as level_vb
@@ -77,7 +79,7 @@ def assign_material(bpy_object, visual, level):
 
 def create_object(name, obj_data):
     bpy_object = bpy.data.objects.new(name, obj_data)
-    bpy.context.scene.collection.objects.link(bpy_object)
+    version_utils.link_object(bpy_object)
     return bpy_object
 
 
@@ -861,22 +863,40 @@ def import_lod_visual(chunks, visual, level):
 
     bpy_mesh = bpy.data.meshes.new(visual.name)
     bpy_mesh.from_pydata(verts, (), faces)
-    uv_layer = bpy_mesh.uv_layers.new(name='Texture')
+    if version_utils.IS_28:
+        uv_layer = bpy_mesh.uv_layers.new(name='Texture')
+    else:
+        uv_texture = bpy_mesh.uv_textures.new(name='Texture')
+        uv_layer = bpy_mesh.uv_layers[uv_texture.name]
     rgb_color = bpy_mesh.vertex_colors.new(name='Light')
     hemi_color = bpy_mesh.vertex_colors.new(name='Hemi')
     sun_color = bpy_mesh.vertex_colors.new(name='Sun')
-    for face in bpy_mesh.polygons:
-        for loop_index in face.loop_indices:
-            loop = bpy_mesh.loops[loop_index]
-            vert_index = loop.vertex_index
-            uv = uvs[vert_index]
-            rgb = lights['rgb'][vert_index]
-            hemi = lights['hemi'][vert_index]
-            sun = lights['sun'][vert_index]
-            uv_layer.data[loop.index].uv = uv
-            rgb_color.data[loop.index].color = rgb
-            hemi_color.data[loop.index].color = (hemi, hemi, hemi, 1.0)
-            sun_color.data[loop.index].color = (sun, sun, sun, 1.0)
+    if version_utils.IS_28:
+        for face in bpy_mesh.polygons:
+            for loop_index in face.loop_indices:
+                loop = bpy_mesh.loops[loop_index]
+                vert_index = loop.vertex_index
+                uv = uvs[vert_index]
+                rgb = lights['rgb'][vert_index]
+                hemi = lights['hemi'][vert_index]
+                sun = lights['sun'][vert_index]
+                uv_layer.data[loop.index].uv = uv
+                rgb_color.data[loop.index].color = rgb
+                hemi_color.data[loop.index].color = (hemi, hemi, hemi, 1.0)
+                sun_color.data[loop.index].color = (sun, sun, sun, 1.0)
+    else:
+        for face in bpy_mesh.polygons:
+            for loop_index in face.loop_indices:
+                loop = bpy_mesh.loops[loop_index]
+                vert_index = loop.vertex_index
+                uv = uvs[vert_index]
+                rgb = lights['rgb'][vert_index]
+                hemi = lights['hemi'][vert_index]
+                sun = lights['sun'][vert_index]
+                uv_layer.data[loop.index].uv = uv
+                rgb_color.data[loop.index].color = rgb[0 : 3]
+                hemi_color.data[loop.index].color = (hemi, hemi, hemi)
+                sun_color.data[loop.index].color = (sun, sun, sun)
     bpy_object = create_object(visual.name, bpy_mesh)
     assign_material(bpy_object, visual, level)
     bpy_object.xray.is_level = True
@@ -936,11 +956,12 @@ def import_model_v4(chunks, visual, level):
     data = bpy_obj.xray
     data.is_ogf = True
 
-    scene_collection = bpy.context.scene.collection
     collection_name = level_create.LEVEL_VISUALS_COLLECTION_NAMES_TABLE[visual.name]
     collection = level.collections[collection_name]
     collection.objects.link(bpy_obj)
-    scene_collection.objects.unlink(bpy_obj)
+    if version_utils.IS_28:
+        scene_collection = bpy.context.scene.collection
+        scene_collection.objects.unlink(bpy_obj)
     level.visuals.append(bpy_obj)
 
 
