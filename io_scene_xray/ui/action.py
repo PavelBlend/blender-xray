@@ -5,7 +5,7 @@ import bpy
 from .base import XRayPanel, build_label
 from ..skl.ops import OpExportSkl
 from ..ops import action_utils
-from .. import version_utils, plugin_prefs, prefs
+from .. import version_utils, prefs
 
 
 class XRAY_PT_ActionPanel(XRayPanel):

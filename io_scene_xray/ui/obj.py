@@ -260,7 +260,7 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
             preferences.enable_game_level_export
         )
 
-        if IS_28 and game_level_used:
+        if game_level_used:
             layout.prop(data, 'is_level', text='Level', toggle=True)
             if data.is_level:
                 ogf_box = layout.box()

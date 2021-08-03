@@ -5,8 +5,8 @@ import bpy
 from . import base
 from .dynamic_menu import XRayXrMenuTemplate, DynamicMenu
 from ..utils import parse_shaders, parse_shaders_xrlc, parse_gamemtl
-from ..version_utils import IS_28, layout_split
-from .. import plugin_prefs, prefs
+from ..version_utils import layout_split
+from .. import prefs
 
 
 class XRayEShaderMenu(XRayXrMenuTemplate):
@@ -50,41 +50,41 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
         _gen_xr_selector(layout, data, 'eshader', 'EShader')
         _gen_xr_selector(layout, data, 'cshader', 'CShader')
         _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
-        if IS_28:
-            preferences = prefs.utils.get_preferences()
-            panel_used = (
-                # import plugins
-                preferences.enable_game_level_import or
-                # export plugins
-                preferences.enable_game_level_export
-            )
-            if not panel_used:
-                return
-            def draw_level_prop(prop_name, prop_text, prop_type):
-                row = layout_split(box, 0.45)
-                row.label(text=prop_text)
-                if prop_type == 'NODES':
-                    row.prop_search(data, prop_name, material.node_tree, 'nodes', text='')
-                elif prop_type == 'VERTEX_COLOR':
-                    row.prop_search(data, prop_name, context.object.data, 'vertex_colors', text='')
-                elif prop_type == 'IMAGE':
-                    row.prop_search(data, prop_name, bpy.data, 'images', text='')
-                elif prop_type == 'UV':
-                    row.prop_search(data, prop_name, context.object.data, 'uv_layers', text='')
-            box = layout.box()
-            box.label(text='Level CForm:')
-            box.prop(data, 'suppress_shadows', text='Suppress Shadows')
-            box.prop(data, 'suppress_wm', text='Suppress Wallmarks')
 
-            box = layout.box()
-            box.label(text='Level Visual:')
-            draw_level_prop('uv_texture', 'Texture UV:', 'UV')
-            draw_level_prop('uv_light_map', 'Light Map UV:', 'UV')
-            draw_level_prop('lmap_0', 'Light Map 1:', 'IMAGE')
-            draw_level_prop('lmap_1', 'Light Map 2:', 'IMAGE')
-            draw_level_prop('light_vert_color', 'Light Vertex Color:', 'VERTEX_COLOR')
-            draw_level_prop('sun_vert_color', 'Sun Vertex Color:', 'VERTEX_COLOR')
-            draw_level_prop('hemi_vert_color', 'Hemi Vertex Color:', 'VERTEX_COLOR')
+        preferences = prefs.utils.get_preferences()
+        panel_used = (
+            # import plugins
+            preferences.enable_game_level_import or
+            # export plugins
+            preferences.enable_game_level_export
+        )
+        if not panel_used:
+            return
+        def draw_level_prop(prop_name, prop_text, prop_type):
+            row = layout_split(box, 0.45)
+            row.label(text=prop_text)
+            if prop_type == 'NODES':
+                row.prop_search(data, prop_name, material.node_tree, 'nodes', text='')
+            elif prop_type == 'VERTEX_COLOR':
+                row.prop_search(data, prop_name, context.object.data, 'vertex_colors', text='')
+            elif prop_type == 'IMAGE':
+                row.prop_search(data, prop_name, bpy.data, 'images', text='')
+            elif prop_type == 'UV':
+                row.prop_search(data, prop_name, context.object.data, 'uv_layers', text='')
+        box = layout.box()
+        box.label(text='Level CForm:')
+        box.prop(data, 'suppress_shadows', text='Suppress Shadows')
+        box.prop(data, 'suppress_wm', text='Suppress Wallmarks')
+
+        box = layout.box()
+        box.label(text='Level Visual:')
+        draw_level_prop('uv_texture', 'Texture UV:', 'UV')
+        draw_level_prop('uv_light_map', 'Light Map UV:', 'UV')
+        draw_level_prop('lmap_0', 'Light Map 1:', 'IMAGE')
+        draw_level_prop('lmap_1', 'Light Map 2:', 'IMAGE')
+        draw_level_prop('light_vert_color', 'Light Vertex Color:', 'VERTEX_COLOR')
+        draw_level_prop('sun_vert_color', 'Sun Vertex Color:', 'VERTEX_COLOR')
+        draw_level_prop('hemi_vert_color', 'Hemi Vertex Color:', 'VERTEX_COLOR')
 
 
 classes = (
