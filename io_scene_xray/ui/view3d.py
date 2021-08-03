@@ -50,8 +50,16 @@ class XRAY_PT_skls_animations(XRayPanel):
         if not obj is None:
             if obj.type == 'ARMATURE':
                 active = True
-        if not active:
-            layout.label(text='Active object is not Armature!', icon='ERROR')
+            else:
+                layout.label(
+                    text='Active object is not Armature!',
+                    icon='ERROR'
+                )
+        else:
+            layout.label(
+                text='No active object!',
+                icon='ERROR'
+            )
         col = layout.column(align=True)
         col.active = active
         col.operator(operator=OpBrowseSklsFile.bl_idname, text='Open skls file...')
@@ -111,7 +119,7 @@ class XRAY_PT_TransformsPanel(bpy.types.Panel):
     def draw(self, context):
         lay = self.layout
         if not context.object:
-            lay.label(text='No selected objects!', icon='ERROR')
+            lay.label(text='No active object!', icon='ERROR')
             return
         data = context.object.xray
         column = lay.column()
