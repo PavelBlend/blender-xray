@@ -21,6 +21,7 @@ class Level(object):
         self.xrlc_version = None
         self.xrlc_version_geom = None
         self.materials = None
+        self.images = None
         self.shaders = None
         self.textures = None
         self.vertex_buffers = None
@@ -520,7 +521,7 @@ def import_level(level, context, chunks, geomx_chunks):
     elif level.xrlc_version == fmt.VERSION_4:
         chunks_ids = fmt.Chunks4
     shaders_chunk_data = chunks.pop(chunks_ids.SHADERS)
-    level.materials = shaders.import_shaders(level, context, shaders_chunk_data)
+    level.materials, level.images = shaders.import_shaders(level, context, shaders_chunk_data)
     del shaders_chunk_data
 
     if level.xrlc_version <= fmt.VERSION_5:

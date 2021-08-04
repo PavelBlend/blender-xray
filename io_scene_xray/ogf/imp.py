@@ -324,6 +324,12 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
                         loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
                         current_loop += 1
 
+        if not version_utils.IS_28:
+            bpy_image = level.images[visual.shader_id]
+            texture_layer = mesh.faces.layers.tex.new('Texture')
+            for face in mesh.faces:
+                face[texture_layer].image = bpy_image
+
         # normals
         mesh.normal_update()
 
@@ -341,6 +347,7 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
         bpy_mesh = level.loaded_geometry[geometry_key]
 
     bpy_object = create_object(visual.name, bpy_mesh)
+    assign_material(bpy_object, visual, level)
     return bpy_object
 
 
@@ -652,7 +659,6 @@ def import_normal_visual(chunks, visual, level):
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
-        assign_material(bpy_object, visual, level)
         if visual.fastpath:
             bpy_object.xray.level.use_fastpath = True
         else:
@@ -728,7 +734,6 @@ def import_tree_st_visual(chunks, visual, level):
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
-        assign_material(bpy_object, visual, level)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(level, visual, chunks, bpy_object)
@@ -762,7 +767,6 @@ def import_progressive_visual(chunks, visual, level):
 
     if not bpy_mesh:
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
-        assign_material(bpy_object, visual, level)
         if visual.fastpath:
             bpy_object.xray.level.use_fastpath = True
         else:
@@ -898,7 +902,6 @@ def import_lod_visual(chunks, visual, level):
                 hemi_color.data[loop.index].color = (hemi, hemi, hemi)
                 sun_color.data[loop.index].color = (sun, sun, sun)
     bpy_object = create_object(visual.name, bpy_mesh)
-    assign_material(bpy_object, visual, level)
     bpy_object.xray.is_level = True
     bpy_object.xray.level.object_type = 'VISUAL'
     bpy_object.xray.level.visual_type = 'LOD'
@@ -916,7 +919,6 @@ def import_tree_pm_visual(chunks, visual, level):
         convert_indices_to_triangles(visual)
 
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
-        assign_material(bpy_object, visual, level)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(level, visual, chunks, bpy_object)

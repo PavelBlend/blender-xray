@@ -389,11 +389,13 @@ def search_material(context, texture, engine_shader, *light_maps):
             continue
         if material.xray.eshader != engine_shader:
             continue
-        if not is_same_image(context, material, texture):
+        image = is_same_image(context, material, texture)
+        if not image:
             continue
         if not is_same_light_maps(context, material, light_maps):
             continue
-        return material
+        return material, image
+    return None, None
 
 
 def set_material_settings(bpy_material):
@@ -447,13 +449,13 @@ def create_material(level, context, texture, engine_shader, *light_maps):
             bpy_texture.image = bpy_image
         tex_slot.texture = bpy_texture
         tex_slot.use_map_alpha = True
-    return bpy_material
+    return bpy_material, bpy_image
 
 
 def get_material(level, context, texture, engine_shader, *light_maps):
-    bpy_material = search_material(context, texture, engine_shader, *light_maps)
+    bpy_material, bpy_image = search_material(context, texture, engine_shader, *light_maps)
     if not bpy_material:
-        bpy_material = create_material(
+        bpy_material, bpy_image = create_material(
             level, context, texture, engine_shader, *light_maps
         )
-    return bpy_material
+    return bpy_material, bpy_image
