@@ -78,8 +78,8 @@ class MATERIAL_OT_xray_convert_to_internal(bpy.types.Operator):
 
     def execute(self, context):
         scene = context.scene
-        if scene.render.engine == 'CYCLES':
-            scene.render.engine = 'BLENDER_RENDER'
+        if scene.render.engine != 'CYCLES':
+            return {'FINISHED'}
 
         materials = get_materials(context, scene)
 
@@ -136,6 +136,7 @@ class MATERIAL_OT_xray_convert_to_internal(bpy.types.Operator):
                 if uv_map:
                     texture_slot.uv_layer = uv_map
 
+        scene.render.engine = 'BLENDER_RENDER'
         return {'FINISHED'}
 
 
@@ -144,6 +145,7 @@ shader_keys = {
     'DIFFUSE': ['ShaderNodeBsdfDiffuse', 'Color', 'BSDF'],
     'EMISSION': ['ShaderNodeEmission', 'Color', 'Emission']
 }
+
 
 class MATERIAL_OT_xray_convert_to_cycles(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_to_cycles'
@@ -186,16 +188,20 @@ class MATERIAL_OT_xray_convert_to_cycles(bpy.types.Operator):
             uv_node = nodes.new('ShaderNodeUVMap')
             uv_node.location = location
             uv_node.uv_map = uv_layer
+            uv_node.select = False
             location[0] += 300.0
             image_node = nodes.new('ShaderNodeTexImage')
             image_node.location = location
+            image_node.select = False
             location[0] += 300.0
             image_node.image = image
             shader_node = nodes.new(shader_keys[scene.xray.convert_materials_shader_type][0])
             shader_node.location = location
+            shader_node.select = False
             location[0] += 300.0
             output_node = nodes.new('ShaderNodeOutputMaterial')
             output_node.location = location
+            output_node.select = False
             location[0] += 300.0
             node_tree.links.new(uv_node.outputs['UV'], image_node.inputs['Vector'])
             color_name = shader_keys[scene.xray.convert_materials_shader_type][1]

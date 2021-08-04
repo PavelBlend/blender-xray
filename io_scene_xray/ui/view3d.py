@@ -6,7 +6,6 @@ from . import collapsible, icons
 from .base import XRayPanel, build_label
 from ..skls_browser import OpBrowseSklsFile, OpCloseSklsFile
 from .. import prefs, plugin
-from ..ops import custom_props_utils, action_utils, material
 from ..version_utils import IS_28, assign_props, layout_split
 from ..obj.imp import ops as obj_imp_ops
 from ..obj.exp import ops as obj_exp_ops
@@ -25,7 +24,10 @@ from ..ops.transform_utils import (
     XRAY_OT_UpdateBlenderObjectTranforms,
     XRAY_OT_CopyObjectTranforms
 )
-from ..ops import xray_camera, verify_uv
+from ..ops import (
+    xray_camera, verify_uv, shader_tools,
+    custom_props_utils, action_utils, material
+)
 
 
 CATEGORY = 'X-Ray'
@@ -178,35 +180,63 @@ class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
 
         layout.operator(action_utils.XRAY_OT_ChangeActionBakeSettings.bl_idname)
 
-        collapsible_text = 'Material Converter'
-        if IS_28:
-            collapsible_text = 'Principled Shader Utils'
-        row, box = collapsible.draw(layout, 'test_key', text=collapsible_text)
+        is_cycles = context.scene.render.engine == 'CYCLES'
+        box = layout.box()
+        box.label(text='Material Tools:')
         if box:
-            split = layout_split(box, 0.3)
+            column = box.column(align=True)
+            split = layout_split(column, 0.3)
             split.label(text='Mode:')
-            split.prop(context.scene.xray, 'convert_materials_mode', text='')
-            utils_col = box.column(align=True)
+            split.prop(data, 'convert_materials_mode', text='')
+            col = column.column(align=True)
+            col.active = is_cycles or IS_28
             if not IS_28:
-                utils_col.prop(context.scene.xray, 'convert_materials_shader_type')
-                utils_col.operator('io_scene_xray.convert_to_cycles')
-                utils_col.operator('io_scene_xray.convert_to_internal')
-                if context.scene.render.engine == 'CYCLES':
+                split = layout_split(column, 0.3)
+                split.active = is_cycles
+                split.label(text='Shader:')
+                split.prop(data, 'convert_materials_shader_type', text='')
+            else:
+                row = col.row(align=True)
+                row.prop(data, 'change_materials_alpha', text='')
+                row = row.row(align=True)
+                row.active = data.change_materials_alpha
+                row.prop(data, 'materials_set_alpha_mode', toggle=True)
+            col = column.column(align=True)
+            col.active = is_cycles or IS_28
+            # specular
+            row = col.row(align=True)
+            row.prop(data, 'change_specular', text='')
+            row = row.row(align=True)
+            row.active = data.change_specular
+            row.prop(data, 'shader_specular_value')
+            # roughness
+            row = col.row(align=True)
+            row.prop(data, 'change_roughness', text='')
+            row = row.row(align=True)
+            row.active = data.change_roughness
+            row.prop(data, 'shader_roughness_value')
+            # operators
+            column = box.column(align=True)
+            if not IS_28:
+                column.operator(
+                    material.MATERIAL_OT_xray_convert_to_cycles.bl_idname
+                )
+                col = column.column(align=True)
+                col.active = is_cycles
+                col.operator(
+                    material.MATERIAL_OT_xray_convert_to_internal.bl_idname
+                )
+                if is_cycles:
                     text = 'Switch Render (Internal)'
                 elif context.scene.render.engine == 'BLENDER_RENDER':
                     text = 'Switch Render (Cycles)'
-                utils_col.operator('io_scene_xray.switch_render', text=text)
-            else:
-                row = utils_col.row(align=True)
-                row.prop(context.scene.xray, 'change_materials_alpha', text='')
-                row.prop(context.scene.xray, 'materials_set_alpha_mode', toggle=True)
-            row = utils_col.row(align=True)
-            row.prop(context.scene.xray, 'change_specular', text='')
-            row.prop(context.scene.xray, 'shader_specular_value')
-            row = utils_col.row(align=True)
-            row.prop(context.scene.xray, 'change_roughness', text='')
-            row.prop(context.scene.xray, 'shader_roughness_value')
-            box.operator('io_scene_xray.change_shader_params')
+                column.operator(
+                    material.MATERIAL_OT_xray_switch_render.bl_idname,
+                    text=text
+                )
+            column.operator(
+                shader_tools.MATERIAL_OT_change_shader_params.bl_idname
+            )
 
 
 class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
