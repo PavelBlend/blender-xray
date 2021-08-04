@@ -181,40 +181,62 @@ class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
         layout.operator(action_utils.XRAY_OT_ChangeActionBakeSettings.bl_idname)
 
         is_cycles = context.scene.render.engine == 'CYCLES'
+        is_internal = context.scene.render.engine == 'BLENDER_RENDER'
         box = layout.box()
         box.label(text='Material Tools:')
         if box:
-            column = box.column(align=True)
+            column = box.column()
             split = layout_split(column, 0.3)
             split.label(text='Mode:')
             split.prop(data, 'convert_materials_mode', text='')
-            col = column.column(align=True)
-            col.active = is_cycles or IS_28
+
             if not IS_28:
-                split = layout_split(column, 0.3)
+                cycles_box = column.box()
+                col_cycles = cycles_box.column()
+                col_cycles.active = is_cycles or IS_28
+                internal_box = column.box()
+                col_internal = internal_box.column()
+                col_internal.active = is_internal and not IS_28
+                col_cycles.label(text='Cycles Settings:')
+                split = layout_split(col_cycles, 0.3)
                 split.active = is_cycles
                 split.label(text='Shader:')
                 split.prop(data, 'convert_materials_shader_type', text='')
             else:
-                row = col.row(align=True)
+                col_cycles = column.column(align=True)
+                col_cycles.active = is_cycles or IS_28
+                row = col_cycles.row(align=True)
                 row.prop(data, 'change_materials_alpha', text='')
                 row = row.row(align=True)
                 row.active = data.change_materials_alpha
                 row.prop(data, 'materials_set_alpha_mode', toggle=True)
-            col = column.column(align=True)
-            col.active = is_cycles or IS_28
+
             # specular
-            row = col.row(align=True)
+            row = col_cycles.row(align=True)
             row.prop(data, 'change_specular', text='')
             row = row.row(align=True)
             row.active = data.change_specular
             row.prop(data, 'shader_specular_value')
             # roughness
-            row = col.row(align=True)
+            row = col_cycles.row(align=True)
             row.prop(data, 'change_roughness', text='')
             row = row.row(align=True)
             row.active = data.change_roughness
             row.prop(data, 'shader_roughness_value')
+            if not IS_28:
+                def draw_prop(change_prop, prop):
+                    row = col_internal.row(align=True)
+                    row.prop(data, change_prop, text='')
+                    row = row.row(align=True)
+                    row.active = getattr(data, change_prop)
+                    row.prop(data, prop, toggle=True)
+                col_internal.label(text='Internal Settings:')
+                draw_prop('change_shadeless', 'use_shadeless')
+                draw_prop('change_diffuse_intensity', 'diffuse_intensity')
+                draw_prop('change_specular_intensity', 'specular_intensity')
+                draw_prop('change_specular_hardness', 'specular_hardness')
+                draw_prop('change_use_transparency', 'use_transparency')
+                draw_prop('change_transparency_alpha', 'transparency_alpha')
             # operators
             column = box.column(align=True)
             if not IS_28:
@@ -228,7 +250,7 @@ class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
                 )
                 if is_cycles:
                     text = 'Switch Render (Internal)'
-                elif context.scene.render.engine == 'BLENDER_RENDER':
+                elif is_internal:
                     text = 'Switch Render (Cycles)'
                 column.operator(
                     material.MATERIAL_OT_xray_switch_render.bl_idname,
