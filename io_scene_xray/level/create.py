@@ -429,6 +429,11 @@ def create_material(level, context, texture, engine_shader, *light_maps):
         remove_default_shader_nodes(bpy_material)
         create_shader_nodes(level, bpy_material, bpy_image, bpy_image_lmaps)
     else:
+        bpy_material.use_transparency = True
+        bpy_material.alpha = 0.0
+        bpy_material.use_shadeless = True
+        bpy_material.diffuse_intensity = 1.0
+        bpy_material.specular_intensity = 0.0
         tex_slot = bpy_material.texture_slots.add()
         # find texture
         bpy_texture = None
@@ -441,6 +446,7 @@ def create_material(level, context, texture, engine_shader, *light_maps):
             bpy_texture = bpy.data.textures.new(texture, 'IMAGE')
             bpy_texture.image = bpy_image
         tex_slot.texture = bpy_texture
+        tex_slot.use_map_alpha = True
     return bpy_material
 
 
