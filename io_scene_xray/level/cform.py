@@ -49,6 +49,12 @@ def import_main(context, level, data=None):
     sectors_tris = {}
     sectors_verts = {}
     sectors_mats = {}    # unique sectors materials
+
+    for sector_index in level.sectors_objects.keys():
+        sectors_tris[sector_index] = []
+        sectors_verts[sector_index] = set()
+        sectors_mats[sector_index] = set()
+
     tris = []
     unique_materials = set()
 
@@ -64,10 +70,6 @@ def import_main(context, level, data=None):
             wallmarks = bool((mat & 0x8000) >> 15)
             tris.append((vert_1, vert_2, vert_3, mat_id, shadows, wallmarks))
             unique_materials.add((mat_id, shadows, wallmarks))
-            if not sectors_tris.get(sector):
-                sectors_tris[sector] = []
-                sectors_verts[sector] = set()
-                sectors_mats[sector] = set()
             sectors_tris[sector].append(tris_index)
             sectors_verts[sector].update((vert_1, vert_2, vert_3))
             sectors_mats[sector].add((mat_id, shadows, wallmarks))
@@ -84,10 +86,6 @@ def import_main(context, level, data=None):
             wallmarks = False
             tris.append((vert_1, vert_2, vert_3, mat_id, shadows, wallmarks))
             unique_materials.add((mat_id, shadows, wallmarks))
-            if not sectors_tris.get(sector):
-                sectors_tris[sector] = []
-                sectors_verts[sector] = set()
-                sectors_mats[sector] = set()
             sectors_tris[sector].append(tris_index)
             sectors_verts[sector].update((vert_1, vert_2, vert_3))
             sectors_mats[sector].add((mat_id, shadows, wallmarks))
