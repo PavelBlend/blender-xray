@@ -293,6 +293,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
             split.prop(self, 'custom_owner_name', text='')
             prop_bool(layout, self, 'expert_mode')
             prop_bool(layout, self, 'compact_menus')
+            prop_bool(layout, self, 'developer_mode')
 
         split = layout_split(layout, 0.6)
         split.label(text='')

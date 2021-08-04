@@ -510,3 +510,11 @@ def read_file(file_path):
     with open(file_path, 'rb') as file:
         data = file.read()
     return data
+
+
+def print_time_info(message, tabs_count, total_time=None):
+    spaces = ' ' * 4 * tabs_count
+    if total_time is None:
+        print('{0}{1} start...'.format(spaces, message))
+    else:
+        print('{0}{1} end: {2:.6f} sec'.format(spaces, message, total_time))
