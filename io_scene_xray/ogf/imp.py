@@ -902,6 +902,7 @@ def import_lod_visual(chunks, visual, level):
                 hemi_color.data[loop.index].color = (hemi, hemi, hemi)
                 sun_color.data[loop.index].color = (sun, sun, sun)
     bpy_object = create_object(visual.name, bpy_mesh)
+    assign_material(bpy_object, visual, level)
     bpy_object.xray.is_level = True
     bpy_object.xray.level.object_type = 'VISUAL'
     bpy_object.xray.level.visual_type = 'LOD'
