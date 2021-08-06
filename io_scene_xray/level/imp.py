@@ -134,7 +134,7 @@ def generate_glow_mesh_data(radius):
     return vertices, faces, uvs
 
 
-def create_glow_mesh(name, vertices, faces, uvs):
+def create_glow_mesh(name, vertices, faces, uvs, material, image):
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(vertices, (), faces)
     if version_utils.IS_28:
@@ -142,19 +142,25 @@ def create_glow_mesh(name, vertices, faces, uvs):
     else:
         uv_texture = mesh.uv_textures.new(name='Texture')
         uv_layer = mesh.uv_layers[uv_texture.name]
+        for tex_poly in uv_texture.data:
+            tex_poly.image = image
     for uv_index, data in enumerate(uv_layer.data):
         data.uv = uvs[uv_index]
-    return mesh
-
-
-def create_glow_object(glow_index, position, radius, shader_index, materials):
-    object_name = 'glow_{:0>3}'.format(glow_index)
-    vertices, faces, uvs = generate_glow_mesh_data(radius)
-    mesh = create_glow_mesh(object_name, vertices, faces, uvs)
-    material = materials[shader_index]
+    mesh.materials.append(material)
     if version_utils.IS_28:
         material.use_backface_culling = False
         material.blend_method = 'BLEND'
+    return mesh
+
+
+def create_glow_object(
+        glow_index, position, radius, shader_index, materials, images
+    ):
+    object_name = 'glow_{:0>3}'.format(glow_index)
+    vertices, faces, uvs = generate_glow_mesh_data(radius)
+    material = materials[shader_index]
+    image = images[shader_index]
+    mesh = create_glow_mesh(object_name, vertices, faces, uvs, material, image)
     mesh.materials.append(material)
     glow_object = create.create_object(object_name, mesh)
     glow_object.location = position[0], position[2], position[1]
@@ -167,29 +173,25 @@ def create_glow_object_v5(
     ):
     object_name = 'glow_{:0>3}'.format(glow_index)
     vertices, faces, uvs = generate_glow_mesh_data(radius)
-    mesh = create_glow_mesh(object_name, vertices, faces, uvs)
     material = ogf_imp.get_material(level, shader_index, texture_index)
-    material.use_backface_culling = False
-    material.blend_method = 'BLEND'
-    mesh.materials.append(material)
+    image = level.images[texture_index]
+    mesh = create_glow_mesh(object_name, vertices, faces, uvs, material, image)
     glow_object = create.create_object(object_name, mesh)
     glow_object.location = position[0], position[2], position[1]
     return glow_object
 
 
-def import_glow(packed_reader, glow_index, materials):
+def import_glow(packed_reader, glow_index, materials, images):
     position = packed_reader.getf('3f')
     radius = packed_reader.getf('f')[0]
     shader_index = packed_reader.getf('H')[0]
     glow_object = create_glow_object(
-        glow_index, position, radius, shader_index, materials
+        glow_index, position, radius, shader_index, materials, images
     )
     return glow_object
 
 
-def import_glow_v5(
-        level, packed_reader, glow_index, materials, shaders, textures
-    ):
+def import_glow_v5(level, packed_reader, glow_index):
     position = packed_reader.getf('3f')
     radius = packed_reader.getf('f')[0]
     texture_index = packed_reader.getf('I')[0]
@@ -216,9 +218,10 @@ def import_glows(data, level):
     collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
     glows_object = create_glows_object(collection)
     materials = level.materials
+    images = level.images
 
     for glow_index in range(glows_count):
-        glow_object = import_glow(packed_reader, glow_index, materials)
+        glow_object = import_glow(packed_reader, glow_index, materials, images)
         glow_object.parent = glows_object
         collection.objects.link(glow_object)
         if not version_utils.IS_28:
@@ -233,18 +236,8 @@ def import_glows_v5(data, level):
     collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
     glows_object = create_glows_object(collection)
 
-    if level.xrlc_version <= fmt.VERSION_5:
-        shaders = level.shaders
-        textures = level.textures
-    else:
-        shaders = level.shaders_or_textures
-        textures = None
-
     for glow_index in range(glows_count):
-        glow_object = import_glow_v5(
-            level, packed_reader, glow_index,
-            level.materials, shaders, textures
-        )
+        glow_object = import_glow_v5(level, packed_reader, glow_index)
         glow_object.parent = glows_object
         collection.objects.link(glow_object)
         if not version_utils.IS_28:
