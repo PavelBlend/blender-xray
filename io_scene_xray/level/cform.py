@@ -79,7 +79,7 @@ def import_main(context, level, data=None):
         sectors_verts[sector_index] = set()
         sectors_mats[sector_index] = set()
 
-    tris = []
+    tris = [None, ] * tris_count
     unique_materials = set()
 
     # version 4
@@ -93,7 +93,10 @@ def import_main(context, level, data=None):
             shadows = bool(mat & 0x4000)
             # 16 bit suppress wallmarks
             wallmarks = bool(mat & 0x8000)
-            tris.append((vert_1, vert_2, vert_3, mat_id, shadows, wallmarks))
+            tris[tris_index] = (
+                vert_1, vert_2, vert_3,
+                mat_id, shadows, wallmarks
+            )
             unique_materials.add((mat_id, shadows, wallmarks))
             sectors_tris[sector].append(tris_index)
             sectors_verts[sector].update((vert_1, vert_2, vert_3))
@@ -110,7 +113,10 @@ def import_main(context, level, data=None):
             ) = packed_reader.getp(prep)
             shadows = False
             wallmarks = False
-            tris.append((vert_1, vert_2, vert_3, mat_id, shadows, wallmarks))
+            tris[tris_index] = (
+                vert_1, vert_2, vert_3,
+                mat_id, shadows, wallmarks
+            )
             unique_materials.add((mat_id, shadows, wallmarks))
             sectors_tris[sector].append(tris_index)
             sectors_verts[sector].update((vert_1, vert_2, vert_3))
