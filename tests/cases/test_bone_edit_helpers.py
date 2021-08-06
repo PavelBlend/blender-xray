@@ -1,15 +1,8 @@
 import bpy
 
-from tests.utils import XRayTestCase
+from tests.utils import XRayTestCase, set_active_object
 from io_scene_xray.edit_helpers.base import get_object_helper
 from io_scene_xray.utils import is_helper_object
-
-
-def set_active_object(obj):
-    if bpy.app.version >= (2, 80, 0):
-        bpy.context.view_layer.objects.active = obj
-    else:
-        bpy.context.scene.objects.active = obj
 
 
 class TestBoneEditHelpers(XRayTestCase):
