@@ -1,4 +1,4 @@
-EXPERIMENTAL_MODE = True
+EXPERIMENTAL_MODE = False
 # header chunk id
 HEADER = 0x1
 
