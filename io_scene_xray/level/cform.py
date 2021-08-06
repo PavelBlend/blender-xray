@@ -84,8 +84,9 @@ def import_main(context, level, data=None):
 
     # version 4
     if version == fmt.CFORM_VERSION_4:
+        prep = packed_reader.prep('3I2H')
         for tris_index in range(tris_count):
-            vert_1, vert_2, vert_3, mat, sector = packed_reader.getf('<3I2H')
+            vert_1, vert_2, vert_3, mat, sector = packed_reader.getp(prep)
             # 14 bit material id
             mat_id = mat & 0x3fff
             # 15 bit suppress shadows
@@ -100,12 +101,13 @@ def import_main(context, level, data=None):
 
     # version 2 or 3
     elif version in (fmt.CFORM_VERSION_2, fmt.CFORM_VERSION_3):
+        prep = packed_reader.prep('6I2HI')
         for tris_index in range(tris_count):
             (
                 vert_1, vert_2, vert_3,
                 _, _, _, _,
                 sector, mat_id
-            ) = packed_reader.getf('<6I2HI')
+            ) = packed_reader.getp(prep)
             shadows = False
             wallmarks = False
             tris.append((vert_1, vert_2, vert_3, mat_id, shadows, wallmarks))
