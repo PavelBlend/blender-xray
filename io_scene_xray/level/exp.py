@@ -6,7 +6,7 @@ import bpy
 import bmesh
 import mathutils
 
-from .. import xray_io, utils, plugin_prefs, prefs
+from .. import xray_io, utils, version_utils, plugin_prefs, prefs
 from ..ogf import exp as ogf_exp, fmt as ogf_fmt
 from . import fmt
 
@@ -296,6 +296,21 @@ def write_sector(root_index, sectors_map, sector_name):
     return chunked_writer
 
 
+def get_light_map_image(material, lmap_prop):
+    lmap_image_name = getattr(material.xray, lmap_prop, None)
+    if lmap_image_name:
+        lmap_image = bpy.data.images.get(lmap_image_name, None)
+        if not lmap_image:
+            raise utils.AppError(
+                'Cannot find light map image "{0}" in "{1}" material!'.format(
+                    lmap_image_name, material.name
+                )
+            )
+    else:
+        lmap_image = None
+    return lmap_image
+
+
 def write_shaders(level):
     texture_folder = prefs.utils.get_preferences().textures_folder_auto
     materials = {}
@@ -307,14 +322,48 @@ def write_shaders(level):
     packed_writer.puts('')    # first empty shader
     for shader_index in range(materials_count):
         material = materials[shader_index]
-        texture_node = material.node_tree.nodes['Texture']
+        images = []
+        if version_utils.IS_28:
+            if not material.node_tree:
+                raise utils.AppError(
+                    'Material "{}" does not use nodes!'.format(material.name)
+                )
+            for node in material.node_tree.nodes:
+                if not node.type in version_utils.IMAGE_NODES:
+                    continue
+                image = node.image
+                if not node.image:
+                    continue
+                images.append(image)
+        else:
+            for texture_slot in material.texture_slots:
+                if not texture_slot:
+                    continue
+                texture = texture_slot.texture
+                if not texture:
+                    continue
+                image = getattr(texture, 'image', None)
+                if not image:
+                    continue
+                images.append(image)
+        images_count = len(images)
+        if not images_count:
+            raise utils.AppError(
+                'Material "{}" has no image!'.format(material.name)
+            )
+        elif images_count > 1:
+            raise utils.AppError(
+                'Material "{}" has more the one image!'.format(material.name)
+            )
+        else:
+            image = images[0]
         texture_path = utils.gen_texture_name(
-            texture_node.image, texture_folder, level_folder=level.source_level_path
+            image, texture_folder, level_folder=level.source_level_path
         )
         eshader = material.xray.eshader
 
-        lmap_1_image = bpy.data.images.get(material.xray.lmap_0, None)
-        lmap_2_image = bpy.data.images.get(material.xray.lmap_1, None)
+        lmap_1_image = get_light_map_image(material, 'lmap_0')
+        lmap_2_image = get_light_map_image(material, 'lmap_1')
 
         if lmap_1_image:
             lmap_1_path = lmap_1_image.name[0 : -4]    # cut .dds extension
@@ -749,12 +798,15 @@ def write_tree_def_2(bpy_obj, chunked_writer):
         bpy_obj.scale[2],
         bpy_obj.scale[1]
     ))
-    scale_mat = \
-        mathutils.Matrix.Scale(scale[0], 4, (1, 0, 0)) @ \
-        mathutils.Matrix.Scale(scale[1], 4, (0, 1, 0)) @ \
+    scale_mat = version_utils.multiply(
+        mathutils.Matrix.Scale(scale[0], 4, (1, 0, 0)),
+        mathutils.Matrix.Scale(scale[1], 4, (0, 1, 0)),
         mathutils.Matrix.Scale(scale[2], 4, (0, 0, 1))
+    )
 
-    matrix = (location_mat @ rotation_mat @ scale_mat).transposed()
+    matrix = version_utils.multiply(
+        location_mat, rotation_mat, scale_mat
+    ).transposed()
     for i in matrix:
         packed_writer.putf('<4f', *i)
     write_ogf_color(packed_writer, bpy_obj, mode='SCALE')
@@ -1034,7 +1086,6 @@ def find_hierrarhy(level, visual_obj, visuals_hierrarhy, visual_index, visuals):
 def write_visuals(level_object, sectors_map, level):
     chunked_writer = xray_io.ChunkedWriter()
     sectors_chunked_writer = xray_io.ChunkedWriter()
-    visuals_collection = bpy.data.collections['Visuals']
     vertex_buffers = []
     indices_buffers = []
     fastpath_vertex_buffers = []

@@ -266,6 +266,7 @@ def create_image(context, texture, absolute_texture_path):
         except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
             context.operator.report({'WARNING'}, str(ex))
             bpy_image = create_empty_image(texture, absolute_texture_path)
+    bpy_image.use_fake_user = True
     return bpy_image
 
 
