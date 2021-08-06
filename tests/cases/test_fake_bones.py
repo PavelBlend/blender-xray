@@ -9,10 +9,7 @@ from io_scene_xray.utils import using_mode, is_fake_bone_name
 class TestFakeBones(utils.XRayTestCase):
     def test_create(self):
         operator = bpy.ops.io_scene_xray.create_fake_bones
-        if bpy.app.version >= (2, 80, 0):
-            bpy.context.view_layer.objects.active = None
-        else:
-            bpy.context.scene.objects.active = None
+        utils.set_active_object(None)
         self.assertFalse(operator.poll(), msg='no armature')
 
         arm = _create_armature('normal')

@@ -1,4 +1,5 @@
 import struct
+import numpy
 from .lzhuf import decompress_buffer
 
 
@@ -37,6 +38,7 @@ class FastBytes:
 class PackedReader:
     __slots__ = ['__offs', '__data', '__view']
     __PREP_I = struct.Struct('<I')
+    __NUMPY_FORMATS = {'f': numpy.float32, }
 
     def __init__(self, data):
         self.__offs = 0
@@ -51,6 +53,22 @@ class PackedReader:
         size = struct.calcsize(fmt)
         self.__offs += size
         return struct.unpack_from(fmt, self.__data, self.__offs - size)
+
+    def get_array(self, fmt, count):
+        dtype_format = self.__NUMPY_FORMATS.get(fmt, None)
+        if not dtype_format:
+            raise Exception('Unsupported numpy format: {}'.format(fmt))
+        dtype = numpy.dtype(dtype_format)
+        dtype = dtype.newbyteorder('<')
+        size = dtype.itemsize
+        verts = numpy.frombuffer(
+            self.__data,
+            dtype=dtype,
+            count=count,
+            offset=self.__offs
+        )
+        self.__offs += size * count
+        return verts
 
     def byte(self):
         return self.__data[self._next(1)]

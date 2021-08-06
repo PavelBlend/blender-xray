@@ -3,7 +3,7 @@ import bpy
 
 # addon modules
 from .base import XRayPanel, build_label
-from .. import plugin_prefs, prefs
+from .. import prefs
 from ..ops import fake_bones, joint_limits
 from ..version_utils import get_icon, layout_split
 from . import collapsible

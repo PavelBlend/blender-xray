@@ -81,6 +81,50 @@ xray_scene_properties = {
         name='Roughness', default=0.0, min=0.0, max=1.0, subtype='FACTOR'
     ),
     'change_roughness': bpy.props.BoolProperty(name='Change Roughness', default=True),
+
+    # internal properties
+    'change_shadeless': bpy.props.BoolProperty(name='Change Shadeless', default=True),
+    'use_shadeless': bpy.props.BoolProperty(name='Shadeless', default=True),
+
+    'change_diffuse_intensity': bpy.props.BoolProperty(
+        name='Change Diffuse Intensity', default=True
+    ),
+    'diffuse_intensity': bpy.props.FloatProperty(
+        name='Diffuse Intensity', default=1.0,
+        min=0.0, max=1.0, subtype='FACTOR'
+    ),
+
+    'change_specular_intensity': bpy.props.BoolProperty(
+        name='Change Specular Intensity', default=True
+    ),
+    'specular_intensity': bpy.props.FloatProperty(
+        name='Specular Intensity', default=1.0,
+        min=0.0, max=1.0, subtype='FACTOR'
+    ),
+
+    'change_specular_hardness': bpy.props.BoolProperty(
+        name='Change Specular Hardness', default=True
+    ),
+    'specular_hardness': bpy.props.IntProperty(
+        name='Specular Hardness', default=50,
+        min=1, max=511
+    ),
+
+    'change_use_transparency': bpy.props.BoolProperty(
+        name='Change Transparency', default=True
+    ),
+    'use_transparency': bpy.props.BoolProperty(
+        name='Transparency', default=True
+    ),
+
+    'change_transparency_alpha': bpy.props.BoolProperty(
+        name='Change Transparency Alpha', default=True
+    ),
+    'transparency_alpha': bpy.props.FloatProperty(
+        name='Transparency Alpha', default=1.0,
+        min=0.0, max=1.0, subtype='FACTOR'
+    ),
+
     # custom properties utils
     'custom_properties_edit_data': bpy.props.EnumProperty(
         name='Edit Data', items=custom_properties_edit_data_items, default='ALL'

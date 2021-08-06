@@ -40,6 +40,12 @@ class OpCloseSklsFile(bpy.types.Operator):
             bpy.data.actions.remove(action=act)
         sk.animations.clear()
         bpy.ops.screen.animation_cancel()
+        # reset transforms
+        for bone in ob.pose.bones:
+            bone.location = (0, 0, 0)
+            bone.rotation_euler = (0, 0, 0)
+            bone.rotation_quaternion = (1, 0, 0, 0)
+            bone.scale = (1, 1, 1)
         context.window.cursor_set('DEFAULT')
         return {'FINISHED'}
 
@@ -237,6 +243,7 @@ class XRayObjectSklsBrowserProperties(bpy.types.PropertyGroup):
 
 
 classes = (
+    (UI_UL_SklsList_item, None),
     (XRaySklsAnimationProperties, xray_skls_animation_properties_props),
     (XRayObjectSklsBrowserProperties, xray_object_skls_browser_properties_props),
     (OpBrowseSklsFile, op_browse_skls_file_props),

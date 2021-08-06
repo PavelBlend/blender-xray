@@ -9,7 +9,6 @@ from . import (
     shader_tools,
     transform_utils,
     verify_uv,
-    verify_uv_ui,
     xray_camera
 )
 
@@ -24,7 +23,6 @@ modules = (
     shader_tools,
     transform_utils,
     verify_uv,
-    verify_uv_ui,
     xray_camera
 )
 

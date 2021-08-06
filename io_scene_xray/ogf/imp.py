@@ -1,8 +1,10 @@
 import math
 
-import bpy, mathutils, bmesh
+import bpy
+import bmesh
+import mathutils
 
-from .. import xray_io
+from .. import xray_io, version_utils
 from ..level import (
     swi as imp_swi, create as level_create, shaders as level_shaders,
     fmt as level_fmt, vb as level_vb
@@ -47,21 +49,22 @@ def get_material(level, shader_id, texture_id):
             shader_raw = level.shaders_or_textures[shader_id]
             texture_raw = level.shaders_or_textures[texture_id]
             shader_data = shader_raw + '/' + texture_raw
-            bpy_material = level_shaders.import_shader(
+            bpy_material, bpy_image = level_shaders.import_shader(
                 level, level.context, shader_data
             )
         else:
             shader_raw = level.shaders[shader_id]
             texture_raw = level.textures[texture_id]
             shader_data = shader_raw + '/' + texture_raw
-            bpy_material = level_shaders.import_shader(
+            bpy_material, bpy_image = level_shaders.import_shader(
                 level, level.context, shader_data
             )
-    level.materials[material_key] = bpy_material
+        level.materials[material_key] = bpy_material
+        level.images[texture_id] = bpy_image
     return bpy_material
 
 
-def assign_material(bpy_object, visual, level):
+def assign_material(bpy_mesh, visual, level):
     if (
             visual.format_version == fmt.FORMAT_VERSION_4 or
             level.xrlc_version >= level_fmt.VERSION_12
@@ -72,12 +75,12 @@ def assign_material(bpy_object, visual, level):
             bpy_material.xray.flags_twosided = True
     else:
         bpy_material = get_material(level, visual.shader_id, visual.texture_id)
-    bpy_object.data.materials.append(bpy_material)
+    bpy_mesh.materials.append(bpy_material)
 
 
 def create_object(name, obj_data):
     bpy_object = bpy.data.objects.new(name, obj_data)
-    bpy.context.scene.collection.objects.link(bpy_object)
+    version_utils.link_object(bpy_object)
     return bpy_object
 
 
@@ -329,10 +332,19 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
         bpy_mesh = bpy.data.meshes.new(visual.name)
         bpy_mesh.use_auto_smooth = True
         bpy_mesh.auto_smooth_angle = math.pi
+        assign_material(bpy_mesh, visual, level)
+
+        if not version_utils.IS_28:
+            bpy_image = level.images[visual.shader_id]
+            texture_layer = mesh.faces.layers.tex.new('Texture')
+            for face in mesh.faces:
+                face[texture_layer].image = bpy_image
+
         mesh.to_mesh(bpy_mesh)
         if custom_normals:
             bpy_mesh.normals_split_custom_set(custom_normals)
         del mesh
+
         level.loaded_geometry[geometry_key] = bpy_mesh
 
     else:
@@ -650,7 +662,6 @@ def import_normal_visual(chunks, visual, level):
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
-        assign_material(bpy_object, visual, level)
         if visual.fastpath:
             bpy_object.xray.level.use_fastpath = True
         else:
@@ -726,7 +737,6 @@ def import_tree_st_visual(chunks, visual, level):
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
-        assign_material(bpy_object, visual, level)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(level, visual, chunks, bpy_object)
@@ -760,7 +770,6 @@ def import_progressive_visual(chunks, visual, level):
 
     if not bpy_mesh:
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
-        assign_material(bpy_object, visual, level)
         if visual.fastpath:
             bpy_object.xray.level.use_fastpath = True
         else:
@@ -861,24 +870,42 @@ def import_lod_visual(chunks, visual, level):
 
     bpy_mesh = bpy.data.meshes.new(visual.name)
     bpy_mesh.from_pydata(verts, (), faces)
-    uv_layer = bpy_mesh.uv_layers.new(name='Texture')
+    if version_utils.IS_28:
+        uv_layer = bpy_mesh.uv_layers.new(name='Texture')
+    else:
+        uv_texture = bpy_mesh.uv_textures.new(name='Texture')
+        uv_layer = bpy_mesh.uv_layers[uv_texture.name]
     rgb_color = bpy_mesh.vertex_colors.new(name='Light')
     hemi_color = bpy_mesh.vertex_colors.new(name='Hemi')
     sun_color = bpy_mesh.vertex_colors.new(name='Sun')
-    for face in bpy_mesh.polygons:
-        for loop_index in face.loop_indices:
-            loop = bpy_mesh.loops[loop_index]
-            vert_index = loop.vertex_index
-            uv = uvs[vert_index]
-            rgb = lights['rgb'][vert_index]
-            hemi = lights['hemi'][vert_index]
-            sun = lights['sun'][vert_index]
-            uv_layer.data[loop.index].uv = uv
-            rgb_color.data[loop.index].color = rgb
-            hemi_color.data[loop.index].color = (hemi, hemi, hemi, 1.0)
-            sun_color.data[loop.index].color = (sun, sun, sun, 1.0)
+    if version_utils.IS_28:
+        for face in bpy_mesh.polygons:
+            for loop_index in face.loop_indices:
+                loop = bpy_mesh.loops[loop_index]
+                vert_index = loop.vertex_index
+                uv = uvs[vert_index]
+                rgb = lights['rgb'][vert_index]
+                hemi = lights['hemi'][vert_index]
+                sun = lights['sun'][vert_index]
+                uv_layer.data[loop.index].uv = uv
+                rgb_color.data[loop.index].color = rgb
+                hemi_color.data[loop.index].color = (hemi, hemi, hemi, 1.0)
+                sun_color.data[loop.index].color = (sun, sun, sun, 1.0)
+    else:
+        for face in bpy_mesh.polygons:
+            for loop_index in face.loop_indices:
+                loop = bpy_mesh.loops[loop_index]
+                vert_index = loop.vertex_index
+                uv = uvs[vert_index]
+                rgb = lights['rgb'][vert_index]
+                hemi = lights['hemi'][vert_index]
+                sun = lights['sun'][vert_index]
+                uv_layer.data[loop.index].uv = uv
+                rgb_color.data[loop.index].color = rgb[0 : 3]
+                hemi_color.data[loop.index].color = (hemi, hemi, hemi)
+                sun_color.data[loop.index].color = (sun, sun, sun)
     bpy_object = create_object(visual.name, bpy_mesh)
-    assign_material(bpy_object, visual, level)
+    assign_material(bpy_object.data, visual, level)
     bpy_object.xray.is_level = True
     bpy_object.xray.level.object_type = 'VISUAL'
     bpy_object.xray.level.visual_type = 'LOD'
@@ -896,7 +923,6 @@ def import_tree_pm_visual(chunks, visual, level):
         convert_indices_to_triangles(visual)
 
         bpy_object = create_visual(bpy_mesh, visual, level, geometry_key)
-        assign_material(bpy_object, visual, level)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(level, visual, chunks, bpy_object)
@@ -936,11 +962,12 @@ def import_model_v4(chunks, visual, level):
     data = bpy_obj.xray
     data.is_ogf = True
 
-    scene_collection = bpy.context.scene.collection
-    collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
+    collection_name = level_create.LEVEL_VISUALS_COLLECTION_NAMES_TABLE[visual.name]
     collection = level.collections[collection_name]
     collection.objects.link(bpy_obj)
-    scene_collection.objects.unlink(bpy_obj)
+    if version_utils.IS_28:
+        scene_collection = bpy.context.scene.collection
+        scene_collection.objects.unlink(bpy_obj)
     level.visuals.append(bpy_obj)
 
 
@@ -999,11 +1026,12 @@ def import_model_v3(chunks, visual, level):
     data = bpy_obj.xray
     data.is_ogf = True
 
-    scene_collection = bpy.context.scene.collection
-    collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
+    collection_name = level_create.LEVEL_VISUALS_COLLECTION_NAMES_TABLE[visual.name]
     collection = level.collections[collection_name]
     collection.objects.link(bpy_obj)
-    scene_collection.objects.unlink(bpy_obj)
+    if version_utils.IS_28:
+        scene_collection = bpy.context.scene.collection
+        scene_collection.objects.unlink(bpy_obj)
     level.visuals.append(bpy_obj)
 
 
@@ -1025,7 +1053,7 @@ def import_model_v2(chunks, visual, level):
     data.is_ogf = True
 
     scene_collection = bpy.context.scene.collection
-    collection_name = level_create.LEVEL_COLLECTIONS_NAMES_TABLE[visual.name]
+    collection_name = level_create.LEVEL_VISUALS_COLLECTION_NAMES_TABLE[visual.name]
     collection = level.collections[collection_name]
     collection.objects.link(bpy_obj)
     scene_collection.objects.unlink(bpy_obj)

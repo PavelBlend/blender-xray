@@ -16,10 +16,10 @@ op_import_level_props = {
         default='level', options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE'}
+        subtype="DIR_PATH", options={'SKIP_SAVE', 'HIDDEN'}
     ),
     'filepath': bpy.props.StringProperty(
-        subtype="FILE_PATH", options={'SKIP_SAVE'}
+        subtype="FILE_PATH", options={'SKIP_SAVE', 'HIDDEN'}
     )
 }
 
@@ -61,7 +61,9 @@ class IMPORT_OT_xray_level(
 
 
 op_export_level_props = {
-    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
+    'directory': bpy.props.StringProperty(
+        subtype='DIR_PATH', options={'HIDDEN'}
+    ),
     'filter_glob': bpy.props.StringProperty(
         default='level;level.geom;level.geomx;level.cform',
         options={'HIDDEN'}

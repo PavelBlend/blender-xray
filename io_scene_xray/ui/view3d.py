@@ -4,9 +4,8 @@ import bpy
 # addon modules
 from . import collapsible, icons
 from .base import XRayPanel, build_label
-from ..skls_browser import UI_UL_SklsList_item, OpBrowseSklsFile, OpCloseSklsFile
+from ..skls_browser import OpBrowseSklsFile, OpCloseSklsFile
 from .. import prefs, plugin
-from ..ops import custom_props_utils, action_utils, material
 from ..version_utils import IS_28, assign_props, layout_split
 from ..obj.imp import ops as obj_imp_ops
 from ..obj.exp import ops as obj_exp_ops
@@ -25,42 +24,89 @@ from ..ops.transform_utils import (
     XRAY_OT_UpdateBlenderObjectTranforms,
     XRAY_OT_CopyObjectTranforms
 )
-from ..ops import xray_camera
+from ..ops import (
+    xray_camera, verify_uv, shader_tools,
+    custom_props_utils, action_utils, material
+)
 
 
-class VIEW3D_PT_skls_animations(XRayPanel):
+CATEGORY = 'X-Ray'
+
+
+class XRAY_PT_skls_animations(XRayPanel):
     'Contains open .skls file operator, animations list'
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_label = build_label('Skls File Browser')
+    bl_label = 'Skls Browser'
     bl_options = {'DEFAULT_CLOSED'}
+    bl_category = CATEGORY
     if IS_28:
-        bl_category = 'XRay'
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        if obj is None:
-            return False
-        if obj.type == 'ARMATURE':
-            return True
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
 
     def draw(self, context):
         layout = self.layout
 
+        obj = context.object
+        active = False
+        if not obj is None:
+            if obj.type == 'ARMATURE':
+                active = True
+            else:
+                layout.label(
+                    text='Active object is not Armature!',
+                    icon='ERROR'
+                )
+        else:
+            layout.label(
+                text='No active object!',
+                icon='ERROR'
+            )
         col = layout.column(align=True)
+        col.active = active
         col.operator(operator=OpBrowseSklsFile.bl_idname, text='Open skls file...')
-        if hasattr(context.object.xray, 'skls_browser'):
-            if len(context.object.xray.skls_browser.animations):
+        if not obj:
+            return
+        if hasattr(obj.xray, 'skls_browser'):
+            if len(obj.xray.skls_browser.animations):
                 layout.operator(OpCloseSklsFile.bl_idname)
-            layout.template_list(listtype_name='UI_UL_SklsList_item', list_id='compact',
-                dataptr=context.object.xray.skls_browser, propname='animations',
-                active_dataptr=context.object.xray.skls_browser, active_propname='animations_index', rows=5)
+            layout.template_list(
+                listtype_name='UI_UL_SklsList_item',
+                list_id='compact',
+                dataptr=obj.xray.skls_browser,
+                propname='animations',
+                active_dataptr=obj.xray.skls_browser,
+                active_propname='animations_index',
+                rows=5
+            )
+
+
+class XRAY_PT_VerifyToolsPanel(bpy.types.Panel):
+    bl_label = 'Verify'
+    bl_space_type = 'VIEW_3D'
+    bl_category = CATEGORY
+    bl_options = {'DEFAULT_CLOSED'}
+    if IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    def draw_header(self, _context):
+        icon = icons.get_stalker_icon()
+        self.layout.label(icon_value=icon)
+
+    def draw(self, context):
+        data = context.scene.xray
+        layout = self.layout
+        layout.operator(
+            verify_uv.XRayVerifyUVOperator.bl_idname,
+            icon='GROUP_UVS'
+        )
 
 
 class XRAY_PT_TransformsPanel(bpy.types.Panel):
-    bl_label = build_label('Transforms')
-    bl_category = 'XRay'
+    bl_label = 'Transforms'
+    bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
@@ -75,7 +121,7 @@ class XRAY_PT_TransformsPanel(bpy.types.Panel):
     def draw(self, context):
         lay = self.layout
         if not context.object:
-            lay.label(text='No selected objects!', icon='ERROR')
+            lay.label(text='No active object!', icon='ERROR')
             return
         data = context.object.xray
         column = lay.column()
@@ -88,8 +134,8 @@ class XRAY_PT_TransformsPanel(bpy.types.Panel):
 
 
 class XRAY_PT_AddPanel(bpy.types.Panel):
-    bl_label = build_label('Add')
-    bl_category = 'XRay'
+    bl_label = 'Add'
+    bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
@@ -107,8 +153,8 @@ class XRAY_PT_AddPanel(bpy.types.Panel):
 
 
 class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
-    bl_label = build_label('Batch Tools')
-    bl_category = 'XRay'
+    bl_label = 'Batch Tools'
+    bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
@@ -134,40 +180,90 @@ class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
 
         layout.operator(action_utils.XRAY_OT_ChangeActionBakeSettings.bl_idname)
 
-        collapsible_text = 'Material Converter'
-        if IS_28:
-            collapsible_text = 'Principled Shader Utils'
-        row, box = collapsible.draw(layout, 'test_key', text=collapsible_text)
+        is_cycles = context.scene.render.engine == 'CYCLES'
+        is_internal = context.scene.render.engine == 'BLENDER_RENDER'
+        box = layout.box()
+        box.label(text='Material Tools:')
         if box:
-            split = layout_split(box, 0.3)
+            column = box.column()
+            split = layout_split(column, 0.3)
             split.label(text='Mode:')
-            split.prop(context.scene.xray, 'convert_materials_mode', text='')
-            utils_col = box.column(align=True)
+            split.prop(data, 'convert_materials_mode', text='')
+
             if not IS_28:
-                utils_col.prop(context.scene.xray, 'convert_materials_shader_type')
-                utils_col.operator('io_scene_xray.convert_to_cycles')
-                utils_col.operator('io_scene_xray.convert_to_internal')
-                if context.scene.render.engine == 'CYCLES':
-                    text = 'Switch Render (Internal)'
-                elif context.scene.render.engine == 'BLENDER_RENDER':
-                    text = 'Switch Render (Cycles)'
-                utils_col.operator('io_scene_xray.switch_render', text=text)
+                cycles_box = column.box()
+                col_cycles = cycles_box.column()
+                col_cycles.active = is_cycles or IS_28
+                internal_box = column.box()
+                col_internal = internal_box.column()
+                col_internal.active = is_internal and not IS_28
+                col_cycles.label(text='Cycles Settings:')
+                split = layout_split(col_cycles, 0.3)
+                split.active = is_cycles
+                split.label(text='Shader:')
+                split.prop(data, 'convert_materials_shader_type', text='')
             else:
-                row = utils_col.row(align=True)
-                row.prop(context.scene.xray, 'change_materials_alpha', text='')
-                row.prop(context.scene.xray, 'materials_set_alpha_mode', toggle=True)
-            row = utils_col.row(align=True)
-            row.prop(context.scene.xray, 'change_specular', text='')
-            row.prop(context.scene.xray, 'shader_specular_value')
-            row = utils_col.row(align=True)
-            row.prop(context.scene.xray, 'change_roughness', text='')
-            row.prop(context.scene.xray, 'shader_roughness_value')
-            box.operator('io_scene_xray.change_shader_params')
+                col_cycles = column.column(align=True)
+                col_cycles.active = is_cycles or IS_28
+                row = col_cycles.row(align=True)
+                row.prop(data, 'change_materials_alpha', text='')
+                row = row.row(align=True)
+                row.active = data.change_materials_alpha
+                row.prop(data, 'materials_set_alpha_mode', toggle=True)
+
+            # specular
+            row = col_cycles.row(align=True)
+            row.prop(data, 'change_specular', text='')
+            row = row.row(align=True)
+            row.active = data.change_specular
+            row.prop(data, 'shader_specular_value')
+            # roughness
+            row = col_cycles.row(align=True)
+            row.prop(data, 'change_roughness', text='')
+            row = row.row(align=True)
+            row.active = data.change_roughness
+            row.prop(data, 'shader_roughness_value')
+            if not IS_28:
+                def draw_prop(change_prop, prop):
+                    row = col_internal.row(align=True)
+                    row.prop(data, change_prop, text='')
+                    row = row.row(align=True)
+                    row.active = getattr(data, change_prop)
+                    row.prop(data, prop, toggle=True)
+                col_internal.label(text='Internal Settings:')
+                draw_prop('change_shadeless', 'use_shadeless')
+                draw_prop('change_diffuse_intensity', 'diffuse_intensity')
+                draw_prop('change_specular_intensity', 'specular_intensity')
+                draw_prop('change_specular_hardness', 'specular_hardness')
+                draw_prop('change_use_transparency', 'use_transparency')
+                draw_prop('change_transparency_alpha', 'transparency_alpha')
+            # operators
+            column = box.column(align=True)
+            if not IS_28:
+                column.operator(
+                    material.MATERIAL_OT_xray_convert_to_cycles.bl_idname
+                )
+                col = column.column(align=True)
+                col.active = is_cycles
+                col.operator(
+                    material.MATERIAL_OT_xray_convert_to_internal.bl_idname
+                )
+                if is_cycles:
+                    text = 'Switch Render (Internal)'
+                elif is_internal:
+                    text = 'Switch Render (Cycles)'
+                column.operator(
+                    material.MATERIAL_OT_xray_switch_render.bl_idname,
+                    text=text
+                )
+            column.operator(
+                shader_tools.MATERIAL_OT_change_shader_params.bl_idname
+            )
 
 
 class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
-    bl_label = build_label('Custom Properties')
-    bl_category = 'XRay'
+    bl_label = 'Custom Properties'
+    bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
@@ -209,8 +305,8 @@ class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
 
 
 class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
-    bl_label = build_label('Import')
-    bl_category = 'XRay'
+    bl_label = 'Import'
+    bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
@@ -221,7 +317,7 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         enabled_import_operators = plugin.get_enabled_operators(
-            plugin.import_draw_functions, plugin.import_draw_functions_28
+            plugin.import_draw_functions
         )
         return bool(enabled_import_operators)
 
@@ -230,43 +326,43 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
-        lay = self.layout
+        col = self.layout.column(align=True)
         preferences = prefs.utils.get_preferences()
         # object
         if preferences.enable_object_import:
-            lay.operator(obj_imp_ops.OpImportObject.bl_idname, text='Object')
+            col.operator(obj_imp_ops.OpImportObject.bl_idname, text='Object')
         # skls
         if preferences.enable_skls_import:
-            lay.operator(skl_ops.OpImportSkl.bl_idname, text='Skls')
+            col.operator(skl_ops.OpImportSkl.bl_idname, text='Skls')
         # anm
         if preferences.enable_anm_import:
-            lay.operator(anm_ops.OpImportAnm.bl_idname, text='Anm')
+            col.operator(anm_ops.OpImportAnm.bl_idname, text='Anm')
         # bones
         if preferences.enable_bones_import:
-            lay.operator(bones_ops.IMPORT_OT_xray_bones.bl_idname, text='Bones')
+            col.operator(bones_ops.IMPORT_OT_xray_bones.bl_idname, text='Bones')
         # details
         if preferences.enable_details_import:
-            lay.operator(details_ops.OpImportDetails.bl_idname, text='Details')
+            col.operator(details_ops.OpImportDetails.bl_idname, text='Details')
         # dm
         if preferences.enable_dm_import:
-            lay.operator(dm_ops.OpImportDM.bl_idname, text='Dm')
+            col.operator(dm_ops.OpImportDM.bl_idname, text='Dm')
         # scene
         if preferences.enable_level_import:
-            lay.operator(scene_ops.OpImportLevelScene.bl_idname, text='Scene')
+            col.operator(scene_ops.OpImportLevelScene.bl_idname, text='Scene')
         # omf
         if preferences.enable_omf_import:
-            lay.operator(omf_ops.IMPORT_OT_xray_omf.bl_idname, text='Omf')
+            col.operator(omf_ops.IMPORT_OT_xray_omf.bl_idname, text='Omf')
         # level
-        if preferences.enable_game_level_import and IS_28:
-            lay.operator(level_ops.IMPORT_OT_xray_level.bl_idname, text='Level')
+        if preferences.enable_game_level_import:
+            col.operator(level_ops.IMPORT_OT_xray_level.bl_idname, text='Level')
         # err
         if preferences.enable_err_import:
-            lay.operator(err_ops.OpImportERR.bl_idname, text='Err')
+            col.operator(err_ops.OpImportERR.bl_idname, text='Err')
 
 
 class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
-    bl_label = build_label('Export')
-    bl_category = 'XRay'
+    bl_label = 'Export'
+    bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if IS_28:
@@ -277,7 +373,7 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         enabled_export_operators = plugin.get_enabled_operators(
-            plugin.export_draw_functions, plugin.export_draw_functions_28
+            plugin.export_draw_functions
         )
         return bool(enabled_export_operators)
 
@@ -286,44 +382,45 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
-        lay = self.layout
+        col = self.layout.column(align=True)
         preferences = prefs.utils.get_preferences()
         # object
         if preferences.enable_object_export:
-            lay.operator(obj_exp_ops.OpExportObjects.bl_idname, text='Object')
+            col.operator(obj_exp_ops.OpExportObjects.bl_idname, text='Object')
         # skls
         if preferences.enable_skls_export:
-            lay.operator(skl_ops.OpExportSkls.bl_idname, text='Skls')
+            col.operator(skl_ops.OpExportSkls.bl_idname, text='Skls')
         # anm
         if preferences.enable_anm_export:
-            lay.operator(anm_ops.OpExportAnm.bl_idname, text='Anm')
+            col.operator(anm_ops.OpExportAnm.bl_idname, text='Anm')
         # bones
         if preferences.enable_bones_export:
-            lay.operator(bones_ops.EXPORT_OT_xray_bones_batch.bl_idname, text='Bones')
+            col.operator(bones_ops.EXPORT_OT_xray_bones_batch.bl_idname, text='Bones')
         # details
         if preferences.enable_details_export:
-            lay.operator(details_ops.OpExportDetails.bl_idname, text='Details')
+            col.operator(details_ops.OpExportDetails.bl_idname, text='Details')
         # dm
         if preferences.enable_dm_export:
-            lay.operator(dm_ops.OpExportDMs.bl_idname, text='Dm')
+            col.operator(dm_ops.OpExportDMs.bl_idname, text='Dm')
         # scene
         if preferences.enable_level_export:
-            lay.operator(scene_ops.OpExportLevelScene.bl_idname, text='Scene')
+            col.operator(scene_ops.OpExportLevelScene.bl_idname, text='Scene')
         # omf
         if preferences.enable_omf_export:
-            lay.operator(omf_ops.EXPORT_OT_xray_omf.bl_idname, text='Omf')
+            col.operator(omf_ops.EXPORT_OT_xray_omf.bl_idname, text='Omf')
         # level
-        if preferences.enable_game_level_export and IS_28:
-            lay.operator(level_ops.EXPORT_OT_xray_level.bl_idname, text='Level')
+        if preferences.enable_game_level_export:
+            col.operator(level_ops.EXPORT_OT_xray_level.bl_idname, text='Level')
         # ogf
         if preferences.enable_ogf_export:
-            lay.operator(ogf_ops.OpExportOgf.bl_idname, text='Ogf')
+            col.operator(ogf_ops.OpExportOgf.bl_idname, text='Ogf')
 
 
 classes = (
-    VIEW3D_PT_skls_animations,
+    XRAY_PT_skls_animations,
     XRAY_PT_TransformsPanel,
     XRAY_PT_AddPanel,
+    XRAY_PT_VerifyToolsPanel,
     XRAY_PT_BatchToolsPanel,
     XRAY_PT_CustomPropertiesUtilsPanel,
     XRAY_PT_ImportPluginsPanel,

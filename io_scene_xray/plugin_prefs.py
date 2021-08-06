@@ -175,8 +175,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
             column_1.prop(self, 'enable_bones_import', text='*.bones')
             column_1.prop(self, 'enable_level_import', text='*.level')
             column_1.prop(self, 'enable_omf_import', text='*.omf')
-            if IS_28:
-                column_1.prop(self, 'enable_game_level_import', text='level')
+            column_1.prop(self, 'enable_game_level_import', text='level')
             column_1.prop(self, 'enable_err_import', text='*.err')
 
             column_2.label(text='Export Plugins:')
@@ -188,8 +187,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
             column_2.prop(self, 'enable_bones_export', text='*.bones')
             column_2.prop(self, 'enable_level_export', text='*.level')
             column_2.prop(self, 'enable_omf_export', text='*.omf')
-            if IS_28:
-                column_2.prop(self, 'enable_game_level_export', text='level')
+            column_2.prop(self, 'enable_game_level_export', text='level')
             column_2.prop(self, 'enable_ogf_export', text='*.ogf')
 
         elif self.category == 'KEYMAP':
@@ -295,6 +293,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
             split.prop(self, 'custom_owner_name', text='')
             prop_bool(layout, self, 'expert_mode')
             prop_bool(layout, self, 'compact_menus')
+            prop_bool(layout, self, 'developer_mode')
 
         split = layout_split(layout, 0.6)
         split.label(text='')

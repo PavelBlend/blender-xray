@@ -1,8 +1,15 @@
-import os, math
+# standart modules
+import os
+import math
 
-import bpy, mathutils
+# blender modules
+import bpy
+import mathutils
 
-from . import utils as level_utils, create, fmt, shaders, visuals, vb, ib, swi, cform
+# addon modules
+from . import (
+    create, fmt, shaders, visuals, vb, ib, swi, cform, utils as level_utils
+)
 from .. import xray_io, utils, version_utils
 from ..ogf import imp as ogf_imp
 
@@ -14,6 +21,7 @@ class Level(object):
         self.xrlc_version = None
         self.xrlc_version_geom = None
         self.materials = None
+        self.images = None
         self.shaders = None
         self.textures = None
         self.vertex_buffers = None
@@ -37,6 +45,8 @@ def create_sector_object(sector_id, collection, sectors_object):
     bpy_object = create.create_object(object_name, None)
     bpy_object.parent = sectors_object
     collection.objects.link(bpy_object)
+    if not version_utils.IS_28:
+        version_utils.link_object(bpy_object)
     return bpy_object
 
 
@@ -44,13 +54,14 @@ def create_sectors_object(collection):
     object_name = 'sectors'
     bpy_object = create.create_object(object_name, None)
     collection.objects.link(bpy_object)
+    if not version_utils.IS_28:
+        version_utils.link_object(bpy_object)
     return bpy_object
 
 
 def import_sector_portal(data):
     packed_reader = xray_io.PackedReader(data)
     portal_count = len(data) // fmt.SECTOR_PORTAL_SIZE
-
     for portal_index in range(portal_count):
         portal = packed_reader.getf('H')[0]
 
@@ -63,7 +74,6 @@ def import_sector_root(data):
 
 def import_sector(data, level, sector_object):
     chunked_reader = xray_io.ChunkedReader(data)
-
     for chunk_id, chunk_data in chunked_reader:
         if chunk_id == fmt.SectorChunks.PORTALS:
             import_sector_portal(chunk_data)
@@ -81,7 +91,6 @@ def import_sectors(data, level, level_object):
     collection = level.collections[create.LEVEL_SECTORS_COLLECTION_NAME]
     sectors_object = create_sectors_object(collection)
     sectors_object.parent = level_object
-
     for sector_id, sector_data in chunked_reader:
         sector_object = create_sector_object(
             sector_id, collection, sectors_object
@@ -125,22 +134,33 @@ def generate_glow_mesh_data(radius):
     return vertices, faces, uvs
 
 
-def create_glow_mesh(name, vertices, faces, uvs):
+def create_glow_mesh(name, vertices, faces, uvs, material, image):
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(vertices, (), faces)
-    uv_layer = mesh.uv_layers.new(name='Texture')
+    if version_utils.IS_28:
+        uv_layer = mesh.uv_layers.new(name='Texture')
+    else:
+        uv_texture = mesh.uv_textures.new(name='Texture')
+        uv_layer = mesh.uv_layers[uv_texture.name]
+        for tex_poly in uv_texture.data:
+            tex_poly.image = image
     for uv_index, data in enumerate(uv_layer.data):
         data.uv = uvs[uv_index]
+    mesh.materials.append(material)
+    if version_utils.IS_28:
+        material.use_backface_culling = False
+        material.blend_method = 'BLEND'
     return mesh
 
 
-def create_glow_object(glow_index, position, radius, shader_index, materials):
+def create_glow_object(
+        glow_index, position, radius, shader_index, materials, images
+    ):
     object_name = 'glow_{:0>3}'.format(glow_index)
     vertices, faces, uvs = generate_glow_mesh_data(radius)
-    mesh = create_glow_mesh(object_name, vertices, faces, uvs)
     material = materials[shader_index]
-    material.use_backface_culling = False
-    material.blend_method = 'BLEND'
+    image = images[shader_index]
+    mesh = create_glow_mesh(object_name, vertices, faces, uvs, material, image)
     mesh.materials.append(material)
     glow_object = create.create_object(object_name, mesh)
     glow_object.location = position[0], position[2], position[1]
@@ -149,42 +169,36 @@ def create_glow_object(glow_index, position, radius, shader_index, materials):
 
 def create_glow_object_v5(
         level, glow_index, position,
-        radius, shader_index, texture_index,
-        materials, shaders, textures
+        radius, shader_index, texture_index
     ):
     object_name = 'glow_{:0>3}'.format(glow_index)
     vertices, faces, uvs = generate_glow_mesh_data(radius)
-    mesh = create_glow_mesh(object_name, vertices, faces, uvs)
     material = ogf_imp.get_material(level, shader_index, texture_index)
-    material.use_backface_culling = False
-    material.blend_method = 'BLEND'
-    mesh.materials.append(material)
+    image = level.images[texture_index]
+    mesh = create_glow_mesh(object_name, vertices, faces, uvs, material, image)
     glow_object = create.create_object(object_name, mesh)
     glow_object.location = position[0], position[2], position[1]
     return glow_object
 
 
-def import_glow(packed_reader, glow_index, materials):
+def import_glow(packed_reader, glow_index, materials, images):
     position = packed_reader.getf('3f')
     radius = packed_reader.getf('f')[0]
     shader_index = packed_reader.getf('H')[0]
     glow_object = create_glow_object(
-        glow_index, position, radius, shader_index, materials
+        glow_index, position, radius, shader_index, materials, images
     )
     return glow_object
 
 
-def import_glow_v5(
-        level, packed_reader, glow_index, materials, shaders, textures
-    ):
+def import_glow_v5(level, packed_reader, glow_index):
     position = packed_reader.getf('3f')
     radius = packed_reader.getf('f')[0]
     texture_index = packed_reader.getf('I')[0]
     shader_index = packed_reader.getf('I')[0]
     glow_object = create_glow_object_v5(
         level, glow_index, position, radius,
-        shader_index, texture_index,
-        materials, shaders, textures
+        shader_index, texture_index
     )
     return glow_object
 
@@ -193,6 +207,8 @@ def create_glows_object(collection):
     object_name = 'glows'
     bpy_object = create.create_object(object_name, None)
     collection.objects.link(bpy_object)
+    if not version_utils.IS_28:
+        version_utils.link_object(bpy_object)
     return bpy_object
 
 
@@ -202,11 +218,14 @@ def import_glows(data, level):
     collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
     glows_object = create_glows_object(collection)
     materials = level.materials
+    images = level.images
 
     for glow_index in range(glows_count):
-        glow_object = import_glow(packed_reader, glow_index, materials)
+        glow_object = import_glow(packed_reader, glow_index, materials, images)
         glow_object.parent = glows_object
         collection.objects.link(glow_object)
+        if not version_utils.IS_28:
+            version_utils.link_object(glow_object)
 
     return glows_object
 
@@ -217,20 +236,12 @@ def import_glows_v5(data, level):
     collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
     glows_object = create_glows_object(collection)
 
-    if level.xrlc_version <= fmt.VERSION_5:
-        shaders = level.shaders
-        textures = level.textures
-    else:
-        shaders = level.shaders_or_textures
-        textures = None
-
     for glow_index in range(glows_count):
-        glow_object = import_glow_v5(
-            level, packed_reader, glow_index,
-            level.materials, shaders, textures
-        )
+        glow_object = import_glow_v5(level, packed_reader, glow_index)
         glow_object.parent = glows_object
         collection.objects.link(glow_object)
+        if not version_utils.IS_28:
+            version_utils.link_object(glow_object)
 
     return glows_object
 
@@ -268,7 +279,8 @@ def import_light_dynamic(packed_reader, light_object):
     data.theta = packed_reader.getf('f')[0]
     data.phi = packed_reader.getf('f')[0]
 
-    euler = mathutils.Vector((direction[0], direction[2], direction[1])).to_track_quat('Y', 'Z').to_euler('XYZ')
+    dir_vec = mathutils.Vector((direction[0], direction[2], direction[1]))
+    euler = dir_vec.to_track_quat('Y', 'Z').to_euler('XYZ')
     light_object.location = position[0], position[2], position[1]
     light_object.rotation_euler = euler[0], euler[1], euler[2]
 
@@ -291,14 +303,15 @@ def import_light_dynamic_v8(packed_reader, light_object):
     data.theta = packed_reader.getf('f')[0]
     data.phi = packed_reader.getf('f')[0]
     unknown = packed_reader.getf('2I')
-    name = packed_reader.getf('{}s'.format(fmt.B_LIGHT_V8_NAME_LEN))
+    name = packed_reader.getf('{}s'.format(fmt.LIGHT_V8_NAME_LEN))
 
     if data.light_type == fmt.D3D_LIGHT_POINT:
         data.controller_id = 2
     elif data.light_type == fmt.D3D_LIGHT_DIRECTIONAL:
         data.controller_id = 1
 
-    euler = mathutils.Vector((direction[0], direction[2], direction[1])).to_track_quat('Y', 'Z').to_euler('XYZ')
+    dir_vec = mathutils.Vector((direction[0], direction[2], direction[1]))
+    euler = dir_vec.to_track_quat('Y', 'Z').to_euler('XYZ')
     light_object.location = position[0], position[2], position[1]
     light_object.rotation_euler = euler[0], euler[1], euler[2]
 
@@ -327,16 +340,23 @@ def import_light_dynamic_v5(packed_reader, light_object):
     elif data.light_type == fmt.D3D_LIGHT_DIRECTIONAL:
         data.controller_id = 1
 
-    euler = mathutils.Vector((direction[0], direction[2], direction[1])).to_track_quat('Y', 'Z').to_euler('XYZ')
+    dir_vec = mathutils.Vector((direction[0], direction[2], direction[1]))
+    euler = dir_vec.to_track_quat('Y', 'Z').to_euler('XYZ')
     light_object.location = position[0], position[2], position[1]
     light_object.rotation_euler = euler[0], euler[1], euler[2]
 
 
 def create_light_object(light_index, collection):
     object_name = 'light_dynamic_{:0>3}'.format(light_index)
-    light = bpy.data.lights.new(object_name, 'SPOT')
+    if version_utils.IS_28:
+        bpy_data = bpy.data.lights
+    else:
+        bpy_data = bpy.data.lamps
+    light = bpy_data.new(object_name, 'SPOT')
     bpy_object = create.create_object(object_name, light)
     collection.objects.link(bpy_object)
+    if not version_utils.IS_28:
+        version_utils.link_object(bpy_object)
     return bpy_object
 
 
@@ -344,6 +364,8 @@ def create_lights_object(collection):
     object_name = 'light dynamic'
     bpy_object = create.create_object(object_name, None)
     collection.objects.link(bpy_object)
+    if not version_utils.IS_28:
+        version_utils.link_object(bpy_object)
     return bpy_object
 
 
@@ -353,34 +375,26 @@ def import_lights_dynamic(data, level):
     lights_dynamic_object = create_lights_object(collection)
 
     if level.xrlc_version >= fmt.VERSION_8:
-        light_count = len(data) // fmt.LIGHT_DYNAMIC_SIZE
-        for light_index in range(light_count):
-            light_object = create_light_object(light_index, collection)
-            import_light_dynamic(packed_reader, light_object)
-            light_object.parent = lights_dynamic_object
+        light_size = fmt.LIGHT_DYNAMIC_SIZE
+        import_light_funct = import_light_dynamic
     elif level.xrlc_version == fmt.VERSION_8:
-        light_count = len(data) // fmt.LIGHT_DYNAMIC_SIZE_V8
-        for light_index in range(light_count):
-            light_object = create_light_object(light_index, collection)
-            import_light_dynamic_v8(packed_reader, light_object)
-            light_object.parent = lights_dynamic_object
+        light_size = fmt.LIGHT_DYNAMIC_SIZE_V8
+        import_light_funct = import_light_dynamic_v8
     else:
-        light_count = len(data) // fmt.LIGHT_DYNAMIC_SIZE_V5
-        for light_index in range(light_count):
-            light_object = create_light_object(light_index, collection)
-            import_light_dynamic_v5(packed_reader, light_object)
-            light_object.parent = lights_dynamic_object
+        light_size = fmt.LIGHT_DYNAMIC_SIZE_V5
+        import_light_funct = import_light_dynamic_v5
+
+    light_count = len(data) // light_size
+    for light_index in range(light_count):
+        light_object = create_light_object(light_index, collection)
+        import_light_funct(packed_reader, light_object)
+        light_object.parent = lights_dynamic_object
 
     return lights_dynamic_object
 
 
-def generate_portal_face(vertices):
-    face = list(range(len(vertices)))
-    return [face, ]
-
-
 def create_portal_mesh(object_name, vertices):
-    faces = generate_portal_face(vertices)
+    faces = [list(range(len(vertices))), ]
     mesh = bpy.data.meshes.new(object_name)
     mesh.from_pydata(vertices, (), faces)
     return mesh
@@ -391,6 +405,8 @@ def create_portal(portal_index, vertices, collection):
     object_data = create_portal_mesh(object_name, vertices)
     portal_object = create.create_object(object_name, object_data)
     collection.objects.link(portal_object)
+    if not version_utils.IS_28:
+        version_utils.link_object(portal_object)
     return portal_object
 
 
@@ -422,6 +438,8 @@ def import_portals(data, level):
     portals_object = create.create_object('portals', None)
     collection = level.collections[create.LEVEL_PORTALS_COLLECTION_NAME]
     collection.objects.link(portals_object)
+    if not version_utils.IS_28:
+        version_utils.link_object(portals_object)
 
     for portal_index in range(portals_count):
         portal_object = import_portal(
@@ -432,21 +450,6 @@ def import_portals(data, level):
     return portals_object
 
 
-def check_version(xrlc_version):
-    if xrlc_version not in fmt.SUPPORTED_VERSIONS:
-        raise utils.AppError('Unsupported level version: {}'.format(
-            xrlc_version
-        ))
-
-
-def import_header(data):
-    packed_reader = xray_io.PackedReader(data)
-    xrlc_version = packed_reader.getf('H')[0]
-    check_version(xrlc_version)
-    xrlc_quality = packed_reader.getf('H')[0]
-    return xrlc_version
-
-
 def get_chunks(chunked_reader):
     chunks = {}
     for chunk_id, chunk_data in chunked_reader:
@@ -454,23 +457,31 @@ def get_chunks(chunked_reader):
     return chunks
 
 
-def get_version(header_chunk_data):
-    xrlc_version = import_header(header_chunk_data)
+def get_version(data):
+    packed_reader = xray_io.PackedReader(data)
+    xrlc_version = packed_reader.getf('H')[0]
+    if not xrlc_version in fmt.SUPPORTED_VERSIONS:
+        raise utils.AppError('Unsupported level version: {}'.format(
+            xrlc_version
+        ))
+    xrlc_quality = packed_reader.getf('H')[0]
     return xrlc_version
 
 
 def import_geomx(level, context):
-    if level.xrlc_version == fmt.VERSION_14:
-        geomx_path = context.filepath + os.extsep + 'geomx'
-        if os.path.exists(geomx_path):
-            geomx_chunks = {}
-            geomx_chunked_reader = level_utils.get_level_reader(geomx_path)
-            chunks = get_chunks(geomx_chunked_reader)
-            del geomx_chunked_reader
-            level.xrlc_version_geom = get_version(chunks.pop(fmt.HEADER))
-            geomx_chunks.update(chunks)
-            del chunks
-            return geomx_chunks
+    if level.xrlc_version != fmt.VERSION_14:
+        return
+    geomx_path = context.filepath + os.extsep + 'geomx'
+    if not os.path.exists(geomx_path):
+        return
+    geomx_chunks = {}
+    geomx_chunked_reader = level_utils.get_level_reader(geomx_path)
+    chunks = get_chunks(geomx_chunked_reader)
+    del geomx_chunked_reader
+    level.xrlc_version_geom = get_version(chunks.pop(fmt.HEADER))
+    geomx_chunks.update(chunks)
+    del chunks
+    return geomx_chunks
 
 
 def import_geom(level, chunks, context):
@@ -503,7 +514,7 @@ def import_level(level, context, chunks, geomx_chunks):
     elif level.xrlc_version == fmt.VERSION_4:
         chunks_ids = fmt.Chunks4
     shaders_chunk_data = chunks.pop(chunks_ids.SHADERS)
-    level.materials = shaders.import_shaders(level, context, shaders_chunk_data)
+    level.materials, level.images = shaders.import_shaders(level, context, shaders_chunk_data)
     del shaders_chunk_data
 
     if level.xrlc_version <= fmt.VERSION_5:
@@ -554,7 +565,7 @@ def import_level(level, context, chunks, geomx_chunks):
         del fastpath_swis_chunk_data
 
     level_collection = create.create_level_collections(level)
-    level_object = create.create_level_objects(level, level_collection)
+    level_object = create.create_level_object(level, level_collection)
 
     visuals_chunk_data = chunks.pop(chunks_ids.VISUALS)
     visuals.import_visuals(visuals_chunk_data, level)
@@ -618,8 +629,6 @@ MAX_LEVEL_SIZE = 1024 * 1024 * 32    # 32 MB
 
 
 def import_file(context, operator):
-    build = context.filepath[48 : 48 + 4]
-    index = context.filepath[36 : 36 + 2]
     level = Level()
     level.context = context
     level.usage_list = set()
@@ -627,21 +636,28 @@ def import_file(context, operator):
     chunked_reader = level_utils.get_level_reader(context.filepath)
     level.name = level_utils.get_level_name(context.filepath)
     level.xrlc_version = get_version(chunked_reader.next(fmt.HEADER))
-    temp_folder = 'E:\\stalker\\_TEMP\\utils\\level_format_stats\\'
-    stats_name = '{0:0>2}_{1}_{2}_{3}.txt'.format(
-        level.xrlc_version, build, level.name, index
-    )
-    if len(chunked_reader._ChunkedReader__data) > MAX_LEVEL_SIZE and TEST_MODE:
-        print('skip big level:', stats_name)
-        return
-    stats_path = os.path.join(temp_folder, stats_name)
-    if os.path.exists(stats_path) and TEST_MODE:
-        print('skip:', stats_name)
-        return
+
+    # test code
     if TEST_MODE:
+        build = context.filepath[48 : 48 + 4]
+        index = context.filepath[36 : 36 + 2]
+        temp_folder = 'E:\\stalker\\_TEMP\\utils\\level_format_stats\\'
+        stats_name = '{0:0>2}_{1}_{2}_{3}.txt'.format(
+            level.xrlc_version, build, level.name, index
+        )
+        if len(chunked_reader._ChunkedReader__data) > MAX_LEVEL_SIZE:
+            print('skip big level:', stats_name)
+            return
+        stats_path = os.path.join(temp_folder, stats_name)
+        if os.path.exists(stats_path):
+            print('skip:', stats_name)
+            return
         print(build, index, level.name)
+
     level.path = os.path.dirname(context.filepath)
     import_main(context, chunked_reader, level)
+
+    # test code
     if TEST_MODE:
         stats = '\nOGFs Info:\n'
         for key in level.visual_keys:
