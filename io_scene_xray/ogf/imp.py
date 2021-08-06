@@ -64,7 +64,7 @@ def get_material(level, shader_id, texture_id):
     return bpy_material
 
 
-def assign_material(bpy_object, visual, level):
+def assign_material(bpy_mesh, visual, level):
     if (
             visual.format_version == fmt.FORMAT_VERSION_4 or
             level.xrlc_version >= level_fmt.VERSION_12
@@ -75,7 +75,7 @@ def assign_material(bpy_object, visual, level):
             bpy_material.xray.flags_twosided = True
     else:
         bpy_material = get_material(level, visual.shader_id, visual.texture_id)
-    bpy_object.data.materials.append(bpy_material)
+    bpy_mesh.materials.append(bpy_material)
 
 
 def create_object(name, obj_data):
@@ -325,12 +325,6 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
                         loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
                         current_loop += 1
 
-        if not version_utils.IS_28:
-            bpy_image = level.images[visual.shader_id]
-            texture_layer = mesh.faces.layers.tex.new('Texture')
-            for face in mesh.faces:
-                face[texture_layer].image = bpy_image
-
         # normals
         mesh.normal_update()
 
@@ -338,17 +332,25 @@ def create_visual(bpy_mesh, visual, level, geometry_key):
         bpy_mesh = bpy.data.meshes.new(visual.name)
         bpy_mesh.use_auto_smooth = True
         bpy_mesh.auto_smooth_angle = math.pi
+        assign_material(bpy_mesh, visual, level)
+
+        if not version_utils.IS_28:
+            bpy_image = level.images[visual.shader_id]
+            texture_layer = mesh.faces.layers.tex.new('Texture')
+            for face in mesh.faces:
+                face[texture_layer].image = bpy_image
+
         mesh.to_mesh(bpy_mesh)
         if custom_normals:
             bpy_mesh.normals_split_custom_set(custom_normals)
         del mesh
+
         level.loaded_geometry[geometry_key] = bpy_mesh
 
     else:
         bpy_mesh = level.loaded_geometry[geometry_key]
 
     bpy_object = create_object(visual.name, bpy_mesh)
-    assign_material(bpy_object, visual, level)
     return bpy_object
 
 
@@ -903,7 +905,7 @@ def import_lod_visual(chunks, visual, level):
                 hemi_color.data[loop.index].color = (hemi, hemi, hemi)
                 sun_color.data[loop.index].color = (sun, sun, sun)
     bpy_object = create_object(visual.name, bpy_mesh)
-    assign_material(bpy_object, visual, level)
+    assign_material(bpy_object.data, visual, level)
     bpy_object.xray.is_level = True
     bpy_object.xray.level.object_type = 'VISUAL'
     bpy_object.xray.level.visual_type = 'LOD'
@@ -1024,11 +1026,12 @@ def import_model_v3(chunks, visual, level):
     data = bpy_obj.xray
     data.is_ogf = True
 
-    scene_collection = bpy.context.scene.collection
     collection_name = level_create.LEVEL_VISUALS_COLLECTION_NAMES_TABLE[visual.name]
     collection = level.collections[collection_name]
     collection.objects.link(bpy_obj)
-    scene_collection.objects.unlink(bpy_obj)
+    if version_utils.IS_28:
+        scene_collection = bpy.context.scene.collection
+        scene_collection.objects.unlink(bpy_obj)
     level.visuals.append(bpy_obj)
 
 
