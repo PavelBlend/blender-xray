@@ -48,8 +48,8 @@ def import_main(context, level, data=None):
     # read verts
     start_time = time.time()
     out('read vertices', 1)
-    prep_fff = xray_io.PackedReader.prep('fff')
-    verts = [packed_reader.getp(prep_fff) for _ in range(verts_count)]
+    verts = packed_reader.get_array('f', verts_count * 3)
+    verts.shape = (verts.shape[0] // 3, 3)
     total_time = time.time() - start_time
     out('read vertices', 1, total_time)
 
