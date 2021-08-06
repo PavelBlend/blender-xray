@@ -18,7 +18,7 @@ def import_main(context, level, data=None):
     if preferences.developer_mode:
         out = utils.print_time_info
     else:
-        out = lambda message, tabs_count, total_time=None: None
+        out = utils.print_pass
     out('import level cform', 0)
 
     # read level.cform file
