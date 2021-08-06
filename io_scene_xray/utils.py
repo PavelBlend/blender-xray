@@ -512,9 +512,17 @@ def read_file(file_path):
     return data
 
 
-def print_time_info(message, tabs_count, total_time=None):
-    spaces = ' ' * 4 * tabs_count
+def print_time_info(message=None, tabs_count=None, total_time=None):
+    if not message:
+        print()
+        return
+    if tabs_count:
+        spaces = ' ' * 4 * tabs_count
+    else:
+        spaces = ''
     if total_time is None:
         print('{0}{1} start...'.format(spaces, message))
     else:
-        print('{0}{1} end: {2:.6f} sec'.format(spaces, message, total_time))
+        message_text = '{0}{1: <50}'.format(spaces, message + ' end:')
+        message_time = '{0:.6f} sec'.format(total_time)
+        print('{0}{1}'.format(message_text, message_time))

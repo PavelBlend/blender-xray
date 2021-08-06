@@ -169,12 +169,14 @@ def import_main(context, level, data=None):
     create_verts_2_time = 0.0
     create_tris_2_time = 0.0
     create_objects_time = 0.0
+    out()
 
     for sector, triangles in sectors_tris.items():
 
         # create verts
+        sector_start_time = time.time()
         start_time = time.time()
-        message = 'sector {} create vertices'.format(sector)
+        message = 'sector_{0:0>3} create vertices'.format(sector)
         out(message, 3)
         sector_verts = sectors_verts[sector]
         bm = bmesh.new()
@@ -192,7 +194,7 @@ def import_main(context, level, data=None):
 
         # create tris
         start_time = time.time()
-        message = 'sector {} create triangles'.format(sector)
+        message = 'sector_{0:0>3} create triangles'.format(sector)
         out(message, 3)
 
         tris_2 = []    # two sided tris
@@ -219,7 +221,7 @@ def import_main(context, level, data=None):
 
         # create two sided verts
         start_time = time.time()
-        message = 'sector {} create two sided vertices'.format(sector)
+        message = 'sector_{0:0>3} create two sided vertices'.format(sector)
         out(message, 3)
         remap_vertices = {}
         for remap_vert_index, vertex_index in enumerate(verts_2):
@@ -234,7 +236,7 @@ def import_main(context, level, data=None):
 
         # create two sided tris
         start_time = time.time()
-        message = 'sector {} create two sided triangles'.format(sector)
+        message = 'sector_{0:0>3} create two sided triangles'.format(sector)
         out(message, 3)
         for vert_1, vert_2, vert_3, mat_id, shadow, wm in tris_2:
             try:
@@ -256,7 +258,7 @@ def import_main(context, level, data=None):
         create_tris_2_time += total_time
 
         start_time = time.time()
-        message = 'sector {} create object'.format(sector)
+        message = 'sector_{0:0>3} create object'.format(sector)
         out(message, 3)
 
         # create mesh
@@ -282,6 +284,14 @@ def import_main(context, level, data=None):
         total_time = time.time() - start_time
         out(message, 3, total_time)
         create_objects_time += total_time
+
+        out()
+        message = 'sector_{0:0>3} total time'.format(sector)
+        sector_total_time = time.time() - sector_start_time
+        out(message, 3, sector_total_time)
+        create_objects_time += total_time
+        out()
+
 
     out('create vertices', 2, create_verts_time)
     out('create triangles', 2, create_tris_time)
