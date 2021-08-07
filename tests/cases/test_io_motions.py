@@ -9,7 +9,7 @@ class TestIOMotions(utils.XRayTestCase):
         obj = _prepare_animation()
 
         # Act
-        bpy.ops.export_object.xray_objects(
+        bpy.ops.xray_export.object(
             objects=obj.name, directory=self.outpath(),
             texture_name_from_image_path=False,
             export_motions=True,
@@ -30,7 +30,7 @@ class TestIOMotions(utils.XRayTestCase):
         bpy.data.actions[0].xray.autobake = 'on'
 
         # Act
-        bpy.ops.export_object.xray_objects(
+        bpy.ops.xray_export.object(
             objects=obj.name, directory=self.outpath(),
             texture_name_from_image_path=False,
             export_motions=True,

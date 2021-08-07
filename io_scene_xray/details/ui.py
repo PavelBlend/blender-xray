@@ -101,4 +101,4 @@ def draw_function(self, context):
                     text='Mesh {}'.format(i)
                     )
 
-        box.operator(ops.PackDetailsImages.bl_idname)
+        box.operator(ops.XRAY_OT_pack_details_images.bl_idname)

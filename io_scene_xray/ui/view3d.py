@@ -330,22 +330,22 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
         preferences = prefs.utils.get_preferences()
         # object
         if preferences.enable_object_import:
-            col.operator(obj_imp_ops.OpImportObject.bl_idname, text='Object')
+            col.operator(obj_imp_ops.XRAY_OT_import_object.bl_idname, text='Object')
         # skls
         if preferences.enable_skls_import:
             col.operator(skl_ops.OpImportSkl.bl_idname, text='Skls')
         # anm
         if preferences.enable_anm_import:
-            col.operator(anm_ops.OpImportAnm.bl_idname, text='Anm')
+            col.operator(anm_ops.XRAY_OT_import_anm.bl_idname, text='Anm')
         # bones
         if preferences.enable_bones_import:
-            col.operator(bones_ops.IMPORT_OT_xray_bones.bl_idname, text='Bones')
+            col.operator(bones_ops.XRAY_OT_import_bones.bl_idname, text='Bones')
         # details
         if preferences.enable_details_import:
-            col.operator(details_ops.OpImportDetails.bl_idname, text='Details')
+            col.operator(details_ops.XRAY_OT_import_details.bl_idname, text='Details')
         # dm
         if preferences.enable_dm_import:
-            col.operator(dm_ops.OpImportDM.bl_idname, text='Dm')
+            col.operator(dm_ops.XRAY_OT_import_dm.bl_idname, text='Dm')
         # scene
         if preferences.enable_level_import:
             col.operator(scene_ops.OpImportLevelScene.bl_idname, text='Scene')
@@ -354,10 +354,10 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
             col.operator(omf_ops.IMPORT_OT_xray_omf.bl_idname, text='Omf')
         # level
         if preferences.enable_game_level_import:
-            col.operator(level_ops.IMPORT_OT_xray_level.bl_idname, text='Level')
+            col.operator(level_ops.XRAY_OT_import_level.bl_idname, text='Level')
         # err
         if preferences.enable_err_import:
-            col.operator(err_ops.OpImportERR.bl_idname, text='Err')
+            col.operator(err_ops.XRAY_OT_import_err.bl_idname, text='Err')
 
 
 class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
@@ -386,22 +386,22 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
         preferences = prefs.utils.get_preferences()
         # object
         if preferences.enable_object_export:
-            col.operator(obj_exp_ops.OpExportObjects.bl_idname, text='Object')
+            col.operator(obj_exp_ops.XRAY_OT_export_object.bl_idname, text='Object')
         # skls
         if preferences.enable_skls_export:
             col.operator(skl_ops.OpExportSkls.bl_idname, text='Skls')
         # anm
         if preferences.enable_anm_export:
-            col.operator(anm_ops.OpExportAnm.bl_idname, text='Anm')
+            col.operator(anm_ops.XRAY_OT_export_anm.bl_idname, text='Anm')
         # bones
         if preferences.enable_bones_export:
-            col.operator(bones_ops.EXPORT_OT_xray_bones.bl_idname, text='Bones')
+            col.operator(bones_ops.XRAY_OT_export_bones.bl_idname, text='Bones')
         # details
         if preferences.enable_details_export:
-            col.operator(details_ops.OpExportDetails.bl_idname, text='Details')
+            col.operator(details_ops.XRAY_OT_export_details.bl_idname, text='Details')
         # dm
         if preferences.enable_dm_export:
-            col.operator(dm_ops.OpExportDMs.bl_idname, text='Dm')
+            col.operator(dm_ops.XRAY_OT_export_dm.bl_idname, text='Dm')
         # scene
         if preferences.enable_level_export:
             col.operator(scene_ops.OpExportLevelScene.bl_idname, text='Scene')
@@ -410,7 +410,7 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
             col.operator(omf_ops.EXPORT_OT_xray_omf.bl_idname, text='Omf')
         # level
         if preferences.enable_game_level_export:
-            col.operator(level_ops.EXPORT_OT_xray_level.bl_idname, text='Level')
+            col.operator(level_ops.XRAY_OT_export_level.bl_idname, text='Level')
         # ogf
         if preferences.enable_ogf_export:
             col.operator(ogf_ops.OpExportOgf.bl_idname, text='Ogf')

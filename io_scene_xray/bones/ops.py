@@ -42,7 +42,7 @@ op_import_bones_props = {
 }
 
 
-class IMPORT_OT_xray_bones(bpy.types.Operator, io_utils.ImportHelper):
+class XRAY_OT_import_bones(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.bones'
     bl_label = 'Import .bones'
     bl_description = 'Import X-Ray Bones Data'
@@ -127,7 +127,7 @@ op_export_bones_props = {
 }
 
 
-class EXPORT_OT_xray_bones(bpy.types.Operator):
+class XRAY_OT_export_bones(bpy.types.Operator):
     bl_idname = 'xray_export.bones'
     bl_label = 'Export .bones'
 
@@ -135,8 +135,8 @@ class EXPORT_OT_xray_bones(bpy.types.Operator):
     objects_list = []
 
     if not IS_28:
-        for prop_name, prop_value in op_export_bones_batch_props.items():
-            exec('{0} = op_export_bones_batch_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in op_export_bones_props.items():
+            exec('{0} = op_export_bones_props.get("{0}")'.format(prop_name))
 
     def get_objects(self, context):
         self.objects_list.clear()
@@ -205,7 +205,7 @@ op_export_bone_props = {
 }
 
 
-class EXPORT_OT_xray_bone(bpy.types.Operator, io_utils.ExportHelper):
+class XRAY_OT_export_bone(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.bone'
     bl_label = 'Export .bones'
 
@@ -213,8 +213,8 @@ class EXPORT_OT_xray_bone(bpy.types.Operator, io_utils.ExportHelper):
     objects = []
 
     if not IS_28:
-        for prop_name, prop_value in op_export_bones_props.items():
-            exec('{0} = op_export_bones_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in op_export_bone_props.items():
+            exec('{0} = op_export_bone_props.get("{0}")'.format(prop_name))
 
     @execute_with_logger
     @set_cursor_state
@@ -264,7 +264,7 @@ class EXPORT_OT_xray_bone(bpy.types.Operator, io_utils.ExportHelper):
 def menu_func_import(self, _context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        IMPORT_OT_xray_bones.bl_idname,
+        XRAY_OT_import_bones.bl_idname,
         text='X-Ray Bones Data (.bones)', icon_value=icon
     )
 
@@ -272,15 +272,15 @@ def menu_func_import(self, _context):
 def menu_func_export(self, _context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        EXPORT_OT_xray_bones.bl_idname,
+        XRAY_OT_export_bones.bl_idname,
         text='X-Ray Bones Data (.bones)', icon_value=icon
     )
 
 
 classes = (
-    (IMPORT_OT_xray_bones, op_import_bones_props),
-    (EXPORT_OT_xray_bones, op_export_bones_props),
-    (EXPORT_OT_xray_bone, op_export_bone_props)
+    (XRAY_OT_import_bones, op_import_bones_props),
+    (XRAY_OT_export_bones, op_export_bones_props),
+    (XRAY_OT_export_bone, op_export_bone_props)
 )
 
 

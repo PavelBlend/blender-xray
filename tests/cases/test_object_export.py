@@ -11,7 +11,7 @@ class TestObjectExport(utils.XRayTestCase):
         self._create_objects()
 
         # Act
-        bpy.ops.xray_export.object(
+        bpy.ops.xray_export.object_file(
             object='tobj1', filepath=self.outpath('test.object'),
             texture_name_from_image_path=False
         )
@@ -27,7 +27,7 @@ class TestObjectExport(utils.XRayTestCase):
         objs[0].location = (1, 2, 3)
 
         # Act
-        bpy.ops.export_object.xray_objects(
+        bpy.ops.xray_export.object(
             objects='tobj1,tobj2', directory=self.outpath(),
             fmt_version='cscop',
             texture_name_from_image_path=False
@@ -44,7 +44,7 @@ class TestObjectExport(utils.XRayTestCase):
         self._create_objects()
 
         # Act
-        bpy.ops.export_object.xray_objects(
+        bpy.ops.xray_export.object(
             objects='tobj1,tobj2', directory=self.outpath(),
             use_export_paths=False,
             texture_name_from_image_path=False
@@ -66,7 +66,7 @@ class TestObjectExport(utils.XRayTestCase):
                 obj.select = obj.name in {'tobj1', 'tobj2'}
 
         # Act
-        bpy.ops.export_scene.xray(
+        bpy.ops.xray_export.project(
             filepath=self.outpath(),
             use_selection=True
         )
@@ -86,7 +86,7 @@ class TestObjectExport(utils.XRayTestCase):
         arm.bones['tbone'].xray.shape.sph_rad = 1
 
         # Act
-        bpy.ops.export_object.xray_objects(
+        bpy.ops.xray_export.object(
             objects='tobj', directory=self.outpath(),
             texture_name_from_image_path=False,
             export_motions=False,
@@ -143,7 +143,7 @@ class TestObjectExport(utils.XRayTestCase):
         vertex_group.add(range(len(obj_me.data.vertices)), 1.0, 'REPLACE')
 
         # Act
-        bpy.ops.export_object.xray_objects(
+        bpy.ops.xray_export.object(
             objects='tobj', directory=self.outpath(),
             texture_name_from_image_path=False,
             export_motions=False,
@@ -176,7 +176,7 @@ class TestObjectExport(utils.XRayTestCase):
         utils.set_active_object(root)
 
         # Act
-        bpy.ops.xray_export.object(
+        bpy.ops.xray_export.object_file(
             object='empty', filepath=self.outpath('test.object'),
             texture_name_from_image_path=False
         )
@@ -191,7 +191,7 @@ class TestObjectExport(utils.XRayTestCase):
         self._create_objects(create_uv=False)
 
         # Act
-        bpy.ops.xray_export.object(
+        bpy.ops.xray_export.object_file(
             object='tobj1', filepath=self.outpath('test.object'),
         )
 
@@ -206,7 +206,7 @@ class TestObjectExport(utils.XRayTestCase):
         self._create_objects(create_material=False)
 
         # Act
-        bpy.ops.xray_export.object(
+        bpy.ops.xray_export.object_file(
             object='tobj1', filepath=self.outpath('test.object'),
         )
 
@@ -236,7 +236,7 @@ class TestObjectExport(utils.XRayTestCase):
         self._create_objects()
 
         # Act
-        bpy.ops.xray_export.object(
+        bpy.ops.xray_export.object_file(
             object='tobj1', filepath=self.outpath('test_split_normals.object'),
             texture_name_from_image_path=False, smoothing_out_of='SPLIT_NORMALS'
         )

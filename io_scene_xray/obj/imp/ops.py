@@ -25,7 +25,7 @@ op_import_object_props = {
 }
 
 
-class OpImportObject(ops.base.BaseOperator, bpy_extras.io_utils.ImportHelper):
+class XRAY_OT_import_object(ops.base.BaseOperator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
     bl_label = 'Import .object'
     bl_description = 'Imports X-Ray object'
@@ -100,7 +100,7 @@ class OpImportObject(ops.base.BaseOperator, bpy_extras.io_utils.ImportHelper):
 def menu_func_import(self, _context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpImportObject.bl_idname,
+        XRAY_OT_import_object.bl_idname,
         text='X-Ray object (.object)',
         icon_value=icon
     )
@@ -108,10 +108,10 @@ def menu_func_import(self, _context):
 
 def register():
     assign_props([
-        (op_import_object_props, OpImportObject),
+        (op_import_object_props, XRAY_OT_import_object),
     ])
-    bpy.utils.register_class(OpImportObject)
+    bpy.utils.register_class(XRAY_OT_import_object)
 
 
 def unregister():
-    bpy.utils.unregister_class(OpImportObject)
+    bpy.utils.unregister_class(XRAY_OT_import_object)

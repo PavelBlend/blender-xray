@@ -17,7 +17,7 @@ op_import_anm_props = {
 }
 
 
-class OpImportAnm(bpy.types.Operator, io_utils.ImportHelper):
+class XRAY_OT_import_anm(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.anm'
     bl_label = 'Import .anm'
     bl_description = 'Imports X-Ray animation'
@@ -56,7 +56,7 @@ op_export_anm_props = {
 }
 
 
-class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
+class XRAY_OT_export_anm(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.anm'
     bl_label = 'Export .anm'
     bl_description = 'Exports X-Ray animation'
@@ -81,14 +81,16 @@ class OpExportAnm(bpy.types.Operator, FilenameExtHelper):
 def menu_func_import(self, _context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpImportAnm.bl_idname, text='X-Ray animation (.anm)', icon_value=icon
+        XRAY_OT_import_anm.bl_idname,
+        text='X-Ray animation (.anm)',
+        icon_value=icon
     )
 
 
 def menu_func_export(self, _context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpExportAnm.bl_idname,
+        XRAY_OT_export_anm.bl_idname,
         text='X-Ray animation (.anm)',
         icon_value=icon
     )
@@ -96,13 +98,13 @@ def menu_func_export(self, _context):
 
 def register():
     assign_props([
-        (op_import_anm_props, OpImportAnm),
-        (op_export_anm_props, OpExportAnm)
+        (op_import_anm_props, XRAY_OT_import_anm),
+        (op_export_anm_props, XRAY_OT_export_anm)
     ])
-    bpy.utils.register_class(OpImportAnm)
-    bpy.utils.register_class(OpExportAnm)
+    bpy.utils.register_class(XRAY_OT_import_anm)
+    bpy.utils.register_class(XRAY_OT_export_anm)
 
 
 def unregister():
-    bpy.utils.unregister_class(OpExportAnm)
-    bpy.utils.unregister_class(OpImportAnm)
+    bpy.utils.unregister_class(XRAY_OT_export_anm)
+    bpy.utils.unregister_class(XRAY_OT_import_anm)

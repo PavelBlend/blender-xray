@@ -13,7 +13,7 @@ op_import_err_props = {
 }
 
 
-class OpImportERR(TestReadyOperator, io_utils.ImportHelper):
+class XRAY_OT_import_err(TestReadyOperator, io_utils.ImportHelper):
     bl_idname = 'xray_import.err'
     bl_label = 'Import .err'
     bl_description = 'Imports X-Ray Error List (.err)'
@@ -36,18 +36,18 @@ class OpImportERR(TestReadyOperator, io_utils.ImportHelper):
 def menu_func_import(self, _context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpImportERR.bl_idname,
+        XRAY_OT_import_err.bl_idname,
         text='X-Ray error list (.err)',
         icon_value=icon
         )
 
 
 def register():
-    assign_props([(op_import_err_props, OpImportERR), ])
-    bpy.utils.register_class(OpImportERR)
+    assign_props([(op_import_err_props, XRAY_OT_import_err), ])
+    bpy.utils.register_class(XRAY_OT_import_err)
 
 
 def unregister():
     import_menu, _ = get_import_export_menus()
     import_menu.remove(menu_func_import)
-    bpy.utils.unregister_class(OpImportERR)
+    bpy.utils.unregister_class(XRAY_OT_import_err)

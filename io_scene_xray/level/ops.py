@@ -24,7 +24,7 @@ op_import_level_props = {
 }
 
 
-class IMPORT_OT_xray_level(
+class XRAY_OT_import_level(
         bpy.types.Operator, bpy_extras.io_utils.ImportHelper
     ):
 
@@ -71,7 +71,7 @@ op_export_level_props = {
 }
 
 
-class EXPORT_OT_xray_level(bpy.types.Operator):
+class XRAY_OT_export_level(bpy.types.Operator):
     bl_idname = 'xray_export.level'
     bl_label = 'Export Level'
 
@@ -109,7 +109,7 @@ class EXPORT_OT_xray_level(bpy.types.Operator):
 def menu_func_import(self, context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        IMPORT_OT_xray_level.bl_idname,
+        XRAY_OT_import_level.bl_idname,
         text='X-Ray game level (level)',
         icon_value=icon
     )
@@ -118,7 +118,7 @@ def menu_func_import(self, context):
 def menu_func_export(self, context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        EXPORT_OT_xray_level.bl_idname,
+        XRAY_OT_export_level.bl_idname,
         text='X-Ray game level (level)',
         icon_value=icon
     )
@@ -126,13 +126,13 @@ def menu_func_export(self, context):
 
 def register():
     assign_props([
-        (op_import_level_props, IMPORT_OT_xray_level),
-        (op_export_level_props, EXPORT_OT_xray_level)
+        (op_import_level_props, XRAY_OT_import_level),
+        (op_export_level_props, XRAY_OT_export_level)
     ])
-    bpy.utils.register_class(IMPORT_OT_xray_level)
-    bpy.utils.register_class(EXPORT_OT_xray_level)
+    bpy.utils.register_class(XRAY_OT_import_level)
+    bpy.utils.register_class(XRAY_OT_export_level)
 
 
 def unregister():
-    bpy.utils.unregister_class(EXPORT_OT_xray_level)
-    bpy.utils.unregister_class(IMPORT_OT_xray_level)
+    bpy.utils.unregister_class(XRAY_OT_export_level)
+    bpy.utils.unregister_class(XRAY_OT_import_level)

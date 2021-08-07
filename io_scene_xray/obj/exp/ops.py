@@ -58,7 +58,7 @@ class _WithExportMotions:
             exec('{0} = _with_export_motions_props.get("{0}")'.format(prop_name))
 
 
-op_export_objects_props = {
+op_export_object_props = {
     'objects': bpy.props.StringProperty(options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
 
@@ -71,14 +71,14 @@ op_export_objects_props = {
 }
 
 
-class OpExportObjects(ops.base.BaseOperator, _WithExportMotions):
-    bl_idname = 'export_object.xray_objects'
+class XRAY_OT_export_object(ops.base.BaseOperator, _WithExportMotions):
+    bl_idname = 'xray_export.object'
     bl_label = 'Export selected .object-s'
     bl_options = {'PRESET'}
 
     if not IS_28:
-        for prop_name, prop_value in op_export_objects_props.items():
-            exec('{0} = op_export_objects_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in op_export_object_props.items():
+            exec('{0} = op_export_object_props.get("{0}")'.format(prop_name))
 
     def draw(self, _context):
         layout = self.layout
@@ -133,7 +133,7 @@ class OpExportObjects(ops.base.BaseOperator, _WithExportMotions):
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
         if len(roots) == 1:
-            return bpy.ops.xray_export.object('INVOKE_DEFAULT')
+            return bpy.ops.xray_export.object_file('INVOKE_DEFAULT')
         self.objects = ','.join([o.name for o in roots])
         self.fmt_version = preferences.export_object_sdk_version
         self.export_motions = preferences.object_motions_export
@@ -146,7 +146,7 @@ class OpExportObjects(ops.base.BaseOperator, _WithExportMotions):
 
 
 filename_ext = '.object'
-op_export_object_props = {
+op_export_single_object_props = {
     'object': bpy.props.StringProperty(options={'HIDDEN'}),
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext,
@@ -159,21 +159,21 @@ op_export_object_props = {
 }
 
 
-class OpExportObject(
+class XRAY_OT_export_single_object(
         ops.base.BaseOperator,
         bpy_extras.io_utils.ExportHelper,
         _WithExportMotions
     ):
 
-    bl_idname = 'xray_export.object'
+    bl_idname = 'xray_export.object_file'
     bl_label = 'Export .object'
     bl_options = {'PRESET'}
 
     filename_ext = '.object'
 
     if not IS_28:
-        for prop_name, prop_value in op_export_object_props.items():
-            exec('{0} = op_export_object_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in op_export_single_object_props.items():
+            exec('{0} = op_export_single_object_props.get("{0}")'.format(prop_name))
 
     def draw(self, _context):
         layout = self.layout
@@ -234,7 +234,7 @@ class OpExportObject(
 def menu_func_export(self, _context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpExportObjects.bl_idname,
+        XRAY_OT_export_object.bl_idname,
         text='X-Ray object (.object)',
         icon_value=icon
     )
@@ -246,8 +246,8 @@ op_export_project_props = {
 }
 
 
-class OpExportProject(TestReadyOperator):
-    bl_idname = 'export_scene.xray'
+class XRAY_OT_export_project(TestReadyOperator):
+    bl_idname = 'xray_export.project'
     bl_label = 'Export XRay Project'
 
     if not IS_28:
@@ -267,7 +267,7 @@ class OpExportProject(TestReadyOperator):
         try:
             path = abspath(self.filepath if self.filepath else data.export_root)
             os.makedirs(path, exist_ok=True)
-            for obj in OpExportProject.find_objects(context, self.use_selection):
+            for obj in XRAY_OT_export_project.find_objects(context, self.use_selection):
                 name = obj.name
                 if not name.lower().endswith('.object'):
                     name += '.object'
@@ -287,9 +287,9 @@ class OpExportProject(TestReadyOperator):
 
 
 classes = (
-    (OpExportObjects, op_export_objects_props),
-    (OpExportObject, op_export_object_props),
-    (OpExportProject, op_export_project_props)
+    (XRAY_OT_export_object, op_export_object_props),
+    (XRAY_OT_export_single_object, op_export_single_object_props),
+    (XRAY_OT_export_project, op_export_project_props)
 )
 
 

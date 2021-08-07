@@ -1,7 +1,7 @@
 import bpy
 
-from .obj.imp.ops import OpImportObject
-from .obj.exp.ops import OpExportObjects
+from .obj.imp.ops import XRAY_OT_import_object
+from .obj.exp.ops import XRAY_OT_export_object
 
 
 class KayMap():
@@ -22,14 +22,14 @@ io_scene_xray_keymaps = {}
 # import object
 obj_imp_keymap = KayMap()
 obj_imp_keymap.key = 'F8'
-obj_imp_keymap.operator_id = OpImportObject.bl_idname
-obj_imp_keymap.text = OpImportObject.bl_label
+obj_imp_keymap.operator_id = XRAY_OT_import_object.bl_idname
+obj_imp_keymap.text = XRAY_OT_import_object.bl_label
 
 # export object
 obj_exp_keymap = KayMap()
 obj_exp_keymap.key = 'F8'
-obj_exp_keymap.operator_id = OpExportObjects.bl_idname
-obj_exp_keymap.text = OpExportObjects.bl_label
+obj_exp_keymap.operator_id = XRAY_OT_export_object.bl_idname
+obj_exp_keymap.text = XRAY_OT_export_object.bl_label
 obj_exp_keymap.shift = True
 
 keymaps_list = [

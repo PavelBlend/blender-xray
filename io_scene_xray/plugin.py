@@ -113,13 +113,13 @@ import_draw_functions = [
     (
         object_imp_ops.menu_func_import,
         'enable_object_import',
-        object_imp_ops.OpImportObject.bl_idname,
+        object_imp_ops.XRAY_OT_import_object.bl_idname,
         'Source Object (.object)'
     ),
     (
         anm_ops.menu_func_import,
         'enable_anm_import',
-        anm_ops.OpImportAnm.bl_idname,
+        anm_ops.XRAY_OT_import_anm.bl_idname,
         'Animation (.anm)'
     ),
     (
@@ -131,25 +131,25 @@ import_draw_functions = [
     (
         bones_ops.menu_func_import,
         'enable_bones_import',
-        bones_ops.IMPORT_OT_xray_bones.bl_idname,
+        bones_ops.XRAY_OT_import_bones.bl_idname,
         'Bones Data (.bones)'
     ),
     (
         err_ops.menu_func_import,
         'enable_err_import',
-        err_ops.OpImportERR.bl_idname,
+        err_ops.XRAY_OT_import_err.bl_idname,
         'Error List (.err)'
     ),
     (
         det_ops.menu_func_import,
         'enable_details_import',
-        det_ops.OpImportDetails.bl_idname,
+        det_ops.XRAY_OT_import_details.bl_idname,
         'Level Details (.details)'
     ),
     (
         dm_ops.menu_func_import,
         'enable_dm_import',
-        dm_ops.OpImportDM.bl_idname,
+        dm_ops.XRAY_OT_import_dm.bl_idname,
         'Detail Model (.dm)'
     ),
     (
@@ -167,7 +167,7 @@ import_draw_functions = [
     (
         level_ops.menu_func_import,
         'enable_game_level_import',
-        level_ops.IMPORT_OT_xray_level.bl_idname,
+        level_ops.XRAY_OT_import_level.bl_idname,
         'Game Level (level)'
     )
 ]
@@ -177,13 +177,13 @@ export_draw_functions = [
     (
         object_exp_ops.menu_func_export,
         'enable_object_export',
-        object_exp_ops.OpExportObjects.bl_idname,
+        object_exp_ops.XRAY_OT_export_object.bl_idname,
         'Source Object (.object)'
     ),
     (
         anm_ops.menu_func_export,
         'enable_anm_export',
-        anm_ops.OpExportAnm.bl_idname,
+        anm_ops.XRAY_OT_export_anm.bl_idname,
         'Animation (.anm)'
     ),
     (
@@ -195,7 +195,7 @@ export_draw_functions = [
     (
         bones_ops.menu_func_export,
         'enable_bones_export',
-        bones_ops.EXPORT_OT_xray_bones.bl_idname,
+        bones_ops.XRAY_OT_export_bones.bl_idname,
         'Bones Data (.bones)'
     ),
     (
@@ -207,13 +207,13 @@ export_draw_functions = [
     (
         det_ops.menu_func_export,
         'enable_details_export',
-        det_ops.OpExportDetails.bl_idname,
+        det_ops.XRAY_OT_export_details.bl_idname,
         'Level Details (.details)'
     ),
     (
         dm_ops.menu_func_export,
         'enable_dm_export',
-        dm_ops.OpExportDMs.bl_idname,
+        dm_ops.XRAY_OT_export_dm.bl_idname,
         'Detail Model (.dm)'
     ),
     (
@@ -231,7 +231,7 @@ export_draw_functions = [
     (
         level_ops.menu_func_export,
         'enable_game_level_export',
-        level_ops.EXPORT_OT_xray_level.bl_idname,
+        level_ops.XRAY_OT_export_level.bl_idname,
         'Game Level (level)'
     )
 ]

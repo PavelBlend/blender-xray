@@ -1,7 +1,7 @@
 import bpy
 
 from .. import prefs
-from ..obj.exp.ops import OpExportProject
+from ..obj.exp.ops import XRAY_OT_export_project
 from .base import XRayPanel, build_label
 from . import collapsible
 from ..version_utils import layout_split
@@ -30,14 +30,14 @@ class XRAY_PT_ScenePanel(XRayPanel):
             if not enabled:
                 layout = layout.split()
                 layout.enabled = False
-            props = layout.operator(OpExportProject.bl_idname, text=text, icon=icon)
+            props = layout.operator(XRAY_OT_export_project.bl_idname, text=text, icon=icon)
             return props
 
         layout = self.layout
         row = layout.row()
         if not data.export_root:
             row.enabled = False
-        selection = OpExportProject.find_objects(context, use_selection=True)
+        selection = XRAY_OT_export_project.find_objects(context, use_selection=True)
         if not selection:
             gen_op(row, 'No Roots Selected', enabled=False)
         elif len(selection) == 1:
@@ -52,7 +52,7 @@ class XRAY_PT_ScenePanel(XRayPanel):
                 text='Selected Objects (%d)' % len(selection),
                 icon='GROUP'
             ).use_selection = True
-        scene = OpExportProject.find_objects(context)
+        scene = XRAY_OT_export_project.find_objects(context)
         gen_op(
             row,
             text='Scene Export (%d)' % len(scene),

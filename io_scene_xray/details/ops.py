@@ -45,7 +45,7 @@ op_import_details_props = {
 }
 
 
-class OpImportDetails(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
+class XRAY_OT_import_details(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
 
     bl_idname = 'xray_import.details'
     bl_label = 'Import .details'
@@ -136,7 +136,7 @@ op_export_details_props = {
 }
 
 
-class OpExportDetails(
+class XRAY_OT_export_details(
         bpy.types.Operator, bpy_extras.io_utils.ExportHelper
     ):
 
@@ -200,7 +200,7 @@ class OpExportDetails(
         return super().invoke(context, event)
 
 
-class PackDetailsImages(bpy.types.Operator):
+class XRAY_OT_pack_details_images(bpy.types.Operator):
     bl_idname = 'io_scene_xray.pack_details_images'
     bl_label = 'Pack Details Images'
     bl_description = 'Pack Details Images as PNG'
@@ -244,7 +244,7 @@ class PackDetailsImages(bpy.types.Operator):
 def menu_func_import(self, context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpImportDetails.bl_idname, text='X-Ray level details (.details)',
+        XRAY_OT_import_details.bl_idname, text='X-Ray level details (.details)',
         icon_value=icon
     )
 
@@ -252,15 +252,15 @@ def menu_func_import(self, context):
 def menu_func_export(self, context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpExportDetails.bl_idname, text='X-Ray level details (.details)',
+        XRAY_OT_export_details.bl_idname, text='X-Ray level details (.details)',
         icon_value=icon
     )
 
 
 classes = (
-    (OpImportDetails, op_import_details_props),
-    (OpExportDetails, op_export_details_props),
-    (PackDetailsImages, None)
+    (XRAY_OT_import_details, op_import_details_props),
+    (XRAY_OT_export_details, op_export_details_props),
+    (XRAY_OT_pack_details_images, None)
 )
 
 

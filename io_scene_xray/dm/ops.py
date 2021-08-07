@@ -36,7 +36,7 @@ op_import_dm_props = {
 }
 
 
-class OpImportDM(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
+class XRAY_OT_import_dm(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.dm'
     bl_label = 'Import .dm'
     bl_description = 'Imports X-Ray Detail Models (.dm)'
@@ -91,8 +91,8 @@ op_export_dms_props = {
     'texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath()
 }
 
-class OpExportDMs(bpy.types.Operator):
-    bl_idname = 'xray_export.dms'
+class XRAY_OT_export_dm(bpy.types.Operator):
+    bl_idname = 'xray_export.dm'
     bl_label = 'Export .dm'
 
     if not IS_28:
@@ -139,7 +139,7 @@ class OpExportDMs(bpy.types.Operator):
                 self.report({'ERROR'}, 'The select object is not a mesh')
                 return {'CANCELLED'}
             else:
-                bpy.ops.xray_export.dm('INVOKE_DEFAULT')
+                bpy.ops.xray_export.dm_file('INVOKE_DEFAULT')
         else:
             self.detail_models = ','.join(
                 [o.name for o in objs if o.type == 'MESH']
@@ -158,8 +158,12 @@ op_export_dm_props = {
 }
 
 
-class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
-    bl_idname = 'xray_export.dm'
+class XRAY_OT_export_single_dm(
+        bpy.types.Operator,
+        bpy_extras.io_utils.ExportHelper
+    ):
+
+    bl_idname = 'xray_export.dm_file'
     bl_label = 'Export .dm'
 
     filename_ext = '.dm'
@@ -213,7 +217,7 @@ class OpExportDM(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
 def menu_func_import(self, context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpImportDM.bl_idname, text='X-Ray detail model (.dm)',
+        XRAY_OT_import_dm.bl_idname, text='X-Ray detail model (.dm)',
         icon_value=icon
     )
 
@@ -221,14 +225,16 @@ def menu_func_import(self, context):
 def menu_func_export(self, context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpExportDMs.bl_idname, text='X-Ray detail model (.dm)', icon_value=icon
+        XRAY_OT_export_dm.bl_idname,
+        text='X-Ray detail model (.dm)',
+        icon_value=icon
     )
 
 
 classes = (
-    (OpImportDM, op_import_dm_props),
-    (OpExportDM, op_export_dm_props),
-    (OpExportDMs, op_export_dms_props)
+    (XRAY_OT_import_dm, op_import_dm_props),
+    (XRAY_OT_export_dm, op_export_dms_props),
+    (XRAY_OT_export_single_dm, op_export_dm_props)
 )
 
 

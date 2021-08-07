@@ -18,7 +18,7 @@ class TestObjectExport_IncompatibleSG(utils.XRayTestCase):
         obj = utils.create_object(bm)
 
         # Act
-        bpy.ops.export_object.xray_objects(
+        bpy.ops.xray_export.object(
             objects=obj.name, directory=self.outpath(),
             texture_name_from_image_path=False,
             export_motions=False,
