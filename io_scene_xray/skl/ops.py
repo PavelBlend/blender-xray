@@ -35,7 +35,7 @@ class Motion(bpy.types.PropertyGroup):
         exec('{0} = motion_props.get("{0}")'.format('name'))
 
 
-op_import_skl_props = {
+op_import_skls_props = {
     'filter_glob': bpy.props.StringProperty(default='*.skl;*.skls', options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
@@ -45,15 +45,15 @@ op_import_skl_props = {
 }
 
 
-class OpImportSkl(TestReadyOperator, io_utils.ImportHelper):
-    bl_idname = 'xray_import.skl'
+class XRAY_OT_import_skls(TestReadyOperator, io_utils.ImportHelper):
+    bl_idname = 'xray_import.skls'
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
     bl_options = {'UNDO', 'PRESET'}
 
     if not IS_28:
-        for prop_name, prop_value in op_import_skl_props.items():
-            exec('{0} = op_import_skl_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in op_import_skls_props.items():
+            exec('{0} = op_import_skls_props.get("{0}")'.format(prop_name))
 
     __parsed_file_name = None
 
@@ -162,7 +162,7 @@ op_export_skl_props = {
 }
 
 
-class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
+class XRAY_OT_export_skl(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.skl'
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animation'
@@ -189,7 +189,7 @@ class OpExportSkl(bpy.types.Operator, io_utils.ExportHelper):
 
     @invoke_require_armature
     def invoke(self, context, event):
-        self.action = getattr(context, OpExportSkl.bl_idname + '.action', None)
+        self.action = getattr(context, XRAY_OT_export_skl.bl_idname + '.action', None)
         assert self.action
         self.filepath = self.action.name
         if not self.filepath.lower().endswith(filename_ext):
@@ -203,7 +203,7 @@ op_export_skls_props = {
 }
 
 
-class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
+class XRAY_OT_export_skls(bpy.types.Operator, FilenameExtHelper):
     bl_idname = 'xray_export.skls'
     bl_label = 'Export .skls'
     bl_description = 'Exports X-Ray skeletal animation'
@@ -233,7 +233,7 @@ class OpExportSkls(bpy.types.Operator, FilenameExtHelper):
 def menu_func_import(self, _context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpImportSkl.bl_idname,
+        XRAY_OT_import_skls.bl_idname,
         text='X-Ray skeletal animation (.skl, .skls)',
         icon_value=icon
     )
@@ -242,7 +242,7 @@ def menu_func_import(self, _context):
 def menu_func_export(self, _context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpExportSkls.bl_idname,
+        XRAY_OT_export_skls.bl_idname,
         text='X-Ray animation (.skls)',
         icon_value=icon
     )
@@ -250,9 +250,9 @@ def menu_func_export(self, _context):
 
 classes = (
     (Motion, motion_props),
-    (OpImportSkl, op_import_skl_props),
-    (OpExportSkl, op_export_skl_props),
-    (OpExportSkls, op_export_skls_props)
+    (XRAY_OT_import_skls, op_import_skls_props),
+    (XRAY_OT_export_skl, op_export_skl_props),
+    (XRAY_OT_export_skls, op_export_skls_props)
 )
 
 

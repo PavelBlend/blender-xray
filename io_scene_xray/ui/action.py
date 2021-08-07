@@ -3,7 +3,7 @@ import bpy
 
 # addon modules
 from .base import XRayPanel, build_label
-from ..skl.ops import OpExportSkl
+from ..skl.ops import XRAY_OT_export_skl
 from ..ops import action_utils
 from .. import version_utils, prefs
 
@@ -87,12 +87,12 @@ class XRAY_PT_ActionPanel(XRayPanel):
             row = layout.row(align=True)
             row.prop(data, 'flags_idle', text='Idle', toggle=True)
             row.prop(data, 'flags_weaponbone', text='Weapon Bone', toggle=True)
-        layout.context_pointer_set(OpExportSkl.bl_idname + '.action', action)
-        layout.operator(OpExportSkl.bl_idname, icon='EXPORT')
+        layout.context_pointer_set(XRAY_OT_export_skl.bl_idname + '.action', action)
+        layout.operator(XRAY_OT_export_skl.bl_idname, icon='EXPORT')
         layout.label(text='Settings:')
         row = layout.row(align=True)
-        row.operator(action_utils.XRayCopyActionSettingsOperator.bl_idname)
-        row.operator(action_utils.XRayPasteActionSettingsOperator.bl_idname)
+        row.operator(action_utils.XRAY_OT_CopyActionSettings.bl_idname)
+        row.operator(action_utils.XRAY_OT_PasteActionSettings.bl_idname)
 
 
 def register():

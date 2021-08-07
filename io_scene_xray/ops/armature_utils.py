@@ -4,7 +4,7 @@ import bpy
 COPY_TRANSFORMS_NAME = '!-xray-link'
 
 
-class ARMATURE_OT_link_bones(bpy.types.Operator):
+class XRAY_OT_link_bones(bpy.types.Operator):
     bl_idname = 'io_scene_xray.link_bones'
     bl_label = 'Link Bones'
     bl_description = ''
@@ -40,7 +40,7 @@ class ARMATURE_OT_link_bones(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ARMATURE_OT_unlink_bones(bpy.types.Operator):
+class XRAY_OT_unlink_bones(bpy.types.Operator):
     bl_idname = 'io_scene_xray.unlink_bones'
     bl_label = 'Unlink Bones'
     bl_description = ''
@@ -64,8 +64,8 @@ class ARMATURE_OT_unlink_bones(bpy.types.Operator):
 
 
 classes = (
-    ARMATURE_OT_link_bones,
-    ARMATURE_OT_unlink_bones
+    XRAY_OT_link_bones,
+    XRAY_OT_unlink_bones
 )
 
 

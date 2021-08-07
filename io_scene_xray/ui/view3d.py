@@ -99,7 +99,7 @@ class XRAY_PT_VerifyToolsPanel(bpy.types.Panel):
         data = context.scene.xray
         layout = self.layout
         layout.operator(
-            verify_uv.XRayVerifyUVOperator.bl_idname,
+            verify_uv.XRAY_OT_VerifyUV.bl_idname,
             icon='GROUP_UVS'
         )
 
@@ -171,7 +171,7 @@ class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
         layout = self.layout
         column = layout.column(align=True)
         operator = column.operator(
-            material.MATERIAL_OT_colorize_materials.bl_idname, icon='COLOR'
+            material.XRAY_OT_colorize_materials.bl_idname, icon='COLOR'
         )
         operator.seed = data.materials_colorize_random_seed
         operator.power = data.materials_colorize_color_power
@@ -241,23 +241,23 @@ class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
             column = box.column(align=True)
             if not IS_28:
                 column.operator(
-                    material.MATERIAL_OT_xray_convert_to_cycles.bl_idname
+                    material.XRAY_OT_xray_convert_to_cycles_material.bl_idname
                 )
                 col = column.column(align=True)
                 col.active = is_cycles
                 col.operator(
-                    material.MATERIAL_OT_xray_convert_to_internal.bl_idname
+                    material.XRAY_OT_xray_convert_to_internal_material.bl_idname
                 )
                 if is_cycles:
                     text = 'Switch Render (Internal)'
                 elif is_internal:
                     text = 'Switch Render (Cycles)'
                 column.operator(
-                    material.MATERIAL_OT_xray_switch_render.bl_idname,
+                    material.XRAY_OT_xray_switch_render.bl_idname,
                     text=text
                 )
             column.operator(
-                shader_tools.MATERIAL_OT_change_shader_params.bl_idname
+                shader_tools.XRAY_OT_change_shader_params.bl_idname
             )
 
 
@@ -333,7 +333,7 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
             col.operator(obj_imp_ops.XRAY_OT_import_object.bl_idname, text='Object')
         # skls
         if preferences.enable_skls_import:
-            col.operator(skl_ops.OpImportSkl.bl_idname, text='Skls')
+            col.operator(skl_ops.XRAY_OT_import_skls.bl_idname, text='Skls')
         # anm
         if preferences.enable_anm_import:
             col.operator(anm_ops.XRAY_OT_import_anm.bl_idname, text='Anm')
@@ -348,10 +348,10 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
             col.operator(dm_ops.XRAY_OT_import_dm.bl_idname, text='Dm')
         # scene
         if preferences.enable_level_import:
-            col.operator(scene_ops.OpImportLevelScene.bl_idname, text='Scene')
+            col.operator(scene_ops.XRAY_OT_import_scene_selection.bl_idname, text='Scene')
         # omf
         if preferences.enable_omf_import:
-            col.operator(omf_ops.IMPORT_OT_xray_omf.bl_idname, text='Omf')
+            col.operator(omf_ops.XRAY_OT_import_omf.bl_idname, text='Omf')
         # level
         if preferences.enable_game_level_import:
             col.operator(level_ops.XRAY_OT_import_level.bl_idname, text='Level')
@@ -389,7 +389,7 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
             col.operator(obj_exp_ops.XRAY_OT_export_object.bl_idname, text='Object')
         # skls
         if preferences.enable_skls_export:
-            col.operator(skl_ops.OpExportSkls.bl_idname, text='Skls')
+            col.operator(skl_ops.XRAY_OT_export_skls.bl_idname, text='Skls')
         # anm
         if preferences.enable_anm_export:
             col.operator(anm_ops.XRAY_OT_export_anm.bl_idname, text='Anm')
@@ -404,16 +404,16 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
             col.operator(dm_ops.XRAY_OT_export_dm.bl_idname, text='Dm')
         # scene
         if preferences.enable_level_export:
-            col.operator(scene_ops.OpExportLevelScene.bl_idname, text='Scene')
+            col.operator(scene_ops.XRAY_OT_export_scene_selection.bl_idname, text='Scene')
         # omf
         if preferences.enable_omf_export:
-            col.operator(omf_ops.EXPORT_OT_xray_omf.bl_idname, text='Omf')
+            col.operator(omf_ops.XRAY_OT_export_omf.bl_idname, text='Omf')
         # level
         if preferences.enable_game_level_export:
             col.operator(level_ops.XRAY_OT_export_level.bl_idname, text='Level')
         # ogf
         if preferences.enable_ogf_export:
-            col.operator(ogf_ops.OpExportOgf.bl_idname, text='Ogf')
+            col.operator(ogf_ops.XRAY_OT_export_ogf.bl_idname, text='Ogf')
 
 
 classes = (

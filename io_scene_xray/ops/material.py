@@ -47,7 +47,7 @@ def get_image_nodes(node, image_nodes):
             get_image_nodes(from_node, image_nodes)
 
 
-class MATERIAL_OT_xray_switch_render(bpy.types.Operator):
+class XRAY_OT_xray_switch_render(bpy.types.Operator):
     bl_idname = 'io_scene_xray.switch_render'
     bl_label = 'Switch Render'
     bl_description = 'Switch Cycles/Internal Render'
@@ -71,7 +71,7 @@ class MATERIAL_OT_xray_switch_render(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class MATERIAL_OT_xray_convert_to_internal(bpy.types.Operator):
+class XRAY_OT_xray_convert_to_internal_material(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_to_internal'
     bl_label = 'Convert to Internal'
     bl_description = ''
@@ -147,7 +147,7 @@ shader_keys = {
 }
 
 
-class MATERIAL_OT_xray_convert_to_cycles(bpy.types.Operator):
+class XRAY_OT_xray_convert_to_cycles_material(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_to_cycles'
     bl_label = 'Convert to Cycles'
     bl_description = ''
@@ -217,7 +217,7 @@ xray_colorize_materials_props = {
 }
 
 
-class MATERIAL_OT_colorize_materials(bpy.types.Operator):
+class XRAY_OT_colorize_materials(bpy.types.Operator):
     bl_idname = 'io_scene_xray.colorize_materials'
     bl_label = 'Colorize Materials'
     bl_description = 'Set a pseudo-random diffuse color for each surface (material)'
@@ -262,15 +262,15 @@ class MATERIAL_OT_colorize_materials(bpy.types.Operator):
 
 
 classes = (
-    MATERIAL_OT_xray_convert_to_cycles,
-    MATERIAL_OT_xray_convert_to_internal,
-    MATERIAL_OT_xray_switch_render
+    XRAY_OT_xray_convert_to_cycles_material,
+    XRAY_OT_xray_convert_to_internal_material,
+    XRAY_OT_xray_switch_render
 )
 
 
 def register():
-    assign_props([(xray_colorize_materials_props, MATERIAL_OT_colorize_materials), ])
-    bpy.utils.register_class(MATERIAL_OT_colorize_materials)
+    assign_props([(xray_colorize_materials_props, XRAY_OT_colorize_materials), ])
+    bpy.utils.register_class(XRAY_OT_colorize_materials)
     if not IS_28:
         for operator in classes:
             bpy.utils.register_class(operator)
@@ -280,4 +280,4 @@ def unregister():
     if not IS_28:
         for operator in reversed(classes):
             bpy.utils.unregister_class(operator)
-    bpy.utils.unregister_class(MATERIAL_OT_colorize_materials)
+    bpy.utils.unregister_class(XRAY_OT_colorize_materials)

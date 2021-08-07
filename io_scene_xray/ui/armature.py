@@ -69,21 +69,21 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
                 row.prop(data, 'display_bone_limit_z', toggle=True)
             col = box.column(align=True)
             col.operator(
-                joint_limits.ConvertJointLimitsToConstraints.bl_idname,
+                joint_limits.XRAY_OT_ConvertJointLimitsToConstraints.bl_idname,
                 icon='CONSTRAINT_BONE'
             )
             col.operator(
-                joint_limits.RemoveJointLimitsConstraints.bl_idname,
+                joint_limits.XRAY_OT_RemoveJointLimitsConstraints.bl_idname,
                 icon='X'
             )
             col.operator(
-                joint_limits.ConvertIKLimitsToXRayLimits.bl_idname
+                joint_limits.XRAY_OT_ConvertIKLimitsToXRayLimits.bl_idname
             )
             col.operator(
-                joint_limits.ConvertXRayLimitsToIKLimits.bl_idname
+                joint_limits.XRAY_OT_ConvertXRayLimitsToIKLimits.bl_idname
             )
             col.operator(
-                joint_limits.ClearIKLimits.bl_idname
+                joint_limits.XRAY_OT_ClearIKLimits.bl_idname
             )
 
         # fake bones
@@ -95,10 +95,10 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
         if box:
             lay = box.column(align=True)
             row = lay.row(align=True)
-            row.operator(fake_bones.CreateFakeBones.bl_idname, text='Create', icon='CONSTRAINT_BONE')
-            row.operator(fake_bones.DeleteFakeBones.bl_idname, text='Delete', icon='X')
+            row.operator(fake_bones.XRAY_OT_CreateFakeBones.bl_idname, text='Create', icon='CONSTRAINT_BONE')
+            row.operator(fake_bones.XRAY_OT_DeleteFakeBones.bl_idname, text='Delete', icon='X')
             lay.operator(
-                fake_bones.ToggleFakeBonesVisibility.bl_idname,
+                fake_bones.XRAY_OT_ToggleFakeBonesVisibility.bl_idname,
                 text='Show/Hide',
                 icon=get_icon('VISIBLE_IPO_ON'),
             )

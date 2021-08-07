@@ -55,7 +55,7 @@ op_export_ogf_props = {
 }
 
 
-class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
+class XRAY_OT_export_ogf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
 
@@ -80,7 +80,7 @@ class OpExportOgf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
 def menu_func_export(self, _context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpExportOgf.bl_idname,
+        XRAY_OT_export_ogf.bl_idname,
         text='X-Ray game object (.ogf)',
         icon_value=icon
     )
@@ -89,10 +89,10 @@ def menu_func_export(self, _context):
 def register():
     assign_props([
         (model_export_helper_props, ModelExportHelper),
-        (op_export_ogf_props, OpExportOgf)
+        (op_export_ogf_props, XRAY_OT_export_ogf)
     ])
-    bpy.utils.register_class(OpExportOgf)
+    bpy.utils.register_class(XRAY_OT_export_ogf)
 
 
 def unregister():
-    bpy.utils.unregister_class(OpExportOgf)
+    bpy.utils.unregister_class(XRAY_OT_export_ogf)

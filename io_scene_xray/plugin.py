@@ -125,7 +125,7 @@ import_draw_functions = [
     (
         skl_ops.menu_func_import,
         'enable_skls_import',
-        skl_ops.OpImportSkl.bl_idname,
+        skl_ops.XRAY_OT_import_skls.bl_idname,
         'Skeletal Animation (.skls)'
     ),
     (
@@ -155,13 +155,13 @@ import_draw_functions = [
     (
         scene_ops.menu_func_import,
         'enable_level_import',
-        scene_ops.OpImportLevelScene.bl_idname,
+        scene_ops.XRAY_OT_import_scene_selection.bl_idname,
         'Scene Selection (.level)'
     ),
     (
         omf_ops.menu_func_import,
         'enable_omf_import',
-        omf_ops.IMPORT_OT_xray_omf.bl_idname,
+        omf_ops.XRAY_OT_import_omf.bl_idname,
         'Game Motion (.omf)'
     ),
     (
@@ -189,7 +189,7 @@ export_draw_functions = [
     (
         skl_ops.menu_func_export,
         'enable_skls_export',
-        skl_ops.OpExportSkls.bl_idname,
+        skl_ops.XRAY_OT_export_skls.bl_idname,
         'Skeletal Animation (.skls)'
     ),
     (
@@ -201,7 +201,7 @@ export_draw_functions = [
     (
         ogf_ops.menu_func_export,
         'enable_ogf_export',
-        ogf_ops.OpExportOgf.bl_idname,
+        ogf_ops.XRAY_OT_export_ogf.bl_idname,
         'Game Object (.ogf)'
     ),
     (
@@ -219,13 +219,13 @@ export_draw_functions = [
     (
         scene_ops.menu_func_export,
         'enable_level_export',
-        scene_ops.OpExportLevelScene.bl_idname,
+        scene_ops.XRAY_OT_export_scene_selection.bl_idname,
         'Scene Selection (.level)'
     ),
     (
         omf_ops.menu_func_export,
         'enable_omf_export',
-        omf_ops.EXPORT_OT_xray_omf.bl_idname,
+        omf_ops.XRAY_OT_export_omf.bl_idname,
         'Game Motion (.omf)'
     ),
     (

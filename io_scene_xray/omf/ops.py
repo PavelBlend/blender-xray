@@ -68,7 +68,7 @@ op_import_omf_props = {
 }
 
 
-class IMPORT_OT_xray_omf(
+class XRAY_OT_import_omf(
         bpy.types.Operator, bpy_extras.io_utils.ImportHelper
     ):
 
@@ -204,7 +204,7 @@ op_export_omf_props = {
 }
 
 
-class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
+class XRAY_OT_export_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
     bl_idname = 'xray_export.omf'
     bl_label = 'Export .omf'
     bl_description = 'Exports X-Ray skeletal game motions'
@@ -275,7 +275,7 @@ class EXPORT_OT_xray_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
 def menu_func_import(self, context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        IMPORT_OT_xray_omf.bl_idname,
+        XRAY_OT_import_omf.bl_idname,
         text='X-Ray Game Motion (.omf)',
         icon_value=icon
     )
@@ -284,7 +284,7 @@ def menu_func_import(self, context):
 def menu_func_export(self, context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        EXPORT_OT_xray_omf.bl_idname,
+        XRAY_OT_export_omf.bl_idname,
         text='X-Ray Game Motion (.omf)',
         icon_value=icon
     )
@@ -292,8 +292,8 @@ def menu_func_export(self, context):
 
 classes = (
     (Motion, motion_props),
-    (IMPORT_OT_xray_omf, op_import_omf_props),
-    (EXPORT_OT_xray_omf, op_export_omf_props)
+    (XRAY_OT_import_omf, op_import_omf_props),
+    (XRAY_OT_export_omf, op_export_omf_props)
 )
 
 

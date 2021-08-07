@@ -3,8 +3,9 @@ import re
 import bpy
 
 from tests import utils
-from io_scene_xray.skl.ops import OpImportSkl
+from io_scene_xray.skl.ops import XRAY_OT_import_skls
 from io_scene_xray.ui.motion_list import BaseSelectMotionsOp
+
 
 class TestSklImport(utils.XRayTestCase):
     def test_skl_no_bone(self):
@@ -12,7 +13,7 @@ class TestSklImport(utils.XRayTestCase):
         self._create_armature('nobone')
 
         # Act
-        bpy.ops.xray_import.skl(
+        bpy.ops.xray_import.skls(
             directory=self.relpath(),
             files=[{'name': 'test_fmt.skl'}],
         )
@@ -25,7 +26,7 @@ class TestSklImport(utils.XRayTestCase):
         self._create_armature('Bone')
 
         # Act
-        bpy.ops.xray_import.skl(
+        bpy.ops.xray_import.skls(
             directory=self.relpath(),
             files=[{'name': 'test_fmt.skl'}],
         )
@@ -41,11 +42,11 @@ class TestSklImport(utils.XRayTestCase):
         self._create_armature('Bone')
 
         # Act
-        bpy.ops.xray_import.skl(
+        bpy.ops.xray_import.skls(
             directory=self.relpath(),
             files=[{'name': 'test_fmt.skls'}],
         )
-        motions = list(OpImportSkl._examine_file(self.relpath('test_fmt.skls')))
+        motions = list(XRAY_OT_import_skls._examine_file(self.relpath('test_fmt.skls')))
 
         # Assert
         self.assertReportsNotContains('WARNING')
@@ -59,7 +60,7 @@ class TestSklImport(utils.XRayTestCase):
         self._create_armature('Bone')
 
         # Act
-        bpy.ops.xray_import.skl(
+        bpy.ops.xray_import.skls(
             directory=self.relpath(),
             files=[{'name': 'test_fmt.skl'}],
             motions=[{'name': 'test_fmt', 'flag': False}],
@@ -74,7 +75,7 @@ class TestSklImport(utils.XRayTestCase):
         self._create_armature('Bone')
 
         # Act
-        bpy.ops.xray_import.skl(
+        bpy.ops.xray_import.skls(
             directory=self.relpath(),
             files=[{'name': 'test_fmt.skls'}],
             motions=[{'name': 'xact', 'flag': False}],

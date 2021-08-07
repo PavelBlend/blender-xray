@@ -4,7 +4,7 @@ from . import material
 from .. import version_utils
 
 
-class MATERIAL_OT_change_shader_params(bpy.types.Operator):
+class XRAY_OT_change_shader_params(bpy.types.Operator):
     bl_idname = 'io_scene_xray.change_shader_params'
     bl_label = 'Change Shader Parameters'
     bl_description = ''
@@ -82,8 +82,8 @@ class MATERIAL_OT_change_shader_params(bpy.types.Operator):
 
 
 def register():
-    bpy.utils.register_class(MATERIAL_OT_change_shader_params)
+    bpy.utils.register_class(XRAY_OT_change_shader_params)
 
 
 def unregister():
-    bpy.utils.unregister_class(MATERIAL_OT_change_shader_params)
+    bpy.utils.unregister_class(XRAY_OT_change_shader_params)

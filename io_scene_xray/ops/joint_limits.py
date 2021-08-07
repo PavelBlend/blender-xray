@@ -26,7 +26,7 @@ def update_limit(self, context):
     constraint.max_z = ik.lim_z_max
 
 
-class ConvertJointLimitsToConstraints(bpy.types.Operator):
+class XRAY_OT_ConvertJointLimitsToConstraints(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_joint_limits'
     bl_label = 'Convert Limits to Constraints'
     bl_description = 'Convert selected bones joint limits to constraints'
@@ -56,7 +56,7 @@ class ConvertJointLimitsToConstraints(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class RemoveJointLimitsConstraints(bpy.types.Operator):
+class XRAY_OT_RemoveJointLimitsConstraints(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_joint_limits'
     bl_label = 'Remove Limits Constraints'
     bl_description = 'Remove selected bones joint limits constraints'
@@ -72,7 +72,7 @@ class RemoveJointLimitsConstraints(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ConvertIKLimitsToXRayLimits(bpy.types.Operator):
+class XRAY_OT_ConvertIKLimitsToXRayLimits(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_ik_to_xray_limits'
     bl_label = 'Convert IK Limits to XRay Limits'
     bl_description = 'Convert selected bones IK limits to XRay joint limits'
@@ -93,7 +93,7 @@ class ConvertIKLimitsToXRayLimits(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ConvertXRayLimitsToIKLimits(bpy.types.Operator):
+class XRAY_OT_ConvertXRayLimitsToIKLimits(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_xray_to_ik_limits'
     bl_label = 'Convert XRay Limits to IK Limits'
     bl_description = 'Convert selected bones XRay joint limits to IK limits'
@@ -117,7 +117,7 @@ class ConvertXRayLimitsToIKLimits(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ClearIKLimits(bpy.types.Operator):
+class XRAY_OT_ClearIKLimits(bpy.types.Operator):
     bl_idname = 'io_scene_xray.clear_ik_limits'
     bl_label = 'Clear IK Limits'
     bl_description = 'Clear selected bones IK limits'
@@ -142,11 +142,11 @@ class ClearIKLimits(bpy.types.Operator):
 
 
 classes = (
-    ConvertJointLimitsToConstraints,
-    RemoveJointLimitsConstraints,
-    ConvertIKLimitsToXRayLimits,
-    ConvertXRayLimitsToIKLimits,
-    ClearIKLimits
+    XRAY_OT_ConvertJointLimitsToConstraints,
+    XRAY_OT_RemoveJointLimitsConstraints,
+    XRAY_OT_ConvertIKLimitsToXRayLimits,
+    XRAY_OT_ConvertXRayLimitsToIKLimits,
+    XRAY_OT_ClearIKLimits
 )
 
 

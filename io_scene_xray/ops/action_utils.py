@@ -52,7 +52,7 @@ def read_buffer_data():
         xray.bonestart_name = params.get('bonestart_name')
 
 
-class XRayCopyActionSettingsOperator(bpy.types.Operator):
+class XRAY_OT_CopyActionSettings(bpy.types.Operator):
     bl_idname = 'io_scene_xray.copy_action_settings'
     bl_label = 'Copy'
 
@@ -61,7 +61,7 @@ class XRayCopyActionSettingsOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRayPasteActionSettingsOperator(bpy.types.Operator):
+class XRAY_OT_PasteActionSettings(bpy.types.Operator):
     bl_idname = 'io_scene_xray.paste_action_settings'
     bl_label = 'Paste'
 
@@ -186,8 +186,8 @@ class XRAY_OT_ChangeActionBakeSettings(bpy.types.Operator):
 
 
 classes = (
-    XRayCopyActionSettingsOperator,
-    XRayPasteActionSettingsOperator,
+    XRAY_OT_CopyActionSettings,
+    XRAY_OT_PasteActionSettings,
     XRAY_OT_ChangeActionBakeSettings
 )
 

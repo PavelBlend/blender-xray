@@ -4,7 +4,7 @@ from .. import utils
 from . import base
 
 
-class CreateFakeBones(base.BaseOperator):
+class XRAY_OT_CreateFakeBones(base.BaseOperator):
     bl_idname = 'io_scene_xray.create_fake_bones'
     bl_label = 'Create Fake Bones'
     bl_description = 'Connect non-rigid bone joints via fake bones to help with IK'
@@ -49,7 +49,7 @@ class CreateFakeBones(base.BaseOperator):
         return {'FINISHED'}
 
 
-class DeleteFakeBones(base.BaseOperator):
+class XRAY_OT_DeleteFakeBones(base.BaseOperator):
     bl_idname = 'io_scene_xray.delete_fake_bones'
     bl_label = 'Delete Fake Bones'
     bl_description = 'Delete all previously created fake bones'
@@ -75,7 +75,7 @@ class DeleteFakeBones(base.BaseOperator):
         return {'FINISHED'}
 
 
-class ToggleFakeBonesVisibility(base.BaseOperator):
+class XRAY_OT_ToggleFakeBonesVisibility(base.BaseOperator):
     bl_idname = 'io_scene_xray.toggle_fake_bones_visibility'
     bl_label = 'Show/Hide Fake Bones'
     bl_description = 'Show/Hide all fake bones'
@@ -121,9 +121,9 @@ def _is_armature_context_with_fake_bones(context):
 
 
 classes = (
-    CreateFakeBones,
-    DeleteFakeBones,
-    ToggleFakeBonesVisibility
+    XRAY_OT_CreateFakeBones,
+    XRAY_OT_DeleteFakeBones,
+    XRAY_OT_ToggleFakeBonesVisibility
 )
 
 

@@ -17,7 +17,7 @@ op_export_level_scene_props = {
 }
 
 
-class OpExportLevelScene(bpy.types.Operator, io_utils.ExportHelper):
+class XRAY_OT_export_scene_selection(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.scene'
     bl_label = 'Export .level'
 
@@ -67,7 +67,7 @@ op_import_level_scene_props = {
 }
 
 
-class OpImportLevelScene(bpy.types.Operator, io_utils.ImportHelper):
+class XRAY_OT_import_scene_selection(bpy.types.Operator, io_utils.ImportHelper):
     bl_idname = 'xray_import.scene'
     bl_label = 'Import .level'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -110,7 +110,7 @@ class OpImportLevelScene(bpy.types.Operator, io_utils.ImportHelper):
 def menu_func_export(self, context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpExportLevelScene.bl_idname,
+        XRAY_OT_export_scene_selection.bl_idname,
         text='X-Ray scene selection (.level)',
         icon_value=icon
     )
@@ -119,7 +119,7 @@ def menu_func_export(self, context):
 def menu_func_import(self, context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        OpImportLevelScene.bl_idname,
+        XRAY_OT_import_scene_selection.bl_idname,
         text='X-Ray scene selection (.level)',
         icon_value=icon
     )
@@ -127,16 +127,16 @@ def menu_func_import(self, context):
 
 def register():
     assign_props([
-        (op_export_level_scene_props, OpExportLevelScene),
-        (op_import_level_scene_props, OpImportLevelScene)
+        (op_export_level_scene_props, XRAY_OT_export_scene_selection),
+        (op_import_level_scene_props, XRAY_OT_import_scene_selection)
     ])
-    bpy.utils.register_class(OpExportLevelScene)
-    bpy.utils.register_class(OpImportLevelScene)
+    bpy.utils.register_class(XRAY_OT_export_scene_selection)
+    bpy.utils.register_class(XRAY_OT_import_scene_selection)
 
 
 def unregister():
     import_menu, export_menu = get_import_export_menus()
     export_menu.remove(menu_func_export)
     import_menu.remove(menu_func_import)
-    bpy.utils.unregister_class(OpExportLevelScene)
-    bpy.utils.unregister_class(OpImportLevelScene)
+    bpy.utils.unregister_class(XRAY_OT_export_scene_selection)
+    bpy.utils.unregister_class(XRAY_OT_import_scene_selection)
