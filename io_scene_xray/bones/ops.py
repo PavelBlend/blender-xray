@@ -116,9 +116,8 @@ class IMPORT_OT_xray_bones(bpy.types.Operator, io_utils.ImportHelper):
         return super().invoke(context, event)
 
 
-op_export_bones_batch_props = {
+op_export_bones_props = {
     'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
-    'objects': bpy.props.StringProperty(options={'HIDDEN'}),
     'filter_glob': bpy.props.StringProperty(
         default='*'+BONES_EXT,
         options={'HIDDEN'}
@@ -128,8 +127,8 @@ op_export_bones_batch_props = {
 }
 
 
-class EXPORT_OT_xray_bones_batch(bpy.types.Operator):
-    bl_idname = 'xray_export.bones_batch'
+class EXPORT_OT_xray_bones(bpy.types.Operator):
+    bl_idname = 'xray_export.bones'
     bl_label = 'Export .bones'
 
     filename_ext = BONES_EXT
@@ -140,13 +139,10 @@ class EXPORT_OT_xray_bones_batch(bpy.types.Operator):
             exec('{0} = op_export_bones_batch_props.get("{0}")'.format(prop_name))
 
     def get_objects(self, context):
-        if not self.objects:
-            self.objects = ','.join((
-                obj.name
-                for obj in context.selected_objects
-                    if obj.type == 'ARMATURE'
-            ))
-        self.objects_list = [name for name in self.objects.split(',') if name]
+        self.objects_list.clear()
+        for obj in context.selected_objects:
+            if obj.type == 'ARMATURE':
+                self.objects_list.append(obj.name)
 
     @execute_with_logger
     @set_cursor_state
@@ -187,7 +183,7 @@ class EXPORT_OT_xray_bones_batch(bpy.types.Operator):
             self.report({'ERROR'}, 'No selected armatures')
             return {'CANCELLED'}
         if len(self.objects_list) == 1:
-            return bpy.ops.xray_export.bones('INVOKE_DEFAULT')
+            return bpy.ops.xray_export.bone('INVOKE_DEFAULT')
         preferences = prefs.utils.get_preferences()
         # export bone parts
         self.export_bone_parts = preferences.bones_export_bone_parts
@@ -197,7 +193,7 @@ class EXPORT_OT_xray_bones_batch(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-op_export_bones_props = {
+op_export_bone_props = {
     'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
     'object_name': bpy.props.StringProperty(options={'HIDDEN'}),
     'filter_glob': bpy.props.StringProperty(
@@ -209,8 +205,8 @@ op_export_bones_props = {
 }
 
 
-class EXPORT_OT_xray_bones(bpy.types.Operator, io_utils.ExportHelper):
-    bl_idname = 'xray_export.bones'
+class EXPORT_OT_xray_bone(bpy.types.Operator, io_utils.ExportHelper):
+    bl_idname = 'xray_export.bone'
     bl_label = 'Export .bones'
 
     filename_ext = BONES_EXT
@@ -276,7 +272,7 @@ def menu_func_import(self, _context):
 def menu_func_export(self, _context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
-        EXPORT_OT_xray_bones_batch.bl_idname,
+        EXPORT_OT_xray_bones.bl_idname,
         text='X-Ray Bones Data (.bones)', icon_value=icon
     )
 
@@ -284,7 +280,7 @@ def menu_func_export(self, _context):
 classes = (
     (IMPORT_OT_xray_bones, op_import_bones_props),
     (EXPORT_OT_xray_bones, op_export_bones_props),
-    (EXPORT_OT_xray_bones_batch, op_export_bones_batch_props)
+    (EXPORT_OT_xray_bone, op_export_bone_props)
 )
 
 

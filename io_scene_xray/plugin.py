@@ -195,7 +195,7 @@ export_draw_functions = [
     (
         bones_ops.menu_func_export,
         'enable_bones_export',
-        bones_ops.EXPORT_OT_xray_bones_batch.bl_idname,
+        bones_ops.EXPORT_OT_xray_bones.bl_idname,
         'Bones Data (.bones)'
     ),
     (

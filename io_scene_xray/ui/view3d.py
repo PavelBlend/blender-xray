@@ -395,7 +395,7 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
             col.operator(anm_ops.OpExportAnm.bl_idname, text='Anm')
         # bones
         if preferences.enable_bones_export:
-            col.operator(bones_ops.EXPORT_OT_xray_bones_batch.bl_idname, text='Bones')
+            col.operator(bones_ops.EXPORT_OT_xray_bones.bl_idname, text='Bones')
         # details
         if preferences.enable_details_export:
             col.operator(details_ops.OpExportDetails.bl_idname, text='Details')
