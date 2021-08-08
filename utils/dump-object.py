@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from io_scene_xray.xray_io import ChunkedReader, PackedReader
-from io_scene_xray.fmt_object import Chunks
+from io_scene_xray.obj.fmt import Chunks
 import io
 import time
 
