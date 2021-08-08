@@ -1,8 +1,11 @@
+# standart modules
 import os
 
+# blender modules
 import bpy
 
-from . import utils, version_utils, plugin_prefs, prefs
+# addon modules
+from . import utils, version_utils, prefs
 
 
 # base context
