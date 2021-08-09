@@ -73,7 +73,7 @@ op_export_level_props = {
 
 class XRAY_OT_export_level(bpy.types.Operator):
     bl_idname = 'xray_export.level'
-    bl_label = 'Export Level'
+    bl_label = 'Export level'
 
     filename_ext = ''
 

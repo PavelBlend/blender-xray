@@ -1,12 +1,10 @@
-# pylint: disable=C0103
-from os import path
-
+# blender modules
 import bpy
-
-from . import prefs
-
-from .version_utils import IS_28, assign_props, get_icon, layout_split
 from bl_operators.presets import AddPresetBase
+
+# addon modules
+from . import prefs
+from .version_utils import IS_28, assign_props, get_icon, layout_split
 
 
 path_props_names = {
@@ -191,15 +189,11 @@ class PluginPreferences(bpy.types.AddonPreferences):
             column_2.prop(self, 'enable_ogf_export', text='*.ogf')
 
         elif self.category == 'KEYMAP':
-            row = layout.row()
-            row.label(text='Import Object:')
-            row.prop(self, 'import_object_key', text='')
-            row.prop(self, 'import_object_shift', text='Shift', toggle=True)
-
-            row = layout.row()
-            row.label(text='Export Object:')
-            row.prop(self, 'export_object_key', text='')
-            row.prop(self, 'export_object_shift', text='Shift', toggle=True)
+            layout.template_list(
+                'XRAY_UL_KeyMapsList', 'name',
+                self, 'keymaps_collection',
+                self, 'keymaps_collection_index'
+            )
 
         # custom properties settings
         elif self.category == 'CUSTOM_PROPS':

@@ -2,7 +2,7 @@ import os
 
 import bpy
 
-from .. import xray_ltx, version_utils
+from .. import xray_ltx, version_utils, hotkeys
 from ..obj import props as general_obj_props
 from ..obj.imp import props as obj_imp_props
 from ..obj.exp import props as obj_exp_props
@@ -113,17 +113,6 @@ def update_paths(prefs, context):
             cheker_function = os.path.isfile
         path_value = _auto_path(prefs, path_prop, suffix, cheker_function)
         setattr(prefs, build_auto_id(path_prop), path_value)
-
-
-def update_keymap(self, context):
-    from .. import hotkeys
-    keymaps, keymap_item = hotkeys.io_scene_xray_keymaps[hotkeys.obj_imp_keymap.operator_id]
-    keymap_item.type = self.import_object_key
-    keymap_item.shift = self.import_object_shift
-
-    keymaps, keymap_item = hotkeys.io_scene_xray_keymaps[hotkeys.obj_exp_keymap.operator_id]
-    keymap_item.type = self.export_object_key
-    keymap_item.shift = self.export_object_shift
 
 
 custom_props_category_items = (
@@ -340,6 +329,68 @@ class XRayPrefsCustomProperties(bpy.types.PropertyGroup):
             exec('{0} = xray_custom_properties.get("{0}")'.format(prop_name))
 
 
+change_keymap_props = {
+    'operator': bpy.props.StringProperty(),
+}
+
+
+class XRAY_OT_ChangeKeymap(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.change_keymap'
+    bl_label = 'Change Keymap'
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in change_keymap_props.items():
+            exec('{0} = change_keymap_props.get("{0}")'.format(prop_name))
+
+    def execute(self, context):
+        if version_utils.IS_28:
+            context.preferences.active_section = 'KEYMAP'
+        else:
+            context.user_preferences.active_section = 'INPUT'
+        space = context.space_data
+        if space.type in ('PREFERENCES', 'USER_PREFERENCES'):
+            space.filter_type = 'NAME'
+            space.filter_text = self.operator
+        return {'FINISHED'}
+
+
+key_map_props = {
+    'name': bpy.props.StringProperty(),
+    'operator': bpy.props.StringProperty()
+}
+
+
+class XRayKeyMap(bpy.types.PropertyGroup):
+    if not version_utils.IS_28:
+        for prop_name, prop_value in key_map_props.items():
+            exec('{0} = key_map_props.get("{0}")'.format(prop_name))
+
+
+class XRAY_UL_KeyMapsList(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_property, index):
+        hotkey = data.keymaps_collection[index]
+        win_manager = context.window_manager
+        keyconfig = win_manager.keyconfigs.user
+        keymaps = keyconfig.keymaps.get('3D View')
+        key = ''
+        if keymaps:
+            keymap_items = keymaps.keymap_items
+            keymap = keymap_items.get(hotkey.operator)
+            if keymap:
+                alt = '+Alt' if keymap.alt else ''
+                ctrl = '+Ctrl' if keymap.ctrl else ''
+                shift = '+Shift' if keymap.shift else ''
+                key = '{0}{1}{2}{3}'.format(keymap.type, shift, ctrl, alt)
+        row = layout.row(align=True)
+        row.label(text=hotkey.name)
+        row.label(text=key)
+        change_keymap_op = row.operator(
+            XRAY_OT_ChangeKeymap.bl_idname,
+            text='Edit'
+        )
+        change_keymap_op.operator = hotkey.operator
+
+
 key_items = (
     ('F5', 'F5', ''),
     ('F6', 'F6', ''),
@@ -448,20 +499,8 @@ plugin_preferences_props = {
     'scene_selection_shaped_bones': obj_imp_props.PropObjectBonesCustomShapes(),
 
     # keymap
-    'import_object_key': bpy.props.EnumProperty(
-        default='F8', update=update_keymap, items=key_items,
-        name='Import Object Key'
-    ),
-    'import_object_shift': bpy.props.BoolProperty(
-        default=False, update=update_keymap
-    ),
-    'export_object_key': bpy.props.EnumProperty(
-        default='F8', update=update_keymap, items=key_items,
-        name='Export Object Key'
-    ),
-    'export_object_shift': bpy.props.BoolProperty(
-        default=True, update=update_keymap
-    ),
+    'keymaps_collection': bpy.props.CollectionProperty(type=XRayKeyMap),
+    'keymaps_collection_index': bpy.props.IntProperty(options={'SKIP_SAVE'}),
     # enable import plugins
     'enable_object_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_anm_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
@@ -509,12 +548,21 @@ plugin_preferences_props = {
 }
 
 
+classes = (
+    (XRAY_OT_ChangeKeymap, change_keymap_props),
+    (XRayKeyMap, key_map_props),
+    (XRAY_UL_KeyMapsList, None),
+    (XRayPrefsCustomProperties, xray_custom_properties)
+)
+
+
 def register():
-    version_utils.assign_props([
-        (xray_custom_properties, XRayPrefsCustomProperties),
-    ])
-    bpy.utils.register_class(XRayPrefsCustomProperties)
+    for clas, props in classes:
+        if props:
+            version_utils.assign_props([(props, clas), ])
+        bpy.utils.register_class(clas)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRayPrefsCustomProperties)
+    for clas, props in reversed(classes):
+        bpy.utils.unregister_class(clas)

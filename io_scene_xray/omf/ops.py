@@ -73,7 +73,7 @@ class XRAY_OT_import_omf(
     ):
 
     bl_idname = 'xray_import.omf'
-    bl_label = 'Import OMF'
+    bl_label = 'Import .omf'
     bl_description = 'Import X-Ray Game Motion (omf)'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
