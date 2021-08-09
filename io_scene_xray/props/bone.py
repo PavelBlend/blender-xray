@@ -6,6 +6,7 @@ import mathutils
 import gpu
 
 from . import utils
+from .. import viewport
 from ..ops import joint_limits
 from ..edit_helpers.bone_shape import HELPER as seh
 from ..version_utils import assign_props, IS_28, multiply, get_multiply
@@ -201,18 +202,24 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         else:
             hide = obj_arm.hide
         multiply = get_multiply()
+
+        prev_line_width = bgl.Buffer(bgl.GL_FLOAT, [1])
+        bgl.glGetFloatv(bgl.GL_LINE_WIDTH, prev_line_width)
+        bgl.glLineWidth(viewport.settings.LINE_WIDTH)
+
         if not hide and arm_xray.display_bone_limits and \
                         bone.xray.exportable and obj_arm.mode == 'POSE':
             if bone.select and bone.xray.ikjoint.type in {'2', '3', '5'} and \
                     bpy.context.object.name == obj_arm.name:
 
+                draw_joint_limits = viewport.get_draw_joint_limits()
+
                 if IS_28:
-                    from ..gpu_utils import draw_joint_limits
                     gpu.matrix.push()
                 else:
-                    from ..gl_utils import draw_joint_limits, matrix_to_buffer
                     bgl.glPushMatrix()
                     bgl.glEnable(bgl.GL_BLEND)
+
                 mat_translate = mathutils.Matrix.Translation(obj_arm.pose.bones[bone.name].matrix.to_translation())
                 mat_rotate = obj_arm.data.bones[bone.name].matrix_local.to_euler().to_matrix().to_4x4()
                 if bone.parent:
@@ -229,7 +236,9 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 if IS_28:
                     gpu.matrix.multiply_matrix(mat)
                 else:
-                    bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
+                    bgl.glMultMatrixf(
+                        viewport.gl_utils.matrix_to_buffer(mat.transposed())
+                    )
 
                 pose_bone = obj_arm.pose.bones[bone.name]
                 if pose_bone.rotation_mode == 'QUATERNION':
@@ -281,13 +290,16 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             arm_hide = obj_arm.hide
         if arm_hide or not obj_arm.data.xray.display_bone_shapes or \
                         not bone.xray.exportable or obj_arm.mode == 'EDIT':
+            bgl.glLineWidth(prev_line_width[0])
             return
 
         if IS_28:
             if not obj_arm.name in bpy.context.view_layer.objects:
+                bgl.glLineWidth(prev_line_width[0])
                 return
         else:
             if not obj_arm.name in bpy.context.scene.objects:
+                bgl.glLineWidth(prev_line_width[0])
                 return
             visible_armature_object = False
             for layer_index, layer in enumerate(obj_arm.layers):
@@ -297,23 +309,20 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                     break
 
             if not visible_armature_object:
+                bgl.glLineWidth(prev_line_width[0])
                 return
-
-        from ..gl_utils import matrix_to_buffer, \
-            draw_wire_cube, draw_wire_sphere, draw_wire_cylinder, draw_cross
 
         shape = self.shape
         if shape.type == '0':
+            bgl.glLineWidth(prev_line_width[0])
             return
         if IS_28:
-            from ..gpu_utils import draw_wire_cube, draw_wire_sphere, \
-                draw_wire_cylinder, draw_cross
             if bpy.context.active_bone \
                 and (bpy.context.active_bone.id_data == obj_arm.data) \
                 and (bpy.context.active_bone.name == bone.name):
-                color = (1.0, 0.0, 0.0, 0.7)
+                color = viewport.settings.ACTIVE_SHAPE_COLOR
             else:
-                color = (0.0, 0.0, 1.0, 0.5)
+                color = viewport.settings.SHAPE_COLOR
             gpu.matrix.push()
             try:
                 mat = multiply(
@@ -325,17 +334,26 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 mat = multiply(mat, shape.get_matrix_basis())
                 gpu.matrix.multiply_matrix(mat)
                 if shape.type == '1':  # box
-                    draw_wire_cube(*shape.box_hsz, color)
+                    viewport.draw_cube(*shape.box_hsz, color=color)
                 if shape.type == '2':  # sphere
-                    draw_wire_sphere(shape.sph_rad, 16, color)
+                    viewport.draw_sphere(
+                        shape.sph_rad,
+                        viewport.settings.BONE_SHAPE_SPHERE_SEGMENTS_COUNT,
+                        color=color
+                    )
                 if shape.type == '3':  # cylinder
-                    draw_wire_cylinder(shape.cyl_rad, shape.cyl_hgh * 0.5, 16, color)
+                    viewport.draw_wire_cylinder(
+                        shape.cyl_rad,
+                        shape.cyl_hgh * 0.5,
+                        viewport.settings.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT,
+                        color
+                    )
                 gpu.matrix.pop()
                 gpu.matrix.push()
                 ctr = self.mass.center
                 trn = multiply(bmat, mathutils.Vector((ctr[0], ctr[2], ctr[1])))
                 gpu.matrix.translate(trn)
-                draw_cross(0.05, color)
+                viewport.draw_cross(0.05, color=color)
             finally:
                 gpu.matrix.pop()
         else:
@@ -343,11 +361,9 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             if bpy.context.active_bone \
                 and (bpy.context.active_bone.id_data == obj_arm.data) \
                 and (bpy.context.active_bone.name == bone.name):
-                bgl.glColor4f(1.0, 0.0, 0.0, 0.7)
+                bgl.glColor4f(*viewport.settings.ACTIVE_SHAPE_COLOR)
             else:
-                bgl.glColor4f(0.0, 0.0, 1.0, 0.5)
-            prev_line_width = bgl.Buffer(bgl.GL_FLOAT, [1])
-            bgl.glGetFloatv(bgl.GL_LINE_WIDTH, prev_line_width)
+                bgl.glColor4f(*viewport.settings.SHAPE_COLOR)
             bgl.glPushMatrix()
             try:
                 mat = multiply(
@@ -356,24 +372,32 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                     mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
                 )
                 bmat = mat
-                bgl.glLineWidth(2)
                 mat = multiply(mat, shape.get_matrix_basis())
-                bgl.glMultMatrixf(matrix_to_buffer(mat.transposed()))
+                bgl.glMultMatrixf(
+                    viewport.gl_utils.matrix_to_buffer(mat.transposed())
+                )
                 if shape.type == '1':  # box
-                    draw_wire_cube(*shape.box_hsz)
+                    viewport.draw_cube(*shape.box_hsz)
                 if shape.type == '2':  # sphere
-                    draw_wire_sphere(shape.sph_rad, 16)
+                    viewport.draw_sphere(
+                        shape.sph_rad,
+                        viewport.settings.BONE_SHAPE_SPHERE_SEGMENTS_COUNT
+                    )
                 if shape.type == '3':  # cylinder
-                    draw_wire_cylinder(shape.cyl_rad, shape.cyl_hgh * 0.5, 16)
+                    viewport.draw_wire_cylinder(
+                        shape.cyl_rad,
+                        shape.cyl_hgh * 0.5,
+                        viewport.settings.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT
+                    )
                 bgl.glPopMatrix()
                 bgl.glPushMatrix()
                 ctr = self.mass.center
                 trn = multiply(bmat, mathutils.Vector((ctr[0], ctr[2], ctr[1])))
                 bgl.glTranslatef(*trn)
-                draw_cross(0.05)
+                viewport.draw_cross(0.05)
             finally:
                 bgl.glPopMatrix()
-                bgl.glLineWidth(prev_line_width[0])
+        bgl.glLineWidth(prev_line_width[0])
 
 
 prop_groups = (
