@@ -283,6 +283,45 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 else:
                     bgl.glPopMatrix()
 
+        mat = multiply(
+            obj_arm.matrix_world,
+            obj_arm.pose.bones[bone.name].matrix,
+            mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+        )
+        bmat = mat
+
+        # set color
+        if bpy.context.active_bone \
+            and (bpy.context.active_bone.id_data == obj_arm.data) \
+            and (bpy.context.active_bone.name == bone.name):
+            if IS_28:
+                color = viewport.settings.ACTIVE_SHAPE_COLOR
+            else:
+                bgl.glColor4f(*viewport.settings.ACTIVE_SHAPE_COLOR)
+        else:
+            if IS_28:
+                color = viewport.settings.SHAPE_COLOR
+            else:
+                bgl.glColor4f(*viewport.settings.SHAPE_COLOR)
+
+        # draw mass centers
+        if obj_arm.data.xray.display_bone_mass_centers:
+            ctr = self.mass.center
+            trn = multiply(bmat, mathutils.Vector(
+                (ctr[0], ctr[2], ctr[1])
+            ))
+            cross_size = obj_arm.data.xray.bone_mass_center_cross_size
+            if IS_28:
+                gpu.matrix.push()
+                gpu.matrix.translate(trn)
+                viewport.draw_cross(cross_size, color=color)
+                gpu.matrix.pop()
+            else:
+                bgl.glPopMatrix()
+                bgl.glPushMatrix()
+                bgl.glTranslatef(*trn)
+                viewport.draw_cross(cross_size)
+
         # draw shapes
         if IS_28:
             arm_hide = obj_arm.hide_viewport
@@ -317,20 +356,8 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             bgl.glLineWidth(prev_line_width[0])
             return
         if IS_28:
-            if bpy.context.active_bone \
-                and (bpy.context.active_bone.id_data == obj_arm.data) \
-                and (bpy.context.active_bone.name == bone.name):
-                color = viewport.settings.ACTIVE_SHAPE_COLOR
-            else:
-                color = viewport.settings.SHAPE_COLOR
             gpu.matrix.push()
             try:
-                mat = multiply(
-                    obj_arm.matrix_world,
-                    obj_arm.pose.bones[bone.name].matrix,
-                    mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
-                )
-                bmat = mat
                 mat = multiply(mat, shape.get_matrix_basis())
                 gpu.matrix.multiply_matrix(mat)
                 if shape.type == '1':  # box
@@ -348,30 +375,13 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                         viewport.settings.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT,
                         color
                     )
-                gpu.matrix.pop()
-                gpu.matrix.push()
-                ctr = self.mass.center
-                trn = multiply(bmat, mathutils.Vector((ctr[0], ctr[2], ctr[1])))
-                gpu.matrix.translate(trn)
-                viewport.draw_cross(0.05, color=color)
             finally:
                 gpu.matrix.pop()
         else:
             bgl.glEnable(bgl.GL_BLEND)
-            if bpy.context.active_bone \
-                and (bpy.context.active_bone.id_data == obj_arm.data) \
-                and (bpy.context.active_bone.name == bone.name):
-                bgl.glColor4f(*viewport.settings.ACTIVE_SHAPE_COLOR)
-            else:
-                bgl.glColor4f(*viewport.settings.SHAPE_COLOR)
+            bgl.glPopMatrix()
             bgl.glPushMatrix()
             try:
-                mat = multiply(
-                    obj_arm.matrix_world,
-                    obj_arm.pose.bones[bone.name].matrix,
-                    mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
-                )
-                bmat = mat
                 mat = multiply(mat, shape.get_matrix_basis())
                 bgl.glMultMatrixf(
                     viewport.gl_utils.matrix_to_buffer(mat.transposed())
@@ -389,12 +399,6 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                         shape.cyl_hgh * 0.5,
                         viewport.settings.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT
                     )
-                bgl.glPopMatrix()
-                bgl.glPushMatrix()
-                ctr = self.mass.center
-                trn = multiply(bmat, mathutils.Vector((ctr[0], ctr[2], ctr[1])))
-                bgl.glTranslatef(*trn)
-                viewport.draw_cross(0.05)
             finally:
                 bgl.glPopMatrix()
         bgl.glLineWidth(prev_line_width[0])

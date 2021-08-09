@@ -48,6 +48,11 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
                 icon='ERROR'
             )
         layout.prop(data, 'display_bone_shapes', toggle=True)
+        col = layout.column(align=True)
+        col.prop(data, 'display_bone_mass_centers', toggle=True)
+        row = col.row(align=True)
+        row.active = data.display_bone_mass_centers
+        row.prop(data, 'bone_mass_center_cross_size')
 
         # joint limits
         row, box = collapsible.draw(
@@ -59,14 +64,15 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
             split = layout_split(box, 0.5)
             split.label(text='Export Limits from:')
             split.prop(data, 'joint_limits_type', text='')
-            box.prop(data, 'display_bone_limits', toggle=True)
-            if data.display_bone_limits:
-                column = box.column(align=True)
-                column.prop(data, 'display_bone_limits_radius')
-                row = column.row(align=True)
-                row.prop(data, 'display_bone_limit_x', toggle=True)
-                row.prop(data, 'display_bone_limit_y', toggle=True)
-                row.prop(data, 'display_bone_limit_z', toggle=True)
+            col = box.column(align=True)
+            col.prop(data, 'display_bone_limits', toggle=True)
+            column = col.column(align=True)
+            column.active = data.display_bone_limits
+            column.prop(data, 'display_bone_limits_radius')
+            row = column.row(align=True)
+            row.prop(data, 'display_bone_limit_x', toggle=True)
+            row.prop(data, 'display_bone_limit_y', toggle=True)
+            row.prop(data, 'display_bone_limit_z', toggle=True)
             col = box.column(align=True)
             col.operator(
                 joint_limits.XRAY_OT_ConvertJointLimitsToConstraints.bl_idname,
