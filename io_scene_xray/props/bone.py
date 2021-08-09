@@ -237,23 +237,35 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 else:
                     rotate = obj_arm.pose.bones[bone.name].rotation_euler
 
-                ik = bone.xray.ikjoint
+                if arm_xray.joint_limits_type == 'IK':
+                    limits = (
+                        pose_bone.ik_min_x, pose_bone.ik_max_x,
+                        pose_bone.ik_min_y, pose_bone.ik_max_y,
+                        pose_bone.ik_min_z, pose_bone.ik_max_z
+                    )
+                else:
+                    ik = bone.xray.ikjoint
+                    limits = (
+                        ik.lim_x_min, ik.lim_x_max,
+                        ik.lim_y_min, ik.lim_y_max,
+                        ik.lim_z_min, ik.lim_z_max
+                    )
 
                 if arm_xray.display_bone_limit_x:
                     draw_joint_limits(
-                        rotate.x, ik.lim_x_min, ik.lim_x_max, 'X',
+                        rotate.x, limits[0], limits[1], 'X',
                         arm_xray.display_bone_limits_radius
                     )
 
                 if arm_xray.display_bone_limit_y:
                     draw_joint_limits(
-                        rotate.y, ik.lim_y_min, ik.lim_y_max, 'Y',
+                        rotate.y, limits[2], limits[3], 'Y',
                         arm_xray.display_bone_limits_radius
                     )
 
                 if arm_xray.display_bone_limit_z:
                     draw_joint_limits(
-                        rotate.z, ik.lim_z_min, ik.lim_z_max, 'Z',
+                        rotate.z, limits[4], limits[5], 'Z',
                         arm_xray.display_bone_limits_radius
                     )
 
