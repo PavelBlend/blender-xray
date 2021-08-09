@@ -1,12 +1,15 @@
+# standart modules
 import math
 
+# blender modules
 import bpy
-import bgl
 import mathutils
+import bgl
 import gpu
 
+# addon modules
 from . import utils
-from .. import viewport
+from .. import viewport, prefs
 from ..ops import joint_limits
 from ..edit_helpers.bone_shape import HELPER as seh
 from ..version_utils import assign_props, IS_28, multiply, get_multiply
@@ -207,6 +210,8 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         bgl.glGetFloatv(bgl.GL_LINE_WIDTH, prev_line_width)
         bgl.glLineWidth(viewport.settings.LINE_WIDTH)
 
+        bgl.glEnable(bgl.GL_BLEND)
+
         if not hide and arm_xray.display_bone_limits and \
                         bone.xray.exportable and obj_arm.mode == 'POSE':
             if bone.select and bone.xray.ikjoint.type in {'2', '3', '5'} and \
@@ -218,7 +223,6 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                     gpu.matrix.push()
                 else:
                     bgl.glPushMatrix()
-                    bgl.glEnable(bgl.GL_BLEND)
 
                 mat_translate = mathutils.Matrix.Translation(obj_arm.pose.bones[bone.name].matrix.to_translation())
                 mat_rotate = obj_arm.data.bones[bone.name].matrix_local.to_euler().to_matrix().to_4x4()
@@ -290,19 +294,18 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         )
         bmat = mat
 
+        preferences = prefs.utils.get_preferences()
         # set color
-        if bpy.context.active_bone \
-            and (bpy.context.active_bone.id_data == obj_arm.data) \
-            and (bpy.context.active_bone.name == bone.name):
-            if IS_28:
-                color = viewport.settings.ACTIVE_SHAPE_COLOR
-            else:
-                bgl.glColor4f(*viewport.settings.ACTIVE_SHAPE_COLOR)
-        else:
-            if IS_28:
-                color = viewport.settings.SHAPE_COLOR
-            else:
-                bgl.glColor4f(*viewport.settings.SHAPE_COLOR)
+        active_bone = bpy.context.active_bone
+        color = None
+        if active_bone:
+            if active_bone.id_data == obj_arm.data:
+                if active_bone.name == bone.name:
+                    color = preferences.gl_active_shape_color
+        if color is None:
+            color = preferences.gl_shape_color
+        if not IS_28:
+            bgl.glColor4f(*color)
 
         # draw mass centers
         if obj_arm.data.xray.display_bone_mass_centers:
@@ -378,7 +381,6 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             finally:
                 gpu.matrix.pop()
         else:
-            bgl.glEnable(bgl.GL_BLEND)
             bgl.glPopMatrix()
             bgl.glPushMatrix()
             try:

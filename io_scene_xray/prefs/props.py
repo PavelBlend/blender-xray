@@ -487,7 +487,25 @@ plugin_preferences_props = {
 
     'category': bpy.props.EnumProperty(default='PATHS', items=category_items),
     'custom_props': bpy.props.PointerProperty(type=XRayPrefsCustomProperties),
-    'custom_owner_name': bpy.props.StringProperty()
+    'custom_owner_name': bpy.props.StringProperty(),
+
+    # viewport props
+    'gl_shape_color': bpy.props.FloatVectorProperty(
+        name='Shape Color',
+        default=(0.0, 0.0, 1.0, 0.5),
+        min=0.0,
+        max=1.0,
+        subtype='COLOR',
+        size=4
+    ),
+    'gl_active_shape_color': bpy.props.FloatVectorProperty(
+        name='Active Shape Color',
+        default=(1.0, 0.0, 0.0, 0.7),
+        min=0.0,
+        max=1.0,
+        subtype='COLOR',
+        size=4
+    )
 }
 
 

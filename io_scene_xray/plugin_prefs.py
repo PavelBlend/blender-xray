@@ -294,6 +294,10 @@ class PluginPreferences(bpy.types.AddonPreferences):
             prop_bool(layout, self, 'expert_mode')
             prop_bool(layout, self, 'compact_menus')
             prop_bool(layout, self, 'developer_mode')
+            row = layout.row()
+            row.prop(self, 'gl_shape_color')
+            row = layout.row()
+            row.prop(self, 'gl_active_shape_color')
 
         split = layout_split(layout, 0.6)
         split.label(text='')
