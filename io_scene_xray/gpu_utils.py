@@ -15,7 +15,11 @@ GREY_COLOR = (0.5, 0.5, 0.5, 0.8)
 JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT = 24
 
 
-def gen_arc(radius, start, end, num_segments, fconsumer, indices, close=False):
+def gen_arc(
+        radius, start, end, num_segments,
+        fconsumer, indices, close=False
+    ):
+
     theta = (end - start) / num_segments
     cos_th, sin_th = math.cos(theta), math.sin(theta)
     x, y = radius * math.cos(start), radius * math.sin(start)
@@ -38,20 +42,23 @@ def gen_arc(radius, start, end, num_segments, fconsumer, indices, close=False):
 
 
 def gen_circle(radius, num_segments, fconsumer, indices):
-    gen_arc(radius, 0, 2.0 * math.pi, num_segments, fconsumer, indices, close=True)
+    gen_arc(
+        radius, 0, 2.0 * math.pi, num_segments,
+        fconsumer, indices, close=True
+    )
 
 
-def draw_wire_cube(hsx, hsy, hsz, color):
+def draw_wire_cube(half_size_x, half_size_y, half_size_z, color):
     coords = (
-        (-hsx, -hsy, -hsz),
-        (+hsx, -hsy, -hsz),
-        (+hsx, +hsy, -hsz),
-        (-hsx, +hsy, -hsz),
+        (-half_size_x, -half_size_y, -half_size_z),
+        (+half_size_x, -half_size_y, -half_size_z),
+        (+half_size_x, +half_size_y, -half_size_z),
+        (-half_size_x, +half_size_y, -half_size_z),
 
-        (-hsx, -hsy, +hsz),
-        (+hsx, -hsy, +hsz),
-        (+hsx, +hsy, +hsz),
-        (-hsx, +hsy, +hsz),
+        (-half_size_x, -half_size_y, +half_size_z),
+        (+half_size_x, -half_size_y, +half_size_z),
+        (+half_size_x, +half_size_y, +half_size_z),
+        (-half_size_x, +half_size_y, +half_size_z),
     )
     indices = (
         (0, 1), (1, 2),
@@ -62,7 +69,12 @@ def draw_wire_cube(hsx, hsy, hsz, color):
         (4, 7), (0, 3)
     )
     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-    batch = batch_for_shader(shader, 'LINES', {"pos": coords}, indices=indices)
+    batch = batch_for_shader(
+        shader,
+        'LINES',
+        {"pos": coords},
+        indices=indices
+    )
     shader.bind()
     shader.uniform_float("color", color)
     batch.draw(shader)
@@ -71,12 +83,32 @@ def draw_wire_cube(hsx, hsy, hsz, color):
 def draw_wire_sphere(radius, num_segments, color):
     coords = []
     indices = []
-    gen_circle(radius, num_segments, lambda x, y: coords.append((x, y, 0)), indices)
-    gen_circle(radius, num_segments, lambda x, y: coords.append((0, x, y)), indices)
-    gen_circle(radius, num_segments, lambda x, y: coords.append((y, 0, x)), indices)
+    gen_circle(
+        radius,
+        num_segments,
+        lambda x, y: coords.append((x, y, 0)),
+        indices
+    )
+    gen_circle(
+        radius,
+        num_segments,
+        lambda x, y: coords.append((0, x, y)),
+        indices
+    )
+    gen_circle(
+        radius,
+        num_segments,
+        lambda x, y: coords.append((y, 0, x)),
+        indices
+    )
 
     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-    batch = batch_for_shader(shader, 'LINES', {"pos": coords}, indices=indices)
+    batch = batch_for_shader(
+        shader,
+        'LINES',
+        {"pos": coords},
+        indices=indices
+    )
     shader.bind()
     shader.uniform_float("color", color)
     batch.draw(shader)
@@ -85,8 +117,18 @@ def draw_wire_sphere(radius, num_segments, color):
 def draw_wire_cylinder(radius, half_height, num_segments, color):
     coords = []
     indices = []
-    gen_circle(radius, num_segments, lambda x, y: coords.append((x, -half_height, y)), indices)
-    gen_circle(radius, num_segments, lambda x, y: coords.append((x, +half_height, y)), indices)
+    gen_circle(
+        radius,
+        num_segments,
+        lambda x, y: coords.append((x, -half_height, y)),
+        indices
+    )
+    gen_circle(
+        radius,
+        num_segments,
+        lambda x, y: coords.append((x, +half_height, y)),
+        indices
+    )
     coords.extend([
         (-radius, -half_height, 0),
         (-radius, +half_height, 0),
@@ -105,7 +147,12 @@ def draw_wire_cylinder(radius, half_height, num_segments, color):
         ))
 
     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-    batch = batch_for_shader(shader, 'LINES', {"pos": coords}, indices=indices)
+    batch = batch_for_shader(
+        shader,
+        'LINES',
+        {"pos": coords},
+        indices=indices
+    )
     shader.bind()
     shader.uniform_float("color", color)
     batch.draw(shader)
@@ -127,11 +174,20 @@ def draw_cross(size, color):
     batch.draw(shader)
 
 
-def gen_limit_circle(rotate, radius, num_segments, axis, color, min_limit, max_limit):
+def gen_limit_circle(
+        rotate, radius, num_segments,
+        axis, color, min_limit, max_limit
+    ):
+
     def gen_arc_vary(radius, start, end, indices):
-        num_segs = math.ceil(num_segments * abs(end - start) / (math.pi * 2.0))
+        num_segs = math.ceil(
+            num_segments * abs(end - start) / (math.pi * 2.0)
+        )
         if num_segs:
-            gen_arc(radius, start, end, num_segs, fconsumer, indices, close=True)
+            gen_arc(
+                radius, start, end, num_segs,
+                fconsumer, indices, close=True
+            )
 
     coords = []
     indices = []
@@ -145,7 +201,12 @@ def gen_limit_circle(rotate, radius, num_segments, axis, color, min_limit, max_l
     fconsumer = draw_functions[axis]
     gen_arc_vary(radius, min_limit, max_limit, indices)
     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-    batch = batch_for_shader(shader, 'LINES', {"pos": coords, }, indices=indices)
+    batch = batch_for_shader(
+        shader,
+        'LINES',
+        {"pos": coords, },
+        indices=indices
+    )
     shader.bind()
     shader.uniform_float("color", color)
     batch.draw(shader)
@@ -154,7 +215,12 @@ def gen_limit_circle(rotate, radius, num_segments, axis, color, min_limit, max_l
     indices = []
     gen_arc_vary(radius, max_limit, 2.0 * math.pi + min_limit, indices)
     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-    batch = batch_for_shader(shader, 'LINES', {"pos": coords, }, indices=indices)
+    batch = batch_for_shader(
+        shader,
+        'LINES',
+        {"pos": coords, },
+        indices=indices
+    )
     shader.bind()
     shader.uniform_float("color", GREY_COLOR)
     batch.draw(shader)
