@@ -4,19 +4,15 @@ import math
 # blender modules
 import bgl
 
+# addon modules
+from . import settings
 
-AXIS_COLORS = {
-    'X': (1.0, 0.0, 0.0, 1.0),
-    'Y': (0.0, 1.0, 0.0, 1.0),
-    'Z': (0.0, 0.0, 1.0, 1.0)
-}
-GREY_COLOR = (0.5, 0.5, 0.5, 0.8)
+
 axis_draw_functions = {
     'X': (lambda x, y: bgl.glVertex3f(0, -x, y)),
     'Y': (lambda x, y: bgl.glVertex3f(-y, 0, x)),
     'Z': (lambda x, y: bgl.glVertex3f(-x, -y, 0))
 }
-JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT = 24
 
 
 def matrix_to_buffer(matrix):
@@ -93,11 +89,11 @@ def gen_limit_circle(
     bgl.glBegin(bgl.GL_LINE_STRIP)
     bgl.glColor4f(*color)
     gen_arc_vary(radius, min_limit, max_limit)
-    bgl.glColor4f(*GREY_COLOR)
+    bgl.glColor4f(*settings.GREY_COLOR)
     gen_arc_vary(radius, max_limit, 2.0 * math.pi + min_limit)
     bgl.glEnd()
 
-    bgl.glPointSize(6)
+    bgl.glPointSize(settings.POINT_SIZE)
     bgl.glColor4f(*color)
     bgl.glBegin(bgl.GL_POINTS)
     gen_arc(radius, rotate, rotate + 1, 1, fconsumer)
@@ -105,9 +101,10 @@ def gen_limit_circle(
 
 
 def draw_joint_limits(rotate, min_limit, max_limit, axis, radius):
-    color = AXIS_COLORS[axis]
+    color = settings.AXIS_COLORS[axis]
     gen_limit_circle(
-        rotate, radius, JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
+        rotate, radius,
+        settings.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
         axis_draw_functions[axis], color,
         min_limit, max_limit
     )

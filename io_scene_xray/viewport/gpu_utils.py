@@ -3,16 +3,10 @@ import math
 
 # blender modules
 import gpu
-from gpu_extras.batch import batch_for_shader
+import bgl
 
-
-AXIS_COLORS = {
-    'X': (1.0, 0.0, 0.0, 1.0),
-    'Y': (0.0, 1.0, 0.0, 1.0),
-    'Z': (0.0, 0.0, 1.0, 1.0)
-}
-GREY_COLOR = (0.5, 0.5, 0.5, 0.8)
-JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT = 24
+# addon modules
+from . import settings
 
 
 def gen_arc(
@@ -69,6 +63,7 @@ def draw_wire_cube(half_size_x, half_size_y, half_size_z, color):
         (4, 7), (0, 3)
     )
     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    from gpu_extras.batch import batch_for_shader
     batch = batch_for_shader(
         shader,
         'LINES',
@@ -103,6 +98,7 @@ def draw_wire_sphere(radius, num_segments, color):
     )
 
     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    from gpu_extras.batch import batch_for_shader
     batch = batch_for_shader(
         shader,
         'LINES',
@@ -147,6 +143,7 @@ def draw_wire_cylinder(radius, half_height, num_segments, color):
         ))
 
     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    from gpu_extras.batch import batch_for_shader
     batch = batch_for_shader(
         shader,
         'LINES',
@@ -168,7 +165,12 @@ def draw_cross(size, color):
         (0, 0, +size)
     )
     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-    batch = batch_for_shader(shader, 'LINES', {"pos": coords})
+    from gpu_extras.batch import batch_for_shader
+    batch = batch_for_shader(
+        shader,
+        'LINES',
+        {"pos": coords}
+    )
     shader.bind()
     shader.uniform_float("color", color)
     batch.draw(shader)
@@ -201,6 +203,7 @@ def gen_limit_circle(
     fconsumer = draw_functions[axis]
     gen_arc_vary(radius, min_limit, max_limit, indices)
     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    from gpu_extras.batch import batch_for_shader
     batch = batch_for_shader(
         shader,
         'LINES',
@@ -222,25 +225,31 @@ def gen_limit_circle(
         indices=indices
     )
     shader.bind()
-    shader.uniform_float("color", GREY_COLOR)
+    shader.uniform_float("color", settings.GREY_COLOR)
     batch.draw(shader)
 
     coords = []
     indices = []
     gen_arc(radius, rotate, rotate + 1, 1, fconsumer, indices, close=False)
 
+    bgl.glPointSize(settings.POINT_SIZE)
+
     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-    batch = batch_for_shader(shader, 'POINTS', {"pos": coords, })
+    batch = batch_for_shader(
+        shader,
+        'POINTS',
+        {"pos": coords, }
+    )
     shader.bind()
     shader.uniform_float("color", color)
     batch.draw(shader)
 
 
 def draw_joint_limits(rotate, min_limit, max_limit, axis, radius):
-    color = AXIS_COLORS[axis]
+    color = settings.AXIS_COLORS[axis]
     gen_limit_circle(
         rotate, radius,
-        JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
+        settings.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
         axis, color,
         min_limit, max_limit
     )
