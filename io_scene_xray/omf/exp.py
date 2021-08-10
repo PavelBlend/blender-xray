@@ -225,15 +225,18 @@ def export_omf_file(context):
     for bone_index, bone in enumerate(context.bpy_arm_obj.data.bones):
         if bone.xray.exportable:
             pose_bone = context.bpy_arm_obj.pose.bones[bone.name]
+            pose_bones.append(pose_bone)
             if not pose_bone.bone_group:
-                raise utils.AppError(
-                    'Bone "{}" of "{}" armature does not have a bone group'.format(
-                        pose_bone.name, context.bpy_arm_obj.name)
-                    )
+                if context.need_bone_groups:
+                    raise utils.AppError(
+                        'Bone "{}" of "{}" armature does not have a bone group'.format(
+                            pose_bone.name, context.bpy_arm_obj.name)
+                        )
+                else:
+                    continue
             if not bone_groups.get(pose_bone.bone_group.name, None):
                 bone_groups[pose_bone.bone_group.name] = []
             bone_groups[pose_bone.bone_group.name].append((pose_bone.name, bone_index))
-            pose_bones.append(pose_bone)
     motion_count = 0
     motions = {}
     if context.export_mode == 'OVERWRITE':
