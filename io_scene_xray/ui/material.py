@@ -5,8 +5,7 @@ import bpy
 from . import base
 from .dynamic_menu import XRayXrMenuTemplate, DynamicMenu
 from ..utils import parse_shaders, parse_shaders_xrlc, parse_gamemtl
-from ..version_utils import layout_split
-from .. import prefs
+from ..version_utils import layout_split, get_preferences
 
 
 class XRayEShaderMenu(XRayXrMenuTemplate):
@@ -51,7 +50,7 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
         _gen_xr_selector(layout, data, 'cshader', 'CShader')
         _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
 
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_game_level_import or

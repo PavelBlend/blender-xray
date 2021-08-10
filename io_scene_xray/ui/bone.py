@@ -1,7 +1,7 @@
 import bpy
 
 from ..edit_helpers import bone_shape, bone_center
-from .. import prefs
+from .. import version_utils
 from .material import XRayGameMtlMenu, _gen_xr_selector
 from .base import XRayPanel, build_label
 from . import icons
@@ -46,7 +46,7 @@ class XRAY_PT_BonePanel(XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        preferences = prefs.utils.get_preferences()
+        preferences = version_utils.get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_object_import or

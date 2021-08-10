@@ -9,10 +9,12 @@ import gpu
 
 # addon modules
 from . import utils
-from .. import viewport, prefs
+from .. import viewport
 from ..ops import joint_limits
 from ..edit_helpers.bone_shape import HELPER as seh
-from ..version_utils import assign_props, IS_28, multiply, get_multiply
+from ..version_utils import (
+    assign_props, IS_28, multiply, get_multiply, get_preferences
+)
 
 
 shape_properties = {
@@ -294,7 +296,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         )
         bmat = mat
 
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         # set color
         active_bone = bpy.context.active_bone
         color = None

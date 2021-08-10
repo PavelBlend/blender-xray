@@ -4,7 +4,7 @@ import bpy
 import bpy_extras
 
 from . import imp, exp, props
-from .. import utils, ui, context, prefs
+from .. import utils, ui, context
 from ..ui import collapsible
 from ..skl import props as skl_props
 from ..obj.imp import props as obj_imp_props
@@ -15,7 +15,9 @@ from ..ui.motion_list import (
     _DeselectMotionsOp,
     _DeselectDuplicatedMotionsOp
 )
-from ..version_utils import IS_28, assign_props, get_multiply, layout_split
+from ..version_utils import (
+    IS_28, assign_props, get_multiply, layout_split, get_preferences
+)
 
 
 class ImportOmfContext(
@@ -116,7 +118,7 @@ class XRAY_OT_import_omf(
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         self.import_motions = preferences.omf_import_motions
         self.import_bone_parts = preferences.import_bone_parts
         self.add_actions_to_motion_list = preferences.omf_add_actions_to_motion_list
@@ -244,7 +246,7 @@ class XRAY_OT_export_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         self.export_mode = preferences.omf_export_mode
         self.export_bone_parts = preferences.omf_export_bone_parts
         self.export_motions = preferences.omf_motions_export

@@ -3,9 +3,11 @@ import os
 import bpy
 import bpy_extras
 
-from .. import ui, utils, prefs, context
+from .. import ui, utils, context
 from ..obj.exp import props as obj_exp_props
-from ..version_utils import get_import_export_menus, assign_props, IS_28
+from ..version_utils import (
+    get_import_export_menus, assign_props, IS_28, get_preferences
+)
 from . import imp
 from . import exp
 
@@ -49,7 +51,7 @@ class XRAY_OT_import_dm(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
     @utils.set_cursor_state
     def execute(self, context):
 
-        textures_folder = prefs.utils.get_preferences().textures_folder_auto
+        textures_folder = get_preferences().textures_folder_auto
 
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
@@ -123,7 +125,7 @@ class XRAY_OT_export_dm(bpy.types.Operator):
 
     def invoke(self, context, event):
 
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
 
         self.texture_name_from_image_path = \
             preferences.dm_texture_names_from_path
@@ -189,7 +191,7 @@ class XRAY_OT_export_single_dm(
 
     def invoke(self, context, event):
 
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
 
         self.texture_name_from_image_path = \
             preferences.dm_texture_names_from_path

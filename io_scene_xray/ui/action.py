@@ -5,7 +5,7 @@ import bpy
 from .base import XRayPanel, build_label
 from ..skl.ops import XRAY_OT_export_skl
 from ..ops import action_utils
-from .. import version_utils, prefs
+from .. import version_utils
 
 
 class XRAY_PT_ActionPanel(XRayPanel):
@@ -17,7 +17,7 @@ class XRAY_PT_ActionPanel(XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        preferences = prefs.utils.get_preferences()
+        preferences = version_utils.get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_object_import or

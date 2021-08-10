@@ -3,8 +3,8 @@ import os
 import bpy
 import bpy_extras
 
-from ... import ops, ui, utils, prefs
-from ...version_utils import assign_props, IS_28
+from ... import ops, ui, utils
+from ...version_utils import assign_props, IS_28, get_preferences
 from .. import imp, props as general_obj_props
 from . import utils as imp_utils, props
 
@@ -38,8 +38,8 @@ class XRAY_OT_import_object(ops.base.BaseOperator, bpy_extras.io_utils.ImportHel
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, _context):
-        textures_folder = prefs.utils.get_preferences().textures_folder_auto
-        objects_folder = prefs.utils.get_preferences().objects_folder_auto
+        textures_folder = get_preferences().textures_folder_auto
+        objects_folder = get_preferences().objects_folder_auto
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
@@ -88,7 +88,7 @@ class XRAY_OT_import_object(ops.base.BaseOperator, bpy_extras.io_utils.ImportHel
         layout.prop(self, 'shaped_bones')
 
     def invoke(self, context, event):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         self.fmt_version = preferences.sdk_version
         self.import_motions = preferences.object_motions_import
         self.mesh_split_by_materials = preferences.object_mesh_split_by_mat

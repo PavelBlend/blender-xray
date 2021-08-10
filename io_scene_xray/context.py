@@ -5,7 +5,7 @@ import os
 import bpy
 
 # addon modules
-from . import utils, version_utils, prefs
+from . import utils, version_utils
 
 
 # base context
@@ -59,7 +59,7 @@ class ExportContext(Context):
 class ExportMeshContext(ExportContext):
     def __init__(self):
         ExportContext.__init__(self)
-        preferences = prefs.utils.get_preferences()
+        preferences = version_utils.get_preferences()
         self.textures_folder = preferences.textures_folder_auto
         self.texname_from_path = None
 

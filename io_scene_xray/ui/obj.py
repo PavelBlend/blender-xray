@@ -3,10 +3,9 @@ import bpy
 
 # addon modules
 from . import list_helper, collapsible, base
-from .. import plugin_prefs, prefs
 from ..utils import is_helper_object
 from ..details import ui as det_ui
-from ..version_utils import assign_props, IS_28, layout_split
+from ..version_utils import assign_props, IS_28, layout_split, get_preferences
 
 
 items = (
@@ -116,7 +115,7 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
         )
 
     def draw(self, context):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         object_used = (
             # import plugins
             preferences.enable_object_import or

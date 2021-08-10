@@ -1,8 +1,7 @@
 import bpy
 
 from ..utils import create_cached_file_data
-from ..prefs.utils import get_preferences
-from ..version_utils import assign_props, IS_28
+from ..version_utils import assign_props, IS_28, get_preferences
 
 
 _dynamic_menu_op_props = {

@@ -6,9 +6,9 @@ import bpy
 from bpy_extras import io_utils
 
 # addon modules
-from .. import ui, context as xray_context, prefs
+from .. import ui, context as xray_context
 from ..utils import execute_with_logger, set_cursor_state, AppError
-from ..version_utils import assign_props, IS_28
+from ..version_utils import assign_props, IS_28, get_preferences
 from ..omf import props as omf_props
 from . import imp, props, exp
 
@@ -108,7 +108,7 @@ class XRAY_OT_import_bones(bpy.types.Operator, io_utils.ImportHelper):
         if obj.type != 'ARMATURE':
             self.report({'ERROR'}, 'The active object is not an armature')
             return {'CANCELLED'}
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         # import bone parts
         self.import_bone_parts = preferences.bones_import_bone_parts
         # import bone properties
@@ -184,7 +184,7 @@ class XRAY_OT_export_bones(bpy.types.Operator):
             return {'CANCELLED'}
         if len(self.objects_list) == 1:
             return bpy.ops.xray_export.bone('INVOKE_DEFAULT')
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         # export bone parts
         self.export_bone_parts = preferences.bones_export_bone_parts
         # export bone properties
@@ -253,7 +253,7 @@ class XRAY_OT_export_bone(bpy.types.Operator, io_utils.ExportHelper):
         self.filepath = os.path.join(self.directory, self.object_name)
         if not self.filepath.lower().endswith(self.filename_ext):
             self.filepath += self.filename_ext
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         # export bone parts
         self.export_bone_parts = preferences.bones_export_bone_parts
         # export bone properties

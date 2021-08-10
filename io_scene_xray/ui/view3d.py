@@ -5,8 +5,8 @@ import bpy
 from . import collapsible, icons
 from .base import XRayPanel, build_label
 from ..skls_browser import OpBrowseSklsFile, OpCloseSklsFile
-from .. import prefs, plugin
-from ..version_utils import IS_28, assign_props, layout_split
+from .. import plugin
+from ..version_utils import IS_28, assign_props, layout_split, get_preferences
 from ..obj.imp import ops as obj_imp_ops
 from ..obj.exp import ops as obj_exp_ops
 from ..anm import ops as anm_ops
@@ -327,7 +327,7 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
 
     def draw(self, context):
         col = self.layout.column(align=True)
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         # object
         if preferences.enable_object_import:
             col.operator(obj_imp_ops.XRAY_OT_import_object.bl_idname, text='Object')
@@ -383,7 +383,7 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
 
     def draw(self, context):
         col = self.layout.column(align=True)
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         # object
         if preferences.enable_object_export:
             col.operator(obj_exp_ops.XRAY_OT_export_object.bl_idname, text='Object')

@@ -3,12 +3,14 @@ import os
 import bpy
 import bpy_extras
 
-from .. import ui, utils, prefs
+from .. import ui, utils
 from .. import context
 from ..obj.exp import props as obj_exp_props
 from ..dm import imp as model_imp
 from ..dm import exp as model_exp
-from ..version_utils import get_import_export_menus, assign_props, IS_28
+from ..version_utils import (
+    get_import_export_menus, assign_props, IS_28, get_preferences
+)
 from . import imp, exp, props
 
 
@@ -59,7 +61,7 @@ class XRAY_OT_import_details(bpy.types.Operator, bpy_extras.io_utils.ImportHelpe
     @utils.set_cursor_state
     def execute(self, context):
 
-        textures_folder = prefs.utils.get_preferences().textures_folder_auto
+        textures_folder = get_preferences().textures_folder_auto
 
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
@@ -116,7 +118,7 @@ class XRAY_OT_import_details(bpy.types.Operator, bpy_extras.io_utils.ImportHelpe
             row.prop(self, 'details_format', expand=True)
 
     def invoke(self, context, event):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         self.details_models_in_a_row = preferences.details_models_in_a_row
         self.load_slots = preferences.load_slots
         self.details_format = preferences.details_format
@@ -185,7 +187,7 @@ class XRAY_OT_export_details(
         return {'FINISHED'}
 
     def exp(self, bpy_obj, context):
-        textures_folder = prefs.utils.get_preferences().textures_folder_auto
+        textures_folder = get_preferences().textures_folder_auto
         export_context = ExportDetailsContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.level_details_format_version = self.format_version
@@ -193,7 +195,7 @@ class XRAY_OT_export_details(
         exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         self.texture_name_from_image_path = \
             preferences.details_texture_names_from_path
         self.format_version = preferences.format_version

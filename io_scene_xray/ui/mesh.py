@@ -1,7 +1,7 @@
 import bpy
 
 from . import base
-from ..prefs.utils import get_preferences
+from ..version_utils import get_preferences
 from ..utils import is_helper_object
 
 

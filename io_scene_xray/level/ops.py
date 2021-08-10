@@ -1,8 +1,10 @@
 import bpy
 import bpy_extras
 
-from .. import utils, ui, context, prefs
-from ..version_utils import get_import_export_menus, assign_props, IS_28
+from .. import utils, ui, context
+from ..version_utils import (
+    get_import_export_menus, assign_props, IS_28, get_preferences
+)
 from . import imp, exp
 
 
@@ -39,7 +41,7 @@ class XRAY_OT_import_level(
 
     @utils.set_cursor_state
     def execute(self, context):
-        textures_folder = prefs.utils.get_preferences().textures_folder_auto
+        textures_folder = get_preferences().textures_folder_auto
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
         if not self.filepath:
@@ -101,7 +103,7 @@ class XRAY_OT_export_level(bpy.types.Operator):
         return self.export(level_object, context)
 
     def invoke(self, context, event):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

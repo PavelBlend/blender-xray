@@ -3,7 +3,7 @@ import os
 import bpy
 from bpy_extras import io_utils
 
-from .. import ui, prefs
+from .. import ui
 from ..ui import collapsible
 from ..ui.motion_list import (
     BaseSelectMotionsOp,
@@ -18,7 +18,7 @@ from ..utils import (
     FilenameExtHelper, set_cursor_state, AppError
 )
 from ..xray_motions import MOTIONS_FILTER_ALL
-from ..version_utils import assign_props, IS_28
+from ..version_utils import assign_props, IS_28, get_preferences
 from . import props
 from ..obj.imp import props as obj_imp_props
 
@@ -150,7 +150,7 @@ class XRAY_OT_import_skls(TestReadyOperator, io_utils.ImportHelper):
 
     @invoke_require_armature
     def invoke(self, context, event):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         self.use_motion_prefix_name = preferences.skls_use_motion_prefix_name
         self.add_actions_to_motion_list = preferences.add_actions_to_motion_list
         return super().invoke(context, event)

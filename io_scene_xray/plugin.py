@@ -11,7 +11,7 @@ from .utils import (
     AppError, ObjectsInitializer, logger,
     execute_require_filepath, FilenameExtHelper
 )
-from . import plugin_prefs, prefs, edit_helpers, hotkeys, props
+from . import plugin_prefs, edit_helpers, hotkeys, props
 from . import details
 from .details import ops as det_ops
 from .dm import ops as dm_ops
@@ -27,7 +27,8 @@ from .level import ops as level_ops
 from .omf import ops as omf_ops
 from . import skls_browser
 from .version_utils import (
-    get_import_export_menus, get_scene_update_post, assign_props
+    get_import_export_menus, get_scene_update_post,
+    assign_props, get_preferences
 )
 
 
@@ -46,7 +47,7 @@ class XRayImportMenu(bpy.types.Menu):
 
 
 def get_enabled_operators(draw_functions):
-    preferences = prefs.utils.get_preferences()
+    preferences = get_preferences()
     operators = []
     for _, enable_prop, id_name, text in draw_functions:
         enable = getattr(preferences, enable_prop)
@@ -243,7 +244,7 @@ def remove_draw_functions(funct_list, menu):
 
 
 def append_draw_functions(funct_list, menu):
-    preferences = prefs.utils.get_preferences()
+    preferences = get_preferences()
     for draw_function, enable_prop, _, _ in funct_list:
         enable = getattr(preferences, enable_prop)
         if enable:
@@ -251,7 +252,7 @@ def append_draw_functions(funct_list, menu):
 
 
 def append_menu_func():
-    preferences = prefs.utils.get_preferences()
+    preferences = get_preferences()
     import_menu, export_menu = get_import_export_menus()
 
     # remove import menus

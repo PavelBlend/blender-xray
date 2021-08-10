@@ -3,9 +3,9 @@ import os
 import bpy
 import bpy_extras
 
-from ... import ops, ui, utils, context, prefs
+from ... import ops, ui, utils, context
 from ...version_utils import (
-    assign_props, IS_28, set_active_object, select_object
+    assign_props, IS_28, set_active_object, select_object, get_preferences
 )
 from .. import exp, props as general_obj_props
 from ...ops.base import BaseOperator as TestReadyOperator
@@ -102,7 +102,7 @@ class XRAY_OT_export_object(ops.base.BaseOperator, _WithExportMotions):
         export_context.soc_sgroups = self.fmt_version == 'soc'
         export_context.export_motions = self.export_motions
         export_context.smoothing_out_of = self.smoothing_out_of
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         export_context.textures_folder = preferences.textures_folder_auto
         try:
             for name in self.objects.split(','):
@@ -125,7 +125,7 @@ class XRAY_OT_export_object(ops.base.BaseOperator, _WithExportMotions):
         return {'FINISHED'}
 
     def invoke(self, context, _event):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         roots = None
         try:
             roots = find_objects_for_export(context)
@@ -197,7 +197,7 @@ class XRAY_OT_export_single_object(
         export_context.export_motions = self.export_motions
         export_context.smoothing_out_of = self.smoothing_out_of
         obj = context.scene.objects[self.object]
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         export_context.textures_folder = preferences.textures_folder_auto
         try:
             exp.export_file(obj, self.filepath, export_context)
@@ -209,7 +209,7 @@ class XRAY_OT_export_single_object(
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         roots = None
         try:
             roots = find_objects_for_export(context)

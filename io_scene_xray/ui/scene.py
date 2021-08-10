@@ -1,10 +1,9 @@
 import bpy
 
-from .. import prefs
 from ..obj.exp.ops import XRAY_OT_export_project
 from .base import XRayPanel, build_label
 from . import collapsible
-from ..version_utils import layout_split
+from ..version_utils import layout_split, get_preferences
 
 
 class XRAY_PT_ScenePanel(XRayPanel):
@@ -13,7 +12,7 @@ class XRAY_PT_ScenePanel(XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_object_import or

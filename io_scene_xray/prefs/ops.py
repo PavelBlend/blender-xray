@@ -1,6 +1,6 @@
 import bpy
 
-from . import utils, props
+from . import props
 from .. import version_utils
 
 
@@ -9,7 +9,7 @@ class XRAY_OT_ResetPreferencesSettings(bpy.types.Operator):
     bl_label = 'Reset All Settings'
 
     def execute(self, _context):
-        prefs = utils.get_preferences()
+        prefs = version_utils.get_preferences()
         # reset main settings
         for prop_name in props.plugin_preferences_props.keys():
             prefs.property_unset(prop_name)
@@ -37,7 +37,7 @@ class _ExplicitPathOp(bpy.types.Operator):
             exec('{0} = _explicit_path_op_props.get("{0}")'.format(prop_name))
 
     def execute(self, _context):
-        preferences = utils.get_preferences()
+        preferences = version_utils.get_preferences()
         auto_prop = props.build_auto_id(self.path)
         value = getattr(preferences, auto_prop)
         setattr(preferences, self.path, value)

@@ -1,12 +1,14 @@
 import bpy
 from bpy_extras import io_utils
 
-from .. import utils, ui, prefs
+from .. import utils, ui
 from ..utils import AppError
 from ..obj.imp import props as obj_imp_props
 from ..obj import props as general_obj_props
 from .imp import import_file
-from ..version_utils import get_import_export_menus, assign_props, IS_28
+from ..version_utils import (
+    get_import_export_menus, assign_props, IS_28, get_preferences
+)
 
 
 filename_ext = '.level'
@@ -99,7 +101,7 @@ class XRAY_OT_import_scene_selection(bpy.types.Operator, io_utils.ImportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         self.mesh_split_by_materials = preferences.scene_selection_mesh_split_by_mat
         self.shaped_bones = preferences.scene_selection_shaped_bones
         self.fmt_version = preferences.scene_selection_sdk_version

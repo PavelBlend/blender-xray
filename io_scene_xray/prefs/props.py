@@ -2,7 +2,7 @@ import os
 
 import bpy
 
-from .. import xray_ltx, version_utils, hotkeys
+from .. import xray_ltx, version_utils
 from ..obj import props as general_obj_props
 from ..obj.imp import props as obj_imp_props
 from ..obj.exp import props as obj_exp_props

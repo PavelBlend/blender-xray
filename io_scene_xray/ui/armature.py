@@ -3,9 +3,8 @@ import bpy
 
 # addon modules
 from .base import XRayPanel, build_label
-from .. import prefs
 from ..ops import fake_bones, joint_limits
-from ..version_utils import get_icon, layout_split
+from ..version_utils import get_icon, layout_split, get_preferences
 from . import collapsible
 
 
@@ -15,7 +14,7 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_object_import or

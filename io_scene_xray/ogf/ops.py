@@ -6,7 +6,7 @@ from ..utils import (
     execute_require_filepath,
     set_cursor_state
 )
-from ..version_utils import assign_props, IS_28
+from ..version_utils import assign_props, IS_28, get_preferences
 from .. import ui, context, prefs
 from ..obj.exp import props as obj_exp_props
 from . import exp
@@ -72,7 +72,7 @@ class XRAY_OT_export_ogf(bpy.types.Operator, io_utils.ExportHelper, ModelExportH
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         self.texture_name_from_image_path = preferences.object_texture_names_from_path
         return super().invoke(context, event)
 

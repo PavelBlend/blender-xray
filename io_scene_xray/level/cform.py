@@ -7,14 +7,14 @@ import bpy
 import bmesh
 
 # addon modules
-from .. import xray_io, utils, prefs, version_utils
+from .. import xray_io, utils, version_utils
 from . import fmt, create
 
 
 def import_main(context, level, data=None):
     level_cform_start_time = time.time()
 
-    preferences = prefs.utils.get_preferences()
+    preferences = version_utils.get_preferences()
     if preferences.developer_mode:
         out = utils.print_time_info
     else:

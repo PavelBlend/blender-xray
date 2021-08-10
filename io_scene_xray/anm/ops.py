@@ -4,9 +4,9 @@ import bpy
 from bpy_extras import io_utils
 
 from . import props
-from .. import ui, prefs
+from .. import ui
 from ..utils import execute_with_logger, FilenameExtHelper, set_cursor_state
-from ..version_utils import assign_props, IS_28
+from ..version_utils import assign_props, IS_28, get_preferences
 
 
 op_import_anm_props = {
@@ -45,7 +45,7 @@ class XRAY_OT_import_anm(bpy.types.Operator, io_utils.ImportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = prefs.utils.get_preferences()
+        preferences = get_preferences()
         self.camera_animation = preferences.anm_create_camera
         return super().invoke(context, event)
 

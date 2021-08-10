@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from .. import plugin_prefs, prefs
+from .. import version_utils
 
 
 def find_data(context):
@@ -98,7 +98,7 @@ class XRAY_OT_SetCustomToXRayProperties(bpy.types.Operator):
             setattr(owner, prop, self.obj[custom])
 
     def execute(self, context):
-        preferences = prefs.utils.get_preferences()
+        preferences = version_utils.get_preferences()
         stgs = preferences.custom_props    # settings
         objects, meshes, materials, armatures, actions = find_data(context)
         # object
@@ -195,7 +195,7 @@ class XRAY_OT_SetXRayToCustomProperties(bpy.types.Operator):
     bl_label = 'Set X-Ray to Custom'
 
     def execute(self, context):
-        preferences = prefs.utils.get_preferences()
+        preferences = version_utils.get_preferences()
         stgs = preferences.custom_props    # settings
         objects, meshes, materials, armatures, actions = find_data(context)
         # object
@@ -287,8 +287,9 @@ class XRAY_OT_RemoveXRayCustomProperties(bpy.types.Operator):
     bl_label = 'Remove X-Ray Custom Properties'
 
     def execute(self, context):
-        preferences = prefs.utils.get_preferences()
-        props_list = prefs.props.xray_custom_properties.keys()
+        from ..prefs.props import xray_custom_properties
+        preferences = version_utils.get_preferences()
+        props_list = xray_custom_properties.keys()
         props_values = []
         for prop_name in props_list:
             prop_value = getattr(preferences.custom_props, prop_name, None)

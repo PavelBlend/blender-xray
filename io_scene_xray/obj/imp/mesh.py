@@ -6,7 +6,7 @@ import bpy
 import bmesh
 
 # addon modules
-from ... import xray_io, utils, plugin_prefs, log, version_utils
+from ... import xray_io, utils, log, version_utils
 from .. import fmt
 from . import main, props
 

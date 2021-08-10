@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from . import prefs
+from . import version_utils
 
 # plugin modules
 from .anm import ops as anm_ops
@@ -47,7 +47,7 @@ keymap_items_list = (
 
 
 def register():
-    preferences = prefs.utils.get_preferences()
+    preferences = version_utils.get_preferences()
     win_manager = bpy.context.window_manager
     keyconfig = win_manager.keyconfigs.addon
     if keyconfig:
