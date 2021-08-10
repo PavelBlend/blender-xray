@@ -5,7 +5,7 @@ import os.path
 import bpy
 
 from ..xray_io import ChunkedReader, PackedReader
-from .. import context
+from .. import context, utils
 from .fmt import Chunks
 from ..xray_envelope import import_envelope
 from ..version_utils import link_object, IS_28
@@ -31,7 +31,9 @@ def _import(fpath, creader, context):
             _fr = preader.getf('II')
             fps, ver = preader.getf('fH')
             if ver != 5:
-                raise Exception('unsupported anm version: ' + str(ver))
+                raise utils.AppError(
+                    'Unsupported anm format version: {}'.format(ver)
+                )
             if not name:
                 name = os.path.basename(fpath)
             bpy_obj = bpy.data.objects.new(name, None)

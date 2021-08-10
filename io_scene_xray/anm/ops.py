@@ -5,7 +5,9 @@ from bpy_extras import io_utils
 
 from . import props
 from .. import ui
-from ..utils import execute_with_logger, FilenameExtHelper, set_cursor_state
+from ..utils import (
+    execute_with_logger, FilenameExtHelper, set_cursor_state, AppError
+)
 from ..version_utils import assign_props, IS_28, get_preferences
 
 
@@ -30,18 +32,33 @@ class XRAY_OT_import_anm(bpy.types.Operator, io_utils.ImportHelper):
     @execute_with_logger
     @set_cursor_state
     def execute(self, _context):
-        if not self.files:
-            self.report({'ERROR'}, 'No files selected')
+        if not self.files[0].name:
+            self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
         from .imp import import_file, ImportAnmContext
         import_context = ImportAnmContext()
         import_context.camera_animation = self.camera_animation
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
+            file_path = os.path.join(self.directory, file.name)
             if ext == '.anm':
-                import_file(os.path.join(self.directory, file.name), import_context)
+                if not os.path.exists(file_path):
+                    self.report(
+                        {'ERROR'},
+                        'File not found: "{}"'.format(file_path)
+                    )
+                    return {'CANCELLED'}
+                try:
+                    import_file(file_path, import_context)
+                except AppError as err:
+                    self.report({'ERROR'}, str(err))
+                    return {'CANCELLED'}
             else:
-                self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
+                self.report(
+                    {'ERROR'},
+                    'Not recognised format of file: "{}"'.format(file_path)
+                )
+                return {'CANCELLED'}
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -73,7 +90,10 @@ class XRAY_OT_export_anm(bpy.types.Operator, FilenameExtHelper):
 
         obj = context.active_object
         if not obj.animation_data:
-            self.report({'ERROR'}, 'Object \'{}\' has no animation data'.format(obj.name))
+            self.report(
+                {'ERROR'},
+                'Object "{}" has no animation data.'.format(obj.name)
+            )
             return {'CANCELLED'}
         export_file(obj, self.filepath)
 
@@ -82,7 +102,7 @@ def menu_func_import(self, _context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_anm.bl_idname,
-        text='X-Ray animation (.anm)',
+        text='X-Ray Animation (.anm)',
         icon_value=icon
     )
 
@@ -91,7 +111,7 @@ def menu_func_export(self, _context):
     icon = ui.icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_anm.bl_idname,
-        text='X-Ray animation (.anm)',
+        text='X-Ray Animation (.anm)',
         icon_value=icon
     )
 

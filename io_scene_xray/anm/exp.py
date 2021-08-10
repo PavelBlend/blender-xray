@@ -1,5 +1,6 @@
 import bpy
 
+from .. import log, version_utils
 from ..xray_io import ChunkedWriter, PackedWriter
 from .fmt import Chunks
 from ..xray_envelope import export_envelope, EPSILON
@@ -14,15 +15,26 @@ def _export(bpy_obj, chunked_writer):
     packed_writer.putf('II', int(frange[0]), int(frange[1]))
     fps = bpy_act.xray.fps
     packed_writer.putf('fH', fps, 5)
-    if bpy_act.xray.autobake_effective(bpy_obj):
-        baked_action = bpy.data.actions.new('')
+    autobake = bpy_act.xray.autobake_effective(bpy_obj)
+    rot_mode = bpy_obj.rotation_mode
+    if autobake or rot_mode != 'YXZ':
+        if rot_mode != 'YXZ':
+            log.warn(
+                'Object "{}" has a rotation mode other than YXZ. '
+                'Animation has been baked.'.format(bpy_obj.name),
+                rotation_mode=rot_mode
+            )
+        baked_action = bpy.data.actions.new('!-temp_anm_export')
         try:
             _bake_to_action(bpy_obj, baked_action, frange)
             _export_action_data(packed_writer, bpy_act.xray, baked_action.fcurves)
         finally:
-            bpy.data.actions.remove(baked_action, do_unlink=True)
+            if not version_utils.IS_277:
+                bpy.data.actions.remove(baked_action, do_unlink=True)
+            else:
+                baked_action.user_clear()
+                bpy.data.actions.remove(baked_action)
     else:
-        assert bpy_obj.rotation_mode == 'YXZ', 'Animation: rotation mode must be \'YXZ\''
         _export_action_data(packed_writer, bpy_act.xray, bpy_act.fcurves)
     chunked_writer.put(Chunks.MAIN, packed_writer)
 
@@ -44,7 +56,6 @@ def _bake_to_action(bobject, action, frange):
         prev_rot = None
         for frm in range(int(frange[0]), int(frange[1]) + 1):
             bpy.context.scene.frame_set(frm)
-            bpy.context.scene.update()
             mat = bobject.matrix_world
             trn = mat.to_translation()
             rot = mat.to_euler('YXZ')
@@ -64,7 +75,10 @@ def _export_action_data(pkw, xray, fcurves):
         koef = (1, 1, 1, -1, -1, -1)[i]
         epsilon = EPSILON
         if xray.autobake_custom_refine:
-            epsilon = xray.autobake_refine_location if i < 3 else xray.autobake_refine_rotation
+            if i < 3:
+                epsilon = xray.autobake_refine_location
+            else:
+                epsilon = xray.autobake_refine_rotation
         export_envelope(
             pkw, fcurve,
             xray.fps, koef,

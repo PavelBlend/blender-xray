@@ -4,27 +4,19 @@ import bpy
 
 
 class TestAnmExport(utils.XRayTestCase):
-    def test_error_no_anim(self):
-        # Arrange
-        self._create_active_object()
-
-        # Act & Assert
-        with self.assertRaisesRegex(Exception, 'Object \'{}\' has no animation data'.format(bpy.context.object.name)):
-            bpy.ops.xray_export.anm(
-                filepath=self.outpath('test.anm'),
-            )
-
-    def test_error_yxz(self):
+    def test_yxz(self):
         # Arrange
         obj = self._create_active_object()
         act = bpy.data.actions.new('tact')
         obj.animation_data_create().action = act
 
-        # Act & Assert
-        with self.assertRaisesRegex(Exception, "Animation: rotation mode must be 'YXZ'"):
-            bpy.ops.xray_export.anm(
-                filepath=self.outpath('Cube1.anm'),
-            )
+        # Act
+        bpy.ops.xray_export.anm(filepath=self.outpath('Cube1.anm'), )
+
+        # Assert
+        self.assertOutputFiles({
+            'Cube1.anm'
+        })
 
     def test_ok(self):
         # Arrange
