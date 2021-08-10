@@ -327,7 +327,7 @@ class XRAY_OT_export_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         self.filepath = obj.name
         motions_count = len(obj.xray.motions_collection)
         bone_groups_count = len(obj.pose.bone_groups)
-        if not motions_count and not motions_count:
+        if not motions_count and not bone_groups_count:
             self.report(
                 {'ERROR'},
                 'Armature object "{}" has no actions and bone groups'.format(

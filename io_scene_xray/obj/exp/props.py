@@ -11,7 +11,7 @@ def PropObjectMotionsExport():
 
 def PropObjectTextureNamesFromPath():
     return bpy.props.BoolProperty(
-        name='Texture Names From Image Paths',
+        name='Texture Names from Image Paths',
         description='Generate texture names from image paths ' \
         + '(by subtract <gamedata/textures> prefix and <file-extension> suffix)',
         default=True

@@ -11,7 +11,7 @@ def PropObjectMotionsImport():
 
 def PropObjectMeshSplitByMaterials():
     return bpy.props.BoolProperty(
-        name='Split Mesh By Materials',
+        name='Split Mesh by Materials',
         description='Import each surface (material) as separate set of faces',
         default=False
     )
@@ -19,7 +19,7 @@ def PropObjectMeshSplitByMaterials():
 
 def PropObjectBonesCustomShapes():
     return bpy.props.BoolProperty(
-        name='Custom Shapes For Bones',
+        name='Custom Shapes for Bones',
         description='Use custom shapes for imported bones',
         default=True
     )
