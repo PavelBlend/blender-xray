@@ -16,7 +16,7 @@ from ..ui.motion_list import (
     _DeselectDuplicatedMotionsOp
 )
 from ..version_utils import (
-    IS_28, assign_props, get_multiply, layout_split, get_preferences
+    IS_28, assign_props, get_multiply, get_preferences
 )
 
 
@@ -232,15 +232,12 @@ class XRAY_OT_export_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
 
     def draw(self, context):
         layout = self.layout
-        row = layout_split(layout, 0.5)
-        row.label(text='Export Mode:')
-        row.prop(self, 'export_mode', text='')
-        row = layout.row()
-        row.active = not self.export_mode in ('OVERWRITE', 'ADD')
-        row.prop(self, 'export_motions')
-        row = layout.row()
-        row.active = not self.export_mode in ('OVERWRITE', 'ADD')
-        row.prop(self, 'export_bone_parts')
+        layout.label(text='Export Mode:')
+        layout.prop(self, 'export_mode', expand=True)
+        col = layout.column()
+        col.active = not self.export_mode in ('OVERWRITE', 'ADD')
+        col.prop(self, 'export_motions')
+        col.prop(self, 'export_bone_parts')
         if self.export_mode == 'REPLACE':
             if not self.export_motions and not self.export_bone_parts:
                 layout.label(text='Nothing was Exported!', icon='ERROR')
