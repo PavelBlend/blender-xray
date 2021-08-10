@@ -269,6 +269,7 @@ class XRAY_OT_export_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         if not len(obj.pose.bone_groups):
             self.report({'ERROR'}, 'Armature object "{}" has no bone groups'.format(obj.name))
             return {'CANCELLED'}
+        self.filepath = obj.name
         if not self.filepath.lower().endswith(filename_ext):
             self.filepath += filename_ext
         return super().invoke(context, event)
