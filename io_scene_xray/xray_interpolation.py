@@ -74,3 +74,5 @@ def evaluate(
         return h1 * k1v + h2 * k2v + h3 * out + h4 * in_
     elif k1s == 3:    # LINEAR
         return k1v + tn * (k2v - k1v)
+    elif k1s == 4:    # STEPPED
+        return k1v

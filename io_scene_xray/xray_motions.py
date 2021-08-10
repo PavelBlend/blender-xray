@@ -23,13 +23,13 @@ MOTIONS_FILTER_ALL = lambda name: True
 CURVE_COUNT = 6    # translation xyz, rotation xyz
 
 
-def interpolate_keys(fps, start, end, name, values, times, shapes, tcb):
+def interpolate_keys(fps, start, end, values, times, shapes, tcb):
     interpolated_values = []
     interpolated_times = []
     keys_count = len(values)
     for index, key_info in enumerate(zip(values, times, shapes, tcb)):
         value_1, time_1, shape_1, (tension_1, continuity_1, bias_1) = key_info
-        if not shape_1 in (Shape.TCB, Shape.LINEAR):
+        if not shape_1 in (Shape.TCB, Shape.LINEAR, Shape.STEPPED):
             raise AppError('Unsupported shape: {}'.format(shape_1.name))
         index_2 = index + 1
         if keys_count == 1:
@@ -71,10 +71,6 @@ def interpolate_keys(fps, start, end, name, values, times, shapes, tcb):
             interpolated_values.append(interpolated_value)
             interpolated_times.append(frame_index)
     return interpolated_values, interpolated_times
-
-
-def convert_u16_to_float(u16_value, min_value, max_value):
-    return (u16_value * (max_value - min_value)) / 65535 + min_value
 
 
 @with_context('import-motion')
@@ -153,13 +149,11 @@ def import_motion(
                 shapes.append(shape)
                 used_times.add(time)
                 if shape != Shape.STEPPED:
-                    tension, continuity, bias = reader.getf('HHH')
+                    tension = reader.getq16f(-32.0, 32.0)
+                    continuity = reader.getq16f(-32.0, 32.0)
+                    bias = reader.getq16f(-32.0, 32.0)
                     reader.getf('HHHH')
-                    tcb.append((
-                        convert_u16_to_float(tension, -32.0, 32.0),
-                        convert_u16_to_float(continuity, -32.0, 32.0),
-                        convert_u16_to_float(bias, -32.0, 32.0)
-                    ))
+                    tcb.append((tension, continuity, bias))
                     use_interpolate = True
                     has_interpolate = True
                     converted_shapes.append((shape, name, bname))
@@ -172,7 +166,7 @@ def import_motion(
                     values.append(values[-1])
                     shapes.append(shapes[-1])
                     tcb.append(tcb[-1])
-                values, times = interpolate_keys(fps, start_frame, end_frame, name, values, times, shapes, tcb)
+                values, times = interpolate_keys(fps, start_frame, end_frame, values, times, shapes, tcb)
             curves[curve_index] = values, times
         used_times = set()
         if not has_interpolate:

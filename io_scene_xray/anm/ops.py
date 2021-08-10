@@ -52,7 +52,6 @@ class XRAY_OT_import_anm(bpy.types.Operator, io_utils.ImportHelper):
                     import_file(file_path, import_context)
                 except AppError as err:
                     self.report({'ERROR'}, str(err))
-                    return {'CANCELLED'}
             else:
                 self.report(
                     {'ERROR'},
@@ -84,6 +83,7 @@ class XRAY_OT_export_anm(bpy.types.Operator, FilenameExtHelper):
         for prop_name, prop_value in op_export_anm_props.items():
             exec('{0} = op_export_anm_props.get("{0}")'.format(prop_name))
 
+    @execute_with_logger
     @set_cursor_state
     def export(self, context):
         from .exp import export_file

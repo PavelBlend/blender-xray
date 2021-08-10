@@ -32,7 +32,9 @@ def _import(fpath, creader, context):
             fps, ver = preader.getf('fH')
             if ver != 5:
                 raise utils.AppError(
-                    'Unsupported anm format version: {}'.format(ver)
+                    'File "{}" has unsupported format version: {}'.format(
+                        fpath, ver
+                    )
                 )
             if not name:
                 name = os.path.basename(fpath)
@@ -65,10 +67,21 @@ def _import(fpath, creader, context):
                 action.fcurves.new('rotation_euler', index=1, action_group=name),
                 action.fcurves.new('rotation_euler', index=2, action_group=name)
             )
+            converted_warrning = False
+            unique_shapes = set()
             for i in range(6):
                 fcurve = fcs[(0, 2, 1, 5, 3, 4)[i]]
                 koef = (1, 1, 1, -1, -1, -1)[i]
-                import_envelope(preader, fcurve, fps, koef, name, warn_list)
+                use_interpolate = import_envelope(
+                    preader, fcurve, fps, koef, name, warn_list, unique_shapes
+                )
+                if use_interpolate:
+                    converted_warrning = True
+            if converted_warrning:
+                warn(
+                    'motion shapes converted to LINEAR',
+                    anm_name=name, shapes=unique_shapes
+                )
     for (shapes, replacement, name) in set(warn_list):
         keys_count = warn_list.count((shapes, replacement, name))
         warn(

@@ -2,6 +2,7 @@ from enum import Enum
 from .xray_io import PackedWriter
 from .utils import mkstruct
 from .log import warn, with_context
+from . import xray_motions
 
 
 class Behavior(Enum):
@@ -23,8 +24,8 @@ class Shape(Enum):
 
 
 @with_context('import-envelope')
-def import_envelope(reader, fcurve, fps, koef, name, warn_list):
-    bhv0, bhv1 = map(Behavior, reader.getf('BB'))
+def import_envelope(reader, fcurve, fps, koef, name, warn_list, unique_shapes):
+    bhv0, bhv1 = map(Behavior, reader.getf('<BB'))
 
     if bhv0 != bhv1:
         warn(
@@ -50,21 +51,52 @@ def import_envelope(reader, fcurve, fps, koef, name, warn_list):
     replace_unsupported_to = 'BEZIER'
     unsupported_occured = set()
     fckf = fcurve.keyframe_points
-    key_frame = None
-    for _ in range(reader.getf('H')[0]):
-        value, time = reader.getf('ff')
-        shape = Shape(reader.getf('B')[0])
-        if key_frame:
+    use_interpolate = False
+    values = []
+    times = []
+    shapes = []
+    tcb = []
+    keyframes_count = reader.getf('<H')[0]
+    for _ in range(keyframes_count):
+        value = reader.getf('<f')[0]
+        time = reader.getf('<f')[0] * fps
+        shape = Shape(reader.getf('<B')[0])
+        if shape != Shape.STEPPED:
+            tension = reader.getq16f(-32.0, 32.0)
+            continuity = reader.getq16f(-32.0, 32.0)
+            bias = reader.getq16f(-32.0, 32.0)
+            reader.getf('<HHHH')
+        else:
+            tension = None
+            continuity = None
+            bias = None
+        values.append(value)
+        times.append(time)
+        shapes.append(shape)
+        tcb.append((tension, continuity, bias))
+        if not shape in (Shape.LINEAR, Shape.STEPPED, Shape.TCB):
+            unsupported_occured.add(shape.name)
+        unique_shapes.add(shape.name)
+        if shape == Shape.TCB:
+            use_interpolate = True
+    if use_interpolate:
+        start_frame = int(round(times[0], 0))
+        end_frame = int(round(times[-1], 0))
+        values, times = xray_motions.interpolate_keys(
+            fps, start_frame, end_frame, values, times, shapes, tcb
+        )
+        for time, value in zip(times, values):
+            key_frame = fckf.insert(time, value * koef)
+            key_frame.interpolation = 'LINEAR'
+    else:
+        for time, value, shape in zip(times, values, shapes):
+            key_frame = fckf.insert(time, value * koef)
             if shape == Shape.LINEAR:
                 key_frame.interpolation = 'LINEAR'
             elif shape == Shape.STEPPED:
                 key_frame.interpolation = 'CONSTANT'
             else:
-                unsupported_occured.add(shape.name)
                 key_frame.interpolation = replace_unsupported_to
-        key_frame = fckf.insert(time * fps, value * koef)
-        if shape != Shape.STEPPED:
-            reader.skip(14)
 
     if unsupported_occured:
         warn_list.append((
@@ -72,6 +104,8 @@ def import_envelope(reader, fcurve, fps, koef, name, warn_list):
             replace_unsupported_to,
             name
         ))
+
+    return use_interpolate
 
 
 KF = mkstruct('KeyFrame', ['time', 'value', 'shape'])

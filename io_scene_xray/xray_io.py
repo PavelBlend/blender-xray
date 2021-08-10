@@ -76,6 +76,12 @@ class PackedReader:
     def int(self):
         return FastBytes.int_at(self.__data, self._next(4))
 
+    def getq16f(self, min_val, max_val):
+        # get quantized 16 bit float value
+        u16_val = struct.unpack_from('<H', self.__data, self.__offs)[0]
+        self.__offs += 2
+        return (u16_val * (max_val - min_val)) / 0xffff + min_val
+
     def _next(self, size):
         offs = self.__offs
         self.__offs = offs + size
