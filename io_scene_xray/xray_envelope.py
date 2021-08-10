@@ -25,7 +25,7 @@ class Shape(Enum):
 
 @with_context('import-envelope')
 def import_envelope(reader, fcurve, fps, koef, name, warn_list, unique_shapes):
-    bhv0, bhv1 = map(Behavior, reader.getf('<BB'))
+    bhv0, bhv1 = map(Behavior, reader.getf('<2B'))
 
     if bhv0 != bhv1:
         warn(
@@ -65,7 +65,7 @@ def import_envelope(reader, fcurve, fps, koef, name, warn_list, unique_shapes):
             tension = reader.getq16f(-32.0, 32.0)
             continuity = reader.getq16f(-32.0, 32.0)
             bias = reader.getq16f(-32.0, 32.0)
-            reader.getf('<HHHH')
+            reader.getf('<4H')
         else:
             tension = None
             continuity = None
@@ -126,7 +126,7 @@ def export_envelope(writer, fcurve, fps, koef, epsilon=EPSILON):
             extrapolation=fcurve.extrapolation,
             replacement=behavior.name
         )
-    writer.putf('BB', behavior.value, behavior.value)
+    writer.putf('<2B', behavior.value, behavior.value)
 
     replace_unsupported_to = Shape.TCB
     unsupported_occured = set()
@@ -150,7 +150,7 @@ def export_envelope(writer, fcurve, fps, koef, epsilon=EPSILON):
     keyframes = refine_keys(generate_keys(fcurve.keyframe_points), epsilon)
     count = export_keyframes(kf_writer, keyframes)
 
-    writer.putf('H', count)
+    writer.putf('<H', count)
     writer.putp(kf_writer)
 
     if unsupported_occured:
@@ -166,17 +166,17 @@ def export_keyframes(writer, keyframes, time_end=None, fps=None):
 
     for keyframe in keyframes:
         count += 1
-        writer.putf('ff', keyframe.value, keyframe.time)
-        writer.putf('B', keyframe.shape.value)
+        writer.putf('<2f', keyframe.value, keyframe.time)
+        writer.putf('<B', keyframe.shape.value)
         if keyframe.shape != Shape.STEPPED:
-            writer.putf('HHH', 32768, 32768, 32768)
-            writer.putf('HHHH', 32768, 32768, 32768, 32768)
+            writer.putf('<3H', 32768, 32768, 32768)
+            writer.putf('<4H', 32768, 32768, 32768, 32768)
 
     # so that the animation doesn't change its length
     if not time_end is None:
         if (time_end - keyframe.time) > (1 / fps):
-            writer.putf('ff', keyframe.value, time_end)
-            writer.putf('B', Shape.STEPPED.value)
+            writer.putf('<2f', keyframe.value, time_end)
+            writer.putf('<B', Shape.STEPPED.value)
             count += 1
 
     return count

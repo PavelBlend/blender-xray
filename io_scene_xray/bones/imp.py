@@ -60,23 +60,23 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
         if chunk_id == chunks.MATERIAL:
             xray.gamemtl = packed_reader.gets()
         elif chunk_id == chunks.SHAPE:
-            shape_type = packed_reader.getf('H')[0]
+            shape_type = packed_reader.getf('<H')[0]
             imp_bone._safe_assign_enum_property(
                 xray.shape,
                 'type',
                 str(shape_type),
                 'bone shape'
             )
-            xray.shape.flags = packed_reader.getf('H')[0]
-            xray.shape.box_rot = packed_reader.getf('fffffffff')
-            xray.shape.box_trn = packed_reader.getf('fff')
-            xray.shape.box_hsz = packed_reader.getf('fff')
-            xray.shape.sph_pos = packed_reader.getf('fff')
-            xray.shape.sph_rad = packed_reader.getf('f')[0]
-            xray.shape.cyl_pos = packed_reader.getf('fff')
-            xray.shape.cyl_dir = packed_reader.getf('fff')
-            xray.shape.cyl_hgh = packed_reader.getf('f')[0]
-            xray.shape.cyl_rad = packed_reader.getf('f')[0]
+            xray.shape.flags = packed_reader.getf('<H')[0]
+            xray.shape.box_rot = packed_reader.getf('<9f')
+            xray.shape.box_trn = packed_reader.getf('<3f')
+            xray.shape.box_hsz = packed_reader.getf('<3f')
+            xray.shape.sph_pos = packed_reader.getf('<3f')
+            xray.shape.sph_rad = packed_reader.getf('<f')[0]
+            xray.shape.cyl_pos = packed_reader.getf('<3f')
+            xray.shape.cyl_dir = packed_reader.getf('<3f')
+            xray.shape.cyl_hgh = packed_reader.getf('<f')[0]
+            xray.shape.cyl_rad = packed_reader.getf('<f')[0]
             xray.shape.set_curver()
         elif chunk_id == chunks.IK_JOINT:
             ik = xray.ikjoint
@@ -85,27 +85,27 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
                 ik, 'type', joint_type, 'bone ikjoint'
             )
             # limit x
-            ik.lim_x_min, ik.lim_x_max = packed_reader.getf('ff')
-            ik.lim_x_spr, ik.lim_x_dmp = packed_reader.getf('ff')
+            ik.lim_x_min, ik.lim_x_max = packed_reader.getf('<2f')
+            ik.lim_x_spr, ik.lim_x_dmp = packed_reader.getf('<2f')
             # limit y
-            ik.lim_y_min, ik.lim_y_max = packed_reader.getf('ff')
-            ik.lim_y_spr, ik.lim_y_dmp = packed_reader.getf('ff')
+            ik.lim_y_min, ik.lim_y_max = packed_reader.getf('<2f')
+            ik.lim_y_spr, ik.lim_y_dmp = packed_reader.getf('<2f')
             # limit z
-            ik.lim_z_min, ik.lim_z_max = packed_reader.getf('ff')
-            ik.lim_z_spr, ik.lim_z_dmp = packed_reader.getf('ff')
+            ik.lim_z_min, ik.lim_z_max = packed_reader.getf('<2f')
+            ik.lim_z_spr, ik.lim_z_dmp = packed_reader.getf('<2f')
             # spring and damping
-            ik.spring = packed_reader.getf('f')[0]
-            ik.damping = packed_reader.getf('f')[0]
+            ik.spring = packed_reader.getf('<f')[0]
+            ik.damping = packed_reader.getf('<f')[0]
         elif chunk_id == chunks.MASS_PARAMS:
-            xray.mass.value = packed_reader.getf('f')[0]
+            xray.mass.value = packed_reader.getf('<f')[0]
             xray.mass.center = read_v3f(packed_reader)
         elif chunk_id == chunks.IK_FLAGS:
             xray.ikflags = packed_reader.int()
         elif chunk_id == chunks.BREAK_PARAMS:
-            xray.breakf.force = packed_reader.getf('f')[0]
-            xray.breakf.torque = packed_reader.getf('f')[0]
+            xray.breakf.force = packed_reader.getf('<f')[0]
+            xray.breakf.torque = packed_reader.getf('<f')[0]
         elif chunk_id == chunks.FRICTION:
-            xray.friction = packed_reader.getf('f')[0]
+            xray.friction = packed_reader.getf('<f')[0]
         else:
             log.debug('unknown chunk', chunk_id=chunk_id)
 
@@ -129,6 +129,5 @@ def _import_main(data, import_context):
 
 
 def import_file(import_context):
-    with open(import_context.filepath, 'rb') as file:
-        data = file.read()
+    data = utils.read_file(import_context.filepath)
     _import_main(data, import_context)

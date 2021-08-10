@@ -1,11 +1,10 @@
 import os
-import io
 
 import bpy
 
-from .. import utils, xray_io
 from . import fmt, read
 from . import utils as det_utils
+from .. import utils, xray_io
 from ..version_utils import link_object
 
 
@@ -91,5 +90,6 @@ def _import(fpath, context, chunked_reader):
 
 
 def import_file(fpath, context):
-    with io.open(fpath, 'rb') as file:
-        _import(fpath, context, xray_io.ChunkedReader(file.read()))
+    data = utils.read_file(fpath)
+    chunked_reader = xray_io.ChunkedReader(data)
+    _import(fpath, context, chunked_reader)

@@ -9,7 +9,7 @@ from . import xray_io, ops, ui
 from .ui import base, icons
 from .utils import (
     AppError, ObjectsInitializer, logger,
-    execute_require_filepath, FilenameExtHelper
+    execute_require_filepath
 )
 from . import plugin_prefs, edit_helpers, hotkeys, props
 from . import details

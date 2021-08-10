@@ -1,11 +1,13 @@
-import io
+# standart modules
 import math
-import os.path
+import os
 
+# blender modules
 import bpy
 
+# addon modules
+from .. import context as xray_context, utils
 from ..xray_io import ChunkedReader, PackedReader
-from .. import context, utils
 from .fmt import Chunks
 from ..xray_envelope import import_envelope
 from ..version_utils import link_object, IS_28
@@ -15,9 +17,9 @@ from ..log import warn, with_context
 DISPLAY_SIZE = 0.5
 
 
-class ImportAnmContext(context.ImportContext):
+class ImportAnmContext(xray_context.ImportContext):
     def __init__(self):
-        context.ImportContext.__init__(self)
+        xray_context.ImportContext.__init__(self)
         self.camera_animation = None
 
 
@@ -28,8 +30,8 @@ def _import(fpath, creader, context):
         if cid == Chunks.MAIN:
             preader = PackedReader(data)
             name = preader.gets()
-            _fr = preader.getf('II')
-            fps, ver = preader.getf('fH')
+            _fr = preader.getf('<2I')
+            fps, ver = preader.getf('<fH')
             if ver != 5:
                 raise utils.AppError(
                     'File "{}" has unsupported format version: {}'.format(
@@ -41,7 +43,10 @@ def _import(fpath, creader, context):
             bpy_obj = bpy.data.objects.new(name, None)
             bpy_obj.rotation_mode = 'YXZ'
             if context.camera_animation:
-                bpy_cam = bpy.data.objects.new(name + '.camera', bpy.data.cameras.new(name))
+                bpy_cam = bpy.data.objects.new(
+                    name + '.camera',
+                    bpy.data.cameras.new(name)
+                )
                 bpy_cam.parent = bpy_obj
                 bpy_cam.rotation_euler = (math.pi / 2, 0, 0)
                 link_object(bpy_cam)
@@ -94,5 +99,6 @@ def _import(fpath, creader, context):
 
 
 def import_file(fpath, context):
-    with io.open(fpath, 'rb') as file:
-        _import(fpath, ChunkedReader(file.read()), context)
+    data = utils.read_file(fpath)
+    chunked_reader = ChunkedReader(data)
+    _import(fpath, chunked_reader, context)

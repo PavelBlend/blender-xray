@@ -299,33 +299,14 @@ def create_geometry(b_mesh, vertices, triangles):
 
 def create_uv(b_mesh, det_model, bmesh_faces, uvs):
     uv_layer = b_mesh.loops.layers.uv.new(det_model.mesh.uv_map_name)
-
-    if det_model.mode == 'DM':
-        uv_index = 0
-        for face in bmesh_faces:
-            if face:
-                for loop in face.loops:
-                    loop[uv_layer].uv = uvs[uv_index]
-                    uv_index += 1
-            else:
-                uv_index += 3    # skip 3 loop
-
-    elif det_model.mode == 'DETAILS':
-        uv_index = 0
-        for face in bmesh_faces:
-            if face:
-                for loop in face.loops:
-                    uv = uvs[uv_index]
-                    loop[uv_layer].uv = uv[0], 1 - uv[1]
-                    uv_index += 1
-            else:
-                uv_index += 3    # skip 3 loop
-
-    else:
-        raise Exception(
-            'unknown dm import mode: {0}. ' \
-            'You must use DM or DETAILS'.format(det_model.mode)
-            )
+    uv_index = 0
+    for face in bmesh_faces:
+        if face:
+            for loop in face.loops:
+                loop[uv_layer].uv = uvs[uv_index]
+                uv_index += 1
+        else:
+            uv_index += 3    # skip 3 loop
 
 
 def create_mesh(packed_reader, det_model):

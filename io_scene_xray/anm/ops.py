@@ -11,8 +11,13 @@ from ..utils import (
 from ..version_utils import assign_props, IS_28, get_preferences
 
 
+filename_ext = '.anm'
+
 op_import_anm_props = {
-    'filter_glob': bpy.props.StringProperty(default='*.anm', options={'HIDDEN'}),
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    ),
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
     'camera_animation': props.PropAnmCameraAnimation()
@@ -66,9 +71,10 @@ class XRAY_OT_import_anm(bpy.types.Operator, io_utils.ImportHelper):
         return super().invoke(context, event)
 
 
-filename_ext = '.anm'
 op_export_anm_props = {
-    'filter_glob': bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'}),
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}),
 }
 
 
@@ -77,7 +83,7 @@ class XRAY_OT_export_anm(bpy.types.Operator, FilenameExtHelper):
     bl_label = 'Export .anm'
     bl_description = 'Exports X-Ray animation'
 
-    filename_ext = '.anm'
+    filename_ext = filename_ext
 
     if not IS_28:
         for prop_name, prop_value in op_export_anm_props.items():

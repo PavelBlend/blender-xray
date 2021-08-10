@@ -64,8 +64,8 @@ class TestBoneEditHelpers(XRayTestCase):
         self.assertGreater(bone.xray.shape.sph_rad, 0.01, msg='has sph_rad')
         self.assertLess(reapply_max_difference(bone.xray.shape), 0.1, msg='sphere reapplies almost the same')
 
-        op_edit()
         bone.xray.shape.type = '3'
+        op_edit()
         self.assertIsNotNone(get_object_helper(bpy.context), msg='a cylinder edit helper')
         helper = bpy.context.active_object
         helper.location = helper.scale = (1, 2, 3)

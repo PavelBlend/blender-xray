@@ -100,22 +100,20 @@ class XRAY_OT_import_details(bpy.types.Operator, bpy_extras.io_utils.ImportHelpe
         return {'FINISHED'}
 
     def draw(self, context):
-
         layout = self.layout
         row = layout.row()
         row.enabled = False
         row.label(text='%d items' % len(self.files))
 
-        box = layout.box()
-        box.label(text='Level Details Options:')
+        layout.prop(self, 'details_models_in_a_row')
+        layout.prop(self, 'load_slots')
 
-        box.prop(self, 'details_models_in_a_row')
-        box.prop(self, 'load_slots')
+        col = layout.column()
+        col.active = self.load_slots
 
-        if self.load_slots:
-            box.label(text='Format:')
-            row = box.row()
-            row.prop(self, 'details_format', expand=True)
+        col.label(text='Format Version:')
+        row = col.row()
+        row.prop(self, 'details_format', expand=True)
 
     def invoke(self, context, event):
         preferences = get_preferences()

@@ -1,7 +1,6 @@
-import io
 import os
 
-from .. import xray_io
+from .. import xray_io, utils
 from . import create
 from . import fmt
 
@@ -47,5 +46,6 @@ def import_(fpath, context, packed_reader, mode='DM', detail_index=None,
 
 
 def import_file(fpath, context):
-    with io.open(fpath, 'rb') as file:
-        import_(fpath, context, xray_io.PackedReader(file.read()))
+    data = utils.read_file(fpath)
+    packed_reader = xray_io.PackedReader(data)
+    import_(fpath, context, packed_reader)
