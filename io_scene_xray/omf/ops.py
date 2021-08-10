@@ -137,12 +137,15 @@ class XRAY_OT_import_omf(
         layout = self.layout
         layout.prop(self, 'import_motions')
         layout.prop(self, 'import_bone_parts')
-        if not self.import_motions:
-            return
         row = layout.row()
         row.active = self.import_motions
         row.prop(self, 'add_actions_to_motion_list')
-        motions = self._get_motions()
+        if not self.import_motions and not self.import_bone_parts:
+            layout.label(text='Nothing was Imported!', icon='ERROR')
+        if self.import_motions:
+            motions = self._get_motions()
+        else:
+            motions = []
         count = 0
         text = 'Filter Motions'
         enabled = len(motions) > 1
@@ -158,28 +161,29 @@ class XRAY_OT_import_omf(
             if len(motions) == 1:
                 layout.label(text='OMF file contains one motion')
 
-        _, box = collapsible.draw(
-            layout,
-            self.bl_idname,
-            text,
-            enabled=enabled,
-            icon='FILTER' if count < 100 else 'ERROR',
-            style='nobox',
-        )
-
-        if box:
-            col = box.column(align=True)
-            BaseSelectMotionsOp.set_motions_list(None)
-            col.template_list(
-                'XRAY_UL_MotionsList', '',
-                self, 'motions',
-                context.scene.xray.import_omf, 'motion_index',
+        if enabled:
+            _, box = collapsible.draw(
+                layout,
+                self.bl_idname,
+                text,
+                enabled=enabled,
+                icon='FILTER' if count < 100 else 'ERROR',
+                style='nobox',
             )
-            row = col.row(align=True)
-            BaseSelectMotionsOp.set_data(self)
-            row.operator(_SelectMotionsOp.bl_idname, icon='CHECKBOX_HLT')
-            row.operator(_DeselectMotionsOp.bl_idname, icon='CHECKBOX_DEHLT')
-            row.operator(_DeselectDuplicatedMotionsOp.bl_idname, icon='COPY_ID')
+
+            if box:
+                col = box.column(align=True)
+                BaseSelectMotionsOp.set_motions_list(None)
+                col.template_list(
+                    'XRAY_UL_MotionsList', '',
+                    self, 'motions',
+                    context.scene.xray.import_omf, 'motion_index',
+                )
+                row = col.row(align=True)
+                BaseSelectMotionsOp.set_data(self)
+                row.operator(_SelectMotionsOp.bl_idname, icon='CHECKBOX_HLT')
+                row.operator(_DeselectMotionsOp.bl_idname, icon='CHECKBOX_DEHLT')
+                row.operator(_DeselectDuplicatedMotionsOp.bl_idname, icon='COPY_ID')
 
     def _get_motions(self):
         items = self.motions
@@ -231,6 +235,9 @@ class XRAY_OT_export_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         row = layout.row()
         row.active = not self.export_mode in ('OVERWRITE', 'ADD')
         row.prop(self, 'export_bone_parts')
+        if self.export_mode == 'REPLACE':
+            if not self.export_motions and not self.export_bone_parts:
+                layout.label(text='Nothing was Exported!', icon='ERROR')
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -241,6 +248,13 @@ class XRAY_OT_export_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         export_context.export_mode = self.export_mode
         export_context.export_motions = self.export_motions
         export_context.export_bone_parts = self.export_bone_parts
+        if self.export_mode == 'REPLACE':
+            if not self.export_motions and not self.export_bone_parts:
+                self.report(
+                    {'ERROR'},
+                    'Nothing was exported. Change the export settings.'
+                )
+                return {'CANCELLED'}
         if self.export_mode in ('OVERWRITE', 'ADD'):
             need_motions = True
             if self.export_mode == 'OVERWRITE':
