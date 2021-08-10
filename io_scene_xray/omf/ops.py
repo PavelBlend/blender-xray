@@ -95,11 +95,16 @@ class XRAY_OT_import_omf(
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.omf':
+                omf_path = os.path.join(self.directory, file.name)
+                if not os.path.exists(omf_path):
+                    self.report(
+                        {'ERROR'},
+                        'File not found: "{}"'.format(omf_path)
+                    )
+                    continue
                 import_context = ImportOmfContext()
                 import_context.bpy_arm_obj = context.object
-                import_context.filepath = os.path.join(
-                    self.directory, file.name
-                )
+                import_context.filepath = omf_path
                 import_context.import_bone_parts = self.import_bone_parts
                 import_context.import_motions = self.import_motions
                 import_context.add_actions_to_motion_list = \
@@ -115,7 +120,8 @@ class XRAY_OT_import_omf(
                     return {'CANCELLED'}
             else:
                 self.report(
-                    {'ERROR'}, 'Format of {} not recognised'.format(file)
+                    {'ERROR'},
+                    'Format of "{}" not recognised'.format(file.name)
                 )
         return {'FINISHED'}
 
@@ -248,6 +254,13 @@ class XRAY_OT_export_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         export_context.export_mode = self.export_mode
         export_context.export_motions = self.export_motions
         export_context.export_bone_parts = self.export_bone_parts
+        if self.export_mode in ('REPLACE', 'ADD'):
+            if not os.path.exists(export_context.filepath):
+                self.report(
+                    {'ERROR'},
+                    'File not found: "{}"'.format(export_context.filepath)
+                )
+                return {'CANCELLED'}
         if self.export_mode == 'REPLACE':
             if not self.export_motions and not self.export_bone_parts:
                 self.report(
