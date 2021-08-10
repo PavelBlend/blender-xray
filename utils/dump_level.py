@@ -358,7 +358,7 @@ def dump_level(level_data, print):
 
 
 def main():
-    parser = optparse.OptionParser(usage='Usage: level_2002_01_15_v05.py <level-file>')
+    parser = optparse.OptionParser(usage='Usage: dump_level.py <level-file>')
     (options, args) = parser.parse_args()
     if not args:
         parser.print_help()

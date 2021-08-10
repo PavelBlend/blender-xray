@@ -375,7 +375,7 @@ def dump_object(cr, out, opts):
 
 def main():
     from optparse import OptionParser
-    parser = OptionParser(usage='Usage: dump-object.py <.object-file> [options]')
+    parser = OptionParser(usage='Usage: dump_object.py <.object-file> [options]')
     parser.add_option("-d", "--diff", action='store_true', default=False, help='generate diff-ready dump')
     (options, args) = parser.parse_args()
     if not args:

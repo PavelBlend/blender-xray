@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import io
 from io_scene_xray.xray_io import ChunkedReader, PackedReader
 
-dump_object = __import__('dump-object')
+import dump_object
 
 
 def dump_skl(cr, out):
@@ -31,7 +31,7 @@ def dump_skls(pr, out):
 
 def main():
     from optparse import OptionParser
-    parser = OptionParser(usage='Usage: dump-skl.py <.skl|.skls-file>')
+    parser = OptionParser(usage='Usage: dump_skl.py <.skl|.skls-file>')
     (options, args) = parser.parse_args()
     if not args:
         parser.print_help()

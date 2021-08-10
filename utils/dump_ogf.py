@@ -238,7 +238,7 @@ def dump_ogf(cr, out, opts):
 
 def main():
     from optparse import OptionParser
-    parser = OptionParser(usage='Usage: dump-ogf.py <.ogf-file> [options]')
+    parser = OptionParser(usage='Usage: dump_ogf.py <.ogf-file> [options]')
     parser.add_option("-d", "--diff", action='store_true', default=False, help='generate diff-ready dump')
     (options, args) = parser.parse_args()
     if not args:

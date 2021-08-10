@@ -50,7 +50,7 @@ def dump_anm(cr, out, opts):
 
 def main():
     from optparse import OptionParser
-    parser = OptionParser(usage='Usage: dump-anm.py <.anm-file> [options]')
+    parser = OptionParser(usage='Usage: dump_anm.py <.anm-file> [options]')
     (options, args) = parser.parse_args()
     if not args:
         parser.print_help()
