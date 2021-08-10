@@ -58,6 +58,7 @@ op_export_ogf_props = {
 class XRAY_OT_export_ogf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     filename_ext = '.ogf'
 

@@ -14,6 +14,9 @@ from ..version_utils import (
 from . import imp, exp, props
 
 
+FORMAT_VERSION_LABEL = 'Format Version:'
+
+
 class ImportDetailsContext(context.ImportMeshContext):
     def __init__(self):
         context.ImportMeshContext.__init__(self)
@@ -111,7 +114,7 @@ class XRAY_OT_import_details(bpy.types.Operator, bpy_extras.io_utils.ImportHelpe
         col = layout.column()
         col.active = self.load_slots
 
-        col.label(text='Format Version:')
+        col.label(text=FORMAT_VERSION_LABEL)
         row = col.row()
         row.prop(self, 'details_format', expand=True)
 
@@ -154,7 +157,7 @@ class XRAY_OT_export_details(
         layout = self.layout
 
         layout.prop(self, 'texture_name_from_image_path')
-        layout.label(text='Format:')
+        layout.label(text=FORMAT_VERSION_LABEL)
         col = layout.column()
         col.prop(self, 'format_version', expand=True)
 

@@ -130,6 +130,7 @@ op_export_bones_props = {
 class XRAY_OT_export_bones(bpy.types.Operator):
     bl_idname = 'xray_export.bones'
     bl_label = 'Export .bones'
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     filename_ext = BONES_EXT
     objects_list = []
@@ -208,6 +209,7 @@ op_export_bone_props = {
 class XRAY_OT_export_bone(bpy.types.Operator, io_utils.ExportHelper):
     bl_idname = 'xray_export.bone'
     bl_label = 'Export .bones'
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     filename_ext = BONES_EXT
     objects = []

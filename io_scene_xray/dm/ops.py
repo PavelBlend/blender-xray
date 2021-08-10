@@ -22,6 +22,9 @@ class ExportDmContext(context.ExportMeshContext):
         context.ExportMeshContext.__init__(self)
 
 
+filename_ext = '.dm'
+
+
 op_import_dm_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.dm', options={'HIDDEN'}
@@ -68,7 +71,7 @@ class XRAY_OT_import_dm(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
             for file in self.files:
                 ext = os.path.splitext(file.name)[-1].lower()
 
-                if ext == '.dm':
+                if ext == filename_ext:
                     imp.import_file(
                         os.path.join(self.directory, file.name),
                         import_context
@@ -96,6 +99,7 @@ op_export_dms_props = {
 class XRAY_OT_export_dm(bpy.types.Operator):
     bl_idname = 'xray_export.dm'
     bl_label = 'Export .dm'
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     if not IS_28:
         for prop_name, prop_value in op_export_dms_props.items():
@@ -107,8 +111,8 @@ class XRAY_OT_export_dm(bpy.types.Operator):
         try:
             for name in self.detail_models.split(','):
                 detail_model = context.scene.objects[name]
-                if not name.lower().endswith('.dm'):
-                    name += '.dm'
+                if not name.lower().endswith(filename_ext):
+                    name += filename_ext
                 path = self.directory
 
                 export_context = ExportDmContext()
@@ -150,7 +154,6 @@ class XRAY_OT_export_dm(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-filename_ext = '.dm'
 op_export_dm_props = {
     'detail_model': bpy.props.StringProperty(options={'HIDDEN'}),
     'filter_glob': bpy.props.StringProperty(
@@ -167,8 +170,9 @@ class XRAY_OT_export_single_dm(
 
     bl_idname = 'xray_export.dm_file'
     bl_label = 'Export .dm'
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    filename_ext = '.dm'
+    filename_ext = filename_ext
 
     if not IS_28:
         for prop_name, prop_value in op_export_dm_props.items():
