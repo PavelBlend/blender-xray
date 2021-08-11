@@ -3,7 +3,7 @@ import bpy
 import bpy_extras
 
 # addon modules
-from .. import utils, ui, context
+from .. import utils, icons, context
 from ..version_utils import (
     get_import_export_menus, assign_props, IS_28, get_preferences
 )
@@ -111,7 +111,7 @@ class XRAY_OT_export_level(bpy.types.Operator):
 
 
 def menu_func_import(self, context):
-    icon = ui.icons.get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_level.bl_idname,
         text='X-Ray game level (level)',
@@ -120,7 +120,7 @@ def menu_func_import(self, context):
 
 
 def menu_func_export(self, context):
-    icon = ui.icons.get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_level.bl_idname,
         text='X-Ray game level (level)',

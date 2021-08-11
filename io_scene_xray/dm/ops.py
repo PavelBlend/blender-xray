@@ -6,7 +6,7 @@ import bpy
 import bpy_extras
 
 # addon modules
-from .. import ui, utils, context
+from .. import icons, utils, context
 from ..obj.exp import props as obj_exp_props
 from ..version_utils import (
     get_import_export_menus, assign_props, IS_28, get_preferences
@@ -224,7 +224,7 @@ class XRAY_OT_export_single_dm(
 
 
 def menu_func_import(self, context):
-    icon = ui.icons.get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_dm.bl_idname, text='X-Ray detail model (.dm)',
         icon_value=icon
@@ -232,7 +232,7 @@ def menu_func_import(self, context):
 
 
 def menu_func_export(self, context):
-    icon = ui.icons.get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_dm.bl_idname,
         text='X-Ray detail model (.dm)',

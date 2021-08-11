@@ -8,10 +8,16 @@ import bpy.utils.previews
 from bpy_extras import io_utils
 
 # addon modules
-from . import (
-    xray_io, ops, ui, plugin_prefs, edit_helpers, hotkeys, props, skls_browser
-)
-from .ui import base, icons
+from . import xray_io
+from . import ops
+from . import ui
+from . import plugin_prefs
+from . import edit_helpers
+from . import hotkeys
+from . import props
+from . import skls_browser
+from . import icons
+from .ui import base
 from .utils import (
     AppError, ObjectsInitializer, logger,
     execute_require_filepath

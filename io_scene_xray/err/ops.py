@@ -4,7 +4,7 @@ from bpy_extras import io_utils
 
 # addon modules
 from . import imp
-from .. import ui, utils
+from .. import icons, utils
 from ..ops.base import BaseOperator as TestReadyOperator
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 
@@ -36,7 +36,7 @@ class XRAY_OT_import_err(TestReadyOperator, io_utils.ImportHelper):
 
 
 def menu_func_import(self, _context):
-    icon = ui.icons.get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_err.bl_idname,
         text='X-Ray error list (.err)',

@@ -6,7 +6,7 @@ import bpy
 import bpy_extras
 
 # addon modules
-from ... import ops, ui, utils, context
+from ... import ops, icons, utils, context
 from ...version_utils import (
     assign_props, IS_28, set_active_object, select_object, get_preferences
 )
@@ -235,7 +235,7 @@ class XRAY_OT_export_single_object(
 
 
 def menu_func_export(self, _context):
-    icon = ui.icons.get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_object.bl_idname,
         text='X-Ray object (.object)',

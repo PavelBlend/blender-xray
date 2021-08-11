@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from . import icons
+from .. import icons
 
 
 def build_label(subtext=''):

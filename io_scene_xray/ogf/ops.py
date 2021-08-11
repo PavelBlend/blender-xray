@@ -4,7 +4,7 @@ from bpy_extras import io_utils
 
 # addon modules
 from . import exp
-from .. import ui, context, prefs
+from .. import icons, context, prefs
 from ..version_utils import assign_props, IS_28, get_preferences
 from ..obj.exp import props as obj_exp_props
 from ..utils import (
@@ -81,7 +81,7 @@ class XRAY_OT_export_ogf(bpy.types.Operator, io_utils.ExportHelper, ModelExportH
 
 
 def menu_func_export(self, _context):
-    icon = ui.icons.get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_ogf.bl_idname,
         text='X-Ray game object (.ogf)',

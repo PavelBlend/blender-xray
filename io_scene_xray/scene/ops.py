@@ -4,7 +4,7 @@ from bpy_extras import io_utils
 
 # addon modules
 from .imp import import_file
-from .. import utils, ui
+from .. import utils, icons
 from ..utils import AppError
 from ..obj import props as general_obj_props
 from ..obj.imp import props as obj_imp_props
@@ -112,7 +112,7 @@ class XRAY_OT_import_scene_selection(bpy.types.Operator, io_utils.ImportHelper):
 
 
 def menu_func_export(self, context):
-    icon = ui.icons.get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_scene_selection.bl_idname,
         text='X-Ray scene selection (.level)',
@@ -121,7 +121,7 @@ def menu_func_export(self, context):
 
 
 def menu_func_import(self, context):
-    icon = ui.icons.get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_scene_selection.bl_idname,
         text='X-Ray scene selection (.level)',

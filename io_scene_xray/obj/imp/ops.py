@@ -6,7 +6,7 @@ import bpy
 import bpy_extras
 
 # addon modules
-from ... import ops, ui, utils
+from ... import ops, icons, utils
 from ...version_utils import assign_props, IS_28, get_preferences
 from .. import imp, props as general_obj_props
 from . import utils as imp_utils, props
@@ -101,7 +101,7 @@ class XRAY_OT_import_object(ops.base.BaseOperator, bpy_extras.io_utils.ImportHel
 
 
 def menu_func_import(self, _context):
-    icon = ui.icons.get_stalker_icon()
+    icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_object.bl_idname,
         text='X-Ray object (.object)',

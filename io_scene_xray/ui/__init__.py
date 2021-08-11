@@ -12,7 +12,6 @@ from . import motion_list
 from . import obj
 from . import scene
 from . import view3d
-from . import icons
 
 
 modules = (

@@ -5,7 +5,8 @@ import os
 import bpy
 
 # addon modules
-from . import utils, version_utils
+from . import utils
+from . import version_utils
 
 
 # base context

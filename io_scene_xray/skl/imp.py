@@ -1,5 +1,5 @@
 # standart modules
-from os.path import splitext, basename
+import os
 
 # addon modules
 from .. import log, context
@@ -14,7 +14,8 @@ class ImportSklContext(context.ImportAnimationOnlyContext):
 
 
 def _import_skl(fpath, context, chunked_reader):
-    name = splitext(basename(fpath.lower()))[0]
+    basename = os.path.basename(fpath.lower())
+    name = os.path.splitext(basename)[0]
     if not context.motions_filter(name):
         return
     for cid, cdata in chunked_reader:
