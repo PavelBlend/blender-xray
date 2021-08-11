@@ -1,7 +1,9 @@
+# blender modules
 import bpy
 
-from ..obj.exp import props as obj_exp_props
+# addon modules
 from ..obj import props as general_obj_props
+from ..obj.exp import props as obj_exp_props
 from ..version_utils import assign_props, IS_28
 
 

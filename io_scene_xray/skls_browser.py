@@ -1,10 +1,17 @@
+# standart modules
 import io
 from typing import List, Dict, Tuple, Optional
 
+# blender modules
 import bpy
 
+# addon modules
 from .xray_io import PackedReader
-from .xray_motions import (import_motion, _skip_motion_rest, MOTIONS_FILTER_ALL)
+from .xray_motions import (
+    import_motion,
+    _skip_motion_rest,
+    MOTIONS_FILTER_ALL
+)
 from .skl.imp import ImportSklContext
 from .version_utils import layout_split, assign_props, IS_28
 

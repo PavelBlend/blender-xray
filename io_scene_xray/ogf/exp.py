@@ -1,15 +1,23 @@
-from bmesh.ops import triangulate
+# blender modules
 import bpy
 import mathutils
+from bmesh.ops import triangulate
 
-from ..xray_io import ChunkedWriter, PackedWriter
+# addon modules
 from .fmt import Chunks_v4, ModelType_v4, VertexFormat
-from ..utils import is_exportable_bone, find_bone_exportable_parent, AppError, \
-    fix_ensure_lookup_table, convert_object_to_space_bmesh, \
-    calculate_mesh_bbox, gen_texture_name
+from ..xray_io import ChunkedWriter, PackedWriter
 from ..utils import is_helper_object, save_file
 from ..xray_motions import MATRIX_BONE_INVERTED
 from ..version_utils import get_multiply, IS_28, IMAGE_NODES
+from ..utils import (
+    AppError,
+    is_exportable_bone,
+    find_bone_exportable_parent,
+    fix_ensure_lookup_table,
+    convert_object_to_space_bmesh,
+    calculate_mesh_bbox,
+    gen_texture_name
+)
 
 
 multiply = get_multiply()

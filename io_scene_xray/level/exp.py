@@ -1,11 +1,14 @@
+# standart modules
 import os
 import math
 import struct
 
+# blender modules
 import bpy
 import bmesh
 import mathutils
 
+# addon modules
 from .. import xray_io, utils, version_utils
 from ..ogf import exp as ogf_exp, fmt as ogf_fmt
 from . import fmt

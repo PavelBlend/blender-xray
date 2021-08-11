@@ -1,15 +1,17 @@
+# blender modules
 import bpy
 from bpy_extras import io_utils
 
+# addon modules
+from . import exp
+from .. import ui, context, prefs
+from ..version_utils import assign_props, IS_28, get_preferences
+from ..obj.exp import props as obj_exp_props
 from ..utils import (
     execute_with_logger,
     execute_require_filepath,
     set_cursor_state
 )
-from ..version_utils import assign_props, IS_28, get_preferences
-from .. import ui, context, prefs
-from ..obj.exp import props as obj_exp_props
-from . import exp
 
 
 model_export_helper_props = {

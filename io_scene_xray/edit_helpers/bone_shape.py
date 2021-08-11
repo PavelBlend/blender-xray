@@ -1,15 +1,18 @@
+# standart modules
 import math
 
+# blender modules
 import bpy
 import bmesh
 import mathutils
 
+# addon modules
+from .base_bone import AbstractBoneEditHelper
 from .. import utils
+from ..xray_motions import MATRIX_BONE_INVERTED
 from ..version_utils import (
     IS_28, multiply, set_active_object, get_icon, get_multiply
 )
-from .base_bone import AbstractBoneEditHelper
-from ..xray_motions import MATRIX_BONE_INVERTED
 
 
 class _BoneShapeEditHelper(AbstractBoneEditHelper):

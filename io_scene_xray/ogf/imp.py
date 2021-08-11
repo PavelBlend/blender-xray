@@ -1,15 +1,21 @@
+# standart modules
 import math
 
+# blender modules
 import bpy
 import bmesh
 import mathutils
 
+# addon modules
+from . import fmt
 from .. import xray_io, version_utils
 from ..level import (
-    swi as imp_swi, create as level_create, shaders as level_shaders,
-    fmt as level_fmt, vb as level_vb
+    swi as imp_swi,
+    create as level_create,
+    shaders as level_shaders,
+    fmt as level_fmt,
+    vb as level_vb
 )
-from . import fmt
 
 
 class Visual(object):

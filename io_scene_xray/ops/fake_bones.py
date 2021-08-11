@@ -1,7 +1,9 @@
+# blender modules
 import bpy
 
-from .. import utils
+# addon modules
 from . import base
+from .. import utils
 
 
 class XRAY_OT_CreateFakeBones(base.BaseOperator):

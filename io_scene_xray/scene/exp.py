@@ -1,6 +1,9 @@
+# standart modules
 import string
 
-from .. import xray_io, utils
+# addon modules
+from .. import xray_io
+from .. import utils
 from . import fmt
 
 

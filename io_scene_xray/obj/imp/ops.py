@@ -1,8 +1,11 @@
+# standart modules
 import os
 
+# blender modules
 import bpy
 import bpy_extras
 
+# addon modules
 from ... import ops, ui, utils
 from ...version_utils import assign_props, IS_28, get_preferences
 from .. import imp, props as general_obj_props

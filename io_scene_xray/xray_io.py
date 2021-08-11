@@ -1,5 +1,10 @@
+# standart modules
 import struct
+
+# blender modules
 import numpy
+
+# addon modules
 from .lzhuf import decompress_buffer
 
 

@@ -1,5 +1,7 @@
+# blender modules
 import bpy
 
+# addon modules
 from . import utils
 from ..version_utils import assign_props, IS_28
 

@@ -1,5 +1,7 @@
+# blender modules
 import bpy
 
+# addon modules
 from . import fmt
 from ..version_utils import link_object, IS_28
 

@@ -1,4 +1,7 @@
+# standart modules
 from contextlib import contextmanager
+
+# blender modules
 import bpy
 
 

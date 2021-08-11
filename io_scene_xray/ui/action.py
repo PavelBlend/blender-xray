@@ -3,9 +3,9 @@ import bpy
 
 # addon modules
 from .base import XRayPanel, build_label
+from .. import version_utils
 from ..skl.ops import XRAY_OT_export_skl
 from ..ops import action_utils
-from .. import version_utils
 
 
 class XRAY_PT_ActionPanel(XRayPanel):

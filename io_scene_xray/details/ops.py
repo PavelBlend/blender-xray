@@ -1,17 +1,19 @@
+# standart modules
 import os
 
+# blender modules
 import bpy
 import bpy_extras
 
-from .. import ui, utils
-from .. import context
+# addon modules
+from . import imp, exp, props
+from .. import ui, utils, context
 from ..obj.exp import props as obj_exp_props
 from ..dm import imp as model_imp
 from ..dm import exp as model_exp
 from ..version_utils import (
     get_import_export_menus, assign_props, IS_28, get_preferences
 )
-from . import imp, exp, props
 
 
 FORMAT_VERSION_LABEL = 'Format Version:'

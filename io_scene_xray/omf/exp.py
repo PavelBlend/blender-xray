@@ -1,7 +1,11 @@
+# standart modules
 import struct
 
-import bpy, mathutils
+# blender modules
+import bpy
+import mathutils
 
+# addon modules
 from . import fmt, imp
 from .. import xray_io, utils
 

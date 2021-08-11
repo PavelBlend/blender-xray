@@ -1,5 +1,4 @@
-import io
-
+# addon modules
 from ... import xray_io, log
 from .. import fmt
 from . import main
@@ -17,6 +16,6 @@ def _import(fpath, context, reader):
 @log.with_context(name='file')
 def import_file(fpath, context):
     log.update(path=fpath)
-    with io.open(fpath, 'rb') as file:
+    with open(fpath, 'rb') as file:
         bpy_obj = _import(fpath, context, xray_io.ChunkedReader(memoryview(file.read())))
         return bpy_obj

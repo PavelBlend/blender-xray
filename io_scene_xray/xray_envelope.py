@@ -1,4 +1,7 @@
+# standart modules
 from enum import Enum
+
+# blender modules
 from .xray_io import PackedWriter
 from .utils import mkstruct
 from .log import warn, with_context

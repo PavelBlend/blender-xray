@@ -1,17 +1,29 @@
-import os.path
+# standart modules
+import os
 import re
 
+# blender modules
 import bpy
 import bpy.utils.previews
 from bpy_extras import io_utils
 
-from . import xray_io, ops, ui
+# addon modules
+from . import (
+    xray_io, ops, ui, plugin_prefs, edit_helpers, hotkeys, props, skls_browser
+)
 from .ui import base, icons
 from .utils import (
     AppError, ObjectsInitializer, logger,
     execute_require_filepath
 )
-from . import plugin_prefs, edit_helpers, hotkeys, props
+from .version_utils import (
+    get_import_export_menus,
+    get_scene_update_post,
+    assign_props,
+    get_preferences
+)
+
+# plugin modules
 from . import details
 from .details import ops as det_ops
 from .dm import ops as dm_ops
@@ -25,11 +37,6 @@ from .bones import ops as bones_ops
 from .ogf import ops as ogf_ops
 from .level import ops as level_ops
 from .omf import ops as omf_ops
-from . import skls_browser
-from .version_utils import (
-    get_import_export_menus, get_scene_update_post,
-    assign_props, get_preferences
-)
 
 
 xray_io.ENCODE_ERROR = AppError

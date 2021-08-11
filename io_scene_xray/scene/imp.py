@@ -1,14 +1,16 @@
+# standart modules
 import os
 
+# blender modules
 import bpy
 
+# addon modules
 from . import fmt
+from .. import log
 from ..utils import AppError
 from ..xray_io import ChunkedReader, PackedReader
-from ..obj.imp import utils as object_imp_utils
 from ..obj import imp as object_import
 from ..obj.imp import utils as obj_imp_utils
-from .. import log
 from ..version_utils import link_object, get_preferences
 
 

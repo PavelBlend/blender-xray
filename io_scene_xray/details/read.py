@@ -1,7 +1,9 @@
+# blender modules
 import bpy
 
-from .. import xray_io
+# addon modules
 from . import fmt, create
+from .. import xray_io
 from ..dm import imp as model_imp
 from ..version_utils import link_object, IS_28
 

@@ -1,17 +1,20 @@
+# standart modules
 import time
 import os
 
+# blender modules
 import bpy
 
+# addon modules
+from . import utils as utils_props
 from .. import utils
 from ..details import types as det_types
-from . import utils as utils_props
+from ..version_utils import assign_props, IS_28, get_preferences
 from ..skls_browser import (
     skls_animations_index_changed,
     XRayObjectSklsBrowserProperties,
     init_skls_browser
 )
-from ..version_utils import assign_props, IS_28, get_preferences
 
 
 def _gen_time_prop(prop, description=''):

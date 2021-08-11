@@ -1,5 +1,7 @@
+# blender modules
 import bmesh
 
+# addon modules
 from ... import xray_io, utils, log
 from ...version_utils import IS_28
 from .. import fmt

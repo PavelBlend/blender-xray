@@ -1,4 +1,6 @@
-from . import ops, props
+# addon modules
+from . import ops
+from . import props
 
 
 modules = (ops, props)

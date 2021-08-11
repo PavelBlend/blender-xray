@@ -1,5 +1,7 @@
+# standart modules
 import os
 
+# addon modules
 from .. import utils, log
 from ..version_utils import IS_28, IMAGE_NODES
 

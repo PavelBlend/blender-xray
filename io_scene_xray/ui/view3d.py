@@ -4,9 +4,20 @@ import bpy
 # addon modules
 from . import collapsible, icons
 from .base import XRayPanel, build_label
-from ..skls_browser import OpBrowseSklsFile, OpCloseSklsFile
 from .. import plugin
+from ..skls_browser import OpBrowseSklsFile, OpCloseSklsFile
 from ..version_utils import IS_28, assign_props, layout_split, get_preferences
+from ..ops.transform_utils import (
+    XRAY_OT_UpdateXRayObjectTranforms,
+    XRAY_OT_UpdateBlenderObjectTranforms,
+    XRAY_OT_CopyObjectTranforms
+)
+from ..ops import (
+    xray_camera, verify_uv, shader_tools,
+    custom_props_utils, action_utils, material
+)
+
+# plugin modules
 from ..obj.imp import ops as obj_imp_ops
 from ..obj.exp import ops as obj_exp_ops
 from ..anm import ops as anm_ops
@@ -19,15 +30,6 @@ from ..ogf import ops as ogf_ops
 from ..omf import ops as omf_ops
 from ..scene import ops as scene_ops
 from ..skl import ops as skl_ops
-from ..ops.transform_utils import (
-    XRAY_OT_UpdateXRayObjectTranforms,
-    XRAY_OT_UpdateBlenderObjectTranforms,
-    XRAY_OT_CopyObjectTranforms
-)
-from ..ops import (
-    xray_camera, verify_uv, shader_tools,
-    custom_props_utils, action_utils, material
-)
 
 
 CATEGORY = 'X-Ray'

@@ -1,8 +1,11 @@
+# standart modules
 import os
 
+# blender modules
 import bpy
 import bpy_extras
 
+# addon modules
 from . import imp, exp, props
 from .. import utils, ui, context
 from ..ui import collapsible

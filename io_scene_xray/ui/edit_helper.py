@@ -1,5 +1,7 @@
+# blender modules
 import bpy
 
+# addon modules
 from .base import XRayPanel, build_label
 from ..edit_helpers import base as base_edit_helper
 

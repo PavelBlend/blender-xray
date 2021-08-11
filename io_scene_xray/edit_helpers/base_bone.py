@@ -1,5 +1,7 @@
+# blender modules
 import bpy
 
+# addon modules
 from .base import AbstractHelper
 
 

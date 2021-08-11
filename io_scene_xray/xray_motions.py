@@ -1,6 +1,8 @@
+# blender modules
 import bpy
 from mathutils import Matrix, Euler, Quaternion
 
+# addon modules
 from .utils import is_exportable_bone, find_bone_exportable_parent, AppError
 from .xray_envelope import (
     Behavior, Shape, KF, EPSILON, refine_keys, export_keyframes

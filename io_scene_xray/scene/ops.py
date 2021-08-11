@@ -1,11 +1,13 @@
+# blender modules
 import bpy
 from bpy_extras import io_utils
 
+# addon modules
+from .imp import import_file
 from .. import utils, ui
 from ..utils import AppError
-from ..obj.imp import props as obj_imp_props
 from ..obj import props as general_obj_props
-from .imp import import_file
+from ..obj.imp import props as obj_imp_props
 from ..version_utils import (
     get_import_export_menus, assign_props, IS_28, get_preferences
 )

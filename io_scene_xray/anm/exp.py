@@ -1,5 +1,7 @@
+# blender modules
 import bpy
 
+# addon modules
 from .. import log, version_utils
 from ..xray_io import ChunkedWriter, PackedWriter
 from .fmt import Chunks

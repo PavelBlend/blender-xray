@@ -1,6 +1,8 @@
+# blender modules
 import bpy
 from mathutils import Color
 
+# addon modules
 from ..version_utils import IS_28, IMAGE_NODES, assign_props
 from .. import utils
 

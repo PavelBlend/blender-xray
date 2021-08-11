@@ -1,9 +1,11 @@
+# blender modules
 import bpy
 
+# addon modules
+from .. import context
 from ..xray_io import ChunkedWriter, PackedWriter
 from ..xray_motions import export_motion, export_motions
 from ..utils import save_file, AppError
-from .. import context
 
 
 class ExportSklsContext(context.ExportAnimationOnlyContext):

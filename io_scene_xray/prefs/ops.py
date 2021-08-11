@@ -1,5 +1,7 @@
+# blender modules
 import bpy
 
+# addon modules
 from . import props
 from .. import version_utils
 

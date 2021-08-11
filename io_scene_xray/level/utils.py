@@ -1,5 +1,7 @@
+# standart modules
 import os
 
+# addon modules
 from .. import utils, xray_io
 
 

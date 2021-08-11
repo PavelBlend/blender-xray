@@ -1,8 +1,12 @@
+# standart modules
 import os
 
+# blender modules
 import bpy
 from bpy_extras import io_utils
 
+# addon modules
+from . import props
 from .. import ui
 from ..ui import collapsible
 from ..ui.motion_list import (
@@ -19,7 +23,6 @@ from ..utils import (
 )
 from ..xray_motions import MOTIONS_FILTER_ALL
 from ..version_utils import assign_props, IS_28, get_preferences
-from . import props
 from ..obj.imp import props as obj_imp_props
 
 

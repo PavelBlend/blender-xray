@@ -1,5 +1,7 @@
+# blender modules
 import bpy
 
+# addon modules
 from ..version_utils import set_active_object, IS_28
 
 

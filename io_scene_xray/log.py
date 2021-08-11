@@ -1,8 +1,11 @@
-from contextlib import contextmanager
+# standart modules
+import contextlib
+
 
 # Context Handling
 CTX_NAME = '@context'
 __ctx__ = [None]
+
 
 def with_context(name=None):
     def decorator(func):
@@ -16,8 +19,10 @@ def with_context(name=None):
         return wrap
     return decorator
 
+
 def update(**kwargs):
     __ctx__[0].data.update(**kwargs)
+
 
 def props(**kwargs):
     return _Ctx(kwargs, __ctx__[0], True)
@@ -27,13 +32,16 @@ def props(**kwargs):
 
 __logger__ = [None]
 
+
 def warn(message, **kwargs):
     __logger__[0].warn(message, props(**kwargs))
+
 
 def debug(message, **kwargs):
     print('debug: %s: %s' % (message, kwargs))
 
-@contextmanager
+
+@contextlib.contextmanager
 def using_logger(logger):
     saved = __logger__[0]
     try:

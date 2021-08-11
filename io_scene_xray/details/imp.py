@@ -1,7 +1,10 @@
+# standart modules
 import os
 
+# blender modules
 import bpy
 
+# addon modules
 from . import fmt, read
 from . import utils as det_utils
 from .. import utils, xray_io

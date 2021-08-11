@@ -1,6 +1,8 @@
+# blender modules
 import bpy
 import mathutils
 
+# addon modules
 from . import fmt
 from .. import xray_io, utils
 

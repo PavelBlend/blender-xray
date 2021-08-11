@@ -1,3 +1,4 @@
+# addon modules
 from ... import xray_io, log, utils, xray_motions
 from .. import fmt
 from . import main

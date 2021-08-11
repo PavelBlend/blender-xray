@@ -1,8 +1,11 @@
+# standart modules
 import os
 
+# blender modules
 import bpy
 from bpy_extras import io_utils
 
+# addon modules
 from . import props
 from .. import ui
 from ..utils import (

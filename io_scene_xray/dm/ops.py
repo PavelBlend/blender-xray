@@ -1,8 +1,11 @@
+# standart modules
 import os
 
+# blender modules
 import bpy
 import bpy_extras
 
+# addon modules
 from .. import ui, utils, context
 from ..obj.exp import props as obj_exp_props
 from ..version_utils import (

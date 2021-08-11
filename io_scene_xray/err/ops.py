@@ -1,9 +1,11 @@
+# blender modules
 import bpy
 from bpy_extras import io_utils
 
-from ..ops.base import BaseOperator as TestReadyOperator
-from .. import ui, utils
+# addon modules
 from . import imp
+from .. import ui, utils
+from ..ops.base import BaseOperator as TestReadyOperator
 from ..version_utils import get_import_export_menus, assign_props, IS_28
 
 

@@ -1,8 +1,10 @@
+# standart modules
 from os.path import splitext, basename
 
+# addon modules
+from .. import log, context
 from ..xray_io import ChunkedReader, PackedReader
 from ..xray_motions import import_motion, import_motions
-from .. import log, context
 
 
 class ImportSklContext(context.ImportAnimationOnlyContext):

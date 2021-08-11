@@ -1,9 +1,11 @@
+# blender modules
 import bpy
 import mathutils
 
+# addon modules
 from ..xray_motions import MATRIX_BONE, MATRIX_BONE_INVERTED
-from .base_bone import AbstractBoneEditHelper
 from ..version_utils import IS_28, multiply
+from .base_bone import AbstractBoneEditHelper
 
 
 DISPLAY_SIZE = 0.5

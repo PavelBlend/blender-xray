@@ -1,5 +1,7 @@
+# blender modules
 import bpy
 
+# addon modules
 from ..version_utils import get_icon, assign_props, IS_28
 
 

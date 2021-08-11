@@ -1,10 +1,13 @@
+# standart modules
 import platform
 import getpass
 import time
 
+# blender modules
 import bpy
 import mathutils
 
+# addon modules
 from ... import xray_io, utils, log, xray_motions
 from ...version_utils import (
     IS_28, using_active_object, get_multiply, IMAGE_NODES, get_preferences

@@ -1,9 +1,12 @@
+# standart modules
 import os
 import math
 
+# blender modules
 import bpy
 import mathutils
 
+# addon modules
 from ...skl import imp as skl_imp
 from ... import xray_io, xray_motions, log, utils
 from ...version_utils import (

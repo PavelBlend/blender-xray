@@ -1,8 +1,9 @@
+# standart modules
 import os
 
+# addon modules
 from .. import xray_io, utils
-from . import create
-from . import fmt
+from . import create, fmt
 
 
 def import_(fpath, context, packed_reader, mode='DM', detail_index=None,

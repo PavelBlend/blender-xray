@@ -1,7 +1,10 @@
+# standart modules
 import re
 
+# blender modules
 import bpy
 
+# addon modules
 from ..xray_motions import MOTIONS_FILTER_ALL
 
 

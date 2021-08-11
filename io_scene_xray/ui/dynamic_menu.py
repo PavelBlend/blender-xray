@@ -1,5 +1,7 @@
+# blender modules
 import bpy
 
+# addon modules
 from ..utils import create_cached_file_data
 from ..version_utils import assign_props, IS_28, get_preferences
 

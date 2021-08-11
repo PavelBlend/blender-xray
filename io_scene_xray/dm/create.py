@@ -1,10 +1,12 @@
+# standart modules
 import os
 
+# blender modules
 import bpy
 import bmesh
 
-from .. import xray_io
-from .. import utils
+# addon modules
+from .. import xray_io, utils
 from ..version_utils import link_object, IS_28, IMAGE_NODES
 
 

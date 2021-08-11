@@ -1,14 +1,17 @@
+# standart modules
 import os
 
+# blender modules
 import bpy
 import bpy_extras
 
+# addon modules
 from ... import ops, ui, utils, context
 from ...version_utils import (
     assign_props, IS_28, set_active_object, select_object, get_preferences
 )
-from .. import exp, props as general_obj_props
 from ...ops.base import BaseOperator as TestReadyOperator
+from .. import exp, props as general_obj_props
 from . import props
 
 

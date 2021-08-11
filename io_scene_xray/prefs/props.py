@@ -1,7 +1,10 @@
+# standart modules
 import os
 
+# blender modules
 import bpy
 
+# addon modules
 from .. import xray_ltx, version_utils
 from ..obj import props as general_obj_props
 from ..obj.imp import props as obj_imp_props

@@ -1,6 +1,8 @@
+# blender modules
 import bpy
 import mathutils
 
+# addon modules
 from ... import log, xray_io, xray_motions, utils
 from ...version_utils import IS_28
 from .. import fmt

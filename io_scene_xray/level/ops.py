@@ -1,6 +1,8 @@
+# blender modules
 import bpy
 import bpy_extras
 
+# addon modules
 from .. import utils, ui, context
 from ..version_utils import (
     get_import_export_menus, assign_props, IS_28, get_preferences

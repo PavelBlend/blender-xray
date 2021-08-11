@@ -1,6 +1,7 @@
+# addon modules
 from .. import xray_io, utils
-from . import fmt, convert
 from ..dm import exp as model_exp
+from . import fmt, convert
 from . import utils as det_utils
 
 

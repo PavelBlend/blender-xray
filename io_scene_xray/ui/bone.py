@@ -1,10 +1,12 @@
+# blender modules
 import bpy
 
-from ..edit_helpers import bone_shape, bone_center
-from .. import version_utils
-from .material import XRayGameMtlMenu, _gen_xr_selector
-from .base import XRayPanel, build_label
+# addon modules
 from . import icons
+from .base import XRayPanel, build_label
+from .material import XRayGameMtlMenu, _gen_xr_selector
+from .. import version_utils
+from ..edit_helpers import bone_shape, bone_center
 
 
 BONE_TEXT_JOINT = []

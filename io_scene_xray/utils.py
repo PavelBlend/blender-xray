@@ -1,10 +1,14 @@
-from contextlib import contextmanager
-import math, os
+# standart modules
+import math
+import os
 from time import time
+from contextlib import contextmanager
 
+# blender modules
 from bpy_extras import io_utils
 import mathutils
 
+# addon modules
 from . import log
 from .version_utils import (
     IS_28, multiply, get_multiply, set_active_object, link_object
