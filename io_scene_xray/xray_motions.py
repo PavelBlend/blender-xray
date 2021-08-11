@@ -88,7 +88,7 @@ def import_motion(
     converted_warrnings = []
 
     if not motions_filter(name):
-        skip = _skip_motion_rest(reader.getv(), 0)
+        skip = skip_motion_rest(reader.getv(), 0)
         reader.skip(skip)
         return
     act = bpy.data.actions.new(name=name)
@@ -305,11 +305,11 @@ def import_motions(reader, context, motions_filter=MOTIONS_FILTER_ALL):
 @with_context('examine-motion')
 def _examine_motion(data, offs):
     name, ptr = fb.str_at(data, offs)
-    ptr = _skip_motion_rest(data, ptr)
+    ptr = skip_motion_rest(data, ptr)
     return name, ptr
 
 
-def _skip_motion_rest(data, offs):
+def skip_motion_rest(data, offs):
     ptr = offs + 4 + 4 + 4 + 2
     ver = fb.short_at(data, ptr - 2)
     if ver < 6:

@@ -1,14 +1,7 @@
-# standart modules
-import os
-import re
-
 # blender modules
 import bpy
-import bpy.utils.previews
-from bpy_extras import io_utils
 
 # addon modules
-from . import xray_io
 from . import ops
 from . import ui
 from . import plugin_prefs
@@ -17,40 +10,30 @@ from . import hotkeys
 from . import props
 from . import skls_browser
 from . import icons
-from .ui import base
-from .utils import (
-    AppError, ObjectsInitializer, logger,
-    execute_require_filepath
-)
-from .version_utils import (
-    get_import_export_menus,
-    get_scene_update_post,
-    assign_props,
-    get_preferences
-)
+from . import utils
+from . import version_utils
+from . import xray_io
 
 # plugin modules
 from . import details
-from .details import ops as det_ops
-from .dm import ops as dm_ops
-from .err import ops as err_ops
-from .scene import ops as scene_ops
-from .obj.exp import ops as object_exp_ops
-from .obj.imp import ops as object_imp_ops
-from .anm import ops as anm_ops
-from .skl import ops as skl_ops
-from .bones import ops as bones_ops
-from .ogf import ops as ogf_ops
-from .level import ops as level_ops
-from .omf import ops as omf_ops
+from . import dm
+from . import err
+from . import scene
+from . import obj
+from . import anm
+from . import skl
+from . import bones
+from . import ogf
+from . import level
+from . import omf
 
 
-xray_io.ENCODE_ERROR = AppError
+xray_io.ENCODE_ERROR = utils.AppError
 
 
 class XRayImportMenu(bpy.types.Menu):
     bl_idname = 'INFO_MT_xray_import'
-    bl_label = base.build_label()
+    bl_label = ui.base.build_label()
 
     def draw(self, context):
         layout = self.layout
@@ -60,7 +43,7 @@ class XRayImportMenu(bpy.types.Menu):
 
 
 def get_enabled_operators(draw_functions):
-    preferences = get_preferences()
+    preferences = version_utils.get_preferences()
     operators = []
     for _, enable_prop, id_name, text in draw_functions:
         enable = getattr(preferences, enable_prop)
@@ -71,7 +54,7 @@ def get_enabled_operators(draw_functions):
 
 class XRayExportMenu(bpy.types.Menu):
     bl_idname = 'INFO_MT_xray_export'
-    bl_label = base.build_label()
+    bl_label = ui.base.build_label()
 
     def draw(self, context):
         layout = self.layout
@@ -96,7 +79,7 @@ def overlay_view_3d():
         try_draw(obj, obj)
 
 
-_INITIALIZER = ObjectsInitializer([
+_INITIALIZER = utils.ObjectsInitializer([
     'objects',
     'materials',
 ])
@@ -125,63 +108,63 @@ def menu_func_xray_export(self, _context):
 # import draw functions
 import_draw_functions = [
     (
-        object_imp_ops.menu_func_import,
+        obj.imp.ops.menu_func_import,
         'enable_object_import',
-        object_imp_ops.XRAY_OT_import_object.bl_idname,
+        obj.imp.ops.XRAY_OT_import_object.bl_idname,
         'Source Object (.object)'
     ),
     (
-        anm_ops.menu_func_import,
+        anm.ops.menu_func_import,
         'enable_anm_import',
-        anm_ops.XRAY_OT_import_anm.bl_idname,
+        anm.ops.XRAY_OT_import_anm.bl_idname,
         'Animation (.anm)'
     ),
     (
-        skl_ops.menu_func_import,
+        skl.ops.menu_func_import,
         'enable_skls_import',
-        skl_ops.XRAY_OT_import_skls.bl_idname,
+        skl.ops.XRAY_OT_import_skls.bl_idname,
         'Skeletal Animation (.skls)'
     ),
     (
-        bones_ops.menu_func_import,
+        bones.ops.menu_func_import,
         'enable_bones_import',
-        bones_ops.XRAY_OT_import_bones.bl_idname,
+        bones.ops.XRAY_OT_import_bones.bl_idname,
         'Bones Data (.bones)'
     ),
     (
-        err_ops.menu_func_import,
+        err.ops.menu_func_import,
         'enable_err_import',
-        err_ops.XRAY_OT_import_err.bl_idname,
+        err.ops.XRAY_OT_import_err.bl_idname,
         'Error List (.err)'
     ),
     (
-        det_ops.menu_func_import,
+        details.ops.menu_func_import,
         'enable_details_import',
-        det_ops.XRAY_OT_import_details.bl_idname,
+        details.ops.XRAY_OT_import_details.bl_idname,
         'Level Details (.details)'
     ),
     (
-        dm_ops.menu_func_import,
+        dm.ops.menu_func_import,
         'enable_dm_import',
-        dm_ops.XRAY_OT_import_dm.bl_idname,
+        dm.ops.XRAY_OT_import_dm.bl_idname,
         'Detail Model (.dm)'
     ),
     (
-        scene_ops.menu_func_import,
+        scene.ops.menu_func_import,
         'enable_level_import',
-        scene_ops.XRAY_OT_import_scene_selection.bl_idname,
+        scene.ops.XRAY_OT_import_scene_selection.bl_idname,
         'Scene Selection (.level)'
     ),
     (
-        omf_ops.menu_func_import,
+        omf.ops.menu_func_import,
         'enable_omf_import',
-        omf_ops.XRAY_OT_import_omf.bl_idname,
+        omf.ops.XRAY_OT_import_omf.bl_idname,
         'Game Motion (.omf)'
     ),
     (
-        level_ops.menu_func_import,
+        level.ops.menu_func_import,
         'enable_game_level_import',
-        level_ops.XRAY_OT_import_level.bl_idname,
+        level.ops.XRAY_OT_import_level.bl_idname,
         'Game Level (level)'
     )
 ]
@@ -189,63 +172,63 @@ import_draw_functions = [
 # export draw functions
 export_draw_functions = [
     (
-        object_exp_ops.menu_func_export,
+        obj.exp.ops.menu_func_export,
         'enable_object_export',
-        object_exp_ops.XRAY_OT_export_object.bl_idname,
+        obj.exp.ops.XRAY_OT_export_object.bl_idname,
         'Source Object (.object)'
     ),
     (
-        anm_ops.menu_func_export,
+        anm.ops.menu_func_export,
         'enable_anm_export',
-        anm_ops.XRAY_OT_export_anm.bl_idname,
+        anm.ops.XRAY_OT_export_anm.bl_idname,
         'Animation (.anm)'
     ),
     (
-        skl_ops.menu_func_export,
+        skl.ops.menu_func_export,
         'enable_skls_export',
-        skl_ops.XRAY_OT_export_skls.bl_idname,
+        skl.ops.XRAY_OT_export_skls.bl_idname,
         'Skeletal Animation (.skls)'
     ),
     (
-        bones_ops.menu_func_export,
+        bones.ops.menu_func_export,
         'enable_bones_export',
-        bones_ops.XRAY_OT_export_bones.bl_idname,
+        bones.ops.XRAY_OT_export_bones.bl_idname,
         'Bones Data (.bones)'
     ),
     (
-        ogf_ops.menu_func_export,
+        ogf.ops.menu_func_export,
         'enable_ogf_export',
-        ogf_ops.XRAY_OT_export_ogf.bl_idname,
+        ogf.ops.XRAY_OT_export_ogf.bl_idname,
         'Game Object (.ogf)'
     ),
     (
-        det_ops.menu_func_export,
+        details.ops.menu_func_export,
         'enable_details_export',
-        det_ops.XRAY_OT_export_details.bl_idname,
+        details.ops.XRAY_OT_export_details.bl_idname,
         'Level Details (.details)'
     ),
     (
-        dm_ops.menu_func_export,
+        dm.ops.menu_func_export,
         'enable_dm_export',
-        dm_ops.XRAY_OT_export_dm.bl_idname,
+        dm.ops.XRAY_OT_export_dm.bl_idname,
         'Detail Model (.dm)'
     ),
     (
-        scene_ops.menu_func_export,
+        scene.ops.menu_func_export,
         'enable_level_export',
-        scene_ops.XRAY_OT_export_scene_selection.bl_idname,
+        scene.ops.XRAY_OT_export_scene_selection.bl_idname,
         'Scene Selection (.level)'
     ),
     (
-        omf_ops.menu_func_export,
+        omf.ops.menu_func_export,
         'enable_omf_export',
-        omf_ops.XRAY_OT_export_omf.bl_idname,
+        omf.ops.XRAY_OT_export_omf.bl_idname,
         'Game Motion (.omf)'
     ),
     (
-        level_ops.menu_func_export,
+        level.ops.menu_func_export,
         'enable_game_level_export',
-        level_ops.XRAY_OT_export_level.bl_idname,
+        level.ops.XRAY_OT_export_level.bl_idname,
         'Game Level (level)'
     )
 ]
@@ -257,7 +240,7 @@ def remove_draw_functions(funct_list, menu):
 
 
 def append_draw_functions(funct_list, menu):
-    preferences = get_preferences()
+    preferences = version_utils.get_preferences()
     for draw_function, enable_prop, _, _ in funct_list:
         enable = getattr(preferences, enable_prop)
         if enable:
@@ -265,8 +248,8 @@ def append_draw_functions(funct_list, menu):
 
 
 def append_menu_func():
-    preferences = get_preferences()
-    import_menu, export_menu = get_import_export_menus()
+    preferences = version_utils.get_preferences()
+    import_menu, export_menu = version_utils.get_import_export_menus()
 
     # remove import menus
     remove_draw_functions(import_draw_functions, import_menu)
@@ -308,24 +291,24 @@ def register():
         bpy.utils.register_class(clas)
     plugin_prefs.register()
 
-    object_imp_ops.register()
-    object_exp_ops.register()
-    anm_ops.register()
-    dm_ops.register()
-    bones_ops.register()
-    ogf_ops.register()
-    skl_ops.register()
-    omf_ops.register()
-    scene_ops.register()
-    level_ops.register()
-    err_ops.register()
+    obj.imp.ops.register()
+    obj.exp.ops.register()
+    anm.ops.register()
+    dm.ops.register()
+    bones.ops.register()
+    ogf.ops.register()
+    skl.ops.register()
+    omf.ops.register()
+    scene.ops.register()
+    level.ops.register()
+    err.ops.register()
     append_menu_func()
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(
         overlay_view_3d, (),
         'WINDOW', 'POST_VIEW'
     )
     bpy.app.handlers.load_post.append(load_post)
-    get_scene_update_post().append(scene_update_post)
+    version_utils.get_scene_update_post().append(scene_update_post)
     hotkeys.register()
     edit_helpers.register()
     ops.register()
@@ -337,23 +320,23 @@ def unregister():
     ops.unregister()
     edit_helpers.unregister()
     hotkeys.unregister()
-    err_ops.unregister()
-    dm_ops.unregister()
-    bones_ops.unregister()
-    ogf_ops.unregister()
-    level_ops.unregister()
-    scene_ops.unregister()
-    omf_ops.unregister()
-    skl_ops.unregister()
-    anm_ops.unregister()
-    object_exp_ops.unregister()
-    object_imp_ops.unregister()
+    err.ops.unregister()
+    dm.ops.unregister()
+    bones.ops.unregister()
+    ogf.ops.unregister()
+    level.ops.unregister()
+    scene.ops.unregister()
+    omf.ops.unregister()
+    skl.ops.unregister()
+    anm.ops.unregister()
+    obj.exp.ops.unregister()
+    obj.imp.ops.unregister()
 
-    get_scene_update_post().remove(scene_update_post)
+    version_utils.get_scene_update_post().remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
 
-    import_menu, export_menu = get_import_export_menus()
+    import_menu, export_menu = version_utils.get_import_export_menus()
 
     # remove import menus
     remove_draw_functions(import_draw_functions, import_menu)

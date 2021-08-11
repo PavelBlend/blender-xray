@@ -1,10 +1,10 @@
 # blender modules
 import bpy
-from bl_operators.presets import AddPresetBase
+import bl_operators
 
 # addon modules
 from . import prefs
-from .version_utils import IS_28, assign_props, get_icon, layout_split
+from . import version_utils
 
 
 path_props_names = {
@@ -21,12 +21,12 @@ path_props_names = {
 class PluginPreferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in prefs.props.plugin_preferences_props.items():
             exec('{0} = prefs.props.plugin_preferences_props.get("{0}")'.format(prop_name))
 
     def get_split(self, layout):
-        return layout_split(layout, 0.3)
+        return version_utils.layout_split(layout, 0.3)
 
     def draw_path_prop(self, prop):
         layout = self.layout
@@ -54,8 +54,8 @@ class PluginPreferences(bpy.types.AddonPreferences):
 
         row = layout.row(align=True)
         row.menu(PREFS_MT_xray_presets.__name__, text=PREFS_MT_xray_presets.bl_label)
-        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon=get_icon('ZOOMIN'))
-        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon=get_icon('ZOOMOUT')).remove_active = True
+        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon=version_utils.get_icon('ZOOMIN'))
+        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon=version_utils.get_icon('ZOOMOUT')).remove_active = True
 
         layout.row().prop(self, 'category', expand=True)
 
@@ -282,7 +282,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
                 draw_prop_name('Power:', 'action_power')
 
         elif self.category == 'OTHERS':
-            split = layout_split(layout, 0.4)
+            split = version_utils.layout_split(layout, 0.4)
             split.label(text='Custom Owner Name:')
             split.prop(self, 'custom_owner_name', text='')
             prop_bool(layout, self, 'expert_mode')
@@ -293,7 +293,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
             row = layout.row()
             row.prop(self, 'gl_active_shape_color')
 
-        split = layout_split(layout, 0.6)
+        split = version_utils.layout_split(layout, 0.6)
         split.label(text='')
         split.operator(
             prefs.ops.XRAY_OT_ResetPreferencesSettings.bl_idname, icon='CANCEL'
@@ -307,7 +307,7 @@ class PREFS_MT_xray_presets(bpy.types.Menu):
     draw = bpy.types.Menu.draw_preset
 
 
-class AddPresetXrayPrefs(AddPresetBase, bpy.types.Operator):
+class AddPresetXrayPrefs(bl_operators.presets.AddPresetBase, bpy.types.Operator):
     bl_idname = 'xray.prefs_preset_add'
     bl_label = 'Add XRay Preferences Preset'
     preset_menu = 'PREFS_MT_xray_presets'
@@ -332,7 +332,7 @@ classes = (
 
 
 def register():
-    assign_props([
+    version_utils.assign_props([
         (prefs.props.plugin_preferences_props, PluginPreferences),
     ])
     prefs.register()

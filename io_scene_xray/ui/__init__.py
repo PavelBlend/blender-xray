@@ -2,6 +2,7 @@
 from . import action
 from . import armature
 from . import bone
+from . import base
 from . import collapsible
 from . import dynamic_menu
 from . import edit_helper

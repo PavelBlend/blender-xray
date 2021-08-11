@@ -1,18 +1,20 @@
 # standart modules
-import math
 import os
-from time import time
-from contextlib import contextmanager
+import math
+import time
+import contextlib
 
 # blender modules
-from bpy_extras import io_utils
+import bpy
+import bpy_extras.io_utils
 import mathutils
+import bmesh
 
 # addon modules
+from . import bl_info
 from . import log
-from .version_utils import (
-    IS_28, multiply, get_multiply, set_active_object, link_object
-)
+from . import version_utils
+from . import xray_io
 
 
 __FAKE_BONE_SUFFIX = '.fake'
@@ -43,7 +45,6 @@ __PLUGIN_VERSION_NUMBER__ = [None]
 def plugin_version_number():
     number = __PLUGIN_VERSION_NUMBER__[0]
     if number is None:
-        from . import bl_info
         number = version_to_number(*bl_info['version'])
         __PLUGIN_VERSION_NUMBER__[0] = number
     return number
@@ -57,7 +58,7 @@ class AppError(Exception):
         self.ctx = ctx
 
 
-@contextmanager
+@contextlib.contextmanager
 def logger(name, report):
     lgr = Logger(report)
     try:
@@ -159,7 +160,6 @@ class Logger:
                 last_message_count = 1
                 last_line_is_message = True
 
-        import bpy
         text = bpy.data.texts.new(logname)
         text.user_clear()
         text.from_string('\n'.join(lines))
@@ -175,17 +175,14 @@ def fix_ensure_lookup_table(bmv):
 
 
 def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_normals=False):
-    import bmesh
-    import bpy
-    import mathutils
     mesh = bmesh.new()
     armmods = [mod for mod in bpy_obj.modifiers if mod.type == 'ARMATURE' and mod.show_viewport]
     if split_normals and bpy.app.version >= (2, 79, 0):
         temp_mesh = bpy_obj.data.copy()
         bpy_obj = bpy_obj.copy()
         bpy_obj.data = temp_mesh
-        link_object(bpy_obj)
-        set_active_object(bpy_obj)
+        version_utils.link_object(bpy_obj)
+        version_utils.set_active_object(bpy_obj)
         bpy.ops.object.select_all(action='DESELECT')
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.set_normals_from_faces()
@@ -193,7 +190,7 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
     try:
         for mod in armmods:
             mod.show_viewport = False
-        if IS_28:
+        if version_utils.IS_28:
             depsgraph = bpy.context.view_layer.depsgraph
             # do not delete this line (export of skeletal meshes will break)
             depsgraph.update()
@@ -207,7 +204,7 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
         mat = mathutils.Matrix()
     else:
         mat = bpy_obj.matrix_world
-    mat = multiply(space_matrix.inverted(), mat)
+    mat = version_utils.multiply(space_matrix.inverted(), mat)
     mesh.transform(mat)
     need_flip = False
     for k in mat.to_scale():
@@ -228,7 +225,7 @@ def calculate_mesh_bbox(verts, mat=mathutils.Matrix()):
         dst.y = func(dst.y, src.y)
         dst.z = func(dst.z, src.z)
 
-    multiply = get_multiply()
+    multiply = version_utils.get_multiply()
     fix_ensure_lookup_table(verts)
     _min = multiply(mat, verts[0].co).copy()
     _max = _min.copy()
@@ -250,8 +247,7 @@ def make_relative_texture_path(a_tx_fpath, a_tx_folder):
 
 
 def gen_texture_name(image, tx_folder, level_folder=None):
-    from bpy.path import abspath
-    a_tx_fpath = os.path.normpath(abspath(image.filepath))
+    a_tx_fpath = os.path.normpath(bpy.path.abspath(image.filepath))
     a_tx_folder = os.path.abspath(tx_folder)
     a_tx_fpath = os.path.splitext(a_tx_fpath)[0]
     if not level_folder:    # find texture in gamedata\textures folder
@@ -300,35 +296,32 @@ def create_cached_file_data(ffname, fparser):
 
 
 def parse_shaders(data):
-    from .xray_io import ChunkedReader, PackedReader
-    for (cid, cdata) in ChunkedReader(data):
+    for (cid, cdata) in xray_io.ChunkedReader(data):
         if cid == 3:
-            reader = PackedReader(cdata)
+            reader = xray_io.PackedReader(cdata)
             for _ in range(reader.int()):
                 yield (reader.gets(), '', None)
 
 
 def parse_gamemtl(data):
-    from .xray_io import ChunkedReader, PackedReader
-    for (cid, data) in ChunkedReader(data):
+    for (cid, data) in xray_io.ChunkedReader(data):
         if cid == 4098:
-            for (_, cdata) in ChunkedReader(data):
+            for (_, cdata) in xray_io.ChunkedReader(data):
                 name, desc = None, None
-                for (cccid, ccdata) in ChunkedReader(cdata):
+                for (cccid, ccdata) in xray_io.ChunkedReader(cdata):
                     if cccid == 0x1000:
-                        reader = PackedReader(ccdata)
+                        reader = xray_io.PackedReader(ccdata)
                         material_id = reader.getf('<I')[0]
                         name = reader.gets()
                     if cccid == 0x1005:
-                        desc = PackedReader(ccdata).gets()
+                        desc = xray_io.PackedReader(ccdata).gets()
                 yield (name, desc, material_id)
 
 
 def parse_shaders_xrlc(data):
-    from .xray_io import PackedReader
     if len(data) % (128 + 16) != 0:
         exit(1)
-    reader = PackedReader(data)
+    reader = xray_io.PackedReader(data)
     for _ in range(len(data) // (128 + 16)):
         name = reader.gets()
         reader.getf('{}s'.format(127 - len(name) + 16))  # skip
@@ -410,9 +403,8 @@ class ObjectsInitializer:
             things = getattr(collections, key)
             objset.sync(things, init_thing)
 
-@contextmanager
+@contextlib.contextmanager
 def using_mode(mode):
-    import bpy
     original = bpy.context.object.mode
     bpy.ops.object.mode_set(mode=mode)
     try:
@@ -453,7 +445,7 @@ def set_cursor_state(method):
     return wrapper
 
 
-class FilenameExtHelper(io_utils.ExportHelper):
+class FilenameExtHelper(bpy_extras.io_utils.ExportHelper):
     def export(self, context):
         pass
 
@@ -490,11 +482,11 @@ def time_log():
     def decorator(func):
         name = func.__name__
         def wrap(*args, **kwargs):
-            start = time()
+            start = time.time()
             try:
                 return func(*args, **kwargs)
             finally:
-                log.debug('time', func=name, time=(time() - start))
+                log.debug('time', func=name, time=(time.time() - start))
         return wrap
     return decorator
 

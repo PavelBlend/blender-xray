@@ -1,7 +1,9 @@
 # addon modules
-from ... import xray_io, log
-from .. import fmt
+from . import ops
 from . import main
+from .. import fmt
+from ... import log
+from ... import xray_io
 
 
 def _import(fpath, context, reader):

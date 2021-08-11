@@ -1,26 +1,18 @@
-# standart modules
-import io
-from typing import List, Dict, Tuple, Optional
-
 # blender modules
 import bpy
 
 # addon modules
-from .xray_io import PackedReader
-from .xray_motions import (
-    import_motion,
-    _skip_motion_rest,
-    MOTIONS_FILTER_ALL
-)
-from .skl.imp import ImportSklContext
-from .version_utils import layout_split, assign_props, IS_28
+from . import xray_io
+from . import xray_motions
+from . import skl
+from . import version_utils
 
 
 class UI_UL_SklsList_item(bpy.types.UIList):
 
     def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname):
         row = layout.row()
-        row = layout_split(row, 0.30)
+        row = version_utils.layout_split(row, 0.30)
         row.alignment = 'RIGHT'
         row.label(text=str(item.frames))
         row.alignment = 'LEFT'
@@ -87,7 +79,7 @@ class OpBrowseSklsFile(bpy.types.Operator):
     bl_description = 'Opens .skls file with collection of animations. Used to import X-Ray engine animations.'+\
         ' To import select object with X-Ray struct of bones'
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_browse_skls_file_props.items():
             exec('{0} = op_browse_skls_file_props.get("{0}")'.format(prop_name))
 
@@ -103,9 +95,9 @@ class OpBrowseSklsFile(bpy.types.Operator):
         def __init__(self, file_path):
             self.file_path = file_path
             self.animations = {} # cached animations info (name: (file_offset, frames_count))
-            with io.open(file_path, mode='rb') as f:
+            with open(file_path, mode='rb') as f:
                 # read entire .skls file into memory
-                self.pr = PackedReader(f.read())
+                self.pr = xray_io.PackedReader(f.read())
             self._index_animations()
 
         def _index_animations(self):
@@ -120,7 +112,7 @@ class OpBrowseSklsFile(bpy.types.Operator):
                 self.animations[name] = (offset, int(frames_range[1] - frames_range[0]))
                 # skip the rest bytes of skl animation to the next animation
                 self.pr.set_offset(offset2)
-                skip = _skip_motion_rest(self.pr.getv(), 0)
+                skip = xray_motions.skip_motion_rest(self.pr.getv(), 0)
                 self.pr.skip(skip)
 
     skls_file = None    # pure python hold variable of .skls file buffer instance
@@ -186,12 +178,12 @@ def skls_animations_index_changed(self, context):
         # bpy_armature = context.armature
         bonesmap = {b.name.lower(): b for b in ob.data.bones}    # used to bone's reference detection
         reported = set()    # bones names that has problems while import
-        import_context = ImportSklContext()
+        import_context = skl.imp.ImportSklContext()
         import_context.bpy_arm_obj=ob
-        import_context.motions_filter=MOTIONS_FILTER_ALL
+        import_context.motions_filter=xray_motions.MOTIONS_FILTER_ALL
         import_context.use_motion_prefix_name=False
         import_context.filename=OpBrowseSklsFile.skls_file.file_path
-        import_motion(OpBrowseSklsFile.skls_file.pr, import_context, bonesmap, reported)
+        xray_motions.import_motion(OpBrowseSklsFile.skls_file.pr, import_context, bonesmap, reported)
         sk.animations_prev_name = animation_name
         context.window.cursor_set('DEFAULT')
         # try to find DopeSheet editor & set action to play
@@ -231,7 +223,7 @@ xray_skls_animation_properties_props = {
 class XRaySklsAnimationProperties(bpy.types.PropertyGroup):
     'Contains animation properties in animations list of .skls file'
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in xray_skls_animation_properties_props.items():
             exec('{0} = xray_skls_animation_properties_props.get("{0}")'.format(prop_name))
 
@@ -244,7 +236,7 @@ xray_object_skls_browser_properties_props = {
 
 
 class XRayObjectSklsBrowserProperties(bpy.types.PropertyGroup):
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in xray_object_skls_browser_properties_props.items():
             exec('{0} = xray_object_skls_browser_properties_props.get("{0}")'.format(prop_name))
 
@@ -261,7 +253,7 @@ classes = (
 def register():
     for clas, props in classes:
         if props:
-            assign_props([(props, clas), ])
+            version_utils.assign_props([(props, clas), ])
         bpy.utils.register_class(clas)
 
 

@@ -3,6 +3,7 @@ import os
 
 # blender modules
 import bpy
+import bpy.utils.previews
 
 
 preview_collections = {}

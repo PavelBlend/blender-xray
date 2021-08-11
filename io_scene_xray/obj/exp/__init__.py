@@ -1,7 +1,9 @@
 # addon modules
-from ... import xray_io, utils
-from .. import fmt
+from . import ops
 from . import main
+from .. import fmt
+from ... import xray_io
+from ... import utils
 
 
 def _export(bpy_obj, chunked_writer, context):
