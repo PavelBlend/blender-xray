@@ -1,6 +1,6 @@
 # addon modules
-from .. import xray_io
 from . import fmt
+from .. import xray_io
 
 
 class VertexBuffer(object):

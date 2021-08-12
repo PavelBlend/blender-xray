@@ -6,7 +6,9 @@ import bpy
 
 # addon modules
 from . import fmt
-from .. import xray_io, utils, version_utils
+from .. import utils
+from .. import version_utils
+from .. import xray_io
 
 
 def import_(filepath, chunked_reader, operator):

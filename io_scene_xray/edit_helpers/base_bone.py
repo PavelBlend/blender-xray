@@ -2,11 +2,11 @@
 import bpy
 
 # addon modules
-from .base import AbstractHelper
+from . import base
 
 
 #pylint: disable=W0223
-class AbstractBoneEditHelper(AbstractHelper):
+class AbstractBoneEditHelper(base.AbstractHelper):
     def _is_active_target(self, target, context):
         if target is None:
             return False

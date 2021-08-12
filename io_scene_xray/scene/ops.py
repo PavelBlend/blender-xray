@@ -1,6 +1,6 @@
 # blender modules
 import bpy
-from bpy_extras import io_utils
+import bpy_extras
 
 # addon modules
 from .imp import import_file
@@ -21,7 +21,9 @@ op_export_level_scene_props = {
 }
 
 
-class XRAY_OT_export_scene_selection(bpy.types.Operator, io_utils.ExportHelper):
+class XRAY_OT_export_scene_selection(
+        bpy.types.Operator, bpy_extras.io_utils.ExportHelper
+    ):
     bl_idname = 'xray_export.scene'
     bl_label = 'Export .level'
 
@@ -71,7 +73,10 @@ op_import_level_scene_props = {
 }
 
 
-class XRAY_OT_import_scene_selection(bpy.types.Operator, io_utils.ImportHelper):
+class XRAY_OT_import_scene_selection(
+        bpy.types.Operator,
+        bpy_extras.io_utils.ImportHelper
+    ):
     bl_idname = 'xray_import.scene'
     bl_label = 'Import .level'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

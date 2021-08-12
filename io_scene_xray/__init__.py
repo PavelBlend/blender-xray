@@ -13,12 +13,26 @@ bl_info = {
 
 
 def register():
-    from . import addon
+    # first import of required blender modules.
+    # used in other modules.
+    import bpy.utils.previews
+    import bpy_extras.io_utils
+
+    # configuring addon modules.
     from . import utils
     xray_io.ENCODE_ERROR = utils.AppError
+
+    # registration
+    from . import addon
     addon.register()
 
 
 def unregister():
+    # import of required blender modules.
+    # used in other modules.
+    import bpy.utils.previews
+    import bpy_extras.io_utils
+
+    # unregistration
     from . import addon
     addon.unregister()

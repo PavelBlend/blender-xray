@@ -1,17 +1,24 @@
 # standart modules
 import os
-import math
 
 # blender modules
 import bpy
 import mathutils
 
 # addon modules
-from . import (
-    create, fmt, shaders, visuals, vb, ib, swi, cform, utils as level_utils
-)
-from .. import xray_io, utils, version_utils
-from ..ogf import imp as ogf_imp
+from . import create
+from . import fmt
+from . import shaders
+from . import visuals
+from . import vb
+from . import ib
+from . import swi
+from . import cform
+from . import utility
+from .. import utils
+from .. import version_utils
+from .. import ogf
+from .. import xray_io
 
 
 class Level(object):
@@ -173,7 +180,7 @@ def create_glow_object_v5(
     ):
     object_name = 'glow_{:0>3}'.format(glow_index)
     vertices, faces, uvs = generate_glow_mesh_data(radius)
-    material = ogf_imp.get_material(level, shader_index, texture_index)
+    material = ogf.imp.get_material(level, shader_index, texture_index)
     image = level.images[texture_index]
     mesh = create_glow_mesh(object_name, vertices, faces, uvs, material, image)
     glow_object = create.create_object(object_name, mesh)
@@ -475,7 +482,7 @@ def import_geomx(level, context):
     if not os.path.exists(geomx_path):
         return
     geomx_chunks = {}
-    geomx_chunked_reader = level_utils.get_level_reader(geomx_path)
+    geomx_chunked_reader = utility.get_level_reader(geomx_path)
     chunks = get_chunks(geomx_chunked_reader)
     del geomx_chunked_reader
     level.xrlc_version_geom = get_version(chunks.pop(fmt.HEADER))
@@ -488,7 +495,7 @@ def import_geom(level, chunks, context):
     if level.xrlc_version < fmt.VERSION_13:
         return
     if level.xrlc_version in fmt.SUPPORTED_VERSIONS:
-        geom_chunked_reader = level_utils.get_level_reader(
+        geom_chunked_reader = utility.get_level_reader(
             context.filepath + os.extsep + 'geom'
         )
         geom_chunks = get_chunks(geom_chunked_reader)
@@ -633,8 +640,8 @@ def import_file(context, operator):
     level.context = context
     level.usage_list = set()
     level.vertex_format_list = set()
-    chunked_reader = level_utils.get_level_reader(context.filepath)
-    level.name = level_utils.get_level_name(context.filepath)
+    chunked_reader = utility.get_level_reader(context.filepath)
+    level.name = utility.get_level_name(context.filepath)
     level.xrlc_version = get_version(chunked_reader.next(fmt.HEADER))
 
     # test code

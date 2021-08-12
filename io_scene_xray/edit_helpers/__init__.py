@@ -1,5 +1,7 @@
 # addon modules
-from . import base, bone_center, bone_shape
+from . import base
+from . import bone_center
+from . import bone_shape
 
 
 modules = (

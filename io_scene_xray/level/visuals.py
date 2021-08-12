@@ -1,6 +1,6 @@
 # addon modules
+from .. import ogf
 from .. import xray_io
-from ..ogf import imp
 
 
 def import_hierrarhy_visuals(level):
@@ -18,6 +18,6 @@ def import_visuals(data, level):
     visuals_ids = set()
     for visual_id, visual_data in chunked_reader:
         visuals_ids.add(visual_id)
-        imp.import_(visual_data, visual_id, level, chunks, visuals_ids)
+        ogf.imp.import_(visual_data, visual_id, level, chunks, visuals_ids)
     chunks = list(chunks)
     chunks.sort()

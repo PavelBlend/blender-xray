@@ -3,11 +3,12 @@ import bpy
 import bpy_extras
 
 # addon modules
-from .. import utils, icons, contexts
-from ..version_utils import (
-    get_import_export_menus, assign_props, IS_28, get_preferences
-)
-from . import imp, exp
+from . import imp
+from . import exp
+from .. import utils
+from .. import icons
+from .. import contexts
+from .. import version_utils
 
 
 class ImportLevelContext(contexts.ImportMeshContext):
@@ -37,13 +38,14 @@ class XRAY_OT_import_level(
     bl_description = 'Import X-Ray Game Level (level)'
     bl_options = {'REGISTER', 'UNDO'}
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_import_level_props.items():
             exec('{0} = op_import_level_props.get("{0}")'.format(prop_name))
 
     @utils.set_cursor_state
     def execute(self, context):
-        textures_folder = get_preferences().textures_folder_auto
+        preferences = version_utils.get_preferences()
+        textures_folder = preferences.textures_folder_auto
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
         if not self.filepath:
@@ -81,7 +83,7 @@ class XRAY_OT_export_level(bpy.types.Operator):
 
     filename_ext = ''
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_export_level_props.items():
             exec('{0} = op_export_level_props.get("{0}")'.format(prop_name))
 
@@ -105,7 +107,6 @@ class XRAY_OT_export_level(bpy.types.Operator):
         return self.export(level_object, context)
 
     def invoke(self, context, event):
-        preferences = get_preferences()
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -129,7 +130,7 @@ def menu_func_export(self, context):
 
 
 def register():
-    assign_props([
+    version_utils.assign_props([
         (op_import_level_props, XRAY_OT_import_level),
         (op_export_level_props, XRAY_OT_export_level)
     ])

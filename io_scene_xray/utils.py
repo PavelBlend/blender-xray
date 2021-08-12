@@ -6,7 +6,7 @@ import contextlib
 
 # blender modules
 import bpy
-import bpy_extras.io_utils
+import bpy_extras
 import mathutils
 import bmesh
 

@@ -3,7 +3,7 @@ import os
 
 # blender modules
 import bpy
-from bpy_extras import io_utils
+import bpy_extras
 
 # addon modules
 from . import props
@@ -48,7 +48,7 @@ op_import_skls_props = {
 }
 
 
-class XRAY_OT_import_skls(TestReadyOperator, io_utils.ImportHelper):
+class XRAY_OT_import_skls(TestReadyOperator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.skls'
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
@@ -165,7 +165,7 @@ op_export_skl_props = {
 }
 
 
-class XRAY_OT_export_skl(bpy.types.Operator, io_utils.ExportHelper):
+class XRAY_OT_export_skl(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
     bl_idname = 'xray_export.skl'
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animation'

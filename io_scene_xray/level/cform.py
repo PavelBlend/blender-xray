@@ -7,8 +7,11 @@ import bpy
 import bmesh
 
 # addon modules
-from .. import xray_io, utils, version_utils
-from . import fmt, create
+from . import fmt
+from . import create
+from .. import utils
+from .. import version_utils
+from .. import xray_io
 
 
 def import_main(context, level, data=None):

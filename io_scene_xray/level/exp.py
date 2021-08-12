@@ -9,9 +9,11 @@ import bmesh
 import mathutils
 
 # addon modules
-from .. import xray_io, utils, version_utils
-from ..ogf import exp as ogf_exp, fmt as ogf_fmt
 from . import fmt
+from .. import utils
+from .. import version_utils
+from .. import xray_io
+from .. import ogf
 
 
 class VertexBuffer(object):
@@ -410,7 +412,7 @@ def write_visual_bounding_box(packed_writer, bpy_obj, bbox):
 
 def write_visual_header(level, bpy_obj, visual=None, visual_type=0, shader_id=0):
     packed_writer = xray_io.PackedWriter()
-    packed_writer.putf('<B', ogf_fmt.FORMAT_VERSION_4)    # format version
+    packed_writer.putf('<B', ogf.fmt.FORMAT_VERSION_4)    # format version
     packed_writer.putf('<B', visual_type)
     if visual:
         # +1 - skip first empty shader
@@ -418,7 +420,7 @@ def write_visual_header(level, bpy_obj, visual=None, visual_type=0, shader_id=0)
     else:
         packed_writer.putf('<H', shader_id)    # shader id
     data = bpy_obj.xray
-    bbox, (center, radius) = ogf_exp.calculate_bbox_and_bsphere(
+    bbox, (center, radius) = ogf.exp.calculate_bbox_and_bsphere(
         bpy_obj, apply_transforms=True, cache=level.visuals_cache
     )
     level.visuals_bbox[bpy_obj.name] = bbox
@@ -914,7 +916,7 @@ def write_fastpath_gcontainer(fastpath_obj, fp_vbs, fp_ibs, level):
 def write_fastpath(fastpath_obj, fp_vbs, fp_ibs, level):
     chunked_writer = xray_io.ChunkedWriter()
     writer = write_fastpath_gcontainer(fastpath_obj, fp_vbs, fp_ibs, level)
-    chunked_writer.put(ogf_fmt.Chunks_v4.GCONTAINER, writer)
+    chunked_writer.put(ogf.fmt.Chunks_v4.GCONTAINER, writer)
     return chunked_writer
 
 
@@ -940,18 +942,18 @@ def write_visual(
         if bpy_obj.xray.level.visual_type in ('TREE_ST', 'TREE_PM'):
             header_writer = write_visual_header(level, bpy_obj, visual=visual, visual_type=7)
             tree_def_2_writer = write_tree_def_2(bpy_obj, chunked_writer)
-            chunked_writer.put(ogf_fmt.HEADER, header_writer)
-            chunked_writer.put(ogf_fmt.Chunks_v4.GCONTAINER, gcontainer_writer)
-            chunked_writer.put(ogf_fmt.Chunks_v4.TREEDEF2, tree_def_2_writer)
+            chunked_writer.put(ogf.fmt.HEADER, header_writer)
+            chunked_writer.put(ogf.fmt.Chunks_v4.GCONTAINER, gcontainer_writer)
+            chunked_writer.put(ogf.fmt.Chunks_v4.TREEDEF2, tree_def_2_writer)
         else:    # NORMAL or PROGRESSIVE visual
             header_writer = write_visual_header(level, bpy_obj, visual=visual)
-            chunked_writer.put(ogf_fmt.HEADER, header_writer)
-            chunked_writer.put(ogf_fmt.Chunks_v4.GCONTAINER, gcontainer_writer)
+            chunked_writer.put(ogf.fmt.HEADER, header_writer)
+            chunked_writer.put(ogf.fmt.Chunks_v4.GCONTAINER, gcontainer_writer)
             if len(level.visuals_cache.children[bpy_obj.name]) > 1:
                 raise utils.AppError('Object "{}" has more than one children'.format(bpy_obj.name))
             if bpy_obj.xray.level.use_fastpath:
                 fastpath_writer = write_fastpath(bpy_obj, fp_vbs, fp_ibs, level)
-                chunked_writer.put(ogf_fmt.Chunks_v4.FASTPATH, fastpath_writer)
+                chunked_writer.put(ogf.fmt.Chunks_v4.FASTPATH, fastpath_writer)
         return chunked_writer
 
 
@@ -967,11 +969,11 @@ def write_children_l(bpy_obj, hierrarhy, visuals_ids):
 def write_hierrarhy_visual(bpy_obj, hierrarhy, visuals_ids, level):
     visual_writer = xray_io.ChunkedWriter()
     header_writer = write_visual_header(
-        level, bpy_obj, visual_type=ogf_fmt.ModelType_v4.HIERRARHY, shader_id=0
+        level, bpy_obj, visual_type=ogf.fmt.ModelType_v4.HIERRARHY, shader_id=0
     )
-    visual_writer.put(ogf_fmt.HEADER, header_writer)
+    visual_writer.put(ogf.fmt.HEADER, header_writer)
     children_l_writer = write_children_l(bpy_obj, hierrarhy, visuals_ids)
-    visual_writer.put(ogf_fmt.Chunks_v4.CHILDREN_L, children_l_writer)
+    visual_writer.put(ogf.fmt.Chunks_v4.CHILDREN_L, children_l_writer)
     return visual_writer
 
 
@@ -1040,12 +1042,12 @@ def write_lod_visual(bpy_obj, hierrarhy, visuals_ids, level):
         bpy_obj, hierrarhy, visuals_ids, level
     )
     header_writer = write_visual_header(
-        level, bpy_obj, visual=visual, visual_type=ogf_fmt.ModelType_v4.LOD
+        level, bpy_obj, visual=visual, visual_type=ogf.fmt.ModelType_v4.LOD
     )
 
-    visual_writer.put(ogf_fmt.HEADER, header_writer)
-    visual_writer.put(ogf_fmt.Chunks_v4.CHILDREN_L, children_l_writer)
-    visual_writer.put(ogf_fmt.Chunks_v4.LODDEF2, lod_def_2_writer)
+    visual_writer.put(ogf.fmt.HEADER, header_writer)
+    visual_writer.put(ogf.fmt.Chunks_v4.CHILDREN_L, children_l_writer)
+    visual_writer.put(ogf.fmt.Chunks_v4.LODDEF2, lod_def_2_writer)
 
     return visual_writer
 

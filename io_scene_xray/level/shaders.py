@@ -1,6 +1,7 @@
 # addon modules
+from . import create
+from . import fmt
 from .. import xray_io
-from . import create, fmt
 
 
 def import_brush_shader(level, context, engine_shader, textures):

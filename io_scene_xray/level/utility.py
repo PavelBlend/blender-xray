@@ -2,7 +2,8 @@
 import os
 
 # addon modules
-from .. import utils, xray_io
+from .. import utils
+from .. import xray_io
 
 
 def get_level_dir(file_path):

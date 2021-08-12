@@ -1,6 +1,6 @@
 # blender modules
 import bpy
-from bpy_extras import io_utils
+import bpy_extras
 
 # addon modules
 from . import exp
@@ -57,7 +57,11 @@ op_export_ogf_props = {
 }
 
 
-class XRAY_OT_export_ogf(bpy.types.Operator, io_utils.ExportHelper, ModelExportHelper):
+class XRAY_OT_export_ogf(
+        bpy.types.Operator,
+        bpy_extras.io_utils.ExportHelper,
+        ModelExportHelper
+    ):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
