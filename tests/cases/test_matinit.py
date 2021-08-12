@@ -1,7 +1,7 @@
 from tests import utils
 
 import bpy
-from io_scene_xray import plugins, utils as utl
+from io_scene_xray import handlers, utils as utl
 
 
 class TestMaterialInitialize(utils.XRayTestCase):
@@ -14,7 +14,7 @@ class TestMaterialInitialize(utils.XRayTestCase):
             directory=self.relpath(),
             files=[{'name': 'test_fmt.object'}],
         )
-        plugins.scene_update_post(bpy.context.scene)
+        handlers.scene_update_post(bpy.context.scene)
 
         # Assert
         mat = bpy.data.materials[-1]
@@ -35,7 +35,7 @@ class TestMaterialInitialize(utils.XRayTestCase):
         mat = bpy.data.materials.new('')
 
         # Act
-        plugins.scene_update_post(bpy.context.scene)
+        handlers.scene_update_post(bpy.context.scene)
 
         # Assert
         self.assertEqual(mat.xray.version, version)
@@ -53,7 +53,7 @@ class TestMaterialInitialize(utils.XRayTestCase):
         mat = bpy.data.materials.new('')
 
         # Act
-        plugins.scene_update_post(bpy.context.scene)
+        handlers.scene_update_post(bpy.context.scene)
 
         # Assert
         self.assertEqual(mat.xray.version, version)

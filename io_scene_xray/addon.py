@@ -7,6 +7,7 @@ from . import hotkeys
 from . import ops
 from . import props
 from . import icons
+from . import handlers
 from . import viewport
 from . import skls_browser
 from . import edit_helpers
@@ -23,6 +24,7 @@ modules = (
     skls_browser,
     props,
     plugins,
+    handlers,
     ui,
     panels,
     menus,

@@ -1,7 +1,7 @@
 from tests import utils
 
 import bpy
-from io_scene_xray import plugins, utils as utl
+from io_scene_xray import handlers, utils as utl
 
 
 class TestObjectInitialize(utils.XRayTestCase):
@@ -14,7 +14,7 @@ class TestObjectInitialize(utils.XRayTestCase):
             directory=self.relpath(),
             files=[{'name': 'test_fmt.object'}],
         )
-        plugins.scene_update_post(bpy.context.scene)
+        handlers.scene_update_post(bpy.context.scene)
 
         # Assert
         self.assertReportsNotContains('WARNING')
@@ -29,7 +29,7 @@ class TestObjectInitialize(utils.XRayTestCase):
         obj = bpy.data.objects.new('obj', None)
 
         # Act
-        plugins.scene_update_post(bpy.context.scene)
+        handlers.scene_update_post(bpy.context.scene)
 
         # Assert
         self.assertNotEqual(obj.xray.version, 0)
@@ -44,7 +44,7 @@ class TestObjectInitialize(utils.XRayTestCase):
             obj_lamp = bpy.data.objects.new('lamp', bpy.data.lamps.new('lamp', 'POINT'))
 
         # Act
-        plugins.scene_update_post(bpy.context.scene)
+        handlers.scene_update_post(bpy.context.scene)
 
         # Assert
         self.assertEqual(obj_mesh.xray.root, True)
