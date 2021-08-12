@@ -5,7 +5,7 @@ import os
 import bpy
 
 # addon modules
-from .. import xray_ltx, version_utils
+from .. import xray_ltx, version_utils, menus
 from ..obj import props as general_obj_props
 from ..obj.imp import props as obj_imp_props
 from ..obj.exp import props as obj_exp_props
@@ -17,8 +17,7 @@ from ..details import props as details_props
 
 
 def update_menu_func(self, context):
-    from .. import plugin
-    plugin.append_menu_func()
+    menus.append_menu_func()
 
 
 def build_auto_id(prop):

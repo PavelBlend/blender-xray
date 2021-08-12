@@ -13,10 +13,10 @@ bl_info = {
 
 
 def register():
-    from . import plugin
-    plugin.register()
+    from . import addon
+    addon.register()
 
 
 def unregister():
-    from . import plugin
-    plugin.unregister()
+    from . import addon
+    addon.unregister()

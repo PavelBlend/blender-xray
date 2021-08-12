@@ -4,7 +4,7 @@ import bpy
 # addon modules
 from . import collapsible
 from .base import XRayPanel, build_label
-from .. import plugin, icons
+from .. import icons, menus
 from ..skls_browser import OpBrowseSklsFile, OpCloseSklsFile
 from ..version_utils import IS_28, assign_props, layout_split, get_preferences
 from ..ops.transform_utils import (
@@ -318,8 +318,8 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        enabled_import_operators = plugin.get_enabled_operators(
-            plugin.import_draw_functions
+        enabled_import_operators = menus.get_enabled_operators(
+            menus.import_draw_functions
         )
         return bool(enabled_import_operators)
 
@@ -374,8 +374,8 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        enabled_export_operators = plugin.get_enabled_operators(
-            plugin.export_draw_functions
+        enabled_export_operators = menus.get_enabled_operators(
+            menus.export_draw_functions
         )
         return bool(enabled_export_operators)
 
