@@ -1,3 +1,6 @@
+# blender modules
+import bpy
+
 # addon modules
 from . import gl_utils
 from . import gpu_utils
@@ -38,3 +41,35 @@ def get_draw_joint_limits():
         return gpu_utils.draw_joint_limits
     else:
         return gl_utils.draw_joint_limits
+
+
+def overlay_view_3d():
+    def try_draw(base_obj, obj):
+        if not hasattr(obj, 'xray'):
+            return
+        xray = obj.xray
+        if hasattr(xray, 'ondraw_postview'):
+            xray.ondraw_postview(base_obj, obj)
+        if hasattr(obj, 'type'):
+            if obj.type == 'ARMATURE':
+                for bone in obj.data.bones:
+                    try_draw(base_obj, bone)
+
+    for obj in bpy.data.objects:
+        try_draw(obj, obj)
+
+
+def register():
+    overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(
+        overlay_view_3d,
+        (),
+        'WINDOW',
+        'POST_VIEW'
+    )
+
+
+def unregister():
+    bpy.types.SpaceView3D.draw_handler_remove(
+        overlay_view_3d.__handle,
+        'WINDOW'
+    )

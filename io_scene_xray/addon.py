@@ -7,6 +7,7 @@ from . import hotkeys
 from . import ops
 from . import props
 from . import icons
+from . import viewport
 from . import skls_browser
 from . import edit_helpers
 from . import xray_io
@@ -28,6 +29,7 @@ modules = (
     hotkeys,
     ops,
     edit_helpers,
+    viewport
 )
 
 

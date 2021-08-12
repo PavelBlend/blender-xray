@@ -19,22 +19,6 @@ from . import level
 from . import omf
 
 
-def overlay_view_3d():
-    def try_draw(base_obj, obj):
-        if not hasattr(obj, 'xray'):
-            return
-        xray = obj.xray
-        if hasattr(xray, 'ondraw_postview'):
-            xray.ondraw_postview(base_obj, obj)
-        if hasattr(obj, 'type'):
-            if obj.type == 'ARMATURE':
-                for bone in obj.data.bones:
-                    try_draw(base_obj, bone)
-
-    for obj in bpy.data.objects:
-        try_draw(obj, obj)
-
-
 _INITIALIZER = utils.ObjectsInitializer([
     'objects',
     'materials',
@@ -65,10 +49,6 @@ def register():
     level.ops.register()
     err.ops.register()
 
-    overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(
-        overlay_view_3d, (),
-        'WINDOW', 'POST_VIEW'
-    )
     bpy.app.handlers.load_post.append(load_post)
     version_utils.get_scene_update_post().append(scene_update_post)
 
@@ -89,4 +69,3 @@ def unregister():
 
     version_utils.get_scene_update_post().remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)
-    bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
