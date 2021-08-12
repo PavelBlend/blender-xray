@@ -38,8 +38,8 @@ class XRayTestCase(unittest.TestCase):
         else:
             bpy.ops.wm.read_homefile()
         addon_utils.enable('io_scene_xray', default_set=True)
-        from io_scene_xray import plugin
-        plugin.load_post(None)
+        from io_scene_xray import plugins
+        plugins.load_post(None)
         self.__prev_report_catcher = TestReadyOperator.report_catcher
         TestReadyOperator.report_catcher = lambda op, type, message: self._reports.append((type, message))
 

@@ -1,4 +1,4 @@
-from . import plugin
+from . import plugins
 from . import ui
 from . import menus
 from . import panels
@@ -22,7 +22,7 @@ modules = (
     plugin_prefs,
     skls_browser,
     props,
-    plugin,
+    plugins,
     ui,
     panels,
     menus,
