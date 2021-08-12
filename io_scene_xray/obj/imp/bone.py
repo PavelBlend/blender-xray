@@ -82,7 +82,7 @@ def _create_bone(
     return bpy_bone
 
 
-def _safe_assign_enum_property(obj, pname, val, desc):
+def safe_assign_enum_property(obj, pname, val, desc):
     defval = getattr(obj, pname)
     try:
         setattr(obj, pname, val)
@@ -134,7 +134,7 @@ def import_bone(context, creader, bpy_arm_obj, renamemap):
             xray.gamemtl = xray_io.PackedReader(data).gets()
         elif cid == fmt.Chunks.Bone.SHAPE:
             reader = xray_io.PackedReader(data)
-            _safe_assign_enum_property(
+            safe_assign_enum_property(
                 xray.shape,
                 'type',
                 str(reader.getf('H')[0]),
@@ -156,7 +156,7 @@ def import_bone(context, creader, bpy_arm_obj, renamemap):
             pose_bone = bpy_arm_obj.pose.bones[name]
             value = str(reader.int())
             ik = xray.ikjoint
-            _safe_assign_enum_property(ik, 'type', value, 'bone ikjoint')
+            safe_assign_enum_property(ik, 'type', value, 'bone ikjoint')
 
             ik.lim_x_min, ik.lim_x_max = reader.getf('ff')
             ik.lim_x_spr, ik.lim_x_dmp = reader.getf('ff')

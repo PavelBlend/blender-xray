@@ -7,7 +7,7 @@ import bpy_extras
 
 # addon modules
 from . import imp, exp, props
-from .. import utils, icons, context
+from .. import utils, icons, contexts
 from ..ui import collapsible
 from ..skl import props as skl_props
 from ..obj.imp import props as obj_imp_props
@@ -24,21 +24,21 @@ from ..version_utils import (
 
 
 class ImportOmfContext(
-        context.ImportAnimationContext, context.ImportAnimationOnlyContext
+        contexts.ImportAnimationContext, contexts.ImportAnimationOnlyContext
     ):
     def __init__(self):
-        context.ImportAnimationContext.__init__(self)
-        context.ImportAnimationOnlyContext.__init__(self)
+        contexts.ImportAnimationContext.__init__(self)
+        contexts.ImportAnimationOnlyContext.__init__(self)
         self.import_bone_parts = None
 
 
 class ExportOmfContext(
-        context.ExportAnimationOnlyContext,
-        context.ExportAnimationContext
+        contexts.ExportAnimationOnlyContext,
+        contexts.ExportAnimationContext
     ):
     def __init__(self):
-        context.ExportAnimationOnlyContext.__init__(self)
-        context.ExportAnimationContext.__init__(self)
+        contexts.ExportAnimationOnlyContext.__init__(self)
+        contexts.ExportAnimationContext.__init__(self)
         self.export_mode = None
         self.export_bone_parts = None
         self.need_motions = None

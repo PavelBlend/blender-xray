@@ -3,16 +3,16 @@ import bpy
 import bpy_extras
 
 # addon modules
-from .. import utils, icons, context
+from .. import utils, icons, contexts
 from ..version_utils import (
     get_import_export_menus, assign_props, IS_28, get_preferences
 )
 from . import imp, exp
 
 
-class ImportLevelContext(context.ImportMeshContext):
+class ImportLevelContext(contexts.ImportMeshContext):
     def __init__(self):
-        context.ImportMeshContext.__init__(self)
+        contexts.ImportMeshContext.__init__(self)
 
 
 op_import_level_props = {

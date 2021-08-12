@@ -14,6 +14,8 @@ bl_info = {
 
 def register():
     from . import addon
+    from . import utils
+    xray_io.ENCODE_ERROR = utils.AppError
     addon.register()
 
 

@@ -2,8 +2,10 @@
 import os
 
 # addon modules
-from .. import xray_io, utils
-from . import create, fmt
+from . import fmt
+from . import create
+from .. import utils
+from .. import xray_io
 
 
 def import_(fpath, context, packed_reader, mode='DM', detail_index=None,

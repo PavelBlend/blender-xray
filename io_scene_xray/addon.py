@@ -12,10 +12,6 @@ from . import viewport
 from . import skls_browser
 from . import edit_helpers
 from . import xray_io
-from . import utils
-
-
-xray_io.ENCODE_ERROR = utils.AppError
 
 
 modules = (

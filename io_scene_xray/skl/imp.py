@@ -2,14 +2,14 @@
 import os
 
 # addon modules
-from .. import log, context
+from .. import log, contexts
 from ..xray_io import ChunkedReader, PackedReader
 from ..xray_motions import import_motion, import_motions
 
 
-class ImportSklContext(context.ImportAnimationOnlyContext):
+class ImportSklContext(contexts.ImportAnimationOnlyContext):
     def __init__(self):
-        context.ImportAnimationOnlyContext.__init__(self)
+        contexts.ImportAnimationOnlyContext.__init__(self)
         self.filename = None
 
 

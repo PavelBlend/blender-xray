@@ -2,10 +2,10 @@
 import bpy
 
 # addon modules
-from .. import utils, xray_io, log
-from ..obj import fmt
-from ..obj.imp import bone as imp_bone
-from ..obj.imp.main import read_v3f
+from .. import log
+from .. import utils
+from .. import xray_io
+from .. import obj
 
 
 @log.with_context(name='bones-partitions')
@@ -42,7 +42,7 @@ def _import_partitions(data, arm_obj, bpy_bones):
 @log.with_context(name='bone')
 def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
     chunked_reader = xray_io.ChunkedReader(data)
-    chunks = fmt.Chunks.Bone
+    chunks = obj.fmt.Chunks.Bone
     # bone name
     packed_reader = xray_io.PackedReader(chunked_reader.next(chunks.DEF))
     name = packed_reader.gets().lower()
@@ -61,7 +61,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
             xray.gamemtl = packed_reader.gets()
         elif chunk_id == chunks.SHAPE:
             shape_type = packed_reader.getf('<H')[0]
-            imp_bone._safe_assign_enum_property(
+            obj.imp.bone.safe_assign_enum_property(
                 xray.shape,
                 'type',
                 str(shape_type),
@@ -81,7 +81,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
         elif chunk_id == chunks.IK_JOINT:
             ik = xray.ikjoint
             joint_type = str(packed_reader.int())
-            imp_bone._safe_assign_enum_property(
+            obj.imp.bone.safe_assign_enum_property(
                 ik, 'type', joint_type, 'bone ikjoint'
             )
             # limit x
@@ -98,7 +98,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
             ik.damping = packed_reader.getf('<f')[0]
         elif chunk_id == chunks.MASS_PARAMS:
             xray.mass.value = packed_reader.getf('<f')[0]
-            xray.mass.center = read_v3f(packed_reader)
+            xray.mass.center = obj.imp.main.read_v3f(packed_reader)
         elif chunk_id == chunks.IK_FLAGS:
             xray.ikflags = packed_reader.int()
         elif chunk_id == chunks.BREAK_PARAMS:
@@ -112,7 +112,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
 
 def _import_main(data, import_context):
     chunked_reader = xray_io.ChunkedReader(data)
-    chunks = fmt.Chunks.Object
+    chunks = obj.fmt.Chunks.Object
     arm_obj = import_context.bpy_arm_obj
     bpy_bones = {}
     for bpy_bone in arm_obj.data.bones:

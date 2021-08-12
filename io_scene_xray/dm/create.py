@@ -6,16 +6,16 @@ import bpy
 import bmesh
 
 # addon modules
-from .. import xray_io, utils
-from ..version_utils import link_object, IS_28, IMAGE_NODES
+from .. import utils
+from .. import xray_io
+from .. import version_utils
 
 
 def create_object(object_name):
     bpy_mesh = bpy.data.meshes.new(object_name)
     bpy_object = bpy.data.objects.new(object_name, bpy_mesh)
     bpy_object.xray.is_details = True
-    link_object(bpy_object)
-
+    version_utils.link_object(bpy_object)
     return bpy_object, bpy_mesh
 
 
@@ -26,7 +26,7 @@ def create_empty_image(context, detail_model, absolute_image_path):
 
     bpy_image.source = 'FILE'
     bpy_image.filepath = absolute_image_path
-    if not IS_28:
+    if not version_utils.IS_28:
         bpy_image.use_alpha = True
 
     return bpy_image
@@ -46,10 +46,10 @@ def check_estimated_material_texture(material, det_model):
     texture_filepart = det_model.texture.replace('\\', os.path.sep)
     texture_found = False
 
-    if IS_28:
+    if version_utils.IS_28:
         texture_nodes = []
         for node in material.node_tree.nodes:
-            if node.type in IMAGE_NODES:
+            if node.type in version_utils.IMAGE_NODES:
                 texture_nodes.append(node)
         if len(texture_nodes) == 1:
             texture_node = texture_nodes[0]
@@ -155,7 +155,7 @@ def create_material(det_model, abs_image_path, context):
     bpy_material = bpy.data.materials.new(det_model.texture)
     bpy_material.xray.eshader = det_model.shader
     bpy_material.xray.version = context.version
-    if not IS_28:
+    if not version_utils.IS_28:
         bpy_material.use_shadeless = True
         bpy_material.use_transparency = True
         bpy_material.alpha = 0.0
@@ -323,7 +323,7 @@ def create_mesh(packed_reader, det_model):
     create_uv(b_mesh, det_model, bmesh_faces, uvs)
 
     # assign images
-    if not IS_28:
+    if not version_utils.IS_28:
         texture_layer = b_mesh.faces.layers.tex.new(det_model.mesh.uv_map_name)
         bpy_image = det_model.mesh.bpy_material.texture_slots[0].texture.image
 

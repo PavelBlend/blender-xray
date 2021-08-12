@@ -6,7 +6,7 @@ import bpy
 import bpy_extras
 
 # addon modules
-from ... import ops, icons, utils, context
+from ... import ops, icons, utils, contexts
 from ...version_utils import (
     assign_props, IS_28, set_active_object, select_object, get_preferences
 )
@@ -16,13 +16,13 @@ from . import props
 
 
 class ExportObjectContext(
-        context.ExportMeshContext,
-        context.ExportAnimationContext
+        contexts.ExportMeshContext,
+        contexts.ExportAnimationContext
     ):
 
     def __init__(self):
-        context.ExportMeshContext.__init__(self)
-        context.ExportAnimationContext.__init__(self)
+        contexts.ExportMeshContext.__init__(self)
+        contexts.ExportAnimationContext.__init__(self)
         self.soc_sgroups = None
         self.smoothing_out_of = None
 

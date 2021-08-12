@@ -2,41 +2,38 @@
 import bpy
 
 # addon modules
-from . import fmt, create
+from . import create
+from . import fmt
 from .. import xray_io
-from ..dm import imp as model_imp
-from ..version_utils import link_object, IS_28
+from .. import dm
+from .. import version_utils
 
 
 def read_header(packed_reader):
-
-    fmt_ver, meshes_count, offs_x, offs_z, size_x, size_z = \
-        packed_reader.getf('<IIiiII')
-
     header = fmt.DetailsHeader()
-
-    header.format_version = fmt_ver
-    header.meshes_count = meshes_count
-    header.offset.x = offs_x
-    header.offset.y = offs_z
+    header.format_version = packed_reader.getf('<I')[0]
+    header.meshes_count = packed_reader.getf('<I')[0]
+    offset_x, offset_z = packed_reader.getf('<ii')
+    size_x, size_z = packed_reader.getf('<II')
+    header.offset.x = offset_x
+    header.offset.y = offset_z
     header.size.x = size_x
     header.size.y = size_z
     header.calc_slots_count()
-
     return header
 
 
 def read_details_meshes(
-    fpath, base_name, context, chunked_reader, color_indices, header
+        fpath, base_name, context, chunked_reader, color_indices, header
     ):
 
     bpy_obj_root = bpy.data.objects.new('{} meshes'.format(base_name), None)
     display_type = 'SPHERE'
-    if IS_28:
+    if version_utils.IS_28:
         bpy_obj_root.empty_display_type = display_type
     else:
         bpy_obj_root.empty_draw_type = display_type
-    link_object(bpy_obj_root)
+    version_utils.link_object(bpy_obj_root)
 
     step_x = 0.5
 
@@ -47,7 +44,7 @@ def read_details_meshes(
         packed_reader = xray_io.PackedReader(mesh_data)
         fpath_mesh = '{0} mesh_{1:0>2}'.format(fpath, mesh_id)
 
-        bpy_obj_mesh = model_imp.import_(
+        bpy_obj_mesh = dm.imp.import_(
             fpath_mesh, context, packed_reader, mode='DETAILS',
             detail_index=mesh_id, detail_colors=color_indices
             )
@@ -61,7 +58,7 @@ def read_details_meshes(
 
 
 def read_details_slots(
-    base_name, context, packed_reader, header, color_indices, root_obj
+        base_name, context, packed_reader, header, color_indices, root_obj
     ):
 
     create.create_pallete(color_indices)

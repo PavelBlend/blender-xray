@@ -1,7 +1,8 @@
 # addon modules
-from .. import xray_io
+from . import convert
+from . import write
 from .. import utils
-from . import write, convert
+from .. import xray_io
 
 
 def _export(bpy_obj, chunked_writer, context, fpath):

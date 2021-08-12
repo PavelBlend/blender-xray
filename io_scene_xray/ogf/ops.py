@@ -4,7 +4,7 @@ from bpy_extras import io_utils
 
 # addon modules
 from . import exp
-from .. import icons, context
+from .. import icons, contexts
 from ..version_utils import assign_props, IS_28, get_preferences
 from ..obj.exp import props as obj_exp_props
 from ..utils import (
@@ -22,9 +22,9 @@ model_export_helper_props = {
 }
 
 
-class ExportOgfContext(context.ExportMeshContext):
+class ExportOgfContext(contexts.ExportMeshContext):
     def __init__(self):
-        context.ExportMeshContext.__init__(self)
+        contexts.ExportMeshContext.__init__(self)
 
 
 class ModelExportHelper:

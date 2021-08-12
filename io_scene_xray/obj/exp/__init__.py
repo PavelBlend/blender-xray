@@ -1,6 +1,7 @@
 # addon modules
 from . import ops
 from . import main
+from . import props
 from .. import fmt
 from ... import xray_io
 from ... import utils

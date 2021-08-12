@@ -5,12 +5,12 @@ import os
 import bpy
 
 # addon modules
-from ... import version_utils, log, context
+from ... import version_utils, log, contexts
 
 
-class ImportObjectMeshContext(context.ImportMeshContext):
+class ImportObjectMeshContext(contexts.ImportMeshContext):
     def __init__(self):
-        context.ImportMeshContext.__init__(self)
+        contexts.ImportMeshContext.__init__(self)
         self.soc_sgroups = None
         self.split_by_materials = None
         self.objects_folder = None
@@ -45,9 +45,9 @@ class ImportObjectMeshContext(context.ImportMeshContext):
         return result
 
 
-class ImportObjectAnimationContext(context.ImportAnimationContext):
+class ImportObjectAnimationContext(contexts.ImportAnimationContext):
     def __init__(self):
-        context.ImportAnimationContext.__init__(self)
+        contexts.ImportAnimationContext.__init__(self)
 
 
 class ImportObjectContext(

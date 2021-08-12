@@ -1,7 +1,7 @@
 # addon modules
-from .. import xray_io, utils
-from ..obj import fmt as object_format
-from ..obj.exp.main import pw_v3f
+from .. import utils
+from .. import xray_io
+from .. import obj
 
 
 def _export_partitions(context, bpy_obj):
@@ -45,7 +45,7 @@ def _export_partitions(context, bpy_obj):
 
 def _export_bone_data(bpy_obj, bone):
     chunked_writer = xray_io.ChunkedWriter()
-    chunks = object_format.Chunks.Bone
+    chunks = obj.fmt.Chunks.Bone
     xray = bone.xray
     pose_bone = bpy_obj.pose.bones[bone.name]
     # name
@@ -126,7 +126,7 @@ def _export_bone_data(bpy_obj, bone):
     # mass params
     packed_writer = xray_io.PackedWriter()
     packed_writer.putf('<f', xray.mass.value)
-    packed_writer.putf('<3f', *pw_v3f(xray.mass.center))
+    packed_writer.putf('<3f', *obj.exp.main.pw_v3f(xray.mass.center))
     chunked_writer.put(chunks.MASS_PARAMS, packed_writer)
     return chunked_writer
 
@@ -144,7 +144,7 @@ def export_file(context):
             bone_index += 1
     partitions_packed_writer = _export_partitions(context, bpy_obj)
     chunked_writer.put(
-        object_format.Chunks.Object.PARTITIONS1,
+        obj.fmt.Chunks.Object.PARTITIONS1,
         partitions_packed_writer
     )
     utils.save_file(context.filepath, chunked_writer)

@@ -1,7 +1,7 @@
 # addon modules
-from .. import utils
 from . import fmt
-from . import utils as det_utils
+from . import utility
+from .. import utils
 
 
 incorrect_light_1569_message = 'Object "{0}" has incorrect light format: ' \
@@ -18,28 +18,28 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
     lvl_dets = fmt.LevelDetails()
 
     # Meshes object
-    lvl_dets.meshes_object = det_utils.get_object(
+    lvl_dets.meshes_object = utility.get_object(
         bpy_obj, slots.meshes_object, 'Meshes Object'
         )
-    det_utils.validate_object_type(
+    utility.validate_object_type(
         lvl_dets.meshes_object, 'EMPTY', 'Meshes Object'
     )
     # Slots base object
-    lvl_dets.slots_base_object = det_utils.get_object(
+    lvl_dets.slots_base_object = utility.get_object(
         bpy_obj, slots.slots_base_object, 'Slots Base Object'
     )
-    det_utils.validate_object_type(
+    utility.validate_object_type(
         lvl_dets.slots_base_object, 'MESH', 'Slots Base Object'
     )
     # Slots top object
-    lvl_dets.slots_top_object = det_utils.get_object(
+    lvl_dets.slots_top_object = utility.get_object(
         bpy_obj, slots.slots_top_object, 'Slots Top Object'
     )
-    det_utils.validate_object_type(
+    utility.validate_object_type(
         lvl_dets.slots_top_object, 'MESH', 'Slots Top Object'
     )
     # lights
-    lvl_dets.lights = det_utils.get_image(
+    lvl_dets.lights = utility.get_image(
         bpy_obj, ligthing.lights_image, 'Lights'
     )
 
@@ -51,8 +51,8 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
                 )
         lvl_dets.format_version = fmt.FORMAT_VERSION_3
         lvl_dets.light_format = '1569-COP'
-        lvl_dets.hemi = det_utils.get_image(bpy_obj, ligthing.hemi_image, 'Hemi')
-        lvl_dets.shadows = det_utils.get_image(
+        lvl_dets.hemi = utility.get_image(bpy_obj, ligthing.hemi_image, 'Hemi')
+        lvl_dets.shadows = utility.get_image(
             bpy_obj, ligthing.shadows_image, 'Shadows'
         )
 
@@ -70,10 +70,10 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
             lvl_dets.old_format = 2
 
     # Meshes
-    lvl_dets.mesh_0 = det_utils.get_image(bpy_obj, meshes.mesh_0, 'Mesh 0')
-    lvl_dets.mesh_1 = det_utils.get_image(bpy_obj, meshes.mesh_1, 'Mesh 1')
-    lvl_dets.mesh_2 = det_utils.get_image(bpy_obj, meshes.mesh_2, 'Mesh 2')
-    lvl_dets.mesh_3 = det_utils.get_image(bpy_obj, meshes.mesh_3, 'Mesh 3')
+    lvl_dets.mesh_0 = utility.get_image(bpy_obj, meshes.mesh_0, 'Mesh 0')
+    lvl_dets.mesh_1 = utility.get_image(bpy_obj, meshes.mesh_1, 'Mesh 1')
+    lvl_dets.mesh_2 = utility.get_image(bpy_obj, meshes.mesh_2, 'Mesh 2')
+    lvl_dets.mesh_3 = utility.get_image(bpy_obj, meshes.mesh_3, 'Mesh 3')
 
     return lvl_dets
 

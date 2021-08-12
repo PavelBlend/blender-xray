@@ -6,30 +6,30 @@ import bpy
 import bpy_extras
 
 # addon modules
-from . import imp, exp, props
-from .. import icons, utils, context
-from ..obj.exp import props as obj_exp_props
-from ..dm import imp as model_imp
-from ..dm import exp as model_exp
-from ..version_utils import (
-    get_import_export_menus, assign_props, IS_28, get_preferences
-)
+from . import imp
+from . import exp
+from . import props
+from .. import icons
+from .. import utils
+from .. import contexts
+from .. import obj
+from .. import version_utils
 
 
 FORMAT_VERSION_LABEL = 'Format Version:'
 
 
-class ImportDetailsContext(context.ImportMeshContext):
+class ImportDetailsContext(contexts.ImportMeshContext):
     def __init__(self):
-        context.ImportMeshContext.__init__(self)
+        contexts.ImportMeshContext.__init__(self)
         self.format_version = None
         self.details_models_in_a_row = None
         self.load_slots = None
 
 
-class ExportDetailsContext(context.ExportMeshContext):
+class ExportDetailsContext(contexts.ExportMeshContext):
     def __init__(self):
-        context.ExportMeshContext.__init__(self)
+        contexts.ExportMeshContext.__init__(self)
         self.level_details_format_version = None
 
 
@@ -59,14 +59,14 @@ class XRAY_OT_import_details(bpy.types.Operator, bpy_extras.io_utils.ImportHelpe
     bl_description = 'Imports X-Ray Level Details Models (.details)'
     bl_options = {'REGISTER', 'PRESET', 'UNDO'}
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_import_details_props.items():
             exec('{0} = op_import_details_props.get("{0}")'.format(prop_name))
 
     @utils.set_cursor_state
     def execute(self, context):
 
-        textures_folder = get_preferences().textures_folder_auto
+        textures_folder = version_utils.get_preferences().textures_folder_auto
 
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
@@ -121,7 +121,7 @@ class XRAY_OT_import_details(bpy.types.Operator, bpy_extras.io_utils.ImportHelpe
         row.prop(self, 'details_format', expand=True)
 
     def invoke(self, context, event):
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         self.details_models_in_a_row = preferences.details_models_in_a_row
         self.load_slots = preferences.load_slots
         self.details_format = preferences.details_format
@@ -135,7 +135,7 @@ op_export_details_props = {
         ),
 
     'texture_name_from_image_path': \
-        obj_exp_props.PropObjectTextureNamesFromPath(),
+        obj.exp.props.PropObjectTextureNamesFromPath(),
 
     'format_version': props.prop_details_format_version()
 }
@@ -151,7 +151,7 @@ class XRAY_OT_export_details(
 
     filename_ext = '.details'
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_export_details_props.items():
             exec('{0} = op_export_details_props.get("{0}")'.format(prop_name))
 
@@ -182,15 +182,15 @@ class XRAY_OT_export_details(
             return {'CANCELLED'}
 
         try:
-            self.exp(objs[0], context)
+            self.export(objs[0], context)
         except utils.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
 
         return {'FINISHED'}
 
-    def exp(self, bpy_obj, context):
-        textures_folder = get_preferences().textures_folder_auto
+    def export(self, bpy_obj, context):
+        textures_folder = version_utils.get_preferences().textures_folder_auto
         export_context = ExportDetailsContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.level_details_format_version = self.format_version
@@ -198,7 +198,7 @@ class XRAY_OT_export_details(
         exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         self.texture_name_from_image_path = \
             preferences.details_texture_names_from_path
         self.format_version = preferences.format_version
@@ -238,7 +238,7 @@ class XRAY_OT_pack_details_images(bpy.types.Operator):
 
         for image in slots_images:
             if image:
-                if IS_28:
+                if version_utils.IS_28:
                     image.pack()
                 else:
                     image.pack(as_png=True)
@@ -270,15 +270,15 @@ classes = (
 
 
 def register():
-    for operator, props in classes:
-        if props:
-            assign_props([(props, operator), ])
+    for operator, properties in classes:
+        if properties:
+            version_utils.assign_props([(properties, operator), ])
         bpy.utils.register_class(operator)
 
 
 def unregister():
-    import_menu, export_menu = get_import_export_menus()
+    import_menu, export_menu = version_utils.get_import_export_menus()
     export_menu.remove(menu_func_export)
     import_menu.remove(menu_func_import)
-    for operator, props in reversed(classes):
+    for operator, properties in reversed(classes):
         bpy.utils.unregister_class(operator)

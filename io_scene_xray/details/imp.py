@@ -5,10 +5,12 @@ import os
 import bpy
 
 # addon modules
-from . import fmt, read
-from . import utils as det_utils
-from .. import utils, xray_io
-from ..version_utils import link_object
+from . import fmt
+from . import read
+from . import utility
+from .. import utils
+from .. import xray_io
+from .. import version_utils
 
 
 def _import(fpath, context, chunked_reader):
@@ -59,7 +61,7 @@ def _import(fpath, context, chunked_reader):
         raise utils.AppError('bad details file. Cannot find SLOTS chunk')
 
     base_name = os.path.basename(fpath.lower())
-    color_indices = det_utils.generate_color_indices()
+    color_indices = utility.generate_color_indices()
 
     meshes_obj = read.read_details_meshes(
         fpath, base_name, context, cr_meshes, color_indices, header
@@ -72,7 +74,7 @@ def _import(fpath, context, chunked_reader):
 
         root_obj = bpy.data.objects.new(base_name, None)
         root_obj.xray.is_details = True
-        link_object(root_obj)
+        version_utils.link_object(root_obj)
 
         meshes_obj.parent = root_obj
 

@@ -6,23 +6,23 @@ import bpy
 import bpy_extras
 
 # addon modules
-from .. import icons, utils, context
-from ..obj.exp import props as obj_exp_props
-from ..version_utils import (
-    get_import_export_menus, assign_props, IS_28, get_preferences
-)
 from . import imp
 from . import exp
+from .. import contexts
+from .. import icons
+from .. import utils
+from .. import obj
+from .. import version_utils
 
 
-class ImportDmContext(context.ImportMeshContext):
+class ImportDmContext(contexts.ImportMeshContext):
     def __init__(self):
-        context.ImportMeshContext.__init__(self)
+        contexts.ImportMeshContext.__init__(self)
 
 
-class ExportDmContext(context.ExportMeshContext):
+class ExportDmContext(contexts.ExportMeshContext):
     def __init__(self):
-        context.ExportMeshContext.__init__(self)
+        contexts.ExportMeshContext.__init__(self)
 
 
 filename_ext = '.dm'
@@ -50,14 +50,14 @@ class XRAY_OT_import_dm(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
     bl_description = 'Imports X-Ray Detail Models (.dm)'
     bl_options = {'REGISTER', 'UNDO'}
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_import_dm_props.items():
             exec('{0} = op_import_dm_props.get("{0}")'.format(prop_name))
 
     @utils.set_cursor_state
     def execute(self, context):
 
-        textures_folder = get_preferences().textures_folder_auto
+        textures_folder = version_utils.get_preferences().textures_folder_auto
 
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
@@ -96,7 +96,7 @@ class XRAY_OT_import_dm(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
 op_export_dms_props = {
     'detail_models': bpy.props.StringProperty(options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
-    'texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': obj.exp.props.PropObjectTextureNamesFromPath()
 }
 
 class XRAY_OT_export_dm(bpy.types.Operator):
@@ -104,7 +104,7 @@ class XRAY_OT_export_dm(bpy.types.Operator):
     bl_label = 'Export .dm'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_export_dms_props.items():
             exec('{0} = op_export_dms_props.get("{0}")'.format(prop_name))
 
@@ -132,7 +132,7 @@ class XRAY_OT_export_dm(bpy.types.Operator):
 
     def invoke(self, context, event):
 
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
 
         self.texture_name_from_image_path = \
             preferences.dm_texture_names_from_path
@@ -162,7 +162,7 @@ op_export_dm_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
         ),
-    'texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': obj.exp.props.PropObjectTextureNamesFromPath()
 }
 
 
@@ -177,7 +177,7 @@ class XRAY_OT_export_single_dm(
 
     filename_ext = filename_ext
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_export_dm_props.items():
             exec('{0} = op_export_dm_props.get("{0}")'.format(prop_name))
 
@@ -198,7 +198,7 @@ class XRAY_OT_export_single_dm(
 
     def invoke(self, context, event):
 
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
 
         self.texture_name_from_image_path = \
             preferences.dm_texture_names_from_path
@@ -249,12 +249,12 @@ classes = (
 
 def register():
     for operator, props in classes:
-        assign_props([(props, operator), ])
+        version_utils.assign_props([(props, operator), ])
         bpy.utils.register_class(operator)
 
 
 def unregister():
-    import_menu, export_menu = get_import_export_menus()
+    import_menu, export_menu = version_utils.get_import_export_menus()
     export_menu.remove(menu_func_export)
     import_menu.remove(menu_func_import)
     for operator, props in reversed(classes):

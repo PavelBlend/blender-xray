@@ -4,8 +4,8 @@ from mathutils import Matrix, Euler, Quaternion
 
 # addon modules
 from .utils import is_exportable_bone, find_bone_exportable_parent, AppError
-from .xray_envelope import (
-    Behavior, Shape, KF, EPSILON, refine_keys, export_keyframes
+from .motion_utils import (
+    KF, EPSILON, refine_keys, export_keyframes
 )
 from .xray_io import PackedWriter, FastBytes as fb
 from .log import warn, with_context, props as log_props
@@ -31,7 +31,11 @@ def interpolate_keys(fps, start, end, values, times, shapes, tcb):
     keys_count = len(values)
     for index, key_info in enumerate(zip(values, times, shapes, tcb)):
         value_1, time_1, shape_1, (tension_1, continuity_1, bias_1) = key_info
-        if not shape_1 in (Shape.TCB, Shape.LINEAR, Shape.STEPPED):
+        if not shape_1 in (
+                xray_interpolation.Shape.TCB,
+                xray_interpolation.Shape.LINEAR,
+                xray_interpolation.Shape.STEPPED
+            ):
             raise AppError('Unsupported shape: {}'.format(shape_1.name))
         index_2 = index + 1
         if keys_count == 1:
@@ -145,12 +149,12 @@ def import_motion(
             for _keyframe_idx in range(reader.getf('H')[0]):
                 val = reader.getf('f')[0]
                 time = reader.getf('f')[0] * fps
-                shape = Shape(reader.getf('B')[0])
+                shape = xray_interpolation.Shape(reader.getf('B')[0])
                 values.append(val)
                 times.append(time)
                 shapes.append(shape)
                 used_times.add(time)
-                if shape != Shape.STEPPED:
+                if shape != xray_interpolation.Shape.STEPPED:
                     tension = reader.getq16f(-32.0, 32.0)
                     continuity = reader.getq16f(-32.0, 32.0)
                     bias = reader.getq16f(-32.0, 32.0)
@@ -442,7 +446,7 @@ def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names
 
         def curve2keys(curve):
             for frm, val in enumerate(curve):
-                yield KF(frm / xray.fps, val, Shape.STEPPED)
+                yield KF(frm / xray.fps, val, xray_interpolation.Shape.STEPPED)
 
         if name in root_bone_names:
             frange = action.frame_range
@@ -455,7 +459,11 @@ def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names
             if xray.autobake_custom_refine:
                 epsilon = xray.autobake_refine_location if i < 3 else xray.autobake_refine_rotation
 
-            pkw.putf('BB', Behavior.CONSTANT.value, Behavior.CONSTANT.value)
+            pkw.putf(
+                'BB',
+                xray_interpolation.Behavior.CONSTANT.value,
+                xray_interpolation.Behavior.CONSTANT.value
+            )
             cpkw = PackedWriter()
             ccnt = export_keyframes(
                 cpkw,

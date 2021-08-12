@@ -2,15 +2,17 @@
 import bpy
 
 # addon modules
-from .. import log, version_utils
-from ..xray_io import ChunkedWriter, PackedWriter
-from .fmt import Chunks
-from ..xray_envelope import export_envelope, EPSILON
-from ..utils import smooth_euler, save_file
+from . import fmt
+from .. import log
+from .. import utils
+from .. import version_utils
+from .. import xray_io
+from .. import xray_envelope
+from .. import motion_utils
 
 
 def _export(bpy_obj, chunked_writer):
-    packed_writer = PackedWriter()
+    packed_writer = xray_io.PackedWriter()
     bpy_act = bpy_obj.animation_data.action
     packed_writer.puts('')
     frange = bpy_act.frame_range
@@ -38,7 +40,7 @@ def _export(bpy_obj, chunked_writer):
                 bpy.data.actions.remove(baked_action)
     else:
         _export_action_data(packed_writer, bpy_act.xray, bpy_act.fcurves)
-    chunked_writer.put(Chunks.MAIN, packed_writer)
+    chunked_writer.put(fmt.Chunks.MAIN, packed_writer)
 
 
 def _bake_to_action(bobject, action, frange):
@@ -62,7 +64,7 @@ def _bake_to_action(bobject, action, frange):
             trn = mat.to_translation()
             rot = mat.to_euler('YXZ')
             if prev_rot:
-                smooth_euler(rot, prev_rot)
+                utils.smooth_euler(rot, prev_rot)
             prev_rot = rot
             for i in range(3):
                 fc_trn[i].keyframe_points.insert(frm, trn[i]).interpolation = 'LINEAR'
@@ -75,20 +77,22 @@ def _export_action_data(pkw, xray, fcurves):
     for i in range(6):
         fcurve = fcurves[(0, 2, 1, 5, 3, 4)[i]]
         koef = (1, 1, 1, -1, -1, -1)[i]
-        epsilon = EPSILON
+        epsilon = motion_utils.EPSILON
         if xray.autobake_custom_refine:
             if i < 3:
                 epsilon = xray.autobake_refine_location
             else:
                 epsilon = xray.autobake_refine_rotation
-        export_envelope(
-            pkw, fcurve,
-            xray.fps, koef,
+        xray_envelope.export_envelope(
+            pkw,
+            fcurve,
+            xray.fps,
+            koef,
             epsilon=epsilon
         )
 
 
 def export_file(bpy_obj, fpath):
-    writer = ChunkedWriter()
+    writer = xray_io.ChunkedWriter()
     _export(bpy_obj, writer)
-    save_file(fpath, writer)
+    utils.save_file(fpath, writer)

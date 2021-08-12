@@ -2,15 +2,15 @@
 import bpy
 
 # addon modules
-from .. import context
+from .. import contexts
 from ..xray_io import ChunkedWriter, PackedWriter
 from ..xray_motions import export_motion, export_motions
 from ..utils import save_file, AppError
 
 
-class ExportSklsContext(context.ExportAnimationOnlyContext):
+class ExportSklsContext(contexts.ExportAnimationOnlyContext):
     def __init__(self):
-        context.ExportAnimationOnlyContext.__init__(self)
+        contexts.ExportAnimationOnlyContext.__init__(self)
         self.action = None
 
 

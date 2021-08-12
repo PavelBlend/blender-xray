@@ -1,3 +1,25 @@
+# standart modules
+from enum import Enum
+
+
+class Behavior(Enum):
+    RESET = 0
+    CONSTANT = 1
+    REPEAT = 2
+    OSCILLATE = 3
+    OFFSET_REPEAT = 4
+    LINEAR = 5
+
+
+class Shape(Enum):
+    TCB = 0  # Kochanek-Bartels
+    HERMITE = 1
+    BEZIER_1D = 2  # obsolete, equivalent to HERMITE
+    LINEAR = 3
+    STEPPED = 4
+    BEZIER_2D = 5
+
+
 def incoming(k1v, k1t, k2v, k2t, k2ts, k2c, k2b, n2v, n2t):
     a = (1.0 - k2ts) * (1.0 - k2c) * (1.0 + k2b)
     b = (1.0 - k2ts) * (1.0 + k2c) * (1.0 - k2b)

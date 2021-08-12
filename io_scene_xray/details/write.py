@@ -1,8 +1,10 @@
 # addon modules
-from .. import xray_io, utils
-from ..dm import exp as model_exp
-from . import fmt, convert
-from . import utils as det_utils
+from . import convert
+from . import fmt
+from . import utility
+from .. import dm
+from .. import utils
+from .. import xray_io
 
 
 def write_details(chunked_writer, lvl_dets, context, fpath):
@@ -37,7 +39,7 @@ def write_details(chunked_writer, lvl_dets, context, fpath):
                 )
 
         packed_writer = xray_io.PackedWriter()
-        model_exp.export(
+        dm.exp.export(
             detail_model, packed_writer, context, fpath, mode='DETAILS'
         )
         dm_index = detail_model.xray.detail.model.index
@@ -126,7 +128,7 @@ def write_slots_v3(chunked_writer, lvl_dets):
         list(lvl_dets.mesh_3.pixels)
         ]
 
-    color_indices = det_utils.gen_meshes_color_indices_table(
+    color_indices = utility.gen_meshes_color_indices_table(
         len(lvl_dets.meshes_object.children)
         )
 
@@ -267,7 +269,7 @@ def write_slots_v2(chunked_writer, lvl_dets):
         list(lvl_dets.mesh_3.pixels)
         ]
 
-    color_indices = det_utils.gen_meshes_color_indices_table(
+    color_indices = utility.gen_meshes_color_indices_table(
         len(lvl_dets.meshes_object.children), format_version=2
         )
 

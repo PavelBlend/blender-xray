@@ -3,24 +3,27 @@ import os
 
 # blender modules
 import bpy
-from bpy_extras import io_utils
+import bpy_extras
 
 # addon modules
-from .. import icons, context as xray_context
-from ..utils import execute_with_logger, set_cursor_state, AppError
-from ..version_utils import assign_props, IS_28, get_preferences
-from ..omf import props as omf_props
-from . import imp, props, exp
+from . import imp
+from . import exp
+from . import props
+from .. import contexts
+from .. import icons
+from .. import utils
+from .. import version_utils
+from .. import omf
 
 
-class ImportBonesContext(xray_context.ImportContext):
+class ImportBonesContext(contexts.ImportContext):
     def __init__(self):
         self.bpy_arm_obj = None
         self.import_bone_parts = None
         self.import_bone_properties = None
 
 
-class ExportBonesContext(xray_context.ExportAnimationOnlyContext):
+class ExportBonesContext(contexts.ExportAnimationOnlyContext):
     def __init__(self):
         self.export_bone_parts = None
         self.export_bone_properties = None
@@ -37,12 +40,12 @@ op_import_bones_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
-    'import_bone_parts': omf_props.prop_import_bone_parts(),
+    'import_bone_parts': omf.props.prop_import_bone_parts(),
     'import_bone_properties': props.prop_import_bone_properties()
 }
 
 
-class XRAY_OT_import_bones(bpy.types.Operator, io_utils.ImportHelper):
+class XRAY_OT_import_bones(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.bones'
     bl_label = 'Import .bones'
     bl_description = 'Import X-Ray Bones Data'
@@ -50,12 +53,12 @@ class XRAY_OT_import_bones(bpy.types.Operator, io_utils.ImportHelper):
 
     filename_ext = BONES_EXT
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_import_bones_props.items():
             exec('{0} = op_import_bones_props.get("{0}")'.format(prop_name))
 
-    @execute_with_logger
-    @set_cursor_state
+    @utils.execute_with_logger
+    @utils.set_cursor_state
     def execute(self, context):
         if len(self.files) > 1:
             self.report({'ERROR'}, 'Too many selected files. Select one file')
@@ -84,7 +87,7 @@ class XRAY_OT_import_bones(bpy.types.Operator, io_utils.ImportHelper):
                 import_context.bpy_arm_obj = context.object
                 imp.import_file(import_context)
                 return {'FINISHED'}
-            except AppError as err:
+            except utils.AppError as err:
                 self.report({'ERROR'}, str(err))
                 return {'CANCELLED'}
         else:
@@ -108,7 +111,7 @@ class XRAY_OT_import_bones(bpy.types.Operator, io_utils.ImportHelper):
         if obj.type != 'ARMATURE':
             self.report({'ERROR'}, 'The active object is not an armature')
             return {'CANCELLED'}
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         # import bone parts
         self.import_bone_parts = preferences.bones_import_bone_parts
         # import bone properties
@@ -123,7 +126,7 @@ op_export_bones_props = {
         options={'HIDDEN'}
     ),
     'export_bone_properties': props.prop_export_bone_properties(),
-    'export_bone_parts': omf_props.prop_export_bone_parts()
+    'export_bone_parts': omf.props.prop_export_bone_parts()
 }
 
 
@@ -135,7 +138,7 @@ class XRAY_OT_export_bones(bpy.types.Operator):
     filename_ext = BONES_EXT
     objects_list = []
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_export_bones_props.items():
             exec('{0} = op_export_bones_props.get("{0}")'.format(prop_name))
 
@@ -145,8 +148,8 @@ class XRAY_OT_export_bones(bpy.types.Operator):
             if obj.type == 'ARMATURE':
                 self.objects_list.append(obj.name)
 
-    @execute_with_logger
-    @set_cursor_state
+    @utils.execute_with_logger
+    @utils.set_cursor_state
     def execute(self, context):
         self.get_objects(context)
         for object_name in self.objects_list:
@@ -161,7 +164,7 @@ class XRAY_OT_export_bones(bpy.types.Operator):
                 export_context.export_bone_parts = self.export_bone_parts
                 export_context.export_bone_properties = self.export_bone_properties
                 exp.export_file(export_context)
-            except AppError as err:
+            except utils.AppError as err:
                 self.report({'ERROR'}, str(err))
                 return {'CANCELLED'}
         self.objects_list.clear()
@@ -185,7 +188,7 @@ class XRAY_OT_export_bones(bpy.types.Operator):
             return {'CANCELLED'}
         if len(self.objects_list) == 1:
             return bpy.ops.xray_export.bone('INVOKE_DEFAULT')
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         # export bone parts
         self.export_bone_parts = preferences.bones_export_bone_parts
         # export bone properties
@@ -202,11 +205,11 @@ op_export_bone_props = {
         options={'HIDDEN'}
     ),
     'export_bone_properties': props.prop_export_bone_properties(),
-    'export_bone_parts': omf_props.prop_export_bone_parts()
+    'export_bone_parts': omf.props.prop_export_bone_parts()
 }
 
 
-class XRAY_OT_export_bone(bpy.types.Operator, io_utils.ExportHelper):
+class XRAY_OT_export_bone(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
     bl_idname = 'xray_export.bone'
     bl_label = 'Export .bones'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -214,12 +217,12 @@ class XRAY_OT_export_bone(bpy.types.Operator, io_utils.ExportHelper):
     filename_ext = BONES_EXT
     objects = []
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_export_bone_props.items():
             exec('{0} = op_export_bone_props.get("{0}")'.format(prop_name))
 
-    @execute_with_logger
-    @set_cursor_state
+    @utils.execute_with_logger
+    @utils.set_cursor_state
     def execute(self, context):
         obj = context.scene.objects[self.object_name]
         try:
@@ -229,7 +232,7 @@ class XRAY_OT_export_bone(bpy.types.Operator, io_utils.ExportHelper):
             export_context.export_bone_parts = self.export_bone_parts
             export_context.export_bone_properties = self.export_bone_properties
             exp.export_file(export_context)
-        except AppError as err:
+        except utils.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
         return {'FINISHED'}
@@ -255,7 +258,7 @@ class XRAY_OT_export_bone(bpy.types.Operator, io_utils.ExportHelper):
         self.filepath = os.path.join(self.directory, self.object_name)
         if not self.filepath.lower().endswith(self.filename_ext):
             self.filepath += self.filename_ext
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         # export bone parts
         self.export_bone_parts = preferences.bones_export_bone_parts
         # export bone properties
@@ -288,7 +291,7 @@ classes = (
 
 def register():
     for operator_class, operator_props in classes:
-        assign_props([(operator_props, operator_class), ])
+        version_utils.assign_props([(operator_props, operator_class), ])
         bpy.utils.register_class(operator_class)
 
 
