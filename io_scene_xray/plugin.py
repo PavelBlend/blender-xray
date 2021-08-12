@@ -31,17 +31,6 @@ from . import omf
 xray_io.ENCODE_ERROR = utils.AppError
 
 
-class XRayImportMenu(bpy.types.Menu):
-    bl_idname = 'INFO_MT_xray_import'
-    bl_label = ui.base.build_label()
-
-    def draw(self, context):
-        layout = self.layout
-        enabled_import_operators = get_enabled_operators(import_draw_functions)
-        for id_name, text in enabled_import_operators:
-            layout.operator(id_name, text=text)
-
-
 def get_enabled_operators(draw_functions):
     preferences = version_utils.get_preferences()
     operators = []
@@ -52,14 +41,25 @@ def get_enabled_operators(draw_functions):
     return operators
 
 
-class XRayExportMenu(bpy.types.Menu):
-    bl_idname = 'INFO_MT_xray_export'
+class XRAY_MT_import(bpy.types.Menu):
+    bl_idname = 'XRAY_MT_import'
     bl_label = ui.base.build_label()
 
     def draw(self, context):
         layout = self.layout
-        enabled_export_operators = get_enabled_operators(export_draw_functions)
-        for id_name, text in enabled_export_operators:
+        import_operators = get_enabled_operators(import_draw_functions)
+        for id_name, text in import_operators:
+            layout.operator(id_name, text=text)
+
+
+class XRAY_MT_export(bpy.types.Menu):
+    bl_idname = 'XRAY_MT_export'
+    bl_label = ui.base.build_label()
+
+    def draw(self, context):
+        layout = self.layout
+        export_operators = get_enabled_operators(export_draw_functions)
+        for id_name, text in export_operators:
             layout.operator(id_name, text=text)
 
 
@@ -97,12 +97,12 @@ def scene_update_post(_):
 
 def menu_func_xray_import(self, _context):
     icon = icons.get_stalker_icon()
-    self.layout.menu(XRayImportMenu.bl_idname, icon_value=icon)
+    self.layout.menu(XRAY_MT_import.bl_idname, icon_value=icon)
 
 
 def menu_func_xray_export(self, _context):
     icon = icons.get_stalker_icon()
-    self.layout.menu(XRayExportMenu.bl_idname, icon_value=icon)
+    self.layout.menu(XRAY_MT_export.bl_idname, icon_value=icon)
 
 
 # import draw functions
@@ -276,8 +276,8 @@ def append_menu_func():
 
 
 classes = (
-    XRayImportMenu,
-    XRayExportMenu
+    XRAY_MT_import,
+    XRAY_MT_export
 )
 
 
