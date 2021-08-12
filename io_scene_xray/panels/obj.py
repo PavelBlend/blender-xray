@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from . import list_helper, collapsible, base
+from ..ui import list_helper, collapsible, base
 from ..utils import is_helper_object
 from ..details import ui as det_ui
 from ..version_utils import assign_props, IS_28, layout_split, get_preferences

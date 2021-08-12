@@ -2,8 +2,8 @@
 import bpy
 
 # addon modules
-from . import collapsible
-from .base import XRayPanel, build_label
+from ..ui import collapsible
+from ..ui.base import XRayPanel, build_label
 from ..obj.exp.ops import XRAY_OT_export_project
 from ..version_utils import layout_split, get_preferences
 

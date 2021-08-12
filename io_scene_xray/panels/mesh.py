@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from . import base
+from ..ui import base
 from ..version_utils import get_preferences
 from ..utils import is_helper_object
 

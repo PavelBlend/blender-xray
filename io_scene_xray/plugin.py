@@ -4,6 +4,7 @@ import bpy
 # addon modules
 from . import ops
 from . import ui
+from . import panels
 from . import plugin_prefs
 from . import edit_helpers
 from . import hotkeys
@@ -90,11 +91,13 @@ def register():
     hotkeys.register()
     edit_helpers.register()
     ops.register()
+    panels.register()
     ui.register()
 
 
 def unregister():
     ui.unregister()
+    panels.unregister()
     ops.unregister()
     edit_helpers.unregister()
     hotkeys.unregister()

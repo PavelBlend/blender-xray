@@ -2,8 +2,8 @@
 import bpy
 
 # addon modules
-from . import collapsible
-from .base import XRayPanel, build_label
+from ..ui import collapsible
+from ..ui.base import XRayPanel, build_label
 from .. import icons, menus
 from ..skls_browser import OpBrowseSklsFile, OpCloseSklsFile
 from ..version_utils import IS_28, assign_props, layout_split, get_preferences

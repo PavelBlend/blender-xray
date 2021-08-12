@@ -2,8 +2,8 @@
 import bpy
 
 # addon modules
-from . import base
-from .dynamic_menu import XRayXrMenuTemplate, DynamicMenu
+from ..ui import base
+from ..ui.dynamic_menu import XRayXrMenuTemplate, DynamicMenu
 from ..utils import parse_shaders, parse_shaders_xrlc, parse_gamemtl
 from ..version_utils import layout_split, get_preferences
 

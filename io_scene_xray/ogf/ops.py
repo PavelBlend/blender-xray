@@ -4,7 +4,7 @@ from bpy_extras import io_utils
 
 # addon modules
 from . import exp
-from .. import icons, context, prefs
+from .. import icons, context
 from ..version_utils import assign_props, IS_28, get_preferences
 from ..obj.exp import props as obj_exp_props
 from ..utils import (

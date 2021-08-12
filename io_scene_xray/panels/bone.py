@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from .base import XRayPanel, build_label
+from ..ui.base import XRayPanel, build_label
 from .material import XRayGameMtlMenu, _gen_xr_selector
 from .. import icons
 from .. import version_utils
