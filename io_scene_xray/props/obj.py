@@ -8,13 +8,128 @@ import bpy
 # addon modules
 from . import utils as utils_props
 from .. import utils
-from ..details import types as det_types
+from .. import details
 from ..version_utils import assign_props, IS_28, get_preferences
 from ..skls_browser import (
     skls_animations_index_changed,
     XRayObjectSklsBrowserProperties,
     init_skls_browser
 )
+
+
+# details properties
+
+slots_meshes_props = {
+    'mesh_0': bpy.props.StringProperty(),
+    'mesh_1': bpy.props.StringProperty(),
+    'mesh_2': bpy.props.StringProperty(),
+    'mesh_3': bpy.props.StringProperty()
+}
+
+
+class XRayObjectDetailsSlotsMeshesProperties(bpy.types.PropertyGroup):
+    if not IS_28:
+        for prop_name, prop_value in slots_meshes_props.items():
+            exec('{0} = slots_meshes_props.get("{0}")'.format(prop_name))
+
+
+slots_lighting_props = {
+    'format': bpy.props.EnumProperty(
+        name='Format',
+        items=(
+            (
+                'builds_1569-cop',
+                'Builds 1569-CoP',
+                'level.details version 3 (builds 1569-CoP)'
+            ),
+            (
+                'builds_1096-1558',
+                'Builds 1096-1558',
+                'level.details version 2 (builds 1096-1558)'
+            )
+        ),
+        default='builds_1569-cop'
+    ),
+    'lights_image': bpy.props.StringProperty(),
+    'hemi_image': bpy.props.StringProperty(),
+    'shadows_image': bpy.props.StringProperty()
+}
+
+
+class XRayObjectDetailsSlotsLightingProperties(bpy.types.PropertyGroup):
+    if not IS_28:
+        for prop_name, prop_value in slots_lighting_props.items():
+            exec('{0} = slots_lighting_props.get("{0}")'.format(prop_name))
+
+
+slots_props = {
+    'meshes': bpy.props.PointerProperty(
+        type=XRayObjectDetailsSlotsMeshesProperties
+    ),
+    'ligthing': bpy.props.PointerProperty(
+        type=XRayObjectDetailsSlotsLightingProperties
+    ),
+    'meshes_object': bpy.props.StringProperty(),
+    'slots_base_object': bpy.props.StringProperty(),
+    'slots_top_object': bpy.props.StringProperty()
+}
+
+
+class XRayObjectDetailsSlotsProperties(bpy.types.PropertyGroup):
+    if not IS_28:
+        for prop_name, prop_value in slots_props.items():
+            exec('{0} = slots_props.get("{0}")'.format(prop_name))
+
+
+def _update_detail_color_by_index(self, context):
+
+    if hasattr(context.object, 'xray'):
+        color_indices = details.utils.generate_color_indices()
+
+        context.object.xray.detail.model.color = \
+            color_indices[context.object.xray.detail.model.index][0 : 3]
+
+
+model_props = {
+    'no_waving': bpy.props.BoolProperty(
+        description='No Waving',
+        options={'SKIP_SAVE'},
+        default=False
+    ),
+    'min_scale': bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0),
+    'max_scale': bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0),
+    'index': bpy.props.IntProperty(
+        default=0,
+        min=0,
+        max=62,
+        update=_update_detail_color_by_index
+    ),
+    'color': bpy.props.FloatVectorProperty(
+        default=(1.0, 0.0, 0.0),
+        max=1.0,
+        min=0.0,
+        subtype='COLOR_GAMMA',
+        size=3
+    )
+}
+
+
+class XRayObjectDetailsModelProperties(bpy.types.PropertyGroup):
+    if not IS_28:
+        for prop_name, prop_value in model_props.items():
+            exec('{0} = model_props.get("{0}")'.format(prop_name))
+
+
+details_props = {
+    'model': bpy.props.PointerProperty(type=XRayObjectDetailsModelProperties),
+    'slots': bpy.props.PointerProperty(type=XRayObjectDetailsSlotsProperties)
+}
+
+
+class XRayObjectDetailsProperties(bpy.types.PropertyGroup):
+    if not IS_28:
+        for prop_name, prop_value in details_props.items():
+            exec('{0} = details_props.get("{0}")'.format(prop_name))
 
 
 def _gen_time_prop(prop, description=''):
@@ -371,7 +486,7 @@ xray_object_properties = {
         description='Path relative to the root export folder'
     ),
     'detail': bpy.props.PointerProperty(
-        type=det_types.XRayObjectDetailsProperties
+        type=XRayObjectDetailsProperties
     ),
     'skls_browser': bpy.props.PointerProperty(type=XRayObjectSklsBrowserProperties),
     'level': bpy.props.PointerProperty(type=XRayObjectLevelProperties),
@@ -404,6 +519,11 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
 
 
 prop_groups = (
+    (XRayObjectDetailsSlotsMeshesProperties, slots_meshes_props, False),
+    (XRayObjectDetailsSlotsLightingProperties, slots_lighting_props, False),
+    (XRayObjectDetailsSlotsProperties, slots_props, False),
+    (XRayObjectDetailsModelProperties, model_props, False),
+    (XRayObjectDetailsProperties, details_props, False),
     (XRayObjectLevelProperties, xray_object_level_properties, False),
     (XRayObjectRevisionProperties, xray_object_revision_properties, False),
     (MotionRef, motion_ref_props, False),

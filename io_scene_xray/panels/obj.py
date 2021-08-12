@@ -4,7 +4,7 @@ import bpy
 # addon modules
 from ..ui import list_helper, collapsible, base
 from ..utils import is_helper_object
-from ..details import ui as det_ui
+from .. import details
 from ..version_utils import assign_props, IS_28, layout_split, get_preferences
 
 
@@ -101,6 +101,106 @@ class XRayRemoveAllActions(bpy.types.Operator):
 def draw_motion_list_custom_elements(layout):
     layout.operator(XRayAddAllActions.bl_idname, text='', icon='ACTION')
     layout.operator(XRayRemoveAllActions.bl_idname, text='', icon='X')
+
+
+def details_draw_function(self, context):
+
+    box = self.layout.box()
+
+    if context.active_object.type == 'MESH':
+
+        model = context.object.xray.detail.model
+
+        box.label(text='Detail Model Properties:')
+
+        box.prop(model, 'no_waving', text='No Waving', toggle=True)
+        box.prop(model, 'min_scale', text='Min Scale')
+        box.prop(model, 'max_scale', text='Max Scale')
+        box.prop(model, 'index', text='Detail Index')
+        box.prop(model, 'color', text='')
+
+    elif context.active_object.type == 'EMPTY':
+
+        slots = context.object.xray.detail.slots
+
+        box.label(text='Level Details Properties:')
+
+        box.prop_search(
+            slots,
+            'meshes_object',
+            bpy.data,
+            'objects',
+            text='Meshes Object'
+            )
+
+        box.prop_search(
+            slots,
+            'slots_base_object',
+            bpy.data,
+            'objects',
+            text='Slots Base Object'
+            )
+
+        box.prop_search(
+            slots,
+            'slots_top_object',
+            bpy.data,
+            'objects',
+            text='Slots Top Object'
+            )
+
+        _, box_ = collapsible.draw(
+            box, 'object:lighting', 'Lighting Coefficients'
+            )
+
+        if box_:
+
+            ligthing = slots.ligthing
+            box_.label(text='Format:')
+            row = box_.row()
+            row.prop(ligthing, 'format', expand=True, text='Format')
+
+            box_.prop_search(
+                ligthing,
+                'lights_image',
+                bpy.data,
+                'images',
+                text='Lights'
+                )
+
+            if ligthing.format == 'builds_1569-cop':
+
+                box_.prop_search(
+                    ligthing,
+                    'hemi_image',
+                    bpy.data,
+                    'images',
+                    text='Hemi'
+                    )
+
+                box_.prop_search(
+                    ligthing,
+                    'shadows_image',
+                    bpy.data,
+                    'images',
+                    text='Shadows'
+                    )
+
+        _, box_ = collapsible.draw(
+            box, 'object:slots', 'Slots Meshes Indices'
+            )
+
+        if box_:
+            for i in range(4):
+                box_.prop_search(
+                    slots.meshes,
+                    'mesh_{}'.format(i),
+                    bpy.data,
+                    'images',
+                    text='Mesh {}'.format(i)
+                    )
+
+        box.operator(details.ops.XRAY_OT_pack_details_images.bl_idname)
 
 
 class XRAY_PT_ObjectPanel(base.XRayPanel):
@@ -250,7 +350,7 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
         if context.object.type in {'MESH', 'EMPTY'} and details_used:
             layout.prop(data, 'is_details', text='Details', toggle=True)
             if data.is_details:
-                det_ui.draw_function(self, context)
+                details_draw_function(self, context)
 
         game_level_used = (
             # import plugins

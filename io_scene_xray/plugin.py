@@ -2,18 +2,8 @@
 import bpy
 
 # addon modules
-from . import ops
-from . import ui
-from . import panels
-from . import plugin_prefs
-from . import edit_helpers
-from . import hotkeys
-from . import props
-from . import skls_browser
-from . import icons
 from . import utils
 from . import version_utils
-from . import xray_io
 
 # plugin modules
 from . import details
@@ -27,9 +17,6 @@ from . import bones
 from . import ogf
 from . import level
 from . import omf
-
-
-xray_io.ENCODE_ERROR = utils.AppError
 
 
 def overlay_view_3d():
@@ -65,12 +52,7 @@ def scene_update_post(_):
 
 
 def register():
-    icons.register()
-    details.register()
-    skls_browser.register()
-    props.register()
-    plugin_prefs.register()
-
+    details.ops.register()
     obj.imp.ops.register()
     obj.exp.ops.register()
     anm.ops.register()
@@ -82,25 +64,16 @@ def register():
     scene.ops.register()
     level.ops.register()
     err.ops.register()
+
     overlay_view_3d.__handle = bpy.types.SpaceView3D.draw_handler_add(
         overlay_view_3d, (),
         'WINDOW', 'POST_VIEW'
     )
     bpy.app.handlers.load_post.append(load_post)
     version_utils.get_scene_update_post().append(scene_update_post)
-    hotkeys.register()
-    edit_helpers.register()
-    ops.register()
-    panels.register()
-    ui.register()
 
 
 def unregister():
-    ui.unregister()
-    panels.unregister()
-    ops.unregister()
-    edit_helpers.unregister()
-    hotkeys.unregister()
     err.ops.unregister()
     dm.ops.unregister()
     bones.ops.unregister()
@@ -112,13 +85,8 @@ def unregister():
     anm.ops.unregister()
     obj.exp.ops.unregister()
     obj.imp.ops.unregister()
+    details.ops.unregister()
 
     version_utils.get_scene_update_post().remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)
     bpy.types.SpaceView3D.draw_handler_remove(overlay_view_3d.__handle, 'WINDOW')
-
-    plugin_prefs.unregister()
-    props.unregister()
-    skls_browser.unregister()
-    details.unregister()
-    icons.unregister()
