@@ -6,12 +6,9 @@ import bpy
 import bpy_extras
 
 # addon modules
-from . import imp, exp, props
-from .. import utils, icons, contexts
+from . import imp, exp
+from .. import utils, icons, contexts, plugin_props
 from ..ui import collapsible
-from ..skl import props as skl_props
-from ..obj.imp import props as obj_imp_props
-from ..obj.exp import props as obj_exp_props
 from ..ui.motion_list import (
     BaseSelectMotionsOp,
     _SelectMotionsOp,
@@ -68,10 +65,10 @@ op_import_omf_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
-    'import_motions': obj_imp_props.PropObjectMotionsImport(),
-    'import_bone_parts': props.prop_import_bone_parts(),
+    'import_motions': plugin_props.PropObjectMotionsImport(),
+    'import_bone_parts': plugin_props.prop_import_bone_parts(),
     'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
-    'add_actions_to_motion_list': skl_props.prop_skl_add_actions_to_motion_list()
+    'add_actions_to_motion_list': plugin_props.prop_skl_add_actions_to_motion_list()
 }
 
 
@@ -215,9 +212,9 @@ class XRAY_OT_import_omf(
 filename_ext = '.omf'
 op_export_omf_props = {
     'filter_glob': bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'}),
-    'export_mode': props.prop_omf_export_mode(),
-    'export_motions': obj_exp_props.PropObjectMotionsExport(),
-    'export_bone_parts': props.prop_export_bone_parts()
+    'export_mode': plugin_props.prop_omf_export_mode(),
+    'export_motions': plugin_props.PropObjectMotionsExport(),
+    'export_bone_parts': plugin_props.prop_export_bone_parts()
 }
 
 

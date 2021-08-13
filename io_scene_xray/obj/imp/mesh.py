@@ -6,9 +6,12 @@ import bpy
 import bmesh
 
 # addon modules
-from ... import xray_io, utils, log, version_utils
+from . import main
 from .. import fmt
-from . import main, props
+from ... import log
+from ... import xray_io
+from ... import utils
+from ... import version_utils
 
 
 _SHARP = 0xffffffff
@@ -355,7 +358,7 @@ def import_mesh(context, creader, renamemap):
         if not context.split_by_materials:
             msg += ' (try to use "{}" option)'.format(
                 version_utils.get_prop_name(
-                    props.PropObjectMeshSplitByMaterials()
+                    plugin_props.PropObjectMeshSplitByMaterials()
                 )
             )
         log.warn(msg)

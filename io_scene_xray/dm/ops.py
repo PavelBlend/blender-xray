@@ -11,7 +11,7 @@ from . import exp
 from .. import contexts
 from .. import icons
 from .. import utils
-from .. import obj
+from .. import plugin_props
 from .. import version_utils
 
 
@@ -96,7 +96,7 @@ class XRAY_OT_import_dm(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
 op_export_dms_props = {
     'detail_models': bpy.props.StringProperty(options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
-    'texture_name_from_image_path': obj.exp.props.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath()
 }
 
 class XRAY_OT_export_dm(bpy.types.Operator):
@@ -162,7 +162,7 @@ op_export_dm_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
         ),
-    'texture_name_from_image_path': obj.exp.props.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath()
 }
 
 

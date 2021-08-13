@@ -8,12 +8,14 @@ import bpy
 import mathutils
 
 # addon modules
-from ... import xray_io, utils, log, xray_motions
-from ...version_utils import (
-    IS_28, using_active_object, get_multiply, IMAGE_NODES, get_preferences
-)
+from . import mesh
+from . import bone
 from .. import fmt
-from . import mesh, bone
+from ... import xray_io
+from ... import utils
+from ... import log
+from ... import xray_motions
+from ... import version_utils
 
 
 def pw_v3f(vec):
@@ -52,7 +54,9 @@ def export_flags(chunked_writer, xray, some_arm):
 
 def validate_vertex_weights(bpy_obj, arm_obj):
     exportable_bones_names = [
-        bone.name for bone in arm_obj.data.bones if bone.xray.exportable
+        bpy_bone.name
+        for bpy_bone in arm_obj.data.bones
+            if bpy_bone.xray.exportable
     ]
     exportable_groups_indices = [
         group.index for group in bpy_obj.vertex_groups if group.name in exportable_bones_names
@@ -81,8 +85,8 @@ def validate_vertex_weights(bpy_obj, arm_obj):
 def _check_bone_names(armature_object):
     bone_names = {}
     bone_duplicates = {}
-    for bone in armature_object.data.bones:
-        name = bone.name
+    for bpy_bone in armature_object.data.bones:
+        name = bpy_bone.name
         name_lower = name.lower()
         if bone_names.get(name_lower, None):
             if not bone_duplicates.get(name_lower, None):
@@ -164,7 +168,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
         _check_bone_names(bpy_arm_obj)
         bonemap = {}
         edit_mode_matrices = {}
-        with using_active_object(bpy_arm_obj), utils.using_mode('EDIT'):
+        with version_utils.using_active_object(bpy_arm_obj), utils.using_mode('EDIT'):
             for bone_ in bpy_arm_obj.data.edit_bones:
                 edit_mode_matrices[bone_.name] = bone_.matrix
         for bone_ in bpy_arm_obj.data.bones:
@@ -238,11 +242,11 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
         else:
             sfw.puts('').puts('').puts('')
         tx_name = ''
-        if IS_28:
+        if version_utils.IS_28:
             if material.use_nodes:
                 tex_nodes = []
                 for node in material.node_tree.nodes:
-                    if node.type in IMAGE_NODES:
+                    if node.type in version_utils.IMAGE_NODES:
                         tex_nodes.append(node)
                 if len(tex_nodes) == 1:
                     tex_node = tex_nodes[0]
@@ -275,7 +279,7 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
                 else:
                     tx_name = material.active_texture.name
         sfw.puts(tx_name)
-        if IS_28:
+        if version_utils.IS_28:
             sfw.puts(uv_map_names[material.name])
         else:
             slot = material.texture_slots[material.active_texture_index]
@@ -404,7 +408,7 @@ def export_transform(chunked_writer, bpy_root):
 
 
 def export_revision(chunked_writer, xray):
-    preferences = get_preferences()
+    preferences = version_utils.get_preferences()
     if preferences.custom_owner_name:
         curruser = preferences.custom_owner_name
     else:

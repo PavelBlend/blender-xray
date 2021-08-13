@@ -8,10 +8,10 @@ import bpy_extras
 # addon modules
 from . import imp
 from . import exp
-from . import props
 from .. import icons
 from .. import utils
 from .. import version_utils
+from .. import plugin_props
 
 
 filename_ext = '.anm'
@@ -23,7 +23,7 @@ op_import_anm_props = {
     ),
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
-    'camera_animation': props.PropAnmCameraAnimation()
+    'camera_animation': plugin_props.PropAnmCameraAnimation()
 }
 
 

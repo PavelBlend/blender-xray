@@ -5,15 +5,10 @@ import os
 import bpy
 
 # addon modules
-from .. import xray_ltx, version_utils, menus
-from ..obj import props as general_obj_props
-from ..obj.imp import props as obj_imp_props
-from ..obj.exp import props as obj_exp_props
-from ..anm import props as anm_props
-from ..skl import props as skl_props
-from ..omf import props as omf_props
-from ..bones import props as bones_props
-from ..details import props as details_props
+from .. import xray_ltx
+from .. import version_utils
+from .. import menus
+from .. import plugin_props
 
 
 def update_menu_func(self, context):
@@ -456,49 +451,49 @@ plugin_preferences_props = {
     ),
 
     # object import props
-    'sdk_version': general_obj_props.PropSDKVersion(),
-    'object_motions_import': obj_imp_props.PropObjectMotionsImport(),
-    'use_motion_prefix_name': obj_imp_props.PropObjectUseMotionPrefixName(),
-    'object_mesh_split_by_mat': obj_imp_props.PropObjectMeshSplitByMaterials(),
-    'object_bones_custom_shapes': obj_imp_props.PropObjectBonesCustomShapes(),
+    'sdk_version': plugin_props.PropSDKVersion(),
+    'object_motions_import': plugin_props.PropObjectMotionsImport(),
+    'use_motion_prefix_name': plugin_props.PropObjectUseMotionPrefixName(),
+    'object_mesh_split_by_mat': plugin_props.PropObjectMeshSplitByMaterials(),
+    'object_bones_custom_shapes': plugin_props.PropObjectBonesCustomShapes(),
     # object export props
-    'export_object_sdk_version': general_obj_props.PropSDKVersion(),
-    'smoothing_out_of': obj_exp_props.prop_smoothing_out_of(),
-    'object_motions_export': obj_exp_props.PropObjectMotionsExport(),
-    'object_texture_names_from_path': obj_exp_props.PropObjectTextureNamesFromPath(),
-    'export_object_use_export_paths': obj_exp_props.PropUseExportPaths(),
+    'export_object_sdk_version': plugin_props.PropSDKVersion(),
+    'smoothing_out_of': plugin_props.prop_smoothing_out_of(),
+    'object_motions_export': plugin_props.PropObjectMotionsExport(),
+    'object_texture_names_from_path': plugin_props.PropObjectTextureNamesFromPath(),
+    'export_object_use_export_paths': plugin_props.PropUseExportPaths(),
     # anm import props
-    'anm_create_camera': anm_props.PropAnmCameraAnimation(),
+    'anm_create_camera': plugin_props.PropAnmCameraAnimation(),
     # skl/skls import props
-    'skls_use_motion_prefix_name': obj_imp_props.PropObjectUseMotionPrefixName(),
-    'add_actions_to_motion_list': skl_props.prop_skl_add_actions_to_motion_list(),
+    'skls_use_motion_prefix_name': plugin_props.PropObjectUseMotionPrefixName(),
+    'add_actions_to_motion_list': plugin_props.prop_skl_add_actions_to_motion_list(),
     # bones import props
-    'bones_import_bone_parts': omf_props.prop_import_bone_parts(),
-    'bones_import_bone_properties': bones_props.prop_import_bone_properties(),
+    'bones_import_bone_parts': plugin_props.prop_import_bone_parts(),
+    'bones_import_bone_properties': plugin_props.prop_import_bone_properties(),
     # bones export props
-    'bones_export_bone_parts': omf_props.prop_export_bone_parts(),
-    'bones_export_bone_properties': bones_props.prop_export_bone_properties(),
+    'bones_export_bone_parts': plugin_props.prop_export_bone_parts(),
+    'bones_export_bone_properties': plugin_props.prop_export_bone_properties(),
     # details import props
-    'details_models_in_a_row': details_props.prop_details_models_in_a_row(),
-    'load_slots': details_props.prop_details_load_slots(),
-    'details_format': details_props.prop_details_format(),
+    'details_models_in_a_row': plugin_props.prop_details_models_in_a_row(),
+    'load_slots': plugin_props.prop_details_load_slots(),
+    'details_format': plugin_props.prop_details_format(),
     # details export props
-    'details_texture_names_from_path': obj_exp_props.PropObjectTextureNamesFromPath(),
-    'format_version': details_props.prop_details_format_version(),
+    'details_texture_names_from_path': plugin_props.PropObjectTextureNamesFromPath(),
+    'format_version': plugin_props.prop_details_format_version(),
     # dm export props
-    'dm_texture_names_from_path': obj_exp_props.PropObjectTextureNamesFromPath(),
+    'dm_texture_names_from_path': plugin_props.PropObjectTextureNamesFromPath(),
     # omf import props
-    'omf_import_motions': obj_imp_props.PropObjectMotionsImport(),
-    'import_bone_parts': omf_props.prop_import_bone_parts(),
-    'omf_add_actions_to_motion_list': skl_props.prop_skl_add_actions_to_motion_list(),
+    'omf_import_motions': plugin_props.PropObjectMotionsImport(),
+    'import_bone_parts': plugin_props.prop_import_bone_parts(),
+    'omf_add_actions_to_motion_list': plugin_props.prop_skl_add_actions_to_motion_list(),
     # omf export props
-    'omf_export_bone_parts': omf_props.prop_export_bone_parts(),
-    'omf_export_mode': omf_props.prop_omf_export_mode(),
-    'omf_motions_export': obj_exp_props.PropObjectMotionsExport(),
+    'omf_export_bone_parts': plugin_props.prop_export_bone_parts(),
+    'omf_export_mode': plugin_props.prop_omf_export_mode(),
+    'omf_motions_export': plugin_props.PropObjectMotionsExport(),
     # scene selection import props
-    'scene_selection_sdk_version': general_obj_props.PropSDKVersion(),
-    'scene_selection_mesh_split_by_mat': obj_imp_props.PropObjectMeshSplitByMaterials(),
-    'scene_selection_shaped_bones': obj_imp_props.PropObjectBonesCustomShapes(),
+    'scene_selection_sdk_version': plugin_props.PropSDKVersion(),
+    'scene_selection_mesh_split_by_mat': plugin_props.PropObjectMeshSplitByMaterials(),
+    'scene_selection_shaped_bones': plugin_props.PropObjectBonesCustomShapes(),
 
     # keymap
     'keymaps_collection': bpy.props.CollectionProperty(type=XRayKeyMap),

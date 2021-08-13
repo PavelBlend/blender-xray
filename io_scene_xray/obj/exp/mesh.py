@@ -2,10 +2,12 @@
 import bmesh
 
 # addon modules
-from ... import xray_io, utils, log
-from ...version_utils import IS_28
-from .. import fmt
 from . import main
+from .. import fmt
+from ... import xray_io
+from ... import utils
+from ... import log
+from ... import version_utils
 
 
 def _export_sg_new(bmfaces):
@@ -107,7 +109,7 @@ def remove_bad_geometry(bm, bml, bpy_obj):
                 utils.BAD_VTX_GROUP_NAME
             )
         )
-        if IS_28:
+        if version_utils.IS_28:
             ops_context = 'VERTS'
         else:
             ops_context = 1
@@ -269,7 +271,7 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
 
     writer = xray_io.PackedWriter()
     writer.putf('I', 1 + wmaps_cnt)
-    if IS_28:
+    if version_utils.IS_28:
         texture = bpy_obj.data.uv_layers.active
     else:
         texture = bpy_obj.data.uv_textures.active

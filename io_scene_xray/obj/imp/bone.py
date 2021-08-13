@@ -3,10 +3,13 @@ import bpy
 import mathutils
 
 # addon modules
-from ... import log, xray_io, xray_motions, utils
-from ...version_utils import IS_28
-from .. import fmt
 from . import main
+from .. import fmt
+from ... import log
+from ... import xray_io
+from ... import xray_motions
+from ... import utils
+from ... import version_utils
 
 
 def _get_real_bone_shape():
@@ -14,7 +17,7 @@ def _get_real_bone_shape():
     if result is None:
         result = bpy.data.objects.new('real_bone_shape', None)
         display_type = 'SPHERE'
-        if IS_28:
+        if version_utils.IS_28:
             result.empty_display_type = display_type
         else:
             result.empty_draw_type = display_type

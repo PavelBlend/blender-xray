@@ -8,11 +8,11 @@ import bpy_extras
 # addon modules
 from . import imp
 from . import exp
-from . import props
 from .. import contexts
 from .. import icons
 from .. import utils
 from .. import version_utils
+from .. import plugin_props
 from .. import omf
 
 
@@ -40,8 +40,8 @@ op_import_bones_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
-    'import_bone_parts': omf.props.prop_import_bone_parts(),
-    'import_bone_properties': props.prop_import_bone_properties()
+    'import_bone_parts': plugin_props.prop_import_bone_parts(),
+    'import_bone_properties': plugin_props.prop_import_bone_properties()
 }
 
 
@@ -125,8 +125,8 @@ op_export_bones_props = {
         default='*'+BONES_EXT,
         options={'HIDDEN'}
     ),
-    'export_bone_properties': props.prop_export_bone_properties(),
-    'export_bone_parts': omf.props.prop_export_bone_parts()
+    'export_bone_properties': plugin_props.prop_export_bone_properties(),
+    'export_bone_parts': plugin_props.prop_export_bone_parts()
 }
 
 
@@ -204,8 +204,8 @@ op_export_bone_props = {
         default='*'+BONES_EXT,
         options={'HIDDEN'}
     ),
-    'export_bone_properties': props.prop_export_bone_properties(),
-    'export_bone_parts': omf.props.prop_export_bone_parts()
+    'export_bone_properties': plugin_props.prop_export_bone_properties(),
+    'export_bone_parts': plugin_props.prop_export_bone_parts()
 }
 
 

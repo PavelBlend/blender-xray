@@ -8,11 +8,10 @@ import bpy_extras
 # addon modules
 from . import imp
 from . import exp
-from . import props
 from .. import icons
 from .. import utils
 from .. import contexts
-from .. import obj
+from .. import plugin_props
 from .. import version_utils
 
 
@@ -46,9 +45,9 @@ op_import_details_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
     ),
-    'details_models_in_a_row': props.prop_details_models_in_a_row(),
-    'load_slots': props.prop_details_load_slots(),
-    'details_format': props.prop_details_format()
+    'details_models_in_a_row': plugin_props.prop_details_models_in_a_row(),
+    'load_slots': plugin_props.prop_details_load_slots(),
+    'details_format': plugin_props.prop_details_format()
 }
 
 
@@ -135,9 +134,9 @@ op_export_details_props = {
         ),
 
     'texture_name_from_image_path': \
-        obj.exp.props.PropObjectTextureNamesFromPath(),
+        plugin_props.PropObjectTextureNamesFromPath(),
 
-    'format_version': props.prop_details_format_version()
+    'format_version': plugin_props.prop_details_format_version()
 }
 
 

@@ -10,7 +10,7 @@ from .. import log
 from ..utils import AppError
 from ..xray_io import ChunkedReader, PackedReader
 from ..obj import imp as object_import
-from ..obj.imp import utils as obj_imp_utils
+from ..obj.imp import utility as obj_imp_utils
 from ..version_utils import link_object, get_preferences
 
 

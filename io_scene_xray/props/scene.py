@@ -2,9 +2,8 @@
 import bpy
 
 # addon modules
-from ..obj import props as general_obj_props
-from ..obj.exp import props as obj_exp_props
 from ..version_utils import assign_props, IS_28
+from .. import plugin_props
 
 
 import_motion_props = {
@@ -55,9 +54,9 @@ xray_scene_properties = {
         description='The root folder for export',
         subtype='DIR_PATH',
     ),
-    'fmt_version': general_obj_props.PropSDKVersion(),
-    'object_export_motions': obj_exp_props.PropObjectMotionsExport(),
-    'object_texture_name_from_image_path': obj_exp_props.PropObjectTextureNamesFromPath(),
+    'fmt_version': plugin_props.PropSDKVersion(),
+    'object_export_motions': plugin_props.PropObjectMotionsExport(),
+    'object_texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath(),
     'materials_colorize_random_seed': bpy.props.IntProperty(min=0, max=255, options={'SKIP_SAVE'}),
     'materials_colorize_color_power': bpy.props.FloatProperty(
         default=0.5, min=0.0, max=1.0,

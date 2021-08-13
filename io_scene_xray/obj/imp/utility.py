@@ -5,7 +5,8 @@ import os
 import bpy
 
 # addon modules
-from ... import version_utils, log, contexts
+from ... import log
+from ... import contexts
 
 
 class ImportObjectMeshContext(contexts.ImportMeshContext):

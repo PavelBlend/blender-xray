@@ -6,8 +6,7 @@ import bpy
 import bpy_extras
 
 # addon modules
-from . import props
-from .. import icons
+from .. import icons, plugin_props
 from ..ui import collapsible
 from ..ui.motion_list import (
     BaseSelectMotionsOp,
@@ -23,7 +22,6 @@ from ..utils import (
 )
 from ..xray_motions import MOTIONS_FILTER_ALL
 from ..version_utils import assign_props, IS_28, get_preferences
-from ..obj.imp import props as obj_imp_props
 
 
 motion_props = {
@@ -43,8 +41,8 @@ op_import_skls_props = {
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
     'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
-    'use_motion_prefix_name': obj_imp_props.PropObjectUseMotionPrefixName(),
-    'add_actions_to_motion_list': props.prop_skl_add_actions_to_motion_list()
+    'use_motion_prefix_name': plugin_props.PropObjectUseMotionPrefixName(),
+    'add_actions_to_motion_list': plugin_props.prop_skl_add_actions_to_motion_list()
 }
 
 

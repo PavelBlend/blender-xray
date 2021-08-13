@@ -7,17 +7,19 @@ import bpy
 import mathutils
 
 # addon modules
-from ...skl import imp as skl_imp
-from ... import xray_io, xray_motions, log, utils
-from ...version_utils import (
-    is_all_empty_textures, IS_28, link_object, set_active_object, IMAGE_NODES
-)
+from . import bone
+from . import mesh
 from .. import fmt
-from . import bone, mesh
+from ... import skl
+from ... import log
+from ... import utils
+from ... import version_utils
+from ... import xray_io
+from ... import xray_motions
 
 
 def _is_compatible_texture(texture, filepart):
-    if IS_28:
+    if version_utils.IS_28:
         image = texture.image
         if not image:
             return False
@@ -128,17 +130,17 @@ def import_main(fpath, context, creader):
                         continue
 
                     if (not texture) and (not vmap):
-                        all_empty_textures = is_all_empty_textures(material)
+                        all_empty_textures = version_utils.is_all_empty_textures(material)
                         if all_empty_textures:
                             bpy_material = material
                             break
 
-                    if IS_28:
+                    if version_utils.IS_28:
                         tex_nodes = []
                         ts_found = False
                         if material.use_nodes:
                             for node in material.node_tree.nodes:
-                                if not node.type in IMAGE_NODES:
+                                if not node.type in version_utils.IMAGE_NODES:
                                     continue
                                 tex_nodes.append(node)
                             if len(tex_nodes) != 1:
@@ -178,7 +180,7 @@ def import_main(fpath, context, creader):
                     bpy_material.xray.eshader = eshader
                     bpy_material.xray.cshader = cshader
                     bpy_material.xray.gamemtl = gamemtl
-                    if IS_28:
+                    if version_utils.IS_28:
                         bpy_material.use_nodes = True
                         bpy_material.blend_method = 'CLIP'
                     else:
@@ -186,7 +188,7 @@ def import_main(fpath, context, creader):
                         bpy_material.use_transparency = True
                         bpy_material.alpha = 0
                     if texture:
-                        if IS_28:
+                        if version_utils.IS_28:
                             node_tree = bpy_material.node_tree
                             texture_node = node_tree.nodes.new('ShaderNodeTexImage')
                             texture_node.name = texture
@@ -231,7 +233,7 @@ def import_main(fpath, context, creader):
                     continue    # Do not create an armature if zero bones
             if bpy and (bpy_arm_obj is None):
                 bpy_armature = bpy.data.armatures.new(object_name)
-                if IS_28:
+                if version_utils.IS_28:
                     bpy_armature.display_type = 'STICK'
                     bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
                     bpy_arm_obj.show_in_front = True
@@ -242,8 +244,8 @@ def import_main(fpath, context, creader):
                     bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
                     bpy_arm_obj.show_x_ray = True
                     bpy_armature.xray.joint_limits_type = 'XRAY'
-                link_object(bpy_arm_obj)
-                set_active_object(bpy_arm_obj)
+                version_utils.link_object(bpy_arm_obj)
+                version_utils.set_active_object(bpy_arm_obj)
             if cid == fmt.Chunks.Object.BONES:
                 for _ in range(bones_count):
                     name = reader.gets()
@@ -307,7 +309,7 @@ def import_main(fpath, context, creader):
                 fmt.Chunks.Object.PARTITIONS0,
                 fmt.Chunks.Object.PARTITIONS1
             ):
-            set_active_object(bpy_arm_obj)
+            version_utils.set_active_object(bpy_arm_obj)
             bpy.ops.object.mode_set(mode='POSE')
             try:
                 reader = xray_io.PackedReader(data)
@@ -326,7 +328,7 @@ def import_main(fpath, context, creader):
             if not context.import_motions:
                 continue
             reader = xray_io.PackedReader(data)
-            skl_context = skl_imp.ImportSklContext()
+            skl_context = skl.imp.ImportSklContext()
             skl_context.bpy_arm_obj=bpy_arm_obj
             skl_context.motions_filter=xray_motions.MOTIONS_FILTER_ALL
             skl_context.use_motion_prefix_name=context.use_motion_prefix_name
@@ -350,7 +352,7 @@ def import_main(fpath, context, creader):
             mesh_.parent = bpy_arm_obj
 
         mesh_objects.append(mesh_)
-        link_object(mesh_)
+        version_utils.link_object(mesh_)
 
     bpy_obj = bpy_arm_obj
     if bpy_obj is None:
@@ -361,7 +363,7 @@ def import_main(fpath, context, creader):
             bpy_obj = bpy.data.objects.new(object_name, None)
             for mesh_ in mesh_objects:
                 mesh_.parent = bpy_obj
-            link_object(bpy_obj)
+            version_utils.link_object(bpy_obj)
 
     bpy_obj.xray.version = context.version
     bpy_obj.xray.isroot = True
