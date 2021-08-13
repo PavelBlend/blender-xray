@@ -4,14 +4,11 @@ import bpy_extras
 
 # addon modules
 from . import exp
-from .. import icons, contexts
-from ..version_utils import assign_props, IS_28, get_preferences
+from .. import icons
+from .. import contexts
+from .. import version_utils
 from .. import plugin_props
-from ..utils import (
-    execute_with_logger,
-    execute_require_filepath,
-    set_cursor_state
-)
+from .. import utils
 
 
 model_export_helper_props = {
@@ -28,16 +25,16 @@ class ExportOgfContext(contexts.ExportMeshContext):
 
 
 class ModelExportHelper:
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in model_export_helper_props.items():
             exec('{0} = model_export_helper_props.get("{0}")'.format(prop_name))
 
     def export(self, bpy_obj, context):
         pass
 
-    @execute_with_logger
-    @execute_require_filepath
-    @set_cursor_state
+    @utils.execute_with_logger
+    @utils.execute_require_filepath
+    @utils.set_cursor_state
     def execute(self, context):
         objs = context.selected_objects if self.selection_only else context.scene.objects
         roots = [obj for obj in objs if obj.xray.isroot]
@@ -68,7 +65,7 @@ class XRAY_OT_export_ogf(
 
     filename_ext = '.ogf'
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_export_ogf_props.items():
             exec('{0} = op_export_ogf_props.get("{0}")'.format(prop_name))
 
@@ -79,7 +76,7 @@ class XRAY_OT_export_ogf(
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         self.texture_name_from_image_path = preferences.object_texture_names_from_path
         return super().invoke(context, event)
 
@@ -94,7 +91,7 @@ def menu_func_export(self, _context):
 
 
 def register():
-    assign_props([
+    version_utils.assign_props([
         (model_export_helper_props, ModelExportHelper),
         (op_export_ogf_props, XRAY_OT_export_ogf)
     ])

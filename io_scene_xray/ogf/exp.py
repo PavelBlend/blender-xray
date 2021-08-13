@@ -1,26 +1,18 @@
 # blender modules
 import bpy
+import bmesh
 import mathutils
-from bmesh.ops import triangulate
 
 # addon modules
-from .fmt import Chunks_v4, ModelType_v4, VertexFormat
-from ..xray_io import ChunkedWriter, PackedWriter
-from ..utils import is_helper_object, save_file
-from ..xray_motions import MATRIX_BONE_INVERTED
-from ..version_utils import get_multiply, IS_28, IMAGE_NODES
-from ..utils import (
-    AppError,
-    is_exportable_bone,
-    find_bone_exportable_parent,
-    fix_ensure_lookup_table,
-    convert_object_to_space_bmesh,
-    calculate_mesh_bbox,
-    gen_texture_name
-)
+from . import fmt
+from .. import xray_io
+from .. import utils
+from .. import xray_motions
+from .. import version_utils
+from .. import utils
 
 
-multiply = get_multiply()
+multiply = version_utils.get_multiply()
 
 
 def calculate_mesh_bsphere(bbox, vertices, mat=mathutils.Matrix()):
@@ -39,7 +31,7 @@ def calculate_mesh_bsphere(bbox, vertices, mat=mathutils.Matrix()):
 
 def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
     def scan_meshes(bpy_obj, meshes):
-        if is_helper_object(bpy_obj):
+        if utils.is_helper_object(bpy_obj):
             return
         if (bpy_obj.type == 'MESH') and bpy_obj.data.vertices:
             meshes.append(bpy_obj)
@@ -47,7 +39,7 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
             scan_meshes(child, meshes)
 
     def scan_meshes_using_cache(bpy_obj, meshes, cache):
-        if is_helper_object(bpy_obj):
+        if utils.is_helper_object(bpy_obj):
             return
         if (bpy_obj.type == 'MESH') and bpy_obj.data.vertices:
             meshes.append(bpy_obj)
@@ -63,18 +55,18 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
 
     bbox = None
     spheres = []
-    for mesh in meshes:
-        if cache.bounds.get(mesh.name, None):
-            bbx, center, radius = cache.bounds[mesh.name]
+    for bpy_mesh in meshes:
+        if cache.bounds.get(bpy_mesh.name, None):
+            bbx, center, radius = cache.bounds[bpy_mesh.name]
         else:
             if apply_transforms:
-                mat_world = mesh.matrix_world
+                mat_world = bpy_mesh.matrix_world
             else:
                 mat_world = mathutils.Matrix()
-            bmesh = convert_object_to_space_bmesh(mesh, mat_world)
-            bbx = calculate_mesh_bbox(bmesh.verts, mat=mat_world)
-            center, radius = calculate_mesh_bsphere(bbx, bmesh.verts, mat=mat_world)
-            cache.bounds[mesh.name] = bbx, center, radius
+            mesh = utils.convert_object_to_space_bmesh(bpy_mesh, mat_world)
+            bbx = utils.calculate_mesh_bbox(mesh.verts, mat=mat_world)
+            center, radius = calculate_mesh_bsphere(bbx, mesh.verts, mat=mat_world)
+            cache.bounds[bpy_mesh.name] = bbx, center, radius
 
         if bbox is None:
             bbox = bbx
@@ -116,16 +108,16 @@ def pw_v3f(vec):
 
 
 def _export_child(bpy_obj, cwriter, context, vgm):
-    bmesh = convert_object_to_space_bmesh(bpy_obj, mathutils.Matrix.Identity(4))
-    bbox = calculate_mesh_bbox(bmesh.verts)
-    bsph = calculate_mesh_bsphere(bbox, bmesh.verts)
-    triangulate(bmesh, faces=bmesh.faces)
+    mesh = utils.convert_object_to_space_bmesh(bpy_obj, mathutils.Matrix.Identity(4))
+    bbox = utils.calculate_mesh_bbox(mesh.verts)
+    bsph = calculate_mesh_bsphere(bbox, mesh.verts)
+    bmesh.ops.triangulate(mesh, faces=mesh.faces)
     bpy_data = bpy.data.meshes.new('.export-ogf')
-    bmesh.to_mesh(bpy_data)
+    mesh.to_mesh(bpy_data)
 
     cwriter.put(
         Chunks.HEADER,
-        PackedWriter()
+        xray_io.PackedWriter()
         .putf('B', 4)  # ogf version
         .putf('B', ModelType.SKELETON_GEOMDEF_ST)
         .putf('H', 0)  # shader id
@@ -135,33 +127,33 @@ def _export_child(bpy_obj, cwriter, context, vgm):
 
     material = bpy_obj.data.materials[0]
     texture = None
-    if IS_28:
+    if version_utils.IS_28:
         if material.use_nodes:
             for node in material.node_tree.nodes:
-                if node.type in IMAGE_NODES:
+                if node.type in version_utils.IMAGE_NODES:
                     texture = node
         else:
-            raise AppError('Material "{}" cannot use nodes.'.format(material.name))
+            raise utils.AppError('Material "{}" cannot use nodes.'.format(material.name))
     else:
         texture = material.active_texture
     cwriter.put(
         Chunks.TEXTURE,
-        PackedWriter()
+        xray_io.PackedWriter()
         .puts(
-            gen_texture_name(texture.image, context.textures_folder)
+            utils.gen_texture_name(texture.image, context.textures_folder)
             if context.texname_from_path else
             texture.name
         )
         .puts(material.xray.eshader)
     )
 
-    bml_uv = bmesh.loops.layers.uv.active
-    bml_vw = bmesh.verts.layers.deform.verify()
+    bml_uv = mesh.loops.layers.uv.active
+    bml_vw = mesh.verts.layers.deform.verify()
     bpy_data.calc_tangents(uvmap=bml_uv.name)
     vertices = []
     indices = []
     vmap = {}
-    for face in bmesh.faces:
+    for face in mesh.faces:
         face_indices = []
         for loop_index, loop in enumerate(face.loops):
             data_loop = bpy_data.loops[face.index * 3 + loop_index]
@@ -182,17 +174,17 @@ def _export_child(bpy_obj, cwriter, context, vgm):
         indices.append(face_indices)
 
     vwmx = 0
-    for vertex in bmesh.verts:
+    for vertex in mesh.verts:
         vwc = len(vertex[bml_vw])
         if vwc > vwmx:
             vwmx = vwc
 
-    fix_ensure_lookup_table(bmesh.verts)
-    pwriter = PackedWriter()
+    utils.fix_ensure_lookup_table(mesh.verts)
+    pwriter = xray_io.PackedWriter()
     if vwmx == 1:
-        pwriter.putf('II', VertexFormat.FVF_1L, len(vertices))
+        pwriter.putf('II', fmt.VertexFormat.FVF_1L, len(vertices))
         for vertex in vertices:
-            weights = bmesh.verts[vertex[0]][bml_vw]
+            weights = mesh.verts[vertex[0]][bml_vw]
             pwriter.putf('fff', *pw_v3f(vertex[1]))
             pwriter.putf('fff', *pw_v3f(vertex[2]))
             pwriter.putf('fff', *pw_v3f(vertex[3]))
@@ -202,9 +194,9 @@ def _export_child(bpy_obj, cwriter, context, vgm):
     else:
         if vwmx != 2:
             print('warning: vwmx=%i' % vwmx)
-        pwriter.putf('II', VertexFormat.FVF_2L, len(vertices))
+        pwriter.putf('II', fmt.VertexFormat.FVF_2L, len(vertices))
         for vertex in vertices:
-            weights = bmesh.verts[vertex[0]][bml_vw]
+            weights = mesh.verts[vertex[0]][bml_vw]
             if len(weights) > 2:
                 weights = top_two(weights)
             weight = 0
@@ -231,7 +223,7 @@ def _export_child(bpy_obj, cwriter, context, vgm):
             pwriter.putf('ff', *vertex[5])
     cwriter.put(Chunks.VERTICES, pwriter)
 
-    pwriter = PackedWriter()
+    pwriter = xray_io.PackedWriter()
     pwriter.putf('I', 3 * len(indices))
     for face in indices:
         pwriter.putf('HHH', face[0], face[2], face[1])
@@ -242,7 +234,7 @@ def _export(bpy_obj, cwriter, context):
     bbox, bsph = calculate_bbox_and_bsphere(bpy_obj)
     cwriter.put(
         Chunks.HEADER,
-        PackedWriter()
+        xray_io.PackedWriter()
         .putf('B', 4)  # ogf version
         .putf('B', ModelType.SKELETON_ANIM if bpy_obj.xray.motionrefs else ModelType.SKELETON_RIGID)
         .putf('H', 0)  # shader id
@@ -252,7 +244,7 @@ def _export(bpy_obj, cwriter, context):
 
     cwriter.put(
         Chunks.S_DESC,
-        PackedWriter()
+        xray_io.PackedWriter()
         .puts(bpy_obj.name)
         .puts('blender')
         .putf('III', 0, 0, 0)
@@ -271,7 +263,7 @@ def _export(bpy_obj, cwriter, context):
         return idx
 
     def scan_r(bpy_obj):
-        if is_helper_object(bpy_obj):
+        if utils.is_helper_object(bpy_obj):
             return
         if bpy_obj.type == 'MESH':
             vgm = {}
@@ -280,19 +272,19 @@ def _export(bpy_obj, cwriter, context):
                     for i, group in enumerate(bpy_obj.vertex_groups):
                         bone = modifier.object.data.bones.get(group.name, None)
                         if bone is None:
-                            raise AppError(
+                            raise utils.AppError(
                                 'bone "%s" not found in armature "%s" (for object "%s")' % (
                                     group.name, modifier.object.name, bpy_obj.name,
                                 ),
                             )
                         vgm[i] = reg_bone(bone, modifier.object)
                     break  # use only first armature modifier
-            mwriter = ChunkedWriter()
+            mwriter = xray_io.ChunkedWriter()
             _export_child(bpy_obj, mwriter, context, vgm)
             meshes.append(mwriter)
         elif bpy_obj.type == 'ARMATURE':
             for bone in bpy_obj.data.bones:
-                if not is_exportable_bone(bone):
+                if not utils.is_exportable_bone(bone):
                     continue
                 reg_bone(bone, bpy_obj)
         for child in bpy_obj.children:
@@ -300,17 +292,17 @@ def _export(bpy_obj, cwriter, context):
 
     scan_r(bpy_obj)
 
-    ccw = ChunkedWriter()
+    ccw = xray_io.ChunkedWriter()
     idx = 0
     for mwriter in meshes:
         ccw.put(idx, mwriter)
         idx += 1
     cwriter.put(Chunks.CHILDREN, ccw)
 
-    pwriter = PackedWriter()
+    pwriter = xray_io.PackedWriter()
     pwriter.putf('I', len(bones))
     for bone, _ in bones:
-        b_parent = find_bone_exportable_parent(bone)
+        b_parent = utils.find_bone_exportable_parent(bone)
         pwriter.puts(bone.name)
         pwriter.puts(b_parent.name if b_parent else '')
         xray = bone.xray
@@ -319,7 +311,7 @@ def _export(bpy_obj, cwriter, context):
         pwriter.putf('fff', *xray.shape.box_hsz)
     cwriter.put(Chunks.S_BONE_NAMES, pwriter)
 
-    pwriter = PackedWriter()
+    pwriter = xray_io.PackedWriter()
     for bone, obj in bones:
         pbone = obj.pose.bones[bone.name]
         xray = bone.xray
@@ -348,11 +340,11 @@ def _export(bpy_obj, cwriter, context):
         pwriter.putf('ff', xray.breakf.force, xray.breakf.torque)
         pwriter.putf('f', xray.friction)
         mwriter = obj.matrix_world
-        mat = multiply(mwriter, bone.matrix_local, MATRIX_BONE_INVERTED)
-        b_parent = find_bone_exportable_parent(bone)
+        mat = multiply(mwriter, bone.matrix_local, xray_motions.MATRIX_BONE_INVERTED)
+        b_parent = utils.find_bone_exportable_parent(bone)
         if b_parent:
             mat = multiply(multiply(
-                mwriter, b_parent.matrix_local, MATRIX_BONE_INVERTED
+                mwriter, b_parent.matrix_local, xray_motions.MATRIX_BONE_INVERTED
             ).inverted(), mat)
         euler = mat.to_euler('YXZ')
         pwriter.putf('fff', -euler.x, -euler.z, -euler.y)
@@ -360,12 +352,12 @@ def _export(bpy_obj, cwriter, context):
         pwriter.putf('ffff', xray.mass.value, *pw_v3f(xray.mass.center))
     cwriter.put(Chunks.S_IKDATA, pwriter)
 
-    cwriter.put(Chunks.S_USERDATA, PackedWriter().puts(bpy_obj.xray.userdata))
+    cwriter.put(Chunks.S_USERDATA, xray_io.PackedWriter().puts(bpy_obj.xray.userdata))
     if bpy_obj.xray.motionrefs:
-        cwriter.put(Chunks.S_MOTION_REFS_0, PackedWriter().puts(bpy_obj.xray.motionrefs))
+        cwriter.put(Chunks.S_MOTION_REFS_0, xray_io.PackedWriter().puts(bpy_obj.xray.motionrefs))
 
 
 def export_file(bpy_obj, fpath, context):
-    cwriter = ChunkedWriter()
+    cwriter = xray_io.ChunkedWriter()
     _export(bpy_obj, cwriter, context)
-    save_file(fpath, cwriter)
+    utils.save_file(fpath, cwriter)
