@@ -1,3 +1,6 @@
+# standart modules
+import zlib
+
 # blender modules
 import bpy
 import mathutils
@@ -228,8 +231,6 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
             exec('{0} = xray_colorize_materials_props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
-        from zlib import crc32
-
         objects = context.selected_objects
         if not objects:
             self.report({'ERROR'}, 'No objects selected')
@@ -248,7 +249,7 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
                 continue
             data = bytearray(mat.name, 'utf8')
             data.append(self.seed)
-            hsh = crc32(data)
+            hsh = zlib.crc32(data)
             color = mathutils.Color()
             color.hsv = (
                 (hsh & 0xFF) / 0xFF,
