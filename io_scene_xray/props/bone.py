@@ -203,7 +203,10 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         # draw limits
         arm_xray = obj_arm.data.xray
         if IS_28:
-            hide = obj_arm.hide_viewport
+            hide_global = obj_arm.hide_viewport
+            view_layer = bpy.context.view_layer
+            hide_viewport = obj_arm.hide_get(view_layer=view_layer)
+            hide = hide_global or hide_viewport
         else:
             hide = obj_arm.hide
         multiply = get_multiply()
@@ -214,11 +217,16 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
 
         bgl.glEnable(bgl.GL_BLEND)
 
-        if not hide and arm_xray.display_bone_limits and \
-                        bone.xray.exportable and obj_arm.mode == 'POSE':
-            if bone.select and bone.xray.ikjoint.type in {'2', '3', '5'} and \
-                    bpy.context.object.name == obj_arm.name:
+        hide_bone = bone.hide
+        hided = hide or hide_bone
+        is_pose = obj_arm.mode == 'POSE'
+        exportable = bone.xray.exportable
+        draw_overlays = not hided and is_pose and exportable
 
+        if draw_overlays and arm_xray.display_bone_limits:
+            is_active_object = bpy.context.object.name == obj_arm.name
+            has_shape = bone.xray.ikjoint.type in {'2', '3', '5'}
+            if bone.select and has_shape and is_active_object:
                 draw_joint_limits = viewport.get_draw_joint_limits()
 
                 if IS_28:
@@ -298,23 +306,33 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
 
         preferences = get_preferences()
         # set color
-        active_bone = bpy.context.active_bone
-        color = None
-        if active_bone:
-            if active_bone.id_data == obj_arm.data:
-                if active_bone.name == bone.name:
-                    color = preferences.gl_active_shape_color
-        if color is None:
-            color = preferences.gl_shape_color
+        if is_pose:
+            active_bone = bpy.context.active_bone
+            color = None
+            if active_bone:
+                if active_bone.id_data == obj_arm.data:
+                    if active_bone.name == bone.name:
+                        color = preferences.gl_active_shape_color
+            if color is None:
+                if bone.select:
+                    color = preferences.gl_select_shape_color
+                else:
+                    color = preferences.gl_shape_color
+        else:
+            color = preferences.gl_object_mode_shape_color
+
         if not IS_28:
             bgl.glColor4f(*color)
 
         # draw mass centers
-        if obj_arm.data.xray.display_bone_mass_centers:
+        is_edit = obj_arm.mode == 'EDIT'
+        draw_mass = obj_arm.data.xray.display_bone_mass_centers
+        if draw_mass and exportable and not hided and not is_edit:
             ctr = self.mass.center
-            trn = multiply(bmat, mathutils.Vector(
-                (ctr[0], ctr[2], ctr[1])
-            ))
+            trn = multiply(
+                bmat,
+                mathutils.Vector((ctr[0], ctr[2], ctr[1]))
+            )
             cross_size = obj_arm.data.xray.bone_mass_center_cross_size
             if IS_28:
                 gpu.matrix.push()
@@ -326,14 +344,11 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 bgl.glPushMatrix()
                 bgl.glTranslatef(*trn)
                 viewport.draw_cross(cross_size)
+                bgl.glPopMatrix()
 
         # draw shapes
-        if IS_28:
-            arm_hide = obj_arm.hide_viewport
-        else:
-            arm_hide = obj_arm.hide
-        if arm_hide or not obj_arm.data.xray.display_bone_shapes or \
-                        not bone.xray.exportable or obj_arm.mode == 'EDIT':
+        draw_shapes = obj_arm.data.xray.display_bone_shapes
+        if hided or not draw_shapes or not exportable or is_edit:
             bgl.glLineWidth(prev_line_width[0])
             return
 

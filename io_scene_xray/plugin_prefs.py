@@ -291,7 +291,11 @@ class PluginPreferences(bpy.types.AddonPreferences):
             row = layout.row()
             row.prop(self, 'gl_shape_color')
             row = layout.row()
+            row.prop(self, 'gl_select_shape_color')
+            row = layout.row()
             row.prop(self, 'gl_active_shape_color')
+            row = layout.row()
+            row.prop(self, 'gl_object_mode_shape_color')
 
         split = version_utils.layout_split(layout, 0.6)
         split.label(text='')
