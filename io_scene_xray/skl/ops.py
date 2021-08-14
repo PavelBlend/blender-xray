@@ -15,7 +15,6 @@ from ..ui.motion_list import (
     _DeselectDuplicatedMotionsOp,
     XRAY_UL_MotionsList
 )
-from ..ops.base import BaseOperator as TestReadyOperator
 from ..utils import (
     execute_with_logger, invoke_require_armature, execute_require_filepath,
     FilenameExtHelper, set_cursor_state, AppError
@@ -46,7 +45,7 @@ op_import_skls_props = {
 }
 
 
-class XRAY_OT_import_skls(TestReadyOperator, bpy_extras.io_utils.ImportHelper):
+class XRAY_OT_import_skls(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.skls'
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
@@ -163,7 +162,7 @@ op_export_skl_props = {
 }
 
 
-class XRAY_OT_export_skl(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
+class XRAY_OT_export_skl(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHelper):
     bl_idname = 'xray_export.skl'
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animation'
@@ -204,7 +203,7 @@ op_export_skls_props = {
 }
 
 
-class XRAY_OT_export_skls(bpy.types.Operator, FilenameExtHelper):
+class XRAY_OT_export_skls(plugin_props.BaseOperator, FilenameExtHelper):
     bl_idname = 'xray_export.skls'
     bl_label = 'Export .skls'
     bl_description = 'Exports X-Ray skeletal animation'

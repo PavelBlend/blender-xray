@@ -9,7 +9,6 @@ import bpy_extras
 from . import utility
 from .. import imp
 from ... import obj
-from ... import ops
 from ... import icons
 from ... import utils
 from ... import version_utils
@@ -32,7 +31,7 @@ op_import_object_props = {
 }
 
 
-class XRAY_OT_import_object(ops.base.BaseOperator, bpy_extras.io_utils.ImportHelper):
+class XRAY_OT_import_object(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
     bl_label = 'Import .object'
     bl_description = 'Imports X-Ray object'

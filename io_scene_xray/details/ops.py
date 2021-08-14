@@ -51,7 +51,7 @@ op_import_details_props = {
 }
 
 
-class XRAY_OT_import_details(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
+class XRAY_OT_import_details(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHelper):
 
     bl_idname = 'xray_import.details'
     bl_label = 'Import .details'
@@ -141,7 +141,7 @@ op_export_details_props = {
 
 
 class XRAY_OT_export_details(
-        bpy.types.Operator, bpy_extras.io_utils.ExportHelper
+        plugin_props.BaseOperator, bpy_extras.io_utils.ExportHelper
     ):
 
     bl_idname = 'xray_export.details'

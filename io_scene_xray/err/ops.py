@@ -5,9 +5,9 @@ import bpy_extras
 # addon modules
 from . import imp
 from .. import icons
-from .. import ops
 from .. import utils
 from .. import version_utils
+from .. import plugin_props
 
 
 op_import_err_props = {
@@ -19,7 +19,7 @@ op_import_err_props = {
 
 
 class XRAY_OT_import_err(
-        ops.base.BaseOperator,
+        plugin_props.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
     bl_idname = 'xray_import.err'

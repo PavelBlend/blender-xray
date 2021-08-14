@@ -55,7 +55,7 @@ op_export_ogf_props = {
 
 
 class XRAY_OT_export_ogf(
-        bpy.types.Operator,
+        plugin_props.BaseOperator,
         bpy_extras.io_utils.ExportHelper,
         ModelExportHelper
     ):

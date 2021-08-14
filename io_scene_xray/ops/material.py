@@ -1,10 +1,9 @@
 # blender modules
 import bpy
-from mathutils import Color
+import mathutils
 
 # addon modules
-from ..version_utils import IS_28, IMAGE_NODES, assign_props
-from .. import utils
+from .. import version_utils
 
 
 def get_object_materials(bpy_object, materials):
@@ -44,7 +43,7 @@ def get_image_nodes(node, image_nodes):
             from_node = link.from_node
             break
         if from_node:
-            if from_node.type in IMAGE_NODES:
+            if from_node.type in version_utils.IMAGE_NODES:
                 image_nodes.append(from_node)
             get_image_nodes(from_node, image_nodes)
 
@@ -224,7 +223,7 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
     bl_label = 'Colorize Materials'
     bl_description = 'Set a pseudo-random diffuse color for each surface (material)'
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in xray_colorize_materials_props.items():
             exec('{0} = xray_colorize_materials_props.get("{0}")'.format(prop_name))
 
@@ -250,14 +249,14 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
             data = bytearray(mat.name, 'utf8')
             data.append(self.seed)
             hsh = crc32(data)
-            color = Color()
+            color = mathutils.Color()
             color.hsv = (
                 (hsh & 0xFF) / 0xFF,
                 (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * self.power,
                 ((hsh >> 2) & 1) * (0.5 * self.power) + 0.5
             )
             color = [color.r, color.g, color.b]
-            if IS_28:
+            if version_utils.IS_28:
                 color.append(1.0)    # alpha
             mat.diffuse_color = color
         return {'FINISHED'}
@@ -271,15 +270,17 @@ classes = (
 
 
 def register():
-    assign_props([(xray_colorize_materials_props, XRAY_OT_colorize_materials), ])
+    version_utils.assign_props(
+        [(xray_colorize_materials_props, XRAY_OT_colorize_materials), ]
+    )
     bpy.utils.register_class(XRAY_OT_colorize_materials)
-    if not IS_28:
+    if not version_utils.IS_28:
         for operator in classes:
             bpy.utils.register_class(operator)
 
 
 def unregister():
-    if not IS_28:
+    if not version_utils.IS_28:
         for operator in reversed(classes):
             bpy.utils.unregister_class(operator)
     bpy.utils.unregister_class(XRAY_OT_colorize_materials)

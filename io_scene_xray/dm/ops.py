@@ -44,7 +44,7 @@ op_import_dm_props = {
 }
 
 
-class XRAY_OT_import_dm(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
+class XRAY_OT_import_dm(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.dm'
     bl_label = 'Import .dm'
     bl_description = 'Imports X-Ray Detail Models (.dm)'
@@ -99,7 +99,7 @@ op_export_dms_props = {
     'texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath()
 }
 
-class XRAY_OT_export_dm(bpy.types.Operator):
+class XRAY_OT_export_dm(plugin_props.BaseOperator):
     bl_idname = 'xray_export.dm'
     bl_label = 'Export .dm'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -167,7 +167,7 @@ op_export_dm_props = {
 
 
 class XRAY_OT_export_single_dm(
-        bpy.types.Operator,
+        plugin_props.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
 

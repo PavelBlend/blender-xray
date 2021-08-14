@@ -2,6 +2,15 @@
 import bpy
 
 
+class BaseOperator(bpy.types.Operator):
+    report_catcher = None
+
+    def __getattribute__(self, item):
+        if (item == 'report') and (self.report_catcher is not None):
+            return self.report_catcher
+        return super().__getattribute__(item)
+
+
 def PropObjectTextureNamesFromPath():
     return bpy.props.BoolProperty(
         name='Texture Names from Image Paths',

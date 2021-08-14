@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from ..version_utils import set_active_object, IS_28
+from .. import version_utils
 
 
 class XRAY_OT_VerifyUV(bpy.types.Operator):
@@ -27,17 +27,17 @@ class XRAY_OT_VerifyUV(bpy.types.Operator):
                 bad_objects.append(bpy_object.name)
         bpy.ops.object.select_all(action='DESELECT')
         for bad_object_name in bad_objects:
-            if IS_28:
+            if version_utils.IS_28:
                 bpy.data.objects[bad_object_name].select_set(True)
             else:
                 bpy.data.objects[bad_object_name].select = True
-        set_active_object(None)
+        version_utils.set_active_object(None)
         return {'FINISHED'}
 
     def verify_uv(self, context, bpy_object):
         if bpy_object.type != 'MESH':
             return self.CORRECT_UV
-        set_active_object(bpy_object)
+        version_utils.set_active_object(bpy_object)
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.reveal()
         bpy.ops.mesh.select_all(action='DESELECT')

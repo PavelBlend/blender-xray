@@ -2,6 +2,7 @@
 import bpy
 
 # addon modules
+from .. import prefs
 from .. import version_utils
 
 
@@ -287,9 +288,8 @@ class XRAY_OT_RemoveXRayCustomProperties(bpy.types.Operator):
     bl_label = 'Remove X-Ray Custom Properties'
 
     def execute(self, context):
-        from ..prefs.props import xray_custom_properties
         preferences = version_utils.get_preferences()
-        props_list = xray_custom_properties.keys()
+        props_list = prefs.props.xray_custom_properties.keys()
         props_values = []
         for prop_name in props_list:
             prop_value = getattr(preferences.custom_props, prop_name, None)

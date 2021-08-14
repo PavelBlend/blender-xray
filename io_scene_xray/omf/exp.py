@@ -6,8 +6,10 @@ import bpy
 import mathutils
 
 # addon modules
-from . import fmt, imp
-from .. import xray_io, utils
+from . import fmt
+from . import imp
+from .. import xray_io
+from .. import utils
 
 
 def get_flags(xray):

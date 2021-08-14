@@ -20,7 +20,7 @@ op_export_level_scene_props = {
 
 
 class XRAY_OT_export_scene_selection(
-        bpy.types.Operator, bpy_extras.io_utils.ExportHelper
+        plugin_props.BaseOperator, bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.scene'
     bl_label = 'Export .level'
@@ -72,7 +72,7 @@ op_import_level_scene_props = {
 
 
 class XRAY_OT_import_scene_selection(
-        bpy.types.Operator,
+        plugin_props.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
     bl_idname = 'xray_import.scene'

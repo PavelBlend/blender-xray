@@ -4,7 +4,8 @@ import mathutils
 
 # addon modules
 from . import fmt
-from .. import xray_io, utils
+from .. import xray_io
+from .. import utils
 
 
 MATRIX_BONE = mathutils.Matrix((

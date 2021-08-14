@@ -7,7 +7,6 @@ import bpy_extras
 
 # addon modules
 from .. import exp
-from ... import ops
 from ... import icons
 from ... import utils
 from ... import contexts
@@ -79,7 +78,7 @@ op_export_object_props = {
 }
 
 
-class XRAY_OT_export_object(ops.base.BaseOperator, _WithExportMotions):
+class XRAY_OT_export_object(plugin_props.BaseOperator, _WithExportMotions):
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
     bl_options = {'PRESET'}
@@ -168,7 +167,7 @@ op_export_single_object_props = {
 
 
 class XRAY_OT_export_single_object(
-        ops.base.BaseOperator,
+        plugin_props.BaseOperator,
         bpy_extras.io_utils.ExportHelper,
         _WithExportMotions
     ):
@@ -254,7 +253,7 @@ op_export_project_props = {
 }
 
 
-class XRAY_OT_export_project(ops.base.BaseOperator):
+class XRAY_OT_export_project(plugin_props.BaseOperator):
     bl_idname = 'xray_export.project'
     bl_label = 'Export XRay Project'
 

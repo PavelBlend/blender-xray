@@ -2,7 +2,8 @@
 import bpy
 
 # addon modules
-from .. import xray_ltx, version_utils
+from .. import xray_ltx
+from .. import version_utils
 
 
 SECTION_NAME = 'action_xray_settings'

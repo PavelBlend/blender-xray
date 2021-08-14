@@ -6,18 +6,14 @@ import bpy
 import bpy_extras
 
 # addon modules
-from . import imp, exp
-from .. import utils, icons, contexts, plugin_props
-from ..ui import collapsible
-from ..ui.motion_list import (
-    BaseSelectMotionsOp,
-    _SelectMotionsOp,
-    _DeselectMotionsOp,
-    _DeselectDuplicatedMotionsOp
-)
-from ..version_utils import (
-    IS_28, assign_props, get_multiply, get_preferences
-)
+from . import imp
+from . import exp
+from .. import utils
+from .. import icons
+from .. import contexts
+from .. import plugin_props
+from .. import ui
+from .. import version_utils
 
 
 class ImportOmfContext(
@@ -50,7 +46,7 @@ motion_props = {
 
 
 class Motion(bpy.types.PropertyGroup):
-    if not IS_28:
+    if not version_utils.IS_28:
         exec('{0} = motion_props.get("{0}")'.format('flag'))
         exec('{0} = motion_props.get("{0}")'.format('name'))
 
@@ -73,7 +69,7 @@ op_import_omf_props = {
 
 
 class XRAY_OT_import_omf(
-        bpy.types.Operator, bpy_extras.io_utils.ImportHelper
+        plugin_props.BaseOperator, bpy_extras.io_utils.ImportHelper
     ):
 
     bl_idname = 'xray_import.omf'
@@ -83,7 +79,7 @@ class XRAY_OT_import_omf(
 
     __parsed_file_name = None
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_import_omf_props.items():
             exec('{0} = op_import_omf_props.get("{0}")'.format(prop_name))
 
@@ -126,7 +122,7 @@ class XRAY_OT_import_omf(
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         self.import_motions = preferences.omf_import_motions
         self.import_bone_parts = preferences.import_bone_parts
         self.add_actions_to_motion_list = preferences.omf_add_actions_to_motion_list
@@ -168,7 +164,7 @@ class XRAY_OT_import_omf(
                 layout.label(text='OMF file contains one motion')
 
         if enabled:
-            _, box = collapsible.draw(
+            _, box = ui.collapsible.draw(
                 layout,
                 self.bl_idname,
                 text,
@@ -179,17 +175,17 @@ class XRAY_OT_import_omf(
 
             if box:
                 col = box.column(align=True)
-                BaseSelectMotionsOp.set_motions_list(None)
+                ui.motion_list.BaseSelectMotionsOp.set_motions_list(None)
                 col.template_list(
                     'XRAY_UL_MotionsList', '',
                     self, 'motions',
                     context.scene.xray.import_omf, 'motion_index',
                 )
                 row = col.row(align=True)
-                BaseSelectMotionsOp.set_data(self)
-                row.operator(_SelectMotionsOp.bl_idname, icon='CHECKBOX_HLT')
-                row.operator(_DeselectMotionsOp.bl_idname, icon='CHECKBOX_DEHLT')
-                row.operator(_DeselectDuplicatedMotionsOp.bl_idname, icon='COPY_ID')
+                ui.motion_list.BaseSelectMotionsOp.set_data(self)
+                row.operator(ui.motion_list._SelectMotionsOp.bl_idname, icon='CHECKBOX_HLT')
+                row.operator(ui.motion_list._DeselectMotionsOp.bl_idname, icon='CHECKBOX_DEHLT')
+                row.operator(ui.motion_list._DeselectDuplicatedMotionsOp.bl_idname, icon='COPY_ID')
 
     def _get_motions(self):
         items = self.motions
@@ -218,7 +214,7 @@ op_export_omf_props = {
 }
 
 
-class XRAY_OT_export_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
+class XRAY_OT_export_omf(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHelper):
     bl_idname = 'xray_export.omf'
     bl_label = 'Export .omf'
     bl_description = 'Exports X-Ray skeletal game motions'
@@ -226,7 +222,7 @@ class XRAY_OT_export_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
 
     filename_ext = '.omf'
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_export_omf_props.items():
             exec('{0} = op_export_omf_props.get("{0}")'.format(prop_name))
 
@@ -304,7 +300,7 @@ class XRAY_OT_export_omf(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         self.export_mode = preferences.omf_export_mode
         self.export_bone_parts = preferences.omf_export_bone_parts
         self.export_motions = preferences.omf_motions_export
@@ -364,7 +360,7 @@ classes = (
 
 def register():
     for operator, props in classes:
-        assign_props([(props, operator), ])
+        version_utils.assign_props([(props, operator), ])
         bpy.utils.register_class(operator)
 
 

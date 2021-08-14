@@ -1,17 +1,14 @@
 # addon modules
-from . import (
-    base,
-    action_utils,
-    armature_utils,
-    material,
-    custom_props_utils,
-    fake_bones,
-    joint_limits,
-    shader_tools,
-    transform_utils,
-    verify_uv,
-    xray_camera
-)
+from . import action_utils
+from . import armature_utils
+from . import material
+from . import custom_props_utils
+from . import fake_bones
+from . import joint_limits
+from . import shader_tools
+from . import transform_utils
+from . import verify_uv
+from . import xray_camera
 
 
 modules = (
