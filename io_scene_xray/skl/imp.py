@@ -2,9 +2,10 @@
 import os
 
 # addon modules
-from .. import log, contexts
-from ..xray_io import ChunkedReader, PackedReader
-from ..xray_motions import import_motion, import_motions
+from .. import log
+from .. import contexts
+from .. import xray_io
+from .. import xray_motions
 
 
 class ImportSklContext(contexts.ImportAnimationOnlyContext):
@@ -20,11 +21,11 @@ def _import_skl(fpath, context, chunked_reader):
         return
     for cid, cdata in chunked_reader:
         if cid == 0x1200:
-            reader = PackedReader(cdata)
+            reader = xray_io.PackedReader(cdata)
             bonesmap = {
                 b.name.lower(): b for b in context.bpy_arm_obj.data.bones
             }
-            act = import_motion(
+            act = xray_motions.import_motion(
                 reader, context, bonesmap, set(), skl_file_name=name
             )
             act.name = name
@@ -34,10 +35,10 @@ def _import_skl(fpath, context, chunked_reader):
 
 def import_skl_file(fpath, context):
     with open(fpath, 'rb') as file:
-        _import_skl(fpath, context, ChunkedReader(file.read()))
+        _import_skl(fpath, context, xray_io.ChunkedReader(file.read()))
 
 
 def import_skls_file(fpath, context):
     with open(fpath, 'rb') as file:
-        reader = PackedReader(file.read())
-        import_motions(reader, context, context.motions_filter)
+        reader = xray_io.PackedReader(file.read())
+        xray_motions.import_motions(reader, context, context.motions_filter)

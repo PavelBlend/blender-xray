@@ -6,21 +6,14 @@ import bpy
 import bpy_extras
 
 # addon modules
-from .. import icons, plugin_props
-from ..ui import collapsible
-from ..ui.motion_list import (
-    BaseSelectMotionsOp,
-    _SelectMotionsOp,
-    _DeselectMotionsOp,
-    _DeselectDuplicatedMotionsOp,
-    XRAY_UL_MotionsList
-)
-from ..utils import (
-    execute_with_logger, invoke_require_armature, execute_require_filepath,
-    FilenameExtHelper, set_cursor_state, AppError
-)
-from ..xray_motions import MOTIONS_FILTER_ALL
-from ..version_utils import assign_props, IS_28, get_preferences
+from . import imp
+from . import exp
+from .. import icons
+from .. import plugin_props
+from .. import ui
+from .. import utils
+from .. import xray_motions
+from .. import version_utils
 
 
 motion_props = {
@@ -30,7 +23,7 @@ motion_props = {
 
 
 class Motion(bpy.types.PropertyGroup):
-    if not IS_28:
+    if not version_utils.IS_28:
         exec('{0} = motion_props.get("{0}")'.format('flag'))
         exec('{0} = motion_props.get("{0}")'.format('name'))
 
@@ -51,7 +44,7 @@ class XRAY_OT_import_skls(plugin_props.BaseOperator, bpy_extras.io_utils.ImportH
     bl_description = 'Imports X-Ray skeletal amination'
     bl_options = {'UNDO', 'PRESET'}
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_import_skls_props.items():
             exec('{0} = op_import_skls_props.get("{0}")'.format(prop_name))
 
@@ -75,7 +68,7 @@ class XRAY_OT_import_skls(plugin_props.BaseOperator, bpy_extras.io_utils.ImportH
                 text += 'All (%d)' % count
             else:
                 text += str(count)
-        _, box = collapsible.draw(
+        _, box = ui.collapsible.draw(
             layout,
             self.bl_idname,
             text,
@@ -85,17 +78,17 @@ class XRAY_OT_import_skls(plugin_props.BaseOperator, bpy_extras.io_utils.ImportH
         )
         if box:
             col = box.column(align=True)
-            BaseSelectMotionsOp.set_motions_list(None)
+            ui.motion_list.BaseSelectMotionsOp.set_motions_list(None)
             col.template_list(
                 'XRAY_UL_MotionsList', '',
                 self, 'motions',
                 context.scene.xray.import_skls, 'motion_index',
             )
             row = col.row(align=True)
-            BaseSelectMotionsOp.set_data(self)
-            row.operator(_SelectMotionsOp.bl_idname, icon='CHECKBOX_HLT')
-            row.operator(_DeselectMotionsOp.bl_idname, icon='CHECKBOX_DEHLT')
-            row.operator(_DeselectDuplicatedMotionsOp.bl_idname, icon='COPY_ID')
+            ui.motion_list.BaseSelectMotionsOp.set_data(self)
+            row.operator(ui.motion_list._SelectMotionsOp.bl_idname, icon='CHECKBOX_HLT')
+            row.operator(ui.motion_list._DeselectMotionsOp.bl_idname, icon='CHECKBOX_DEHLT')
+            row.operator(ui.motion_list._DeselectDuplicatedMotionsOp.bl_idname, icon='COPY_ID')
 
     def _get_motions(self):
         items = self.motions
@@ -113,24 +106,22 @@ class XRAY_OT_import_skls(plugin_props.BaseOperator, bpy_extras.io_utils.ImportH
     @staticmethod
     def _examine_file(fpath):
         if fpath.lower().endswith('.skls'):
-            from ..xray_motions import examine_motions
             if os.path.exists(fpath):
                 with open(fpath, 'rb') as file:
-                    return examine_motions(file.read())
+                    return xray_motions.examine_motions(file.read())
         return tuple()
 
-    @execute_with_logger
-    @set_cursor_state
+    @utils.execute_with_logger
+    @utils.set_cursor_state
     def execute(self, context):
         if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
-        from .imp import import_skl_file, import_skls_file, ImportSklContext
-        motions_filter = MOTIONS_FILTER_ALL
+        motions_filter = xray_motions.MOTIONS_FILTER_ALL
         if self.motions:
             selected_names = set(m.name for m in self.motions if m.flag)
             motions_filter = lambda name: name in selected_names
-        import_context = ImportSklContext()
+        import_context = imp.ImportSklContext()
         import_context.bpy_arm_obj = context.active_object
         import_context.motions_filter = motions_filter
         import_context.use_motion_prefix_name = self.use_motion_prefix_name
@@ -141,16 +132,16 @@ class XRAY_OT_import_skls(plugin_props.BaseOperator, bpy_extras.io_utils.ImportH
             fpath = os.path.join(self.directory, file.name)
             import_context.filename = file.name
             if ext == '.skl':
-                import_skl_file(fpath, import_context)
+                imp.import_skl_file(fpath, import_context)
             elif ext == '.skls':
-                import_skls_file(fpath, import_context)
+                imp.import_skls_file(fpath, import_context)
             else:
                 self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
         return {'FINISHED'}
 
-    @invoke_require_armature
+    @utils.invoke_require_armature
     def invoke(self, context, event):
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         self.use_motion_prefix_name = preferences.skls_use_motion_prefix_name
         self.add_actions_to_motion_list = preferences.add_actions_to_motion_list
         return super().invoke(context, event)
@@ -170,24 +161,23 @@ class XRAY_OT_export_skl(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHe
 
     filename_ext = '.skl'
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_export_skl_props.items():
             exec('{0} = op_export_skl_props.get("{0}")'.format(prop_name))
 
     action = None
 
-    @execute_with_logger
-    @execute_require_filepath
-    @set_cursor_state
+    @utils.execute_with_logger
+    @utils.execute_require_filepath
+    @utils.set_cursor_state
     def execute(self, context):
-        from .exp import export_skl_file, ExportSklsContext
-        export_context = ExportSklsContext()
+        export_context = exp.ExportSklsContext()
         export_context.bpy_arm_obj = context.active_object
         export_context.action = self.action
-        export_skl_file(self.filepath, export_context)
+        exp.export_skl_file(self.filepath, export_context)
         return {'FINISHED'}
 
-    @invoke_require_armature
+    @utils.invoke_require_armature
     def invoke(self, context, event):
         self.action = getattr(context, XRAY_OT_export_skl.bl_idname + '.action', None)
         assert self.action
@@ -203,7 +193,7 @@ op_export_skls_props = {
 }
 
 
-class XRAY_OT_export_skls(plugin_props.BaseOperator, FilenameExtHelper):
+class XRAY_OT_export_skls(plugin_props.BaseOperator, utils.FilenameExtHelper):
     bl_idname = 'xray_export.skls'
     bl_label = 'Export .skls'
     bl_description = 'Exports X-Ray skeletal animation'
@@ -211,21 +201,20 @@ class XRAY_OT_export_skls(plugin_props.BaseOperator, FilenameExtHelper):
 
     filename_ext = '.skls'
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_export_skls_props.items():
             exec('{0} = op_export_skls_props.get("{0}")'.format(prop_name))
 
     def export(self, context):
-        from .exp import export_skls_file, ExportSklsContext
-        export_context = ExportSklsContext()
+        export_context = exp.ExportSklsContext()
         export_context.bpy_arm_obj = context.active_object
         try:
-            export_skls_file(self.filepath, export_context)
-        except AppError as err:
+            exp.export_skls_file(self.filepath, export_context)
+        except utils.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
 
-    @invoke_require_armature
+    @utils.invoke_require_armature
     def invoke(self, context, event):
         return super().invoke(context, event)
 
@@ -258,7 +247,7 @@ classes = (
 
 def register():
     for operator, props in classes:
-        assign_props([(props, operator), ])
+        version_utils.assign_props([(props, operator), ])
         bpy.utils.register_class(operator)
 
 
