@@ -1,8 +1,9 @@
-from .utils import mkstruct
+# addon modules
+from . import utils
 from . import xray_interpolation
 
 
-KF = mkstruct('KeyFrame', ['time', 'value', 'shape'])
+KF = utils.mkstruct('KeyFrame', ['time', 'value', 'shape'])
 EPSILON = 0.00001
 
 

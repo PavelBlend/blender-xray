@@ -5,7 +5,7 @@ import struct
 import numpy
 
 # addon modules
-from .lzhuf import decompress_buffer
+from . import lzhuf
 
 
 ENCODE_ERROR = BaseException
@@ -164,7 +164,7 @@ class ChunkedReader:
             cid &= ~ChunkedReader.__MASK_COMPRESSED
             textsize = FastBytes.int_at(data, offs)
             buffer = data[offs + 4:offs + size]
-            return cid, memoryview(decompress_buffer(buffer, textsize))
+            return cid, memoryview(lzhuf.decompress_buffer(buffer, textsize))
         return cid, data[offs:offs + size]
 
     def next(self, expected_cid):

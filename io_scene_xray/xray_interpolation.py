@@ -1,8 +1,8 @@
 # standart modules
-from enum import Enum
+import enum
 
 
-class Behavior(Enum):
+class Behavior(enum.Enum):
     RESET = 0
     CONSTANT = 1
     REPEAT = 2
@@ -11,7 +11,7 @@ class Behavior(Enum):
     LINEAR = 5
 
 
-class Shape(Enum):
+class Shape(enum.Enum):
     TCB = 0  # Kochanek-Bartels
     HERMITE = 1
     BEZIER_1D = 2  # obsolete, equivalent to HERMITE

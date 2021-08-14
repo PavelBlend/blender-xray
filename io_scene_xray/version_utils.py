@@ -1,5 +1,5 @@
 # standart modules
-from contextlib import contextmanager
+import contextlib
 
 # blender modules
 import bpy
@@ -125,7 +125,7 @@ def select_object(obj):
         obj.select = True
 
 
-@contextmanager
+@contextlib.contextmanager
 def using_active_object(obj):
     objects = bpy.context.view_layer.objects if IS_28 else bpy.context.scene.objects
     original = objects.active

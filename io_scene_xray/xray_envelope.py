@@ -1,17 +1,17 @@
-# blender modules
-from .xray_io import PackedWriter
-from .log import warn, with_context
-from . import xray_motions
-from . import xray_interpolation
+# addon modules
+from . import log
 from . import motion_utils
+from . import xray_io
+from . import xray_interpolation
+from . import xray_motions
 
 
-@with_context('import-envelope')
+@log.with_context('import-envelope')
 def import_envelope(reader, fcurve, fps, koef, name, warn_list, unique_shapes):
     bhv0, bhv1 = map(xray_interpolation.Behavior, reader.getf('<2B'))
 
     if bhv0 != bhv1:
-        warn(
+        log.warn(
             'different behaviors, one will be replaced with another',
             behavior=bhv1.name,
             replacement=bhv0.name
@@ -23,7 +23,7 @@ def import_envelope(reader, fcurve, fps, koef, name, warn_list, unique_shapes):
         fcurve.extrapolation = 'LINEAR'
     else:
         bhv1 = xray_interpolation.Behavior.CONSTANT
-        warn(
+        log.warn(
             'behavior isn\'t supported, and will be replaced',
             behavior=bhv0.name,
             replacement=bhv1.name
@@ -95,7 +95,7 @@ def import_envelope(reader, fcurve, fps, koef, name, warn_list, unique_shapes):
     return use_interpolate
 
 
-@with_context('export-envelope')
+@log.with_context('export-envelope')
 def export_envelope(writer, fcurve, fps, koef, epsilon=motion_utils.EPSILON):
     behavior = None
     if fcurve.extrapolation == 'CONSTANT':
@@ -104,7 +104,7 @@ def export_envelope(writer, fcurve, fps, koef, epsilon=motion_utils.EPSILON):
         behavior = xray_interpolation.Behavior.LINEAR
     else:
         behavior = xray_interpolation.Behavior.LINEAR
-        warn(
+        log.warn(
             'Envelope: extrapolation is not supported, and will be replaced',
             extrapolation=fcurve.extrapolation,
             replacement=behavior.name
@@ -129,7 +129,7 @@ def export_envelope(writer, fcurve, fps, koef, epsilon=motion_utils.EPSILON):
             prev_kf = curr_kf
             yield motion_utils.KF(curr_kf.co.x / fps, curr_kf.co.y / koef, shape)
 
-    kf_writer = PackedWriter()
+    kf_writer = xray_io.PackedWriter()
     keyframes = motion_utils.refine_keys(generate_keys(fcurve.keyframe_points), epsilon)
     count = motion_utils.export_keyframes(kf_writer, keyframes)
 
@@ -137,7 +137,7 @@ def export_envelope(writer, fcurve, fps, koef, epsilon=motion_utils.EPSILON):
     writer.putp(kf_writer)
 
     if unsupported_occured:
-        warn(
+        log.warn(
             'Envelope: unsupported shapes will be replaced by',
             shapes=unsupported_occured,
             replacement=replace_unsupported_to.name
