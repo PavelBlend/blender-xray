@@ -3,12 +3,12 @@ import bpy
 import bpy_extras
 
 # addon modules
-from .imp import import_file
-from .. import utils, icons, plugin_props
-from ..utils import AppError
-from ..version_utils import (
-    get_import_export_menus, assign_props, IS_28, get_preferences
-)
+from . import imp
+from . import exp
+from .. import utils
+from .. import icons
+from .. import plugin_props
+from .. import version_utils
 
 
 filename_ext = '.level'
@@ -27,7 +27,7 @@ class XRAY_OT_export_scene_selection(
 
     filename_ext = '.level'
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_export_level_scene_props.items():
             exec('{0} = op_export_level_scene_props.get("{0}")'.format(prop_name))
 
@@ -43,10 +43,7 @@ class XRAY_OT_export_scene_selection(
         return {'FINISHED'}
 
     def export(self, bpy_objs, context):
-
-        from .exp import export_file
-
-        export_file(bpy_objs, self.filepath)
+        exp.export_file(bpy_objs, self.filepath)
 
     def invoke(self, context, event):
 
@@ -81,7 +78,7 @@ class XRAY_OT_import_scene_selection(
 
     filename_ext = '.level'
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in op_import_level_scene_props.items():
             exec('{0} = op_import_level_scene_props.get("{0}")'.format(prop_name))
 
@@ -99,14 +96,14 @@ class XRAY_OT_import_scene_selection(
     @utils.set_cursor_state
     def execute(self, context):
         try:
-            import_file(self.filepath, self)
-        except AppError as ex:
+            imp.import_file(self.filepath, self)
+        except utils.AppError as ex:
             self.report({'ERROR'}, str(ex))
             return {'CANCELLED'}
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         self.mesh_split_by_materials = preferences.scene_selection_mesh_split_by_mat
         self.shaped_bones = preferences.scene_selection_shaped_bones
         self.fmt_version = preferences.scene_selection_sdk_version
@@ -133,7 +130,7 @@ def menu_func_import(self, context):
 
 
 def register():
-    assign_props([
+    version_utils.assign_props([
         (op_export_level_scene_props, XRAY_OT_export_scene_selection),
         (op_import_level_scene_props, XRAY_OT_import_scene_selection)
     ])
@@ -142,7 +139,7 @@ def register():
 
 
 def unregister():
-    import_menu, export_menu = get_import_export_menus()
+    import_menu, export_menu = version_utils.get_import_export_menus()
     export_menu.remove(menu_func_export)
     import_menu.remove(menu_func_import)
     bpy.utils.unregister_class(XRAY_OT_export_scene_selection)

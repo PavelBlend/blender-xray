@@ -2,9 +2,9 @@
 import string
 
 # addon modules
+from . import fmt
 from .. import xray_io
 from .. import utils
-from . import fmt
 
 
 def write_objects_count(chunked_writer, bpy_objs):
