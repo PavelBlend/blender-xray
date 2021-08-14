@@ -2,8 +2,8 @@
 import bpy
 
 # addon modules
-from . import utils
-from ..version_utils import assign_props, IS_28
+from . import utility
+from .. import version_utils
 
 
 def gen_other_flags_prop(mask):
@@ -18,16 +18,16 @@ def gen_other_flags_prop(mask):
 
 xray_mesh_properties = {
     'flags': bpy.props.IntProperty(name='flags', default=0x1),
-    'flags_visible': utils.gen_flag_prop(mask=0x01),
-    'flags_locked': utils.gen_flag_prop(mask=0x02),
-    'flags_sgmask': utils.gen_flag_prop(mask=0x04)
+    'flags_visible': utility.gen_flag_prop(mask=0x01),
+    'flags_locked': utility.gen_flag_prop(mask=0x02),
+    'flags_sgmask': utility.gen_flag_prop(mask=0x04)
 }
 
 
 class XRayMeshProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Mesh
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in xray_mesh_properties.items():
             exec('{0} = xray_mesh_properties.get("{0}")'.format(prop_name))
 
@@ -39,7 +39,7 @@ prop_groups = (
 
 def register():
     for prop_group, props in prop_groups:
-        assign_props([
+        version_utils.assign_props([
             (props, prop_group),
         ])
     bpy.utils.register_class(prop_group)

@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from ..version_utils import assign_props, IS_28
+from .. import version_utils
 from .. import plugin_props
 
 
@@ -12,13 +12,13 @@ import_motion_props = {
 
 
 class ImportSkls(bpy.types.PropertyGroup):
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in import_motion_props.items():
             exec('{0} = import_motion_props.get("{0}")'.format(prop_name))
 
 
 class ImportOmf(bpy.types.PropertyGroup):
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in import_motion_props.items():
             exec('{0} = import_motion_props.get("{0}")'.format(prop_name))
 
@@ -138,7 +138,7 @@ xray_scene_properties = {
 class XRaySceneProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Scene
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in xray_scene_properties.items():
             exec('{0} = xray_scene_properties.get("{0}")'.format(prop_name))
 
@@ -152,7 +152,7 @@ prop_groups = (
 
 def register():
     for prop_group, props, is_group in prop_groups:
-        assign_props([
+        version_utils.assign_props([
             (props, prop_group),
         ])
         bpy.utils.register_class(prop_group)

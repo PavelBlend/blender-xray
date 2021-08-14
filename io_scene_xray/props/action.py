@@ -2,8 +2,8 @@
 import bpy
 
 # addon modules
-from . import utils
-from ..version_utils import assign_props, IS_28
+from . import utility
+from .. import version_utils
 
 
 def _get_collection_item_attr(collection, index, name, special):
@@ -34,14 +34,14 @@ def _set_autobake_auto(self, value):
 xray_action_properties = {
     'fps': bpy.props.FloatProperty(default=30, min=0, soft_min=1, soft_max=120),
     'flags': bpy.props.IntProperty(),
-    'flags_fx': utils.gen_flag_prop(mask=0x01, description='Type FX'),
-    'flags_stopatend': utils.gen_flag_prop(mask=0x02, description='Stop at end'),
-    'flags_nomix': utils.gen_flag_prop(mask=0x04, description='No mix'),
-    'flags_syncpart': utils.gen_flag_prop(mask=0x08, description='Sync part'),
-    'flags_footsteps': utils.gen_flag_prop(mask=0x10, description='Use Foot Steps'),
-    'flags_movexform': utils.gen_flag_prop(mask=0x20, description='Move XForm'),
-    'flags_idle': utils.gen_flag_prop(mask=0x40, description='Idle'),
-    'flags_weaponbone': utils.gen_flag_prop(mask=0x80, description='Use Weapon Bone'),
+    'flags_fx': utility.gen_flag_prop(mask=0x01, description='Type FX'),
+    'flags_stopatend': utility.gen_flag_prop(mask=0x02, description='Stop at end'),
+    'flags_nomix': utility.gen_flag_prop(mask=0x04, description='No mix'),
+    'flags_syncpart': utility.gen_flag_prop(mask=0x08, description='Sync part'),
+    'flags_footsteps': utility.gen_flag_prop(mask=0x10, description='Use Foot Steps'),
+    'flags_movexform': utility.gen_flag_prop(mask=0x20, description='Move XForm'),
+    'flags_idle': utility.gen_flag_prop(mask=0x40, description='Idle'),
+    'flags_weaponbone': utility.gen_flag_prop(mask=0x80, description='Use Weapon Bone'),
     'bonepart': bpy.props.IntProperty(default=_SPECIAL),
 
     'bonepart_name': bpy.props.StringProperty(
@@ -109,7 +109,7 @@ xray_action_properties = {
 class XRayActionProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Action
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in xray_action_properties.items():
             exec('{0} = xray_action_properties.get("{0}")'.format(prop_name))
 
@@ -132,7 +132,7 @@ prop_groups = (
 
 def register():
     for prop_group, props in prop_groups:
-        assign_props([
+        version_utils.assign_props([
             (props, prop_group),
         ])
     bpy.utils.register_class(prop_group)

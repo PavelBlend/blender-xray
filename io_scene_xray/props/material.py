@@ -2,13 +2,13 @@
 import bpy
 
 # addon modules
-from . import utils
-from ..version_utils import assign_props, IS_28
+from . import utility
+from .. import version_utils
 
 
 xray_material_properties = {
     'flags': bpy.props.IntProperty(name='flags'),
-    'flags_twosided': utils.gen_flag_prop(mask=0x01),
+    'flags_twosided': utility.gen_flag_prop(mask=0x01),
     'eshader': bpy.props.StringProperty(default='models\\model'),
     'cshader': bpy.props.StringProperty(default='default'),
     'gamemtl': bpy.props.StringProperty(default='default'),
@@ -28,7 +28,7 @@ xray_material_properties = {
 class XRayMaterialProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Material
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in xray_material_properties.items():
             exec('{0} = xray_material_properties.get("{0}")'.format(prop_name))
 
@@ -50,7 +50,7 @@ prop_groups = (
 
 def register():
     for prop_group, props in prop_groups:
-        assign_props([
+        version_utils.assign_props([
             (props, prop_group),
         ])
     bpy.utils.register_class(prop_group)

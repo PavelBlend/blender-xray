@@ -1,8 +1,11 @@
+# standart modules
+import functools
+
 # blender modules
 import bpy
 
 # addon modules
-from ..version_utils import assign_props, IS_28
+from .. import version_utils
 
 
 joint_limit_type_items = (
@@ -38,15 +41,17 @@ xray_armature_properties = {
 class XRayArmatureProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Armature
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in xray_armature_properties.items():
             exec('{0} = xray_armature_properties.get("{0}")'.format(prop_name))
 
     def check_different_version_bones(self):
-        from functools import reduce
-        return reduce(
+        return functools.reduce(
             lambda x, y: x | y,
-            [b.xray.shape.check_version_different() for b in self.id_data.bones],
+            [
+                b.xray.shape.check_version_different()
+                for b in self.id_data.bones
+            ],
             0,
         )
 
@@ -58,7 +63,7 @@ prop_groups = (
 
 def register():
     for prop_group, props in prop_groups:
-        assign_props([
+        version_utils.assign_props([
             (props, prop_group),
         ])
     bpy.utils.register_class(prop_group)
