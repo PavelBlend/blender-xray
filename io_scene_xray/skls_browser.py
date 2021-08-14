@@ -10,7 +10,7 @@ from . import version_utils
 
 class UI_UL_SklsList_item(bpy.types.UIList):
 
-    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         row = layout.row()
         row = version_utils.layout_split(row, 0.30)
         row.alignment = 'RIGHT'

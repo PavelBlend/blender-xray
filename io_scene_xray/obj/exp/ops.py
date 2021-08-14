@@ -87,7 +87,7 @@ class XRAY_OT_export_object(plugin_props.BaseOperator, _WithExportMotions):
         for prop_name, prop_value in op_export_object_props.items():
             exec('{0} = op_export_object_props.get("{0}")'.format(prop_name))
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
 
         row = layout.split()
@@ -182,7 +182,7 @@ class XRAY_OT_export_single_object(
         for prop_name, prop_value in op_export_single_object_props.items():
             exec('{0} = op_export_single_object_props.get("{0}")'.format(prop_name))
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
 
         row = layout.split()
@@ -238,7 +238,7 @@ class XRAY_OT_export_single_object(
         return super().invoke(context, event)
 
 
-def menu_func_export(self, _context):
+def menu_func_export(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_object.bl_idname,

@@ -119,7 +119,7 @@ class _ApplyShape(bpy.types.Operator):
     bl_label = 'Apply Shape'
     bl_options = {'UNDO'}
 
-    def execute(self, _context):
+    def execute(self, context):
         def maxabs(*args):
             result = 0
             for arg in args:
@@ -209,7 +209,7 @@ class _FitShape(bpy.types.Operator):
     bl_label = 'Fit Shape'
     bl_options = {'UNDO'}
 
-    def execute(self, _context):
+    def execute(self, context):
         def vfunc(vtx_a, vtx_b, func):
             vtx_a.x = func(vtx_a.x, vtx_b.x)
             vtx_a.y = func(vtx_a.y, vtx_b.y)

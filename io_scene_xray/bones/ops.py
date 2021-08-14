@@ -96,7 +96,7 @@ class XRAY_OT_import_bones(plugin_props.BaseOperator, bpy_extras.io_utils.Import
             )
             return {'CANCELLED'}
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         layout.prop(self, 'import_bone_properties')
         layout.prop(self, 'import_bone_parts')
@@ -170,7 +170,7 @@ class XRAY_OT_export_bones(plugin_props.BaseOperator):
         self.objects_list.clear()
         return {'FINISHED'}
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         layout.prop(self, 'export_bone_properties')
         layout.prop(self, 'export_bone_parts')
@@ -237,7 +237,7 @@ class XRAY_OT_export_bone(plugin_props.BaseOperator, bpy_extras.io_utils.ExportH
             return {'CANCELLED'}
         return {'FINISHED'}
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         layout.prop(self, 'export_bone_properties')
         layout.prop(self, 'export_bone_parts')
@@ -266,7 +266,7 @@ class XRAY_OT_export_bone(plugin_props.BaseOperator, bpy_extras.io_utils.ExportH
         return super().invoke(context, event)
 
 
-def menu_func_import(self, _context):
+def menu_func_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_bones.bl_idname,
@@ -274,7 +274,7 @@ def menu_func_import(self, _context):
     )
 
 
-def menu_func_export(self, _context):
+def menu_func_export(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_bones.bl_idname,

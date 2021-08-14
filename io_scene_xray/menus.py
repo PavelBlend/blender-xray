@@ -149,12 +149,12 @@ export_draw_functions = [
 ]
 
 
-def menu_func_xray_import(self, _context):
+def menu_func_xray_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.menu(XRAY_MT_import.bl_idname, icon_value=icon)
 
 
-def menu_func_xray_export(self, _context):
+def menu_func_xray_export(self, context):
     icon = icons.get_stalker_icon()
     self.layout.menu(XRAY_MT_export.bl_idname, icon_value=icon)
 

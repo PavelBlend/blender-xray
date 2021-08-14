@@ -19,7 +19,7 @@ class BaseSelectMotionsOp(bpy.types.Operator):
     def set_data(cls, data):
         cls.__ARGS__[1] = data
 
-    def execute(self, _context):
+    def execute(self, context):
         mlist, data = self.__ARGS__
         name_filter = xray_motions.MOTIONS_FILTER_ALL
         if mlist and mlist.filter_name:
@@ -63,7 +63,7 @@ class _DeselectDuplicatedMotionsOp(BaseSelectMotionsOp):
 
 
 class XRAY_UL_MotionsList(bpy.types.UIList):
-    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         BaseSelectMotionsOp.set_motions_list(self)  # A dirty hack
 
         row = layout.row(align=True)

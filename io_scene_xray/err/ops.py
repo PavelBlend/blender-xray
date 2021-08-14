@@ -41,7 +41,7 @@ class XRAY_OT_import_err(
         return {'RUNNING_MODAL'}
 
 
-def menu_func_import(self, _context):
+def menu_func_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_err.bl_idname,

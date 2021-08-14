@@ -45,7 +45,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
         else:
             split.prop(self, prop, text='')
 
-    def draw(self, _context):
+    def draw(self, context):
 
         def prop_bool(layout, data, prop):
             layout.prop(data, prop)

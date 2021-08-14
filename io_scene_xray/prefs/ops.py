@@ -10,7 +10,7 @@ class XRAY_OT_ResetPreferencesSettings(bpy.types.Operator):
     bl_idname = 'io_scene_xray.reset_preferences_settings'
     bl_label = 'Reset All Settings'
 
-    def execute(self, _context):
+    def execute(self, context):
         prefs = version_utils.get_preferences()
         # reset main settings
         for prop_name in props.plugin_preferences_props.keys():
@@ -38,7 +38,7 @@ class _ExplicitPathOp(bpy.types.Operator):
         for prop_name, prop_value in _explicit_path_op_props.items():
             exec('{0} = _explicit_path_op_props.get("{0}")'.format(prop_name))
 
-    def execute(self, _context):
+    def execute(self, context):
         preferences = version_utils.get_preferences()
         auto_prop = props.build_auto_id(self.path)
         value = getattr(preferences, auto_prop)

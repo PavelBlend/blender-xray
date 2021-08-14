@@ -82,7 +82,7 @@ class XRAY_OT_import_scene_selection(
         for prop_name, prop_value in op_import_level_scene_props.items():
             exec('{0} = op_import_level_scene_props.get("{0}")'.format(prop_name))
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
 
         row = layout.split()

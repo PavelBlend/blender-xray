@@ -39,7 +39,7 @@ class XRAY_OT_import_anm(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHe
 
     @utils.execute_with_logger
     @utils.set_cursor_state
-    def execute(self, _context):
+    def execute(self, context):
         if not self.files[0].name:
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
@@ -104,7 +104,7 @@ class XRAY_OT_export_anm(plugin_props.BaseOperator, utils.FilenameExtHelper):
         exp.export_file(obj, self.filepath)
 
 
-def menu_func_import(self, _context):
+def menu_func_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_anm.bl_idname,
@@ -113,7 +113,7 @@ def menu_func_import(self, _context):
     )
 
 
-def menu_func_export(self, _context):
+def menu_func_export(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_anm.bl_idname,

@@ -64,11 +64,11 @@ class _AlignCenter(bpy.types.Operator):
     bl_label = 'Align Center'
 
     @classmethod
-    def poll(cls, _context):
+    def poll(cls, context):
         _, bone = HELPER.get_target()
         return bone and bone.xray.shape.type != '0'
 
-    def execute(self, _context):
+    def execute(self, context):
         helper, bone = HELPER.get_target()
         shape = bone.xray.shape
         mat = version_utils.multiply(pose_bone.matrix, xray_motions.MATRIX_BONE_INVERTED)
@@ -91,7 +91,7 @@ class _ApplyCenter(bpy.types.Operator):
     bl_label = 'Apply Center'
     bl_options = {'UNDO'}
 
-    def execute(self, _context):
+    def execute(self, context):
         helper, bone = HELPER.get_target()
         mat = version_utils.multiply(
             xray_motions.MATRIX_BONE,

@@ -43,7 +43,7 @@ class XRAY_OT_import_object(plugin_props.BaseOperator, bpy_extras.io_utils.Impor
 
     @utils.execute_with_logger
     @utils.set_cursor_state
-    def execute(self, _context):
+    def execute(self, context):
         preferences = version_utils.get_preferences()
         textures_folder = preferences.textures_folder_auto
         objects_folder = preferences.objects_folder_auto
@@ -77,7 +77,7 @@ class XRAY_OT_import_object(plugin_props.BaseOperator, bpy_extras.io_utils.Impor
                 )
         return {'FINISHED'}
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         row = layout.row()
         row.enabled = False
@@ -104,7 +104,7 @@ class XRAY_OT_import_object(plugin_props.BaseOperator, bpy_extras.io_utils.Impor
         return super().invoke(context, event)
 
 
-def menu_func_import(self, _context):
+def menu_func_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_object.bl_idname,

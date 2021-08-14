@@ -25,7 +25,7 @@ class _CollapsOp(bpy.types.Operator):
     def get(cls, key):
         return cls._DATA.get(key, False)
 
-    def execute(self, _context):
+    def execute(self, context):
         _CollapsOp._DATA[self.key] = not _CollapsOp.get(self.key)
         return {'FINISHED'}
 

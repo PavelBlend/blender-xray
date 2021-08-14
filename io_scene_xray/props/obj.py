@@ -363,9 +363,10 @@ def set_custom_type(self, value):
     self.flags_force_custom = True
 
 
-def userdata_update(self, _context):
+def userdata_update(self, context):
     if self.userdata == '':
         self.show_userdata = False
+
 
 _flags_simple_inv_map = [
     None,  # other
