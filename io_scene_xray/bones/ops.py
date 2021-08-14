@@ -13,7 +13,6 @@ from .. import icons
 from .. import utils
 from .. import version_utils
 from .. import plugin_props
-from .. import omf
 
 
 class ImportBonesContext(contexts.ImportContext):

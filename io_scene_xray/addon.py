@@ -11,7 +11,6 @@ from . import handlers
 from . import viewport
 from . import skls_browser
 from . import edit_helpers
-from . import xray_io
 
 
 modules = (

@@ -1,9 +1,3 @@
-# standart modules
-import os
-
-# blender modules
-import bpy
-
 # addon modules
 from . import utils
 from . import version_utils

@@ -7,9 +7,8 @@ import mathutils
 from . import fmt
 from .. import xray_io
 from .. import utils
-from .. import xray_motions
 from .. import version_utils
-from .. import utils
+from .. import xray_motions
 
 
 multiply = version_utils.get_multiply()

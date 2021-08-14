@@ -8,7 +8,6 @@ import bpy_extras
 # addon modules
 from . import utility
 from .. import imp
-from ... import obj
 from ... import icons
 from ... import utils
 from ... import version_utils
