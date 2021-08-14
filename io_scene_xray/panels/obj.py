@@ -2,10 +2,10 @@
 import bpy
 
 # addon modules
-from ..ui import list_helper, collapsible, base
-from ..utils import is_helper_object
+from .. import ui
+from .. import utils
 from .. import details
-from ..version_utils import assign_props, IS_28, layout_split, get_preferences
+from .. import version_utils
 
 
 items = (
@@ -25,7 +25,7 @@ class PropClipOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.propclip'
     bl_label = ''
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in prop_clip_op_props.items():
             exec('{0} = prop_clip_op_props.get("{0}")'.format(prop_name))
 
@@ -46,7 +46,7 @@ class PropClipOp(bpy.types.Operator):
     def drawall(cls, layout, path, value):
         for item in items:
             lay = layout
-            lay = layout_split(lay, 1.0, align=True)
+            lay = version_utils.layout_split(lay, 1.0, align=True)
             if item[0] in ('copy', 'clear') and not value:
                 lay.enabled = False
             props = lay.operator(cls.bl_idname, icon=item[3])
@@ -149,7 +149,7 @@ def details_draw_function(self, context):
             text='Slots Top Object'
             )
 
-        _, box_ = collapsible.draw(
+        _, box_ = ui.collapsible.draw(
             box, 'object:lighting', 'Lighting Coefficients'
             )
 
@@ -186,7 +186,7 @@ def details_draw_function(self, context):
                     text='Shadows'
                     )
 
-        _, box_ = collapsible.draw(
+        _, box_ = ui.collapsible.draw(
             box, 'object:slots', 'Slots Meshes Indices'
             )
 
@@ -203,19 +203,22 @@ def details_draw_function(self, context):
         box.operator(details.ops.XRAY_OT_pack_details_images.bl_idname)
 
 
-class XRAY_PT_ObjectPanel(base.XRayPanel):
+class XRAY_PT_ObjectPanel(ui.base.XRayPanel):
     bl_context = 'object'
-    bl_label = base.build_label('Object')
+    bl_label = ui.base.build_label('Object')
 
     @classmethod
     def poll(cls, context):
-        return (
-            context.active_object and
-            not is_helper_object(context.active_object)
-        )
+        bpy_obj = context.active_object
+        if not bpy_obj:
+            return False
+        is_helper = utils.is_helper_object(bpy_obj)
+        if is_helper:
+            return False
+        return True
 
     def draw(self, context):
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         object_used = (
             # import plugins
             preferences.enable_object_import or
@@ -254,7 +257,7 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
                     row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
                 object_box.prop(data, 'lodref')
                 object_box.prop(data, 'export_path')
-                row, box = collapsible.draw(
+                row, box = ui.collapsible.draw(
                     object_box,
                     'object:userdata',
                     'User Data',
@@ -271,7 +274,7 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
                     split = object_box.split()
                     split.alert = True
                     split.prop(data, 'motions')
-                _, box = collapsible.draw(
+                _, box = ui.collapsible.draw(
                     object_box,
                     'object:motions',
                     'Motions (%d)' % len(data.motions_collection)
@@ -287,7 +290,7 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
                         data, 'motions_collection_index'
                     )
                     col = row.column(align=True)
-                    list_helper.draw_list_ops(
+                    ui.list_helper.draw_list_ops(
                         col, data,
                         'motions_collection', 'motions_collection_index',
                         custom_elements_func=draw_motion_list_custom_elements
@@ -297,7 +300,7 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
                     split = object_box.split()
                     split.alert = True
                     split.prop(data, 'motionrefs')
-                _, box = collapsible.draw(
+                _, box = ui.collapsible.draw(
                     object_box,
                     'object:motionsrefs',
                     'Motion Refs (%d)' % len(data.motionrefs_collection)
@@ -311,28 +314,28 @@ class XRAY_PT_ObjectPanel(base.XRayPanel):
                         data, 'motionrefs_collection_index'
                     )
                     col = row.column(align=True)
-                    list_helper.draw_list_ops(
+                    ui.list_helper.draw_list_ops(
                         col, data,
                         'motionrefs_collection', 'motionrefs_collection_index',
                     )
 
-                _, box = collapsible.draw(
+                _, box = ui.collapsible.draw(
                     object_box,
                     'object:revision',
                     'Revision'
                 )
                 if box:
                     # owner
-                    split = layout_split(box, 0.35)
+                    split = version_utils.layout_split(box, 0.35)
                     split.label(text='Owner:')
                     split.prop(data.revision, 'owner', text='')
                     # created time
-                    split = layout_split(box, 0.35)
+                    split = version_utils.layout_split(box, 0.35)
                     split.label(text='Created Time:')
                     split.prop(data.revision, 'ctime_str', text='')
                     # time formats
                     subbox = box.box()
-                    split = layout_split(subbox, 0.25)
+                    split = version_utils.layout_split(subbox, 0.25)
                     split.label(text='')
                     split.label(text='Time Formats:', icon='INFO')
                     subbox.label(text='Year.Month.Day Hours:Minutes')
@@ -431,7 +434,7 @@ classes = (
 
 
 def register():
-    assign_props([(prop_clip_op_props, PropClipOp), ])
+    version_utils.assign_props([(prop_clip_op_props, PropClipOp), ])
     for clas in classes:
         bpy.utils.register_class(clas)
 

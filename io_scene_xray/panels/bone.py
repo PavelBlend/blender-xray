@@ -2,11 +2,11 @@
 import bpy
 
 # addon modules
-from ..ui.base import XRayPanel, build_label
-from .material import XRayGameMtlMenu, _gen_xr_selector
+from . import material
+from .. import ui
 from .. import icons
 from .. import version_utils
-from ..edit_helpers import bone_shape, bone_center
+from .. import edit_helpers
 
 
 BONE_TEXT_JOINT = []
@@ -42,9 +42,9 @@ for axis in ('x', 'y', 'z'):
     ))
 
 
-class XRAY_PT_BonePanel(XRayPanel):
+class XRAY_PT_BonePanel(ui.base.XRayPanel):
     bl_context = 'bone'
-    bl_label = build_label('Bone')
+    bl_label = ui.base.build_label('Bone')
 
     @classmethod
     def poll(cls, context):
@@ -86,7 +86,7 @@ class XRAY_PT_BonePanel(XRayPanel):
         data = bone.xray
         layout.enabled = data.exportable
         layout.prop(data, 'length')
-        _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
+        material._gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
         box = layout.box()
         row = box.row()
         row.label(text='Shape Type:')
@@ -99,7 +99,7 @@ class XRAY_PT_BonePanel(XRayPanel):
                 + ' version of this plugin',
                 icon='ERROR'
             )
-        bone_shape.HELPER.draw(box.column(align=True), context)
+        edit_helpers.bone_shape.HELPER.draw(box.column(align=True), context)
 
         column = box.column(align=True)
         row = column.row(align=True)
@@ -146,7 +146,7 @@ class XRAY_PT_BonePanel(XRayPanel):
         column = box.column(align=True)
         column.prop(data.mass, 'value')
         column.prop(data.mass, 'center')
-        bone_center.HELPER.draw(column, context)
+        edit_helpers.bone_center.HELPER.draw(column, context)
 
 
 def register():

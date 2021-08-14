@@ -2,19 +2,19 @@
 import bpy
 
 # addon modules
-from ..ui import collapsible
-from ..ui.base import XRayPanel, build_label
-from ..ops import fake_bones, joint_limits
-from ..version_utils import get_icon, layout_split, get_preferences
+from .. import ui
+from .. import ops
+from .. import version_utils
+from .. import props
 
 
-class XRAY_PT_ArmaturePanel(XRayPanel):
+class XRAY_PT_ArmaturePanel(ui.base.XRayPanel):
     bl_context = 'data'
-    bl_label = build_label('Skeleton')
+    bl_label = ui.base.build_label('Skeleton')
 
     @classmethod
     def poll(cls, context):
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_object_import or
@@ -39,10 +39,9 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
         data = context.active_object.data.xray
         verdif = data.check_different_version_bones()
         if verdif != 0:
-            from ..props.bone import XRayBoneProperties
             layout.label(
                 text='Found bones, edited with '
-                + XRayBoneProperties.ShapeProperties.fmt_version_different(verdif)
+                + props.bone.ShapeProperties.fmt_version_different(verdif)
                 + ' version of this plugin',
                 icon='ERROR'
             )
@@ -54,13 +53,13 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
         row.prop(data, 'bone_mass_center_cross_size')
 
         # joint limits
-        row, box = collapsible.draw(
+        row, box = ui.collapsible.draw(
             layout,
             'armature:joint_limits',
             'Joint Limits'
         )
         if box:
-            split = layout_split(box, 0.5)
+            split = version_utils.layout_split(box, 0.5)
             split.label(text='Export Limits from:')
             split.prop(data, 'joint_limits_type', text='')
             col = box.column(align=True)
@@ -74,25 +73,25 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
             row.prop(data, 'display_bone_limit_z', toggle=True)
             col = box.column(align=True)
             col.operator(
-                joint_limits.XRAY_OT_ConvertJointLimitsToConstraints.bl_idname,
+                ops.joint_limits.XRAY_OT_ConvertJointLimitsToConstraints.bl_idname,
                 icon='CONSTRAINT_BONE'
             )
             col.operator(
-                joint_limits.XRAY_OT_RemoveJointLimitsConstraints.bl_idname,
+                ops.joint_limits.XRAY_OT_RemoveJointLimitsConstraints.bl_idname,
                 icon='X'
             )
             col.operator(
-                joint_limits.XRAY_OT_ConvertIKLimitsToXRayLimits.bl_idname
+                ops.joint_limits.XRAY_OT_ConvertIKLimitsToXRayLimits.bl_idname
             )
             col.operator(
-                joint_limits.XRAY_OT_ConvertXRayLimitsToIKLimits.bl_idname
+                ops.joint_limits.XRAY_OT_ConvertXRayLimitsToIKLimits.bl_idname
             )
             col.operator(
-                joint_limits.XRAY_OT_ClearIKLimits.bl_idname
+                ops.joint_limits.XRAY_OT_ClearIKLimits.bl_idname
             )
 
         # fake bones
-        row, box = collapsible.draw(
+        row, box = ui.collapsible.draw(
             layout,
             'armature:fake_bones',
             'Fake Bones'
@@ -100,16 +99,16 @@ class XRAY_PT_ArmaturePanel(XRayPanel):
         if box:
             lay = box.column(align=True)
             row = lay.row(align=True)
-            row.operator(fake_bones.XRAY_OT_CreateFakeBones.bl_idname, text='Create', icon='CONSTRAINT_BONE')
-            row.operator(fake_bones.XRAY_OT_DeleteFakeBones.bl_idname, text='Delete', icon='X')
+            row.operator(ops.fake_bones.XRAY_OT_CreateFakeBones.bl_idname, text='Create', icon='CONSTRAINT_BONE')
+            row.operator(ops.fake_bones.XRAY_OT_DeleteFakeBones.bl_idname, text='Delete', icon='X')
             lay.operator(
-                fake_bones.XRAY_OT_ToggleFakeBonesVisibility.bl_idname,
+                ops.fake_bones.XRAY_OT_ToggleFakeBonesVisibility.bl_idname,
                 text='Show/Hide',
-                icon=get_icon('VISIBLE_IPO_ON'),
+                icon=version_utils.get_icon('VISIBLE_IPO_ON'),
             )
 
         # fake bones
-        row, box = collapsible.draw(
+        row, box = ui.collapsible.draw(
             layout,
             'armature:link_or_unlink_bones',
             'Link/Unlink Bones'

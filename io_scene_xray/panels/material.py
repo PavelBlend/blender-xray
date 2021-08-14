@@ -2,40 +2,48 @@
 import bpy
 
 # addon modules
-from ..ui import base
-from ..ui.dynamic_menu import XRayXrMenuTemplate, DynamicMenu
-from ..utils import parse_shaders, parse_shaders_xrlc, parse_gamemtl
-from ..version_utils import layout_split, get_preferences
+from .. import ui
+from .. import utils
+from .. import version_utils
 
 
-class XRayEShaderMenu(XRayXrMenuTemplate):
+class XRayEShaderMenu(ui.dynamic_menu.XRayXrMenuTemplate):
     bl_idname = 'XRAY_MT_EShaderMenu'
     prop_name = 'eshader'
-    cached = XRayXrMenuTemplate.create_cached('eshader_file_auto', parse_shaders)
+    cached = ui.dynamic_menu.XRayXrMenuTemplate.create_cached(
+        'eshader_file_auto',
+        utils.parse_shaders
+    )
 
 
-class XRayCShaderMenu(XRayXrMenuTemplate):
+class XRayCShaderMenu(ui.dynamic_menu.XRayXrMenuTemplate):
     bl_idname = 'XRAY_MT_CShaderMenu'
     prop_name = 'cshader'
-    cached = XRayXrMenuTemplate.create_cached('cshader_file_auto', parse_shaders_xrlc)
+    cached = ui.dynamic_menu.XRayXrMenuTemplate.create_cached(
+        'cshader_file_auto',
+        utils.parse_shaders_xrlc
+    )
 
 
-class XRayGameMtlMenu(XRayXrMenuTemplate):
+class XRayGameMtlMenu(ui.dynamic_menu.XRayXrMenuTemplate):
     bl_idname = 'XRAY_MT_GameMtlMenu'
     prop_name = 'gamemtl'
-    cached = XRayXrMenuTemplate.create_cached('gamemtl_file_auto', parse_gamemtl)
+    cached = ui.dynamic_menu.XRayXrMenuTemplate.create_cached(
+        'gamemtl_file_auto',
+        utils.parse_gamemtl
+    )
 
 
 def _gen_xr_selector(layout, data, name, text):
     row = layout.row(align=True)
     row.prop(data, name, text=text)
-    DynamicMenu.set_layout_context_data(row, data)
+    ui.dynamic_menu.DynamicMenu.set_layout_context_data(row, data)
     row.menu('XRAY_MT_{}Menu'.format(text), icon='TRIA_DOWN')
 
 
-class XRAY_PT_MaterialPanel(base.XRayPanel):
+class XRAY_PT_MaterialPanel(ui.base.XRayPanel):
     bl_context = 'material'
-    bl_label = base.build_label('Material')
+    bl_label = ui.base.build_label('Material')
 
     @classmethod
     def poll(cls, context):
@@ -50,7 +58,7 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
         _gen_xr_selector(layout, data, 'cshader', 'CShader')
         _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
 
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_game_level_import or
@@ -60,7 +68,7 @@ class XRAY_PT_MaterialPanel(base.XRayPanel):
         if not panel_used:
             return
         def draw_level_prop(prop_name, prop_text, prop_type):
-            row = layout_split(box, 0.45)
+            row = version_utils.layout_split(box, 0.45)
             row.label(text=prop_text)
             if prop_type == 'NODES':
                 row.prop_search(data, prop_name, material.node_tree, 'nodes', text='')

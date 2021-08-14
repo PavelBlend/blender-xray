@@ -2,18 +2,18 @@
 import bpy
 
 # addon modules
-from ..ui.base import XRayPanel, build_label
+from .. import ui
 from .. import version_utils
-from ..skl.ops import XRAY_OT_export_skl
-from ..ops import action_utils
+from .. import skl
+from .. import ops
 
 
-class XRAY_PT_ActionPanel(XRayPanel):
+class XRAY_PT_ActionPanel(ui.base.XRayPanel):
     bl_category = 'F-Curve'
     bl_space_type = 'DOPESHEET_EDITOR' if bpy.app.version >= (2, 78, 0) else 'GRAPH_EDITOR'
     bl_region_type = 'UI'
     bl_context = 'object'
-    bl_label = build_label('Action')
+    bl_label = ui.base.build_label('Action')
 
     @classmethod
     def poll(cls, context):
@@ -87,12 +87,12 @@ class XRAY_PT_ActionPanel(XRayPanel):
             row = layout.row(align=True)
             row.prop(data, 'flags_idle', text='Idle', toggle=True)
             row.prop(data, 'flags_weaponbone', text='Weapon Bone', toggle=True)
-        layout.context_pointer_set(XRAY_OT_export_skl.bl_idname + '.action', action)
-        layout.operator(XRAY_OT_export_skl.bl_idname, icon='EXPORT')
+        layout.context_pointer_set(skl.ops.XRAY_OT_export_skl.bl_idname + '.action', action)
+        layout.operator(skl.ops.XRAY_OT_export_skl.bl_idname, icon='EXPORT')
         layout.label(text='Settings:')
         row = layout.row(align=True)
-        row.operator(action_utils.XRAY_OT_CopyActionSettings.bl_idname)
-        row.operator(action_utils.XRAY_OT_PasteActionSettings.bl_idname)
+        row.operator(ops.action_utils.XRAY_OT_CopyActionSettings.bl_idname)
+        row.operator(ops.action_utils.XRAY_OT_PasteActionSettings.bl_idname)
 
 
 def register():

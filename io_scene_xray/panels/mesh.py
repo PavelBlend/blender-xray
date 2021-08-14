@@ -2,18 +2,20 @@
 import bpy
 
 # addon modules
-from ..ui import base
-from ..version_utils import get_preferences
-from ..utils import is_helper_object
+from .. import ui
+from .. import version_utils
+from .. import utils
 
 
-class XRAY_PT_MeshPanel(base.XRayPanel):
+class XRAY_PT_MeshPanel(ui.base.XRayPanel):
     bl_context = 'data'
-    bl_label = base.build_label('Mesh')
+    bl_label = ui.base.build_label('Mesh')
 
     @classmethod
     def poll(cls, context):
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
+        if not preferences.expert_mode:
+            return False
         panel_used = (
             # import plugins
             preferences.enable_object_import or
@@ -22,13 +24,17 @@ class XRAY_PT_MeshPanel(base.XRayPanel):
             preferences.enable_object_export or
             preferences.enable_level_export
         )
-        return (
-            context.active_object and
-            context.active_object.type in {'MESH'} and
-            not is_helper_object(context.active_object) and
-            get_preferences().expert_mode and
-            panel_used
-        )
+        if not panel_used:
+            return False
+        bpy_obj = context.active_object
+        if not bpy_obj:
+            return False
+        if not bpy_obj.type == 'MESH':
+            return False
+        is_helper = utils.is_helper_object(bpy_obj)
+        if is_helper:
+            return False
+        return True
 
     def draw(self, context):
         layout = self.layout

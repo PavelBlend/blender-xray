@@ -2,19 +2,18 @@
 import bpy
 
 # addon modules
-from ..ui import collapsible
-from ..ui.base import XRayPanel, build_label
-from ..obj.exp.ops import XRAY_OT_export_project
-from ..version_utils import layout_split, get_preferences
+from .. import ui
+from .. import obj
+from .. import version_utils
 
 
-class XRAY_PT_ScenePanel(XRayPanel):
+class XRAY_PT_ScenePanel(ui.base.XRayPanel):
     bl_context = 'scene'
-    bl_label = build_label('Project')
+    bl_label = ui.base.build_label('Project')
 
     @classmethod
     def poll(cls, context):
-        preferences = get_preferences()
+        preferences = version_utils.get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_object_import or
@@ -24,21 +23,28 @@ class XRAY_PT_ScenePanel(XRayPanel):
         return panel_used
 
     def draw(self, context):
-        obj = context.scene
-        data = obj.xray
+        scn = context.scene
+        data = scn.xray
 
         def gen_op(layout, text, enabled=True, icon='NONE'):
             if not enabled:
                 layout = layout.split()
                 layout.enabled = False
-            props = layout.operator(XRAY_OT_export_project.bl_idname, text=text, icon=icon)
+            props = layout.operator(
+                obj.exp.ops.XRAY_OT_export_project.bl_idname,
+                text=text,
+                icon=icon
+            )
             return props
 
         layout = self.layout
         row = layout.row()
         if not data.export_root:
             row.enabled = False
-        selection = XRAY_OT_export_project.find_objects(context, use_selection=True)
+        selection = obj.exp.ops.XRAY_OT_export_project.find_objects(
+            context,
+            use_selection=True
+        )
         if not selection:
             gen_op(row, 'No Roots Selected', enabled=False)
         elif len(selection) == 1:
@@ -53,7 +59,7 @@ class XRAY_PT_ScenePanel(XRayPanel):
                 text='Selected Objects (%d)' % len(selection),
                 icon='GROUP'
             ).use_selection = True
-        scene = XRAY_OT_export_project.find_objects(context)
+        scene = obj.exp.ops.XRAY_OT_export_project.find_objects(context)
         gen_op(
             row,
             text='Scene Export (%d)' % len(scene),
@@ -65,10 +71,10 @@ class XRAY_PT_ScenePanel(XRayPanel):
             lay = lay.split()
             lay.alert = True
         lay.prop(data, 'export_root')
-        row = layout_split(layout, 0.33)
+        row = version_utils.layout_split(layout, 0.33)
         row.label(text='Format Version:')
         row.row().prop(data, 'fmt_version', expand=True)
-        _, box = collapsible.draw(layout, 'scene:object', 'Object Export Properties')
+        _, box = ui.collapsible.draw(layout, 'scene:object', 'Object Export Properties')
         if box:
             box.prop(data, 'object_export_motions')
             box.prop(data, 'object_texture_name_from_image_path')
