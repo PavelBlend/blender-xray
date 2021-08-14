@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from ..version_utils import get_icon, assign_props, IS_28
+from .. import version_utils
 
 
 _list_op_props = {
@@ -16,7 +16,7 @@ class _ListOp(bpy.types.Operator):
     bl_idname = 'io_scene_xray.list'
     bl_label = ''
 
-    if not IS_28:
+    if not version_utils.IS_28:
         for prop_name, prop_value in _list_op_props.items():
             exec('{0} = _list_op_props.get("{0}")'.format(prop_name))
 
@@ -51,10 +51,10 @@ def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_fu
         operator.index = active_propname
 
     layout.context_pointer_set(_ListOp.bl_idname + '.data', dataptr)
-    operator('add', get_icon('ZOOMIN'))
+    operator('add', version_utils.get_icon('ZOOMIN'))
     collection = getattr(dataptr, propname)
     index = getattr(dataptr, active_propname)
-    operator('remove', get_icon('ZOOMOUT'), enabled=(index >= 0) and (index < len(collection)))
+    operator('remove', version_utils.get_icon('ZOOMOUT'), enabled=(index >= 0) and (index < len(collection)))
     operator('move_up', 'TRIA_UP', enabled=(index > 0) and (index < len(collection)))
     operator('move_down', 'TRIA_DOWN', enabled=(index >= 0) and (index < len(collection) - 1))
     if custom_elements_func:
@@ -62,7 +62,7 @@ def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_fu
 
 
 def register():
-    assign_props([(_list_op_props, _ListOp), ])
+    version_utils.assign_props([(_list_op_props, _ListOp), ])
     bpy.utils.register_class(_ListOp)
 
 

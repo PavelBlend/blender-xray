@@ -2,20 +2,20 @@
 import bpy
 
 # addon modules
-from .base import XRayPanel, build_label
-from ..edit_helpers import base as base_edit_helper
+from . import base
+from .. import edit_helpers
 
 
-class XRAY_PT_EditHelperObjectPanel(XRayPanel):
+class XRAY_PT_EditHelperObjectPanel(base.XRayPanel):
     bl_context = 'object'
-    bl_label = build_label('Edit Helper')
+    bl_label = base.build_label('Edit Helper')
 
     @classmethod
     def poll(cls, context):
-        return base_edit_helper.get_object_helper(context) is not None
+        return edit_helpers.base.get_object_helper(context) is not None
 
     def draw(self, context):
-        helper = base_edit_helper.get_object_helper(context)
+        helper = edit_helpers.base.get_object_helper(context)
         helper.draw(self.layout, context)
 
 
