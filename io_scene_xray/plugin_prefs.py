@@ -1,9 +1,11 @@
 # blender modules
 import bpy
+import rna_keymap_ui
 import bl_operators
 
 # addon modules
 from . import prefs
+from . import hotkeys
 from . import version_utils
 
 
@@ -189,11 +191,31 @@ class PluginPreferences(bpy.types.AddonPreferences):
             column_2.prop(self, 'enable_ogf_export', text='*.ogf')
 
         elif self.category == 'KEYMAP':
-            layout.template_list(
-                'XRAY_UL_KeyMapsList', 'name',
-                self, 'keymaps_collection',
-                self, 'keymaps_collection_index'
-            )
+            win_manager = context.window_manager
+            keyconfig = win_manager.keyconfigs.user
+            keymaps = keyconfig.keymaps.get('3D View')
+            if keymaps:
+                keymap_items = keymaps.keymap_items
+                operators = (
+                    'xray_import.object',
+                    'xray_export.object'
+                )
+                for operator, _, _, _, _ in hotkeys.keymap_items_list:
+                    row = layout.row(align=True)
+                    keymap = keymap_items.get(operator.bl_idname)
+                    if keymap:
+                        row.context_pointer_set('keymap', keymaps)
+                        rna_keymap_ui.draw_kmi(
+                            ["ADDON", "USER", "DEFAULT"],
+                            keyconfig, keymaps, keymap, row, 0
+                        )
+                    else:
+                        row.label(text=operator.bl_label)
+                        change_keymap_op = row.operator(
+                            prefs.props.XRAY_OT_AddKeymap.bl_idname,
+                            text='Add'
+                        )
+                        change_keymap_op.operator = operator.bl_idname
 
         # custom properties settings
         elif self.category == 'CUSTOM_PROPS':

@@ -8,6 +8,7 @@ import bpy
 from .. import xray_ltx
 from .. import version_utils
 from .. import menus
+from .. import hotkeys
 from .. import plugin_props
 
 
@@ -331,23 +332,16 @@ change_keymap_props = {
 }
 
 
-class XRAY_OT_ChangeKeymap(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.change_keymap'
-    bl_label = 'Change Keymap'
+class XRAY_OT_AddKeymap(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.add_keymap'
+    bl_label = 'Add Keymap'
 
     if not version_utils.IS_28:
         for prop_name, prop_value in change_keymap_props.items():
             exec('{0} = change_keymap_props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
-        if version_utils.IS_28:
-            context.preferences.active_section = 'KEYMAP'
-        else:
-            context.user_preferences.active_section = 'INPUT'
-        space = context.space_data
-        if space.type in ('PREFERENCES', 'USER_PREFERENCES'):
-            space.filter_type = 'NAME'
-            space.filter_text = self.operator
+        hotkeys.add_keymaps(only=self.operator)
         return {'FINISHED'}
 
 
@@ -361,31 +355,6 @@ class XRayKeyMap(bpy.types.PropertyGroup):
     if not version_utils.IS_28:
         for prop_name, prop_value in key_map_props.items():
             exec('{0} = key_map_props.get("{0}")'.format(prop_name))
-
-
-class XRAY_UL_KeyMapsList(bpy.types.UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_property, index):
-        hotkey = data.keymaps_collection[index]
-        win_manager = context.window_manager
-        keyconfig = win_manager.keyconfigs.user
-        keymaps = keyconfig.keymaps.get('3D View')
-        key = ''
-        if keymaps:
-            keymap_items = keymaps.keymap_items
-            keymap = keymap_items.get(hotkey.operator)
-            if keymap:
-                alt = '+Alt' if keymap.alt else ''
-                ctrl = '+Ctrl' if keymap.ctrl else ''
-                shift = '+Shift' if keymap.shift else ''
-                key = '{0}{1}{2}{3}'.format(keymap.type, shift, ctrl, alt)
-        row = layout.row(align=True)
-        row.label(text=hotkey.name)
-        row.label(text=key)
-        change_keymap_op = row.operator(
-            XRAY_OT_ChangeKeymap.bl_idname,
-            text='Edit'
-        )
-        change_keymap_op.operator = hotkey.operator
 
 
 key_items = (
@@ -562,9 +531,8 @@ plugin_preferences_props = {
 
 
 classes = (
-    (XRAY_OT_ChangeKeymap, change_keymap_props),
+    (XRAY_OT_AddKeymap, change_keymap_props),
     (XRayKeyMap, key_map_props),
-    (XRAY_UL_KeyMapsList, None),
     (XRayPrefsCustomProperties, xray_custom_properties)
 )
 

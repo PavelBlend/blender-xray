@@ -45,10 +45,13 @@ keymap_items_list = (
 )
 
 
-def register():
+def add_keymaps(only=None):
     preferences = version_utils.get_preferences()
     win_manager = bpy.context.window_manager
-    keyconfig = win_manager.keyconfigs.addon
+    if only:
+        keyconfig = win_manager.keyconfigs.user
+    else:
+        keyconfig = win_manager.keyconfigs.addon
     if keyconfig:
         keymaps = keyconfig.keymaps.get('3D View')
         if not keymaps:
@@ -58,16 +61,21 @@ def register():
         for operator, key, shift, ctrl, alt in keymap_items_list:
             keymap_item = keymaps.keymap_items.get(operator.bl_idname)
             if not keymap_item:
-                keymap_item = keymaps.keymap_items.new(
-                    operator.bl_idname,
-                    type=key,
-                    value='PRESS',
-                    shift=shift,
-                    ctrl=ctrl,
-                    alt=alt,
-                    key_modifier='NONE'
-                )
-                keymap_item.active = True
+                create = True
+                if not only is None:
+                    if only != operator.bl_idname:
+                        create = False
+                if create:
+                    keymap_item = keymaps.keymap_items.new(
+                        operator.bl_idname,
+                        type=key,
+                        value='PRESS',
+                        shift=shift,
+                        ctrl=ctrl,
+                        alt=alt,
+                        key_modifier='NONE'
+                    )
+                    keymap_item.active = True
             addon_hotkeys[operator.bl_idname] = (keymaps, keymap_item)
             has_key = False
             for item in preferences.keymaps_collection:
@@ -77,6 +85,10 @@ def register():
                 key_map_element = preferences.keymaps_collection.add()
                 key_map_element.name = operator.bl_label
                 key_map_element.operator = operator.bl_idname
+
+
+def register():
+    add_keymaps()
 
 
 def unregister():
