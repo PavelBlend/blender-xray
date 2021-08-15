@@ -73,6 +73,8 @@ def _auto_path(prefs, self_name, path_suffix, checker):
         if path_suffix:
             result = os.path.join(result, path_suffix)
         if checker(result):
+            if self_name == 'objects_folder':
+                result = os.path.abspath(result)
             return result
     return ''
 
