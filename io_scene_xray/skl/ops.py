@@ -16,6 +16,27 @@ from .. import xray_motions
 from .. import version_utils
 
 
+def menu_func_import(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_import_skls.bl_idname,
+        text=utils.build_op_label(XRAY_OT_import_skls),
+        icon_value=icon
+    )
+
+
+def menu_func_export(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_export_skls.bl_idname,
+        text=utils.build_op_label(XRAY_OT_export_skls),
+        icon_value=icon
+    )
+
+
+op_text = 'Skeletal Animation'
+filename_ext = '.skls'
+
 motion_props = {
     'flag': bpy.props.BoolProperty(name='Selected for Import', default=True),
     'name': bpy.props.StringProperty(name='Motion Name')
@@ -43,6 +64,11 @@ class XRAY_OT_import_skls(plugin_props.BaseOperator, bpy_extras.io_utils.ImportH
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
     bl_options = {'UNDO', 'PRESET'}
+
+    draw_fun = menu_func_import
+    text = op_text
+    ext = '.skl/.skls'
+    filename_ext = filename_ext
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_import_skls_props.items():
@@ -159,7 +185,7 @@ class XRAY_OT_export_skl(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHe
     bl_description = 'Exports X-Ray skeletal animation'
     bl_options = {'UNDO'}
 
-    filename_ext = '.skl'
+    filename_ext = filename_ext
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_export_skl_props.items():
@@ -199,7 +225,10 @@ class XRAY_OT_export_skls(plugin_props.BaseOperator, utils.FilenameExtHelper):
     bl_description = 'Exports X-Ray skeletal animation'
     bl_options = {'UNDO'}
 
-    filename_ext = '.skls'
+    draw_fun = menu_func_import
+    text = op_text
+    ext = filename_ext
+    filename_ext = filename_ext
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_export_skls_props.items():
@@ -217,24 +246,6 @@ class XRAY_OT_export_skls(plugin_props.BaseOperator, utils.FilenameExtHelper):
     @utils.invoke_require_armature
     def invoke(self, context, event):
         return super().invoke(context, event)
-
-
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_skls.bl_idname,
-        text='X-Ray Skeletal Animation (.skl, .skls)',
-        icon_value=icon
-    )
-
-
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_skls.bl_idname,
-        text='X-Ray Skeletal Animation (.skls)',
-        icon_value=icon
-    )
 
 
 classes = (

@@ -25,7 +25,26 @@ class ExportDmContext(contexts.ExportMeshContext):
         contexts.ExportMeshContext.__init__(self)
 
 
+def menu_func_import(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_import_dm.bl_idname,
+        text=utils.build_op_label(XRAY_OT_import_dm),
+        icon_value=icon
+    )
+
+
+def menu_func_export(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_export_dm.bl_idname,
+        text=utils.build_op_label(XRAY_OT_export_dm),
+        icon_value=icon
+    )
+
+
 filename_ext = '.dm'
+op_text = 'Detail Model'
 
 
 op_import_dm_props = {
@@ -52,6 +71,11 @@ class XRAY_OT_import_dm(
     bl_label = 'Import .dm'
     bl_description = 'Imports X-Ray Detail Models (.dm)'
     bl_options = {'REGISTER', 'UNDO'}
+
+    draw_fun = menu_func_import
+    text = op_text
+    ext = filename_ext
+    filename_ext = filename_ext
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_import_dm_props.items():
@@ -105,6 +129,11 @@ class XRAY_OT_export_dm(plugin_props.BaseOperator):
     bl_idname = 'xray_export.dm'
     bl_label = 'Export .dm'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+
+    draw_fun = menu_func_export
+    text = op_text
+    ext = filename_ext
+    filename_ext = filename_ext
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_export_dms_props.items():
@@ -216,24 +245,6 @@ class XRAY_OT_export_single_dm(
         self.filepath = self.detail_model
 
         return super().invoke(context, event)
-
-
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_dm.bl_idname,
-        text='X-Ray Detail Model (.dm)',
-        icon_value=icon
-    )
-
-
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_dm.bl_idname,
-        text='X-Ray Detail Model (.dm)',
-        icon_value=icon
-    )
 
 
 classes = (

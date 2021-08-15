@@ -27,6 +27,15 @@ class ExportObjectContext(
         self.smoothing_out_of = None
 
 
+def menu_func_export(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_export_object.bl_idname,
+        text=utils.build_op_label(XRAY_OT_export_object),
+        icon_value=icon
+    )
+
+
 def find_objects_for_export(context):
     processed = set()
     roots = []
@@ -65,6 +74,8 @@ class _WithExportMotions:
             exec('{0} = _with_export_motions_props.get("{0}")'.format(prop_name))
 
 
+filename_ext = '.object'
+
 op_export_object_props = {
     'objects': bpy.props.StringProperty(options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
@@ -82,6 +93,11 @@ class XRAY_OT_export_object(plugin_props.BaseOperator, _WithExportMotions):
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
     bl_options = {'PRESET'}
+
+    draw_fun = menu_func_export
+    text = 'Source Object'
+    ext = filename_ext
+    filename_ext = filename_ext
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_export_object_props.items():
@@ -152,7 +168,6 @@ class XRAY_OT_export_object(plugin_props.BaseOperator, _WithExportMotions):
         return {'RUNNING_MODAL'}
 
 
-filename_ext = '.object'
 op_export_single_object_props = {
     'object': bpy.props.StringProperty(options={'HIDDEN'}),
     'filter_glob': bpy.props.StringProperty(
@@ -236,15 +251,6 @@ class XRAY_OT_export_single_object(
             preferences.object_texture_names_from_path
         self.smoothing_out_of = preferences.smoothing_out_of
         return super().invoke(context, event)
-
-
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_object.bl_idname,
-        text='X-Ray Source Object (.object)',
-        icon_value=icon
-    )
 
 
 op_export_project_props = {

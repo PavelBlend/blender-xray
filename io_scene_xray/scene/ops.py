@@ -11,7 +11,27 @@ from .. import plugin_props
 from .. import version_utils
 
 
+def menu_func_export(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_export_scene_selection.bl_idname,
+        text=utils.build_op_label(XRAY_OT_export_scene_selection),
+        icon_value=icon
+    )
+
+
+def menu_func_import(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_import_scene_selection.bl_idname,
+        text=utils.build_op_label(XRAY_OT_import_scene_selection),
+        icon_value=icon
+    )
+
+
+op_text = 'Scene Selection'
 filename_ext = '.level'
+
 op_export_level_scene_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
@@ -25,7 +45,10 @@ class XRAY_OT_export_scene_selection(
     bl_idname = 'xray_export.scene'
     bl_label = 'Export .level'
 
-    filename_ext = '.level'
+    draw_fun = menu_func_export
+    text = op_text
+    ext = filename_ext
+    filename_ext = filename_ext
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_export_level_scene_props.items():
@@ -56,7 +79,6 @@ class XRAY_OT_export_scene_selection(
         return super().invoke(context, event)
 
 
-filename_ext = '.level'
 op_import_level_scene_props = {
     'filepath': bpy.props.StringProperty(subtype="FILE_PATH"),
     'filter_glob': bpy.props.StringProperty(
@@ -76,7 +98,10 @@ class XRAY_OT_import_scene_selection(
     bl_label = 'Import .level'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    filename_ext = '.level'
+    draw_fun = menu_func_import
+    text = op_text
+    ext = filename_ext
+    filename_ext = filename_ext
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_import_level_scene_props.items():
@@ -109,24 +134,6 @@ class XRAY_OT_import_scene_selection(
         self.fmt_version = preferences.scene_selection_sdk_version
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
-
-
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_scene_selection.bl_idname,
-        text='X-Ray Scene Selection (.level)',
-        icon_value=icon
-    )
-
-
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_scene_selection.bl_idname,
-        text='X-Ray Scene Selection (.level)',
-        icon_value=icon
-    )
 
 
 def register():

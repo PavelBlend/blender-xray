@@ -19,6 +19,15 @@ model_export_helper_props = {
 }
 
 
+def menu_func_export(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_export_ogf.bl_idname,
+        text=utils.build_op_label(XRAY_OT_export_ogf),
+        icon_value=icon
+    )
+
+
 class ExportOgfContext(contexts.ExportMeshContext):
     def __init__(self):
         contexts.ExportMeshContext.__init__(self)
@@ -47,7 +56,9 @@ class ModelExportHelper:
         return self.export(roots[0], context)
 
 
+op_text = 'Game Object'
 filename_ext = '.ogf'
+
 op_export_ogf_props = {
     'filter_glob': bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'}),
     'texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath()
@@ -63,7 +74,10 @@ class XRAY_OT_export_ogf(
     bl_label = 'Export .ogf'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    filename_ext = '.ogf'
+    draw_fun = menu_func_export
+    text = op_text
+    ext = filename_ext
+    filename_ext = filename_ext
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_export_ogf_props.items():
@@ -79,15 +93,6 @@ class XRAY_OT_export_ogf(
         preferences = version_utils.get_preferences()
         self.texture_name_from_image_path = preferences.object_texture_names_from_path
         return super().invoke(context, event)
-
-
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_ogf.bl_idname,
-        text='X-Ray Game Object (.ogf)',
-        icon_value=icon
-    )
 
 
 def register():

@@ -32,6 +32,28 @@ class ExportDetailsContext(contexts.ExportMeshContext):
         self.level_details_format_version = None
 
 
+def menu_func_import(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_import_details.bl_idname,
+        text=utils.build_op_label(XRAY_OT_import_details),
+        icon_value=icon
+    )
+
+
+def menu_func_export(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_export_details.bl_idname,
+        text=utils.build_op_label(XRAY_OT_export_details),
+        icon_value=icon
+    )
+
+
+filename_ext = '.details'
+op_text = 'Level Details'
+
+
 op_import_details_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.details', options={'HIDDEN'}
@@ -59,6 +81,11 @@ class XRAY_OT_import_details(
     bl_label = 'Import .details'
     bl_description = 'Imports X-Ray Level Details Models (.details)'
     bl_options = {'REGISTER', 'PRESET', 'UNDO'}
+
+    draw_fun = menu_func_import
+    text = op_text
+    ext = filename_ext
+    filename_ext = filename_ext
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_import_details_props.items():
@@ -129,7 +156,6 @@ class XRAY_OT_import_details(
         return super().invoke(context, event)
 
 
-filename_ext = '.details'
 op_export_details_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
@@ -150,7 +176,10 @@ class XRAY_OT_export_details(
     bl_label = 'Export .details'
     bl_options = {'PRESET'}
 
-    filename_ext = '.details'
+    draw_fun = menu_func_export
+    text = op_text
+    ext = filename_ext
+    filename_ext = filename_ext
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_export_details_props.items():
@@ -251,24 +280,6 @@ class XRAY_OT_pack_details_images(bpy.types.Operator):
                     image.pack(as_png=True)
 
         return {'FINISHED'}
-
-
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_details.bl_idname,
-        text='X-Ray Level Details (.details)',
-        icon_value=icon
-    )
-
-
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_details.bl_idname,
-        text='X-Ray Level Details (.details)',
-        icon_value=icon
-    )
 
 
 classes = (

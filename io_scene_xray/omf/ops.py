@@ -38,6 +38,27 @@ class ExportOmfContext(
         self.need_bone_groups = None
 
 
+def menu_func_import(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_import_omf.bl_idname,
+        text=utils.build_op_label(XRAY_OT_import_omf),
+        icon_value=icon
+    )
+
+
+def menu_func_export(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_export_omf.bl_idname,
+        text=utils.build_op_label(XRAY_OT_export_omf),
+        icon_value=icon
+    )
+
+
+op_text = 'Game Motion'
+filename_ext = '.omf'
+
 motion_props = {
     'flag': bpy.props.BoolProperty(name='Selected for Import', default=True),
     'name': bpy.props.StringProperty(name='Motion Name'),
@@ -76,6 +97,11 @@ class XRAY_OT_import_omf(
     bl_label = 'Import .omf'
     bl_description = 'Import X-Ray Game Motion (omf)'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+
+    draw_fun = menu_func_import
+    text = op_text
+    ext = filename_ext
+    filename_ext = filename_ext
 
     __parsed_file_name = None
 
@@ -205,7 +231,6 @@ class XRAY_OT_import_omf(
         return items
 
 
-filename_ext = '.omf'
 op_export_omf_props = {
     'filter_glob': bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'}),
     'export_mode': plugin_props.prop_omf_export_mode(),
@@ -220,7 +245,10 @@ class XRAY_OT_export_omf(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHe
     bl_description = 'Exports X-Ray skeletal game motions'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    filename_ext = '.omf'
+    draw_fun = menu_func_export
+    text = op_text
+    ext = filename_ext
+    filename_ext = filename_ext
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_export_omf_props.items():
@@ -331,24 +359,6 @@ class XRAY_OT_export_omf(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHe
         if not self.filepath.lower().endswith(filename_ext):
             self.filepath += filename_ext
         return super().invoke(context, event)
-
-
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_omf.bl_idname,
-        text='X-Ray Game Motion (.omf)',
-        icon_value=icon
-    )
-
-
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_omf.bl_idname,
-        text='X-Ray Game Motion (.omf)',
-        icon_value=icon
-    )
 
 
 classes = (

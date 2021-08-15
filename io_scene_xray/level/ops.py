@@ -17,6 +17,28 @@ class ImportLevelContext(contexts.ImportMeshContext):
         contexts.ImportMeshContext.__init__(self)
 
 
+def menu_func_import(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_import_level.bl_idname,
+        text=utils.build_op_label(XRAY_OT_import_level),
+        icon_value=icon
+    )
+
+
+def menu_func_export(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_export_level.bl_idname,
+        text=utils.build_op_label(XRAY_OT_export_level),
+        icon_value=icon
+    )
+
+
+op_text = 'Game Level'
+file_name_text = 'level'
+
+
 op_import_level_props = {
     'filter_glob': bpy.props.StringProperty(
         default='level', options={'HIDDEN'}
@@ -39,6 +61,11 @@ class XRAY_OT_import_level(
     bl_label = 'Import level'
     bl_description = 'Import X-Ray Game Level (level)'
     bl_options = {'REGISTER', 'UNDO'}
+
+    draw_fun = menu_func_import
+    text = op_text
+    filename_ext = ''
+    ext = file_name_text
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_import_level_props.items():
@@ -83,7 +110,10 @@ class XRAY_OT_export_level(plugin_props.BaseOperator):
     bl_idname = 'xray_export.level'
     bl_label = 'Export level'
 
+    draw_fun = menu_func_import
+    text = op_text
     filename_ext = ''
+    ext = file_name_text
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_export_level_props.items():
@@ -119,24 +149,6 @@ class XRAY_OT_export_level(plugin_props.BaseOperator):
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
-
-
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_level.bl_idname,
-        text='X-Ray Game Level (level)',
-        icon_value=icon
-    )
-
-
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_level.bl_idname,
-        text='X-Ray Game Level (level)',
-        icon_value=icon
-    )
 
 
 def register():

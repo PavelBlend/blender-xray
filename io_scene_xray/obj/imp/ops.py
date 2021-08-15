@@ -14,6 +14,15 @@ from ... import version_utils
 from ... import plugin_props
 
 
+def menu_func_import(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_import_object.bl_idname,
+        text=utils.build_op_label(XRAY_OT_import_object),
+        icon_value=icon
+    )
+
+
 op_import_object_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.object', options={'HIDDEN'}
@@ -29,12 +38,19 @@ op_import_object_props = {
     'fmt_version': plugin_props.PropSDKVersion()
 }
 
+filename_ext = '.object'
+
 
 class XRAY_OT_import_object(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
     bl_label = 'Import .object'
     bl_description = 'Imports X-Ray object'
     bl_options = {'UNDO', 'PRESET'}
+
+    draw_fun = menu_func_import
+    text = 'Source Object'
+    ext = filename_ext
+    filename_ext = filename_ext
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_import_object_props.items():
@@ -101,15 +117,6 @@ class XRAY_OT_import_object(plugin_props.BaseOperator, bpy_extras.io_utils.Impor
         self.shaped_bones = preferences.object_bones_custom_shapes
         self.use_motion_prefix_name = preferences.use_motion_prefix_name
         return super().invoke(context, event)
-
-
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_object.bl_idname,
-        text='X-Ray Source Object (.object)',
-        icon_value=icon
-    )
 
 
 def register():

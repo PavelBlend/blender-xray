@@ -525,3 +525,13 @@ def print_time_info(message=None, tabs_count=None, total_time=None):
 
 
 print_pass = lambda message=None, tabs_count=None, total_time=None: None
+
+
+def build_op_label(operator, compact=False):
+    # build operator label
+    if compact:
+        prefix = ''
+    else:
+        prefix = 'X-Ray '
+    label = '{0}{1} ({2})'.format(prefix, operator.text, operator.ext)
+    return label
