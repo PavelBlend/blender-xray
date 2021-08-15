@@ -10,12 +10,12 @@ from . import version_utils
 
 
 path_props_names = {
-    'fs_ltx_file': 'fs.ltx File',
+    'fs_ltx_file': 'FS Ltx File',
     'gamedata_folder': 'Gamedata Folder',
     'textures_folder': 'Textures Folder',
-    'gamemtl_file': 'GameMtl File',
-    'eshader_file': 'EShader File',
-    'cshader_file': 'CShader File',
+    'gamemtl_file': 'Game Materials File',
+    'eshader_file': 'Engine Shaders File',
+    'cshader_file': 'Compile Shaders File',
     'objects_folder': 'Objects Folder'
 }
 

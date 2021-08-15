@@ -22,7 +22,7 @@ class UI_UL_SklsList_item(bpy.types.UIList):
 class OpCloseSklsFile(bpy.types.Operator):
     'Close *.skls animations list'
     bl_idname = 'xray.close_skls_file'
-    bl_label = 'Close .skls file'
+    bl_label = 'Close Skls File'
 
     @classmethod
     def poll(cls, context):

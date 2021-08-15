@@ -59,7 +59,7 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
         col.active = active
         col.operator(
             operator=skls_browser.OpBrowseSklsFile.bl_idname,
-            text='Open skls file...'
+            text='Open Skls File'
         )
         if not obj:
             return

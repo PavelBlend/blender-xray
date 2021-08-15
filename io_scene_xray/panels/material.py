@@ -8,7 +8,7 @@ from .. import version_utils
 
 
 class XRayEShaderMenu(ui.dynamic_menu.XRayXrMenuTemplate):
-    bl_idname = 'XRAY_MT_EShaderMenu'
+    bl_idname = 'XRAY_MT_ShaderMenu'
     prop_name = 'eshader'
     cached = ui.dynamic_menu.XRayXrMenuTemplate.create_cached(
         'eshader_file_auto',
@@ -17,7 +17,7 @@ class XRayEShaderMenu(ui.dynamic_menu.XRayXrMenuTemplate):
 
 
 class XRayCShaderMenu(ui.dynamic_menu.XRayXrMenuTemplate):
-    bl_idname = 'XRAY_MT_CShaderMenu'
+    bl_idname = 'XRAY_MT_CompileMenu'
     prop_name = 'cshader'
     cached = ui.dynamic_menu.XRayXrMenuTemplate.create_cached(
         'cshader_file_auto',
@@ -26,7 +26,7 @@ class XRayCShaderMenu(ui.dynamic_menu.XRayXrMenuTemplate):
 
 
 class XRayGameMtlMenu(ui.dynamic_menu.XRayXrMenuTemplate):
-    bl_idname = 'XRAY_MT_GameMtlMenu'
+    bl_idname = 'XRAY_MT_MaterialMenu'
     prop_name = 'gamemtl'
     cached = ui.dynamic_menu.XRayXrMenuTemplate.create_cached(
         'gamemtl_file_auto',
@@ -53,10 +53,10 @@ class XRAY_PT_MaterialPanel(ui.base.XRayPanel):
         layout = self.layout
         material = context.object.active_material
         data = material.xray
-        layout.prop(data, 'flags_twosided', text='Two sided', toggle=True)
-        _gen_xr_selector(layout, data, 'eshader', 'EShader')
-        _gen_xr_selector(layout, data, 'cshader', 'CShader')
-        _gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
+        layout.prop(data, 'flags_twosided', text='Two Sided', toggle=True)
+        _gen_xr_selector(layout, data, 'eshader', 'Shader')
+        _gen_xr_selector(layout, data, 'cshader', 'Compile')
+        _gen_xr_selector(layout, data, 'gamemtl', 'Material')
 
         preferences = version_utils.get_preferences()
         panel_used = (

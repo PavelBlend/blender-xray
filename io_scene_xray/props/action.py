@@ -90,7 +90,7 @@ xray_action_properties = {
         description='Bake this action on each export'
     ),
     'autobake_custom_refine': bpy.props.BoolProperty(
-        name='Custom Thresholds',
+        name='Use Custom Thresholds',
         description='Use custom thresholds for remove redundant keyframes'
     ),
     'autobake_refine_location': bpy.props.FloatProperty(

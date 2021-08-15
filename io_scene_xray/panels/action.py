@@ -42,31 +42,26 @@ class XRAY_PT_ActionPanel(ui.base.XRayPanel):
         obj = context.active_object
         action = obj.animation_data.action
         data = action.xray
-        box = layout.column(align=True) if data.autobake != 'off' else layout
-        if data.autobake_auto:
-            box.prop(data, 'autobake_auto', toggle=True, icon='RENDER_STILL')
-        else:
-            row = box.row(align=True)
-            row.prop(data, 'autobake_auto', toggle=True, text='Auto Bake:', icon='RENDER_STILL')
-            text = 'On' if data.autobake_on else 'Off'
-            row.prop(data, 'autobake_on', toggle=True, text=text)
-        if box != layout:
-            if data.autobake_custom_refine:
-                row = box.row(align=True)
-                row.prop(
-                    data, 'autobake_custom_refine',
-                    toggle=True, text='', icon=version_utils.get_icon('BUTS')
-                )
-                row.prop(data, 'autobake_refine_location', text='L')
-                row.prop(data, 'autobake_refine_rotation', text='R')
-            else:
-                box.prop(data, 'autobake_custom_refine', toggle=True)
-        layout.prop(data, 'fps')
+
+        # bake properties
+        col = layout.column(align=True)
+        col.label(text='Bake Mode:')
+        row = col.row(align=True)
+        row.prop(data, 'autobake', expand=True)
+        col = col.column(align=True)
+        col.active = data.autobake != 'off'
+        col.prop(data, 'autobake_custom_refine', toggle=True)
+        col = col.column(align=True)
+        col.active = data.autobake_custom_refine
+        col.prop(data, 'autobake_refine_location', text='Location Threshold')
+        col.prop(data, 'autobake_refine_rotation', text='Rotation Threshold')
+
+        layout.prop(data, 'fps', text='FPS')
         if obj.type != 'ARMATURE':
             return
-        layout.prop(data, 'speed')
-        layout.prop(data, 'accrue')
-        layout.prop(data, 'falloff')
+        layout.prop(data, 'speed', text='Speed')
+        layout.prop(data, 'accrue', text='Accrue')
+        layout.prop(data, 'falloff', text='Falloff')
         layout.prop(data, 'flags_fx', text='Type FX', toggle=True)
         if data.flags_fx:
             row = layout.row(align=True)

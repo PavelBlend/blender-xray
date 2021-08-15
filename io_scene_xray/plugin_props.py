@@ -114,7 +114,7 @@ def prop_export_bone_properties():
 
 
 def prop_details_models_in_a_row():
-    return bpy.props.BoolProperty(name='Details Models in a Row', default=True)
+    return bpy.props.BoolProperty(name='Models in Row', default=True)
 
 
 def prop_details_load_slots():

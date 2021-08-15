@@ -86,7 +86,7 @@ class XRAY_PT_BonePanel(ui.base.XRayPanel):
         data = bone.xray
         layout.enabled = data.exportable
         layout.prop(data, 'length')
-        material._gen_xr_selector(layout, data, 'gamemtl', 'GameMtl')
+        material._gen_xr_selector(layout, data, 'gamemtl', 'Material')
         box = layout.box()
         row = box.row()
         row.label(text='Shape Type:')
