@@ -109,7 +109,7 @@ class PackedReader:
             return str(bts, 'cp1251')
         except UnicodeError as error:
             if onerror is None:
-                raise
+                raise error
             onerror(error)
             return str(bts, 'cp1251', errors='replace')
 

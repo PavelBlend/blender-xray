@@ -266,9 +266,15 @@ class XRAY_PT_ObjectPanel(ui.base.XRayPanel):
                 )
                 PropClipOp.drawall(row, 'object.xray.userdata', data.userdata)
                 if box:
-                    box = box.column(align=True)
-                    for line in data.userdata.splitlines():
-                        box.label(text=line)
+                    if not data.userdata:
+                        ui.collapsible._CollapsOp.set_value(
+                            'object:userdata',
+                            False
+                        )
+                    else:
+                        box = box.column(align=True)
+                        for line in data.userdata.splitlines():
+                            box.label(text=line)
 
                 if data.motions:
                     split = object_box.split()

@@ -397,7 +397,11 @@ def import_main(fpath, context, creader):
             bpy_obj.xray.userdata = xray_io.PackedReader(
                 data
             ).gets(
-                onerror=lambda e: log.warn('bad userdata', error=e)
+                onerror=lambda e: log.warn(
+                    'bad userdata',
+                    error=str(e),
+                    file=fpath
+                )
             )
         elif cid == fmt.Chunks.Object.LOD_REF:
             bpy_obj.xray.lodref = xray_io.PackedReader(data).gets()
