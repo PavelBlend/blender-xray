@@ -16,21 +16,19 @@ def _import_partitions(data, arm_obj, bpy_bones):
     bpy.ops.object.mode_set(mode='POSE')
     try:
         for partition_id in range(partitions_count):
-            partition_name = packed_reader.gets()
-            bone_group = arm_obj.pose.bone_groups.get(partition_name, None)
+            name = packed_reader.gets()
+            bone_group = arm_obj.pose.bone_groups.get(name, None)
             if not bone_group:
                 bpy.ops.pose.group_add()
                 bone_group = arm_obj.pose.bone_groups.active
-                bone_group.name = partition_name
+                bone_group.name = name
             bones_count = packed_reader.int()
             for bone_id in range(bones_count):
                 bone_name = packed_reader.gets()
                 bpy_bone = bpy_bones.get(bone_name, None)
                 if not bpy_bone:
                     log.warn(
-                        'partition "{}" contains missing bone'.format(
-                            partition_name
-                        ),
+                        'partition "{}" contains missing bone'.format(name),
                         bone=bone_name
                     )
                 else:
@@ -82,7 +80,10 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
             ik = xray.ikjoint
             joint_type = str(packed_reader.int())
             obj.imp.bone.safe_assign_enum_property(
-                ik, 'type', joint_type, 'bone ikjoint'
+                ik,
+                'type',
+                joint_type,
+                'bone ikjoint'
             )
             # limit x
             ik.lim_x_min, ik.lim_x_max = packed_reader.getf('<2f')

@@ -44,7 +44,10 @@ op_import_bones_props = {
 }
 
 
-class XRAY_OT_import_bones(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHelper):
+class XRAY_OT_import_bones(
+        plugin_props.BaseOperator,
+        bpy_extras.io_utils.ImportHelper
+    ):
     bl_idname = 'xray_import.bones'
     bl_label = 'Import .bones'
     bl_description = 'Import X-Ray Bones Data'
@@ -73,15 +76,20 @@ class XRAY_OT_import_bones(plugin_props.BaseOperator, bpy_extras.io_utils.Import
         ext = os.path.splitext(filename)[-1].lower()
         if ext == '.bones':
             if not os.path.exists(filepath):
-                self.report({'ERROR'}, 'File not found: "{}"'.format(filepath))
+                self.report(
+                    {'ERROR'},
+                    'File not found: "{}"'.format(filepath)
+                )
                 return {'CANCELLED'}
             try:
-                if not self.import_bone_properties and not self.import_bone_parts:
+                imp_props = self.import_bone_properties
+                imp_parts = self.import_bone_parts
+                if not (imp_props and imp_parts):
                     self.report({'ERROR'}, 'Nothing is imported')
                     return {'CANCELLED'}
                 import_context = ImportBonesContext()
-                import_context.import_bone_properties = self.import_bone_properties
-                import_context.import_bone_parts = self.import_bone_parts
+                import_context.import_bone_properties = imp_props
+                import_context.import_bone_parts = imp_parts
                 import_context.filepath = filepath
                 import_context.bpy_arm_obj = context.object
                 imp.import_file(import_context)
@@ -91,7 +99,8 @@ class XRAY_OT_import_bones(plugin_props.BaseOperator, bpy_extras.io_utils.Import
                 return {'CANCELLED'}
         else:
             self.report(
-                {'ERROR'}, 'Format of "{}" not recognised'.format(filepath)
+                {'ERROR'},
+                'Format of "{}" not recognised'.format(filepath)
             )
             return {'CANCELLED'}
 
@@ -110,11 +119,11 @@ class XRAY_OT_import_bones(plugin_props.BaseOperator, bpy_extras.io_utils.Import
         if obj.type != 'ARMATURE':
             self.report({'ERROR'}, 'The active object is not an armature')
             return {'CANCELLED'}
-        preferences = version_utils.get_preferences()
+        prefs = version_utils.get_preferences()
         # import bone parts
-        self.import_bone_parts = preferences.bones_import_bone_parts
+        self.import_bone_parts = prefs.bones_import_bone_parts
         # import bone properties
-        self.import_bone_properties = preferences.bones_import_bone_properties
+        self.import_bone_properties = prefs.bones_import_bone_properties
         return super().invoke(context, event)
 
 
@@ -157,11 +166,13 @@ class XRAY_OT_export_bones(plugin_props.BaseOperator):
                 filepath += self.filename_ext
             obj = context.scene.objects[object_name]
             try:
+                exp_parts = self.export_bone_parts
+                exp_props = self.export_bone_properties
                 export_context = ExportBonesContext()
                 export_context.bpy_arm_obj = obj
                 export_context.filepath = filepath
-                export_context.export_bone_parts = self.export_bone_parts
-                export_context.export_bone_properties = self.export_bone_properties
+                export_context.export_bone_parts = exp_parts
+                export_context.export_bone_properties = exp_props
                 exp.export_file(export_context)
             except utils.AppError as err:
                 self.report({'ERROR'}, str(err))
@@ -187,11 +198,11 @@ class XRAY_OT_export_bones(plugin_props.BaseOperator):
             return {'CANCELLED'}
         if len(self.objects_list) == 1:
             return bpy.ops.xray_export.bone('INVOKE_DEFAULT')
-        preferences = version_utils.get_preferences()
+        prefs = version_utils.get_preferences()
         # export bone parts
-        self.export_bone_parts = preferences.bones_export_bone_parts
+        self.export_bone_parts = prefs.bones_export_bone_parts
         # export bone properties
-        self.export_bone_properties = preferences.bones_export_bone_properties
+        self.export_bone_properties = prefs.bones_export_bone_properties
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -208,7 +219,10 @@ op_export_bone_props = {
 }
 
 
-class XRAY_OT_export_bone(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHelper):
+class XRAY_OT_export_bone(
+        plugin_props.BaseOperator,
+        bpy_extras.io_utils.ExportHelper
+    ):
     bl_idname = 'xray_export.bone'
     bl_label = 'Export .bones'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -257,11 +271,11 @@ class XRAY_OT_export_bone(plugin_props.BaseOperator, bpy_extras.io_utils.ExportH
         self.filepath = os.path.join(self.directory, self.object_name)
         if not self.filepath.lower().endswith(self.filename_ext):
             self.filepath += self.filename_ext
-        preferences = version_utils.get_preferences()
+        prefs = version_utils.get_preferences()
         # export bone parts
-        self.export_bone_parts = preferences.bones_export_bone_parts
+        self.export_bone_parts = prefs.bones_export_bone_parts
         # export bone properties
-        self.export_bone_properties = preferences.bones_export_bone_properties
+        self.export_bone_properties = prefs.bones_export_bone_properties
         return super().invoke(context, event)
 
 
@@ -269,7 +283,8 @@ def menu_func_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_bones.bl_idname,
-        text='X-Ray Bones Data (.bones)', icon_value=icon
+        text='X-Ray Bones Data (.bones)',
+        icon_value=icon
     )
 
 
@@ -277,7 +292,8 @@ def menu_func_export(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_bones.bl_idname,
-        text='X-Ray Bones Data (.bones)', icon_value=icon
+        text='X-Ray Bones Data (.bones)',
+        icon_value=icon
     )
 
 

@@ -17,7 +17,10 @@ class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
     def draw(self, layout, context):
         if self.is_active(context):
             layout.operator(_ApplyShape.bl_idname, icon='FILE_TICK')
-            layout.operator(_FitShape.bl_idname, icon=version_utils.get_icon('BBOX'))
+            layout.operator(
+                _FitShape.bl_idname,
+                icon=version_utils.get_icon('BBOX')
+            )
             super().draw(layout, context)
             return
 
@@ -60,7 +63,13 @@ def _create_bmesh(shape_type):
     elif shape_type == '2':
         bmesh.ops.create_icosphere(mesh, subdivisions=2, diameter=1)
     elif shape_type == '3':
-        bmesh.ops.create_cone(mesh, segments=16, diameter1=1, diameter2=1, depth=2)
+        bmesh.ops.create_cone(
+            mesh,
+            segments=16,
+            diameter1=1,
+            diameter2=1, 
+            depth=2
+        )
     else:
         raise AssertionError('unsupported bone shape type: ' + shape_type)
     return mesh
@@ -69,14 +78,16 @@ def _create_bmesh(shape_type):
 class _EditShape(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_shape'
     bl_label = 'Edit Bone Shape'
-    bl_description = 'Create a helper object that can be used for adjusting bone shape'
+    bl_description = 'Create a helper object that can be ' \
+        'used for adjusting bone shape'
 
     @classmethod
     def poll(cls, context):
         if context.mode == 'EDIT_ARMATURE':
             return False
         bone = context.active_bone
-        return bone and (bone.xray.shape.type != '0') and not HELPER.is_active(context)
+        return bone and (bone.xray.shape.type != '0') and \
+            not HELPER.is_active(context)
 
 
     def execute(self, context):
@@ -108,7 +119,14 @@ def _bone_matrix(bone):
         mat = multiply(mat, _v2ms((xsh.sph_rad, xsh.sph_rad, xsh.sph_rad)))
     elif xsh.type == '3':  # cylinder
         mat = multiply(mat, xray_motions.MATRIX_BONE_INVERTED)
-        mat = multiply(mat, _v2ms((xsh.cyl_rad, xsh.cyl_rad, xsh.cyl_hgh * 0.5)))
+        mat = multiply(
+            mat,
+            _v2ms((
+                xsh.cyl_rad,
+                xsh.cyl_rad,
+                xsh.cyl_hgh * 0.5
+            ))
+        )
     else:
         raise AssertionError('unsupported bone shape type: ' + xsh.type)
     return mat
@@ -184,7 +202,8 @@ def _bone_objects(bone):
         if group is None:
             continue
         for mod in obj.modifiers:
-            if (mod.type == 'ARMATURE') and mod.object and (mod.object.data == arm):
+            if (mod.type == 'ARMATURE') and mod.object and \
+                    (mod.object.data == arm):
                 yield obj, group.index
                 break
 

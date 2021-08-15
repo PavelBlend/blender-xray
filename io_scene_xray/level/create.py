@@ -164,9 +164,13 @@ def create_shader_image_node(bpy_material, bpy_image, offset):
 
 
 def links_nodes(
-        bpy_material, output_node, principled_node, image_node,
-        uv_map_node, lmap_count
-        ):
+        bpy_material,
+        output_node,
+        principled_node,
+        image_node,
+        uv_map_node,
+        lmap_count
+    ):
     link_nodes(
         bpy_material,
         principled_node.outputs['BSDF'],
@@ -309,7 +313,10 @@ def get_image_lmap(context, light_maps):
         image_lmap = get_image_lmap_terrain(context, light_maps[0])
         return (image_lmap, )
     elif light_maps_count == 2:
-        image_lmap_1, image_lmap_2 = get_image_lmap_brush(context, *light_maps)
+        image_lmap_1, image_lmap_2 = get_image_lmap_brush(
+            context,
+            *light_maps
+        )
         return (image_lmap_1, image_lmap_2)
 
 
@@ -320,7 +327,8 @@ def get_image(context, texture, light_maps, terrain=False):
     else:
         texture_dir = context.textures_folder
     absolute_texture_path = get_absolute_texture_path(
-        texture_dir, texture
+        texture_dir,
+        texture
     )
     bpy_image = search_image(context, texture, absolute_texture_path)
     if not bpy_image:
@@ -340,7 +348,8 @@ def is_same_light_maps(context, bpy_material, light_maps):
         if not bpy_image:
             continue
         if not is_same_image_paths(
-                bpy_image, absolute_texture_path_in_level_folder
+                bpy_image,
+                absolute_texture_path_in_level_folder
             ):
             continue
         has_images.append(True)
@@ -364,7 +373,8 @@ def is_same_image(context, bpy_material, texture):
                     continue
                 if not is_same_image_paths(bpy_image, absolute_texture_path):
                     if not is_same_image_paths(
-                            bpy_image, absolute_texture_path_in_level_folder
+                            bpy_image,
+                            absolute_texture_path_in_level_folder
                         ):
                         continue
                 return bpy_image
@@ -379,7 +389,8 @@ def is_same_image(context, bpy_material, texture):
                 continue
             if not is_same_image_paths(bpy_image, absolute_texture_path):
                 if not is_same_image_paths(
-                        bpy_image, absolute_texture_path_in_level_folder
+                        bpy_image,
+                        absolute_texture_path_in_level_folder
                     ):
                     continue
             return bpy_image
@@ -458,6 +469,10 @@ def get_material(level, context, texture, engine_shader, *light_maps):
     bpy_material, bpy_image = search_material(context, texture, engine_shader, *light_maps)
     if not bpy_material:
         bpy_material, bpy_image = create_material(
-            level, context, texture, engine_shader, *light_maps
+            level,
+            context,
+            texture,
+            engine_shader,
+            *light_maps
         )
     return bpy_material, bpy_image

@@ -31,7 +31,11 @@ def _export(bpy_obj, chunked_writer):
         baked_action = bpy.data.actions.new('!-temp_anm_export')
         try:
             _bake_to_action(bpy_obj, baked_action, frange)
-            _export_action_data(packed_writer, bpy_act.xray, baked_action.fcurves)
+            _export_action_data(
+                packed_writer,
+                bpy_act.xray,
+                baked_action.fcurves
+            )
         finally:
             if not version_utils.IS_277:
                 bpy.data.actions.remove(baked_action, do_unlink=True)
@@ -47,15 +51,17 @@ def _bake_to_action(bobject, action, frange):
     old_frame = bpy.context.scene.frame_current
     try:
         group_name = 'LocRot'
+        loc = 'location'
+        rot = 'rotation_euler'
         fc_trn = [
-            action.fcurves.new('location', index=0, action_group=group_name),
-            action.fcurves.new('location', index=1, action_group=group_name),
-            action.fcurves.new('location', index=2, action_group=group_name),
+            action.fcurves.new(loc, index=0, action_group=group_name),
+            action.fcurves.new(loc, index=1, action_group=group_name),
+            action.fcurves.new(loc, index=2, action_group=group_name),
         ]
         fc_rot = [
-            action.fcurves.new('rotation_euler', index=0, action_group=group_name),
-            action.fcurves.new('rotation_euler', index=1, action_group=group_name),
-            action.fcurves.new('rotation_euler', index=2, action_group=group_name)
+            action.fcurves.new(rot, index=0, action_group=group_name),
+            action.fcurves.new(rot, index=1, action_group=group_name),
+            action.fcurves.new(rot, index=2, action_group=group_name)
         ]
         prev_rot = None
         for frm in range(int(frange[0]), int(frange[1]) + 1):
@@ -67,8 +73,10 @@ def _bake_to_action(bobject, action, frange):
                 utils.smooth_euler(rot, prev_rot)
             prev_rot = rot
             for i in range(3):
-                fc_trn[i].keyframe_points.insert(frm, trn[i]).interpolation = 'LINEAR'
-                fc_rot[i].keyframe_points.insert(frm, rot[i]).interpolation = 'LINEAR'
+                key_loc = fc_trn[i].keyframe_points.insert(frm, trn[i])
+                key_loc.interpolation = 'LINEAR'
+                key_rot = fc_rot[i].keyframe_points.insert(frm, rot[i])
+                key_rot.interpolation = 'LINEAR'
     finally:
         bpy.context.scene.frame_set(old_frame)
 

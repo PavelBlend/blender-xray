@@ -65,13 +65,15 @@ def _import(fpath, creader, context):
             action = bpy.data.actions.new(name=name)
             action.xray.fps = fps
             bpy_obj.animation_data_create().action = action
+            loc = 'location'
+            rot = 'rotation_euler'
             fcs = (
-                action.fcurves.new('location', index=0, action_group=name),
-                action.fcurves.new('location', index=1, action_group=name),
-                action.fcurves.new('location', index=2, action_group=name),
-                action.fcurves.new('rotation_euler', index=0, action_group=name),
-                action.fcurves.new('rotation_euler', index=1, action_group=name),
-                action.fcurves.new('rotation_euler', index=2, action_group=name)
+                action.fcurves.new(loc, index=0, action_group=name),
+                action.fcurves.new(loc, index=1, action_group=name),
+                action.fcurves.new(loc, index=2, action_group=name),
+                action.fcurves.new(rot, index=0, action_group=name),
+                action.fcurves.new(rot, index=1, action_group=name),
+                action.fcurves.new(rot, index=2, action_group=name)
             )
             converted_warrning = False
             unique_shapes = set()
@@ -79,7 +81,13 @@ def _import(fpath, creader, context):
                 fcurve = fcs[(0, 2, 1, 5, 3, 4)[i]]
                 koef = (1, 1, 1, -1, -1, -1)[i]
                 use_interpolate = xray_envelope.import_envelope(
-                    preader, fcurve, fps, koef, name, warn_list, unique_shapes
+                    preader,
+                    fcurve,
+                    fps,
+                    koef,
+                    name,
+                    warn_list,
+                    unique_shapes
                 )
                 if use_interpolate:
                     converted_warrning = True

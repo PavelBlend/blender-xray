@@ -11,7 +11,6 @@ from .. import xray_io
 
 
 def export(bpy_obj, packed_writer, context, fpath, mode='DM'):
-
     if mode == 'DM':
         fpath = None    # level folder not use
 
@@ -27,13 +26,16 @@ def export(bpy_obj, packed_writer, context, fpath, mode='DM'):
 
     if mode == 'DM':
         b_mesh = utils.convert_object_to_space_bmesh(
-            bpy_obj, mathutils.Matrix.Identity(4)
-            )
+            bpy_obj,
+            mathutils.Matrix.Identity(4)
+        )
 
     else:
         b_mesh = utils.convert_object_to_space_bmesh(
-            bpy_obj, mathutils.Matrix.Identity(4), local=True
-            )
+            bpy_obj,
+            mathutils.Matrix.Identity(4),
+            local=True
+        )
 
     bmesh.ops.triangulate(b_mesh, faces=b_mesh.faces)
     bpy_data = bpy.data.meshes.new('.export-dm')
@@ -60,17 +62,23 @@ def export(bpy_obj, packed_writer, context, fpath, mode='DM'):
         raise utils.AppError(
             'mesh "' + bpy_obj.data.name + \
             '" has too many vertices: {}. Must be no more than {}'.format(
-                vertices_count, fmt.VERTICES_COUNT_LIMIT
-                )
+                vertices_count,
+                fmt.VERTICES_COUNT_LIMIT
             )
+        )
 
     packed_writer.putf('<I', vertices_count)
     packed_writer.putf('<I', len(indices) * 3)
 
     for vtx in vertices:
         packed_writer.putf(
-            '<5f', vtx[0][0], vtx[0][2], vtx[0][1], vtx[1][0], vtx[1][1]
-            )
+            '<5f',
+            vtx[0][0],
+            vtx[0][2],
+            vtx[0][1],
+            vtx[1][0],
+            vtx[1][1]
+        )
 
     for tris in indices:
         packed_writer.putf('<3H', tris[0], tris[2], tris[1])

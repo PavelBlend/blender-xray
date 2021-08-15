@@ -167,7 +167,14 @@ def create_glow_object(
     vertices, faces, uvs = generate_glow_mesh_data(radius)
     material = materials[shader_index]
     image = images[shader_index]
-    mesh = create_glow_mesh(object_name, vertices, faces, uvs, material, image)
+    mesh = create_glow_mesh(
+        object_name,
+        vertices,
+        faces,
+        uvs,
+        material,
+        image
+    )
     mesh.materials.append(material)
     glow_object = create.create_object(object_name, mesh)
     glow_object.location = position[0], position[2], position[1]
@@ -175,14 +182,25 @@ def create_glow_object(
 
 
 def create_glow_object_v5(
-        level, glow_index, position,
-        radius, shader_index, texture_index
+        level,
+        glow_index,
+        position,
+        radius,
+        shader_index,
+        texture_index
     ):
     object_name = 'glow_{:0>3}'.format(glow_index)
     vertices, faces, uvs = generate_glow_mesh_data(radius)
     material = ogf.imp.get_material(level, shader_index, texture_index)
     image = level.images[texture_index]
-    mesh = create_glow_mesh(object_name, vertices, faces, uvs, material, image)
+    mesh = create_glow_mesh(
+        object_name,
+        vertices,
+        faces,
+        uvs,
+        material,
+        image
+    )
     glow_object = create.create_object(object_name, mesh)
     glow_object.location = position[0], position[2], position[1]
     return glow_object
@@ -228,7 +246,12 @@ def import_glows(data, level):
     images = level.images
 
     for glow_index in range(glows_count):
-        glow_object = import_glow(packed_reader, glow_index, materials, images)
+        glow_object = import_glow(
+            packed_reader,
+            glow_index,
+            materials,
+            images
+        )
         glow_object.parent = glows_object
         collection.objects.link(glow_object)
         if not version_utils.IS_28:
@@ -450,7 +473,9 @@ def import_portals(data, level):
 
     for portal_index in range(portals_count):
         portal_object = import_portal(
-            packed_reader, portal_index, collection, level
+            packed_reader,
+            portal_index,
+            collection, level
         )
         portal_object.parent = portals_object
 
@@ -468,9 +493,11 @@ def get_version(data):
     packed_reader = xray_io.PackedReader(data)
     xrlc_version = packed_reader.getf('H')[0]
     if not xrlc_version in fmt.SUPPORTED_VERSIONS:
-        raise utils.AppError('Unsupported level version: {}'.format(
-            xrlc_version
-        ))
+        raise utils.AppError(
+            'Unsupported level version: {}'.format(
+                xrlc_version
+            )
+        )
     xrlc_quality = packed_reader.getf('H')[0]
     return xrlc_version
 
@@ -521,7 +548,11 @@ def import_level(level, context, chunks, geomx_chunks):
     elif level.xrlc_version == fmt.VERSION_4:
         chunks_ids = fmt.Chunks4
     shaders_chunk_data = chunks.pop(chunks_ids.SHADERS)
-    level.materials, level.images = shaders.import_shaders(level, context, shaders_chunk_data)
+    level.materials, level.images = shaders.import_shaders(
+        level,
+        context,
+        shaders_chunk_data
+    )
     del shaders_chunk_data
 
     if level.xrlc_version <= fmt.VERSION_5:
@@ -538,7 +569,10 @@ def import_level(level, context, chunks, geomx_chunks):
         directx_3d_7_mode = True
         vb_chunk_data = chunks.pop(chunks_ids.VB_OLD)
     level.vertex_buffers, stats = vb.import_vertex_buffers(
-        vb_chunk_data, level, fast=False, d3d7=directx_3d_7_mode
+        vb_chunk_data,
+        level,
+        fast=False,
+        d3d7=directx_3d_7_mode
     )
     level.stats += stats
     del vb_chunk_data
@@ -592,11 +626,13 @@ def import_level(level, context, chunks, geomx_chunks):
     glows_chunk_data = chunks.pop(chunks_ids.GLOWS)
     if level.xrlc_version >= fmt.VERSION_12:
         glows_object = import_glows(
-            glows_chunk_data, level
+            glows_chunk_data,
+            level
         )
     else:
         glows_object = import_glows_v5(
-            glows_chunk_data, level
+            glows_chunk_data,
+            level
         )
     del glows_chunk_data
     glows_object.parent = level_object
@@ -650,7 +686,10 @@ def import_file(context, operator):
         index = context.filepath[36 : 36 + 2]
         temp_folder = 'E:\\stalker\\_TEMP\\utils\\level_format_stats\\'
         stats_name = '{0:0>2}_{1}_{2}_{3}.txt'.format(
-            level.xrlc_version, build, level.name, index
+            level.xrlc_version,
+            build,
+            level.name,
+            index
         )
         if len(chunked_reader._ChunkedReader__data) > MAX_LEVEL_SIZE:
             print('skip big level:', stats_name)

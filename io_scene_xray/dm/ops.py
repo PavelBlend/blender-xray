@@ -44,7 +44,10 @@ op_import_dm_props = {
 }
 
 
-class XRAY_OT_import_dm(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHelper):
+class XRAY_OT_import_dm(
+        plugin_props.BaseOperator,
+        bpy_extras.io_utils.ImportHelper
+    ):
     bl_idname = 'xray_import.dm'
     bl_label = 'Import .dm'
     bl_description = 'Imports X-Ray Detail Models (.dm)'
@@ -56,7 +59,6 @@ class XRAY_OT_import_dm(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHel
 
     @utils.set_cursor_state
     def execute(self, context):
-
         textures_folder = version_utils.get_preferences().textures_folder_auto
 
         if not textures_folder:
@@ -84,7 +86,7 @@ class XRAY_OT_import_dm(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHel
                     self.report(
                         {'ERROR'},
                         'Format of {} not recognised'.format(file)
-                        )
+                    )
 
         except utils.AppError as err:
             self.report({'ERROR'}, str(err))
@@ -122,7 +124,9 @@ class XRAY_OT_export_dm(plugin_props.BaseOperator):
                 export_context.texname_from_path = self.texture_name_from_image_path
 
                 model_exp.export_file(
-                    detail_model, os.path.join(path, name), export_context
+                    detail_model,
+                    os.path.join(path, name),
+                    export_context
                 )
 
         except utils.AppError as err:
@@ -131,12 +135,8 @@ class XRAY_OT_export_dm(plugin_props.BaseOperator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-
-        preferences = version_utils.get_preferences()
-
-        self.texture_name_from_image_path = \
-            preferences.dm_texture_names_from_path
-
+        prefs = version_utils.get_preferences()
+        self.texture_name_from_image_path = prefs.dm_texture_names_from_path
         objs = context.selected_objects
 
         if not objs:
@@ -161,7 +161,7 @@ op_export_dm_props = {
     'detail_model': bpy.props.StringProperty(options={'HIDDEN'}),
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
-        ),
+    ),
     'texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath()
 }
 
@@ -170,7 +170,6 @@ class XRAY_OT_export_single_dm(
         plugin_props.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
-
     bl_idname = 'xray_export.dm_file'
     bl_label = 'Export .dm'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -197,12 +196,8 @@ class XRAY_OT_export_single_dm(
         exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):
-
-        preferences = version_utils.get_preferences()
-
-        self.texture_name_from_image_path = \
-            preferences.dm_texture_names_from_path
-
+        prefs = version_utils.get_preferences()
+        self.texture_name_from_image_path = prefs.dm_texture_names_from_path
         objs = context.selected_objects
 
         if not objs:
@@ -226,7 +221,8 @@ class XRAY_OT_export_single_dm(
 def menu_func_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
-        XRAY_OT_import_dm.bl_idname, text='X-Ray detail model (.dm)',
+        XRAY_OT_import_dm.bl_idname,
+        text='X-Ray detail model (.dm)',
         icon_value=icon
     )
 

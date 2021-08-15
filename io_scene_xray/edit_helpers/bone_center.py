@@ -36,8 +36,14 @@ class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
 
         global pose_bone
         pose_bone = bpy.context.object.pose.bones[bone.name]
-        mat = version_utils.multiply(pose_bone.matrix, xray_motions.MATRIX_BONE_INVERTED)
-        mat = version_utils.multiply(mat, mathutils.Matrix.Translation(bone.xray.mass.center))
+        mat = version_utils.multiply(
+            pose_bone.matrix,
+            xray_motions.MATRIX_BONE_INVERTED
+        )
+        mat = version_utils.multiply(
+            mat,
+            mathutils.Matrix.Translation(bone.xray.mass.center)
+        )
         helper.location = mat.to_translation()
 
 
@@ -47,7 +53,8 @@ HELPER = _BoneCenterEditHelper('bone-center-edit')
 class _EditCenter(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_center'
     bl_label = 'Edit Bone Center'
-    bl_description = 'Create a helper object that can be used for adjusting bone center'
+    bl_description = 'Create a helper object that can be ' \
+        'used for adjusting bone center'
 
     @classmethod
     def poll(cls, context):
@@ -71,7 +78,10 @@ class _AlignCenter(bpy.types.Operator):
     def execute(self, context):
         helper, bone = HELPER.get_target()
         shape = bone.xray.shape
-        mat = version_utils.multiply(pose_bone.matrix, xray_motions.MATRIX_BONE_INVERTED)
+        mat = version_utils.multiply(
+            pose_bone.matrix,
+            xray_motions.MATRIX_BONE_INVERTED
+        )
         pos = None
         if shape.type == '1':
             pos = shape.box_trn

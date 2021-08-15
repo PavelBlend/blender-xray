@@ -26,8 +26,12 @@ def get_uv_corrector(value):
 
 
 def import_vertices(
-        xrlc_version, packed_reader, vertex_buffer,
-        vertices_count, usage_list, global_usage_list
+        xrlc_version,
+        packed_reader,
+        vertex_buffer,
+        vertices_count,
+        usage_list,
+        global_usage_list
     ):
     code = ''
     code += 'for vertex_index in range({}):\n'.format(vertices_count)
@@ -125,8 +129,11 @@ def import_vertices(
 
 
 def import_vertices_d3d7(
-        level, packed_reader, vertex_buffer,
-        vertices_count, vertex_format
+        level,
+        packed_reader,
+        vertex_buffer,
+        vertices_count,
+        vertex_format
     ):
     code = ''
     code += 'for vertex_index in range({0}):\n'.format(vertices_count)
@@ -182,7 +189,12 @@ def import_vertex_buffer_declaration(packed_reader):
             break
         else:
             usage_list.append((
-                stream, offset, type_, method, usage, usage_index
+                stream,
+                offset,
+                type_,
+                method,
+                usage,
+                usage_index
             ))
 
     return usage_list
@@ -194,8 +206,12 @@ def import_vertex_buffer(packed_reader, level):
         vertex_buffer = VertexBuffer()
         vertices_count = packed_reader.getf('I')[0]
         import_vertices(
-            level.xrlc_version, packed_reader, vertex_buffer,
-            vertices_count, usage_list, level.usage_list
+            level.xrlc_version,
+            packed_reader,
+            vertex_buffer,
+            vertices_count,
+            usage_list,
+            level.usage_list
         )
     return vertex_buffer
 
@@ -206,8 +222,11 @@ def import_vertex_buffer_d3d7(packed_reader, level):
         vertices_count = packed_reader.getf('I')[0]
         vertex_buffer = VertexBuffer()
         import_vertices_d3d7(
-            level, packed_reader, vertex_buffer,
-            vertices_count, vertex_format
+            level,
+            packed_reader,
+            vertex_buffer,
+            vertices_count,
+            vertex_format
         )
     return vertex_buffer
 

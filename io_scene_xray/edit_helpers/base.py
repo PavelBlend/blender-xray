@@ -12,7 +12,9 @@ __HELPERS__ = dict()
 class AbstractHelper:
     def __init__(self, name):
         if name in __HELPERS__:
-            raise AssertionError('helper with name ' + name + ' is already registered')
+            raise AssertionError(
+                'helper with name ' + name + ' is already registered'
+            )
         __HELPERS__[name] = self
         self._name = utils.HELPER_OBJECT_NAME_PREFIX + name
 

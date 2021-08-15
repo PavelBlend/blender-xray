@@ -87,10 +87,14 @@ def import_shaders(level, context, data):
         import_first_empty_shader(packed_reader, materials)
         for shader_index in range(1, shaders_count):
             shader_data = packed_reader.gets()
-            bpy_material, bpy_image = import_shader(level, context, shader_data)
+            bpy_material, bpy_image = import_shader(
+                level,
+                context,
+                shader_data
+            )
             materials.append(bpy_material)
             images.append(bpy_image)
-    elif level.xrlc_version >= fmt.VERSION_8 and level.xrlc_version <= fmt.VERSION_11:
+    elif fmt.VERSION_8 <= level.xrlc_version <= fmt.VERSION_11:
         level.shaders_or_textures = []
         materials = {}
         images = {}

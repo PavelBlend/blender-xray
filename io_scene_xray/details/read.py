@@ -24,9 +24,13 @@ def read_header(packed_reader):
 
 
 def read_details_meshes(
-        fpath, base_name, context, chunked_reader, color_indices, header
+        fpath,
+        base_name,
+        context,
+        chunked_reader,
+        color_indices,
+        header
     ):
-
     bpy_obj_root = bpy.data.objects.new('{} meshes'.format(base_name), None)
     display_type = 'SPHERE'
     if version_utils.IS_28:
@@ -45,9 +49,13 @@ def read_details_meshes(
         fpath_mesh = '{0} mesh_{1:0>2}'.format(fpath, mesh_id)
 
         bpy_obj_mesh = dm.imp.import_(
-            fpath_mesh, context, packed_reader, mode='DETAILS',
-            detail_index=mesh_id, detail_colors=color_indices
-            )
+            fpath_mesh,
+            context,
+            packed_reader,
+            mode='DETAILS',
+            detail_index=mesh_id,
+            detail_colors=color_indices
+        )
 
         bpy_obj_mesh.parent = bpy_obj_root
 
@@ -58,9 +66,13 @@ def read_details_meshes(
 
 
 def read_details_slots(
-        base_name, context, packed_reader, header, color_indices, root_obj
+        base_name,
+        context,
+        packed_reader,
+        header,
+        color_indices,
+        root_obj
     ):
-
     create.create_pallete(color_indices)
 
     y_coords = []
@@ -68,10 +80,9 @@ def read_details_slots(
 
     meshes_images_pixels = [
         [1.0 for _ in range(header.slots_count * 4 * 4)] for _ in range(4)
-        ]
+    ]
 
     if header.format_version == 3:
-
         lights_image_pixels = []
         shadows_image_pixels = []
         hemi_image_pixels = []
@@ -96,7 +107,7 @@ def read_details_slots(
                     (slot_data[0] >> 26) & 0x3f,
                     slot_data[1] & 0x3f,
                     (slot_data[1] >> 6) & 0x3f
-                    ]
+                ]
 
                 # lighting
                 shadow = ((slot_data[1] >> 12) & 0xf) / 0xf
@@ -116,21 +127,29 @@ def read_details_slots(
                     for corner_index in range(4):
 
                         corner_density = (
-                            (mesh_density >> corner_index * 4) & 0xf) / 0xf
+                            (mesh_density >> corner_index * 4) & 0xf
+                        ) / 0xf
 
                         pixel_index = \
                             slot_x * 2 + \
                             fmt.PIXELS_OFFSET_1[corner_index][0] + \
-                            header.size.x * 2 * (slot_y * 2 + \
-                            fmt.PIXELS_OFFSET_1[corner_index][1])
+                            header.size.x * 2 * \
+                            (
+                                slot_y * 2 + \
+                                fmt.PIXELS_OFFSET_1[corner_index][1]
+                            )
 
                         color = color_indices[meshes[mesh_index]]
 
                         pixels = meshes_images_pixels[mesh_index]
-                        pixels[pixel_index * 4] = color[0]    # Red
-                        pixels[pixel_index * 4 + 1] = color[1]    # Green
-                        pixels[pixel_index * 4 + 2] = color[2]    # Blue
-                        pixels[pixel_index * 4 + 3] = corner_density    # Alpha
+                        # Red
+                        pixels[pixel_index * 4] = color[0]
+                        # Green
+                        pixels[pixel_index * 4 + 1] = color[1]
+                        # Blue
+                        pixels[pixel_index * 4 + 2] = color[2]
+                        # Alpha
+                        pixels[pixel_index * 4 + 3] = corner_density
 
         create.create_images(
             header,
@@ -139,7 +158,7 @@ def read_details_slots(
             lights=lights_image_pixels,
             shadows=shadows_image_pixels,
             hemi=hemi_image_pixels
-            )
+        )
 
         del meshes_images_pixels
         del lights_image_pixels
@@ -147,12 +166,11 @@ def read_details_slots(
         del hemi_image_pixels
 
     elif header.format_version == 2:
-
         S_ffBHBHBHBHH = xray_io.PackedReader.prep('ffBHBHBHBHH')
 
         lighting_image_pixels = [
             1.0 for _ in range(header.slots_count * 4 * 4)
-            ]
+        ]
 
         if context.format_version == 'builds_1233-1558':
             pixels_offset = fmt.PIXELS_OFFSET_2
@@ -183,7 +201,6 @@ def read_details_slots(
                 data_index = 2
 
                 for mesh_index in range(4):
-
                     dm_obj_id = slot_data[data_index]
                     if dm_obj_id == 0xff:
                         dm_obj_id = 0x3f
@@ -203,7 +220,8 @@ def read_details_slots(
                             density_pixels_offset[corner_index][1])
 
                         corner_density = (
-                            (density_data >> corner_index * 4) & 0xf) / 0xf
+                            (density_data >> corner_index * 4) & 0xf
+                        ) / 0xf
 
                         # Red
                         pixels[dens_pixel_index * 4] = color[0]
@@ -215,7 +233,8 @@ def read_details_slots(
                         pixels[dens_pixel_index * 4 + 3] = corner_density
 
                         light = (
-                            slot_data[10] >> (corner_index * 4) & 0xf) / 0xf
+                            slot_data[10] >> (corner_index * 4) & 0xf
+                        ) / 0xf
 
                         pixel_index = \
                             slot_x * 2 + \
@@ -236,26 +255,33 @@ def read_details_slots(
                     data_index += 2
 
         create.create_images(
-            header, meshes_images_pixels, root_obj,
+            header,
+            meshes_images_pixels,
+            root_obj,
             lights_old=lighting_image_pixels
-            )
+        )
 
         del meshes_images_pixels
         del lighting_image_pixels
 
         if bad_y_base_count > 0:
-            context.operator.report({'WARNING'},
-                           'details has {} bad base coordinates'.format(
-                               bad_y_base_count))
+            context.operator.report(
+                {'WARNING'},
+                'details has {} bad base coordinates'.format(bad_y_base_count)
+            )
 
         if bad_y_top_count > 0:
-            context.operator.report({'WARNING'},
-                           'details has {} bad top coordinates'.format(
-                               bad_y_top_count))
+            context.operator.report(
+                {'WARNING'},
+                'details has {} bad top coordinates'.format(bad_y_top_count)
+            )
 
     slots_base_object, slots_top_object = create.create_details_slots_object(
-        base_name, header, y_coords, y_coords_base
-        )
+        base_name,
+        header,
+        y_coords,
+        y_coords_base
+    )
 
     del y_coords
     del y_coords_base

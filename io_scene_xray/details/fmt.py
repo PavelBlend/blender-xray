@@ -8,20 +8,20 @@ class LevelDetails:
     pass
 
 
+class DetailsTransform:
+    def __init__(self):
+        self.x = None
+        self.y = None
+
+
 class DetailsHeader:
-
-    class Transform:
-        def __init__(self):
-            self.x = None
-            self.y = None
-
     def __init__(self):
         self.format_version = None
         self.slot_size = 2.0
         self.slot_half = self.slot_size / 2
         self.meshes_count = None
-        self.offset = self.Transform()
-        self.size = self.Transform()
+        self.offset = DetailsTransform()
+        self.size = DetailsTransform()
         self.slots_count = 0
 
     def calc_slots_count(self):

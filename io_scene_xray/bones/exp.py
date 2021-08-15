@@ -22,7 +22,7 @@ def _export_partitions(context, bpy_obj):
                 bone.name
                 for bone in exportable_bones
                     if bone.bone_group == group
-                )
+            )
         )
         for group in bpy_obj.pose.bone_groups
     )

@@ -51,8 +51,10 @@ op_import_details_props = {
 }
 
 
-class XRAY_OT_import_details(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHelper):
-
+class XRAY_OT_import_details(
+        plugin_props.BaseOperator,
+        bpy_extras.io_utils.ImportHelper
+    ):
     bl_idname = 'xray_import.details'
     bl_label = 'Import .details'
     bl_description = 'Imports X-Ray Level Details Models (.details)'
@@ -64,8 +66,8 @@ class XRAY_OT_import_details(plugin_props.BaseOperator, bpy_extras.io_utils.Impo
 
     @utils.set_cursor_state
     def execute(self, context):
-
-        textures_folder = version_utils.get_preferences().textures_folder_auto
+        prefs = version_utils.get_preferences()
+        textures_folder = prefs.textures_folder_auto
 
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
@@ -89,13 +91,13 @@ class XRAY_OT_import_details(plugin_props.BaseOperator, bpy_extras.io_utils.Impo
                     imp.import_file(
                         os.path.join(self.directory, file.name),
                         import_context
-                        )
+                    )
 
                 else:
                     self.report(
                         {'ERROR'},
                         'Format of {} not recognised'.format(file)
-                        )
+                    )
 
         except utils.AppError as err:
             self.report({'ERROR'}, str(err))
@@ -120,10 +122,10 @@ class XRAY_OT_import_details(plugin_props.BaseOperator, bpy_extras.io_utils.Impo
         row.prop(self, 'details_format', expand=True)
 
     def invoke(self, context, event):
-        preferences = version_utils.get_preferences()
-        self.details_models_in_a_row = preferences.details_models_in_a_row
-        self.load_slots = preferences.load_slots
-        self.details_format = preferences.details_format
+        prefs = version_utils.get_preferences()
+        self.details_models_in_a_row = prefs.details_models_in_a_row
+        self.load_slots = prefs.load_slots
+        self.details_format = prefs.details_format
         return super().invoke(context, event)
 
 
@@ -131,7 +133,7 @@ filename_ext = '.details'
 op_export_details_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
-        ),
+    ),
 
     'texture_name_from_image_path': \
         plugin_props.PropObjectTextureNamesFromPath(),
@@ -141,9 +143,9 @@ op_export_details_props = {
 
 
 class XRAY_OT_export_details(
-        plugin_props.BaseOperator, bpy_extras.io_utils.ExportHelper
+        plugin_props.BaseOperator,
+        bpy_extras.io_utils.ExportHelper
     ):
-
     bl_idname = 'xray_export.details'
     bl_label = 'Export .details'
     bl_options = {'PRESET'}
@@ -165,7 +167,6 @@ class XRAY_OT_export_details(
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
-
         objs = context.selected_objects
 
         if not objs:
@@ -232,8 +233,15 @@ class XRAY_OT_pack_details_images(bpy.types.Operator):
         mesh_2_image = images.get(meshes.mesh_2)
         mesh_3_image = images.get(meshes.mesh_3)
 
-        slots_images = [lights_image, hemi_image, shadows_image, mesh_0_image,
-            mesh_1_image, mesh_2_image, mesh_3_image]
+        slots_images = [
+            lights_image,
+            hemi_image,
+            shadows_image,
+            mesh_0_image,
+            mesh_1_image,
+            mesh_2_image,
+            mesh_3_image
+        ]
 
         for image in slots_images:
             if image:
@@ -248,7 +256,8 @@ class XRAY_OT_pack_details_images(bpy.types.Operator):
 def menu_func_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
-        XRAY_OT_import_details.bl_idname, text='X-Ray level details (.details)',
+        XRAY_OT_import_details.bl_idname,
+        text='X-Ray Level Details (.details)',
         icon_value=icon
     )
 
@@ -256,7 +265,8 @@ def menu_func_import(self, context):
 def menu_func_export(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
-        XRAY_OT_export_details.bl_idname, text='X-Ray level details (.details)',
+        XRAY_OT_export_details.bl_idname,
+        text='X-Ray Level Details (.details)',
         icon_value=icon
     )
 

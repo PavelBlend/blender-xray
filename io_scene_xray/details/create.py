@@ -15,9 +15,7 @@ def pack_image(image):
 
 def create_object(object_name):
     bpy_mesh = bpy.data.meshes.new(object_name)
-    bpy_object = bpy.data.objects.new(
-        object_name, bpy_mesh
-        )
+    bpy_object = bpy.data.objects.new(object_name, bpy_mesh)
     version_utils.link_object(bpy_object)
     return bpy_object, bpy_mesh
 
@@ -52,14 +50,14 @@ def create_details_slots_object(base_name, header, y_coords_top, y_coords_base):
             ))
 
             slot_x_coord = (coord_x - header.offset.x) * header.slot_size + \
-                               header.slot_half
+                header.slot_half
 
             slot_z_coord = (coord_y - header.offset.y) * header.slot_size + \
-                               header.slot_half
+                header.slot_half
 
             slots_base.append((
                 slot_x_coord, slot_z_coord, y_coords_base[slot_id]
-                ))
+            ))
 
             slot_id += 1
 
@@ -74,7 +72,6 @@ def create_details_slots_object(base_name, header, y_coords_top, y_coords_base):
     offset_signs = ((-1, -1), (+1, -1), (+1, +1), (-1, +1))
 
     for slot_id in range(header.slots_count):
-
         y_base = y_coords_base[slot_id]
         y_top = y_coords_top[slot_id]
 
@@ -84,7 +81,7 @@ def create_details_slots_object(base_name, header, y_coords_top, y_coords_base):
                 slots_base[slot_id][1],
                 offset_signs[corner_index][0] * header.slot_half,
                 offset_signs[corner_index][1] * header.slot_half
-                )
+            )
             vertices_base.append((slot_x, slot_y, y_base))
             vertices_top.append((slot_x, slot_y, y_top))
 
@@ -93,7 +90,7 @@ def create_details_slots_object(base_name, header, y_coords_top, y_coords_base):
             cur_vert_id + 1,
             cur_vert_id + 2,
             cur_vert_id + 3
-            ))
+        ))
 
         cur_vert_id += 4
 
@@ -126,8 +123,15 @@ def create_details_slots_object(base_name, header, y_coords_top, y_coords_base):
     return slots_base_object, slots_top_object
 
 
-def create_images(header, meshes, root_obj, lights=None, shadows=None,
-                  hemi=None, lights_old=None):
+def create_images(
+        header,
+        meshes,
+        root_obj,
+        lights=None,
+        shadows=None,
+        hemi=None,
+        lights_old=None
+    ):
 
     def _create_det_image(name, double_size=False):
         if double_size:
@@ -139,7 +143,7 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
             header.size.x*scale,
             header.size.y*scale,
             alpha=True
-            )
+        )
         bpy_image.use_fake_user = True
         return bpy_image
 
@@ -154,7 +158,7 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
         meshes_image = _create_det_image(
             'meshes {}.png'.format(mesh_id),
             double_size=True
-            )
+        )
         meshes_image.use_fake_user = True
         images_list.append(meshes_image.name)
         meshes_image.pixels = meshes[mesh_id]
@@ -167,7 +171,6 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
     dets_meshes.mesh_3 = m_i[3]
 
     if header.format_version == fmt.FORMAT_VERSION_3:
-
         ligthing.format = 'builds_1569-cop'
 
         image_names = ('lights', 'shadows', 'hemi')
@@ -182,7 +185,6 @@ def create_images(header, meshes, root_obj, lights=None, shadows=None,
             setattr(ligthing, prop_name, bpy_image.name)
 
     elif header.format_version == fmt.FORMAT_VERSION_2:
-
         ligthing.format = 'builds_1096-1558'
 
         lights_v2_image = _create_det_image('lighting.png', double_size=True)

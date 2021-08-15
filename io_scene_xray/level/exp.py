@@ -386,7 +386,9 @@ def write_shaders(level):
             ))
         elif lmap_1_image and not lmap_2_image:
             lmap_1_path = utils.gen_texture_name(
-                lmap_1_image, texture_folder, level_folder=level.source_level_path
+                lmap_1_image,
+                texture_folder,
+                level_folder=level.source_level_path
             )    # terrain\terrain_name_lm.dds file
             packed_writer.puts('{0}/{1},{2}'.format(
                 eshader, texture_path, lmap_1_path
@@ -921,8 +923,14 @@ def write_fastpath(fastpath_obj, fp_vbs, fp_ibs, level):
 
 
 def write_visual(
-        bpy_obj, vbs, ibs,
-        hierrarhy, visuals_ids, level, fp_vbs, fp_ibs
+        bpy_obj,
+        vbs,
+        ibs,
+        hierrarhy,
+        visuals_ids,
+        level,
+        fp_vbs,
+        fp_ibs
     ):
     if bpy_obj.xray.level.visual_type == 'HIERRARHY':
         chunked_writer = write_hierrarhy_visual(
@@ -969,7 +977,10 @@ def write_children_l(bpy_obj, hierrarhy, visuals_ids):
 def write_hierrarhy_visual(bpy_obj, hierrarhy, visuals_ids, level):
     visual_writer = xray_io.ChunkedWriter()
     header_writer = write_visual_header(
-        level, bpy_obj, visual_type=ogf.fmt.ModelType_v4.HIERRARHY, shader_id=0
+        level,
+        bpy_obj,
+        visual_type=ogf.fmt.ModelType_v4.HIERRARHY,
+        shader_id=0
     )
     visual_writer.put(ogf.fmt.HEADER, header_writer)
     children_l_writer = write_children_l(bpy_obj, hierrarhy, visuals_ids)

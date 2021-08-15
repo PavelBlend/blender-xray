@@ -22,7 +22,7 @@ def create_object(object_name):
 def create_empty_image(context, detail_model, absolute_image_path):
     bpy_image = bpy.data.images.new(
         os.path.basename(detail_model.texture) + '.dds', 0, 0
-        )
+    )
 
     bpy_image.source = 'FILE'
     bpy_image.filepath = absolute_image_path
@@ -110,7 +110,9 @@ def create_bpy_image(det_model, abs_image_path):
             except RuntimeError as ex:
                 det_model.context.operator.report({'WARNING'}, str(ex))
                 bpy_image = create_empty_image(
-                    det_model.context, det_model, abs_image_path
+                    det_model.context,
+                    det_model,
+                    abs_image_path
                 )
 
         else:
@@ -137,9 +139,7 @@ def find_bpy_image(det_model, abs_image_path):
 
 
 def create_bpy_texture(det_model, bpy_material, abs_image_path):
-    bpy_texture = bpy.data.textures.new(
-        det_model.texture, type='IMAGE'
-    )
+    bpy_texture = bpy.data.textures.new(det_model.texture, type='IMAGE')
     bpy_texture.use_preview_alpha = True
     bpy_texture_slot = bpy_material.texture_slots.add()
     bpy_texture_slot.texture = bpy_texture
@@ -160,7 +160,8 @@ def create_material(det_model, abs_image_path, context):
         bpy_material.use_transparency = True
         bpy_material.alpha = 0.0
         alternative_image_path = os.path.join(
-            os.path.dirname(det_model.fpath), det_model.texture + '.dds'
+            os.path.dirname(det_model.fpath),
+            det_model.texture + '.dds'
         )
 
         bpy_texture = find_bpy_texture(
@@ -196,9 +197,9 @@ def create_material(det_model, abs_image_path, context):
 
 
 def search_material(context, det_model, fpath=None):
-
     abs_image_path = os.path.abspath(os.path.join(
-            context.textures_folder, det_model.texture + '.dds'
+        context.textures_folder,
+        det_model.texture + '.dds'
     ))
 
     bpy_material = None
@@ -208,7 +209,6 @@ def search_material(context, det_model, fpath=None):
     det_model.context = context
 
     for material in bpy.data.materials:
-
         if not check_estimated_material(material, det_model):
             continue
 
@@ -225,7 +225,6 @@ def search_material(context, det_model, fpath=None):
 
 
 def reconstruct_mesh(vertices, uvs, triangles):
-
     # remove doubles vertices
     loaded_vertices = {}
     remap_vertices = []
@@ -270,7 +269,11 @@ def read_mesh_data(packed_reader, det_model):
     triangles = []
     for _ in range(det_model.mesh.indices_count // 3):
         face_indices = packed_reader.getp(S_HHH)
-        triangles.append((face_indices[0], face_indices[2], face_indices[1]))
+        triangles.append((
+            face_indices[0],
+            face_indices[2],
+            face_indices[1]
+        ))
 
     return vertices, uvs, triangles
 
@@ -324,7 +327,9 @@ def create_mesh(packed_reader, det_model):
 
     # assign images
     if not version_utils.IS_28:
-        texture_layer = b_mesh.faces.layers.tex.new(det_model.mesh.uv_map_name)
+        texture_layer = b_mesh.faces.layers.tex.new(
+            det_model.mesh.uv_map_name
+        )
         bpy_image = det_model.mesh.bpy_material.texture_slots[0].texture.image
 
         for face in b_mesh.faces:

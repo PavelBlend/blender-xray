@@ -22,12 +22,17 @@ op_import_anm_props = {
         options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-    'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
+    'files': bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement
+    ),
     'camera_animation': plugin_props.PropAnmCameraAnimation()
 }
 
 
-class XRAY_OT_import_anm(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHelper):
+class XRAY_OT_import_anm(
+        plugin_props.BaseOperator,
+        bpy_extras.io_utils.ImportHelper
+    ):
     bl_idname = 'xray_import.anm'
     bl_label = 'Import .anm'
     bl_description = 'Imports X-Ray animation'
@@ -76,7 +81,8 @@ class XRAY_OT_import_anm(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHe
 op_export_anm_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext,
-        options={'HIDDEN'}),
+        options={'HIDDEN'}
+    ),
 }
 
 

@@ -20,16 +20,14 @@ def _import(fpath, context, chunked_reader):
     has_slots = False
 
     for chunk_id, chunk_data in chunked_reader:
-
         if chunk_id == 0x0 and not chunk_data:    # bad file (build 1233)
             break
 
         if chunk_id == fmt.Chunks.HEADER:
-
             if len(chunk_data) != fmt.HEADER_SIZE:
                 raise utils.AppError(
                     'bad details file. HEADER chunk size not equal 24'
-                    )
+                )
 
             header = read.read_header(xray_io.PackedReader(chunk_data))
 
@@ -37,8 +35,8 @@ def _import(fpath, context, chunked_reader):
                 raise utils.AppError(
                     'unssuported details format version: {}'.format(
                         header.format_version
-                        )
                     )
+                )
 
             has_header = True
 
@@ -64,8 +62,13 @@ def _import(fpath, context, chunked_reader):
     color_indices = utility.generate_color_indices()
 
     meshes_obj = read.read_details_meshes(
-        fpath, base_name, context, cr_meshes, color_indices, header
-        )
+        fpath,
+        base_name,
+        context,
+        cr_meshes,
+        color_indices,
+        header
+    )
 
     del cr_meshes
     del has_header, has_meshes, has_slots
@@ -79,8 +82,13 @@ def _import(fpath, context, chunked_reader):
         meshes_obj.parent = root_obj
 
         slots_base_object, slots_top_object = read.read_details_slots(
-            base_name, context, pr_slots, header, color_indices, root_obj
-            )
+            base_name,
+            context,
+            pr_slots,
+            header,
+            color_indices,
+            root_obj
+        )
 
         del pr_slots
 
