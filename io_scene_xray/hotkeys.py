@@ -18,8 +18,6 @@ from . import scene
 from . import skl
 
 
-addon_hotkeys = {}
-
 keymap_items_list = (
     # operator, key, shift, ctrl, alt
     (obj.imp.ops.XRAY_OT_import_object, 'F5', False, False, False),
@@ -76,7 +74,6 @@ def add_keymaps(only=None):
                         key_modifier='NONE'
                     )
                     keymap_item.active = True
-            addon_hotkeys[operator.bl_idname] = (keymaps, keymap_item)
             has_key = False
             for item in preferences.keymaps_collection:
                 if item.operator == operator.bl_idname:
@@ -92,6 +89,14 @@ def register():
 
 
 def unregister():
-    for operator, (keymaps, keymap_item) in addon_hotkeys.items():
-        keymaps.keymap_items.remove(keymap_item)
-    addon_hotkeys.clear()
+    win_manager = bpy.context.window_manager
+    keyconfig_addon = win_manager.keyconfigs.addon
+    keyconfig_user = win_manager.keyconfigs.user
+    for keyconfig in (keyconfig_addon, keyconfig_user):
+        if keyconfig:
+            keymaps = keyconfig.keymaps.get('3D View')
+            if keymaps:
+                for op, _, _, _, _ in keymap_items_list:
+                    keymap_item = keymaps.keymap_items.get(op.bl_idname)
+                    if keymap_item:
+                        keymaps.keymap_items.remove(keymap_item)
