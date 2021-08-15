@@ -61,18 +61,17 @@ def _auto_path(prefs, self_name, path_suffix, checker):
         value = getattr(prefs, prop)
         if not value:
             continue
-        if prop == 'objects_folder':
-            continue
         result = os.path.normpath(value)
         if prop != 'gamedata_folder':
             dirname = os.path.dirname(result)
+            if prop == 'objects_folder':
+                dirname = os.path.dirname(dirname)
+                dirname = os.path.join(dirname, 'gamedata')
             if dirname == result:
-                continue  # path.dirname('T:') == 'T:'
+                continue  # os.path.dirname('T:') == 'T:'
             result = dirname
         if path_suffix:
             result = os.path.join(result, path_suffix)
-            if self_name == 'objects_folder':
-                result = os.path.abspath(result)
         if checker(result):
             return result
     return ''
