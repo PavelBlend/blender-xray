@@ -222,7 +222,7 @@ def menu_func_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_dm.bl_idname,
-        text='X-Ray detail model (.dm)',
+        text='X-Ray Detail Model (.dm)',
         icon_value=icon
     )
 
@@ -231,7 +231,7 @@ def menu_func_export(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_dm.bl_idname,
-        text='X-Ray detail model (.dm)',
+        text='X-Ray Detail Model (.dm)',
         icon_value=icon
     )
 

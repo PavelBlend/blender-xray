@@ -107,7 +107,7 @@ def menu_func_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_object.bl_idname,
-        text='X-Ray object (.object)',
+        text='X-Ray Source Object (.object)',
         icon_value=icon
     )
 

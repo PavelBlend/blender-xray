@@ -29,46 +29,10 @@ import_draw_functions = [
         'Source Object (.object)'
     ),
     (
-        anm.ops.menu_func_import,
-        'enable_anm_import',
-        anm.ops.XRAY_OT_import_anm.bl_idname,
-        'Animation (.anm)'
-    ),
-    (
         skl.ops.menu_func_import,
         'enable_skls_import',
         skl.ops.XRAY_OT_import_skls.bl_idname,
         'Skeletal Animation (.skls)'
-    ),
-    (
-        bones.ops.menu_func_import,
-        'enable_bones_import',
-        bones.ops.XRAY_OT_import_bones.bl_idname,
-        'Bones Data (.bones)'
-    ),
-    (
-        err.ops.menu_func_import,
-        'enable_err_import',
-        err.ops.XRAY_OT_import_err.bl_idname,
-        'Error List (.err)'
-    ),
-    (
-        details.ops.menu_func_import,
-        'enable_details_import',
-        details.ops.XRAY_OT_import_details.bl_idname,
-        'Level Details (.details)'
-    ),
-    (
-        dm.ops.menu_func_import,
-        'enable_dm_import',
-        dm.ops.XRAY_OT_import_dm.bl_idname,
-        'Detail Model (.dm)'
-    ),
-    (
-        scene.ops.menu_func_import,
-        'enable_level_import',
-        scene.ops.XRAY_OT_import_scene_selection.bl_idname,
-        'Scene Selection (.level)'
     ),
     (
         omf.ops.menu_func_import,
@@ -77,10 +41,46 @@ import_draw_functions = [
         'Game Motion (.omf)'
     ),
     (
+        anm.ops.menu_func_import,
+        'enable_anm_import',
+        anm.ops.XRAY_OT_import_anm.bl_idname,
+        'Animation Paths (.anm)'
+    ),
+    (
+        bones.ops.menu_func_import,
+        'enable_bones_import',
+        bones.ops.XRAY_OT_import_bones.bl_idname,
+        'Bones Data (.bones)'
+    ),
+    (
+        dm.ops.menu_func_import,
+        'enable_dm_import',
+        dm.ops.XRAY_OT_import_dm.bl_idname,
+        'Detail Model (.dm)'
+    ),
+    (
+        details.ops.menu_func_import,
+        'enable_details_import',
+        details.ops.XRAY_OT_import_details.bl_idname,
+        'Level Details (.details)'
+    ),
+    (
+        scene.ops.menu_func_import,
+        'enable_level_import',
+        scene.ops.XRAY_OT_import_scene_selection.bl_idname,
+        'Scene Selection (.level)'
+    ),
+    (
         level.ops.menu_func_import,
         'enable_game_level_import',
         level.ops.XRAY_OT_import_level.bl_idname,
         'Game Level (level)'
+    ),
+    (
+        err.ops.menu_func_import,
+        'enable_err_import',
+        err.ops.XRAY_OT_import_err.bl_idname,
+        'Error List (.err)'
     )
 ]
 
@@ -93,46 +93,10 @@ export_draw_functions = [
         'Source Object (.object)'
     ),
     (
-        anm.ops.menu_func_export,
-        'enable_anm_export',
-        anm.ops.XRAY_OT_export_anm.bl_idname,
-        'Animation (.anm)'
-    ),
-    (
         skl.ops.menu_func_export,
         'enable_skls_export',
         skl.ops.XRAY_OT_export_skls.bl_idname,
         'Skeletal Animation (.skls)'
-    ),
-    (
-        bones.ops.menu_func_export,
-        'enable_bones_export',
-        bones.ops.XRAY_OT_export_bones.bl_idname,
-        'Bones Data (.bones)'
-    ),
-    (
-        ogf.ops.menu_func_export,
-        'enable_ogf_export',
-        ogf.ops.XRAY_OT_export_ogf.bl_idname,
-        'Game Object (.ogf)'
-    ),
-    (
-        details.ops.menu_func_export,
-        'enable_details_export',
-        details.ops.XRAY_OT_export_details.bl_idname,
-        'Level Details (.details)'
-    ),
-    (
-        dm.ops.menu_func_export,
-        'enable_dm_export',
-        dm.ops.XRAY_OT_export_dm.bl_idname,
-        'Detail Model (.dm)'
-    ),
-    (
-        scene.ops.menu_func_export,
-        'enable_level_export',
-        scene.ops.XRAY_OT_export_scene_selection.bl_idname,
-        'Scene Selection (.level)'
     ),
     (
         omf.ops.menu_func_export,
@@ -141,11 +105,47 @@ export_draw_functions = [
         'Game Motion (.omf)'
     ),
     (
+        anm.ops.menu_func_export,
+        'enable_anm_export',
+        anm.ops.XRAY_OT_export_anm.bl_idname,
+        'Animation Paths (.anm)'
+    ),
+    (
+        bones.ops.menu_func_export,
+        'enable_bones_export',
+        bones.ops.XRAY_OT_export_bones.bl_idname,
+        'Bones Data (.bones)'
+    ),
+    (
+        dm.ops.menu_func_export,
+        'enable_dm_export',
+        dm.ops.XRAY_OT_export_dm.bl_idname,
+        'Detail Model (.dm)'
+    ),
+    (
+        details.ops.menu_func_export,
+        'enable_details_export',
+        details.ops.XRAY_OT_export_details.bl_idname,
+        'Level Details (.details)'
+    ),
+    (
+        scene.ops.menu_func_export,
+        'enable_level_export',
+        scene.ops.XRAY_OT_export_scene_selection.bl_idname,
+        'Scene Selection (.level)'
+    ),
+    (
         level.ops.menu_func_export,
         'enable_game_level_export',
         level.ops.XRAY_OT_export_level.bl_idname,
         'Game Level (level)'
-    )
+    ),
+    (
+        ogf.ops.menu_func_export,
+        'enable_ogf_export',
+        ogf.ops.XRAY_OT_export_ogf.bl_idname,
+        'Game Object (.ogf)'
+    ),
 ]
 
 

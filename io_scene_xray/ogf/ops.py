@@ -85,7 +85,7 @@ def menu_func_export(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_ogf.bl_idname,
-        text='X-Ray game object (.ogf)',
+        text='X-Ray Game Object (.ogf)',
         icon_value=icon
     )
 

@@ -223,7 +223,7 @@ def menu_func_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_skls.bl_idname,
-        text='X-Ray skeletal animation (.skl, .skls)',
+        text='X-Ray Skeletal Animation (.skl, .skls)',
         icon_value=icon
     )
 
@@ -232,7 +232,7 @@ def menu_func_export(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_skls.bl_idname,
-        text='X-Ray animation (.skls)',
+        text='X-Ray Skeletal Animation (.skls)',
         icon_value=icon
     )
 

@@ -45,7 +45,7 @@ def menu_func_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_err.bl_idname,
-        text='X-Ray error list (.err)',
+        text='X-Ray Error List (.err)',
         icon_value=icon
     )
 

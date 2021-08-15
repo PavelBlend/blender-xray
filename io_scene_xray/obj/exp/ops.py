@@ -242,7 +242,7 @@ def menu_func_export(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_object.bl_idname,
-        text='X-Ray object (.object)',
+        text='X-Ray Source Object (.object)',
         icon_value=icon
     )
 

@@ -125,7 +125,7 @@ def menu_func_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_level.bl_idname,
-        text='X-Ray game level (level)',
+        text='X-Ray Game Level (level)',
         icon_value=icon
     )
 
@@ -134,7 +134,7 @@ def menu_func_export(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_level.bl_idname,
-        text='X-Ray game level (level)',
+        text='X-Ray Game Level (level)',
         icon_value=icon
     )
 

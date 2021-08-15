@@ -114,7 +114,7 @@ def menu_func_import(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_import_anm.bl_idname,
-        text='X-Ray Animation (.anm)',
+        text='X-Ray Animation Paths (.anm)',
         icon_value=icon
     )
 
@@ -123,7 +123,7 @@ def menu_func_export(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_anm.bl_idname,
-        text='X-Ray Animation (.anm)',
+        text='X-Ray Animation Paths (.anm)',
         icon_value=icon
     )
 
