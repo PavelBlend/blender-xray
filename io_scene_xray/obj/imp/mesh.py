@@ -9,6 +9,7 @@ import bmesh
 from . import main
 from .. import fmt
 from ... import log
+from ... import plugin_props
 from ... import xray_io
 from ... import utils
 from ... import version_utils
