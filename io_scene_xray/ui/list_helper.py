@@ -43,7 +43,7 @@ def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_fu
     def operator(operation, icon, enabled=None):
         lay = layout
         if (enabled is not None) and (not enabled):
-            lay = lay.split(align=True)
+            lay = lay.row(align=True)
             lay.enabled = False
         operator = lay.operator(_ListOp.bl_idname, icon=icon)
         operator.operation = operation

@@ -92,6 +92,15 @@ class XRayRemoveAllActions(bpy.types.Operator):
     bl_label = 'Remove All Actions'
     bl_description = 'Remove All Actions'
 
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if not obj:
+            return False
+        data = obj.xray
+        motions_count = len(data.motions_collection)
+        return bool(motions_count)
+
     def execute(self, context):
         obj = context.object
         obj.xray.motions_collection.clear()
