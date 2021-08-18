@@ -146,6 +146,8 @@ class XRAY_PT_BonePanel(ui.base.XRayPanel):
         column = box.column(align=True)
         column.prop(data.mass, 'value')
         column.prop(data.mass, 'center')
+        xray = context.active_object.data.xray
+        edit_helpers.bone_center.HELPER.size = xray.bone_mass_center_cross_size
         edit_helpers.bone_center.HELPER.draw(column, context)
 
 
