@@ -222,7 +222,11 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         draw_overlays = not hided and is_pose and exportable
 
         if draw_overlays and arm_xray.display_bone_limits:
-            is_active_object = bpy.context.object.name == obj_arm.name
+            context_obj = bpy.context.object
+            if context_obj:
+                is_active_object = context_obj.name == obj_arm.name
+            else:
+                is_active_object = False
             has_shape = bone.xray.ikjoint.type in {'2', '3', '5'}
             if bone.select and has_shape and is_active_object:
                 draw_joint_limits = viewport.get_draw_joint_limits()
