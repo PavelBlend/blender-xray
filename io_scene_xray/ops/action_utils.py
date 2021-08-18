@@ -154,9 +154,10 @@ class XRAY_OT_ChangeActionBakeSettings(bpy.types.Operator):
         actions = set()
         if self.change_mode == 'active':
             obj = context.object
-            if obj.animation_data:
-                if obj.animation_data.action:
-                    actions.add(obj.animation_data.action)
+            for motion in obj.xray.motions_collection:
+                action = bpy.data.actions.get(motion.name)
+                if action:
+                    actions.add(action)
         elif self.change_mode == 'selected':
             for obj in context.selected_objects:
                 for motion in obj.xray.motions_collection:
