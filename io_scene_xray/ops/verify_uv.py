@@ -16,6 +16,9 @@ class XRAY_OT_VerifyUV(bpy.types.Operator):
     CORRECT_UV = False
 
     def execute(self, context):
+        # set object mode
+        if context.object:
+            bpy.ops.object.mode_set(mode='OBJECT')
         objects = context.selected_objects
         if not objects:
             self.report({'ERROR'}, 'No objects selected')

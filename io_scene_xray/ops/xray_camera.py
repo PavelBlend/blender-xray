@@ -16,6 +16,9 @@ class XRAY_OT_AddCamera(bpy.types.Operator):
     bl_label = 'Add X-Ray Camera'
 
     def execute(self, context):
+        # set object mode
+        if context.object:
+            bpy.ops.object.mode_set(mode='OBJECT')
         # create camera
         camera = bpy.data.cameras.new('xray-camera')
         camera_obj = bpy.data.objects.new('xray-camera', camera)
