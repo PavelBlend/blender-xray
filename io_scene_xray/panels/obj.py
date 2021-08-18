@@ -45,11 +45,10 @@ class PropClipOp(bpy.types.Operator):
     @classmethod
     def drawall(cls, layout, path, value):
         for item in items:
-            lay = layout
-            lay = version_utils.layout_split(lay, 1.0, align=True)
+            row = layout.row(align=True)
             if item[0] in ('copy', 'clear') and not value:
-                lay.enabled = False
-            props = lay.operator(cls.bl_idname, icon=item[3])
+                row.enabled = False
+            props = row.operator(cls.bl_idname, icon=item[3])
             props.oper = item[0]
             props.path = path
 
