@@ -326,6 +326,10 @@ def load_motion_refs(self, context):
 
 
 def update_load_active_motion_refs(self, context):
+    if not context.active_object:
+        return
+    if not hasattr(context.active_object.data, 'bones'):
+        return
     if not self.load_active_motion_refs:
         bpy.ops.xray.close_skls_file()
 
