@@ -148,7 +148,8 @@ def _gen_time_prop(prop, description=''):
                     ptime = time.strptime(value, fmt_day)
                 except ValueError:
                     pass
-            tval = time.mktime(ptime)
+            if ptime:
+                tval = time.mktime(ptime)
         setattr(self, prop, tval)
 
     return bpy.props.StringProperty(
