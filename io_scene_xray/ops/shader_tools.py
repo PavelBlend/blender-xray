@@ -14,7 +14,12 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
     def execute(self, context):
         scene = context.scene
         materials = material.get_materials(context, scene)
-        is_cycles = context.scene.render.engine == 'CYCLES'
+        renders_28 = (
+            'CYCLES',
+            'BLENDER_EEVEE',
+            'BLENDER_WORKBENCH'
+        )
+        is_cycles = context.scene.render.engine in renders_28
         is_internal = context.scene.render.engine == 'BLENDER_RENDER'
         for mat in materials:
             if is_cycles:
