@@ -219,6 +219,13 @@ class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
             row = row.row(align=True)
             row.active = data.change_roughness
             row.prop(data, 'shader_roughness_value')
+            if version_utils.IS_28:
+                # viewport roughness
+                row = col_cycles.row(align=True)
+                row.prop(data, 'change_viewport_roughness', text='')
+                row = row.row(align=True)
+                row.active = data.change_viewport_roughness
+                row.prop(data, 'viewport_roughness_value')
             if not version_utils.IS_28:
                 def draw_prop(change_prop, prop):
                     row = col_internal.row(align=True)

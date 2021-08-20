@@ -81,6 +81,10 @@ xray_scene_properties = {
         name='Roughness', default=0.0, min=0.0, max=1.0, subtype='FACTOR'
     ),
     'change_roughness': bpy.props.BoolProperty(name='Change Roughness', default=True),
+    'viewport_roughness_value': bpy.props.FloatProperty(
+        name='Viewport Roughness', default=0.0, min=0.0, max=1.0, subtype='FACTOR'
+    ),
+    'change_viewport_roughness': bpy.props.BoolProperty(name='Change Viewport Roughness', default=True),
 
     # internal properties
     'change_shadeless': bpy.props.BoolProperty(name='Change Shadeless', default=True),
