@@ -99,8 +99,8 @@ class ShapeProperties(bpy.types.PropertyGroup):
 
 
 break_properties = {
-    'force': bpy.props.FloatProperty(),
-    'torque': bpy.props.FloatProperty()
+    'force': bpy.props.FloatProperty(min=0.0),
+    'torque': bpy.props.FloatProperty(min=0.0)
 }
 
 
@@ -120,31 +120,43 @@ ik_joint_properties = {
         ('5', 'Slider', ''))
     ),
     'lim_x_min': bpy.props.FloatProperty(
-        min=-math.pi, max=0, update=ops.joint_limits.update_limit, subtype='ANGLE'
+        min=-math.pi, max=0.0,
+        update=ops.joint_limits.update_limit,
+        subtype='ANGLE'
     ),
     'lim_x_max': bpy.props.FloatProperty(
-        min=0, max=math.pi, update=ops.joint_limits.update_limit, subtype='ANGLE'
+        min=0.0, max=math.pi,
+        update=ops.joint_limits.update_limit,
+        subtype='ANGLE'
     ),
-    'lim_x_spr': bpy.props.FloatProperty(min=0),
-    'lim_x_dmp': bpy.props.FloatProperty(min=0),
+    'lim_x_spr': bpy.props.FloatProperty(min=0.0, max=1000.0),
+    'lim_x_dmp': bpy.props.FloatProperty(min=0.0, max=1000.0),
     'lim_y_min': bpy.props.FloatProperty(
-        min=-math.pi, max=0, update=ops.joint_limits.update_limit, subtype='ANGLE'
+        min=-math.pi, max=0,
+        update=ops.joint_limits.update_limit,
+        subtype='ANGLE'
     ),
     'lim_y_max': bpy.props.FloatProperty(
-        min=0, max=math.pi, update=ops.joint_limits.update_limit, subtype='ANGLE'
+        min=0, max=math.pi,
+        update=ops.joint_limits.update_limit,
+        subtype='ANGLE'
     ),
-    'lim_y_spr': bpy.props.FloatProperty(min=0),
-    'lim_y_dmp': bpy.props.FloatProperty(min=0),
+    'lim_y_spr': bpy.props.FloatProperty(min=0.0, max=1000.0),
+    'lim_y_dmp': bpy.props.FloatProperty(min=0.0, max=1000.0),
     'lim_z_min': bpy.props.FloatProperty(
-        min=-math.pi, max=0, update=ops.joint_limits.update_limit, subtype='ANGLE'
+        min=-math.pi, max=0.0,
+        update=ops.joint_limits.update_limit,
+        subtype='ANGLE'
     ),
     'lim_z_max': bpy.props.FloatProperty(
-        min=0, max=math.pi, update=ops.joint_limits.update_limit, subtype='ANGLE'
+        min=0, max=math.pi,
+        update=ops.joint_limits.update_limit,
+        subtype='ANGLE'
     ),
-    'lim_z_spr': bpy.props.FloatProperty(min=0),
-    'lim_z_dmp': bpy.props.FloatProperty(min=0),
-    'spring': bpy.props.FloatProperty(),
-    'damping': bpy.props.FloatProperty(),
+    'lim_z_spr': bpy.props.FloatProperty(min=0.0, max=1000.0),
+    'lim_z_dmp': bpy.props.FloatProperty(min=0.0, max=1000.0),
+    'spring': bpy.props.FloatProperty(min=0.0, max=1000.0),
+    'damping': bpy.props.FloatProperty(min=0.0, max=1000.0),
     'is_rigid': bpy.props.BoolProperty(get=lambda self: self.type == '0')
 }
 
@@ -156,7 +168,7 @@ class IKJointProperties(bpy.types.PropertyGroup):
 
 
 mass_properties = {
-    'value': bpy.props.FloatProperty(name='Mass', precision=3, min=0),
+    'value': bpy.props.FloatProperty(name='Mass', precision=3, min=0.0),
     'center': bpy.props.FloatVectorProperty(name='Center of Mass', precision=3)
 }
 
@@ -185,7 +197,7 @@ xray_bone_properties = {
     ),
     'ikjoint': bpy.props.PointerProperty(type=IKJointProperties),
     'breakf': bpy.props.PointerProperty(type=BreakProperties),
-    'friction': bpy.props.FloatProperty(),
+    'friction': bpy.props.FloatProperty(min=0.0),
     'mass': bpy.props.PointerProperty(type=MassProperties)
 }
 
