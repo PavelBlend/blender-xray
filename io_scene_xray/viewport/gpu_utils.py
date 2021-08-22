@@ -196,9 +196,9 @@ def gen_limit_circle(
     indices = []
 
     draw_functions = {
-        'X': (lambda x, y: coords.append((0, -x, y))),
-        'Y': (lambda x, y: coords.append((-y, 0, x))),
-        'Z': (lambda x, y: coords.append((-x, -y, 0)))
+        'X': (lambda x, y: coords.append((0, -x, -y))),
+        'Y': (lambda x, y: coords.append((-y, 0, -x))),
+        'Z': (lambda x, y: coords.append((x, y, 0)))
     }
 
     fconsumer = draw_functions[axis]
@@ -247,6 +247,8 @@ def gen_limit_circle(
 
 def draw_joint_limits(rotate, min_limit, max_limit, axis, radius):
     color = settings.AXIS_COLORS[axis]
+    if axis != 'Z':
+        rotate = -rotate
     gen_limit_circle(
         rotate, radius,
         settings.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,

@@ -9,9 +9,9 @@ from . import settings
 
 
 axis_draw_functions = {
-    'X': (lambda x, y: bgl.glVertex3f(0, -x, y)),
-    'Y': (lambda x, y: bgl.glVertex3f(-y, 0, x)),
-    'Z': (lambda x, y: bgl.glVertex3f(-x, -y, 0))
+    'X': (lambda x, y: bgl.glVertex3f(0, -x, -y)),
+    'Y': (lambda x, y: bgl.glVertex3f(-y, 0, -x)),
+    'Z': (lambda x, y: bgl.glVertex3f(x, y, 0))
 }
 
 
@@ -102,6 +102,8 @@ def gen_limit_circle(
 
 def draw_joint_limits(rotate, min_limit, max_limit, axis, radius):
     color = settings.AXIS_COLORS[axis]
+    if axis != 'Z':
+        rotate = -rotate
     gen_limit_circle(
         rotate, radius,
         settings.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,

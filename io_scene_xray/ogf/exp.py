@@ -238,6 +238,13 @@ def _export_child(bpy_obj, cwriter, context, vgm):
     cwriter.put(fmt.Chunks_v4.INDICES, pwriter)
 
 
+def get_ode_ik_limits(value_1, value_2):
+    # swap special for ODE
+    min_value = min(-value_1, -value_2)
+    max_value = max(-value_1, -value_2)
+    return min_value, max_value
+
+
 def _export(bpy_obj, cwriter, context):
     bbox, bsph = calculate_bbox_and_bsphere(bpy_obj)
     if bpy_obj.xray.motionrefs:
@@ -341,12 +348,31 @@ def _export(bpy_obj, cwriter, context):
         pwriter.putf('f', xray.shape.cyl_hgh)
         pwriter.putf('f', xray.shape.cyl_rad)
         pwriter.putf('I', int(xray.ikjoint.type))
-        pwriter.putf('ff', xray.ikjoint.lim_x_min, xray.ikjoint.lim_x_max)
+
+        # x axis
+        x_min, x_max = get_ode_ik_limits(
+            xray.ikjoint.lim_x_min,
+            xray.ikjoint.lim_x_max
+        )
+        pwriter.putf('ff', x_min, x_max)
         pwriter.putf('ff', xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp)
-        pwriter.putf('ff', xray.ikjoint.lim_y_min, xray.ikjoint.lim_y_max)
+
+        # y axis
+        y_min, y_max = get_ode_ik_limits(
+            xray.ikjoint.lim_y_min,
+            xray.ikjoint.lim_y_max
+        )
+        pwriter.putf('ff', y_min, y_max)
         pwriter.putf('ff', xray.ikjoint.lim_y_spr, xray.ikjoint.lim_y_dmp)
-        pwriter.putf('ff', xray.ikjoint.lim_z_min, xray.ikjoint.lim_z_max)
+
+        # z axis
+        z_min, z_max = get_ode_ik_limits(
+            xray.ikjoint.lim_z_min,
+            xray.ikjoint.lim_z_max
+        )
+        pwriter.putf('ff', z_min, z_max)
         pwriter.putf('ff', xray.ikjoint.lim_z_spr, xray.ikjoint.lim_z_dmp)
+
         pwriter.putf('ff', xray.ikjoint.spring, xray.ikjoint.damping)
         pwriter.putf('I', xray.ikflags)
         pwriter.putf('ff', xray.breakf.force, xray.breakf.torque)
