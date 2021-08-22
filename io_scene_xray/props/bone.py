@@ -391,7 +391,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                         color=color
                     )
                 if shape.type == '3':  # cylinder
-                    viewport.draw_wire_cylinder(
+                    viewport.draw_cylinder(
                         shape.cyl_rad,
                         shape.cyl_hgh * 0.5,
                         viewport.settings.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT,
@@ -415,7 +415,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                         viewport.settings.BONE_SHAPE_SPHERE_SEGMENTS_COUNT
                     )
                 if shape.type == '3':  # cylinder
-                    viewport.draw_wire_cylinder(
+                    viewport.draw_cylinder(
                         shape.cyl_rad,
                         shape.cyl_hgh * 0.5,
                         viewport.settings.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT

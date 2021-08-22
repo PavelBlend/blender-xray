@@ -22,7 +22,7 @@ def draw_sphere(radius, num_segments, color=None):
         gl_utils.draw_wire_sphere(radius, num_segments)
 
 
-def draw_wire_cylinder(radius, half_height, num_segments, color=None):
+def draw_cylinder(radius, half_height, num_segments, color=None):
     if version_utils.IS_28:
         gpu_utils.draw_wire_cylinder(radius, half_height, num_segments, color)
     else:
