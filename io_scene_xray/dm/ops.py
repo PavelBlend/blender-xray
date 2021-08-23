@@ -81,6 +81,7 @@ class XRAY_OT_import_dm(
         for prop_name, prop_value in op_import_dm_props.items():
             exec('{0} = op_import_dm_props.get("{0}")'.format(prop_name))
 
+    @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         textures_folder = version_utils.get_preferences().textures_folder_auto

@@ -6,6 +6,7 @@ import bpy
 import bmesh
 
 # addon modules
+from .. import log
 from .. import utils
 from .. import xray_io
 from .. import version_utils
@@ -108,7 +109,7 @@ def create_bpy_image(det_model, abs_image_path):
                 ))
                 bpy_image = bpy.data.images.load(abs_image_path)
             except RuntimeError as ex:
-                det_model.context.operator.report({'WARNING'}, str(ex))
+                log.warn('texture file not found', path=abs_image_path)
                 bpy_image = create_empty_image(
                     det_model.context,
                     det_model,
@@ -116,7 +117,7 @@ def create_bpy_image(det_model, abs_image_path):
                 )
 
         else:
-            det_model.context.operator.report({'WARNING'}, str(ex))
+            log.warn('texture file not found', path=abs_image_path)
             bpy_image = create_empty_image(
                 det_model.context, det_model, abs_image_path
             )

@@ -8,6 +8,7 @@ import mathutils
 # addon modules
 from . import fmt
 from . import utility
+from .. import log
 from .. import version_utils
 
 
@@ -243,7 +244,7 @@ def load_image(absolute_texture_path):
     return bpy_image
 
 
-def load_image_from_level_folder(context, texture):
+def load_image_from_level_folder(context, texture, abs_path):
     level_dir = utility.get_level_dir(context.filepath)
     absolute_texture_path = get_absolute_texture_path(
         level_dir, texture
@@ -257,8 +258,8 @@ def load_image_from_level_folder(context, texture):
         try:
             bpy_image = load_image(absolute_texture_path)
         except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
-            context.operator.report({'WARNING'}, str(ex))
-            bpy_image = create_empty_image(texture, absolute_texture_path)
+            log.warn('texture file not found', path=abs_path)
+            bpy_image = create_empty_image(texture, abs_path)
     return bpy_image
 
 
@@ -266,11 +267,7 @@ def create_image(context, texture, absolute_texture_path):
     try:
         bpy_image = load_image(absolute_texture_path)
     except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
-        try:
-            bpy_image = load_image_from_level_folder(context, texture)
-        except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
-            context.operator.report({'WARNING'}, str(ex))
-            bpy_image = create_empty_image(texture, absolute_texture_path)
+        bpy_image = load_image_from_level_folder(context, texture, absolute_texture_path)
     bpy_image.use_fake_user = True
     return bpy_image
 
