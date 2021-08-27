@@ -52,8 +52,13 @@ def overlay_view_3d():
             xray.ondraw_postview(base_obj, obj)
         if hasattr(obj, 'type'):
             if obj.type == 'ARMATURE':
-                for bone in obj.data.bones:
-                    try_draw(base_obj, bone)
+                arm_data = obj.data.xray
+                shapes = arm_data.display_bone_shapes
+                centers = arm_data.display_bone_mass_centers
+                limits = arm_data.display_bone_limits
+                if shapes or centers or limits:
+                    for bone in obj.data.bones:
+                        try_draw(base_obj, bone)
 
     for obj in bpy.data.objects:
         try_draw(obj, obj)
