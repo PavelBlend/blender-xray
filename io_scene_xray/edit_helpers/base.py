@@ -24,7 +24,7 @@ class AbstractHelper:
     def get_target(self):
         helper = self.get_helper()
         if helper is None:
-            return
+            return None, None
         return helper, self._get_target_object(helper)
 
     def activate(self, target):

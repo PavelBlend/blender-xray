@@ -14,6 +14,7 @@ SOC_HUD_FOV = 30.5
 class XRAY_OT_add_camera(bpy.types.Operator):
     bl_idname = 'io_scene_xray.add_camera'
     bl_label = 'Add X-Ray Camera'
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         # set object mode

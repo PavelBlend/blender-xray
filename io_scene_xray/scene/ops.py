@@ -85,7 +85,6 @@ op_import_level_scene_props = {
         default='*'+filename_ext, options={'HIDDEN'}
     ),
     'mesh_split_by_materials': plugin_props.PropObjectMeshSplitByMaterials(),
-    'shaped_bones': plugin_props.PropObjectBonesCustomShapes(),
     'fmt_version': plugin_props.PropSDKVersion()
 }
 
@@ -115,7 +114,6 @@ class XRAY_OT_import_scene_selection(
         row.row().prop(self, 'fmt_version', expand=True)
 
         layout.prop(self, 'mesh_split_by_materials')
-        layout.prop(self, 'shaped_bones')
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -130,7 +128,6 @@ class XRAY_OT_import_scene_selection(
     def invoke(self, context, event):
         preferences = version_utils.get_preferences()
         self.mesh_split_by_materials = preferences.scene_selection_mesh_split_by_mat
-        self.shaped_bones = preferences.scene_selection_shaped_bones
         self.fmt_version = preferences.scene_selection_sdk_version
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}

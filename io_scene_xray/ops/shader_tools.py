@@ -10,6 +10,7 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
     bl_idname = 'io_scene_xray.change_shader_params'
     bl_label = 'Change Shader Parameters'
     bl_description = ''
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         scene = context.scene

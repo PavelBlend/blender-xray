@@ -72,7 +72,9 @@ class XRAY_OT_align_center(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         _, bone = HELPER.get_target()
-        return bone and bone.xray.shape.type != '0'
+        if not bone:
+            return
+        return bone.xray.shape.type != '0'
 
     def execute(self, context):
         helper, bone = HELPER.get_target()

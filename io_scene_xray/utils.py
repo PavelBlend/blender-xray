@@ -334,6 +334,8 @@ HELPER_OBJECT_NAME_PREFIX = '.xray-helper--'
 
 
 def is_helper_object(obj):
+    if not obj:
+        return False
     return obj.name.startswith(HELPER_OBJECT_NAME_PREFIX)
 
 

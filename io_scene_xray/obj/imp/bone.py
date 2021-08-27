@@ -12,18 +12,6 @@ from ... import utils
 from ... import version_utils
 
 
-def _get_real_bone_shape():
-    result = bpy.data.objects.get('real_bone_shape')
-    if result is None:
-        result = bpy.data.objects.new('real_bone_shape', None)
-        display_type = 'SPHERE'
-        if version_utils.IS_28:
-            result.empty_display_type = display_type
-        else:
-            result.empty_draw_type = display_type
-    return result
-
-
 def _create_bone(
         context,
         bpy_arm_obj,
@@ -76,8 +64,6 @@ def _create_bone(
     finally:
         bpy.ops.object.mode_set(mode='OBJECT')
     pose_bone = bpy_arm_obj.pose.bones[name]
-    if context.operator.shaped_bones:
-        pose_bone.custom_shape = _get_real_bone_shape()
     bpy_bone = bpy_armature.bones[name]
     xray = bpy_bone.xray
     xray.version = context.version

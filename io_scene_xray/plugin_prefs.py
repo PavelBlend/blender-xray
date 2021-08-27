@@ -83,7 +83,6 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
                 box.prop(self, 'object_motions_import')
                 box.prop(self, 'use_motion_prefix_name')
                 box.prop(self, 'object_mesh_split_by_mat')
-                box.prop(self, 'object_bones_custom_shapes')
                 # export object props
                 box = layout.box()
                 box.label(text='Export:')
@@ -158,7 +157,6 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
                 row.label(text='SDK Version:')
                 row.prop(self, 'scene_selection_sdk_version', expand=True)
                 box.prop(self, 'scene_selection_mesh_split_by_mat')
-                box.prop(self, 'scene_selection_shaped_bones')
 
         elif self.category == 'PLUGINS':
             row = layout.row()

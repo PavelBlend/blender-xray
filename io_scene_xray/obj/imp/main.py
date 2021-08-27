@@ -285,24 +285,6 @@ def import_main(fpath, context, creader):
                         bpy_arm_obj,
                         renamemap
                     )
-            bpy.ops.object.mode_set(mode='EDIT')
-            try:
-                if context.operator.shaped_bones:
-                    bones = bpy_armature.edit_bones
-                    lenghts = [0] * len(bones)
-                    for i, bone_ in enumerate(bones):
-                        min_rad_sq = math.inf
-                        for j, bone1 in enumerate(bones):
-                            if j == i:
-                                continue
-                            rad_sq = (bone1.head - bone_.head).length_squared
-                            if rad_sq < min_rad_sq:
-                                min_rad_sq = rad_sq
-                        lenghts[i] = math.sqrt(min_rad_sq)
-                    for bone_, length in zip(bones, lenghts):
-                        bone_.length = min(max(length * 0.4, 0.01), 0.1)
-            finally:
-                bpy.ops.object.mode_set(mode='OBJECT')
             for bone_ in bpy_arm_obj.pose.bones:
                 bone_.rotation_mode = 'ZXY'
         elif cid in (

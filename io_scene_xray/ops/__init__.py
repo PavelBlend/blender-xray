@@ -1,6 +1,7 @@
 # addon modules
 from . import action_utils
 from . import armature_utils
+from . import bone_tools
 from . import material
 from . import custom_props_utils
 from . import fake_bones
@@ -14,6 +15,7 @@ from . import xray_camera
 modules = (
     action_utils,
     armature_utils,
+    bone_tools,
     material,
     custom_props_utils,
     fake_bones,

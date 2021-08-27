@@ -77,14 +77,6 @@ def PropObjectMeshSplitByMaterials():
     )
 
 
-def PropObjectBonesCustomShapes():
-    return bpy.props.BoolProperty(
-        name='Custom Shapes for Bones',
-        description='Use custom shapes for imported bones',
-        default=True
-    )
-
-
 def PropObjectUseMotionPrefixName():
     return bpy.props.BoolProperty(default=False, name='Motion Prefix Name')
 

@@ -9,6 +9,7 @@ class XRAY_OT_link_bones(bpy.types.Operator):
     bl_idname = 'io_scene_xray.link_bones'
     bl_label = 'Link Bones'
     bl_description = ''
+    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
@@ -45,6 +46,7 @@ class XRAY_OT_unlink_bones(bpy.types.Operator):
     bl_idname = 'io_scene_xray.unlink_bones'
     bl_label = 'Unlink Bones'
     bl_description = ''
+    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):

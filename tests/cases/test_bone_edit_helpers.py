@@ -16,8 +16,7 @@ class TestBoneEditHelpers(XRayTestCase):
 
         bpy.ops.xray_import.object(
             directory=self.relpath(),
-            files=[{'name': 'test_fmt_armature.object'}],
-            shaped_bones=False
+            files=[{'name': 'test_fmt_armature.object'}]
         )
         arm = bpy.context.active_object
         bone = arm.data.bones['Bone']
@@ -92,8 +91,7 @@ class TestBoneEditHelpers(XRayTestCase):
 
         bpy.ops.xray_import.object(
             directory=self.relpath(),
-            files=[{'name': 'test_fmt_armature.object'}],
-            shaped_bones=False
+            files=[{'name': 'test_fmt_armature.object'}]
         )
         arm = bpy.context.active_object
         bone = arm.data.bones['Bone1']

@@ -34,7 +34,6 @@ op_import_object_props = {
     'import_motions': plugin_props.PropObjectMotionsImport(),
     'mesh_split_by_materials': plugin_props.PropObjectMeshSplitByMaterials(),
     'use_motion_prefix_name': plugin_props.PropObjectUseMotionPrefixName(),
-    'shaped_bones': plugin_props.PropObjectBonesCustomShapes(),
     'fmt_version': plugin_props.PropSDKVersion()
 }
 
@@ -107,14 +106,12 @@ class XRAY_OT_import_object(plugin_props.BaseOperator, bpy_extras.io_utils.Impor
         row.active = self.import_motions
         row.prop(self, 'use_motion_prefix_name')
         layout.prop(self, 'mesh_split_by_materials')
-        layout.prop(self, 'shaped_bones')
 
     def invoke(self, context, event):
         preferences = version_utils.get_preferences()
         self.fmt_version = preferences.sdk_version
         self.import_motions = preferences.object_motions_import
         self.mesh_split_by_materials = preferences.object_mesh_split_by_mat
-        self.shaped_bones = preferences.object_bones_custom_shapes
         self.use_motion_prefix_name = preferences.use_motion_prefix_name
         return super().invoke(context, event)
 

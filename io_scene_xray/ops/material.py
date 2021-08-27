@@ -55,6 +55,7 @@ class XRAY_OT_switch_render(bpy.types.Operator):
     bl_idname = 'io_scene_xray.switch_render'
     bl_label = 'Switch Render'
     bl_description = 'Switch Cycles/Internal Render'
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         scene = context.scene
@@ -79,6 +80,7 @@ class XRAY_OT_convert_to_internal_material(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_to_internal'
     bl_label = 'Convert to Internal'
     bl_description = ''
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         scene = context.scene
@@ -155,6 +157,7 @@ class XRAY_OT_convert_to_cycles_material(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_to_cycles'
     bl_label = 'Convert to Cycles'
     bl_description = ''
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         scene = context.scene
@@ -225,6 +228,7 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
     bl_idname = 'io_scene_xray.colorize_materials'
     bl_label = 'Colorize Materials'
     bl_description = 'Set a pseudo-random diffuse color for each surface (material)'
+    bl_options = {'REGISTER', 'UNDO'}
 
     if not version_utils.IS_28:
         for prop_name, prop_value in xray_colorize_materials_props.items():

@@ -425,7 +425,6 @@ plugin_preferences_props = {
     'object_motions_import': plugin_props.PropObjectMotionsImport(),
     'use_motion_prefix_name': plugin_props.PropObjectUseMotionPrefixName(),
     'object_mesh_split_by_mat': plugin_props.PropObjectMeshSplitByMaterials(),
-    'object_bones_custom_shapes': plugin_props.PropObjectBonesCustomShapes(),
     # object export props
     'export_object_sdk_version': plugin_props.PropSDKVersion(),
     'smoothing_out_of': plugin_props.prop_smoothing_out_of(),
@@ -463,7 +462,6 @@ plugin_preferences_props = {
     # scene selection import props
     'scene_selection_sdk_version': plugin_props.PropSDKVersion(),
     'scene_selection_mesh_split_by_mat': plugin_props.PropObjectMeshSplitByMaterials(),
-    'scene_selection_shaped_bones': plugin_props.PropObjectBonesCustomShapes(),
 
     # keymap
     'keymaps_collection': bpy.props.CollectionProperty(type=XRayKeyMap),

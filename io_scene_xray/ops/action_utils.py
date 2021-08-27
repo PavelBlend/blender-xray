@@ -67,6 +67,7 @@ class XRAY_OT_copy_action_settings(bpy.types.Operator):
 class XRAY_OT_paste_action_settings(bpy.types.Operator):
     bl_idname = 'io_scene_xray.paste_action_settings'
     bl_label = 'Paste'
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         read_buffer_data()
@@ -120,6 +121,7 @@ change_action_bake_settings_props = {
 class XRAY_OT_change_action_bake_settings(bpy.types.Operator):
     bl_idname = 'io_scene_xray.change_action_bake_settings'
     bl_label = 'Change Action Bake Settings'
+    bl_options = {'REGISTER', 'UNDO'}
 
     if not version_utils.IS_28:
         for prop_name, prop_value in change_action_bake_settings_props.items():

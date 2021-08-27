@@ -93,6 +93,7 @@ def find_data(context):
 class XRAY_OT_set_custom_to_xray_props(bpy.types.Operator):
     bl_idname = 'io_scene_xray.set_custom_to_xray_properties'
     bl_label = 'Set Custom to X-Ray'
+    bl_options = {'REGISTER', 'UNDO'}
 
     def set_custom(self, owner, prop, custom):
         if not self.obj.get(custom, None) is None:
@@ -194,6 +195,7 @@ class XRAY_OT_set_custom_to_xray_props(bpy.types.Operator):
 class XRAY_OT_set_xray_to_custom_props(bpy.types.Operator):
     bl_idname = 'io_scene_xray.set_xray_to_custom_properties'
     bl_label = 'Set X-Ray to Custom'
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         preferences = version_utils.get_preferences()
@@ -286,6 +288,7 @@ class XRAY_OT_set_xray_to_custom_props(bpy.types.Operator):
 class XRAY_OT_remove_xray_custom_props(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_xray_custom_props'
     bl_label = 'Remove X-Ray Custom Properties'
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         preferences = version_utils.get_preferences()
@@ -316,6 +319,7 @@ class XRAY_OT_remove_xray_custom_props(bpy.types.Operator):
 class XRAY_OT_remove_all_custom_props(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_all_custom_props'
     bl_label = 'Remove All Custom Properties'
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         objects, meshes, materials, armatures, actions = find_data(context)

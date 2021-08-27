@@ -21,8 +21,7 @@ class TestObjectImport(utils.XRayTestCase):
     def test_import_no_bone_shapes(self):
         bpy.ops.xray_import.object(
             directory=self.relpath(),
-            files=[{'name': 'test_fmt_armature.object'}],
-            shaped_bones=False
+            files=[{'name': 'test_fmt_armature.object'}]
         )
         self.assertReportsNotContains('WARNING')
         pbones = bpy.context.active_object.pose.bones
