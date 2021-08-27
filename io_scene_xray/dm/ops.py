@@ -153,7 +153,7 @@ class XRAY_OT_export_dm(plugin_props.BaseOperator):
                 export_context = ExportDmContext()
                 export_context.texname_from_path = self.texture_name_from_image_path
 
-                model_exp.export_file(
+                exp.export_file(
                     detail_model,
                     os.path.join(path, name),
                     export_context
@@ -196,7 +196,7 @@ op_export_dm_props = {
 }
 
 
-class XRAY_OT_export_single_dm(
+class XRAY_OT_export_dm_file(
         plugin_props.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
@@ -251,7 +251,7 @@ class XRAY_OT_export_single_dm(
 classes = (
     (XRAY_OT_import_dm, op_import_dm_props),
     (XRAY_OT_export_dm, op_export_dms_props),
-    (XRAY_OT_export_single_dm, op_export_dm_props)
+    (XRAY_OT_export_dm_file, op_export_dm_props)
 )
 
 

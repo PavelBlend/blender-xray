@@ -6,7 +6,7 @@ from .. import plugin_props
 from .. import utils
 
 
-class XRAY_OT_CreateFakeBones(plugin_props.BaseOperator):
+class XRAY_OT_create_fake_bones(plugin_props.BaseOperator):
     bl_idname = 'io_scene_xray.create_fake_bones'
     bl_label = 'Create Fake Bones'
     bl_description = 'Connect non-rigid bone joints via fake bones to help with IK'
@@ -51,7 +51,7 @@ class XRAY_OT_CreateFakeBones(plugin_props.BaseOperator):
         return {'FINISHED'}
 
 
-class XRAY_OT_DeleteFakeBones(plugin_props.BaseOperator):
+class XRAY_OT_delete_fake_bones(plugin_props.BaseOperator):
     bl_idname = 'io_scene_xray.delete_fake_bones'
     bl_label = 'Delete Fake Bones'
     bl_description = 'Delete all previously created fake bones'
@@ -77,7 +77,7 @@ class XRAY_OT_DeleteFakeBones(plugin_props.BaseOperator):
         return {'FINISHED'}
 
 
-class XRAY_OT_ToggleFakeBonesVisibility(plugin_props.BaseOperator):
+class XRAY_OT_toggle_fake_bones_visibility(plugin_props.BaseOperator):
     bl_idname = 'io_scene_xray.toggle_fake_bones_visibility'
     bl_label = 'Show/Hide Fake Bones'
     bl_description = 'Show/Hide all fake bones'
@@ -123,9 +123,9 @@ def _is_armature_context_with_fake_bones(context):
 
 
 classes = (
-    XRAY_OT_CreateFakeBones,
-    XRAY_OT_DeleteFakeBones,
-    XRAY_OT_ToggleFakeBonesVisibility
+    XRAY_OT_create_fake_bones,
+    XRAY_OT_delete_fake_bones,
+    XRAY_OT_toggle_fake_bones_visibility
 )
 
 

@@ -16,15 +16,15 @@ from .. import version_utils
 class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
     def draw(self, layout, context):
         if self.is_active(context):
-            layout.operator(_ApplyShape.bl_idname, icon='FILE_TICK')
+            layout.operator(XRAY_OT_apply_shape.bl_idname, icon='FILE_TICK')
             layout.operator(
-                _FitShape.bl_idname,
+                XRAY_OT_fit_shape.bl_idname,
                 icon=version_utils.get_icon('BBOX')
             )
             super().draw(layout, context)
             return
 
-        layout.operator(_EditShape.bl_idname, text='Edit Shape')
+        layout.operator(XRAY_OT_edit_shape.bl_idname, text='Edit Shape')
 
     def _create_helper(self, name):
         mesh = bpy.data.meshes.new(name=name)
@@ -75,7 +75,7 @@ def _create_bmesh(shape_type):
     return mesh
 
 
-class _EditShape(bpy.types.Operator):
+class XRAY_OT_edit_shape(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_shape'
     bl_label = 'Edit Bone Shape'
     bl_description = 'Create a helper object that can be ' \
@@ -132,7 +132,7 @@ def _bone_matrix(bone):
     return mat
 
 
-class _ApplyShape(bpy.types.Operator):
+class XRAY_OT_apply_shape(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_shape_apply'
     bl_label = 'Apply Shape'
     bl_options = {'UNDO'}
@@ -223,7 +223,7 @@ def _bone_vertices(bone):
                 yield vtx.co
 
 
-class _FitShape(bpy.types.Operator):
+class XRAY_OT_fit_shape(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_shape_fit'
     bl_label = 'Fit Shape'
     bl_options = {'UNDO'}
@@ -296,9 +296,9 @@ class _FitShape(bpy.types.Operator):
 
 
 classes = (
-    _EditShape,
-    _ApplyShape,
-    _FitShape
+    XRAY_OT_edit_shape,
+    XRAY_OT_apply_shape,
+    XRAY_OT_fit_shape
 )
 
 

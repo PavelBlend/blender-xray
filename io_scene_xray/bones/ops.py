@@ -107,7 +107,7 @@ class XRAY_OT_import_bones(
             try:
                 imp_props = self.import_bone_properties
                 imp_parts = self.import_bone_parts
-                if not (imp_props and imp_parts):
+                if not imp_props and not imp_parts:
                     self.report({'ERROR'}, 'Nothing is imported')
                     return {'CANCELLED'}
                 import_context = ImportBonesContext()

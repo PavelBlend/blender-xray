@@ -7,28 +7,28 @@ from .. import utils
 from .. import version_utils
 
 
-class XRayEShaderMenu(ui.dynamic_menu.XRayXrMenuTemplate):
-    bl_idname = 'XRAY_MT_ShaderMenu'
+class XRAY_MT_shader(ui.dynamic_menu.XRAY_MT_xr_template):
+    bl_idname = 'XRAY_MT_shader'
     prop_name = 'eshader'
-    cached = ui.dynamic_menu.XRayXrMenuTemplate.create_cached(
+    cached = ui.dynamic_menu.XRAY_MT_xr_template.create_cached(
         'eshader_file_auto',
         utils.parse_shaders
     )
 
 
-class XRayCShaderMenu(ui.dynamic_menu.XRayXrMenuTemplate):
-    bl_idname = 'XRAY_MT_CompileMenu'
+class XRAY_MT_compile(ui.dynamic_menu.XRAY_MT_xr_template):
+    bl_idname = 'XRAY_MT_compile'
     prop_name = 'cshader'
-    cached = ui.dynamic_menu.XRayXrMenuTemplate.create_cached(
+    cached = ui.dynamic_menu.XRAY_MT_xr_template.create_cached(
         'cshader_file_auto',
         utils.parse_shaders_xrlc
     )
 
 
-class XRayGameMtlMenu(ui.dynamic_menu.XRayXrMenuTemplate):
-    bl_idname = 'XRAY_MT_MaterialMenu'
+class XRAY_MT_material(ui.dynamic_menu.XRAY_MT_xr_template):
+    bl_idname = 'XRAY_MT_material'
     prop_name = 'gamemtl'
-    cached = ui.dynamic_menu.XRayXrMenuTemplate.create_cached(
+    cached = ui.dynamic_menu.XRAY_MT_xr_template.create_cached(
         'gamemtl_file_auto',
         utils.parse_gamemtl
     )
@@ -38,10 +38,10 @@ def _gen_xr_selector(layout, data, name, text):
     row = layout.row(align=True)
     row.prop(data, name, text=text)
     ui.dynamic_menu.DynamicMenu.set_layout_context_data(row, data)
-    row.menu('XRAY_MT_{}Menu'.format(text), icon='TRIA_DOWN')
+    row.menu('XRAY_MT_{}'.format(text.lower()), icon='TRIA_DOWN')
 
 
-class XRAY_PT_MaterialPanel(ui.base.XRayPanel):
+class XRAY_PT_material(ui.base.XRayPanel):
     bl_context = 'material'
     bl_label = ui.base.build_label('Material')
 
@@ -95,10 +95,10 @@ class XRAY_PT_MaterialPanel(ui.base.XRayPanel):
 
 
 classes = (
-    XRayEShaderMenu,
-    XRayCShaderMenu,
-    XRayGameMtlMenu,
-    XRAY_PT_MaterialPanel
+    XRAY_MT_shader,
+    XRAY_MT_compile,
+    XRAY_MT_material,
+    XRAY_PT_material
 )
 
 

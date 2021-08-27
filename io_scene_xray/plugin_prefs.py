@@ -20,7 +20,7 @@ path_props_names = {
 }
 
 
-class PluginPreferences(bpy.types.AddonPreferences):
+class XRAY_addon_preferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
 
     if not version_utils.IS_28:
@@ -41,7 +41,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
             row_prop.enabled = False
             row_prop.prop(self, auto_prop, text='')
             operator = row.operator(
-                prefs.ops._ExplicitPathOp.bl_idname, icon='MODIFIER', text=''
+                prefs.ops.XRAY_OT_explicit_path.bl_idname, icon='MODIFIER', text=''
             )
             operator.path = prop
         else:
@@ -55,9 +55,9 @@ class PluginPreferences(bpy.types.AddonPreferences):
         layout = self.layout
 
         row = layout.row(align=True)
-        row.menu(PREFS_MT_xray_presets.__name__, text=PREFS_MT_xray_presets.bl_label)
-        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon=version_utils.get_icon('ZOOMIN'))
-        row.operator(AddPresetXrayPrefs.bl_idname, text='', icon=version_utils.get_icon('ZOOMOUT')).remove_active = True
+        row.menu(XRAY_MT_prefs_presets.__name__, text=XRAY_MT_prefs_presets.bl_label)
+        row.operator(XRAY_OT_add_prefs_preset.bl_idname, text='', icon=version_utils.get_icon('ZOOMIN'))
+        row.operator(XRAY_OT_add_prefs_preset.bl_idname, text='', icon=version_utils.get_icon('ZOOMOUT')).remove_active = True
 
         layout.row().prop(self, 'category', expand=True)
 
@@ -212,7 +212,7 @@ class PluginPreferences(bpy.types.AddonPreferences):
                     else:
                         row.label(text=operator.bl_label)
                         change_keymap_op = row.operator(
-                            prefs.props.XRAY_OT_AddKeymap.bl_idname,
+                            prefs.props.XRAY_OT_add_keymap.bl_idname,
                             text='Add'
                         )
                         change_keymap_op.operator = operator.bl_idname
@@ -322,21 +322,21 @@ class PluginPreferences(bpy.types.AddonPreferences):
         split = version_utils.layout_split(layout, 0.6)
         split.label(text='')
         split.operator(
-            prefs.ops.XRAY_OT_ResetPreferencesSettings.bl_idname, icon='CANCEL'
+            prefs.ops.XRAY_OT_reset_prefs_settings.bl_idname, icon='CANCEL'
         )
 
 
-class PREFS_MT_xray_presets(bpy.types.Menu):
+class XRAY_MT_prefs_presets(bpy.types.Menu):
     bl_label = 'Settings Presets'
     preset_subdir = 'io_scene_xray/preferences'
     preset_operator = 'script.execute_preset'
     draw = bpy.types.Menu.draw_preset
 
 
-class AddPresetXrayPrefs(bl_operators.presets.AddPresetBase, bpy.types.Operator):
+class XRAY_OT_add_prefs_preset(bl_operators.presets.AddPresetBase, bpy.types.Operator):
     bl_idname = 'xray.prefs_preset_add'
     bl_label = 'Add XRay Preferences Preset'
-    preset_menu = 'PREFS_MT_xray_presets'
+    preset_menu = 'XRAY_MT_prefs_presets'
 
     preset_defines = [
         'prefs = bpy.context.preferences.addons["io_scene_xray"].preferences'
@@ -351,15 +351,15 @@ class AddPresetXrayPrefs(bl_operators.presets.AddPresetBase, bpy.types.Operator)
 
 
 classes = (
-    PREFS_MT_xray_presets,
-    AddPresetXrayPrefs,
-    PluginPreferences
+    XRAY_MT_prefs_presets,
+    XRAY_OT_add_prefs_preset,
+    XRAY_addon_preferences
 )
 
 
 def register():
     version_utils.assign_props([
-        (prefs.props.plugin_preferences_props, PluginPreferences),
+        (prefs.props.plugin_preferences_props, XRAY_addon_preferences),
     ])
     prefs.register()
     for clas in classes:

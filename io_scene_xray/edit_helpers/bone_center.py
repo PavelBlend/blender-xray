@@ -13,12 +13,12 @@ class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
 
     def draw(self, layout, context):
         if self.is_active(context):
-            layout.operator(_ApplyCenter.bl_idname, icon='FILE_TICK')
-            layout.operator(_AlignCenter.bl_idname, icon='CURSOR')
+            layout.operator(XRAY_OT_apply_center.bl_idname, icon='FILE_TICK')
+            layout.operator(XRAY_OT_align_center.bl_idname, icon='CURSOR')
             super().draw(layout, context)
             return
 
-        layout.operator(_EditCenter.bl_idname, text='Edit Center')
+        layout.operator(XRAY_OT_edit_center.bl_idname, text='Edit Center')
 
     def _create_helper(self, name):
         helper = bpy.data.objects.new(name, None)
@@ -49,7 +49,7 @@ class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
 HELPER = _BoneCenterEditHelper('bone-center-edit')
 
 
-class _EditCenter(bpy.types.Operator):
+class XRAY_OT_edit_center(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_center'
     bl_label = 'Edit Bone Center'
     bl_description = 'Create a helper object that can be ' \
@@ -65,7 +65,7 @@ class _EditCenter(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class _AlignCenter(bpy.types.Operator):
+class XRAY_OT_align_center(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_center_align'
     bl_label = 'Align Center'
 
@@ -95,7 +95,7 @@ class _AlignCenter(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class _ApplyCenter(bpy.types.Operator):
+class XRAY_OT_apply_center(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_center_apply'
     bl_label = 'Apply Center'
     bl_options = {'UNDO'}
@@ -117,9 +117,9 @@ class _ApplyCenter(bpy.types.Operator):
 
 
 classes = (
-    _EditCenter,
-    _AlignCenter,
-    _ApplyCenter
+    XRAY_OT_edit_center,
+    XRAY_OT_align_center,
+    XRAY_OT_apply_center
 )
 
 

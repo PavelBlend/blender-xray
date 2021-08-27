@@ -51,7 +51,7 @@ def get_image_nodes(node, image_nodes):
             get_image_nodes(from_node, image_nodes)
 
 
-class XRAY_OT_xray_switch_render(bpy.types.Operator):
+class XRAY_OT_switch_render(bpy.types.Operator):
     bl_idname = 'io_scene_xray.switch_render'
     bl_label = 'Switch Render'
     bl_description = 'Switch Cycles/Internal Render'
@@ -75,7 +75,7 @@ class XRAY_OT_xray_switch_render(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_xray_convert_to_internal_material(bpy.types.Operator):
+class XRAY_OT_convert_to_internal_material(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_to_internal'
     bl_label = 'Convert to Internal'
     bl_description = ''
@@ -151,7 +151,7 @@ shader_keys = {
 }
 
 
-class XRAY_OT_xray_convert_to_cycles_material(bpy.types.Operator):
+class XRAY_OT_convert_to_cycles_material(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_to_cycles'
     bl_label = 'Convert to Cycles'
     bl_description = ''
@@ -264,9 +264,9 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
 
 
 classes = (
-    XRAY_OT_xray_convert_to_cycles_material,
-    XRAY_OT_xray_convert_to_internal_material,
-    XRAY_OT_xray_switch_render
+    XRAY_OT_convert_to_cycles_material,
+    XRAY_OT_convert_to_internal_material,
+    XRAY_OT_switch_render
 )
 
 

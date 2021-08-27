@@ -12,7 +12,7 @@ _list_op_props = {
 }
 
 
-class _ListOp(bpy.types.Operator):
+class XRAY_OT_list(bpy.types.Operator):
     bl_idname = 'io_scene_xray.list'
     bl_label = ''
 
@@ -21,7 +21,7 @@ class _ListOp(bpy.types.Operator):
             exec('{0} = _list_op_props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
-        data = getattr(context, _ListOp.bl_idname + '.data')
+        data = getattr(context, XRAY_OT_list.bl_idname + '.data')
         collection = getattr(data, self.collection)
         index = getattr(data, self.index)
         if self.operation == 'add':
@@ -45,12 +45,12 @@ def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_fu
         if (enabled is not None) and (not enabled):
             lay = lay.row(align=True)
             lay.enabled = False
-        operator = lay.operator(_ListOp.bl_idname, icon=icon)
+        operator = lay.operator(XRAY_OT_list.bl_idname, icon=icon)
         operator.operation = operation
         operator.collection = propname
         operator.index = active_propname
 
-    layout.context_pointer_set(_ListOp.bl_idname + '.data', dataptr)
+    layout.context_pointer_set(XRAY_OT_list.bl_idname + '.data', dataptr)
     operator('add', version_utils.get_icon('ZOOMIN'))
     collection = getattr(dataptr, propname)
     index = getattr(dataptr, active_propname)
@@ -62,9 +62,9 @@ def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_fu
 
 
 def register():
-    version_utils.assign_props([(_list_op_props, _ListOp), ])
-    bpy.utils.register_class(_ListOp)
+    version_utils.assign_props([(_list_op_props, XRAY_OT_list), ])
+    bpy.utils.register_class(XRAY_OT_list)
 
 
 def unregister():
-    bpy.utils.unregister_class(_ListOp)
+    bpy.utils.unregister_class(XRAY_OT_list)

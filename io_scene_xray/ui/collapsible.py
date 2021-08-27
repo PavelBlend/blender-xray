@@ -10,7 +10,7 @@ _collaps_op_props = {
 }
 
 
-class _CollapsOp(bpy.types.Operator):
+class XRAY_OT_collaps(bpy.types.Operator):
     bl_idname = 'io_scene_xray.collaps'
     bl_label = ''
     bl_description = 'Show / hide UI block'
@@ -30,7 +30,7 @@ class _CollapsOp(bpy.types.Operator):
         cls._DATA[key] = value
 
     def execute(self, context):
-        _CollapsOp._DATA[self.key] = not _CollapsOp.get(self.key)
+        XRAY_OT_collaps._DATA[self.key] = not XRAY_OT_collaps.get(self.key)
         return {'FINISHED'}
 
 
@@ -42,7 +42,7 @@ def draw(layout, key, text=None, enabled=None, icon=None, style=None):
         row_operator.enabled = False
     else:
         row_operator = row
-    isshow = _CollapsOp.get(key)
+    isshow = XRAY_OT_collaps.get(key)
     if icon is None:
         icon = 'TRIA_DOWN' if isshow else 'TRIA_RIGHT'
     kwargs = {}
@@ -61,19 +61,19 @@ def draw(layout, key, text=None, enabled=None, icon=None, style=None):
             bxr.alignment = 'LEFT'
             bxr.label(text='')
             box = bxr.column()
-    oper = row_operator.operator(_CollapsOp.bl_idname, icon=icon, emboss=style != 'tree', **kwargs)
+    oper = row_operator.operator(XRAY_OT_collaps.bl_idname, icon=icon, emboss=style != 'tree', **kwargs)
     oper.key = key
     return row, box
 
 
 def is_opened(key):
-    return _CollapsOp.get(key)
+    return XRAY_OT_collaps.get(key)
 
 
 def register():
-    version_utils.assign_props([(_collaps_op_props, _CollapsOp), ])
-    bpy.utils.register_class(_CollapsOp)
+    version_utils.assign_props([(_collaps_op_props, XRAY_OT_collaps), ])
+    bpy.utils.register_class(XRAY_OT_collaps)
 
 
 def unregister():
-    bpy.utils.unregister_class(_CollapsOp)
+    bpy.utils.unregister_class(XRAY_OT_collaps)

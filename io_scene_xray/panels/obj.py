@@ -21,7 +21,7 @@ TRANSLATION_TEXT = 'Translation'
 ROTATION_TEXT = 'Rotation'
 
 
-class PropClipOp(bpy.types.Operator):
+class XRAY_OT_prop_clip(bpy.types.Operator):
     bl_idname = 'io_scene_xray.propclip'
     bl_label = ''
 
@@ -53,8 +53,8 @@ class PropClipOp(bpy.types.Operator):
             props.path = path
 
 
-class XRayMotionList(bpy.types.UIList):
-    bl_idname = 'XRAY_UL_MotionList'
+class XRAY_UL_motion_list(bpy.types.UIList):
+    bl_idname = 'XRAY_UL_motion_list'
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         data = context.object.xray
@@ -72,7 +72,7 @@ class XRayMotionList(bpy.types.UIList):
             row.prop(motion, 'export_name', icon_only=True)
 
 
-class XRayAddAllActions(bpy.types.Operator):
+class XRAY_OT_add_all_actions(bpy.types.Operator):
     bl_idname = 'io_scene_xray.add_all_actions'
     bl_label = 'Add All Actions'
     bl_description = 'Add All Actions'
@@ -86,7 +86,7 @@ class XRayAddAllActions(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRayRemoveAllActions(bpy.types.Operator):
+class XRAY_OT_remove_all_actions(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_all_actions'
     bl_label = 'Remove All Actions'
     bl_description = 'Remove All Actions'
@@ -107,8 +107,8 @@ class XRayRemoveAllActions(bpy.types.Operator):
 
 
 def draw_motion_list_custom_elements(layout):
-    layout.operator(XRayAddAllActions.bl_idname, text='', icon='ACTION')
-    layout.operator(XRayRemoveAllActions.bl_idname, text='', icon='X')
+    layout.operator(XRAY_OT_add_all_actions.bl_idname, text='', icon='ACTION')
+    layout.operator(XRAY_OT_remove_all_actions.bl_idname, text='', icon='X')
 
 
 def details_draw_function(self, context):
@@ -211,7 +211,7 @@ def details_draw_function(self, context):
         box.operator(details.ops.XRAY_OT_pack_details_images.bl_idname)
 
 
-class XRAY_PT_ObjectPanel(ui.base.XRayPanel):
+class XRAY_PT_object(ui.base.XRayPanel):
     bl_context = 'object'
     bl_label = ui.base.build_label('Object')
 
@@ -272,10 +272,10 @@ class XRAY_PT_ObjectPanel(ui.base.XRayPanel):
                     enabled=data.userdata != '',
                     icon='VIEWZOOM'
                 )
-                PropClipOp.drawall(row, 'object.xray.userdata', data.userdata)
+                XRAY_OT_prop_clip.drawall(row, 'object.xray.userdata', data.userdata)
                 if box:
                     if not data.userdata:
-                        ui.collapsible._CollapsOp.set_value(
+                        ui.collapsible.XRAY_OT_collaps.set_value(
                             'object:userdata',
                             False
                         )
@@ -299,7 +299,7 @@ class XRAY_PT_ObjectPanel(ui.base.XRayPanel):
                     box.prop_search(data, 'dependency_object', bpy.data, 'objects')
                     row = box.row()
                     row.template_list(
-                        'XRAY_UL_MotionList', 'name',
+                        'XRAY_UL_motion_list', 'name',
                         data, 'motions_collection',
                         data, 'motions_collection_index'
                     )
@@ -442,16 +442,16 @@ class XRAY_PT_ObjectPanel(ui.base.XRayPanel):
 
 
 classes = (
-    PropClipOp,
-    XRayMotionList,
-    XRayAddAllActions,
-    XRayRemoveAllActions,
-    XRAY_PT_ObjectPanel
+    XRAY_OT_prop_clip,
+    XRAY_UL_motion_list,
+    XRAY_OT_add_all_actions,
+    XRAY_OT_remove_all_actions,
+    XRAY_PT_object
 )
 
 
 def register():
-    version_utils.assign_props([(prop_clip_op_props, PropClipOp), ])
+    version_utils.assign_props([(prop_clip_op_props, XRAY_OT_prop_clip), ])
     for clas in classes:
         bpy.utils.register_class(clas)
 

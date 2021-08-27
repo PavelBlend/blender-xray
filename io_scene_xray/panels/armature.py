@@ -8,7 +8,7 @@ from .. import version_utils
 from .. import props
 
 
-class XRAY_PT_ArmaturePanel(ui.base.XRayPanel):
+class XRAY_PT_armature(ui.base.XRayPanel):
     bl_context = 'data'
     bl_label = ui.base.build_label('Skeleton')
 
@@ -73,21 +73,21 @@ class XRAY_PT_ArmaturePanel(ui.base.XRayPanel):
             row.prop(data, 'display_bone_limit_z', toggle=True)
             col = box.column(align=True)
             col.operator(
-                ops.joint_limits.XRAY_OT_ConvertJointLimitsToConstraints.bl_idname,
+                ops.joint_limits.XRAY_OT_convert_limits_to_constraints.bl_idname,
                 icon='CONSTRAINT_BONE'
             )
             col.operator(
-                ops.joint_limits.XRAY_OT_RemoveJointLimitsConstraints.bl_idname,
+                ops.joint_limits.XRAY_OT_remove_limits_constraints.bl_idname,
                 icon='X'
             )
             col.operator(
-                ops.joint_limits.XRAY_OT_ConvertIKLimitsToXRayLimits.bl_idname
+                ops.joint_limits.XRAY_OT_convert_ik_to_xray_limits.bl_idname
             )
             col.operator(
-                ops.joint_limits.XRAY_OT_ConvertXRayLimitsToIKLimits.bl_idname
+                ops.joint_limits.XRAY_OT_convert_xray_to_ik_limits.bl_idname
             )
             col.operator(
-                ops.joint_limits.XRAY_OT_ClearIKLimits.bl_idname
+                ops.joint_limits.XRAY_OT_clear_ik_limits.bl_idname
             )
 
         # fake bones
@@ -99,10 +99,10 @@ class XRAY_PT_ArmaturePanel(ui.base.XRayPanel):
         if box:
             lay = box.column(align=True)
             row = lay.row(align=True)
-            row.operator(ops.fake_bones.XRAY_OT_CreateFakeBones.bl_idname, text='Create', icon='CONSTRAINT_BONE')
-            row.operator(ops.fake_bones.XRAY_OT_DeleteFakeBones.bl_idname, text='Delete', icon='X')
+            row.operator(ops.fake_bones.XRAY_OT_create_fake_bones.bl_idname, text='Create', icon='CONSTRAINT_BONE')
+            row.operator(ops.fake_bones.XRAY_OT_delete_fake_bones.bl_idname, text='Delete', icon='X')
             lay.operator(
-                ops.fake_bones.XRAY_OT_ToggleFakeBonesVisibility.bl_idname,
+                ops.fake_bones.XRAY_OT_toggle_fake_bones_visibility.bl_idname,
                 text='Show/Hide',
                 icon=version_utils.get_icon('VISIBLE_IPO_ON'),
             )
@@ -121,8 +121,8 @@ class XRAY_PT_ArmaturePanel(ui.base.XRayPanel):
 
 
 def register():
-    bpy.utils.register_class(XRAY_PT_ArmaturePanel)
+    bpy.utils.register_class(XRAY_PT_armature)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_PT_ArmaturePanel)
+    bpy.utils.unregister_class(XRAY_PT_armature)

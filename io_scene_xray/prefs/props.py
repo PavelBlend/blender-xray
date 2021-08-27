@@ -333,7 +333,7 @@ change_keymap_props = {
 }
 
 
-class XRAY_OT_AddKeymap(bpy.types.Operator):
+class XRAY_OT_add_keymap(bpy.types.Operator):
     bl_idname = 'io_scene_xray.add_keymap'
     bl_label = 'Add Keymap'
 
@@ -532,7 +532,7 @@ plugin_preferences_props = {
 
 
 classes = (
-    (XRAY_OT_AddKeymap, change_keymap_props),
+    (XRAY_OT_add_keymap, change_keymap_props),
     (XRayKeyMap, key_map_props),
     (XRayPrefsCustomProperties, xray_custom_properties)
 )

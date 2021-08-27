@@ -90,7 +90,7 @@ def find_data(context):
     return objects, meshes, materials, armatures, actions
 
 
-class XRAY_OT_SetCustomToXRayProperties(bpy.types.Operator):
+class XRAY_OT_set_custom_to_xray_props(bpy.types.Operator):
     bl_idname = 'io_scene_xray.set_custom_to_xray_properties'
     bl_label = 'Set Custom to X-Ray'
 
@@ -191,7 +191,7 @@ class XRAY_OT_SetCustomToXRayProperties(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_SetXRayToCustomProperties(bpy.types.Operator):
+class XRAY_OT_set_xray_to_custom_props(bpy.types.Operator):
     bl_idname = 'io_scene_xray.set_xray_to_custom_properties'
     bl_label = 'Set X-Ray to Custom'
 
@@ -283,7 +283,7 @@ class XRAY_OT_SetXRayToCustomProperties(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_RemoveXRayCustomProperties(bpy.types.Operator):
+class XRAY_OT_remove_xray_custom_props(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_xray_custom_props'
     bl_label = 'Remove X-Ray Custom Properties'
 
@@ -313,7 +313,7 @@ class XRAY_OT_RemoveXRayCustomProperties(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_RemoveAllCustomProperties(bpy.types.Operator):
+class XRAY_OT_remove_all_custom_props(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_all_custom_props'
     bl_label = 'Remove All Custom Properties'
 
@@ -341,10 +341,10 @@ class XRAY_OT_RemoveAllCustomProperties(bpy.types.Operator):
 
 
 classes = (
-    XRAY_OT_SetCustomToXRayProperties,
-    XRAY_OT_SetXRayToCustomProperties,
-    XRAY_OT_RemoveXRayCustomProperties,
-    XRAY_OT_RemoveAllCustomProperties
+    XRAY_OT_set_custom_to_xray_props,
+    XRAY_OT_set_xray_to_custom_props,
+    XRAY_OT_remove_xray_custom_props,
+    XRAY_OT_remove_all_custom_props
 )
 
 

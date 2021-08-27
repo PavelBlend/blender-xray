@@ -46,6 +46,8 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
                     shader_node.inputs['Specular'].default_value = scene.xray.shader_specular_value
                 if scene.xray.change_roughness:
                     shader_node.inputs['Roughness'].default_value = scene.xray.shader_roughness_value
+                if not scene.xray.change_materials_alpha:
+                    continue
                 links = shader_node.inputs['Base Color'].links
                 if not len(links):
                     self.report({'WARNING'}, 'Material "{}" has no texture.'.format(mat.name))

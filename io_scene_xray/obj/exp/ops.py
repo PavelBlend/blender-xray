@@ -181,7 +181,7 @@ op_export_single_object_props = {
 }
 
 
-class XRAY_OT_export_single_object(
+class XRAY_OT_export_object_file(
         plugin_props.BaseOperator,
         bpy_extras.io_utils.ExportHelper,
         _WithExportMotions
@@ -298,7 +298,7 @@ class XRAY_OT_export_project(plugin_props.BaseOperator):
 
 classes = (
     (XRAY_OT_export_object, op_export_object_props),
-    (XRAY_OT_export_single_object, op_export_single_object_props),
+    (XRAY_OT_export_object_file, op_export_single_object_props),
     (XRAY_OT_export_project, op_export_project_props)
 )
 

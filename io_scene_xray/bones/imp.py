@@ -9,9 +9,14 @@ from .. import obj
 
 
 @log.with_context(name='bones-partitions')
-def _import_partitions(data, arm_obj, bpy_bones):
+def _import_partitions(import_context, data, arm_obj, bpy_bones):
     packed_reader = xray_io.PackedReader(data)
     partitions_count = packed_reader.int()
+    if not partitions_count:
+        log.warn(
+            'bones file does not have boneparts',
+            file=import_context.filepath
+        )
     current_mode = arm_obj.mode
     bpy.ops.object.mode_set(mode='POSE')
     try:
@@ -121,7 +126,7 @@ def _import_main(data, import_context):
     for chunk_id, chunk_data in chunked_reader:
         if chunk_id == chunks.PARTITIONS1:
             if import_context.import_bone_parts:
-                _import_partitions(chunk_data, arm_obj, bpy_bones)
+                _import_partitions(import_context, chunk_data, arm_obj, bpy_bones)
         else:
             if not import_context.import_bone_properties:
                 continue

@@ -23,8 +23,10 @@ __FAKE_BONE_SUFFIX = '.fake'
 def is_fake_bone_name(bone_name):
     return bone_name.endswith(__FAKE_BONE_SUFFIX)
 
+
 def build_fake_bone_name(bone_name):
     return bone_name + __FAKE_BONE_SUFFIX
+
 
 def is_exportable_bone(bpy_bone):
     return bpy_bone.xray.exportable and not is_fake_bone_name(bpy_bone.name)
@@ -334,6 +336,7 @@ HELPER_OBJECT_NAME_PREFIX = '.xray-helper--'
 def is_helper_object(obj):
     return obj.name.startswith(HELPER_OBJECT_NAME_PREFIX)
 
+
 BAD_VTX_GROUP_NAME = '.xr-bad!'
 
 
@@ -387,6 +390,7 @@ class ObjectSet:
                 callback(obj)
         self._set = _new
 
+
 class ObjectsInitializer:
     def __init__(self, keys):
         self._sets = [(key, ObjectSet()) for key in keys]
@@ -402,6 +406,7 @@ class ObjectsInitializer:
         for key, objset in self._sets:
             things = getattr(collections, key)
             objset.sync(things, init_thing)
+
 
 @contextlib.contextmanager
 def using_mode(mode):

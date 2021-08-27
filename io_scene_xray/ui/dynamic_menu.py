@@ -12,7 +12,7 @@ _dynamic_menu_op_props = {
 }
 
 
-class _DynamicMenuOp(bpy.types.Operator):
+class XRAY_OT_dynamic_menu(bpy.types.Operator):
     bl_idname = 'io_scene_xray.dynmenu'
     bl_label = ''
 
@@ -21,13 +21,13 @@ class _DynamicMenuOp(bpy.types.Operator):
             exec('{0} = _dynamic_menu_op_props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
-        data = getattr(context, _DynamicMenuOp.bl_idname + '.data')
+        data = getattr(context, XRAY_OT_dynamic_menu.bl_idname + '.data')
         setattr(data, self.prop, self.value)
         return {'FINISHED'}
 
 
 def _path_to_prefix(path):
-    return _DynamicMenuOp.bl_idname + '.idx.' + '.'.join(map(str, path))
+    return XRAY_OT_dynamic_menu.bl_idname + '.idx.' + '.'.join(map(str, path))
 
 
 def _detect_current_path(context):
@@ -70,7 +70,7 @@ class DynamicMenu(bpy.types.Menu):
             pfx = _path_to_prefix(path + [i])
             layout.context_pointer_set(pfx, context)
             if isinstance(value, str):
-                oper = layout.operator(_DynamicMenuOp.bl_idname, text=text)
+                oper = layout.operator(XRAY_OT_dynamic_menu.bl_idname, text=text)
                 oper.prop = self.prop_name
                 oper.value = value
             else:
@@ -81,10 +81,10 @@ class DynamicMenu(bpy.types.Menu):
 
     @staticmethod
     def set_layout_context_data(layout, data):
-        layout.context_pointer_set(_DynamicMenuOp.bl_idname + '.data', data)
+        layout.context_pointer_set(XRAY_OT_dynamic_menu.bl_idname + '.data', data)
 
 
-class XRayXrMenuTemplate(DynamicMenu):
+class XRAY_MT_xr_template(DynamicMenu):
     @staticmethod
     def parse(data, fparse):
         def push_dict(dct, split, value):
@@ -133,13 +133,13 @@ class XRayXrMenuTemplate(DynamicMenu):
 
 
 classes = (
-    _DynamicMenuOp,
-    XRayXrMenuTemplate
+    XRAY_OT_dynamic_menu,
+    XRAY_MT_xr_template
 )
 
 
 def register():
-    version_utils.assign_props([(_dynamic_menu_op_props, _DynamicMenuOp), ])
+    version_utils.assign_props([(_dynamic_menu_op_props, XRAY_OT_dynamic_menu), ])
     for operator in classes:
         bpy.utils.register_class(operator)
 

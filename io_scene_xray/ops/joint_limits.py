@@ -28,7 +28,7 @@ def update_limit(self, context):
     constraint.max_z = ik.lim_z_max
 
 
-class XRAY_OT_ConvertJointLimitsToConstraints(bpy.types.Operator):
+class XRAY_OT_convert_limits_to_constraints(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_joint_limits'
     bl_label = 'Convert Limits to Constraints'
     bl_description = 'Convert selected bones joint limits to constraints'
@@ -58,7 +58,7 @@ class XRAY_OT_ConvertJointLimitsToConstraints(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_RemoveJointLimitsConstraints(bpy.types.Operator):
+class XRAY_OT_remove_limits_constraints(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_joint_limits'
     bl_label = 'Remove Limits Constraints'
     bl_description = 'Remove selected bones joint limits constraints'
@@ -74,7 +74,7 @@ class XRAY_OT_RemoveJointLimitsConstraints(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_ConvertIKLimitsToXRayLimits(bpy.types.Operator):
+class XRAY_OT_convert_ik_to_xray_limits(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_ik_to_xray_limits'
     bl_label = 'Convert IK Limits to XRay Limits'
     bl_description = 'Convert selected bones IK limits to XRay joint limits'
@@ -95,7 +95,7 @@ class XRAY_OT_ConvertIKLimitsToXRayLimits(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_ConvertXRayLimitsToIKLimits(bpy.types.Operator):
+class XRAY_OT_convert_xray_to_ik_limits(bpy.types.Operator):
     bl_idname = 'io_scene_xray.convert_xray_to_ik_limits'
     bl_label = 'Convert XRay Limits to IK Limits'
     bl_description = 'Convert selected bones XRay joint limits to IK limits'
@@ -119,7 +119,7 @@ class XRAY_OT_ConvertXRayLimitsToIKLimits(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_ClearIKLimits(bpy.types.Operator):
+class XRAY_OT_clear_ik_limits(bpy.types.Operator):
     bl_idname = 'io_scene_xray.clear_ik_limits'
     bl_label = 'Clear IK Limits'
     bl_description = 'Clear selected bones IK limits'
@@ -144,11 +144,11 @@ class XRAY_OT_ClearIKLimits(bpy.types.Operator):
 
 
 classes = (
-    XRAY_OT_ConvertJointLimitsToConstraints,
-    XRAY_OT_RemoveJointLimitsConstraints,
-    XRAY_OT_ConvertIKLimitsToXRayLimits,
-    XRAY_OT_ConvertXRayLimitsToIKLimits,
-    XRAY_OT_ClearIKLimits
+    XRAY_OT_convert_limits_to_constraints,
+    XRAY_OT_remove_limits_constraints,
+    XRAY_OT_convert_ik_to_xray_limits,
+    XRAY_OT_convert_xray_to_ik_limits,
+    XRAY_OT_clear_ik_limits
 )
 
 

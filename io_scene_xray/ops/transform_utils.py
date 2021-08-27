@@ -37,8 +37,8 @@ def write_buffer_data():
     bpy.context.window_manager.clipboard = buffer_text
 
 
-class XRAY_OT_CopyObjectTranforms(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.copy_object_transforms'
+class XRAY_OT_copy_xray_tranforms(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.copy_xray_transforms'
     bl_label = 'Copy X-Ray Transforms'
 
     def execute(self, context):
@@ -49,8 +49,8 @@ class XRAY_OT_CopyObjectTranforms(bpy.types.Operator):
             return {'FINISHED'}
 
 
-class XRAY_OT_UpdateXRayObjectTranforms(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.update_xray_object_transforms'
+class XRAY_OT_update_xray_tranforms(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.update_xray_transforms'
     bl_label = 'Update X-Ray Transforms'
     bl_options = {'UNDO'}
 
@@ -66,8 +66,8 @@ class XRAY_OT_UpdateXRayObjectTranforms(bpy.types.Operator):
             return {'FINISHED'}
 
 
-class XRAY_OT_UpdateBlenderObjectTranforms(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.update_blender_object_transforms'
+class XRAY_OT_update_blender_tranforms(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.update_blender_transforms'
     bl_label = 'Update Blender Transforms'
     bl_options = {'UNDO'}
 
@@ -100,9 +100,9 @@ class XRAY_OT_UpdateBlenderObjectTranforms(bpy.types.Operator):
 
 
 classes = (
-    XRAY_OT_CopyObjectTranforms,
-    XRAY_OT_UpdateXRayObjectTranforms,
-    XRAY_OT_UpdateBlenderObjectTranforms
+    XRAY_OT_copy_xray_tranforms,
+    XRAY_OT_update_xray_tranforms,
+    XRAY_OT_update_blender_tranforms
 )
 
 

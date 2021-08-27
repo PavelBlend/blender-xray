@@ -60,7 +60,7 @@ class AbstractHelper:
 
     def draw(self, layout, context):
         if self.is_active(context):
-            layout.operator(EditCancel.bl_idname, icon='X')
+            layout.operator(XRAY_OT_edit_cancel.bl_idname, icon='X')
 
     def is_active(self, context=bpy.context):
         obj = context.active_object
@@ -114,7 +114,7 @@ def get_object_helper(context):
     return helper
 
 
-class EditCancel(bpy.types.Operator):
+class XRAY_OT_edit_cancel(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_cancel'
     bl_label = 'Cancel'
     bl_description = 'Cancel editing and remove a helper object'
@@ -137,8 +137,8 @@ def _get_active_helper(context):
 
 
 def register():
-    bpy.utils.register_class(EditCancel)
+    bpy.utils.register_class(XRAY_OT_edit_cancel)
 
 
 def unregister():
-    bpy.utils.unregister_class(EditCancel)
+    bpy.utils.unregister_class(XRAY_OT_edit_cancel)

@@ -5,7 +5,7 @@ import bpy
 from .. import version_utils
 
 
-class XRAY_OT_VerifyUV(bpy.types.Operator):
+class XRAY_OT_verify_uv(bpy.types.Operator):
     bl_idname = 'io_scene_xray.verify_uv'
     bl_label = 'Verify UV'
     bl_description = 'Find UV-maps errors in selected objects'
@@ -64,8 +64,8 @@ class XRAY_OT_VerifyUV(bpy.types.Operator):
 
 
 def register():
-    bpy.utils.register_class(XRAY_OT_VerifyUV)
+    bpy.utils.register_class(XRAY_OT_verify_uv)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_OT_VerifyUV)
+    bpy.utils.unregister_class(XRAY_OT_verify_uv)

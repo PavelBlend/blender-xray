@@ -6,7 +6,7 @@ from . import base
 from .. import edit_helpers
 
 
-class XRAY_PT_EditHelperObjectPanel(base.XRayPanel):
+class XRAY_PT_edit_helper_object(base.XRayPanel):
     bl_context = 'object'
     bl_label = base.build_label('Edit Helper')
 
@@ -20,8 +20,8 @@ class XRAY_PT_EditHelperObjectPanel(base.XRayPanel):
 
 
 def register():
-    bpy.utils.register_class(XRAY_PT_EditHelperObjectPanel)
+    bpy.utils.register_class(XRAY_PT_edit_helper_object)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_PT_EditHelperObjectPanel)
+    bpy.utils.unregister_class(XRAY_PT_edit_helper_object)

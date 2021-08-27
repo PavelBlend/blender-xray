@@ -34,7 +34,7 @@ class BaseSelectMotionsOp(bpy.types.Operator):
         pass
 
 
-class _SelectMotionsOp(BaseSelectMotionsOp):
+class XRAY_OT_select_motions(BaseSelectMotionsOp):
     bl_idname = 'io_scene_xray.motions_select'
     bl_label = 'Select'
     bl_description = 'Select all displayed importing motions'
@@ -43,7 +43,7 @@ class _SelectMotionsOp(BaseSelectMotionsOp):
         motion.flag = True
 
 
-class _DeselectMotionsOp(BaseSelectMotionsOp):
+class XRAY_OT_deselect_motions(BaseSelectMotionsOp):
     bl_idname = 'io_scene_xray.motions_deselect'
     bl_label = 'Deselect'
     bl_description = 'Deselect all displayed importing motions'
@@ -52,7 +52,7 @@ class _DeselectMotionsOp(BaseSelectMotionsOp):
         motion.flag = False
 
 
-class _DeselectDuplicatedMotionsOp(BaseSelectMotionsOp):
+class XRAY_OT_deselect_duplicated_motions(BaseSelectMotionsOp):
     bl_idname = 'io_scene_xray.motions_deselect_duplicated'
     bl_label = 'Dups'
     bl_description = 'Deselect displayed importing motions which already exist in the scene'
@@ -62,7 +62,7 @@ class _DeselectDuplicatedMotionsOp(BaseSelectMotionsOp):
             motion.flag = False
 
 
-class XRAY_UL_MotionsList(bpy.types.UIList):
+class XRAY_UL_motions_list(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         BaseSelectMotionsOp.set_motions_list(self)  # A dirty hack
 
@@ -76,10 +76,10 @@ class XRAY_UL_MotionsList(bpy.types.UIList):
 
 
 classes = (
-    _SelectMotionsOp,
-    _DeselectMotionsOp,
-    _DeselectDuplicatedMotionsOp,
-    XRAY_UL_MotionsList
+    XRAY_OT_select_motions,
+    XRAY_OT_deselect_motions,
+    XRAY_OT_deselect_duplicated_motions,
+    XRAY_UL_motions_list
 )
 
 

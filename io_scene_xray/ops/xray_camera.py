@@ -11,7 +11,7 @@ from .. import version_utils
 SOC_HUD_FOV = 30.5
 
 
-class XRAY_OT_AddCamera(bpy.types.Operator):
+class XRAY_OT_add_camera(bpy.types.Operator):
     bl_idname = 'io_scene_xray.add_camera'
     bl_label = 'Add X-Ray Camera'
 
@@ -45,8 +45,8 @@ class XRAY_OT_AddCamera(bpy.types.Operator):
 
 
 def register():
-    bpy.utils.register_class(XRAY_OT_AddCamera)
+    bpy.utils.register_class(XRAY_OT_add_camera)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_OT_AddCamera)
+    bpy.utils.unregister_class(XRAY_OT_add_camera)

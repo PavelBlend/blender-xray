@@ -7,7 +7,7 @@ from .. import obj
 from .. import version_utils
 
 
-class XRAY_PT_ScenePanel(ui.base.XRayPanel):
+class XRAY_PT_scene(ui.base.XRayPanel):
     bl_context = 'scene'
     bl_label = ui.base.build_label('Project')
 
@@ -81,8 +81,8 @@ class XRAY_PT_ScenePanel(ui.base.XRayPanel):
 
 
 def register():
-    bpy.utils.register_class(XRAY_PT_ScenePanel)
+    bpy.utils.register_class(XRAY_PT_scene)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_PT_ScenePanel)
+    bpy.utils.unregister_class(XRAY_PT_scene)

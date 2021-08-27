@@ -106,15 +106,15 @@ class XRAY_OT_import_skls(plugin_props.BaseOperator, bpy_extras.io_utils.ImportH
             col = box.column(align=True)
             ui.motion_list.BaseSelectMotionsOp.set_motions_list(None)
             col.template_list(
-                'XRAY_UL_MotionsList', '',
+                'XRAY_UL_motions_list', '',
                 self, 'motions',
                 context.scene.xray.import_skls, 'motion_index',
             )
             row = col.row(align=True)
             ui.motion_list.BaseSelectMotionsOp.set_data(self)
-            row.operator(ui.motion_list._SelectMotionsOp.bl_idname, icon='CHECKBOX_HLT')
-            row.operator(ui.motion_list._DeselectMotionsOp.bl_idname, icon='CHECKBOX_DEHLT')
-            row.operator(ui.motion_list._DeselectDuplicatedMotionsOp.bl_idname, icon='COPY_ID')
+            row.operator(ui.motion_list.XRAY_OT_select_motions.bl_idname, icon='CHECKBOX_HLT')
+            row.operator(ui.motion_list.XRAY_OT_deselect_motions.bl_idname, icon='CHECKBOX_DEHLT')
+            row.operator(ui.motion_list.XRAY_OT_deselect_duplicated_motions.bl_idname, icon='COPY_ID')
 
     def _get_motions(self):
         items = self.motions

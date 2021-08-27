@@ -8,7 +8,7 @@ from .. import skl
 from .. import ops
 
 
-class XRAY_PT_ActionPanel(ui.base.XRayPanel):
+class XRAY_PT_action(ui.base.XRayPanel):
     bl_category = 'F-Curve'
     bl_space_type = 'DOPESHEET_EDITOR' if bpy.app.version >= (2, 78, 0) else 'GRAPH_EDITOR'
     bl_region_type = 'UI'
@@ -86,13 +86,13 @@ class XRAY_PT_ActionPanel(ui.base.XRayPanel):
         layout.operator(skl.ops.XRAY_OT_export_skl.bl_idname, icon='EXPORT')
         layout.label(text='Settings:')
         row = layout.row(align=True)
-        row.operator(ops.action_utils.XRAY_OT_CopyActionSettings.bl_idname)
-        row.operator(ops.action_utils.XRAY_OT_PasteActionSettings.bl_idname)
+        row.operator(ops.action_utils.XRAY_OT_copy_action_settings.bl_idname)
+        row.operator(ops.action_utils.XRAY_OT_paste_action_settings.bl_idname)
 
 
 def register():
-    bpy.utils.register_class(XRAY_PT_ActionPanel)
+    bpy.utils.register_class(XRAY_PT_action)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_PT_ActionPanel)
+    bpy.utils.unregister_class(XRAY_PT_action)

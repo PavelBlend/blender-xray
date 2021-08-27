@@ -8,7 +8,7 @@ from . import skl
 from . import version_utils
 
 
-class UI_UL_SklsList_item(bpy.types.UIList):
+class XRAY_UL_skls_list_item(bpy.types.UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         row = layout.row()
@@ -19,7 +19,7 @@ class UI_UL_SklsList_item(bpy.types.UIList):
         row.label(text=item.name)
 
 
-class OpCloseSklsFile(bpy.types.Operator):
+class XRAY_OT_close_skls_file(bpy.types.Operator):
     'Close *.skls animations list'
     bl_idname = 'xray.close_skls_file'
     bl_label = 'Close Skls File'
@@ -55,11 +55,11 @@ def init_skls_browser(self, context, filepath):
     context.window.cursor_set('WAIT')
     sk = context.object.xray.skls_browser
     sk.animations.clear()
-    OpBrowseSklsFile.skls_file = OpBrowseSklsFile.SklsFile(file_path=filepath)
+    XRAY_OT_browse_skls_file.skls_file = XRAY_OT_browse_skls_file.SklsFile(file_path=filepath)
     if getattr(self, 'report', None):
-        self.report({'INFO'}, 'Done: {} animation(s)'.format(len(OpBrowseSklsFile.skls_file.animations)))
+        self.report({'INFO'}, 'Done: {} animation(s)'.format(len(XRAY_OT_browse_skls_file.skls_file.animations)))
     # fill list with animations names
-    for name, offset_frames in OpBrowseSklsFile.skls_file.animations.items():
+    for name, offset_frames in XRAY_OT_browse_skls_file.skls_file.animations.items():
         newitem = sk.animations.add()
         newitem.name = name    # animation name
         newitem.frames = offset_frames[1]    # frames count
@@ -72,7 +72,7 @@ op_browse_skls_file_props = {
 }
 
 
-class OpBrowseSklsFile(bpy.types.Operator):
+class XRAY_OT_browse_skls_file(bpy.types.Operator):
     'Shows file open dialog, reads .skls file to buffer, clears & populates animations list'
     bl_idname = 'xray.browse_skls_file'
     bl_label = 'Open .skls file'
@@ -135,7 +135,7 @@ def skls_animations_index_changed(self, context):
     'Selected animation changed in .skls list'
 
     # get new animation name
-    if not OpBrowseSklsFile.skls_file:
+    if not XRAY_OT_browse_skls_file.skls_file:
         # .skls file not loaded
         return
     sk = context.object.xray.skls_browser
@@ -174,7 +174,7 @@ def skls_animations_index_changed(self, context):
         # animation not imported yet # import & create animation to bpy.data.actions
         context.window.cursor_set('WAIT')
         # import animation
-        OpBrowseSklsFile.skls_file.pr.set_offset(OpBrowseSklsFile.skls_file.animations[animation_name][0])
+        XRAY_OT_browse_skls_file.skls_file.pr.set_offset(XRAY_OT_browse_skls_file.skls_file.animations[animation_name][0])
         # bpy_armature = context.armature
         bonesmap = {b.name.lower(): b for b in ob.data.bones}    # used to bone's reference detection
         reported = set()    # bones names that has problems while import
@@ -182,8 +182,8 @@ def skls_animations_index_changed(self, context):
         import_context.bpy_arm_obj=ob
         import_context.motions_filter=xray_motions.MOTIONS_FILTER_ALL
         import_context.use_motion_prefix_name=False
-        import_context.filename=OpBrowseSklsFile.skls_file.file_path
-        xray_motions.import_motion(OpBrowseSklsFile.skls_file.pr, import_context, bonesmap, reported)
+        import_context.filename=XRAY_OT_browse_skls_file.skls_file.file_path
+        xray_motions.import_motion(XRAY_OT_browse_skls_file.skls_file.pr, import_context, bonesmap, reported)
         sk.animations_prev_name = animation_name
         context.window.cursor_set('DEFAULT')
         # try to find DopeSheet editor & set action to play
@@ -242,11 +242,11 @@ class XRayObjectSklsBrowserProperties(bpy.types.PropertyGroup):
 
 
 classes = (
-    (UI_UL_SklsList_item, None),
+    (XRAY_UL_skls_list_item, None),
     (XRaySklsAnimationProperties, xray_skls_animation_properties_props),
     (XRayObjectSklsBrowserProperties, xray_object_skls_browser_properties_props),
-    (OpBrowseSklsFile, op_browse_skls_file_props),
-    (OpCloseSklsFile, None)
+    (XRAY_OT_browse_skls_file, op_browse_skls_file_props),
+    (XRAY_OT_close_skls_file, None)
 )
 
 

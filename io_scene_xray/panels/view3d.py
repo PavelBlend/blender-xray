@@ -58,16 +58,16 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
         col = layout.column(align=True)
         col.active = active
         col.operator(
-            operator=skls_browser.OpBrowseSklsFile.bl_idname,
+            operator=skls_browser.XRAY_OT_browse_skls_file.bl_idname,
             text='Open Skls File'
         )
         if not obj:
             return
         if hasattr(obj.xray, 'skls_browser'):
             if len(obj.xray.skls_browser.animations):
-                layout.operator(skls_browser.OpCloseSklsFile.bl_idname)
+                layout.operator(skls_browser.XRAY_OT_close_skls_file.bl_idname)
             layout.template_list(
-                listtype_name='UI_UL_SklsList_item',
+                listtype_name='XRAY_UL_skls_list_item',
                 list_id='compact',
                 dataptr=obj.xray.skls_browser,
                 propname='animations',
@@ -77,7 +77,7 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
             )
 
 
-class XRAY_PT_VerifyToolsPanel(bpy.types.Panel):
+class XRAY_PT_verify_tools(bpy.types.Panel):
     bl_label = 'Verify'
     bl_space_type = 'VIEW_3D'
     bl_category = CATEGORY
@@ -95,12 +95,12 @@ class XRAY_PT_VerifyToolsPanel(bpy.types.Panel):
         data = context.scene.xray
         layout = self.layout
         layout.operator(
-            ops.verify_uv.XRAY_OT_VerifyUV.bl_idname,
+            ops.verify_uv.XRAY_OT_verify_uv.bl_idname,
             icon='GROUP_UVS'
         )
 
 
-class XRAY_PT_TransformsPanel(bpy.types.Panel):
+class XRAY_PT_transforms(bpy.types.Panel):
     bl_label = 'Transforms'
     bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -124,12 +124,12 @@ class XRAY_PT_TransformsPanel(bpy.types.Panel):
         column.prop(data, 'position')
         column.prop(data, 'orientation')
         column = lay.column(align=True)
-        column.operator(ops.transform_utils.XRAY_OT_UpdateBlenderObjectTranforms.bl_idname)
-        column.operator(ops.transform_utils.XRAY_OT_UpdateXRayObjectTranforms.bl_idname)
-        column.operator(ops.transform_utils.XRAY_OT_CopyObjectTranforms.bl_idname)
+        column.operator(ops.transform_utils.XRAY_OT_update_blender_tranforms.bl_idname)
+        column.operator(ops.transform_utils.XRAY_OT_update_xray_tranforms.bl_idname)
+        column.operator(ops.transform_utils.XRAY_OT_copy_xray_tranforms.bl_idname)
 
 
-class XRAY_PT_AddPanel(bpy.types.Panel):
+class XRAY_PT_add(bpy.types.Panel):
     bl_label = 'Add'
     bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -145,10 +145,10 @@ class XRAY_PT_AddPanel(bpy.types.Panel):
 
     def draw(self, context):
         lay = self.layout
-        lay.operator(ops.xray_camera.XRAY_OT_AddCamera.bl_idname)
+        lay.operator(ops.xray_camera.XRAY_OT_add_camera.bl_idname)
 
 
-class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
+class XRAY_PT_batch_tools(bpy.types.Panel):
     bl_label = 'Batch Tools'
     bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -174,7 +174,7 @@ class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
         column.prop(data, 'materials_colorize_random_seed', text='Seed')
         column.prop(data, 'materials_colorize_color_power', text='Power', slider=True)
 
-        layout.operator(ops.action_utils.XRAY_OT_ChangeActionBakeSettings.bl_idname)
+        layout.operator(ops.action_utils.XRAY_OT_change_action_bake_settings.bl_idname)
 
         is_cycles = context.scene.render.engine == 'CYCLES'
         is_internal = context.scene.render.engine == 'BLENDER_RENDER'
@@ -244,19 +244,19 @@ class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
             column = box.column(align=True)
             if not version_utils.IS_28:
                 column.operator(
-                    ops.material.XRAY_OT_xray_convert_to_cycles_material.bl_idname
+                    ops.material.XRAY_OT_convert_to_cycles_material.bl_idname
                 )
                 col = column.column(align=True)
                 col.active = is_cycles
                 col.operator(
-                    ops.material.XRAY_OT_xray_convert_to_internal_material.bl_idname
+                    ops.material.XRAY_OT_convert_to_internal_material.bl_idname
                 )
                 if is_cycles:
                     text = 'Switch Render (Internal)'
                 elif is_internal:
                     text = 'Switch Render (Cycles)'
                 column.operator(
-                    ops.material.XRAY_OT_xray_switch_render.bl_idname,
+                    ops.material.XRAY_OT_switch_render.bl_idname,
                     text=text
                 )
             column.operator(
@@ -264,7 +264,7 @@ class XRAY_PT_BatchToolsPanel(bpy.types.Panel):
             )
 
 
-class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
+class XRAY_PT_custom_props(bpy.types.Panel):
     bl_label = 'Custom Properties'
     bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -289,25 +289,25 @@ class XRAY_PT_CustomPropertiesUtilsPanel(bpy.types.Panel):
         split.prop(scn, 'custom_properties_edit_mode', text='')
         lay.label(text='Set Custom Properties:')
         lay.operator(
-            ops.custom_props_utils.XRAY_OT_SetXRayToCustomProperties.bl_idname,
+            ops.custom_props_utils.XRAY_OT_set_xray_to_custom_props.bl_idname,
             text='X-Ray to Custom'
         )
         lay.operator(
-            ops.custom_props_utils.XRAY_OT_SetCustomToXRayProperties.bl_idname,
+            ops.custom_props_utils.XRAY_OT_set_custom_to_xray_props.bl_idname,
             text='Custom to X-Ray'
         )
         lay.label(text='Remove Custom Properties:')
         lay.operator(
-            ops.custom_props_utils.XRAY_OT_RemoveXRayCustomProperties.bl_idname,
+            ops.custom_props_utils.XRAY_OT_remove_xray_custom_props.bl_idname,
             text='X-Ray'
         )
         lay.operator(
-            ops.custom_props_utils.XRAY_OT_RemoveAllCustomProperties.bl_idname,
+            ops.custom_props_utils.XRAY_OT_remove_all_custom_props.bl_idname,
             text='All'
         )
 
 
-class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
+class XRAY_PT_import_operators(bpy.types.Panel):
     bl_label = 'Import'
     bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -363,7 +363,7 @@ class XRAY_PT_ImportPluginsPanel(bpy.types.Panel):
             col.operator(err.ops.XRAY_OT_import_err.bl_idname, text='Err')
 
 
-class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
+class XRAY_PT_export_operators(bpy.types.Panel):
     bl_label = 'Export'
     bl_category = CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -421,13 +421,13 @@ class XRAY_PT_ExportPluginsPanel(bpy.types.Panel):
 
 classes = (
     XRAY_PT_skls_animations,
-    XRAY_PT_TransformsPanel,
-    XRAY_PT_AddPanel,
-    XRAY_PT_VerifyToolsPanel,
-    XRAY_PT_BatchToolsPanel,
-    XRAY_PT_CustomPropertiesUtilsPanel,
-    XRAY_PT_ImportPluginsPanel,
-    XRAY_PT_ExportPluginsPanel
+    XRAY_PT_transforms,
+    XRAY_PT_add,
+    XRAY_PT_verify_tools,
+    XRAY_PT_batch_tools,
+    XRAY_PT_custom_props,
+    XRAY_PT_import_operators,
+    XRAY_PT_export_operators
     
 )
 

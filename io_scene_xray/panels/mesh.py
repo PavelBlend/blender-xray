@@ -7,7 +7,7 @@ from .. import version_utils
 from .. import utils
 
 
-class XRAY_PT_MeshPanel(ui.base.XRayPanel):
+class XRAY_PT_mesh(ui.base.XRayPanel):
     bl_context = 'data'
     bl_label = ui.base.build_label('Mesh')
 
@@ -46,8 +46,8 @@ class XRAY_PT_MeshPanel(ui.base.XRayPanel):
 
 
 def register():
-    bpy.utils.register_class(XRAY_PT_MeshPanel)
+    bpy.utils.register_class(XRAY_PT_mesh)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_PT_MeshPanel)
+    bpy.utils.unregister_class(XRAY_PT_mesh)

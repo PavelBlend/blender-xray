@@ -42,7 +42,7 @@ for axis in ('x', 'y', 'z'):
     ))
 
 
-class XRAY_PT_BonePanel(ui.base.XRayPanel):
+class XRAY_PT_bone(ui.base.XRayPanel):
     bl_context = 'bone'
     bl_label = ui.base.build_label('Bone')
 
@@ -152,8 +152,8 @@ class XRAY_PT_BonePanel(ui.base.XRayPanel):
 
 
 def register():
-    bpy.utils.register_class(XRAY_PT_BonePanel)
+    bpy.utils.register_class(XRAY_PT_bone)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_PT_BonePanel)
+    bpy.utils.unregister_class(XRAY_PT_bone)

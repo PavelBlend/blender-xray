@@ -6,7 +6,7 @@ from . import props
 from .. import version_utils
 
 
-class XRAY_OT_ResetPreferencesSettings(bpy.types.Operator):
+class XRAY_OT_reset_prefs_settings(bpy.types.Operator):
     bl_idname = 'io_scene_xray.reset_preferences_settings'
     bl_label = 'Reset All Settings'
 
@@ -29,7 +29,7 @@ _explicit_path_op_props = {
 }
 
 
-class _ExplicitPathOp(bpy.types.Operator):
+class XRAY_OT_explicit_path(bpy.types.Operator):
     bl_idname = 'io_scene_xray.explicit_path'
     bl_label = 'Make Explicit'
     bl_description = 'Make this path explicit using the automatically calculated value'
@@ -48,14 +48,14 @@ class _ExplicitPathOp(bpy.types.Operator):
 
 
 classes = (
-    _ExplicitPathOp,
-    XRAY_OT_ResetPreferencesSettings
+    XRAY_OT_explicit_path,
+    XRAY_OT_reset_prefs_settings
 )
 
 
 def register():
     version_utils.assign_props([
-        (_explicit_path_op_props, _ExplicitPathOp),
+        (_explicit_path_op_props, XRAY_OT_explicit_path),
     ])
     for clas in classes:
         bpy.utils.register_class(clas)
