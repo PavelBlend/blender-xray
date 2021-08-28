@@ -1,4 +1,5 @@
 # standart modules
+import math
 import platform
 import getpass
 import time
@@ -102,6 +103,104 @@ def _check_bone_names(armature_object):
         )
 
 
+def merge_meshes(mesh_objects):
+    merged_mesh = bpy.data.meshes.new('merged_meshes')
+    merged_object = bpy.data.objects.new('merged_meshes', merged_mesh)
+    verts = []
+    faces = []
+    uvs = []
+    sharp_edges = []
+    faces_smooth = []
+    materials = []
+    vertex_groups = []
+    vertex_group_indices = []
+    vertex_group_names = {}
+    used_vertex_groups = set()
+    vert_index_offset = 0
+    edge_index_offset = 0
+    material_index_offset = 0
+    group_index_offset = 0
+    for obj in mesh_objects:
+        mesh = obj.data
+        for material in mesh.materials:
+            merged_mesh.materials.append(material)
+        for group_index, group in enumerate(obj.vertex_groups):
+            index = group_index + group_index_offset
+            vertex_group_indices.append(index)
+            vertex_group_names[index] = group.name
+        for vertex in mesh.vertices:
+            verts.append(tuple(vertex.co))
+            groups = {}
+            for group in vertex.groups:
+                index = group.group + group_index_offset
+                groups[index] = group.weight
+                used_vertex_groups.add(index)
+            vertex_groups.append(groups)
+        for polygon in mesh.polygons:
+            materials.append(polygon.material_index + material_index_offset)
+            faces_smooth.append(polygon.use_smooth)
+            vert_indices = []
+            for vertex_index in polygon.vertices:
+                vert_indices.append(vert_index_offset + vertex_index)
+            use_sharp = []
+            for loop_index in polygon.loop_indices:
+                loop = mesh.loops[loop_index]
+                edge = mesh.edges[loop.edge_index]
+                use_sharp.append(edge.use_edge_sharp)
+            sharp_edges.append(use_sharp)
+            faces.append(vert_indices)
+        uv_layers = mesh.uv_layers
+        if len(uv_layers) > 1:
+            raise utils.AppError(
+                'Object "{}" has more than one UV-map'.format(obj.name)
+            )
+        uv_layer = uv_layers[0]
+        for uv_data in uv_layer.data:
+            uvs.extend((uv_data.uv[0], uv_data.uv[1]))
+        verts_count = len(mesh.vertices)
+        vert_index_offset += verts_count
+        materials_count = len(mesh.materials)
+        material_index_offset += materials_count
+        groups_count = len(obj.vertex_groups)
+        group_index_offset += groups_count
+    merged_mesh.from_pydata(verts, (), faces)
+    merged_mesh.polygons.foreach_set('material_index', materials)
+    merged_mesh.polygons.foreach_set('use_smooth', faces_smooth)
+    if version_utils.IS_28:
+        uv_layer = merged_mesh.uv_layers.new(name='Texture')
+    else:
+        uv_texture = merged_mesh.uv_textures.new(name='Texture')
+        uv_layer = merged_mesh.uv_layers[uv_texture.name]
+    uv_layer.data.foreach_set('uv', uvs)
+    for polygon_index, polygon in enumerate(merged_mesh.polygons):
+        for index, loop_index in enumerate(polygon.loop_indices):
+            loop = merged_mesh.loops[loop_index]
+            edge = merged_mesh.edges[loop.edge_index]
+            edge.use_edge_sharp = sharp_edges[polygon_index][index]
+    remap_vertex_group_indices = {}
+    group_indices = {}
+    group_index = 0
+    for index in vertex_group_indices:
+        if index in used_vertex_groups:
+            name = vertex_group_names[index]
+            group_index_by_name = group_indices.get(name, None)
+            if group_index_by_name is None:
+                group = merged_object.vertex_groups.new(name=name)
+                remap_vertex_group_indices[index] = group_index
+                group_index += 1
+                group_indices[name] = index
+            else:
+                remap_vertex_group_indices[index] = group_index_by_name
+    for vertex_index, vertex_group in enumerate(vertex_groups):
+        for group_index, weight in vertex_group.items():
+            group_index = remap_vertex_group_indices[group_index]
+            group = merged_object.vertex_groups[group_index]
+            group.add((vertex_index, ), weight, 'REPLACE')
+    merged_mesh.use_auto_smooth = True
+    merged_mesh.auto_smooth_angle = math.pi
+    return merged_object
+
+
 def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
     mesh_writers = []
     armatures = set()
@@ -109,34 +208,42 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
     meshes = set()
     uv_maps_names = {}
     bpy_root = bpy_obj
+    armature_meshes = set()
+    skeletal_obj = None
+
+    def write_mesh(bpy_obj, skeletal_obj=None):
+        meshes.add(bpy_obj)
+        mesh_writer = xray_io.ChunkedWriter()
+        used_material_names = mesh.export_mesh(
+            bpy_obj,
+            bpy_root,
+            mesh_writer,
+            context
+        )
+        mesh_writers.append(mesh_writer)
+        for material in bpy_obj.data.materials:
+            if not material:
+                continue
+            if material.name in used_material_names:
+                materials.add(material)
+                uv_layers = bpy_obj.data.uv_layers
+                if len(uv_layers) > 1:
+                    raise utils.AppError(
+                        'Object "{}" has more than one UV-map'.format(bpy_obj.name)
+                    )
+                uv_maps_names[material.name] = uv_layers[0].name
 
     def scan_r(bpy_obj):
         if utils.is_helper_object(bpy_obj):
             return
         if bpy_obj.type == 'MESH':
-            meshes.add(bpy_obj)
-            mesh_writer = xray_io.ChunkedWriter()
-            used_material_names = mesh.export_mesh(
-                bpy_obj,
-                bpy_root,
-                mesh_writer,
-                context
-            )
-            mesh_writers.append(mesh_writer)
-            for modifier in bpy_obj.modifiers:
-                if (modifier.type == 'ARMATURE') and modifier.object:
-                    armatures.add(modifier.object)
-            for material in bpy_obj.data.materials:
-                if not material:
-                    continue
-                if material.name in used_material_names:
-                    materials.add(material)
-                    uv_layers = bpy_obj.data.uv_layers
-                    if len(uv_layers) > 1:
-                        raise utils.AppError(
-                            'Object "{}" has more than one UV-map'.format(bpy_obj.name)
-                        )
-                    uv_maps_names[material.name] = uv_layers[0].name
+            if bpy_root.type != 'ARMATURE':
+                write_mesh(bpy_obj)
+            else:
+                armature_meshes.add(bpy_obj)
+                for modifier in bpy_obj.modifiers:
+                    if (modifier.type == 'ARMATURE') and modifier.object:
+                        armatures.add(modifier.object)
         elif bpy_obj.type == 'ARMATURE':
             armatures.add(bpy_obj)
         for child in bpy_obj.children:
@@ -147,6 +254,17 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
         raise utils.AppError(
             'Root object "{}" has more than one armature'.format(bpy_obj.name)
         )
+    if armature_meshes:
+        if len(armature_meshes) == 1:
+            write_mesh(list(armature_meshes)[0])
+        else:
+            skeletal_obj = merge_meshes(armature_meshes)
+            write_mesh(skeletal_obj)
+            mesh_names = [mesh.name for mesh in armature_meshes]
+            log.warn(
+                'mesh-objects have been merged',
+                objects=mesh_names
+            )
     if not mesh_writers:
         raise utils.AppError(
             'Root object "{}" has no meshes'.format(bpy_obj.name)
@@ -222,6 +340,11 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
         idx += 1
 
     chunked_writer.put(fmt.Chunks.Object.MESHES, msw)
+
+    if skeletal_obj:
+        merged_mesh = skeletal_obj.data
+        bpy.data.objects.remove(skeletal_obj)
+        bpy.data.meshes.remove(merged_mesh)
 
     return materials, bone_writers, some_arm, bpy_root, uv_maps_names
 
