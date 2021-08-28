@@ -263,6 +263,8 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
                 ops.shader_tools.XRAY_OT_change_shader_params.bl_idname
             )
 
+        layout.operator(ops.object_tools.XRAY_OT_place_objects.bl_idname)
+
 
 class XRAY_PT_custom_props(bpy.types.Panel):
     bl_label = 'Custom Properties'

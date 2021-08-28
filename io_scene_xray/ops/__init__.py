@@ -3,6 +3,7 @@ from . import action_utils
 from . import armature_utils
 from . import bone_tools
 from . import material
+from . import object_tools
 from . import custom_props_utils
 from . import fake_bones
 from . import joint_limits
@@ -17,6 +18,7 @@ modules = (
     armature_utils,
     bone_tools,
     material,
+    object_tools,
     custom_props_utils,
     fake_bones,
     joint_limits,
