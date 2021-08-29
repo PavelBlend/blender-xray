@@ -205,6 +205,14 @@ def import_motion(
                 )
                 reported.add(bname)
             bname = bpy_bone.name
+        pose_bone = bpy_armature.pose.bones[bpy_bone.name]
+        if pose_bone.rotation_mode != 'ZXY':
+            log.warn(
+                'bone has a rotation mode different from ZXY',
+                object=bpy_armature.name,
+                bone=pose_bone.name,
+                rotation_mode=pose_bone.rotation_mode
+            )
         bone_maps[bone_key] = bname
         for shape, motion_name, bone_name in converted_shapes:
             converted_warrnings.append((
