@@ -194,6 +194,8 @@ def import_motion(
                     if bname not in reported:
                         log.warn('bone is not found', bone=bname)
                         reported.add(bname)
+                    for fcurve in tmpfc:
+                        act.fcurves.remove(fcurve)
                     continue
             if bname not in reported:
                 log.warn(
