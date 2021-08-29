@@ -82,6 +82,25 @@ def _bake_to_action(bobject, action, frange):
 
 
 def _export_action_data(pkw, xray, fcurves):
+    location_curves = []
+    rotation_curves = []
+    for fcurve in fcurves:
+        if fcurve.data_path == 'location':
+            location_curves.append(fcurve.array_index)
+        elif fcurve.data_path == 'rotation_euler':
+            rotation_curves.append(fcurve.array_index)
+    axis_keys = {0: 'X', 1: 'Y', 2: 'Z'}
+    errors = []
+    for i in range(3):
+        if not (i in location_curves):
+            errors.append('loc' + axis_keys[i])
+        if not (i in rotation_curves):
+            errors.append('rot' + axis_keys[i])
+    if errors:
+        message = ' '.join(errors)
+        raise utils.AppError(
+            'Action has no keys: {}'.format(message)
+        )
     for i in range(6):
         fcurve = fcurves[(0, 2, 1, 5, 3, 4)[i]]
         koef = (1, 1, 1, -1, -1, -1)[i]

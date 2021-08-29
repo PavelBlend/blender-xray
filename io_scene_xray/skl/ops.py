@@ -238,13 +238,21 @@ class XRAY_OT_export_skls(plugin_props.BaseOperator, utils.FilenameExtHelper):
         export_context = exp.ExportSklsContext()
         export_context.bpy_arm_obj = context.active_object
         try:
-            exp.export_skls_file(self.filepath, export_context)
+            exp.export_skls_file(self.filepath, export_context, self.actions)
         except utils.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
 
     @utils.invoke_require_armature
     def invoke(self, context, event):
+        self.actions = []
+        for motion in bpy.context.object.xray.motions_collection:
+            action = bpy.data.actions.get(motion.name)
+            if action:
+                self.actions.append(action)
+        if not self.actions:
+            self.report({'ERROR'}, 'Active object has no animations')
+            return {'CANCELLED'}
         return super().invoke(context, event)
 
 

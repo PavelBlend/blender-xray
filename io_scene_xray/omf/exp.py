@@ -462,5 +462,11 @@ def export_omf_file(context):
         context.bpy_arm_obj.animation_data.action = current_action
     else:
         context.bpy_arm_obj.animation_data_clear()
+        # reset transforms
+        for bone in context.bpy_arm_obj.pose.bones:
+            bone.location = (0, 0, 0)
+            bone.rotation_euler = (0, 0, 0)
+            bone.rotation_quaternion = (1, 0, 0, 0)
+            bone.scale = (1, 1, 1)
     with open(context.filepath, 'wb') as file:
         file.write(main_chunked_writer.data)

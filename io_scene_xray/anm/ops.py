@@ -110,7 +110,10 @@ op_export_anm_props = {
 }
 
 
-class XRAY_OT_export_anm(plugin_props.BaseOperator, utils.FilenameExtHelper):
+class XRAY_OT_export_anm(
+        plugin_props.BaseOperator,
+        bpy_extras.io_utils.ExportHelper
+    ):
     bl_idname = 'xray_export.anm'
     bl_label = 'Export .anm'
     bl_description = 'Exports X-Ray animation'
@@ -126,15 +129,31 @@ class XRAY_OT_export_anm(plugin_props.BaseOperator, utils.FilenameExtHelper):
 
     @utils.execute_with_logger
     @utils.set_cursor_state
-    def export(self, context):
-        obj = context.active_object
-        if not obj.animation_data:
+    def execute(self, context):
+        try:
+            exp.export_file(self.obj, self.filepath)
+        except utils.AppError as err:
+            self.report({'ERROR'}, str(err))
+            return {'CANCELLED'}
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.obj = context.active_object
+        if self.obj:
+            self.filepath = self.obj.name
+            if not self.filepath.lower().endswith(self.filename_ext):
+                self.filepath += self.filename_ext
+        else:
+            self.report({'ERROR'}, 'No active objects!')
+            return {'CANCELLED'}
+        if not self.obj.animation_data:
             self.report(
                 {'ERROR'},
-                'Object "{}" has no animation data.'.format(obj.name)
+                'Object "{}" has no animation data.'.format(self.obj.name)
             )
             return {'CANCELLED'}
-        exp.export_file(obj, self.filepath)
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
 
 classes = (

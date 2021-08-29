@@ -26,14 +26,7 @@ def export_skl_file(fpath, context):
     utils.save_file(fpath, writer)
 
 
-def export_skls_file(fpath, context):
+def export_skls_file(fpath, context, actions):
     writer = xray_io.PackedWriter()
-    actions = []
-    for motion in bpy.context.object.xray.motions_collection:
-        action = bpy.data.actions.get(motion.name)
-        if action:
-            actions.append(action)
-    if not actions:
-        raise utils.AppError('Active object has no animations')
     xray_motions.export_motions(writer, actions, context.bpy_arm_obj)
     utils.save_file(fpath, writer)

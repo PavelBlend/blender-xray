@@ -232,6 +232,7 @@ class XRAY_OT_export_details(
         self.texture_name_from_image_path = \
             preferences.details_texture_names_from_path
         self.format_version = preferences.format_version
+        self.filepath = context.object.name
         return super().invoke(context, event)
 
 

@@ -11,14 +11,6 @@ from .. import plugin_props
 from .. import utils
 
 
-model_export_helper_props = {
-    'selection_only': bpy.props.BoolProperty(
-        name='Selection Only',
-        description='Export only selected objects'
-    ),
-}
-
-
 def menu_func_export(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
@@ -33,29 +25,6 @@ class ExportOgfContext(contexts.ExportMeshContext):
         contexts.ExportMeshContext.__init__(self)
 
 
-class ModelExportHelper:
-    if not version_utils.IS_28:
-        for prop_name, prop_value in model_export_helper_props.items():
-            exec('{0} = model_export_helper_props.get("{0}")'.format(prop_name))
-
-    def export(self, bpy_obj, context):
-        pass
-
-    @utils.execute_with_logger
-    @utils.execute_require_filepath
-    @utils.set_cursor_state
-    def execute(self, context):
-        objs = context.selected_objects if self.selection_only else context.scene.objects
-        roots = [obj for obj in objs if obj.xray.isroot]
-        if not roots:
-            self.report({'ERROR'}, 'Cannot find object root')
-            return {'CANCELLED'}
-        if len(roots) > 1:
-            self.report({'ERROR'}, 'Too many object roots found')
-            return {'CANCELLED'}
-        return self.export(roots[0], context)
-
-
 op_text = 'Game Object'
 filename_ext = '.ogf'
 
@@ -67,8 +36,7 @@ op_export_ogf_props = {
 
 class XRAY_OT_export_ogf(
         plugin_props.BaseOperator,
-        bpy_extras.io_utils.ExportHelper,
-        ModelExportHelper
+        bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
@@ -83,21 +51,33 @@ class XRAY_OT_export_ogf(
         for prop_name, prop_value in op_export_ogf_props.items():
             exec('{0} = op_export_ogf_props.get("{0}")'.format(prop_name))
 
-    def export(self, bpy_obj, context):
+    @utils.execute_with_logger
+    @utils.execute_require_filepath
+    @utils.set_cursor_state
+    def execute(self, context):
         export_context = ExportOgfContext()
         export_context.texname_from_path = self.texture_name_from_image_path
-        exp.export_file(bpy_obj, self.filepath, export_context)
+        exp.export_file(self.exported_object, self.filepath, export_context)
         return {'FINISHED'}
 
     def invoke(self, context, event):
         preferences = version_utils.get_preferences()
         self.texture_name_from_image_path = preferences.object_texture_names_from_path
+        self.filepath = context.object.name
+        objs = context.selected_objects
+        roots = [obj for obj in objs if obj.xray.isroot]
+        if not roots:
+            self.report({'ERROR'}, 'Cannot find object root')
+            return {'CANCELLED'}
+        if len(roots) > 1:
+            self.report({'ERROR'}, 'Too many object roots found')
+            return {'CANCELLED'}
+        self.exported_object = roots[0]
         return super().invoke(context, event)
 
 
 def register():
     version_utils.assign_props([
-        (model_export_helper_props, ModelExportHelper),
         (op_export_ogf_props, XRAY_OT_export_ogf)
     ])
     bpy.utils.register_class(XRAY_OT_export_ogf)
