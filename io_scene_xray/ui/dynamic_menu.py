@@ -8,7 +8,8 @@ from .. import version_utils
 
 _dynamic_menu_op_props = {
     'prop': bpy.props.StringProperty(),
-    'value': bpy.props.StringProperty()
+    'value': bpy.props.StringProperty(),
+    'desc': bpy.props.StringProperty()
 }
 
 
@@ -19,6 +20,11 @@ class XRAY_OT_dynamic_menu(bpy.types.Operator):
     if not version_utils.IS_28:
         for prop_name, prop_value in _dynamic_menu_op_props.items():
             exec('{0} = _dynamic_menu_op_props.get("{0}")'.format(prop_name))
+
+    @classmethod
+    def description(self, context, properties):
+        desc = getattr(properties, 'desc', '')
+        return desc
 
     def execute(self, context):
         data = getattr(context, XRAY_OT_dynamic_menu.bl_idname + '.data')
@@ -66,15 +72,17 @@ class DynamicMenu(bpy.types.Menu):
 
         items = self.items_for_path(path)
         for i, item in enumerate(items):
-            text, value = item
+            text, data = item
             pfx = _path_to_prefix(path + [i])
             layout.context_pointer_set(pfx, context)
-            if isinstance(value, str):
+            if isinstance(data, list):
+                layout.menu(self.bl_idname, text=text)
+            else:
                 oper = layout.operator(XRAY_OT_dynamic_menu.bl_idname, text=text)
                 oper.prop = self.prop_name
+                value, desc = data
                 oper.value = value
-            else:
-                layout.menu(self.bl_idname, text=text)
+                oper.desc = desc
 
         pfx = _path_to_prefix(path + [len(items)])  # after last child
         layout.context_pointer_set(pfx, None)  # stop
@@ -87,32 +95,33 @@ class DynamicMenu(bpy.types.Menu):
 class XRAY_MT_xr_template(DynamicMenu):
     @staticmethod
     def parse(data, fparse):
-        def push_dict(dct, split, value):
+        def push_dict(dct, split, value, desc):
             if len(split) == 1:
-                dct[split[0]] = value
+                dct[split[0]] = (value, desc)
             else:
                 nested = dct.get(split[0], None)
                 if nested is None:
                     dct[split[0]] = nested = dict()
-                push_dict(nested, split[1:], value)
+                push_dict(nested, split[1:], value, desc)
 
         def dict_to_array(dct):
             result = []
             root_result = []
-            for (key, val) in dct.items():
-                if isinstance(val, str):
-                    root_result.append((key, val))
+            for (key, item) in dct.items():
+                if isinstance(item, dict):
+                    result.append((key, dict_to_array(item)))
                 else:
-                    result.append((key, dict_to_array(val)))
+                    val, desc = item
+                    root_result.append((key, (val, desc)))
             result = sorted(result, key=lambda e: e[0])
             root_result = sorted(root_result, key=lambda e: e[0])
             result.extend(root_result)
             return result
 
         tmp = dict()
-        for (name, _, _) in fparse(data):
+        for (name, desc, _) in fparse(data):
             split = name.split('\\')
-            push_dict(tmp, split, name)
+            push_dict(tmp, split, name, desc)
         return dict_to_array(tmp)
 
     @classmethod

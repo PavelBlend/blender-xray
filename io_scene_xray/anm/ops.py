@@ -131,25 +131,25 @@ class XRAY_OT_export_anm(
     @utils.set_cursor_state
     def execute(self, context):
         try:
-            exp.export_file(self.obj, self.filepath)
+            exp.export_file(context.active_object, self.filepath)
         except utils.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.obj = context.active_object
-        if self.obj:
-            self.filepath = self.obj.name
+        obj = context.active_object
+        if obj:
+            self.filepath = obj.name
             if not self.filepath.lower().endswith(self.filename_ext):
                 self.filepath += self.filename_ext
         else:
             self.report({'ERROR'}, 'No active objects!')
             return {'CANCELLED'}
-        if not self.obj.animation_data:
+        if not obj.animation_data:
             self.report(
                 {'ERROR'},
-                'Object "{}" has no animation data.'.format(self.obj.name)
+                'Object "{}" has no animation data.'.format(obj.name)
             )
             return {'CANCELLED'}
         context.window_manager.fileselect_add(self)
