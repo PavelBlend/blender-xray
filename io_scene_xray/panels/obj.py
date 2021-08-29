@@ -119,13 +119,14 @@ def details_draw_function(self, context):
 
         model = context.object.xray.detail.model
 
-        box.label(text='Detail Model Properties:')
+        col = box.column(align=True)
+        col.label(text='Detail Model Properties:')
 
-        box.prop(model, 'no_waving', text='No Waving', toggle=True)
-        box.prop(model, 'min_scale', text='Min Scale')
-        box.prop(model, 'max_scale', text='Max Scale')
-        box.prop(model, 'index', text='Detail Index')
-        box.prop(model, 'color', text='')
+        col.prop(model, 'no_waving', text='No Waving', toggle=True)
+        col.prop(model, 'min_scale', text='Min Scale')
+        col.prop(model, 'max_scale', text='Max Scale')
+        col.prop(model, 'index', text='Detail Index')
+        col.prop(model, 'color', text='')
 
     elif context.active_object.type == 'EMPTY':
 
@@ -133,28 +134,34 @@ def details_draw_function(self, context):
 
         box.label(text='Level Details Properties:')
 
-        box.prop_search(
+        split = version_utils.layout_split(box, 0.4, align=True)
+        split.label(text='Meshes Object:')
+        split.prop_search(
             slots,
             'meshes_object',
             bpy.data,
             'objects',
-            text='Meshes Object'
+            text=''
             )
 
-        box.prop_search(
+        split = version_utils.layout_split(box, 0.4, align=True)
+        split.label(text='Slots Base Object:')
+        split.prop_search(
             slots,
             'slots_base_object',
             bpy.data,
             'objects',
-            text='Slots Base Object'
+            text=''
             )
 
-        box.prop_search(
+        split = version_utils.layout_split(box, 0.4, align=True)
+        split.label(text='Slots Top Object:')
+        split.prop_search(
             slots,
             'slots_top_object',
             bpy.data,
             'objects',
-            text='Slots Top Object'
+            text=''
             )
 
         _, box_ = ui.collapsible.draw(
