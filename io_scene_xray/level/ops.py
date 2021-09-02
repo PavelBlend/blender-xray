@@ -111,7 +111,7 @@ class XRAY_OT_export_level(plugin_props.BaseOperator):
     bl_idname = 'xray_export.level'
     bl_label = 'Export level'
 
-    draw_fun = menu_func_import
+    draw_fun = menu_func_export
     text = op_text
     filename_ext = ''
     ext = file_name_text

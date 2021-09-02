@@ -225,7 +225,7 @@ class XRAY_OT_export_skls(plugin_props.BaseOperator, utils.FilenameExtHelper):
     bl_description = 'Exports X-Ray skeletal animation'
     bl_options = {'UNDO'}
 
-    draw_fun = menu_func_import
+    draw_fun = menu_func_export
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
