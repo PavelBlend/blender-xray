@@ -120,11 +120,24 @@ def merge_meshes(mesh_objects):
     edge_index_offset = 0
     material_index_offset = 0
     group_index_offset = 0
+    active_object = bpy.context.active_object
+    temp_name = '!TEMP io_scene_xray'
     for obj in mesh_objects:
-        mesh = obj.data
+        copy_obj = obj.copy()
+        copy_obj.name = temp_name
+        copy_mesh = obj.data.copy()
+        copy_mesh.name = temp_name
+        copy_obj.data = copy_mesh
+        version_utils.link_object(copy_obj)
+        version_utils.set_active_object(copy_obj)
+        for mod in copy_obj.modifiers:
+            if mod.type == 'ARMATURE':
+                continue
+            bpy.ops.object.modifier_apply(modifier=mod.name)
+        mesh = copy_obj.data
         for material in mesh.materials:
             merged_mesh.materials.append(material)
-        for group_index, group in enumerate(obj.vertex_groups):
+        for group_index, group in enumerate(copy_obj.vertex_groups):
             index = group_index + group_index_offset
             vertex_group_indices.append(index)
             vertex_group_names[index] = group.name
@@ -161,8 +174,10 @@ def merge_meshes(mesh_objects):
         vert_index_offset += verts_count
         materials_count = len(mesh.materials)
         material_index_offset += materials_count
-        groups_count = len(obj.vertex_groups)
+        groups_count = len(copy_obj.vertex_groups)
         group_index_offset += groups_count
+        bpy.data.objects.remove(copy_obj)
+        bpy.data.meshes.remove(copy_mesh)
     merged_mesh.from_pydata(verts, (), faces)
     merged_mesh.polygons.foreach_set('material_index', materials)
     merged_mesh.polygons.foreach_set('use_smooth', faces_smooth)
@@ -198,6 +213,7 @@ def merge_meshes(mesh_objects):
             group.add((vertex_index, ), weight, 'REPLACE')
     merged_mesh.use_auto_smooth = True
     merged_mesh.auto_smooth_angle = math.pi
+    version_utils.set_active_object(active_object)
     return merged_object
 
 
