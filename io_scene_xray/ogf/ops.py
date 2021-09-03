@@ -6,6 +6,7 @@ import bpy
 import bpy_extras
 
 # addon modules
+from . import imp
 from . import exp
 from .. import icons
 from .. import contexts
@@ -84,13 +85,17 @@ class XRAY_OT_import_ogf(
         if not self.files[0].name:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
-        try:
-            for file in self.files:
-                file_path = os.path.join(self.directory, file.name)
-                print(file_path)
-        except utils.AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+        for file in self.files:
+            file_path = os.path.join(self.directory, file.name)
+            if not os.path.exists(file_path):
+                self.report(
+                    {'ERROR'},
+                    'File not found: {}'.format(file_path)
+                )
+            try:
+                imp.import_file(file_path)
+            except utils.AppError as err:
+                self.report({'ERROR'}, str(err))
         return {'FINISHED'}
 
 

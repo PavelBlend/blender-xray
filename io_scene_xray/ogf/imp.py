@@ -8,6 +8,8 @@ import mathutils
 
 # addon modules
 from . import fmt
+from .. import log
+from .. import utils
 from .. import xray_io
 from .. import version_utils
 from .. import level
@@ -15,6 +17,7 @@ from .. import level
 
 class Visual(object):
     def __init__(self):
+        self.file_path = None
         self.visual_id = None
         self.format_version = None
         self.model_type = None
@@ -437,8 +440,16 @@ def import_vcontainer(data):
     pass
 
 
-def import_indices(data):
-    pass
+def read_indices(packed_reader):
+    indices_count = packed_reader.getf('I')[0]
+    indices_buffer = packed_reader.getf('{0}H'.format(indices_count))
+    return indices_buffer
+
+
+def import_indices(chunks, ogf_chunks):
+    chunk_data = chunks.pop(ogf_chunks.INDICES)
+    packed_reader = xray_io.PackedReader(chunk_data)
+    indices_buffer = read_indices(packed_reader)
 
 
 def read_indices_v3(data, visual):
@@ -457,12 +468,33 @@ def read_vertices_v3(data, visual, lvl):
     visual.uvs_lmap = vb.uv_lmap
 
 
-def import_vertices(data):
-    pass
-
-
-def import_texture(data):
-    pass
+def import_vertices(chunks, ogf_chunks):
+    chunk_data = chunks.pop(ogf_chunks.VERTICES)
+    packed_reader = xray_io.PackedReader(chunk_data)
+    vertex_format = packed_reader.getf('<I')[0]
+    verices_count = packed_reader.getf('<I')[0]
+    if vertex_format == fmt.VertexFormat.FVF_1L:
+        for vertex_index in range(verices_count):
+            coords = packed_reader.getf('<3f')
+            normal = packed_reader.getf('<3f')
+            tangent = packed_reader.getf('<3f')
+            bitangent = packed_reader.getf('<3f')
+            uv = packed_reader.getf('<2f')
+            bone_index = packed_reader.getf('<I')[0]
+    elif vertex_format == fmt.VertexFormat.FVF_2L:
+        for vertex_index in range(verices_count):
+            bone_1_index = packed_reader.getf('<H')[0]
+            bone_2_index = packed_reader.getf('<H')[0]
+            coords = packed_reader.getf('<3f')
+            normal = packed_reader.getf('<3f')
+            tangent = packed_reader.getf('<3f')
+            bitangent = packed_reader.getf('<3f')
+            weight = packed_reader.getf('<f')[0]
+            uv = packed_reader.getf('<2f')
+    else:
+        raise utils.AppError('Unsupported ogf vertex format: 0x{:x}'.format(
+            vertex_format
+        ))
 
 
 def import_fastpath(data, visual, lvl):
@@ -1145,3 +1177,198 @@ def import_(data, visual_id, lvl, chunks, visuals_ids):
     visual = Visual()
     visual.visual_id = visual_id
     import_main(chunks, visual, lvl)
+
+
+def import_description(chunks, ogf_chunks):
+    chunk_data = chunks.pop(ogf_chunks.S_DESC)
+    packed_reader = xray_io.PackedReader(chunk_data)
+    source_file = packed_reader.gets()
+    build_name = packed_reader.gets()
+    build_time = packed_reader.getf('<I')[0]
+    create_name = packed_reader.gets()
+    create_time = packed_reader.getf('<I')[0]
+    modif_name = packed_reader.gets()
+    modif_time = packed_reader.getf('<I')[0]
+
+
+def import_bone_names(chunks, ogf_chunks):
+    chunk_data = chunks.pop(ogf_chunks.S_BONE_NAMES)
+    packed_reader = xray_io.PackedReader(chunk_data)
+    bones_count = packed_reader.getf('<I')[0]
+    bones = []
+    for bone_index in range(bones_count):
+        bone_name = packed_reader.gets()
+        bone_parent = packed_reader.gets()
+        rotation = packed_reader.getf('<9f')
+        translation = packed_reader.getf('<3f')
+        half_size = packed_reader.getf('<3f')
+        bones.append(bone_name)
+    return bones
+
+
+def import_user_data(chunks, ogf_chunks, visual):
+    chunk_data = chunks.pop(ogf_chunks.S_USERDATA, None)
+    if not chunk_data:
+        return
+    packed_reader = xray_io.PackedReader(chunk_data)
+    user_data = packed_reader.gets(
+        onerror=lambda e: log.warn(
+            'bad userdata',
+            error=str(e),
+            file=visual.file_path
+        )
+    )
+
+
+def import_ik_data(chunks, ogf_chunks, bones):
+    chunk_data = chunks.pop(ogf_chunks.S_IKDATA, None)
+    if not chunk_data:
+        return
+    packed_reader = xray_io.PackedReader(chunk_data)
+    for bone_index, bone_name in enumerate(bones):
+        version = packed_reader.getf('<I')[0]
+        game_material = packed_reader.gets()
+        shape_type = packed_reader.getf('<H')[0]
+        shape_flags = packed_reader.getf('<H')[0]
+        # box shape
+        box_shape_rotation = packed_reader.getf('<9f')
+        box_shape_translation = packed_reader.getf('<3f')
+        box_shape_half_size = packed_reader.getf('<3f')
+        # sphere shape
+        sphere_shape_translation = packed_reader.getf('<3f')
+        sphere_shape_radius = packed_reader.getf('<f')[0]
+        # box shape
+        cylinder_shape_translation = packed_reader.getf('<3f')
+        cylinder_shape_direction = packed_reader.getf('<3f')
+        cylinder_shape_height = packed_reader.getf('<f')[0]
+        cylinder_shape_radius = packed_reader.getf('<f')[0]
+
+        joint_type = packed_reader.getf('<I')[0]
+
+        # x limits
+        limit_x_min, limit_x_max = packed_reader.getf('<2f')
+        limit_x_spring = packed_reader.getf('<f')[0]
+        limit_x_damping = packed_reader.getf('<f')[0]
+        # y limits
+        limit_y_min, limit_y_max = packed_reader.getf('<2f')
+        limit_y_spring = packed_reader.getf('<f')[0]
+        limit_y_damping = packed_reader.getf('<f')[0]
+        # z limits
+        limit_z_min, limit_z_max = packed_reader.getf('<2f')
+        limit_z_spring = packed_reader.getf('<f')[0]
+        limit_z_damping = packed_reader.getf('<f')[0]
+
+        joint_spring = packed_reader.getf('<f')[0]
+        joint_damping = packed_reader.getf('<f')[0]
+        ik_flags = packed_reader.getf('<I')[0]
+        breakable_force = packed_reader.getf('<f')[0]
+        breakable_torque = packed_reader.getf('<f')[0]
+        friction = packed_reader.getf('<f')[0]
+
+        # bind pose
+        bind_rotation = packed_reader.getf('<3f')
+        bind_translation = packed_reader.getf('<3f')
+
+        # mass
+        mass_value = packed_reader.getf('<f')[0]
+        mass_center = packed_reader.getf('<3f')
+
+
+def import_children(chunks, ogf_chunks, root_visual):
+    chunk_data = chunks.pop(ogf_chunks.CHILDREN, None)
+    if not chunk_data:
+        return
+    chunked_reader = xray_io.ChunkedReader(chunk_data)
+    for child_index, child_data in chunked_reader:
+        visual = Visual()
+        visual.file_path = root_visual.file_path
+        visual.visual_id = child_index
+        import_visual(child_data, visual)
+
+
+def import_mt_skeleton_rigid(chunks, ogf_chunks, visual):
+    import_description(chunks, ogf_chunks)
+    bones = import_bone_names(chunks, ogf_chunks)
+    import_ik_data(chunks, ogf_chunks, bones)
+    import_children(chunks, ogf_chunks, visual)
+    for chunk_id, chunk_data in chunks.items():
+        print('Unknown SKELETON_RIGID chunk: {}, size: {}'.format(
+            hex(chunk_id), len(chunk_data)
+        ))
+
+
+def import_texture(chunks, ogf_chunks):
+    chunk_data = chunks.pop(ogf_chunks.TEXTURE)
+    packed_reader = xray_io.PackedReader(chunk_data)
+    texture = packed_reader.gets()
+    shader = packed_reader.gets()
+
+
+def import_mt_skeleton_geom_def_st(chunks, ogf_chunks):
+    import_texture(chunks, ogf_chunks)
+    import_vertices(chunks, ogf_chunks)
+    import_indices(chunks, ogf_chunks)
+    for chunk_id, chunk_data in chunks.items():
+        print('Unknown SKELETON_GEOMDEF_ST chunk: {}, size: {}'.format(
+            hex(chunk_id), len(chunk_data)
+        ))
+
+
+def import_mt_skeleton_geom_def_pm(chunks, ogf_chunks):
+    import_swidata(chunks)
+    import_mt_skeleton_geom_def_st(chunks, ogf_chunks)
+
+
+def read_motion_rerefences(chunks, ogf_chunks):
+    data = chunks.pop(ogf_chunks.S_MOTION_REFS_0, None)
+    if not data:
+        return
+    packed_reader = xray_io.PackedReader(data)
+    motion_refs = packed_reader.gets(data).split(',')
+
+
+def import_mt_skeleton_anim(chunks, ogf_chunks, visual):
+    chunks.pop(ogf_chunks.S_MOTIONS, None)
+    chunks.pop(ogf_chunks.S_SMPARAMS, None)
+    read_motion_rerefences(chunks, ogf_chunks)
+    import_mt_skeleton_rigid(chunks, ogf_chunks, visual)
+    for chunk_id, chunk_data in chunks.items():
+        print('Unknown SKELETON_ANIM chunk: {}, size: {}'.format(
+            hex(chunk_id), len(chunk_data)
+        ))
+
+
+def import_visual(data, visual):
+    chunks, visual_chunks_ids = get_ogf_chunks(data)
+    header_chunk_data = chunks.pop(fmt.HEADER)
+    import_header(header_chunk_data, visual)
+    if visual.format_version != fmt.FORMAT_VERSION_4:
+        raise utils.AppError(
+            'Unsupported ogf format version: {}'.format(visual.format_version)
+        )
+    ogf_chunks = fmt.Chunks_v4
+    model_types = fmt.ModelType_v4
+    model_type_names = fmt.model_type_names_v4
+    import_user_data(chunks, ogf_chunks, visual)
+    if visual.model_type == model_types.SKELETON_RIGID:
+        import_mt_skeleton_rigid(chunks, ogf_chunks, visual)
+    elif visual.model_type == model_types.SKELETON_ANIM:
+        import_mt_skeleton_anim(chunks, ogf_chunks, visual)
+    elif visual.model_type == model_types.SKELETON_GEOMDEF_ST:
+        import_mt_skeleton_geom_def_st(chunks, ogf_chunks)
+    elif visual.model_type == model_types.SKELETON_GEOMDEF_PM:
+        import_mt_skeleton_geom_def_pm(chunks, ogf_chunks)
+    else:
+        raise utils.AppError(
+            'Unsupported ogf model type: {}'.format(
+                model_type_names[visual.model_type]
+            )
+        )
+
+
+def import_file(file_path):
+    data = utils.read_file(file_path)
+    visual = Visual()
+    visual.file_path = file_path
+    visual.visual_id = 0
+    import_visual(data, visual)
