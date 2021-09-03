@@ -477,6 +477,7 @@ plugin_preferences_props = {
     'enable_level_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_game_level_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_omf_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_ogf_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
     # enable export plugins
     'enable_object_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_anm_export': bpy.props.BoolProperty(default=True, update=update_menu_func),

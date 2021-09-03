@@ -174,6 +174,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
             column_1.prop(self, 'enable_level_import', text='*.level')
             column_1.prop(self, 'enable_omf_import', text='*.omf')
             column_1.prop(self, 'enable_game_level_import', text='level')
+            column_1.prop(self, 'enable_ogf_import', text='*.ogf')
             column_1.prop(self, 'enable_err_import', text='*.err')
 
             column_2.label(text='Export Plugins:')

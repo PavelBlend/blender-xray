@@ -115,6 +115,13 @@ def details_draw_function(self, context):
 
     box = self.layout.box()
 
+    if not (context.object.type in {'MESH', 'EMPTY'}):
+        box.label(
+            text='Active object is not a mesh or empty',
+            icon='ERROR'
+        )
+        return
+
     if context.active_object.type == 'MESH':
 
         model = context.object.xray.detail.model
@@ -218,6 +225,38 @@ def details_draw_function(self, context):
         box.operator(details.ops.XRAY_OT_pack_details_images.bl_idname)
 
 
+def get_used(prefs):
+    object_used = (
+        # import plugins
+        prefs.enable_object_import or
+        prefs.enable_skls_import or
+        prefs.enable_level_import or
+        prefs.enable_omf_import or
+        prefs.enable_ogf_import or
+        # export plugins
+        prefs.enable_object_export or
+        prefs.enable_skls_export or
+        prefs.enable_level_export or
+        prefs.enable_omf_export or
+        prefs.enable_ogf_export
+    )
+    details_used = (
+        # import plugins
+        prefs.enable_dm_import or
+        prefs.enable_details_import or
+        # export plugins
+        prefs.enable_dm_export or
+        prefs.enable_details_export
+    )
+    game_level_used = (
+        # import plugins
+        prefs.enable_game_level_import or
+        # export plugins
+        prefs.enable_game_level_export
+    )
+    return object_used, details_used, game_level_used
+
+
 class XRAY_PT_object(ui.base.XRayPanel):
     bl_context = 'object'
     bl_label = ui.base.build_label('Object')
@@ -230,23 +269,13 @@ class XRAY_PT_object(ui.base.XRayPanel):
         is_helper = utils.is_helper_object(bpy_obj)
         if is_helper:
             return False
-        return True
+        preferences = version_utils.get_preferences()
+        object_used, details_used, game_level_used = get_used(preferences)
+        return object_used or details_used or game_level_used
 
     def draw(self, context):
         preferences = version_utils.get_preferences()
-        object_used = (
-            # import plugins
-            preferences.enable_object_import or
-            preferences.enable_skls_import or
-            preferences.enable_level_import or
-            preferences.enable_omf_import or
-            # export plugins
-            preferences.enable_object_export or
-            preferences.enable_skls_export or
-            preferences.enable_level_export or
-            preferences.enable_omf_export or
-            preferences.enable_ogf_export
-        )
+        object_used, details_used, game_level_used = get_used(preferences)
 
         layout = self.layout
         data = context.object.xray
@@ -362,26 +391,10 @@ class XRAY_PT_object(ui.base.XRayPanel):
                     subbox.label(text='Year.Month.Day Hours:Minutes')
                     subbox.label(text='Year.Month.Day')
 
-        details_used = (
-            # import plugins
-            preferences.enable_dm_import or
-            preferences.enable_details_import or
-            # export plugins
-            preferences.enable_dm_export or
-            preferences.enable_details_export
-        )
-
-        if context.object.type in {'MESH', 'EMPTY'} and details_used:
+        if details_used:
             layout.prop(data, 'is_details', text='Details', toggle=True)
             if data.is_details:
                 details_draw_function(self, context)
-
-        game_level_used = (
-            # import plugins
-            preferences.enable_game_level_import or
-            # export plugins
-            preferences.enable_game_level_export
-        )
 
         if game_level_used:
             layout.prop(data, 'is_level', text='Level', toggle=True)
