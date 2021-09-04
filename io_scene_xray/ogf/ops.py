@@ -33,6 +33,11 @@ def menu_func_export(self, context):
     )
 
 
+class ImportOgfContext(contexts.ImportMeshContext):
+    def __init__(self):
+        contexts.ImportMeshContext.__init__(self)
+
+
 class ExportOgfContext(contexts.ExportMeshContext):
     def __init__(self):
         contexts.ExportMeshContext.__init__(self)
@@ -85,6 +90,8 @@ class XRAY_OT_import_ogf(
         if not self.files[0].name:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
+        import_context = ImportOgfContext()
+        import_context.textures_folder = textures_folder
         for file in self.files:
             file_path = os.path.join(self.directory, file.name)
             if not os.path.exists(file_path):
@@ -93,7 +100,7 @@ class XRAY_OT_import_ogf(
                     'File not found: {}'.format(file_path)
                 )
             try:
-                imp.import_file(file_path, file.name)
+                imp.import_file(import_context, file_path, file.name)
             except utils.AppError as err:
                 self.report({'ERROR'}, str(err))
         return {'FINISHED'}

@@ -1,4 +1,11 @@
+# standart modules
+import os
+
+# blender modules
+import bpy
+
 # addon modules
+from . import log
 from . import utils
 from . import version_utils
 
@@ -22,6 +29,31 @@ class ImportMeshContext(ImportContext):
     def __init__(self):
         ImportContext.__init__(self)
         self.textures_folder = None
+
+    def image(self, relpath):
+        relpath = relpath.lower().replace('\\', os.path.sep)
+        if not self.textures_folder:
+            result = bpy.data.images.new(os.path.basename(relpath), 0, 0)
+            result.source = 'FILE'
+            result.filepath = relpath + '.dds'
+            return result
+        filepath = os.path.abspath(
+            os.path.join(self.textures_folder, relpath + '.dds')
+        )
+        result = None
+        for i in bpy.data.images:
+            if bpy.path.abspath(i.filepath) == filepath:
+                result = i
+                break
+        if result is None:
+            try:
+                result = bpy.data.images.load(filepath)
+            except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+                log.warn('texture file not found', path=filepath)
+                result = bpy.data.images.new(os.path.basename(relpath), 0, 0)
+                result.source = 'FILE'
+                result.filepath = filepath
+        return result
 
 
 class ImportAnimationBaseContext(ImportContext):

@@ -8,6 +8,7 @@ import mathutils
 
 # addon modules
 from . import fmt
+from .. import create
 from .. import log
 from .. import utils
 from .. import xray_io
@@ -37,6 +38,7 @@ class Visual(object):
         self.use_two_sided_tris = False
         self.vb_index = None
         self.is_root = None
+        self.bpy_materials = None
 
 
 class HierrarhyVisual(object):
@@ -360,6 +362,10 @@ def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None):
                     face[texture_layer].image = bpy_image
 
             lvl.loaded_geometry[geometry_key] = bpy_mesh
+
+        else:
+            material = visual.bpy_materials[visual.shader_id]
+            bpy_mesh.materials.append(material)
 
         mesh.to_mesh(bpy_mesh)
         if custom_normals:
@@ -1302,7 +1308,7 @@ def import_ik_data(chunks, ogf_chunks, bones):
         mass_center = packed_reader.getf('<3f')
 
 
-def import_children(chunks, ogf_chunks, root_visual):
+def import_children(context, chunks, ogf_chunks, root_visual):
     chunk_data = chunks.pop(ogf_chunks.CHILDREN, None)
     if not chunk_data:
         return
@@ -1313,31 +1319,43 @@ def import_children(chunks, ogf_chunks, root_visual):
         visual.name = root_visual.name + ' {:0>2}'.format(child_index)
         visual.visual_id = child_index
         visual.is_root = False
-        import_visual(child_data, visual)
+        visual.bpy_materials = root_visual.bpy_materials
+        import_visual(context, child_data, visual)
 
 
-def import_mt_skeleton_rigid(chunks, ogf_chunks, visual):
+def import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual):
     import_description(chunks, ogf_chunks)
     bones = import_bone_names(chunks, ogf_chunks)
     import_ik_data(chunks, ogf_chunks, bones)
-    import_children(chunks, ogf_chunks, visual)
+    import_children(context, chunks, ogf_chunks, visual)
 
 
-def import_texture(chunks, ogf_chunks):
+def import_texture(context, chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.TEXTURE)
     packed_reader = xray_io.PackedReader(chunk_data)
     texture = packed_reader.gets()
     shader = packed_reader.gets()
+    bpy_material = create.material.get_material(
+        context,
+        texture,    # material name
+        texture,
+        shader,
+        'default',    # compile shader
+        'default_object',    # game material
+        0,    # two sided flag
+        'Texture'    # uv map name
+    )
+    visual.bpy_materials[visual.shader_id] = bpy_material
 
 
-def import_mt_skeleton_geom_def_st(chunks, ogf_chunks, visual):
-    import_texture(chunks, ogf_chunks)
+def import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual):
+    import_texture(context, chunks, ogf_chunks, visual)
     import_vertices(chunks, ogf_chunks, visual)
     import_indices(chunks, ogf_chunks, visual)
 
 
-def import_mt_skeleton_geom_def_pm(chunks, ogf_chunks, visual):
-    import_mt_skeleton_geom_def_st(chunks, ogf_chunks, visual)
+def import_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual):
+    import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual)
     swi = import_swidata(chunks)
     visual.indices = visual.indices[swi[0].offset : ]
     visual.indices_count = swi[0].triangles_count * 3
@@ -1351,15 +1369,15 @@ def read_motion_rerefences(chunks, ogf_chunks):
     motion_refs = packed_reader.gets(data).split(',')
 
 
-def import_mt_skeleton_anim(chunks, ogf_chunks, visual):
+def import_mt_skeleton_anim(context, chunks, ogf_chunks, visual):
     # TODO: import motions and params
     # chunks.pop(ogf_chunks.S_MOTIONS, None)
     # chunks.pop(ogf_chunks.S_SMPARAMS, None)
     read_motion_rerefences(chunks, ogf_chunks)
-    import_mt_skeleton_rigid(chunks, ogf_chunks, visual)
+    import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual)
 
 
-def import_visual(data, visual):
+def import_visual(context, data, visual):
     chunks, visual_chunks_ids = get_ogf_chunks(data)
     header_chunk_data = chunks.pop(fmt.HEADER)
     import_header(header_chunk_data, visual)
@@ -1372,13 +1390,13 @@ def import_visual(data, visual):
     model_type_names = fmt.model_type_names_v4
     import_user_data(chunks, ogf_chunks, visual)
     if visual.model_type == model_types.SKELETON_RIGID:
-        import_mt_skeleton_rigid(chunks, ogf_chunks, visual)
+        import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual)
     elif visual.model_type == model_types.SKELETON_ANIM:
-        import_mt_skeleton_anim(chunks, ogf_chunks, visual)
+        import_mt_skeleton_anim(context, chunks, ogf_chunks, visual)
     elif visual.model_type == model_types.SKELETON_GEOMDEF_ST:
-        import_mt_skeleton_geom_def_st(chunks, ogf_chunks, visual)
+        import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual)
     elif visual.model_type == model_types.SKELETON_GEOMDEF_PM:
-        import_mt_skeleton_geom_def_pm(chunks, ogf_chunks, visual)
+        import_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual)
     else:
         raise utils.AppError(
             'Unsupported ogf model type: {}'.format(
@@ -1394,11 +1412,12 @@ def import_visual(data, visual):
         create_visual(visual)
 
 
-def import_file(file_path, file_name):
+def import_file(context, file_path, file_name):
     data = utils.read_file(file_path)
     visual = Visual()
     visual.file_path = file_path
     visual.visual_id = 0
     visual.name = file_name
     visual.is_root = True
-    import_visual(data, visual)
+    visual.bpy_materials = {}
+    import_visual(context, data, visual)
