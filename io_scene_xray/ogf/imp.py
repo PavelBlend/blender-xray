@@ -36,6 +36,7 @@ class Visual(object):
         self.fastpath = False
         self.use_two_sided_tris = False
         self.vb_index = None
+        self.is_root = None
 
 
 class HierrarhyVisual(object):
@@ -99,7 +100,7 @@ def convert_float_normal(norm_in):
     return mathutils.Vector((norm_in[2], norm_in[0], norm_in[1])).normalized()
 
 
-def create_visual(bpy_mesh, visual, lvl, geometry_key):
+def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None):
     if not bpy_mesh:
         mesh = bmesh.new()
 
@@ -176,7 +177,14 @@ def create_visual(bpy_mesh, visual, lvl, geometry_key):
                 convert_normal_function = convert_normal
         else:
             convert_normal_function = convert_float_normal
-        if lvl.xrlc_version >= level.fmt.VERSION_11:
+        is_new_format = False
+        if lvl:
+            if lvl.xrlc_version >= level.fmt.VERSION_11:
+                is_new_format = True
+        else:
+            if visual.format_version == fmt.FORMAT_VERSION_4:
+                is_new_format = True
+        if is_new_format:
             for triangle in visual.triangles:
                 try:
                     vert_1 = remap_vertices[triangle[0]]
@@ -245,17 +253,23 @@ def create_visual(bpy_mesh, visual, lvl, geometry_key):
                         bmesh_sun_color[1] = sun
                         bmesh_sun_color[2] = sun
                         current_loop += 1
-            else:    # trees
-                for face in mesh.faces:
-                    for loop in face.loops:
-                        loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
-                        # hemi vertex color
-                        hemi = visual.hemi[remap_loops[current_loop]]
-                        bmesh_hemi_color = loop[hemi_vertex_color]
-                        bmesh_hemi_color[0] = hemi
-                        bmesh_hemi_color[1] = hemi
-                        bmesh_hemi_color[2] = hemi
-                        current_loop += 1
+            else:
+                if visual.hemi:    # trees
+                    for face in mesh.faces:
+                        for loop in face.loops:
+                            loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
+                            # hemi vertex color
+                            hemi = visual.hemi[remap_loops[current_loop]]
+                            bmesh_hemi_color = loop[hemi_vertex_color]
+                            bmesh_hemi_color[0] = hemi
+                            bmesh_hemi_color[1] = hemi
+                            bmesh_hemi_color[2] = hemi
+                            current_loop += 1
+                else:    # ogf file
+                    for face in mesh.faces:
+                        for loop in face.loops:
+                            loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
+                            current_loop += 1
 
         else:    # xrlc version <= 10
             if visual.normals:
@@ -336,23 +350,25 @@ def create_visual(bpy_mesh, visual, lvl, geometry_key):
         bpy_mesh = bpy.data.meshes.new(visual.name)
         bpy_mesh.use_auto_smooth = True
         bpy_mesh.auto_smooth_angle = math.pi
-        assign_material(bpy_mesh, visual, lvl)
+        if lvl:
+            assign_material(bpy_mesh, visual, lvl)
 
-        if not version_utils.IS_28:
-            bpy_image = lvl.images[visual.shader_id]
-            texture_layer = mesh.faces.layers.tex.new('Texture')
-            for face in mesh.faces:
-                face[texture_layer].image = bpy_image
+            if not version_utils.IS_28:
+                bpy_image = lvl.images[visual.shader_id]
+                texture_layer = mesh.faces.layers.tex.new('Texture')
+                for face in mesh.faces:
+                    face[texture_layer].image = bpy_image
+
+            lvl.loaded_geometry[geometry_key] = bpy_mesh
 
         mesh.to_mesh(bpy_mesh)
         if custom_normals:
             bpy_mesh.normals_split_custom_set(custom_normals)
         del mesh
 
-        lvl.loaded_geometry[geometry_key] = bpy_mesh
-
     else:
-        bpy_mesh = lvl.loaded_geometry[geometry_key]
+        if lvl:
+            bpy_mesh = lvl.loaded_geometry[geometry_key]
 
     bpy_object = create_object(visual.name, bpy_mesh)
     return bpy_object
@@ -443,13 +459,13 @@ def import_vcontainer(data):
 def read_indices(packed_reader):
     indices_count = packed_reader.getf('I')[0]
     indices_buffer = packed_reader.getf('{0}H'.format(indices_count))
-    return indices_buffer
+    return indices_buffer, indices_count
 
 
-def import_indices(chunks, ogf_chunks):
+def import_indices(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.INDICES)
     packed_reader = xray_io.PackedReader(chunk_data)
-    indices_buffer = read_indices(packed_reader)
+    visual.indices, visual.indices_count = read_indices(packed_reader)
 
 
 def read_indices_v3(data, visual):
@@ -468,33 +484,45 @@ def read_vertices_v3(data, visual, lvl):
     visual.uvs_lmap = vb.uv_lmap
 
 
-def import_vertices(chunks, ogf_chunks):
+def import_vertices(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.VERTICES)
     packed_reader = xray_io.PackedReader(chunk_data)
     vertex_format = packed_reader.getf('<I')[0]
     verices_count = packed_reader.getf('<I')[0]
+    vertices = []
+    normals = []
+    uvs = []
     if vertex_format == fmt.VertexFormat.FVF_1L:
         for vertex_index in range(verices_count):
-            coords = packed_reader.getf('<3f')
-            normal = packed_reader.getf('<3f')
-            tangent = packed_reader.getf('<3f')
-            bitangent = packed_reader.getf('<3f')
+            coords = packed_reader.getv3f()
+            normal = packed_reader.getn3f()
+            tangent = packed_reader.getn3f()
+            bitangent = packed_reader.getn3f()
             uv = packed_reader.getf('<2f')
             bone_index = packed_reader.getf('<I')[0]
+            vertices.append(coords)
+            normals.append(normal)
+            uvs.append(uv)
     elif vertex_format == fmt.VertexFormat.FVF_2L:
         for vertex_index in range(verices_count):
             bone_1_index = packed_reader.getf('<H')[0]
             bone_2_index = packed_reader.getf('<H')[0]
-            coords = packed_reader.getf('<3f')
-            normal = packed_reader.getf('<3f')
-            tangent = packed_reader.getf('<3f')
-            bitangent = packed_reader.getf('<3f')
+            coords = packed_reader.getv3f()
+            normal = packed_reader.getn3f()
+            tangent = packed_reader.getn3f()
+            bitangent = packed_reader.getn3f()
             weight = packed_reader.getf('<f')[0]
             uv = packed_reader.getf('<2f')
+            vertices.append(coords)
+            normals.append(normal)
+            uvs.append(uv)
     else:
         raise utils.AppError('Unsupported ogf vertex format: 0x{:x}'.format(
             vertex_format
         ))
+    visual.vertices = vertices
+    visual.normals = normals
+    visual.uvs = uvs
 
 
 def import_fastpath(data, visual, lvl):
@@ -694,7 +722,7 @@ def import_normal_visual(chunks, visual, lvl):
 
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
-        bpy_object = create_visual(bpy_mesh, visual, lvl, geometry_key)
+        bpy_object = create_visual(visual, bpy_mesh, lvl, geometry_key)
         if visual.fastpath:
             bpy_object.xray.level.use_fastpath = True
         else:
@@ -769,7 +797,7 @@ def import_tree_st_visual(chunks, visual, lvl):
     bpy_mesh, geometry_key = import_geometry(chunks, visual, lvl)
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
-        bpy_object = create_visual(bpy_mesh, visual, lvl, geometry_key)
+        bpy_object = create_visual(visual, bpy_mesh, lvl, geometry_key)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(lvl, visual, chunks, bpy_object)
@@ -802,7 +830,7 @@ def import_progressive_visual(chunks, visual, lvl):
     check_unread_chunks(chunks, context='PROGRESSIVE_VISUAL')
 
     if not bpy_mesh:
-        bpy_object = create_visual(bpy_mesh, visual, lvl, geometry_key)
+        bpy_object = create_visual(visual, bpy_mesh, lvl, geometry_key)
         if visual.fastpath:
             bpy_object.xray.level.use_fastpath = True
         else:
@@ -955,7 +983,7 @@ def import_tree_pm_visual(chunks, visual, lvl):
         visual.indices_count = swi[0].triangles_count * 3
         convert_indices_to_triangles(visual)
 
-        bpy_object = create_visual(bpy_mesh, visual, lvl, geometry_key)
+        bpy_object = create_visual(visual, bpy_mesh, lvl, geometry_key)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(lvl, visual, chunks, bpy_object)
@@ -1282,7 +1310,9 @@ def import_children(chunks, ogf_chunks, root_visual):
     for child_index, child_data in chunked_reader:
         visual = Visual()
         visual.file_path = root_visual.file_path
+        visual.name = root_visual.name + ' {:0>2}'.format(child_index)
         visual.visual_id = child_index
+        visual.is_root = False
         import_visual(child_data, visual)
 
 
@@ -1291,10 +1321,6 @@ def import_mt_skeleton_rigid(chunks, ogf_chunks, visual):
     bones = import_bone_names(chunks, ogf_chunks)
     import_ik_data(chunks, ogf_chunks, bones)
     import_children(chunks, ogf_chunks, visual)
-    for chunk_id, chunk_data in chunks.items():
-        print('Unknown SKELETON_RIGID chunk: {}, size: {}'.format(
-            hex(chunk_id), len(chunk_data)
-        ))
 
 
 def import_texture(chunks, ogf_chunks):
@@ -1304,19 +1330,17 @@ def import_texture(chunks, ogf_chunks):
     shader = packed_reader.gets()
 
 
-def import_mt_skeleton_geom_def_st(chunks, ogf_chunks):
+def import_mt_skeleton_geom_def_st(chunks, ogf_chunks, visual):
     import_texture(chunks, ogf_chunks)
-    import_vertices(chunks, ogf_chunks)
-    import_indices(chunks, ogf_chunks)
-    for chunk_id, chunk_data in chunks.items():
-        print('Unknown SKELETON_GEOMDEF_ST chunk: {}, size: {}'.format(
-            hex(chunk_id), len(chunk_data)
-        ))
+    import_vertices(chunks, ogf_chunks, visual)
+    import_indices(chunks, ogf_chunks, visual)
 
 
-def import_mt_skeleton_geom_def_pm(chunks, ogf_chunks):
-    import_swidata(chunks)
-    import_mt_skeleton_geom_def_st(chunks, ogf_chunks)
+def import_mt_skeleton_geom_def_pm(chunks, ogf_chunks, visual):
+    import_mt_skeleton_geom_def_st(chunks, ogf_chunks, visual)
+    swi = import_swidata(chunks)
+    visual.indices = visual.indices[swi[0].offset : ]
+    visual.indices_count = swi[0].triangles_count * 3
 
 
 def read_motion_rerefences(chunks, ogf_chunks):
@@ -1328,14 +1352,11 @@ def read_motion_rerefences(chunks, ogf_chunks):
 
 
 def import_mt_skeleton_anim(chunks, ogf_chunks, visual):
-    chunks.pop(ogf_chunks.S_MOTIONS, None)
-    chunks.pop(ogf_chunks.S_SMPARAMS, None)
+    # TODO: import motions and params
+    # chunks.pop(ogf_chunks.S_MOTIONS, None)
+    # chunks.pop(ogf_chunks.S_SMPARAMS, None)
     read_motion_rerefences(chunks, ogf_chunks)
     import_mt_skeleton_rigid(chunks, ogf_chunks, visual)
-    for chunk_id, chunk_data in chunks.items():
-        print('Unknown SKELETON_ANIM chunk: {}, size: {}'.format(
-            hex(chunk_id), len(chunk_data)
-        ))
 
 
 def import_visual(data, visual):
@@ -1355,20 +1376,29 @@ def import_visual(data, visual):
     elif visual.model_type == model_types.SKELETON_ANIM:
         import_mt_skeleton_anim(chunks, ogf_chunks, visual)
     elif visual.model_type == model_types.SKELETON_GEOMDEF_ST:
-        import_mt_skeleton_geom_def_st(chunks, ogf_chunks)
+        import_mt_skeleton_geom_def_st(chunks, ogf_chunks, visual)
     elif visual.model_type == model_types.SKELETON_GEOMDEF_PM:
-        import_mt_skeleton_geom_def_pm(chunks, ogf_chunks)
+        import_mt_skeleton_geom_def_pm(chunks, ogf_chunks, visual)
     else:
         raise utils.AppError(
             'Unsupported ogf model type: {}'.format(
                 model_type_names[visual.model_type]
             )
         )
+    for chunk_id, chunk_data in chunks.items():
+        print('Unknown OGF chunk: {}, size: {}'.format(
+            hex(chunk_id), len(chunk_data)
+        ))
+    if not visual.is_root:
+        convert_indices_to_triangles(visual)
+        create_visual(visual)
 
 
-def import_file(file_path):
+def import_file(file_path, file_name):
     data = utils.read_file(file_path)
     visual = Visual()
     visual.file_path = file_path
     visual.visual_id = 0
+    visual.name = file_name
+    visual.is_root = True
     import_visual(data, visual)

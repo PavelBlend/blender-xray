@@ -93,7 +93,7 @@ class XRAY_OT_import_ogf(
                     'File not found: {}'.format(file_path)
                 )
             try:
-                imp.import_file(file_path)
+                imp.import_file(file_path, file.name)
             except utils.AppError as err:
                 self.report({'ERROR'}, str(err))
         return {'FINISHED'}
