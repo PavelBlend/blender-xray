@@ -14,6 +14,7 @@ from .. import utils
 from .. import xray_io
 from .. import version_utils
 from .. import level
+from .. import xray_motions
 
 
 class Visual(object):
@@ -1236,7 +1237,7 @@ def import_bone_names(chunks, ogf_chunks):
         rotation = packed_reader.getf('<9f')
         translation = packed_reader.getf('<3f')
         half_size = packed_reader.getf('<3f')
-        bones.append(bone_name)
+        bones.append((bone_name, bone_parent))
     return bones
 
 
@@ -1254,12 +1255,19 @@ def import_user_data(chunks, ogf_chunks, visual):
     )
 
 
-def import_ik_data(chunks, ogf_chunks, bones):
+def import_ik_data(chunks, ogf_chunks, bones, visual):
     chunk_data = chunks.pop(ogf_chunks.S_IKDATA, None)
     if not chunk_data:
         return
     packed_reader = xray_io.PackedReader(chunk_data)
-    for bone_index, bone_name in enumerate(bones):
+    armature = bpy.data.armatures.new(name=visual.name)
+    armature.display_type = 'STICK'
+    arm_obj = bpy.data.objects.new(visual.name, armature)
+    arm_obj.show_in_front = True
+    version_utils.link_object(arm_obj)
+    version_utils.set_active_object(arm_obj)
+    bpy.ops.object.mode_set(mode='EDIT')
+    for bone_index, (bone_name, parent_name) in enumerate(bones):
         version = packed_reader.getf('<I')[0]
         game_material = packed_reader.gets()
         shape_type = packed_reader.getf('<H')[0]
@@ -1300,12 +1308,43 @@ def import_ik_data(chunks, ogf_chunks, bones):
         friction = packed_reader.getf('<f')[0]
 
         # bind pose
-        bind_rotation = packed_reader.getf('<3f')
-        bind_translation = packed_reader.getf('<3f')
+        bind_rotation = packed_reader.getv3f()
+        bind_translation = packed_reader.getv3f()
 
         # mass
         mass_value = packed_reader.getf('<f')[0]
         mass_center = packed_reader.getf('<3f')
+
+        # create bone
+        bpy_bone = armature.edit_bones.new(name=bone_name)
+        rotation = mathutils.Euler(
+            (-bind_rotation[0], -bind_rotation[1], -bind_rotation[2]), 'YXZ'
+        ).to_matrix().to_4x4()
+        translation = mathutils.Matrix.Translation(bind_translation)
+        mat = version_utils.multiply(
+            translation,
+            rotation,
+            xray_motions.MATRIX_BONE
+        )
+        if parent_name:
+            bpy_bone.parent = armature.edit_bones.get(parent_name, None)
+            if bpy_bone.parent:
+                mat = version_utils.multiply(
+                    bpy_bone.parent.matrix,
+                    xray_motions.MATRIX_BONE_INVERTED,
+                    mat
+                )
+            else:
+                log.warn(
+                    'bone parent isn\'t found',
+                    bone=bone_name,
+                    parent=parent_name
+                )
+        bpy_bone.tail.y = 0.02
+        bpy_bone.matrix = mat
+    bpy.ops.object.mode_set(mode='OBJECT')
+    for bone in arm_obj.pose.bones:
+        bone.rotation_mode = 'ZXY'
 
 
 def import_children(context, chunks, ogf_chunks, root_visual):
@@ -1326,7 +1365,7 @@ def import_children(context, chunks, ogf_chunks, root_visual):
 def import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual):
     import_description(chunks, ogf_chunks)
     bones = import_bone_names(chunks, ogf_chunks)
-    import_ik_data(chunks, ogf_chunks, bones)
+    import_ik_data(chunks, ogf_chunks, bones, visual)
     import_children(context, chunks, ogf_chunks, visual)
 
 
