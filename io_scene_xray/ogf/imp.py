@@ -498,11 +498,11 @@ def import_vertices(chunks, ogf_chunks, visual):
             normal = packed_reader.getn3f()
             tangent = packed_reader.getn3f()
             bitangent = packed_reader.getn3f()
-            uv = packed_reader.getf('<2f')
+            tex_u, tex_v = packed_reader.getf('<2f')
             bone_index = packed_reader.getf('<I')[0]
             vertices.append(coords)
             normals.append(normal)
-            uvs.append(uv)
+            uvs.append((tex_u, 1 - tex_v))
     elif vertex_format == fmt.VertexFormat.FVF_2L:
         for vertex_index in range(verices_count):
             bone_1_index = packed_reader.getf('<H')[0]
@@ -512,10 +512,10 @@ def import_vertices(chunks, ogf_chunks, visual):
             tangent = packed_reader.getn3f()
             bitangent = packed_reader.getn3f()
             weight = packed_reader.getf('<f')[0]
-            uv = packed_reader.getf('<2f')
+            tex_u, tex_v = packed_reader.getf('<2f')
             vertices.append(coords)
             normals.append(normal)
-            uvs.append(uv)
+            uvs.append((tex_u, 1 - tex_v))
     else:
         raise utils.AppError('Unsupported ogf vertex format: 0x{:x}'.format(
             vertex_format
