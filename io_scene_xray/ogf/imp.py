@@ -49,6 +49,7 @@ class Visual(object):
         self.create_time = None
         self.modif_name = None
         self.modif_time = None
+        self.user_data = None
 
 
 class HierrarhyVisual(object):
@@ -1282,7 +1283,7 @@ def import_user_data(chunks, ogf_chunks, visual):
     if not chunk_data:
         return
     packed_reader = xray_io.PackedReader(chunk_data)
-    user_data = packed_reader.gets(
+    visual.user_data = packed_reader.gets(
         onerror=lambda e: log.warn(
             'bad userdata',
             error=str(e),
@@ -1303,6 +1304,18 @@ def import_ik_data(chunks, ogf_chunks, visual):
     arm_obj.xray.isroot = True
     version_utils.link_object(arm_obj)
     version_utils.set_active_object(arm_obj)
+    # motion references
+    if visual.motion_refs:
+        for motion_ref in visual.motion_refs:
+            ref = arm_obj.xray.motionrefs_collection.add()
+            ref.name = motion_ref
+    revision = arm_obj.xray.revision
+    revision.owner = visual.create_name
+    revision.ctime = visual.create_time
+    revision.moder = visual.modif_name
+    revision.mtime = visual.modif_time
+    if visual.user_data:
+        arm_obj.xray.userdata = visual.user_data
     bpy.ops.object.mode_set(mode='EDIT')
     bone_props = []
     for bone_index, (bone_name, parent_name) in enumerate(visual.bones):
