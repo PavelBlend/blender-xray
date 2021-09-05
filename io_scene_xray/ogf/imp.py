@@ -524,7 +524,7 @@ def import_vertices(chunks, ogf_chunks, visual):
     uvs = []
     weights = []
     visual.deform_bones = set()
-    if vertex_format == fmt.VertexFormat.FVF_1L:
+    if vertex_format in (fmt.VertexFormat.FVF_1L, fmt.VertexFormat.FVF_1L_CS):
         for vertex_index in range(verices_count):
             coords = packed_reader.getv3f()
             normal = packed_reader.getn3f()
@@ -538,7 +538,7 @@ def import_vertices(chunks, ogf_chunks, visual):
             vertex_weights = [(bone_index, 1), ]
             weights.append(vertex_weights)
             visual.deform_bones.add(bone_index)
-    elif vertex_format == fmt.VertexFormat.FVF_2L:
+    elif vertex_format in (fmt.VertexFormat.FVF_2L, fmt.VertexFormat.FVF_2L_CS):
         for vertex_index in range(verices_count):
             bone_1_index = packed_reader.getf('<H')[0]
             bone_2_index = packed_reader.getf('<H')[0]
@@ -560,6 +560,73 @@ def import_vertices(chunks, ogf_chunks, visual):
                 vertex_weights = [(bone_1_index, 1), ]
             weights.append(vertex_weights)
             visual.deform_bones.update((bone_1_index, bone_2_index))
+    elif vertex_format == fmt.VertexFormat.FVF_3L_CS:
+        for vertex_index in range(verices_count):
+            bone_1_index = packed_reader.getf('<H')[0]
+            bone_2_index = packed_reader.getf('<H')[0]
+            bone_3_index = packed_reader.getf('<H')[0]
+            coords = packed_reader.getv3f()
+            normal = packed_reader.getn3f()
+            tangent = packed_reader.getn3f()
+            bitangent = packed_reader.getn3f()
+            weight_1, weight_2 = packed_reader.getf('<2f')
+            weight_3 = 1 - weight_1 - weight_2
+            tex_u, tex_v = packed_reader.getf('<2f')
+            vertices.append(coords)
+            normals.append(normal)
+            uvs.append((tex_u, 1 - tex_v))
+            vertex_weights = []
+            bone_indices = [bone_1_index, bone_2_index, bone_3_index]
+            bone_weights = [weight_1, weight_2, weight_3]
+            used_bones = []
+            for bone, weight in zip(bone_indices, bone_weights):
+                if bone in used_bones:
+                    continue
+                used_bones.append(bone)
+                vertex_weights.append((bone, weight))
+            weights.append(vertex_weights)
+            visual.deform_bones.update((
+                bone_1_index,
+                bone_2_index,
+                bone_3_index
+            ))
+    elif vertex_format == fmt.VertexFormat.FVF_4L_CS:
+        for vertex_index in range(verices_count):
+            bone_1_index = packed_reader.getf('<H')[0]
+            bone_2_index = packed_reader.getf('<H')[0]
+            bone_3_index = packed_reader.getf('<H')[0]
+            bone_4_index = packed_reader.getf('<H')[0]
+            coords = packed_reader.getv3f()
+            normal = packed_reader.getn3f()
+            tangent = packed_reader.getn3f()
+            bitangent = packed_reader.getn3f()
+            weight_1, weight_2, weight_3 = packed_reader.getf('<3f')
+            weight_4 = 1 - weight_1 - weight_2 - weight_3
+            tex_u, tex_v = packed_reader.getf('<2f')
+            vertices.append(coords)
+            normals.append(normal)
+            uvs.append((tex_u, 1 - tex_v))
+            bone_indices = (
+                bone_1_index,
+                bone_2_index,
+                bone_3_index,
+                bone_4_index
+            )
+            bone_weights = (weight_1, weight_2, weight_3, weight_4)
+            used_bones = []
+            vertex_weights = []
+            for bone, weight in zip(bone_indices, bone_weights):
+                if bone in used_bones:
+                    continue
+                used_bones.append(bone)
+                vertex_weights.append((bone, weight))
+            weights.append(vertex_weights)
+            visual.deform_bones.update((
+                bone_1_index,
+                bone_2_index,
+                bone_3_index,
+                bone_4_index
+            ))
     else:
         raise utils.AppError('Unsupported ogf vertex format: 0x{:x}'.format(
             vertex_format
