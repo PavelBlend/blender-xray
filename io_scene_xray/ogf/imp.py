@@ -8,13 +8,19 @@ import mathutils
 
 # addon modules
 from . import fmt
+from .. import create
+from .. import omf
+from .. import log
+from .. import utils
 from .. import xray_io
 from .. import version_utils
 from .. import level
+from .. import xray_motions
 
 
 class Visual(object):
     def __init__(self):
+        self.file_path = None
         self.visual_id = None
         self.format_version = None
         self.model_type = None
@@ -27,12 +33,24 @@ class Visual(object):
         self.triangles = None
         self.indices_count = None
         self.indices = None
+        self.weights = None
         self.hemi = None
         self.sun = None
         self.light = None
         self.fastpath = False
         self.use_two_sided_tris = False
         self.vb_index = None
+        self.is_root = None
+        self.bpy_materials = None
+        self.arm_obj = None
+        self.bones = None
+        self.deform_bones = None
+        self.motion_refs = None
+        self.create_name = None
+        self.create_time = None
+        self.modif_name = None
+        self.modif_time = None
+        self.user_data = None
 
 
 class HierrarhyVisual(object):
@@ -96,7 +114,7 @@ def convert_float_normal(norm_in):
     return mathutils.Vector((norm_in[2], norm_in[0], norm_in[1])).normalized()
 
 
-def create_visual(bpy_mesh, visual, lvl, geometry_key):
+def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None, bones=None):
     if not bpy_mesh:
         mesh = bmesh.new()
 
@@ -151,16 +169,29 @@ def create_visual(bpy_mesh, visual, lvl, geometry_key):
         remap_vertex_index = 0
         remap_vertices = {}
         unique_verts = {}
-        for vertex_index, vertex_coord in enumerate(visual.vertices):
-            is_back_vert = back_side[vertex_index]
-            if unique_verts.get((vertex_coord, is_back_vert), None) is None:
-                mesh.verts.new(vertex_coord)
-                remap_vertices[vertex_index] = remap_vertex_index
-                unique_verts[(vertex_coord, is_back_vert)] = remap_vertex_index
-                remap_vertex_index += 1
-            else:
-                current_remap_vertex_index = unique_verts[(vertex_coord, is_back_vert)]
-                remap_vertices[vertex_index] = current_remap_vertex_index
+        if not visual.weights:
+            for vertex_index, vertex_coord in enumerate(visual.vertices):
+                is_back_vert = back_side[vertex_index]
+                if unique_verts.get((vertex_coord, is_back_vert), None) is None:
+                    mesh.verts.new(vertex_coord)
+                    remap_vertices[vertex_index] = remap_vertex_index
+                    unique_verts[(vertex_coord, is_back_vert)] = remap_vertex_index
+                    remap_vertex_index += 1
+                else:
+                    current_remap_vertex_index = unique_verts[(vertex_coord, is_back_vert)]
+                    remap_vertices[vertex_index] = current_remap_vertex_index
+        else:
+            for vertex_index, vertex_coord in enumerate(visual.vertices):
+                is_back_vert = back_side[vertex_index]
+                weights = tuple(visual.weights[vertex_index])
+                if unique_verts.get((vertex_coord, weights, is_back_vert), None) is None:
+                    mesh.verts.new(vertex_coord)
+                    remap_vertices[vertex_index] = remap_vertex_index
+                    unique_verts[(vertex_coord, weights, is_back_vert)] = remap_vertex_index
+                    remap_vertex_index += 1
+                else:
+                    current_remap_vertex_index = unique_verts[(vertex_coord, weights, is_back_vert)]
+                    remap_vertices[vertex_index] = current_remap_vertex_index
 
         mesh.verts.ensure_lookup_table()
         mesh.verts.index_update()
@@ -173,7 +204,14 @@ def create_visual(bpy_mesh, visual, lvl, geometry_key):
                 convert_normal_function = convert_normal
         else:
             convert_normal_function = convert_float_normal
-        if lvl.xrlc_version >= level.fmt.VERSION_11:
+        is_new_format = False
+        if lvl:
+            if lvl.xrlc_version >= level.fmt.VERSION_11:
+                is_new_format = True
+        else:
+            if visual.format_version == fmt.FORMAT_VERSION_4:
+                is_new_format = True
+        if is_new_format:
             for triangle in visual.triangles:
                 try:
                     vert_1 = remap_vertices[triangle[0]]
@@ -242,17 +280,23 @@ def create_visual(bpy_mesh, visual, lvl, geometry_key):
                         bmesh_sun_color[1] = sun
                         bmesh_sun_color[2] = sun
                         current_loop += 1
-            else:    # trees
-                for face in mesh.faces:
-                    for loop in face.loops:
-                        loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
-                        # hemi vertex color
-                        hemi = visual.hemi[remap_loops[current_loop]]
-                        bmesh_hemi_color = loop[hemi_vertex_color]
-                        bmesh_hemi_color[0] = hemi
-                        bmesh_hemi_color[1] = hemi
-                        bmesh_hemi_color[2] = hemi
-                        current_loop += 1
+            else:
+                if visual.hemi:    # trees
+                    for face in mesh.faces:
+                        for loop in face.loops:
+                            loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
+                            # hemi vertex color
+                            hemi = visual.hemi[remap_loops[current_loop]]
+                            bmesh_hemi_color = loop[hemi_vertex_color]
+                            bmesh_hemi_color[0] = hemi
+                            bmesh_hemi_color[1] = hemi
+                            bmesh_hemi_color[2] = hemi
+                            current_loop += 1
+                else:    # ogf file
+                    for face in mesh.faces:
+                        for loop in face.loops:
+                            loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
+                            current_loop += 1
 
         else:    # xrlc version <= 10
             if visual.normals:
@@ -333,25 +377,44 @@ def create_visual(bpy_mesh, visual, lvl, geometry_key):
         bpy_mesh = bpy.data.meshes.new(visual.name)
         bpy_mesh.use_auto_smooth = True
         bpy_mesh.auto_smooth_angle = math.pi
-        assign_material(bpy_mesh, visual, lvl)
+        if lvl:
+            assign_material(bpy_mesh, visual, lvl)
 
-        if not version_utils.IS_28:
-            bpy_image = lvl.images[visual.shader_id]
-            texture_layer = mesh.faces.layers.tex.new('Texture')
-            for face in mesh.faces:
-                face[texture_layer].image = bpy_image
+            if not version_utils.IS_28:
+                bpy_image = lvl.images[visual.shader_id]
+                texture_layer = mesh.faces.layers.tex.new('Texture')
+                for face in mesh.faces:
+                    face[texture_layer].image = bpy_image
+
+            lvl.loaded_geometry[geometry_key] = bpy_mesh
+
+        else:
+            material = visual.bpy_materials[visual.shader_id]
+            bpy_mesh.materials.append(material)
 
         mesh.to_mesh(bpy_mesh)
         if custom_normals:
             bpy_mesh.normals_split_custom_set(custom_normals)
         del mesh
 
-        lvl.loaded_geometry[geometry_key] = bpy_mesh
-
     else:
-        bpy_mesh = lvl.loaded_geometry[geometry_key]
+        if lvl:
+            bpy_mesh = lvl.loaded_geometry[geometry_key]
 
     bpy_object = create_object(visual.name, bpy_mesh)
+
+    # assign weights
+    if visual.weights:
+        for index, (name, parent) in enumerate(visual.bones):
+            if index in visual.deform_bones:
+                bpy_object.vertex_groups.new(name=name)
+        for index, weights in enumerate(visual.weights):
+            for bone_index, weight in weights:
+                bone_name, _ = visual.bones[bone_index]
+                group = bpy_object.vertex_groups[bone_name]
+                vert_index = remap_vertices[index]
+                group.add([vert_index, ], weight, 'REPLACE')
+
     return bpy_object
 
 
@@ -437,8 +500,16 @@ def import_vcontainer(data):
     pass
 
 
-def import_indices(data):
-    pass
+def read_indices(packed_reader):
+    indices_count = packed_reader.getf('I')[0]
+    indices_buffer = packed_reader.getf('{0}H'.format(indices_count))
+    return indices_buffer, indices_count
+
+
+def import_indices(chunks, ogf_chunks, visual):
+    chunk_data = chunks.pop(ogf_chunks.INDICES)
+    packed_reader = xray_io.PackedReader(chunk_data)
+    visual.indices, visual.indices_count = read_indices(packed_reader)
 
 
 def read_indices_v3(data, visual):
@@ -457,12 +528,127 @@ def read_vertices_v3(data, visual, lvl):
     visual.uvs_lmap = vb.uv_lmap
 
 
-def import_vertices(data):
-    pass
-
-
-def import_texture(data):
-    pass
+def import_vertices(chunks, ogf_chunks, visual):
+    chunk_data = chunks.pop(ogf_chunks.VERTICES)
+    packed_reader = xray_io.PackedReader(chunk_data)
+    vertex_format = packed_reader.getf('<I')[0]
+    verices_count = packed_reader.getf('<I')[0]
+    vertices = []
+    normals = []
+    uvs = []
+    weights = []
+    visual.deform_bones = set()
+    if vertex_format in (fmt.VertexFormat.FVF_1L, fmt.VertexFormat.FVF_1L_CS):
+        for vertex_index in range(verices_count):
+            coords = packed_reader.getv3f()
+            normal = packed_reader.getn3f()
+            tangent = packed_reader.getn3f()
+            bitangent = packed_reader.getn3f()
+            tex_u, tex_v = packed_reader.getf('<2f')
+            bone_index = packed_reader.getf('<I')[0]
+            vertices.append(coords)
+            normals.append(normal)
+            uvs.append((tex_u, 1 - tex_v))
+            vertex_weights = [(bone_index, 1), ]
+            weights.append(vertex_weights)
+            visual.deform_bones.add(bone_index)
+    elif vertex_format in (fmt.VertexFormat.FVF_2L, fmt.VertexFormat.FVF_2L_CS):
+        for vertex_index in range(verices_count):
+            bone_1_index = packed_reader.getf('<H')[0]
+            bone_2_index = packed_reader.getf('<H')[0]
+            coords = packed_reader.getv3f()
+            normal = packed_reader.getn3f()
+            tangent = packed_reader.getn3f()
+            bitangent = packed_reader.getn3f()
+            weight = packed_reader.getf('<f')[0]
+            tex_u, tex_v = packed_reader.getf('<2f')
+            vertices.append(coords)
+            normals.append(normal)
+            uvs.append((tex_u, 1 - tex_v))
+            if bone_1_index != bone_2_index:
+                vertex_weights = [
+                    (bone_1_index, 1 - weight),
+                    (bone_2_index, weight),
+                ]
+            else:
+                vertex_weights = [(bone_1_index, 1), ]
+            weights.append(vertex_weights)
+            visual.deform_bones.update((bone_1_index, bone_2_index))
+    elif vertex_format == fmt.VertexFormat.FVF_3L_CS:
+        for vertex_index in range(verices_count):
+            bone_1_index = packed_reader.getf('<H')[0]
+            bone_2_index = packed_reader.getf('<H')[0]
+            bone_3_index = packed_reader.getf('<H')[0]
+            coords = packed_reader.getv3f()
+            normal = packed_reader.getn3f()
+            tangent = packed_reader.getn3f()
+            bitangent = packed_reader.getn3f()
+            weight_1, weight_2 = packed_reader.getf('<2f')
+            weight_3 = 1 - weight_1 - weight_2
+            tex_u, tex_v = packed_reader.getf('<2f')
+            vertices.append(coords)
+            normals.append(normal)
+            uvs.append((tex_u, 1 - tex_v))
+            vertex_weights = []
+            bone_indices = [bone_1_index, bone_2_index, bone_3_index]
+            bone_weights = [weight_1, weight_2, weight_3]
+            used_bones = []
+            for bone, weight in zip(bone_indices, bone_weights):
+                if bone in used_bones:
+                    continue
+                used_bones.append(bone)
+                vertex_weights.append((bone, weight))
+            weights.append(vertex_weights)
+            visual.deform_bones.update((
+                bone_1_index,
+                bone_2_index,
+                bone_3_index
+            ))
+    elif vertex_format == fmt.VertexFormat.FVF_4L_CS:
+        for vertex_index in range(verices_count):
+            bone_1_index = packed_reader.getf('<H')[0]
+            bone_2_index = packed_reader.getf('<H')[0]
+            bone_3_index = packed_reader.getf('<H')[0]
+            bone_4_index = packed_reader.getf('<H')[0]
+            coords = packed_reader.getv3f()
+            normal = packed_reader.getn3f()
+            tangent = packed_reader.getn3f()
+            bitangent = packed_reader.getn3f()
+            weight_1, weight_2, weight_3 = packed_reader.getf('<3f')
+            weight_4 = 1 - weight_1 - weight_2 - weight_3
+            tex_u, tex_v = packed_reader.getf('<2f')
+            vertices.append(coords)
+            normals.append(normal)
+            uvs.append((tex_u, 1 - tex_v))
+            bone_indices = (
+                bone_1_index,
+                bone_2_index,
+                bone_3_index,
+                bone_4_index
+            )
+            bone_weights = (weight_1, weight_2, weight_3, weight_4)
+            used_bones = []
+            vertex_weights = []
+            for bone, weight in zip(bone_indices, bone_weights):
+                if bone in used_bones:
+                    continue
+                used_bones.append(bone)
+                vertex_weights.append((bone, weight))
+            weights.append(vertex_weights)
+            visual.deform_bones.update((
+                bone_1_index,
+                bone_2_index,
+                bone_3_index,
+                bone_4_index
+            ))
+    else:
+        raise utils.AppError('Unsupported ogf vertex format: 0x{:x}'.format(
+            vertex_format
+        ))
+    visual.vertices = vertices
+    visual.normals = normals
+    visual.uvs = uvs
+    visual.weights = weights
 
 
 def import_fastpath(data, visual, lvl):
@@ -662,7 +848,7 @@ def import_normal_visual(chunks, visual, lvl):
 
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
-        bpy_object = create_visual(bpy_mesh, visual, lvl, geometry_key)
+        bpy_object = create_visual(visual, bpy_mesh, lvl, geometry_key)
         if visual.fastpath:
             bpy_object.xray.level.use_fastpath = True
         else:
@@ -737,7 +923,7 @@ def import_tree_st_visual(chunks, visual, lvl):
     bpy_mesh, geometry_key = import_geometry(chunks, visual, lvl)
     if not bpy_mesh:
         convert_indices_to_triangles(visual)
-        bpy_object = create_visual(bpy_mesh, visual, lvl, geometry_key)
+        bpy_object = create_visual(visual, bpy_mesh, lvl, geometry_key)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(lvl, visual, chunks, bpy_object)
@@ -770,7 +956,7 @@ def import_progressive_visual(chunks, visual, lvl):
     check_unread_chunks(chunks, context='PROGRESSIVE_VISUAL')
 
     if not bpy_mesh:
-        bpy_object = create_visual(bpy_mesh, visual, lvl, geometry_key)
+        bpy_object = create_visual(visual, bpy_mesh, lvl, geometry_key)
         if visual.fastpath:
             bpy_object.xray.level.use_fastpath = True
         else:
@@ -923,7 +1109,7 @@ def import_tree_pm_visual(chunks, visual, lvl):
         visual.indices_count = swi[0].triangles_count * 3
         convert_indices_to_triangles(visual)
 
-        bpy_object = create_visual(bpy_mesh, visual, lvl, geometry_key)
+        bpy_object = create_visual(visual, bpy_mesh, lvl, geometry_key)
     else:
         bpy_object = create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(lvl, visual, chunks, bpy_object)
@@ -1145,3 +1331,426 @@ def import_(data, visual_id, lvl, chunks, visuals_ids):
     visual = Visual()
     visual.visual_id = visual_id
     import_main(chunks, visual, lvl)
+
+
+def import_description(chunks, ogf_chunks, visual):
+    chunk_data = chunks.pop(ogf_chunks.S_DESC)
+    packed_reader = xray_io.PackedReader(chunk_data)
+    source_file = packed_reader.gets()
+    build_name = packed_reader.gets()
+    build_time = packed_reader.getf('<I')[0]
+    visual.create_name = packed_reader.gets()
+    visual.create_time = packed_reader.getf('<I')[0]
+    visual.modif_name = packed_reader.gets()
+    visual.modif_time = packed_reader.getf('<I')[0]
+
+
+def import_bone_names(chunks, ogf_chunks, visual):
+    chunk_data = chunks.pop(ogf_chunks.S_BONE_NAMES)
+    packed_reader = xray_io.PackedReader(chunk_data)
+    bones_count = packed_reader.getf('<I')[0]
+    visual.bones = []
+    for bone_index in range(bones_count):
+        bone_name = packed_reader.gets()
+        bone_parent = packed_reader.gets()
+        rotation = packed_reader.getf('<9f')
+        translation = packed_reader.getf('<3f')
+        half_size = packed_reader.getf('<3f')
+        visual.bones.append((bone_name, bone_parent))
+
+
+def import_user_data(chunks, ogf_chunks, visual):
+    chunk_data = chunks.pop(ogf_chunks.S_USERDATA, None)
+    if not chunk_data:
+        return
+    packed_reader = xray_io.PackedReader(chunk_data)
+    visual.user_data = packed_reader.gets(
+        onerror=lambda e: log.warn(
+            'bad userdata',
+            error=str(e),
+            file=visual.file_path
+        )
+    )
+
+
+def import_ik_data(chunks, ogf_chunks, visual):
+    chunk_data = chunks.pop(ogf_chunks.S_IKDATA, None)
+    if not chunk_data:
+        return
+    packed_reader = xray_io.PackedReader(chunk_data)
+    armature = bpy.data.armatures.new(name=visual.name)
+    armature.display_type = 'STICK'
+    arm_obj = bpy.data.objects.new(visual.name, armature)
+    arm_obj.show_in_front = True
+    arm_obj.xray.isroot = True
+    version_utils.link_object(arm_obj)
+    version_utils.set_active_object(arm_obj)
+    # motion references
+    if visual.motion_refs:
+        for motion_ref in visual.motion_refs:
+            ref = arm_obj.xray.motionrefs_collection.add()
+            ref.name = motion_ref
+    revision = arm_obj.xray.revision
+    revision.owner = visual.create_name
+    revision.ctime = visual.create_time
+    revision.moder = visual.modif_name
+    revision.mtime = visual.modif_time
+    if visual.user_data:
+        arm_obj.xray.userdata = visual.user_data
+    bpy.ops.object.mode_set(mode='EDIT')
+    bone_props = []
+    for bone_index, (bone_name, parent_name) in enumerate(visual.bones):
+        version = packed_reader.getf('<I')[0]
+        props = []
+        game_material = packed_reader.gets()
+        shape_type = packed_reader.getf('<H')[0]
+        shape_flags = packed_reader.getf('<H')[0]
+        props.extend((
+            game_material,
+            shape_type,
+            shape_flags
+        ))
+        # box shape
+        box_shape_rotation = packed_reader.getf('<9f')
+        box_shape_translation = packed_reader.getf('<3f')
+        box_shape_half_size = packed_reader.getf('<3f')
+        props.extend((
+            box_shape_rotation,
+            box_shape_translation,
+            box_shape_half_size
+        ))
+        # sphere shape
+        sphere_shape_translation = packed_reader.getf('<3f')
+        sphere_shape_radius = packed_reader.getf('<f')[0]
+        props.extend((
+            sphere_shape_translation,
+            sphere_shape_radius
+        ))
+        # cylinder shape
+        cylinder_shape_translation = packed_reader.getf('<3f')
+        cylinder_shape_direction = packed_reader.getf('<3f')
+        cylinder_shape_height = packed_reader.getf('<f')[0]
+        cylinder_shape_radius = packed_reader.getf('<f')[0]
+        props.extend((
+            cylinder_shape_translation,
+            cylinder_shape_direction,
+            cylinder_shape_height,
+            cylinder_shape_radius
+        ))
+
+        joint_type = packed_reader.getf('<I')[0]
+        props.append(joint_type)
+
+        # x limits
+        limit_x_min, limit_x_max = packed_reader.getf('<2f')
+        limit_x_spring = packed_reader.getf('<f')[0]
+        limit_x_damping = packed_reader.getf('<f')[0]
+        props.extend((
+            limit_x_min,
+            limit_x_max,
+            limit_x_spring,
+            limit_x_damping
+        ))
+        # y limits
+        limit_y_min, limit_y_max = packed_reader.getf('<2f')
+        limit_y_spring = packed_reader.getf('<f')[0]
+        limit_y_damping = packed_reader.getf('<f')[0]
+        props.extend((
+            limit_y_min,
+            limit_y_max,
+            limit_y_spring,
+            limit_y_damping
+        ))
+        # z limits
+        limit_z_min, limit_z_max = packed_reader.getf('<2f')
+        limit_z_spring = packed_reader.getf('<f')[0]
+        limit_z_damping = packed_reader.getf('<f')[0]
+        props.extend((
+            limit_z_min,
+            limit_z_max,
+            limit_z_spring,
+            limit_z_damping
+        ))
+
+        joint_spring = packed_reader.getf('<f')[0]
+        joint_damping = packed_reader.getf('<f')[0]
+        ik_flags = packed_reader.getf('<I')[0]
+        breakable_force = packed_reader.getf('<f')[0]
+        breakable_torque = packed_reader.getf('<f')[0]
+        friction = packed_reader.getf('<f')[0]
+        props.extend((
+            joint_spring,
+            joint_damping,
+            ik_flags,
+            breakable_force,
+            breakable_torque,
+            friction
+        ))
+
+        # bind pose
+        bind_rotation = packed_reader.getv3f()
+        bind_translation = packed_reader.getv3f()
+
+        # mass
+        mass_value = packed_reader.getf('<f')[0]
+        mass_center = packed_reader.getv3f()
+        props.extend((
+            mass_value,
+            mass_center,
+        ))
+
+        bone_props.append(props)
+
+        # create bone
+        bpy_bone = armature.edit_bones.new(name=bone_name)
+        rotation = mathutils.Euler(
+            (-bind_rotation[0], -bind_rotation[1], -bind_rotation[2]), 'YXZ'
+        ).to_matrix().to_4x4()
+        translation = mathutils.Matrix.Translation(bind_translation)
+        mat = version_utils.multiply(
+            translation,
+            rotation,
+            xray_motions.MATRIX_BONE
+        )
+        if parent_name:
+            bpy_bone.parent = armature.edit_bones.get(parent_name, None)
+            if bpy_bone.parent:
+                mat = version_utils.multiply(
+                    bpy_bone.parent.matrix,
+                    xray_motions.MATRIX_BONE_INVERTED,
+                    mat
+                )
+            else:
+                log.warn(
+                    'bone parent isn\'t found',
+                    bone=bone_name,
+                    parent=parent_name
+                )
+        bpy_bone.tail.y = 0.02
+        bpy_bone.matrix = mat
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    for bone_index, bone in enumerate(armature.bones):
+        props = bone_props[bone_index]
+        xray = bone.xray
+        shape = xray.shape
+        ik = xray.ikjoint
+        shape.set_curver()
+        i = 0
+        xray.gamemtl = props[i]
+        i += 1
+        if props[i] <= 3:
+            shape.type = str(props[i])
+        else:
+            log.warn(
+                'Unsupported bone shape type',
+                file=visual.file_path,
+                bone=bone.name
+            )
+        i += 1
+        shape.flags = props[i]
+        i += 1
+        shape.box_rot = props[i]
+        i += 1
+        shape.box_trn = props[i]
+        i += 1
+        shape.box_hsz = props[i]
+        i += 1
+        shape.sph_pos = props[i]
+        i += 1
+        shape.sph_rad = props[i]
+        i += 1
+        shape.cyl_pos = props[i]
+        i += 1
+        shape.cyl_dir = props[i]
+        i += 1
+        shape.cyl_hgh = props[i]
+        i += 1
+        shape.cyl_rad = props[i]
+        i += 1
+        if props[i] <= 5:
+            ik.type = str(props[i])
+        else:
+            log.warn(
+                'Unsupported joint type',
+                file=visual.file_path,
+                bone=bone.name
+            )
+        i += 1
+        ik.lim_x_max = -props[i]
+        i += 1
+        ik.lim_x_min = -props[i]
+        i += 1
+        ik.lim_x_spr = props[i]
+        i += 1
+        ik.lim_x_dmp = props[i]
+        i += 1
+        ik.lim_y_max = -props[i]
+        i += 1
+        ik.lim_y_min = -props[i]
+        i += 1
+        ik.lim_y_spr = props[i]
+        i += 1
+        ik.lim_y_dmp = props[i]
+        i += 1
+        ik.lim_z_max = -props[i]
+        i += 1
+        ik.lim_z_min = -props[i]
+        i += 1
+        ik.lim_z_spr = props[i]
+        i += 1
+        ik.lim_z_dmp = props[i]
+        i += 1
+        ik.spring = props[i]
+        i += 1
+        ik.damping = props[i]
+        i += 1
+        xray.ikflags = props[i]
+        i += 1
+        xray.breakf.force = props[i]
+        i += 1
+        xray.breakf.torque = props[i]
+        i += 1
+        xray.friction = props[i]
+        i += 1
+        xray.mass.value = props[i]
+        i += 1
+        xray.mass.center = props[i]
+
+    for bone in arm_obj.pose.bones:
+        bone.rotation_mode = 'ZXY'
+    visual.arm_obj = arm_obj
+
+
+def import_children(context, chunks, ogf_chunks, root_visual):
+    chunk_data = chunks.pop(ogf_chunks.CHILDREN, None)
+    if not chunk_data:
+        return
+    chunked_reader = xray_io.ChunkedReader(chunk_data)
+    for child_index, child_data in chunked_reader:
+        visual = Visual()
+        visual.file_path = root_visual.file_path
+        visual.name = root_visual.name + ' {:0>2}'.format(child_index)
+        visual.visual_id = child_index
+        visual.is_root = False
+        visual.arm_obj = root_visual.arm_obj
+        visual.bones = root_visual.bones
+        visual.bpy_materials = root_visual.bpy_materials
+        import_visual(context, child_data, visual)
+        if visual.model_type == fmt.ModelType_v4.SKELETON_GEOMDEF_PM:
+            root_visual.arm_obj.xray.flags_simple = 'pd'
+        elif visual.model_type == fmt.ModelType_v4.SKELETON_GEOMDEF_ST:
+            root_visual.arm_obj.xray.flags_simple = 'dy'
+        else:
+            print('WARRNING: Model type = {}'.format(visual.model_type))
+
+
+def import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual):
+    import_description(chunks, ogf_chunks, visual)
+    import_bone_names(chunks, ogf_chunks, visual)
+    import_ik_data(chunks, ogf_chunks, visual)
+    import_children(context, chunks, ogf_chunks, visual)
+
+
+def import_texture(context, chunks, ogf_chunks, visual):
+    chunk_data = chunks.pop(ogf_chunks.TEXTURE)
+    packed_reader = xray_io.PackedReader(chunk_data)
+    texture = packed_reader.gets()
+    shader = packed_reader.gets()
+    bpy_material = create.material.get_material(
+        context,
+        texture,    # material name
+        texture,
+        shader,
+        'default',    # compile shader
+        'default_object',    # game material
+        0,    # two sided flag
+        'Texture'    # uv map name
+    )
+    visual.bpy_materials[visual.shader_id] = bpy_material
+
+
+def import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual):
+    import_texture(context, chunks, ogf_chunks, visual)
+    import_vertices(chunks, ogf_chunks, visual)
+    import_indices(chunks, ogf_chunks, visual)
+
+
+def import_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual):
+    import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual)
+    swi = import_swidata(chunks)
+    visual.indices = visual.indices[swi[0].offset : ]
+    visual.indices_count = swi[0].triangles_count * 3
+
+
+def read_motion_references(chunks, ogf_chunks, visual):
+    data = chunks.pop(ogf_chunks.S_MOTION_REFS_0, None)
+    if not data:
+        return
+    packed_reader = xray_io.PackedReader(data)
+    visual.motion_refs = packed_reader.gets(data).split(',')
+
+
+def import_mt_skeleton_anim(context, chunks, ogf_chunks, visual):
+    read_motion_references(chunks, ogf_chunks, visual)
+    import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual)
+    if context.import_motions:
+        motions_data = chunks.pop(ogf_chunks.S_MOTIONS, None)
+        params_data = chunks.pop(ogf_chunks.S_SMPARAMS, None)
+        if params_data and motions_data:
+            context.bpy_arm_obj = visual.arm_obj
+            motions_params = omf.imp.read_params(params_data, context)
+            omf.imp.read_motions(motions_data, context, motions_params)
+
+
+def import_visual(context, data, visual):
+    chunks, visual_chunks_ids = get_ogf_chunks(data)
+    header_chunk_data = chunks.pop(fmt.HEADER)
+    import_header(header_chunk_data, visual)
+    if visual.format_version != fmt.FORMAT_VERSION_4:
+        raise utils.AppError(
+            'Unsupported ogf format version: {}'.format(visual.format_version)
+        )
+    ogf_chunks = fmt.Chunks_v4
+    model_types = fmt.ModelType_v4
+    model_type_names = fmt.model_type_names_v4
+    import_user_data(chunks, ogf_chunks, visual)
+    if visual.model_type == model_types.SKELETON_RIGID:
+        import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual)
+    elif visual.model_type == model_types.SKELETON_ANIM:
+        import_mt_skeleton_anim(context, chunks, ogf_chunks, visual)
+    elif visual.model_type == model_types.SKELETON_GEOMDEF_ST:
+        import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual)
+    elif visual.model_type == model_types.SKELETON_GEOMDEF_PM:
+        import_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual)
+    else:
+        raise utils.AppError(
+            'Unsupported ogf model type: {}'.format(
+                model_type_names[visual.model_type]
+            )
+        )
+    for chunk_id, chunk_data in chunks.items():
+        print('Unknown OGF chunk: {}, size: {}'.format(
+            hex(chunk_id), len(chunk_data)
+        ))
+    if not visual.is_root:
+        convert_indices_to_triangles(visual)
+        bpy_object = create_visual(visual)
+        arm = visual.arm_obj
+        if arm:
+            bpy_object.parent = arm
+            mod = bpy_object.modifiers.new('Armature', 'ARMATURE')
+            mod.object = arm
+            bpy_object.xray.isroot = False
+
+
+def import_file(context, file_path, file_name):
+    data = utils.read_file(file_path)
+    visual = Visual()
+    visual.file_path = file_path
+    visual.visual_id = 0
+    visual.name = file_name
+    visual.is_root = True
+    visual.bpy_materials = {}
+    import_visual(context, data, visual)

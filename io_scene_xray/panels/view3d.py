@@ -379,6 +379,9 @@ class XRAY_PT_import_operators(bpy.types.Panel):
         # level
         if preferences.enable_game_level_import:
             col.operator(level.ops.XRAY_OT_import_level.bl_idname, text='Level')
+        # ogf
+        if preferences.enable_ogf_import:
+            col.operator(ogf.ops.XRAY_OT_import_ogf.bl_idname, text='Ogf')
         # err
         if preferences.enable_err_import:
             col.operator(err.ops.XRAY_OT_import_err.bl_idname, text='Err')

@@ -32,6 +32,7 @@ import_draw_functions = [
     ('enable_details_import', details.ops.XRAY_OT_import_details),
     ('enable_level_import', scene.ops.XRAY_OT_import_scene_selection),
     ('enable_game_level_import', level.ops.XRAY_OT_import_level),
+    ('enable_ogf_import', ogf.ops.XRAY_OT_import_ogf),
     ('enable_err_import', err.ops.XRAY_OT_import_err)
 ]
 

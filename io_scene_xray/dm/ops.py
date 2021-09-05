@@ -126,6 +126,7 @@ op_export_dms_props = {
     'texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath()
 }
 
+
 class XRAY_OT_export_dm(plugin_props.BaseOperator):
     bl_idname = 'xray_export.dm'
     bl_label = 'Export .dm'
