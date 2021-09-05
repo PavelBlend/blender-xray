@@ -14,7 +14,7 @@ XRay-engine import/export plugin for [blender](http://www.blender.org/).
 | .err      | Error list            | Yes        | No         | |
 | .level    | Scene selection       | Yes        | Yes        | |
 | level     | Game level            | Yes        | Yes        | |
-| .ogf      | Compiled models       | No         | Yes*       | *Extremely experimental |
+| .ogf      | Compiled models       | Yes        | Yes*       | *Extremely experimental |
 | .omf      | Game skeletal actions | Yes        | Yes        | |
 
 ## Installation
