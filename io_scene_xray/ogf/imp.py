@@ -32,6 +32,7 @@ class Visual(object):
         self.triangles = None
         self.indices_count = None
         self.indices = None
+        self.weights = None
         self.hemi = None
         self.sun = None
         self.light = None
@@ -40,6 +41,9 @@ class Visual(object):
         self.vb_index = None
         self.is_root = None
         self.bpy_materials = None
+        self.arm_obj = None
+        self.bones = None
+        self.deform_bones = None
 
 
 class HierrarhyVisual(object):
@@ -103,7 +107,7 @@ def convert_float_normal(norm_in):
     return mathutils.Vector((norm_in[2], norm_in[0], norm_in[1])).normalized()
 
 
-def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None):
+def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None, bones=None):
     if not bpy_mesh:
         mesh = bmesh.new()
 
@@ -378,6 +382,19 @@ def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None):
             bpy_mesh = lvl.loaded_geometry[geometry_key]
 
     bpy_object = create_object(visual.name, bpy_mesh)
+
+    # assign weights
+    if visual.weights:
+        for index, (name, parent) in enumerate(visual.bones):
+            if index in visual.deform_bones:
+                bpy_object.vertex_groups.new(name=name)
+        for index, weights in enumerate(visual.weights):
+            for bone_index, weight in weights:
+                bone_name, _ = visual.bones[bone_index]
+                group = bpy_object.vertex_groups[bone_name]
+                vert_index = remap_vertices[index]
+                group.add([vert_index, ], weight, 'REPLACE')
+
     return bpy_object
 
 
@@ -499,6 +516,8 @@ def import_vertices(chunks, ogf_chunks, visual):
     vertices = []
     normals = []
     uvs = []
+    weights = []
+    visual.deform_bones = set()
     if vertex_format == fmt.VertexFormat.FVF_1L:
         for vertex_index in range(verices_count):
             coords = packed_reader.getv3f()
@@ -510,6 +529,9 @@ def import_vertices(chunks, ogf_chunks, visual):
             vertices.append(coords)
             normals.append(normal)
             uvs.append((tex_u, 1 - tex_v))
+            vertex_weights = [(bone_index, 1), ]
+            weights.append(vertex_weights)
+            visual.deform_bones.add(bone_index)
     elif vertex_format == fmt.VertexFormat.FVF_2L:
         for vertex_index in range(verices_count):
             bone_1_index = packed_reader.getf('<H')[0]
@@ -523,6 +545,15 @@ def import_vertices(chunks, ogf_chunks, visual):
             vertices.append(coords)
             normals.append(normal)
             uvs.append((tex_u, 1 - tex_v))
+            if bone_1_index != bone_2_index:
+                vertex_weights = [
+                    (bone_1_index, 1 - weight),
+                    (bone_2_index, weight),
+                ]
+            else:
+                vertex_weights = [(bone_1_index, 1), ]
+            weights.append(vertex_weights)
+            visual.deform_bones.update((bone_1_index, bone_2_index))
     else:
         raise utils.AppError('Unsupported ogf vertex format: 0x{:x}'.format(
             vertex_format
@@ -530,6 +561,7 @@ def import_vertices(chunks, ogf_chunks, visual):
     visual.vertices = vertices
     visual.normals = normals
     visual.uvs = uvs
+    visual.weights = weights
 
 
 def import_fastpath(data, visual, lvl):
@@ -1226,19 +1258,18 @@ def import_description(chunks, ogf_chunks):
     modif_time = packed_reader.getf('<I')[0]
 
 
-def import_bone_names(chunks, ogf_chunks):
+def import_bone_names(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_BONE_NAMES)
     packed_reader = xray_io.PackedReader(chunk_data)
     bones_count = packed_reader.getf('<I')[0]
-    bones = []
+    visual.bones = []
     for bone_index in range(bones_count):
         bone_name = packed_reader.gets()
         bone_parent = packed_reader.gets()
         rotation = packed_reader.getf('<9f')
         translation = packed_reader.getf('<3f')
         half_size = packed_reader.getf('<3f')
-        bones.append((bone_name, bone_parent))
-    return bones
+        visual.bones.append((bone_name, bone_parent))
 
 
 def import_user_data(chunks, ogf_chunks, visual):
@@ -1255,7 +1286,7 @@ def import_user_data(chunks, ogf_chunks, visual):
     )
 
 
-def import_ik_data(chunks, ogf_chunks, bones, visual):
+def import_ik_data(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_IKDATA, None)
     if not chunk_data:
         return
@@ -1264,10 +1295,11 @@ def import_ik_data(chunks, ogf_chunks, bones, visual):
     armature.display_type = 'STICK'
     arm_obj = bpy.data.objects.new(visual.name, armature)
     arm_obj.show_in_front = True
+    arm_obj.xray.isroot = True
     version_utils.link_object(arm_obj)
     version_utils.set_active_object(arm_obj)
     bpy.ops.object.mode_set(mode='EDIT')
-    for bone_index, (bone_name, parent_name) in enumerate(bones):
+    for bone_index, (bone_name, parent_name) in enumerate(visual.bones):
         version = packed_reader.getf('<I')[0]
         game_material = packed_reader.gets()
         shape_type = packed_reader.getf('<H')[0]
@@ -1345,6 +1377,7 @@ def import_ik_data(chunks, ogf_chunks, bones, visual):
     bpy.ops.object.mode_set(mode='OBJECT')
     for bone in arm_obj.pose.bones:
         bone.rotation_mode = 'ZXY'
+    visual.arm_obj = arm_obj
 
 
 def import_children(context, chunks, ogf_chunks, root_visual):
@@ -1358,14 +1391,16 @@ def import_children(context, chunks, ogf_chunks, root_visual):
         visual.name = root_visual.name + ' {:0>2}'.format(child_index)
         visual.visual_id = child_index
         visual.is_root = False
+        visual.arm_obj = root_visual.arm_obj
+        visual.bones = root_visual.bones
         visual.bpy_materials = root_visual.bpy_materials
         import_visual(context, child_data, visual)
 
 
 def import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual):
     import_description(chunks, ogf_chunks)
-    bones = import_bone_names(chunks, ogf_chunks)
-    import_ik_data(chunks, ogf_chunks, bones, visual)
+    import_bone_names(chunks, ogf_chunks, visual)
+    import_ik_data(chunks, ogf_chunks, visual)
     import_children(context, chunks, ogf_chunks, visual)
 
 
@@ -1448,7 +1483,13 @@ def import_visual(context, data, visual):
         ))
     if not visual.is_root:
         convert_indices_to_triangles(visual)
-        create_visual(visual)
+        bpy_object = create_visual(visual)
+        arm = visual.arm_obj
+        if arm:
+            bpy_object.parent = arm
+            mod = bpy_object.modifiers.new('Armature', 'ARMATURE')
+            mod.object = arm
+            bpy_object.xray.isroot = False
 
 
 def import_file(context, file_path, file_name):
