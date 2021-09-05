@@ -44,6 +44,11 @@ class Visual(object):
         self.arm_obj = None
         self.bones = None
         self.deform_bones = None
+        self.motion_refs = None
+        self.create_name = None
+        self.create_time = None
+        self.modif_name = None
+        self.modif_time = None
 
 
 class HierrarhyVisual(object):
@@ -1246,16 +1251,16 @@ def import_(data, visual_id, lvl, chunks, visuals_ids):
     import_main(chunks, visual, lvl)
 
 
-def import_description(chunks, ogf_chunks):
+def import_description(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_DESC)
     packed_reader = xray_io.PackedReader(chunk_data)
     source_file = packed_reader.gets()
     build_name = packed_reader.gets()
     build_time = packed_reader.getf('<I')[0]
-    create_name = packed_reader.gets()
-    create_time = packed_reader.getf('<I')[0]
-    modif_name = packed_reader.gets()
-    modif_time = packed_reader.getf('<I')[0]
+    visual.create_name = packed_reader.gets()
+    visual.create_time = packed_reader.getf('<I')[0]
+    visual.modif_name = packed_reader.gets()
+    visual.modif_time = packed_reader.getf('<I')[0]
 
 
 def import_bone_names(chunks, ogf_chunks, visual):
@@ -1395,10 +1400,16 @@ def import_children(context, chunks, ogf_chunks, root_visual):
         visual.bones = root_visual.bones
         visual.bpy_materials = root_visual.bpy_materials
         import_visual(context, child_data, visual)
+        if visual.model_type == fmt.ModelType_v4.SKELETON_GEOMDEF_PM:
+            root_visual.arm_obj.xray.flags_simple = 'pd'
+        elif visual.model_type == fmt.ModelType_v4.SKELETON_GEOMDEF_ST:
+            root_visual.arm_obj.xray.flags_simple = 'dy'
+        else:
+            print('WARRNING: Model type = {}'.format(visual.model_type))
 
 
 def import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual):
-    import_description(chunks, ogf_chunks)
+    import_description(chunks, ogf_chunks, visual)
     import_bone_names(chunks, ogf_chunks, visual)
     import_ik_data(chunks, ogf_chunks, visual)
     import_children(context, chunks, ogf_chunks, visual)
@@ -1435,19 +1446,19 @@ def import_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual):
     visual.indices_count = swi[0].triangles_count * 3
 
 
-def read_motion_rerefences(chunks, ogf_chunks):
+def read_motion_references(chunks, ogf_chunks, visual):
     data = chunks.pop(ogf_chunks.S_MOTION_REFS_0, None)
     if not data:
         return
     packed_reader = xray_io.PackedReader(data)
-    motion_refs = packed_reader.gets(data).split(',')
+    visual.motion_refs = packed_reader.gets(data).split(',')
 
 
 def import_mt_skeleton_anim(context, chunks, ogf_chunks, visual):
     # TODO: import motions and params
     # chunks.pop(ogf_chunks.S_MOTIONS, None)
     # chunks.pop(ogf_chunks.S_SMPARAMS, None)
-    read_motion_rerefences(chunks, ogf_chunks)
+    read_motion_references(chunks, ogf_chunks, visual)
     import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual)
 
 
