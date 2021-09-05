@@ -1526,7 +1526,14 @@ def import_ik_data(chunks, ogf_chunks, visual):
         i = 0
         xray.gamemtl = props[i]
         i += 1
-        shape.type = str(props[i])
+        if props[i] <= 3:
+            shape.type = str(props[i])
+        else:
+            log.warn(
+                'Unsupported bone shape type',
+                file=visual.file_path,
+                bone=bone.name
+            )
         i += 1
         shape.flags = props[i]
         i += 1
@@ -1548,7 +1555,14 @@ def import_ik_data(chunks, ogf_chunks, visual):
         i += 1
         shape.cyl_rad = props[i]
         i += 1
-        ik.type = str(props[i])
+        if props[i] <= 5:
+            ik.type = str(props[i])
+        else:
+            log.warn(
+                'Unsupported joint type',
+                file=visual.file_path,
+                bone=bone.name
+            )
         i += 1
         ik.lim_x_max = -props[i]
         i += 1
