@@ -9,18 +9,20 @@ from .. import version_utils
 
 
 def _is_compatible_texture(texture, filepart):
+    tex_folder = version_utils.get_preferences().textures_folder_auto
+    tex_path = os.path.join(tex_folder, filepart) + os.extsep + 'dds'
     if version_utils.IS_28:
         image = texture.image
         if not image:
             return False
-        if filepart not in image.filepath:
+        if tex_path != image.filepath:
             return False
         return True
     else:
         image = getattr(texture, 'image', None)
         if image is None:
             return False
-        if filepart not in image.filepath:
+        if tex_path != image.filepath:
             return False
         return True
 
