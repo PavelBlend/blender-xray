@@ -168,16 +168,29 @@ def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None, bones=None
         remap_vertex_index = 0
         remap_vertices = {}
         unique_verts = {}
-        for vertex_index, vertex_coord in enumerate(visual.vertices):
-            is_back_vert = back_side[vertex_index]
-            if unique_verts.get((vertex_coord, is_back_vert), None) is None:
-                mesh.verts.new(vertex_coord)
-                remap_vertices[vertex_index] = remap_vertex_index
-                unique_verts[(vertex_coord, is_back_vert)] = remap_vertex_index
-                remap_vertex_index += 1
-            else:
-                current_remap_vertex_index = unique_verts[(vertex_coord, is_back_vert)]
-                remap_vertices[vertex_index] = current_remap_vertex_index
+        if not visual.weights:
+            for vertex_index, vertex_coord in enumerate(visual.vertices):
+                is_back_vert = back_side[vertex_index]
+                if unique_verts.get((vertex_coord, is_back_vert), None) is None:
+                    mesh.verts.new(vertex_coord)
+                    remap_vertices[vertex_index] = remap_vertex_index
+                    unique_verts[(vertex_coord, is_back_vert)] = remap_vertex_index
+                    remap_vertex_index += 1
+                else:
+                    current_remap_vertex_index = unique_verts[(vertex_coord, is_back_vert)]
+                    remap_vertices[vertex_index] = current_remap_vertex_index
+        else:
+            for vertex_index, vertex_coord in enumerate(visual.vertices):
+                is_back_vert = back_side[vertex_index]
+                weights = tuple(visual.weights[vertex_index])
+                if unique_verts.get((vertex_coord, weights, is_back_vert), None) is None:
+                    mesh.verts.new(vertex_coord)
+                    remap_vertices[vertex_index] = remap_vertex_index
+                    unique_verts[(vertex_coord, weights, is_back_vert)] = remap_vertex_index
+                    remap_vertex_index += 1
+                else:
+                    current_remap_vertex_index = unique_verts[(vertex_coord, weights, is_back_vert)]
+                    remap_vertices[vertex_index] = current_remap_vertex_index
 
         mesh.verts.ensure_lookup_table()
         mesh.verts.index_update()
