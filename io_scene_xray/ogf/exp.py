@@ -264,9 +264,13 @@ def _export(bpy_obj, cwriter, context):
     cwriter.put(
         fmt.Chunks_v4.S_DESC,
         xray_io.PackedWriter()
-        .puts(bpy_obj.name)
-        .puts('blender')
-        .putf('III', 0, 0, 0)
+        .puts(bpy_obj.name)    # source file
+        .puts('blender')    # build name
+        .putf('I', 0)    # build time
+        .puts('')    # owner name
+        .putf('I', 0)    # create time
+        .puts('')    # modifer name
+        .putf('I', 0)    # modification time
     )
 
     meshes = []

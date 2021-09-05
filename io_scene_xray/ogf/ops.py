@@ -33,9 +33,14 @@ def menu_func_export(self, context):
     )
 
 
-class ImportOgfContext(contexts.ImportMeshContext):
+class ImportOgfContext(
+        contexts.ImportMeshContext,
+        contexts.ImportAnimationContext
+    ):
     def __init__(self):
         contexts.ImportMeshContext.__init__(self)
+        contexts.ImportAnimationContext.__init__(self)
+        self.import_bone_parts = None
 
 
 class ExportOgfContext(contexts.ExportMeshContext):
@@ -58,7 +63,8 @@ op_import_ogf_props = {
     ),
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
-    )
+    ),
+    'import_motions': plugin_props.PropObjectMotionsImport()
 }
 
 
@@ -69,7 +75,7 @@ class XRAY_OT_import_ogf(
     bl_idname = 'xray_import.ogf'
     bl_label = 'Import .ogf'
     bl_description = 'Import X-Ray Compiled Game Model (.ogf)'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     draw_fun = menu_func_import
     text = op_text
@@ -92,6 +98,9 @@ class XRAY_OT_import_ogf(
             return {'CANCELLED'}
         import_context = ImportOgfContext()
         import_context.textures_folder = textures_folder
+        import_context.import_motions = self.import_motions
+        import_context.import_bone_parts = True
+        import_context.add_actions_to_motion_list = True
         for file in self.files:
             file_path = os.path.join(self.directory, file.name)
             if not os.path.exists(file_path):
@@ -104,6 +113,15 @@ class XRAY_OT_import_ogf(
             except utils.AppError as err:
                 self.report({'ERROR'}, str(err))
         return {'FINISHED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, 'import_motions')
+
+    def invoke(self, context, event):
+        preferences = version_utils.get_preferences()
+        self.import_motions = preferences.ogf_import_motions
+        return super().invoke(context, event)
 
 
 op_export_ogf_props = {
@@ -140,7 +158,7 @@ class XRAY_OT_export_ogf(
 
     def invoke(self, context, event):
         preferences = version_utils.get_preferences()
-        self.texture_name_from_image_path = preferences.object_texture_names_from_path
+        self.texture_name_from_image_path = preferences.ogf_texture_names_from_path
         self.filepath = context.object.name
         objs = context.selected_objects
         roots = [obj for obj in objs if obj.xray.isroot]

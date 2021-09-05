@@ -9,6 +9,7 @@ import mathutils
 # addon modules
 from . import fmt
 from .. import create
+from .. import omf
 from .. import log
 from .. import utils
 from .. import xray_io
@@ -1692,11 +1693,15 @@ def read_motion_references(chunks, ogf_chunks, visual):
 
 
 def import_mt_skeleton_anim(context, chunks, ogf_chunks, visual):
-    # TODO: import motions and params
-    # chunks.pop(ogf_chunks.S_MOTIONS, None)
-    # chunks.pop(ogf_chunks.S_SMPARAMS, None)
     read_motion_references(chunks, ogf_chunks, visual)
     import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual)
+    if context.import_motions:
+        motions_data = chunks.pop(ogf_chunks.S_MOTIONS, None)
+        params_data = chunks.pop(ogf_chunks.S_SMPARAMS, None)
+        if params_data and motions_data:
+            context.bpy_arm_obj = visual.arm_obj
+            motions_params = omf.imp.read_params(params_data, context)
+            omf.imp.read_motions(motions_data, context, motions_params)
 
 
 def import_visual(context, data, visual):

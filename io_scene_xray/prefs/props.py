@@ -373,6 +373,7 @@ defaults_category_items = (
     ('BONES', 'Bones', ''),
     ('DETAILS', 'Details', ''),
     ('DM', 'Dm', ''),
+    ('OGF', 'Ogf', ''),
     ('OMF', 'Omf', ''),
     ('SCENE', 'Scene', '')
 )
@@ -451,6 +452,10 @@ plugin_preferences_props = {
     'format_version': plugin_props.prop_details_format_version(),
     # dm export props
     'dm_texture_names_from_path': plugin_props.PropObjectTextureNamesFromPath(),
+    # ogf import props
+    'ogf_import_motions': plugin_props.PropObjectMotionsImport(),
+    # ogf export props
+    'ogf_texture_names_from_path': plugin_props.PropObjectTextureNamesFromPath(),
     # omf import props
     'omf_import_motions': plugin_props.PropObjectMotionsImport(),
     'import_bone_parts': plugin_props.prop_import_bone_parts(),
