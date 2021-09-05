@@ -152,12 +152,17 @@ class TestFormatObject(utils.XRayTestCase):
     def test_import_merge_materials(self):
         # Arrange
         mat, _, tex = self._get_compatible_material()
+        prefs = utils.get_preferences()
+        tex_folder = prefs.textures_folder
+        prefs.textures_folder = 'gamedata/textures/'
 
         # Act
         bpy.ops.xray_import.object(
             directory=self.relpath(),
             files=[{'name': 'test_fmt.object'}],
         )
+
+        prefs.textures_folder = tex_folder
 
         # Assert
         self.assertReportsNotContains('WARNING')
