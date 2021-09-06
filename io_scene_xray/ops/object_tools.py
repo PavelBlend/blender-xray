@@ -5,7 +5,16 @@ import bpy
 from .. import version_utils
 
 
+plane_items = (
+    ('XY', 'XY', ''),
+    ('XZ', 'XZ', '')
+)
 place_objects_props = {
+    'plane': bpy.props.EnumProperty(
+        name='Plane',
+        default='XY',
+        items=plane_items
+    ),
     'rows': bpy.props.IntProperty(name='Rows', default=1, min=1, max=1000),
     'offset_x': bpy.props.FloatProperty(
         name='Horizontal Offset', default=2.0, min=0.001
@@ -33,6 +42,9 @@ class XRAY_OT_place_objects(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         column = layout.column(align=True)
+        column.label(text='Plane:')
+        row = column.row(align=True)
+        row.prop(self, 'plane', expand=True)
         column.prop(self, 'rows')
         column.prop(self, 'offset_x')
         column.prop(self, 'offset_z')
@@ -55,7 +67,12 @@ class XRAY_OT_place_objects(bpy.types.Operator):
             obj = bpy.data.objects.get(obj_name)
             obj.location.x = column * self.offset_x
             obj.location.y = 0.0
-            obj.location.z = row * self.offset_z
+            if self.plane == 'XY':
+                obj.location.y = row * self.offset_z
+                obj.location.z = 0.0
+            else:
+                obj.location.y = 0.0
+                obj.location.z = row * self.offset_z
             if ((column + offset) % objects_in_row) == 0 and column != 0:
                 column = 0
                 row += 1
