@@ -51,6 +51,7 @@ class Visual(object):
         self.modif_name = None
         self.modif_time = None
         self.user_data = None
+        self.lod = None
 
 
 class HierrarhyVisual(object):
@@ -1397,6 +1398,8 @@ def import_ik_data(chunks, ogf_chunks, visual):
     revision.mtime = visual.modif_time
     if visual.user_data:
         arm_obj.xray.userdata = visual.user_data
+    if visual.lod:
+        arm_obj.xray.lodref = visual.lod
     bpy.ops.object.mode_set(mode='EDIT')
     bone_props = []
     for bone_index, (bone_name, parent_name) in enumerate(visual.bones):
@@ -1646,9 +1649,21 @@ def import_children(context, chunks, ogf_chunks, root_visual):
             print('WARRNING: Model type = {}'.format(visual.model_type))
 
 
+def import_lods(context, chunks, ogf_chunks, visual):
+    chunk_data = chunks.pop(ogf_chunks.S_LODS, None)
+    if not chunk_data:
+        return
+    packed_reader = xray_io.PackedReader(chunk_data)
+    lod = packed_reader.gets()
+    if lod.endswith('\r\n'):
+        lod = lod[ : -2]
+    visual.lod = lod
+
+
 def import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual):
     import_description(chunks, ogf_chunks, visual)
     import_bone_names(chunks, ogf_chunks, visual)
+    import_lods(context, chunks, ogf_chunks, visual)
     import_ik_data(chunks, ogf_chunks, visual)
     import_children(context, chunks, ogf_chunks, visual)
 
