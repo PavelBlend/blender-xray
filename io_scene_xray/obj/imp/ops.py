@@ -95,7 +95,11 @@ class XRAY_OT_import_object(plugin_props.BaseOperator, bpy_extras.io_utils.Impor
         layout = self.layout
         row = layout.row()
         row.enabled = False
-        row.label(text='%d items' % len(self.files))
+        files_count = len(self.files)
+        if files_count == 1:
+            if not self.files[0].name:
+                files_count = 0
+        row.label(text='{} items'.format(files_count))
 
         row = layout.split()
         row.label(text='Format Version:')

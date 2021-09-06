@@ -116,6 +116,13 @@ class XRAY_OT_import_ogf(
 
     def draw(self, context):
         layout = self.layout
+        row = layout.row()
+        row.enabled = False
+        files_count = len(self.files)
+        if files_count == 1:
+            if not self.files[0].name:
+                files_count = 0
+        row.label(text='{} items'.format(files_count))
         layout.prop(self, 'import_motions')
 
     def invoke(self, context, event):
