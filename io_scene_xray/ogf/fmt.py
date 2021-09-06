@@ -23,6 +23,7 @@ class Chunks_v4:
     SWICONTAINER = 0x14
     GCONTAINER = 0x15
     FASTPATH = 0x16
+    S_MOTION_REFS_2 = 0x18
 
 
 class Chunks_v3:

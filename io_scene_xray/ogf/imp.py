@@ -1687,9 +1687,18 @@ def import_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual):
 def read_motion_references(chunks, ogf_chunks, visual):
     data = chunks.pop(ogf_chunks.S_MOTION_REFS_0, None)
     if not data:
-        return
-    packed_reader = xray_io.PackedReader(data)
-    visual.motion_refs = packed_reader.gets(data).split(',')
+        data = chunks.pop(ogf_chunks.S_MOTION_REFS_2, None)
+        if data:
+            packed_reader = xray_io.PackedReader(data)
+            count = packed_reader.getf('<I')[0]
+            refs = []
+            for index in range(count):
+                ref = packed_reader.gets()
+                refs.append(ref)
+            visual.motion_refs = refs
+    else:
+        packed_reader = xray_io.PackedReader(data)
+        visual.motion_refs = packed_reader.gets().split(',')
 
 
 def import_mt_skeleton_anim(context, chunks, ogf_chunks, visual):
