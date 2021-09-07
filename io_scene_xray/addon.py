@@ -11,6 +11,7 @@ from . import handlers
 from . import viewport
 from . import skls_browser
 from . import edit_helpers
+from . import tests
 
 
 modules = (
@@ -26,7 +27,8 @@ modules = (
     hotkeys,
     ops,
     edit_helpers,
-    viewport
+    viewport,
+    tests
 )
 
 
