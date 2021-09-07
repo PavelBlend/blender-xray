@@ -1380,9 +1380,12 @@ def import_ik_data(chunks, ogf_chunks, visual):
         return
     packed_reader = xray_io.PackedReader(chunk_data)
     armature = bpy.data.armatures.new(name=visual.name)
-    armature.display_type = 'STICK'
+    version_utils.set_arm_display_type(armature)
     arm_obj = bpy.data.objects.new(visual.name, armature)
-    arm_obj.show_in_front = True
+    if version_utils.IS_28:
+        arm_obj.show_in_front = True
+    else:
+        arm_obj.show_x_ray = True
     arm_obj.xray.isroot = True
     version_utils.link_object(arm_obj)
     version_utils.set_active_object(arm_obj)

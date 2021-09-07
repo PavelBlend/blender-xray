@@ -121,14 +121,13 @@ def import_main(fpath, context, creader):
                     continue    # Do not create an armature if zero bones
             if bpy and (bpy_arm_obj is None):
                 bpy_armature = bpy.data.armatures.new(object_name)
+                version_utils.set_arm_display_type(bpy_armature)
                 if version_utils.IS_28:
-                    bpy_armature.display_type = 'STICK'
                     bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
                     bpy_arm_obj.show_in_front = True
                     bpy_armature.xray.joint_limits_type = 'XRAY'
                 else:
                     bpy_armature.use_auto_ik = True
-                    bpy_armature.draw_type = 'STICK'
                     bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
                     bpy_arm_obj.show_x_ray = True
                     bpy_armature.xray.joint_limits_type = 'XRAY'

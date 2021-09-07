@@ -181,3 +181,10 @@ def get_preferences():
         return bpy.context.preferences.addons['io_scene_xray'].preferences
     else:
         return bpy.context.user_preferences.addons['io_scene_xray'].preferences
+
+
+def set_arm_display_type(arm, display_type='STICK'):
+    if IS_28:
+        arm.display_type = display_type
+    else:
+        arm.draw_type = display_type
