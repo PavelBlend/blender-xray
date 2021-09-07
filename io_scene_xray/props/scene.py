@@ -4,6 +4,7 @@ import bpy
 # addon modules
 from .. import version_utils
 from .. import plugin_props
+from .. import viewer
 
 
 import_motion_props = {
@@ -136,6 +137,7 @@ xray_scene_properties = {
     'custom_properties_edit_mode': bpy.props.EnumProperty(
         name='Edit Mode', items=custom_properties_edit_mode_items, default='ALL'
     ),
+    'viewer': bpy.props.PointerProperty(type=viewer.XRaySceneViewerProperties),
 }
 
 

@@ -8,6 +8,7 @@ from .. import menus
 from .. import skls_browser
 from .. import version_utils
 from .. import ops
+from .. import viewer
 
 # plugin modules
 from .. import obj
@@ -74,6 +75,50 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
                 active_dataptr=obj.xray.skls_browser,
                 active_propname='animations_index',
                 rows=5
+            )
+
+
+class XRAY_PT_viewer(bpy.types.Panel):
+    bl_label = 'Viewer'
+    bl_space_type = 'VIEW_3D'
+    bl_category = CATEGORY
+    bl_options = {'DEFAULT_CLOSED'}
+    if version_utils.IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    def draw_header(self, context):
+        icon = icons.get_stalker_icon()
+        self.layout.label(icon_value=icon)
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+        scn = context.scene
+        viewer_folder = scn.get('viewer_folder')
+        if viewer_folder:
+            col.operator(
+                viewer.XRAY_OT_viewer_close_folder.bl_idname,
+                icon='X'
+            )
+            col.operator(
+                viewer.XRAY_OT_viewer_preview_folder.bl_idname,
+                icon='FILE_PARENT'
+            )
+            col.template_list(
+                listtype_name='XRAY_UL_viewer_list_item',
+                list_id='compact',
+                dataptr=scn.xray.viewer,
+                propname='files',
+                active_dataptr=scn.xray.viewer,
+                active_propname='files_index',
+                rows=5
+            )
+        else:
+            col.operator(
+                viewer.XRAY_OT_viewer_open_folder.bl_idname,
+                icon='FILE_FOLDER'
             )
 
 
@@ -445,6 +490,7 @@ class XRAY_PT_export_operators(bpy.types.Panel):
 
 classes = (
     XRAY_PT_skls_animations,
+    XRAY_PT_viewer,
     XRAY_PT_transforms,
     XRAY_PT_add,
     XRAY_PT_verify_tools,

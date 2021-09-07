@@ -11,6 +11,7 @@ from . import handlers
 from . import viewport
 from . import skls_browser
 from . import edit_helpers
+from . import viewer
 from . import tests
 
 
@@ -18,6 +19,7 @@ modules = (
     icons,
     plugin_prefs,
     skls_browser,
+    viewer,
     props,
     plugins,
     handlers,
