@@ -96,7 +96,7 @@ class XRAY_PT_viewer(bpy.types.Panel):
         layout = self.layout
         col = layout.column(align=True)
         scn = context.scene
-        viewer_folder = scn.get('viewer_folder')
+        viewer_folder = scn.xray.viewer.folder
         if viewer_folder:
             col.operator(
                 viewer.XRAY_OT_viewer_close_folder.bl_idname,

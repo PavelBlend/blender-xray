@@ -91,8 +91,8 @@ def update_file(self, context):
     viewer = scene.xray.viewer
     file = viewer.files[viewer.files_index]
     if file.is_dir:
-        scene['viewer_folder'] = file.path
-        update_file_list(scene['viewer_folder'])
+        scene.xray.viewer.folder = file.path
+        update_file_list(scene.xray.viewer.folder)
     remove_preview_data()
     path = file.path
     directory = os.path.dirname(path)
@@ -154,7 +154,7 @@ def update_file_list(directory):
 
 op_props = {
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE'}
+        subtype="DIR_PATH", options={'SKIP_SAVE', 'HIDDEN'}
     ),
 }
 
@@ -164,10 +164,14 @@ class XRAY_OT_viewer_open_folder(bpy.types.Operator):
     bl_label = 'Open Folder'
     bl_options = {'REGISTER'}
 
+    if not version_utils.IS_28:
+        for prop_name, prop_value in op_props.items():
+            exec('{0} = op_props.get("{0}")'.format(prop_name))
+
     def execute(self, context):
         scene = context.scene
-        scene['viewer_folder'] = self.directory
-        update_file_list(scene['viewer_folder'])
+        scene.xray.viewer.folder = self.directory
+        update_file_list(scene.xray.viewer.folder)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -183,7 +187,7 @@ class XRAY_OT_viewer_close_folder(bpy.types.Operator):
 
     def execute(self, context):
         scene = context.scene
-        del scene['viewer_folder']
+        scene.xray.viewer.folder = ''
         scene.xray.viewer.files.clear()
         return {'FINISHED'}
 
@@ -195,13 +199,13 @@ class XRAY_OT_viewer_preview_folder(bpy.types.Operator):
 
     def execute(self, context):
         scene = context.scene
-        viewer_folder = scene.get('viewer_folder')
+        viewer_folder = scene.xray.viewer.folder
         if viewer_folder:
             if viewer_folder[-1] == os.sep:
                 viewer_folder = viewer_folder[0 : -1]
             viewer_folder = os.path.dirname(viewer_folder)
-            scene['viewer_folder'] = viewer_folder
-            update_file_list(scene['viewer_folder'])
+            scene.xray.viewer.folder = viewer_folder
+            update_file_list(scene.xray.viewer.folder)
             remove_preview_data()
         return {'FINISHED'}
 
@@ -222,6 +226,7 @@ class XRayViwerFileProperties(bpy.types.PropertyGroup):
 scene_viewer_props = {
     'files': bpy.props.CollectionProperty(type=XRayViwerFileProperties),
     'files_index': bpy.props.IntProperty(update=update_file),
+    'folder': bpy.props.StringProperty()
 }
 
 
