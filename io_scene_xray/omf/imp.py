@@ -111,21 +111,12 @@ def read_motion(data, context, motions_params):
                 xray_motion.name = act.name
                 xray_motion.export_name = name
                 context.bpy_arm_obj.xray.use_custom_motion_names = True
-        flags = motion_params.flags
 
-        # set flags
-        act.xray.flags_fx = bool(flags & fmt.FX)
-        act.xray.flags_stopatend = bool(flags & fmt.STOP_AT_END)
-        act.xray.flags_nomix = bool(flags & fmt.NO_MIX)
-        act.xray.flags_syncpart = bool(flags & fmt.SYNC_PART)
-        act.xray.flags_footsteps = bool(flags & fmt.USE_FOOT_STEPS)
-        act.xray.flags_movexform = bool(flags & fmt.ROOT_MOVER)
-        act.xray.flags_idle = bool(flags & fmt.IDLE)
-        act.xray.flags_weaponbone = bool(flags & fmt.USE_WEAPON_BONE)
-
+        act.xray.flags = motion_params.flags
         act.xray.bonepart = motion_params.bone_or_part
         act.xray.power = motion_params.power
         act.xray.accrue = motion_params.accrue
+        act.xray.speed = motion_params.speed
         act.xray.falloff = motion_params.falloff
 
         for bone_index, bpy_bone in enumerate(context.bpy_arm_obj.data.bones):
