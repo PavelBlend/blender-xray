@@ -4,3 +4,9 @@ source = io_scene_xray
 omit =
     io_scene_xray/ui/*
     io_scene_xray/panels/*
+    io_scene_xray/viewport/*
+
+[report]
+exclude_lines =
+    def draw(self, context):
+    def invoke(self, context, event):
