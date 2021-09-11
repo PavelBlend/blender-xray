@@ -253,7 +253,7 @@ def get_ode_ik_limits(value_1, value_2):
 
 def _export(bpy_obj, cwriter, context):
     bbox, bsph = calculate_bbox_and_bsphere(bpy_obj)
-    if bpy_obj.xray.motionrefs:
+    if len(bpy_obj.xray.motionrefs_collection):
         model_type = fmt.ModelType_v4.SKELETON_ANIM
     else:
         model_type = fmt.ModelType_v4.SKELETON_RIGID
@@ -401,8 +401,14 @@ def _export(bpy_obj, cwriter, context):
     cwriter.put(fmt.Chunks_v4.S_IKDATA, pwriter)
 
     cwriter.put(fmt.Chunks_v4.S_USERDATA, xray_io.PackedWriter().puts(bpy_obj.xray.userdata))
-    if bpy_obj.xray.motionrefs:
-        cwriter.put(fmt.Chunks_v4.S_MOTION_REFS_0, xray_io.PackedWriter().puts(bpy_obj.xray.motionrefs))
+    if len(bpy_obj.xray.motionrefs_collection):
+        refs = []
+        for ref in bpy_obj.xray.motionrefs_collection:
+            refs.append(ref.name)
+        refs_string = ','.join(refs)
+        motion_refs_writer = xray_io.PackedWriter()
+        motion_refs_writer.puts(refs_string)
+        cwriter.put(fmt.Chunks_v4.S_MOTION_REFS_0, motion_refs_writer)
 
 
 def export_file(bpy_obj, fpath, context):
