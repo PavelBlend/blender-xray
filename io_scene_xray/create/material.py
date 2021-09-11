@@ -15,14 +15,18 @@ def _is_compatible_texture(texture, filepart):
         image = texture.image
         if not image:
             return False
-        if tex_path != image.filepath:
+        abs_tex_path = os.path.abspath(tex_path)
+        abs_image_path = os.path.abspath(image.filepath)
+        if abs_tex_path != abs_image_path:
             return False
         return True
     else:
         image = getattr(texture, 'image', None)
         if image is None:
             return False
-        if tex_path != image.filepath:
+        abs_tex_path = os.path.abspath(tex_path)
+        abs_image_path = os.path.abspath(image.filepath)
+        if abs_tex_path != abs_image_path:
             return False
         return True
 

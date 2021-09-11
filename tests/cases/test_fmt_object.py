@@ -232,6 +232,9 @@ class TestFormatObject(utils.XRayTestCase):
             self.assertEqual(texture.name, 'det\det_leaves')
 
     def _get_compatible_material(self):
+        prefs = utils.get_preferences()
+        tex_folder = prefs.textures_folder
+        prefs.textures_folder = 'gamedata/textures/'
         img = bpy.data.images.new('texture', 0, 0)
         img.source = 'FILE'
         img.filepath = 'gamedata/textures/eye.dds'
