@@ -1,3 +1,6 @@
+# standart modules
+import math
+
 # blender modules
 import bpy
 import bmesh
@@ -121,6 +124,9 @@ def _export_child(bpy_obj, cwriter, context, vgm):
     bsph = calculate_mesh_bsphere(bbox, mesh.verts)
     bmesh.ops.triangulate(mesh, faces=mesh.faces)
     bpy_data = bpy.data.meshes.new('.export-ogf')
+    bpy_data.use_auto_smooth = True
+    bpy_data.auto_smooth_angle = math.pi
+    bpy_data.calc_normals_split()
     mesh.to_mesh(bpy_data)
 
     cwriter.put(
