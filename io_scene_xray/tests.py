@@ -83,7 +83,7 @@ def test_ogf_import(debug_folder):
 
 op_props = {
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE'}
+        subtype="DIR_PATH", options={'SKIP_SAVE', 'HIDDEN'}
     ),
 }
 
@@ -95,6 +95,10 @@ class XRAY_OT_test_ogf_import(
     bl_idname = 'io_scene_xray.test_ogf_import'
     bl_label = 'Test OGF Import'
     bl_options = {'REGISTER'}
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in op_props.items():
+            exec('{0} = op_props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
         test_ogf_import(self.directory)
