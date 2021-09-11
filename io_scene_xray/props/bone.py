@@ -338,6 +338,11 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         if not version_utils.IS_28:
             bgl.glColor4f(*color)
 
+        shape = self.shape
+        if shape.type == '0':
+            bgl.glLineWidth(prev_line_width[0])
+            return
+
         # draw mass centers
         is_edit = obj_arm.mode == 'EDIT'
         draw_mass = obj_arm.data.xray.display_bone_mass_centers
@@ -385,10 +390,6 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 bgl.glLineWidth(prev_line_width[0])
                 return
 
-        shape = self.shape
-        if shape.type == '0':
-            bgl.glLineWidth(prev_line_width[0])
-            return
         if version_utils.IS_28:
             gpu.matrix.push()
             try:
