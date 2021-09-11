@@ -1,0 +1,32 @@
+version: 1.0.{build}
+
+image: Ubuntu
+
+install:
+  - sudo apt-get install -y libglu1-mesa
+  - bash ./tests/ci-prepare.sh
+
+environment:
+  matrix:
+    - BLENDER_VERSION: 2.77
+    - BLENDER_VERSION: 2.78
+    - BLENDER_VERSION: 2.79
+    - BLENDER_VERSION: 2.80
+    - BLENDER_VERSION: 2.81
+    - BLENDER_VERSION: 2.82
+    - BLENDER_VERSION: 2.83
+    - BLENDER_VERSION: 2.90
+    - BLENDER_VERSION: 2.91
+    - BLENDER_VERSION: 2.92
+    - BLENDER_VERSION: 2.93
+
+before_test:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
+
+test_script:
+  - ./blender/$BLENDER_VERSION/blender --factory-startup -noaudio -b --python-exit-code 1 --python /home/appveyor/projects/blender-xray/tests/runner.py
+
+after_test:
+  - bash <(curl -s https://codecov.io/bash)
