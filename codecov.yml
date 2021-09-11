@@ -6,3 +6,5 @@ coverage:
     project:
       default:
         threshold: 1%
+codecov:
+  disable_default_path_fixes: true
