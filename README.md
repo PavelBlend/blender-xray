@@ -1,4 +1,4 @@
-# blender-xray [![Code Coverage](https://codecov.io/gh/PavelBlend/blender-xray/graph/badge.svg)](https://codecov.io/gh/PavelBlend/blender-xray)
+# blender-xray [![AppVeyor Status](https://img.shields.io/appveyor/build/PavelBlend/blender-xray?logo=AppVeyor&label=AppVeyor)](https://ci.appveyor.com/project/PavelBlend/blender-xray/branch/develop) [![Code Coverage](https://codecov.io/gh/PavelBlend/blender-xray/graph/badge.svg)](https://codecov.io/gh/PavelBlend/blender-xray)
 XRay-engine import/export plugin for [blender](http://www.blender.org/).
 
 ## Supported formats
