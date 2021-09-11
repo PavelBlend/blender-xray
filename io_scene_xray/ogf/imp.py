@@ -1405,6 +1405,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
         arm_obj.xray.lodref = visual.lod
     bpy.ops.object.mode_set(mode='EDIT')
     bone_props = []
+    armature_bones = {}
     for bone_index, (bone_name, parent_name) in enumerate(visual.bones):
         version = packed_reader.getf('<I')[0]
         props = []
@@ -1509,6 +1510,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
 
         # create bone
         bpy_bone = armature.edit_bones.new(name=bone_name)
+        armature_bones[bone_index] = bpy_bone.name
         rotation = mathutils.Euler(
             (-bind_rotation[0], -bind_rotation[1], -bind_rotation[2]), 'YXZ'
         ).to_matrix().to_4x4()
@@ -1537,8 +1539,9 @@ def import_ik_data(chunks, ogf_chunks, visual):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    for bone_index, bone in enumerate(armature.bones):
-        props = bone_props[bone_index]
+    for bone_index, props in enumerate(bone_props):
+        bone_name = armature_bones[bone_index]
+        bone = armature.bones[bone_name]
         xray = bone.xray
         shape = xray.shape
         ik = xray.ikjoint
