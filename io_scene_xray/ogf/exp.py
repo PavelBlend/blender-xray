@@ -1,5 +1,6 @@
 # standart modules
 import math
+import time
 
 # blender modules
 import bpy
@@ -253,7 +254,8 @@ def get_ode_ik_limits(value_1, value_2):
 
 def _export(bpy_obj, cwriter, context):
     bbox, bsph = calculate_bbox_and_bsphere(bpy_obj)
-    if len(bpy_obj.xray.motionrefs_collection):
+    xray = bpy_obj.xray
+    if len(xray.motionrefs_collection):
         model_type = fmt.ModelType_v4.SKELETON_ANIM
     else:
         model_type = fmt.ModelType_v4.SKELETON_RIGID
@@ -267,17 +269,17 @@ def _export(bpy_obj, cwriter, context):
         .putf('fff', *pw_v3f(bsph[0])).putf('f', bsph[1])
     )
 
-    cwriter.put(
-        fmt.Chunks_v4.S_DESC,
-        xray_io.PackedWriter()
-        .puts(bpy_obj.name)    # source file
-        .puts('blender')    # build name
-        .putf('I', 0)    # build time
-        .puts('')    # owner name
-        .putf('I', 0)    # create time
-        .puts('')    # modifer name
-        .putf('I', 0)    # modification time
-    )
+    owner, ctime, moder, mtime = utils.get_revision_data(xray.revision)
+    currtime = int(time.time())
+    revision_writer = xray_io.PackedWriter()
+    revision_writer.puts(bpy_obj.name)    # source file
+    revision_writer.puts('blender')    # build name
+    revision_writer.putf('I', currtime)    # build time
+    revision_writer.puts(owner)
+    revision_writer.putf('I', ctime)
+    revision_writer.puts(moder)
+    revision_writer.putf('I', mtime)
+    cwriter.put(fmt.Chunks_v4.S_DESC, revision_writer)
 
     meshes = []
     bones = []

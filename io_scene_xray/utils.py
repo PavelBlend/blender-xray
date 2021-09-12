@@ -2,6 +2,8 @@
 import os
 import math
 import time
+import platform
+import getpass
 import contextlib
 
 # blender modules
@@ -542,3 +544,26 @@ def build_op_label(operator, compact=False):
         prefix = 'X-Ray '
     label = '{0}{1} ({2})'.format(prefix, operator.text, operator.ext)
     return label
+
+
+def get_revision_data(revision):
+    preferences = version_utils.get_preferences()
+    if preferences.custom_owner_name:
+        curruser = preferences.custom_owner_name
+    else:
+        curruser = '\\\\{}\\{}'.format(platform.node(), getpass.getuser())
+    currtime = int(time.time())
+    if (not revision.owner) or (revision.owner == curruser):
+        owner = curruser
+        if revision.ctime:
+            ctime = revision.ctime 
+        else:
+            ctime = currtime
+        moder = ''
+        mtime = 0
+    else:
+        owner = revision.owner
+        ctime = revision.ctime 
+        moder = curruser
+        mtime = currtime
+    return owner, ctime, moder, mtime

@@ -1,8 +1,5 @@
 # standart modules
 import math
-import platform
-import getpass
-import time
 
 # blender modules
 import bpy
@@ -547,25 +544,12 @@ def export_transform(chunked_writer, bpy_root):
 
 
 def export_revision(chunked_writer, xray):
-    preferences = version_utils.get_preferences()
-    if preferences.custom_owner_name:
-        curruser = preferences.custom_owner_name
-    else:
-        curruser = '\\\\{}\\{}'.format(platform.node(), getpass.getuser())
-    currtime = int(time.time())
+    owner, ctime, moder, mtime = utils.get_revision_data(xray.revision)
     writer = xray_io.PackedWriter()
-    if (not xray.revision.owner) or (xray.revision.owner == curruser):
-        writer.puts(curruser)
-        writer.putf(
-            'i', xray.revision.ctime if xray.revision.ctime else currtime
-        )
-        writer.puts('')
-        writer.putf('i', 0)
-    else:
-        writer.puts(xray.revision.owner)
-        writer.putf('I', xray.revision.ctime)
-        writer.puts(curruser)
-        writer.putf('I', currtime)
+    writer.puts(owner)
+    writer.putf('I', ctime)
+    writer.puts(moder)
+    writer.putf('I', mtime)
     chunked_writer.put(fmt.Chunks.Object.REVISION, writer)
 
 
