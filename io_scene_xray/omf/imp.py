@@ -88,7 +88,7 @@ def convert_to_euler(quaternion):
     return euler
 
 
-def read_motion(data, context, motions_params):
+def read_motion(data, context, motions_params, bone_names):
     packed_reader = xray_io.PackedReader(data)
     name = packed_reader.gets()
     length = packed_reader.getf('I')[0]
@@ -119,8 +119,16 @@ def read_motion(data, context, motions_params):
         act.xray.speed = motion_params.speed
         act.xray.falloff = motion_params.falloff
 
-        for bone_index, bpy_bone in enumerate(context.bpy_arm_obj.data.bones):
-            bone_name = bpy_bone.name
+        for bone_index in range(len(bone_names)):
+            bone_name = bone_names.get(bone_index, None)
+            if bone_name is None:
+                bpy_bone = context.bpy_arm_obj.data.bones.get(bone_index)
+            else:
+                bpy_bone = context.bpy_arm_obj.data.bones.get(bone_name)
+            if bpy_bone:
+                bone_name = bpy_bone.name
+            else:
+                raise utils.AppError('Cannot find bone: {}'.format(bone_index))
             bpy_bone_parent = bpy_bone.parent
 
             xmat = bpy_bone.matrix_local.inverted()
@@ -224,7 +232,7 @@ def read_motion(data, context, motions_params):
                         rotate_fcurves[i].keyframe_points.insert(rot_index, rot[i])
 
     else:
-        for bpy_bone in context.bpy_arm_obj.data.bones:
+        for bone_index in range(len(bone_names)):
             flags = packed_reader.getf('B')[0]
             t_present = flags & fmt.FL_T_KEY_PRESENT
             r_absent = flags & fmt.FL_R_KEY_ABSENT
@@ -245,7 +253,7 @@ def read_motion(data, context, motions_params):
                 packed_reader.skip(12)
 
 
-def read_motions(data, context, motions_params):
+def read_motions(data, context, motions_params, bone_names):
     chunked_reader = xray_io.ChunkedReader(data)
 
     chunk_motion_count_data = chunked_reader.next(fmt.MOTIONS_COUNT_CHUNK)
@@ -253,7 +261,7 @@ def read_motions(data, context, motions_params):
     motions_count = motion_count_packed_reader.getf('I')[0]
 
     for chunk_id, chunk_data in chunked_reader:
-        read_motion(chunk_data, context, motions_params)
+        read_motion(chunk_data, context, motions_params, bone_names)
 
 
 def read_params(data, context):
@@ -261,6 +269,7 @@ def read_params(data, context):
 
     params_version = packed_reader.getf('H')[0]
     partition_count = packed_reader.getf('H')[0]
+    bone_names = {}
 
     for partition_index in range(partition_count):
         partition_name = packed_reader.gets()
@@ -272,12 +281,15 @@ def read_params(data, context):
             if params_version == 1:
                 bone_id = packed_reader.getf('I')[0]
                 bone_name = None
+                bone_names[bone_id] = None
             elif params_version == 2:
                 bone_id = None
                 bone_name = packed_reader.gets()
+                bone_names[bone] = bone_name
             elif params_version == 3 or params_version == 4:
                 bone_name = packed_reader.gets()
                 bone_id = packed_reader.getf('I')[0]
+                bone_names[bone_id] = bone_name
             else:
                 raise BaseException('Unknown params version')
             if bone_name:
@@ -309,7 +321,7 @@ def read_params(data, context):
             for mark_index in range(num_marks):
                 motion_mark(packed_reader)
 
-    return motions_params
+    return motions_params, bone_names
 
 
 def read_main(data, context):
@@ -326,12 +338,12 @@ def read_main(data, context):
         chunks[chunk_id] = chunk_data
 
     params_chunk_data = chunks.pop(fmt.Chunks.S_SMPARAMS)
-    motions_params = read_params(params_chunk_data, context)
+    motions_params, bone_names = read_params(params_chunk_data, context)
     del params_chunk_data
 
     if context.import_motions:
         motions_chunk_data = chunks.pop(fmt.Chunks.S_MOTIONS)
-        read_motions(motions_chunk_data, context, motions_params)
+        read_motions(motions_chunk_data, context, motions_params, bone_names)
         del motions_chunk_data
 
     for chunk_id, chunk_data in chunks.items():

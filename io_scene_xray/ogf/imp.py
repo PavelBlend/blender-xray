@@ -1730,8 +1730,8 @@ def import_mt_skeleton_anim(context, chunks, ogf_chunks, visual):
         params_data = chunks.pop(ogf_chunks.S_SMPARAMS, None)
         if params_data and motions_data:
             context.bpy_arm_obj = visual.arm_obj
-            motions_params = omf.imp.read_params(params_data, context)
-            omf.imp.read_motions(motions_data, context, motions_params)
+            motions_params, bone_names = omf.imp.read_params(params_data, context)
+            omf.imp.read_motions(motions_data, context, motions_params, bone_names)
 
 
 def import_visual(context, data, visual):
