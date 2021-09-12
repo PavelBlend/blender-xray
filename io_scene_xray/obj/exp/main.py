@@ -16,10 +16,6 @@ from ... import xray_motions
 from ... import version_utils
 
 
-def pw_v3f(vec):
-    return vec[0], vec[2], vec[1]
-
-
 def export_version(chunked_writer):
     chunked_writer.put(
         fmt.Chunks.Object.VERSION,
@@ -538,8 +534,8 @@ def export_transform(chunked_writer, bpy_root):
     root_matrix = bpy_root.matrix_world
     if root_matrix != mathutils.Matrix.Identity(4):
         writer = xray_io.PackedWriter()
-        writer.putf('fff', *pw_v3f(root_matrix.to_translation()))
-        writer.putf('fff', *pw_v3f(root_matrix.to_euler('YXZ')))
+        writer.putv3f(root_matrix.to_translation())
+        writer.putv3f(root_matrix.to_euler('YXZ'))
         chunked_writer.put(fmt.Chunks.Object.TRANSFORM, writer)
 
 

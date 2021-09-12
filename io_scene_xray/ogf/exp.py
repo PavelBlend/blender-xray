@@ -115,10 +115,6 @@ def top_two(dic):
     return {key0: val0, key1: val1}
 
 
-def pw_v3f(vec):
-    return vec[0], vec[2], vec[1]
-
-
 def _export_child(bpy_obj, cwriter, context, vgm):
     mesh = utils.convert_object_to_space_bmesh(bpy_obj, mathutils.Matrix.Identity(4))
     bbox = utils.calculate_mesh_bbox(mesh.verts)
@@ -135,10 +131,10 @@ def _export_child(bpy_obj, cwriter, context, vgm):
     header_writer.putf('<B', fmt.ModelType_v4.SKELETON_GEOMDEF_ST)
     header_writer.putf('<H', 0)  # shader id
     # bbox
-    header_writer.putf('<3f', *pw_v3f(bbox[0]))
-    header_writer.putf('<3f', *pw_v3f(bbox[1]))
+    header_writer.putv3f(bbox[0])
+    header_writer.putv3f(bbox[1])
     # bsphere
-    header_writer.putf('<3f', *pw_v3f(bsph[0]))
+    header_writer.putv3f(bsph[0])
     header_writer.putf('<f', bsph[1])
     cwriter.put(fmt.HEADER, header_writer)
 
@@ -202,10 +198,10 @@ def _export_child(bpy_obj, cwriter, context, vgm):
         pwriter.putf('II', fmt.VertexFormat.FVF_1L, len(vertices))
         for vertex in vertices:
             weights = mesh.verts[vertex[0]][bml_vw]
-            pwriter.putf('<3f', *pw_v3f(vertex[1]))
-            pwriter.putf('<3f', *pw_v3f(vertex[2]))
-            pwriter.putf('<3f', *pw_v3f(vertex[3]))
-            pwriter.putf('<3f', *pw_v3f(vertex[4]))
+            pwriter.putv3f(vertex[1])
+            pwriter.putv3f(vertex[2])
+            pwriter.putv3f(vertex[3])
+            pwriter.putv3f(vertex[4])
             pwriter.putf('<2f', *vertex[5])
             pwriter.putf('<I', vgm[weights.keys()[0]])
     else:
@@ -232,10 +228,10 @@ def _export_child(bpy_obj, cwriter, context, vgm):
                     pwriter.putf('<2H', vgi, vgi)
             else:
                 raise Exception('oops: %i %s' % (len(weights), weights.keys()))
-            pwriter.putf('<3f', *pw_v3f(vertex[1]))
-            pwriter.putf('<3f', *pw_v3f(vertex[2]))
-            pwriter.putf('<3f', *pw_v3f(vertex[3]))
-            pwriter.putf('<3f', *pw_v3f(vertex[4]))
+            pwriter.putv3f(vertex[1])
+            pwriter.putv3f(vertex[2])
+            pwriter.putv3f(vertex[3])
+            pwriter.putv3f(vertex[4])
             pwriter.putf('<f', weight)
             pwriter.putf('<2f', *vertex[5])
     cwriter.put(fmt.Chunks_v4.VERTICES, pwriter)
@@ -267,10 +263,10 @@ def _export(bpy_obj, cwriter, context):
     header_writer.putf('<B', model_type)
     header_writer.putf('<H', 0)  # shader id
     # bbox
-    header_writer.putf('<3f', *pw_v3f(bbox[0]))
-    header_writer.putf('<3f', *pw_v3f(bbox[1]))
+    header_writer.putv3f(bbox[0])
+    header_writer.putv3f(bbox[1])
     # bsphere
-    header_writer.putf('<3f', *pw_v3f(bsph[0]))
+    header_writer.putv3f(bsph[0])
     header_writer.putf('<f', bsph[1])
     cwriter.put(fmt.HEADER, header_writer)
 
@@ -403,8 +399,9 @@ def _export(bpy_obj, cwriter, context):
             ).inverted(), mat)
         euler = mat.to_euler('YXZ')
         pwriter.putf('fff', -euler.x, -euler.z, -euler.y)
-        pwriter.putf('fff', *pw_v3f(mat.to_translation()))
-        pwriter.putf('ffff', xray.mass.value, *pw_v3f(xray.mass.center))
+        pwriter.putv3f(mat.to_translation())
+        pwriter.putf('f', xray.mass.value)
+        pwriter.putv3f(xray.mass.center)
     cwriter.put(fmt.Chunks_v4.S_IKDATA, pwriter)
 
     cwriter.put(fmt.Chunks_v4.S_USERDATA, xray_io.PackedWriter().puts(bpy_obj.xray.userdata))

@@ -126,7 +126,7 @@ def _export_bone_data(bpy_obj, bone):
     # mass params
     packed_writer = xray_io.PackedWriter()
     packed_writer.putf('<f', xray.mass.value)
-    packed_writer.putf('<3f', *obj.exp.main.pw_v3f(xray.mass.center))
+    packed_writer.putv3f(xray.mass.center)
     chunked_writer.put(chunks.MASS_PARAMS, packed_writer)
     return chunked_writer
 

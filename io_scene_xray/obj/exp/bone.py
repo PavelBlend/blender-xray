@@ -45,7 +45,7 @@ def export_bone(
     mat = multiply(mat, xray_motions.MATRIX_BONE_INVERTED)
     eul = mat.to_euler('YXZ')
     writer.put(fmt.Chunks.Bone.BIND_POSE, xray_io.PackedWriter()
-               .putf('fff', *main.pw_v3f(mat.to_translation()))
+               .putv3f(mat.to_translation())
                .putf('fff', -eul.x, -eul.z, -eul.y)
                .putf('f', xray.length))
     writer.put(
@@ -107,4 +107,4 @@ def export_bone(
     if xray.mass.value:
         writer.put(fmt.Chunks.Bone.MASS_PARAMS, xray_io.PackedWriter()
                    .putf('f', xray.mass.value)
-                   .putf('fff', *main.pw_v3f(xray.mass.center)))
+                   .putv3f(xray.mass.center))

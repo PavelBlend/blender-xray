@@ -201,6 +201,11 @@ class PackedWriter():
         self.data += struct.pack(fmt, *args)
         return self
 
+    def putv3f(self, vec):
+        # write vertex coord
+        self.data += struct.pack('<3f', vec[0], vec[2], vec[1])
+        return self
+
     def puts(self, string):
         try:
             self.data += string.encode('cp1251')

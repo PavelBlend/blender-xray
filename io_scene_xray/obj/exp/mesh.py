@@ -72,14 +72,10 @@ def export_mesh_name(cw, bpy_obj, bpy_root):
 
 def export_bbox(cw, bm):
     bbox = utils.calculate_mesh_bbox(bm.verts)
-    cw.put(
-        fmt.Chunks.Mesh.BBOX,
-        xray_io.PackedWriter().putf(
-            'fff', *main.pw_v3f(bbox[0])
-        ).putf(
-            'fff', *main.pw_v3f(bbox[1])
-        )
-    )
+    packed_writer = xray_io.PackedWriter()
+    packed_writer.putv3f(bbox[0])
+    packed_writer.putv3f(bbox[1])
+    cw.put(fmt.Chunks.Mesh.BBOX, packed_writer)
 
 
 def export_flags(cw, bpy_obj):
@@ -122,7 +118,7 @@ def export_vertices(cw, bm):
     writer = xray_io.PackedWriter()
     writer.putf('I', len(bm.verts))
     for vertex in bm.verts:
-        writer.putf('fff', *main.pw_v3f(vertex.co))
+        writer.putv3f(vertex.co)
     cw.put(fmt.Chunks.Mesh.VERTS, writer)
 
 
