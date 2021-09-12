@@ -130,15 +130,17 @@ def _export_child(bpy_obj, cwriter, context, vgm):
     bpy_data.calc_normals_split()
     mesh.to_mesh(bpy_data)
 
-    cwriter.put(
-        fmt.HEADER,
-        xray_io.PackedWriter()
-        .putf('B', 4)  # ogf version
-        .putf('B', fmt.ModelType_v4.SKELETON_GEOMDEF_ST)
-        .putf('H', 0)  # shader id
-        .putf('fff', *pw_v3f(bbox[0])).putf('fff', *pw_v3f(bbox[1]))
-        .putf('fff', *pw_v3f(bsph[0])).putf('f', bsph[1])
-    )
+    header_writer = xray_io.PackedWriter()
+    header_writer.putf('<B', fmt.FORMAT_VERSION_4)  # ogf version
+    header_writer.putf('<B', fmt.ModelType_v4.SKELETON_GEOMDEF_ST)
+    header_writer.putf('<H', 0)  # shader id
+    # bbox
+    header_writer.putf('<3f', *pw_v3f(bbox[0]))
+    header_writer.putf('<3f', *pw_v3f(bbox[1]))
+    # bsphere
+    header_writer.putf('<3f', *pw_v3f(bsph[0]))
+    header_writer.putf('<f', bsph[1])
+    cwriter.put(fmt.HEADER, header_writer)
 
     material = bpy_obj.data.materials[0]
     texture = None
@@ -200,16 +202,16 @@ def _export_child(bpy_obj, cwriter, context, vgm):
         pwriter.putf('II', fmt.VertexFormat.FVF_1L, len(vertices))
         for vertex in vertices:
             weights = mesh.verts[vertex[0]][bml_vw]
-            pwriter.putf('fff', *pw_v3f(vertex[1]))
-            pwriter.putf('fff', *pw_v3f(vertex[2]))
-            pwriter.putf('fff', *pw_v3f(vertex[3]))
-            pwriter.putf('fff', *pw_v3f(vertex[4]))
-            pwriter.putf('ff', *vertex[5])
-            pwriter.putf('I', vgm[weights.keys()[0]])
+            pwriter.putf('<3f', *pw_v3f(vertex[1]))
+            pwriter.putf('<3f', *pw_v3f(vertex[2]))
+            pwriter.putf('<3f', *pw_v3f(vertex[3]))
+            pwriter.putf('<3f', *pw_v3f(vertex[4]))
+            pwriter.putf('<2f', *vertex[5])
+            pwriter.putf('<I', vgm[weights.keys()[0]])
     else:
         if vwmx != 2:
             print('warning: vwmx=%i' % vwmx)
-        pwriter.putf('II', fmt.VertexFormat.FVF_2L, len(vertices))
+        pwriter.putf('<2I', fmt.VertexFormat.FVF_2L, len(vertices))
         for vertex in vertices:
             weights = mesh.verts[vertex[0]][bml_vw]
             if len(weights) > 2:
@@ -219,7 +221,7 @@ def _export_child(bpy_obj, cwriter, context, vgm):
                 first = True
                 weight0 = 0
                 for vgi in weights.keys():
-                    pwriter.putf('H', vgm[vgi])
+                    pwriter.putf('<H', vgm[vgi])
                     if first:
                         weight0 = weights[vgi]
                         first = False
@@ -227,21 +229,21 @@ def _export_child(bpy_obj, cwriter, context, vgm):
                         weight = 1 - (weight0 / (weight0 + weights[vgi]))
             elif len(weights) == 1:
                 for vgi in [vgm[_] for _ in weights.keys()]:
-                    pwriter.putf('HH', vgi, vgi)
+                    pwriter.putf('<2H', vgi, vgi)
             else:
                 raise Exception('oops: %i %s' % (len(weights), weights.keys()))
-            pwriter.putf('fff', *pw_v3f(vertex[1]))
-            pwriter.putf('fff', *pw_v3f(vertex[2]))
-            pwriter.putf('fff', *pw_v3f(vertex[3]))
-            pwriter.putf('fff', *pw_v3f(vertex[4]))
-            pwriter.putf('f', weight)
-            pwriter.putf('ff', *vertex[5])
+            pwriter.putf('<3f', *pw_v3f(vertex[1]))
+            pwriter.putf('<3f', *pw_v3f(vertex[2]))
+            pwriter.putf('<3f', *pw_v3f(vertex[3]))
+            pwriter.putf('<3f', *pw_v3f(vertex[4]))
+            pwriter.putf('<f', weight)
+            pwriter.putf('<2f', *vertex[5])
     cwriter.put(fmt.Chunks_v4.VERTICES, pwriter)
 
     pwriter = xray_io.PackedWriter()
-    pwriter.putf('I', 3 * len(indices))
+    pwriter.putf('<I', 3 * len(indices))
     for face in indices:
-        pwriter.putf('HHH', face[0], face[2], face[1])
+        pwriter.putf('<3H', face[0], face[2], face[1])
     cwriter.put(fmt.Chunks_v4.INDICES, pwriter)
 
 
@@ -259,15 +261,18 @@ def _export(bpy_obj, cwriter, context):
         model_type = fmt.ModelType_v4.SKELETON_ANIM
     else:
         model_type = fmt.ModelType_v4.SKELETON_RIGID
-    cwriter.put(
-        fmt.HEADER,
-        xray_io.PackedWriter()
-        .putf('B', 4)  # ogf version
-        .putf('B', model_type)
-        .putf('H', 0)  # shader id
-        .putf('fff', *pw_v3f(bbox[0])).putf('fff', *pw_v3f(bbox[1]))
-        .putf('fff', *pw_v3f(bsph[0])).putf('f', bsph[1])
-    )
+
+    header_writer = xray_io.PackedWriter()
+    header_writer.putf('<B', fmt.FORMAT_VERSION_4)  # ogf version
+    header_writer.putf('<B', model_type)
+    header_writer.putf('<H', 0)  # shader id
+    # bbox
+    header_writer.putf('<3f', *pw_v3f(bbox[0]))
+    header_writer.putf('<3f', *pw_v3f(bbox[1]))
+    # bsphere
+    header_writer.putf('<3f', *pw_v3f(bsph[0]))
+    header_writer.putf('<f', bsph[1])
+    cwriter.put(fmt.HEADER, header_writer)
 
     owner, ctime, moder, mtime = utils.get_revision_data(xray.revision)
     currtime = int(time.time())
