@@ -135,7 +135,8 @@ def merge_meshes(mesh_objects):
             vertex_group_indices.append(index)
             vertex_group_names[index] = group.name
         for vertex in mesh.vertices:
-            verts.append(tuple(vertex.co))
+            coord = version_utils.multiply(vertex.co, obj.matrix_world)
+            verts.append(tuple(coord))
             groups = {}
             for group in vertex.groups:
                 index = group.group + group_index_offset
