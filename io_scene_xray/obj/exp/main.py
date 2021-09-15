@@ -195,8 +195,8 @@ def merge_meshes(mesh_objects):
             if group_index_by_name is None:
                 group = merged_object.vertex_groups.new(name=name)
                 remap_vertex_group_indices[index] = group_index
+                group_indices[name] = group_index
                 group_index += 1
-                group_indices[name] = index
             else:
                 remap_vertex_group_indices[index] = group_index_by_name
     for vertex_index, vertex_group in enumerate(vertex_groups):
