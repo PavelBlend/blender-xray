@@ -1,7 +1,7 @@
 bl_info = {
     'name': 'XRay Engine Tools',
     'author': 'Vakhurin Sergey (igel), Pavel_Blend, Viktoria Danchenko',
-    'version': (2, 1, 2),
+    'version': (2, 1, 3),
     'blender': (2, 80, 0),
     'category': 'Import-Export',
     'location': 'File > Import/Export',
