@@ -43,6 +43,7 @@ class Visual(object):
         self.is_root = None
         self.bpy_materials = None
         self.arm_obj = None
+        self.root_obj = None
         self.bones = None
         self.deform_bones = None
         self.motion_refs = None
@@ -529,7 +530,7 @@ def read_vertices_v3(data, visual, lvl):
     visual.uvs_lmap = vb.uv_lmap
 
 
-def import_vertices(chunks, ogf_chunks, visual):
+def import_skeleton_vertices(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.VERTICES)
     packed_reader = xray_io.PackedReader(chunk_data)
     vertex_format = packed_reader.getf('<I')[0]
@@ -650,6 +651,31 @@ def import_vertices(chunks, ogf_chunks, visual):
     visual.normals = normals
     visual.uvs = uvs
     visual.weights = weights
+
+
+def import_vertices(chunks, ogf_chunks, visual):
+    chunk_data = chunks.pop(ogf_chunks.VERTICES)
+    packed_reader = xray_io.PackedReader(chunk_data)
+    vertex_format = packed_reader.getf('<I')[0]
+    verices_count = packed_reader.getf('<I')[0]
+    vertices = []
+    normals = []
+    uvs = []
+    if vertex_format == level.fmt.FVF_OGF:
+        for vertex_index in range(verices_count):
+            coords = packed_reader.getv3f()
+            normal = packed_reader.getn3f()
+            tex_u, tex_v = packed_reader.getf('<2f')
+            vertices.append(coords)
+            normals.append(normal)
+            uvs.append((tex_u, 1 - tex_v))
+    else:
+        raise utils.AppError('Unsupported ogf vertex format: 0x{:x}'.format(
+            vertex_format
+        ))
+    visual.vertices = vertices
+    visual.normals = normals
+    visual.uvs = uvs
 
 
 def import_fastpath(data, visual, lvl):
@@ -1644,6 +1670,7 @@ def import_children(context, chunks, ogf_chunks, root_visual):
         visual.visual_id = child_index
         visual.is_root = False
         visual.arm_obj = root_visual.arm_obj
+        visual.root_obj = root_visual.root_obj
         visual.bones = root_visual.bones
         visual.bpy_materials = root_visual.bpy_materials
         import_visual(context, child_data, visual)
@@ -1651,6 +1678,10 @@ def import_children(context, chunks, ogf_chunks, root_visual):
             root_visual.arm_obj.xray.flags_simple = 'pd'
         elif visual.model_type == fmt.ModelType_v4.SKELETON_GEOMDEF_ST:
             root_visual.arm_obj.xray.flags_simple = 'dy'
+        if visual.model_type == fmt.ModelType_v4.PROGRESSIVE:
+            root_visual.root_obj.xray.flags_simple = 'pd'
+        elif visual.model_type == fmt.ModelType_v4.NORMAL:
+            root_visual.root_obj.xray.flags_simple = 'dy'
         else:
             print('WARRNING: Model type = {}'.format(visual.model_type))
 
@@ -1674,6 +1705,11 @@ def import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual):
     import_children(context, chunks, ogf_chunks, visual)
 
 
+def import_mt_hierrarhy(context, chunks, ogf_chunks, visual):
+    import_description(chunks, ogf_chunks, visual)
+    import_children(context, chunks, ogf_chunks, visual)
+
+
 def import_texture(context, chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.TEXTURE)
     packed_reader = xray_io.PackedReader(chunk_data)
@@ -1692,17 +1728,32 @@ def import_texture(context, chunks, ogf_chunks, visual):
     visual.bpy_materials[visual.shader_id] = bpy_material
 
 
+def import_swi(visual, chunks):
+    swi = import_swidata(chunks)
+    visual.indices = visual.indices[swi[0].offset : ]
+    visual.indices_count = swi[0].triangles_count * 3
+
+
 def import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual):
     import_texture(context, chunks, ogf_chunks, visual)
-    import_vertices(chunks, ogf_chunks, visual)
+    import_skeleton_vertices(chunks, ogf_chunks, visual)
     import_indices(chunks, ogf_chunks, visual)
 
 
 def import_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual):
     import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual)
-    swi = import_swidata(chunks)
-    visual.indices = visual.indices[swi[0].offset : ]
-    visual.indices_count = swi[0].triangles_count * 3
+    import_swi(visual, chunks)
+
+
+def import_mt_normal(context, chunks, ogf_chunks, visual):
+    import_texture(context, chunks, ogf_chunks, visual)
+    import_vertices(chunks, ogf_chunks, visual)
+    import_indices(chunks, ogf_chunks, visual)
+
+
+def import_mt_progressive(context, chunks, ogf_chunks, visual):
+    import_mt_normal(context, chunks, ogf_chunks, visual)
+    import_swi(visual, chunks)
 
 
 def read_motion_references(chunks, ogf_chunks, visual):
@@ -1754,6 +1805,17 @@ def import_visual(context, data, visual):
         import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual)
     elif visual.model_type == model_types.SKELETON_GEOMDEF_PM:
         import_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual)
+    elif visual.model_type == model_types.NORMAL:
+        import_mt_normal(context, chunks, ogf_chunks, visual)
+    elif visual.model_type == model_types.PROGRESSIVE:
+        import_mt_progressive(context, chunks, ogf_chunks, visual)
+    elif visual.model_type == model_types.HIERRARHY:
+        root_obj = bpy.data.objects.new(visual.name, None)
+        root_obj.xray.version = context.version
+        root_obj.xray.isroot = True
+        version_utils.link_object(root_obj)
+        visual.root_obj = root_obj
+        import_mt_hierrarhy(context, chunks, ogf_chunks, visual)
     else:
         raise utils.AppError(
             'Unsupported ogf model type: {}'.format(
@@ -1773,6 +1835,13 @@ def import_visual(context, data, visual):
             mod = bpy_object.modifiers.new('Armature', 'ARMATURE')
             mod.object = arm
             bpy_object.xray.isroot = False
+        elif visual.root_obj:
+            bpy_object.parent = visual.root_obj
+            bpy_object.xray.version = context.version
+            bpy_object.xray.isroot = False
+    elif visual.model_type in (model_types.NORMAL, model_types.PROGRESSIVE):
+        convert_indices_to_triangles(visual)
+        bpy_object = create_visual(visual)
 
 
 def import_file(context, file_path, file_name):

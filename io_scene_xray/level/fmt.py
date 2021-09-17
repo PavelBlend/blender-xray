@@ -320,3 +320,14 @@ class D3D7FVF:
     TEX2 = 0x200    # base texture + light map
     TEXCOUNT_MASK = 0xf00
     TEXCOUNT_SHIFT = 8
+
+
+# directx 3d 9 vertex formats
+class D3D9FVF:
+    XYZ = 0x002    # x, y, z
+    NORMAL = 0x010
+    TEXCOUNT_SHIFT = 8
+
+
+# ogf vertex format without skeleton (normal or progressive)
+FVF_OGF = D3D9FVF.XYZ | D3D9FVF.NORMAL | (1 << D3D9FVF.TEXCOUNT_SHIFT)
