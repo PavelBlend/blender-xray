@@ -30,10 +30,8 @@ class XRAY_OT_verify_uv(bpy.types.Operator):
                 bad_objects.append(bpy_object.name)
         bpy.ops.object.select_all(action='DESELECT')
         for bad_object_name in bad_objects:
-            if version_utils.IS_28:
-                bpy.data.objects[bad_object_name].select_set(True)
-            else:
-                bpy.data.objects[bad_object_name].select = True
+            bad_object = bpy.data.objects[bad_object_name]
+            version_utils.select_object(bad_object)
         version_utils.set_active_object(None)
         return {'FINISHED'}
 
@@ -45,6 +43,7 @@ class XRAY_OT_verify_uv(bpy.types.Operator):
         bpy.ops.mesh.reveal()
         bpy.ops.mesh.select_all(action='DESELECT')
         bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.select_all(action='DESELECT')
         mesh = bpy_object.data
         has_bad_uv = False
         for uv_layer in mesh.uv_layers:
