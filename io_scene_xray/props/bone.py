@@ -239,8 +239,8 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 is_active_object = context_obj.name == obj_arm.name
             else:
                 is_active_object = False
-            has_shape = bone.xray.ikjoint.type in {'2', '3', '5'}
-            if bone.select and has_shape and is_active_object:
+            has_limits = bone.xray.ikjoint.type in {'2', '3', '5'}
+            if bone.select and has_limits and is_active_object:
                 draw_joint_limits = viewport.get_draw_joint_limits()
 
                 if version_utils.IS_28:
@@ -288,21 +288,32 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                         ik.lim_z_min, ik.lim_z_max
                     )
 
-                if arm_xray.display_bone_limit_x:
+                is_joint = bone.xray.ikjoint.type == '2'
+                is_wheel = bone.xray.ikjoint.type == '3'
+                is_slider = bone.xray.ikjoint.type == '5'
+
+                if arm_xray.display_bone_limit_x and (is_joint or is_wheel):
                     draw_joint_limits(
                         rotate.x, limits[0], limits[1], 'X',
                         arm_xray.display_bone_limits_radius
                     )
 
-                if arm_xray.display_bone_limit_y:
+                if arm_xray.display_bone_limit_y and is_joint:
                     draw_joint_limits(
                         rotate.y, limits[2], limits[3], 'Y',
                         arm_xray.display_bone_limits_radius
                     )
 
-                if arm_xray.display_bone_limit_z:
+                if arm_xray.display_bone_limit_z and is_joint:
                     draw_joint_limits(
                         rotate.z, limits[4], limits[5], 'Z',
+                        arm_xray.display_bone_limits_radius
+                    )
+
+                # slider limits
+                if arm_xray.display_bone_limit_z and is_slider:
+                    draw_joint_limits(
+                        rotate.z, limits[2], limits[3], 'Z',
                         arm_xray.display_bone_limits_radius
                     )
 

@@ -117,7 +117,7 @@ class XRAY_PT_bone(ui.base.XRayPanel):
 
         if joint_type and joint_type != 4:    # 4 - None type
             if joint_type == 3:    # Wheel
-                box.label(text='Steer-X / Roll-Z')
+                box.label(text='Steer-X / Roll-Z', icon='INFO')
             box.prop(data, 'friction', text='Friction')
             col = box.column(align=True)
             col.prop(data.ikjoint, 'spring', text='Spring')
@@ -127,7 +127,21 @@ class XRAY_PT_bone(ui.base.XRayPanel):
                 prop_index = 0
                 for text in BONE_TEXT[joint_type]:
                     col = box.column(align=True)
-                    col.label(text=text[0])
+                    col.label(text=text[0] + ':')
+                    # slider info
+                    if joint_type == 5 and text[0] == 'Slide Axis Z':
+                        col.label(
+                            text='Limit Min: {0:.4f} m'.format(
+                                data.ikjoint.lim_x_min
+                            ),
+                            icon='INFO'
+                        )
+                        col.label(
+                            text='Limit Max: {0:.4f} m'.format(
+                                data.ikjoint.lim_x_max
+                            ),
+                            icon='INFO'
+                        )
                     for prop_text in text[1 : ]:
                         if type(prop_text) == tuple:
                             row = col.row(align=True)
