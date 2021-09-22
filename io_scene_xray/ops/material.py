@@ -218,7 +218,18 @@ class XRAY_OT_convert_to_cycles_material(bpy.types.Operator):
         return {'FINISHED'}
 
 
+colorize_mode_items = (
+    ('ACTIVE_MATERIAL', 'Active Material', ''),
+    ('ACTIVE_OBJECT', 'Active Object', ''),
+    ('SELECTED_OBJECTS', 'Selected Objects', ''),
+    ('ALL_OBJECTS', 'All Objects', ''),
+    ('ALL_MATERIALS', 'All Materials', '')
+)
 xray_colorize_materials_props = {
+    'mode': bpy.props.EnumProperty(
+        default='SELECTED_OBJECTS',
+        items=colorize_mode_items
+    ),
     'seed': bpy.props.IntProperty(min=0, max=255),
     'power': bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0)
 }
@@ -239,17 +250,62 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
         column = layout.column(align=True)
         column.prop(self, 'seed', text='Seed')
         column.prop(self, 'power', text='Power', slider=True)
+        column.label(text='Mode:')
+        column.prop(self, 'mode', expand=True)
+
+    def get_obj_mats(self, objs):
+        materials = set()
+        for obj in objs:
+            for slot in obj.material_slots:
+                mat = slot.material
+                if mat:
+                    materials.add(mat)
+        return materials
 
     def execute(self, context):
-        objects = context.selected_objects
-        materials = set()
-        for obj in objects:
-            for slot in obj.material_slots:
-                materials.add(slot.material)
-
-        for mat in materials:
+        # active material
+        if self.mode == 'ACTIVE_MATERIAL':
+            obj = context.active_object
+            mat = None
+            if obj:
+                mat = obj.active_material
             if not mat:
-                continue
+                self.report({'ERROR'}, 'No active material')
+                return {'CANCELLED'}
+            materials = (mat, )
+        # active object
+        elif self.mode == 'ACTIVE_OBJECT':
+            obj = context.active_object
+            if not obj:
+                self.report({'ERROR'}, 'No active object')
+                return {'CANCELLED'}
+            objects = (obj, )
+            materials = self.get_obj_mats(objects)
+        # selected objects
+        elif self.mode == 'SELECTED_OBJECTS':
+            objects = context.selected_objects
+            if not objects:
+                self.report({'ERROR'}, 'No objects selected')
+                return {'CANCELLED'}
+            materials = self.get_obj_mats(objects)
+        # all objects
+        elif self.mode == 'ALL_OBJECTS':
+            objects = bpy.data.objects
+            if not objects:
+                self.report({'ERROR'}, 'Blend-file has no objects')
+                return {'CANCELLED'}
+            materials = self.get_obj_mats(objects)
+        # all materials
+        elif self.mode == 'ALL_MATERIALS':
+            all_materials = bpy.data.materials
+            if not all_materials:
+                self.report({'ERROR'}, 'Blend-file has no materials')
+                return {'CANCELLED'}
+            materials = set()
+            for mat in all_materials:
+                materials.add(mat)
+        # colorize
+        for mat in materials:
             data = bytearray(mat.name, 'utf8')
             data.append(self.seed)
             hsh = zlib.crc32(data)
@@ -266,10 +322,6 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        objects = context.selected_objects
-        if not objects:
-            self.report({'ERROR'}, 'No objects selected')
-            return {'CANCELLED'}
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
