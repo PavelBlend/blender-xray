@@ -212,10 +212,22 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
         layout = self.layout
         column = layout.column(align=True)
         operator = column.operator(
-            ops.material.XRAY_OT_colorize_materials.bl_idname, icon='COLOR'
+            ops.material.XRAY_OT_colorize_materials.bl_idname,
+            icon='COLOR'
         )
 
-        layout.operator(ops.action_utils.XRAY_OT_change_action_bake_settings.bl_idname)
+        column.operator(
+            ops.action_utils.XRAY_OT_change_action_bake_settings.bl_idname,
+            icon='ACTION'
+        )
+        if version_utils.IS_28:
+            icon = 'LIGHTPROBE_GRID'
+        else:
+            icon = 'MANIPUL'
+        column.operator(
+            ops.object_tools.XRAY_OT_place_objects.bl_idname,
+            icon=icon
+        )
 
         is_cycles = context.scene.render.engine == 'CYCLES'
         is_internal = context.scene.render.engine == 'BLENDER_RENDER'
@@ -303,8 +315,6 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
             column.operator(
                 ops.shader_tools.XRAY_OT_change_shader_params.bl_idname
             )
-
-        layout.operator(ops.object_tools.XRAY_OT_place_objects.bl_idname)
 
 
 class XRAY_PT_custom_props(bpy.types.Panel):

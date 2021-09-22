@@ -78,11 +78,13 @@ change_action_bake_settings_props = {
     'change_mode': bpy.props.EnumProperty(
         name='Mode',
         items=(
-            ('active', 'Active', ''),
-            ('selected', 'Selected', ''),
-            ('all', 'All', '')
+            ('ACTIVE_ACTION', 'Active Action', ''),
+            ('ACTIVE_OBJECT', 'Active Object', ''),
+            ('SELECTED_OBJECTS', 'Selected Objects', ''),
+            ('ALL_OBJECTS', 'All Objects', ''),
+            ('ALL_ACTIONS', 'All Actions', '')
         ),
-        default='active'
+        default='SELECTED_OBJECTS'
     ),
     'change_auto_bake_mode': bpy.props.BoolProperty(
         name='Change Auto Bake Mode', default=True
@@ -130,7 +132,8 @@ class XRAY_OT_change_action_bake_settings(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         layout.label(text='Mode:')
-        layout.prop(self, 'change_mode', expand=True)
+        column = layout.column(align=True)
+        column.prop(self, 'change_mode', expand=True)
         # auto bake mode
         layout.prop(self, 'change_auto_bake_mode')
         row = layout.row()
@@ -154,22 +157,42 @@ class XRAY_OT_change_action_bake_settings(bpy.types.Operator):
 
     def execute(self, context):
         actions = set()
-        if self.change_mode == 'active':
+        # active action
+        if self.change_mode == 'ACTIVE_ACTION':
+            obj = context.object
+            if obj:
+                anim_data = obj.animation_data
+                if anim_data:
+                    action = anim_data.action
+                    if action:
+                        actions.add(action)
+        # active object
+        elif self.change_mode == 'ACTIVE_OBJECT':
             obj = context.object
             if obj:
                 for motion in obj.xray.motions_collection:
                     action = bpy.data.actions.get(motion.name)
                     if action:
                         actions.add(action)
-        elif self.change_mode == 'selected':
+        # selected objects
+        elif self.change_mode == 'SELECTED_OBJECTS':
             for obj in context.selected_objects:
                 for motion in obj.xray.motions_collection:
                     action = bpy.data.actions.get(motion.name)
                     if action:
                         actions.add(action)
-        elif self.change_mode == 'all':
+        # all objects
+        elif self.change_mode == 'ALL_OBJECTS':
+            for obj in bpy.data.objects:
+                for motion in obj.xray.motions_collection:
+                    action = bpy.data.actions.get(motion.name)
+                    if action:
+                        actions.add(action)
+        # all actions
+        elif self.change_mode == 'ALL_ACTIONS':
             for action in bpy.data.actions:
                 actions.add(action)
+        # change settings
         for action in actions:
             xray = action.xray
             # mode
