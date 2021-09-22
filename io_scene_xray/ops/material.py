@@ -234,15 +234,14 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
         for prop_name, prop_value in xray_colorize_materials_props.items():
             exec('{0} = xray_colorize_materials_props.get("{0}")'.format(prop_name))
 
+    def draw(self, context):
+        layout = self.layout
+        column = layout.column(align=True)
+        column.prop(self, 'seed', text='Seed')
+        column.prop(self, 'power', text='Power', slider=True)
+
     def execute(self, context):
         objects = context.selected_objects
-        if not objects:
-            self.report({'ERROR'}, 'No objects selected')
-            return {'CANCELLED'}
-
-        xr_data = context.scene.xray
-        self.seed = xr_data.materials_colorize_random_seed
-        self.power = xr_data.materials_colorize_color_power
         materials = set()
         for obj in objects:
             for slot in obj.material_slots:
@@ -265,6 +264,14 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
                 color.append(1.0)    # alpha
             mat.diffuse_color = color
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        objects = context.selected_objects
+        if not objects:
+            self.report({'ERROR'}, 'No objects selected')
+            return {'CANCELLED'}
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
 
 classes = (

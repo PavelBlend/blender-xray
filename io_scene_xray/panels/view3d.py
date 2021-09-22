@@ -214,10 +214,6 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
         operator = column.operator(
             ops.material.XRAY_OT_colorize_materials.bl_idname, icon='COLOR'
         )
-        operator.seed = data.materials_colorize_random_seed
-        operator.power = data.materials_colorize_color_power
-        column.prop(data, 'materials_colorize_random_seed', text='Seed')
-        column.prop(data, 'materials_colorize_color_power', text='Power', slider=True)
 
         layout.operator(ops.action_utils.XRAY_OT_change_action_bake_settings.bl_idname)
 

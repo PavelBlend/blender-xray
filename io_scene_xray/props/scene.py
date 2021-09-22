@@ -58,11 +58,6 @@ xray_scene_properties = {
     'fmt_version': plugin_props.PropSDKVersion(),
     'object_export_motions': plugin_props.PropObjectMotionsExport(),
     'object_texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath(),
-    'materials_colorize_random_seed': bpy.props.IntProperty(min=0, max=255, options={'SKIP_SAVE'}),
-    'materials_colorize_color_power': bpy.props.FloatProperty(
-        default=0.5, min=0.0, max=1.0,
-        options={'SKIP_SAVE'},
-    ),
     'import_skls': bpy.props.PointerProperty(type=ImportSkls),
     'import_omf': bpy.props.PointerProperty(type=ImportOmf),
     # material utils parameters
