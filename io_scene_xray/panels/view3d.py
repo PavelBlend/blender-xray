@@ -333,28 +333,23 @@ class XRAY_PT_custom_props(bpy.types.Panel):
 
     def draw(self, context):
         lay = self.layout
-        scn = context.scene.xray
-        split = version_utils.layout_split(lay, 0.4)
-        split.label(text='Edit Data:')
-        split.prop(scn, 'custom_properties_edit_data', text='')
-        split = version_utils.layout_split(lay, 0.4)
-        split.label(text='Edit Mode:')
-        split.prop(scn, 'custom_properties_edit_mode', text='')
         lay.label(text='Set Custom Properties:')
-        lay.operator(
+        col = lay.column(align=True)
+        col.operator(
             ops.custom_props_utils.XRAY_OT_set_xray_to_custom_props.bl_idname,
             text='X-Ray to Custom'
         )
-        lay.operator(
+        col.operator(
             ops.custom_props_utils.XRAY_OT_set_custom_to_xray_props.bl_idname,
             text='Custom to X-Ray'
         )
         lay.label(text='Remove Custom Properties:')
-        lay.operator(
+        row = lay.row(align=True)
+        row.operator(
             ops.custom_props_utils.XRAY_OT_remove_xray_custom_props.bl_idname,
             text='X-Ray'
         )
-        lay.operator(
+        row.operator(
             ops.custom_props_utils.XRAY_OT_remove_all_custom_props.bl_idname,
             text='All'
         )

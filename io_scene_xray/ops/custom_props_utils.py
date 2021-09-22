@@ -6,8 +6,7 @@ from .. import prefs
 from .. import version_utils
 
 
-def find_data(context):
-    scn = context.scene.xray
+def find_data(operator, context):
     objects = set()
     meshes = set()
     materials = set()
@@ -15,63 +14,63 @@ def find_data(context):
     actions = set()
 
     # find objects
-    if scn.custom_properties_edit_data in ('OBJECT', 'ALL'):
-        if scn.custom_properties_edit_mode == 'ACTIVE':
+    if operator.edit_data in ('OBJECT', 'ALL'):
+        if operator.edit_mode == 'ACTIVE':
             objects.add(context.object)
-        elif scn.custom_properties_edit_mode == 'SELECTED':
+        elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 objects.add(obj)
-        elif scn.custom_properties_edit_mode == 'ALL':
+        elif operator.edit_mode == 'ALL':
             for obj in bpy.data.objects:
                 objects.add(obj)
 
     # find meshes
-    if scn.custom_properties_edit_data in ('MESH', 'ALL'):
-        if scn.custom_properties_edit_mode == 'ACTIVE':
+    if operator.edit_data in ('MESH', 'ALL'):
+        if operator.edit_mode == 'ACTIVE':
             if context.object.type == 'MESH':
                 meshes.add(context.object.data)
-        elif scn.custom_properties_edit_mode == 'SELECTED':
+        elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 if obj.type == 'MESH':
                     meshes.add(obj.data)
-        elif scn.custom_properties_edit_mode == 'ALL':
+        elif operator.edit_mode == 'ALL':
             for mesh in bpy.data.meshes:
                 meshes.add(mesh)
 
     # find materials
-    if scn.custom_properties_edit_data in ('MATERIAL', 'ALL'):
-        if scn.custom_properties_edit_mode == 'ACTIVE':
+    if operator.edit_data in ('MATERIAL', 'ALL'):
+        if operator.edit_mode == 'ACTIVE':
             if context.object.type == 'MESH':
                 materials.add(context.object.active_material)
-        elif scn.custom_properties_edit_mode == 'SELECTED':
+        elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 if obj.type == 'MESH':
                     for material in obj.data.materials:
                         materials.add(material)
-        elif scn.custom_properties_edit_mode == 'ALL':
+        elif operator.edit_mode == 'ALL':
             for material in bpy.data.materials:
                 materials.add(material)
 
     # find bones
-    if scn.custom_properties_edit_data in ('BONE', 'ALL'):
-        if scn.custom_properties_edit_mode == 'ACTIVE':
+    if operator.edit_data in ('BONE', 'ALL'):
+        if operator.edit_mode == 'ACTIVE':
             if context.object.type == 'ARMATURE':
                 armatures.add(context.object)
-        elif scn.custom_properties_edit_mode == 'SELECTED':
+        elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 if obj.type == 'ARMATURE':
                     armatures.add(obj)
-        elif scn.custom_properties_edit_mode == 'ALL':
+        elif operator.edit_mode == 'ALL':
             for obj in bpy.data.objects:
                 if obj.type == 'ARMATURE':
                     armatures.add(obj)
 
     # find actions
-    if scn.custom_properties_edit_data in ('ACTION', 'ALL'):
-        if scn.custom_properties_edit_mode == 'ACTIVE':
+    if operator.edit_data in ('ACTION', 'ALL'):
+        if operator.edit_mode == 'ACTIVE':
             if context.object.animation_data:
                 actions.add(context.object.animation_data.action)
-        elif scn.custom_properties_edit_mode == 'SELECTED':
+        elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 for motion in obj.xray.motions_collection:
                     action = bpy.data.actions.get(motion.name)
@@ -79,7 +78,7 @@ def find_data(context):
                         actions.add(action)
                 if obj.animation_data:
                     actions.add(obj.animation_data.action)
-        elif scn.custom_properties_edit_mode == 'ALL':
+        elif operator.edit_mode == 'ALL':
             for action in bpy.data.actions:
                 actions.add(action)
 
@@ -90,10 +89,53 @@ def find_data(context):
     return objects, meshes, materials, armatures, actions
 
 
+def draw_function(self, context):
+    lay = self.layout
+    col = lay.column(align=True)
+    col.label(text='Edit Data:')
+    col.prop(self, 'edit_data', expand=True)
+    col.label(text='Edit Mode:')
+    col.prop(self, 'edit_mode', expand=True)
+
+
+edit_data_items = (
+    ('ALL', 'All', ''),
+    ('OBJECT', 'Object', ''),
+    ('MESH', 'Mesh', ''),
+    ('MATERIAL', 'Material', ''),
+    ('BONE', 'Bone', ''),
+    ('ACTION', 'Action', '')
+)
+edit_mode_items = (
+    ('ALL', 'All', ''),
+    ('SELECTED', 'Selected Objects', ''),
+    ('ACTIVE', 'Active Object', '')
+)
+custom_props = {
+    # custom properties utils
+    'edit_data': bpy.props.EnumProperty(
+        name='Edit Data',
+        items=edit_data_items,
+        default='ALL'
+    ),
+    'edit_mode': bpy.props.EnumProperty(
+        name='Edit Mode',
+        items=edit_mode_items,
+        default='ALL'
+    )
+}
+
+
 class XRAY_OT_set_custom_to_xray_props(bpy.types.Operator):
     bl_idname = 'io_scene_xray.set_custom_to_xray_properties'
     bl_label = 'Set Custom to X-Ray'
     bl_options = {'REGISTER', 'UNDO'}
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in custom_props.items():
+            exec('{0} = custom_props.get("{0}")'.format(prop_name))
+
+    draw = draw_function
 
     def set_custom(self, owner, prop, custom):
         if not self.obj.get(custom, None) is None:
@@ -102,7 +144,7 @@ class XRAY_OT_set_custom_to_xray_props(bpy.types.Operator):
     def execute(self, context):
         preferences = version_utils.get_preferences()
         stgs = preferences.custom_props    # settings
-        objects, meshes, materials, armatures, actions = find_data(context)
+        objects, meshes, materials, armatures, actions = find_data(self, context)
         # object
         for obj in objects:
             self.obj = obj
@@ -191,16 +233,26 @@ class XRAY_OT_set_custom_to_xray_props(bpy.types.Operator):
             self.set_custom(xray, 'power', stgs.action_power)
         return {'FINISHED'}
 
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
 
 class XRAY_OT_set_xray_to_custom_props(bpy.types.Operator):
     bl_idname = 'io_scene_xray.set_xray_to_custom_properties'
     bl_label = 'Set X-Ray to Custom'
     bl_options = {'REGISTER', 'UNDO'}
 
+    if not version_utils.IS_28:
+        for prop_name, prop_value in custom_props.items():
+            exec('{0} = custom_props.get("{0}")'.format(prop_name))
+
+    draw = draw_function
+
     def execute(self, context):
         preferences = version_utils.get_preferences()
         stgs = preferences.custom_props    # settings
-        objects, meshes, materials, armatures, actions = find_data(context)
+        objects, meshes, materials, armatures, actions = find_data(self, context)
         # object
         for obj in objects:
             xray = obj.xray
@@ -284,11 +336,21 @@ class XRAY_OT_set_xray_to_custom_props(bpy.types.Operator):
             action[stgs.action_power] = xray.power
         return {'FINISHED'}
 
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
 
 class XRAY_OT_remove_xray_custom_props(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_xray_custom_props'
     bl_label = 'Remove X-Ray Custom Properties'
     bl_options = {'REGISTER', 'UNDO'}
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in custom_props.items():
+            exec('{0} = custom_props.get("{0}")'.format(prop_name))
+
+    draw = draw_function
 
     def execute(self, context):
         preferences = version_utils.get_preferences()
@@ -297,7 +359,7 @@ class XRAY_OT_remove_xray_custom_props(bpy.types.Operator):
         for prop_name in props_list:
             prop_value = getattr(preferences.custom_props, prop_name, None)
             props_values.append(prop_value)
-        objects, meshes, materials, armatures, actions = find_data(context)
+        objects, meshes, materials, armatures, actions = find_data(self, context)
         data_list = []
         data_list.extend(objects)
         data_list.extend(meshes)
@@ -315,14 +377,24 @@ class XRAY_OT_remove_xray_custom_props(bpy.types.Operator):
                     del data[prop]
         return {'FINISHED'}
 
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
 
 class XRAY_OT_remove_all_custom_props(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_all_custom_props'
     bl_label = 'Remove All Custom Properties'
     bl_options = {'REGISTER', 'UNDO'}
 
+    if not version_utils.IS_28:
+        for prop_name, prop_value in custom_props.items():
+            exec('{0} = custom_props.get("{0}")'.format(prop_name))
+
+    draw = draw_function
+
     def execute(self, context):
-        objects, meshes, materials, armatures, actions = find_data(context)
+        objects, meshes, materials, armatures, actions = find_data(self, context)
         data_list = []
         data_list.extend(objects)
         data_list.extend(meshes)
@@ -343,20 +415,28 @@ class XRAY_OT_remove_all_custom_props(bpy.types.Operator):
                 del data[prop]
         return {'FINISHED'}
 
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
 
 classes = (
-    XRAY_OT_set_custom_to_xray_props,
-    XRAY_OT_set_xray_to_custom_props,
-    XRAY_OT_remove_xray_custom_props,
-    XRAY_OT_remove_all_custom_props
+    (XRAY_OT_set_custom_to_xray_props, custom_props),
+    (XRAY_OT_set_xray_to_custom_props, custom_props),
+    (XRAY_OT_remove_xray_custom_props, custom_props),
+    (XRAY_OT_remove_all_custom_props, custom_props)
 )
 
 
 def register():
-    for operator in classes:
+    for operator, props in classes:
+        if props:
+            version_utils.assign_props([
+                (props, operator),
+            ])
         bpy.utils.register_class(operator)
 
 
 def unregister():
-    for operator in reversed(classes):
+    for operator, props in reversed(classes):
         bpy.utils.unregister_class(operator)

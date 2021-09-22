@@ -35,19 +35,6 @@ convert_materials_shader_type_items = (
     ('DIFFUSE', 'Diffuse', ''),
     ('EMISSION', 'Emission', '')
 )
-custom_properties_edit_data_items = (
-    ('ALL', 'All', ''),
-    ('OBJECT', 'Object', ''),
-    ('MESH', 'Mesh', ''),
-    ('MATERIAL', 'Material', ''),
-    ('BONE', 'Bone', ''),
-    ('ACTION', 'Action', '')
-)
-custom_properties_edit_mode_items = (
-    ('ALL', 'All', ''),
-    ('SELECTED', 'Selected', ''),
-    ('ACTIVE', 'Active', '')
-)
 
 xray_scene_properties = {
     'export_root': bpy.props.StringProperty(
@@ -123,14 +110,6 @@ xray_scene_properties = {
     'transparency_alpha': bpy.props.FloatProperty(
         name='Transparency Alpha', default=1.0,
         min=0.0, max=1.0, subtype='FACTOR'
-    ),
-
-    # custom properties utils
-    'custom_properties_edit_data': bpy.props.EnumProperty(
-        name='Edit Data', items=custom_properties_edit_data_items, default='ALL'
-    ),
-    'custom_properties_edit_mode': bpy.props.EnumProperty(
-        name='Edit Mode', items=custom_properties_edit_mode_items, default='ALL'
     ),
     'viewer': bpy.props.PointerProperty(type=viewer.XRaySceneViewerProperties),
 }
