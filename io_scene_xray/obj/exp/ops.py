@@ -270,7 +270,7 @@ class XRAY_OT_export_project(plugin_props.BaseOperator):
     @utils.execute_with_logger
     def execute(self, context):
         data = context.scene.xray
-        export_context = obj.exp.ops.ExportObjectContext()
+        export_context = exp.ops.ExportObjectContext()
         export_context.texname_from_path = data.object_texture_name_from_image_path
         export_context.soc_sgroups = data.fmt_version == 'soc'
         export_context.export_motions = data.object_export_motions
@@ -285,7 +285,7 @@ class XRAY_OT_export_project(plugin_props.BaseOperator):
                 if bpy_obj.xray.export_path:
                     opath = os.path.join(opath, bpy_obj.xray.export_path)
                     os.makedirs(opath, exist_ok=True)
-                obj.exp.export_file(bpy_obj, os.path.join(opath, name), export_context)
+                exp.export_file(bpy_obj, os.path.join(opath, name), export_context)
         except utils.AppError as err:
             raise err
         return {'FINISHED'}

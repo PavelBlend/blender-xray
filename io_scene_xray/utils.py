@@ -414,7 +414,11 @@ class ObjectsInitializer:
 
 @contextlib.contextmanager
 def using_mode(mode):
-    original = bpy.context.object.mode
+    if version_utils.IS_28:
+        objects = bpy.context.view_layer.objects
+    else:
+        objects = bpy.context.scene.objects
+    original = objects.active.mode
     bpy.ops.object.mode_set(mode=mode)
     try:
         yield
