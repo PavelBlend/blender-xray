@@ -106,10 +106,12 @@ class XRAY_OT_resize_bones(bpy.types.Operator):
             bones = bpy_armature.edit_bones
             if self.mode == 'ADAPTIVE':
                 lenghts = self.get_bones_length(bones)
+                for bone, length in zip(bones, lenghts):
+                    bone.length = min(max(length * 0.4, 0.01), 0.1)
             else:
                 lenghts = [self.size] * len(bones)
-            for bone, length in zip(bones, lenghts):
-                bone.length = min(max(length * 0.4, 0.01), 0.1)
+                for bone, length in zip(bones, lenghts):
+                    bone.length = length
             bpy.ops.object.mode_set(mode='POSE')
             if self.custom_shapes:
                 for pose_bone in obj.pose.bones:
