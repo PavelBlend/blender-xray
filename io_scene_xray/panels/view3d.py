@@ -337,21 +337,25 @@ class XRAY_PT_custom_props(bpy.types.Panel):
         col = lay.column(align=True)
         col.operator(
             ops.custom_props_utils.XRAY_OT_set_xray_to_custom_props.bl_idname,
-            text='X-Ray to Custom'
+            text='X-Ray to Custom',
+            icon='FORWARD'
         )
         col.operator(
             ops.custom_props_utils.XRAY_OT_set_custom_to_xray_props.bl_idname,
-            text='Custom to X-Ray'
+            text='Custom to X-Ray',
+            icon='BACK'
         )
         lay.label(text='Remove Custom Properties:')
         row = lay.row(align=True)
         row.operator(
             ops.custom_props_utils.XRAY_OT_remove_xray_custom_props.bl_idname,
-            text='X-Ray'
+            text='X-Ray',
+            icon='X'
         )
         row.operator(
             ops.custom_props_utils.XRAY_OT_remove_all_custom_props.bl_idname,
-            text='All'
+            text='All',
+            icon='CANCEL'
         )
 
 
