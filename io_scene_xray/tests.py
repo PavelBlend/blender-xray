@@ -5,7 +5,7 @@ import os
 import bpy
 import bpy_extras
 
-# addon props
+# addon modules
 from . import version_utils
 
 
