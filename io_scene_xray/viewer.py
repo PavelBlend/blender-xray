@@ -79,10 +79,14 @@ def remove_preview_data():
         for data in data_set:
             if not data.users:
                 bpy_data.remove(data)
-    user_map = bpy.data.user_map()
+    used_actions = set()
+    for obj in bpy.data.objects:
+        for motion in obj.xray.motions_collection:
+            action = bpy.data.actions.get(motion.name)
+            if action:
+                used_actions.add(action.name)
     for action in actions:
-        users = user_map.get(action)
-        if not users:
+        if not action.name in used_actions:
             bpy.data.actions.remove(action)
 
 
