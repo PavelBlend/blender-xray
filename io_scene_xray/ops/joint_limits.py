@@ -49,13 +49,21 @@ class XRAY_OT_convert_limits_to_constraints(bpy.types.Operator):
                 constraint.use_limit_z = True
                 constraint.use_transform_limit = True
                 constraint.owner_space = 'LOCAL'
-                ik = xray.ikjoint
-                constraint.min_x = ik.lim_x_min
-                constraint.max_x = ik.lim_x_max
-                constraint.min_y = ik.lim_y_min
-                constraint.max_y = ik.lim_y_max
-                constraint.min_z = ik.lim_z_min
-                constraint.max_z = ik.lim_z_max
+                if obj.data.xray.joint_limits_type == 'XRAY':
+                    ik = xray.ikjoint
+                    constraint.min_x = -ik.lim_x_max
+                    constraint.max_x = -ik.lim_x_min
+                    constraint.min_y = -ik.lim_y_max
+                    constraint.max_y = -ik.lim_y_min
+                    constraint.min_z = ik.lim_z_min
+                    constraint.max_z = ik.lim_z_max
+                else:
+                    constraint.min_x = pose_bone.ik_min_x
+                    constraint.max_x = pose_bone.ik_max_x
+                    constraint.min_y = pose_bone.ik_min_y
+                    constraint.max_y = pose_bone.ik_max_y
+                    constraint.min_z = pose_bone.ik_min_z
+                    constraint.max_z = pose_bone.ik_max_z
         return {'FINISHED'}
 
 
@@ -89,10 +97,10 @@ class XRAY_OT_convert_ik_to_xray_limits(bpy.types.Operator):
             if bone.select:
                 pose_bone = obj.pose.bones[bone.name]
                 ik = xray.ikjoint
-                ik.lim_x_min = pose_bone.ik_min_x
-                ik.lim_x_max = pose_bone.ik_max_x
-                ik.lim_y_min = pose_bone.ik_min_y
-                ik.lim_y_max = pose_bone.ik_max_y
+                ik.lim_x_min = -pose_bone.ik_max_x
+                ik.lim_x_max = -pose_bone.ik_min_x
+                ik.lim_y_min = -pose_bone.ik_max_y
+                ik.lim_y_max = -pose_bone.ik_min_y
                 ik.lim_z_min = pose_bone.ik_min_z
                 ik.lim_z_max = pose_bone.ik_max_z
         return {'FINISHED'}
@@ -114,10 +122,10 @@ class XRAY_OT_convert_xray_to_ik_limits(bpy.types.Operator):
                 pose_bone.use_ik_limit_y = True
                 pose_bone.use_ik_limit_z = True
                 ik = xray.ikjoint
-                pose_bone.ik_min_x = ik.lim_x_min
-                pose_bone.ik_max_x = ik.lim_x_max
-                pose_bone.ik_min_y = ik.lim_y_min
-                pose_bone.ik_max_y = ik.lim_y_max
+                pose_bone.ik_min_x = -ik.lim_x_max
+                pose_bone.ik_max_x = -ik.lim_x_min
+                pose_bone.ik_min_y = -ik.lim_y_max
+                pose_bone.ik_max_y = -ik.lim_y_min
                 pose_bone.ik_min_z = ik.lim_z_min
                 pose_bone.ik_max_z = ik.lim_z_max
         return {'FINISHED'}
