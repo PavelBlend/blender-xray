@@ -32,6 +32,8 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
                         if node.is_active_output:
                             output_node = node
                             break
+                if scene.xray.change_viewport_roughness:
+                    mat.roughness = scene.xray.viewport_roughness_value
                 if not output_node:
                     self.report({'WARNING'}, 'Material "{}" has no output node.'.format(mat.name))
                     continue
@@ -68,8 +70,6 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
                             links = shader_node.inputs['Alpha'].links
                             if len(links):
                                 mat.node_tree.links.remove(links[0])
-                    if scene.xray.change_viewport_roughness:
-                        mat.roughness = scene.xray.viewport_roughness_value
             if is_internal:
                 # shadeless
                 if scene.xray.change_shadeless:
