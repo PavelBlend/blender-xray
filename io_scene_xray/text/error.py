@@ -86,3 +86,12 @@ omf_empty_bone_group = 'Armature "{}" has an empty bone group'
 # omf import
 omf_no_bone = 'Cannot find bone: {}'
 omf_nothing = 'Nothing was imported. Change the import settings.'
+# scene import
+scene_bad_file = 'Bad scene selection file. Cannot find "scene version" chunk.'
+scene_obj_tool_ver = 'Unsupported object tools version: {}.'
+scene_obj_count = 'Bad scene selection file. Cannot find "scene objects count" chunk.'
+scene_scn_objs = 'Bad scene selection file. Cannot find "scene objects" chunk.'
+scene_objs = 'Bad scene selection file. Cannot find "objects" chunk.'
+scene_no_ver = 'Bad scene selection file. Cannot find "version" chunk.'
+scene_ver_size = 'Bad scene selection file. "version" chunk size is not equal to 4.'
+scene_ver = 'Unsupported format version: {}.'

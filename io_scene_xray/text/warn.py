@@ -45,3 +45,5 @@ object_try_use_option = ' (try to use "{}" option)'
 # ogf import
 ogf_bad_shape = 'Unsupported bone shape type'
 ogf_bad_joint = 'Unsupported bone joint type'
+# scene import
+scene_no_file = 'Cannot find file: {}'

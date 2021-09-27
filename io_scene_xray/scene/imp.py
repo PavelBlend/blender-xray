@@ -6,6 +6,7 @@ import bpy
 
 # addon modules
 from . import fmt
+from .. import text
 from .. import log
 from .. import utils
 from .. import xray_io
@@ -20,24 +21,20 @@ class ImportSceneContext(obj.imp.utility.ImportObjectMeshContext):
 
 def _read_scene_version(scene_version_chunk):
     if not scene_version_chunk:
-        raise utils.AppError(
-            'Bad scene selection file. Cannot find "scene version" chunk.'
-        )
+        raise utils.AppError(text.error.scene_bad_file)
 
     packed_reader = xray_io.PackedReader(scene_version_chunk)
     object_tools_version = packed_reader.getf('H')[0]
 
     if object_tools_version != fmt.OBJECT_TOOLS_VERSION:
         raise utils.AppError(
-            'Unsupported object tools version: {}.'.format(object_tools_version)
+            text.error.scene_obj_tool_ver.format(object_tools_version)
         )
 
 
 def _read_objects_count(objects_count_chunk):
     if not objects_count_chunk:
-        raise utils.AppError(
-            'Bad scene selection file. Cannot find "scene objects count" chunk.'
-        )
+        raise utils.AppError(text.error.scene_obj_count)
 
     packed_reader = xray_io.PackedReader(objects_count_chunk)
     objects_count = packed_reader.getf('I')[0]
@@ -76,7 +73,7 @@ def _read_object_body(data, imported_objects, import_context):
             imported_object.xray.export_path = os.path.dirname(object_path) + os.sep
             imported_objects[object_path] = imported_object
         else:
-            log.warn('Cannot find file: {}'.format(import_path))
+            log.warn(text.warn.scene_no_file.format(import_path))
     else:
         imported_object = imported_objects.get(object_path)
         if imported_object.type == 'EMPTY':
@@ -116,9 +113,7 @@ def _read_scene_object(data, imported_objects, import_context):
 
 def _read_scene_objects(scene_objects_chunk, objects_count, import_context):
     if not scene_objects_chunk:
-        raise utils.AppError(
-            'Bad scene selection file. Cannot find "scene objects" chunk.'
-        )
+        raise utils.AppError(text.error.scene_scn_objs)
 
     chunked_reader = xray_io.ChunkedReader(scene_objects_chunk)
     object_index = 0
@@ -131,7 +126,7 @@ def _read_scene_objects(scene_objects_chunk, objects_count, import_context):
 
 def _read_objects(objects_chunk, import_context):
     if not objects_chunk:
-        raise utils.AppError('Bad scene selection file. Cannot find "objects" chunk.')
+        raise utils.AppError(text.error.scene_objs)
 
     chunked_reader = xray_io.ChunkedReader(objects_chunk)
     scene_version_chunk = None
@@ -153,17 +148,15 @@ def _read_objects(objects_chunk, import_context):
 
 def _read_version(version_chunk):
     if not version_chunk:
-        raise utils.AppError('Bad scene selection file. Cannot find "version" chunk.')
+        raise utils.AppError(text.error.scene_no_ver)
 
     if len(version_chunk) != 4:
-        raise utils.AppError(
-            'Bad scene selection file. "version" chunk size is not equal to 4.'
-        )
+        raise utils.AppError(text.error.scene_ver_size)
 
     packed_reader = xray_io.PackedReader(version_chunk)
     version = packed_reader.getf('I')[0]
     if version != fmt.FORMAT_VERSION:
-        raise utils.AppError('Unsupported format version: {}.'.format(version))
+        raise utils.AppError(text.error.scene_ver.format(version))
 
 
 def import_(filepath, chunked_reader, import_context):
