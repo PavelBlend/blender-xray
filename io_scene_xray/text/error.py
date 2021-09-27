@@ -1,7 +1,11 @@
 # general
 no_img = 'Material "{}" has no image'
 many_img = 'Material "{}" has more the one image'
+many_tex = 'Material "{}" has more than one texture'
+obj_many_uv = 'Object "{}" has more than one UV-map'
 not_use_nodes = 'Material "{}" does not use nodes'
+empty_mat = 'mesh "{}" has empty material slot'
+no_mat = 'mesh "{}" has no material'
 # anm export
 anm_no_keys = 'Action has no keys: {}'
 # anm import
@@ -37,11 +41,8 @@ dm_many_verts = 'mesh "{0}" has too many vertices: {1}. Must be no more than {2}
 # dm validate
 dm_no_uv = 'mesh "{}" has no UV-map'
 dm_many_uv = 'mesh "{}" has more than one UV-map'
-dm_no_mat = 'mesh "{}" has no material'
 dm_many_mat = 'mesh "{}" has more than one material'
-dm_empty_mat = 'mesh "{}" has empty material slot'
 dm_no_tex = 'material "{}" has no texture'
-dm_many_tex = 'material "{}" has more than one texture'
 dm_tex_type = 'texture "{0}" has an incorrect type: {1}'
 # level cform import
 cform_unsupport_ver = 'Unsupported cform version: {}'
@@ -50,3 +51,14 @@ level_no_lmap = 'Cannot find light map image "{0}" in "{1}" material!'
 level_many_children = 'Object "{}" has more than one children'
 # level import
 level_unsupport_ver = 'Unsupported level version: {}'
+# object export main
+object_ungroupped_verts = 'Mesh "{0}" has {1} vertices that are not tied to any exportable bones'
+object_duplicate_bones = 'The object has duplicate bones'
+object_many_arms = 'Root object "{}" has more than one armature'
+object_no_meshes = 'Root object "{}" has no meshes'
+object_skel_many_meshes = 'Skeletal object "{}" has more than one mesh'
+object_bad_boneparts = 'Invalid bone parts: not all bones are tied to the Bone Part'
+object_many_parents = 'Invalid armature object "{}". Has more than one parent: {}'
+object_bad_scale = 'Armature object "{}" has incorrect scale. The scale must be (1.0, 1.0, 1.0).'
+# object export mesh
+object_no_uv = 'UV-map is required, but not found on the "{0}" object'

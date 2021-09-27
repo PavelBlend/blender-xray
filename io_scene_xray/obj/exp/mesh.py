@@ -4,6 +4,7 @@ import bmesh
 # addon modules
 from . import main
 from .. import fmt
+from ... import text
 from ... import xray_io
 from ... import utils
 from ... import log
@@ -27,12 +28,10 @@ def _check_sg_soc(bmedges, sgroups):
         sg1 = sgroups[edge.link_faces[1].index]
         if edge.smooth:
             if sg0 != sg1:
-                return 'Maya-SG incompatible: ' \
-                    'smooth edge adjacents has different smoothing group'
+                return text.warn.object_sg_smooth
         else:
             if sg0 == sg1:
-                return 'Maya-SG incompatible: ' \
-                    'sharp edge adjacents has same smoothing group'
+                return text.warn.object_sg_sharp
 
 
 def _mark_fsg(face, sgroup, face_sgroup):
@@ -100,11 +99,7 @@ def remove_bad_geometry(bm, bml, bpy_obj):
         if any(bad_vgroups[k] for k in vertex[bml].keys())
     ]
     if bad_verts:
-        log.warn(
-            'skipping geometry from "{}"-s vertex groups'.format(
-                utils.BAD_VTX_GROUP_NAME
-            )
-        )
+        log.warn(text.warn.object_skip_geom.format(utils.BAD_VTX_GROUP_NAME))
         if version_utils.IS_28:
             ops_context = 'VERTS'
         else:
@@ -128,7 +123,7 @@ def export_faces(cw, bm, bpy_obj):
     fcs = []
     uv_layer = bm.loops.layers.uv.active
     if not uv_layer:
-        raise utils.AppError('UV-map is required, but not found on the "{0}" object'.format(bpy_obj.name))
+        raise utils.AppError(text.error.object_no_uv.format(bpy_obj.name))
 
     writer = xray_io.PackedWriter()
     writer.putf('I', len(bm.faces))
@@ -234,12 +229,12 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
         if faces_indices:
             if material_name is None:
                 raise utils.AppError(
-                    'mesh "{0}" has empty material slot'.format(bpy_obj.data.name)
+                    text.error.empty_mat.format(bpy_obj.data.name)
                 )
             used_material_names.add(material_name)
 
     if not sfaces:
-        raise utils.AppError('mesh "{0}" has no material'.format(bpy_obj.data.name))
+        raise utils.AppError(text.error.no_mat.format(bpy_obj.data.name))
     writer.putf('H', len(used_material_names))
     for mat_name, mat_data in materials.items():
         if mat_name in used_material_names:

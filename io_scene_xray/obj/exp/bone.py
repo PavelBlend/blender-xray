@@ -1,6 +1,7 @@
 # addon modules
 from . import main
 from .. import fmt
+from ... import text
 from ... import xray_io
 from ... import log
 from ... import utils
@@ -28,7 +29,7 @@ def export_bone(
     bone_name = bpy_bone.name.lower()
     if bone_name != bpy_bone.name:
         log.warn(
-            'the bone name has been saved without uppercase characters',
+            text.warn.object_bone_uppercase,
             old=bpy_bone.name,
             new=bone_name
         )
@@ -54,7 +55,7 @@ def export_bone(
     verdif = xray.shape.check_version_different()
     if verdif != 0:
         log.warn(
-            'bone edited with a different version of this plugin',
+            text.warn.object_bone_plugin_ver,
             bone=bpy_bone.name,
             version=xray.shape.fmt_version_different(verdif)
         )

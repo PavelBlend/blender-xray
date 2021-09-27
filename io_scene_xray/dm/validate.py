@@ -24,7 +24,7 @@ def validate_export_object(context, bpy_obj, fpath):
     material_count = len(bpy_obj.material_slots)
 
     if material_count == 0:
-        raise utils.AppError(text.error.dm_no_mat.format(mesh_name))
+        raise utils.AppError(text.error.no_mat.format(mesh_name))
 
     elif material_count > 1:
         raise utils.AppError(
@@ -35,7 +35,7 @@ def validate_export_object(context, bpy_obj, fpath):
         bpy_material = bpy_obj.material_slots[0].material
         if not bpy_material:
             raise utils.AppError(
-                text.error.dm_empty_mat.format(mesh_name)
+                text.error.empty_mat.format(mesh_name)
             )
 
     bpy_texture = None
@@ -55,7 +55,7 @@ def validate_export_object(context, bpy_obj, fpath):
                 )
             else:
                 raise utils.AppError(
-                    text.error.dm_many_tex.format(mat_name)
+                    text.error.many_tex.format(mat_name)
                 )
         else:
             raise utils.AppError(
@@ -75,7 +75,7 @@ def validate_export_object(context, bpy_obj, fpath):
             if context.texname_from_path:
                 if bpy_texture.type == 'TEX_ENVIRONMENT':
                     log.warn(
-                        text.warn.dm_env_tex.format(mat_name),
+                        text.warn.env_tex.format(mat_name),
                         material_name=mat_name,
                         node_name=bpy_texture.name,
                     )

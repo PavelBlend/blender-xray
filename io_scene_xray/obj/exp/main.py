@@ -10,6 +10,7 @@ from . import mesh
 from . import bone
 from .. import fmt
 from ... import xray_io
+from ... import text
 from ... import utils
 from ... import log
 from ... import xray_motions
@@ -70,7 +71,7 @@ def validate_vertex_weights(bpy_obj, arm_obj):
                 has_ungrouped_vertices = True
                 ungrouped_vertices_count += 1
     if has_ungrouped_vertices:
-        raise utils.AppError('Mesh "{0}" has {1} vertices that are not tied to any exportable bones'.format(
+        raise utils.AppError(text.error.object_ungroupped_verts.format(
             bpy_obj.data.name, ungrouped_vertices_count
         ))
 
@@ -91,7 +92,7 @@ def _check_bone_names(armature_object):
     if bone_duplicates:
         log.update(object=armature_object.name)
         raise utils.AppError(
-            'The object has duplicate bones',
+            text.error.object_duplicate_bones,
             log.props(bones=tuple(bone_duplicates.values()))
         )
 
@@ -159,7 +160,7 @@ def merge_meshes(mesh_objects):
         uv_layers = mesh.uv_layers
         if len(uv_layers) > 1:
             raise utils.AppError(
-                'Object "{}" has more than one UV-map'.format(obj.name)
+                text.error.obj_many_uv.format(obj.name)
             )
         uv_layer = uv_layers[0]
         for uv_data in uv_layer.data:
@@ -239,7 +240,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
                 uv_layers = bpy_obj.data.uv_layers
                 if len(uv_layers) > 1:
                     raise utils.AppError(
-                        'Object "{}" has more than one UV-map'.format(bpy_obj.name)
+                        text.error.obj_many_uv.format(bpy_obj.name)
                     )
                 uv_maps_names[material.name] = uv_layers[0].name
 
@@ -262,7 +263,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
     scan_r(bpy_obj)
     if len(armatures) > 1:
         raise utils.AppError(
-            'Root object "{}" has more than one armature'.format(bpy_obj.name)
+            text.error.object_many_arms.format(bpy_obj.name)
         )
     if armature_meshes:
         if len(armature_meshes) == 1:
@@ -272,16 +273,16 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
             write_mesh(skeletal_obj)
             mesh_names = [mesh.name for mesh in armature_meshes]
             log.warn(
-                'mesh-objects have been merged',
+                text.warn.object_merged,
                 objects=mesh_names
             )
     if not mesh_writers:
         raise utils.AppError(
-            'Root object "{}" has no meshes'.format(bpy_obj.name)
+            text.error.object_no_meshes.format(bpy_obj.name)
         )
     if len(mesh_writers) > 1 and len(armatures):
         raise utils.AppError(
-            'Skeletal object "{}" has more than one mesh'.format(bpy_obj.name)
+            text.error.object_skel_many_meshes.format(bpy_obj.name)
         )
 
     if len(armatures) == 1:
@@ -322,14 +323,15 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
                         has_bone_groups = True
         if invalid_bones and has_bone_groups:
             raise utils.AppError(
-                'Invalid bone parts: not all bones are tied to the Bone Part',
+                text.error.object_bad_boneparts,
                 log.props(bones=invalid_bones)
             )
     if len(root_bones) > 1:
         raise utils.AppError(
-            'Invalid armature object "{}". Has more than one parent: {}'.format(
+            text.error.object_many_parents.format(
                 bpy_arm_obj.name, root_bones
-        ))
+            )
+        )
 
     arm_list = list(armatures)
 
@@ -338,8 +340,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
     if some_arm:
         if some_arm.scale != mathutils.Vector((1.0, 1.0, 1.0)):
             raise utils.AppError(
-                'Armature object "{}" has incorrect scale.'
-                'The scale must be (1.0, 1.0, 1.0).'.format(some_arm.name)
+                text.error.object_bad_scale.format(some_arm.name)
             )
     export_flags(chunked_writer, obj_xray, some_arm)
 
@@ -390,7 +391,7 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
                             )
                             if tex_node.type == 'TEX_ENVIRONMENT':
                                 log.warn(
-                                    'material "{}" has incorrect image node type (Environment Texture)'.format(material.name),
+                                    text.warn.env_tex.format(material.name),
                                     material_name=material.name,
                                     node_name=tex_node.name,
                                 )
@@ -398,11 +399,12 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
                             tx_name = tex_node.name
                 elif len(tex_nodes) > 1:
                     raise utils.AppError(
-                        'Material "{}" has more than one texture.'.format(
-                            material.name
-                    ))
+                        text.error.many_tex.format(material.name)
+                    )
             else:
-                raise utils.AppError('material "{}" does not use nodes'.format(material.name))
+                raise utils.AppError(
+                    text.error.not_use_nodes.format(material.name)
+                )
         else:
             if material.active_texture:
                 if context.texname_from_path:
@@ -466,8 +468,9 @@ def export_motions(chunked_writer, some_arm, context, bpy_obj):
                 acts.append(act)
             else:
                 log.warn(
-                    'Cannot find action "{0}" in object "{1}"'.format(
-                        act_name, bpy_obj.name
+                    text.warn.object_no_action.format(
+                        act_name,
+                        bpy_obj.name
                     ),
                 )
         writer = xray_io.PackedWriter()
@@ -511,7 +514,7 @@ def export_motion_refs(chunked_writer, xray, context):
     motionrefs = xray.motionrefs_collection
     if motionrefs:
         if xray.motionrefs:
-            log.warn('MotionRefs: skipped legacy data', data=xray.motionrefs)
+            log.warn(text.warn.object_legacy_motionrefs, data=xray.motionrefs)
         if context.soc_sgroups:
             refs = ','.join(ref.name for ref in motionrefs)
             chunked_writer.put(
