@@ -26,13 +26,13 @@ def _import(fpath, context, chunked_reader):
 
         if chunk_id == fmt.Chunks.HEADER:
             if len(chunk_data) != fmt.HEADER_SIZE:
-                raise utils.AppError(text.err.details_bad_header)
+                raise utils.AppError(text.error.details_bad_header)
 
             header = read.read_header(xray_io.PackedReader(chunk_data))
 
             if header.format_version not in fmt.SUPPORT_FORMAT_VERSIONS:
                 raise utils.AppError(
-                    text.err.details_unsupport_ver.format(
+                    text.error.details_unsupport_ver.format(
                         header.format_version
                     )
                 )
@@ -51,11 +51,11 @@ def _import(fpath, context, chunked_reader):
     del chunked_reader
 
     if not has_header:
-        raise utils.AppError(text.err.details_no_header)
+        raise utils.AppError(text.error.details_no_header)
     if not has_meshes:
-        raise utils.AppError(text.err.details_no_meshes)
+        raise utils.AppError(text.error.details_no_meshes)
     if not has_slots:
-        raise utils.AppError(text.err.details_no_slots)
+        raise utils.AppError(text.error.details_no_slots)
 
     base_name = os.path.basename(fpath.lower())
     color_indices = utility.generate_color_indices()

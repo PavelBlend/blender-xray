@@ -16,12 +16,12 @@ def write_details(chunked_writer, lvl_dets, context, fpath):
 
     if dm_count == 0:
         raise utils.AppError(
-            text.err.details_no_children.format(meshes_object.name)
+            text.error.details_no_children.format(meshes_object.name)
         )
 
     if dm_count > fmt.DETAIL_MODEL_COUNT_LIMIT:
         raise utils.AppError(
-            text.err.details_many_children.format(
+            text.error.details_many_children.format(
                 meshes_object.name,
                 dm_count,
                 fmt.DETAIL_MODEL_COUNT_LIMIT
@@ -34,7 +34,7 @@ def write_details(chunked_writer, lvl_dets, context, fpath):
 
         if detail_model.type != 'MESH':
             raise utils.AppError(
-                text.err.details_not_mesh.format(
+                text.error.details_not_mesh.format(
                     meshes_object.name,
                     detail_model.type
                 )
@@ -52,7 +52,7 @@ def write_details(chunked_writer, lvl_dets, context, fpath):
 
         if dm_index >= dm_count:
             raise utils.AppError(
-                text.err.details_bad_detail_index.format(
+                text.error.details_bad_detail_index.format(
                     detail_model.name,
                     dm_index,
                     dm_count
@@ -66,11 +66,11 @@ def write_details(chunked_writer, lvl_dets, context, fpath):
     for dm_index, count in enumerate(dm_indices):
         if count == 0:
             raise utils.AppError(
-                text.err.details_no_model_index.format(dm_index)
+                text.error.details_no_model_index.format(dm_index)
             )
         elif count > 1:
             raise utils.AppError(
-                text.err.details_duplicate_model.format(dm_index)
+                text.error.details_duplicate_model.format(dm_index)
             )
 
     for dm_index in range(dm_count):

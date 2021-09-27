@@ -41,7 +41,7 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
     if context.level_details_format_version == 'builds_1569-cop':
         if ligthing.format != 'builds_1569-cop':
             raise utils.AppError(
-                text.err.details_light_1569.format(bpy_obj.name)
+                text.error.details_light_1569.format(bpy_obj.name)
             )
         lvl_dets.format_version = fmt.FORMAT_VERSION_3
         lvl_dets.light_format = '1569-COP'
@@ -58,7 +58,7 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
     else:
         if ligthing.format != 'builds_1096-1558':
             raise utils.AppError(
-                text.err.details_light_1096.format(bpy_obj.name)
+                text.error.details_light_1096.format(bpy_obj.name)
             )
         lvl_dets.format_version = fmt.FORMAT_VERSION_2
         lvl_dets.light_format = 'OLD'
@@ -96,7 +96,7 @@ def bpy_data_to_slots_transforms(lvl_dets):
                 ))
 
                 if coord_b != coord_t:
-                    raise utils.AppError(text.err.details_slots_size)
+                    raise utils.AppError(text.error.details_slots_size)
 
     slots_bbox = (
         int(round(bbox_base[0][0] / 2.0, 0)),
@@ -111,7 +111,7 @@ def bpy_data_to_slots_transforms(lvl_dets):
 
     if len(base_slots.data.polygons) != lvl_dets.slots_count:
         raise utils.AppError(
-            text.err.details_poly_count.format(
+            text.error.details_poly_count.format(
                 base_slots.name,
                 lvl_dets.slots_count
             )
@@ -119,7 +119,7 @@ def bpy_data_to_slots_transforms(lvl_dets):
 
     if len(top_slots.data.polygons) != lvl_dets.slots_count:
         raise utils.AppError(
-            text.err.details_poly_count.format(
+            text.error.details_poly_count.format(
                 top_slots.name,
                 lvl_dets.slots_count
             )
@@ -133,7 +133,7 @@ def validate_sizes(images, size_x, size_y):
     for image in images:
         if image.size[0] != size_x or image.size[1] != size_y:
             raise utils.AppError(
-                text.err.details_img_size.format(
+                text.error.details_img_size.format(
                     image.name,
                     image.size[0],
                     image.size[1],
