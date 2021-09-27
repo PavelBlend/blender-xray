@@ -6,6 +6,8 @@ obj_many_uv = 'Object "{}" has more than one UV-map'
 not_use_nodes = 'Material "{}" does not use nodes'
 empty_mat = 'mesh "{}" has empty material slot'
 no_mat = 'mesh "{}" has no material'
+bad_image_path = 'Image "{0}" is not in the textures folder.\nImage Path: {1}\nTexture Folder Path: {2}'
+another_prog = 'Unable to write file: {}. The file is open in another program.'
 # anm export
 anm_no_keys = 'Action has no keys: {}'
 # anm import
@@ -95,3 +97,6 @@ scene_objs = 'Bad scene selection file. Cannot find "objects" chunk.'
 scene_no_ver = 'Bad scene selection file. Cannot find "version" chunk.'
 scene_ver_size = 'Bad scene selection file. "version" chunk size is not equal to 4.'
 scene_ver = 'Unsupported format version: {}.'
+# motion
+motion_shape = 'Unsupported keyframe shape: {}'
+motion_ver = 'unsupported motions version'

@@ -4,6 +4,7 @@ import bpy
 # addon modules
 from . import xray_io
 from . import xray_motions
+from . import text
 from . import skl
 from . import version_utils
 
@@ -51,13 +52,13 @@ class XRAY_OT_close_skls_file(bpy.types.Operator):
 
 def init_skls_browser(self, context, filepath):
     if getattr(self, 'report', None):
-        self.report({'INFO'}, 'Loading animations from .skls file: "{}"'.format(filepath))
+        self.report({'INFO'}, text.warn.browser_load.format(filepath))
     context.window.cursor_set('WAIT')
     sk = context.object.xray.skls_browser
     sk.animations.clear()
     XRAY_OT_browse_skls_file.skls_file = XRAY_OT_browse_skls_file.SklsFile(file_path=filepath)
     if getattr(self, 'report', None):
-        self.report({'INFO'}, 'Done: {} animation(s)'.format(len(XRAY_OT_browse_skls_file.skls_file.animations)))
+        self.report({'INFO'}, text.warn.browser_done.format(len(XRAY_OT_browse_skls_file.skls_file.animations)))
     # fill list with animations names
     for name, offset_frames in XRAY_OT_browse_skls_file.skls_file.animations.items():
         newitem = sk.animations.add()

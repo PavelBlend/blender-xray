@@ -15,6 +15,7 @@ import bmesh
 # addon modules
 from . import bl_info
 from . import log
+from . import text
 from . import version_utils
 from . import xray_io
 
@@ -164,12 +165,12 @@ class Logger:
                 last_message_count = 1
                 last_line_is_message = True
 
-        text = bpy.data.texts.new(logname)
-        text.user_clear()
-        text.from_string('\n'.join(lines))
+        text_data = bpy.data.texts.new(logname)
+        text_data.user_clear()
+        text_data.from_string('\n'.join(lines))
         self._report(
             {'WARNING'},
-            'The full log was stored as \'%s\' (in the Text Editor)' % text.name
+            text.warn.full_log.format(text_data.name)
         )
 
 
@@ -257,14 +258,12 @@ def gen_texture_name(image, tx_folder, level_folder=None):
     if not level_folder:    # find texture in gamedata\textures folder
         if not a_tx_fpath.startswith(a_tx_folder):
             raise AppError(
-                'Image "{}" is not in the textures folder.\n' \
-                'Image Path: {}\n' \
-                'Texture Folder Path: {}'.format(
+                text.error.bad_image_path.format(
                     image.name,
                     a_tx_fpath,
                     a_tx_folder
-                    )
                 )
+            )
         a_tx_fpath = make_relative_texture_path(a_tx_fpath, a_tx_folder)
     else:
         if a_tx_fpath.startswith(a_tx_folder):    # gamedata\textures folder
@@ -272,7 +271,7 @@ def gen_texture_name(image, tx_folder, level_folder=None):
         elif a_tx_fpath.startswith(level_folder):    # gamedata\levels\level_name folder
             a_tx_fpath = make_relative_texture_path(a_tx_fpath, level_folder)
         else:    # gamedata\levels\level_name\texture_name
-            log.warn('Image "{}" has an invalid path'.format(image.name))
+            log.warn(text.warn.invalid_image_path.format(image.name))
             a_tx_fpath = os.path.split(a_tx_fpath)[-1]
     return a_tx_fpath
 
@@ -440,7 +439,7 @@ def execute_with_logger(method):
 def execute_require_filepath(func):
     def wrapper(self, context):
         if not self.filepath:
-            self.report({'ERROR'}, 'No file selected')
+            self.report({'ERROR'}, text.warn.no_file)
             return {'CANCELLED'}
         return func(self, context)
 
@@ -476,7 +475,7 @@ class FilenameExtHelper(bpy_extras.io_utils.ExportHelper):
                 self.filepath += self.filename_ext
             return super().invoke(context, event)
         else:
-            self.report({'ERROR'}, 'No active objects!')
+            self.report({'ERROR'}, text.warn.no_active_obj)
             return {'CANCELLED'}
 
 
@@ -484,7 +483,7 @@ def invoke_require_armature(func):
     def wrapper(self, context, event):
         active = context.active_object
         if (not active) or (active.type != 'ARMATURE'):
-            self.report({'ERROR'}, 'Active is not armature!')
+            self.report({'ERROR'}, text.warn.is_not_arm)
             return {'CANCELLED'}
         return func(self, context, event)
 
@@ -509,10 +508,7 @@ def save_file(file_path, writer):
         with open(file_path, 'wb') as file:
             file.write(writer.data)
     except PermissionError:
-        raise AppError(
-            'Unable to write file: {}. '
-            'The file is open in another program.'.format(file_path)
-        )
+        raise AppError(text.error.another_prog.format(file_path))
 
 
 def read_file(file_path):

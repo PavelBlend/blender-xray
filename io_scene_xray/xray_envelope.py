@@ -1,6 +1,7 @@
 # addon modules
 from . import log
 from . import motion_utils
+from . import text
 from . import xray_io
 from . import xray_interpolation
 from . import xray_motions
@@ -12,7 +13,7 @@ def import_envelope(reader, fcurve, fps, koef, name, warn_list, unique_shapes):
 
     if bhv0 != bhv1:
         log.warn(
-            'different behaviors, one will be replaced with another',
+            text.warn.envelope_behaviors_replaced,
             behavior=bhv1.name,
             replacement=bhv0.name
         )
@@ -24,7 +25,7 @@ def import_envelope(reader, fcurve, fps, koef, name, warn_list, unique_shapes):
     else:
         bhv1 = xray_interpolation.Behavior.CONSTANT
         log.warn(
-            'behavior isn\'t supported, and will be replaced',
+            text.warn.envelope_bad_behavior,
             behavior=bhv0.name,
             replacement=bhv1.name
         )
@@ -105,7 +106,7 @@ def export_envelope(writer, fcurve, fps, koef, epsilon=motion_utils.EPSILON):
     else:
         behavior = xray_interpolation.Behavior.LINEAR
         log.warn(
-            'Envelope: extrapolation is not supported, and will be replaced',
+            text.warn.envelope_extrapolation,
             extrapolation=fcurve.extrapolation,
             replacement=behavior.name
         )
@@ -138,7 +139,7 @@ def export_envelope(writer, fcurve, fps, koef, epsilon=motion_utils.EPSILON):
 
     if unsupported_occured:
         log.warn(
-            'Envelope: unsupported shapes will be replaced by',
+            text.warn.envelope_shapes,
             shapes=unsupported_occured,
             replacement=replace_unsupported_to.name
         )

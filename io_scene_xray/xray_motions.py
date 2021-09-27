@@ -5,6 +5,7 @@ import mathutils
 # addon modules
 from . import utils
 from . import motion_utils
+from . import text
 from . import xray_io
 from . import log
 from . import version_utils
@@ -34,7 +35,7 @@ def interpolate_keys(fps, start, end, values, times, shapes, tcb):
                 xray_interpolation.Shape.LINEAR,
                 xray_interpolation.Shape.STEPPED
             ):
-            raise utils.AppError('Unsupported shape: {}'.format(shape_1.name))
+            raise utils.AppError(text.error.motion_shape.format(shape_1.name))
         index_2 = index + 1
         if keys_count == 1:
             # constant values
@@ -100,7 +101,7 @@ def import_motion(
     fps, ver = reader.getf('fH')
     xray.fps = fps
     if ver < 6:
-        raise utils.AppError('unsupported motions version', log.props(version=ver))
+        raise utils.AppError(text.error.motion_ver, log.props(version=ver))
 
     if context.add_actions_to_motion_list:
         motion = bpy_armature.xray.motions_collection.add()
@@ -131,7 +132,7 @@ def import_motion(
         bname = reader.gets()
         flags = reader.getf('B')[0]
         if flags != 0:
-            log.warn('bone has non-zero flags', bone=bname, flags=flags)
+            log.warn(text.warn.motion_non_zero_flags, bone=bname, flags=flags)
         curves = [None, ] * CURVE_COUNT
         used_times = set()
         has_interpolate = False
@@ -143,7 +144,11 @@ def import_motion(
             use_interpolate = False
             behaviors = reader.getf('BB')
             if (behaviors[0] != 1) or (behaviors[1] != 1):
-                log.warn('bone has different behaviors', bone=bname, behaviors=behaviors)
+                log.warn(
+                    text.warn.motion_behaviors,
+                    bone=bname,
+                    behaviors=behaviors
+                )
             for _keyframe_idx in range(reader.getf('H')[0]):
                 val = reader.getf('f')[0]
                 time = reader.getf('f')[0] * fps
@@ -192,14 +197,14 @@ def import_motion(
                         bpy_bone = bpy_armature.data.bones[bone_id]
                 if bpy_bone is None:
                     if bname not in reported:
-                        log.warn('bone is not found', bone=bname)
+                        log.warn(text.warn.motion_no_bone, bone=bname)
                         reported.add(bname)
                     for fcurve in tmpfc:
                         act.fcurves.remove(fcurve)
                     continue
             if bname not in reported:
                 log.warn(
-                    'bone\'s reference will be replaced',
+                    text.warn.motion_bone_replaced,
                     bone=bname,
                     replacement=bpy_bone.name
                 )
@@ -208,7 +213,7 @@ def import_motion(
         pose_bone = bpy_armature.pose.bones[bpy_bone.name]
         if pose_bone.rotation_mode != 'ZXY':
             log.warn(
-                'bone has a rotation mode different from ZXY',
+                text.warn.motion_rotation_mode,
                 object=bpy_armature.name,
                 bone=pose_bone.name,
                 rotation_mode=pose_bone.rotation_mode
@@ -216,7 +221,7 @@ def import_motion(
         bone_maps[bone_key] = bname
         for shape, motion_name, bone_name in converted_shapes:
             converted_warrnings.append((
-                'motion shape converted to STEPPED',
+                text.warn.motion_to_stepped,
                 motion_name,
                 bone_maps[bone_name]
             ))
@@ -300,7 +305,7 @@ def import_motion(
         for _bone_idx in range(reader.getf('I')[0]):
             name = reader.gets_a()
             reader.skip((4 + 4) * reader.getf('I')[0])
-            log.warn('markers are not supported yet', name=name)
+            log.warn(text.warn.motion_markers, name=name)
     return act
 
 
@@ -325,7 +330,7 @@ def skip_motion_rest(data, offs):
     ptr = offs + 4 + 4 + 4 + 2
     ver = xray_io.FastBytes.short_at(data, ptr - 2)
     if ver < 6:
-        raise utils.AppError('unsupported motions version', log.props(version=ver))
+        raise utils.AppError(text.error.motion_ver, log.props(version=ver))
 
     ptr += (1 + 2 + 4 * 4) + 2
     for _bone_idx in range(xray_io.FastBytes.short_at(data, ptr - 2)):

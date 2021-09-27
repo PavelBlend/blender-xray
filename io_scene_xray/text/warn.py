@@ -1,7 +1,12 @@
 # general
+full_log = 'The full log was stored as "{0}" (in the Text Editor)'
 tex_not_found = 'texture file not found'
 env_tex = 'material "{}" has incorrect image node type (Environment Texture)'
 no_bone_parent = 'bone parent isn\'t found'
+invalid_image_path = 'Image "{}" has an invalid path'
+no_file = 'No file selected'
+no_active_obj = 'No active objects!'
+is_not_arm = 'Active object is not armature!'
 # anm export
 anm_rot_mode = 'Object "{}" has a rotation mode other than YXZ. Animation has been baked.'
 # anm import
@@ -47,3 +52,19 @@ ogf_bad_shape = 'Unsupported bone shape type'
 ogf_bad_joint = 'Unsupported bone joint type'
 # scene import
 scene_no_file = 'Cannot find file: {}'
+# motion
+motion_non_zero_flags = 'bone has non-zero flags'
+motion_behaviors = 'bone has different behaviors'
+motion_no_bone = 'bone is not found'
+motion_bone_replaced = 'bone\'s reference will be replaced'
+motion_rotation_mode = 'bone has a rotation mode different from ZXY'
+motion_to_stepped = 'motion shape converted to STEPPED'
+motion_markers = 'markers are not supported yet'
+# envelope
+envelope_behaviors_replaced = 'different behaviors, one will be replaced with another'
+envelope_bad_behavior = 'behavior isn\'t supported, and will be replaced'
+envelope_extrapolation = 'Envelope: extrapolation is not supported, and will be replaced'
+envelope_shapes = 'Envelope: unsupported shapes will be replaced by'
+# skls browser
+browser_load = 'Loading animations from .skls file: "{}"'
+browser_done = 'Done: {} animation(s)'
