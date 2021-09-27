@@ -70,3 +70,10 @@ object_unsupport_format_ver = 'unsupported OBJECT format version'
 object_unsupport_mesh_ver = 'unsupported MESH format version'
 object_bad_vmap = 'unknown vmap type'
 object_many_duplicated_faces = 'too many duplicated polygons'
+# ogf export
+ogf_no_bone = 'bone "{0}" not found in armature "{1}" (for object "{2}")'
+# ogf import
+ogf_bad_ver = 'Unsupported ogf format version: {}'
+ogf_bad_vertex_fmt = 'Unsupported ogf vertex format: 0x{:x}'
+ogf_bad_color_mode = 'Unknown ogf color mode: {}'
+ogf_bad_model_type = 'Unsupported ogf model type: 0x{:x}'

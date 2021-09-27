@@ -8,6 +8,7 @@ import mathutils
 
 # addon modules
 from . import fmt
+from .. import text
 from .. import create
 from .. import omf
 from .. import log
@@ -644,9 +645,10 @@ def import_skeleton_vertices(chunks, ogf_chunks, visual):
                 bone_4_index
             ))
     else:
-        raise utils.AppError('Unsupported ogf vertex format: 0x{:x}'.format(
+        raise utils.AppError(text.error.ogf_bad_vertex_fmt.format(
             vertex_format
-        ))
+            )
+        )
     visual.vertices = vertices
     visual.normals = normals
     visual.uvs = uvs
@@ -670,9 +672,10 @@ def import_vertices(chunks, ogf_chunks, visual):
             normals.append(normal)
             uvs.append((tex_u, 1 - tex_v))
     else:
-        raise utils.AppError('Unsupported ogf vertex format: 0x{:x}'.format(
+        raise utils.AppError(text.error.ogf_bad_vertex_fmt.format(
             vertex_format
-        ))
+            )
+        )
     visual.vertices = vertices
     visual.normals = normals
     visual.uvs = uvs
@@ -910,7 +913,7 @@ def ogf_color(lvl, packed_reader, bpy_obj, mode='SCALE'):
         xray_level.color_bias_hemi = (hemi, hemi, hemi)
         xray_level.color_bias_sun = (sun, sun, sun)
     else:
-        raise BaseException('Unknown ogf color mode: {}'.format(mode))
+        raise BaseException(text.error.ogf_bad_color_mode.format(mode))
 
 
 def import_tree_def_2(lvl, visual, chunks, bpy_object):
@@ -1233,7 +1236,7 @@ def import_model_v3(chunks, visual, lvl):
         visual.name = 'progressive'
 
     else:
-        raise BaseException('unsupported model type: 0x{:x}'.format(
+        raise BaseException(text.error.ogf_bad_model_type.format(
             visual.model_type
         ))
 
@@ -1259,7 +1262,7 @@ def import_model_v2(chunks, visual, lvl):
     elif visual.model_type == fmt.ModelType_v2.HIERRARHY:
         bpy_obj = import_hierrarhy_visual(chunks, visual, lvl)
     else:
-        raise BaseException('unsupported model type: 0x{:x}'.format(
+        raise BaseException(text.error.ogf_bad_model_type.format(
             visual.model_type
         ))
 
@@ -1287,7 +1290,7 @@ def import_bounding_box(packed_reader):
 def check_version(visual):
     if visual.format_version not in fmt.SUPPORT_FORMAT_VERSIONS:
         raise BaseException(
-            'Unsupported ogf format version: {}'.format(visual.format_version)
+            text.error.ogf_bad_ver.format(visual.format_version)
         )
 
 
@@ -1556,7 +1559,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
                 )
             else:
                 log.warn(
-                    'bone parent isn\'t found',
+                    text.warn.no_bone_parent,
                     bone=bone_name,
                     parent=parent_name
                 )
@@ -1579,7 +1582,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
             shape.type = str(props[i])
         else:
             log.warn(
-                'Unsupported bone shape type',
+                text.warn.ogf_bad_shape,
                 file=visual.file_path,
                 bone=bone.name
             )
@@ -1608,7 +1611,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
             ik.type = str(props[i])
         else:
             log.warn(
-                'Unsupported joint type',
+                text.warn.ogf_bad_joint,
                 file=visual.file_path,
                 bone=bone.name
             )
@@ -1791,7 +1794,7 @@ def import_visual(context, data, visual):
     import_header(header_chunk_data, visual)
     if visual.format_version != fmt.FORMAT_VERSION_4:
         raise utils.AppError(
-            'Unsupported ogf format version: {}'.format(visual.format_version)
+            text.error.ogf_bad_ver.format(visual.format_version)
         )
     ogf_chunks = fmt.Chunks_v4
     model_types = fmt.ModelType_v4
@@ -1818,7 +1821,7 @@ def import_visual(context, data, visual):
         import_mt_hierrarhy(context, chunks, ogf_chunks, visual)
     else:
         raise utils.AppError(
-            'Unsupported ogf model type: {}'.format(
+            text.error.ogf_bad_model_type.format(
                 model_type_names[visual.model_type]
             )
         )

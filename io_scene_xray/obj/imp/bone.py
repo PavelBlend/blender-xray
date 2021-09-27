@@ -59,7 +59,7 @@ def _create_bone(
                 )
             else:
                 log.warn(
-                    text.warn.object_no_bone_parent,
+                    text.warn.no_bone_parent,
                     bone=name,
                     parent=parent
                 )

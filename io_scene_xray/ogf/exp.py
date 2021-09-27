@@ -9,6 +9,7 @@ import mathutils
 
 # addon modules
 from . import fmt
+from .. import text
 from .. import xray_io
 from .. import utils
 from .. import version_utils
@@ -146,7 +147,7 @@ def _export_child(bpy_obj, cwriter, context, vgm):
                 if node.type in version_utils.IMAGE_NODES:
                     texture = node
         else:
-            raise utils.AppError('Material "{}" cannot use nodes.'.format(material.name))
+            raise utils.AppError(text.error.not_use_nodes.format(material.name))
     else:
         texture = material.active_texture
     cwriter.put(
@@ -305,8 +306,10 @@ def _export(bpy_obj, cwriter, context):
                         bone = modifier.object.data.bones.get(group.name, None)
                         if bone is None:
                             raise utils.AppError(
-                                'bone "%s" not found in armature "%s" (for object "%s")' % (
-                                    group.name, modifier.object.name, bpy_obj.name,
+                                text.error.ogf_no_bone.format(
+                                    group.name,
+                                    modifier.object.name,
+                                    bpy_obj.name,
                                 ),
                             )
                         vgm[i] = reg_bone(bone, modifier.object)

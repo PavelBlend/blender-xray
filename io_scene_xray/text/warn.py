@@ -1,6 +1,7 @@
 # general
 tex_not_found = 'texture file not found'
 env_tex = 'material "{}" has incorrect image node type (Environment Texture)'
+no_bone_parent = 'bone parent isn\'t found'
 # anm export
 anm_rot_mode = 'Object "{}" has a rotation mode other than YXZ. Animation has been baked.'
 # anm import
@@ -29,7 +30,6 @@ object_skip_geom = 'skipping geometry from "{}"-s vertex groups'
 # object import bone
 object_bone_renamed = 'bone VMap: will be renamed'
 object_bone_already_renamed = 'bone VMap: is already renamed'
-object_no_bone_parent = 'bone parent isn\'t found'
 object_unsupport_prop = 'unsupported {0} {1}, using default'
 object_bad_bone_name = 'Not supported yet! bone name != bone def2'
 # object import main
@@ -42,3 +42,6 @@ object_already_mat = 'face has already been instantiated with material'
 object_already_used_mat = 'face has already used material'
 object_duplicate_faces = 'duplicate faces found, "{}" vertex groups created'
 object_try_use_option = ' (try to use "{}" option)'
+# ogf import
+ogf_bad_shape = 'Unsupported bone shape type'
+ogf_bad_joint = 'Unsupported bone joint type'
