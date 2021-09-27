@@ -4,6 +4,7 @@ import mathutils
 
 # addon modules
 from . import fmt
+from .. import text
 from .. import xray_io
 from .. import utils
 
@@ -128,7 +129,7 @@ def read_motion(data, context, motions_params, bone_names):
             if bpy_bone:
                 bone_name = bpy_bone.name
             else:
-                raise utils.AppError('Cannot find bone: {}'.format(bone_index))
+                raise utils.AppError(text.error.omf_no_bone.format(bone_index))
             bpy_bone_parent = bpy_bone.parent
 
             xmat = bpy_bone.matrix_local.inverted()
@@ -326,9 +327,7 @@ def read_params(data, context):
 
 def read_main(data, context):
     if not context.import_motions and not context.import_bone_parts:
-        raise utils.AppError(
-            'Nothing was imported. Change the import settings.'
-        )
+        raise utils.AppError(text.error.omf_nothing)
         return
 
     chunked_reader = xray_io.ChunkedReader(data)

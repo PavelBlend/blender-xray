@@ -8,6 +8,7 @@ import mathutils
 # addon modules
 from . import fmt
 from . import imp
+from .. import text
 from .. import xray_io
 from .. import utils
 
@@ -37,18 +38,16 @@ def validate_omf_file(context):
     with open(context.filepath, 'rb') as file:
         data = file.read()
     if not len(data):
-        raise utils.AppError(
-            'This OMF file is empty. Use a different export mode.'
-        )
+        raise utils.AppError(text.error.omf_empty)
     chunked_reader = xray_io.ChunkedReader(data)
     chunks = {}
     for chunk_id, chunk_data in chunked_reader:
         chunks[chunk_id] = chunk_data
     chunks_ids = list(chunks.keys())
     if not fmt.Chunks.S_MOTIONS in chunks_ids and context.export_motions:
-        raise utils.AppError('The OMF file does not have an animation block.')
+        raise utils.AppError(text.error.omf_no_anims)
     if not fmt.Chunks.S_SMPARAMS in chunks_ids and context.export_bone_parts:
-        raise utils.AppError('The OMF file does not have an parameters block.')
+        raise utils.AppError(text.error.omf_no_params)
     return data, chunks
 
 
@@ -235,9 +234,11 @@ def export_omf_file(context):
             if not pose_bone.bone_group:
                 if context.need_bone_groups:
                     raise utils.AppError(
-                        'Bone "{}" of "{}" armature does not have a bone group'.format(
-                            pose_bone.name, context.bpy_arm_obj.name)
+                        text.error.omf_bone_no_group.format(
+                            pose_bone.name,
+                            context.bpy_arm_obj.name
                         )
+                    )
                 else:
                     continue
             if not bone_groups.get(pose_bone.bone_group.name, None):
@@ -399,7 +400,7 @@ def export_omf_file(context):
             bones = bone_groups[partition_name]
             if not bones:
                 raise utils.AppError(
-                    'Armature "{}" has an empty bone group'.format(
+                    text.error.omf_empty_bone_group.format(
                         context.bpy_arm_obj.name
                     )
                 )

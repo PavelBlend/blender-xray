@@ -77,3 +77,12 @@ ogf_bad_ver = 'Unsupported ogf format version: {}'
 ogf_bad_vertex_fmt = 'Unsupported ogf vertex format: 0x{:x}'
 ogf_bad_color_mode = 'Unknown ogf color mode: {}'
 ogf_bad_model_type = 'Unsupported ogf model type: 0x{:x}'
+# omf export
+omf_empty = 'This OMF file is empty. Use a different export mode.'
+omf_no_anims = 'The OMF file does not have an animation block.'
+omf_no_params = 'The OMF file does not have an parameters block.'
+omf_bone_no_group = 'Bone "{}" of "{}" armature does not have a bone group'
+omf_empty_bone_group = 'Armature "{}" has an empty bone group'
+# omf import
+omf_no_bone = 'Cannot find bone: {}'
+omf_nothing = 'Nothing was imported. Change the import settings.'
