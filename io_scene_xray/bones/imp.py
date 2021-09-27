@@ -3,6 +3,7 @@ import bpy
 
 # addon modules
 from .. import log
+from .. import text
 from .. import utils
 from .. import xray_io
 from .. import obj
@@ -14,7 +15,7 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
     partitions_count = packed_reader.int()
     if not partitions_count:
         log.warn(
-            'bones file does not have boneparts',
+            text.warn.bones_not_have_boneparts,
             file=import_context.filepath
         )
     current_mode = arm_obj.mode
@@ -33,7 +34,7 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
                 bpy_bone = bpy_bones.get(bone_name, None)
                 if not bpy_bone:
                     log.warn(
-                        'partition "{}" contains missing bone'.format(name),
+                        text.warn.bones_missing_bone.format(name),
                         bone=bone_name
                     )
                 else:
@@ -53,7 +54,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
     bpy_bone = bpy_bones.get(name, None)
     if not bpy_bone:
         log.warn(
-            'Armature object "{}" has no bone'.format(arm_obj_name),
+            text.warn.bones_has_no_bone.format(arm_obj_name),
             bone=name
         )
         return

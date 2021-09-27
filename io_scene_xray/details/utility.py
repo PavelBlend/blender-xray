@@ -3,18 +3,19 @@ import bpy
 
 # addon modules
 from .. import utils
+from .. import text
 
 
 def get_image(bpy_obj, xray_prop, prop_name):
     if xray_prop == '':
         raise utils.AppError(
-            'object "{0}" has no "{1}"'.format(bpy_obj.name, prop_name)
+            text.err.details_has_no_prop.format(bpy_obj.name, prop_name)
         )
 
     bpy_image = bpy.data.images.get(xray_prop)
     if bpy_image is None:
         raise utils.AppError(
-            'cannot find "{0}" image: "{1}"'.format(prop_name, xray_prop)
+            text.err.details_has_no_image.format(prop_name, xray_prop)
         )
 
     return bpy_image
@@ -23,13 +24,13 @@ def get_image(bpy_obj, xray_prop, prop_name):
 def get_object(bpy_obj, xray_prop, prop_name):
     if xray_prop == '':
         raise utils.AppError(
-            'object "{0}" has no "{1}"'.format(bpy_obj.name, prop_name)
+            text.err.details_has_no_prop.format(bpy_obj.name, prop_name)
         )
 
     bpy_object = bpy.data.objects.get(xray_prop)
     if bpy_object is None:
         raise utils.AppError(
-            'cannot find "{0}": "{1}"'.format(prop_name, xray_prop)
+            text.err.details_cannot_find.format(prop_name, xray_prop)
         )
 
     return bpy_object
@@ -38,7 +39,7 @@ def get_object(bpy_obj, xray_prop, prop_name):
 def validate_object_type(bpy_obj, obj_type, prop_name):
     if bpy_obj.type != obj_type:
         raise utils.AppError(
-            '"{0}" must be of type "{1}"'.format(prop_name, obj_type)
+            text.err.details_must_be_type.format(prop_name, obj_type)
         )
 
 

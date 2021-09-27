@@ -8,6 +8,7 @@ import bpy
 # addon modules
 from . import fmt
 from .. import contexts
+from .. import text
 from .. import utils
 from .. import log
 from .. import xray_envelope
@@ -35,9 +36,7 @@ def _import(fpath, creader, context):
             fps, ver = preader.getf('<fH')
             if ver != 5:
                 raise utils.AppError(
-                    'File "{}" has unsupported format version: {}'.format(
-                        fpath, ver
-                    )
+                    text.error.anm_unsupport_ver.format(fpath, ver)
                 )
             if not name:
                 name = os.path.basename(fpath)
@@ -93,13 +92,14 @@ def _import(fpath, creader, context):
                     converted_warrning = True
             if converted_warrning:
                 log.warn(
-                    'motion shapes converted to LINEAR',
-                    anm_name=name, shapes=unique_shapes
+                    text.warn.anm_conv_linear,
+                    anm_name=name,
+                    shapes=unique_shapes
                 )
     for (shapes, replacement, name) in set(warn_list):
         keys_count = warn_list.count((shapes, replacement, name))
         log.warn(
-            'unsupported shapes are found, and will be replaced',
+            text.warn.anm_unsupport_shape,
             shapes=shapes,
             replacement=replacement,
             filename=name,

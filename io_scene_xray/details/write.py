@@ -3,6 +3,7 @@ from . import convert
 from . import fmt
 from . import utility
 from .. import dm
+from .. import text
 from .. import utils
 from .. import xray_io
 
@@ -15,15 +16,15 @@ def write_details(chunked_writer, lvl_dets, context, fpath):
 
     if dm_count == 0:
         raise utils.AppError(
-            'Meshes Object "' + meshes_object.name + '" has no children'
+            text.err.details_no_children.format(meshes_object.name)
         )
 
     if dm_count > fmt.DETAIL_MODEL_COUNT_LIMIT:
         raise utils.AppError(
-            'Meshes Object "' + meshes_object.name + \
-            '" has too many children: {0}. ' \
-            'Not more than {1}.'.format(
-                dm_count, fmt.DETAIL_MODEL_COUNT_LIMIT
+            text.err.details_many_children.format(
+                meshes_object.name,
+                dm_count,
+                fmt.DETAIL_MODEL_COUNT_LIMIT
             )
         )
 
@@ -33,9 +34,10 @@ def write_details(chunked_writer, lvl_dets, context, fpath):
 
         if detail_model.type != 'MESH':
             raise utils.AppError(
-                'Meshes Object "' + meshes_object.name + \
-                '" has incorrect child object type: {0}. ' \
-                'Child object type must be "MESH"'.format(detail_model.type)
+                text.err.details_not_mesh.format(
+                    meshes_object.name,
+                    detail_model.type
+                )
             )
 
         packed_writer = xray_io.PackedWriter()
@@ -50,9 +52,11 @@ def write_details(chunked_writer, lvl_dets, context, fpath):
 
         if dm_index >= dm_count:
             raise utils.AppError(
-                'Meshes Object "' + detail_model.name + \
-                '" has incorrect "Detail Index": {0}. ' \
-                'Must be less than {1}'.format(dm_index, dm_count)
+                text.err.details_bad_detail_index.format(
+                    detail_model.name,
+                    dm_index,
+                    dm_count
+                )
             )
 
         dm_indices[dm_index] += 1
@@ -62,11 +66,11 @@ def write_details(chunked_writer, lvl_dets, context, fpath):
     for dm_index, count in enumerate(dm_indices):
         if count == 0:
             raise utils.AppError(
-                'not detail model with index {0}'.format(dm_index)
+                text.err.details_no_model_index.format(dm_index)
             )
         elif count > 1:
             raise utils.AppError(
-                'duplicated index {0} in detail models'.format(dm_index)
+                text.err.details_duplicate_model.format(dm_index)
             )
 
     for dm_index in range(dm_count):

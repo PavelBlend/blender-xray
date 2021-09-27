@@ -4,6 +4,7 @@ import bpy
 # addon modules
 from . import create
 from . import fmt
+from .. import text
 from .. import xray_io
 from .. import dm
 from .. import version_utils
@@ -267,13 +268,13 @@ def read_details_slots(
         if bad_y_base_count > 0:
             context.operator.report(
                 {'WARNING'},
-                'details has {} bad base coordinates'.format(bad_y_base_count)
+                text.warn.details_coord_base.format(bad_y_base_count)
             )
 
         if bad_y_top_count > 0:
             context.operator.report(
                 {'WARNING'},
-                'details has {} bad top coordinates'.format(bad_y_top_count)
+                text.warn.details_coord_top.format(bad_y_top_count)
             )
 
     slots_base_object, slots_top_object = create.create_details_slots_object(

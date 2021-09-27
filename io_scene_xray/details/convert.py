@@ -2,13 +2,7 @@
 from . import fmt
 from . import utility
 from .. import utils
-
-
-incorrect_light_1569_message = 'Object "{0}" has incorrect light format: ' \
-    '"Builds 1096-1558". Must be "Builds 1569-CoP"'
-
-incorrect_light_1096_message = 'Object "{0}" has incorrect light format: ' \
-    '"Builds 1569-CoP". Must be "Builds 1096-1558"'
+from .. import text
 
 
 def bpy_data_to_lvl_dets_struct(context, bpy_obj):
@@ -47,7 +41,7 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
     if context.level_details_format_version == 'builds_1569-cop':
         if ligthing.format != 'builds_1569-cop':
             raise utils.AppError(
-                incorrect_light_1569_message.format(bpy_obj.name)
+                text.err.details_light_1569.format(bpy_obj.name)
             )
         lvl_dets.format_version = fmt.FORMAT_VERSION_3
         lvl_dets.light_format = '1569-COP'
@@ -64,7 +58,7 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
     else:
         if ligthing.format != 'builds_1096-1558':
             raise utils.AppError(
-                incorrect_light_1096_message.format(bpy_obj.name)
+                text.err.details_light_1096.format(bpy_obj.name)
             )
         lvl_dets.format_version = fmt.FORMAT_VERSION_2
         lvl_dets.light_format = 'OLD'
@@ -102,10 +96,7 @@ def bpy_data_to_slots_transforms(lvl_dets):
                 ))
 
                 if coord_b != coord_t:
-                    raise utils.AppError(
-                        '"Slots Base Object" size not equal ' \
-                        '"Slots Top Object" size'
-                    )
+                    raise utils.AppError(text.err.details_slots_size)
 
     slots_bbox = (
         int(round(bbox_base[0][0] / 2.0, 0)),
@@ -120,14 +111,18 @@ def bpy_data_to_slots_transforms(lvl_dets):
 
     if len(base_slots.data.polygons) != lvl_dets.slots_count:
         raise utils.AppError(
-            'Slots object "{0}" has an incorrect number of polygons. ' \
-            'Must be {1}'.format(base_slots.name, lvl_dets.slots_count)
+            text.err.details_poly_count.format(
+                base_slots.name,
+                lvl_dets.slots_count
+            )
         )
 
     if len(top_slots.data.polygons) != lvl_dets.slots_count:
         raise utils.AppError(
-            'Slots object "{0}" has an incorrect number of polygons. ' \
-            'Must be {1}'.format(top_slots.name, lvl_dets.slots_count)
+            text.err.details_poly_count.format(
+                top_slots.name,
+                lvl_dets.slots_count
+            )
         )
 
     lvl_dets.slots_offset_x = -slots_bbox[0]
@@ -138,8 +133,7 @@ def validate_sizes(images, size_x, size_y):
     for image in images:
         if image.size[0] != size_x or image.size[1] != size_y:
             raise utils.AppError(
-                'Image "{0}" has incorrect size: {1} x {2}. ' \
-                'Must be {3} x {4}.'.format(
+                text.err.details_img_size.format(
                     image.name,
                     image.size[0],
                     image.size[1],

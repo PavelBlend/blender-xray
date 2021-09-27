@@ -5,6 +5,7 @@ import bpy
 from . import fmt
 from .. import log
 from .. import utils
+from .. import text
 from .. import version_utils
 from .. import xray_io
 from .. import xray_envelope
@@ -24,8 +25,7 @@ def _export(bpy_obj, chunked_writer):
     if autobake or rot_mode != 'YXZ':
         if rot_mode != 'YXZ':
             log.warn(
-                'Object "{}" has a rotation mode other than YXZ. '
-                'Animation has been baked.'.format(bpy_obj.name),
+                text.warn.anm_rot_mode.format(bpy_obj.name),
                 rotation_mode=rot_mode
             )
         baked_action = bpy.data.actions.new('!-temp_anm_export')
@@ -99,7 +99,7 @@ def _export_action_data(pkw, xray, fcurves):
     if errors:
         message = ' '.join(errors)
         raise utils.AppError(
-            'Action has no keys: {}'.format(message)
+            text.error.anm_no_keys.format(message)
         )
     for i in range(6):
         fcurve = fcurves[(0, 2, 1, 5, 3, 4)[i]]
