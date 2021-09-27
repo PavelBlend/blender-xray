@@ -7,6 +7,7 @@ import bpy
 # addon modules
 from . import fmt
 from .. import utils
+from .. import text
 from .. import version_utils
 from .. import xray_io
 
@@ -22,7 +23,7 @@ def import_(filepath, chunked_reader, operator):
         if not faces_count:
             operator.report(
                 {'WARNING', },
-                'File "{0}" has no invalid faces.'.format(filepath)
+                text.warn.err_no_faces.format(filepath)
             )
             return
 

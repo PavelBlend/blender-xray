@@ -59,7 +59,7 @@ def validate_export_object(context, bpy_obj, fpath):
                 )
         else:
             raise utils.AppError(
-                text.error.dm_not_use_nodes.format(mat_name)
+                text.error.not_use_nodes.format(mat_name)
             )
     else:
         for texture_slot in bpy_material.texture_slots:
@@ -81,7 +81,7 @@ def validate_export_object(context, bpy_obj, fpath):
                     )
                 if bpy_texture.image is None:
                     raise utils.AppError(
-                        text.error.dm_no_img.format(mat_name)
+                        text.error.no_img.format(mat_name)
                     )
                 if not fpath:
                     level_folder = None

@@ -15,6 +15,7 @@ from . import ib
 from . import swi
 from . import cform
 from . import utility
+from .. import text
 from .. import utils
 from .. import version_utils
 from .. import ogf
@@ -494,9 +495,7 @@ def get_version(data):
     xrlc_version = packed_reader.getf('H')[0]
     if not xrlc_version in fmt.SUPPORTED_VERSIONS:
         raise utils.AppError(
-            'Unsupported level version: {}'.format(
-                xrlc_version
-            )
+            text.error.level_unsupport_ver.format(xrlc_version)
         )
     xrlc_quality = packed_reader.getf('H')[0]
     return xrlc_version

@@ -10,6 +10,7 @@ import mathutils
 
 # addon modules
 from . import fmt
+from .. import text
 from .. import utils
 from .. import version_utils
 from .. import xray_io
@@ -307,7 +308,7 @@ def get_light_map_image(material, lmap_prop):
         lmap_image = bpy.data.images.get(lmap_image_name, None)
         if not lmap_image:
             raise utils.AppError(
-                'Cannot find light map image "{0}" in "{1}" material!'.format(
+                text.error.level_no_lmap.format(
                     lmap_image_name, material.name
                 )
             )
@@ -331,7 +332,7 @@ def write_shaders(level):
         if version_utils.IS_28:
             if not material.node_tree:
                 raise utils.AppError(
-                    'Material "{}" does not use nodes!'.format(material.name)
+                    text.error.not_use_nodes.format(material.name)
                 )
             for node in material.node_tree.nodes:
                 if not node.type in version_utils.IMAGE_NODES:
@@ -354,11 +355,11 @@ def write_shaders(level):
         images_count = len(images)
         if not images_count:
             raise utils.AppError(
-                'Material "{}" has no image!'.format(material.name)
+                text.error.no_img.format(material.name)
             )
         elif images_count > 1:
             raise utils.AppError(
-                'Material "{}" has more the one image!'.format(material.name)
+                text.error.many_img.format(material.name)
             )
         else:
             image = images[0]
@@ -958,7 +959,7 @@ def write_visual(
             chunked_writer.put(ogf.fmt.HEADER, header_writer)
             chunked_writer.put(ogf.fmt.Chunks_v4.GCONTAINER, gcontainer_writer)
             if len(level.visuals_cache.children[bpy_obj.name]) > 1:
-                raise utils.AppError('Object "{}" has more than one children'.format(bpy_obj.name))
+                raise utils.AppError(text.error.level_many_children.format(bpy_obj.name))
             if bpy_obj.xray.level.use_fastpath:
                 fastpath_writer = write_fastpath(bpy_obj, fp_vbs, fp_ibs, level)
                 chunked_writer.put(ogf.fmt.Chunks_v4.FASTPATH, fastpath_writer)

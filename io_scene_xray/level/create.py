@@ -9,6 +9,7 @@ import mathutils
 from . import fmt
 from . import utility
 from .. import log
+from .. import text
 from .. import version_utils
 
 
@@ -258,7 +259,7 @@ def load_image_from_level_folder(context, texture, abs_path):
         try:
             bpy_image = load_image(absolute_texture_path)
         except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
-            log.warn('texture file not found', path=abs_path)
+            log.warn(text.warn.tex_not_found, path=abs_path)
             bpy_image = create_empty_image(texture, abs_path)
     return bpy_image
 

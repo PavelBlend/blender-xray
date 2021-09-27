@@ -110,7 +110,7 @@ def create_bpy_image(det_model, abs_image_path):
                 ))
                 bpy_image = bpy.data.images.load(abs_image_path)
             except RuntimeError as ex:
-                log.warn('texture file not found', path=abs_image_path)
+                log.warn(text.warn.tex_not_found, path=abs_image_path)
                 bpy_image = create_empty_image(
                     det_model.context,
                     det_model,
@@ -118,7 +118,7 @@ def create_bpy_image(det_model, abs_image_path):
                 )
 
         else:
-            log.warn(text.warn.dm_tex_not_found, path=abs_image_path)
+            log.warn(text.warn.tex_not_found, path=abs_image_path)
             bpy_image = create_empty_image(
                 det_model.context, det_model, abs_image_path
             )

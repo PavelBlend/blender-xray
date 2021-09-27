@@ -1,3 +1,7 @@
+# general
+no_img = 'Material "{}" has no image'
+many_img = 'Material "{}" has more the one image'
+not_use_nodes = 'Material "{}" does not use nodes'
 # anm export
 anm_no_keys = 'Action has no keys: {}'
 # anm import
@@ -38,6 +42,11 @@ dm_many_mat = 'mesh "{}" has more than one material'
 dm_empty_mat = 'mesh "{}" has empty material slot'
 dm_no_tex = 'material "{}" has no texture'
 dm_many_tex = 'material "{}" has more than one texture'
-dm_not_use_nodes = 'material "{}" does not use nodes'
-dm_no_img = 'material "{}" has no image'
 dm_tex_type = 'texture "{0}" has an incorrect type: {1}'
+# level cform import
+cform_unsupport_ver = 'Unsupported cform version: {}'
+# level export
+level_no_lmap = 'Cannot find light map image "{0}" in "{1}" material!'
+level_many_children = 'Object "{}" has more than one children'
+# level import
+level_unsupport_ver = 'Unsupported level version: {}'

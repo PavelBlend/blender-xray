@@ -10,6 +10,7 @@ import bmesh
 from . import fmt
 from . import create
 from .. import utils
+from .. import text
 from .. import version_utils
 from .. import xray_io
 
@@ -40,7 +41,7 @@ def import_main(context, level, data=None):
     out('read header', 1)
     version = packed_reader.getf('<I')[0]
     if not version in fmt.CFORM_SUPPORT_VERSIONS:
-        raise utils.AppError('Unsupported cform version: {}'.format(version))
+        raise utils.AppError(text.error.cform_unsupport_ver.format(version))
     verts_count = packed_reader.getf('<I')[0]
     tris_count = packed_reader.getf('<I')[0]
     bbox_min = packed_reader.getf('<3f')
