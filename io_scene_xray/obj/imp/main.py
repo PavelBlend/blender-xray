@@ -10,6 +10,7 @@ import mathutils
 from . import bone
 from . import mesh
 from .. import fmt
+from ... import text
 from ... import create
 from ... import skl
 from ... import log
@@ -42,7 +43,7 @@ def import_main(fpath, context, creader):
             ver = reader.getf('H')[0]
             if ver != 0x10:
                 raise utils.AppError(
-                    'unsupported OBJECT format version',
+                    text.error.object_unsupport_format_ver,
                     log.props(version=ver)
                 )
         elif cid == fmt.Chunks.Object.MESHES:
@@ -267,7 +268,7 @@ def import_main(fpath, context, creader):
                 data
             ).gets(
                 onerror=lambda e: log.warn(
-                    'bad userdata',
+                    text.warn.object_bad_userdata,
                     error=str(e),
                     file=fpath
                 )

@@ -62,3 +62,11 @@ object_many_parents = 'Invalid armature object "{}". Has more than one parent: {
 object_bad_scale = 'Armature object "{}" has incorrect scale. The scale must be (1.0, 1.0, 1.0).'
 # object export mesh
 object_no_uv = 'UV-map is required, but not found on the "{0}" object'
+# object import bone
+object_unsupport_bone_ver = 'unsupported BONE format version'
+# object import main
+object_unsupport_format_ver = 'unsupported OBJECT format version'
+# object import mesh
+object_unsupport_mesh_ver = 'unsupported MESH format version'
+object_bad_vmap = 'unknown vmap type'
+object_many_duplicated_faces = 'too many duplicated polygons'

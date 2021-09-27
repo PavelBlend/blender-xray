@@ -8,6 +8,7 @@ import bmesh
 # addon modules
 from . import main
 from .. import fmt
+from ... import text
 from ... import log
 from ... import plugin_props
 from ... import xray_io
@@ -35,7 +36,7 @@ def import_mesh(context, creader, renamemap):
     ver = creader.nextf(fmt.Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
         raise utils.AppError(
-            'unsupported MESH format version', log.props(version=ver)
+            text.error.object_unsupport_mesh_ver, log.props(version=ver)
         )
     mesh_name = None
     mesh_flags = None
@@ -121,7 +122,7 @@ def import_mesh(context, creader, renamemap):
                     if new_name != name:
                         if suppress_rename_warnings.get(name, None) != new_name:
                             log.warn(
-                                'texture VMap has been renamed',
+                                text.warn.object_uv_renamed,
                                 old=name,
                                 new=new_name
                             )
@@ -154,7 +155,7 @@ def import_mesh(context, creader, renamemap):
                             wgs[i] = _MIN_WEIGHT
                     if bad:
                         log.warn(
-                            'weight VMap has values that are close to zero',
+                            text.warn.object_zero_weight,
                             vmap=name
                         )
                     if cid == fmt.Chunks.Mesh.VMAPS2:
@@ -164,7 +165,7 @@ def import_mesh(context, creader, renamemap):
                     vmaps.append((typ, vgi, wgs))
                 else:
                     raise utils.AppError(
-                        'unknown vmap type', log.props(type=typ)
+                        text.error.object_bad_vmap, log.props(type=typ)
                     )
         elif cid == fmt.Chunks.Mesh.FLAGS:
             mesh_flags = xray_io.PackedReader(data).getf('B')[0]
@@ -217,12 +218,14 @@ def import_mesh(context, creader, renamemap):
                 return bmsh.faces.new(vertexes)
             except ValueError:
                 if len(set(vertexes)) < 3:
-                    log.warn('invalid face found')
+                    log.warn(text.warn.object_invalid_face)
                     return None
                 if self.__next is None:
                     lvl = self.__level
                     if lvl > 100:
-                        raise utils.AppError('too many duplicated polygons')
+                        raise utils.AppError(
+                            text.error.object_many_duplicated_faces
+                        )
                     nonlocal bad_vgroup
                     if bad_vgroup == -1:
                         bad_vgroup = len(bo_mesh.vertex_groups)
@@ -307,7 +310,7 @@ def import_mesh(context, creader, renamemap):
                 bmf = bmfaces[fidx]
                 if bmf is not None:
                     log.warn(
-                        'face has already been instantiated with material',
+                        text.warn.object_already_mat,
                         face=fidx,
                         material=bmf.material_index,
                     )
@@ -342,7 +345,7 @@ def import_mesh(context, creader, renamemap):
                     continue
                 if assigned[fidx]:
                     log.warn(
-                        'face has already used material',
+                        text.warn.object_already_used_mat,
                         face=fidx,
                         material=bmf.material_index,
                     )
@@ -353,11 +356,11 @@ def import_mesh(context, creader, renamemap):
                 assigned[fidx] = True
 
     if bad_vgroup != -1:
-        msg = 'duplicate faces found, "{}" vertex groups created'.format(
+        msg = text.warn.object_duplicate_faces.format(
             bo_mesh.vertex_groups[bad_vgroup].name
         )
         if not context.split_by_materials:
-            msg += ' (try to use "{}" option)'.format(
+            msg += text.warn.object_try_use_option.format(
                 version_utils.get_prop_name(
                     plugin_props.PropObjectMeshSplitByMaterials()
                 )

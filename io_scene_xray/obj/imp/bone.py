@@ -5,6 +5,7 @@ import mathutils
 # addon modules
 from . import main
 from .. import fmt
+from ... import text
 from ... import log
 from ... import xray_io
 from ... import xray_motions
@@ -28,10 +29,10 @@ def _create_bone(
     if name != vmap:
         ex = renamemap.get(vmap, None)
         if ex is None:
-            log.warn('bone VMap: will be renamed', vmap=vmap, name=name)
+            log.warn(text.warn.object_bone_renamed, vmap=vmap, name=name)
         elif ex != name:
             log.warn(
-                'bone VMap: is already renamed',
+                text.warn.object_bone_already_renamed,
                 vmap=vmap,
                 name1=ex,
                 name2=name
@@ -57,7 +58,11 @@ def _create_bone(
                     mat
                 )
             else:
-                log.warn('bone parent isn\'t found', bone=name, parent=parent)
+                log.warn(
+                    text.warn.object_no_bone_parent,
+                    bone=name,
+                    parent=parent
+                )
         bpy_bone.tail.y = 0.02
         bpy_bone.matrix = mat
         name = bpy_bone.name
@@ -77,7 +82,7 @@ def safe_assign_enum_property(obj, pname, val, desc):
         setattr(obj, pname, val)
     except TypeError:
         log.warn(
-            'unsupported %s %s, using default' % (desc, pname),
+            text.warn.object_unsupport_prop.format(desc, pname),
             value=val,
             default=defval,
         )
@@ -88,7 +93,8 @@ def import_bone(context, creader, bpy_arm_obj, renamemap):
     ver = creader.nextf(fmt.Chunks.Bone.VERSION, 'H')[0]
     if ver != 0x2:
         raise utils.AppError(
-            'unsupported BONE format version', log.props(version=ver)
+            text.error.object_unsupport_bone_ver,
+            log.props(version=ver)
         )
 
     reader = xray_io.PackedReader(creader.next(fmt.Chunks.Bone.DEF))
@@ -115,7 +121,7 @@ def import_bone(context, creader, bpy_arm_obj, renamemap):
             def2 = xray_io.PackedReader(data).gets()
             if name != def2:
                 log.warn(
-                    'Not supported yet! bone name != bone def2',
+                    text.warn.object_bad_bone_name,
                     name=name,
                     def2=def2
                 )
