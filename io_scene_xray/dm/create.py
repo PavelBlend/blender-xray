@@ -6,6 +6,7 @@ import bpy
 import bmesh
 
 # addon modules
+from .. import text
 from .. import log
 from .. import utils
 from .. import xray_io
@@ -117,7 +118,7 @@ def create_bpy_image(det_model, abs_image_path):
                 )
 
         else:
-            log.warn('texture file not found', path=abs_image_path)
+            log.warn(text.warn.dm_tex_not_found, path=abs_image_path)
             bpy_image = create_empty_image(
                 det_model.context, det_model, abs_image_path
             )
@@ -317,7 +318,7 @@ def create_uv(b_mesh, det_model, bmesh_faces, uvs):
 
 def create_mesh(packed_reader, det_model):
     if det_model.mesh.indices_count % 3 != 0:
-        raise utils.AppError('bad dm triangle indices')
+        raise utils.AppError(text.error.dm_bad_indices)
 
     b_mesh = bmesh.new()
 

@@ -10,3 +10,7 @@ bones_has_no_bone = 'Armature object "{}" has no bone'
 # details read
 details_coord_base = 'details has {} bad base coordinates'
 details_coord_top = 'details has {} bad top coordinates'
+# dm create
+dm_tex_not_found = 'texture file not found'
+# dm validate
+dm_env_tex = 'material "{}" has incorrect image node type (Environment Texture)'

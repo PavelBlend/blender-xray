@@ -60,8 +60,8 @@ def export(bpy_obj, packed_writer, context, fpath, mode='DM'):
     vertices_count = len(vertices)
     if vertices_count > fmt.VERTICES_COUNT_LIMIT:
         raise utils.AppError(
-            'mesh "' + bpy_obj.data.name + \
-            '" has too many vertices: {}. Must be no more than {}'.format(
+            text.error.dm_many_verts.format(
+                bpy_obj.data.name,
                 vertices_count,
                 fmt.VERTICES_COUNT_LIMIT
             )
