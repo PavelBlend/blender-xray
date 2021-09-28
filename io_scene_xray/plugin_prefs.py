@@ -173,7 +173,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
             column_1 = row.column()
             column_2 = row.column()
 
-            column_1.label(text='Import Plugins:')
+            column_1.label(text='Import Operators:')
             column_1.prop(self, 'enable_object_import', text='*.object')
             column_1.prop(self, 'enable_anm_import', text='*.anm')
             column_1.prop(self, 'enable_dm_import', text='*.dm')
@@ -186,7 +186,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
             column_1.prop(self, 'enable_ogf_import', text='*.ogf')
             column_1.prop(self, 'enable_err_import', text='*.err')
 
-            column_2.label(text='Export Plugins:')
+            column_2.label(text='Export Operators:')
             column_2.prop(self, 'enable_object_export', text='*.object')
             column_2.prop(self, 'enable_anm_export', text='*.anm')
             column_2.prop(self, 'enable_dm_export', text='*.dm')

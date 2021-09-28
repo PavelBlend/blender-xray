@@ -381,7 +381,7 @@ defaults_category_items = (
 category_items = (
     ('PATHS', 'Paths', ''),
     ('DEFAULTS', 'Defaults', ''),
-    ('PLUGINS', 'Plugins', ''),
+    ('PLUGINS', 'Operators', ''),
     ('KEYMAP', 'Keymap', ''),
     ('CUSTOM_PROPS', 'Custom Props', ''),
     ('OTHERS', 'Others', '')
