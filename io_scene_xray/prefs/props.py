@@ -501,7 +501,7 @@ plugin_preferences_props = {
 
     # viewport props
     'gl_shape_color': bpy.props.FloatVectorProperty(
-        name='Shape Color',
+        name='Unselected Shape',
         default=(0.0, 0.0, 1.0, 0.5),
         min=0.0,
         max=1.0,
@@ -509,7 +509,7 @@ plugin_preferences_props = {
         size=4
     ),
     'gl_active_shape_color': bpy.props.FloatVectorProperty(
-        name='Active Shape Color',
+        name='Active Shape',
         default=(1.0, 1.0, 1.0, 0.7),
         min=0.0,
         max=1.0,
@@ -517,7 +517,7 @@ plugin_preferences_props = {
         size=4
     ),
     'gl_select_shape_color': bpy.props.FloatVectorProperty(
-        name='Select Shape Color',
+        name='Selected Shape',
         default=(0.0, 1.0, 1.0, 0.7),
         min=0.0,
         max=1.0,
@@ -525,7 +525,7 @@ plugin_preferences_props = {
         size=4
     ),
     'gl_object_mode_shape_color': bpy.props.FloatVectorProperty(
-        name='Object Mode Shape Color',
+        name='Shape in Object Mode',
         default=(0.8, 0.8, 0.8, 0.8),
         min=0.0,
         max=1.0,
