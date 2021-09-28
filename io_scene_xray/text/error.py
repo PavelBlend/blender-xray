@@ -11,7 +11,7 @@ not_use_nodes = 'does not use nodes'
 empty_mat = 'has empty material slot'
 no_mat = 'has no material'
 bad_image_path = 'is not in the textures folder'
-another_prog = 'Unable to write file: {}. The file is open in another program.'
+another_prog = 'unable to write file. The file is open in another program'
 # anm export
 anm_no_keys = 'Action has no keys: {}'
 # anm import

@@ -510,7 +510,10 @@ def save_file(file_path, writer):
         with open(file_path, 'wb') as file:
             file.write(writer.data)
     except PermissionError:
-        raise AppError(text.error.another_prog.format(file_path))
+        raise AppError(
+            text.error.another_prog,
+            log.props(file_path=file_path)
+        )
 
 
 def read_file(file_path):
