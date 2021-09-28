@@ -13,7 +13,7 @@ no_mat = 'has no material'
 bad_image_path = 'is not in the textures folder'
 another_prog = 'unable to write file. The file is open in another program'
 # anm export
-anm_no_keys = 'Action has no keys: {}'
+anm_no_keys = 'action has keys not for all channels'
 # anm import
 anm_unsupport_ver = 'File "{}" has unsupported format version: {}'
 # details convert

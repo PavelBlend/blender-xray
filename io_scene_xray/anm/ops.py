@@ -87,7 +87,7 @@ class XRAY_OT_import_anm(
                 try:
                     imp.import_file(file_path, import_context)
                 except utils.AppError as err:
-                    self.report({'ERROR'}, str(err))
+                    raise err
             else:
                 self.report(
                     {'ERROR'},
@@ -133,8 +133,7 @@ class XRAY_OT_export_anm(
         try:
             exp.export_file(context.active_object, self.filepath)
         except utils.AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
         return {'FINISHED'}
 
     def invoke(self, context, event):

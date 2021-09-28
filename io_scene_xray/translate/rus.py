@@ -19,7 +19,8 @@ translations_table = (
     (text.error.empty_mat, 'имеет пустой слот материала'),
     (text.error.no_mat, 'не имеет материала'),
     (text.error.bad_image_path, 'не находится в папке с текстурами'),
-    (text.error.another_prog, 'Невозможно записать файл. Файл открыт в другой программе.'),
+    (text.error.another_prog, 'Невозможно записать файл. Файл открыт в другой программе'),
+    (text.error.anm_no_keys, 'Анимация имеет ключи не для всех каналов'),
 )
 translation = {}
 for eng, rus in translations_table:
