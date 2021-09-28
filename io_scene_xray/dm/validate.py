@@ -24,7 +24,14 @@ def validate_export_object(context, bpy_obj, fpath):
     material_count = len(bpy_obj.material_slots)
 
     if material_count == 0:
-        raise utils.AppError(text.error.no_mat.format(mesh_name))
+        raise utils.AppError(
+            text.get_text(
+                text.error.me,
+                mesh_name,
+                text.error.no_mat,
+                data=(1, )
+            )
+        )
 
     elif material_count > 1:
         raise utils.AppError(
@@ -35,7 +42,12 @@ def validate_export_object(context, bpy_obj, fpath):
         bpy_material = bpy_obj.material_slots[0].material
         if not bpy_material:
             raise utils.AppError(
-                text.error.empty_mat.format(mesh_name)
+                text.get_text(
+                    text.error.me,
+                    mesh_name,
+                    text.error.empty_mat,
+                    data=(1, )
+                )
             )
 
     bpy_texture = None
@@ -55,11 +67,21 @@ def validate_export_object(context, bpy_obj, fpath):
                 )
             else:
                 raise utils.AppError(
-                    text.error.many_tex.format(mat_name)
+                    text.get_text(
+                        text.error.mat,
+                        mat_name,
+                        text.error.many_tex,
+                        data=(1, )
+                    )
                 )
         else:
             raise utils.AppError(
-                text.error.not_use_nodes.format(mat_name)
+                text.get_text(
+                    text.error.mat,
+                    mat_name,
+                    text.error.not_use_nodes,
+                    data=(1, )
+                )
             )
     else:
         for texture_slot in bpy_material.texture_slots:
@@ -81,7 +103,12 @@ def validate_export_object(context, bpy_obj, fpath):
                     )
                 if bpy_texture.image is None:
                     raise utils.AppError(
-                        text.error.no_img.format(mat_name)
+                        text.get_text(
+                            text.error.mat,
+                            mat_name,
+                            text.error.no_img,
+                            data=(1, )
+                        )
                     )
                 if not fpath:
                     level_folder = None

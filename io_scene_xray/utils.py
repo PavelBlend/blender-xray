@@ -258,11 +258,13 @@ def gen_texture_name(image, tx_folder, level_folder=None):
     if not level_folder:    # find texture in gamedata\textures folder
         if not a_tx_fpath.startswith(a_tx_folder):
             raise AppError(
-                text.error.bad_image_path.format(
+                text.get_text(
+                    text.error.img,
                     image.name,
-                    a_tx_fpath,
-                    a_tx_folder
-                )
+                    text.error.bad_image_path,
+                    data=(1, )
+                ),
+                log.props(image_path=a_tx_fpath, textures_folder=a_tx_folder)
             )
         a_tx_fpath = make_relative_texture_path(a_tx_fpath, a_tx_folder)
     else:

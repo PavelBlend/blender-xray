@@ -160,7 +160,12 @@ def merge_meshes(mesh_objects):
         uv_layers = mesh.uv_layers
         if len(uv_layers) > 1:
             raise utils.AppError(
-                text.error.obj_many_uv.format(obj.name)
+                text.get_text(
+                    text.error.obj,
+                    obj.name,
+                    text.error.obj_many_uv,
+                    data=(1, )
+                )
             )
         uv_layer = uv_layers[0]
         for uv_data in uv_layer.data:
@@ -240,7 +245,12 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
                 uv_layers = bpy_obj.data.uv_layers
                 if len(uv_layers) > 1:
                     raise utils.AppError(
-                        text.error.obj_many_uv.format(bpy_obj.name)
+                        text.get_text(
+                            text.error.obj,
+                            bpy_obj.name,
+                            text.error.obj_many_uv,
+                            data=(1, )
+                        )
                     )
                 uv_maps_names[material.name] = uv_layers[0].name
 
@@ -399,11 +409,21 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
                             tx_name = tex_node.name
                 elif len(tex_nodes) > 1:
                     raise utils.AppError(
-                        text.error.many_tex.format(material.name)
+                        text.get_text(
+                            text.error.mat,
+                            material.name,
+                            text.error.many_tex,
+                            data=(1, )
+                        )
                     )
             else:
                 raise utils.AppError(
-                    text.error.not_use_nodes.format(material.name)
+                    text.get_text(
+                        text.error.mat,
+                        material.name,
+                        text.error.not_use_nodes,
+                        data=(1, )
+                    )
                 )
         else:
             if material.active_texture:

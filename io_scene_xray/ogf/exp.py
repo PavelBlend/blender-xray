@@ -147,7 +147,14 @@ def _export_child(bpy_obj, cwriter, context, vgm):
                 if node.type in version_utils.IMAGE_NODES:
                     texture = node
         else:
-            raise utils.AppError(text.error.not_use_nodes.format(material.name))
+            raise utils.AppError(
+                text.get_text(
+                    text.error.mat,
+                    material.name,
+                    text.error.not_use_nodes,
+                    data=(1, )
+                )
+            )
     else:
         texture = material.active_texture
     cwriter.put(

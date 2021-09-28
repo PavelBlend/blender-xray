@@ -332,7 +332,12 @@ def write_shaders(level):
         if version_utils.IS_28:
             if not material.node_tree:
                 raise utils.AppError(
-                    text.error.not_use_nodes.format(material.name)
+                    text.get_text(
+                        text.error.mat,
+                        material.name,
+                        text.error.not_use_nodes,
+                        data=(1, )
+                    )
                 )
             for node in material.node_tree.nodes:
                 if not node.type in version_utils.IMAGE_NODES:
@@ -355,11 +360,21 @@ def write_shaders(level):
         images_count = len(images)
         if not images_count:
             raise utils.AppError(
-                text.error.no_img.format(material.name)
+                text.get_text(
+                    text.error.mat,
+                    material.name,
+                    text.error.no_img,
+                    data=(1, )
+                )
             )
         elif images_count > 1:
             raise utils.AppError(
-                text.error.many_img.format(material.name)
+                text.get_text(
+                    text.error.mat,
+                    material.name,
+                    text.error.many_img,
+                    data=(1, )
+                )
             )
         else:
             image = images[0]

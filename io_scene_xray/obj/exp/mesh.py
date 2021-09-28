@@ -229,12 +229,24 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
         if faces_indices:
             if material_name is None:
                 raise utils.AppError(
-                    text.error.empty_mat.format(bpy_obj.data.name)
+                    text.get_text(
+                        text.error.me,
+                        bpy_obj.data.name,
+                        text.error.empty_mat,
+                        data=(1, )
+                    )
                 )
             used_material_names.add(material_name)
 
     if not sfaces:
-        raise utils.AppError(text.error.no_mat.format(bpy_obj.data.name))
+        raise utils.AppError(
+            text.get_text(
+                text.error.me,
+                bpy_obj.data.name,
+                text.error.no_mat,
+                data=(1, )
+            )
+        )
     writer.putf('H', len(used_material_names))
     for mat_name, mat_data in materials.items():
         if mat_name in used_material_names:

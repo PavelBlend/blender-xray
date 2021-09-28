@@ -12,6 +12,7 @@ from . import viewport
 from . import skls_browser
 from . import edit_helpers
 from . import viewer
+from . import translate
 from . import tests
 
 
@@ -30,6 +31,7 @@ modules = (
     ops,
     edit_helpers,
     viewport,
+    translate,
     tests
 )
 
