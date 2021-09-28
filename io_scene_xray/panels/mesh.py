@@ -14,8 +14,6 @@ class XRAY_PT_mesh(ui.base.XRayPanel):
     @classmethod
     def poll(cls, context):
         preferences = version_utils.get_preferences()
-        if not preferences.expert_mode:
-            return False
         panel_used = (
             # import plugins
             preferences.enable_object_import or

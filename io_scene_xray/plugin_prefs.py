@@ -315,7 +315,6 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
             split = version_utils.layout_split(layout, 0.4)
             split.label(text='Custom Owner Name:')
             split.prop(self, 'custom_owner_name', text='')
-            prop_bool(layout, self, 'expert_mode')
             prop_bool(layout, self, 'compact_menus')
             prop_bool(layout, self, 'developer_mode')
             box = layout.box()

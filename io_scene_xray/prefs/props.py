@@ -406,9 +406,6 @@ plugin_preferences_props = {
     'cshader_file_auto': bpy.props.StringProperty(),
     'objects_folder_auto': bpy.props.StringProperty(),
 
-    'expert_mode': bpy.props.BoolProperty(
-        name='Expert Mode', description='Show additional properties/controls'
-    ),
     'compact_menus': bpy.props.BoolProperty(
         name='Compact Import/Export Menus', update=update_menu_func
     ),
