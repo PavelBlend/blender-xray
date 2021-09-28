@@ -522,6 +522,7 @@ def read_file(file_path):
     return data
 
 
+# temporarily not used
 def print_time_info(message=None, tabs_count=None, total_time=None):
     if not message:
         print()
@@ -536,9 +537,6 @@ def print_time_info(message=None, tabs_count=None, total_time=None):
         message_text = '{0}{1: <50}'.format(spaces, message + ' end:')
         message_time = '{0:.6f} sec'.format(total_time)
         print('{0}{1}'.format(message_text, message_time))
-
-
-print_pass = lambda message=None, tabs_count=None, total_time=None: None
 
 
 def build_op_label(operator, compact=False):

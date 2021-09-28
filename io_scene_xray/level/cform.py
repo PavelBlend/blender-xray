@@ -1,6 +1,5 @@
 # standart modules
 import os
-import time
 
 # blender modules
 import bpy
@@ -16,29 +15,16 @@ from .. import xray_io
 
 
 def import_main(context, level, data=None):
-    level_cform_start_time = time.time()
-
     preferences = version_utils.get_preferences()
-    if preferences.developer_mode:
-        out = utils.print_time_info
-    else:
-        out = utils.print_pass
-    out('import level cform', 0)
 
     # read level.cform file
-    start_time = time.time()
-    out('read file', 1)
     if level.xrlc_version >= fmt.VERSION_10:
         cform_path = os.path.join(level.path, 'level.cform')
         with open(cform_path, 'rb') as file:
             data = file.read()
     packed_reader = xray_io.PackedReader(data)
-    total_time = time.time() - start_time
-    out('read file', 1, total_time)
 
     # read header
-    start_time = time.time()
-    out('read header', 1)
     version = packed_reader.getf('<I')[0]
     if not version in fmt.CFORM_SUPPORT_VERSIONS:
         raise utils.AppError(text.error.cform_unsupport_ver.format(version))
@@ -46,20 +32,12 @@ def import_main(context, level, data=None):
     tris_count = packed_reader.getf('<I')[0]
     bbox_min = packed_reader.getf('<3f')
     bbox_max = packed_reader.getf('<3f')
-    total_time = time.time() - start_time
-    out('read header', 1, total_time)
 
     # read verts
-    start_time = time.time()
-    out('read vertices', 1)
     verts = packed_reader.get_array('f', verts_count * 3)
     verts.shape = (verts.shape[0] // 3, 3)
-    total_time = time.time() - start_time
-    out('read vertices', 1, total_time)
 
     # read game materials
-    start_time = time.time()
-    out('read game materials', 1)
     gamemtl_file_path = preferences.gamemtl_file_auto
     game_mtl_names = {}
     if os.path.exists(gamemtl_file_path):
@@ -67,26 +45,19 @@ def import_main(context, level, data=None):
             gmtl_data = gamemtl_file.read()
         for gmtl_name, _, gmtl_id in utils.parse_gamemtl(gmtl_data):
             game_mtl_names[gmtl_id] = gmtl_name
-    total_time = time.time() - start_time
-    out('read game materials', 1, total_time)
 
     # read tris
-    start_time = time.time()
-    out('read triangles', 1)
-
     sectors_tris = {}
     sectors_verts = {}
     sectors_mats = {}    # unique sectors materials
-
     for sector_index in level.sectors_objects.keys():
         sectors_tris[sector_index] = []
         sectors_verts[sector_index] = set()
         sectors_mats[sector_index] = set()
-
     tris = [None, ] * tris_count
     unique_materials = set()
 
-    # version 4
+    # faces in version 4
     if version == fmt.CFORM_VERSION_4:
         prep = packed_reader.prep('3I2H')
         for tris_index in range(tris_count):
@@ -106,7 +77,7 @@ def import_main(context, level, data=None):
             sectors_verts[sector].update((vert_1, vert_2, vert_3))
             sectors_mats[sector].add((mat_id, shadows, wallmarks))
 
-    # version 2 or 3
+    # faces in version 2 or 3
     elif version in (fmt.CFORM_VERSION_2, fmt.CFORM_VERSION_3):
         prep = packed_reader.prep('6I2HI')
         for tris_index in range(tris_count):
@@ -131,12 +102,7 @@ def import_main(context, level, data=None):
         sectors_mats[sector_index] = list(sectors_mats[sector_index])
         sectors_verts[sector_index] = list(sectors_verts[sector_index])
 
-    total_time = time.time() - start_time
-    out('read triangles', 1, total_time)
-
     # create bpy materials
-    start_time = time.time()
-    out('create materials', 1)
     bpy_materials = {}
     for mat_id, shadows, wallmarks in unique_materials:
         gmtl = game_mtl_names.get(mat_id, str(mat_id))
@@ -168,26 +134,9 @@ def import_main(context, level, data=None):
 
         bpy_materials[mat_id] = material
 
-    total_time = time.time() - start_time
-    out('create materials', 1, total_time)
-
     # create geometry
-    create_geometry_start_time = time.time()
-    out('create geometry', 1)
-    create_verts_time = 0.0
-    create_tris_time = 0.0
-    create_verts_2_time = 0.0
-    create_tris_2_time = 0.0
-    create_objects_time = 0.0
-    out()
-
     for sector, triangles in sectors_tris.items():
-
         # create verts
-        sector_start_time = time.time()
-        start_time = time.time()
-        message = 'sector_{0:0>3} create vertices'.format(sector)
-        out(message, 3)
         sector_verts = sectors_verts[sector]
         bm = bmesh.new()
         remap_verts = {}
@@ -198,15 +147,8 @@ def import_main(context, level, data=None):
         verts_count = remap_vertex_index + 1
         bm.verts.ensure_lookup_table()
         bm.verts.index_update()
-        total_time = time.time() - start_time
-        out(message, 3, total_time)
-        create_verts_time += total_time
 
         # create tris
-        start_time = time.time()
-        message = 'sector_{0:0>3} create triangles'.format(sector)
-        out(message, 3)
-
         tris_2 = []    # two sided tris
         verts_2 = set()    # two sided verts
         for tris_index in triangles:
@@ -225,14 +167,7 @@ def import_main(context, level, data=None):
                 tris_2.append((vert_1, vert_2, vert_3, mat_id, shadow, wm))
                 verts_2.update((vert_1, vert_2, vert_3))
 
-        total_time = time.time() - start_time
-        out(message, 3, total_time)
-        create_tris_time += total_time
-
         # create two sided verts
-        start_time = time.time()
-        message = 'sector_{0:0>3} create two sided vertices'.format(sector)
-        out(message, 3)
         remap_vertices = {}
         for remap_vert_index, vertex_index in enumerate(verts_2):
             vert_co = verts[vertex_index]
@@ -240,14 +175,8 @@ def import_main(context, level, data=None):
             remap_vertices[vertex_index] = remap_vert_index + verts_count
         bm.verts.ensure_lookup_table()
         bm.verts.index_update()
-        total_time = time.time() - start_time
-        out(message, 3, total_time)
-        create_verts_2_time += total_time
 
         # create two sided tris
-        start_time = time.time()
-        message = 'sector_{0:0>3} create two sided triangles'.format(sector)
-        out(message, 3)
         for vert_1, vert_2, vert_3, mat_id, shadow, wm in tris_2:
             try:
                 face = bm.faces.new((
@@ -263,13 +192,6 @@ def import_main(context, level, data=None):
         bm.faces.ensure_lookup_table()
         bm.faces.index_update()
         bm.normal_update()
-        total_time = time.time() - start_time
-        out(message, 3, total_time)
-        create_tris_2_time += total_time
-
-        start_time = time.time()
-        message = 'sector_{0:0>3} create object'.format(sector)
-        out(message, 3)
 
         # create mesh
         obj_name = 'cform_{:0>3}'.format(sector)
@@ -290,26 +212,3 @@ def import_main(context, level, data=None):
         collection.objects.link(bpy_obj)
         if not version_utils.IS_28:
             version_utils.link_object(bpy_obj)
-
-        total_time = time.time() - start_time
-        out(message, 3, total_time)
-        create_objects_time += total_time
-
-        out()
-        message = 'sector_{0:0>3} total time'.format(sector)
-        sector_total_time = time.time() - sector_start_time
-        out(message, 3, sector_total_time)
-        create_objects_time += total_time
-        out()
-
-
-    out('create vertices', 2, create_verts_time)
-    out('create triangles', 2, create_tris_time)
-    out('create two-sided vertices', 2, create_verts_2_time)
-    out('create two-sided triangles', 2, create_tris_2_time)
-    out('create objects', 2, create_objects_time)
-    total_time = time.time() - create_geometry_start_time
-    out('create geometry', 1, total_time)
-
-    total_time = time.time() - level_cform_start_time
-    out('import level cform', 0, total_time)

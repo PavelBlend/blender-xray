@@ -316,7 +316,6 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
             split.label(text='Custom Owner Name:')
             split.prop(self, 'custom_owner_name', text='')
             prop_bool(layout, self, 'compact_menus')
-            prop_bool(layout, self, 'developer_mode')
             box = layout.box()
             box.label(text='Bone Shape Colors:')
             row = box.row()

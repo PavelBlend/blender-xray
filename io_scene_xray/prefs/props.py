@@ -409,9 +409,6 @@ plugin_preferences_props = {
     'compact_menus': bpy.props.BoolProperty(
         name='Compact Import/Export Menus', update=update_menu_func
     ),
-    'developer_mode': bpy.props.BoolProperty(
-        name='Developer Mode', default=False
-    ),
 
     # defaults
     'defaults_category': bpy.props.EnumProperty(
