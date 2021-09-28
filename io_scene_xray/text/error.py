@@ -24,7 +24,7 @@ details_poly_count = 'Slots object "{0}" has an incorrect number of polygons. Mu
 details_img_size = 'Image "{0}" has incorrect size: {1} x {2}. Must be {3} x {4}.'
 # details import
 details_bad_header = 'bad details file. HEADER chunk size not equal 24'
-details_unsupport_ver = 'unssuported details format version: {}'
+details_unsupport_ver = 'unsupported details format version: {}'
 details_no_header = 'bad details file. Cannot find HEADER chunk'
 details_no_meshes = 'bad details file. Cannot find MESHES chunk'
 details_no_slots = 'bad details file. Cannot find SLOTS chunk'
