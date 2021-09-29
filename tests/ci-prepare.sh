@@ -69,8 +69,8 @@ if [ ! -e "$DIR/blender" ]; then
     mkdir -p $TGT
     ln -s io_scene_xray $TGT/
 
-    wget https://pypi.python.org/packages/53/fe/9e0fbdbca15c2c1253379c3a694f4315a420555e7874445b06edeaeacaea/coverage-4.2.tar.gz#md5=1e09362a3f35d589f942359441050a6e
-    tar zxf coverage-4.2.tar.gz
-    mv coverage-4.2/coverage "$DIR/$BLENDER_VERSION/python/lib/python$PYTHON_VERSION/"
-    rm -rf coverage-4.2
+    wget https://files.pythonhosted.org/packages/38/df/d5e67851e83948def768d7fb1a0fd373665b20f56ff63ed220c6cd16cb11/coverage-5.5.tar.gz#md5=22e8fc8c26c46e76fb3c7f99a5f6eb92
+    tar zxf coverage-5.5.tar.gz
+    mv coverage-5.5/coverage "$DIR/$BLENDER_VERSION/python/lib/python$PYTHON_VERSION/"
+    rm -rf coverage-5.5
 fi
