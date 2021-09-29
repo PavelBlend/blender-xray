@@ -116,16 +116,15 @@ class XRAY_OT_import_bones(
                 import_context.filepath = filepath
                 import_context.bpy_arm_obj = context.object
                 imp.import_file(import_context)
-                return {'FINISHED'}
             except utils.AppError as err:
-                self.report({'ERROR'}, str(err))
-                return {'CANCELLED'}
+                raise err
         else:
             self.report(
                 {'ERROR'},
                 'Format of "{}" not recognised'.format(filepath)
             )
             return {'CANCELLED'}
+        return {'FINISHED'}
 
     def draw(self, context):
         layout = self.layout
@@ -202,8 +201,7 @@ class XRAY_OT_export_bones(plugin_props.BaseOperator):
                 export_context.export_bone_properties = exp_props
                 exp.export_file(export_context)
             except utils.AppError as err:
-                self.report({'ERROR'}, str(err))
-                return {'CANCELLED'}
+                raise err
         self.objects_list.clear()
         return {'FINISHED'}
 
@@ -273,8 +271,7 @@ class XRAY_OT_export_bone(
             export_context.export_bone_properties = self.export_bone_properties
             exp.export_file(export_context)
         except utils.AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
         return {'FINISHED'}
 
     def draw(self, context):
