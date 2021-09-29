@@ -128,8 +128,7 @@ class XRAY_OT_import_details(
                     )
 
         except utils.AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
 
         return {'FINISHED'}
 
@@ -214,8 +213,7 @@ class XRAY_OT_export_details(
         try:
             self.export(objs[0], context)
         except utils.AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
 
         return {'FINISHED'}
 
