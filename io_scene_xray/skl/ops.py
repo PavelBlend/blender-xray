@@ -240,8 +240,7 @@ class XRAY_OT_export_skls(plugin_props.BaseOperator, utils.FilenameExtHelper):
         try:
             exp.export_skls_file(self.filepath, export_context, self.actions)
         except utils.AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
 
     @utils.invoke_require_armature
     def invoke(self, context, event):

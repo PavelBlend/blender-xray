@@ -111,7 +111,7 @@ class XRAY_OT_import_ogf(
             try:
                 imp.import_file(import_context, file_path, file.name)
             except utils.AppError as err:
-                self.report({'ERROR'}, str(err))
+                raise err
         return {'FINISHED'}
 
     def draw(self, context):

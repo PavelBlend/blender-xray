@@ -109,6 +109,7 @@ class XRAY_OT_import_omf(
         for prop_name, prop_value in op_import_omf_props.items():
             exec('{0} = op_import_omf_props.get("{0}")'.format(prop_name))
 
+    @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         if not self.files:
@@ -138,8 +139,7 @@ class XRAY_OT_import_omf(
                 try:
                     imp.import_file(import_context)
                 except utils.AppError as err:
-                    self.report({'ERROR'}, str(err))
-                    return {'CANCELLED'}
+                    raise err
             else:
                 self.report(
                     {'ERROR'},
@@ -266,6 +266,7 @@ class XRAY_OT_export_omf(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHe
             if not self.export_motions and not self.export_bone_parts:
                 layout.label(text='Nothing was Exported!', icon='ERROR')
 
+    @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         obj = context.object
@@ -323,8 +324,7 @@ class XRAY_OT_export_omf(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHe
             export_context.need_bone_groups = need_bone_groups
             exp.export_omf_file(export_context)
         except utils.AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
         return {'FINISHED'}
 
     def invoke(self, context, event):

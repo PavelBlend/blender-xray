@@ -114,8 +114,7 @@ class XRAY_OT_import_dm(
                     )
 
         except utils.AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
 
         return {'FINISHED'}
 
@@ -161,8 +160,8 @@ class XRAY_OT_export_dm(plugin_props.BaseOperator):
                 )
 
         except utils.AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -217,8 +216,7 @@ class XRAY_OT_export_dm_file(
         try:
             self.exp(context.scene.objects[self.detail_model], context)
         except utils.AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
+            raise err
         return {'FINISHED'}
 
     def exp(self, bpy_obj, context):

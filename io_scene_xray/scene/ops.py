@@ -54,15 +54,13 @@ class XRAY_OT_export_scene_selection(
         for prop_name, prop_value in op_export_level_scene_props.items():
             exec('{0} = op_export_level_scene_props.get("{0}")'.format(prop_name))
 
+    @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
-
         try:
             self.export(self.objs, context)
         except utils.AppError as err:
-            self.report({'ERROR'}, str(err))
-            return {'CANCELLED'}
-
+            raise err
         return {'FINISHED'}
 
     def export(self, bpy_objs, context):
@@ -120,9 +118,8 @@ class XRAY_OT_import_scene_selection(
     def execute(self, context):
         try:
             imp.import_file(self.filepath, self)
-        except utils.AppError as ex:
-            self.report({'ERROR'}, str(ex))
-            return {'CANCELLED'}
+        except utils.AppError as err:
+            raise err
         return {'FINISHED'}
 
     def invoke(self, context, event):
