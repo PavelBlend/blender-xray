@@ -396,14 +396,10 @@ def export_omf_file(context):
         packed_writer.putf('H', partitions_count)
         for bone_group in context.bpy_arm_obj.pose.bone_groups:
             partition_name = bone_group.name
-            packed_writer.puts(partition_name)
-            bones = bone_groups[partition_name]
+            bones = bone_groups.get(partition_name, None)
             if not bones:
-                raise utils.AppError(
-                    text.error.omf_empty_bone_group.format(
-                        context.bpy_arm_obj.name
-                    )
-                )
+                continue
+            packed_writer.puts(partition_name)
             bones_count = len(bones)
             packed_writer.putf('H', bones_count)
             for bone_name, bone_index in bones:
