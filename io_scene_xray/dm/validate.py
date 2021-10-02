@@ -25,12 +25,8 @@ def validate_export_object(context, bpy_obj, fpath):
 
     if material_count == 0:
         raise utils.AppError(
-            text.get_text(
-                text.error.me,
-                mesh_name,
-                text.error.no_mat,
-                data=(1, )
-            )
+            text.get_text(text.error.obj_no_mat),
+            log.props(object=bpy_obj.name)
         )
 
     elif material_count > 1:
@@ -42,12 +38,8 @@ def validate_export_object(context, bpy_obj, fpath):
         bpy_material = bpy_obj.material_slots[0].material
         if not bpy_material:
             raise utils.AppError(
-                text.get_text(
-                    text.error.me,
-                    mesh_name,
-                    text.error.empty_mat,
-                    data=(1, )
-                )
+                text.get_text(text.error.obj_empty_mat),
+                log.props(object=bpy_obj.name)
             )
 
     bpy_texture = None
@@ -67,21 +59,13 @@ def validate_export_object(context, bpy_obj, fpath):
                 )
             else:
                 raise utils.AppError(
-                    text.get_text(
-                        text.error.mat,
-                        mat_name,
-                        text.error.many_tex,
-                        data=(1, )
-                    )
+                    text.get_text(text.error.mat_many_tex),
+                    log.props(material=mat_name)
                 )
         else:
             raise utils.AppError(
-                text.get_text(
-                    text.error.mat,
-                    mat_name,
-                    text.error.not_use_nodes,
-                    data=(1, )
-                )
+                text.get_text(text.error.mat_not_use_nodes),
+                log.props(material=mat_name)
             )
     else:
         for texture_slot in bpy_material.texture_slots:
@@ -103,12 +87,8 @@ def validate_export_object(context, bpy_obj, fpath):
                     )
                 if bpy_texture.image is None:
                     raise utils.AppError(
-                        text.get_text(
-                            text.error.mat,
-                            mat_name,
-                            text.error.no_img,
-                            data=(1, )
-                        )
+                        text.get_text(text.error.mat_no_img),
+                        log.props(material=mat_name)
                     )
                 if not fpath:
                     level_folder = None

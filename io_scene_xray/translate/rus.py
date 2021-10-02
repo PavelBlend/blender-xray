@@ -7,20 +7,17 @@ from .. import text
 
 default_context = bpy.app.translations.contexts.default
 translations_table = (
-    (text.error.obj, 'объект'),
-    (text.error.me, 'меш'),
-    (text.error.mat, 'материал'),
-    (text.error.img, 'изображение'),
-    (text.error.no_img, 'не имеет изображения'),
-    (text.error.many_img, 'имеет больше одного изображения'),
-    (text.error.many_tex, 'имеет больше одной текстуры'),
-    (text.error.obj_many_uv, 'имеет больше одной UV-карты'),
-    (text.error.not_use_nodes, 'не использует ноды'),
-    (text.error.empty_mat, 'имеет пустой слот материала'),
-    (text.error.no_mat, 'не имеет материала'),
-    (text.error.bad_image_path, 'не находится в папке с текстурами'),
-    (text.error.another_prog, 'Невозможно записать файл. Файл открыт в другой программе'),
-    (text.error.anm_no_keys, 'Анимация имеет ключи не для всех каналов'),
+    (text.error.mat_no_img, 'материал не имеет изображения'),
+    (text.error.mat_many_img, 'материал имеет больше одного изображения'),
+    (text.error.mat_many_tex, 'материал имеет больше одной текстуры'),
+    (text.error.obj_many_uv, 'объект имеет больше одной UV-карты'),
+    (text.error.mat_not_use_nodes, 'материал не использует ноды'),
+    (text.error.obj_empty_mat, 'объект использует пустой слот материала'),
+    (text.error.obj_no_mat, 'объект не имеет материала'),
+    (text.error.img_bad_image_path, 'изображение не находится в папке с текстурами'),
+    (text.error.file_another_prog, 'невозможно записать файл. Файл открыт в другой программе'),
+    (text.error.anm_no_keys, 'анимация имеет ключи не для всех каналов'),
+    (text.error.anm_unsupport_ver, 'файл имеет неподдерживаемую версию формата')
 )
 translation = {}
 for eng, rus in translations_table:

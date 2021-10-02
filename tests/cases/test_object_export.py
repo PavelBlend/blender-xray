@@ -211,10 +211,9 @@ class TestObjectExport(utils.XRayTestCase):
         )
 
         # Assert
-        mesh_name = bpy.data.objects['tobj1'].data.name
         self.assertReportsContains(
             'ERROR',
-            re.compile('Mesh "{0}" has no material'.format(mesh_name))
+            re.compile('Object has no material: "{0}"'.format('tobj1'))
         )
 
     def _create_objects(self, create_uv=True, create_material=True):

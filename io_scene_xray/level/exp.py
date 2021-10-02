@@ -12,6 +12,7 @@ import mathutils
 from . import fmt
 from .. import text
 from .. import utils
+from .. import log
 from .. import version_utils
 from .. import xray_io
 from .. import ogf
@@ -332,12 +333,8 @@ def write_shaders(level):
         if version_utils.IS_28:
             if not material.node_tree:
                 raise utils.AppError(
-                    text.get_text(
-                        text.error.mat,
-                        material.name,
-                        text.error.not_use_nodes,
-                        data=(1, )
-                    )
+                    text.get_text(text.error.mat_not_use_nodes),
+                    log.props(material=material.name)
                 )
             for node in material.node_tree.nodes:
                 if not node.type in version_utils.IMAGE_NODES:
@@ -360,21 +357,13 @@ def write_shaders(level):
         images_count = len(images)
         if not images_count:
             raise utils.AppError(
-                text.get_text(
-                    text.error.mat,
-                    material.name,
-                    text.error.no_img,
-                    data=(1, )
-                )
+                text.get_text(text.error.mat_no_img),
+                log.props(material=material.name)
             )
         elif images_count > 1:
             raise utils.AppError(
-                text.get_text(
-                    text.error.mat,
-                    material.name,
-                    text.error.many_img,
-                    data=(1, )
-                )
+                text.get_text(text.error.mat_many_img),
+                log.props(material=material.name)
             )
         else:
             image = images[0]

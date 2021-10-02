@@ -11,6 +11,7 @@ import mathutils
 from . import fmt
 from .. import text
 from .. import xray_io
+from .. import log
 from .. import utils
 from .. import version_utils
 from .. import xray_motions
@@ -148,12 +149,8 @@ def _export_child(bpy_obj, cwriter, context, vgm):
                     texture = node
         else:
             raise utils.AppError(
-                text.get_text(
-                    text.error.mat,
-                    material.name,
-                    text.error.not_use_nodes,
-                    data=(1, )
-                )
+                text.get_text(text.error.mat_not_use_nodes),
+                log.props(material=material.name)
             )
     else:
         texture = material.active_texture

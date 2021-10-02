@@ -97,8 +97,10 @@ class Logger:
 
     def flush(self, logname='log'):
         uniq = dict()
-        for msg, _, typ in self._full:
+        message_contexts = {}
+        for msg, ctx, typ in self._full:
             uniq[msg] = uniq.get(msg, (0, typ))[0] + 1, typ
+            message_contexts.setdefault(msg, []).append(ctx.data)
         if not uniq:
             return
 
@@ -107,7 +109,17 @@ class Logger:
             line = msg
             if cnt > 1:
                 line = ('[%dx] ' % cnt) + line
-            lines.append(' ' + line)
+                lines.append(' ' + line)
+            else:
+                context = message_contexts[msg]
+                if context[0]:
+                    prop = tuple(context[0].values())[0]
+                    if line.endswith('.'):
+                        line = line[ : -1]
+                    lines.append(' ' + line)
+                    line = '{0}: "{1}"'.format(line, prop)
+                else:
+                    lines.append(' ' + line)
             self._report({typ}, line)
 
         lines.extend(['', 'Full log:'])
@@ -155,6 +167,8 @@ class Logger:
                 group = group.parent
             prefix = ensure_group_processed(group)
             if data:
+                if msg.endswith('.'):
+                    msg = msg[ : -1]
                 msg += (': %s' % data)
             if last_line_is_message and (last_message == msg):
                 last_message_count += 1
@@ -258,13 +272,8 @@ def gen_texture_name(image, tx_folder, level_folder=None):
     if not level_folder:    # find texture in gamedata\textures folder
         if not a_tx_fpath.startswith(a_tx_folder):
             raise AppError(
-                text.get_text(
-                    text.error.img,
-                    image.name,
-                    text.error.bad_image_path,
-                    data=(1, )
-                ),
-                log.props(image_path=a_tx_fpath, textures_folder=a_tx_folder)
+                text.get_text(text.error.img_bad_image_path),
+                log.props(image=image.name, image_path=a_tx_fpath, textures_folder=a_tx_folder)
             )
         a_tx_fpath = make_relative_texture_path(a_tx_fpath, a_tx_folder)
     else:
@@ -511,8 +520,8 @@ def save_file(file_path, writer):
             file.write(writer.data)
     except PermissionError:
         raise AppError(
-            text.error.another_prog,
-            log.props(file_path=file_path)
+            text.get_text(text.error.file_another_prog),
+            log.props(file=os.path.basename(file_path), path=file_path)
         )
 
 

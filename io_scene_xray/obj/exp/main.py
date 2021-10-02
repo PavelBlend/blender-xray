@@ -160,12 +160,8 @@ def merge_meshes(mesh_objects):
         uv_layers = mesh.uv_layers
         if len(uv_layers) > 1:
             raise utils.AppError(
-                text.get_text(
-                    text.error.obj,
-                    obj.name,
-                    text.error.obj_many_uv,
-                    data=(1, )
-                )
+                text.get_text(text.error.obj_many_uv),
+                log.props(object=obj.name)
             )
         uv_layer = uv_layers[0]
         for uv_data in uv_layer.data:
@@ -245,12 +241,8 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
                 uv_layers = bpy_obj.data.uv_layers
                 if len(uv_layers) > 1:
                     raise utils.AppError(
-                        text.get_text(
-                            text.error.obj,
-                            bpy_obj.name,
-                            text.error.obj_many_uv,
-                            data=(1, )
-                        )
+                        text.get_text(text.error.obj_many_uv),
+                        log.props(object=bpy_obj.name)
                     )
                 uv_maps_names[material.name] = uv_layers[0].name
 
@@ -409,21 +401,13 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
                             tx_name = tex_node.name
                 elif len(tex_nodes) > 1:
                     raise utils.AppError(
-                        text.get_text(
-                            text.error.mat,
-                            material.name,
-                            text.error.many_tex,
-                            data=(1, )
-                        )
+                        text.get_text(text.error.mat_many_tex),
+                        log.props(material=material.name)
                     )
             else:
                 raise utils.AppError(
-                    text.get_text(
-                        text.error.mat,
-                        material.name,
-                        text.error.not_use_nodes,
-                        data=(1, )
-                    )
+                    text.get_text(text.error.mat_not_use_nodes),
+                    log.props(material=material.name)
                 )
         else:
             if material.active_texture:
