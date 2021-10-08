@@ -10,6 +10,7 @@ from . import read
 from . import utility
 from .. import text
 from .. import utils
+from .. import log
 from .. import xray_io
 from .. import version_utils
 
@@ -32,9 +33,8 @@ def _import(fpath, context, chunked_reader):
 
             if header.format_version not in fmt.SUPPORT_FORMAT_VERSIONS:
                 raise utils.AppError(
-                    text.error.details_unsupport_ver.format(
-                        header.format_version
-                    )
+                    text.error.details_unsupport_ver,
+                    log.props(version=header.format_version)
                 )
 
             has_header = True

@@ -2,6 +2,7 @@
 from . import fmt
 from . import utility
 from .. import utils
+from .. import log
 from .. import text
 
 
@@ -41,7 +42,8 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
     if context.level_details_format_version == 'builds_1569-cop':
         if ligthing.format != 'builds_1569-cop':
             raise utils.AppError(
-                text.error.details_light_1569.format(bpy_obj.name)
+                text.error.details_light_1569,
+                log.props(object=bpy_obj.name)
             )
         lvl_dets.format_version = fmt.FORMAT_VERSION_3
         lvl_dets.light_format = '1569-COP'
@@ -58,7 +60,8 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
     else:
         if ligthing.format != 'builds_1096-1558':
             raise utils.AppError(
-                text.error.details_light_1096.format(bpy_obj.name)
+                text.error.details_light_1096,
+                log.props(object=bpy_obj.name)
             )
         lvl_dets.format_version = fmt.FORMAT_VERSION_2
         lvl_dets.light_format = 'OLD'
@@ -111,17 +114,23 @@ def bpy_data_to_slots_transforms(lvl_dets):
 
     if len(base_slots.data.polygons) != lvl_dets.slots_count:
         raise utils.AppError(
-            text.error.details_poly_count.format(
-                base_slots.name,
-                lvl_dets.slots_count
+            text.error.details_poly_count,
+            log.props(
+                object=base_slots.name,
+                must_be=lvl_dets.slots_count,
+                size_x=lvl_dets.slots_size_x,
+                size_y=lvl_dets.slots_size_y
             )
         )
 
     if len(top_slots.data.polygons) != lvl_dets.slots_count:
         raise utils.AppError(
-            text.error.details_poly_count.format(
-                top_slots.name,
-                lvl_dets.slots_count
+            text.error.details_poly_count,
+            log.props(
+                object=top_slots.name,
+                must_be=lvl_dets.slots_count,
+                size_x=lvl_dets.slots_size_x,
+                size_y=lvl_dets.slots_size_y
             )
         )
 
@@ -133,13 +142,15 @@ def validate_sizes(images, size_x, size_y):
     for image in images:
         if image.size[0] != size_x or image.size[1] != size_y:
             raise utils.AppError(
-                text.error.details_img_size.format(
-                    image.name,
-                    image.size[0],
-                    image.size[1],
-                    size_x,
-                    size_y
-            ))
+                text.error.details_img_size,
+                log.props(
+                    image=image.name,
+                    image_size_x=image.size[0],
+                    image_size_y=image.size[1],
+                    must_be_size_x=size_x,
+                    must_be_size_y=size_y
+                )
+            )
 
 
 def validate_images_size(lvl_dets):
