@@ -17,6 +17,7 @@ class Context:
         self.operator = None
         self.multiply = version_utils.get_multiply()
         self.version = utils.plugin_version_number()
+        self.errors = []
 
 
 # import contexts

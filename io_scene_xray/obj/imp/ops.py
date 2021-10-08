@@ -9,6 +9,7 @@ import bpy_extras
 from . import utility
 from .. import imp
 from ... import icons
+from ... import log
 from ... import utils
 from ... import version_utils
 from ... import plugin_props
@@ -76,19 +77,19 @@ class XRAY_OT_import_object(plugin_props.BaseOperator, bpy_extras.io_utils.Impor
         import_context.objects_folder=objects_folder
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
-            if ext == '.object':
-                file_path = os.path.join(self.directory, file.name)
-                if not os.path.exists(file_path):
-                    self.report(
-                        {'ERROR'}, 'File not found "{}"'.format(file_path)
-                    )
-                else:
+            file_path = os.path.join(self.directory, file.name)
+            if not os.path.exists(file_path):
+                self.report(
+                    {'ERROR'}, 'File not found "{}"'.format(file_path)
+                )
+            else:
+                try:
                     import_context.before_import_file()
                     imp.import_file(file_path, import_context)
-            else:
-                self.report(
-                    {'ERROR'}, 'Format of "{}" not recognised'.format(file.name)
-                )
+                except utils.AppError as err:
+                    raise err
+        for err in import_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     def draw(self, context):

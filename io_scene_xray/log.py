@@ -37,6 +37,10 @@ def warn(message, **kwargs):
     __logger__[0].warn(message, props(**kwargs))
 
 
+def err(error):
+    __logger__[0].err(str(error), error.ctx)
+
+
 def debug(message, **kwargs):
     print('debug: %s: %s' % (message, kwargs))
 

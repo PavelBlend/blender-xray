@@ -68,6 +68,7 @@ object_no_uv = 'UV-map is required, but not found on the "{0}" object'
 object_unsupport_bone_ver = 'unsupported BONE format version'
 # object import main
 object_unsupport_format_ver = 'unsupported OBJECT format version'
+object_main_chunk = 'file does not have main chunk'
 # object import mesh
 object_unsupport_mesh_ver = 'unsupported MESH format version'
 object_bad_vmap = 'unknown vmap type'
