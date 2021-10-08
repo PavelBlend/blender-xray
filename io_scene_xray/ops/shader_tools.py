@@ -6,22 +6,116 @@ from . import material
 from .. import version_utils
 
 
+props = {
+    'mode': material.mode_prop,
+    # alpha
+    'alpha_value': bpy.props.BoolProperty(name='Use Alpha', default=True),
+    'alpha_change': bpy.props.BoolProperty(name='Change Alpha', default=True),
+    # specular
+    'specular_value': bpy.props.FloatProperty(
+        name='Specular', default=0.0, min=0.0, max=1.0, subtype='FACTOR'
+    ),
+    'specular_change': bpy.props.BoolProperty(name='Change Specular', default=True),
+    # roughness
+    'roughness_value': bpy.props.FloatProperty(
+        name='Roughness', default=0.0, min=0.0, max=1.0, subtype='FACTOR'
+    ),
+    'roughness_change': bpy.props.BoolProperty(name='Change Roughness', default=True),
+    # viewport roughness
+    'viewport_roughness_value': bpy.props.FloatProperty(
+        name='Viewport Roughness', default=0.0, min=0.0, max=1.0, subtype='FACTOR'
+    ),
+    'viewport_roughness_change': bpy.props.BoolProperty(name='Change Viewport Roughness', default=True),
+
+    # internal properties
+    'shadeless_change': bpy.props.BoolProperty(name='Change Shadeless', default=True),
+    'shadeless_value': bpy.props.BoolProperty(name='Shadeless', default=True),
+
+    'diffuse_intensity_change': bpy.props.BoolProperty(
+        name='Change Diffuse Intensity', default=True
+    ),
+    'diffuse_intensity_value': bpy.props.FloatProperty(
+        name='Diffuse Intensity', default=1.0,
+        min=0.0, max=1.0, subtype='FACTOR'
+    ),
+
+    'specular_intensity_change': bpy.props.BoolProperty(
+        name='Change Specular Intensity', default=True
+    ),
+    'specular_intensity_value': bpy.props.FloatProperty(
+        name='Specular Intensity', default=1.0,
+        min=0.0, max=1.0, subtype='FACTOR'
+    ),
+
+    'specular_hardness_change': bpy.props.BoolProperty(
+        name='Change Specular Hardness', default=True
+    ),
+    'specular_hardness_value': bpy.props.IntProperty(
+        name='Specular Hardness', default=50,
+        min=1, max=511
+    ),
+
+    'use_transparency_change': bpy.props.BoolProperty(
+        name='Change Transparency', default=True
+    ),
+    'use_transparency_value': bpy.props.BoolProperty(
+        name='Transparency', default=True
+    ),
+
+    'transparency_alpha_change': bpy.props.BoolProperty(
+        name='Change Transparency Alpha', default=True
+    ),
+    'transparency_alpha_value': bpy.props.FloatProperty(
+        name='Transparency Alpha', default=1.0,
+        min=0.0, max=1.0, subtype='FACTOR'
+    )
+}
+renders_28x = ('CYCLES', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH')
+
+
 class XRAY_OT_change_shader_params(bpy.types.Operator):
     bl_idname = 'io_scene_xray.change_shader_params'
     bl_label = 'Change Shader Parameters'
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
 
+    if not version_utils.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+    def draw_prop(self, layout, prop_active, prop_value):
+        row = layout.row(align=True)
+        row.prop(self, prop_active, text='')
+        row = row.row(align=True)
+        row.active = getattr(self, prop_active)
+        row.prop(self, prop_value, toggle=True)
+
+    def draw(self, context):
+        layout = self.layout
+        column = layout.column(align=True)
+        column.label(text='Mode:')
+        column.prop(self, 'mode', expand=True)
+        is_internal = context.scene.render.engine == 'BLENDER_RENDER'
+        is_cycles = context.scene.render.engine in renders_28x
+        column.label(text='Settings:')
+        if is_cycles:
+            self.draw_prop(column, 'specular_change', 'specular_value')
+            self.draw_prop(column, 'roughness_change', 'roughness_value')
+            self.draw_prop(column, 'viewport_roughness_change', 'viewport_roughness_value')
+            self.draw_prop(column, 'alpha_change', 'alpha_value')
+        if is_internal:
+            self.draw_prop(column, 'diffuse_intensity_change', 'diffuse_intensity_value')
+            self.draw_prop(column, 'specular_intensity_change', 'specular_intensity_value')
+            self.draw_prop(column, 'transparency_alpha_change', 'transparency_alpha_value')
+            self.draw_prop(column, 'specular_hardness_change', 'specular_hardness_value')
+            self.draw_prop(column, 'use_transparency_change', 'use_transparency_value')
+            self.draw_prop(column, 'shadeless_change', 'shadeless_value')
+
     def execute(self, context):
         scene = context.scene
-        materials = material.get_materials(context, scene)
-        renders_28 = (
-            'CYCLES',
-            'BLENDER_EEVEE',
-            'BLENDER_WORKBENCH'
-        )
-        is_cycles = context.scene.render.engine in renders_28
-        is_internal = context.scene.render.engine == 'BLENDER_RENDER'
+        materials = material.get_materials(context, self.mode)
+        is_cycles = scene.render.engine in renders_28x
+        is_internal = scene.render.engine == 'BLENDER_RENDER'
         for mat in materials:
             if is_cycles:
                 if not mat.node_tree:
@@ -32,8 +126,8 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
                         if node.is_active_output:
                             output_node = node
                             break
-                if scene.xray.change_viewport_roughness:
-                    mat.roughness = scene.xray.viewport_roughness_value
+                if self.viewport_roughness_change:
+                    mat.roughness = self.viewport_roughness_value
                 if not output_node:
                     self.report({'WARNING'}, 'Material "{}" has no output node.'.format(mat.name))
                     continue
@@ -45,11 +139,11 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
                 if shader_node.type != 'BSDF_PRINCIPLED':
                     self.report({'WARNING'}, 'Material "{}" has no principled shader.'.format(mat.name))
                     continue
-                if scene.xray.change_specular:
-                    shader_node.inputs['Specular'].default_value = scene.xray.shader_specular_value
-                if scene.xray.change_roughness:
-                    shader_node.inputs['Roughness'].default_value = scene.xray.shader_roughness_value
-                if not scene.xray.change_materials_alpha:
+                if self.specular_change:
+                    shader_node.inputs['Specular'].default_value = self.specular_value
+                if self.roughness_change:
+                    shader_node.inputs['Roughness'].default_value = self.roughness_value
+                if not self.alpha_change:
                     continue
                 links = shader_node.inputs['Base Color'].links
                 if not len(links):
@@ -60,40 +154,47 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
                     self.report({'WARNING'}, 'Material "{}" has no image.'.format(mat.name))
                     continue
                 if version_utils.IS_28:
-                    if scene.xray.change_materials_alpha:
-                        if scene.xray.materials_set_alpha_mode:
-                            mat.node_tree.links.new(
-                                image_node.outputs['Alpha'],
-                                shader_node.inputs['Alpha']
-                            )
-                        else:
-                            links = shader_node.inputs['Alpha'].links
-                            if len(links):
-                                mat.node_tree.links.remove(links[0])
+                    if self.alpha_value:
+                        mat.node_tree.links.new(
+                            image_node.outputs['Alpha'],
+                            shader_node.inputs['Alpha']
+                        )
+                    else:
+                        links = shader_node.inputs['Alpha'].links
+                        if len(links):
+                            mat.node_tree.links.remove(links[0])
             if is_internal:
                 # shadeless
-                if scene.xray.change_shadeless:
-                    mat.use_shadeless = scene.xray.use_shadeless
+                if self.shadeless_change:
+                    mat.use_shadeless = self.shadeless_value
                 # diffuse intensity
-                if scene.xray.change_diffuse_intensity:
-                    mat.diffuse_intensity = scene.xray.diffuse_intensity
+                if self.diffuse_intensity_change:
+                    mat.diffuse_intensity = self.diffuse_intensity_value
                 # specular intensity
-                if scene.xray.change_specular_intensity:
-                    mat.specular_intensity = scene.xray.specular_intensity
+                if self.specular_intensity_change:
+                    mat.specular_intensity = self.specular_intensity_value
                 # specular hardness
-                if scene.xray.change_specular_hardness:
-                    mat.specular_hardness = scene.xray.specular_hardness
+                if self.specular_hardness_change:
+                    mat.specular_hardness = self.specular_hardness_value
                 # use transparency
-                if scene.xray.change_use_transparency:
-                    mat.use_transparency = scene.xray.use_transparency
+                if self.use_transparency_change:
+                    mat.use_transparency = self.use_transparency_value
                 # transparency alpha
-                if scene.xray.change_transparency_alpha:
-                    mat.alpha = scene.xray.transparency_alpha
+                if self.transparency_alpha_change:
+                    mat.alpha = self.transparency_alpha_value
             mat.update_tag()
+        self.report({'INFO'}, 'Changed {} material(s)'.format(len(materials)))
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
 
 def register():
+    version_utils.assign_props([
+        (props, XRAY_OT_change_shader_params),
+    ])
     bpy.utils.register_class(XRAY_OT_change_shader_params)
 
 

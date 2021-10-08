@@ -211,14 +211,12 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
-        data = context.scene.xray
         layout = self.layout
         column = layout.column(align=True)
         operator = column.operator(
             ops.material.XRAY_OT_colorize_materials.bl_idname,
             icon='COLOR'
         )
-
         column.operator(
             ops.action_utils.XRAY_OT_change_action_bake_settings.bl_idname,
             icon='ACTION'
@@ -231,92 +229,30 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
             ops.object_tools.XRAY_OT_place_objects.bl_idname,
             icon=icon
         )
+        column.operator(
+            ops.shader_tools.XRAY_OT_change_shader_params.bl_idname,
+            icon='MATERIAL'
+        )
 
-        is_cycles = context.scene.render.engine == 'CYCLES'
-        is_internal = context.scene.render.engine == 'BLENDER_RENDER'
-        box = layout.box()
-        box.label(text='Material Tools:')
-        if box:
-            column = box.column()
-            split = version_utils.layout_split(column, 0.3)
-            split.label(text='Mode:')
-            split.prop(data, 'convert_materials_mode', text='')
-
-            if not version_utils.IS_28:
-                cycles_box = column.box()
-                col_cycles = cycles_box.column()
-                col_cycles.active = is_cycles or version_utils.IS_28
-                internal_box = column.box()
-                col_internal = internal_box.column()
-                col_internal.active = is_internal and not version_utils.IS_28
-                col_cycles.label(text='Cycles Settings:')
-                split = version_utils.layout_split(col_cycles, 0.3)
-                split.active = is_cycles
-                split.label(text='Shader:')
-                split.prop(data, 'convert_materials_shader_type', text='')
-            else:
-                col_cycles = column.column(align=True)
-                col_cycles.active = is_cycles or version_utils.IS_28
-                row = col_cycles.row(align=True)
-                row.prop(data, 'change_materials_alpha', text='')
-                row = row.row(align=True)
-                row.active = data.change_materials_alpha
-                row.prop(data, 'materials_set_alpha_mode', toggle=True)
-
-            # specular
-            row = col_cycles.row(align=True)
-            row.prop(data, 'change_specular', text='')
-            row = row.row(align=True)
-            row.active = data.change_specular
-            row.prop(data, 'shader_specular_value')
-            # roughness
-            row = col_cycles.row(align=True)
-            row.prop(data, 'change_roughness', text='')
-            row = row.row(align=True)
-            row.active = data.change_roughness
-            row.prop(data, 'shader_roughness_value')
-            if version_utils.IS_28:
-                # viewport roughness
-                row = col_cycles.row(align=True)
-                row.prop(data, 'change_viewport_roughness', text='')
-                row = row.row(align=True)
-                row.active = data.change_viewport_roughness
-                row.prop(data, 'viewport_roughness_value')
-            if not version_utils.IS_28:
-                def draw_prop(change_prop, prop):
-                    row = col_internal.row(align=True)
-                    row.prop(data, change_prop, text='')
-                    row = row.row(align=True)
-                    row.active = getattr(data, change_prop)
-                    row.prop(data, prop, toggle=True)
-                col_internal.label(text='Internal Settings:')
-                draw_prop('change_shadeless', 'use_shadeless')
-                draw_prop('change_diffuse_intensity', 'diffuse_intensity')
-                draw_prop('change_specular_intensity', 'specular_intensity')
-                draw_prop('change_specular_hardness', 'specular_hardness')
-                draw_prop('change_use_transparency', 'use_transparency')
-                draw_prop('change_transparency_alpha', 'transparency_alpha')
-            # operators
-            column = box.column(align=True)
-            if not version_utils.IS_28:
-                column.operator(
-                    ops.material.XRAY_OT_convert_to_cycles_material.bl_idname
-                )
-                col = column.column(align=True)
-                col.active = is_cycles
-                col.operator(
-                    ops.material.XRAY_OT_convert_to_internal_material.bl_idname
-                )
-                if is_cycles:
-                    text = 'Switch Render (Internal)'
-                elif is_internal:
-                    text = 'Switch Render (Cycles)'
-                column.operator(
-                    ops.material.XRAY_OT_switch_render.bl_idname,
-                    text=text
-                )
+        # 2.7x operators
+        if not version_utils.IS_28:
             column.operator(
-                ops.shader_tools.XRAY_OT_change_shader_params.bl_idname
+                ops.material.XRAY_OT_convert_to_cycles_material.bl_idname
+            )
+            column.operator(
+                ops.material.XRAY_OT_convert_to_internal_material.bl_idname
+            )
+
+            if context.scene.render.engine == 'BLENDER_RENDER':
+                switch_text = 'Switch to Cycles'
+            elif context.scene.render.engine == 'CYCLES':
+                switch_text = 'Switch to Internal'
+            else:
+                switch_text = 'Switch to Internal'
+
+            column.operator(
+                ops.material.XRAY_OT_switch_render.bl_idname,
+                text=switch_text
             )
 
 

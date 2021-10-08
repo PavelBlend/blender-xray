@@ -24,18 +24,6 @@ class ImportOmf(bpy.types.PropertyGroup):
             exec('{0} = import_motion_props.get("{0}")'.format(prop_name))
 
 
-convert_materials_mode_items = (
-    ('ACTIVE_MATERIAL', 'Active Material', ''),
-    ('ACTIVE_OBJECT', 'Active Object', ''),
-    ('SELECTED_OBJECTS', 'Selected Objects', ''),
-    ('ALL_MATERIALS', 'All Materials', '')
-)
-convert_materials_shader_type_items = (
-    ('PRINCIPLED', 'Principled', ''),
-    ('DIFFUSE', 'Diffuse', ''),
-    ('EMISSION', 'Emission', '')
-)
-
 xray_scene_properties = {
     'export_root': bpy.props.StringProperty(
         name='Export Root',
@@ -47,70 +35,6 @@ xray_scene_properties = {
     'object_texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath(),
     'import_skls': bpy.props.PointerProperty(type=ImportSkls),
     'import_omf': bpy.props.PointerProperty(type=ImportOmf),
-    # material utils parameters
-    'convert_materials_mode': bpy.props.EnumProperty(
-        name='Mode', items=convert_materials_mode_items, default='ACTIVE_MATERIAL'
-    ),
-    'convert_materials_shader_type': bpy.props.EnumProperty(
-        name='Shader', items=convert_materials_shader_type_items, default='PRINCIPLED'
-    ),
-    'materials_set_alpha_mode': bpy.props.BoolProperty(name='Use Alpha', default=True),
-    'change_materials_alpha': bpy.props.BoolProperty(name='Change Alpha', default=True),
-    'shader_specular_value': bpy.props.FloatProperty(
-        name='Specular', default=0.0, min=0.0, max=1.0, subtype='FACTOR'
-    ),
-    'change_specular': bpy.props.BoolProperty(name='Change Specular', default=True),
-    'shader_roughness_value': bpy.props.FloatProperty(
-        name='Roughness', default=0.0, min=0.0, max=1.0, subtype='FACTOR'
-    ),
-    'change_roughness': bpy.props.BoolProperty(name='Change Roughness', default=True),
-    'viewport_roughness_value': bpy.props.FloatProperty(
-        name='Viewport Roughness', default=0.0, min=0.0, max=1.0, subtype='FACTOR'
-    ),
-    'change_viewport_roughness': bpy.props.BoolProperty(name='Change Viewport Roughness', default=True),
-
-    # internal properties
-    'change_shadeless': bpy.props.BoolProperty(name='Change Shadeless', default=True),
-    'use_shadeless': bpy.props.BoolProperty(name='Shadeless', default=True),
-
-    'change_diffuse_intensity': bpy.props.BoolProperty(
-        name='Change Diffuse Intensity', default=True
-    ),
-    'diffuse_intensity': bpy.props.FloatProperty(
-        name='Diffuse Intensity', default=1.0,
-        min=0.0, max=1.0, subtype='FACTOR'
-    ),
-
-    'change_specular_intensity': bpy.props.BoolProperty(
-        name='Change Specular Intensity', default=True
-    ),
-    'specular_intensity': bpy.props.FloatProperty(
-        name='Specular Intensity', default=1.0,
-        min=0.0, max=1.0, subtype='FACTOR'
-    ),
-
-    'change_specular_hardness': bpy.props.BoolProperty(
-        name='Change Specular Hardness', default=True
-    ),
-    'specular_hardness': bpy.props.IntProperty(
-        name='Specular Hardness', default=50,
-        min=1, max=511
-    ),
-
-    'change_use_transparency': bpy.props.BoolProperty(
-        name='Change Transparency', default=True
-    ),
-    'use_transparency': bpy.props.BoolProperty(
-        name='Transparency', default=True
-    ),
-
-    'change_transparency_alpha': bpy.props.BoolProperty(
-        name='Change Transparency Alpha', default=True
-    ),
-    'transparency_alpha': bpy.props.FloatProperty(
-        name='Transparency Alpha', default=1.0,
-        min=0.0, max=1.0, subtype='FACTOR'
-    ),
     'viewer': bpy.props.PointerProperty(type=viewer.XRaySceneViewerProperties),
 }
 
