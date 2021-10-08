@@ -37,15 +37,10 @@ class XRAY_PT_action(ui.base.XRayPanel):
             panel_used
         )
 
-    def draw(self, context):
-        layout = self.layout
-        obj = context.active_object
-        action = obj.animation_data.action
-        data = action.xray
-
+    def draw_bake_props(self, layout, data):
         # bake properties
         col = layout.column(align=True)
-        col.label(text='Bake Mode:')
+        col.label(text='Bake:')
         row = col.row(align=True)
         row.prop(data, 'autobake', expand=True)
         col = col.column(align=True)
@@ -56,12 +51,21 @@ class XRAY_PT_action(ui.base.XRayPanel):
         col.prop(data, 'autobake_refine_location', text='Location Threshold')
         col.prop(data, 'autobake_refine_rotation', text='Rotation Threshold')
 
-        layout.prop(data, 'fps', text='FPS')
+    def draw(self, context):
+        layout = self.layout
+        obj = context.active_object
+        action = obj.animation_data.action
+        data = action.xray
+
+        col = layout.column(align=True)
+        col.prop(data, 'fps', text='FPS')
         if obj.type != 'ARMATURE':
+            self.draw_bake_props(layout, data)
             return
-        layout.prop(data, 'speed', text='Speed')
-        layout.prop(data, 'accrue', text='Accrue')
-        layout.prop(data, 'falloff', text='Falloff')
+        col.prop(data, 'speed', text='Speed')
+        col.prop(data, 'accrue', text='Accrue')
+        col.prop(data, 'falloff', text='Falloff')
+
         layout.prop(data, 'flags_fx', text='Type FX', toggle=True)
         if data.flags_fx:
             row = layout.row(align=True)
@@ -72,22 +76,27 @@ class XRAY_PT_action(ui.base.XRayPanel):
             row = layout.row(align=True)
             row.label(text='Bone Part:')
             row.prop_search(data, 'bonepart_name', obj.pose, 'bone_groups', text='')
-            row = layout.row(align=True)
+            col = layout.column(align=True)
+            row = col.row(align=True)
             row.prop(data, 'flags_stopatend', text='Stop', toggle=True)
             row.prop(data, 'flags_nomix', text='No Mix', toggle=True)
             row.prop(data, 'flags_syncpart', text='Sync', toggle=True)
-            row = layout.row(align=True)
+            row = col.row(align=True)
             row.prop(data, 'flags_footsteps', text='Foot Steps', toggle=True)
             row.prop(data, 'flags_movexform', text='Move XForm', toggle=True)
-            row = layout.row(align=True)
+            row = col.row(align=True)
             row.prop(data, 'flags_idle', text='Idle', toggle=True)
             row.prop(data, 'flags_weaponbone', text='Weapon Bone', toggle=True)
-        layout.context_pointer_set(skl.ops.XRAY_OT_export_skl.bl_idname + '.action', action)
-        layout.operator(skl.ops.XRAY_OT_export_skl.bl_idname, icon='EXPORT')
-        layout.label(text='Settings:')
+
+        layout.separator()
+        self.draw_bake_props(layout, data)
+        layout.separator()
         row = layout.row(align=True)
+        row.label(text='Settings:')
         row.operator(ops.action_utils.XRAY_OT_copy_action_settings.bl_idname)
         row.operator(ops.action_utils.XRAY_OT_paste_action_settings.bl_idname)
+        layout.context_pointer_set(skl.ops.XRAY_OT_export_skl.bl_idname + '.action', action)
+        layout.operator(skl.ops.XRAY_OT_export_skl.bl_idname, icon='EXPORT')
 
 
 def register():
