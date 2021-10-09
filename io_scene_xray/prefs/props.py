@@ -128,7 +128,7 @@ custom_props_bone_category_items = (
     ('IK', 'IK', '')
 )
 
-xray_custom_properties = {
+custom_main_props = {
     'category': bpy.props.EnumProperty(
         name='Custom Property Category',
         default='OBJECT',
@@ -138,7 +138,9 @@ xray_custom_properties = {
         name='Custom Property Bone Category',
         default='MAIN',
         items=custom_props_bone_category_items
-    ),
+    )
+}
+custom_object_props = {
     # object custom properties names
     'object_flags': bpy.props.StringProperty(
         name='Flags', default='flags'
@@ -163,11 +165,15 @@ xray_custom_properties = {
     ),
     'object_motion_references': bpy.props.StringProperty(
         name='Motion References', default='motion_references'
-    ),
+    )
+}
+custom_mesh_props = {
     # mesh custom properties names
     'mesh_flags': bpy.props.StringProperty(
         name='Flags', default='flags'
     ),
+}
+custom_material_props = {
     # material custom properties names
     'material_two_sided': bpy.props.StringProperty(
         name='Two Sided', default='two_sided'
@@ -180,7 +186,9 @@ xray_custom_properties = {
     ),
     'material_game_mtl': bpy.props.StringProperty(
         name='Game Mtl', default='game_mtl'
-    ),
+    )
+}
+custom_bone_props = {
     # bone custom properties names
     'bone_game_mtl': bpy.props.StringProperty(
         name='Game Mtl', default='game_mtl'
@@ -296,7 +304,9 @@ xray_custom_properties = {
     ),
     'bone_friction': bpy.props.StringProperty(
         name='Friction', default='friction'
-    ),
+    )
+}
+custom_action_props = {
     # action custom properties names
     'action_fps': bpy.props.StringProperty(
         name='FPS', default='fps'
@@ -320,6 +330,13 @@ xray_custom_properties = {
         name='Power', default='power'
     )
 }
+xray_custom_properties = {}
+xray_custom_properties.update(custom_main_props)
+xray_custom_properties.update(custom_object_props)
+xray_custom_properties.update(custom_mesh_props)
+xray_custom_properties.update(custom_material_props)
+xray_custom_properties.update(custom_bone_props)
+xray_custom_properties.update(custom_action_props)
 
 
 class XRayPrefsCustomProperties(bpy.types.PropertyGroup):

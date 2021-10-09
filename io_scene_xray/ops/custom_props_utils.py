@@ -354,27 +354,33 @@ class XRAY_OT_remove_xray_custom_props(bpy.types.Operator):
 
     def execute(self, context):
         preferences = version_utils.get_preferences()
-        props_list = prefs.props.xray_custom_properties.keys()
-        props_values = []
-        for prop_name in props_list:
-            prop_value = getattr(preferences.custom_props, prop_name, None)
-            props_values.append(prop_value)
         objects, meshes, materials, armatures, actions = find_data(self, context)
-        data_list = []
-        data_list.extend(objects)
-        data_list.extend(meshes)
-        data_list.extend(materials)
-        data_list.extend(actions)
+        bones = set()
         for armature in armatures:
             for bone in armature.data.bones:
                 xray = bone.xray
                 if not xray.exportable:
                     continue
-                data_list.append(bone)
-        for data in data_list:
-            for prop in props_values:
-                if not data.get(prop, None) is None:
-                    del data[prop]
+                bones.add(bone)
+        data = (
+            (objects, prefs.props.custom_object_props),
+            (meshes, prefs.props.custom_mesh_props),
+            (materials, prefs.props.custom_material_props),
+            (bones, prefs.props.custom_bone_props),
+            (actions, prefs.props.custom_action_props)
+        )
+        for bpy_data_list, custom_props_dict in data:
+            custom_props = custom_props_dict.keys()
+            props_names = []
+            for prop_id in custom_props:
+                prop_name = getattr(preferences.custom_props, prop_id, None)
+                if not prop_name is None:
+                    props_names.append(prop_name)
+            for bpy_data in bpy_data_list:
+                for prop_name in props_names:
+                    if not bpy_data.get(prop_name, None) is None:
+                        print(bpy_data, prop_name)
+                        del bpy_data[prop_name]
         return {'FINISHED'}
 
     def invoke(self, context, event):
