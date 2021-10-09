@@ -91,23 +91,6 @@ class XRAY_PT_armature(ui.base.XRayPanel):
                 ops.joint_limits.XRAY_OT_clear_ik_limits.bl_idname
             )
 
-        # fake bones
-        row, box = ui.collapsible.draw(
-            layout,
-            'armature:fake_bones',
-            'Fake Bones'
-        )
-        if box:
-            lay = box.column(align=True)
-            row = lay.row(align=True)
-            row.operator(ops.fake_bones.XRAY_OT_create_fake_bones.bl_idname, text='Create', icon='CONSTRAINT_BONE')
-            row.operator(ops.fake_bones.XRAY_OT_delete_fake_bones.bl_idname, text='Delete', icon='X')
-            lay.operator(
-                ops.fake_bones.XRAY_OT_toggle_fake_bones_visibility.bl_idname,
-                text='Show/Hide',
-                icon=version_utils.get_icon('VISIBLE_IPO_ON'),
-            )
-
 
 def register():
     bpy.utils.register_class(XRAY_PT_armature)
