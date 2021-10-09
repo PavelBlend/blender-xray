@@ -78,6 +78,13 @@ class XRAY_OT_add_all_actions(bpy.types.Operator):
     bl_description = 'Add All Actions'
     bl_options = {'UNDO'}
 
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if not obj:
+            return False
+        return True
+
     def execute(self, context):
         obj = context.object
         for action in bpy.data.actions:
@@ -114,6 +121,13 @@ class XRAY_OT_clean_actions(bpy.types.Operator):
     bl_description = 'Remove Non-Existent Actions'
     bl_options = {'UNDO'}
 
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if not obj:
+            return False
+        return True
+
     def execute(self, context):
         obj = context.object
         remove = []
@@ -135,7 +149,6 @@ def draw_motion_list_custom_elements(layout):
 
 
 def details_draw_function(self, context):
-
     box = self.layout.box()
 
     if not (context.object.type in {'MESH', 'EMPTY'}):
