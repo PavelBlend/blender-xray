@@ -379,7 +379,6 @@ class XRAY_OT_remove_xray_custom_props(bpy.types.Operator):
             for bpy_data in bpy_data_list:
                 for prop_name in props_names:
                     if not bpy_data.get(prop_name, None) is None:
-                        print(bpy_data, prop_name)
                         del bpy_data[prop_name]
         return {'FINISHED'}
 
