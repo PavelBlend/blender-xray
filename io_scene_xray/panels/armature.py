@@ -54,42 +54,18 @@ class XRAY_PT_armature(ui.base.XRayPanel):
         row.prop(data, 'bone_mass_center_cross_size')
 
         # joint limits
-        row, box = ui.collapsible.draw(
-            layout,
-            'armature:joint_limits',
-            'Joint Limits'
-        )
-        if box:
-            split = version_utils.layout_split(box, 0.5)
-            split.label(text='Export Limits from:')
-            split.prop(data, 'joint_limits_type', text='')
-            col = box.column(align=True)
-            col.prop(data, 'display_bone_limits', toggle=True)
-            column = col.column(align=True)
-            column.active = data.display_bone_limits
-            column.prop(data, 'display_bone_limits_radius')
-            row = column.row(align=True)
-            row.prop(data, 'display_bone_limit_x', toggle=True)
-            row.prop(data, 'display_bone_limit_y', toggle=True)
-            row.prop(data, 'display_bone_limit_z', toggle=True)
-            col = box.column(align=True)
-            col.operator(
-                ops.joint_limits.XRAY_OT_convert_limits_to_constraints.bl_idname,
-                icon='CONSTRAINT_BONE'
-            )
-            col.operator(
-                ops.joint_limits.XRAY_OT_remove_limits_constraints.bl_idname,
-                icon='X'
-            )
-            col.operator(
-                ops.joint_limits.XRAY_OT_convert_ik_to_xray_limits.bl_idname
-            )
-            col.operator(
-                ops.joint_limits.XRAY_OT_convert_xray_to_ik_limits.bl_idname
-            )
-            col.operator(
-                ops.joint_limits.XRAY_OT_clear_ik_limits.bl_idname
-            )
+        col = layout.column(align=True)
+        col.prop(data, 'display_bone_limits', toggle=True)
+        column = col.column(align=True)
+        column.active = data.display_bone_limits
+        column.prop(data, 'display_bone_limits_radius')
+        row = column.row(align=True)
+        row.prop(data, 'display_bone_limit_x', toggle=True)
+        row.prop(data, 'display_bone_limit_y', toggle=True)
+        row.prop(data, 'display_bone_limit_z', toggle=True)
+        split = version_utils.layout_split(layout, 0.5)
+        split.label(text='Export Limits from:')
+        split.prop(data, 'joint_limits_type', text='')
 
 
 def register():

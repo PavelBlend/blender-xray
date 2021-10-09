@@ -13,7 +13,7 @@ class XRAY_OT_create_fake_bones(plugin_props.BaseOperator):
 
     @classmethod
     def poll(cls, context):
-        return _is_armature_context(context)
+        return utils.is_armature_context(context)
 
     def execute(self, context):
         armature_object = context.object
@@ -106,15 +106,8 @@ def _bones_from_context(context):
     return armature.bones
 
 
-def _is_armature_context(context):
-    obj = context.object
-    if not obj:
-        return False
-    return obj.type == 'ARMATURE'
-
-
 def _is_armature_context_with_fake_bones(context):
-    if not _is_armature_context(context):
+    if not utils.is_armature_context(context):
         return False
     for bone in _bones_from_context(context):
         if utils.is_fake_bone_name(bone.name):

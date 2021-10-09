@@ -579,3 +579,10 @@ def get_revision_data(revision):
         moder = curruser
         mtime = currtime
     return owner, ctime, moder, mtime
+
+
+def is_armature_context(context):
+    obj = context.object
+    if not obj:
+        return False
+    return obj.type == 'ARMATURE'

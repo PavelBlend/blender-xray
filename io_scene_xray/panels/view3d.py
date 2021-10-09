@@ -341,6 +341,24 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
             text='Show/Hide',
             icon=version_utils.get_icon('VISIBLE_IPO_ON'),
         )
+        col.label(text='Joint Limits:')
+        col.operator(
+            ops.joint_limits.XRAY_OT_convert_limits_to_constraints.bl_idname,
+            icon='CONSTRAINT_BONE'
+        )
+        col.operator(
+            ops.joint_limits.XRAY_OT_remove_limits_constraints.bl_idname,
+            icon='X'
+        )
+        col.operator(
+            ops.joint_limits.XRAY_OT_convert_ik_to_xray_limits.bl_idname
+        )
+        col.operator(
+            ops.joint_limits.XRAY_OT_convert_xray_to_ik_limits.bl_idname
+        )
+        col.operator(
+            ops.joint_limits.XRAY_OT_clear_ik_limits.bl_idname
+        )
 
 
 class XRAY_PT_import_operators(bpy.types.Panel):
