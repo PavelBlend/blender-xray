@@ -10,7 +10,7 @@ from .. import xray_motions
 
 class ImportSklContext(contexts.ImportAnimationOnlyContext):
     def __init__(self):
-        contexts.ImportAnimationOnlyContext.__init__(self)
+        super().__init__()
         self.filename = None
 
 

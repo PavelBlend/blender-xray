@@ -7,6 +7,7 @@ from . import imp
 from . import exp
 from .. import utils
 from .. import icons
+from .. import log
 from .. import plugin_props
 from .. import version_utils
 
@@ -60,7 +61,7 @@ class XRAY_OT_export_scene_selection(
         try:
             self.export(self.objs, context)
         except utils.AppError as err:
-            raise err
+            log.err(err)
         return {'FINISHED'}
 
     def export(self, bpy_objs, context):
@@ -119,7 +120,7 @@ class XRAY_OT_import_scene_selection(
         try:
             imp.import_file(self.filepath, self)
         except utils.AppError as err:
-            raise err
+            log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, event):

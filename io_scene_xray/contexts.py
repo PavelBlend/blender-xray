@@ -23,12 +23,12 @@ class Context:
 # import contexts
 class ImportContext(Context):
     def __init__(self):
-        Context.__init__(self)
+        super().__init__()
 
 
 class ImportMeshContext(ImportContext):
     def __init__(self):
-        ImportContext.__init__(self)
+        super().__init__()
         self.textures_folder = None
 
     def image(self, relpath):
@@ -59,7 +59,7 @@ class ImportMeshContext(ImportContext):
 
 class ImportAnimationBaseContext(ImportContext):
     def __init__(self):
-        ImportContext.__init__(self)
+        super().__init__()
         self.add_actions_to_motion_list = None
         self.selected_names = None
         self.use_motion_prefix_name = None
@@ -68,25 +68,25 @@ class ImportAnimationBaseContext(ImportContext):
 
 class ImportAnimationContext(ImportAnimationBaseContext):
     def __init__(self):
-        ImportAnimationBaseContext.__init__(self)
+        super().__init__()
         self.import_motions = None
 
 
 class ImportAnimationOnlyContext(ImportAnimationBaseContext):
     def __init__(self):
-        ImportAnimationBaseContext.__init__(self)
+        super().__init__()
         self.bpy_arm_obj = None
 
 
 # export contexts
 class ExportContext(Context):
     def __init__(self):
-        Context.__init__(self)
+        super().__init__()
 
 
 class ExportMeshContext(ExportContext):
     def __init__(self):
-        ExportContext.__init__(self)
+        super().__init__()
         preferences = version_utils.get_preferences()
         self.textures_folder = preferences.textures_folder_auto
         self.texname_from_path = None
@@ -94,11 +94,11 @@ class ExportMeshContext(ExportContext):
 
 class ExportAnimationContext(ExportContext):
     def __init__(self):
-        ExportContext.__init__(self)
+        super().__init__()
         self.export_motions = None
 
 
 class ExportAnimationOnlyContext(ExportContext):
     def __init__(self):
-        ExportContext.__init__(self)
+        super().__init__()
         self.bpy_arm_obj = None

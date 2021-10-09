@@ -21,7 +21,7 @@ DISPLAY_SIZE = 0.5
 
 class ImportAnmContext(contexts.ImportContext):
     def __init__(self):
-        contexts.ImportContext.__init__(self)
+        super().__init__()
         self.camera_animation = None
 
 

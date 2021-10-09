@@ -20,10 +20,10 @@ def _import(fpath, context, reader):
         else:
             log.debug('unknown chunk', cid=cid)
     if not has_main_chunk:
-        err_message = text.error.object_main_chunk
-        err_context = log.props(file=fpath)
-        err = utils.AppError(err_message, err_context)
-        context.errors.append(err)
+        raise utils.AppError(
+            text.error.object_main_chunk,
+            log.props(file=fpath)
+        )
 
 
 @log.with_context(name='file')

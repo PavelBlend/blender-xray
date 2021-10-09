@@ -10,7 +10,7 @@ from .. import utils
 
 class ExportSklsContext(contexts.ExportAnimationOnlyContext):
     def __init__(self):
-        contexts.ExportAnimationOnlyContext.__init__(self)
+        super().__init__()
         self.action = None
 
 

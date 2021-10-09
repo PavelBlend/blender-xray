@@ -10,6 +10,7 @@ from . import imp
 from . import exp
 from .. import utils
 from .. import icons
+from .. import log
 from .. import contexts
 from .. import plugin_props
 from .. import ui
@@ -20,8 +21,7 @@ class ImportOmfContext(
         contexts.ImportAnimationContext, contexts.ImportAnimationOnlyContext
     ):
     def __init__(self):
-        contexts.ImportAnimationContext.__init__(self)
-        contexts.ImportAnimationOnlyContext.__init__(self)
+        super().__init__()
         self.import_bone_parts = None
 
 
@@ -30,8 +30,7 @@ class ExportOmfContext(
         contexts.ExportAnimationContext
     ):
     def __init__(self):
-        contexts.ExportAnimationOnlyContext.__init__(self)
-        contexts.ExportAnimationContext.__init__(self)
+        super().__init__()
         self.export_mode = None
         self.export_bone_parts = None
         self.need_motions = None
@@ -139,12 +138,14 @@ class XRAY_OT_import_omf(
                 try:
                     imp.import_file(import_context)
                 except utils.AppError as err:
-                    raise err
+                    import_context.errors.append(err)
             else:
                 self.report(
                     {'ERROR'},
                     'Format of "{}" not recognised'.format(file.name)
                 )
+        for err in import_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -324,7 +325,7 @@ class XRAY_OT_export_omf(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHe
             export_context.need_bone_groups = need_bone_groups
             exp.export_omf_file(export_context)
         except utils.AppError as err:
-            raise err
+            log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, event):

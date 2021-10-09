@@ -20,7 +20,7 @@ FORMAT_VERSION_LABEL = 'Format Version:'
 
 class ImportDetailsContext(contexts.ImportMeshContext):
     def __init__(self):
-        contexts.ImportMeshContext.__init__(self)
+        super().__init__()
         self.format_version = None
         self.details_models_in_a_row = None
         self.load_slots = None
@@ -28,7 +28,7 @@ class ImportDetailsContext(contexts.ImportMeshContext):
 
 class ExportDetailsContext(contexts.ExportMeshContext):
     def __init__(self):
-        contexts.ExportMeshContext.__init__(self)
+        super().__init__()
         self.level_details_format_version = None
 
 
@@ -111,25 +111,23 @@ class XRAY_OT_import_details(
         import_context.details_models_in_a_row = self.details_models_in_a_row
         import_context.load_slots = self.load_slots
 
-        try:
-            for file in self.files:
-                ext = os.path.splitext(file.name)[-1].lower()
-
-                if ext == '.details':
+        for file in self.files:
+            ext = os.path.splitext(file.name)[-1].lower()
+            if ext == '.details':
+                try:
                     imp.import_file(
                         os.path.join(self.directory, file.name),
                         import_context
                     )
-
-                else:
-                    self.report(
-                        {'ERROR'},
-                        'Format of {} not recognised'.format(file)
-                    )
-
-        except utils.AppError as err:
-            raise err
-
+                except utils.AppError as err:
+                    import_context.errors.append(err)
+            else:
+                self.report(
+                    {'ERROR'},
+                    'Format of {} not recognised'.format(file)
+                )
+        for err in import_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     def draw(self, context):
@@ -210,10 +208,14 @@ class XRAY_OT_export_details(
             self.report({'ERROR'}, 'The selected object is not a empty')
             return {'CANCELLED'}
 
+        errors = []
         try:
             self.export(objs[0], context)
         except utils.AppError as err:
-            raise err
+            errors.append(err)
+
+        for err in errors:
+            log.err(err)
 
         return {'FINISHED'}
 
@@ -226,11 +228,15 @@ class XRAY_OT_export_details(
         exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):
+        obj = context.object
+        if not obj:
+            self.report({'ERROR'}, 'No active object.')
+            return {'FINISHED'}
         preferences = version_utils.get_preferences()
         self.texture_name_from_image_path = \
             preferences.details_texture_names_from_path
         self.format_version = preferences.format_version
-        self.filepath = context.object.name
+        self.filepath = obj.name
         return super().invoke(context, event)
 
 

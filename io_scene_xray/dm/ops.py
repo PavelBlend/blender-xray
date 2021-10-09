@@ -10,6 +10,7 @@ from . import imp
 from . import exp
 from .. import contexts
 from .. import icons
+from .. import log
 from .. import utils
 from .. import plugin_props
 from .. import version_utils
@@ -17,12 +18,12 @@ from .. import version_utils
 
 class ImportDmContext(contexts.ImportMeshContext):
     def __init__(self):
-        contexts.ImportMeshContext.__init__(self)
+        super().__init__()
 
 
 class ExportDmContext(contexts.ExportMeshContext):
     def __init__(self):
-        contexts.ExportMeshContext.__init__(self)
+        super().__init__()
 
 
 def menu_func_import(self, context):
@@ -97,25 +98,23 @@ class XRAY_OT_import_dm(
         import_context.textures_folder=textures_folder
         import_context.operator=self
 
-        try:
-            for file in self.files:
-                ext = os.path.splitext(file.name)[-1].lower()
-
-                if ext == filename_ext:
+        for file in self.files:
+            ext = os.path.splitext(file.name)[-1].lower()
+            if ext == filename_ext:
+                try:
                     imp.import_file(
                         os.path.join(self.directory, file.name),
                         import_context
                     )
-
-                else:
-                    self.report(
-                        {'ERROR'},
-                        'Format of {} not recognised'.format(file)
-                    )
-
-        except utils.AppError as err:
-            raise err
-
+                except utils.AppError as err:
+                    import_context.errors.append(err)
+            else:
+                self.report(
+                    {'ERROR'},
+                    'Format of {} not recognised'.format(file)
+                )
+        for err in import_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
 
@@ -143,25 +142,23 @@ class XRAY_OT_export_dm(plugin_props.BaseOperator):
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
-        try:
-            for name in self.detail_models.split(','):
-                detail_model = context.scene.objects[name]
-                if not name.lower().endswith(filename_ext):
-                    name += filename_ext
-                path = self.directory
-
-                export_context = ExportDmContext()
-                export_context.texname_from_path = self.texture_name_from_image_path
-
+        for name in self.detail_models.split(','):
+            detail_model = context.scene.objects[name]
+            if not name.lower().endswith(filename_ext):
+                name += filename_ext
+            path = self.directory
+            export_context = ExportDmContext()
+            export_context.texname_from_path = self.texture_name_from_image_path
+            try:
                 exp.export_file(
                     detail_model,
                     os.path.join(path, name),
                     export_context
                 )
-
-        except utils.AppError as err:
-            raise err
-
+            except utils.AppError as err:
+                export_context.errors.append(err)
+        for err in export_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -216,7 +213,7 @@ class XRAY_OT_export_dm_file(
         try:
             self.exp(context.scene.objects[self.detail_model], context)
         except utils.AppError as err:
-            raise err
+            log.err(err)
         return {'FINISHED'}
 
     def exp(self, bpy_obj, context):

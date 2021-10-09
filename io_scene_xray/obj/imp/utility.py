@@ -11,7 +11,7 @@ from ... import contexts
 
 class ImportObjectMeshContext(contexts.ImportMeshContext):
     def __init__(self):
-        contexts.ImportMeshContext.__init__(self)
+        super().__init__()
         self.soc_sgroups = None
         self.split_by_materials = None
         self.objects_folder = None
@@ -22,7 +22,7 @@ class ImportObjectMeshContext(contexts.ImportMeshContext):
 
 class ImportObjectAnimationContext(contexts.ImportAnimationContext):
     def __init__(self):
-        contexts.ImportAnimationContext.__init__(self)
+        super().__init__()
 
 
 class ImportObjectContext(

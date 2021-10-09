@@ -9,6 +9,7 @@ import bpy_extras
 from . import imp
 from . import exp
 from .. import icons
+from .. import log
 from .. import utils
 from .. import version_utils
 from .. import plugin_props
@@ -87,13 +88,15 @@ class XRAY_OT_import_anm(
                 try:
                     imp.import_file(file_path, import_context)
                 except utils.AppError as err:
-                    raise err
+                    import_context.errors.append(err)
             else:
                 self.report(
                     {'ERROR'},
                     'Not recognised format of file: "{}"'.format(file_path)
                 )
                 return {'CANCELLED'}
+        for err in import_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -130,10 +133,13 @@ class XRAY_OT_export_anm(
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
+        errors = []
         try:
             exp.export_file(context.active_object, self.filepath)
         except utils.AppError as err:
-            raise err
+            errors.append(err)
+        for err in errors:
+            log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, event):

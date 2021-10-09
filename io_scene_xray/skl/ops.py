@@ -9,6 +9,7 @@ import bpy_extras
 from . import imp
 from . import exp
 from .. import icons
+from .. import log
 from .. import plugin_props
 from .. import ui
 from .. import utils
@@ -157,12 +158,17 @@ class XRAY_OT_import_skls(plugin_props.BaseOperator, bpy_extras.io_utils.ImportH
             ext = os.path.splitext(file.name)[-1].lower()
             fpath = os.path.join(self.directory, file.name)
             import_context.filename = file.name
-            if ext == '.skl':
-                imp.import_skl_file(fpath, import_context)
-            elif ext == '.skls':
-                imp.import_skls_file(fpath, import_context)
-            else:
-                self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
+            try:
+                if ext == '.skl':
+                    imp.import_skl_file(fpath, import_context)
+                elif ext == '.skls':
+                    imp.import_skls_file(fpath, import_context)
+                else:
+                    self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
+            except utils.AppError as err:
+                import_context.errors.append(err)
+        for err in import_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     @utils.invoke_require_armature
@@ -200,7 +206,10 @@ class XRAY_OT_export_skl(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHe
         export_context = exp.ExportSklsContext()
         export_context.bpy_arm_obj = context.active_object
         export_context.action = self.action
-        exp.export_skl_file(self.filepath, export_context)
+        try:
+            exp.export_skl_file(self.filepath, export_context)
+        except utils.AppError as err:
+            log.err(err)
         return {'FINISHED'}
 
     @utils.invoke_require_armature
@@ -240,7 +249,7 @@ class XRAY_OT_export_skls(plugin_props.BaseOperator, utils.FilenameExtHelper):
         try:
             exp.export_skls_file(self.filepath, export_context, self.actions)
         except utils.AppError as err:
-            raise err
+            log.err(err)
 
     @utils.invoke_require_armature
     def invoke(self, context, event):

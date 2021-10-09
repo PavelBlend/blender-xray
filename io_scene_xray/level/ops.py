@@ -14,7 +14,7 @@ from .. import plugin_props
 
 class ImportLevelContext(contexts.ImportMeshContext):
     def __init__(self):
-        contexts.ImportMeshContext.__init__(self)
+        super().__init__()
 
 
 def menu_func_import(self, context):

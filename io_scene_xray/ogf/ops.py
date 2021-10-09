@@ -9,6 +9,7 @@ import bpy_extras
 from . import imp
 from . import exp
 from .. import icons
+from .. import log
 from .. import contexts
 from .. import version_utils
 from .. import plugin_props
@@ -38,14 +39,13 @@ class ImportOgfContext(
         contexts.ImportAnimationContext
     ):
     def __init__(self):
-        contexts.ImportMeshContext.__init__(self)
-        contexts.ImportAnimationContext.__init__(self)
+        super().__init__()
         self.import_bone_parts = None
 
 
 class ExportOgfContext(contexts.ExportMeshContext):
     def __init__(self):
-        contexts.ExportMeshContext.__init__(self)
+        super().__init__()
 
 
 op_text = 'Game Object'
@@ -111,7 +111,9 @@ class XRAY_OT_import_ogf(
             try:
                 imp.import_file(import_context, file_path, file.name)
             except utils.AppError as err:
-                raise err
+                import_context.errors.append(err)
+        for err in import_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     def draw(self, context):

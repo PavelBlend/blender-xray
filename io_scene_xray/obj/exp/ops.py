@@ -9,6 +9,7 @@ import bpy_extras
 from .. import exp
 from ... import icons
 from ... import utils
+from ... import log
 from ... import contexts
 from ... import obj
 from ... import version_utils
@@ -21,8 +22,7 @@ class ExportObjectContext(
     ):
 
     def __init__(self):
-        contexts.ExportMeshContext.__init__(self)
-        contexts.ExportAnimationContext.__init__(self)
+        super().__init__()
         self.soc_sgroups = None
         self.smoothing_out_of = None
 
@@ -127,24 +127,28 @@ class XRAY_OT_export_object(plugin_props.BaseOperator, _WithExportMotions):
         export_context.smoothing_out_of = self.smoothing_out_of
         preferences = version_utils.get_preferences()
         export_context.textures_folder = preferences.textures_folder_auto
-        try:
+        for name in self.objects.split(','):
+            bpy_obj = context.scene.objects[name]
+            if not name.lower().endswith('.object'):
+                name += '.object'
+            path = self.directory
+            if self.use_export_paths and bpy_obj.xray.export_path:
+                path = os.path.join(path, bpy_obj.xray.export_path)
+                os.makedirs(path, exist_ok=True)
+            try:
+                exp.export_file(
+                    bpy_obj,
+                    os.path.join(path, name),
+                    export_context
+                )
+            except utils.AppError as err:
+                export_context.errors.append(err)
+        if self.smoothing_out_of == 'SPLIT_NORMALS':
             for name in self.objects.split(','):
                 bpy_obj = context.scene.objects[name]
-                if not name.lower().endswith('.object'):
-                    name += '.object'
-                path = self.directory
-                if self.use_export_paths and bpy_obj.xray.export_path:
-                    path = os.path.join(path, bpy_obj.xray.export_path)
-                    os.makedirs(path, exist_ok=True)
-                exp.export_file(
-                    bpy_obj, os.path.join(path, name), export_context
-                )
-            if self.smoothing_out_of == 'SPLIT_NORMALS':
-                for name in self.objects.split(','):
-                    bpy_obj = context.scene.objects[name]
-                    version_utils.select_object(bpy_obj)
-        except utils.AppError as err:
-            raise err
+                version_utils.select_object(bpy_obj)
+        for err in export_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, _event):
@@ -224,10 +228,12 @@ class XRAY_OT_export_object_file(
         try:
             exp.export_file(bpy_obj, self.filepath, export_context)
         except utils.AppError as err:
-            raise err
+            export_context.errors.append(err)
         if self.smoothing_out_of == 'SPLIT_NORMALS':
             version_utils.set_active_object(bpy_obj)
             version_utils.select_object(bpy_obj)
+        for err in export_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -274,20 +280,22 @@ class XRAY_OT_export_project(plugin_props.BaseOperator):
         export_context.texname_from_path = data.object_texture_name_from_image_path
         export_context.soc_sgroups = data.fmt_version == 'soc'
         export_context.export_motions = data.object_export_motions
-        try:
-            path = bpy.path.abspath(self.filepath if self.filepath else data.export_root)
-            os.makedirs(path, exist_ok=True)
-            for bpy_obj in XRAY_OT_export_project.find_objects(context, self.use_selection):
-                name = bpy_obj.name
-                if not name.lower().endswith('.object'):
-                    name += '.object'
-                opath = path
-                if bpy_obj.xray.export_path:
-                    opath = os.path.join(opath, bpy_obj.xray.export_path)
-                    os.makedirs(opath, exist_ok=True)
+        path = bpy.path.abspath(self.filepath if self.filepath else data.export_root)
+        os.makedirs(path, exist_ok=True)
+        for bpy_obj in XRAY_OT_export_project.find_objects(context, self.use_selection):
+            name = bpy_obj.name
+            if not name.lower().endswith('.object'):
+                name += '.object'
+            opath = path
+            if bpy_obj.xray.export_path:
+                opath = os.path.join(opath, bpy_obj.xray.export_path)
+                os.makedirs(opath, exist_ok=True)
+            try:
                 exp.export_file(bpy_obj, os.path.join(opath, name), export_context)
-        except utils.AppError as err:
-            raise err
+            except utils.AppError as err:
+                export_context.errors.append(err)
+        for err in export_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     @staticmethod

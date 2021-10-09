@@ -87,7 +87,7 @@ class XRAY_OT_import_object(plugin_props.BaseOperator, bpy_extras.io_utils.Impor
                     import_context.before_import_file()
                     imp.import_file(file_path, import_context)
                 except utils.AppError as err:
-                    raise err
+                    import_context.errors.append(err)
         for err in import_context.errors:
             log.err(err)
         return {'FINISHED'}
