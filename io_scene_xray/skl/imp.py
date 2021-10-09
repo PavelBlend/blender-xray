@@ -28,7 +28,6 @@ def _import_skl(fpath, context, chunked_reader):
             act = xray_motions.import_motion(
                 reader, context, bonesmap, set(), skl_file_name=name
             )
-            act.name = name
         else:
             log.debug('unknown chunk', cid=cid)
 
