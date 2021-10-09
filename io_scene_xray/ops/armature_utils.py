@@ -1,8 +1,15 @@
 # blender modules
 import bpy
 
+# addon modules
+from .. import version_utils
+
 
 COPY_TRANSFORMS_NAME = '!-xray-link'
+
+props = {
+    'armature': bpy.props.StringProperty(name='Link to'),
+}
 
 
 class XRAY_OT_link_bones(bpy.types.Operator):
@@ -11,6 +18,10 @@ class XRAY_OT_link_bones(bpy.types.Operator):
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
 
+    if not version_utils.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
     @classmethod
     def poll(cls, context):
         if not context.object:
@@ -18,15 +29,19 @@ class XRAY_OT_link_bones(bpy.types.Operator):
         if context.object.type == 'ARMATURE':
             return True
 
+    def draw(self, context):
+        self.layout.prop_search(self, 'armature', bpy.data, 'objects')
+
     def execute(self, context):
         arm_obj = context.object
-        link_arm_name = arm_obj.data.xray.link_to_armature
-        link_arm_obj = bpy.data.objects.get(link_arm_name)
+        link_arm_obj = bpy.data.objects.get(self.armature)
+        if arm_obj.type != 'ARMATURE':
+            return {'FINISHED'}
         if not link_arm_obj:
             return {'FINISHED'}
         if link_arm_obj.type != 'ARMATURE':
             return {'FINISHED'}
-        if arm_obj.name == link_arm_name:
+        if arm_obj.name == self.armature:
             return {'FINISHED'}
         for link_bone in link_arm_obj.data.bones:
             bone = arm_obj.data.bones.get(link_bone.name)
@@ -40,6 +55,10 @@ class XRAY_OT_link_bones(bpy.types.Operator):
             constraint.target = link_arm_obj
             constraint.subtarget = link_bone.name
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
 
 class XRAY_OT_unlink_bones(bpy.types.Operator):
@@ -73,6 +92,7 @@ classes = (
 
 
 def register():
+    version_utils.assign_props([(props, XRAY_OT_link_bones), ])
     for operator in classes:
         bpy.utils.register_class(operator)
 

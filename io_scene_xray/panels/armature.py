@@ -108,18 +108,6 @@ class XRAY_PT_armature(ui.base.XRayPanel):
                 icon=version_utils.get_icon('VISIBLE_IPO_ON'),
             )
 
-        # fake bones
-        row, box = ui.collapsible.draw(
-            layout,
-            'armature:link_or_unlink_bones',
-            'Link/Unlink Bones'
-        )
-        if box:
-            box.prop_search(data, 'link_to_armature', bpy.data, 'objects', text='')
-            column = box.column(align=True)
-            column.operator('io_scene_xray.link_bones')
-            column.operator('io_scene_xray.unlink_bones')
-
 
 def register():
     bpy.utils.register_class(XRAY_PT_armature)

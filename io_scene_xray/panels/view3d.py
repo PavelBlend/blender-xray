@@ -313,10 +313,16 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
-        lay = self.layout
-        lay.operator(
+        col = self.layout.column(align=True)
+        col.operator(
             ops.bone_tools.XRAY_OT_resize_bones.bl_idname,
             icon='FULLSCREEN_ENTER'
+        )
+        col.operator(
+            ops.armature_utils.XRAY_OT_link_bones.bl_idname
+        )
+        col.operator(
+            ops.armature_utils.XRAY_OT_unlink_bones.bl_idname
         )
 
 
