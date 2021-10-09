@@ -423,6 +423,6 @@ def register():
 
 def unregister():
     if not version_utils.IS_28:
-        for operator in reversed(classes):
+        for operator, props in reversed(classes):
             bpy.utils.unregister_class(operator)
     bpy.utils.unregister_class(XRAY_OT_colorize_materials)
