@@ -116,18 +116,15 @@ class XRAY_OT_clean_actions(bpy.types.Operator):
 
     def execute(self, context):
         obj = context.object
-        if not len(obj.xray.motions_collection):
-            return {'FINISHED'}
-        while True:
-            motion_count = len(obj.xray.motions_collection)
-            for motion_index, motion in enumerate(obj.xray.motions_collection):
-                action = bpy.data.actions.get(motion.name)
-                if not action:
-                    obj.xray.motions_collection.remove(motion_index)
-                    break
-            if motion_index + 1 == motion_count:
-                # last motion
-                break
+        remove = []
+        for motion_index, motion in enumerate(obj.xray.motions_collection):
+            action = bpy.data.actions.get(motion.name)
+            if not action:
+                remove.append(motion_index)
+        remove.sort()
+        remove.reverse()
+        for motion_index in remove:
+            obj.xray.motions_collection.remove(motion_index)
         return {'FINISHED'}
 
 
