@@ -76,6 +76,7 @@ class XRAY_OT_add_all_actions(bpy.types.Operator):
     bl_idname = 'io_scene_xray.add_all_actions'
     bl_label = 'Add All Actions'
     bl_description = 'Add All Actions'
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         obj = context.object
@@ -90,6 +91,7 @@ class XRAY_OT_remove_all_actions(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_all_actions'
     bl_label = 'Remove All Actions'
     bl_description = 'Remove All Actions'
+    bl_options = {'UNDO'}
 
     @classmethod
     def poll(cls, context):
@@ -106,8 +108,32 @@ class XRAY_OT_remove_all_actions(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class XRAY_OT_clean_actions(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.clean_actions'
+    bl_label = 'Clean Actions'
+    bl_description = 'Remove Non-Existent Actions'
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        obj = context.object
+        if not len(obj.xray.motions_collection):
+            return {'FINISHED'}
+        while True:
+            motion_count = len(obj.xray.motions_collection)
+            for motion_index, motion in enumerate(obj.xray.motions_collection):
+                action = bpy.data.actions.get(motion.name)
+                if not action:
+                    obj.xray.motions_collection.remove(motion_index)
+                    break
+            if motion_index + 1 == motion_count:
+                # last motion
+                break
+        return {'FINISHED'}
+
+
 def draw_motion_list_custom_elements(layout):
     layout.operator(XRAY_OT_add_all_actions.bl_idname, text='', icon='ACTION')
+    layout.operator(XRAY_OT_clean_actions.bl_idname, text='', icon='BRUSH_DATA')
     layout.operator(XRAY_OT_remove_all_actions.bl_idname, text='', icon='X')
 
 
@@ -337,7 +363,8 @@ class XRAY_PT_object(ui.base.XRayPanel):
                     row.template_list(
                         'XRAY_UL_motion_list', 'name',
                         data, 'motions_collection',
-                        data, 'motions_collection_index'
+                        data, 'motions_collection_index',
+                        rows=6
                     )
                     col = row.column(align=True)
                     ui.list_helper.draw_list_ops(
@@ -466,6 +493,7 @@ classes = (
     XRAY_UL_motion_list,
     XRAY_OT_add_all_actions,
     XRAY_OT_remove_all_actions,
+    XRAY_OT_clean_actions,
     XRAY_PT_object
 )
 
