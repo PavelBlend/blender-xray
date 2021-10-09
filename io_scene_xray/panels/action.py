@@ -37,14 +37,22 @@ class XRAY_PT_action(ui.base.XRayPanel):
             panel_used
         )
 
-    def draw_bake_props(self, layout, data):
-        # bake properties
+    def draw_anm_bake_props(self, layout, data):
         col = layout.column(align=True)
         col.label(text='Bake:')
         row = col.row(align=True)
         row.prop(data, 'autobake', expand=True)
         col = col.column(align=True)
         col.active = data.autobake != 'off'
+        col.prop(data, 'autobake_custom_refine', toggle=True)
+        col = col.column(align=True)
+        col.active = data.autobake_custom_refine
+        col.prop(data, 'autobake_refine_location', text='Location Threshold')
+        col.prop(data, 'autobake_refine_rotation', text='Rotation Threshold')
+
+    def draw_skls_bake_props(self, layout, data):
+        col = layout.column(align=True)
+        col.label(text='Bake:')
         col.prop(data, 'autobake_custom_refine', toggle=True)
         col = col.column(align=True)
         col.active = data.autobake_custom_refine
@@ -60,7 +68,7 @@ class XRAY_PT_action(ui.base.XRayPanel):
         col = layout.column(align=True)
         col.prop(data, 'fps', text='FPS')
         if obj.type != 'ARMATURE':
-            self.draw_bake_props(layout, data)
+            self.draw_anm_bake_props(layout, data)
             return
         col.prop(data, 'speed', text='Speed')
         col.prop(data, 'accrue', text='Accrue')
@@ -89,7 +97,7 @@ class XRAY_PT_action(ui.base.XRayPanel):
             row.prop(data, 'flags_weaponbone', text='Weapon Bone', toggle=True)
 
         layout.separator()
-        self.draw_bake_props(layout, data)
+        self.draw_skls_bake_props(layout, data)
         layout.separator()
         row = layout.row(align=True)
         row.label(text='Settings:')
