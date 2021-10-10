@@ -9,6 +9,7 @@ import bpy_extras
 from . import imp
 from . import exp
 from .. import icons
+from .. import log
 from .. import utils
 from .. import contexts
 from .. import plugin_props
