@@ -8,17 +8,20 @@ from .. import utils
 from .. import version_utils
 
 
-@log.with_context(name='mesh')
+@log.with_context(name='object')
 def validate_export_object(context, bpy_obj, fpath):
     log.update(name=bpy_obj.name)
-    mesh_name = bpy_obj.data.name
 
     if not bpy_obj.data.uv_layers:
-        raise utils.AppError(text.error.dm_no_uv.format(mesh_name))
+        raise utils.AppError(
+            text.error.dm_no_uv,
+            log.props(object=bpy_obj.name)
+        )
 
     if len(bpy_obj.data.uv_layers) > 1:
         raise utils.AppError(
-            text.error.dm_many_uv.format(mesh_name)
+            text.error.dm_many_uv,
+            log.props(object=bpy_obj.name)
         )
 
     material_count = len(bpy_obj.material_slots)
@@ -31,7 +34,8 @@ def validate_export_object(context, bpy_obj, fpath):
 
     elif material_count > 1:
         raise utils.AppError(
-            text.error.dm_many_mat.format(mesh_name)
+            text.error.dm_many_mat,
+            log.props(object=bpy_obj.name)
         )
 
     else:
@@ -55,7 +59,8 @@ def validate_export_object(context, bpy_obj, fpath):
                 bpy_texture = tex_nodes[0]
             elif len(tex_nodes) == 0:
                 raise utils.AppError(
-                    text.error.dm_no_tex.format(mat_name)
+                    text.error.dm_no_tex,
+                    log.props(material=mat_name)
                 )
             else:
                 raise utils.AppError(
@@ -103,13 +108,17 @@ def validate_export_object(context, bpy_obj, fpath):
 
         else:
             raise utils.AppError(
-                text.error.dm_tex_type.format(
-                    bpy_texture.name,
-                    bpy_texture.type
+                text.error.dm_tex_type,
+                log.props(
+                    texture=bpy_texture.name,
+                    type=bpy_texture.type
                 )
             )
 
     else:
-        raise utils.AppError(text.error.dm_no_tex.format(mat_name))
+        raise utils.AppError(
+            text.error.dm_no_tex,
+            log.props(material=mat_name)
+        )
 
     return bpy_material, texture_name

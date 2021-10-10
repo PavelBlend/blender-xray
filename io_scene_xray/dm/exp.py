@@ -7,6 +7,8 @@ import mathutils
 from . import fmt
 from . import validate
 from .. import utils
+from .. import log
+from .. import text
 from .. import xray_io
 
 
@@ -60,10 +62,11 @@ def export(bpy_obj, packed_writer, context, fpath, mode='DM'):
     vertices_count = len(vertices)
     if vertices_count > fmt.VERTICES_COUNT_LIMIT:
         raise utils.AppError(
-            text.error.dm_many_verts.format(
-                bpy_obj.data.name,
-                vertices_count,
-                fmt.VERTICES_COUNT_LIMIT
+            text.error.dm_many_verts,
+            log.props(
+                object=bpy_obj.name,
+                vertices_count=vertices_count,
+                must_be_no_more_than=fmt.VERTICES_COUNT_LIMIT
             )
         )
 
