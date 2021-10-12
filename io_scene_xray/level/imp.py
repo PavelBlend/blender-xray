@@ -16,6 +16,7 @@ from . import swi
 from . import cform
 from . import utility
 from .. import text
+from .. import log
 from .. import utils
 from .. import version_utils
 from .. import ogf
@@ -491,12 +492,16 @@ def get_chunks(chunked_reader):
     return chunks
 
 
-def get_version(data):
+def get_version(data, file):
     packed_reader = xray_io.PackedReader(data)
     xrlc_version = packed_reader.getf('H')[0]
     if not xrlc_version in fmt.SUPPORTED_VERSIONS:
         raise utils.AppError(
-            text.error.level_unsupport_ver.format(xrlc_version)
+            text.error.level_unsupport_ver,
+            log.props(
+                version=xrlc_version,
+                file=file
+            )
         )
     xrlc_quality = packed_reader.getf('H')[0]
     return xrlc_version
@@ -512,7 +517,7 @@ def import_geomx(level, context):
     geomx_chunked_reader = utility.get_level_reader(geomx_path)
     chunks = get_chunks(geomx_chunked_reader)
     del geomx_chunked_reader
-    level.xrlc_version_geom = get_version(chunks.pop(fmt.HEADER))
+    level.xrlc_version_geom = get_version(chunks.pop(fmt.HEADER), geomx_path)
     geomx_chunks.update(chunks)
     del chunks
     return geomx_chunks
@@ -522,12 +527,14 @@ def import_geom(level, chunks, context):
     if level.xrlc_version < fmt.VERSION_13:
         return
     if level.xrlc_version in fmt.SUPPORTED_VERSIONS:
-        geom_chunked_reader = utility.get_level_reader(
-            context.filepath + os.extsep + 'geom'
-        )
+        geom_path = context.filepath + os.extsep + 'geom'
+        geom_chunked_reader = utility.get_level_reader(geom_path)
         geom_chunks = get_chunks(geom_chunked_reader)
         del geom_chunked_reader
-        level.xrlc_version_geom = get_version(geom_chunks.pop(fmt.HEADER))
+        level.xrlc_version_geom = get_version(
+            geom_chunks.pop(fmt.HEADER),
+            geom_path
+        )
         chunks.update(geom_chunks)
         del geom_chunks
 
@@ -678,7 +685,10 @@ def import_file(context, operator):
     level.vertex_format_list = set()
     chunked_reader = utility.get_level_reader(context.filepath)
     level.name = utility.get_level_name(context.filepath)
-    level.xrlc_version = get_version(chunked_reader.next(fmt.HEADER))
+    level.xrlc_version = get_version(
+        chunked_reader.next(fmt.HEADER),
+        context.filepath
+    )
 
     # test code
     if TEST_MODE:

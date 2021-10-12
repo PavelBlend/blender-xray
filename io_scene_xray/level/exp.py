@@ -309,8 +309,10 @@ def get_light_map_image(material, lmap_prop):
         lmap_image = bpy.data.images.get(lmap_image_name, None)
         if not lmap_image:
             raise utils.AppError(
-                text.error.level_no_lmap.format(
-                    lmap_image_name, material.name
+                text.error.level_no_lmap,
+                log.props(
+                    light_map=lmap_image_name,
+                    material=material.name
                 )
             )
     else:
@@ -962,8 +964,11 @@ def write_visual(
             header_writer = write_visual_header(level, bpy_obj, visual=visual)
             chunked_writer.put(ogf.fmt.HEADER, header_writer)
             chunked_writer.put(ogf.fmt.Chunks_v4.GCONTAINER, gcontainer_writer)
-            if len(level.visuals_cache.children[bpy_obj.name]) > 1:
-                raise utils.AppError(text.error.level_many_children.format(bpy_obj.name))
+            if len(level.visuals_cache.children[bpy_obj.name]):
+                raise utils.AppError(
+                    text.error.level_has_children,
+                    log.props(object=bpy_obj.name)
+                )
             if bpy_obj.xray.level.use_fastpath:
                 fastpath_writer = write_fastpath(bpy_obj, fp_vbs, fp_ibs, level)
                 chunked_writer.put(ogf.fmt.Chunks_v4.FASTPATH, fastpath_writer)

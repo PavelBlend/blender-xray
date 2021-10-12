@@ -50,10 +50,10 @@ dm_tex_type = 'texture has an incorrect type'
 # level cform import
 cform_unsupport_ver = 'unsupported level cform version'
 # level export
-level_no_lmap = 'Cannot find light map image "{0}" in "{1}" material!'
-level_many_children = 'Object "{}" has more than one children'
+level_no_lmap = 'cannot find light map image'
+level_has_children = 'Normal/Progressive object must not have children'
 # level import
-level_unsupport_ver = 'Unsupported level version: {}'
+level_unsupport_ver = 'unsupported game level version'
 # object export main
 object_ungroupped_verts = 'Mesh "{0}" has {1} vertices that are not tied to any exportable bones'
 object_duplicate_bones = 'The object has duplicate bones'
