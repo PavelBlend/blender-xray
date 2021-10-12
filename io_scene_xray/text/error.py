@@ -48,7 +48,7 @@ dm_many_mat = 'mesh-object has more than one material'
 dm_no_tex = 'material has no texture'
 dm_tex_type = 'texture has an incorrect type'
 # level cform import
-cform_unsupport_ver = 'Unsupported cform version: {}'
+cform_unsupport_ver = 'unsupported level cform version'
 # level export
 level_no_lmap = 'Cannot find light map image "{0}" in "{1}" material!'
 level_many_children = 'Object "{}" has more than one children'

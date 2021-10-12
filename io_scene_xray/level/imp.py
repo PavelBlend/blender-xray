@@ -26,6 +26,7 @@ class Level(object):
     def __init__(self):
         self.name = None
         self.path = None
+        self.file = None
         self.xrlc_version = None
         self.xrlc_version_geom = None
         self.materials = None
@@ -699,6 +700,7 @@ def import_file(context, operator):
             return
         print(build, index, level.name)
 
+    level.file = context.filepath
     level.path = os.path.dirname(context.filepath)
     import_main(context, chunked_reader, level)
 

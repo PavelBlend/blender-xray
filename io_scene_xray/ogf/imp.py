@@ -71,14 +71,14 @@ def get_material(lvl, shader_id, texture_id):
             shader_raw = lvl.shaders_or_textures[shader_id]
             texture_raw = lvl.shaders_or_textures[texture_id]
             shader_data = shader_raw + '/' + texture_raw
-            bpy_material, bpy_image = lvl.shaders.import_shader(
+            bpy_material, bpy_image = level.shaders.import_shader(
                 lvl, lvl.context, shader_data
             )
         else:
             shader_raw = lvl.shaders[shader_id]
             texture_raw = lvl.textures[texture_id]
             shader_data = shader_raw + '/' + texture_raw
-            bpy_material, bpy_image = lvl.shaders.import_shader(
+            bpy_material, bpy_image = level.shaders.import_shader(
                 lvl, lvl.context, shader_data
             )
         lvl.materials[material_key] = bpy_material
