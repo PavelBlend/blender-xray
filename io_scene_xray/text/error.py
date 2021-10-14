@@ -55,14 +55,14 @@ level_has_children = 'Normal/Progressive object must not have children'
 # level import
 level_unsupport_ver = 'unsupported game level version'
 # object export main
-object_ungroupped_verts = 'Mesh "{0}" has {1} vertices that are not tied to any exportable bones'
-object_duplicate_bones = 'The object has duplicate bones'
-object_many_arms = 'Root object "{}" has more than one armature'
-object_no_meshes = 'Root object "{}" has no meshes'
-object_skel_many_meshes = 'Skeletal object "{}" has more than one mesh'
-object_bad_boneparts = 'Invalid bone parts: not all bones are tied to the Bone Part'
-object_many_parents = 'Invalid armature object "{}". Has more than one parent: {}'
-object_bad_scale = 'Armature object "{}" has incorrect scale. The scale must be (1.0, 1.0, 1.0).'
+object_ungroupped_verts = 'mesh-object has vertices that are not tied to any exportable bones'
+object_duplicate_bones = 'object has duplicate bones'
+object_many_arms = 'root object has more than one armature'
+object_no_meshes = 'root object has no meshes'
+object_skel_many_meshes = 'skeletal object has more than one mesh'
+object_bad_boneparts = 'not all bones are tied to the bone part'
+object_many_parents = 'armature object has more than one parent'
+object_bad_scale = 'armature-object has incorrect scale'
 # object export mesh
 object_no_uv = 'UV-map is required, but not found on the "{0}" object'
 # object import bone

@@ -71,9 +71,13 @@ def validate_vertex_weights(bpy_obj, arm_obj):
                 has_ungrouped_vertices = True
                 ungrouped_vertices_count += 1
     if has_ungrouped_vertices:
-        raise utils.AppError(text.error.object_ungroupped_verts.format(
-            bpy_obj.data.name, ungrouped_vertices_count
-        ))
+        raise utils.AppError(
+            text.error.object_ungroupped_verts,
+            log.props(
+                object=bpy_obj.name,
+                vertices_count=ungrouped_vertices_count
+            )
+        )
 
 
 @log.with_context('export-armature-object')
@@ -265,7 +269,11 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
     scan_r(bpy_obj)
     if len(armatures) > 1:
         raise utils.AppError(
-            text.error.object_many_arms.format(bpy_obj.name)
+            text.error.object_many_arms,
+            log.props(
+                root_object=bpy_obj.name,
+                armature_objects=[arm_obj.name for arm_obj in armatures]
+            )
         )
     if armature_meshes:
         if len(armature_meshes) == 1:
@@ -280,11 +288,13 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
             )
     if not mesh_writers:
         raise utils.AppError(
-            text.error.object_no_meshes.format(bpy_obj.name)
+            text.error.object_no_meshes,
+            log.props(object=bpy_obj.name)
         )
     if len(mesh_writers) > 1 and len(armatures):
         raise utils.AppError(
-            text.error.object_skel_many_meshes.format(bpy_obj.name)
+            text.error.object_skel_many_meshes,
+            log.props(object=bpy_obj.name)
         )
 
     if len(armatures) == 1:
@@ -326,12 +336,17 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
         if invalid_bones and has_bone_groups:
             raise utils.AppError(
                 text.error.object_bad_boneparts,
-                log.props(bones=invalid_bones)
+                log.props(
+                    object=bpy_arm_obj.name,
+                    bones=invalid_bones
+                )
             )
     if len(root_bones) > 1:
         raise utils.AppError(
-            text.error.object_many_parents.format(
-                bpy_arm_obj.name, root_bones
+            text.error.object_many_parents,
+            log.props(
+                object=bpy_arm_obj.name,
+                root_bones=root_bones
             )
         )
 
@@ -342,7 +357,12 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
     if some_arm:
         if some_arm.scale != mathutils.Vector((1.0, 1.0, 1.0)):
             raise utils.AppError(
-                text.error.object_bad_scale.format(some_arm.name)
+                text.error.object_bad_scale,
+                log.props(
+                    object=some_arm.name,
+                    scale=tuple(some_arm.scale),
+                    scale_must_be=(1.0, 1.0, 1.0)
+                )
             )
     export_flags(chunked_writer, obj_xray, some_arm)
 
