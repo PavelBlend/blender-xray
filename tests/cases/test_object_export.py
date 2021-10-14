@@ -198,7 +198,7 @@ class TestObjectExport(utils.XRayTestCase):
         # Assert
         self.assertReportsContains(
             'ERROR',
-            re.compile('UV-map is required, but not found')
+            re.compile('Mesh-object has no UV-map')
         )
 
     def test_export_no_material(self):

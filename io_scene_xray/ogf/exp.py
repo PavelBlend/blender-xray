@@ -306,17 +306,21 @@ def _export(bpy_obj, cwriter, context):
             vgm = {}
             for modifier in bpy_obj.modifiers:
                 if (modifier.type == 'ARMATURE') and modifier.object:
+                    not_found_bones = set()
                     for i, group in enumerate(bpy_obj.vertex_groups):
                         bone = modifier.object.data.bones.get(group.name, None)
                         if bone is None:
-                            raise utils.AppError(
-                                text.error.ogf_no_bone.format(
-                                    group.name,
-                                    modifier.object.name,
-                                    bpy_obj.name,
-                                ),
-                            )
+                            not_found_bones.add(group.name)
+                            continue
                         vgm[i] = reg_bone(bone, modifier.object)
+                    if not_found_bones:
+                        raise utils.AppError(
+                            text.error.ogf_no_bone,
+                            log.props(
+                                armature_object=modifier.object.name,
+                                bones=not_found_bones
+                            )
+                        )
                     break  # use only first armature modifier
             mwriter = xray_io.ChunkedWriter()
             _export_child(bpy_obj, mwriter, context, vgm)

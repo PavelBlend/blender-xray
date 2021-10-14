@@ -162,7 +162,12 @@ class XRAY_OT_export_ogf(
     def execute(self, context):
         export_context = ExportOgfContext()
         export_context.texname_from_path = self.texture_name_from_image_path
-        exp.export_file(self.exported_object, self.filepath, export_context)
+        try:
+            exp.export_file(self.exported_object, self.filepath, export_context)
+        except utils.AppError as err:
+            export_context.errors.append(err)
+        for err in export_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, event):

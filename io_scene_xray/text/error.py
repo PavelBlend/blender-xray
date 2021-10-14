@@ -64,23 +64,23 @@ object_bad_boneparts = 'not all bones are tied to the bone part'
 object_many_parents = 'armature object has more than one parent'
 object_bad_scale = 'armature-object has incorrect scale'
 # object export mesh
-object_no_uv = 'UV-map is required, but not found on the "{0}" object'
+object_no_uv = 'mesh-object has no UV-map'
 # object import bone
-object_unsupport_bone_ver = 'unsupported BONE format version'
+object_unsupport_bone_ver = 'unsupported bone format version'
 # object import main
-object_unsupport_format_ver = 'unsupported OBJECT format version'
+object_unsupport_format_ver = 'unsupported object format version'
 object_main_chunk = 'file does not have main chunk'
 # object import mesh
-object_unsupport_mesh_ver = 'unsupported MESH format version'
-object_bad_vmap = 'unknown vmap type'
+object_unsupport_mesh_ver = 'unsupported mesh format version'
+object_bad_vmap = 'unsupported vertex map type'
 object_many_duplicated_faces = 'too many duplicated polygons'
 # ogf export
-ogf_no_bone = 'bone "{0}" not found in armature "{1}" (for object "{2}")'
+ogf_no_bone = 'bone not found in armature'
 # ogf import
-ogf_bad_ver = 'Unsupported ogf format version: {}'
-ogf_bad_vertex_fmt = 'Unsupported ogf vertex format: 0x{:x}'
-ogf_bad_color_mode = 'Unknown ogf color mode: {}'
-ogf_bad_model_type = 'Unsupported ogf model type: 0x{:x}'
+ogf_bad_ver = 'unsupported ogf format version'
+ogf_bad_vertex_fmt = 'unsupported ogf vertex format'
+ogf_bad_color_mode = 'unknown ogf color mode'
+ogf_bad_model_type = 'unsupported ogf model type'
 # omf export
 omf_empty = 'This OMF file is empty. Use a different export mode.'
 omf_no_anims = 'The OMF file does not have an animation block.'

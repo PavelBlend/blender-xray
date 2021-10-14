@@ -645,9 +645,9 @@ def import_skeleton_vertices(chunks, ogf_chunks, visual):
                 bone_4_index
             ))
     else:
-        raise utils.AppError(text.error.ogf_bad_vertex_fmt.format(
-            vertex_format
-            )
+        raise utils.AppError(
+            text.error.ogf_bad_vertex_fmt,
+            log.props(vertex_format=hex(vertex_format))
         )
     visual.vertices = vertices
     visual.normals = normals
@@ -672,9 +672,9 @@ def import_vertices(chunks, ogf_chunks, visual):
             normals.append(normal)
             uvs.append((tex_u, 1 - tex_v))
     else:
-        raise utils.AppError(text.error.ogf_bad_vertex_fmt.format(
-            vertex_format
-            )
+        raise utils.AppError(
+            text.error.ogf_bad_vertex_fmt,
+            log.props(vertex_format=vertex_format)
         )
     visual.vertices = vertices
     visual.normals = normals
@@ -913,7 +913,10 @@ def ogf_color(lvl, packed_reader, bpy_obj, mode='SCALE'):
         xray_level.color_bias_hemi = (hemi, hemi, hemi)
         xray_level.color_bias_sun = (sun, sun, sun)
     else:
-        raise BaseException(text.error.ogf_bad_color_mode.format(mode))
+        raise utils.AppError(
+            text.error.ogf_bad_color_mode,
+            log.props(mode=mode)
+        )
 
 
 def import_tree_def_2(lvl, visual, chunks, bpy_object):
@@ -1236,9 +1239,10 @@ def import_model_v3(chunks, visual, lvl):
         visual.name = 'progressive'
 
     else:
-        raise BaseException(text.error.ogf_bad_model_type.format(
-            visual.model_type
-        ))
+        raise utils.AppError(
+            text.error.ogf_bad_model_type,
+            log.props(model_type=visual.model_type)
+        )
 
     data = bpy_obj.xray
     data.is_ogf = True
@@ -1262,9 +1266,10 @@ def import_model_v2(chunks, visual, lvl):
     elif visual.model_type == fmt.ModelType_v2.HIERRARHY:
         bpy_obj = import_hierrarhy_visual(chunks, visual, lvl)
     else:
-        raise BaseException(text.error.ogf_bad_model_type.format(
-            visual.model_type
-        ))
+        raise utils.AppError(
+            text.error.ogf_bad_model_type,
+            log.props(model_type=visual.model_type)
+        )
 
     data = bpy_obj.xray
     data.is_ogf = True
@@ -1289,8 +1294,9 @@ def import_bounding_box(packed_reader):
 
 def check_version(visual):
     if visual.format_version not in fmt.SUPPORT_FORMAT_VERSIONS:
-        raise BaseException(
-            text.error.ogf_bad_ver.format(visual.format_version)
+        raise utils.AppError(
+            text.error.ogf_bad_ver,
+            log.props(version=visual.format_version)
         )
 
 
@@ -1794,7 +1800,8 @@ def import_visual(context, data, visual):
     import_header(header_chunk_data, visual)
     if visual.format_version != fmt.FORMAT_VERSION_4:
         raise utils.AppError(
-            text.error.ogf_bad_ver.format(visual.format_version)
+            text.error.ogf_bad_ver,
+            log.props(version=visual.format_version)
         )
     ogf_chunks = fmt.Chunks_v4
     model_types = fmt.ModelType_v4
@@ -1821,9 +1828,8 @@ def import_visual(context, data, visual):
         import_mt_hierrarhy(context, chunks, ogf_chunks, visual)
     else:
         raise utils.AppError(
-            text.error.ogf_bad_model_type.format(
-                model_type_names[visual.model_type]
-            )
+            text.error.ogf_bad_model_type,
+            log.props(model_type=visual.model_type)
         )
     for chunk_id, chunk_data in chunks.items():
         print('Unknown OGF chunk: {}, size: {}'.format(
@@ -1847,7 +1853,9 @@ def import_visual(context, data, visual):
         bpy_object = create_visual(visual)
 
 
+@log.with_context(name='file')
 def import_file(context, file_path, file_name):
+    log.update(path=file_path)
     data = utils.read_file(file_path)
     visual = Visual()
     visual.file_path = file_path

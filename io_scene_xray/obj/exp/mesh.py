@@ -123,7 +123,10 @@ def export_faces(cw, bm, bpy_obj):
     fcs = []
     uv_layer = bm.loops.layers.uv.active
     if not uv_layer:
-        raise utils.AppError(text.error.object_no_uv.format(bpy_obj.name))
+        raise utils.AppError(
+            text.error.object_no_uv,
+            log.props(object=bpy_obj.name)
+        )
 
     writer = xray_io.PackedWriter()
     writer.putf('I', len(bm.faces))

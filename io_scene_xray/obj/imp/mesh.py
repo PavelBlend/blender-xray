@@ -36,7 +36,8 @@ def import_mesh(context, creader, renamemap):
     ver = creader.nextf(fmt.Chunks.Mesh.VERSION, 'H')[0]
     if ver != 0x11:
         raise utils.AppError(
-            text.error.object_unsupport_mesh_ver, log.props(version=ver)
+            text.error.object_unsupport_mesh_ver,
+            log.props(version=ver)
         )
     mesh_name = None
     mesh_flags = None
@@ -165,7 +166,8 @@ def import_mesh(context, creader, renamemap):
                     vmaps.append((typ, vgi, wgs))
                 else:
                     raise utils.AppError(
-                        text.error.object_bad_vmap, log.props(type=typ)
+                        text.error.object_bad_vmap,
+                        log.props(type=typ)
                     )
         elif cid == fmt.Chunks.Mesh.FLAGS:
             mesh_flags = xray_io.PackedReader(data).getf('B')[0]
