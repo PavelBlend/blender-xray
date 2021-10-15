@@ -27,6 +27,7 @@ class ImportAnmContext(contexts.ImportContext):
 
 @log.with_context('import-anm-path')
 def _import(fpath, creader, context):
+    log.update(file=fpath)
     warn_list = []
     for cid, data in creader:
         if cid == fmt.Chunks.MAIN:

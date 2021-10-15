@@ -28,7 +28,8 @@ def _read_scene_version(scene_version_chunk):
 
     if object_tools_version != fmt.OBJECT_TOOLS_VERSION:
         raise utils.AppError(
-            text.error.scene_obj_tool_ver.format(object_tools_version)
+            text.error.scene_obj_tool_ver,
+            log.props(version=object_tools_version)
         )
 
 
@@ -150,13 +151,20 @@ def _read_version(version_chunk):
     if not version_chunk:
         raise utils.AppError(text.error.scene_no_ver)
 
-    if len(version_chunk) != 4:
-        raise utils.AppError(text.error.scene_ver_size)
+    chunk_size = len(version_chunk)
+    if chunk_size != 4:
+        raise utils.AppError(
+            text.error.scene_ver_size,
+            log.props(size=chunk_size)
+        )
 
     packed_reader = xray_io.PackedReader(version_chunk)
     version = packed_reader.getf('I')[0]
     if version != fmt.FORMAT_VERSION:
-        raise utils.AppError(text.error.scene_ver.format(version))
+        raise utils.AppError(
+            text.error.scene_ver,
+            log.props(version=version)
+        )
 
 
 def import_(filepath, chunked_reader, import_context):
@@ -173,7 +181,9 @@ def import_(filepath, chunked_reader, import_context):
     _read_objects(objects_chunk, import_context)
 
 
+@log.with_context(name='file')
 def import_file(filepath, operator):
+    log.update(path=filepath)
     with open(filepath, 'rb') as file:
         preferences = version_utils.get_preferences()
         textures_folder = preferences.textures_folder_auto

@@ -28,6 +28,8 @@ def interpolate_keys(fps, start, end, values, times, shapes, tcb):
     interpolated_values = []
     interpolated_times = []
     keys_count = len(values)
+    unsupported_shapes = set()
+    errors = {}
     for index, key_info in enumerate(zip(values, times, shapes, tcb)):
         value_1, time_1, shape_1, (tension_1, continuity_1, bias_1) = key_info
         if not shape_1 in (
@@ -35,7 +37,9 @@ def interpolate_keys(fps, start, end, values, times, shapes, tcb):
                 xray_interpolation.Shape.LINEAR,
                 xray_interpolation.Shape.STEPPED
             ):
-            raise utils.AppError(text.error.motion_shape.format(shape_1.name))
+            unsupported_shapes.add(shape_1.name)
+            errors[shape_1.name] = errors.setdefault(shape_1.name, 0) + 1
+            continue
         index_2 = index + 1
         if keys_count == 1:
             # constant values
@@ -75,6 +79,11 @@ def interpolate_keys(fps, start, end, values, times, shapes, tcb):
             )
             interpolated_values.append(interpolated_value)
             interpolated_times.append(frame_index)
+    if unsupported_shapes:
+        raise utils.AppError(
+            text.error.motion_shape,
+            log.props(shapes=unsupported_shapes, count=errors)
+        )
     return interpolated_values, interpolated_times
 
 
