@@ -9,6 +9,7 @@ import mathutils
 from . import fmt
 from . import imp
 from .. import text
+from .. import log
 from .. import xray_io
 from .. import utils
 
@@ -38,16 +39,25 @@ def validate_omf_file(context):
     with open(context.filepath, 'rb') as file:
         data = file.read()
     if not len(data):
-        raise utils.AppError(text.error.omf_empty)
+        raise utils.AppError(
+            text.error.omf_empty,
+            log.props(file=context.filepath)
+        )
     chunked_reader = xray_io.ChunkedReader(data)
     chunks = {}
     for chunk_id, chunk_data in chunked_reader:
         chunks[chunk_id] = chunk_data
     chunks_ids = list(chunks.keys())
     if not fmt.Chunks.S_MOTIONS in chunks_ids and context.export_motions:
-        raise utils.AppError(text.error.omf_no_anims)
+        raise utils.AppError(
+            text.error.omf_no_anims,
+            log.props(file=context.filepath)
+        )
     if not fmt.Chunks.S_SMPARAMS in chunks_ids and context.export_bone_parts:
-        raise utils.AppError(text.error.omf_no_params)
+        raise utils.AppError(
+            text.error.omf_no_params,
+            log.props(file=context.filepath)
+        )
     return data, chunks
 
 
@@ -199,7 +209,9 @@ def write_motions(context, packed_writer, motions):
         write_motion(context, packed_writer, motion_name, motion_params)
 
 
+@log.with_context('armature-object')
 def export_omf_file(context):
+    log.update(object=context.bpy_arm_obj.name)
     current_frame = bpy.context.scene.frame_current
     mode = context.bpy_arm_obj.mode
     if not context.bpy_arm_obj.animation_data:
@@ -227,23 +239,28 @@ def export_omf_file(context):
     pose_bones = []
     bpy.ops.object.mode_set(mode='POSE')
     bone_groups = {}
+    no_group_bones = set()
     for bone_index, bone in enumerate(context.bpy_arm_obj.data.bones):
         if bone.xray.exportable:
             pose_bone = context.bpy_arm_obj.pose.bones[bone.name]
             pose_bones.append(pose_bone)
             if not pose_bone.bone_group:
                 if context.need_bone_groups:
-                    raise utils.AppError(
-                        text.error.omf_bone_no_group.format(
-                            pose_bone.name,
-                            context.bpy_arm_obj.name
-                        )
-                    )
+                    no_group_bones.add(pose_bone.name)
+                    continue
                 else:
                     continue
             if not bone_groups.get(pose_bone.bone_group.name, None):
                 bone_groups[pose_bone.bone_group.name] = []
             bone_groups[pose_bone.bone_group.name].append((pose_bone.name, bone_index))
+    if no_group_bones:
+        raise utils.AppError(
+            text.error.omf_bone_no_group,
+            log.props(
+                armature_object=context.bpy_arm_obj.name,
+                bones=no_group_bones
+            )
+        )
     motion_count = 0
     motions = {}
     if context.export_mode == 'OVERWRITE':

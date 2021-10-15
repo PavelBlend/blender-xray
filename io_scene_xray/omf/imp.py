@@ -5,6 +5,7 @@ import mathutils
 # addon modules
 from . import fmt
 from .. import text
+from .. import log
 from .. import xray_io
 from .. import utils
 
@@ -120,6 +121,7 @@ def read_motion(data, context, motions_params, bone_names):
         act.xray.speed = motion_params.speed
         act.xray.falloff = motion_params.falloff
 
+        cannot_find_bones = set()
         for bone_index in range(len(bone_names)):
             bone_name = bone_names.get(bone_index, None)
             if bone_name is None:
@@ -129,7 +131,8 @@ def read_motion(data, context, motions_params, bone_names):
             if bpy_bone:
                 bone_name = bpy_bone.name
             else:
-                raise utils.AppError(text.error.omf_no_bone.format(bone_index))
+                cannot_find_bones.add((bone_name, bone_index))
+                continue
             bpy_bone_parent = bpy_bone.parent
 
             xmat = bpy_bone.matrix_local.inverted()
@@ -232,6 +235,15 @@ def read_motion(data, context, motions_params, bone_names):
                     for i in range(3):
                         rotate_fcurves[i].keyframe_points.insert(rot_index, rot[i])
 
+        if cannot_find_bones:
+            raise utils.AppError(
+                text.error.omf_no_bone,
+                log.props(
+                    armature_object=context.bpy_arm_obj.name,
+                    bone_names_and_indices=cannot_find_bones
+                )
+            )
+
     else:
         for bone_index in range(len(bone_names)):
             flags = packed_reader.getf('B')[0]
@@ -271,6 +283,7 @@ def read_params(data, context):
     params_version = packed_reader.getf('H')[0]
     partition_count = packed_reader.getf('H')[0]
     bone_names = {}
+    cannot_find_bones = set()
 
     for partition_index in range(partition_count):
         partition_name = packed_reader.gets()
@@ -294,11 +307,23 @@ def read_params(data, context):
             else:
                 raise BaseException('Unknown params version')
             if bone_name:
-                pose_bone = context.bpy_arm_obj.pose.bones[bone_name]
+                pose_bone = context.bpy_arm_obj.pose.bones.get(bone_name, None)
+                if not pose_bone:
+                    cannot_find_bones.add((bone_name, bone))
+                    continue
             else:
                 pose_bone = context.bpy_arm_obj.pose.bones[bone_id]
             if context.import_bone_parts:
                 pose_bone.bone_group = bone_group
+
+    if cannot_find_bones:
+        raise utils.AppError(
+            text.error.omf_no_bone,
+            log.props(
+                armature_object=context.bpy_arm_obj.name,
+                bone_names_and_indices=cannot_find_bones
+            )
+        )
 
     motion_count = packed_reader.getf('H')[0]
     motions_params = {}
