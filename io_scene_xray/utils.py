@@ -439,7 +439,8 @@ def using_mode(mode):
 def execute_with_logger(method):
     def wrapper(self, context):
         try:
-            with logger(self.__class__.bl_idname, self.report):
+            name = self.__class__.bl_idname.replace('.', '_')
+            with logger(name, self.report):
                 return method(self, context)
         except AppError:
             return {'CANCELLED'}
