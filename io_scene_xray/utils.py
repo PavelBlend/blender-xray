@@ -493,15 +493,18 @@ class FilenameExtHelper(bpy_extras.io_utils.ExportHelper):
                 self.filepath += self.filename_ext
             return super().invoke(context, event)
         else:
-            self.report({'ERROR'}, text.warn.no_active_obj)
+            self.report({'ERROR'}, text.error.no_active_obj)
             return {'CANCELLED'}
 
 
 def invoke_require_armature(func):
     def wrapper(self, context, event):
         active = context.active_object
-        if (not active) or (active.type != 'ARMATURE'):
-            self.report({'ERROR'}, text.warn.is_not_arm)
+        if not active:
+            self.report({'ERROR'}, text.error.no_active_obj)
+            return {'CANCELLED'}
+        if active.type != 'ARMATURE':
+            self.report({'ERROR'}, text.error.is_not_arm)
             return {'CANCELLED'}
         return func(self, context, event)
 

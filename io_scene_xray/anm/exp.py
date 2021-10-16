@@ -25,7 +25,8 @@ def _export(bpy_obj, chunked_writer):
     if autobake or rot_mode != 'YXZ':
         if rot_mode != 'YXZ':
             log.warn(
-                text.warn.anm_rot_mode.format(bpy_obj.name),
+                text.warn.anm_rot_mode,
+                object=bpy_obj.name,
                 rotation_mode=rot_mode
             )
         baked_action = bpy.data.actions.new('!-temp_anm_export')

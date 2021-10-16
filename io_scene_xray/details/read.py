@@ -5,6 +5,7 @@ import bpy
 from . import create
 from . import fmt
 from .. import text
+from .. import log
 from .. import xray_io
 from .. import dm
 from .. import version_utils
@@ -266,15 +267,15 @@ def read_details_slots(
         del lighting_image_pixels
 
         if bad_y_base_count > 0:
-            context.operator.report(
-                {'WARNING'},
-                text.warn.details_coord_base.format(bad_y_base_count)
+            log.warn(
+                text.warn.details_coord_base,
+                count=bad_y_base_count
             )
 
         if bad_y_top_count > 0:
-            context.operator.report(
-                {'WARNING'},
-                text.warn.details_coord_top.format(bad_y_top_count)
+            log.warn(
+                text.warn.details_coord_top,
+                count=bad_y_top_count
             )
 
     slots_base_object, slots_top_object = create.create_details_slots_object(

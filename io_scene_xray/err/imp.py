@@ -8,6 +8,7 @@ import bpy
 from . import fmt
 from .. import utils
 from .. import text
+from .. import log
 from .. import version_utils
 from .. import xray_io
 
@@ -21,9 +22,9 @@ def import_(filepath, chunked_reader, operator):
         faces_count = packed_reader.getf('<I')[0]
 
         if not faces_count:
-            operator.report(
-                {'WARNING', },
-                text.warn.err_no_faces.format(filepath)
+            log.warn(
+                text.warn.err_no_faces,
+                file=filepath
             )
             return
 

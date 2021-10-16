@@ -8,6 +8,8 @@ obj_empty_mat = 'object use empty material slot'
 obj_no_mat = 'object has no material'
 img_bad_image_path = 'image is not in the textures folder'
 file_another_prog = 'unable to write file. The file is open in another program'
+no_active_obj = 'No active objects'
+is_not_arm = 'active object is not armature'
 # anm export
 anm_no_keys = 'action has keys not for all channels'
 # anm import

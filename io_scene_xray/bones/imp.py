@@ -34,7 +34,8 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
                 bpy_bone = bpy_bones.get(bone_name, None)
                 if not bpy_bone:
                     log.warn(
-                        text.warn.bones_missing_bone.format(name),
+                        text.warn.bones_missing_bone,
+                        partition=name,
                         bone=bone_name
                     )
                 else:
@@ -54,7 +55,8 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
     bpy_bone = bpy_bones.get(name, None)
     if not bpy_bone:
         log.warn(
-            text.warn.bones_has_no_bone.format(arm_obj_name),
+            text.warn.bones_has_no_bone,
+            armature_object=arm_obj_name,
             bone=name
         )
         return

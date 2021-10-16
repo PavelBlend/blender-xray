@@ -492,10 +492,9 @@ def export_motions(chunked_writer, some_arm, context, bpy_obj):
                 acts.append(act)
             else:
                 log.warn(
-                    text.warn.object_no_action.format(
-                        act_name,
-                        bpy_obj.name
-                    ),
+                    text.warn.object_no_action,
+                    action=act_name,
+                    object=bpy_obj.name
                 )
         writer = xray_io.PackedWriter()
         xray_motions.export_motions(writer, acts, some_arm)
@@ -538,7 +537,10 @@ def export_motion_refs(chunked_writer, xray, context):
     motionrefs = xray.motionrefs_collection
     if motionrefs:
         if xray.motionrefs:
-            log.warn(text.warn.object_legacy_motionrefs, data=xray.motionrefs)
+            log.warn(
+                text.warn.object_legacy_motionrefs,
+                data=xray.motionrefs
+            )
         if context.soc_sgroups:
             refs = ','.join(ref.name for ref in motionrefs)
             chunked_writer.put(

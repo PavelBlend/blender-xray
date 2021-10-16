@@ -5,29 +5,27 @@ env_tex = 'material has incorrect image node type (Environment Texture)'
 no_bone_parent = 'bone parent isn\'t found'
 invalid_image_path = 'image has an invalid path'
 no_file = 'no file selected'
-no_active_obj = 'No active objects!'
-is_not_arm = 'Active object is not armature!'
 # anm export
-anm_rot_mode = 'Object "{}" has a rotation mode other than YXZ. Animation has been baked.'
+anm_rot_mode = 'object has rotation mode other than YXZ. Animation has been baked'
 # anm import
 anm_conv_linear = 'motion shapes converted to LINEAR'
 anm_unsupport_shape = 'unsupported shapes are found, and will be replaced'
 # bones import
 bones_not_have_boneparts = 'bones file does not have boneparts'
-bones_missing_bone = 'partition "{}" contains missing bone'
-bones_has_no_bone = 'Armature object "{}" has no bone'
+bones_missing_bone = 'partition contains missing bone'
+bones_has_no_bone = 'armature object has no bone'
 # details read
-details_coord_base = 'details has {} bad base coordinates'
-details_coord_top = 'details has {} bad top coordinates'
+details_coord_base = 'details has bad base coordinates'
+details_coord_top = 'details has bad top coordinates'
 # err import
-err_no_faces = 'File "{0}" has no invalid faces.'
+err_no_faces = 'file has no invalid faces'
 # object export bone
 object_bone_uppercase = 'the bone name has been saved without uppercase characters'
 object_bone_plugin_ver = 'bone edited with a different version of this plugin'
 # object export main
 object_merged = 'mesh-objects have been merged'
-object_no_action = 'Cannot find action "{0}" in object "{1}"'
-object_legacy_motionrefs = 'MotionRefs: skipped legacy data'
+object_no_action = 'cannot find action'
+object_legacy_motionrefs = 'skipped motion references legacy data'
 # object export mesh
 object_sg_smooth = 'Maya-SG incompatible: smooth edge adjacents has different smoothing group'
 object_sg_sharp = 'Maya-SG incompatible: sharp edge adjacents has same smoothing group'
