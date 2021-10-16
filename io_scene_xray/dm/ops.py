@@ -149,6 +149,7 @@ class XRAY_OT_export_dm(plugin_props.BaseOperator):
             path = self.directory
             export_context = ExportDmContext()
             export_context.texname_from_path = self.texture_name_from_image_path
+            export_context.unique_errors = set()
             try:
                 exp.export_file(
                     detail_model,
@@ -219,6 +220,7 @@ class XRAY_OT_export_dm_file(
     def exp(self, bpy_obj, context):
         export_context = ExportDmContext()
         export_context.texname_from_path = self.texture_name_from_image_path
+        export_context.unique_errors = set()
         exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):

@@ -1,10 +1,10 @@
 # general
 full_log = 'The full log was stored as "{0}" (in the Text Editor)'
 tex_not_found = 'texture file not found'
-env_tex = 'material "{}" has incorrect image node type (Environment Texture)'
+env_tex = 'material has incorrect image node type (Environment Texture)'
 no_bone_parent = 'bone parent isn\'t found'
-invalid_image_path = 'Image "{}" has an invalid path'
-no_file = 'No file selected'
+invalid_image_path = 'image has an invalid path'
+no_file = 'no file selected'
 no_active_obj = 'No active objects!'
 is_not_arm = 'Active object is not armature!'
 # anm export

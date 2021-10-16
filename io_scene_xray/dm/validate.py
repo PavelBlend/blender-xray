@@ -86,7 +86,7 @@ def validate_export_object(context, bpy_obj, fpath):
             if context.texname_from_path:
                 if bpy_texture.type == 'TEX_ENVIRONMENT':
                     log.warn(
-                        text.warn.env_tex.format(mat_name),
+                        text.warn.env_tex,
                         material_name=mat_name,
                         node_name=bpy_texture.name,
                     )
@@ -101,7 +101,8 @@ def validate_export_object(context, bpy_obj, fpath):
                     level_folder = os.path.dirname(fpath) + os.sep
                 texture_name = utils.gen_texture_name(
                     bpy_texture.image, context.textures_folder,
-                    level_folder=level_folder
+                    level_folder=level_folder,
+                    errors=context.unique_errors
                 )
             else:
                 texture_name = bpy_texture.name

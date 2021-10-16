@@ -265,7 +265,7 @@ def make_relative_texture_path(a_tx_fpath, a_tx_folder):
     return a_tx_fpath
 
 
-def gen_texture_name(image, tx_folder, level_folder=None):
+def gen_texture_name(image, tx_folder, level_folder=None, errors=set()):
     a_tx_fpath = os.path.normpath(bpy.path.abspath(image.filepath))
     a_tx_folder = os.path.abspath(tx_folder)
     a_tx_fpath = os.path.splitext(a_tx_fpath)[0]
@@ -282,7 +282,13 @@ def gen_texture_name(image, tx_folder, level_folder=None):
         elif a_tx_fpath.startswith(level_folder):    # gamedata\levels\level_name folder
             a_tx_fpath = make_relative_texture_path(a_tx_fpath, level_folder)
         else:    # gamedata\levels\level_name\texture_name
-            log.warn(text.warn.invalid_image_path.format(image.name))
+            if not image.filepath in errors:
+                log.warn(
+                    text.warn.invalid_image_path,
+                    image=image.name,
+                    path=image.filepath
+                )
+                errors.add(image.filepath)
             a_tx_fpath = os.path.split(a_tx_fpath)[-1]
     return a_tx_fpath
 

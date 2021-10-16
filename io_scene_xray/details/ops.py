@@ -226,6 +226,7 @@ class XRAY_OT_export_details(
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.level_details_format_version = self.format_version
         export_context.textures_folder=textures_folder
+        export_context.unique_errors = set()
         exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):

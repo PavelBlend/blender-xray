@@ -413,7 +413,7 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
                             )
                             if tex_node.type == 'TEX_ENVIRONMENT':
                                 log.warn(
-                                    text.warn.env_tex.format(material.name),
+                                    text.warn.env_tex,
                                     material_name=material.name,
                                     node_name=tex_node.name,
                                 )
