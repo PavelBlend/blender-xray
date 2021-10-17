@@ -17,7 +17,7 @@ translations_table = (
     (text.error.img_bad_image_path, 'изображение не находится в папке с текстурами'),
     (text.error.file_another_prog, 'невозможно записать файл. Файл открыт в другой программе'),
     (text.error.anm_no_keys, 'анимация имеет ключи не для всех каналов'),
-    (text.error.anm_unsupport_ver, 'файл имеет неподдерживаемую версию формата')
+    (text.error.anm_unsupport_ver, 'файл имеет неподдерживаемую версию формата'),
 )
 translation = {}
 for eng, rus in translations_table:

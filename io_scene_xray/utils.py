@@ -83,6 +83,7 @@ class Logger:
 
     def message_format(self, message):
         message = str(message)
+        message = text.get_text(message)
         message = message.strip()
         message = message[0].upper() + message[1:]
         return message
@@ -270,8 +271,12 @@ def gen_texture_name(image, tx_folder, level_folder=None, errors=set()):
     if not level_folder:    # find texture in gamedata\textures folder
         if not a_tx_fpath.startswith(a_tx_folder):
             raise AppError(
-                text.get_text(text.error.img_bad_image_path),
-                log.props(image=image.name, image_path=a_tx_fpath, textures_folder=a_tx_folder)
+                text.error.img_bad_image_path,
+                log.props(
+                    image=image.name,
+                    image_path=a_tx_fpath,
+                    textures_folder=a_tx_folder
+                )
             )
         a_tx_fpath = make_relative_texture_path(a_tx_fpath, a_tx_folder)
     else:
@@ -528,7 +533,7 @@ def save_file(file_path, writer):
             file.write(writer.data)
     except PermissionError:
         raise AppError(
-            text.get_text(text.error.file_another_prog),
+            text.error.file_another_prog,
             log.props(file=os.path.basename(file_path), path=file_path)
         )
 

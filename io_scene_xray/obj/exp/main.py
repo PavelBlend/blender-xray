@@ -164,7 +164,7 @@ def merge_meshes(mesh_objects):
         uv_layers = mesh.uv_layers
         if len(uv_layers) > 1:
             raise utils.AppError(
-                text.get_text(text.error.obj_many_uv),
+                text.error.obj_many_uv,
                 log.props(object=obj.name)
             )
         uv_layer = uv_layers[0]
@@ -245,7 +245,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
                 uv_layers = bpy_obj.data.uv_layers
                 if len(uv_layers) > 1:
                     raise utils.AppError(
-                        text.get_text(text.error.obj_many_uv),
+                        text.error.obj_many_uv,
                         log.props(object=bpy_obj.name)
                     )
                 uv_maps_names[material.name] = uv_layers[0].name
@@ -421,12 +421,12 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
                             tx_name = tex_node.name
                 elif len(tex_nodes) > 1:
                     raise utils.AppError(
-                        text.get_text(text.error.mat_many_tex),
+                        text.error.mat_many_tex,
                         log.props(material=material.name)
                     )
             else:
                 raise utils.AppError(
-                    text.get_text(text.error.mat_not_use_nodes),
+                    text.error.mat_not_use_nodes,
                     log.props(material=material.name)
                 )
         else:

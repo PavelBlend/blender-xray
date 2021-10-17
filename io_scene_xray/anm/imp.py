@@ -37,7 +37,7 @@ def _import(fpath, creader, context):
             fps, ver = preader.getf('<fH')
             if ver != 5:
                 raise utils.AppError(
-                    text.get_text(text.error.anm_unsupport_ver),
+                    text.error.anm_unsupport_ver,
                     log.props(
                         file=os.path.basename(fpath),
                         path=fpath,

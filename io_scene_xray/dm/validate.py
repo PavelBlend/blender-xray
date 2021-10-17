@@ -28,7 +28,7 @@ def validate_export_object(context, bpy_obj, fpath):
 
     if material_count == 0:
         raise utils.AppError(
-            text.get_text(text.error.obj_no_mat),
+            text.error.obj_no_mat,
             log.props(object=bpy_obj.name)
         )
 
@@ -42,7 +42,7 @@ def validate_export_object(context, bpy_obj, fpath):
         bpy_material = bpy_obj.material_slots[0].material
         if not bpy_material:
             raise utils.AppError(
-                text.get_text(text.error.obj_empty_mat),
+                text.error.obj_empty_mat,
                 log.props(object=bpy_obj.name)
             )
 
@@ -64,12 +64,12 @@ def validate_export_object(context, bpy_obj, fpath):
                 )
             else:
                 raise utils.AppError(
-                    text.get_text(text.error.mat_many_tex),
+                    text.error.mat_many_tex,
                     log.props(material=mat_name)
                 )
         else:
             raise utils.AppError(
-                text.get_text(text.error.mat_not_use_nodes),
+                text.error.mat_not_use_nodes,
                 log.props(material=mat_name)
             )
     else:
@@ -92,7 +92,7 @@ def validate_export_object(context, bpy_obj, fpath):
                     )
                 if bpy_texture.image is None:
                     raise utils.AppError(
-                        text.get_text(text.error.mat_no_img),
+                        text.error.mat_no_img,
                         log.props(material=mat_name)
                     )
                 if not fpath:

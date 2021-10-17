@@ -149,7 +149,7 @@ def _export_child(bpy_obj, cwriter, context, vgm):
                     texture = node
         else:
             raise utils.AppError(
-                text.get_text(text.error.mat_not_use_nodes),
+                text.error.mat_not_use_nodes,
                 log.props(material=material.name)
             )
     else:

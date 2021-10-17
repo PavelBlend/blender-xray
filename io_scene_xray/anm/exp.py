@@ -100,7 +100,7 @@ def _export_action_data(pkw, xray, fcurves):
     if errors:
         message = ' '.join(errors)
         raise utils.AppError(
-            text.get_text(text.error.anm_no_keys),
+            text.error.anm_no_keys,
             log.props(channels=message)
         )
     for i in range(6):
