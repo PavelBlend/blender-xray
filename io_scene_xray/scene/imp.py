@@ -74,7 +74,11 @@ def _read_object_body(data, imported_objects, import_context):
             imported_object.xray.export_path = os.path.dirname(object_path) + os.sep
             imported_objects[object_path] = imported_object
         else:
-            log.warn(text.warn.scene_no_file.format(import_path))
+            log.warn(
+                text.warn.scene_no_file,
+                file=object_path + '.object',
+                path=import_path
+            )
     else:
         imported_object = imported_objects.get(object_path)
         if imported_object.type == 'EMPTY':

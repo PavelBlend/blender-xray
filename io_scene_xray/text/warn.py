@@ -31,25 +31,25 @@ object_sg_smooth = 'Maya-SG incompatible: smooth edge adjacents has different sm
 object_sg_sharp = 'Maya-SG incompatible: sharp edge adjacents has same smoothing group'
 object_skip_geom = 'skipping geometry from vertex groups'
 # object import bone
-object_bone_renamed = 'bone vmap: will be renamed'
-object_bone_already_renamed = 'bone vmap: is already renamed'
+object_bone_renamed = 'bone vertex map: will be renamed'
+object_bone_already_renamed = 'bone vertex map: is already renamed'
 object_unsupport_prop = 'unsupported property value using default'
 object_bad_bone_name = 'not supported yet. bone name != bone def2'
 # object import main
 object_bad_userdata = 'bad userdata'
 # object import mesh
-object_uv_renamed = 'texture VMap has been renamed'
-object_zero_weight = 'weight VMap has values that are close to zero'
+object_uv_renamed = 'texture vertex map has been renamed'
+object_zero_weight = 'weight vertex map has values that are close to zero'
 object_invalid_face = 'invalid face found'
 object_already_mat = 'face has already been instantiated with material'
 object_already_used_mat = 'face has already used material'
-object_duplicate_faces = 'duplicate faces found, "{}" vertex groups created'
+object_duplicate_faces = 'duplicate faces found, vertex groups created'
 object_try_use_option = ' (try to use "{}" option)'
 # ogf import
-ogf_bad_shape = 'Unsupported bone shape type'
-ogf_bad_joint = 'Unsupported bone joint type'
+ogf_bad_shape = 'unsupported bone shape type'
+ogf_bad_joint = 'unsupported bone joint type'
 # scene import
-scene_no_file = 'Cannot find file: {}'
+scene_no_file = 'cannot find file'
 # motion
 motion_non_zero_flags = 'bone has non-zero flags'
 motion_behaviors = 'bone has different behaviors'
@@ -61,8 +61,8 @@ motion_markers = 'markers are not supported yet'
 # envelope
 envelope_behaviors_replaced = 'different behaviors, one will be replaced with another'
 envelope_bad_behavior = 'behavior isn\'t supported, and will be replaced'
-envelope_extrapolation = 'Envelope: extrapolation is not supported, and will be replaced'
-envelope_shapes = 'Envelope: unsupported shapes will be replaced by'
+envelope_extrapolation = 'envelope: extrapolation is not supported, and will be replaced'
+envelope_shapes = 'envelope: unsupported shapes will be replaced by'
 # skls browser
 browser_load = 'Loading animations from .skls file: "{}"'
 browser_done = 'Done: {} animation(s)'
