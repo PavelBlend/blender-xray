@@ -211,11 +211,9 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
             mod.show_viewport = False
         if version_utils.IS_28:
             depsgraph = bpy.context.view_layer.depsgraph
-            # do not delete this line (export of skeletal meshes will break)
-            depsgraph.update()
-            mesh.from_object(bpy_obj, depsgraph)
+            mesh.from_mesh(bpy_obj.data)
         else:
-            mesh.from_object(bpy_obj, bpy.context.scene)
+            mesh.from_mesh(bpy_obj.data)
     finally:
         for mod in armmods:
             mod.show_viewport = True
