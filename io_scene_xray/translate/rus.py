@@ -114,6 +114,77 @@ translations_table = (
     # motion
     (text.error.motion_shape, 'неподдерживаемая форма ключевого кадра'),
     (text.error.motion_ver, 'неподдерживаемая версия анимации'),
+
+    # warrnings
+
+    # general
+    (text.warn.full_log, 'Полный лог хранится в текстовом файле "{0}" (в окне Text Editor)'),
+    (text.warn.tex_not_found, 'файл текстуры не найден'),
+    (text.warn.env_tex, 'материал имеет некорректный тип ноды изображения (Environment Texture)'),
+    (text.warn.no_bone_parent, 'не найдена родительская кость'),
+    (text.warn.invalid_image_path, 'изображение имеет некорректный путь'),
+    (text.warn.no_file, 'файл не выделен'),
+    # anm export
+    (text.warn.anm_rot_mode, 'объект имеет режим вращения отличающийся от YXZ. Анимация была запечена'),
+    # anm import
+    (text.warn.anm_conv_linear, 'анимационные ключи были сконвертированы в LINEAR'),
+    (text.warn.anm_unsupport_shape, 'найдены ключи с неподдерживаемой интерполяцией и были заменены на поддерживаемую'),
+    # bones import
+    (text.warn.bones_not_have_boneparts, 'bones файл не имеет bone parts'),
+    (text.warn.bones_missing_bone, 'bone partition содержит отсутствующую кость'),
+    (text.warn.bones_has_no_bone, 'объект-арматура не имеет кости'),
+    # details read
+    (text.warn.details_coord_base, 'details-слот имеет некорректную координату основания'),
+    (text.warn.details_coord_top, 'details-слот имеет некорректную координату высоты'),
+    # err import
+    (text.warn.err_no_faces, 'файл не содержит неправильных треугольников (invalid faces)'),
+    # object export bone
+    (text.warn.object_bone_uppercase, 'имя кости было сохранено без символов верхнего регистра'),
+    (text.warn.object_bone_plugin_ver, 'кость отредактирована другой версией этого аддона'),
+    # object export main
+    (text.warn.object_merged, 'скелетные меш-объекты были сохранены как один меш'),
+    (text.warn.object_no_action, 'не найдена анимация'),
+    (text.warn.object_legacy_motionrefs, 'пропущены устаревшие motion references данные'),
+    # object export mesh
+    (text.warn.object_sg_smooth, 'Несовместимость Maya-сглаживания: сглаженные смежные рёбра имеют различные группы сглаживания'),
+    (text.warn.object_sg_sharp, 'Несовместимость Maya-сглаживания: не сглаженные смежные рёбра имеют одинаковую группу сглаживания'),
+    (text.warn.object_skip_geom, 'пропущена геометрия из групп вершин'),
+    # object import bone
+    (text.warn.object_bone_renamed, 'группа вершин кости: была переименована'),
+    (text.warn.object_bone_already_renamed, 'группа вершин кости: уже переименована'),
+    (text.warn.object_unsupport_prop, 'неподдерживаемое значение свойства, используется значение по-умолчанию'),
+    (text.warn.object_bad_bone_name, 'ещё не поддерживается. Имя кости не равно def2 кости'),
+    # object import main
+    (text.warn.object_bad_userdata, 'некорректные пользовательские данные (userdata)'),
+    # object import mesh
+    (text.warn.object_uv_renamed, 'текстурная карта вершин была переименована'),
+    (text.warn.object_zero_weight, 'карта веса вершин имеет значения близкие к нулю'),
+    (text.warn.object_invalid_face, 'найдены неправильные треугольники (invalid faces)'),
+    (text.warn.object_already_mat, 'полигону уже был назначен материал'),
+    (text.warn.object_already_used_mat, 'полигону уже был назначен материал'),
+    (text.warn.object_duplicate_faces, 'найдены дубликаты полигонов, создана группа вершин'),
+    (text.warn.object_try_use_option, ' (попробуйте включить "{}" параметр импорта)'),
+    # ogf import
+    (text.warn.ogf_bad_shape, 'неподдерживаемый тип формы кости'),
+    (text.warn.ogf_bad_joint, 'неподдерживаемый тип сустава кости'),
+    # scene import
+    (text.warn.scene_no_file, 'не найден файл'),
+    # motion
+    (text.warn.motion_non_zero_flags, 'кость имеет флаги, отличные от нуля'),
+    (text.warn.motion_behaviors, 'кость имеет различные типы экстраполяций для начала и конца анимационной кривой'),
+    (text.warn.motion_no_bone, 'не найдена кость'),
+    (text.warn.motion_bone_replaced, 'ссылка на кость была изменена'),
+    (text.warn.motion_rotation_mode, 'кость имеет режим вращения отличающийся от ZXY'),
+    (text.warn.motion_to_stepped, 'формы анимационных ключей были сконвертированы в STEPPED'),
+    (text.warn.motion_markers, 'маркеры пока не поддерживаются'),
+    # envelope
+    (text.warn.envelope_behaviors_replaced, 'анимационные кривые имеют различные типы экстраполяций для начала и конца, один будет заменён другим'),
+    (text.warn.envelope_bad_behavior, 'тип экстраполяции анимационнной кривой не поддерживается и будет заменён'),
+    (text.warn.envelope_extrapolation, 'тип экстраполяции анимационнной кривой не поддерживается и будет заменён'),
+    (text.warn.envelope_shapes, 'неподдерживаемые формы анимационных ключей были заменены на поддерживаемые'),
+    # skls browser
+    (text.warn.browser_load, 'Загрузка анимаций из .skls файла: "{}"'),
+    (text.warn.browser_done, 'Готово: {} анимаций')
 )
 translation = {}
 for eng, rus in translations_table:
