@@ -11,8 +11,7 @@ class TestObjectImport(utils.XRayTestCase):
             directory=self.relpath(),
             files=[{'name': 'test_fmt_broken.object'}],
         )
-        self.assertReportsContains('WARNING', re.compile('Unsupported bone shape type'))
-        self.assertReportsContains('WARNING', re.compile('Unsupported bone ikjoint type'))
+        self.assertReportsContains('WARNING', re.compile('\[2x\] Unsupported property value using default'))
 
         log = self.getFullLogAsText()
         self.assertRegex(log, re.escape("file(path='"))

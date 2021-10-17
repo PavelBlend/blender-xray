@@ -29,12 +29,12 @@ object_legacy_motionrefs = 'skipped motion references legacy data'
 # object export mesh
 object_sg_smooth = 'Maya-SG incompatible: smooth edge adjacents has different smoothing group'
 object_sg_sharp = 'Maya-SG incompatible: sharp edge adjacents has same smoothing group'
-object_skip_geom = 'skipping geometry from "{}"-s vertex groups'
+object_skip_geom = 'skipping geometry from vertex groups'
 # object import bone
-object_bone_renamed = 'bone VMap: will be renamed'
-object_bone_already_renamed = 'bone VMap: is already renamed'
-object_unsupport_prop = 'unsupported {0} {1}, using default'
-object_bad_bone_name = 'Not supported yet! bone name != bone def2'
+object_bone_renamed = 'bone vmap: will be renamed'
+object_bone_already_renamed = 'bone vmap: is already renamed'
+object_unsupport_prop = 'unsupported property value using default'
+object_bad_bone_name = 'not supported yet. bone name != bone def2'
 # object import main
 object_bad_userdata = 'bad userdata'
 # object import mesh

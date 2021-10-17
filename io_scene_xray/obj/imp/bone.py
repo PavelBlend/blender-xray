@@ -82,7 +82,7 @@ def safe_assign_enum_property(obj, pname, val, desc):
         setattr(obj, pname, val)
     except TypeError:
         log.warn(
-            text.warn.object_unsupport_prop.format(desc, pname),
+            text.warn.object_unsupport_prop,
             value=val,
             default=defval,
         )

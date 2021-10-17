@@ -91,15 +91,21 @@ def export_flags(cw, bpy_obj):
 
 def remove_bad_geometry(bm, bml, bpy_obj):
     bad_vgroups = [
-        vertex_group.name.startswith(utils.BAD_VTX_GROUP_NAME) \
+        (vertex_group.name.startswith(utils.BAD_VTX_GROUP_NAME), vertex_group.name) \
         for vertex_group in bpy_obj.vertex_groups
     ]
     bad_verts = [
         vertex for vertex in bm.verts \
-        if any(bad_vgroups[k] for k in vertex[bml].keys())
+        if any(bad_vgroups[k][0] for k in vertex[bml].keys())
     ]
     if bad_verts:
-        log.warn(text.warn.object_skip_geom.format(utils.BAD_VTX_GROUP_NAME))
+        for is_bad, vgroup_name in bad_vgroups:
+            if is_bad:
+                log.warn(
+                    text.warn.object_skip_geom,
+                    vertex_group=vgroup_name,
+                    object=bpy_obj.name
+                )
         if version_utils.IS_28:
             ops_context = 'VERTS'
         else:
@@ -260,7 +266,7 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
         # check for Maya compatibility
         err = _check_sg_soc(bm.edges, sgroups)
         if err:
-            log.warn(err)
+            log.warn(err, object=bpy_obj.name, mesh=bpy_obj.data.name)
     else:
         sgroups = _export_sg_new(bm.faces)
     for sgroup in sgroups:
