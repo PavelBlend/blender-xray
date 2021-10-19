@@ -79,7 +79,7 @@ class TestObjectExport(utils.XRayTestCase):
         # Arrange
         objs = self._create_objects()
 
-        obj = _create_armature(objs[0])
+        obj = _create_armature((objs[0], ))
         utils.set_active_object(obj)
         arm = obj.data
         arm.bones['tbone'].xray.shape.type = '2'
@@ -170,7 +170,7 @@ class TestObjectExport(utils.XRayTestCase):
         utils.link_object(root)
 
         objs = self._create_objects()
-        obj = _create_armature(objs[0])
+        obj = _create_armature((objs[0], ))
         obj.parent = root
 
         utils.set_active_object(root)
@@ -245,8 +245,30 @@ class TestObjectExport(utils.XRayTestCase):
             'test_split_normals.object'
         })
 
+    def test_merge_objects(self):
+        # Arrange
+        objs = self._create_objects()
+        arm_obj = _create_armature(objs)
+        utils.set_active_object(arm_obj)
 
-def _create_armature(target):
+        # Act
+        bpy.ops.xray_export.object(
+            objects='tobj', directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False,
+        )
+
+        # Assert
+        self.assertOutputFiles({
+            'tobj.object',
+        })
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Mesh-objects have been merged')
+        )
+
+
+def _create_armature(targets):
     arm = bpy.data.armatures.new('tarm')
     obj = bpy.data.objects.new('tobj', arm)
     utils.link_object(obj)
@@ -259,12 +281,13 @@ def _create_armature(target):
     finally:
         bpy.ops.object.mode_set(mode='OBJECT')
 
-    target.modifiers.new(name='Armature', type='ARMATURE').object = obj
-    target.parent = obj
-    grp = target.vertex_groups.new(name='tbone')
-    vertices_count = len(target.data.vertices)
-    grp.add(range(vertices_count), 1, 'REPLACE')
-    grp = target.vertex_groups.new(name=io_scene_xray.utils.BAD_VTX_GROUP_NAME)
-    grp.add([vertices_count], 1, 'REPLACE')
+    for target in targets:
+        target.modifiers.new(name='Armature', type='ARMATURE').object = obj
+        target.parent = obj
+        grp = target.vertex_groups.new(name='tbone')
+        vertices_count = len(target.data.vertices)
+        grp.add(range(vertices_count), 1, 'REPLACE')
+        grp = target.vertex_groups.new(name=io_scene_xray.utils.BAD_VTX_GROUP_NAME)
+        grp.add([vertices_count], 1, 'REPLACE')
 
     return obj
