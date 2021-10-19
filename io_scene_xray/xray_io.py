@@ -179,10 +179,16 @@ class ChunkedReader:
             return cid, memoryview(lzhuf.decompress_buffer(buffer, textsize))
         return cid, data[offs:offs + size]
 
-    def next(self, expected_cid):
+    def next(self, expected_cid, no_error=False):
         cid, data = next(self)
         if cid != expected_cid:
-            raise Exception('expected chunk: {}, but found: {}'.format(expected_cid, cid))
+            if no_error:
+                return
+            else:
+                raise Exception('expected chunk: {}, but found: {}'.format(
+                    expected_cid,
+                    cid
+                ))
         return data
 
     def nextf(self, expected_cid, fmt):

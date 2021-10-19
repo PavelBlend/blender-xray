@@ -14,6 +14,7 @@ is_not_arm = 'active object is not armature'
 anm_no_keys = 'action has keys not for all channels'
 # anm import
 anm_unsupport_ver = 'file has unsupported format version'
+anm_has_no_chunk = 'file has no main data block'
 # details convert
 details_light_1569 = 'object has incorrect light format: "Builds 1096-1558". Must be "Builds 1569-CoP"'
 details_light_1096 = 'object has incorrect light format: "Builds 1569-CoP". Must be "Builds 1096-1558"'

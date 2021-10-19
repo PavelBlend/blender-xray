@@ -25,6 +25,7 @@ translations_table = (
     (text.error.anm_no_keys, 'анимация имеет ключи не для всех каналов'),
     # anm import
     (text.error.anm_unsupport_ver, 'файл имеет неподдерживаемую версию формата'),
+    (text.error.anm_has_no_chunk, 'файл не имеет основного блока данных'),
     # details convert
     (text.error.details_light_1569, 'объект имеет некорректный формат освещения: "Builds 1096-1558". Должен быть "Builds 1569-CoP"'),
     (text.error.details_light_1096, 'объект имеет некорректный формат освещения: "Builds 1569-CoP". Должен быть "Builds 1096-1558"'),
