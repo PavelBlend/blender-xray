@@ -21,6 +21,7 @@ translations_table = (
     (text.error.file_another_prog, 'невозможно записать файл. Файл открыт в другой программе'),
     (text.error.no_active_obj, 'нет активного объекта'),
     (text.error.is_not_arm, 'активный объект не является арматурой'),
+    (text.error.file_not_found, 'файл не найден'),
     # anm export
     (text.error.anm_no_keys, 'анимация имеет ключи не для всех каналов'),
     # anm import

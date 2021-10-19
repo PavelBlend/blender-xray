@@ -25,9 +25,7 @@ class ImportAnmContext(contexts.ImportContext):
         self.camera_animation = None
 
 
-@log.with_context('import-anm-path')
 def _import(fpath, creader, context):
-    log.update(file=fpath)
     warn_list = []
     chunk_data = creader.next(fmt.Chunks.MAIN, no_error=True)
     if chunk_data is None:
@@ -120,7 +118,14 @@ def _import(fpath, creader, context):
         )
 
 
+@log.with_context('import-anm-path')
 def import_file(fpath, context):
+    log.update(file=fpath)
+    if not os.path.exists(fpath):
+        raise utils.AppError(
+            text.error.file_not_found,
+            log.props(file_path=fpath)
+        )
     data = utils.read_file(fpath)
     chunked_reader = xray_io.ChunkedReader(data)
     _import(fpath, chunked_reader, context)
