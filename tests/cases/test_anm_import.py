@@ -73,3 +73,21 @@ class TestAnmImport(utils.XRayTestCase):
             'ERROR',
             re.compile('File not found')
         )
+
+    def test_name_and_linear(self):
+        # Act
+        bpy.ops.xray_import.anm(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_name_and_linear.anm'}],
+            camera_animation=False,
+        )
+
+        obj = bpy.data.objects['test_name']
+        act = obj.animation_data.action
+        for i in range(6):
+            self.assertEqual(len(act.fcurves[i].keyframe_points), 3)
+            for key in act.fcurves[i].keyframe_points:
+                self.assertEqual(key.interpolation, 'LINEAR')
+
+        # Assert
+        self.assertReportsNotContains('WARNING')

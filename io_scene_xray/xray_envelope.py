@@ -83,7 +83,7 @@ def import_envelope(reader, fcurve, fps, koef, name, warn_list, unique_shapes):
             if index + 1 < key_count:
                 shape = shapes[index + 1]
             else:
-                shape = xray_interpolation.Shape.STEPPED
+                shape = shapes[-1]
             if shape == xray_interpolation.Shape.LINEAR:
                 key_frame.interpolation = 'LINEAR'
             elif shape == xray_interpolation.Shape.STEPPED:
