@@ -77,8 +77,13 @@ def import_envelope(reader, fcurve, fps, koef, name, warn_list, unique_shapes):
             key_frame = fckf.insert(time, value * koef)
             key_frame.interpolation = 'LINEAR'
     else:
-        for time, value, shape in zip(times, values, shapes):
+        key_count = len(times)
+        for index, (time, value, shape_prev) in enumerate(zip(times, values, shapes)):
             key_frame = fckf.insert(time, value * koef)
+            if index + 1 < key_count:
+                shape = shapes[index + 1]
+            else:
+                shape = xray_interpolation.Shape.STEPPED
             if shape == xray_interpolation.Shape.LINEAR:
                 key_frame.interpolation = 'LINEAR'
             elif shape == xray_interpolation.Shape.STEPPED:
