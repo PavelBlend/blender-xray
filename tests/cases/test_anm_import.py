@@ -1,6 +1,8 @@
-from tests import utils
+import re
 
 import bpy
+
+from tests import utils
 
 
 class TestAnmImport(utils.XRayTestCase):
@@ -30,3 +32,16 @@ class TestAnmImport(utils.XRayTestCase):
         self.assertReportsNotContains('WARNING')
         self.assertNotIn('test_fmt.anm.camera', bpy.data.objects)
 
+    def test_has_no_chunk(self):
+        # Act
+        bpy.ops.xray_import.anm(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt.object'}],
+            camera_animation = False,
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('File has no main data block')
+        )
