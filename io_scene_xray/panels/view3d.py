@@ -66,8 +66,8 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
             return
         if hasattr(obj.xray, 'skls_browser'):
             if len(obj.xray.skls_browser.animations):
-                layout.operator(skls_browser.XRAY_OT_close_skls_file.bl_idname)
-            layout.template_list(
+                col.operator(skls_browser.XRAY_OT_close_skls_file.bl_idname)
+            col.template_list(
                 listtype_name='XRAY_UL_skls_list_item',
                 list_id='compact',
                 dataptr=obj.xray.skls_browser,

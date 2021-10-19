@@ -13,7 +13,7 @@ class XRAY_UL_skls_list_item(bpy.types.UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         row = layout.row()
-        row = version_utils.layout_split(row, 0.30)
+        row = version_utils.layout_split(row, 0.2)
         row.alignment = 'RIGHT'
         row.label(text=str(item.frames))
         row.alignment = 'LEFT'
