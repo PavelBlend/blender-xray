@@ -46,6 +46,20 @@ class TestAnmImport(utils.XRayTestCase):
             re.compile('Motion shapes converted to LINEAR')
         )
 
+    def test_bezier_2d(self):
+        # Act
+        bpy.ops.xray_import.anm(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_bezier_2d.anm'}],
+            camera_animation=False,
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Unsupported shapes are found, and will be replaced')
+        )
+
     def test_has_no_chunk(self):
         # Act
         bpy.ops.xray_import.anm(
