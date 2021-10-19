@@ -60,13 +60,17 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
         col.active = active
         col.operator(
             operator=skls_browser.XRAY_OT_browse_skls_file.bl_idname,
-            text='Open Skls File'
+            text='Open Skls File',
+            icon='FILE_FOLDER'
         )
         if not obj:
             return
         if hasattr(obj.xray, 'skls_browser'):
             if len(obj.xray.skls_browser.animations):
-                col.operator(skls_browser.XRAY_OT_close_skls_file.bl_idname)
+                col.operator(
+                    skls_browser.XRAY_OT_close_skls_file.bl_idname,
+                    icon='X'
+                )
             col.template_list(
                 listtype_name='XRAY_UL_skls_list_item',
                 list_id='compact',
