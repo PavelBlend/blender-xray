@@ -184,8 +184,8 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
 
     wmaps = []
     wmaps_cnt = 0
-    for vertex_group, bad in zip(bpy_obj.vertex_groups, bad_vgroups):
-        if bad:
+    for vertex_group, (is_bad, _) in zip(bpy_obj.vertex_groups, bad_vgroups):
+        if is_bad:
             wmaps.append(None)
             continue
         if not bones_names is None:

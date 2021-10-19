@@ -102,119 +102,24 @@ def _check_bone_names(armature_object):
 
 
 def merge_meshes(mesh_objects):
-    merged_mesh = bpy.data.meshes.new('merged_meshes')
-    merged_object = bpy.data.objects.new('merged_meshes', merged_mesh)
-    verts = []
-    faces = []
-    uvs = []
-    sharp_edges = []
-    faces_smooth = []
-    materials = []
-    vertex_groups = []
-    vertex_group_indices = []
-    vertex_group_names = {}
-    used_vertex_groups = set()
-    vert_index_offset = 0
-    edge_index_offset = 0
-    material_index_offset = 0
-    group_index_offset = 0
-    active_object = bpy.context.active_object
-    temp_name = '!TEMP io_scene_xray'
+    objects = []
     for obj in mesh_objects:
         copy_obj = obj.copy()
-        copy_obj.name = temp_name
         copy_mesh = obj.data.copy()
-        copy_mesh.name = temp_name
         copy_obj.data = copy_mesh
         version_utils.link_object(copy_obj)
-        version_utils.set_active_object(copy_obj)
+        # apply modifiers
         for mod in copy_obj.modifiers:
             if mod.type == 'ARMATURE':
                 continue
             bpy.ops.object.modifier_apply(modifier=mod.name)
-        mesh = copy_obj.data
-        for material in mesh.materials:
-            merged_mesh.materials.append(material)
-        for group_index, group in enumerate(copy_obj.vertex_groups):
-            index = group_index + group_index_offset
-            vertex_group_indices.append(index)
-            vertex_group_names[index] = group.name
-        for vertex in mesh.vertices:
-            coord = version_utils.multiply(vertex.co, obj.matrix_world)
-            verts.append(tuple(coord))
-            groups = {}
-            for group in vertex.groups:
-                index = group.group + group_index_offset
-                groups[index] = group.weight
-                used_vertex_groups.add(index)
-            vertex_groups.append(groups)
-        for polygon in mesh.polygons:
-            materials.append(polygon.material_index + material_index_offset)
-            faces_smooth.append(polygon.use_smooth)
-            vert_indices = []
-            for vertex_index in polygon.vertices:
-                vert_indices.append(vert_index_offset + vertex_index)
-            use_sharp = []
-            for loop_index in polygon.loop_indices:
-                loop = mesh.loops[loop_index]
-                edge = mesh.edges[loop.edge_index]
-                use_sharp.append(edge.use_edge_sharp)
-            sharp_edges.append(use_sharp)
-            faces.append(vert_indices)
-        uv_layers = mesh.uv_layers
-        if len(uv_layers) > 1:
-            raise utils.AppError(
-                text.error.obj_many_uv,
-                log.props(object=obj.name)
-            )
-        uv_layer = uv_layers[0]
-        for uv_data in uv_layer.data:
-            uvs.extend((uv_data.uv[0], uv_data.uv[1]))
-        verts_count = len(mesh.vertices)
-        vert_index_offset += verts_count
-        materials_count = len(mesh.materials)
-        material_index_offset += materials_count
-        groups_count = len(copy_obj.vertex_groups)
-        group_index_offset += groups_count
-        bpy.data.objects.remove(copy_obj)
-        bpy.data.meshes.remove(copy_mesh)
-    merged_mesh.from_pydata(verts, (), faces)
-    merged_mesh.polygons.foreach_set('material_index', materials)
-    merged_mesh.polygons.foreach_set('use_smooth', faces_smooth)
-    if version_utils.IS_28:
-        uv_layer = merged_mesh.uv_layers.new(name='Texture')
-    else:
-        uv_texture = merged_mesh.uv_textures.new(name='Texture')
-        uv_layer = merged_mesh.uv_layers[uv_texture.name]
-    uv_layer.data.foreach_set('uv', uvs)
-    for polygon_index, polygon in enumerate(merged_mesh.polygons):
-        for index, loop_index in enumerate(polygon.loop_indices):
-            loop = merged_mesh.loops[loop_index]
-            edge = merged_mesh.edges[loop.edge_index]
-            edge.use_edge_sharp = sharp_edges[polygon_index][index]
-    remap_vertex_group_indices = {}
-    group_indices = {}
-    group_index = 0
-    for index in vertex_group_indices:
-        if index in used_vertex_groups:
-            name = vertex_group_names[index]
-            group_index_by_name = group_indices.get(name, None)
-            if group_index_by_name is None:
-                group = merged_object.vertex_groups.new(name=name)
-                remap_vertex_group_indices[index] = group_index
-                group_indices[name] = group_index
-                group_index += 1
-            else:
-                remap_vertex_group_indices[index] = group_index_by_name
-    for vertex_index, vertex_group in enumerate(vertex_groups):
-        for group_index, weight in vertex_group.items():
-            group_index = remap_vertex_group_indices[group_index]
-            group = merged_object.vertex_groups[group_index]
-            group.add((vertex_index, ), weight, 'REPLACE')
-    merged_mesh.use_auto_smooth = True
-    merged_mesh.auto_smooth_angle = math.pi
-    version_utils.set_active_object(active_object)
-    return merged_object
+        objects.append(copy_obj)
+    override = {}
+    active_object = objects[0]
+    override["object"] = override["active_object"] = active_object
+    override["selected_objects"] = override["selected_editable_objects"] = objects
+    bpy.ops.object.join(override)
+    return active_object
 
 
 def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
