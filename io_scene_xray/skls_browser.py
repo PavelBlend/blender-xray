@@ -62,8 +62,10 @@ def init_skls_browser(self, context, filepath):
     # fill list with animations names
     for name, offset_frames in XRAY_OT_browse_skls_file.skls_file.animations.items():
         newitem = sk.animations.add()
-        newitem.name = name    # animation name
-        newitem.frames = offset_frames[1]    # frames count
+        # animation name
+        newitem.name = name
+        # frames count
+        newitem.frames = offset_frames[1]
     context.window.cursor_set('DEFAULT')
 
 
@@ -95,7 +97,8 @@ class XRAY_OT_browse_skls_file(bpy.types.Operator):
 
         def __init__(self, file_path):
             self.file_path = file_path
-            self.animations = {} # cached animations info (name: (file_offset, frames_count))
+            # cached animations info (name: (file_offset, frames_count))
+            self.animations = {}
             with open(file_path, mode='rb') as f:
                 # read entire .skls file into memory
                 self.pr = xray_io.PackedReader(f.read())
@@ -106,8 +109,10 @@ class XRAY_OT_browse_skls_file(bpy.types.Operator):
             animations_count = self.pr.getf('I')[0]
             for _ in range(animations_count):
                 # index animation
-                offset = self.pr.offset() # first byte of the animation name
-                name = self.pr.gets() # animation name
+                # first byte of the animation name
+                offset = self.pr.offset()
+                # animation name
+                name = self.pr.gets()
                 offset2 = self.pr.offset()
                 frames_range = self.pr.getf('II')
                 self.animations[name] = (offset, int(frames_range[1] - frames_range[0]))
@@ -116,7 +121,8 @@ class XRAY_OT_browse_skls_file(bpy.types.Operator):
                 skip = xray_motions.skip_motion_rest(self.pr.getv(), 0)
                 self.pr.skip(skip)
 
-    skls_file = None    # pure python hold variable of .skls file buffer instance
+    # pure python hold variable of .skls file buffer instance
+    skls_file = None
 
     @classmethod
     def poll(cls, context):
@@ -144,11 +150,6 @@ def skls_animations_index_changed(self, context):
     if animation_name == sk.animations_prev_name:
         return # repeat animation selection
 
-    # try to cancel & unlink old animation
-    try:
-        bpy.ops.screen.animation_cancel()
-    except:
-        pass
     try:
         # it can happened that unlink action is inaccessible
         bpy.ops.action.unlink()
@@ -172,13 +173,14 @@ def skls_animations_index_changed(self, context):
 
     # import animation
     if animation_name not in bpy.data.actions:
-        # animation not imported yet # import & create animation to bpy.data.actions
+        # animation not imported yet
         context.window.cursor_set('WAIT')
         # import animation
         XRAY_OT_browse_skls_file.skls_file.pr.set_offset(XRAY_OT_browse_skls_file.skls_file.animations[animation_name][0])
-        # bpy_armature = context.armature
-        bonesmap = {b.name.lower(): b for b in ob.data.bones}    # used to bone's reference detection
-        reported = set()    # bones names that has problems while import
+        # used to bone's reference detection
+        bonesmap = {b.name.lower(): b for b in ob.data.bones}
+        # bones names that has problems while import
+        reported = set()
         import_context = skl.imp.ImportSklContext()
         import_context.bpy_arm_obj=ob
         import_context.motions_filter=xray_motions.MOTIONS_FILTER_ALL
@@ -187,7 +189,7 @@ def skls_animations_index_changed(self, context):
         xray_motions.import_motion(XRAY_OT_browse_skls_file.skls_file.pr, import_context, bonesmap, reported)
         sk.animations_prev_name = animation_name
         context.window.cursor_set('DEFAULT')
-        # try to find DopeSheet editor & set action to play
+        # try to find DopeSheet editor & set action
         try:
             ds = [i for i in context.screen.areas if i.type=='DOPESHEET_EDITOR']
             if ds and not ds[0].spaces[0].action:
@@ -195,8 +197,7 @@ def skls_animations_index_changed(self, context):
         except AttributeError:
             pass
 
-    # assign & play a new animation
-    # bpy.data.armatures[0].pose_position='POSE'
+    # assign new animation
     try:
         act = bpy.data.actions[animation_name]
         if not ob.animation_data:
@@ -205,18 +206,18 @@ def skls_animations_index_changed(self, context):
     except:
         pass
     else:
-        # play an action from first to last frames in cycle
+        # set action frame range
         try:
             context.scene.frame_start = act.frame_range[0]
             context.scene.frame_current = act.frame_range[0]
             context.scene.frame_end = act.frame_range[1]
-            bpy.ops.screen.animation_play()
         except:
             pass
 
 
 xray_skls_animation_properties_props = {
-    'name': bpy.props.StringProperty(name='Name'),    # animation name in .skls file
+    # animation name in .skls file
+    'name': bpy.props.StringProperty(name='Name'),
     'frames': bpy.props.IntProperty(name='Frames')
 }
 
