@@ -25,23 +25,51 @@ class TestAnmImport(utils.XRayTestCase):
         bpy.ops.xray_import.anm(
             directory=self.relpath(),
             files=[{'name': 'test_fmt.anm'}],
-            camera_animation = False,
+            camera_animation=False,
         )
 
         # Assert
         self.assertReportsNotContains('WARNING')
         self.assertNotIn('test_fmt.anm.camera', bpy.data.objects)
 
+    def test_tcb(self):
+        # Act
+        bpy.ops.xray_import.anm(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_tcb.anm'}],
+            camera_animation=False,
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Motion shapes converted to LINEAR')
+        )
+
     def test_has_no_chunk(self):
         # Act
         bpy.ops.xray_import.anm(
             directory=self.relpath(),
             files=[{'name': 'test_fmt.object'}],
-            camera_animation = False,
+            camera_animation=False,
         )
 
         # Assert
         self.assertReportsContains(
             'ERROR',
             re.compile('File has no main data block')
+        )
+
+    def test_file_not_found(self):
+        # Act
+        bpy.ops.xray_import.anm(
+            directory=self.relpath(),
+            files=[{'name': 'not_found.anm'}],
+            camera_animation=False,
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('File not found')
         )
