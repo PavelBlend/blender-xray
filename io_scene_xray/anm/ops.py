@@ -68,6 +68,17 @@ class XRAY_OT_import_anm(
         for prop_name, prop_value in op_import_anm_props.items():
             exec('{0} = op_import_anm_props.get("{0}")'.format(prop_name))
 
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.enabled = False
+        files_count = len(self.files)
+        if files_count == 1:
+            if not self.files[0].name:
+                files_count = 0
+        row.label(text='{} items'.format(files_count))
+        layout.prop(self, 'camera_animation')
+
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
