@@ -51,9 +51,9 @@ def import_envelope(reader, fcurve, fps, koef, name, warn_list, unique_shapes):
             bias = reader.getq16f(-32.0, 32.0)
             reader.getf('<4H')
         else:
-            tension = None
-            continuity = None
-            bias = None
+            tension = 0.0
+            continuity = 0.0
+            bias = 0.0
         values.append(value)
         times.append(time)
         shapes.append(shape)

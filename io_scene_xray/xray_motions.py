@@ -30,51 +30,51 @@ def interpolate_keys(fps, start, end, values, times, shapes, tcb):
     keys_count = len(values)
     unsupported_shapes = set()
     errors = {}
-    for index, key_info in enumerate(zip(values, times, shapes, tcb)):
-        value_1, time_1, shape_1, (tension_1, continuity_1, bias_1) = key_info
-        if not shape_1 in (
+    for index_start, key_info in enumerate(zip(values, times, shapes, tcb)):
+        value_start, time_start, shape_start, tcb_start = key_info
+        if not shape_start in (
                 xray_interpolation.Shape.TCB,
                 xray_interpolation.Shape.LINEAR,
                 xray_interpolation.Shape.STEPPED
             ):
-            unsupported_shapes.add(shape_1.name)
-            errors[shape_1.name] = errors.setdefault(shape_1.name, 0) + 1
+            unsupported_shapes.add(shape_start.name)
+            errors[shape_start.name] = errors.setdefault(shape_start.name, 0) + 1
             continue
-        index_2 = index + 1
+        index_end = index_start + 1
         if keys_count == 1:
             # constant values
             for frame_index in range(start, end + 1):
-                interpolated_values.append(value_1)
+                interpolated_values.append(value_start)
                 interpolated_times.append(frame_index)
             continue
-        if index_2 >= keys_count:
-            interpolated_values.append(value_1)
-            interpolated_times.append(int(round(time_1, 0)))
+        if index_end >= keys_count:
+            interpolated_values.append(value_start)
+            interpolated_times.append(int(round(time_start, 0)))
             continue
-        value_2 = values[index_2]
-        time_2 = times[index_2]
-        shape_2 = shapes[index_2]
-        tension_2, continuity_2, bias_2 = tcb[index_2]
-        if index > 0:
-            prev_time = times[index - 1]
-            prev_value = values[index - 1]
+        value_end = values[index_end]
+        time_end = times[index_end]
+        shape_end = shapes[index_end]
+        tcb_end = tcb[index_end]
+        if index_start > 0:
+            prev_time = times[index_start - 1]
+            prev_value = values[index_start - 1]
         else:
             prev_time = None
             prev_value = None
-        index_next = index_2 + 1
+        index_next = index_end + 1
         if index_next < keys_count:
             next_time = times[index_next]
             next_value = values[index_next]
         else:
             next_time = None
             next_value = None
-        start_frame = int(round(time_1, 0))
-        end_frame = int(round(time_2, 0))
+        start_frame = int(round(time_start, 0))
+        end_frame = int(round(time_end, 0))
         for frame_index in range(start_frame, end_frame):
             interpolated_value = xray_interpolation.evaluate(
-                shape_1.value,
-                time_1, value_1, tension_1, continuity_1, bias_1,
-                time_2, value_2, tension_2, continuity_2, bias_2,
+                shape_end.value,
+                time_start, value_start, tcb_start[0], tcb_start[1], tcb_start[2],
+                time_end, value_end, tcb_end[0], tcb_end[1], tcb_end[2],
                 prev_time, prev_value, next_time, next_value, frame_index
             )
             interpolated_values.append(interpolated_value)
@@ -176,7 +176,7 @@ def import_motion(
                     has_interpolate = True
                     converted_shapes.append((shape, name, bname))
                 else:
-                    tcb.append((None, None, None))
+                    tcb.append((0.0, 0.0, 0.0))
             if use_interpolate:
                 curve_end_time = int(round(times[-1], 0))
                 if curve_end_time < end_frame and curve_end_time:

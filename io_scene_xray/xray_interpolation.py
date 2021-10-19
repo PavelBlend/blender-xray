@@ -20,9 +20,9 @@ class Shape(enum.Enum):
     BEZIER_2D = 5
 
 
-def incoming(k1v, k1t, k2v, k2t, k2ts, k2c, k2b, n2v, n2t):
-    a = (1.0 - k2ts) * (1.0 - k2c) * (1.0 + k2b)
-    b = (1.0 - k2ts) * (1.0 + k2c) * (1.0 - k2b)
+def incoming(k1v, k1t, k2v, k2t, k2n, k2c, k2b, n2v, n2t):
+    a = (1.0 - k2n) * (1.0 - k2c) * (1.0 + k2b)
+    b = (1.0 - k2n) * (1.0 + k2c) * (1.0 - k2b)
     d = k2v - k1v
     if not n2t is None:
         t = (k2t - k1t) / (n2t - k1t)
@@ -32,9 +32,9 @@ def incoming(k1v, k1t, k2v, k2t, k2ts, k2c, k2b, n2v, n2t):
     return in_
 
 
-def outgoing(k1v, k1t, k1ts, k1c, k1b, k2v, k2t, p1v, p1t):
-    a = (1.0 - k1ts) * (1.0 + k1c) * (1.0 + k1b)
-    b = (1.0 - k1ts) * (1.0 - k1c) * (1.0 - k1b)
+def outgoing(k1v, k1t, k1n, k1c, k1b, k2v, k2t, p1v, p1t):
+    a = (1.0 - k1n) * (1.0 + k1c) * (1.0 + k1b)
+    b = (1.0 - k1n) * (1.0 - k1c) * (1.0 - k1b)
     d = k2v - k1v
     if not p1t is None:
         t = (k2t - k1t) / (k2t - p1t)
@@ -56,8 +56,8 @@ def hermite(t):    # t - time
 
 def evaluate(
         k1s,
-        k1t, k1v, k1ts, k1c, k1b,
-        k2t, k2v, k2ts, k2c, k2b,
+        k1t, k1v, k1n, k1c, k1b,
+        k2t, k2v, k2n, k2c, k2b,
         p1t, p1v, n2t, n2v, t
     ):
 
@@ -65,13 +65,13 @@ def evaluate(
 
     # k1t - key 1 time
     # k1v - key 1 value
-    # k1ts - key 1 tension
+    # k1n - key 1 tension
     # k1c - key 1 continuity
     # k1b - key 1 bias
 
     # k2t - key 2 time
     # k2v - key 2 value
-    # k2ts - key 2 tension
+    # k2n - key 2 tension
     # k2c - key 2 continuity
     # k2b - key 2 bias
 
@@ -90,8 +90,8 @@ def evaluate(
 
     tn = (t - k1t) / (k2t - k1t)    # normalized time in [0, 1]
     if k1s == 0:    # TCB
-        out = outgoing(k1v, k1t, k1ts, k1c, k1b, k2v, k2t, p1v, p1t)
-        in_ = incoming(k1v, k1t, k2v, k2t, k2ts, k2c, k2b, n2v, n2t)
+        out = outgoing(k1v, k1t, k1n, k1c, k1b, k2v, k2t, p1v, p1t)
+        in_ = incoming(k1v, k1t, k2v, k2t, k2n, k2c, k2b, n2v, n2t)
         h1, h2, h3, h4 = hermite(tn)    # hermite basics
         return h1 * k1v + h2 * k2v + h3 * out + h4 * in_
     elif k1s == 3:    # LINEAR
