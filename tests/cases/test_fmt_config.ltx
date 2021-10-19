@@ -1,0 +1,29 @@
+#include
+
+; comment
+[base_section]
+prop_1 = 1
+prop_2 = 1.0  ; comment 2
+prop_3 = "string"
+
+[section_1]:base_section
+prop_1 = 2
+prop_4 = value
+path_prop = folder\subfolder\file.ext 
+
+
+[section_2]:base_section
+prop_1 = 2.
+prop_4 = .8
+prop_5 = -3.0
+prop_6 = -7
+prop_8 = 1.0,   2.0,3.0
+prop_9 = test_value_1, test_value_2, test_value_3
+path_prop = folder\subfolder\file.ext 
+
+
+[section_3]
+test_1
+test_2
+test_3
+prop = 1
