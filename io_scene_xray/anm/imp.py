@@ -40,7 +40,7 @@ def _import(fpath, creader, context):
     name = preader.gets()
     _fr = preader.getf('<2I')
     fps, ver = preader.getf('<fH')
-    if ver != 5:
+    if not ver in fmt.MOTION_SUPPORTED_VERSIONS:
         raise utils.AppError(
             text.error.anm_unsupport_ver,
             log.props(

@@ -19,7 +19,7 @@ def _export(bpy_obj, chunked_writer):
     frange = bpy_act.frame_range
     packed_writer.putf('<2I', int(frange[0]), int(frange[1]))
     fps = bpy_act.xray.fps
-    packed_writer.putf('<fH', fps, 5)
+    packed_writer.putf('<fH', fps, fmt.MOTION_VERSION_5)
     autobake = bpy_act.xray.autobake_effective(bpy_obj)
     rot_mode = bpy_obj.rotation_mode
     if autobake or rot_mode != 'YXZ':
