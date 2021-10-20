@@ -250,6 +250,7 @@ class TestObjectExport(utils.XRayTestCase):
         objs = self._create_objects()
         arm_obj = _create_armature(objs)
         utils.set_active_object(arm_obj)
+        objs[0].modifiers.new('subsurf', 'SUBSURF')
 
         # Act
         bpy.ops.xray_export.object(
