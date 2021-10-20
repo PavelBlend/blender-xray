@@ -31,5 +31,7 @@ class TestLtxReading(utils.XRayTestCase):
 
     def test_config(self):
         # Act
-        file_path = 'tests\\cases\\test_fmt_config.ltx'
-        ltx = io_scene_xray.xray_ltx.StalkerLtxParser(file_path)
+        ltx_folder = 'tests/cases'.replace('/', os.sep)
+        ltx_name = 'test_fmt_config.ltx'
+        ltx_path = os.path.join(ltx_folder, ltx_name)
+        ltx = io_scene_xray.xray_ltx.StalkerLtxParser(ltx_path)
