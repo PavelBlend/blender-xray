@@ -290,6 +290,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
         if not version_utils.IS_277:
             bpy.data.objects.remove(skeletal_obj, do_unlink=True)
         else:
+            bpy.context.scene.objects.unlink(skeletal_obj)
             skeletal_obj.user_clear()
             bpy.data.objects.remove(skeletal_obj)
         bpy.data.meshes.remove(merged_mesh)
