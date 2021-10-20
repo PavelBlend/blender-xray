@@ -114,10 +114,16 @@ def merge_meshes(mesh_objects):
                 continue
             bpy.ops.object.modifier_apply(modifier=mod.name)
         objects.append(copy_obj)
-    override = {}
+    override = bpy.context.copy()
     active_object = objects[0]
-    override["object"] = override["active_object"] = active_object
-    override["selected_objects"] = override["selected_editable_objects"] = objects
+    override['active_object'] = active_object
+    override['selected_objects'] = objects
+    if version_utils.IS_28:
+        override['object'] = active_object
+        override['selected_editable_objects'] = objects
+    else:
+        scene = bpy.context.scene
+        override['selected_editable_bases'] = [scene.object_bases[ob.name] for ob in objects]
     bpy.ops.object.join(override)
     return active_object
 
@@ -281,7 +287,11 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
 
     if skeletal_obj:
         merged_mesh = skeletal_obj.data
-        bpy.data.objects.remove(skeletal_obj)
+        if not version_utils.IS_277:
+            bpy.data.objects.remove(skeletal_obj, do_unlink=True)
+        else:
+            skeletal_obj.user_clear()
+            bpy.data.objects.remove(skeletal_obj)
         bpy.data.meshes.remove(merged_mesh)
 
     return materials, bone_writers, some_arm, bpy_root, uv_maps_names
