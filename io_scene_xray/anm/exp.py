@@ -12,14 +12,14 @@ from .. import xray_envelope
 from .. import motion_utils
 
 
-def _export(bpy_obj, chunked_writer):
+def _export(bpy_obj, chunked_writer, ver):
     packed_writer = xray_io.PackedWriter()
     bpy_act = bpy_obj.animation_data.action
     packed_writer.puts('')
     frange = bpy_act.frame_range
     packed_writer.putf('<2I', int(frange[0]), int(frange[1]))
     fps = bpy_act.xray.fps
-    packed_writer.putf('<fH', fps, fmt.MOTION_VERSION_5)
+    packed_writer.putf('<fH', fps, ver)
     autobake = bpy_act.xray.autobake_effective(bpy_obj)
     rot_mode = bpy_obj.rotation_mode
     if autobake or rot_mode != 'YXZ':
@@ -34,6 +34,7 @@ def _export(bpy_obj, chunked_writer):
             _bake_to_action(bpy_obj, baked_action, frange)
             _export_action_data(
                 packed_writer,
+                ver,
                 bpy_act.xray,
                 baked_action.fcurves
             )
@@ -44,7 +45,12 @@ def _export(bpy_obj, chunked_writer):
                 baked_action.user_clear()
                 bpy.data.actions.remove(baked_action)
     else:
-        _export_action_data(packed_writer, bpy_act.xray, bpy_act.fcurves)
+        _export_action_data(
+            packed_writer,
+            ver,
+            bpy_act.xray,
+            bpy_act.fcurves
+        )
     chunked_writer.put(fmt.Chunks.MAIN, packed_writer)
 
 
@@ -82,7 +88,7 @@ def _bake_to_action(bobject, action, frange):
         bpy.context.scene.frame_set(old_frame)
 
 
-def _export_action_data(pkw, xray, fcurves):
+def _export_action_data(pkw, ver, xray, fcurves):
     location_curves = []
     rotation_curves = []
     for fcurve in fcurves:
@@ -114,6 +120,7 @@ def _export_action_data(pkw, xray, fcurves):
                 epsilon = xray.autobake_refine_rotation
         xray_envelope.export_envelope(
             pkw,
+            ver,
             fcurve,
             xray.fps,
             koef,
@@ -121,7 +128,7 @@ def _export_action_data(pkw, xray, fcurves):
         )
 
 
-def export_file(bpy_obj, fpath):
+def export_file(bpy_obj, fpath, ver):
     writer = xray_io.ChunkedWriter()
-    _export(bpy_obj, writer)
+    _export(bpy_obj, writer, ver)
     utils.save_file(fpath, writer)

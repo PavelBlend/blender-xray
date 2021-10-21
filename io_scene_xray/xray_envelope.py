@@ -79,13 +79,8 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
             value = reader.getf('<f')[0]
             time = reader.getf('<f')[0] * fps
             shape = xray_interpolation.Shape(reader.getf('<I')[0] & 0xff)
-            if shape != xray_interpolation.Shape.STEPPED:
-                tension, continuity, bias = reader.getf('<3f')
-                reader.getf('<4f')    # params
-            else:
-                tension = 0.0
-                continuity = 0.0
-                bias = 0.0
+            tension, continuity, bias = reader.getf('<3f')
+            reader.getf('<4f')    # params
             values.append(value)
             times.append(time)
             shapes.append(shape)
@@ -134,7 +129,7 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
 
 
 @log.with_context('export-envelope')
-def export_envelope(writer, fcurve, fps, koef, epsilon=motion_utils.EPSILON):
+def export_envelope(writer, ver, fcurve, fps, koef, epsilon=motion_utils.EPSILON):
     behavior = None
     if fcurve.extrapolation == 'CONSTANT':
         behavior = xray_interpolation.Behavior.CONSTANT
@@ -147,7 +142,10 @@ def export_envelope(writer, fcurve, fps, koef, epsilon=motion_utils.EPSILON):
             extrapolation=fcurve.extrapolation,
             replacement=behavior.name
         )
-    writer.putf('<2B', behavior.value, behavior.value)
+    behav_fmt = 'I'
+    if ver > 3:
+        behav_fmt = 'B'
+    writer.putf('<2' + behav_fmt, behavior.value, behavior.value)
 
     replace_unsupported_to = xray_interpolation.Shape.TCB
     unsupported_occured = set()
@@ -169,9 +167,12 @@ def export_envelope(writer, fcurve, fps, koef, epsilon=motion_utils.EPSILON):
 
     kf_writer = xray_io.PackedWriter()
     keyframes = motion_utils.refine_keys(generate_keys(fcurve.keyframe_points), epsilon)
-    count = motion_utils.export_keyframes(kf_writer, keyframes)
+    count = motion_utils.export_keyframes(kf_writer, keyframes, anm_ver=ver)
 
-    writer.putf('<H', count)
+    count_fmt = 'I'
+    if ver > 3:
+        count_fmt = 'H'
+    writer.putf('<' + count_fmt, count)
     writer.putp(kf_writer)
 
     if unsupported_occured:

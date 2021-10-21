@@ -96,9 +96,16 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
                 box.prop(self, 'object_texture_names_from_path')
                 box.prop(self, 'export_object_use_export_paths')
             elif self.defaults_category == 'ANM':
+                # import
                 box = layout.box()
                 box.label(text='Import:')
                 box.prop(self, 'anm_create_camera')
+                # export
+                box = layout.box()
+                box.label(text='Export:')
+                row = box.row()
+                row.label(text='Format Version:')
+                row.prop(self, 'anm_format_version', expand=True)
             elif self.defaults_category == 'SKLS':
                 box = layout.box()
                 box.label(text='Import:')

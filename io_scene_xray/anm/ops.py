@@ -108,6 +108,7 @@ op_export_anm_props = {
         default='*'+filename_ext,
         options={'HIDDEN'}
     ),
+    'format_version': plugin_props.prop_anm_format_version()
 }
 
 
@@ -118,6 +119,7 @@ class XRAY_OT_export_anm(
     bl_idname = 'xray_export.anm'
     bl_label = 'Export .anm'
     bl_description = 'Exports X-Ray animation'
+    bl_options = {'UNDO', 'PRESET'}
 
     draw_fun = menu_func_export
     text = op_text
@@ -128,12 +130,23 @@ class XRAY_OT_export_anm(
         for prop_name, prop_value in op_export_anm_props.items():
             exec('{0} = op_export_anm_props.get("{0}")'.format(prop_name))
 
+    def draw(self, context):
+        layout = self.layout
+        split = version_utils.layout_split(layout, 0.5, align=True)
+        split.label(text='Format Version:')
+        row = split.row(align=True)
+        row.prop(self, 'format_version', expand=True)
+
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         errors = []
         try:
-            exp.export_file(context.active_object, self.filepath)
+            exp.export_file(
+                context.active_object,
+                self.filepath,
+                int(self.format_version)
+            )
         except utils.AppError as err:
             errors.append(err)
         for err in errors:
@@ -155,6 +168,8 @@ class XRAY_OT_export_anm(
                 'Object "{}" has no animation data.'.format(obj.name)
             )
             return {'CANCELLED'}
+        preferences = version_utils.get_preferences()
+        self.format_version = preferences.anm_format_version
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

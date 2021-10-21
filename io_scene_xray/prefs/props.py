@@ -445,6 +445,8 @@ plugin_preferences_props = {
     'export_object_use_export_paths': plugin_props.PropUseExportPaths(),
     # anm import props
     'anm_create_camera': plugin_props.PropAnmCameraAnimation(),
+    # anm export props
+    'anm_format_version': plugin_props.prop_anm_format_version(),
     # skl/skls import props
     'skls_use_motion_prefix_name': plugin_props.PropObjectUseMotionPrefixName(),
     'add_actions_to_motion_list': plugin_props.prop_skl_add_actions_to_motion_list(),

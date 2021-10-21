@@ -93,6 +93,18 @@ def PropAnmCameraAnimation():
     )
 
 
+def prop_anm_format_version():
+    return bpy.props.EnumProperty(
+        name='Format Version',
+        items=(
+            ('3', '3', ''),
+            ('4', '4', ''),
+            ('5', '5', '')
+        ),
+        default='5'
+    )
+
+
 def prop_import_bone_properties():
     return bpy.props.BoolProperty(
         name='Import Bone Properties', default=True
