@@ -1,3 +1,5 @@
+import re
+
 from tests import utils
 
 import bpy
@@ -128,3 +130,122 @@ class TestBonesImport(utils.XRayTestCase):
             NAME_NULL_BONEPARTS,
             NAME_BATCH_EXPORT
         })
+
+    def test_import_without_bone_parts(self):
+        # import mesh and armature
+        bpy.ops.xray_import.object(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_bones.object'}],
+        )
+        arm_obj = bpy.data.objects['test_fmt_bones.object']
+        utils.set_active_object(arm_obj)
+
+        # remove "bone or parts" (bone groups)
+        for bone_group in arm_obj.pose.bone_groups:
+            arm_obj.pose.bone_groups.remove(bone_group)
+
+        # Act import
+        bpy.ops.xray_import.bones(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt.bones'}],
+            import_bone_parts=False,
+            import_bone_properties=True
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+
+    def test_import_without_bone_props(self):
+        # import mesh and armature
+        bpy.ops.xray_import.object(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_bones.object'}],
+        )
+        arm_obj = bpy.data.objects['test_fmt_bones.object']
+        utils.set_active_object(arm_obj)
+
+        # remove "bone or parts" (bone groups)
+        for bone_group in arm_obj.pose.bone_groups:
+            arm_obj.pose.bone_groups.remove(bone_group)
+
+        # Act import
+        bpy.ops.xray_import.bones(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt.bones'}],
+            import_bone_parts=True,
+            import_bone_properties=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+
+    def test_import_replace_bone_groups(self):
+        # import mesh and armature
+        bpy.ops.xray_import.object(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_bones.object'}],
+        )
+        arm_obj = bpy.data.objects['test_fmt_bones.object']
+        utils.set_active_object(arm_obj)
+
+        # Act import
+        bpy.ops.xray_import.bones(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt.bones'}],
+            import_bone_parts=True,
+            import_bone_properties=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+
+    def test_import_has_no_bone(self):
+        # import mesh and armature
+        bpy.ops.xray_import.object(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_bones.object'}],
+        )
+        arm_obj = bpy.data.objects['test_fmt_bones.object']
+        arm_obj.data.bones[0].name = 'test'
+        utils.set_active_object(arm_obj)
+
+        # Act import
+        bpy.ops.xray_import.bones(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt.bones'}],
+            import_bone_parts=True,
+            import_bone_properties=True
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Armature object has no bone')
+        )
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Partition contains missing bone')
+        )
+
+    def test_import_not_have_bone_parts(self):
+        # import mesh and armature
+        bpy.ops.xray_import.object(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_bones.object'}],
+        )
+        arm_obj = bpy.data.objects['test_fmt_bones.object']
+        utils.set_active_object(arm_obj)
+
+        # Act import
+        bpy.ops.xray_import.bones(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_no_boneparts.bones'}],
+            import_bone_parts=True,
+            import_bone_properties=True
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Bones file does not have boneparts')
+        )
