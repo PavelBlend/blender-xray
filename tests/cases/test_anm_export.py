@@ -157,6 +157,78 @@ class TestAnmExport(utils.XRayTestCase):
             'test.anm'
         })
 
+    def test_v3(self):
+        # Arrange
+        obj = self._create_active_object()
+        obj.rotation_mode = 'YXZ'
+        act = bpy.data.actions.new('tact')
+        for i in range(3):
+            fcu = act.fcurves.new('location', index=i)
+            fcu.keyframe_points.insert(1, 0)
+            fcu = act.fcurves.new('rotation_euler', index=i)
+            fcu.keyframe_points.insert(1, 0)
+
+        obj.animation_data_create().action = act
+
+        # Act
+        bpy.ops.xray_export.anm(
+            filepath=self.outpath('test_v3.anm'),
+            format_version='3'
+        )
+
+        # Assert
+        self.assertOutputFiles({
+            'test_v3.anm'
+        })
+
+    def test_v4(self):
+        # Arrange
+        obj = self._create_active_object()
+        obj.rotation_mode = 'YXZ'
+        act = bpy.data.actions.new('tact')
+        for i in range(3):
+            fcu = act.fcurves.new('location', index=i)
+            fcu.keyframe_points.insert(1, 0)
+            fcu = act.fcurves.new('rotation_euler', index=i)
+            fcu.keyframe_points.insert(1, 0)
+
+        obj.animation_data_create().action = act
+
+        # Act
+        bpy.ops.xray_export.anm(
+            filepath=self.outpath('test_v4.anm'),
+            format_version='4'
+        )
+
+        # Assert
+        self.assertOutputFiles({
+            'test_v4.anm'
+        })
+
+    def test_v5(self):
+        # Arrange
+        obj = self._create_active_object()
+        obj.rotation_mode = 'YXZ'
+        act = bpy.data.actions.new('tact')
+        for i in range(3):
+            fcu = act.fcurves.new('location', index=i)
+            fcu.keyframe_points.insert(1, 0)
+            fcu = act.fcurves.new('rotation_euler', index=i)
+            fcu.keyframe_points.insert(1, 0)
+
+        obj.animation_data_create().action = act
+
+        # Act
+        bpy.ops.xray_export.anm(
+            filepath=self.outpath('test_v5.anm'),
+            format_version='5'
+        )
+
+        # Assert
+        self.assertOutputFiles({
+            'test_v5.anm'
+        })
+
     def _create_active_object(self):
         obj = bpy.data.objects.new('tobj', None)
         utils.link_object(obj)

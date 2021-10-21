@@ -20,6 +20,42 @@ class TestAnmImport(utils.XRayTestCase):
         act = obj.animation_data.action
         self.assertEqual(len(act.fcurves[0].keyframe_points), 3)
 
+    def test_v3(self):
+        # Act
+        bpy.ops.xray_import.anm(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_v3.anm'}],
+            camera_animation=False,
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Motion shapes converted to LINEAR')
+        )
+        obj = bpy.data.objects['test_fmt_v3.anm']
+        act = obj.animation_data.action
+        self.assertEqual(act.frame_range[0], 0)
+        self.assertEqual(act.frame_range[1], 20)
+
+    def test_v4(self):
+        # Act
+        bpy.ops.xray_import.anm(
+            directory=self.relpath(),
+            files=[{'name': 'test_fmt_v4.anm'}],
+            camera_animation=False,
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Motion shapes converted to LINEAR')
+        )
+        obj = bpy.data.objects['test_fmt_v4.anm']
+        act = obj.animation_data.action
+        self.assertEqual(act.frame_range[0], 0)
+        self.assertEqual(act.frame_range[1], 20)
+
     def test_wo_camera(self):
         # Act
         bpy.ops.xray_import.anm(
