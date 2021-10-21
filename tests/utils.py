@@ -139,6 +139,13 @@ def link_object(obj):
         bpy.context.scene.objects.link(obj)
 
 
+def select_object(obj):
+    if bpy.app.version >= (2, 80, 0):
+        obj.select_set(True)
+    else:
+        obj.select = True
+
+
 def set_active_object(obj):
     if bpy.app.version >= (2, 80, 0):
         bpy.context.view_layer.objects.active = obj
