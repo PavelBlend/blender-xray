@@ -113,12 +113,11 @@ def _export_bone_data(bpy_obj, bone):
     packed_writer.putf('<2f', ik.spring, ik.damping)
     chunked_writer.put(chunks.IK_JOINT, packed_writer)
     # break params
-    if xray.ikflags:
-        if xray.ikflags_breakable:
-            packed_writer = xray_io.PackedWriter()
-            packed_writer.putf('<f', xray.breakf.force)
-            packed_writer.putf('<f', xray.breakf.torque)
-            chunked_writer.put(chunks.BREAK_PARAMS, packed_writer)
+    if xray.ikflags_breakable:
+        packed_writer = xray_io.PackedWriter()
+        packed_writer.putf('<f', xray.breakf.force)
+        packed_writer.putf('<f', xray.breakf.torque)
+        chunked_writer.put(chunks.BREAK_PARAMS, packed_writer)
     # friction
     packed_writer = xray_io.PackedWriter()
     packed_writer.putf('<f', xray.friction)
