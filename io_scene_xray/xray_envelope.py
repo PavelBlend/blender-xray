@@ -8,8 +8,11 @@ from . import xray_motions
 
 
 @log.with_context('import-envelope')
-def import_envelope(reader, fcurve, fps, koef, name, warn_list, unique_shapes):
-    bhv0, bhv1 = map(xray_interpolation.Behavior, reader.getf('<2B'))
+def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shapes):
+    bhv_fmt = 'I'
+    if ver > 3:
+        bhv_fmt = 'B'
+    bhv0, bhv1 = map(xray_interpolation.Behavior, reader.getf('<2' + bhv_fmt))
 
     if bhv0 != bhv1:
         log.warn(
@@ -40,33 +43,62 @@ def import_envelope(reader, fcurve, fps, koef, name, warn_list, unique_shapes):
     times = []
     shapes = []
     tcb = []
-    keyframes_count = reader.getf('<H')[0]
-    for _ in range(keyframes_count):
-        value = reader.getf('<f')[0]
-        time = reader.getf('<f')[0] * fps
-        shape = xray_interpolation.Shape(reader.getf('<B')[0])
-        if shape != xray_interpolation.Shape.STEPPED:
-            tension = reader.getq16f(-32.0, 32.0)
-            continuity = reader.getq16f(-32.0, 32.0)
-            bias = reader.getq16f(-32.0, 32.0)
-            reader.getf('<4H')
-        else:
-            tension = 0.0
-            continuity = 0.0
-            bias = 0.0
-        values.append(value)
-        times.append(time)
-        shapes.append(shape)
-        tcb.append((tension, continuity, bias))
-        if not shape in (
-                xray_interpolation.Shape.LINEAR,
-                xray_interpolation.Shape.STEPPED,
-                xray_interpolation.Shape.TCB
-            ):
-            unsupported_occured.add(shape.name)
-        unique_shapes.add(shape.name)
-        if shape == xray_interpolation.Shape.TCB:
-            use_interpolate = True
+    count_fmt = 'I'
+    if ver > 3:
+        count_fmt = 'H'
+    keyframes_count = reader.getf('<' + count_fmt)[0]
+    if ver > 3:
+        for _ in range(keyframes_count):
+            value = reader.getf('<f')[0]
+            time = reader.getf('<f')[0] * fps
+            shape = xray_interpolation.Shape(reader.getf('<B')[0])
+            if shape != xray_interpolation.Shape.STEPPED:
+                tension = reader.getq16f(-32.0, 32.0)
+                continuity = reader.getq16f(-32.0, 32.0)
+                bias = reader.getq16f(-32.0, 32.0)
+                reader.getf('<4H')
+            else:
+                tension = 0.0
+                continuity = 0.0
+                bias = 0.0
+            values.append(value)
+            times.append(time)
+            shapes.append(shape)
+            tcb.append((tension, continuity, bias))
+            if not shape in (
+                    xray_interpolation.Shape.LINEAR,
+                    xray_interpolation.Shape.STEPPED,
+                    xray_interpolation.Shape.TCB
+                ):
+                unsupported_occured.add(shape.name)
+            unique_shapes.add(shape.name)
+            if shape == xray_interpolation.Shape.TCB:
+                use_interpolate = True
+    else:
+        for _ in range(keyframes_count):
+            value = reader.getf('<f')[0]
+            time = reader.getf('<f')[0] * fps
+            shape = xray_interpolation.Shape(reader.getf('<I')[0] & 0xff)
+            if shape != xray_interpolation.Shape.STEPPED:
+                tension, continuity, bias = reader.getf('<3f')
+                reader.getf('<4f')    # params
+            else:
+                tension = 0.0
+                continuity = 0.0
+                bias = 0.0
+            values.append(value)
+            times.append(time)
+            shapes.append(shape)
+            tcb.append((tension, continuity, bias))
+            if not shape in (
+                    xray_interpolation.Shape.LINEAR,
+                    xray_interpolation.Shape.STEPPED,
+                    xray_interpolation.Shape.TCB
+                ):
+                unsupported_occured.add(shape.name)
+            unique_shapes.add(shape.name)
+            if shape == xray_interpolation.Shape.TCB:
+                use_interpolate = True
     if use_interpolate:
         start_frame = int(round(times[0], 0))
         end_frame = int(round(times[-1], 0))

@@ -92,6 +92,7 @@ def _import(fpath, creader, context):
         koef = (1, 1, 1, -1, -1, -1)[i]
         use_interpolate = xray_envelope.import_envelope(
             preader,
+            ver,
             fcurve,
             fps,
             koef,
