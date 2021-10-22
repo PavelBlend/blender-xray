@@ -82,3 +82,24 @@ class TestAnmImport(utils.XRayTestCase):
             change_mode='ALL_ACTIONS',
             value_rotation_threshold=1.0
         )
+
+    def test_copy_paste_action_settings(self):
+        # copy
+        act = bpy.data.actions.new('test_act_copy')
+        arm = bpy.data.armatures.new('test_arm_copy')
+        obj = bpy.data.objects.new('test_obj_copy', arm)
+        obj.animation_data_create().action = act
+        utils.link_object(obj)
+        utils.select_object(obj)
+        utils.set_active_object(obj)
+        bpy.ops.io_scene_xray.copy_action_settings()
+
+        # paste
+        act = bpy.data.actions.new('test_act_paste')
+        arm = bpy.data.armatures.new('test_arm_paste')
+        obj = bpy.data.objects.new('test_obj_paste', arm)
+        obj.animation_data_create().action = act
+        utils.link_object(obj)
+        utils.select_object(obj)
+        utils.set_active_object(obj)
+        bpy.ops.io_scene_xray.paste_action_settings()

@@ -13,7 +13,7 @@ class StalkerLtxParser:
             self.params = {}
 
     def __init__(self, path, data=None):
-        if not data:
+        if data is None:
             self.path = path
             file = open(self.path, 'r')
             self.data = file.read()
