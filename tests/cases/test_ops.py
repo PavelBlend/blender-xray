@@ -103,3 +103,55 @@ class TestAnmImport(utils.XRayTestCase):
         utils.select_object(obj)
         utils.set_active_object(obj)
         bpy.ops.io_scene_xray.paste_action_settings()
+
+    def test_verify_uv(self):
+        # test without selected objects
+        bpy.ops.io_scene_xray.verify_uv()
+
+        verts = [
+            [0, 0, 0],
+            [1, 0, 0],
+            [1, 1, 0],
+            [0, 1, 0]
+        ]
+        faces = (
+            (0, 1, 2),
+            (2, 3, 0)
+        )
+        uvs = [
+            0, 0,
+            1, 0,
+            1, 1,
+            1, 1,
+            0, 1,
+            0, 0
+        ]
+        uv_offsets = (
+            (0, 0),
+            (50, 50),
+            (-1, -1)
+        )
+        for i in range(3):
+            mesh = bpy.data.meshes.new('test_verify_uv')
+            mesh.from_pydata(verts, (), faces)
+            if bpy.app.version >= (2, 80, 0):
+                uv_layer = mesh.uv_layers.new(name='uv')
+            else:
+                uv_tex = mesh.uv_textures.new(name='uv')
+                uv_layer = mesh.uv_layers[uv_tex.name]
+            uv_layer.data.foreach_set('uv', uvs)
+            obj = bpy.data.objects.new('test_verify_uv', mesh)
+            utils.link_object(obj)
+            utils.select_object(obj)
+            for vert in verts:
+                vert[0] += 2
+            uv_offset_x, uv_offset_y = uv_offsets[i]
+            for uv_index in range(0, len(uvs), 2):
+                uvs[uv_index] += uv_offset_x
+                uvs[uv_index + 1] += uv_offset_y
+        obj = bpy.data.objects.new('test_verify_uv_empty', None)
+        utils.link_object(obj)
+        utils.select_object(obj)
+        bpy.ops.io_scene_xray.verify_uv()
+
+        self.assertEqual(len(bpy.context.selected_objects), 1)

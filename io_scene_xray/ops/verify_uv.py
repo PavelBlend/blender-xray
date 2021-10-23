@@ -21,7 +21,7 @@ class XRAY_OT_verify_uv(bpy.types.Operator):
             bpy.ops.object.mode_set(mode='OBJECT')
         objects = context.selected_objects
         if not objects:
-            self.report({'ERROR'}, 'No objects selected')
+            self.report({'WARNING'}, 'No objects selected')
             return {'CANCELLED'}
         bad_objects = []
         for bpy_object in objects:
