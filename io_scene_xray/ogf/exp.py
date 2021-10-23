@@ -123,9 +123,8 @@ def _export_child(bpy_obj, cwriter, context, vgm):
     bsph = calculate_mesh_bsphere(bbox, mesh.verts)
     bmesh.ops.triangulate(mesh, faces=mesh.faces)
     bpy_data = bpy.data.meshes.new('.export-ogf')
-    bpy_data.use_auto_smooth = True
-    bpy_data.auto_smooth_angle = math.pi
-    bpy_data.calc_normals_split()
+    bpy_data.use_auto_smooth = bpy_obj.data.use_auto_smooth
+    bpy_data.auto_smooth_angle = bpy_obj.data.auto_smooth_angle
     mesh.to_mesh(bpy_data)
 
     header_writer = xray_io.PackedWriter()
