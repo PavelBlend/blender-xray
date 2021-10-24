@@ -469,6 +469,7 @@ plugin_preferences_props = {
     'ogf_import_motions': plugin_props.PropObjectMotionsImport(),
     # ogf export props
     'ogf_texture_names_from_path': plugin_props.PropObjectTextureNamesFromPath(),
+    'ogf_export_motions': plugin_props.PropObjectMotionsExport(),
     # omf import props
     'omf_import_motions': plugin_props.PropObjectMotionsImport(),
     'import_bone_parts': plugin_props.prop_import_bone_parts(),

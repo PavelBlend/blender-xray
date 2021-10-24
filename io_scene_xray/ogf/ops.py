@@ -43,7 +43,10 @@ class ImportOgfContext(
         self.import_bone_parts = None
 
 
-class ExportOgfContext(contexts.ExportMeshContext):
+class ExportOgfContext(
+        contexts.ExportMeshContext,
+        contexts.ExportAnimationContext
+    ):
     def __init__(self):
         super().__init__()
 
@@ -135,7 +138,8 @@ class XRAY_OT_import_ogf(
 
 op_export_ogf_props = {
     'filter_glob': bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'}),
-    'texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath(),
+    'export_motions': plugin_props.PropObjectMotionsExport()
 }
 
 
@@ -162,6 +166,7 @@ class XRAY_OT_export_ogf(
     def execute(self, context):
         export_context = ExportOgfContext()
         export_context.texname_from_path = self.texture_name_from_image_path
+        export_context.export_motions = self.export_motions
         try:
             exp.export_file(self.exported_object, self.filepath, export_context)
         except utils.AppError as err:
@@ -173,6 +178,7 @@ class XRAY_OT_export_ogf(
     def invoke(self, context, event):
         preferences = version_utils.get_preferences()
         self.texture_name_from_image_path = preferences.ogf_texture_names_from_path
+        self.export_motions = preferences.ogf_export_motions
         self.filepath = context.object.name
         objs = context.selected_objects
         roots = [obj for obj in objs if obj.xray.isroot]

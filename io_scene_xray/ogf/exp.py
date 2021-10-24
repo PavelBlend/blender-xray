@@ -15,6 +15,7 @@ from .. import log
 from .. import utils
 from .. import version_utils
 from .. import xray_motions
+from .. import omf
 
 
 multiply = version_utils.get_multiply()
@@ -342,6 +343,8 @@ def _export(bpy_obj, cwriter, context):
     xray = bpy_obj.xray
     if len(xray.motionrefs_collection):
         model_type = fmt.ModelType_v4.SKELETON_ANIM
+    elif len(xray.motions_collection) and context.export_motions:
+        model_type = fmt.ModelType_v4.SKELETON_ANIM
     else:
         model_type = fmt.ModelType_v4.SKELETON_RIGID
 
@@ -506,6 +509,18 @@ def _export(bpy_obj, cwriter, context):
         motion_refs_writer = xray_io.PackedWriter()
         motion_refs_writer.puts(refs_string)
         cwriter.put(fmt.Chunks_v4.S_MOTION_REFS_0, motion_refs_writer)
+
+    # export motions
+    if context.export_motions:
+        motion_context = omf.ops.ExportOmfContext()
+        motion_context.bpy_arm_obj = bpy_obj
+        motion_context.export_mode = 'OVERWRITE'
+        motion_context.export_motions = True
+        motion_context.export_bone_parts = True
+        motion_context.need_motions = True
+        motion_context.need_bone_groups = True
+        motions_chunked_writer = omf.exp.export_omf(motion_context)
+        cwriter.data.extend(motions_chunked_writer.data)
 
 
 def export_file(bpy_obj, fpath, context):

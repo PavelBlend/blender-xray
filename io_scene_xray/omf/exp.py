@@ -210,7 +210,7 @@ def write_motions(context, packed_writer, motions):
 
 
 @log.with_context('armature-object')
-def export_omf_file(context):
+def export_omf(context):
     log.update(object=context.bpy_arm_obj.name)
     current_frame = bpy.context.scene.frame_current
     mode = context.bpy_arm_obj.mode
@@ -482,5 +482,10 @@ def export_omf_file(context):
             bone.rotation_euler = (0, 0, 0)
             bone.rotation_quaternion = (1, 0, 0, 0)
             bone.scale = (1, 1, 1)
+    return main_chunked_writer
+
+
+def export_omf_file(context):
+    chunked_writer = export_omf(context)
     with open(context.filepath, 'wb') as file:
-        file.write(main_chunked_writer.data)
+        file.write(chunked_writer.data)

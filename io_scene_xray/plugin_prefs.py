@@ -151,6 +151,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
                 box = layout.box()
                 box.label(text='Export:')
                 box.prop(self, 'ogf_texture_names_from_path')
+                box.prop(self, 'ogf_export_motions')
             elif self.defaults_category == 'OMF':
                 box = layout.box()
                 # import
