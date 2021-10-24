@@ -14,7 +14,7 @@ def validate_export_object(context, bpy_obj, fpath):
 
     if not bpy_obj.data.uv_layers:
         raise utils.AppError(
-            text.error.dm_no_uv,
+            text.error.no_uv,
             log.props(object=bpy_obj.name)
         )
 
@@ -34,7 +34,7 @@ def validate_export_object(context, bpy_obj, fpath):
 
     elif material_count > 1:
         raise utils.AppError(
-            text.error.dm_many_mat,
+            text.error.many_mat,
             log.props(object=bpy_obj.name)
         )
 
@@ -59,7 +59,7 @@ def validate_export_object(context, bpy_obj, fpath):
                 bpy_texture = tex_nodes[0]
             elif len(tex_nodes) == 0:
                 raise utils.AppError(
-                    text.error.dm_no_tex,
+                    text.error.no_tex,
                     log.props(material=mat_name)
                 )
             else:
@@ -118,7 +118,7 @@ def validate_export_object(context, bpy_obj, fpath):
 
     else:
         raise utils.AppError(
-            text.error.dm_no_tex,
+            text.error.no_tex,
             log.props(material=mat_name)
         )
 

@@ -14,9 +14,12 @@ translations_table = (
     (text.error.mat_many_img, 'материал имеет больше одного изображения'),
     (text.error.mat_many_tex, 'материал имеет больше одной текстуры'),
     (text.error.obj_many_uv, 'объект имеет больше одной UV-карты'),
+    (text.error.no_uv, 'меш-объект не имеет UV-карту'),
     (text.error.mat_not_use_nodes, 'материал не использует ноды'),
     (text.error.obj_empty_mat, 'объект использует пустой слот материала'),
+    (text.error.no_tex, 'материал не имеет текстуры'),
     (text.error.obj_no_mat, 'объект не имеет материала'),
+    (text.error.many_mat, 'меш-объект имеет более одного материала'),
     (text.error.img_bad_image_path, 'изображение не находится в папке с текстурами'),
     (text.error.file_another_prog, 'невозможно записать файл. Файл открыт в другой программе'),
     (text.error.no_active_obj, 'нет активного объекта'),
@@ -57,10 +60,7 @@ translations_table = (
     # dm export
     (text.error.dm_many_verts, 'меш-объект имеет слишком много вершин'),
     # dm validate
-    (text.error.dm_no_uv, 'меш-объект не имеет UV-карту'),
     (text.error.dm_many_uv, 'меш-объект имеет более одной UV-карты'),
-    (text.error.dm_many_mat, 'меш-объект имеет более одного материала'),
-    (text.error.dm_no_tex, 'материал не имеет текстуры'),
     (text.error.dm_tex_type, 'текстура имеет некорректный тип'),
     # level cform import
     (text.error.cform_unsupport_ver, 'неподдерживаемая версия level cform формата'),

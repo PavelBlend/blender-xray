@@ -117,134 +117,210 @@ def top_two(dic):
     return {key0: val0, key1: val1}
 
 
-def _export_child(bpy_obj, cwriter, context, vgm):
-    mesh = utils.convert_object_to_space_bmesh(bpy_obj, mathutils.Matrix.Identity(4))
-    bbox = utils.calculate_mesh_bbox(mesh.verts)
-    bsph = calculate_mesh_bsphere(bbox, mesh.verts)
-    bmesh.ops.triangulate(mesh, faces=mesh.faces)
-    bpy_data = bpy.data.meshes.new('.export-ogf')
-    bpy_data.use_auto_smooth = bpy_obj.data.use_auto_smooth
-    bpy_data.auto_smooth_angle = bpy_obj.data.auto_smooth_angle
-    mesh.to_mesh(bpy_data)
+def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
+    # validate mesh-object
+    uv_layers = bpy_obj.data.uv_layers
+    if not len(uv_layers):
+        raise utils.AppError(
+            text.error.no_uv,
+            log.props(object=bpy_obj.name)
+        )
+    elif len(uv_layers) > 1:
+        raise utils.AppError(
+            text.error.obj_many_uv,
+            log.props(object=bpy_obj.name)
+        )
 
+    mesh = utils.convert_object_to_space_bmesh(
+        bpy_obj,
+        mathutils.Matrix.Identity(4)
+    )
+    bbox = utils.calculate_mesh_bbox(mesh.verts)
+    bsphere = calculate_mesh_bsphere(bbox, mesh.verts)
+    bmesh.ops.triangulate(mesh, faces=mesh.faces)
+    bpy_mesh = bpy.data.meshes.new('.export-ogf')
+    bpy_mesh.use_auto_smooth = bpy_obj.data.use_auto_smooth
+    bpy_mesh.auto_smooth_angle = bpy_obj.data.auto_smooth_angle
+    mesh.to_mesh(bpy_mesh)
+
+    # write header chunk
     header_writer = xray_io.PackedWriter()
-    header_writer.putf('<B', fmt.FORMAT_VERSION_4)  # ogf version
+    header_writer.putf('<B', fmt.FORMAT_VERSION_4)
     header_writer.putf('<B', fmt.ModelType_v4.SKELETON_GEOMDEF_ST)
     header_writer.putf('<H', 0)  # shader id
-    # bbox
     header_writer.putv3f(bbox[0])
     header_writer.putv3f(bbox[1])
-    # bsphere
-    header_writer.putv3f(bsph[0])
-    header_writer.putf('<f', bsph[1])
-    cwriter.put(fmt.HEADER, header_writer)
+    header_writer.putv3f(bsphere[0])
+    header_writer.putf('<f', bsphere[1])
+    chunked_writer.put(fmt.HEADER, header_writer)
 
-    material = bpy_obj.data.materials[0]
-    texture = None
+    # search material
+    used_materials = set()
+    for face in bpy_obj.data.polygons:
+        used_materials.add(face.material_index)
+    materials = set()
+    for material_index, material in enumerate(bpy_obj.data.materials):
+        if not material:
+            continue
+        if not material_index in used_materials:
+            continue
+        materials.add(material)
+    materials = list(materials)
+    if not len(materials):
+        raise utils.AppError(
+            text.error.obj_no_mat,
+            log.props(object=bpy_obj.name)
+        )
+    elif len(materials) > 1:
+        raise utils.AppError(
+            text.error.many_mat,
+            log.props(object=bpy_obj.name)
+        )
+    material = materials[0]
+
+    # search texture
+    textures = []
     if version_utils.IS_28:
         if material.use_nodes:
             for node in material.node_tree.nodes:
                 if node.type in version_utils.IMAGE_NODES:
-                    texture = node
+                    if node.image:
+                        textures.append(node)
         else:
             raise utils.AppError(
                 text.error.mat_not_use_nodes,
                 log.props(material=material.name)
             )
     else:
-        texture = material.active_texture
-    cwriter.put(
-        fmt.Chunks_v4.TEXTURE,
-        xray_io.PackedWriter()
-        .puts(
-            utils.gen_texture_name(texture.image, context.textures_folder)
-            if context.texname_from_path else
-            texture.name
+        for texture_slot in material.texture_slots:
+            if not texture_slot:
+                continue
+            texture = texture_slot.texture
+            if texture.type != 'IMAGE':
+                continue
+            if not texture.image:
+                continue
+            textures.append(texture)
+    if not len(textures):
+        raise utils.AppError(
+            text.error.no_tex,
+            log.props(material=material.name)
         )
-        .puts(material.xray.eshader)
-    )
+    elif len(textures) > 1:
+        raise utils.AppError(
+            text.error.mat_many_tex,
+            log.props(material=material.name)
+        )
+    texture = textures[0]
 
-    bml_uv = mesh.loops.layers.uv.active
-    bml_vw = mesh.verts.layers.deform.verify()
-    bpy_data.calc_tangents(uvmap=bml_uv.name)
+    # write texture chunk
+    texture_writer = xray_io.PackedWriter()
+    if context.texname_from_path:
+        texture_path = utils.gen_texture_name(
+            texture.image,
+            context.textures_folder
+        )
+    else:
+        texture_path = texture.name
+    texture_writer.puts(texture_path)
+    texture_writer.puts(material.xray.eshader)
+    chunked_writer.put(fmt.Chunks_v4.TEXTURE, texture_writer)
+
+    # collect geometry data
+    uv_layer = mesh.loops.layers.uv.active
+    weight_layer = mesh.verts.layers.deform.verify()
+    bpy_mesh.calc_tangents(uvmap=uv_layer.name)
     vertices = []
-    indices = []
-    vmap = {}
+    triangles = []
+    vertices_map = {}
     for face in mesh.faces:
         face_indices = []
         for loop_index, loop in enumerate(face.loops):
-            data_loop = bpy_data.loops[face.index * 3 + loop_index]
-            uv = loop[bml_uv].uv
-            vtx = (
+            bpy_loop = bpy_mesh.loops[face.index * 3 + loop_index]
+            uv = loop[uv_layer].uv
+            vertex = (
                 loop.vert.index,
                 loop.vert.co.to_tuple(),
-                data_loop.normal.to_tuple(),
-                data_loop.tangent.to_tuple(),
-                data_loop.bitangent.normalized().to_tuple(),
+                bpy_loop.normal.to_tuple(),
+                bpy_loop.tangent.to_tuple(),
+                bpy_loop.bitangent.normalized().to_tuple(),
                 (uv[0], 1 - uv[1]),
             )
-            vertex_index = vmap.get(vtx)
+            vertex_index = vertices_map.get(vertex)
             if vertex_index is None:
-                vmap[vtx] = vertex_index = len(vertices)
-                vertices.append(vtx)
+                vertices_map[vertex] = vertex_index = len(vertices)
+                vertices.append(vertex)
             face_indices.append(vertex_index)
-        indices.append(face_indices)
-
-    vwmx = 0
-    for vertex in mesh.verts:
-        vwc = len(vertex[bml_vw])
-        if vwc > vwmx:
-            vwmx = vwc
-
+        triangles.append(face_indices)
     utils.fix_ensure_lookup_table(mesh.verts)
-    pwriter = xray_io.PackedWriter()
-    if vwmx == 1:
-        pwriter.putf('II', fmt.VertexFormat.FVF_1L, len(vertices))
+
+    # find max number of vertex weights
+    vertex_max_weights = 0
+    for vertex in mesh.verts:
+        weights_count = len(vertex[weight_layer])
+        if weights_count > vertex_max_weights:
+            vertex_max_weights = weights_count
+
+    # write vertices chunk
+    vertices_writer = xray_io.PackedWriter()
+    vertices_count = len(vertices)
+    # 1-link vertices
+    if vertex_max_weights == 1:
+        vertices_writer.putf('<II', fmt.VertexFormat.FVF_1L, vertices_count)
         for vertex in vertices:
-            weights = mesh.verts[vertex[0]][bml_vw]
-            pwriter.putv3f(vertex[1])
-            pwriter.putv3f(vertex[2])
-            pwriter.putv3f(vertex[3])
-            pwriter.putv3f(vertex[4])
-            pwriter.putf('<2f', *vertex[5])
-            pwriter.putf('<I', vgm[weights.keys()[0]])
+            weights = mesh.verts[vertex[0]][weight_layer]
+            vertices_writer.putv3f(vertex[1])    # coord
+            vertices_writer.putv3f(vertex[2])    # normal
+            vertices_writer.putv3f(vertex[3])    # tangent
+            vertices_writer.putv3f(vertex[4])    # bitangent
+            vertices_writer.putf('<2f', *vertex[5])    # uv
+            vertices_writer.putf('<I', vertex_groups_map[weights.keys()[0]])
+    # 2-link vertices
     else:
-        if vwmx != 2:
-            print('warning: vwmx=%i' % vwmx)
-        pwriter.putf('<2I', fmt.VertexFormat.FVF_2L, len(vertices))
+        if vertex_max_weights != 2:
+            log.debug('vertex_max_weights', vertex_max_weights)
+        vertices_writer.putf('<2I', fmt.VertexFormat.FVF_2L, vertices_count)
         for vertex in vertices:
-            weights = mesh.verts[vertex[0]][bml_vw]
+            weights = mesh.verts[vertex[0]][weight_layer]
             if len(weights) > 2:
                 weights = top_two(weights)
             weight = 0
+            # 2-link vertex
             if len(weights) == 2:
                 first = True
                 weight0 = 0
                 for vgi in weights.keys():
-                    pwriter.putf('<H', vgm[vgi])
+                    vertices_writer.putf('<H', vertex_groups_map[vgi])
                     if first:
                         weight0 = weights[vgi]
                         first = False
                     else:
                         weight = 1 - (weight0 / (weight0 + weights[vgi]))
+            # 1-link vertex
             elif len(weights) == 1:
-                for vgi in [vgm[_] for _ in weights.keys()]:
-                    pwriter.putf('<2H', vgi, vgi)
+                for vertex_group_index in [vertex_groups_map[_] for _ in weights.keys()]:
+                    vertices_writer.putf(
+                        '<2H',
+                        vertex_group_index,
+                        vertex_group_index
+                    )
             else:
                 raise Exception('oops: %i %s' % (len(weights), weights.keys()))
-            pwriter.putv3f(vertex[1])
-            pwriter.putv3f(vertex[2])
-            pwriter.putv3f(vertex[3])
-            pwriter.putv3f(vertex[4])
-            pwriter.putf('<f', weight)
-            pwriter.putf('<2f', *vertex[5])
-    cwriter.put(fmt.Chunks_v4.VERTICES, pwriter)
+            # write vertex data
+            vertices_writer.putv3f(vertex[1])    # coord
+            vertices_writer.putv3f(vertex[2])    # normal
+            vertices_writer.putv3f(vertex[3])    # tangent
+            vertices_writer.putv3f(vertex[4])    # bitangent
+            vertices_writer.putf('<f', weight)    # weight
+            vertices_writer.putf('<2f', *vertex[5])    # uv
+    chunked_writer.put(fmt.Chunks_v4.VERTICES, vertices_writer)
 
-    pwriter = xray_io.PackedWriter()
-    pwriter.putf('<I', 3 * len(indices))
-    for face in indices:
-        pwriter.putf('<3H', face[0], face[2], face[1])
-    cwriter.put(fmt.Chunks_v4.INDICES, pwriter)
+    # write indices chunk
+    indices_writer = xray_io.PackedWriter()
+    indices_writer.putf('<I', 3 * len(triangles))
+    for tris in triangles:
+        indices_writer.putf('<3H', tris[0], tris[2], tris[1])
+    chunked_writer.put(fmt.Chunks_v4.INDICES, indices_writer)
 
 
 def get_ode_ik_limits(value_1, value_2):
