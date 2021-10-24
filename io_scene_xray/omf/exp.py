@@ -368,7 +368,12 @@ def export_omf(context):
                     translate_final = [None, None, None]
                     for index in range(3):
                         if tr_size[index] > 1e-9:
-                            translate_final[index] = int((translate[index] - tr_init[index]) / tr_size[index])
+                            value = int((translate[index] - tr_init[index]) / tr_size[index])
+                            if value > 127:
+                                value = 127
+                            elif value < -128:
+                                value = -128
+                            translate_final[index] = value
                         else:
                             translate_final[index] = 0
                     translations.append(tuple(translate_final))
