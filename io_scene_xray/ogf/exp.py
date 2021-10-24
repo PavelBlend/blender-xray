@@ -158,6 +158,13 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     used_materials = set()
     for face in bpy_obj.data.polygons:
         used_materials.add(face.material_index)
+    for material_index in used_materials:
+        material = bpy_obj.data.materials[material_index]
+        if not material:
+            raise utils.AppError(
+                text.error.obj_empty_mat,
+                log.props(object=bpy_obj.name)
+            )
     materials = set()
     for material_index, material in enumerate(bpy_obj.data.materials):
         if not material:
