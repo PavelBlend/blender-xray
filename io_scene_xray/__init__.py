@@ -7,6 +7,7 @@ bl_info = {
     'location': 'File > Import/Export',
     'description': 'Import/Export X-Ray objects',
     'wiki_url': 'https://github.com/PavelBlend/blender-xray',
+    'doc_url': 'https://github.com/PavelBlend/blender-xray',
     'tracker_url': 'https://github.com/PavelBlend/blender-xray/issues'
 }
 
