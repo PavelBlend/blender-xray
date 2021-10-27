@@ -197,7 +197,7 @@ def fix_ensure_lookup_table(bmv):
 def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_normals=False):
     mesh = bmesh.new()
     armmods = [mod for mod in bpy_obj.modifiers if mod.type == 'ARMATURE' and mod.show_viewport]
-    if split_normals and bpy.app.version >= (2, 79, 0):
+    if split_normals and version_utils.IS_279:
         temp_mesh = bpy_obj.data.copy()
         bpy_obj = bpy_obj.copy()
         bpy_obj.data = temp_mesh
@@ -211,7 +211,6 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
         for mod in armmods:
             mod.show_viewport = False
         if version_utils.IS_28:
-            depsgraph = bpy.context.view_layer.depsgraph
             mesh.from_mesh(bpy_obj.data)
         else:
             mesh.from_mesh(bpy_obj.data)
@@ -231,7 +230,7 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
     if need_flip:
         bmesh.ops.reverse_faces(mesh, faces=mesh.faces)  # flip normals
     fix_ensure_lookup_table(mesh.verts)
-    if split_normals and bpy.app.version >= (2, 79, 0):
+    if split_normals and version_utils.IS_279:
         bpy.data.objects.remove(bpy_obj)
         bpy.data.meshes.remove(temp_mesh)
     return mesh

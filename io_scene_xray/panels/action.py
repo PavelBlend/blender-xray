@@ -10,7 +10,7 @@ from .. import ops
 
 class XRAY_PT_action(ui.base.XRayPanel):
     bl_category = 'F-Curve'
-    bl_space_type = 'DOPESHEET_EDITOR' if bpy.app.version >= (2, 78, 0) else 'GRAPH_EDITOR'
+    bl_space_type = version_utils.get_action_panel_space()
     bl_region_type = 'UI'
     bl_context = 'object'
     bl_label = ui.base.build_label('Action')

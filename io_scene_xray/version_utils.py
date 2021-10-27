@@ -12,6 +12,13 @@ def is_blender_2_77():
         return False
 
 
+def is_blender_2_79():
+    if bpy.app.version[0] == 2 and bpy.app.version[1] >= 79:
+        return True
+    else:
+        return False
+
+
 def is_blender_2_80():
     return bpy.app.version >= (2, 80, 0)
 
@@ -31,6 +38,7 @@ def is_blender_2_93():
 
 
 IS_277 = is_blender_2_77()
+IS_279 = is_blender_2_79()
 IS_28 = is_blender_2_80()
 IS_281 = is_blender_2_81()
 IS_293 = is_blender_2_93()
@@ -69,6 +77,13 @@ def get_icon(icon):
         if icon_28:
             return icon_28
     return icon
+
+
+def get_action_panel_space():
+    if bpy.app.version >= (2, 78, 0):
+        return 'DOPESHEET_EDITOR'
+    else:
+        return 'GRAPH_EDITOR'
 
 
 def layout_split(layout, percentage, align=False):
