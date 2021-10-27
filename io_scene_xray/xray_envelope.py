@@ -43,6 +43,7 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
     times = []
     shapes = []
     tcb = []
+    params = []
     count_fmt = 'I'
     if ver > 3:
         count_fmt = 'H'
@@ -56,23 +57,36 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
                 tension = reader.getq16f(-32.0, 32.0)
                 continuity = reader.getq16f(-32.0, 32.0)
                 bias = reader.getq16f(-32.0, 32.0)
-                reader.getf('<4H')
+                param = []
+                for param_index in range(4):
+                    param_value = reader.getq16f(-32.0, 32.0)
+                    param.append(param_value)
             else:
                 tension = 0.0
                 continuity = 0.0
                 bias = 0.0
+                param = (0.0, 0.0, 0.0, 0.0)
             values.append(value)
             times.append(time)
             shapes.append(shape)
             tcb.append((tension, continuity, bias))
+            params.append(param)
             if not shape in (
+                    xray_interpolation.Shape.TCB,
+                    xray_interpolation.Shape.HERMITE,
+                    xray_interpolation.Shape.BEZIER_1D,
                     xray_interpolation.Shape.LINEAR,
                     xray_interpolation.Shape.STEPPED,
-                    xray_interpolation.Shape.TCB
+                    xray_interpolation.Shape.BEZIER_2D
                 ):
                 unsupported_occured.add(shape.name)
             unique_shapes.add(shape.name)
-            if shape == xray_interpolation.Shape.TCB:
+            if shape in (
+                    xray_interpolation.Shape.TCB,
+                    xray_interpolation.Shape.HERMITE,
+                    xray_interpolation.Shape.BEZIER_1D,
+                    xray_interpolation.Shape.BEZIER_2D
+                ):
                 use_interpolate = True
     else:
         for _ in range(keyframes_count):
@@ -80,25 +94,34 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
             time = reader.getf('<f')[0] * fps
             shape = xray_interpolation.Shape(reader.getf('<I')[0] & 0xff)
             tension, continuity, bias = reader.getf('<3f')
-            reader.getf('<4f')    # params
+            param = reader.getf('<4f')    # params
             values.append(value)
             times.append(time)
             shapes.append(shape)
             tcb.append((tension, continuity, bias))
+            params.append(param)
             if not shape in (
+                    xray_interpolation.Shape.TCB,
+                    xray_interpolation.Shape.HERMITE,
+                    xray_interpolation.Shape.BEZIER_1D,
                     xray_interpolation.Shape.LINEAR,
                     xray_interpolation.Shape.STEPPED,
-                    xray_interpolation.Shape.TCB
+                    xray_interpolation.Shape.BEZIER_2D
                 ):
                 unsupported_occured.add(shape.name)
             unique_shapes.add(shape.name)
-            if shape == xray_interpolation.Shape.TCB:
+            if shape in (
+                    xray_interpolation.Shape.TCB,
+                    xray_interpolation.Shape.HERMITE,
+                    xray_interpolation.Shape.BEZIER_1D,
+                    xray_interpolation.Shape.BEZIER_2D
+                ):
                 use_interpolate = True
     if use_interpolate:
         start_frame = int(round(times[0], 0))
         end_frame = int(round(times[-1], 0))
         values, times = xray_motions.interpolate_keys(
-            fps, start_frame, end_frame, values, times, shapes, tcb
+            fps, start_frame, end_frame, values, times, shapes, tcb, params
         )
         for time, value in zip(times, values):
             key_frame = fckf.insert(time, value * koef)

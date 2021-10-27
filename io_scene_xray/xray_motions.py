@@ -24,18 +24,21 @@ MOTIONS_FILTER_ALL = lambda name: True
 CURVE_COUNT = 6    # translation xyz, rotation xyz
 
 
-def interpolate_keys(fps, start, end, values, times, shapes, tcb):
+def interpolate_keys(fps, start, end, values, times, shapes, tcb, params):
     interpolated_values = []
     interpolated_times = []
     keys_count = len(values)
     unsupported_shapes = set()
     errors = {}
-    for index_start, key_info in enumerate(zip(values, times, shapes, tcb)):
-        value_start, time_start, shape_start, tcb_start = key_info
+    for index_start, key_info in enumerate(zip(values, times, shapes, tcb, params)):
+        value_start, time_start, shape_start, tcb_start, params_start = key_info
         if not shape_start in (
                 xray_interpolation.Shape.TCB,
+                xray_interpolation.Shape.HERMITE,
+                xray_interpolation.Shape.BEZIER_1D,
                 xray_interpolation.Shape.LINEAR,
-                xray_interpolation.Shape.STEPPED
+                xray_interpolation.Shape.STEPPED,
+                xray_interpolation.Shape.BEZIER_2D
             ):
             unsupported_shapes.add(shape_start.name)
             errors[shape_start.name] = errors.setdefault(shape_start.name, 0) + 1
@@ -55,6 +58,7 @@ def interpolate_keys(fps, start, end, values, times, shapes, tcb):
         time_end = times[index_end]
         shape_end = shapes[index_end]
         tcb_end = tcb[index_end]
+        params_end = params[index_end]
         if index_start > 0:
             prev_time = times[index_start - 1]
             prev_value = values[index_start - 1]
@@ -70,12 +74,42 @@ def interpolate_keys(fps, start, end, values, times, shapes, tcb):
             next_value = None
         start_frame = int(round(time_start, 0))
         end_frame = int(round(time_end, 0))
+
+        # start key
+        start_key = xray_interpolation.Key()
+        start_key.time = time_start
+        start_key.value = value_start
+        start_key.shape = shape_start
+        start_key.tension = tcb_start[0]
+        start_key.continuity = tcb_start[1]
+        start_key.bias = tcb_start[2]
+        start_key.param_1 = params_start[0]
+        start_key.param_2 = params_start[1]
+        start_key.param_3 = params_start[2]
+        start_key.param_4 = params_start[3]
+        # end key
+        end_key = xray_interpolation.Key()
+        end_key.time = time_end
+        end_key.value = value_end
+        end_key.shape = shape_end
+        end_key.tension = tcb_end[0]
+        end_key.continuity = tcb_end[1]
+        end_key.bias = tcb_end[2]
+        end_key.param_1 = params_end[0]
+        end_key.param_2 = params_end[1]
+        end_key.param_3 = params_end[2]
+        end_key.param_4 = params_end[3]
+        # next key
+        next_key = xray_interpolation.Key()
+        next_key.time = next_time
+        next_key.value = next_value
+        # preview key
+        prev_key = xray_interpolation.Key()
+        prev_key.time = prev_time
+        prev_key.value = prev_value
         for frame_index in range(start_frame, end_frame):
             interpolated_value = xray_interpolation.evaluate(
-                shape_end.value,
-                time_start, value_start, tcb_start[0], tcb_start[1], tcb_start[2],
-                time_end, value_end, tcb_end[0], tcb_end[1], tcb_end[2],
-                prev_time, prev_value, next_time, next_value, frame_index
+                frame_index, start_key, end_key, prev_key, next_key
             )
             interpolated_values.append(interpolated_value)
             interpolated_times.append(frame_index)
@@ -150,6 +184,7 @@ def import_motion(
             times = []
             shapes = []
             tcb = []
+            params = []
             use_interpolate = False
             behaviors = reader.getf('BB')
             if (behaviors[0] != 1) or (behaviors[1] != 1):
@@ -170,13 +205,18 @@ def import_motion(
                     tension = reader.getq16f(-32.0, 32.0)
                     continuity = reader.getq16f(-32.0, 32.0)
                     bias = reader.getq16f(-32.0, 32.0)
-                    reader.getf('HHHH')
+                    param = []
+                    for param_index in range(4):
+                        param_value = reader.getq16f(-32.0, 32.0)
+                        param.append(param_value)
                     tcb.append((tension, continuity, bias))
+                    params.append(param)
                     use_interpolate = True
                     has_interpolate = True
                     converted_shapes.append((shape, name, bname))
                 else:
                     tcb.append((0.0, 0.0, 0.0))
+                    params.append((0.0, 0.0, 0.0, 0.0))
             if use_interpolate:
                 curve_end_time = int(round(times[-1], 0))
                 if curve_end_time < end_frame and curve_end_time:
@@ -184,7 +224,8 @@ def import_motion(
                     values.append(values[-1])
                     shapes.append(shapes[-1])
                     tcb.append(tcb[-1])
-                values, times = interpolate_keys(fps, start_frame, end_frame, values, times, shapes, tcb)
+                    params.append(params[-1])
+                values, times = interpolate_keys(fps, start_frame, end_frame, values, times, shapes, tcb, params)
             curves[curve_index] = values, times
         used_times = set()
         if not has_interpolate:

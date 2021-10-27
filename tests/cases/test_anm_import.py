@@ -93,7 +93,7 @@ class TestAnmImport(utils.XRayTestCase):
         # Assert
         self.assertReportsContains(
             'WARNING',
-            re.compile('Unsupported shapes are found, and will be replaced')
+            re.compile('Motion shapes converted to LINEAR')
         )
 
     def test_has_no_chunk(self):
