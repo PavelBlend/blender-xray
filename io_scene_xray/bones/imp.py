@@ -107,7 +107,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
             ik.damping = packed_reader.getf('<f')[0]
         elif chunk_id == chunks.MASS_PARAMS:
             xray.mass.value = packed_reader.getf('<f')[0]
-            xray.mass.center = obj.imp.main.read_v3f(packed_reader)
+            xray.mass.center = packed_reader.getv3fp()
         elif chunk_id == chunks.IK_FLAGS:
             xray.ikflags = packed_reader.int()
         elif chunk_id == chunks.BREAK_PARAMS:

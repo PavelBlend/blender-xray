@@ -3,7 +3,6 @@ import bpy
 import mathutils
 
 # addon modules
-from . import main
 from .. import fmt
 from ... import text
 from ... import log
@@ -104,8 +103,8 @@ def import_bone(context, creader, bpy_arm_obj, renamemap):
     vmap = reader.gets()
 
     reader = xray_io.PackedReader(creader.next(fmt.Chunks.Bone.BIND_POSE))
-    offset = main.read_v3f(reader)
-    rotate = main.read_v3f(reader)
+    offset = reader.getv3fp()
+    rotate = reader.getv3fp()
     length = reader.getf('f')[0]
 
     bpy_bone = _create_bone(
@@ -168,7 +167,7 @@ def import_bone(context, creader, bpy_arm_obj, renamemap):
         elif cid == fmt.Chunks.Bone.MASS_PARAMS:
             reader = xray_io.PackedReader(data)
             xray.mass.value = reader.getf('f')[0]
-            xray.mass.center = main.read_v3f(reader)
+            xray.mass.center = reader.getv3fp()
         elif cid == fmt.Chunks.Bone.IK_FLAGS:
             xray.ikflags = xray_io.PackedReader(data).int()
         elif cid == fmt.Chunks.Bone.BREAK_PARAMS:

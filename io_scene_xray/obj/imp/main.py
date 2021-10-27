@@ -20,14 +20,6 @@ from ... import xray_io
 from ... import xray_motions
 
 
-_S_FFF = xray_io.PackedReader.prep('fff')
-
-
-def read_v3f(packed_reader):
-    vec = packed_reader.getp(_S_FFF)
-    return vec[0], vec[2], vec[1]
-
-
 def import_main(fpath, context, creader):
     object_name = os.path.basename(fpath.lower())
 
@@ -139,8 +131,8 @@ def import_main(fpath, context, creader):
                     name = reader.gets()
                     parent = reader.gets()
                     vmap = reader.gets()
-                    offset = read_v3f(reader)
-                    rotate = read_v3f(reader)
+                    offset = reader.getv3fp()
+                    rotate = reader.getv3fp()
                     length = reader.getf('f')[0]
                     rotate = rotate[2], rotate[1], rotate[0]
                     bpy_bone = bone._create_bone(
@@ -250,8 +242,8 @@ def import_main(fpath, context, creader):
     for (cid, data) in unread_chunks:
         if cid == fmt.Chunks.Object.TRANSFORM:
             reader = xray_io.PackedReader(data)
-            pos = read_v3f(reader)
-            rot = read_v3f(reader)
+            pos = reader.getv3fp()
+            rot = reader.getv3fp()
             bpy_obj.matrix_basis = context.multiply(
                 bpy_obj.matrix_basis,
                 mathutils.Matrix.Translation(pos),

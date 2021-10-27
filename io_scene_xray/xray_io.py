@@ -43,6 +43,7 @@ class FastBytes:
 class PackedReader:
     __slots__ = ['__offs', '__data', '__view']
     __PREP_I = struct.Struct('<I')
+    __S_FFF = struct.Struct('<3f')
     __NUMPY_FORMATS = {'f': numpy.float32, }
 
     def __init__(self, data):
@@ -64,6 +65,11 @@ class PackedReader:
         x, y, z = struct.unpack_from('<3f', self.__data, self.__offs)
         self.__offs += 12
         return x, z, y
+
+    def getv3fp(self):
+        # get vector 3-float using prep
+        vec = self.getp(self.__S_FFF)
+        return vec[0], vec[2], vec[1]
 
     def getn3f(self):
         # get vertex normal

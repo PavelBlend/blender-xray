@@ -6,7 +6,6 @@ import bpy
 import bmesh
 
 # addon modules
-from . import main
 from .. import fmt
 from ... import text
 from ... import log
@@ -59,7 +58,7 @@ def import_mesh(context, creader, renamemap):
     for (cid, data) in creader:
         if cid == fmt.Chunks.Mesh.VERTS:
             reader = xray_io.PackedReader(data)
-            vt_data = [main.read_v3f(reader) for _ in range(reader.int())]
+            vt_data = [reader.getv3fp() for _ in range(reader.int())]
         elif cid == fmt.Chunks.Mesh.FACES:
             s_6i = xray_io.PackedReader.prep('IIIIII')
             reader = xray_io.PackedReader(data)
