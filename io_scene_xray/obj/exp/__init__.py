@@ -12,7 +12,7 @@ def _export(bpy_obj, chunked_writer, context):
     chunked_writer.put(fmt.Chunks.Object.MAIN, writer)
 
 
-def export_file(bpy_obj, fpath, context):
+def export_file(bpy_obj, file_path, context):
     writer = xray_io.ChunkedWriter()
     _export(bpy_obj, writer, context)
-    utils.save_file(fpath, writer)
+    utils.save_file(file_path, writer)

@@ -128,7 +128,7 @@ def _export_action_data(pkw, ver, xray, fcurves):
         )
 
 
-def export_file(bpy_obj, fpath, ver):
+def export_file(bpy_obj, file_path, ver):
     writer = xray_io.ChunkedWriter()
     _export(bpy_obj, writer, ver)
-    utils.save_file(fpath, writer)
+    utils.save_file(file_path, writer)

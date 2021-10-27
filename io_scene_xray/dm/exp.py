@@ -12,12 +12,12 @@ from .. import text
 from .. import xray_io
 
 
-def export(bpy_obj, packed_writer, context, fpath, mode='DM'):
+def export(bpy_obj, packed_writer, context, file_path, mode='DM'):
     if mode == 'DM':
-        fpath = None    # level folder not use
+        file_path = None    # level folder not use
 
     bpy_material, tx_name = validate.validate_export_object(
-        context, bpy_obj, fpath
+        context, bpy_obj, file_path
     )
 
     det_model = bpy_obj.xray.detail.model
@@ -89,7 +89,7 @@ def export(bpy_obj, packed_writer, context, fpath, mode='DM'):
     bpy.data.meshes.remove(bpy_data)
 
 
-def export_file(bpy_obj, fpath, context):
+def export_file(bpy_obj, file_path, context):
     packed_writer = xray_io.PackedWriter()
-    export(bpy_obj, packed_writer, context, fpath)
-    utils.save_file(fpath, packed_writer)
+    export(bpy_obj, packed_writer, context, file_path)
+    utils.save_file(file_path, packed_writer)

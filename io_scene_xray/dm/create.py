@@ -105,7 +105,7 @@ def create_bpy_image(det_model, abs_image_path):
             try:
                 abs_image_path = os.path.abspath(
                     os.path.join(
-                        os.path.dirname(det_model.fpath),
+                        os.path.dirname(det_model.file_path),
                         det_model.texture + '.dds'
                 ))
                 bpy_image = bpy.data.images.load(abs_image_path)
@@ -162,7 +162,7 @@ def create_material(det_model, abs_image_path, context):
         bpy_material.use_transparency = True
         bpy_material.alpha = 0.0
         alternative_image_path = os.path.join(
-            os.path.dirname(det_model.fpath),
+            os.path.dirname(det_model.file_path),
             det_model.texture + '.dds'
         )
 
@@ -198,7 +198,7 @@ def create_material(det_model, abs_image_path, context):
     return bpy_material
 
 
-def search_material(context, det_model, fpath=None):
+def search_material(context, det_model, file_path=None):
     abs_image_path = os.path.abspath(os.path.join(
         context.textures_folder,
         det_model.texture + '.dds'
@@ -207,7 +207,7 @@ def search_material(context, det_model, fpath=None):
     bpy_material = None
     bpy_image = None
     bpy_texture = None
-    det_model.fpath = fpath
+    det_model.file_path = file_path
     det_model.context = context
 
     for material in bpy.data.materials:

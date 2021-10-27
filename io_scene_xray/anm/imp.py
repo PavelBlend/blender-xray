@@ -25,15 +25,15 @@ class ImportAnmContext(contexts.ImportContext):
         self.camera_animation = None
 
 
-def _import(fpath, creader, context):
+def _import(file_path, creader, context):
     warn_list = []
     chunk_data = creader.next(fmt.Chunks.MAIN, no_error=True)
     if chunk_data is None:
         raise utils.AppError(
             text.error.anm_has_no_chunk,
             log.props(
-                file=os.path.basename(fpath),
-                path=fpath
+                file=os.path.basename(file_path),
+                path=file_path
             )
         )
     preader = xray_io.PackedReader(chunk_data)
@@ -44,13 +44,13 @@ def _import(fpath, creader, context):
         raise utils.AppError(
             text.error.anm_unsupport_ver,
             log.props(
-                file=os.path.basename(fpath),
-                path=fpath,
+                file=os.path.basename(file_path),
+                path=file_path,
                 version=ver
             )
         )
     if not name:
-        name = os.path.basename(fpath)
+        name = os.path.basename(file_path)
     bpy_obj = bpy.data.objects.new(name, None)
     bpy_obj.rotation_mode = 'YXZ'
     if context.camera_animation:
@@ -120,13 +120,13 @@ def _import(fpath, creader, context):
 
 
 @log.with_context('import-anm-path')
-def import_file(fpath, context):
-    log.update(file=fpath)
-    if not os.path.exists(fpath):
+def import_file(file_path, context):
+    log.update(file=file_path)
+    if not os.path.exists(file_path):
         raise utils.AppError(
             text.error.file_not_found,
-            log.props(file_path=fpath)
+            log.props(file_path=file_path)
         )
-    data = utils.read_file(fpath)
+    data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(data)
-    _import(fpath, chunked_reader, context)
+    _import(file_path, chunked_reader, context)

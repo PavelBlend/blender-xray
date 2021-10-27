@@ -9,7 +9,7 @@ from .. import xray_io
 
 
 def import_(
-        fpath,
+        file_path,
         context,
         packed_reader,
         mode='DM',
@@ -18,7 +18,7 @@ def import_(
     ):
     det_model = fmt.DetailModel()
 
-    object_name = os.path.basename(fpath.lower())
+    object_name = os.path.basename(file_path.lower())
     bpy_obj, bpy_mesh = create.create_object(object_name)
 
     det_model.shader = packed_reader.gets()
@@ -27,7 +27,11 @@ def import_(
     det_model.mesh.bpy_mesh = bpy_mesh
 
     context.os = os
-    bpy_material = create.search_material(context, det_model, fpath=fpath)
+    bpy_material = create.search_material(
+        context,
+        det_model,
+        file_path=file_path
+    )
 
     det_model.mesh.bpy_mesh.materials.append(bpy_material)
     det_model.mesh.bpy_material = bpy_material
@@ -54,7 +58,7 @@ def import_(
     return bpy_obj
 
 
-def import_file(fpath, context):
-    data = utils.read_file(fpath)
+def import_file(file_path, context):
+    data = utils.read_file(file_path)
     packed_reader = xray_io.PackedReader(data)
-    import_(fpath, context, packed_reader)
+    import_(file_path, context, packed_reader)

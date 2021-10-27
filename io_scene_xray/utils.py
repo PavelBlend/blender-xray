@@ -303,14 +303,14 @@ def create_cached_file_data(ffname, fparser):
             self._cpath = None
 
         def get_values(self):
-            fpath = ffname()
-            if self._cpath == fpath:
+            file_path = ffname()
+            if self._cpath == file_path:
                 return self._cdata
             tmp = None
-            if fpath:
-                file_data = read_file(fpath)
+            if file_path:
+                file_data = read_file(file_path)
                 tmp = fparser(file_data)
-            self._cpath = fpath
+            self._cpath = file_path
             self._cdata = tmp
             return self._cdata
 

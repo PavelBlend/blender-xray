@@ -15,7 +15,7 @@ from .. import xray_io
 from .. import version_utils
 
 
-def _import(fpath, context, chunked_reader):
+def _import(file_path, context, chunked_reader):
 
     has_header = False
     has_meshes = False
@@ -57,11 +57,11 @@ def _import(fpath, context, chunked_reader):
     if not has_slots:
         raise utils.AppError(text.error.details_no_slots)
 
-    base_name = os.path.basename(fpath.lower())
+    base_name = os.path.basename(file_path.lower())
     color_indices = utility.generate_color_indices()
 
     meshes_obj = read.read_details_meshes(
-        fpath,
+        file_path,
         base_name,
         context,
         cr_meshes,
@@ -101,7 +101,7 @@ def _import(fpath, context, chunked_reader):
         slots.slots_top_object = slots_top_object.name
 
 
-def import_file(fpath, context):
-    data = utils.read_file(fpath)
+def import_file(file_path, context):
+    data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(data)
-    _import(fpath, context, chunked_reader)
+    _import(file_path, context, chunked_reader)

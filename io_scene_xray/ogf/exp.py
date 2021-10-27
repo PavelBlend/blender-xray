@@ -523,7 +523,7 @@ def _export(bpy_obj, cwriter, context):
         cwriter.data.extend(motions_chunked_writer.data)
 
 
-def export_file(bpy_obj, fpath, context):
+def export_file(bpy_obj, file_path, context):
     cwriter = xray_io.ChunkedWriter()
     _export(bpy_obj, cwriter, context)
-    utils.save_file(fpath, cwriter)
+    utils.save_file(file_path, cwriter)

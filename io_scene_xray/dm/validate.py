@@ -9,7 +9,7 @@ from .. import version_utils
 
 
 @log.with_context(name='object')
-def validate_export_object(context, bpy_obj, fpath):
+def validate_export_object(context, bpy_obj, file_path):
     log.update(name=bpy_obj.name)
 
     if not bpy_obj.data.uv_layers:
@@ -95,10 +95,10 @@ def validate_export_object(context, bpy_obj, fpath):
                         text.error.mat_no_img,
                         log.props(material=mat_name)
                     )
-                if not fpath:
+                if not file_path:
                     level_folder = None
                 else:
-                    level_folder = os.path.dirname(fpath) + os.sep
+                    level_folder = os.path.dirname(file_path) + os.sep
                 texture_name = utils.gen_texture_name(
                     bpy_texture.image, context.textures_folder,
                     level_folder=level_folder,

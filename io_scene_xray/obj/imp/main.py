@@ -20,8 +20,8 @@ from ... import xray_io
 from ... import xray_motions
 
 
-def import_main(fpath, context, creader):
-    object_name = os.path.basename(fpath.lower())
+def import_main(file_path, context, creader):
+    object_name = os.path.basename(file_path.lower())
 
     bpy_arm_obj = None
     renamemap = {}
@@ -230,13 +230,13 @@ def import_main(fpath, context, creader):
     bpy_obj.xray.version = context.version
     bpy_obj.xray.isroot = True
 
-    if fpath.lower().startswith(
+    if file_path.lower().startswith(
             context.objects_folder.lower()
         ) and context.objects_folder:
 
         object_folder_length = len(context.objects_folder)
         bpy_obj.xray.export_path = os.path.dirname(
-            fpath.lower()
+            file_path.lower()
         )[object_folder_length : ]
 
     for (cid, data) in unread_chunks:
@@ -262,7 +262,7 @@ def import_main(fpath, context, creader):
                 onerror=lambda e: log.warn(
                     text.warn.object_bad_userdata,
                     error=str(e),
-                    file=fpath
+                    file=file_path
                 )
             )
         elif cid == fmt.Chunks.Object.LOD_REF:

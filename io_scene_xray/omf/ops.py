@@ -217,16 +217,16 @@ class XRAY_OT_import_omf(
     def _get_motions(self):
         items = self.motions
         if len(self.files) == 1:
-            fpath = os.path.join(self.directory, self.files[0].name)
-            if fpath.lower().endswith('.omf'):
-                if os.path.exists(fpath):
-                    if self.__parsed_file_name != fpath:
-                        file_data = utils.read_file(fpath)
+            file_path = os.path.join(self.directory, self.files[0].name)
+            if file_path.lower().endswith('.omf'):
+                if os.path.exists(file_path):
+                    if self.__parsed_file_name != file_path:
+                        file_data = utils.read_file(file_path)
                         motions_names = imp.examine_motions(file_data)
                         items.clear()
                         for name in motions_names:
                             items.add().name = name
-                        self.__parsed_file_name = fpath
+                        self.__parsed_file_name = file_path
         else:
             items.clear()
         return items

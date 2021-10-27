@@ -15,8 +15,8 @@ class ImportSklContext(contexts.ImportAnimationOnlyContext):
         self.filename = None
 
 
-def _import_skl(fpath, context, chunked_reader):
-    basename = os.path.basename(fpath.lower())
+def _import_skl(file_path, context, chunked_reader):
+    basename = os.path.basename(file_path.lower())
     name = os.path.splitext(basename)[0]
     if not context.motions_filter(name):
         return
@@ -33,13 +33,13 @@ def _import_skl(fpath, context, chunked_reader):
             log.debug('unknown chunk', cid=cid)
 
 
-def import_skl_file(fpath, context):
-    file_data = utils.read_file(fpath)
+def import_skl_file(file_path, context):
+    file_data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(file_data)
-    _import_skl(fpath, context, chunked_reader)
+    _import_skl(file_path, context, chunked_reader)
 
 
-def import_skls_file(fpath, context):
-    file_data = utils.read_file(fpath)
+def import_skls_file(file_path, context):
+    file_data = utils.read_file(file_path)
     reader = xray_io.PackedReader(file_data)
     xray_motions.import_motions(reader, context, context.motions_filter)

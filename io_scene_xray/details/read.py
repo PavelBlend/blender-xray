@@ -26,7 +26,7 @@ def read_header(packed_reader):
 
 
 def read_details_meshes(
-        fpath,
+        file_path,
         base_name,
         context,
         chunked_reader,
@@ -48,7 +48,7 @@ def read_details_meshes(
 
     for mesh_id, mesh_data in chunked_reader:
         packed_reader = xray_io.PackedReader(mesh_data)
-        fpath_mesh = '{0} mesh_{1:0>2}'.format(fpath, mesh_id)
+        fpath_mesh = '{0} mesh_{1:0>2}'.format(file_path, mesh_id)
 
         bpy_obj_mesh = dm.imp.import_(
             fpath_mesh,

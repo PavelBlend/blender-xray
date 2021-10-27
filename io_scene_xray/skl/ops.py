@@ -120,21 +120,21 @@ class XRAY_OT_import_skls(plugin_props.BaseOperator, bpy_extras.io_utils.ImportH
     def _get_motions(self):
         items = self.motions
         if len(self.files) == 1:
-            fpath = os.path.join(self.directory, self.files[0].name)
-            if self.__parsed_file_name != fpath:
+            file_path = os.path.join(self.directory, self.files[0].name)
+            if self.__parsed_file_name != file_path:
                 items.clear()
-                for name in self._examine_file(fpath):
+                for name in self._examine_file(file_path):
                     items.add().name = name
-                self.__parsed_file_name = fpath
+                self.__parsed_file_name = file_path
         else:
             items.clear()
         return items
 
     @staticmethod
-    def _examine_file(fpath):
-        if fpath.lower().endswith('.skls'):
-            if os.path.exists(fpath):
-                file_data = utils.read_file(fpath)
+    def _examine_file(file_path):
+        if file_path.lower().endswith('.skls'):
+            if os.path.exists(file_path):
+                file_data = utils.read_file(file_path)
                 return xray_motions.examine_motions(file_data)
         return tuple()
 
@@ -156,13 +156,13 @@ class XRAY_OT_import_skls(plugin_props.BaseOperator, bpy_extras.io_utils.ImportH
         import_context.add_actions_to_motion_list = self.add_actions_to_motion_list
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
-            fpath = os.path.join(self.directory, file.name)
+            file_path = os.path.join(self.directory, file.name)
             import_context.filename = file.name
             try:
                 if ext == '.skl':
-                    imp.import_skl_file(fpath, import_context)
+                    imp.import_skl_file(file_path, import_context)
                 elif ext == '.skls':
-                    imp.import_skls_file(fpath, import_context)
+                    imp.import_skls_file(file_path, import_context)
                 else:
                     self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
             except utils.AppError as err:

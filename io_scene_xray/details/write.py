@@ -9,7 +9,7 @@ from .. import utils
 from .. import xray_io
 
 
-def write_details(chunked_writer, lvl_dets, context, fpath):
+def write_details(chunked_writer, lvl_dets, context, file_path):
     dm_cw = xray_io.ChunkedWriter()
 
     meshes_object = lvl_dets.meshes_object
@@ -50,7 +50,7 @@ def write_details(chunked_writer, lvl_dets, context, fpath):
             detail_model,
             packed_writer,
             context,
-            fpath,
+            file_path,
             mode='DETAILS'
         )
         dm_index = detail_model.xray.detail.model.index

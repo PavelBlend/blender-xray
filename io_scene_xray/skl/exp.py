@@ -20,13 +20,13 @@ def _export_skl(chunked_writer, context):
     chunked_writer.put(0x1200, writer)
 
 
-def export_skl_file(fpath, context):
+def export_skl_file(file_path, context):
     writer = xray_io.ChunkedWriter()
     _export_skl(writer, context)
-    utils.save_file(fpath, writer)
+    utils.save_file(file_path, writer)
 
 
-def export_skls_file(fpath, context, actions):
+def export_skls_file(file_path, context, actions):
     writer = xray_io.PackedWriter()
     xray_motions.export_motions(writer, actions, context.bpy_arm_obj)
-    utils.save_file(fpath, writer)
+    utils.save_file(file_path, writer)
