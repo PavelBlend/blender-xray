@@ -188,17 +188,18 @@ def import_(filepath, chunked_reader, import_context):
 @log.with_context(name='file')
 def import_file(filepath, operator):
     log.update(path=filepath)
-    with open(filepath, 'rb') as file:
-        preferences = version_utils.get_preferences()
-        textures_folder = preferences.textures_folder_auto
-        objects_folder = preferences.objects_folder_auto
-        import_context = ImportSceneContext()
-        import_context.textures_folder=textures_folder
-        import_context.soc_sgroups=operator.fmt_version == 'soc'
-        import_context.import_motions=False
-        import_context.split_by_materials=operator.mesh_split_by_materials
-        import_context.operator=operator
-        import_context.use_motion_prefix_name=False
-        import_context.objects_folder=objects_folder
-        import_context.before_import_file()
-        import_(filepath, xray_io.ChunkedReader(file.read()), import_context)
+    preferences = version_utils.get_preferences()
+    textures_folder = preferences.textures_folder_auto
+    objects_folder = preferences.objects_folder_auto
+    import_context = ImportSceneContext()
+    import_context.textures_folder=textures_folder
+    import_context.soc_sgroups=operator.fmt_version == 'soc'
+    import_context.import_motions=False
+    import_context.split_by_materials=operator.mesh_split_by_materials
+    import_context.operator=operator
+    import_context.use_motion_prefix_name=False
+    import_context.objects_folder=objects_folder
+    import_context.before_import_file()
+    file_data = utils.read_file(filepath)
+    chunked_reader = xray_io.ChunkedReader(file_data)
+    import_(filepath, chunked_reader, import_context)

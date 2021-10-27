@@ -26,6 +26,7 @@ def _import(fpath, context, reader):
 @log.with_context(name='file')
 def import_file(fpath, context):
     log.update(path=fpath)
-    with open(fpath, 'rb') as file:
-        bpy_obj = _import(fpath, context, xray_io.ChunkedReader(memoryview(file.read())))
-        return bpy_obj
+    file_data = utils.read_file(fpath)
+    chunked_reader = xray_io.ChunkedReader(memoryview(file_data))
+    bpy_obj = _import(fpath, context, chunked_reader)
+    return bpy_obj

@@ -134,8 +134,8 @@ class XRAY_OT_import_skls(plugin_props.BaseOperator, bpy_extras.io_utils.ImportH
     def _examine_file(fpath):
         if fpath.lower().endswith('.skls'):
             if os.path.exists(fpath):
-                with open(fpath, 'rb') as file:
-                    return xray_motions.examine_motions(file.read())
+                file_data = utils.read_file(fpath)
+                return xray_motions.examine_motions(file_data)
         return tuple()
 
     @utils.execute_with_logger

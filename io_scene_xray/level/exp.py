@@ -1371,8 +1371,7 @@ def write_level_cform(packed_writer, level):
     preferences = version_utils.get_preferences()
     gamemtl_file_path = preferences.gamemtl_file_auto
     if os.path.exists(gamemtl_file_path):
-        with open(gamemtl_file_path, 'rb') as gamemtl_file:
-            gamemtl_data = gamemtl_file.read()
+        gamemtl_data = utils.read_file(gamemtl_file_path)
     else:
         gamemtl_data = b''
 
@@ -1434,8 +1433,7 @@ def export_file(level_object, dir_path):
     level_chunked_writer = get_writer()
     vbs, ibs, fp_vbs, fp_ibs, level = write_level(level_chunked_writer, level_object, file_path)
 
-    with open(file_path, 'wb') as file:
-        file.write(level_chunked_writer.data)
+    utils.save_file(file_path, level_chunked_writer)
     del level_chunked_writer
 
     # geometry
@@ -1449,8 +1447,8 @@ def export_file(level_object, dir_path):
         level.visuals_cache
     )
 
-    with open(file_path + os.extsep + 'geom', 'wb') as file:
-        file.write(level_geom_chunked_writer.data)
+    level_geom_file_path = file_path + os.extsep + 'geom'
+    utils.save_file(level_geom_file_path, level_geom_chunked_writer)
     del level_geom_chunked_writer
 
     # fast path geometry
@@ -1458,13 +1456,13 @@ def export_file(level_object, dir_path):
     write_level_geom(level_geomx_chunked_writer, fp_vbs, fp_ibs)
     del fp_vbs, fp_ibs, level.fp_vbs_offsets, level.fp_ibs_offsets
 
-    with open(file_path + os.extsep + 'geomx', 'wb') as file:
-        file.write(level_geomx_chunked_writer.data)
+    level_geomx_file_path = file_path + os.extsep + 'geomx'
+    utils.save_file(level_geomx_file_path, level_geomx_chunked_writer)
     del level_geomx_chunked_writer
 
     # cform
     level_cform_packed_writer = xray_io.PackedWriter()
     write_level_cform(level_cform_packed_writer, level)
-    with open(file_path + os.extsep + 'cform', 'wb') as file:
-        file.write(level_cform_packed_writer.data)
+    level_cform_file_path = file_path + os.extsep + 'cform'
+    utils.save_file(level_cform_file_path, level_cform_packed_writer)
     del level_cform_packed_writer, level

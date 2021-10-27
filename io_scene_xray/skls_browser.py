@@ -6,6 +6,7 @@ from . import xray_io
 from . import xray_motions
 from . import text
 from . import skl
+from . import utils
 from . import version_utils
 
 
@@ -99,9 +100,9 @@ class XRAY_OT_browse_skls_file(bpy.types.Operator):
             self.file_path = file_path
             # cached animations info (name: (file_offset, frames_count))
             self.animations = {}
-            with open(file_path, mode='rb') as f:
-                # read entire .skls file into memory
-                self.pr = xray_io.PackedReader(f.read())
+            # read entire .skls file into memory
+            file_data = utils.read_file(file_path)
+            self.pr = xray_io.PackedReader(file_data)
             self._index_animations()
 
         def _index_animations(self):

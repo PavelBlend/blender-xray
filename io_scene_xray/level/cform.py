@@ -21,8 +21,7 @@ def import_main(context, level, data=None):
     # read level.cform file
     if level.xrlc_version >= fmt.VERSION_10:
         cform_path = os.path.join(level.path, 'level.cform')
-        with open(cform_path, 'rb') as file:
-            data = file.read()
+        data = utils.read_file(cform_path)
     else:
         cform_path = level.file
 
@@ -48,8 +47,7 @@ def import_main(context, level, data=None):
     gamemtl_file_path = preferences.gamemtl_file_auto
     game_mtl_names = {}
     if os.path.exists(gamemtl_file_path):
-        with open(gamemtl_file_path, 'rb') as gamemtl_file:
-            gmtl_data = gamemtl_file.read()
+        gmtl_data = utils.read_file(gamemtl_file_path)
         for gmtl_name, _, gmtl_id in utils.parse_gamemtl(gmtl_data):
             game_mtl_names[gmtl_id] = gmtl_name
 

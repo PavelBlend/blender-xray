@@ -308,8 +308,8 @@ def create_cached_file_data(ffname, fparser):
                 return self._cdata
             tmp = None
             if fpath:
-                with open(fpath, mode='rb') as file:
-                    tmp = fparser(file.read())
+                file_data = read_file(fpath)
+                tmp = fparser(file_data)
             self._cpath = fpath
             self._cdata = tmp
             return self._cdata

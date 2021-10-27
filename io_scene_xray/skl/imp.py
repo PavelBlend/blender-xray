@@ -3,6 +3,7 @@ import os
 
 # addon modules
 from .. import log
+from .. import utils
 from .. import contexts
 from .. import xray_io
 from .. import xray_motions
@@ -33,11 +34,12 @@ def _import_skl(fpath, context, chunked_reader):
 
 
 def import_skl_file(fpath, context):
-    with open(fpath, 'rb') as file:
-        _import_skl(fpath, context, xray_io.ChunkedReader(file.read()))
+    file_data = utils.read_file(fpath)
+    chunked_reader = xray_io.ChunkedReader(file_data)
+    _import_skl(fpath, context, chunked_reader)
 
 
 def import_skls_file(fpath, context):
-    with open(fpath, 'rb') as file:
-        reader = xray_io.PackedReader(file.read())
-        xray_motions.import_motions(reader, context, context.motions_filter)
+    file_data = utils.read_file(fpath)
+    reader = xray_io.PackedReader(file_data)
+    xray_motions.import_motions(reader, context, context.motions_filter)

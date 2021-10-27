@@ -36,8 +36,7 @@ def get_flags(xray):
 
 
 def validate_omf_file(context):
-    with open(context.filepath, 'rb') as file:
-        data = file.read()
+    data = utils.read_file(context.filepath)
     if not len(data):
         raise utils.AppError(
             text.error.omf_empty,
@@ -492,5 +491,4 @@ def export_omf(context):
 
 def export_omf_file(context):
     chunked_writer = export_omf(context)
-    with open(context.filepath, 'wb') as file:
-        file.write(chunked_writer.data)
+    utils.save_file(context.filepath, chunked_writer)

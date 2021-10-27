@@ -375,6 +375,5 @@ def read_main(data, context):
 
 
 def import_file(context):
-    with open(context.filepath, 'rb') as file:
-        data = file.read()
-    read_main(data, context)
+    file_data = utils.read_file(context.filepath)
+    read_main(file_data, context)

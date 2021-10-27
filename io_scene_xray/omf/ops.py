@@ -221,8 +221,8 @@ class XRAY_OT_import_omf(
             if fpath.lower().endswith('.omf'):
                 if os.path.exists(fpath):
                     if self.__parsed_file_name != fpath:
-                        with open(fpath, 'rb') as file:
-                            motions_names = imp.examine_motions(file.read())
+                        file_data = utils.read_file(fpath)
+                        motions_names = imp.examine_motions(file_data)
                         items.clear()
                         for name in motions_names:
                             items.add().name = name
