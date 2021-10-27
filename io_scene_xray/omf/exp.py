@@ -249,9 +249,9 @@ def export_omf(context):
                     continue
                 else:
                     continue
-            if not bone_groups.get(pose_bone.bone_group.name, None):
-                bone_groups[pose_bone.bone_group.name] = []
-            bone_groups[pose_bone.bone_group.name].append((pose_bone.name, bone_index))
+            bone_groups.setdefault(pose_bone.bone_group.name, []).append(
+                (pose_bone.name, bone_index)
+            )
     if no_group_bones:
         raise utils.AppError(
             text.error.omf_bone_no_group,

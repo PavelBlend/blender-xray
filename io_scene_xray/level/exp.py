@@ -1239,10 +1239,7 @@ def write_light(level, level_object):
 
 
 def append_portal(sectors_map, sector_index, portal_index):
-    if not sectors_map.get(sector_index, None) is None:
-        sectors_map[sector_index].append(portal_index)
-    else:
-        sectors_map[sector_index] = [portal_index, ]
+    sectors_map.setdefault(sector_index, []).append(portal_index)
 
 
 def write_portals(level, level_object):
