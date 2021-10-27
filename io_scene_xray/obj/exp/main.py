@@ -103,18 +103,20 @@ def _check_bone_names(armature_object):
 
 def merge_meshes(mesh_objects):
     objects = []
+    override = bpy.context.copy()
     for obj in mesh_objects:
         copy_obj = obj.copy()
         copy_mesh = obj.data.copy()
         copy_obj.data = copy_mesh
         version_utils.link_object(copy_obj)
         # apply modifiers
+        override['active_object'] = copy_obj
+        override['object'] = copy_obj
         for mod in copy_obj.modifiers:
             if mod.type == 'ARMATURE':
                 continue
-            bpy.ops.object.modifier_apply(modifier=mod.name)
+            bpy.ops.object.modifier_apply(override, modifier=mod.name)
         objects.append(copy_obj)
-    override = bpy.context.copy()
     active_object = objects[0]
     override['active_object'] = active_object
     override['selected_objects'] = objects
@@ -188,7 +190,16 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
         )
     if armature_meshes:
         if len(armature_meshes) == 1:
-            write_mesh(list(armature_meshes)[0])
+            mesh_object = list(armature_meshes)[0]
+            # apply modifiers
+            override = bpy.context.copy()
+            override['active_object'] = mesh_object
+            override['object'] = mesh_object
+            for mod in mesh_object.modifiers:
+                if mod.type == 'ARMATURE':
+                    continue
+                bpy.ops.object.modifier_apply(override, modifier=mod.name)
+            write_mesh(mesh_object)
         else:
             skeletal_obj = merge_meshes(armature_meshes)
             write_mesh(skeletal_obj)
