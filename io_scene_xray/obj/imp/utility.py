@@ -29,5 +29,4 @@ class ImportObjectContext(
         ImportObjectMeshContext, ImportObjectAnimationContext
     ):
     def __init__(self):
-        ImportObjectMeshContext.__init__(self)
-        ImportObjectAnimationContext.__init__(self)
+        super().__init__()

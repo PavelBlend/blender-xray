@@ -16,7 +16,7 @@ from .. import version_utils
 
 class ImportSceneContext(obj.imp.utility.ImportObjectMeshContext):
     def __init__(self):
-        obj.imp.utility.ImportObjectMeshContext.__init__(self)
+        super().__init__()
 
 
 def _read_scene_version(scene_version_chunk):
