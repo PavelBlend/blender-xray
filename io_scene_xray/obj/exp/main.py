@@ -115,6 +115,8 @@ def merge_meshes(mesh_objects):
         for mod in copy_obj.modifiers:
             if mod.type == 'ARMATURE':
                 continue
+            if not mod.show_viewport:
+                continue
             bpy.ops.object.modifier_apply(override, modifier=mod.name)
         objects.append(copy_obj)
     active_object = objects[0]
@@ -191,14 +193,6 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
     if armature_meshes:
         if len(armature_meshes) == 1:
             mesh_object = list(armature_meshes)[0]
-            # apply modifiers
-            override = bpy.context.copy()
-            override['active_object'] = mesh_object
-            override['object'] = mesh_object
-            for mod in mesh_object.modifiers:
-                if mod.type == 'ARMATURE':
-                    continue
-                bpy.ops.object.modifier_apply(override, modifier=mod.name)
             write_mesh(mesh_object)
         else:
             skeletal_obj = merge_meshes(armature_meshes)
