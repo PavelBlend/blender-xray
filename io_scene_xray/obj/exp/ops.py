@@ -109,9 +109,10 @@ class XRAY_OT_export_object(plugin_props.BaseOperator, _WithExportMotions):
         row = layout.split()
         row.label(text='Format Version:')
         row.row().prop(self, 'fmt_version', expand=True)
-        row = layout.row()
-        row.label(text='Smoothing Out of:')
-        row.prop(self, 'smoothing_out_of', text='')
+
+        row = layout.split()
+        row.label(text='Smoothing:')
+        row.row().prop(self, 'smoothing_out_of', expand=True)
 
         layout.prop(self, 'use_export_paths')
         layout.prop(self, 'export_motions')
@@ -207,9 +208,10 @@ class XRAY_OT_export_object_file(
         row = layout.split()
         row.label(text='Format Version:')
         row.row().prop(self, 'fmt_version', expand=True)
-        row = layout.row()
-        row.label(text='Smoothing Out of:')
-        row.prop(self, 'smoothing_out_of', text='')
+
+        row = layout.split()
+        row.label(text='Smoothing:')
+        row.row().prop(self, 'smoothing_out_of', expand=True)
 
         layout.prop(self, 'export_motions')
         layout.prop(self, 'texture_name_from_image_path')

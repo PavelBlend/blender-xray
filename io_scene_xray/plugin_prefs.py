@@ -90,7 +90,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
                 row.label(text='SDK Version:')
                 row.prop(self, 'export_object_sdk_version', expand=True)
                 row = box.row()
-                row.label(text='Smoothing Out of:')
+                row.label(text='Smoothing:')
                 row.prop(self, 'smoothing_out_of', expand=True)
                 box.prop(self, 'object_motions_export')
                 box.prop(self, 'object_texture_names_from_path')

@@ -47,8 +47,8 @@ def PropUseExportPaths():
 
 
 items = (
-    ('SHARP_EDGES', 'Sharp Edges', ''),
-    ('SPLIT_NORMALS', 'Split Normals', '')
+    ('SHARP_EDGES', 'Edges', ''),
+    ('SPLIT_NORMALS', 'Normals', '')
 )
 
 
