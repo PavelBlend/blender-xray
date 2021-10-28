@@ -213,7 +213,7 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
         version_utils.set_active_object(bpy_obj)
         bpy.ops.object.select_all(action='DESELECT')
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.set_normals_from_faces(keep_sharp=True)
+        bpy.ops.mesh.set_normals_from_faces()
         bpy.ops.object.mode_set(mode='OBJECT')
     try:
         for mod in armmods:
