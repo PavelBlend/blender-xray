@@ -201,11 +201,19 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
         temp_mesh = bpy_obj.data.copy()
         bpy_obj = bpy_obj.copy()
         bpy_obj.data = temp_mesh
+        # set sharp edges by face smoothing
+        for polygon in temp_mesh.polygons:
+            if polygon.use_smooth:
+                continue
+            for loop_index in polygon.loop_indices:
+                loop = temp_mesh.loops[loop_index]
+                edge = temp_mesh.edges[loop.edge_index]
+                edge.use_edge_sharp = True
         version_utils.link_object(bpy_obj)
         version_utils.set_active_object(bpy_obj)
         bpy.ops.object.select_all(action='DESELECT')
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.set_normals_from_faces()
+        bpy.ops.mesh.set_normals_from_faces(keep_sharp=True)
         bpy.ops.object.mode_set(mode='OBJECT')
     try:
         for mod in armmods:
