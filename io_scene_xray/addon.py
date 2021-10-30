@@ -2,7 +2,7 @@ from . import plugins
 from . import ui
 from . import menus
 from . import panels
-from . import plugin_prefs
+from . import prefs
 from . import hotkeys
 from . import ops
 from . import props
@@ -18,7 +18,7 @@ from . import tests
 
 modules = (
     icons,
-    plugin_prefs,
+    prefs,
     skls_browser,
     viewer,
     props,

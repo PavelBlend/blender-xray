@@ -3,7 +3,6 @@ import os
 import bpy
 
 from tests import utils
-from io_scene_xray import plugin_prefs
 
 
 class TestSceneSelectionImport(utils.XRayTestCase):

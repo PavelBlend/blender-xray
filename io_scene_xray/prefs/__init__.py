@@ -1,11 +1,12 @@
 # addon modules
+from . import base
 from . import ops
 from . import props
 from . import preset
 from . import ui
 
 
-modules = (ops, props, preset)
+modules = (ops, props, base, preset)
 
 
 def register():
