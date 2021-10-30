@@ -1,6 +1,7 @@
 # addon modules
 from . import ops
 from . import props
+from . import ui
 
 
 modules = (ops, props)

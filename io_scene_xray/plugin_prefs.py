@@ -9,17 +9,6 @@ from . import hotkeys
 from . import version_utils
 
 
-path_props_names = {
-    'fs_ltx_file': 'FS Ltx File',
-    'gamedata_folder': 'Gamedata Folder',
-    'textures_folder': 'Textures Folder',
-    'gamemtl_file': 'Game Materials File',
-    'eshader_file': 'Engine Shaders File',
-    'cshader_file': 'Compile Shaders File',
-    'objects_folder': 'Objects Folder'
-}
-
-
 class XRAY_addon_preferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
 
@@ -27,25 +16,6 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
         for prop_name, prop_value in prefs.props.plugin_preferences_props.items():
             exec('{0} = prefs.props.plugin_preferences_props.get("{0}")'.format(prop_name))
 
-    def get_split(self, layout):
-        return version_utils.layout_split(layout, 0.3)
-
-    def draw_path_prop(self, prop):
-        layout = self.layout
-        split = self.get_split(layout)
-        split.label(text=path_props_names[prop] + ':')
-        auto_prop = prefs.props.build_auto_id(prop)
-        if getattr(self, auto_prop) and not getattr(self, prop):
-            row = split.row(align=True)
-            row_prop = row.row(align=True)
-            row_prop.enabled = False
-            row_prop.prop(self, auto_prop, text='')
-            operator = row.operator(
-                prefs.ops.XRAY_OT_explicit_path.bl_idname, icon='MODIFIER', text=''
-            )
-            operator.path = prop
-        else:
-            split.prop(self, prop, text='')
 
     def draw(self, context):
 
@@ -62,15 +32,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
         layout.row().prop(self, 'category', expand=True)
 
         if self.category == 'PATHS':
-            split = self.get_split(layout)
-            split.label(text=path_props_names['fs_ltx_file'] + ':')
-            split.prop(self, 'fs_ltx_file', text='')
-            self.draw_path_prop('gamedata_folder')
-            self.draw_path_prop('textures_folder')
-            self.draw_path_prop('gamemtl_file')
-            self.draw_path_prop('eshader_file')
-            self.draw_path_prop('cshader_file')
-            self.draw_path_prop('objects_folder')
+            prefs.ui.draw_paths(self)
         elif self.category == 'DEFAULTS':
             layout.row().prop(self, 'defaults_category', expand=True)
             if self.defaults_category == 'OBJECT':
