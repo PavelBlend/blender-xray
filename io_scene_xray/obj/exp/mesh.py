@@ -160,8 +160,13 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
         use_split_normals = False
     else:
         use_split_normals = True
+    mods = [mod for mod in bpy_obj.modifiers if mod.type != 'ARMATURE' and mod.show_viewport]
     bm = utils.convert_object_to_space_bmesh(
-        bpy_obj, bpy_root.matrix_world, local=False, split_normals=use_split_normals
+        bpy_obj,
+        bpy_root.matrix_world,
+        local=False,
+        split_normals=use_split_normals,
+        mods=mods
     )
     bml = bm.verts.layers.deform.verify()
 

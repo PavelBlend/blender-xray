@@ -194,13 +194,13 @@ def fix_ensure_lookup_table(bmv):
         bmv.ensure_lookup_table()
 
 
-def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_normals=False):
+def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_normals=False, mods=None):
     mesh = bmesh.new()
-    armmods = [mod for mod in bpy_obj.modifiers if mod.type == 'ARMATURE' and mod.show_viewport]
+    temp_obj = None
     if split_normals and version_utils.IS_279:
         temp_mesh = bpy_obj.data.copy()
-        bpy_obj = bpy_obj.copy()
-        bpy_obj.data = temp_mesh
+        temp_obj = bpy_obj.copy()
+        temp_obj.data = temp_mesh
         # set sharp edges by face smoothing
         for polygon in temp_mesh.polygons:
             if polygon.use_smooth:
@@ -209,22 +209,30 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
                 loop = temp_mesh.loops[loop_index]
                 edge = temp_mesh.edges[loop.edge_index]
                 edge.use_edge_sharp = True
-        version_utils.link_object(bpy_obj)
-        version_utils.set_active_object(bpy_obj)
+        version_utils.link_object(temp_obj)
+        version_utils.set_active_object(temp_obj)
         bpy.ops.object.select_all(action='DESELECT')
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.set_normals_from_faces()
         bpy.ops.object.mode_set(mode='OBJECT')
-    try:
-        for mod in armmods:
-            mod.show_viewport = False
-        if version_utils.IS_28:
-            mesh.from_mesh(bpy_obj.data)
-        else:
-            mesh.from_mesh(bpy_obj.data)
-    finally:
-        for mod in armmods:
-            mod.show_viewport = True
+        exportable_obj = temp_obj
+    else:
+        exportable_obj = bpy_obj
+    if mods:
+        if not temp_obj:
+            temp_mesh = bpy_obj.data.copy()
+            temp_obj = bpy_obj.copy()
+            temp_obj.data = temp_mesh
+            version_utils.link_object(temp_obj)
+            version_utils.set_active_object(temp_obj)
+            exportable_obj = temp_obj
+        # apply modifiers
+        override = bpy.context.copy()
+        override['active_object'] = temp_obj
+        override['object'] = temp_obj
+        for mod in mods:
+            bpy.ops.object.modifier_apply(override, modifier=mod.name)
+    mesh.from_mesh(exportable_obj.data)
     if local:
         mat = mathutils.Matrix()
     else:
@@ -238,8 +246,8 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
     if need_flip:
         bmesh.ops.reverse_faces(mesh, faces=mesh.faces)  # flip normals
     fix_ensure_lookup_table(mesh.verts)
-    if split_normals and version_utils.IS_279:
-        bpy.data.objects.remove(bpy_obj)
+    if temp_obj:
+        bpy.data.objects.remove(temp_obj)
         bpy.data.meshes.remove(temp_mesh)
     return mesh
 
