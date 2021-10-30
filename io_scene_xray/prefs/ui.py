@@ -49,3 +49,35 @@ def draw_paths(prefs):
     draw_path_prop(prefs, 'eshader_file')
     draw_path_prop(prefs, 'cshader_file')
     draw_path_prop(prefs, 'objects_folder')
+
+
+def draw_operators_enable_disable(prefs):
+    layout = prefs.layout
+    row = layout.row()
+    # import operators
+    column_import = row.column()
+    column_import.label(text='Import Operators:')
+    column_import.prop(prefs, 'enable_object_import', text='*.object')
+    column_import.prop(prefs, 'enable_anm_import', text='*.anm')
+    column_import.prop(prefs, 'enable_dm_import', text='*.dm')
+    column_import.prop(prefs, 'enable_details_import', text='*.details')
+    column_import.prop(prefs, 'enable_skls_import', text='*.skls')
+    column_import.prop(prefs, 'enable_bones_import', text='*.bones')
+    column_import.prop(prefs, 'enable_level_import', text='*.level')
+    column_import.prop(prefs, 'enable_omf_import', text='*.omf')
+    column_import.prop(prefs, 'enable_game_level_import', text='level')
+    column_import.prop(prefs, 'enable_ogf_import', text='*.ogf')
+    column_import.prop(prefs, 'enable_err_import', text='*.err')
+    # export operators
+    column_export = row.column()
+    column_export.label(text='Export Operators:')
+    column_export.prop(prefs, 'enable_object_export', text='*.object')
+    column_export.prop(prefs, 'enable_anm_export', text='*.anm')
+    column_export.prop(prefs, 'enable_dm_export', text='*.dm')
+    column_export.prop(prefs, 'enable_details_export', text='*.details')
+    column_export.prop(prefs, 'enable_skls_export', text='*.skls')
+    column_export.prop(prefs, 'enable_bones_export', text='*.bones')
+    column_export.prop(prefs, 'enable_level_export', text='*.level')
+    column_export.prop(prefs, 'enable_omf_export', text='*.omf')
+    column_export.prop(prefs, 'enable_game_level_export', text='level')
+    column_export.prop(prefs, 'enable_ogf_export', text='*.ogf')

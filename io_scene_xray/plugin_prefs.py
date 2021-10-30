@@ -138,35 +138,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
                 box.prop(self, 'scene_selection_mesh_split_by_mat')
 
         elif self.category == 'PLUGINS':
-            row = layout.row()
-
-            column_1 = row.column()
-            column_2 = row.column()
-
-            column_1.label(text='Import Operators:')
-            column_1.prop(self, 'enable_object_import', text='*.object')
-            column_1.prop(self, 'enable_anm_import', text='*.anm')
-            column_1.prop(self, 'enable_dm_import', text='*.dm')
-            column_1.prop(self, 'enable_details_import', text='*.details')
-            column_1.prop(self, 'enable_skls_import', text='*.skls')
-            column_1.prop(self, 'enable_bones_import', text='*.bones')
-            column_1.prop(self, 'enable_level_import', text='*.level')
-            column_1.prop(self, 'enable_omf_import', text='*.omf')
-            column_1.prop(self, 'enable_game_level_import', text='level')
-            column_1.prop(self, 'enable_ogf_import', text='*.ogf')
-            column_1.prop(self, 'enable_err_import', text='*.err')
-
-            column_2.label(text='Export Operators:')
-            column_2.prop(self, 'enable_object_export', text='*.object')
-            column_2.prop(self, 'enable_anm_export', text='*.anm')
-            column_2.prop(self, 'enable_dm_export', text='*.dm')
-            column_2.prop(self, 'enable_details_export', text='*.details')
-            column_2.prop(self, 'enable_skls_export', text='*.skls')
-            column_2.prop(self, 'enable_bones_export', text='*.bones')
-            column_2.prop(self, 'enable_level_export', text='*.level')
-            column_2.prop(self, 'enable_omf_export', text='*.omf')
-            column_2.prop(self, 'enable_game_level_export', text='level')
-            column_2.prop(self, 'enable_ogf_export', text='*.ogf')
+            prefs.ui.draw_operators_enable_disable(self)
 
         elif self.category == 'KEYMAP':
             win_manager = context.window_manager
