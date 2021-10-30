@@ -16,10 +16,6 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
 
 
     def draw(self, context):
-
-        def prop_bool(layout, data, prop):
-            layout.prop(data, prop)
-
         layout = self.layout
 
         row = layout.row(align=True)
@@ -228,20 +224,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
                 draw_prop_name('Power:', 'action_power')
 
         elif self.category == 'OTHERS':
-            split = version_utils.layout_split(layout, 0.4)
-            split.label(text='Custom Owner Name:')
-            split.prop(self, 'custom_owner_name', text='')
-            prop_bool(layout, self, 'compact_menus')
-            box = layout.box()
-            box.label(text='Bone Shape Colors:')
-            row = box.row()
-            row.prop(self, 'gl_active_shape_color')
-            row = box.row()
-            row.prop(self, 'gl_select_shape_color')
-            row = box.row()
-            row.prop(self, 'gl_shape_color')
-            row = box.row()
-            row.prop(self, 'gl_object_mode_shape_color')
+            prefs.ui.draw_others(self)
 
         split = version_utils.layout_split(layout, 0.6)
         split.label(text='')

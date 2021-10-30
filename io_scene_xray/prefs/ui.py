@@ -23,6 +23,10 @@ def get_split(layout):
     return version_utils.layout_split(layout, 0.3)
 
 
+def prop_bool(layout, data, prop):
+    layout.prop(data, prop)
+
+
 def draw_path_prop(prefs, prop):
     layout = prefs.layout
     split = get_split(layout)
@@ -111,3 +115,21 @@ def draw_keymaps(context, prefs):
                     text='Add'
                 )
                 change_keymap_op.operator = operator.bl_idname
+
+
+def draw_others(prefs):
+    layout = prefs.layout
+    split = version_utils.layout_split(layout, 0.4)
+    split.label(text='Custom Owner Name:')
+    split.prop(prefs, 'custom_owner_name', text='')
+    prop_bool(layout, prefs, 'compact_menus')
+    box = layout.box()
+    box.label(text='Bone Shape Colors:')
+    row = box.row()
+    row.prop(prefs, 'gl_active_shape_color')
+    row = box.row()
+    row.prop(prefs, 'gl_select_shape_color')
+    row = box.row()
+    row.prop(prefs, 'gl_shape_color')
+    row = box.row()
+    row.prop(prefs, 'gl_object_mode_shape_color')
