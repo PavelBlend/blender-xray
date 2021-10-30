@@ -47,6 +47,13 @@ def draw_path_prop(prefs, prop):
         split.prop(prefs, prop, text='')
 
 
+def draw_prop_name(prefs, name, param):
+    layout = prefs.layout
+    row = layout.row()
+    row.label(text=name)
+    row.prop(prefs.custom_props, param, text='')
+
+
 def draw_paths(prefs):
     layout = prefs.layout
     split = get_split(layout)
@@ -115,6 +122,89 @@ def draw_keymaps(context, prefs):
                     text='Add'
                 )
                 change_keymap_op.operator = operator.bl_idname
+
+
+def draw_custom_props(prefs):
+    layout = prefs.layout
+    layout.row().prop(prefs.custom_props, 'category', expand=True)
+    # object
+    if prefs.custom_props.category == 'OBJECT':
+        draw_prop_name(prefs, 'Flags:', 'object_flags')
+        draw_prop_name(prefs, 'Userdata:', 'object_userdata')
+        draw_prop_name(prefs, 'LOD Reference:', 'object_lod_reference')
+        draw_prop_name(prefs, 'Owner Name:', 'object_owner_name')
+        draw_prop_name(prefs, 'Creation Time:', 'object_creation_time')
+        draw_prop_name(prefs, 'Modif Name:', 'object_modif_name')
+        draw_prop_name(prefs, 'Modified Time:', 'object_modified_time')
+        draw_prop_name(prefs, 'Motion References:', 'object_motion_references')
+    # mesh
+    elif prefs.custom_props.category == 'MESH':
+        draw_prop_name(prefs, 'Flags:', 'mesh_flags')
+    # material
+    elif prefs.custom_props.category == 'MATERIAL':
+        draw_prop_name(prefs, 'Two Sided:', 'material_two_sided')
+        draw_prop_name(prefs, 'Shader:', 'material_shader')
+        draw_prop_name(prefs, 'Compile:', 'material_compile')
+        draw_prop_name(prefs, 'Game Mtl:', 'material_game_mtl')
+    # bone
+    elif prefs.custom_props.category == 'BONE':
+        layout.row().prop(prefs.custom_props, 'bone_category', expand=True)
+        if prefs.custom_props.bone_category == 'MAIN':
+            draw_prop_name(prefs, 'Game Mtl:', 'bone_game_mtl')
+            draw_prop_name(prefs, 'Length:', 'bone_length')
+            # mass
+            draw_prop_name(prefs, 'Mass:', 'bone_mass')
+            draw_prop_name(prefs, 'Center of Mass:', 'bone_center_of_mass')
+            # other
+            draw_prop_name(prefs, 'Breakable Force:', 'bone_breakable_force')
+            draw_prop_name(prefs, 'Breakable Torque:', 'bone_breakable_torque')
+            draw_prop_name(prefs, 'Friction:', 'bone_friction')
+        elif prefs.custom_props.bone_category == 'SHAPE':
+            draw_prop_name(prefs, 'Shape Flags:', 'bone_shape_flags')
+            draw_prop_name(prefs, 'Shape Type:', 'bone_shape_type')
+            # box shape
+            draw_prop_name(prefs, 'Box Shape Rotation:', 'bone_box_shape_rotation')
+            draw_prop_name(prefs, 'Box Shape Translate:', 'bone_box_shape_translate')
+            draw_prop_name(prefs, 'Box Shape Half Size:', 'bone_box_shape_half_size')
+            # sphere shape
+            draw_prop_name(prefs, 'Sphere Shape Position:', 'bone_sphere_shape_position')
+            draw_prop_name(prefs, 'Sphere Shape Radius:', 'bone_sphere_shape_radius')
+            # cylinder shape
+            draw_prop_name(prefs, 'Cylinder Shape Position:', 'bone_cylinder_shape_position')
+            draw_prop_name(prefs, 'Cylinder Shape Direction:', 'bone_cylinder_shape_direction')
+            draw_prop_name(prefs, 'Cylinder Shape Hight:', 'bone_cylinder_shape_hight')
+            draw_prop_name(prefs, 'Cylinder Shape Radius:', 'bone_cylinder_shape_radius')
+        elif prefs.custom_props.bone_category == 'IK':
+            # ik
+            draw_prop_name(prefs, 'IK Joint Type:', 'bone_ik_joint_type')
+            draw_prop_name(prefs, 'IK Flags:', 'bone_ik_flags')
+            # limit
+            draw_prop_name(prefs, 'Limit X Min:', 'bone_limit_x_min')
+            draw_prop_name(prefs, 'Limit X Max:', 'bone_limit_x_max')
+            draw_prop_name(prefs, 'Limit Y Min:', 'bone_limit_y_min')
+            draw_prop_name(prefs, 'Limit Y Max:', 'bone_limit_y_max')
+            draw_prop_name(prefs, 'Limit Z Min:', 'bone_limit_z_min')
+            draw_prop_name(prefs, 'Limit Z Max:', 'bone_limit_z_max')
+            # spring
+            draw_prop_name(prefs, 'Limit X Spring:', 'bone_limit_x_spring')
+            draw_prop_name(prefs, 'Limit Y Spring:', 'bone_limit_y_spring')
+            draw_prop_name(prefs, 'Limit Z Spring:', 'bone_limit_z_spring')
+            # damping
+            draw_prop_name(prefs, 'Limit X Damping:', 'bone_limit_x_damping')
+            draw_prop_name(prefs, 'Limit Y Damping:', 'bone_limit_y_damping')
+            draw_prop_name(prefs, 'Limit Z Damping:', 'bone_limit_z_damping')
+            # spring and damping
+            draw_prop_name(prefs, 'Spring:', 'bone_spring')
+            draw_prop_name(prefs, 'Damping:', 'bone_damping')
+    # action
+    elif prefs.custom_props.category == 'ACTION':
+        draw_prop_name(prefs, 'FPS:', 'action_fps')
+        draw_prop_name(prefs, 'Speed:', 'action_speed')
+        draw_prop_name(prefs, 'Accrue:', 'action_accrue')
+        draw_prop_name(prefs, 'Falloff:', 'action_falloff')
+        draw_prop_name(prefs, 'Bone Part:', 'action_bone_part')
+        draw_prop_name(prefs, 'Flags:', 'action_flags')
+        draw_prop_name(prefs, 'Power:', 'action_power')
 
 
 def draw_others(prefs):
