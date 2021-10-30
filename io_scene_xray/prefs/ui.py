@@ -67,6 +67,112 @@ def draw_paths(prefs):
     draw_path_prop(prefs, 'objects_folder')
 
 
+def draw_defaults(prefs):
+    layout = prefs.layout
+    layout.row().prop(prefs, 'defaults_category', expand=True)
+    if prefs.defaults_category == 'OBJECT':
+        # import object props
+        box = layout.box()
+        box.label(text='Import:')
+        row = box.row()
+        row.label(text='SDK Version:')
+        row.prop(prefs, 'sdk_version', expand=True)
+        box.prop(prefs, 'object_motions_import')
+        box.prop(prefs, 'use_motion_prefix_name')
+        box.prop(prefs, 'object_mesh_split_by_mat')
+        # export object props
+        box = layout.box()
+        box.label(text='Export:')
+        row = box.row()
+        row.label(text='SDK Version:')
+        row.prop(prefs, 'export_object_sdk_version', expand=True)
+        row = box.row()
+        row.label(text='Smoothing:')
+        row.prop(prefs, 'smoothing_out_of', expand=True)
+        box.prop(prefs, 'object_motions_export')
+        box.prop(prefs, 'object_texture_names_from_path')
+        box.prop(prefs, 'export_object_use_export_paths')
+    elif prefs.defaults_category == 'ANM':
+        # import
+        box = layout.box()
+        box.label(text='Import:')
+        box.prop(prefs, 'anm_create_camera')
+        # export
+        box = layout.box()
+        box.label(text='Export:')
+        row = box.row()
+        row.label(text='Format Version:')
+        row.prop(prefs, 'anm_format_version', expand=True)
+    elif prefs.defaults_category == 'SKLS':
+        box = layout.box()
+        box.label(text='Import:')
+        box.prop(prefs, 'skls_use_motion_prefix_name')
+        box.prop(prefs, 'add_actions_to_motion_list')
+    elif prefs.defaults_category == 'BONES':
+        box = layout.box()
+        # import
+        box.label(text='Import:')
+        box.prop(prefs, 'bones_import_bone_parts')
+        box.prop(prefs, 'bones_import_bone_properties')
+        # export
+        box = layout.box()
+        box.label(text='Export:')
+        box.prop(prefs, 'bones_export_bone_parts')
+        box.prop(prefs, 'bones_export_bone_properties')
+    elif prefs.defaults_category == 'DETAILS':
+        box = layout.box()
+        # import
+        box.label(text='Import:')
+        box.prop(prefs, 'details_models_in_a_row')
+        box.prop(prefs, 'load_slots')
+        row = box.row()
+        row.label(text='Details Format:')
+        row.prop(prefs, 'details_format', expand=True)
+        # export
+        box = layout.box()
+        box.label(text='Export:')
+        box.prop(prefs, 'details_texture_names_from_path')
+        row = box.row()
+        row.label(text='Details Format:')
+        row.prop(prefs, 'format_version', expand=True)
+    elif prefs.defaults_category == 'DM':
+        box = layout.box()
+        box.label(text='Export:')
+        box.prop(prefs, 'dm_texture_names_from_path')
+    elif prefs.defaults_category == 'OGF':
+        # import
+        box = layout.box()
+        box.label(text='Import:')
+        box.prop(prefs, 'ogf_import_motions')
+        # export
+        box = layout.box()
+        box.label(text='Export:')
+        box.prop(prefs, 'ogf_texture_names_from_path')
+        box.prop(prefs, 'ogf_export_motions')
+    elif prefs.defaults_category == 'OMF':
+        box = layout.box()
+        # import
+        box.label(text='Import:')
+        box.prop(prefs, 'omf_import_motions')
+        box.prop(prefs, 'import_bone_parts')
+        box.prop(prefs, 'omf_add_actions_to_motion_list')
+        # export
+        box = layout.box()
+        box.label(text='Export:')
+        box.prop(prefs, 'omf_motions_export')
+        box.prop(prefs, 'omf_export_bone_parts')
+        row = box.row()
+        row.label(text='Export Mode:')
+        row.prop(prefs, 'omf_export_mode', expand=True)
+    elif prefs.defaults_category == 'SCENE':
+        box = layout.box()
+        box.label(text='Import:')
+        row = box.row()
+        row.label(text='SDK Version:')
+        row.prop(prefs, 'scene_selection_sdk_version', expand=True)
+        box.prop(prefs, 'scene_selection_mesh_split_by_mat')
+
+
 def draw_operators_enable_disable(prefs):
     layout = prefs.layout
     row = layout.row()
