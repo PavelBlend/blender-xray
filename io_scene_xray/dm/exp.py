@@ -24,7 +24,7 @@ def export(bpy_obj, packed_writer, context, file_path, mode='DM'):
     packed_writer.puts(bpy_material.xray.eshader)
     packed_writer.puts(tx_name)
     packed_writer.putf('<I', int(det_model.no_waving))
-    packed_writer.putf('<ff', det_model.min_scale, det_model.max_scale)
+    packed_writer.putf('<2f', det_model.min_scale, det_model.max_scale)
 
     if mode == 'DM':
         b_mesh = utils.convert_object_to_space_bmesh(

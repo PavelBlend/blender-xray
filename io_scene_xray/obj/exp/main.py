@@ -20,7 +20,7 @@ from ... import version_utils
 def export_version(chunked_writer):
     chunked_writer.put(
         fmt.Chunks.Object.VERSION,
-        xray_io.PackedWriter().putf('H', 0x10)
+        xray_io.PackedWriter().putf('<H', fmt.CURRENT_OBJECT_VERSION)
     )
 
 
@@ -41,9 +41,15 @@ def export_flags(chunked_writer, xray, some_arm):
             # set Dynamic flag
             # so that it is possible to export to ogf from ActorEditor
             flags = 1
+            log.warn(
+                text.warn.object_set_dynamic,
+                object=xray.id_data.name,
+                has_type=fmt.type_names[xray.flags_simple],
+                save_as=fmt.type_names[fmt.DY]
+            )
     chunked_writer.put(
         fmt.Chunks.Object.FLAGS,
-        xray_io.PackedWriter().putf('I', flags)
+        xray_io.PackedWriter().putf('<I', flags)
     )
 
 
@@ -305,7 +311,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
 
 def export_surfaces(chunked_writer, context, materials, uv_map_names):
     sfw = xray_io.PackedWriter()
-    sfw.putf('I', len(materials))
+    sfw.putf('<I', len(materials))
     for material in materials:
         sfw.puts(material.name)
         if hasattr(material, 'xray'):
@@ -365,10 +371,10 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
             slot = material.texture_slots[material.active_texture_index]
             sfw.puts(slot.uv_layer if slot else '')
         if hasattr(material, 'xray'):
-            sfw.putf('I', material.xray.flags)
+            sfw.putf('<I', material.xray.flags)
         else:
-            sfw.putf('I', 0)
-        sfw.putf('I', 0x112).putf('I', 1)
+            sfw.putf('<I', 0)
+        sfw.putf('<I', 0x112).putf('<I', 1)
     chunked_writer.put(fmt.Chunks.Object.SURFACES2, sfw)
 
 
@@ -445,10 +451,10 @@ def export_partitions(chunked_writer, some_arm):
         )
         if non_empty_groups:
             writer = xray_io.PackedWriter()
-            writer.putf('I', len(non_empty_groups))
+            writer.putf('<I', len(non_empty_groups))
             for name, bones in non_empty_groups:
                 writer.puts(name)
-                writer.putf('I', len(bones))
+                writer.putf('<I', len(bones))
                 for bone_ in bones:
                     writer.puts(bone_.lower())
             chunked_writer.put(fmt.Chunks.Object.PARTITIONS1, writer)
@@ -470,7 +476,7 @@ def export_motion_refs(chunked_writer, xray, context):
             )
         else:
             writer = xray_io.PackedWriter()
-            writer.putf('I', len(motionrefs))
+            writer.putf('<I', len(motionrefs))
             for ref in motionrefs:
                 writer.puts(ref.name)
             chunked_writer.put(fmt.Chunks.Object.SMOTIONS3, writer)
@@ -494,9 +500,9 @@ def export_revision(chunked_writer, xray):
     owner, ctime, moder, mtime = utils.get_revision_data(xray.revision)
     writer = xray_io.PackedWriter()
     writer.puts(owner)
-    writer.putf('I', ctime)
+    writer.putf('<I', ctime)
     writer.puts(moder)
-    writer.putf('I', mtime)
+    writer.putf('<I', mtime)
     chunked_writer.put(fmt.Chunks.Object.REVISION, writer)
 
 

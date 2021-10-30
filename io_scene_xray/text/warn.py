@@ -26,6 +26,7 @@ object_bone_plugin_ver = 'bone edited with a different version of this plugin'
 object_merged = 'mesh-objects have been merged'
 object_no_action = 'cannot find action'
 object_legacy_motionrefs = 'skipped motion references legacy data'
+object_set_dynamic = 'skeletal object has wrong type. Object type written as Dynamic'
 # object export mesh
 object_sg_smooth = 'Maya-SG incompatible: smooth edge adjacents has different smoothing group'
 object_sg_sharp = 'Maya-SG incompatible: sharp edge adjacents has same smoothing group'

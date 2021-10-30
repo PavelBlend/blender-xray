@@ -504,8 +504,8 @@ def import_vcontainer(data):
 
 
 def read_indices(packed_reader):
-    indices_count = packed_reader.getf('I')[0]
-    indices_buffer = packed_reader.getf('{0}H'.format(indices_count))
+    indices_count = packed_reader.getf('<I')[0]
+    indices_buffer = packed_reader.getf('<{0}H'.format(indices_count))
     return indices_buffer, indices_count
 
 
@@ -517,9 +517,9 @@ def import_indices(chunks, ogf_chunks, visual):
 
 def read_indices_v3(data, visual):
     packed_reader = xray_io.PackedReader(data)
-    indices_count = packed_reader.getf('I')[0]
+    indices_count = packed_reader.getf('<I')[0]
     visual.indices_count = indices_count
-    visual.indices = [packed_reader.getf('H')[0] for i in range(indices_count)]
+    visual.indices = [packed_reader.getf('<H')[0] for i in range(indices_count)]
 
 
 def read_vertices_v3(data, visual, lvl):
@@ -716,7 +716,7 @@ def check_unread_chunks(chunks, context=''):
 def import_children_l(data, visual, lvl, visual_type):
     packed_reader = xray_io.PackedReader(data)
     hierrarhy_visual = HierrarhyVisual()
-    hierrarhy_visual.children_count = packed_reader.getf('I')[0]
+    hierrarhy_visual.children_count = packed_reader.getf('<I')[0]
     hierrarhy_visual.index = visual.visual_id
     hierrarhy_visual.visual_type = visual_type
 
@@ -729,7 +729,7 @@ def import_children_l(data, visual, lvl, visual_type):
         raise BaseException('Bad OGF CHILDREN_L data')
 
     for child_index in range(hierrarhy_visual.children_count):
-        child = packed_reader.getf(child_format)[0]
+        child = packed_reader.getf('<' + child_format)[0]
         hierrarhy_visual.children.append(child)
 
     lvl.hierrarhy_visuals.append(hierrarhy_visual)
@@ -769,23 +769,23 @@ def import_hierrarhy_visual(chunks, visual, lvl):
 def read_bbox_v3(data):
     packed_reader = xray_io.PackedReader(data)
 
-    bbox_min = packed_reader.getf('3f')
-    bbox_max = packed_reader.getf('3f')
+    bbox_min = packed_reader.getf('<3f')
+    bbox_max = packed_reader.getf('<3f')
 
 
 def read_bsphere_v3(data):
     packed_reader = xray_io.PackedReader(data)
 
-    center = packed_reader.getf('3f')
-    radius = packed_reader.getf('f')[0]
+    center = packed_reader.getf('<3f')
+    radius = packed_reader.getf('<f')[0]
 
 
 def read_container_v3(data):
     packed_reader = xray_io.PackedReader(data)
 
-    buffer_index = packed_reader.getf('I')[0]
-    buffer_offset = packed_reader.getf('I')[0]
-    buffer_size = packed_reader.getf('I')[0]
+    buffer_index = packed_reader.getf('<I')[0]
+    buffer_offset = packed_reader.getf('<I')[0]
+    buffer_size = packed_reader.getf('<I')[0]
 
     return buffer_index, buffer_offset, buffer_size
 
@@ -896,12 +896,12 @@ def ogf_color(lvl, packed_reader, bpy_obj, mode='SCALE'):
     xray_level = bpy_obj.xray.level
 
     if lvl.xrlc_version >= level.fmt.VERSION_11:
-        rgb = packed_reader.getf('3f')
-        hemi = packed_reader.getf('f')[0]
-        sun = packed_reader.getf('f')[0]
+        rgb = packed_reader.getf('<3f')
+        hemi = packed_reader.getf('<f')[0]
+        sun = packed_reader.getf('<f')[0]
     else:
-        rgb = packed_reader.getf('3f')
-        hemi = packed_reader.getf('f')[0]    # unkonwn
+        rgb = packed_reader.getf('<3f')
+        hemi = packed_reader.getf('<f')[0]    # unkonwn
         sun = 1.0
 
     if mode == 'SCALE':
@@ -929,7 +929,7 @@ def import_tree_def_2(lvl, visual, chunks, bpy_object):
     packed_reader = xray_io.PackedReader(tree_def_2_data)
     del tree_def_2_data
 
-    tree_xform = packed_reader.getf('16f')
+    tree_xform = packed_reader.getf('<16f')
     ogf_color(lvl, packed_reader, bpy_object, mode='SCALE')    # c_scale
     ogf_color(lvl, packed_reader, bpy_object, mode='BIAS')    # c_bias
 
@@ -1007,7 +1007,7 @@ def import_swicontainer(chunks):
     swicontainer_data = chunks.pop(fmt.Chunks_v4.SWICONTAINER)
     packed_reader = xray_io.PackedReader(swicontainer_data)
     del swicontainer_data
-    swi_index = packed_reader.getf('I')[0]
+    swi_index = packed_reader.getf('<I')[0]
     return swi_index
 
 
@@ -1193,8 +1193,8 @@ def import_model_v4(chunks, visual, lvl):
 
 def import_texture_and_shader_v3(visual, lvl, data):
     packed_reader = xray_io.PackedReader(data)
-    visual.texture_id = packed_reader.getf('I')[0]
-    visual.shader_id = packed_reader.getf('I')[0]
+    visual.texture_id = packed_reader.getf('<I')[0]
+    visual.shader_id = packed_reader.getf('<I')[0]
 
 
 def import_model_v3(chunks, visual, lvl):

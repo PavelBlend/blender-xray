@@ -178,12 +178,12 @@ def import_vertex_buffer_declaration(packed_reader):
     usage_list = []
 
     while True:
-        stream = packed_reader.getf('H')[0]             # ?
-        offset = packed_reader.getf('H')[0]
-        type_ = packed_reader.getf('B')[0]
-        method = packed_reader.getf('B')[0]             # ?
-        usage = packed_reader.getf('B')[0]
-        usage_index = packed_reader.getf('B')[0]
+        stream = packed_reader.getf('<H')[0]             # ?
+        offset = packed_reader.getf('<H')[0]
+        type_ = packed_reader.getf('<B')[0]
+        method = packed_reader.getf('<B')[0]             # ?
+        usage = packed_reader.getf('<B')[0]
+        usage_index = packed_reader.getf('<B')[0]
 
         if fmt.types[type_] == fmt.UNUSED:
             break
@@ -204,7 +204,7 @@ def import_vertex_buffer(packed_reader, level):
     if level.xrlc_version >= fmt.VERSION_9:
         usage_list = import_vertex_buffer_declaration(packed_reader)
         vertex_buffer = VertexBuffer()
-        vertices_count = packed_reader.getf('I')[0]
+        vertices_count = packed_reader.getf('<I')[0]
         import_vertices(
             level.xrlc_version,
             packed_reader,
@@ -218,8 +218,8 @@ def import_vertex_buffer(packed_reader, level):
 
 def import_vertex_buffer_d3d7(packed_reader, level):
     if level.xrlc_version <= fmt.VERSION_9:
-        vertex_format = packed_reader.getf('I')[0]
-        vertices_count = packed_reader.getf('I')[0]
+        vertex_format = packed_reader.getf('<I')[0]
+        vertices_count = packed_reader.getf('<I')[0]
         vertex_buffer = VertexBuffer()
         import_vertices_d3d7(
             level,

@@ -95,42 +95,42 @@ class Motion:
 def get_motion_params(data):
     packed_reader = xray_io.PackedReader(data)
     bone_parts = BoneParts()
-    bone_parts.version = packed_reader.getf('H')[0]
-    bone_parts.count = packed_reader.getf('H')[0]
+    bone_parts.version = packed_reader.getf('<H')[0]
+    bone_parts.count = packed_reader.getf('<H')[0]
     for partition_index in range(bone_parts.count):
         bonepart = BonePart()
         bonepart.name = packed_reader.gets()
-        bonepart.bones_count = packed_reader.getf('H')[0]
+        bonepart.bones_count = packed_reader.getf('<H')[0]
         for bone_index in range(bonepart.bones_count):
             bone = Bone()
             if bone_parts.version == 1:
-                bone.index = packed_reader.getf('I')[0]
+                bone.index = packed_reader.getf('<I')[0]
             elif bone_parts.version == 2:
                 bone.name = packed_reader.gets()
             elif bone_parts.version in (3, 4):
                 bone.name = packed_reader.gets()
-                bone.index = packed_reader.getf('I')[0]
+                bone.index = packed_reader.getf('<I')[0]
             else:
                 raise BaseException('Unknown params version')
             bonepart.bones.append(bone)
         bone_parts.items.append(bonepart)
     motions_params = {}
-    motion_count = packed_reader.getf('H')[0]
+    motion_count = packed_reader.getf('<H')[0]
     for motion_index in range(motion_count):
         motion = Motion()
         motion.name = packed_reader.gets()
         motion.writer.data.extend(packed_reader.getb(24))
         if bone_parts.version == 4:
-            num_marks = packed_reader.getf('I')[0]
-            motion.writer.data.append(struct.pack('I', num_marks))
+            num_marks = packed_reader.getf('<I')[0]
+            motion.writer.data.append(struct.pack('<I', num_marks))
             for mark_index in range(num_marks):
                 mark_name = packed_reader.gets_a()
-                mark_count = packed_reader.getf('I')[0]
+                mark_count = packed_reader.getf('<I')[0]
                 motion.writer.data.append(struct.pack(
-                    '{}s'.format(len(mark_name)), mark_name
+                    '<{}s'.format(len(mark_name)), mark_name
                 ))
                 motion.writer.data.append(0xa)    # end string
-                motion.writer.data.append(struct.pack('I', mark_count))
+                motion.writer.data.append(struct.pack('<I', mark_count))
                 motion.writer.data.append(packed_reader.getb(8 * mark_count))
         motions_params[motion.name] = motion
     return bone_parts, motions_params
@@ -148,40 +148,40 @@ def get_motions(context):
         name = packed_reader.gets()
         motion_names.append(name)
         packed_writer.puts(name)
-        length = packed_reader.getf('I')[0]
+        length = packed_reader.getf('<I')[0]
         packed_writer.putf('I', length)
         for bone_index in range(len(context.bpy_arm_obj.data.bones)):
-            flags = packed_reader.getf('B')[0]
+            flags = packed_reader.getf('<B')[0]
             t_present = flags & fmt.FL_T_KEY_PRESENT
             r_absent = flags & fmt.FL_R_KEY_ABSENT
             hq = flags & fmt.KPF_T_HQ
-            packed_writer.putf('B', flags)
+            packed_writer.putf('<B', flags)
             if r_absent:
-                quaternion = packed_reader.getf('4h')
-                packed_writer.putf('4h', *quaternion)
+                quaternion = packed_reader.getf('<4h')
+                packed_writer.putf('<4h', *quaternion)
             else:
-                motion_crc32 = packed_reader.getf('I')[0]
-                packed_writer.putf('I', motion_crc32)
+                motion_crc32 = packed_reader.getf('<I')[0]
+                packed_writer.putf('<I', motion_crc32)
                 for key_index in range(length):
-                    quaternion = packed_reader.getf('4h')
-                    packed_writer.putf('4h', *quaternion)
+                    quaternion = packed_reader.getf('<4h')
+                    packed_writer.putf('<4h', *quaternion)
             if t_present:
-                motion_crc32 = packed_reader.getf('I')[0]
-                packed_writer.putf('I', motion_crc32)
+                motion_crc32 = packed_reader.getf('<I')[0]
+                packed_writer.putf('<I', motion_crc32)
                 if hq:
                     translate_format = '3h'
                 else:
                     translate_format = '3b'
                 for key_index in range(length):
-                    translate = packed_reader.getf(translate_format)
+                    translate = packed_reader.getf('<' + translate_format)
                     packed_writer.putf(translate_format, *translate)
-                t_size = packed_reader.getf('3f')
-                packed_writer.putf('3f', *t_size)
-                t_init = packed_reader.getf('3f')
-                packed_writer.putf('3f', *t_init)
+                t_size = packed_reader.getf('<3f')
+                packed_writer.putf('<3f', *t_size)
+                t_init = packed_reader.getf('<3f')
+                packed_writer.putf('<3f', *t_init)
             else:
-                translate = packed_reader.getf('3f')
-                packed_writer.putf('3f', *translate)
+                translate = packed_reader.getf('<3f')
+                packed_writer.putf('<3f', *translate)
         motions[name] = (packed_writer, chunk_id)
     return motions, motion_names, chunks
 
@@ -192,15 +192,15 @@ def write_motion(context, packed_writer, motion_name, motion_params):
         motion_name = context.motion_export_names[motion_name]
     packed_writer.puts(motion_name)
     motion_flags = get_flags(action.xray)
-    packed_writer.putf('I', motion_flags)
+    packed_writer.putf('<I', motion_flags)
     bone_or_part = action.xray.bonepart
-    packed_writer.putf('H', bone_or_part)
+    packed_writer.putf('<H', bone_or_part)
     motion = motion_params[0]
-    packed_writer.putf('H', motion)
-    packed_writer.putf('f', action.xray.speed)
-    packed_writer.putf('f', action.xray.power)
-    packed_writer.putf('f', action.xray.accrue)
-    packed_writer.putf('f', action.xray.falloff)
+    packed_writer.putf('<H', motion)
+    packed_writer.putf('<f', action.xray.speed)
+    packed_writer.putf('<f', action.xray.power)
+    packed_writer.putf('<f', action.xray.accrue)
+    packed_writer.putf('<f', action.xray.falloff)
 
 
 def write_motions(context, packed_writer, motions):
@@ -283,7 +283,7 @@ def export_omf(context):
             motion_count += 1
     chunked_writer = xray_io.ChunkedWriter()
     packed_writer = xray_io.PackedWriter()
-    packed_writer.putf('I', motion_count)
+    packed_writer.putf('<I', motion_count)
     chunked_writer.put(fmt.MOTIONS_COUNT_CHUNK, packed_writer)
     chunk_id = fmt.MOTIONS_COUNT_CHUNK + 1
     context.bpy_arm_obj.animation_data_create()
@@ -321,7 +321,7 @@ def export_omf(context):
             motion_name = context.motion_export_names[motion_name]
         packed_writer.puts(motion_name)
         length = int(action.frame_range[1] - action.frame_range[0] + 1)
-        packed_writer.putf('I', length)
+        packed_writer.putf('<I', length)
         bone_matrices = {}
         xmatrices = {}
         min_trns = {}
@@ -380,24 +380,24 @@ def export_omf(context):
             if tr_size.length > 0.000001:
                 flags |= fmt.FL_T_KEY_PRESENT
             if len(set(quaternions)) != 1:
-                packed_writer.putf('B', flags)
+                packed_writer.putf('<B', flags)
                 motion_crc32 = 0x0    # temp value
-                packed_writer.putf('I', motion_crc32)
+                packed_writer.putf('<I', motion_crc32)
                 for y, z, q, x in quaternions:
-                    packed_writer.putf('4h', y, z, q, x)
+                    packed_writer.putf('<4h', y, z, q, x)
             else:
                 flags |= fmt.FL_R_KEY_ABSENT
-                packed_writer.putf('B', flags)
-                packed_writer.putf('4h', *quaternions[0])
+                packed_writer.putf('<B', flags)
+                packed_writer.putf('<4h', *quaternions[0])
             if flags & fmt.FL_T_KEY_PRESENT:
                 motion_crc32 = 0x0    # temp value
-                packed_writer.putf('I', motion_crc32)
+                packed_writer.putf('<I', motion_crc32)
                 for translate in translations:
-                    packed_writer.putf('3b', *translate)
-                packed_writer.putf('3f', *tr_size)
-                packed_writer.putf('3f', *tr_init)
+                    packed_writer.putf('<3b', *translate)
+                packed_writer.putf('<3f', *tr_size)
+                packed_writer.putf('<3f', *tr_init)
             else:
-                packed_writer.putf('3f', *translate_float)
+                packed_writer.putf('<3f', *translate_float)
         chunked_writer.put(chunk_id, packed_writer)
         chunk_id += 1
     main_chunked_writer = xray_io.ChunkedWriter()
@@ -412,9 +412,9 @@ def export_omf(context):
     packed_writer = xray_io.PackedWriter()
     if not available_boneparts:
         partition_version = 3
-        packed_writer.putf('H', partition_version)
+        packed_writer.putf('<H', partition_version)
         partitions_count = len(bone_groups)
-        packed_writer.putf('H', partitions_count)
+        packed_writer.putf('<H', partitions_count)
         for bone_group in context.bpy_arm_obj.pose.bone_groups:
             partition_name = bone_group.name
             bones = bone_groups.get(partition_name, None)
@@ -422,26 +422,26 @@ def export_omf(context):
                 continue
             packed_writer.puts(partition_name)
             bones_count = len(bones)
-            packed_writer.putf('H', bones_count)
+            packed_writer.putf('<H', bones_count)
             for bone_name, bone_index in bones:
                 packed_writer.puts(bone_name)
-                packed_writer.putf('I', bone_index)
+                packed_writer.putf('<I', bone_index)
     else:
-        packed_writer.putf('H', available_boneparts.version)
-        packed_writer.putf('H', available_boneparts.count)
+        packed_writer.putf('<H', available_boneparts.version)
+        packed_writer.putf('<H', available_boneparts.count)
         for bonepart in available_boneparts.items:
             packed_writer.puts(bonepart.name)
-            packed_writer.putf('H', bonepart.bones_count)
+            packed_writer.putf('<H', bonepart.bones_count)
             for bone in bonepart.bones:
                 packed_writer.puts(bone.name)
-                packed_writer.putf('I', bone.index)
+                packed_writer.putf('<I', bone.index)
     if not available_params:
-        packed_writer.putf('H', motion_count)
+        packed_writer.putf('<H', motion_count)
         write_motions(context, packed_writer, motions)
         main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
     else:
         if context.export_mode == 'ADD':
-            packed_writer.putf('H', len(available_params) + new_motions_count)
+            packed_writer.putf('<H', len(available_params) + new_motions_count)
             for motion_name, motion_params in available_params.items():
                 packed_writer.puts(motion_name)
                 packed_writer.putp(motion_params.writer)
@@ -452,7 +452,7 @@ def export_omf(context):
             write_motions(context, packed_writer, motions_new)
         elif context.export_mode == 'REPLACE':
             if context.export_motions:
-                packed_writer.putf('H', len(available_params) + new_motions_count)
+                packed_writer.putf('<H', len(available_params) + new_motions_count)
                 for motion_name, motion_params in available_params.items():
                     motion_id, has_available = motions.get(motion_name, None)
                     if has_available:
@@ -469,7 +469,7 @@ def export_omf(context):
                         motions_new[motion_name] = (motion_id, has_available)
                 write_motions(context, packed_writer, motions_new)
             else:
-                packed_writer.putf('H', len(available_params))
+                packed_writer.putf('<H', len(available_params))
                 for motion_name, motion_params in available_params.items():
                     packed_writer.puts(motion_name)
                     packed_writer.putp(motion_params.writer)

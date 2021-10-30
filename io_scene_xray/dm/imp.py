@@ -37,7 +37,7 @@ def import_(
     det_model.mesh.bpy_material = bpy_material
 
     flags, min_scale, max_scale, verts_cnt, indices_cnt = packed_reader.getf(
-        '<IffII'
+        '<I2f2I'
     )
 
     det_model.mesh.vertices_count = verts_cnt

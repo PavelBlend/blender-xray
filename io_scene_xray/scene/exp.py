@@ -9,7 +9,7 @@ from .. import utils
 
 def write_objects_count(chunked_writer, bpy_objs):
     packed_writer = xray_io.PackedWriter()
-    packed_writer.putf('I', len(bpy_objs))
+    packed_writer.putf('<I', len(bpy_objs))
     chunked_writer.put(fmt.Chunks.OBJECTS_COUNT_CHUNK, packed_writer)
 
 
@@ -17,7 +17,7 @@ def write_object_body(chunked_writer, bpy_obj):
     body_chunked_writer = xray_io.ChunkedWriter()
 
     packed_reader = xray_io.PackedWriter()
-    packed_reader.putf('I', 3)   # flags
+    packed_reader.putf('<I', 3)   # flags
     body_chunked_writer.put(fmt.Chunks.CUSTOMOBJECT_CHUNK_FLAGS, packed_reader)
 
     if bpy_obj.xray.export_path:
@@ -37,30 +37,30 @@ def write_object_body(chunked_writer, bpy_obj):
     body_chunked_writer.put(fmt.Chunks.CUSTOMOBJECT_CHUNK_NAME, packed_reader)
 
     packed_reader = xray_io.PackedWriter()
-    packed_reader.putf('3f', bpy_obj.location[0], bpy_obj.location[2], bpy_obj.location[1])
+    packed_reader.putf('<3f', bpy_obj.location[0], bpy_obj.location[2], bpy_obj.location[1])
     rotation_matrix = bpy_obj.rotation_euler.to_matrix()
     rotation_euler = rotation_matrix.to_euler('YXZ')
     packed_reader.putf(
-        '3f',
+        '<3f',
         rotation_euler.x,
         rotation_euler.z,
         rotation_euler.y
     )
-    packed_reader.putf('3f', bpy_obj.scale[0], bpy_obj.scale[2], bpy_obj.scale[1])
+    packed_reader.putf('<3f', bpy_obj.scale[0], bpy_obj.scale[2], bpy_obj.scale[1])
     body_chunked_writer.put(fmt.Chunks.CUSTOMOBJECT_CHUNK_TRANSFORM, packed_reader)
 
     packed_reader = xray_io.PackedWriter()
-    packed_reader.putf('H', fmt.SCENEOBJ_VERSION_SOC)
+    packed_reader.putf('<H', fmt.SCENEOBJ_VERSION_SOC)
     body_chunked_writer.put(fmt.Chunks.SCENEOBJ_CHUNK_VERSION, packed_reader)
 
     packed_reader = xray_io.PackedWriter()
-    packed_reader.putf('I', 0)    # version
-    packed_reader.putf('I', 0)    # reserved
+    packed_reader.putf('<I', 0)    # version
+    packed_reader.putf('<I', 0)    # reserved
     packed_reader.puts(object_name)
     body_chunked_writer.put(fmt.Chunks.SCENEOBJ_CHUNK_REFERENCE, packed_reader)
 
     packed_reader = xray_io.PackedWriter()
-    packed_reader.putf('I', 0)
+    packed_reader.putf('<I', 0)
     body_chunked_writer.put(fmt.Chunks.SCENEOBJ_CHUNK_FLAGS, packed_reader)
 
     chunked_writer.put(fmt.Chunks.CHUNK_OBJECT_BODY, body_chunked_writer)
@@ -68,7 +68,7 @@ def write_object_body(chunked_writer, bpy_obj):
 
 def write_object_class(chunked_writer):
     packed_writer = xray_io.PackedWriter()
-    packed_writer.putf('I', 2)    # object class
+    packed_writer.putf('<I', 2)    # object class
     chunked_writer.put(fmt.Chunks.CHUNK_OBJECT_CLASS, packed_writer)
 
 
@@ -91,7 +91,7 @@ def write_scene_objects(chunked_writer, bpy_objs):
 
 def write_object_tools_version(chunked_writer):
     packed_writer = xray_io.PackedWriter()
-    packed_writer.putf('H', fmt.OBJECT_TOOLS_VERSION)
+    packed_writer.putf('<H', fmt.OBJECT_TOOLS_VERSION)
     chunked_writer.put(fmt.Chunks.SCENE_VERSION_CHUNK, packed_writer)
 
 
@@ -105,7 +105,7 @@ def write_objects(root_chunked_writer, bpy_objs):
 
 def write_header(chunked_writer):
     packed_writer = xray_io.PackedWriter()
-    packed_writer.putf('I', fmt.FORMAT_VERSION)
+    packed_writer.putf('<I', fmt.FORMAT_VERSION)
     chunked_writer.put(fmt.Chunks.VERSION_CHUNK, packed_writer)
 
 

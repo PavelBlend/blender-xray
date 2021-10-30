@@ -59,7 +59,9 @@ def _export_sg_soc(bmfaces):
 
 
 def export_version(cw):
-    cw.put(fmt.Chunks.Mesh.VERSION, xray_io.PackedWriter().putf('H', 0x11))
+    packed_writer = xray_io.PackedWriter()
+    packed_writer.putf('<H', fmt.CURRENT_MESH_VERSION)
+    cw.put(fmt.Chunks.Mesh.VERSION, packed_writer)
 
 
 def export_mesh_name(cw, bpy_obj, bpy_root):
@@ -83,10 +85,10 @@ def export_flags(cw, bpy_obj):
         flags = bpy_obj.data.xray.flags & ~fmt.Chunks.Mesh.Flags.SG_MASK
         cw.put(
             fmt.Chunks.Mesh.FLAGS,
-            xray_io.PackedWriter().putf('B', flags)
+            xray_io.PackedWriter().putf('<B', flags)
         )
     else:
-        cw.put(fmt.Chunks.Mesh.FLAGS, xray_io.PackedWriter().putf('B', 1))
+        cw.put(fmt.Chunks.Mesh.FLAGS, xray_io.PackedWriter().putf('<B', 1))
 
 
 def remove_bad_geometry(bm, bml, bpy_obj):
@@ -117,7 +119,7 @@ def remove_bad_geometry(bm, bml, bpy_obj):
 
 def export_vertices(cw, bm):
     writer = xray_io.PackedWriter()
-    writer.putf('I', len(bm.verts))
+    writer.putf('<I', len(bm.verts))
     for vertex in bm.verts:
         writer.putv3f(vertex.co)
     cw.put(fmt.Chunks.Mesh.VERTS, writer)
@@ -135,10 +137,10 @@ def export_faces(cw, bm, bpy_obj):
         )
 
     writer = xray_io.PackedWriter()
-    writer.putf('I', len(bm.faces))
+    writer.putf('<I', len(bm.faces))
     for fidx in bm.faces:
         for i in (0, 2, 1):
-            writer.putf('II', fidx.verts[i].index, len(uvs))
+            writer.putf('<2I', fidx.verts[i].index, len(uvs))
             uvc = fidx.loops[i][uv_layer].uv
             uvs.append((uvc[0], 1 - uvc[1]))
             vtx.append(fidx.verts[i].index)
@@ -208,13 +210,13 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
             wmap[0].append(vidx)
 
     writer = xray_io.PackedWriter()
-    writer.putf('I', len(uvs))
+    writer.putf('<I', len(uvs))
     for i in range(len(uvs)):
         vidx = vtx[i]
         wref = wrefs[vidx]
-        writer.putf('B', 1 + len(wref)).putf('II', 0, i)
+        writer.putf('<B', 1 + len(wref)).putf('<2I', 0, i)
         for ref in wref:
-            writer.putf('II', *ref)
+            writer.putf('<2I', *ref)
     cw.put(fmt.Chunks.Mesh.VMREFS, writer)
 
     writer = xray_io.PackedWriter()
@@ -248,15 +250,15 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
             text.error.obj_no_mat,
             log.props(object=bpy_obj.name)
         )
-    writer.putf('H', len(used_material_names))
+    writer.putf('<H', len(used_material_names))
     for mat_name, mat_data in materials.items():
         if mat_name in used_material_names:
             faces_count = sum(mat_data['faces_count'])
-            writer.puts(mat_name).putf('I', faces_count)
+            writer.puts(mat_name).putf('<I', faces_count)
             for mat_id in mat_data['materials_ids']:
                 fidxs = sfaces[(mat_name, mat_id)]
                 for fidx in fidxs:
-                    writer.putf('I', fidx)
+                    writer.putf('<I', fidx)
     cw.put(fmt.Chunks.Mesh.SFACE, writer)
 
     writer = xray_io.PackedWriter()
@@ -270,33 +272,33 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
     else:
         sgroups = _export_sg_new(bm.faces)
     for sgroup in sgroups:
-        writer.putf('I', sgroup)
+        writer.putf('<I', sgroup)
     cw.put(fmt.Chunks.Mesh.SG, writer)
 
     writer = xray_io.PackedWriter()
-    writer.putf('I', 1 + wmaps_cnt)
+    writer.putf('<I', 1 + wmaps_cnt)
     if version_utils.IS_28:
         texture = bpy_obj.data.uv_layers.active
     else:
         texture = bpy_obj.data.uv_textures.active
-    writer.puts(texture.name).putf('B', 2).putf('B', 1).putf('B', 0)
-    writer.putf('I', len(uvs))
+    writer.puts(texture.name).putf('<B', 2).putf('<B', 1).putf('<B', 0)
+    writer.putf('<I', len(uvs))
     for uvc in uvs:
-        writer.putf('ff', *uvc)
+        writer.putf('<2f', *uvc)
     for vidx in vtx:
-        writer.putf('I', vidx)
+        writer.putf('<I', vidx)
     for fidx in fcs:
-        writer.putf('I', fidx)
+        writer.putf('<I', fidx)
     for vgi, vertex_group in enumerate(bpy_obj.vertex_groups):
         wmap = wmaps[vgi]
         if wmap is None:
             continue
         vtx = wmap[0]
         writer.puts(vertex_group.name.lower())
-        writer.putf('B', 1).putf('B', 0).putf('B', 1)
-        writer.putf('I', len(vtx))
+        writer.putf('<B', 1).putf('<B', 0).putf('<B', 1)
+        writer.putf('<I', len(vtx))
         for vidx in vtx:
-            writer.putf('f', bm.verts[vidx][bml][vgi])
-        writer.putf(str(len(vtx)) + 'I', *vtx)
+            writer.putf('<f', bm.verts[vidx][bml][vgi])
+        writer.putf('<' + str(len(vtx)) + 'I', *vtx)
     cw.put(fmt.Chunks.Mesh.VMAPS2, writer)
     return used_material_names

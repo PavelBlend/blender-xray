@@ -32,8 +32,8 @@ def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
 
 @log.with_context(name='mesh')
 def import_mesh(context, creader, renamemap):
-    ver = creader.nextf(fmt.Chunks.Mesh.VERSION, 'H')[0]
-    if ver != 0x11:
+    ver = creader.nextf(fmt.Chunks.Mesh.VERSION, '<H')[0]
+    if ver != fmt.CURRENT_MESH_VERSION:
         raise utils.AppError(
             text.error.object_unsupport_mesh_ver,
             log.props(version=ver)
@@ -60,7 +60,7 @@ def import_mesh(context, creader, renamemap):
             reader = xray_io.PackedReader(data)
             vt_data = [reader.getv3fp() for _ in range(reader.int())]
         elif cid == fmt.Chunks.Mesh.FACES:
-            s_6i = xray_io.PackedReader.prep('IIIIII')
+            s_6i = xray_io.PackedReader.prep('6I')
             reader = xray_io.PackedReader(data)
             count = reader.int()
             fc_data = [reader.getp(s_6i) for _ in range(count)]
@@ -91,11 +91,11 @@ def import_mesh(context, creader, renamemap):
             face_sg = face_sg_impl
         elif cid == fmt.Chunks.Mesh.SFACE:
             reader = xray_io.PackedReader(data)
-            for _ in range(reader.getf('H')[0]):
+            for _ in range(reader.getf('<H')[0]):
                 name = reader.gets()
                 s_faces.append((name, reader.getb(reader.int() * 4).cast('I')))
         elif cid == fmt.Chunks.Mesh.VMREFS:
-            s_ii = xray_io.PackedReader.prep('II')
+            s_ii = xray_io.PackedReader.prep('2I')
 
             def read_vmref(reader):
                 count = reader.byte()
@@ -169,13 +169,13 @@ def import_mesh(context, creader, renamemap):
                         log.props(type=typ)
                     )
         elif cid == fmt.Chunks.Mesh.FLAGS:
-            mesh_flags = xray_io.PackedReader(data).getf('B')[0]
+            mesh_flags = xray_io.PackedReader(data).getf('<B')[0]
             if mesh_flags & 0x4 and context.soc_sgroups:  # sgmask
                 sgfuncs = (0, lambda ga, gb, ea, eb: ga == gb)
         elif cid == fmt.Chunks.Mesh.BBOX:
             pass  # blender automatically calculates bbox
         elif cid == fmt.Chunks.Mesh.OPTIONS:
-            mesh_options = xray_io.PackedReader(data).getf('II')
+            mesh_options = xray_io.PackedReader(data).getf('<2I')
         elif cid == fmt.Chunks.Mesh.NOT_USED_0:
             pass  # not used chunk
         else:

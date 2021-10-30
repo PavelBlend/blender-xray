@@ -15,8 +15,8 @@ def read_header(packed_reader):
     header = fmt.DetailsHeader()
     header.format_version = packed_reader.getf('<I')[0]
     header.meshes_count = packed_reader.getf('<I')[0]
-    offset_x, offset_z = packed_reader.getf('<ii')
-    size_x, size_z = packed_reader.getf('<II')
+    offset_x, offset_z = packed_reader.getf('<2i')
+    size_x, size_z = packed_reader.getf('<2I')
     header.offset.x = offset_x
     header.offset.y = offset_z
     header.size.x = size_x
@@ -88,7 +88,7 @@ def read_details_slots(
         lights_image_pixels = []
         shadows_image_pixels = []
         hemi_image_pixels = []
-        S_IIHHHH = xray_io.PackedReader.prep('IIHHHH')
+        S_IIHHHH = xray_io.PackedReader.prep('2I4H')
 
         for slot_y in range(header.size.y):
             for slot_x in range(header.size.x):
@@ -168,7 +168,7 @@ def read_details_slots(
         del hemi_image_pixels
 
     elif header.format_version == 2:
-        S_ffBHBHBHBHH = xray_io.PackedReader.prep('ffBHBHBHBHH')
+        S_ffBHBHBHBHH = xray_io.PackedReader.prep('2fBHBHBHB2H')
 
         lighting_image_pixels = [
             1.0 for _ in range(header.slots_count * 4 * 4)

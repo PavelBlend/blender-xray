@@ -32,8 +32,8 @@ def import_main(file_path, context, creader):
     for (cid, data) in creader:
         if cid == fmt.Chunks.Object.VERSION:
             reader = xray_io.PackedReader(data)
-            ver = reader.getf('H')[0]
-            if ver != 0x10:
+            ver = reader.getf('<H')[0]
+            if ver != fmt.CURRENT_OBJECT_VERSION:
                 raise utils.AppError(
                     text.error.object_unsupport_format_ver,
                     log.props(version=ver)
@@ -62,7 +62,7 @@ def import_main(file_path, context, creader):
                 if cid == fmt.Chunks.Object.SURFACES:
                     name = reader.gets()
                     eshader = reader.gets()
-                    flags = reader.getf('B')[0]
+                    flags = reader.getf('<B')[0]
                     reader.skip(4 + 4)    # fvf and TCs count
                     texture = reader.gets()
                     vmap = reader.gets()
@@ -133,7 +133,7 @@ def import_main(file_path, context, creader):
                     vmap = reader.gets()
                     offset = reader.getv3fp()
                     rotate = reader.getv3fp()
-                    length = reader.getf('f')[0]
+                    length = reader.getf('<f')[0]
                     rotate = rotate[2], rotate[1], rotate[0]
                     bpy_bone = bone._create_bone(
                         context, bpy_arm_obj,
@@ -254,7 +254,7 @@ def import_main(file_path, context, creader):
             if length_data == 4:
                 bpy_obj.xray.flags = xray_io.PackedReader(data).int()
             elif length_data == 1:    # old object format
-                bpy_obj.xray.flags = xray_io.PackedReader(data).getf('B')[0]
+                bpy_obj.xray.flags = xray_io.PackedReader(data).getf('<B')[0]
         elif cid == fmt.Chunks.Object.USERDATA:
             bpy_obj.xray.userdata = xray_io.PackedReader(
                 data
@@ -270,9 +270,9 @@ def import_main(file_path, context, creader):
         elif cid == fmt.Chunks.Object.REVISION:
             reader = xray_io.PackedReader(data)
             bpy_obj.xray.revision.owner = reader.gets()
-            bpy_obj.xray.revision.ctime = reader.getf('i')[0]
+            bpy_obj.xray.revision.ctime = reader.getf('<i')[0]
             bpy_obj.xray.revision.moder = reader.gets()
-            bpy_obj.xray.revision.mtime = reader.getf('i')[0]
+            bpy_obj.xray.revision.mtime = reader.getf('<i')[0]
         elif cid == fmt.Chunks.Object.MOTION_REFS:
             mrefs = bpy_obj.xray.motionrefs_collection
             for mref in xray_io.PackedReader(data).gets().split(','):

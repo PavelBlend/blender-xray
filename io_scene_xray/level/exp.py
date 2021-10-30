@@ -148,7 +148,7 @@ def write_level_geom_vb(vbs):
                 vertex_pos = vb.position[vertex_index * 12 : vertex_index * 12 + 12]
                 packed_writer.data.extend(vertex_pos)
                 packed_writer.putf(
-                    '4B',
+                    '<4B',
                     vb.normal[vertex_index * 3],
                     vb.normal[vertex_index * 3 + 1],
                     vb.normal[vertex_index * 3 + 2],
@@ -157,7 +157,7 @@ def write_level_geom_vb(vbs):
                 uv_fix = vb.uv_fix[vertex_index * 2 : vertex_index * 2 + 2]
                 # tangent
                 packed_writer.putf(
-                    '4B',
+                    '<4B',
                     vb.tangent[vertex_index * 3],
                     vb.tangent[vertex_index * 3 + 1],
                     vb.tangent[vertex_index * 3 + 2],
@@ -165,7 +165,7 @@ def write_level_geom_vb(vbs):
                 )
                 # binormal
                 packed_writer.putf(
-                    '4B',
+                    '<4B',
                     vb.binormal[vertex_index * 3],
                     vb.binormal[vertex_index * 3 + 1],
                     vb.binormal[vertex_index * 3 + 2],
@@ -181,7 +181,7 @@ def write_level_geom_vb(vbs):
                 vertex_pos = vb.position[vertex_index * 12 : vertex_index * 12 + 12]
                 packed_writer.data.extend(vertex_pos)
                 packed_writer.putf(
-                    '4B',
+                    '<4B',
                     vb.normal[vertex_index * 3],
                     vb.normal[vertex_index * 3 + 1],
                     vb.normal[vertex_index * 3 + 2],
@@ -190,7 +190,7 @@ def write_level_geom_vb(vbs):
                 uv_fix = vb.uv_fix[vertex_index * 2 : vertex_index * 2 + 2]
                 # tangent
                 packed_writer.putf(
-                    '4B',
+                    '<4B',
                     vb.tangent[vertex_index * 3],
                     vb.tangent[vertex_index * 3 + 1],
                     vb.tangent[vertex_index * 3 + 2],
@@ -198,7 +198,7 @@ def write_level_geom_vb(vbs):
                 )
                 # binormal
                 packed_writer.putf(
-                    '4B',
+                    '<4B',
                     vb.binormal[vertex_index * 3],
                     vb.binormal[vertex_index * 3 + 1],
                     vb.binormal[vertex_index * 3 + 2],
@@ -216,7 +216,7 @@ def write_level_geom_vb(vbs):
                 vertex_pos = vb.position[vertex_index * 12 : vertex_index * 12 + 12]
                 packed_writer.data.extend(vertex_pos)
                 packed_writer.putf(
-                    '4B',
+                    '<4B',
                     vb.normal[vertex_index * 3],
                     vb.normal[vertex_index * 3 + 1],
                     vb.normal[vertex_index * 3 + 2],
@@ -225,7 +225,7 @@ def write_level_geom_vb(vbs):
                 uv_fix = vb.uv_fix[vertex_index * 2 : vertex_index * 2 + 2]
                 # tangent
                 packed_writer.putf(
-                    '4B',
+                    '<4B',
                     vb.tangent[vertex_index * 3],
                     vb.tangent[vertex_index * 3 + 1],
                     vb.tangent[vertex_index * 3 + 2],
@@ -233,7 +233,7 @@ def write_level_geom_vb(vbs):
                 )
                 # binormal
                 packed_writer.putf(
-                    '4B',
+                    '<4B',
                     vb.binormal[vertex_index * 3],
                     vb.binormal[vertex_index * 3 + 1],
                     vb.binormal[vertex_index * 3 + 2],
@@ -241,7 +241,7 @@ def write_level_geom_vb(vbs):
                 )
                 # vertex color
                 packed_writer.putf(
-                    '4B',
+                    '<4B',
                     vb.color_light[vertex_index * 3],
                     vb.color_light[vertex_index * 3 + 1],
                     vb.color_light[vertex_index * 3 + 2],
@@ -1213,13 +1213,13 @@ def write_light(level, level_object):
                 controller_id = data.controller_id
                 if controller_id == -1:
                     controller_id = 2 ** 32
-                packed_writer.putf('I', controller_id)
-                packed_writer.putf('I', data.light_type)
-                packed_writer.putf('4f', *data.diffuse)
-                packed_writer.putf('4f', *data.specular)
-                packed_writer.putf('4f', *data.ambient)
+                packed_writer.putf('<I', controller_id)
+                packed_writer.putf('<I', data.light_type)
+                packed_writer.putf('<4f', *data.diffuse)
+                packed_writer.putf('<4f', *data.specular)
+                packed_writer.putf('<4f', *data.ambient)
                 packed_writer.putf(
-                    '3f',
+                    '<3f',
                     light_obj.location[0],
                     light_obj.location[2],
                     light_obj.location[1]
@@ -1227,14 +1227,14 @@ def write_light(level, level_object):
                 euler = light_obj.matrix_world.to_euler('YXZ')
                 matrix = euler.to_matrix().to_3x3()
                 direction = (matrix[0][1], matrix[2][1], matrix[1][1])
-                packed_writer.putf('3f', direction[0], direction[1], direction[2])
-                packed_writer.putf('f', data.range_)
-                packed_writer.putf('f', data.falloff)
-                packed_writer.putf('f', data.attenuation_0)
-                packed_writer.putf('f', data.attenuation_1)
-                packed_writer.putf('f', data.attenuation_2)
-                packed_writer.putf('f', data.theta)
-                packed_writer.putf('f', data.phi)
+                packed_writer.putf('<3f', direction[0], direction[1], direction[2])
+                packed_writer.putf('<f', data.range_)
+                packed_writer.putf('<f', data.falloff)
+                packed_writer.putf('<f', data.attenuation_0)
+                packed_writer.putf('<f', data.attenuation_1)
+                packed_writer.putf('<f', data.attenuation_2)
+                packed_writer.putf('<f', data.theta)
+                packed_writer.putf('<f', data.phi)
             return packed_writer
 
 

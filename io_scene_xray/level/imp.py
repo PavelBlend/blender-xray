@@ -73,12 +73,12 @@ def import_sector_portal(data):
     packed_reader = xray_io.PackedReader(data)
     portal_count = len(data) // fmt.SECTOR_PORTAL_SIZE
     for portal_index in range(portal_count):
-        portal = packed_reader.getf('H')[0]
+        portal = packed_reader.getf('<H')[0]
 
 
 def import_sector_root(data):
     packed_reader = xray_io.PackedReader(data)
-    root = packed_reader.getf('I')[0]
+    root = packed_reader.getf('<I')[0]
     return root
 
 
@@ -210,9 +210,9 @@ def create_glow_object_v5(
 
 
 def import_glow(packed_reader, glow_index, materials, images):
-    position = packed_reader.getf('3f')
-    radius = packed_reader.getf('f')[0]
-    shader_index = packed_reader.getf('H')[0]
+    position = packed_reader.getf('<3f')
+    radius = packed_reader.getf('<f')[0]
+    shader_index = packed_reader.getf('<H')[0]
     glow_object = create_glow_object(
         glow_index, position, radius, shader_index, materials, images
     )
@@ -220,10 +220,10 @@ def import_glow(packed_reader, glow_index, materials, images):
 
 
 def import_glow_v5(level, packed_reader, glow_index):
-    position = packed_reader.getf('3f')
-    radius = packed_reader.getf('f')[0]
-    texture_index = packed_reader.getf('I')[0]
-    shader_index = packed_reader.getf('I')[0]
+    position = packed_reader.getf('<3f')
+    radius = packed_reader.getf('<f')[0]
+    texture_index = packed_reader.getf('<I')[0]
+    shader_index = packed_reader.getf('<I')[0]
     glow_object = create_glow_object_v5(
         level, glow_index, position, radius,
         shader_index, texture_index
@@ -288,29 +288,29 @@ def import_light_dynamic(packed_reader, light_object):
     light_object.xray.is_level = True
 
     # controller id
-    controller_id = packed_reader.getf('I')[0] # ???
+    controller_id = packed_reader.getf('<I')[0] # ???
     if controller_id > INT_MAX:
         controller_id = -1
     data.controller_id = controller_id
 
     # light type
-    light_type = packed_reader.getf('I')[0] # ???
+    light_type = packed_reader.getf('<I')[0] # ???
     if light_type > INT_MAX:
         light_type = -1
     data.light_type = light_type
 
-    data.diffuse = packed_reader.getf('4f')
-    data.specular = packed_reader.getf('4f')
-    data.ambient = packed_reader.getf('4f')
-    position = packed_reader.getf('3f')
-    direction = packed_reader.getf('3f')
-    data.range_ = packed_reader.getf('f')[0]
-    data.falloff = packed_reader.getf('f')[0]
-    data.attenuation_0 = packed_reader.getf('f')[0]
-    data.attenuation_1 = packed_reader.getf('f')[0]
-    data.attenuation_2 = packed_reader.getf('f')[0]
-    data.theta = packed_reader.getf('f')[0]
-    data.phi = packed_reader.getf('f')[0]
+    data.diffuse = packed_reader.getf('<4f')
+    data.specular = packed_reader.getf('<4f')
+    data.ambient = packed_reader.getf('<4f')
+    position = packed_reader.getf('<3f')
+    direction = packed_reader.getf('<3f')
+    data.range_ = packed_reader.getf('<f')[0]
+    data.falloff = packed_reader.getf('<f')[0]
+    data.attenuation_0 = packed_reader.getf('<f')[0]
+    data.attenuation_1 = packed_reader.getf('<f')[0]
+    data.attenuation_2 = packed_reader.getf('<f')[0]
+    data.theta = packed_reader.getf('<f')[0]
+    data.phi = packed_reader.getf('<f')[0]
 
     dir_vec = mathutils.Vector((direction[0], direction[2], direction[1]))
     euler = dir_vec.to_track_quat('Y', 'Z').to_euler('XYZ')
@@ -322,21 +322,21 @@ def import_light_dynamic_v8(packed_reader, light_object):
     data = light_object.xray.level
     data.object_type = 'LIGHT_DYNAMIC'
     light_object.xray.is_level = True
-    data.light_type = packed_reader.getf('I')[0] # ???
-    data.diffuse = packed_reader.getf('4f')
-    data.specular = packed_reader.getf('4f')
-    data.ambient = packed_reader.getf('4f')
-    position = packed_reader.getf('3f')
-    direction = packed_reader.getf('3f')
-    data.range_ = packed_reader.getf('f')[0]
-    data.falloff = packed_reader.getf('f')[0]
-    data.attenuation_0 = packed_reader.getf('f')[0]
-    data.attenuation_1 = packed_reader.getf('f')[0]
-    data.attenuation_2 = packed_reader.getf('f')[0]
-    data.theta = packed_reader.getf('f')[0]
-    data.phi = packed_reader.getf('f')[0]
-    unknown = packed_reader.getf('2I')
-    name = packed_reader.getf('{}s'.format(fmt.LIGHT_V8_NAME_LEN))
+    data.light_type = packed_reader.getf('<I')[0] # ???
+    data.diffuse = packed_reader.getf('<4f')
+    data.specular = packed_reader.getf('<4f')
+    data.ambient = packed_reader.getf('<4f')
+    position = packed_reader.getf('<3f')
+    direction = packed_reader.getf('<3f')
+    data.range_ = packed_reader.getf('<f')[0]
+    data.falloff = packed_reader.getf('<f')[0]
+    data.attenuation_0 = packed_reader.getf('<f')[0]
+    data.attenuation_1 = packed_reader.getf('<f')[0]
+    data.attenuation_2 = packed_reader.getf('<f')[0]
+    data.theta = packed_reader.getf('<f')[0]
+    data.phi = packed_reader.getf('<f')[0]
+    unknown = packed_reader.getf('<2I')
+    name = packed_reader.getf('<{}s'.format(fmt.LIGHT_V8_NAME_LEN))
 
     if data.light_type == fmt.D3D_LIGHT_POINT:
         data.controller_id = 2
@@ -353,20 +353,20 @@ def import_light_dynamic_v5(packed_reader, light_object):
     data = light_object.xray.level
     data.object_type = 'LIGHT_DYNAMIC'
     light_object.xray.is_level = True
-    data.light_type = packed_reader.getf('I')[0] # ???
-    data.diffuse = packed_reader.getf('4f')
-    data.specular = packed_reader.getf('4f')
-    data.ambient = packed_reader.getf('4f')
-    position = packed_reader.getf('3f')
-    direction = packed_reader.getf('3f')
-    data.range_ = packed_reader.getf('f')[0]
-    data.falloff = packed_reader.getf('f')[0]
-    data.attenuation_0 = packed_reader.getf('f')[0]
-    data.attenuation_1 = packed_reader.getf('f')[0]
-    data.attenuation_2 = packed_reader.getf('f')[0]
-    data.theta = packed_reader.getf('f')[0]
-    data.phi = packed_reader.getf('f')[0]
-    unknown = packed_reader.getf('5I')
+    data.light_type = packed_reader.getf('<I')[0] # ???
+    data.diffuse = packed_reader.getf('<4f')
+    data.specular = packed_reader.getf('<4f')
+    data.ambient = packed_reader.getf('<4f')
+    position = packed_reader.getf('<3f')
+    direction = packed_reader.getf('<3f')
+    data.range_ = packed_reader.getf('<f')[0]
+    data.falloff = packed_reader.getf('<f')[0]
+    data.attenuation_0 = packed_reader.getf('<f')[0]
+    data.attenuation_1 = packed_reader.getf('<f')[0]
+    data.attenuation_2 = packed_reader.getf('<f')[0]
+    data.theta = packed_reader.getf('<f')[0]
+    data.phi = packed_reader.getf('<f')[0]
+    unknown = packed_reader.getf('<5I')
 
     if data.light_type == fmt.D3D_LIGHT_POINT:
         data.controller_id = 2
@@ -444,18 +444,18 @@ def create_portal(portal_index, vertices, collection):
 
 
 def import_portal(packed_reader, portal_index, collection, level):
-    sector_front = packed_reader.getf('H')[0]
-    sector_back = packed_reader.getf('H')[0]
+    sector_front = packed_reader.getf('<H')[0]
+    sector_back = packed_reader.getf('<H')[0]
     if level.xrlc_version <= fmt.VERSION_5:
-        used_vertices_count = packed_reader.getf('I')[0]
+        used_vertices_count = packed_reader.getf('<I')[0]
     vertices = []
 
     for vertex_index in range(fmt.PORTAL_VERTEX_COUNT):
-        coord_x, coord_y, coord_z = packed_reader.getf('fff')
+        coord_x, coord_y, coord_z = packed_reader.getf('<3f')
         vertices.append((coord_x, coord_z, coord_y))
 
     if level.xrlc_version >= fmt.VERSION_8:
-        used_vertices_count = packed_reader.getf('I')[0]
+        used_vertices_count = packed_reader.getf('<I')[0]
     vertices = vertices[ : used_vertices_count]
     portal_object = create_portal(portal_index, vertices, collection)
     portal_object.xray.is_level = True
@@ -494,7 +494,7 @@ def get_chunks(chunked_reader):
 
 def get_version(data, file):
     packed_reader = xray_io.PackedReader(data)
-    xrlc_version = packed_reader.getf('H')[0]
+    xrlc_version = packed_reader.getf('<H')[0]
     if not xrlc_version in fmt.SUPPORTED_VERSIONS:
         raise utils.AppError(
             text.error.level_unsupport_ver,
@@ -503,7 +503,7 @@ def get_version(data, file):
                 file=file
             )
         )
-    xrlc_quality = packed_reader.getf('H')[0]
+    xrlc_quality = packed_reader.getf('<H')[0]
     return xrlc_version
 
 

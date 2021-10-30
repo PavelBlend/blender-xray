@@ -71,7 +71,9 @@ def import_(filepath, chunked_reader, operator):
         bpy_mesh.from_pydata(vertices, (), faces)
 
 
-def import_file(filepath, operator):
-    data = utils.read_file(filepath)
+@log.with_context(name='file')
+def import_file(file_path, operator):
+    log.update(path=file_path)
+    data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(data)
-    import_(filepath, chunked_reader, operator)
+    import_(file_path, chunked_reader, operator)

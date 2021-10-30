@@ -50,3 +50,31 @@ class Chunks:
         IK_FLAGS = 0x0008
         BREAK_PARAMS = 0x0009
         FRICTION = 0x0010
+
+
+OBJECT_VERSION_16 = 0x10
+CURRENT_OBJECT_VERSION = OBJECT_VERSION_16
+
+MESH_VERSION_17 = 0x11
+CURRENT_MESH_VERSION = MESH_VERSION_17
+
+BONE_VERSION_2 = 0x2
+CURRENT_BONE_VERSION = BONE_VERSION_2
+
+# type ids
+CM = '??'
+SO = 'so'
+MU = 'mu'
+HO = 'ho'
+PD = 'pd'
+DY = 'dy'
+ST = 'st'
+type_names = {
+    CM: 'Custom',
+    SO: 'Sound Occluder',
+    MU: 'Multiple Usage',
+    HO: 'HOM',
+    PD: 'Progressive Dynamic',
+    DY: 'Dynamic',
+    ST: 'Static'
+}

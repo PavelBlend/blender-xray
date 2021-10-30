@@ -274,7 +274,7 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     vertices_count = len(vertices)
     # 1-link vertices
     if vertex_max_weights == 1:
-        vertices_writer.putf('<II', fmt.VertexFormat.FVF_1L, vertices_count)
+        vertices_writer.putf('<2I', fmt.VertexFormat.FVF_1L, vertices_count)
         for vertex in vertices:
             weights = mesh.verts[vertex[0]][weight_layer]
             vertices_writer.putv3f(vertex[1])    # coord
@@ -365,11 +365,11 @@ def _export(bpy_obj, cwriter, context):
     revision_writer = xray_io.PackedWriter()
     revision_writer.puts(bpy_obj.name)    # source file
     revision_writer.puts('blender')    # build name
-    revision_writer.putf('I', currtime)    # build time
+    revision_writer.putf('<I', currtime)    # build time
     revision_writer.puts(owner)
-    revision_writer.putf('I', ctime)
+    revision_writer.putf('<I', ctime)
     revision_writer.puts(moder)
-    revision_writer.putf('I', mtime)
+    revision_writer.putf('<I', mtime)
     cwriter.put(fmt.Chunks_v4.S_DESC, revision_writer)
 
     meshes = []
@@ -428,64 +428,64 @@ def _export(bpy_obj, cwriter, context):
     cwriter.put(fmt.Chunks_v4.CHILDREN, ccw)
 
     pwriter = xray_io.PackedWriter()
-    pwriter.putf('I', len(bones))
+    pwriter.putf('<I', len(bones))
     for bone, _ in bones:
         b_parent = utils.find_bone_exportable_parent(bone)
         pwriter.puts(bone.name)
         pwriter.puts(b_parent.name if b_parent else '')
         xray = bone.xray
-        pwriter.putf('fffffffff', *xray.shape.box_rot)
-        pwriter.putf('fff', *xray.shape.box_trn)
-        pwriter.putf('fff', *xray.shape.box_hsz)
+        pwriter.putf('<9f', *xray.shape.box_rot)
+        pwriter.putf('<3f', *xray.shape.box_trn)
+        pwriter.putf('<3f', *xray.shape.box_hsz)
     cwriter.put(fmt.Chunks_v4.S_BONE_NAMES, pwriter)
 
     pwriter = xray_io.PackedWriter()
     for bone, obj in bones:
         pbone = obj.pose.bones[bone.name]
         xray = bone.xray
-        pwriter.putf('I', 0x1)  # version
+        pwriter.putf('<I', 0x1)  # version
         pwriter.puts(xray.gamemtl)
-        pwriter.putf('H', int(xray.shape.type))
-        pwriter.putf('H', xray.shape.flags)
-        pwriter.putf('fffffffff', *xray.shape.box_rot)
-        pwriter.putf('fff', *xray.shape.box_trn)
-        pwriter.putf('fff', *xray.shape.box_hsz)
-        pwriter.putf('fff', *xray.shape.sph_pos)
-        pwriter.putf('f', xray.shape.sph_rad)
-        pwriter.putf('fff', *xray.shape.cyl_pos)
-        pwriter.putf('fff', *xray.shape.cyl_dir)
-        pwriter.putf('f', xray.shape.cyl_hgh)
-        pwriter.putf('f', xray.shape.cyl_rad)
-        pwriter.putf('I', int(xray.ikjoint.type))
+        pwriter.putf('<H', int(xray.shape.type))
+        pwriter.putf('<H', xray.shape.flags)
+        pwriter.putf('<9f', *xray.shape.box_rot)
+        pwriter.putf('<3f', *xray.shape.box_trn)
+        pwriter.putf('<3f', *xray.shape.box_hsz)
+        pwriter.putf('<3f', *xray.shape.sph_pos)
+        pwriter.putf('<f', xray.shape.sph_rad)
+        pwriter.putf('<3f', *xray.shape.cyl_pos)
+        pwriter.putf('<3f', *xray.shape.cyl_dir)
+        pwriter.putf('<f', xray.shape.cyl_hgh)
+        pwriter.putf('<f', xray.shape.cyl_rad)
+        pwriter.putf('<I', int(xray.ikjoint.type))
 
         # x axis
         x_min, x_max = get_ode_ik_limits(
             xray.ikjoint.lim_x_min,
             xray.ikjoint.lim_x_max
         )
-        pwriter.putf('ff', x_min, x_max)
-        pwriter.putf('ff', xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp)
+        pwriter.putf('<2f', x_min, x_max)
+        pwriter.putf('<2f', xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp)
 
         # y axis
         y_min, y_max = get_ode_ik_limits(
             xray.ikjoint.lim_y_min,
             xray.ikjoint.lim_y_max
         )
-        pwriter.putf('ff', y_min, y_max)
-        pwriter.putf('ff', xray.ikjoint.lim_y_spr, xray.ikjoint.lim_y_dmp)
+        pwriter.putf('<2f', y_min, y_max)
+        pwriter.putf('<2f', xray.ikjoint.lim_y_spr, xray.ikjoint.lim_y_dmp)
 
         # z axis
         z_min, z_max = get_ode_ik_limits(
             xray.ikjoint.lim_z_min,
             xray.ikjoint.lim_z_max
         )
-        pwriter.putf('ff', z_min, z_max)
-        pwriter.putf('ff', xray.ikjoint.lim_z_spr, xray.ikjoint.lim_z_dmp)
+        pwriter.putf('<2f', z_min, z_max)
+        pwriter.putf('<2f', xray.ikjoint.lim_z_spr, xray.ikjoint.lim_z_dmp)
 
-        pwriter.putf('ff', xray.ikjoint.spring, xray.ikjoint.damping)
-        pwriter.putf('I', xray.ikflags)
-        pwriter.putf('ff', xray.breakf.force, xray.breakf.torque)
-        pwriter.putf('f', xray.friction)
+        pwriter.putf('<2f', xray.ikjoint.spring, xray.ikjoint.damping)
+        pwriter.putf('<I', xray.ikflags)
+        pwriter.putf('<2f', xray.breakf.force, xray.breakf.torque)
+        pwriter.putf('<f', xray.friction)
         mwriter = obj.matrix_world
         mat = multiply(mwriter, bone.matrix_local, xray_motions.MATRIX_BONE_INVERTED)
         b_parent = utils.find_bone_exportable_parent(bone)
@@ -494,9 +494,9 @@ def _export(bpy_obj, cwriter, context):
                 mwriter, b_parent.matrix_local, xray_motions.MATRIX_BONE_INVERTED
             ).inverted(), mat)
         euler = mat.to_euler('YXZ')
-        pwriter.putf('fff', -euler.x, -euler.z, -euler.y)
+        pwriter.putf('<3f', -euler.x, -euler.z, -euler.y)
         pwriter.putv3f(mat.to_translation())
-        pwriter.putf('f', xray.mass.value)
+        pwriter.putf('<f', xray.mass.value)
         pwriter.putv3f(xray.mass.center)
     cwriter.put(fmt.Chunks_v4.S_IKDATA, pwriter)
 

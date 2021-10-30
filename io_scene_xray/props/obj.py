@@ -8,6 +8,7 @@ import bpy
 # addon modules
 from . import utility
 from .. import utils
+from .. import obj
 from .. import details
 from .. import version_utils
 from .. import skls_browser
@@ -447,13 +448,14 @@ xray_object_properties = {
         customprop='flags_force_custom'
     ),
     'flags_simple': bpy.props.EnumProperty(name='Object Type', items=(
-        ('??', 'Custom', ''),
-        ('so', 'Sound Occluder', ''),
-        ('mu', 'Multiple Usage', ''),
-        ('ho', 'HOM', 'Hierarchical Occlusion Mapping'),
-        ('pd', 'Progressive Dynamic', ''),
-        ('dy', 'Dynamic', ''),
-        ('st', 'Static', '')), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set),
+        (obj.fmt.CM, obj.fmt.type_names[obj.fmt.CM], ''),
+        (obj.fmt.SO, obj.fmt.type_names[obj.fmt.SO], ''),
+        (obj.fmt.MU, obj.fmt.type_names[obj.fmt.MU], ''),
+        (obj.fmt.HO, obj.fmt.type_names[obj.fmt.HO], 'Hierarchical Occlusion Mapping'),
+        (obj.fmt.PD, obj.fmt.type_names[obj.fmt.PD], ''),
+        (obj.fmt.DY, obj.fmt.type_names[obj.fmt.DY], ''),
+        (obj.fmt.ST, obj.fmt.type_names[obj.fmt.ST], '')
+    ), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set),
     'lodref': bpy.props.StringProperty(name='LOD Reference'),
     'userdata': bpy.props.StringProperty(name='userdata', update=userdata_update),
     'show_userdata': bpy.props.BoolProperty(description='View user data', options={'SKIP_SAVE'}),

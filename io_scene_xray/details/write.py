@@ -94,11 +94,11 @@ def write_header(chunked_writer, lvl_dets):
     # meshes count
     packed_writer.putf('<I', len(lvl_dets.meshes_object.children))
     packed_writer.putf(
-        '<ii',
+        '<2i',
         lvl_dets.slots_offset_x,
         lvl_dets.slots_offset_y
     )
-    packed_writer.putf('<II', lvl_dets.slots_size_x, lvl_dets.slots_size_y)
+    packed_writer.putf('<2I', lvl_dets.slots_size_x, lvl_dets.slots_size_y)
     chunked_writer.put(fmt.Chunks.HEADER, packed_writer)
 
 
@@ -244,7 +244,7 @@ def write_slots_v3(chunked_writer, lvl_dets):
             slot = slots[slot_index]
 
             packed_writer.putf(
-                '<II',
+                '<2I',
                 slot[0] | slot[1] | \
                 mesh_0_id << 20 | mesh_1_id << 26, \
                 mesh_2_id | mesh_3_id << 6 | \
@@ -253,7 +253,7 @@ def write_slots_v3(chunked_writer, lvl_dets):
             )
 
             packed_writer.putf(
-                '<HHHH',
+                '<4H',
                 density[0],
                 density[1],
                 density[2],
@@ -315,7 +315,7 @@ def write_slots_v2(chunked_writer, lvl_dets):
     for coord_y in range(lvl_dets.slots_size_y):
         for coord_x in range(lvl_dets.slots_size_x):
             packed_writer.putf(
-                '<ff',
+                '<2f',
                 slots[slot_index][0],
                 slots[slot_index][1]
             )

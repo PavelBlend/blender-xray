@@ -24,7 +24,7 @@ def _read_scene_version(scene_version_chunk):
         raise utils.AppError(text.error.scene_bad_file)
 
     packed_reader = xray_io.PackedReader(scene_version_chunk)
-    object_tools_version = packed_reader.getf('H')[0]
+    object_tools_version = packed_reader.getf('<H')[0]
 
     if object_tools_version != fmt.OBJECT_TOOLS_VERSION:
         raise utils.AppError(
@@ -38,7 +38,7 @@ def _read_objects_count(objects_count_chunk):
         raise utils.AppError(text.error.scene_obj_count)
 
     packed_reader = xray_io.PackedReader(objects_count_chunk)
-    objects_count = packed_reader.getf('I')[0]
+    objects_count = packed_reader.getf('<I')[0]
 
     return objects_count
 
@@ -50,16 +50,16 @@ def _read_object_body(data, imported_objects, import_context):
         packed_reader = xray_io.PackedReader(chunk_data)
         if chunk_id == fmt.Chunks.SCENEOBJ_CHUNK_REFERENCE:
             if scene_obj_version == fmt.SCENEOBJ_VERSION_SOC:
-                version = packed_reader.getf('I')[0]
-                reserved = packed_reader.getf('I')[0]
+                version = packed_reader.getf('<I')[0]
+                reserved = packed_reader.getf('<I')[0]
             object_path = packed_reader.gets()
             object_name = object_path.split(os.sep)[-1]
         elif chunk_id == fmt.Chunks.CUSTOMOBJECT_CHUNK_TRANSFORM:
-            position = packed_reader.getf('3f')
-            rotation = packed_reader.getf('3f')
-            scale = packed_reader.getf('3f')
+            position = packed_reader.getf('<3f')
+            rotation = packed_reader.getf('<3f')
+            scale = packed_reader.getf('<3f')
         elif chunk_id == fmt.Chunks.SCENEOBJ_CHUNK_VERSION:
-            scene_obj_version = packed_reader.getf('H')[0]
+            scene_obj_version = packed_reader.getf('<H')[0]
 
     import_path = os.path.join(
         os.path.abspath(version_utils.get_preferences().objects_folder_auto),
@@ -163,7 +163,7 @@ def _read_version(version_chunk):
         )
 
     packed_reader = xray_io.PackedReader(version_chunk)
-    version = packed_reader.getf('I')[0]
+    version = packed_reader.getf('<I')[0]
     if version != fmt.FORMAT_VERSION:
         raise utils.AppError(
             text.error.scene_ver,

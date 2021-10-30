@@ -89,7 +89,7 @@ def safe_assign_enum_property(obj, pname, val, desc):
 
 @log.with_context(name='bone')
 def import_bone(context, creader, bpy_arm_obj, renamemap):
-    ver = creader.nextf(fmt.Chunks.Bone.VERSION, 'H')[0]
+    ver = creader.nextf(fmt.Chunks.Bone.VERSION, '<H')[0]
     if ver != 0x2:
         raise utils.AppError(
             text.error.object_unsupport_bone_ver,
@@ -105,7 +105,7 @@ def import_bone(context, creader, bpy_arm_obj, renamemap):
     reader = xray_io.PackedReader(creader.next(fmt.Chunks.Bone.BIND_POSE))
     offset = reader.getv3fp()
     rotate = reader.getv3fp()
-    length = reader.getf('f')[0]
+    length = reader.getf('<f')[0]
 
     bpy_bone = _create_bone(
         context, bpy_arm_obj,
@@ -131,19 +131,19 @@ def import_bone(context, creader, bpy_arm_obj, renamemap):
             safe_assign_enum_property(
                 xray.shape,
                 'type',
-                str(reader.getf('H')[0]),
+                str(reader.getf('<H')[0]),
                 'bone shape'
             )
-            xray.shape.flags = reader.getf('H')[0]
-            xray.shape.box_rot = reader.getf('fffffffff')
-            xray.shape.box_trn = reader.getf('fff')
-            xray.shape.box_hsz = reader.getf('fff')
-            xray.shape.sph_pos = reader.getf('fff')
-            xray.shape.sph_rad = reader.getf('f')[0]
-            xray.shape.cyl_pos = reader.getf('fff')
-            xray.shape.cyl_dir = reader.getf('fff')
-            xray.shape.cyl_hgh = reader.getf('f')[0]
-            xray.shape.cyl_rad = reader.getf('f')[0]
+            xray.shape.flags = reader.getf('<H')[0]
+            xray.shape.box_rot = reader.getf('<9f')
+            xray.shape.box_trn = reader.getf('<3f')
+            xray.shape.box_hsz = reader.getf('<3f')
+            xray.shape.sph_pos = reader.getf('<3f')
+            xray.shape.sph_rad = reader.getf('<f')[0]
+            xray.shape.cyl_pos = reader.getf('<3f')
+            xray.shape.cyl_dir = reader.getf('<3f')
+            xray.shape.cyl_hgh = reader.getf('<f')[0]
+            xray.shape.cyl_rad = reader.getf('<f')[0]
             xray.shape.set_curver()
         elif cid == fmt.Chunks.Bone.IK_JOINT:
             reader = xray_io.PackedReader(data)
@@ -152,29 +152,29 @@ def import_bone(context, creader, bpy_arm_obj, renamemap):
             ik = xray.ikjoint
             safe_assign_enum_property(ik, 'type', value, 'bone ikjoint')
 
-            ik.lim_x_min, ik.lim_x_max = reader.getf('ff')
-            ik.lim_x_spr, ik.lim_x_dmp = reader.getf('ff')
+            ik.lim_x_min, ik.lim_x_max = reader.getf('<2f')
+            ik.lim_x_spr, ik.lim_x_dmp = reader.getf('<2f')
 
-            ik.lim_y_min, ik.lim_y_max = reader.getf('ff')
-            ik.lim_y_spr, ik.lim_y_dmp = reader.getf('ff')
+            ik.lim_y_min, ik.lim_y_max = reader.getf('<2f')
+            ik.lim_y_spr, ik.lim_y_dmp = reader.getf('<2f')
 
-            ik.lim_z_min, ik.lim_z_max = reader.getf('ff')
-            ik.lim_z_spr, ik.lim_z_dmp = reader.getf('ff')
+            ik.lim_z_min, ik.lim_z_max = reader.getf('<2f')
+            ik.lim_z_spr, ik.lim_z_dmp = reader.getf('<2f')
 
-            ik.spring = reader.getf('f')[0]
-            ik.damping = reader.getf('f')[0]
+            ik.spring = reader.getf('<f')[0]
+            ik.damping = reader.getf('<f')[0]
 
         elif cid == fmt.Chunks.Bone.MASS_PARAMS:
             reader = xray_io.PackedReader(data)
-            xray.mass.value = reader.getf('f')[0]
+            xray.mass.value = reader.getf('<f')[0]
             xray.mass.center = reader.getv3fp()
         elif cid == fmt.Chunks.Bone.IK_FLAGS:
             xray.ikflags = xray_io.PackedReader(data).int()
         elif cid == fmt.Chunks.Bone.BREAK_PARAMS:
             reader = xray_io.PackedReader(data)
-            xray.breakf.force = reader.getf('f')[0]
-            xray.breakf.torque = reader.getf('f')[0]
+            xray.breakf.force = reader.getf('<f')[0]
+            xray.breakf.torque = reader.getf('<f')[0]
         elif cid == fmt.Chunks.Bone.FRICTION:
-            xray.friction = xray_io.PackedReader(data).getf('f')[0]
+            xray.friction = xray_io.PackedReader(data).getf('<f')[0]
         else:
             log.debug('unknown chunk', cid=cid)
