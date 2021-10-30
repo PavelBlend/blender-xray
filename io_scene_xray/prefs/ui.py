@@ -1,6 +1,11 @@
+# blender modules
+import rna_keymap_ui
+
+# addon modules
 from . import ops
 from . import props
 from .. import version_utils
+from .. import hotkeys
 
 
 path_props_names = {
@@ -81,3 +86,28 @@ def draw_operators_enable_disable(prefs):
     column_export.prop(prefs, 'enable_omf_export', text='*.omf')
     column_export.prop(prefs, 'enable_game_level_export', text='level')
     column_export.prop(prefs, 'enable_ogf_export', text='*.ogf')
+
+
+def draw_keymaps(context, prefs):
+    layout = prefs.layout
+    win_manager = context.window_manager
+    keyconfig = win_manager.keyconfigs.user
+    keymaps = keyconfig.keymaps.get('3D View')
+    if keymaps:
+        keymap_items = keymaps.keymap_items
+        for operator, _, _, _, _ in hotkeys.keymap_items_list:
+            row = layout.row(align=True)
+            keymap = keymap_items.get(operator.bl_idname)
+            if keymap:
+                row.context_pointer_set('keymap', keymaps)
+                rna_keymap_ui.draw_kmi(
+                    ["ADDON", "USER", "DEFAULT"],
+                    keyconfig, keymaps, keymap, row, 0
+                )
+            else:
+                row.label(text=operator.bl_label)
+                change_keymap_op = row.operator(
+                    props.XRAY_OT_add_keymap.bl_idname,
+                    text='Add'
+                )
+                change_keymap_op.operator = operator.bl_idname
