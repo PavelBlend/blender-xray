@@ -142,14 +142,14 @@ class XRAY_OT_export_dm(plugin_props.BaseOperator):
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
+        export_context = ExportDmContext()
+        export_context.texname_from_path = self.texture_name_from_image_path
+        export_context.unique_errors = set()
         for name in self.detail_models.split(','):
             detail_model = context.scene.objects[name]
             if not name.lower().endswith(filename_ext):
                 name += filename_ext
             path = self.directory
-            export_context = ExportDmContext()
-            export_context.texname_from_path = self.texture_name_from_image_path
-            export_context.unique_errors = set()
             try:
                 exp.export_file(
                     detail_model,
