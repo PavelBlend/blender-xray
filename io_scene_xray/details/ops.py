@@ -209,25 +209,22 @@ class XRAY_OT_export_details(
             self.report({'ERROR'}, 'The selected object is not a empty')
             return {'CANCELLED'}
 
-        errors = []
-        try:
-            self.export(objs[0], context)
-        except utils.AppError as err:
-            errors.append(err)
-
-        for err in errors:
-            log.err(err)
-
-        return {'FINISHED'}
-
-    def export(self, bpy_obj, context):
         textures_folder = version_utils.get_preferences().textures_folder_auto
         export_context = ExportDetailsContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.level_details_format_version = self.format_version
         export_context.textures_folder=textures_folder
         export_context.unique_errors = set()
-        exp.export_file(bpy_obj, self.filepath, export_context)
+
+        try:
+            exp.export_file(objs[0], self.filepath, export_context)
+        except utils.AppError as err:
+            export_context.errors.append(err)
+
+        for err in export_context.errors:
+            log.err(err)
+
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         obj = context.object
