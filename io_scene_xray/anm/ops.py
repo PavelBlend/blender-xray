@@ -88,9 +88,9 @@ class XRAY_OT_import_anm(
         import_context = imp.ImportAnmContext()
         import_context.camera_animation = self.camera_animation
         for file in self.files:
-            file_path = os.path.join(self.directory, file.name)
+            import_context.filepath = os.path.join(self.directory, file.name)
             try:
-                imp.import_file(file_path, import_context)
+                imp.import_file(import_context)
             except utils.AppError as err:
                 import_context.errors.append(err)
         for err in import_context.errors:
@@ -140,16 +140,15 @@ class XRAY_OT_export_anm(
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
-        errors = []
+        export_context = exp.ExportAnmContext()
+        export_context.format_version = self.format_version
+        export_context.active_object = context.active_object
+        export_context.filepath = self.filepath
         try:
-            exp.export_file(
-                context.active_object,
-                self.filepath,
-                int(self.format_version)
-            )
+            exp.export_file(export_context)
         except utils.AppError as err:
-            errors.append(err)
-        for err in errors:
+            export_context.errors.append(err)
+        for err in export_context.errors:
             log.err(err)
         return {'FINISHED'}
 

@@ -120,7 +120,8 @@ def _import(file_path, creader, context):
 
 
 @log.with_context('import-anm-path')
-def import_file(file_path, context):
+def import_file(context):
+    file_path = context.filepath
     log.update(file=file_path)
     if not os.path.exists(file_path):
         raise utils.AppError(

@@ -5,6 +5,7 @@ import bpy
 from . import fmt
 from .. import log
 from .. import utils
+from .. import contexts
 from .. import text
 from .. import version_utils
 from .. import xray_io
@@ -12,13 +13,22 @@ from .. import xray_envelope
 from .. import motion_utils
 
 
-def _export(bpy_obj, chunked_writer, ver):
+class ExportAnmContext(contexts.ExportContext):
+    def __init__(self):
+        super().__init__()
+        self.format_version = None
+        self.active_object = None
+
+
+def _export(export_context, chunked_writer):
     packed_writer = xray_io.PackedWriter()
+    bpy_obj = export_context.active_object
     bpy_act = bpy_obj.animation_data.action
     packed_writer.puts('')
     frange = bpy_act.frame_range
     packed_writer.putf('<2I', int(frange[0]), int(frange[1]))
     fps = bpy_act.xray.fps
+    ver = int(export_context.format_version)
     packed_writer.putf('<fH', fps, ver)
     autobake = bpy_act.xray.autobake_effective(bpy_obj)
     rot_mode = bpy_obj.rotation_mode
@@ -128,7 +138,7 @@ def _export_action_data(pkw, ver, xray, fcurves):
         )
 
 
-def export_file(bpy_obj, file_path, ver):
+def export_file(export_context):
     writer = xray_io.ChunkedWriter()
-    _export(bpy_obj, writer, ver)
-    utils.save_file(file_path, writer)
+    _export(export_context, writer)
+    utils.save_file(export_context.filepath, writer)
