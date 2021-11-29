@@ -191,6 +191,7 @@ class XRAY_OT_export_bones(plugin_props.BaseOperator):
     @utils.set_cursor_state
     def execute(self, context):
         self.get_objects(context)
+        export_context = ExportBonesContext()
         for object_name in self.objects_list:
             filepath = os.path.join(self.directory, object_name)
             if not filepath.lower().endswith(self.filename_ext):
@@ -199,15 +200,16 @@ class XRAY_OT_export_bones(plugin_props.BaseOperator):
             try:
                 exp_parts = self.export_bone_parts
                 exp_props = self.export_bone_properties
-                export_context = ExportBonesContext()
                 export_context.bpy_arm_obj = obj
                 export_context.filepath = filepath
                 export_context.export_bone_parts = exp_parts
                 export_context.export_bone_properties = exp_props
                 exp.export_file(export_context)
             except utils.AppError as err:
-                raise err
+                export_context.errors.append(err)
         self.objects_list.clear()
+        for err in export_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     def draw(self, context):
@@ -276,7 +278,9 @@ class XRAY_OT_export_bone(
             export_context.export_bone_properties = self.export_bone_properties
             exp.export_file(export_context)
         except utils.AppError as err:
-            raise err
+            export_context.errors.append(err)
+        for err in export_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     def draw(self, context):
