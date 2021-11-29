@@ -211,7 +211,6 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
                 edge.use_edge_sharp = True
         version_utils.link_object(temp_obj)
         version_utils.set_active_object(temp_obj)
-        bpy.ops.object.select_all(action='DESELECT')
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.set_normals_from_faces()
         bpy.ops.object.mode_set(mode='OBJECT')

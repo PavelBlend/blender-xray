@@ -63,6 +63,21 @@ def find_objects_for_export(context):
     return roots
 
 
+def get_selection_state(context):
+    active_object = context.active_object
+    selected_objects = set()
+    for obj in context.selected_objects:
+        selected_objects.add(obj)
+    bpy.ops.object.select_all(action='DESELECT')
+    return active_object, selected_objects
+
+
+def set_selection_state(active_object, selected_objects):
+    version_utils.set_active_object(active_object)
+    for obj in selected_objects:
+        version_utils.select_object(obj)
+
+
 _with_export_motions_props = {
     'export_motions': plugin_props.PropObjectMotionsExport(),
 }
@@ -128,6 +143,9 @@ class XRAY_OT_export_object(plugin_props.BaseOperator, _WithExportMotions):
         export_context.smoothing_out_of = self.smoothing_out_of
         preferences = version_utils.get_preferences()
         export_context.textures_folder = preferences.textures_folder_auto
+        use_split_normals = self.smoothing_out_of == 'SPLIT_NORMALS'
+        if use_split_normals:
+            active_object, selected_objects = get_selection_state(context)
         for name in self.objects.split(','):
             bpy_obj = context.scene.objects[name]
             if not name.lower().endswith('.object'):
@@ -144,10 +162,8 @@ class XRAY_OT_export_object(plugin_props.BaseOperator, _WithExportMotions):
                 )
             except utils.AppError as err:
                 export_context.errors.append(err)
-        if self.smoothing_out_of == 'SPLIT_NORMALS':
-            for name in self.objects.split(','):
-                bpy_obj = context.scene.objects[name]
-                version_utils.select_object(bpy_obj)
+        if use_split_normals:
+            set_selection_state(active_object, selected_objects)
         for err in export_context.errors:
             log.err(err)
         return {'FINISHED'}
@@ -227,13 +243,15 @@ class XRAY_OT_export_object_file(
         bpy_obj = context.scene.objects[self.object]
         preferences = version_utils.get_preferences()
         export_context.textures_folder = preferences.textures_folder_auto
+        use_split_normals = self.smoothing_out_of == 'SPLIT_NORMALS'
+        if use_split_normals:
+            active_object, selected_objects = get_selection_state(context)
         try:
             exp.export_file(bpy_obj, self.filepath, export_context)
         except utils.AppError as err:
             export_context.errors.append(err)
-        if self.smoothing_out_of == 'SPLIT_NORMALS':
-            version_utils.set_active_object(bpy_obj)
-            version_utils.select_object(bpy_obj)
+        if use_split_normals:
+            set_selection_state(active_object, selected_objects)
         for err in export_context.errors:
             log.err(err)
         return {'FINISHED'}
