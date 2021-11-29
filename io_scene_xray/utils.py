@@ -542,6 +542,9 @@ def time_log():
 
 
 def save_file(file_path, writer):
+    dir_path = os.path.dirname(file_path)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
     try:
         with open(file_path, 'wb') as file:
             file.write(writer.data)
