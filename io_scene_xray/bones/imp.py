@@ -9,7 +9,7 @@ from .. import xray_io
 from .. import obj
 
 
-@log.with_context(name='bones-partitions')
+@log.with_context(name='import-bones-partitions')
 def _import_partitions(import_context, data, arm_obj, bpy_bones):
     packed_reader = xray_io.PackedReader(data)
     partitions_count = packed_reader.int()
@@ -44,7 +44,7 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
         bpy.ops.object.mode_set(mode=current_mode)
 
 
-@log.with_context(name='bone')
+@log.with_context(name='import-bone-properties')
 def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
     chunked_reader = xray_io.ChunkedReader(data)
     chunks = obj.fmt.Chunks.Bone
@@ -137,6 +137,8 @@ def _import_main(data, import_context):
             _import_bone_data(chunk_data, arm_obj.name, bpy_bones, bone_index)
 
 
+@log.with_context(name='import-bones')
 def import_file(import_context):
+    log.update(file=import_context.filepath)
     data = utils.read_file(import_context.filepath)
     _import_main(data, import_context)

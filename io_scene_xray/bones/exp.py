@@ -1,9 +1,11 @@
 # addon modules
 from .. import utils
+from .. import log
 from .. import xray_io
 from .. import obj
 
 
+@log.with_context(name='export-bones-partitions')
 def _export_partitions(context, bpy_obj):
     packed_writer = xray_io.PackedWriter()
     groups_count = len(bpy_obj.pose.bone_groups)
@@ -43,7 +45,9 @@ def _export_partitions(context, bpy_obj):
     return packed_writer
 
 
+@log.with_context(name='export-bone-properties')
 def _export_bone_data(bpy_obj, bone):
+    log.update(bone=bone.name)
     chunked_writer = xray_io.ChunkedWriter()
     chunks = obj.fmt.Chunks.Bone
     xray = bone.xray
@@ -130,8 +134,10 @@ def _export_bone_data(bpy_obj, bone):
     return chunked_writer
 
 
+@log.with_context(name='export-bones')
 def export_file(context):
     bpy_obj = context.bpy_arm_obj
+    log.update(object=bpy_obj.name)
     chunked_writer = xray_io.ChunkedWriter()
     bone_index = 0
     if context.export_bone_properties:
