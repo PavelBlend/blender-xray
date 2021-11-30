@@ -147,6 +147,8 @@ translations_table = (
     (text.warn.object_merged, 'скелетные меш-объекты были сохранены как один меш'),
     (text.warn.object_no_action, 'не найдена анимация'),
     (text.warn.object_legacy_motionrefs, 'пропущены устаревшие motion references данные'),
+    (text.warn.object_set_dynamic, 'скелетный объект имеет неправильный тип. Тип объекта записан как Dynamic'),
+    (text.warn.object_arm_mod_disabled, 'модификатор armature отключён в 3D viewport'),
     # object export mesh
     (text.warn.object_sg_smooth, 'Несовместимость Maya-сглаживания: сглаженные смежные рёбра имеют различные группы сглаживания'),
     (text.warn.object_sg_sharp, 'Несовместимость Maya-сглаживания: не сглаженные смежные рёбра имеют одинаковую группу сглаживания'),

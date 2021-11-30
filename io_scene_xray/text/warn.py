@@ -27,6 +27,7 @@ object_merged = 'mesh-objects have been merged'
 object_no_action = 'cannot find action'
 object_legacy_motionrefs = 'skipped motion references legacy data'
 object_set_dynamic = 'skeletal object has wrong type. Object type written as Dynamic'
+object_arm_mod_disabled = 'armature modifier is disabled in viewport'
 # object export mesh
 object_sg_smooth = 'Maya-SG incompatible: smooth edge adjacents has different smoothing group'
 object_sg_sharp = 'Maya-SG incompatible: sharp edge adjacents has same smoothing group'
