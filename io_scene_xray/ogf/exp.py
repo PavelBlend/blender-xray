@@ -390,21 +390,11 @@ def _export(bpy_obj, cwriter, context):
         if bpy_obj.type == 'MESH':
             arm_obj = utils.get_armature_object(bpy_obj)
             vertex_groups_map = {}
-            not_found_bones = set()
             for group_index, group in enumerate(bpy_obj.vertex_groups):
                 bone = arm_obj.data.bones.get(group.name, None)
                 if bone is None:
-                    not_found_bones.add(group.name)
                     continue
                 vertex_groups_map[group_index] = reg_bone(bone, arm_obj)
-            if not_found_bones:
-                raise utils.AppError(
-                    text.error.ogf_no_bone,
-                    log.props(
-                        armature_object=arm_obj.name,
-                        bones=not_found_bones
-                    )
-                )
             mesh_writer = xray_io.ChunkedWriter()
             _export_child(bpy_obj, mesh_writer, context, vertex_groups_map)
             meshes.append(mesh_writer)

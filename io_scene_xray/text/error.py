@@ -78,8 +78,6 @@ object_main_chunk = 'file does not have main chunk'
 object_unsupport_mesh_ver = 'unsupported mesh format version'
 object_bad_vmap = 'unsupported vertex map type'
 object_many_duplicated_faces = 'too many duplicated polygons'
-# ogf export
-ogf_no_bone = 'bone not found in armature'
 # ogf import
 ogf_bad_ver = 'unsupported ogf format version'
 ogf_bad_vertex_fmt = 'unsupported ogf vertex format'

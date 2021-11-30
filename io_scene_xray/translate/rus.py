@@ -89,8 +89,6 @@ translations_table = (
     (text.error.object_unsupport_mesh_ver, 'неподдерживаемая версия меш-формата'),
     (text.error.object_bad_vmap, 'неподдерживаемый тип карты вершин'),
     (text.error.object_many_duplicated_faces, 'слишком много дублирующихся полигонов'),
-    # ogf export
-    (text.error.ogf_no_bone, 'кость не найдена в арматуре'),
     # ogf import
     (text.error.ogf_bad_ver, 'неподдерживаемая версия ogf формата'),
     (text.error.ogf_bad_vertex_fmt, 'неподдерживаемая версия формата ogf-вершин'),
