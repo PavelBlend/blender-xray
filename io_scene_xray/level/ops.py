@@ -88,7 +88,9 @@ class XRAY_OT_import_level(
         try:
             imp.import_file(import_context, self)
         except utils.AppError as err:
-            raise err
+            import_context.errors.append(err)
+        for err in import_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, event):

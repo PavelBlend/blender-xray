@@ -114,6 +114,7 @@ class XRAY_OT_import_omf(
         if not self.files:
             self.report({'ERROR'}, 'No files selected')
             return {'CANCELLED'}
+        import_context = ImportOmfContext()
         for file in self.files:
             ext = os.path.splitext(file.name)[-1].lower()
             if ext == '.omf':
@@ -124,7 +125,6 @@ class XRAY_OT_import_omf(
                         'File not found: "{}"'.format(omf_path)
                     )
                     continue
-                import_context = ImportOmfContext()
                 import_context.bpy_arm_obj = context.object
                 import_context.filepath = omf_path
                 import_context.import_bone_parts = self.import_bone_parts
@@ -320,11 +320,13 @@ class XRAY_OT_export_omf(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHe
                 'Armature object "{}" has no bone groups'.format(obj.name)
             )
             return {'CANCELLED'}
+        export_context.need_motions = need_motions
+        export_context.need_bone_groups = need_bone_groups
         try:
-            export_context.need_motions = need_motions
-            export_context.need_bone_groups = need_bone_groups
             exp.export_omf_file(export_context)
         except utils.AppError as err:
+            export_context.errors.append(err)
+        for err in export_context.errors:
             log.err(err)
         return {'FINISHED'}
 
