@@ -511,7 +511,7 @@ def _export(bpy_obj, cwriter, context):
         cwriter.put(fmt.Chunks_v4.S_MOTION_REFS_0, motion_refs_writer)
 
     # export motions
-    if context.export_motions:
+    if context.export_motions and bpy_obj.xray.motions_collection:
         motion_context = omf.ops.ExportOmfContext()
         motion_context.bpy_arm_obj = bpy_obj
         motion_context.export_mode = 'OVERWRITE'

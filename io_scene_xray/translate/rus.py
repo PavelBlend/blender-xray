@@ -100,7 +100,7 @@ translations_table = (
     (text.error.omf_empty, 'используйте другой режим экспорта. Этот omf файл пустой'),
     (text.error.omf_no_anims, 'omf файл не имеет блок анимаций'),
     (text.error.omf_no_params, 'omf файл не имеет блок параметров'),
-    (text.error.omf_bone_no_group, 'не все кости арматуры имеют группу костей'),
+    (text.error.omf_bone_no_group, 'не все кости арматуры имеют группу костей (bone part)'),
     # omf import
     (text.error.omf_no_bone, 'арматура не имеет всех костей, которые есть в omf файле'),
     (text.error.omf_nothing, 'ничего не импортировано. Измените настройки импорта'),
