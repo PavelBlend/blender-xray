@@ -388,28 +388,26 @@ def _export(bpy_obj, cwriter, context):
         if utils.is_helper_object(bpy_obj):
             return
         if bpy_obj.type == 'MESH':
-            vgm = {}
-            for modifier in bpy_obj.modifiers:
-                if (modifier.type == 'ARMATURE') and modifier.object:
-                    not_found_bones = set()
-                    for i, group in enumerate(bpy_obj.vertex_groups):
-                        bone = modifier.object.data.bones.get(group.name, None)
-                        if bone is None:
-                            not_found_bones.add(group.name)
-                            continue
-                        vgm[i] = reg_bone(bone, modifier.object)
-                    if not_found_bones:
-                        raise utils.AppError(
-                            text.error.ogf_no_bone,
-                            log.props(
-                                armature_object=modifier.object.name,
-                                bones=not_found_bones
-                            )
-                        )
-                    break  # use only first armature modifier
-            mwriter = xray_io.ChunkedWriter()
-            _export_child(bpy_obj, mwriter, context, vgm)
-            meshes.append(mwriter)
+            arm_obj = utils.get_armature_object(bpy_obj)
+            vertex_groups_map = {}
+            not_found_bones = set()
+            for group_index, group in enumerate(bpy_obj.vertex_groups):
+                bone = arm_obj.data.bones.get(group.name, None)
+                if bone is None:
+                    not_found_bones.add(group.name)
+                    continue
+                vertex_groups_map[group_index] = reg_bone(bone, arm_obj)
+            if not_found_bones:
+                raise utils.AppError(
+                    text.error.ogf_no_bone,
+                    log.props(
+                        armature_object=arm_obj.name,
+                        bones=not_found_bones
+                    )
+                )
+            mesh_writer = xray_io.ChunkedWriter()
+            _export_child(bpy_obj, mesh_writer, context, vertex_groups_map)
+            meshes.append(mesh_writer)
         elif bpy_obj.type == 'ARMATURE':
             for bone in bpy_obj.data.bones:
                 if not utils.is_exportable_bone(bone):
@@ -420,12 +418,12 @@ def _export(bpy_obj, cwriter, context):
 
     scan_r(bpy_obj)
 
-    ccw = xray_io.ChunkedWriter()
-    idx = 0
-    for mwriter in meshes:
-        ccw.put(idx, mwriter)
-        idx += 1
-    cwriter.put(fmt.Chunks_v4.CHILDREN, ccw)
+    children_chunked_writer = xray_io.ChunkedWriter()
+    mesh_index = 0
+    for mesh_writer in meshes:
+        children_chunked_writer.put(mesh_index, mesh_writer)
+        mesh_index += 1
+    cwriter.put(fmt.Chunks_v4.CHILDREN, children_chunked_writer)
 
     pwriter = xray_io.PackedWriter()
     pwriter.putf('<I', len(bones))
@@ -486,12 +484,18 @@ def _export(bpy_obj, cwriter, context):
         pwriter.putf('<I', xray.ikflags)
         pwriter.putf('<2f', xray.breakf.force, xray.breakf.torque)
         pwriter.putf('<f', xray.friction)
-        mwriter = obj.matrix_world
-        mat = multiply(mwriter, bone.matrix_local, xray_motions.MATRIX_BONE_INVERTED)
+        world_matrix = obj.matrix_world
+        mat = multiply(
+            world_matrix,
+            bone.matrix_local,
+            xray_motions.MATRIX_BONE_INVERTED
+        )
         b_parent = utils.find_bone_exportable_parent(bone)
         if b_parent:
             mat = multiply(multiply(
-                mwriter, b_parent.matrix_local, xray_motions.MATRIX_BONE_INVERTED
+                world_matrix,
+                b_parent.matrix_local,
+                xray_motions.MATRIX_BONE_INVERTED
             ).inverted(), mat)
         euler = mat.to_euler('YXZ')
         pwriter.putf('<3f', -euler.x, -euler.z, -euler.y)
@@ -523,7 +527,9 @@ def _export(bpy_obj, cwriter, context):
         cwriter.data.extend(motions_chunked_writer.data)
 
 
+@log.with_context('export-object')
 def export_file(bpy_obj, file_path, context):
+    log.update(object=bpy_obj.name)
     cwriter = xray_io.ChunkedWriter()
     _export(bpy_obj, cwriter, context)
     utils.save_file(file_path, cwriter)

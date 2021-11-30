@@ -108,7 +108,10 @@ class TestObjectExport(utils.XRayTestCase):
         utils.link_object(obj)
         utils.set_active_object(obj)
         b_exp0, b_non0, b_exp1, b_non1 = (
-            'b-exportable0', 'b-non-exportable0', 'b-exportable1', 'b-non-exportable1'
+            'b-exportable0',
+            'b-non-exportable0',
+            'b-exportable1',
+            'b-non-exportable1'
         )
         bpy.ops.object.mode_set(mode='EDIT')
         try:
@@ -139,6 +142,8 @@ class TestObjectExport(utils.XRayTestCase):
         obj_me = utils.create_object(bmesh, True)
         obj_me.parent = obj
         obj_me.xray.isroot = False
+        arm_mod = obj_me.modifiers.new('Armature', 'ARMATURE')
+        arm_mod.object = obj
         vertex_group = obj_me.vertex_groups.new(name='b-exportable0')
         vertex_group.add(range(len(obj_me.data.vertices)), 1.0, 'REPLACE')
 

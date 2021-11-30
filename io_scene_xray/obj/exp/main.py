@@ -179,37 +179,9 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
                 write_mesh(bpy_obj)
             else:
                 armature_meshes.add(bpy_obj)
-                arm_mods = []    # armature modifiers
-                for modifier in bpy_obj.modifiers:
-                    if (modifier.type == 'ARMATURE') and modifier.object:
-                        arm_mods.append(modifier)
-                if len(arm_mods) == 1:
-                    modifier = arm_mods[0]
-                    if not modifier.show_viewport:
-                        log.warn(
-                            text.warn.object_arm_mod_disabled,
-                            object=bpy_obj.name,
-                            modifier=modifier.name
-                        )
-                    armatures.add(modifier.object)
-                elif len(arm_mods) > 1:
-                    used_mods = []
-                    for modifier in arm_mods:
-                        if modifier.show_viewport:
-                            used_mods.append(modifier)
-                    if len(used_mods) > 1:
-                        raise utils.AppError(
-                            text.error.object_many_arms,
-                            log.props(
-                                root_object=bpy_obj.name,
-                                armature_objects=[
-                                    mod.object.name
-                                    for mod in used_mods
-                                ]
-                            )
-                        )
-                    else:
-                        armatures.add(used_mods[0].object)
+                arm_obj = utils.get_armature_object(bpy_obj)
+                if arm_obj:
+                    armatures.add(arm_obj)
         elif bpy_obj.type == 'ARMATURE':
             armatures.add(bpy_obj)
         for child in bpy_obj.children:
@@ -534,8 +506,9 @@ def export_revision(chunked_writer, xray):
     chunked_writer.put(fmt.Chunks.Object.REVISION, writer)
 
 
-# @utils.time_log()
+@log.with_context('export-object')
 def export_main(bpy_obj, chunked_writer, context):
+    log.update(object=bpy_obj.name)
     xray = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
 
     export_version(chunked_writer)

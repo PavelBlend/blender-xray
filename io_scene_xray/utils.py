@@ -616,3 +616,36 @@ def is_armature_context(context):
     if not obj:
         return False
     return obj.type == 'ARMATURE'
+
+
+def get_armature_object(bpy_obj):
+    arm_mods = []    # armature modifiers
+    armature = None
+    for modifier in bpy_obj.modifiers:
+        if (modifier.type == 'ARMATURE') and modifier.object:
+            arm_mods.append(modifier)
+    if len(arm_mods) == 1:
+        modifier = arm_mods[0]
+        if not modifier.show_viewport:
+            log.warn(
+                text.warn.object_arm_mod_disabled,
+                object=bpy_obj.name,
+                modifier=modifier.name
+            )
+        armature = modifier.object
+    elif len(arm_mods) > 1:
+        used_mods = []
+        for modifier in arm_mods:
+            if modifier.show_viewport:
+                used_mods.append(modifier)
+        if len(used_mods) > 1:
+            raise AppError(
+                text.error.object_many_arms,
+                log.props(
+                    root_object=bpy_obj.name,
+                    armature_objects=[mod.object.name for mod in used_mods]
+                )
+            )
+        else:
+            armature = used_mods[0].object
+    return armature
