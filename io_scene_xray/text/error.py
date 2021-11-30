@@ -83,6 +83,8 @@ ogf_bad_ver = 'unsupported ogf format version'
 ogf_bad_vertex_fmt = 'unsupported ogf vertex format'
 ogf_bad_color_mode = 'unknown ogf color mode'
 ogf_bad_model_type = 'unsupported ogf model type'
+# ogf export
+ogf_has_no_arm = 'skeletal mesh-object has no armature'
 # omf export
 omf_empty = 'use different export mode. This omf file is empty'
 omf_no_anims = 'omf file does not have an animation block'

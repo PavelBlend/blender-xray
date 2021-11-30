@@ -94,6 +94,8 @@ translations_table = (
     (text.error.ogf_bad_vertex_fmt, 'неподдерживаемая версия формата ogf-вершин'),
     (text.error.ogf_bad_color_mode, 'неизвестный режим цвета ogf'),
     (text.error.ogf_bad_model_type, 'неподдерживаемый тип ogf модели'),
+    # ogf export
+    (text.error.ogf_has_no_arm, 'скелетный меш-объект не имеет арматуры'),
     # omf export
     (text.error.omf_empty, 'используйте другой режим экспорта. Этот omf файл пустой'),
     (text.error.omf_no_anims, 'omf файл не имеет блок анимаций'),

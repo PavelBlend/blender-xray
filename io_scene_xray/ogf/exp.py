@@ -389,6 +389,11 @@ def _export(bpy_obj, cwriter, context):
             return
         if bpy_obj.type == 'MESH':
             arm_obj = utils.get_armature_object(bpy_obj)
+            if not arm_obj:
+                raise utils.AppError(
+                    text.error.ogf_has_no_arm,
+                    log.props(object=bpy_obj.name)
+                )
             vertex_groups_map = {}
             for group_index, group in enumerate(bpy_obj.vertex_groups):
                 bone = arm_obj.data.bones.get(group.name, None)
