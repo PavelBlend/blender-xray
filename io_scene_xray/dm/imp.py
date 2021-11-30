@@ -5,9 +5,11 @@ import os
 from . import fmt
 from . import create
 from .. import utils
+from .. import log
 from .. import xray_io
 
 
+@log.with_context('import-dm')
 def import_(
         file_path,
         context,
@@ -20,6 +22,7 @@ def import_(
 
     object_name = os.path.basename(file_path.lower())
     bpy_obj, bpy_mesh = create.create_object(object_name)
+    log.update(file=file_path)
 
     det_model.shader = packed_reader.gets()
     det_model.texture = packed_reader.gets()

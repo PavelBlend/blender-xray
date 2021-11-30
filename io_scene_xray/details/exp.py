@@ -2,6 +2,7 @@
 from . import convert
 from . import write
 from .. import utils
+from .. import log
 from .. import xray_io
 
 
@@ -24,7 +25,9 @@ def _export(bpy_obj, chunked_writer, context, file_path):
         write.write_slots_v2(chunked_writer, lvl_dets)
 
 
+@log.with_context('export-details')
 def export_file(bpy_obj, file_path, context):
+    log.update(file=file_path)
     chunked_writer = xray_io.ChunkedWriter()
     _export(bpy_obj, chunked_writer, context, file_path)
     utils.save_file(file_path, chunked_writer)

@@ -101,7 +101,9 @@ def _import(file_path, context, chunked_reader):
         slots.slots_top_object = slots_top_object.name
 
 
+@log.with_context('import-details')
 def import_file(file_path, context):
+    log.update(file=file_path)
     data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(data)
     _import(file_path, context, chunked_reader)

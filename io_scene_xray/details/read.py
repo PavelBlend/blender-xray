@@ -67,6 +67,7 @@ def read_details_meshes(
     return bpy_obj_root
 
 
+@log.with_context('import-slots')
 def read_details_slots(
         base_name,
         context,
