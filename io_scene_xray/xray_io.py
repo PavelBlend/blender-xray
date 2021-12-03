@@ -226,6 +226,10 @@ class PackedWriter():
         self.data += b'\x00'
         return self
 
+    def replace(self, offset, byte_list):
+        for byte_index, byte in enumerate(byte_list):
+            self.data[offset + byte_index] = byte
+
 
 class ChunkedWriter():
     def __init__(self):

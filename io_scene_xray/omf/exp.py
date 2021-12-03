@@ -1,5 +1,6 @@
 # standart modules
 import struct
+import zlib
 
 # blender modules
 import bpy
@@ -381,19 +382,38 @@ def export_omf(context):
                 flags |= fmt.FL_T_KEY_PRESENT
             if len(set(quaternions)) != 1:
                 packed_writer.putf('<B', flags)
-                motion_crc32 = 0x0    # temp value
-                packed_writer.putf('<I', motion_crc32)
+                crc32_temp = 0x0    # temp value
+                crc32_offset = len(packed_writer.data)
+                packed_writer.putf('<I', crc32_temp)
                 for y, z, q, x in quaternions:
                     packed_writer.putf('<4h', y, z, q, x)
+                # crc32
+                crc32_data_start = crc32_offset + 4
+                crc32_data_end = len(packed_writer.data)
+                crc32_value = zlib.crc32(
+                    packed_writer.data[crc32_data_start : crc32_data_end]
+                )
+                crc32_packed = struct.pack('<I', crc32_value)
+                packed_writer.replace(crc32_offset, crc32_packed)
             else:
                 flags |= fmt.FL_R_KEY_ABSENT
                 packed_writer.putf('<B', flags)
                 packed_writer.putf('<4h', *quaternions[0])
             if flags & fmt.FL_T_KEY_PRESENT:
-                motion_crc32 = 0x0    # temp value
-                packed_writer.putf('<I', motion_crc32)
+                crc32_temp = 0x0    # temp value
+                crc32_offset = len(packed_writer.data)
+                packed_writer.putf('<I', crc32_temp)
                 for translate in translations:
                     packed_writer.putf('<3b', *translate)
+                # crc32
+                crc32_data_start = crc32_offset + 4
+                crc32_data_end = len(packed_writer.data)
+                crc32_value = zlib.crc32(
+                    packed_writer.data[crc32_data_start : crc32_data_end]
+                )
+                crc32_packed = struct.pack('<I', crc32_value)
+                packed_writer.replace(crc32_offset, crc32_packed)
+                # size, init
                 packed_writer.putf('<3f', *tr_size)
                 packed_writer.putf('<3f', *tr_init)
             else:
