@@ -187,7 +187,7 @@ def get_motions(context):
     return motions, motion_names, chunks
 
 
-def write_motion(context, packed_writer, motion_name, motion_params):
+def write_motion(context, packed_writer, motion_name, motion_index):
     action = bpy.data.actions.get(motion_name)
     if context.bpy_arm_obj.xray.use_custom_motion_names:
         motion_name = context.motion_export_names[motion_name]
@@ -196,8 +196,7 @@ def write_motion(context, packed_writer, motion_name, motion_params):
     packed_writer.putf('<I', motion_flags)
     bone_or_part = action.xray.bonepart
     packed_writer.putf('<H', bone_or_part)
-    motion = motion_params[0]
-    packed_writer.putf('<H', motion)
+    packed_writer.putf('<H', motion_index)
     packed_writer.putf('<f', action.xray.speed)
     packed_writer.putf('<f', action.xray.power)
     packed_writer.putf('<f', action.xray.accrue)
@@ -205,8 +204,8 @@ def write_motion(context, packed_writer, motion_name, motion_params):
 
 
 def write_motions(context, packed_writer, motions):
-    for motion_name, motion_params in motions.items():
-        write_motion(context, packed_writer, motion_name, motion_params)
+    for motion_name, motion_index, _ in motions:
+        write_motion(context, packed_writer, motion_name, motion_index)
 
 
 @log.with_context('armature-object')
@@ -234,7 +233,7 @@ def export_omf(context):
         export_motion_names = available_motion_names
     else:
         available_motions = {}
-        export_motion_names = motion_names
+        export_motion_names = list(motion_names)
     scn = bpy.context.scene
     pose_bones = []
     bpy.ops.object.mode_set(mode='POSE')
@@ -262,13 +261,15 @@ def export_omf(context):
             )
         )
     motion_count = 0
-    motions = {}
+    motions = []
+    motions_ids = {}
     if context.export_mode == 'OVERWRITE':
         for motion_name in export_motion_names:
             action = bpy.data.actions.get(motion_name)
             if not action:
                 continue
-            motions[motion_name] = [motion_count, False]
+            motions.append((motion_name, motion_count, False))
+            motions_ids[motion_name] = motion_count
             motion_count += 1
     else:
         for motion_name in export_motion_names:
@@ -278,9 +279,10 @@ def export_omf(context):
                 if motion_id is None:
                     continue
             if not motion_id is None:
-                motions[motion_name] = [motion_id, True]
+                motions.append((motion_name, motion_id, True))
             else:
-                motions[motion_name] = [motion_count, False]
+                motions.append((motion_name, motion_count, False))
+            motions_ids[motion_name] = motion_count
             motion_count += 1
     chunked_writer = xray_io.ChunkedWriter()
     packed_writer = xray_io.PackedWriter()
@@ -465,16 +467,19 @@ def export_omf(context):
             for motion_name, motion_params in available_params.items():
                 packed_writer.puts(motion_name)
                 packed_writer.putp(motion_params.writer)
-            motions_new = {}
-            for motion_name, (motion_id, has_available) in motions.items():
+            motions_new = []
+            for motion_name, motion_id, has_available in motions:
                 if not has_available:
-                    motions_new[motion_name] = (motion_id, has_available)
+                    motions_new.append((motion_name, motion_id, has_available))
             write_motions(context, packed_writer, motions_new)
         elif context.export_mode == 'REPLACE':
             if context.export_motions:
                 packed_writer.putf('<H', len(available_params) + new_motions_count)
                 for motion_name, motion_params in available_params.items():
-                    motion_id, has_available = motions.get(motion_name, None)
+                    motion_index = motions_ids.get(motion_name, None)
+                    has_available = False
+                    if not motion_index is None:
+                        _, _, has_available = motions[motion_index]
                     if has_available:
                         packed_writer.puts(motion_name)
                         packed_writer.putp(motion_params.writer)
@@ -483,10 +488,10 @@ def export_omf(context):
                         if context.bpy_arm_obj.xray.use_custom_motion_names:
                             motion_name = context.motion_export_names[motion_name]
                         write_motion(context, packed_writer, motion_name, params)
-                motions_new = {}
-                for motion_name, (motion_id, has_available) in motions.items():
+                motions_new = []
+                for motion_name, motion_id, has_available in motions:
                     if not has_available:
-                        motions_new[motion_name] = (motion_id, has_available)
+                        motions_new.append((motion_name, motion_id, has_available))
                 write_motions(context, packed_writer, motions_new)
             else:
                 packed_writer.putf('<H', len(available_params))
