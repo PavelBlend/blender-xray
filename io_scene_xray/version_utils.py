@@ -3,6 +3,7 @@ import contextlib
 
 # blender modules
 import bpy
+import bmesh
 
 
 def is_blender_2_77():
@@ -37,11 +38,19 @@ def is_blender_2_93():
         return False
 
 
+def is_blender_3():
+    if bpy.app.version[0] == 3:
+        return True
+    else:
+        return False
+
+
 IS_277 = is_blender_2_77()
 IS_279 = is_blender_2_79()
 IS_28 = is_blender_2_80()
 IS_281 = is_blender_2_81()
 IS_293 = is_blender_2_93()
+IS_3 = is_blender_3()
 
 
 def get_import_export_menus():
@@ -206,3 +215,47 @@ def set_arm_display_type(arm, display_type='STICK'):
         arm.display_type = display_type
     else:
         arm.draw_type = display_type
+
+
+def create_bmesh_cone(
+        mesh,
+        segments=32,
+        radius_1=1.0,
+        radius_2=1.0,
+        depth=2.0
+    ):
+    if IS_3:
+        bmesh.ops.create_cone(
+            mesh,
+            segments=segments,
+            radius1=radius_1,
+            radius2=radius_1, 
+            depth=depth
+        )
+    else:
+        bmesh.ops.create_cone(
+            mesh,
+            segments=segments,
+            diameter1=radius_1,
+            diameter2=radius_1, 
+            depth=depth
+        )
+
+
+def create_bmesh_icosphere(
+        mesh,
+        subdivisions=2,
+        radius=1.0
+    ):
+    if IS_3:
+        bmesh.ops.create_icosphere(
+            mesh,
+            subdivisions=subdivisions,
+            radius=radius
+        )
+    else:
+        bmesh.ops.create_icosphere(
+            mesh,
+            subdivisions=subdivisions,
+            diameter=radius
+        )

@@ -56,20 +56,15 @@ class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
 
 HELPER = _BoneShapeEditHelper('bone-shape-edit')
 
+
 def _create_bmesh(shape_type):
     mesh = bmesh.new()
     if shape_type == '1':
         bmesh.ops.create_cube(mesh, size=2)
     elif shape_type == '2':
-        bmesh.ops.create_icosphere(mesh, subdivisions=2, diameter=1)
+        version_utils.create_bmesh_icosphere(mesh)
     elif shape_type == '3':
-        bmesh.ops.create_cone(
-            mesh,
-            segments=16,
-            diameter1=1,
-            diameter2=1, 
-            depth=2
-        )
+        version_utils.create_bmesh_cone(mesh, segments=16)
     else:
         raise AssertionError('unsupported bone shape type: ' + shape_type)
     return mesh
