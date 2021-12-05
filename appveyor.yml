@@ -19,6 +19,7 @@ environment:
     - BLENDER_VERSION: 2.91
     - BLENDER_VERSION: 2.92
     - BLENDER_VERSION: 2.93
+    - BLENDER_VERSION: 3.0
 
 before_test:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
