@@ -49,6 +49,10 @@ if [ ! -e "$DIR/blender" ]; then
             TAR="blender-$BLENDER_VERSION.0-linux-x64.tar.xz"
             PYTHON_VERSION="3.9"
             ;;
+        "3.0")
+            TAR="blender-$BLENDER_VERSION.0-linux-x64.tar.xz"
+            PYTHON_VERSION="3.9"
+            ;;
         *)
             echo "Unsupported version: $BLENDER_VERSION"
             exit 1
