@@ -23,6 +23,8 @@ class Chunks:
 
     class Mesh:
         class Flags:
+            VISIBLE = 0x01
+            LOCKED = 0x02
             SG_MASK = 0x04
         VERSION = 0x1000
         MESHNAME = 0x1001

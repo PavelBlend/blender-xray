@@ -64,31 +64,33 @@ def export_version(cw):
     cw.put(fmt.Chunks.Mesh.VERSION, packed_writer)
 
 
-def export_mesh_name(cw, bpy_obj, bpy_root):
-    mesh_name = bpy_obj.data.name if bpy_obj == bpy_root else bpy_obj.name
-    cw.put(
-        fmt.Chunks.Mesh.MESHNAME, xray_io.PackedWriter().puts(mesh_name)
-    )
+def export_mesh_name(chunked_writer, bpy_obj, bpy_root):
+    if bpy_obj == bpy_root:
+        mesh_name = bpy_obj.data.name
+    else:
+        mesh_name = bpy_obj.name
+    packed_writer = xray_io.PackedWriter()
+    packed_writer.puts(mesh_name)
+    chunked_writer.put(fmt.Chunks.Mesh.MESHNAME, packed_writer)
 
 
-def export_bbox(cw, bm):
+def export_bbox(chunked_writer, bm):
     bbox = utils.calculate_mesh_bbox(bm.verts)
     packed_writer = xray_io.PackedWriter()
     packed_writer.putv3f(bbox[0])
     packed_writer.putv3f(bbox[1])
-    cw.put(fmt.Chunks.Mesh.BBOX, packed_writer)
+    chunked_writer.put(fmt.Chunks.Mesh.BBOX, packed_writer)
 
 
-def export_flags(cw, bpy_obj):
+def export_flags(chunked_writer, bpy_obj):
     if hasattr(bpy_obj.data, 'xray'):
         # MAX sg-format currently unsupported (we use Maya sg-format)
         flags = bpy_obj.data.xray.flags & ~fmt.Chunks.Mesh.Flags.SG_MASK
-        cw.put(
-            fmt.Chunks.Mesh.FLAGS,
-            xray_io.PackedWriter().putf('<B', flags)
-        )
     else:
-        cw.put(fmt.Chunks.Mesh.FLAGS, xray_io.PackedWriter().putf('<B', 1))
+        flags = fmt.Chunks.Mesh.Flags.VISIBLE
+    packed_writer = xray_io.PackedWriter()
+    packed_writer.putf('<B', flags)
+    chunked_writer.put(fmt.Chunks.Mesh.FLAGS, packed_writer)
 
 
 def remove_bad_geometry(bm, bml, bpy_obj):
@@ -117,18 +119,18 @@ def remove_bad_geometry(bm, bml, bpy_obj):
     return bad_vgroups
 
 
-def export_vertices(cw, bm):
-    writer = xray_io.PackedWriter()
-    writer.putf('<I', len(bm.verts))
+def export_vertices(chunked_writer, bm):
+    packed_writer = xray_io.PackedWriter()
+    packed_writer.putf('<I', len(bm.verts))
     for vertex in bm.verts:
-        writer.putv3f(vertex.co)
-    cw.put(fmt.Chunks.Mesh.VERTS, writer)
+        packed_writer.putv3f(vertex.co)
+    chunked_writer.put(fmt.Chunks.Mesh.VERTS, packed_writer)
 
 
-def export_faces(cw, bm, bpy_obj):
+def export_faces(chunked_writer, bm, bpy_obj):
     uvs = []
-    vtx = []
-    fcs = []
+    vert_indices = []
+    face_indices = []
     uv_layer = bm.loops.layers.uv.active
     if not uv_layer:
         raise utils.AppError(
@@ -136,50 +138,56 @@ def export_faces(cw, bm, bpy_obj):
             log.props(object=bpy_obj.name)
         )
 
-    writer = xray_io.PackedWriter()
-    writer.putf('<I', len(bm.faces))
-    for fidx in bm.faces:
-        for i in (0, 2, 1):
-            writer.putf('<2I', fidx.verts[i].index, len(uvs))
-            uvc = fidx.loops[i][uv_layer].uv
-            uvs.append((uvc[0], 1 - uvc[1]))
-            vtx.append(fidx.verts[i].index)
-            fcs.append(fidx.index)
-    cw.put(fmt.Chunks.Mesh.FACES, writer)
+    packed_writer = xray_io.PackedWriter()
+    packed_writer.putf('<I', len(bm.faces))
+    for face in bm.faces:
+        for vert_index in (0, 2, 1):
+            packed_writer.putf('<2I', face.verts[vert_index].index, len(uvs))
+            uv_coord = face.loops[vert_index][uv_layer].uv
+            uvs.append((uv_coord[0], 1 - uv_coord[1]))
+            vert_indices.append(face.verts[vert_index].index)
+            face_indices.append(face.index)
+    chunked_writer.put(fmt.Chunks.Mesh.FACES, packed_writer)
 
-    return uvs, vtx, fcs
+    return uvs, vert_indices, face_indices
 
 
 @log.with_context('export-mesh')
-def export_mesh(bpy_obj, bpy_root, cw, context):
+def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
     log.update(mesh=bpy_obj.data.name)
-    export_version(cw)
-    export_mesh_name(cw, bpy_obj, bpy_root)
+    export_version(chunked_writer)
+    export_mesh_name(chunked_writer, bpy_obj, bpy_root)
 
     if context.smoothing_out_of == 'SHARP_EDGES':
         use_split_normals = False
     else:
         use_split_normals = True
-    mods = [mod for mod in bpy_obj.modifiers if mod.type != 'ARMATURE' and mod.show_viewport]
+
+    modifiers = [
+        mod
+        for mod in bpy_obj.modifiers
+            if mod.type != 'ARMATURE' and mod.show_viewport
+    ]
+
     bm = utils.convert_object_to_space_bmesh(
         bpy_obj,
         bpy_root.matrix_world,
         local=False,
         split_normals=use_split_normals,
-        mods=mods
+        mods=modifiers
     )
-    bml = bm.verts.layers.deform.verify()
 
-    bad_vgroups = remove_bad_geometry(bm, bml, bpy_obj)
+    weights_layer = bm.verts.layers.deform.verify()
+    bad_vgroups = remove_bad_geometry(bm, weights_layer, bpy_obj)
 
-    export_bbox(cw, bm)
-    export_flags(cw, bpy_obj)
+    export_bbox(chunked_writer, bm)
+    export_flags(chunked_writer, bpy_obj)
 
     bmesh.ops.triangulate(bm, faces=bm.faces)
 
-    export_vertices(cw, bm)
+    export_vertices(chunked_writer, bm)
 
-    uvs, vtx, fcs = export_faces(cw, bm, bpy_obj)
+    uvs, vert_indices, face_indices = export_faces(chunked_writer, bm, bpy_obj)
 
     if bpy_root.type == 'ARMATURE':
         bones_names = []
@@ -189,40 +197,50 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
     else:
         bones_names = None
 
-    wmaps = []
-    wmaps_cnt = 0
+    weight_maps = []
+    weight_maps_count = 0
     for vertex_group, (is_bad, _) in zip(bpy_obj.vertex_groups, bad_vgroups):
         if is_bad:
-            wmaps.append(None)
+            weight_maps.append(None)
             continue
         if not bones_names is None:
             if vertex_group.name not in bones_names:
-                wmaps.append(None)
+                weight_maps.append(None)
                 continue
-        wmaps.append(([], wmaps_cnt))
-        wmaps_cnt += 1
+        weight_maps.append(([], weight_maps_count))
+        weight_maps_count += 1
 
-    wrefs = []
-    for vidx, vertex in enumerate(bm.verts):
-        wr = []
-        wrefs.append(wr)
-        vw = vertex[bml]
-        for vgi in vw.keys():
-            wmap = wmaps[vgi]
-            if wmap is None:
+    weight_refs = []    # vertex weight references
+    for vertex_index, vertex in enumerate(bm.verts):
+        weight_ref = []
+        weight_refs.append(weight_ref)
+        vertex_weights = vertex[weights_layer]
+        for vertex_group_index in vertex_weights.keys():
+            weight_map = weight_maps[vertex_group_index]
+            if weight_map is None:
                 continue
-            wr.append((1 + wmap[1], len(wmap[0])))
-            wmap[0].append(vidx)
+            weight_ref.append((
+                1 + weight_map[1],
+                len(weight_map[0])
+            ))
+            weight_map[0].append(vertex_index)
 
     writer = xray_io.PackedWriter()
     writer.putf('<I', len(uvs))
-    for i in range(len(uvs)):
-        vidx = vtx[i]
-        wref = wrefs[vidx]
-        writer.putf('<B', 1 + len(wref)).putf('<2I', 0, i)
-        for ref in wref:
+    uv_maps_count = 1
+    uv_map_index = 0
+    for vertex_map_index in range(len(uvs)):
+        vertex_index = vert_indices[vertex_map_index]
+        weight_ref = weight_refs[vertex_index]
+        # vertex references count
+        refs_count = uv_maps_count + len(weight_ref)
+        writer.putf('<B', refs_count)
+        # uv ref
+        writer.putf('<2I', uv_map_index, vertex_map_index)
+        # weight refs
+        for ref in weight_ref:
             writer.putf('<2I', *ref)
-    cw.put(fmt.Chunks.Mesh.VMREFS, writer)
+    chunked_writer.put(fmt.Chunks.Mesh.VMREFS, writer)
 
     writer = xray_io.PackedWriter()
     sfaces = {
@@ -264,7 +282,7 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
                 fidxs = sfaces[(mat_name, mat_id)]
                 for fidx in fidxs:
                     writer.putf('<I', fidx)
-    cw.put(fmt.Chunks.Mesh.SFACE, writer)
+    chunked_writer.put(fmt.Chunks.Mesh.SFACE, writer)
 
     writer = xray_io.PackedWriter()
     sgroups = []
@@ -278,10 +296,10 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
         sgroups = _export_sg_new(bm.faces)
     for sgroup in sgroups:
         writer.putf('<I', sgroup)
-    cw.put(fmt.Chunks.Mesh.SG, writer)
+    chunked_writer.put(fmt.Chunks.Mesh.SG, writer)
 
     writer = xray_io.PackedWriter()
-    writer.putf('<I', 1 + wmaps_cnt)
+    writer.putf('<I', 1 + weight_maps_count)
     if version_utils.IS_28:
         texture = bpy_obj.data.uv_layers.active
     else:
@@ -290,12 +308,12 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
     writer.putf('<I', len(uvs))
     for uvc in uvs:
         writer.putf('<2f', *uvc)
-    for vidx in vtx:
+    for vidx in vert_indices:
         writer.putf('<I', vidx)
-    for fidx in fcs:
+    for fidx in face_indices:
         writer.putf('<I', fidx)
     for vgi, vertex_group in enumerate(bpy_obj.vertex_groups):
-        wmap = wmaps[vgi]
+        wmap = weight_maps[vgi]
         if wmap is None:
             continue
         vtx = wmap[0]
@@ -303,7 +321,7 @@ def export_mesh(bpy_obj, bpy_root, cw, context):
         writer.putf('<B', 1).putf('<B', 0).putf('<B', 1)
         writer.putf('<I', len(vtx))
         for vidx in vtx:
-            writer.putf('<f', bm.verts[vidx][bml][vgi])
+            writer.putf('<f', bm.verts[vidx][weights_layer][vgi])
         writer.putf('<' + str(len(vtx)) + 'I', *vtx)
-    cw.put(fmt.Chunks.Mesh.VMAPS2, writer)
+    chunked_writer.put(fmt.Chunks.Mesh.VMAPS2, writer)
     return used_material_names
