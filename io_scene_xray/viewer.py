@@ -12,10 +12,11 @@ class XRAY_UL_viewer_list_item(bpy.types.UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         if item.is_dir:
-            icon = 'FILE_FOLDER'
+            layout.label(text=item.name, icon='FILE_FOLDER')
         else:
-            icon = 'FILE'
-        layout.label(text=item.name, icon=icon)
+            row = layout.row()
+            row.prop(item, 'select', text='')
+            row.label(text=item.name, icon='FILE')
 
 
 def get_current_objects():
@@ -90,17 +91,9 @@ def remove_preview_data():
             bpy.data.actions.remove(action)
 
 
-def update_file(self, context):
-    scene = context.scene
-    viewer = scene.xray.viewer
-    file = viewer.files[viewer.files_index]
-    if file.is_dir:
-        scene.xray.viewer.folder = file.path
-        update_file_list(scene.xray.viewer.folder)
-    remove_preview_data()
+def import_file(file):
     path = file.path
     directory = os.path.dirname(path)
-    old_objects = get_current_objects()
     if path.endswith('.object'):
         bpy.ops.xray_import.object(
             directory=directory,
@@ -122,6 +115,18 @@ def update_file(self, context):
             files=[{'name': file.name}],
             load_slots=False
         )
+
+
+def update_file(self, context):
+    scene = context.scene
+    viewer = scene.xray.viewer
+    file = viewer.files[viewer.files_index]
+    if file.is_dir:
+        scene.xray.viewer.folder = file.path
+        update_file_list(scene.xray.viewer.folder)
+    remove_preview_data()
+    old_objects = get_current_objects()
+    import_file(file)
     new_objects = get_current_objects()
     imported_objects = old_objects ^ new_objects
     scene['imported_objects'] = list(imported_objects)
@@ -220,9 +225,24 @@ class XRAY_OT_viewer_preview_folder(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class XRAY_OT_viewer_import_selected(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.viewer_import_selected'
+    bl_label = 'Import Selected'
+    bl_options = {'REGISTER'}
+
+    def execute(self, context):
+        scene = context.scene
+        remove_preview_data()
+        for file in scene.xray.viewer.files:
+            if file.select:
+                import_file(file)
+        return {'FINISHED'}
+
+
 viewer_file_props = {
     'name': bpy.props.StringProperty(name='Name'),
     'path': bpy.props.StringProperty(name='Path'),
+    'select': bpy.props.BoolProperty(name='Select', default=True),
     'is_dir': bpy.props.BoolProperty(name='Directory')
 }
 
@@ -252,7 +272,8 @@ classes = (
     (XRaySceneViewerProperties, scene_viewer_props),
     (XRAY_OT_viewer_close_folder, None),
     (XRAY_OT_viewer_preview_folder, None),
-    (XRAY_OT_viewer_open_folder, op_props)
+    (XRAY_OT_viewer_open_folder, op_props),
+    (XRAY_OT_viewer_import_selected, None)
 )
 
 

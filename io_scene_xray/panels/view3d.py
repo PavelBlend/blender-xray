@@ -119,6 +119,7 @@ class XRAY_PT_viewer(bpy.types.Panel):
                 active_propname='files_index',
                 rows=5
             )
+            col.operator(viewer.XRAY_OT_viewer_import_selected.bl_idname)
         else:
             col.operator(
                 viewer.XRAY_OT_viewer_open_folder.bl_idname,
