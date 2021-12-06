@@ -1687,7 +1687,7 @@ def import_children(context, chunks, ogf_chunks, root_visual):
             root_visual.arm_obj.xray.flags_simple = 'pd'
         elif visual.model_type == fmt.ModelType_v4.SKELETON_GEOMDEF_ST:
             root_visual.arm_obj.xray.flags_simple = 'dy'
-        if visual.model_type == fmt.ModelType_v4.PROGRESSIVE:
+        elif visual.model_type == fmt.ModelType_v4.PROGRESSIVE:
             root_visual.root_obj.xray.flags_simple = 'pd'
         elif visual.model_type == fmt.ModelType_v4.NORMAL:
             root_visual.root_obj.xray.flags_simple = 'dy'
