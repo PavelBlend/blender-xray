@@ -196,7 +196,7 @@ def get_multiply():
 
 
 def get_prop_name(prop):
-    if IS_293:
+    if IS_293 or IS_3:
         name = prop.keywords.get('name', '')
     else:
         name = prop[1].get('name', '')
