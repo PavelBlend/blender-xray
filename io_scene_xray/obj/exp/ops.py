@@ -296,7 +296,7 @@ class XRAY_OT_export_project(plugin_props.BaseOperator):
     @utils.execute_with_logger
     def execute(self, context):
         data = context.scene.xray
-        export_context = exp.ops.ExportObjectContext()
+        export_context = ExportObjectContext()
         export_context.texname_from_path = data.object_texture_name_from_image_path
         export_context.soc_sgroups = data.fmt_version == 'soc'
         export_context.export_motions = data.object_export_motions
