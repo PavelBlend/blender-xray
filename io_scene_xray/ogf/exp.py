@@ -400,9 +400,36 @@ def _export(bpy_obj, cwriter, context):
                 if bone is None:
                     continue
                 vertex_groups_map[group_index] = reg_bone(bone, arm_obj)
-            mesh_writer = xray_io.ChunkedWriter()
-            _export_child(bpy_obj, mesh_writer, context, vertex_groups_map)
-            meshes.append(mesh_writer)
+            child_objects = []
+            remove_child_objects = False
+            if len(bpy_obj.material_slots) > 1:
+                # separate by materials
+                bpy.ops.object.select_all(action='DESELECT')
+                multi_material_mesh = bpy_obj.data.copy()
+                multi_material_object = bpy_obj.copy()
+                multi_material_object.data = multi_material_mesh
+                version_utils.link_object(multi_material_object)
+                version_utils.set_active_object(multi_material_object)
+                temp_parent_object = bpy.data.objects.new('!-temp-parent-object', None)
+                version_utils.link_object(temp_parent_object)
+                multi_material_object.parent = temp_parent_object
+                bpy.ops.object.mode_set(mode='EDIT')
+                bpy.ops.mesh.separate(type='MATERIAL')
+                bpy.ops.object.mode_set(mode='OBJECT')
+                for child_object in temp_parent_object.children:
+                    child_objects.append(child_object)
+                bpy.data.objects.remove(temp_parent_object)
+                remove_child_objects = True
+            else:
+                child_objects.append(bpy_obj)
+            for child_object in child_objects:
+                mesh_writer = xray_io.ChunkedWriter()
+                _export_child(child_object, mesh_writer, context, vertex_groups_map)
+                meshes.append(mesh_writer)
+                if remove_child_objects:
+                    child_mesh = child_object.data
+                    bpy.data.objects.remove(child_object)
+                    bpy.data.meshes.remove(child_mesh)
         elif bpy_obj.type == 'ARMATURE':
             for bone in bpy_obj.data.bones:
                 if not utils.is_exportable_bone(bone):

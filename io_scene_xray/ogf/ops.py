@@ -173,6 +173,9 @@ class XRAY_OT_export_ogf(
             export_context.errors.append(err)
         for err in export_context.errors:
             log.err(err)
+        for obj in self.selected_objects:
+            version_utils.select_object(obj)
+        version_utils.set_active_object(self.exported_object)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -181,6 +184,7 @@ class XRAY_OT_export_ogf(
         self.export_motions = preferences.ogf_export_motions
         self.filepath = context.object.name
         objs = context.selected_objects
+        self.selected_objects = context.selected_objects
         roots = [obj for obj in objs if obj.xray.isroot]
         if not roots:
             self.report({'ERROR'}, 'Cannot find object root')
