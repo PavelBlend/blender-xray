@@ -15,6 +15,8 @@ class XRAY_UL_viewer_list_item(bpy.types.UIList):
             layout.label(text=item.name, icon='FILE_FOLDER')
         else:
             row = layout.row()
+            if not item.select:
+                row.active = False
             row.prop(item, 'select', text='')
             row.label(text=item.name, icon='FILE')
 
@@ -202,6 +204,7 @@ class XRAY_OT_viewer_close_folder(bpy.types.Operator):
 
     def execute(self, context):
         scene = context.scene
+        remove_preview_data()
         scene.xray.viewer.folder = ''
         scene.xray.viewer.files.clear()
         return {'FINISHED'}
@@ -225,17 +228,76 @@ class XRAY_OT_viewer_preview_folder(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_viewer_import_selected(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.viewer_import_selected'
-    bl_label = 'Import Selected'
+op_import_items = (
+    ('IMPORT_ALL', 'Import All', ''),
+    ('IMPORT_SELECTED', 'Import Selected', ''),
+    ('IMPORT_ACTIVE', 'Import Active', '')
+)
+op_import_props = {
+    'mode': bpy.props.EnumProperty(name='Mode', items=op_import_items),
+}
+
+
+class XRAY_OT_viewer_import_files(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.viewer_import_files'
+    bl_label = 'Import Files'
     bl_options = {'REGISTER'}
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in op_import_props.items():
+            exec('{0} = op_import_props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
         scene = context.scene
+        viewer = scene.xray.viewer
         remove_preview_data()
-        for file in scene.xray.viewer.files:
-            if file.select:
+        if self.mode == 'IMPORT_SELECTED':
+            for file in viewer.files:
+                if file.select:
+                    import_file(file)
+        elif self.mode == 'IMPORT_ALL':
+            for file in viewer.files:
                 import_file(file)
+        elif self.mode == 'IMPORT_ACTIVE':
+            file = viewer.files[viewer.files_index]
+            import_file(file)
+        if scene.get('imported_objects'):
+            scene['imported_objects'].clear()
+            del scene['imported_objects']
+        return {'FINISHED'}
+
+
+op_select_items = (
+    ('SELECT_ALL', 'Select All', ''),
+    ('DESELECT_ALL', 'Deselect All', ''),
+    ('INVERT_SELECTION', 'Invert Selection', '')
+)
+op_select_props = {
+    'mode': bpy.props.EnumProperty(name='Mode', items=op_select_items),
+}
+
+
+class XRAY_OT_viewer_select_files(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.viewer_select_files'
+    bl_label = 'Select'
+    bl_options = {'REGISTER'}
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in op_select_props.items():
+            exec('{0} = op_select_props.get("{0}")'.format(prop_name))
+
+    def execute(self, context):
+        scene = context.scene
+        files = scene.xray.viewer.files
+        if self.mode == 'SELECT_ALL':
+            for file in files:
+                file.select = True
+        elif self.mode == 'DESELECT_ALL':
+            for file in files:
+                file.select = False
+        elif self.mode == 'INVERT_SELECTION':
+            for file in files:
+                file.select = not file.select
         return {'FINISHED'}
 
 
@@ -273,7 +335,8 @@ classes = (
     (XRAY_OT_viewer_close_folder, None),
     (XRAY_OT_viewer_preview_folder, None),
     (XRAY_OT_viewer_open_folder, op_props),
-    (XRAY_OT_viewer_import_selected, None)
+    (XRAY_OT_viewer_import_files, op_import_props),
+    (XRAY_OT_viewer_select_files, op_select_props)
 )
 
 
