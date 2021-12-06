@@ -117,7 +117,7 @@ def import_mesh(context, creader, renamemap):
                     discon = reader.byte() != 0
                 typ = reader.byte() & 0x3
                 size = reader.int()
-                if typ == 0:
+                if typ == fmt.VMapTypes.UVS:
                     new_name = renamemap.get(name.lower(), name)
                     if new_name != name:
                         if suppress_rename_warnings.get(name, None) != new_name:
@@ -141,7 +141,7 @@ def import_mesh(context, creader, renamemap):
                         if discon:
                             reader.skip(size * 4)
                     vmaps.append((typ, bml, uvs))
-                elif typ == 1:  # weights
+                elif typ == fmt.VMapTypes.WEIGHTS:  # weights
                     name = renamemap.get(name, name)
                     vgi = len(vgroups)
                     vgroups.append(name)

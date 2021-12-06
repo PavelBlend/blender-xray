@@ -54,6 +54,11 @@ class Chunks:
         FRICTION = 0x0010
 
 
+class VMapTypes:
+    UVS = 0
+    WEIGHTS = 1
+
+
 OBJECT_VERSION_16 = 0x10
 CURRENT_OBJECT_VERSION = OBJECT_VERSION_16
 

@@ -11,7 +11,7 @@ from ... import log
 from ... import version_utils
 
 
-def _export_sg_new(bmfaces):
+def _export_sg_cs_cop(bmfaces):
     for face in bmfaces:
         sm_group = 0
         for eidx, edge in enumerate(face.edges):
@@ -225,8 +225,9 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
             ))
             weight_map[0].append(vertex_index)
 
-    writer = xray_io.PackedWriter()
-    writer.putf('<I', len(uvs))
+    # vertex map references chunk
+    packed_writer = xray_io.PackedWriter()
+    packed_writer.putf('<I', len(uvs))
     uv_maps_count = 1
     uv_map_index = 0
     for vertex_map_index in range(len(uvs)):
@@ -234,32 +235,39 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
         weight_ref = weight_refs[vertex_index]
         # vertex references count
         refs_count = uv_maps_count + len(weight_ref)
-        writer.putf('<B', refs_count)
+        packed_writer.putf('<B', refs_count)
         # uv ref
-        writer.putf('<2I', uv_map_index, vertex_map_index)
+        packed_writer.putf('<2I', uv_map_index, vertex_map_index)
         # weight refs
         for ref in weight_ref:
-            writer.putf('<2I', *ref)
-    chunked_writer.put(fmt.Chunks.Mesh.VMREFS, writer)
+            packed_writer.putf('<2I', *ref)
+    chunked_writer.put(fmt.Chunks.Mesh.VMREFS, packed_writer)
 
-    writer = xray_io.PackedWriter()
-    sfaces = {
-        (m.name, mi) if m else (None, mi): [
-            fidx for fidx, face in enumerate(bm.faces) \
-            if face.material_index == mi
+    packed_writer = xray_io.PackedWriter()
+    face_materials = {
+        (material.name, material_index)
+        if material else (None, material_index): [
+            face_index
+            for face_index, face in enumerate(bm.faces)
+                if face.material_index == material_index
         ]
-        for mi, m in enumerate(bpy_obj.data.materials)
+        for material_index, material in enumerate(bpy_obj.data.materials)
     }
 
     materials = {}
-    for (mat_name, mat_id), face_ids in sfaces.items():
-        if not materials.get(mat_name, None):
-            materials[mat_name] = {'materials_ids': [], 'faces_count': []}
-        materials[mat_name]['materials_ids'].append(mat_id)
-        materials[mat_name]['faces_count'].append(len(face_ids))
+    for (material_name, material_index), faces_indices in face_materials.items():
+        mat = materials.setdefault(
+            material_name,
+            {
+                'materials_ids': [],
+                'faces_count': []
+            }
+        )
+        mat['materials_ids'].append(material_index)
+        mat['faces_count'].append(len(faces_indices))
 
     used_material_names = set()
-    for (material_name, material_index), faces_indices in sfaces.items():
+    for (material_name, material_index), faces_indices in face_materials.items():
         if faces_indices:
             if material_name is None:
                 raise utils.AppError(
@@ -268,60 +276,72 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
                 )
             used_material_names.add(material_name)
 
-    if not sfaces:
+    if not face_materials:
         raise utils.AppError(
             text.error.obj_no_mat,
             log.props(object=bpy_obj.name)
         )
-    writer.putf('<H', len(used_material_names))
+
+    # sface chunk
+    packed_writer.putf('<H', len(used_material_names))
     for mat_name, mat_data in materials.items():
         if mat_name in used_material_names:
             faces_count = sum(mat_data['faces_count'])
-            writer.puts(mat_name).putf('<I', faces_count)
+            packed_writer.puts(mat_name).putf('<I', faces_count)
             for mat_id in mat_data['materials_ids']:
-                fidxs = sfaces[(mat_name, mat_id)]
-                for fidx in fidxs:
-                    writer.putf('<I', fidx)
-    chunked_writer.put(fmt.Chunks.Mesh.SFACE, writer)
+                face_indices = face_materials[(mat_name, mat_id)]
+                for face_index in face_indices:
+                    packed_writer.putf('<I', face_index)
+    chunked_writer.put(fmt.Chunks.Mesh.SFACE, packed_writer)
 
-    writer = xray_io.PackedWriter()
-    sgroups = []
+    # smothing groups chunk
+    packed_writer = xray_io.PackedWriter()
+    smooth_groups = []
     if context.soc_sgroups:
-        sgroups = tuple(_export_sg_soc(bm.faces))
+        smooth_groups = tuple(_export_sg_soc(bm.faces))
         # check for Maya compatibility
-        err = _check_sg_soc(bm.edges, sgroups)
+        err = _check_sg_soc(bm.edges, smooth_groups)
         if err:
             log.warn(err, object=bpy_obj.name, mesh=bpy_obj.data.name)
     else:
-        sgroups = _export_sg_new(bm.faces)
-    for sgroup in sgroups:
-        writer.putf('<I', sgroup)
-    chunked_writer.put(fmt.Chunks.Mesh.SG, writer)
+        smooth_groups = _export_sg_cs_cop(bm.faces)
+    for smooth_group in smooth_groups:
+        packed_writer.putf('<I', smooth_group)
+    chunked_writer.put(fmt.Chunks.Mesh.SG, packed_writer)
 
-    writer = xray_io.PackedWriter()
-    writer.putf('<I', 1 + weight_maps_count)
+    # write vmaps chunk
+    packed_writer = xray_io.PackedWriter()
+    packed_writer.putf('<I', uv_maps_count + weight_maps_count)
     if version_utils.IS_28:
         texture = bpy_obj.data.uv_layers.active
     else:
         texture = bpy_obj.data.uv_textures.active
-    writer.puts(texture.name).putf('<B', 2).putf('<B', 1).putf('<B', 0)
-    writer.putf('<I', len(uvs))
+    packed_writer.puts(texture.name)
+    packed_writer.putf('<B', 2)    # dim
+    packed_writer.putf('<B', 1)    # discon
+    packed_writer.putf('<B', fmt.VMapTypes.UVS)    # type
+    packed_writer.putf('<I', len(uvs))
+    # write uv coords
     for uvc in uvs:
-        writer.putf('<2f', *uvc)
+        packed_writer.putf('<2f', *uvc)
     for vidx in vert_indices:
-        writer.putf('<I', vidx)
+        packed_writer.putf('<I', vidx)
     for fidx in face_indices:
-        writer.putf('<I', fidx)
-    for vgi, vertex_group in enumerate(bpy_obj.vertex_groups):
-        wmap = weight_maps[vgi]
-        if wmap is None:
+        packed_writer.putf('<I', fidx)
+    # write vertex weights
+    for group_index, vertex_group in enumerate(bpy_obj.vertex_groups):
+        weight_map = weight_maps[group_index]
+        if weight_map is None:
             continue
-        vtx = wmap[0]
-        writer.puts(vertex_group.name.lower())
-        writer.putf('<B', 1).putf('<B', 0).putf('<B', 1)
-        writer.putf('<I', len(vtx))
-        for vidx in vtx:
-            writer.putf('<f', bm.verts[vidx][weights_layer][vgi])
-        writer.putf('<' + str(len(vtx)) + 'I', *vtx)
-    chunked_writer.put(fmt.Chunks.Mesh.VMAPS2, writer)
+        vert_indices = weight_map[0]
+        packed_writer.puts(vertex_group.name.lower())
+        packed_writer.putf('<B', 1)    # dim
+        packed_writer.putf('<B', 0)    # discon
+        packed_writer.putf('<B', fmt.VMapTypes.WEIGHTS)    # type
+        packed_writer.putf('<I', len(vert_indices))
+        for vert_index in vert_indices:
+            packed_writer.putf('<f', bm.verts[vert_index][weights_layer][group_index])
+        packed_writer.putf('<' + str(len(vert_indices)) + 'I', *vert_indices)
+    chunked_writer.put(fmt.Chunks.Mesh.VMAPS2, packed_writer)
+
     return used_material_names
