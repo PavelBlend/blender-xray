@@ -45,10 +45,10 @@ def create_ik(bone, chain_length):
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.mode_set(mode='POSE')
         child_pose_bone = obj.pose.bones[child_bone_name]
-        copy_transforms_constr = child_pose_bone.constraints.new('COPY_TRANSFORMS')
-        copy_transforms_constr.target = obj
-        copy_transforms_constr.subtarget = subtarget_name
-        copy_transforms_constr.enabled = True
+        copy_rotation_constr = child_pose_bone.constraints.new('COPY_ROTATION')
+        copy_rotation_constr.target = obj
+        copy_rotation_constr.subtarget = subtarget_name
+        copy_rotation_constr.enabled = True
     bpy.ops.object.mode_set(mode='POSE')
     ik_constr.chain_count = chain_length
 
