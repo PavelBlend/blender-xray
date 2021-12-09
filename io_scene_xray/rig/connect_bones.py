@@ -1,5 +1,6 @@
 # blender modules
 import bpy
+import mathutils
 
 # addon modules
 from .. import version_utils
@@ -12,15 +13,53 @@ NAME_SUFFIX = ' connected'
 BONE_NAME_SUFFIX = ' c'
 
 
-def connect_bones(arm):
+def connect_bones(arm, mesh_obj):
     bone_new_parent = {}
+    mesh = mesh_obj.data
+    vertex_groups = {}
     for bone in arm.edit_bones:
-        if len(bone.children) == 1:
+        children_count = len(bone.children)
+        if not children_count:
+            for vertex_index, vertex in enumerate(mesh.vertices):
+                for group in vertex.groups:
+                    vertex_group = mesh_obj.vertex_groups[group.group]
+                    vertex_groups.setdefault(vertex_group.name, []).append(vertex_index)
+    edit_bones = []
+    for bone in arm.edit_bones:
+        edit_bones.append(bone)
+    for bone in edit_bones:
+        children_count = len(bone.children)
+        connected_bone = arm.edit_bones.new(name=bone.name + BONE_NAME_SUFFIX)
+        connected_bone.head = bone.head
+        if children_count == 1:
             child_bone = bone.children[0]
-            connected_bone = arm.edit_bones.new(name=bone.name + BONE_NAME_SUFFIX)
-            connected_bone.head = bone.head
             connected_bone.tail = child_bone.head
-            bone_new_parent[bone] = connected_bone
+        elif children_count > 1:
+            children_heads = []
+            for child_bone in bone.children:
+                children_heads.append(child_bone.head)
+            children_sum = mathutils.Vector((0.0, 0.0, 0.0))
+            for child_head in children_heads:
+                children_sum += child_head
+            children_center = children_sum / len(children_heads)
+            connected_bone.tail = (children_center + bone.head) / 2
+        elif not children_count:
+            vertices = vertex_groups.get(bone.name)
+            if not vertices:
+                continue
+            vertex_group = mesh_obj.vertex_groups[bone.name]
+            group_index = vertex_group.index
+            vertex_sum_offset = mathutils.Vector((0.0, 0.0, 0.0))
+            weights = []
+            for vertex_index in vertices:
+                vertex = mesh.vertices[vertex_index]
+                for group in vertex.groups:
+                    if group.group == group_index:
+                        vertex_sum_offset += (vertex.co - connected_bone.head) * group.weight
+                        weights.append(group.weight)
+            tail_offset = vertex_sum_offset / sum(weights)
+            connected_bone.tail = connected_bone.head + tail_offset * 2
+        bone_new_parent[bone] = connected_bone
     bone_layers = [False, ] * 32
     old_bone_layers = bone_layers.copy()
     old_bone_layers[31] = True
@@ -76,8 +115,22 @@ class XRAY_OT_connect_bones(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
         version_utils.select_object(arm_obj)
         version_utils.set_active_object(arm_obj)
+        arm_user_map = bpy.data.user_map(
+            subset={src_arm_obj, },
+            value_types={'OBJECT', }
+        )
+        object_users = list(arm_user_map[src_arm_obj])
+        mesh_objects = []
+        if object_users:
+            for obj in object_users:
+                if obj.type == 'MESH':
+                    mesh_objects.append(obj)
+        if mesh_objects:
+            mesh = mesh_objects[0]
+        else:
+            mesh = None
         bpy.ops.object.mode_set(mode='EDIT')
-        connect_bones(arm)
+        connect_bones(arm, mesh)
         bpy.ops.object.mode_set(mode='OBJECT')
         # link bones
         version_utils.set_active_object(src_arm_obj)
