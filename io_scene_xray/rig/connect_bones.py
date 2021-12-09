@@ -91,6 +91,7 @@ class XRAY_OT_connect_bones(bpy.types.Operator):
         split.prop_search(self, 'source_armature', bpy.data, 'objects', text='')
 
     def execute(self, context):
+        bpy.ops.object.mode_set(mode='OBJECT')
         src_name = self.source_armature
         if not src_name:
             self.report({'WARNING'}, 'TEMP 1')

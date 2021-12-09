@@ -1,3 +1,6 @@
+# standart modules
+import math
+
 # blender modules
 import bpy
 
@@ -49,7 +52,25 @@ def create_ik(bone, chain_length):
         copy_rotation_constr.target = obj
         copy_rotation_constr.subtarget = subtarget_name
         copy_rotation_constr.enabled = True
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.armature.select_all(action='DESELECT')
+    pole_target_bone = arm.edit_bones.new(bone.name + ' pole_target')
+    pole_target_bone.head = bone.head
+    pole_target_bone.tail = bone.tail
+    pole_target_bone.select = True
+    pole_target_bone.select_head = True
+    pole_target_bone.select_tail = True
+    bpy.ops.transform.translate(
+        value=(-0.5, 0.0, 0.0),
+        orient_type='NORMAL'
+    )
+    pole_target_bone.tail = pole_target_bone.head
+    pole_target_bone.tail.z += 0.2
+    pole_target_bone_name = pole_target_bone.name
     bpy.ops.object.mode_set(mode='POSE')
+    ik_constr.pole_target = obj
+    ik_constr.pole_subtarget = pole_target_bone_name
+    ik_constr.pole_angle = math.radians(178)
     ik_constr.chain_count = chain_length
 
 
