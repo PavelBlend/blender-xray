@@ -17,15 +17,23 @@ props = {
         default=2
     ),
 }
+bone_layers = [False, ] * 32
+last_layer = bone_layers.copy()
+last_layer[31] = True
 
 
 def create_ik(bone, chain_length):
     ik_constr = bone.constraints.new('IK')
+    bone_name = bone.name
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_all(action='DESELECT')
     bpy.ops.object.mode_set(mode='EDIT')
     obj = bpy.context.object
     arm = obj.data
+    current_bone = arm.edit_bones[bone_name]
+    for chain_index in range(chain_length):
+        current_bone.layers = last_layer
+        current_bone = current_bone.parent
     target_bone = arm.edit_bones.new(bone.name + ' ik target')
     target_bone.head = bone.tail
     tail = target_bone.head.copy()
@@ -41,10 +49,13 @@ def create_ik(bone, chain_length):
     if len(children) == 1:
         child_bone = children[0]
         child_bone_name = child_bone.name
+        child_edit_bone = arm.edit_bones[child_bone_name]
+        child_edit_bone.layers = last_layer
         child_transform_bone = arm.edit_bones.new(child_bone_name + ' transform')
         child_transform_bone.head = child_bone.head
         child_transform_bone.tail = child_bone.tail
         child_transform_bone.parent = target_bone
+        child_transform_bone.layers = last_layer
         subtarget_name = child_transform_bone.name
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.mode_set(mode='POSE')
