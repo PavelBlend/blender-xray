@@ -61,7 +61,7 @@ def create_ik(bone, chain_length):
     pole_target_bone.select_head = True
     pole_target_bone.select_tail = True
     bpy.ops.transform.translate(
-        value=(-0.5, 0.0, 0.0),
+        value=(0.5, 0.0, 0.0),
         orient_type='NORMAL'
     )
     pole_target_bone.tail = pole_target_bone.head
@@ -70,7 +70,7 @@ def create_ik(bone, chain_length):
     bpy.ops.object.mode_set(mode='POSE')
     ik_constr.pole_target = obj
     ik_constr.pole_subtarget = pole_target_bone_name
-    ik_constr.pole_angle = math.radians(178)
+    ik_constr.pole_angle = math.radians(2)
     ik_constr.chain_count = chain_length
 
 
