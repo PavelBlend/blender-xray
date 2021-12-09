@@ -5,6 +5,7 @@ from . import panels
 from . import prefs
 from . import hotkeys
 from . import ops
+from . import rig
 from . import props
 from . import icons
 from . import handlers
@@ -29,6 +30,7 @@ modules = (
     menus,
     hotkeys,
     ops,
+    rig,
     edit_helpers,
     viewport,
     translate,

@@ -8,6 +8,7 @@ from .. import menus
 from .. import skls_browser
 from .. import version_utils
 from .. import ops
+from .. import rig
 from .. import viewer
 
 # plugin modules
@@ -356,6 +357,9 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
 
     def draw(self, context):
         col = self.layout.column(align=True)
+        col.operator(
+            rig.connect_bones.XRAY_OT_connect_bones.bl_idname
+        )
         col.operator(
             ops.bone_tools.XRAY_OT_resize_bones.bl_idname,
             icon='FULLSCREEN_ENTER'
