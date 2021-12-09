@@ -4,6 +4,7 @@ import mathutils
 
 # addon modules
 from .. import version_utils
+from .. import text
 
 
 props = {
@@ -94,18 +95,18 @@ class XRAY_OT_connect_bones(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
         src_name = self.source_armature
         if not src_name:
-            self.report({'WARNING'}, 'TEMP 1')
+            self.report({'WARNING'}, text.warn.connect_not_spec_arm)
             return {'FINISHED'}
         src_arm_obj = bpy.data.objects.get(src_name)
         if not src_arm_obj:
-            self.report({'WARNING'}, 'TEMP 2')
+            self.report({'WARNING'}, text.warn.connect_not_found_arm)
             return {'FINISHED'}
         if src_arm_obj.type != 'ARMATURE':
-            self.report({'WARNING'}, 'TEMP 3')
+            self.report({'WARNING'}, text.warn.connect_is_not_arm)
             return {'FINISHED'}
         src_arm = src_arm_obj.data
         if not len(src_arm.bones):
-            self.report({'WARNING'}, 'TEMP 4')
+            self.report({'WARNING'}, text.warn.connect_nas_no_bones)
             return {'FINISHED'}
         arm_obj = src_arm_obj.copy()
         arm = src_arm.copy()

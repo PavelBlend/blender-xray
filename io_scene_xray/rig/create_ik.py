@@ -6,6 +6,7 @@ import bpy
 
 # addon modules
 from .. import version_utils
+from .. import text
 
 
 props = {
@@ -100,13 +101,10 @@ class XRAY_OT_create_ik(bpy.types.Operator):
 
     def execute(self, context):
         if not len(context.selected_pose_bones):
-            self.report({'WARNING'}, 'TEMP 1')
+            self.report({'WARNING'}, text.warn.ik_no_selected_bones)
             return {'FINISHED'}
-        if len(context.selected_pose_bones) > 1:
-            self.report({'WARNING'}, 'TEMP 2')
-            return {'FINISHED'}
-        bone = context.selected_pose_bones[0]
-        create_ik(bone, self.chain_length)
+        for bone in context.selected_pose_bones:
+            create_ik(bone, self.chain_length)
         return {'FINISHED'}
 
     def invoke(self, context, event):
