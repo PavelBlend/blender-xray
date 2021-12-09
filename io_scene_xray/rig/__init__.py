@@ -1,8 +1,12 @@
 # addon modules
 from . import connect_bones
+from . import create_ik
 
 
-modules = (connect_bones, )
+modules = (
+    connect_bones,
+    create_ik
+)
 
 
 def register():

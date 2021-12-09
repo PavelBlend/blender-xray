@@ -361,6 +361,9 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
             rig.connect_bones.XRAY_OT_connect_bones.bl_idname
         )
         col.operator(
+            rig.create_ik.XRAY_OT_create_ik.bl_idname
+        )
+        col.operator(
             ops.bone_tools.XRAY_OT_resize_bones.bl_idname,
             icon='FULLSCREEN_ENTER'
         )
