@@ -3,6 +3,7 @@ import math
 
 # blender modules
 import bpy
+import mathutils
 
 # addon modules
 from .. import version_utils
@@ -25,6 +26,7 @@ last_layer[31] = True
 def create_ik(bone, chain_length):
     ik_constr = bone.constraints.new('IK')
     bone_name = bone.name
+    bone_root_name = bone.parent.name
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_all(action='DESELECT')
     bpy.ops.object.mode_set(mode='EDIT')
@@ -46,6 +48,7 @@ def create_ik(bone, chain_length):
         if bone.name.startswith(child.name):
             continue
         children.append(child)
+    # create transform bone
     if len(children) == 1:
         child_bone = children[0]
         child_bone_name = child_bone.name
@@ -66,23 +69,74 @@ def create_ik(bone, chain_length):
         copy_rotation_constr.enabled = True
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.armature.select_all(action='DESELECT')
-    pole_target_bone = arm.edit_bones.new(bone.name + ' pole_target')
-    pole_target_bone.head = bone.head
-    pole_target_bone.tail = bone.tail
-    pole_target_bone.select = True
-    pole_target_bone.select_head = True
-    pole_target_bone.select_tail = True
-    bpy.ops.transform.translate(
-        value=(0.5, 0.0, 0.0),
-        orient_type='NORMAL'
-    )
-    pole_target_bone.tail = pole_target_bone.head
-    pole_target_bone.tail.z += 0.2
-    pole_target_bone_name = pole_target_bone.name
-    bpy.ops.object.mode_set(mode='POSE')
-    ik_constr.pole_target = obj
-    ik_constr.pole_subtarget = pole_target_bone_name
-    ik_constr.pole_angle = math.radians(2)
+    if chain_length == 2:
+        ########################################
+        # Create and place IK pole target bone #
+        #          by Marco Giordano           #
+        ########################################
+
+        # https://blender.stackexchange.com/questions/97606
+
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        # Get points to define the plane on which to put the pole target
+        arm_edit_bones = arm.edit_bones
+        A = arm_edit_bones[bone_root_name].head
+        B = arm_edit_bones[bone_name].head
+        C = arm_edit_bones[bone_name].tail
+        # Vector of chain root to chain tip (wrist)
+        AC = C - A
+        # Vector of chain root to second bone's head
+        AB = B - A
+        # Multiply the two vectors to get the dot product
+        dot_prod = AB * AC
+        # Find the point on the vector AC projected from point B
+        proj = dot_prod / AC.length
+        # Normalize AC vector to keep it a reasonable magnitude
+        start_end_norm = AC.normalized()
+        # Project an arrow from AC projection point to point B
+        proj_vec  = start_end_norm * proj
+        arrow_vec = AB - proj_vec
+        # Place pole target at a reasonable distance from the chain
+        arrow_vec *= 8.0
+        final_vec = arrow_vec + B
+        # Add pole target bone and place it in the scene pointed to Z+
+        pole_name = bone_name + ' pole_target'
+        pole_edit_bone = arm.edit_bones.new(pole_name)
+        pole_edit_bone.head = final_vec
+        pole_tail_offset = mathutils.Vector((0.0, 0.1, 0.0))
+        pole_edit_bone.tail = final_vec + pole_tail_offset
+        # Enter Pose Mode to set up data for pole angle
+        bpy.ops.object.mode_set(mode='POSE', toggle=False)
+
+        ##############
+        # Pole Angle #
+        # by Jerryno #
+        ##############
+
+        def signed_angle(vector_u, vector_v, normal):
+            # Normal specifies orientation
+            angle = vector_u.angle(vector_v)
+            if vector_u.cross(vector_v).angle(normal) < 1:
+                angle = -angle
+            return angle
+
+        def get_pole_angle(base_bone, ik_bone, pole_location):
+            pole_normal = (ik_bone.tail - base_bone.head).cross(pole_location - base_bone.head)
+            projected_pole_axis = pole_normal.cross(base_bone.tail - base_bone.head)
+            return signed_angle(base_bone.x_axis, projected_pole_axis, base_bone.tail - base_bone.head)
+
+        base_bone = obj.pose.bones[bone_root_name]
+        ik_bone = obj.pose.bones[bone_name]
+        pole_bone = obj.pose.bones[pole_name]
+        pole_angle_in_radians = get_pole_angle(
+            base_bone,
+            ik_bone,
+            pole_bone.matrix.translation
+        )
+        bpy.ops.object.mode_set(mode='POSE')
+        ik_constr.pole_target = obj
+        ik_constr.pole_subtarget = pole_name
+        ik_constr.pole_angle = pole_angle_in_radians
     ik_constr.chain_count = chain_length
 
 
