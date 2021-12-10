@@ -17,13 +17,18 @@ props = {
         max=255,
         default=2
     ),
+    'pole_target_offset': bpy.props.FloatProperty(
+        name='Pole Target Offset',
+        min=0.001,
+        default=0.5
+    ),
 }
 bone_layers = [False, ] * 32
 last_layer = bone_layers.copy()
 last_layer[31] = True
 
 
-def create_ik(bone, chain_length):
+def create_ik(bone, chain_length, pole_target_offset):
     ik_constr = bone.constraints.new('IK')
     bone_name = bone.name
     bone_root_name = bone.parent.name
@@ -96,8 +101,9 @@ def create_ik(bone, chain_length):
         # Project an arrow from AC projection point to point B
         proj_vec  = start_end_norm * proj
         arrow_vec = AB - proj_vec
+        arrow_vec.normalize()
         # Place pole target at a reasonable distance from the chain
-        arrow_vec *= 8.0
+        arrow_vec *= pole_target_offset
         final_vec = arrow_vec + B
         # Add pole target bone and place it in the scene pointed to Z+
         pole_name = bone_name + ' pole_target'
@@ -137,6 +143,8 @@ def create_ik(bone, chain_length):
         ik_constr.pole_target = obj
         ik_constr.pole_subtarget = pole_name
         ik_constr.pole_angle = pole_angle_in_radians
+    else:
+        bpy.ops.object.mode_set(mode='POSE')
     ik_constr.chain_count = chain_length
 
 
@@ -164,12 +172,16 @@ class XRAY_OT_create_ik(bpy.types.Operator):
         split.label(text='Chain Length:')
         split.prop(self, 'chain_length', text='')
 
+        split = version_utils.layout_split(self.layout, 0.35)
+        split.label(text='Pole Target Offset:')
+        split.prop(self, 'pole_target_offset', text='')
+
     def execute(self, context):
         if not len(context.selected_pose_bones):
             self.report({'WARNING'}, text.warn.ik_no_selected_bones)
             return {'FINISHED'}
         for bone in context.selected_pose_bones:
-            create_ik(bone, self.chain_length)
+            create_ik(bone, self.chain_length, self.pole_target_offset)
         return {'FINISHED'}
 
     def invoke(self, context, event):
