@@ -120,13 +120,15 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         copy_rotation_constr.name = 'ik'
         copy_rotation_constr.target = obj
         copy_rotation_constr.subtarget = ik_subtarget_name
-        copy_rotation_constr.enabled = True
+        if version_utils.IS_28:
+            copy_rotation_constr.enabled = True
         # fk
         copy_transforms_constr = child_pose_bone.constraints.new('COPY_TRANSFORMS')
         copy_transforms_constr.name = 'fk'
         copy_transforms_constr.target = obj
         copy_transforms_constr.subtarget = fk_subtarget_name
-        copy_transforms_constr.enabled = True
+        if version_utils.IS_28:
+            copy_transforms_constr.enabled = True
         # create ik drivers
         ik_driver = copy_rotation_constr.driver_add('influence').driver
         ik_driver.expression = IK_FK_PROP_NAME
@@ -256,13 +258,14 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     # add drivers
     obj.pose.bones[target_bone_name][IK_FK_PROP_NAME] = 1.0
     obj.pose.bones[target_bone_name]['bone_category'] = category_name
-    ui_prop = obj.pose.bones[target_bone_name].id_properties_ui(IK_FK_PROP_NAME)
-    ui_prop.update(
-        min=0,
-        max=1,
-        soft_min=0,
-        soft_max=1
-    )
+    if version_utils.IS_28:
+        ui_prop = obj.pose.bones[target_bone_name].id_properties_ui(IK_FK_PROP_NAME)
+        ui_prop.update(
+            min=0,
+            max=1,
+            soft_min=0,
+            soft_max=1
+        )
     for ik_fk_bone_name in ik_fk_bones:
         ik_fk_bone = obj.pose.bones[ik_fk_bone_name]
         # ik driver
