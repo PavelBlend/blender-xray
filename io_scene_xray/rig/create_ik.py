@@ -33,9 +33,9 @@ layer_30[30] = True
 def create_ik(bone, chain_length, pole_target_offset):
     bone_name = bone.name
     bone_root_name = bone.parent.name
-    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.ops.object.select_all(action='DESELECT')
-    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     obj = bpy.context.object
     arm = obj.data
     current_bone = arm.edit_bones[bone_name]
@@ -103,14 +103,13 @@ def create_ik(bone, chain_length, pole_target_offset):
         child_transform_bone.parent = target_bone
         child_transform_bone.layers = last_layer
         subtarget_name = child_transform_bone.name
-        bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.ops.object.mode_set(mode='POSE')
+        bpy.ops.object.mode_set(mode='POSE', toggle=False)
         child_pose_bone = obj.pose.bones[child_bone_name]
         copy_rotation_constr = child_pose_bone.constraints.new('COPY_ROTATION')
         copy_rotation_constr.target = obj
         copy_rotation_constr.subtarget = subtarget_name
         copy_rotation_constr.enabled = True
-    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     bpy.ops.armature.select_all(action='DESELECT')
 
     ########################################
@@ -120,7 +119,6 @@ def create_ik(bone, chain_length, pole_target_offset):
 
     # https://blender.stackexchange.com/questions/97606
 
-    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     arm_edit_bones = arm.edit_bones
     root_bone = arm_edit_bones[bone_name]
     for chain_index in range(chain_length - 1):
@@ -181,7 +179,6 @@ def create_ik(bone, chain_length, pole_target_offset):
         ik_bone,
         pole_bone.matrix.translation
     )
-    bpy.ops.object.mode_set(mode='POSE')
     ik_constr_bone = obj.pose.bones[ik_bones[bone_name]]
     ik_constr = ik_constr_bone.constraints.new('IK')
     ik_constr.target = obj
