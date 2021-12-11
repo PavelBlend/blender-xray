@@ -28,6 +28,7 @@ last_layer = bone_layers.copy()
 last_layer[31] = True
 layer_30 = bone_layers.copy()
 layer_30[30] = True
+IK_FK_PROP_NAME = 'ik_fk'
 
 
 def create_ik(bone, chain_length, pole_target_offset):
@@ -41,6 +42,7 @@ def create_ik(bone, chain_length, pole_target_offset):
     current_bone = arm.edit_bones[bone_name]
     ik_bones = {}
     fk_bones = {}
+    fk_last_bone_name = None
     # create ik/fk bones
     for chain_index in range(chain_length):
         current_bone.layers = last_layer
@@ -58,6 +60,8 @@ def create_ik(bone, chain_length, pole_target_offset):
         fk_bone.tail = current_bone.tail
         fk_bone.roll = current_bone.roll
         current_bone = current_bone.parent
+        if not chain_index:
+            fk_last_bone_name = fk_bone.name
     # set parent for ik/fk bones
     for edit_bone in arm.edit_bones:
         ik_bone_name = ik_bones.get(edit_bone.name, None)
@@ -96,19 +100,63 @@ def create_ik(bone, chain_length, pole_target_offset):
         child_bone_name = child_bone.name
         child_edit_bone = arm.edit_bones[child_bone_name]
         child_edit_bone.layers = last_layer
-        child_transform_bone = arm.edit_bones.new(child_bone_name + ' transform')
-        child_transform_bone.head = child_edit_bone.head
-        child_transform_bone.tail = child_edit_bone.tail
-        child_transform_bone.roll = child_edit_bone.roll
-        child_transform_bone.parent = target_bone
-        child_transform_bone.layers = last_layer
-        subtarget_name = child_transform_bone.name
+        # create ik bone
+        child_ik_bone = arm.edit_bones.new(child_bone_name + ' ik')
+        child_ik_bone.head = child_edit_bone.head
+        child_ik_bone.tail = child_edit_bone.tail
+        child_ik_bone.roll = child_edit_bone.roll
+        child_ik_bone.parent = target_bone
+        child_ik_bone.layers = last_layer
+        ik_subtarget_name = child_ik_bone.name
+        # create fk bone
+        child_fk_bone = arm.edit_bones.new(child_bone_name + ' fk')
+        child_fk_bone.head = child_edit_bone.head
+        child_fk_bone.tail = child_edit_bone.tail
+        child_fk_bone.roll = child_edit_bone.roll
+        child_fk_bone.parent = arm.edit_bones[fk_last_bone_name]
+        fk_subtarget_name = child_fk_bone.name
+        # create constraints
         bpy.ops.object.mode_set(mode='POSE', toggle=False)
         child_pose_bone = obj.pose.bones[child_bone_name]
+        # ik
         copy_rotation_constr = child_pose_bone.constraints.new('COPY_ROTATION')
+        copy_rotation_constr.name = 'ik'
         copy_rotation_constr.target = obj
-        copy_rotation_constr.subtarget = subtarget_name
+        copy_rotation_constr.subtarget = ik_subtarget_name
         copy_rotation_constr.enabled = True
+        # fk
+        copy_transforms_constr = child_pose_bone.constraints.new('COPY_TRANSFORMS')
+        copy_transforms_constr.name = 'fk'
+        copy_transforms_constr.target = obj
+        copy_transforms_constr.subtarget = fk_subtarget_name
+        copy_transforms_constr.enabled = True
+        # create ik drivers
+        ik_driver = copy_rotation_constr.driver_add('influence').driver
+        ik_driver.expression = IK_FK_PROP_NAME
+        var = ik_driver.variables.new()
+        var.name = IK_FK_PROP_NAME
+        var.type = 'SINGLE_PROP'
+        target = var.targets[0]
+        target.id_type = 'OBJECT'
+        target.id = obj
+        target.data_path = 'pose.bones["{0}"]["{1}"]'.format(
+            target_bone_name,
+            IK_FK_PROP_NAME
+        )
+        # create fk drivers
+        fk_driver = copy_transforms_constr.driver_add('influence').driver
+        fk_driver.expression = '1.0 - {}'.format(IK_FK_PROP_NAME)
+        var = fk_driver.variables.new()
+        var.name = IK_FK_PROP_NAME
+        var.type = 'SINGLE_PROP'
+        target = var.targets[0]
+        target.id_type = 'OBJECT'
+        target.id = obj
+        target.data_path = 'pose.bones["{0}"]["{1}"]'.format(
+            target_bone_name,
+            IK_FK_PROP_NAME
+        )
+
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     bpy.ops.armature.select_all(action='DESELECT')
 
@@ -155,7 +203,9 @@ def create_ik(bone, chain_length, pole_target_offset):
     bpy.ops.object.mode_set(mode='POSE', toggle=False)
     # create ik/fk constraints
     current_bone = obj.pose.bones[bone_name]
+    ik_fk_bones = []
     for chain_index in range(chain_length):
+        ik_fk_bones.append(current_bone.name)
         # ik bone
         ik_bone_name = ik_bones[current_bone.name]
         ik_bone = obj.pose.bones[ik_bone_name]
@@ -206,6 +256,38 @@ def create_ik(bone, chain_length, pole_target_offset):
     ik_constr.pole_subtarget = pole_name
     ik_constr.pole_angle = pole_angle_in_radians
     ik_constr.chain_count = chain_length
+    # add drivers
+    obj.pose.bones[target_bone_name][IK_FK_PROP_NAME] = 1.0
+    for ik_fk_bone_name in ik_fk_bones:
+        ik_fk_bone = obj.pose.bones[ik_fk_bone_name]
+        # ik driver
+        ik_constraint = ik_fk_bone.constraints['ik']
+        ik_driver = ik_constraint.driver_add('influence').driver
+        ik_driver.expression = IK_FK_PROP_NAME
+        var = ik_driver.variables.new()
+        var.name = IK_FK_PROP_NAME
+        var.type = 'SINGLE_PROP'
+        target = var.targets[0]
+        target.id_type = 'OBJECT'
+        target.id = obj
+        target.data_path = 'pose.bones["{0}"]["{1}"]'.format(
+            target_bone_name,
+            IK_FK_PROP_NAME
+        )
+        # fk driver
+        fk_constraint = ik_fk_bone.constraints['fk']
+        fk_driver = fk_constraint.driver_add('influence').driver
+        fk_driver.expression = '1.0 - {}'.format(IK_FK_PROP_NAME)
+        var = fk_driver.variables.new()
+        var.name = IK_FK_PROP_NAME
+        var.type = 'SINGLE_PROP'
+        target = var.targets[0]
+        target.id_type = 'OBJECT'
+        target.id = obj
+        target.data_path = 'pose.bones["{0}"]["{1}"]'.format(
+            target_bone_name,
+            IK_FK_PROP_NAME
+        )
 
 
 class XRAY_OT_create_ik(bpy.types.Operator):
