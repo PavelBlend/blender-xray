@@ -153,6 +153,25 @@ def create_ik(bone, chain_length, pole_target_offset):
     pole_edit_bone.tail = final_vec + pole_tail_offset
     # Enter Pose Mode to set up data for pole angle
     bpy.ops.object.mode_set(mode='POSE', toggle=False)
+    # create ik/fk constraints
+    current_bone = obj.pose.bones[bone_name]
+    for chain_index in range(chain_length):
+        # ik bone
+        ik_bone_name = ik_bones[current_bone.name]
+        ik_bone = obj.pose.bones[ik_bone_name]
+        copy_transforms = current_bone.constraints.new('COPY_TRANSFORMS')
+        copy_transforms.name = 'ik'
+        copy_transforms.target = obj
+        copy_transforms.subtarget = ik_bone.name
+        # fk bone
+        fk_bone_name = fk_bones[current_bone.name]
+        fk_bone = obj.pose.bones[fk_bone_name]
+        copy_transforms = current_bone.constraints.new('COPY_TRANSFORMS')
+        copy_transforms.name = 'fk'
+        copy_transforms.target = obj
+        copy_transforms.subtarget = fk_bone.name
+        # change current bone
+        current_bone = current_bone.parent
 
     ##############
     # Pole Angle #
