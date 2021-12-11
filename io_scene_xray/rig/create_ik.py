@@ -29,7 +29,6 @@ last_layer[31] = True
 
 
 def create_ik(bone, chain_length, pole_target_offset):
-    ik_constr = bone.constraints.new('IK')
     bone_name = bone.name
     bone_root_name = bone.parent.name
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -38,16 +37,49 @@ def create_ik(bone, chain_length, pole_target_offset):
     obj = bpy.context.object
     arm = obj.data
     current_bone = arm.edit_bones[bone_name]
+    ik_bones = {}
+    fk_bones = {}
     for chain_index in range(chain_length):
         current_bone.layers = last_layer
+        # ik bone
+        ik_bone = arm.edit_bones.new(current_bone.name + ' ik')
+        ik_bones[current_bone.name] = ik_bone.name
+        ik_bone.head = current_bone.head
+        ik_bone.tail = current_bone.tail
+        ik_bone.roll = current_bone.roll
+        # fk bone
+        fk_bone = arm.edit_bones.new(current_bone.name + ' fk')
+        fk_bones[current_bone.name] = fk_bone.name
+        fk_bone.head = current_bone.head
+        fk_bone.tail = current_bone.tail
+        fk_bone.roll = current_bone.roll
         current_bone = current_bone.parent
+    for edit_bone in arm.edit_bones:
+        ik_bone_name = ik_bones.get(edit_bone.name, None)
+        fk_bone_name = fk_bones.get(edit_bone.name, None)
+        parent = edit_bone.parent
+        if ik_bone_name:
+            ik_bone = arm.edit_bones[ik_bone_name]
+            ik_parent_name = ik_bones.get(parent.name, None)
+            if ik_parent_name:
+                ik_parent = arm.edit_bones[ik_parent_name]
+                ik_bone.parent = ik_parent
+            else:
+                ik_bone.parent = parent
+        if fk_bone_name:
+            fk_bone = arm.edit_bones[fk_bone_name]
+            fk_parent_name = fk_bones.get(parent.name, None)
+            if fk_parent_name:
+                fk_parent = arm.edit_bones[fk_parent_name]
+                fk_bone.parent = fk_parent
+            else:
+                fk_bone.parent = parent
     target_bone = arm.edit_bones.new(bone.name + ' ik target')
+    target_bone_name = target_bone.name
     target_bone.head = bone.tail
     tail = target_bone.head.copy()
     tail[2] += bone.length / 4
     target_bone.tail = tail
-    ik_constr.target = obj
-    ik_constr.subtarget = target_bone.name
     children = []
     for child in bone.children:
         if bone.name.startswith(child.name):
@@ -60,8 +92,9 @@ def create_ik(bone, chain_length, pole_target_offset):
         child_edit_bone = arm.edit_bones[child_bone_name]
         child_edit_bone.layers = last_layer
         child_transform_bone = arm.edit_bones.new(child_bone_name + ' transform')
-        child_transform_bone.head = child_bone.head
-        child_transform_bone.tail = child_bone.tail
+        child_transform_bone.head = child_edit_bone.head
+        child_transform_bone.tail = child_edit_bone.tail
+        child_transform_bone.roll = child_edit_bone.roll
         child_transform_bone.parent = target_bone
         child_transform_bone.layers = last_layer
         subtarget_name = child_transform_bone.name
@@ -144,6 +177,10 @@ def create_ik(bone, chain_length, pole_target_offset):
         pole_bone.matrix.translation
     )
     bpy.ops.object.mode_set(mode='POSE')
+    ik_constr_bone = obj.pose.bones[ik_bones[bone_name]]
+    ik_constr = ik_constr_bone.constraints.new('IK')
+    ik_constr.target = obj
+    ik_constr.subtarget = target_bone_name
     ik_constr.pole_target = obj
     ik_constr.pole_subtarget = pole_name
     ik_constr.pole_angle = pole_angle_in_radians
