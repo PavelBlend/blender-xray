@@ -77,9 +77,9 @@ def connect_bones(arm, mesh_obj):
             parent_bone.parent = old_parent
 
 
-class XRAY_OT_connect_bones(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.connect_bones'
-    bl_label = 'Connect Bones'
+class XRAY_OT_create_connected_bones(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.create_connected_bones'
+    bl_label = 'Create Connected Bones'
     bl_options = {'REGISTER', 'UNDO'}
 
     if not version_utils.IS_28:
@@ -146,9 +146,9 @@ class XRAY_OT_connect_bones(bpy.types.Operator):
 
 
 def register():
-    version_utils.assign_props([(props, XRAY_OT_connect_bones), ])
-    bpy.utils.register_class(XRAY_OT_connect_bones)
+    version_utils.assign_props([(props, XRAY_OT_create_connected_bones), ])
+    bpy.utils.register_class(XRAY_OT_create_connected_bones)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_OT_connect_bones)
+    bpy.utils.unregister_class(XRAY_OT_create_connected_bones)

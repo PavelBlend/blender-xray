@@ -358,7 +358,7 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
     def draw(self, context):
         col = self.layout.column(align=True)
         col.operator(
-            rig.connect_bones.XRAY_OT_connect_bones.bl_idname
+            rig.connect_bones.XRAY_OT_create_connected_bones.bl_idname
         )
         col.operator(
             rig.create_ik.XRAY_OT_create_ik.bl_idname
