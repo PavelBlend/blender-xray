@@ -8,6 +8,7 @@ from .. import menus
 from .. import skls_browser
 from .. import version_utils
 from .. import ops
+from .. import rig
 from .. import viewer
 
 # plugin modules
@@ -357,6 +358,12 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
     def draw(self, context):
         col = self.layout.column(align=True)
         col.operator(
+            rig.connect_bones.XRAY_OT_create_connected_bones.bl_idname
+        )
+        col.operator(
+            rig.create_ik.XRAY_OT_create_ik.bl_idname
+        )
+        col.operator(
             ops.bone_tools.XRAY_OT_resize_bones.bl_idname,
             icon='FULLSCREEN_ENTER'
         )
@@ -401,6 +408,49 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
         col.operator(
             ops.joint_limits.XRAY_OT_clear_ik_limits.bl_idname
         )
+
+
+class XRAY_PT_rig(bpy.types.Panel):
+    bl_label = 'Rig'
+    bl_category = CATEGORY
+    bl_space_type = 'VIEW_3D'
+    bl_options = {'DEFAULT_CLOSED'}
+    if version_utils.IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    def draw_header(self, context):
+        icon = icons.get_stalker_icon()
+        self.layout.label(icon_value=icon)
+
+    def draw(self, context):
+        col = self.layout.column(align=True)
+        if context.mode != 'POSE':
+            col.label(
+                text='Pose mode is not enabled!',
+                icon='ERROR'
+            )
+            return
+        obj = context.object
+        bones = obj.pose.bones
+        ik_fk_bones = []
+        for bone in bones:
+            ik_fk_prop = bone.get(rig.create_ik.IK_FK_PROP_NAME, None)
+            if not ik_fk_prop is None:
+                ik_fk_bones.append(bone)
+        if not ik_fk_bones:
+            col.label(
+                text='Bones has not properties!',
+                icon='ERROR'
+            )
+            return
+        for ik_bone in ik_fk_bones:
+            col.prop(
+                ik_bone,
+                '["{}"]'.format(rig.create_ik.IK_FK_PROP_NAME),
+                text=ik_bone['bone_category']
+            )
 
 
 class XRAY_PT_import_operators(bpy.types.Panel):
@@ -527,6 +577,7 @@ classes = (
     XRAY_PT_batch_tools,
     XRAY_PT_custom_props,
     XRAY_PT_armature_tools,
+    XRAY_PT_rig,
     XRAY_PT_import_operators,
     XRAY_PT_export_operators
     
