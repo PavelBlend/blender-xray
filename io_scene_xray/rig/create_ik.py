@@ -26,6 +26,8 @@ props = {
 bone_layers = [False, ] * 32
 last_layer = bone_layers.copy()
 last_layer[31] = True
+layer_30 = bone_layers.copy()
+layer_30[30] = True
 
 
 def create_ik(bone, chain_length, pole_target_offset):
@@ -39,6 +41,7 @@ def create_ik(bone, chain_length, pole_target_offset):
     current_bone = arm.edit_bones[bone_name]
     ik_bones = {}
     fk_bones = {}
+    # create ik/fk bones
     for chain_index in range(chain_length):
         current_bone.layers = last_layer
         # ik bone
@@ -47,6 +50,7 @@ def create_ik(bone, chain_length, pole_target_offset):
         ik_bone.head = current_bone.head
         ik_bone.tail = current_bone.tail
         ik_bone.roll = current_bone.roll
+        ik_bone.layers = layer_30
         # fk bone
         fk_bone = arm.edit_bones.new(current_bone.name + ' fk')
         fk_bones[current_bone.name] = fk_bone.name
@@ -54,6 +58,7 @@ def create_ik(bone, chain_length, pole_target_offset):
         fk_bone.tail = current_bone.tail
         fk_bone.roll = current_bone.roll
         current_bone = current_bone.parent
+    # set parent for ik/fk bones
     for edit_bone in arm.edit_bones:
         ik_bone_name = ik_bones.get(edit_bone.name, None)
         fk_bone_name = fk_bones.get(edit_bone.name, None)
