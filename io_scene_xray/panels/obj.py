@@ -261,8 +261,18 @@ class XRAY_OT_copy_motion_refs_list(bpy.types.Operator):
     def execute(self, context):
         obj = context.object
         lines = []
+        saved_refs = set()
         for ref_index, ref in enumerate(obj.xray.motionrefs_collection):
-            lines.append(ref.name)
+            name = ref.name
+            if not name:
+                continue
+            if name in saved_refs:
+                continue
+            unique_chars = set(name)
+            if unique_chars == {' ', }:
+                continue
+            lines.append(name)
+            saved_refs.add(name)
         bpy.context.window_manager.clipboard = '\n'.join(lines)
         return {'FINISHED'}
 
@@ -283,8 +293,16 @@ class XRAY_OT_paste_motion_refs_list(bpy.types.Operator):
     def execute(self, context):
         obj = context.object
         refs = obj.xray.motionrefs_collection
+        used_refs = {ref.name for ref in obj.xray.motionrefs_collection}
         refs_data = bpy.context.window_manager.clipboard
         for line in refs_data.split('\n'):
+            if not line:
+                continue
+            if line in used_refs:
+                continue
+            unique_chars = set(line)
+            if unique_chars == {' ', }:
+                continue
             ref = refs.add()
             ref.name = line
         return {'FINISHED'}
