@@ -132,10 +132,14 @@ class XRAY_OT_clean_actions(bpy.types.Operator):
     def execute(self, context):
         obj = context.object
         remove = []
+        available = set()
         for motion_index, motion in enumerate(obj.xray.motions_collection):
             action = bpy.data.actions.get(motion.name)
             if not action:
                 remove.append(motion_index)
+            if motion.name in available:
+                remove.append(motion_index)
+            available.add(motion.name)
         remove.sort()
         remove.reverse()
         for motion_index in remove:
@@ -163,7 +167,13 @@ class XRAY_OT_copy_actions_list(bpy.types.Operator):
     def execute(self, context):
         obj = context.object
         lines = []
+        saved_motions = set()
         for motion_index, motion in enumerate(obj.xray.motions_collection):
+            if not motion.name:
+                continue
+            motion_key = (motion.name, motion.export_name)
+            if motion_key in saved_motions:
+                continue
             lines.append('[{}]\n{} = "{}"\n{} = "{}"\n'.format(
                 motion_index,
                 MOTION_NAME_PARAM,
@@ -171,6 +181,7 @@ class XRAY_OT_copy_actions_list(bpy.types.Operator):
                 EXPORT_NAME_PARAM,
                 motion.export_name
             ))
+            saved_motions.add(motion_key)
         bpy.context.window_manager.clipboard = '\n'.join(lines)
         return {'FINISHED'}
 
@@ -196,17 +207,25 @@ class XRAY_OT_paste_actions_list(bpy.types.Operator):
         section_keys = list(map(int, ltx.sections.keys()))
         section_keys.sort()
         use_custom_name = False
+        used_motions = {
+            (motion.name, motion.export_name)
+            for motion in obj.xray.motions_collection
+        }
         for section_key in section_keys:
             section = ltx.sections[str(section_key)]
             params = section.params
             motion_name = params.get(MOTION_NAME_PARAM, None)
             export_name = params.get(EXPORT_NAME_PARAM, None)
-            if not motion_name is None:
-                motion = motions.add()
-                motion.name = motion_name
-                if export_name:
-                    motion.export_name = export_name
-                    use_custom_name = True
+            if not motion_name:
+                continue
+            motion_key = (motion_name, export_name)
+            if motion_key in used_motions:
+                continue
+            motion = motions.add()
+            motion.name = motion_name
+            if export_name:
+                motion.export_name = export_name
+                use_custom_name = True
         if use_custom_name:
             obj.xray.use_custom_motion_names = True
         return {'FINISHED'}
