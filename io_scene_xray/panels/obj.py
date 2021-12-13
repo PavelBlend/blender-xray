@@ -8,6 +8,7 @@ import bpy
 from .. import ui
 from .. import utils
 from .. import details
+from .. import skl
 from .. import version_utils
 from .. import xray_ltx
 
@@ -635,6 +636,11 @@ class XRAY_PT_object(ui.base.XRayPanel):
                         'motions_collection_index',
                         custom_elements_func=draw_motion_list_elements
                     )
+                    if context.object.type == 'ARMATURE':
+                        box.operator(
+                            skl.ops.XRAY_OT_export_skl_batch.bl_idname,
+                            icon='EXPORT'
+                        )
 
                 if data.motionrefs:
                     split = object_box.split()

@@ -264,11 +264,64 @@ class XRAY_OT_export_skls(plugin_props.BaseOperator, utils.FilenameExtHelper):
         return super().invoke(context, event)
 
 
+filename_ext = '.skl'
+op_export_skl_batch_props = {
+    'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
+    'filter_glob': bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'}),
+}
+
+
+class XRAY_OT_export_skl_batch(plugin_props.BaseOperator):
+    bl_idname = 'xray_export.skl_batch'
+    bl_label = 'Export .skl'
+    bl_description = 'Exports X-Ray skeletal animations'
+    bl_options = {'UNDO'}
+
+    draw_fun = menu_func_export
+    text = op_text
+    ext = filename_ext
+    filename_ext = filename_ext
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in op_export_skls_props.items():
+            exec('{0} = op_export_skls_props.get("{0}")'.format(prop_name))
+
+    @utils.set_cursor_state
+    def execute(self, context):
+        export_context = exp.ExportSklsContext()
+        export_context.bpy_arm_obj = context.active_object
+        for action in self.actions:
+            export_context.action = action
+            file_name = action.name
+            if not file_name.lower().endswith(filename_ext):
+                file_name += filename_ext
+            filepath = os.path.join(self.directory, file_name)
+            try:
+                exp.export_skl_file(filepath, export_context)
+            except utils.AppError as err:
+                log.err(err)
+        return {'FINISHED'}
+
+    @utils.invoke_require_armature
+    def invoke(self, context, event):
+        self.actions = []
+        for motion in bpy.context.object.xray.motions_collection:
+            action = bpy.data.actions.get(motion.name)
+            if action:
+                self.actions.append(action)
+        if not self.actions:
+            self.report({'ERROR'}, 'Active object has no animations')
+            return {'CANCELLED'}
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
 classes = (
     (Motion, motion_props),
     (XRAY_OT_import_skls, op_import_skls_props),
     (XRAY_OT_export_skl, op_export_skl_props),
-    (XRAY_OT_export_skls, op_export_skls_props)
+    (XRAY_OT_export_skls, op_export_skls_props),
+    (XRAY_OT_export_skl_batch, op_export_skl_batch_props)
 )
 
 
