@@ -1,3 +1,6 @@
+# standart modules
+import os
+
 # blender modules
 import bpy
 
@@ -327,10 +330,73 @@ class XRAY_OT_paste_motion_refs_list(bpy.types.Operator):
         return {'FINISHED'}
 
 
+op_add_ref_props = {
+    'filter_glob': bpy.props.StringProperty(
+        default='*.omf', options={'HIDDEN'}
+    ),
+    'directory': bpy.props.StringProperty(
+        subtype="DIR_PATH", options={'SKIP_SAVE'}
+    ),
+    'files': bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement
+    )
+}
+
+
+class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.add_motion_ref_from_file'
+    bl_label = 'Add Motion Reference'
+    bl_description = 'Add motion reference from file path'
+    bl_options = {'UNDO'}
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in op_add_ref_props.items():
+            exec('{0} = op_add_ref_props.get("{0}")'.format(prop_name))
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if not obj:
+            return False
+        return True
+
+    def execute(self, context):
+        obj = context.object
+        refs = obj.xray.motionrefs_collection
+        preferences = version_utils.get_preferences()
+        meshes_folder = preferences.meshes_folder_auto
+        if not meshes_folder:
+            self.report({'WARNING'}, 'Meshes folder not specified!')
+            return {'FINISHED'}
+        fail_count = 0
+        for file in self.files:
+            if not file.name.endswith('.omf'):
+                continue
+            file_path = os.path.join(self.directory, file.name)
+            if not file_path.startswith(meshes_folder):
+                fail_count += 1
+                continue
+            relative_path = file_path[len(meshes_folder) : ]
+            motion_ref = os.path.splitext(relative_path)[0]
+            ref = refs.add()
+            ref.name = motion_ref
+        if fail_count:
+            self.report(
+                {'WARNING'},
+                'Could not add {} references!'.format(fail_count)
+            )
+        return {'FINISHED'}
+
+    def invoke(self, context, _event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
 def draw_motion_refs_elements(layout):
     layout.operator(XRAY_OT_remove_all_motion_refs.bl_idname, text='', icon='X')
     layout.operator(XRAY_OT_copy_motion_refs_list.bl_idname, text='', icon='COPYDOWN')
     layout.operator(XRAY_OT_paste_motion_refs_list.bl_idname, text='', icon='PASTEDOWN')
+    layout.operator(XRAY_OT_add_motion_ref_from_file.bl_idname, text='', icon='FILE_FOLDER')
 
 
 def details_draw_function(self, context):
@@ -589,7 +655,7 @@ class XRAY_PT_object(ui.base.XRayPanel):
                         'motionrefs_collection',
                         data,
                         'motionrefs_collection_index',
-                        rows=6
+                        rows=7
                     )
                     col = row.column(align=True)
                     ui.list_helper.draw_list_ops(
@@ -703,12 +769,14 @@ classes = (
     XRAY_OT_remove_all_motion_refs,
     XRAY_OT_copy_motion_refs_list,
     XRAY_OT_paste_motion_refs_list,
+    XRAY_OT_add_motion_ref_from_file,
     XRAY_PT_object
 )
 
 
 def register():
     version_utils.assign_props([(prop_clip_op_props, XRAY_OT_prop_clip), ])
+    version_utils.assign_props([(op_add_ref_props, XRAY_OT_add_motion_ref_from_file), ])
     for clas in classes:
         bpy.utils.register_class(clas)
 

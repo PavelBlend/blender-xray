@@ -23,6 +23,7 @@ def build_auto_id(prop):
 __AUTO_PROPS__ = [
     'gamedata_folder',
     'textures_folder',
+    'meshes_folder',
     'gamemtl_file',
     'eshader_file',
     'cshader_file',
@@ -32,6 +33,7 @@ __AUTO_PROPS__ = [
 fs_props = {
     'gamedata_folder': ('$game_data$', None),
     'textures_folder': ('$game_textures$', None),
+    'meshes_folder': ('$game_meshes$', None),
     'gamemtl_file': ('$game_data$', 'gamemtl.xr'),
     'eshader_file': ('$game_data$', 'shaders.xr'),
     'cshader_file': ('$game_data$', 'shaders_xrlc.xr'),
@@ -82,6 +84,7 @@ def _auto_path(prefs, self_name, path_suffix, checker):
 path_props_suffix_values = {
     'gamedata_folder': '',
     'textures_folder': 'textures',
+    'meshes_folder': 'meshes',
     'gamemtl_file': 'gamemtl.xr',
     'eshader_file': 'shaders.xr',
     'cshader_file': 'shaders_xrlc.xr',
@@ -93,6 +96,7 @@ DIRECTORY = 'DIRECTORY'
 path_props_types = {
     'gamedata_folder': DIRECTORY,
     'textures_folder': DIRECTORY,
+    'meshes_folder': DIRECTORY,
     'gamemtl_file': FILE,
     'eshader_file': FILE,
     'cshader_file': FILE,
@@ -411,6 +415,7 @@ plugin_preferences_props = {
     ),
     'gamedata_folder': bpy.props.StringProperty(subtype='DIR_PATH', update=update_paths),
     'textures_folder': bpy.props.StringProperty(subtype='DIR_PATH', update=update_paths),
+    'meshes_folder': bpy.props.StringProperty(subtype='DIR_PATH', update=update_paths),
     'gamemtl_file': bpy.props.StringProperty(subtype='FILE_PATH', update=update_paths),
     'eshader_file': bpy.props.StringProperty(subtype='FILE_PATH', update=update_paths),
     'cshader_file': bpy.props.StringProperty(subtype='FILE_PATH', update=update_paths),
@@ -418,6 +423,7 @@ plugin_preferences_props = {
     # path auto props
     'gamedata_folder_auto': bpy.props.StringProperty(),
     'textures_folder_auto': bpy.props.StringProperty(),
+    'meshes_folder_auto': bpy.props.StringProperty(),
     'gamemtl_file_auto': bpy.props.StringProperty(),
     'eshader_file_auto': bpy.props.StringProperty(),
     'cshader_file_auto': bpy.props.StringProperty(),

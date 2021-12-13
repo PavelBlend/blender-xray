@@ -13,6 +13,7 @@ path_props_names = {
     'fs_ltx_file': 'FS Ltx File',
     'gamedata_folder': 'Gamedata Folder',
     'textures_folder': 'Textures Folder',
+    'meshes_folder': 'Meshes Folder',
     'gamemtl_file': 'Game Materials File',
     'eshader_file': 'Engine Shaders File',
     'cshader_file': 'Compile Shaders File',
@@ -81,6 +82,7 @@ def draw_paths(prefs):
     split.prop(prefs, 'fs_ltx_file', text='')
     draw_path_prop(prefs, 'gamedata_folder')
     draw_path_prop(prefs, 'textures_folder')
+    draw_path_prop(prefs, 'meshes_folder')
     draw_path_prop(prefs, 'gamemtl_file')
     draw_path_prop(prefs, 'eshader_file')
     draw_path_prop(prefs, 'cshader_file')
