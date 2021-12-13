@@ -6,6 +6,7 @@ from .. import ui
 from .. import utils
 from .. import details
 from .. import version_utils
+from .. import xray_ltx
 
 
 items = (
@@ -75,7 +76,7 @@ class XRAY_UL_motion_list(bpy.types.UIList):
 class XRAY_OT_add_all_actions(bpy.types.Operator):
     bl_idname = 'io_scene_xray.add_all_actions'
     bl_label = 'Add All Actions'
-    bl_description = 'Add All Actions'
+    bl_description = 'Add all actions to motion list'
     bl_options = {'UNDO'}
 
     @classmethod
@@ -97,7 +98,7 @@ class XRAY_OT_add_all_actions(bpy.types.Operator):
 class XRAY_OT_remove_all_actions(bpy.types.Operator):
     bl_idname = 'io_scene_xray.remove_all_actions'
     bl_label = 'Remove All Actions'
-    bl_description = 'Remove All Actions'
+    bl_description = 'Remove all actions'
     bl_options = {'UNDO'}
 
     @classmethod
@@ -118,7 +119,7 @@ class XRAY_OT_remove_all_actions(bpy.types.Operator):
 class XRAY_OT_clean_actions(bpy.types.Operator):
     bl_idname = 'io_scene_xray.clean_actions'
     bl_label = 'Clean Actions'
-    bl_description = 'Remove Non-Existent Actions'
+    bl_description = 'Remove non-existent actions'
     bl_options = {'UNDO'}
 
     @classmethod
@@ -142,10 +143,81 @@ class XRAY_OT_clean_actions(bpy.types.Operator):
         return {'FINISHED'}
 
 
+MOTION_NAME_PARAM = 'motion_name'
+EXPORT_NAME_PARAM = 'export_name'
+
+
+class XRAY_OT_copy_actions_list(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.copy_actions_list'
+    bl_label = 'Copy Actions'
+    bl_description = 'Copy actions list to clipboard'
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if not obj:
+            return False
+        return True
+
+    def execute(self, context):
+        obj = context.object
+        lines = []
+        for motion_index, motion in enumerate(obj.xray.motions_collection):
+            lines.append('[{}]\n{} = "{}"\n{} = "{}"\n'.format(
+                motion_index,
+                MOTION_NAME_PARAM,
+                motion.name,
+                EXPORT_NAME_PARAM,
+                motion.export_name
+            ))
+        bpy.context.window_manager.clipboard = '\n'.join(lines)
+        return {'FINISHED'}
+
+
+class XRAY_OT_paste_actions_list(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.paste_actions_list'
+    bl_label = 'Past Actions'
+    bl_description = 'Paste actions list from clipboard'
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if not obj:
+            return False
+        return True
+
+    def execute(self, context):
+        obj = context.object
+        motions = obj.xray.motions_collection
+        motions_data = bpy.context.window_manager.clipboard
+        ltx = xray_ltx.StalkerLtxParser(None, data=motions_data)
+        section_keys = list(map(int, ltx.sections.keys()))
+        section_keys.sort()
+        use_custom_name = False
+        for section_key in section_keys:
+            section = ltx.sections[str(section_key)]
+            params = section.params
+            motion_name = params.get(MOTION_NAME_PARAM, None)
+            export_name = params.get(EXPORT_NAME_PARAM, None)
+            if not motion_name is None:
+                motion = motions.add()
+                motion.name = motion_name
+                if export_name:
+                    motion.export_name = export_name
+                    use_custom_name = True
+        if use_custom_name:
+            obj.xray.use_custom_motion_names = True
+        return {'FINISHED'}
+
+
 def draw_motion_list_custom_elements(layout):
     layout.operator(XRAY_OT_add_all_actions.bl_idname, text='', icon='ACTION')
     layout.operator(XRAY_OT_clean_actions.bl_idname, text='', icon='BRUSH_DATA')
     layout.operator(XRAY_OT_remove_all_actions.bl_idname, text='', icon='X')
+    layout.operator(XRAY_OT_copy_actions_list.bl_idname, text='', icon='COPYDOWN')
+    layout.operator(XRAY_OT_paste_actions_list.bl_idname, text='', icon='PASTEDOWN')
 
 
 def details_draw_function(self, context):
@@ -374,7 +446,7 @@ class XRAY_PT_object(ui.base.XRayPanel):
                         'XRAY_UL_motion_list', 'name',
                         data, 'motions_collection',
                         data, 'motions_collection_index',
-                        rows=6
+                        rows=8
                     )
                     col = row.column(align=True)
                     ui.list_helper.draw_list_ops(
@@ -504,6 +576,8 @@ classes = (
     XRAY_OT_add_all_actions,
     XRAY_OT_remove_all_actions,
     XRAY_OT_clean_actions,
+    XRAY_OT_copy_actions_list,
+    XRAY_OT_paste_actions_list,
     XRAY_PT_object
 )
 
