@@ -63,10 +63,7 @@ def import_(filepath, chunked_reader, operator):
         object_name = os.path.basename(filepath.lower())
         bpy_mesh = bpy.data.meshes.new(object_name)
         bpy_obj = bpy.data.objects.new(object_name, bpy_mesh)
-        if version_utils.IS_28:
-            bpy_obj.show_in_front = True
-        else:
-            bpy_obj.show_x_ray = True
+        version_utils.set_object_show_xray(bpy_obj, True)
         version_utils.link_object(bpy_obj)
         bpy_mesh.from_pydata(vertices, (), faces)
 

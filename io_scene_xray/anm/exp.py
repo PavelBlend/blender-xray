@@ -51,11 +51,7 @@ def _export(export_context, chunked_writer):
                 baked_action.fcurves
             )
         finally:
-            if not version_utils.IS_277:
-                bpy.data.actions.remove(baked_action, do_unlink=True)
-            else:
-                baked_action.user_clear()
-                bpy.data.actions.remove(baked_action)
+            version_utils.remove_action(baked_action)
     else:
         _export_action_data(
             packed_writer,

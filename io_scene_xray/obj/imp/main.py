@@ -115,15 +115,11 @@ def import_main(file_path, context, creader):
             if bpy and (bpy_arm_obj is None):
                 bpy_armature = bpy.data.armatures.new(object_name)
                 version_utils.set_arm_display_type(bpy_armature)
-                if version_utils.IS_28:
-                    bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
-                    bpy_arm_obj.show_in_front = True
-                    bpy_armature.xray.joint_limits_type = 'XRAY'
-                else:
+                bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
+                bpy_armature.xray.joint_limits_type = 'XRAY'
+                version_utils.set_object_show_xray(bpy_arm_obj, True)
+                if not version_utils.IS_28:
                     bpy_armature.use_auto_ik = True
-                    bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
-                    bpy_arm_obj.show_x_ray = True
-                    bpy_armature.xray.joint_limits_type = 'XRAY'
                 version_utils.link_object(bpy_arm_obj)
                 version_utils.set_active_object(bpy_arm_obj)
             if cid == fmt.Chunks.Object.BONES:

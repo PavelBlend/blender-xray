@@ -1417,10 +1417,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
     armature = bpy.data.armatures.new(name=visual.name)
     version_utils.set_arm_display_type(armature)
     arm_obj = bpy.data.objects.new(visual.name, armature)
-    if version_utils.IS_28:
-        arm_obj.show_in_front = True
-    else:
-        arm_obj.show_x_ray = True
+    version_utils.set_object_show_xray(arm_obj, True)
     arm_obj.xray.isroot = True
     version_utils.link_object(arm_obj)
     version_utils.set_active_object(arm_obj)

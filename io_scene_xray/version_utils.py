@@ -149,6 +149,13 @@ def select_object(obj):
         obj.select = True
 
 
+def set_object_select(obj, select_state):
+    if IS_28:
+        obj.select_set(select_state)
+    else:
+        obj.select = select_state
+
+
 @contextlib.contextmanager
 def using_active_object(obj):
     if IS_28:
@@ -259,3 +266,39 @@ def create_bmesh_icosphere(
             subdivisions=subdivisions,
             diameter=radius
         )
+
+
+def set_object_draw_type(bpy_object, draw_type):
+    if IS_28:
+        bpy_object.display_type = draw_type
+    else:
+        bpy_object.draw_type = draw_type
+
+
+def set_object_show_xray(bpy_object, show_xray):
+    if IS_28:
+        bpy_object.show_in_front = show_xray
+    else:
+        bpy_object.show_x_ray = show_xray
+
+
+def set_empty_draw_type(empty_object, draw_type):
+    if IS_28:
+        empty_object.empty_display_type = draw_type
+    else:
+        empty_object.empty_draw_type = draw_type
+
+
+def set_empty_draw_size(empty_object, draw_size):
+    if IS_28:
+        empty_object.empty_display_size = draw_size
+    else:
+        empty_object.empty_draw_size = draw_size
+
+
+def remove_action(action):
+    if not IS_277:
+        bpy.data.actions.remove(action, do_unlink=True)
+    else:
+        action.user_clear()
+        bpy.data.actions.remove(action)

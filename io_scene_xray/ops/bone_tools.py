@@ -12,11 +12,7 @@ def _get_real_bone_shape():
     result = bpy.data.objects.get('real_bone_shape')
     if result is None:
         result = bpy.data.objects.new('real_bone_shape', None)
-        display_type = 'SPHERE'
-        if version_utils.IS_28:
-            result.empty_display_type = display_type
-        else:
-            result.empty_draw_type = display_type
+        version_utils.set_empty_draw_type(result, 'SPHERE')
     return result
 
 

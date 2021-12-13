@@ -22,10 +22,7 @@ class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
 
     def _create_helper(self, name):
         helper = bpy.data.objects.new(name, None)
-        if version_utils.IS_28:
-            helper.empty_display_size = self.size
-        else:
-            helper.empty_draw_size = self.size
+        version_utils.set_empty_draw_size(helper, self.size)
         helper.lock_rotation = helper.lock_scale = (True, True, True)
         return helper
 

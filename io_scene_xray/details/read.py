@@ -34,11 +34,7 @@ def read_details_meshes(
         header
     ):
     bpy_obj_root = bpy.data.objects.new('{} meshes'.format(base_name), None)
-    display_type = 'SPHERE'
-    if version_utils.IS_28:
-        bpy_obj_root.empty_display_type = display_type
-    else:
-        bpy_obj_root.empty_draw_type = display_type
+    version_utils.set_empty_draw_type(bpy_obj_root, 'SPHERE')
     version_utils.link_object(bpy_obj_root)
 
     step_x = 0.5

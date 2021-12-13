@@ -62,15 +62,8 @@ def _import(file_path, creader, context):
         bpy_cam.rotation_euler = (math.pi / 2, 0, 0)
         version_utils.link_object(bpy_cam)
     else:
-        display_type = 'SPHERE'
-        if version_utils.IS_28:
-            bpy_obj.empty_display_type = display_type
-        else:
-            bpy_obj.empty_draw_type = display_type
-    if version_utils.IS_28:
-        bpy_obj.empty_display_size = DISPLAY_SIZE
-    else:
-        bpy_obj.empty_draw_size = DISPLAY_SIZE
+        version_utils.set_empty_draw_type(bpy_obj, 'SPHERE')
+    version_utils.set_empty_draw_size(bpy_obj, DISPLAY_SIZE)
     version_utils.link_object(bpy_obj)
     action = bpy.data.actions.new(name=name)
     action.xray.fps = fps

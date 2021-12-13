@@ -31,12 +31,8 @@ class AbstractHelper:
         helper = self.get_helper()
         if helper is None:
             helper = self._create_helper(self._name)
-            if version_utils.IS_28:
-                helper.display_type = 'WIRE'
-                helper.show_in_front = True
-            else:
-                helper.show_x_ray = True
-                helper.draw_type = 'WIRE'
+            version_utils.set_object_draw_type(helper, 'WIRE')
+            version_utils.set_object_show_xray(helper, True)
             helper.hide_render = True
             version_utils.link_object(helper)
 
@@ -74,14 +70,9 @@ class AbstractHelper:
 
     @staticmethod
     def _select_object(_object):
-        if version_utils.IS_28:
-            bpy.context.view_layer.objects.active = _object
-            for obj in bpy.context.selectable_objects:
-                obj.select_set(obj == _object)
-        else:
-            bpy.context.scene.objects.active = _object
-            for obj in bpy.context.selectable_objects:
-                obj.select = obj == _object
+        version_utils.set_active_object(_object)
+        for obj in bpy.context.selectable_objects:
+            version_utils.set_object_select(obj, obj == _object)
 
     def _is_active_target(self, target, context):
         raise NotImplementedError()
