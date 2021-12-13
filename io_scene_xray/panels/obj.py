@@ -212,12 +212,88 @@ class XRAY_OT_paste_actions_list(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def draw_motion_list_custom_elements(layout):
+def draw_motion_list_elements(layout):
     layout.operator(XRAY_OT_add_all_actions.bl_idname, text='', icon='ACTION')
     layout.operator(XRAY_OT_clean_actions.bl_idname, text='', icon='BRUSH_DATA')
     layout.operator(XRAY_OT_remove_all_actions.bl_idname, text='', icon='X')
     layout.operator(XRAY_OT_copy_actions_list.bl_idname, text='', icon='COPYDOWN')
     layout.operator(XRAY_OT_paste_actions_list.bl_idname, text='', icon='PASTEDOWN')
+
+
+class XRAY_OT_remove_all_motion_refs(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.remove_all_motion_refs'
+    bl_label = 'Remove All'
+    bl_description = 'Remove all motion references'
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if not obj:
+            return False
+        data = obj.xray
+        refs_count = len(data.motionrefs_collection)
+        return bool(refs_count)
+
+    def execute(self, context):
+        obj = context.object
+        obj.xray.motionrefs_collection.clear()
+        return {'FINISHED'}
+
+
+MOTION_NAME_PARAM = 'motion_name'
+EXPORT_NAME_PARAM = 'export_name'
+
+
+class XRAY_OT_copy_motion_refs_list(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.copy_motion_refs_list'
+    bl_label = 'Copy Motion References'
+    bl_description = 'Copy motion references list to clipboard'
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if not obj:
+            return False
+        return True
+
+    def execute(self, context):
+        obj = context.object
+        lines = []
+        for ref_index, ref in enumerate(obj.xray.motionrefs_collection):
+            lines.append(ref.name)
+        bpy.context.window_manager.clipboard = '\n'.join(lines)
+        return {'FINISHED'}
+
+
+class XRAY_OT_paste_motion_refs_list(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.paste_motion_refs_list'
+    bl_label = 'Past Motion References'
+    bl_description = 'Paste motion references list from clipboard'
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if not obj:
+            return False
+        return True
+
+    def execute(self, context):
+        obj = context.object
+        refs = obj.xray.motionrefs_collection
+        refs_data = bpy.context.window_manager.clipboard
+        for line in refs_data.split('\n'):
+            ref = refs.add()
+            ref.name = line
+        return {'FINISHED'}
+
+
+def draw_motion_refs_elements(layout):
+    layout.operator(XRAY_OT_remove_all_motion_refs.bl_idname, text='', icon='X')
+    layout.operator(XRAY_OT_copy_motion_refs_list.bl_idname, text='', icon='COPYDOWN')
+    layout.operator(XRAY_OT_paste_motion_refs_list.bl_idname, text='', icon='PASTEDOWN')
 
 
 def details_draw_function(self, context):
@@ -450,9 +526,11 @@ class XRAY_PT_object(ui.base.XRayPanel):
                     )
                     col = row.column(align=True)
                     ui.list_helper.draw_list_ops(
-                        col, data,
-                        'motions_collection', 'motions_collection_index',
-                        custom_elements_func=draw_motion_list_custom_elements
+                        col,
+                        data,
+                        'motions_collection',
+                        'motions_collection_index',
+                        custom_elements_func=draw_motion_list_elements
                     )
 
                 if data.motionrefs:
@@ -468,14 +546,21 @@ class XRAY_PT_object(ui.base.XRayPanel):
                     box.prop(data, 'load_active_motion_refs', toggle=True)
                     row = box.row()
                     row.template_list(
-                        'UI_UL_list', 'name',
-                        data, 'motionrefs_collection',
-                        data, 'motionrefs_collection_index'
+                        'UI_UL_list',
+                        'name',
+                        data,
+                        'motionrefs_collection',
+                        data,
+                        'motionrefs_collection_index',
+                        rows=6
                     )
                     col = row.column(align=True)
                     ui.list_helper.draw_list_ops(
-                        col, data,
-                        'motionrefs_collection', 'motionrefs_collection_index',
+                        col,
+                        data,
+                        'motionrefs_collection',
+                        'motionrefs_collection_index',
+                        custom_elements_func=draw_motion_refs_elements
                     )
 
                 _, box = ui.collapsible.draw(
@@ -578,6 +663,9 @@ classes = (
     XRAY_OT_clean_actions,
     XRAY_OT_copy_actions_list,
     XRAY_OT_paste_actions_list,
+    XRAY_OT_remove_all_motion_refs,
+    XRAY_OT_copy_motion_refs_list,
+    XRAY_OT_paste_motion_refs_list,
     XRAY_PT_object
 )
 
