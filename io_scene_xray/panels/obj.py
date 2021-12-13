@@ -573,7 +573,9 @@ class XRAY_PT_object(ui.base.XRayPanel):
             if data.isroot:
                 object_box = layout.box()
                 if not data.flags_use_custom:
-                    object_box.prop(data, 'flags_simple', text='Type')
+                    split = version_utils.layout_split(object_box, 0.333)
+                    split.label(text='Type:')
+                    split.prop(data, 'flags_simple', text='')
                 else:
                     row = object_box.row(align=True)
                     row.prop(data, 'flags_simple', text='Type')
@@ -587,8 +589,12 @@ class XRAY_PT_object(ui.base.XRayPanel):
                     row.prop(data, 'flags_custom_musage', text='Multiple Usage', toggle=True)
                     row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
                     row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
-                object_box.prop(data, 'lodref')
-                object_box.prop(data, 'export_path')
+                split = version_utils.layout_split(object_box, 0.333)
+                split.label(text='LOD Reference:')
+                split.prop(data, 'lodref', text='')
+                split = version_utils.layout_split(object_box, 0.333)
+                split.label(text='Export Path:')
+                split.prop(data, 'export_path', text='')
                 row, box = ui.collapsible.draw(
                     object_box,
                     'object:userdata',
@@ -618,9 +624,18 @@ class XRAY_PT_object(ui.base.XRayPanel):
                     'Motions (%d)' % len(data.motions_collection)
                 )
                 if box:
-                    box.prop(data, 'play_active_motion', toggle=True, icon='PLAY')
-                    box.prop(data, 'use_custom_motion_names', toggle=True)
-                    box.prop_search(data, 'dependency_object', bpy.data, 'objects')
+                    col = box.column(align=True)
+                    col.prop(data, 'play_active_motion', toggle=True, icon='PLAY')
+                    col.prop(data, 'use_custom_motion_names', toggle=True, icon='SORTALPHA')
+                    split = version_utils.layout_split(col, 0.333)
+                    split.label(text='Dependency:')
+                    split.prop_search(
+                        data,
+                        'dependency_object',
+                        bpy.data,
+                        'objects',
+                        text=''
+                    )
                     row = box.row()
                     row.template_list(
                         'XRAY_UL_motion_list', 'name',

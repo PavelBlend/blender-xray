@@ -9,8 +9,8 @@ from .. import version_utils
 
 
 joint_limit_type_items = (
-    ('IK', 'IK Limits', ''),
-    ('XRAY', 'X-Ray Limits', '')
+    ('IK', 'IK', ''),
+    ('XRAY', 'X-Ray', '')
 )
 xray_armature_properties = {
     'display_bone_shapes': bpy.props.BoolProperty(

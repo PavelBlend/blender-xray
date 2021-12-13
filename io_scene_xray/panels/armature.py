@@ -63,9 +63,9 @@ class XRAY_PT_armature(ui.base.XRayPanel):
         row.prop(data, 'display_bone_limit_x', toggle=True)
         row.prop(data, 'display_bone_limit_y', toggle=True)
         row.prop(data, 'display_bone_limit_z', toggle=True)
-        split = version_utils.layout_split(layout, 0.5)
-        split.label(text='Export Limits from:')
-        split.prop(data, 'joint_limits_type', text='')
+        row = layout.row(align=True)
+        row.label(text='Use Limits:')
+        row.prop(data, 'joint_limits_type', expand=True)
 
 
 def register():
