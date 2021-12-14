@@ -304,6 +304,8 @@ xray_colorize_materials_props = {
         default='SELECTED_OBJECTS',
         items=colorize_mode_items
     ),
+    'change_viewport_color': bpy.props.BoolProperty(default=True),
+    'change_shader_color': bpy.props.BoolProperty(default=False),
     'seed': bpy.props.IntProperty(min=0, max=255),
     'power': bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0)
 }
@@ -321,9 +323,21 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
+        active = self.change_viewport_color or self.change_shader_color
         column = layout.column(align=True)
+        column.active = active
         column.prop(self, 'seed', text='Seed')
         column.prop(self, 'power', text='Power', slider=True)
+        column.prop(
+            self,
+            'change_viewport_color',
+            text='Change Viewport Color'
+        )
+        column.prop(
+            self,
+            'change_shader_color',
+            text='Change Shader Color'
+        )
         column.label(text='Mode:')
         column.prop(self, 'mode', expand=True)
 
@@ -337,6 +351,9 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
         return materials
 
     def execute(self, context):
+        if not self.change_viewport_color and not self.change_shader_color:
+            self.report({'WARNING'}, 'Nothing changed!')
+            return {'FINISHED'}
         # active material
         if self.mode == 'ACTIVE_MATERIAL':
             obj = context.active_object
@@ -379,6 +396,7 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
             for mat in all_materials:
                 materials.add(mat)
         # colorize
+        changed_materials_count = 0
         for mat in materials:
             data = bytearray(mat.name, 'utf8')
             data.append(self.seed)
@@ -392,8 +410,34 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
             color = [color.r, color.g, color.b]
             if version_utils.IS_28:
                 color.append(1.0)    # alpha
-            mat.diffuse_color = color
-        self.report({'INFO'}, 'Changed {} material(s)'.format(len(materials)))
+            changed = False
+            if self.change_viewport_color:
+                mat.diffuse_color = color
+                changed = True
+            if self.change_shader_color:
+                output_node = None
+                for node in mat.node_tree.nodes:
+                    if node.type == 'OUTPUT_MATERIAL':
+                        if node.is_active_output:
+                            output_node = node
+                            break
+                if output_node:
+                    links = output_node.inputs['Surface'].links
+                    if links:
+                        link = links[0]
+                        shader_node = link.from_node
+                        color_socket = shader_node.inputs.get('Color')
+                        if color_socket is None:
+                            color_socket = shader_node.inputs.get('Base Color')
+                        if color_socket:
+                            color_socket.default_value = color
+                            changed = True
+            if changed:
+                changed_materials_count += 1
+        self.report(
+            {'INFO'},
+            'Changed {} material(s)'.format(changed_materials_count)
+        )
         return {'FINISHED'}
 
     def invoke(self, context, event):
