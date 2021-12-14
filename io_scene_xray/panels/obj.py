@@ -513,6 +513,89 @@ def details_draw_function(self, context):
         box.operator(details.ops.XRAY_OT_pack_details_images.bl_idname)
 
 
+def draw_split_prop(layout, owner, prop, text):
+    split = version_utils.layout_split(layout, 0.333, align=True)
+    split.label(text=text+':')
+    split.prop(owner, prop, text='')
+
+
+def draw_split_prop_search(layout, owner, prop, text, search_owner, search_prop):
+    split = version_utils.layout_split(layout, 0.333, align=True)
+    split.label(text=text+':')
+    split.prop_search(owner, prop, search_owner, search_prop, text='')
+
+
+def level_draw_function(layout, data):
+    box = layout.box()
+    level = data.level
+    draw_split_prop(box, level, 'object_type', 'Type')
+    object_type = level.object_type
+
+    if object_type == 'LEVEL':
+        draw_split_prop(box, level, 'source_path', 'Source Path')
+
+    elif object_type == 'PORTAL':
+        for portal in ('front', 'back'):
+            prop_name = 'sector_' + portal
+            draw_split_prop_search(
+                box,
+                level,
+                prop_name,
+                prop_name.replace('_', ' ').title(),
+                bpy.data,
+                'objects'
+            )
+
+    elif object_type == 'VISUAL':
+        draw_split_prop(box, level, 'visual_type', 'Visual Type')
+        if level.visual_type in {'TREE_ST', 'TREE_PM'}:
+            # color scale
+            color_scale_box = box.box()
+            color_scale_box.label(text='Color Scale:')
+
+            col = color_scale_box.row()
+            col.prop(level, 'color_scale_rgb')
+
+            col = color_scale_box.row()
+            col.prop(level, 'color_scale_hemi')
+
+            col = color_scale_box.row()
+            col.prop(level, 'color_scale_sun')
+
+            # color bias
+            color_bias_box = box.box()
+            color_bias_box.label(text='Color Bias:')
+
+            col = color_bias_box.row()
+            col.prop(level, 'color_bias_rgb')
+
+            col = color_bias_box.row()
+            col.prop(level, 'color_bias_hemi')
+
+            col = color_bias_box.row()
+            col.prop(level, 'color_bias_sun')
+
+        elif level.visual_type in {'NORMAL', 'PROGRESSIVE'}:
+            box.prop(level, 'use_fastpath')
+
+    elif object_type == 'LIGHT_DYNAMIC':
+        box.prop(level, 'controller_id')
+        box.prop(level, 'light_type')
+        row = box.row()
+        row.prop(level, 'diffuse')
+        row = box.row()
+        row.prop(level, 'specular')
+        row = box.row()
+        row.prop(level, 'ambient')
+        box.prop(level, 'range_')
+        box.prop(level, 'falloff')
+        box.prop(level, 'attenuation_0')
+        box.prop(level, 'attenuation_1')
+        box.prop(level, 'attenuation_2')
+        box.prop(level, 'theta')
+        box.prop(level, 'phi')
+
+
 def get_used(prefs):
     object_used = (
         # import plugins
@@ -717,66 +800,7 @@ class XRAY_PT_object(ui.base.XRayPanel):
         if game_level_used:
             layout.prop(data, 'is_level', text='Level', toggle=True)
             if data.is_level:
-                ogf_box = layout.box()
-
-                ogf_box.prop(data.level, 'object_type')
-                object_type = data.level.object_type
-
-                if object_type == 'LEVEL':
-                    ogf_box.prop(data.level, 'source_path')
-
-                elif object_type == 'PORTAL':
-                    ogf_box.prop_search(data.level, 'sector_front', bpy.data, 'objects')
-                    ogf_box.prop_search(data.level, 'sector_back', bpy.data, 'objects')
-
-                elif object_type == 'VISUAL':
-                    ogf_box.prop(data.level, 'visual_type')
-                    if data.level.visual_type in {'TREE_ST', 'TREE_PM'}:
-                        # color scale
-                        color_scale_box = ogf_box.box()
-                        color_scale_box.label(text='Color Scale:')
-
-                        col = color_scale_box.row()
-                        col.prop(data.level, 'color_scale_rgb')
-
-                        col = color_scale_box.row()
-                        col.prop(data.level, 'color_scale_hemi')
-
-                        col = color_scale_box.row()
-                        col.prop(data.level, 'color_scale_sun')
-
-                        # color bias
-                        color_bias_box = ogf_box.box()
-                        color_bias_box.label(text='Color Bias:')
-
-                        col = color_bias_box.row()
-                        col.prop(data.level, 'color_bias_rgb')
-
-                        col = color_bias_box.row()
-                        col.prop(data.level, 'color_bias_hemi')
-
-                        col = color_bias_box.row()
-                        col.prop(data.level, 'color_bias_sun')
-
-                    elif data.level.visual_type in {'NORMAL', 'PROGRESSIVE'}:
-                        ogf_box.prop(data.level, 'use_fastpath')
-
-                elif object_type == 'LIGHT_DYNAMIC':
-                    ogf_box.prop(data.level, 'controller_id')
-                    ogf_box.prop(data.level, 'light_type')
-                    row = ogf_box.row()
-                    row.prop(data.level, 'diffuse')
-                    row = ogf_box.row()
-                    row.prop(data.level, 'specular')
-                    row = ogf_box.row()
-                    row.prop(data.level, 'ambient')
-                    ogf_box.prop(data.level, 'range_')
-                    ogf_box.prop(data.level, 'falloff')
-                    ogf_box.prop(data.level, 'attenuation_0')
-                    ogf_box.prop(data.level, 'attenuation_1')
-                    ogf_box.prop(data.level, 'attenuation_2')
-                    ogf_box.prop(data.level, 'theta')
-                    ogf_box.prop(data.level, 'phi')
+                level_draw_function(layout, data)
 
 
 classes = (
