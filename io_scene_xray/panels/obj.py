@@ -660,9 +660,14 @@ class XRAY_PT_object(ui.base.XRayPanel):
                     split.label(text='Type:')
                     split.prop(data, 'flags_simple', text='')
                 else:
+                    # type
+                    split = version_utils.layout_split(object_box, 0.333)
+                    split.label(text='Type:')
+                    split.prop(data, 'flags_simple', text='')
+                    # static/dynamic
                     row = object_box.row(align=True)
-                    row.prop(data, 'flags_simple', text='Type')
-                    row.prop(data, 'flags_custom_type', text='')
+                    row.prop(data, 'flags_custom_type', expand=True)
+                    # flags
                     col = object_box.column(align=True)
                     row = col.row(align=True)
                     row.prop(data, 'flags_custom_progressive', text='Progressive', toggle=True)
@@ -671,7 +676,7 @@ class XRAY_PT_object(ui.base.XRayPanel):
                     row = col.row(align=True)
                     row.prop(data, 'flags_custom_musage', text='Multiple Usage', toggle=True)
                     row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
-                    row.prop(data, 'flags_custom_hqexp', text='HQ Export', toggle=True)
+                object_box.prop(data, 'flags_custom_hqexp', text='HQ Export')
                 split = version_utils.layout_split(object_box, 0.333)
                 split.label(text='LOD Reference:')
                 split.prop(data, 'lodref', text='')

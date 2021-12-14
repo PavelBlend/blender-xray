@@ -389,13 +389,13 @@ _flags_simple_map = {v: k for k, v in enumerate(_flags_simple_inv_map)}
 def flags_simple_get(self):
     if self.flags_force_custom:
         return 0
-    return _flags_simple_map.get(self.flags, 0)
+    return _flags_simple_map.get(self.flags & ~0x40, 0)
 
 
 def flags_simple_set(self, value):
     self.flags_force_custom = value == 0
     if value != 0:  # !custom
-        self.flags = _flags_simple_inv_map[value]
+        self.flags = _flags_simple_inv_map[value] & ~0x40
 
 
 xray_object_properties = {
@@ -408,7 +408,7 @@ xray_object_properties = {
     'flags_force_custom': bpy.props.BoolProperty(options={'SKIP_SAVE'}),
     'flags_use_custom': bpy.props.BoolProperty(
         options={'SKIP_SAVE'},
-        get=lambda self: self.flags_force_custom or not (self.flags in _flags_simple_map)
+        get=lambda self: self.flags_force_custom or not (self.flags & ~0x40 in _flags_simple_map)
     ),
     'flags_custom_type': bpy.props.EnumProperty(
         name='Custom Object Type',
@@ -445,7 +445,7 @@ xray_object_properties = {
     'flags_custom_hqexp': utility.gen_flag_prop(
         mask=0x40,
         description='HQ Geometry',
-        customprop='flags_force_custom'
+        customprop=''
     ),
     'flags_simple': bpy.props.EnumProperty(name='Object Type', items=(
         (obj.fmt.CM, obj.fmt.type_names[obj.fmt.CM], ''),
