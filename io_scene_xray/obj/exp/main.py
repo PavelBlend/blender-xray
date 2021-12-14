@@ -18,10 +18,9 @@ from ... import version_utils
 
 
 def export_version(chunked_writer):
-    chunked_writer.put(
-        fmt.Chunks.Object.VERSION,
-        xray_io.PackedWriter().putf('<H', fmt.CURRENT_OBJECT_VERSION)
-    )
+    packed_writer = xray_io.PackedWriter()
+    packed_writer.putf('<H', fmt.CURRENT_OBJECT_VERSION)
+    chunked_writer.put(fmt.Chunks.Object.VERSION, packed_writer)
 
 
 def get_object_flags(xray):
@@ -47,10 +46,9 @@ def export_flags(chunked_writer, xray, some_arm):
                 has_type=fmt.type_names[xray.flags_simple],
                 save_as=fmt.type_names[fmt.DY]
             )
-    chunked_writer.put(
-        fmt.Chunks.Object.FLAGS,
-        xray_io.PackedWriter().putf('<I', flags)
-    )
+    packed_writer = xray_io.PackedWriter()
+    packed_writer.putf('<I', flags)
+    chunked_writer.put(fmt.Chunks.Object.FLAGS, packed_writer)
 
 
 def validate_vertex_weights(bpy_obj, arm_obj):
@@ -315,15 +313,13 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
     for material in materials:
         sfw.puts(material.name)
         if hasattr(material, 'xray'):
-            sfw.puts(
-                material.xray.eshader
-            ).puts(
-                material.xray.cshader
-            ).puts(
-                material.xray.gamemtl
-            )
+            sfw.puts(material.xray.eshader)
+            sfw.puts(material.xray.cshader)
+            sfw.puts(material.xray.gamemtl)
         else:
-            sfw.puts('').puts('').puts('')
+            sfw.puts('')
+            sfw.puts('')
+            sfw.puts('')
         tx_name = ''
         if version_utils.IS_28:
             if material.use_nodes:
@@ -374,7 +370,8 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
             sfw.putf('<I', material.xray.flags)
         else:
             sfw.putf('<I', 0)
-        sfw.putf('<I', 0x112).putf('<I', 1)
+        sfw.putf('<I', 0x112)
+        sfw.putf('<I', 1)
     chunked_writer.put(fmt.Chunks.Object.SURFACES2, sfw)
 
 

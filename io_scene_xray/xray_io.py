@@ -207,16 +207,13 @@ class PackedWriter():
 
     def putp(self, pkw):
         self.data += pkw.data
-        return self
 
     def putf(self, fmt, *args):
         self.data += struct.pack(fmt, *args)
-        return self
 
     def putv3f(self, vec):
         # write vertex coord
         self.data += struct.pack('<3f', vec[0], vec[2], vec[1])
-        return self
 
     def puts(self, string):
         try:
@@ -224,7 +221,6 @@ class PackedWriter():
         except UnicodeEncodeError:
             raise ENCODE_ERROR('Not valid string: {}'.format(string))
         self.data += b'\x00'
-        return self
 
     def replace(self, offset, byte_list):
         for byte_index, byte in enumerate(byte_list):
@@ -238,4 +234,3 @@ class ChunkedWriter():
     def put(self, cid, writer):
         self.data += struct.pack('II', cid, len(writer.data))
         self.data += writer.data
-        return self

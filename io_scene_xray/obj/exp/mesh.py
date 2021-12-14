@@ -287,7 +287,8 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
     for mat_name, mat_data in materials.items():
         if mat_name in used_material_names:
             faces_count = sum(mat_data['faces_count'])
-            packed_writer.puts(mat_name).putf('<I', faces_count)
+            packed_writer.puts(mat_name)
+            packed_writer.putf('<I', faces_count)
             for mat_id in mat_data['materials_ids']:
                 material_face_indices = face_materials[(mat_name, mat_id)]
                 for face_index in material_face_indices:

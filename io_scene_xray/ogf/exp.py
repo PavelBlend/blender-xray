@@ -526,7 +526,9 @@ def _export(bpy_obj, cwriter, context):
         pwriter.putv3f(xray.mass.center)
     cwriter.put(fmt.Chunks_v4.S_IKDATA, pwriter)
 
-    cwriter.put(fmt.Chunks_v4.S_USERDATA, xray_io.PackedWriter().puts(bpy_obj.xray.userdata))
+    packed_writer = xray_io.PackedWriter()
+    packed_writer.puts(bpy_obj.xray.userdata)
+    cwriter.put(fmt.Chunks_v4.S_USERDATA, packed_writer)
     if len(bpy_obj.xray.motionrefs_collection):
         refs = []
         for ref in bpy_obj.xray.motionrefs_collection:
