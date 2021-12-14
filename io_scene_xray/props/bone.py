@@ -112,11 +112,11 @@ class BreakProperties(bpy.types.PropertyGroup):
 
 ik_joint_properties = {
     'type': bpy.props.EnumProperty(items=(
+        ('4', 'None', ''),
         ('0', 'Rigid', ''),
         ('1', 'Cloth', ''),
         ('2', 'Joint', ''),
         ('3', 'Wheel', ''),
-        ('4', 'None', ''),
         ('5', 'Slider', ''))
     ),
     'lim_x_min': bpy.props.FloatProperty(
