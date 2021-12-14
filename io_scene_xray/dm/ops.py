@@ -12,7 +12,7 @@ from .. import contexts
 from .. import icons
 from .. import log
 from .. import utils
-from .. import plugin_props
+from .. import ie_props
 from .. import version_utils
 
 
@@ -65,7 +65,7 @@ op_import_dm_props = {
 
 
 class XRAY_OT_import_dm(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
     bl_idname = 'xray_import.dm'
@@ -121,11 +121,11 @@ class XRAY_OT_import_dm(
 op_export_dms_props = {
     'detail_models': bpy.props.StringProperty(options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
-    'texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': ie_props.PropObjectTextureNamesFromPath()
 }
 
 
-class XRAY_OT_export_dm(plugin_props.BaseOperator):
+class XRAY_OT_export_dm(ie_props.BaseOperator):
     bl_idname = 'xray_export.dm'
     bl_label = 'Export .dm'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -190,12 +190,12 @@ op_export_dm_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
     ),
-    'texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': ie_props.PropObjectTextureNamesFromPath()
 }
 
 
 class XRAY_OT_export_dm_file(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.dm_file'

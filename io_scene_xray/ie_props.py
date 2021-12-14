@@ -11,6 +11,9 @@ class BaseOperator(bpy.types.Operator):
         return super().__getattribute__(item)
 
 
+# Import-Export properties
+
+
 def PropObjectTextureNamesFromPath():
     return bpy.props.BoolProperty(
         name='Texture Names from Image Paths',

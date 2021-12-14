@@ -13,7 +13,7 @@ from .. import log
 from .. import icons
 from .. import utils
 from .. import version_utils
-from .. import plugin_props
+from .. import ie_props
 
 
 class ImportBonesContext(contexts.ImportContext):
@@ -62,13 +62,13 @@ op_import_bones_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
-    'import_bone_parts': plugin_props.prop_import_bone_parts(),
-    'import_bone_properties': plugin_props.prop_import_bone_properties()
+    'import_bone_parts': ie_props.prop_import_bone_parts(),
+    'import_bone_properties': ie_props.prop_import_bone_properties()
 }
 
 
 class XRAY_OT_import_bones(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
     bl_idname = 'xray_import.bones'
@@ -160,12 +160,12 @@ op_export_bones_props = {
         default='*'+BONES_EXT,
         options={'HIDDEN'}
     ),
-    'export_bone_properties': plugin_props.prop_export_bone_properties(),
-    'export_bone_parts': plugin_props.prop_export_bone_parts()
+    'export_bone_properties': ie_props.prop_export_bone_properties(),
+    'export_bone_parts': ie_props.prop_export_bone_parts()
 }
 
 
-class XRAY_OT_export_bones(plugin_props.BaseOperator):
+class XRAY_OT_export_bones(ie_props.BaseOperator):
     bl_idname = 'xray_export.bones'
     bl_label = 'Export .bones'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -246,13 +246,13 @@ op_export_bone_props = {
         default='*'+BONES_EXT,
         options={'HIDDEN'}
     ),
-    'export_bone_properties': plugin_props.prop_export_bone_properties(),
-    'export_bone_parts': plugin_props.prop_export_bone_parts()
+    'export_bone_properties': ie_props.prop_export_bone_properties(),
+    'export_bone_parts': ie_props.prop_export_bone_parts()
 }
 
 
 class XRAY_OT_export_bone(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.bone'

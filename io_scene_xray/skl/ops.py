@@ -10,7 +10,7 @@ from . import imp
 from . import exp
 from .. import icons
 from .. import log
-from .. import plugin_props
+from .. import ie_props
 from .. import ui
 from .. import utils
 from .. import xray_motions
@@ -55,12 +55,12 @@ op_import_skls_props = {
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
     'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
-    'use_motion_prefix_name': plugin_props.PropObjectUseMotionPrefixName(),
-    'add_actions_to_motion_list': plugin_props.prop_skl_add_actions_to_motion_list()
+    'use_motion_prefix_name': ie_props.PropObjectUseMotionPrefixName(),
+    'add_actions_to_motion_list': ie_props.prop_skl_add_actions_to_motion_list()
 }
 
 
-class XRAY_OT_import_skls(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHelper):
+class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.skls'
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
@@ -185,7 +185,7 @@ op_export_skl_props = {
 }
 
 
-class XRAY_OT_export_skl(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHelper):
+class XRAY_OT_export_skl(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper):
     bl_idname = 'xray_export.skl'
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animation'
@@ -228,7 +228,7 @@ op_export_skls_props = {
 }
 
 
-class XRAY_OT_export_skls(plugin_props.BaseOperator, utils.FilenameExtHelper):
+class XRAY_OT_export_skls(ie_props.BaseOperator, utils.FilenameExtHelper):
     bl_idname = 'xray_export.skls'
     bl_label = 'Export .skls'
     bl_description = 'Exports X-Ray skeletal animation'
@@ -271,7 +271,7 @@ op_export_skl_batch_props = {
 }
 
 
-class XRAY_OT_export_skl_batch(plugin_props.BaseOperator):
+class XRAY_OT_export_skl_batch(ie_props.BaseOperator):
     bl_idname = 'xray_export.skl_batch'
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animations'

@@ -12,7 +12,7 @@ from .. import utils
 from .. import icons
 from .. import log
 from .. import contexts
-from .. import plugin_props
+from .. import ie_props
 from .. import ui
 from .. import version_utils
 
@@ -81,15 +81,15 @@ op_import_omf_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
-    'import_motions': plugin_props.PropObjectMotionsImport(),
-    'import_bone_parts': plugin_props.prop_import_bone_parts(),
+    'import_motions': ie_props.PropObjectMotionsImport(),
+    'import_bone_parts': ie_props.prop_import_bone_parts(),
     'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
-    'add_actions_to_motion_list': plugin_props.prop_skl_add_actions_to_motion_list()
+    'add_actions_to_motion_list': ie_props.prop_skl_add_actions_to_motion_list()
 }
 
 
 class XRAY_OT_import_omf(
-        plugin_props.BaseOperator, bpy_extras.io_utils.ImportHelper
+        ie_props.BaseOperator, bpy_extras.io_utils.ImportHelper
     ):
 
     bl_idname = 'xray_import.omf'
@@ -234,13 +234,13 @@ class XRAY_OT_import_omf(
 
 op_export_omf_props = {
     'filter_glob': bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'}),
-    'export_mode': plugin_props.prop_omf_export_mode(),
-    'export_motions': plugin_props.PropObjectMotionsExport(),
-    'export_bone_parts': plugin_props.prop_export_bone_parts()
+    'export_mode': ie_props.prop_omf_export_mode(),
+    'export_motions': ie_props.PropObjectMotionsExport(),
+    'export_bone_parts': ie_props.prop_export_bone_parts()
 }
 
 
-class XRAY_OT_export_omf(plugin_props.BaseOperator, bpy_extras.io_utils.ExportHelper):
+class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper):
     bl_idname = 'xray_export.omf'
     bl_label = 'Export .omf'
     bl_description = 'Exports X-Ray skeletal game motions'

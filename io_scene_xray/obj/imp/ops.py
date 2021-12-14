@@ -12,7 +12,7 @@ from ... import icons
 from ... import log
 from ... import utils
 from ... import version_utils
-from ... import plugin_props
+from ... import ie_props
 
 
 def menu_func_import(self, context):
@@ -32,16 +32,16 @@ op_import_object_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
-    'import_motions': plugin_props.PropObjectMotionsImport(),
-    'mesh_split_by_materials': plugin_props.PropObjectMeshSplitByMaterials(),
-    'use_motion_prefix_name': plugin_props.PropObjectUseMotionPrefixName(),
-    'fmt_version': plugin_props.PropSDKVersion()
+    'import_motions': ie_props.PropObjectMotionsImport(),
+    'mesh_split_by_materials': ie_props.PropObjectMeshSplitByMaterials(),
+    'use_motion_prefix_name': ie_props.PropObjectUseMotionPrefixName(),
+    'fmt_version': ie_props.PropSDKVersion()
 }
 
 filename_ext = '.object'
 
 
-class XRAY_OT_import_object(plugin_props.BaseOperator, bpy_extras.io_utils.ImportHelper):
+class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
     bl_label = 'Import .object'
     bl_description = 'Imports X-Ray object'

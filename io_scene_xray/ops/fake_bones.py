@@ -2,11 +2,11 @@
 import bpy
 
 # addon modules
-from .. import plugin_props
+from .. import ie_props
 from .. import utils
 
 
-class XRAY_OT_create_fake_bones(plugin_props.BaseOperator):
+class XRAY_OT_create_fake_bones(ie_props.BaseOperator):
     bl_idname = 'io_scene_xray.create_fake_bones'
     bl_label = 'Create Fake Bones'
     bl_description = 'Connect non-rigid bone joints via fake bones to help with IK'
@@ -51,7 +51,7 @@ class XRAY_OT_create_fake_bones(plugin_props.BaseOperator):
         return {'FINISHED'}
 
 
-class XRAY_OT_delete_fake_bones(plugin_props.BaseOperator):
+class XRAY_OT_delete_fake_bones(ie_props.BaseOperator):
     bl_idname = 'io_scene_xray.delete_fake_bones'
     bl_label = 'Delete Fake Bones'
     bl_description = 'Delete all previously created fake bones'
@@ -77,7 +77,7 @@ class XRAY_OT_delete_fake_bones(plugin_props.BaseOperator):
         return {'FINISHED'}
 
 
-class XRAY_OT_toggle_fake_bones_visibility(plugin_props.BaseOperator):
+class XRAY_OT_toggle_fake_bones_visibility(ie_props.BaseOperator):
     bl_idname = 'io_scene_xray.toggle_fake_bones_visibility'
     bl_label = 'Show/Hide Fake Bones'
     bl_description = 'Show/Hide all fake bones'

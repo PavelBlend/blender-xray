@@ -12,7 +12,7 @@ from .. import icons
 from .. import log
 from .. import contexts
 from .. import version_utils
-from .. import plugin_props
+from .. import ie_props
 from .. import utils
 
 
@@ -67,12 +67,12 @@ op_import_ogf_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
     ),
-    'import_motions': plugin_props.PropObjectMotionsImport()
+    'import_motions': ie_props.PropObjectMotionsImport()
 }
 
 
 class XRAY_OT_import_ogf(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
     bl_idname = 'xray_import.ogf'
@@ -138,13 +138,13 @@ class XRAY_OT_import_ogf(
 
 op_export_ogf_props = {
     'filter_glob': bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'}),
-    'texture_name_from_image_path': plugin_props.PropObjectTextureNamesFromPath(),
-    'export_motions': plugin_props.PropObjectMotionsExport()
+    'texture_name_from_image_path': ie_props.PropObjectTextureNamesFromPath(),
+    'export_motions': ie_props.PropObjectMotionsExport()
 }
 
 
 class XRAY_OT_export_ogf(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.ogf'

@@ -13,7 +13,7 @@ from .. import log
 from .. import utils
 from .. import text
 from .. import version_utils
-from .. import plugin_props
+from .. import ie_props
 
 
 def menu_func_import(self, context):
@@ -46,12 +46,12 @@ op_import_anm_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
-    'camera_animation': plugin_props.PropAnmCameraAnimation()
+    'camera_animation': ie_props.PropAnmCameraAnimation()
 }
 
 
 class XRAY_OT_import_anm(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
     bl_idname = 'xray_import.anm'
@@ -108,12 +108,12 @@ op_export_anm_props = {
         default='*'+filename_ext,
         options={'HIDDEN'}
     ),
-    'format_version': plugin_props.prop_anm_format_version()
+    'format_version': ie_props.prop_anm_format_version()
 }
 
 
 class XRAY_OT_export_anm(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.anm'

@@ -8,7 +8,7 @@ from . import exp
 from .. import utils
 from .. import icons
 from .. import log
-from .. import plugin_props
+from .. import ie_props
 from .. import version_utils
 
 
@@ -41,7 +41,7 @@ op_export_level_scene_props = {
 
 
 class XRAY_OT_export_scene_selection(
-        plugin_props.BaseOperator, bpy_extras.io_utils.ExportHelper
+        ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.scene'
     bl_label = 'Export .level'
@@ -83,13 +83,13 @@ op_import_level_scene_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
     ),
-    'mesh_split_by_materials': plugin_props.PropObjectMeshSplitByMaterials(),
-    'fmt_version': plugin_props.PropSDKVersion()
+    'mesh_split_by_materials': ie_props.PropObjectMeshSplitByMaterials(),
+    'fmt_version': ie_props.PropSDKVersion()
 }
 
 
 class XRAY_OT_import_scene_selection(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
     bl_idname = 'xray_import.scene'

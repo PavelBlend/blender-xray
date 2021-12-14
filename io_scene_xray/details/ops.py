@@ -12,7 +12,7 @@ from .. import icons
 from .. import log
 from .. import utils
 from .. import contexts
-from .. import plugin_props
+from .. import ie_props
 from .. import version_utils
 
 
@@ -68,14 +68,14 @@ op_import_details_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
     ),
-    'details_models_in_a_row': plugin_props.prop_details_models_in_a_row(),
-    'load_slots': plugin_props.prop_details_load_slots(),
-    'details_format': plugin_props.prop_details_format()
+    'details_models_in_a_row': ie_props.prop_details_models_in_a_row(),
+    'load_slots': ie_props.prop_details_load_slots(),
+    'details_format': ie_props.prop_details_format()
 }
 
 
 class XRAY_OT_import_details(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
     bl_idname = 'xray_import.details'
@@ -161,14 +161,14 @@ op_export_details_props = {
     ),
 
     'texture_name_from_image_path': \
-        plugin_props.PropObjectTextureNamesFromPath(),
+        ie_props.PropObjectTextureNamesFromPath(),
 
-    'format_version': plugin_props.prop_details_format_version()
+    'format_version': ie_props.prop_details_format_version()
 }
 
 
 class XRAY_OT_export_details(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.details'

@@ -4,7 +4,7 @@ import os
 # blender modules
 import bpy
 
-# addon props
+# addon modules
 from . import version_utils
 
 

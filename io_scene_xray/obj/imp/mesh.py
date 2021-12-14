@@ -9,10 +9,10 @@ import bmesh
 from .. import fmt
 from ... import text
 from ... import log
-from ... import plugin_props
 from ... import xray_io
 from ... import utils
 from ... import version_utils
+from ... import ie_props
 
 
 _SHARP = 0xffffffff
@@ -361,7 +361,7 @@ def import_mesh(context, creader, renamemap):
         if not context.split_by_materials:
             msg += text.warn.object_try_use_option.format(
                 version_utils.get_prop_name(
-                    plugin_props.PropObjectMeshSplitByMaterials()
+                    ie_props.PropObjectMeshSplitByMaterials()
                 )
             )
         log.warn(msg, vertex_group=bo_mesh.vertex_groups[bad_vgroup].name)

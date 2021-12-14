@@ -7,7 +7,7 @@ from . import imp
 from .. import icons
 from .. import utils
 from .. import version_utils
-from .. import plugin_props
+from .. import ie_props
 
 
 def menu_func_import(self, context):
@@ -31,7 +31,7 @@ op_import_err_props = {
 
 
 class XRAY_OT_import_err(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
     bl_idname = 'xray_import.err'

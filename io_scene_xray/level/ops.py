@@ -9,7 +9,7 @@ from .. import utils
 from .. import icons
 from .. import contexts
 from .. import version_utils
-from .. import plugin_props
+from .. import ie_props
 
 
 class ImportLevelContext(contexts.ImportMeshContext):
@@ -53,7 +53,7 @@ op_import_level_props = {
 
 
 class XRAY_OT_import_level(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
 
@@ -108,7 +108,7 @@ op_export_level_props = {
 }
 
 
-class XRAY_OT_export_level(plugin_props.BaseOperator):
+class XRAY_OT_export_level(ie_props.BaseOperator):
     bl_idname = 'xray_export.level'
     bl_label = 'Export level'
 

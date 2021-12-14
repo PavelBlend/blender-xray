@@ -13,7 +13,7 @@ from ... import log
 from ... import contexts
 from ... import obj
 from ... import version_utils
-from ... import plugin_props
+from ... import ie_props
 
 
 class ExportObjectContext(
@@ -79,7 +79,7 @@ def set_selection_state(active_object, selected_objects):
 
 
 _with_export_motions_props = {
-    'export_motions': plugin_props.PropObjectMotionsExport(),
+    'export_motions': ie_props.PropObjectMotionsExport(),
 }
 
 
@@ -96,15 +96,15 @@ op_export_object_props = {
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
 
     'texture_name_from_image_path': \
-        plugin_props.PropObjectTextureNamesFromPath(),
+        ie_props.PropObjectTextureNamesFromPath(),
 
-    'fmt_version': plugin_props.PropSDKVersion(),
-    'use_export_paths': plugin_props.PropUseExportPaths(),
-    'smoothing_out_of': plugin_props.prop_smoothing_out_of()
+    'fmt_version': ie_props.PropSDKVersion(),
+    'use_export_paths': ie_props.PropUseExportPaths(),
+    'smoothing_out_of': ie_props.prop_smoothing_out_of()
 }
 
 
-class XRAY_OT_export_object(plugin_props.BaseOperator, _WithExportMotions):
+class XRAY_OT_export_object(ie_props.BaseOperator, _WithExportMotions):
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
     bl_options = {'PRESET'}
@@ -196,14 +196,14 @@ op_export_single_object_props = {
         options={'HIDDEN'}
     ),
     'texture_name_from_image_path': \
-        plugin_props.PropObjectTextureNamesFromPath(),
-    'fmt_version': plugin_props.PropSDKVersion(),
-    'smoothing_out_of': plugin_props.prop_smoothing_out_of()
+        ie_props.PropObjectTextureNamesFromPath(),
+    'fmt_version': ie_props.PropSDKVersion(),
+    'smoothing_out_of': ie_props.prop_smoothing_out_of()
 }
 
 
 class XRAY_OT_export_object_file(
-        plugin_props.BaseOperator,
+        ie_props.BaseOperator,
         bpy_extras.io_utils.ExportHelper,
         _WithExportMotions
     ):
@@ -285,7 +285,7 @@ op_export_project_props = {
 }
 
 
-class XRAY_OT_export_project(plugin_props.BaseOperator):
+class XRAY_OT_export_project(ie_props.BaseOperator):
     bl_idname = 'xray_export.project'
     bl_label = 'Export XRay Project'
 
