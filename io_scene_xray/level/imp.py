@@ -701,7 +701,7 @@ def import_file(context, operator):
             level.name,
             index
         )
-        if len(chunked_reader._ChunkedReader__data) > MAX_LEVEL_SIZE:
+        if len(chunked_reader.get_size()) > MAX_LEVEL_SIZE:
             print('skip big level:', stats_name)
             return
         stats_path = os.path.join(temp_folder, stats_name)

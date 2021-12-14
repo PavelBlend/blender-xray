@@ -34,7 +34,7 @@ class XRAY_MT_material(ui.dynamic_menu.XRAY_MT_xr_template):
     )
 
 
-def _gen_xr_selector(layout, data, name, text):
+def gen_xr_selector(layout, data, name, text):
     row = layout.row(align=True)
     row.prop(data, name, text=text)
     ui.dynamic_menu.DynamicMenu.set_layout_context_data(row, data)
@@ -54,9 +54,9 @@ class XRAY_PT_material(ui.base.XRayPanel):
         material = context.object.active_material
         data = material.xray
         layout.prop(data, 'flags_twosided', text='Two Sided', toggle=True)
-        _gen_xr_selector(layout, data, 'eshader', 'Shader')
-        _gen_xr_selector(layout, data, 'cshader', 'Compile')
-        _gen_xr_selector(layout, data, 'gamemtl', 'Material')
+        gen_xr_selector(layout, data, 'eshader', 'Shader')
+        gen_xr_selector(layout, data, 'cshader', 'Compile')
+        gen_xr_selector(layout, data, 'gamemtl', 'Material')
 
         preferences = version_utils.get_preferences()
         panel_used = (

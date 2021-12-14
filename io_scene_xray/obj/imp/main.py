@@ -131,7 +131,7 @@ def import_main(file_path, context, creader):
                     rotate = reader.getv3fp()
                     length = reader.getf('<f')[0]
                     rotate = rotate[2], rotate[1], rotate[0]
-                    bpy_bone = bone._create_bone(
+                    bpy_bone = bone.create_bone(
                         context, bpy_arm_obj,
                         name, parent, vmap,
                         offset, rotate, length,

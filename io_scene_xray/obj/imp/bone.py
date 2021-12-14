@@ -12,7 +12,7 @@ from ... import utils
 from ... import version_utils
 
 
-def _create_bone(
+def create_bone(
         context,
         bpy_arm_obj,
         name,
@@ -107,7 +107,7 @@ def import_bone(context, creader, bpy_arm_obj, renamemap):
     rotate = reader.getv3fp()
     length = reader.getf('<f')[0]
 
-    bpy_bone = _create_bone(
+    bpy_bone = create_bone(
         context, bpy_arm_obj,
         name, parent,
         vmap,
