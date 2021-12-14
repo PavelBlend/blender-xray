@@ -260,6 +260,10 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
             ops.material.XRAY_OT_colorize_materials.bl_idname,
             icon='COLOR'
         )
+        operator = column.operator(
+            ops.object_tools.XRAY_OT_colorize_objects.bl_idname,
+            icon='COLOR'
+        )
         column.operator(
             ops.action_utils.XRAY_OT_change_action_bake_settings.bl_idname,
             icon='ACTION'

@@ -1,5 +1,9 @@
+# standart modules
+import zlib
+
 # blender modules
 import bpy
+import mathutils
 
 # addon modules
 from .. import version_utils
@@ -86,8 +90,90 @@ class XRAY_OT_place_objects(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
+colorize_mode_items = (
+    ('ACTIVE_OBJECT', 'Active Object', ''),
+    ('SELECTED_OBJECTS', 'Selected Objects', ''),
+    ('ALL_OBJECTS', 'All Objects', '')
+)
+xray_colorize_objects_props = {
+    'mode': bpy.props.EnumProperty(
+        default='SELECTED_OBJECTS',
+        items=colorize_mode_items
+    ),
+    'seed': bpy.props.IntProperty(min=0, max=255),
+    'power': bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0)
+}
+
+
+class XRAY_OT_colorize_objects(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.colorize_objects'
+    bl_label = 'Colorize Objects'
+    bl_description = 'Set a pseudo-random object color'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in xray_colorize_objects_props.items():
+            exec('{0} = xray_colorize_objects_props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):
+        layout = self.layout
+        column = layout.column(align=True)
+        column.prop(self, 'seed', text='Seed')
+        column.prop(self, 'power', text='Power', slider=True)
+        column.label(text='Mode:')
+        column.prop(self, 'mode', expand=True)
+
+    def execute(self, context):
+        # active object
+        if self.mode == 'ACTIVE_OBJECT':
+            obj = context.active_object
+            if not obj:
+                self.report({'ERROR'}, 'No active object')
+                return {'CANCELLED'}
+            objects = (obj, )
+        # selected objects
+        elif self.mode == 'SELECTED_OBJECTS':
+            objects = context.selected_objects
+            if not objects:
+                self.report({'ERROR'}, 'No objects selected')
+                return {'CANCELLED'}
+        # all objects
+        elif self.mode == 'ALL_OBJECTS':
+            objects = bpy.data.objects
+            if not objects:
+                self.report({'ERROR'}, 'Blend-file has no objects')
+                return {'CANCELLED'}
+        # colorize
+        changed_objects_count = 0
+        for obj in objects:
+            data = bytearray(obj.name, 'utf8')
+            data.append(self.seed)
+            hsh = zlib.crc32(data)
+            color = mathutils.Color()
+            color.hsv = (
+                (hsh & 0xFF) / 0xFF,
+                (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * self.power,
+                ((hsh >> 2) & 1) * (0.5 * self.power) + 0.5
+            )
+            color = [color.r, color.g, color.b]
+            if version_utils.IS_28:
+                color.append(1.0)    # alpha
+            obj.color = color
+            changed_objects_count += 1
+        self.report(
+            {'INFO'},
+            'Changed {} material(s)'.format(changed_objects_count)
+        )
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
 classes = (
     (XRAY_OT_place_objects, place_objects_props),
+    (XRAY_OT_colorize_objects, xray_colorize_objects_props)
 )
 
 
