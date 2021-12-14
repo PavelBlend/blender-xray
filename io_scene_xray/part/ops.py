@@ -56,8 +56,8 @@ class XRAY_OT_import_part(ie_props.BaseOperator):
     filename_ext = filename_ext
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_import_level_scene_props.items():
-            exec('{0} = op_import_level_scene_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in import_part_props.items():
+            exec('{0} = import_part_props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout
