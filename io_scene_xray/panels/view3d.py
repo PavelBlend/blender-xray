@@ -23,6 +23,7 @@ from .. import ogf
 from .. import omf
 from .. import scene
 from .. import skl
+from .. import part
 
 
 CATEGORY = 'X-Ray'
@@ -511,6 +512,9 @@ class XRAY_PT_import_operators(bpy.types.Panel):
         # ogf
         if preferences.enable_ogf_import:
             col.operator(ogf.ops.XRAY_OT_import_ogf.bl_idname, text='Ogf', icon='IMPORT')
+        # part
+        if preferences.enable_part_import:
+            col.operator(part.ops.XRAY_OT_import_part.bl_idname, text='Part', icon='IMPORT')
         # err
         if preferences.enable_err_import:
             col.operator(err.ops.XRAY_OT_import_err.bl_idname, text='Err', icon='IMPORT')

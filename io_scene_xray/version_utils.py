@@ -302,3 +302,29 @@ def remove_action(action):
     else:
         action.user_clear()
         bpy.data.actions.remove(action)
+
+
+def create_collection(collection_name, parent_collection=None):
+    if IS_28:
+        collection = bpy.data.collections.new(collection_name)
+        if not parent_collection:
+            parent_collection = bpy.context.scene.collection
+        parent_collection.children.link(collection)
+    else:
+        collection = bpy.data.groups.new(collection_name)
+    return collection
+
+
+def unlink_object_from_collections(obj):
+    if IS_28:
+        for child in obj.children:
+            unlink_object_from_collections(child)
+        for collection in obj.users_collection:
+            collection.objects.unlink(obj)
+
+
+def link_object_to_collection(obj, collection):
+    if IS_28:
+        for child in obj.children:
+            link_object_to_collection(child, collection)
+        collection.objects.link(obj)

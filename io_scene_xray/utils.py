@@ -561,6 +561,12 @@ def read_file(file_path):
     return data
 
 
+def read_text_file(file_path):
+    with open(file_path, mode='r', encoding='cp1251') as file:
+        data = file.read()
+    return data
+
+
 # temporarily not used
 def print_time_info(message=None, tabs_count=None, total_time=None):
     if not message:

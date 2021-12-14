@@ -396,7 +396,8 @@ defaults_category_items = (
     ('DM', 'Dm', ''),
     ('OGF', 'Ogf', ''),
     ('OMF', 'Omf', ''),
-    ('SCENE', 'Scene', '')
+    ('SCENE', 'Scene', ''),
+    ('PART', 'Part', '')
 )
 
 category_items = (
@@ -487,6 +488,9 @@ plugin_preferences_props = {
     # scene selection import props
     'scene_selection_sdk_version': ie_props.PropSDKVersion(),
     'scene_selection_mesh_split_by_mat': ie_props.PropObjectMeshSplitByMaterials(),
+    # part import props
+    'part_sdk_version': ie_props.PropSDKVersion(),
+    'part_mesh_split_by_mat': ie_props.PropObjectMeshSplitByMaterials(),
 
     # keymap
     'keymaps_collection': bpy.props.CollectionProperty(type=XRayKeyMap),
@@ -503,6 +507,7 @@ plugin_preferences_props = {
     'enable_game_level_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_omf_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_ogf_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_part_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
     # enable export plugins
     'enable_object_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_anm_export': bpy.props.BoolProperty(default=True, update=update_menu_func),

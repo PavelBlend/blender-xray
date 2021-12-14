@@ -19,6 +19,7 @@ from . import bones
 from . import ogf
 from . import level
 from . import omf
+from . import part
 
 
 # import draw functions
@@ -33,6 +34,7 @@ import_draw_functions = [
     ('enable_level_import', scene.ops.XRAY_OT_import_scene_selection),
     ('enable_game_level_import', level.ops.XRAY_OT_import_level),
     ('enable_ogf_import', ogf.ops.XRAY_OT_import_ogf),
+    ('enable_part_import', part.ops.XRAY_OT_import_part),
     ('enable_err_import', err.ops.XRAY_OT_import_err)
 ]
 

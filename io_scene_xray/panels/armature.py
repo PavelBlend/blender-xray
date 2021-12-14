@@ -22,6 +22,7 @@ class XRAY_PT_armature(ui.base.XRayPanel):
             preferences.enable_bones_import or
             preferences.enable_omf_import or
             preferences.enable_ogf_import or
+            preferences.enable_part_import or
             # export plugins
             preferences.enable_object_export or
             preferences.enable_skls_export or

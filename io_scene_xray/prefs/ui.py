@@ -193,6 +193,13 @@ def draw_defaults(prefs):
         row.label(text='SDK Version:')
         row.prop(prefs, 'scene_selection_sdk_version', expand=True)
         box.prop(prefs, 'scene_selection_mesh_split_by_mat')
+    elif prefs.defaults_category == 'PART':
+        box = layout.box()
+        box.label(text='Import:')
+        row = box.row()
+        row.label(text='SDK Version:')
+        row.prop(prefs, 'part_sdk_version', expand=True)
+        box.prop(prefs, 'part_mesh_split_by_mat')
 
 
 def draw_operators_enable_disable(prefs):
@@ -211,6 +218,7 @@ def draw_operators_enable_disable(prefs):
     column_import.prop(prefs, 'enable_omf_import', text='*.omf')
     column_import.prop(prefs, 'enable_game_level_import', text='level')
     column_import.prop(prefs, 'enable_ogf_import', text='*.ogf')
+    column_import.prop(prefs, 'enable_part_import', text='*.part')
     column_import.prop(prefs, 'enable_err_import', text='*.err')
     # export operators
     column_export = row.column()

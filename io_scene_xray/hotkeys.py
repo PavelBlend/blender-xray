@@ -16,6 +16,7 @@ from . import ogf
 from . import omf
 from . import scene
 from . import skl
+from . import part
 
 
 keymap_items_list = (
@@ -38,9 +39,10 @@ keymap_items_list = (
     (scene.ops.XRAY_OT_export_scene_selection, 'F8', False, True, True),
     (level.ops.XRAY_OT_import_level, 'F5', True, True, False),
     (level.ops.XRAY_OT_export_level, 'F5', True, True, True),
-    (err.ops.XRAY_OT_import_err, 'F6', True, True, False),
+    (part.ops.XRAY_OT_import_part, 'F6', True, True, False),
     (ogf.ops.XRAY_OT_import_ogf, 'F7', True, True, False),
-    (ogf.ops.XRAY_OT_export_ogf, 'F7', True, True, True)
+    (ogf.ops.XRAY_OT_export_ogf, 'F7', True, True, True),
+    (err.ops.XRAY_OT_import_err, 'F8', True, True, False),
 )
 
 

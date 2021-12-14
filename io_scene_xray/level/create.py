@@ -82,35 +82,26 @@ def create_sectors_object(level_collection):
     return sectors_object
 
 
-def create_collection(collection_name, parent_collection):
-    if version_utils.IS_28:
-        collection = bpy.data.collections.new(collection_name)
-        parent_collection.children.link(collection)
-    else:
-        collection = bpy.data.groups.new(collection_name)
-    return collection
-
-
 def create_level_collections(level):
     if version_utils.IS_28:
         scene_collection = bpy.context.scene.collection
     else:
         scene_collection = None
     # create main collection
-    level_collection = create_collection(
+    level_collection = version_utils.create_collection(
         level.name, scene_collection
     )
     level.collections[LEVEL_MAIN_COLLECTION_NAME] = level_collection
 
     # create level collections
     for collection_name in LEVEL_COLLECTION_NAMES:
-        collection = create_collection(collection_name, level_collection)
+        collection = version_utils.create_collection(collection_name, level_collection)
         level.collections[collection_name] = collection
 
     # create visuals collections
     visuals_collection = level.collections[LEVEL_VISUALS_COLLECTION_NAME]
     for collection_name in LEVEL_VISUALS_COLLECTION_NAMES:
-        collection = create_collection(collection_name, visuals_collection)
+        collection = version_utils.create_collection(collection_name, visuals_collection)
         level.collections[collection_name] = collection
 
     return level_collection

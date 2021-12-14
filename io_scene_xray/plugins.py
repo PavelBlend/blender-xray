@@ -10,6 +10,7 @@ from . import bones
 from . import ogf
 from . import level
 from . import omf
+from . import part
 
 
 modules = (
@@ -24,6 +25,7 @@ modules = (
     omf.ops,
     scene.ops,
     level.ops,
+    part.ops,
     err.ops
 )
 
