@@ -83,7 +83,7 @@ def gen_meshes_color_indices_table(detail_models_count, format_version=3):
 
     if format_version == 3:
         mesh_ids[(0, 0, 0)] = 63    # empty detail mesh (version 3)
-    elif format_version == 2:
+    else:
         mesh_ids[(0, 0, 0)] = 255    # empty detail mesh (version 2)
 
     return mesh_ids

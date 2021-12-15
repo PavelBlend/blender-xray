@@ -164,7 +164,7 @@ def read_details_slots(
         del shadows_image_pixels
         del hemi_image_pixels
 
-    elif header.format_version == 2:
+    else:    # version 2
         S_ffBHBHBHBHH = xray_io.PackedReader.prep('2fBHBHBHB2H')
 
         lighting_image_pixels = [
@@ -174,7 +174,7 @@ def read_details_slots(
         if context.format_version == 'builds_1233-1558':
             pixels_offset = fmt.PIXELS_OFFSET_2
 
-        elif context.format_version == 'builds_1096-1230':
+        else:    # builds 1096-1230
             pixels_offset = fmt.PIXELS_OFFSET_1
 
         density_pixels_offset = fmt.PIXELS_OFFSET_1

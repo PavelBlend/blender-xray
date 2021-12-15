@@ -97,7 +97,8 @@ class TestDetailsImport(utils.XRayTestCase):
             files=[
                 {'name': 'test_fmt_v2.details'},
                 {'name': 'test_fmt_v3.details'}
-            ]
+            ],
+            details_format='builds_1233-1558'
         )
         # pack images
         utils.set_active_object(bpy.data.objects['test_fmt_v2.details'])

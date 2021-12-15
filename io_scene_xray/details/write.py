@@ -17,7 +17,7 @@ def write_details(chunked_writer, lvl_dets, context, file_path):
     dm_count = len(meshes_object.children)
     log.update(meshes_object=meshes_object.name)
 
-    if dm_count == 0:
+    if not dm_count:
         raise utils.AppError(
             text.error.details_no_children,
             log.props(object=meshes_object.name)
@@ -72,7 +72,7 @@ def write_details(chunked_writer, lvl_dets, context, file_path):
 
     # validate meshes indices
     for dm_index, count in enumerate(dm_indices):
-        if count == 0:
+        if not count:
             raise utils.AppError(
                 text.error.details_no_model_index,
                 log.props(index=dm_index)
@@ -319,7 +319,7 @@ def write_slots_v2(chunked_writer, lvl_dets):
 
     if lvl_dets.old_format == 1:
         pixels_offset = fmt.PIXELS_OFFSET_1
-    elif lvl_dets.old_format == 2:
+    else:
         pixels_offset = fmt.PIXELS_OFFSET_2
 
     for coord_y in range(lvl_dets.slots_size_y):
