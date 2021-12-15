@@ -117,6 +117,10 @@ class XRAY_OT_create_connected_bones(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
         version_utils.select_object(arm_obj)
         version_utils.set_active_object(arm_obj)
+        # clear pose bone transforms
+        bpy.ops.object.mode_set(mode='POSE')
+        for bone in arm_obj.pose.bones:
+            bone.matrix_basis = mathutils.Matrix.Identity(4)
         arm_user_map = bpy.data.user_map(
             subset={src_arm_obj, },
             value_types={'OBJECT', }
