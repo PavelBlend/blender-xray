@@ -97,7 +97,27 @@ class TestDetailsImport(utils.XRayTestCase):
             files=[
                 {'name': 'test_fmt_v2.details'},
                 {'name': 'test_fmt_v3.details'}
+            ]
+        )
+        # pack images
+        utils.set_active_object(bpy.data.objects['test_fmt_v2.details'])
+        bpy.ops.io_scene_xray.pack_details_images()
+        utils.set_active_object(bpy.data.objects['test_fmt_v3.details'])
+        bpy.ops.io_scene_xray.pack_details_images()
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+
+    def test_without_slots(self):
+        # Act
+        bpy.ops.xray_import.details(
+            directory=self.relpath(),
+            files=[
+                {'name': 'test_fmt_v2.details'},
+                {'name': 'test_fmt_v3.details'}
             ],
+            load_slots=False,
+            details_models_in_a_row=False
         )
 
         # Assert

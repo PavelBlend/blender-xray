@@ -17,9 +17,7 @@ def _export(bpy_obj, chunked_writer, context, file_path):
         write.write_slots_v3(chunked_writer, lvl_dets)
         write.write_header(chunked_writer, lvl_dets)
 
-    elif context.level_details_format_version in {
-            'builds_1096-1230', 'builds_1233-1558'
-        }:
+    else:
         write.write_header(chunked_writer, lvl_dets)
         write.write_details(chunked_writer, lvl_dets, context, file_path)
         write.write_slots_v2(chunked_writer, lvl_dets)

@@ -16,7 +16,6 @@ from .. import version_utils
 
 
 def _import(file_path, context, chunked_reader):
-
     has_header = False
     has_meshes = False
     has_slots = False
@@ -26,7 +25,7 @@ def _import(file_path, context, chunked_reader):
             break
 
         if chunk_id == fmt.Chunks.HEADER:
-            if len(chunk_data) != fmt.HEADER_SIZE:
+            if len(chunk_data) < fmt.HEADER_SIZE:
                 raise utils.AppError(text.error.details_bad_header)
 
             header = read.read_header(xray_io.PackedReader(chunk_data))
@@ -54,7 +53,7 @@ def _import(file_path, context, chunked_reader):
         raise utils.AppError(text.error.details_no_header)
     if not has_meshes:
         raise utils.AppError(text.error.details_no_meshes)
-    if not has_slots:
+    if not has_slots and context.load_slots:
         raise utils.AppError(text.error.details_no_slots)
 
     base_name = os.path.basename(file_path.lower())
