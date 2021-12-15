@@ -89,3 +89,16 @@ class TestDetailsImport(utils.XRayTestCase):
         for child_object in obj.children:
             if child_object.name == meshes_object_name:
                 self.assertEqual(len(child_object.children), 3)
+
+    def test_batch_import(self):
+        # Act
+        bpy.ops.xray_import.details(
+            directory=self.relpath(),
+            files=[
+                {'name': 'test_fmt_v2.details'},
+                {'name': 'test_fmt_v3.details'}
+            ],
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')

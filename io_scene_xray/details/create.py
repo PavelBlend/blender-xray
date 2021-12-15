@@ -184,7 +184,7 @@ def create_images(
             pack_image(bpy_image)
             setattr(ligthing, prop_name, bpy_image.name)
 
-    elif header.format_version == fmt.FORMAT_VERSION_2:
+    else:    # version 2
         ligthing.format = 'builds_1096-1558'
 
         lights_v2_image = _create_det_image('lighting.png', double_size=True)
@@ -196,7 +196,6 @@ def create_images(
 
 
 def create_pallete(color_indices):
-
     pallete_name = 'details meshes pallete.png'
 
     # create image pallete
