@@ -67,7 +67,7 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
         lvl_dets.light_format = 'OLD'
         if context.level_details_format_version == 'builds_1096-1230':
             lvl_dets.old_format = 1
-        elif context.level_details_format_version == 'builds_1233-1558':
+        else:    # builds 1233-1558'
             lvl_dets.old_format = 2
 
     # Meshes
@@ -168,7 +168,7 @@ def validate_images_size(lvl_dets):
             lvl_dets.slots_size_x * 2,
             lvl_dets.slots_size_y * 2
         )
-    elif lvl_dets.format_version == fmt.FORMAT_VERSION_2:
+    else:    # version 2
         images = (
             lvl_dets.lights,
             lvl_dets.mesh_0,

@@ -20,20 +20,36 @@ class TestDetailsExport(utils.XRayTestCase):
             'test_v3.details'
         })
 
-    def test_export_version_2(self):
+    def test_export_version_2_1096(self):
         # Arrange
         self._create_details_objects(2)
 
         # Act
         bpy.ops.xray_export.details(
-            filepath=self.outpath('test_v2.details'),
+            filepath=self.outpath('test_v2_1096.details'),
             format_version='builds_1096-1230',
             texture_name_from_image_path=False
         )
 
         # Assert
         self.assertOutputFiles({
-            'test_v2.details'
+            'test_v2_1096.details'
+        })
+
+    def test_export_version_2_1233(self):
+        # Arrange
+        self._create_details_objects(2)
+
+        # Act
+        bpy.ops.xray_export.details(
+            filepath=self.outpath('test_v2_1233.details'),
+            format_version='builds_1233-1558',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertOutputFiles({
+            'test_v2_1233.details'
         })
 
     def _create_details_slots_objects(self, data):
