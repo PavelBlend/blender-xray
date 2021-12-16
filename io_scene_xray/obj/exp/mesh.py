@@ -99,8 +99,8 @@ def remove_bad_geometry(bm, bml, bpy_obj):
         for vertex_group in bpy_obj.vertex_groups
     ]
     bad_verts = [
-        vertex for vertex in bm.verts \
-        if any(bad_vgroups[k][0] for k in vertex[bml].keys())
+        vertex for vertex in bm.verts
+        if any(bad_vgroups[key][0] for key in vertex[bml].keys())
     ]
     if bad_verts:
         for is_bad, vgroup_name in bad_vgroups:

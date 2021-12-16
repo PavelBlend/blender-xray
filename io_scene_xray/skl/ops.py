@@ -99,7 +99,7 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
         enabled = len(motions) > 1
         if enabled:
             text = 'Filter Motions: '
-            count = len([m for m in motions if m.flag])
+            count = len([motion for motion in motions if motion.flag])
             if count == len(motions):
                 text += 'All (%d)' % count
             else:
@@ -155,7 +155,11 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
             return {'CANCELLED'}
         motions_filter = xray_motions.MOTIONS_FILTER_ALL
         if self.motions:
-            selected_names = set(m.name for m in self.motions if m.flag)
+            selected_names = {
+                motion.name
+                for motion in self.motions
+                    if motion.flag
+            }
             motions_filter = lambda name: name in selected_names
         import_context = imp.ImportSklContext()
         import_context.bpy_arm_obj = context.active_object

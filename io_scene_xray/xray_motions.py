@@ -229,7 +229,10 @@ def import_motion(
             curves[curve_index] = values, times
         used_times = set()
         if not has_interpolate:
-            tmpfc = [act.fcurves.new('temp', index=i) for i in range(6)]
+            tmpfc = [
+                act.fcurves.new('temp', index=curve_index)
+                for curve_index in range(6)
+            ]
             for curve_index in range(CURVE_COUNT):
                 fcurve = tmpfc[curve_index]
                 for value, time in zip(*curves[curve_index]):
@@ -309,11 +312,11 @@ def import_motion(
                     )
                     trn = mat.to_translation()
                     rot = mat.to_euler('ZXY')
-                    for i in range(3):
-                        key_frame = fcs[i + 0].keyframe_points.insert(time, trn[i])
+                    for axis in range(3):
+                        key_frame = fcs[axis].keyframe_points.insert(time, trn[axis])
                         key_frame.interpolation = 'LINEAR'
-                    for i in range(3):
-                        key_frame = fcs[i + 3].keyframe_points.insert(time, rot[i])
+                    for axis in range(3):
+                        key_frame = fcs[axis + 3].keyframe_points.insert(time, rot[axis])
                         key_frame.interpolation = 'LINEAR'
             finally:
                 for fcurve in tmpfc:
@@ -335,11 +338,17 @@ def import_motion(
                 )
                 trn = mat.to_translation()
                 rot = mat.to_euler('ZXY')
-                for i in range(3):
-                    key_frame = fcs[i + 0].keyframe_points.insert(curves[i][1][index], trn[i])
+                for axis in range(3):
+                    key_frame = fcs[axis].keyframe_points.insert(
+                        curves[axis][1][index],
+                        trn[axis]
+                    )
                     key_frame.interpolation = 'LINEAR'
-                for i in range(3):
-                    key_frame = fcs[i + 3].keyframe_points.insert(curves[i + 3][1][index], rot[i])
+                for axis in range(3):
+                    key_frame = fcs[axis + 3].keyframe_points.insert(
+                        curves[axis + 3][1][index],
+                        rot[axis]
+                    )
                     key_frame.interpolation = 'LINEAR'
     for warn_message, motion_name, bone_name in set(converted_warrnings):
         keys_count = converted_warrnings.count((
@@ -363,7 +372,10 @@ def import_motions(reader, context, motions_filter=MOTIONS_FILTER_ALL):
     bpy_armature = context.bpy_arm_obj
     motions_count = reader.getf('I')[0]
     if motions_count:
-        bonesmap = {b.name.lower(): b for b in bpy_armature.data.bones}
+        bonesmap = {
+            bone.name.lower(): bone
+            for bone in bpy_armature.data.bones
+        }
         reported = set()
         for _ in range(motions_count):
             import_motion(reader, context, bonesmap, reported, motions_filter)
@@ -517,10 +529,13 @@ def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names
         else:
             time_end = None
 
-        for i, curve in enumerate(curves):
+        for curve_index, curve in enumerate(curves):
             epsilon = motion_utils.EPSILON
             if xray.autobake_custom_refine:
-                epsilon = xray.autobake_refine_location if i < 3 else xray.autobake_refine_rotation
+                if curve_index < 3:
+                    epsilon = xray.autobake_refine_location
+                else:
+                    xray.autobake_refine_rotation
 
             pkw.putf(
                 'BB',

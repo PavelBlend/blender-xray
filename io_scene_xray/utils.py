@@ -239,8 +239,8 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
     mat = version_utils.multiply(space_matrix.inverted(), mat)
     mesh.transform(mat)
     need_flip = False
-    for k in mat.to_scale():
-        if k < 0:
+    for scale_component in mat.to_scale():
+        if scale_component < 0:
             need_flip = not need_flip
     if need_flip:
         bmesh.ops.reverse_faces(mesh, faces=mesh.faces)  # flip normals
@@ -378,8 +378,8 @@ BAD_VTX_GROUP_NAME = '.xr-bad!'
 
 
 def smooth_euler(current, previous):
-    for i in range(3):
-        current[i] = _smooth_angle(current[i], previous[i])
+    for axis in range(3):
+        current[axis] = _smooth_angle(current[axis], previous[axis])
 
 
 def _smooth_angle(current, previous):
@@ -394,10 +394,15 @@ def _smooth_angle(current, previous):
 
 
 def mkstruct(name, fields):
-    template = 'class {n}:\n\t__slots__={f}\n\tdef __init__(self, {a}):\n\t\t{sf}={a}'\
-    .format(
-        n=name, f=fields, a=','.join(fields),
-        sf=','.join('self.' + f for f in fields)
+    template = \
+        'class {name}:\n' \
+            '\t__slots__={fields}\n' \
+            '\tdef __init__(self, {params}):\n' \
+                '\t\t{params_init}={params}'.format(
+        name=name,
+        fields=fields,
+        params=','.join(fields),
+        params_init=','.join('self.' + field for field in fields)
     )
     tmp = {}
     exec(template, tmp)

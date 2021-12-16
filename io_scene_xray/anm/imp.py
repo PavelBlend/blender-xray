@@ -80,9 +80,9 @@ def _import(file_path, creader, context):
     )
     converted_warrning = False
     unique_shapes = set()
-    for i in range(6):
-        fcurve = fcs[(0, 2, 1, 5, 3, 4)[i]]
-        koef = (1, 1, 1, -1, -1, -1)[i]
+    for curve_index in range(6):
+        fcurve = fcs[(0, 2, 1, 5, 3, 4)[curve_index]]
+        koef = (1, 1, 1, -1, -1, -1)[curve_index]
         use_interpolate = xray_envelope.import_envelope(
             preader,
             ver,

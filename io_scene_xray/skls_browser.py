@@ -179,7 +179,7 @@ def skls_animations_index_changed(self, context):
         # import animation
         XRAY_OT_browse_skls_file.skls_file.pr.set_offset(XRAY_OT_browse_skls_file.skls_file.animations[animation_name][0])
         # used to bone's reference detection
-        bonesmap = {b.name.lower(): b for b in ob.data.bones}
+        bonesmap = {bone.name.lower(): bone for bone in ob.data.bones}
         # bones names that has problems while import
         reported = set()
         import_context = skl.imp.ImportSklContext()
@@ -192,7 +192,11 @@ def skls_animations_index_changed(self, context):
         context.window.cursor_set('DEFAULT')
         # try to find DopeSheet editor & set action
         try:
-            ds = [i for i in context.screen.areas if i.type=='DOPESHEET_EDITOR']
+            ds = [
+                area
+                for area in context.screen.areas
+                    if area.type=='DOPESHEET_EDITOR'
+            ]
             if ds and not ds[0].spaces[0].action:
                 ds.spaces[0].action = bpy.data.actions[animation_name]
         except AttributeError:

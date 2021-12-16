@@ -205,7 +205,7 @@ class XRAY_OT_export_details(
             return {'CANCELLED'}
 
         if objs[0].type != 'EMPTY':
-            self.report({'ERROR'}, 'The selected object is not a empty')
+            self.report({'ERROR'}, 'The selected object is not empty')
             return {'CANCELLED'}
 
         textures_folder = version_utils.get_preferences().textures_folder_auto

@@ -48,8 +48,8 @@ class XRayArmatureProperties(bpy.types.PropertyGroup):
         return functools.reduce(
             lambda x, y: x | y,
             [
-                b.xray.shape.check_version_different()
-                for b in self.id_data.bones
+                bone.xray.shape.check_version_different()
+                for bone in self.id_data.bones
             ],
             0,
         )

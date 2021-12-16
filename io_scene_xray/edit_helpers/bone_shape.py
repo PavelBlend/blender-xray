@@ -155,8 +155,8 @@ class XRAY_OT_apply_shape(bpy.types.Operator):
             scale = mat.to_scale()
             xsh.box_hsz = scale.to_tuple()
             mrt = multiply(mat, _v2ms(scale).inverted()).to_3x3().transposed()
-            for i in range(3):
-                xsh.box_rot[i * 3:i * 3 + 3] = mrt[i].to_tuple()
+            for index in range(3):
+                xsh.box_rot[index * 3 : index * 3 + 3] = mrt[index].to_tuple()
         elif xsh.type == '2':  # sphere
             xsh.sph_pos = mat.to_translation().to_tuple()
             xsh.sph_rad = maxabs(*mat.to_scale())
@@ -167,8 +167,8 @@ class XRAY_OT_apply_shape(bpy.types.Operator):
             xsh.cyl_rad = maxabs(vscale[0], vscale[1])
             mat3 = mat.to_3x3()
             mscale = mathutils.Matrix.Identity(3)
-            for i in range(3):
-                mscale[i][i] = 1 / vscale[i]
+            for axis in range(3):
+                mscale[axis][axis] = 1 / vscale[axis]
             mat3 = multiply(mat3, mscale)
             qrot = mat3.transposed().to_quaternion().inverted()
             vrot = multiply(qrot, mathutils.Vector((0, 0, 1)))

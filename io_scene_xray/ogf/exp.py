@@ -86,9 +86,9 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
         if bbox is None:
             bbox = bbx
         else:
-            for i in range(3):
-                bbox[0][i] = min(bbox[0][i], bbx[0][i])
-                bbox[1][i] = max(bbox[1][i], bbx[1][i])
+            for axis in range(3):
+                bbox[0][axis] = min(bbox[0][axis], bbx[0][axis])
+                bbox[1][axis] = max(bbox[1][axis], bbx[1][axis])
         spheres.append((center, radius))
 
     center = mathutils.Vector()

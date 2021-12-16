@@ -519,7 +519,10 @@ def read_indices_v3(data, visual):
     packed_reader = xray_io.PackedReader(data)
     indices_count = packed_reader.getf('<I')[0]
     visual.indices_count = indices_count
-    visual.indices = [packed_reader.getf('<H')[0] for i in range(indices_count)]
+    visual.indices = [
+        packed_reader.getf('<H')[0]
+        for index in range(indices_count)
+    ]
 
 
 def read_vertices_v3(data, visual, lvl):
@@ -1013,10 +1016,10 @@ def import_swicontainer(chunks):
 
 def get_float_rgb_hemi(rgb_hemi):
     hemi = (rgb_hemi & (0xff << 24)) >> 24
-    r = (rgb_hemi & (0xff << 16)) >> 16
-    g = (rgb_hemi & (0xff << 8)) >> 8
-    b = rgb_hemi & 0xff
-    return r / 0xff, g / 0xff, b / 0xff, hemi / 0xff
+    red = (rgb_hemi & (0xff << 16)) >> 16
+    green = (rgb_hemi & (0xff << 8)) >> 8
+    blue = rgb_hemi & 0xff
+    return red / 0xff, green / 0xff, blue / 0xff, hemi / 0xff
 
 
 def import_lod_def_2(lvl, data):
@@ -1026,37 +1029,37 @@ def import_lod_def_2(lvl, data):
     lights = {'rgb': [], 'hemi': [], 'sun': []}
     faces = []
     if lvl.xrlc_version >= level.fmt.VERSION_11:
-        for i in range(8):
+        for face_index in range(8):
             face = []
-            for j in range(4):
+            for vert_index in range(4):
                 coord_x, coord_y, coord_z = packed_reader.getf('<3f')
                 verts.append((coord_x, coord_z, coord_y))
-                face.append(i * 4 + j)
+                face.append(face_index * 4 + vert_index)
                 coord_u, coord_v = packed_reader.getf('<2f')
                 uvs.append((coord_u, 1 - coord_v))
                 # import vertex light
                 rgb_hemi = packed_reader.getf('<I')[0]
-                r, g, b, hemi = get_float_rgb_hemi(rgb_hemi)
+                red, green, blue, hemi = get_float_rgb_hemi(rgb_hemi)
                 sun = packed_reader.getf('<B')[0]
                 sun = sun / 0xff
                 packed_reader.getf('<3B')    # pad (unused)
-                lights['rgb'].append((r, g, b, 1.0))
+                lights['rgb'].append((red, green, blue, 1.0))
                 lights['hemi'].append(hemi)
                 lights['sun'].append(sun)
             faces.append(face)
     else:
-        for i in range(8):
+        for face_index in range(8):
             face = []
-            for j in range(4):
+            for vert_index in range(4):
                 coord_x, coord_y, coord_z = packed_reader.getf('<3f')
                 verts.append((coord_x, coord_z, coord_y))
-                face.append(i * 4 + j)
+                face.append(face_index * 4 + vert_index)
                 coord_u, coord_v = packed_reader.getf('<2f')
                 uvs.append((coord_u, 1 - coord_v))
                 # import vertex light
                 rgb_hemi = packed_reader.getf('<I')[0]
-                r, g, b, hemi = get_float_rgb_hemi(rgb_hemi)
-                lights['rgb'].append((r, g, b, 1.0))
+                red, green, blue, hemi = get_float_rgb_hemi(rgb_hemi)
+                lights['rgb'].append((red, green, blue, 1.0))
                 lights['hemi'].append(1.0)
                 lights['sun'].append(1.0)
             faces.append(face)

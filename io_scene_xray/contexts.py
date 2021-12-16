@@ -42,9 +42,9 @@ class ImportMeshContext(ImportContext):
             os.path.join(self.textures_folder, relpath + '.dds')
         )
         result = None
-        for i in bpy.data.images:
-            if bpy.path.abspath(i.filepath) == filepath:
-                result = i
+        for bpy_image in bpy.data.images:
+            if bpy.path.abspath(bpy_image.filepath) == filepath:
+                result = bpy_image
                 break
         if result is None:
             try:

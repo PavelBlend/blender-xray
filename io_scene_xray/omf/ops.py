@@ -132,9 +132,11 @@ class XRAY_OT_import_omf(
                 import_context.add_actions_to_motion_list = \
                     self.add_actions_to_motion_list
                 if self.motions:
-                    import_context.selected_names = set(
-                        m.name for m in self.motions if m.flag
-                    )
+                    import_context.selected_names = {
+                        motion.name
+                        for motion in self.motions
+                            if motion.flag
+                    }
                 try:
                     imp.import_file(import_context)
                 except utils.AppError as err:
@@ -181,7 +183,7 @@ class XRAY_OT_import_omf(
 
         if enabled:
             text = 'Filter Motions: '
-            count = len([m for m in motions if m.flag])
+            count = len([motion for motion in motions if motion.flag])
             if count == len(motions):
                 text += 'All ({})'.format(count)
             else:

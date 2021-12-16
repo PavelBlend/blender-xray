@@ -62,9 +62,13 @@ class PackedReader:
 
     def getv3f(self):
         # get vertex coord
-        x, y, z = struct.unpack_from('<3f', self.__data, self.__offs)
+        coord_x, coord_y, coord_z = struct.unpack_from(
+            '<3f',
+            self.__data,
+            self.__offs
+        )
         self.__offs += 12
-        return x, z, y
+        return coord_x, coord_z, coord_y
 
     def getv3fp(self):
         # get vector 3-float using prep
@@ -73,9 +77,13 @@ class PackedReader:
 
     def getn3f(self):
         # get vertex normal
-        x, y, z = struct.unpack_from('<3f', self.__data, self.__offs)
+        coord_x, coord_y, coord_z = struct.unpack_from(
+            '<3f',
+            self.__data,
+            self.__offs
+        )
         self.__offs += 12
-        return z, y, x
+        return coord_z, coord_y, coord_x
 
     def get_array(self, fmt, count):
         dtype_format = self.__NUMPY_FORMATS.get(fmt, None)

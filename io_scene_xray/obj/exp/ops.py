@@ -181,7 +181,7 @@ class XRAY_OT_export_object(ie_props.BaseOperator, _WithExportMotions):
             return {'CANCELLED'}
         if len(roots) == 1:
             return bpy.ops.xray_export.object_file('INVOKE_DEFAULT')
-        self.objects = ','.join([o.name for o in roots])
+        self.objects = ','.join([obj.name for obj in roots])
         self.fmt_version = preferences.export_object_sdk_version
         self.export_motions = preferences.object_motions_export
         self.texture_name_from_image_path = \
@@ -313,7 +313,7 @@ class XRAY_OT_export_project(ie_props.BaseOperator):
     @staticmethod
     def find_objects(context, use_selection=False):
         objects = context.selected_objects if use_selection else context.scene.objects
-        return [o for o in objects if o.xray.isroot]
+        return [obj for obj in objects if obj.xray.isroot]
 
 
 classes = (

@@ -176,13 +176,13 @@ class XRAY_OT_export_dm(ie_props.BaseOperator):
 
         if len(objs) == 1:
             if objs[0].type != 'MESH':
-                self.report({'ERROR'}, 'The select object is not a mesh')
+                self.report({'ERROR'}, 'The select object is not mesh')
                 return {'CANCELLED'}
             else:
                 bpy.ops.xray_export.dm_file('INVOKE_DEFAULT')
         else:
             self.detail_models = ','.join(
-                [o.name for o in objs if o.type == 'MESH']
+                [obj.name for obj in objs if obj.type == 'MESH']
             )
             context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -243,7 +243,7 @@ class XRAY_OT_export_dm_file(
             return {'CANCELLED'}
 
         if objs[0].type != 'MESH':
-            self.report({'ERROR'}, 'The selected object is not a mesh')
+            self.report({'ERROR'}, 'The selected object is not mesh')
             return {'CANCELLED'}
 
         self.detail_model = objs[0].name

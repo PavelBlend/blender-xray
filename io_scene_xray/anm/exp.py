@@ -87,10 +87,10 @@ def _bake_to_action(bobject, action, frange):
             if prev_rot:
                 utils.smooth_euler(rot, prev_rot)
             prev_rot = rot
-            for i in range(3):
-                key_loc = fc_trn[i].keyframe_points.insert(frm, trn[i])
+            for axis in range(3):
+                key_loc = fc_trn[axis].keyframe_points.insert(frm, trn[axis])
                 key_loc.interpolation = 'LINEAR'
-                key_rot = fc_rot[i].keyframe_points.insert(frm, rot[i])
+                key_rot = fc_rot[axis].keyframe_points.insert(frm, rot[axis])
                 key_rot.interpolation = 'LINEAR'
     finally:
         bpy.context.scene.frame_set(old_frame)
@@ -106,23 +106,23 @@ def _export_action_data(pkw, ver, xray, fcurves):
             rotation_curves.append(fcurve.array_index)
     axis_keys = {0: 'X', 1: 'Y', 2: 'Z'}
     errors = []
-    for i in range(3):
-        if not (i in location_curves):
-            errors.append('loc' + axis_keys[i])
-        if not (i in rotation_curves):
-            errors.append('rot' + axis_keys[i])
+    for axis in range(3):
+        if not (axis in location_curves):
+            errors.append('loc' + axis_keys[axis])
+        if not (axis in rotation_curves):
+            errors.append('rot' + axis_keys[axis])
     if errors:
         message = ' '.join(errors)
         raise utils.AppError(
             text.error.anm_no_keys,
             log.props(channels=message)
         )
-    for i in range(6):
-        fcurve = fcurves[(0, 2, 1, 5, 3, 4)[i]]
-        koef = (1, 1, 1, -1, -1, -1)[i]
+    for curve_index in range(6):
+        fcurve = fcurves[(0, 2, 1, 5, 3, 4)[curve_index]]
+        koef = (1, 1, 1, -1, -1, -1)[curve_index]
         epsilon = motion_utils.EPSILON
         if xray.autobake_custom_refine:
-            if i < 3:
+            if curve_index < 3:
                 epsilon = xray.autobake_refine_location
             else:
                 epsilon = xray.autobake_refine_rotation

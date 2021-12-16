@@ -228,12 +228,12 @@ def read_motion(data, context, motions_params, bone_names):
                 rot = mat.to_euler('ZXY')
 
                 if t_present or key_index == 0:
-                    for i in range(3):
-                        translate_fcurves[i].keyframe_points.insert(tr_index, trn[i])
+                    for axis in range(3):
+                        translate_fcurves[axis].keyframe_points.insert(tr_index, trn[axis])
 
                 if not r_absent or key_index == 0:
-                    for i in range(3):
-                        rotate_fcurves[i].keyframe_points.insert(rot_index, rot[i])
+                    for axis in range(3):
+                        rotate_fcurves[axis].keyframe_points.insert(rot_index, rot[axis])
 
         if cannot_find_bones:
             raise utils.AppError(

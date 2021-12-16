@@ -500,13 +500,13 @@ def details_draw_function(self, context):
             )
 
         if box_:
-            for i in range(4):
+            for mesh_index in range(4):
                 box_.prop_search(
                     slots.meshes,
-                    'mesh_{}'.format(i),
+                    'mesh_{}'.format(mesh_index),
                     bpy.data,
                     'images',
-                    text='Mesh {}'.format(i)
+                    text='Mesh {}'.format(mesh_index)
                     )
 
         box.operator(details.ops.XRAY_OT_pack_details_images.bl_idname)

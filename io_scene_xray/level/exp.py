@@ -473,9 +473,11 @@ def clamp(value, min_value, max_value):
 
 
 def quant_value(float_value):
-    t = int(float_value * QUANT)
-    t = clamp(t, -32768, 32767)
-    return t
+    return clamp(
+        int(float_value * QUANT),
+        -32768,
+        32767
+    )
 
 
 def get_tex_coord_correct(tex_coord_f, tex_coord_h, uv_coeff):
@@ -821,8 +823,8 @@ def write_tree_def_2(bpy_obj, chunked_writer):
     matrix = version_utils.multiply(
         location_mat, rotation_mat, scale_mat
     ).transposed()
-    for i in matrix:
-        packed_writer.putf('<4f', *i)
+    for row in matrix:
+        packed_writer.putf('<4f', *row)
     write_ogf_color(packed_writer, bpy_obj, mode='SCALE')
     write_ogf_color(packed_writer, bpy_obj, mode='BIAS')
 

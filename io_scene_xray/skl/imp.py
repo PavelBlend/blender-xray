@@ -24,7 +24,8 @@ def _import_skl(file_path, context, chunked_reader):
         if cid == 0x1200:
             reader = xray_io.PackedReader(cdata)
             bonesmap = {
-                b.name.lower(): b for b in context.bpy_arm_obj.data.bones
+                bone.name.lower(): bone
+                for bone in context.bpy_arm_obj.data.bones
             }
             act = xray_motions.import_motion(
                 reader, context, bonesmap, set(), skl_file_name=name
