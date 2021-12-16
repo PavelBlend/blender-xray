@@ -53,11 +53,13 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
                     text='Active object is not Armature!',
                     icon='ERROR'
                 )
+                return
         else:
             layout.label(
                 text='No active object!',
                 icon='ERROR'
             )
+            return
         col = layout.column(align=True)
         col.active = active
         col.operator(
@@ -65,8 +67,6 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
             text='Open Skls File',
             icon='FILE_FOLDER'
         )
-        if not obj:
-            return
         if hasattr(obj.xray, 'skls_browser'):
             if len(obj.xray.skls_browser.animations):
                 col.operator(
