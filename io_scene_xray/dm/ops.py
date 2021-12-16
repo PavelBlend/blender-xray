@@ -59,7 +59,7 @@ op_import_dm_props = {
         subtype="FILE_PATH", options={'SKIP_SAVE'}
     ),
     'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
+        type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE', 'HIDDEN'}
     )
 }
 
@@ -139,6 +139,9 @@ class XRAY_OT_export_dm(ie_props.BaseOperator):
         for prop_name, prop_value in op_export_dms_props.items():
             exec('{0} = op_export_dms_props.get("{0}")'.format(prop_name))
 
+    def draw(self, context):
+        self.layout.prop(self, 'texture_name_from_image_path')
+
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
@@ -216,6 +219,9 @@ class XRAY_OT_export_dm_file(
         except utils.AppError as err:
             log.err(err)
         return {'FINISHED'}
+
+    def draw(self, context):
+        self.layout.prop(self, 'texture_name_from_image_path')
 
     def exp(self, bpy_obj, context):
         export_context = ExportDmContext()
