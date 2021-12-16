@@ -36,6 +36,21 @@ def menu_func_export(self, context):
     )
 
 
+def draw_props(self, mode='SINGLE'):
+    layout = self.layout
+
+    utils.draw_fmt_ver_prop(layout, self, 'fmt_version')
+
+    row = layout.split()
+    row.label(text='Smoothing:')
+    row.row().prop(self, 'smoothing_out_of', expand=True)
+
+    if mode == 'BATCH':
+        layout.prop(self, 'use_export_paths')
+    layout.prop(self, 'export_motions')
+    layout.prop(self, 'texture_name_from_image_path')
+
+
 def find_objects_for_export(context):
     processed = set()
     roots = []
@@ -119,19 +134,7 @@ class XRAY_OT_export_object(ie_props.BaseOperator, _WithExportMotions):
             exec('{0} = op_export_object_props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
-        layout = self.layout
-
-        row = layout.split()
-        row.label(text='Format Version:')
-        row.row().prop(self, 'fmt_version', expand=True)
-
-        row = layout.split()
-        row.label(text='Smoothing:')
-        row.row().prop(self, 'smoothing_out_of', expand=True)
-
-        layout.prop(self, 'use_export_paths')
-        layout.prop(self, 'export_motions')
-        layout.prop(self, 'texture_name_from_image_path')
+        draw_props(self, mode='BATCH')
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -219,18 +222,7 @@ class XRAY_OT_export_object_file(
             exec('{0} = op_export_single_object_props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
-        layout = self.layout
-
-        row = layout.split()
-        row.label(text='Format Version:')
-        row.row().prop(self, 'fmt_version', expand=True)
-
-        row = layout.split()
-        row.label(text='Smoothing:')
-        row.row().prop(self, 'smoothing_out_of', expand=True)
-
-        layout.prop(self, 'export_motions')
-        layout.prop(self, 'texture_name_from_image_path')
+        draw_props(self)
 
     @utils.execute_with_logger
     @utils.set_cursor_state

@@ -61,11 +61,7 @@ class XRAY_OT_import_part(ie_props.BaseOperator):
 
     def draw(self, context):
         layout = self.layout
-
-        row = layout.split()
-        row.label(text='Format Version:')
-        row.row().prop(self, 'fmt_version', expand=True)
-
+        utils.draw_fmt_ver_prop(layout, self, 'fmt_version')
         layout.prop(self, 'mesh_split_by_materials')
 
     @utils.execute_with_logger

@@ -132,10 +132,7 @@ class XRAY_OT_export_anm(
 
     def draw(self, context):
         layout = self.layout
-        split = version_utils.layout_split(layout, 0.5, align=True)
-        split.label(text='Format Version:')
-        row = split.row(align=True)
-        row.prop(self, 'format_version', expand=True)
+        utils.draw_fmt_ver_prop(layout, self, 'format_version')
 
     @utils.execute_with_logger
     @utils.set_cursor_state

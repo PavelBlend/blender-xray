@@ -16,9 +16,6 @@ from .. import ie_props
 from .. import version_utils
 
 
-FORMAT_VERSION_LABEL = 'Format Version:'
-
-
 class ImportDetailsContext(contexts.ImportMeshContext):
     def __init__(self):
         super().__init__()
@@ -143,9 +140,7 @@ class XRAY_OT_import_details(
         col = layout.column()
         col.active = self.load_slots
 
-        col.label(text=FORMAT_VERSION_LABEL)
-        row = col.row()
-        row.prop(self, 'details_format', expand=True)
+        utils.draw_fmt_ver_prop(col, self, 'details_format', lay_type='COLUMN')
 
     def invoke(self, context, event):
         prefs = version_utils.get_preferences()
@@ -188,9 +183,13 @@ class XRAY_OT_export_details(
         layout = self.layout
 
         layout.prop(self, 'texture_name_from_image_path')
-        layout.label(text=FORMAT_VERSION_LABEL)
-        col = layout.column()
-        col.prop(self, 'format_version', expand=True)
+        utils.draw_fmt_ver_prop(
+            layout,
+            self,
+            'format_version',
+            lay_type='COLUMN',
+            use_row=False
+        )
 
     @utils.execute_with_logger
     @utils.set_cursor_state

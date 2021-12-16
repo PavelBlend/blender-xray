@@ -102,9 +102,7 @@ class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHel
                 files_count = 0
         row.label(text='{} items'.format(files_count))
 
-        row = layout.split()
-        row.label(text='Format Version:')
-        row.row().prop(self, 'fmt_version', expand=True)
+        utils.draw_fmt_ver_prop(layout, self, 'fmt_version')
 
         layout.prop(self, 'import_motions')
         row = layout.row()
