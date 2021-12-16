@@ -45,7 +45,7 @@ def examine_motions(data):
                     elif params_version == 2:
                         bone_id = None
                         bone_name = packed_reader.gets()
-                    elif params_version == 3 or params_version == 4:
+                    elif params_version in (3, 4):
                         bone_name = packed_reader.gets()
                         bone_id = packed_reader.getf('<I')[0]
                     else:
