@@ -429,7 +429,7 @@ class XRAY_PT_rig(bpy.types.Panel):
                 ik_fk_bones.append(bone)
         if not ik_fk_bones:
             col.label(
-                text='Bones has not properties!',
+                text='Bones has not IK/FK properties!',
                 icon='ERROR'
             )
             return
