@@ -121,7 +121,7 @@ custom_props = {
     'edit_mode': bpy.props.EnumProperty(
         name='Edit Mode',
         items=edit_mode_items,
-        default='ALL'
+        default='SELECTED'
     )
 }
 
