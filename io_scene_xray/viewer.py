@@ -6,6 +6,7 @@ import bpy
 
 # addon modules
 from . import version_utils
+from . import utils
 
 
 class XRAY_UL_viewer_list_item(bpy.types.UIList):
@@ -185,6 +186,7 @@ class XRAY_OT_viewer_open_folder(bpy.types.Operator):
         for prop_name, prop_value in op_props.items():
             exec('{0} = op_props.get("{0}")'.format(prop_name))
 
+    @utils.set_cursor_state
     def execute(self, context):
         scene = context.scene
         scene.xray.viewer.folder = self.directory
@@ -202,6 +204,7 @@ class XRAY_OT_viewer_close_folder(bpy.types.Operator):
     bl_label = 'Close Folder'
     bl_options = {'REGISTER'}
 
+    @utils.set_cursor_state
     def execute(self, context):
         scene = context.scene
         remove_preview_data()
@@ -215,6 +218,7 @@ class XRAY_OT_viewer_preview_folder(bpy.types.Operator):
     bl_label = 'Preview Folder'
     bl_options = {'REGISTER'}
 
+    @utils.set_cursor_state
     def execute(self, context):
         scene = context.scene
         viewer_folder = scene.xray.viewer.folder
@@ -247,6 +251,7 @@ class XRAY_OT_viewer_import_files(bpy.types.Operator):
         for prop_name, prop_value in op_import_props.items():
             exec('{0} = op_import_props.get("{0}")'.format(prop_name))
 
+    @utils.set_cursor_state
     def execute(self, context):
         scene = context.scene
         viewer = scene.xray.viewer

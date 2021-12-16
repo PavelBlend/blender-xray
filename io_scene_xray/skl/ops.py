@@ -300,6 +300,7 @@ class XRAY_OT_export_skl_batch(ie_props.BaseOperator):
         for prop_name, prop_value in op_export_skls_props.items():
             exec('{0} = op_export_skls_props.get("{0}")'.format(prop_name))
 
+    @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         export_context = exp.ExportSklsContext()

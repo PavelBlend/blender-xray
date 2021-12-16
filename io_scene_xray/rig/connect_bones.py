@@ -5,6 +5,7 @@ import mathutils
 # addon modules
 from .. import version_utils
 from .. import text
+from .. import utils
 
 
 props = {
@@ -91,6 +92,7 @@ class XRAY_OT_create_connected_bones(bpy.types.Operator):
         split.label(text='Source Armature:')
         split.prop_search(self, 'source_armature', bpy.data, 'objects', text='')
 
+    @utils.set_cursor_state
     def execute(self, context):
         bpy.ops.object.mode_set(mode='OBJECT')
         src_name = self.source_armature

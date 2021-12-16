@@ -8,6 +8,7 @@ import mathutils
 # addon modules
 from .. import version_utils
 from .. import text
+from .. import utils
 
 
 bone_layers = [False, ] * 32
@@ -349,6 +350,7 @@ class XRAY_OT_create_ik(bpy.types.Operator):
         split.label(text='IK/FK Name:')
         split.prop(self, 'ik_fk_name', text='')
 
+    @utils.set_cursor_state
     def execute(self, context):
         if not len(context.selected_pose_bones):
             self.report({'WARNING'}, text.warn.ik_no_selected_bones)

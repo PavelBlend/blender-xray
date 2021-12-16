@@ -286,6 +286,7 @@ class XRAY_OT_export_project(ie_props.BaseOperator):
             exec('{0} = op_export_project_props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
+    @utils.set_cursor_state
     def execute(self, context):
         data = context.scene.xray
         export_context = ExportObjectContext()

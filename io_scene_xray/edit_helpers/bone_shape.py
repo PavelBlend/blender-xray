@@ -84,7 +84,6 @@ class XRAY_OT_edit_shape(bpy.types.Operator):
         return bone and (bone.xray.shape.type != '0') and \
             not HELPER.is_active(context)
 
-
     def execute(self, context):
         target = context.active_object.data.bones[context.active_bone.name]
         HELPER.activate(target)
