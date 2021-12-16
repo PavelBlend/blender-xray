@@ -16,12 +16,14 @@ from .. import xray_ltx
 def import_cs_cop_objects(ltx, context, level_name):
     imported_objects = {}
     collection = version_utils.create_collection(level_name)
+    objects_count = 0
     for section_name, section in ltx.sections.items():
         if not section_name.lower().startswith('object_'):
             continue
         params = section.params
         ref = params.get('reference_name', None)
         if ref:
+            objects_count += 1
             object_path = os.path.join(context.objects_folder, ref)
             if object_path[-1] == '\r':
                 object_path = object_path[ : -1]
@@ -63,10 +65,12 @@ def import_cs_cop_objects(ltx, context, level_name):
                     text.warn.scene_no_file,
                     file=object_path
                 )
+    if not objects_count:
+        raise utils.AppError('File has no objects!')
 
 
 def import_soc_objects(data, context, level_name):
-    raise utils.AppError('SoC Format not Supported!')
+    raise utils.AppError('Binary Format not Supported!')
 
 
 @log.with_context(name='file')
