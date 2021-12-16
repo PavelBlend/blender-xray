@@ -99,8 +99,8 @@ class XRAY_OT_import_dm(
         import_context.operator=self
 
         for file in self.files:
-            ext = os.path.splitext(file.name)[-1].lower()
-            if ext == filename_ext:
+            file_ext = os.path.splitext(file.name)[-1].lower()
+            if file_ext == filename_ext:
                 try:
                     imp.import_file(
                         os.path.join(self.directory, file.name),

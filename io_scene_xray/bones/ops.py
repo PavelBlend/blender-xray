@@ -99,8 +99,8 @@ class XRAY_OT_import_bones(
             return {'CANCELLED'}
         filename = self.files[0].name
         filepath = os.path.join(self.directory, filename)
-        ext = os.path.splitext(filename)[-1].lower()
-        if ext == '.bones':
+        file_ext = os.path.splitext(filename)[-1].lower()
+        if file_ext == '.bones':
             if not os.path.exists(filepath):
                 self.report(
                     {'ERROR'},

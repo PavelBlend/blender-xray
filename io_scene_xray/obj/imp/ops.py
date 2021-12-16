@@ -76,7 +76,6 @@ class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHel
         import_context.use_motion_prefix_name=self.use_motion_prefix_name
         import_context.objects_folder=objects_folder
         for file in self.files:
-            ext = os.path.splitext(file.name)[-1].lower()
             file_path = os.path.join(self.directory, file.name)
             if not os.path.exists(file_path):
                 self.report(

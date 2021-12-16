@@ -155,13 +155,13 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
         import_context.filename = None
         import_context.add_actions_to_motion_list = self.add_actions_to_motion_list
         for file in self.files:
-            ext = os.path.splitext(file.name)[-1].lower()
+            file_ext = os.path.splitext(file.name)[-1].lower()
             file_path = os.path.join(self.directory, file.name)
             import_context.filename = file.name
             try:
-                if ext == '.skl':
+                if file_ext == '.skl':
                     imp.import_skl_file(file_path, import_context)
-                elif ext == '.skls':
+                elif file_ext == '.skls':
                     imp.import_skls_file(file_path, import_context)
                 else:
                     self.report({'ERROR'}, 'Format of {} not recognised'.format(file))

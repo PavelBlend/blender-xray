@@ -110,8 +110,8 @@ class XRAY_OT_import_details(
         import_context.load_slots = self.load_slots
 
         for file in self.files:
-            ext = os.path.splitext(file.name)[-1].lower()
-            if ext == '.details':
+            file_ext = os.path.splitext(file.name)[-1].lower()
+            if file_ext == '.details':
                 try:
                     imp.import_file(
                         os.path.join(self.directory, file.name),

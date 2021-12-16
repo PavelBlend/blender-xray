@@ -116,8 +116,8 @@ class XRAY_OT_import_omf(
             return {'CANCELLED'}
         import_context = ImportOmfContext()
         for file in self.files:
-            ext = os.path.splitext(file.name)[-1].lower()
-            if ext == '.omf':
+            file_ext = os.path.splitext(file.name)[-1].lower()
+            if file_ext == '.omf':
                 omf_path = os.path.join(self.directory, file.name)
                 if not os.path.exists(omf_path):
                     self.report(
