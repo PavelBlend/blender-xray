@@ -215,6 +215,7 @@ def draw_operators_enable_disable(prefs):
     column_export.prop(prefs, 'enable_dm_export', text='*.dm')
     column_export.prop(prefs, 'enable_details_export', text='*.details')
     column_export.prop(prefs, 'enable_skls_export', text='*.skls')
+    column_export.prop(prefs, 'enable_skl_export', text='*.skl')
     column_export.prop(prefs, 'enable_bones_export', text='*.bones')
     column_export.prop(prefs, 'enable_level_export', text='*.level')
     column_export.prop(prefs, 'enable_omf_export', text='*.omf')

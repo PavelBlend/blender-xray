@@ -28,6 +28,7 @@ class XRAY_PT_action(ui.base.XRayPanel):
             preferences.enable_object_export or
             preferences.enable_anm_export or
             preferences.enable_skls_export or
+            preferences.enable_skl_export or
             preferences.enable_omf_export
         )
         return (

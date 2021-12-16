@@ -514,6 +514,7 @@ plugin_preferences_props = {
     'enable_dm_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_details_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_skls_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_skl_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_bones_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_game_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),

@@ -42,6 +42,7 @@ import_draw_functions = [
 export_draw_functions = [
     ('enable_object_export', obj.exp.ops.XRAY_OT_export_object),
     ('enable_skls_export', skl.ops.XRAY_OT_export_skls),
+    ('enable_skl_export', skl.ops.XRAY_OT_export_skl_batch),
     ('enable_omf_export', omf.ops.XRAY_OT_export_omf),
     ('enable_anm_export', anm.ops.XRAY_OT_export_anm),
     ('enable_bones_export', bones.ops.XRAY_OT_export_bones),

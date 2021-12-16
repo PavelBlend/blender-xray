@@ -26,7 +26,7 @@ def menu_func_import(self, context):
     )
 
 
-def menu_func_export(self, context):
+def menu_func_export_skls(self, context):
     icon = icons.get_stalker_icon()
     self.layout.operator(
         XRAY_OT_export_skls.bl_idname,
@@ -35,7 +35,16 @@ def menu_func_export(self, context):
     )
 
 
-op_text = 'Skeletal Animation'
+def menu_func_export_skl(self, context):
+    icon = icons.get_stalker_icon()
+    self.layout.operator(
+        XRAY_OT_export_skl_batch.bl_idname,
+        text=utils.build_op_label(XRAY_OT_export_skl_batch),
+        icon_value=icon
+    )
+
+
+op_text = 'Skeletal Animations'
 filename_ext = '.skls'
 
 motion_props = {
@@ -234,7 +243,7 @@ class XRAY_OT_export_skls(ie_props.BaseOperator, utils.FilenameExtHelper):
     bl_description = 'Exports X-Ray skeletal animation'
     bl_options = {'UNDO'}
 
-    draw_fun = menu_func_export
+    draw_fun = menu_func_export_skls
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
@@ -265,6 +274,7 @@ class XRAY_OT_export_skls(ie_props.BaseOperator, utils.FilenameExtHelper):
 
 
 filename_ext = '.skl'
+op_text = 'Skeletal Animation'
 op_export_skl_batch_props = {
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
     'filter_glob': bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'}),
@@ -277,7 +287,7 @@ class XRAY_OT_export_skl_batch(ie_props.BaseOperator):
     bl_description = 'Exports X-Ray skeletal animations'
     bl_options = {'UNDO'}
 
-    draw_fun = menu_func_export
+    draw_fun = menu_func_export_skl
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
@@ -289,28 +299,45 @@ class XRAY_OT_export_skl_batch(ie_props.BaseOperator):
     @utils.set_cursor_state
     def execute(self, context):
         export_context = exp.ExportSklsContext()
-        export_context.bpy_arm_obj = context.active_object
-        for action in self.actions:
-            export_context.action = action
-            file_name = action.name
-            if not file_name.lower().endswith(filename_ext):
-                file_name += filename_ext
-            filepath = os.path.join(self.directory, file_name)
-            try:
-                exp.export_skl_file(filepath, export_context)
-            except utils.AppError as err:
-                log.err(err)
+        exp_actions_count = 0
+        objects = []
+        for obj in context.selected_objects:
+            if obj.type != 'ARMATURE':
+                continue
+            objects.append(obj)
+        use_sub_dirs = len(objects) > 1
+        for obj in objects:
+            export_context.bpy_arm_obj = obj
+            for motion in obj.xray.motions_collection:
+                action = bpy.data.actions.get(motion.name)
+                if not action:
+                    continue
+                export_context.action = action
+                file_name = action.name
+                if not file_name.lower().endswith(filename_ext):
+                    file_name += filename_ext
+                if use_sub_dirs:
+                    sub_dir_name = obj.name
+                    directory = os.path.join(self.directory, sub_dir_name)
+                    if not os.path.exists(directory):
+                        os.makedirs(directory)
+                    filepath = os.path.join(directory, file_name)
+                else:
+                    filepath = os.path.join(self.directory, file_name)
+                try:
+                    exp.export_skl_file(filepath, export_context)
+                    exp_actions_count += 1
+                except utils.AppError as err:
+                    export_context.errors.append(err)
+        if not exp_actions_count:
+            self.report({'WARNING'}, 'Selected objects have no actions')
+        for err in export_context.errors:
+            log.err(err)
         return {'FINISHED'}
 
-    @utils.invoke_require_armature
     def invoke(self, context, event):
-        self.actions = []
-        for motion in bpy.context.object.xray.motions_collection:
-            action = bpy.data.actions.get(motion.name)
-            if action:
-                self.actions.append(action)
-        if not self.actions:
-            self.report({'ERROR'}, 'Active object has no animations')
+        if not context.selected_objects:
+            self.report({'ERROR'}, 'No selected objects')
             return {'CANCELLED'}
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}

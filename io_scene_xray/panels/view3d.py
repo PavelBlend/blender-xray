@@ -550,6 +550,9 @@ class XRAY_PT_export_operators(bpy.types.Panel):
         # skls
         if preferences.enable_skls_export:
             col.operator(skl.ops.XRAY_OT_export_skls.bl_idname, text='Skls', icon='EXPORT')
+        # skl
+        if preferences.enable_skls_export:
+            col.operator(skl.ops.XRAY_OT_export_skl_batch.bl_idname, text='Skl', icon='EXPORT')
         # anm
         if preferences.enable_anm_export:
             col.operator(anm.ops.XRAY_OT_export_anm.bl_idname, text='Anm', icon='EXPORT')
