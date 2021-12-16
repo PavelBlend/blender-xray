@@ -5,7 +5,6 @@ from . import bone_tools
 from . import material
 from . import object_tools
 from . import custom_props_utils
-from . import fake_bones
 from . import joint_limits
 from . import shader_tools
 from . import transform_utils
@@ -20,7 +19,6 @@ modules = (
     material,
     object_tools,
     custom_props_utils,
-    fake_bones,
     joint_limits,
     shader_tools,
     transform_utils,

@@ -20,19 +20,8 @@ from . import version_utils
 from . import xray_io
 
 
-__FAKE_BONE_SUFFIX = '.fake'
-
-
-def is_fake_bone_name(bone_name):
-    return bone_name.endswith(__FAKE_BONE_SUFFIX)
-
-
-def build_fake_bone_name(bone_name):
-    return bone_name + __FAKE_BONE_SUFFIX
-
-
 def is_exportable_bone(bpy_bone):
-    return bpy_bone.xray.exportable and not is_fake_bone_name(bpy_bone.name)
+    return bpy_bone.xray.exportable
 
 
 def find_bone_exportable_parent(bpy_bone):

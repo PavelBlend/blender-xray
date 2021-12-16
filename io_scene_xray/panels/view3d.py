@@ -378,23 +378,6 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
         col.operator(
             ops.armature_utils.XRAY_OT_unlink_bones.bl_idname
         )
-        col.label(text='Fake Bones:')
-        row = col.row(align=True)
-        row.operator(
-            ops.fake_bones.XRAY_OT_create_fake_bones.bl_idname,
-            text='Create',
-            icon='CONSTRAINT_BONE'
-        )
-        row.operator(
-            ops.fake_bones.XRAY_OT_delete_fake_bones.bl_idname,
-            text='Delete',
-            icon='X'
-        )
-        col.operator(
-            ops.fake_bones.XRAY_OT_toggle_fake_bones_visibility.bl_idname,
-            text='Show/Hide',
-            icon=version_utils.get_icon('VISIBLE_IPO_ON'),
-        )
         col.label(text='Joint Limits:')
         col.operator(
             ops.joint_limits.XRAY_OT_convert_limits_to_constraints.bl_idname,
