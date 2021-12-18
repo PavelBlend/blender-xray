@@ -291,6 +291,12 @@ def export_omf(context):
     chunk_id = fmt.MOTIONS_COUNT_CHUNK + 1
     context.bpy_arm_obj.animation_data_create()
     new_motions_count = 0
+    xray = context.bpy_arm_obj.xray
+    dependency_object = None
+    if xray.dependency_object:
+        dependency_object = bpy.data.objects.get(xray.dependency_object)
+        if dependency_object:
+            dep_action = dependency_object.animation_data.action
     for motion_name in export_motion_names:
         action = bpy.data.actions.get(motion_name)
         packed_writer, _ = available_motions.get(motion_name, (None, None))
@@ -320,6 +326,8 @@ def export_omf(context):
                 new_motions_count += 1
         packed_writer = xray_io.PackedWriter()
         context.bpy_arm_obj.animation_data.action = action
+        if dependency_object:
+            dependency_object.animation_data.action = action
         if context.bpy_arm_obj.xray.use_custom_motion_names:
             motion_name = context.motion_export_names[motion_name]
         packed_writer.puts(motion_name)
@@ -511,6 +519,17 @@ def export_omf(context):
             bone.rotation_euler = (0, 0, 0)
             bone.rotation_quaternion = (1, 0, 0, 0)
             bone.scale = (1, 1, 1)
+    if dependency_object:
+        if dep_action:
+            dependency_object.animation_data.action = dep_action
+        else:
+            dependency_object.animation_data_clear()
+            # reset transforms
+            for bone in dependency_object.pose.bones:
+                bone.location = (0, 0, 0)
+                bone.rotation_euler = (0, 0, 0)
+                bone.rotation_quaternion = (1, 0, 0, 0)
+                bone.scale = (1, 1, 1)
     return main_chunked_writer
 
 
