@@ -57,6 +57,7 @@ cform_unsupport_ver = 'unsupported level cform version'
 level_no_lmap = 'cannot find light map image'
 level_has_children = 'Normal/Progressive object must not have children'
 level_bad_portal = 'portal mesh-object has less than 3 vertices'
+level_bad_glow = 'glow mesh-object has no faces'
 # level import
 level_unsupport_ver = 'unsupported game level version'
 # object export main

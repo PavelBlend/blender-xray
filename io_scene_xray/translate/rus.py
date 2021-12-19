@@ -68,6 +68,7 @@ translations_table = (
     (text.error.level_no_lmap, 'не найдено изображение для карты освещения'),
     (text.error.level_has_children, 'Normal/Progressive объекты не должны иметь потомков'),
     (text.error.level_bad_portal, 'меш-объект портала имеет меньше 3 вершин'),
+    (text.error.level_bad_glow, 'glow меш-объект не имеет полигонов'),
     # level import
     (text.error.level_unsupport_ver, 'неподдерживаемая версия game level формата'),
     # object export main

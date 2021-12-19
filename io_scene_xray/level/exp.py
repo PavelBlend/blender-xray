@@ -1178,6 +1178,15 @@ def write_glow(packed_writer, glow_obj, level):
         glow_obj.location[2],
         glow_obj.location[1]
     )
+    faces_count = len(glow_obj.data.polygons)
+    if not faces_count:
+        raise utils.AppError(
+            text.error.level_bad_glow,
+            log.props(
+                object=glow_obj.name,
+                faces_count=faces_count
+            )
+        )
     packed_writer.putf('<f', glow_obj.dimensions[0] / 2)    # radius
     if not len(glow_obj.data.materials):
         raise BaseException('glow object "{}" has no material'.format(glow_obj.name))
