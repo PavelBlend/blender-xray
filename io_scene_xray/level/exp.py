@@ -1251,6 +1251,15 @@ def write_portals(level, level_object):
         if child_obj.name.startswith('portals'):
             for portal_index, portal_obj_name in enumerate(level.visuals_cache.children[child_obj.name]):
                 portal_obj = bpy.data.objects[portal_obj_name]
+                vertices_count = len(portal_obj.data.vertices)
+                if vertices_count < 3:
+                    raise utils.AppError(
+                        text.error.level_bad_portal,
+                        log.props(
+                            object=portal_obj.name,
+                            vertices_count=vertices_count
+                        )
+                    )
                 packed_writer.putf('<H', level.sectors_indices[portal_obj.xray.level.sector_front])
                 packed_writer.putf('<H', level.sectors_indices[portal_obj.xray.level.sector_back])
                 for vertex in portal_obj.data.vertices:
