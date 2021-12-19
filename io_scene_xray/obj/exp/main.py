@@ -387,20 +387,17 @@ def export_bones(chunked_writer, bone_writers):
 
 def export_user_data(chunked_writer, xray):
     if xray.userdata:
-        chunked_writer.put(
-            fmt.Chunks.Object.USERDATA,
-            xray_io.PackedWriter().puts(
-                '\r\n'.join(xray.userdata.splitlines())
-            )
-        )
+        user_data = '\r\n'.join(xray.userdata.splitlines())
+        packed_writer = xray_io.PackedWriter()
+        packed_writer.puts(user_data)
+        chunked_writer.put(fmt.Chunks.Object.USERDATA, packed_writer)
 
 
 def export_loddef(chunked_writer, xray):
     if xray.lodref:
-        chunked_writer.put(
-            fmt.Chunks.Object.LOD_REF,
-            xray_io.PackedWriter().puts(xray.lodref)
-        )
+        packed_writer = xray_io.PackedWriter()
+        packed_writer.puts(xray.lodref)
+        chunked_writer.put(fmt.Chunks.Object.LOD_REF, packed_writer)
 
 
 def export_motions(chunked_writer, some_arm, context, bpy_obj):
@@ -467,10 +464,9 @@ def export_motion_refs(chunked_writer, xray, context):
             )
         if context.soc_sgroups:
             refs = ','.join(ref.name for ref in motionrefs)
-            chunked_writer.put(
-                fmt.Chunks.Object.MOTION_REFS,
-                xray_io.PackedWriter().puts(refs)
-            )
+            packed_writer = xray_io.PackedWriter()
+            packed_writer.puts(refs)
+            chunked_writer.put(fmt.Chunks.Object.MOTION_REFS, packed_writer)
         else:
             writer = xray_io.PackedWriter()
             writer.putf('<I', len(motionrefs))
@@ -478,10 +474,9 @@ def export_motion_refs(chunked_writer, xray, context):
                 writer.puts(ref.name)
             chunked_writer.put(fmt.Chunks.Object.SMOTIONS3, writer)
     elif xray.motionrefs:
-        chunked_writer.put(
-            fmt.Chunks.Object.MOTION_REFS,
-            xray_io.PackedWriter().puts(xray.motionrefs)
-        )
+        packed_writer = xray_io.PackedWriter()
+        packed_writer.puts(xray.motionrefs)
+        chunked_writer.put(fmt.Chunks.Object.MOTION_REFS, packed_writer)
 
 
 def export_transform(chunked_writer, bpy_root):
