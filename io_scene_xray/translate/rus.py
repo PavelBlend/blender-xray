@@ -74,6 +74,7 @@ translations_table = (
     # level cform export
     (text.error.level_bad_glow_radius, 'glow объект имеет близкий к нулю радиус'),
     # level import
+    (text.error.level_unsupport_ver, 'неподдерживаемая версия game level формата'),
     (text.error.level_bad_cform_type, 'cform-объект не является мешем'),
     (text.error.level_cform_no_geom, 'cform-объект не имеет полигонов'),
     # object export main
