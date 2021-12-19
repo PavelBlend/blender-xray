@@ -59,6 +59,9 @@ level_has_children = 'Normal/Progressive object must not have children'
 level_bad_portal = 'portal mesh-object has less than 3 vertices'
 level_bad_glow = 'glow mesh-object has no faces'
 level_bad_glow_radius = 'glow object has radius close to zero'
+# level cform export
+level_bad_cform_type = 'cform object is not mesh'
+level_cform_no_geom = 'cform object has no polygons'
 # level import
 level_unsupport_ver = 'unsupported game level version'
 # object export main

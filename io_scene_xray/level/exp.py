@@ -1413,6 +1413,19 @@ def write_level_cform(packed_writer, level):
 
     for sector_index in range(sectors_count):
         cform_object = level.cform_objects[sector_index]
+        if cform_object.type != 'MESH':
+            raise utils.AppError(
+                text.error.level_bad_cform_type,
+                log.props(
+                    object=cform_object.name,
+                    type=cform_object.type
+                )
+            )
+        if not len(cform_object.data.polygons):
+            raise utils.AppError(
+                text.error.level_cform_no_geom,
+                log.props(object=cform_object.name)
+            )
         bm = bmesh.new()
         bm.from_mesh(cform_object.data)
         bmesh.ops.triangulate(bm, faces=bm.faces)
