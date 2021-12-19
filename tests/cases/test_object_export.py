@@ -273,6 +273,40 @@ class TestObjectExport(utils.XRayTestCase):
             re.compile('Mesh-objects have been merged')
         )
 
+    def test_export_skeletal_object(self):
+        # Arrange
+        objs = self._create_objects()
+
+        obj = _create_armature((objs[0], ))
+        obj.name = 'skeletal_object_soc_format'
+        obj.xray.lodref = 'test lod reference'
+        obj.xray.userdata = 'test user data'
+        for ref_index in range(3):
+            ref = obj.xray.motionrefs_collection.add()
+            ref.name = 'motion_reference_' + str(ref_index)
+        utils.set_active_object(obj)
+
+        # Act
+        bpy.ops.xray_export.object(
+            objects='skeletal_object_soc_format', directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False
+        )
+        obj.name = 'skeletal_object_cop_format'
+        bpy.ops.xray_export.object(
+            objects='skeletal_object_cop_format', directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False,
+            fmt_version='cscop'
+        )
+
+        # Assert
+        self.assertOutputFiles({
+            'skeletal_object_soc_format.object',
+            'skeletal_object_cop_format.object'
+        })
+        self.assertReportsNotContains()
+
 
 def _create_armature(targets):
     arm = bpy.data.armatures.new('tarm')
