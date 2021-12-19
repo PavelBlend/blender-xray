@@ -154,12 +154,26 @@ def import_main(file_path, context, creader):
                     ik.spring = 1
                     ik.damping = 1
             else:
-                for (_, bdat) in xray_io.ChunkedReader(data):
+                bones_chunks = []
+                bone_id_by_name = {}
+                bones_reader = xray_io.ChunkedReader(data)
+                for index, (_, bone_data) in enumerate(bones_reader):
+                    bone_chunks = utils.get_chunks(bone_data)
+                    def_data = bone_chunks[fmt.Chunks.Bone.DEF]
+                    def_reader = xray_io.PackedReader(def_data)
+                    bone_name = def_reader.gets()
+                    bones_chunks.append(bone_chunks)
+                    bone_id_by_name[bone_name] = index
+                imported_bones = set()
+                for bone_chunks in bones_chunks:
                     bone.import_bone(
                         context,
-                        xray_io.ChunkedReader(bdat),
+                        bone_chunks,
                         bpy_arm_obj,
-                        renamemap
+                        renamemap,
+                        imported_bones,
+                        bones_chunks,
+                        bone_id_by_name
                     )
             for bone_ in bpy_arm_obj.pose.bones:
                 bone_.rotation_mode = 'ZXY'

@@ -88,25 +88,52 @@ def safe_assign_enum_property(obj, pname, val, desc):
 
 
 @log.with_context(name='bone')
-def import_bone(context, creader, bpy_arm_obj, renamemap):
-    ver = creader.nextf(fmt.Chunks.Bone.VERSION, '<H')[0]
+def import_bone(
+        context,
+        chunks,
+        bpy_arm_obj,
+        renamemap,
+        imported_bones,
+        bones_chunks,
+        bone_id_by_name
+    ):
+    data = chunks.get(fmt.Chunks.Bone.VERSION)
+    reader = xray_io.PackedReader(data)
+    ver = reader.getf('<H')[0]
     if ver != 0x2:
         raise utils.AppError(
             text.error.object_unsupport_bone_ver,
             log.props(version=ver)
         )
 
-    reader = xray_io.PackedReader(creader.next(fmt.Chunks.Bone.DEF))
+    data = chunks.get(fmt.Chunks.Bone.DEF)
+    reader = xray_io.PackedReader(data)
     name = reader.gets()
     log.update(name=name)
     parent = reader.gets()
     vmap = reader.gets()
 
-    reader = xray_io.PackedReader(creader.next(fmt.Chunks.Bone.BIND_POSE))
+    if name in imported_bones:
+        return
+
+    data = chunks.get(fmt.Chunks.Bone.BIND_POSE)
+    reader = xray_io.PackedReader(data)
     offset = reader.getv3fp()
     rotate = reader.getv3fp()
     length = reader.getf('<f')[0]
 
+    if not bpy_arm_obj.data.bones.get(parent) and parent:
+        bone_id = bone_id_by_name[parent]
+        parent_chunks = bones_chunks[bone_id]
+        import_bone(
+            context,
+            parent_chunks,
+            bpy_arm_obj,
+            renamemap,
+            imported_bones,
+            bones_chunks,
+            bone_id_by_name
+        )
     bpy_bone = create_bone(
         context, bpy_arm_obj,
         name, parent,
@@ -114,8 +141,9 @@ def import_bone(context, creader, bpy_arm_obj, renamemap):
         offset, rotate, length,
         renamemap,
     )
+    imported_bones.add(name)
     xray = bpy_bone.xray
-    for (cid, data) in creader:
+    for cid, data in chunks.items():
         if cid == fmt.Chunks.Bone.DEF:
             def2 = xray_io.PackedReader(data).gets()
             if name != def2:
@@ -177,4 +205,9 @@ def import_bone(context, creader, bpy_arm_obj, renamemap):
         elif cid == fmt.Chunks.Bone.FRICTION:
             xray.friction = xray_io.PackedReader(data).getf('<f')[0]
         else:
-            log.debug('unknown chunk', cid=cid)
+            if not cid in (
+                    fmt.Chunks.Bone.VERSION,
+                    fmt.Chunks.Bone.DEF,
+                    fmt.Chunks.Bone.BIND_POSE
+                ):
+                log.debug('unknown chunk', cid=cid)

@@ -664,3 +664,12 @@ def draw_fmt_ver_prop(layout, owner, prop, lay_type='SPLIT', use_row=True):
     else:
         prop_lay = lay.column(align=True)
     prop_lay.prop(owner, prop, expand=True)
+
+
+def get_chunks(data):
+    chunked_reader = xray_io.ChunkedReader(data)
+    chunks = {}
+    for chunk_id, chunk_data in chunked_reader:
+        if not chunks.get(chunk_id, None):
+            chunks[chunk_id] = chunk_data
+    return chunks
