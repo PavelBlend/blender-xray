@@ -315,9 +315,23 @@ def get_light_map_image(material, lmap_prop):
                     material=material.name
                 )
             )
+        image_path = lmap_image.filepath
+        image_name = os.path.basename(image_path)
+        base_name, ext = os.path.splitext(image_name)
+        if ext != '.dds':
+            raise utils.AppError(
+                text.error.level_lmap_no_dds,
+                log.props(
+                    image=lmap_image.name,
+                    path=lmap_image.filepath,
+                    extension=ext
+                )
+            )
+        lmap_name = base_name
     else:
         lmap_image = None
-    return lmap_image
+        lmap_name = None
+    return lmap_image, lmap_name
 
 
 def write_shaders(level):
@@ -374,22 +388,12 @@ def write_shaders(level):
         )
         eshader = material.xray.eshader
 
-        lmap_1_image = get_light_map_image(material, 'lmap_0')
-        lmap_2_image = get_light_map_image(material, 'lmap_1')
-
-        if lmap_1_image:
-            lmap_1_path = lmap_1_image.name[0 : -4]    # cut .dds extension
-        else:
-            lmap_1_path = None
-
-        if lmap_2_image:
-            lmap_2_path = lmap_2_image.name[0 : -4]    # cut .dds extension
-        else:
-            lmap_2_path = None
+        lmap_1_image, lmap_1_name = get_light_map_image(material, 'lmap_0')
+        lmap_2_image, lmap_2_name = get_light_map_image(material, 'lmap_1')
 
         if lmap_1_image and lmap_2_image:
             packed_writer.puts('{0}/{1},{2},{3}'.format(
-                eshader, texture_path, lmap_1_path, lmap_2_path
+                eshader, texture_path, lmap_1_name, lmap_2_name
             ))
         elif lmap_1_image and not lmap_2_image:
             lmap_1_path = utils.gen_texture_name(

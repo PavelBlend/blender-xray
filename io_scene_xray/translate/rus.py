@@ -70,6 +70,7 @@ translations_table = (
     (text.error.level_bad_portal, 'меш-объект портала имеет меньше 3 вершин'),
     (text.error.level_bad_glow, 'glow меш-объект не имеет полигонов'),
     (text.error.level_bad_glow_radius, 'glow объект имеет близкий к нулю радиус'),
+    (text.error.level_lmap_no_dds, 'некорректный формат карты освещения (должен быть *.dds)'),
     # level cform export
     (text.error.level_bad_glow_radius, 'glow объект имеет близкий к нулю радиус'),
     # level import
