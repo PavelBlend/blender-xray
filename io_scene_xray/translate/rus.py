@@ -69,6 +69,7 @@ translations_table = (
     (text.error.level_has_children, 'Normal/Progressive объекты не должны иметь потомков'),
     (text.error.level_bad_portal, 'меш-объект портала имеет меньше 3 вершин'),
     (text.error.level_bad_glow, 'glow меш-объект не имеет полигонов'),
+    (text.error.level_bad_glow_radius, 'glow объект имеет близкий к нулю радиус'),
     # level import
     (text.error.level_unsupport_ver, 'неподдерживаемая версия game level формата'),
     # object export main

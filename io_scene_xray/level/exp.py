@@ -1187,7 +1187,17 @@ def write_glow(packed_writer, glow_obj, level):
                 faces_count=faces_count
             )
         )
-    packed_writer.putf('<f', glow_obj.dimensions[0] / 2)    # radius
+    dim_max = max(glow_obj.dimensions)
+    glow_radius = dim_max / 2
+    if glow_radius < 0.0005:
+        raise utils.AppError(
+            text.error.level_bad_glow_radius,
+            log.props(
+                object=glow_obj.name,
+                radius=glow_radius
+            )
+        )
+    packed_writer.putf('<f', glow_radius)
     if not len(glow_obj.data.materials):
         raise BaseException('glow object "{}" has no material'.format(glow_obj.name))
     material = glow_obj.data.materials[0]

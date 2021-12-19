@@ -58,6 +58,7 @@ level_no_lmap = 'cannot find light map image'
 level_has_children = 'Normal/Progressive object must not have children'
 level_bad_portal = 'portal mesh-object has less than 3 vertices'
 level_bad_glow = 'glow mesh-object has no faces'
+level_bad_glow_radius = 'glow object has radius close to zero'
 # level import
 level_unsupport_ver = 'unsupported game level version'
 # object export main
