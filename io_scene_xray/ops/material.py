@@ -6,6 +6,7 @@ import bpy
 import mathutils
 
 # addon modules
+from .. import utils
 from .. import version_utils
 
 
@@ -87,6 +88,7 @@ class XRAY_OT_switch_render(bpy.types.Operator):
         column.label(text='Mode:')
         column.prop(self, 'mode', expand=True)
 
+    @utils.set_cursor_state
     def execute(self, context):
         scene = context.scene
         if scene.render.engine == 'CYCLES':
@@ -129,6 +131,7 @@ class XRAY_OT_convert_to_internal_material(bpy.types.Operator):
         column.label(text='Mode:')
         column.prop(self, 'mode', expand=True)
 
+    @utils.set_cursor_state
     def execute(self, context):
         materials = get_materials(context, self.mode)
 
@@ -232,6 +235,7 @@ class XRAY_OT_convert_to_cycles_material(bpy.types.Operator):
         column.label(text='Shader Type:')
         column.prop(self, 'shader_type', expand=True)
 
+    @utils.set_cursor_state
     def execute(self, context):
         materials = get_materials(context, self.mode)
 
@@ -350,6 +354,7 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
                     materials.add(mat)
         return materials
 
+    @utils.set_cursor_state
     def execute(self, context):
         if not self.change_viewport_color and not self.change_shader_color:
             self.report({'WARNING'}, 'Nothing changed!')

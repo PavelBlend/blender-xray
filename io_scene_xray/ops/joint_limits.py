@@ -44,6 +44,7 @@ class XRAY_OT_convert_limits_to_constraints(JointLimitsBaseOperator):
     bl_label = 'Convert Limits to Constraints'
     bl_description = 'Convert selected bones joint limits to constraints'
 
+    @utils.set_cursor_state
     def execute(self, context):
         obj = context.object
         for bone in obj.data.bones:
@@ -82,6 +83,7 @@ class XRAY_OT_remove_limits_constraints(JointLimitsBaseOperator):
     bl_label = 'Remove Limits Constraints'
     bl_description = 'Remove selected bones joint limits constraints'
 
+    @utils.set_cursor_state
     def execute(self, context):
         obj = context.object
         for bone in obj.data.bones:
@@ -98,6 +100,7 @@ class XRAY_OT_convert_ik_to_xray_limits(JointLimitsBaseOperator):
     bl_label = 'Convert IK Limits to XRay Limits'
     bl_description = 'Convert selected bones IK limits to XRay joint limits'
 
+    @utils.set_cursor_state
     def execute(self, context):
         obj = context.object
         for bone in obj.data.bones:
@@ -119,6 +122,7 @@ class XRAY_OT_convert_xray_to_ik_limits(JointLimitsBaseOperator):
     bl_label = 'Convert XRay Limits to IK Limits'
     bl_description = 'Convert selected bones XRay joint limits to IK limits'
 
+    @utils.set_cursor_state
     def execute(self, context):
         obj = context.object
         for bone in obj.data.bones:
@@ -144,6 +148,7 @@ class XRAY_OT_clear_ik_limits(JointLimitsBaseOperator):
     bl_description = 'Clear selected bones IK limits'
     bl_options = {'REGISTER', 'UNDO'}
 
+    @utils.set_cursor_state
     def execute(self, context):
         obj = context.object
         for bone in obj.data.bones:

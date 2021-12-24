@@ -3,6 +3,7 @@ import bpy
 
 # addon modules
 from . import material
+from .. import utils
 from .. import version_utils
 
 
@@ -111,6 +112,7 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
             self.draw_prop(column, 'use_transparency_change', 'use_transparency_value')
             self.draw_prop(column, 'shadeless_change', 'shadeless_value')
 
+    @utils.set_cursor_state
     def execute(self, context):
         scene = context.scene
         materials = material.get_materials(context, self.mode)

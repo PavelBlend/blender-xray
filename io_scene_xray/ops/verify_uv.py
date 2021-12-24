@@ -2,6 +2,7 @@
 import bpy
 
 # addon modules
+from .. import utils
 from .. import version_utils
 
 
@@ -15,6 +16,7 @@ class XRAY_OT_verify_uv(bpy.types.Operator):
     BAD_UV = True
     CORRECT_UV = False
 
+    @utils.set_cursor_state
     def execute(self, context):
         # set object mode
         if context.object:

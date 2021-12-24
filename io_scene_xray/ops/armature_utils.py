@@ -2,6 +2,7 @@
 import bpy
 
 # addon modules
+from .. import utils
 from .. import version_utils
 
 
@@ -32,6 +33,7 @@ class XRAY_OT_link_bones(bpy.types.Operator):
     def draw(self, context):
         self.layout.prop_search(self, 'armature', bpy.data, 'objects')
 
+    @utils.set_cursor_state
     def execute(self, context):
         arm_obj = context.object
         link_arm_obj = bpy.data.objects.get(self.armature)
@@ -74,6 +76,7 @@ class XRAY_OT_unlink_bones(bpy.types.Operator):
         if context.object.type == 'ARMATURE':
             return True
 
+    @utils.set_cursor_state
     def execute(self, context):
         arm_obj = context.object
         for bone in arm_obj.data.bones:

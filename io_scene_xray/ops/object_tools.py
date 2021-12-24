@@ -6,6 +6,7 @@ import bpy
 import mathutils
 
 # addon modules
+from .. import utils
 from .. import version_utils
 
 
@@ -53,6 +54,7 @@ class XRAY_OT_place_objects(bpy.types.Operator):
         column.prop(self, 'offset_x')
         column.prop(self, 'offset_z')
 
+    @utils.set_cursor_state
     def execute(self, context):
         objs = set()
         for obj in context.selected_objects:
@@ -123,6 +125,7 @@ class XRAY_OT_colorize_objects(bpy.types.Operator):
         column.label(text='Mode:')
         column.prop(self, 'mode', expand=True)
 
+    @utils.set_cursor_state
     def execute(self, context):
         # active object
         if self.mode == 'ACTIVE_OBJECT':

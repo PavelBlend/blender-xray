@@ -2,6 +2,7 @@
 import bpy
 
 # addon modules
+from .. import utils
 from .. import xray_ltx
 from .. import version_utils
 
@@ -59,6 +60,7 @@ class XRAY_OT_copy_action_settings(bpy.types.Operator):
     bl_idname = 'io_scene_xray.copy_action_settings'
     bl_label = 'Copy'
 
+    @utils.set_cursor_state
     def execute(self, context):
         write_buffer_data()
         return {'FINISHED'}
@@ -69,6 +71,7 @@ class XRAY_OT_paste_action_settings(bpy.types.Operator):
     bl_label = 'Paste'
     bl_options = {'REGISTER', 'UNDO'}
 
+    @utils.set_cursor_state
     def execute(self, context):
         read_buffer_data()
         return {'FINISHED'}
@@ -155,6 +158,7 @@ class XRAY_OT_change_action_bake_settings(bpy.types.Operator):
         row.active = self.change_rotation_threshold
         row.prop(self, 'value_rotation_threshold')
 
+    @utils.set_cursor_state
     def execute(self, context):
         actions = set()
         # active action

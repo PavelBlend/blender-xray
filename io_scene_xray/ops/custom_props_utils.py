@@ -3,6 +3,7 @@ import bpy
 
 # addon modules
 from .. import prefs
+from .. import utils
 from .. import version_utils
 
 
@@ -141,6 +142,7 @@ class XRAY_OT_set_custom_to_xray_props(bpy.types.Operator):
         if not self.obj.get(custom, None) is None:
             setattr(owner, prop, self.obj[custom])
 
+    @utils.set_cursor_state
     def execute(self, context):
         preferences = version_utils.get_preferences()
         stgs = preferences.custom_props    # settings
@@ -249,6 +251,7 @@ class XRAY_OT_set_xray_to_custom_props(bpy.types.Operator):
 
     draw = draw_function
 
+    @utils.set_cursor_state
     def execute(self, context):
         preferences = version_utils.get_preferences()
         stgs = preferences.custom_props    # settings
@@ -352,6 +355,7 @@ class XRAY_OT_remove_xray_custom_props(bpy.types.Operator):
 
     draw = draw_function
 
+    @utils.set_cursor_state
     def execute(self, context):
         preferences = version_utils.get_preferences()
         objects, meshes, materials, armatures, actions = find_data(self, context)
@@ -398,6 +402,7 @@ class XRAY_OT_remove_all_custom_props(bpy.types.Operator):
 
     draw = draw_function
 
+    @utils.set_cursor_state
     def execute(self, context):
         objects, meshes, materials, armatures, actions = find_data(self, context)
         data_list = []

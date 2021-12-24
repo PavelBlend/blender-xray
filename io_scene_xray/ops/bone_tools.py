@@ -5,6 +5,7 @@ import math
 import bpy
 
 # addon modules
+from .. import utils
 from .. import version_utils
 
 
@@ -59,6 +60,7 @@ class XRAY_OT_resize_bones(bpy.types.Operator):
         row.prop(self, 'size')
         column.prop(self, 'custom_shapes', toggle=True)
 
+    @utils.set_cursor_state
     def execute(self, context):
         edited_count = 0
         active_object = context.active_object
