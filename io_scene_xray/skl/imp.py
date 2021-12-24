@@ -27,7 +27,7 @@ def _import_skl(file_path, context, chunked_reader):
                 bone.name.lower(): bone
                 for bone in context.bpy_arm_obj.data.bones
             }
-            act = xray_motions.import_motion(
+            xray_motions.import_motion(
                 reader, context, bonesmap, set(), skl_file_name=name
             )
         else:

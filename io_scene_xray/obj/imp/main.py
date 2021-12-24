@@ -67,10 +67,8 @@ def import_main(file_path, context, creader):
                     texture = reader.gets()
                     vmap = reader.gets()
                     if texture != vmap or not (texture and vmap):
-                        old_object_format = False
                         renamemap[vmap.lower()] = vmap
                     else:    # old format (Objects\Rainbow\lest.object)
-                        old_object_format = True
                         vmap = 'Texture'
                     gamemtl = 'default'
                     cshader = xrlc_shaders[surface_index]
@@ -84,10 +82,8 @@ def import_main(file_path, context, creader):
                     texture = reader.gets()
                     vmap = reader.gets()
                     if texture != vmap or not (texture and vmap):
-                        old_object_format = False
                         renamemap[vmap.lower()] = vmap
                     else:    # old format (Objects\corps\corp_BYAKA.object)
-                        old_object_format = True
                         vmap = 'Texture'
                     renamemap[vmap.lower()] = vmap
                     flags = reader.int()

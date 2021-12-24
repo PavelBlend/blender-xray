@@ -461,7 +461,6 @@ def _export(bpy_obj, cwriter, context):
 
     pwriter = xray_io.PackedWriter()
     for bone, obj in bones:
-        pbone = obj.pose.bones[bone.name]
         xray = bone.xray
         pwriter.putf('<I', 0x1)  # version
         pwriter.puts(xray.gamemtl)

@@ -150,7 +150,6 @@ class XRAY_OT_clear_ik_limits(JointLimitsBaseOperator):
             xray = bone.xray
             if bone.select:
                 pose_bone = obj.pose.bones[bone.name]
-                ik = xray.ikjoint
                 pose_bone.use_ik_limit_x = False
                 pose_bone.use_ik_limit_y = False
                 pose_bone.use_ik_limit_z = False

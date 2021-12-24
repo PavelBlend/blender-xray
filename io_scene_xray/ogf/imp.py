@@ -1805,7 +1805,6 @@ def import_visual(context, data, visual):
         )
     ogf_chunks = fmt.Chunks_v4
     model_types = fmt.ModelType_v4
-    model_type_names = fmt.model_type_names_v4
     import_user_data(chunks, ogf_chunks, visual)
     if visual.model_type == model_types.SKELETON_RIGID:
         import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual)

@@ -181,7 +181,6 @@ class XRAY_PT_verify_tools(bpy.types.Panel):
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
-        data = context.scene.xray
         layout = self.layout
         layout.operator(
             ops.verify_uv.XRAY_OT_verify_uv.bl_idname,
@@ -257,11 +256,11 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         column = layout.column(align=True)
-        operator = column.operator(
+        column.operator(
             ops.material.XRAY_OT_colorize_materials.bl_idname,
             icon='COLOR'
         )
-        operator = column.operator(
+        column.operator(
             ops.object_tools.XRAY_OT_colorize_objects.bl_idname,
             icon='COLOR'
         )

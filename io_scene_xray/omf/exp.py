@@ -345,7 +345,6 @@ def export_omf(context):
                     xmatrices[pose_bone.name] = []
                     min_trns[pose_bone.name] = mathutils.Vector((10000.0, 10000.0, 10000.0))
                     max_trns[pose_bone.name] = mathutils.Vector((-10000.0, -10000.0, -10000.0))
-                bpy_bone = context.bpy_arm_obj.data.bones[pose_bone.name]
                 parent = pose_bone.parent
                 parent_matrix = parent.matrix.inverted() if parent else imp.MATRIX_BONE_INVERTED
                 matrix = context.multiply(parent_matrix, pose_bone.matrix)
@@ -432,7 +431,6 @@ def export_omf(context):
         chunk_id += 1
     main_chunked_writer = xray_io.ChunkedWriter()
     main_chunked_writer.put(fmt.Chunks.S_MOTIONS, chunked_writer)
-    write_bone_parts = False
     available_boneparts = []
     available_params = {}
     if context.export_mode in ('REPLACE', 'ADD'):
