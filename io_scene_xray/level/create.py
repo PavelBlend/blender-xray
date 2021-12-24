@@ -243,13 +243,13 @@ def load_image_from_level_folder(context, texture, abs_path):
     )
     try:
         bpy_image = load_image(absolute_texture_path)
-    except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+    except RuntimeError:    # e.g. 'Error: Cannot read ...'
         absolute_texture_path = get_absolute_texture_path(
             context.textures_folder, texture
         )
         try:
             bpy_image = load_image(absolute_texture_path)
-        except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+        except RuntimeError:    # e.g. 'Error: Cannot read ...'
             log.warn(text.warn.tex_not_found, path=abs_path)
             bpy_image = create_empty_image(texture, abs_path)
     return bpy_image
@@ -258,7 +258,7 @@ def load_image_from_level_folder(context, texture, abs_path):
 def create_image(context, texture, absolute_texture_path):
     try:
         bpy_image = load_image(absolute_texture_path)
-    except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+    except RuntimeError:    # e.g. 'Error: Cannot read ...'
         bpy_image = load_image_from_level_folder(context, texture, absolute_texture_path)
     bpy_image.use_fake_user = True
     return bpy_image

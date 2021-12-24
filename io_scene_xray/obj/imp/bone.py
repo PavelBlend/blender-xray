@@ -67,7 +67,6 @@ def create_bone(
         name = bpy_bone.name
     finally:
         bpy.ops.object.mode_set(mode='OBJECT')
-    pose_bone = bpy_arm_obj.pose.bones[name]
     bpy_bone = bpy_armature.bones[name]
     xray = bpy_bone.xray
     xray.version = context.version
@@ -175,7 +174,6 @@ def import_bone(
             xray.shape.set_curver()
         elif cid == fmt.Chunks.Bone.IK_JOINT:
             reader = xray_io.PackedReader(data)
-            pose_bone = bpy_arm_obj.pose.bones[name]
             value = str(reader.int())
             ik = xray.ikjoint
             safe_assign_enum_property(ik, 'type', value, 'bone ikjoint')

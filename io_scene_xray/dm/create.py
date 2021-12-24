@@ -99,7 +99,7 @@ def create_bpy_image(det_model, abs_image_path):
     try:
         bpy_image = bpy.data.images.load(abs_image_path)
 
-    except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+    except RuntimeError:    # e.g. 'Error: Cannot read ...'
 
         if det_model.mode == 'DETAILS':
             try:
@@ -109,7 +109,7 @@ def create_bpy_image(det_model, abs_image_path):
                         det_model.texture + '.dds'
                 ))
                 bpy_image = bpy.data.images.load(abs_image_path)
-            except RuntimeError as ex:
+            except RuntimeError:
                 log.warn(text.warn.tex_not_found, path=abs_image_path)
                 bpy_image = create_empty_image(
                     det_model.context,
@@ -205,8 +205,6 @@ def search_material(context, det_model, file_path=None):
     ))
 
     bpy_material = None
-    bpy_image = None
-    bpy_texture = None
     det_model.file_path = file_path
     det_model.context = context
 

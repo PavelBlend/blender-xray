@@ -47,8 +47,8 @@ def incoming(start_key, end_key, next_key):
     elif end_key.shape == Shape.LINEAR:
         in_ = (end_key.value - start_key.value) / (end_key.time - start_key.time)
     elif end_key.shape in (Shape.HERMITE, Shape.BEZIER_1D):
-         in_ = end_key.param_1
-         if not next_key.time is None:
+        in_ = end_key.param_1
+        if not next_key.time is None:
             in_ *= (end_key.time - start_key.time) / (next_key.time - start_key.time)
     else:
         in_ = 0.0

@@ -236,7 +236,7 @@ def create_bmesh_cone(
             mesh,
             segments=segments,
             radius1=radius_1,
-            radius2=radius_1, 
+            radius2=radius_1,
             depth=depth
         )
     else:
@@ -244,7 +244,7 @@ def create_bmesh_cone(
             mesh,
             segments=segments,
             diameter1=radius_1,
-            diameter2=radius_1, 
+            diameter2=radius_1,
             depth=depth
         )
 

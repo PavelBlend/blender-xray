@@ -49,7 +49,7 @@ class ImportMeshContext(ImportContext):
         if result is None:
             try:
                 result = bpy.data.images.load(filepath)
-            except RuntimeError as ex:  # e.g. 'Error: Cannot read ...'
+            except RuntimeError:    # e.g. 'Error: Cannot read ...'
                 log.warn('texture file not found', path=filepath)
                 result = bpy.data.images.new(os.path.basename(relpath), 0, 0)
                 result.source = 'FILE'

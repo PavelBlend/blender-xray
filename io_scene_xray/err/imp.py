@@ -54,8 +54,8 @@ def import_(filepath, chunked_reader, operator):
                     face_indices.append(
                         face_index * 3 + vertex_order[vertex_index]
                     )
-                c = packed_reader.getf('<I')[0]    # ?
-                i = packed_reader.getf('<H')[0]    # ?
+                color = packed_reader.getf('<I')[0]    # RGBA
+                draw_index = packed_reader.getf('<H')[0]    # bool
                 m = packed_reader.getf('<H')[0]    # ?
                 faces.append(face_indices)
 

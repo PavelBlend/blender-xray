@@ -598,14 +598,14 @@ def get_revision_data(revision):
     if (not revision.owner) or (revision.owner == curruser):
         owner = curruser
         if revision.ctime:
-            ctime = revision.ctime 
+            ctime = revision.ctime
         else:
             ctime = currtime
         moder = ''
         mtime = 0
     else:
         owner = revision.owner
-        ctime = revision.ctime 
+        ctime = revision.ctime
         moder = curruser
         mtime = currtime
     return owner, ctime, moder, mtime

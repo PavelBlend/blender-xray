@@ -1,11 +1,4 @@
-# standart modules
-import os
-
-# blender modules
-import bpy
-
 # addon modules
-from ... import log
 from ... import contexts
 
 

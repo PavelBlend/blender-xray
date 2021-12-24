@@ -574,7 +574,6 @@ classes = (
     XRAY_PT_rig,
     XRAY_PT_import_operators,
     XRAY_PT_export_operators
-    
 )
 
 

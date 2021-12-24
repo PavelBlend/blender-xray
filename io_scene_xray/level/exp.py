@@ -78,10 +78,8 @@ class Level(object):
 
 def write_level_geom_swis():
     packed_writer = xray_io.PackedWriter()
-
     # TODO: export swis data
     packed_writer.putf('<I', 0)    # swis count
-
     return packed_writer
 
 
@@ -432,7 +430,6 @@ def write_visual_header(level, bpy_obj, visual=None, visual_type=0, shader_id=0)
         packed_writer.putf('<H', visual.shader_index + 1)
     else:
         packed_writer.putf('<H', shader_id)    # shader id
-    data = bpy_obj.xray
     bbox, (center, radius) = ogf.exp.calculate_bbox_and_bsphere(
         bpy_obj, apply_transforms=True, cache=level.visuals_cache
     )
@@ -572,7 +569,6 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
         level.vbs_offsets.append(0)
 
     # find indices buffer
-    vertex_index_size = 2
     if ibs:
         ib = ibs[-1]
         ib_offset = level.ibs_offsets[-1]
@@ -866,7 +862,6 @@ def write_fastpath_gcontainer(fastpath_obj, fp_vbs, fp_ibs, level):
         level.fp_vbs_offsets.append(0)
 
     # find indices buffer
-    vertex_index_size = 2
     if fp_ibs:
         ib = fp_ibs[-1]
         ib_offset = level.fp_ibs_offsets[-1]
