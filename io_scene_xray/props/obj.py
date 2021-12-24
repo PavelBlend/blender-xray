@@ -395,7 +395,10 @@ def flags_simple_get(self):
 def flags_simple_set(self, value):
     self.flags_force_custom = value == 0
     if value != 0:  # !custom
-        self.flags = _flags_simple_inv_map[value] & ~0x40
+        if self.flags_custom_hqexp:
+            self.flags = _flags_simple_inv_map[value] | 0x40
+        else:
+            self.flags = _flags_simple_inv_map[value] & ~0x40
 
 
 xray_object_properties = {
