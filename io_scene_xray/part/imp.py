@@ -41,6 +41,9 @@ def import_cs_cop_objects(ltx, context, level_name):
                     imported_objects[ref] = imported_object
                 else:
                     imported_object = loaded_object.copy()
+                    for child_object in loaded_object.children:
+                        new_child = child_object.copy()
+                        new_child.parent = imported_object
                 version_utils.link_object_to_collection(imported_object, collection)
                 obj_name = params.get('name', None)
                 pos = params.get('position', None)
