@@ -1,0 +1,17 @@
+[BASIC]
+
+
+[TYPECHECK]
+ignored-modules=
+    bpy,
+    bmesh,
+    bpy_extras,
+    mathutils,
+    bgl,
+    bl_operators,
+    rna_keymap_ui,
+    gpu,
+    gpu_extras
+
+[MESSAGES CONTROL]
+disable=C0114,C0115,C0116,R0903,W0612,W0235
