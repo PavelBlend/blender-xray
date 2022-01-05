@@ -59,8 +59,8 @@ def create_bone(
             else:
                 log.warn(
                     text.warn.no_bone_parent,
-                    bone=name,
-                    parent=parent
+                    parent=parent,
+                    child=name
                 )
         bpy_bone.tail.y = 0.02
         bpy_bone.matrix = mat
@@ -122,17 +122,18 @@ def import_bone(
     length = reader.getf('<f')[0]
 
     if not bpy_arm_obj.data.bones.get(parent) and parent:
-        bone_id = bone_id_by_name[parent]
-        parent_chunks = bones_chunks[bone_id]
-        import_bone(
-            context,
-            parent_chunks,
-            bpy_arm_obj,
-            renamemap,
-            imported_bones,
-            bones_chunks,
-            bone_id_by_name
-        )
+        bone_id = bone_id_by_name.get(parent, None)
+        if bone_id:
+            parent_chunks = bones_chunks[bone_id]
+            import_bone(
+                context,
+                parent_chunks,
+                bpy_arm_obj,
+                renamemap,
+                imported_bones,
+                bones_chunks,
+                bone_id_by_name
+            )
     bpy_bone = create_bone(
         context, bpy_arm_obj,
         name, parent,
