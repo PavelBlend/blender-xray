@@ -24,7 +24,7 @@ def write_object_body(chunked_writer, bpy_obj):
         if bpy_obj.xray.export_path[-1] != '\\':
             bpy_obj.xray.export_path += '\\'
     object_name = bpy_obj.xray.export_path + bpy_obj.name
-    if object_name[-4] == '.':
+    if len(object_name) > 4 and object_name[-4] == '.':
         if object_name[-1] in string.digits and \
            object_name[-2] in string.digits and \
            object_name[-3] in string.digits:
