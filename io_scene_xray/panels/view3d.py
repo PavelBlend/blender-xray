@@ -280,6 +280,10 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
             ops.shader_tools.XRAY_OT_change_shader_params.bl_idname,
             icon='MATERIAL'
         )
+        column.operator(
+            ops.fake_user_utils.XRAY_OT_change_fake_user.bl_idname,
+            icon=version_utils.ICONS_279_TO_280['FONT_DATA']
+        )
 
         # 2.7x operators
         if not version_utils.IS_28:

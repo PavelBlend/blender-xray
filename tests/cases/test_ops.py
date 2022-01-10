@@ -155,3 +155,54 @@ class TestAnmImport(utils.XRayTestCase):
         bpy.ops.io_scene_xray.verify_uv()
 
         self.assertEqual(len(bpy.context.selected_objects), 1)
+
+    def test_change_fake_user(self):
+        for index in range(3):
+            name = str(index)
+            me = bpy.data.meshes.new(name)
+            obj = bpy.data.objects.new(name, me)
+            utils.link_object(obj)
+            utils.select_object(obj)
+            mat = bpy.data.materials.new(name)
+            me.materials.append(mat)
+            img = bpy.data.images.new(name, 0, 0)
+            img.source = 'FILE'
+            mat.use_nodes = True
+            img_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
+            img_node.image = img
+            
+            arm = bpy.data.armatures.new(name)
+            obj = bpy.data.objects.new(name + '_arm', arm)
+            utils.link_object(obj)
+            utils.select_object(obj)
+            act = bpy.data.actions.new(name)
+            motion = obj.xray.motions_collection.add()
+            motion.name = act.name
+
+        utils.set_active_object(bpy.data.objects[0])
+
+        modes = (
+            'ACTIVE_OBJECT',
+            'SELECTED_OBJECTS',
+            'ALL_OBJECTS',
+            'ALL_DATA'
+        )
+        data = (
+            'OBJECTS',
+            'MESHES',
+            'MATERIALS',
+            'TEXTURES',
+            'IMAGES',
+            'ARMATURES',
+            'ACTIONS',
+            'ALL'
+        )
+        fake_users = ('TRUE', 'FALSE', 'INVERT')
+        for mode in modes:
+            for data_ in data:
+                for fake_user in fake_users:
+                    bpy.ops.io_scene_xray.change_fake_user(
+                        mode=mode,
+                        data={data_, },
+                        fake_user=fake_user
+                    )
