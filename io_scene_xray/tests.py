@@ -27,6 +27,7 @@ def remove_bpy_data():
 
 op_modal_props = {
     'test_folder': bpy.props.StringProperty(),
+    'pause': bpy.props.FloatProperty(default=0.1, min=0.0001, max=100.0)
 }
 
 
@@ -115,16 +116,17 @@ class XRAY_OT_test_ogf_import_modal(bpy.types.Operator):
                 self.test_ogf_import()
             else:
                 context.window_manager.event_timer_remove(self.timer)
+                remove_bpy_data()
                 return {'FINISHED'}
         elif event.type == 'ESC':
+            remove_bpy_data()
             return {'CANCELLED'}
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
-        self.context = context
         self.collect_files(context)
         self.timer = context.window_manager.event_timer_add(
-            0.1,
+            self.pause,
             window=context.window
         )
         context.window_manager.modal_handler_add(self)
@@ -135,6 +137,12 @@ op_props = {
     'directory': bpy.props.StringProperty(
         subtype="DIR_PATH", options={'SKIP_SAVE', 'HIDDEN'}
     ),
+    'pause': bpy.props.FloatProperty(
+        default=0.1,
+        min=0.0001,
+        max=100.0,
+        name='Pause'
+    )
 }
 
 
@@ -146,14 +154,15 @@ class XRAY_OT_test_ogf_import(
     bl_label = 'Test OGF Import'
     bl_options = {'REGISTER'}
 
-    timer = None
-
     if not version_utils.IS_28:
         for prop_name, prop_value in op_props.items():
             exec('{0} = op_props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
-        bpy.ops.wm.test_ogf_import_modal(test_folder=self.directory)
+        bpy.ops.wm.test_ogf_import_modal(
+            test_folder=self.directory,
+            pause=self.pause
+        )
         return {'FINISHED'}
 
     def invoke(self, context, event):
