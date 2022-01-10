@@ -386,6 +386,8 @@ class XRAY_OT_rename_actions(bpy.types.Operator):
                 self.add_object_motions(obj)
         renamed = 0
         not_renamed = 0
+        custom_name_objs = set()
+        no_custom_name_objs = set()
         for obj, action, export_name, index in self.motions:
             part_1 = self.calc_name(obj.name, export_name, 0)
             part_2 = self.calc_name(obj.name, export_name, 1)
@@ -410,7 +412,15 @@ class XRAY_OT_rename_actions(bpy.types.Operator):
             motion.name = action.name
             if motion.name == motion.export_name:
                 motion.export_name = ''
+                no_custom_name_objs.add(obj)
+            else:
+                custom_name_objs.add(obj)
             renamed += 1
+        for obj in custom_name_objs:
+            obj.xray.use_custom_motion_names = True
+        no_custom_name_objs = no_custom_name_objs - custom_name_objs
+        for obj in no_custom_name_objs:
+            obj.xray.use_custom_motion_names = False
         self.report(
             {'INFO'},
             'Renamed: {}, Not Renamed: {}'.format(renamed, not_renamed)
