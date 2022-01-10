@@ -282,7 +282,7 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
         )
         column.operator(
             ops.fake_user_utils.XRAY_OT_change_fake_user.bl_idname,
-            icon=version_utils.ICONS_279_TO_280['FONT_DATA']
+            icon=version_utils.get_icon('FONT_DATA')
         )
 
         # 2.7x operators
@@ -305,6 +305,7 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
                 ops.material.XRAY_OT_switch_render.bl_idname,
                 text=switch_text
             )
+        column.operator(ops.action_utils.XRAY_OT_rename_actions.bl_idname)
 
 
 class XRAY_PT_custom_props(bpy.types.Panel):

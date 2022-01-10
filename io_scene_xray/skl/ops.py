@@ -64,7 +64,6 @@ op_import_skls_props = {
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
     'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
-    'use_motion_prefix_name': ie_props.PropObjectUseMotionPrefixName(),
     'add_actions_to_motion_list': ie_props.prop_skl_add_actions_to_motion_list()
 }
 
@@ -88,7 +87,6 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, 'use_motion_prefix_name')
         layout.prop(self, 'add_actions_to_motion_list')
         row = layout.row()
         row.enabled = False
@@ -164,7 +162,6 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
         import_context = imp.ImportSklContext()
         import_context.bpy_arm_obj = context.active_object
         import_context.motions_filter = motions_filter
-        import_context.use_motion_prefix_name = self.use_motion_prefix_name
         import_context.filename = None
         import_context.add_actions_to_motion_list = self.add_actions_to_motion_list
         for file in self.files:
@@ -187,7 +184,6 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
     @utils.invoke_require_armature
     def invoke(self, context, event):
         preferences = version_utils.get_preferences()
-        self.use_motion_prefix_name = preferences.skls_use_motion_prefix_name
         self.add_actions_to_motion_list = preferences.add_actions_to_motion_list
         return super().invoke(context, event)
 

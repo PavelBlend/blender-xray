@@ -442,7 +442,6 @@ plugin_preferences_props = {
     # object import props
     'sdk_version': ie_props.PropSDKVersion(),
     'object_motions_import': ie_props.PropObjectMotionsImport(),
-    'use_motion_prefix_name': ie_props.PropObjectUseMotionPrefixName(),
     'object_mesh_split_by_mat': ie_props.PropObjectMeshSplitByMaterials(),
     # object export props
     'export_object_sdk_version': ie_props.PropSDKVersion(),
@@ -455,7 +454,6 @@ plugin_preferences_props = {
     # anm export props
     'anm_format_version': ie_props.prop_anm_format_version(),
     # skl/skls import props
-    'skls_use_motion_prefix_name': ie_props.PropObjectUseMotionPrefixName(),
     'add_actions_to_motion_list': ie_props.prop_skl_add_actions_to_motion_list(),
     # bones import props
     'bones_import_bone_parts': ie_props.prop_import_bone_parts(),

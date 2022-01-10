@@ -219,21 +219,236 @@ class XRAY_OT_change_action_bake_settings(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
+part_items = (
+    ('NONE', 'None', ''),
+    ('OBJECT_NAME', 'Object Name', ''),
+    ('MOTION_NAME', 'Motion Name', '')
+)
+funct_items = (
+    ('NONE', 'None', ''),
+    ('LOWER', 'Lower', ''),
+    ('UPPER', 'Upper', ''),
+    ('CAPITALIZE', 'Capitalize', ''),
+    ('TITLE', 'Title', '')
+)
+rename_actions_props = {
+    'data_mode': bpy.props.EnumProperty(
+        name='Data Mode',
+        items=(
+            ('ACTIVE_MOTION', 'Active Motion', ''),
+            ('ACTIVE_OBJECT', 'Active Object', ''),
+            ('SELECTED_OBJECTS', 'Selected Objects', ''),
+            ('ALL_OBJECTS', 'All Objects', '')
+        ),
+        default='SELECTED_OBJECTS'
+    ),
+    # part 1
+    'part_1': bpy.props.EnumProperty(
+        name='Part',
+        items=part_items,
+        default='OBJECT_NAME'
+    ),
+    'prefix_1': bpy.props.StringProperty(name='Prefix', default=''),
+    'suffix_1': bpy.props.StringProperty(name='Suffix', default=''),
+    'function_1': bpy.props.EnumProperty(
+        name='Function',
+        items=funct_items,
+        default='NONE'
+    ),
+    'replace_old_1': bpy.props.StringProperty(name='Old', default=''),
+    'replace_new_1': bpy.props.StringProperty(name='New', default=''),
+    # part 2
+    'part_2': bpy.props.EnumProperty(
+        name='Part',
+        items=part_items,
+        default='MOTION_NAME'
+    ),
+    'prefix_2': bpy.props.StringProperty(name='Prefix', default=''),
+    'suffix_2': bpy.props.StringProperty(name='Suffix', default=''),
+    'function_2': bpy.props.EnumProperty(
+        name='Function',
+        items=funct_items,
+        default='NONE'
+    ),
+    'replace_old_2': bpy.props.StringProperty(name='Old', default=''),
+    'replace_new_2': bpy.props.StringProperty(name='New', default='')
+}
+
+
+class XRAY_OT_rename_actions(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.rename_actions'
+    bl_label = 'Rename Actions'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in rename_actions_props.items():
+            exec('{0} = rename_actions_props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):
+        column = self.layout.column(align=True)
+
+        column.label(text='Data Mode:')
+        column.prop(self, 'data_mode', expand=True)
+
+        part_1 = self.calc_name('object_name', 'motion_name', 0)
+        part_2 = self.calc_name('object_name', 'motion_name', 1)
+        example = '{0}{1}{2}{3}{4}{5}'.format(
+            # part 1
+            self.prefix_1,
+            part_1,
+            self.suffix_1,
+            # part 2
+            self.prefix_2,
+            part_2,
+            self.suffix_2
+        )
+        column.label(text='Result:')
+        column.label(text=example)
+
+        for index in (1, 2):
+            box = column.box()
+            box.label(text='Part {}:'.format(index))
+            box.prop(self, 'prefix_{}'.format(index))
+            box.row().prop(self, 'part_{}'.format(index), expand=True)
+            box.prop(self, 'suffix_{}'.format(index))
+            box.label(text='Replace:')
+            row = box.row()
+            row.label(text='Old:')
+            row.prop(self, 'replace_old_{}'.format(index), text='')
+            row.label(text='New:')
+            row.prop(self, 'replace_new_{}'.format(index), text='')
+            row = box.row()
+            row.prop(self, 'function_{}'.format(index), expand=True)
+
+    def add_motion(self, obj, index):
+        motion = obj.xray.motions_collection[index]
+        action = bpy.data.actions.get(motion.name)
+        if action:
+            if obj.xray.use_custom_motion_names:
+                if motion.export_name:
+                    export_name = motion.export_name
+                else:
+                    export_name = action.name
+            else:
+                export_name = action.name
+            self.motions.add((obj, action, export_name, index))
+
+    def add_object_motions(self, obj):
+        for motion_index in range(len(obj.xray.motions_collection)):
+            self.add_motion(obj, motion_index)
+
+    def calc_name(self, obj_name, export_name, index):
+        # base name
+        parts = (self.part_1, self.part_2)
+        if parts[index] == 'OBJECT_NAME':
+            result = obj_name
+        elif parts[index] == 'MOTION_NAME':
+            result = export_name
+        else:
+            result = ''
+
+        # replace
+        replace_old = (self.replace_old_1, self.replace_old_2)[index]
+        replace_new = (self.replace_new_1, self.replace_new_2)[index]
+        result = result.replace(replace_old, replace_new)
+
+        # function 1
+        functs = (self.function_1, self.function_2)
+        if functs[index] == 'LOWER':
+            result = result.lower()
+        elif functs[index] == 'UPPER':
+            result = result.upper()
+        elif functs[index] == 'CAPITALIZE':
+            result = result.capitalize()
+        elif functs[index] == 'TITLE':
+            result = result.title()
+        else:
+            result = result
+
+        return result
+
+    @utils.set_cursor_state
+    def execute(self, context):
+        obj = context.object
+        if not obj and self.data_mode in ('ACTIVE_MOTION', 'ACTIVE_OBJECT'):
+            self.report({'WARNING'}, 'No active object!')
+            return {'FINISHED'}
+        self.motions = set()
+        if self.data_mode == 'ACTIVE_MOTION':
+            self.add_motion(obj, obj.xray.motions_collection_index)
+        elif self.data_mode == 'ACTIVE_OBJECT':
+            self.add_object_motions(obj)
+        elif self.data_mode == 'SELECTED_OBJECTS':
+            for obj in context.selected_objects:
+                self.add_object_motions(obj)
+        else:
+            for obj in bpy.data.objects:
+                self.add_object_motions(obj)
+        renamed = 0
+        not_renamed = 0
+        custom_name_objs = set()
+        no_custom_name_objs = set()
+        for obj, action, export_name, index in self.motions:
+            part_1 = self.calc_name(obj.name, export_name, 0)
+            part_2 = self.calc_name(obj.name, export_name, 1)
+            # rename
+            result_name = '{0}{1}{2}{3}{4}{5}'.format(
+                # part 1
+                self.prefix_1,
+                part_1,
+                self.suffix_1,
+                # part 2
+                self.prefix_2,
+                part_2,
+                self.suffix_2
+            )
+            if len(result_name) > 63:
+                not_renamed += 1
+                continue
+            motion = obj.xray.motions_collection[index]
+            if not motion.export_name:
+                motion.export_name = motion.name
+            action.name = result_name
+            motion.name = action.name
+            if motion.name == motion.export_name:
+                motion.export_name = ''
+                no_custom_name_objs.add(obj)
+            else:
+                custom_name_objs.add(obj)
+            renamed += 1
+        for obj in custom_name_objs:
+            obj.xray.use_custom_motion_names = True
+        no_custom_name_objs = no_custom_name_objs - custom_name_objs
+        for obj in no_custom_name_objs:
+            obj.xray.use_custom_motion_names = False
+        self.report(
+            {'INFO'},
+            'Renamed: {}, Not Renamed: {}'.format(renamed, not_renamed)
+        )
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
 classes = (
-    XRAY_OT_copy_action_settings,
-    XRAY_OT_paste_action_settings,
-    XRAY_OT_change_action_bake_settings
+    (XRAY_OT_copy_action_settings, None),
+    (XRAY_OT_paste_action_settings, None),
+    (XRAY_OT_change_action_bake_settings, change_action_bake_settings_props),
+    (XRAY_OT_rename_actions, rename_actions_props)
 )
 
 
 def register():
-    version_utils.assign_props([
-        (change_action_bake_settings_props, XRAY_OT_change_action_bake_settings),
-    ])
-    for operator in classes:
+    for operator, props in classes:
+        if props:
+            version_utils.assign_props([
+                (props, operator),
+            ])
         bpy.utils.register_class(operator)
 
 
 def unregister():
-    for operator in reversed(classes):
+    for operator, _ in reversed(classes):
         bpy.utils.unregister_class(operator)
