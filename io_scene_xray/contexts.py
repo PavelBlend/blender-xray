@@ -62,7 +62,6 @@ class ImportAnimationBaseContext(ImportContext):
         super().__init__()
         self.add_actions_to_motion_list = None
         self.selected_names = None
-        self.use_motion_prefix_name = None
         self.motions_filter = None
 
 

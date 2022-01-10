@@ -34,7 +34,6 @@ op_import_object_props = {
     ),
     'import_motions': ie_props.PropObjectMotionsImport(),
     'mesh_split_by_materials': ie_props.PropObjectMeshSplitByMaterials(),
-    'use_motion_prefix_name': ie_props.PropObjectUseMotionPrefixName(),
     'fmt_version': ie_props.PropSDKVersion()
 }
 
@@ -73,7 +72,6 @@ class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHel
         import_context.import_motions=self.import_motions
         import_context.split_by_materials=self.mesh_split_by_materials
         import_context.operator=self
-        import_context.use_motion_prefix_name=self.use_motion_prefix_name
         import_context.objects_folder=objects_folder
         for file in self.files:
             file_path = os.path.join(self.directory, file.name)
@@ -106,7 +104,6 @@ class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHel
         layout.prop(self, 'import_motions')
         row = layout.row()
         row.active = self.import_motions
-        row.prop(self, 'use_motion_prefix_name')
         layout.prop(self, 'mesh_split_by_materials')
 
     def invoke(self, context, event):
@@ -114,7 +111,6 @@ class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHel
         self.fmt_version = preferences.sdk_version
         self.import_motions = preferences.object_motions_import
         self.mesh_split_by_materials = preferences.object_mesh_split_by_mat
-        self.use_motion_prefix_name = preferences.use_motion_prefix_name
         return super().invoke(context, event)
 
 

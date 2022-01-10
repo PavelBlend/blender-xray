@@ -99,7 +99,6 @@ def draw_defaults(prefs):
         box.label(text='Import:')
         utils.draw_fmt_ver_prop(box, prefs, 'sdk_version', lay_type='ROW')
         box.prop(prefs, 'object_motions_import')
-        box.prop(prefs, 'use_motion_prefix_name')
         box.prop(prefs, 'object_mesh_split_by_mat')
         # export object props
         box = layout.box()
@@ -123,7 +122,6 @@ def draw_defaults(prefs):
     elif prefs.defaults_category == 'SKLS':
         box = layout.box()
         box.label(text='Import:')
-        box.prop(prefs, 'skls_use_motion_prefix_name')
         box.prop(prefs, 'add_actions_to_motion_list')
     elif prefs.defaults_category == 'BONES':
         box = layout.box()

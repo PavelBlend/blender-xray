@@ -185,7 +185,6 @@ def skls_animations_index_changed(self, context):
         import_context = skl.imp.ImportSklContext()
         import_context.bpy_arm_obj=ob
         import_context.motions_filter=xray_motions.MOTIONS_FILTER_ALL
-        import_context.use_motion_prefix_name=False
         import_context.filename=XRAY_OT_browse_skls_file.skls_file.file_path
         xray_motions.import_motion(XRAY_OT_browse_skls_file.skls_file.pr, import_context, bonesmap, reported)
         sk.animations_prev_name = animation_name
