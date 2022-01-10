@@ -219,9 +219,14 @@ class XRAY_OT_change_action_bake_settings(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
+part_items = (
+    ('NONE', 'None', ''),
+    ('OBJECT_NAME', 'Object Name', ''),
+    ('MOTION_NAME', 'Motion Name', '')
+)
 rename_actions_props = {
-    'mode': bpy.props.EnumProperty(
-        name='Mode',
+    'data_mode': bpy.props.EnumProperty(
+        name='Data Mode',
         items=(
             ('ACTIVE_MOTION', 'Active Motion', ''),
             ('ACTIVE_OBJECT', 'Active Object', ''),
@@ -230,6 +235,22 @@ rename_actions_props = {
         ),
         default='SELECTED_OBJECTS'
     ),
+    # part 1
+    'part_1': bpy.props.EnumProperty(
+        name='Part 1',
+        items=part_items,
+        default='OBJECT_NAME'
+    ),
+    'prefix_1': bpy.props.StringProperty(name='Prefix 1', default=''),
+    'suffix_1': bpy.props.StringProperty(name='Suffix 1', default=''),
+    # part 2
+    'part_2': bpy.props.EnumProperty(
+        name='Part 2',
+        items=part_items,
+        default='MOTION_NAME'
+    ),
+    'prefix_2': bpy.props.StringProperty(name='Prefix 2', default=''),
+    'suffix_2': bpy.props.StringProperty(name='Suffix 2', default=''),
 }
 
 
@@ -243,14 +264,129 @@ class XRAY_OT_rename_actions(bpy.types.Operator):
             exec('{0} = rename_actions_props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
-        layout = self.layout
-        layout.label(text='Mode:')
-        column = layout.column(align=True)
-        column.prop(self, 'mode', expand=True)
+        column = self.layout.column(align=True)
+
+        column.label(text='Data Mode:')
+        column.prop(self, 'data_mode', expand=True)
+        column.separator(factor=4)
+
+        if self.part_1 == 'OBJECT_NAME':
+            part_1 = 'ObjectName'
+        elif self.part_1 == 'MOTION_NAME':
+            part_1 = 'MotionName'
+        else:
+            part_1 = ''
+
+        if self.part_2 == 'OBJECT_NAME':
+            part_2 = 'ObjectName'
+        elif self.part_2 == 'MOTION_NAME':
+            part_2 = 'MotionName'
+        else:
+            part_2 = ''
+
+        example = '{0}{1}{2}{3}{4}{5}'.format(
+            # part 1
+            self.prefix_1,
+            part_1,
+            self.suffix_1,
+            # part 2
+            self.prefix_2,
+            part_2,
+            self.suffix_2
+        )
+        column.label(text='Result:')
+        column.label(text=example)
+        column.separator(factor=4)
+
+        column.label(text='Part 1:')
+        column.prop(self, 'prefix_1')
+        column.row().prop(self, 'part_1', expand=True)
+        column.prop(self, 'suffix_1')
+        column.separator(factor=4)
+
+        column.label(text='Part 2:')
+        column.prop(self, 'prefix_2')
+        column.row().prop(self, 'part_2', expand=True)
+        column.prop(self, 'suffix_2')
+        column.separator(factor=4)
+
+    def add_motion(self, obj, index):
+        motion = obj.xray.motions_collection[index]
+        action = bpy.data.actions.get(motion.name)
+        if action:
+            if obj.xray.use_custom_motion_names:
+                if motion.export_name:
+                    export_name = motion.export_name
+                else:
+                    export_name = action.name
+            else:
+                export_name = action.name
+            self.motions.add((obj, action, export_name, index))
+
+    def add_object_motions(self, obj):
+        for motion_index in range(len(obj.xray.motions_collection)):
+            self.add_motion(obj, motion_index)
 
     @utils.set_cursor_state
     def execute(self, context):
-        print(self.mode)
+        obj = context.object
+        if not obj and self.data_mode in ('ACTIVE_MOTION', 'ACTIVE_OBJECT'):
+            self.report({'WARNING'}, 'No active object!')
+            return {'FINISHED'}
+        self.motions = set()
+        if self.data_mode == 'ACTIVE_MOTION':
+            self.add_motion(obj, obj.xray.motions_collection_index)
+        elif self.data_mode == 'ACTIVE_OBJECT':
+            self.add_object_motions(obj)
+        elif self.data_mode == 'SELECTED_OBJECTS':
+            for obj in context.selected_objects:
+                self.add_object_motions(obj)
+        else:
+            for obj in bpy.data.objects:
+                self.add_object_motions(obj)
+        renamed = 0
+        not_renamed = 0
+        for obj, action, export_name, index in self.motions:
+            # part 1
+            if self.part_1 == 'OBJECT_NAME':
+                part_1 = obj.name
+            elif self.part_1 == 'MOTION_NAME':
+                part_1 = export_name
+            else:
+                part_1 = ''
+            # part 2
+            if self.part_2 == 'OBJECT_NAME':
+                part_2 = obj.name
+            elif self.part_2 == 'MOTION_NAME':
+                part_2 = export_name
+            else:
+                part_2 = ''
+            # rename
+            result_name = '{0}{1}{2}{3}{4}{5}'.format(
+                # part 1
+                self.prefix_1,
+                part_1,
+                self.suffix_1,
+                # part 2
+                self.prefix_2,
+                part_2,
+                self.suffix_2
+            )
+            if len(result_name) > 63:
+                not_renamed += 1
+                continue
+            motion = obj.xray.motions_collection[index]
+            if not motion.export_name:
+                motion.export_name = motion.name
+            action.name = result_name
+            motion.name = action.name
+            if motion.name == motion.export_name:
+                motion.export_name = ''
+            renamed += 1
+        self.report(
+            {'INFO'},
+            'Renamed: {}, Not Renamed: {}'.format(renamed, not_renamed)
+        )
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -276,5 +412,5 @@ def register():
 
 
 def unregister():
-    for operator in reversed(classes):
+    for operator, _ in reversed(classes):
         bpy.utils.unregister_class(operator)
