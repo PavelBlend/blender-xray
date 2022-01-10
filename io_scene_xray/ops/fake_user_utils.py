@@ -158,14 +158,15 @@ class XRAY_OT_change_fake_user(bpy.types.Operator):
                     elif rend in interal_compatible_rends:
                         # collect textures
                         for tex_slot in mat.texture_slots:
-                            tex = tex_slot.texture
-                            if tex:
-                                textures.add(tex)
-                                if tex.type == 'IMAGE':
-                                    # collect images
-                                    img = tex.image
-                                    if img:
-                                        images.add(img)
+                            if tex_slot:
+                                tex = tex_slot.texture
+                                if tex:
+                                    textures.add(tex)
+                                    if tex.type == 'IMAGE':
+                                        # collect images
+                                        img = tex.image
+                                        if img:
+                                            images.add(img)
 
         data_blocks = set()
 
