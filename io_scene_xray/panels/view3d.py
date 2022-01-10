@@ -343,7 +343,9 @@ class XRAY_PT_custom_props(bpy.types.Panel):
             text='X-Ray',
             icon='X'
         )
-        row.operator(
+        row_danger = row.row(align=True)
+        row_danger.alert = True
+        row_danger.operator(
             ops.custom_props_utils.XRAY_OT_remove_all_custom_props.bl_idname,
             text='All',
             icon='CANCEL'
@@ -397,7 +399,9 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
         col.operator(
             ops.joint_limits.XRAY_OT_convert_xray_to_ik_limits.bl_idname
         )
-        col.operator(
+        col_danger = col.column(align=True)
+        col_danger.alert = True
+        col_danger.operator(
             ops.joint_limits.XRAY_OT_clear_ik_limits.bl_idname
         )
 

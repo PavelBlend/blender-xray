@@ -148,6 +148,12 @@ class XRAY_OT_clear_ik_limits(JointLimitsBaseOperator):
     bl_description = 'Clear selected bones IK limits'
     bl_options = {'REGISTER', 'UNDO'}
 
+    def draw(self, context):
+        self.layout.label(
+            text='IK limits will be removed. Continue?',
+            icon='ERROR'
+        )
+
     @utils.set_cursor_state
     def execute(self, context):
         obj = context.object
@@ -165,6 +171,10 @@ class XRAY_OT_clear_ik_limits(JointLimitsBaseOperator):
                 pose_bone.ik_min_z = -math.pi
                 pose_bone.ik_max_z = math.pi
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
 
 classes = (
