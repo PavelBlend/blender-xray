@@ -25,60 +25,110 @@ def remove_bpy_data():
     clear_bpy_collection(data.actions)
 
 
-def test_ogf_import(debug_folder):
-    file_index = 0
-    error_index = 0
-    messages_count = 10
-    ver_count = 1000
-    ver_err_index = 0
-    log = []
-    log_ver = []
-    for root, dirs, files in os.walk(debug_folder):
-        for file in files:
-            name, ext = os.path.splitext(file)
-            ext = ext.lower()
-            if ext == '.ogf':
-                file_path = os.path.join(root, file)
-                file_message = '{0:0>6}: '.format(file_index) + file_path
-                file_index += 1
-                # if file_index <= 13_800:
-                #     continue
-                has_error = False
-                err_text = None
-                try:
-                    print(file_message)
-                    bpy.ops.xray_import.ogf(
-                        directory=root,
-                        files=[{'name': file_path}]
-                    )
-                    remove_bpy_data()
-                except Exception as err:
-                    err_text = str(err)
-                    if not 'Unsupported ogf format version' in err_text:
-                        log.append(file_message)
-                        log.append(err_text)
-                        has_error = True
-                        error_index += 1
-                    else:
-                        log_ver.append(file_message)
-                        ver_err_index += 1
-                if has_error:
-                    print(err_text)
-                    print()
-                if not error_index % messages_count and error_index:
-                    with open('E:\\logs\\errors\\log_{0:0>4}.txt'.format(
-                            error_index // messages_count), 'w'
-                        ) as file:
-                        for message in log:
-                            file.write(message + '\n')
-                    log.clear()
-                if not ver_err_index % ver_count and ver_err_index:
-                    with open('E:\\logs\\ver\\log_{0:0>4}.txt'.format(
-                                ver_err_index // ver_count
-                        ), 'w') as file:
-                        for message in log_ver:
-                            file.write(message + '\n')
-                    log_ver.clear()
+op_modal_props = {
+    'test_folder': bpy.props.StringProperty(),
+}
+
+
+class XRAY_OT_test_ogf_import_modal(bpy.types.Operator):
+    bl_idname = 'wm.test_ogf_import_modal'
+    bl_label = 'Test OGF Import Modal'
+    bl_options = {'REGISTER'}
+
+    timer = None
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in op_modal_props.items():
+            exec('{0} = op_modal_props.get("{0}")'.format(prop_name))
+
+    def collect_files(self, context):
+        self.file_index = 0
+        self.error_index = 0
+        self.messages_count = 10
+        self.ver_count = 1000
+        self.ver_err_index = 0
+        self.log = []
+        self.log_ver = []
+        self.files_list = []
+        for root, dirs, files in os.walk(self.test_folder):
+            for file in files:
+                name, ext = os.path.splitext(file)
+                ext = ext.lower()
+                if ext == '.ogf':
+                    self.files_list.append((root, file))
+        return {'FINISHED'}
+
+    def test_ogf_import(self):
+        remove_bpy_data()
+        root, file = self.files_list[self.file_index]
+        file_path = os.path.join(root, file)
+        file_message = '{0:0>6}: '.format(self.file_index) + file_path
+        self.file_index += 1
+        # if file_index <= 13_800:
+        #     continue
+        has_error = False
+        err_text = None
+        try:
+            print(file_message)
+            bpy.ops.xray_import.ogf(
+                directory=root,
+                files=[{'name': file}],
+                import_motions=False
+            )
+            for area in bpy.context.screen.areas:
+                if area.type == 'VIEW_3D':
+                    ctx = bpy.context.copy()
+                    ctx['area'] = area
+                    ctx['region'] = area.regions[-1]
+                    bpy.ops.view3d.view_all(ctx, center=False)
+        except Exception as err:
+            err_text = str(err)
+            if not 'Unsupported ogf format version' in err_text:
+                self.log.append(file_message)
+                self.log.append(err_text)
+                has_error = True
+                self.error_index += 1
+            else:
+                self.log_ver.append(file_message)
+                self.ver_err_index += 1
+        if has_error:
+            print(err_text)
+            print()
+        if not self.error_index % self.messages_count and self.error_index:
+            with open('E:\\logs\\errors\\log_{0:0>4}.txt'.format(
+                    self.error_index // self.messages_count), 'w'
+                ) as file:
+                for message in self.log:
+                    file.write(message + '\n')
+            self.log.clear()
+        if not self.ver_err_index % self.ver_count and self.ver_err_index:
+            with open('E:\\logs\\ver\\log_{0:0>4}.txt'.format(
+                        self.ver_err_index // self.ver_count
+                ), 'w') as file:
+                for message in self.log_ver:
+                    file.write(message + '\n')
+            self.log_ver.clear()
+
+    def modal(self, context, event):
+        if event.type == 'TIMER':
+            if self.file_index < len(self.files_list):
+                self.test_ogf_import()
+            else:
+                context.window_manager.event_timer_remove(self.timer)
+                return {'FINISHED'}
+        elif event.type == 'ESC':
+            return {'CANCELLED'}
+        return {'RUNNING_MODAL'}
+
+    def execute(self, context):
+        self.context = context
+        self.collect_files(context)
+        self.timer = context.window_manager.event_timer_add(
+            0.1,
+            window=context.window
+        )
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
 
 
 op_props = {
@@ -96,12 +146,14 @@ class XRAY_OT_test_ogf_import(
     bl_label = 'Test OGF Import'
     bl_options = {'REGISTER'}
 
+    timer = None
+
     if not version_utils.IS_28:
         for prop_name, prop_value in op_props.items():
             exec('{0} = op_props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
-        test_ogf_import(self.directory)
+        bpy.ops.wm.test_ogf_import_modal(test_folder=self.directory)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -111,7 +163,10 @@ class XRAY_OT_test_ogf_import(
 def register():
     version_utils.assign_props([(op_props, XRAY_OT_test_ogf_import), ])
     bpy.utils.register_class(XRAY_OT_test_ogf_import)
+    version_utils.assign_props([(op_modal_props, XRAY_OT_test_ogf_import_modal), ])
+    bpy.utils.register_class(XRAY_OT_test_ogf_import_modal)
 
 
 def unregister():
     bpy.utils.unregister_class(XRAY_OT_test_ogf_import)
+    bpy.utils.unregister_class(XRAY_OT_test_ogf_import_modal)
