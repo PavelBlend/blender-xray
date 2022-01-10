@@ -219,18 +219,59 @@ class XRAY_OT_change_action_bake_settings(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
+rename_actions_props = {
+    'mode': bpy.props.EnumProperty(
+        name='Mode',
+        items=(
+            ('ACTIVE_MOTION', 'Active Motion', ''),
+            ('ACTIVE_OBJECT', 'Active Object', ''),
+            ('SELECTED_OBJECTS', 'Selected Objects', ''),
+            ('ALL_OBJECTS', 'All Objects', '')
+        ),
+        default='SELECTED_OBJECTS'
+    ),
+}
+
+
+class XRAY_OT_rename_actions(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.rename_actions'
+    bl_label = 'Rename Actions'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in rename_actions_props.items():
+            exec('{0} = rename_actions_props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text='Mode:')
+        column = layout.column(align=True)
+        column.prop(self, 'mode', expand=True)
+
+    @utils.set_cursor_state
+    def execute(self, context):
+        print(self.mode)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
 classes = (
-    XRAY_OT_copy_action_settings,
-    XRAY_OT_paste_action_settings,
-    XRAY_OT_change_action_bake_settings
+    (XRAY_OT_copy_action_settings, None),
+    (XRAY_OT_paste_action_settings, None),
+    (XRAY_OT_change_action_bake_settings, change_action_bake_settings_props),
+    (XRAY_OT_rename_actions, rename_actions_props)
 )
 
 
 def register():
-    version_utils.assign_props([
-        (change_action_bake_settings_props, XRAY_OT_change_action_bake_settings),
-    ])
-    for operator in classes:
+    for operator, props in classes:
+        if props:
+            version_utils.assign_props([
+                (props, operator),
+            ])
         bpy.utils.register_class(operator)
 
 

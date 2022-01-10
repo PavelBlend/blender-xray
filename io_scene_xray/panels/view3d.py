@@ -305,6 +305,7 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
                 ops.material.XRAY_OT_switch_render.bl_idname,
                 text=switch_text
             )
+        column.operator(ops.action_utils.XRAY_OT_rename_actions.bl_idname)
 
 
 class XRAY_PT_custom_props(bpy.types.Panel):
