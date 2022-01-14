@@ -4,6 +4,7 @@ import math
 # blender modules
 import gpu
 import bgl
+import mathutils
 
 # addon modules
 from . import settings
@@ -177,6 +178,22 @@ def draw_cross(size, color):
     batch.draw(shader)
 
 
+def draw_line(start, end, color):
+    coords = (
+        start,
+        end
+    )
+    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    batch = gpu_extras.batch.batch_for_shader(
+        shader,
+        'LINES',
+        {"pos": coords}
+    )
+    shader.bind()
+    shader.uniform_float("color", color)
+    batch.draw(shader)
+
+
 def gen_limit_circle(
         rotate, radius, num_segments,
         axis, color, min_limit, max_limit
@@ -255,3 +272,27 @@ def draw_joint_limits(rotate, min_limit, max_limit, axis, radius):
         axis, color,
         min_limit, max_limit
     )
+
+
+def draw_slider_rotation_limits(
+        rotation,
+        rotation_min,
+        rotation_max,
+        radius
+    ):
+    color = settings.AXIS_COLORS['Z']
+    gen_limit_circle(
+        rotation,
+        radius,
+        settings.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
+        'Z',
+        color,
+        rotation_min,
+        rotation_max
+    )
+
+
+def draw_slider_slide_limits(slide_min, slide_max, color):
+    start = (0, 0, slide_min)
+    end = (0, 0, slide_max)
+    draw_line(start, end, color)

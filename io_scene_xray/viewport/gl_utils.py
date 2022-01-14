@@ -112,6 +112,30 @@ def draw_joint_limits(rotate, min_limit, max_limit, axis, radius):
     )
 
 
+def draw_slider_rotation_limits(
+        rotation,
+        rotation_min,
+        rotation_max,
+        radius
+    ):
+    color = settings.AXIS_COLORS['Z']
+    gen_limit_circle(
+        rotation,
+        radius,
+        settings.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
+        axis_draw_functions['Z'],
+        color,
+        rotation_min,
+        rotation_max
+    )
+
+
+def draw_slider_slide_limits(slide_min, slide_max, color):
+    start = (0, 0, slide_min)
+    end = (0, 0, slide_max)
+    draw_line(start, end, color)
+
+
 def draw_wire_sphere(radius, num_segments):
     bgl.glBegin(bgl.GL_LINE_LOOP)
     gen_circle(radius, num_segments, lambda x, y: bgl.glVertex3f(x, y, 0))
@@ -157,4 +181,12 @@ def draw_cross(size):
     bgl.glVertex3f(0, +size, 0)
     bgl.glVertex3f(0, 0, -size)
     bgl.glVertex3f(0, 0, +size)
+    bgl.glEnd()
+
+
+def draw_line(start, end, color):
+    bgl.glBegin(bgl.GL_LINES)
+    bgl.glColor4f(*color)
+    bgl.glVertex3f(*start)
+    bgl.glVertex3f(*end)
     bgl.glEnd()

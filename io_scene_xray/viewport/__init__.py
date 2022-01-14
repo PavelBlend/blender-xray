@@ -43,6 +43,20 @@ def get_draw_joint_limits():
         return gl_utils.draw_joint_limits
 
 
+def get_draw_slider_rotation_limits():
+    if version_utils.IS_28:
+        return gpu_utils.draw_slider_rotation_limits
+    else:
+        return gl_utils.draw_slider_rotation_limits
+
+
+def get_draw_slider_slide_limits():
+    if version_utils.IS_28:
+        return gpu_utils.draw_slider_slide_limits
+    else:
+        return gl_utils.draw_slider_slide_limits
+
+
 def overlay_view_3d():
     def try_draw(base_obj, obj):
         if not hasattr(obj, 'xray'):

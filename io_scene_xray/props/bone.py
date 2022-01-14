@@ -233,6 +233,23 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         exportable = bone.xray.exportable
         draw_overlays = not hided and is_pose and exportable
 
+        preferences = version_utils.get_preferences()
+        # set color
+        if is_pose:
+            active_bone = bpy.context.active_bone
+            color = None
+            if active_bone:
+                if active_bone.id_data == obj_arm.data:
+                    if active_bone.name == bone.name:
+                        color = preferences.gl_active_shape_color
+            if color is None:
+                if bone.select:
+                    color = preferences.gl_select_shape_color
+                else:
+                    color = preferences.gl_shape_color
+        else:
+            color = preferences.gl_object_mode_shape_color
+
         if draw_overlays and arm_xray.display_bone_limits:
             context_obj = bpy.context.object
             if context_obj:
@@ -248,7 +265,8 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 else:
                     bgl.glPushMatrix()
 
-                mat_translate = mathutils.Matrix.Translation(obj_arm.pose.bones[bone.name].matrix.to_translation())
+                translate = obj_arm.pose.bones[bone.name].matrix.to_translation()
+                mat_translate = mathutils.Matrix.Translation(translate)
                 mat_rotate = obj_arm.data.bones[bone.name].matrix_local.to_euler().to_matrix().to_4x4()
                 if bone.parent:
                     mat_rotate_parent = obj_arm.pose.bones[bone.parent.name].matrix_basis.to_euler().to_matrix().to_4x4()
@@ -312,10 +330,28 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
 
                 # slider limits
                 if arm_xray.display_bone_limit_z and is_slider:
-                    draw_joint_limits(
-                        rotate.z, limits[2], limits[3], 'Z',
+                    draw_slider_rotation_limits = viewport.get_draw_slider_rotation_limits()
+                    draw_slider_rotation_limits(
+                        rotate.z, limits[2], limits[3],
                         arm_xray.display_bone_limits_radius
                     )
+                    bone_matrix = obj_arm.data.bones[bone.name].matrix_local.to_4x4()
+                    slider_mat = multiply(
+                        obj_arm.matrix_world,
+                        bone_matrix
+                    )
+                    if version_utils.IS_28:
+                        gpu.matrix.pop()
+                        gpu.matrix.push()
+                        gpu.matrix.multiply_matrix(slider_mat)
+                    else:
+                        bgl.glPopMatrix()
+                        bgl.glPushMatrix()
+                        bgl.glMultMatrixf(
+                            viewport.gl_utils.matrix_to_buffer(slider_mat.transposed())
+                        )
+                    draw_slider_slide_limits = viewport.get_draw_slider_slide_limits()
+                    draw_slider_slide_limits(limits[0], limits[1], color)
 
                 if version_utils.IS_28:
                     gpu.matrix.pop()
@@ -328,23 +364,6 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
         )
         bmat = mat
-
-        preferences = version_utils.get_preferences()
-        # set color
-        if is_pose:
-            active_bone = bpy.context.active_bone
-            color = None
-            if active_bone:
-                if active_bone.id_data == obj_arm.data:
-                    if active_bone.name == bone.name:
-                        color = preferences.gl_active_shape_color
-            if color is None:
-                if bone.select:
-                    color = preferences.gl_select_shape_color
-                else:
-                    color = preferences.gl_shape_color
-        else:
-            color = preferences.gl_object_mode_shape_color
 
         if not version_utils.IS_28:
             bgl.glColor4f(*color)
