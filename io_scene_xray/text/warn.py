@@ -5,6 +5,7 @@ env_tex = 'material has incorrect image node type (Environment Texture)'
 no_bone_parent = 'bone parent isn\'t found'
 invalid_image_path = 'image has an invalid path'
 no_file = 'no file selected'
+img_bad_image_path = 'image is not in the textures folder'
 # anm export
 anm_rot_mode = 'object has rotation mode other than YXZ. Animation has been baked'
 # anm import

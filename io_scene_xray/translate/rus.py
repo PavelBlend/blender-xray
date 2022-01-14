@@ -20,7 +20,6 @@ translations_table = (
     (text.error.no_tex, 'материал не имеет текстуры'),
     (text.error.obj_no_mat, 'объект не имеет материала'),
     (text.error.many_mat, 'меш-объект имеет более одного материала'),
-    (text.error.img_bad_image_path, 'изображение не находится в папке с текстурами'),
     (text.error.file_another_prog, 'невозможно записать файл. Файл открыт в другой программе'),
     (text.error.no_active_obj, 'нет активного объекта'),
     (text.error.is_not_arm, 'активный объект не является арматурой'),
@@ -134,6 +133,7 @@ translations_table = (
     (text.warn.no_bone_parent, 'не найдена родительская кость'),
     (text.warn.invalid_image_path, 'изображение имеет некорректный путь'),
     (text.warn.no_file, 'файл не выделен'),
+    (text.warn.img_bad_image_path, 'изображение не находится в папке с текстурами'),
     # anm export
     (text.warn.anm_rot_mode, 'объект имеет режим вращения отличающийся от YXZ. Анимация была запечена'),
     # anm import
