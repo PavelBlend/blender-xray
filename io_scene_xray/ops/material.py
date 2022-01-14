@@ -1,4 +1,5 @@
 # standart modules
+import os
 import zlib
 
 # blender modules
@@ -497,7 +498,87 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
+create_materials_props = {
+    'filter_glob': bpy.props.StringProperty(
+        default='*.dds', options={'HIDDEN'}
+    ),
+    'directory': bpy.props.StringProperty(
+        subtype="DIR_PATH", options={'SKIP_SAVE', 'HIDDEN'}
+    ),
+    'filepath': bpy.props.StringProperty(
+        subtype="FILE_PATH", options={'SKIP_SAVE', 'HIDDEN'}
+    ),
+    'material_name': bpy.props.StringProperty()
+}
+
+
+class XRAY_OT_create_material(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.create_material'
+    bl_label = 'Create X-Ray Material'
+    bl_description = ''
+    bl_options = {'REGISTER', 'UNDO'}
+
+    if not version_utils.IS_28:
+        for prop_name, prop_value in create_materials_props.items():
+            exec('{0} = create_materials_props.get("{0}")'.format(prop_name))
+
+    @utils.set_cursor_state
+    def execute(self, context):
+        mat = bpy.data.materials[self.material_name]
+        file_path = os.path.abspath(self.filepath)
+        mat.use_nodes = True
+        nodes = mat.node_tree.nodes
+        nodes.clear()
+
+        # create nodes
+        loc = mathutils.Vector((0, 0))
+
+        image_node = nodes.new('ShaderNodeTexImage')
+        image_node.location = loc
+        image_node.select = False
+        loc.x += 450
+
+        diffuse_node = nodes.new('ShaderNodeBsdfDiffuse')
+        diffuse_node.location = loc
+        diffuse_node.select = False
+        loc.x += 300
+
+        output_node = nodes.new('ShaderNodeOutputMaterial')
+        output_node.location = loc
+        output_node.select = False
+
+        # create links
+        mat.node_tree.links.new(
+            diffuse_node.inputs['Color'],
+            image_node.outputs['Color']
+        )
+        mat.node_tree.links.new(
+            output_node.inputs['Surface'],
+            diffuse_node.outputs['BSDF']
+        )
+
+        # load image
+        image_name = os.path.basename(file_path)
+        image = bpy.data.images.get(image_name)
+        if image:
+            if image.filepath != file_path:
+                image = None
+        if not image:
+            image = bpy.data.images.load(file_path)
+        image_node.image = image
+
+        return {'FINISHED'}
+
+    def invoke(self, context, _event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
 classes = (
+    (XRAY_OT_colorize_materials, xray_colorize_materials_props),
+    (XRAY_OT_create_material, create_materials_props)
+)
+classes_27x = (
     (XRAY_OT_convert_to_cycles_material, props),
     (XRAY_OT_convert_to_internal_material, prop_mode),
     (XRAY_OT_switch_render, prop_mode)
@@ -505,12 +586,13 @@ classes = (
 
 
 def register():
-    version_utils.assign_props(
-        [(xray_colorize_materials_props, XRAY_OT_colorize_materials), ]
-    )
-    bpy.utils.register_class(XRAY_OT_colorize_materials)
+    for operator, props_dict in classes:
+        version_utils.assign_props(
+            [(props_dict, operator), ]
+        )
+        bpy.utils.register_class(operator)
     if not version_utils.IS_28:
-        for operator, props_dict in classes:
+        for operator, props_dict in classes_27x:
             version_utils.assign_props(
                 [(props_dict, operator), ]
             )
@@ -519,6 +601,7 @@ def register():
 
 def unregister():
     if not version_utils.IS_28:
-        for operator, props in reversed(classes):
+        for operator, props in reversed(classes_27x):
             bpy.utils.unregister_class(operator)
-    bpy.utils.unregister_class(XRAY_OT_colorize_materials)
+    for operator, props in reversed(classes):
+        bpy.utils.unregister_class(operator)

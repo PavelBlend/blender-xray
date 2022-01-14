@@ -26,15 +26,12 @@ from .. import skl
 from .. import part
 
 
-CATEGORY = 'X-Ray'
-
-
 class XRAY_PT_skls_animations(ui.base.XRayPanel):
     'Contains open .skls file operator, animations list'
     bl_space_type = 'VIEW_3D'
     bl_label = 'Skls Browser'
     bl_options = {'DEFAULT_CLOSED'}
-    bl_category = CATEGORY
+    bl_category = ui.base.CATEGORY
     if version_utils.IS_28:
         bl_region_type = 'UI'
     else:
@@ -87,7 +84,7 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
 class XRAY_PT_viewer(bpy.types.Panel):
     bl_label = 'Viewer'
     bl_space_type = 'VIEW_3D'
-    bl_category = CATEGORY
+    bl_category = ui.base.CATEGORY
     bl_options = {'DEFAULT_CLOSED'}
     if version_utils.IS_28:
         bl_region_type = 'UI'
@@ -169,7 +166,7 @@ class XRAY_PT_viewer(bpy.types.Panel):
 class XRAY_PT_verify_tools(bpy.types.Panel):
     bl_label = 'Verify'
     bl_space_type = 'VIEW_3D'
-    bl_category = CATEGORY
+    bl_category = ui.base.CATEGORY
     bl_options = {'DEFAULT_CLOSED'}
     if version_utils.IS_28:
         bl_region_type = 'UI'
@@ -190,7 +187,7 @@ class XRAY_PT_verify_tools(bpy.types.Panel):
 
 class XRAY_PT_transforms(bpy.types.Panel):
     bl_label = 'Transforms'
-    bl_category = CATEGORY
+    bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if version_utils.IS_28:
@@ -219,7 +216,7 @@ class XRAY_PT_transforms(bpy.types.Panel):
 
 class XRAY_PT_add(bpy.types.Panel):
     bl_label = 'Add'
-    bl_category = CATEGORY
+    bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if version_utils.IS_28:
@@ -241,7 +238,7 @@ class XRAY_PT_add(bpy.types.Panel):
 
 class XRAY_PT_batch_tools(bpy.types.Panel):
     bl_label = 'Batch Tools'
-    bl_category = CATEGORY
+    bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if version_utils.IS_28:
@@ -310,7 +307,7 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
 
 class XRAY_PT_custom_props(bpy.types.Panel):
     bl_label = 'Custom Properties'
-    bl_category = CATEGORY
+    bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if version_utils.IS_28:
@@ -354,7 +351,7 @@ class XRAY_PT_custom_props(bpy.types.Panel):
 
 class XRAY_PT_armature_tools(bpy.types.Panel):
     bl_label = 'Armature Tools'
-    bl_category = CATEGORY
+    bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if version_utils.IS_28:
@@ -408,7 +405,7 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
 
 class XRAY_PT_rig(bpy.types.Panel):
     bl_label = 'Rig'
-    bl_category = CATEGORY
+    bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if version_utils.IS_28:
@@ -451,7 +448,7 @@ class XRAY_PT_rig(bpy.types.Panel):
 
 class XRAY_PT_import_operators(bpy.types.Panel):
     bl_label = 'Import'
-    bl_category = CATEGORY
+    bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if version_utils.IS_28:
@@ -513,7 +510,7 @@ class XRAY_PT_import_operators(bpy.types.Panel):
 
 class XRAY_PT_export_operators(bpy.types.Panel):
     bl_label = 'Export'
-    bl_category = CATEGORY
+    bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
     if version_utils.IS_28:

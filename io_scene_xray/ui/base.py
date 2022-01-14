@@ -5,6 +5,9 @@ import bpy
 from .. import icons
 
 
+CATEGORY = 'X-Ray'
+
+
 def build_label(subtext=''):
     prefix = 'X-Ray Engine'
     return prefix + ': ' + subtext if subtext else prefix
