@@ -673,3 +673,12 @@ def get_chunks(data):
         if not chunks.get(chunk_id, None):
             chunks[chunk_id] = chunk_data
     return chunks
+
+
+def find_root(obj):
+    if obj.xray.isroot:
+        return obj
+    if obj.parent:
+        return find_root(obj.parent)
+    else:
+        return obj

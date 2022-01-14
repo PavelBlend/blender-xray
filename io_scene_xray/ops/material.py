@@ -329,7 +329,7 @@ xray_colorize_materials_props = {
         min=0.0,
         max=1.0,
         subtype='COLOR'
-    ),
+    )
 }
 
 
@@ -387,14 +387,6 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
                     materials.add((mat, obj))
         return materials
 
-    def find_root(self, obj):
-        if obj.xray.isroot:
-            return obj
-        if obj.parent:
-            return self.find_root(obj.parent)
-        else:
-            return obj
-
     @utils.set_cursor_state
     def execute(self, context):
         if not self.change_viewport_color and not self.change_shader_color:
@@ -451,7 +443,7 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
             elif self.color_mode == 'RANDOM_BY_OBJECT':
                 name = obj.name
             elif self.color_mode == 'RANDOM_BY_ROOT':
-                root = self.find_root(obj)
+                root = utils.find_root(obj)
                 name = root.name
             else:
                 name = None

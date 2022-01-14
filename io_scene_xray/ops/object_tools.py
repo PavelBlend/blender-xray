@@ -97,13 +97,30 @@ colorize_mode_items = (
     ('SELECTED_OBJECTS', 'Selected Objects', ''),
     ('ALL_OBJECTS', 'All Objects', '')
 )
+colorize_color_mode_items = (
+    ('RANDOM_BY_MESH', 'Random by Mesh', ''),
+    ('RANDOM_BY_OBJECT', 'Random by Object', ''),
+    ('RANDOM_BY_ROOT', 'Random by Root', ''),
+    ('SINGLE_COLOR', 'Single Color', '')
+)
 xray_colorize_objects_props = {
     'mode': bpy.props.EnumProperty(
         default='SELECTED_OBJECTS',
         items=colorize_mode_items
     ),
+    'color_mode': bpy.props.EnumProperty(
+        default='RANDOM_BY_OBJECT',
+        items=colorize_color_mode_items
+    ),
     'seed': bpy.props.IntProperty(min=0, max=255),
-    'power': bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0)
+    'power': bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0),
+    'color': bpy.props.FloatVectorProperty(
+        default=(0.5, 0.5, 0.5),
+        size=3,
+        min=0.0,
+        max=1.0,
+        subtype='COLOR'
+    )
 }
 
 
@@ -120,10 +137,23 @@ class XRAY_OT_colorize_objects(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         column = layout.column(align=True)
-        column.prop(self, 'seed', text='Seed')
-        column.prop(self, 'power', text='Power', slider=True)
+
         column.label(text='Mode:')
         column.prop(self, 'mode', expand=True)
+
+        column.label(text='Color Mode:')
+        column.prop(self, 'color_mode', expand=True)
+
+        column_settings = column.column(align=True)
+        column_settings.active = self.color_mode != 'SINGLE_COLOR'
+
+        column_settings.label(text='Settings:')
+        column_settings.prop(self, 'seed', text='Seed')
+        column_settings.prop(self, 'power', text='Power', slider=True)
+
+        column_color = column.column(align=True)
+        column_color.active = self.color_mode == 'SINGLE_COLOR'
+        column_color.prop(self, 'color', text='Color')
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -149,16 +179,30 @@ class XRAY_OT_colorize_objects(bpy.types.Operator):
         # colorize
         changed_objects_count = 0
         for obj in objects:
-            data = bytearray(obj.name, 'utf8')
-            data.append(self.seed)
-            hsh = zlib.crc32(data)
-            color = mathutils.Color()
-            color.hsv = (
-                (hsh & 0xFF) / 0xFF,
-                (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * self.power,
-                ((hsh >> 2) & 1) * (0.5 * self.power) + 0.5
-            )
-            color = [color.r, color.g, color.b]
+            if obj.type != 'MESH':
+                continue
+            if self.color_mode == 'RANDOM_BY_MESH':
+                name = obj.data.name
+            elif self.color_mode == 'RANDOM_BY_OBJECT':
+                name = obj.name
+            elif self.color_mode == 'RANDOM_BY_ROOT':
+                root = utils.find_root(obj)
+                name = root.name
+            else:
+                name = None
+            if name is None:
+                color = list(self.color)
+            else:
+                data = bytearray(name, 'utf8')
+                data.append(self.seed)
+                hsh = zlib.crc32(data)
+                color = mathutils.Color()
+                color.hsv = (
+                    (hsh & 0xFF) / 0xFF,
+                    (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * self.power,
+                    ((hsh >> 2) & 1) * (0.5 * self.power) + 0.5
+                )
+                color = [color.r, color.g, color.b]
             if version_utils.IS_28:
                 color.append(1.0)    # alpha
             obj.color = color
