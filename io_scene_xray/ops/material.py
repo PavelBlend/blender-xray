@@ -303,15 +303,33 @@ colorize_mode_items = (
     ('ALL_OBJECTS', 'All Objects', ''),
     ('ALL_MATERIALS', 'All Materials', '')
 )
+colorize_color_mode_items = (
+    ('RANDOM_BY_MATERIAL', 'Random by Material', ''),
+    ('RANDOM_BY_MESH', 'Random by Mesh', ''),
+    ('RANDOM_BY_OBJECT', 'Random by Object', ''),
+    ('RANDOM_BY_ROOT', 'Random by Root', ''),
+    ('SINGLE_COLOR', 'Single Color', '')
+)
 xray_colorize_materials_props = {
     'mode': bpy.props.EnumProperty(
         default='SELECTED_OBJECTS',
         items=colorize_mode_items
     ),
+    'color_mode': bpy.props.EnumProperty(
+        default='RANDOM_BY_MATERIAL',
+        items=colorize_color_mode_items
+    ),
     'change_viewport_color': bpy.props.BoolProperty(default=True),
     'change_shader_color': bpy.props.BoolProperty(default=False),
     'seed': bpy.props.IntProperty(min=0, max=255),
-    'power': bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0)
+    'power': bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0),
+    'color': bpy.props.FloatVectorProperty(
+        default=(0.5, 0.5, 0.5),
+        size=3,
+        min=0.0,
+        max=1.0,
+        subtype='COLOR'
+    ),
 }
 
 
@@ -330,8 +348,25 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
         active = self.change_viewport_color or self.change_shader_color
         column = layout.column(align=True)
         column.active = active
-        column.prop(self, 'seed', text='Seed')
-        column.prop(self, 'power', text='Power', slider=True)
+
+        column.label(text='Mode:')
+        column.prop(self, 'mode', expand=True)
+
+        column.label(text='Color Mode:')
+        column.prop(self, 'color_mode', expand=True)
+
+        column.label(text='Settings:')
+        is_random = self.color_mode != 'SINGLE_COLOR'
+
+        random_column = column.column(align=True)
+        random_column.active = is_random
+        random_column.prop(self, 'seed', text='Seed')
+        random_column.prop(self, 'power', text='Power', slider=True)
+
+        color_column = column.column(align=True)
+        color_column.active = not is_random
+        color_column.prop(self, 'color', text='Color')
+
         column.prop(
             self,
             'change_viewport_color',
@@ -342,8 +377,6 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
             'change_shader_color',
             text='Change Shader Color'
         )
-        column.label(text='Mode:')
-        column.prop(self, 'mode', expand=True)
 
     def get_obj_mats(self, objs):
         materials = set()
@@ -351,8 +384,16 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
             for slot in obj.material_slots:
                 mat = slot.material
                 if mat:
-                    materials.add(mat)
+                    materials.add((mat, obj))
         return materials
+
+    def find_root(self, obj):
+        if obj.xray.isroot:
+            return obj
+        if obj.parent:
+            return self.find_root(obj.parent)
+        else:
+            return obj
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -368,7 +409,7 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
             if not mat:
                 self.report({'ERROR'}, 'No active material')
                 return {'CANCELLED'}
-            materials = (mat, )
+            materials = ((mat, obj), )
         # active object
         elif self.mode == 'ACTIVE_OBJECT':
             obj = context.active_object
@@ -399,20 +440,34 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
                 return {'CANCELLED'}
             materials = set()
             for mat in all_materials:
-                materials.add(mat)
+                materials.add((mat, None))
         # colorize
         changed_materials_count = 0
-        for mat in materials:
-            data = bytearray(mat.name, 'utf8')
-            data.append(self.seed)
-            hsh = zlib.crc32(data)
-            color = mathutils.Color()
-            color.hsv = (
-                (hsh & 0xFF) / 0xFF,
-                (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * self.power,
-                ((hsh >> 2) & 1) * (0.5 * self.power) + 0.5
-            )
-            color = [color.r, color.g, color.b]
+        for mat, obj in materials:
+            if self.color_mode == 'RANDOM_BY_MATERIAL':
+                name = mat.name
+            elif self.color_mode == 'RANDOM_BY_MESH':
+                name = obj.data.name
+            elif self.color_mode == 'RANDOM_BY_OBJECT':
+                name = obj.name
+            elif self.color_mode == 'RANDOM_BY_ROOT':
+                root = self.find_root(obj)
+                name = root.name
+            else:
+                name = None
+            if name is None:
+                color = list(self.color)
+            else:
+                data = bytearray(name, 'utf8')
+                data.append(self.seed)
+                hsh = zlib.crc32(data)
+                color = mathutils.Color()
+                color.hsv = (
+                    (hsh & 0xFF) / 0xFF,
+                    (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * self.power,
+                    ((hsh >> 2) & 1) * (0.5 * self.power) + 0.5
+                )
+                color = [color.r, color.g, color.b]
             if version_utils.IS_28:
                 color.append(1.0)    # alpha
             changed = False
