@@ -7,6 +7,7 @@ from . import xray_motions
 from . import text
 from . import skl
 from . import utils
+from . import log
 from . import version_utils
 
 
@@ -140,6 +141,10 @@ class XRAY_OT_browse_skls_file(bpy.types.Operator):
 
 
 def skls_animations_index_changed(self, context):
+    report = lambda error, text: None
+    lgr = utils.Logger(report)
+    log.__logger__[0] = lgr
+
     'Selected animation changed in .skls list'
 
     # get new animation name
