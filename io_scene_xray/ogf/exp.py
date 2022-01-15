@@ -286,7 +286,10 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     # 2-link vertices
     else:
         if vertex_max_weights != 2:
-            log.debug('vertex_max_weights', vertex_max_weights)
+            log.debug(
+                'max_weights_count',
+                count=vertex_max_weights
+            )
         vertices_writer.putf('<2I', fmt.VertexFormat.FVF_2L, vertices_count)
         for vertex in vertices:
             weights = mesh.verts[vertex[0]][weight_layer]
