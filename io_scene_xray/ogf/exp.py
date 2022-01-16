@@ -291,6 +291,8 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
                 count=vertex_max_weights
             )
         vertices_writer.putf('<2I', fmt.VertexFormat.FVF_2L, vertices_count)
+        has_ungrouped_vertices = False
+        ungrouped_vertices_count = 0
         for vertex in vertices:
             weights = mesh.verts[vertex[0]][weight_layer]
             if len(weights) > 2:
@@ -315,6 +317,10 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
                         vertex_group_index,
                         vertex_group_index
                     )
+            elif not len(weights):
+                has_ungrouped_vertices = True
+                ungrouped_vertices_count += 1
+                continue
             else:
                 raise Exception('oops: %i %s' % (len(weights), weights.keys()))
             # write vertex data
@@ -324,6 +330,11 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
             vertices_writer.putv3f(vertex[4])    # bitangent
             vertices_writer.putf('<f', weight)    # weight
             vertices_writer.putf('<2f', *vertex[5])    # uv
+    if has_ungrouped_vertices:
+        return utils.AppError(
+            text.error.object_ungroupped_verts,
+            log.props(object=bpy_obj.name)
+        )
     chunked_writer.put(fmt.Chunks_v4.VERTICES, vertices_writer)
 
     # write indices chunk
@@ -427,12 +438,19 @@ def _export(bpy_obj, cwriter, context):
                 child_objects.append(bpy_obj)
             for child_object in child_objects:
                 mesh_writer = xray_io.ChunkedWriter()
-                _export_child(child_object, mesh_writer, context, vertex_groups_map)
+                error = _export_child(
+                    child_object,
+                    mesh_writer,
+                    context,
+                    vertex_groups_map
+                )
                 meshes.append(mesh_writer)
                 if remove_child_objects:
                     child_mesh = child_object.data
                     bpy.data.objects.remove(child_object)
                     bpy.data.meshes.remove(child_mesh)
+                if error:
+                    raise error
         elif bpy_obj.type == 'ARMATURE':
             for bone in bpy_obj.data.bones:
                 if not utils.is_exportable_bone(bone):
