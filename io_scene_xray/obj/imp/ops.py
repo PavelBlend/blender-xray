@@ -15,15 +15,6 @@ from ... import version_utils
 from ... import ie_props
 
 
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_object.bl_idname,
-        text=utils.build_op_label(XRAY_OT_import_object),
-        icon_value=icon
-    )
-
-
 op_import_object_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.object', options={'HIDDEN'}
@@ -46,7 +37,6 @@ class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHel
     bl_description = 'Imports X-Ray object'
     bl_options = {'UNDO', 'PRESET'}
 
-    draw_fun = menu_func_import
     text = 'Source Object'
     ext = filename_ext
     filename_ext = filename_ext

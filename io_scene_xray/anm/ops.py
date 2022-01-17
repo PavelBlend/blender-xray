@@ -16,24 +16,6 @@ from .. import version_utils
 from .. import ie_props
 
 
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_anm.bl_idname,
-        text=utils.build_op_label(XRAY_OT_import_anm),
-        icon_value=icon
-    )
-
-
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_anm.bl_idname,
-        text=utils.build_op_label(XRAY_OT_export_anm),
-        icon_value=icon
-    )
-
-
 filename_ext = '.anm'
 op_text = 'Animation Paths'
 
@@ -59,7 +41,6 @@ class XRAY_OT_import_anm(
     bl_description = 'Imports X-Ray animation'
     bl_options = {'UNDO', 'PRESET'}
 
-    draw_fun = menu_func_import
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
@@ -121,7 +102,6 @@ class XRAY_OT_export_anm(
     bl_description = 'Exports X-Ray animation'
     bl_options = {'UNDO', 'PRESET'}
 
-    draw_fun = menu_func_export
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext

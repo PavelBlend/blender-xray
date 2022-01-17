@@ -16,24 +16,6 @@ from .. import ie_props
 from .. import utils
 
 
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_ogf.bl_idname,
-        text=utils.build_op_label(XRAY_OT_export_ogf),
-        icon_value=icon
-    )
-
-
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_ogf.bl_idname,
-        text=utils.build_op_label(XRAY_OT_export_ogf),
-        icon_value=icon
-    )
-
-
 class ImportOgfContext(
         contexts.ImportMeshContext,
         contexts.ImportAnimationContext
@@ -80,7 +62,6 @@ class XRAY_OT_import_ogf(
     bl_description = 'Import X-Ray Compiled Game Model (.ogf)'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    draw_fun = menu_func_import
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
@@ -151,7 +132,6 @@ class XRAY_OT_export_ogf(
     bl_label = 'Export .ogf'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    draw_fun = menu_func_export
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext

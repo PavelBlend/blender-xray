@@ -17,33 +17,6 @@ from .. import xray_motions
 from .. import version_utils
 
 
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_skls.bl_idname,
-        text=utils.build_op_label(XRAY_OT_import_skls),
-        icon_value=icon
-    )
-
-
-def menu_func_export_skls(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_skls.bl_idname,
-        text=utils.build_op_label(XRAY_OT_export_skls),
-        icon_value=icon
-    )
-
-
-def menu_func_export_skl(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_skl_batch.bl_idname,
-        text=utils.build_op_label(XRAY_OT_export_skl_batch),
-        icon_value=icon
-    )
-
-
 op_text = 'Skeletal Animations'
 filename_ext = '.skls'
 
@@ -74,7 +47,6 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
     bl_description = 'Imports X-Ray skeletal amination'
     bl_options = {'UNDO', 'PRESET'}
 
-    draw_fun = menu_func_import
     text = op_text
     ext = '.skl/.skls'
     filename_ext = filename_ext
@@ -243,7 +215,6 @@ class XRAY_OT_export_skls(ie_props.BaseOperator, utils.FilenameExtHelper):
     bl_description = 'Exports X-Ray skeletal animation'
     bl_options = {'UNDO'}
 
-    draw_fun = menu_func_export_skls
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
@@ -287,7 +258,6 @@ class XRAY_OT_export_skl_batch(ie_props.BaseOperator):
     bl_description = 'Exports X-Ray skeletal animations'
     bl_options = {'UNDO'}
 
-    draw_fun = menu_func_export_skl
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext

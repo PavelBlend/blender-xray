@@ -37,24 +37,6 @@ class ExportOmfContext(
         self.need_bone_groups = None
 
 
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_omf.bl_idname,
-        text=utils.build_op_label(XRAY_OT_import_omf),
-        icon_value=icon
-    )
-
-
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_omf.bl_idname,
-        text=utils.build_op_label(XRAY_OT_export_omf),
-        icon_value=icon
-    )
-
-
 op_text = 'Game Motion'
 filename_ext = '.omf'
 
@@ -97,7 +79,6 @@ class XRAY_OT_import_omf(
     bl_description = 'Import X-Ray Game Motion (omf)'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    draw_fun = menu_func_import
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
@@ -248,7 +229,6 @@ class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
     bl_description = 'Exports X-Ray skeletal game motions'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    draw_fun = menu_func_export
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext

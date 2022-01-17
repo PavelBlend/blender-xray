@@ -27,15 +27,6 @@ class ExportObjectContext(
         self.smoothing_out_of = None
 
 
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_object.bl_idname,
-        text=utils.build_op_label(XRAY_OT_export_object),
-        icon_value=icon
-    )
-
-
 def draw_props(self, mode='SINGLE'):
     layout = self.layout
 
@@ -124,7 +115,6 @@ class XRAY_OT_export_object(ie_props.BaseOperator, _WithExportMotions):
     bl_label = 'Export .object'
     bl_options = {'PRESET'}
 
-    draw_fun = menu_func_export
     text = 'Source Object'
     ext = filename_ext
     filename_ext = filename_ext

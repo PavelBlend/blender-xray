@@ -21,15 +21,6 @@ class ImportPartContext(obj.imp.utility.ImportObjectContext):
         super().__init__()
 
 
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_part.bl_idname,
-        text=utils.build_op_label(XRAY_OT_import_part),
-        icon_value=icon
-    )
-
-
 filename_ext = '.part'
 op_text = 'Scene Objects'
 import_part_props = {
@@ -50,7 +41,6 @@ class XRAY_OT_import_part(ie_props.BaseOperator):
     bl_label = 'Import .part'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    draw_fun = menu_func_import
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
@@ -103,6 +93,4 @@ def register():
 
 
 def unregister():
-    import_menu, export_menu = version_utils.get_import_export_menus()
-    import_menu.remove(menu_func_import)
     bpy.utils.unregister_class(XRAY_OT_import_part)

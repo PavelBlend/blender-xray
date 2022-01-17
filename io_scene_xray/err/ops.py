@@ -10,15 +10,6 @@ from .. import version_utils
 from .. import ie_props
 
 
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_err.bl_idname,
-        text=utils.build_op_label(XRAY_OT_import_err),
-        icon_value=icon
-    )
-
-
 op_text = 'Error List'
 filename_ext = '.err'
 
@@ -39,7 +30,6 @@ class XRAY_OT_import_err(
     bl_description = 'Imports X-Ray Error List (.err)'
     bl_options = {'REGISTER', 'UNDO'}
 
-    draw_fun = menu_func_import
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
@@ -65,6 +55,4 @@ def register():
 
 
 def unregister():
-    import_menu, _ = version_utils.get_import_export_menus()
-    import_menu.remove(menu_func_import)
     bpy.utils.unregister_class(XRAY_OT_import_err)

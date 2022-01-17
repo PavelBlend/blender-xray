@@ -5,6 +5,7 @@ import bpy
 from . import ui
 from . import icons
 from . import utils
+from . import ie_utils
 from . import version_utils
 
 # plugin modules
@@ -69,14 +70,15 @@ def append_draw_functions(ops_list, menu):
     for enable_prop, operator in ops_list:
         enable = getattr(preferences, enable_prop)
         if enable:
-            draw_function = operator.draw_fun
+            draw_function = ie_utils.get_draw_fun(operator)
             menu.append(draw_function)
 
 
 def remove_draw_functions(ops_list, menu):
     for enable, operator in ops_list:
-        draw_function = operator.draw_fun
-        menu.remove(draw_function)
+        if hasattr(operator, 'draw_fun'):
+            draw_function = operator.draw_fun
+            menu.remove(draw_function)
 
 
 def get_enabled_operators(ops_list):

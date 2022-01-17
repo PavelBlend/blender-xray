@@ -31,24 +31,6 @@ class ExportBonesContext(contexts.ExportAnimationOnlyContext):
         self.export_bone_properties = None
 
 
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_bones.bl_idname,
-        text=utils.build_op_label(XRAY_OT_import_bones),
-        icon_value=icon
-    )
-
-
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_bones.bl_idname,
-        text=utils.build_op_label(XRAY_OT_export_bones),
-        icon_value=icon
-    )
-
-
 BONES_EXT = '.bones'
 op_text = 'Bones Data'
 
@@ -76,7 +58,6 @@ class XRAY_OT_import_bones(
     bl_description = 'Import X-Ray Bones Data'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    draw_fun = menu_func_import
     text = op_text
     ext = BONES_EXT
     filename_ext = BONES_EXT
@@ -170,7 +151,6 @@ class XRAY_OT_export_bones(ie_props.BaseOperator):
     bl_label = 'Export .bones'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    draw_fun = menu_func_export
     text = op_text
     ext = BONES_EXT
     filename_ext = BONES_EXT

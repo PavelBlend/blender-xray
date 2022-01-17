@@ -26,24 +26,6 @@ class ExportDmContext(contexts.ExportMeshContext):
         super().__init__()
 
 
-def menu_func_import(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_import_dm.bl_idname,
-        text=utils.build_op_label(XRAY_OT_import_dm),
-        icon_value=icon
-    )
-
-
-def menu_func_export(self, context):
-    icon = icons.get_stalker_icon()
-    self.layout.operator(
-        XRAY_OT_export_dm.bl_idname,
-        text=utils.build_op_label(XRAY_OT_export_dm),
-        icon_value=icon
-    )
-
-
 filename_ext = '.dm'
 op_text = 'Detail Model'
 
@@ -73,7 +55,6 @@ class XRAY_OT_import_dm(
     bl_description = 'Imports X-Ray Detail Models (.dm)'
     bl_options = {'REGISTER', 'UNDO'}
 
-    draw_fun = menu_func_import
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
@@ -130,7 +111,6 @@ class XRAY_OT_export_dm(ie_props.BaseOperator):
     bl_label = 'Export .dm'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    draw_fun = menu_func_export
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
@@ -266,8 +246,5 @@ def register():
 
 
 def unregister():
-    import_menu, export_menu = version_utils.get_import_export_menus()
-    export_menu.remove(menu_func_export)
-    import_menu.remove(menu_func_import)
     for operator, props in reversed(classes):
         bpy.utils.unregister_class(operator)
