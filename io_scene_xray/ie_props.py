@@ -169,3 +169,9 @@ def prop_omf_export_mode():
     return bpy.props.EnumProperty(
         name='Export Mode', items=export_mode_items
     )
+
+
+def prop_omf_high_quality():
+    return bpy.props.BoolProperty(
+        name='High Quality', default=False
+    )

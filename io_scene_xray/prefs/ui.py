@@ -172,6 +172,7 @@ def draw_defaults(prefs):
         box.label(text='Export:')
         box.prop(prefs, 'omf_motions_export')
         box.prop(prefs, 'omf_export_bone_parts')
+        box.prop(prefs, 'omf_high_quality')
         row = box.row()
         row.label(text='Export Mode:')
         row.prop(prefs, 'omf_export_mode', expand=True)

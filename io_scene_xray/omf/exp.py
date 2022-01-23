@@ -353,15 +353,27 @@ def export_omf(context):
                     min_trns[pose_bone.name][index] = min(min_trns[pose_bone.name][index], translate[index])
                     max_trns[pose_bone.name][index] = max(max_trns[pose_bone.name][index], translate[index])
                 bone_matrices[pose_bone.name].append(matrix)
+        if context.high_quality:
+            size_max = 0xffff
+            trn_max = 0x7fff
+            trn_mix = -0x8000
+            eps = 0.0000001
+        else:
+            size_max = 255
+            trn_max = 127
+            trn_mix = -128
+            eps = 0.000001
         for pose_bone in pose_bones:
             flags = 0x0
+            if context.high_quality:
+                flags |= fmt.KPF_T_HQ
             quaternions = []
             translations = []
             min_tr = min_trns[pose_bone.name]
             max_tr = max_trns[pose_bone.name]
             tr_init = min_tr + (max_tr - min_tr) / 2
             tr_init[2] = -tr_init[2]
-            tr_size = (max_tr - min_tr) / 255
+            tr_size = (max_tr - min_tr) / size_max
             for matrix in bone_matrices[pose_bone.name]:
                 # rotation
                 quaternion = matrix.to_quaternion()
@@ -373,21 +385,21 @@ def export_omf(context):
                 # translation
                 translate = matrix.to_translation()
                 translate[2] = -translate[2]
-                if tr_size.length > 0.000001:
+                if tr_size.length > eps:
                     translate_final = [None, None, None]
                     for index in range(3):
                         if tr_size[index] > 1e-9:
                             value = int((translate[index] - tr_init[index]) / tr_size[index])
-                            if value > 127:
-                                value = 127
-                            elif value < -128:
-                                value = -128
+                            if value > trn_max:
+                                value = trn_max
+                            elif value < trn_mix:
+                                value = trn_mix
                             translate_final[index] = value
                         else:
                             translate_final[index] = 0
                     translations.append(tuple(translate_final))
                 translate_float = tuple(translate)
-            if tr_size.length > 0.000001:
+            if tr_size.length > eps:
                 flags |= fmt.FL_T_KEY_PRESENT
             if len(set(quaternions)) != 1:
                 packed_writer.putf('<B', flags)
@@ -412,8 +424,12 @@ def export_omf(context):
                 crc32_temp = 0x0    # temp value
                 crc32_offset = len(packed_writer.data)
                 packed_writer.putf('<I', crc32_temp)
+                if flags & fmt.KPF_T_HQ:
+                    trn_fmt = 'h'
+                else:
+                    trn_fmt = 'b'
                 for translate in translations:
-                    packed_writer.putf('<3b', *translate)
+                    packed_writer.putf('<3' + trn_fmt, *translate)
                 # crc32
                 crc32_data_start = crc32_offset + 4
                 crc32_data_end = len(packed_writer.data)

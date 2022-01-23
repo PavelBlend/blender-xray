@@ -483,6 +483,7 @@ plugin_preferences_props = {
     'omf_export_bone_parts': ie_props.prop_export_bone_parts(),
     'omf_export_mode': ie_props.prop_omf_export_mode(),
     'omf_motions_export': ie_props.PropObjectMotionsExport(),
+    'omf_high_quality': ie_props.prop_omf_high_quality(),
     # scene selection import props
     'scene_selection_sdk_version': ie_props.PropSDKVersion(),
     'scene_selection_mesh_split_by_mat': ie_props.PropObjectMeshSplitByMaterials(),

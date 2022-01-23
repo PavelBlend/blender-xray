@@ -33,6 +33,7 @@ class ExportOmfContext(
         super().__init__()
         self.export_mode = None
         self.export_bone_parts = None
+        self.high_quality = None
         self.need_motions = None
         self.need_bone_groups = None
 
@@ -219,7 +220,8 @@ op_export_omf_props = {
     'filter_glob': bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'}),
     'export_mode': ie_props.prop_omf_export_mode(),
     'export_motions': ie_props.PropObjectMotionsExport(),
-    'export_bone_parts': ie_props.prop_export_bone_parts()
+    'export_bone_parts': ie_props.prop_export_bone_parts(),
+    'high_quality': ie_props.prop_omf_high_quality()
 }
 
 
@@ -241,6 +243,7 @@ class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
         layout = self.layout
         layout.label(text='Export Mode:')
         layout.prop(self, 'export_mode', expand=True)
+        layout.prop(self, 'high_quality')
         col = layout.column()
         col.active = not self.export_mode in ('OVERWRITE', 'ADD')
         col.prop(self, 'export_motions')
@@ -259,6 +262,7 @@ class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
         export_context.export_mode = self.export_mode
         export_context.export_motions = self.export_motions
         export_context.export_bone_parts = self.export_bone_parts
+        export_context.high_quality = self.high_quality
         if self.export_mode in ('REPLACE', 'ADD'):
             if not os.path.exists(export_context.filepath):
                 self.report(
@@ -317,6 +321,7 @@ class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
         self.export_mode = preferences.omf_export_mode
         self.export_bone_parts = preferences.omf_export_bone_parts
         self.export_motions = preferences.omf_motions_export
+        self.high_quality = preferences.omf_high_quality
         if len(context.selected_objects) > 1:
             self.report({'ERROR'}, 'Too many selected objects')
             return {'CANCELLED'}
