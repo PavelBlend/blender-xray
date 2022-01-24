@@ -125,6 +125,7 @@ class XRAY_OT_export_dm(ie_props.BaseOperator):
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
+        active_object, selected_objects = utils.get_selection_state(context)
         export_context = ExportDmContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.unique_errors = set()
@@ -143,6 +144,7 @@ class XRAY_OT_export_dm(ie_props.BaseOperator):
                 export_context.errors.append(err)
         for err in export_context.errors:
             log.err(err)
+        utils.set_selection_state(active_object, selected_objects)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -204,10 +206,12 @@ class XRAY_OT_export_dm_file(
         self.layout.prop(self, 'texture_name_from_image_path')
 
     def exp(self, bpy_obj, context):
+        active_object, selected_objects = utils.get_selection_state(context)
         export_context = ExportDmContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.unique_errors = set()
         exp.export_file(bpy_obj, self.filepath, export_context)
+        utils.set_selection_state(active_object, selected_objects)
 
     def invoke(self, context, event):
         prefs = version_utils.get_preferences()

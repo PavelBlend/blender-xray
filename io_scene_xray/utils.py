@@ -206,6 +206,19 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
         exportable_obj = temp_obj
     else:
         exportable_obj = bpy_obj
+    # apply shape keys
+    if exportable_obj.data.shape_keys:
+        if not temp_obj:
+            temp_mesh = exportable_obj.data.copy()
+            temp_obj = exportable_obj.copy()
+            temp_obj.data = temp_mesh
+            version_utils.link_object(temp_obj)
+            version_utils.set_active_object(temp_obj)
+            exportable_obj = temp_obj
+        temp_obj.shape_key_add(name='last_shape_key', from_mix=True)
+        for shape_key in temp_mesh.shape_keys.key_blocks:
+            temp_obj.shape_key_remove(shape_key)
+    # apply modifiers
     if mods:
         if not temp_obj:
             temp_mesh = bpy_obj.data.copy()
@@ -214,7 +227,6 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
             version_utils.link_object(temp_obj)
             version_utils.set_active_object(temp_obj)
             exportable_obj = temp_obj
-        # apply modifiers
         override = bpy.context.copy()
         override['active_object'] = temp_obj
         override['object'] = temp_obj
@@ -696,3 +708,18 @@ def find_root(obj):
         return find_root(obj.parent)
     else:
         return obj
+
+
+def get_selection_state(context):
+    active_object = context.active_object
+    selected_objects = set()
+    for obj in context.selected_objects:
+        selected_objects.add(obj)
+    bpy.ops.object.select_all(action='DESELECT')
+    return active_object, selected_objects
+
+
+def set_selection_state(active_object, selected_objects):
+    version_utils.set_active_object(active_object)
+    for obj in selected_objects:
+        version_utils.select_object(obj)
