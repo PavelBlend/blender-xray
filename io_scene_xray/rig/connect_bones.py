@@ -108,7 +108,8 @@ class XRAY_OT_create_connected_bones(bpy.types.Operator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        bpy.ops.object.mode_set(mode='OBJECT')
+        if context.object:
+            bpy.ops.object.mode_set(mode='OBJECT')
         src_name = self.source_armature
         if not src_name:
             self.report({'WARNING'}, text.warn.connect_not_spec_arm)
