@@ -715,11 +715,13 @@ def get_selection_state(context):
     selected_objects = set()
     for obj in context.selected_objects:
         selected_objects.add(obj)
-    mode = bpy.context.mode
     if active_object:
+        mode = bpy.context.mode
         bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.select_all(action='DESELECT')
-    bpy.ops.object.mode_set(mode=mode)
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.mode_set(mode=mode)
+    else:
+        bpy.ops.object.select_all(action='DESELECT')
     return active_object, selected_objects
 
 
