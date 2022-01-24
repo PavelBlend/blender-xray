@@ -15,20 +15,20 @@ NAME_SUFFIX = ' connected'
 BONE_NAME_SUFFIX = ' c'
 
 
-def connect_bones(arm, mesh_obj):
+def connect_bones(arm, mesh_objs):
     bone_new_parent = {}
-    if mesh_obj:
-        mesh = mesh_obj.data
-    else:
-        mesh = None
     vertex_groups = {}
-    for bone in arm.edit_bones:
-        children_count = len(bone.children)
-        if not children_count and mesh:
-            for vertex_index, vertex in enumerate(mesh.vertices):
-                for group in vertex.groups:
-                    vertex_group = mesh_obj.vertex_groups[group.group]
-                    vertex_groups.setdefault(vertex_group.name, []).append(vertex_index)
+    if mesh_objs:
+        for bone in arm.edit_bones:
+            if not len(bone.children):
+                for mesh_obj in mesh_objs:
+                    for vertex in mesh_obj.data.vertices:
+                        for group in vertex.groups:
+                            vertex_group = mesh_obj.vertex_groups[group.group]
+                            vertex_groups.setdefault(vertex_group.name, []).append((
+                                vertex.co,
+                                group.weight
+                            ))
     edit_bones = []
     for bone in arm.edit_bones:
         edit_bones.append(bone)
@@ -49,22 +49,17 @@ def connect_bones(arm, mesh_obj):
             children_center = children_sum / len(children_heads)
             connected_bone.tail = (children_center + bone.head) / 2
         elif not children_count:
-            if mesh:
+            if mesh_objs:
                 vertices = vertex_groups.get(bone.name)
                 if not vertices:
                     continue
-                vertex_group = mesh_obj.vertex_groups[bone.name]
-                group_index = vertex_group.index
                 vertex_sum_offset = mathutils.Vector((0.0, 0.0, 0.0))
                 weights = []
-                for vertex_index in vertices:
-                    vertex = mesh.vertices[vertex_index]
-                    for group in vertex.groups:
-                        if group.group == group_index:
-                            vertex_sum_offset += (vertex.co - connected_bone.head) * group.weight
-                            weights.append(group.weight)
+                for vert_co, weight in vertices:
+                    vertex_sum_offset += (vert_co - connected_bone.head) * weight
+                    weights.append(weight)
                 tail_offset = vertex_sum_offset / sum(weights)
-                connected_bone.tail = connected_bone.head + tail_offset * 2
+                connected_bone.tail = connected_bone.head + tail_offset
             else:
                 parent = bone.parent
                 if parent:
@@ -148,12 +143,8 @@ class XRAY_OT_create_connected_bones(bpy.types.Operator):
             for obj in object_users:
                 if obj.type == 'MESH':
                     mesh_objects.append(obj)
-        if mesh_objects:
-            mesh = mesh_objects[0]
-        else:
-            mesh = None
         bpy.ops.object.mode_set(mode='EDIT')
-        connect_bones(arm, mesh)
+        connect_bones(arm, mesh_objects)
         bpy.ops.object.mode_set(mode='OBJECT')
         # link bones
         version_utils.set_active_object(src_arm_obj)
