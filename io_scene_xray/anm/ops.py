@@ -12,6 +12,7 @@ from .. import icons
 from .. import log
 from .. import utils
 from .. import text
+from .. import draw_utils
 from .. import version_utils
 from .. import ie_props
 
@@ -51,13 +52,7 @@ class XRAY_OT_import_anm(
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row()
-        row.enabled = False
-        files_count = len(self.files)
-        if files_count == 1:
-            if not self.files[0].name:
-                files_count = 0
-        row.label(text='{} items'.format(files_count))
+        draw_utils.draw_files_count(self)
         layout.prop(self, 'camera_animation')
 
     @utils.execute_with_logger

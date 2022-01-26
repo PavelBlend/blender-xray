@@ -14,6 +14,7 @@ from .. import ie_props
 from .. import ui
 from .. import utils
 from .. import xray_motions
+from .. import draw_utils
 from .. import version_utils
 
 
@@ -59,10 +60,10 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
 
     def draw(self, context):
         layout = self.layout
+
+        draw_utils.draw_files_count(self)
+
         layout.prop(self, 'add_actions_to_motion_list')
-        row = layout.row()
-        row.enabled = False
-        row.label(text='%d items' % len(self.files))
 
         motions, count = self._get_motions(), 0
         text = 'Filter Motions'

@@ -13,6 +13,7 @@ from .. import log
 from .. import utils
 from .. import contexts
 from .. import ie_props
+from .. import draw_utils
 from .. import version_utils
 
 
@@ -111,9 +112,8 @@ class XRAY_OT_import_details(
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row()
-        row.enabled = False
-        row.label(text='%d items' % len(self.files))
+
+        draw_utils.draw_files_count(self)
 
         layout.prop(self, 'details_models_in_a_row')
         layout.prop(self, 'load_slots')
