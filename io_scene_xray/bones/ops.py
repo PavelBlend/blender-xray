@@ -34,7 +34,7 @@ class ExportBonesContext(contexts.ExportAnimationOnlyContext):
 BONES_EXT = '.bones'
 op_text = 'Bones Data'
 
-op_import_bones_props = {
+import_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+BONES_EXT, options={'HIDDEN'}
     ),
@@ -61,10 +61,11 @@ class XRAY_OT_import_bones(
     text = op_text
     ext = BONES_EXT
     filename_ext = BONES_EXT
+    props = import_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_import_bones_props.items():
-            exec('{0} = op_import_bones_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -135,7 +136,7 @@ class XRAY_OT_import_bones(
         return super().invoke(context, event)
 
 
-op_export_bones_props = {
+export_props = {
     'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
     'filter_glob': bpy.props.StringProperty(
         default='*'+BONES_EXT,
@@ -154,12 +155,13 @@ class XRAY_OT_export_bones(ie_props.BaseOperator):
     text = op_text
     ext = BONES_EXT
     filename_ext = BONES_EXT
+    props = export_props
 
     objects_list = []
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_export_bones_props.items():
-            exec('{0} = op_export_bones_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def get_objects(self, context):
         self.objects_list.clear()
@@ -219,7 +221,7 @@ class XRAY_OT_export_bones(ie_props.BaseOperator):
         return {'RUNNING_MODAL'}
 
 
-op_export_bone_props = {
+export_props = {
     'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
     'object_name': bpy.props.StringProperty(options={'HIDDEN'}),
     'filter_glob': bpy.props.StringProperty(
@@ -240,11 +242,12 @@ class XRAY_OT_export_bone(
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     filename_ext = BONES_EXT
+    props = export_props
     objects = []
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_export_bone_props.items():
-            exec('{0} = op_export_bone_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -293,18 +296,16 @@ class XRAY_OT_export_bone(
 
 
 classes = (
-    (XRAY_OT_import_bones, op_import_bones_props),
-    (XRAY_OT_export_bones, op_export_bones_props),
-    (XRAY_OT_export_bone, op_export_bone_props)
+    XRAY_OT_import_bones,
+    XRAY_OT_export_bones,
+    XRAY_OT_export_bone
 )
 
 
 def register():
-    for operator_class, operator_props in classes:
-        version_utils.assign_props([(operator_props, operator_class), ])
-        bpy.utils.register_class(operator_class)
+    version_utils.register_operators(classes)
 
 
 def unregister():
-    for operator_class, operator_props in reversed(classes):
+    for operator_class in reversed(classes):
         bpy.utils.unregister_class(operator_class)

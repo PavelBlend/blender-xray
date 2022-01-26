@@ -236,7 +236,7 @@ def export_omf(context):
         export_motion_names = list(motion_names)
     scn = bpy.context.scene
     pose_bones = []
-    bpy.ops.object.mode_set(mode='POSE')
+    utils.set_mode('POSE')
     bone_groups = {}
     no_group_bones = set()
     for bone_index, bone in enumerate(context.bpy_arm_obj.data.bones):
@@ -521,7 +521,7 @@ def export_omf(context):
                     packed_writer.puts(motion_name)
                     packed_writer.putp(motion_params.writer)
         main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
-    bpy.ops.object.mode_set(mode=mode)
+    utils.set_mode(mode)
     bpy.context.scene.frame_set(current_frame)
     if current_action:
         context.bpy_arm_obj.animation_data.action = current_action

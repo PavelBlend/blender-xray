@@ -119,6 +119,32 @@ def assign_props(items, replace=True):
                 setattr(clas, prop_name, prop_value)
 
 
+def set_props(clas, props, replace=True):
+    if IS_28:
+        if replace:
+            clas.__annotations__ = props
+        else:
+            clas.__annotations__.update(props)
+    else:
+        for prop_name, prop_value in props.items():
+            setattr(clas, prop_name, prop_value)
+
+
+def _register_operator(operator_class):
+    props = getattr(operator_class, 'props', None)
+    if props:
+        set_props(operator_class, props)
+    bpy.utils.register_class(operator_class)
+
+
+def register_operators(operators):
+    if hasattr(operators, '__iter__'):
+        for operator in operators:
+            _register_operator(operator)
+    else:
+        _register_operator(operators)
+
+
 IMAGE_NODES = ('TEX_IMAGE', 'TEX_ENVIRONMENT')
 
 

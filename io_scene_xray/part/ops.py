@@ -24,7 +24,7 @@ class ImportPartContext(obj.imp.utility.ImportObjectContext):
 
 filename_ext = '.part'
 op_text = 'Scene Objects'
-import_part_props = {
+import_props = {
     'directory': bpy.props.StringProperty(subtype="DIR_PATH"),
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
@@ -45,10 +45,11 @@ class XRAY_OT_import_part(ie_props.BaseOperator):
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
+    props = import_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in import_part_props.items():
-            exec('{0} = import_part_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout
@@ -87,10 +88,7 @@ class XRAY_OT_import_part(ie_props.BaseOperator):
 
 
 def register():
-    version_utils.assign_props([
-        (import_part_props, XRAY_OT_import_part),
-    ])
-    bpy.utils.register_class(XRAY_OT_import_part)
+    version_utils.register_operators(XRAY_OT_import_part)
 
 
 def unregister():

@@ -30,7 +30,7 @@ filename_ext = '.dm'
 op_text = 'Detail Model'
 
 
-op_import_dm_props = {
+import_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.dm', options={'HIDDEN'}
     ),
@@ -58,10 +58,11 @@ class XRAY_OT_import_dm(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
+    props = import_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_import_dm_props.items():
-            exec('{0} = op_import_dm_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -99,7 +100,7 @@ class XRAY_OT_import_dm(
         return {'FINISHED'}
 
 
-op_export_dms_props = {
+export_props = {
     'detail_models': bpy.props.StringProperty(options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
     'texture_name_from_image_path': ie_props.PropObjectTextureNamesFromPath()
@@ -114,10 +115,11 @@ class XRAY_OT_export_dm(ie_props.BaseOperator):
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
+    props = export_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_export_dms_props.items():
-            exec('{0} = op_export_dms_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         self.layout.prop(self, 'texture_name_from_image_path')
@@ -170,7 +172,7 @@ class XRAY_OT_export_dm(ie_props.BaseOperator):
         return {'RUNNING_MODAL'}
 
 
-op_export_dm_props = {
+export_props = {
     'detail_model': bpy.props.StringProperty(options={'HIDDEN'}),
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
@@ -188,10 +190,11 @@ class XRAY_OT_export_dm_file(
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     filename_ext = filename_ext
+    props = export_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_export_dm_props.items():
-            exec('{0} = op_export_dm_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in export_props.items():
+            exec('{0} = export_props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -237,18 +240,16 @@ class XRAY_OT_export_dm_file(
 
 
 classes = (
-    (XRAY_OT_import_dm, op_import_dm_props),
-    (XRAY_OT_export_dm, op_export_dms_props),
-    (XRAY_OT_export_dm_file, op_export_dm_props)
+    XRAY_OT_import_dm,
+    XRAY_OT_export_dm,
+    XRAY_OT_export_dm_file
 )
 
 
 def register():
-    for operator, props in classes:
-        version_utils.assign_props([(props, operator), ])
-        bpy.utils.register_class(operator)
+    version_utils.register_operators(classes)
 
 
 def unregister():
-    for operator, props in reversed(classes):
+    for operator in reversed(classes):
         bpy.utils.unregister_class(operator)

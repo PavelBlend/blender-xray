@@ -714,3 +714,8 @@ def set_selection_state(active_object, selected_objects):
     version_utils.set_active_object(active_object)
     for obj in selected_objects:
         version_utils.select_object(obj)
+
+
+def set_mode(mode):
+    if bpy.context.object:
+        bpy.ops.object.mode_set(mode=mode)

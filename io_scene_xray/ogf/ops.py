@@ -37,7 +37,7 @@ class ExportOgfContext(
 op_text = 'Game Object'
 filename_ext = '.ogf'
 
-op_import_ogf_props = {
+import_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.ogf', options={'HIDDEN'}
     ),
@@ -66,10 +66,11 @@ class XRAY_OT_import_ogf(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
+    props = import_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_import_ogf_props.items():
-            exec('{0} = op_import_ogf_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -112,7 +113,7 @@ class XRAY_OT_import_ogf(
         return super().invoke(context, event)
 
 
-op_export_ogf_file_props = {
+export_props = {
     'filter_glob': bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'}),
     'texture_name_from_image_path': ie_props.PropObjectTextureNamesFromPath(),
     'export_motions': ie_props.PropObjectMotionsExport()
@@ -130,10 +131,11 @@ class XRAY_OT_export_ogf_file(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
+    props = export_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_export_ogf_file_props.items():
-            exec('{0} = op_export_ogf_file_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.execute_require_filepath
@@ -171,11 +173,11 @@ class XRAY_OT_export_ogf_file(
         return super().invoke(context, event)
 
 
-op_export_ogf_props = {
+export_props = {
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
 
 }
-op_export_ogf_props.update(op_export_ogf_file_props)
+export_props.update(export_props)
 
 
 class XRAY_OT_export_ogf(ie_props.BaseOperator):
@@ -186,10 +188,11 @@ class XRAY_OT_export_ogf(ie_props.BaseOperator):
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
+    props = export_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_export_ogf_props.items():
-            exec('{0} = op_export_ogf_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -226,18 +229,16 @@ class XRAY_OT_export_ogf(ie_props.BaseOperator):
 
 
 classes = (
-    (XRAY_OT_import_ogf, op_import_ogf_props),
-    (XRAY_OT_export_ogf, op_export_ogf_props),
-    (XRAY_OT_export_ogf_file, op_export_ogf_file_props)
+    XRAY_OT_import_ogf,
+    XRAY_OT_export_ogf,
+    XRAY_OT_export_ogf_file
 )
 
 
 def register():
-    for operator, props in classes:
-        version_utils.assign_props([(props, operator), ])
-        bpy.utils.register_class(operator)
+    version_utils.register_operators(classes)
 
 
 def unregister():
-    for operator, props in reversed(classes):
+    for operator in reversed(classes):
         bpy.utils.unregister_class(operator)

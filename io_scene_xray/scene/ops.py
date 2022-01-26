@@ -16,7 +16,7 @@ from .. import draw_utils
 op_text = 'Scene Selection'
 filename_ext = '.level'
 
-op_export_level_scene_props = {
+export_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
     ),
@@ -32,10 +32,11 @@ class XRAY_OT_export_scene_selection(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
+    props = export_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_export_level_scene_props.items():
-            exec('{0} = op_export_level_scene_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -60,7 +61,7 @@ class XRAY_OT_export_scene_selection(
         return super().invoke(context, event)
 
 
-op_import_level_scene_props = {
+import_props = {
     'filepath': bpy.props.StringProperty(subtype="FILE_PATH"),
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
@@ -81,10 +82,11 @@ class XRAY_OT_import_scene_selection(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
+    props = import_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_import_level_scene_props.items():
-            exec('{0} = op_import_level_scene_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout
@@ -108,15 +110,16 @@ class XRAY_OT_import_scene_selection(
         return {'RUNNING_MODAL'}
 
 
+classes = (
+    XRAY_OT_import_scene_selection,
+    XRAY_OT_export_scene_selection
+)
+
+
 def register():
-    version_utils.assign_props([
-        (op_export_level_scene_props, XRAY_OT_export_scene_selection),
-        (op_import_level_scene_props, XRAY_OT_import_scene_selection)
-    ])
-    bpy.utils.register_class(XRAY_OT_export_scene_selection)
-    bpy.utils.register_class(XRAY_OT_import_scene_selection)
+    version_utils.register_operators(classes)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_OT_export_scene_selection)
-    bpy.utils.unregister_class(XRAY_OT_import_scene_selection)
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)

@@ -35,7 +35,7 @@ filename_ext = '.details'
 op_text = 'Level Details'
 
 
-op_import_details_props = {
+import_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.details', options={'HIDDEN'}
     ),
@@ -66,10 +66,11 @@ class XRAY_OT_import_details(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
+    props = import_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_import_details_props.items():
-            exec('{0} = op_import_details_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -136,7 +137,7 @@ class XRAY_OT_import_details(
         return super().invoke(context, event)
 
 
-op_export_details_props = {
+export_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
     ),
@@ -159,10 +160,11 @@ class XRAY_OT_export_details(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
+    props = export_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_export_details_props.items():
-            exec('{0} = op_export_details_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout
@@ -272,19 +274,16 @@ class XRAY_OT_pack_details_images(bpy.types.Operator):
 
 
 classes = (
-    (XRAY_OT_import_details, op_import_details_props),
-    (XRAY_OT_export_details, op_export_details_props),
-    (XRAY_OT_pack_details_images, None)
+    XRAY_OT_import_details,
+    XRAY_OT_export_details,
+    XRAY_OT_pack_details_images
 )
 
 
 def register():
-    for operator, properties in classes:
-        if properties:
-            version_utils.assign_props([(properties, operator), ])
-        bpy.utils.register_class(operator)
+    version_utils.register_operators(classes)
 
 
 def unregister():
-    for operator, properties in reversed(classes):
+    for operator in reversed(classes):
         bpy.utils.unregister_class(operator)

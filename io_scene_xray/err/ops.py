@@ -13,7 +13,7 @@ from .. import ie_props
 op_text = 'Error List'
 filename_ext = '.err'
 
-op_import_err_props = {
+import_props = {
     'filepath': bpy.props.StringProperty(subtype="FILE_PATH"),
     'filter_glob': bpy.props.StringProperty(
         default='*.err', options={'HIDDEN'}
@@ -33,10 +33,11 @@ class XRAY_OT_import_err(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
+    props = import_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_import_err_props.items():
-            exec('{0} = op_import_err_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -50,8 +51,7 @@ class XRAY_OT_import_err(
 
 
 def register():
-    version_utils.assign_props([(op_import_err_props, XRAY_OT_import_err), ])
-    bpy.utils.register_class(XRAY_OT_import_err)
+    version_utils.register_operators(XRAY_OT_import_err)
 
 
 def unregister():

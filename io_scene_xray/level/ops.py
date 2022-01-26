@@ -21,7 +21,7 @@ op_text = 'Game Level'
 file_name_text = 'level'
 
 
-op_import_level_props = {
+import_props = {
     'filter_glob': bpy.props.StringProperty(
         default='level', options={'HIDDEN'}
     ),
@@ -47,10 +47,11 @@ class XRAY_OT_import_level(
     text = op_text
     filename_ext = ''
     ext = file_name_text
+    props = import_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_import_level_props.items():
-            exec('{0} = op_import_level_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -78,7 +79,7 @@ class XRAY_OT_import_level(
         return super().invoke(context, event)
 
 
-op_export_level_props = {
+export_props = {
     'directory': bpy.props.StringProperty(
         subtype='DIR_PATH', options={'HIDDEN'}
     ),
@@ -96,10 +97,11 @@ class XRAY_OT_export_level(ie_props.BaseOperator):
     text = op_text
     filename_ext = ''
     ext = file_name_text
+    props = export_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_export_level_props.items():
-            exec('{0} = op_export_level_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def export(self, level_object, context):
         exp.export_file(level_object, self.directory)
@@ -133,15 +135,16 @@ class XRAY_OT_export_level(ie_props.BaseOperator):
         return {'RUNNING_MODAL'}
 
 
+classes = (
+    XRAY_OT_import_level,
+    XRAY_OT_export_level
+)
+
+
 def register():
-    version_utils.assign_props([
-        (op_import_level_props, XRAY_OT_import_level),
-        (op_export_level_props, XRAY_OT_export_level)
-    ])
-    bpy.utils.register_class(XRAY_OT_import_level)
-    bpy.utils.register_class(XRAY_OT_export_level)
+    version_utils.register_operators(classes)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_OT_export_level)
-    bpy.utils.unregister_class(XRAY_OT_import_level)
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)

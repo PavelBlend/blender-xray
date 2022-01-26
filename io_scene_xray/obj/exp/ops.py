@@ -83,7 +83,7 @@ class _WithExportMotions:
 
 filename_ext = '.object'
 
-op_export_object_props = {
+export_props = {
     'objects': bpy.props.StringProperty(options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
 
@@ -104,10 +104,11 @@ class XRAY_OT_export_object(ie_props.BaseOperator, _WithExportMotions):
     text = 'Source Object'
     ext = filename_ext
     filename_ext = filename_ext
+    props = export_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_export_object_props.items():
-            exec('{0} = op_export_object_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         draw_props(self, mode='BATCH')
@@ -166,7 +167,7 @@ class XRAY_OT_export_object(ie_props.BaseOperator, _WithExportMotions):
         return {'RUNNING_MODAL'}
 
 
-op_export_single_object_props = {
+export_props = {
     'object': bpy.props.StringProperty(options={'HIDDEN'}),
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext,
@@ -190,10 +191,11 @@ class XRAY_OT_export_object_file(
     bl_options = {'PRESET'}
 
     filename_ext = '.object'
+    props = export_props
 
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_export_single_object_props.items():
-            exec('{0} = op_export_single_object_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         draw_props(self)
@@ -243,7 +245,7 @@ class XRAY_OT_export_object_file(
         return super().invoke(context, event)
 
 
-op_export_project_props = {
+export_props = {
     'filepath': bpy.props.StringProperty(subtype='DIR_PATH', options={'SKIP_SAVE'}),
     'use_selection': bpy.props.BoolProperty()
 }
@@ -253,9 +255,11 @@ class XRAY_OT_export_project(ie_props.BaseOperator):
     bl_idname = 'xray_export.project'
     bl_label = 'Export XRay Project'
 
+    props = export_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_export_project_props.items():
-            exec('{0} = op_export_project_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
@@ -290,9 +294,9 @@ class XRAY_OT_export_project(ie_props.BaseOperator):
 
 
 classes = (
-    (XRAY_OT_export_object, op_export_object_props),
-    (XRAY_OT_export_object_file, op_export_single_object_props),
-    (XRAY_OT_export_project, op_export_project_props)
+    XRAY_OT_export_object,
+    XRAY_OT_export_object_file,
+    XRAY_OT_export_project
 )
 
 
@@ -300,11 +304,9 @@ def register():
     version_utils.assign_props(
         [(_with_export_motions_props, _WithExportMotions), ]
     )
-    for operator, props in classes:
-        version_utils.assign_props([(props, operator), ])
-        bpy.utils.register_class(operator)
+    version_utils.register_operators(classes)
 
 
 def unregister():
-    for operator, props in reversed(classes):
+    for operator in reversed(classes):
         bpy.utils.unregister_class(operator)
