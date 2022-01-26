@@ -14,6 +14,7 @@ from ... import contexts
 from ... import obj
 from ... import version_utils
 from ... import ie_props
+from ... import draw_utils
 
 
 class ExportObjectContext(
@@ -30,7 +31,7 @@ class ExportObjectContext(
 def draw_props(self, mode='SINGLE'):
     layout = self.layout
 
-    utils.draw_fmt_ver_prop(layout, self, 'fmt_version')
+    draw_utils.draw_fmt_ver_prop(layout, self, 'fmt_version')
 
     row = layout.split()
     row.label(text='Smoothing:')

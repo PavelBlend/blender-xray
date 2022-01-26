@@ -84,7 +84,7 @@ class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHel
         layout = self.layout
 
         draw_utils.draw_files_count(self)
-        utils.draw_fmt_ver_prop(layout, self, 'fmt_version')
+        draw_utils.draw_fmt_ver_prop(layout, self, 'fmt_version')
 
         layout.prop(self, 'import_motions')
         row = layout.row()

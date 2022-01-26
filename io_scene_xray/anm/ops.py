@@ -107,7 +107,7 @@ class XRAY_OT_export_anm(
 
     def draw(self, context):
         layout = self.layout
-        utils.draw_fmt_ver_prop(layout, self, 'format_version')
+        draw_utils.draw_fmt_ver_prop(layout, self, 'format_version')
 
     @utils.execute_with_logger
     @utils.set_cursor_state

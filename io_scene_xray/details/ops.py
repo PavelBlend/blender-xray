@@ -121,7 +121,12 @@ class XRAY_OT_import_details(
         col = layout.column()
         col.active = self.load_slots
 
-        utils.draw_fmt_ver_prop(col, self, 'details_format', lay_type='COLUMN')
+        draw_utils.draw_fmt_ver_prop(
+            col,
+            self,
+            'details_format',
+            lay_type='COLUMN'
+        )
 
     def invoke(self, context, event):
         prefs = version_utils.get_preferences()
@@ -163,7 +168,7 @@ class XRAY_OT_export_details(
         layout = self.layout
 
         layout.prop(self, 'texture_name_from_image_path')
-        utils.draw_fmt_ver_prop(
+        draw_utils.draw_fmt_ver_prop(
             layout,
             self,
             'format_version',

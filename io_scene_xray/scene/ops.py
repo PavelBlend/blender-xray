@@ -10,6 +10,7 @@ from .. import icons
 from .. import log
 from .. import ie_props
 from .. import version_utils
+from .. import draw_utils
 
 
 op_text = 'Scene Selection'
@@ -87,7 +88,7 @@ class XRAY_OT_import_scene_selection(
 
     def draw(self, context):
         layout = self.layout
-        utils.draw_fmt_ver_prop(layout, self, 'fmt_version')
+        draw_utils.draw_fmt_ver_prop(layout, self, 'fmt_version')
         layout.prop(self, 'mesh_split_by_materials')
 
     @utils.execute_with_logger

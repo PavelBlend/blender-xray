@@ -8,6 +8,7 @@ from . import preset
 from .. import version_utils
 from .. import hotkeys
 from .. import utils
+from .. import draw_utils
 
 
 path_props_names = {
@@ -97,13 +98,13 @@ def draw_defaults(prefs):
         # import object props
         box = layout.box()
         box.label(text='Import:')
-        utils.draw_fmt_ver_prop(box, prefs, 'sdk_version', lay_type='ROW')
+        draw_utils.draw_fmt_ver_prop(box, prefs, 'sdk_version', lay_type='ROW')
         box.prop(prefs, 'object_motions_import')
         box.prop(prefs, 'object_mesh_split_by_mat')
         # export object props
         box = layout.box()
         box.label(text='Export:')
-        utils.draw_fmt_ver_prop(box, prefs, 'export_object_sdk_version', lay_type='ROW')
+        draw_utils.draw_fmt_ver_prop(box, prefs, 'export_object_sdk_version', lay_type='ROW')
         row = box.row()
         row.label(text='Smoothing:')
         row.prop(prefs, 'smoothing_out_of', expand=True)
@@ -118,7 +119,7 @@ def draw_defaults(prefs):
         # export
         box = layout.box()
         box.label(text='Export:')
-        utils.draw_fmt_ver_prop(box, prefs, 'anm_format_version', lay_type='ROW')
+        draw_utils.draw_fmt_ver_prop(box, prefs, 'anm_format_version', lay_type='ROW')
     elif prefs.defaults_category == 'SKLS':
         box = layout.box()
         box.label(text='Import:')
@@ -140,12 +141,12 @@ def draw_defaults(prefs):
         box.label(text='Import:')
         box.prop(prefs, 'details_models_in_a_row')
         box.prop(prefs, 'load_slots')
-        utils.draw_fmt_ver_prop(box, prefs, 'details_format', lay_type='ROW')
+        draw_utils.draw_fmt_ver_prop(box, prefs, 'details_format', lay_type='ROW')
         # export
         box = layout.box()
         box.label(text='Export:')
         box.prop(prefs, 'details_texture_names_from_path')
-        utils.draw_fmt_ver_prop(box, prefs, 'format_version', lay_type='ROW')
+        draw_utils.draw_fmt_ver_prop(box, prefs, 'format_version', lay_type='ROW')
     elif prefs.defaults_category == 'DM':
         box = layout.box()
         box.label(text='Export:')
@@ -179,12 +180,12 @@ def draw_defaults(prefs):
     elif prefs.defaults_category == 'SCENE':
         box = layout.box()
         box.label(text='Import:')
-        utils.draw_fmt_ver_prop(box, prefs, 'scene_selection_sdk_version', lay_type='ROW')
+        draw_utils.draw_fmt_ver_prop(box, prefs, 'scene_selection_sdk_version', lay_type='ROW')
         box.prop(prefs, 'scene_selection_mesh_split_by_mat')
     elif prefs.defaults_category == 'PART':
         box = layout.box()
         box.label(text='Import:')
-        utils.draw_fmt_ver_prop(box, prefs, 'part_sdk_version', lay_type='ROW')
+        draw_utils.draw_fmt_ver_prop(box, prefs, 'part_sdk_version', lay_type='ROW')
         box.prop(prefs, 'part_mesh_split_by_mat')
 
 
