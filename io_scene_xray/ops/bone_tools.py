@@ -17,7 +17,7 @@ def _get_real_bone_shape():
     return result
 
 
-resize_bones_props = {
+op_props = {
     'mode': bpy.props.EnumProperty(
         name='Mode',
         items=(
@@ -41,9 +41,11 @@ class XRAY_OT_resize_bones(bpy.types.Operator):
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in resize_bones_props.items():
-            exec('{0} = resize_bones_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @classmethod
     def poll(cls, context):
@@ -123,17 +125,14 @@ class XRAY_OT_resize_bones(bpy.types.Operator):
 
 
 classes = (
-    (XRAY_OT_resize_bones, resize_bones_props),
+    XRAY_OT_resize_bones,
 )
 
 
 def register():
-    for operator, props in classes:
-        if props:
-            version_utils.assign_props([(props, operator), ])
-        bpy.utils.register_class(operator)
+    version_utils.register_operators(classes)
 
 
 def unregister():
-    for operator, props in reversed(classes):
+    for operator in reversed(classes):
         bpy.utils.unregister_class(operator)

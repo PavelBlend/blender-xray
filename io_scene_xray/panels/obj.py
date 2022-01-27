@@ -17,7 +17,7 @@ items = (
     ('paste', '', '', 'PASTEDOWN', 1),
     ('clear', '', '', 'X', 2)
 )
-prop_clip_op_props = {
+op_props = {
     'oper': bpy.props.EnumProperty(items=items),
     'path': bpy.props.StringProperty()
 }
@@ -29,9 +29,11 @@ class XRAY_OT_prop_clip(bpy.types.Operator):
     bl_idname = 'io_scene_xray.propclip'
     bl_label = ''
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in prop_clip_op_props.items():
-            exec('{0} = prop_clip_op_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
         *path, prop = self.path.split('.')
@@ -330,7 +332,7 @@ class XRAY_OT_paste_motion_refs_list(bpy.types.Operator):
         return {'FINISHED'}
 
 
-op_add_ref_props = {
+op_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.omf', options={'HIDDEN'}
     ),
@@ -349,9 +351,11 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
     bl_description = 'Add motion reference from file path'
     bl_options = {'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in op_add_ref_props.items():
-            exec('{0} = op_add_ref_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @classmethod
     def poll(cls, context):
@@ -821,10 +825,7 @@ classes = (
 
 
 def register():
-    version_utils.assign_props([(prop_clip_op_props, XRAY_OT_prop_clip), ])
-    version_utils.assign_props([(op_add_ref_props, XRAY_OT_add_motion_ref_from_file), ])
-    for clas in classes:
-        bpy.utils.register_class(clas)
+    version_utils.register_operators(classes)
 
 
 def unregister():

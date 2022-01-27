@@ -7,7 +7,7 @@ from .. import utils
 from .. import version_utils
 
 
-props = {
+op_props = {
     'mode': material.mode_prop,
     # alpha
     'alpha_value': bpy.props.BoolProperty(name='Use Alpha', default=True),
@@ -79,6 +79,8 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
     bl_label = 'Change Shader Parameters'
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
+
+    props = op_props
 
     if not version_utils.IS_28:
         for prop_name, prop_value in props.items():
@@ -194,10 +196,7 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
 
 
 def register():
-    version_utils.assign_props([
-        (props, XRAY_OT_change_shader_params),
-    ])
-    bpy.utils.register_class(XRAY_OT_change_shader_params)
+    version_utils.register_operators(XRAY_OT_change_shader_params)
 
 
 def unregister():

@@ -8,7 +8,7 @@ from .. import version_utils
 
 COPY_TRANSFORMS_NAME = '!-xray-link'
 
-props = {
+op_props = {
     'armature': bpy.props.StringProperty(name='Link to'),
 }
 
@@ -18,6 +18,8 @@ class XRAY_OT_link_bones(bpy.types.Operator):
     bl_label = 'Link Bones'
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
+
+    props = op_props
 
     if not version_utils.IS_28:
         for prop_name, prop_value in props.items():
@@ -95,9 +97,7 @@ classes = (
 
 
 def register():
-    version_utils.assign_props([(props, XRAY_OT_link_bones), ])
-    for operator in classes:
-        bpy.utils.register_class(operator)
+    version_utils.register_operators(classes)
 
 
 def unregister():

@@ -26,7 +26,7 @@ fake_items = (
     ('FALSE', 'False', ''),
     ('INVERT', 'Invert', '')
 )
-props = {
+op_props = {
     'mode': bpy.props.EnumProperty(
         default='SELECTED_OBJECTS',
         items=mode_items
@@ -47,6 +47,8 @@ class XRAY_OT_change_fake_user(bpy.types.Operator):
     bl_idname = 'io_scene_xray.change_fake_user'
     bl_label = 'Change Fake User'
     bl_options = {'REGISTER', 'UNDO'}
+
+    props = op_props
 
     if not version_utils.IS_28:
         for prop_name, prop_value in props.items():
@@ -205,10 +207,7 @@ class XRAY_OT_change_fake_user(bpy.types.Operator):
 
 
 def register():
-    version_utils.assign_props(
-        [(props, XRAY_OT_change_fake_user), ]
-    )
-    bpy.utils.register_class(XRAY_OT_change_fake_user)
+    version_utils.register_operators(XRAY_OT_change_fake_user)
 
 
 def unregister():

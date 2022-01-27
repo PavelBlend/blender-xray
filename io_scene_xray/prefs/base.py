@@ -11,9 +11,11 @@ from .. import version_utils
 class XRAY_addon_preferences(bpy.types.AddonPreferences):
     bl_idname = 'io_scene_xray'
 
+    props = props.plugin_preferences_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in props.plugin_preferences_props.items():
-            exec('{0} = props.plugin_preferences_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout
@@ -39,10 +41,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
 
 
 def register():
-    version_utils.assign_props([
-        (props.plugin_preferences_props, XRAY_addon_preferences),
-    ])
-    bpy.utils.register_class(XRAY_addon_preferences)
+    version_utils.register_operators(XRAY_addon_preferences)
 
 
 def unregister():

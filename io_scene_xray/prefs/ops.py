@@ -24,7 +24,7 @@ class XRAY_OT_reset_prefs_settings(bpy.types.Operator):
         return context.window_manager.invoke_confirm(self, event)
 
 
-_explicit_path_op_props = {
+op_props = {
     'path': bpy.props.StringProperty(),
 }
 
@@ -34,9 +34,11 @@ class XRAY_OT_explicit_path(bpy.types.Operator):
     bl_label = 'Make Explicit'
     bl_description = 'Make this path explicit using the automatically calculated value'
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in _explicit_path_op_props.items():
-            exec('{0} = _explicit_path_op_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
         preferences = version_utils.get_preferences()
@@ -54,11 +56,7 @@ classes = (
 
 
 def register():
-    version_utils.assign_props([
-        (_explicit_path_op_props, XRAY_OT_explicit_path),
-    ])
-    for clas in classes:
-        bpy.utils.register_class(clas)
+    version_utils.register_operators(classes)
 
 
 def unregister():

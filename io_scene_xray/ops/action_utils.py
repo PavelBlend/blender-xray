@@ -77,7 +77,7 @@ class XRAY_OT_paste_action_settings(bpy.types.Operator):
         return {'FINISHED'}
 
 
-change_action_bake_settings_props = {
+op_props = {
     'change_mode': bpy.props.EnumProperty(
         name='Mode',
         items=(
@@ -128,9 +128,11 @@ class XRAY_OT_change_action_bake_settings(bpy.types.Operator):
     bl_label = 'Change Action Bake Settings'
     bl_options = {'REGISTER', 'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in change_action_bake_settings_props.items():
-            exec('{0} = change_action_bake_settings_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout
@@ -231,7 +233,7 @@ funct_items = (
     ('CAPITALIZE', 'Capitalize', ''),
     ('TITLE', 'Title', '')
 )
-rename_actions_props = {
+op_props = {
     'data_mode': bpy.props.EnumProperty(
         name='Data Mode',
         items=(
@@ -280,9 +282,11 @@ class XRAY_OT_rename_actions(bpy.types.Operator):
     bl_label = 'Rename Actions'
     bl_options = {'REGISTER', 'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in rename_actions_props.items():
-            exec('{0} = rename_actions_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         column = self.layout.column(align=True)
@@ -433,22 +437,17 @@ class XRAY_OT_rename_actions(bpy.types.Operator):
 
 
 classes = (
-    (XRAY_OT_copy_action_settings, None),
-    (XRAY_OT_paste_action_settings, None),
-    (XRAY_OT_change_action_bake_settings, change_action_bake_settings_props),
-    (XRAY_OT_rename_actions, rename_actions_props)
+    XRAY_OT_copy_action_settings,
+    XRAY_OT_paste_action_settings,
+    XRAY_OT_change_action_bake_settings,
+    XRAY_OT_rename_actions
 )
 
 
 def register():
-    for operator, props in classes:
-        if props:
-            version_utils.assign_props([
-                (props, operator),
-            ])
-        bpy.utils.register_class(operator)
+    version_utils.register_operators(classes)
 
 
 def unregister():
-    for operator, _ in reversed(classes):
+    for operator in reversed(classes):
         bpy.utils.unregister_class(operator)

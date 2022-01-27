@@ -68,7 +68,7 @@ mode_prop = bpy.props.EnumProperty(
         default='ACTIVE_MATERIAL'
 )
 
-prop_mode = {
+op_props = {
     'mode': mode_prop,
 }
 
@@ -79,9 +79,11 @@ class XRAY_OT_switch_render(bpy.types.Operator):
     bl_description = 'Switch Cycles/Internal Render'
     bl_options = {'REGISTER', 'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in prop_mode.items():
-            exec('{0} = prop_mode.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout
@@ -122,9 +124,11 @@ class XRAY_OT_convert_to_internal_material(bpy.types.Operator):
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in prop_mode.items():
-            exec('{0} = prop_mode.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout
@@ -208,7 +212,7 @@ convert_materials_shader_type_items = (
     ('DIFFUSE', 'Diffuse', ''),
     ('EMISSION', 'Emission', '')
 )
-props = {
+op_props = {
     'mode': mode_prop,
     'shader_type': bpy.props.EnumProperty(
         name='Shader',
@@ -223,6 +227,8 @@ class XRAY_OT_convert_to_cycles_material(bpy.types.Operator):
     bl_label = 'Convert to Cycles'
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
+
+    props = op_props
 
     if not version_utils.IS_28:
         for prop_name, prop_value in props.items():
@@ -311,7 +317,7 @@ colorize_color_mode_items = (
     ('RANDOM_BY_ROOT', 'Random by Root', ''),
     ('SINGLE_COLOR', 'Single Color', '')
 )
-xray_colorize_materials_props = {
+op_props = {
     'mode': bpy.props.EnumProperty(
         default='SELECTED_OBJECTS',
         items=colorize_mode_items
@@ -340,9 +346,11 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
     bl_description = 'Set a pseudo-random diffuse color for each surface (material)'
     bl_options = {'REGISTER', 'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in xray_colorize_materials_props.items():
-            exec('{0} = xray_colorize_materials_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout
@@ -498,7 +506,7 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
-create_materials_props = {
+op_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.dds', options={'HIDDEN'}
     ),
@@ -508,7 +516,9 @@ create_materials_props = {
     'filepath': bpy.props.StringProperty(
         subtype="FILE_PATH", options={'SKIP_SAVE', 'HIDDEN'}
     ),
-    'material_name': bpy.props.StringProperty()
+    'material_name': bpy.props.StringProperty(
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
 }
 
 
@@ -518,9 +528,11 @@ class XRAY_OT_create_material(bpy.types.Operator):
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in create_materials_props.items():
-            exec('{0} = create_materials_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -575,33 +587,25 @@ class XRAY_OT_create_material(bpy.types.Operator):
 
 
 classes = (
-    (XRAY_OT_colorize_materials, xray_colorize_materials_props),
-    (XRAY_OT_create_material, create_materials_props)
+    XRAY_OT_colorize_materials,
+    XRAY_OT_create_material
 )
 classes_27x = (
-    (XRAY_OT_convert_to_cycles_material, props),
-    (XRAY_OT_convert_to_internal_material, prop_mode),
-    (XRAY_OT_switch_render, prop_mode)
+    XRAY_OT_convert_to_cycles_material,
+    XRAY_OT_convert_to_internal_material,
+    XRAY_OT_switch_render
 )
 
 
 def register():
-    for operator, props_dict in classes:
-        version_utils.assign_props(
-            [(props_dict, operator), ]
-        )
-        bpy.utils.register_class(operator)
+    version_utils.register_operators(classes)
     if not version_utils.IS_28:
-        for operator, props_dict in classes_27x:
-            version_utils.assign_props(
-                [(props_dict, operator), ]
-            )
-            bpy.utils.register_class(operator)
+        version_utils.register_operators(classes_27x)
 
 
 def unregister():
     if not version_utils.IS_28:
-        for operator, props in reversed(classes_27x):
+        for operator in reversed(classes_27x):
             bpy.utils.unregister_class(operator)
-    for operator, props in reversed(classes):
+    for operator in reversed(classes):
         bpy.utils.unregister_class(operator)

@@ -112,7 +112,7 @@ edit_mode_items = (
     ('SELECTED', 'Selected Objects', ''),
     ('ACTIVE', 'Active Object', '')
 )
-custom_props = {
+op_props = {
     # custom properties utils
     'edit_data': bpy.props.EnumProperty(
         name='Edit Data',
@@ -132,9 +132,11 @@ class XRAY_OT_set_custom_to_xray_props(bpy.types.Operator):
     bl_label = 'Set Custom to X-Ray'
     bl_options = {'REGISTER', 'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in custom_props.items():
-            exec('{0} = custom_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     draw = draw_function
 
@@ -245,9 +247,11 @@ class XRAY_OT_set_xray_to_custom_props(bpy.types.Operator):
     bl_label = 'Set X-Ray to Custom'
     bl_options = {'REGISTER', 'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in custom_props.items():
-            exec('{0} = custom_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     draw = draw_function
 
@@ -349,9 +353,11 @@ class XRAY_OT_remove_xray_custom_props(bpy.types.Operator):
     bl_label = 'Remove X-Ray Custom Properties'
     bl_options = {'REGISTER', 'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in custom_props.items():
-            exec('{0} = custom_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     draw = draw_function
 
@@ -396,9 +402,11 @@ class XRAY_OT_remove_all_custom_props(bpy.types.Operator):
     bl_label = 'Remove All Custom Properties'
     bl_options = {'REGISTER', 'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in custom_props.items():
-            exec('{0} = custom_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     draw = draw_function
 
@@ -431,22 +439,17 @@ class XRAY_OT_remove_all_custom_props(bpy.types.Operator):
 
 
 classes = (
-    (XRAY_OT_set_custom_to_xray_props, custom_props),
-    (XRAY_OT_set_xray_to_custom_props, custom_props),
-    (XRAY_OT_remove_xray_custom_props, custom_props),
-    (XRAY_OT_remove_all_custom_props, custom_props)
+    XRAY_OT_set_custom_to_xray_props,
+    XRAY_OT_set_xray_to_custom_props,
+    XRAY_OT_remove_xray_custom_props,
+    XRAY_OT_remove_all_custom_props
 )
 
 
 def register():
-    for operator, props in classes:
-        if props:
-            version_utils.assign_props([
-                (props, operator),
-            ])
-        bpy.utils.register_class(operator)
+    version_utils.register_operators(classes)
 
 
 def unregister():
-    for operator, props in reversed(classes):
+    for operator in reversed(classes):
         bpy.utils.unregister_class(operator)

@@ -14,7 +14,7 @@ plane_items = (
     ('XY', 'XY', ''),
     ('XZ', 'XZ', '')
 )
-place_objects_props = {
+op_props = {
     'plane': bpy.props.EnumProperty(
         name='Plane',
         default='XY',
@@ -36,9 +36,11 @@ class XRAY_OT_place_objects(bpy.types.Operator):
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in place_objects_props.items():
-            exec('{0} = place_objects_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @classmethod
     def poll(cls, context):
@@ -103,7 +105,7 @@ colorize_color_mode_items = (
     ('RANDOM_BY_ROOT', 'Random by Root', ''),
     ('SINGLE_COLOR', 'Single Color', '')
 )
-xray_colorize_objects_props = {
+op_props = {
     'mode': bpy.props.EnumProperty(
         default='SELECTED_OBJECTS',
         items=colorize_mode_items
@@ -130,9 +132,11 @@ class XRAY_OT_colorize_objects(bpy.types.Operator):
     bl_description = 'Set a pseudo-random object color'
     bl_options = {'REGISTER', 'UNDO'}
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in xray_colorize_objects_props.items():
-            exec('{0} = xray_colorize_objects_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout
@@ -219,18 +223,15 @@ class XRAY_OT_colorize_objects(bpy.types.Operator):
 
 
 classes = (
-    (XRAY_OT_place_objects, place_objects_props),
-    (XRAY_OT_colorize_objects, xray_colorize_objects_props)
+    XRAY_OT_place_objects,
+    XRAY_OT_colorize_objects
 )
 
 
 def register():
-    for operator, props in classes:
-        if props:
-            version_utils.assign_props([(props, operator), ])
-        bpy.utils.register_class(operator)
+    version_utils.register_operators(classes)
 
 
 def unregister():
-    for operator, props in reversed(classes):
+    for operator in reversed(classes):
         bpy.utils.unregister_class(operator)

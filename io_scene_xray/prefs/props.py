@@ -344,12 +344,14 @@ xray_custom_properties.update(custom_action_props)
 
 
 class XRayPrefsCustomProperties(bpy.types.PropertyGroup):
+    props = xray_custom_properties
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in xray_custom_properties.items():
-            exec('{0} = xray_custom_properties.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
 
-change_keymap_props = {
+op_props = {
     'operator': bpy.props.StringProperty(),
 }
 
@@ -358,9 +360,11 @@ class XRAY_OT_add_keymap(bpy.types.Operator):
     bl_idname = 'io_scene_xray.add_keymap'
     bl_label = 'Add Keymap'
 
+    props = op_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in change_keymap_props.items():
-            exec('{0} = change_keymap_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
         hotkeys.add_keymaps(only=self.operator)
@@ -374,9 +378,11 @@ key_map_props = {
 
 
 class XRayKeyMap(bpy.types.PropertyGroup):
+    props = key_map_props
+
     if not version_utils.IS_28:
-        for prop_name, prop_value in key_map_props.items():
-            exec('{0} = key_map_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
 
 key_items = (
@@ -561,19 +567,16 @@ plugin_preferences_props = {
 
 
 classes = (
-    (XRAY_OT_add_keymap, change_keymap_props),
-    (XRayKeyMap, key_map_props),
-    (XRayPrefsCustomProperties, xray_custom_properties)
+    XRAY_OT_add_keymap,
+    XRayKeyMap,
+    XRayPrefsCustomProperties
 )
 
 
 def register():
-    for clas, props in classes:
-        if props:
-            version_utils.assign_props([(props, clas), ])
-        bpy.utils.register_class(clas)
+    version_utils.register_operators(classes)
 
 
 def unregister():
-    for clas, props in reversed(classes):
+    for clas in reversed(classes):
         bpy.utils.unregister_class(clas)
