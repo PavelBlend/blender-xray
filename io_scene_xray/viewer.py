@@ -115,39 +115,39 @@ def import_file(file):
     prefs = version_utils.get_preferences()
     if not os.path.isfile(path):
         return
-    if not viewer.ignore_ext:
-        if path.endswith('.object'):
-            bpy.ops.xray_import.object(
-                directory=directory,
-                files=[{'name': file.name}],
-                import_motions=prefs.object_motions_import
-            )
-        elif path.endswith('.ogf'):
-            bpy.ops.xray_import.ogf(
-                directory=directory,
-                files=[{'name': file.name}],
-                import_motions=prefs.ogf_import_motions
-            )
-        elif path.endswith('.dm'):
-            bpy.ops.xray_import.dm(
-                directory=directory,
-                files=[{'name': file.name}],
-            )
-        elif path.endswith('.details'):
-            bpy.ops.xray_import.details(
-                directory=directory,
-                files=[{'name': file.name}],
-                load_slots=False
-            )
+    if path.endswith('.object'):
+        bpy.ops.xray_import.object(
+            directory=directory,
+            files=[{'name': file.name}],
+            import_motions=prefs.object_motions_import
+        )
+    elif path.endswith('.ogf'):
+        bpy.ops.xray_import.ogf(
+            directory=directory,
+            files=[{'name': file.name}],
+            import_motions=prefs.ogf_import_motions
+        )
+    elif path.endswith('.dm'):
+        bpy.ops.xray_import.dm(
+            directory=directory,
+            files=[{'name': file.name}],
+        )
+    elif path.endswith('.details'):
+        bpy.ops.xray_import.details(
+            directory=directory,
+            files=[{'name': file.name}],
+            load_slots=False
+        )
     else:
-        try:
-            bpy.ops.xray_import.object(
-                directory=directory,
-                files=[{'name': file.name}],
-                import_motions=prefs.object_motions_import
-            )
-        except:
-            pass
+        if viewer.ignore_ext:
+            try:
+                bpy.ops.xray_import.object(
+                    directory=directory,
+                    files=[{'name': file.name}],
+                    import_motions=prefs.object_motions_import
+                )
+            except:
+                pass
 
 
 def update_file(self, context):
