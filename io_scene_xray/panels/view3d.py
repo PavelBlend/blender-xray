@@ -103,12 +103,14 @@ class XRAY_PT_viewer(bpy.types.Panel):
         if viewer_folder:
             row = col.row(align=True)
             row.label(text=viewer_folder)
-            col.prop(scn.xray.viewer, 'ignore_ext')
             row.operator(
                 viewer.XRAY_OT_viewer_open_current_folder.bl_idname,
                 text='',
                 icon='FILE_FOLDER'
             )
+            col_settings = col.column(align=True)
+            col_settings.prop(scn.xray.viewer, 'ignore_ext')
+            col_settings.prop(scn.xray.viewer, 'show_size')
             col.operator(
                 viewer.XRAY_OT_viewer_close_folder.bl_idname,
                 icon='X'

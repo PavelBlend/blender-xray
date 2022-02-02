@@ -9,6 +9,10 @@ from . import version_utils
 from . import utils
 
 
+KB = 1024
+MB = KB ** 2
+
+
 class XRAY_UL_viewer_list_item(bpy.types.UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
@@ -20,6 +24,15 @@ class XRAY_UL_viewer_list_item(bpy.types.UIList):
                 row.active = False
             row.prop(item, 'select', text='')
             row.label(text=item.name, icon='FILE')
+            if context.scene.xray.viewer.show_size:
+                row = row.row()
+                row.alignment = 'RIGHT'
+                if item.size > MB:
+                    row.label(text='{:.1f} MB'.format(item.size / MB))
+                elif item.size > KB:
+                    row.label(text='{:.1f} KB'.format(item.size / KB))
+                else:
+                    row.label(text='{} Bytes'.format(item.size))
 
 
 def get_current_objects():
@@ -189,6 +202,8 @@ def update_file_list(directory, active_folder=None):
             file = viewer_files.add()
             file.name = file_name
             file.path = file_path
+            size = os.path.getsize(file_path)
+            file.size = size
             is_directory = is_dir[index]
             file.is_dir = is_directory
             if is_directory:
@@ -358,7 +373,8 @@ viewer_file_props = {
     'name': bpy.props.StringProperty(name='Name'),
     'path': bpy.props.StringProperty(name='Path'),
     'select': bpy.props.BoolProperty(name='Select', default=True),
-    'is_dir': bpy.props.BoolProperty(name='Directory')
+    'is_dir': bpy.props.BoolProperty(name='Directory'),
+    'size': bpy.props.IntProperty(name='Size')
 }
 
 
@@ -377,7 +393,8 @@ scene_viewer_props = {
         default=False,
         name='Ignore Extension',
         update=update_file_list_ext
-    )
+    ),
+    'show_size': bpy.props.BoolProperty(default=False, name='Show Size')
 }
 
 
