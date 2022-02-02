@@ -97,15 +97,18 @@ def remove_preview_data():
 def import_file(file):
     path = file.path
     directory = os.path.dirname(path)
+    prefs = version_utils.get_preferences()
     if path.endswith('.object'):
         bpy.ops.xray_import.object(
             directory=directory,
             files=[{'name': file.name}],
+            import_motions=prefs.object_motions_import
         )
     elif path.endswith('.ogf'):
         bpy.ops.xray_import.ogf(
             directory=directory,
             files=[{'name': file.name}],
+            import_motions=prefs.ogf_import_motions
         )
     elif path.endswith('.dm'):
         bpy.ops.xray_import.dm(
