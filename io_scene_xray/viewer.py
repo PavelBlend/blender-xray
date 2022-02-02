@@ -234,9 +234,9 @@ def update_file_list(directory, active_folder=None):
     for group_key in groups_keys:
         files_list = file_groups[group_key]
         if group_key == True:    # folders
-            files_list.sort(key=sort_by_name)
+            files_list.sort(key=sort_by_name, reverse=viewer.sort_reverse)
         else:
-            files_list.sort(key=key)
+            files_list.sort(key=key, reverse=viewer.sort_reverse)
         for file_name, file_path, is_directory, size in files_list:
             file = viewer_files.add()
             file.name = file_name
@@ -444,6 +444,11 @@ scene_viewer_props = {
     'group_by_ext': bpy.props.BoolProperty(
         default=False,
         name='Group by Extension',
+        update=update_file_list_ext
+    ),
+    'sort_reverse': bpy.props.BoolProperty(
+        default=False,
+        name='Reverse Sort',
         update=update_file_list_ext
     )
 }

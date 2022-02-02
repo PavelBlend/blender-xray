@@ -114,6 +114,7 @@ class XRAY_PT_viewer(bpy.types.Panel):
             row.prop(scn.xray.viewer, 'sort', expand=True)
 
             col_settings = col.column(align=True)
+            col_settings.prop(scn.xray.viewer, 'sort_reverse')
             col_settings.prop(scn.xray.viewer, 'ignore_ext')
             col_settings.prop(scn.xray.viewer, 'show_size')
             col_settings.prop(scn.xray.viewer, 'group_by_ext')
