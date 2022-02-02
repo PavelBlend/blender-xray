@@ -163,7 +163,7 @@ def update_file_list(directory, active_folder=None):
             dirs.append((file_name, file_path))
         else:
             _, ext = os.path.splitext(file_name)
-            if not ext in ext_list:
+            if not ext in ext_list and not scene.xray.viewer.ignore_ext:
                 continue
             files.append((file_name, file_path))
     dirs.sort()
@@ -181,6 +181,11 @@ def update_file_list(directory, active_folder=None):
                 if file_name == active_folder:
                     scene.xray.viewer.files_index = file_index
             file_index += 1
+
+
+def update_file_list_ext(self, context):
+    scene = context.scene
+    update_file_list(scene.xray.viewer.folder)
 
 
 op_props = {
@@ -353,7 +358,12 @@ scene_viewer_props = {
     'files': bpy.props.CollectionProperty(type=XRayViwerFileProperties),
     'files_index': bpy.props.IntProperty(update=update_file),
     'folder': bpy.props.StringProperty(),
-    'is_preview_folder_mode': bpy.props.BoolProperty(default=False)
+    'is_preview_folder_mode': bpy.props.BoolProperty(default=False),
+    'ignore_ext': bpy.props.BoolProperty(
+        default=False,
+        name='Ignore Extension',
+        update=update_file_list_ext
+    )
 }
 
 
