@@ -125,8 +125,12 @@ def update_file(self, context):
     viewer = scene.xray.viewer
     file = viewer.files[viewer.files_index]
     if file.is_dir:
-        scene.xray.viewer.folder = file.path
-        update_file_list(scene.xray.viewer.folder)
+        if viewer.is_preview_folder_mode:
+            viewer.is_preview_folder_mode = False
+            return
+        else:
+            scene.xray.viewer.folder = file.path
+            update_file_list(scene.xray.viewer.folder)
     remove_preview_data()
     old_objects = get_current_objects()
     import_file(file)
@@ -144,7 +148,7 @@ def update_file(self, context):
 ext_list = ['.ogf', '.object', '.dm', '.details']
 
 
-def update_file_list(directory):
+def update_file_list(directory, active_folder=None):
     scene = bpy.context.scene
     scene.xray.viewer.files.clear()
     viewer_files = scene.xray.viewer.files
@@ -162,12 +166,18 @@ def update_file_list(directory):
     dirs.sort()
     files.sort()
     is_dir = (True, False)
+    file_index = 0
     for index, file_list in enumerate((dirs, files)):
         for file_name, file_path in file_list:
             file = viewer_files.add()
             file.name = file_name
             file.path = file_path
-            file.is_dir = is_dir[index]
+            is_directory = is_dir[index]
+            file.is_dir = is_directory
+            if is_directory:
+                if file_name == active_folder:
+                    scene.xray.viewer.files_index = file_index
+            file_index += 1
 
 
 op_props = {
@@ -225,9 +235,11 @@ class XRAY_OT_viewer_preview_folder(bpy.types.Operator):
         if viewer_folder:
             if viewer_folder[-1] == os.sep:
                 viewer_folder = viewer_folder[0 : -1]
+            active_folder = os.path.basename(viewer_folder)
             viewer_folder = os.path.dirname(viewer_folder)
             scene.xray.viewer.folder = viewer_folder
-            update_file_list(scene.xray.viewer.folder)
+            scene.xray.viewer.is_preview_folder_mode = True
+            update_file_list(scene.xray.viewer.folder, active_folder)
             remove_preview_data()
         return {'FINISHED'}
 
@@ -323,7 +335,8 @@ class XRayViwerFileProperties(bpy.types.PropertyGroup):
 scene_viewer_props = {
     'files': bpy.props.CollectionProperty(type=XRayViwerFileProperties),
     'files_index': bpy.props.IntProperty(update=update_file),
-    'folder': bpy.props.StringProperty()
+    'folder': bpy.props.StringProperty(),
+    'is_preview_folder_mode': bpy.props.BoolProperty(default=False)
 }
 
 
