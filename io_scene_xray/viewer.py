@@ -180,8 +180,9 @@ ext_list = ['.ogf', '.object', '.dm', '.details']
 
 def update_file_list(directory, active_folder=None):
     scene = bpy.context.scene
-    scene.xray.viewer.files.clear()
-    viewer_files = scene.xray.viewer.files
+    viewer = scene.xray.viewer
+    viewer.files.clear()
+    viewer_files = viewer.files
     dirs = []
     files = []
     for file_name in os.listdir(directory):
@@ -190,25 +191,61 @@ def update_file_list(directory, active_folder=None):
             dirs.append((file_name, file_path))
         else:
             _, ext = os.path.splitext(file_name)
-            if not ext in ext_list and not scene.xray.viewer.ignore_ext:
+            if not ext in ext_list and not viewer.ignore_ext:
                 continue
             files.append((file_name, file_path))
     dirs.sort()
     files.sort()
     is_dir = (True, False)
-    file_index = 0
+    file_groups = {}
     for index, file_list in enumerate((dirs, files)):
         for file_name, file_path in file_list:
+            is_directory = is_dir[index]
+            size = os.path.getsize(file_path)
+            if is_directory:
+                ext = ''
+            else:
+                ext = os.path.splitext(file_name)[-1]
+            if not viewer.group_by_ext:
+                file_groups.setdefault(is_directory, []).append((
+                    file_name,
+                    file_path,
+                    is_directory,
+                    size
+                ))
+            else:
+                file_groups.setdefault(ext, []).append((
+                    file_name,
+                    file_path,
+                    is_directory,
+                    size
+                ))
+    file_index = 0
+    sort_by_name = lambda item: item[0]
+    if viewer.sort == 'NAME':
+        key = sort_by_name
+    else:
+        key = lambda item: item[3]
+    groups_keys = list(file_groups.keys())
+    if True in file_groups:
+        dir_index = groups_keys.index(True)
+        groups_keys.pop(dir_index)
+        groups_keys.insert(0, True)
+    for group_key in groups_keys:
+        files_list = file_groups[group_key]
+        if group_key == True:    # folders
+            files_list.sort(key=sort_by_name)
+        else:
+            files_list.sort(key=key)
+        for file_name, file_path, is_directory, size in files_list:
             file = viewer_files.add()
             file.name = file_name
             file.path = file_path
-            size = os.path.getsize(file_path)
             file.size = size
-            is_directory = is_dir[index]
             file.is_dir = is_directory
             if is_directory:
                 if file_name == active_folder:
-                    scene.xray.viewer.files_index = file_index
+                    viewer.files_index = file_index
             file_index += 1
 
 
@@ -384,6 +421,10 @@ class XRayViwerFileProperties(bpy.types.PropertyGroup):
             exec('{0} = viewer_file_props.get("{0}")'.format(prop_name))
 
 
+sort_items = (
+    ('NAME', 'Name', ''),
+    ('SIZE', 'Size', '')
+)
 scene_viewer_props = {
     'files': bpy.props.CollectionProperty(type=XRayViwerFileProperties),
     'files_index': bpy.props.IntProperty(update=update_file),
@@ -394,7 +435,17 @@ scene_viewer_props = {
         name='Ignore Extension',
         update=update_file_list_ext
     ),
-    'show_size': bpy.props.BoolProperty(default=False, name='Show Size')
+    'show_size': bpy.props.BoolProperty(default=False, name='Show Size'),
+    'sort': bpy.props.EnumProperty(
+        name='Sort',
+        items=sort_items,
+        update=update_file_list_ext
+    ),
+    'group_by_ext': bpy.props.BoolProperty(
+        default=False,
+        name='Group by Extension',
+        update=update_file_list_ext
+    )
 }
 
 

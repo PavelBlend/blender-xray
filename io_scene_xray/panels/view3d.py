@@ -108,9 +108,16 @@ class XRAY_PT_viewer(bpy.types.Panel):
                 text='',
                 icon='FILE_FOLDER'
             )
+
+            row = col.row(align=True)
+            row.label(text='Sort:')
+            row.prop(scn.xray.viewer, 'sort', expand=True)
+
             col_settings = col.column(align=True)
             col_settings.prop(scn.xray.viewer, 'ignore_ext')
             col_settings.prop(scn.xray.viewer, 'show_size')
+            col_settings.prop(scn.xray.viewer, 'group_by_ext')
+
             col.operator(
                 viewer.XRAY_OT_viewer_close_folder.bl_idname,
                 icon='X'
