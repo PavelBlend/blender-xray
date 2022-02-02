@@ -209,6 +209,20 @@ class XRAY_OT_viewer_open_folder(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
+class XRAY_OT_viewer_open_current_folder(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.viewer_open_current_folder'
+    bl_label = 'Open Current Folder'
+    bl_options = {'REGISTER'}
+
+    @utils.set_cursor_state
+    def execute(self, context):
+        scene = context.scene
+        folder = scene.xray.viewer.folder
+        folder = os.path.realpath(folder)
+        os.startfile(folder)
+        return {'FINISHED'}
+
+
 class XRAY_OT_viewer_close_folder(bpy.types.Operator):
     bl_idname = 'io_scene_xray.viewer_close_folder'
     bl_label = 'Close Folder'
@@ -353,6 +367,7 @@ classes = (
     (XRAY_OT_viewer_close_folder, None),
     (XRAY_OT_viewer_preview_folder, None),
     (XRAY_OT_viewer_open_folder, op_props),
+    (XRAY_OT_viewer_open_current_folder, None),
     (XRAY_OT_viewer_import_files, op_import_props),
     (XRAY_OT_viewer_select_files, op_select_props)
 )

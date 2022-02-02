@@ -101,7 +101,13 @@ class XRAY_PT_viewer(bpy.types.Panel):
         scn = context.scene
         viewer_folder = scn.xray.viewer.folder
         if viewer_folder:
-            col.label(text=viewer_folder)
+            row = col.row(align=True)
+            row.label(text=viewer_folder)
+            row.operator(
+                viewer.XRAY_OT_viewer_open_current_folder.bl_idname,
+                text='',
+                icon='FILE_FOLDER'
+            )
             col.operator(
                 viewer.XRAY_OT_viewer_close_folder.bl_idname,
                 icon='X'
