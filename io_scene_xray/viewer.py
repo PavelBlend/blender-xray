@@ -150,6 +150,19 @@ def import_file(file):
                 pass
 
 
+ext_ignore = [
+    '.dds',
+    '.tga',
+    '.thm',
+    '.ogm',
+    '.wav',
+    '.ogg',
+    '.spawn',
+    '.graph',
+    '.ai'
+]
+
+
 def update_file(self, context):
     scene = context.scene
     viewer = scene.xray.viewer
@@ -161,6 +174,9 @@ def update_file(self, context):
         else:
             scene.xray.viewer.folder = file.path
             update_file_list(scene.xray.viewer.folder)
+    ext = os.path.splitext(file.name)[-1]
+    if ext in ext_ignore:
+        return
     remove_preview_data()
     old_objects = get_current_objects()
     import_file(file)
@@ -194,8 +210,6 @@ def update_file_list(directory, active_folder=None):
             if not ext in ext_list and not viewer.ignore_ext:
                 continue
             files.append((file_name, file_path))
-    dirs.sort()
-    files.sort()
     is_dir = (True, False)
     file_groups = {}
     for index, file_list in enumerate((dirs, files)):
@@ -206,6 +220,8 @@ def update_file_list(directory, active_folder=None):
                 ext = ''
             else:
                 ext = os.path.splitext(file_name)[-1]
+                if not ext:
+                    ext = '.'
             if not viewer.group_by_ext:
                 file_groups.setdefault(is_directory, []).append((
                     file_name,
@@ -244,8 +260,9 @@ def update_file_list(directory, active_folder=None):
             file.size = size
             file.is_dir = is_directory
             if is_directory:
-                if file_name == active_folder:
-                    viewer.files_index = file_index
+                if active_folder:
+                    if file_name == active_folder:
+                        viewer.files_index = file_index
             file_index += 1
 
 
