@@ -529,10 +529,25 @@ class XRAY_OT_create_material(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     props = op_props
+    init = False
 
     if not version_utils.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):
+        if not self.init:
+            space = context.space_data
+            params = space.params
+            params.display_type = 'THUMBNAIL'
+            space.show_region_tool_props = False
+            self.init = True
+            prefs = version_utils.get_preferences()
+            tex_folder = prefs.textures_folder_auto
+            if tex_folder:
+                tex_folder = bytes(tex_folder, encoding='utf-8')
+                if not params.directory.startswith(tex_folder):
+                    params.directory = tex_folder
 
     @utils.set_cursor_state
     def execute(self, context):
