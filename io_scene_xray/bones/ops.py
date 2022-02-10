@@ -83,12 +83,6 @@ class XRAY_OT_import_bones(
         filepath = os.path.join(self.directory, filename)
         file_ext = os.path.splitext(filename)[-1].lower()
         if file_ext == '.bones':
-            if not os.path.exists(filepath):
-                self.report(
-                    {'ERROR'},
-                    'File not found: "{}"'.format(filepath)
-                )
-                return {'CANCELLED'}
             imp_props = self.import_bone_properties
             imp_parts = self.import_bone_parts
             if not imp_props and not imp_parts:

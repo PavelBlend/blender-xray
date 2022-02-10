@@ -13,6 +13,7 @@ from .. import utils
 from .. import log
 from .. import xray_envelope
 from .. import version_utils
+from .. import ie_utils
 from .. import xray_io
 
 
@@ -116,11 +117,7 @@ def _import(file_path, creader, context):
 def import_file(context):
     file_path = context.filepath
     log.update(file=file_path)
-    if not os.path.exists(file_path):
-        raise utils.AppError(
-            text.error.file_not_found,
-            log.props(file_path=file_path)
-        )
+    ie_utils.check_file_exists(file_path)
     data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(data)
     _import(file_path, chunked_reader, context)

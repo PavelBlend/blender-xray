@@ -7,6 +7,7 @@ from .. import fmt
 from ... import log
 from ... import text
 from ... import utils
+from ... import ie_utils
 from ... import xray_io
 
 
@@ -27,6 +28,7 @@ def _import(file_path, context, reader):
 @log.with_context(name='file')
 def import_file(file_path, context):
     log.update(path=file_path)
+    ie_utils.check_file_exists(file_path)
     file_data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(memoryview(file_data))
     bpy_obj = _import(file_path, context, chunked_reader)

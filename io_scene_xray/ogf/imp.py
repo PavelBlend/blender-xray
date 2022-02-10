@@ -15,6 +15,7 @@ from .. import log
 from .. import utils
 from .. import xray_io
 from .. import version_utils
+from .. import ie_utils
 from .. import level
 from .. import xray_motions
 
@@ -1855,6 +1856,7 @@ def import_visual(context, data, visual):
 @log.with_context(name='file')
 def import_file(context, file_path, file_name):
     log.update(path=file_path)
+    ie_utils.check_file_exists(file_path)
     data = utils.read_file(file_path)
     visual = Visual()
     visual.file_path = file_path

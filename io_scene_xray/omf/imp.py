@@ -8,6 +8,7 @@ from .. import text
 from .. import log
 from .. import xray_io
 from .. import utils
+from .. import ie_utils
 
 
 MATRIX_BONE = mathutils.Matrix((
@@ -377,6 +378,9 @@ def read_main(data, context):
         print('Unknown OMF chunk: 0x{:x}'.format(chunk_id))
 
 
+@log.with_context(name='file')
 def import_file(context):
+    log.update(path=context.filepath)
+    ie_utils.check_file_exists(context.filepath)
     file_data = utils.read_file(context.filepath)
     read_main(file_data, context)

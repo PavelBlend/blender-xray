@@ -6,6 +6,7 @@ import bpy_extras
 from . import imp
 from . import exp
 from .. import utils
+from .. import log
 from .. import icons
 from .. import contexts
 from .. import version_utils

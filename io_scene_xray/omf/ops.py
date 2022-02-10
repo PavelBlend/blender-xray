@@ -104,12 +104,6 @@ class XRAY_OT_import_omf(
             file_ext = os.path.splitext(file.name)[-1].lower()
             if file_ext == '.omf':
                 omf_path = os.path.join(self.directory, file.name)
-                if not os.path.exists(omf_path):
-                    self.report(
-                        {'ERROR'},
-                        'File not found: "{}"'.format(omf_path)
-                    )
-                    continue
                 import_context.bpy_arm_obj = context.object
                 import_context.filepath = omf_path
                 import_context.import_bone_parts = self.import_bone_parts

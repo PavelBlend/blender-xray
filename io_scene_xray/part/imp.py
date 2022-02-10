@@ -9,6 +9,7 @@ from .. import obj
 from .. import log
 from .. import text
 from .. import utils
+from .. import ie_utils
 from .. import version_utils
 from .. import xray_ltx
 
@@ -76,9 +77,10 @@ def import_soc_objects(data, context, level_name):
     raise utils.AppError('Binary Format not Supported!')
 
 
-@log.with_context(name='file')
+@log.with_context(name='import-part')
 def import_file(file_path, context):
     log.update(path=file_path)
+    ie_utils.check_file_exists(file_path)
     level_name = os.path.basename(os.path.dirname(file_path))
     file_data = utils.read_file(file_path)
     try:

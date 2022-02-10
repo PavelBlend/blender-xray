@@ -7,6 +7,7 @@ import bpy
 # addon modules
 from . import fmt
 from .. import utils
+from .. import ie_utils
 from .. import text
 from .. import log
 from .. import version_utils
@@ -68,9 +69,10 @@ def import_(filepath, chunked_reader, operator):
         bpy_mesh.from_pydata(vertices, (), faces)
 
 
-@log.with_context(name='file')
+@log.with_context(name='import-err')
 def import_file(file_path, operator):
     log.update(path=file_path)
+    ie_utils.check_file_exists(file_path)
     data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(data)
     import_(file_path, chunked_reader, operator)

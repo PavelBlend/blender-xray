@@ -14,6 +14,7 @@ from ... import utils
 from ... import draw_utils
 from ... import version_utils
 from ... import ie_props
+from ... import ie_utils
 
 
 import_props = {
@@ -67,16 +68,11 @@ class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHel
         import_context.objects_folder=objects_folder
         for file in self.files:
             file_path = os.path.join(self.directory, file.name)
-            if not os.path.exists(file_path):
-                self.report(
-                    {'ERROR'}, 'File not found "{}"'.format(file_path)
-                )
-            else:
-                try:
-                    import_context.before_import_file()
-                    imp.import_file(file_path, import_context)
-                except utils.AppError as err:
-                    import_context.errors.append(err)
+            import_context.before_import_file()
+            try:
+                imp.import_file(file_path, import_context)
+            except utils.AppError as err:
+                import_context.errors.append(err)
         for err in import_context.errors:
             log.err(err)
         return {'FINISHED'}

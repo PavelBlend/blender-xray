@@ -18,6 +18,7 @@ from . import utility
 from .. import text
 from .. import log
 from .. import utils
+from .. import ie_utils
 from .. import version_utils
 from .. import ogf
 from .. import xray_io
@@ -678,7 +679,10 @@ TEST_MODE = False
 MAX_LEVEL_SIZE = 1024 * 1024 * 32    # 32 MB
 
 
+@log.with_context(name='import-game-level')
 def import_file(context, operator):
+    log.update(path=context.filepath)
+    ie_utils.check_file_exists(context.filepath)
     level = Level()
     level.context = context
     level.usage_list = set()

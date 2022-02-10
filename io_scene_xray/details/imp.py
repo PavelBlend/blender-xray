@@ -13,6 +13,7 @@ from .. import utils
 from .. import log
 from .. import xray_io
 from .. import version_utils
+from .. import ie_utils
 
 
 def _import(file_path, context, chunked_reader):
@@ -103,6 +104,7 @@ def _import(file_path, context, chunked_reader):
 @log.with_context('import-details')
 def import_file(file_path, context):
     log.update(file=file_path)
+    ie_utils.check_file_exists(file_path)
     data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(data)
     _import(file_path, context, chunked_reader)

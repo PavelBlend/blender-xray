@@ -9,6 +9,7 @@ from . import fmt
 from .. import text
 from .. import log
 from .. import utils
+from .. import ie_utils
 from .. import xray_io
 from .. import obj
 from .. import version_utils
@@ -188,6 +189,7 @@ def import_(filepath, chunked_reader, import_context):
 @log.with_context(name='file')
 def import_file(filepath, operator):
     log.update(path=filepath)
+    ie_utils.check_file_exists(filepath)
     preferences = version_utils.get_preferences()
     textures_folder = preferences.textures_folder_auto
     objects_folder = preferences.objects_folder_auto

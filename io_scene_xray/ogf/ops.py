@@ -89,11 +89,6 @@ class XRAY_OT_import_ogf(
         import_context.add_actions_to_motion_list = True
         for file in self.files:
             file_path = os.path.join(self.directory, file.name)
-            if not os.path.exists(file_path):
-                self.report(
-                    {'ERROR'},
-                    'File not found: {}'.format(file_path)
-                )
             try:
                 imp.import_file(import_context, file_path, file.name)
             except utils.AppError as err:
