@@ -284,12 +284,15 @@ def read_params(data, context):
     partition_count = packed_reader.getf('<H')[0]
     bone_names = {}
     cannot_find_bones = set()
+    pose = context.bpy_arm_obj.pose
 
     for partition_index in range(partition_count):
         partition_name = packed_reader.gets()
         bone_count = packed_reader.getf('<H')[0]
         if context.import_bone_parts:
-            bone_group = context.bpy_arm_obj.pose.bone_groups.new(name=partition_name)
+            bone_group = pose.bone_groups.get(partition_name)
+            if not bone_group:
+                bone_group = pose.bone_groups.new(name=partition_name)
 
         for bone in range(bone_count):
             if params_version == 1:
@@ -307,12 +310,12 @@ def read_params(data, context):
             else:
                 raise BaseException('Unknown params version')
             if bone_name:
-                pose_bone = context.bpy_arm_obj.pose.bones.get(bone_name, None)
+                pose_bone = pose.bones.get(bone_name, None)
                 if not pose_bone:
                     cannot_find_bones.add((bone_name, bone))
                     continue
             else:
-                pose_bone = context.bpy_arm_obj.pose.bones[bone_id]
+                pose_bone = pose.bones[bone_id]
             if context.import_bone_parts:
                 pose_bone.bone_group = bone_group
 
