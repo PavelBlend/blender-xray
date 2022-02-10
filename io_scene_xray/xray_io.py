@@ -166,6 +166,9 @@ class PackedReader:
     def set_offset(self, offset):
         self.__offs = offset
 
+    def is_end(self):
+        return self.__offs >= len(self.__data)
+
 
 class ChunkedReader:
     __MASK_COMPRESSED = 0x80000000

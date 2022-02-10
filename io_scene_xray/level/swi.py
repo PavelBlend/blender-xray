@@ -10,8 +10,13 @@ class SlideWindowItem(object):
 
 
 def import_slide_window_item(packed_reader):
-    reserved = packed_reader.getf('<4I')
-    slide_window_count = packed_reader.getf('<I')[0]
+    # old version of the *.ogf format does not contain reserved bytes
+    reserved = 0
+    slide_window_count = 0
+    while not reserved and not packed_reader.is_end():
+        reserved = packed_reader.getf('<I')[0]
+        if reserved:
+            slide_window_count = reserved
     swis = []
 
     for slide_window_index in range(slide_window_count):
