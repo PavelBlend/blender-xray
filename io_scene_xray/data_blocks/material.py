@@ -178,12 +178,32 @@ def get_image_relative_path(material, context):
                 log.props(material=material.name)
             )
     else:
-        if material.active_texture:
+        textures = []
+        for texture_slot in material.texture_slots:
+            if not texture_slot:
+                continue
+            texture = texture_slot.texture
+            if texture.type != 'IMAGE':
+                continue
+            if not texture.image:
+                continue
+            textures.append(texture)
+        texture = None
+        if not len(textures):
+            raise utils.AppError(
+                text.error.no_tex,
+                log.props(material=material.name)
+            )
+        elif len(textures) == 1:
+            texture = textures[0]
+        elif len(textures) > 1:
+            texture = textures[-1]
+        if texture:
             if context.texname_from_path:
                 tx_name = utils.gen_texture_name(
-                    material.active_texture.image,
+                    texture.image,
                     context.textures_folder
                 )
             else:
-                tx_name = material.active_texture.name
+                tx_name = texture.name
     return tx_name
