@@ -10,6 +10,7 @@ from . import mesh
 from . import bone
 from .. import fmt
 from ... import xray_io
+from ... import data_blocks
 from ... import text
 from ... import utils
 from ... import log
@@ -320,46 +321,10 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
             sfw.puts('')
             sfw.puts('')
             sfw.puts('')
-        tx_name = ''
-        if version_utils.IS_28:
-            if material.use_nodes:
-                tex_nodes = []
-                for node in material.node_tree.nodes:
-                    if node.type in version_utils.IMAGE_NODES:
-                        tex_nodes.append(node)
-                if len(tex_nodes) == 1:
-                    tex_node = tex_nodes[0]
-                    if tex_node.image:
-                        if context.texname_from_path:
-                            tx_name = utils.gen_texture_name(
-                                tex_node.image, context.textures_folder
-                            )
-                            if tex_node.type == 'TEX_ENVIRONMENT':
-                                log.warn(
-                                    text.warn.env_tex,
-                                    material_name=material.name,
-                                    node_name=tex_node.name,
-                                )
-                        else:
-                            tx_name = tex_node.name
-                elif len(tex_nodes) > 1:
-                    raise utils.AppError(
-                        text.error.mat_many_tex,
-                        log.props(material=material.name)
-                    )
-            else:
-                raise utils.AppError(
-                    text.error.mat_not_use_nodes,
-                    log.props(material=material.name)
-                )
-        else:
-            if material.active_texture:
-                if context.texname_from_path:
-                    tx_name = utils.gen_texture_name(
-                        material.active_texture.image, context.textures_folder
-                    )
-                else:
-                    tx_name = material.active_texture.name
+        tx_name = data_blocks.material.get_image_relative_path(
+            material,
+            context
+        )
         sfw.puts(tx_name)
         if version_utils.IS_28:
             sfw.puts(uv_map_names[material.name])
