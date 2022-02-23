@@ -173,6 +173,11 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
                             )
                     else:
                         tx_name = tex_node.name
+                elif not no_err:
+                    raise utils.AppError(
+                        text.error.mat_no_img,
+                        log.props(material=material.name)
+                    )
             elif len(tex_nodes) > 1:
                 raise utils.AppError(
                     text.error.mat_many_tex,
