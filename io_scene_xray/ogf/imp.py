@@ -9,7 +9,7 @@ import mathutils
 # addon modules
 from . import fmt
 from .. import text
-from .. import create
+from .. import data_blocks
 from .. import omf
 from .. import log
 from .. import utils
@@ -1725,7 +1725,7 @@ def import_texture(context, chunks, ogf_chunks, visual):
     packed_reader = xray_io.PackedReader(chunk_data)
     texture = packed_reader.gets()
     shader = packed_reader.gets()
-    bpy_material = create.material.get_material(
+    bpy_material = data_blocks.material.get_material(
         context,
         texture,    # material name
         texture,

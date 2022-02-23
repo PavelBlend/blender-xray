@@ -11,7 +11,7 @@ from . import bone
 from . import mesh
 from .. import fmt
 from ... import text
-from ... import create
+from ... import data_blocks
 from ... import skl
 from ... import log
 from ... import utils
@@ -88,7 +88,7 @@ def import_main(file_path, context, creader):
                     renamemap[vmap.lower()] = vmap
                     flags = reader.int()
                     reader.skip(4 + 4)    # fvf and ?
-                bpy_material = create.material.get_material(
+                bpy_material = data_blocks.material.get_material(
                     context,
                     name,
                     texture,
