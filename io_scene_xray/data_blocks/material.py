@@ -143,7 +143,7 @@ def get_material(
     return bpy_material
 
 
-def get_image_relative_path(material, context):
+def get_image_relative_path(material, context, level_folder=None):
     tx_name = ''
     if version_utils.IS_28:
         if material.use_nodes:
@@ -157,7 +157,8 @@ def get_image_relative_path(material, context):
                     if context.texname_from_path:
                         tx_name = utils.gen_texture_name(
                             tex_node.image,
-                            context.textures_folder
+                            context.textures_folder,
+                            level_folder=level_folder
                         )
                         if tex_node.type == 'TEX_ENVIRONMENT':
                             log.warn(
@@ -202,7 +203,8 @@ def get_image_relative_path(material, context):
             if context.texname_from_path:
                 tx_name = utils.gen_texture_name(
                     texture.image,
-                    context.textures_folder
+                    context.textures_folder,
+                    level_folder=level_folder
                 )
             else:
                 tx_name = texture.name

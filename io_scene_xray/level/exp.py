@@ -13,6 +13,7 @@ from . import fmt
 from .. import text
 from .. import utils
 from .. import log
+from .. import data_blocks
 from .. import version_utils
 from .. import xray_io
 from .. import ogf
@@ -332,6 +333,12 @@ def get_light_map_image(material, lmap_prop):
     return lmap_image, lmap_name
 
 
+class ExportLevelContext():
+    def __init__(self, textures_folder):
+        self.textures_folder = textures_folder
+        self.texname_from_path = True
+
+
 def write_shaders(level):
     texture_folder = version_utils.get_preferences().textures_folder_auto
     materials = {}
@@ -341,49 +348,15 @@ def write_shaders(level):
     packed_writer = xray_io.PackedWriter()
     packed_writer.putf('<I', materials_count + 1)    # shaders count
     packed_writer.puts('')    # first empty shader
+    context = ExportLevelContext(texture_folder)
     for shader_index in range(materials_count):
         material = materials[shader_index]
-        images = []
-        if version_utils.IS_28:
-            if not material.node_tree:
-                raise utils.AppError(
-                    text.error.mat_not_use_nodes,
-                    log.props(material=material.name)
-                )
-            for node in material.node_tree.nodes:
-                if not node.type in version_utils.IMAGE_NODES:
-                    continue
-                image = node.image
-                if not node.image:
-                    continue
-                images.append(image)
-        else:
-            for texture_slot in material.texture_slots:
-                if not texture_slot:
-                    continue
-                texture = texture_slot.texture
-                if not texture:
-                    continue
-                image = getattr(texture, 'image', None)
-                if not image:
-                    continue
-                images.append(image)
-        images_count = len(images)
-        if not images_count:
-            raise utils.AppError(
-                text.error.mat_no_img,
-                log.props(material=material.name)
-            )
-        elif images_count > 1:
-            raise utils.AppError(
-                text.error.mat_many_img,
-                log.props(material=material.name)
-            )
-        else:
-            image = images[0]
-        texture_path = utils.gen_texture_name(
-            image, texture_folder, level_folder=level.source_level_path
+        texture_path = data_blocks.material.get_image_relative_path(
+            material,
+            context,
+            level_folder=level.source_level_path
         )
+
         eshader = material.xray.eshader
 
         lmap_1_image, lmap_1_name = get_light_map_image(material, 'lmap_0')
