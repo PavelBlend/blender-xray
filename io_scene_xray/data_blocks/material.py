@@ -186,12 +186,27 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
                         from_node = tex_links[0].from_node
                         if from_node.type in version_utils.IMAGE_NODES:
                             tex_node = from_node
+                            log.warn(
+                                text.warn.use_shader_tex,
+                                node_name=tex_node.name,
+                                material_name=material.name
+                            )
                             break
                 if not tex_node:
                     if active_tex_node:
                         tex_node = active_tex_node
+                        log.warn(
+                            text.warn.use_active_tex,
+                            node_name=tex_node.name,
+                            material_name=material.name
+                        )
                     elif len(selected_nodes) == 1:
                         tex_node = selected_nodes[0]
+                        log.warn(
+                            text.warn.use_selected_tex,
+                            node_name=tex_node.name,
+                            material_name=material.name
+                        )
                     else:
                         raise utils.AppError(
                             text.error.mat_many_tex,

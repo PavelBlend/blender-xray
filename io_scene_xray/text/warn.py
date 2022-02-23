@@ -6,6 +6,10 @@ no_bone_parent = 'bone parent isn\'t found'
 invalid_image_path = 'image has an invalid path'
 no_file = 'no file selected'
 img_bad_image_path = 'image is not in the textures folder'
+mat_many_tex = 'material has more than one texture'
+use_shader_tex = mat_many_tex + '. Shader texture exported'
+use_active_tex = mat_many_tex + '. Active texture exported'
+use_selected_tex = mat_many_tex + '. Selected texture exported'
 # anm export
 anm_rot_mode = 'object has rotation mode other than YXZ. Animation has been baked'
 # anm import
