@@ -354,7 +354,8 @@ def write_shaders(level):
         texture_path = data_blocks.material.get_image_relative_path(
             material,
             context,
-            level_folder=level.source_level_path
+            level_folder=level.source_level_path,
+            no_err=False
         )
 
         eshader = material.xray.eshader

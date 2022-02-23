@@ -143,7 +143,7 @@ def get_material(
     return bpy_material
 
 
-def get_image_relative_path(material, context, level_folder=None):
+def get_image_relative_path(material, context, level_folder=None, no_err=True):
     tx_name = ''
     if version_utils.IS_28:
         if material.use_nodes:
@@ -151,7 +151,12 @@ def get_image_relative_path(material, context, level_folder=None):
             for node in material.node_tree.nodes:
                 if node.type in version_utils.IMAGE_NODES:
                     tex_nodes.append(node)
-            if len(tex_nodes) == 1:
+            if not len(tex_nodes) and not no_err:
+                raise utils.AppError(
+                    text.error.no_tex,
+                    log.props(material=material.name)
+                )
+            elif len(tex_nodes) == 1:
                 tex_node = tex_nodes[0]
                 if tex_node.image:
                     if context.texname_from_path:
@@ -190,7 +195,7 @@ def get_image_relative_path(material, context, level_folder=None):
                 continue
             textures.append(texture)
         texture = None
-        if not len(textures):
+        if not len(textures) and not no_err:
             raise utils.AppError(
                 text.error.no_tex,
                 log.props(material=material.name)

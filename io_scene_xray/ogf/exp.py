@@ -190,7 +190,8 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     # generate texture path
     texture_path = data_blocks.material.get_image_relative_path(
         material,
-        context
+        context,
+        no_err=False
     )
 
     # write texture chunk
