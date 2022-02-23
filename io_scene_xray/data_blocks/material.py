@@ -148,9 +148,17 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
     if version_utils.IS_28:
         if material.use_nodes:
             tex_nodes = []
+            active_node = material.node_tree.nodes.active
+            active_tex_node = None
+            tex_node = None
+            selected_nodes = []
             for node in material.node_tree.nodes:
                 if node.type in version_utils.IMAGE_NODES:
                     tex_nodes.append(node)
+                    if node is active_node:
+                        active_tex_node = node
+                    if node.select:
+                        selected_nodes.append(node)
             if not len(tex_nodes) and not no_err:
                 raise utils.AppError(
                     text.error.no_tex,
@@ -158,6 +166,38 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
                 )
             elif len(tex_nodes) == 1:
                 tex_node = tex_nodes[0]
+            elif len(tex_nodes) > 1:
+                for node in material.node_tree.nodes:
+                    if node.type == 'OUTPUT_MATERIAL':
+                        if not node.is_active_output:
+                            continue
+                        links = node.inputs['Surface'].links
+                        if not links:
+                            continue
+                        shader_node = links[0].from_node
+                        tex_input = shader_node.inputs.get('Base Color')
+                        if not tex_input:
+                            tex_input = shader_node.inputs.get('Color')
+                        if not tex_input:
+                            continue
+                        tex_links = tex_input.links
+                        if not tex_links:
+                            continue
+                        from_node = tex_links[0].from_node
+                        if from_node.type in version_utils.IMAGE_NODES:
+                            tex_node = from_node
+                            break
+                if not tex_node:
+                    if active_tex_node:
+                        tex_node = active_tex_node
+                    elif len(selected_nodes) == 1:
+                        tex_node = selected_nodes[0]
+                    else:
+                        raise utils.AppError(
+                            text.error.mat_many_tex,
+                            log.props(material=material.name)
+                        )
+            if tex_node:
                 if tex_node.image:
                     if context.texname_from_path:
                         tx_name = utils.gen_texture_name(
@@ -173,14 +213,9 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
                             )
                     else:
                         tx_name = tex_node.name
-                elif not no_err:
-                    raise utils.AppError(
-                        text.error.mat_no_img,
-                        log.props(material=material.name)
-                    )
-            elif len(tex_nodes) > 1:
+            elif not no_err:
                 raise utils.AppError(
-                    text.error.mat_many_tex,
+                    text.error.mat_no_img,
                     log.props(material=material.name)
                 )
         else:
@@ -208,6 +243,8 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
         elif len(textures) == 1:
             texture = textures[0]
         elif len(textures) > 1:
+            # use the latest texture as it replaces
+            # all previous textures on the stack
             texture = textures[-1]
         if texture:
             if context.texname_from_path:
