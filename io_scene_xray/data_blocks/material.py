@@ -155,7 +155,7 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
             for node in material.node_tree.nodes:
                 if node.type in version_utils.IMAGE_NODES:
                     tex_nodes.append(node)
-                    if node is active_node:
+                    if node == active_node:
                         active_tex_node = node
                     if node.select:
                         selected_nodes.append(node)
