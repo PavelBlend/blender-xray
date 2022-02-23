@@ -15,6 +15,7 @@ from .. import log
 from .. import utils
 from .. import version_utils
 from .. import xray_motions
+from .. import data_blocks
 from .. import omf
 
 
@@ -186,50 +187,15 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
         )
     material = materials[0]
 
-    # search texture
-    textures = []
-    if version_utils.IS_28:
-        if material.use_nodes:
-            for node in material.node_tree.nodes:
-                if node.type in version_utils.IMAGE_NODES:
-                    if node.image:
-                        textures.append(node)
-        else:
-            raise utils.AppError(
-                text.error.mat_not_use_nodes,
-                log.props(material=material.name)
-            )
-    else:
-        for texture_slot in material.texture_slots:
-            if not texture_slot:
-                continue
-            texture = texture_slot.texture
-            if texture.type != 'IMAGE':
-                continue
-            if not texture.image:
-                continue
-            textures.append(texture)
-    if not len(textures):
-        raise utils.AppError(
-            text.error.no_tex,
-            log.props(material=material.name)
-        )
-    elif len(textures) > 1:
-        raise utils.AppError(
-            text.error.mat_many_tex,
-            log.props(material=material.name)
-        )
-    texture = textures[0]
+    # generate texture path
+    texture_path = data_blocks.material.get_image_relative_path(
+        material,
+        context,
+        no_err=False
+    )
 
     # write texture chunk
     texture_writer = xray_io.PackedWriter()
-    if context.texname_from_path:
-        texture_path = utils.gen_texture_name(
-            texture.image,
-            context.textures_folder
-        )
-    else:
-        texture_path = texture.name
     texture_writer.puts(texture_path)
     texture_writer.puts(material.xray.eshader)
     chunked_writer.put(fmt.Chunks_v4.TEXTURE, texture_writer)

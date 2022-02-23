@@ -5,6 +5,7 @@ import bpy
 from .. import text
 
 
+mat_many_tex = 'материал имеет больше одной текстуры'
 default_context = bpy.app.translations.contexts.default
 translations_table = (
     # errors
@@ -134,6 +135,9 @@ translations_table = (
     (text.warn.invalid_image_path, 'изображение имеет некорректный путь'),
     (text.warn.no_file, 'файл не выделен'),
     (text.warn.img_bad_image_path, 'изображение не находится в папке с текстурами'),
+    (text.warn.use_shader_tex, mat_many_tex + '. Экспортирована текстура шейдера'),
+    (text.warn.use_active_tex, mat_many_tex + '. Экспортирована активная текстура'),
+    (text.warn.use_selected_tex, mat_many_tex + '. Экспортирована выделенная текстура'),
     # anm export
     (text.warn.anm_rot_mode, 'объект имеет режим вращения отличающийся от YXZ. Анимация была запечена'),
     # anm import
