@@ -136,11 +136,14 @@ def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None, bones=None
         temp_mesh.verts.index_update()
 
         for triangle in visual.triangles:
-            temp_mesh.faces.new((
-                temp_mesh.verts[triangle[0]],
-                temp_mesh.verts[triangle[1]],
-                temp_mesh.verts[triangle[2]]
-            ))
+            try:
+                temp_mesh.faces.new((
+                    temp_mesh.verts[triangle[0]],
+                    temp_mesh.verts[triangle[1]],
+                    temp_mesh.verts[triangle[2]]
+                ))
+            except ValueError:    # face already exists
+                pass
 
         temp_mesh.faces.ensure_lookup_table()
         temp_mesh.normal_update()
@@ -1738,10 +1741,11 @@ def import_texture(context, chunks, ogf_chunks, visual):
     visual.bpy_materials[visual.shader_id] = bpy_material
 
 
-def import_swi(visual, chunks):
-    swi = import_swidata(chunks)
-    visual.indices = visual.indices[swi[0].offset : ]
-    visual.indices_count = swi[0].triangles_count * 3
+def import_swi(context, visual, chunks):
+    swis = import_swidata(chunks)
+    swi = swis[min(context.swi_index, len(swis) - 1)]
+    visual.indices = visual.indices[swi.offset : ]
+    visual.indices_count = swi.triangles_count * 3
 
 
 def import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual):
@@ -1752,7 +1756,7 @@ def import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual):
 
 def import_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual):
     import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual)
-    import_swi(visual, chunks)
+    import_swi(context, visual, chunks)
 
 
 def import_mt_normal(context, chunks, ogf_chunks, visual):
@@ -1763,7 +1767,7 @@ def import_mt_normal(context, chunks, ogf_chunks, visual):
 
 def import_mt_progressive(context, chunks, ogf_chunks, visual):
     import_mt_normal(context, chunks, ogf_chunks, visual)
-    import_swi(visual, chunks)
+    import_swi(context, visual, chunks)
 
 
 def read_motion_references(chunks, ogf_chunks, visual):

@@ -24,6 +24,7 @@ class ImportOgfContext(
     def __init__(self):
         super().__init__()
         self.import_bone_parts = None
+        self.swi_index = 0
 
 
 class ExportOgfContext(
@@ -50,6 +51,7 @@ import_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
     ),
+    'swi_index': bpy.props.IntProperty(min=0),
     'import_motions': ie_props.PropObjectMotionsImport()
 }
 
@@ -87,6 +89,7 @@ class XRAY_OT_import_ogf(
         import_context.import_motions = self.import_motions
         import_context.import_bone_parts = True
         import_context.add_actions_to_motion_list = True
+        import_context.swi_index = self.swi_index
         for file in self.files:
             file_path = os.path.join(self.directory, file.name)
             try:

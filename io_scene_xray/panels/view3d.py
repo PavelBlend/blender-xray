@@ -152,6 +152,16 @@ class XRAY_PT_viewer(bpy.types.Panel):
                 text='Invert Selection'
             )
             op_select_all.mode = 'INVERT_SELECTION'
+
+            vwr = scn.xray.viewer
+            if vwr.files:
+                file = vwr.files[vwr.files_index]
+                if file.name.endswith('.ogf'):
+                    # selected file info
+                    col.separator()
+                    props_row = col.row()
+                    props_row.prop(vwr, 'swi_index')
+
             # import operators
             col.separator()
             import_row = col.row()

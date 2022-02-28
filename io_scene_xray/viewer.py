@@ -125,7 +125,8 @@ def import_file(file):
         bpy.ops.xray_import.ogf(
             directory=directory,
             files=[{'name': file.name}],
-            import_motions=prefs.ogf_import_motions
+            import_motions=prefs.ogf_import_motions,
+            swi_index=viewer.swi_index,
         )
     elif path.endswith('.dm'):
         bpy.ops.xray_import.dm(
@@ -445,6 +446,12 @@ sort_items = (
 scene_viewer_props = {
     'files': bpy.props.CollectionProperty(type=XRayViwerFileProperties),
     'files_index': bpy.props.IntProperty(update=update_file),
+    'swi_index': bpy.props.IntProperty(
+        name='LOD',
+        description='Sliding Window Index',
+        update=update_file,
+        min=0,
+    ),
     'folder': bpy.props.StringProperty(),
     'is_preview_folder_mode': bpy.props.BoolProperty(default=False),
     'ignore_ext': bpy.props.BoolProperty(
