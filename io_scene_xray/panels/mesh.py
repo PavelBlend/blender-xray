@@ -42,6 +42,10 @@ class XRAY_PT_mesh(ui.base.XRayPanel):
         row.prop(data, 'flags_locked', text='Locked', toggle=True)
         row.prop(data, 'flags_sgmask', text='SGMask', toggle=True)
 
+        split = version_utils.layout_split(layout, 0.333)
+        split.label(text='LOD Modifier:')
+        split.prop_search(data, 'lodifier', context.object, 'modifiers', text='')
+
 
 def register():
     bpy.utils.register_class(XRAY_PT_mesh)

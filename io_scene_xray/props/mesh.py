@@ -20,7 +20,11 @@ xray_mesh_properties = {
     'flags': bpy.props.IntProperty(name='flags', default=0x1),
     'flags_visible': utility.gen_flag_prop(mask=0x01),
     'flags_locked': utility.gen_flag_prop(mask=0x02),
-    'flags_sgmask': utility.gen_flag_prop(mask=0x04)
+    'flags_sgmask': utility.gen_flag_prop(mask=0x04),
+    'lodifier': bpy.props.StringProperty(
+        name='LOD Modifier',
+        description='A modification which ratio will be iterated to generate several LODs',
+    ),
 }
 
 

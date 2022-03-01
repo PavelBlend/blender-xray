@@ -119,7 +119,83 @@ def top_two(dic):
     return {key0: val0, key1: val1}
 
 
-def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
+def _try_decimate(progressive_decimate):
+    if not progressive_decimate:
+        yield None  # full resolution
+        return
+
+    STEP = 0.1
+    ratio_min = progressive_decimate.ratio
+    try:
+        if ratio_min > (1 - STEP):
+            progressive_decimate.ratio = ratio_min
+            yield progressive_decimate
+            return
+
+        ratio = 1 - STEP
+        while ratio >= (ratio_min - STEP / 2):
+            progressive_decimate.ratio = max(ratio_min, ratio)
+            yield progressive_decimate
+            ratio -= STEP
+    finally:
+        progressive_decimate.ratio = ratio_min
+
+
+def _gather_mesh(
+    bpy_mesh, mesh, uv_layer, weight_layer,
+    vertex_groups_map, vertices_map,
+    vertices, triangles,
+    fkeygen,
+):
+    vertex_max_weights = 0
+    for face in mesh.faces:
+        face_indices = []
+        for loop_index, loop in enumerate(face.loops):
+            bpy_loop = bpy_mesh.loops[face.index * 3 + loop_index]
+            uv = loop[uv_layer].uv
+            weights = loop.vert[weight_layer]
+            if len(weights) > 2:
+                weights = top_two(weights)
+            weight = 0
+            windexes = []
+            # 2-link vertex
+            if len(weights) == 2:
+                first = True
+                weight0 = 0
+                for vgi in weights.keys():
+                    windexes.append(vertex_groups_map[vgi])
+                    if first:
+                        weight0 = weights[vgi]
+                        first = False
+                    else:
+                        weight = 1 - (weight0 / (weight0 + weights[vgi]))
+            # 1-link vertex
+            elif len(weights) == 1:
+                for vertex_group_index in [vertex_groups_map[_] for _ in weights.keys()]:
+                    windexes = [
+                        vertex_group_index,
+                        vertex_group_index
+                    ]
+            vertex_max_weights = max(vertex_max_weights, len(weights))
+            vertex = (
+                (weight, tuple(windexes)),
+                loop.vert.co.to_tuple(),
+                bpy_loop.normal.to_tuple(),
+                bpy_loop.tangent.to_tuple(),
+                bpy_loop.bitangent.normalized().to_tuple(),
+                (uv[0], 1 - uv[1]),
+            )
+            vertex_key = fkeygen(vertex)
+            vertex_index = vertices_map.get(vertex_key)
+            if vertex_index is None:
+                vertices_map[vertex_key] = vertex_index = len(vertices)
+                vertices.append(vertex)
+            face_indices.append(vertex_index)
+        triangles.append(face_indices)
+    return vertex_max_weights
+
+
+def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map, progressive=False):
     # validate mesh-object
     uv_layers = bpy_obj.data.uv_layers
     if not len(uv_layers):
@@ -148,7 +224,9 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     # write header chunk
     header_writer = xray_io.PackedWriter()
     header_writer.putf('<B', fmt.FORMAT_VERSION_4)
-    header_writer.putf('<B', fmt.ModelType_v4.SKELETON_GEOMDEF_ST)
+    header_writer.putf('<B', (fmt.ModelType_v4.SKELETON_GEOMDEF_PM
+                              if progressive
+                              else fmt.ModelType_v4.SKELETON_GEOMDEF_ST))
     header_writer.putf('<H', 0)  # shader id
     header_writer.putv3f(bbox[0])
     header_writer.putv3f(bbox[1])
@@ -201,44 +279,70 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     chunked_writer.put(fmt.Chunks_v4.TEXTURE, texture_writer)
 
     # collect geometry data
-    uv_layer = mesh.loops.layers.uv.active
-    weight_layer = mesh.verts.layers.deform.verify()
-    bpy_mesh.calc_tangents(uvmap=uv_layer.name)
     vertices = []
     triangles = []
     vertices_map = {}
-    for face in mesh.faces:
-        face_indices = []
-        for loop_index, loop in enumerate(face.loops):
-            bpy_loop = bpy_mesh.loops[face.index * 3 + loop_index]
-            uv = loop[uv_layer].uv
-            vertex = (
-                loop.vert.index,
-                loop.vert.co.to_tuple(),
-                bpy_loop.normal.to_tuple(),
-                bpy_loop.tangent.to_tuple(),
-                bpy_loop.bitangent.normalized().to_tuple(),
-                (uv[0], 1 - uv[1]),
-            )
-            vertex_index = vertices_map.get(vertex)
-            if vertex_index is None:
-                vertices_map[vertex] = vertex_index = len(vertices)
-                vertices.append(vertex)
-            face_indices.append(vertex_index)
-        triangles.append(face_indices)
-    utils.fix_ensure_lookup_table(mesh.verts)
-
-    # find max number of vertex weights
+    vertices_map_without_normals = None  # not initialized yet
     vertex_max_weights = 0
-    for vertex in mesh.verts:
-        weights_count = len(vertex[weight_layer])
-        if not weights_count:
-            return utils.AppError(
-                text.error.object_ungroupped_verts,
-                log.props(object=bpy_obj.name)
+
+    lodifier = None
+    lodifier_name = bpy_obj.data.xray.lodifier
+    if progressive and lodifier_name:
+        lodifier = bpy_obj.modifiers.get(lodifier_name)
+        if not lodifier:
+            log.warn(
+                'LOD Modifier missing',
+                object=bpy_obj.name,
+                modifier=lodifier_name,
             )
-        if weights_count > vertex_max_weights:
-            vertex_max_weights = weights_count
+        elif lodifier.type != 'DECIMATE':
+            log.warn(
+                'Skip unsupported LOD Modifier, expected Decimate',
+                object=bpy_obj.name,
+                modifier=lodifier.name,
+            )
+            lodifier = None
+
+    swis = []
+    fkeygen = lambda vertex: vertex
+    for mod in _try_decimate(lodifier):
+        if mod:
+            mesh = utils.convert_object_to_space_bmesh(
+                bpy_obj,
+                mathutils.Matrix.Identity(4),
+                mods=[mod]
+            )
+            mesh.to_mesh(bpy_mesh)
+
+            fkeygen = lambda vertex: (
+                vertex[0],
+                vertex[1],
+                vertex[5],
+            )
+            if vertices_map_without_normals is None:
+                vertices_map_without_normals = {}
+                for uniq_key, value in vertices_map.items():
+                    new_key = fkeygen(uniq_key)
+                    if new_key in vertices_map_without_normals:
+                        # we have to preserve items count somehow
+                        # so let's use original unique keys
+                        vertices_map_without_normals[uniq_key] = value
+                    else:
+                        vertices_map_without_normals[new_key] = value
+            vertices_map = vertices_map_without_normals
+
+        uv_layer = mesh.loops.layers.uv.active
+        weight_layer = mesh.verts.layers.deform.verify()
+        bpy_mesh.calc_tangents(uvmap=uv_layer.name)
+        offset = len(triangles)
+        vertex_max_weights = max(vertex_max_weights, _gather_mesh(
+            bpy_mesh, mesh,
+            uv_layer, weight_layer,
+            vertex_groups_map, vertices_map,
+            vertices, triangles,
+            fkeygen,
+        ))
+        swis.append((offset, len(triangles) - offset))
 
     # write vertices chunk
     vertices_writer = xray_io.PackedWriter()
@@ -247,13 +351,13 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     if vertex_max_weights == 1:
         vertices_writer.putf('<2I', fmt.VertexFormat.FVF_1L, vertices_count)
         for vertex in vertices:
-            weights = mesh.verts[vertex[0]][weight_layer]
+            weight, windexes = vertex[0]
             vertices_writer.putv3f(vertex[1])    # coord
             vertices_writer.putv3f(vertex[2])    # normal
             vertices_writer.putv3f(vertex[3])    # tangent
             vertices_writer.putv3f(vertex[4])    # bitangent
             vertices_writer.putf('<2f', *vertex[5])    # uv
-            vertices_writer.putf('<I', vertex_groups_map[weights.keys()[0]])
+            vertices_writer.putf('<I', windexes[0])
     # 2-link vertices
     else:
         if vertex_max_weights != 2:
@@ -263,31 +367,8 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
             )
         vertices_writer.putf('<2I', fmt.VertexFormat.FVF_2L, vertices_count)
         for vertex in vertices:
-            weights = mesh.verts[vertex[0]][weight_layer]
-            if len(weights) > 2:
-                weights = top_two(weights)
-            weight = 0
-            # 2-link vertex
-            if len(weights) == 2:
-                first = True
-                weight0 = 0
-                for vgi in weights.keys():
-                    vertices_writer.putf('<H', vertex_groups_map[vgi])
-                    if first:
-                        weight0 = weights[vgi]
-                        first = False
-                    else:
-                        weight = 1 - (weight0 / (weight0 + weights[vgi]))
-            # 1-link vertex
-            elif len(weights) == 1:
-                for vertex_group_index in [vertex_groups_map[_] for _ in weights.keys()]:
-                    vertices_writer.putf(
-                        '<2H',
-                        vertex_group_index,
-                        vertex_group_index
-                    )
-            else:
-                raise Exception('oops: %i %s' % (len(weights), weights.keys()))
+            weight, windexes = vertex[0]
+            vertices_writer.putf('<2H', *windexes)
             # write vertex data
             vertices_writer.putv3f(vertex[1])    # coord
             vertices_writer.putv3f(vertex[2])    # normal
@@ -303,6 +384,15 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     for tris in triangles:
         indices_writer.putf('<3H', tris[0], tris[2], tris[1])
     chunked_writer.put(fmt.Chunks_v4.INDICES, indices_writer)
+    if progressive:
+        swi_writer = xray_io.PackedWriter()
+        swi_writer.putf('<IIII', 0, 0, 0, 0)  # reserved
+        swi_writer.putf('<I', len(swis))
+        for (offset, count) in swis:
+            swi_writer.putf('<IHH', 3 * offset, count, len(vertices))
+        chunked_writer.put(fmt.Chunks_v4.SWIDATA, swi_writer)
+
+    return len(swis)
 
 
 def get_ode_ik_limits(value_1, value_2):
@@ -349,6 +439,9 @@ def _export(bpy_obj, cwriter, context):
     meshes = []
     bones = []
     bones_map = {}
+
+    progressive = xray.flags_simple == 'pd'
+    max_swis_count = 0
 
     def reg_bone(bone, adv):
         idx = bones_map.get(bone, -1)
@@ -398,19 +491,20 @@ def _export(bpy_obj, cwriter, context):
                 child_objects.append(bpy_obj)
             for child_object in child_objects:
                 mesh_writer = xray_io.ChunkedWriter()
-                error = _export_child(
+                swis_count = _export_child(
                     child_object,
                     mesh_writer,
                     context,
-                    vertex_groups_map
+                    vertex_groups_map,
+                    progressive,
                 )
+                nonlocal max_swis_count
+                max_swis_count = max(max_swis_count, swis_count)
                 meshes.append(mesh_writer)
                 if remove_child_objects:
                     child_mesh = child_object.data
                     bpy.data.objects.remove(child_object)
                     bpy.data.meshes.remove(child_mesh)
-                if error:
-                    raise error
         elif bpy_obj.type == 'ARMATURE':
             for bone in bpy_obj.data.bones:
                 if not utils.is_exportable_bone(bone):
@@ -420,6 +514,9 @@ def _export(bpy_obj, cwriter, context):
             scan_r(child)
 
     scan_r(bpy_obj)
+
+    if progressive and (max_swis_count < 2):
+        log.warn('No Sliding Window LODs were generated, check LOD Modifiers')
 
     children_chunked_writer = xray_io.ChunkedWriter()
     mesh_index = 0
