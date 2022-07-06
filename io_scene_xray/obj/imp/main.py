@@ -88,7 +88,7 @@ def import_main(file_path, context, creader):
                     renamemap[vmap.lower()] = vmap
                     flags = reader.int()
                     reader.skip(4 + 4)    # fvf and ?
-                bpy_material = data_blocks.material.get_material(
+                bpy_material, bpy_image = data_blocks.material.get_material(
                     context,
                     name,
                     texture,

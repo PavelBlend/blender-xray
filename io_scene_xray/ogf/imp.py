@@ -55,6 +55,7 @@ class Visual(object):
         self.modif_time = None
         self.user_data = None
         self.lod = None
+        self.bpy_image = None
 
 
 class HierrarhyVisual(object):
@@ -395,6 +396,11 @@ def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None, bones=None
         else:
             material = visual.bpy_materials[visual.shader_id]
             bpy_mesh.materials.append(material)
+
+            if not version_utils.IS_28:
+                texture_layer = mesh.faces.layers.tex.new('Texture')
+                for face in mesh.faces:
+                    face[texture_layer].image = visual.bpy_image
 
         mesh.to_mesh(bpy_mesh)
         if custom_normals:
@@ -1725,7 +1731,7 @@ def import_texture(context, chunks, ogf_chunks, visual):
     packed_reader = xray_io.PackedReader(chunk_data)
     texture = packed_reader.gets()
     shader = packed_reader.gets()
-    bpy_material = data_blocks.material.get_material(
+    bpy_material, bpy_image = data_blocks.material.get_material(
         context,
         texture,    # material name
         texture,
@@ -1736,6 +1742,7 @@ def import_texture(context, chunks, ogf_chunks, visual):
         'Texture'    # uv map name
     )
     visual.bpy_materials[visual.shader_id] = bpy_material
+    visual.bpy_image = bpy_image
 
 
 def import_swi(visual, chunks):

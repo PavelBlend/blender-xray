@@ -17,21 +17,21 @@ def _is_compatible_texture(texture, filepart):
     if version_utils.IS_28:
         image = texture.image
         if not image:
-            return False
+            return False, None
         abs_tex_path = os.path.abspath(tex_path)
         abs_image_path = os.path.abspath(image.filepath)
         if abs_tex_path != abs_image_path:
-            return False
-        return True
+            return False, None
+        return True, image
     else:
         image = getattr(texture, 'image', None)
         if image is None:
-            return False
+            return False, None
         abs_tex_path = os.path.abspath(tex_path)
         abs_image_path = os.path.abspath(image.filepath)
         if abs_tex_path != abs_image_path:
-            return False
-        return True
+            return False, None
+        return True, image
 
 
 def get_material(
@@ -45,6 +45,7 @@ def get_material(
         vmap
     ):
     bpy_material = None
+    bpy_image = None
     tx_filepart = texture.replace('\\', os.path.sep).lower()
     for material in bpy.data.materials:
         if not material.name.startswith(name):
@@ -74,7 +75,11 @@ def get_material(
                     ts_found = False
                 else:
                     tex_node = tex_nodes[0]
-                    if not _is_compatible_texture(tex_node, tx_filepart):
+                    find_texture, bpy_image = _is_compatible_texture(
+                        tex_node,
+                        tx_filepart
+                    )
+                    if not find_texture:
                         continue
                     ts_found = True
                 if not ts_found:
@@ -88,7 +93,11 @@ def get_material(
                     continue
                 if slot.uv_layer != vmap:
                     continue
-                if not _is_compatible_texture(slot.texture, tx_filepart):
+                find_texture, bpy_image = _is_compatible_texture(
+                    slot.texture,
+                    tx_filepart
+                )
+                if not find_texture:
                     continue
                 ts_found = True
                 break
@@ -117,6 +126,7 @@ def get_material(
                 texture_node.name = texture
                 texture_node.label = texture
                 texture_node.image = context.image(texture)
+                bpy_image = texture_node.image
                 texture_node.location.x -= 500
                 princ_shader = node_tree.nodes['Principled BSDF']
                 node_tree.links.new(
@@ -129,18 +139,22 @@ def get_material(
                 )
             else:
                 bpy_texture = bpy.data.textures.get(texture)
-                if (bpy_texture is None) or \
-                        not _is_compatible_texture(bpy_texture, tx_filepart):
+                find_texture, bpy_image = _is_compatible_texture(
+                    bpy_texture,
+                    tx_filepart
+                )
+                if (bpy_texture is None) or not find_texture:
                     bpy_texture = bpy.data.textures.new(texture, type='IMAGE')
                     bpy_texture.image = context.image(texture)
                     bpy_texture.use_preview_alpha = True
+                    bpy_image = bpy_texture.image
                 bpy_texture_slot = bpy_material.texture_slots.add()
                 bpy_texture_slot.texture = bpy_texture
                 bpy_texture_slot.texture_coords = 'UV'
                 bpy_texture_slot.uv_layer = vmap
                 bpy_texture_slot.use_map_color_diffuse = True
                 bpy_texture_slot.use_map_alpha = True
-    return bpy_material
+    return bpy_material, bpy_image
 
 
 def get_image_relative_path(material, context, level_folder=None, no_err=True):
