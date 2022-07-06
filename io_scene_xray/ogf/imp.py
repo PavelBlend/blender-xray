@@ -245,9 +245,9 @@ def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None, bones=None
 
             # import uvs and vertex colors
             uv_layer = mesh.loops.layers.uv.new('Texture')
-            hemi_vertex_color = mesh.loops.layers.color.new('Hemi')
             current_loop = 0
             if visual.uvs_lmap:    # light maps
+                hemi_vertex_color = mesh.loops.layers.color.new('Hemi')
                 lmap_uv_layer = mesh.loops.layers.uv.new('Light Map')
                 for face in mesh.faces:
                     for loop in face.loops:
@@ -261,6 +261,7 @@ def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None, bones=None
                         bmesh_hemi_color[2] = hemi
                         current_loop += 1
             elif visual.light:    # vertex colors
+                hemi_vertex_color = mesh.loops.layers.color.new('Hemi')
                 sun_vertex_color = mesh.loops.layers.color.new('Sun')
                 light_vertex_color = mesh.loops.layers.color.new('Light')
                 for face in mesh.faces:
@@ -287,6 +288,7 @@ def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None, bones=None
                         current_loop += 1
             else:
                 if visual.hemi:    # trees
+                    hemi_vertex_color = mesh.loops.layers.color.new('Hemi')
                     for face in mesh.faces:
                         for loop in face.loops:
                             loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
