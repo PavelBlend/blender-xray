@@ -35,10 +35,10 @@ import_props = {
         default='*.dm', options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE'}
+        subtype="DIR_PATH", options={'SKIP_SAVE', 'HIDDEN'}
     ),
     'filepath': bpy.props.StringProperty(
-        subtype="FILE_PATH", options={'SKIP_SAVE'}
+        subtype="FILE_PATH", options={'SKIP_SAVE', 'HIDDEN'}
     ),
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE', 'HIDDEN'}

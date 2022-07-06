@@ -14,7 +14,9 @@ op_text = 'Error List'
 filename_ext = '.err'
 
 import_props = {
-    'filepath': bpy.props.StringProperty(subtype="FILE_PATH"),
+    'filepath': bpy.props.StringProperty(
+        subtype="FILE_PATH", options={'HIDDEN'}
+    ),
     'filter_glob': bpy.props.StringProperty(
         default='*.err', options={'HIDDEN'}
     )

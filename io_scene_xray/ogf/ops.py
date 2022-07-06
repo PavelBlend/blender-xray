@@ -109,7 +109,10 @@ class XRAY_OT_import_ogf(
 
 
 export_props = {
-    'filter_glob': bpy.props.StringProperty(default='*'+filename_ext, options={'HIDDEN'}),
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    ),
     'texture_name_from_image_path': ie_props.PropObjectTextureNamesFromPath(),
     'export_motions': ie_props.PropObjectMotionsExport()
 }
@@ -168,11 +171,14 @@ class XRAY_OT_export_ogf_file(
         return super().invoke(context, event)
 
 
-export_props = {
-    'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
-
+batch_export_props = {
+    'directory': bpy.props.StringProperty(
+        subtype="FILE_PATH",
+        options={'HIDDEN'}
+    ),
+    'texture_name_from_image_path': ie_props.PropObjectTextureNamesFromPath(),
+    'export_motions': ie_props.PropObjectMotionsExport()
 }
-export_props.update(export_props)
 
 
 class XRAY_OT_export_ogf(ie_props.BaseOperator):
@@ -183,7 +189,7 @@ class XRAY_OT_export_ogf(ie_props.BaseOperator):
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
-    props = export_props
+    props = batch_export_props
 
     if not version_utils.IS_28:
         for prop_name, prop_value in props.items():

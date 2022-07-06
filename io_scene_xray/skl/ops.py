@@ -253,7 +253,7 @@ class XRAY_OT_export_skls(ie_props.BaseOperator, utils.FilenameExtHelper):
 filename_ext = '.skl'
 op_text = 'Skeletal Animation'
 export_props = {
-    'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
+    'directory': bpy.props.StringProperty(subtype="FILE_PATH", options={'HIDDEN'}),
     'filter_glob': bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'}),
 }
 
