@@ -291,7 +291,16 @@ class XRAY_OT_export_skl_batch(ie_props.BaseOperator):
                 if not action:
                     continue
                 export_context.action = action
-                file_name = action.name
+
+                # skl file name
+                if obj.xray.use_custom_motion_names:
+                    if motion.export_name:
+                        file_name = motion.export_name
+                    else:
+                        file_name = action.name
+                else:
+                    file_name = action.name
+
                 if not file_name.lower().endswith(filename_ext):
                     file_name += filename_ext
                 if use_sub_dirs:
