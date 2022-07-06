@@ -191,6 +191,7 @@ def update_file(self, context):
     new_objects = get_current_objects()
     imported_objects = old_objects ^ new_objects
     scene['imported_objects'] = list(imported_objects)
+    bpy.ops.object.select_all(action='DESELECT')
     version_utils.set_mesh_objects_select(imported_objects, True)
     for area in bpy.context.screen.areas:
         if area.type == 'VIEW_3D':
