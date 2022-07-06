@@ -167,13 +167,16 @@ def update_file(self, context):
     scene = context.scene
     viewer = scene.xray.viewer
     file = viewer.files[viewer.files_index]
-    if file.is_dir:
+    if file.is_dir or viewer.is_preview_folder_mode:
         if viewer.is_preview_folder_mode:
             viewer.is_preview_folder_mode = False
             return
         else:
             scene.xray.viewer.folder = file.path
             update_file_list(scene.xray.viewer.folder)
+            viewer.is_preview_folder_mode = True
+            viewer.files_index = 0
+            return
     ext = os.path.splitext(file.name)[-1]
     if ext in ext_ignore:
         return
