@@ -191,9 +191,9 @@ def update_motion_collection_index(self, context):
 
     if arm_obj:
         motion = bpy.data.actions[motion_name]
-        scene.frame_start = motion.frame_range[0]
-        scene.frame_end = motion.frame_range[1]
-        scene.frame_set(motion.frame_range[0])
+        scene.frame_start = int(motion.frame_range[0])
+        scene.frame_end = int(motion.frame_range[1])
+        scene.frame_set(int(motion.frame_range[0]))
 
         if xray.dependency_object:
             dependency = bpy.data.objects.get(xray.dependency_object)
