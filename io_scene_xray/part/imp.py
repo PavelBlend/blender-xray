@@ -50,10 +50,6 @@ def import_cs_cop_objects(ltx, context, level_name):
                 pos = params.get('position', None)
                 rot = params.get('rotation', None)
                 scale = params.get('scale', None)
-                if obj_name:
-                    if obj_name.endswith('\r'):
-                        obj_name = obj_name[ : -1]
-                    imported_object.name = obj_name
                 if pos:
                     pos = list(map(float, pos.split(',')))
                     imported_object.location = pos[0], pos[2], pos[1]
