@@ -1,5 +1,6 @@
 # standart modules
 import os
+import time
 
 # blender modules
 import bpy
@@ -37,6 +38,7 @@ class XRAY_OT_test_ogf_import_modal(bpy.types.Operator):
     bl_options = {'REGISTER'}
 
     timer = None
+    last_time = 0
 
     if not version_utils.IS_28:
         for prop_name, prop_value in op_modal_props.items():
@@ -112,18 +114,21 @@ class XRAY_OT_test_ogf_import_modal(bpy.types.Operator):
 
     def modal(self, context, event):
         if event.type == 'TIMER':
-            if self.file_index < len(self.files_list):
-                self.test_ogf_import()
-            else:
-                context.window_manager.event_timer_remove(self.timer)
-                remove_bpy_data()
-                return {'FINISHED'}
+            if self.last_time + self.pause < time.time():
+                if self.file_index < len(self.files_list):
+                    self.test_ogf_import()
+                else:
+                    context.window_manager.event_timer_remove(self.timer)
+                    remove_bpy_data()
+                    return {'FINISHED'}
+                self.last_time = time.time()
         elif event.type == 'ESC':
             remove_bpy_data()
             return {'CANCELLED'}
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
+        self.last_time = time.time()
         self.collect_files(context)
         self.timer = context.window_manager.event_timer_add(
             self.pause,
