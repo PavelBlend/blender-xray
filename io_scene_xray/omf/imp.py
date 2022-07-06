@@ -378,9 +378,9 @@ def read_main(data, context):
         print('Unknown OMF chunk: 0x{:x}'.format(chunk_id))
 
 
-@log.with_context(name='file')
+@log.with_context(name='import-omf')
 def import_file(context):
-    log.update(path=context.filepath)
+    log.update(file=context.filepath)
     ie_utils.check_file_exists(context.filepath)
     file_data = utils.read_file(context.filepath)
     read_main(file_data, context)

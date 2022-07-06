@@ -7,7 +7,7 @@ from . import xray_interpolation
 from . import xray_motions
 
 
-@log.with_context('import-envelope')
+@log.with_context('envelope')
 def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shapes):
     bhv_fmt = 'I'
     if ver > 3:
@@ -151,7 +151,7 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
     return use_interpolate
 
 
-@log.with_context('export-envelope')
+@log.with_context('envelope')
 def export_envelope(writer, ver, fcurve, fps, koef, epsilon=motion_utils.EPSILON):
     behavior = None
     if fcurve.extrapolation == 'CONSTANT':

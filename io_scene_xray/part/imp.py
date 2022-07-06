@@ -75,7 +75,7 @@ def import_soc_objects(data, context, level_name):
 
 @log.with_context(name='import-part')
 def import_file(file_path, context):
-    log.update(path=file_path)
+    log.update(file=file_path)
     ie_utils.check_file_exists(file_path)
     level_name = os.path.basename(os.path.dirname(file_path))
     file_data = utils.read_file(file_path)

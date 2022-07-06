@@ -108,7 +108,7 @@ def import_bone(
     data = chunks.get(fmt.Chunks.Bone.DEF)
     reader = xray_io.PackedReader(data)
     name = reader.gets()
-    log.update(name=name)
+    log.update(bone=name)
     parent = reader.gets()
     vmap = reader.gets()
 

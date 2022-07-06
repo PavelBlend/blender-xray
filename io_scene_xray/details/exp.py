@@ -25,7 +25,7 @@ def _export(bpy_obj, chunked_writer, context, file_path):
 
 @log.with_context('export-details')
 def export_file(bpy_obj, file_path, context):
-    log.update(file=file_path)
+    log.update(object=bpy_obj.name)
     chunked_writer = xray_io.ChunkedWriter()
     _export(bpy_obj, chunked_writer, context, file_path)
     utils.save_file(file_path, chunked_writer)

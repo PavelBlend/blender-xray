@@ -71,7 +71,7 @@ def import_(filepath, chunked_reader, operator):
 
 @log.with_context(name='import-err')
 def import_file(file_path, operator):
-    log.update(path=file_path)
+    log.update(file=file_path)
     ie_utils.check_file_exists(file_path)
     data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(data)

@@ -85,7 +85,7 @@ def validate_vertex_weights(bpy_obj, arm_obj):
         )
 
 
-@log.with_context('export-armature-object')
+@log.with_context('armature')
 def _check_bone_names(armature_object):
     bone_names = {}
     bone_duplicates = {}

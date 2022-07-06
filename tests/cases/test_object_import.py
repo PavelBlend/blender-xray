@@ -14,8 +14,8 @@ class TestObjectImport(utils.XRayTestCase):
         self.assertReportsContains('WARNING', re.compile('\[2x\] Unsupported property value using default'))
 
         log = self.getFullLogAsText()
-        self.assertRegex(log, re.escape("file(path='"))
-        self.assertRegex(log, re.escape("bone(name='Bone')"))
+        self.assertRegex(log, re.escape("import-object(file='"))
+        self.assertRegex(log, re.escape("bone(bone='Bone')"))
 
     def test_import_no_bone_shapes(self):
         bpy.ops.xray_import.object(

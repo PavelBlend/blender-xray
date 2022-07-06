@@ -136,7 +136,7 @@ def _export_action_data(pkw, ver, xray, fcurves):
         )
 
 
-@log.with_context('export-anm-path')
+@log.with_context('export-anm')
 def export_file(export_context):
     log.update(file=export_context.filepath)
     writer = xray_io.ChunkedWriter()

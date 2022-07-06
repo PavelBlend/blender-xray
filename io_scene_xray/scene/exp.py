@@ -5,6 +5,7 @@ import string
 from . import fmt
 from .. import xray_io
 from .. import utils
+from .. import log
 
 
 def write_objects_count(chunked_writer, bpy_objs):
@@ -114,6 +115,7 @@ def _export(bpy_objs, chunked_writer):
     write_objects(chunked_writer, bpy_objs)
 
 
+@log.with_context(name='export-scene-selection')
 def export_file(bpy_objs, filepath):
     writer = xray_io.ChunkedWriter()
     _export(bpy_objs, writer)

@@ -11,7 +11,7 @@ from .. import version_utils
 
 @log.with_context(name='export-dm')
 def validate_export_object(context, bpy_obj, file_path):
-    log.update(name=bpy_obj.name)
+    log.update(object=bpy_obj.name)
 
     if not bpy_obj.data.uv_layers:
         raise utils.AppError(

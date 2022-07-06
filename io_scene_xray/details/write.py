@@ -9,13 +9,13 @@ from .. import utils
 from .. import xray_io
 
 
-@log.with_context('export-meshes')
+@log.with_context('mesh')
 def write_details(chunked_writer, lvl_dets, context, file_path):
     dm_cw = xray_io.ChunkedWriter()
 
     meshes_object = lvl_dets.meshes_object
     dm_count = len(meshes_object.children)
-    log.update(meshes_object=meshes_object.name)
+    log.update(object=meshes_object.name)
 
     if not dm_count:
         raise utils.AppError(
@@ -104,11 +104,11 @@ def write_header(chunked_writer, lvl_dets):
     chunked_writer.put(fmt.Chunks.HEADER, packed_writer)
 
 
-@log.with_context('export-slots')
+@log.with_context('slots')
 def write_slots_v3(chunked_writer, lvl_dets):
     base_obj = lvl_dets.slots_base_object
     top_obj = lvl_dets.slots_top_object
-    log.update(slots_objects=(base_obj.name, top_obj.name))
+    log.update(objects=(base_obj.name, top_obj.name))
     packed_writer = xray_io.PackedWriter()
     base_slots_poly = base_obj.data.polygons
     top_slots_poly = top_obj.data.polygons
@@ -271,11 +271,11 @@ def write_slots_v3(chunked_writer, lvl_dets):
     chunked_writer.put(fmt.Chunks.SLOTS, packed_writer)
 
 
-@log.with_context('export-slots')
+@log.with_context('slots')
 def write_slots_v2(chunked_writer, lvl_dets):
     base_obj = lvl_dets.slots_base_object
     top_obj = lvl_dets.slots_top_object
-    log.update(slots_objects=(base_obj.name, top_obj.name))
+    log.update(objects=(base_obj.name, top_obj.name))
     packed_writer = xray_io.PackedWriter()
     base_slots_poly = base_obj.data.polygons
     top_slots_poly = top_obj.data.polygons

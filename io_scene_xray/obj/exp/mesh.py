@@ -152,7 +152,7 @@ def export_faces(chunked_writer, bm, bpy_obj):
     return uvs, vert_indices, face_indices
 
 
-@log.with_context('export-mesh')
+@log.with_context('mesh')
 def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
     log.update(mesh=bpy_obj.data.name)
     export_version(chunked_writer)

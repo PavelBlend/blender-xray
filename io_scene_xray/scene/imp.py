@@ -186,9 +186,9 @@ def import_(filepath, chunked_reader, import_context):
     _read_objects(objects_chunk, import_context)
 
 
-@log.with_context(name='file')
+@log.with_context(name='import-scene-selection')
 def import_file(filepath, operator):
-    log.update(path=filepath)
+    log.update(file=filepath)
     ie_utils.check_file_exists(filepath)
     preferences = version_utils.get_preferences()
     textures_folder = preferences.textures_folder_auto

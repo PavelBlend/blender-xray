@@ -35,18 +35,18 @@ def _import_skl(file_path, context, chunked_reader):
             log.debug('unknown chunk', cid=cid)
 
 
-@log.with_context(name='file')
+@log.with_context(name='import-skl')
 def import_skl_file(file_path, context):
-    log.update(path=file_path)
+    log.update(file=file_path)
     ie_utils.check_file_exists(file_path)
     file_data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(file_data)
     _import_skl(file_path, context, chunked_reader)
 
 
-@log.with_context(name='file')
+@log.with_context(name='import-skls')
 def import_skls_file(file_path, context):
-    log.update(path=file_path)
+    log.update(file=file_path)
     ie_utils.check_file_exists(file_path)
     file_data = utils.read_file(file_path)
     reader = xray_io.PackedReader(file_data)

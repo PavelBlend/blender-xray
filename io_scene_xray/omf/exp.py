@@ -212,9 +212,7 @@ def write_motions(context, packed_writer, motions, version):
         write_motion(context, packed_writer, motion_name, motion_index, version)
 
 
-@log.with_context('armature-object')
 def export_omf(context):
-    log.update(object=context.bpy_arm_obj.name)
     current_frame = bpy.context.scene.frame_current
     mode = context.bpy_arm_obj.mode
     if not context.bpy_arm_obj.animation_data:
@@ -555,6 +553,8 @@ def export_omf(context):
     return main_chunked_writer
 
 
+@log.with_context('export-omf')
 def export_omf_file(context):
+    log.update(object=context.bpy_arm_obj.name)
     chunked_writer = export_omf(context)
     utils.save_file(context.filepath, chunked_writer)

@@ -1441,7 +1441,9 @@ def get_writer():
     return chunked_writer
 
 
+@log.with_context(name='export-game-level')
 def export_file(level_object, dir_path):
+    log.update(object=level_object.name)
     file_path = dir_path + os.sep + 'level'
     level_chunked_writer = get_writer()
     vbs, ibs, fp_vbs, fp_ibs, level = write_level(level_chunked_writer, level_object, file_path)

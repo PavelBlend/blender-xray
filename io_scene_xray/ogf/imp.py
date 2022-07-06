@@ -1862,9 +1862,9 @@ def import_visual(context, data, visual):
         bpy_object = create_visual(visual)
 
 
-@log.with_context(name='file')
+@log.with_context(name='import-ogf')
 def import_file(context, file_path, file_name):
-    log.update(path=file_path)
+    log.update(file=file_path)
     ie_utils.check_file_exists(file_path)
     data = utils.read_file(file_path)
     visual = Visual()

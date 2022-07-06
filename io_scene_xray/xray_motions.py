@@ -121,13 +121,14 @@ def interpolate_keys(fps, start, end, values, times, shapes, tcb, params):
     return interpolated_values, interpolated_times
 
 
-@log.with_context('import-motion')
+@log.with_context('motion')
 def import_motion(
         reader, context, bonesmap, reported,
         motions_filter=MOTIONS_FILTER_ALL, skl_file_name=None
     ):
     bpy_armature = context.bpy_arm_obj
     name = reader.gets()
+    log.update(motion=name)
     if skl_file_name:
         name = skl_file_name
     bone_maps = {}
@@ -410,8 +411,9 @@ def examine_motions(data):
         yield name
 
 
-@log.with_context('export-motion')
+@log.with_context('motion')
 def export_motion(pkw, action, armature):
+    log.update(action=action.name)
     dependency_object = None
     if armature.xray.dependency_object:
         dependency_object = bpy.data.objects.get(armature.xray.dependency_object)

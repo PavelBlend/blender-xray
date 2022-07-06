@@ -113,7 +113,7 @@ def _import(file_path, creader, context):
         )
 
 
-@log.with_context('import-anm-path')
+@log.with_context('import-anm')
 def import_file(context):
     file_path = context.filepath
     log.update(file=file_path)

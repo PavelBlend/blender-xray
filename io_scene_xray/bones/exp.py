@@ -5,8 +5,9 @@ from .. import xray_io
 from .. import obj
 
 
-@log.with_context(name='export-bones-partitions')
+@log.with_context(name='bones-partitions')
 def _export_partitions(context, bpy_obj):
+    log.update(object=bpy_obj.name)
     packed_writer = xray_io.PackedWriter()
     groups_count = len(bpy_obj.pose.bone_groups)
     if not groups_count or not context.export_bone_parts:
@@ -45,7 +46,7 @@ def _export_partitions(context, bpy_obj):
     return packed_writer
 
 
-@log.with_context(name='export-bone-properties')
+@log.with_context(name='bone-properties')
 def _export_bone_data(bpy_obj, bone):
     log.update(bone=bone.name)
     chunked_writer = xray_io.ChunkedWriter()

@@ -10,7 +10,7 @@ from .. import ie_utils
 from .. import obj
 
 
-@log.with_context(name='import-bones-partitions')
+@log.with_context(name='bones-partitions')
 def _import_partitions(import_context, data, arm_obj, bpy_bones):
     packed_reader = xray_io.PackedReader(data)
     partitions_count = packed_reader.int()
@@ -24,6 +24,7 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
     try:
         for partition_id in range(partitions_count):
             name = packed_reader.gets()
+            log.update(partition=name)
             bone_group = arm_obj.pose.bone_groups.get(name, None)
             if not bone_group:
                 bpy.ops.pose.group_add()
@@ -45,14 +46,14 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
         bpy.ops.object.mode_set(mode=current_mode)
 
 
-@log.with_context(name='import-bone-properties')
+@log.with_context(name='bone-properties')
 def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
     chunked_reader = xray_io.ChunkedReader(data)
     chunks = obj.fmt.Chunks.Bone
     # bone name
     packed_reader = xray_io.PackedReader(chunked_reader.next(chunks.DEF))
     name = packed_reader.gets().lower()
-    log.update(name=name)
+    log.update(bone=name)
     bpy_bone = bpy_bones.get(name, None)
     if not bpy_bone:
         log.warn(

@@ -681,7 +681,7 @@ MAX_LEVEL_SIZE = 1024 * 1024 * 32    # 32 MB
 
 @log.with_context(name='import-game-level')
 def import_file(context, operator):
-    log.update(path=context.filepath)
+    log.update(file=context.filepath)
     ie_utils.check_file_exists(context.filepath)
     level = Level()
     level.context = context

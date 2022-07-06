@@ -25,9 +25,9 @@ def _import(file_path, context, reader):
         raise utils.AppError(text.error.object_main_chunk)
 
 
-@log.with_context(name='file')
+@log.with_context(name='import-object')
 def import_file(file_path, context):
-    log.update(path=file_path)
+    log.update(file=file_path)
     ie_utils.check_file_exists(file_path)
     file_data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(memoryview(file_data))
