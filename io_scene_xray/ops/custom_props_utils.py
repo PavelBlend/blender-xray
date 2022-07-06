@@ -425,11 +425,14 @@ class XRAY_OT_remove_all_custom_props(bpy.types.Operator):
                     continue
                 data_list.append(bone)
         for data in data_list:
+            remove_keys = set()
             for prop in data.keys():
                 if prop.startswith('cycles'):
                     continue
                 if prop == 'xray':
                     continue
+                remove_keys.add(prop)
+            for prop in remove_keys:
                 del data[prop]
         return {'FINISHED'}
 
