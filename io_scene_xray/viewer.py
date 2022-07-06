@@ -119,7 +119,9 @@ def import_file(file):
         bpy.ops.xray_import.object(
             directory=directory,
             files=[{'name': file.name}],
-            import_motions=prefs.object_motions_import
+            import_motions=prefs.object_motions_import,
+            mesh_split_by_materials=prefs.object_mesh_split_by_mat,
+            fmt_version=prefs.sdk_version
         )
     elif path.endswith('.ogf'):
         bpy.ops.xray_import.ogf(
@@ -136,6 +138,7 @@ def import_file(file):
         bpy.ops.xray_import.details(
             directory=directory,
             files=[{'name': file.name}],
+            details_models_in_a_row=True,
             load_slots=False
         )
     else:
@@ -144,7 +147,9 @@ def import_file(file):
                 bpy.ops.xray_import.object(
                     directory=directory,
                     files=[{'name': file.name}],
-                    import_motions=prefs.object_motions_import
+                    import_motions=prefs.object_motions_import,
+                    mesh_split_by_materials=prefs.object_mesh_split_by_mat,
+                    fmt_version=prefs.sdk_version
                 )
             except:
                 pass
