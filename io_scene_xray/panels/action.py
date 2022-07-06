@@ -9,7 +9,7 @@ from .. import ops
 
 
 class XRAY_PT_action(ui.base.XRayPanel):
-    bl_category = 'F-Curve'
+    bl_category = ui.base.CATEGORY
     bl_space_type = version_utils.get_action_panel_space()
     bl_region_type = 'UI'
     bl_context = 'object'
