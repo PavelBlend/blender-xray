@@ -176,6 +176,19 @@ def select_object(obj):
         obj.select = True
 
 
+def set_mesh_objects_select(objs_names, select_state):
+    if IS_28:
+        for obj_name in objs_names:
+            obj = bpy.data.objects[obj_name]
+            if obj.type == 'MESH':
+                obj.select_set(select_state)
+    else:
+        for obj_name in objs_names:
+            obj = bpy.data.objects[obj_name]
+            if obj.type == 'MESH':
+                obj.select = select_state
+
+
 def set_object_select(obj, select_state):
     if IS_28:
         obj.select_set(select_state)
