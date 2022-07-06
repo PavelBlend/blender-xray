@@ -72,8 +72,8 @@ class XRAY_OT_import_dm(
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
 
-        if not self.files:
-            self.report({'ERROR'}, 'No files selected')
+        if not self.files or (len(self.files) == 1 and not self.files[0].name):
+            self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
 
         import_context = ImportDmContext()

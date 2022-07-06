@@ -73,11 +73,8 @@ class XRAY_OT_import_bones(
         if len(self.files) > 1:
             self.report({'ERROR'}, 'Too many selected files. Select one file')
             return {'CANCELLED'}
-        if not len(self.files):
-            self.report({'ERROR'}, 'No file selected')
-            return {'CANCELLED'}
-        if not self.files[0].name:
-            self.report({'ERROR'}, 'No file selected')
+        if not self.files or (len(self.files) == 1 and not self.files[0].name):
+            self.report({'ERROR'}, 'No file selected!')
             return {'CANCELLED'}
         filename = self.files[0].name
         filepath = os.path.join(self.directory, filename)
