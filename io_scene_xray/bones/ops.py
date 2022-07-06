@@ -82,27 +82,20 @@ class XRAY_OT_import_bones(
         filename = self.files[0].name
         filepath = os.path.join(self.directory, filename)
         file_ext = os.path.splitext(filename)[-1].lower()
-        if file_ext == '.bones':
-            imp_props = self.import_bone_properties
-            imp_parts = self.import_bone_parts
-            if not imp_props and not imp_parts:
-                self.report({'ERROR'}, 'Nothing is imported')
-                return {'CANCELLED'}
-            import_context = ImportBonesContext()
-            import_context.import_bone_properties = imp_props
-            import_context.import_bone_parts = imp_parts
-            import_context.filepath = filepath
-            import_context.bpy_arm_obj = context.object
-            try:
-                imp.import_file(import_context)
-            except utils.AppError as err:
-                import_context.errors.append(err)
-        else:
-            self.report(
-                {'ERROR'},
-                'Format of "{}" not recognised'.format(filepath)
-            )
+        imp_props = self.import_bone_properties
+        imp_parts = self.import_bone_parts
+        if not imp_props and not imp_parts:
+            self.report({'ERROR'}, 'Nothing is imported')
             return {'CANCELLED'}
+        import_context = ImportBonesContext()
+        import_context.import_bone_properties = imp_props
+        import_context.import_bone_parts = imp_parts
+        import_context.filepath = filepath
+        import_context.bpy_arm_obj = context.object
+        try:
+            imp.import_file(import_context)
+        except utils.AppError as err:
+            import_context.errors.append(err)
         for err in import_context.errors:
             log.err(err)
         return {'FINISHED'}

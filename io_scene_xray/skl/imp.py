@@ -21,8 +21,10 @@ def _import_skl(file_path, context, chunked_reader):
     name = os.path.splitext(basename)[0]
     if not context.motions_filter(name):
         return
+    has_main_chunk = False
     for cid, cdata in chunked_reader:
         if cid == 0x1200:
+            has_main_chunk = True
             reader = xray_io.PackedReader(cdata)
             bonesmap = {
                 bone.name.lower(): bone
@@ -33,6 +35,8 @@ def _import_skl(file_path, context, chunked_reader):
             )
         else:
             log.debug('unknown chunk', cid=cid)
+    if not has_main_chunk:
+        raise 'skl file has no main chunk'
 
 
 @log.with_context(name='import-skl')

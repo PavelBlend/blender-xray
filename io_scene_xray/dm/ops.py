@@ -82,19 +82,13 @@ class XRAY_OT_import_dm(
 
         for file in self.files:
             file_ext = os.path.splitext(file.name)[-1].lower()
-            if file_ext == filename_ext:
-                try:
-                    imp.import_file(
-                        os.path.join(self.directory, file.name),
-                        import_context
-                    )
-                except utils.AppError as err:
-                    import_context.errors.append(err)
-            else:
-                self.report(
-                    {'ERROR'},
-                    'Format of {} not recognised'.format(file)
+            try:
+                imp.import_file(
+                    os.path.join(self.directory, file.name),
+                    import_context
                 )
+            except utils.AppError as err:
+                import_context.errors.append(err)
         for err in import_context.errors:
             log.err(err)
         return {'FINISHED'}

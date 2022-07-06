@@ -152,7 +152,10 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
                 elif file_ext == '.skls':
                     imp.import_skls_file(file_path, import_context)
                 else:
-                    self.report({'ERROR'}, 'Format of {} not recognised'.format(file))
+                    try:
+                        imp.import_skl_file(file_path, import_context)
+                    except:
+                        imp.import_skls_file(file_path, import_context)
             except utils.AppError as err:
                 import_context.errors.append(err)
         for err in import_context.errors:
