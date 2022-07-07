@@ -37,6 +37,7 @@ object_arm_mod_disabled = 'armature modifier is disabled in viewport'
 object_sg_smooth = 'Maya-SG incompatible: smooth edge adjacents has different smoothing group'
 object_sg_sharp = 'Maya-SG incompatible: sharp edge adjacents has same smoothing group'
 object_skip_geom = 'skipping geometry from vertex groups'
+object_missing_group = 'vertices have missing groups'
 # object import bone
 object_bone_renamed = 'bone vertex map: will be renamed'
 object_bone_already_renamed = 'bone vertex map: is already renamed'
