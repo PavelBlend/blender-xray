@@ -4,6 +4,7 @@ import math
 # blender modules
 import bpy
 import bmesh
+import mathutils
 
 # addon modules
 from .. import fmt
@@ -18,6 +19,8 @@ from ... import ie_props
 _SHARP = 0xffffffff
 _MIN_WEIGHT = 0.0002
 
+def convert_float_normal(norm_in):
+    return mathutils.Vector((norm_in[2], norm_in[0], norm_in[1])).normalized()
 
 def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
     bfa, bfb = bool(group_a & 0x8), bool(group_b & 0x8)  # test backface-s
@@ -49,6 +52,7 @@ def import_mesh(context, creader, renamemap):
 
     face_sg = None
     s_faces = []
+    v_normals = []
     vm_refs = ()
     vmaps = []
     vgroups = []
@@ -89,6 +93,19 @@ def import_mesh(context, creader, renamemap):
                     elif not sgfuncs[1](prev[0], sm_group, prev[1], eidx):
                         bme.smooth = False
             face_sg = face_sg_impl
+        elif cid == fmt.Chunks.Mesh.NORM:
+            if not data:    # old object format
+                continue  
+            reader = xray_io.PackedReader(data)
+            for _ in range(len(fc_data)):
+                normal_1 = reader.getv3fp()
+                normal_2 = reader.getv3fp()
+                normal_3 = reader.getv3fp()
+                v_normals.extend((
+                    convert_float_normal(normal_1),
+                    convert_float_normal(normal_2),
+                    convert_float_normal(normal_3)
+                ))
         elif cid == fmt.Chunks.Mesh.SFACE:
             reader = xray_io.PackedReader(data)
             for _ in range(reader.getf('<H')[0]):
@@ -372,5 +389,8 @@ def import_mesh(context, creader, renamemap):
 
     bmsh.normal_update()
     bmsh.to_mesh(bm_data)
+    
+#    if len(v_normals) > 0:
+#       bm_data.normals_split_custom_set(v_normals)
 
     return bo_mesh
