@@ -27,6 +27,7 @@ from . import part
 import_draw_functions = [
     ('enable_object_import', obj.imp.ops.XRAY_OT_import_object),
     ('enable_skls_import', skl.ops.XRAY_OT_import_skls),
+    ('enable_ogf_import', ogf.ops.XRAY_OT_import_ogf),
     ('enable_omf_import', omf.ops.XRAY_OT_import_omf),
     ('enable_anm_import', anm.ops.XRAY_OT_import_anm),
     ('enable_bones_import', bones.ops.XRAY_OT_import_bones),
@@ -34,7 +35,6 @@ import_draw_functions = [
     ('enable_details_import', details.ops.XRAY_OT_import_details),
     ('enable_level_import', scene.ops.XRAY_OT_import_scene_selection),
     ('enable_game_level_import', level.ops.XRAY_OT_import_level),
-    ('enable_ogf_import', ogf.ops.XRAY_OT_import_ogf),
     ('enable_part_import', part.ops.XRAY_OT_import_part),
     ('enable_err_import', err.ops.XRAY_OT_import_err)
 ]
@@ -44,14 +44,14 @@ export_draw_functions = [
     ('enable_object_export', obj.exp.ops.XRAY_OT_export_object),
     ('enable_skls_export', skl.ops.XRAY_OT_export_skls),
     ('enable_skl_export', skl.ops.XRAY_OT_export_skl_batch),
+    ('enable_ogf_export', ogf.ops.XRAY_OT_export_ogf),
     ('enable_omf_export', omf.ops.XRAY_OT_export_omf),
     ('enable_anm_export', anm.ops.XRAY_OT_export_anm),
     ('enable_bones_export', bones.ops.XRAY_OT_export_bones),
     ('enable_dm_export', dm.ops.XRAY_OT_export_dm),
     ('enable_details_export', details.ops.XRAY_OT_export_details),
     ('enable_level_export', scene.ops.XRAY_OT_export_scene_selection),
-    ('enable_game_level_export', level.ops.XRAY_OT_export_level),
-    ('enable_ogf_export', ogf.ops.XRAY_OT_export_ogf),
+    ('enable_game_level_export', level.ops.XRAY_OT_export_level)
 ]
 
 

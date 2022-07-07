@@ -196,7 +196,7 @@ def draw_formats_enable_disable(prefs):
     column_import = row.column(align=True)
     column_import.label(text='Import Formats:')
     column_import.prop(prefs, 'enable_object_import', text='*.object')
-    column_import.prop(prefs, 'enable_skls_import', text='*.skls')
+    column_import.prop(prefs, 'enable_skls_import', text='*.skl *.skls')
     column_import.prop(prefs, 'enable_ogf_import', text='*.ogf')
     column_import.prop(prefs, 'enable_omf_import', text='*.omf')
     column_import.prop(prefs, 'enable_anm_import', text='*.anm')
@@ -211,7 +211,10 @@ def draw_formats_enable_disable(prefs):
     column_export = row.column(align=True)
     column_export.label(text='Export Formats:')
     column_export.prop(prefs, 'enable_object_export', text='*.object')
-    column_export.prop(prefs, 'enable_skls_export', text='*.skls')
+    skls_row = column_export.row(align=True)
+    skls_row.alignment = 'LEFT'
+    skls_row.prop(prefs, 'enable_skl_export', text='*.skl')
+    skls_row.prop(prefs, 'enable_skls_export', text='*.skls')
     column_export.prop(prefs, 'enable_ogf_export', text='*.ogf')
     column_export.prop(prefs, 'enable_omf_export', text='*.omf')
     column_export.prop(prefs, 'enable_anm_export', text='*.anm')
@@ -220,7 +223,6 @@ def draw_formats_enable_disable(prefs):
     column_export.prop(prefs, 'enable_details_export', text='*.details')
     column_export.prop(prefs, 'enable_level_export', text='*.level')
     column_export.prop(prefs, 'enable_game_level_export', text='level')
-    column_export.prop(prefs, 'enable_skl_export', text='*.skl')
 
 
 def draw_keymaps(context, prefs):
