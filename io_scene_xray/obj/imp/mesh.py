@@ -49,6 +49,7 @@ def import_mesh(context, creader, renamemap):
 
     face_sg = None
     s_faces = []
+    v_normals = []
     vm_refs = ()
     vmaps = []
     vgroups = []
@@ -89,6 +90,12 @@ def import_mesh(context, creader, renamemap):
                     elif not sgfuncs[1](prev[0], sm_group, prev[1], eidx):
                         bme.smooth = False
             face_sg = face_sg_impl
+        elif cid == fmt.Chunks.Mesh.NORM:
+            if not data:    # old object format
+                continue  
+            reader = xray_io.PackedReader(data)
+            for _ in range(len(fc_data)):
+                v_normals.append(reader.getv3fp())
         elif cid == fmt.Chunks.Mesh.SFACE:
             reader = xray_io.PackedReader(data)
             for _ in range(reader.getf('<H')[0]):
@@ -329,6 +336,23 @@ def import_mesh(context, creader, renamemap):
             continue  # already instantiated
         bmfaces[fidx] = local.mkface(fidx)
 
+    #if len(v_normals) > 0:
+    #    bmsh.edges.index_update()
+     #   log.warn("test me " + str(len(bmfaces)))
+     #   log.warn(str(v_normals[0]))
+        #bmsh.faces.normals = v_normals
+        
+     #   for mface in bmsh.faces:
+     #       for loop in mface.loops:
+     #           bmsh.loops[loop.index].normal = v_normals[0]
+        #for fidx in bmfaces:
+          #  for i in (0, 2, 1):
+              #  l  = bmsh.loops[fidx]
+              #  bpy.data.loops[l.index].normal = v_normals[fidx][i]
+            #for i in (0, 2, 1):
+            #    l = bmf.loops[i]
+            #   bpy.data.loops[l.index] = v_normals[fidx]
+    #el
     if face_sg:
         bmsh.edges.index_update()
         edict = [None] * len(bmsh.edges)
