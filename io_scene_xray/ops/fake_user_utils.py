@@ -62,7 +62,6 @@ class XRAY_OT_change_fake_user(bpy.types.Operator):
         column.prop(self, 'mode', expand=True)
 
         change_column = column.column(align=True)
-        change_column.active = self.mode != 'ALL_DATA'
         change_column.label(text='Change:')
         change_column.prop(self, 'data', expand=True)
 
@@ -105,16 +104,34 @@ class XRAY_OT_change_fake_user(bpy.types.Operator):
                 input_objects.add(obj)
 
         else:
-            data_collections = {
-                bpy.data.objects,
-                bpy.data.meshes,
-                bpy.data.materials,
-                bpy.data.images,
-                bpy.data.armatures,
-                bpy.data.actions
-            }
-            if rend in interal_compatible_rends:
-                data_collections.add(bpy.data.textures)
+            if 'ALL' in self.data:
+                data_collections = {
+                    bpy.data.objects,
+                    bpy.data.meshes,
+                    bpy.data.materials,
+                    bpy.data.images,
+                    bpy.data.armatures,
+                    bpy.data.actions
+                }
+                if rend in interal_compatible_rends:
+                    data_collections.add(bpy.data.textures)
+            else:
+                data_collections = set()
+                if 'OBJECTS' in self.data:
+                    data_collections.add(bpy.data.objects)
+                if 'MESHES' in self.data:
+                    data_collections.add(bpy.data.meshes)
+                if 'MATERIALS' in self.data:
+                    data_collections.add(bpy.data.materials)
+                if 'TEXTURES' in self.data:
+                    if rend in interal_compatible_rends:
+                        data_collections.add(bpy.data.textures)
+                if 'IMAGES' in self.data:
+                    data_collections.add(bpy.data.images)
+                if 'ARMATURES' in self.data:
+                    data_collections.add(bpy.data.armatures)
+                if 'ACTIONS' in self.data:
+                    data_collections.add(bpy.data.actions)
             for data_collection in data_collections:
                 for data_block in data_collection:
                     self.set_fake_user(data_block)
