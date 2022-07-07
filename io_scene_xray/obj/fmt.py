@@ -40,7 +40,6 @@ class Chunks:
         VMAPS1 = 0x1011
         VMAPS2 = 0x1012
         SG = 0x1013
-        NORM = 0x1014
 
     class Bone:
         VERSION = 0x0001
