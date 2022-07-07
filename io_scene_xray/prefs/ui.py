@@ -189,12 +189,12 @@ def draw_defaults(prefs):
         box.prop(prefs, 'part_mesh_split_by_mat')
 
 
-def draw_operators_enable_disable(prefs):
+def draw_formats_enable_disable(prefs):
     layout = prefs.layout
     row = layout.row()
     # import operators
     column_import = row.column()
-    column_import.label(text='Import Operators:')
+    column_import.label(text='Import Formats:')
     column_import.prop(prefs, 'enable_object_import', text='*.object')
     column_import.prop(prefs, 'enable_anm_import', text='*.anm')
     column_import.prop(prefs, 'enable_dm_import', text='*.dm')
@@ -209,7 +209,7 @@ def draw_operators_enable_disable(prefs):
     column_import.prop(prefs, 'enable_err_import', text='*.err')
     # export operators
     column_export = row.column()
-    column_export.label(text='Export Operators:')
+    column_export.label(text='Export Formats:')
     column_export.prop(prefs, 'enable_object_export', text='*.object')
     column_export.prop(prefs, 'enable_anm_export', text='*.anm')
     column_export.prop(prefs, 'enable_dm_export', text='*.dm')

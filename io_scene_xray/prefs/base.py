@@ -26,7 +26,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
         elif self.category == 'DEFAULTS':
             ui.draw_defaults(self)
         elif self.category == 'PLUGINS':
-            ui.draw_operators_enable_disable(self)
+            ui.draw_formats_enable_disable(self)
         elif self.category == 'KEYMAP':
             ui.draw_keymaps(context, self)
         elif self.category == 'CUSTOM_PROPS':
