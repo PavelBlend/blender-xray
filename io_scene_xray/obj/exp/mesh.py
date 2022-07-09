@@ -170,13 +170,26 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
             if mod.type != 'ARMATURE' and mod.show_viewport
     ]
 
+    temp_obj = bpy_obj.copy()
+    temp_obj.data = bpy_obj.data.copy()
+    tri_mod = temp_obj.modifiers.new('Triangulate', 'TRIANGULATE')
+    tri_mod.keep_custom_normals = True
+    override = bpy.context.copy()
+    override['active_object'] = temp_obj
+    override['object'] = temp_obj
+    bpy.ops.object.modifier_apply(override, modifier=tri_mod.name)
+
     bm = utils.convert_object_to_space_bmesh(
-        bpy_obj,
+        temp_obj,
         bpy_root.matrix_world,
         local=False,
         split_normals=use_split_normals,
         mods=modifiers
     )
+
+    temp_mesh = temp_obj.data
+    bpy.data.objects.remove(temp_obj)
+    bpy.data.meshes.remove(temp_mesh)
 
     weights_layer = bm.verts.layers.deform.verify()
     bad_vgroups = remove_bad_geometry(bm, weights_layer, bpy_obj)
