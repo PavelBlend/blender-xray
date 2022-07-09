@@ -99,10 +99,37 @@ def remove_bad_geometry(bm, bml, bpy_obj):
         (vertex_group.name.startswith(utils.BAD_VTX_GROUP_NAME), vertex_group.name) \
         for vertex_group in bpy_obj.vertex_groups
     ]
-    bad_verts = [
-        vertex for vertex in bm.verts
-        if any(bad_vgroups[key][0] for key in vertex[bml].keys())
-    ]
+    try:
+        # fast method
+        bad_verts = [
+            vertex for vertex in bm.verts
+            if any(bad_vgroups[key][0] for key in vertex[bml].keys())
+        ]
+    except IndexError:
+        # stable method
+        bad_verts = []
+        missing_groups = set()
+        incorrect_vert_count = 0
+        group_count = len(bad_vgroups)
+        for vertex in bm.verts:
+            is_bad_vert = False
+            for key in vertex[bml].keys():
+                if key < group_count and key >= 0:
+                    is_bad_group = bad_vgroups[key][0]
+                    if is_bad_group:
+                        is_bad_vert = True
+                else:
+                    missing_groups.add(key)
+                    incorrect_vert_count += 1
+            if is_bad_vert:
+                bad_verts.append(vertex)
+        if missing_groups:
+            log.warn(
+                text.warn.object_missing_group,
+                vertex_group_ids=missing_groups,
+                vertices_count=incorrect_vert_count,
+                object=bpy_obj.name
+            )
     if bad_verts:
         for is_bad, vgroup_name in bad_vgroups:
             if is_bad:
@@ -231,12 +258,15 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
         weight_maps_count += 1
 
     weight_refs = []    # vertex weight references
+    groups_count = len(bpy_obj.vertex_groups)
     for vertex_index, vertex in enumerate(bm.verts):
         weight_ref = []
         weight_refs.append(weight_ref)
         vertex_weights = vertex[weights_layer]
-        for vertex_group_index in vertex_weights.keys():
-            weight_map = weight_maps[vertex_group_index]
+        for group_index in vertex_weights.keys():
+            if group_index < 0 or group_index >= groups_count:
+                continue
+            weight_map = weight_maps[group_index]
             if weight_map is None:
                 continue
             weight_ref.append((

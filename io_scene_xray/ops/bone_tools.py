@@ -27,7 +27,7 @@ op_props = {
         default='ADAPTIVE'
     ),
     'size': bpy.props.FloatProperty(
-        name='Bone Size', default=0.05, min=0.0001, max=1000.0
+        name='Bone Size', default=0.05, min=0.0001, max=1000.0, precision=4
     ),
     'custom_shapes': bpy.props.BoolProperty(
         name='Custom Shapes', default=False

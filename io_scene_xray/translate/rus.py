@@ -165,6 +165,7 @@ translations_table = (
     (text.warn.object_sg_smooth, 'Несовместимость Maya-сглаживания: сглаженные смежные рёбра имеют различные группы сглаживания'),
     (text.warn.object_sg_sharp, 'Несовместимость Maya-сглаживания: не сглаженные смежные рёбра имеют одинаковую группу сглаживания'),
     (text.warn.object_skip_geom, 'пропущена геометрия из групп вершин'),
+    (text.warn.object_missing_group, 'вершины имеют отсутствующие группы'),
     # object import bone
     (text.warn.object_bone_renamed, 'группа вершин кости: была переименована'),
     (text.warn.object_bone_already_renamed, 'группа вершин кости: уже переименована'),

@@ -96,35 +96,29 @@ class XRAY_OT_import_omf(
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
-        if not self.files:
-            self.report({'ERROR'}, 'No files selected')
+        if not self.files or (len(self.files) == 1 and not self.files[0].name):
+            self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
         import_context = ImportOmfContext()
         for file in self.files:
             file_ext = os.path.splitext(file.name)[-1].lower()
-            if file_ext == '.omf':
-                omf_path = os.path.join(self.directory, file.name)
-                import_context.bpy_arm_obj = context.object
-                import_context.filepath = omf_path
-                import_context.import_bone_parts = self.import_bone_parts
-                import_context.import_motions = self.import_motions
-                import_context.add_actions_to_motion_list = \
-                    self.add_actions_to_motion_list
-                if self.motions:
-                    import_context.selected_names = {
-                        motion.name
-                        for motion in self.motions
-                            if motion.flag
-                    }
-                try:
-                    imp.import_file(import_context)
-                except utils.AppError as err:
-                    import_context.errors.append(err)
-            else:
-                self.report(
-                    {'ERROR'},
-                    'Format of "{}" not recognised'.format(file.name)
-                )
+            omf_path = os.path.join(self.directory, file.name)
+            import_context.bpy_arm_obj = context.object
+            import_context.filepath = omf_path
+            import_context.import_bone_parts = self.import_bone_parts
+            import_context.import_motions = self.import_motions
+            import_context.add_actions_to_motion_list = \
+                self.add_actions_to_motion_list
+            if self.motions:
+                import_context.selected_names = {
+                    motion.name
+                    for motion in self.motions
+                        if motion.flag
+                }
+            try:
+                imp.import_file(import_context)
+            except utils.AppError as err:
+                import_context.errors.append(err)
         for err in import_context.errors:
             log.err(err)
         return {'FINISHED'}

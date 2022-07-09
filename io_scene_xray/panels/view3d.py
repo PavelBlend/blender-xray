@@ -488,42 +488,10 @@ class XRAY_PT_import_operators(bpy.types.Panel):
     def draw(self, context):
         col = self.layout.column(align=True)
         preferences = version_utils.get_preferences()
-        # object
-        if preferences.enable_object_import:
-            col.operator(obj.imp.ops.XRAY_OT_import_object.bl_idname, text='Object', icon='IMPORT')
-        # skls
-        if preferences.enable_skls_import:
-            col.operator(skl.ops.XRAY_OT_import_skls.bl_idname, text='Skls', icon='IMPORT')
-        # anm
-        if preferences.enable_anm_import:
-            col.operator(anm.ops.XRAY_OT_import_anm.bl_idname, text='Anm', icon='IMPORT')
-        # bones
-        if preferences.enable_bones_import:
-            col.operator(bones.ops.XRAY_OT_import_bones.bl_idname, text='Bones', icon='IMPORT')
-        # details
-        if preferences.enable_details_import:
-            col.operator(details.ops.XRAY_OT_import_details.bl_idname, text='Details', icon='IMPORT')
-        # dm
-        if preferences.enable_dm_import:
-            col.operator(dm.ops.XRAY_OT_import_dm.bl_idname, text='Dm', icon='IMPORT')
-        # scene
-        if preferences.enable_level_import:
-            col.operator(scene.ops.XRAY_OT_import_scene_selection.bl_idname, text='Scene', icon='IMPORT')
-        # omf
-        if preferences.enable_omf_import:
-            col.operator(omf.ops.XRAY_OT_import_omf.bl_idname, text='Omf', icon='IMPORT')
-        # level
-        if preferences.enable_game_level_import:
-            col.operator(level.ops.XRAY_OT_import_level.bl_idname, text='Level', icon='IMPORT')
-        # ogf
-        if preferences.enable_ogf_import:
-            col.operator(ogf.ops.XRAY_OT_import_ogf.bl_idname, text='Ogf', icon='IMPORT')
-        # part
-        if preferences.enable_part_import:
-            col.operator(part.ops.XRAY_OT_import_part.bl_idname, text='Part', icon='IMPORT')
-        # err
-        if preferences.enable_err_import:
-            col.operator(err.ops.XRAY_OT_import_err.bl_idname, text='Err', icon='IMPORT')
+        for enable_prop_name, operator, label in menus.import_draw_functions:
+            enable_prop = getattr(preferences, enable_prop_name)
+            if enable_prop:
+                col.operator(operator.bl_idname, text=label, icon='IMPORT')
 
 
 class XRAY_PT_export_operators(bpy.types.Panel):
@@ -550,39 +518,10 @@ class XRAY_PT_export_operators(bpy.types.Panel):
     def draw(self, context):
         col = self.layout.column(align=True)
         preferences = version_utils.get_preferences()
-        # object
-        if preferences.enable_object_export:
-            col.operator(obj.exp.ops.XRAY_OT_export_object.bl_idname, text='Object', icon='EXPORT')
-        # skls
-        if preferences.enable_skls_export:
-            col.operator(skl.ops.XRAY_OT_export_skls.bl_idname, text='Skls', icon='EXPORT')
-        # skl
-        if preferences.enable_skls_export:
-            col.operator(skl.ops.XRAY_OT_export_skl_batch.bl_idname, text='Skl', icon='EXPORT')
-        # anm
-        if preferences.enable_anm_export:
-            col.operator(anm.ops.XRAY_OT_export_anm.bl_idname, text='Anm', icon='EXPORT')
-        # bones
-        if preferences.enable_bones_export:
-            col.operator(bones.ops.XRAY_OT_export_bones.bl_idname, text='Bones', icon='EXPORT')
-        # details
-        if preferences.enable_details_export:
-            col.operator(details.ops.XRAY_OT_export_details.bl_idname, text='Details', icon='EXPORT')
-        # dm
-        if preferences.enable_dm_export:
-            col.operator(dm.ops.XRAY_OT_export_dm.bl_idname, text='Dm', icon='EXPORT')
-        # scene
-        if preferences.enable_level_export:
-            col.operator(scene.ops.XRAY_OT_export_scene_selection.bl_idname, text='Scene', icon='EXPORT')
-        # omf
-        if preferences.enable_omf_export:
-            col.operator(omf.ops.XRAY_OT_export_omf.bl_idname, text='Omf', icon='EXPORT')
-        # level
-        if preferences.enable_game_level_export:
-            col.operator(level.ops.XRAY_OT_export_level.bl_idname, text='Level', icon='EXPORT')
-        # ogf
-        if preferences.enable_ogf_export:
-            col.operator(ogf.ops.XRAY_OT_export_ogf.bl_idname, text='Ogf', icon='EXPORT')
+        for enable_prop_name, operator, label in menus.export_draw_functions:
+            enable_prop = getattr(preferences, enable_prop_name)
+            if enable_prop:
+                col.operator(operator.bl_idname, text=label, icon='EXPORT')
 
 
 classes = (

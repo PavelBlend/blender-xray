@@ -576,9 +576,12 @@ def save_file(file_path, writer):
 
 
 def read_file(file_path):
-    with open(file_path, 'rb') as file:
-        data = file.read()
-    return data
+    try:
+        with open(file_path, 'rb') as file:
+            data = file.read()
+        return data
+    except FileNotFoundError:
+        raise AppError('No such file!')
 
 
 def read_text_file(file_path):

@@ -189,38 +189,40 @@ def draw_defaults(prefs):
         box.prop(prefs, 'part_mesh_split_by_mat')
 
 
-def draw_operators_enable_disable(prefs):
+def draw_formats_enable_disable(prefs):
     layout = prefs.layout
-    row = layout.row()
+    row = layout.row(align=True)
     # import operators
-    column_import = row.column()
-    column_import.label(text='Import Operators:')
+    column_import = row.column(align=True)
+    column_import.label(text='Import Formats:')
     column_import.prop(prefs, 'enable_object_import', text='*.object')
+    column_import.prop(prefs, 'enable_skls_import', text='*.skl *.skls')
+    column_import.prop(prefs, 'enable_ogf_import', text='*.ogf')
+    column_import.prop(prefs, 'enable_omf_import', text='*.omf')
     column_import.prop(prefs, 'enable_anm_import', text='*.anm')
+    column_import.prop(prefs, 'enable_bones_import', text='*.bones')
     column_import.prop(prefs, 'enable_dm_import', text='*.dm')
     column_import.prop(prefs, 'enable_details_import', text='*.details')
-    column_import.prop(prefs, 'enable_skls_import', text='*.skls')
-    column_import.prop(prefs, 'enable_bones_import', text='*.bones')
     column_import.prop(prefs, 'enable_level_import', text='*.level')
-    column_import.prop(prefs, 'enable_omf_import', text='*.omf')
     column_import.prop(prefs, 'enable_game_level_import', text='level')
-    column_import.prop(prefs, 'enable_ogf_import', text='*.ogf')
     column_import.prop(prefs, 'enable_part_import', text='*.part')
     column_import.prop(prefs, 'enable_err_import', text='*.err')
     # export operators
-    column_export = row.column()
-    column_export.label(text='Export Operators:')
+    column_export = row.column(align=True)
+    column_export.label(text='Export Formats:')
     column_export.prop(prefs, 'enable_object_export', text='*.object')
+    skls_row = column_export.row(align=True)
+    skls_row.alignment = 'LEFT'
+    skls_row.prop(prefs, 'enable_skl_export', text='*.skl')
+    skls_row.prop(prefs, 'enable_skls_export', text='*.skls')
+    column_export.prop(prefs, 'enable_ogf_export', text='*.ogf')
+    column_export.prop(prefs, 'enable_omf_export', text='*.omf')
     column_export.prop(prefs, 'enable_anm_export', text='*.anm')
+    column_export.prop(prefs, 'enable_bones_export', text='*.bones')
     column_export.prop(prefs, 'enable_dm_export', text='*.dm')
     column_export.prop(prefs, 'enable_details_export', text='*.details')
-    column_export.prop(prefs, 'enable_skls_export', text='*.skls')
-    column_export.prop(prefs, 'enable_skl_export', text='*.skl')
-    column_export.prop(prefs, 'enable_bones_export', text='*.bones')
     column_export.prop(prefs, 'enable_level_export', text='*.level')
-    column_export.prop(prefs, 'enable_omf_export', text='*.omf')
     column_export.prop(prefs, 'enable_game_level_export', text='level')
-    column_export.prop(prefs, 'enable_ogf_export', text='*.ogf')
 
 
 def draw_keymaps(context, prefs):

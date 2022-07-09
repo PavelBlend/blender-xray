@@ -59,6 +59,9 @@ class XRAY_OT_import_part(ie_props.BaseOperator):
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
+        if not self.files or (len(self.files) == 1 and not self.files[0].name):
+            self.report({'ERROR'}, 'No files selected!')
+            return {'CANCELLED'}
         preferences = version_utils.get_preferences()
         textures_folder = preferences.textures_folder_auto
         objects_folder = preferences.objects_folder_auto

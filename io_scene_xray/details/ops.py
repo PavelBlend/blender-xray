@@ -81,8 +81,8 @@ class XRAY_OT_import_details(
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
 
-        if not self.files:
-            self.report({'ERROR'}, 'No files selected')
+        if not self.files or (len(self.files) == 1 and not self.files[0].name):
+            self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
 
         import_context = ImportDetailsContext()
@@ -94,19 +94,13 @@ class XRAY_OT_import_details(
 
         for file in self.files:
             file_ext = os.path.splitext(file.name)[-1].lower()
-            if file_ext == '.details':
-                try:
-                    imp.import_file(
-                        os.path.join(self.directory, file.name),
-                        import_context
-                    )
-                except utils.AppError as err:
-                    import_context.errors.append(err)
-            else:
-                self.report(
-                    {'ERROR'},
-                    'Format of {} not recognised'.format(file)
+            try:
+                imp.import_file(
+                    os.path.join(self.directory, file.name),
+                    import_context
                 )
+            except utils.AppError as err:
+                import_context.errors.append(err)
         for err in import_context.errors:
             log.err(err)
         return {'FINISHED'}

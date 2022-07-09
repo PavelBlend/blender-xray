@@ -25,33 +25,33 @@ from . import part
 
 # import draw functions
 import_draw_functions = [
-    ('enable_object_import', obj.imp.ops.XRAY_OT_import_object),
-    ('enable_skls_import', skl.ops.XRAY_OT_import_skls),
-    ('enable_omf_import', omf.ops.XRAY_OT_import_omf),
-    ('enable_anm_import', anm.ops.XRAY_OT_import_anm),
-    ('enable_bones_import', bones.ops.XRAY_OT_import_bones),
-    ('enable_dm_import',dm.ops.XRAY_OT_import_dm),
-    ('enable_details_import', details.ops.XRAY_OT_import_details),
-    ('enable_level_import', scene.ops.XRAY_OT_import_scene_selection),
-    ('enable_game_level_import', level.ops.XRAY_OT_import_level),
-    ('enable_ogf_import', ogf.ops.XRAY_OT_import_ogf),
-    ('enable_part_import', part.ops.XRAY_OT_import_part),
-    ('enable_err_import', err.ops.XRAY_OT_import_err)
+    ('enable_object_import', obj.imp.ops.XRAY_OT_import_object, 'Object'),
+    ('enable_skls_import', skl.ops.XRAY_OT_import_skls, 'Skls'),
+    ('enable_ogf_import', ogf.ops.XRAY_OT_import_ogf, 'Ogf'),
+    ('enable_omf_import', omf.ops.XRAY_OT_import_omf, 'Omf'),
+    ('enable_anm_import', anm.ops.XRAY_OT_import_anm, 'Anm'),
+    ('enable_bones_import', bones.ops.XRAY_OT_import_bones, 'Bones'),
+    ('enable_dm_import',dm.ops.XRAY_OT_import_dm, 'Dm'),
+    ('enable_details_import', details.ops.XRAY_OT_import_details, 'Details'),
+    ('enable_level_import', scene.ops.XRAY_OT_import_scene_selection, 'Scene'),
+    ('enable_game_level_import', level.ops.XRAY_OT_import_level, 'Level'),
+    ('enable_part_import', part.ops.XRAY_OT_import_part, 'Part'),
+    ('enable_err_import', err.ops.XRAY_OT_import_err, 'Err')
 ]
 
 # export draw functions
 export_draw_functions = [
-    ('enable_object_export', obj.exp.ops.XRAY_OT_export_object),
-    ('enable_skls_export', skl.ops.XRAY_OT_export_skls),
-    ('enable_skl_export', skl.ops.XRAY_OT_export_skl_batch),
-    ('enable_omf_export', omf.ops.XRAY_OT_export_omf),
-    ('enable_anm_export', anm.ops.XRAY_OT_export_anm),
-    ('enable_bones_export', bones.ops.XRAY_OT_export_bones),
-    ('enable_dm_export', dm.ops.XRAY_OT_export_dm),
-    ('enable_details_export', details.ops.XRAY_OT_export_details),
-    ('enable_level_export', scene.ops.XRAY_OT_export_scene_selection),
-    ('enable_game_level_export', level.ops.XRAY_OT_export_level),
-    ('enable_ogf_export', ogf.ops.XRAY_OT_export_ogf),
+    ('enable_object_export', obj.exp.ops.XRAY_OT_export_object, 'Object'),
+    ('enable_skls_export', skl.ops.XRAY_OT_export_skls, 'Skls'),
+    ('enable_skl_export', skl.ops.XRAY_OT_export_skl_batch, 'Skl'),
+    ('enable_ogf_export', ogf.ops.XRAY_OT_export_ogf, 'Ogf'),
+    ('enable_omf_export', omf.ops.XRAY_OT_export_omf, 'Omf'),
+    ('enable_anm_export', anm.ops.XRAY_OT_export_anm, 'Anm'),
+    ('enable_bones_export', bones.ops.XRAY_OT_export_bones, 'Bones'),
+    ('enable_dm_export', dm.ops.XRAY_OT_export_dm, 'Dm'),
+    ('enable_details_export', details.ops.XRAY_OT_export_details, 'Details'),
+    ('enable_level_export', scene.ops.XRAY_OT_export_scene_selection, 'Scene'),
+    ('enable_game_level_export', level.ops.XRAY_OT_export_level, 'Level')
 ]
 
 
@@ -67,7 +67,7 @@ def menu_func_xray_export(self, context):
 
 def append_draw_functions(ops_list, menu):
     preferences = version_utils.get_preferences()
-    for enable_prop, operator in ops_list:
+    for enable_prop, operator, label in ops_list:
         enable = getattr(preferences, enable_prop)
         if enable:
             draw_function = ie_utils.get_draw_fun(operator)
@@ -75,7 +75,7 @@ def append_draw_functions(ops_list, menu):
 
 
 def remove_draw_functions(ops_list, menu):
-    for enable, operator in ops_list:
+    for enable, operator, label in ops_list:
         if hasattr(operator, 'draw_fun'):
             draw_function = operator.draw_fun
             menu.remove(draw_function)
@@ -84,7 +84,7 @@ def remove_draw_functions(ops_list, menu):
 def get_enabled_operators(ops_list):
     preferences = version_utils.get_preferences()
     operators = []
-    for enable_prop, operator in ops_list:
+    for enable_prop, operator, label in ops_list:
         enable = getattr(preferences, enable_prop)
         if enable:
             id_name = operator.bl_idname

@@ -57,7 +57,7 @@ class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHel
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
-            self.report({'ERROR'}, 'No files selected')
+            self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
         import_context = utility.ImportObjectContext()
         import_context.textures_folder=textures_folder
