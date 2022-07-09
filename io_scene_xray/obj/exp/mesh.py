@@ -176,7 +176,8 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
         temp_obj = bpy_obj.copy()
         temp_obj.data = bpy_obj.data.copy()
         tri_mod = temp_obj.modifiers.new('Triangulate', 'TRIANGULATE')
-        tri_mod.keep_custom_normals = True
+        if version_utils.IS_28:
+            tri_mod.keep_custom_normals = True
         override = bpy.context.copy()
         override['active_object'] = temp_obj
         override['object'] = temp_obj
