@@ -48,6 +48,8 @@ def import_mesh(context, creader, renamemap):
     vt_data = ()
     fc_data = ()
 
+    prefs = version_utils.get_preferences()
+
     face_sg = None
     s_faces = []
     split_normals = []
@@ -91,7 +93,7 @@ def import_mesh(context, creader, renamemap):
                     elif not sgfuncs[1](prev[0], sm_group, prev[1], eidx):
                         bme.smooth = False
             face_sg = face_sg_impl
-        elif cid == fmt.Chunks.Mesh.NORMALS:
+        elif cid == fmt.Chunks.Mesh.NORMALS and prefs.object_split_normals:
             reader = xray_io.PackedReader(data)
             for face_index in range(faces_count):
                 for corner_index in range(3):

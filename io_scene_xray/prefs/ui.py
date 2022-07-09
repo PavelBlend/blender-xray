@@ -337,6 +337,7 @@ def draw_others(prefs):
     split.label(text='Custom Owner Name:')
     split.prop(prefs, 'custom_owner_name', text='')
     prop_bool(layout, prefs, 'compact_menus')
+    layout.prop(prefs, 'object_split_normals')
     box = layout.box()
     box.label(text='Bone Shape Colors:')
     row = box.row()
