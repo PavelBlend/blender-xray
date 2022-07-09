@@ -19,8 +19,6 @@ from ... import ie_props
 _SHARP = 0xffffffff
 _MIN_WEIGHT = 0.0002
 
-def convert_float_normal(norm_in):
-    return mathutils.Vector((norm_in[0], norm_in[1], norm_in[2])).normalized()
 
 def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
     bfa, bfb = bool(group_a & 0x8), bool(group_b & 0x8)  # test backface-s
@@ -52,7 +50,7 @@ def import_mesh(context, creader, renamemap):
 
     face_sg = None
     s_faces = []
-    v_normals = []
+    split_normals = []
     vm_refs = ()
     vmaps = []
     vgroups = []
@@ -66,8 +64,8 @@ def import_mesh(context, creader, renamemap):
         elif cid == fmt.Chunks.Mesh.FACES:
             s_6i = xray_io.PackedReader.prep('6I')
             reader = xray_io.PackedReader(data)
-            count = reader.int()
-            fc_data = [reader.getp(s_6i) for _ in range(count)]
+            faces_count = reader.int()
+            fc_data = [reader.getp(s_6i) for _ in range(faces_count)]
         elif cid == fmt.Chunks.Mesh.MESHNAME:
             mesh_name = xray_io.PackedReader(data).gets()
             log.update(name=mesh_name)
@@ -93,19 +91,13 @@ def import_mesh(context, creader, renamemap):
                     elif not sgfuncs[1](prev[0], sm_group, prev[1], eidx):
                         bme.smooth = False
             face_sg = face_sg_impl
-        elif cid == fmt.Chunks.Mesh.NORM:
-            if not data:    # old object format
-                continue  
+        elif cid == fmt.Chunks.Mesh.NORMALS:
             reader = xray_io.PackedReader(data)
-            for _ in range(len(fc_data)):
-                normal_1 = reader.getv3fp()
-                normal_2 = reader.getv3fp()
-                normal_3 = reader.getv3fp()
-                v_normals.extend((
-                    convert_float_normal(normal_1),
-                    convert_float_normal(normal_2),
-                    convert_float_normal(normal_3)
-                ))
+            for face_index in range(faces_count):
+                for corner_index in range(3):
+                    split_normals.append(
+                        mathutils.Vector(reader.getv3fp()).normalized()
+                    )
         elif cid == fmt.Chunks.Mesh.SFACE:
             reader = xray_io.PackedReader(data)
             for _ in range(reader.getf('<H')[0]):
@@ -233,7 +225,9 @@ def import_mesh(context, creader, renamemap):
                 self._vtx(fr, i0), self._vtx(fr, i1), self._vtx(fr, i2)
             )
             try:
-                return bmsh.faces.new(vertexes)
+                face = bmsh.faces.new(vertexes)
+                face.smooth = True
+                return face
             except ValueError:
                 if len(set(vertexes)) < 3:
                     log.warn(text.warn.object_invalid_face)
@@ -289,7 +283,7 @@ def import_mesh(context, creader, renamemap):
     bmfaces = [None] * len(fc_data)
 
     bm_data = bpy.data.meshes.new(mesh_name)
-    if face_sg:
+    if face_sg or split_normals:
         bm_data.use_auto_smooth = True
         bm_data.auto_smooth_angle = math.pi
         if not version_utils.IS_28:
@@ -346,7 +340,7 @@ def import_mesh(context, creader, renamemap):
             continue  # already instantiated
         bmfaces[fidx] = local.mkface(fidx)
 
-    if face_sg:
+    if face_sg and not split_normals:
         bmsh.edges.index_update()
         edict = [None] * len(bmsh.edges)
         for fidx, bmf in enumerate(bmfaces):
@@ -389,8 +383,8 @@ def import_mesh(context, creader, renamemap):
 
     bmsh.normal_update()
     bmsh.to_mesh(bm_data)
-    
-    if len(v_normals) > 0:
-        bm_data.normals_split_custom_set(v_normals)
+
+    if split_normals:
+        bm_data.normals_split_custom_set(split_normals)
 
     return bo_mesh

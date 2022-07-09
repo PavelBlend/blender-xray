@@ -1,6 +1,6 @@
 # blender modules
+import bpy
 import bmesh
-import mathutils
 
 # addon modules
 from . import main
@@ -12,13 +12,6 @@ from ... import log
 from ... import version_utils
 
 
-def mesh_triangulate(me):
-    bm = bmesh.new()
-    bm.from_mesh(me)
-    bmesh.ops.triangulate(bm, faces=bm.faces)
-    bm.to_mesh(me)
-    bm.free()
-
 def _export_sg_cs_cop(bmfaces):
     for face in bmfaces:
         sm_group = 0
@@ -27,24 +20,6 @@ def _export_sg_cs_cop(bmfaces):
                 sm_group |= (4, 2, 1)[eidx]
         yield sm_group
 
-def export_normal(bmfaces,bpy_obj):
-    normals = []
-    for fidx in bmfaces.faces:
-        for i in (0, 1, 2):
-            l  = fidx.loops[i]
-            if l.index == -1:
-                return []
-            loop = bpy_obj.data.loops[l.index]
-            normals.append(loop.normal)
-    return normals
-    
-def export_normal_form_bm(bmfaces,bpy_obj):
-    normals = []
-    for fidx in bmfaces.faces:
-        for i in (0, 1, 2):
-            l  = fidx.loops[i]
-            normals.append(l.face.normal)
-    return normals
 
 def _check_sg_soc(bmedges, sgroups):
     for edge in bmedges:
@@ -194,16 +169,6 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
         for mod in bpy_obj.modifiers
             if mod.type != 'ARMATURE' and mod.show_viewport
     ]
-    
-    if bpy_obj.data.is_editmode:
-        raise ValueError("Must not export object in edit mode")
-
-
-    me = bmesh.new() ## bpy_obj.data.copy()
-    me.from_mesh(bpy_obj.data)
-
-    mesh_triangulate(bpy_obj.data)
-    bpy_obj.data.calc_normals_split()
 
     bm = utils.convert_object_to_space_bmesh(
         bpy_obj,
@@ -345,15 +310,21 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
     for smooth_group in smooth_groups:
         packed_writer.putf('<I', smooth_group)
     chunked_writer.put(fmt.Chunks.Mesh.SG, packed_writer)
-    
+
     # normals chunk
-    nrm = export_normal(bm, bpy_obj)
-    if not  nrm:
-        nrm = export_normal_form_bm(bm,bpy_obj)
+    temp_mesh = bpy.data.meshes.new('temp')
+    bm.normal_update()
+    bm.to_mesh(temp_mesh)
+    temp_mesh.use_auto_smooth = bpy_obj.data.use_auto_smooth
+    temp_mesh.auto_smooth_angle = bpy_obj.data.auto_smooth_angle
+    temp_mesh.calc_normals_split()
     packed_writer = xray_io.PackedWriter()
-    for fidx in nrm:
-        packed_writer.putv3f(fidx)
-    chunked_writer.put(fmt.Chunks.Mesh.NORM, packed_writer)
+    for face in bm.faces:
+        for bm_loop in face.loops:
+            bpy_loop = temp_mesh.loops[bm_loop.index]
+            packed_writer.putv3f(bpy_loop.normal)
+    chunked_writer.put(fmt.Chunks.Mesh.NORMALS, packed_writer)
+    bpy.data.meshes.remove(temp_mesh)
 
     # write vmaps chunk
     packed_writer = xray_io.PackedWriter()
@@ -390,5 +361,4 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
         packed_writer.putf('<' + str(len(vert_indices)) + 'I', *vert_indices)
     chunked_writer.put(fmt.Chunks.Mesh.VMAPS2, packed_writer)
 
-    me.to_mesh(bpy_obj.data)
     return used_material_names
