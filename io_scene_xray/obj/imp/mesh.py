@@ -20,7 +20,7 @@ _SHARP = 0xffffffff
 _MIN_WEIGHT = 0.0002
 
 def convert_float_normal(norm_in):
-    return mathutils.Vector((norm_in[2], norm_in[0], norm_in[1])).normalized()
+    return mathutils.Vector((norm_in[0], norm_in[1], norm_in[2])).normalized()
 
 def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
     bfa, bfb = bool(group_a & 0x8), bool(group_b & 0x8)  # test backface-s
@@ -390,7 +390,7 @@ def import_mesh(context, creader, renamemap):
     bmsh.normal_update()
     bmsh.to_mesh(bm_data)
     
-#    if len(v_normals) > 0:
-#       bm_data.normals_split_custom_set(v_normals)
+    if len(v_normals) > 0:
+        bm_data.normals_split_custom_set(v_normals)
 
     return bo_mesh

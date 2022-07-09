@@ -75,16 +75,6 @@ class PackedReader:
         vec = self.getp(self.__S_FFF)
         return vec[0], vec[2], vec[1]
 
-    def getn3f(self):
-        # get vertex normal
-        coord_x, coord_y, coord_z = struct.unpack_from(
-            '<3f',
-            self.__data,
-            self.__offs
-        )
-        self.__offs += 12
-        return coord_z, coord_y, coord_x
-
     def get_array(self, fmt, count):
         dtype_format = self.__NUMPY_FORMATS.get(fmt, None)
         if not dtype_format:
