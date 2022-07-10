@@ -96,10 +96,10 @@ def import_mesh(context, creader, renamemap):
         elif cid == fmt.Chunks.Mesh.NORMALS and prefs.object_split_normals:
             reader = xray_io.PackedReader(data)
             for face_index in range(faces_count):
-                for corner_index in range(3):
-                    split_normals.append(
-                        mathutils.Vector(reader.getv3fp()).normalized()
-                    )
+                norm_1 = mathutils.Vector(reader.getv3fp()).normalized()
+                norm_2 = mathutils.Vector(reader.getv3fp()).normalized()
+                norm_3 = mathutils.Vector(reader.getv3fp()).normalized()
+                split_normals.extend((norm_1, norm_3, norm_2))
         elif cid == fmt.Chunks.Mesh.SFACE:
             reader = xray_io.PackedReader(data)
             for _ in range(reader.getf('<H')[0]):

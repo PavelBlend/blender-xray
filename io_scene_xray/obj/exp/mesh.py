@@ -368,7 +368,8 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
         temp_mesh.calc_normals_split()
         packed_writer = xray_io.PackedWriter()
         for face in bm.faces:
-            for bm_loop in face.loops:
+            for loop_index in (0, 2, 1):
+                bm_loop = face.loops[loop_index]
                 bpy_loop = temp_mesh.loops[bm_loop.index]
                 packed_writer.putv3f(bpy_loop.normal)
         chunked_writer.put(fmt.Chunks.Mesh.NORMALS, packed_writer)
