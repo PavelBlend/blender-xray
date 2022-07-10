@@ -658,22 +658,22 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                 packed_co = struct.pack('<3f', vert.co[0], vert.co[2], vert.co[1])
                 vb.position.extend(packed_co)
                 vb.normal.extend((
-                    int(round(((normal[1] + 1.0) / 2) * 255, 0)),
+                    int(round(((normal[0] + 1.0) / 2) * 255, 0)),
                     int(round(((normal[2] + 1.0) / 2) * 255, 0)),
-                    int(round(((normal[0] + 1.0) / 2) * 255, 0))
+                    int(round(((normal[1] + 1.0) / 2) * 255, 0))
                 ))
                 tangent = export_mesh.loops[loop.index].tangent
                 vb.tangent.extend((
-                    int(round(((tangent[1] + 1.0) / 2) * 255, 0)),
+                    int(round(((tangent[0] + 1.0) / 2) * 255, 0)),
                     int(round(((tangent[2] + 1.0) / 2) * 255, 0)),
-                    int(round(((tangent[0] + 1.0) / 2) * 255, 0))
+                    int(round(((tangent[1] + 1.0) / 2) * 255, 0))
                 ))
                 normal = mathutils.Vector(normal)
                 binormal = normal.cross(tangent).normalized()
                 vb.binormal.extend((
-                    int(round(((binormal[1] + 1.0) / 2) * 255, 0)),
+                    int(round(((binormal[0] + 1.0) / 2) * 255, 0)),
                     int(round(((binormal[2] + 1.0) / 2) * 255, 0)),
-                    int(round(((binormal[0] + 1.0) / 2) * 255, 0))
+                    int(round(((binormal[1] + 1.0) / 2) * 255, 0))
                 ))
                 # vertex color light
                 vb.color_hemi.append(int(round(hemi * 255, 0)))

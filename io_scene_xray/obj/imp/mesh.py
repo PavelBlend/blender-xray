@@ -4,6 +4,7 @@ import math
 # blender modules
 import bpy
 import bmesh
+import mathutils
 
 # addon modules
 from .. import fmt
@@ -47,8 +48,11 @@ def import_mesh(context, creader, renamemap):
     vt_data = ()
     fc_data = ()
 
+    prefs = version_utils.get_preferences()
+
     face_sg = None
     s_faces = []
+    split_normals = []
     vm_refs = ()
     vmaps = []
     vgroups = []
@@ -62,8 +66,8 @@ def import_mesh(context, creader, renamemap):
         elif cid == fmt.Chunks.Mesh.FACES:
             s_6i = xray_io.PackedReader.prep('6I')
             reader = xray_io.PackedReader(data)
-            count = reader.int()
-            fc_data = [reader.getp(s_6i) for _ in range(count)]
+            faces_count = reader.int()
+            fc_data = [reader.getp(s_6i) for _ in range(faces_count)]
         elif cid == fmt.Chunks.Mesh.MESHNAME:
             mesh_name = xray_io.PackedReader(data).gets()
             log.update(name=mesh_name)
@@ -89,6 +93,13 @@ def import_mesh(context, creader, renamemap):
                     elif not sgfuncs[1](prev[0], sm_group, prev[1], eidx):
                         bme.smooth = False
             face_sg = face_sg_impl
+        elif cid == fmt.Chunks.Mesh.NORMALS and prefs.object_split_normals:
+            reader = xray_io.PackedReader(data)
+            for face_index in range(faces_count):
+                norm_1 = mathutils.Vector(reader.getv3fp()).normalized()
+                norm_2 = mathutils.Vector(reader.getv3fp()).normalized()
+                norm_3 = mathutils.Vector(reader.getv3fp()).normalized()
+                split_normals.extend((norm_1, norm_3, norm_2))
         elif cid == fmt.Chunks.Mesh.SFACE:
             reader = xray_io.PackedReader(data)
             for _ in range(reader.getf('<H')[0]):
@@ -216,7 +227,9 @@ def import_mesh(context, creader, renamemap):
                 self._vtx(fr, i0), self._vtx(fr, i1), self._vtx(fr, i2)
             )
             try:
-                return bmsh.faces.new(vertexes)
+                face = bmsh.faces.new(vertexes)
+                face.smooth = True
+                return face
             except ValueError:
                 if len(set(vertexes)) < 3:
                     log.warn(text.warn.object_invalid_face)
@@ -272,7 +285,7 @@ def import_mesh(context, creader, renamemap):
     bmfaces = [None] * len(fc_data)
 
     bm_data = bpy.data.meshes.new(mesh_name)
-    if face_sg:
+    if face_sg or split_normals:
         bm_data.use_auto_smooth = True
         bm_data.auto_smooth_angle = math.pi
         if not version_utils.IS_28:
@@ -329,7 +342,7 @@ def import_mesh(context, creader, renamemap):
             continue  # already instantiated
         bmfaces[fidx] = local.mkface(fidx)
 
-    if face_sg:
+    if face_sg and not split_normals:
         bmsh.edges.index_update()
         edict = [None] * len(bmsh.edges)
         for fidx, bmf in enumerate(bmfaces):
@@ -372,5 +385,8 @@ def import_mesh(context, creader, renamemap):
 
     bmsh.normal_update()
     bmsh.to_mesh(bm_data)
+
+    if split_normals:
+        bm_data.normals_split_custom_set(split_normals)
 
     return bo_mesh

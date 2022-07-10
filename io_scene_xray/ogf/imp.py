@@ -112,11 +112,11 @@ def convert_normal(norm_in):
     norm_out_x = 2.0 * norm_in[0] / 255 - 1.0
     norm_out_y = 2.0 * norm_in[1] / 255 - 1.0
     norm_out_z = 2.0 * norm_in[2] / 255 - 1.0
-    return mathutils.Vector((norm_out_z, norm_out_x, norm_out_y)).normalized()
+    return mathutils.Vector((norm_out_x, norm_out_y, norm_out_z)).normalized()
 
 
 def convert_float_normal(norm_in):
-    return mathutils.Vector((norm_in[2], norm_in[0], norm_in[1])).normalized()
+    return mathutils.Vector((norm_in[0], norm_in[1], norm_in[2])).normalized()
 
 
 def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None, bones=None):
@@ -556,9 +556,9 @@ def import_skeleton_vertices(chunks, ogf_chunks, visual):
     if vertex_format in (fmt.VertexFormat.FVF_1L, fmt.VertexFormat.FVF_1L_CS):
         for vertex_index in range(verices_count):
             coords = packed_reader.getv3f()
-            normal = packed_reader.getn3f()
-            tangent = packed_reader.getn3f()
-            bitangent = packed_reader.getn3f()
+            normal = packed_reader.getv3fp()
+            tangent = packed_reader.getv3fp()
+            bitangent = packed_reader.getv3fp()
             tex_u, tex_v = packed_reader.getf('<2f')
             bone_index = packed_reader.getf('<I')[0]
             vertices.append(coords)
@@ -572,9 +572,9 @@ def import_skeleton_vertices(chunks, ogf_chunks, visual):
             bone_1_index = packed_reader.getf('<H')[0]
             bone_2_index = packed_reader.getf('<H')[0]
             coords = packed_reader.getv3f()
-            normal = packed_reader.getn3f()
-            tangent = packed_reader.getn3f()
-            bitangent = packed_reader.getn3f()
+            normal = packed_reader.getv3fp()
+            tangent = packed_reader.getv3fp()
+            bitangent = packed_reader.getv3fp()
             weight = packed_reader.getf('<f')[0]
             tex_u, tex_v = packed_reader.getf('<2f')
             vertices.append(coords)
@@ -595,9 +595,9 @@ def import_skeleton_vertices(chunks, ogf_chunks, visual):
             bone_2_index = packed_reader.getf('<H')[0]
             bone_3_index = packed_reader.getf('<H')[0]
             coords = packed_reader.getv3f()
-            normal = packed_reader.getn3f()
-            tangent = packed_reader.getn3f()
-            bitangent = packed_reader.getn3f()
+            normal = packed_reader.getv3fp()
+            tangent = packed_reader.getv3fp()
+            bitangent = packed_reader.getv3fp()
             weight_1, weight_2 = packed_reader.getf('<2f')
             weight_3 = 1 - weight_1 - weight_2
             tex_u, tex_v = packed_reader.getf('<2f')
@@ -626,9 +626,9 @@ def import_skeleton_vertices(chunks, ogf_chunks, visual):
             bone_3_index = packed_reader.getf('<H')[0]
             bone_4_index = packed_reader.getf('<H')[0]
             coords = packed_reader.getv3f()
-            normal = packed_reader.getn3f()
-            tangent = packed_reader.getn3f()
-            bitangent = packed_reader.getn3f()
+            normal = packed_reader.getv3fp()
+            tangent = packed_reader.getv3fp()
+            bitangent = packed_reader.getv3fp()
             weight_1, weight_2, weight_3 = packed_reader.getf('<3f')
             weight_4 = 1 - weight_1 - weight_2 - weight_3
             tex_u, tex_v = packed_reader.getf('<2f')
@@ -678,7 +678,7 @@ def import_vertices(chunks, ogf_chunks, visual):
     if vertex_format == level.fmt.FVF_OGF:
         for vertex_index in range(verices_count):
             coords = packed_reader.getv3f()
-            normal = packed_reader.getn3f()
+            normal = packed_reader.getv3fp()
             tex_u, tex_v = packed_reader.getf('<2f')
             vertices.append(coords)
             normals.append(normal)

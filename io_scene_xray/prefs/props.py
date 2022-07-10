@@ -562,6 +562,12 @@ plugin_preferences_props = {
         max=1.0,
         subtype='COLOR',
         size=4
+    ),
+
+    # custom data props
+    'object_split_normals': bpy.props.BoolProperty(
+        name='Use *.object Split Normals',
+        default=False
     )
 }
 

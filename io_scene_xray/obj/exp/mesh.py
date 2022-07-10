@@ -1,4 +1,5 @@
 # blender modules
+import bpy
 import bmesh
 
 # addon modules
@@ -196,21 +197,40 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
             if mod.type != 'ARMATURE' and mod.show_viewport
     ]
 
-    bm = utils.convert_object_to_space_bmesh(
-        bpy_obj,
-        bpy_root.matrix_world,
-        local=False,
-        split_normals=use_split_normals,
-        mods=modifiers
-    )
+    prefs = version_utils.get_preferences()
+
+    if prefs.object_split_normals:
+        temp_obj = bpy_obj.copy()
+        temp_obj.data = bpy_obj.data.copy()
+        tri_mod = temp_obj.modifiers.new('Triangulate', 'TRIANGULATE')
+        if version_utils.IS_28:
+            tri_mod.keep_custom_normals = True
+        override = bpy.context.copy()
+        override['active_object'] = temp_obj
+        override['object'] = temp_obj
+        bpy.ops.object.modifier_apply(override, modifier=tri_mod.name)
+        bm = utils.convert_object_to_space_bmesh(
+            temp_obj,
+            bpy_root.matrix_world,
+            local=False,
+            split_normals=use_split_normals,
+            mods=modifiers
+        )
+    else:
+        bm = utils.convert_object_to_space_bmesh(
+            bpy_obj,
+            bpy_root.matrix_world,
+            local=False,
+            split_normals=use_split_normals,
+            mods=modifiers
+        )
+        bmesh.ops.triangulate(bm, faces=bm.faces)
 
     weights_layer = bm.verts.layers.deform.verify()
     bad_vgroups = remove_bad_geometry(bm, weights_layer, bpy_obj)
 
     export_bbox(chunked_writer, bm)
     export_flags(chunked_writer, bpy_obj)
-
-    bmesh.ops.triangulate(bm, faces=bm.faces)
 
     export_vertices(chunked_writer, bm)
 
@@ -339,6 +359,22 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
     for smooth_group in smooth_groups:
         packed_writer.putf('<I', smooth_group)
     chunked_writer.put(fmt.Chunks.Mesh.SG, packed_writer)
+
+    # normals chunk
+    if prefs.object_split_normals:
+        temp_mesh = temp_obj.data
+        temp_mesh.use_auto_smooth = bpy_obj.data.use_auto_smooth
+        temp_mesh.auto_smooth_angle = bpy_obj.data.auto_smooth_angle
+        temp_mesh.calc_normals_split()
+        packed_writer = xray_io.PackedWriter()
+        for face in bm.faces:
+            for loop_index in (0, 2, 1):
+                bm_loop = face.loops[loop_index]
+                bpy_loop = temp_mesh.loops[bm_loop.index]
+                packed_writer.putv3f(bpy_loop.normal)
+        chunked_writer.put(fmt.Chunks.Mesh.NORMALS, packed_writer)
+        bpy.data.objects.remove(temp_obj)
+        bpy.data.meshes.remove(temp_mesh)
 
     # write vmaps chunk
     packed_writer = xray_io.PackedWriter()
