@@ -371,7 +371,12 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
             for loop_index in (0, 2, 1):
                 bm_loop = face.loops[loop_index]
                 bpy_loop = temp_mesh.loops[bm_loop.index]
-                packed_writer.putv3f(bpy_loop.normal)
+                normal = version_utils.multiply(
+                    bpy_root.matrix_world.inverted(),
+                    temp_obj.matrix_world,
+                    bpy_loop.normal
+                )
+                packed_writer.putv3f(normal)
         chunked_writer.put(fmt.Chunks.Mesh.NORMALS, packed_writer)
         bpy.data.objects.remove(temp_obj)
         bpy.data.meshes.remove(temp_mesh)
