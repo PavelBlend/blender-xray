@@ -82,7 +82,6 @@ class Bone:
 
 class BoneParts:
     def __init__(self):
-        self.version = None
         self.count = None
         self.items = []
 
@@ -93,10 +92,8 @@ class Motion:
         self.writer = xray_io.PackedWriter()
 
 
-def get_motion_params(data):
-    packed_reader = xray_io.PackedReader(data)
+def read_bone_parts(packed_reader, params_version):
     bone_parts = BoneParts()
-    bone_parts.version = packed_reader.getf('<H')[0]
     bone_parts.count = packed_reader.getf('<H')[0]
     for partition_index in range(bone_parts.count):
         bonepart = BonePart()
@@ -104,24 +101,28 @@ def get_motion_params(data):
         bonepart.bones_count = packed_reader.getf('<H')[0]
         for bone_index in range(bonepart.bones_count):
             bone = Bone()
-            if bone_parts.version == 1:
+            if params_version == 1:
                 bone.index = packed_reader.getf('<I')[0]
-            elif bone_parts.version == 2:
+            elif params_version == 2:
                 bone.name = packed_reader.gets()
-            elif bone_parts.version in (3, 4):
+            elif params_version in (3, 4):
                 bone.name = packed_reader.gets()
                 bone.index = packed_reader.getf('<I')[0]
             else:
                 raise BaseException('Unknown params version')
             bonepart.bones.append(bone)
         bone_parts.items.append(bonepart)
+    return bone_parts
+
+
+def read_motion_params(packed_reader, params_version):
     motions_params = {}
     motion_count = packed_reader.getf('<H')[0]
     for motion_index in range(motion_count):
         motion = Motion()
         motion.name = packed_reader.gets()
         motion.writer.data.extend(packed_reader.getb(24))
-        if bone_parts.version == 4:
+        if params_version == 4:
             num_marks = packed_reader.getf('<I')[0]
             motion.writer.data.extend(struct.pack('<I', num_marks))
             for mark_index in range(num_marks):
@@ -136,7 +137,15 @@ def get_motion_params(data):
                 motion.writer.data.extend(struct.pack('<I', mark_count))
                 motion.writer.data.extend(packed_reader.getb(8 * mark_count))
         motions_params[motion.name] = motion
-    return bone_parts, motions_params
+    return motions_params
+
+
+def get_motion_params(data):
+    packed_reader = xray_io.PackedReader(data)
+    params_version = packed_reader.getf('<H')[0]
+    bone_parts = read_bone_parts(packed_reader, params_version)
+    motions_params = read_motion_params(packed_reader, params_version)
+    return params_version, bone_parts, motions_params
 
 
 def get_motions(context):
@@ -456,9 +465,9 @@ def export_omf(context):
     else:
         partition_version = 3
     if context.export_mode in ('REPLACE', 'ADD'):
-        available_boneparts, available_params = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS])
+        params_version, available_boneparts, available_params = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS])
         if context.export_mode == 'REPLACE' and context.export_bone_parts:
-            partition_version = available_boneparts.version
+            partition_version = params_version
             available_boneparts = []
     packed_writer = xray_io.PackedWriter()
     if not available_boneparts:
@@ -477,7 +486,7 @@ def export_omf(context):
                 packed_writer.puts(bone_name)
                 packed_writer.putf('<I', bone_index)
     else:
-        packed_writer.putf('<H', available_boneparts.version)
+        packed_writer.putf('<H', params_version)
         packed_writer.putf('<H', available_boneparts.count)
         for bonepart in available_boneparts.items:
             packed_writer.puts(bonepart.name)
