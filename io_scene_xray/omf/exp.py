@@ -219,14 +219,14 @@ def get_motions(context):
     return motions, motion_names, chunks
 
 
-def write_motion(context, writer, motion_name, motion_index, params_version):
-    action = bpy.data.actions.get(motion_name)
+def write_motion_params(context, writer, name, index, params_version):
+    action = bpy.data.actions.get(name)
     xray = action.xray
 
     # motion name
     if context.bpy_arm_obj.xray.use_custom_motion_names:
-        motion_name = context.motion_export_names[motion_name]
-    writer.puts(motion_name)
+        name = context.motion_export_names[name]
+    writer.puts(name)
 
     # flags
     motion_flags = get_flags(xray)
@@ -237,7 +237,7 @@ def write_motion(context, writer, motion_name, motion_index, params_version):
     writer.putf('<H', bone_or_part)
 
     # motion index
-    writer.putf('<H', motion_index)
+    writer.putf('<H', index)
 
     # float-point properties
     writer.putf('<4f', xray.speed, xray.power, xray.accrue, xray.falloff)
@@ -248,9 +248,9 @@ def write_motion(context, writer, motion_name, motion_index, params_version):
         writer.putf('<I', marks_count)
 
 
-def write_motions(context, writer, motions, version):
-    for motion_name, motion_index, _ in motions:
-        write_motion(context, writer, motion_name, motion_index, version)
+def write_motions_params(context, writer, motions, version):
+    for name, index, _ in motions:
+        write_motion_params(context, writer, name, index, version)
 
 
 def export_omf(context):
@@ -552,20 +552,26 @@ def export_omf(context):
     main_chunked_writer = xray_io.ChunkedWriter()
     main_chunked_writer.put(fmt.Chunks.S_MOTIONS, motions_writer)
 
+    # export motion params and boneparts
     available_boneparts = []
     available_params = {}
+
     if context.high_quality:
-        partition_version = 4
+        params_version = 4
     else:
-        partition_version = 3
+        params_version = 3
+
     if context.export_mode in ('REPLACE', 'ADD'):
-        params_version, available_boneparts, available_params = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS])
+        available_version, available_boneparts, available_params = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS])
         if context.export_mode == 'REPLACE' and context.export_bone_parts:
-            partition_version = params_version
+            params_version = available_version
             available_boneparts = []
+
     packed_writer = xray_io.PackedWriter()
+
+    # export boneparts
     if not available_boneparts:
-        packed_writer.putf('<H', partition_version)
+        packed_writer.putf('<H', params_version)
         partitions_count = len(bone_groups)
         packed_writer.putf('<H', partitions_count)
         for bone_group in context.bpy_arm_obj.pose.bone_groups:
@@ -588,11 +594,14 @@ def export_omf(context):
             for bone in bonepart.bones:
                 packed_writer.puts(bone.name)
                 packed_writer.putf('<I', bone.index)
+
+    # export motion params
     if not available_params:
         packed_writer.putf('<H', motion_count)
-        write_motions(context, packed_writer, motions, partition_version)
-        main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
+        write_motions_params(context, packed_writer, motions, params_version)
     else:
+
+        # add mode
         if context.export_mode == 'ADD':
             packed_writer.putf('<H', len(available_params) + new_motions_count)
             for motion_name, motion_params in available_params.items():
@@ -602,7 +611,9 @@ def export_omf(context):
             for motion_name, motion_id, has_available in motions:
                 if not has_available:
                     motions_new.append((motion_name, motion_id, has_available))
-            write_motions(context, packed_writer, motions_new, partition_version)
+            write_motions_params(context, packed_writer, motions_new, params_version)
+
+        # replace mode
         elif context.export_mode == 'REPLACE':
             if context.export_motions:
                 packed_writer.putf('<H', len(available_params) + new_motions_count)
@@ -618,18 +629,19 @@ def export_omf(context):
                         params = motion
                         if xray.use_custom_motion_names:
                             motion_name = context.motion_export_names[motion_name]
-                        write_motion(context, packed_writer, motion_name, params, partition_version)
+                        write_motion_params(context, packed_writer, motion_name, params, params_version)
                 motions_new = []
                 for motion_name, motion_id, has_available in motions:
                     if not has_available:
                         motions_new.append((motion_name, motion_id, has_available))
-                write_motions(context, packed_writer, motions_new, partition_version)
+                write_motions_params(context, packed_writer, motions_new, params_version)
             else:
                 packed_writer.putf('<H', len(available_params))
                 for motion_name, motion_params in available_params.items():
                     packed_writer.puts(motion_name)
                     packed_writer.putp(motion_params.writer)
-        main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
+
+    main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
 
     # return initial state
     utils.set_mode(mode)
