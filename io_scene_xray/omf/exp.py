@@ -526,7 +526,7 @@ def export_omf(context):
                 crc32_temp = 0x0    # temp value
                 crc32_offset = len(packed_writer.data)
                 packed_writer.putf('<I', crc32_temp)
-                if flags & fmt.KPF_T_HQ:
+                if context.high_quality:
                     trn_fmt = 'h'
                 else:
                     trn_fmt = 'b'
@@ -564,8 +564,8 @@ def export_omf(context):
     if context.export_mode in ('REPLACE', 'ADD'):
         available_version, available_boneparts, available_params = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS])
         if context.export_mode == 'REPLACE' and context.export_bone_parts:
-            params_version = available_version
             available_boneparts = []
+        params_version = available_version
 
     packed_writer = xray_io.PackedWriter()
 
