@@ -15,6 +15,31 @@ from .. import xray_io
 from .. import utils
 
 
+class BonePart:
+    def __init__(self):
+        self.bones = []
+        self.name = None
+        self.bones_count = None
+
+
+class Bone:
+    def __init__(self):
+        self.name = None
+        self.index = None
+
+
+class BoneParts:
+    def __init__(self):
+        self.count = None
+        self.items = []
+
+
+class Motion:
+    def __init__(self):
+        self.name = None
+        self.writer = xray_io.PackedWriter()
+
+
 def get_flags(xray):
     flags = 0x0
     if xray.flags_fx:
@@ -65,31 +90,6 @@ def get_exclude_motion_names(context):
     data, chunks = validate_omf_file(context)
     motion_names = imp.examine_motions(data)
     return set(motion_names), chunks
-
-
-class BonePart:
-    def __init__(self):
-        self.bones = []
-        self.name = None
-        self.bones_count = None
-
-
-class Bone:
-    def __init__(self):
-        self.name = None
-        self.index = None
-
-
-class BoneParts:
-    def __init__(self):
-        self.count = None
-        self.items = []
-
-
-class Motion:
-    def __init__(self):
-        self.name = None
-        self.writer = xray_io.PackedWriter()
 
 
 def read_bone_parts(packed_reader, params_version):
