@@ -722,3 +722,11 @@ def set_selection_state(active_object, selected_objects):
 def set_mode(mode):
     if bpy.context.object:
         bpy.ops.object.mode_set(mode=mode)
+
+
+def reset_pose_bone_transforms(armature_object):
+    for bone in armature_object.pose.bones:
+        bone.location = (0, 0, 0)
+        bone.rotation_euler = (0, 0, 0)
+        bone.rotation_quaternion = (1, 0, 0, 0)
+        bone.scale = (1, 1, 1)

@@ -159,7 +159,7 @@ def get_motions(context):
     motions = {}
     motion_names = []
 
-    for chunk_id, chunk_data in chunked_reader:
+    for motion_id, chunk_data in chunked_reader:
         # packed writer/reader
         packed_reader = xray_io.PackedReader(chunk_data)
         packed_writer = xray_io.PackedWriter()
@@ -174,7 +174,7 @@ def get_motions(context):
 
         # collect data
         motion_names.append(name)
-        motions[name] = (packed_writer, chunk_id)
+        motions[name] = (packed_writer, motion_id)
 
         # bones keyframes
         # TODO: replace context.bpy_arm_obj.data.bones
@@ -254,34 +254,41 @@ def write_motions(context, writer, motions, version):
 
 
 def export_omf(context):
+    # remember initial state
     current_frame = bpy.context.scene.frame_current
     mode = context.bpy_arm_obj.mode
     if not context.bpy_arm_obj.animation_data:
         current_action = None
     else:
         current_action = context.bpy_arm_obj.animation_data.action
+
+    # collect motion names
+    xray = context.bpy_arm_obj.xray
     motion_names = set()
     context.motion_export_names = {}
-    for motion in context.bpy_arm_obj.xray.motions_collection:
+    for motion in xray.motions_collection:
         motion_names.add(motion.name)
         if motion.export_name:
             context.motion_export_names[motion.name] = motion.export_name
         else:
             context.motion_export_names[motion.name] = motion.name
+
+    # search available data
     if context.export_mode in ('ADD', 'REPLACE'):
-        available_motions, available_motion_names, chunks = get_motions(context)
-        available_motion_names.extend(
-            list(motion_names - set(available_motion_names))
+        available_motions, export_motion_names, chunks = get_motions(context)
+        export_motion_names.extend(
+            list(motion_names - set(export_motion_names))
         )
-        export_motion_names = available_motion_names
     else:
         available_motions = {}
         export_motion_names = list(motion_names)
-    scn = bpy.context.scene
-    pose_bones = []
+
+    # collect pose bones and bone groups
     utils.set_mode('POSE')
+    pose_bones = []
     bone_groups = {}
     no_group_bones = set()
+    # TODO: replace context.bpy_arm_obj.data.bones
     for bone_index, bone in enumerate(context.bpy_arm_obj.data.bones):
         if bone.xray.exportable:
             pose_bone = context.bpy_arm_obj.pose.bones[bone.name]
@@ -295,6 +302,7 @@ def export_omf(context):
             bone_groups.setdefault(pose_bone.bone_group.name, []).append(
                 (pose_bone.name, bone_index)
             )
+
     if no_group_bones:
         raise utils.AppError(
             text.error.omf_bone_no_group,
@@ -303,15 +311,19 @@ def export_omf(context):
                 bones=no_group_bones
             )
         )
+
+    # collect motions availability table
     motion_count = 0
     motions = []
     motions_ids = {}
     if context.export_mode == 'OVERWRITE':
+        available = False
         for motion_name in export_motion_names:
             action = bpy.data.actions.get(motion_name)
             if not action:
+                # TODO: added warning
                 continue
-            motions.append((motion_name, motion_count, False))
+            motions.append((motion_name, motion_count, available))
             motions_ids[motion_name] = motion_count
             motion_count += 1
     else:
@@ -320,26 +332,38 @@ def export_omf(context):
             _, motion_id = available_motions.get(motion_name, (None, None))
             if not action:
                 if motion_id is None:
+                    # TODO: added warning
                     continue
             if not motion_id is None:
-                motions.append((motion_name, motion_id, True))
+                available = True
+                motions.append((motion_name, motion_id, available))
             else:
-                motions.append((motion_name, motion_count, False))
+                available = False
+                motions.append((motion_name, motion_count, available))
             motions_ids[motion_name] = motion_count
             motion_count += 1
+
+    # motions chunked writer
     chunked_writer = xray_io.ChunkedWriter()
+
+    # write motions count chunk
     packed_writer = xray_io.PackedWriter()
     packed_writer.putf('<I', motion_count)
     chunked_writer.put(fmt.MOTIONS_COUNT_CHUNK, packed_writer)
-    chunk_id = fmt.MOTIONS_COUNT_CHUNK + 1
-    context.bpy_arm_obj.animation_data_create()
+
     new_motions_count = 0
-    xray = context.bpy_arm_obj.xray
+    chunk_id = fmt.MOTIONS_COUNT_CHUNK + 1
+
+    context.bpy_arm_obj.animation_data_create()
+
+    # remember dependency object state
     dependency_object = None
     if xray.dependency_object:
         dependency_object = bpy.data.objects.get(xray.dependency_object)
         if dependency_object:
             dep_action = dependency_object.animation_data.action
+
+    scn = bpy.context.scene
     for motion_name in export_motion_names:
         action = bpy.data.actions.get(motion_name)
         packed_writer, _ = available_motions.get(motion_name, (None, None))
@@ -371,7 +395,7 @@ def export_omf(context):
         context.bpy_arm_obj.animation_data.action = action
         if dependency_object:
             dependency_object.animation_data.action = action
-        if context.bpy_arm_obj.xray.use_custom_motion_names:
+        if xray.use_custom_motion_names:
             motion_name = context.motion_export_names[motion_name]
         packed_writer.puts(motion_name)
         length = int(action.frame_range[1] - action.frame_range[0] + 1)
@@ -554,7 +578,7 @@ def export_omf(context):
                         packed_writer.putp(motion_params.writer)
                     else:
                         params = motion
-                        if context.bpy_arm_obj.xray.use_custom_motion_names:
+                        if xray.use_custom_motion_names:
                             motion_name = context.motion_export_names[motion_name]
                         write_motion(context, packed_writer, motion_name, params, partition_version)
                 motions_new = []
@@ -568,6 +592,8 @@ def export_omf(context):
                     packed_writer.puts(motion_name)
                     packed_writer.putp(motion_params.writer)
         main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
+
+    # return initial state
     utils.set_mode(mode)
     bpy.context.scene.frame_set(current_frame)
     if current_action:
@@ -575,22 +601,19 @@ def export_omf(context):
     else:
         context.bpy_arm_obj.animation_data_clear()
         # reset transforms
-        for bone in context.bpy_arm_obj.pose.bones:
-            bone.location = (0, 0, 0)
-            bone.rotation_euler = (0, 0, 0)
-            bone.rotation_quaternion = (1, 0, 0, 0)
-            bone.scale = (1, 1, 1)
+        # TODO: do not delete transformations but keep the original ones
+        utils.reset_pose_bone_transforms(context.bpy_arm_obj)
+
+    # return dependency object state
     if dependency_object:
         if dep_action:
             dependency_object.animation_data.action = dep_action
         else:
             dependency_object.animation_data_clear()
-            # reset transforms
-            for bone in dependency_object.pose.bones:
-                bone.location = (0, 0, 0)
-                bone.rotation_euler = (0, 0, 0)
-                bone.rotation_quaternion = (1, 0, 0, 0)
-                bone.scale = (1, 1, 1)
+            # reset dependency object transforms
+            # TODO: do not delete transformations but keep the original ones
+            utils.reset_pose_bone_transforms(dependency_object)
+
     return main_chunked_writer
 
 
