@@ -149,25 +149,44 @@ def get_motion_params(data):
 
 
 def get_motions(context):
+    # read chunks
     _, chunks = validate_omf_file(context)
+
+    # create chunk reader
     chunked_reader = xray_io.ChunkedReader(chunks[fmt.Chunks.S_MOTIONS])
-    motions = {}
     chunked_reader.next(fmt.MOTIONS_COUNT_CHUNK)
+
+    motions = {}
     motion_names = []
+
     for chunk_id, chunk_data in chunked_reader:
+        # packed writer/reader
         packed_reader = xray_io.PackedReader(chunk_data)
         packed_writer = xray_io.PackedWriter()
+
+        # motion name
         name = packed_reader.gets()
-        motion_names.append(name)
         packed_writer.puts(name)
+
+        # motion length
         length = packed_reader.getf('<I')[0]
         packed_writer.putf('I', length)
+
+        # collect data
+        motion_names.append(name)
+        motions[name] = (packed_writer, chunk_id)
+
+        # bones keyframes
+        # TODO: replace context.bpy_arm_obj.data.bones
         for bone_index in range(len(context.bpy_arm_obj.data.bones)):
+            # flags
             flags = packed_reader.getf('<B')[0]
             t_present = flags & fmt.FL_T_KEY_PRESENT
             r_absent = flags & fmt.FL_R_KEY_ABSENT
             hq = flags & fmt.KPF_T_HQ
             packed_writer.putf('<B', flags)
+
+            # rotation
             if r_absent:
                 quaternion = packed_reader.getf('<4h')
                 packed_writer.putf('<4h', *quaternion)
@@ -177,15 +196,17 @@ def get_motions(context):
                 for key_index in range(length):
                     quaternion = packed_reader.getf('<4h')
                     packed_writer.putf('<4h', *quaternion)
+
+            # translation
             if t_present:
+                if hq:
+                    translate_format = '<3h'
+                else:
+                    translate_format = '<3b'
                 motion_crc32 = packed_reader.getf('<I')[0]
                 packed_writer.putf('<I', motion_crc32)
-                if hq:
-                    translate_format = '3h'
-                else:
-                    translate_format = '3b'
                 for key_index in range(length):
-                    translate = packed_reader.getf('<' + translate_format)
+                    translate = packed_reader.getf(translate_format)
                     packed_writer.putf(translate_format, *translate)
                 t_size = packed_reader.getf('<3f')
                 packed_writer.putf('<3f', *t_size)
@@ -194,7 +215,7 @@ def get_motions(context):
             else:
                 translate = packed_reader.getf('<3f')
                 packed_writer.putf('<3f', *translate)
-        motions[name] = (packed_writer, chunk_id)
+
     return motions, motion_names, chunks
 
 
