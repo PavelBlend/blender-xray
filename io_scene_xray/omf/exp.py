@@ -344,12 +344,12 @@ def export_omf(context):
             motion_count += 1
 
     # motions chunked writer
-    chunked_writer = xray_io.ChunkedWriter()
+    motions_writer = xray_io.ChunkedWriter()
 
     # write motions count chunk
     packed_writer = xray_io.PackedWriter()
     packed_writer.putf('<I', motion_count)
-    chunked_writer.put(fmt.MOTIONS_COUNT_CHUNK, packed_writer)
+    motions_writer.put(fmt.MOTIONS_COUNT_CHUNK, packed_writer)
 
     new_motions_count = 0
     chunk_id = fmt.MOTIONS_COUNT_CHUNK + 1
@@ -363,63 +363,88 @@ def export_omf(context):
         if dependency_object:
             dep_action = dependency_object.animation_data.action
 
+    # export motions
     scn = bpy.context.scene
     for motion_name in export_motion_names:
         action = bpy.data.actions.get(motion_name)
+
         packed_writer, _ = available_motions.get(motion_name, (None, None))
-        if context.export_mode == 'ADD' and not packed_writer is None:
-            chunked_writer.put(chunk_id, packed_writer)
-            chunk_id += 1
-            continue
-        if context.export_mode == 'REPLACE':
-            if not motion_name in motion_names and packed_writer:
-                chunked_writer.put(chunk_id, packed_writer)
+
+        if context.export_mode == 'ADD':
+            if packed_writer:
+                motions_writer.put(chunk_id, packed_writer)
                 chunk_id += 1
                 continue
+
+        elif context.export_mode == 'REPLACE':
+            if packed_writer:
+                if not motion_name in motion_names:
+                    motions_writer.put(chunk_id, packed_writer)
+                    chunk_id += 1
+                    continue
+
         if not action:
             if context.export_mode == 'REPLACE':
                 if packed_writer is None:
                     continue
                 else:
-                    chunked_writer.put(chunk_id, packed_writer)
+                    motions_writer.put(chunk_id, packed_writer)
                     chunk_id += 1
                     continue
             else:
                 continue
+
         if context.export_mode == 'ADD':
             new_motions_count += 1
         elif context.export_mode == 'REPLACE':
             if packed_writer is None:
                 new_motions_count += 1
+
         packed_writer = xray_io.PackedWriter()
         context.bpy_arm_obj.animation_data.action = action
+
         if dependency_object:
             dependency_object.animation_data.action = action
+
         if xray.use_custom_motion_names:
             motion_name = context.motion_export_names[motion_name]
+
+        # name
         packed_writer.puts(motion_name)
+
+        # length
         length = int(action.frame_range[1] - action.frame_range[0] + 1)
         packed_writer.putf('<I', length)
+
         bone_matrices = {}
-        xmatrices = {}
-        min_trns = {}
-        max_trns = {}
-        for frame_index in range(int(action.frame_range[0]), int(action.frame_range[1]) + 1):
+        min_trn = {}
+        max_trn = {}
+        start_frame = int(action.frame_range[0])
+        end_frame = int(action.frame_range[1])
+        max_value = 10000.0
+        max_vector = mathutils.Vector((max_value, max_value, max_value))
+        min_vector = max_vector * (-1)
+
+        # collect pose bone matrices
+        for frame_index in range(start_frame, end_frame + 1):
             scn.frame_set(frame_index)
+
             for pose_bone in pose_bones:
-                if not bone_matrices.get(pose_bone.name):
-                    bone_matrices[pose_bone.name] = []
-                    xmatrices[pose_bone.name] = []
-                    min_trns[pose_bone.name] = mathutils.Vector((10000.0, 10000.0, 10000.0))
-                    max_trns[pose_bone.name] = mathutils.Vector((-10000.0, -10000.0, -10000.0))
+                name = pose_bone.name
+                if not bone_matrices.get(name):
+                    bone_matrices[name] = []
+                    min_trn[name] = max_vector
+                    max_trn[name] = min_vector
                 parent = pose_bone.parent
                 parent_matrix = parent.matrix.inverted() if parent else imp.MATRIX_BONE_INVERTED
                 matrix = context.multiply(parent_matrix, pose_bone.matrix)
-                translate = matrix.to_translation()
-                for index in range(3):
-                    min_trns[pose_bone.name][index] = min(min_trns[pose_bone.name][index], translate[index])
-                    max_trns[pose_bone.name][index] = max(max_trns[pose_bone.name][index], translate[index])
-                bone_matrices[pose_bone.name].append(matrix)
+                trn = matrix.to_translation()
+                for i in range(3):
+                    min_trn[name][i] = min(min_trn[name][i], trn[i])
+                    max_trn[name][i] = max(max_trn[name][i], trn[i])
+                bone_matrices[name].append(matrix)
+
+        # set limits
         if context.high_quality:
             size_max = 0xffff
             trn_max = 0x7fff
@@ -430,17 +455,24 @@ def export_omf(context):
             trn_max = 127
             trn_mix = -128
             eps = 0.000001
+
+        # export keyframes
         for pose_bone in pose_bones:
-            flags = 0x0
-            if context.high_quality:
-                flags |= fmt.KPF_T_HQ
             quaternions = []
             translations = []
-            min_tr = min_trns[pose_bone.name]
-            max_tr = max_trns[pose_bone.name]
+            min_tr = min_trn[pose_bone.name]
+            max_tr = max_trn[pose_bone.name]
             tr_init = min_tr + (max_tr - min_tr) / 2
             tr_init[2] = -tr_init[2]
             tr_size = (max_tr - min_tr) / size_max
+
+            # flags
+            flags = 0x0
+            if context.high_quality:
+                flags |= fmt.KPF_T_HQ
+            if tr_size.length > eps:
+                flags |= fmt.FL_T_KEY_PRESENT
+
             for matrix in bone_matrices[pose_bone.name]:
                 # rotation
                 quaternion = matrix.to_quaternion()
@@ -449,6 +481,7 @@ def export_omf(context):
                 q = int(round(-quaternion[3] * 0x7fff, 0))
                 x = int(round(quaternion[0] * 0x7fff, 0))
                 quaternions.append((y, z, q, x))
+
                 # translation
                 translate = matrix.to_translation()
                 translate[2] = -translate[2]
@@ -466,8 +499,8 @@ def export_omf(context):
                             translate_final[index] = 0
                     translations.append(tuple(translate_final))
                 translate_float = tuple(translate)
-            if tr_size.length > eps:
-                flags |= fmt.FL_T_KEY_PRESENT
+
+            # write rotation
             if len(set(quaternions)) != 1:
                 packed_writer.putf('<B', flags)
                 crc32_temp = 0x0    # temp value
@@ -487,6 +520,8 @@ def export_omf(context):
                 flags |= fmt.FL_R_KEY_ABSENT
                 packed_writer.putf('<B', flags)
                 packed_writer.putf('<4h', *quaternions[0])
+
+            # write translation
             if flags & fmt.FL_T_KEY_PRESENT:
                 crc32_temp = 0x0    # temp value
                 crc32_offset = len(packed_writer.data)
@@ -510,10 +545,13 @@ def export_omf(context):
                 packed_writer.putf('<3f', *tr_init)
             else:
                 packed_writer.putf('<3f', *translate_float)
-        chunked_writer.put(chunk_id, packed_writer)
+
+        motions_writer.put(chunk_id, packed_writer)
         chunk_id += 1
+
     main_chunked_writer = xray_io.ChunkedWriter()
-    main_chunked_writer.put(fmt.Chunks.S_MOTIONS, chunked_writer)
+    main_chunked_writer.put(fmt.Chunks.S_MOTIONS, motions_writer)
+
     available_boneparts = []
     available_params = {}
     if context.high_quality:
