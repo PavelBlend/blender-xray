@@ -219,27 +219,38 @@ def get_motions(context):
     return motions, motion_names, chunks
 
 
-def write_motion(context, packed_writer, motion_name, motion_index, params_version):
+def write_motion(context, writer, motion_name, motion_index, params_version):
     action = bpy.data.actions.get(motion_name)
+    xray = action.xray
+
+    # motion name
     if context.bpy_arm_obj.xray.use_custom_motion_names:
         motion_name = context.motion_export_names[motion_name]
-    packed_writer.puts(motion_name)
-    motion_flags = get_flags(action.xray)
-    packed_writer.putf('<I', motion_flags)
-    bone_or_part = action.xray.bonepart
-    packed_writer.putf('<H', bone_or_part)
-    packed_writer.putf('<H', motion_index)
-    packed_writer.putf('<f', action.xray.speed)
-    packed_writer.putf('<f', action.xray.power)
-    packed_writer.putf('<f', action.xray.accrue)
-    packed_writer.putf('<f', action.xray.falloff)
+    writer.puts(motion_name)
+
+    # flags
+    motion_flags = get_flags(xray)
+    writer.putf('<I', motion_flags)
+
+    # bone or part
+    bone_or_part = xray.bonepart
+    writer.putf('<H', bone_or_part)
+
+    # motion index
+    writer.putf('<H', motion_index)
+
+    # float-point properties
+    writer.putf('<4f', xray.speed, xray.power, xray.accrue, xray.falloff)
+
+    # motion marks
     if params_version == 4:
-        packed_writer.putf('<I', 0)    # marks count
+        marks_count = 0
+        writer.putf('<I', marks_count)
 
 
-def write_motions(context, packed_writer, motions, version):
+def write_motions(context, writer, motions, version):
     for motion_name, motion_index, _ in motions:
-        write_motion(context, packed_writer, motion_name, motion_index, version)
+        write_motion(context, writer, motion_name, motion_index, version)
 
 
 def export_omf(context):
