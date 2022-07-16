@@ -95,6 +95,8 @@ def get_exclude_motion_names(context):
 def read_bone_parts(packed_reader, params_version):
     bone_parts = BoneParts()
     bone_parts.count = packed_reader.getf('<H')[0]
+    bone_indices = []
+    bone_names = []
     for partition_index in range(bone_parts.count):
         bonepart = BonePart()
         bonepart.name = packed_reader.gets()
@@ -110,9 +112,11 @@ def read_bone_parts(packed_reader, params_version):
                 bone.index = packed_reader.getf('<I')[0]
             else:
                 raise BaseException('Unknown params version')
+            bone_indices.append(bone.index)
+            bone_names.append(bone.name)
             bonepart.bones.append(bone)
         bone_parts.items.append(bonepart)
-    return bone_parts
+    return bone_parts, bone_indices, bone_names
 
 
 def read_motion_params(packed_reader, params_version):
@@ -143,12 +147,12 @@ def read_motion_params(packed_reader, params_version):
 def get_motion_params(data):
     packed_reader = xray_io.PackedReader(data)
     params_version = packed_reader.getf('<H')[0]
-    bone_parts = read_bone_parts(packed_reader, params_version)
+    bone_parts, bone_indices, bone_names = read_bone_parts(packed_reader, params_version)
     motions_params = read_motion_params(packed_reader, params_version)
-    return params_version, bone_parts, motions_params
+    return params_version, bone_parts, motions_params, bone_indices, bone_names
 
 
-def get_motions(context):
+def get_motions(context, bones_count):
     # read chunks
     _, chunks = validate_omf_file(context)
 
@@ -177,8 +181,7 @@ def get_motions(context):
         motions[name] = (packed_writer, motion_id)
 
         # bones keyframes
-        # TODO: replace context.bpy_arm_obj.data.bones
-        for bone_index in range(len(context.bpy_arm_obj.data.bones)):
+        for bone_index in range(bones_count):
             # flags
             flags = packed_reader.getf('<B')[0]
             t_present = flags & fmt.FL_T_KEY_PRESENT
@@ -273,9 +276,15 @@ def export_omf(context):
         else:
             context.motion_export_names[motion.name] = motion.name
 
+    # calculate bones count
+    bones_count = 0
+    for bone in context.bpy_arm_obj.data.bones:
+        if utils.is_exportable_bone(bone):
+            bones_count += 1
+
     # search available data
     if context.export_mode in ('ADD', 'REPLACE'):
-        available_motions, export_motion_names, chunks = get_motions(context)
+        available_motions, export_motion_names, chunks = get_motions(context, bones_count)
         export_motion_names.extend(
             list(motion_names - set(export_motion_names))
         )
@@ -288,7 +297,6 @@ def export_omf(context):
     pose_bones = []
     bone_groups = {}
     no_group_bones = set()
-    # TODO: replace context.bpy_arm_obj.data.bones
     for bone_index, bone in enumerate(context.bpy_arm_obj.data.bones):
         if bone.xray.exportable:
             pose_bone = context.bpy_arm_obj.pose.bones[bone.name]
@@ -362,6 +370,75 @@ def export_omf(context):
         dependency_object = bpy.data.objects.get(xray.dependency_object)
         if dependency_object:
             dep_action = dependency_object.animation_data.action
+
+    # get available params and boneparts
+    available_boneparts = []
+    available_params = {}
+
+    if context.high_quality:
+        params_version = 4
+    else:
+        params_version = 3
+
+    bone_indices = None
+    bone_names = None
+    if context.export_mode in ('REPLACE', 'ADD'):
+        (
+            available_version,
+            available_boneparts,
+            available_params,
+            bone_indices,
+            bone_names
+        ) = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS])
+        if context.export_mode == 'REPLACE' and context.export_bone_parts:
+            available_boneparts = []
+        params_version = available_version
+
+    # collect bones by names and indices
+    export_bones = []
+    if bone_names and bone_indices:
+        export_bones = [None] * len(bone_names)
+        for bone_name, bone_index in zip(bone_names, bone_indices):
+            pose_bone = context.bpy_arm_obj.pose.bones.get(bone_name, None)
+            if pose_bone:
+                export_bones[bone_index] = pose_bone
+            else:
+                # TODO: error, cannot find bone
+                export_bones = []
+                break
+
+    # collect bones by names
+    if not export_bones:
+        if bone_names:
+            for bone_name in bone_names:
+                pose_bone = context.bpy_arm_obj.pose.bones.get(bone_name, None)
+                if pose_bone:
+                    export_bones.append(pose_bone)
+                else:
+                    export_bones = []
+                    break
+
+    # collect bones by indices
+    if not export_bones:
+        if bone_indices:
+            if len(bone_indices) == bones_count:
+                for bone_index in bone_indices:
+                    if bone_index >= bones_count:
+                        export_bones = []
+                        break
+                    pose_bone = context.bpy_arm_obj.pose.bones[bone_index]
+                    if pose_bone:
+                        export_bones.append(pose_bone)
+                    else:
+                        export_bones = []
+                        break
+
+    # collect bones by pose bones
+    if not export_bones:
+        for bone in context.bpy_arm_obj.data.bones:
+            if utils.is_exportable_bone(bone):
+                pose_bone = context.bpy_arm_obj.pose.bones[bone.name]
+                export_bones.append(pose_bone)
 
     # export motions
     scn = bpy.context.scene
@@ -460,7 +537,7 @@ def export_omf(context):
             trn_mix = -128
 
         # export keyframes
-        for pose_bone in pose_bones:
+        for pose_bone in export_bones:
             quaternions = []
             translations = []
 
@@ -555,21 +632,6 @@ def export_omf(context):
 
     main_chunked_writer = xray_io.ChunkedWriter()
     main_chunked_writer.put(fmt.Chunks.S_MOTIONS, motions_writer)
-
-    # export motion params and boneparts
-    available_boneparts = []
-    available_params = {}
-
-    if context.high_quality:
-        params_version = 4
-    else:
-        params_version = 3
-
-    if context.export_mode in ('REPLACE', 'ADD'):
-        available_version, available_boneparts, available_params = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS])
-        if context.export_mode == 'REPLACE' and context.export_bone_parts:
-            available_boneparts = []
-        params_version = available_version
 
     packed_writer = xray_io.PackedWriter()
 
