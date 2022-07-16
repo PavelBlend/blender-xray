@@ -417,13 +417,9 @@ def export_omf(context):
         packed_writer.putf('<I', length)
 
         bone_matrices = {}
-        min_trn = {}
-        max_trn = {}
+        unique_translate = {}
         start_frame = int(action.frame_range[0])
         end_frame = int(action.frame_range[1])
-        max_value = 10000.0
-        max_vector = mathutils.Vector((max_value, max_value, max_value))
-        min_vector = max_vector * (-1)
 
         # collect pose bone matrices
         for frame_index in range(start_frame, end_frame + 1):
@@ -431,18 +427,27 @@ def export_omf(context):
 
             for pose_bone in pose_bones:
                 name = pose_bone.name
-                if not bone_matrices.get(name):
-                    bone_matrices[name] = []
-                    min_trn[name] = max_vector
-                    max_trn[name] = min_vector
                 parent = pose_bone.parent
                 parent_matrix = parent.matrix.inverted() if parent else imp.MATRIX_BONE_INVERTED
                 matrix = context.multiply(parent_matrix, pose_bone.matrix)
                 trn = matrix.to_translation()
-                for i in range(3):
-                    min_trn[name][i] = min(min_trn[name][i], trn[i])
-                    max_trn[name][i] = max(max_trn[name][i], trn[i])
-                bone_matrices[name].append(matrix)
+                trn[2] = -trn[2]
+                unique_translate.setdefault(name, set()).add(tuple(trn))
+                bone_matrices.setdefault(name, []).append(matrix)
+
+        min_translate = {}
+        max_translate = {}
+        for bone_name, translate in unique_translate.items():
+            # min
+            min_x = min(translate, key=lambda i: i[0])[0]
+            min_y = min(translate, key=lambda i: i[1])[1]
+            min_z = min(translate, key=lambda i: i[2])[2]
+            min_translate[bone_name] = mathutils.Vector((min_x, min_y, min_z))
+            # max
+            max_x = max(translate, key=lambda i: i[0])[0]
+            max_y = max(translate, key=lambda i: i[1])[1]
+            max_z = max(translate, key=lambda i: i[2])[2]
+            max_translate[bone_name] = mathutils.Vector((max_x, max_y, max_z))
 
         # set limits
         if context.high_quality:
@@ -458,10 +463,11 @@ def export_omf(context):
         for pose_bone in pose_bones:
             quaternions = []
             translations = []
-            min_tr = min_trn[pose_bone.name]
-            max_tr = max_trn[pose_bone.name]
+
+            min_tr = min_translate[pose_bone.name]
+            max_tr = max_translate[pose_bone.name]
+
             tr_init = min_tr + (max_tr - min_tr) / 2
-            tr_init[2] = -tr_init[2]
             tr_size = (max_tr - min_tr) / size_max
 
             # flags
@@ -483,7 +489,10 @@ def export_omf(context):
                 translate[2] = -translate[2]
                 translate_final = [None, None, None]
                 for index in range(3):
-                    value = int((translate[index] - tr_init[index]) / tr_size[index])
+                    if tr_size[index] != 0:
+                        value = int((translate[index] - tr_init[index]) / tr_size[index])
+                    else:
+                        value = 0
                     if value > trn_max:
                         value = trn_max
                     elif value < trn_mix:
