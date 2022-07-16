@@ -27,7 +27,7 @@ def dump_motion(data, out, bones_count):
     for bone_id in range(bones_count):
         out(SPACES * 3 + 'bone id:', bone_id)
         flags = packed_reader.getf('<B')[0]
-        out(SPACES * 4 + 'flags:', length)
+        out(SPACES * 4 + 'flags:', flags)
         t_present = flags & FL_T_KEY_PRESENT
         r_absent = flags & FL_R_KEY_ABSENT
         hq = flags & KPF_T_HQ
