@@ -449,12 +449,10 @@ def export_omf(context):
             size_max = 0xffff
             trn_max = 0x7fff
             trn_mix = -0x8000
-            eps = 0.0000001
         else:
             size_max = 255
             trn_max = 127
             trn_mix = -128
-            eps = 0.000001
 
         # export keyframes
         for pose_bone in pose_bones:
@@ -470,8 +468,6 @@ def export_omf(context):
             flags = 0x0
             if context.high_quality:
                 flags |= fmt.KPF_T_HQ
-            if tr_size.length > eps:
-                flags |= fmt.FL_T_KEY_PRESENT
 
             for matrix in bone_matrices[pose_bone.name]:
                 # rotation
@@ -485,20 +481,19 @@ def export_omf(context):
                 # translation
                 translate = matrix.to_translation()
                 translate[2] = -translate[2]
-                if tr_size.length > eps:
-                    translate_final = [None, None, None]
-                    for index in range(3):
-                        if tr_size[index] > 1e-9:
-                            value = int((translate[index] - tr_init[index]) / tr_size[index])
-                            if value > trn_max:
-                                value = trn_max
-                            elif value < trn_mix:
-                                value = trn_mix
-                            translate_final[index] = value
-                        else:
-                            translate_final[index] = 0
-                    translations.append(tuple(translate_final))
+                translate_final = [None, None, None]
+                for index in range(3):
+                    value = int((translate[index] - tr_init[index]) / tr_size[index])
+                    if value > trn_max:
+                        value = trn_max
+                    elif value < trn_mix:
+                        value = trn_mix
+                    translate_final[index] = value
+                translations.append(tuple(translate_final))
                 translate_float = tuple(translate)
+
+                if len(set(translations)) != 1:
+                    flags |= fmt.FL_T_KEY_PRESENT
 
             # write rotation
             if len(set(quaternions)) != 1:
