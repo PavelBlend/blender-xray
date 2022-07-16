@@ -489,7 +489,7 @@ def export_omf(context):
                 translate[2] = -translate[2]
                 translate_final = [None, None, None]
                 for index in range(3):
-                    if tr_size[index] != 0:
+                    if tr_size[index] > 0.000000001:
                         value = int((translate[index] - tr_init[index]) / tr_size[index])
                     else:
                         value = 0
