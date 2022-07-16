@@ -10,11 +10,77 @@ from io_scene_xray.xray_io import ChunkedReader, PackedReader
 MOTIONS = 0xe
 SMPARAMS = 0xf
 
+FL_T_KEY_PRESENT = 1 << 0
+FL_R_KEY_ABSENT = 1 << 1
+KPF_T_HQ = 1 << 2
+
 SPACES = ' ' * 4
 
 
-def dump_motions(chunk_id, data, out):
-    out(' ! - Motions Chunk not Parsed')
+def dump_motion(data, out, bones_count):
+    packed_reader = PackedReader(data)
+    name = packed_reader.gets()
+    out(SPACES * 2 + 'name:', name)
+    length = packed_reader.getf('<I')[0]
+    out(SPACES * 2 + 'length:', length)
+    out(SPACES * 2 + 'keyframes:')
+    for bone_id in range(bones_count):
+        out(SPACES * 3 + 'bone id:', bone_id)
+        flags = packed_reader.getf('<B')[0]
+        out(SPACES * 4 + 'flags:', flags)
+        t_present = flags & FL_T_KEY_PRESENT
+        r_absent = flags & FL_R_KEY_ABSENT
+        hq = flags & KPF_T_HQ
+        out(SPACES * 5 + 'translate present:', bool(t_present))
+        out(SPACES * 5 + 'rotate absent:', bool(r_absent))
+        out(SPACES * 5 + 'high quality:', bool(hq))
+        # rotation
+        out(SPACES * 4 + 'rotation:')
+        if r_absent:
+            quaternion = packed_reader.getf('<4h')
+            out(SPACES * 5 + 'quaternions:')
+            out(SPACES * 6 + 'quaternion:', quaternion)
+        else:
+            motion_crc32 = packed_reader.getf('<I')[0]
+            out(SPACES * 5 + 'motion crc32:', motion_crc32)
+            out(SPACES * 5 + 'quaternions:')
+            for key_index in range(length):
+                quaternion = packed_reader.getf('<4h')
+                out(SPACES * 6 + 'quaternion:', quaternion)
+        # translation
+        out(SPACES * 4 + 'translation:')
+        if t_present:
+            motion_crc32 = packed_reader.getf('<I')[0]
+            out(SPACES * 5 + 'motion crc32:', motion_crc32)
+            if hq:
+                translate_format = '<3h'
+            else:
+                translate_format = '<3b'
+            out(SPACES * 5 + 'translations:')
+            for key_index in range(length):
+                translate = packed_reader.getf(translate_format)
+                out(SPACES * 6 + 'translate:', translate)
+            t_size = packed_reader.getf('<3f')
+            t_init = packed_reader.getf('<3f')
+            out(SPACES * 5 + 'translation size:', t_size)
+            out(SPACES * 5 + 'translation init:', t_init)
+        else:
+            out(SPACES * 5 + 'translations:')
+            translate = packed_reader.getf('<3f')
+            out(SPACES * 6 + 'translate:', translate)
+
+
+def dump_motions(chunk_id, data, out, bones_count):
+    out('Motions Chunk:', hex(chunk_id), len(data))
+    chunked_reader = ChunkedReader(data)
+    for motion_id, chunk_data in chunked_reader:
+        out(SPACES * 1 + 'chunk {0}: {1} bytes'.format(motion_id, len(chunk_data)))
+        if motion_id == 0:
+            packed_reader = PackedReader(chunk_data)
+            motions_count = packed_reader.getf('<I')[0]
+            out(SPACES * 2 + 'motions count:', motions_count)
+        else:
+            dump_motion(chunk_data, out, bones_count)
 
 
 def dump_params(chunk_id, data, out):
@@ -25,6 +91,7 @@ def dump_params(chunk_id, data, out):
     # bone parts
     partition_count = packed_reader.getf('<H')[0]
     out(SPACES * 1 + 'bone parts:')
+    all_bones_count = 0
     for partition_index in range(partition_count):
         partition_name = packed_reader.gets()
         out(
@@ -36,6 +103,7 @@ def dump_params(chunk_id, data, out):
             SPACES * 3 + 'bones count:',
             bone_count
         )
+        all_bones_count += bone_count
         for bone in range(bone_count):
             out(
                 SPACES * 4 + 'bone index:',
@@ -155,16 +223,22 @@ def dump_params(chunk_id, data, out):
                         SPACES * 8 + 'interval second:',
                         interval_second
                     )
+    return all_bones_count
 
 
 def dump_omf(chunked_reader, out, opts):
+    chunks = {}
     for chunk_id, chunk_data in chunked_reader:
-        if chunk_id == MOTIONS:
-            dump_motions(chunk_id, chunk_data, out)
-        elif chunk_id == SMPARAMS:
-            dump_params(chunk_id, chunk_data, out)
-        else:
-            out('UNKNOWN CHUNK:', hex(chunk_id), len(chunk_data))
+        chunks[chunk_id] = chunk_data
+
+    chunk_data = chunks.pop(SMPARAMS)
+    bones_count = dump_params(chunk_id, chunk_data, out)
+
+    chunk_data = chunks.pop(MOTIONS)
+    dump_motions(chunk_id, chunk_data, out, bones_count)
+
+    for chunk_id, chunk_data in chunks.items():
+        out('UNKNOWN CHUNK:', hex(chunk_id), len(chunk_data))
 
 
 def main():
