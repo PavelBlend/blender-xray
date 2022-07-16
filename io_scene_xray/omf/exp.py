@@ -427,113 +427,7 @@ def export_boneparts(
                 packed_writer.putf('<I', bone.index)
 
 
-def export_omf(context):
-    xray = context.bpy_arm_obj.xray
-
-    (
-        current_frame,
-        mode,
-        current_action,
-        dependency_object,
-        dep_action
-    ) = get_initial_state(context, xray)
-
-    # collect motion names
-    motion_names = set()
-    context.motion_export_names = {}
-    for motion in xray.motions_collection:
-        if motion.export_name:
-            name = motion.export_name
-        else:
-            name = motion.name
-        context.motion_export_names[motion.name] = name
-        motion_names.add(name)
-
-    # calculate bones count
-    bones_count = 0
-    for bone in context.bpy_arm_obj.data.bones:
-        if utils.is_exportable_bone(bone):
-            bones_count += 1
-
-    # search available data
-    if context.export_mode in ('ADD', 'REPLACE'):
-        available_motions, export_motion_names, chunks = get_motions(context, bones_count)
-        export_motion_names.extend(
-            list(motion_names - set(export_motion_names))
-        )
-    else:
-        available_motions = {}
-        export_motion_names = list(motion_names)
-
-    pose_bones, bone_groups = get_pose_bones_and_groups(context)
-
-    # collect motions availability table
-    motion_count = 0
-    motions = []
-    motions_ids = {}
-    if context.export_mode == 'OVERWRITE':
-        available = False
-        for motion_name in export_motion_names:
-            action = bpy.data.actions.get(motion_name)
-            if not action:
-                # TODO: added warning
-                continue
-            motions.append((motion_name, motion_count, available))
-            motions_ids[motion_name] = motion_count
-            motion_count += 1
-    else:
-        for motion_name in export_motion_names:
-            action = bpy.data.actions.get(motion_name)
-            _, motion_id = available_motions.get(motion_name, (None, None))
-            if not action:
-                if motion_id is None:
-                    # TODO: added warning
-                    continue
-            if not motion_id is None:
-                available = True
-                motions.append((motion_name, motion_id, available))
-            else:
-                available = False
-                motions.append((motion_name, motion_count, available))
-            motions_ids[motion_name] = motion_count
-            motion_count += 1
-
-    # motions chunked writer
-    motions_writer = xray_io.ChunkedWriter()
-
-    # write motions count chunk
-    packed_writer = xray_io.PackedWriter()
-    packed_writer.putf('<I', motion_count)
-    motions_writer.put(fmt.MOTIONS_COUNT_CHUNK, packed_writer)
-
-    new_motions_count = 0
-    chunk_id = fmt.MOTIONS_COUNT_CHUNK + 1
-
-    context.bpy_arm_obj.animation_data_create()
-
-    # get available params and boneparts
-    available_boneparts = []
-    available_params = {}
-
-    if context.high_quality:
-        params_version = 4
-    else:
-        params_version = 3
-
-    bone_indices = None
-    bone_names = None
-    if context.export_mode in ('REPLACE', 'ADD'):
-        (
-            available_version,
-            available_boneparts,
-            available_params,
-            bone_indices,
-            bone_names
-        ) = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS])
-        if context.export_mode == 'REPLACE' and context.export_bone_parts:
-            available_boneparts = []
-        params_version = available_version
-
+def collect_bones(context, bone_names, bone_indices, bones_count):
     # collect bones by names and indices
     export_bones = []
     if bone_names and bone_indices:
@@ -579,6 +473,147 @@ def export_omf(context):
             if utils.is_exportable_bone(bone):
                 pose_bone = context.bpy_arm_obj.pose.bones[bone.name]
                 export_bones.append(pose_bone)
+
+    return export_bones
+
+
+def collect_motion_names(context, xray):
+    motion_names = set()
+    context.motion_export_names = {}
+    for motion in xray.motions_collection:
+        if motion.export_name:
+            name = motion.export_name
+        else:
+            name = motion.name
+        context.motion_export_names[motion.name] = name
+        motion_names.add(name)
+    return motion_names
+
+
+def calculate_bones_count(context):
+    bones_count = 0
+    for bone in context.bpy_arm_obj.data.bones:
+        if utils.is_exportable_bone(bone):
+            bones_count += 1
+    return bones_count
+
+
+def search_available_data(context, bones_count, motion_names):
+    chunks = None
+    if context.export_mode in ('ADD', 'REPLACE'):
+        available_motions, export_motion_names, chunks = get_motions(context, bones_count)
+        export_motion_names.extend(
+            list(motion_names - set(export_motion_names))
+        )
+    else:
+        available_motions = {}
+        export_motion_names = list(motion_names)
+    return available_motions, export_motion_names, chunks
+
+
+def collect_motions_availability_table(context, export_motion_names, available_motions):
+    motion_count = 0
+    motions = []
+    motions_ids = {}
+    if context.export_mode == 'OVERWRITE':
+        available = False
+        for motion_name in export_motion_names:
+            action = bpy.data.actions.get(motion_name)
+            if not action:
+                # TODO: added warning
+                continue
+            motions.append((motion_name, motion_count, available))
+            motions_ids[motion_name] = motion_count
+            motion_count += 1
+    else:
+        for motion_name in export_motion_names:
+            action = bpy.data.actions.get(motion_name)
+            _, motion_id = available_motions.get(motion_name, (None, None))
+            if not action:
+                if motion_id is None:
+                    # TODO: added warning
+                    continue
+            if not motion_id is None:
+                available = True
+                motions.append((motion_name, motion_id, available))
+            else:
+                available = False
+                motions.append((motion_name, motion_count, available))
+            motions_ids[motion_name] = motion_count
+            motion_count += 1
+    return motion_count, motions, motions_ids
+
+
+def export_omf(context):
+    xray = context.bpy_arm_obj.xray
+
+    (
+        current_frame,
+        mode,
+        current_action,
+        dependency_object,
+        dep_action
+    ) = get_initial_state(context, xray)
+
+    motion_names = collect_motion_names(context, xray)
+    bones_count = calculate_bones_count(context)
+
+    available_motions, export_motion_names, chunks = search_available_data(
+        context,
+        bones_count,
+        motion_names
+    )
+
+    pose_bones, bone_groups = get_pose_bones_and_groups(context)
+
+    motion_count, motions, motions_ids = collect_motions_availability_table(
+        context,
+        export_motion_names,
+        available_motions
+    )
+
+    # motions chunked writer
+    motions_writer = xray_io.ChunkedWriter()
+
+    # write motions count chunk
+    packed_writer = xray_io.PackedWriter()
+    packed_writer.putf('<I', motion_count)
+    motions_writer.put(fmt.MOTIONS_COUNT_CHUNK, packed_writer)
+
+    new_motions_count = 0
+    chunk_id = fmt.MOTIONS_COUNT_CHUNK + 1
+
+    context.bpy_arm_obj.animation_data_create()
+
+    # get available params and boneparts
+    available_boneparts = []
+    available_params = {}
+
+    if context.high_quality:
+        params_version = 4
+    else:
+        params_version = 3
+
+    bone_indices = None
+    bone_names = None
+    if context.export_mode in ('REPLACE', 'ADD'):
+        (
+            available_version,
+            available_boneparts,
+            available_params,
+            bone_indices,
+            bone_names
+        ) = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS])
+        if context.export_mode == 'REPLACE' and context.export_bone_parts:
+            available_boneparts = []
+        params_version = available_version
+
+    export_bones = collect_bones(
+        context,
+        bone_names,
+        bone_indices,
+        bones_count
+    )
 
     # export motions
     scn = bpy.context.scene
@@ -771,6 +806,7 @@ def export_omf(context):
         chunk_id += 1
 
     main_chunked_writer = xray_io.ChunkedWriter()
+    # write motions chunk
     main_chunked_writer.put(fmt.Chunks.S_MOTIONS, motions_writer)
 
     packed_writer = xray_io.PackedWriter()
@@ -795,6 +831,7 @@ def export_omf(context):
         params_version
     )
 
+    # write params chunk
     main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
 
     set_initial_state(
