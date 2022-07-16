@@ -256,7 +256,37 @@ def write_motions_params(context, writer, motions, version):
         write_motion_params(context, writer, name, index, version)
 
 
-def export_omf(context):
+def set_initial_state(
+        context,
+        mode,
+        current_frame,
+        current_action,
+        dependency_object,
+        dep_action
+    ):
+    # return initial state
+    utils.set_mode(mode)
+    bpy.context.scene.frame_set(current_frame)
+    if current_action:
+        context.bpy_arm_obj.animation_data.action = current_action
+    else:
+        context.bpy_arm_obj.animation_data_clear()
+        # reset transforms
+        # TODO: do not delete transformations but keep the original ones
+        utils.reset_pose_bone_transforms(context.bpy_arm_obj)
+
+    # return dependency object state
+    if dependency_object:
+        if dep_action:
+            dependency_object.animation_data.action = dep_action
+        else:
+            dependency_object.animation_data_clear()
+            # reset dependency object transforms
+            # TODO: do not delete transformations but keep the original ones
+            utils.reset_pose_bone_transforms(dependency_object)
+
+
+def get_initial_state(context, xray):
     # remember initial state
     current_frame = bpy.context.scene.frame_current
     mode = context.bpy_arm_obj.mode
@@ -265,33 +295,18 @@ def export_omf(context):
     else:
         current_action = context.bpy_arm_obj.animation_data.action
 
-    # collect motion names
-    xray = context.bpy_arm_obj.xray
-    motion_names = set()
-    context.motion_export_names = {}
-    for motion in xray.motions_collection:
-        motion_names.add(motion.name)
-        if motion.export_name:
-            context.motion_export_names[motion.name] = motion.export_name
-        else:
-            context.motion_export_names[motion.name] = motion.name
+    # remember dependency object state
+    dependency_object = None
+    dep_action = None
+    if xray.dependency_object:
+        dependency_object = bpy.data.objects.get(xray.dependency_object)
+        if dependency_object:
+            dep_action = dependency_object.animation_data.action
 
-    # calculate bones count
-    bones_count = 0
-    for bone in context.bpy_arm_obj.data.bones:
-        if utils.is_exportable_bone(bone):
-            bones_count += 1
+    return current_frame, mode, current_action, dependency_object, dep_action
 
-    # search available data
-    if context.export_mode in ('ADD', 'REPLACE'):
-        available_motions, export_motion_names, chunks = get_motions(context, bones_count)
-        export_motion_names.extend(
-            list(motion_names - set(export_motion_names))
-        )
-    else:
-        available_motions = {}
-        export_motion_names = list(motion_names)
 
+def get_pose_bones_and_groups(context):
     # collect pose bones and bone groups
     utils.set_mode('POSE')
     pose_bones = []
@@ -319,6 +334,138 @@ def export_omf(context):
                 bones=no_group_bones
             )
         )
+    return pose_bones, bone_groups
+
+
+def export_motion_params(
+        context,
+        xray,
+        packed_writer,
+        available_params,
+        motion_count,
+        new_motions_count,
+        motions,
+        motions_ids,
+        params_version
+    ):
+    if not available_params:
+        packed_writer.putf('<H', motion_count)
+        write_motions_params(context, packed_writer, motions, params_version)
+    else:
+
+        # add mode
+        if context.export_mode == 'ADD':
+            packed_writer.putf('<H', len(available_params) + new_motions_count)
+            for motion_name, motion_params in available_params.items():
+                packed_writer.puts(motion_name)
+                packed_writer.putp(motion_params.writer)
+            motions_new = []
+            for motion_name, motion_id, has_available in motions:
+                if not has_available:
+                    motions_new.append((motion_name, motion_id, has_available))
+            write_motions_params(context, packed_writer, motions_new, params_version)
+
+        # replace mode
+        elif context.export_mode == 'REPLACE':
+            if context.export_motions:
+                packed_writer.putf('<H', len(available_params) + new_motions_count)
+                for motion_name, motion_params in available_params.items():
+                    motion_index = motions_ids.get(motion_name, None)
+                    has_available = False
+                    if not motion_index is None:
+                        _, _, has_available = motions[motion_index]
+                    if has_available:
+                        packed_writer.puts(motion_name)
+                        packed_writer.putp(motion_params.writer)
+                    else:
+                        params = motion
+                        if xray.use_custom_motion_names:
+                            motion_name = context.motion_export_names[motion_name]
+                        write_motion_params(context, packed_writer, motion_name, params, params_version)
+                motions_new = []
+                for motion_name, motion_id, has_available in motions:
+                    if not has_available:
+                        motions_new.append((motion_name, motion_id, has_available))
+                write_motions_params(context, packed_writer, motions_new, params_version)
+            else:
+                packed_writer.putf('<H', len(available_params))
+                for motion_name, motion_params in available_params.items():
+                    packed_writer.puts(motion_name)
+                    packed_writer.putp(motion_params.writer)
+
+
+def export_boneparts(
+        context,
+        packed_writer,
+        available_boneparts,
+        params_version,
+        bone_groups
+    ):
+    if not available_boneparts:
+        packed_writer.putf('<H', params_version)
+        partitions_count = len(bone_groups)
+        packed_writer.putf('<H', partitions_count)
+        for bone_group in context.bpy_arm_obj.pose.bone_groups:
+            partition_name = bone_group.name
+            bones = bone_groups.get(partition_name, None)
+            if not bones:
+                continue
+            packed_writer.puts(partition_name)
+            bones_count = len(bones)
+            packed_writer.putf('<H', bones_count)
+            for bone_name, bone_index in bones:
+                packed_writer.puts(bone_name)
+                packed_writer.putf('<I', bone_index)
+    else:
+        packed_writer.putf('<H', params_version)
+        packed_writer.putf('<H', available_boneparts.count)
+        for bonepart in available_boneparts.items:
+            packed_writer.puts(bonepart.name)
+            packed_writer.putf('<H', bonepart.bones_count)
+            for bone in bonepart.bones:
+                packed_writer.puts(bone.name)
+                packed_writer.putf('<I', bone.index)
+
+
+def export_omf(context):
+    xray = context.bpy_arm_obj.xray
+
+    (
+        current_frame,
+        mode,
+        current_action,
+        dependency_object,
+        dep_action
+    ) = get_initial_state(context, xray)
+
+    # collect motion names
+    motion_names = set()
+    context.motion_export_names = {}
+    for motion in xray.motions_collection:
+        if motion.export_name:
+            name = motion.export_name
+        else:
+            name = motion.name
+        context.motion_export_names[motion.name] = name
+        motion_names.add(name)
+
+    # calculate bones count
+    bones_count = 0
+    for bone in context.bpy_arm_obj.data.bones:
+        if utils.is_exportable_bone(bone):
+            bones_count += 1
+
+    # search available data
+    if context.export_mode in ('ADD', 'REPLACE'):
+        available_motions, export_motion_names, chunks = get_motions(context, bones_count)
+        export_motion_names.extend(
+            list(motion_names - set(export_motion_names))
+        )
+    else:
+        available_motions = {}
+        export_motion_names = list(motion_names)
+
+    pose_bones, bone_groups = get_pose_bones_and_groups(context)
 
     # collect motions availability table
     motion_count = 0
@@ -363,13 +510,6 @@ def export_omf(context):
     chunk_id = fmt.MOTIONS_COUNT_CHUNK + 1
 
     context.bpy_arm_obj.animation_data_create()
-
-    # remember dependency object state
-    dependency_object = None
-    if xray.dependency_object:
-        dependency_object = bpy.data.objects.get(xray.dependency_object)
-        if dependency_object:
-            dep_action = dependency_object.animation_data.action
 
     # get available params and boneparts
     available_boneparts = []
@@ -635,100 +775,36 @@ def export_omf(context):
 
     packed_writer = xray_io.PackedWriter()
 
-    # export boneparts
-    if not available_boneparts:
-        packed_writer.putf('<H', params_version)
-        partitions_count = len(bone_groups)
-        packed_writer.putf('<H', partitions_count)
-        for bone_group in context.bpy_arm_obj.pose.bone_groups:
-            partition_name = bone_group.name
-            bones = bone_groups.get(partition_name, None)
-            if not bones:
-                continue
-            packed_writer.puts(partition_name)
-            bones_count = len(bones)
-            packed_writer.putf('<H', bones_count)
-            for bone_name, bone_index in bones:
-                packed_writer.puts(bone_name)
-                packed_writer.putf('<I', bone_index)
-    else:
-        packed_writer.putf('<H', params_version)
-        packed_writer.putf('<H', available_boneparts.count)
-        for bonepart in available_boneparts.items:
-            packed_writer.puts(bonepart.name)
-            packed_writer.putf('<H', bonepart.bones_count)
-            for bone in bonepart.bones:
-                packed_writer.puts(bone.name)
-                packed_writer.putf('<I', bone.index)
+    export_boneparts(
+        context,
+        packed_writer,
+        available_boneparts,
+        params_version,
+        bone_groups
+    )
 
-    # export motion params
-    if not available_params:
-        packed_writer.putf('<H', motion_count)
-        write_motions_params(context, packed_writer, motions, params_version)
-    else:
-
-        # add mode
-        if context.export_mode == 'ADD':
-            packed_writer.putf('<H', len(available_params) + new_motions_count)
-            for motion_name, motion_params in available_params.items():
-                packed_writer.puts(motion_name)
-                packed_writer.putp(motion_params.writer)
-            motions_new = []
-            for motion_name, motion_id, has_available in motions:
-                if not has_available:
-                    motions_new.append((motion_name, motion_id, has_available))
-            write_motions_params(context, packed_writer, motions_new, params_version)
-
-        # replace mode
-        elif context.export_mode == 'REPLACE':
-            if context.export_motions:
-                packed_writer.putf('<H', len(available_params) + new_motions_count)
-                for motion_name, motion_params in available_params.items():
-                    motion_index = motions_ids.get(motion_name, None)
-                    has_available = False
-                    if not motion_index is None:
-                        _, _, has_available = motions[motion_index]
-                    if has_available:
-                        packed_writer.puts(motion_name)
-                        packed_writer.putp(motion_params.writer)
-                    else:
-                        params = motion
-                        if xray.use_custom_motion_names:
-                            motion_name = context.motion_export_names[motion_name]
-                        write_motion_params(context, packed_writer, motion_name, params, params_version)
-                motions_new = []
-                for motion_name, motion_id, has_available in motions:
-                    if not has_available:
-                        motions_new.append((motion_name, motion_id, has_available))
-                write_motions_params(context, packed_writer, motions_new, params_version)
-            else:
-                packed_writer.putf('<H', len(available_params))
-                for motion_name, motion_params in available_params.items():
-                    packed_writer.puts(motion_name)
-                    packed_writer.putp(motion_params.writer)
+    export_motion_params(
+        context,
+        xray,
+        packed_writer,
+        available_params,
+        motion_count,
+        new_motions_count,
+        motions,
+        motions_ids,
+        params_version
+    )
 
     main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
 
-    # return initial state
-    utils.set_mode(mode)
-    bpy.context.scene.frame_set(current_frame)
-    if current_action:
-        context.bpy_arm_obj.animation_data.action = current_action
-    else:
-        context.bpy_arm_obj.animation_data_clear()
-        # reset transforms
-        # TODO: do not delete transformations but keep the original ones
-        utils.reset_pose_bone_transforms(context.bpy_arm_obj)
-
-    # return dependency object state
-    if dependency_object:
-        if dep_action:
-            dependency_object.animation_data.action = dep_action
-        else:
-            dependency_object.animation_data_clear()
-            # reset dependency object transforms
-            # TODO: do not delete transformations but keep the original ones
-            utils.reset_pose_bone_transforms(dependency_object)
+    set_initial_state(
+        context,
+        mode,
+        current_frame,
+        current_action,
+        dependency_object,
+        dep_action
+    )
 
     return main_chunked_writer
 
