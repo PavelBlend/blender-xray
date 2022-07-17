@@ -570,64 +570,20 @@ def get_available_params_and_boneparts(context, chunks):
     return params_version, available_params, available_boneparts, bone_names, bone_indices
 
 
-def export_omf(context):
-    xray = context.bpy_arm_obj.xray
-
-    (
-        current_frame,
-        mode,
-        current_action,
-        dependency_object,
-        dep_action
-    ) = get_initial_state(context, xray)
-
-    motion_names = collect_motion_names(context, xray)
-    bones_count = calculate_bones_count(context)
-
-    available_motions, export_motion_names, chunks = search_available_data(
+def export_motions(
         context,
-        bones_count,
-        motion_names
-    )
-
-    pose_bones, bone_groups = get_pose_bones_and_groups(context)
-
-    motion_count, motions, motions_ids = collect_motions_availability_table(
-        context,
+        motions_writer,
+        motion_names,
         export_motion_names,
-        available_motions
-    )
-
-    # motions chunked writer
-    motions_writer = xray_io.ChunkedWriter()
-
-    # write motions count chunk
-    packed_writer = xray_io.PackedWriter()
-    packed_writer.putf('<I', motion_count)
-    motions_writer.put(fmt.MOTIONS_COUNT_CHUNK, packed_writer)
-
+        available_motions,
+        dependency_object,
+        xray,
+        pose_bones,
+        export_bones
+    ):
+    scn = bpy.context.scene
     new_motions_count = 0
     chunk_id = fmt.MOTIONS_COUNT_CHUNK + 1
-
-    context.bpy_arm_obj.animation_data_create()
-
-    (
-        params_version,
-        available_params,
-        available_boneparts,
-        bone_names,
-        bone_indices
-    ) = get_available_params_and_boneparts(context, chunks)
-
-    export_bones = collect_bones(
-        context,
-        bone_names,
-        bone_indices,
-        bones_count
-    )
-
-    # export motions
-    scn = bpy.context.scene
     for motion_name in export_motion_names:
         action = bpy.data.actions.get(motion_name)
 
@@ -698,6 +654,7 @@ def export_omf(context):
                 unique_translate.setdefault(name, set()).add(tuple(trn))
                 bone_matrices.setdefault(name, []).append(matrix)
 
+        # calculate f-curve amplitude
         min_translate = {}
         max_translate = {}
         for bone_name, translate in unique_translate.items():
@@ -815,6 +772,73 @@ def export_omf(context):
 
         motions_writer.put(chunk_id, packed_writer)
         chunk_id += 1
+    return new_motions_count
+
+
+def export_omf(context):
+    xray = context.bpy_arm_obj.xray
+
+    (
+        current_frame,
+        mode,
+        current_action,
+        dependency_object,
+        dep_action
+    ) = get_initial_state(context, xray)
+
+    motion_names = collect_motion_names(context, xray)
+    bones_count = calculate_bones_count(context)
+
+    available_motions, export_motion_names, chunks = search_available_data(
+        context,
+        bones_count,
+        motion_names
+    )
+
+    pose_bones, bone_groups = get_pose_bones_and_groups(context)
+
+    motion_count, motions, motions_ids = collect_motions_availability_table(
+        context,
+        export_motion_names,
+        available_motions
+    )
+
+    # motions chunked writer
+    motions_writer = xray_io.ChunkedWriter()
+
+    # write motions count chunk
+    packed_writer = xray_io.PackedWriter()
+    packed_writer.putf('<I', motion_count)
+    motions_writer.put(fmt.MOTIONS_COUNT_CHUNK, packed_writer)
+
+    context.bpy_arm_obj.animation_data_create()
+
+    (
+        params_version,
+        available_params,
+        available_boneparts,
+        bone_names,
+        bone_indices
+    ) = get_available_params_and_boneparts(context, chunks)
+
+    export_bones = collect_bones(
+        context,
+        bone_names,
+        bone_indices,
+        bones_count
+    )
+
+    new_motions_count = export_motions(
+        context,
+        motions_writer,
+        motion_names,
+        export_motion_names,
+        available_motions,
+        dependency_object,
+        xray,
+        pose_bones,
+        export_bones
+    )
 
     main_chunked_writer = xray_io.ChunkedWriter()
     # write motions chunk
