@@ -230,11 +230,13 @@ def read_motion(data, context, motions_params, bone_names):
 
                 if t_present or key_index == 0:
                     for axis in range(3):
-                        translate_fcurves[axis].keyframe_points.insert(tr_index, trn[axis])
+                        key_frame = translate_fcurves[axis].keyframe_points.insert(tr_index, trn[axis])
+                        key_frame.interpolation = 'LINEAR'
 
                 if not r_absent or key_index == 0:
                     for axis in range(3):
-                        rotate_fcurves[axis].keyframe_points.insert(rot_index, rot[axis])
+                        key_frame = rotate_fcurves[axis].keyframe_points.insert(rot_index, rot[axis])
+                        key_frame.interpolation = 'LINEAR'
 
         if cannot_find_bones:
             raise utils.AppError(
