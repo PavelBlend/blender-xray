@@ -216,12 +216,9 @@ def skls_animations_index_changed(self, context):
         pass
     else:
         # set action frame range
-        try:
-            context.scene.frame_start = act.frame_range[0]
-            context.scene.frame_current = act.frame_range[0]
-            context.scene.frame_end = act.frame_range[1]
-        except:
-            pass
+        context.scene.frame_start = int(act.frame_range[0])
+        context.scene.frame_current = int(act.frame_range[0])
+        context.scene.frame_end = int(act.frame_range[1])
 
 
 xray_skls_animation_properties_props = {
