@@ -349,6 +349,7 @@ def export_motion_params(
         params_version
     ):
     if not available_params:
+        # overwrite mode
         packed_writer.putf('<H', motion_count)
         write_motions_params(context, packed_writer, motions, params_version)
     else:
@@ -544,6 +545,31 @@ def collect_motions_availability_table(context, export_motion_names, available_m
     return motion_count, motions, motions_ids
 
 
+def get_available_params_and_boneparts(context, chunks):
+    available_boneparts = []
+    available_params = {}
+
+    if context.high_quality:
+        params_version = 4
+    else:
+        params_version = 3
+
+    bone_indices = None
+    bone_names = None
+    if context.export_mode in ('REPLACE', 'ADD'):
+        (
+            available_version,
+            available_boneparts,
+            available_params,
+            bone_indices,
+            bone_names
+        ) = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS])
+        if context.export_mode == 'REPLACE' and context.export_bone_parts:
+            available_boneparts = []
+        params_version = available_version
+    return params_version, available_params, available_boneparts, bone_names, bone_indices
+
+
 def export_omf(context):
     xray = context.bpy_arm_obj.xray
 
@@ -585,28 +611,13 @@ def export_omf(context):
 
     context.bpy_arm_obj.animation_data_create()
 
-    # get available params and boneparts
-    available_boneparts = []
-    available_params = {}
-
-    if context.high_quality:
-        params_version = 4
-    else:
-        params_version = 3
-
-    bone_indices = None
-    bone_names = None
-    if context.export_mode in ('REPLACE', 'ADD'):
-        (
-            available_version,
-            available_boneparts,
-            available_params,
-            bone_indices,
-            bone_names
-        ) = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS])
-        if context.export_mode == 'REPLACE' and context.export_bone_parts:
-            available_boneparts = []
-        params_version = available_version
+    (
+        params_version,
+        available_params,
+        available_boneparts,
+        bone_names,
+        bone_indices
+    ) = get_available_params_and_boneparts(context, chunks)
 
     export_bones = collect_bones(
         context,
