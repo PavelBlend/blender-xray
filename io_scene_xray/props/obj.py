@@ -151,7 +151,7 @@ def _gen_time_prop(prop, description=''):
                     pass
             if ptime:
                 tval = time.mktime(ptime)
-        setattr(self, prop, tval)
+        setattr(self, prop, int(tval))
 
     return bpy.props.StringProperty(
         description=description,

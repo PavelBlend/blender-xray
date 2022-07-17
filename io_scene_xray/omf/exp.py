@@ -482,8 +482,11 @@ def collect_motion_names(context, xray):
     motion_names = set()
     context.motion_export_names = {}
     for motion in xray.motions_collection:
-        if motion.export_name:
-            name = motion.export_name
+        if xray.use_custom_motion_names:
+            if motion.export_name:
+                name = motion.export_name
+            else:
+                name = motion.name
         else:
             name = motion.name
         context.motion_export_names[motion.name] = name
