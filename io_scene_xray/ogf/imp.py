@@ -1795,13 +1795,14 @@ def read_motion_references(chunks, ogf_chunks, visual):
 def import_mt_skeleton_anim(context, chunks, ogf_chunks, visual):
     read_motion_references(chunks, ogf_chunks, visual)
     import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual)
-    if context.import_motions:
-        motions_data = chunks.pop(ogf_chunks.S_MOTIONS, None)
-        params_data = chunks.pop(ogf_chunks.S_SMPARAMS, None)
-        if params_data and motions_data:
-            context.bpy_arm_obj = visual.arm_obj
-            motions_params, bone_names = omf.imp.read_params(params_data, context)
-            omf.imp.read_motions(motions_data, context, motions_params, bone_names)
+    motions_data = chunks.pop(ogf_chunks.S_MOTIONS, None)
+    params_data = chunks.pop(ogf_chunks.S_SMPARAMS, None)
+    context.bpy_arm_obj = visual.arm_obj
+    if params_data and motions_data and context.import_motions:
+        motions_params, bone_names = omf.imp.read_params(params_data, context)
+        omf.imp.read_motions(motions_data, context, motions_params, bone_names)
+    elif params_data:
+        omf.imp.read_params(params_data, context)
 
 
 def import_visual(context, data, visual):
