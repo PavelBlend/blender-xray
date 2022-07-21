@@ -51,8 +51,8 @@ def import_vertices(
         elif usage == fmt.NORMAL:
             code += '    norm_x, norm_y, norm_z, hemi = packed_reader.getf("<{}")\n'.format(data_format)
             code += '    vertex_buffer.normal.append((\n' \
-                    '       norm_x,\n' \
                     '       norm_z,\n' \
+                    '       norm_x,\n' \
                     '       norm_y\n' \
                     '    ))\n'
             code += '    vertex_buffer.color_hemi.append(hemi / 255)\n'
@@ -147,7 +147,7 @@ def import_vertices_d3d7(
         vertex_format_key[1] = True    # normal
         vertex_buffer.float_normals = True
         code += '    norm_x, norm_y, norm_z = packed_reader.getf("<3f")\n'
-        code += '    vertex_buffer.normal.append((norm_x, norm_z, norm_y))\n'
+        code += '    vertex_buffer.normal.append((norm_z, norm_x, norm_y))\n'
     if vertex_format & fmt.D3D7FVF.DIFFUSE:
         vertex_format_key[2] = True    # diffuse
         code += '    red, green, blue, unknown = packed_reader.getf("<4B")\n'
