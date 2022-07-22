@@ -137,11 +137,14 @@ def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None, bones=None
         temp_mesh.verts.index_update()
 
         for triangle in visual.triangles:
-            temp_mesh.faces.new((
-                temp_mesh.verts[triangle[0]],
-                temp_mesh.verts[triangle[1]],
-                temp_mesh.verts[triangle[2]]
-            ))
+            try:
+                temp_mesh.faces.new((
+                    temp_mesh.verts[triangle[0]],
+                    temp_mesh.verts[triangle[1]],
+                    temp_mesh.verts[triangle[2]]
+                ))
+            except ValueError:    # face already exists
+                pass
 
         temp_mesh.faces.ensure_lookup_table()
         temp_mesh.normal_update()
