@@ -207,11 +207,28 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     vertices = []
     triangles = []
     vertices_map = {}
+    vertex_max_weights = 0
     for face in mesh.faces:
         face_indices = []
         for loop_index, loop in enumerate(face.loops):
             bpy_loop = bpy_mesh.loops[face.index * 3 + loop_index]
             uv = loop[uv_layer].uv
+
+            # collect vertex weights
+            weights = []
+            weights_count = 0
+            for group_index, weight in loop.vert[weight_layer].items():
+                remap_group_index = vertex_groups_map.get(group_index, None)
+                if not remap_group_index is None:
+                    weights.append((remap_group_index, weight))
+                    weights_count += 1
+            if not weights_count:
+                return utils.AppError(
+                    text.error.object_ungroupped_verts,
+                    log.props(object=bpy_obj.name)
+                )
+            vertex_max_weights = max(vertex_max_weights, weights_count)
+
             vertex = (
                 loop.vert.index,
                 loop.vert.co.to_tuple(),
@@ -219,6 +236,7 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
                 bpy_loop.tangent.to_tuple(),
                 bpy_loop.bitangent.normalized().to_tuple(),
                 (uv[0], 1 - uv[1]),
+                tuple(weights)
             )
             vertex_index = vertices_map.get(vertex)
             if vertex_index is None:
@@ -228,18 +246,6 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
         triangles.append(face_indices)
     utils.fix_ensure_lookup_table(mesh.verts)
 
-    # find max number of vertex weights
-    vertex_max_weights = 0
-    for vertex in mesh.verts:
-        weights_count = len(vertex[weight_layer])
-        if not weights_count:
-            return utils.AppError(
-                text.error.object_ungroupped_verts,
-                log.props(object=bpy_obj.name)
-            )
-        if weights_count > vertex_max_weights:
-            vertex_max_weights = weights_count
-
     # write vertices chunk
     vertices_writer = xray_io.PackedWriter()
     vertices_count = len(vertices)
@@ -247,13 +253,12 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     if vertex_max_weights == 1:
         vertices_writer.putf('<2I', fmt.VertexFormat.FVF_1L, vertices_count)
         for vertex in vertices:
-            weights = mesh.verts[vertex[0]][weight_layer]
             vertices_writer.putv3f(vertex[1])    # coord
             vertices_writer.putv3f(vertex[2])    # normal
             vertices_writer.putv3f(vertex[3])    # tangent
             vertices_writer.putv3f(vertex[4])    # bitangent
             vertices_writer.putf('<2f', *vertex[5])    # uv
-            vertices_writer.putf('<I', vertex_groups_map[weights.keys()[0]])
+            vertices_writer.putf('<I', vertex[6][0][0])
     # 2-link vertices
     else:
         if vertex_max_weights != 2:
@@ -263,7 +268,7 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
             )
         vertices_writer.putf('<2I', fmt.VertexFormat.FVF_2L, vertices_count)
         for vertex in vertices:
-            weights = mesh.verts[vertex[0]][weight_layer]
+            weights = vertex[6]
             if len(weights) > 2:
                 weights = top_two(weights)
             weight = 0
@@ -271,21 +276,20 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
             if len(weights) == 2:
                 first = True
                 weight0 = 0
-                for vgi in weights.keys():
-                    vertices_writer.putf('<H', vertex_groups_map[vgi])
+                for vgi, vert_weight in weights:
+                    vertices_writer.putf('<H', vgi)
                     if first:
-                        weight0 = weights[vgi]
+                        weight0 = vert_weight
                         first = False
                     else:
-                        weight = 1 - (weight0 / (weight0 + weights[vgi]))
+                        weight = 1 - (weight0 / (weight0 + vert_weight))
             # 1-link vertex
             elif len(weights) == 1:
-                for vertex_group_index in [vertex_groups_map[_] for _ in weights.keys()]:
-                    vertices_writer.putf(
-                        '<2H',
-                        vertex_group_index,
-                        vertex_group_index
-                    )
+                vertices_writer.putf(
+                    '<2H',
+                    weights[0][0],
+                    weights[0][0]
+                )
             else:
                 raise Exception('oops: %i %s' % (len(weights), weights.keys()))
             # write vertex data
