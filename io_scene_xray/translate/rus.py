@@ -72,11 +72,10 @@ translations_table = (
     (text.error.level_bad_glow_radius, 'glow объект имеет близкий к нулю радиус'),
     (text.error.level_lmap_no_dds, 'некорректный формат карты освещения (должен быть *.dds)'),
     # level cform export
-    (text.error.level_bad_glow_radius, 'glow объект имеет близкий к нулю радиус'),
-    # level import
-    (text.error.level_unsupport_ver, 'неподдерживаемая версия game level формата'),
     (text.error.level_bad_cform_type, 'cform-объект не является мешем'),
     (text.error.level_cform_no_geom, 'cform-объект не имеет полигонов'),
+    # level import
+    (text.error.level_unsupport_ver, 'неподдерживаемая версия game level формата'),
     # object export main
     (text.error.object_ungroupped_verts, 'меш-объект имеет вершины, которые не привязаны к экспортируемым костям'),
     (text.error.object_duplicate_bones, 'объект имеет дубликаты костей'),
