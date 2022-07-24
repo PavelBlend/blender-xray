@@ -457,7 +457,6 @@ class ObjectsInitializer:
 
         def init_thing(thing):
             ctx.thing = thing
-            # print('sync:', ctx.operation, ctx.thing)
             thing.xray.initialize(ctx)
 
         for key, objset in self._sets:

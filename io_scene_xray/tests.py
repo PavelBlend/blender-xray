@@ -67,8 +67,6 @@ class XRAY_OT_test_ogf_import_modal(bpy.types.Operator):
         file_path = os.path.join(root, file)
         file_message = '{0:0>6}: '.format(self.file_index) + file_path
         self.file_index += 1
-        # if file_index <= 13_800:
-        #     continue
         has_error = False
         err_text = None
         try:
