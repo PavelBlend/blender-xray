@@ -10,7 +10,6 @@ from . import props
 from . import icons
 from . import handlers
 from . import viewport
-from . import skls_browser
 from . import edit_helpers
 from . import viewer
 from . import translate
@@ -20,8 +19,8 @@ from . import tests
 modules = (
     icons,
     prefs,
-    skls_browser,
     viewer,
+    ops,
     props,
     plugins,
     handlers,
@@ -29,7 +28,6 @@ modules = (
     panels,
     menus,
     hotkeys,
-    ops,
     rig,
     edit_helpers,
     viewport,

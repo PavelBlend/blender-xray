@@ -11,7 +11,7 @@ from .. import utils
 from .. import obj
 from .. import details
 from .. import version_utils
-from .. import skls_browser
+from .. import ops
 
 
 # details properties
@@ -324,7 +324,7 @@ def load_motion_refs(self, context):
         motion_refs = self.motionrefs_collection[self.motionrefs_collection_index]
         file_path = os.path.join(objects_folder, motion_refs.name + os.extsep + 'skls')
         if os.path.exists(file_path):
-            skls_browser.init_skls_browser(self, context, file_path)
+            ops.skls_browser.init_skls_browser(self, context, file_path)
 
 
 def update_load_active_motion_refs(self, context):
@@ -495,7 +495,7 @@ xray_object_properties = {
     'detail': bpy.props.PointerProperty(
         type=XRayObjectDetailsProperties
     ),
-    'skls_browser': bpy.props.PointerProperty(type=skls_browser.XRayObjectSklsBrowserProperties),
+    'skls_browser': bpy.props.PointerProperty(type=ops.skls_browser.XRayObjectSklsBrowserProperties),
     'level': bpy.props.PointerProperty(type=XRayObjectLevelProperties),
     # transforms utils properties
     'position': bpy.props.FloatVectorProperty(

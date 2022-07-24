@@ -2,13 +2,13 @@
 import bpy
 
 # addon modules
-from . import xray_io
-from . import xray_motions
-from . import text
-from . import skl
-from . import utils
-from . import log
-from . import version_utils
+from .. import xray_io
+from .. import xray_motions
+from .. import text
+from .. import skl
+from .. import utils
+from .. import log
+from .. import version_utils
 
 
 class XRAY_UL_skls_list_item(bpy.types.UIList):

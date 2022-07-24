@@ -5,7 +5,6 @@ import bpy
 from .. import ui
 from .. import icons
 from .. import menus
-from .. import skls_browser
 from .. import version_utils
 from .. import ops
 from .. import rig
@@ -60,14 +59,14 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
         col = layout.column(align=True)
         col.active = active
         col.operator(
-            operator=skls_browser.XRAY_OT_browse_skls_file.bl_idname,
+            operator=ops.skls_browser.XRAY_OT_browse_skls_file.bl_idname,
             text='Open Skls File',
             icon='FILE_FOLDER'
         )
         if hasattr(obj.xray, 'skls_browser'):
             if len(obj.xray.skls_browser.animations):
                 col.operator(
-                    skls_browser.XRAY_OT_close_skls_file.bl_idname,
+                    ops.skls_browser.XRAY_OT_close_skls_file.bl_idname,
                     icon='X'
                 )
             col.template_list(

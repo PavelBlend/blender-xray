@@ -8,6 +8,7 @@ from . import custom_props_utils
 from . import fake_user_utils
 from . import joint_limits
 from . import shader_tools
+from . import skls_browser
 from . import transform_utils
 from . import verify_uv
 from . import xray_camera
@@ -23,6 +24,7 @@ modules = (
     fake_user_utils,
     joint_limits,
     shader_tools,
+    skls_browser,
     transform_utils,
     verify_uv,
     xray_camera
