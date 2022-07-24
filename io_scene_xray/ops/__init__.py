@@ -11,6 +11,7 @@ from . import shader_tools
 from . import skls_browser
 from . import transform_utils
 from . import verify_uv
+from . import viewer
 from . import xray_camera
 
 
@@ -27,6 +28,7 @@ modules = (
     skls_browser,
     transform_utils,
     verify_uv,
+    viewer,
     xray_camera
 )
 

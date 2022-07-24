@@ -5,8 +5,8 @@ import os
 import bpy
 
 # addon modules
-from . import version_utils
-from . import utils
+from .. import version_utils
+from .. import utils
 
 
 KB = 1024
@@ -171,6 +171,9 @@ ext_ignore = [
 def update_file(self, context):
     scene = context.scene
     viewer = scene.xray.viewer
+    files_count = len(viewer.files)
+    if viewer.files_index >= files_count:
+        return
     file = viewer.files[viewer.files_index]
     if file.is_dir or viewer.is_preview_folder_mode:
         if viewer.is_preview_folder_mode:

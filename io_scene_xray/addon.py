@@ -11,7 +11,6 @@ from . import icons
 from . import handlers
 from . import viewport
 from . import edit_helpers
-from . import viewer
 from . import translate
 from . import tests
 
@@ -19,7 +18,6 @@ from . import tests
 modules = (
     icons,
     prefs,
-    viewer,
     ops,
     props,
     formats,

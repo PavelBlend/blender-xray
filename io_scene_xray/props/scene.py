@@ -4,7 +4,7 @@ import bpy
 # addon modules
 from .. import version_utils
 from .. import ie_props
-from .. import viewer
+from .. import ops
 
 
 import_motion_props = {
@@ -35,7 +35,7 @@ xray_scene_properties = {
     'object_texture_name_from_image_path': ie_props.PropObjectTextureNamesFromPath(),
     'import_skls': bpy.props.PointerProperty(type=ImportSkls),
     'import_omf': bpy.props.PointerProperty(type=ImportOmf),
-    'viewer': bpy.props.PointerProperty(type=viewer.XRaySceneViewerProperties),
+    'viewer': bpy.props.PointerProperty(type=ops.viewer.XRaySceneViewerProperties),
 }
 
 

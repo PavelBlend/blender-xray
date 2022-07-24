@@ -8,7 +8,6 @@ from .. import menus
 from .. import version_utils
 from .. import ops
 from .. import rig
-from .. import viewer
 
 # format modules
 from .. import obj
@@ -103,7 +102,7 @@ class XRAY_PT_viewer(bpy.types.Panel):
             row = col.row(align=True)
             row.label(text=viewer_folder)
             row.operator(
-                viewer.XRAY_OT_viewer_open_current_folder.bl_idname,
+                ops.viewer.XRAY_OT_viewer_open_current_folder.bl_idname,
                 text='',
                 icon='FILE_FOLDER'
             )
@@ -119,11 +118,11 @@ class XRAY_PT_viewer(bpy.types.Panel):
             col_settings.prop(scn.xray.viewer, 'group_by_ext')
 
             col.operator(
-                viewer.XRAY_OT_viewer_close_folder.bl_idname,
+                ops.viewer.XRAY_OT_viewer_close_folder.bl_idname,
                 icon='X'
             )
             col.operator(
-                viewer.XRAY_OT_viewer_preview_folder.bl_idname,
+                ops.viewer.XRAY_OT_viewer_preview_folder.bl_idname,
                 icon='FILE_PARENT'
             )
             col.template_list(
@@ -137,17 +136,17 @@ class XRAY_PT_viewer(bpy.types.Panel):
             )
             # select operators
             op_select_all = col.operator(
-                viewer.XRAY_OT_viewer_select_files.bl_idname,
+                ops.viewer.XRAY_OT_viewer_select_files.bl_idname,
                 text='Select All'
             )
             op_select_all.mode = 'SELECT_ALL'
             op_select_all = col.operator(
-                viewer.XRAY_OT_viewer_select_files.bl_idname,
+                ops.viewer.XRAY_OT_viewer_select_files.bl_idname,
                 text='Deselect All'
             )
             op_select_all.mode = 'DESELECT_ALL'
             op_select_all = col.operator(
-                viewer.XRAY_OT_viewer_select_files.bl_idname,
+                ops.viewer.XRAY_OT_viewer_select_files.bl_idname,
                 text='Invert Selection'
             )
             op_select_all.mode = 'INVERT_SELECTION'
@@ -156,26 +155,26 @@ class XRAY_PT_viewer(bpy.types.Panel):
             import_row = col.row()
             import_col = import_row.column(align=True)
             op_import_active = import_col.operator(
-                viewer.XRAY_OT_viewer_import_files.bl_idname,
+                ops.viewer.XRAY_OT_viewer_import_files.bl_idname,
                 icon='IMPORT',
                 text='Import Active File'
             )
             op_import_active.mode = 'IMPORT_ACTIVE'
             op_import_selected = import_col.operator(
-                viewer.XRAY_OT_viewer_import_files.bl_idname,
+                ops.viewer.XRAY_OT_viewer_import_files.bl_idname,
                 icon='IMPORT',
                 text='Import Selected Files'
             )
             op_import_selected.mode = 'IMPORT_SELECTED'
             op_import_all = import_col.operator(
-                viewer.XRAY_OT_viewer_import_files.bl_idname,
+                ops.viewer.XRAY_OT_viewer_import_files.bl_idname,
                 icon='IMPORT',
                 text='Import All Files'
             )
             op_import_all.mode = 'IMPORT_ALL'
         else:
             col.operator(
-                viewer.XRAY_OT_viewer_open_folder.bl_idname,
+                ops.viewer.XRAY_OT_viewer_open_folder.bl_idname,
                 icon='FILE_FOLDER'
             )
 
