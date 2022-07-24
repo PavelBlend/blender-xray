@@ -8,7 +8,7 @@ from . import utils
 from . import ie_utils
 from . import version_utils
 
-# plugin modules
+# format modules
 from . import details
 from . import dm
 from . import err

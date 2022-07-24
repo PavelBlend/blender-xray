@@ -4,7 +4,7 @@ import bpy
 # addon modules
 from . import version_utils
 
-# plugin modules
+# format modules
 from . import anm
 from . import bones
 from . import details

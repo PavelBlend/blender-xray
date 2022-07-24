@@ -10,7 +10,7 @@ from .. import ops
 from .. import rig
 from .. import viewer
 
-# plugin modules
+# format modules
 from .. import obj
 from .. import anm
 from .. import bones

@@ -1,4 +1,4 @@
-from . import plugins
+from . import formats
 from . import ui
 from . import menus
 from . import panels
@@ -22,7 +22,7 @@ modules = (
     viewer,
     ops,
     props,
-    plugins,
+    formats,
     handlers,
     ui,
     panels,

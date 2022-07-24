@@ -1,4 +1,4 @@
-# plugin modules
+# format modules
 from . import details
 from . import dm
 from . import err
