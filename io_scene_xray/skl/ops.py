@@ -247,9 +247,6 @@ class XRAY_OT_export_skls_file(ie_props.BaseOperator, utils.FilenameExtHelper):
             action = bpy.data.actions.get(motion.name)
             if action:
                 self.actions.append(action)
-        if not self.actions:
-            self.report({'ERROR'}, 'Active object has no animations')
-            return {'CANCELLED'}
         return super().invoke(context, event)
 
 
@@ -321,6 +318,15 @@ class XRAY_OT_export_skls(ie_props.BaseOperator):
             self.report({'ERROR'}, 'No selected objects')
             return {'CANCELLED'}
         if len(context.selected_objects) == 1:
+            obj = context.selected_objects[0]
+            actions = []
+            for motion in obj.xray.motions_collection:
+                action = bpy.data.actions.get(motion.name)
+                if action:
+                    actions.append(action)
+            if not actions:
+                self.report({'ERROR'}, 'Active object has no animations')
+                return {'CANCELLED'}
             return bpy.ops.xray_export.skls_file('INVOKE_DEFAULT')
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
