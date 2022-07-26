@@ -524,7 +524,13 @@ class FilenameExtHelper(bpy_extras.io_utils.ExportHelper):
 
     def invoke(self, context, event):
         if context.active_object:
-            self.filepath = context.active_object.name
+            obj = context.active_object
+        elif context.selected_objects:
+            obj = context.selected_objects[0]
+        else:
+            obj = None
+        if obj:
+            self.filepath = obj.name
             if not self.filepath.lower().endswith(self.filename_ext):
                 self.filepath += self.filename_ext
             return super().invoke(context, event)
@@ -536,6 +542,9 @@ class FilenameExtHelper(bpy_extras.io_utils.ExportHelper):
 def invoke_require_armature(func):
     def wrapper(self, context, event):
         active = context.active_object
+        if not active:
+            if context.selected_objects:
+                active = context.selected_objects[0]
         if not active:
             self.report({'ERROR'}, text.error.no_active_obj)
             return {'CANCELLED'}

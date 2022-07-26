@@ -13,6 +13,7 @@ from .. import log
 from .. import ie_props
 from .. import ui
 from .. import utils
+from .. import text
 from .. import xray_motions
 from .. import draw_utils
 from .. import version_utils
@@ -138,7 +139,11 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
             }
             motions_filter = lambda name: name in selected_names
         import_context = imp.ImportSklContext()
-        import_context.bpy_arm_obj = context.active_object
+        if context.active_object:
+            obj = context.active_object
+        else:
+            obj = context.selected_objects[0]
+        import_context.bpy_arm_obj = obj
         import_context.motions_filter = motions_filter
         import_context.filename = None
         import_context.add_actions_to_motion_list = self.add_actions_to_motion_list
@@ -194,7 +199,7 @@ class XRAY_OT_export_skl(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
     @utils.set_cursor_state
     def execute(self, context):
         export_context = exp.ExportSklsContext()
-        export_context.bpy_arm_obj = context.active_object
+        export_context.bpy_arm_obj = context.selected_objects[0]
         export_context.action = self.action
         try:
             exp.export_skl_file(self.filepath, export_context)
@@ -234,7 +239,7 @@ class XRAY_OT_export_skls_file(ie_props.BaseOperator, utils.FilenameExtHelper):
 
     def export(self, context):
         export_context = exp.ExportSklsContext()
-        export_context.bpy_arm_obj = context.active_object
+        export_context.bpy_arm_obj = context.selected_objects[0]
         try:
             exp.export_skls_file(self.filepath, export_context, self.actions)
         except utils.AppError as err:
@@ -243,7 +248,7 @@ class XRAY_OT_export_skls_file(ie_props.BaseOperator, utils.FilenameExtHelper):
     @utils.invoke_require_armature
     def invoke(self, context, event):
         self.actions = []
-        for motion in bpy.context.object.xray.motions_collection:
+        for motion in context.selected_objects[0].xray.motions_collection:
             action = bpy.data.actions.get(motion.name)
             if action:
                 self.actions.append(action)
@@ -319,6 +324,9 @@ class XRAY_OT_export_skls(ie_props.BaseOperator):
             return {'CANCELLED'}
         if len(context.selected_objects) == 1:
             obj = context.selected_objects[0]
+            if obj.type != 'ARMATURE':
+                self.report({'ERROR'}, text.error.is_not_arm)
+                return {'CANCELLED'}
             actions = []
             for motion in obj.xray.motions_collection:
                 action = bpy.data.actions.get(motion.name)
