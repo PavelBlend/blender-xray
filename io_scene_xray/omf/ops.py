@@ -249,7 +249,10 @@ class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
     @utils.set_cursor_state
     def execute(self, context):
         active_object = context.object
-        version_utils.set_active_object(self.obj)
+        if self.obj:
+            version_utils.set_active_object(self.obj)
+        else:
+            self.obj = active_object
         export_context = ExportOmfContext()
         export_context.bpy_arm_obj = self.obj
         export_context.filepath = self.filepath
