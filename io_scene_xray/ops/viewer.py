@@ -205,9 +205,6 @@ def update_file(self, context):
     version_utils.set_mesh_objects_select(imported_objects, False)
 
 
-ext_list = ['.ogf', '.object', '.dm', '.details']
-
-
 def update_file_list(directory, active_folder=None):
     scene = bpy.context.scene
     viewer = scene.xray.viewer
@@ -221,9 +218,21 @@ def update_file_list(directory, active_folder=None):
             dirs.append((file_name, file_path))
         else:
             _, ext = os.path.splitext(file_name)
-            if not ext in ext_list and not viewer.ignore_ext:
-                continue
-            files.append((file_name, file_path))
+            ext = ext.lower()
+            if viewer.ignore_ext:
+                added_file = True
+            elif ext == '.object' and viewer.use_object:
+                added_file = True
+            elif ext == '.ogf' and viewer.use_ogf:
+                added_file = True
+            elif ext == '.dm' and viewer.use_dm:
+                added_file = True
+            elif ext == '.details' and viewer.use_details:
+                added_file = True
+            else:
+                added_file = False
+            if added_file:
+                files.append((file_name, file_path))
     is_dir = (True, False)
     file_groups = {}
     for index, file_list in enumerate((dirs, files)):
@@ -480,6 +489,26 @@ scene_viewer_props = {
     'sort_reverse': bpy.props.BoolProperty(
         default=False,
         name='Reverse Sort',
+        update=update_file_list_ext
+    ),
+    'use_object': bpy.props.BoolProperty(
+        default=True,
+        name='Object',
+        update=update_file_list_ext
+    ),
+    'use_ogf': bpy.props.BoolProperty(
+        default=True,
+        name='Ogf',
+        update=update_file_list_ext
+    ),
+    'use_dm': bpy.props.BoolProperty(
+        default=True,
+        name='Dm',
+        update=update_file_list_ext
+    ),
+    'use_details': bpy.props.BoolProperty(
+        default=True,
+        name='Details',
         update=update_file_list_ext
     )
 }

@@ -112,6 +112,15 @@ class XRAY_PT_viewer(bpy.types.Panel):
             row.prop(scn.xray.viewer, 'sort', expand=True)
 
             col_settings = col.column(align=True)
+
+            # formats
+            col_settings.label(text='Use Formats:')
+            row = col_settings.row(align=True)
+            row.prop(scn.xray.viewer, 'use_object', toggle=True)
+            row.prop(scn.xray.viewer, 'use_ogf', toggle=True)
+            row.prop(scn.xray.viewer, 'use_dm', toggle=True)
+            row.prop(scn.xray.viewer, 'use_details', toggle=True)
+
             col_settings.prop(scn.xray.viewer, 'sort_reverse')
             col_settings.prop(scn.xray.viewer, 'ignore_ext')
             col_settings.prop(scn.xray.viewer, 'show_size')
