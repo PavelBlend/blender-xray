@@ -157,11 +157,18 @@ class XRAY_OT_export_dm(ie_props.BaseOperator):
                 self.report({'ERROR'}, 'The select object is not mesh')
                 return {'CANCELLED'}
             else:
-                bpy.ops.xray_export.dm_file('INVOKE_DEFAULT')
+                return bpy.ops.xray_export.dm_file('INVOKE_DEFAULT')
         else:
-            self.detail_models = ','.join(
-                [obj.name for obj in objs if obj.type == 'MESH']
-            )
+            object_list = [obj.name for obj in objs if obj.type == 'MESH']
+            if not object_list:
+                self.report(
+                    {'ERROR'},
+                    'There are no meshes among the selected objects'
+                )
+                return {'CANCELLED'}
+            if len(object_list) == 1:
+                return bpy.ops.xray_export.dm_file('INVOKE_DEFAULT')
+            self.detail_models = ','.join(object_list)
             context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -213,7 +220,11 @@ class XRAY_OT_export_dm_file(
     def invoke(self, context, event):
         prefs = version_utils.get_preferences()
         self.texture_name_from_image_path = prefs.dm_texture_names_from_path
-        objs = context.selected_objects
+        objs = [
+            obj
+            for obj in context.selected_objects
+                if obj.type == 'MESH'
+        ]
 
         if not objs:
             self.report({'ERROR'}, 'Cannot find selected object')
