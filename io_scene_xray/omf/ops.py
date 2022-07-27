@@ -226,6 +226,7 @@ class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
     ext = filename_ext
     filename_ext = filename_ext
     props = export_props
+    obj = None
 
     if not version_utils.IS_28:
         for prop_name, prop_value in props.items():
@@ -247,9 +248,10 @@ class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
-        obj = context.object
+        active_object = context.object
+        version_utils.set_active_object(self.obj)
         export_context = ExportOmfContext()
-        export_context.bpy_arm_obj = obj
+        export_context.bpy_arm_obj = self.obj
         export_context.filepath = self.filepath
         export_context.export_mode = self.export_mode
         export_context.export_motions = self.export_motions
@@ -284,18 +286,18 @@ class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
                 need_bone_groups = True
             else:
                 need_bone_groups = False
-        motions_count = len(obj.xray.motions_collection)
-        bone_groups_count = len(obj.pose.bone_groups)
+        motions_count = len(self.obj.xray.motions_collection)
+        bone_groups_count = len(self.obj.pose.bone_groups)
         if not motions_count and need_motions:
             self.report(
                 {'ERROR'},
-                'Armature object "{}" has no actions'.format(obj.name)
+                'Armature object "{}" has no actions'.format(self.obj.name)
             )
             return {'CANCELLED'}
         if not bone_groups_count and need_bone_groups:
             self.report(
                 {'ERROR'},
-                'Armature object "{}" has no bone groups'.format(obj.name)
+                'Armature object "{}" has no bone groups'.format(self.obj.name)
             )
             return {'CANCELLED'}
         export_context.need_motions = need_motions
@@ -304,6 +306,7 @@ class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
             exp.export_omf_file(export_context)
         except utils.AppError as err:
             export_context.errors.append(err)
+        version_utils.set_active_object(active_object)
         for err in export_context.errors:
             log.err(err)
         return {'FINISHED'}
@@ -314,27 +317,34 @@ class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
         self.export_bone_parts = preferences.omf_export_bone_parts
         self.export_motions = preferences.omf_motions_export
         self.high_quality = preferences.omf_high_quality
-        if len(context.selected_objects) > 1:
-            self.report({'ERROR'}, 'Too many selected objects')
+        sel_objs_count = len(context.selected_objects)
+        objs = [
+            obj
+            for obj in context.selected_objects
+                if obj.type == 'ARMATURE'
+        ]
+        arm_count = len(objs)
+        if arm_count > 1:
+            self.report({'ERROR'}, 'Too many selected armature-objects')
             return {'CANCELLED'}
-        if not len(context.selected_objects):
+        if not arm_count and sel_objs_count:
+            self.report(
+                {'ERROR'},
+                'There are no armatures among the selected objects'
+            )
+            return {'CANCELLED'}
+        if not sel_objs_count and not arm_count:
             self.report({'ERROR'}, 'No selected objects')
             return {'CANCELLED'}
-        obj = context.object
-        if not obj:
-            self.report({'ERROR'}, 'No active object')
-            return {'CANCELLED'}
-        if obj.type != 'ARMATURE':
-            self.report({'ERROR'}, 'Active object "{}" is not armature'.format(obj.name))
-            return {'CANCELLED'}
-        self.filepath = obj.name
-        motions_count = len(obj.xray.motions_collection)
-        bone_groups_count = len(obj.pose.bone_groups)
+        self.obj = objs[0]
+        self.filepath = self.obj.name
+        motions_count = len(self.obj.xray.motions_collection)
+        bone_groups_count = len(self.obj.pose.bone_groups)
         if not motions_count and not bone_groups_count:
             self.report(
                 {'ERROR'},
                 'Armature object "{}" has no actions and bone groups'.format(
-                    obj.name
+                    self.obj.name
                 )
             )
             return {'CANCELLED'}
