@@ -63,9 +63,9 @@ convert_materials_mode_items = (
     ('ALL_MATERIALS', 'All Materials', '')
 )
 mode_prop = bpy.props.EnumProperty(
-        name='Mode',
-        items=convert_materials_mode_items,
-        default='ACTIVE_MATERIAL'
+    name='Mode',
+    items=convert_materials_mode_items,
+    default='ACTIVE_MATERIAL'
 )
 
 op_props = {
