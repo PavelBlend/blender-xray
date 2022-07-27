@@ -8,50 +8,12 @@ if [ ! -e "$DIR/blender" ]; then
     NONE="NONE"
     TAR="NONE"
     case "$BLENDER_VERSION" in
-        "2.77")
-            TBZ="blender-$BLENDER_VERSION-linux-glibc211-x86_64.tar.bz2"
-            ;;
-        "2.78")
-            TBZ="blender-$BLENDER_VERSION-linux-glibc219-x86_64.tar.bz2"
-            ;;
         "2.79")
             TBZ="blender-$BLENDER_VERSION-linux-glibc219-x86_64.tar.bz2"
             ;;
-        "2.80")
-            TBZ="blender-$BLENDER_VERSION-linux-glibc217-x86_64.tar.bz2"
-            PYTHON_VERSION="3.7"
-            ;;
-        "2.81")
-            TBZ="blender-$BLENDER_VERSION-linux-glibc217-x86_64.tar.bz2"
-            PYTHON_VERSION="3.7"
-            ;;
-        "2.82")
-            TAR="blender-$BLENDER_VERSION-linux64.tar.xz"
-            PYTHON_VERSION="3.7"
-            ;;
-        "2.83")
-            TAR="blender-$BLENDER_VERSION.0-linux64.tar.xz"
-            PYTHON_VERSION="3.7"
-            ;;
-        "2.90")
-            TAR="blender-$BLENDER_VERSION.0-linux64.tar.xz"
-            PYTHON_VERSION="3.7"
-            ;;
-        "2.91")
-            TAR="blender-$BLENDER_VERSION.0-linux64.tar.xz"
-            PYTHON_VERSION="3.7"
-            ;;
-        "2.92")
-            TAR="blender-$BLENDER_VERSION.0-linux64.tar.xz"
-            PYTHON_VERSION="3.7"
-            ;;
-        "2.93")
-            TAR="blender-$BLENDER_VERSION.0-linux-x64.tar.xz"
-            PYTHON_VERSION="3.9"
-            ;;
-        "3.0")
-            TAR="blender-$BLENDER_VERSION.0-linux-x64.tar.xz"
-            PYTHON_VERSION="3.9"
+        "3.2")
+            TAR="blender-$BLENDER_VERSION.1-linux-x64.tar.xz"
+            PYTHON_VERSION="3.10"
             ;;
         *)
             echo "Unsupported version: $BLENDER_VERSION"
