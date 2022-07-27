@@ -64,12 +64,19 @@ class XRAY_OT_import_anm(
             return {'CANCELLED'}
         import_context = imp.ImportAnmContext()
         import_context.camera_animation = self.camera_animation
+        files_count = 0
         for file in self.files:
             import_context.filepath = os.path.join(self.directory, file.name)
             try:
-                imp.import_file(import_context)
+                frame_start, frame_end = imp.import_file(import_context)
+                files_count += 1
             except utils.AppError as err:
                 import_context.errors.append(err)
+        if files_count == 1:
+            # set action frame range
+            scn = context.scene
+            scn.frame_start = frame_start
+            scn.frame_end = frame_end
         for err in import_context.errors:
             log.err(err)
         return {'FINISHED'}

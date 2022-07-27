@@ -39,7 +39,7 @@ def _import(file_path, creader, context):
         )
     preader = xray_io.PackedReader(chunk_data)
     name = preader.gets()
-    _fr = preader.getf('<2I')
+    frame_start, frame_end = preader.getf('<2I')
     fps, ver = preader.getf('<fH')
     if not ver in fmt.MOTION_SUPPORTED_VERSIONS:
         raise utils.AppError(
@@ -111,6 +111,7 @@ def _import(file_path, creader, context):
             filename=name,
             keys_count=keys_count
         )
+    return frame_start, frame_end
 
 
 @log.with_context('import-anm')
@@ -120,4 +121,5 @@ def import_file(context):
     ie_utils.check_file_exists(file_path)
     data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(data)
-    _import(file_path, chunked_reader, context)
+    frame_start, frame_end = _import(file_path, chunked_reader, context)
+    return frame_start, frame_end
