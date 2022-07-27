@@ -121,6 +121,7 @@ class XRAY_PT_viewer(bpy.types.Panel):
             row.prop(scn.xray.viewer, 'use_dm', toggle=True)
             row.prop(scn.xray.viewer, 'use_details', toggle=True)
 
+            col_settings.prop(scn.xray.viewer, 'import_motions')
             col_settings.prop(scn.xray.viewer, 'sort_reverse')
             col_settings.prop(scn.xray.viewer, 'ignore_ext')
             col_settings.prop(scn.xray.viewer, 'show_size')

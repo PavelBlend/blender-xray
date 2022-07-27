@@ -104,6 +104,7 @@ def remove_preview_data():
                 used_actions.add(action.name)
     for action in actions:
         if not action.name in used_actions:
+            action.user_clear()
             bpy.data.actions.remove(action)
 
 
@@ -119,7 +120,7 @@ def import_file(file):
         bpy.ops.xray_import.object(
             directory=directory,
             files=[{'name': file.name}],
-            import_motions=prefs.object_motions_import,
+            import_motions=viewer.import_motions,
             mesh_split_by_materials=prefs.object_mesh_split_by_mat,
             fmt_version=prefs.sdk_version
         )
@@ -127,7 +128,7 @@ def import_file(file):
         bpy.ops.xray_import.ogf(
             directory=directory,
             files=[{'name': file.name}],
-            import_motions=prefs.ogf_import_motions
+            import_motions=viewer.import_motions
         )
     elif path.endswith('.dm'):
         bpy.ops.xray_import.dm(
@@ -147,7 +148,7 @@ def import_file(file):
                 bpy.ops.xray_import.object(
                     directory=directory,
                     files=[{'name': file.name}],
-                    import_motions=prefs.object_motions_import,
+                    import_motions=viewer.import_motions,
                     mesh_split_by_materials=prefs.object_mesh_split_by_mat,
                     fmt_version=prefs.sdk_version
                 )
@@ -470,6 +471,10 @@ scene_viewer_props = {
     'files_index': bpy.props.IntProperty(update=update_file),
     'folder': bpy.props.StringProperty(),
     'is_preview_folder_mode': bpy.props.BoolProperty(default=False),
+    'import_motions': bpy.props.BoolProperty(
+        default=False,
+        name='Import Motions'
+    ),
     'ignore_ext': bpy.props.BoolProperty(
         default=False,
         name='Ignore Extension',
