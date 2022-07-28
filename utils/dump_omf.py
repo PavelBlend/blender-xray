@@ -7,8 +7,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from io_scene_xray.xray_io import ChunkedReader, PackedReader
 
 
-MOTIONS = 0xe
-SMPARAMS = 0xf
+MOTIONS_0 = 0x1a
+MOTIONS_1 = 0xe
+SMPARAMS_0 = 0x14
+SMPARAMS_1 = 0xf
 
 FL_T_KEY_PRESENT = 1 << 0
 FL_R_KEY_ABSENT = 1 << 1
@@ -90,6 +92,7 @@ def dump_params(chunk_id, data, out):
     out(SPACES * 1 + 'params version:', params_version)
     # bone parts
     partition_count = packed_reader.getf('<H')[0]
+    out(SPACES * 1 + 'partition count:', partition_count)
     out(SPACES * 1 + 'bone parts:')
     all_bones_count = 0
     for partition_index in range(partition_count):
@@ -231,10 +234,14 @@ def dump_omf(chunked_reader, out, opts):
     for chunk_id, chunk_data in chunked_reader:
         chunks[chunk_id] = chunk_data
 
-    chunk_data = chunks.pop(SMPARAMS)
+    chunk_data = chunks.pop(SMPARAMS_0, None)
+    if chunk_data is None:
+        chunk_data = chunks.pop(SMPARAMS_1)
     bones_count = dump_params(chunk_id, chunk_data, out)
 
-    chunk_data = chunks.pop(MOTIONS)
+    chunk_data = chunks.pop(MOTIONS_0, None)
+    if chunk_data is None:
+        chunk_data = chunks.pop(MOTIONS_1)
     dump_motions(chunk_id, chunk_data, out, bones_count)
 
     for chunk_id, chunk_data in chunks.items():
