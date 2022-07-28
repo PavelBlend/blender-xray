@@ -38,8 +38,7 @@ class XRAY_OT_close_skls_file(bpy.types.Operator):
         if ob.animation_data:
             act = ob.animation_data.action
             ob.animation_data_clear()
-            act.user_clear()
-            bpy.data.actions.remove(action=act)
+            version_utils.remove_action(act)
         sk.animations.clear()
         bpy.ops.screen.animation_cancel()
         # reset transforms
@@ -168,8 +167,7 @@ def skls_animations_index_changed(self, context):
         # need to remove previous animation to free the memory since .skls can contains thousand animations
         act = ob.animation_data.action
         ob.animation_data_clear()
-        act.user_clear()
-        bpy.data.actions.remove(action=act)
+        version_utils.remove_action(act)
 
     # delete from xray property group
     try:

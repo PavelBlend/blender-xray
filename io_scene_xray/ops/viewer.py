@@ -104,8 +104,7 @@ def remove_preview_data():
                 used_actions.add(action.name)
     for action in actions:
         if not action.name in used_actions:
-            action.user_clear()
-            bpy.data.actions.remove(action)
+            version_utils.remove_action(action)
 
 
 def import_file(file):
