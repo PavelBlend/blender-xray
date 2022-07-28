@@ -317,14 +317,15 @@ def main():
                 file_path = os.path.abspath(os.path.join(root, file))
                 if folder_depth > recursive_depth:
                     continue
-                print(file_path)
+                print(file_path, end='')
                 with open(file_path, mode='rb') as file:
                     data = file.read()
                     reader = ChunkedReader(data)
                     try:
                         dump_omf(reader, print_function, options)
+                        print()
                     except:
-                        print('ERROR:', file_path)
+                        print(' ERROR')
 
 
 if __name__ == "__main__":
