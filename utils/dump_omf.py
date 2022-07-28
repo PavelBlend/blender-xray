@@ -241,19 +241,87 @@ def dump_omf(chunked_reader, out, opts):
         out('UNKNOWN CHUNK:', hex(chunk_id), len(chunk_data))
 
 
+def empty_print(*v, **kw):
+    pass
+
+
 def main():
     parser = optparse.OptionParser(
         usage='Usage: dump_omf.py <.omf-file> [options]'
+    )
+    parser.add_option(
+        '-d',
+        '--directory',
+        nargs=0,
+        dest='directory_path',
+        help=
+            'Treat path as a folder. '
+            'All files in the folder will be processed. '
+            'Example: '
+            '-d test_folder'
+    )
+    parser.add_option(
+        '-r',
+        '--recursive',
+        nargs=1,
+        dest='recursive_depth',
+        type='int',
+        help=
+            'Use recursion. Read files from subfolders. '
+            'The -r must be followed by an integer. '
+            'This number will indicate the depth of the recursion. '
+            'If this option is not specified, then the recursion '
+            'will have no limits. '
+            'Example: -r 5'
+    )
+    parser.add_option(
+        '-i',
+        '--invisible',
+        dest='invisible',
+        nargs=0,
+        help='Do not print file data to console.'
     )
     (options, args) = parser.parse_args()
     if not args:
         parser.print_help()
         input('press enter...')
         sys.exit(2)
-    with open(sys.argv[1], mode='rb') as file:
-        data = file.read()
-        reader = ChunkedReader(data)
-        dump_omf(reader, print, options)
+    is_dir = options.directory_path
+    invisible = options.invisible
+    if invisible is None:
+        print_function = print
+    else:
+        print_function = empty_print
+    if is_dir is None:
+        with open(sys.argv[1], mode='rb') as file:
+            data = file.read()
+            reader = ChunkedReader(data)
+            dump_omf(reader, print_function, options)
+    else:
+        recursive_depth = options.recursive_depth
+        if recursive_depth is None:
+            recursive_depth = 1024
+        root_folder = sys.argv[1]
+        if not root_folder.endswith(os.sep):
+            root_folder += os.sep
+        for root, dirs, files in os.walk(root_folder):
+            for file in files:
+                ext = os.path.splitext(file)[-1].lower()
+                if not ext == '.omf':
+                    continue
+                subfolders = root[len(root_folder) : ]
+                if not subfolders:
+                    folder_depth = 0
+                else:
+                    folder_depth = subfolders.count(os.sep) + 1
+                file_path = os.path.abspath(os.path.join(root, file))
+                if folder_depth > recursive_depth:
+                    continue
+                print(file_path)
+                with open(file_path, mode='rb') as file:
+                    data = file.read()
+                    reader = ChunkedReader(data)
+                    dump_omf(reader, print_function, options)
 
 
 if __name__ == "__main__":
