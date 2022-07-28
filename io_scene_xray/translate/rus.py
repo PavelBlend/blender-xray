@@ -11,6 +11,7 @@ translations_table = (
     # errors
 
     # general
+    (text.error.error_title, 'ошибка'),
     (text.error.mat_no_img, 'материал не имеет изображения'),
     (text.error.mat_many_img, 'материал имеет больше одного изображения'),
     (text.error.mat_many_tex, 'материал имеет больше одной текстуры'),
@@ -25,6 +26,8 @@ translations_table = (
     (text.error.no_active_obj, 'нет активного объекта'),
     (text.error.is_not_arm, 'активный объект не является арматурой'),
     (text.error.file_not_found, 'файл не найден'),
+    (text.error.file_folder_not_found, 'файл или папка не найден(а)'),
+    (text.error.ltx_invalid_syntax, 'ошибка синтаксиса ltx файла'),
     # anm export
     (text.error.anm_no_keys, 'анимация имеет ключи не для всех каналов'),
     # anm import

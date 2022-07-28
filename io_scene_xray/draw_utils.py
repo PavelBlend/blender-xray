@@ -1,5 +1,9 @@
+# blender modules
+import bpy
+
 # addon modules
 from . import version_utils
+from . import text
 
 
 def draw_files_count(operator):
@@ -25,3 +29,19 @@ def draw_fmt_ver_prop(layout, owner, prop, lay_type='SPLIT', use_row=True):
     else:
         prop_lay = lay.column(align=True)
     prop_lay.prop(owner, prop, expand=True)
+
+
+def show_message(message_text, elements, message_type, icon):
+    message = text.get_text(message_text).capitalize()
+
+    def show_message_menu(self, context):
+        self.layout.label(text=message + ':')
+        for element in elements:
+            self.layout.label(text=' ' * 4 + element)
+
+    if not bpy.app.background:
+        bpy.context.window_manager.popup_menu(
+            show_message_menu,
+            title=message_type.capitalize(),
+            icon=icon
+        )

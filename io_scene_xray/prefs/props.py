@@ -6,8 +6,10 @@ import bpy
 
 # addon modules
 from .. import xray_ltx
+from .. import draw_utils
 from .. import version_utils
 from .. import menus
+from .. import text
 from .. import hotkeys
 from .. import ie_props
 
@@ -44,19 +46,24 @@ fs_props = {
 def _auto_path(prefs, self_name, path_suffix, checker):
     if prefs.fs_ltx_file:
         if not os.path.exists(prefs.fs_ltx_file):
-            return ''
+            return '', prefs.fs_ltx_file
         try:
             fs = xray_ltx.StalkerLtxParser(prefs.fs_ltx_file)
         except:
-            print('Invalid fs.ltx syntax')
-            return ''
+            draw_utils.show_message(
+                text.get_text(text.error.ltx_invalid_syntax),
+                (prefs.fs_ltx_file, ),
+                text.get_text(text.error.error_title),
+                'ERROR'
+            )
+            return '', False
         prop_key, file_name = fs_props[self_name]
         dir_path = fs.values[prop_key]
         if file_name:
             result = os.path.join(dir_path, file_name)
         else:
             result = dir_path
-        return result
+        return result, False
     for prop in __AUTO_PROPS__:
         if prop == self_name:
             continue
@@ -77,8 +84,10 @@ def _auto_path(prefs, self_name, path_suffix, checker):
         if checker(result):
             if self_name == 'objects_folder':
                 result = os.path.abspath(result)
-            return result
-    return ''
+            return result, False
+        else:
+            return '', result
+    return '', False
 
 
 path_props_suffix_values = {
@@ -105,6 +114,7 @@ path_props_types = {
 
 
 def update_paths(prefs, context):
+    not_found_paths = set()
     for path_prop, suffix in path_props_suffix_values.items():
         if getattr(prefs, path_prop):
             setattr(prefs, build_auto_id(path_prop), getattr(prefs, path_prop))
@@ -114,8 +124,24 @@ def update_paths(prefs, context):
             cheker_function = os.path.isdir
         elif prop_type == FILE:
             cheker_function = os.path.isfile
-        path_value = _auto_path(prefs, path_prop, suffix, cheker_function)
+        path_value, not_found = _auto_path(
+            prefs,
+            path_prop,
+            suffix,
+            cheker_function
+        )
+        if not_found:
+            not_found_paths.add(os.path.abspath(not_found))
         setattr(prefs, build_auto_id(path_prop), path_value)
+    if not_found_paths:
+        not_found_paths = list(not_found_paths)
+        not_found_paths.sort()
+        draw_utils.show_message(
+            text.get_text(text.error.file_folder_not_found),
+            not_found_paths,
+            text.get_text(text.error.error_title),
+            'ERROR'
+        )
 
 
 custom_props_category_items = (

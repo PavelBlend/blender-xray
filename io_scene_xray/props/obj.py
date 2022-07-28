@@ -12,6 +12,7 @@ from .. import obj
 from .. import details
 from .. import text
 from .. import version_utils
+from .. import draw_utils
 from .. import ops
 
 
@@ -328,13 +329,11 @@ def load_motion_refs(self, context):
             ops.skls_browser.init_skls_browser(self, context, file_path)
         else:
             message = text.get_text(text.error.file_not_found).capitalize()
-            def show_motion_refs_error(self, context):
-                self.layout.label(text=message + ':')
-                self.layout.label(text=' ' * 4 + file_path)
-            bpy.context.window_manager.popup_menu(
-                show_motion_refs_error,
-                title='Error',
-                icon='ERROR'
+            draw_utils.show_message(
+                message,
+                (file_path, ),
+                text.get_text(text.error.error_title),
+                'ERROR'
             )
 
 

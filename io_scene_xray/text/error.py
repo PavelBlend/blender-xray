@@ -1,4 +1,5 @@
 # general
+error_title = 'error'
 mat_no_img = 'material has no image'
 mat_many_img = 'material has more the one image'
 mat_many_tex = 'material has more than one texture'
@@ -13,6 +14,8 @@ file_another_prog = 'unable to write file. The file is open in another program'
 no_active_obj = 'No active objects'
 is_not_arm = 'active object is not armature'
 file_not_found = 'file not found'
+file_folder_not_found = 'file or folder not found'
+ltx_invalid_syntax = 'ltx file syntax error'
 # anm export
 anm_no_keys = 'action has keys not for all channels'
 # anm import
