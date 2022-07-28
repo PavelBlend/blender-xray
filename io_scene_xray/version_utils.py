@@ -337,10 +337,10 @@ def set_empty_draw_size(empty_object, draw_size):
 
 
 def remove_action(action):
+    action.user_clear()
     if not IS_277:
         bpy.data.actions.remove(action, do_unlink=True)
     else:
-        action.user_clear()
         bpy.data.actions.remove(action)
 
 
