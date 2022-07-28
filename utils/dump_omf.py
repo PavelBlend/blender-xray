@@ -253,7 +253,7 @@ def main():
         '-d',
         '--directory',
         nargs=0,
-        dest='directory_path',
+        dest='directory_mode',
         help=
             'Treat path as a folder. '
             'All files in the folder will be processed. '
@@ -286,7 +286,7 @@ def main():
         parser.print_help()
         input('press enter...')
         sys.exit(2)
-    is_dir = options.directory_path
+    is_dir = options.directory_mode
     invisible = options.invisible
     if invisible is None:
         print_function = print
@@ -321,7 +321,10 @@ def main():
                 with open(file_path, mode='rb') as file:
                     data = file.read()
                     reader = ChunkedReader(data)
-                    dump_omf(reader, print_function, options)
+                    try:
+                        dump_omf(reader, print_function, options)
+                    except:
+                        print('ERROR:', file_path)
 
 
 if __name__ == "__main__":
