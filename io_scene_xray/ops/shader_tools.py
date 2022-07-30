@@ -7,6 +7,22 @@ from .. import utils
 from .. import version_utils
 
 
+if version_utils.IS_28:
+    blend_mode_items = (
+        ('OPAQUE', 'Opaque', ''),
+        ('CLIP', 'Alpha Clip', ''),
+        ('HASHED', 'Alpha Hashed', ''),
+        ('BLEND', 'Alpha Blend', ''),
+    )
+else:
+    blend_mode_items = (
+        ('OPAQUE', 'Opaque', ''),
+        ('ADD', 'Add', ''),
+        ('CLIP', 'Alpha Clip', ''),
+        ('ALPHA', 'Alpha Blend', ''),
+        ('ALPHA_SORT', 'Alpha Sort', ''),
+        ('ALPHA_ANTIALIASING', 'Alpha Anti-Aliasing', '')
+    )
 op_props = {
     'mode': material.mode_prop,
     # alpha
@@ -27,6 +43,11 @@ op_props = {
         name='Viewport Roughness', default=0.0, min=0.0, max=1.0, subtype='FACTOR'
     ),
     'viewport_roughness_change': bpy.props.BoolProperty(name='Change Viewport Roughness', default=True),
+    # blend mode
+    'blend_mode': bpy.props.EnumProperty(
+        name='Blend Mode', default='OPAQUE', items=blend_mode_items
+    ),
+    'blend_mode_change': bpy.props.BoolProperty(name='Change Blend Mode', default=True),
 
     # internal properties
     'shadeless_change': bpy.props.BoolProperty(name='Change Shadeless', default=True),
@@ -106,6 +127,7 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
             self.draw_prop(column, 'roughness_change', 'roughness_value')
             self.draw_prop(column, 'viewport_roughness_change', 'viewport_roughness_value')
             self.draw_prop(column, 'alpha_change', 'alpha_value')
+            self.draw_prop(column, 'blend_mode_change', 'blend_mode')
         if is_internal:
             self.draw_prop(column, 'diffuse_intensity_change', 'diffuse_intensity_value')
             self.draw_prop(column, 'specular_intensity_change', 'specular_intensity_value')
@@ -132,6 +154,11 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
                             break
                 if self.viewport_roughness_change:
                     mat.roughness = self.viewport_roughness_value
+                if self.blend_mode_change:
+                    if version_utils.IS_28:
+                        mat.blend_method = self.blend_mode
+                    else:
+                        mat.game_settings.alpha_blend = self.blend_mode
                 if not output_node:
                     self.report({'WARNING'}, 'Material "{}" has no output node.'.format(mat.name))
                     continue
