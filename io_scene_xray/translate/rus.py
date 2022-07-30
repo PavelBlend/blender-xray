@@ -24,6 +24,8 @@ translations_table = (
     (text.error.many_mat, 'меш-объект имеет более одного материала'),
     (text.error.file_another_prog, 'невозможно записать файл. Файл открыт в другой программе'),
     (text.error.no_active_obj, 'нет активного объекта'),
+    (text.error.no_selected_obj, 'нет выделенных объектов'),
+    (text.error.no_blend_obj, 'текущий blend-файл не имеет объектов'),
     (text.error.is_not_arm, 'активный объект не является арматурой'),
     (text.error.file_not_found, 'файл не найден'),
     (text.error.file_folder_not_found, 'файл или папка не найден(а)'),
@@ -203,7 +205,9 @@ translations_table = (
     (text.warn.envelope_shapes, 'неподдерживаемые формы анимационных ключей были заменены на поддерживаемые'),
     # skls browser
     (text.warn.browser_load, 'Загрузка анимаций из .skls файла: "{}"'),
-    (text.warn.browser_done, 'Готово: {} анимаций')
+    (text.warn.browser_done, 'Готово: {} анимаций'),
+    # verify uv
+    (text.warn.incorrect_uv_objs_count, 'выделено объектов с некорректной uv-картой')
 )
 translation = {}
 for eng, rus in translations_table:
