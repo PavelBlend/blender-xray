@@ -43,7 +43,10 @@ def show_message(
     message = text.get_text(message_text).capitalize()
 
     def show_message_menu(self, context):
-        self.layout.label(text=message + ':')
+        if elements:
+            self.layout.label(text=message + ':')
+        else:
+            self.layout.label(text=message + '.')
         for element in elements:
             self.layout.label(text=' ' * 4 + element)
         if operator:

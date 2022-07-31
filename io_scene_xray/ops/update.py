@@ -42,6 +42,14 @@ def check_for_updates():
             operator=XRAY_OT_download_update.bl_idname,
             operator_props={'download_url': download_url, }
         )
+    else:
+        message = text.get_text(text.warn.has_no_update).capitalize()
+        draw_utils.show_message(
+            message,
+            (),
+            text.get_text(text.warn.info_title).capitalize(),
+            'INFO'
+        )
 
 
 class XRAY_OT_check_update(bpy.types.Operator):
