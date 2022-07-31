@@ -540,13 +540,14 @@ class XRAY_OT_create_material(bpy.types.Operator):
             space = context.space_data
             params = space.params
             params.display_type = 'THUMBNAIL'
-            space.show_region_tool_props = False
+            if version_utils.IS_28:
+                space.show_region_tool_props = False
             self.init = True
             prefs = version_utils.get_preferences()
             tex_folder = prefs.textures_folder_auto
             if tex_folder:
                 tex_folder = bytes(tex_folder, encoding='utf-8')
-                if not params.directory.startswith(tex_folder):
+                if not params.directory.startswith(str(tex_folder)):
                     params.directory = tex_folder
 
     @utils.set_cursor_state
