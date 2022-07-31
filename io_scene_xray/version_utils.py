@@ -367,3 +367,10 @@ def link_object_to_collection(obj, collection):
     for child in obj.children:
         link_object_to_collection(child, collection)
     collection.objects.link(obj)
+
+
+def support_principled_shader():
+    if bpy.app.version[0] >= 2 and bpy.app.version[1] >= 79:
+        return True
+    else:
+        return False

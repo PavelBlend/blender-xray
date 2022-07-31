@@ -23,6 +23,19 @@ else:
         ('ALPHA_SORT', 'Alpha Sort', ''),
         ('ALPHA_ANTIALIASING', 'Alpha Anti-Aliasing', '')
     )
+if version_utils.support_principled_shader:
+    shader_items = (
+        ('ShaderNodeBsdfDiffuse', 'Diffuse', ''),
+        ('ShaderNodeEmission', 'Emission', ''),
+        ('ShaderNodeBsdfPrincipled', 'Principled', '')
+    )
+    default_shader = 'ShaderNodeBsdfPrincipled'
+else:
+    shader_items = (
+        ('ShaderNodeBsdfDiffuse', 'Diffuse', ''),
+        ('ShaderNodeEmission', 'Emission', '')
+    )
+    default_shader = 'ShaderNodeBsdfDiffuse'
 op_props = {
     'mode': material.mode_prop,
     # alpha
@@ -47,7 +60,12 @@ op_props = {
     'blend_mode': bpy.props.EnumProperty(
         name='Blend Mode', default='OPAQUE', items=blend_mode_items
     ),
-    'blend_mode_change': bpy.props.BoolProperty(name='Change Blend Mode', default=True),
+    'blend_mode_change': bpy.props.BoolProperty(name='Change Blend Mode', default=False),
+    # shader
+    'shader_type': bpy.props.EnumProperty(
+        name='Shader Type', default=default_shader, items=shader_items
+    ),
+    'replace_shader': bpy.props.BoolProperty(name='Replace Shader', default=False),
 
     # internal properties
     'shadeless_change': bpy.props.BoolProperty(name='Change Shadeless', default=True),
@@ -128,6 +146,7 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
             self.draw_prop(column, 'viewport_roughness_change', 'viewport_roughness_value')
             self.draw_prop(column, 'alpha_change', 'alpha_value')
             self.draw_prop(column, 'blend_mode_change', 'blend_mode')
+            self.draw_prop(column, 'replace_shader', 'shader_type')
         if is_internal:
             self.draw_prop(column, 'diffuse_intensity_change', 'diffuse_intensity_value')
             self.draw_prop(column, 'specular_intensity_change', 'specular_intensity_value')
@@ -167,6 +186,38 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
                     self.report({'WARNING'}, 'Material "{}" has no shader.'.format(mat.name))
                     continue
                 shader_node = links[0].from_node
+                if self.replace_shader and self.shader_type != shader_node.bl_idname:
+                    new_shader = mat.node_tree.nodes.new(self.shader_type)
+                    new_shader.location = shader_node.location
+                    new_shader.label = shader_node.label
+                    new_shader.color = shader_node.color
+                    new_shader.select = shader_node.select
+                    new_shader.use_custom_color = shader_node.use_custom_color
+                    color_socket = new_shader.inputs.get('Base Color')
+                    if not color_socket:
+                        color_socket = new_shader.inputs.get('Color')
+                    if color_socket:
+                        old_input = shader_node.inputs.get('Base Color')
+                        if not old_input:
+                            old_input = shader_node.inputs.get('Color')
+                        if old_input:
+                            color_input = old_input.links[0].from_socket
+                            mat.node_tree.links.new(
+                                color_input,
+                                color_socket
+                            )
+                    if self.shader_type != 'ShaderNodeEmission':
+                        bsdf_socket = new_shader.outputs.get('BSDF')
+                    else:
+                        bsdf_socket = new_shader.outputs.get('Emission')
+                    output_surface = output_node.inputs.get('Surface')
+                    if bsdf_socket and output_surface:
+                        mat.node_tree.links.new(
+                            output_surface,
+                            bsdf_socket
+                        )
+                    mat.node_tree.nodes.remove(shader_node)
+                    shader_node = new_shader
                 if shader_node.type != 'BSDF_PRINCIPLED':
                     self.report({'WARNING'}, 'Material "{}" has no principled shader.'.format(mat.name))
                     continue
