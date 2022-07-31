@@ -207,17 +207,26 @@ shader_keys = {
     'EMISSION': ['ShaderNodeEmission', 'Color', 'Emission']
 }
 
-convert_materials_shader_type_items = (
-    ('PRINCIPLED', 'Principled', ''),
-    ('DIFFUSE', 'Diffuse', ''),
-    ('EMISSION', 'Emission', '')
-)
+if version_utils.support_principled_shader():
+    convert_materials_shader_type_items = (
+        ('PRINCIPLED', 'Principled', ''),
+        ('DIFFUSE', 'Diffuse', ''),
+        ('EMISSION', 'Emission', '')
+    )
+    default_shader = 'PRINCIPLED'
+else:
+    convert_materials_shader_type_items = (
+        ('DIFFUSE', 'Diffuse', ''),
+        ('EMISSION', 'Emission', '')
+    )
+    default_shader = 'DIFFUSE'
+
 op_props = {
     'mode': mode_prop,
     'shader_type': bpy.props.EnumProperty(
         name='Shader',
         items=convert_materials_shader_type_items,
-        default='PRINCIPLED'
+        default=default_shader
     )
 }
 
@@ -540,13 +549,14 @@ class XRAY_OT_create_material(bpy.types.Operator):
             space = context.space_data
             params = space.params
             params.display_type = 'THUMBNAIL'
-            space.show_region_tool_props = False
+            if version_utils.IS_28:
+                space.show_region_tool_props = False
             self.init = True
             prefs = version_utils.get_preferences()
             tex_folder = prefs.textures_folder_auto
             if tex_folder:
                 tex_folder = bytes(tex_folder, encoding='utf-8')
-                if not params.directory.startswith(tex_folder):
+                if not params.directory.startswith(str(tex_folder)):
                     params.directory = tex_folder
 
     @utils.set_cursor_state
