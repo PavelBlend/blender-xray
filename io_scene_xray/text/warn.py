@@ -10,6 +10,9 @@ mat_many_tex = 'material has more than one texture'
 use_shader_tex = mat_many_tex + '. Shader texture exported'
 use_active_tex = mat_many_tex + '. Active texture exported'
 use_selected_tex = mat_many_tex + '. Selected texture exported'
+info_title = 'info'
+# update addon
+new_update_available = 'new update of blender-xray addon is available'
 # anm export
 anm_rot_mode = 'object has rotation mode other than YXZ. Animation has been baked'
 # anm import

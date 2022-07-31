@@ -132,6 +132,7 @@ translations_table = (
     # warrnings
 
     # general
+    (text.warn.info_title, 'информация'),
     (text.warn.full_log, 'Полный лог хранится в текстовом файле "{0}" (в окне Text Editor)'),
     (text.warn.tex_not_found, 'файл текстуры не найден'),
     (text.warn.env_tex, 'материал имеет некорректный тип ноды изображения (Environment Texture)'),
@@ -142,6 +143,7 @@ translations_table = (
     (text.warn.use_shader_tex, mat_many_tex + '. Экспортирована текстура шейдера'),
     (text.warn.use_active_tex, mat_many_tex + '. Экспортирована активная текстура'),
     (text.warn.use_selected_tex, mat_many_tex + '. Экспортирована выделенная текстура'),
+    (text.warn.new_update_available, 'доступно новое обновление аддона blender-xray'),
     # anm export
     (text.warn.anm_rot_mode, 'объект имеет режим вращения отличающийся от YXZ. Анимация была запечена'),
     # anm import
