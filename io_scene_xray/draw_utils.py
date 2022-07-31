@@ -31,13 +31,25 @@ def draw_fmt_ver_prop(layout, owner, prop, lay_type='SPLIT', use_row=True):
     prop_lay.prop(owner, prop, expand=True)
 
 
-def show_message(message_text, elements, message_type, icon):
+def show_message(
+        message_text,
+        elements,
+        message_type,
+        icon,
+        operator=None,
+        operator_props=None
+    ):
+
     message = text.get_text(message_text).capitalize()
 
     def show_message_menu(self, context):
         self.layout.label(text=message + ':')
         for element in elements:
             self.layout.label(text=' ' * 4 + element)
+        if operator:
+            op = self.layout.operator(operator)
+            for prop_name, prop_value in operator_props.items():
+                setattr(op, prop_name, prop_value)
 
     if not bpy.app.background:
         bpy.context.window_manager.popup_menu(
