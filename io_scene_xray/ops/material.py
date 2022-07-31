@@ -207,17 +207,26 @@ shader_keys = {
     'EMISSION': ['ShaderNodeEmission', 'Color', 'Emission']
 }
 
-convert_materials_shader_type_items = (
-    ('PRINCIPLED', 'Principled', ''),
-    ('DIFFUSE', 'Diffuse', ''),
-    ('EMISSION', 'Emission', '')
-)
+if version_utils.support_principled_shader():
+    convert_materials_shader_type_items = (
+        ('PRINCIPLED', 'Principled', ''),
+        ('DIFFUSE', 'Diffuse', ''),
+        ('EMISSION', 'Emission', '')
+    )
+    default_shader = 'PRINCIPLED'
+else:
+    convert_materials_shader_type_items = (
+        ('DIFFUSE', 'Diffuse', ''),
+        ('EMISSION', 'Emission', '')
+    )
+    default_shader = 'DIFFUSE'
+
 op_props = {
     'mode': mode_prop,
     'shader_type': bpy.props.EnumProperty(
         name='Shader',
         items=convert_materials_shader_type_items,
-        default='PRINCIPLED'
+        default=default_shader
     )
 }
 

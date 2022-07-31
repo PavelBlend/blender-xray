@@ -23,7 +23,7 @@ else:
         ('ALPHA_SORT', 'Alpha Sort', ''),
         ('ALPHA_ANTIALIASING', 'Alpha Anti-Aliasing', '')
     )
-if version_utils.support_principled_shader:
+if version_utils.support_principled_shader():
     shader_items = (
         ('ShaderNodeBsdfDiffuse', 'Diffuse', ''),
         ('ShaderNodeEmission', 'Emission', ''),
