@@ -1,8 +1,10 @@
 # standart modules
 import os
+import shutil
 import json
 import requests
 import tempfile
+import zipfile
 
 # blender modules
 import bpy
@@ -39,7 +41,7 @@ def check_for_updates():
             (last_tag_str, ),
             text.get_text(text.warn.info_title).capitalize(),
             'INFO',
-            operator=XRAY_OT_download_update.bl_idname,
+            operator=XRAY_OT_install_update.bl_idname,
             operator_props={'download_url': download_url, }
         )
     else:
@@ -67,11 +69,10 @@ op_props = {
 }
 
 
-class XRAY_OT_download_update(bpy.types.Operator):
+class XRAY_OT_install_update(bpy.types.Operator):
     bl_idname = 'io_scene_xray.download_update'
     bl_label = 'Download Update?'
     bl_description = 'Download Addon Last Release'
-    bl_options = {'REGISTER', 'UNDO'}
 
     props = op_props
 
@@ -86,11 +87,17 @@ class XRAY_OT_download_update(bpy.types.Operator):
         file_path = os.path.join(directory, file_name)
         with open(file_path, 'wb') as file:
             file.write(addon_zip_file.content)
-        os.startfile(file_path)
+        addon_dir = os.path.dirname(os.path.dirname(__file__))
+        shutil.rmtree(addon_dir)
+        addons_dir = os.path.dirname(addon_dir)
+        with zipfile.ZipFile(file_path) as file:
+            file.extractall(addons_dir)
+        os.remove(file_path)
+        self.report({'INFO'}, 'Installed!')
         return {'FINISHED'}
 
 
-classes = (XRAY_OT_check_update, XRAY_OT_download_update)
+classes = (XRAY_OT_check_update, XRAY_OT_install_update)
 
 
 def register():
