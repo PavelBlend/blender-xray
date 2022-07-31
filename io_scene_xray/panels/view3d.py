@@ -24,6 +24,28 @@ from .. import skl
 from .. import part
 
 
+class XRAY_PT_update(bpy.types.Panel):
+    bl_label = 'Update'
+    bl_space_type = 'VIEW_3D'
+    bl_category = ui.base.CATEGORY
+    bl_options = {'DEFAULT_CLOSED'}
+    if version_utils.IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    def draw_header(self, context):
+        icon = icons.get_stalker_icon()
+        self.layout.label(icon_value=icon)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(
+            ops.update.XRAY_OT_check_update.bl_idname,
+            icon='WORLD'
+        )
+
+
 class XRAY_PT_skls_animations(ui.base.XRayPanel):
     'Contains open .skls file operator, animations list'
     bl_space_type = 'VIEW_3D'
@@ -542,6 +564,7 @@ classes = (
     XRAY_PT_custom_props,
     XRAY_PT_armature_tools,
     XRAY_PT_rig,
+    XRAY_PT_update,
     XRAY_PT_import_operators,
     XRAY_PT_export_operators
 )
