@@ -144,7 +144,8 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
             self.draw_prop(column, 'specular_change', 'specular_value')
             self.draw_prop(column, 'roughness_change', 'roughness_value')
             self.draw_prop(column, 'viewport_roughness_change', 'viewport_roughness_value')
-            self.draw_prop(column, 'alpha_change', 'alpha_value')
+            if version_utils.IS_28:
+                self.draw_prop(column, 'alpha_change', 'alpha_value')
             self.draw_prop(column, 'blend_mode_change', 'blend_mode')
             self.draw_prop(column, 'replace_shader', 'shader_type')
         if is_internal:
