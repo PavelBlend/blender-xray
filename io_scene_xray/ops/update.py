@@ -105,4 +105,5 @@ def register():
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_OT_check_update)
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)
