@@ -4,6 +4,11 @@ import unittest
 import sys
 
 cov = coverage.Coverage()
+try:
+    cov.load()
+except:
+    pass
+cov.combine(keep=True)
 cov.start()
 
 suite = unittest.defaultTestLoader.discover('.')
