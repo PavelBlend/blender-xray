@@ -1,3 +1,5 @@
+import re
+
 from tests import utils
 
 import bpy
@@ -10,7 +12,8 @@ class TestDmExport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_export.dm_file(
-            detail_model='tdm1', filepath=self.outpath('test.dm'),
+            detail_model='tdm1',
+            filepath=self.outpath('test.dm'),
             texture_name_from_image_path=False
         )
 
@@ -18,6 +21,31 @@ class TestDmExport(utils.XRayTestCase):
         self.assertOutputFiles({
             'test.dm'
         })
+
+    def test_vertices_count_limit(self):
+        # Arrange
+        self._create_dm_objects()
+
+        # Subdivide geometry
+        obj = bpy.data.objects['tdm1']
+        utils.set_active_object(obj)
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.reveal()
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.subdivide(number_cuts=70)
+        bpy.ops.mesh.subdivide(number_cuts=2)
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        # Act
+        bpy.ops.xray_export.dm_file(
+            detail_model='tdm1',
+            filepath=self.outpath('test_vertices_count_limit.dm'),
+            texture_name_from_image_path=False
+        )
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('Mesh-object has too many vertices')
+        )
 
     def _create_dm_objects(self, create_uv=True, create_material=True):
         bmesh = utils.create_bmesh((
