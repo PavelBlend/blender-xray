@@ -186,7 +186,7 @@ def fix_ensure_lookup_table(bmv):
 def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_normals=False, mods=None):
     mesh = bmesh.new()
     temp_obj = None
-    if split_normals and version_utils.IS_279:
+    if split_normals and version_utils.has_set_normals_from_faces():
         temp_mesh = bpy_obj.data.copy()
         temp_obj = bpy_obj.copy()
         temp_obj.data = temp_mesh
@@ -201,6 +201,8 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
         version_utils.link_object(temp_obj)
         version_utils.set_active_object(temp_obj)
         bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.reveal()
+        bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.set_normals_from_faces()
         bpy.ops.object.mode_set(mode='OBJECT')
         exportable_obj = temp_obj

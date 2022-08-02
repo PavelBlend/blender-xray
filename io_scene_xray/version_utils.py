@@ -7,48 +7,31 @@ import bmesh
 
 
 def is_blender_2_77():
-    if bpy.app.version[0] == 2 and bpy.app.version[1] <= 77:
-        return True
-    else:
-        return False
-
-
-def is_blender_2_79():
-    if bpy.app.version[0] == 2 and bpy.app.version[1] >= 79:
-        return True
-    else:
-        return False
+    return bpy.app.version <= (2, 77, 0)
 
 
 def is_blender_2_80():
     return bpy.app.version >= (2, 80, 0)
 
 
-def is_blender_2_81():
-    if bpy.app.version[0] == 2 and bpy.app.version[1] >= 81:
-        return True
-    else:
-        return False
-
-
 def is_blender_2_93():
-    if bpy.app.version[0] == 2 and bpy.app.version[1] >= 93:
-        return True
-    else:
-        return False
+    return bpy.app.version >= (2, 93, 0)
 
 
 def is_blender_3():
-    if bpy.app.version[0] == 3:
-        return True
-    else:
-        return False
+    return bpy.app.version >= (3, 0, 0)
+
+
+def support_principled_shader():
+    return bpy.app.version >= (2, 79, 0)
+
+
+def has_set_normals_from_faces():
+    return bpy.app.version >= (2, 79, 0)
 
 
 IS_277 = is_blender_2_77()
-IS_279 = is_blender_2_79()
 IS_28 = is_blender_2_80()
-IS_281 = is_blender_2_81()
 IS_293 = is_blender_2_93()
 IS_3 = is_blender_3()
 
@@ -243,7 +226,7 @@ def get_multiply():
 
 
 def get_prop_name(prop):
-    if IS_293 or IS_3:
+    if IS_293:
         name = prop.keywords.get('name', '')
     else:
         name = prop[1].get('name', '')
@@ -367,15 +350,3 @@ def link_object_to_collection(obj, collection):
     for child in obj.children:
         link_object_to_collection(child, collection)
     collection.objects.link(obj)
-
-
-def support_principled_shader():
-    if bpy.app.version[0] == 2:
-        if bpy.app.version[1] >= 79:
-            return True
-        else:
-            return False
-    elif bpy.app.version[0] > 2:
-        return True
-    else:
-        return False
