@@ -2,8 +2,8 @@
 import bpy
 
 # addon modules
-from . import version_utils
-from . import text
+from . import version
+from .. import text
 
 
 def draw_files_count(operator):
@@ -18,7 +18,7 @@ def draw_files_count(operator):
 
 def draw_fmt_ver_prop(layout, owner, prop, lay_type='SPLIT', use_row=True):
     if lay_type == 'SPLIT':
-        lay = version_utils.layout_split(layout, 0.5)
+        lay = version.layout_split(layout, 0.5)
     elif lay_type == 'ROW':
         lay = layout.row()
     else:
@@ -60,3 +60,13 @@ def show_message(
             title=message_type.capitalize(),
             icon=icon
         )
+
+
+def build_op_label(operator, compact=False):
+    # build operator label
+    if compact:
+        prefix = ''
+    else:
+        prefix = 'X-Ray '
+    label = '{0}{1} ({2})'.format(prefix, operator.text, operator.ext)
+    return label

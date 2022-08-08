@@ -6,8 +6,7 @@ import bpy
 
 # addon modules
 from .. import xray_ltx
-from .. import draw_utils
-from .. import version_utils
+from .. import utils
 from .. import menus
 from .. import text
 from .. import hotkeys
@@ -50,7 +49,7 @@ def _auto_path(prefs, self_name, path_suffix, checker):
         try:
             fs = xray_ltx.StalkerLtxParser(prefs.fs_ltx_file)
         except:
-            draw_utils.show_message(
+            utils.draw.show_message(
                 text.get_text(text.error.ltx_invalid_syntax),
                 (prefs.fs_ltx_file, ),
                 text.get_text(text.error.error_title),
@@ -136,7 +135,7 @@ def update_paths(prefs, context):
     if not_found_paths:
         not_found_paths = list(not_found_paths)
         not_found_paths.sort()
-        draw_utils.show_message(
+        utils.draw.show_message(
             text.get_text(text.error.file_folder_not_found),
             not_found_paths,
             text.get_text(text.error.error_title),
@@ -372,7 +371,7 @@ xray_custom_properties.update(custom_action_props)
 class XRayPrefsCustomProperties(bpy.types.PropertyGroup):
     props = xray_custom_properties
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -388,7 +387,7 @@ class XRAY_OT_add_keymap(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -406,7 +405,7 @@ key_map_props = {
 class XRayKeyMap(bpy.types.PropertyGroup):
     props = key_map_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -606,7 +605,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

@@ -5,10 +5,8 @@ import rna_keymap_ui
 from . import ops
 from . import props
 from . import preset
-from .. import version_utils
-from .. import hotkeys
 from .. import utils
-from .. import draw_utils
+from .. import hotkeys
 
 
 path_props_names = {
@@ -24,7 +22,7 @@ path_props_names = {
 
 
 def get_split(layout):
-    return version_utils.layout_split(layout, 0.3)
+    return utils.version.layout_split(layout, 0.3)
 
 
 def prop_bool(layout, data, prop):
@@ -68,12 +66,12 @@ def draw_presets(prefs):
     row.operator(
         preset.XRAY_OT_add_prefs_preset.bl_idname,
         text='',
-        icon=version_utils.get_icon('ZOOMIN')
+        icon=utils.version.get_icon('ZOOMIN')
     )
     row.operator(
         preset.XRAY_OT_add_prefs_preset.bl_idname,
         text='',
-        icon=version_utils.get_icon('ZOOMOUT')
+        icon=utils.version.get_icon('ZOOMOUT')
     ).remove_active = True
 
 
@@ -98,13 +96,13 @@ def draw_defaults(prefs):
         # import object props
         box = layout.box()
         box.label(text='Import:')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'sdk_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'sdk_version', lay_type='ROW')
         box.prop(prefs, 'object_motions_import')
         box.prop(prefs, 'object_mesh_split_by_mat')
         # export object props
         box = layout.box()
         box.label(text='Export:')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'export_object_sdk_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'export_object_sdk_version', lay_type='ROW')
         row = box.row()
         row.label(text='Smoothing:')
         row.prop(prefs, 'smoothing_out_of', expand=True)
@@ -119,7 +117,7 @@ def draw_defaults(prefs):
         # export
         box = layout.box()
         box.label(text='Export:')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'anm_format_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'anm_format_version', lay_type='ROW')
     elif prefs.defaults_category == 'SKLS':
         box = layout.box()
         box.label(text='Import:')
@@ -141,12 +139,12 @@ def draw_defaults(prefs):
         box.label(text='Import:')
         box.prop(prefs, 'details_models_in_a_row')
         box.prop(prefs, 'load_slots')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'details_format', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'details_format', lay_type='ROW')
         # export
         box = layout.box()
         box.label(text='Export:')
         box.prop(prefs, 'details_texture_names_from_path')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'format_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'format_version', lay_type='ROW')
     elif prefs.defaults_category == 'DM':
         box = layout.box()
         box.label(text='Export:')
@@ -180,12 +178,12 @@ def draw_defaults(prefs):
     elif prefs.defaults_category == 'SCENE':
         box = layout.box()
         box.label(text='Import:')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'scene_selection_sdk_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'scene_selection_sdk_version', lay_type='ROW')
         box.prop(prefs, 'scene_selection_mesh_split_by_mat')
     elif prefs.defaults_category == 'PART':
         box = layout.box()
         box.label(text='Import:')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'part_sdk_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'part_sdk_version', lay_type='ROW')
         box.prop(prefs, 'part_mesh_split_by_mat')
 
 
@@ -335,7 +333,7 @@ def draw_custom_props(prefs):
 
 def draw_others(prefs):
     layout = prefs.layout
-    split = version_utils.layout_split(layout, 0.4)
+    split = utils.version.layout_split(layout, 0.4)
     split.label(text='Custom Owner Name:')
     split.prop(prefs, 'custom_owner_name', text='')
     prop_bool(layout, prefs, 'compact_menus')

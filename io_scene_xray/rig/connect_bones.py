@@ -3,9 +3,8 @@ import bpy
 import mathutils
 
 # addon modules
-from .. import version_utils
-from .. import text
 from .. import utils
+from .. import text
 
 
 props = {
@@ -92,12 +91,12 @@ class XRAY_OT_create_connected_bones(bpy.types.Operator):
     bl_label = 'Create Connected Bones'
     bl_options = {'REGISTER', 'UNDO'}
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
-        split = version_utils.layout_split(self.layout, 0.35)
+        split = utils.version.layout_split(self.layout, 0.35)
         split.label(text='Source Armature:')
         split.prop_search(self, 'source_armature', bpy.data, 'objects', text='')
 
@@ -125,10 +124,10 @@ class XRAY_OT_create_connected_bones(bpy.types.Operator):
         arm_obj.data = arm
         arm_obj.name = src_arm_obj.name + NAME_SUFFIX
         arm.name = src_arm.name + NAME_SUFFIX
-        version_utils.link_object(arm_obj)
+        utils.version.link_object(arm_obj)
         bpy.ops.object.select_all(action='DESELECT')
-        version_utils.select_object(arm_obj)
-        version_utils.set_active_object(arm_obj)
+        utils.version.select_object(arm_obj)
+        utils.version.set_active_object(arm_obj)
         # clear pose bone transforms
         bpy.ops.object.mode_set(mode='POSE')
         for bone in arm_obj.pose.bones:
@@ -147,9 +146,9 @@ class XRAY_OT_create_connected_bones(bpy.types.Operator):
         connect_bones(arm, mesh_objects)
         bpy.ops.object.mode_set(mode='OBJECT')
         # link bones
-        version_utils.set_active_object(src_arm_obj)
+        utils.version.set_active_object(src_arm_obj)
         bpy.ops.io_scene_xray.link_bones(armature=arm_obj.name)
-        version_utils.set_active_object(arm_obj)
+        utils.version.set_active_object(arm_obj)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -158,7 +157,7 @@ class XRAY_OT_create_connected_bones(bpy.types.Operator):
 
 
 def register():
-    version_utils.assign_props([(props, XRAY_OT_create_connected_bones), ])
+    utils.version.assign_props([(props, XRAY_OT_create_connected_bones), ])
     bpy.utils.register_class(XRAY_OT_create_connected_bones)
 
 

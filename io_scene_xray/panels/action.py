@@ -3,21 +3,21 @@ import bpy
 
 # addon modules
 from .. import ui
-from .. import version_utils
+from .. import utils
 from .. import skl
 from .. import ops
 
 
 class XRAY_PT_action(ui.base.XRayPanel):
     bl_category = ui.base.CATEGORY
-    bl_space_type = version_utils.get_action_panel_space()
+    bl_space_type = utils.version.get_action_panel_space()
     bl_region_type = 'UI'
     bl_context = 'object'
     bl_label = ui.base.build_label('Action')
 
     @classmethod
     def poll(cls, context):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_object_import or

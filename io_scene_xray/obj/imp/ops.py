@@ -11,10 +11,7 @@ from .. import imp
 from ... import icons
 from ... import log
 from ... import utils
-from ... import draw_utils
-from ... import version_utils
 from ... import ie_props
-from ... import ie_utils
 
 
 import_props = {
@@ -44,14 +41,14 @@ class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHel
     filename_ext = filename_ext
     props = import_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         textures_folder = preferences.textures_folder_auto
         objects_folder = preferences.objects_folder_auto
         if not textures_folder:
@@ -71,7 +68,7 @@ class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHel
             import_context.before_import_file()
             try:
                 imp.import_file(file_path, import_context)
-            except utils.AppError as err:
+            except log.AppError as err:
                 import_context.errors.append(err)
         for err in import_context.errors:
             log.err(err)
@@ -80,14 +77,14 @@ class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHel
     def draw(self, context):
         layout = self.layout
 
-        draw_utils.draw_files_count(self)
-        draw_utils.draw_fmt_ver_prop(layout, self, 'fmt_version')
+        utils.draw.draw_files_count(self)
+        utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
 
         layout.prop(self, 'import_motions')
         layout.prop(self, 'mesh_split_by_materials')
 
     def invoke(self, context, event):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         self.fmt_version = preferences.sdk_version
         self.import_motions = preferences.object_motions_import
         self.mesh_split_by_materials = preferences.object_mesh_split_by_mat
@@ -95,7 +92,7 @@ class XRAY_OT_import_object(ie_props.BaseOperator, bpy_extras.io_utils.ImportHel
 
 
 def register():
-    version_utils.register_operators(XRAY_OT_import_object)
+    utils.version.register_operators(XRAY_OT_import_object)
 
 
 def unregister():

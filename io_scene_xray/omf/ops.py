@@ -14,7 +14,6 @@ from .. import log
 from .. import contexts
 from .. import ie_props
 from .. import ui
-from .. import version_utils
 
 
 class ImportOmfContext(
@@ -51,7 +50,7 @@ motion_props = {
 class Motion(bpy.types.PropertyGroup):
     props = motion_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -89,7 +88,7 @@ class XRAY_OT_import_omf(
 
     __parsed_file_name = None
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -117,14 +116,14 @@ class XRAY_OT_import_omf(
                 }
             try:
                 imp.import_file(import_context)
-            except utils.AppError as err:
+            except log.AppError as err:
                 import_context.errors.append(err)
         for err in import_context.errors:
             log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         self.import_motions = preferences.omf_import_motions
         self.import_bone_parts = preferences.import_bone_parts
         self.add_actions_to_motion_list = preferences.omf_add_actions_to_motion_list
@@ -228,7 +227,7 @@ class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
     props = export_props
     obj = None
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -250,7 +249,7 @@ class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
     def execute(self, context):
         active_object = context.object
         if self.obj:
-            version_utils.set_active_object(self.obj)
+            utils.version.set_active_object(self.obj)
         else:
             self.obj = active_object
         export_context = ExportOmfContext()
@@ -307,15 +306,15 @@ class XRAY_OT_export_omf(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
         export_context.need_bone_groups = need_bone_groups
         try:
             exp.export_omf_file(export_context)
-        except utils.AppError as err:
+        except log.AppError as err:
             export_context.errors.append(err)
-        version_utils.set_active_object(active_object)
+        utils.version.set_active_object(active_object)
         for err in export_context.errors:
             log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         self.export_mode = preferences.omf_export_mode
         self.export_bone_parts = preferences.omf_export_bone_parts
         self.export_motions = preferences.omf_motions_export
@@ -364,7 +363,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

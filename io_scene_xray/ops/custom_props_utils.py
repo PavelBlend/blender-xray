@@ -4,7 +4,6 @@ import bpy
 # addon modules
 from .. import prefs
 from .. import utils
-from .. import version_utils
 
 
 def find_data(operator, context):
@@ -134,7 +133,7 @@ class XRAY_OT_set_custom_to_xray_props(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -146,7 +145,7 @@ class XRAY_OT_set_custom_to_xray_props(bpy.types.Operator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         stgs = preferences.custom_props    # settings
         objects, meshes, materials, armatures, actions = find_data(self, context)
         # object
@@ -249,7 +248,7 @@ class XRAY_OT_set_xray_to_custom_props(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -257,7 +256,7 @@ class XRAY_OT_set_xray_to_custom_props(bpy.types.Operator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         stgs = preferences.custom_props    # settings
         objects, meshes, materials, armatures, actions = find_data(self, context)
         # object
@@ -355,7 +354,7 @@ class XRAY_OT_remove_xray_custom_props(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -363,7 +362,7 @@ class XRAY_OT_remove_xray_custom_props(bpy.types.Operator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         objects, meshes, materials, armatures, actions = find_data(self, context)
         bones = set()
         for armature in armatures:
@@ -404,7 +403,7 @@ class XRAY_OT_remove_all_custom_props(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -450,7 +449,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

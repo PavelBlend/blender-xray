@@ -12,8 +12,6 @@ from .. import contexts
 from .. import icons
 from .. import log
 from .. import ie_props
-from .. import version_utils
-from .. import draw_utils
 from .. import obj
 
 
@@ -47,13 +45,13 @@ class XRAY_OT_import_part(ie_props.BaseOperator):
     filename_ext = filename_ext
     props = import_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout
-        draw_utils.draw_fmt_ver_prop(layout, self, 'fmt_version')
+        utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
         layout.prop(self, 'mesh_split_by_materials')
 
     @utils.execute_with_logger
@@ -62,7 +60,7 @@ class XRAY_OT_import_part(ie_props.BaseOperator):
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         textures_folder = preferences.textures_folder_auto
         objects_folder = preferences.objects_folder_auto
         import_context = ImportPartContext()
@@ -76,14 +74,14 @@ class XRAY_OT_import_part(ie_props.BaseOperator):
             file_path = os.path.join(self.directory, file.name)
             try:
                 imp.import_file(file_path, import_context)
-            except utils.AppError as err:
+            except log.AppError as err:
                 import_context.errors.append(err)
         for err in import_context.errors:
             log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         self.mesh_split_by_materials = preferences.part_mesh_split_by_mat
         self.fmt_version = preferences.part_sdk_version
         context.window_manager.fileselect_add(self)
@@ -91,7 +89,7 @@ class XRAY_OT_import_part(ie_props.BaseOperator):
 
 
 def register():
-    version_utils.register_operators(XRAY_OT_import_part)
+    utils.version.register_operators(XRAY_OT_import_part)
 
 
 def unregister():

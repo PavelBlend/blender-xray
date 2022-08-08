@@ -7,7 +7,6 @@ import bpy
 # addon modules
 from . import log
 from . import utils
-from . import version_utils
 
 
 # base context
@@ -15,7 +14,7 @@ class Context:
     def __init__(self):
         self.filepath = None
         self.operator = None
-        self.multiply = version_utils.get_multiply()
+        self.multiply = utils.version.get_multiply()
         self.version = utils.plugin_version_number()
         self.errors = []
 
@@ -86,7 +85,7 @@ class ExportContext(Context):
 class ExportMeshContext(ExportContext):
     def __init__(self):
         super().__init__()
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         self.textures_folder = preferences.textures_folder_auto
         self.texname_from_path = None
 

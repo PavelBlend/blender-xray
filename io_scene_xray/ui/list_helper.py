@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from .. import version_utils
+from .. import utils
 
 
 _list_op_props = {
@@ -16,7 +16,7 @@ class XRAY_OT_list(bpy.types.Operator):
     bl_idname = 'io_scene_xray.list'
     bl_label = ''
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in _list_op_props.items():
             exec('{0} = _list_op_props.get("{0}")'.format(prop_name))
 
@@ -51,10 +51,10 @@ def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_fu
         operator.index = active_propname
 
     layout.context_pointer_set(XRAY_OT_list.bl_idname + '.data', dataptr)
-    operator('add', version_utils.get_icon('ZOOMIN'))
+    operator('add', utils.version.get_icon('ZOOMIN'))
     collection = getattr(dataptr, propname)
     index = getattr(dataptr, active_propname)
-    operator('remove', version_utils.get_icon('ZOOMOUT'), enabled=(index >= 0) and (index < len(collection)))
+    operator('remove', utils.version.get_icon('ZOOMOUT'), enabled=(index >= 0) and (index < len(collection)))
     operator('move_up', 'TRIA_UP', enabled=(index > 0) and (index < len(collection)))
     operator('move_down', 'TRIA_DOWN', enabled=(index >= 0) and (index < len(collection) - 1))
     if custom_elements_func:
@@ -62,7 +62,7 @@ def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_fu
 
 
 def register():
-    version_utils.assign_props([(_list_op_props, XRAY_OT_list), ])
+    utils.version.assign_props([(_list_op_props, XRAY_OT_list), ])
     bpy.utils.register_class(XRAY_OT_list)
 
 

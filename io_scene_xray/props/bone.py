@@ -12,7 +12,7 @@ from . import utility
 from .. import viewport
 from .. import ops
 from .. import edit_helpers
-from .. import version_utils
+from .. import utils
 
 
 shape_properties = {
@@ -46,7 +46,7 @@ shape_properties = {
 class ShapeProperties(bpy.types.PropertyGroup):
     _CURVER_DATA = 1
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in shape_properties.items():
             exec('{0} = shape_properties.get("{0}")'.format(prop_name))
 
@@ -83,7 +83,7 @@ class ShapeProperties(bpy.types.PropertyGroup):
         typ = self.type
         if typ == '1':  # box
             rot = self.box_rot
-            return version_utils.multiply(
+            return utils.version.multiply(
                 mathutils.Matrix.Translation(self.box_trn),
                 mathutils.Matrix((rot[0:3], rot[3:6], rot[6:9])).transposed().to_4x4()
             )
@@ -92,7 +92,7 @@ class ShapeProperties(bpy.types.PropertyGroup):
         if typ == '3':  # cylinder
             v_dir = mathutils.Vector(self.cyl_dir)
             q_rot = v_dir.rotation_difference((0, 1, 0))
-            return version_utils.multiply(
+            return utils.version.multiply(
                 mathutils.Matrix.Translation(self.cyl_pos),
                 q_rot.to_matrix().transposed().to_4x4()
             )
@@ -105,7 +105,7 @@ break_properties = {
 
 
 class BreakProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in break_properties.items():
             exec('{0} = break_properties.get("{0}")'.format(prop_name))
 
@@ -162,7 +162,7 @@ ik_joint_properties = {
 
 
 class IKJointProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in ik_joint_properties.items():
             exec('{0} = ik_joint_properties.get("{0}")'.format(prop_name))
 
@@ -174,7 +174,7 @@ mass_properties = {
 
 
 class MassProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in mass_properties.items():
             exec('{0} = mass_properties.get("{0}")'.format(prop_name))
 
@@ -205,21 +205,21 @@ xray_bone_properties = {
 class XRayBoneProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Bone
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in xray_bone_properties.items():
             exec('{0} = xray_bone_properties.get("{0}")'.format(prop_name))
 
     def ondraw_postview(self, obj_arm, bone):
         # draw limits
         arm_xray = obj_arm.data.xray
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             hide_global = obj_arm.hide_viewport
             view_layer = bpy.context.view_layer
             hide_viewport = obj_arm.hide_get(view_layer=view_layer)
             hide = hide_global or hide_viewport
         else:
             hide = obj_arm.hide
-        multiply = version_utils.get_multiply()
+        multiply = utils.version.get_multiply()
 
         prev_line_width = bgl.Buffer(bgl.GL_FLOAT, [1])
         bgl.glGetFloatv(bgl.GL_LINE_WIDTH, prev_line_width)
@@ -233,7 +233,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         exportable = bone.xray.exportable
         draw_overlays = not hided and is_pose and exportable
 
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         # set color
         if is_pose:
             active_bone = bpy.context.active_bone
@@ -260,7 +260,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             if bone.select and has_limits and is_active_object:
                 draw_joint_limits = viewport.get_draw_joint_limits()
 
-                if version_utils.IS_28:
+                if utils.version.IS_28:
                     gpu.matrix.push()
                 else:
                     bgl.glPushMatrix()
@@ -279,7 +279,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                     multiply(mat_rotate, mat_rotate_parent),
                     mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
                 )
-                if version_utils.IS_28:
+                if utils.version.IS_28:
                     gpu.matrix.multiply_matrix(mat)
                 else:
                     bgl.glMultMatrixf(
@@ -340,7 +340,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                         obj_arm.matrix_world,
                         bone_matrix
                     )
-                    if version_utils.IS_28:
+                    if utils.version.IS_28:
                         gpu.matrix.pop()
                         gpu.matrix.push()
                         gpu.matrix.multiply_matrix(slider_mat)
@@ -353,7 +353,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                     draw_slider_slide_limits = viewport.get_draw_slider_slide_limits()
                     draw_slider_slide_limits(limits[0], limits[1], color)
 
-                if version_utils.IS_28:
+                if utils.version.IS_28:
                     gpu.matrix.pop()
                 else:
                     bgl.glPopMatrix()
@@ -365,7 +365,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         )
         bmat = mat
 
-        if not version_utils.IS_28:
+        if not utils.version.IS_28:
             bgl.glColor4f(*color)
 
         shape = self.shape
@@ -383,7 +383,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 mathutils.Vector((ctr[0], ctr[2], ctr[1]))
             )
             cross_size = obj_arm.data.xray.bone_mass_center_cross_size
-            if version_utils.IS_28:
+            if utils.version.IS_28:
                 gpu.matrix.push()
                 gpu.matrix.translate(trn)
                 viewport.draw_cross(cross_size, color=color)
@@ -401,7 +401,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             bgl.glLineWidth(prev_line_width[0])
             return
 
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             if not obj_arm.name in bpy.context.view_layer.objects:
                 bgl.glLineWidth(prev_line_width[0])
                 return
@@ -420,7 +420,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 bgl.glLineWidth(prev_line_width[0])
                 return
 
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             gpu.matrix.push()
             try:
                 mat = multiply(mat, shape.get_matrix_basis())
@@ -479,7 +479,7 @@ prop_groups = (
 
 def register():
     for prop_group, props, is_group in prop_groups:
-        version_utils.assign_props([
+        utils.version.assign_props([
             (props, prop_group),
         ])
         bpy.utils.register_class(prop_group)

@@ -3,11 +3,11 @@ import bpy
 
 # addon modules
 from . import fmt
-from .. import version_utils
+from .. import utils
 
 
 def pack_image(image):
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         image.pack()
     else:
         image.pack(as_png=True)
@@ -16,7 +16,7 @@ def pack_image(image):
 def create_object(object_name):
     bpy_mesh = bpy.data.meshes.new(object_name)
     bpy_object = bpy.data.objects.new(object_name, bpy_mesh)
-    version_utils.link_object(bpy_object)
+    utils.version.link_object(bpy_object)
     return bpy_object, bpy_mesh
 
 
@@ -106,7 +106,7 @@ def create_details_slots_object(base_name, header, y_coords_top, y_coords_base):
 
     # create UV's
 
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         slots_base_mesh.uv_layers.new(name='UVMap')
         slots_top_mesh.uv_layers.new(name='UVMap')
     else:

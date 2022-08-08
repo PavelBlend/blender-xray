@@ -1,6 +1,6 @@
 # addon modules
 from . import log
-from . import motion_utils
+from . import utils
 from . import text
 from . import xray_io
 from . import xray_interpolation
@@ -152,7 +152,7 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
 
 
 @log.with_context('envelope')
-def export_envelope(writer, ver, fcurve, fps, koef, epsilon=motion_utils.EPSILON):
+def export_envelope(writer, ver, fcurve, fps, koef, epsilon=utils.motion.EPSILON):
     behavior = None
     if fcurve.extrapolation == 'CONSTANT':
         behavior = xray_interpolation.Behavior.CONSTANT
@@ -186,11 +186,11 @@ def export_envelope(writer, ver, fcurve, fps, koef, epsilon=motion_utils.EPSILON
                     unsupported_occured.add(prev_kf.interpolation)
                     shape = replace_unsupported_to
             prev_kf = curr_kf
-            yield motion_utils.KF(curr_kf.co.x / fps, curr_kf.co.y / koef, shape)
+            yield utils.motion.KF(curr_kf.co.x / fps, curr_kf.co.y / koef, shape)
 
     kf_writer = xray_io.PackedWriter()
-    keyframes = motion_utils.refine_keys(generate_keys(fcurve.keyframe_points), epsilon)
-    count = motion_utils.export_keyframes(kf_writer, keyframes, anm_ver=ver)
+    keyframes = utils.motion.refine_keys(generate_keys(fcurve.keyframe_points), epsilon)
+    count = utils.motion.export_keyframes(kf_writer, keyframes, anm_ver=ver)
 
     count_fmt = 'I'
     if ver > 3:

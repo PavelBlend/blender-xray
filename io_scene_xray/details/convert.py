@@ -41,7 +41,7 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
     # Builds 1569-cop
     if context.level_details_format_version == 'builds_1569-cop':
         if ligthing.format != 'builds_1569-cop':
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.details_light_1569,
                 log.props(object=bpy_obj.name)
             )
@@ -59,7 +59,7 @@ def bpy_data_to_lvl_dets_struct(context, bpy_obj):
     # Builds 1096-1558
     else:
         if ligthing.format != 'builds_1096-1558':
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.details_light_1096,
                 log.props(object=bpy_obj.name)
             )
@@ -99,7 +99,7 @@ def bpy_data_to_slots_transforms(lvl_dets):
                 ))
 
                 if coord_b != coord_t:
-                    raise utils.AppError(text.error.details_slots_size)
+                    raise log.AppError(text.error.details_slots_size)
 
     slots_bbox = (
         int(round(bbox_base[0][0] / 2.0, 0)),
@@ -113,7 +113,7 @@ def bpy_data_to_slots_transforms(lvl_dets):
     lvl_dets.slots_count = lvl_dets.slots_size_x * lvl_dets.slots_size_y
 
     if len(base_slots.data.polygons) != lvl_dets.slots_count:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.details_poly_count,
             log.props(
                 object=base_slots.name,
@@ -124,7 +124,7 @@ def bpy_data_to_slots_transforms(lvl_dets):
         )
 
     if len(top_slots.data.polygons) != lvl_dets.slots_count:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.details_poly_count,
             log.props(
                 object=top_slots.name,
@@ -141,7 +141,7 @@ def bpy_data_to_slots_transforms(lvl_dets):
 def validate_sizes(images, size_x, size_y):
     for image in images:
         if image.size[0] != size_x or image.size[1] != size_y:
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.details_img_size,
                 log.props(
                     image=image.name,

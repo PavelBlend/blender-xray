@@ -8,9 +8,9 @@ import mathutils
 
 # addon modules
 from . import settings
-from .. import version_utils
+from .. import utils
 
-if version_utils.IS_28:
+if utils.version.IS_28:
     # blender 2.8+ modules
     import gpu_extras.batch
 

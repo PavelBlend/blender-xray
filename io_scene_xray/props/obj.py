@@ -11,8 +11,6 @@ from .. import utils
 from .. import obj
 from .. import details
 from .. import text
-from .. import version_utils
-from .. import draw_utils
 from .. import ops
 
 
@@ -27,7 +25,7 @@ slots_meshes_props = {
 
 
 class XRayObjectDetailsSlotsMeshesProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in slots_meshes_props.items():
             exec('{0} = slots_meshes_props.get("{0}")'.format(prop_name))
 
@@ -56,7 +54,7 @@ slots_lighting_props = {
 
 
 class XRayObjectDetailsSlotsLightingProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in slots_lighting_props.items():
             exec('{0} = slots_lighting_props.get("{0}")'.format(prop_name))
 
@@ -75,7 +73,7 @@ slots_props = {
 
 
 class XRayObjectDetailsSlotsProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in slots_props.items():
             exec('{0} = slots_props.get("{0}")'.format(prop_name))
 
@@ -114,7 +112,7 @@ model_props = {
 
 
 class XRayObjectDetailsModelProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in model_props.items():
             exec('{0} = model_props.get("{0}")'.format(prop_name))
 
@@ -126,7 +124,7 @@ details_props = {
 
 
 class XRayObjectDetailsProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in details_props.items():
             exec('{0} = details_props.get("{0}")'.format(prop_name))
 
@@ -263,7 +261,7 @@ xray_object_level_properties = {
 
 
 class XRayObjectLevelProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in xray_object_level_properties.items():
             exec('{0} = xray_object_level_properties.get("{0}")'.format(prop_name))
 
@@ -278,7 +276,7 @@ xray_object_revision_properties = {
 
 
 class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in xray_object_revision_properties.items():
             exec('{0} = xray_object_revision_properties.get("{0}")'.format(prop_name))
 
@@ -322,14 +320,14 @@ def load_motion_refs(self, context):
     if not self.load_active_motion_refs:
         return
     if self.motionrefs_collection:
-        objects_folder = version_utils.get_preferences().objects_folder_auto
+        objects_folder = utils.version.get_preferences().objects_folder_auto
         motion_refs = self.motionrefs_collection[self.motionrefs_collection_index]
         file_path = os.path.join(objects_folder, motion_refs.name + os.extsep + 'skls')
         if os.path.exists(file_path):
             ops.skls_browser.init_skls_browser(self, context, file_path)
         else:
             message = text.get_text(text.error.file_not_found).capitalize()
-            draw_utils.show_message(
+            utils.draw.show_message(
                 message,
                 (file_path, ),
                 text.get_text(text.error.error_title),
@@ -353,7 +351,7 @@ motion_ref_props = {
 
 
 class MotionRef(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in motion_ref_props.items():
             exec('{0} = motion_ref_props.get("{0}")'.format(prop_name))
 
@@ -520,7 +518,7 @@ xray_object_properties = {
 class XRayObjectProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Object
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in xray_object_properties.items():
             exec('{0} = xray_object_properties.get("{0}")'.format(prop_name))
 
@@ -550,7 +548,7 @@ prop_groups = (
 
 def register():
     for prop_group, props, is_group in prop_groups:
-        version_utils.assign_props([
+        utils.version.assign_props([
             (props, prop_group),
         ])
         bpy.utils.register_class(prop_group)

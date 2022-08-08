@@ -4,7 +4,6 @@ import bpy
 # addon modules
 from .. import utils
 from .. import xray_ltx
-from .. import version_utils
 
 
 SECTION_NAME = 'action_xray_settings'
@@ -130,7 +129,7 @@ class XRAY_OT_change_action_bake_settings(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -284,7 +283,7 @@ class XRAY_OT_rename_actions(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -445,7 +444,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

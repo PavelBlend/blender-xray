@@ -13,8 +13,6 @@ from .. import log
 from .. import utils
 from .. import contexts
 from .. import ie_props
-from .. import draw_utils
-from .. import version_utils
 
 
 class ImportDetailsContext(contexts.ImportMeshContext):
@@ -68,14 +66,14 @@ class XRAY_OT_import_details(
     filename_ext = filename_ext
     props = import_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
-        prefs = version_utils.get_preferences()
+        prefs = utils.version.get_preferences()
         textures_folder = prefs.textures_folder_auto
 
         if not textures_folder:
@@ -99,7 +97,7 @@ class XRAY_OT_import_details(
                     os.path.join(self.directory, file.name),
                     import_context
                 )
-            except utils.AppError as err:
+            except log.AppError as err:
                 import_context.errors.append(err)
         for err in import_context.errors:
             log.err(err)
@@ -108,7 +106,7 @@ class XRAY_OT_import_details(
     def draw(self, context):
         layout = self.layout
 
-        draw_utils.draw_files_count(self)
+        utils.draw.draw_files_count(self)
 
         layout.prop(self, 'details_models_in_a_row')
         layout.prop(self, 'load_slots')
@@ -116,7 +114,7 @@ class XRAY_OT_import_details(
         col = layout.column()
         col.active = self.load_slots
 
-        draw_utils.draw_fmt_ver_prop(
+        utils.draw.draw_fmt_ver_prop(
             col,
             self,
             'details_format',
@@ -124,7 +122,7 @@ class XRAY_OT_import_details(
         )
 
     def invoke(self, context, event):
-        prefs = version_utils.get_preferences()
+        prefs = utils.version.get_preferences()
         self.details_models_in_a_row = prefs.details_models_in_a_row
         self.load_slots = prefs.load_slots
         self.details_format = prefs.details_format
@@ -156,7 +154,7 @@ class XRAY_OT_export_details(
     filename_ext = filename_ext
     props = export_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -164,7 +162,7 @@ class XRAY_OT_export_details(
         layout = self.layout
 
         layout.prop(self, 'texture_name_from_image_path')
-        draw_utils.draw_fmt_ver_prop(
+        utils.draw.draw_fmt_ver_prop(
             layout,
             self,
             'format_version',
@@ -189,7 +187,7 @@ class XRAY_OT_export_details(
             self.report({'ERROR'}, 'The selected object is not empty')
             return {'CANCELLED'}
 
-        textures_folder = version_utils.get_preferences().textures_folder_auto
+        textures_folder = utils.version.get_preferences().textures_folder_auto
         export_context = ExportDetailsContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.level_details_format_version = self.format_version
@@ -198,7 +196,7 @@ class XRAY_OT_export_details(
 
         try:
             exp.export_file(objs[0], self.filepath, export_context)
-        except utils.AppError as err:
+        except log.AppError as err:
             export_context.errors.append(err)
 
         for err in export_context.errors:
@@ -211,7 +209,7 @@ class XRAY_OT_export_details(
         if not obj:
             self.report({'ERROR'}, 'No active object.')
             return {'FINISHED'}
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         self.texture_name_from_image_path = \
             preferences.details_texture_names_from_path
         self.format_version = preferences.format_version
@@ -259,7 +257,7 @@ class XRAY_OT_pack_details_images(bpy.types.Operator):
 
         for image in slots_images:
             if image:
-                if version_utils.IS_28:
+                if utils.version.IS_28:
                     image.pack()
                 else:
                     image.pack(as_png=True)
@@ -275,7 +273,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

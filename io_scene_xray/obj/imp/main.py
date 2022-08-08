@@ -15,7 +15,6 @@ from ... import data_blocks
 from ... import skl
 from ... import log
 from ... import utils
-from ... import version_utils
 from ... import xray_io
 from ... import xray_motions
 
@@ -34,7 +33,7 @@ def import_main(file_path, context, creader):
             reader = xray_io.PackedReader(data)
             ver = reader.getf('<H')[0]
             if ver != fmt.CURRENT_OBJECT_VERSION:
-                raise utils.AppError(
+                raise log.AppError(
                     text.error.object_unsupport_format_ver,
                     log.props(version=ver)
                 )
@@ -110,14 +109,14 @@ def import_main(file_path, context, creader):
                     continue    # Do not create an armature if zero bones
             if bpy and (bpy_arm_obj is None):
                 bpy_armature = bpy.data.armatures.new(object_name)
-                version_utils.set_arm_display_type(bpy_armature)
+                utils.version.set_arm_display_type(bpy_armature)
                 bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
                 bpy_armature.xray.joint_limits_type = 'XRAY'
-                version_utils.set_object_show_xray(bpy_arm_obj, True)
-                if not version_utils.IS_28:
+                utils.version.set_object_show_xray(bpy_arm_obj, True)
+                if not utils.version.IS_28:
                     bpy_armature.use_auto_ik = True
-                version_utils.link_object(bpy_arm_obj)
-                version_utils.set_active_object(bpy_arm_obj)
+                utils.version.link_object(bpy_arm_obj)
+                utils.version.set_active_object(bpy_arm_obj)
             if cid == fmt.Chunks.Object.BONES:
                 for _ in range(bones_count):
                     name = reader.gets()
@@ -177,7 +176,7 @@ def import_main(file_path, context, creader):
                 fmt.Chunks.Object.PARTITIONS0,
                 fmt.Chunks.Object.PARTITIONS1
             ):
-            version_utils.set_active_object(bpy_arm_obj)
+            utils.version.set_active_object(bpy_arm_obj)
             bpy.ops.object.mode_set(mode='POSE')
             try:
                 reader = xray_io.PackedReader(data)
@@ -219,7 +218,7 @@ def import_main(file_path, context, creader):
             mesh_.parent = bpy_arm_obj
 
         mesh_objects.append(mesh_)
-        version_utils.link_object(mesh_)
+        utils.version.link_object(mesh_)
 
     bpy_obj = bpy_arm_obj
     if bpy_obj is None:
@@ -230,7 +229,7 @@ def import_main(file_path, context, creader):
             bpy_obj = bpy.data.objects.new(object_name, None)
             for mesh_ in mesh_objects:
                 mesh_.parent = bpy_obj
-            version_utils.link_object(bpy_obj)
+            utils.version.link_object(bpy_obj)
 
     bpy_obj.xray.version = context.version
     bpy_obj.xray.isroot = True

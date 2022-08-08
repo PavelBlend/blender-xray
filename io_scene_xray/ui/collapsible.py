@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from .. import version_utils
+from .. import utils
 
 
 _collaps_op_props = {
@@ -15,7 +15,7 @@ class XRAY_OT_collaps(bpy.types.Operator):
     bl_label = ''
     bl_description = 'Show / hide UI block'
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in _collaps_op_props.items():
             exec('{0} = _collaps_op_props.get("{0}")'.format(prop_name))
 
@@ -71,7 +71,7 @@ def is_opened(key):
 
 
 def register():
-    version_utils.assign_props([(_collaps_op_props, XRAY_OT_collaps), ])
+    utils.version.assign_props([(_collaps_op_props, XRAY_OT_collaps), ])
     bpy.utils.register_class(XRAY_OT_collaps)
 
 

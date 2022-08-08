@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from . import version_utils
+from . import utils
 
 # format modules
 from . import anm
@@ -47,7 +47,7 @@ keymap_items_list = (
 
 
 def add_keymaps(only=None):
-    preferences = version_utils.get_preferences()
+    preferences = utils.version.get_preferences()
     win_manager = bpy.context.window_manager
     if only:
         keyconfig = win_manager.keyconfigs.user

@@ -3,7 +3,7 @@ import bpy
 
 # addon modules
 from . import utility
-from .. import version_utils
+from .. import utils
 
 
 xray_material_properties = {
@@ -28,7 +28,7 @@ xray_material_properties = {
 class XRayMaterialProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Material
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in xray_material_properties.items():
             exec('{0} = xray_material_properties.get("{0}")'.format(prop_name))
 
@@ -50,7 +50,7 @@ prop_groups = (
 
 def register():
     for prop_group, props in prop_groups:
-        version_utils.assign_props([
+        utils.version.assign_props([
             (props, prop_group),
         ])
     bpy.utils.register_class(prop_group)

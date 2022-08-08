@@ -4,7 +4,7 @@ import bpy
 # addon modules
 from .. import ui
 from .. import obj
-from .. import version_utils
+from .. import utils
 
 
 class XRAY_PT_scene(ui.base.XRayPanel):
@@ -13,7 +13,7 @@ class XRAY_PT_scene(ui.base.XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_object_import or
@@ -71,7 +71,7 @@ class XRAY_PT_scene(ui.base.XRayPanel):
             lay = lay.split()
             lay.alert = True
         lay.prop(data, 'export_root')
-        row = version_utils.layout_split(layout, 0.33)
+        row = utils.version.layout_split(layout, 0.33)
         row.label(text='Format Version:')
         row.row().prop(data, 'fmt_version', expand=True)
         _, box = ui.collapsible.draw(layout, 'scene:object', 'Object Export Properties')

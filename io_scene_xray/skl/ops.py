@@ -15,8 +15,6 @@ from .. import ui
 from .. import utils
 from .. import text
 from .. import xray_motions
-from .. import draw_utils
-from .. import version_utils
 
 
 op_text = 'Skeletal Animations'
@@ -33,7 +31,7 @@ motion_props = {
 class Motion(bpy.types.PropertyGroup):
     props = motion_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         exec('{0} = props.get("{0}")'.format('flag'))
         exec('{0} = props.get("{0}")'.format('name'))
 
@@ -58,7 +56,7 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
     filename_ext = skls_ext
     props = import_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -67,7 +65,7 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
     def draw(self, context):
         layout = self.layout
 
-        draw_utils.draw_files_count(self)
+        utils.draw.draw_files_count(self)
 
         layout.prop(self, 'add_actions_to_motion_list')
 
@@ -161,7 +159,7 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
                         imp.import_skl_file(file_path, import_context)
                     except:
                         imp.import_skls_file(file_path, import_context)
-            except utils.AppError as err:
+            except log.AppError as err:
                 import_context.errors.append(err)
         for err in import_context.errors:
             log.err(err)
@@ -169,7 +167,7 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
 
     @utils.invoke_require_armature
     def invoke(self, context, event):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         self.add_actions_to_motion_list = preferences.add_actions_to_motion_list
         return super().invoke(context, event)
 
@@ -188,7 +186,7 @@ class XRAY_OT_export_skl(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
     filename_ext = skl_ext
     props = export_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -203,7 +201,7 @@ class XRAY_OT_export_skl(ie_props.BaseOperator, bpy_extras.io_utils.ExportHelper
         export_context.action = self.action
         try:
             exp.export_skl_file(self.filepath, export_context)
-        except utils.AppError as err:
+        except log.AppError as err:
             log.err(err)
         return {'FINISHED'}
 
@@ -233,7 +231,7 @@ class XRAY_OT_export_skls_file(ie_props.BaseOperator, utils.FilenameExtHelper):
     filename_ext = skls_ext
     props = export_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -242,7 +240,7 @@ class XRAY_OT_export_skls_file(ie_props.BaseOperator, utils.FilenameExtHelper):
         export_context.bpy_arm_obj = context.selected_objects[0]
         try:
             exp.export_skls_file(self.filepath, export_context, self.actions)
-        except utils.AppError as err:
+        except log.AppError as err:
             log.err(err)
 
     @utils.invoke_require_armature
@@ -279,7 +277,7 @@ class XRAY_OT_export_skls(ie_props.BaseOperator):
     filename_ext = skls_ext
     props = export_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -310,7 +308,7 @@ class XRAY_OT_export_skls(ie_props.BaseOperator):
             try:
                 exp.export_skls_file(filepath, export_context, actions)
                 exp_actions_count += len(actions)
-            except utils.AppError as err:
+            except log.AppError as err:
                 export_context.errors.append(err)
         if not exp_actions_count:
             self.report({'WARNING'}, 'Selected objects have no actions')
@@ -358,7 +356,7 @@ class XRAY_OT_export_skl_batch(ie_props.BaseOperator):
     filename_ext = skl_ext
     props = export_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -403,7 +401,7 @@ class XRAY_OT_export_skl_batch(ie_props.BaseOperator):
                 try:
                     exp.export_skl_file(filepath, export_context)
                     exp_actions_count += 1
-                except utils.AppError as err:
+                except log.AppError as err:
                     export_context.errors.append(err)
         if not exp_actions_count:
             self.report({'WARNING'}, 'Selected objects have no actions')
@@ -430,7 +428,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

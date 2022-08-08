@@ -10,7 +10,6 @@ import mathutils
 from . import base_bone
 from .. import utils
 from .. import xray_motions
-from .. import version_utils
 
 
 class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
@@ -19,7 +18,7 @@ class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
             layout.operator(XRAY_OT_apply_shape.bl_idname, icon='FILE_TICK')
             layout.operator(
                 XRAY_OT_fit_shape.bl_idname,
-                icon=version_utils.get_icon('BBOX')
+                icon=utils.version.get_icon('BBOX')
             )
             super().draw(layout, context)
             return
@@ -62,9 +61,9 @@ def _create_bmesh(shape_type):
     if shape_type == '1':
         bmesh.ops.create_cube(mesh, size=2)
     elif shape_type == '2':
-        version_utils.create_bmesh_icosphere(mesh)
+        utils.version.create_bmesh_icosphere(mesh)
     elif shape_type == '3':
-        version_utils.create_bmesh_cone(mesh, segments=16)
+        utils.version.create_bmesh_cone(mesh, segments=16)
     else:
         raise AssertionError('unsupported bone shape type: ' + shape_type)
     return mesh
@@ -100,7 +99,7 @@ def _bone_matrix(bone):
     xsh = bone.xray.shape
     global pose_bone
     pose_bone = bpy.context.object.pose.bones[bone.name]
-    multiply = version_utils.get_multiply()
+    multiply = utils.version.get_multiply()
     mat = multiply(
         pose_bone.matrix,
         mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
@@ -140,7 +139,7 @@ class XRAY_OT_apply_shape(bpy.types.Operator):
 
         hobj, bone = HELPER.get_target()
         xsh = bone.xray.shape
-        multiply = version_utils.get_multiply()
+        multiply = utils.version.get_multiply()
         mat = multiply(
             multiply(
                 pose_bone.matrix,
@@ -177,10 +176,10 @@ class XRAY_OT_apply_shape(bpy.types.Operator):
         xsh.set_curver()
         for obj in bpy.data.objects:
             if obj.data == bone.id_data:
-                version_utils.set_active_object(obj)
+                utils.version.set_active_object(obj)
                 break
         HELPER.deactivate()
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             bpy.context.view_layer.update()
         else:
             bpy.context.scene.update()
@@ -205,7 +204,7 @@ def _bone_objects(bone):
 def _bone_vertices(bone):
     for obj, vgi in _bone_objects(bone):
         bmsh = bmesh.new()
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             bmsh.from_object(obj, bpy.context.view_layer.depsgraph)
         else:
             bmsh.from_object(obj, bpy.context.scene)
@@ -240,7 +239,7 @@ class XRAY_OT_fit_shape(bpy.types.Operator):
         vmin = mathutils.Vector((+math.inf, +math.inf, +math.inf))
         vmax = mathutils.Vector((-math.inf, -math.inf, -math.inf))
         xsh = bone.xray.shape
-        multiply = version_utils.get_multiply()
+        multiply = utils.version.get_multiply()
         if xsh.type == '1':  # box
             for vtx in _bone_vertices(bone):
                 vtx = multiply(matrix_inverted, vtx)
@@ -282,7 +281,7 @@ class XRAY_OT_fit_shape(bpy.types.Operator):
                     )
                 else:
                     raise AssertionError('unsupported shape type: ' + xsh.type)
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             bpy.context.view_layer.update()
         else:
             bpy.context.scene.update()

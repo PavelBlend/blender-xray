@@ -12,9 +12,7 @@ from ... import utils
 from ... import log
 from ... import contexts
 from ... import obj
-from ... import version_utils
 from ... import ie_props
-from ... import draw_utils
 
 
 class ExportObjectContext(
@@ -31,7 +29,7 @@ class ExportObjectContext(
 def draw_props(self, mode='SINGLE'):
     layout = self.layout
 
-    draw_utils.draw_fmt_ver_prop(layout, self, 'fmt_version')
+    utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
 
     row = layout.split()
     row.label(text='Smoothing:')
@@ -62,9 +60,9 @@ def find_objects_for_export(context):
                 if bpy_obj.xray.isroot
         ]
         if not roots:
-            raise utils.AppError('No \'root\'-objects found')
+            raise log.AppError('No \'root\'-objects found')
         if len(roots) > 1:
-            raise utils.AppError(
+            raise log.AppError(
                 'Too many \'root\'-objects found, but none selected'
             )
     return roots
@@ -76,7 +74,7 @@ _with_export_motions_props = {
 
 
 class _WithExportMotions:
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in _with_export_motions_props.items():
             exec('{0} = _with_export_motions_props.get("{0}")'.format(prop_name))
 
@@ -106,7 +104,7 @@ class XRAY_OT_export_object(ie_props.BaseOperator, _WithExportMotions):
     filename_ext = filename_ext
     props = export_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -121,7 +119,7 @@ class XRAY_OT_export_object(ie_props.BaseOperator, _WithExportMotions):
         export_context.soc_sgroups = self.fmt_version == 'soc'
         export_context.export_motions = self.export_motions
         export_context.smoothing_out_of = self.smoothing_out_of
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         export_context.textures_folder = preferences.textures_folder_auto
         use_split_normals = self.smoothing_out_of == 'SPLIT_NORMALS'
         active_object, selected_objects = utils.get_selection_state(context)
@@ -139,7 +137,7 @@ class XRAY_OT_export_object(ie_props.BaseOperator, _WithExportMotions):
                     os.path.join(path, name),
                     export_context
                 )
-            except utils.AppError as err:
+            except log.AppError as err:
                 export_context.errors.append(err)
         utils.set_selection_state(active_object, selected_objects)
         for err in export_context.errors:
@@ -147,11 +145,11 @@ class XRAY_OT_export_object(ie_props.BaseOperator, _WithExportMotions):
         return {'FINISHED'}
 
     def invoke(self, context, _event):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         roots = None
         try:
             roots = find_objects_for_export(context)
-        except utils.AppError as err:
+        except log.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
         if len(roots) == 1:
@@ -193,7 +191,7 @@ class XRAY_OT_export_object_file(
     filename_ext = '.object'
     props = export_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -209,13 +207,13 @@ class XRAY_OT_export_object_file(
         export_context.export_motions = self.export_motions
         export_context.smoothing_out_of = self.smoothing_out_of
         bpy_obj = context.scene.objects[self.object]
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         export_context.textures_folder = preferences.textures_folder_auto
         use_split_normals = self.smoothing_out_of == 'SPLIT_NORMALS'
         active_object, selected_objects = utils.get_selection_state(context)
         try:
             exp.export_file(bpy_obj, self.filepath, export_context)
-        except utils.AppError as err:
+        except log.AppError as err:
             export_context.errors.append(err)
         utils.set_selection_state(active_object, selected_objects)
         for err in export_context.errors:
@@ -223,11 +221,11 @@ class XRAY_OT_export_object_file(
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         roots = None
         try:
             roots = find_objects_for_export(context)
-        except utils.AppError as err:
+        except log.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
         if len(roots) > 1:
@@ -257,7 +255,7 @@ class XRAY_OT_export_project(ie_props.BaseOperator):
 
     props = export_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -281,7 +279,7 @@ class XRAY_OT_export_project(ie_props.BaseOperator):
                 os.makedirs(opath, exist_ok=True)
             try:
                 exp.export_file(bpy_obj, os.path.join(opath, name), export_context)
-            except utils.AppError as err:
+            except log.AppError as err:
                 export_context.errors.append(err)
         for err in export_context.errors:
             log.err(err)
@@ -301,10 +299,10 @@ classes = (
 
 
 def register():
-    version_utils.assign_props(
+    utils.version.assign_props(
         [(_with_export_motions_props, _WithExportMotions), ]
     )
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

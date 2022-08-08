@@ -18,8 +18,6 @@ from . import utility
 from .. import text
 from .. import log
 from .. import utils
-from .. import ie_utils
-from .. import version_utils
 from .. import ogf
 from .. import xray_io
 
@@ -56,8 +54,8 @@ def create_sector_object(sector_id, collection, sectors_object):
     bpy_object = create.create_object(object_name, None)
     bpy_object.parent = sectors_object
     collection.objects.link(bpy_object)
-    if not version_utils.IS_28:
-        version_utils.link_object(bpy_object)
+    if not utils.version.IS_28:
+        utils.version.link_object(bpy_object)
     return bpy_object
 
 
@@ -65,8 +63,8 @@ def create_sectors_object(collection):
     object_name = 'sectors'
     bpy_object = create.create_object(object_name, None)
     collection.objects.link(bpy_object)
-    if not version_utils.IS_28:
-        version_utils.link_object(bpy_object)
+    if not utils.version.IS_28:
+        utils.version.link_object(bpy_object)
     return bpy_object
 
 
@@ -148,7 +146,7 @@ def generate_glow_mesh_data(radius):
 def create_glow_mesh(name, vertices, faces, uvs, material, image):
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(vertices, (), faces)
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         uv_layer = mesh.uv_layers.new(name='Texture')
     else:
         uv_texture = mesh.uv_textures.new(name='Texture')
@@ -158,7 +156,7 @@ def create_glow_mesh(name, vertices, faces, uvs, material, image):
     for uv_index, data in enumerate(uv_layer.data):
         data.uv = uvs[uv_index]
     mesh.materials.append(material)
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         material.use_backface_culling = False
         material.blend_method = 'BLEND'
     return mesh
@@ -236,8 +234,8 @@ def create_glows_object(collection):
     object_name = 'glows'
     bpy_object = create.create_object(object_name, None)
     collection.objects.link(bpy_object)
-    if not version_utils.IS_28:
-        version_utils.link_object(bpy_object)
+    if not utils.version.IS_28:
+        utils.version.link_object(bpy_object)
     return bpy_object
 
 
@@ -258,8 +256,8 @@ def import_glows(data, level):
         )
         glow_object.parent = glows_object
         collection.objects.link(glow_object)
-        if not version_utils.IS_28:
-            version_utils.link_object(glow_object)
+        if not utils.version.IS_28:
+            utils.version.link_object(glow_object)
 
     return glows_object
 
@@ -274,8 +272,8 @@ def import_glows_v5(data, level):
         glow_object = import_glow_v5(level, packed_reader, glow_index)
         glow_object.parent = glows_object
         collection.objects.link(glow_object)
-        if not version_utils.IS_28:
-            version_utils.link_object(glow_object)
+        if not utils.version.IS_28:
+            utils.version.link_object(glow_object)
 
     return glows_object
 
@@ -382,15 +380,15 @@ def import_light_dynamic_v5(packed_reader, light_object):
 
 def create_light_object(light_index, collection):
     object_name = 'light_dynamic_{:0>3}'.format(light_index)
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         bpy_data = bpy.data.lights
     else:
         bpy_data = bpy.data.lamps
     light = bpy_data.new(object_name, 'SPOT')
     bpy_object = create.create_object(object_name, light)
     collection.objects.link(bpy_object)
-    if not version_utils.IS_28:
-        version_utils.link_object(bpy_object)
+    if not utils.version.IS_28:
+        utils.version.link_object(bpy_object)
     return bpy_object
 
 
@@ -398,8 +396,8 @@ def create_lights_object(collection):
     object_name = 'light dynamic'
     bpy_object = create.create_object(object_name, None)
     collection.objects.link(bpy_object)
-    if not version_utils.IS_28:
-        version_utils.link_object(bpy_object)
+    if not utils.version.IS_28:
+        utils.version.link_object(bpy_object)
     return bpy_object
 
 
@@ -439,8 +437,8 @@ def create_portal(portal_index, vertices, collection):
     object_data = create_portal_mesh(object_name, vertices)
     portal_object = create.create_object(object_name, object_data)
     collection.objects.link(portal_object)
-    if not version_utils.IS_28:
-        version_utils.link_object(portal_object)
+    if not utils.version.IS_28:
+        utils.version.link_object(portal_object)
     return portal_object
 
 
@@ -472,8 +470,8 @@ def import_portals(data, level):
     portals_object = create.create_object('portals', None)
     collection = level.collections[create.LEVEL_PORTALS_COLLECTION_NAME]
     collection.objects.link(portals_object)
-    if not version_utils.IS_28:
-        version_utils.link_object(portals_object)
+    if not utils.version.IS_28:
+        utils.version.link_object(portals_object)
 
     for portal_index in range(portals_count):
         portal_object = import_portal(
@@ -497,7 +495,7 @@ def get_version(data, file):
     packed_reader = xray_io.PackedReader(data)
     xrlc_version = packed_reader.getf('<H')[0]
     if not xrlc_version in fmt.SUPPORTED_VERSIONS:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.level_unsupport_ver,
             log.props(
                 version=xrlc_version,
@@ -682,7 +680,7 @@ MAX_LEVEL_SIZE = 1024 * 1024 * 32    # 32 MB
 @log.with_context(name='import-game-level')
 def import_file(context, operator):
     log.update(file=context.filepath)
-    ie_utils.check_file_exists(context.filepath)
+    utils.ie.check_file_exists(context.filepath)
     level = Level()
     level.context = context
     level.usage_list = set()

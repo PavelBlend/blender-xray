@@ -4,7 +4,6 @@ import bpy
 # addon modules
 from .. import utils
 from .. import text
-from .. import version_utils
 
 
 mode_items = (
@@ -29,7 +28,7 @@ class XRAY_OT_verify_uv(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -52,7 +51,7 @@ class XRAY_OT_verify_uv(bpy.types.Operator):
         objects = self.get_objects()
         if not objects:
             bpy.ops.object.select_all(action='DESELECT')
-            version_utils.set_active_object(None)
+            utils.version.set_active_object(None)
             return {'CANCELLED'}
         bad_objects = []
         for bpy_object in objects:
@@ -62,8 +61,8 @@ class XRAY_OT_verify_uv(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
         for bad_object_name in bad_objects:
             bad_object = bpy.data.objects[bad_object_name]
-            version_utils.select_object(bad_object)
-        version_utils.set_active_object(None)
+            utils.version.select_object(bad_object)
+        utils.version.set_active_object(None)
         self.report(
             {'INFO'},
             text.get_text(text.warn.incorrect_uv_objs_count).capitalize() + \
@@ -105,7 +104,7 @@ class XRAY_OT_verify_uv(bpy.types.Operator):
     def verify_uv(self, context, bpy_object):
         if bpy_object.type != 'MESH':
             return self.CORRECT_UV
-        version_utils.set_active_object(bpy_object)
+        utils.version.set_active_object(bpy_object)
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.reveal()
         bpy.ops.mesh.select_all(action='DESELECT')
@@ -134,7 +133,7 @@ class XRAY_OT_verify_uv(bpy.types.Operator):
 
 
 def register():
-    version_utils.register_operators(XRAY_OT_verify_uv)
+    utils.version.register_operators(XRAY_OT_verify_uv)
 
 
 def unregister():

@@ -3,7 +3,6 @@ import bpy
 
 # addon modules
 from .. import utils
-from .. import version_utils
 
 
 __HELPERS__ = dict()
@@ -31,10 +30,10 @@ class AbstractHelper:
         helper = self.get_helper()
         if helper is None:
             helper = self._create_helper(self._name)
-            version_utils.set_object_draw_type(helper, 'WIRE')
-            version_utils.set_object_show_xray(helper, True)
+            utils.version.set_object_draw_type(helper, 'WIRE')
+            utils.version.set_object_show_xray(helper, True)
             helper.hide_render = True
-            version_utils.link_object(helper)
+            utils.version.link_object(helper)
 
         helper.parent = bpy.context.active_object
         self._update_helper(helper, target)
@@ -70,9 +69,9 @@ class AbstractHelper:
 
     @staticmethod
     def _select_object(_object):
-        version_utils.set_active_object(_object)
+        utils.version.set_active_object(_object)
         for obj in bpy.context.selectable_objects:
-            version_utils.set_object_select(obj, obj == _object)
+            utils.version.set_object_select(obj, obj == _object)
 
     def _is_active_target(self, target, context):
         raise NotImplementedError()
@@ -84,7 +83,7 @@ class AbstractHelper:
         raise NotImplementedError()
 
     def _delete_helper(self, helper):
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             bpy.context.scene.collection.objects.unlink(helper)
         else:
             bpy.context.scene.objects.unlink(helper)

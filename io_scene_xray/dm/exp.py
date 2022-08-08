@@ -61,7 +61,7 @@ def export(bpy_obj, packed_writer, context, file_path, mode='DM'):
 
     vertices_count = len(vertices)
     if vertices_count > fmt.VERTICES_COUNT_LIMIT:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.dm_many_verts,
             log.props(
                 object=bpy_obj.name,

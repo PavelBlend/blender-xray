@@ -5,7 +5,7 @@ import mathutils
 # addon modules
 from . import base_bone
 from .. import xray_motions
-from .. import version_utils
+from .. import utils
 
 
 class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
@@ -22,7 +22,7 @@ class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
 
     def _create_helper(self, name):
         helper = bpy.data.objects.new(name, None)
-        version_utils.set_empty_draw_size(helper, self.size)
+        utils.version.set_empty_draw_size(helper, self.size)
         helper.lock_rotation = helper.lock_scale = (True, True, True)
         return helper
 
@@ -32,11 +32,11 @@ class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
 
         global pose_bone
         pose_bone = bpy.context.object.pose.bones[bone.name]
-        mat = version_utils.multiply(
+        mat = utils.version.multiply(
             pose_bone.matrix,
             xray_motions.MATRIX_BONE_INVERTED
         )
-        mat = version_utils.multiply(
+        mat = utils.version.multiply(
             mat,
             mathutils.Matrix.Translation(bone.xray.mass.center)
         )
@@ -76,7 +76,7 @@ class XRAY_OT_align_center(bpy.types.Operator):
     def execute(self, context):
         helper, bone = HELPER.get_target()
         shape = bone.xray.shape
-        mat = version_utils.multiply(
+        mat = utils.version.multiply(
             pose_bone.matrix,
             xray_motions.MATRIX_BONE_INVERTED
         )
@@ -87,7 +87,7 @@ class XRAY_OT_align_center(bpy.types.Operator):
             pos = shape.sph_pos
         elif shape.type == '3':
             pos = shape.cyl_pos
-        mat = version_utils.multiply(
+        mat = utils.version.multiply(
             mat, mathutils.Matrix.Translation((pos[0], pos[2], pos[1]))
         )
         helper.location = mat.to_translation()
@@ -101,14 +101,14 @@ class XRAY_OT_apply_center(bpy.types.Operator):
 
     def execute(self, context):
         helper, bone = HELPER.get_target()
-        mat = version_utils.multiply(
+        mat = utils.version.multiply(
             xray_motions.MATRIX_BONE,
             pose_bone.matrix.inverted(),
             helper.matrix_local
         )
         bone.xray.mass.center = mat.to_translation()
         HELPER.deactivate()
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             bpy.context.view_layer.update()
         else:
             bpy.context.scene.update()

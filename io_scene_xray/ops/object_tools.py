@@ -7,7 +7,6 @@ import mathutils
 
 # addon modules
 from .. import utils
-from .. import version_utils
 
 
 plane_items = (
@@ -38,7 +37,7 @@ class XRAY_OT_place_objects(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -134,7 +133,7 @@ class XRAY_OT_colorize_objects(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -207,7 +206,7 @@ class XRAY_OT_colorize_objects(bpy.types.Operator):
                     ((hsh >> 2) & 1) * (0.5 * self.power) + 0.5
                 )
                 color = [color.r, color.g, color.b]
-            if version_utils.IS_28:
+            if utils.version.IS_28:
                 color.append(1.0)    # alpha
             obj.color = color
             changed_objects_count += 1
@@ -229,7 +228,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

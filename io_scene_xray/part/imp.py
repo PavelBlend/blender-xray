@@ -9,14 +9,12 @@ from .. import obj
 from .. import log
 from .. import text
 from .. import utils
-from .. import ie_utils
-from .. import version_utils
 from .. import xray_ltx
 
 
 def import_cs_cop_objects(ltx, context, level_name):
     imported_objects = {}
-    collection = version_utils.create_collection(level_name)
+    collection = utils.version.create_collection(level_name)
     objects_count = 0
     for section_name, section in ltx.sections.items():
         if not section_name.lower().startswith('object_'):
@@ -35,7 +33,7 @@ def import_cs_cop_objects(ltx, context, level_name):
                 if not loaded_object:
                     context.before_import_file()
                     imported_object = obj.imp.import_file(object_path, context)
-                    version_utils.unlink_object_from_collections(imported_object)
+                    utils.version.unlink_object_from_collections(imported_object)
                     exp_dir = os.path.dirname(ref)
                     if exp_dir:
                         imported_object.xray.export_path = exp_dir + os.sep
@@ -45,7 +43,7 @@ def import_cs_cop_objects(ltx, context, level_name):
                     for child_object in loaded_object.children:
                         new_child = child_object.copy()
                         new_child.parent = imported_object
-                version_utils.link_object_to_collection(imported_object, collection)
+                utils.version.link_object_to_collection(imported_object, collection)
                 obj_name = params.get('name', None)
                 pos = params.get('position', None)
                 rot = params.get('rotation', None)
@@ -66,17 +64,17 @@ def import_cs_cop_objects(ltx, context, level_name):
                     file=object_path
                 )
     if not objects_count:
-        raise utils.AppError('File has no objects!')
+        raise log.AppError('File has no objects!')
 
 
 def import_soc_objects(data, context, level_name):
-    raise utils.AppError('Binary Format not Supported!')
+    raise log.AppError('Binary Format not Supported!')
 
 
 @log.with_context(name='import-part')
 def import_file(file_path, context):
     log.update(file=file_path)
-    ie_utils.check_file_exists(file_path)
+    utils.ie.check_file_exists(file_path)
     level_name = os.path.basename(os.path.dirname(file_path))
     file_data = utils.read_file(file_path)
     try:

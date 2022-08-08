@@ -9,14 +9,14 @@ from .. import text
 
 def get_image(bpy_obj, xray_prop, prop_name):
     if xray_prop == '':
-        raise utils.AppError(
+        raise log.AppError(
             text.error.details_has_no_img,
             log.props(image=prop_name, object=bpy_obj.name)
         )
 
     bpy_image = bpy.data.images.get(xray_prop)
     if bpy_image is None:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.details_cannot_find_img,
             log.props(image=xray_prop, prop=prop_name)
         )
@@ -26,14 +26,14 @@ def get_image(bpy_obj, xray_prop, prop_name):
 
 def get_object(bpy_obj, xray_prop, prop_name):
     if xray_prop == '':
-        raise utils.AppError(
+        raise log.AppError(
             text.error.details_has_no_obj,
             log.props(prop=prop_name, object=bpy_obj.name)
         )
 
     bpy_object = bpy.data.objects.get(xray_prop)
     if bpy_object is None:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.details_cannot_find_obj,
             log.props(prop=prop_name, object=xray_prop)
         )
@@ -43,7 +43,7 @@ def get_object(bpy_obj, xray_prop, prop_name):
 
 def validate_object_type(bpy_obj, obj_type, prop_name):
     if bpy_obj.type != obj_type:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.details_wrong_type,
             log.props(
                 prop=prop_name,

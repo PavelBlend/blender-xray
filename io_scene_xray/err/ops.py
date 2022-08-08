@@ -6,7 +6,6 @@ import bpy_extras
 from . import imp
 from .. import icons
 from .. import utils
-from .. import version_utils
 from .. import ie_props
 
 
@@ -37,7 +36,7 @@ class XRAY_OT_import_err(
     filename_ext = filename_ext
     props = import_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -53,7 +52,7 @@ class XRAY_OT_import_err(
 
 
 def register():
-    version_utils.register_operators(XRAY_OT_import_err)
+    utils.version.register_operators(XRAY_OT_import_err)
 
 
 def unregister():

@@ -19,9 +19,9 @@ def register():
     import bpy_extras.io_utils
 
     # configuring addon modules.
-    from . import utils
+    from . import log
     from . import xray_io
-    xray_io.ENCODE_ERROR = utils.AppError
+    xray_io.ENCODE_ERROR = log.AppError
 
     # registration
     from . import addon

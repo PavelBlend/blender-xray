@@ -12,8 +12,6 @@ from .. import text
 from .. import utils
 from .. import log
 from .. import xray_io
-from .. import version_utils
-from .. import ie_utils
 
 
 def _import(file_path, context, chunked_reader):
@@ -27,12 +25,12 @@ def _import(file_path, context, chunked_reader):
 
         if chunk_id == fmt.Chunks.HEADER:
             if len(chunk_data) < fmt.HEADER_SIZE:
-                raise utils.AppError(text.error.details_bad_header)
+                raise log.AppError(text.error.details_bad_header)
 
             header = read.read_header(xray_io.PackedReader(chunk_data))
 
             if header.format_version not in fmt.SUPPORT_FORMAT_VERSIONS:
-                raise utils.AppError(
+                raise log.AppError(
                     text.error.details_unsupport_ver,
                     log.props(version=header.format_version)
                 )
@@ -51,11 +49,11 @@ def _import(file_path, context, chunked_reader):
     del chunked_reader
 
     if not has_header:
-        raise utils.AppError(text.error.details_no_header)
+        raise log.AppError(text.error.details_no_header)
     if not has_meshes:
-        raise utils.AppError(text.error.details_no_meshes)
+        raise log.AppError(text.error.details_no_meshes)
     if not has_slots and context.load_slots:
-        raise utils.AppError(text.error.details_no_slots)
+        raise log.AppError(text.error.details_no_slots)
 
     base_name = os.path.basename(file_path.lower())
     color_indices = utility.generate_color_indices()
@@ -76,7 +74,7 @@ def _import(file_path, context, chunked_reader):
 
         root_obj = bpy.data.objects.new(base_name, None)
         root_obj.xray.is_details = True
-        version_utils.link_object(root_obj)
+        utils.version.link_object(root_obj)
 
         meshes_obj.parent = root_obj
 
@@ -104,7 +102,7 @@ def _import(file_path, context, chunked_reader):
 @log.with_context('import-details')
 def import_file(file_path, context):
     log.update(file=file_path)
-    ie_utils.check_file_exists(file_path)
+    utils.ie.check_file_exists(file_path)
     data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(data)
     _import(file_path, context, chunked_reader)

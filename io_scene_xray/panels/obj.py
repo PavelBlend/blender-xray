@@ -8,7 +8,6 @@ import bpy
 from .. import ui
 from .. import utils
 from .. import details
-from .. import version_utils
 from .. import xray_ltx
 
 
@@ -31,7 +30,7 @@ class XRAY_OT_prop_clip(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -353,7 +352,7 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -367,7 +366,7 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
     def execute(self, context):
         obj = context.object
         refs = obj.xray.motionrefs_collection
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         meshes_folder = preferences.meshes_folder_auto
         if not meshes_folder:
             self.report({'WARNING'}, 'Meshes folder not specified!')
@@ -432,7 +431,7 @@ def details_draw_function(self, context):
 
         box.label(text='Level Details Properties:')
 
-        split = version_utils.layout_split(box, 0.4, align=True)
+        split = utils.version.layout_split(box, 0.4, align=True)
         split.label(text='Meshes Object:')
         split.prop_search(
             slots,
@@ -442,7 +441,7 @@ def details_draw_function(self, context):
             text=''
             )
 
-        split = version_utils.layout_split(box, 0.4, align=True)
+        split = utils.version.layout_split(box, 0.4, align=True)
         split.label(text='Slots Base Object:')
         split.prop_search(
             slots,
@@ -452,7 +451,7 @@ def details_draw_function(self, context):
             text=''
             )
 
-        split = version_utils.layout_split(box, 0.4, align=True)
+        split = utils.version.layout_split(box, 0.4, align=True)
         split.label(text='Slots Top Object:')
         split.prop_search(
             slots,
@@ -517,13 +516,13 @@ def details_draw_function(self, context):
 
 
 def draw_split_prop(layout, owner, prop, text):
-    split = version_utils.layout_split(layout, 0.333, align=True)
+    split = utils.version.layout_split(layout, 0.333, align=True)
     split.label(text=text+':')
     split.prop(owner, prop, text='')
 
 
 def draw_split_prop_search(layout, owner, prop, text, search_owner, search_prop):
-    split = version_utils.layout_split(layout, 0.333, align=True)
+    split = utils.version.layout_split(layout, 0.333, align=True)
     split.label(text=text+':')
     split.prop_search(owner, prop, search_owner, search_prop, text='')
 
@@ -645,12 +644,12 @@ class XRAY_PT_object(ui.base.XRayPanel):
         is_helper = utils.is_helper_object(bpy_obj)
         if is_helper:
             return False
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         object_used, details_used, game_level_used = get_used(preferences)
         return object_used or details_used or game_level_used
 
     def draw(self, context):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         object_used, details_used, game_level_used = get_used(preferences)
 
         layout = self.layout
@@ -661,12 +660,12 @@ class XRAY_PT_object(ui.base.XRayPanel):
             if data.isroot:
                 object_box = layout.box()
                 if not data.flags_use_custom:
-                    split = version_utils.layout_split(object_box, 0.333)
+                    split = utils.version.layout_split(object_box, 0.333)
                     split.label(text='Type:')
                     split.prop(data, 'flags_simple', text='')
                 else:
                     # type
-                    split = version_utils.layout_split(object_box, 0.333)
+                    split = utils.version.layout_split(object_box, 0.333)
                     split.label(text='Type:')
                     split.prop(data, 'flags_simple', text='')
                     # static/dynamic
@@ -682,10 +681,10 @@ class XRAY_PT_object(ui.base.XRayPanel):
                     row.prop(data, 'flags_custom_musage', text='Multiple Usage', toggle=True)
                     row.prop(data, 'flags_custom_soccl', text='Sound Occluder', toggle=True)
                 object_box.prop(data, 'flags_custom_hqexp', text='HQ Export')
-                split = version_utils.layout_split(object_box, 0.333)
+                split = utils.version.layout_split(object_box, 0.333)
                 split.label(text='LOD Reference:')
                 split.prop(data, 'lodref', text='')
-                split = version_utils.layout_split(object_box, 0.333)
+                split = utils.version.layout_split(object_box, 0.333)
                 split.label(text='Export Path:')
                 split.prop(data, 'export_path', text='')
                 row, box = ui.collapsible.draw(
@@ -720,7 +719,7 @@ class XRAY_PT_object(ui.base.XRayPanel):
                     col = box.column(align=True)
                     col.prop(data, 'play_active_motion', toggle=True, icon='PLAY')
                     col.prop(data, 'use_custom_motion_names', toggle=True, icon='SORTALPHA')
-                    split = version_utils.layout_split(col, 0.333)
+                    split = utils.version.layout_split(col, 0.333)
                     split.label(text='Dependency:')
                     split.prop_search(
                         data,
@@ -782,16 +781,16 @@ class XRAY_PT_object(ui.base.XRayPanel):
                 )
                 if box:
                     # owner
-                    split = version_utils.layout_split(box, 0.35)
+                    split = utils.version.layout_split(box, 0.35)
                     split.label(text='Owner:')
                     split.prop(data.revision, 'owner', text='')
                     # created time
-                    split = version_utils.layout_split(box, 0.35)
+                    split = utils.version.layout_split(box, 0.35)
                     split.label(text='Created Time:')
                     split.prop(data.revision, 'ctime_str', text='')
                     # time formats
                     subbox = box.box()
-                    split = version_utils.layout_split(subbox, 0.25)
+                    split = utils.version.layout_split(subbox, 0.25)
                     split.label(text='')
                     split.label(text='Time Formats:', icon='INFO')
                     subbox.label(text='Year.Month.Day Hours:Minutes')
@@ -825,7 +824,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

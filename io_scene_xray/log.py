@@ -7,6 +7,14 @@ CTX_NAME = '@context'
 __ctx__ = [None]
 
 
+class AppError(Exception):
+    def __init__(self, message, ctx=None):
+        if ctx is None:
+            ctx = log.props()
+        super().__init__(message)
+        self.ctx = ctx
+
+
 def with_context(name=None):
     def decorator(func):
         def wrap(*args, **kwargs):

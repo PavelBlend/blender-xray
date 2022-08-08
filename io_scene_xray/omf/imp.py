@@ -8,7 +8,6 @@ from .. import text
 from .. import log
 from .. import xray_io
 from .. import utils
-from .. import ie_utils
 
 
 MATRIX_BONE = mathutils.Matrix((
@@ -239,7 +238,7 @@ def read_motion(data, context, motions_params, bone_names):
                         key_frame.interpolation = 'LINEAR'
 
         if cannot_find_bones:
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.omf_no_bone,
                 log.props(
                     armature_object=context.bpy_arm_obj.name,
@@ -323,7 +322,7 @@ def read_params(data, context):
                 pose_bone.bone_group = bone_group
 
     if cannot_find_bones:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.omf_no_bone,
             log.props(
                 armature_object=context.bpy_arm_obj.name,
@@ -358,7 +357,7 @@ def read_params(data, context):
 
 def read_main(data, context):
     if not context.import_motions and not context.import_bone_parts:
-        raise utils.AppError(text.error.omf_nothing)
+        raise log.AppError(text.error.omf_nothing)
         return
 
     chunked_reader = xray_io.ChunkedReader(data)
@@ -383,6 +382,6 @@ def read_main(data, context):
 @log.with_context(name='import-omf')
 def import_file(context):
     log.update(file=context.filepath)
-    ie_utils.check_file_exists(context.filepath)
+    utils.ie.check_file_exists(context.filepath)
     file_data = utils.read_file(context.filepath)
     read_main(file_data, context)

@@ -5,7 +5,6 @@ import os
 from . import fmt
 from . import create
 from .. import utils
-from .. import ie_utils
 from .. import log
 from .. import xray_io
 
@@ -63,7 +62,7 @@ def import_(
 @log.with_context('import-dm')
 def import_file(file_path, context):
     log.update(file=file_path)
-    ie_utils.check_file_exists(file_path)
+    utils.ie.check_file_exists(file_path)
     data = utils.read_file(file_path)
     packed_reader = xray_io.PackedReader(data)
     import_(file_path, context, packed_reader)

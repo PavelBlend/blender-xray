@@ -7,10 +7,8 @@ from .. import log
 from .. import utils
 from .. import contexts
 from .. import text
-from .. import version_utils
 from .. import xray_io
 from .. import xray_envelope
-from .. import motion_utils
 
 
 class ExportAnmContext(contexts.ExportContext):
@@ -51,7 +49,7 @@ def _export(export_context, chunked_writer):
                 baked_action.fcurves
             )
         finally:
-            version_utils.remove_action(baked_action)
+            utils.version.remove_action(baked_action)
     else:
         _export_action_data(
             packed_writer,
@@ -113,14 +111,14 @@ def _export_action_data(pkw, ver, xray, fcurves):
             errors.append('rot' + axis_keys[axis])
     if errors:
         message = ' '.join(errors)
-        raise utils.AppError(
+        raise log.AppError(
             text.error.anm_no_keys,
             log.props(channels=message)
         )
     for curve_index in range(6):
         fcurve = fcurves[(0, 2, 1, 5, 3, 4)[curve_index]]
         koef = (1, 1, 1, -1, -1, -1)[curve_index]
-        epsilon = motion_utils.EPSILON
+        epsilon = utils.motion.EPSILON
         if xray.autobake_custom_refine:
             if curve_index < 3:
                 epsilon = xray.autobake_refine_location

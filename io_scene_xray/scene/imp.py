@@ -9,10 +9,8 @@ from . import fmt
 from .. import text
 from .. import log
 from .. import utils
-from .. import ie_utils
 from .. import xray_io
 from .. import obj
-from .. import version_utils
 
 
 class ImportSceneContext(obj.imp.utility.ImportObjectMeshContext):
@@ -22,13 +20,13 @@ class ImportSceneContext(obj.imp.utility.ImportObjectMeshContext):
 
 def _read_scene_version(scene_version_chunk):
     if not scene_version_chunk:
-        raise utils.AppError(text.error.scene_bad_file)
+        raise log.AppError(text.error.scene_bad_file)
 
     packed_reader = xray_io.PackedReader(scene_version_chunk)
     object_tools_version = packed_reader.getf('<H')[0]
 
     if object_tools_version != fmt.OBJECT_TOOLS_VERSION:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.scene_obj_tool_ver,
             log.props(version=object_tools_version)
         )
@@ -36,7 +34,7 @@ def _read_scene_version(scene_version_chunk):
 
 def _read_objects_count(objects_count_chunk):
     if not objects_count_chunk:
-        raise utils.AppError(text.error.scene_obj_count)
+        raise log.AppError(text.error.scene_obj_count)
 
     packed_reader = xray_io.PackedReader(objects_count_chunk)
     objects_count = packed_reader.getf('<I')[0]
@@ -63,7 +61,7 @@ def _read_object_body(data, imported_objects, import_context):
             scene_obj_version = packed_reader.getf('<H')[0]
 
     import_path = os.path.join(
-        os.path.abspath(version_utils.get_preferences().objects_folder_auto),
+        os.path.abspath(utils.version.get_preferences().objects_folder_auto),
         object_path + '.object'
     )
     if not imported_objects.get(object_path):
@@ -88,12 +86,12 @@ def _read_object_body(data, imported_objects, import_context):
             new_empty.xray.export_path = imported_object.xray.export_path
             new_empty.xray.revision.owner = imported_object.xray.revision.owner
             new_empty.xray.revision.ctime_str = imported_object.xray.revision.ctime_str
-            version_utils.link_object(new_empty)
+            utils.version.link_object(new_empty)
             for mesh in imported_object.children:
                 new_object = bpy.data.objects.new(mesh.name, mesh.data)
                 new_object.parent = new_empty
                 new_object.xray.isroot = False
-                version_utils.link_object(new_object)
+                utils.version.link_object(new_object)
             new_empty.location = position[0], position[2], position[1]
             new_empty.rotation_euler = rotation[0], rotation[2], rotation[1]
             new_empty.scale = scale[0], scale[2], scale[1]
@@ -103,7 +101,7 @@ def _read_object_body(data, imported_objects, import_context):
             new_object.xray.export_path = imported_object.xray.export_path
             new_object.xray.revision.owner = imported_object.xray.revision.owner
             new_object.xray.revision.ctime_str = imported_object.xray.revision.ctime_str
-            version_utils.link_object(new_object)
+            utils.version.link_object(new_object)
             new_object.location = position[0], position[2], position[1]
             new_object.rotation_euler = rotation[0], rotation[2], rotation[1]
             new_object.scale = scale[0], scale[2], scale[1]
@@ -119,7 +117,7 @@ def _read_scene_object(data, imported_objects, import_context):
 
 def _read_scene_objects(scene_objects_chunk, objects_count, import_context):
     if not scene_objects_chunk:
-        raise utils.AppError(text.error.scene_scn_objs)
+        raise log.AppError(text.error.scene_scn_objs)
 
     chunked_reader = xray_io.ChunkedReader(scene_objects_chunk)
     object_index = 0
@@ -132,7 +130,7 @@ def _read_scene_objects(scene_objects_chunk, objects_count, import_context):
 
 def _read_objects(objects_chunk, import_context):
     if not objects_chunk:
-        raise utils.AppError(text.error.scene_objs)
+        raise log.AppError(text.error.scene_objs)
 
     chunked_reader = xray_io.ChunkedReader(objects_chunk)
     scene_version_chunk = None
@@ -154,11 +152,11 @@ def _read_objects(objects_chunk, import_context):
 
 def _read_version(version_chunk):
     if not version_chunk:
-        raise utils.AppError(text.error.scene_no_ver)
+        raise log.AppError(text.error.scene_no_ver)
 
     chunk_size = len(version_chunk)
     if chunk_size != 4:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.scene_ver_size,
             log.props(size=chunk_size)
         )
@@ -166,7 +164,7 @@ def _read_version(version_chunk):
     packed_reader = xray_io.PackedReader(version_chunk)
     version = packed_reader.getf('<I')[0]
     if version != fmt.FORMAT_VERSION:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.scene_ver,
             log.props(version=version)
         )
@@ -189,8 +187,8 @@ def import_(filepath, chunked_reader, import_context):
 @log.with_context(name='import-scene-selection')
 def import_file(filepath, operator):
     log.update(file=filepath)
-    ie_utils.check_file_exists(filepath)
-    preferences = version_utils.get_preferences()
+    utils.ie.check_file_exists(filepath)
+    preferences = utils.version.get_preferences()
     textures_folder = preferences.textures_folder_auto
     objects_folder = preferences.objects_folder_auto
     import_context = ImportSceneContext()

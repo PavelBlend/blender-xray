@@ -8,7 +8,6 @@ import mathutils
 
 # addon modules
 from .. import utils
-from .. import version_utils
 
 
 def get_object_materials(bpy_object, materials):
@@ -50,7 +49,7 @@ def get_image_nodes(node, image_nodes):
             from_node = link.from_node
             break
         if from_node:
-            if from_node.type in version_utils.IMAGE_NODES:
+            if from_node.type in utils.version.IMAGE_NODES:
                 image_nodes.append(from_node)
             get_image_nodes(from_node, image_nodes)
 
@@ -81,7 +80,7 @@ class XRAY_OT_switch_render(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -126,7 +125,7 @@ class XRAY_OT_convert_to_internal_material(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -207,7 +206,7 @@ shader_keys = {
     'EMISSION': ['ShaderNodeEmission', 'Color', 'Emission']
 }
 
-if version_utils.support_principled_shader():
+if utils.version.support_principled_shader():
     convert_materials_shader_type_items = (
         ('PRINCIPLED', 'Principled', ''),
         ('DIFFUSE', 'Diffuse', ''),
@@ -239,7 +238,7 @@ class XRAY_OT_convert_to_cycles_material(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -357,7 +356,7 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -478,7 +477,7 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
                     ((hsh >> 2) & 1) * (0.5 * self.power) + 0.5
                 )
                 color = [color.r, color.g, color.b]
-            if version_utils.IS_28:
+            if utils.version.IS_28:
                 color.append(1.0)    # alpha
             changed = False
             if self.change_viewport_color:
@@ -540,7 +539,7 @@ class XRAY_OT_create_material(bpy.types.Operator):
     props = op_props
     init = False
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -549,10 +548,10 @@ class XRAY_OT_create_material(bpy.types.Operator):
             space = context.space_data
             params = space.params
             params.display_type = 'THUMBNAIL'
-            if version_utils.IS_28:
+            if utils.version.IS_28:
                 space.show_region_tool_props = False
             self.init = True
-            prefs = version_utils.get_preferences()
+            prefs = utils.version.get_preferences()
             tex_folder = prefs.textures_folder_auto
             if tex_folder:
                 tex_folder = bytes(tex_folder, encoding='utf-8')
@@ -623,13 +622,13 @@ classes_27x = (
 
 
 def register():
-    version_utils.register_operators(classes)
-    if not version_utils.IS_28:
-        version_utils.register_operators(classes_27x)
+    utils.version.register_operators(classes)
+    if not utils.version.IS_28:
+        utils.version.register_operators(classes_27x)
 
 
 def unregister():
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for operator in reversed(classes_27x):
             bpy.utils.unregister_class(operator)
     for operator in reversed(classes):

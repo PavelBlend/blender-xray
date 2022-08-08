@@ -13,13 +13,12 @@ from .. import text
 from .. import xray_io
 from .. import log
 from .. import utils
-from .. import version_utils
 from .. import xray_motions
 from .. import data_blocks
 from .. import omf
 
 
-multiply = version_utils.get_multiply()
+multiply = utils.version.get_multiply()
 
 
 def calculate_mesh_bsphere(bbox, vertices, mat=mathutils.Matrix()):
@@ -123,12 +122,12 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     # validate mesh-object
     uv_layers = bpy_obj.data.uv_layers
     if not len(uv_layers):
-        raise utils.AppError(
+        raise log.AppError(
             text.error.no_uv,
             log.props(object=bpy_obj.name)
         )
     elif len(uv_layers) > 1:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.obj_many_uv,
             log.props(object=bpy_obj.name)
         )
@@ -163,7 +162,7 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     for material_index in used_materials:
         material = bpy_obj.data.materials[material_index]
         if not material:
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.obj_empty_mat,
                 log.props(object=bpy_obj.name)
             )
@@ -176,12 +175,12 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
         materials.add(material)
     materials = list(materials)
     if not len(materials):
-        raise utils.AppError(
+        raise log.AppError(
             text.error.obj_no_mat,
             log.props(object=bpy_obj.name)
         )
     elif len(materials) > 1:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.many_mat,
             log.props(object=bpy_obj.name)
         )
@@ -223,7 +222,7 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
                     weights.append((remap_group_index, weight))
                     weights_count += 1
             if not weights_count:
-                return utils.AppError(
+                return log.AppError(
                     text.error.object_ungroupped_verts,
                     log.props(object=bpy_obj.name)
                 )
@@ -368,7 +367,7 @@ def _export(bpy_obj, cwriter, context):
         if bpy_obj.type == 'MESH':
             arm_obj = utils.get_armature_object(bpy_obj)
             if not arm_obj:
-                raise utils.AppError(
+                raise log.AppError(
                     text.error.ogf_has_no_arm,
                     log.props(object=bpy_obj.name)
                 )
@@ -386,10 +385,10 @@ def _export(bpy_obj, cwriter, context):
                 multi_material_mesh = bpy_obj.data.copy()
                 multi_material_object = bpy_obj.copy()
                 multi_material_object.data = multi_material_mesh
-                version_utils.link_object(multi_material_object)
-                version_utils.set_active_object(multi_material_object)
+                utils.version.link_object(multi_material_object)
+                utils.version.set_active_object(multi_material_object)
                 temp_parent_object = bpy.data.objects.new('!-temp-parent-object', None)
-                version_utils.link_object(temp_parent_object)
+                utils.version.link_object(temp_parent_object)
                 multi_material_object.parent = temp_parent_object
                 bpy.ops.object.mode_set(mode='EDIT')
                 bpy.ops.mesh.separate(type='MATERIAL')

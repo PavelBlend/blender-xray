@@ -11,12 +11,11 @@ from . import create
 from .. import utils
 from .. import log
 from .. import text
-from .. import version_utils
 from .. import xray_io
 
 
 def import_main(context, level, data=None):
-    preferences = version_utils.get_preferences()
+    preferences = utils.version.get_preferences()
 
     # read level.cform file
     if level.xrlc_version >= fmt.VERSION_10:
@@ -30,7 +29,7 @@ def import_main(context, level, data=None):
     # read header
     version = packed_reader.getf('<I')[0]
     if not version in fmt.CFORM_SUPPORT_VERSIONS:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.cform_unsupport_ver,
             log.props(version=version, file=cform_path)
         )
@@ -214,5 +213,5 @@ def import_main(context, level, data=None):
         bpy_obj.xray.level.object_type = 'CFORM'
         collection = level.collections[create.LEVEL_CFORM_COLLECTION_NAME]
         collection.objects.link(bpy_obj)
-        if not version_utils.IS_28:
-            version_utils.link_object(bpy_obj)
+        if not utils.version.IS_28:
+            utils.version.link_object(bpy_obj)

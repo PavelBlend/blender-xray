@@ -5,7 +5,7 @@ import math
 import bpy
 
 # addon modules
-from .. import version_utils
+from .. import utils
 
 
 SOC_HUD_FOV = 30.5
@@ -25,16 +25,16 @@ class XRAY_OT_add_camera(bpy.types.Operator):
         camera_obj = bpy.data.objects.new('xray-camera', camera)
         # link and select
         bpy.ops.object.select_all(action='DESELECT')
-        version_utils.link_object(camera_obj)
-        version_utils.select_object(camera_obj)
-        version_utils.set_active_object(camera_obj)
+        utils.version.link_object(camera_obj)
+        utils.version.select_object(camera_obj)
+        utils.version.set_active_object(camera_obj)
         # set camera object transforms
         camera_obj.location = (0, 0, 0)
         camera_obj.rotation_mode = 'XYZ'
         camera_obj.rotation_euler = (math.pi / 2, 0, 0)
         camera_obj.scale = (1, 1, 1)
         # set camera settings
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             camera.display_size = 0.1
         else:
             camera.draw_size = 0.1

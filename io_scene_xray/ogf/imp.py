@@ -14,8 +14,6 @@ from .. import omf
 from .. import log
 from .. import utils
 from .. import xray_io
-from .. import version_utils
-from .. import ie_utils
 from .. import level
 from .. import xray_motions
 
@@ -104,7 +102,7 @@ def assign_material(bpy_mesh, visual, lvl):
 
 def create_object(name, obj_data):
     bpy_object = bpy.data.objects.new(name, obj_data)
-    version_utils.link_object(bpy_object)
+    utils.version.link_object(bpy_object)
     return bpy_object
 
 
@@ -390,7 +388,7 @@ def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None, bones=None
         if lvl:
             assign_material(bpy_mesh, visual, lvl)
 
-            if not version_utils.IS_28:
+            if not utils.version.IS_28:
                 bpy_image = lvl.images[visual.shader_id]
                 texture_layer = mesh.faces.layers.tex.new('Texture')
                 for face in mesh.faces:
@@ -402,7 +400,7 @@ def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None, bones=None
             material = visual.bpy_materials[visual.shader_id]
             bpy_mesh.materials.append(material)
 
-            if not version_utils.IS_28:
+            if not utils.version.IS_28:
                 texture_layer = mesh.faces.layers.tex.new('Texture')
                 for face in mesh.faces:
                     face[texture_layer].image = visual.bpy_image
@@ -660,7 +658,7 @@ def import_skeleton_vertices(chunks, ogf_chunks, visual):
                 bone_4_index
             ))
     else:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.ogf_bad_vertex_fmt,
             log.props(vertex_format=hex(vertex_format))
         )
@@ -687,7 +685,7 @@ def import_vertices(chunks, ogf_chunks, visual):
             normals.append(normal)
             uvs.append((tex_u, 1 - tex_v))
     else:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.ogf_bad_vertex_fmt,
             log.props(vertex_format=vertex_format)
         )
@@ -928,7 +926,7 @@ def ogf_color(lvl, packed_reader, bpy_obj, mode='SCALE'):
         xray_level.color_bias_hemi = (hemi, hemi, hemi)
         xray_level.color_bias_sun = (sun, sun, sun)
     else:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.ogf_bad_color_mode,
             log.props(mode=mode)
         )
@@ -1105,7 +1103,7 @@ def import_lod_visual(chunks, visual, lvl):
 
     bpy_mesh = bpy.data.meshes.new(visual.name)
     bpy_mesh.from_pydata(verts, (), faces)
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         uv_layer = bpy_mesh.uv_layers.new(name='Texture')
     else:
         uv_texture = bpy_mesh.uv_textures.new(name='Texture')
@@ -1113,7 +1111,7 @@ def import_lod_visual(chunks, visual, lvl):
     rgb_color = bpy_mesh.vertex_colors.new(name='Light')
     hemi_color = bpy_mesh.vertex_colors.new(name='Hemi')
     sun_color = bpy_mesh.vertex_colors.new(name='Sun')
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         for face in bpy_mesh.polygons:
             for loop_index in face.loop_indices:
                 loop = bpy_mesh.loops[loop_index]
@@ -1200,7 +1198,7 @@ def import_model_v4(chunks, visual, lvl):
     collection_name = level.create.LEVEL_VISUALS_COLLECTION_NAMES_TABLE[visual.name]
     collection = lvl.collections[collection_name]
     collection.objects.link(bpy_obj)
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         scene_collection = bpy.context.scene.collection
         scene_collection.objects.unlink(bpy_obj)
     lvl.visuals.append(bpy_obj)
@@ -1254,7 +1252,7 @@ def import_model_v3(chunks, visual, lvl):
         visual.name = 'progressive'
 
     else:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.ogf_bad_model_type,
             log.props(model_type=visual.model_type)
         )
@@ -1265,7 +1263,7 @@ def import_model_v3(chunks, visual, lvl):
     collection_name = level.create.LEVEL_VISUALS_COLLECTION_NAMES_TABLE[visual.name]
     collection = lvl.collections[collection_name]
     collection.objects.link(bpy_obj)
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         scene_collection = bpy.context.scene.collection
         scene_collection.objects.unlink(bpy_obj)
     lvl.visuals.append(bpy_obj)
@@ -1281,7 +1279,7 @@ def import_model_v2(chunks, visual, lvl):
     elif visual.model_type == fmt.ModelType_v2.HIERRARHY:
         bpy_obj = import_hierrarhy_visual(chunks, visual, lvl)
     else:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.ogf_bad_model_type,
             log.props(model_type=visual.model_type)
         )
@@ -1309,7 +1307,7 @@ def import_bounding_box(packed_reader):
 
 def check_version(visual):
     if visual.format_version not in fmt.SUPPORT_FORMAT_VERSIONS:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.ogf_bad_ver,
             log.props(version=visual.format_version)
         )
@@ -1430,12 +1428,12 @@ def import_ik_data(chunks, ogf_chunks, visual):
         return
     packed_reader = xray_io.PackedReader(chunk_data)
     armature = bpy.data.armatures.new(name=visual.name)
-    version_utils.set_arm_display_type(armature)
+    utils.version.set_arm_display_type(armature)
     arm_obj = bpy.data.objects.new(visual.name, armature)
-    version_utils.set_object_show_xray(arm_obj, True)
+    utils.version.set_object_show_xray(arm_obj, True)
     arm_obj.xray.isroot = True
-    version_utils.link_object(arm_obj)
-    version_utils.set_active_object(arm_obj)
+    utils.version.link_object(arm_obj)
+    utils.version.set_active_object(arm_obj)
     # motion references
     if visual.motion_refs:
         for motion_ref in visual.motion_refs:
@@ -1562,7 +1560,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
             (-bind_rotation[0], -bind_rotation[1], -bind_rotation[2]), 'YXZ'
         ).to_matrix().to_4x4()
         translation = mathutils.Matrix.Translation(bind_translation)
-        mat = version_utils.multiply(
+        mat = utils.version.multiply(
             translation,
             rotation,
             xray_motions.MATRIX_BONE
@@ -1570,7 +1568,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
         if parent_name:
             bpy_bone.parent = armature.edit_bones.get(parent_name, None)
             if bpy_bone.parent:
-                mat = version_utils.multiply(
+                mat = utils.version.multiply(
                     bpy_bone.parent.matrix,
                     xray_motions.MATRIX_BONE_INVERTED,
                     mat
@@ -1813,7 +1811,7 @@ def import_visual(context, data, visual):
     header_chunk_data = chunks.pop(fmt.HEADER)
     import_header(header_chunk_data, visual)
     if visual.format_version != fmt.FORMAT_VERSION_4:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.ogf_bad_ver,
             log.props(version=visual.format_version)
         )
@@ -1836,11 +1834,11 @@ def import_visual(context, data, visual):
         root_obj = bpy.data.objects.new(visual.name, None)
         root_obj.xray.version = context.version
         root_obj.xray.isroot = True
-        version_utils.link_object(root_obj)
+        utils.version.link_object(root_obj)
         visual.root_obj = root_obj
         import_mt_hierrarhy(context, chunks, ogf_chunks, visual)
     else:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.ogf_bad_model_type,
             log.props(model_type=visual.model_type)
         )
@@ -1869,7 +1867,7 @@ def import_visual(context, data, visual):
 @log.with_context(name='import-ogf')
 def import_file(context, file_path, file_name):
     log.update(file=file_path)
-    ie_utils.check_file_exists(file_path)
+    utils.ie.check_file_exists(file_path)
     data = utils.read_file(file_path)
     visual = Visual()
     visual.file_path = file_path

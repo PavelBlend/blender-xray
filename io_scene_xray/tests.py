@@ -7,7 +7,7 @@ import bpy
 import bpy_extras
 
 # addon modules
-from . import version_utils
+from . import utils
 
 
 def clear_bpy_collection(bpy_collection):
@@ -40,7 +40,7 @@ class XRAY_OT_test_ogf_import_modal(bpy.types.Operator):
     timer = None
     last_time = 0
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in op_modal_props.items():
             exec('{0} = op_modal_props.get("{0}")'.format(prop_name))
 
@@ -157,7 +157,7 @@ class XRAY_OT_test_ogf_import(
     bl_label = 'Test OGF Import'
     bl_options = {'REGISTER'}
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in op_props.items():
             exec('{0} = op_props.get("{0}")'.format(prop_name))
 
@@ -173,9 +173,9 @@ class XRAY_OT_test_ogf_import(
 
 
 def register():
-    version_utils.assign_props([(op_props, XRAY_OT_test_ogf_import), ])
+    utils.version.assign_props([(op_props, XRAY_OT_test_ogf_import), ])
     bpy.utils.register_class(XRAY_OT_test_ogf_import)
-    version_utils.assign_props([(op_modal_props, XRAY_OT_test_ogf_import_modal), ])
+    utils.version.assign_props([(op_modal_props, XRAY_OT_test_ogf_import_modal), ])
     bpy.utils.register_class(XRAY_OT_test_ogf_import_modal)
 
 

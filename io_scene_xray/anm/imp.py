@@ -12,8 +12,6 @@ from .. import text
 from .. import utils
 from .. import log
 from .. import xray_envelope
-from .. import version_utils
-from .. import ie_utils
 from .. import xray_io
 
 
@@ -30,7 +28,7 @@ def _import(file_path, creader, context):
     warn_list = []
     chunk_data = creader.next(fmt.Chunks.MAIN, no_error=True)
     if chunk_data is None:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.anm_has_no_chunk,
             log.props(
                 file=os.path.basename(file_path),
@@ -42,7 +40,7 @@ def _import(file_path, creader, context):
     frame_start, frame_end = preader.getf('<2I')
     fps, ver = preader.getf('<fH')
     if not ver in fmt.MOTION_SUPPORTED_VERSIONS:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.anm_unsupport_ver,
             log.props(
                 file=os.path.basename(file_path),
@@ -61,11 +59,11 @@ def _import(file_path, creader, context):
         )
         bpy_cam.parent = bpy_obj
         bpy_cam.rotation_euler = (math.pi / 2, 0, 0)
-        version_utils.link_object(bpy_cam)
+        utils.version.link_object(bpy_cam)
     else:
-        version_utils.set_empty_draw_type(bpy_obj, 'SPHERE')
-    version_utils.set_empty_draw_size(bpy_obj, DISPLAY_SIZE)
-    version_utils.link_object(bpy_obj)
+        utils.version.set_empty_draw_type(bpy_obj, 'SPHERE')
+    utils.version.set_empty_draw_size(bpy_obj, DISPLAY_SIZE)
+    utils.version.link_object(bpy_obj)
     action = bpy.data.actions.new(name=name)
     action.xray.fps = fps
     bpy_obj.animation_data_create().action = action
@@ -118,7 +116,7 @@ def _import(file_path, creader, context):
 def import_file(context):
     file_path = context.filepath
     log.update(file=file_path)
-    ie_utils.check_file_exists(file_path)
+    utils.ie.check_file_exists(file_path)
     data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(data)
     frame_start, frame_end = _import(file_path, chunked_reader, context)

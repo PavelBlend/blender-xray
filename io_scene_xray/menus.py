@@ -5,8 +5,6 @@ import bpy
 from . import ui
 from . import icons
 from . import utils
-from . import ie_utils
-from . import version_utils
 
 # format modules
 from . import details
@@ -66,11 +64,11 @@ def menu_func_xray_export(self, context):
 
 
 def append_draw_functions(ops_list, menu):
-    preferences = version_utils.get_preferences()
+    preferences = utils.version.get_preferences()
     for enable_prop, operator, label in ops_list:
         enable = getattr(preferences, enable_prop)
         if enable:
-            draw_function = ie_utils.get_draw_fun(operator)
+            draw_function = utils.ie.get_draw_fun(operator)
             menu.append(draw_function)
 
 
@@ -82,20 +80,20 @@ def remove_draw_functions(ops_list, menu):
 
 
 def get_enabled_operators(ops_list):
-    preferences = version_utils.get_preferences()
+    preferences = utils.version.get_preferences()
     operators = []
     for enable_prop, operator, label in ops_list:
         enable = getattr(preferences, enable_prop)
         if enable:
             id_name = operator.bl_idname
-            text = utils.build_op_label(operator, compact=True)
+            text = utils.draw.build_op_label(operator, compact=True)
             operators.append((id_name, text))
     return operators
 
 
 def append_menu_func():
-    preferences = version_utils.get_preferences()
-    import_menu, export_menu = version_utils.get_import_export_menus()
+    preferences = utils.version.get_preferences()
+    import_menu, export_menu = utils.version.get_import_export_menus()
 
     # remove import menus
     remove_draw_functions(import_draw_functions, import_menu)
@@ -156,7 +154,7 @@ def register():
 
 
 def unregister():
-    import_menu, export_menu = version_utils.get_import_export_menus()
+    import_menu, export_menu = utils.version.get_import_export_menus()
 
     # remove import menus
     remove_draw_functions(import_draw_functions, import_menu)

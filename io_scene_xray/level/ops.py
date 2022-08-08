@@ -9,7 +9,6 @@ from .. import utils
 from .. import log
 from .. import icons
 from .. import contexts
-from .. import version_utils
 from .. import ie_props
 
 
@@ -20,7 +19,7 @@ class ImportLevelContext(contexts.ImportMeshContext):
 
 op_text = 'Game Level'
 file_name_text = 'level'
-if version_utils.broken_file_browser_filter():
+if utils.version.broken_file_browser_filter():
     file_filter_import = '*'
     file_filter_export = '*'
 else:
@@ -56,14 +55,14 @@ class XRAY_OT_import_level(
     ext = file_name_text
     props = import_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         textures_folder = preferences.textures_folder_auto
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
@@ -76,7 +75,7 @@ class XRAY_OT_import_level(
         import_context.filepath = self.filepath
         try:
             imp.import_file(import_context, self)
-        except utils.AppError as err:
+        except log.AppError as err:
             import_context.errors.append(err)
         for err in import_context.errors:
             log.err(err)
@@ -106,7 +105,7 @@ class XRAY_OT_export_level(ie_props.BaseOperator):
     ext = file_name_text
     props = export_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -149,7 +148,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

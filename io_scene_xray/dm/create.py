@@ -10,14 +10,13 @@ from .. import text
 from .. import log
 from .. import utils
 from .. import xray_io
-from .. import version_utils
 
 
 def create_object(object_name):
     bpy_mesh = bpy.data.meshes.new(object_name)
     bpy_object = bpy.data.objects.new(object_name, bpy_mesh)
     bpy_object.xray.is_details = True
-    version_utils.link_object(bpy_object)
+    utils.version.link_object(bpy_object)
     return bpy_object, bpy_mesh
 
 
@@ -28,7 +27,7 @@ def create_empty_image(context, detail_model, absolute_image_path):
 
     bpy_image.source = 'FILE'
     bpy_image.filepath = absolute_image_path
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         bpy_image.use_alpha = True
 
     return bpy_image
@@ -48,10 +47,10 @@ def check_estimated_material_texture(material, det_model):
     texture_filepart = det_model.texture.replace('\\', os.path.sep)
     texture_found = False
 
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         texture_nodes = []
         for node in material.node_tree.nodes:
-            if node.type in version_utils.IMAGE_NODES:
+            if node.type in utils.version.IMAGE_NODES:
                 texture_nodes.append(node)
         if len(texture_nodes) == 1:
             texture_node = texture_nodes[0]
@@ -157,7 +156,7 @@ def create_material(det_model, abs_image_path, context):
     bpy_material = bpy.data.materials.new(det_model.texture)
     bpy_material.xray.eshader = det_model.shader
     bpy_material.xray.version = context.version
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         bpy_material.use_shadeless = True
         bpy_material.use_transparency = True
         bpy_material.alpha = 0.0
@@ -316,7 +315,7 @@ def create_uv(b_mesh, det_model, bmesh_faces, uvs):
 
 def create_mesh(packed_reader, det_model):
     if det_model.mesh.indices_count % 3 != 0:
-        raise utils.AppError(text.error.dm_bad_indices)
+        raise log.AppError(text.error.dm_bad_indices)
 
     b_mesh = bmesh.new()
 
@@ -326,7 +325,7 @@ def create_mesh(packed_reader, det_model):
     create_uv(b_mesh, det_model, bmesh_faces, uvs)
 
     # assign images
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         texture_layer = b_mesh.faces.layers.tex.new(
             det_model.mesh.uv_map_name
         )

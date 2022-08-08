@@ -5,7 +5,7 @@ import functools
 import bpy
 
 # addon modules
-from .. import version_utils
+from .. import utils
 
 
 joint_limit_type_items = (
@@ -40,7 +40,7 @@ xray_armature_properties = {
 class XRayArmatureProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Armature
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in xray_armature_properties.items():
             exec('{0} = xray_armature_properties.get("{0}")'.format(prop_name))
 
@@ -62,7 +62,7 @@ prop_groups = (
 
 def register():
     for prop_group, props in prop_groups:
-        version_utils.assign_props([
+        utils.version.assign_props([
             (props, prop_group),
         ])
     bpy.utils.register_class(prop_group)

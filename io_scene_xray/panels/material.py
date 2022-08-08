@@ -4,7 +4,6 @@ import bpy
 # addon modules
 from .. import ui
 from .. import utils
-from .. import version_utils
 
 
 class XRAY_MT_shader(ui.dynamic_menu.XRAY_MT_xr_template):
@@ -58,7 +57,7 @@ class XRAY_PT_material(ui.base.XRayPanel):
         gen_xr_selector(layout, data, 'cshader', 'Compile')
         gen_xr_selector(layout, data, 'gamemtl', 'Material')
 
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_game_level_import or
@@ -68,7 +67,7 @@ class XRAY_PT_material(ui.base.XRayPanel):
         if not panel_used:
             return
         def draw_level_prop(prop_name, prop_text, prop_type):
-            row = version_utils.layout_split(box, 0.45)
+            row = utils.version.layout_split(box, 0.45)
             row.label(text=prop_text)
             if prop_type == 'NODES':
                 row.prop_search(data, prop_name, material.node_tree, 'nodes', text='')

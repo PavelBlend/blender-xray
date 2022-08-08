@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from .. import version_utils
+from .. import utils
 
 
 mode_items = (
@@ -50,7 +50,7 @@ class XRAY_OT_change_fake_user(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -224,7 +224,7 @@ class XRAY_OT_change_fake_user(bpy.types.Operator):
 
 
 def register():
-    version_utils.register_operators(XRAY_OT_change_fake_user)
+    utils.version.register_operators(XRAY_OT_change_fake_user)
 
 
 def unregister():

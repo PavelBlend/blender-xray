@@ -5,7 +5,7 @@ import bpy
 from . import props
 from . import ops
 from . import ui
-from .. import version_utils
+from .. import utils
 
 
 class XRAY_addon_preferences(bpy.types.AddonPreferences):
@@ -13,7 +13,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
 
     props = props.plugin_preferences_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -33,7 +33,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
             ui.draw_custom_props(self)
         elif self.category == 'OTHERS':
             ui.draw_others(self)
-        split = version_utils.layout_split(layout, 0.6)
+        split = utils.version.layout_split(layout, 0.6)
         split.label(text='')
         split.operator(
             ops.XRAY_OT_reset_prefs_settings.bl_idname, icon='CANCEL'
@@ -41,7 +41,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
 
 
 def register():
-    version_utils.register_operators(XRAY_addon_preferences)
+    utils.version.register_operators(XRAY_addon_preferences)
 
 
 def unregister():

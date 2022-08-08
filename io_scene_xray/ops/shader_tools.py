@@ -4,10 +4,9 @@ import bpy
 # addon modules
 from . import material
 from .. import utils
-from .. import version_utils
 
 
-if version_utils.IS_28:
+if utils.version.IS_28:
     blend_mode_items = (
         ('OPAQUE', 'Opaque', ''),
         ('CLIP', 'Alpha Clip', ''),
@@ -23,7 +22,7 @@ else:
         ('ALPHA_SORT', 'Alpha Sort', ''),
         ('ALPHA_ANTIALIASING', 'Alpha Anti-Aliasing', '')
     )
-if version_utils.support_principled_shader():
+if utils.version.support_principled_shader():
     shader_items = (
         ('ShaderNodeBsdfDiffuse', 'Diffuse', ''),
         ('ShaderNodeEmission', 'Emission', ''),
@@ -121,7 +120,7 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -144,7 +143,7 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
             self.draw_prop(column, 'specular_change', 'specular_value')
             self.draw_prop(column, 'roughness_change', 'roughness_value')
             self.draw_prop(column, 'viewport_roughness_change', 'viewport_roughness_value')
-            if version_utils.IS_28:
+            if utils.version.IS_28:
                 self.draw_prop(column, 'alpha_change', 'alpha_value')
             self.draw_prop(column, 'blend_mode_change', 'blend_mode')
             self.draw_prop(column, 'replace_shader', 'shader_type')
@@ -175,7 +174,7 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
                 if self.viewport_roughness_change:
                     mat.roughness = self.viewport_roughness_value
                 if self.blend_mode_change:
-                    if version_utils.IS_28:
+                    if utils.version.IS_28:
                         mat.blend_method = self.blend_mode
                     else:
                         mat.game_settings.alpha_blend = self.blend_mode
@@ -233,10 +232,10 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
                     self.report({'WARNING'}, 'Material "{}" has no texture.'.format(mat.name))
                     continue
                 image_node = links[0].from_node
-                if not image_node.type in version_utils.IMAGE_NODES:
+                if not image_node.type in utils.version.IMAGE_NODES:
                     self.report({'WARNING'}, 'Material "{}" has no image.'.format(mat.name))
                     continue
-                if version_utils.IS_28:
+                if utils.version.IS_28:
                     if self.alpha_value:
                         mat.node_tree.links.new(
                             image_node.outputs['Alpha'],
@@ -275,7 +274,7 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
 
 
 def register():
-    version_utils.register_operators(XRAY_OT_change_shader_params)
+    utils.version.register_operators(XRAY_OT_change_shader_params)
 
 
 def unregister():

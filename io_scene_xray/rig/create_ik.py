@@ -6,9 +6,8 @@ import bpy
 import mathutils
 
 # addon modules
-from .. import version_utils
-from .. import text
 from .. import utils
+from .. import text
 
 
 bone_layers = [False, ] * 32
@@ -121,14 +120,14 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         copy_rotation_constr.name = 'ik'
         copy_rotation_constr.target = obj
         copy_rotation_constr.subtarget = ik_subtarget_name
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             copy_rotation_constr.enabled = True
         # fk
         copy_transforms_constr = child_pose_bone.constraints.new('COPY_TRANSFORMS')
         copy_transforms_constr.name = 'fk'
         copy_transforms_constr.target = obj
         copy_transforms_constr.subtarget = fk_subtarget_name
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             copy_transforms_constr.enabled = True
         # create ik drivers
         ik_driver = copy_rotation_constr.driver_add('influence').driver
@@ -259,7 +258,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     # add drivers
     obj.pose.bones[target_bone_name][IK_FK_PROP_NAME] = 1.0
     obj.pose.bones[target_bone_name]['bone_category'] = category_name
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         ui_prop = obj.pose.bones[target_bone_name].id_properties_ui(IK_FK_PROP_NAME)
         ui_prop.update(
             min=0,
@@ -323,7 +322,7 @@ class XRAY_OT_create_ik(bpy.types.Operator):
     bl_label = 'Create IK'
     bl_options = {'REGISTER', 'UNDO'}
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -338,15 +337,15 @@ class XRAY_OT_create_ik(bpy.types.Operator):
         return True
 
     def draw(self, context):
-        split = version_utils.layout_split(self.layout, 0.35)
+        split = utils.version.layout_split(self.layout, 0.35)
         split.label(text='Chain Length:')
         split.prop(self, 'chain_length', text='')
 
-        split = version_utils.layout_split(self.layout, 0.35)
+        split = utils.version.layout_split(self.layout, 0.35)
         split.label(text='Pole Target Offset:')
         split.prop(self, 'pole_target_offset', text='')
 
-        split = version_utils.layout_split(self.layout, 0.35)
+        split = utils.version.layout_split(self.layout, 0.35)
         split.label(text='IK/FK Name:')
         split.prop(self, 'ik_fk_name', text='')
 
@@ -370,7 +369,7 @@ class XRAY_OT_create_ik(bpy.types.Operator):
 
 
 def register():
-    version_utils.assign_props([(props, XRAY_OT_create_ik), ])
+    utils.version.assign_props([(props, XRAY_OT_create_ik), ])
     bpy.utils.register_class(XRAY_OT_create_ik)
 
 

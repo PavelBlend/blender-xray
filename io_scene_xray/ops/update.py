@@ -11,8 +11,7 @@ import bpy
 
 # addon modules
 from .. import text
-from .. import version_utils
-from .. import draw_utils
+from .. import utils
 from .. import bl_info
 
 
@@ -36,7 +35,7 @@ def check_for_updates():
     if has_new_release:
         download_url = releases_list[0]['assets'][0]['browser_download_url']
         message = text.get_text(text.warn.new_update_available).capitalize()
-        draw_utils.show_message(
+        utils.draw.show_message(
             message,
             (last_tag_str, ),
             text.get_text(text.warn.info_title).capitalize(),
@@ -46,7 +45,7 @@ def check_for_updates():
         )
     else:
         message = text.get_text(text.warn.has_no_update).capitalize()
-        draw_utils.show_message(
+        utils.draw.show_message(
             message,
             (),
             text.get_text(text.warn.info_title).capitalize(),
@@ -76,7 +75,7 @@ class XRAY_OT_install_update(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -101,7 +100,7 @@ classes = (XRAY_OT_check_update, XRAY_OT_install_update)
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

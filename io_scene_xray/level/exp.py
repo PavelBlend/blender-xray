@@ -14,7 +14,6 @@ from .. import text
 from .. import utils
 from .. import log
 from .. import data_blocks
-from .. import version_utils
 from .. import xray_io
 from .. import ogf
 
@@ -307,7 +306,7 @@ def get_light_map_image(material, lmap_prop):
     if lmap_image_name:
         lmap_image = bpy.data.images.get(lmap_image_name, None)
         if not lmap_image:
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.level_no_lmap,
                 log.props(
                     light_map=lmap_image_name,
@@ -318,7 +317,7 @@ def get_light_map_image(material, lmap_prop):
         image_name = os.path.basename(image_path)
         base_name, ext = os.path.splitext(image_name)
         if ext != '.dds':
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.level_lmap_no_dds,
                 log.props(
                     image=lmap_image.name,
@@ -340,7 +339,7 @@ class ExportLevelContext():
 
 
 def write_shaders(level):
-    texture_folder = version_utils.get_preferences().textures_folder_auto
+    texture_folder = utils.version.get_preferences().textures_folder_auto
     materials = {}
     for material, shader_index in level.materials.items():
         materials[shader_index] = material
@@ -788,13 +787,13 @@ def write_tree_def_2(bpy_obj, chunked_writer):
         bpy_obj.scale[2],
         bpy_obj.scale[1]
     ))
-    scale_mat = version_utils.multiply(
+    scale_mat = utils.version.multiply(
         mathutils.Matrix.Scale(scale[0], 4, (1, 0, 0)),
         mathutils.Matrix.Scale(scale[1], 4, (0, 1, 0)),
         mathutils.Matrix.Scale(scale[2], 4, (0, 0, 1))
     )
 
-    matrix = version_utils.multiply(
+    matrix = utils.version.multiply(
         location_mat, rotation_mat, scale_mat
     ).transposed()
     for row in matrix:
@@ -940,7 +939,7 @@ def write_visual(
             chunked_writer.put(ogf.fmt.HEADER, header_writer)
             chunked_writer.put(ogf.fmt.Chunks_v4.GCONTAINER, gcontainer_writer)
             if len(level.visuals_cache.children[bpy_obj.name]):
-                raise utils.AppError(
+                raise log.AppError(
                     text.error.level_has_children,
                     log.props(object=bpy_obj.name)
                 )
@@ -1153,7 +1152,7 @@ def write_glow(packed_writer, glow_obj, level):
     )
     faces_count = len(glow_obj.data.polygons)
     if not faces_count:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.level_bad_glow,
             log.props(
                 object=glow_obj.name,
@@ -1163,7 +1162,7 @@ def write_glow(packed_writer, glow_obj, level):
     dim_max = max(glow_obj.dimensions)
     glow_radius = dim_max / 2
     if glow_radius < 0.0005:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.level_bad_glow_radius,
             log.props(
                 object=glow_obj.name,
@@ -1245,7 +1244,7 @@ def write_portals(level, level_object):
                 portal_obj = bpy.data.objects[portal_obj_name]
                 vertices_count = len(portal_obj.data.vertices)
                 if vertices_count < 3:
-                    raise utils.AppError(
+                    raise log.AppError(
                         text.error.level_bad_portal,
                         log.props(
                             object=portal_obj.name,
@@ -1368,7 +1367,7 @@ def write_level_cform(packed_writer, level):
         for material in cform_object.data.materials:
             materials.add(material)
 
-    preferences = version_utils.get_preferences()
+    preferences = utils.version.get_preferences()
     gamemtl_file_path = preferences.gamemtl_file_auto
     if os.path.exists(gamemtl_file_path):
         gamemtl_data = utils.read_file(gamemtl_file_path)
@@ -1387,7 +1386,7 @@ def write_level_cform(packed_writer, level):
     for sector_index in range(sectors_count):
         cform_object = level.cform_objects[sector_index]
         if cform_object.type != 'MESH':
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.level_bad_cform_type,
                 log.props(
                     object=cform_object.name,
@@ -1395,7 +1394,7 @@ def write_level_cform(packed_writer, level):
                 )
             )
         if not len(cform_object.data.polygons):
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.level_cform_no_geom,
                 log.props(object=cform_object.name)
             )

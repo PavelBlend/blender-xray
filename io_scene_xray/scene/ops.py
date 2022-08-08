@@ -9,8 +9,6 @@ from .. import utils
 from .. import icons
 from .. import log
 from .. import ie_props
-from .. import version_utils
-from .. import draw_utils
 
 
 op_text = 'Scene Selection'
@@ -34,7 +32,7 @@ class XRAY_OT_export_scene_selection(
     filename_ext = filename_ext
     props = export_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -43,7 +41,7 @@ class XRAY_OT_export_scene_selection(
     def execute(self, context):
         try:
             self.export(self.objs, context)
-        except utils.AppError as err:
+        except log.AppError as err:
             log.err(err)
         return {'FINISHED'}
 
@@ -84,13 +82,13 @@ class XRAY_OT_import_scene_selection(
     filename_ext = filename_ext
     props = import_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
         layout = self.layout
-        draw_utils.draw_fmt_ver_prop(layout, self, 'fmt_version')
+        utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
         layout.prop(self, 'mesh_split_by_materials')
 
     @utils.execute_with_logger
@@ -98,12 +96,12 @@ class XRAY_OT_import_scene_selection(
     def execute(self, context):
         try:
             imp.import_file(self.filepath, self)
-        except utils.AppError as err:
+        except log.AppError as err:
             log.err(err)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         self.mesh_split_by_materials = preferences.scene_selection_mesh_split_by_mat
         self.fmt_version = preferences.scene_selection_sdk_version
         context.window_manager.fileselect_add(self)
@@ -117,7 +115,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

@@ -64,7 +64,7 @@ def get_flags(xray):
 def validate_omf_file(context):
     data = utils.read_file(context.filepath)
     if not len(data):
-        raise utils.AppError(
+        raise log.AppError(
             text.error.omf_empty,
             log.props(file=context.filepath)
         )
@@ -74,12 +74,12 @@ def validate_omf_file(context):
         chunks[chunk_id] = chunk_data
     chunks_ids = list(chunks.keys())
     if not fmt.Chunks.S_MOTIONS in chunks_ids and context.export_motions:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.omf_no_anims,
             log.props(file=context.filepath)
         )
     if not fmt.Chunks.S_SMPARAMS in chunks_ids and context.export_bone_parts:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.omf_no_params,
             log.props(file=context.filepath)
         )
@@ -326,7 +326,7 @@ def get_pose_bones_and_groups(context):
             )
 
     if no_group_bones:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.omf_bone_no_group,
             log.props(
                 armature_object=context.bpy_arm_obj.name,

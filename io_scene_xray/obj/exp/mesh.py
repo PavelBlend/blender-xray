@@ -9,7 +9,6 @@ from ... import text
 from ... import xray_io
 from ... import utils
 from ... import log
-from ... import version_utils
 
 
 def _export_sg_cs_cop(bmfaces):
@@ -138,7 +137,7 @@ def remove_bad_geometry(bm, bml, bpy_obj):
                     vertex_group=vgroup_name,
                     object=bpy_obj.name
                 )
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             ops_context = 'VERTS'
         else:
             ops_context = 1
@@ -161,7 +160,7 @@ def export_faces(chunked_writer, bm, bpy_obj):
     face_indices = []
     uv_layer = bm.loops.layers.uv.active
     if not uv_layer:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.object_no_uv,
             log.props(object=bpy_obj.name)
         )
@@ -197,13 +196,13 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
             if mod.type != 'ARMATURE' and mod.show_viewport
     ]
 
-    prefs = version_utils.get_preferences()
+    prefs = utils.version.get_preferences()
 
     if prefs.object_split_normals:
         temp_obj = bpy_obj.copy()
         temp_obj.data = bpy_obj.data.copy()
         tri_mod = temp_obj.modifiers.new('Triangulate', 'TRIANGULATE')
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             tri_mod.keep_custom_normals = True
         override = bpy.context.copy()
         override['active_object'] = temp_obj
@@ -320,14 +319,14 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
     for (material_name, material_index), faces_indices in face_materials.items():
         if faces_indices:
             if material_name is None:
-                raise utils.AppError(
+                raise log.AppError(
                     text.error.obj_empty_mat,
                     log.props(object=bpy_obj.name)
                 )
             used_material_names.add(material_name)
 
     if not face_materials:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.obj_no_mat,
             log.props(object=bpy_obj.name)
         )
@@ -371,7 +370,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
             for loop_index in (0, 2, 1):
                 bm_loop = face.loops[loop_index]
                 bpy_loop = temp_mesh.loops[bm_loop.index]
-                normal = version_utils.multiply(
+                normal = utils.version.multiply(
                     bpy_root.matrix_world.inverted(),
                     temp_obj.matrix_world,
                     bpy_loop.normal
@@ -384,7 +383,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
     # write vmaps chunk
     packed_writer = xray_io.PackedWriter()
     packed_writer.putf('<I', uv_maps_count + weight_maps_count)
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         texture = bpy_obj.data.uv_layers.active
     else:
         texture = bpy_obj.data.uv_textures.active

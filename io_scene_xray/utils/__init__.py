@@ -13,11 +13,14 @@ import mathutils
 import bmesh
 
 # addon modules
-from . import bl_info
-from . import log
-from . import text
-from . import version_utils
-from . import xray_io
+from . import draw
+from . import ie
+from . import motion
+from . import version
+from .. import bl_info
+from .. import log
+from .. import text
+from .. import xray_io
 
 
 def is_exportable_bone(bpy_bone):
@@ -44,21 +47,13 @@ def plugin_version_number():
     return number
 
 
-class AppError(Exception):
-    def __init__(self, message, ctx=None):
-        if ctx is None:
-            ctx = log.props()
-        super().__init__(message)
-        self.ctx = ctx
-
-
 @contextlib.contextmanager
 def logger(name, report):
     lgr = Logger(report)
     try:
         with log.using_logger(lgr):
             yield
-    except AppError as err:
+    except log.AppError as err:
         lgr.err(str(err), err.ctx)
         raise err
     finally:
@@ -186,7 +181,7 @@ def fix_ensure_lookup_table(bmv):
 def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_normals=False, mods=None):
     mesh = bmesh.new()
     temp_obj = None
-    if split_normals and version_utils.has_set_normals_from_faces():
+    if split_normals and version.has_set_normals_from_faces():
         temp_mesh = bpy_obj.data.copy()
         temp_obj = bpy_obj.copy()
         temp_obj.data = temp_mesh
@@ -198,8 +193,8 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
                 loop = temp_mesh.loops[loop_index]
                 edge = temp_mesh.edges[loop.edge_index]
                 edge.use_edge_sharp = True
-        version_utils.link_object(temp_obj)
-        version_utils.set_active_object(temp_obj)
+        version.link_object(temp_obj)
+        version.set_active_object(temp_obj)
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.reveal()
         bpy.ops.mesh.select_all(action='SELECT')
@@ -214,8 +209,8 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
             temp_mesh = exportable_obj.data.copy()
             temp_obj = exportable_obj.copy()
             temp_obj.data = temp_mesh
-            version_utils.link_object(temp_obj)
-            version_utils.set_active_object(temp_obj)
+            version.link_object(temp_obj)
+            version.set_active_object(temp_obj)
             exportable_obj = temp_obj
         temp_obj.shape_key_add(name='last_shape_key', from_mix=True)
         for shape_key in temp_mesh.shape_keys.key_blocks:
@@ -226,8 +221,8 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
             temp_mesh = bpy_obj.data.copy()
             temp_obj = bpy_obj.copy()
             temp_obj.data = temp_mesh
-            version_utils.link_object(temp_obj)
-            version_utils.set_active_object(temp_obj)
+            version.link_object(temp_obj)
+            version.set_active_object(temp_obj)
             exportable_obj = temp_obj
         override = bpy.context.copy()
         override['active_object'] = temp_obj
@@ -239,7 +234,7 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
         mat = mathutils.Matrix()
     else:
         mat = bpy_obj.matrix_world
-    mat = version_utils.multiply(space_matrix.inverted(), mat)
+    mat = version.multiply(space_matrix.inverted(), mat)
     mesh.transform(mat)
     need_flip = False
     for scale_component in mat.to_scale():
@@ -260,7 +255,7 @@ def calculate_mesh_bbox(verts, mat=mathutils.Matrix()):
         dst.y = func(dst.y, src.y)
         dst.z = func(dst.z, src.z)
 
-    multiply = version_utils.get_multiply()
+    multiply = version.get_multiply()
     fix_ensure_lookup_table(verts)
     _min = multiply(mat, verts[0].co).copy()
     _max = _min.copy()
@@ -410,22 +405,6 @@ def _smooth_angle(current, previous):
     return current
 
 
-def mkstruct(name, fields):
-    template = \
-        'class {name}:\n' \
-            '\t__slots__={fields}\n' \
-            '\tdef __init__(self, {params}):\n' \
-                '\t\t{params_init}={params}'.format(
-        name=name,
-        fields=fields,
-        params=','.join(fields),
-        params_init=','.join('self.' + field for field in fields)
-    )
-    tmp = {}
-    exec(template, tmp)
-    return tmp[name]
-
-
 class InitializationContext:
     def __init__(self, operation):
         self.operation = operation
@@ -468,7 +447,7 @@ class ObjectsInitializer:
 
 @contextlib.contextmanager
 def using_mode(mode):
-    if version_utils.IS_28:
+    if version.IS_28:
         objects = bpy.context.view_layer.objects
     else:
         objects = bpy.context.scene.objects
@@ -486,7 +465,7 @@ def execute_with_logger(method):
             name = self.__class__.bl_idname.replace('.', '_')
             with logger(name, self.report):
                 return method(self, context)
-        except AppError:
+        except log.AppError:
             return {'CANCELLED'}
 
     return wrapper
@@ -579,7 +558,7 @@ def save_file(file_path, writer):
         with open(file_path, 'wb') as file:
             file.write(writer.data)
     except PermissionError:
-        raise AppError(
+        raise log.AppError(
             text.error.file_another_prog,
             log.props(file=os.path.basename(file_path), path=file_path)
         )
@@ -591,7 +570,7 @@ def read_file(file_path):
             data = file.read()
         return data
     except FileNotFoundError:
-        raise AppError('No such file!')
+        raise log.AppError('No such file!')
 
 
 def read_text_file(file_path):
@@ -617,18 +596,8 @@ def print_time_info(message=None, tabs_count=None, total_time=None):
         print('{0}{1}'.format(message_text, message_time))
 
 
-def build_op_label(operator, compact=False):
-    # build operator label
-    if compact:
-        prefix = ''
-    else:
-        prefix = 'X-Ray '
-    label = '{0}{1} ({2})'.format(prefix, operator.text, operator.ext)
-    return label
-
-
 def get_revision_data(revision):
-    preferences = version_utils.get_preferences()
+    preferences = version.get_preferences()
     if preferences.custom_owner_name:
         curruser = preferences.custom_owner_name
     else:
@@ -678,7 +647,7 @@ def get_armature_object(bpy_obj):
             if modifier.show_viewport:
                 used_mods.append(modifier)
         if len(used_mods) > 1:
-            raise AppError(
+            raise log.AppError(
                 text.error.object_many_arms,
                 log.props(
                     root_object=bpy_obj.name,
@@ -724,9 +693,9 @@ def get_selection_state(context):
 
 
 def set_selection_state(active_object, selected_objects):
-    version_utils.set_active_object(active_object)
+    version.set_active_object(active_object)
     for obj in selected_objects:
-        version_utils.select_object(obj)
+        version.select_object(obj)
 
 
 def set_mode(mode):

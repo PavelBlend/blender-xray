@@ -10,7 +10,7 @@ from . import fmt
 from . import utility
 from .. import log
 from .. import text
-from .. import version_utils
+from .. import utils
 
 
 # level collection names
@@ -66,8 +66,8 @@ def create_object(object_name, object_data):
 def create_level_object(level, level_collection):
     level_object = create_object(level.name, None)
     level_collection.objects.link(level_object)
-    if not version_utils.IS_28:
-        version_utils.link_object(level_object)
+    if not utils.version.IS_28:
+        utils.version.link_object(level_object)
     level_object.xray.is_level = True
     level_object.xray.level.object_type = 'LEVEL'
     level_object.xray.level.source_path = level.path
@@ -77,31 +77,31 @@ def create_level_object(level, level_collection):
 def create_sectors_object(level_collection):
     sectors_object = create_object('sectors', None)
     level_collection.objects.link(sectors_object)
-    if not version_utils.IS_28:
-        version_utils.link_object(sectors_object)
+    if not utils.version.IS_28:
+        utils.version.link_object(sectors_object)
     return sectors_object
 
 
 def create_level_collections(level):
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         scene_collection = bpy.context.scene.collection
     else:
         scene_collection = None
     # create main collection
-    level_collection = version_utils.create_collection(
+    level_collection = utils.version.create_collection(
         level.name, scene_collection
     )
     level.collections[LEVEL_MAIN_COLLECTION_NAME] = level_collection
 
     # create level collections
     for collection_name in LEVEL_COLLECTION_NAMES:
-        collection = version_utils.create_collection(collection_name, level_collection)
+        collection = utils.version.create_collection(collection_name, level_collection)
         level.collections[collection_name] = collection
 
     # create visuals collections
     visuals_collection = level.collections[LEVEL_VISUALS_COLLECTION_NAME]
     for collection_name in LEVEL_VISUALS_COLLECTION_NAMES:
-        collection = version_utils.create_collection(collection_name, visuals_collection)
+        collection = utils.version.create_collection(collection_name, visuals_collection)
         level.collections[collection_name] = collection
 
     return level_collection
@@ -354,9 +354,9 @@ def is_same_image(context, bpy_material, texture):
     absolute_texture_path_in_level_folder = get_absolute_texture_path(
         level_dir, texture
     )
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         for node in bpy_material.node_tree.nodes:
-            if node.type in version_utils.IMAGE_NODES:
+            if node.type in utils.version.IMAGE_NODES:
                 bpy_image = node.image
                 if not bpy_image:
                     continue
@@ -428,7 +428,7 @@ def create_material(level, context, texture, engine_shader, *light_maps):
         bpy_material.xray.light_vert_color = 'Light'
         bpy_material.xray.sun_vert_color = 'Sun'
     bpy_material.xray.hemi_vert_color = 'Hemi'
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         set_material_settings(bpy_material)
         remove_default_shader_nodes(bpy_material)
         create_shader_nodes(level, bpy_material, bpy_image, bpy_image_lmaps)

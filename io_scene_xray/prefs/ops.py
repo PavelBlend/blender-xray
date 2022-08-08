@@ -3,7 +3,7 @@ import bpy
 
 # addon modules
 from . import props
-from .. import version_utils
+from .. import utils
 
 
 class XRAY_OT_reset_prefs_settings(bpy.types.Operator):
@@ -11,7 +11,7 @@ class XRAY_OT_reset_prefs_settings(bpy.types.Operator):
     bl_label = 'Reset All Settings'
 
     def execute(self, context):
-        prefs = version_utils.get_preferences()
+        prefs = utils.version.get_preferences()
         # reset main settings
         for prop_name in props.plugin_preferences_props.keys():
             prefs.property_unset(prop_name)
@@ -36,12 +36,12 @@ class XRAY_OT_explicit_path(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         auto_prop = props.build_auto_id(self.path)
         value = getattr(preferences, auto_prop)
         setattr(preferences, self.path, value)
@@ -56,7 +56,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

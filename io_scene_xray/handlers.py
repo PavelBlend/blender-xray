@@ -3,7 +3,6 @@ import bpy
 
 # addon modules
 from . import utils
-from . import version_utils
 
 
 _INITIALIZER = utils.ObjectsInitializer([
@@ -24,9 +23,9 @@ def scene_update_post(_):
 
 def register():
     bpy.app.handlers.load_post.append(load_post)
-    version_utils.get_scene_update_post().append(scene_update_post)
+    utils.version.get_scene_update_post().append(scene_update_post)
 
 
 def unregister():
-    version_utils.get_scene_update_post().remove(scene_update_post)
+    utils.version.get_scene_update_post().remove(scene_update_post)
     bpy.app.handlers.load_post.remove(load_post)

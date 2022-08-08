@@ -12,7 +12,6 @@ from ... import text
 from ... import log
 from ... import xray_io
 from ... import utils
-from ... import version_utils
 from ... import ie_props
 
 
@@ -35,7 +34,7 @@ def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
 def import_mesh(context, creader, renamemap):
     ver = creader.nextf(fmt.Chunks.Mesh.VERSION, '<H')[0]
     if ver != fmt.CURRENT_MESH_VERSION:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.object_unsupport_mesh_ver,
             log.props(version=ver)
         )
@@ -48,7 +47,7 @@ def import_mesh(context, creader, renamemap):
     vt_data = ()
     fc_data = ()
 
-    prefs = version_utils.get_preferences()
+    prefs = utils.version.get_preferences()
 
     face_sg = None
     s_faces = []
@@ -142,7 +141,7 @@ def import_mesh(context, creader, renamemap):
                     bml = bmsh.loops.layers.uv.get(name)
                     if bml is None:
                         bml = bmsh.loops.layers.uv.new(name)
-                        if version_utils.IS_28:
+                        if utils.version.IS_28:
                             bml_texture = None
                         else:
                             bml_texture = bmsh.faces.layers.tex.new(name)
@@ -175,7 +174,7 @@ def import_mesh(context, creader, renamemap):
                             reader.skip(size * 4)
                     vmaps.append((typ, vgi, wgs))
                 else:
-                    raise utils.AppError(
+                    raise log.AppError(
                         text.error.object_bad_vmap,
                         log.props(type=typ)
                     )
@@ -237,7 +236,7 @@ def import_mesh(context, creader, renamemap):
                 if self.__next is None:
                     lvl = self.__level
                     if lvl > 100:
-                        raise utils.AppError(
+                        raise log.AppError(
                             text.error.object_many_duplicated_faces
                         )
                     nonlocal bad_vgroup
@@ -288,7 +287,7 @@ def import_mesh(context, creader, renamemap):
     if face_sg or split_normals:
         bm_data.use_auto_smooth = True
         bm_data.auto_smooth_angle = math.pi
-        if not version_utils.IS_28:
+        if not utils.version.IS_28:
             bm_data.show_edge_sharp = True
 
     bo_mesh = bpy.data.objects.new(mesh_name, bm_data)
@@ -309,7 +308,7 @@ def import_mesh(context, creader, renamemap):
             bmat.xray.version = context.version
         midx = len(bm_data.materials)
         bm_data.materials.append(bmat)
-        if not version_utils.IS_28:
+        if not utils.version.IS_28:
             images.append(
                 bmat.active_texture.image if bmat.active_texture else None
             )
@@ -373,7 +372,7 @@ def import_mesh(context, creader, renamemap):
         msg = text.warn.object_duplicate_faces
         if not context.split_by_materials:
             msg += text.warn.object_try_use_option.format(
-                version_utils.get_prop_name(
+                utils.version.get_prop_name(
                     ie_props.PropObjectMeshSplitByMaterials()
                 )
             )

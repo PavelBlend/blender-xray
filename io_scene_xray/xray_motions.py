@@ -4,11 +4,9 @@ import mathutils
 
 # addon modules
 from . import utils
-from . import motion_utils
 from . import text
 from . import xray_io
 from . import log
-from . import version_utils
 from . import xray_interpolation
 
 
@@ -114,7 +112,7 @@ def interpolate_keys(fps, start, end, values, times, shapes, tcb, params):
             interpolated_values.append(interpolated_value)
             interpolated_times.append(frame_index)
     if unsupported_shapes:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.motion_shape,
             log.props(shapes=unsupported_shapes, count=errors)
         )
@@ -145,7 +143,7 @@ def import_motion(
     fps, ver = reader.getf('fH')
     xray.fps = fps
     if ver < 6:
-        raise utils.AppError(text.error.motion_ver, log.props(version=ver))
+        raise log.AppError(text.error.motion_ver, log.props(version=ver))
 
     if context.add_actions_to_motion_list:
         motion = bpy_armature.xray.motions_collection.add()
@@ -159,7 +157,7 @@ def import_motion(
 
     xray.flags, xray.bonepart = reader.getf('<BH')
     xray.speed, xray.accrue, xray.falloff, xray.power = reader.getf('<ffff')
-    multiply = version_utils.get_multiply()
+    multiply = utils.version.get_multiply()
     converted_shapes = []
     converted_shapes_names = set()
     for _bone_idx in range(reader.getf('H')[0]):
@@ -383,7 +381,7 @@ def skip_motion_rest(data, offs):
     ptr = offs + 4 + 4 + 4 + 2
     ver = xray_io.FastBytes.short_at(data, ptr - 2)
     if ver < 6:
-        raise utils.AppError(text.error.motion_ver, log.props(version=ver))
+        raise log.AppError(text.error.motion_ver, log.props(version=ver))
 
     ptr += (1 + 2 + 4 * 4) + 2
     for _bone_idx in range(xray_io.FastBytes.short_at(data, ptr - 2)):
@@ -450,7 +448,7 @@ def _bake_motion_data(action, armature, prepared_bones):
                 else:
                     parent_matrix = MATRIX_BONE_INVERTED
                     root_bone_names.append(pbone.name)
-                data.append(version_utils.multiply(parent_matrix, pbone.matrix))
+                data.append(utils.version.multiply(parent_matrix, pbone.matrix))
     finally:
         if has_old_action:
             armature.animation_data.action = old_act
@@ -513,7 +511,7 @@ def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names
 
         def curve2keys(curve):
             for frm, val in enumerate(curve):
-                yield motion_utils.KF(frm / xray.fps, val, xray_interpolation.Shape.STEPPED)
+                yield utils.motion.KF(frm / xray.fps, val, xray_interpolation.Shape.STEPPED)
 
         if name in root_bone_names:
             frange = action.frame_range
@@ -522,7 +520,7 @@ def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names
             time_end = None
 
         for curve_index, curve in enumerate(curves):
-            epsilon = motion_utils.EPSILON
+            epsilon = utils.motion.EPSILON
             if xray.autobake_custom_refine:
                 if curve_index < 3:
                     epsilon = xray.autobake_refine_location
@@ -535,9 +533,9 @@ def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names
                 xray_interpolation.Behavior.CONSTANT.value
             )
             cpkw = xray_io.PackedWriter()
-            ccnt = motion_utils.export_keyframes(
+            ccnt = utils.motion.export_keyframes(
                 cpkw,
-                motion_utils.refine_keys(curve2keys(curve), epsilon),
+                utils.motion.refine_keys(curve2keys(curve), epsilon),
                 time_end=time_end,
                 fps=xray.fps
             )

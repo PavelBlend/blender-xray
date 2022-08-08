@@ -3,7 +3,6 @@ import bpy
 
 # addon modules
 from .. import utils
-from .. import version_utils
 
 
 _dynamic_menu_op_props = {
@@ -17,7 +16,7 @@ class XRAY_OT_dynamic_menu(bpy.types.Operator):
     bl_idname = 'io_scene_xray.dynmenu'
     bl_label = ''
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in _dynamic_menu_op_props.items():
             exec('{0} = _dynamic_menu_op_props.get("{0}")'.format(prop_name))
 
@@ -127,7 +126,7 @@ class XRAY_MT_xr_template(DynamicMenu):
     @classmethod
     def create_cached(cls, pref_prop, fparse):
         return utils.create_cached_file_data(
-            lambda: getattr(version_utils.get_preferences(), pref_prop, None),
+            lambda: getattr(utils.version.get_preferences(), pref_prop, None),
             lambda data: cls.parse(data, fparse)
         )
 
@@ -148,7 +147,7 @@ classes = (
 
 
 def register():
-    version_utils.assign_props([(_dynamic_menu_op_props, XRAY_OT_dynamic_menu), ])
+    utils.version.assign_props([(_dynamic_menu_op_props, XRAY_OT_dynamic_menu), ])
     for operator in classes:
         bpy.utils.register_class(operator)
 

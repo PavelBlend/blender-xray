@@ -3,7 +3,6 @@ import bpy
 
 # addon modules
 from .. import utils
-from .. import version_utils
 
 
 COPY_TRANSFORMS_NAME = '!-xray-link'
@@ -21,7 +20,7 @@ class XRAY_OT_link_bones(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -97,7 +96,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

@@ -6,14 +6,13 @@ import bpy
 
 # addon modules
 from .. import utils
-from .. import version_utils
 
 
 def _get_real_bone_shape():
     result = bpy.data.objects.get('real_bone_shape')
     if result is None:
         result = bpy.data.objects.new('real_bone_shape', None)
-        version_utils.set_empty_draw_type(result, 'SPHERE')
+        utils.version.set_empty_draw_type(result, 'SPHERE')
     return result
 
 
@@ -43,7 +42,7 @@ class XRAY_OT_resize_bones(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -70,7 +69,7 @@ class XRAY_OT_resize_bones(bpy.types.Operator):
             status = self.resize_bones(obj)
             if status:
                 edited_count += 1
-        version_utils.set_active_object(active_object)
+        utils.version.set_active_object(active_object)
         self.report({'INFO'}, 'Edited {0} objects'.format(edited_count))
         return {'FINISHED'}
 
@@ -98,7 +97,7 @@ class XRAY_OT_resize_bones(bpy.types.Operator):
                 correct_context = True
         if not correct_context:
             return False
-        version_utils.set_active_object(obj)
+        utils.version.set_active_object(obj)
         mode = obj.mode
         bpy.ops.object.mode_set(mode='EDIT')
         try:
@@ -130,7 +129,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

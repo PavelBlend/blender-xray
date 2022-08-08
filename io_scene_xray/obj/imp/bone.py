@@ -9,7 +9,6 @@ from ... import log
 from ... import xray_io
 from ... import xray_motions
 from ... import utils
-from ... import version_utils
 
 
 def create_bone(
@@ -100,7 +99,7 @@ def import_bone(
     reader = xray_io.PackedReader(data)
     ver = reader.getf('<H')[0]
     if ver != 0x2:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.object_unsupport_bone_ver,
             log.props(version=ver)
         )

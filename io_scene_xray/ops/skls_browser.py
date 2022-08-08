@@ -8,14 +8,13 @@ from .. import text
 from .. import skl
 from .. import utils
 from .. import log
-from .. import version_utils
 
 
 class XRAY_UL_skls_list_item(bpy.types.UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         row = layout.row()
-        row = version_utils.layout_split(row, 0.2)
+        row = utils.version.layout_split(row, 0.2)
         row.alignment = 'RIGHT'
         row.label(text=str(item.frames))
         row.alignment = 'LEFT'
@@ -38,7 +37,7 @@ class XRAY_OT_close_skls_file(bpy.types.Operator):
         if ob.animation_data:
             act = ob.animation_data.action
             ob.animation_data_clear()
-            version_utils.remove_action(act)
+            utils.version.remove_action(act)
         sk.animations.clear()
         bpy.ops.screen.animation_cancel()
         # reset transforms
@@ -83,7 +82,7 @@ class XRAY_OT_browse_skls_file(bpy.types.Operator):
     bl_description = 'Opens .skls file with collection of animations. Used to import X-Ray engine animations.'+\
         ' To import select object with X-Ray struct of bones'
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in op_browse_skls_file_props.items():
             exec('{0} = op_browse_skls_file_props.get("{0}")'.format(prop_name))
 
@@ -167,7 +166,7 @@ def skls_animations_index_changed(self, context):
         # need to remove previous animation to free the memory since .skls can contains thousand animations
         act = ob.animation_data.action
         ob.animation_data_clear()
-        version_utils.remove_action(act)
+        utils.version.remove_action(act)
 
     # delete from xray property group
     try:
@@ -229,7 +228,7 @@ xray_skls_animation_properties_props = {
 class XRaySklsAnimationProperties(bpy.types.PropertyGroup):
     'Contains animation properties in animations list of .skls file'
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in xray_skls_animation_properties_props.items():
             exec('{0} = xray_skls_animation_properties_props.get("{0}")'.format(prop_name))
 
@@ -242,7 +241,7 @@ xray_object_skls_browser_properties_props = {
 
 
 class XRayObjectSklsBrowserProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in xray_object_skls_browser_properties_props.items():
             exec('{0} = xray_object_skls_browser_properties_props.get("{0}")'.format(prop_name))
 
@@ -259,7 +258,7 @@ classes = (
 def register():
     for clas, props in classes:
         if props:
-            version_utils.assign_props([(props, clas), ])
+            utils.version.assign_props([(props, clas), ])
         bpy.utils.register_class(clas)
 
 

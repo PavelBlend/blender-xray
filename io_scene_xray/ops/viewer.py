@@ -5,7 +5,6 @@ import os
 import bpy
 
 # addon modules
-from .. import version_utils
 from .. import utils
 
 
@@ -61,7 +60,7 @@ def remove_preview_data():
                     for material in mesh.materials:
                         if material:
                             materials.add(material)
-                            if version_utils.IS_28:
+                            if utils.version.IS_28:
                                 for node in material.node_tree.nodes:
                                     if node.type == 'TEX_IMAGE':
                                         image = node.image
@@ -104,7 +103,7 @@ def remove_preview_data():
                 used_actions.add(action.name)
     for action in actions:
         if not action.name in used_actions:
-            version_utils.remove_action(action)
+            utils.version.remove_action(action)
 
 
 def import_file(file):
@@ -112,7 +111,7 @@ def import_file(file):
     viewer = scene.xray.viewer
     path = file.path
     directory = os.path.dirname(path)
-    prefs = version_utils.get_preferences()
+    prefs = utils.version.get_preferences()
     if not os.path.isfile(path):
         return
     if path.endswith('.object'):
@@ -195,14 +194,14 @@ def update_file(self, context):
     imported_objects = old_objects ^ new_objects
     scene['imported_objects'] = list(imported_objects)
     bpy.ops.object.select_all(action='DESELECT')
-    version_utils.set_mesh_objects_select(imported_objects, True)
+    utils.version.set_mesh_objects_select(imported_objects, True)
     for area in bpy.context.screen.areas:
         if area.type == 'VIEW_3D':
             ctx = bpy.context.copy()
             ctx['area'] = area
             ctx['region'] = area.regions[-1]
             bpy.ops.view3d.view_selected(ctx)
-    version_utils.set_mesh_objects_select(imported_objects, False)
+    utils.version.set_mesh_objects_select(imported_objects, False)
 
 
 def update_file_list(directory, active_folder=None):
@@ -306,7 +305,7 @@ class XRAY_OT_viewer_open_folder(bpy.types.Operator):
     bl_label = 'Open Folder'
     bl_options = {'REGISTER'}
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in op_props.items():
             exec('{0} = op_props.get("{0}")'.format(prop_name))
 
@@ -387,7 +386,7 @@ class XRAY_OT_viewer_import_files(bpy.types.Operator):
     bl_label = 'Import Files'
     bl_options = {'REGISTER'}
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in op_import_props.items():
             exec('{0} = op_import_props.get("{0}")'.format(prop_name))
 
@@ -427,7 +426,7 @@ class XRAY_OT_viewer_select_files(bpy.types.Operator):
     bl_label = 'Select'
     bl_options = {'REGISTER'}
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in op_select_props.items():
             exec('{0} = op_select_props.get("{0}")'.format(prop_name))
 
@@ -456,7 +455,7 @@ viewer_file_props = {
 
 
 class XRayViwerFileProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in viewer_file_props.items():
             exec('{0} = viewer_file_props.get("{0}")'.format(prop_name))
 
@@ -519,7 +518,7 @@ scene_viewer_props = {
 
 
 class XRaySceneViewerProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in scene_viewer_props.items():
             exec('{0} = scene_viewer_props.get("{0}")'.format(prop_name))
 
@@ -540,7 +539,7 @@ classes = (
 def register():
     for operator, props in classes:
         if props:
-            version_utils.assign_props([(props, operator), ])
+            utils.version.assign_props([(props, operator), ])
         bpy.utils.register_class(operator)
 
 

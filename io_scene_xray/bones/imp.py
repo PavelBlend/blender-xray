@@ -6,7 +6,6 @@ from .. import log
 from .. import text
 from .. import utils
 from .. import xray_io
-from .. import ie_utils
 from .. import obj
 
 
@@ -142,6 +141,6 @@ def _import_main(data, import_context):
 @log.with_context(name='import-bones')
 def import_file(import_context):
     log.update(file=import_context.filepath)
-    ie_utils.check_file_exists(import_context.filepath)
+    utils.ie.check_file_exists(import_context.filepath)
     data = utils.read_file(import_context.filepath)
     _import_main(data, import_context)

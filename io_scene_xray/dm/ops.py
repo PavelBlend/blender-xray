@@ -13,7 +13,6 @@ from .. import icons
 from .. import log
 from .. import utils
 from .. import ie_props
-from .. import version_utils
 
 
 class ImportDmContext(contexts.ImportMeshContext):
@@ -60,14 +59,14 @@ class XRAY_OT_import_dm(
     filename_ext = filename_ext
     props = import_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @utils.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
-        textures_folder = version_utils.get_preferences().textures_folder_auto
+        textures_folder = utils.version.get_preferences().textures_folder_auto
 
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
@@ -87,7 +86,7 @@ class XRAY_OT_import_dm(
                     os.path.join(self.directory, file.name),
                     import_context
                 )
-            except utils.AppError as err:
+            except log.AppError as err:
                 import_context.errors.append(err)
         for err in import_context.errors:
             log.err(err)
@@ -111,7 +110,7 @@ class XRAY_OT_export_dm(ie_props.BaseOperator):
     filename_ext = filename_ext
     props = export_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -136,7 +135,7 @@ class XRAY_OT_export_dm(ie_props.BaseOperator):
                     os.path.join(path, name),
                     export_context
                 )
-            except utils.AppError as err:
+            except log.AppError as err:
                 export_context.errors.append(err)
         for err in export_context.errors:
             log.err(err)
@@ -144,7 +143,7 @@ class XRAY_OT_export_dm(ie_props.BaseOperator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        prefs = version_utils.get_preferences()
+        prefs = utils.version.get_preferences()
         self.texture_name_from_image_path = prefs.dm_texture_names_from_path
         objs = context.selected_objects
 
@@ -193,7 +192,7 @@ class XRAY_OT_export_dm_file(
     filename_ext = filename_ext
     props = export_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in export_props.items():
             exec('{0} = export_props.get("{0}")'.format(prop_name))
 
@@ -202,7 +201,7 @@ class XRAY_OT_export_dm_file(
     def execute(self, context):
         try:
             self.exp(context.scene.objects[self.detail_model], context)
-        except utils.AppError as err:
+        except log.AppError as err:
             log.err(err)
         return {'FINISHED'}
 
@@ -218,7 +217,7 @@ class XRAY_OT_export_dm_file(
         utils.set_selection_state(active_object, selected_objects)
 
     def invoke(self, context, event):
-        prefs = version_utils.get_preferences()
+        prefs = utils.version.get_preferences()
         self.texture_name_from_image_path = prefs.dm_texture_names_from_path
         objs = [
             obj
@@ -252,7 +251,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

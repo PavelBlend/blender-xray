@@ -7,7 +7,6 @@ from .. import fmt
 from ... import log
 from ... import text
 from ... import utils
-from ... import ie_utils
 from ... import xray_io
 
 
@@ -22,13 +21,13 @@ def _import(file_path, context, reader):
         else:
             log.debug('unknown chunk', cid=cid)
     if not has_main_chunk:
-        raise utils.AppError(text.error.object_main_chunk)
+        raise log.AppError(text.error.object_main_chunk)
 
 
 @log.with_context(name='import-object')
 def import_file(file_path, context):
     log.update(file=file_path)
-    ie_utils.check_file_exists(file_path)
+    utils.ie.check_file_exists(file_path)
     file_data = utils.read_file(file_path)
     chunked_reader = xray_io.ChunkedReader(memoryview(file_data))
     bpy_obj = _import(file_path, context, chunked_reader)

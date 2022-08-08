@@ -8,7 +8,7 @@ from .. import text
 from .. import log
 from .. import xray_io
 from .. import dm
-from .. import version_utils
+from .. import utils
 
 
 def read_header(packed_reader):
@@ -34,8 +34,8 @@ def read_details_meshes(
         header
     ):
     bpy_obj_root = bpy.data.objects.new('{} meshes'.format(base_name), None)
-    version_utils.set_empty_draw_type(bpy_obj_root, 'SPHERE')
-    version_utils.link_object(bpy_obj_root)
+    utils.version.set_empty_draw_type(bpy_obj_root, 'SPHERE')
+    utils.version.link_object(bpy_obj_root)
 
     step_x = 0.5
 

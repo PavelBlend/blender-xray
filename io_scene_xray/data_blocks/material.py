@@ -8,13 +8,12 @@ import bpy
 from .. import log
 from .. import text
 from .. import utils
-from .. import version_utils
 
 
 def _is_compatible_texture(texture, filepart):
-    tex_folder = version_utils.get_preferences().textures_folder_auto
+    tex_folder = utils.version.get_preferences().textures_folder_auto
     tex_path = os.path.join(tex_folder, filepart) + os.extsep + 'dds'
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         image = texture.image
         if not image:
             return False, None
@@ -59,16 +58,16 @@ def get_material(
         if material.xray.gamemtl != gamemtl:
             continue
         if (not texture) and (not vmap):
-            all_empty_textures = version_utils.is_all_empty_textures(material)
+            all_empty_textures = utils.version.is_all_empty_textures(material)
             if all_empty_textures:
                 bpy_material = material
                 break
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             tex_nodes = []
             ts_found = False
             if material.use_nodes:
                 for node in material.node_tree.nodes:
-                    if not node.type in version_utils.IMAGE_NODES:
+                    if not node.type in utils.version.IMAGE_NODES:
                         continue
                     tex_nodes.append(node)
                 if len(tex_nodes) != 1:
@@ -112,7 +111,7 @@ def get_material(
         bpy_material.xray.eshader = eshader
         bpy_material.xray.cshader = cshader
         bpy_material.xray.gamemtl = gamemtl
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             bpy_material.use_nodes = True
             bpy_material.blend_method = 'CLIP'
         else:
@@ -120,7 +119,7 @@ def get_material(
             bpy_material.use_transparency = True
             bpy_material.alpha = 0
         if texture:
-            if version_utils.IS_28:
+            if utils.version.IS_28:
                 node_tree = bpy_material.node_tree
                 texture_node = node_tree.nodes.new('ShaderNodeTexImage')
                 texture_node.name = texture
@@ -159,7 +158,7 @@ def get_material(
 
 def get_image_relative_path(material, context, level_folder=None, no_err=True):
     tx_name = ''
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         if material.use_nodes:
             tex_nodes = []
             active_node = material.node_tree.nodes.active
@@ -167,14 +166,14 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
             tex_node = None
             selected_nodes = []
             for node in material.node_tree.nodes:
-                if node.type in version_utils.IMAGE_NODES:
+                if node.type in utils.version.IMAGE_NODES:
                     tex_nodes.append(node)
                     if node == active_node:
                         active_tex_node = node
                     if node.select:
                         selected_nodes.append(node)
             if not len(tex_nodes) and not no_err:
-                raise utils.AppError(
+                raise log.AppError(
                     text.error.no_tex,
                     log.props(material=material.name)
                 )
@@ -198,7 +197,7 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
                         if not tex_links:
                             continue
                         from_node = tex_links[0].from_node
-                        if from_node.type in version_utils.IMAGE_NODES:
+                        if from_node.type in utils.version.IMAGE_NODES:
                             tex_node = from_node
                             log.warn(
                                 text.warn.use_shader_tex,
@@ -222,7 +221,7 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
                             material_name=material.name
                         )
                     else:
-                        raise utils.AppError(
+                        raise log.AppError(
                             text.error.mat_many_tex,
                             log.props(material=material.name)
                         )
@@ -243,12 +242,12 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
                     else:
                         tx_name = tex_node.name
             elif not no_err:
-                raise utils.AppError(
+                raise log.AppError(
                     text.error.mat_no_img,
                     log.props(material=material.name)
                 )
         else:
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.mat_not_use_nodes,
                 log.props(material=material.name)
             )
@@ -265,7 +264,7 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
             textures.append(texture)
         texture = None
         if not len(textures) and not no_err:
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.no_tex,
                 log.props(material=material.name)
             )

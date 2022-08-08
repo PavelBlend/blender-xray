@@ -5,7 +5,7 @@ import bpy
 from .. import ui
 from .. import icons
 from .. import menus
-from .. import version_utils
+from .. import utils
 from .. import ops
 from .. import rig
 
@@ -29,7 +29,7 @@ class XRAY_PT_update(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_category = ui.base.CATEGORY
     bl_options = {'DEFAULT_CLOSED'}
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
@@ -52,7 +52,7 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
     bl_label = 'Skls Browser'
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = ui.base.CATEGORY
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
@@ -106,7 +106,7 @@ class XRAY_PT_viewer(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_category = ui.base.CATEGORY
     bl_options = {'DEFAULT_CLOSED'}
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
@@ -216,7 +216,7 @@ class XRAY_PT_verify_tools(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_category = ui.base.CATEGORY
     bl_options = {'DEFAULT_CLOSED'}
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
@@ -238,7 +238,7 @@ class XRAY_PT_transforms(bpy.types.Panel):
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
@@ -267,7 +267,7 @@ class XRAY_PT_add(bpy.types.Panel):
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
@@ -289,7 +289,7 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
@@ -313,7 +313,7 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
             ops.action_utils.XRAY_OT_change_action_bake_settings.bl_idname,
             icon='ACTION'
         )
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             icon = 'LIGHTPROBE_GRID'
         else:
             icon = 'MANIPUL'
@@ -327,11 +327,11 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
         )
         column.operator(
             ops.fake_user_utils.XRAY_OT_change_fake_user.bl_idname,
-            icon=version_utils.get_icon('FONT_DATA')
+            icon=utils.version.get_icon('FONT_DATA')
         )
 
         # 2.7x operators
-        if not version_utils.IS_28:
+        if not utils.version.IS_28:
             column.operator(
                 ops.material.XRAY_OT_convert_to_cycles_material.bl_idname
             )
@@ -358,7 +358,7 @@ class XRAY_PT_custom_props(bpy.types.Panel):
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
@@ -402,7 +402,7 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
@@ -456,7 +456,7 @@ class XRAY_PT_rig(bpy.types.Panel):
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
@@ -499,7 +499,7 @@ class XRAY_PT_import_operators(bpy.types.Panel):
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
@@ -517,7 +517,7 @@ class XRAY_PT_import_operators(bpy.types.Panel):
 
     def draw(self, context):
         col = self.layout.column(align=True)
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         for enable_prop_name, operator, label in menus.import_draw_functions:
             enable_prop = getattr(preferences, enable_prop_name)
             if enable_prop:
@@ -529,7 +529,7 @@ class XRAY_PT_export_operators(bpy.types.Panel):
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
     bl_options = {'DEFAULT_CLOSED'}
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
@@ -547,7 +547,7 @@ class XRAY_PT_export_operators(bpy.types.Panel):
 
     def draw(self, context):
         col = self.layout.column(align=True)
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         for enable_prop_name, operator, label in menus.export_draw_functions:
             enable_prop = getattr(preferences, enable_prop_name)
             if enable_prop:

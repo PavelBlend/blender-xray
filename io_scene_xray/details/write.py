@@ -18,13 +18,13 @@ def write_details(chunked_writer, lvl_dets, context, file_path):
     log.update(object=meshes_object.name)
 
     if not dm_count:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.details_no_children,
             log.props(object=meshes_object.name)
         )
 
     if dm_count > fmt.DETAIL_MODEL_COUNT_LIMIT:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.details_many_children,
             log.props(
                 object=meshes_object.name,
@@ -38,7 +38,7 @@ def write_details(chunked_writer, lvl_dets, context, file_path):
     for detail_model in meshes_object.children:
 
         if detail_model.type != 'MESH':
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.details_not_mesh,
                 log.props(
                     child_name=detail_model.name,
@@ -58,7 +58,7 @@ def write_details(chunked_writer, lvl_dets, context, file_path):
         dm_index = detail_model.xray.detail.model.index
 
         if dm_index >= dm_count:
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.details_bad_detail_index,
                 log.props(
                     object=detail_model.name,
@@ -73,12 +73,12 @@ def write_details(chunked_writer, lvl_dets, context, file_path):
     # validate meshes indices
     for dm_index, count in enumerate(dm_indices):
         if not count:
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.details_no_model_index,
                 log.props(index=dm_index)
             )
         elif count > 1:
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.details_duplicate_model,
                 log.props(index=dm_index)
             )

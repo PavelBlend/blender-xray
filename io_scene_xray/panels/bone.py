@@ -5,7 +5,7 @@ import bpy
 from . import material
 from .. import ui
 from .. import icons
-from .. import version_utils
+from .. import utils
 from .. import edit_helpers
 
 
@@ -48,7 +48,7 @@ class XRAY_PT_bone(ui.base.XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_object_import or

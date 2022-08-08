@@ -15,7 +15,6 @@ from ... import text
 from ... import utils
 from ... import log
 from ... import xray_motions
-from ... import version_utils
 
 
 def export_version(chunked_writer):
@@ -76,7 +75,7 @@ def validate_vertex_weights(bpy_obj, arm_obj):
                 has_ungrouped_vertices = True
                 ungrouped_vertices_count += 1
     if has_ungrouped_vertices:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.object_ungroupped_verts,
             log.props(
                 object=bpy_obj.name,
@@ -100,7 +99,7 @@ def _check_bone_names(armature_object):
             bone_names[name_lower] = name
     if bone_duplicates:
         log.update(object=armature_object.name)
-        raise utils.AppError(
+        raise log.AppError(
             text.error.object_duplicate_bones,
             log.props(bones=tuple(bone_duplicates.values()))
         )
@@ -113,7 +112,7 @@ def merge_meshes(mesh_objects):
         copy_obj = obj.copy()
         copy_mesh = obj.data.copy()
         copy_obj.data = copy_mesh
-        version_utils.link_object(copy_obj)
+        utils.version.link_object(copy_obj)
         # apply modifiers
         override['active_object'] = copy_obj
         override['object'] = copy_obj
@@ -127,7 +126,7 @@ def merge_meshes(mesh_objects):
     active_object = objects[0]
     override['active_object'] = active_object
     override['selected_objects'] = objects
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         override['object'] = active_object
         override['selected_editable_objects'] = objects
     else:
@@ -164,7 +163,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
                 materials.add(material)
                 uv_layers = bpy_obj.data.uv_layers
                 if len(uv_layers) > 1:
-                    raise utils.AppError(
+                    raise log.AppError(
                         text.error.obj_many_uv,
                         log.props(object=bpy_obj.name)
                     )
@@ -188,7 +187,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
 
     scan_r(bpy_obj)
     if len(armatures) > 1:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.object_many_arms,
             log.props(
                 root_object=bpy_obj.name,
@@ -208,12 +207,12 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
                 objects=mesh_names
             )
     if not mesh_writers:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.object_no_meshes,
             log.props(object=bpy_obj.name)
         )
     if len(mesh_writers) > 1 and len(armatures):
-        raise utils.AppError(
+        raise log.AppError(
             text.error.object_skel_many_meshes,
             log.props(object=bpy_obj.name)
         )
@@ -230,7 +229,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
         _check_bone_names(bpy_arm_obj)
         bonemap = {}
         edit_mode_matrices = {}
-        with version_utils.using_active_object(bpy_arm_obj), utils.using_mode('EDIT'):
+        with utils.version.using_active_object(bpy_arm_obj), utils.using_mode('EDIT'):
             for bone_ in bpy_arm_obj.data.edit_bones:
                 edit_mode_matrices[bone_.name] = bone_.matrix
         for bone_ in bpy_arm_obj.data.bones:
@@ -255,7 +254,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
                     else:
                         has_bone_groups = True
         if invalid_bones and has_bone_groups:
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.object_bad_boneparts,
                 log.props(
                     object=bpy_arm_obj.name,
@@ -263,7 +262,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
                 )
             )
     if len(root_bones) > 1:
-        raise utils.AppError(
+        raise log.AppError(
             text.error.object_many_parents,
             log.props(
                 object=bpy_arm_obj.name,
@@ -277,7 +276,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
     some_arm = arm_list[0] if arm_list else None
     if some_arm:
         if some_arm.scale != mathutils.Vector((1.0, 1.0, 1.0)):
-            raise utils.AppError(
+            raise log.AppError(
                 text.error.object_bad_scale,
                 log.props(
                     object=some_arm.name,
@@ -297,7 +296,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
 
     if skeletal_obj:
         merged_mesh = skeletal_obj.data
-        if not version_utils.IS_277:
+        if not utils.version.IS_277:
             bpy.data.objects.remove(skeletal_obj, do_unlink=True)
         else:
             bpy.context.scene.objects.unlink(skeletal_obj)
@@ -326,7 +325,7 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
             context
         )
         sfw.puts(tx_name)
-        if version_utils.IS_28:
+        if utils.version.IS_28:
             sfw.puts(uv_map_names[material.name])
         else:
             slot = material.texture_slots[material.active_texture_index]
