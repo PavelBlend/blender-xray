@@ -2,7 +2,12 @@
 import struct
 
 # blender modules
-import numpy
+try:
+    import numpy
+
+    NUMPY_FORMATS = {'f': numpy.float32, }
+except:
+    numpy = None
 
 # addon modules
 from . import lzhuf
@@ -44,7 +49,6 @@ class PackedReader:
     __slots__ = ['__offs', '__data', '__view']
     __PREP_I = struct.Struct('<I')
     __S_FFF = struct.Struct('<3f')
-    __NUMPY_FORMATS = {'f': numpy.float32, }
 
     def __init__(self, data):
         self.__offs = 0
@@ -75,21 +79,29 @@ class PackedReader:
         vec = self.getp(self.__S_FFF)
         return vec[0], vec[2], vec[1]
 
-    def get_array(self, fmt, count):
-        dtype_format = self.__NUMPY_FORMATS.get(fmt, None)
-        if not dtype_format:
-            raise Exception('Unsupported numpy format: {}'.format(fmt))
-        dtype = numpy.dtype(dtype_format)
-        dtype = dtype.newbyteorder('<')
-        size = dtype.itemsize
-        verts = numpy.frombuffer(
-            self.__data,
-            dtype=dtype,
-            count=count,
-            offset=self.__offs
-        )
-        self.__offs += size * count
-        return verts
+    def get_array(self, fmt, count, vec_len=1):
+        if numpy:
+            dtype_format = NUMPY_FORMATS.get(fmt, None)
+            if not dtype_format:
+                raise Exception('Unsupported numpy format: {}'.format(fmt))
+            dtype = numpy.dtype(dtype_format)
+            dtype = dtype.newbyteorder('<')
+            size = dtype.itemsize
+            values = numpy.frombuffer(
+                self.__data,
+                dtype=dtype,
+                count=count * vec_len,
+                offset=self.__offs
+            )
+            self.__offs += size * count * vec_len
+            values.shape = (values.shape[0] // vec_len, vec_len)
+            return values
+        else:
+            values = [
+                self.getf('<{0}{1}'.format(vec_len, fmt))
+                for _ in range(count)
+            ]
+            return values
 
     def byte(self):
         return self.__data[self._next(1)]

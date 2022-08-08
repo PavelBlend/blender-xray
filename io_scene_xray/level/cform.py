@@ -40,8 +40,7 @@ def import_main(context, level, data=None):
     bbox_max = packed_reader.getf('<3f')
 
     # read verts
-    verts = packed_reader.get_array('f', verts_count * 3)
-    verts.shape = (verts.shape[0] // 3, 3)
+    verts = packed_reader.get_array('f', verts_count, vec_len=3)
 
     # read game materials
     gamemtl_file_path = preferences.gamemtl_file_auto
