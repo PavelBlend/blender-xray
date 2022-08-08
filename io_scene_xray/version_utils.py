@@ -30,6 +30,10 @@ def has_set_normals_from_faces():
     return bpy.app.version >= (2, 79, 0)
 
 
+def broken_file_browser_filter():
+    return bpy.app.version >= (2, 90, 0)
+
+
 IS_277 = is_blender_2_77()
 IS_28 = is_blender_2_80()
 IS_293 = is_blender_2_93()

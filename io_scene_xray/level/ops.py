@@ -20,11 +20,17 @@ class ImportLevelContext(contexts.ImportMeshContext):
 
 op_text = 'Game Level'
 file_name_text = 'level'
+if version_utils.broken_file_browser_filter():
+    file_filter_import = '*'
+    file_filter_export = '*'
+else:
+    file_filter_import = 'level'
+    file_filter_export = 'level;level.geom;level.geomx;level.cform'
 
 
 import_props = {
     'filter_glob': bpy.props.StringProperty(
-        default='level', options={'HIDDEN'}
+        default=file_filter_import, options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
         subtype="DIR_PATH", options={'SKIP_SAVE', 'HIDDEN'}
@@ -85,7 +91,7 @@ export_props = {
         subtype='DIR_PATH', options={'HIDDEN'}
     ),
     'filter_glob': bpy.props.StringProperty(
-        default='level;level.geom;level.geomx;level.cform',
+        default=file_filter_export,
         options={'HIDDEN'}
     )
 }
