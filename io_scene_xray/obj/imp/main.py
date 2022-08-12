@@ -16,7 +16,7 @@ from ... import skl
 from ... import log
 from ... import utils
 from ... import xray_io
-from ... import xray_motions
+from ... import motions
 
 
 def import_main(file_path, context, creader):
@@ -197,10 +197,10 @@ def import_main(file_path, context, creader):
             reader = xray_io.PackedReader(data)
             skl_context = skl.imp.ImportSklContext()
             skl_context.bpy_arm_obj=bpy_arm_obj
-            skl_context.motions_filter=xray_motions.MOTIONS_FILTER_ALL
+            skl_context.motions_filter=motions.xray_motions.MOTIONS_FILTER_ALL
             skl_context.add_actions_to_motion_list = True
             skl_context.filename=object_name
-            xray_motions.import_motions(reader, skl_context)
+            motions.xray_motions.import_motions(reader, skl_context)
         elif cid == fmt.Chunks.Object.LIB_VERSION:
             pass  # skip obsolete chunk
         else:

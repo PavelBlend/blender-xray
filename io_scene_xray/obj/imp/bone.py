@@ -7,7 +7,7 @@ from .. import fmt
 from ... import text
 from ... import log
 from ... import xray_io
-from ... import xray_motions
+from ... import motions
 from ... import utils
 
 
@@ -45,14 +45,14 @@ def create_bone(
         mat = context.multiply(
             mathutils.Matrix.Translation(offset),
             rot,
-            xray_motions.MATRIX_BONE
+            motions.xray_motions.MATRIX_BONE
         )
         if parent:
             bpy_bone.parent = bpy_armature.edit_bones.get(parent, None)
             if bpy_bone.parent:
                 mat = context.multiply(
                     bpy_bone.parent.matrix,
-                    xray_motions.MATRIX_BONE_INVERTED,
+                    motions.xray_motions.MATRIX_BONE_INVERTED,
                     mat
                 )
             else:

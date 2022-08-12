@@ -3,11 +3,12 @@ import bpy
 import mathutils
 
 # addon modules
-from . import utils
-from . import text
-from . import xray_io
-from . import log
 from . import xray_interpolation
+from . import utilites
+from .. import utils
+from .. import text
+from .. import xray_io
+from .. import log
 
 
 MATRIX_BONE = mathutils.Matrix((
@@ -511,7 +512,7 @@ def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names
 
         def curve2keys(curve):
             for frm, val in enumerate(curve):
-                yield utils.motion.KF(frm / xray.fps, val, xray_interpolation.Shape.STEPPED)
+                yield utilites.KF(frm / xray.fps, val, xray_interpolation.Shape.STEPPED)
 
         if name in root_bone_names:
             frange = action.frame_range
@@ -520,7 +521,7 @@ def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names
             time_end = None
 
         for curve_index, curve in enumerate(curves):
-            epsilon = utils.motion.EPSILON
+            epsilon = utilites.EPSILON
             if xray.autobake_custom_refine:
                 if curve_index < 3:
                     epsilon = xray.autobake_refine_location
@@ -533,9 +534,9 @@ def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names
                 xray_interpolation.Behavior.CONSTANT.value
             )
             cpkw = xray_io.PackedWriter()
-            ccnt = utils.motion.export_keyframes(
+            ccnt = utilites.export_keyframes(
                 cpkw,
-                utils.motion.refine_keys(curve2keys(curve), epsilon),
+                utilites.refine_keys(curve2keys(curve), epsilon),
                 time_end=time_end,
                 fps=xray.fps
             )

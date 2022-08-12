@@ -15,7 +15,7 @@ from .. import log
 from .. import utils
 from .. import xray_io
 from .. import level
-from .. import xray_motions
+from .. import motions
 
 
 class Visual(object):
@@ -1563,14 +1563,14 @@ def import_ik_data(chunks, ogf_chunks, visual):
         mat = utils.version.multiply(
             translation,
             rotation,
-            xray_motions.MATRIX_BONE
+            motions.xray_motions.MATRIX_BONE
         )
         if parent_name:
             bpy_bone.parent = armature.edit_bones.get(parent_name, None)
             if bpy_bone.parent:
                 mat = utils.version.multiply(
                     bpy_bone.parent.matrix,
-                    xray_motions.MATRIX_BONE_INVERTED,
+                    motions.xray_motions.MATRIX_BONE_INVERTED,
                     mat
                 )
             else:

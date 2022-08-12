@@ -1,5 +1,5 @@
 # addon modules
-from .. import xray_interpolation
+from .. import motions
 
 
 def mkstruct(name, fields):
@@ -30,7 +30,7 @@ def export_keyframes(writer, keyframes, time_end=None, fps=None, anm_ver=5):
             count += 1
             writer.putf('<2f', keyframe.value, keyframe.time)
             writer.putf('<B', keyframe.shape.value)
-            if keyframe.shape != xray_interpolation.Shape.STEPPED:
+            if keyframe.shape != motions.xray_interpolation.Shape.STEPPED:
                 writer.putf('<3H', 32768, 32768, 32768)
                 writer.putf('<4H', 32768, 32768, 32768, 32768)
 
@@ -38,7 +38,7 @@ def export_keyframes(writer, keyframes, time_end=None, fps=None, anm_ver=5):
         if not time_end is None:
             if (time_end - keyframe.time) > (1 / fps):
                 writer.putf('<2f', keyframe.value, time_end)
-                writer.putf('<B', xray_interpolation.Shape.STEPPED.value)
+                writer.putf('<B', motions.xray_interpolation.Shape.STEPPED.value)
                 count += 1
 
     else:
@@ -53,7 +53,7 @@ def export_keyframes(writer, keyframes, time_end=None, fps=None, anm_ver=5):
         if not time_end is None:
             if (time_end - keyframe.time) > (1 / fps):
                 writer.putf('<2f', keyframe.value, time_end)
-                writer.putf('<I', xray_interpolation.Shape.STEPPED.value)
+                writer.putf('<I', motions.xray_interpolation.Shape.STEPPED.value)
                 count += 1
 
     return count
@@ -67,7 +67,7 @@ def refine_keys(keyframes, epsilon=EPSILON):
 
         if prev_kf is None:
             return curr_kf is not None
-        if (curr_kf.shape == xray_interpolation.Shape.LINEAR) and (next_kf.shape == xray_interpolation.Shape.LINEAR):
+        if (curr_kf.shape == motions.xray_interpolation.Shape.LINEAR) and (next_kf.shape == motions.xray_interpolation.Shape.LINEAR):
             derivative = (next_kf.value - prev_kf.value) / (next_kf.time - prev_kf.time)
             if is_oor(curr_kf, derivative):
                 return True

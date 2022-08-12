@@ -5,7 +5,7 @@ from ... import text
 from ... import xray_io
 from ... import log
 from ... import utils
-from ... import xray_motions
+from ... import motions
 
 
 def export_bone(
@@ -64,11 +64,11 @@ def export_bone(
         matrix = multiply(
             multiply(
                 parent_matrix,
-                xray_motions.MATRIX_BONE_INVERTED
+                motions.xray_motions.MATRIX_BONE_INVERTED
             ).inverted(),
             edit_mode_matrix
         )
-    matrix = multiply(matrix, xray_motions.MATRIX_BONE_INVERTED)
+    matrix = multiply(matrix, motions.xray_motions.MATRIX_BONE_INVERTED)
     euler = matrix.to_euler('YXZ')
 
     # bind pose chunk

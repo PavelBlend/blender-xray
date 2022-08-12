@@ -4,7 +4,7 @@ import mathutils
 
 # addon modules
 from . import base_bone
-from .. import xray_motions
+from .. import motions
 from .. import utils
 
 
@@ -34,7 +34,7 @@ class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
         pose_bone = bpy.context.object.pose.bones[bone.name]
         mat = utils.version.multiply(
             pose_bone.matrix,
-            xray_motions.MATRIX_BONE_INVERTED
+            motions.xray_motions.MATRIX_BONE_INVERTED
         )
         mat = utils.version.multiply(
             mat,
@@ -78,7 +78,7 @@ class XRAY_OT_align_center(bpy.types.Operator):
         shape = bone.xray.shape
         mat = utils.version.multiply(
             pose_bone.matrix,
-            xray_motions.MATRIX_BONE_INVERTED
+            motions.xray_motions.MATRIX_BONE_INVERTED
         )
         pos = None
         if shape.type == '1':
@@ -102,7 +102,7 @@ class XRAY_OT_apply_center(bpy.types.Operator):
     def execute(self, context):
         helper, bone = HELPER.get_target()
         mat = utils.version.multiply(
-            xray_motions.MATRIX_BONE,
+            motions.xray_motions.MATRIX_BONE,
             pose_bone.matrix.inverted(),
             helper.matrix_local
         )

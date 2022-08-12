@@ -14,7 +14,7 @@ from ... import data_blocks
 from ... import text
 from ... import utils
 from ... import log
-from ... import xray_motions
+from ... import motions
 
 
 def export_version(chunked_writer):
@@ -366,12 +366,12 @@ def export_loddef(chunked_writer, xray):
 
 def export_motions(chunked_writer, some_arm, context, bpy_obj):
     if some_arm and context.export_motions:
-        motions = [motion.name for motion in bpy_obj.xray.motions_collection]
-        motions = set(motions)
-        motions = list(motions)
-        motions.sort()
+        motions_names = [motion.name for motion in bpy_obj.xray.motions_collection]
+        motions_names = set(motions_names)
+        motions_names = list(motions_names)
+        motions_names.sort()
         acts = []
-        for act_name in motions:
+        for act_name in motions_names:
             act = bpy.data.actions.get(act_name, None)
             if act:
                 acts.append(act)
@@ -382,7 +382,7 @@ def export_motions(chunked_writer, some_arm, context, bpy_obj):
                     object=bpy_obj.name
                 )
         writer = xray_io.PackedWriter()
-        xray_motions.export_motions(writer, acts, some_arm)
+        motions.xray_motions.export_motions(writer, acts, some_arm)
         if writer.data:
             chunked_writer.put(fmt.Chunks.Object.MOTIONS, writer)
 

@@ -5,7 +5,7 @@ import re
 import bpy
 
 # addon modules
-from .. import xray_motions
+from .. import motions
 
 
 class BaseSelectMotionsOp(bpy.types.Operator):
@@ -21,7 +21,7 @@ class BaseSelectMotionsOp(bpy.types.Operator):
 
     def execute(self, context):
         mlist, data = self.__ARGS__
-        name_filter = xray_motions.MOTIONS_FILTER_ALL
+        name_filter = motions.xray_motions.MOTIONS_FILTER_ALL
         if mlist and mlist.filter_name:
             rgx = re.compile('.*' + re.escape(mlist.filter_name).replace('\\*', '.*') + '.*')
             name_filter = lambda name: (rgx.match(name) is not None) ^ mlist.use_filter_invert

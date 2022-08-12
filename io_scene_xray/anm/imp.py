@@ -11,7 +11,7 @@ from .. import contexts
 from .. import text
 from .. import utils
 from .. import log
-from .. import xray_envelope
+from .. import motions
 from .. import xray_io
 
 
@@ -82,7 +82,7 @@ def _import(file_path, creader, context):
     for curve_index in range(6):
         fcurve = fcs[(0, 2, 1, 5, 3, 4)[curve_index]]
         koef = (1, 1, 1, -1, -1, -1)[curve_index]
-        use_interpolate = xray_envelope.import_envelope(
+        use_interpolate = motions.xray_envelope.import_envelope(
             preader,
             ver,
             fcurve,

@@ -8,7 +8,7 @@ from .. import utils
 from .. import contexts
 from .. import text
 from .. import xray_io
-from .. import xray_envelope
+from .. import motions
 
 
 class ExportAnmContext(contexts.ExportContext):
@@ -118,13 +118,13 @@ def _export_action_data(pkw, ver, xray, fcurves):
     for curve_index in range(6):
         fcurve = fcurves[(0, 2, 1, 5, 3, 4)[curve_index]]
         koef = (1, 1, 1, -1, -1, -1)[curve_index]
-        epsilon = utils.motion.EPSILON
+        epsilon = motions.utilites.EPSILON
         if xray.autobake_custom_refine:
             if curve_index < 3:
                 epsilon = xray.autobake_refine_location
             else:
                 epsilon = xray.autobake_refine_rotation
-        xray_envelope.export_envelope(
+        motions.xray_envelope.export_envelope(
             pkw,
             ver,
             fcurve,

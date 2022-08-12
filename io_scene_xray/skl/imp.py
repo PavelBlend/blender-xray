@@ -6,7 +6,7 @@ from .. import log
 from .. import utils
 from .. import contexts
 from .. import xray_io
-from .. import xray_motions
+from .. import motions
 
 
 class ImportSklContext(contexts.ImportAnimationOnlyContext):
@@ -29,7 +29,7 @@ def _import_skl(file_path, context, chunked_reader):
                 bone.name.lower(): bone
                 for bone in context.bpy_arm_obj.data.bones
             }
-            xray_motions.import_motion(
+            motions.xray_motions.import_motion(
                 reader, context, bonesmap, set(), skl_file_name=name
             )
         else:
@@ -53,4 +53,4 @@ def import_skls_file(file_path, context):
     utils.ie.check_file_exists(file_path)
     file_data = utils.read_file(file_path)
     reader = xray_io.PackedReader(file_data)
-    xray_motions.import_motions(reader, context, context.motions_filter)
+    motions.xray_motions.import_motions(reader, context, context.motions_filter)

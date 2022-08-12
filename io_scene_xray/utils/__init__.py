@@ -15,7 +15,6 @@ import bmesh
 # addon modules
 from . import draw
 from . import ie
-from . import motion
 from . import version
 from .. import bl_info
 from .. import log

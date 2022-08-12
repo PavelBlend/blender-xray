@@ -13,7 +13,7 @@ from .. import text
 from .. import xray_io
 from .. import log
 from .. import utils
-from .. import xray_motions
+from .. import motions
 from .. import data_blocks
 from .. import omf
 
@@ -493,14 +493,14 @@ def _export(bpy_obj, cwriter, context):
         mat = multiply(
             world_matrix,
             bone.matrix_local,
-            xray_motions.MATRIX_BONE_INVERTED
+            motions.xray_motions.MATRIX_BONE_INVERTED
         )
         b_parent = utils.find_bone_exportable_parent(bone)
         if b_parent:
             mat = multiply(multiply(
                 world_matrix,
                 b_parent.matrix_local,
-                xray_motions.MATRIX_BONE_INVERTED
+                motions.xray_motions.MATRIX_BONE_INVERTED
             ).inverted(), mat)
         euler = mat.to_euler('YXZ')
         pwriter.putf('<3f', -euler.x, -euler.z, -euler.y)

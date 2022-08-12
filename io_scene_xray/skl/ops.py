@@ -14,7 +14,7 @@ from .. import ie_props
 from .. import ui
 from .. import utils
 from .. import text
-from .. import xray_motions
+from .. import motions
 
 
 op_text = 'Skeletal Animations'
@@ -119,7 +119,7 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
         if file_path.lower().endswith('.skls'):
             if os.path.exists(file_path):
                 file_data = utils.read_file(file_path)
-                return xray_motions.examine_motions(file_data)
+                return motions.xray_motions.examine_motions(file_data)
         return tuple()
 
     @utils.execute_with_logger
@@ -128,7 +128,7 @@ class XRAY_OT_import_skls(ie_props.BaseOperator, bpy_extras.io_utils.ImportHelpe
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
-        motions_filter = xray_motions.MOTIONS_FILTER_ALL
+        motions_filter = motions.xray_motions.MOTIONS_FILTER_ALL
         if self.motions:
             selected_names = {
                 motion.name
