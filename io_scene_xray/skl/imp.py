@@ -29,7 +29,7 @@ def _import_skl(file_path, context, chunked_reader):
                 bone.name.lower(): bone
                 for bone in context.bpy_arm_obj.data.bones
             }
-            motions.xray_motions.import_motion(
+            motions.imp.import_motion(
                 reader, context, bonesmap, set(), skl_file_name=name
             )
         else:
@@ -53,4 +53,4 @@ def import_skls_file(file_path, context):
     utils.ie.check_file_exists(file_path)
     file_data = utils.read_file(file_path)
     reader = xray_io.PackedReader(file_data)
-    motions.xray_motions.import_motions(reader, context, context.motions_filter)
+    motions.imp.import_motions(reader, context, context.motions_filter)

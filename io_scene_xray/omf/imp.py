@@ -5,18 +5,10 @@ import mathutils
 # addon modules
 from . import fmt
 from .. import text
+from .. import motions
 from .. import log
 from .. import xray_io
 from .. import utils
-
-
-MATRIX_BONE = mathutils.Matrix((
-    (1.0, 0.0, 0.0, 0.0),
-    (0.0, 0.0, -1.0, 0.0),
-    (0.0, 1.0, 0.0, 0.0),
-    (0.0, 0.0, 0.0, 1.0)
-)).freeze()
-MATRIX_BONE_INVERTED = MATRIX_BONE.inverted().freeze()
 
 
 def motion_mark(packed_reader):
@@ -139,7 +131,7 @@ def read_motion(data, context, motions_params, bone_names):
             if bpy_bone_parent:
                 xmat = context.multiply(xmat, bpy_bone_parent.matrix_local)
             else:
-                xmat = context.multiply(xmat, MATRIX_BONE)
+                xmat = context.multiply(xmat, motions.const.MATRIX_BONE)
 
             translate_fcurves = []
             for translate_index in range(3):    # x, y, z

@@ -45,14 +45,14 @@ def create_bone(
         mat = context.multiply(
             mathutils.Matrix.Translation(offset),
             rot,
-            motions.xray_motions.MATRIX_BONE
+            motions.const.MATRIX_BONE
         )
         if parent:
             bpy_bone.parent = bpy_armature.edit_bones.get(parent, None)
             if bpy_bone.parent:
                 mat = context.multiply(
                     bpy_bone.parent.matrix,
-                    motions.xray_motions.MATRIX_BONE_INVERTED,
+                    motions.const.MATRIX_BONE_INVERTED,
                     mat
                 )
             else:

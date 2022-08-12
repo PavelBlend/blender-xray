@@ -10,6 +10,7 @@ import mathutils
 from . import fmt
 from . import imp
 from .. import text
+from .. import motions
 from .. import log
 from .. import xray_io
 from .. import utils
@@ -663,7 +664,10 @@ def export_motions(
             for pose_bone in pose_bones:
                 name = pose_bone.name
                 parent = pose_bone.parent
-                parent_matrix = parent.matrix.inverted() if parent else imp.MATRIX_BONE_INVERTED
+                if parent:
+                    parent_matrix = parent.matrix.inverted()
+                else:
+                    parent_matrix = motions.const.MATRIX_BONE_INVERTED
                 matrix = context.multiply(parent_matrix, pose_bone.matrix)
                 trn = matrix.to_translation()
                 trn[2] = -trn[2]

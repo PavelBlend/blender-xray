@@ -124,7 +124,7 @@ def _export_action_data(pkw, ver, xray, fcurves):
                 epsilon = xray.autobake_refine_location
             else:
                 epsilon = xray.autobake_refine_rotation
-        motions.xray_envelope.export_envelope(
+        motions.envelope.export_envelope(
             pkw,
             ver,
             fcurve,

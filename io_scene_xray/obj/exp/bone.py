@@ -64,11 +64,11 @@ def export_bone(
         matrix = multiply(
             multiply(
                 parent_matrix,
-                motions.xray_motions.MATRIX_BONE_INVERTED
+                motions.const.MATRIX_BONE_INVERTED
             ).inverted(),
             edit_mode_matrix
         )
-    matrix = multiply(matrix, motions.xray_motions.MATRIX_BONE_INVERTED)
+    matrix = multiply(matrix, motions.const.MATRIX_BONE_INVERTED)
     euler = matrix.to_euler('YXZ')
 
     # bind pose chunk

@@ -1,5 +1,7 @@
 # addon modules
-from . import xray_envelope
-from . import xray_interpolation
-from . import xray_motions
+from . import envelope
+from . import interp
 from . import utilites
+from . import const
+from . import imp
+from . import exp

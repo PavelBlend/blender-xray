@@ -382,7 +382,7 @@ def export_motions(chunked_writer, some_arm, context, bpy_obj):
                     object=bpy_obj.name
                 )
         writer = xray_io.PackedWriter()
-        motions.xray_motions.export_motions(writer, acts, some_arm)
+        motions.exp.export_motions(writer, acts, some_arm)
         if writer.data:
             chunked_writer.put(fmt.Chunks.Object.MOTIONS, writer)
 

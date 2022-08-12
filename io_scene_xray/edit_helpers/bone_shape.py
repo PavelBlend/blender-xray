@@ -111,7 +111,7 @@ def _bone_matrix(bone):
     elif xsh.type == '2':  # sphere
         mat = multiply(mat, _v2ms((xsh.sph_rad, xsh.sph_rad, xsh.sph_rad)))
     elif xsh.type == '3':  # cylinder
-        mat = multiply(mat, motions.xray_motions.MATRIX_BONE_INVERTED)
+        mat = multiply(mat, motions.const.MATRIX_BONE_INVERTED)
         mat = multiply(
             mat,
             _v2ms((

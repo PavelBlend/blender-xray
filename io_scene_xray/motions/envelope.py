@@ -1,6 +1,6 @@
 # addon modules
-from . import xray_interpolation
-from . import xray_motions
+from . import imp
+from . import interp
 from . import utilites
 from .. import log
 from .. import utils
@@ -13,7 +13,7 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
     bhv_fmt = 'I'
     if ver > 3:
         bhv_fmt = 'B'
-    bhv0, bhv1 = map(xray_interpolation.Behavior, reader.getf('<2' + bhv_fmt))
+    bhv0, bhv1 = map(interp.Behavior, reader.getf('<2' + bhv_fmt))
 
     if bhv0 != bhv1:
         log.warn(
@@ -22,12 +22,12 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
             replacement=bhv0.name
         )
         bhv1 = bhv0
-    if bhv0 == xray_interpolation.Behavior.CONSTANT:
+    if bhv0 == interp.Behavior.CONSTANT:
         fcurve.extrapolation = 'CONSTANT'
-    elif bhv0 == xray_interpolation.Behavior.LINEAR:
+    elif bhv0 == interp.Behavior.LINEAR:
         fcurve.extrapolation = 'LINEAR'
     else:
-        bhv1 = xray_interpolation.Behavior.CONSTANT
+        bhv1 = interp.Behavior.CONSTANT
         log.warn(
             text.warn.envelope_bad_behavior,
             behavior=bhv0.name,
@@ -53,8 +53,8 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
         for _ in range(keyframes_count):
             value = reader.getf('<f')[0]
             time = reader.getf('<f')[0] * fps
-            shape = xray_interpolation.Shape(reader.getf('<B')[0])
-            if shape != xray_interpolation.Shape.STEPPED:
+            shape = interp.Shape(reader.getf('<B')[0])
+            if shape != interp.Shape.STEPPED:
                 tension = reader.getq16f(-32.0, 32.0)
                 continuity = reader.getq16f(-32.0, 32.0)
                 bias = reader.getq16f(-32.0, 32.0)
@@ -73,27 +73,27 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
             tcb.append((tension, continuity, bias))
             params.append(param)
             if not shape in (
-                    xray_interpolation.Shape.TCB,
-                    xray_interpolation.Shape.HERMITE,
-                    xray_interpolation.Shape.BEZIER_1D,
-                    xray_interpolation.Shape.LINEAR,
-                    xray_interpolation.Shape.STEPPED,
-                    xray_interpolation.Shape.BEZIER_2D
+                    interp.Shape.TCB,
+                    interp.Shape.HERMITE,
+                    interp.Shape.BEZIER_1D,
+                    interp.Shape.LINEAR,
+                    interp.Shape.STEPPED,
+                    interp.Shape.BEZIER_2D
                 ):
                 unsupported_occured.add(shape.name)
             unique_shapes.add(shape.name)
             if shape in (
-                    xray_interpolation.Shape.TCB,
-                    xray_interpolation.Shape.HERMITE,
-                    xray_interpolation.Shape.BEZIER_1D,
-                    xray_interpolation.Shape.BEZIER_2D
+                    interp.Shape.TCB,
+                    interp.Shape.HERMITE,
+                    interp.Shape.BEZIER_1D,
+                    interp.Shape.BEZIER_2D
                 ):
                 use_interpolate = True
     else:
         for _ in range(keyframes_count):
             value = reader.getf('<f')[0]
             time = reader.getf('<f')[0] * fps
-            shape = xray_interpolation.Shape(reader.getf('<I')[0] & 0xff)
+            shape = interp.Shape(reader.getf('<I')[0] & 0xff)
             tension, continuity, bias = reader.getf('<3f')
             param = reader.getf('<4f')    # params
             values.append(value)
@@ -102,26 +102,26 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
             tcb.append((tension, continuity, bias))
             params.append(param)
             if not shape in (
-                    xray_interpolation.Shape.TCB,
-                    xray_interpolation.Shape.HERMITE,
-                    xray_interpolation.Shape.BEZIER_1D,
-                    xray_interpolation.Shape.LINEAR,
-                    xray_interpolation.Shape.STEPPED,
-                    xray_interpolation.Shape.BEZIER_2D
+                    interp.Shape.TCB,
+                    interp.Shape.HERMITE,
+                    interp.Shape.BEZIER_1D,
+                    interp.Shape.LINEAR,
+                    interp.Shape.STEPPED,
+                    interp.Shape.BEZIER_2D
                 ):
                 unsupported_occured.add(shape.name)
             unique_shapes.add(shape.name)
             if shape in (
-                    xray_interpolation.Shape.TCB,
-                    xray_interpolation.Shape.HERMITE,
-                    xray_interpolation.Shape.BEZIER_1D,
-                    xray_interpolation.Shape.BEZIER_2D
+                    interp.Shape.TCB,
+                    interp.Shape.HERMITE,
+                    interp.Shape.BEZIER_1D,
+                    interp.Shape.BEZIER_2D
                 ):
                 use_interpolate = True
     if use_interpolate:
         start_frame = int(round(times[0], 0))
         end_frame = int(round(times[-1], 0))
-        values, times = xray_motions.interpolate_keys(
+        values, times = imp.interpolate_keys(
             fps, start_frame, end_frame, values, times, shapes, tcb, params
         )
         for time, value in zip(times, values):
@@ -135,9 +135,9 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
                 shape = shapes[index + 1]
             else:
                 shape = shapes[-1]
-            if shape == xray_interpolation.Shape.LINEAR:
+            if shape == interp.Shape.LINEAR:
                 key_frame.interpolation = 'LINEAR'
-            elif shape == xray_interpolation.Shape.STEPPED:
+            elif shape == interp.Shape.STEPPED:
                 key_frame.interpolation = 'CONSTANT'
             else:
                 key_frame.interpolation = replace_unsupported_to
@@ -156,11 +156,11 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
 def export_envelope(writer, ver, fcurve, fps, koef, epsilon=utilites.EPSILON):
     behavior = None
     if fcurve.extrapolation == 'CONSTANT':
-        behavior = xray_interpolation.Behavior.CONSTANT
+        behavior = interp.Behavior.CONSTANT
     elif fcurve.extrapolation == 'LINEAR':
-        behavior = xray_interpolation.Behavior.LINEAR
+        behavior = interp.Behavior.LINEAR
     else:
-        behavior = xray_interpolation.Behavior.LINEAR
+        behavior = interp.Behavior.LINEAR
         log.warn(
             text.warn.envelope_extrapolation,
             extrapolation=fcurve.extrapolation,
@@ -171,18 +171,18 @@ def export_envelope(writer, ver, fcurve, fps, koef, epsilon=utilites.EPSILON):
         behav_fmt = 'B'
     writer.putf('<2' + behav_fmt, behavior.value, behavior.value)
 
-    replace_unsupported_to = xray_interpolation.Shape.TCB
+    replace_unsupported_to = interp.Shape.TCB
     unsupported_occured = set()
 
     def generate_keys(keyframe_points):
         prev_kf = None
         for curr_kf in keyframe_points:
-            shape = xray_interpolation.Shape.STEPPED
+            shape = interp.Shape.STEPPED
             if prev_kf is not None:
                 if prev_kf.interpolation == 'CONSTANT':
-                    shape = xray_interpolation.Shape.STEPPED
+                    shape = interp.Shape.STEPPED
                 elif prev_kf.interpolation == 'LINEAR':
-                    shape = xray_interpolation.Shape.LINEAR
+                    shape = interp.Shape.LINEAR
                 else:
                     unsupported_occured.add(prev_kf.interpolation)
                     shape = replace_unsupported_to

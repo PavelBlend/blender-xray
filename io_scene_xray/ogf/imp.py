@@ -1563,14 +1563,14 @@ def import_ik_data(chunks, ogf_chunks, visual):
         mat = utils.version.multiply(
             translation,
             rotation,
-            motions.xray_motions.MATRIX_BONE
+            motions.const.MATRIX_BONE
         )
         if parent_name:
             bpy_bone.parent = armature.edit_bones.get(parent_name, None)
             if bpy_bone.parent:
                 mat = utils.version.multiply(
                     bpy_bone.parent.matrix,
-                    motions.xray_motions.MATRIX_BONE_INVERTED,
+                    motions.const.MATRIX_BONE_INVERTED,
                     mat
                 )
             else:

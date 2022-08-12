@@ -118,7 +118,7 @@ class XRAY_OT_browse_skls_file(bpy.types.Operator):
                 self.animations[name] = (offset, int(frames_range[1] - frames_range[0]))
                 # skip the rest bytes of skl animation to the next animation
                 self.pr.set_offset(offset2)
-                skip = motions.xray_motions.skip_motion_rest(self.pr.getv(), 0)
+                skip = motions.imp.skip_motion_rest(self.pr.getv(), 0)
                 self.pr.skip(skip)
 
     # pure python hold variable of .skls file buffer instance
@@ -186,9 +186,9 @@ def skls_animations_index_changed(self, context):
         reported = set()
         import_context = skl.imp.ImportSklContext()
         import_context.bpy_arm_obj=ob
-        import_context.motions_filter=motions.xray_motions.MOTIONS_FILTER_ALL
+        import_context.motions_filter=motions.utilites.MOTIONS_FILTER_ALL
         import_context.filename=XRAY_OT_browse_skls_file.skls_file.file_path
-        motions.xray_motions.import_motion(XRAY_OT_browse_skls_file.skls_file.pr, import_context, bonesmap, reported)
+        motions.imp.import_motion(XRAY_OT_browse_skls_file.skls_file.pr, import_context, bonesmap, reported)
         sk.animations_prev_name = animation_name
         context.window.cursor_set('DEFAULT')
         # try to find DopeSheet editor & set action

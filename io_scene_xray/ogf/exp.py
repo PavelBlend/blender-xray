@@ -493,14 +493,14 @@ def _export(bpy_obj, cwriter, context):
         mat = multiply(
             world_matrix,
             bone.matrix_local,
-            motions.xray_motions.MATRIX_BONE_INVERTED
+            motions.const.MATRIX_BONE_INVERTED
         )
         b_parent = utils.find_bone_exportable_parent(bone)
         if b_parent:
             mat = multiply(multiply(
                 world_matrix,
                 b_parent.matrix_local,
-                motions.xray_motions.MATRIX_BONE_INVERTED
+                motions.const.MATRIX_BONE_INVERTED
             ).inverted(), mat)
         euler = mat.to_euler('YXZ')
         pwriter.putf('<3f', -euler.x, -euler.z, -euler.y)
