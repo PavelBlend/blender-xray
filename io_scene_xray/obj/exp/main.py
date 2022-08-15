@@ -366,7 +366,10 @@ def export_loddef(chunked_writer, xray):
 
 def export_motions(chunked_writer, some_arm, context, bpy_obj):
     if some_arm and context.export_motions:
-        motions_names = [motion.name for motion in bpy_obj.xray.motions_collection]
+        motions_names = [
+            motion.name
+            for motion in bpy_obj.xray.motions_collection
+        ]
         motions_names = set(motions_names)
         motions_names = list(motions_names)
         motions_names.sort()
@@ -381,6 +384,8 @@ def export_motions(chunked_writer, some_arm, context, bpy_obj):
                     action=act_name,
                     object=bpy_obj.name
                 )
+        if not acts:
+            return
         writer = xray_io.PackedWriter()
         motions.exp.export_motions(writer, acts, some_arm)
         if writer.data:
