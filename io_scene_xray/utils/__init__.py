@@ -476,18 +476,15 @@ def execute_require_filepath(func):
             self.report({'ERROR'}, text.warn.no_file)
             return {'CANCELLED'}
         return func(self, context)
-
     return wrapper
 
 
 def set_cursor_state(method):
-    def wrapper(self, context):
-        try:
-            context.window.cursor_set('WAIT')
-            return method(self, context)
-        finally:
-            context.window.cursor_set('DEFAULT')
-
+    def wrapper(self, context, *args):
+        context.window.cursor_set('WAIT')
+        result = method(self, context, *args)
+        context.window.cursor_set('DEFAULT')
+        return result
     return wrapper
 
 
