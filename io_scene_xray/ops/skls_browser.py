@@ -196,7 +196,8 @@ def skls_animations_index_changed(self, context):
         # can contains thousand animations
         act = obj.animation_data.action
         obj.animation_data_clear()
-        utils.version.remove_action(act)
+        if act:
+            utils.version.remove_action(act)
 
     # delete from xray property group
     motion_name = browser.animations_prev_name
@@ -244,6 +245,19 @@ def skls_animations_index_changed(self, context):
         context.scene.frame_start = int(frame_start)
         context.scene.frame_current = int(frame_start)
         context.scene.frame_end = int(frame_end)
+
+    else:
+        act = bpy.data.actions[animation_name]
+
+        # try to find DopeSheet editor & set action
+        dope_sheets = [
+            area
+            for area in context.screen.areas
+                if area.type == 'DOPESHEET_EDITOR'
+        ]
+        for dope_sheet in dope_sheets:
+            if not dope_sheet.spaces[0].action:
+                dope_sheet.spaces[0].action = act
 
 
 anim_props = {
