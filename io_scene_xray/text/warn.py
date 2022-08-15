@@ -78,6 +78,7 @@ envelope_shapes = 'envelope: unsupported shapes will be replaced by'
 # skls browser
 browser_load = 'Loading animations from .skls file: "{}"'
 browser_done = 'Done: {} animation(s)'
+browser_import = 'Imported animation(s)'
 # rig operators
 connect_not_spec_arm = 'Source armature not specified'
 connect_not_found_arm = 'Source armature object not found'

@@ -74,7 +74,10 @@ def init_skls_browser(self, context, filepath):
     report = getattr(self, 'report', None)
 
     if report:
-        report({'INFO'}, text.warn.browser_load.format(filepath))
+        report(
+            {'INFO'},
+            text.get_text(text.warn.browser_load).format(filepath)
+        )
 
     browser = context.object.xray.skls_browser
     browser.animations.clear()
@@ -84,7 +87,10 @@ def init_skls_browser(self, context, filepath):
 
     if report:
         anims_count = len(skls.animations)
-        report({'INFO'}, text.warn.browser_done.format(anims_count))
+        report(
+            {'INFO'},
+            text.get_text(text.warn.browser_done).format(anims_count)
+        )
 
     # collect available actions
     for action in bpy.data.actions:
@@ -365,7 +371,7 @@ class XRAY_OT_skls_browser_import(BaseSklsBrowserOperator):
             anims.append(anim.name)
 
         # import animations
-        imported_count = 0
+        count = 0
         for anim_name in anims:
             motion = obj.xray.motions_collection.add()
             motion.name = anim_name
@@ -374,8 +380,11 @@ class XRAY_OT_skls_browser_import(BaseSklsBrowserOperator):
             if anim_name in bpy.data.actions:
                 continue
             import_anim(obj, skls, anim_name)
-            imported_count += 1
-        self.report({'INFO'}, str(imported_count))
+            count += 1
+        self.report(
+            {'INFO'},
+            text.get_text(text.warn.browser_import) + ': ' + str(count)
+        )
 
         return {'FINISHED'}
 

@@ -210,6 +210,7 @@ translations_table = (
     # skls browser
     (text.warn.browser_load, 'Загрузка анимаций из .skls файла: "{}"'),
     (text.warn.browser_done, 'Готово: {} анимаций'),
+    (text.warn.browser_import, 'Импортировано анимаций'),
     # verify uv
     (text.warn.incorrect_uv_objs_count, 'выделено объектов с некорректной uv-картой')
 )
