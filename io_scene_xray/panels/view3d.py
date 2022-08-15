@@ -85,7 +85,8 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
             icon='FILE_FOLDER'
         )
         if hasattr(obj.xray, 'skls_browser'):
-            if len(obj.xray.skls_browser.animations):
+            has_anims = len(obj.xray.skls_browser.animations)
+            if has_anims:
                 col.operator(
                     ops.skls_browser.XRAY_OT_close_skls_file.bl_idname,
                     icon='X'
@@ -100,6 +101,36 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
                 rows=5
             )
 
+            if not has_anims:
+                return
+
+            # select
+            select_op_class = ops.skls_browser.XRAY_OT_skls_browser_select
+            row = col.row(align=True)
+            row.label(text='Select:')
+
+            select_op = row.operator(select_op_class.bl_idname, text='All')
+            select_op.mode = 'ALL'
+
+            select_op = row.operator(select_op_class.bl_idname, text='None')
+            select_op.mode = 'NONE'
+
+            select_op = row.operator(select_op_class.bl_idname, text='Invert')
+            select_op.mode = 'INVERT'
+
+            # import
+            import_op_class = ops.skls_browser.XRAY_OT_skls_browser_import
+            row = col.row(align=True)
+            row.label(text='Import:')
+
+            imp_op = row.operator(import_op_class.bl_idname, text='Active')
+            imp_op.mode = 'ACTIVE'
+
+            imp_op = row.operator(import_op_class.bl_idname, text='Selected')
+            imp_op.mode = 'SELECTED'
+
+            imp_op = row.operator(import_op_class.bl_idname, text='All')
+            imp_op.mode = 'ALL'
 
 class XRAY_PT_viewer(bpy.types.Panel):
     bl_label = 'Viewer'
