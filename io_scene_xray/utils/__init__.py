@@ -1,16 +1,12 @@
 # standart modules
-import os
 import math
 import time
 import platform
 import getpass
-import contextlib
 
 # blender modules
 import bpy
 import bpy_extras
-import mathutils
-import bmesh
 
 # addon modules
 from . import draw
@@ -21,7 +17,6 @@ from . import version
 from .. import bl_info
 from .. import log
 from .. import text
-from .. import rw
 
 
 def version_to_number(major, minor, release):
