@@ -117,7 +117,7 @@ def import_file(context):
     file_path = context.filepath
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
-    data = utils.read_file(file_path)
+    data = rw.utils.read_file(file_path)
     chunked_reader = rw.read.ChunkedReader(data)
     frame_start, frame_end = _import(file_path, chunked_reader, context)
     return frame_start, frame_end

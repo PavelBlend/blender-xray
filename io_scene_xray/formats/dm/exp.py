@@ -27,13 +27,13 @@ def export(bpy_obj, packed_writer, context, file_path, mode='DM'):
     packed_writer.putf('<2f', det_model.min_scale, det_model.max_scale)
 
     if mode == 'DM':
-        b_mesh = utils.convert_object_to_space_bmesh(
+        b_mesh = utils.mesh.convert_object_to_space_bmesh(
             bpy_obj,
             mathutils.Matrix.Identity(4)
         )
 
     else:
-        b_mesh = utils.convert_object_to_space_bmesh(
+        b_mesh = utils.mesh.convert_object_to_space_bmesh(
             bpy_obj,
             mathutils.Matrix.Identity(4),
             local=True
@@ -94,4 +94,4 @@ def export_file(bpy_obj, file_path, context):
     log.update(object=bpy_obj.name)
     packed_writer = rw.write.PackedWriter()
     export(bpy_obj, packed_writer, context, file_path)
-    utils.save_file(file_path, packed_writer)
+    rw.utils.save_file(file_path, packed_writer)

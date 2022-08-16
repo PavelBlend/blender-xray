@@ -153,7 +153,7 @@ def import_main(file_path, context, creader):
                 bone_id_by_name = {}
                 bones_reader = rw.read.ChunkedReader(data)
                 for index, (_, bone_data) in enumerate(bones_reader):
-                    bone_chunks = utils.get_chunks(bone_data)
+                    bone_chunks = rw.utils.get_chunks(bone_data)
                     def_data = bone_chunks[fmt.Chunks.Bone.DEF]
                     def_reader = rw.read.PackedReader(def_data)
                     bone_name = def_reader.gets()

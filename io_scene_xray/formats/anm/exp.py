@@ -139,4 +139,4 @@ def export_file(export_context):
     log.update(file=export_context.filepath)
     writer = rw.write.ChunkedWriter()
     _export(export_context, writer)
-    utils.save_file(export_context.filepath, writer)
+    rw.utils.save_file(export_context.filepath, writer)

@@ -63,6 +63,6 @@ def import_(
 def import_file(file_path, context):
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
-    data = utils.read_file(file_path)
+    data = rw.utils.read_file(file_path)
     packed_reader = rw.read.PackedReader(data)
     import_(file_path, context, packed_reader)

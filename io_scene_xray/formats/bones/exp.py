@@ -16,7 +16,7 @@ def _export_partitions(context, bpy_obj):
     exportable_bones = tuple(
         bone
         for bone in bpy_obj.pose.bones
-            if utils.is_exportable_bone(bpy_obj.data.bones[bone.name])
+            if utils.bone.is_exportable_bone(bpy_obj.data.bones[bone.name])
     )
     all_groups = (
         (
@@ -143,7 +143,7 @@ def export_file(context):
     bone_index = 0
     if context.export_bone_properties:
         for bone in bpy_obj.data.bones:
-            if not utils.is_exportable_bone(bone):
+            if not utils.bone.is_exportable_bone(bone):
                 continue
             bone_chunked_writer = _export_bone_data(bpy_obj, bone)
             chunked_writer.put(bone_index, bone_chunked_writer)
@@ -153,4 +153,4 @@ def export_file(context):
         obj.fmt.Chunks.Object.PARTITIONS1,
         partitions_packed_writer
     )
-    utils.save_file(context.filepath, chunked_writer)
+    rw.utils.save_file(context.filepath, chunked_writer)

@@ -65,7 +65,7 @@ class XRAY_OT_close_skls_file(BaseSklsBrowserOperator):
         browser.animations_index = 0
         browser.animations_prev_name = ''
         bpy.ops.screen.animation_cancel()
-        utils.reset_pose_bone_transforms(obj)
+        utils.bone.reset_pose_bone_transforms(obj)
         return {'FINISHED'}
 
 
@@ -122,7 +122,7 @@ class SklsFile():
         # cached animations info (name: (file_offset, frames_count))
         self.animations = {}
         # read entire .skls file into memory
-        file_data = utils.read_file(file_path)
+        file_data = rw.utils.read_file(file_path)
         self.pr = rw.read.PackedReader(file_data)
         self._index_animations()
 
@@ -230,7 +230,7 @@ def skls_animations_index_changed(self, context):
     '''Selected animation changed in .skls list'''
 
     report = lambda error, text: None
-    logger = utils.Logger(report)
+    logger = log.Logger(report)
     log.__logger__[0] = logger
 
     skls = XRAY_OT_browse_skls_file.skls_file

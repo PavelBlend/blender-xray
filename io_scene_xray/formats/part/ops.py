@@ -54,7 +54,7 @@ class XRAY_OT_import_part(ie.BaseOperator):
         utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
         layout.prop(self, 'mesh_split_by_materials')
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         if not self.files or (len(self.files) == 1 and not self.files[0].name):

@@ -13,6 +13,7 @@ from .. import contexts
 from ... import utils
 from ... import icons
 from ... import log
+from ... import rw
 from ... import ui
 
 
@@ -92,7 +93,7 @@ class XRAY_OT_import_omf(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
@@ -195,7 +196,7 @@ class XRAY_OT_import_omf(
             if file_path.lower().endswith('.omf'):
                 if os.path.exists(file_path):
                     if self.__parsed_file_name != file_path:
-                        file_data = utils.read_file(file_path)
+                        file_data = rw.utils.read_file(file_path)
                         motions_names = imp.examine_motions(file_data)
                         items.clear()
                         for name in motions_names:
@@ -244,7 +245,7 @@ class XRAY_OT_export_omf(ie.BaseOperator, bpy_extras.io_utils.ExportHelper):
             if not self.export_motions and not self.export_bone_parts:
                 layout.label(text='Nothing was Exported!', icon='ERROR')
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         active_object = context.object

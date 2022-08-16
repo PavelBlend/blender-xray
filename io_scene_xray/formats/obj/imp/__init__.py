@@ -28,7 +28,7 @@ def _import(file_path, context, reader):
 def import_file(file_path, context):
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
-    file_data = utils.read_file(file_path)
+    file_data = rw.utils.read_file(file_path)
     chunked_reader = rw.read.ChunkedReader(memoryview(file_data))
     bpy_obj = _import(file_path, context, chunked_reader)
     return bpy_obj

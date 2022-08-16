@@ -36,7 +36,7 @@ class XRAY_OT_export_scene_selection(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         try:
@@ -91,7 +91,7 @@ class XRAY_OT_import_scene_selection(
         utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
         layout.prop(self, 'mesh_split_by_materials')
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         try:

@@ -18,6 +18,6 @@ def get_level_name(file_path):
 
 
 def get_level_reader(file_path):
-    data = utils.read_file(file_path)
+    data = rw.utils.read_file(file_path)
     chunked_reader = rw.read.ChunkedReader(data)
     return chunked_reader

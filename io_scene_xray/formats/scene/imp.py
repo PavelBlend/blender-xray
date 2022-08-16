@@ -199,6 +199,6 @@ def import_file(filepath, operator):
     import_context.operator=operator
     import_context.objects_folder=objects_folder
     import_context.before_import_file()
-    file_data = utils.read_file(filepath)
+    file_data = rw.utils.read_file(filepath)
     chunked_reader = rw.read.ChunkedReader(file_data)
     import_(filepath, chunked_reader, import_context)

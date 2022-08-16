@@ -18,7 +18,7 @@ def export_bone(
     ):
 
     # export parent bone
-    real_parent = utils.find_bone_exportable_parent(bpy_bone)
+    real_parent = utils.bone.find_bone_exportable_parent(bpy_bone)
     if real_parent:
         if bonemap.get(real_parent) is None:
             export_bone(

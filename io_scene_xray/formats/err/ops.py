@@ -6,6 +6,7 @@ import bpy_extras
 from . import imp
 from .. import ie
 from ... import icons
+from ... import log
 from ... import utils
 
 
@@ -40,7 +41,7 @@ class XRAY_OT_import_err(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         imp.import_file(self.filepath, self)

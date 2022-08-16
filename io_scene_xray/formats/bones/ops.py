@@ -66,7 +66,7 @@ class XRAY_OT_import_bones(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         if len(self.files) > 1:
@@ -152,7 +152,7 @@ class XRAY_OT_export_bones(ie.BaseOperator):
             if obj.type == 'ARMATURE':
                 self.objects_list.append(obj.name)
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         self.get_objects(context)
@@ -232,7 +232,7 @@ class XRAY_OT_export_bone(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         obj = context.scene.objects[self.object_name]

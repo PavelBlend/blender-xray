@@ -354,3 +354,17 @@ def link_object_to_collection(obj, collection):
     for child in obj.children:
         link_object_to_collection(child, collection)
     collection.objects.link(obj)
+
+
+@contextlib.contextmanager
+def using_mode(mode):
+    if IS_28:
+        objects = bpy.context.view_layer.objects
+    else:
+        objects = bpy.context.scene.objects
+    original = objects.active.mode
+    bpy.ops.object.mode_set(mode=mode)
+    try:
+        yield
+    finally:
+        bpy.ops.object.mode_set(mode=original)

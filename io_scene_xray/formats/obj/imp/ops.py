@@ -45,7 +45,7 @@ class XRAY_OT_import_object(ie.BaseOperator, bpy_extras.io_utils.ImportHelper):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         preferences = utils.version.get_preferences()

@@ -367,7 +367,7 @@ def write_shaders(level):
                 eshader, texture_path, lmap_1_name, lmap_2_name
             ))
         elif lmap_1_image and not lmap_2_image:
-            lmap_1_path = utils.gen_texture_name(
+            lmap_1_path = data_blocks.image.gen_texture_name(
                 lmap_1_image,
                 texture_folder,
                 level_folder=level.source_level_path
@@ -1370,7 +1370,7 @@ def write_level_cform(packed_writer, level):
     preferences = utils.version.get_preferences()
     gamemtl_file_path = preferences.gamemtl_file_auto
     if os.path.exists(gamemtl_file_path):
-        gamemtl_data = utils.read_file(gamemtl_file_path)
+        gamemtl_data = rw.utils.read_file(gamemtl_file_path)
     else:
         gamemtl_data = b''
 
@@ -1447,7 +1447,7 @@ def export_file(level_object, dir_path):
     level_chunked_writer = get_writer()
     vbs, ibs, fp_vbs, fp_ibs, level = write_level(level_chunked_writer, level_object, file_path)
 
-    utils.save_file(file_path, level_chunked_writer)
+    rw.utils.save_file(file_path, level_chunked_writer)
     del level_chunked_writer
 
     # geometry
@@ -1462,7 +1462,7 @@ def export_file(level_object, dir_path):
     )
 
     level_geom_file_path = file_path + os.extsep + 'geom'
-    utils.save_file(level_geom_file_path, level_geom_chunked_writer)
+    rw.utils.save_file(level_geom_file_path, level_geom_chunked_writer)
     del level_geom_chunked_writer
 
     # fast path geometry
@@ -1471,12 +1471,12 @@ def export_file(level_object, dir_path):
     del fp_vbs, fp_ibs, level.fp_vbs_offsets, level.fp_ibs_offsets
 
     level_geomx_file_path = file_path + os.extsep + 'geomx'
-    utils.save_file(level_geomx_file_path, level_geomx_chunked_writer)
+    rw.utils.save_file(level_geomx_file_path, level_geomx_chunked_writer)
     del level_geomx_chunked_writer
 
     # cform
     level_cform_packed_writer = rw.write.PackedWriter()
     write_level_cform(level_cform_packed_writer, level)
     level_cform_file_path = file_path + os.extsep + 'cform'
-    utils.save_file(level_cform_file_path, level_cform_packed_writer)
+    rw.utils.save_file(level_cform_file_path, level_cform_packed_writer)
     del level_cform_packed_writer, level

@@ -209,7 +209,7 @@ def _bone_vertices(bone):
         else:
             bmsh.from_object(obj, bpy.context.scene)
         layer_deform = bmsh.verts.layers.deform.verify()
-        utils.fix_ensure_lookup_table(bmsh.verts)
+        utils.mesh.fix_ensure_lookup_table(bmsh.verts)
         for vtx in bmsh.verts:
             weight = vtx[layer_deform].get(vgi, 0)
             if weight:

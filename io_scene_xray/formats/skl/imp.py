@@ -42,7 +42,7 @@ def _import_skl(file_path, context, chunked_reader):
 def import_skl_file(file_path, context):
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
-    file_data = utils.read_file(file_path)
+    file_data = rw.utils.read_file(file_path)
     chunked_reader = rw.read.ChunkedReader(file_data)
     _import_skl(file_path, context, chunked_reader)
 
@@ -51,6 +51,6 @@ def import_skl_file(file_path, context):
 def import_skls_file(file_path, context):
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
-    file_data = utils.read_file(file_path)
+    file_data = rw.utils.read_file(file_path)
     reader = rw.read.PackedReader(file_data)
     motions.imp.import_motions(reader, context, context.motions_filter)

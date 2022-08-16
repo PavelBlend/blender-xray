@@ -70,8 +70,8 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
                     mat_world = bpy_mesh.matrix_world
                 else:
                     mat_world = mathutils.Matrix()
-                mesh = utils.convert_object_to_space_bmesh(bpy_mesh, mat_world)
-                bbx = utils.calculate_mesh_bbox(mesh.verts, mat=mat_world)
+                mesh = utils.mesh.convert_object_to_space_bmesh(bpy_mesh, mat_world)
+                bbx = utils.mesh.calculate_mesh_bbox(mesh.verts, mat=mat_world)
                 center, radius = calculate_mesh_bsphere(bbx, mesh.verts, mat=mat_world)
                 cache.bounds[bpy_mesh.name] = bbx, center, radius
         else:
@@ -79,8 +79,8 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
                 mat_world = bpy_mesh.matrix_world
             else:
                 mat_world = mathutils.Matrix()
-            mesh = utils.convert_object_to_space_bmesh(bpy_mesh, mat_world)
-            bbx = utils.calculate_mesh_bbox(mesh.verts, mat=mat_world)
+            mesh = utils.mesh.convert_object_to_space_bmesh(bpy_mesh, mat_world)
+            bbx = utils.mesh.calculate_mesh_bbox(mesh.verts, mat=mat_world)
             center, radius = calculate_mesh_bsphere(bbx, mesh.verts, mat=mat_world)
 
         if bbox is None:
@@ -132,11 +132,11 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
             log.props(object=bpy_obj.name)
         )
 
-    mesh = utils.convert_object_to_space_bmesh(
+    mesh = utils.mesh.convert_object_to_space_bmesh(
         bpy_obj,
         mathutils.Matrix.Identity(4)
     )
-    bbox = utils.calculate_mesh_bbox(mesh.verts)
+    bbox = utils.mesh.calculate_mesh_bbox(mesh.verts)
     bsphere = calculate_mesh_bsphere(bbox, mesh.verts)
     bmesh.ops.triangulate(mesh, faces=mesh.faces)
     bpy_mesh = bpy.data.meshes.new('.export-ogf')
@@ -243,7 +243,7 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
                 vertices.append(vertex)
             face_indices.append(vertex_index)
         triangles.append(face_indices)
-    utils.fix_ensure_lookup_table(mesh.verts)
+    utils.mesh.fix_ensure_lookup_table(mesh.verts)
 
     # write vertices chunk
     vertices_writer = rw.write.PackedWriter()
@@ -416,7 +416,7 @@ def _export(bpy_obj, cwriter, context):
                     raise error
         elif bpy_obj.type == 'ARMATURE':
             for bone in bpy_obj.data.bones:
-                if not utils.is_exportable_bone(bone):
+                if not utils.bone.is_exportable_bone(bone):
                     continue
                 reg_bone(bone, bpy_obj)
         for child in bpy_obj.children:
@@ -434,7 +434,7 @@ def _export(bpy_obj, cwriter, context):
     pwriter = rw.write.PackedWriter()
     pwriter.putf('<I', len(bones))
     for bone, _ in bones:
-        b_parent = utils.find_bone_exportable_parent(bone)
+        b_parent = utils.bone.find_bone_exportable_parent(bone)
         pwriter.puts(bone.name)
         pwriter.puts(b_parent.name if b_parent else '')
         xray = bone.xray
@@ -495,7 +495,7 @@ def _export(bpy_obj, cwriter, context):
             bone.matrix_local,
             motions.const.MATRIX_BONE_INVERTED
         )
-        b_parent = utils.find_bone_exportable_parent(bone)
+        b_parent = utils.bone.find_bone_exportable_parent(bone)
         if b_parent:
             mat = multiply(multiply(
                 world_matrix,
@@ -539,4 +539,4 @@ def export_file(bpy_obj, file_path, context):
     log.update(object=bpy_obj.name)
     cwriter = rw.write.ChunkedWriter()
     _export(bpy_obj, cwriter, context)
-    utils.save_file(file_path, cwriter)
+    rw.utils.save_file(file_path, cwriter)

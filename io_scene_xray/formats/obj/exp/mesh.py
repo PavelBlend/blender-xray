@@ -75,7 +75,7 @@ def export_mesh_name(chunked_writer, bpy_obj, bpy_root):
 
 
 def export_bbox(chunked_writer, bm):
-    bbox = utils.calculate_mesh_bbox(bm.verts)
+    bbox = utils.mesh.calculate_mesh_bbox(bm.verts)
     packed_writer = rw.write.PackedWriter()
     packed_writer.putv3f(bbox[0])
     packed_writer.putv3f(bbox[1])
@@ -208,7 +208,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
         override['active_object'] = temp_obj
         override['object'] = temp_obj
         bpy.ops.object.modifier_apply(override, modifier=tri_mod.name)
-        bm = utils.convert_object_to_space_bmesh(
+        bm = utils.mesh.convert_object_to_space_bmesh(
             temp_obj,
             bpy_root.matrix_world,
             local=False,
@@ -216,7 +216,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
             mods=modifiers
         )
     else:
-        bm = utils.convert_object_to_space_bmesh(
+        bm = utils.mesh.convert_object_to_space_bmesh(
             bpy_obj,
             bpy_root.matrix_world,
             local=False,

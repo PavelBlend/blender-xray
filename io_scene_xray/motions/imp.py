@@ -200,7 +200,7 @@ def import_motion(
             act.fcurves.new(data_path + '.rotation_euler', index=2, action_group=bname)
         ]
         xmat = bpy_bone.matrix_local.inverted()
-        real_parent = utils.find_bone_exportable_parent(bpy_bone)
+        real_parent = utils.bone.find_bone_exportable_parent(bpy_bone)
         if real_parent:
             xmat = multiply(xmat, real_parent.matrix_local)
         else:

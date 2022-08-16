@@ -142,5 +142,5 @@ def _import_main(data, import_context):
 def import_file(import_context):
     log.update(file=import_context.filepath)
     utils.ie.check_file_exists(import_context.filepath)
-    data = utils.read_file(import_context.filepath)
+    data = rw.utils.read_file(import_context.filepath)
     _import_main(data, import_context)

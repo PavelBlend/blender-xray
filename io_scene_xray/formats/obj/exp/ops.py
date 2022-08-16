@@ -111,7 +111,7 @@ class XRAY_OT_export_object(ie.BaseOperator, _WithExportMotions):
     def draw(self, context):
         draw_props(self, mode='BATCH')
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         export_context = ExportObjectContext()
@@ -198,7 +198,7 @@ class XRAY_OT_export_object_file(
     def draw(self, context):
         draw_props(self)
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         export_context = ExportObjectContext()
@@ -259,7 +259,7 @@ class XRAY_OT_export_project(ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         data = context.scene.xray

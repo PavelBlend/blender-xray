@@ -63,7 +63,7 @@ def get_flags(xray):
 
 
 def validate_omf_file(context):
-    data = utils.read_file(context.filepath)
+    data = rw.utils.read_file(context.filepath)
     if not len(data):
         raise log.AppError(
             text.error.omf_empty,
@@ -273,7 +273,7 @@ def set_initial_state(
         context.bpy_arm_obj.animation_data_clear()
         # reset transforms
         # TODO: do not delete transformations but keep the original ones
-        utils.reset_pose_bone_transforms(context.bpy_arm_obj)
+        utils.bone.reset_pose_bone_transforms(context.bpy_arm_obj)
 
     # return dependency object state
     if dependency_object:
@@ -283,7 +283,7 @@ def set_initial_state(
             dependency_object.animation_data_clear()
             # reset dependency object transforms
             # TODO: do not delete transformations but keep the original ones
-            utils.reset_pose_bone_transforms(dependency_object)
+            utils.bone.reset_pose_bone_transforms(dependency_object)
 
 
 def get_initial_state(context, xray):
@@ -473,7 +473,7 @@ def collect_bones(context, bone_names, bone_indices, bones_count):
     # collect bones by pose bones
     if not export_bones:
         for bone in context.bpy_arm_obj.data.bones:
-            if utils.is_exportable_bone(bone):
+            if utils.bone.is_exportable_bone(bone):
                 pose_bone = context.bpy_arm_obj.pose.bones[bone.name]
                 export_bones.append(pose_bone)
 
@@ -499,7 +499,7 @@ def collect_motion_names(context, xray):
 def calculate_bones_count(context):
     bones_count = 0
     for bone in context.bpy_arm_obj.data.bones:
-        if utils.is_exportable_bone(bone):
+        if utils.bone.is_exportable_bone(bone):
             bones_count += 1
     return bones_count
 
@@ -908,4 +908,4 @@ def export_omf(context):
 def export_omf_file(context):
     log.update(object=context.bpy_arm_obj.name)
     chunked_writer = export_omf(context)
-    utils.save_file(context.filepath, chunked_writer)
+    rw.utils.save_file(context.filepath, chunked_writer)

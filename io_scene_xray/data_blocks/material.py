@@ -8,6 +8,7 @@ import bpy
 from .. import log
 from .. import text
 from .. import utils
+from .. import data_blocks
 
 
 def _is_compatible_texture(texture, filepart):
@@ -228,7 +229,7 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
             if tex_node:
                 if tex_node.image:
                     if context.texname_from_path:
-                        tx_name = utils.gen_texture_name(
+                        tx_name = data_blocks.image.gen_texture_name(
                             tex_node.image,
                             context.textures_folder,
                             level_folder=level_folder
@@ -276,7 +277,7 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
             texture = textures[-1]
         if texture:
             if context.texname_from_path:
-                tx_name = utils.gen_texture_name(
+                tx_name = data_blocks.image.gen_texture_name(
                     texture.image,
                     context.textures_folder,
                     level_folder=level_folder

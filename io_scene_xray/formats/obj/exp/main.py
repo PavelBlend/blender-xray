@@ -229,13 +229,13 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
         _check_bone_names(bpy_arm_obj)
         bonemap = {}
         edit_mode_matrices = {}
-        with utils.version.using_active_object(bpy_arm_obj), utils.using_mode('EDIT'):
+        with utils.version.using_active_object(bpy_arm_obj), utils.version.using_mode('EDIT'):
             for bone_ in bpy_arm_obj.data.edit_bones:
                 edit_mode_matrices[bone_.name] = bone_.matrix
         for bone_ in bpy_arm_obj.data.bones:
-            if not utils.is_exportable_bone(bone_):
+            if not utils.bone.is_exportable_bone(bone_):
                 continue
-            real_parent = utils.find_bone_exportable_parent(bone_)
+            real_parent = utils.bone.find_bone_exportable_parent(bone_)
             if not real_parent:
                 root_bones.append(bone_.name)
             bone.export_bone(
@@ -397,7 +397,7 @@ def export_partitions(chunked_writer, some_arm):
         exportable_bones = tuple(
             bone_
             for bone_ in some_arm.pose.bones
-            if utils.is_exportable_bone(some_arm.data.bones[bone_.name])
+            if utils.bone.is_exportable_bone(some_arm.data.bones[bone_.name])
         )
         all_groups = (
             (group.name, tuple(

@@ -70,7 +70,7 @@ class XRAY_OT_import_details(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         prefs = utils.version.get_preferences()
@@ -170,7 +170,7 @@ class XRAY_OT_export_details(
             use_row=False
         )
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         objs = context.selected_objects

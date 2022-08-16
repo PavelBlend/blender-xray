@@ -59,7 +59,7 @@ class XRAY_OT_import_level(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         preferences = utils.version.get_preferences()
@@ -113,7 +113,7 @@ class XRAY_OT_export_level(ie.BaseOperator):
         exp.export_file(level_object, self.directory)
         return {'FINISHED'}
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         level_object = context.object

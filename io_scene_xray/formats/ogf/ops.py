@@ -70,7 +70,7 @@ class XRAY_OT_import_ogf(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         prefs = utils.version.get_preferences()
@@ -133,7 +133,7 @@ class XRAY_OT_export_ogf_file(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.execute_require_filepath
     @utils.set_cursor_state
     def execute(self, context):
@@ -193,7 +193,7 @@ class XRAY_OT_export_ogf(ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         export_context = ExportOgfContext()

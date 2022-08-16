@@ -115,7 +115,7 @@ def _bake_motion_data(action, armature, prepared_bones):
 
 def _prepare_bones(armature):
     def prepare_bone(bone):
-        real_parent = utils.find_bone_exportable_parent(bone)
+        real_parent = utils.bone.find_bone_exportable_parent(bone)
         return (
             armature.pose.bones[bone.name],
             armature.pose.bones[real_parent.name] if real_parent else None
@@ -124,7 +124,7 @@ def _prepare_bones(armature):
     return [
         prepare_bone(bone)
         for bone in armature.data.bones
-            if utils.is_exportable_bone(bone)
+            if utils.bone.is_exportable_bone(bone)
     ]
 
 

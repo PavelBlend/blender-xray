@@ -63,7 +63,7 @@ class XRAY_OT_import_dm(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         textures_folder = utils.version.get_preferences().textures_folder_auto
@@ -117,7 +117,7 @@ class XRAY_OT_export_dm(ie.BaseOperator):
     def draw(self, context):
         self.layout.prop(self, 'texture_name_from_image_path')
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         active_object, selected_objects = utils.get_selection_state(context)
@@ -196,7 +196,7 @@ class XRAY_OT_export_dm_file(
         for prop_name, prop_value in export_props.items():
             exec('{0} = export_props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         try:

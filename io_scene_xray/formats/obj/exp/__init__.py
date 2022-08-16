@@ -15,4 +15,4 @@ def _export(bpy_obj, chunked_writer, context):
 def export_file(bpy_obj, file_path, context):
     writer = rw.write.ChunkedWriter()
     _export(bpy_obj, writer, context)
-    utils.save_file(file_path, writer)
+    rw.utils.save_file(file_path, writer)

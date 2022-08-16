@@ -12,6 +12,7 @@ from .. import ie
 from ... import icons
 from ... import log
 from ... import ui
+from ... import rw
 from ... import utils
 from ... import text
 from ... import motions
@@ -118,11 +119,11 @@ class XRAY_OT_import_skls(ie.BaseOperator, bpy_extras.io_utils.ImportHelper):
     def _examine_file(file_path):
         if file_path.lower().endswith('.skls'):
             if os.path.exists(file_path):
-                file_data = utils.read_file(file_path)
+                file_data = rw.utils.read_file(file_path)
                 return motions.imp.examine_motions(file_data)
         return tuple()
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
@@ -192,7 +193,7 @@ class XRAY_OT_export_skl(ie.BaseOperator, bpy_extras.io_utils.ExportHelper):
 
     action = None
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.execute_require_filepath
     @utils.set_cursor_state
     def execute(self, context):
@@ -281,7 +282,7 @@ class XRAY_OT_export_skls(ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         export_context = exp.ExportSklsContext()
@@ -360,7 +361,7 @@ class XRAY_OT_export_skl_batch(ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    @utils.execute_with_logger
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         export_context = exp.ExportSklsContext()

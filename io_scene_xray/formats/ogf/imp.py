@@ -1868,7 +1868,7 @@ def import_visual(context, data, visual):
 def import_file(context, file_path, file_name):
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
-    data = utils.read_file(file_path)
+    data = rw.utils.read_file(file_path)
     visual = Visual()
     visual.file_path = file_path
     visual.visual_id = 0

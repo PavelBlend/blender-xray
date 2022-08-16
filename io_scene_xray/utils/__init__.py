@@ -15,22 +15,13 @@ import bmesh
 # addon modules
 from . import draw
 from . import ie
+from . import mesh
+from . import bone
 from . import version
 from .. import bl_info
 from .. import log
 from .. import text
 from .. import rw
-
-
-def is_exportable_bone(bpy_bone):
-    return bpy_bone.xray.exportable
-
-
-def find_bone_exportable_parent(bpy_bone):
-    result = bpy_bone.parent
-    while (result is not None) and not is_exportable_bone(result):
-        result = result.parent
-    return result
 
 
 def version_to_number(major, minor, release):
@@ -46,281 +37,6 @@ def plugin_version_number():
     return number
 
 
-@contextlib.contextmanager
-def logger(name, report):
-    lgr = Logger(report)
-    try:
-        with log.using_logger(lgr):
-            yield
-    except log.AppError as err:
-        lgr.err(str(err), err.ctx)
-        raise err
-    finally:
-        lgr.flush(name)
-
-
-class Logger:
-    def __init__(self, report):
-        self._report = report
-        self._full = list()
-
-    def message_format(self, message):
-        message = str(message)
-        message = text.get_text(message)
-        message = message.strip()
-        message = message[0].upper() + message[1:]
-        return message
-
-    def warn(self, message, ctx=None):
-        message = self.message_format(message)
-        self._full.append((message, ctx, 'WARNING'))
-
-    def err(self, message, ctx=None):
-        message = self.message_format(message)
-        self._full.append((message, ctx, 'ERROR'))
-
-    def flush(self, logname='log'):
-        uniq = dict()
-        message_contexts = {}
-        for msg, ctx, typ in self._full:
-            uniq[msg] = uniq.get(msg, (0, typ))[0] + 1, typ
-            message_contexts.setdefault(msg, []).append(ctx.data)
-        if not uniq:
-            return
-
-        lines = ['Digest:']
-        for msg, (cnt, typ) in uniq.items():
-            line = msg
-            if cnt > 1:
-                line = ('[%dx] ' % cnt) + line
-                lines.append(' ' + line)
-            else:
-                context = message_contexts[msg]
-                if context[0]:
-                    prop = tuple(context[0].values())[0]
-                    if line.endswith('.'):
-                        line = line[ : -1]
-                    lines.append(' ' + line)
-                    line = '{0}: "{1}"'.format(line, prop)
-                else:
-                    lines.append(' ' + line)
-            self._report({typ}, line)
-
-        lines.extend(['', 'Full log:'])
-        processed_groups = dict()
-        last_line_is_message = False
-
-        def fmt_data(data):
-            if log.CTX_NAME in data:
-                name = None
-                args = []
-                for key, val in data.items():
-                    if key is log.CTX_NAME:
-                        name = val
-                    else:
-                        args.append('%s=%s' % (key, repr(val)))
-                return '%s(%s)' % (name, ', '.join(args))
-            return str(data)
-
-        def ensure_group_processed(group):
-            nonlocal last_line_is_message
-            prefix = processed_groups.get(group, None)
-            if prefix is None:
-                if group is not None:
-                    if group.parent:
-                        ensure_group_processed(group.parent)
-                    prefix = '| ' * group.depth
-                    if last_line_is_message:
-                        lines.append(prefix + '|')
-                    lines.append('%s+-%s' % (prefix, fmt_data(group.data)))
-                    last_line_is_message = False
-                    prefix += '|  '
-                else:
-                    prefix = ''
-                processed_groups[group] = prefix
-            return prefix
-
-
-        last_message = None
-        last_message_count = 0
-        for msg, ctx, typ in self._full:
-            data = dict()
-            group = ctx
-            while group and group.lightweight:
-                data.update(group.data)
-                group = group.parent
-            prefix = ensure_group_processed(group)
-            if data:
-                if msg.endswith('.'):
-                    msg = msg[ : -1]
-                msg += (': %s' % data)
-            if last_line_is_message and (last_message == msg):
-                last_message_count += 1
-                lines[-1] = '%s[%dx] %s' % (prefix, last_message_count, msg)
-            else:
-                lines.append(prefix + msg)
-                last_message = msg
-                last_message_count = 1
-                last_line_is_message = True
-
-        text_data = bpy.data.texts.new(logname)
-        text_data.user_clear()
-        text_data.from_string('\n'.join(lines))
-        self._report(
-            {'WARNING'},
-            text.warn.full_log.format(text_data.name)
-        )
-
-
-def fix_ensure_lookup_table(bmv):
-    if hasattr(bmv, 'ensure_lookup_table'):
-        bmv.ensure_lookup_table()
-
-
-def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_normals=False, mods=None):
-    mesh = bmesh.new()
-    temp_obj = None
-    if split_normals and version.has_set_normals_from_faces():
-        temp_mesh = bpy_obj.data.copy()
-        temp_obj = bpy_obj.copy()
-        temp_obj.data = temp_mesh
-        # set sharp edges by face smoothing
-        for polygon in temp_mesh.polygons:
-            if polygon.use_smooth:
-                continue
-            for loop_index in polygon.loop_indices:
-                loop = temp_mesh.loops[loop_index]
-                edge = temp_mesh.edges[loop.edge_index]
-                edge.use_edge_sharp = True
-        version.link_object(temp_obj)
-        version.set_active_object(temp_obj)
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.reveal()
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.set_normals_from_faces()
-        bpy.ops.object.mode_set(mode='OBJECT')
-        exportable_obj = temp_obj
-    else:
-        exportable_obj = bpy_obj
-    # apply shape keys
-    if exportable_obj.data.shape_keys:
-        if not temp_obj:
-            temp_mesh = exportable_obj.data.copy()
-            temp_obj = exportable_obj.copy()
-            temp_obj.data = temp_mesh
-            version.link_object(temp_obj)
-            version.set_active_object(temp_obj)
-            exportable_obj = temp_obj
-        temp_obj.shape_key_add(name='last_shape_key', from_mix=True)
-        for shape_key in temp_mesh.shape_keys.key_blocks:
-            temp_obj.shape_key_remove(shape_key)
-    # apply modifiers
-    if mods:
-        if not temp_obj:
-            temp_mesh = bpy_obj.data.copy()
-            temp_obj = bpy_obj.copy()
-            temp_obj.data = temp_mesh
-            version.link_object(temp_obj)
-            version.set_active_object(temp_obj)
-            exportable_obj = temp_obj
-        override = bpy.context.copy()
-        override['active_object'] = temp_obj
-        override['object'] = temp_obj
-        for mod in mods:
-            bpy.ops.object.modifier_apply(override, modifier=mod.name)
-    mesh.from_mesh(exportable_obj.data)
-    if local:
-        mat = mathutils.Matrix()
-    else:
-        mat = bpy_obj.matrix_world
-    mat = version.multiply(space_matrix.inverted(), mat)
-    mesh.transform(mat)
-    need_flip = False
-    for scale_component in mat.to_scale():
-        if scale_component < 0:
-            need_flip = not need_flip
-    if need_flip:
-        bmesh.ops.reverse_faces(mesh, faces=mesh.faces)  # flip normals
-    fix_ensure_lookup_table(mesh.verts)
-    if temp_obj:
-        bpy.data.objects.remove(temp_obj)
-        bpy.data.meshes.remove(temp_mesh)
-    return mesh
-
-
-def calculate_mesh_bbox(verts, mat=mathutils.Matrix()):
-    def vfunc(dst, src, func):
-        dst.x = func(dst.x, src.x)
-        dst.y = func(dst.y, src.y)
-        dst.z = func(dst.z, src.z)
-
-    multiply = version.get_multiply()
-    fix_ensure_lookup_table(verts)
-    _min = multiply(mat, verts[0].co).copy()
-    _max = _min.copy()
-
-    vs = []
-    for vertex in verts:
-        vfunc(_min, multiply(mat, vertex.co), min)
-        vfunc(_max, multiply(mat, vertex.co), max)
-        vs.append(_max)
-
-    return _min, _max
-
-
-def make_relative_texture_path(a_tx_fpath, a_tx_folder):
-    a_tx_fpath = a_tx_fpath[len(a_tx_folder):].replace(os.path.sep, '\\')
-    if a_tx_fpath.startswith('\\'):
-        a_tx_fpath = a_tx_fpath[1:]
-    return a_tx_fpath
-
-
-def gen_texture_name(image, tx_folder, level_folder=None, errors=set()):
-    file_path = image.filepath
-    a_tx_fpath = os.path.normpath(bpy.path.abspath(file_path))
-    a_tx_folder = os.path.abspath(tx_folder)
-    a_tx_fpath = os.path.splitext(a_tx_fpath)[0]
-    if not level_folder:    # find texture in gamedata\textures folder
-        if not a_tx_fpath.startswith(a_tx_folder):
-            drive, path_part_1 = os.path.splitdrive(a_tx_fpath)
-            file_full_name = os.path.basename(path_part_1)
-            file_name, ext = os.path.splitext(file_full_name)
-            if path_part_1.count(os.sep) > 1:
-                dir_path = os.path.dirname(path_part_1)
-                dir_name = os.path.basename(dir_path)
-                if file_name.startswith(dir_name + '_'):
-                    relative_path = os.path.join(dir_name, file_name)
-                    a_tx_fpath = relative_path.replace(os.path.sep, '\\')
-                else:
-                    a_tx_fpath = file_name
-            else:
-                a_tx_fpath = file_name
-            log.warn(
-                text.warn.img_bad_image_path,
-                image=image.name,
-                image_path=image.filepath,
-                textures_folder=a_tx_folder,
-                saved_as=a_tx_fpath
-            )
-        else:
-            a_tx_fpath = make_relative_texture_path(a_tx_fpath, a_tx_folder)
-    else:
-        if a_tx_fpath.startswith(a_tx_folder):    # gamedata\textures folder
-            a_tx_fpath = make_relative_texture_path(a_tx_fpath, a_tx_folder)
-        elif a_tx_fpath.startswith(level_folder):    # gamedata\levels\level_name folder
-            a_tx_fpath = make_relative_texture_path(a_tx_fpath, level_folder)
-        else:    # gamedata\levels\level_name\texture_name
-            if not file_path in errors:
-                log.warn(
-                    text.warn.invalid_image_path,
-                    image=image.name,
-                    path=file_path
-                )
-                errors.add(file_path)
-            a_tx_fpath = os.path.split(a_tx_fpath)[-1]
-    return a_tx_fpath
-
-
 def create_cached_file_data(ffname, fparser):
     class State:
         def __init__(self):
@@ -333,7 +49,7 @@ def create_cached_file_data(ffname, fparser):
                 return self._cdata
             tmp = None
             if file_path:
-                file_data = read_file(file_path)
+                file_data = rw.utils.read_file(file_path)
                 tmp = fparser(file_data)
             self._cpath = file_path
             self._cdata = tmp
@@ -444,32 +160,6 @@ class ObjectsInitializer:
             objset.sync(things, init_thing)
 
 
-@contextlib.contextmanager
-def using_mode(mode):
-    if version.IS_28:
-        objects = bpy.context.view_layer.objects
-    else:
-        objects = bpy.context.scene.objects
-    original = objects.active.mode
-    bpy.ops.object.mode_set(mode=mode)
-    try:
-        yield
-    finally:
-        bpy.ops.object.mode_set(mode=original)
-
-
-def execute_with_logger(method):
-    def wrapper(self, context):
-        try:
-            name = self.__class__.bl_idname.replace('.', '_')
-            with logger(name, self.report):
-                return method(self, context)
-        except log.AppError:
-            return {'CANCELLED'}
-
-    return wrapper
-
-
 def execute_require_filepath(func):
     def wrapper(self, context):
         if not self.filepath:
@@ -492,7 +182,7 @@ class FilenameExtHelper(bpy_extras.io_utils.ExportHelper):
     def export(self, context):
         pass
 
-    @execute_with_logger
+    @log.execute_with_logger
     @execute_require_filepath
     @set_cursor_state
     def execute(self, context):
@@ -544,35 +234,6 @@ def time_log():
                 log.debug('time', func=name, time=(time.time() - start))
         return wrap
     return decorator
-
-
-def save_file(file_path, writer):
-    dir_path = os.path.dirname(file_path)
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
-    try:
-        with open(file_path, 'wb') as file:
-            file.write(writer.data)
-    except PermissionError:
-        raise log.AppError(
-            text.error.file_another_prog,
-            log.props(file=os.path.basename(file_path), path=file_path)
-        )
-
-
-def read_file(file_path):
-    try:
-        with open(file_path, 'rb') as file:
-            data = file.read()
-        return data
-    except FileNotFoundError:
-        raise log.AppError('No such file!')
-
-
-def read_text_file(file_path):
-    with open(file_path, mode='r', encoding='cp1251') as file:
-        data = file.read()
-    return data
 
 
 # temporarily not used
@@ -655,15 +316,6 @@ def get_armature_object(bpy_obj):
     return armature
 
 
-def get_chunks(data):
-    chunked_reader = rw.read.ChunkedReader(data)
-    chunks = {}
-    for chunk_id, chunk_data in chunked_reader:
-        if not chunks.get(chunk_id, None):
-            chunks[chunk_id] = chunk_data
-    return chunks
-
-
 def find_root(obj):
     if obj.xray.isroot:
         return obj
@@ -697,11 +349,3 @@ def set_selection_state(active_object, selected_objects):
 def set_mode(mode):
     if bpy.context.object:
         bpy.ops.object.mode_set(mode=mode)
-
-
-def reset_pose_bone_transforms(armature_object):
-    for bone in armature_object.pose.bones:
-        bone.location = (0, 0, 0)
-        bone.rotation_euler = (0, 0, 0)
-        bone.rotation_quaternion = (1, 0, 0, 0)
-        bone.scale = (1, 1, 1)
