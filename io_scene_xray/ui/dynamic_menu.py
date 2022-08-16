@@ -3,6 +3,7 @@ import bpy
 
 # addon modules
 from .. import utils
+from .. import formats
 
 
 _dynamic_menu_op_props = {
@@ -125,7 +126,7 @@ class XRAY_MT_xr_template(DynamicMenu):
 
     @classmethod
     def create_cached(cls, pref_prop, fparse):
-        return utils.create_cached_file_data(
+        return formats.xr.create_cached_file_data(
             lambda: getattr(utils.version.get_preferences(), pref_prop, None),
             lambda data: cls.parse(data, fparse)
         )

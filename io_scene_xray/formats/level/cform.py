@@ -8,6 +8,7 @@ import bmesh
 # addon modules
 from . import fmt
 from . import create
+from .. import xr
 from ... import utils
 from ... import log
 from ... import text
@@ -46,7 +47,7 @@ def import_main(context, level, data=None):
     game_mtl_names = {}
     if os.path.exists(gamemtl_file_path):
         gmtl_data = rw.utils.read_file(gamemtl_file_path)
-        for gmtl_name, _, gmtl_id in utils.parse_gamemtl(gmtl_data):
+        for gmtl_name, _, gmtl_id in xr.parse_gamemtl(gmtl_data):
             game_mtl_names[gmtl_id] = gmtl_name
 
     # read tris

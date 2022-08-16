@@ -4,6 +4,7 @@ import bpy
 # addon modules
 from .. import ui
 from .. import utils
+from .. import formats
 
 
 class XRAY_MT_shader(ui.dynamic_menu.XRAY_MT_xr_template):
@@ -11,7 +12,7 @@ class XRAY_MT_shader(ui.dynamic_menu.XRAY_MT_xr_template):
     prop_name = 'eshader'
     cached = ui.dynamic_menu.XRAY_MT_xr_template.create_cached(
         'eshader_file_auto',
-        utils.parse_shaders
+        formats.xr.parse_shaders
     )
 
 
@@ -20,7 +21,7 @@ class XRAY_MT_compile(ui.dynamic_menu.XRAY_MT_xr_template):
     prop_name = 'cshader'
     cached = ui.dynamic_menu.XRAY_MT_xr_template.create_cached(
         'cshader_file_auto',
-        utils.parse_shaders_xrlc
+        formats.xr.parse_shaders_xrlc
     )
 
 
@@ -29,7 +30,7 @@ class XRAY_MT_material(ui.dynamic_menu.XRAY_MT_xr_template):
     prop_name = 'gamemtl'
     cached = ui.dynamic_menu.XRAY_MT_xr_template.create_cached(
         'gamemtl_file_auto',
-        utils.parse_gamemtl
+        formats.xr.parse_gamemtl
     )
 
 

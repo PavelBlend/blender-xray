@@ -11,6 +11,7 @@ from . import ogf
 from . import level
 from . import omf
 from . import part
+from . import xr
 
 
 modules = (

@@ -11,6 +11,7 @@ import mathutils
 # addon modules
 from . import fmt
 from .. import ogf
+from .. import xr
 from ... import text
 from ... import utils
 from ... import log
@@ -1375,7 +1376,7 @@ def write_level_cform(packed_writer, level):
         gamemtl_data = b''
 
     game_mtls = {}
-    for game_mtl_name, _, game_mtl_id in utils.parse_gamemtl(gamemtl_data):
+    for game_mtl_name, _, game_mtl_id in xr.parse_gamemtl(gamemtl_data):
         game_mtls[game_mtl_name] = game_mtl_id
 
     game_materials = {}
