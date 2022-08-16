@@ -5,51 +5,38 @@ import bpy
 from . import ui
 from . import icons
 from . import utils
-
-# format modules
-from . import details
-from . import dm
-from . import err
-from . import scene
-from . import obj
-from . import anm
-from . import skl
-from . import bones
-from . import ogf
-from . import level
-from . import omf
-from . import part
+from . import formats
 
 
 # import draw functions
 import_draw_functions = [
-    ('enable_object_import', obj.imp.ops.XRAY_OT_import_object, 'Object'),
-    ('enable_skls_import', skl.ops.XRAY_OT_import_skls, 'Skls'),
-    ('enable_ogf_import', ogf.ops.XRAY_OT_import_ogf, 'Ogf'),
-    ('enable_omf_import', omf.ops.XRAY_OT_import_omf, 'Omf'),
-    ('enable_anm_import', anm.ops.XRAY_OT_import_anm, 'Anm'),
-    ('enable_bones_import', bones.ops.XRAY_OT_import_bones, 'Bones'),
-    ('enable_dm_import',dm.ops.XRAY_OT_import_dm, 'Dm'),
-    ('enable_details_import', details.ops.XRAY_OT_import_details, 'Details'),
-    ('enable_level_import', scene.ops.XRAY_OT_import_scene_selection, 'Scene'),
-    ('enable_game_level_import', level.ops.XRAY_OT_import_level, 'Level'),
-    ('enable_part_import', part.ops.XRAY_OT_import_part, 'Part'),
-    ('enable_err_import', err.ops.XRAY_OT_import_err, 'Err')
+    ('enable_object_import', formats.obj.imp.ops.XRAY_OT_import_object, 'Object'),
+    ('enable_skls_import', formats.skl.ops.XRAY_OT_import_skls, 'Skls'),
+    ('enable_ogf_import', formats.ogf.ops.XRAY_OT_import_ogf, 'Ogf'),
+    ('enable_omf_import', formats.omf.ops.XRAY_OT_import_omf, 'Omf'),
+    ('enable_anm_import', formats.anm.ops.XRAY_OT_import_anm, 'Anm'),
+    ('enable_bones_import', formats.bones.ops.XRAY_OT_import_bones, 'Bones'),
+    ('enable_dm_import', formats.dm.ops.XRAY_OT_import_dm, 'Dm'),
+    ('enable_details_import', formats.details.ops.XRAY_OT_import_details, 'Details'),
+    ('enable_level_import', formats.scene.ops.XRAY_OT_import_scene_selection, 'Scene'),
+    ('enable_game_level_import', formats.level.ops.XRAY_OT_import_level, 'Level'),
+    ('enable_part_import', formats.part.ops.XRAY_OT_import_part, 'Part'),
+    ('enable_err_import', formats.err.ops.XRAY_OT_import_err, 'Err')
 ]
 
 # export draw functions
 export_draw_functions = [
-    ('enable_object_export', obj.exp.ops.XRAY_OT_export_object, 'Object'),
-    ('enable_skls_export', skl.ops.XRAY_OT_export_skls, 'Skls'),
-    ('enable_skl_export', skl.ops.XRAY_OT_export_skl_batch, 'Skl'),
-    ('enable_ogf_export', ogf.ops.XRAY_OT_export_ogf, 'Ogf'),
-    ('enable_omf_export', omf.ops.XRAY_OT_export_omf, 'Omf'),
-    ('enable_anm_export', anm.ops.XRAY_OT_export_anm, 'Anm'),
-    ('enable_bones_export', bones.ops.XRAY_OT_export_bones, 'Bones'),
-    ('enable_dm_export', dm.ops.XRAY_OT_export_dm, 'Dm'),
-    ('enable_details_export', details.ops.XRAY_OT_export_details, 'Details'),
-    ('enable_level_export', scene.ops.XRAY_OT_export_scene_selection, 'Scene'),
-    ('enable_game_level_export', level.ops.XRAY_OT_export_level, 'Level')
+    ('enable_object_export', formats.obj.exp.ops.XRAY_OT_export_object, 'Object'),
+    ('enable_skls_export', formats.skl.ops.XRAY_OT_export_skls, 'Skls'),
+    ('enable_skl_export', formats.skl.ops.XRAY_OT_export_skl_batch, 'Skl'),
+    ('enable_ogf_export', formats.ogf.ops.XRAY_OT_export_ogf, 'Ogf'),
+    ('enable_omf_export', formats.omf.ops.XRAY_OT_export_omf, 'Omf'),
+    ('enable_anm_export', formats.anm.ops.XRAY_OT_export_anm, 'Anm'),
+    ('enable_bones_export', formats.bones.ops.XRAY_OT_export_bones, 'Bones'),
+    ('enable_dm_export', formats.dm.ops.XRAY_OT_export_dm, 'Dm'),
+    ('enable_details_export', formats.details.ops.XRAY_OT_export_details, 'Details'),
+    ('enable_level_export', formats.scene.ops.XRAY_OT_export_scene_selection, 'Scene'),
+    ('enable_game_level_export', formats.level.ops.XRAY_OT_export_level, 'Level')
 ]
 
 

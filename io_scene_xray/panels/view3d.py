@@ -8,20 +8,7 @@ from .. import menus
 from .. import utils
 from .. import ops
 from .. import rig
-
-# format modules
-from .. import obj
-from .. import anm
-from .. import bones
-from .. import details
-from .. import dm
-from .. import err
-from .. import level
-from .. import ogf
-from .. import omf
-from .. import scene
-from .. import skl
-from .. import part
+from .. import formats
 
 
 class XRAY_PT_update(bpy.types.Panel):

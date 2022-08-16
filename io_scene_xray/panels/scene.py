@@ -3,7 +3,7 @@ import bpy
 
 # addon modules
 from .. import ui
-from .. import obj
+from .. import formats
 from .. import utils
 
 
@@ -31,7 +31,7 @@ class XRAY_PT_scene(ui.base.XRayPanel):
                 layout = layout.split()
                 layout.enabled = False
             props = layout.operator(
-                obj.exp.ops.XRAY_OT_export_project.bl_idname,
+                formats.obj.exp.ops.XRAY_OT_export_project.bl_idname,
                 text=text,
                 icon=icon
             )
@@ -41,7 +41,7 @@ class XRAY_PT_scene(ui.base.XRayPanel):
         row = layout.row()
         if not data.export_root:
             row.enabled = False
-        selection = obj.exp.ops.XRAY_OT_export_project.find_objects(
+        selection = formats.obj.exp.ops.XRAY_OT_export_project.find_objects(
             context,
             use_selection=True
         )
@@ -59,7 +59,7 @@ class XRAY_PT_scene(ui.base.XRayPanel):
                 text='Selected Objects (%d)' % len(selection),
                 icon='GROUP'
             ).use_selection = True
-        scene = obj.exp.ops.XRAY_OT_export_project.find_objects(context)
+        scene = formats.obj.exp.ops.XRAY_OT_export_project.find_objects(context)
         gen_op(
             row,
             text='Scene Export (%d)' % len(scene),

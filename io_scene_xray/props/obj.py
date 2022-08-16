@@ -8,8 +8,7 @@ import bpy
 # addon modules
 from . import utility
 from .. import utils
-from .. import obj
-from .. import details
+from .. import formats
 from .. import text
 from .. import ops
 
@@ -81,7 +80,7 @@ class XRayObjectDetailsSlotsProperties(bpy.types.PropertyGroup):
 def _update_detail_color_by_index(self, context):
 
     if hasattr(context.object, 'xray'):
-        color_indices = details.utility.generate_color_indices()
+        color_indices = formats.details.utility.generate_color_indices()
 
         context.object.xray.detail.model.color = \
             color_indices[context.object.xray.detail.model.index][0 : 3]
@@ -459,13 +458,13 @@ xray_object_properties = {
         customprop=''
     ),
     'flags_simple': bpy.props.EnumProperty(name='Object Type', items=(
-        (obj.fmt.CM, obj.fmt.type_names[obj.fmt.CM], ''),
-        (obj.fmt.SO, obj.fmt.type_names[obj.fmt.SO], ''),
-        (obj.fmt.MU, obj.fmt.type_names[obj.fmt.MU], ''),
-        (obj.fmt.HO, obj.fmt.type_names[obj.fmt.HO], 'Hierarchical Occlusion Mapping'),
-        (obj.fmt.PD, obj.fmt.type_names[obj.fmt.PD], ''),
-        (obj.fmt.DY, obj.fmt.type_names[obj.fmt.DY], ''),
-        (obj.fmt.ST, obj.fmt.type_names[obj.fmt.ST], '')
+        (formats.obj.fmt.CM, formats.obj.fmt.type_names[formats.obj.fmt.CM], ''),
+        (formats.obj.fmt.SO, formats.obj.fmt.type_names[formats.obj.fmt.SO], ''),
+        (formats.obj.fmt.MU, formats.obj.fmt.type_names[formats.obj.fmt.MU], ''),
+        (formats.obj.fmt.HO, formats.obj.fmt.type_names[formats.obj.fmt.HO], 'Hierarchical Occlusion Mapping'),
+        (formats.obj.fmt.PD, formats.obj.fmt.type_names[formats.obj.fmt.PD], ''),
+        (formats.obj.fmt.DY, formats.obj.fmt.type_names[formats.obj.fmt.DY], ''),
+        (formats.obj.fmt.ST, formats.obj.fmt.type_names[formats.obj.fmt.ST], '')
     ), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set),
     'lodref': bpy.props.StringProperty(name='LOD Reference'),
     'userdata': bpy.props.StringProperty(name='userdata', update=userdata_update),

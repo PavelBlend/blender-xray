@@ -7,7 +7,7 @@ import bpy
 # addon modules
 from .. import ui
 from .. import utils
-from .. import details
+from .. import formats
 from .. import rw
 
 
@@ -512,7 +512,7 @@ def details_draw_function(self, context):
                     text='Mesh {}'.format(mesh_index)
                     )
 
-        box.operator(details.ops.XRAY_OT_pack_details_images.bl_idname)
+        box.operator(formats.details.ops.XRAY_OT_pack_details_images.bl_idname)
 
 
 def draw_split_prop(layout, owner, prop, text):

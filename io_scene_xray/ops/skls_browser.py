@@ -5,7 +5,7 @@ import bpy
 from .. import rw
 from .. import motions
 from .. import text
-from .. import skl
+from .. import formats
 from .. import utils
 from .. import log
 
@@ -196,7 +196,7 @@ def import_anim(obj, skls, animation_name):
     # bones names that has problems while import
     reported = set()
 
-    import_context = skl.imp.ImportSklContext()
+    import_context = formats.skl.imp.ImportSklContext()
     import_context.bpy_arm_obj = obj
     import_context.motions_filter = motions.utilites.MOTIONS_FILTER_ALL
     import_context.filename = skls.file_path

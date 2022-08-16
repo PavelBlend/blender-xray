@@ -3,46 +3,33 @@ import bpy
 
 # addon modules
 from . import utils
-
-# format modules
-from . import anm
-from . import bones
-from . import details
-from . import dm
-from . import err
-from . import level
-from . import obj
-from . import ogf
-from . import omf
-from . import scene
-from . import skl
-from . import part
+from . import formats
 
 
 keymap_items_list = (
     # operator, key, shift, ctrl, alt
-    (obj.imp.ops.XRAY_OT_import_object, 'F5', False, False, False),
-    (obj.exp.ops.XRAY_OT_export_object, 'F5', False, False, True),
-    (skl.ops.XRAY_OT_import_skls, 'F6', False, False, False),
-    (skl.ops.XRAY_OT_export_skls, 'F6', False, False, True),
-    (ogf.ops.XRAY_OT_import_ogf, 'F7', False, False, False),
-    (ogf.ops.XRAY_OT_export_ogf, 'F7', False, False, True),
-    (omf.ops.XRAY_OT_import_omf, 'F8', False, False, False),
-    (omf.ops.XRAY_OT_export_omf, 'F8', False, False, True),
-    (anm.ops.XRAY_OT_import_anm, 'F5', False, True, False),
-    (anm.ops.XRAY_OT_export_anm, 'F5', False, True, True),
-    (bones.ops.XRAY_OT_import_bones, 'F6', False, True, False),
-    (bones.ops.XRAY_OT_export_bones, 'F6', False, True, True),
-    (dm.ops.XRAY_OT_import_dm, 'F7', False, True, False),
-    (dm.ops.XRAY_OT_export_dm, 'F7', False, True, True),
-    (details.ops.XRAY_OT_import_details, 'F8', False, True, False),
-    (details.ops.XRAY_OT_export_details, 'F8', False, True, True),
-    (scene.ops.XRAY_OT_import_scene_selection, 'F5', True, True, False),
-    (scene.ops.XRAY_OT_export_scene_selection, 'F5', True, True, True),
-    (level.ops.XRAY_OT_import_level, 'F6', True, True, False),
-    (level.ops.XRAY_OT_export_level, 'F6', True, True, True),
-    (part.ops.XRAY_OT_import_part, 'F7', True, True, False),
-    (err.ops.XRAY_OT_import_err, 'F8', True, True, False)
+    (formats.obj.imp.ops.XRAY_OT_import_object, 'F5', False, False, False),
+    (formats.obj.exp.ops.XRAY_OT_export_object, 'F5', False, False, True),
+    (formats.skl.ops.XRAY_OT_import_skls, 'F6', False, False, False),
+    (formats.skl.ops.XRAY_OT_export_skls, 'F6', False, False, True),
+    (formats.ogf.ops.XRAY_OT_import_ogf, 'F7', False, False, False),
+    (formats.ogf.ops.XRAY_OT_export_ogf, 'F7', False, False, True),
+    (formats.omf.ops.XRAY_OT_import_omf, 'F8', False, False, False),
+    (formats.omf.ops.XRAY_OT_export_omf, 'F8', False, False, True),
+    (formats.anm.ops.XRAY_OT_import_anm, 'F5', False, True, False),
+    (formats.anm.ops.XRAY_OT_export_anm, 'F5', False, True, True),
+    (formats.bones.ops.XRAY_OT_import_bones, 'F6', False, True, False),
+    (formats.bones.ops.XRAY_OT_export_bones, 'F6', False, True, True),
+    (formats.dm.ops.XRAY_OT_import_dm, 'F7', False, True, False),
+    (formats.dm.ops.XRAY_OT_export_dm, 'F7', False, True, True),
+    (formats.details.ops.XRAY_OT_import_details, 'F8', False, True, False),
+    (formats.details.ops.XRAY_OT_export_details, 'F8', False, True, True),
+    (formats.scene.ops.XRAY_OT_import_scene_selection, 'F5', True, True, False),
+    (formats.scene.ops.XRAY_OT_export_scene_selection, 'F5', True, True, True),
+    (formats.level.ops.XRAY_OT_import_level, 'F6', True, True, False),
+    (formats.level.ops.XRAY_OT_export_level, 'F6', True, True, True),
+    (formats.part.ops.XRAY_OT_import_part, 'F7', True, True, False),
+    (formats.err.ops.XRAY_OT_import_err, 'F8', True, True, False)
 )
 
 

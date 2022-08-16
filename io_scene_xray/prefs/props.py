@@ -10,7 +10,7 @@ from .. import utils
 from .. import menus
 from .. import text
 from .. import hotkeys
-from .. import ie_props
+from .. import formats
 
 
 def update_menu_func(self, context):
@@ -471,56 +471,56 @@ plugin_preferences_props = {
     ),
 
     # object import props
-    'sdk_version': ie_props.PropSDKVersion(),
-    'object_motions_import': ie_props.PropObjectMotionsImport(),
-    'object_mesh_split_by_mat': ie_props.PropObjectMeshSplitByMaterials(),
+    'sdk_version': formats.ie.PropSDKVersion(),
+    'object_motions_import': formats.ie.PropObjectMotionsImport(),
+    'object_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
     # object export props
-    'export_object_sdk_version': ie_props.PropSDKVersion(),
-    'smoothing_out_of': ie_props.prop_smoothing_out_of(),
-    'object_motions_export': ie_props.PropObjectMotionsExport(),
-    'object_texture_names_from_path': ie_props.PropObjectTextureNamesFromPath(),
-    'export_object_use_export_paths': ie_props.PropUseExportPaths(),
+    'export_object_sdk_version': formats.ie.PropSDKVersion(),
+    'smoothing_out_of': formats.ie.prop_smoothing_out_of(),
+    'object_motions_export': formats.ie.PropObjectMotionsExport(),
+    'object_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
+    'export_object_use_export_paths': formats.ie.PropUseExportPaths(),
     # anm import props
-    'anm_create_camera': ie_props.PropAnmCameraAnimation(),
+    'anm_create_camera': formats.ie.PropAnmCameraAnimation(),
     # anm export props
-    'anm_format_version': ie_props.prop_anm_format_version(),
+    'anm_format_version': formats.ie.prop_anm_format_version(),
     # skl/skls import props
-    'add_actions_to_motion_list': ie_props.prop_skl_add_actions_to_motion_list(),
+    'add_actions_to_motion_list': formats.ie.prop_skl_add_actions_to_motion_list(),
     # bones import props
-    'bones_import_bone_parts': ie_props.prop_import_bone_parts(),
-    'bones_import_bone_properties': ie_props.prop_import_bone_properties(),
+    'bones_import_bone_parts': formats.ie.prop_import_bone_parts(),
+    'bones_import_bone_properties': formats.ie.prop_import_bone_properties(),
     # bones export props
-    'bones_export_bone_parts': ie_props.prop_export_bone_parts(),
-    'bones_export_bone_properties': ie_props.prop_export_bone_properties(),
+    'bones_export_bone_parts': formats.ie.prop_export_bone_parts(),
+    'bones_export_bone_properties': formats.ie.prop_export_bone_properties(),
     # details import props
-    'details_models_in_a_row': ie_props.prop_details_models_in_a_row(),
-    'load_slots': ie_props.prop_details_load_slots(),
-    'details_format': ie_props.prop_details_format(),
+    'details_models_in_a_row': formats.ie.prop_details_models_in_a_row(),
+    'load_slots': formats.ie.prop_details_load_slots(),
+    'details_format': formats.ie.prop_details_format(),
     # details export props
-    'details_texture_names_from_path': ie_props.PropObjectTextureNamesFromPath(),
-    'format_version': ie_props.prop_details_format_version(),
+    'details_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
+    'format_version': formats.ie.prop_details_format_version(),
     # dm export props
-    'dm_texture_names_from_path': ie_props.PropObjectTextureNamesFromPath(),
+    'dm_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
     # ogf import props
-    'ogf_import_motions': ie_props.PropObjectMotionsImport(),
+    'ogf_import_motions': formats.ie.PropObjectMotionsImport(),
     # ogf export props
-    'ogf_texture_names_from_path': ie_props.PropObjectTextureNamesFromPath(),
-    'ogf_export_motions': ie_props.PropObjectMotionsExport(),
+    'ogf_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
+    'ogf_export_motions': formats.ie.PropObjectMotionsExport(),
     # omf import props
-    'omf_import_motions': ie_props.PropObjectMotionsImport(),
-    'import_bone_parts': ie_props.prop_import_bone_parts(),
-    'omf_add_actions_to_motion_list': ie_props.prop_skl_add_actions_to_motion_list(),
+    'omf_import_motions': formats.ie.PropObjectMotionsImport(),
+    'import_bone_parts': formats.ie.prop_import_bone_parts(),
+    'omf_add_actions_to_motion_list': formats.ie.prop_skl_add_actions_to_motion_list(),
     # omf export props
-    'omf_export_bone_parts': ie_props.prop_export_bone_parts(),
-    'omf_export_mode': ie_props.prop_omf_export_mode(),
-    'omf_motions_export': ie_props.PropObjectMotionsExport(),
-    'omf_high_quality': ie_props.prop_omf_high_quality(),
+    'omf_export_bone_parts': formats.ie.prop_export_bone_parts(),
+    'omf_export_mode': formats.ie.prop_omf_export_mode(),
+    'omf_motions_export': formats.ie.PropObjectMotionsExport(),
+    'omf_high_quality': formats.ie.prop_omf_high_quality(),
     # scene selection import props
-    'scene_selection_sdk_version': ie_props.PropSDKVersion(),
-    'scene_selection_mesh_split_by_mat': ie_props.PropObjectMeshSplitByMaterials(),
+    'scene_selection_sdk_version': formats.ie.PropSDKVersion(),
+    'scene_selection_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
     # part import props
-    'part_sdk_version': ie_props.PropSDKVersion(),
-    'part_mesh_split_by_mat': ie_props.PropObjectMeshSplitByMaterials(),
+    'part_sdk_version': formats.ie.PropSDKVersion(),
+    'part_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
 
     # keymap
     'keymaps_collection': bpy.props.CollectionProperty(type=XRayKeyMap),

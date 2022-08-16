@@ -3,7 +3,7 @@ import bpy
 
 # addon modules
 from .. import utils
-from .. import ie_props
+from .. import formats
 from .. import ops
 
 
@@ -30,9 +30,9 @@ xray_scene_properties = {
         description='The root folder for export',
         subtype='DIR_PATH',
     ),
-    'fmt_version': ie_props.PropSDKVersion(),
-    'object_export_motions': ie_props.PropObjectMotionsExport(),
-    'object_texture_name_from_image_path': ie_props.PropObjectTextureNamesFromPath(),
+    'fmt_version': formats.ie.PropSDKVersion(),
+    'object_export_motions': formats.ie.PropObjectMotionsExport(),
+    'object_texture_name_from_image_path': formats.ie.PropObjectTextureNamesFromPath(),
     'import_skls': bpy.props.PointerProperty(type=ImportSkls),
     'import_omf': bpy.props.PointerProperty(type=ImportOmf),
     'viewer': bpy.props.PointerProperty(type=ops.viewer.XRaySceneViewerProperties),
