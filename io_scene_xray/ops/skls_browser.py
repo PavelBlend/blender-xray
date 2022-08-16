@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from .. import xray_io
+from .. import rw
 from .. import motions
 from .. import text
 from .. import skl
@@ -123,7 +123,7 @@ class SklsFile():
         self.animations = {}
         # read entire .skls file into memory
         file_data = utils.read_file(file_path)
-        self.pr = xray_io.PackedReader(file_data)
+        self.pr = rw.xray_io.PackedReader(file_data)
         self._index_animations()
 
     def _index_animations(self):

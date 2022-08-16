@@ -9,7 +9,7 @@ from .. import obj
 from .. import log
 from .. import text
 from .. import utils
-from .. import xray_ltx
+from .. import rw
 
 
 def import_cs_cop_objects(ltx, context, level_name):
@@ -79,7 +79,7 @@ def import_file(file_path, context):
     file_data = utils.read_file(file_path)
     try:
         ltx_data = file_data.decode(encoding='cp1251')
-        ltx = xray_ltx.StalkerLtxParser(file_path, data=ltx_data)
+        ltx = rw.ltx.StalkerLtxParser(file_path, data=ltx_data)
     except:
         ltx = None
     if ltx:

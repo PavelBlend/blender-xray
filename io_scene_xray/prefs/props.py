@@ -5,7 +5,7 @@ import os
 import bpy
 
 # addon modules
-from .. import xray_ltx
+from .. import rw
 from .. import utils
 from .. import menus
 from .. import text
@@ -47,7 +47,7 @@ def _auto_path(prefs, self_name, path_suffix, checker):
         if not os.path.exists(prefs.fs_ltx_file):
             return '', prefs.fs_ltx_file
         try:
-            fs = xray_ltx.StalkerLtxParser(prefs.fs_ltx_file)
+            fs = rw.ltx.StalkerLtxParser(prefs.fs_ltx_file)
         except:
             utils.draw.show_message(
                 text.get_text(text.error.ltx_invalid_syntax),

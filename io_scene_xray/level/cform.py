@@ -11,7 +11,7 @@ from . import create
 from .. import utils
 from .. import log
 from .. import text
-from .. import xray_io
+from .. import rw
 
 
 def import_main(context, level, data=None):
@@ -24,7 +24,7 @@ def import_main(context, level, data=None):
     else:
         cform_path = level.file
 
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
 
     # read header
     version = packed_reader.getf('<I')[0]

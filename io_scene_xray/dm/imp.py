@@ -6,7 +6,7 @@ from . import fmt
 from . import create
 from .. import utils
 from .. import log
-from .. import xray_io
+from .. import rw
 
 
 def import_(
@@ -64,5 +64,5 @@ def import_file(file_path, context):
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
     data = utils.read_file(file_path)
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
     import_(file_path, context, packed_reader)

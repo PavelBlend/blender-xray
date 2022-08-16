@@ -10,7 +10,7 @@ import mathutils
 # addon modules
 from . import fmt
 from .. import text
-from .. import xray_io
+from .. import rw
 from .. import log
 from .. import utils
 from .. import motions
@@ -145,7 +145,7 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     mesh.to_mesh(bpy_mesh)
 
     # write header chunk
-    header_writer = xray_io.PackedWriter()
+    header_writer = rw.xray_io.PackedWriter()
     header_writer.putf('<B', fmt.FORMAT_VERSION_4)
     header_writer.putf('<B', fmt.ModelType_v4.SKELETON_GEOMDEF_ST)
     header_writer.putf('<H', 0)  # shader id
@@ -194,7 +194,7 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     )
 
     # write texture chunk
-    texture_writer = xray_io.PackedWriter()
+    texture_writer = rw.xray_io.PackedWriter()
     texture_writer.puts(texture_path)
     texture_writer.puts(material.xray.eshader)
     chunked_writer.put(fmt.Chunks_v4.TEXTURE, texture_writer)
@@ -246,7 +246,7 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     utils.fix_ensure_lookup_table(mesh.verts)
 
     # write vertices chunk
-    vertices_writer = xray_io.PackedWriter()
+    vertices_writer = rw.xray_io.PackedWriter()
     vertices_count = len(vertices)
     # 1-link vertices
     if vertex_max_weights == 1:
@@ -301,7 +301,7 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     chunked_writer.put(fmt.Chunks_v4.VERTICES, vertices_writer)
 
     # write indices chunk
-    indices_writer = xray_io.PackedWriter()
+    indices_writer = rw.xray_io.PackedWriter()
     indices_writer.putf('<I', 3 * len(triangles))
     for tris in triangles:
         indices_writer.putf('<3H', tris[0], tris[2], tris[1])
@@ -325,7 +325,7 @@ def _export(bpy_obj, cwriter, context):
     else:
         model_type = fmt.ModelType_v4.SKELETON_RIGID
 
-    header_writer = xray_io.PackedWriter()
+    header_writer = rw.xray_io.PackedWriter()
     header_writer.putf('<B', fmt.FORMAT_VERSION_4)  # ogf version
     header_writer.putf('<B', model_type)
     header_writer.putf('<H', 0)  # shader id
@@ -339,7 +339,7 @@ def _export(bpy_obj, cwriter, context):
 
     owner, ctime, moder, mtime = utils.get_revision_data(xray.revision)
     currtime = int(time.time())
-    revision_writer = xray_io.PackedWriter()
+    revision_writer = rw.xray_io.PackedWriter()
     revision_writer.puts(bpy_obj.name)    # source file
     revision_writer.puts('blender')    # build name
     revision_writer.putf('<I', currtime)    # build time
@@ -400,7 +400,7 @@ def _export(bpy_obj, cwriter, context):
             else:
                 child_objects.append(bpy_obj)
             for child_object in child_objects:
-                mesh_writer = xray_io.ChunkedWriter()
+                mesh_writer = rw.xray_io.ChunkedWriter()
                 error = _export_child(
                     child_object,
                     mesh_writer,
@@ -424,14 +424,14 @@ def _export(bpy_obj, cwriter, context):
 
     scan_r(bpy_obj)
 
-    children_chunked_writer = xray_io.ChunkedWriter()
+    children_chunked_writer = rw.xray_io.ChunkedWriter()
     mesh_index = 0
     for mesh_writer in meshes:
         children_chunked_writer.put(mesh_index, mesh_writer)
         mesh_index += 1
     cwriter.put(fmt.Chunks_v4.CHILDREN, children_chunked_writer)
 
-    pwriter = xray_io.PackedWriter()
+    pwriter = rw.xray_io.PackedWriter()
     pwriter.putf('<I', len(bones))
     for bone, _ in bones:
         b_parent = utils.find_bone_exportable_parent(bone)
@@ -443,7 +443,7 @@ def _export(bpy_obj, cwriter, context):
         pwriter.putf('<3f', *xray.shape.box_hsz)
     cwriter.put(fmt.Chunks_v4.S_BONE_NAMES, pwriter)
 
-    pwriter = xray_io.PackedWriter()
+    pwriter = rw.xray_io.PackedWriter()
     for bone, obj in bones:
         xray = bone.xray
         pwriter.putf('<I', 0x1)  # version
@@ -509,7 +509,7 @@ def _export(bpy_obj, cwriter, context):
         pwriter.putv3f(xray.mass.center)
     cwriter.put(fmt.Chunks_v4.S_IKDATA, pwriter)
 
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.puts(bpy_obj.xray.userdata)
     cwriter.put(fmt.Chunks_v4.S_USERDATA, packed_writer)
     if len(bpy_obj.xray.motionrefs_collection):
@@ -517,7 +517,7 @@ def _export(bpy_obj, cwriter, context):
         for ref in bpy_obj.xray.motionrefs_collection:
             refs.append(ref.name)
         refs_string = ','.join(refs)
-        motion_refs_writer = xray_io.PackedWriter()
+        motion_refs_writer = rw.xray_io.PackedWriter()
         motion_refs_writer.puts(refs_string)
         cwriter.put(fmt.Chunks_v4.S_MOTION_REFS_0, motion_refs_writer)
 
@@ -537,6 +537,6 @@ def _export(bpy_obj, cwriter, context):
 @log.with_context('export-object')
 def export_file(bpy_obj, file_path, context):
     log.update(object=bpy_obj.name)
-    cwriter = xray_io.ChunkedWriter()
+    cwriter = rw.xray_io.ChunkedWriter()
     _export(bpy_obj, cwriter, context)
     utils.save_file(file_path, cwriter)

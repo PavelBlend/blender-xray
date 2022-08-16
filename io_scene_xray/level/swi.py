@@ -1,5 +1,5 @@
 # addon modules
-from .. import xray_io
+from .. import rw
 
 
 class SlideWindowItem(object):
@@ -31,7 +31,7 @@ def import_slide_window_item(packed_reader):
 
 
 def import_slide_window_items(data):
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
     swis_count = packed_reader.getf('<I')[0]
     swis_buffer = []
 

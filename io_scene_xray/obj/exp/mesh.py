@@ -6,7 +6,7 @@ import bmesh
 from . import main
 from .. import fmt
 from ... import text
-from ... import xray_io
+from ... import rw
 from ... import utils
 from ... import log
 
@@ -59,7 +59,7 @@ def _export_sg_soc(bmfaces):
 
 
 def export_version(cw):
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.putf('<H', fmt.CURRENT_MESH_VERSION)
     cw.put(fmt.Chunks.Mesh.VERSION, packed_writer)
 
@@ -69,14 +69,14 @@ def export_mesh_name(chunked_writer, bpy_obj, bpy_root):
         mesh_name = bpy_obj.data.name
     else:
         mesh_name = bpy_obj.name
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.puts(mesh_name)
     chunked_writer.put(fmt.Chunks.Mesh.MESHNAME, packed_writer)
 
 
 def export_bbox(chunked_writer, bm):
     bbox = utils.calculate_mesh_bbox(bm.verts)
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.putv3f(bbox[0])
     packed_writer.putv3f(bbox[1])
     chunked_writer.put(fmt.Chunks.Mesh.BBOX, packed_writer)
@@ -88,7 +88,7 @@ def export_flags(chunked_writer, bpy_obj):
         flags = bpy_obj.data.xray.flags & ~fmt.Chunks.Mesh.Flags.SG_MASK
     else:
         flags = fmt.Chunks.Mesh.Flags.VISIBLE
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.putf('<B', flags)
     chunked_writer.put(fmt.Chunks.Mesh.FLAGS, packed_writer)
 
@@ -147,7 +147,7 @@ def remove_bad_geometry(bm, bml, bpy_obj):
 
 
 def export_vertices(chunked_writer, bm):
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.putf('<I', len(bm.verts))
     for vertex in bm.verts:
         packed_writer.putv3f(vertex.co)
@@ -165,7 +165,7 @@ def export_faces(chunked_writer, bm, bpy_obj):
             log.props(object=bpy_obj.name)
         )
 
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.putf('<I', len(bm.faces))
     for face in bm.faces:
         for vert_index in (0, 2, 1):
@@ -275,7 +275,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
             weight_map[0].append(vertex_index)
 
     # vertex map references chunk
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.putf('<I', len(uvs))
     uv_maps_count = 1
     uv_map_index = 0
@@ -292,7 +292,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
             packed_writer.putf('<2I', *ref)
     chunked_writer.put(fmt.Chunks.Mesh.VMREFS, packed_writer)
 
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     face_materials = {
         (material.name, material_index)
         if material else (None, material_index): [
@@ -345,7 +345,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
     chunked_writer.put(fmt.Chunks.Mesh.SFACE, packed_writer)
 
     # smothing groups chunk
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     smooth_groups = []
     if context.soc_sgroups:
         smooth_groups = tuple(_export_sg_soc(bm.faces))
@@ -365,7 +365,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
         temp_mesh.use_auto_smooth = bpy_obj.data.use_auto_smooth
         temp_mesh.auto_smooth_angle = bpy_obj.data.auto_smooth_angle
         temp_mesh.calc_normals_split()
-        packed_writer = xray_io.PackedWriter()
+        packed_writer = rw.xray_io.PackedWriter()
         for face in bm.faces:
             for loop_index in (0, 2, 1):
                 bm_loop = face.loops[loop_index]
@@ -381,7 +381,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
         bpy.data.meshes.remove(temp_mesh)
 
     # write vmaps chunk
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.putf('<I', uv_maps_count + weight_maps_count)
     if utils.version.IS_28:
         texture = bpy_obj.data.uv_layers.active

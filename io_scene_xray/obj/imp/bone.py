@@ -6,7 +6,7 @@ import mathutils
 from .. import fmt
 from ... import text
 from ... import log
-from ... import xray_io
+from ... import rw
 from ... import motions
 from ... import utils
 
@@ -96,7 +96,7 @@ def import_bone(
         bone_id_by_name
     ):
     data = chunks.get(fmt.Chunks.Bone.VERSION)
-    reader = xray_io.PackedReader(data)
+    reader = rw.xray_io.PackedReader(data)
     ver = reader.getf('<H')[0]
     if ver != 0x2:
         raise log.AppError(
@@ -105,7 +105,7 @@ def import_bone(
         )
 
     data = chunks.get(fmt.Chunks.Bone.DEF)
-    reader = xray_io.PackedReader(data)
+    reader = rw.xray_io.PackedReader(data)
     name = reader.gets()
     log.update(bone=name)
     parent = reader.gets()
@@ -115,7 +115,7 @@ def import_bone(
         return
 
     data = chunks.get(fmt.Chunks.Bone.BIND_POSE)
-    reader = xray_io.PackedReader(data)
+    reader = rw.xray_io.PackedReader(data)
     offset = reader.getv3fp()
     rotate = reader.getv3fp()
     length = reader.getf('<f')[0]
@@ -144,7 +144,7 @@ def import_bone(
     xray = bpy_bone.xray
     for cid, data in chunks.items():
         if cid == fmt.Chunks.Bone.DEF:
-            def2 = xray_io.PackedReader(data).gets()
+            def2 = rw.xray_io.PackedReader(data).gets()
             if name != def2:
                 log.warn(
                     text.warn.object_bad_bone_name,
@@ -152,9 +152,9 @@ def import_bone(
                     def2=def2
                 )
         elif cid == fmt.Chunks.Bone.MATERIAL:
-            xray.gamemtl = xray_io.PackedReader(data).gets()
+            xray.gamemtl = rw.xray_io.PackedReader(data).gets()
         elif cid == fmt.Chunks.Bone.SHAPE:
-            reader = xray_io.PackedReader(data)
+            reader = rw.xray_io.PackedReader(data)
             safe_assign_enum_property(
                 xray.shape,
                 'type',
@@ -173,7 +173,7 @@ def import_bone(
             xray.shape.cyl_rad = reader.getf('<f')[0]
             xray.shape.set_curver()
         elif cid == fmt.Chunks.Bone.IK_JOINT:
-            reader = xray_io.PackedReader(data)
+            reader = rw.xray_io.PackedReader(data)
             value = str(reader.int())
             ik = xray.ikjoint
             safe_assign_enum_property(ik, 'type', value, 'bone ikjoint')
@@ -191,17 +191,17 @@ def import_bone(
             ik.damping = reader.getf('<f')[0]
 
         elif cid == fmt.Chunks.Bone.MASS_PARAMS:
-            reader = xray_io.PackedReader(data)
+            reader = rw.xray_io.PackedReader(data)
             xray.mass.value = reader.getf('<f')[0]
             xray.mass.center = reader.getv3fp()
         elif cid == fmt.Chunks.Bone.IK_FLAGS:
-            xray.ikflags = xray_io.PackedReader(data).int()
+            xray.ikflags = rw.xray_io.PackedReader(data).int()
         elif cid == fmt.Chunks.Bone.BREAK_PARAMS:
-            reader = xray_io.PackedReader(data)
+            reader = rw.xray_io.PackedReader(data)
             xray.breakf.force = reader.getf('<f')[0]
             xray.breakf.torque = reader.getf('<f')[0]
         elif cid == fmt.Chunks.Bone.FRICTION:
-            xray.friction = xray_io.PackedReader(data).getf('<f')[0]
+            xray.friction = rw.xray_io.PackedReader(data).getf('<f')[0]
         else:
             if not cid in (
                     fmt.Chunks.Bone.VERSION,

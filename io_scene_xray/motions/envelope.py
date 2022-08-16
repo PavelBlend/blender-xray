@@ -5,7 +5,7 @@ from . import utilites
 from .. import log
 from .. import utils
 from .. import text
-from .. import xray_io
+from .. import rw
 
 
 @log.with_context('envelope')
@@ -189,7 +189,7 @@ def export_envelope(writer, ver, fcurve, fps, koef, epsilon=utilites.EPSILON):
             prev_kf = curr_kf
             yield utilites.KF(curr_kf.co.x / fps, curr_kf.co.y / koef, shape)
 
-    kf_writer = xray_io.PackedWriter()
+    kf_writer = rw.xray_io.PackedWriter()
     keyframes = utilites.refine_keys(generate_keys(fcurve.keyframe_points), epsilon)
     count = utilites.export_keyframes(kf_writer, keyframes, anm_ver=ver)
 

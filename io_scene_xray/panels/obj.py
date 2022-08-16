@@ -8,7 +8,7 @@ import bpy
 from .. import ui
 from .. import utils
 from .. import details
-from .. import xray_ltx
+from .. import rw
 
 
 items = (
@@ -207,7 +207,7 @@ class XRAY_OT_paste_actions_list(bpy.types.Operator):
         obj = context.object
         motions = obj.xray.motions_collection
         motions_data = bpy.context.window_manager.clipboard
-        ltx = xray_ltx.StalkerLtxParser(None, data=motions_data)
+        ltx = rw.ltx.StalkerLtxParser(None, data=motions_data)
         section_keys = list(map(int, ltx.sections.keys()))
         section_keys.sort()
         use_custom_name = False

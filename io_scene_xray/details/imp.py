@@ -11,7 +11,7 @@ from . import utility
 from .. import text
 from .. import utils
 from .. import log
-from .. import xray_io
+from .. import rw
 
 
 def _import(file_path, context, chunked_reader):
@@ -27,7 +27,7 @@ def _import(file_path, context, chunked_reader):
             if len(chunk_data) < fmt.HEADER_SIZE:
                 raise log.AppError(text.error.details_bad_header)
 
-            header = read.read_header(xray_io.PackedReader(chunk_data))
+            header = read.read_header(rw.xray_io.PackedReader(chunk_data))
 
             if header.format_version not in fmt.SUPPORT_FORMAT_VERSIONS:
                 raise log.AppError(
@@ -38,12 +38,12 @@ def _import(file_path, context, chunked_reader):
             has_header = True
 
         elif chunk_id == fmt.Chunks.MESHES:
-            cr_meshes = xray_io.ChunkedReader(chunk_data)
+            cr_meshes = rw.xray_io.ChunkedReader(chunk_data)
             has_meshes = True
 
         elif chunk_id == fmt.Chunks.SLOTS:
             if context.load_slots:
-                pr_slots = xray_io.PackedReader(chunk_data)
+                pr_slots = rw.xray_io.PackedReader(chunk_data)
             has_slots = True
 
     del chunked_reader
@@ -104,5 +104,5 @@ def import_file(file_path, context):
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
     data = utils.read_file(file_path)
-    chunked_reader = xray_io.ChunkedReader(data)
+    chunked_reader = rw.xray_io.ChunkedReader(data)
     _import(file_path, context, chunked_reader)

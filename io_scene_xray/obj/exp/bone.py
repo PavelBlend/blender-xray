@@ -2,7 +2,7 @@
 from . import main
 from .. import fmt
 from ... import text
-from ... import xray_io
+from ... import rw
 from ... import log
 from ... import utils
 from ... import motions
@@ -31,12 +31,12 @@ def export_bone(
             )
 
     xray = bpy_bone.xray
-    writer = xray_io.ChunkedWriter()
+    writer = rw.xray_io.ChunkedWriter()
     writers.append(writer)
     bonemap[bpy_bone] = writer
 
     # version chunk
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.putf('<H', fmt.CURRENT_BONE_VERSION)
     writer.put(fmt.Chunks.Bone.VERSION, packed_writer)
 
@@ -50,7 +50,7 @@ def export_bone(
         )
 
     # def chunk
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.puts(bone_name)
     packed_writer.puts(real_parent.name if real_parent else '')
     packed_writer.puts(bone_name)    # vmap
@@ -72,14 +72,14 @@ def export_bone(
     euler = matrix.to_euler('YXZ')
 
     # bind pose chunk
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.putv3f(matrix.to_translation())
     packed_writer.putf('<3f', -euler.x, -euler.z, -euler.y)
     packed_writer.putf('<f', xray.length)
     writer.put(fmt.Chunks.Bone.BIND_POSE, packed_writer)
 
     # material chunk
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.puts(xray.gamemtl)
     writer.put(fmt.Chunks.Bone.MATERIAL, packed_writer)
 
@@ -93,7 +93,7 @@ def export_bone(
         )
 
     # shape chunk
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     packed_writer.putf('<H', int(xray.shape.type))
     packed_writer.putf('<H', xray.shape.flags)
     packed_writer.putf('<9f', *xray.shape.box_rot)
@@ -124,7 +124,7 @@ def export_bone(
         lim_y_max = pose_bone.ik_max_y
         lim_z_min = pose_bone.ik_min_z
         lim_z_max = pose_bone.ik_max_z
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     ik_type = int(ik.type)
     packed_writer.putf('<I', ik_type)
     packed_writer.putf('<2f', lim_x_min, lim_x_max)
@@ -138,26 +138,26 @@ def export_bone(
 
     # ik flags chunk
     if xray.ikflags:
-        packed_writer = xray_io.PackedWriter()
+        packed_writer = rw.xray_io.PackedWriter()
         packed_writer.putf('<I', xray.ikflags)
         writer.put(fmt.Chunks.Bone.IK_FLAGS, packed_writer)
 
         # break params chunk
         if xray.ikflags_breakable:
-            packed_writer = xray_io.PackedWriter()
+            packed_writer = rw.xray_io.PackedWriter()
             packed_writer.putf('<f', xray.breakf.force)
             packed_writer.putf('<f', xray.breakf.torque)
             writer.put(fmt.Chunks.Bone.BREAK_PARAMS, packed_writer)
 
     # friction chunk
     if ik_type and xray.friction:
-        packed_writer = xray_io.PackedWriter()
+        packed_writer = rw.xray_io.PackedWriter()
         packed_writer.putf('<f', xray.friction)
         writer.put(fmt.Chunks.Bone.FRICTION, packed_writer)
 
     # mass chunk
     if xray.mass.value:
-        packed_writer = xray_io.PackedWriter()
+        packed_writer = rw.xray_io.PackedWriter()
         packed_writer.putf('<f', xray.mass.value)
         packed_writer.putv3f(xray.mass.center)
         writer.put(fmt.Chunks.Bone.MASS_PARAMS, packed_writer)

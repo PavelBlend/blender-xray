@@ -7,7 +7,7 @@ from . import interp
 from . import utilites
 from .. import utils
 from .. import log
-from .. import xray_io
+from .. import rw
 
 
 def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names):
@@ -68,7 +68,7 @@ def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names
                 interp.Behavior.CONSTANT.value,
                 interp.Behavior.CONSTANT.value
             )
-            cpkw = xray_io.PackedWriter()
+            cpkw = rw.xray_io.PackedWriter()
             ccnt = utilites.export_keyframes(
                 cpkw,
                 utilites.refine_keys(curve2keys(curve), epsilon),

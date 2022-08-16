@@ -7,7 +7,7 @@ from .. import fmt
 from ... import log
 from ... import text
 from ... import utils
-from ... import xray_io
+from ... import rw
 
 
 def _import(file_path, context, reader):
@@ -15,7 +15,7 @@ def _import(file_path, context, reader):
     for (cid, data) in reader:
         if cid == fmt.Chunks.Object.MAIN:
             has_main_chunk = True
-            chunked_reader = xray_io.ChunkedReader(data)
+            chunked_reader = rw.xray_io.ChunkedReader(data)
             bpy_obj = main.import_main(file_path, context, chunked_reader)
             return bpy_obj
         else:
@@ -29,6 +29,6 @@ def import_file(file_path, context):
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
     file_data = utils.read_file(file_path)
-    chunked_reader = xray_io.ChunkedReader(memoryview(file_data))
+    chunked_reader = rw.xray_io.ChunkedReader(memoryview(file_data))
     bpy_obj = _import(file_path, context, chunked_reader)
     return bpy_obj

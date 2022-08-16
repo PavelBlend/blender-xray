@@ -3,7 +3,7 @@ import bpy
 
 # addon modules
 from .. import utils
-from .. import xray_ltx
+from .. import rw
 
 
 SECTION_NAME = 'action_xray_settings'
@@ -40,7 +40,7 @@ def read_buffer_data():
     xray = get_xray_settings()
     if xray:
         buffer_text = bpy.context.window_manager.clipboard
-        ltx = xray_ltx.StalkerLtxParser(None, data=buffer_text)
+        ltx = rw.ltx.StalkerLtxParser(None, data=buffer_text)
         section = ltx.sections.get(SECTION_NAME, None)
         if not section:
             return

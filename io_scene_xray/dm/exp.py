@@ -9,7 +9,7 @@ from . import validate
 from .. import utils
 from .. import log
 from .. import text
-from .. import xray_io
+from .. import rw
 
 
 def export(bpy_obj, packed_writer, context, file_path, mode='DM'):
@@ -92,6 +92,6 @@ def export(bpy_obj, packed_writer, context, file_path, mode='DM'):
 @log.with_context('export-dm')
 def export_file(bpy_obj, file_path, context):
     log.update(object=bpy_obj.name)
-    packed_writer = xray_io.PackedWriter()
+    packed_writer = rw.xray_io.PackedWriter()
     export(bpy_obj, packed_writer, context, file_path)
     utils.save_file(file_path, packed_writer)

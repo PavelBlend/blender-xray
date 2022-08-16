@@ -13,7 +13,7 @@ from .. import data_blocks
 from .. import omf
 from .. import log
 from .. import utils
-from .. import xray_io
+from .. import rw
 from .. import level
 from .. import motions
 
@@ -432,7 +432,7 @@ def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None, bones=None
 
 
 def import_fastpath_gcontainer(data, visual, lvl):
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
 
     vb_index = packed_reader.getf('<I')[0]
     vb_offset = packed_reader.getf('<I')[0]
@@ -459,7 +459,7 @@ def import_fastpath_gcontainer(data, visual, lvl):
 
 
 def read_gcontainer_v4(data):
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
 
     vb_index = packed_reader.getf('<I')[0]
     vb_offset = packed_reader.getf('<I')[0]
@@ -521,12 +521,12 @@ def read_indices(packed_reader):
 
 def import_indices(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.INDICES)
-    packed_reader = xray_io.PackedReader(chunk_data)
+    packed_reader = rw.xray_io.PackedReader(chunk_data)
     visual.indices, visual.indices_count = read_indices(packed_reader)
 
 
 def read_indices_v3(data, visual):
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
     indices_count = packed_reader.getf('<I')[0]
     visual.indices_count = indices_count
     visual.indices = [
@@ -536,7 +536,7 @@ def read_indices_v3(data, visual):
 
 
 def read_vertices_v3(data, visual, lvl):
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
     vb = level.vb.import_vertex_buffer_d3d7(packed_reader, lvl)
     visual.vertices = vb.position
     visual.normals = vb.normal
@@ -546,7 +546,7 @@ def read_vertices_v3(data, visual, lvl):
 
 def import_skeleton_vertices(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.VERTICES)
-    packed_reader = xray_io.PackedReader(chunk_data)
+    packed_reader = rw.xray_io.PackedReader(chunk_data)
     vertex_format = packed_reader.getf('<I')[0]
     verices_count = packed_reader.getf('<I')[0]
     vertices = []
@@ -670,7 +670,7 @@ def import_skeleton_vertices(chunks, ogf_chunks, visual):
 
 def import_vertices(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.VERTICES)
-    packed_reader = xray_io.PackedReader(chunk_data)
+    packed_reader = rw.xray_io.PackedReader(chunk_data)
     vertex_format = packed_reader.getf('<I')[0]
     verices_count = packed_reader.getf('<I')[0]
     vertices = []
@@ -695,7 +695,7 @@ def import_vertices(chunks, ogf_chunks, visual):
 
 
 def import_fastpath(data, visual, lvl):
-    chunked_reader = xray_io.ChunkedReader(data)
+    chunked_reader = rw.xray_io.ChunkedReader(data)
     chunks = {}
     for chunk_id, chunkd_data in chunked_reader:
         chunks[chunk_id] = chunkd_data
@@ -707,7 +707,7 @@ def import_fastpath(data, visual, lvl):
 
     swi_chunk_data = chunks.pop(fmt.Chunks_v4.SWIDATA, None)
     if swi_chunk_data:
-        packed_reader = xray_io.PackedReader(swi_chunk_data)
+        packed_reader = rw.xray_io.PackedReader(swi_chunk_data)
         swi = level.swi.import_slide_window_item(packed_reader)
         visual.indices = visual.indices[swi[0].offset : ]
         visual.indices_count = swi[0].triangles_count * 3
@@ -727,7 +727,7 @@ def check_unread_chunks(chunks, context=''):
 
 
 def import_children_l(data, visual, lvl, visual_type):
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
     hierrarhy_visual = HierrarhyVisual()
     hierrarhy_visual.children_count = packed_reader.getf('<I')[0]
     hierrarhy_visual.index = visual.visual_id
@@ -780,21 +780,21 @@ def import_hierrarhy_visual(chunks, visual, lvl):
 
 
 def read_bbox_v3(data):
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
 
     bbox_min = packed_reader.getf('<3f')
     bbox_max = packed_reader.getf('<3f')
 
 
 def read_bsphere_v3(data):
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
 
     center = packed_reader.getf('<3f')
     radius = packed_reader.getf('<f')[0]
 
 
 def read_container_v3(data):
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
 
     buffer_index = packed_reader.getf('<I')[0]
     buffer_offset = packed_reader.getf('<I')[0]
@@ -939,7 +939,7 @@ def import_tree_def_2(lvl, visual, chunks, bpy_object):
         chunks_ids = fmt.Chunks_v3
 
     tree_def_2_data = chunks.pop(chunks_ids.TREEDEF2)
-    packed_reader = xray_io.PackedReader(tree_def_2_data)
+    packed_reader = rw.xray_io.PackedReader(tree_def_2_data)
     del tree_def_2_data
 
     tree_xform = packed_reader.getf('<16f')
@@ -983,7 +983,7 @@ def import_tree_st_visual(chunks, visual, lvl):
 
 def import_swidata(chunks):
     swi_data = chunks.pop(fmt.Chunks_v4.SWIDATA)
-    packed_reader = xray_io.PackedReader(swi_data)
+    packed_reader = rw.xray_io.PackedReader(swi_data)
     del swi_data
     swi = level.swi.import_slide_window_item(packed_reader)
     del packed_reader
@@ -1018,7 +1018,7 @@ def import_progressive_visual(chunks, visual, lvl):
 
 def import_swicontainer(chunks):
     swicontainer_data = chunks.pop(fmt.Chunks_v4.SWICONTAINER)
-    packed_reader = xray_io.PackedReader(swicontainer_data)
+    packed_reader = rw.xray_io.PackedReader(swicontainer_data)
     del swicontainer_data
     swi_index = packed_reader.getf('<I')[0]
     return swi_index
@@ -1033,7 +1033,7 @@ def get_float_rgb_hemi(rgb_hemi):
 
 
 def import_lod_def_2(lvl, data):
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
     verts = []
     uvs = []
     lights = {'rgb': [], 'hemi': [], 'sun': []}
@@ -1205,7 +1205,7 @@ def import_model_v4(chunks, visual, lvl):
 
 
 def import_texture_and_shader_v3(visual, lvl, data):
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
     visual.texture_id = packed_reader.getf('<I')[0]
     visual.shader_id = packed_reader.getf('<I')[0]
 
@@ -1314,7 +1314,7 @@ def check_version(visual):
 
 
 def import_header(data, visual):
-    packed_reader = xray_io.PackedReader(data)
+    packed_reader = rw.xray_io.PackedReader(data)
     visual.format_version = packed_reader.getf('<B')[0]
     check_version(visual)
     if visual.format_version == fmt.FORMAT_VERSION_4:
@@ -1364,7 +1364,7 @@ def import_main(chunks, visual, lvl):
 
 
 def get_ogf_chunks(data):
-    chunked_reader = xray_io.ChunkedReader(data)
+    chunked_reader = rw.xray_io.ChunkedReader(data)
     del data
     chunks = {}
     chunks_ids = set()
@@ -1384,7 +1384,7 @@ def import_(data, visual_id, lvl, chunks, visuals_ids):
 
 def import_description(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_DESC)
-    packed_reader = xray_io.PackedReader(chunk_data)
+    packed_reader = rw.xray_io.PackedReader(chunk_data)
     source_file = packed_reader.gets()
     build_name = packed_reader.gets()
     build_time = packed_reader.getf('<I')[0]
@@ -1396,7 +1396,7 @@ def import_description(chunks, ogf_chunks, visual):
 
 def import_bone_names(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_BONE_NAMES)
-    packed_reader = xray_io.PackedReader(chunk_data)
+    packed_reader = rw.xray_io.PackedReader(chunk_data)
     bones_count = packed_reader.getf('<I')[0]
     visual.bones = []
     for bone_index in range(bones_count):
@@ -1412,7 +1412,7 @@ def import_user_data(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_USERDATA, None)
     if not chunk_data:
         return
-    packed_reader = xray_io.PackedReader(chunk_data)
+    packed_reader = rw.xray_io.PackedReader(chunk_data)
     visual.user_data = packed_reader.gets(
         onerror=lambda e: log.warn(
             'bad userdata',
@@ -1426,7 +1426,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_IKDATA, None)
     if not chunk_data:
         return
-    packed_reader = xray_io.PackedReader(chunk_data)
+    packed_reader = rw.xray_io.PackedReader(chunk_data)
     armature = bpy.data.armatures.new(name=visual.name)
     utils.version.set_arm_display_type(armature)
     arm_obj = bpy.data.objects.new(visual.name, armature)
@@ -1681,7 +1681,7 @@ def import_children(context, chunks, ogf_chunks, root_visual):
     chunk_data = chunks.pop(ogf_chunks.CHILDREN, None)
     if not chunk_data:
         return
-    chunked_reader = xray_io.ChunkedReader(chunk_data)
+    chunked_reader = rw.xray_io.ChunkedReader(chunk_data)
     for child_index, child_data in chunked_reader:
         visual = Visual()
         visual.file_path = root_visual.file_path
@@ -1709,7 +1709,7 @@ def import_lods(context, chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_LODS, None)
     if not chunk_data:
         return
-    packed_reader = xray_io.PackedReader(chunk_data)
+    packed_reader = rw.xray_io.PackedReader(chunk_data)
     lod = packed_reader.gets()
     if lod.endswith('\r\n'):
         lod = lod[ : -2]
@@ -1731,7 +1731,7 @@ def import_mt_hierrarhy(context, chunks, ogf_chunks, visual):
 
 def import_texture(context, chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.TEXTURE)
-    packed_reader = xray_io.PackedReader(chunk_data)
+    packed_reader = rw.xray_io.PackedReader(chunk_data)
     texture = packed_reader.gets()
     shader = packed_reader.gets()
     bpy_material, bpy_image = data_blocks.material.get_material(
@@ -1781,7 +1781,7 @@ def read_motion_references(chunks, ogf_chunks, visual):
     if not data:
         data = chunks.pop(ogf_chunks.S_MOTION_REFS_2, None)
         if data:
-            packed_reader = xray_io.PackedReader(data)
+            packed_reader = rw.xray_io.PackedReader(data)
             count = packed_reader.getf('<I')[0]
             refs = []
             for index in range(count):
@@ -1789,7 +1789,7 @@ def read_motion_references(chunks, ogf_chunks, visual):
                 refs.append(ref)
             visual.motion_refs = refs
     else:
-        packed_reader = xray_io.PackedReader(data)
+        packed_reader = rw.xray_io.PackedReader(data)
         visual.motion_refs = packed_reader.gets().split(',')
 
 

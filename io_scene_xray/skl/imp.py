@@ -5,7 +5,7 @@ import os
 from .. import log
 from .. import utils
 from .. import contexts
-from .. import xray_io
+from .. import rw
 from .. import motions
 
 
@@ -24,7 +24,7 @@ def _import_skl(file_path, context, chunked_reader):
     for cid, cdata in chunked_reader:
         if cid == 0x1200:
             has_main_chunk = True
-            reader = xray_io.PackedReader(cdata)
+            reader = rw.xray_io.PackedReader(cdata)
             bonesmap = {
                 bone.name.lower(): bone
                 for bone in context.bpy_arm_obj.data.bones
@@ -43,7 +43,7 @@ def import_skl_file(file_path, context):
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
     file_data = utils.read_file(file_path)
-    chunked_reader = xray_io.ChunkedReader(file_data)
+    chunked_reader = rw.xray_io.ChunkedReader(file_data)
     _import_skl(file_path, context, chunked_reader)
 
 
@@ -52,5 +52,5 @@ def import_skls_file(file_path, context):
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
     file_data = utils.read_file(file_path)
-    reader = xray_io.PackedReader(file_data)
+    reader = rw.xray_io.PackedReader(file_data)
     motions.imp.import_motions(reader, context, context.motions_filter)
