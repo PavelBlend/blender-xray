@@ -69,20 +69,20 @@ def create_sectors_object(collection):
 
 
 def import_sector_portal(data):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     portal_count = len(data) // fmt.SECTOR_PORTAL_SIZE
     for portal_index in range(portal_count):
         portal = packed_reader.getf('<H')[0]
 
 
 def import_sector_root(data):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     root = packed_reader.getf('<I')[0]
     return root
 
 
 def import_sector(data, level, sector_object):
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
     for chunk_id, chunk_data in chunked_reader:
         if chunk_id == fmt.SectorChunks.PORTALS:
             import_sector_portal(chunk_data)
@@ -96,7 +96,7 @@ def import_sector(data, level, sector_object):
 
 
 def import_sectors(data, level, level_object):
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
     collection = level.collections[create.LEVEL_SECTORS_COLLECTION_NAME]
     sectors_object = create_sectors_object(collection)
     sectors_object.parent = level_object
@@ -240,7 +240,7 @@ def create_glows_object(collection):
 
 
 def import_glows(data, level):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     glows_count = len(data) // fmt.GLOW_SIZE
     collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
     glows_object = create_glows_object(collection)
@@ -263,7 +263,7 @@ def import_glows(data, level):
 
 
 def import_glows_v5(data, level):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     glows_count = len(data) // fmt.GLOW_SIZE_V5
     collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
     glows_object = create_glows_object(collection)
@@ -402,7 +402,7 @@ def create_lights_object(collection):
 
 
 def import_lights_dynamic(data, level):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     collection = level.collections[create.LEVEL_LIGHTS_COLLECTION_NAME]
     lights_dynamic_object = create_lights_object(collection)
 
@@ -465,7 +465,7 @@ def import_portal(packed_reader, portal_index, collection, level):
 
 
 def import_portals(data, level):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     portals_count = len(data) // fmt.PORTAL_SIZE
     portals_object = create.create_object('portals', None)
     collection = level.collections[create.LEVEL_PORTALS_COLLECTION_NAME]
@@ -492,7 +492,7 @@ def get_chunks(chunked_reader):
 
 
 def get_version(data, file):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     xrlc_version = packed_reader.getf('<H')[0]
     if not xrlc_version in fmt.SUPPORTED_VERSIONS:
         raise log.AppError(

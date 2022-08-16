@@ -12,7 +12,7 @@ def import_hierrarhy_visuals(level):
 
 
 def import_visuals(data, level):
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
     chunks = set()
     visuals_ids = set()
     for visual_id, visual_data in chunked_reader:

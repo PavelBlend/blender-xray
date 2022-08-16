@@ -17,7 +17,7 @@ def import_(filepath, chunked_reader, operator):
         if not chunk_id in (fmt.Chunks.INVALID, fmt.Chunks.INVALID_LE):
             continue
 
-        packed_reader = rw.xray_io.PackedReader(chunk_data)
+        packed_reader = rw.read.PackedReader(chunk_data)
         faces_count = packed_reader.getf('<I')[0]
 
         if not faces_count:
@@ -72,5 +72,5 @@ def import_file(file_path, operator):
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
     data = utils.read_file(file_path)
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
     import_(file_path, chunked_reader, operator)

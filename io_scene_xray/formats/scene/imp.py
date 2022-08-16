@@ -22,7 +22,7 @@ def _read_scene_version(scene_version_chunk):
     if not scene_version_chunk:
         raise log.AppError(text.error.scene_bad_file)
 
-    packed_reader = rw.xray_io.PackedReader(scene_version_chunk)
+    packed_reader = rw.read.PackedReader(scene_version_chunk)
     object_tools_version = packed_reader.getf('<H')[0]
 
     if object_tools_version != fmt.OBJECT_TOOLS_VERSION:
@@ -36,17 +36,17 @@ def _read_objects_count(objects_count_chunk):
     if not objects_count_chunk:
         raise log.AppError(text.error.scene_obj_count)
 
-    packed_reader = rw.xray_io.PackedReader(objects_count_chunk)
+    packed_reader = rw.read.PackedReader(objects_count_chunk)
     objects_count = packed_reader.getf('<I')[0]
 
     return objects_count
 
 
 def _read_object_body(data, imported_objects, import_context):
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
 
     for chunk_id, chunk_data in chunked_reader:
-        packed_reader = rw.xray_io.PackedReader(chunk_data)
+        packed_reader = rw.read.PackedReader(chunk_data)
         if chunk_id == fmt.Chunks.SCENEOBJ_CHUNK_REFERENCE:
             if scene_obj_version == fmt.SCENEOBJ_VERSION_SOC:
                 version = packed_reader.getf('<I')[0]
@@ -108,7 +108,7 @@ def _read_object_body(data, imported_objects, import_context):
 
 
 def _read_scene_object(data, imported_objects, import_context):
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
 
     for chunk_id, chunk_data in chunked_reader:
         if chunk_id == fmt.Chunks.CHUNK_OBJECT_BODY:
@@ -119,7 +119,7 @@ def _read_scene_objects(scene_objects_chunk, objects_count, import_context):
     if not scene_objects_chunk:
         raise log.AppError(text.error.scene_scn_objs)
 
-    chunked_reader = rw.xray_io.ChunkedReader(scene_objects_chunk)
+    chunked_reader = rw.read.ChunkedReader(scene_objects_chunk)
     object_index = 0
 
     imported_objects = {}
@@ -132,7 +132,7 @@ def _read_objects(objects_chunk, import_context):
     if not objects_chunk:
         raise log.AppError(text.error.scene_objs)
 
-    chunked_reader = rw.xray_io.ChunkedReader(objects_chunk)
+    chunked_reader = rw.read.ChunkedReader(objects_chunk)
     scene_version_chunk = None
     objects_count_chunk = None
     scene_objects_chunk = None
@@ -161,7 +161,7 @@ def _read_version(version_chunk):
             log.props(size=chunk_size)
         )
 
-    packed_reader = rw.xray_io.PackedReader(version_chunk)
+    packed_reader = rw.read.PackedReader(version_chunk)
     version = packed_reader.getf('<I')[0]
     if version != fmt.FORMAT_VERSION:
         raise log.AppError(
@@ -200,5 +200,5 @@ def import_file(filepath, operator):
     import_context.objects_folder=objects_folder
     import_context.before_import_file()
     file_data = utils.read_file(filepath)
-    chunked_reader = rw.xray_io.ChunkedReader(file_data)
+    chunked_reader = rw.read.ChunkedReader(file_data)
     import_(filepath, chunked_reader, import_context)

@@ -123,7 +123,7 @@ class SklsFile():
         self.animations = {}
         # read entire .skls file into memory
         file_data = utils.read_file(file_path)
-        self.pr = rw.xray_io.PackedReader(file_data)
+        self.pr = rw.read.PackedReader(file_data)
         self._index_animations()
 
     def _index_animations(self):

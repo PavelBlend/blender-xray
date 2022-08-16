@@ -21,7 +21,7 @@ def register():
     # configuring addon modules.
     from . import log
     from . import rw
-    rw.xray_io.ENCODE_ERROR = log.AppError
+    rw.write.ENCODE_ERROR = log.AppError
 
     # registration
     from . import addon

@@ -24,7 +24,7 @@ def import_main(context, level, data=None):
     else:
         cform_path = level.file
 
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
 
     # read header
     version = packed_reader.getf('<I')[0]

@@ -21,10 +21,10 @@ def motion_mark(packed_reader):
 
 def examine_motions(data):
     motion_names = []
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
     for chunk_id, chunk_data in chunked_reader:
         if chunk_id == fmt.Chunks.S_SMPARAMS:
-            packed_reader = rw.xray_io.PackedReader(chunk_data)
+            packed_reader = rw.read.PackedReader(chunk_data)
             params_version = packed_reader.getf('<H')[0]
             partition_count = packed_reader.getf('<H')[0]
             for partition_index in range(partition_count):
@@ -83,7 +83,7 @@ def convert_to_euler(quaternion):
 
 
 def read_motion(data, context, motions_params, bone_names):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     name = packed_reader.gets()
     length = packed_reader.getf('<I')[0]
     motion_params = motions_params[name]
@@ -261,10 +261,10 @@ def read_motion(data, context, motions_params, bone_names):
 
 
 def read_motions(data, context, motions_params, bone_names):
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
 
     chunk_motion_count_data = chunked_reader.next(fmt.MOTIONS_COUNT_CHUNK)
-    motion_count_packed_reader = rw.xray_io.PackedReader(chunk_motion_count_data)
+    motion_count_packed_reader = rw.read.PackedReader(chunk_motion_count_data)
     motions_count = motion_count_packed_reader.getf('<I')[0]
 
     for chunk_id, chunk_data in chunked_reader:
@@ -272,7 +272,7 @@ def read_motions(data, context, motions_params, bone_names):
 
 
 def read_params(data, context):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
 
     params_version = packed_reader.getf('<H')[0]
     partition_count = packed_reader.getf('<H')[0]
@@ -352,7 +352,7 @@ def read_main(data, context):
         raise log.AppError(text.error.omf_nothing)
         return
 
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
     chunks = {}
 
     for chunk_id, chunk_data in chunked_reader:

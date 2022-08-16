@@ -232,7 +232,7 @@ def import_vertex_buffer_d3d7(packed_reader, level):
 
 
 def import_vertex_buffers(data, level, fast=False, d3d7=False):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     vertex_buffers_count = packed_reader.getf('<I')[0]
     vertex_buffers = []
     if not d3d7:

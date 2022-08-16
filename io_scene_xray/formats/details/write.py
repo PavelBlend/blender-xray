@@ -11,7 +11,7 @@ from ... import rw
 
 @log.with_context('mesh')
 def write_details(chunked_writer, lvl_dets, context, file_path):
-    dm_cw = rw.xray_io.ChunkedWriter()
+    dm_cw = rw.write.ChunkedWriter()
 
     meshes_object = lvl_dets.meshes_object
     dm_count = len(meshes_object.children)
@@ -47,7 +47,7 @@ def write_details(chunked_writer, lvl_dets, context, file_path):
                 )
             )
 
-        packed_writer = rw.xray_io.PackedWriter()
+        packed_writer = rw.write.PackedWriter()
         dm.exp.export(
             detail_model,
             packed_writer,
@@ -91,7 +91,7 @@ def write_details(chunked_writer, lvl_dets, context, file_path):
 
 
 def write_header(chunked_writer, lvl_dets):
-    packed_writer = rw.xray_io.PackedWriter()
+    packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<I', lvl_dets.format_version)
     # meshes count
     packed_writer.putf('<I', len(lvl_dets.meshes_object.children))
@@ -109,7 +109,7 @@ def write_slots_v3(chunked_writer, lvl_dets):
     base_obj = lvl_dets.slots_base_object
     top_obj = lvl_dets.slots_top_object
     log.update(objects=(base_obj.name, top_obj.name))
-    packed_writer = rw.xray_io.PackedWriter()
+    packed_writer = rw.write.PackedWriter()
     base_slots_poly = base_obj.data.polygons
     top_slots_poly = top_obj.data.polygons
     slots = {}
@@ -276,7 +276,7 @@ def write_slots_v2(chunked_writer, lvl_dets):
     base_obj = lvl_dets.slots_base_object
     top_obj = lvl_dets.slots_top_object
     log.update(objects=(base_obj.name, top_obj.name))
-    packed_writer = rw.xray_io.PackedWriter()
+    packed_writer = rw.write.PackedWriter()
     base_slots_poly = base_obj.data.polygons
     top_slots_poly = top_obj.data.polygons
     slots = {}

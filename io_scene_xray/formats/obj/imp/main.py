@@ -30,7 +30,7 @@ def import_main(file_path, context, creader):
 
     for (cid, data) in creader:
         if cid == fmt.Chunks.Object.VERSION:
-            reader = rw.xray_io.PackedReader(data)
+            reader = rw.read.PackedReader(data)
             ver = reader.getf('<H')[0]
             if ver != fmt.CURRENT_OBJECT_VERSION:
                 raise log.AppError(
@@ -45,11 +45,11 @@ def import_main(file_path, context, creader):
                 fmt.Chunks.Object.SURFACES2
             ):
 
-            reader = rw.xray_io.PackedReader(data)
+            reader = rw.read.PackedReader(data)
             surfaces_count = reader.int()
             if cid == fmt.Chunks.Object.SURFACES:
                 try:
-                    xrlc_reader = rw.xray_io.PackedReader(
+                    xrlc_reader = rw.read.PackedReader(
                         creader.next(fmt.Chunks.Object.SURFACES_XRLC)
                     )
                     xrlc_shaders = [
@@ -103,7 +103,7 @@ def import_main(file_path, context, creader):
                 fmt.Chunks.Object.BONES1
             ):
             if cid == fmt.Chunks.Object.BONES:
-                reader = rw.xray_io.PackedReader(data)
+                reader = rw.read.PackedReader(data)
                 bones_count = reader.int()
                 if not bones_count:
                     continue    # Do not create an armature if zero bones
@@ -151,11 +151,11 @@ def import_main(file_path, context, creader):
             else:
                 bones_chunks = []
                 bone_id_by_name = {}
-                bones_reader = rw.xray_io.ChunkedReader(data)
+                bones_reader = rw.read.ChunkedReader(data)
                 for index, (_, bone_data) in enumerate(bones_reader):
                     bone_chunks = utils.get_chunks(bone_data)
                     def_data = bone_chunks[fmt.Chunks.Bone.DEF]
-                    def_reader = rw.xray_io.PackedReader(def_data)
+                    def_reader = rw.read.PackedReader(def_data)
                     bone_name = def_reader.gets()
                     bones_chunks.append(bone_chunks)
                     bone_id_by_name[bone_name] = index
@@ -179,7 +179,7 @@ def import_main(file_path, context, creader):
             utils.version.set_active_object(bpy_arm_obj)
             bpy.ops.object.mode_set(mode='POSE')
             try:
-                reader = rw.xray_io.PackedReader(data)
+                reader = rw.read.PackedReader(data)
                 for _partition_idx in range(reader.int()):
                     bpy.ops.pose.group_add()
                     bone_group = bpy_arm_obj.pose.bone_groups.active
@@ -194,7 +194,7 @@ def import_main(file_path, context, creader):
         elif cid == fmt.Chunks.Object.MOTIONS:
             if not context.import_motions:
                 continue
-            reader = rw.xray_io.PackedReader(data)
+            reader = rw.read.PackedReader(data)
             skl_context = skl.imp.ImportSklContext()
             skl_context.bpy_arm_obj=bpy_arm_obj
             skl_context.motions_filter=motions.utilites.MOTIONS_FILTER_ALL
@@ -207,9 +207,9 @@ def import_main(file_path, context, creader):
             unread_chunks.append((cid, data))
 
     mesh_objects = []
-    for (_, mdat) in rw.xray_io.ChunkedReader(meshes_data):
+    for (_, mdat) in rw.read.ChunkedReader(meshes_data):
         mesh_ = mesh.import_mesh(
-            context, rw.xray_io.ChunkedReader(mdat), renamemap
+            context, rw.read.ChunkedReader(mdat), renamemap
         )
 
         if bpy_arm_obj:
@@ -245,7 +245,7 @@ def import_main(file_path, context, creader):
 
     for (cid, data) in unread_chunks:
         if cid == fmt.Chunks.Object.TRANSFORM:
-            reader = rw.xray_io.PackedReader(data)
+            reader = rw.read.PackedReader(data)
             pos = reader.getv3fp()
             rot = reader.getv3fp()
             bpy_obj.matrix_basis = context.multiply(
@@ -256,11 +256,11 @@ def import_main(file_path, context, creader):
         elif cid == fmt.Chunks.Object.FLAGS:
             length_data = len(data)
             if length_data == 4:
-                bpy_obj.xray.flags = rw.xray_io.PackedReader(data).int()
+                bpy_obj.xray.flags = rw.read.PackedReader(data).int()
             elif length_data == 1:    # old object format
-                bpy_obj.xray.flags = rw.xray_io.PackedReader(data).getf('<B')[0]
+                bpy_obj.xray.flags = rw.read.PackedReader(data).getf('<B')[0]
         elif cid == fmt.Chunks.Object.USERDATA:
-            bpy_obj.xray.userdata = rw.xray_io.PackedReader(
+            bpy_obj.xray.userdata = rw.read.PackedReader(
                 data
             ).gets(
                 onerror=lambda e: log.warn(
@@ -270,19 +270,19 @@ def import_main(file_path, context, creader):
                 )
             )
         elif cid == fmt.Chunks.Object.LOD_REF:
-            bpy_obj.xray.lodref = rw.xray_io.PackedReader(data).gets()
+            bpy_obj.xray.lodref = rw.read.PackedReader(data).gets()
         elif cid == fmt.Chunks.Object.REVISION:
-            reader = rw.xray_io.PackedReader(data)
+            reader = rw.read.PackedReader(data)
             bpy_obj.xray.revision.owner = reader.gets()
             bpy_obj.xray.revision.ctime = reader.getf('<i')[0]
             bpy_obj.xray.revision.moder = reader.gets()
             bpy_obj.xray.revision.mtime = reader.getf('<i')[0]
         elif cid == fmt.Chunks.Object.MOTION_REFS:
             mrefs = bpy_obj.xray.motionrefs_collection
-            for mref in rw.xray_io.PackedReader(data).gets().split(','):
+            for mref in rw.read.PackedReader(data).gets().split(','):
                 mrefs.add().name = mref
         elif cid == fmt.Chunks.Object.SMOTIONS3:
-            reader = rw.xray_io.PackedReader(data)
+            reader = rw.read.PackedReader(data)
             mrefs = bpy_obj.xray.motionrefs_collection
             for _ in range(reader.int()):
                 mrefs.add().name = reader.gets()

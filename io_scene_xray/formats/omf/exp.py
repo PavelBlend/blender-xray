@@ -38,7 +38,7 @@ class BoneParts:
 class Motion:
     def __init__(self):
         self.name = None
-        self.writer = rw.xray_io.PackedWriter()
+        self.writer = rw.write.PackedWriter()
 
 
 def get_flags(xray):
@@ -69,7 +69,7 @@ def validate_omf_file(context):
             text.error.omf_empty,
             log.props(file=context.filepath)
         )
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
     chunks = {}
     for chunk_id, chunk_data in chunked_reader:
         chunks[chunk_id] = chunk_data
@@ -146,7 +146,7 @@ def read_motion_params(packed_reader, params_version):
 
 
 def get_motion_params(data):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     params_version = packed_reader.getf('<H')[0]
     bone_parts, bone_indices, bone_names = read_bone_parts(packed_reader, params_version)
     motions_params = read_motion_params(packed_reader, params_version)
@@ -158,7 +158,7 @@ def get_motions(context, bones_count):
     _, chunks = validate_omf_file(context)
 
     # create chunk reader
-    chunked_reader = rw.xray_io.ChunkedReader(chunks[fmt.Chunks.S_MOTIONS])
+    chunked_reader = rw.read.ChunkedReader(chunks[fmt.Chunks.S_MOTIONS])
     chunked_reader.next(fmt.MOTIONS_COUNT_CHUNK)
 
     motions = {}
@@ -166,8 +166,8 @@ def get_motions(context, bones_count):
 
     for motion_id, chunk_data in chunked_reader:
         # packed writer/reader
-        packed_reader = rw.xray_io.PackedReader(chunk_data)
-        packed_writer = rw.xray_io.PackedWriter()
+        packed_reader = rw.read.PackedReader(chunk_data)
+        packed_writer = rw.write.PackedWriter()
 
         # motion name
         name = packed_reader.gets()
@@ -639,7 +639,7 @@ def export_motions(
             if packed_writer is None:
                 new_motions_count += 1
 
-        packed_writer = rw.xray_io.PackedWriter()
+        packed_writer = rw.write.PackedWriter()
         context.bpy_arm_obj.animation_data.action = action
 
         if dependency_object:
@@ -825,10 +825,10 @@ def export_omf(context):
     )
 
     # motions chunked writer
-    motions_writer = rw.xray_io.ChunkedWriter()
+    motions_writer = rw.write.ChunkedWriter()
 
     # write motions count chunk
-    packed_writer = rw.xray_io.PackedWriter()
+    packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<I', motion_count)
     motions_writer.put(fmt.MOTIONS_COUNT_CHUNK, packed_writer)
 
@@ -861,11 +861,11 @@ def export_omf(context):
         motion_export_names
     )
 
-    main_chunked_writer = rw.xray_io.ChunkedWriter()
+    main_chunked_writer = rw.write.ChunkedWriter()
     # write motions chunk
     main_chunked_writer.put(fmt.Chunks.S_MOTIONS, motions_writer)
 
-    packed_writer = rw.xray_io.PackedWriter()
+    packed_writer = rw.write.PackedWriter()
 
     export_boneparts(
         context,

@@ -344,32 +344,32 @@ def create_cached_file_data(ffname, fparser):
 
 
 def parse_shaders(data):
-    for (cid, cdata) in rw.xray_io.ChunkedReader(data):
+    for (cid, cdata) in rw.read.ChunkedReader(data):
         if cid == 3:
-            reader = rw.xray_io.PackedReader(cdata)
+            reader = rw.read.PackedReader(cdata)
             for _ in range(reader.int()):
                 yield (reader.gets(), '', None)
 
 
 def parse_gamemtl(data):
-    for (cid, data) in rw.xray_io.ChunkedReader(data):
+    for (cid, data) in rw.read.ChunkedReader(data):
         if cid == 4098:
-            for (_, cdata) in rw.xray_io.ChunkedReader(data):
+            for (_, cdata) in rw.read.ChunkedReader(data):
                 name, desc = None, None
-                for (cccid, ccdata) in rw.xray_io.ChunkedReader(cdata):
+                for (cccid, ccdata) in rw.read.ChunkedReader(cdata):
                     if cccid == 0x1000:
-                        reader = rw.xray_io.PackedReader(ccdata)
+                        reader = rw.read.PackedReader(ccdata)
                         material_id = reader.getf('<I')[0]
                         name = reader.gets()
                     if cccid == 0x1005:
-                        desc = rw.xray_io.PackedReader(ccdata).gets()
+                        desc = rw.read.PackedReader(ccdata).gets()
                 yield (name, desc, material_id)
 
 
 def parse_shaders_xrlc(data):
     if len(data) % (128 + 16) != 0:
         exit(1)
-    reader = rw.xray_io.PackedReader(data)
+    reader = rw.read.PackedReader(data)
     for _ in range(len(data) // (128 + 16)):
         name = reader.gets()
         reader.getf('{}s'.format(127 - len(name) + 16))  # skip
@@ -656,7 +656,7 @@ def get_armature_object(bpy_obj):
 
 
 def get_chunks(data):
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
     chunks = {}
     for chunk_id, chunk_data in chunked_reader:
         if not chunks.get(chunk_id, None):

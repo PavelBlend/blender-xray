@@ -60,15 +60,15 @@ def import_mesh(context, creader, renamemap):
     has_sg_chunk = False
     for (cid, data) in creader:
         if cid == fmt.Chunks.Mesh.VERTS:
-            reader = rw.xray_io.PackedReader(data)
+            reader = rw.read.PackedReader(data)
             vt_data = [reader.getv3fp() for _ in range(reader.int())]
         elif cid == fmt.Chunks.Mesh.FACES:
-            s_6i = rw.xray_io.PackedReader.prep('6I')
-            reader = rw.xray_io.PackedReader(data)
+            s_6i = rw.read.PackedReader.prep('6I')
+            reader = rw.read.PackedReader(data)
             faces_count = reader.int()
             fc_data = [reader.getp(s_6i) for _ in range(faces_count)]
         elif cid == fmt.Chunks.Mesh.MESHNAME:
-            mesh_name = rw.xray_io.PackedReader(data).gets()
+            mesh_name = rw.read.PackedReader(data).gets()
             log.update(name=mesh_name)
         elif cid == fmt.Chunks.Mesh.SG:
             if not data:    # old object format
@@ -93,19 +93,19 @@ def import_mesh(context, creader, renamemap):
                         bme.smooth = False
             face_sg = face_sg_impl
         elif cid == fmt.Chunks.Mesh.NORMALS and prefs.object_split_normals:
-            reader = rw.xray_io.PackedReader(data)
+            reader = rw.read.PackedReader(data)
             for face_index in range(faces_count):
                 norm_1 = mathutils.Vector(reader.getv3fp()).normalized()
                 norm_2 = mathutils.Vector(reader.getv3fp()).normalized()
                 norm_3 = mathutils.Vector(reader.getv3fp()).normalized()
                 split_normals.extend((norm_1, norm_3, norm_2))
         elif cid == fmt.Chunks.Mesh.SFACE:
-            reader = rw.xray_io.PackedReader(data)
+            reader = rw.read.PackedReader(data)
             for _ in range(reader.getf('<H')[0]):
                 name = reader.gets()
                 s_faces.append((name, reader.getb(reader.int() * 4).cast('I')))
         elif cid == fmt.Chunks.Mesh.VMREFS:
-            s_ii = rw.xray_io.PackedReader.prep('2I')
+            s_ii = rw.read.PackedReader.prep('2I')
 
             def read_vmref(reader):
                 count = reader.byte()
@@ -113,11 +113,11 @@ def import_mesh(context, creader, renamemap):
                     return (reader.getp(s_ii),)  # fast path
                 return [reader.getp(s_ii) for __ in range(count)]
 
-            reader = rw.xray_io.PackedReader(data)
+            reader = rw.read.PackedReader(data)
             vm_refs = [read_vmref(reader) for _ in range(reader.int())]
         elif cid in (fmt.Chunks.Mesh.VMAPS1, fmt.Chunks.Mesh.VMAPS2):
             suppress_rename_warnings = {}
-            reader = rw.xray_io.PackedReader(data)
+            reader = rw.read.PackedReader(data)
             for _ in range(reader.int()):
                 name = reader.gets()
                 if not name:
@@ -179,13 +179,13 @@ def import_mesh(context, creader, renamemap):
                         log.props(type=typ)
                     )
         elif cid == fmt.Chunks.Mesh.FLAGS:
-            mesh_flags = rw.xray_io.PackedReader(data).getf('<B')[0]
+            mesh_flags = rw.read.PackedReader(data).getf('<B')[0]
             if mesh_flags & 0x4 and context.soc_sgroups:  # sgmask
                 sgfuncs = (0, lambda ga, gb, ea, eb: ga == gb)
         elif cid == fmt.Chunks.Mesh.BBOX:
             pass  # blender automatically calculates bbox
         elif cid == fmt.Chunks.Mesh.OPTIONS:
-            mesh_options = rw.xray_io.PackedReader(data).getf('<2I')
+            mesh_options = rw.read.PackedReader(data).getf('<2I')
         elif cid == fmt.Chunks.Mesh.NOT_USED_0:
             pass  # not used chunk
         else:

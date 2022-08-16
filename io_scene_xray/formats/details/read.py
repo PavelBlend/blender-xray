@@ -43,7 +43,7 @@ def read_details_meshes(
         first_offset_x = -step_x * header.meshes_count / 2
 
     for mesh_id, mesh_data in chunked_reader:
-        packed_reader = rw.xray_io.PackedReader(mesh_data)
+        packed_reader = rw.read.PackedReader(mesh_data)
         fpath_mesh = '{0} mesh_{1:0>2}'.format(file_path, mesh_id)
 
         bpy_obj_mesh = dm.imp.import_(
@@ -85,7 +85,7 @@ def read_details_slots(
         lights_image_pixels = []
         shadows_image_pixels = []
         hemi_image_pixels = []
-        S_IIHHHH = rw.xray_io.PackedReader.prep('2I4H')
+        S_IIHHHH = rw.read.PackedReader.prep('2I4H')
 
         for slot_y in range(header.size.y):
             for slot_x in range(header.size.x):
@@ -165,7 +165,7 @@ def read_details_slots(
         del hemi_image_pixels
 
     else:    # version 2
-        S_ffBHBHBHBHH = rw.xray_io.PackedReader.prep('2fBHBHBHB2H')
+        S_ffBHBHBHBHH = rw.read.PackedReader.prep('2fBHBHBHB2H')
 
         lighting_image_pixels = [
             1.0 for _ in range(header.slots_count * 4 * 4)

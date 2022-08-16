@@ -255,7 +255,7 @@ def reconstruct_mesh(vertices, uvs, triangles):
 
 def read_mesh_data(packed_reader, det_model):
     # read vertices coordinates and uvs
-    S_FFFFF = rw.xray_io.PackedReader.prep('5f')
+    S_FFFFF = rw.read.PackedReader.prep('5f')
     vertices = []
     uvs = []
     for _ in range(det_model.mesh.vertices_count):
@@ -264,7 +264,7 @@ def read_mesh_data(packed_reader, det_model):
         uvs.append((vertex[3], 1 - vertex[4]))
 
     # read triangles indices
-    S_HHH = rw.xray_io.PackedReader.prep('3H')
+    S_HHH = rw.read.PackedReader.prep('3H')
     triangles = []
     for _ in range(det_model.mesh.indices_count // 3):
         face_indices = packed_reader.getp(S_HHH)

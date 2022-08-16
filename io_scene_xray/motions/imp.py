@@ -14,25 +14,25 @@ from .. import rw
 
 def skip_motion_rest(data, offs):
     ptr = offs + 4 + 4 + 4 + 2
-    ver = rw.xray_io.FastBytes.short_at(data, ptr - 2)
+    ver = rw.read.FastBytes.short_at(data, ptr - 2)
     if ver < 6:
         raise log.AppError(text.error.motion_ver, log.props(version=ver))
 
     ptr += (1 + 2 + 4 * 4) + 2
-    for _bone_idx in range(rw.xray_io.FastBytes.short_at(data, ptr - 2)):
-        ptr = rw.xray_io.FastBytes.skip_str_at(data, ptr) + 1
+    for _bone_idx in range(rw.read.FastBytes.short_at(data, ptr - 2)):
+        ptr = rw.read.FastBytes.skip_str_at(data, ptr) + 1
         for _fcurve_idx in range(6):
             ptr += 1 + 1 + 2
-            for _kf_idx in range(rw.xray_io.FastBytes.short_at(data, ptr - 2)):
+            for _kf_idx in range(rw.read.FastBytes.short_at(data, ptr - 2)):
                 ptr += (4 + 4) + 1
                 shape = data[ptr - 1]
                 if shape != 4:
                     ptr += (2 * 3 + 2 * 4)
     if ver >= 7:
         ptr += 4
-        for _bone_idx in range(rw.xray_io.FastBytes.int_at(data, ptr - 4)):
-            ptr = rw.xray_io.FastBytes.skip_str_at_a(data, ptr) + 4
-            ptr += (4 + 4) * rw.xray_io.FastBytes.int_at(data, ptr - 4)
+        for _bone_idx in range(rw.read.FastBytes.int_at(data, ptr - 4)):
+            ptr = rw.read.FastBytes.skip_str_at_a(data, ptr) + 4
+            ptr += (4 + 4) * rw.read.FastBytes.int_at(data, ptr - 4)
 
     return ptr
 
@@ -294,14 +294,14 @@ def import_motions(reader, context, motions_filter=utilites.MOTIONS_FILTER_ALL):
 
 @log.with_context('examine-motion')
 def _examine_motion(data, offs):
-    name, ptr = rw.xray_io.FastBytes.str_at(data, offs)
+    name, ptr = rw.read.FastBytes.str_at(data, offs)
     ptr = skip_motion_rest(data, ptr)
     return name, ptr
 
 
 def examine_motions(data):
     offs = 4
-    for _ in range(rw.xray_io.FastBytes.int_at(data, offs - 4)):
+    for _ in range(rw.read.FastBytes.int_at(data, offs - 4)):
         name, offs = _examine_motion(data, offs)
         yield name
 

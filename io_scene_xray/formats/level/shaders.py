@@ -78,7 +78,7 @@ def import_first_empty_shader(packed_reader, materials):
 
 
 def import_shaders(level, context, data):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     shaders_count = packed_reader.getf('<I')[0]
 
     if level.xrlc_version >= fmt.VERSION_12:
@@ -113,7 +113,7 @@ def import_shaders(level, context, data):
 
 
 def import_textures(level, context, data):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     textures_count = packed_reader.getf('<I')[0]
     level.textures = []
     if level.xrlc_version > fmt.VERSION_4:

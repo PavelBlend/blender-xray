@@ -1,6 +1,7 @@
 # addon modules
 from . import ltx
-from . import xray_io
+from . import read
+from . import write
 
 
 # read/write package

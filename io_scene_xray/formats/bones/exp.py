@@ -8,7 +8,7 @@ from ... import rw
 @log.with_context(name='bones-partitions')
 def _export_partitions(context, bpy_obj):
     log.update(object=bpy_obj.name)
-    packed_writer = rw.xray_io.PackedWriter()
+    packed_writer = rw.write.PackedWriter()
     groups_count = len(bpy_obj.pose.bone_groups)
     if not groups_count or not context.export_bone_parts:
         packed_writer.putf('<I', 0)
@@ -49,21 +49,21 @@ def _export_partitions(context, bpy_obj):
 @log.with_context(name='bone-properties')
 def _export_bone_data(bpy_obj, bone):
     log.update(bone=bone.name)
-    chunked_writer = rw.xray_io.ChunkedWriter()
+    chunked_writer = rw.write.ChunkedWriter()
     chunks = obj.fmt.Chunks.Bone
     xray = bone.xray
     pose_bone = bpy_obj.pose.bones[bone.name]
     # name
-    packed_writer = rw.xray_io.PackedWriter()
+    packed_writer = rw.write.PackedWriter()
     packed_writer.puts(bone.name)
     chunked_writer.put(chunks.DEF, packed_writer)
     # material
-    packed_writer = rw.xray_io.PackedWriter()
+    packed_writer = rw.write.PackedWriter()
     packed_writer.puts(xray.gamemtl)
     chunked_writer.put(chunks.MATERIAL, packed_writer)
     # shape
     shape = xray.shape
-    packed_writer = rw.xray_io.PackedWriter()
+    packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<H', int(shape.type))
     packed_writer.putf('<H', shape.flags)
     packed_writer.putf('<9f', *shape.box_rot)
@@ -78,7 +78,7 @@ def _export_bone_data(bpy_obj, bone):
     chunked_writer.put(chunks.SHAPE, packed_writer)
     # ik flags
     if xray.ikflags:
-        packed_writer = rw.xray_io.PackedWriter()
+        packed_writer = rw.write.PackedWriter()
         packed_writer.putf('<I', xray.ikflags)
         chunked_writer.put(chunks.IK_FLAGS, packed_writer)
     # ik joint
@@ -103,7 +103,7 @@ def _export_bone_data(bpy_obj, bone):
         # z limits
         z_min = pose_bone.ik_min_z
         z_max = pose_bone.ik_max_z
-    packed_writer = rw.xray_io.PackedWriter()
+    packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<I', int(ik.type))
     # write limit x
     packed_writer.putf('<2f', x_min, x_max)
@@ -119,16 +119,16 @@ def _export_bone_data(bpy_obj, bone):
     chunked_writer.put(chunks.IK_JOINT, packed_writer)
     # break params
     if xray.ikflags_breakable:
-        packed_writer = rw.xray_io.PackedWriter()
+        packed_writer = rw.write.PackedWriter()
         packed_writer.putf('<f', xray.breakf.force)
         packed_writer.putf('<f', xray.breakf.torque)
         chunked_writer.put(chunks.BREAK_PARAMS, packed_writer)
     # friction
-    packed_writer = rw.xray_io.PackedWriter()
+    packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<f', xray.friction)
     chunked_writer.put(chunks.FRICTION, packed_writer)
     # mass params
-    packed_writer = rw.xray_io.PackedWriter()
+    packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<f', xray.mass.value)
     packed_writer.putv3f(xray.mass.center)
     chunked_writer.put(chunks.MASS_PARAMS, packed_writer)
@@ -139,7 +139,7 @@ def _export_bone_data(bpy_obj, bone):
 def export_file(context):
     bpy_obj = context.bpy_arm_obj
     log.update(object=bpy_obj.name)
-    chunked_writer = rw.xray_io.ChunkedWriter()
+    chunked_writer = rw.write.ChunkedWriter()
     bone_index = 0
     if context.export_bone_properties:
         for bone in bpy_obj.data.bones:

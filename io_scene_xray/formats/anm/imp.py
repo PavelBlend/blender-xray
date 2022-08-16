@@ -35,7 +35,7 @@ def _import(file_path, creader, context):
                 path=file_path
             )
         )
-    preader = rw.xray_io.PackedReader(chunk_data)
+    preader = rw.read.PackedReader(chunk_data)
     name = preader.gets()
     frame_start, frame_end = preader.getf('<2I')
     fps, ver = preader.getf('<fH')
@@ -118,6 +118,6 @@ def import_file(context):
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
     data = utils.read_file(file_path)
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
     frame_start, frame_end = _import(file_path, chunked_reader, context)
     return frame_start, frame_end

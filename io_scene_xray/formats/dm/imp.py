@@ -64,5 +64,5 @@ def import_file(file_path, context):
     log.update(file=file_path)
     utils.ie.check_file_exists(file_path)
     data = utils.read_file(file_path)
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     import_(file_path, context, packed_reader)

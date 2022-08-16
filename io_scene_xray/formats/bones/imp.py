@@ -11,7 +11,7 @@ from ... import rw
 
 @log.with_context(name='bones-partitions')
 def _import_partitions(import_context, data, arm_obj, bpy_bones):
-    packed_reader = rw.xray_io.PackedReader(data)
+    packed_reader = rw.read.PackedReader(data)
     partitions_count = packed_reader.int()
     if not partitions_count:
         log.warn(
@@ -47,10 +47,10 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
 
 @log.with_context(name='bone-properties')
 def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
     chunks = obj.fmt.Chunks.Bone
     # bone name
-    packed_reader = rw.xray_io.PackedReader(chunked_reader.next(chunks.DEF))
+    packed_reader = rw.read.PackedReader(chunked_reader.next(chunks.DEF))
     name = packed_reader.gets().lower()
     log.update(bone=name)
     bpy_bone = bpy_bones.get(name, None)
@@ -63,7 +63,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
         return
     xray = bpy_bone.xray
     for chunk_id, chunk_data in chunked_reader:
-        packed_reader = rw.xray_io.PackedReader(chunk_data)
+        packed_reader = rw.read.PackedReader(chunk_data)
         if chunk_id == chunks.MATERIAL:
             xray.gamemtl = packed_reader.gets()
         elif chunk_id == chunks.SHAPE:
@@ -121,7 +121,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
 
 
 def _import_main(data, import_context):
-    chunked_reader = rw.xray_io.ChunkedReader(data)
+    chunked_reader = rw.read.ChunkedReader(data)
     chunks = obj.fmt.Chunks.Object
     arm_obj = import_context.bpy_arm_obj
     bpy_bones = {}

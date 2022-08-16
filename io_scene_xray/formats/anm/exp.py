@@ -20,7 +20,7 @@ class ExportAnmContext(contexts.ExportContext):
 
 @log.with_context(name='object')
 def _export(export_context, chunked_writer):
-    packed_writer = rw.xray_io.PackedWriter()
+    packed_writer = rw.write.PackedWriter()
     bpy_obj = export_context.active_object
     log.update(object=bpy_obj.name)
     bpy_act = bpy_obj.animation_data.action
@@ -137,6 +137,6 @@ def _export_action_data(pkw, ver, xray, fcurves):
 @log.with_context('export-anm')
 def export_file(export_context):
     log.update(file=export_context.filepath)
-    writer = rw.xray_io.ChunkedWriter()
+    writer = rw.write.ChunkedWriter()
     _export(export_context, writer)
     utils.save_file(export_context.filepath, writer)
