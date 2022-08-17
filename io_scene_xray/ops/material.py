@@ -555,7 +555,11 @@ class XRAY_OT_create_material(bpy.types.Operator):
             tex_folder = prefs.textures_folder_auto
             if tex_folder:
                 tex_folder = bytes(tex_folder, encoding='utf-8')
-                if not params.directory.startswith(str(tex_folder)):
+                if type(params.directory) == str:
+                    path_check = str(tex_folder)
+                elif type(params.directory) == bytes:
+                    path_check = tex_folder
+                if not params.directory.startswith(path_check):
                     params.directory = tex_folder
 
     @utils.set_cursor_state
