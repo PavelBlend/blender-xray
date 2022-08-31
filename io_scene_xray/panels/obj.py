@@ -72,9 +72,16 @@ class XRAY_UL_motion_list(bpy.types.UIList):
 
         row = layout.row()
         row.label(text='', icon=icon)
-        row.prop_search(motion, 'name', bpy.data, 'actions', text='')
-        if data.use_custom_motion_names:
-            row.prop(motion, 'export_name', icon_only=True)
+        if data.show_motions_names in ('ACTION', 'BOTH'):
+            row.prop_search(motion, 'name', bpy.data, 'actions', text='')
+        if data.show_motions_names in ('EXPORT', 'BOTH'):
+            if data.use_custom_motion_names:
+                row.prop(motion, 'export_name', icon_only=True)
+            else:
+                row.label(
+                    text='Enable the "Custom Names" option',
+                    icon='ERROR'
+                )
 
 
 class XRAY_OT_add_all_actions(bpy.types.Operator):
@@ -719,6 +726,9 @@ class XRAY_PT_object(ui.base.XRayPanel):
                     col = box.column(align=True)
                     col.prop(data, 'play_active_motion', toggle=True, icon='PLAY')
                     col.prop(data, 'use_custom_motion_names', toggle=True, icon='SORTALPHA')
+                    names_row = col.row()
+                    names_row.label(text='Show:')
+                    names_row.prop(data, 'show_motions_names', expand=True)
                     split = utils.version.layout_split(col, 0.333)
                     split.label(text='Dependency:')
                     split.prop_search(

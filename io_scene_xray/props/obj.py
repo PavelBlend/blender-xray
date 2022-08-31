@@ -492,6 +492,15 @@ xray_object_properties = {
     ),
     'show_motions': bpy.props.BoolProperty(description='View motions', options={'SKIP_SAVE'}),
     'play_active_motion': bpy.props.BoolProperty(name='Play Active Motion', default=False),
+    'show_motions_names': bpy.props.EnumProperty(
+        name='Show Motions Names',
+        items=(
+            ('ACTION', 'Action', ''),
+            ('EXPORT', 'Export', ''),
+            ('BOTH', 'Both', '')
+        ),
+        default='ACTION'
+    ),
     'dependency_object': bpy.props.StringProperty(name='Dependency', default=''),
     'use_custom_motion_names': bpy.props.BoolProperty(name='Custom Names', default=False),
     'helper_data': bpy.props.StringProperty(),
