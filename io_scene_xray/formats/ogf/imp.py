@@ -1,4 +1,5 @@
 # standart modules
+import os
 import math
 
 # blender modules
@@ -1859,9 +1860,24 @@ def import_visual(context, data, visual):
             bpy_object.parent = visual.root_obj
             bpy_object.xray.version = context.version
             bpy_object.xray.isroot = False
-    elif visual.model_type in (model_types.NORMAL, model_types.PROGRESSIVE):
-        convert_indices_to_triangles(visual)
-        bpy_object = create_visual(visual)
+    else:
+        if visual.model_type in (model_types.NORMAL, model_types.PROGRESSIVE):
+            convert_indices_to_triangles(visual)
+            bpy_object = create_visual(visual)
+        elif visual.model_type == model_types.HIERRARHY:
+            bpy_object = visual.root_obj
+        # set export path
+        meshes = context.meshes_folder.lower()
+        if meshes:
+            file = visual.file_path.lower()
+            if file.startswith(meshes):
+                offset = len(meshes)
+                exp_path = os.path.dirname(file)[offset : ]
+                arm = visual.arm_obj
+                if arm:
+                    arm.xray.export_path = exp_path
+                else:
+                    bpy_object.xray.export_path = exp_path
 
 
 @log.with_context(name='import-ogf')

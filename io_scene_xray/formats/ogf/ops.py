@@ -21,6 +21,7 @@ class ImportOgfContext(
     ):
     def __init__(self):
         super().__init__()
+        self.meshes_folder = None
         self.import_bone_parts = None
 
 
@@ -75,6 +76,7 @@ class XRAY_OT_import_ogf(
     def execute(self, context):
         prefs = utils.version.get_preferences()
         textures_folder = prefs.textures_folder_auto
+        meshes_folder = prefs.meshes_folder_auto
         if not textures_folder:
             self.report({'WARNING'}, 'No textures folder specified')
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
@@ -82,6 +84,7 @@ class XRAY_OT_import_ogf(
             return {'CANCELLED'}
         import_context = ImportOgfContext()
         import_context.textures_folder = textures_folder
+        import_context.meshes_folder = meshes_folder
         import_context.import_motions = self.import_motions
         import_context.import_bone_parts = True
         import_context.add_actions_to_motion_list = True
