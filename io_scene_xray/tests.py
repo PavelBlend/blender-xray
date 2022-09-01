@@ -27,23 +27,35 @@ def remove_bpy_data():
     clear_bpy_collection(data.actions)
 
 
-op_modal_props = {
-    'test_folder': bpy.props.StringProperty(),
-    'pause': bpy.props.FloatProperty(default=0.1, min=0.0001, max=100.0)
+op_props = {
+    'directory': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
+    ),
+    'pause': bpy.props.FloatProperty(
+        default=0.1,
+        min=0.0001,
+        max=100.0,
+        name='Pause'
+    ),
+    'import_object': bpy.props.BoolProperty(name='Object', default=True),
+    'import_ogf': bpy.props.BoolProperty(name='Ogf', default=True),
+    'import_dm': bpy.props.BoolProperty(name='Dm', default=True),
+    'import_details': bpy.props.BoolProperty(name='Details', default=True)
 }
 
 
-class XRAY_OT_test_ogf_import_modal(bpy.types.Operator):
-    bl_idname = 'wm.test_ogf_import_modal'
-    bl_label = 'Test OGF Import Modal'
+class XRAY_OT_test_import_modal(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.test_import_modal'
+    bl_label = 'Test Import Modal'
     bl_options = {'REGISTER'}
 
     timer = None
     last_time = 0
 
     if not utils.version.IS_28:
-        for prop_name, prop_value in op_modal_props.items():
-            exec('{0} = op_modal_props.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in op_props.items():
+            exec('{0} = op_props.get("{0}")'.format(prop_name))
 
     def collect_files(self, context):
         self.file_index = 0
@@ -54,17 +66,28 @@ class XRAY_OT_test_ogf_import_modal(bpy.types.Operator):
         self.log = []
         self.log_ver = []
         self.files_list = []
-        for root, dirs, files in os.walk(self.test_folder):
+        for root, dirs, files in os.walk(self.directory):
             for file in files:
                 name, ext = os.path.splitext(file)
                 ext = ext.lower()
-                if ext == '.ogf':
+                if ext == '.object' and self.import_object:
+                    skip = False
+                elif ext == '.ogf' and self.import_ogf:
+                    skip = False
+                elif ext == '.dm' and self.import_dm:
+                    skip = False
+                elif ext == '.details' and self.import_details:
+                    skip = False
+                else:
+                    skip = True
+                if not skip:
                     self.files_list.append((root, file))
         return {'FINISHED'}
 
-    def test_ogf_import(self):
+    def test_import(self):
         remove_bpy_data()
         root, file = self.files_list[self.file_index]
+        ext = os.path.splitext(file)[-1]
         file_path = os.path.join(root, file)
         file_message = '{0:0>6}: '.format(self.file_index) + file_path
         self.file_index += 1
@@ -72,11 +95,29 @@ class XRAY_OT_test_ogf_import_modal(bpy.types.Operator):
         err_text = None
         try:
             print(file_message)
-            bpy.ops.xray_import.ogf(
-                directory=root,
-                files=[{'name': file}],
-                import_motions=False
-            )
+            if ext == '.object':
+                bpy.ops.xray_import.object(
+                    directory=root,
+                    files=[{'name': file}],
+                    import_motions=False
+                )
+            elif ext == '.ogf':
+                bpy.ops.xray_import.ogf(
+                    directory=root,
+                    files=[{'name': file}],
+                    import_motions=False
+                )
+            elif ext == '.dm':
+                bpy.ops.xray_import.dm(
+                    directory=root,
+                    files=[{'name': file}]
+                )
+            elif ext == '.details':
+                bpy.ops.xray_import.details(
+                    directory=root,
+                    files=[{'name': file}],
+                    load_slots=False
+                )
             for area in bpy.context.screen.areas:
                 if area.type == 'VIEW_3D':
                     ctx = bpy.context.copy()
@@ -145,19 +186,22 @@ class XRAY_OT_test_ogf_import_modal(bpy.types.Operator):
 
     def modal(self, context, event):
         if event.type == 'TIMER':
-            if self.last_time + self.pause < time.time():
+            current_time = time.time()
+            if current_time > self.last_time + self.pause:
                 if self.file_index < len(self.files_list):
-                    self.test_ogf_import()
+                    self.test_import()
                 else:
                     context.window_manager.event_timer_remove(self.timer)
                     remove_bpy_data()
                     self.set_clip_end()
                     return {'FINISHED'}
                 self.last_time = time.time()
+
         elif event.type == 'ESC':
             remove_bpy_data()
             self.set_clip_end()
             return {'CANCELLED'}
+
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
@@ -172,49 +216,52 @@ class XRAY_OT_test_ogf_import_modal(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-op_props = {
-    'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE', 'HIDDEN'}
-    ),
-    'pause': bpy.props.FloatProperty(
-        default=0.1,
-        min=0.0001,
-        max=100.0,
-        name='Pause'
-    )
-}
-
-
-class XRAY_OT_test_ogf_import(
-        bpy.types.Operator,
-        bpy_extras.io_utils.ImportHelper
-    ):
-    bl_idname = 'io_scene_xray.test_ogf_import'
-    bl_label = 'Test OGF Import'
+class XRAY_OT_test_import(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.test_import'
+    bl_label = 'Test Import'
     bl_options = {'REGISTER'}
 
     if not utils.version.IS_28:
         for prop_name, prop_value in op_props.items():
             exec('{0} = op_props.get("{0}")'.format(prop_name))
 
+    def draw(self, context):
+        lay = self.layout
+        lay.prop(self, 'pause')
+        lay.label(text='Import:')
+        lay.prop(self, 'import_object')
+        lay.prop(self, 'import_ogf')
+        lay.prop(self, 'import_dm')
+        lay.prop(self, 'import_details')
+
     def execute(self, context):
-        bpy.ops.wm.test_ogf_import_modal(
-            test_folder=self.directory,
-            pause=self.pause
+        bpy.ops.io_scene_xray.test_import_modal(
+            directory=self.directory,
+            pause=self.pause,
+            import_object=self.import_object,
+            import_ogf=self.import_ogf,
+            import_dm=self.import_dm,
+            import_details=self.import_details
         )
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        return super().invoke(context, event)
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+classes = (
+    (XRAY_OT_test_import, op_props),
+    (XRAY_OT_test_import_modal, op_props)
+)
 
 
 def register():
-    utils.version.assign_props([(op_props, XRAY_OT_test_ogf_import), ])
-    bpy.utils.register_class(XRAY_OT_test_ogf_import)
-    utils.version.assign_props([(op_modal_props, XRAY_OT_test_ogf_import_modal), ])
-    bpy.utils.register_class(XRAY_OT_test_ogf_import_modal)
+    for clas, props in classes:
+        utils.version.assign_props([(props, clas), ])
+        bpy.utils.register_class(clas)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_OT_test_ogf_import)
-    bpy.utils.unregister_class(XRAY_OT_test_ogf_import_modal)
+    for clas, props in reversed(classes):
+        bpy.utils.unregister_class(clas)
