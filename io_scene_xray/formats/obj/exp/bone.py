@@ -107,6 +107,12 @@ def export_bone(
     packed_writer.putf('<f', xray.shape.cyl_rad)
     writer.put(fmt.Chunks.Bone.SHAPE, packed_writer)
 
+    # ik flags chunk
+    if xray.ikflags:
+        packed_writer = rw.write.PackedWriter()
+        packed_writer.putf('<I', xray.ikflags)
+        writer.put(fmt.Chunks.Bone.IK_FLAGS, packed_writer)
+
     # ik joint chunk
     ik = xray.ikjoint
     if bpy_arm_obj.data.xray.joint_limits_type == 'XRAY':
@@ -136,18 +142,12 @@ def export_bone(
     packed_writer.putf('<2f', ik.spring, ik.damping)
     writer.put(fmt.Chunks.Bone.IK_JOINT, packed_writer)
 
-    # ik flags chunk
-    if xray.ikflags:
+    # break params chunk
+    if xray.ikflags_breakable:
         packed_writer = rw.write.PackedWriter()
-        packed_writer.putf('<I', xray.ikflags)
-        writer.put(fmt.Chunks.Bone.IK_FLAGS, packed_writer)
-
-        # break params chunk
-        if xray.ikflags_breakable:
-            packed_writer = rw.write.PackedWriter()
-            packed_writer.putf('<f', xray.breakf.force)
-            packed_writer.putf('<f', xray.breakf.torque)
-            writer.put(fmt.Chunks.Bone.BREAK_PARAMS, packed_writer)
+        packed_writer.putf('<f', xray.breakf.force)
+        packed_writer.putf('<f', xray.breakf.torque)
+        writer.put(fmt.Chunks.Bone.BREAK_PARAMS, packed_writer)
 
     # friction chunk
     if ik_type and xray.friction:

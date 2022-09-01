@@ -473,15 +473,18 @@ def export_main(bpy_obj, chunked_writer, context):
     xray = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
 
     export_version(chunked_writer)
+    export_user_data(chunked_writer, xray)
+    export_loddef(chunked_writer, xray)
     materials, bone_writers, some_arm, bpy_root, uv_map_names = export_meshes(
-        chunked_writer, bpy_obj, context, xray
+        chunked_writer,
+        bpy_obj,
+        context,
+        xray
     )
     export_surfaces(chunked_writer, context, materials, uv_map_names)
     export_bones(chunked_writer, bone_writers)
-    export_user_data(chunked_writer, xray)
-    export_loddef(chunked_writer, xray)
     export_motions(chunked_writer, some_arm, context, bpy_obj)
-    export_partitions(chunked_writer, some_arm)
     export_motion_refs(chunked_writer, xray, context)
+    export_partitions(chunked_writer, some_arm)
     export_transform(chunked_writer, bpy_root)
     export_revision(chunked_writer, xray)

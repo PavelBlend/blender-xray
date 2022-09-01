@@ -235,6 +235,21 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
 
     uvs, vert_indices, face_indices = export_faces(chunked_writer, bm, bpy_obj)
 
+    # smothing groups chunk
+    packed_writer = rw.write.PackedWriter()
+    smooth_groups = []
+    if context.soc_sgroups:
+        smooth_groups = tuple(_export_sg_soc(bm.faces))
+        # check for Maya compatibility
+        err = _check_sg_soc(bm.edges, smooth_groups)
+        if err:
+            log.warn(err, object=bpy_obj.name, mesh=bpy_obj.data.name)
+    else:
+        smooth_groups = _export_sg_cs_cop(bm.faces)
+    for smooth_group in smooth_groups:
+        packed_writer.putf('<I', smooth_group)
+    chunked_writer.put(fmt.Chunks.Mesh.SG, packed_writer)
+
     if bpy_root.type == 'ARMATURE':
         bones_names = []
         for bone in bpy_root.data.bones:
@@ -344,42 +359,6 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
                     packed_writer.putf('<I', face_index)
     chunked_writer.put(fmt.Chunks.Mesh.SFACE, packed_writer)
 
-    # smothing groups chunk
-    packed_writer = rw.write.PackedWriter()
-    smooth_groups = []
-    if context.soc_sgroups:
-        smooth_groups = tuple(_export_sg_soc(bm.faces))
-        # check for Maya compatibility
-        err = _check_sg_soc(bm.edges, smooth_groups)
-        if err:
-            log.warn(err, object=bpy_obj.name, mesh=bpy_obj.data.name)
-    else:
-        smooth_groups = _export_sg_cs_cop(bm.faces)
-    for smooth_group in smooth_groups:
-        packed_writer.putf('<I', smooth_group)
-    chunked_writer.put(fmt.Chunks.Mesh.SG, packed_writer)
-
-    # normals chunk
-    if prefs.object_split_normals:
-        temp_mesh = temp_obj.data
-        temp_mesh.use_auto_smooth = bpy_obj.data.use_auto_smooth
-        temp_mesh.auto_smooth_angle = bpy_obj.data.auto_smooth_angle
-        temp_mesh.calc_normals_split()
-        packed_writer = rw.write.PackedWriter()
-        for face in bm.faces:
-            for loop_index in (0, 2, 1):
-                bm_loop = face.loops[loop_index]
-                bpy_loop = temp_mesh.loops[bm_loop.index]
-                normal = utils.version.multiply(
-                    bpy_root.matrix_world.inverted(),
-                    temp_obj.matrix_world,
-                    bpy_loop.normal
-                )
-                packed_writer.putv3f(normal)
-        chunked_writer.put(fmt.Chunks.Mesh.NORMALS, packed_writer)
-        bpy.data.objects.remove(temp_obj)
-        bpy.data.meshes.remove(temp_mesh)
-
     # write vmaps chunk
     packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<I', uv_maps_count + weight_maps_count)
@@ -414,5 +393,26 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
             packed_writer.putf('<f', bm.verts[vert_index][weights_layer][group_index])
         packed_writer.putf('<' + str(len(vert_indices)) + 'I', *vert_indices)
     chunked_writer.put(fmt.Chunks.Mesh.VMAPS2, packed_writer)
+
+    # normals chunk
+    if prefs.object_split_normals:
+        temp_mesh = temp_obj.data
+        temp_mesh.use_auto_smooth = bpy_obj.data.use_auto_smooth
+        temp_mesh.auto_smooth_angle = bpy_obj.data.auto_smooth_angle
+        temp_mesh.calc_normals_split()
+        packed_writer = rw.write.PackedWriter()
+        for face in bm.faces:
+            for loop_index in (0, 2, 1):
+                bm_loop = face.loops[loop_index]
+                bpy_loop = temp_mesh.loops[bm_loop.index]
+                normal = utils.version.multiply(
+                    bpy_root.matrix_world.inverted(),
+                    temp_obj.matrix_world,
+                    bpy_loop.normal
+                )
+                packed_writer.putv3f(normal)
+        chunked_writer.put(fmt.Chunks.Mesh.NORMALS, packed_writer)
+        bpy.data.objects.remove(temp_obj)
+        bpy.data.meshes.remove(temp_mesh)
 
     return used_material_names
