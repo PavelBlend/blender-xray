@@ -184,7 +184,8 @@ class XRAY_OT_test_import_modal(bpy.types.Operator):
             if area.type == 'VIEW_3D':
                 for space in area.spaces:
                     if space.type == 'VIEW_3D':
-                        space.clip_end = self.clip_end
+                        if not self.clip_end is None:
+                            space.clip_end = self.clip_end
 
     def modal(self, context, event):
         if event.type == 'TIMER':
