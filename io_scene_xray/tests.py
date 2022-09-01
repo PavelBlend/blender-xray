@@ -25,6 +25,7 @@ def remove_bpy_data():
     clear_bpy_collection(data.images)
     clear_bpy_collection(data.armatures)
     clear_bpy_collection(data.actions)
+    clear_bpy_collection(data.texts)
 
 
 op_props = {
@@ -36,6 +37,7 @@ op_props = {
         default=0.1,
         min=0.0001,
         max=100.0,
+        precision=4,
         name='Pause'
     ),
     'import_object': bpy.props.BoolProperty(name='Object', default=True),
