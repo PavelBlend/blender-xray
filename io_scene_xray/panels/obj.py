@@ -792,12 +792,20 @@ class XRAY_PT_object(ui.base.XRayPanel):
                 if box:
                     # owner
                     split = utils.version.layout_split(box, 0.35)
-                    split.label(text='Owner:')
+                    split.label(text='Owner Name:')
                     split.prop(data.revision, 'owner', text='')
                     # created time
                     split = utils.version.layout_split(box, 0.35)
                     split.label(text='Created Time:')
                     split.prop(data.revision, 'ctime_str', text='')
+                    # modif name
+                    split = utils.version.layout_split(box, 0.35)
+                    split.label(text='Moder Name:')
+                    split.label(text=data.revision.moder)
+                    # modified time
+                    split = utils.version.layout_split(box, 0.35)
+                    split.label(text='Modified Time:')
+                    split.label(text=data.revision.mtime_str)
                     # time formats
                     subbox = box.box()
                     split = utils.version.layout_split(subbox, 0.25)

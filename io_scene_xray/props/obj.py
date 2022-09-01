@@ -270,7 +270,8 @@ xray_object_revision_properties = {
     'ctime': bpy.props.IntProperty(name='ctime'),
     'ctime_str': _gen_time_prop('ctime', description='Creation time'),
     'moder': bpy.props.StringProperty(name='moder'),
-    'mtime': bpy.props.IntProperty(name='mtime')
+    'mtime': bpy.props.IntProperty(name='mtime'),
+    'mtime_str': _gen_time_prop('mtime', description='Modified time')
 }
 
 
