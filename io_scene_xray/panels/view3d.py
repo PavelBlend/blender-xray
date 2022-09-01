@@ -119,6 +119,7 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
             imp_op = row.operator(import_op_class.bl_idname, text='All')
             imp_op.mode = 'ALL'
 
+
 class XRAY_PT_viewer(bpy.types.Panel):
     bl_label = 'Viewer'
     bl_space_type = 'VIEW_3D'
@@ -185,41 +186,39 @@ class XRAY_PT_viewer(bpy.types.Panel):
                 rows=5
             )
             # select operators
-            op_select_all = col.operator(
+            row = col.row(align=True)
+            row.label(text='Select:')
+            op_select_all = row.operator(
                 ops.viewer.XRAY_OT_viewer_select_files.bl_idname,
-                text='Select All'
+                text='All'
             )
             op_select_all.mode = 'SELECT_ALL'
-            op_select_all = col.operator(
+            op_select_all = row.operator(
                 ops.viewer.XRAY_OT_viewer_select_files.bl_idname,
-                text='Deselect All'
+                text='None'
             )
             op_select_all.mode = 'DESELECT_ALL'
-            op_select_all = col.operator(
+            op_select_all = row.operator(
                 ops.viewer.XRAY_OT_viewer_select_files.bl_idname,
-                text='Invert Selection'
+                text='Invert'
             )
             op_select_all.mode = 'INVERT_SELECTION'
             # import operators
-            col.separator()
-            import_row = col.row()
-            import_col = import_row.column(align=True)
-            op_import_active = import_col.operator(
+            row = col.row(align=True)
+            row.label(text='Import:')
+            op_import_active = row.operator(
                 ops.viewer.XRAY_OT_viewer_import_files.bl_idname,
-                icon='IMPORT',
-                text='Import Active File'
+                text='Active'
             )
             op_import_active.mode = 'IMPORT_ACTIVE'
-            op_import_selected = import_col.operator(
+            op_import_selected = row.operator(
                 ops.viewer.XRAY_OT_viewer_import_files.bl_idname,
-                icon='IMPORT',
-                text='Import Selected Files'
+                text='Selected'
             )
             op_import_selected.mode = 'IMPORT_SELECTED'
-            op_import_all = import_col.operator(
+            op_import_all = row.operator(
                 ops.viewer.XRAY_OT_viewer_import_files.bl_idname,
-                icon='IMPORT',
-                text='Import All Files'
+                text='All'
             )
             op_import_all.mode = 'IMPORT_ALL'
         else:
