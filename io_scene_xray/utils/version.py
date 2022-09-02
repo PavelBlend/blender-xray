@@ -137,7 +137,10 @@ IMAGE_NODES = ('TEX_IMAGE', 'TEX_ENVIRONMENT')
 
 def is_all_empty_textures(material):
     if IS_28:
-        return all(not node.type in IMAGE_NODES for node in material.node_tree.nodes)
+        return all(
+            not node.type in IMAGE_NODES
+            for node in material.node_tree.nodes
+        )
     else:
         return all(not slot for slot in material.texture_slots)
 

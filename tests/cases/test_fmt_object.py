@@ -260,7 +260,8 @@ class TestFormatObject(utils.XRayTestCase):
 
 def _create_compatible_material_object():
     mat = bpy.data.materials.new('plmat')
-    mat.xray.version = -1  # otherwise, this material will be initialized with the default values (see #48)
+    # otherwise, this material will be initialized with the default values (see #48)
+    mat.xray.version = -1
     if bpy.app.version >= (2, 80, 0):
         mat.use_nodes = True
     return mat

@@ -9,7 +9,7 @@ from .. import log
 from .. import text
 
 
-def make_relative_texture_path(texture_file_path, textures_folder):
+def _make_relative_texture_path(texture_file_path, textures_folder):
     texture_file_path = texture_file_path[len(textures_folder) : ]
     texture_file_path = texture_file_path.replace(os.path.sep, '\\')
     if texture_file_path.startswith('\\'):
@@ -17,10 +17,10 @@ def make_relative_texture_path(texture_file_path, textures_folder):
     return texture_file_path
 
 
-def gen_tex_name_by_textures_folder(tex_path, textures_folder, image):
+def _gen_tex_name_by_textures_folder(tex_path, textures_folder, image):
     if tex_path.startswith(textures_folder):
         # when the texture path is valid
-        tex_path = make_relative_texture_path(tex_path, textures_folder)
+        tex_path = _make_relative_texture_path(tex_path, textures_folder)
 
     else:
         # automatically fix relative path
@@ -48,7 +48,7 @@ def gen_tex_name_by_textures_folder(tex_path, textures_folder, image):
     return tex_path
 
 
-def gen_tex_name_by_level_folder(
+def _gen_tex_name_by_level_folder(
         tex_path,
         textures_folder,
         level_folder,
@@ -58,11 +58,11 @@ def gen_tex_name_by_level_folder(
     ):
     if tex_path.startswith(textures_folder):
         # gamedata\textures folder
-        tex_path = make_relative_texture_path(tex_path, textures_folder)
+        tex_path = _make_relative_texture_path(tex_path, textures_folder)
 
     elif tex_path.startswith(level_folder):
         # gamedata\levels\level_name folder
-        tex_path = make_relative_texture_path(tex_path, level_folder)
+        tex_path = _make_relative_texture_path(tex_path, level_folder)
 
     else:
         # gamedata\levels\level_name\texture_name
@@ -89,7 +89,7 @@ def gen_texture_name(image, textures_folder, level_folder=None, errors=set()):
 
     if level_folder:
         # use level folder
-        gen_tex_name_by_level_folder(
+        _gen_tex_name_by_level_folder(
             tex_path,
             textures_folder,
             level_folder,
@@ -99,6 +99,6 @@ def gen_texture_name(image, textures_folder, level_folder=None, errors=set()):
         )
     else:
         # find texture in gamedata\textures folder
-        gen_tex_name_by_textures_folder(tex_path, textures_folder, image)
+        _gen_tex_name_by_textures_folder(tex_path, textures_folder, image)
 
     return tex_path

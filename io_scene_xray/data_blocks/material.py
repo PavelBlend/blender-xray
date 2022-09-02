@@ -11,27 +11,242 @@ from .. import text
 from .. import utils
 
 
-def _is_compatible_texture(texture, filepart):
+def _is_compatible_texture(texture, file_part):
     tex_folder = utils.version.get_preferences().textures_folder_auto
-    tex_path = os.path.join(tex_folder, filepart) + os.extsep + 'dds'
+    tex_path = os.path.join(tex_folder, file_part) + os.extsep + 'dds'
+    bpy_image = getattr(texture, 'image', None)
+    if bpy_image is None:
+        return False, None
+    abs_tex_path = os.path.abspath(tex_path)
+    abs_image_path = os.path.abspath(bpy_image.filepath)
+    if abs_tex_path != abs_image_path:
+        return False, None
+    return True, bpy_image
+
+
+def _check_xray_props(material, eshader, cshader, gamemtl, flags):
+    if material.xray.flags != flags:
+        return False
+    if material.xray.eshader != eshader:
+        return False
+    if material.xray.cshader != cshader:
+        return False
+    if material.xray.gamemtl != gamemtl:
+        return False
+    return True
+
+
+def _check_material_image_28(bpy_material, tex_file_part):
+    if bpy_material.use_nodes:
+        # collect image texture nodes
+        tex_nodes = []
+        for node in bpy_material.node_tree.nodes:
+            if node.type in utils.version.IMAGE_NODES:
+                tex_nodes.append(node)
+        # check image node
+        if len(tex_nodes) == 1:
+            tex_node = tex_nodes[0]
+            find_texture, bpy_image = _is_compatible_texture(
+                tex_node,
+                tex_file_part
+            )
+            if find_texture:
+                return bpy_material, bpy_image
+    return None, None
+
+
+def _check_material_image_27(bpy_material, tex_file_part, uv_map_name):
+    tex_slots = []
+    # collect texture slots
+    for slot in bpy_material.texture_slots:
+        if slot:
+            if slot.texture:
+                tex_slots.append(slot)
+    # check texture
+    if len(tex_slots) == 1:
+        slot = tex_slots[0]
+        if slot.uv_layer == uv_map_name:
+            find_texture, bpy_image = _is_compatible_texture(
+                slot.texture,
+                tex_file_part
+            )
+            if find_texture:
+                return bpy_material, bpy_image
+    return None, None
+
+
+def _search_material_and_image(
+        name,
+        texture,
+        eshader,
+        cshader,
+        gamemtl,
+        flags,
+        tex_file_part,
+        uv_map_name
+    ):
+    bpy_material = None
+    bpy_image = None
+
+    for material in bpy.data.materials:
+        # check material name
+        correct_name = False
+        if material.name == name:
+            correct_name = True
+        else:
+            if material.name.startswith(name):
+                if len(material.name) == len(name) + 4:
+                    if material.name[-4] == '.':
+                        if material.name[-3 : ].isdigit():
+                            correct_name = True
+        if not correct_name:
+            continue
+
+        # check x-ray properties
+        is_compatible_xray_props = _check_xray_props(
+            material,
+            eshader,
+            cshader,
+            gamemtl,
+            flags
+        )
+        if not is_compatible_xray_props:
+            continue
+
+        # check is empty texture
+        if not (texture and uv_map_name):
+            all_empty_textures = utils.version.is_all_empty_textures(material)
+            if all_empty_textures:
+                return material, bpy_image
+
+        # check material image
+        if utils.version.IS_28:
+            bpy_material, bpy_image = _check_material_image_28(
+                material,
+                tex_file_part
+            )
+        else:
+            bpy_material, bpy_image = _check_material_image_27(
+                material,
+                tex_file_part,
+                uv_map_name
+            )
+
+    return bpy_material, bpy_image
+
+
+def _create_material(name, context, flags, eshader, cshader, gamemtl):
+    bpy_material = bpy.data.materials.new(name)
+    bpy_material.xray.version = context.version
+    bpy_material.xray.flags = flags
+    bpy_material.xray.eshader = eshader
+    bpy_material.xray.cshader = cshader
+    bpy_material.xray.gamemtl = gamemtl
     if utils.version.IS_28:
-        bpy_image = texture.image
-        if not bpy_image:
-            return False, None
-        abs_tex_path = os.path.abspath(tex_path)
-        abs_image_path = os.path.abspath(bpy_image.filepath)
-        if abs_tex_path != abs_image_path:
-            return False, None
-        return True, bpy_image
+        bpy_material.use_nodes = True
+        bpy_material.blend_method = 'CLIP'
     else:
-        bpy_image = getattr(texture, 'image', None)
-        if bpy_image is None:
-            return False, None
-        abs_tex_path = os.path.abspath(tex_path)
-        abs_image_path = os.path.abspath(bpy_image.filepath)
-        if abs_tex_path != abs_image_path:
-            return False, None
-        return True, bpy_image
+        bpy_material.use_shadeless = True
+        bpy_material.use_transparency = True
+        bpy_material.alpha = 0
+    return bpy_material
+
+
+def _create_texture_28(bpy_material, texture, context):
+    node_tree = bpy_material.node_tree
+
+    # create texture node
+    texture_node = node_tree.nodes.new('ShaderNodeTexImage')
+    texture_node.name = texture
+    texture_node.label = texture
+    texture_node.image = context.image(texture)
+    bpy_image = texture_node.image
+    texture_node.location.x -= 500.0
+
+    # create node links
+    principled_shader = node_tree.nodes['Principled BSDF']
+    node_tree.links.new(
+        texture_node.outputs['Color'],
+        principled_shader.inputs['Base Color']
+    )
+    node_tree.links.new(
+        texture_node.outputs['Alpha'],
+        principled_shader.inputs['Alpha']
+    )
+
+    return bpy_image
+
+
+def _create_texture_27(
+        bpy_material,
+        texture,
+        tex_file_part,
+        uv_map_name,
+        context
+    ):
+
+    # search texture
+    bpy_texture = bpy.data.textures.get(texture)
+    find_texture, bpy_image = _is_compatible_texture(
+        bpy_texture,
+        tex_file_part
+    )
+
+    # create texture
+    if not bpy_texture or not find_texture:
+        bpy_texture = bpy.data.textures.new(texture, type='IMAGE')
+        bpy_texture.image = context.image(texture)
+        bpy_texture.use_preview_alpha = True
+        bpy_image = bpy_texture.image
+
+    # create texture slot
+    bpy_texture_slot = bpy_material.texture_slots.add()
+    bpy_texture_slot.texture = bpy_texture
+    bpy_texture_slot.texture_coords = 'UV'
+    bpy_texture_slot.uv_layer = uv_map_name
+    bpy_texture_slot.use_map_color_diffuse = True
+    bpy_texture_slot.use_map_alpha = True
+
+    return bpy_image
+
+
+def _create_material_and_image(
+        name,
+        context,
+        texture,
+        flags,
+        eshader,
+        cshader,
+        gamemtl,
+        tex_file_part,
+        uv_map_name
+    ):
+
+    # create material
+    bpy_material = _create_material(
+        name,
+        context,
+        flags,
+        eshader,
+        cshader,
+        gamemtl
+    )
+
+    # create texture and image
+    bpy_image = None
+    if texture:
+        if utils.version.IS_28:
+            bpy_image = _create_texture_28(bpy_material, texture, context)
+        else:
+            bpy_image = _create_texture_27(
+                bpy_material,
+                texture,
+                tex_file_part,
+                uv_map_name,
+                context
+            )
+
+    return bpy_material, bpy_image
 
 
 def get_material(
@@ -42,118 +257,36 @@ def get_material(
         cshader,
         gamemtl,
         flags,
-        vmap
+        uv_map_name
     ):
-    bpy_material = None
-    bpy_image = None
-    tx_filepart = texture.replace('\\', os.path.sep).lower()
-    for material in bpy.data.materials:
-        if not material.name.startswith(name):
-            continue
-        if material.xray.flags != flags:
-            continue
-        if material.xray.eshader != eshader:
-            continue
-        if material.xray.cshader != cshader:
-            continue
-        if material.xray.gamemtl != gamemtl:
-            continue
-        if (not texture) and (not vmap):
-            all_empty_textures = utils.version.is_all_empty_textures(material)
-            if all_empty_textures:
-                bpy_material = material
-                break
-        if utils.version.IS_28:
-            tex_nodes = []
-            ts_found = False
-            if material.use_nodes:
-                for node in material.node_tree.nodes:
-                    if not node.type in utils.version.IMAGE_NODES:
-                        continue
-                    tex_nodes.append(node)
-                if len(tex_nodes) != 1:
-                    ts_found = False
-                else:
-                    tex_node = tex_nodes[0]
-                    find_texture, bpy_image = _is_compatible_texture(
-                        tex_node,
-                        tx_filepart
-                    )
-                    if not find_texture:
-                        continue
-                    ts_found = True
-                if not ts_found:
-                    continue
-                bpy_material = material
-                break
-        else:
-            ts_found = False
-            for slot in material.texture_slots:
-                if not slot:
-                    continue
-                if slot.uv_layer != vmap:
-                    continue
-                find_texture, bpy_image = _is_compatible_texture(
-                    slot.texture,
-                    tx_filepart
-                )
-                if not find_texture:
-                    continue
-                ts_found = True
-                break
-            if not ts_found:
-                continue
-            bpy_material = material
-            break
+    tex_file_part = texture.replace('\\', os.path.sep).lower()
+
+    # search material
+    bpy_material, bpy_image = _search_material_and_image(
+        name,
+        texture,
+        eshader,
+        cshader,
+        gamemtl,
+        flags,
+        tex_file_part,
+        uv_map_name
+    )
+
+    # create material
     if bpy_material is None:
-        bpy_material = bpy.data.materials.new(name)
-        bpy_material.xray.version = context.version
-        bpy_material.xray.flags = flags
-        bpy_material.xray.eshader = eshader
-        bpy_material.xray.cshader = cshader
-        bpy_material.xray.gamemtl = gamemtl
-        if utils.version.IS_28:
-            bpy_material.use_nodes = True
-            bpy_material.blend_method = 'CLIP'
-        else:
-            bpy_material.use_shadeless = True
-            bpy_material.use_transparency = True
-            bpy_material.alpha = 0
-        if texture:
-            if utils.version.IS_28:
-                node_tree = bpy_material.node_tree
-                texture_node = node_tree.nodes.new('ShaderNodeTexImage')
-                texture_node.name = texture
-                texture_node.label = texture
-                texture_node.image = context.image(texture)
-                bpy_image = texture_node.image
-                texture_node.location.x -= 500
-                princ_shader = node_tree.nodes['Principled BSDF']
-                node_tree.links.new(
-                    texture_node.outputs['Color'],
-                    princ_shader.inputs['Base Color']
-                )
-                node_tree.links.new(
-                    texture_node.outputs['Alpha'],
-                    princ_shader.inputs['Alpha']
-                )
-            else:
-                bpy_texture = bpy.data.textures.get(texture)
-                find_texture, bpy_image = _is_compatible_texture(
-                    bpy_texture,
-                    tx_filepart
-                )
-                if (bpy_texture is None) or not find_texture:
-                    bpy_texture = bpy.data.textures.new(texture, type='IMAGE')
-                    bpy_texture.image = context.image(texture)
-                    bpy_texture.use_preview_alpha = True
-                    bpy_image = bpy_texture.image
-                bpy_texture_slot = bpy_material.texture_slots.add()
-                bpy_texture_slot.texture = bpy_texture
-                bpy_texture_slot.texture_coords = 'UV'
-                bpy_texture_slot.uv_layer = vmap
-                bpy_texture_slot.use_map_color_diffuse = True
-                bpy_texture_slot.use_map_alpha = True
+        bpy_material, bpy_image = _create_material_and_image(
+            name,
+            context,
+            texture,
+            flags,
+            eshader,
+            cshader,
+            gamemtl,
+            tex_file_part,
+            uv_map_name
+        )
+
     return bpy_material, bpy_image
 
 
