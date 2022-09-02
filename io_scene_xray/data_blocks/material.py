@@ -5,33 +5,33 @@ import os
 import bpy
 
 # addon modules
+from . import image
 from .. import log
 from .. import text
 from .. import utils
-from .. import data_blocks
 
 
 def _is_compatible_texture(texture, filepart):
     tex_folder = utils.version.get_preferences().textures_folder_auto
     tex_path = os.path.join(tex_folder, filepart) + os.extsep + 'dds'
     if utils.version.IS_28:
-        image = texture.image
-        if not image:
+        bpy_image = texture.image
+        if not bpy_image:
             return False, None
         abs_tex_path = os.path.abspath(tex_path)
-        abs_image_path = os.path.abspath(image.filepath)
+        abs_image_path = os.path.abspath(bpy_image.filepath)
         if abs_tex_path != abs_image_path:
             return False, None
-        return True, image
+        return True, bpy_image
     else:
-        image = getattr(texture, 'image', None)
-        if image is None:
+        bpy_image = getattr(texture, 'image', None)
+        if bpy_image is None:
             return False, None
         abs_tex_path = os.path.abspath(tex_path)
-        abs_image_path = os.path.abspath(image.filepath)
+        abs_image_path = os.path.abspath(bpy_image.filepath)
         if abs_tex_path != abs_image_path:
             return False, None
-        return True, image
+        return True, bpy_image
 
 
 def get_material(
@@ -229,7 +229,7 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
             if tex_node:
                 if tex_node.image:
                     if context.texname_from_path:
-                        tx_name = data_blocks.image.gen_texture_name(
+                        tx_name = image.gen_texture_name(
                             tex_node.image,
                             context.textures_folder,
                             level_folder=level_folder
@@ -277,7 +277,7 @@ def get_image_relative_path(material, context, level_folder=None, no_err=True):
             texture = textures[-1]
         if texture:
             if context.texname_from_path:
-                tx_name = data_blocks.image.gen_texture_name(
+                tx_name = image.gen_texture_name(
                     texture.image,
                     context.textures_folder,
                     level_folder=level_folder

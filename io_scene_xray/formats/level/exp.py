@@ -1300,10 +1300,14 @@ def write_level(chunked_writer, level_object, file_path):
     sectors_map = get_sectors_map(level, level_object)
 
     # visuals
-    (visuals_writer, vbs, ibs,
-    sectors_chunked_writer, fp_vbs, fp_ibs) = write_visuals(
-        level_object, sectors_map, level
-    )
+    (
+        visuals_writer,
+        vbs,
+        ibs,
+        sectors_chunked_writer,
+        fp_vbs,
+        fp_ibs
+    ) = write_visuals(level_object, sectors_map, level)
 
     # portals
     portals_writer = write_portals(level, level_object)
@@ -1446,7 +1450,11 @@ def export_file(level_object, dir_path):
     log.update(object=level_object.name)
     file_path = dir_path + os.sep + 'level'
     level_chunked_writer = get_writer()
-    vbs, ibs, fp_vbs, fp_ibs, level = write_level(level_chunked_writer, level_object, file_path)
+    vbs, ibs, fp_vbs, fp_ibs, level = write_level(
+        level_chunked_writer,
+        level_object,
+        file_path
+    )
 
     rw.utils.save_file(file_path, level_chunked_writer)
     del level_chunked_writer
