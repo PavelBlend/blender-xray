@@ -29,10 +29,10 @@ bone_suffix_list = (
 
 
 def create_ik(bone, chain_length, pole_target_offset, category_name):
-    bone_name = bone.name
-    bone_root_name = bone.parent.name
     if not bone.parent:
         return
+    bone_name = bone.name
+    bone_root_name = bone.parent.name
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.ops.object.select_all(action='DESELECT')
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
