@@ -61,27 +61,39 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         current_bone = current_bone.parent
         if not chain_index:
             fk_last_bone_name = fk_bone.name
+
     # set parent for ik/fk bones
     for edit_bone in arm.edit_bones:
         ik_bone_name = ik_bones.get(edit_bone.name, None)
         fk_bone_name = fk_bones.get(edit_bone.name, None)
         parent = edit_bone.parent
+
+        # set parent for ik bone
         if ik_bone_name:
             ik_bone = arm.edit_bones[ik_bone_name]
-            ik_parent_name = ik_bones.get(parent.name, None)
-            if ik_parent_name:
-                ik_parent = arm.edit_bones[ik_parent_name]
-                ik_bone.parent = ik_parent
-            else:
+            find_parent = False
+            if parent:
+                ik_parent_name = ik_bones.get(parent.name, None)
+                if ik_parent_name:
+                    ik_parent = arm.edit_bones[ik_parent_name]
+                    ik_bone.parent = ik_parent
+                    find_parent = True
+            if not find_parent:
                 ik_bone.parent = parent
+
+        # set parent for fk bone
         if fk_bone_name:
             fk_bone = arm.edit_bones[fk_bone_name]
-            fk_parent_name = fk_bones.get(parent.name, None)
-            if fk_parent_name:
-                fk_parent = arm.edit_bones[fk_parent_name]
-                fk_bone.parent = fk_parent
-            else:
+            find_parent = False
+            if parent:
+                fk_parent_name = fk_bones.get(parent.name, None)
+                if fk_parent_name:
+                    fk_parent = arm.edit_bones[fk_parent_name]
+                    fk_bone.parent = fk_parent
+                    find_parent = True
+            if not find_parent:
                 fk_bone.parent = parent
+
     target_bone = arm.edit_bones.new(bone.name + ik_target_suffix)
     target_bone_name = target_bone.name
     target_bone.head = bone.tail
