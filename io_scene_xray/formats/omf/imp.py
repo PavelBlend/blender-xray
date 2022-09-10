@@ -4,8 +4,8 @@ import mathutils
 
 # addon modules
 from . import fmt
+from .. import motions
 from ... import text
-from ... import motions
 from ... import log
 from ... import rw
 from ... import utils

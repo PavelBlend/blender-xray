@@ -2,10 +2,10 @@
 from . import imp
 from . import interp
 from . import utilites
-from .. import log
-from .. import utils
-from .. import text
-from .. import rw
+from ... import log
+from ... import utils
+from ... import text
+from ... import rw
 
 
 @log.with_context('envelope')

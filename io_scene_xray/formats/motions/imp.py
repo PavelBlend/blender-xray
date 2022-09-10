@@ -6,10 +6,10 @@ import mathutils
 from . import const
 from . import interp
 from . import utilites
-from .. import log
-from .. import text
-from .. import utils
-from .. import rw
+from ... import log
+from ... import text
+from ... import utils
+from ... import rw
 
 
 def skip_motion_rest(data, offs):

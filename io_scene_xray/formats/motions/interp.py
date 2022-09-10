@@ -12,9 +12,9 @@ class Behavior(enum.Enum):
 
 
 class Shape(enum.Enum):
-    TCB = 0  # Kochanek-Bartels
+    TCB = 0    # Kochanek-Bartels
     HERMITE = 1
-    BEZIER_1D = 2  # obsolete, equivalent to HERMITE
+    BEZIER_1D = 2    # obsolete, equivalent to HERMITE
     LINEAR = 3
     STEPPED = 4
     BEZIER_2D = 5

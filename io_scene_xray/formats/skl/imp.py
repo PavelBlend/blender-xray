@@ -3,10 +3,10 @@ import os
 
 # addon modules
 from .. import contexts
+from .. import motions
 from ... import log
 from ... import utils
 from ... import rw
-from ... import motions
 
 
 class ImportSklContext(contexts.ImportAnimationOnlyContext):

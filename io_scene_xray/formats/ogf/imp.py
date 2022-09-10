@@ -11,12 +11,12 @@ import mathutils
 from . import fmt
 from .. import level
 from .. import omf
+from .. import motions
 from ... import text
 from ... import data_blocks
 from ... import log
 from ... import utils
 from ... import rw
-from ... import motions
 
 
 class Visual(object):

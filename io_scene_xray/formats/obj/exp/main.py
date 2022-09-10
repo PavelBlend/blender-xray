@@ -9,12 +9,12 @@ import mathutils
 from . import mesh
 from . import bone
 from .. import fmt
+from ... import motions
 from .... import rw
 from .... import data_blocks
 from .... import text
 from .... import utils
 from .... import log
-from .... import motions
 
 
 def export_version(chunked_writer):

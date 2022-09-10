@@ -8,10 +8,10 @@ import bpy
 # addon modules
 from . import fmt
 from .. import contexts
+from .. import motions
 from ... import text
 from ... import utils
 from ... import log
-from ... import motions
 from ... import rw
 
 

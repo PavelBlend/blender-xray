@@ -11,12 +11,12 @@ from . import bone
 from . import mesh
 from .. import fmt
 from ... import skl
+from ... import motions
 from .... import text
 from .... import data_blocks
 from .... import log
 from .... import utils
 from .... import rw
-from .... import motions
 
 
 def import_main(file_path, context, creader):

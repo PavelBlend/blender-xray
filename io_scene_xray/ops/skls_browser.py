@@ -3,7 +3,6 @@ import bpy
 
 # addon modules
 from .. import rw
-from .. import motions
 from .. import text
 from .. import formats
 from .. import utils
@@ -141,7 +140,7 @@ class SklsFile():
             self.animations[name] = (offset, length)
             # skip the rest bytes of skl animation to the next animation
             self.pr.set_offset(offset_skip)
-            skip = motions.imp.skip_motion_rest(self.pr.getv(), 0)
+            skip = formats.motions.imp.skip_motion_rest(self.pr.getv(), 0)
             self.pr.skip(skip)
 
 
@@ -198,11 +197,11 @@ def import_anim(obj, skls, animation_name):
 
     import_context = formats.skl.imp.ImportSklContext()
     import_context.bpy_arm_obj = obj
-    import_context.motions_filter = motions.utilites.MOTIONS_FILTER_ALL
+    import_context.motions_filter = formats.motions.utilites.MOTIONS_FILTER_ALL
     import_context.filename = skls.file_path
 
     # import
-    motions.imp.import_motion(
+    formats.motions.imp.import_motion(
         skls.pr,
         import_context,
         bones_map,

@@ -9,13 +9,13 @@ import bpy_extras
 from . import imp
 from . import exp
 from .. import ie
+from .. import motions
 from ... import icons
 from ... import log
 from ... import ui
 from ... import rw
 from ... import utils
 from ... import text
-from ... import motions
 
 
 op_text = 'Skeletal Animations'

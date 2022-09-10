@@ -10,11 +10,11 @@ import mathutils
 # addon modules
 from . import fmt
 from .. import omf
+from .. import motions
 from ... import text
 from ... import rw
 from ... import log
 from ... import utils
-from ... import motions
 from ... import data_blocks
 
 

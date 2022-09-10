@@ -3,8 +3,8 @@ import bpy
 
 # addon modules
 from .. import contexts
+from .. import motions
 from ... import rw
-from ... import motions
 from ... import log
 from ... import utils
 

@@ -1,11 +1,11 @@
 # addon modules
 from . import main
 from .. import fmt
+from ... import motions
 from .... import text
 from .... import rw
 from .... import log
 from .... import utils
-from .... import motions
 
 
 def export_bone(

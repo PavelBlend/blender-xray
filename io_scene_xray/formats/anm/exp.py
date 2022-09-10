@@ -4,11 +4,11 @@ import bpy
 # addon modules
 from . import fmt
 from .. import contexts
+from .. import motions
 from ... import log
 from ... import utils
 from ... import text
 from ... import rw
-from ... import motions
 
 
 class ExportAnmContext(contexts.ExportContext):

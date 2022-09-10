@@ -9,7 +9,7 @@ import mathutils
 # addon modules
 from . import base_bone
 from .. import utils
-from .. import motions
+from .. import formats
 
 
 class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
@@ -111,7 +111,7 @@ def _bone_matrix(bone):
     elif xsh.type == '2':  # sphere
         mat = multiply(mat, _v2ms((xsh.sph_rad, xsh.sph_rad, xsh.sph_rad)))
     elif xsh.type == '3':  # cylinder
-        mat = multiply(mat, motions.const.MATRIX_BONE_INVERTED)
+        mat = multiply(mat, formats.motions.const.MATRIX_BONE_INVERTED)
         mat = multiply(
             mat,
             _v2ms((
