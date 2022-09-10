@@ -4,8 +4,8 @@ import mathutils
 
 # addon modules
 from . import base_bone
-from .. import formats
-from .. import utils
+from ... import formats
+from ... import utils
 
 
 class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):

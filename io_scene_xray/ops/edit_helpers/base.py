@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from .. import utils
+from ... import utils
 
 
 __HELPERS__ = dict()

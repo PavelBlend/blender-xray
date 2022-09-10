@@ -10,7 +10,6 @@ from . import props
 from . import icons
 from . import handlers
 from . import viewport
-from . import edit_helpers
 from . import translate
 from . import tests
 
@@ -27,7 +26,6 @@ modules = (
     menus,
     hotkeys,
     rig,
-    edit_helpers,
     viewport,
     translate,
     tests

@@ -1,7 +1,7 @@
 import bpy
 
 from tests.utils import XRayTestCase, set_active_object
-from io_scene_xray.edit_helpers.base import get_object_helper
+from io_scene_xray.ops.edit_helpers.base import get_object_helper
 from io_scene_xray.utils import is_helper_object
 
 

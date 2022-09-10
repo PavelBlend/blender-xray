@@ -6,7 +6,7 @@ from . import material
 from .. import ui
 from .. import icons
 from .. import utils
-from .. import edit_helpers
+from .. import ops
 
 
 BONE_TEXT_JOINT = []
@@ -102,7 +102,7 @@ class XRAY_PT_bone(ui.base.XRayPanel):
                 + ' version of this plugin',
                 icon='ERROR'
             )
-        edit_helpers.bone_shape.HELPER.draw(box.column(align=True), context)
+        ops.edit_helpers.bone_shape.HELPER.draw(box.column(align=True), context)
 
         column = box.column(align=True)
         row = column.row(align=True)
@@ -164,8 +164,8 @@ class XRAY_PT_bone(ui.base.XRayPanel):
         column.prop(data.mass, 'value')
         column.prop(data.mass, 'center')
         xray = context.active_object.data.xray
-        edit_helpers.bone_center.HELPER.size = xray.bone_mass_center_cross_size
-        edit_helpers.bone_center.HELPER.draw(column, context)
+        ops.edit_helpers.bone_center.HELPER.size = xray.bone_mass_center_cross_size
+        ops.edit_helpers.bone_center.HELPER.draw(column, context)
 
 
 def register():

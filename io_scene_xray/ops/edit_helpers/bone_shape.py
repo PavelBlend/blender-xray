@@ -8,8 +8,8 @@ import mathutils
 
 # addon modules
 from . import base_bone
-from .. import utils
-from .. import formats
+from ... import utils
+from ... import formats
 
 
 class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):

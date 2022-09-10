@@ -2,6 +2,7 @@
 from . import action
 from . import armature
 from . import bone
+from . import edit_helper
 from . import material
 from . import mesh
 from . import obj
@@ -14,6 +15,7 @@ modules = (
     action,
     armature,
     bone,
+    edit_helper,
     material,
     mesh,
     obj,

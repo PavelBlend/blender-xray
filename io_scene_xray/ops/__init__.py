@@ -3,6 +3,7 @@ from . import action
 from . import add
 from . import armature
 from . import bone
+from . import edit_helpers
 from . import material
 from . import obj
 from . import custom_props
@@ -21,6 +22,7 @@ modules = (
     add,
     armature,
     bone,
+    edit_helpers,
     material,
     obj,
     custom_props,

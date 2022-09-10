@@ -11,7 +11,6 @@ import gpu
 from . import utility
 from .. import viewport
 from .. import ops
-from .. import edit_helpers
 from .. import utils
 
 
@@ -23,7 +22,7 @@ shape_properties = {
             ('2', 'Sphere', ''),
             ('3', 'Cylinder', '')
         ),
-        update=lambda self, ctx: edit_helpers.bone_shape.HELPER.update(),
+        update=lambda self, ctx: ops.edit_helpers.bone_shape.HELPER.update(),
     ),
     'flags': bpy.props.IntProperty(),
     'flags_nopickable': utility.gen_flag_prop(mask=0x1),
