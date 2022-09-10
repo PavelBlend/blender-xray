@@ -290,131 +290,198 @@ def get_material(
     return bpy_material, bpy_image
 
 
-def get_image_relative_path(material, context, level_folder=None, no_err=True):
-    tx_name = ''
-    if utils.version.IS_28:
-        if material.use_nodes:
-            tex_nodes = []
-            active_node = material.node_tree.nodes.active
-            active_tex_node = None
-            tex_node = None
-            selected_nodes = []
-            for node in material.node_tree.nodes:
-                if node.type in utils.version.IMAGE_NODES:
-                    tex_nodes.append(node)
-                    if node == active_node:
-                        active_tex_node = node
-                    if node.select:
-                        selected_nodes.append(node)
-            if not len(tex_nodes) and not no_err:
-                raise log.AppError(
-                    text.error.no_tex,
-                    log.props(material=material.name)
+def _collect_material_textures_28(bpy_material):
+    tex_nodes = []
+    selected_nodes = []
+    active_tex_node = None
+    active_node = bpy_material.node_tree.nodes.active
+    for node in bpy_material.node_tree.nodes:
+        if node.type in utils.version.IMAGE_NODES:
+            tex_nodes.append(node)
+            if node == active_node:
+                active_tex_node = node
+            if node.select:
+                selected_nodes.append(node)
+    return tex_nodes, selected_nodes, active_tex_node
+
+
+def _find_texture_node_28(
+        bpy_material,
+        tex_nodes,
+        selected_nodes,
+        active_tex_node,
+        no_err
+    ):
+
+    tex_node = None
+    name = bpy_material.name
+
+    if not tex_nodes and not no_err:
+        raise log.AppError(
+            text.error.no_tex,
+            log.props(material=name)
+        )
+
+    elif len(tex_nodes) == 1:
+        tex_node = tex_nodes[0]
+
+    elif len(tex_nodes) > 1:
+        for node in bpy_material.node_tree.nodes:
+            if node.type == 'OUTPUT_MATERIAL':
+                if not node.is_active_output:
+                    continue
+                links = node.inputs['Surface'].links
+                if not links:
+                    continue
+                shader_node = links[0].from_node
+                tex_input = shader_node.inputs.get('Base Color')
+                if not tex_input:
+                    tex_input = shader_node.inputs.get('Color')
+                if not tex_input:
+                    continue
+                tex_links = tex_input.links
+                if not tex_links:
+                    continue
+                from_node = tex_links[0].from_node
+                if from_node.type in utils.version.IMAGE_NODES:
+                    tex_node = from_node
+                    log.warn(
+                        text.warn.use_shader_tex,
+                        node_name=tex_node.name,
+                        material_name=name
+                    )
+                    break
+
+        if not tex_node:
+            if active_tex_node:
+                tex_node = active_tex_node
+                log.warn(
+                    text.warn.use_active_tex,
+                    node_name=tex_node.name,
+                    material_name=name
                 )
-            elif len(tex_nodes) == 1:
-                tex_node = tex_nodes[0]
-            elif len(tex_nodes) > 1:
-                for node in material.node_tree.nodes:
-                    if node.type == 'OUTPUT_MATERIAL':
-                        if not node.is_active_output:
-                            continue
-                        links = node.inputs['Surface'].links
-                        if not links:
-                            continue
-                        shader_node = links[0].from_node
-                        tex_input = shader_node.inputs.get('Base Color')
-                        if not tex_input:
-                            tex_input = shader_node.inputs.get('Color')
-                        if not tex_input:
-                            continue
-                        tex_links = tex_input.links
-                        if not tex_links:
-                            continue
-                        from_node = tex_links[0].from_node
-                        if from_node.type in utils.version.IMAGE_NODES:
-                            tex_node = from_node
-                            log.warn(
-                                text.warn.use_shader_tex,
-                                node_name=tex_node.name,
-                                material_name=material.name
-                            )
-                            break
-                if not tex_node:
-                    if active_tex_node:
-                        tex_node = active_tex_node
-                        log.warn(
-                            text.warn.use_active_tex,
-                            node_name=tex_node.name,
-                            material_name=material.name
-                        )
-                    elif len(selected_nodes) == 1:
-                        tex_node = selected_nodes[0]
-                        log.warn(
-                            text.warn.use_selected_tex,
-                            node_name=tex_node.name,
-                            material_name=material.name
-                        )
-                    else:
-                        raise log.AppError(
-                            text.error.mat_many_tex,
-                            log.props(material=material.name)
-                        )
-            if tex_node:
-                if tex_node.image:
-                    if context.texname_from_path:
-                        tx_name = image.gen_texture_name(
-                            tex_node.image,
-                            context.textures_folder,
-                            level_folder=level_folder
-                        )
-                        if tex_node.type == 'TEX_ENVIRONMENT':
-                            log.warn(
-                                text.warn.env_tex,
-                                material_name=material.name,
-                                node_name=tex_node.name,
-                            )
-                    else:
-                        tx_name = tex_node.name
-            elif not no_err:
-                raise log.AppError(
-                    text.error.mat_no_img,
-                    log.props(material=material.name)
-                )
-        else:
-            raise log.AppError(
-                text.error.mat_not_use_nodes,
-                log.props(material=material.name)
-            )
-    else:
-        textures = []
-        for texture_slot in material.texture_slots:
-            if not texture_slot:
-                continue
-            texture = texture_slot.texture
-            if texture.type != 'IMAGE':
-                continue
-            if not texture.image:
-                continue
-            textures.append(texture)
-        texture = None
-        if not len(textures) and not no_err:
-            raise log.AppError(
-                text.error.no_tex,
-                log.props(material=material.name)
-            )
-        elif len(textures) == 1:
-            texture = textures[0]
-        elif len(textures) > 1:
-            # use the latest texture as it replaces
-            # all previous textures on the stack
-            texture = textures[-1]
-        if texture:
-            if context.texname_from_path:
-                tx_name = image.gen_texture_name(
-                    texture.image,
-                    context.textures_folder,
-                    level_folder=level_folder
+            elif len(selected_nodes) == 1:
+                tex_node = selected_nodes[0]
+                log.warn(
+                    text.warn.use_selected_tex,
+                    node_name=tex_node.name,
+                    material_name=name
                 )
             else:
-                tx_name = texture.name
-    return tx_name
+                raise log.AppError(
+                    text.error.mat_many_tex,
+                    log.props(material=name)
+                )
+
+    return tex_node
+
+
+def _get_image_relative_path_28(context, level_folder, bpy_material, no_err):
+    tex_name = ''
+    if bpy_material.use_nodes:
+        (
+            tex_nodes,
+            selected_nodes,
+            active_tex_node
+        ) = _collect_material_textures_28(bpy_material)
+
+        tex_node = _find_texture_node_28(
+            bpy_material,
+            tex_nodes,
+            selected_nodes,
+            active_tex_node,
+            no_err
+        )
+
+        if tex_node:
+            if tex_node.image:
+                if context.texname_from_path:
+                    tex_name = image.gen_texture_name(
+                        tex_node.image,
+                        context.textures_folder,
+                        level_folder=level_folder
+                    )
+                    if tex_node.type == 'TEX_ENVIRONMENT':
+                        log.warn(
+                            text.warn.env_tex,
+                            material_name=bpy_material.name,
+                            node_name=tex_node.name,
+                        )
+                else:
+                    tex_name = tex_node.name
+        else:
+            if not no_err:
+                raise log.AppError(
+                    text.error.mat_no_img,
+                    log.props(material=bpy_material.name)
+                )
+    else:
+        raise log.AppError(
+            text.error.mat_not_use_nodes,
+            log.props(material=bpy_material.name)
+        )
+    return tex_name
+
+
+def _collect_material_textures_27(bpy_material):
+    textures = []
+    for texture_slot in bpy_material.texture_slots:
+        if not texture_slot:
+            continue
+        texture = texture_slot.texture
+        if texture.type != 'IMAGE':
+            continue
+        if not texture.image:
+            continue
+        textures.append(texture)
+    return textures
+
+
+def _get_image_relative_path_27(context, level_folder, bpy_material, no_err):
+    texture = None
+    tex_name = ''
+    textures = _collect_material_textures_27(bpy_material)
+    if not len(textures) and not no_err:
+        raise log.AppError(
+            text.error.no_tex,
+            log.props(material=bpy_material.name)
+        )
+    elif len(textures) == 1:
+        texture = textures[0]
+    elif len(textures) > 1:
+        # use the latest texture as it replaces
+        # all previous textures on the stack
+        texture = textures[-1]
+    if texture:
+        if context.texname_from_path:
+            tex_name = image.gen_texture_name(
+                texture.image,
+                context.textures_folder,
+                level_folder=level_folder
+            )
+        else:
+            tex_name = texture.name
+    return tex_name
+
+
+def get_image_relative_path(
+        bpy_material,
+        context,
+        level_folder=None,
+        no_err=True
+    ):
+    if utils.version.IS_28:
+        tex_name = _get_image_relative_path_28(
+            context,
+            level_folder,
+            bpy_material,
+            no_err
+        )
+    else:
+        tex_name = _get_image_relative_path_27(
+            context,
+            level_folder,
+            bpy_material,
+            no_err
+        )
+    return tex_name

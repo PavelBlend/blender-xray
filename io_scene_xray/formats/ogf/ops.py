@@ -177,6 +177,10 @@ batch_export_props = {
         subtype="FILE_PATH",
         options={'HIDDEN'}
     ),
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    ),
     'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
     'export_motions': ie.PropObjectMotionsExport()
 }
