@@ -1,37 +1,37 @@
 # addon modules
-from . import action_utils
-from . import armature_utils
-from . import bone_tools
+from . import action
+from . import add
+from . import armature
+from . import bone
 from . import material
-from . import object_tools
-from . import custom_props_utils
-from . import fake_user_utils
+from . import obj
+from . import custom_props
+from . import fake_user
 from . import joint_limits
-from . import shader_tools
+from . import shader
 from . import skls_browser
-from . import transform_utils
-from . import verify_uv
+from . import transform
+from . import verify
 from . import update
 from . import viewer
-from . import xray_camera
 
 
 modules = (
-    action_utils,
-    armature_utils,
-    bone_tools,
+    action,
+    add,
+    armature,
+    bone,
     material,
-    object_tools,
-    custom_props_utils,
-    fake_user_utils,
+    obj,
+    custom_props,
+    fake_user,
     joint_limits,
-    shader_tools,
+    shader,
     skls_browser,
-    transform_utils,
-    verify_uv,
+    transform,
+    verify,
     update,
-    viewer,
-    xray_camera
+    viewer
 )
 
 

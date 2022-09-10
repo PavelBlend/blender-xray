@@ -102,8 +102,8 @@ class XRAY_PT_action(ui.base.XRayPanel):
         layout.separator()
         row = layout.row(align=True)
         row.label(text='Settings:')
-        row.operator(ops.action_utils.XRAY_OT_copy_action_settings.bl_idname)
-        row.operator(ops.action_utils.XRAY_OT_paste_action_settings.bl_idname)
+        row.operator(ops.action.XRAY_OT_copy_action_settings.bl_idname)
+        row.operator(ops.action.XRAY_OT_paste_action_settings.bl_idname)
         layout.context_pointer_set(formats.skl.ops.XRAY_OT_export_skl.bl_idname + '.action', action)
         layout.operator(formats.skl.ops.XRAY_OT_export_skl.bl_idname, icon='EXPORT')
 

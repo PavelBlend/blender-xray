@@ -245,7 +245,7 @@ class XRAY_PT_verify_tools(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.operator(
-            ops.verify_uv.XRAY_OT_verify_uv.bl_idname,
+            ops.verify.XRAY_OT_verify_uv.bl_idname,
             icon='GROUP_UVS'
         )
 
@@ -274,9 +274,9 @@ class XRAY_PT_transforms(bpy.types.Panel):
         column.prop(data, 'position')
         column.prop(data, 'orientation')
         column = lay.column(align=True)
-        column.operator(ops.transform_utils.XRAY_OT_update_blender_tranforms.bl_idname)
-        column.operator(ops.transform_utils.XRAY_OT_update_xray_tranforms.bl_idname)
-        column.operator(ops.transform_utils.XRAY_OT_copy_xray_tranforms.bl_idname)
+        column.operator(ops.transform.XRAY_OT_update_blender_tranforms.bl_idname)
+        column.operator(ops.transform.XRAY_OT_update_xray_tranforms.bl_idname)
+        column.operator(ops.transform.XRAY_OT_copy_xray_tranforms.bl_idname)
 
 
 class XRAY_PT_add(bpy.types.Panel):
@@ -296,7 +296,7 @@ class XRAY_PT_add(bpy.types.Panel):
     def draw(self, context):
         lay = self.layout
         lay.operator(
-            ops.xray_camera.XRAY_OT_add_camera.bl_idname,
+            ops.add.XRAY_OT_add_camera.bl_idname,
             icon='CAMERA_DATA'
         )
 
@@ -323,11 +323,11 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
             icon='COLOR'
         )
         column.operator(
-            ops.object_tools.XRAY_OT_colorize_objects.bl_idname,
+            ops.obj.XRAY_OT_colorize_objects.bl_idname,
             icon='COLOR'
         )
         column.operator(
-            ops.action_utils.XRAY_OT_change_action_bake_settings.bl_idname,
+            ops.action.XRAY_OT_change_action_bake_settings.bl_idname,
             icon='ACTION'
         )
         if utils.version.IS_28:
@@ -335,15 +335,15 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
         else:
             icon = 'MANIPUL'
         column.operator(
-            ops.object_tools.XRAY_OT_place_objects.bl_idname,
+            ops.obj.XRAY_OT_place_objects.bl_idname,
             icon=icon
         )
         column.operator(
-            ops.shader_tools.XRAY_OT_change_shader_params.bl_idname,
+            ops.shader.XRAY_OT_change_shader_params.bl_idname,
             icon='MATERIAL'
         )
         column.operator(
-            ops.fake_user_utils.XRAY_OT_change_fake_user.bl_idname,
+            ops.fake_user.XRAY_OT_change_fake_user.bl_idname,
             icon=utils.version.get_icon('FONT_DATA')
         )
 
@@ -367,7 +367,7 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
                 ops.material.XRAY_OT_switch_render.bl_idname,
                 text=switch_text
             )
-        column.operator(ops.action_utils.XRAY_OT_rename_actions.bl_idname)
+        column.operator(ops.action.XRAY_OT_rename_actions.bl_idname)
 
 
 class XRAY_PT_custom_props(bpy.types.Panel):
@@ -389,26 +389,26 @@ class XRAY_PT_custom_props(bpy.types.Panel):
         lay.label(text='Set Custom Properties:')
         col = lay.column(align=True)
         col.operator(
-            ops.custom_props_utils.XRAY_OT_set_xray_to_custom_props.bl_idname,
+            ops.custom_props.XRAY_OT_set_xray_to_custom_props.bl_idname,
             text='X-Ray to Custom',
             icon='FORWARD'
         )
         col.operator(
-            ops.custom_props_utils.XRAY_OT_set_custom_to_xray_props.bl_idname,
+            ops.custom_props.XRAY_OT_set_custom_to_xray_props.bl_idname,
             text='Custom to X-Ray',
             icon='BACK'
         )
         lay.label(text='Remove Custom Properties:')
         row = lay.row(align=True)
         row.operator(
-            ops.custom_props_utils.XRAY_OT_remove_xray_custom_props.bl_idname,
+            ops.custom_props.XRAY_OT_remove_xray_custom_props.bl_idname,
             text='X-Ray',
             icon='X'
         )
         row_danger = row.row(align=True)
         row_danger.alert = True
         row_danger.operator(
-            ops.custom_props_utils.XRAY_OT_remove_all_custom_props.bl_idname,
+            ops.custom_props.XRAY_OT_remove_all_custom_props.bl_idname,
             text='All',
             icon='CANCEL'
         )
@@ -437,14 +437,14 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
             rig.create_ik.XRAY_OT_create_ik.bl_idname
         )
         col.operator(
-            ops.bone_tools.XRAY_OT_resize_bones.bl_idname,
+            ops.bone.XRAY_OT_resize_bones.bl_idname,
             icon='FULLSCREEN_ENTER'
         )
         col.operator(
-            ops.armature_utils.XRAY_OT_link_bones.bl_idname
+            ops.armature.XRAY_OT_link_bones.bl_idname
         )
         col.operator(
-            ops.armature_utils.XRAY_OT_unlink_bones.bl_idname
+            ops.armature.XRAY_OT_unlink_bones.bl_idname
         )
         col.label(text='Joint Limits:')
         col.operator(
