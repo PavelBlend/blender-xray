@@ -6,7 +6,7 @@ from . import material
 from . import mesh
 from . import obj
 from . import scene
-from . import view3d
+from . import viewport
 from . import shader
 
 
@@ -18,7 +18,7 @@ modules = (
     mesh,
     obj,
     scene,
-    view3d,
+    viewport,
     shader
 )
 
