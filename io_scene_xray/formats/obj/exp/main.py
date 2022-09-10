@@ -11,7 +11,6 @@ from . import bone
 from .. import fmt
 from ... import motions
 from .... import rw
-from .... import data_blocks
 from .... import text
 from .... import utils
 from .... import log
@@ -320,7 +319,7 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
             sfw.puts('')
             sfw.puts('')
             sfw.puts('')
-        tx_name = data_blocks.material.get_image_relative_path(
+        tx_name = utils.material.get_image_relative_path(
             material,
             context
         )

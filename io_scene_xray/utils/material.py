@@ -6,13 +6,13 @@ import bpy
 
 # addon modules
 from . import image
+from . import version
 from .. import log
 from .. import text
-from .. import utils
 
 
 def _is_compatible_texture(texture, file_part):
-    tex_folder = utils.version.get_preferences().textures_folder_auto
+    tex_folder = version.get_preferences().textures_folder_auto
     tex_path = os.path.join(tex_folder, file_part) + os.extsep + 'dds'
     bpy_image = getattr(texture, 'image', None)
     if bpy_image is None:
@@ -41,7 +41,7 @@ def _check_material_image_28(bpy_material, tex_file_part):
         # collect image texture nodes
         tex_nodes = []
         for node in bpy_material.node_tree.nodes:
-            if node.type in utils.version.IMAGE_NODES:
+            if node.type in version.IMAGE_NODES:
                 tex_nodes.append(node)
         # check image node
         if len(tex_nodes) == 1:
@@ -115,12 +115,12 @@ def _search_material_and_image(
 
         # check is empty texture
         if not (texture and uv_map_name):
-            all_empty_textures = utils.version.is_all_empty_textures(material)
+            all_empty_textures = version.is_all_empty_textures(material)
             if all_empty_textures:
                 return material, bpy_image
 
         # check material image
-        if utils.version.IS_28:
+        if version.IS_28:
             bpy_material, bpy_image = _check_material_image_28(
                 material,
                 tex_file_part
@@ -142,7 +142,7 @@ def _create_material(name, context, flags, eshader, cshader, gamemtl):
     bpy_material.xray.eshader = eshader
     bpy_material.xray.cshader = cshader
     bpy_material.xray.gamemtl = gamemtl
-    if utils.version.IS_28:
+    if version.IS_28:
         bpy_material.use_nodes = True
         bpy_material.blend_method = 'CLIP'
     else:
@@ -235,7 +235,7 @@ def _create_material_and_image(
     # create texture and image
     bpy_image = None
     if texture:
-        if utils.version.IS_28:
+        if version.IS_28:
             bpy_image = _create_texture_28(bpy_material, texture, context)
         else:
             bpy_image = _create_texture_27(
@@ -296,7 +296,7 @@ def _collect_material_textures_28(bpy_material):
     active_tex_node = None
     active_node = bpy_material.node_tree.nodes.active
     for node in bpy_material.node_tree.nodes:
-        if node.type in utils.version.IMAGE_NODES:
+        if node.type in version.IMAGE_NODES:
             tex_nodes.append(node)
             if node == active_node:
                 active_tex_node = node
@@ -343,7 +343,7 @@ def _find_texture_node_28(
                 if not tex_links:
                     continue
                 from_node = tex_links[0].from_node
-                if from_node.type in utils.version.IMAGE_NODES:
+                if from_node.type in version.IMAGE_NODES:
                     tex_node = from_node
                     log.warn(
                         text.warn.use_shader_tex,
@@ -470,7 +470,7 @@ def get_image_relative_path(
         level_folder=None,
         no_err=True
     ):
-    if utils.version.IS_28:
+    if version.IS_28:
         tex_name = _get_image_relative_path_28(
             context,
             level_folder,

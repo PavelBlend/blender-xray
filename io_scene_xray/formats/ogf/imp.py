@@ -13,7 +13,6 @@ from .. import level
 from .. import omf
 from .. import motions
 from ... import text
-from ... import data_blocks
 from ... import log
 from ... import utils
 from ... import rw
@@ -1735,7 +1734,7 @@ def import_texture(context, chunks, ogf_chunks, visual):
     packed_reader = rw.read.PackedReader(chunk_data)
     texture = packed_reader.gets()
     shader = packed_reader.gets()
-    bpy_material, bpy_image = data_blocks.material.get_material(
+    bpy_material, bpy_image = utils.material.get_material(
         context,
         texture,    # material name
         texture,

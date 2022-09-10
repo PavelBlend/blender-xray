@@ -13,7 +13,6 @@ from .. import fmt
 from ... import skl
 from ... import motions
 from .... import text
-from .... import data_blocks
 from .... import log
 from .... import utils
 from .... import rw
@@ -87,7 +86,7 @@ def import_main(file_path, context, creader):
                     renamemap[vmap.lower()] = vmap
                     flags = reader.int()
                     reader.skip(4 + 4)    # fvf and ?
-                bpy_material, bpy_image = data_blocks.material.get_material(
+                bpy_material, bpy_image = utils.material.get_material(
                     context,
                     name,
                     texture,

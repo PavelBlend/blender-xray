@@ -5,7 +5,6 @@ import os
 from ... import log
 from ... import text
 from ... import utils
-from ... import data_blocks
 
 
 @log.with_context(name='export-dm')
@@ -52,7 +51,7 @@ def validate_export_object(context, bpy_obj, file_path):
         level_folder = None
     else:
         level_folder = os.path.dirname(file_path) + os.sep
-    texture_name = data_blocks.material.get_image_relative_path(
+    texture_name = utils.material.get_image_relative_path(
         bpy_material,
         context,
         level_folder=level_folder,

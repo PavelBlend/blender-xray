@@ -15,7 +15,6 @@ from ... import text
 from ... import rw
 from ... import log
 from ... import utils
-from ... import data_blocks
 
 
 multiply = utils.version.get_multiply()
@@ -187,7 +186,7 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     material = materials[0]
 
     # generate texture path
-    texture_path = data_blocks.material.get_image_relative_path(
+    texture_path = utils.material.get_image_relative_path(
         material,
         context,
         no_err=False

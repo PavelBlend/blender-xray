@@ -15,7 +15,6 @@ from .. import xr
 from ... import text
 from ... import utils
 from ... import log
-from ... import data_blocks
 from ... import rw
 
 
@@ -351,7 +350,7 @@ def write_shaders(level):
     context = ExportLevelContext(texture_folder)
     for shader_index in range(materials_count):
         material = materials[shader_index]
-        texture_path = data_blocks.material.get_image_relative_path(
+        texture_path = utils.material.get_image_relative_path(
             material,
             context,
             level_folder=level.source_level_path,
@@ -368,7 +367,7 @@ def write_shaders(level):
                 eshader, texture_path, lmap_1_name, lmap_2_name
             ))
         elif lmap_1_image and not lmap_2_image:
-            lmap_1_path = data_blocks.image.gen_texture_name(
+            lmap_1_path = utils.image.gen_texture_name(
                 lmap_1_image,
                 texture_folder,
                 level_folder=level.source_level_path

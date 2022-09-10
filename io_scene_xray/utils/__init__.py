@@ -11,6 +11,8 @@ import bpy_extras
 # addon modules
 from . import draw
 from . import ie
+from . import image
+from . import material
 from . import mesh
 from . import bone
 from . import version
