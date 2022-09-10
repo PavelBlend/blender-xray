@@ -7,7 +7,7 @@ from . import mesh
 from . import obj
 from . import scene
 from . import view3d
-from . import shader_editor
+from . import shader
 
 
 modules = (
@@ -19,7 +19,7 @@ modules = (
     obj,
     scene,
     view3d,
-    shader_editor
+    shader
 )
 
 
