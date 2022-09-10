@@ -5,7 +5,7 @@ import math
 import bgl
 
 # addon modules
-from . import settings
+from . import const
 
 
 axis_draw_functions = {
@@ -89,11 +89,11 @@ def gen_limit_circle(
     bgl.glBegin(bgl.GL_LINE_STRIP)
     bgl.glColor4f(*color)
     gen_arc_vary(radius, min_limit, max_limit)
-    bgl.glColor4f(*settings.GREY_COLOR)
+    bgl.glColor4f(*const.GREY_COLOR)
     gen_arc_vary(radius, max_limit, 2.0 * math.pi + min_limit)
     bgl.glEnd()
 
-    bgl.glPointSize(settings.POINT_SIZE)
+    bgl.glPointSize(const.POINT_SIZE)
     bgl.glColor4f(*color)
     bgl.glBegin(bgl.GL_POINTS)
     gen_arc(radius, rotate, rotate + 1, 1, fconsumer)
@@ -101,12 +101,12 @@ def gen_limit_circle(
 
 
 def draw_joint_limits(rotate, min_limit, max_limit, axis, radius):
-    color = settings.AXIS_COLORS[axis]
+    color = const.AXIS_COLORS[axis]
     if axis != 'Z':
         rotate = -rotate
     gen_limit_circle(
         rotate, radius,
-        settings.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
+        const.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
         axis_draw_functions[axis], color,
         min_limit, max_limit
     )
@@ -118,11 +118,11 @@ def draw_slider_rotation_limits(
         rotation_max,
         radius
     ):
-    color = settings.AXIS_COLORS['Z']
+    color = const.AXIS_COLORS['Z']
     gen_limit_circle(
         rotation,
         radius,
-        settings.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
+        const.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
         axis_draw_functions['Z'],
         color,
         rotation_min,

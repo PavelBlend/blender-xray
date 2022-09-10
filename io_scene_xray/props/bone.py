@@ -223,7 +223,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
 
         prev_line_width = bgl.Buffer(bgl.GL_FLOAT, [1])
         bgl.glGetFloatv(bgl.GL_LINE_WIDTH, prev_line_width)
-        bgl.glLineWidth(viewport.settings.LINE_WIDTH)
+        bgl.glLineWidth(viewport.const.LINE_WIDTH)
 
         bgl.glEnable(bgl.GL_BLEND)
 
@@ -430,14 +430,14 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 if shape.type == '2':  # sphere
                     viewport.draw_sphere(
                         shape.sph_rad,
-                        viewport.settings.BONE_SHAPE_SPHERE_SEGMENTS_COUNT,
+                        viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT,
                         color=color
                     )
                 if shape.type == '3':  # cylinder
                     viewport.draw_cylinder(
                         shape.cyl_rad,
                         shape.cyl_hgh * 0.5,
-                        viewport.settings.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT,
+                        viewport.const.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT,
                         color
                     )
             finally:
@@ -455,13 +455,13 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 if shape.type == '2':  # sphere
                     viewport.draw_sphere(
                         shape.sph_rad,
-                        viewport.settings.BONE_SHAPE_SPHERE_SEGMENTS_COUNT
+                        viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT
                     )
                 if shape.type == '3':  # cylinder
                     viewport.draw_cylinder(
                         shape.cyl_rad,
                         shape.cyl_hgh * 0.5,
-                        viewport.settings.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT
+                        viewport.const.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT
                     )
             finally:
                 bgl.glPopMatrix()

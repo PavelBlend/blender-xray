@@ -4,7 +4,7 @@ import bpy
 # addon modules
 from . import gl_utils
 from . import gpu_utils
-from . import settings
+from . import const
 from .. import utils
 
 

@@ -7,7 +7,7 @@ import bgl
 import mathutils
 
 # addon modules
-from . import settings
+from . import const
 from .. import utils
 
 if utils.version.IS_28:
@@ -242,14 +242,14 @@ def gen_limit_circle(
         indices=indices
     )
     shader.bind()
-    shader.uniform_float("color", settings.GREY_COLOR)
+    shader.uniform_float("color", const.GREY_COLOR)
     batch.draw(shader)
 
     coords = []
     indices = []
     gen_arc(radius, rotate, rotate + 1, 1, fconsumer, indices, close=False)
 
-    bgl.glPointSize(settings.POINT_SIZE)
+    bgl.glPointSize(const.POINT_SIZE)
 
     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
     batch = gpu_extras.batch.batch_for_shader(
@@ -263,12 +263,12 @@ def gen_limit_circle(
 
 
 def draw_joint_limits(rotate, min_limit, max_limit, axis, radius):
-    color = settings.AXIS_COLORS[axis]
+    color = const.AXIS_COLORS[axis]
     if axis != 'Z':
         rotate = -rotate
     gen_limit_circle(
         rotate, radius,
-        settings.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
+        const.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
         axis, color,
         min_limit, max_limit
     )
@@ -280,11 +280,11 @@ def draw_slider_rotation_limits(
         rotation_max,
         radius
     ):
-    color = settings.AXIS_COLORS['Z']
+    color = const.AXIS_COLORS['Z']
     gen_limit_circle(
         rotation,
         radius,
-        settings.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
+        const.JOINT_LIMITS_CIRCLE_SEGMENTS_COUNT,
         'Z',
         color,
         rotation_min,
