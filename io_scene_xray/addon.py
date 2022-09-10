@@ -3,7 +3,6 @@ from . import ui
 from . import menus
 from . import panels
 from . import prefs
-from . import hotkeys
 from . import ops
 from . import props
 from . import icons
@@ -23,7 +22,6 @@ modules = (
     ui,
     panels,
     menus,
-    hotkeys,
     viewport,
     translate,
     tests

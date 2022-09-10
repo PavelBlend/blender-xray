@@ -66,7 +66,7 @@ def import_main(context, level, data=None):
         prep = packed_reader.prep('3I2H')
         for tris_index in range(tris_count):
             vert_1, vert_2, vert_3, mat, sector = packed_reader.getp(prep)
-            # 14 bit material id
+            # 0-14 bits material id
             mat_id = mat & 0x3fff
             # 15 bit suppress shadows
             shadows = bool(mat & 0x4000)

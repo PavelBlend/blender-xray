@@ -5,11 +5,11 @@ import os
 import bpy
 
 # addon modules
+from . import hotkeys
 from .. import rw
 from .. import utils
 from .. import menus
 from .. import text
-from .. import hotkeys
 from .. import formats
 
 

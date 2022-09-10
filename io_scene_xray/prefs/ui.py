@@ -3,10 +3,10 @@ import rna_keymap_ui
 
 # addon modules
 from . import ops
+from . import hotkeys
 from . import props
 from . import preset
 from .. import utils
-from .. import hotkeys
 
 
 path_props_names = {
