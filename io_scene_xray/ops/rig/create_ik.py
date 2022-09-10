@@ -6,8 +6,8 @@ import bpy
 import mathutils
 
 # addon modules
-from .. import utils
-from .. import text
+from ... import utils
+from ... import text
 
 
 bone_layers = [False, ] * 32

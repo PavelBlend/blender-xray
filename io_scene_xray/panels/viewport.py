@@ -7,7 +7,6 @@ from .. import icons
 from .. import menus
 from .. import utils
 from .. import ops
-from .. import rig
 from .. import formats
 
 
@@ -431,10 +430,10 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
     def draw(self, context):
         col = self.layout.column(align=True)
         col.operator(
-            rig.connect_bones.XRAY_OT_create_connected_bones.bl_idname
+            ops.rig.connect_bones.XRAY_OT_create_connected_bones.bl_idname
         )
         col.operator(
-            rig.create_ik.XRAY_OT_create_ik.bl_idname
+            ops.rig.create_ik.XRAY_OT_create_ik.bl_idname
         )
         col.operator(
             ops.bone.XRAY_OT_resize_bones.bl_idname,
@@ -494,7 +493,7 @@ class XRAY_PT_rig(bpy.types.Panel):
         bones = obj.pose.bones
         ik_fk_bones = []
         for bone in bones:
-            ik_fk_prop = bone.get(rig.create_ik.IK_FK_PROP_NAME, None)
+            ik_fk_prop = bone.get(ops.rig.create_ik.IK_FK_PROP_NAME, None)
             if not ik_fk_prop is None:
                 ik_fk_bones.append(bone)
         if not ik_fk_bones:
@@ -506,7 +505,7 @@ class XRAY_PT_rig(bpy.types.Panel):
         for ik_bone in ik_fk_bones:
             col.prop(
                 ik_bone,
-                '["{}"]'.format(rig.create_ik.IK_FK_PROP_NAME),
+                '["{}"]'.format(ops.rig.create_ik.IK_FK_PROP_NAME),
                 text=ik_bone['bone_category']
             )
 

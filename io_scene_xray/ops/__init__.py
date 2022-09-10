@@ -9,6 +9,7 @@ from . import obj
 from . import custom_props
 from . import fake_user
 from . import joint_limits
+from . import rig
 from . import shader
 from . import skls_browser
 from . import transform
@@ -28,6 +29,7 @@ modules = (
     custom_props,
     fake_user,
     joint_limits,
+    rig,
     shader,
     skls_browser,
     transform,
