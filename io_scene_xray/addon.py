@@ -1,3 +1,4 @@
+# addon modules
 from . import formats
 from . import ui
 from . import menus

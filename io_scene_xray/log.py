@@ -8,96 +8,51 @@ import bpy
 from . import text
 
 
-# Context Handling
-CTX_NAME = '@context'
-__ctx__ = [None]
+CONTEX_NAME = '@context'
+__logger__ = None
+__context__ = None
 
 
 class AppError(Exception):
     def __init__(self, message, ctx=None):
+        super().__init__(message)
         if ctx is None:
             ctx = props()
-        super().__init__(message)
         self.ctx = ctx
 
 
-def with_context(name=None):
-    def decorator(func):
-        def wrap(*args, **kwargs):
-            saved = __ctx__[0]
-            try:
-                __ctx__[0] = _Ctx({CTX_NAME:name}, saved)
-                return func(*args, **kwargs)
-            finally:
-                __ctx__[0] = saved
-        return wrap
-    return decorator
-
-
-def update(**kwargs):
-    __ctx__[0].data.update(**kwargs)
-
-
-def props(**kwargs):
-    return _Ctx(kwargs, __ctx__[0], True)
-
-
-# Logging
-
-__logger__ = [None]
-
-
-def warn(message, **kwargs):
-    __logger__[0].warn(message, props(**kwargs))
-
-
-def err(error):
-    __logger__[0].err(str(error), error.ctx)
-
-
-def debug(message, **kwargs):
-    print('debug: %s: %s' % (message, kwargs))
-
-
-@contextlib.contextmanager
-def using_logger(logger):
-    saved = __logger__[0]
-    try:
-        __logger__[0] = logger
-        yield
-    finally:
-        __logger__[0] = saved
-
-
-# Implementation
-
-class _Ctx:
+class _LoggerContext:
     def __init__(self, data, parent=None, lightweight=False):
         self.data = data
         self.parent = parent
-        self.depth = (parent.depth + 1) if parent else 0
         self.lightweight = lightweight
+        if parent:
+            self.depth = (parent.depth + 1)
+        else:
+            self.depth = 0
 
 
 class Logger:
     def __init__(self, report):
         self._report = report
-        self._full = list()
+        self._full = []
 
     def message_format(self, message):
         message = str(message)
         message = text.get_text(message)
         message = message.strip()
-        message = message[0].upper() + message[1:]
+        message = message[0].upper() + message[1: ]
         return message
 
-    def warn(self, message, ctx=None):
+    def message(self, message, message_type, ctx):
         message = self.message_format(message)
-        self._full.append((message, ctx, 'WARNING'))
+        self._full.append((message, ctx, message_type))
+
+    def warn(self, message, ctx=None):
+        self.message(message, 'WARNING', ctx)
 
     def err(self, message, ctx=None):
-        message = self.message_format(message)
-        self._full.append((message, ctx, 'ERROR'))
+        self.message(message, 'ERROR', ctx)
 
     def flush(self, logname='log'):
         uniq = dict()
@@ -131,11 +86,11 @@ class Logger:
         last_line_is_message = False
 
         def fmt_data(data):
-            if CTX_NAME in data:
+            if CONTEX_NAME in data:
                 name = None
                 args = []
                 for key, val in data.items():
-                    if key is CTX_NAME:
+                    if key is CONTEX_NAME:
                         name = val
                     else:
                         args.append('%s=%s' % (key, repr(val)))
@@ -192,17 +147,38 @@ class Logger:
         )
 
 
-@contextlib.contextmanager
-def logger(name, report):
-    lgr = Logger(report)
-    try:
-        with using_logger(lgr):
-            yield
-    except AppError as err:
-        lgr.err(str(err), err.ctx)
-        raise err
-    finally:
-        lgr.flush(name)
+def with_context(name=None):
+    def decorator(func):
+        def wrap(*args, **kwargs):
+            global __context__
+            saved = __context__
+            try:
+                __context__ = _LoggerContext({CONTEX_NAME: name}, saved)
+                return func(*args, **kwargs)
+            finally:
+                __context__ = saved
+        return wrap
+    return decorator
+
+
+def update(**kwargs):
+    __context__.data.update(**kwargs)
+
+
+def props(**kwargs):
+    return _LoggerContext(kwargs, __context__, True)
+
+
+def warn(message, **kwargs):
+    __logger__.warn(message, props(**kwargs))
+
+
+def err(error):
+    __logger__.err(str(error), error.ctx)
+
+
+def debug(message, **kwargs):
+    print('debug: %s: %s' % (message, kwargs))
 
 
 def execute_with_logger(method):
@@ -215,3 +191,27 @@ def execute_with_logger(method):
             return {'CANCELLED'}
 
     return wrapper
+
+
+@contextlib.contextmanager
+def using_logger(logger_obj):
+    global __logger__
+    saved = __logger__
+    try:
+        __logger__ = logger_obj
+        yield
+    finally:
+        __logger__ = saved
+
+
+@contextlib.contextmanager
+def logger(name, report):
+    logger_obj = Logger(report)
+    try:
+        with using_logger(logger_obj):
+            yield
+    except AppError as err:
+        logger_obj.err(str(err), err.ctx)
+        raise err
+    finally:
+        logger_obj.flush(name)
