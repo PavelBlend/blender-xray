@@ -12,6 +12,7 @@ from . import joint_limits
 from . import rig
 from . import shader
 from . import skls_browser
+from . import tests
 from . import transform
 from . import verify
 from . import update
@@ -32,6 +33,7 @@ modules = (
     rig,
     shader,
     skls_browser,
+    tests,
     transform,
     verify,
     update,

@@ -8,7 +8,7 @@ import bpy_extras
 import mathutils
 
 # addon modules
-from . import utils
+from .. import utils
 
 
 def clear_bpy_collection(bpy_collection):

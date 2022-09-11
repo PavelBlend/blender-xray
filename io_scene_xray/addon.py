@@ -8,7 +8,6 @@ from . import props
 from . import handlers
 from . import viewport
 from . import text
-from . import tests
 
 
 modules = (
@@ -21,8 +20,7 @@ modules = (
     panels,
     menus,
     viewport,
-    text,
-    tests
+    text
 )
 
 
