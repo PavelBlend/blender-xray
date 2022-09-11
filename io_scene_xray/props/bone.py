@@ -183,7 +183,11 @@ def set_ikflags_breakable(self, value):
 
 
 xray_bone_properties = {
-    'exportable': bpy.props.BoolProperty(default=True, description='Enable Bone to be exported'),
+    'exportable': bpy.props.BoolProperty(
+        name='Exportable',
+        default=True,
+        description='Enable Bone to be exported'
+    ),
     'version': bpy.props.IntProperty(),
     'length': bpy.props.FloatProperty(name='Length'),
     'gamemtl': bpy.props.StringProperty(default='default_object'),
