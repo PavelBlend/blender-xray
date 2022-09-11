@@ -2,16 +2,16 @@
 import bpy
 
 # addon modules
-from . import rus
-
-
-def get_tip(message, message_context='*'):
-    return bpy.app.translations.pgettext_tip(message, message_context)
+from . import error
+from . import warn
 
 
 def register():
+    translation = {}
+    translation.update(error.translation)
+    translation.update(warn.translation)
     translations = {
-        'ru_RU': rus.translation,
+        'ru_RU': translation,
     }
     bpy.app.translations.register('io_scene_xray', translations)
 

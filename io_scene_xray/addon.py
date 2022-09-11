@@ -7,7 +7,7 @@ from . import ops
 from . import props
 from . import handlers
 from . import viewport
-from . import translate
+from . import text
 from . import tests
 
 
@@ -21,7 +21,7 @@ modules = (
     panels,
     menus,
     viewport,
-    translate,
+    text,
     tests
 )
 
