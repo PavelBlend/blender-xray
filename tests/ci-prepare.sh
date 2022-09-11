@@ -4,15 +4,15 @@ set -e
 DIR="blender/$BLENDER_VERSION"
 if [ ! -e "$DIR/blender" ]; then
     FROM="http://download.blender.org/release/Blender$BLENDER_VERSION"
-    PYTHON_VERSION="3.5"
     NONE="NONE"
     TAR="NONE"
     case "$BLENDER_VERSION" in
         "2.79")
             TBZ="blender-$BLENDER_VERSION-linux-glibc219-x86_64.tar.bz2"
+            PYTHON_VERSION="3.5"
             ;;
-        "3.2")
-            TAR="blender-$BLENDER_VERSION.1-linux-x64.tar.xz"
+        "3.3")
+            TAR="blender-$BLENDER_VERSION.0-linux-x64.tar.xz"
             PYTHON_VERSION="3.10"
             ;;
         *)
