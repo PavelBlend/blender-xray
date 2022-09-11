@@ -9,7 +9,7 @@ from .. import ops
 from .. import formats
 
 
-class XRAY_PT_update(bpy.types.Panel):
+class XRAY_PT_update(ui.base.XRayPanel):
     bl_label = 'Update'
     bl_space_type = 'VIEW_3D'
     bl_category = ui.base.CATEGORY
@@ -18,10 +18,6 @@ class XRAY_PT_update(bpy.types.Panel):
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
-
-    def draw_header(self, context):
-        icon = ui.icons.get_stalker_icon()
-        self.layout.label(icon_value=icon)
 
     def draw(self, context):
         layout = self.layout
@@ -118,7 +114,7 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
             imp_op.mode = 'ALL'
 
 
-class XRAY_PT_viewer(bpy.types.Panel):
+class XRAY_PT_viewer(ui.base.XRayPanel):
     bl_label = 'Viewer'
     bl_space_type = 'VIEW_3D'
     bl_category = ui.base.CATEGORY
@@ -127,10 +123,6 @@ class XRAY_PT_viewer(bpy.types.Panel):
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
-
-    def draw_header(self, context):
-        icon = ui.icons.get_stalker_icon()
-        self.layout.label(icon_value=icon)
 
     def draw(self, context):
         layout = self.layout
@@ -226,7 +218,7 @@ class XRAY_PT_viewer(bpy.types.Panel):
             )
 
 
-class XRAY_PT_verify_tools(bpy.types.Panel):
+class XRAY_PT_verify_tools(ui.base.XRayPanel):
     bl_label = 'Verify'
     bl_space_type = 'VIEW_3D'
     bl_category = ui.base.CATEGORY
@@ -236,10 +228,6 @@ class XRAY_PT_verify_tools(bpy.types.Panel):
     else:
         bl_region_type = 'TOOLS'
 
-    def draw_header(self, context):
-        icon = ui.icons.get_stalker_icon()
-        self.layout.label(icon_value=icon)
-
     def draw(self, context):
         layout = self.layout
         layout.operator(
@@ -248,7 +236,7 @@ class XRAY_PT_verify_tools(bpy.types.Panel):
         )
 
 
-class XRAY_PT_transforms(bpy.types.Panel):
+class XRAY_PT_transforms(ui.base.XRayPanel):
     bl_label = 'Transforms'
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -257,10 +245,6 @@ class XRAY_PT_transforms(bpy.types.Panel):
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
-
-    def draw_header(self, context):
-        icon = ui.icons.get_stalker_icon()
-        self.layout.label(icon_value=icon)
 
     def draw(self, context):
         lay = self.layout
@@ -277,7 +261,7 @@ class XRAY_PT_transforms(bpy.types.Panel):
         column.operator(ops.transform.XRAY_OT_copy_xray_tranforms.bl_idname)
 
 
-class XRAY_PT_add(bpy.types.Panel):
+class XRAY_PT_add(ui.base.XRayPanel):
     bl_label = 'Add'
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -287,10 +271,6 @@ class XRAY_PT_add(bpy.types.Panel):
     else:
         bl_region_type = 'TOOLS'
 
-    def draw_header(self, context):
-        icon = ui.icons.get_stalker_icon()
-        self.layout.label(icon_value=icon)
-
     def draw(self, context):
         lay = self.layout
         lay.operator(
@@ -299,7 +279,7 @@ class XRAY_PT_add(bpy.types.Panel):
         )
 
 
-class XRAY_PT_batch_tools(bpy.types.Panel):
+class XRAY_PT_batch_tools(ui.base.XRayPanel):
     bl_label = 'Batch Tools'
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -308,10 +288,6 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
-
-    def draw_header(self, context):
-        icon = ui.icons.get_stalker_icon()
-        self.layout.label(icon_value=icon)
 
     def draw(self, context):
         layout = self.layout
@@ -368,7 +344,7 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
         column.operator(ops.action.XRAY_OT_rename_actions.bl_idname)
 
 
-class XRAY_PT_custom_props(bpy.types.Panel):
+class XRAY_PT_custom_props(ui.base.XRayPanel):
     bl_label = 'Custom Properties'
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -377,10 +353,6 @@ class XRAY_PT_custom_props(bpy.types.Panel):
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
-
-    def draw_header(self, context):
-        icon = ui.icons.get_stalker_icon()
-        self.layout.label(icon_value=icon)
 
     def draw(self, context):
         lay = self.layout
@@ -412,7 +384,7 @@ class XRAY_PT_custom_props(bpy.types.Panel):
         )
 
 
-class XRAY_PT_armature_tools(bpy.types.Panel):
+class XRAY_PT_armature_tools(ui.base.XRayPanel):
     bl_label = 'Armature Tools'
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -421,10 +393,6 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
-
-    def draw_header(self, context):
-        icon = ui.icons.get_stalker_icon()
-        self.layout.label(icon_value=icon)
 
     def draw(self, context):
         col = self.layout.column(align=True)
@@ -466,7 +434,7 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
         )
 
 
-class XRAY_PT_rig(bpy.types.Panel):
+class XRAY_PT_rig(ui.base.XRayPanel):
     bl_label = 'Rig'
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -475,10 +443,6 @@ class XRAY_PT_rig(bpy.types.Panel):
         bl_region_type = 'UI'
     else:
         bl_region_type = 'TOOLS'
-
-    def draw_header(self, context):
-        icon = ui.icons.get_stalker_icon()
-        self.layout.label(icon_value=icon)
 
     def draw(self, context):
         col = self.layout.column(align=True)
@@ -509,7 +473,7 @@ class XRAY_PT_rig(bpy.types.Panel):
             )
 
 
-class XRAY_PT_import_operators(bpy.types.Panel):
+class XRAY_PT_import_operators(ui.base.XRayPanel):
     bl_label = 'Import'
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -526,10 +490,6 @@ class XRAY_PT_import_operators(bpy.types.Panel):
         )
         return bool(enabled_import_operators)
 
-    def draw_header(self, context):
-        icon = ui.icons.get_stalker_icon()
-        self.layout.label(icon_value=icon)
-
     def draw(self, context):
         col = self.layout.column(align=True)
         preferences = utils.version.get_preferences()
@@ -539,7 +499,7 @@ class XRAY_PT_import_operators(bpy.types.Panel):
                 col.operator(operator.bl_idname, text=label, icon='IMPORT')
 
 
-class XRAY_PT_export_operators(bpy.types.Panel):
+class XRAY_PT_export_operators(ui.base.XRayPanel):
     bl_label = 'Export'
     bl_category = ui.base.CATEGORY
     bl_space_type = 'VIEW_3D'
@@ -555,10 +515,6 @@ class XRAY_PT_export_operators(bpy.types.Panel):
             menus.export_draw_functions
         )
         return bool(enabled_export_operators)
-
-    def draw_header(self, context):
-        icon = ui.icons.get_stalker_icon()
-        self.layout.label(icon_value=icon)
 
     def draw(self, context):
         col = self.layout.column(align=True)

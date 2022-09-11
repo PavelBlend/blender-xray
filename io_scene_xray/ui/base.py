@@ -19,4 +19,5 @@ class XRayPanel(bpy.types.Panel):
     bl_region_type = 'WINDOW'
 
     def draw_header(self, context):
-        self.layout.label(icon_value=ui.icons.get_stalker_icon())
+        icon = ui.icons.get_stalker_icon()
+        self.layout.label(icon_value=icon)
