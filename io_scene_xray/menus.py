@@ -91,12 +91,12 @@ def append_menu_func():
 
     if preferences.compact_menus:
         # create compact import menus
-        enabled_import_operators = get_enabled_operators(import_draw_functions)
-        if enabled_import_operators:
+        enabled_imp_ops = get_enabled_operators(import_draw_functions)
+        if enabled_imp_ops:
             import_menu.prepend(menu_func_xray_import)
         # create compact export menus
-        enabled_export_operators = get_enabled_operators(export_draw_functions)
-        if enabled_export_operators:
+        enabled_exp_ops = get_enabled_operators(export_draw_functions)
+        if enabled_exp_ops:
             export_menu.prepend(menu_func_xray_export)
     else:
         # create standart import menus

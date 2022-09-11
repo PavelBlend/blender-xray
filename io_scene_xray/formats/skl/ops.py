@@ -173,7 +173,10 @@ class XRAY_OT_import_skls(ie.BaseOperator, bpy_extras.io_utils.ImportHelper):
 
 
 export_props = {
-    'filter_glob': bpy.props.StringProperty(default='*' + skl_ext, options={'HIDDEN'}),
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+skl_ext,
+        options={'HIDDEN'}
+    ),
 }
 
 
@@ -216,11 +219,17 @@ class XRAY_OT_export_skl(ie.BaseOperator, bpy_extras.io_utils.ExportHelper):
 
 
 export_props = {
-    'filter_glob': bpy.props.StringProperty(default='*' + skls_ext, options={'HIDDEN'}),
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+skls_ext,
+        options={'HIDDEN'}
+    ),
 }
 
 
-class XRAY_OT_export_skls_file(ie.BaseOperator, utils.FilenameExtHelper):
+class XRAY_OT_export_skls_file(
+        ie.BaseOperator,
+        bpy_extras.io_utils.ExportHelper
+    ):
     bl_idname = 'xray_export.skls_file'
     bl_label = 'Export .skls'
     bl_description = 'Exports X-Ray skeletal animation'
@@ -235,22 +244,45 @@ class XRAY_OT_export_skls_file(ie.BaseOperator, utils.FilenameExtHelper):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def export(self, context):
+    @log.execute_with_logger
+    @utils.execute_require_filepath
+    @utils.set_cursor_state
+    def execute(self, context):
         export_context = exp.ExportSklsContext()
         export_context.bpy_arm_obj = context.selected_objects[0]
+        if not self.filepath.lower().endswith(skls_ext):
+            self.filepath += skls_ext
         try:
             exp.export_skls_file(self.filepath, export_context, self.actions)
         except log.AppError as err:
             log.err(err)
+        return {'FINISHED'}
 
     @utils.invoke_require_armature
     def invoke(self, context, event):
+        if context.active_object:
+            obj = context.active_object
+        elif context.selected_objects:
+            obj = context.selected_objects[0]
+        else:
+            obj = None
+        if obj:
+            self.filepath = obj.name
+            if not self.filepath.lower().endswith(self.filename_ext):
+                self.filepath += self.filename_ext
+        else:
+            self.report(
+                {'ERROR'},
+                text.get_text(text.error.no_active_obj)
+            )
+            return {'CANCELLED'}
         self.actions = []
-        for motion in context.selected_objects[0].xray.motions_collection:
+        for motion in obj.xray.motions_collection:
             action = bpy.data.actions.get(motion.name)
             if action:
                 self.actions.append(action)
-        return super().invoke(context, event)
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
 
 op_text = 'Skeletal Animations'

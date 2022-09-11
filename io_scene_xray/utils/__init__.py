@@ -21,29 +21,28 @@ from .. import log
 from .. import text
 
 
+BAD_VTX_GROUP_NAME = '.xr-bad!'
+HELPER_OBJECT_NAME_PREFIX = '.xray-helper--'
+__PLUGIN_VERSION_NUMBER__ = None
+
+
 def version_to_number(major, minor, release):
     return ((major & 0xff) << 24) | ((minor & 0xff) << 16) | (release & 0xffff)
 
 
-__PLUGIN_VERSION_NUMBER__ = [None]
 def plugin_version_number():
-    number = __PLUGIN_VERSION_NUMBER__[0]
+    global __PLUGIN_VERSION_NUMBER__
+    number = __PLUGIN_VERSION_NUMBER__
     if number is None:
         number = version_to_number(*bl_info['version'])
-        __PLUGIN_VERSION_NUMBER__[0] = number
+        __PLUGIN_VERSION_NUMBER__ = number
     return number
-
-
-HELPER_OBJECT_NAME_PREFIX = '.xray-helper--'
 
 
 def is_helper_object(obj):
     if not obj:
         return False
     return obj.name.startswith(HELPER_OBJECT_NAME_PREFIX)
-
-
-BAD_VTX_GROUP_NAME = '.xr-bad!'
 
 
 def smooth_euler(current, previous):
@@ -78,34 +77,6 @@ def set_cursor_state(method):
         context.window.cursor_set('DEFAULT')
         return result
     return wrapper
-
-
-class FilenameExtHelper(bpy_extras.io_utils.ExportHelper):
-    def export(self, context):
-        pass
-
-    @log.execute_with_logger
-    @execute_require_filepath
-    @set_cursor_state
-    def execute(self, context):
-        self.export(context)
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        if context.active_object:
-            obj = context.active_object
-        elif context.selected_objects:
-            obj = context.selected_objects[0]
-        else:
-            obj = None
-        if obj:
-            self.filepath = obj.name
-            if not self.filepath.lower().endswith(self.filename_ext):
-                self.filepath += self.filename_ext
-            return super().invoke(context, event)
-        else:
-            self.report({'ERROR'}, text.error.no_active_obj)
-            return {'CANCELLED'}
 
 
 def invoke_require_armature(func):

@@ -8,7 +8,13 @@ from . import version
 from .. import log
 
 
-def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_normals=False, mods=None):
+def convert_object_to_space_bmesh(
+        bpy_obj,
+        space_matrix,
+        local=False,
+        split_normals=False,
+        mods=None
+    ):
     mesh = bmesh.new()
     temp_obj = None
     if split_normals and version.has_set_normals_from_faces():
@@ -79,26 +85,25 @@ def convert_object_to_space_bmesh(bpy_obj, space_matrix, local=False, split_norm
     return mesh
 
 
-def fix_ensure_lookup_table(bmv):
-    if hasattr(bmv, 'ensure_lookup_table'):
-        bmv.ensure_lookup_table()
+def fix_ensure_lookup_table(bm_sequence):
+    if hasattr(bm_sequence, 'ensure_lookup_table'):
+        bm_sequence.ensure_lookup_table()
+
+
+def set_bound_coord(bound, current, compare_fun):
+    bound.x = compare_fun(bound.x, current.x)
+    bound.y = compare_fun(bound.y, current.y)
+    bound.z = compare_fun(bound.z, current.z)
 
 
 def calculate_mesh_bbox(verts, mat=mathutils.Matrix()):
-    def vfunc(dst, src, func):
-        dst.x = func(dst.x, src.x)
-        dst.y = func(dst.y, src.y)
-        dst.z = func(dst.z, src.z)
-
-    multiply = version.get_multiply()
     fix_ensure_lookup_table(verts)
-    _min = multiply(mat, verts[0].co).copy()
-    _max = _min.copy()
+    multiply = version.get_multiply()
+    bbox_min = multiply(mat, verts[0].co).copy()
+    bbox_max = bbox_min.copy()
 
-    vs = []
     for vertex in verts:
-        vfunc(_min, multiply(mat, vertex.co), min)
-        vfunc(_max, multiply(mat, vertex.co), max)
-        vs.append(_max)
+        set_bound_coord(bbox_min, multiply(mat, vertex.co), min)
+        set_bound_coord(bbox_max, multiply(mat, vertex.co), max)
 
-    return _min, _max
+    return bbox_min, bbox_max
