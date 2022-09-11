@@ -5,7 +5,6 @@ from . import panels
 from . import prefs
 from . import ops
 from . import props
-from . import icons
 from . import handlers
 from . import viewport
 from . import translate
@@ -13,7 +12,6 @@ from . import tests
 
 
 modules = (
-    icons,
     prefs,
     ops,
     props,

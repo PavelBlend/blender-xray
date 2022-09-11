@@ -9,7 +9,6 @@ import bpy_extras
 from . import imp
 from . import exp
 from .. import ie
-from ... import icons
 from ... import log
 from ... import utils
 from ... import text

@@ -11,7 +11,6 @@ from .. import ie
 from .. import obj
 from .. import contexts
 from ... import utils
-from ... import icons
 from ... import log
 
 

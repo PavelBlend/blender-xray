@@ -7,7 +7,6 @@ from . import imp
 from . import exp
 from .. import ie
 from ... import utils
-from ... import icons
 from ... import log
 
 

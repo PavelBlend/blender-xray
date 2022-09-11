@@ -3,7 +3,6 @@ import bpy
 
 # addon modules
 from . import ui
-from . import icons
 from . import utils
 from . import formats
 
@@ -41,12 +40,12 @@ export_draw_functions = [
 
 
 def menu_func_xray_import(self, context):
-    icon = icons.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.menu(XRAY_MT_import.bl_idname, icon_value=icon)
 
 
 def menu_func_xray_export(self, context):
-    icon = icons.get_stalker_icon()
+    icon = ui.icons.get_stalker_icon()
     self.layout.menu(XRAY_MT_export.bl_idname, icon_value=icon)
 
 

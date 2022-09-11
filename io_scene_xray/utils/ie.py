@@ -3,7 +3,7 @@ import os
 
 # addon modules
 from . import draw
-from .. import icons
+from .. import ui
 from .. import text
 from .. import log
 
@@ -13,7 +13,7 @@ from .. import log
 
 def get_draw_fun(operator):
     def menu_func(self, context):
-        icon = icons.get_stalker_icon()
+        icon = ui.icons.get_stalker_icon()
         self.layout.operator(
             operator.bl_idname,
             text=draw.build_op_label(operator),

@@ -9,7 +9,6 @@ from .. import ie
 from .. import contexts
 from ... import utils
 from ... import log
-from ... import icons
 
 
 class ImportLevelContext(contexts.ImportMeshContext):

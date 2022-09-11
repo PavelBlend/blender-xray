@@ -23,7 +23,7 @@ def register():
     pcoll = bpy.utils.previews.new()
     module_dir = os.path.dirname(__file__)
     addon_dir = os.path.dirname(module_dir)
-    icons_dir = os.path.join(addon_dir, 'icons')
+    icons_dir = os.path.join(addon_dir, 'ui')
     icon_file = STALKER_ICON_NAME + os.extsep + ICON_EXT
     icon_path = os.path.join(icons_dir, icon_file)
     pcoll.load(STALKER_ICON_NAME, icon_path, 'IMAGE')

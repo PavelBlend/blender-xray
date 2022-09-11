@@ -11,7 +11,6 @@ from . import exp
 from .. import ie
 from .. import contexts
 from ... import log
-from ... import icons
 from ... import utils
 
 

@@ -4,7 +4,6 @@ import bpy
 # addon modules
 from . import material
 from .. import ui
-from .. import icons
 from .. import utils
 from .. import ops
 
@@ -78,7 +77,7 @@ class XRAY_PT_bone(ui.base.XRayPanel):
         if not bone:
             return
         data = bone.xray
-        layout.label(icon_value=icons.get_stalker_icon())
+        layout.label(icon_value=ui.icons.get_stalker_icon())
         layout.prop(data, 'exportable', text='')
 
     def draw(self, context):

@@ -10,7 +10,6 @@ from . import imp
 from . import exp
 from .. import ie
 from .. import contexts
-from ... import icons
 from ... import log
 from ... import utils
 

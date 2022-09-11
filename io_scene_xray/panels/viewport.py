@@ -3,7 +3,6 @@ import bpy
 
 # addon modules
 from .. import ui
-from .. import icons
 from .. import menus
 from .. import utils
 from .. import ops
@@ -21,7 +20,7 @@ class XRAY_PT_update(bpy.types.Panel):
         bl_region_type = 'TOOLS'
 
     def draw_header(self, context):
-        icon = icons.get_stalker_icon()
+        icon = ui.icons.get_stalker_icon()
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
@@ -130,7 +129,7 @@ class XRAY_PT_viewer(bpy.types.Panel):
         bl_region_type = 'TOOLS'
 
     def draw_header(self, context):
-        icon = icons.get_stalker_icon()
+        icon = ui.icons.get_stalker_icon()
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
@@ -238,7 +237,7 @@ class XRAY_PT_verify_tools(bpy.types.Panel):
         bl_region_type = 'TOOLS'
 
     def draw_header(self, context):
-        icon = icons.get_stalker_icon()
+        icon = ui.icons.get_stalker_icon()
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
@@ -260,7 +259,7 @@ class XRAY_PT_transforms(bpy.types.Panel):
         bl_region_type = 'TOOLS'
 
     def draw_header(self, context):
-        icon = icons.get_stalker_icon()
+        icon = ui.icons.get_stalker_icon()
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
@@ -289,7 +288,7 @@ class XRAY_PT_add(bpy.types.Panel):
         bl_region_type = 'TOOLS'
 
     def draw_header(self, context):
-        icon = icons.get_stalker_icon()
+        icon = ui.icons.get_stalker_icon()
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
@@ -311,7 +310,7 @@ class XRAY_PT_batch_tools(bpy.types.Panel):
         bl_region_type = 'TOOLS'
 
     def draw_header(self, context):
-        icon = icons.get_stalker_icon()
+        icon = ui.icons.get_stalker_icon()
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
@@ -380,7 +379,7 @@ class XRAY_PT_custom_props(bpy.types.Panel):
         bl_region_type = 'TOOLS'
 
     def draw_header(self, context):
-        icon = icons.get_stalker_icon()
+        icon = ui.icons.get_stalker_icon()
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
@@ -424,7 +423,7 @@ class XRAY_PT_armature_tools(bpy.types.Panel):
         bl_region_type = 'TOOLS'
 
     def draw_header(self, context):
-        icon = icons.get_stalker_icon()
+        icon = ui.icons.get_stalker_icon()
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
@@ -478,7 +477,7 @@ class XRAY_PT_rig(bpy.types.Panel):
         bl_region_type = 'TOOLS'
 
     def draw_header(self, context):
-        icon = icons.get_stalker_icon()
+        icon = ui.icons.get_stalker_icon()
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
@@ -528,7 +527,7 @@ class XRAY_PT_import_operators(bpy.types.Panel):
         return bool(enabled_import_operators)
 
     def draw_header(self, context):
-        icon = icons.get_stalker_icon()
+        icon = ui.icons.get_stalker_icon()
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
@@ -558,7 +557,7 @@ class XRAY_PT_export_operators(bpy.types.Panel):
         return bool(enabled_export_operators)
 
     def draw_header(self, context):
-        icon = icons.get_stalker_icon()
+        icon = ui.icons.get_stalker_icon()
         self.layout.label(icon_value=icon)
 
     def draw(self, context):
