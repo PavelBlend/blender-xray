@@ -5,7 +5,8 @@ bl_info = {
     'blender': (2, 80, 0),
     'category': 'Import-Export',
     'location': 'File > Import/Export',
-    'description': 'Import/Export X-Ray objects',
+    'support': 'COMMUNITY',
+    'description': 'Import/Export X-Ray Engine files (S.T.A.L.K.E.R. Game).',
     'wiki_url': 'https://github.com/PavelBlend/blender-xray',
     'doc_url': 'https://github.com/PavelBlend/blender-xray',
     'tracker_url': 'https://github.com/PavelBlend/blender-xray/issues'
