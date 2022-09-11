@@ -11,10 +11,10 @@ from . import text
 
 
 modules = (
-    prefs,
     ops,
     props,
     formats,
+    prefs,
     handlers,
     ui,
     panels,
