@@ -63,6 +63,7 @@ level_has_children = 'Normal/Progressive object must not have children'
 level_bad_portal = 'portal mesh-object has less than 3 vertices'
 level_bad_glow = 'glow mesh-object has no faces'
 level_bad_glow_radius = 'glow object has radius close to zero'
+level_lmap_no_dds = 'incorrect light map format (must be *.dds)'
 # level cform export
 level_bad_cform_type = 'cform object is not mesh'
 level_cform_no_geom = 'cform object has no polygons'
@@ -77,7 +78,6 @@ object_skel_many_meshes = 'skeletal object has more than one mesh'
 object_bad_boneparts = 'not all bones are tied to the bone part'
 object_many_parents = 'armature object has more than one parent'
 object_bad_scale = 'armature-object has incorrect scale'
-level_lmap_no_dds = 'incorrect light map format (must be *.dds)'
 # object export mesh
 object_no_uv = 'mesh-object has no UV-map'
 # object import bone

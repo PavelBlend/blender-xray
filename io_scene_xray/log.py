@@ -188,7 +188,7 @@ class Logger:
         text_data.from_string('\n'.join(lines))
         self._report(
             {'WARNING'},
-            text.warn.full_log.format(text_data.name)
+            text.get_text(text.warn.full_log) + ': "' + text_data.name + '"'
         )
 
 

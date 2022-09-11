@@ -369,13 +369,14 @@ def import_mesh(context, creader, renamemap):
                 assigned[fidx] = True
 
     if bad_vgroup != -1:
-        msg = text.warn.object_duplicate_faces
+        msg = text.get_text(text.warn.object_duplicate_faces) + '. '
         if not context.split_by_materials:
-            msg += text.warn.object_try_use_option.format(
-                utils.version.get_prop_name(
-                    ie.PropObjectMeshSplitByMaterials()
-                )
+            msg += text.get_text(text.warn.object_try_use_option)
+            split_mesh_prop_name = utils.version.get_prop_name(
+                ie.PropObjectMeshSplitByMaterials()
             )
+            msg += ' "' + split_mesh_prop_name + '". '
+        msg += text.get_text(text.warn.object_vert_group_created)
         log.warn(msg, vertex_group=bo_mesh.vertex_groups[bad_vgroup].name)
 
     if not has_sg_chunk:    # old object format

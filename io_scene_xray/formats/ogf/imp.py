@@ -1415,7 +1415,7 @@ def import_user_data(chunks, ogf_chunks, visual):
     packed_reader = rw.read.PackedReader(chunk_data)
     visual.user_data = packed_reader.gets(
         onerror=lambda e: log.warn(
-            'bad userdata',
+            text.warn.object_bad_userdata,
             error=str(e),
             file=visual.file_path
         )

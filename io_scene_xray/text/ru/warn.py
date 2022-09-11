@@ -10,7 +10,7 @@ mat_many_tex = 'материал имеет больше одной тексту
 translations_table = (
     # general
     (warn.info_title, 'информация'),
-    (warn.full_log, 'Полный лог хранится в текстовом файле "{0}" (в окне Text Editor)'),
+    (warn.full_log, 'Полный лог хранится в окне Text Editor в текстовом файле'),
     (warn.tex_not_found, 'файл текстуры не найден'),
     (warn.env_tex, 'материал имеет некорректный тип ноды изображения (Environment Texture)'),
     (warn.no_bone_parent, 'не найдена родительская кость'),
@@ -64,8 +64,9 @@ translations_table = (
     (warn.object_invalid_face, 'найдены неправильные треугольники (invalid faces)'),
     (warn.object_already_mat, 'полигону уже был назначен материал'),
     (warn.object_already_used_mat, 'полигону уже был назначен материал'),
-    (warn.object_duplicate_faces, 'найдены дубликаты полигонов, создана группа вершин'),
-    (warn.object_try_use_option, ' (попробуйте включить "{}" параметр импорта)'),
+    (warn.object_duplicate_faces, 'найдены дубликаты полигонов'),
+    (warn.object_try_use_option, 'Попробуйте включить параметр импорта'),
+    (warn.object_vert_group_created, 'Создана группа вершин'),
     # ogf import
     (warn.ogf_bad_shape, 'неподдерживаемый тип формы кости'),
     (warn.ogf_bad_joint, 'неподдерживаемый тип сустава кости'),

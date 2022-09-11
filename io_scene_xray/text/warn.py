@@ -1,5 +1,5 @@
 # general
-full_log = 'The full log was stored as "{0}" (in the Text Editor)'
+full_log = 'The full log was stored in the Text Editor in a text file'
 tex_not_found = 'texture file not found'
 env_tex = 'material has incorrect image node type (Environment Texture)'
 no_bone_parent = 'bone parent isn\'t found'
@@ -55,8 +55,9 @@ object_zero_weight = 'weight vertex map has values that are close to zero'
 object_invalid_face = 'invalid face found'
 object_already_mat = 'face has already been instantiated with material'
 object_already_used_mat = 'face has already used material'
-object_duplicate_faces = 'duplicate faces found, vertex groups created'
-object_try_use_option = ' (try to use "{}" option)'
+object_duplicate_faces = 'duplicate faces found'
+object_try_use_option = 'Try to use option'
+object_vert_group_created = 'Vertex groups created'
 # ogf import
 ogf_bad_shape = 'unsupported bone shape type'
 ogf_bad_joint = 'unsupported bone joint type'
