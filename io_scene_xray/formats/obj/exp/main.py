@@ -356,7 +356,7 @@ def export_user_data(chunked_writer, xray):
         chunked_writer.put(fmt.Chunks.Object.USERDATA, packed_writer)
 
 
-def export_loddef(chunked_writer, xray):
+def export_lod_ref(chunked_writer, xray):
     if xray.lodref:
         packed_writer = rw.write.PackedWriter()
         packed_writer.puts(xray.lodref)
@@ -473,7 +473,7 @@ def export_main(bpy_obj, chunked_writer, context):
 
     export_version(chunked_writer)
     export_user_data(chunked_writer, xray)
-    export_loddef(chunked_writer, xray)
+    export_lod_ref(chunked_writer, xray)
     materials, bone_writers, some_arm, bpy_root, uv_map_names = export_meshes(
         chunked_writer,
         bpy_obj,
