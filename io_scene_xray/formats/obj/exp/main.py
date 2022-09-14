@@ -319,11 +319,11 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
             sfw.puts('')
             sfw.puts('')
             sfw.puts('')
-        tx_name = utils.material.get_image_relative_path(
+        tex_name = utils.material.get_image_relative_path(
             material,
             context
         )
-        sfw.puts(tx_name)
+        sfw.puts(tex_name)
         if utils.version.IS_28:
             sfw.puts(uv_map_names[material.name])
         else:
