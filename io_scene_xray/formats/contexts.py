@@ -15,7 +15,7 @@ class Context:
         self.filepath = None
         self.operator = None
         self.multiply = utils.version.get_multiply()
-        self.version = utils.plugin_version_number()
+        self.version = utils.addon_version_number()
         self.errors = []
 
 

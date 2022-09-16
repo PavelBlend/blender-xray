@@ -5,60 +5,52 @@ import bpy
 from . import utils
 
 
-class InitializationContext:
+class DataBlocksInitContext:
     def __init__(self, operation):
         self.operation = operation
-        self.plugin_version_number = utils.plugin_version_number()
-        self.thing = None
+        self.addon_version_number = utils.addon_version_number()
 
 
-class ObjectSet:
+class DataBlocksSet:
     def __init__(self):
-        self._set = set()
+        self._hashes = set()
 
-    def sync(self, objects, callback):
-        _old = self._set
-        if len(objects) == len(_old):
+    def sync(self, bpy_collect, context):
+        hashes_old = self._hashes
+        if len(bpy_collect) == len(hashes_old):
             return
-        _new = set()
-        for obj in objects:
-            hsh = hash(obj)
-            _new.add(hsh)
-            if hsh not in _old:
-                callback(obj)
-        self._set = _new
+        hashes_new = set()
+        for data_block in bpy_collect:
+            block_hash = hash(data_block)
+            hashes_new.add(block_hash)
+            if not block_hash in hashes_old:
+                data_block.xray.initialize(context)
+        self._hashes = hashes_new
 
 
-class ObjectsInitializer:
-    def __init__(self, keys):
-        self._sets = [(key, ObjectSet()) for key in keys]
+class DataBlocksInitializer:
+    def __init__(self, collect_ids):
+        self._collects = {collect: DataBlocksSet() for collect in collect_ids}
 
-    def sync(self, operation, collections):
-        ctx = InitializationContext(operation)
-
-        def init_thing(thing):
-            ctx.thing = thing
-            thing.xray.initialize(ctx)
-
-        for key, obj_set in self._sets:
-            things = getattr(collections, key)
-            obj_set.sync(things, init_thing)
+    def sync(self, operation):
+        context = DataBlocksInitContext(operation)
+        for collect_name, data_blocks_set in self._collects.items():
+            bpy_collect = getattr(bpy.data, collect_name)
+            data_blocks_set.sync(bpy_collect, context)
 
 
-_INITIALIZER = ObjectsInitializer([
-    'objects',
-    'materials',
-])
+bpy_data_init_collects = ['objects', 'materials']
+_INITIALIZER = DataBlocksInitializer(bpy_data_init_collects)
 
 
 @bpy.app.handlers.persistent
 def load_post(_):
-    _INITIALIZER.sync('LOADED', bpy.data)
+    _INITIALIZER.sync('LOADED')
 
 
 @bpy.app.handlers.persistent
 def scene_update_post(_):
-    _INITIALIZER.sync('CREATED', bpy.data)
+    _INITIALIZER.sync('CREATED')
 
 
 def register():

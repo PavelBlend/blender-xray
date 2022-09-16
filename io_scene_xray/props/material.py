@@ -37,7 +37,7 @@ class XRayMaterialProperties(bpy.types.PropertyGroup):
             if context.operation == 'LOADED':
                 self.version = -1
             elif context.operation == 'CREATED':
-                self.version = context.plugin_version_number
+                self.version = context.addon_version_number
                 obj = bpy.context.active_object
                 if obj and obj.xray.flags_custom_type == 'st':
                     self.eshader = 'default'

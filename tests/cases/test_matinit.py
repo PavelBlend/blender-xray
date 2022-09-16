@@ -7,7 +7,7 @@ from io_scene_xray import handlers, utils as utl
 class TestMaterialInitialize(utils.XRayTestCase):
     def test_import_version_and_shaders(self):
         # Arrange
-        version = utl.plugin_version_number()
+        version = utl.addon_version_number()
 
         # Act
         bpy.ops.xray_import.object(
@@ -25,7 +25,7 @@ class TestMaterialInitialize(utils.XRayTestCase):
 
     def test_init_version_and_shaders(self):
         # Arrange
-        version = utl.plugin_version_number()
+        version = utl.addon_version_number()
 
         obj = bpy.data.objects.new('', None)
         obj.xray.flags_custom_type = 'st'
@@ -43,7 +43,7 @@ class TestMaterialInitialize(utils.XRayTestCase):
 
     def test_init_shaders_dynamic(self):
         # Arrange
-        version = utl.plugin_version_number()
+        version = utl.addon_version_number()
 
         obj = bpy.data.objects.new('', None)
         obj.xray.flags_custom_type = 'dy'

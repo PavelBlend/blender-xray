@@ -7,7 +7,7 @@ from io_scene_xray import handlers, utils as utl
 class TestObjectInitialize(utils.XRayTestCase):
     def test_import_version_and_root(self):
         # Arrange
-        version = utl.plugin_version_number()
+        version = utl.addon_version_number()
 
         # Act
         bpy.ops.xray_import.object(

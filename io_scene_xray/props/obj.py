@@ -536,10 +536,11 @@ class XRayObjectProperties(bpy.types.PropertyGroup):
             if context.operation == 'LOADED':
                 self.version = -1
             elif context.operation == 'CREATED':
-                self.version = context.plugin_version_number
-                self.root = context.thing.type == 'MESH'
-                if context.thing.type == 'ARMATURE':
-                    context.thing.data.xray.joint_limits_type = 'XRAY'
+                self.version = context.addon_version_number
+                obj = self.id_data
+                self.root = obj.type == 'MESH'
+                if obj.type == 'ARMATURE':
+                    obj.data.xray.joint_limits_type = 'XRAY'
 
 
 prop_groups = (

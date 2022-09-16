@@ -24,19 +24,19 @@ from .. import text
 
 BAD_VTX_GROUP_NAME = '.xr-bad!'
 HELPER_OBJECT_NAME_PREFIX = '.xray-helper--'
-__PLUGIN_VERSION_NUMBER__ = None
+__ADDON_VERSION_NUMBER__ = None
 
 
 def version_to_number(major, minor, release):
     return ((major & 0xff) << 24) | ((minor & 0xff) << 16) | (release & 0xffff)
 
 
-def plugin_version_number():
-    global __PLUGIN_VERSION_NUMBER__
-    number = __PLUGIN_VERSION_NUMBER__
+def addon_version_number():
+    global __ADDON_VERSION_NUMBER__
+    number = __ADDON_VERSION_NUMBER__
     if number is None:
         number = version_to_number(*bl_info['version'])
-        __PLUGIN_VERSION_NUMBER__ = number
+        __ADDON_VERSION_NUMBER__ = number
     return number
 
 
