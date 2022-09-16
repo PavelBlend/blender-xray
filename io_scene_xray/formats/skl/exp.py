@@ -16,9 +16,27 @@ class ExportSklsContext(contexts.ExportAnimationOnlyContext):
 
 
 def _export_skl(chunked_writer, context):
+    arm_obj = context.bpy_arm_obj
+    (
+        current_frame,
+        mode,
+        current_action,
+        dependency_object,
+        dep_action
+    ) = utils.action.get_initial_state(arm_obj)
+
     writer = rw.write.PackedWriter()
-    motions.exp.export_motion(writer, context.action, context.bpy_arm_obj)
+    motions.exp.export_motion(writer, context.action, arm_obj)
     chunked_writer.put(0x1200, writer)
+
+    utils.action.set_initial_state(
+        arm_obj,
+        mode,
+        current_frame,
+        current_action,
+        dependency_object,
+        dep_action
+    )
 
 
 @log.with_context(name='export-skl')

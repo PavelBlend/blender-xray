@@ -14,6 +14,7 @@ from . import ie
 from . import image
 from . import material
 from . import mesh
+from . import action
 from . import bone
 from . import version
 from .. import bl_info

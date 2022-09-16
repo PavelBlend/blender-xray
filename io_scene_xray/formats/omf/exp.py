@@ -256,56 +256,6 @@ def write_motions_params(context, writer, motions, version, actions_table):
         write_motion_params(context, writer, name, index, version, actions_table)
 
 
-def set_initial_state(
-        context,
-        mode,
-        current_frame,
-        current_action,
-        dependency_object,
-        dep_action
-    ):
-    # return initial state
-    utils.set_mode(mode)
-    bpy.context.scene.frame_set(current_frame)
-    if current_action:
-        context.bpy_arm_obj.animation_data.action = current_action
-    else:
-        context.bpy_arm_obj.animation_data_clear()
-        # reset transforms
-        # TODO: do not delete transformations but keep the original ones
-        utils.bone.reset_pose_bone_transforms(context.bpy_arm_obj)
-
-    # return dependency object state
-    if dependency_object:
-        if dep_action:
-            dependency_object.animation_data.action = dep_action
-        else:
-            dependency_object.animation_data_clear()
-            # reset dependency object transforms
-            # TODO: do not delete transformations but keep the original ones
-            utils.bone.reset_pose_bone_transforms(dependency_object)
-
-
-def get_initial_state(context, xray):
-    # remember initial state
-    current_frame = bpy.context.scene.frame_current
-    mode = context.bpy_arm_obj.mode
-    if not context.bpy_arm_obj.animation_data:
-        current_action = None
-    else:
-        current_action = context.bpy_arm_obj.animation_data.action
-
-    # remember dependency object state
-    dependency_object = None
-    dep_action = None
-    if xray.dependency_object:
-        dependency_object = bpy.data.objects.get(xray.dependency_object)
-        if dependency_object:
-            dep_action = dependency_object.animation_data.action
-
-    return current_frame, mode, current_action, dependency_object, dep_action
-
-
 def get_pose_bones_and_groups(context):
     # collect pose bones and bone groups
     utils.set_mode('POSE')
@@ -796,7 +746,8 @@ def export_motions(
 
 
 def export_omf(context):
-    xray = context.bpy_arm_obj.xray
+    arm_obj = context.bpy_arm_obj
+    xray = arm_obj.xray
 
     (
         current_frame,
@@ -804,7 +755,7 @@ def export_omf(context):
         current_action,
         dependency_object,
         dep_action
-    ) = get_initial_state(context, xray)
+    ) = utils.action.get_initial_state(arm_obj)
 
     motion_export_names, actions_table = collect_motion_names(context, xray)
     bones_count = calculate_bones_count(context)
@@ -832,7 +783,7 @@ def export_omf(context):
     packed_writer.putf('<I', motion_count)
     motions_writer.put(fmt.MOTIONS_COUNT_CHUNK, packed_writer)
 
-    context.bpy_arm_obj.animation_data_create()
+    arm_obj.animation_data_create()
 
     (
         params_version,
@@ -892,8 +843,8 @@ def export_omf(context):
     # write params chunk
     main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
 
-    set_initial_state(
-        context,
+    utils.action.set_initial_state(
+        arm_obj,
         mode,
         current_frame,
         current_action,

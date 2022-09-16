@@ -147,6 +147,23 @@ def export_motion(pkw, action, armature):
 
 
 def export_motions(writer, actions, bpy_armature):
+    (
+        current_frame,
+        mode,
+        current_action,
+        dependency_object,
+        dep_action
+    ) = utils.action.get_initial_state(bpy_armature)
+
     writer.putf('I', len(actions))
     for action in actions:
         export_motion(writer, action, bpy_armature)
+
+    utils.action.set_initial_state(
+        bpy_armature,
+        mode,
+        current_frame,
+        current_action,
+        dependency_object,
+        dep_action
+    )
