@@ -37,10 +37,11 @@ def _gen_tex_name_by_textures_folder(tex_path, textures_folder, image):
                 tex_path = file_name
         else:
             tex_path = file_name
+        image_abs_path = bpy.path.abspath(image.filepath)
         log.warn(
             text.warn.img_bad_image_path,
             image=image.name,
-            image_path=image.filepath,
+            image_path=image_abs_path,
             textures_folder=textures_folder,
             saved_as=tex_path
         )
