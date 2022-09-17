@@ -16,13 +16,15 @@ def export(bpy_obj, packed_writer, context, file_path, mode='DM'):
     if mode == 'DM':
         file_path = None    # level folder not use
 
-    bpy_material, tx_name = validate.validate_export_object(
-        context, bpy_obj, file_path
+    bpy_material, tex_name = validate.validate_export_object(
+        context,
+        bpy_obj,
+        file_path
     )
 
     det_model = bpy_obj.xray.detail.model
     packed_writer.puts(bpy_material.xray.eshader)
-    packed_writer.puts(tx_name)
+    packed_writer.puts(tex_name)
     packed_writer.putf('<I', int(det_model.no_waving))
     packed_writer.putf('<2f', det_model.min_scale, det_model.max_scale)
 
