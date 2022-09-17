@@ -12,14 +12,22 @@ from ... import text
 from ... import rw
 
 
-def export(bpy_obj, packed_writer, context, file_path, mode='DM'):
+def export(
+        bpy_obj,
+        packed_writer,
+        context,
+        file_path,
+        mode='DM',
+        warn_list=None
+    ):
     if mode == 'DM':
         file_path = None    # level folder not use
 
     bpy_material, tex_name = validate.validate_export_object(
         context,
         bpy_obj,
-        file_path
+        file_path,
+        warn_list
     )
 
     det_model = bpy_obj.xray.detail.model

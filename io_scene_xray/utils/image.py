@@ -74,7 +74,14 @@ def _gen_tex_name_by_level_folder(
         # automatically fix relative path
         tex_path = _gen_relative_path(tex_path)
         image_abs_path = bpy.path.abspath(image.filepath)
-        if not file_path in errors:
+
+        report_warn = False
+        if errors is None:
+            report_warn = True
+        if type(errors) == set:
+            if not file_path in errors:
+                report_warn = True
+        if report_warn:
             log.warn(
                 text.warn.invalid_image_path,
                 image=image.name,
@@ -82,12 +89,13 @@ def _gen_tex_name_by_level_folder(
                 textures_folder=textures_folder,
                 saved_as=tex_path
             )
-            errors.add(file_path)
+            if type(errors) == set:
+                errors.add(file_path)
 
     return tex_path
 
 
-def gen_texture_name(image, textures_folder, level_folder=None, errors=set()):
+def gen_texture_name(image, textures_folder, level_folder=None, errors=None):
     file_path = image.filepath
     tex_path = bpy.path.abspath(file_path)
     tex_path = os.path.normpath(tex_path)

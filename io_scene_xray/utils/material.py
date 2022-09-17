@@ -376,7 +376,13 @@ def _find_texture_node_28(
     return tex_node
 
 
-def _get_image_relative_path_28(context, level_folder, bpy_material, no_err):
+def _get_image_relative_path_28(
+        context,
+        level_folder,
+        bpy_material,
+        no_err,
+        errors
+    ):
     tex_name = ''
     if bpy_material.use_nodes:
         (
@@ -399,7 +405,8 @@ def _get_image_relative_path_28(context, level_folder, bpy_material, no_err):
                     tex_name = image.gen_texture_name(
                         tex_node.image,
                         context.textures_folder,
-                        level_folder=level_folder
+                        level_folder=level_folder,
+                        errors=errors
                     )
                     if tex_node.type == 'TEX_ENVIRONMENT':
                         log.warn(
@@ -437,7 +444,13 @@ def _collect_material_textures_27(bpy_material):
     return textures
 
 
-def _get_image_relative_path_27(context, level_folder, bpy_material, no_err):
+def _get_image_relative_path_27(
+        context,
+        level_folder,
+        bpy_material,
+        no_err,
+        errors
+    ):
     texture = None
     tex_name = ''
     textures = _collect_material_textures_27(bpy_material)
@@ -457,7 +470,8 @@ def _get_image_relative_path_27(context, level_folder, bpy_material, no_err):
             tex_name = image.gen_texture_name(
                 texture.image,
                 context.textures_folder,
-                level_folder=level_folder
+                level_folder=level_folder,
+                errors=errors
             )
         else:
             tex_name = texture.name
@@ -468,20 +482,23 @@ def get_image_relative_path(
         bpy_material,
         context,
         level_folder=None,
-        no_err=True
+        no_err=True,
+        errors=None
     ):
     if version.IS_28:
         tex_name = _get_image_relative_path_28(
             context,
             level_folder,
             bpy_material,
-            no_err
+            no_err,
+            errors
         )
     else:
         tex_name = _get_image_relative_path_27(
             context,
             level_folder,
             bpy_material,
-            no_err
+            no_err,
+            errors
         )
     return tex_name

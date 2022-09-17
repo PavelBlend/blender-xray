@@ -34,6 +34,7 @@ def write_details(chunked_writer, lvl_dets, context, file_path):
         )
 
     dm_pws = {}
+    warn_list = set()
     dm_indices = [0 for _ in range(dm_count)]
     for detail_model in meshes_object.children:
 
@@ -53,7 +54,8 @@ def write_details(chunked_writer, lvl_dets, context, file_path):
             packed_writer,
             context,
             file_path,
-            mode='DETAILS'
+            mode='DETAILS',
+            warn_list=warn_list
         )
         dm_index = detail_model.xray.detail.model.index
 
