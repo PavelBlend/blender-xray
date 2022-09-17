@@ -111,7 +111,7 @@ class XRAY_OT_export_object(ie.BaseOperator, _WithExportMotions):
         draw_props(self, mode='BATCH')
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         export_context = ExportObjectContext()
         export_context.texname_from_path = self.texture_name_from_image_path
@@ -121,7 +121,6 @@ class XRAY_OT_export_object(ie.BaseOperator, _WithExportMotions):
         preferences = utils.version.get_preferences()
         export_context.textures_folder = preferences.textures_folder_auto
         use_split_normals = self.smoothing_out_of == 'SPLIT_NORMALS'
-        active_object, selected_objects = utils.get_selection_state(context)
         for name in self.objects.split(','):
             bpy_obj = context.scene.objects[name]
             if not name.lower().endswith('.object'):
@@ -138,7 +137,6 @@ class XRAY_OT_export_object(ie.BaseOperator, _WithExportMotions):
                 )
             except log.AppError as err:
                 export_context.errors.append(err)
-        utils.set_selection_state(active_object, selected_objects)
         for err in export_context.errors:
             log.err(err)
         return {'FINISHED'}
@@ -198,7 +196,7 @@ class XRAY_OT_export_object_file(
         draw_props(self)
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         export_context = ExportObjectContext()
         export_context.texname_from_path = self.texture_name_from_image_path
@@ -209,12 +207,10 @@ class XRAY_OT_export_object_file(
         preferences = utils.version.get_preferences()
         export_context.textures_folder = preferences.textures_folder_auto
         use_split_normals = self.smoothing_out_of == 'SPLIT_NORMALS'
-        active_object, selected_objects = utils.get_selection_state(context)
         try:
             exp.export_file(bpy_obj, self.filepath, export_context)
         except log.AppError as err:
             export_context.errors.append(err)
-        utils.set_selection_state(active_object, selected_objects)
         for err in export_context.errors:
             log.err(err)
         return {'FINISHED'}
@@ -259,7 +255,7 @@ class XRAY_OT_export_project(ie.BaseOperator):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         data = context.scene.xray
         export_context = ExportObjectContext()

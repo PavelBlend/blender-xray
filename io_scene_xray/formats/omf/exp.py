@@ -258,7 +258,7 @@ def write_motions_params(context, writer, motions, version, actions_table):
 
 def get_pose_bones_and_groups(context):
     # collect pose bones and bone groups
-    utils.set_mode('POSE')
+    utils.ie.set_mode('POSE')
     pose_bones = []
     bone_groups = {}
     no_group_bones = set()

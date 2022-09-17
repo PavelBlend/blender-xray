@@ -45,7 +45,7 @@ class XRAY_OT_import_object(ie.BaseOperator, bpy_extras.io_utils.ImportHelper):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         preferences = utils.version.get_preferences()
         textures_folder = preferences.textures_folder_auto

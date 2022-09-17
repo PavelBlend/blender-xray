@@ -36,7 +36,7 @@ class XRAY_OT_export_scene_selection(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         try:
             self.export(self.objs, context)
@@ -91,7 +91,7 @@ class XRAY_OT_import_scene_selection(
         layout.prop(self, 'mesh_split_by_materials')
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         try:
             imp.import_file(self.filepath, self)

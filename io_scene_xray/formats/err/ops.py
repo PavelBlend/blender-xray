@@ -41,7 +41,7 @@ class XRAY_OT_import_err(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         imp.import_file(self.filepath, self)
         return {'FINISHED'}

@@ -23,7 +23,7 @@ class TestObjectImport(utils.XRayTestCase):
             files=[{'name': 'test_fmt_armature.object'}]
         )
         self.assertReportsNotContains('WARNING')
-        pbones = bpy.context.active_object.pose.bones
+        pbones = bpy.data.objects['test_fmt_armature.object'].pose.bones
         self.assertIsNone(pbones[0].custom_shape)
         self.assertEqual(pbones['Bone'].bone_group.name, 'GroupA')
         self.assertEqual(pbones['Bone1'].bone_group.name, 'GroupB')

@@ -93,7 +93,7 @@ class XRAY_OT_import_omf(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
@@ -245,7 +245,7 @@ class XRAY_OT_export_omf(ie.BaseOperator, bpy_extras.io_utils.ExportHelper):
                 layout.label(text='Nothing was Exported!', icon='ERROR')
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         active_object = context.object
         if self.obj:

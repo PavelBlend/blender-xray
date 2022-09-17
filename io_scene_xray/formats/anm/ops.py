@@ -54,7 +54,7 @@ class XRAY_OT_import_anm(
         layout.prop(self, 'camera_animation')
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         if not self.files[0].name:
             self.report({'ERROR'}, 'No files selected!')
@@ -116,7 +116,7 @@ class XRAY_OT_export_anm(
         utils.draw.draw_fmt_ver_prop(layout, self, 'format_version')
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         export_context = exp.ExportAnmContext()
         export_context.format_version = self.format_version

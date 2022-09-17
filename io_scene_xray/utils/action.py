@@ -4,7 +4,7 @@ import bpy
 
 # addon modules
 from . import bone
-from .. import utils
+from . import ie
 
 
 def set_initial_state(
@@ -16,7 +16,7 @@ def set_initial_state(
         dep_action
     ):
     # return initial state
-    utils.set_mode(mode)
+    ie.set_mode(mode)
     bpy.context.scene.frame_set(current_frame)
     if current_action:
         arm_obj.animation_data.action = current_action

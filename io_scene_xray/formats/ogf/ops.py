@@ -71,7 +71,7 @@ class XRAY_OT_import_ogf(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         prefs = utils.version.get_preferences()
         textures_folder = prefs.textures_folder_auto
@@ -137,7 +137,7 @@ class XRAY_OT_export_ogf_file(
 
     @log.execute_with_logger
     @utils.execute_require_filepath
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         export_context = ExportOgfContext()
         export_context.texname_from_path = self.texture_name_from_image_path
@@ -200,7 +200,7 @@ class XRAY_OT_export_ogf(ie.BaseOperator):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         export_context = ExportOgfContext()
         export_context.texname_from_path = self.texture_name_from_image_path

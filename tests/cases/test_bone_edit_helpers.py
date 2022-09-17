@@ -18,7 +18,8 @@ class TestBoneEditHelpers(XRayTestCase):
             directory=self.relpath(),
             files=[{'name': 'test_fmt_armature.object'}]
         )
-        arm = bpy.context.active_object
+        arm = bpy.data.objects['test_fmt_armature.object']
+        set_active_object(arm)
         bone = arm.data.bones['Bone']
         arm.data.bones.active = bone
         self.assertFalse(op_edit.poll(), msg='an armature, no shape')
@@ -93,7 +94,8 @@ class TestBoneEditHelpers(XRayTestCase):
             directory=self.relpath(),
             files=[{'name': 'test_fmt_armature.object'}]
         )
-        arm = bpy.context.active_object
+        arm = bpy.data.objects['test_fmt_armature.object']
+        set_active_object(arm)
         bone = arm.data.bones['Bone1']
         arm.data.bones.active = bone
         self.assertTrue(op_edit.poll(), msg='an armature')

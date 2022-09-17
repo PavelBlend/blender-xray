@@ -70,7 +70,7 @@ class XRAY_OT_import_details(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         prefs = utils.version.get_preferences()
         textures_folder = prefs.textures_folder_auto
@@ -170,7 +170,7 @@ class XRAY_OT_export_details(
         )
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         objs = context.selected_objects
 
@@ -228,7 +228,7 @@ class XRAY_OT_pack_details_images(bpy.types.Operator):
                 return True
         return False
 
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         slots = context.object.xray.detail.slots
         lighting = slots.ligthing

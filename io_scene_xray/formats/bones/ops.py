@@ -66,7 +66,7 @@ class XRAY_OT_import_bones(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         if len(self.files) > 1:
             self.report({'ERROR'}, 'Too many selected files. Select one file')
@@ -152,7 +152,7 @@ class XRAY_OT_export_bones(ie.BaseOperator):
                 self.objects_list.append(obj.name)
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         self.get_objects(context)
         export_context = ExportBonesContext()
@@ -232,7 +232,7 @@ class XRAY_OT_export_bone(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         obj = context.scene.objects[self.object_name]
         try:

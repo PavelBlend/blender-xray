@@ -54,7 +54,7 @@ class XRAY_OT_import_part(ie.BaseOperator):
         layout.prop(self, 'mesh_split_by_materials')
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')

@@ -197,29 +197,3 @@ def find_root(obj):
         return find_root(obj.parent)
     else:
         return obj
-
-
-def get_selection_state(context):
-    active_object = context.active_object
-    selected_objects = set()
-    for obj in context.selected_objects:
-        selected_objects.add(obj)
-    if active_object:
-        mode = bpy.context.mode
-        bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.ops.object.select_all(action='DESELECT')
-        bpy.ops.object.mode_set(mode=mode)
-    else:
-        bpy.ops.object.select_all(action='DESELECT')
-    return active_object, selected_objects
-
-
-def set_selection_state(active_object, selected_objects):
-    version.set_active_object(active_object)
-    for obj in selected_objects:
-        version.select_object(obj)
-
-
-def set_mode(mode):
-    if bpy.context.object:
-        bpy.ops.object.mode_set(mode=mode)

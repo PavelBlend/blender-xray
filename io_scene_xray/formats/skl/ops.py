@@ -123,7 +123,7 @@ class XRAY_OT_import_skls(ie.BaseOperator, bpy_extras.io_utils.ImportHelper):
         return tuple()
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
@@ -197,7 +197,7 @@ class XRAY_OT_export_skl(ie.BaseOperator, bpy_extras.io_utils.ExportHelper):
 
     @log.execute_with_logger
     @utils.execute_require_filepath
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         export_context = exp.ExportSklsContext()
         export_context.bpy_arm_obj = context.selected_objects[0]
@@ -246,7 +246,7 @@ class XRAY_OT_export_skls_file(
 
     @log.execute_with_logger
     @utils.execute_require_filepath
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         export_context = exp.ExportSklsContext()
         export_context.bpy_arm_obj = context.selected_objects[0]
@@ -314,7 +314,7 @@ class XRAY_OT_export_skls(ie.BaseOperator):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         export_context = exp.ExportSklsContext()
         exp_actions_count = 0
@@ -393,7 +393,7 @@ class XRAY_OT_export_skl_batch(ie.BaseOperator):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
-    @utils.set_cursor_state
+    @utils.ie.set_initial_state
     def execute(self, context):
         export_context = exp.ExportSklsContext()
         exp_actions_count = 0
