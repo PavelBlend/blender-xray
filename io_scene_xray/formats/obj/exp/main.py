@@ -108,9 +108,15 @@ def merge_meshes(mesh_objects):
     objects = []
     override = bpy.context.copy()
     for obj in mesh_objects:
+        if len(obj.data.uv_layers) > 1:
+            raise log.AppError(
+                text.error.obj_many_uv,
+                log.props(object=obj.name)
+            )
         copy_obj = obj.copy()
         copy_mesh = obj.data.copy()
         copy_obj.data = copy_mesh
+        copy_mesh.uv_layers[0].name = 'Texture'
         utils.version.link_object(copy_obj)
         # apply modifiers
         override['active_object'] = copy_obj
