@@ -10,140 +10,198 @@ from ... import log
 from ... import rw
 
 
-def _export_motion_data(pkw, action, bones_animations, armature, root_bone_names):
+FORMAT_VERSION = 6
+CURVE_COUNT = 6    # location xyz, rotation xyz
+MOTION_DEFAULT_FLAGS = 0
+
+
+def convert_curve_to_keys(curve, fps):
+    for frame, value in enumerate(curve):
+        yield utilites.KF(frame / fps, value, interp.Shape.STEPPED)
+
+
+def _export_motion_data(
+        writer,
+        action,
+        bones_anims,
+        armature,
+        root_bone_names
+    ):
+
     xray = action.xray
 
+    # search motion name
+    motion_name = action.name
     if armature.xray.use_custom_motion_names:
         motion = armature.xray.motions_collection.get(action.name)
         if motion.export_name:
             motion_name = motion.export_name
-        else:
-            motion_name = action.name
-    else:
-        motion_name = action.name
 
-    pkw.puts(motion_name)
+    # collect motion parameters
     frame_start, frame_end = action.frame_range
-    pkw.putf('II', int(frame_start), int(frame_end))
-    pkw.putf('f', xray.fps)
-    pkw.putf('H', 6)  # version
-    pkw.putf('<BH', xray.flags, xray.bonepart)
-    pkw.putf('<ffff', xray.speed, xray.accrue, xray.falloff, xray.power)
-    pkw.putf('H', len(bones_animations))
-    for name, animation in bones_animations:
-        pkw.puts(name)
-        pkw.putf('B', 0)  # flags
-        curves = ([], [], [], [], [], [])
+    fps = xray.fps
+    bones_count = len(bones_anims)
 
-        for mat in animation:
-            trn = mat.to_translation()
-            rot = mat.to_euler('ZXY')
-            curves[0].append(+trn[0])
-            curves[1].append(+trn[1])
-            curves[2].append(-trn[2])
-            curves[3].append(-rot[1])
-            curves[4].append(-rot[0])
-            curves[5].append(+rot[2])
+    # write motion parameters
+    writer.puts(motion_name)
+    writer.putf('<2I', int(frame_start), int(frame_end))
+    writer.putf('<f', fps)
+    writer.putf('<H', FORMAT_VERSION)
+    writer.putf('<B', xray.flags)
+    writer.putf('<H', xray.bonepart)
+    writer.putf('<4f', xray.speed, xray.accrue, xray.falloff, xray.power)
+    writer.putf('<H', bones_count)
 
-        def curve2keys(curve):
-            for frm, val in enumerate(curve):
-                yield utilites.KF(frm / xray.fps, val, interp.Shape.STEPPED)
+    # write motions
+    for bone, bone_anim in bones_anims:
+        # write bone motion parameters
+        writer.puts(bone.name)
+        writer.putf('<B', MOTION_DEFAULT_FLAGS)
 
-        if name in root_bone_names:
-            frame_start, frame_end = action.frame_range
-            time_end = (frame_end - frame_start) / xray.fps
+        # collect translation and rotation curves
+        curves = []
+        for curve_id in range(CURVE_COUNT):
+            curves.append([])
+
+        for matrix in bone_anim:
+            translate = matrix.to_translation()
+            rotate = matrix.to_euler('ZXY')
+
+            curves[0].append(+translate[0])
+            curves[1].append(+translate[1])
+            curves[2].append(-translate[2])
+            curves[3].append(-rotate[1])
+            curves[4].append(-rotate[0])
+            curves[5].append(+rotate[2])
+
+        if bone.name in root_bone_names:
+            time_end = (frame_end - frame_start) / fps
         else:
             time_end = None
 
         for curve_index, curve in enumerate(curves):
+            # search epsilon value
             epsilon = utilites.EPSILON
             if xray.autobake_custom_refine:
                 if curve_index < 3:
                     epsilon = xray.autobake_refine_location
                 else:
-                    xray.autobake_refine_rotation
+                    epsilon = xray.autobake_refine_rotation
 
-            pkw.putf(
-                'BB',
+            # write behavior
+            writer.putf(
+                '<2B',
                 interp.Behavior.CONSTANT.value,
                 interp.Behavior.CONSTANT.value
             )
-            cpkw = rw.write.PackedWriter()
-            ccnt = utilites.export_keyframes(
-                cpkw,
-                utilites.refine_keys(curve2keys(curve), epsilon),
-                time_end=time_end,
-                fps=xray.fps
+
+            # write keyframes
+            keyframes_writer = rw.write.PackedWriter()
+            keyframes = utilites.refine_keys(
+                convert_curve_to_keys(curve, fps),
+                epsilon
             )
-            pkw.putf('H', ccnt)
-            pkw.putp(cpkw)
+            keyframes_count = utilites.export_keyframes(
+                keyframes_writer,
+                keyframes,
+                time_end=time_end,
+                fps=fps
+            )
+            writer.putf('<H', keyframes_count)
+            writer.putp(keyframes_writer)
 
 
-def _bake_motion_data(action, armature, prepared_bones):
-    exportable_bones = [(bone, parent, []) for bone, parent in prepared_bones]
+def _bake_motion_data(action, armature):
+    exportable_bones = _prepare_bones(armature)
 
-    has_old_action = False
-    if armature.animation_data:
-        old_act = armature.animation_data.action
-        has_old_action = True
+    # find preview action
+    anim_data = armature.animation_data
+    if anim_data:
+        act_old = anim_data.action
     else:
+        act_old = None
         armature.animation_data_create()
-    old_frame = bpy.context.scene.frame_current
-    root_bone_names = []
+
+    frame_old = bpy.context.scene.frame_current
+
     try:
-        armature.animation_data.action = action
-        frame_start, frame_end = action.frame_range
-        for frame_index in range(int(frame_start), int(frame_end) + 1):
+        root_bone_names = set()
+        anim_data.action = action
+        frame_start = int(action.frame_range[0])
+        frame_end = int(action.frame_range[1])
+        multiply = utils.version.get_multiply()
+
+        for frame_index in range(frame_start, frame_end + 1):
             bpy.context.scene.frame_set(frame_index)
-            for pbone, parent, data in exportable_bones:
+            for bone, parent, data in exportable_bones:
                 if parent:
                     parent_matrix = parent.matrix.inverted()
                 else:
                     parent_matrix = const.MATRIX_BONE_INVERTED
-                    root_bone_names.append(pbone.name)
-                data.append(utils.version.multiply(parent_matrix, pbone.matrix))
-    finally:
-        if has_old_action:
-            armature.animation_data.action = old_act
-        bpy.context.scene.frame_set(old_frame)
+                    root_bone_names.add(bone.name)
+                matrix = multiply(parent_matrix, bone.matrix)
+                data.append(matrix)
 
-    return [
-        (pbone.name, animation)
-        for pbone, _, animation in exportable_bones
-    ], root_bone_names
+    finally:
+        if act_old:
+            anim_data.action = act_old
+        bpy.context.scene.frame_set(frame_old)
+
+    for bone_anim in exportable_bones:
+        # remove bone parent
+        bone_anim.pop(1)
+
+    return exportable_bones, root_bone_names
+
+
+def _prepare_bone(armature, bone):
+    pose_bone = armature.pose.bones[bone.name]
+    real_parent = utils.bone.find_bone_exportable_parent(bone)
+    if real_parent:
+        pose_bone_parent = armature.pose.bones[real_parent.name]
+    else:
+        pose_bone_parent = None
+    anim_data = []
+    return [pose_bone, pose_bone_parent, anim_data]
 
 
 def _prepare_bones(armature):
-    def prepare_bone(bone):
-        real_parent = utils.bone.find_bone_exportable_parent(bone)
-        return (
-            armature.pose.bones[bone.name],
-            armature.pose.bones[real_parent.name] if real_parent else None
-        )
-
     return [
-        prepare_bone(bone)
+        _prepare_bone(armature, bone)
         for bone in armature.data.bones
             if utils.bone.is_exportable_bone(bone)
     ]
 
 
 @log.with_context('motion')
-def export_motion(pkw, action, armature):
+def export_motion(writer, action, armature):
     log.update(action=action.name)
-    dependency_object = None
-    if armature.xray.dependency_object:
-        dependency_object = bpy.data.objects.get(armature.xray.dependency_object)
-        if dependency_object:
-            old_action = dependency_object.animation_data.action
-            dependency_object.animation_data.action = action
 
-    prepared_bones = _prepare_bones(armature)
-    bones_animations, root_bone_names = _bake_motion_data(action, armature, prepared_bones)
-    _export_motion_data(pkw, action, bones_animations, armature, root_bone_names)
+    dep_obj = None
+    dep_obj_name = armature.xray.dependency_object
+    if dep_obj_name:
+        dep_obj = bpy.data.objects.get(dep_obj_name)
+        if dep_obj:
+            old_action = dep_obj.animation_data.action
+            dep_obj.animation_data.action = action
 
-    if dependency_object:
-        dependency_object.animation_data.action = old_action
+    # bake
+    bones_anims, root_bone_names = _bake_motion_data(
+        action,
+        armature
+    )
+
+    # export
+    _export_motion_data(
+        writer,
+        action,
+        bones_anims,
+        armature,
+        root_bone_names
+    )
+
+    if dep_obj:
+        dep_obj.animation_data.action = old_action
 
 
 def export_motions(writer, actions, bpy_armature):
@@ -155,7 +213,8 @@ def export_motions(writer, actions, bpy_armature):
         dep_action
     ) = utils.action.get_initial_state(bpy_armature)
 
-    writer.putf('I', len(actions))
+    motions_count = len(actions)
+    writer.putf('<I', motions_count)
     for action in actions:
         export_motion(writer, action, bpy_armature)
 
