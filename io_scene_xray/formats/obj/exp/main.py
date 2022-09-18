@@ -178,13 +178,12 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
         if utils.is_helper_object(bpy_obj):
             return
         if bpy_obj.type == 'MESH':
-            if bpy_root.type != 'ARMATURE':
-                write_mesh(bpy_obj)
-            else:
+            arm_obj = utils.get_armature_object(bpy_obj)
+            if arm_obj:
                 armature_meshes.add(bpy_obj)
-                arm_obj = utils.get_armature_object(bpy_obj)
-                if arm_obj:
-                    armatures.add(arm_obj)
+                armatures.add(arm_obj)
+            else:
+                write_mesh(bpy_obj)
         elif bpy_obj.type == 'ARMATURE':
             armatures.add(bpy_obj)
         for child in bpy_obj.children:
