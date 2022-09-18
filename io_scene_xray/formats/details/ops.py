@@ -160,7 +160,6 @@ class XRAY_OT_export_details(
     def draw(self, context):
         layout = self.layout
 
-        layout.prop(self, 'texture_name_from_image_path')
         utils.draw.draw_fmt_ver_prop(
             layout,
             self,
@@ -168,6 +167,7 @@ class XRAY_OT_export_details(
             lay_type='COLUMN',
             use_row=False
         )
+        layout.prop(self, 'texture_name_from_image_path')
 
     @log.execute_with_logger
     @utils.ie.set_initial_state

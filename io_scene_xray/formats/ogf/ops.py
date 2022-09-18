@@ -135,6 +135,11 @@ class XRAY_OT_export_ogf_file(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, 'export_motions')
+        layout.prop(self, 'texture_name_from_image_path')
+
     @log.execute_with_logger
     @utils.execute_require_filepath
     @utils.ie.set_initial_state
@@ -198,6 +203,11 @@ class XRAY_OT_export_ogf(ie.BaseOperator):
     if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, 'export_motions')
+        layout.prop(self, 'texture_name_from_image_path')
 
     @log.execute_with_logger
     @utils.ie.set_initial_state
