@@ -52,6 +52,16 @@ def _export_motion_data(
     writer.putf('<4f', xray.speed, xray.accrue, xray.falloff, xray.power)
     writer.putf('<H', bones_count)
 
+    # search epsilon value
+    if xray.autobake_custom_refine:
+        epsilon_loc = xray.autobake_refine_location
+        epsilon_rot = xray.autobake_refine_rotation
+    else:
+        epsilon_loc = utilites.EPSILON
+        epsilon_rot = utilites.EPSILON
+
+    epsilons = [epsilon_loc, epsilon_rot]
+
     # write motions
     for bone, bone_anim in bones_anims:
         # write bone motion parameters
@@ -80,13 +90,7 @@ def _export_motion_data(
             time_end = None
 
         for curve_index, curve in enumerate(curves):
-            # search epsilon value
-            epsilon = utilites.EPSILON
-            if xray.autobake_custom_refine:
-                if curve_index < 3:
-                    epsilon = xray.autobake_refine_location
-                else:
-                    epsilon = xray.autobake_refine_rotation
+            epsilon = epsilons[curve_index // 3]
 
             # write behavior
             writer.putf(
