@@ -262,7 +262,8 @@ def get_pose_bones_and_groups(context):
     pose_bones = []
     bone_groups = {}
     no_group_bones = set()
-    for bone_index, bone in enumerate(context.bpy_arm_obj.data.bones):
+    bone_index = 0
+    for bone in context.bpy_arm_obj.data.bones:
         if bone.xray.exportable:
             pose_bone = context.bpy_arm_obj.pose.bones[bone.name]
             pose_bones.append(pose_bone)
@@ -275,6 +276,7 @@ def get_pose_bones_and_groups(context):
             bone_groups.setdefault(pose_bone.bone_group.name, []).append(
                 (pose_bone.name, bone_index)
             )
+            bone_index += 1
 
     if no_group_bones:
         raise log.AppError(
@@ -613,8 +615,10 @@ def export_motions(
 
             for pose_bone in pose_bones:
                 name = pose_bone.name
-                parent = pose_bone.parent
-                if parent:
+                bone = context.bpy_arm_obj.data.bones[name]
+                real_parent = utils.bone.find_bone_exportable_parent(bone)
+                if real_parent:
+                    parent = context.bpy_arm_obj.pose.bones[real_parent.name]
                     parent_matrix = parent.matrix.inverted()
                 else:
                     parent_matrix = motions.const.MATRIX_BONE_INVERTED

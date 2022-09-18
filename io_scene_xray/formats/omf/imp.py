@@ -117,9 +117,8 @@ def read_motion(data, context, motions_params, bone_names):
         for bone_index in range(len(bone_names)):
             bone_name = bone_names.get(bone_index, None)
             if bone_name is None:
-                bpy_bone = context.bpy_arm_obj.data.bones.get(bone_index)
-            else:
-                bpy_bone = context.bpy_arm_obj.data.bones.get(bone_name)
+                bone_name = context.bpy_arm_obj.data.bones.keys()[bone_index]
+            bpy_bone = context.bpy_arm_obj.data.bones.get(bone_name)
             if bpy_bone:
                 bone_name = bpy_bone.name
             else:
