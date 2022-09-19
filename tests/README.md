@@ -16,6 +16,30 @@ blender --factory-startup -noaudio -b --python tests/runner.py --save-html-repor
 ```
 The `output_folder` parameter is optional. If all tests are passed, the `./htmlcov/` directory with coverage reports will be created.
 
+To start tests for all Blender versions, you can use such commands for Windows:
+
+```shell
+del .coverage
+C:\progs\blender\277\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\277\
+C:\progs\blender\278\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\278\
+C:\progs\blender\279\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\279\
+C:\progs\blender\280\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\280\
+C:\progs\blender\281\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\281\
+C:\progs\blender\282\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\282\
+C:\progs\blender\283\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\283\
+C:\progs\blender\290\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\290\
+C:\progs\blender\291\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\291\
+C:\progs\blender\292\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\292\
+C:\progs\blender\293\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\293\
+C:\progs\blender\301\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\301\
+C:\progs\blender\312\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\312\
+C:\progs\blender\321\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\321\
+C:\progs\blender\330\blender.exe --factory-startup -noaudio -b --python tests/runner.py --save-html-report htmlcov\330\
+```
+
+All coverage files will be merged and saved to the last folder (in this case `htmlcov\330\`).
+
+
 ## Creating the Tests
 Sometimes, a test requires a sample data file which should be stored in this repository.
 Please, keep in mind, the sample files are always downloaded on `git clone` command, whenever the user wants to download them or not.
