@@ -8,17 +8,17 @@ import bpy
 from . import text
 
 
-CONTEX_NAME = '@context'
+CONTEXT_NAME = '@context'
 __logger__ = None
 __context__ = None
 
 
 class AppError(Exception):
-    def __init__(self, message, ctx=None):
+    def __init__(self, message, log_context=None):
         super().__init__(message)
-        if ctx is None:
-            ctx = props()
-        self.ctx = ctx
+        if log_context is None:
+            log_context = props()
+        self.log_context = log_context
 
 
 class _LoggerContext:
@@ -37,22 +37,37 @@ class Logger:
         self._report = report
         self._full = []
 
-    def message_format(self, message):
+    def _format_message(self, message):
         message = str(message)
         message = text.get_text(message)
         message = message.strip()
         message = message[0].upper() + message[1: ]
         return message
 
-    def message(self, message, message_type, ctx):
-        message = self.message_format(message)
+    def _format_data(self, data):
+        if CONTEXT_NAME in data:
+            name = None
+            args = []
+            for key, val in data.items():
+                if key is CONTEXT_NAME:
+                    name = val
+                else:
+                    arg = '{0}={1}'.format(key, repr(val))
+                    args.append(arg)
+            args_str = ', '.join(args)
+            result = '{0}({1})'.format(name, args_str)
+            return result
+        return str(data)
+
+    def _message(self, message, message_type, ctx):
+        message = self._format_message(message)
         self._full.append((message, ctx, message_type))
 
     def warn(self, message, ctx=None):
-        self.message(message, 'WARNING', ctx)
+        self._message(message, 'WARNING', ctx)
 
     def err(self, message, ctx=None):
-        self.message(message, 'ERROR', ctx)
+        self._message(message, 'ERROR', ctx)
 
     def flush(self, logname='log'):
         uniq = dict()
@@ -85,18 +100,6 @@ class Logger:
         processed_groups = dict()
         last_line_is_message = False
 
-        def fmt_data(data):
-            if CONTEX_NAME in data:
-                name = None
-                args = []
-                for key, val in data.items():
-                    if key is CONTEX_NAME:
-                        name = val
-                    else:
-                        args.append('%s=%s' % (key, repr(val)))
-                return '%s(%s)' % (name, ', '.join(args))
-            return str(data)
-
         def ensure_group_processed(group):
             nonlocal last_line_is_message
             prefix = processed_groups.get(group, None)
@@ -107,14 +110,13 @@ class Logger:
                     prefix = '| ' * group.depth
                     if last_line_is_message:
                         lines.append(prefix + '|')
-                    lines.append('%s+-%s' % (prefix, fmt_data(group.data)))
+                    lines.append('%s+-%s' % (prefix, self._format_data(group.data)))
                     last_line_is_message = False
                     prefix += '|  '
                 else:
                     prefix = ''
                 processed_groups[group] = prefix
             return prefix
-
 
         last_message = None
         last_message_count = 0
@@ -153,7 +155,7 @@ def with_context(name=None):
             global __context__
             saved = __context__
             try:
-                __context__ = _LoggerContext({CONTEX_NAME: name}, saved)
+                __context__ = _LoggerContext({CONTEXT_NAME: name}, saved)
                 return func(*args, **kwargs)
             finally:
                 __context__ = saved
@@ -174,7 +176,7 @@ def warn(message, **kwargs):
 
 
 def err(error):
-    __logger__.err(str(error), error.ctx)
+    __logger__.err(str(error), error.log_context)
 
 
 def debug(message, **kwargs):
@@ -211,7 +213,7 @@ def logger(name, report):
         with using_logger(logger_obj):
             yield
     except AppError as err:
-        logger_obj.err(str(err), err.ctx)
+        logger_obj.err(str(err), err.log_context)
         raise err
     finally:
         logger_obj.flush(name)
