@@ -61,9 +61,9 @@ class XRAY_PT_material(ui.base.XRayPanel):
         preferences = utils.version.get_preferences()
         panel_used = (
             # import plugins
-            preferences.enable_game_level_import or
+            preferences.enable_level_import or
             # export plugins
-            preferences.enable_game_level_export
+            preferences.enable_level_export
         )
         if not panel_used:
             return

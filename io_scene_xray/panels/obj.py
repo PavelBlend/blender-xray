@@ -610,7 +610,7 @@ def get_used(prefs):
         # import plugins
         prefs.enable_object_import or
         prefs.enable_skls_import or
-        prefs.enable_level_import or
+        prefs.enable_scene_import or
         prefs.enable_omf_import or
         prefs.enable_ogf_import or
         prefs.enable_part_import or
@@ -618,7 +618,7 @@ def get_used(prefs):
         prefs.enable_object_export or
         prefs.enable_skls_export or
         prefs.enable_skl_export or
-        prefs.enable_level_export or
+        prefs.enable_scene_export or
         prefs.enable_omf_export or
         prefs.enable_ogf_export
     )
@@ -632,9 +632,9 @@ def get_used(prefs):
     )
     game_level_used = (
         # import plugins
-        prefs.enable_game_level_import or
+        prefs.enable_level_import or
         # export plugins
-        prefs.enable_game_level_export
+        prefs.enable_level_export
     )
     return object_used, details_used, game_level_used
 

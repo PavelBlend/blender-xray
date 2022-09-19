@@ -16,10 +16,10 @@ class XRAY_PT_mesh(ui.base.XRayPanel):
         panel_used = (
             # import plugins
             preferences.enable_object_import or
-            preferences.enable_level_import or
+            preferences.enable_scene_import or
             # export plugins
             preferences.enable_object_export or
-            preferences.enable_level_export
+            preferences.enable_scene_export
         )
         if not panel_used:
             return False

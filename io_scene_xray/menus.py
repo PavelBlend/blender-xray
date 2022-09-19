@@ -7,35 +7,35 @@ from . import utils
 from . import formats
 
 
-# import draw functions
-import_draw_functions = [
-    ('enable_object_import', formats.obj.imp.ops.XRAY_OT_import_object, 'Object'),
-    ('enable_skls_import', formats.skl.ops.XRAY_OT_import_skls, 'Skls'),
-    ('enable_ogf_import', formats.ogf.ops.XRAY_OT_import_ogf, 'Ogf'),
-    ('enable_omf_import', formats.omf.ops.XRAY_OT_import_omf, 'Omf'),
-    ('enable_anm_import', formats.anm.ops.XRAY_OT_import_anm, 'Anm'),
-    ('enable_bones_import', formats.bones.ops.XRAY_OT_import_bones, 'Bones'),
-    ('enable_dm_import', formats.dm.ops.XRAY_OT_import_dm, 'Dm'),
-    ('enable_details_import', formats.details.ops.XRAY_OT_import_details, 'Details'),
-    ('enable_level_import', formats.scene.ops.XRAY_OT_import_scene_selection, 'Scene'),
-    ('enable_game_level_import', formats.level.ops.XRAY_OT_import_level, 'Level'),
-    ('enable_part_import', formats.part.ops.XRAY_OT_import_part, 'Part'),
-    ('enable_err_import', formats.err.ops.XRAY_OT_import_err, 'Err')
+# import operators: (operator, lebel)
+import_ops = [
+    (formats.obj.imp.ops.XRAY_OT_import_object, 'Object'),
+    (formats.skl.ops.XRAY_OT_import_skls, 'Skls'),
+    (formats.ogf.ops.XRAY_OT_import_ogf, 'Ogf'),
+    (formats.omf.ops.XRAY_OT_import_omf, 'Omf'),
+    (formats.anm.ops.XRAY_OT_import_anm, 'Anm'),
+    (formats.bones.ops.XRAY_OT_import_bones, 'Bones'),
+    (formats.dm.ops.XRAY_OT_import_dm, 'Dm'),
+    (formats.details.ops.XRAY_OT_import_details, 'Details'),
+    (formats.scene.ops.XRAY_OT_import_scene_selection, 'Scene'),
+    (formats.level.ops.XRAY_OT_import_level, 'Level'),
+    (formats.part.ops.XRAY_OT_import_part, 'Part'),
+    (formats.err.ops.XRAY_OT_import_err, 'Err')
 ]
 
-# export draw functions
-export_draw_functions = [
-    ('enable_object_export', formats.obj.exp.ops.XRAY_OT_export_object, 'Object'),
-    ('enable_skls_export', formats.skl.ops.XRAY_OT_export_skls, 'Skls'),
-    ('enable_skl_export', formats.skl.ops.XRAY_OT_export_skl_batch, 'Skl'),
-    ('enable_ogf_export', formats.ogf.ops.XRAY_OT_export_ogf, 'Ogf'),
-    ('enable_omf_export', formats.omf.ops.XRAY_OT_export_omf, 'Omf'),
-    ('enable_anm_export', formats.anm.ops.XRAY_OT_export_anm, 'Anm'),
-    ('enable_bones_export', formats.bones.ops.XRAY_OT_export_bones, 'Bones'),
-    ('enable_dm_export', formats.dm.ops.XRAY_OT_export_dm, 'Dm'),
-    ('enable_details_export', formats.details.ops.XRAY_OT_export_details, 'Details'),
-    ('enable_level_export', formats.scene.ops.XRAY_OT_export_scene_selection, 'Scene'),
-    ('enable_game_level_export', formats.level.ops.XRAY_OT_export_level, 'Level')
+# export operators: (operator, lebel)
+export_ops = [
+    (formats.obj.exp.ops.XRAY_OT_export_object, 'Object'),
+    (formats.skl.ops.XRAY_OT_export_skls, 'Skls'),
+    (formats.skl.ops.XRAY_OT_export_skl_batch, 'Skl'),
+    (formats.ogf.ops.XRAY_OT_export_ogf, 'Ogf'),
+    (formats.omf.ops.XRAY_OT_export_omf, 'Omf'),
+    (formats.anm.ops.XRAY_OT_export_anm, 'Anm'),
+    (formats.bones.ops.XRAY_OT_export_bones, 'Bones'),
+    (formats.dm.ops.XRAY_OT_export_dm, 'Dm'),
+    (formats.details.ops.XRAY_OT_export_details, 'Details'),
+    (formats.scene.ops.XRAY_OT_export_scene_selection, 'Scene'),
+    (formats.level.ops.XRAY_OT_export_level, 'Level')
 ]
 
 
@@ -49,9 +49,10 @@ def menu_func_xray_export(self, context):
     self.layout.menu(XRAY_MT_export.bl_idname, icon_value=icon)
 
 
-def append_draw_functions(ops_list, menu):
+def append_draw_functions(ops_list, menu, mode):
     preferences = utils.version.get_preferences()
-    for enable_prop, operator, label in ops_list:
+    for operator, label in ops_list:
+        enable_prop = 'enable_{0}_{1}'.format(label.lower(), mode)
         enable = getattr(preferences, enable_prop)
         if enable:
             draw_function = utils.ie.get_draw_fun(operator)
@@ -59,16 +60,17 @@ def append_draw_functions(ops_list, menu):
 
 
 def remove_draw_functions(ops_list, menu):
-    for enable, operator, label in ops_list:
+    for operator, label in ops_list:
         if hasattr(operator, 'draw_fun'):
             draw_function = operator.draw_fun
             menu.remove(draw_function)
 
 
-def get_enabled_operators(ops_list):
+def get_enabled_operators(ops_list, mode):
     preferences = utils.version.get_preferences()
     operators = []
-    for enable_prop, operator, label in ops_list:
+    for operator, label in ops_list:
+        enable_prop = 'enable_{0}_{1}'.format(label.lower(), mode)
         enable = getattr(preferences, enable_prop)
         if enable:
             id_name = operator.bl_idname
@@ -82,27 +84,27 @@ def append_menu_func():
     import_menu, export_menu = utils.version.get_import_export_menus()
 
     # remove import menus
-    remove_draw_functions(import_draw_functions, import_menu)
+    remove_draw_functions(import_ops, import_menu)
     # remove export menus
-    remove_draw_functions(export_draw_functions, export_menu)
+    remove_draw_functions(export_ops, export_menu)
     # remove compact menus
     import_menu.remove(menu_func_xray_import)
     export_menu.remove(menu_func_xray_export)
 
     if preferences.compact_menus:
         # create compact import menus
-        enabled_imp_ops = get_enabled_operators(import_draw_functions)
+        enabled_imp_ops = get_enabled_operators(import_ops, 'import')
         if enabled_imp_ops:
             import_menu.prepend(menu_func_xray_import)
         # create compact export menus
-        enabled_exp_ops = get_enabled_operators(export_draw_functions)
+        enabled_exp_ops = get_enabled_operators(export_ops, 'export')
         if enabled_exp_ops:
             export_menu.prepend(menu_func_xray_export)
     else:
         # create standart import menus
-        append_draw_functions(import_draw_functions, import_menu)
+        append_draw_functions(import_ops, import_menu, 'import')
         # create standart export menus
-        append_draw_functions(export_draw_functions, export_menu)
+        append_draw_functions(export_ops, export_menu, 'export')
 
 
 class XRAY_MT_import(bpy.types.Menu):
@@ -111,7 +113,7 @@ class XRAY_MT_import(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        import_operators = get_enabled_operators(import_draw_functions)
+        import_operators = get_enabled_operators(import_ops, 'import')
         for id_name, text in import_operators:
             layout.operator(id_name, text=text)
 
@@ -122,7 +124,7 @@ class XRAY_MT_export(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        export_operators = get_enabled_operators(export_draw_functions)
+        export_operators = get_enabled_operators(export_ops, 'export')
         for id_name, text in export_operators:
             layout.operator(id_name, text=text)
 
@@ -143,9 +145,9 @@ def unregister():
     import_menu, export_menu = utils.version.get_import_export_menus()
 
     # remove import menus
-    remove_draw_functions(import_draw_functions, import_menu)
+    remove_draw_functions(import_ops, import_menu)
     # remove export menus
-    remove_draw_functions(export_draw_functions, export_menu)
+    remove_draw_functions(export_ops, export_menu)
     # remove compact menus
     import_menu.remove(menu_func_xray_import)
     export_menu.remove(menu_func_xray_export)

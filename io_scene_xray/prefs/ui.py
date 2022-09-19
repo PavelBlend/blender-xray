@@ -201,8 +201,8 @@ def draw_formats_enable_disable(prefs):
     column_import.prop(prefs, 'enable_bones_import', text='*.bones')
     column_import.prop(prefs, 'enable_dm_import', text='*.dm')
     column_import.prop(prefs, 'enable_details_import', text='*.details')
-    column_import.prop(prefs, 'enable_level_import', text='*.level')
-    column_import.prop(prefs, 'enable_game_level_import', text='level')
+    column_import.prop(prefs, 'enable_scene_import', text='*.level')
+    column_import.prop(prefs, 'enable_level_import', text='level')
     column_import.prop(prefs, 'enable_part_import', text='*.part')
     column_import.prop(prefs, 'enable_err_import', text='*.err')
     # export operators
@@ -219,8 +219,8 @@ def draw_formats_enable_disable(prefs):
     column_export.prop(prefs, 'enable_bones_export', text='*.bones')
     column_export.prop(prefs, 'enable_dm_export', text='*.dm')
     column_export.prop(prefs, 'enable_details_export', text='*.details')
-    column_export.prop(prefs, 'enable_level_export', text='*.level')
-    column_export.prop(prefs, 'enable_game_level_export', text='level')
+    column_export.prop(prefs, 'enable_scene_export', text='*.level')
+    column_export.prop(prefs, 'enable_level_export', text='level')
 
 
 def draw_keymaps(context, prefs):

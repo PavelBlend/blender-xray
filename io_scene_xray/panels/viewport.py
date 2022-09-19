@@ -486,14 +486,16 @@ class XRAY_PT_import_operators(ui.base.XRayPanel):
     @classmethod
     def poll(cls, context):
         enabled_import_operators = menus.get_enabled_operators(
-            menus.import_draw_functions
+            menus.import_ops,
+            'import'
         )
         return bool(enabled_import_operators)
 
     def draw(self, context):
         col = self.layout.column(align=True)
         preferences = utils.version.get_preferences()
-        for enable_prop_name, operator, label in menus.import_draw_functions:
+        for operator, label in menus.import_ops:
+            enable_prop_name = 'enable_{}_import'.format(label.lower())
             enable_prop = getattr(preferences, enable_prop_name)
             if enable_prop:
                 col.operator(operator.bl_idname, text=label, icon='IMPORT')
@@ -512,14 +514,16 @@ class XRAY_PT_export_operators(ui.base.XRayPanel):
     @classmethod
     def poll(cls, context):
         enabled_export_operators = menus.get_enabled_operators(
-            menus.export_draw_functions
+            menus.export_ops,
+            'export'
         )
         return bool(enabled_export_operators)
 
     def draw(self, context):
         col = self.layout.column(align=True)
         preferences = utils.version.get_preferences()
-        for enable_prop_name, operator, label in menus.export_draw_functions:
+        for operator, label in menus.export_ops:
+            enable_prop_name = 'enable_{}_export'.format(label.lower())
             enable_prop = getattr(preferences, enable_prop_name)
             if enable_prop:
                 col.operator(operator.bl_idname, text=label, icon='EXPORT')
