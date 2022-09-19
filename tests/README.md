@@ -16,7 +16,7 @@ blender --factory-startup -noaudio -b --python tests/runner.py --save-html-repor
 ```
 The `output_folder` parameter is optional. If all tests are passed, the `./htmlcov/` directory with coverage reports will be created.
 
-To start tests for all Blender versions, you can use such commands for Windows:
+To start tests for all `blender` versions, you can use such commands for `windows`:
 
 ```shell
 del .coverage
