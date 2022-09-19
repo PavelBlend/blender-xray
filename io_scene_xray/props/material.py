@@ -32,12 +32,12 @@ class XRayMaterialProperties(bpy.types.PropertyGroup):
         for prop_name, prop_value in xray_material_properties.items():
             exec('{0} = xray_material_properties.get("{0}")'.format(prop_name))
 
-    def initialize(self, context):
+    def initialize(self, operation, addon_ver):
         if not self.version:
-            if context.operation == 'LOADED':
+            if operation == 'LOADED':
                 self.version = -1
-            elif context.operation == 'CREATED':
-                self.version = context.addon_version_number
+            elif operation == 'CREATED':
+                self.version = addon_ver
                 obj = bpy.context.active_object
                 if obj and obj.xray.flags_custom_type == 'st':
                     self.eshader = 'default'

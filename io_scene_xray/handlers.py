@@ -5,17 +5,11 @@ import bpy
 from . import utils
 
 
-class DataBlocksInitContext:
-    def __init__(self, operation):
-        self.operation = operation
-        self.addon_version_number = utils.addon_version_number()
-
-
 class DataBlocksSet:
     def __init__(self):
         self._hashes = set()
 
-    def sync(self, bpy_collect, context):
+    def sync(self, bpy_collect, operation, addon_ver):
         hashes_old = self._hashes
         if len(bpy_collect) == len(hashes_old):
             return
@@ -24,7 +18,7 @@ class DataBlocksSet:
             block_hash = hash(data_block)
             hashes_new.add(block_hash)
             if not block_hash in hashes_old:
-                data_block.xray.initialize(context)
+                data_block.xray.initialize(operation, addon_ver)
         self._hashes = hashes_new
 
 
@@ -33,10 +27,10 @@ class DataBlocksInitializer:
         self._collects = {collect: DataBlocksSet() for collect in collect_ids}
 
     def sync(self, operation):
-        context = DataBlocksInitContext(operation)
+        addon_ver = utils.addon_version_number()
         for collect_name, data_blocks_set in self._collects.items():
             bpy_collect = getattr(bpy.data, collect_name)
-            data_blocks_set.sync(bpy_collect, context)
+            data_blocks_set.sync(bpy_collect, operation, addon_ver)
 
 
 bpy_data_init_collects = ['objects', 'materials']
