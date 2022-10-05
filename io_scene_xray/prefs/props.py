@@ -5,11 +5,12 @@ import os
 import bpy
 
 # addon modules
-from .. import xray_ltx
-from .. import version_utils
+from . import hotkeys
+from .. import rw
+from .. import utils
 from .. import menus
-from .. import hotkeys
-from .. import ie_props
+from .. import text
+from .. import formats
 
 
 def update_menu_func(self, context):
@@ -44,19 +45,24 @@ fs_props = {
 def _auto_path(prefs, self_name, path_suffix, checker):
     if prefs.fs_ltx_file:
         if not os.path.exists(prefs.fs_ltx_file):
-            return ''
+            return '', prefs.fs_ltx_file
         try:
-            fs = xray_ltx.StalkerLtxParser(prefs.fs_ltx_file)
+            fs = rw.ltx.StalkerLtxParser(prefs.fs_ltx_file)
         except:
-            print('Invalid fs.ltx syntax')
-            return ''
+            utils.draw.show_message(
+                text.get_text(text.error.ltx_invalid_syntax),
+                (prefs.fs_ltx_file, ),
+                text.get_text(text.error.error_title),
+                'ERROR'
+            )
+            return '', False
         prop_key, file_name = fs_props[self_name]
         dir_path = fs.values[prop_key]
         if file_name:
             result = os.path.join(dir_path, file_name)
         else:
             result = dir_path
-        return result
+        return result, False
     for prop in __AUTO_PROPS__:
         if prop == self_name:
             continue
@@ -77,8 +83,10 @@ def _auto_path(prefs, self_name, path_suffix, checker):
         if checker(result):
             if self_name == 'objects_folder':
                 result = os.path.abspath(result)
-            return result
-    return ''
+            return result, False
+        else:
+            return '', result
+    return '', False
 
 
 path_props_suffix_values = {
@@ -105,6 +113,7 @@ path_props_types = {
 
 
 def update_paths(prefs, context):
+    not_found_paths = set()
     for path_prop, suffix in path_props_suffix_values.items():
         if getattr(prefs, path_prop):
             setattr(prefs, build_auto_id(path_prop), getattr(prefs, path_prop))
@@ -114,8 +123,24 @@ def update_paths(prefs, context):
             cheker_function = os.path.isdir
         elif prop_type == FILE:
             cheker_function = os.path.isfile
-        path_value = _auto_path(prefs, path_prop, suffix, cheker_function)
+        path_value, not_found = _auto_path(
+            prefs,
+            path_prop,
+            suffix,
+            cheker_function
+        )
+        if not_found:
+            not_found_paths.add(os.path.abspath(not_found))
         setattr(prefs, build_auto_id(path_prop), path_value)
+    if not_found_paths:
+        not_found_paths = list(not_found_paths)
+        not_found_paths.sort()
+        utils.draw.show_message(
+            text.get_text(text.error.file_folder_not_found),
+            not_found_paths,
+            text.get_text(text.error.error_title),
+            'ERROR'
+        )
 
 
 custom_props_category_items = (
@@ -346,7 +371,7 @@ xray_custom_properties.update(custom_action_props)
 class XRayPrefsCustomProperties(bpy.types.PropertyGroup):
     props = xray_custom_properties
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -362,7 +387,7 @@ class XRAY_OT_add_keymap(bpy.types.Operator):
 
     props = op_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -380,7 +405,7 @@ key_map_props = {
 class XRayKeyMap(bpy.types.PropertyGroup):
     props = key_map_props
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
@@ -409,7 +434,7 @@ defaults_category_items = (
 category_items = (
     ('PATHS', 'Paths', ''),
     ('DEFAULTS', 'Defaults', ''),
-    ('PLUGINS', 'Operators', ''),
+    ('PLUGINS', 'Formats', ''),
     ('KEYMAP', 'Keymap', ''),
     ('CUSTOM_PROPS', 'Custom Props', ''),
     ('OTHERS', 'Others', '')
@@ -446,56 +471,56 @@ plugin_preferences_props = {
     ),
 
     # object import props
-    'sdk_version': ie_props.PropSDKVersion(),
-    'object_motions_import': ie_props.PropObjectMotionsImport(),
-    'object_mesh_split_by_mat': ie_props.PropObjectMeshSplitByMaterials(),
+    'sdk_version': formats.ie.PropSDKVersion(),
+    'object_motions_import': formats.ie.PropObjectMotionsImport(),
+    'object_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
     # object export props
-    'export_object_sdk_version': ie_props.PropSDKVersion(),
-    'smoothing_out_of': ie_props.prop_smoothing_out_of(),
-    'object_motions_export': ie_props.PropObjectMotionsExport(),
-    'object_texture_names_from_path': ie_props.PropObjectTextureNamesFromPath(),
-    'export_object_use_export_paths': ie_props.PropUseExportPaths(),
+    'export_object_sdk_version': formats.ie.PropSDKVersion(),
+    'smoothing_out_of': formats.ie.prop_smoothing_out_of(),
+    'object_motions_export': formats.ie.PropObjectMotionsExport(),
+    'object_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
+    'export_object_use_export_paths': formats.ie.PropUseExportPaths(),
     # anm import props
-    'anm_create_camera': ie_props.PropAnmCameraAnimation(),
+    'anm_create_camera': formats.ie.PropAnmCameraAnimation(),
     # anm export props
-    'anm_format_version': ie_props.prop_anm_format_version(),
+    'anm_format_version': formats.ie.prop_anm_format_version(),
     # skl/skls import props
-    'add_actions_to_motion_list': ie_props.prop_skl_add_actions_to_motion_list(),
+    'add_actions_to_motion_list': formats.ie.prop_skl_add_actions_to_motion_list(),
     # bones import props
-    'bones_import_bone_parts': ie_props.prop_import_bone_parts(),
-    'bones_import_bone_properties': ie_props.prop_import_bone_properties(),
+    'bones_import_bone_parts': formats.ie.prop_import_bone_parts(),
+    'bones_import_bone_properties': formats.ie.prop_import_bone_properties(),
     # bones export props
-    'bones_export_bone_parts': ie_props.prop_export_bone_parts(),
-    'bones_export_bone_properties': ie_props.prop_export_bone_properties(),
+    'bones_export_bone_parts': formats.ie.prop_export_bone_parts(),
+    'bones_export_bone_properties': formats.ie.prop_export_bone_properties(),
     # details import props
-    'details_models_in_a_row': ie_props.prop_details_models_in_a_row(),
-    'load_slots': ie_props.prop_details_load_slots(),
-    'details_format': ie_props.prop_details_format(),
+    'details_models_in_a_row': formats.ie.prop_details_models_in_a_row(),
+    'load_slots': formats.ie.prop_details_load_slots(),
+    'details_format': formats.ie.prop_details_format(),
     # details export props
-    'details_texture_names_from_path': ie_props.PropObjectTextureNamesFromPath(),
-    'format_version': ie_props.prop_details_format_version(),
+    'details_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
+    'format_version': formats.ie.prop_details_format_version(),
     # dm export props
-    'dm_texture_names_from_path': ie_props.PropObjectTextureNamesFromPath(),
+    'dm_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
     # ogf import props
-    'ogf_import_motions': ie_props.PropObjectMotionsImport(),
+    'ogf_import_motions': formats.ie.PropObjectMotionsImport(),
     # ogf export props
-    'ogf_texture_names_from_path': ie_props.PropObjectTextureNamesFromPath(),
-    'ogf_export_motions': ie_props.PropObjectMotionsExport(),
+    'ogf_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
+    'ogf_export_motions': formats.ie.PropObjectMotionsExport(),
     # omf import props
-    'omf_import_motions': ie_props.PropObjectMotionsImport(),
-    'import_bone_parts': ie_props.prop_import_bone_parts(),
-    'omf_add_actions_to_motion_list': ie_props.prop_skl_add_actions_to_motion_list(),
+    'omf_import_motions': formats.ie.PropObjectMotionsImport(),
+    'import_bone_parts': formats.ie.prop_import_bone_parts(),
+    'omf_add_actions_to_motion_list': formats.ie.prop_skl_add_actions_to_motion_list(),
     # omf export props
-    'omf_export_bone_parts': ie_props.prop_export_bone_parts(),
-    'omf_export_mode': ie_props.prop_omf_export_mode(),
-    'omf_motions_export': ie_props.PropObjectMotionsExport(),
-    'omf_high_quality': ie_props.prop_omf_high_quality(),
+    'omf_export_bone_parts': formats.ie.prop_export_bone_parts(),
+    'omf_export_mode': formats.ie.prop_omf_export_mode(),
+    'omf_motions_export': formats.ie.PropObjectMotionsExport(),
+    'omf_high_quality': formats.ie.prop_omf_high_quality(),
     # scene selection import props
-    'scene_selection_sdk_version': ie_props.PropSDKVersion(),
-    'scene_selection_mesh_split_by_mat': ie_props.PropObjectMeshSplitByMaterials(),
+    'scene_selection_sdk_version': formats.ie.PropSDKVersion(),
+    'scene_selection_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
     # part import props
-    'part_sdk_version': ie_props.PropSDKVersion(),
-    'part_mesh_split_by_mat': ie_props.PropObjectMeshSplitByMaterials(),
+    'part_sdk_version': formats.ie.PropSDKVersion(),
+    'part_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
 
     # keymap
     'keymaps_collection': bpy.props.CollectionProperty(type=XRayKeyMap),
@@ -508,8 +533,8 @@ plugin_preferences_props = {
     'enable_skls_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_bones_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_err_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_scene_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_level_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_game_level_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_omf_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_ogf_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_part_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
@@ -521,8 +546,8 @@ plugin_preferences_props = {
     'enable_skls_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_skl_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_bones_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_scene_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_game_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_omf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
     'enable_ogf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
 
@@ -562,6 +587,12 @@ plugin_preferences_props = {
         max=1.0,
         subtype='COLOR',
         size=4
+    ),
+
+    # custom data props
+    'object_split_normals': bpy.props.BoolProperty(
+        name='Use *.object Split Normals',
+        default=False
     )
 }
 
@@ -574,7 +605,7 @@ classes = (
 
 
 def register():
-    version_utils.register_operators(classes)
+    utils.version.register_operators(classes)
 
 
 def unregister():

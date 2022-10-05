@@ -4,7 +4,7 @@ import bl_operators
 
 # addon modules
 from . import props
-from .. import version_utils
+from .. import utils
 
 
 class XRAY_MT_prefs_presets(bpy.types.Menu):
@@ -19,7 +19,7 @@ class XRAY_OT_add_prefs_preset(bl_operators.presets.AddPresetBase, bpy.types.Ope
     bl_label = 'Add XRay Preferences Preset'
     preset_menu = 'XRAY_MT_prefs_presets'
 
-    if version_utils.IS_28:
+    if utils.version.IS_28:
         preset_defines = [
             'prefs = bpy.context.preferences.addons["io_scene_xray"].preferences'
         ]

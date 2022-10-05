@@ -1,9 +1,20 @@
+# blender modules
+import bpy
+
 # addon modules
 from . import error
 from . import warn
-from .. import translate
+from . import ru
 
 
-def get_text(string):
-    result = translate.get_tip(string)
-    return result
+def get_text(message):
+    message_context = '*'
+    return bpy.app.translations.pgettext_tip(message, message_context)
+
+
+def register():
+    ru.register()
+
+
+def unregister():
+    ru.unregister()

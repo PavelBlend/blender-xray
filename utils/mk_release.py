@@ -11,8 +11,8 @@ zip_path = os.path.join(utils.utils_dir, zip_name)
 with ZipFile(zip_path, 'w') as z:
     z.write('LICENSE', 'io_scene_xray/LICENSE', compress_type=ZIP_DEFLATED)
     z.write(
-        'io_scene_xray/icons/stalker.png',
-        'io_scene_xray/icons/stalker.png',
+        'io_scene_xray/ui/stalker.png',
+        'io_scene_xray/ui/stalker.png',
         compress_type=ZIP_DEFLATED
     )
     for root, _, files in os.walk('io_scene_xray'):

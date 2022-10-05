@@ -2,24 +2,26 @@
 from . import action
 from . import armature
 from . import bone
+from . import edit_helper
 from . import material
 from . import mesh
 from . import obj
 from . import scene
-from . import view3d
-from . import shader_editor
+from . import viewport
+from . import shader
 
 
 modules = (
     action,
     armature,
     bone,
+    edit_helper,
     material,
     mesh,
     obj,
     scene,
-    view3d,
-    shader_editor
+    viewport,
+    shader
 )
 
 

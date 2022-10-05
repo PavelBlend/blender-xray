@@ -1,5 +1,5 @@
 # general
-full_log = 'The full log was stored as "{0}" (in the Text Editor)'
+full_log = 'The full log was stored in the Text Editor in a text file'
 tex_not_found = 'texture file not found'
 env_tex = 'material has incorrect image node type (Environment Texture)'
 no_bone_parent = 'bone parent isn\'t found'
@@ -10,6 +10,10 @@ mat_many_tex = 'material has more than one texture'
 use_shader_tex = mat_many_tex + '. Shader texture exported'
 use_active_tex = mat_many_tex + '. Active texture exported'
 use_selected_tex = mat_many_tex + '. Selected texture exported'
+info_title = 'info'
+# update addon
+new_update_available = 'new update of blender-xray addon is available'
+has_no_update = 'no new updates for blender-xray addon'
 # anm export
 anm_rot_mode = 'object has rotation mode other than YXZ. Animation has been baked'
 # anm import
@@ -37,6 +41,7 @@ object_arm_mod_disabled = 'armature modifier is disabled in viewport'
 object_sg_smooth = 'Maya-SG incompatible: smooth edge adjacents has different smoothing group'
 object_sg_sharp = 'Maya-SG incompatible: sharp edge adjacents has same smoothing group'
 object_skip_geom = 'skipping geometry from vertex groups'
+object_missing_group = 'vertices have missing groups'
 # object import bone
 object_bone_renamed = 'bone vertex map: will be renamed'
 object_bone_already_renamed = 'bone vertex map: is already renamed'
@@ -50,8 +55,9 @@ object_zero_weight = 'weight vertex map has values that are close to zero'
 object_invalid_face = 'invalid face found'
 object_already_mat = 'face has already been instantiated with material'
 object_already_used_mat = 'face has already used material'
-object_duplicate_faces = 'duplicate faces found, vertex groups created'
-object_try_use_option = ' (try to use "{}" option)'
+object_duplicate_faces = 'duplicate faces found'
+object_try_use_option = 'Try to use option'
+object_vert_group_created = 'Vertex groups created'
 # ogf import
 ogf_bad_shape = 'unsupported bone shape type'
 ogf_bad_joint = 'unsupported bone joint type'
@@ -73,9 +79,12 @@ envelope_shapes = 'envelope: unsupported shapes will be replaced by'
 # skls browser
 browser_load = 'Loading animations from .skls file: "{}"'
 browser_done = 'Done: {} animation(s)'
+browser_import = 'Imported animation(s)'
 # rig operators
 connect_not_spec_arm = 'Source armature not specified'
 connect_not_found_arm = 'Source armature object not found'
 connect_is_not_arm = 'Source armature object is not an armature'
 connect_nas_no_bones = 'Source armature has no bones'
 ik_no_selected_bones = 'No selected bones'
+# verify operator
+incorrect_uv_objs_count = 'selected objects with incorrect UV-maps'

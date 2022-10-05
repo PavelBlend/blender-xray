@@ -307,6 +307,55 @@ class TestObjectExport(utils.XRayTestCase):
         })
         self.assertReportsNotContains()
 
+    def test_export_incorrect_textures_folder(self):
+        # Arrange
+        self._create_objects()
+        prefs = utils.get_preferences()
+        prefs.textures_folder = 'incorrect_value'
+
+        obj = bpy.data.objects['tobj1']
+        mat = obj.data.materials[0]
+        bpy_image = None
+        if bpy.app.version >= (2, 80, 0):
+            mat_nodes = mat.node_tree.nodes
+            for node in mat_nodes:
+                if node.bl_idname == 'ShaderNodeTexImage':
+                    bpy_image = node.image
+                    break
+        else:
+            bpy_image = mat.texture_slots[0].texture.image
+
+        # Act
+        bpy.ops.xray_export.object_file(
+            object='tobj1',
+            filepath=self.outpath('test.object')
+        )
+
+        # Assert
+        self.assertOutputFiles({'test.object', })
+
+        bpy_image.filepath = 'T:\\test.dds'
+
+        # Act
+        bpy.ops.xray_export.object_file(
+            object='tobj1',
+            filepath=self.outpath('test.object')
+        )
+
+        # Assert
+        self.assertOutputFiles({'test.object', })
+
+        bpy_image.filepath = 'T:\\folder\\folder_file.dds'
+
+        # Act
+        bpy.ops.xray_export.object_file(
+            object='tobj1',
+            filepath=self.outpath('test.object')
+        )
+
+        # Assert
+        self.assertOutputFiles({'test.object', })
+
 
 def _create_armature(targets):
     arm = bpy.data.armatures.new('tarm')

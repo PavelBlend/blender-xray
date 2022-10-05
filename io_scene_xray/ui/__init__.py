@@ -2,7 +2,7 @@
 from . import base
 from . import collapsible
 from . import dynamic_menu
-from . import edit_helper
+from . import icons
 from . import list_helper
 from . import motion_list
 
@@ -10,7 +10,7 @@ from . import motion_list
 modules = (
     collapsible,
     dynamic_menu,
-    edit_helper,
+    icons,
     list_helper,
     motion_list,
 )

@@ -4,9 +4,8 @@ import bpy
 # addon modules
 from . import material
 from .. import ui
-from .. import icons
-from .. import version_utils
-from .. import edit_helpers
+from .. import utils
+from .. import ops
 
 
 BONE_TEXT_JOINT = []
@@ -48,7 +47,7 @@ class XRAY_PT_bone(ui.base.XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_object_import or
@@ -72,25 +71,21 @@ class XRAY_PT_bone(ui.base.XRayPanel):
             panel_used
         )
 
-    def draw_header(self, context):
-        layout = self.layout
-        bone = context.active_object.data.bones.get(context.active_bone.name, None)
-        if not bone:
-            return
-        data = bone.xray
-        layout.label(icon_value=icons.get_stalker_icon())
-        layout.prop(data, 'exportable', text='')
-
     def draw(self, context):
-        layout = self.layout
-        bone = context.active_object.data.bones.get(context.active_bone.name, None)
+        obj = context.active_object
+        bone_name = context.active_bone.name
+        bone = obj.data.bones.get(bone_name, None)
         if not bone:
             return
         data = bone.xray
-        layout.enabled = data.exportable
-        layout.prop(data, 'length')
-        material.gen_xr_selector(layout, data, 'gamemtl', 'Material')
-        box = layout.box()
+
+        layout = self.layout
+        layout.prop(data, 'exportable', toggle=True)
+        main_col = layout.column(align=False)
+        main_col.enabled = data.exportable
+        main_col.prop(data, 'length')
+        material.gen_xr_selector(main_col, data, 'gamemtl', 'Material')
+        box = main_col.box()
         row = box.row()
         row.label(text='Shape Type:')
         row.prop(data.shape, 'type', text='')
@@ -102,7 +97,7 @@ class XRAY_PT_bone(ui.base.XRayPanel):
                 + ' version of this plugin',
                 icon='ERROR'
             )
-        edit_helpers.bone_shape.HELPER.draw(box.column(align=True), context)
+        ops.edit_helpers.bone_shape.HELPER.draw(box.column(align=True), context)
 
         column = box.column(align=True)
         row = column.row(align=True)
@@ -111,7 +106,7 @@ class XRAY_PT_bone(ui.base.XRayPanel):
         row = column.row(align=True)
         row.prop(data.shape, 'flags_removeafterbreak', text='Remove After Break', toggle=True)
         row.prop(data.shape, 'flags_nofogcollider', text='No Fog Collider', toggle=True)
-        box = layout.box()
+        box = main_col.box()
         row = box.row()
         row.label(text='Joint Type:')
         row.prop(data.ikjoint, 'type', text='')
@@ -159,13 +154,13 @@ class XRAY_PT_bone(ui.base.XRayPanel):
         if data.ikflags_breakable:
             col.prop(data.breakf, 'force', text='Force')
             col.prop(data.breakf, 'torque', text='Torque')
-        box = layout.box()
+        box = main_col.box()
         column = box.column(align=True)
         column.prop(data.mass, 'value')
         column.prop(data.mass, 'center')
-        xray = context.active_object.data.xray
-        edit_helpers.bone_center.HELPER.size = xray.bone_mass_center_cross_size
-        edit_helpers.bone_center.HELPER.draw(column, context)
+        xray = obj.data.xray
+        ops.edit_helpers.bone_center.HELPER.size = xray.bone_mass_center_cross_size
+        ops.edit_helpers.bone_center.HELPER.draw(column, context)
 
 
 def register():

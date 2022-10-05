@@ -10,7 +10,8 @@ class TestDmExport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_export.dm_file(
-            detail_model='tdm1', filepath=self.outpath('test.dm'),
+            detail_model='tdm1',
+            filepath=self.outpath('test.dm'),
             texture_name_from_image_path=False
         )
 

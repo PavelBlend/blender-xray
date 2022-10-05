@@ -3,7 +3,7 @@ import re
 import bpy
 
 from tests import utils
-from io_scene_xray.skl.ops import XRAY_OT_import_skls
+from io_scene_xray.formats.skl.ops import XRAY_OT_import_skls
 from io_scene_xray.ui.motion_list import BaseSelectMotionsOp
 
 

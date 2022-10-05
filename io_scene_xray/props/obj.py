@@ -8,10 +8,9 @@ import bpy
 # addon modules
 from . import utility
 from .. import utils
-from .. import obj
-from .. import details
-from .. import version_utils
-from .. import skls_browser
+from .. import formats
+from .. import text
+from .. import ops
 
 
 # details properties
@@ -25,7 +24,7 @@ slots_meshes_props = {
 
 
 class XRayObjectDetailsSlotsMeshesProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in slots_meshes_props.items():
             exec('{0} = slots_meshes_props.get("{0}")'.format(prop_name))
 
@@ -54,7 +53,7 @@ slots_lighting_props = {
 
 
 class XRayObjectDetailsSlotsLightingProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in slots_lighting_props.items():
             exec('{0} = slots_lighting_props.get("{0}")'.format(prop_name))
 
@@ -73,7 +72,7 @@ slots_props = {
 
 
 class XRayObjectDetailsSlotsProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in slots_props.items():
             exec('{0} = slots_props.get("{0}")'.format(prop_name))
 
@@ -81,7 +80,7 @@ class XRayObjectDetailsSlotsProperties(bpy.types.PropertyGroup):
 def _update_detail_color_by_index(self, context):
 
     if hasattr(context.object, 'xray'):
-        color_indices = details.utility.generate_color_indices()
+        color_indices = formats.details.utility.generate_color_indices()
 
         context.object.xray.detail.model.color = \
             color_indices[context.object.xray.detail.model.index][0 : 3]
@@ -112,7 +111,7 @@ model_props = {
 
 
 class XRayObjectDetailsModelProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in model_props.items():
             exec('{0} = model_props.get("{0}")'.format(prop_name))
 
@@ -124,7 +123,7 @@ details_props = {
 
 
 class XRayObjectDetailsProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in details_props.items():
             exec('{0} = details_props.get("{0}")'.format(prop_name))
 
@@ -151,7 +150,7 @@ def _gen_time_prop(prop, description=''):
                     pass
             if ptime:
                 tval = time.mktime(ptime)
-        setattr(self, prop, tval)
+        setattr(self, prop, int(tval))
 
     return bpy.props.StringProperty(
         description=description,
@@ -191,9 +190,9 @@ def update_motion_collection_index(self, context):
 
     if arm_obj:
         motion = bpy.data.actions[motion_name]
-        scene.frame_start = motion.frame_range[0]
-        scene.frame_end = motion.frame_range[1]
-        scene.frame_set(motion.frame_range[0])
+        scene.frame_start = int(motion.frame_range[0])
+        scene.frame_end = int(motion.frame_range[1])
+        scene.frame_set(int(motion.frame_range[0]))
 
         if xray.dependency_object:
             dependency = bpy.data.objects.get(xray.dependency_object)
@@ -261,7 +260,7 @@ xray_object_level_properties = {
 
 
 class XRayObjectLevelProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in xray_object_level_properties.items():
             exec('{0} = xray_object_level_properties.get("{0}")'.format(prop_name))
 
@@ -271,12 +270,13 @@ xray_object_revision_properties = {
     'ctime': bpy.props.IntProperty(name='ctime'),
     'ctime_str': _gen_time_prop('ctime', description='Creation time'),
     'moder': bpy.props.StringProperty(name='moder'),
-    'mtime': bpy.props.IntProperty(name='mtime')
+    'mtime': bpy.props.IntProperty(name='mtime'),
+    'mtime_str': _gen_time_prop('mtime', description='Modified time')
 }
 
 
 class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in xray_object_revision_properties.items():
             exec('{0} = xray_object_revision_properties.get("{0}")'.format(prop_name))
 
@@ -320,11 +320,19 @@ def load_motion_refs(self, context):
     if not self.load_active_motion_refs:
         return
     if self.motionrefs_collection:
-        objects_folder = version_utils.get_preferences().objects_folder_auto
+        objects_folder = utils.version.get_preferences().objects_folder_auto
         motion_refs = self.motionrefs_collection[self.motionrefs_collection_index]
         file_path = os.path.join(objects_folder, motion_refs.name + os.extsep + 'skls')
         if os.path.exists(file_path):
-            skls_browser.init_skls_browser(self, context, file_path)
+            ops.skls_browser.init_skls_browser(self, context, file_path)
+        else:
+            message = text.get_text(text.error.file_not_found).capitalize()
+            utils.draw.show_message(
+                message,
+                (file_path, ),
+                text.get_text(text.error.error_title),
+                'ERROR'
+            )
 
 
 def update_load_active_motion_refs(self, context):
@@ -343,7 +351,7 @@ motion_ref_props = {
 
 
 class MotionRef(bpy.types.PropertyGroup):
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in motion_ref_props.items():
             exec('{0} = motion_ref_props.get("{0}")'.format(prop_name))
 
@@ -451,13 +459,13 @@ xray_object_properties = {
         customprop=''
     ),
     'flags_simple': bpy.props.EnumProperty(name='Object Type', items=(
-        (obj.fmt.CM, obj.fmt.type_names[obj.fmt.CM], ''),
-        (obj.fmt.SO, obj.fmt.type_names[obj.fmt.SO], ''),
-        (obj.fmt.MU, obj.fmt.type_names[obj.fmt.MU], ''),
-        (obj.fmt.HO, obj.fmt.type_names[obj.fmt.HO], 'Hierarchical Occlusion Mapping'),
-        (obj.fmt.PD, obj.fmt.type_names[obj.fmt.PD], ''),
-        (obj.fmt.DY, obj.fmt.type_names[obj.fmt.DY], ''),
-        (obj.fmt.ST, obj.fmt.type_names[obj.fmt.ST], '')
+        (formats.obj.fmt.CM, formats.obj.fmt.type_names[formats.obj.fmt.CM], ''),
+        (formats.obj.fmt.SO, formats.obj.fmt.type_names[formats.obj.fmt.SO], ''),
+        (formats.obj.fmt.MU, formats.obj.fmt.type_names[formats.obj.fmt.MU], ''),
+        (formats.obj.fmt.HO, formats.obj.fmt.type_names[formats.obj.fmt.HO], 'Hierarchical Occlusion Mapping'),
+        (formats.obj.fmt.PD, formats.obj.fmt.type_names[formats.obj.fmt.PD], ''),
+        (formats.obj.fmt.DY, formats.obj.fmt.type_names[formats.obj.fmt.DY], ''),
+        (formats.obj.fmt.ST, formats.obj.fmt.type_names[formats.obj.fmt.ST], '')
     ), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set),
     'lodref': bpy.props.StringProperty(name='LOD Reference'),
     'userdata': bpy.props.StringProperty(name='userdata', update=userdata_update),
@@ -485,6 +493,15 @@ xray_object_properties = {
     ),
     'show_motions': bpy.props.BoolProperty(description='View motions', options={'SKIP_SAVE'}),
     'play_active_motion': bpy.props.BoolProperty(name='Play Active Motion', default=False),
+    'show_motions_names': bpy.props.EnumProperty(
+        name='Show Motions Names',
+        items=(
+            ('ACTION', 'Action', ''),
+            ('EXPORT', 'Export', ''),
+            ('BOTH', 'Both', '')
+        ),
+        default='ACTION'
+    ),
     'dependency_object': bpy.props.StringProperty(name='Dependency', default=''),
     'use_custom_motion_names': bpy.props.BoolProperty(name='Custom Names', default=False),
     'helper_data': bpy.props.StringProperty(),
@@ -495,7 +512,7 @@ xray_object_properties = {
     'detail': bpy.props.PointerProperty(
         type=XRayObjectDetailsProperties
     ),
-    'skls_browser': bpy.props.PointerProperty(type=skls_browser.XRayObjectSklsBrowserProperties),
+    'skls_browser': bpy.props.PointerProperty(type=ops.skls_browser.XRayObjectSklsBrowserProperties),
     'level': bpy.props.PointerProperty(type=XRayObjectLevelProperties),
     # transforms utils properties
     'position': bpy.props.FloatVectorProperty(
@@ -510,19 +527,20 @@ xray_object_properties = {
 class XRayObjectProperties(bpy.types.PropertyGroup):
     b_type = bpy.types.Object
 
-    if not version_utils.IS_28:
+    if not utils.version.IS_28:
         for prop_name, prop_value in xray_object_properties.items():
             exec('{0} = xray_object_properties.get("{0}")'.format(prop_name))
 
-    def initialize(self, context):
+    def initialize(self, operation, addon_ver):
         if not self.version:
-            if context.operation == 'LOADED':
+            if operation == 'LOADED':
                 self.version = -1
-            elif context.operation == 'CREATED':
-                self.version = context.plugin_version_number
-                self.root = context.thing.type == 'MESH'
-                if context.thing.type == 'ARMATURE':
-                    context.thing.data.xray.joint_limits_type = 'XRAY'
+            elif operation == 'CREATED':
+                self.version = addon_ver
+                obj = self.id_data
+                self.root = obj.type == 'MESH'
+                if obj.type == 'ARMATURE':
+                    obj.data.xray.joint_limits_type = 'XRAY'
 
 
 prop_groups = (
@@ -540,7 +558,7 @@ prop_groups = (
 
 def register():
     for prop_group, props, is_group in prop_groups:
-        version_utils.assign_props([
+        utils.version.assign_props([
             (props, prop_group),
         ])
         bpy.utils.register_class(prop_group)

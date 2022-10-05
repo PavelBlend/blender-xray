@@ -1,4 +1,5 @@
 # general
+error_title = 'error'
 mat_no_img = 'material has no image'
 mat_many_img = 'material has more the one image'
 mat_many_tex = 'material has more than one texture'
@@ -11,8 +12,12 @@ obj_no_mat = 'object has no material'
 many_mat = 'mesh-object has more than one material'
 file_another_prog = 'unable to write file. The file is open in another program'
 no_active_obj = 'No active objects'
+no_selected_obj = 'no selected objects'
+no_blend_obj = 'current blend-file has no objects'
 is_not_arm = 'active object is not armature'
 file_not_found = 'file not found'
+file_folder_not_found = 'file or folder not found'
+ltx_invalid_syntax = 'ltx file syntax error'
 # anm export
 anm_no_keys = 'action has keys not for all channels'
 # anm import
@@ -58,6 +63,7 @@ level_has_children = 'Normal/Progressive object must not have children'
 level_bad_portal = 'portal mesh-object has less than 3 vertices'
 level_bad_glow = 'glow mesh-object has no faces'
 level_bad_glow_radius = 'glow object has radius close to zero'
+level_lmap_no_dds = 'incorrect light map format (must be *.dds)'
 # level cform export
 level_bad_cform_type = 'cform object is not mesh'
 level_cform_no_geom = 'cform object has no polygons'
@@ -72,7 +78,6 @@ object_skel_many_meshes = 'skeletal object has more than one mesh'
 object_bad_boneparts = 'not all bones are tied to the bone part'
 object_many_parents = 'armature object has more than one parent'
 object_bad_scale = 'armature-object has incorrect scale'
-level_lmap_no_dds = 'incorrect light map format (must be *.dds)'
 # object export mesh
 object_no_uv = 'mesh-object has no UV-map'
 # object import bone

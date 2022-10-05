@@ -4,7 +4,7 @@ import bpy
 # addon modules
 from .. import ui
 from .. import utils
-from .. import version_utils
+from .. import formats
 
 
 class XRAY_MT_shader(ui.dynamic_menu.XRAY_MT_xr_template):
@@ -12,7 +12,7 @@ class XRAY_MT_shader(ui.dynamic_menu.XRAY_MT_xr_template):
     prop_name = 'eshader'
     cached = ui.dynamic_menu.XRAY_MT_xr_template.create_cached(
         'eshader_file_auto',
-        utils.parse_shaders
+        formats.xr.parse_shaders
     )
 
 
@@ -21,7 +21,7 @@ class XRAY_MT_compile(ui.dynamic_menu.XRAY_MT_xr_template):
     prop_name = 'cshader'
     cached = ui.dynamic_menu.XRAY_MT_xr_template.create_cached(
         'cshader_file_auto',
-        utils.parse_shaders_xrlc
+        formats.xr.parse_shaders_xrlc
     )
 
 
@@ -30,7 +30,7 @@ class XRAY_MT_material(ui.dynamic_menu.XRAY_MT_xr_template):
     prop_name = 'gamemtl'
     cached = ui.dynamic_menu.XRAY_MT_xr_template.create_cached(
         'gamemtl_file_auto',
-        utils.parse_gamemtl
+        formats.xr.parse_gamemtl
     )
 
 
@@ -58,17 +58,17 @@ class XRAY_PT_material(ui.base.XRayPanel):
         gen_xr_selector(layout, data, 'cshader', 'Compile')
         gen_xr_selector(layout, data, 'gamemtl', 'Material')
 
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         panel_used = (
             # import plugins
-            preferences.enable_game_level_import or
+            preferences.enable_level_import or
             # export plugins
-            preferences.enable_game_level_export
+            preferences.enable_level_export
         )
         if not panel_used:
             return
         def draw_level_prop(prop_name, prop_text, prop_type):
-            row = version_utils.layout_split(box, 0.45)
+            row = utils.version.layout_split(box, 0.45)
             row.label(text=prop_text)
             if prop_type == 'NODES':
                 row.prop_search(data, prop_name, material.node_tree, 'nodes', text='')

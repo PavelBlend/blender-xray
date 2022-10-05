@@ -3,7 +3,6 @@ import bpy
 
 # addon modules
 from .. import ui
-from .. import version_utils
 from .. import utils
 
 
@@ -13,14 +12,14 @@ class XRAY_PT_mesh(ui.base.XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        preferences = version_utils.get_preferences()
+        preferences = utils.version.get_preferences()
         panel_used = (
             # import plugins
             preferences.enable_object_import or
-            preferences.enable_level_import or
+            preferences.enable_scene_import or
             # export plugins
             preferences.enable_object_export or
-            preferences.enable_level_export
+            preferences.enable_scene_export
         )
         if not panel_used:
             return False

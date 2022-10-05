@@ -1,11 +1,12 @@
 bl_info = {
     'name': 'XRay Engine Tools',
     'author': 'Vakhurin Sergey (igel), Pavel_Blend, Viktoria Danchenko',
-    'version': (2, 13, 1),
+    'version': (2, 18, 2),
     'blender': (2, 80, 0),
     'category': 'Import-Export',
     'location': 'File > Import/Export',
-    'description': 'Import/Export X-Ray objects',
+    'support': 'COMMUNITY',
+    'description': 'Import/Export X-Ray Engine files (S.T.A.L.K.E.R. Game).',
     'wiki_url': 'https://github.com/PavelBlend/blender-xray',
     'doc_url': 'https://github.com/PavelBlend/blender-xray',
     'tracker_url': 'https://github.com/PavelBlend/blender-xray/issues'
@@ -19,9 +20,9 @@ def register():
     import bpy_extras.io_utils
 
     # configuring addon modules.
-    from . import utils
-    from . import xray_io
-    xray_io.ENCODE_ERROR = utils.AppError
+    from . import log
+    from . import rw
+    rw.write.ENCODE_ERROR = log.AppError
 
     # registration
     from . import addon

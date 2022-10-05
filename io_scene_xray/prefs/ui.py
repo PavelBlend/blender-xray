@@ -3,12 +3,10 @@ import rna_keymap_ui
 
 # addon modules
 from . import ops
+from . import hotkeys
 from . import props
 from . import preset
-from .. import version_utils
-from .. import hotkeys
 from .. import utils
-from .. import draw_utils
 
 
 path_props_names = {
@@ -24,7 +22,7 @@ path_props_names = {
 
 
 def get_split(layout):
-    return version_utils.layout_split(layout, 0.3)
+    return utils.version.layout_split(layout, 0.3)
 
 
 def prop_bool(layout, data, prop):
@@ -68,12 +66,12 @@ def draw_presets(prefs):
     row.operator(
         preset.XRAY_OT_add_prefs_preset.bl_idname,
         text='',
-        icon=version_utils.get_icon('ZOOMIN')
+        icon=utils.version.get_icon('ZOOMIN')
     )
     row.operator(
         preset.XRAY_OT_add_prefs_preset.bl_idname,
         text='',
-        icon=version_utils.get_icon('ZOOMOUT')
+        icon=utils.version.get_icon('ZOOMOUT')
     ).remove_active = True
 
 
@@ -98,13 +96,13 @@ def draw_defaults(prefs):
         # import object props
         box = layout.box()
         box.label(text='Import:')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'sdk_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'sdk_version', lay_type='ROW')
         box.prop(prefs, 'object_motions_import')
         box.prop(prefs, 'object_mesh_split_by_mat')
         # export object props
         box = layout.box()
         box.label(text='Export:')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'export_object_sdk_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'export_object_sdk_version', lay_type='ROW')
         row = box.row()
         row.label(text='Smoothing:')
         row.prop(prefs, 'smoothing_out_of', expand=True)
@@ -119,7 +117,7 @@ def draw_defaults(prefs):
         # export
         box = layout.box()
         box.label(text='Export:')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'anm_format_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'anm_format_version', lay_type='ROW')
     elif prefs.defaults_category == 'SKLS':
         box = layout.box()
         box.label(text='Import:')
@@ -141,12 +139,12 @@ def draw_defaults(prefs):
         box.label(text='Import:')
         box.prop(prefs, 'details_models_in_a_row')
         box.prop(prefs, 'load_slots')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'details_format', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'details_format', lay_type='ROW')
         # export
         box = layout.box()
         box.label(text='Export:')
         box.prop(prefs, 'details_texture_names_from_path')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'format_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'format_version', lay_type='ROW')
     elif prefs.defaults_category == 'DM':
         box = layout.box()
         box.label(text='Export:')
@@ -180,47 +178,49 @@ def draw_defaults(prefs):
     elif prefs.defaults_category == 'SCENE':
         box = layout.box()
         box.label(text='Import:')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'scene_selection_sdk_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'scene_selection_sdk_version', lay_type='ROW')
         box.prop(prefs, 'scene_selection_mesh_split_by_mat')
     elif prefs.defaults_category == 'PART':
         box = layout.box()
         box.label(text='Import:')
-        draw_utils.draw_fmt_ver_prop(box, prefs, 'part_sdk_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'part_sdk_version', lay_type='ROW')
         box.prop(prefs, 'part_mesh_split_by_mat')
 
 
-def draw_operators_enable_disable(prefs):
+def draw_formats_enable_disable(prefs):
     layout = prefs.layout
-    row = layout.row()
+    row = layout.row(align=True)
     # import operators
-    column_import = row.column()
-    column_import.label(text='Import Operators:')
+    column_import = row.column(align=True)
+    column_import.label(text='Import Formats:')
     column_import.prop(prefs, 'enable_object_import', text='*.object')
+    column_import.prop(prefs, 'enable_skls_import', text='*.skl *.skls')
+    column_import.prop(prefs, 'enable_ogf_import', text='*.ogf')
+    column_import.prop(prefs, 'enable_omf_import', text='*.omf')
     column_import.prop(prefs, 'enable_anm_import', text='*.anm')
+    column_import.prop(prefs, 'enable_bones_import', text='*.bones')
     column_import.prop(prefs, 'enable_dm_import', text='*.dm')
     column_import.prop(prefs, 'enable_details_import', text='*.details')
-    column_import.prop(prefs, 'enable_skls_import', text='*.skls')
-    column_import.prop(prefs, 'enable_bones_import', text='*.bones')
-    column_import.prop(prefs, 'enable_level_import', text='*.level')
-    column_import.prop(prefs, 'enable_omf_import', text='*.omf')
-    column_import.prop(prefs, 'enable_game_level_import', text='level')
-    column_import.prop(prefs, 'enable_ogf_import', text='*.ogf')
+    column_import.prop(prefs, 'enable_scene_import', text='*.level')
+    column_import.prop(prefs, 'enable_level_import', text='level')
     column_import.prop(prefs, 'enable_part_import', text='*.part')
     column_import.prop(prefs, 'enable_err_import', text='*.err')
     # export operators
-    column_export = row.column()
-    column_export.label(text='Export Operators:')
+    column_export = row.column(align=True)
+    column_export.label(text='Export Formats:')
     column_export.prop(prefs, 'enable_object_export', text='*.object')
+    skls_row = column_export.row(align=True)
+    skls_row.alignment = 'LEFT'
+    skls_row.prop(prefs, 'enable_skl_export', text='*.skl')
+    skls_row.prop(prefs, 'enable_skls_export', text='*.skls')
+    column_export.prop(prefs, 'enable_ogf_export', text='*.ogf')
+    column_export.prop(prefs, 'enable_omf_export', text='*.omf')
     column_export.prop(prefs, 'enable_anm_export', text='*.anm')
+    column_export.prop(prefs, 'enable_bones_export', text='*.bones')
     column_export.prop(prefs, 'enable_dm_export', text='*.dm')
     column_export.prop(prefs, 'enable_details_export', text='*.details')
-    column_export.prop(prefs, 'enable_skls_export', text='*.skls')
-    column_export.prop(prefs, 'enable_skl_export', text='*.skl')
-    column_export.prop(prefs, 'enable_bones_export', text='*.bones')
-    column_export.prop(prefs, 'enable_level_export', text='*.level')
-    column_export.prop(prefs, 'enable_omf_export', text='*.omf')
-    column_export.prop(prefs, 'enable_game_level_export', text='level')
-    column_export.prop(prefs, 'enable_ogf_export', text='*.ogf')
+    column_export.prop(prefs, 'enable_scene_export', text='*.level')
+    column_export.prop(prefs, 'enable_level_export', text='level')
 
 
 def draw_keymaps(context, prefs):
@@ -333,10 +333,11 @@ def draw_custom_props(prefs):
 
 def draw_others(prefs):
     layout = prefs.layout
-    split = version_utils.layout_split(layout, 0.4)
+    split = utils.version.layout_split(layout, 0.4)
     split.label(text='Custom Owner Name:')
     split.prop(prefs, 'custom_owner_name', text='')
     prop_bool(layout, prefs, 'compact_menus')
+    layout.prop(prefs, 'object_split_normals')
     box = layout.box()
     box.label(text='Bone Shape Colors:')
     row = box.row()

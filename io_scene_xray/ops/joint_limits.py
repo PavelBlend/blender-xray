@@ -31,6 +31,28 @@ def update_limit(self, context):
     constraint.max_z = ik.lim_z_max
 
 
+def get_bone_list(obj, mode, report):
+    bones = []
+    if mode == 'ACTIVE_BONE':
+        bone = obj.data.bones.active
+        if bone:
+            bones.append(bone)
+        else:
+            report({'ERROR'}, 'No active bone')
+    elif mode == 'SELECTED_BONES':
+        for bone in obj.data.bones:
+            if bone.select:
+                bones.append(bone)
+        if not bones:
+            report({'ERROR'}, 'No selected bones')
+    elif mode == 'ALL_BONES':
+        for bone in obj.data.bones:
+            bones.append(bone)
+        if not bones:
+            report({'ERROR'}, 'Armature has no bones')
+    return bones
+
+
 class JointLimitsBaseOperator(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -39,22 +61,54 @@ class JointLimitsBaseOperator(bpy.types.Operator):
         return utils.is_armature_context(context)
 
 
+mode_items = (
+    ('ACTIVE_BONE', 'Active Bone', ''),
+    ('SELECTED_BONES', 'Selected Bones', ''),
+    ('ALL_BONES', 'All Bones', '')
+)
+
+op_props = {
+    'mode': bpy.props.EnumProperty(
+        name='Mode',
+        items=mode_items,
+        default='SELECTED_BONES'
+    ),
+}
+
+
 class XRAY_OT_convert_limits_to_constraints(JointLimitsBaseOperator):
     bl_idname = 'io_scene_xray.convert_joint_limits'
     bl_label = 'Convert Limits to Constraints'
     bl_description = 'Convert selected bones joint limits to constraints'
 
+    props = op_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):
+        layout = self.layout
+        column = layout.column(align=True)
+        column.label(text='Mode:')
+        column.prop(self, 'mode', expand=True)
+
     @utils.set_cursor_state
     def execute(self, context):
         obj = context.object
-        for bone in obj.data.bones:
+        bones = get_bone_list(obj, self.mode, self.report)
+        created_count = 0
+        for bone in bones:
             xray = bone.xray
-            if bone.select and xray.exportable and xray.ikjoint.type in {'2', '3', '5'}:
+            if xray.exportable and xray.ikjoint.type in {'2', '3', '5'}:
                 pose_bone = obj.pose.bones[bone.name]
                 constraint = pose_bone.constraints.get(CONSTRAINT_NAME, None)
                 if not constraint:
-                    constraint = pose_bone.constraints.new(type='LIMIT_ROTATION')
+                    constraint = pose_bone.constraints.new(
+                        type='LIMIT_ROTATION'
+                    )
                     constraint.name = CONSTRAINT_NAME
+                    created_count += 1
                 constraint.use_limit_x = True
                 constraint.use_limit_y = True
                 constraint.use_limit_z = True
@@ -75,7 +129,12 @@ class XRAY_OT_convert_limits_to_constraints(JointLimitsBaseOperator):
                     constraint.max_y = pose_bone.ik_max_y
                     constraint.min_z = pose_bone.ik_min_z
                     constraint.max_z = pose_bone.ik_max_z
+        self.report({'INFO'}, 'Constraints created: {}'.format(created_count))
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
 
 class XRAY_OT_remove_limits_constraints(JointLimitsBaseOperator):
@@ -83,16 +142,35 @@ class XRAY_OT_remove_limits_constraints(JointLimitsBaseOperator):
     bl_label = 'Remove Limits Constraints'
     bl_description = 'Remove selected bones joint limits constraints'
 
+    props = op_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):
+        layout = self.layout
+        column = layout.column(align=True)
+        column.label(text='Mode:')
+        column.prop(self, 'mode', expand=True)
+
     @utils.set_cursor_state
     def execute(self, context):
         obj = context.object
-        for bone in obj.data.bones:
-            if bone.select:
-                pose_bone = obj.pose.bones[bone.name]
-                constraint = pose_bone.constraints.get(CONSTRAINT_NAME, None)
-                if constraint:
-                    pose_bone.constraints.remove(constraint)
+        bones = get_bone_list(obj, self.mode, self.report)
+        removed_count = 0
+        for bone in bones:
+            pose_bone = obj.pose.bones[bone.name]
+            constraint = pose_bone.constraints.get(CONSTRAINT_NAME, None)
+            if constraint:
+                pose_bone.constraints.remove(constraint)
+                removed_count += 1
+        self.report({'INFO'}, 'Constraints removed: {}'.format(removed_count))
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
 
 class XRAY_OT_convert_ik_to_xray_limits(JointLimitsBaseOperator):
@@ -187,8 +265,7 @@ classes = (
 
 
 def register():
-    for operator in classes:
-        bpy.utils.register_class(operator)
+    utils.version.register_operators(classes)
 
 
 def unregister():

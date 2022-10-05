@@ -13,7 +13,7 @@ class TestLtxReading(utils.XRayTestCase):
         ltx_folder = 'tests/cases'.replace('/', os.sep)
         ltx_name = 'test_fmt_path.ltx'
         ltx_path = os.path.join(ltx_folder, ltx_name)
-        ltx = io_scene_xray.xray_ltx.StalkerLtxParser(ltx_path)
+        ltx = io_scene_xray.rw.ltx.StalkerLtxParser(ltx_path)
 
         self.assertEqual(ltx.values['$sdk_root$'], ltx_folder)
         self.assertEqual(
@@ -34,4 +34,4 @@ class TestLtxReading(utils.XRayTestCase):
         ltx_folder = 'tests/cases'.replace('/', os.sep)
         ltx_name = 'test_fmt_config.ltx'
         ltx_path = os.path.join(ltx_folder, ltx_name)
-        ltx = io_scene_xray.xray_ltx.StalkerLtxParser(ltx_path)
+        ltx = io_scene_xray.rw.ltx.StalkerLtxParser(ltx_path)
