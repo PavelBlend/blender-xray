@@ -548,7 +548,7 @@ class XRAY_OT_create_material(bpy.types.Operator):
             space = context.space_data
             params = space.params
             params.display_type = 'THUMBNAIL'
-            if utils.version.IS_28:
+            if utils.version.has_file_browser_show_tool_prop():
                 space.show_region_tool_props = False
             self.init = True
             prefs = utils.version.get_preferences()
