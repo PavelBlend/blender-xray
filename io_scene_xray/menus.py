@@ -52,7 +52,7 @@ def _draw_xray_menu_export(self, context):
     _draw_xray_menu(self, XRAY_MT_export)
 
 
-def _get_enabled_ops(ops_list, mode):
+def get_enabled_operators(ops_list, mode):
     preferences = utils.version.get_preferences()
     operators = []
     for operator, label in ops_list:
@@ -64,14 +64,14 @@ def _get_enabled_ops(ops_list, mode):
 
 
 def _append_standart_draw_functions(ops_list, menu, mode):
-    operators = _get_enabled_ops(ops_list, mode)
+    operators = get_enabled_operators(ops_list, mode)
     for operator in operators:
         draw_function = utils.ie.get_draw_fun(operator)
         menu.append(draw_function)
 
 
 def _append_compact_draw_functions(ops_list, menu, mode, draw):
-    operators = _get_enabled_ops(ops_list, mode)
+    operators = get_enabled_operators(ops_list, mode)
     if operators:
         menu.prepend(draw)
 
@@ -127,7 +127,7 @@ class XRayBaseMenu(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        operators = _get_enabled_ops(self.ops_list, self.mode)
+        operators = get_enabled_operators(self.ops_list, self.mode)
         for operator in operators:
             text = utils.draw.build_op_label(operator, compact=True)
             layout.operator(operator.bl_idname, text=text)
