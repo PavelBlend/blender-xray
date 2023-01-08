@@ -152,7 +152,31 @@ def _create_material(name, context, flags, eshader, cshader, gamemtl):
     return bpy_material
 
 
-def _create_texture_28(bpy_material, texture, context):
+def _create_mat_nodes(bpy_material):
+    node_tree = bpy_material.node_tree
+
+    # create principled bsdf node
+    princ_node = node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+    princ_node.location.x = 10.0
+    princ_node.location.y = 300.0
+    princ_node.select = False
+
+    # create output node
+    output_node = node_tree.nodes.new('ShaderNodeOutputMaterial')
+    output_node.location.x = 300.0
+    output_node.location.y = 300.0
+    output_node.select = False
+
+    # create node links
+    node_tree.links.new(
+        princ_node.outputs['BSDF'],
+        output_node.inputs['Surface']
+    )
+
+    return princ_node
+
+
+def _create_texture_28(bpy_material, texture, context, principled_node):
     node_tree = bpy_material.node_tree
 
     # create texture node
@@ -161,17 +185,16 @@ def _create_texture_28(bpy_material, texture, context):
     texture_node.label = texture
     texture_node.image = context.image(texture)
     bpy_image = texture_node.image
-    texture_node.location.x -= 500.0
+    texture_node.location.x = principled_node.location.x - 500.0
 
     # create node links
-    principled_shader = node_tree.nodes['Principled BSDF']
     node_tree.links.new(
         texture_node.outputs['Color'],
-        principled_shader.inputs['Base Color']
+        principled_node.inputs['Base Color']
     )
     node_tree.links.new(
         texture_node.outputs['Alpha'],
-        principled_shader.inputs['Alpha']
+        principled_node.inputs['Alpha']
     )
 
     return bpy_image
@@ -231,12 +254,22 @@ def _create_material_and_image(
         cshader,
         gamemtl
     )
+    # remove material nodes
+    bpy_material.node_tree.nodes.clear()
+
+    # create material nodes
+    princ_node = _create_mat_nodes(bpy_material)
 
     # create texture and image
     bpy_image = None
     if texture:
         if version.IS_28:
-            bpy_image = _create_texture_28(bpy_material, texture, context)
+            bpy_image = _create_texture_28(
+                bpy_material,
+                texture,
+                context,
+                princ_node
+            )
         else:
             bpy_image = _create_texture_27(
                 bpy_material,
