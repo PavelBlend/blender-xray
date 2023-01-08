@@ -90,7 +90,9 @@ translations_table = (
     (warn.browser_done, 'Готово: {} анимаций'),
     (warn.browser_import, 'Импортировано анимаций'),
     # verify uv
-    (warn.incorrect_uv_objs_count, 'выделено объектов с некорректной uv-картой')
+    (warn.incorrect_uv_objs_count, 'выделено объектов с некорректной uv-картой'),
+    # others operators
+    (warn.added_motions, 'Добавлено анимаций'),
 )
 
 translation = {}

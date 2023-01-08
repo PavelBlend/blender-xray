@@ -7,6 +7,7 @@ import bpy
 # addon modules
 from .. import ui
 from .. import utils
+from .. import text
 from .. import formats
 from .. import rw
 
@@ -99,10 +100,67 @@ class XRAY_OT_add_all_actions(bpy.types.Operator):
 
     def execute(self, context):
         obj = context.object
+
+        if obj.type != 'ARMATURE':
+            return {'FINISHED'}
+
+        # collect exportable bones
+        exportable_bones = set()
+        for bone in obj.data.bones:
+            if bone.xray.exportable:
+                exportable_bones.add(bone.name)
+
+        added_count = 0
+
         for action in bpy.data.actions:
-            if not obj.xray.motions_collection.get(action.name):
-                motion = obj.xray.motions_collection.add()
-                motion.name = action.name
+            action_bones = set()
+            loc_keys = set()
+            rot_keys = set()
+
+            for fcurve in action.fcurves:
+                path = fcurve.data_path
+
+                if path.startswith('pose.bones["'):
+                    path = path[len('pose.bones["') : ]
+                else:
+                    continue
+
+                if path.endswith('"].location'):
+                    path = path[ : -len('"].location')]
+                    loc_keys.add(path)
+                    action_bones.add(path)
+
+                if path.endswith('"].rotation_euler'):
+                    path = path[ : -len('"].rotation_euler')]
+                    rot_keys.add(path)
+                    action_bones.add(path)
+
+                if path.endswith('"].rotation_quaternion'):
+                    path = path[ : -len('"].rotation_quaternion')]
+                    rot_keys.add(path)
+                    action_bones.add(path)
+
+                if path.endswith('"].rotation_axis_angle'):
+                    path = path[ : -len('"].rotation_axis_angle')]
+                    rot_keys.add(path)
+                    action_bones.add(path)
+
+            correct_bones = set()
+            for bone in action_bones:
+                if bone in loc_keys and bone in rot_keys:
+                    correct_bones.add(bone)
+
+            if not exportable_bones - correct_bones:
+                if not obj.xray.motions_collection.get(action.name):
+                    motion = obj.xray.motions_collection.add()
+                    motion.name = action.name
+                    added_count += 1
+
+        self.report(
+            {'INFO'},
+            text.get_text(text.warn.added_motions) + ': ' + str(added_count)
+        )
+
         return {'FINISHED'}
 
 
