@@ -565,7 +565,6 @@ class XRAY_OT_create_material(bpy.types.Operator):
     @utils.set_cursor_state
     def execute(self, context):
         mat = bpy.data.materials[self.material_name]
-        file_path = os.path.abspath(self.filepath)
         mat.use_nodes = True
         nodes = mat.node_tree.nodes
         nodes.clear()
@@ -598,14 +597,36 @@ class XRAY_OT_create_material(bpy.types.Operator):
         )
 
         # load image
+        file_path = bpy.path.abspath(self.filepath)
         image_name = os.path.basename(file_path)
         image = bpy.data.images.get(image_name)
+
         if image:
-            if image.filepath != file_path:
+            image_path = bpy.path.abspath(image.filepath)
+            if image_path != file_path:
                 image = None
+
         if not image:
             image = bpy.data.images.load(file_path)
+
+        prefs = utils.version.get_preferences()
+        tex_folder = bpy.path.abspath(prefs.textures_folder_auto)
+
+        if file_path.startswith(tex_folder):
+            rel_path = file_path[len(tex_folder) : ]
+
+            if rel_path.startswith(os.sep):
+                rel_path = rel_path[1 : ]
+
+        else:
+            rel_path = image_name
+
+        if rel_path.endswith('.dds'):
+            rel_path = rel_path[ : -len('.dds')]
+
         image_node.image = image
+        image_node.name = rel_path
+        image_node.label = rel_path
 
         return {'FINISHED'}
 
