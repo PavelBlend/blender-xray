@@ -77,16 +77,25 @@ def draw_presets(prefs):
 
 def draw_paths(prefs):
     layout = prefs.layout
+
     split = get_split(layout)
     split.label(text=path_props_names['fs_ltx_file'] + ':')
     split.prop(prefs, 'fs_ltx_file', text='')
+
+    layout.separator()
+
+    # folders
     draw_path_prop(prefs, 'gamedata_folder')
     draw_path_prop(prefs, 'textures_folder')
     draw_path_prop(prefs, 'meshes_folder')
-    draw_path_prop(prefs, 'gamemtl_file')
+    draw_path_prop(prefs, 'objects_folder')
+
+    layout.separator()
+
+    # files
     draw_path_prop(prefs, 'eshader_file')
     draw_path_prop(prefs, 'cshader_file')
-    draw_path_prop(prefs, 'objects_folder')
+    draw_path_prop(prefs, 'gamemtl_file')
 
 
 def draw_defaults(prefs):
