@@ -152,7 +152,7 @@ def _create_material(name, context, flags, eshader, cshader, gamemtl):
     return bpy_material
 
 
-def _create_mat_nodes(bpy_material):
+def create_mat_nodes(bpy_material):
     node_tree = bpy_material.node_tree
 
     # create principled bsdf node
@@ -258,7 +258,7 @@ def _create_material_and_image(
     bpy_material.node_tree.nodes.clear()
 
     # create material nodes
-    princ_node = _create_mat_nodes(bpy_material)
+    princ_node = create_mat_nodes(bpy_material)
 
     # create texture and image
     bpy_image = None

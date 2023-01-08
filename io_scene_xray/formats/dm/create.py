@@ -178,13 +178,21 @@ def create_material(det_model, abs_image_path, context):
         bpy_material.use_nodes = True
         bpy_material.blend_method = 'CLIP'
         node_tree = bpy_material.node_tree
+
+        # remove material nodes
+        node_tree.nodes.clear()
+
+        princ_shader = utils.material.create_mat_nodes(bpy_material)
+        bpy_image = find_bpy_image(det_model, abs_image_path)
+
+        # texture node
         texture_node = node_tree.nodes.new('ShaderNodeTexImage')
         texture_node.name = det_model.texture
         texture_node.label = det_model.texture
-        bpy_image = find_bpy_image(det_model, abs_image_path)
         texture_node.image = bpy_image
-        texture_node.location.x -= 500
-        princ_shader = node_tree.nodes['Principled BSDF']
+        texture_node.location.x = princ_shader.location.x - 500.0
+
+        # link nodes
         node_tree.links.new(
             texture_node.outputs['Color'],
             princ_shader.inputs['Base Color']
