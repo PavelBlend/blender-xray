@@ -227,12 +227,13 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
                 )
             vertex_max_weights = max(vertex_max_weights, weights_count)
 
+            bitan = bpy_loop.bitangent.normalized().to_tuple()
             vertex = (
                 loop.vert.index,
                 loop.vert.co.to_tuple(),
                 bpy_loop.normal.to_tuple(),
                 bpy_loop.tangent.to_tuple(),
-                bpy_loop.bitangent.normalized().to_tuple(),
+                (-bitan[0], -bitan[1], -bitan[2]),
                 (uv[0], 1 - uv[1]),
                 tuple(weights)
             )
