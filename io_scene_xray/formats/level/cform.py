@@ -118,7 +118,7 @@ def import_main(context, level, data=None):
             if not bpy_mat.name.startswith(mat_name):
                 continue
             xray = bpy_mat.xray
-            if not xray.gamemtl == gamemtl_name:
+            if not xray.gamemtl == gmtl:
                 continue
             if not xray.suppress_shadows == shadows:
                 continue
