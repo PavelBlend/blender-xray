@@ -670,9 +670,9 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                 normal = mathutils.Vector(normal)
                 binormal = normal.cross(tangent).normalized()
                 vb.binormal.extend((
-                    int(round(((binormal[1] + 1.0) / 2) * 255, 0)),
-                    int(round(((binormal[2] + 1.0) / 2) * 255, 0)),
-                    int(round(((binormal[0] + 1.0) / 2) * 255, 0))
+                    int(round(((-binormal[1] + 1.0) / 2) * 255, 0)),
+                    int(round(((-binormal[2] + 1.0) / 2) * 255, 0)),
+                    int(round(((-binormal[0] + 1.0) / 2) * 255, 0))
                 ))
                 # vertex color light
                 vb.color_hemi.append(int(round(hemi * 255, 0)))
