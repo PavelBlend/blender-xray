@@ -116,8 +116,8 @@ def draw_defaults(prefs):
         row.label(text='Smoothing:')
         row.prop(prefs, 'smoothing_out_of', expand=True)
         box.prop(prefs, 'object_motions_export')
-        box.prop(prefs, 'object_texture_names_from_path')
         box.prop(prefs, 'export_object_use_export_paths')
+        box.prop(prefs, 'object_texture_names_from_path')
     elif prefs.defaults_category == 'ANM':
         # import
         box = layout.box()
@@ -146,14 +146,14 @@ def draw_defaults(prefs):
         box = layout.box()
         # import
         box.label(text='Import:')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'details_format', lay_type='ROW')
         box.prop(prefs, 'details_models_in_a_row')
         box.prop(prefs, 'load_slots')
-        utils.draw.draw_fmt_ver_prop(box, prefs, 'details_format', lay_type='ROW')
         # export
         box = layout.box()
         box.label(text='Export:')
-        box.prop(prefs, 'details_texture_names_from_path')
         utils.draw.draw_fmt_ver_prop(box, prefs, 'format_version', lay_type='ROW')
+        box.prop(prefs, 'details_texture_names_from_path')
     elif prefs.defaults_category == 'DM':
         box = layout.box()
         box.label(text='Export:')
@@ -166,8 +166,8 @@ def draw_defaults(prefs):
         # export
         box = layout.box()
         box.label(text='Export:')
-        box.prop(prefs, 'ogf_texture_names_from_path')
         box.prop(prefs, 'ogf_export_motions')
+        box.prop(prefs, 'ogf_texture_names_from_path')
     elif prefs.defaults_category == 'OMF':
         box = layout.box()
         # import
@@ -178,12 +178,12 @@ def draw_defaults(prefs):
         # export
         box = layout.box()
         box.label(text='Export:')
-        box.prop(prefs, 'omf_motions_export')
-        box.prop(prefs, 'omf_export_bone_parts')
-        box.prop(prefs, 'omf_high_quality')
         row = box.row()
         row.label(text='Export Mode:')
         row.prop(prefs, 'omf_export_mode', expand=True)
+        box.prop(prefs, 'omf_motions_export')
+        box.prop(prefs, 'omf_export_bone_parts')
+        box.prop(prefs, 'omf_high_quality')
     elif prefs.defaults_category == 'SCENE':
         box = layout.box()
         box.label(text='Import:')
