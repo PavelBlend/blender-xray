@@ -111,46 +111,41 @@ class XRAY_OT_add_all_actions(bpy.types.Operator):
                 exportable_bones.add(bone.name)
 
         added_count = 0
+        path_pose = 'pose.bones["'
+        path_loc = '"].location'
+        path_euler = '"].rotation_euler'
+        path_quat = '"].rotation_quaternion'
+        path_angle = '"].rotation_axis_angle'
 
         for action in bpy.data.actions:
             action_bones = set()
-            loc_keys = set()
-            rot_keys = set()
 
             for fcurve in action.fcurves:
                 path = fcurve.data_path
 
-                if path.startswith('pose.bones["'):
-                    path = path[len('pose.bones["') : ]
+                if path.startswith(path_pose):
+                    path = path[len(path_pose) : ]
                 else:
                     continue
 
-                if path.endswith('"].location'):
-                    path = path[ : -len('"].location')]
-                    loc_keys.add(path)
-                    action_bones.add(path)
+                if path.endswith(path_loc):
+                    path = path[ : -len(path_loc)]
 
-                if path.endswith('"].rotation_euler'):
-                    path = path[ : -len('"].rotation_euler')]
-                    rot_keys.add(path)
-                    action_bones.add(path)
+                elif path.endswith(path_euler):
+                    path = path[ : -len(path_euler)]
 
-                if path.endswith('"].rotation_quaternion'):
-                    path = path[ : -len('"].rotation_quaternion')]
-                    rot_keys.add(path)
-                    action_bones.add(path)
+                elif path.endswith(path_quat):
+                    path = path[ : -len(path_quat)]
 
-                if path.endswith('"].rotation_axis_angle'):
-                    path = path[ : -len('"].rotation_axis_angle')]
-                    rot_keys.add(path)
-                    action_bones.add(path)
+                elif path.endswith(path_angle):
+                    path = path[ : -len(path_angle)]
 
-            correct_bones = set()
-            for bone in action_bones:
-                if bone in loc_keys and bone in rot_keys:
-                    correct_bones.add(bone)
+                else:
+                    continue
 
-            if not exportable_bones - correct_bones:
+                action_bones.add(path)
+
+            if not exportable_bones - action_bones:
                 if not obj.xray.motions_collection.get(action.name):
                     motion = obj.xray.motions_collection.add()
                     motion.name = action.name
