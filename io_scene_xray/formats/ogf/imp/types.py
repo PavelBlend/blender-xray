@@ -18,7 +18,6 @@ class Visual(object):
         self.sun = None
         self.light = None
         self.fastpath = False
-        self.use_two_sided_tris = False
         self.vb_index = None
         self.is_root = None
         self.bpy_materials = None

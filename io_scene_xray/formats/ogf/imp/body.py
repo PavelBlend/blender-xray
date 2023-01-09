@@ -57,12 +57,15 @@ def import_mt_progressive(context, chunks, ogf_chunks, visual):
 def import_mt_skeleton_anim(context, chunks, ogf_chunks, visual):
     props.read_motion_references(chunks, ogf_chunks, visual)
     import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual)
+
     motions_data = chunks.pop(ogf_chunks.S_MOTIONS, None)
     params_data = chunks.pop(ogf_chunks.S_SMPARAMS, None)
     context.bpy_arm_obj = visual.arm_obj
+
     if params_data and motions_data and context.import_motions:
         motions_params, bone_names = omf.imp.read_params(params_data, context)
         omf.imp.read_motions(motions_data, context, motions_params, bone_names)
+
     elif params_data:
         omf.imp.read_params(params_data, context)
 
@@ -102,7 +105,7 @@ def import_children(context, chunks, chunks_ids, root_visual):
         visual.bpy_materials = root_visual.bpy_materials
 
         import_ogf_visual(context, child_data, visual)
-        set_visual_type(visual, root_visual)    # ?
+        set_visual_type(visual, root_visual)
 
 
 def import_ogf_visual(context, data, visual):
@@ -145,7 +148,7 @@ def import_ogf_visual(context, data, visual):
 
     import_fun(context, chunks, ogf_chunks, visual)
 
-    utility.check_unreaded_chunks(chunks)
+    utility.check_unread_chunks(chunks)
 
     if visual.is_root:
         create.create_root_visual(context, visual, model_types)

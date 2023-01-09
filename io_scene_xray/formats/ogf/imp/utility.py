@@ -28,11 +28,17 @@ def get_float_rgb_hemi(rgb_hemi):
 
 
 def check_unread_chunks(chunks, context=''):
+    if not chunks:
+        return
     chunks_ids = list(chunks.keys())
     chunks_ids.sort()
-    if chunks:
-        print('There are OGF unread {1} chunks: {0}'.format(
-            list(map(hex, chunks_ids)), context
+    for chunk_id in chunks_ids:
+        data = chunks[chunk_id]
+        size = len(data)
+        print('Unknown OGF {} Chunk: {} ({} bytes)'.format(
+            context,
+            hex(chunk_id),
+            size
         ))
 
 
@@ -45,13 +51,6 @@ def get_ogf_chunks(data):
         chunks[chunk_id] = chunkd_data
 
     return chunks
-
-
-def check_unreaded_chunks(chunks):
-    for chunk_id, chunk_data in chunks.items():
-        size = len(chunk_data)
-        name = hex(chunk_id)
-        print('Unknown OGF chunk: {}, size: {}'.format(name, size))
 
 
 def set_export_path(context, visual, bpy_object):

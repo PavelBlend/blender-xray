@@ -12,8 +12,10 @@ def import_texture_and_shader_v3(visual, lvl, data):
 def import_texture(context, chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.TEXTURE)
     packed_reader = rw.read.PackedReader(chunk_data)
+
     texture = packed_reader.gets()
     shader = packed_reader.gets()
+
     bpy_material, bpy_image = utils.material.get_material(
         context,
         texture,    # material name
@@ -24,5 +26,6 @@ def import_texture(context, chunks, ogf_chunks, visual):
         0,    # two sided flag
         'Texture'    # uv map name
     )
+
     visual.bpy_materials[visual.shader_id] = bpy_material
     visual.bpy_image = bpy_image

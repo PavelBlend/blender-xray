@@ -7,11 +7,15 @@ from .... import text
 def import_description(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_DESC)
     packed_reader = rw.read.PackedReader(chunk_data)
+
     source_file = packed_reader.gets()
+
     build_name = packed_reader.gets()
     build_time = packed_reader.getf('<I')[0]
+
     visual.create_name = packed_reader.gets()
     visual.create_time = packed_reader.getf('<I')[0]
+
     visual.modif_name = packed_reader.gets()
     visual.modif_time = packed_reader.getf('<I')[0]
 
@@ -41,18 +45,28 @@ def import_lods(context, chunks, ogf_chunks, visual):
     visual.lod = lod
 
 
+def read_motion_refs_0(data, visual):
+    packed_reader = rw.read.PackedReader(data)
+    visual.motion_refs = packed_reader.gets().split(',')
+
+
+def read_motion_refs_2(data, visual):
+    packed_reader = rw.read.PackedReader(data)
+    count = packed_reader.getf('<I')[0]
+    refs = []
+    for index in range(count):
+        ref = packed_reader.gets()
+        refs.append(ref)
+    visual.motion_refs = refs
+
+
 def read_motion_references(chunks, ogf_chunks, visual):
     data = chunks.pop(ogf_chunks.S_MOTION_REFS_0, None)
-    if not data:
+
+    if data:
+        read_motion_refs_0(data, visual)
+
+    else:
         data = chunks.pop(ogf_chunks.S_MOTION_REFS_2, None)
         if data:
-            packed_reader = rw.read.PackedReader(data)
-            count = packed_reader.getf('<I')[0]
-            refs = []
-            for index in range(count):
-                ref = packed_reader.gets()
-                refs.append(ref)
-            visual.motion_refs = refs
-    else:
-        packed_reader = rw.read.PackedReader(data)
-        visual.motion_refs = packed_reader.gets().split(',')
+            read_motion_refs_2(data, visual)
