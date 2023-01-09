@@ -62,7 +62,7 @@ def import_motion(
     act.use_fake_user = True
     xray = act.xray
     start_frame, end_frame = reader.getf('<2I')
-    fps, ver = reader.getf('fH')
+    fps, ver = reader.getf('<fH')
     xray.fps = fps
     if ver < 6:
         raise log.AppError(text.error.motion_ver, log.props(version=ver))
@@ -104,10 +104,24 @@ def import_motion(
                     bone=bname,
                     behaviors=behaviors
                 )
-            for _keyframe_idx in range(reader.getf('H')[0]):
-                val = reader.getf('f')[0]
-                time = reader.getf('f')[0] * fps
-                shape = interp.Shape(reader.getf('B')[0])
+            frame_time = 1
+            val_raw_prev = None
+            val_prev = None
+            time_prev = 1000000.0
+            for _keyframe_idx in range(reader.getf('<H')[0]):
+                val_raw = reader.getb32()
+                val = reader.getf('<f')[0]
+                time = reader.getf('<f')[0] * fps
+                shape = interp.Shape(reader.getf('<B')[0])
+                if shape == interp.Shape.STEPPED:
+                    if val_raw != val_raw_prev:
+                        if (time - time_prev) > frame_time:
+                            values.append(val_prev)
+                            times.append(time - frame_time)
+                            shapes.append(shape)
+                            used_times.add(time - frame_time)
+                            tcb.append((0.0, 0.0, 0.0))
+                            params.append((0.0, 0.0, 0.0, 0.0))
                 values.append(val)
                 times.append(time)
                 shapes.append(shape)
@@ -128,6 +142,9 @@ def import_motion(
                 else:
                     tcb.append((0.0, 0.0, 0.0))
                     params.append((0.0, 0.0, 0.0, 0.0))
+                val_raw_prev = val_raw
+                val_prev = val
+                time_prev = time
             if use_interpolate:
                 curve_end_time = int(round(times[-1], 0))
                 if curve_end_time < end_frame and curve_end_time:
@@ -148,7 +165,7 @@ def import_motion(
                 fcurve = tmpfc[curve_index]
                 for value, time in zip(*curves[curve_index]):
                     key_frame = fcurve.keyframe_points.insert(time, value)
-                    key_frame.interpolation = 'CONSTANT'
+                    key_frame.interpolation = 'LINEAR'
                     used_times.add(time)
         bone_key = bname
         bpy_bone = bpy_armature.data.bones.get(bname, None)

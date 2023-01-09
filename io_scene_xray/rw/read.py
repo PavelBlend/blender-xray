@@ -56,6 +56,9 @@ class PackedReader:
         self.__offs += count
         return self.__data[self.__offs - count:self.__offs]
 
+    def getb32(self):
+        return struct.unpack_from('<I', self.__data, self.__offs)[0]
+
     def getf(self, fmt):
         size = struct.calcsize(fmt)
         self.__offs += size
