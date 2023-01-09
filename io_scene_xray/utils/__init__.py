@@ -197,3 +197,9 @@ def find_root(obj):
         return find_root(obj.parent)
     else:
         return obj
+
+
+def create_object(name, data):
+    bpy_object = bpy.data.objects.new(name, data)
+    version.link_object(bpy_object)
+    return bpy_object
