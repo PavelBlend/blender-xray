@@ -242,10 +242,10 @@ def import_motion(
                     rot = mat.to_euler('ZXY')
                     for axis in range(3):
                         key_frame = fcs[axis].keyframe_points.insert(time, trn[axis])
-                        key_frame.interpolation = 'CONSTANT'
+                        key_frame.interpolation = 'LINEAR'
                     for axis in range(3):
                         key_frame = fcs[axis + 3].keyframe_points.insert(time, rot[axis])
-                        key_frame.interpolation = 'CONSTANT'
+                        key_frame.interpolation = 'LINEAR'
             finally:
                 for fcurve in tmpfc:
                     act.fcurves.remove(fcurve)
