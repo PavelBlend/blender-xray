@@ -13,7 +13,6 @@ def import_swi(visual, chunks):
 def import_swicontainer(chunks):
     swicontainer_data = chunks.pop(fmt.Chunks_v4.SWICONTAINER)
     packed_reader = rw.read.PackedReader(swicontainer_data)
-    del swicontainer_data
     swi_index = packed_reader.getf('<I')[0]
     return swi_index
 
@@ -21,7 +20,5 @@ def import_swicontainer(chunks):
 def import_swidata(chunks):
     swi_data = chunks.pop(fmt.Chunks_v4.SWIDATA)
     packed_reader = rw.read.PackedReader(swi_data)
-    del swi_data
     swi = level.swi.import_slide_window_item(packed_reader)
-    del packed_reader
     return swi
