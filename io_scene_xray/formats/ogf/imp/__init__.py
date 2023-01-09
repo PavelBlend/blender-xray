@@ -8,14 +8,14 @@ import bmesh
 import mathutils
 
 # addon modules
-from . import fmt
-from .. import level
-from .. import omf
-from .. import motions
-from ... import text
-from ... import log
-from ... import utils
-from ... import rw
+from .. import fmt
+from ... import level
+from ... import omf
+from ... import motions
+from .... import text
+from .... import log
+from .... import utils
+from .... import rw
 
 
 class Visual(object):
