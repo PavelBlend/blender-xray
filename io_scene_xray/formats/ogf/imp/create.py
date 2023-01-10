@@ -18,7 +18,7 @@ def create_root_visual(context, visual, model_types):
         bpy_object = mesh.create_visual(visual)
 
     elif visual.model_type == model_types.HIERRARHY:
-        bpy_object = visual.root_obj
+        bpy_object = create_hierrarhy_obj(context, visual)
 
     else:
         bpy_object = None
@@ -133,3 +133,4 @@ def create_hierrarhy_obj(context, visual):
     root_obj.xray.isroot = True
     utils.version.link_object(root_obj)
     visual.root_obj = root_obj
+    return root_obj

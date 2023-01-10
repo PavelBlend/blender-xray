@@ -4,7 +4,7 @@ from .... import log
 from .... import text
 
 
-def import_description(chunks, ogf_chunks, visual):
+def read_description(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_DESC)
     packed_reader = rw.read.PackedReader(chunk_data)
 
@@ -34,7 +34,7 @@ def import_user_data(chunks, ogf_chunks, visual):
     )
 
 
-def import_lods(context, chunks, ogf_chunks, visual):
+def read_lods(context, chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_LODS, None)
     if not chunk_data:
         return

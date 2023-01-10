@@ -2,7 +2,7 @@
 from .... import rw
 
 
-def import_bone_names(chunks, chunks_ids, visual):
+def read_bone_names(chunks, chunks_ids, visual):
     chunk_data = chunks.pop(chunks_ids.S_BONE_NAMES)
     packed_reader = rw.read.PackedReader(chunk_data)
 

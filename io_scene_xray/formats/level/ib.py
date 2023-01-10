@@ -8,6 +8,6 @@ def import_indices_buffers(data):
     indices_buffers_count = packed_reader.getf('<I')[0]
     indices_buffers = []
     for indices_buffer_index in range(indices_buffers_count):
-        indices_buffer, indices_count = ogf.imp.indices.read_indices(packed_reader)
+        indices_buffer, indices_count = ogf.imp.indices.get_indices(packed_reader)
         indices_buffers.append(indices_buffer)
     return indices_buffers

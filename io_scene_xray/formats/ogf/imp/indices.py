@@ -2,16 +2,16 @@
 from .... import rw
 
 
-def read_indices(packed_reader):
+def get_indices(packed_reader):
     indices_count = packed_reader.getf('<I')[0]
     indices_buffer = packed_reader.getf('<{0}H'.format(indices_count))
     return indices_buffer, indices_count
 
 
-def import_indices(chunks, ogf_chunks, visual):
+def read_indices(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.INDICES)
     packed_reader = rw.read.PackedReader(chunk_data)
-    visual.indices, visual.indices_count = read_indices(packed_reader)
+    visual.indices, visual.indices_count = get_indices(packed_reader)
 
 
 def read_indices_v3(data, visual):

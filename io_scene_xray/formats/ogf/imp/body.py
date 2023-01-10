@@ -6,68 +6,57 @@ from . import create
 from . import types
 from . import model
 from . import bone
+from . import motion
 from . import ik
 from . import shader
 from . import verts
 from . import indices
 from . import swis
 from .. import fmt
-from ... import omf
 from .... import log
 from .... import rw
 from .... import text
 
 
-def import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual):
-    props.import_description(chunks, ogf_chunks, visual)
-    bone.import_bone_names(chunks, ogf_chunks, visual)
-    props.import_lods(context, chunks, ogf_chunks, visual)
+def read_mt_skeleton_rigid(context, chunks, ogf_chunks, visual):
+    props.read_description(chunks, ogf_chunks, visual)
+    props.read_lods(context, chunks, ogf_chunks, visual)
+    bone.read_bone_names(chunks, ogf_chunks, visual)
     ik.import_ik_data(chunks, ogf_chunks, visual)
     import_children(context, chunks, ogf_chunks, visual)
 
 
-def import_mt_hierrarhy(context, chunks, ogf_chunks, visual):
-    create.create_hierrarhy_obj(context, visual)
-    props.import_description(chunks, ogf_chunks, visual)
+def read_mt_skeleton_anim(context, chunks, ogf_chunks, visual):
+    props.read_motion_references(chunks, ogf_chunks, visual)
+    read_mt_skeleton_rigid(context, chunks, ogf_chunks, visual)
+    motion.import_skeleton_motions(context, chunks, ogf_chunks, visual)
+
+
+def read_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual):
+    shader.read_texture(context, chunks, ogf_chunks, visual)
+    verts.read_skeleton_vertices(chunks, ogf_chunks, visual)
+    indices.read_indices(chunks, ogf_chunks, visual)
+
+
+def read_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual):
+    read_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual)
+    swis.import_swi(visual, chunks)
+
+
+def read_mt_hierrarhy(context, chunks, ogf_chunks, visual):
+    props.read_description(chunks, ogf_chunks, visual)
     import_children(context, chunks, ogf_chunks, visual)
 
 
-def import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual):
-    shader.import_texture(context, chunks, ogf_chunks, visual)
-    verts.import_skeleton_vertices(chunks, ogf_chunks, visual)
-    indices.import_indices(chunks, ogf_chunks, visual)
-
-
-def import_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual):
-    import_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual)
+def read_mt_progressive(context, chunks, ogf_chunks, visual):
+    read_mt_normal(context, chunks, ogf_chunks, visual)
     swis.import_swi(visual, chunks)
 
 
-def import_mt_normal(context, chunks, ogf_chunks, visual):
-    shader.import_texture(context, chunks, ogf_chunks, visual)
-    verts.import_vertices(chunks, ogf_chunks, visual)
-    indices.import_indices(chunks, ogf_chunks, visual)
-
-
-def import_mt_progressive(context, chunks, ogf_chunks, visual):
-    import_mt_normal(context, chunks, ogf_chunks, visual)
-    swis.import_swi(visual, chunks)
-
-
-def import_mt_skeleton_anim(context, chunks, ogf_chunks, visual):
-    props.read_motion_references(chunks, ogf_chunks, visual)
-    import_mt_skeleton_rigid(context, chunks, ogf_chunks, visual)
-
-    motions_data = chunks.pop(ogf_chunks.S_MOTIONS, None)
-    params_data = chunks.pop(ogf_chunks.S_SMPARAMS, None)
-    context.bpy_arm_obj = visual.arm_obj
-
-    if params_data and motions_data and context.import_motions:
-        motions_params, bone_names = omf.imp.read_params(params_data, context)
-        omf.imp.read_motions(motions_data, context, motions_params, bone_names)
-
-    elif params_data:
-        omf.imp.read_params(params_data, context)
+def read_mt_normal(context, chunks, ogf_chunks, visual):
+    shader.read_texture(context, chunks, ogf_chunks, visual)
+    verts.read_vertices(chunks, ogf_chunks, visual)
+    indices.read_indices(chunks, ogf_chunks, visual)
 
 
 def set_visual_type(visual, root_visual):
@@ -117,28 +106,27 @@ def import_ogf_visual(context, data, visual):
 
     ogf_chunks = fmt.Chunks_v4
     model_types = fmt.ModelType_v4
-    props.import_user_data(chunks, ogf_chunks, visual)
 
     if visual.model_type == model_types.SKELETON_RIGID:
-        import_fun = import_mt_skeleton_rigid
+        import_fun = read_mt_skeleton_rigid
 
     elif visual.model_type == model_types.SKELETON_ANIM:
-        import_fun = import_mt_skeleton_anim
+        import_fun = read_mt_skeleton_anim
 
     elif visual.model_type == model_types.SKELETON_GEOMDEF_ST:
-        import_fun = import_mt_skeleton_geom_def_st
+        import_fun = read_mt_skeleton_geom_def_st
 
     elif visual.model_type == model_types.SKELETON_GEOMDEF_PM:
-        import_fun = import_mt_skeleton_geom_def_pm
+        import_fun = read_mt_skeleton_geom_def_pm
 
     elif visual.model_type == model_types.NORMAL:
-        import_fun = import_mt_normal
+        import_fun = read_mt_normal
 
     elif visual.model_type == model_types.PROGRESSIVE:
-        import_fun = import_mt_progressive
+        import_fun = read_mt_progressive
 
     elif visual.model_type == model_types.HIERRARHY:
-        import_fun = import_mt_hierrarhy
+        import_fun = read_mt_hierrarhy
 
     else:
         raise log.AppError(
@@ -146,6 +134,7 @@ def import_ogf_visual(context, data, visual):
             log.props(model_type=visual.model_type)
         )
 
+    props.import_user_data(chunks, ogf_chunks, visual)
     import_fun(context, chunks, ogf_chunks, visual)
 
     utility.check_unread_chunks(chunks)

@@ -15,7 +15,7 @@ def read_vertices_v3(data, visual, lvl):
     visual.uvs_lmap = vb.uv_lmap
 
 
-def import_skeleton_vertices(chunks, ogf_chunks, visual):
+def read_skeleton_vertices(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.VERTICES)
     packed_reader = rw.read.PackedReader(chunk_data)
     vertex_format = packed_reader.getf('<I')[0]
@@ -139,27 +139,29 @@ def import_skeleton_vertices(chunks, ogf_chunks, visual):
     visual.weights = weights
 
 
-def import_vertices(chunks, ogf_chunks, visual):
+def read_vertices(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.VERTICES)
     packed_reader = rw.read.PackedReader(chunk_data)
+
     vertex_format = packed_reader.getf('<I')[0]
-    verices_count = packed_reader.getf('<I')[0]
-    vertices = []
-    normals = []
-    uvs = []
+    vertices_count = packed_reader.getf('<I')[0]
+
     if vertex_format == level.fmt.FVF_OGF:
-        for vertex_index in range(verices_count):
-            coords = packed_reader.getv3f()
+        visual.vertices = []
+        visual.normals = []
+        visual.uvs = []
+
+        for vertex_index in range(vertices_count):
+            coord = packed_reader.getv3fp()
             normal = packed_reader.getv3fp()
             tex_u, tex_v = packed_reader.getf('<2f')
-            vertices.append(coords)
-            normals.append(normal)
-            uvs.append((tex_u, 1 - tex_v))
+
+            visual.vertices.append(coord)
+            visual.normals.append(normal)
+            visual.uvs.append((tex_u, 1 - tex_v))
+
     else:
         raise log.AppError(
             text.error.ogf_bad_vertex_fmt,
             log.props(vertex_format=vertex_format)
         )
-    visual.vertices = vertices
-    visual.normals = normals
-    visual.uvs = uvs
