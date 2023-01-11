@@ -27,5 +27,5 @@ def read_texture(context, chunks, ogf_chunks, visual):
         'Texture'    # uv map name
     )
 
-    visual.bpy_materials[visual.shader_id] = bpy_material
+    visual.bpy_material = bpy_material
     visual.bpy_image = bpy_image

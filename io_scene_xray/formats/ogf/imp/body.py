@@ -44,6 +44,7 @@ def read_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual):
 
 
 def read_mt_hierrarhy(context, chunks, ogf_chunks, visual):
+    create.create_hierrarhy_obj(context, visual)
     props.read_description(chunks, ogf_chunks, visual)
     import_children(context, chunks, ogf_chunks, visual)
 
@@ -91,9 +92,9 @@ def import_children(context, chunks, chunks_ids, root_visual):
         visual.arm_obj = root_visual.arm_obj
         visual.root_obj = root_visual.root_obj
         visual.bones = root_visual.bones
-        visual.bpy_materials = root_visual.bpy_materials
 
         import_ogf_visual(context, child_data, visual)
+
         set_visual_type(visual, root_visual)
 
 

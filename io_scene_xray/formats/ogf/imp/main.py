@@ -18,6 +18,5 @@ def import_file(context, file_path, file_name):
     visual.visual_id = 0
     visual.name = file_name
     visual.is_root = True
-    visual.bpy_materials = {}
 
     body.import_ogf_visual(context, data, visual)

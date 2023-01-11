@@ -337,8 +337,7 @@ def create_visual_mesh(visual, bpy_mesh, lvl, geometry_key):
         lvl.loaded_geometry[geometry_key] = bpy_mesh
 
     else:
-        bpy_material = visual.bpy_materials[visual.shader_id]
-        bpy_mesh.materials.append(bpy_material)
+        bpy_mesh.materials.append(visual.bpy_material)
 
         if not utils.version.IS_28:
             texture_layer = mesh.faces.layers.tex.new('Texture')

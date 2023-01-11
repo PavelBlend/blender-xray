@@ -18,7 +18,7 @@ def create_root_visual(context, visual, model_types):
         bpy_object = mesh.create_visual(visual)
 
     elif visual.model_type == model_types.HIERRARHY:
-        bpy_object = create_hierrarhy_obj(context, visual)
+        bpy_object = visual.root_obj
 
     else:
         bpy_object = None
