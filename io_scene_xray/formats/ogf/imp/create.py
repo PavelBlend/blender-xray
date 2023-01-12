@@ -74,7 +74,7 @@ def import_geom_from_container(
             return bpy_mesh, geometry_key
 
     if has_vc:
-        gcontainer.import_vcontainer(
+        gcontainer.load_vcontainer(
             visual,
             lvl,
             vb_index,
@@ -83,7 +83,7 @@ def import_geom_from_container(
         )
 
     if has_ic:
-        gcontainer.import_icontainer(
+        gcontainer.load_icontainer(
             visual,
             lvl,
             ib_index, 

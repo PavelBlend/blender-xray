@@ -89,28 +89,3 @@ def import_normal_visual(chunks, visual, lvl):
     bpy_object.xray.level.object_type = 'VISUAL'
     bpy_object.xray.level.visual_type = 'NORMAL'
     return bpy_object
-
-
-def _import_fastpath_visual(data, visual, lvl):
-    # not used function
-
-    chunked_reader = rw.read.ChunkedReader(data)
-    chunks = {}
-    for chunk_id, chunkd_data in chunked_reader:
-        chunks[chunk_id] = chunkd_data
-    del chunked_reader
-
-    gcontainer_chunk_data = chunks.pop(fmt.Chunks_v4.GCONTAINER)
-    gcontainer.import_fastpath_gcontainer(gcontainer_chunk_data, visual, lvl)
-    del gcontainer_chunk_data
-
-    swi_chunk_data = chunks.pop(fmt.Chunks_v4.SWIDATA, None)
-    if swi_chunk_data:
-        packed_reader = rw.read.PackedReader(swi_chunk_data)
-        swi = level.swi.import_slide_window_item(packed_reader)
-        visual.indices = visual.indices[swi[0].offset : ]
-        visual.indices_count = swi[0].triangles_count * 3
-        del swi_chunk_data
-
-    for chunk_id in chunks.keys():
-        print('UNKNOW OGF FASTPATH CHUNK: {0:#x}'.format(chunk_id))

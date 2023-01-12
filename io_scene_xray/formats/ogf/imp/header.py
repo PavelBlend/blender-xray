@@ -29,15 +29,12 @@ def import_bounding_box(packed_reader):
     bbox_max = packed_reader.getf('<3f')
 
 
-def import_header(data, visual):
+def import_header(chunks, visual, supported):
+    data = chunks.pop(fmt.HEADER)
     packed_reader = rw.read.PackedReader(data)
     visual.format_version = packed_reader.getf('<B')[0]
 
-    if visual.format_version in (
-            fmt.FORMAT_VERSION_4,
-            fmt.FORMAT_VERSION_3,
-            fmt.FORMAT_VERSION_2
-        ):
+    if visual.format_version in supported:
 
         visual.model_type = packed_reader.getf('<B')[0]
         visual.shader_id = packed_reader.getf('<H')[0]
@@ -46,24 +43,16 @@ def import_header(data, visual):
             import_bounding_box(packed_reader)
             import_bounding_sphere(packed_reader)
 
-
-def read_ogf_level_header(chunks, visual):
-    data = chunks.pop(fmt.HEADER)
-    import_header(data, visual)
-
-    if not visual.format_version in fmt.SUPPORT_FORMAT_VERSIONS:
+    else:
         raise log.AppError(
             text.error.ogf_bad_ver,
             log.props(version=visual.format_version)
         )
+
+
+def read_ogf_level_header(chunks, visual):
+    import_header(chunks, visual, fmt.SUPPORT_LEVEL_FORMAT_VERSIONS)
 
 
 def read_ogf_file_header(chunks, visual):
-    data = chunks.pop(fmt.HEADER)
-    import_header(data, visual)
-
-    if visual.format_version != fmt.FORMAT_VERSION_4:
-        raise log.AppError(
-            text.error.ogf_bad_ver,
-            log.props(version=visual.format_version)
-        )
+    import_header(chunks, visual, fmt.SUPPORT_FILE_FORMAT_VERSIONS)
