@@ -24,7 +24,7 @@ class Visual(object):
         self.bpy_material = None
         self.arm_obj = None
         self.root_obj = None
-        self.bones = None
+        self.bones = []
         self.deform_bones = None
         self.motion_refs = None
         self.create_name = None
