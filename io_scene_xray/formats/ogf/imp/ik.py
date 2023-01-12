@@ -3,6 +3,7 @@ import bpy
 import mathutils
 
 # addon modules
+from .. import fmt
 from ... import motions
 from .... import rw
 from .... import utils
@@ -61,6 +62,14 @@ def import_ik_data(chunks, ogf_chunks, visual):
 
         shape_type = packed_reader.getf('<H')[0]
         shape_flags = packed_reader.getf('<H')[0]
+
+        if not version in fmt.SUPPORT_BONE_VERSIONS:
+            bpy.data.objects.remove(arm_obj)
+            bpy.data.armatures.remove(armature)
+            raise log.AppError(
+                text.error.ogf_unsupported_bone_ver,
+                log.props(version=version)
+            )
 
         # box shape
         box_shape_rotation = packed_reader.getf('<9f')

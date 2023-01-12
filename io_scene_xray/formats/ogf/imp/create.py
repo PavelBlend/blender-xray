@@ -169,8 +169,7 @@ def import_level_geometry_v2_v3(chunks, visual, lvl):
         ib_index, ib_offset, ib_size = gcontainer.read_container_v3(ic_data)
         has_ic = True
     else:
-        indices_data = chunks.pop(chunks_ids.INDICES)
-        indices.read_indices_v3(indices_data, visual)
+        indices.read_indices(chunks, chunks_ids, visual)
 
     bpy_mesh, geometry_key = import_geom_from_container(
         visual, lvl, has_vc, has_ic,

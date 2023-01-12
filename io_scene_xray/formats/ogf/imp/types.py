@@ -11,7 +11,7 @@ class Visual(object):
         self.normals = []
         self.uvs = []
         self.uvs_lmap = None
-        self.triangles = None
+        self.triangles = []
         self.indices_count = None
         self.indices = None
         self.weights = []
