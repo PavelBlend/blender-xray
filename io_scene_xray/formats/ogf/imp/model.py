@@ -14,12 +14,13 @@ from .... import text
 
 
 def import_model_v4(chunks, visual, lvl):
+    chunks_fmt = fmt.Chunks_v4
 
     if visual.model_type == fmt.ModelType_v4.NORMAL:
         bpy_obj = load.import_normal_visual(chunks, visual, lvl)
 
     elif visual.model_type == fmt.ModelType_v4.HIERRARHY:
-        bpy_obj = load.import_hierrarhy_visual(chunks, visual, lvl)
+        bpy_obj = load.import_hierrarhy_visual(chunks, chunks_fmt, visual, lvl)
 
     elif visual.model_type == fmt.ModelType_v4.PROGRESSIVE:
         bpy_obj = load.import_progressive_visual(chunks, visual, lvl)
@@ -52,6 +53,7 @@ def import_model_v4(chunks, visual, lvl):
 
 def import_model_v3(chunks, visual, lvl):
     chunks_ids = fmt.Chunks_v3
+
     if visual.model_type == fmt.ModelType_v3.NORMAL:
         texture_l_data = chunks.get(chunks_ids.TEXTURE_L)
         if texture_l_data:
@@ -60,7 +62,7 @@ def import_model_v3(chunks, visual, lvl):
         bpy_obj = load.import_normal_visual(chunks, visual, lvl)
 
     elif visual.model_type == fmt.ModelType_v3.HIERRARHY:
-        bpy_obj = load.import_hierrarhy_visual(chunks, visual, lvl)
+        bpy_obj = load.import_hierrarhy_visual(chunks, chunks_ids, visual, lvl)
 
     elif visual.model_type == fmt.ModelType_v3.TREE:
         texture_l_data = chunks.get(chunks_ids.TEXTURE_L)
@@ -111,13 +113,15 @@ def import_model_v3(chunks, visual, lvl):
 
 def import_model_v2(chunks, visual, lvl):
     chunks_ids = fmt.Chunks_v2
+
     if visual.model_type == fmt.ModelType_v2.NORMAL:
         texture_l_data = chunks.pop(chunks_ids.TEXTURE_L)
         shader.import_texture_and_shader_v3(visual, lvl, texture_l_data)
         bpy_obj = load.import_normal_visual(chunks, visual, lvl)
 
     elif visual.model_type == fmt.ModelType_v2.HIERRARHY:
-        bpy_obj = load.import_hierrarhy_visual(chunks, visual, lvl)
+        bpy_obj = load.import_hierrarhy_visual(chunks, chunks_ids, visual, lvl)
+
     else:
         raise log.AppError(
             text.error.ogf_bad_model_type,
