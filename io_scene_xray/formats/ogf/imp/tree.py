@@ -20,7 +20,7 @@ def import_tree_st_visual(chunks, visual, lvl):
     bpy_mesh, geometry_key = create.import_level_geometry(chunks, visual, lvl)
     if not bpy_mesh:
         indices.convert_indices_to_triangles(visual)
-        bpy_object = mesh.create_visual(visual, bpy_mesh, lvl, geometry_key)
+        bpy_object = mesh.create_visual(visual, lvl, geometry_key)
     else:
         bpy_object = utils.create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(lvl, visual, chunks, bpy_object)
@@ -101,7 +101,7 @@ def import_tree_pm_visual(chunks, visual, lvl):
         visual.indices_count = swi[0].triangles_count * 3
         indices.convert_indices_to_triangles(visual)
 
-        bpy_object = mesh.create_visual(visual, bpy_mesh, lvl, geometry_key)
+        bpy_object = mesh.create_visual(visual, lvl, geometry_key)
     else:
         bpy_object = utils.create_object(visual.name, bpy_mesh)
     tree_xform = import_tree_def_2(lvl, visual, chunks, bpy_object)

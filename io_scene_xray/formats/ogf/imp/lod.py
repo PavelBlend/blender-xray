@@ -15,45 +15,62 @@ from .... import utils
 
 def import_lod_def_2(lvl, data):
     packed_reader = rw.read.PackedReader(data)
+
     verts = []
     uvs = []
-    lights = {'rgb': [], 'hemi': [], 'sun': []}
     faces = []
+    lights = {'rgb': [], 'hemi': [], 'sun': []}
+
     if lvl.xrlc_version >= level.fmt.VERSION_11:
         for face_index in range(8):
             face = []
+
             for vert_index in range(4):
+                # reading
                 coord_x, coord_y, coord_z = packed_reader.getf('<3f')
+                coord_u, coord_v = packed_reader.getf('<2f')
+                rgb_hemi = packed_reader.getf('<I')[0]
+                sun = packed_reader.getf('<B')[0]
+                packed_reader.skip(3)    # pad (unused)
+
+                # collect geometry
                 verts.append((coord_x, coord_z, coord_y))
                 face.append(face_index * 4 + vert_index)
-                coord_u, coord_v = packed_reader.getf('<2f')
                 uvs.append((coord_u, 1 - coord_v))
-                # import vertex light
-                rgb_hemi = packed_reader.getf('<I')[0]
+
+                # collect vertex light
                 red, green, blue, hemi = utility.get_float_rgb_hemi(rgb_hemi)
-                sun = packed_reader.getf('<B')[0]
-                sun = sun / 0xff
-                packed_reader.getf('<3B')    # pad (unused)
+
                 lights['rgb'].append((red, green, blue, 1.0))
                 lights['hemi'].append(hemi)
-                lights['sun'].append(sun)
+                lights['sun'].append(sun / 0xff)
+
             faces.append(face)
+
     else:
         for face_index in range(8):
             face = []
+
             for vert_index in range(4):
+                # reading
                 coord_x, coord_y, coord_z = packed_reader.getf('<3f')
+                coord_u, coord_v = packed_reader.getf('<2f')
+                light = packed_reader.getf('<I')[0]
+
+                # collect geometry
                 verts.append((coord_x, coord_z, coord_y))
                 face.append(face_index * 4 + vert_index)
-                coord_u, coord_v = packed_reader.getf('<2f')
                 uvs.append((coord_u, 1 - coord_v))
-                # import vertex light
-                rgb_hemi = packed_reader.getf('<I')[0]
-                red, green, blue, hemi = utility.get_float_rgb_hemi(rgb_hemi)
+
+                # collect vertex light
+                red, green, blue, hemi = utility.get_float_rgb_hemi(light)
+
                 lights['rgb'].append((red, green, blue, 1.0))
                 lights['hemi'].append(1.0)
                 lights['sun'].append(1.0)
+
             faces.append(face)
+
     return verts, uvs, lights, faces
 
 
@@ -148,9 +165,12 @@ def import_lod_visual(chunks, visual, lvl):
     # read chunks
 
     visual.name = 'lod'
+
+    # children
     children_l_data = chunks.pop(chunks_ids.CHILDREN_L)
     child.import_children_l(children_l_data, visual, lvl, 'LOD')
 
+    # lod def
     lod_def_2_data = chunks.pop(chunks_ids.LODDEF2)
     verts, uvs, lights, faces = import_lod_def_2(lvl, lod_def_2_data)
 

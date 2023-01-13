@@ -56,7 +56,7 @@ def import_render_visual(chunks, visual, lvl, visual_type):
 
         indices.convert_indices_to_triangles(visual)
 
-        bpy_object = mesh.create_visual(visual, bpy_mesh, lvl, geometry_key)
+        bpy_object = mesh.create_visual(visual, lvl, geometry_key)
 
     bpy_object.xray.is_level = True
     bpy_object.xray.level.use_fastpath = visual.fastpath

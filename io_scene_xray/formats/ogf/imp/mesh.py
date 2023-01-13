@@ -71,7 +71,6 @@ def get_back_side(vert_normals):
     for vertex_co, norms in vert_normals.items():
         back_side_norms = set()
         for vertex_index, normal in norms:
-            normal = tuple(normal)
             back_norm = (-normal[0], -normal[1], -normal[2])
             if back_norm in back_side_norms:
                 back_side[vertex_index] = True
@@ -88,16 +87,16 @@ def create_static_vertices(visual, mesh, back_side):
 
     for index, coord in enumerate(visual.vertices):
         is_back = back_side[index]
+        new_index = unique_verts.get((coord, is_back), None)
 
-        if unique_verts.get((coord, is_back), None):
-            new_index = unique_verts[(coord, is_back)]
-            remap_verts[index] = new_index
-
-        else:
+        if new_index is None:
             mesh.verts.new(coord)
             remap_verts[index] = remap_index
             unique_verts[(coord, is_back)] = remap_index
             remap_index += 1
+
+        else:
+            remap_verts[index] = new_index
 
     return remap_verts
 
@@ -110,16 +109,16 @@ def create_skinned_vertices(visual, mesh, back_side):
     for index, coord in enumerate(visual.vertices):
         is_back = back_side[index]
         weights = tuple(visual.weights[index])
+        new_index = unique_verts.get((coord, weights, is_back), None)
 
-        if unique_verts.get((coord, weights, is_back), None):
-            new_index = unique_verts[(coord, weights, is_back)]
-            remap_verts[index] = new_index
-
-        else:
+        if new_index is None:
             mesh.verts.new(coord)
             remap_verts[index] = remap_index
             unique_verts[(coord, weights, is_back)] = remap_index
             remap_index += 1
+
+        else:
+            remap_verts[index] = new_index
 
     return remap_verts
 
@@ -136,20 +135,23 @@ def create_vertices(visual, mesh, back_side):
     return remap_vertices
 
 
-def create_visual_mesh(visual, bpy_mesh, lvl, geometry_key):
+def create_visual(visual, lvl=None, geometry_key=None):
     vert_normals = get_vert_normals(visual)
     back_side = get_back_side(vert_normals)
     mesh = bmesh.new()
     remap_vertices = create_vertices(visual, mesh, back_side)
 
-    # import triangles
-    remap_loops = []
-    custom_normals = []
-    if not visual.vb_index is None:
-        if not lvl.vertex_buffers[visual.vb_index].float_normals:
-            convert_normal_function = utility.convert_normal
-    else:
+    # search convert normal function
+    if visual.vb_index is None:
         convert_normal_function = utility.convert_float_normal
+
+    else:
+        if lvl.vertex_buffers[visual.vb_index].float_normals:
+            convert_normal_function = utility.convert_float_normal
+        else:
+            convert_normal_function = utility.convert_normal
+
+    # import triangles
     is_new_format = False
     if lvl:
         if lvl.xrlc_version >= level.fmt.VERSION_11:
@@ -157,6 +159,9 @@ def create_visual_mesh(visual, bpy_mesh, lvl, geometry_key):
     else:
         if visual.format_version == fmt.FORMAT_VERSION_4:
             is_new_format = True
+
+    remap_loops = []
+    custom_normals = []
     if is_new_format:
         for triangle in visual.triangles:
             try:
@@ -265,9 +270,9 @@ def create_visual_mesh(visual, bpy_mesh, lvl, geometry_key):
                     normal_2 = visual.normals[triangle[1]]
                     normal_3 = visual.normals[triangle[2]]
                     custom_normals.extend((
-                        utility.convert_normal(normal_1),
-                        utility.convert_normal(normal_2),
-                        utility.convert_normal(normal_3)
+                        convert_normal_function(normal_1),
+                        convert_normal_function(normal_2),
+                        convert_normal_function(normal_3)
                     ))
                 except ValueError:    # face already exists
                     pass
@@ -318,48 +323,44 @@ def create_visual_mesh(visual, bpy_mesh, lvl, geometry_key):
                     loop[uv_layer].uv = visual.uvs[remap_loops[current_loop]]
                     current_loop += 1
 
-    # normals
-    mesh.normal_update()
-
     # create mesh
     bpy_mesh = bpy.data.meshes.new(visual.name)
     bpy_mesh.use_auto_smooth = True
     bpy_mesh.auto_smooth_angle = math.pi
+
+    # append material
     if lvl:
         material.assign_level_material(bpy_mesh, visual, lvl)
 
-        if not utils.version.IS_28:
-            bpy_image = lvl.images[visual.shader_id]
-            texture_layer = mesh.faces.layers.tex.new('Texture')
-            for face in mesh.faces:
-                face[texture_layer].image = bpy_image
-
+        # add geometry key
         lvl.loaded_geometry[geometry_key] = bpy_mesh
 
     else:
         bpy_mesh.materials.append(visual.bpy_material)
 
-        if not utils.version.IS_28:
-            texture_layer = mesh.faces.layers.tex.new('Texture')
-            for face in mesh.faces:
-                face[texture_layer].image = visual.bpy_image
+    # assign texture layer in blender 2.7x
+    if not utils.version.IS_28:
+        if lvl:
+            bpy_image = lvl.images[visual.shader_id]
+        else:
+            bpy_image = visual.bpy_image
 
+        texture_layer = mesh.faces.layers.tex.new('Texture')
+        for face in mesh.faces:
+            face[texture_layer].image = bpy_image
+
+    # convert to bpy-mesh
+    mesh.normal_update()
     mesh.to_mesh(bpy_mesh)
+
+    # set custom normals
     if custom_normals:
         bpy_mesh.normals_split_custom_set(custom_normals)
-    del mesh
-    return remap_vertices, bpy_mesh
 
+    # create object
+    bpy_object = utils.create_object(visual.name, bpy_mesh)
 
-def create_visual(visual, bpy_mesh=None, lvl=None, geometry_key=None):
-    if bpy_mesh:
-        if lvl:
-            bpy_mesh = lvl.loaded_geometry[geometry_key]
-        bpy_object = utils.create_object(visual.name, bpy_mesh)
-
-    else:
-        remap_vertices, bpy_mesh = create_visual_mesh(visual, bpy_mesh, lvl, geometry_key)
-        bpy_object = utils.create_object(visual.name, bpy_mesh)
-        assign_visual_vertex_weights(visual, bpy_object, remap_vertices)
+    # assign vertex weights
+    assign_visual_vertex_weights(visual, bpy_object, remap_vertices)
 
     return bpy_object
