@@ -1,15 +1,19 @@
 # addon modules
+from . import main
 from . import header
 from . import child
 from . import create
 from . import indices
 from . import mesh
+from . import bone
+from . import ik
+from . import shader
+from . import verts
+from . import props
 from . import utility
+from . import motion
 from . import swis
-from . import gcontainer
 from .. import fmt
-from ... import level
-from .... import rw
 from .... import utils
 
 
@@ -76,3 +80,45 @@ def import_progressive_visual(chunks, visual, lvl):
 def import_normal_visual(chunks, visual, lvl):
     bpy_object = import_render_visual(chunks, visual, lvl, 'NORMAL')
     return bpy_object
+
+
+def read_mt_skeleton_rigid(context, chunks, ogf_chunks, visual):
+    props.read_description(chunks, ogf_chunks, visual)
+    props.read_lods(context, chunks, ogf_chunks, visual)
+    bone.read_bone_names(chunks, ogf_chunks, visual)
+    ik.import_ik_data(chunks, ogf_chunks, visual)
+    main.import_children(context, chunks, ogf_chunks, visual)
+
+
+def read_mt_skeleton_anim(context, chunks, ogf_chunks, visual):
+    props.read_motion_references(chunks, ogf_chunks, visual)
+    read_mt_skeleton_rigid(context, chunks, ogf_chunks, visual)
+    motion.import_skeleton_motions(context, chunks, ogf_chunks, visual)
+
+
+def read_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual):
+    shader.read_texture(context, chunks, ogf_chunks, visual)
+    verts.read_skeleton_vertices(chunks, ogf_chunks, visual)
+    indices.read_indices(chunks, ogf_chunks, visual)
+
+
+def read_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual):
+    read_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual)
+    swis.import_swi(visual, chunks)
+
+
+def read_mt_hierrarhy(context, chunks, ogf_chunks, visual):
+    create.create_hierrarhy_obj(context, visual)
+    props.read_description(chunks, ogf_chunks, visual)
+    main.import_children(context, chunks, ogf_chunks, visual)
+
+
+def read_mt_progressive(context, chunks, ogf_chunks, visual):
+    read_mt_normal(context, chunks, ogf_chunks, visual)
+    swis.import_swi(visual, chunks)
+
+
+def read_mt_normal(context, chunks, ogf_chunks, visual):
+    shader.read_texture(context, chunks, ogf_chunks, visual)
+    verts.read_vertices(chunks, ogf_chunks, visual)
+    indices.read_indices(chunks, ogf_chunks, visual)

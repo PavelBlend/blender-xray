@@ -17,7 +17,7 @@ def import_visuals(data, level):
     visuals_ids = set()
     for visual_id, visual_data in chunked_reader:
         visuals_ids.add(visual_id)
-        ogf.imp.body.import_level_visual(
+        ogf.imp.main.import_level_visual(
             visual_data,
             visual_id,
             level,

@@ -23,7 +23,7 @@ def read_description(chunks, ogf_chunks, visual):
     visual.modif_time = packed_reader.getf('<I')[0]
 
 
-def import_user_data(chunks, ogf_chunks, visual):
+def read_user_data(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_USERDATA, None)
     if not chunk_data:
         return

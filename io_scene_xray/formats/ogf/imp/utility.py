@@ -5,6 +5,7 @@ import os
 import mathutils
 
 # addon modules
+from .. import fmt
 from .... import rw
 
 
@@ -69,3 +70,20 @@ def set_export_path(context, visual, bpy_object):
     exp_path = file_dir[offset : ]
 
     bpy_object.xray.export_path = exp_path
+
+
+def set_visual_type(visual, root_visual):
+    if visual.model_type == fmt.ModelType_v4.SKELETON_GEOMDEF_PM:
+        root_visual.arm_obj.xray.flags_simple = 'pd'
+
+    elif visual.model_type == fmt.ModelType_v4.SKELETON_GEOMDEF_ST:
+        root_visual.arm_obj.xray.flags_simple = 'dy'
+
+    elif visual.model_type == fmt.ModelType_v4.PROGRESSIVE:
+        root_visual.root_obj.xray.flags_simple = 'pd'
+
+    elif visual.model_type == fmt.ModelType_v4.NORMAL:
+        root_visual.root_obj.xray.flags_simple = 'dy'
+
+    else:
+        print('WARRNING: Model type = {}'.format(visual.model_type))
