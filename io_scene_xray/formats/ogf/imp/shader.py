@@ -9,6 +9,12 @@ def import_texture_and_shader_v3(visual, lvl, data):
     visual.shader_id = packed_reader.getf('<I')[0]
 
 
+def read_texture_l(chunks, ogf_chunks, visual, lvl):
+    texture_l_data = chunks.pop(ogf_chunks.TEXTURE_L, None)
+    if texture_l_data:
+        import_texture_and_shader_v3(visual, lvl, texture_l_data)
+
+
 def read_texture(context, chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.TEXTURE)
     packed_reader = rw.read.PackedReader(chunk_data)

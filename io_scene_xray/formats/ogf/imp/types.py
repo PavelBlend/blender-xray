@@ -21,7 +21,6 @@ class Visual(object):
         self.fastpath = False
         self.vb_index = None
         self.is_root = None
-        self.bpy_material = None
         self.arm_obj = None
         self.root_obj = None
         self.bones = []
@@ -33,6 +32,7 @@ class Visual(object):
         self.modif_time = None
         self.user_data = None
         self.lod = None
+        self.bpy_material = None
         self.bpy_image = None
 
 

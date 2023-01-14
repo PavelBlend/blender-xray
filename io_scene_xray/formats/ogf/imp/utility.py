@@ -30,8 +30,10 @@ def get_float_rgb_hemi(rgb_hemi):
 def check_unread_chunks(chunks, context=''):
     if not chunks:
         return
+
     chunks_ids = list(chunks.keys())
     chunks_ids.sort()
+
     for chunk_id in chunks_ids:
         data = chunks[chunk_id]
         size = len(data)

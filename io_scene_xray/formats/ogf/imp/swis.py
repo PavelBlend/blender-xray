@@ -6,6 +6,7 @@ from .... import rw
 
 def import_swi(visual, chunks):
     swi = import_swidata(chunks)
+
     visual.indices = visual.indices[swi[0].offset : ]
     visual.indices_count = swi[0].triangles_count * 3
 
