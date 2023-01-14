@@ -58,10 +58,6 @@ def import_ik_data(chunks, ogf_chunks, visual):
 
     for bone_index, (bone_name, parent_name) in enumerate(visual.bones):
         version = packed_reader.getf('<I')[0]
-        game_material = packed_reader.gets()
-
-        shape_type = packed_reader.getf('<H')[0]
-        shape_flags = packed_reader.getf('<H')[0]
 
         if not version in fmt.SUPPORT_BONE_VERSIONS:
             bpy.data.objects.remove(arm_obj)
@@ -70,6 +66,11 @@ def import_ik_data(chunks, ogf_chunks, visual):
                 text.error.ogf_unsupported_bone_ver,
                 log.props(version=version)
             )
+
+        game_material = packed_reader.gets()
+
+        shape_type = packed_reader.getf('<H')[0]
+        shape_flags = packed_reader.getf('<H')[0]
 
         # box shape
         box_shape_rotation = packed_reader.getf('<9f')
