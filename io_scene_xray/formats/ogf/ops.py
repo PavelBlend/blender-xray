@@ -90,7 +90,7 @@ class XRAY_OT_import_ogf(
         for file in self.files:
             file_path = os.path.join(self.directory, file.name)
             try:
-                imp.import_file(import_context, file_path, file.name)
+                imp.main.import_file(import_context, file_path, file.name)
             except log.AppError as err:
                 import_context.errors.append(err)
         for err in import_context.errors:

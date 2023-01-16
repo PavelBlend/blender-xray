@@ -45,7 +45,6 @@ class Level(object):
         self.visuals = []
         self.collections = {}
         self.sectors_objects = {}
-        self.visual_keys = set()
         self.stats = ''
 
 
@@ -193,7 +192,11 @@ def create_glow_object_v5(
     ):
     object_name = 'glow_{:0>3}'.format(glow_index)
     vertices, faces, uvs = generate_glow_mesh_data(radius)
-    material = ogf.imp.get_material(level, shader_index, texture_index)
+    material = ogf.imp.material.get_level_material(
+        level,
+        shader_index,
+        texture_index
+    )
     image = level.images[texture_index]
     mesh = create_glow_mesh(
         object_name,
@@ -673,7 +676,6 @@ def import_main(context, chunked_reader, level):
         cform.import_main(context, level, data=cform_data_v2)
 
 
-TEST_MODE = False
 MAX_LEVEL_SIZE = 1024 * 1024 * 32    # 32 MB
 
 
@@ -691,37 +693,6 @@ def import_file(context, operator):
         chunked_reader.next(fmt.HEADER),
         context.filepath
     )
-
-    # test code
-    if TEST_MODE:
-        build = context.filepath[48 : 48 + 4]
-        index = context.filepath[36 : 36 + 2]
-        temp_folder = 'E:\\stalker\\_TEMP\\utils\\level_format_stats\\'
-        stats_name = '{0:0>2}_{1}_{2}_{3}.txt'.format(
-            level.xrlc_version,
-            build,
-            level.name,
-            index
-        )
-        if len(chunked_reader.get_size()) > MAX_LEVEL_SIZE:
-            print('skip big level:', stats_name)
-            return
-        stats_path = os.path.join(temp_folder, stats_name)
-        if os.path.exists(stats_path):
-            print('skip:', stats_name)
-            return
-        print(build, index, level.name)
-
     level.file = context.filepath
     level.path = os.path.dirname(context.filepath)
     import_main(context, chunked_reader, level)
-
-    # test code
-    if TEST_MODE:
-        stats = '\nOGFs Info:\n'
-        for key in level.visual_keys:
-            stats += '  ' + key[0] + ': ' + ' '.join(key[1:]) + '\n'
-        level.stats += stats
-        with open(stats_path, 'w') as stats_file:
-            stats_file.write(level.stats)
-        print('\t\t', level.name)

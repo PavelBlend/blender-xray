@@ -99,8 +99,8 @@ translations_table = (
     (error.object_many_duplicated_faces, 'слишком много дублирующихся полигонов'),
     # ogf import
     (error.ogf_bad_ver, 'неподдерживаемая версия ogf формата'),
+    (error.ogf_unsupported_bone_ver, 'неподдерживаемая версия формата костей'),
     (error.ogf_bad_vertex_fmt, 'неподдерживаемая версия формата ogf-вершин'),
-    (error.ogf_bad_color_mode, 'неизвестный режим цвета ogf'),
     (error.ogf_bad_model_type, 'неподдерживаемый тип ogf модели'),
     # ogf export
     (error.ogf_has_no_arm, 'скелетный меш-объект не имеет арматуры'),
