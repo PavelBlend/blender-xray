@@ -98,13 +98,9 @@ reader = None
 def dump_smparams_1():
     partition_count = read('H', 'partition_count')
 
-    all_bones = 0
-
     for partition_index in range(partition_count):
         read('str', 'partition_name')
         bone_count = read('H', 'bone_count')
-
-        all_bones += bone_count
 
         for bone_index in range(bone_count):
             read('I', 'bone_id')
@@ -121,8 +117,6 @@ def dump_smparams_1():
         read('f', 'falloff')
         read('B', 'b_no_loop')
 
-    return all_bones
-
 
 def dump_smparams_2():
     params_version = read('H', 'params_version')
@@ -132,13 +126,9 @@ def dump_smparams_2():
 
     partition_count = read('H', 'partition_count')
 
-    all_bones = 0
-
     for partition_index in range(partition_count):
         read('str', 'partition_name')
         bone_count = read('H', 'bone_count')
-
-        all_bones += bone_count
 
         if params_version in (PARAMS_VERSION_3, PARAMS_VERSION_4):
             for bone_index in range(bone_count):
@@ -178,14 +168,12 @@ def dump_smparams_2():
                     read('f', 'interval_second')
             reader.str_end = 0
 
-    return all_bones
 
-
-def dump_motion_v4(bones_count):
+def dump_motion_v4():
     read('str', 'motion_name')
     length = read('I', 'length')
 
-    for bone_index in range(bones_count):
+    while not is_end():
         flags = read('B', 'flags')
         t_present = flags & FL_T_KEY_PRESENT
         r_absent = flags & FL_R_KEY_ABSENT
@@ -214,29 +202,11 @@ def dump_motion_v4(bones_count):
             read('3f', 'translate')
 
 
-def dump_motion_1_v3(bones_count):
-    motion_name = read('str', 'motion_name')
-    length = read('I', 'length')
-
-    frame_len = 4 * 2 + 12
-    head_len = len(motion_name) + 1 + 4
-
-    if len(reader.data) - head_len == length * bones_count * frame_len:
-        quat_fmt = 'h'
-    else:
-        quat_fmt = 'f'
-
-    for bone_index in range(bones_count):
-        for key_index in range(length):
-            read('4' + quat_fmt, 'quaternion')
-            read('3f', 'translation')
-
-
-def dump_motion_2_v3(bones_count):
+def dump_motion_v3_2():
     read('str', 'motion_name')
     length = read('I', 'length')
 
-    for bone_index in range(bones_count):
+    while not is_end():
         t_present = read('B', 't_present')
 
         read('I', 'motion_crc32')
@@ -254,7 +224,30 @@ def dump_motion_2_v3(bones_count):
             read('3f', 'translate')
 
 
-def dump_motions_1_v3(data, bones_count):
+def dump_motion_v3_1():
+    motion_name = read('str', 'motion_name')
+    length = read('I', 'length')
+
+    global reader
+
+    frame_len_1 = 4 * 2 + 3 * 4
+    frame_len_2 = 4 * 4 + 3 * 4
+    head_len = len(motion_name) + 1 + 4
+    keys_length = len(reader.data) - head_len
+
+    x = keys_length // length
+    if x % frame_len_1 == 0:
+        quat_fmt = 'h'
+    elif x % frame_len_2 == 0:
+        quat_fmt = 'f'
+
+    while not is_end():
+        for key_index in range(length):
+            read('4' + quat_fmt, 'quaternion')
+            read('3f', 'translation')
+
+
+def dump_motions(data, motion_fun):
     global reader
 
     chunks = ChunkedReader(data).read()
@@ -262,44 +255,12 @@ def dump_motions_1_v3(data, bones_count):
 
     reader = PackedReader(count_chunk)
     read('I', 'motions_count')
-    reader.readed('dump_motions_1_v3 motions_count')
+    reader.readed()
 
     for motion_id, motion_data in chunks[1 : ]:
         reader = PackedReader(motion_data)
-        dump_motion_1_v3(bones_count)
-        reader.readed('dump_motions_1_v3')
-
-
-def dump_motions_2_v3(data, bones_count):
-    global reader
-
-    chunks = ChunkedReader(data).read()
-    count_chunk = chunks[0][1]
-
-    reader = PackedReader(count_chunk)
-    read('I', 'motions_count')
-    reader.readed('dump_motions_2_v3 motions_count')
-
-    for motion_id, motion_data in chunks[1 : ]:
-        reader = PackedReader(motion_data)
-        dump_motion_2_v3(bones_count)
-        reader.readed('dump_motions_2_v3')
-
-
-def dump_motions_v4(data, bones_count):
-    global reader
-
-    chunks = ChunkedReader(data).read()
-    count_chunk = chunks[0][1]
-
-    reader = PackedReader(count_chunk)
-    read('I', 'motions_count')
-    reader.readed('dump_motions_v4 motions_count')
-
-    for motion_id, motion_data in chunks[1 : ]:
-        reader = PackedReader(motion_data)
-        dump_motion_v4(bones_count)
-        reader.readed('dump_motions_v4')
+        motion_fun()
+        reader.readed()
 
 
 def dump_p_map(data):
@@ -325,16 +286,20 @@ def dump_p_map(data):
             for index in range(count):
                 read('H', 'face_affected')
 
-        reader.readed('dump_p_map')
+        else:
+            print('unknown chunk', chunk_id, len(chunk_data))
+            raise 'error'
+
+        reader.readed()
 
 
-def dump_children_v4(data):
+def dump_children(data, child_fun):
     chunks = ChunkedReader(data).read()
     for child_id, child_data in chunks:
-        dump_ogf_v4(child_data)
+        child_fun(child_data)
 
 
-def dump_motion_refs_2_v4():
+def dump_motion_refs_2():
     count = read('I', 'reference_count')
     for index in range(count):
         read('str', 'motion_reference')
@@ -345,15 +310,15 @@ def dump_lods_v4(data):
     reader = PackedReader(data)
     read('str', 'lod_reference')
 
-    if not reader.is_end():
+    if not is_end():
         lods_chunks = ChunkedReader(reader.data).read()
         for lod_id, lod_data in lods_chunks:
             dump_ogf_v4(lod_data)
     else:
-        reader.readed('dump_lods_v4')
+        reader.readed()
 
 
-def dump_motion_refs_0_v4():
+def dump_motion_refs_0():
     read('str', 'motion_references')
 
 
@@ -361,8 +326,8 @@ def dump_user_data():
     read('str', 'userdata')
 
 
-def dump_ik_data_2(bones_count):
-    for bone_index in range(bones_count):
+def dump_ik_data_2():
+    while not is_end():
         format_version = read('I', 'format_version')
 
         if format_version != BONE_VERSION_1:
@@ -371,13 +336,13 @@ def dump_ik_data_2(bones_count):
         dump_ik_data(format_version)
 
 
-def dump_ik_data_1(bones_count):
-    for bone_index in range(bones_count):
+def dump_ik_data_1():
+    while not is_end():
         dump_ik_data(BONE_VERSION_0)
 
 
-def dump_ik_data_0(bones_count):
-    for bone_index in range(bones_count):
+def dump_ik_data_0():
+    while not is_end():
         game_material=read('str', 'game_material')
 
         read('I', 'shape_type')
@@ -474,7 +439,6 @@ def dump_bone_names():
         read('9f', 'rotation',)
         read('3f', 'translation')
         read('3f', 'half_size')
-    return bones_count
 
 
 def dump_desc():
@@ -542,16 +506,14 @@ def dump_vertices():
 
 def dump_indices():
     indices_count = read('I', 'indices_count')
-    for index in range(indices_count):
-        read('H', 'index')
+    read(str(indices_count) + 'H', 'index')
 
 
 def dump_swi_data_v4():
     reserved = 0
     swis_count = 0
-    global reader
-    while not reserved and not reader.is_end():
-        reserved = read('I', 'reserved')
+    while not reserved and not is_end():
+        reserved = read('I', 'reserved_or_swis_count')
         if reserved:
             swis_count = reserved
 
@@ -581,6 +543,21 @@ def dump_header():
     read('H', 'shader_id')
 
 
+def dump_chields():
+    count = read('I', 'count')
+    for index in range(count):
+        chield = read('str', 'chield')
+
+
+def dump_header_v3():
+    version = read('B', 'version')
+
+    if version != OGF_VERSION_3:
+        raise 'Unsupported OGF format version!'
+
+    dump_header()
+
+
 def dump_header_v4():
     version = read('B', 'version')
 
@@ -592,15 +569,24 @@ def dump_header_v4():
     dump_bsphere()
 
 
-def test(chunk_id, chunk_data):
-    print(hex(chunk_id), len(chunk_data))
+###############################################################################
+
+
+def test(chunk_id):
+    # print(chunk_id)
+    return
 
 
 def dump_ogf_v4(data):
     chunks = ChunkedReader(data).read()
-    bones_count = None
-    load_motion = None
+
     global reader
+
+    subchunks = (
+        Chunks_v4.CHILDREN,
+        Chunks_v4.S_MOTIONS,
+        Chunks_v4.S_LODS
+    )
 
     for chunk_id, chunk_data in chunks:
 
@@ -622,38 +608,34 @@ def dump_ogf_v4(data):
             dump_swi_data_v4()
 
         elif chunk_id == Chunks_v4.VCONTAINER:
-            test(chunk_id, chunk_data)
+            test(chunk_id)
 
         elif chunk_id == Chunks_v4.ICONTAINER:
-            test(chunk_id, chunk_data)
+            test(chunk_id)
 
         elif chunk_id == Chunks_v4.CHILDREN:
-            dump_children_v4(chunk_data)
+            dump_children(chunk_data, dump_ogf_v4)
 
         elif chunk_id == Chunks_v4.CHILDREN_L:
-            test(chunk_id, chunk_data)
+            test(chunk_id)
 
         elif chunk_id == Chunks_v4.LODDEF2:
-            test(chunk_id, chunk_data)
+            test(chunk_id)
 
         elif chunk_id == Chunks_v4.TREEDEF2:
-            test(chunk_id, chunk_data)
+            test(chunk_id)
 
         elif chunk_id == Chunks_v4.S_BONE_NAMES:
-            bones_count = dump_bone_names()
+            dump_bone_names()
 
         elif chunk_id == Chunks_v4.S_MOTIONS:
-            if bones_count is None:
-                load_motion = False
-                motions_data = chunk_data
-            else:
-                dump_motions_v4(chunk_data, bones_count)
+            dump_motions(chunk_data, dump_motion_v4)
 
         elif chunk_id == Chunks_v4.S_SMPARAMS:
-            bones_count = dump_smparams_2()
+            dump_smparams_2()
 
         elif chunk_id == Chunks_v4.S_IKDATA:
-            dump_ik_data_2(bones_count)
+            dump_ik_data_2()
 
         elif chunk_id == Chunks_v4.S_USERDATA:
             dump_user_data()
@@ -662,62 +644,41 @@ def dump_ogf_v4(data):
             dump_desc()
 
         elif chunk_id == Chunks_v4.S_MOTION_REFS_0:
-            dump_motion_refs_0_v4()
+            dump_motion_refs_0()
 
         elif chunk_id == Chunks_v4.SWICONTAINER:
-            test(chunk_id, chunk_data)
+            test(chunk_id)
 
         elif chunk_id == Chunks_v4.GCONTAINER:
-            test(chunk_id, chunk_data)
+            test(chunk_id)
 
         elif chunk_id == Chunks_v4.FASTPATH:
-            test(chunk_id, chunk_data)
+            test(chunk_id)
 
         elif chunk_id == Chunks_v4.S_LODS:
             dump_lods_v4(chunk_data)
 
         elif chunk_id == Chunks_v4.S_MOTION_REFS_2:
-            dump_motion_refs_2_v4()
+            dump_motion_refs_2()
 
         else:
-            print(hex(chunk_id), len(chunk_data))
+            print('unknown chunk', hex(chunk_id), len(chunk_data))
+            raise 'error'
 
-        if not chunk_id in (Chunks_v4.CHILDREN, Chunks_v4.S_MOTIONS, Chunks_v4.S_LODS):
-            reader.readed(chunk_id)
-
-    if not load_motion is None:
-        if not load_motion:
-            dump_motions_v4(motions_data, bones_count)
-
-
-def dump_motion_refs_v3():
-    read('str', 'motion_refs')
-
-
-def dump_children_v3(data):
-    chunks = ChunkedReader(data).read()
-    for child_id, child_data in chunks:
-        dump_ogf_v3(child_data)
-
-
-def dump_chields():
-    count = read('I', 'count')
-    for index in range(count):
-        chield = read('str', 'chield')
-
-
-def dump_header_v3():
-    version = read('B', 'version')
-
-    if version != OGF_VERSION_3:
-        raise 'Unsupported OGF format version!'
-
-    dump_header()
+        if not chunk_id in subchunks:
+            reader.readed()
 
 
 def dump_ogf_v3(data):
     chunks = ChunkedReader(data).read()
     global reader
+
+    subchunks = (
+        Chunks_v3.CHILDREN,
+        Chunks_v3.P_MAP,
+        Chunks_v3.MOTIONS,
+        Chunks_v3.MOTIONS2
+    )
 
     for chunk_id, chunk_data in chunks:
 
@@ -748,7 +709,7 @@ def dump_ogf_v3(data):
             dump_chields()
 
         elif chunk_id == Chunks_v3.MOTION_REFS:
-            dump_motion_refs_v3()
+            dump_motion_refs_0()
 
         elif chunk_id == Chunks_v3.DESC:
             dump_desc()
@@ -757,37 +718,38 @@ def dump_ogf_v3(data):
             dump_user_data()
 
         elif chunk_id == Chunks_v3.BONE_NAMES:
-            bones_count = dump_bone_names()
+            dump_bone_names()
 
         elif chunk_id == Chunks_v3.IKDATA_obs:
-            dump_ik_data_0(bones_count)
+            dump_ik_data_0()
 
         elif chunk_id == Chunks_v3.IKDATA2:
-            dump_ik_data_2(bones_count)
+            dump_ik_data_2()
 
         elif chunk_id == Chunks_v3.IKDATA:
-            dump_ik_data_1(bones_count)
+            dump_ik_data_1()
 
         elif chunk_id == Chunks_v3.SMPARAMS:
-            bones_count = dump_smparams_1()
+            dump_smparams_1()
 
         elif chunk_id == Chunks_v3.SMPARAMS2:
-            bones_count = dump_smparams_2()
+            dump_smparams_2()
 
         elif chunk_id == Chunks_v3.MOTIONS:
-            dump_motions_1_v3(chunk_data, bones_count)
+            dump_motions(chunk_data, dump_motion_v3_1)
 
         elif chunk_id == Chunks_v3.MOTIONS2:
-            dump_motions_2_v3(chunk_data, bones_count)
+            dump_motions(chunk_data, dump_motion_v3_2)
 
         elif chunk_id == Chunks_v3.CHILDREN:
-            dump_children_v3(chunk_data)
+            dump_children(chunk_data, dump_ogf_v3)
 
         else:
-            print(chunk_id, len(chunk_data))
+            print('unknown chunk', chunk_id, len(chunk_data))
+            raise 'error'
 
-        if not chunk_id in (Chunks_v3.CHILDREN, Chunks_v3.P_MAP):
-            reader.readed(chunk_id)
+        if not chunk_id in subchunks:
+            reader.readed()
 
 
 def dump_ogf(data):
@@ -807,11 +769,17 @@ def dump_ogf(data):
 
             else:
                 print('unsupported ogf version:', version)
+                raise 'error'
 
             break
 
 
 ###############################################################################
+
+
+def is_end():
+    global reader
+    return reader.is_end()
 
 
 def read(fmt, name):

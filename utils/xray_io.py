@@ -24,13 +24,13 @@ class PackedReader:
         try:
             return string.decode('cp1251')
         except UnicodeError as error:
-            print('PackedReader.gets: UnicodeError')
             return string.decode('cp1251', errors='replace')
 
-    def readed(self, context):
+    def readed(self):
         size = len(self.data)
         if self.offs != size:
-            print('{} {} unreaded bytes: {}\n'.format(self.FILE, context, size - self.offs))
+            print('{} unreaded bytes: {}\n'.format(self.FILE, size - self.offs))
+            raise 'error'
 
     def is_end(self):
         return self.offs >= len(self.data)
