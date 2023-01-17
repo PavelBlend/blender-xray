@@ -301,6 +301,7 @@ def draw_motion_list_elements(layout):
     layout.operator(XRAY_OT_remove_all_actions.bl_idname, text='', icon='X')
     layout.operator(XRAY_OT_copy_actions_list.bl_idname, text='', icon='COPYDOWN')
     layout.operator(XRAY_OT_paste_actions_list.bl_idname, text='', icon='PASTEDOWN')
+    layout.operator(XRAY_OT_sort_motions_list.bl_idname, text='', icon='SORTALPHA')
 
 
 class XRAY_OT_remove_all_motion_refs(bpy.types.Operator):
@@ -391,6 +392,71 @@ class XRAY_OT_paste_motion_refs_list(bpy.types.Operator):
         return {'FINISHED'}
 
 
+sort_items = (
+    ('NAME', 'Action Name', ''),
+    ('EXPORT', 'Export Name', '')
+)
+op_props = {
+    'sort_by': bpy.props.EnumProperty(items=sort_items),
+}
+
+
+class XRAY_OT_sort_motions_list(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.sort_motions_list'
+    bl_label = 'Sort Motions'
+    bl_description = 'Sort motions list'
+    bl_options = {'UNDO'}
+
+    props = op_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if not obj:
+            return False
+        return True
+
+    def draw(self, context):
+        lay = self.layout
+        lay.label(text='Sort by:')
+        lay.prop(self, 'sort_by', expand=True)
+
+    def execute(self, context):
+        obj = context.object
+        motions = obj.xray.motions_collection
+
+        if self.sort_by == 'NAME':
+            sort_fun = lambda i: i[0]
+        else:
+            sort_fun = lambda i: i[2]
+
+        used_motions = []
+        for motion in motions:
+            if motion.export_name:
+                exp = motion.export_name
+            else:
+                exp = motion.name
+            used_motions.append((motion.name, motion.export_name, exp))
+        used_motions.sort(key=sort_fun)
+
+        motions.clear()
+
+        for name, exp, _ in used_motions:
+            elem = motions.add()
+            elem.name = name
+            elem.export_name = exp
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
 class XRAY_OT_sort_motion_refs_list(bpy.types.Operator):
     bl_idname = 'io_scene_xray.sort_motion_refs_list'
     bl_label = 'Sort Motion References'
@@ -408,7 +474,7 @@ class XRAY_OT_sort_motion_refs_list(bpy.types.Operator):
         obj = context.object
         refs = obj.xray.motionrefs_collection
 
-        used_refs = [ref.name for ref in obj.xray.motionrefs_collection]
+        used_refs = [ref.name for ref in refs]
         used_refs.sort()
 
         refs.clear()
@@ -938,6 +1004,7 @@ classes = (
     XRAY_OT_remove_all_motion_refs,
     XRAY_OT_copy_motion_refs_list,
     XRAY_OT_paste_motion_refs_list,
+    XRAY_OT_sort_motions_list,
     XRAY_OT_sort_motion_refs_list,
     XRAY_OT_add_motion_ref_from_file,
     XRAY_PT_object
