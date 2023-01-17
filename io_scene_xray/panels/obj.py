@@ -391,6 +391,35 @@ class XRAY_OT_paste_motion_refs_list(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class XRAY_OT_sort_motion_refs_list(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.sort_motion_refs_list'
+    bl_label = 'Sort Motion References'
+    bl_description = 'Sort motion references list'
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if not obj:
+            return False
+        return True
+
+    def execute(self, context):
+        obj = context.object
+        refs = obj.xray.motionrefs_collection
+
+        used_refs = [ref.name for ref in obj.xray.motionrefs_collection]
+        used_refs.sort()
+
+        refs.clear()
+
+        for ref in used_refs:
+            elem = refs.add()
+            elem.name = ref
+
+        return {'FINISHED'}
+
+
 op_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.omf', options={'HIDDEN'}
@@ -478,6 +507,7 @@ def draw_motion_refs_elements(layout):
     layout.operator(XRAY_OT_remove_all_motion_refs.bl_idname, text='', icon='X')
     layout.operator(XRAY_OT_copy_motion_refs_list.bl_idname, text='', icon='COPYDOWN')
     layout.operator(XRAY_OT_paste_motion_refs_list.bl_idname, text='', icon='PASTEDOWN')
+    layout.operator(XRAY_OT_sort_motion_refs_list.bl_idname, text='', icon='SORTALPHA')
     layout.operator(XRAY_OT_add_motion_ref_from_file.bl_idname, text='', icon='FILE_FOLDER')
 
 
@@ -845,7 +875,7 @@ class XRAY_PT_object(ui.base.XRayPanel):
                         'motionrefs_collection',
                         data,
                         'motionrefs_collection_index',
-                        rows=7
+                        rows=8
                     )
                     col = row.column(align=True)
                     ui.list_helper.draw_list_ops(
@@ -908,6 +938,7 @@ classes = (
     XRAY_OT_remove_all_motion_refs,
     XRAY_OT_copy_motion_refs_list,
     XRAY_OT_paste_motion_refs_list,
+    XRAY_OT_sort_motion_refs_list,
     XRAY_OT_add_motion_ref_from_file,
     XRAY_PT_object
 )
