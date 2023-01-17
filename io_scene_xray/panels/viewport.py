@@ -279,6 +279,21 @@ class XRAY_PT_add(ui.base.XRayPanel):
         )
 
 
+class XRAY_PT_props_tools(ui.base.XRayPanel):
+    bl_label = 'Props Tools'
+    bl_space_type = 'VIEW_3D'
+    bl_category = ui.base.CATEGORY
+    bl_options = {'DEFAULT_CLOSED'}
+    if utils.version.IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(ops.props_tools.XRAY_OT_change_userdata.bl_idname)
+
+
 class XRAY_PT_batch_tools(ui.base.XRayPanel):
     bl_label = 'Batch Tools'
     bl_category = ui.base.CATEGORY
@@ -535,6 +550,7 @@ classes = (
     XRAY_PT_transforms,
     XRAY_PT_add,
     XRAY_PT_verify_tools,
+    XRAY_PT_props_tools,
     XRAY_PT_batch_tools,
     XRAY_PT_custom_props,
     XRAY_PT_armature_tools,

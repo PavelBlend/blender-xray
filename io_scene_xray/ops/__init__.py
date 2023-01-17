@@ -6,6 +6,7 @@ from . import bone
 from . import edit_helpers
 from . import material
 from . import obj
+from . import props_tools
 from . import custom_props
 from . import fake_user
 from . import joint_limits
@@ -27,6 +28,7 @@ modules = (
     edit_helpers,
     material,
     obj,
+    props_tools,
     custom_props,
     fake_user,
     joint_limits,
