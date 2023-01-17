@@ -441,8 +441,9 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
                 continue
             relative_path = file_path[len(meshes_folder) : ]
             motion_ref = os.path.splitext(relative_path)[0]
-            ref = refs.add()
-            ref.name = motion_ref
+            if not motion_ref in refs:
+                ref = refs.add()
+                ref.name = motion_ref
         if fail_count:
             self.report(
                 {'WARNING'},
