@@ -54,6 +54,14 @@ def join_text_lines(text):
     return value
 
 
+def remove_end_line(text):
+    lines = []
+    for line in text.lines:
+        lines.append(line.body)
+    value = ' '.join(lines)
+    return value
+
+
 def get_user_data(obj):
     return obj.xray.userdata
 
@@ -63,6 +71,10 @@ def get_motion_refs(obj):
     for ref in obj.xray.motionrefs_collection:
         motion_refs.append(ref.name)
     return '\n'.join(motion_refs)
+
+
+def get_lod_ref(obj):
+    return obj.xray.lodref
 
 
 def search_value(self, context, prop_name, prop_fun, text_fun):
@@ -208,6 +220,105 @@ class XRAY_OT_change_userdata(bpy.types.Operator):
         # set value
         for obj in root_objs:
             obj.xray.userdata = userdata
+
+        self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
+value_items = (
+    ('REPLACE', 'Replace', 'Set custom value for LOD reference.'),
+    ('CLEAR', 'Clear', 'Remove LOD reference.'),
+    ('OBJECT', 'Object', 'Copy LOD reference from custom object.'),
+    ('ACTIVE', 'Active Object', 'Copy LOD reference from active object.'),
+    ('TEXT', 'Text', 'Copy LOD reference from text data block.')
+)
+op_props = {
+    'value': bpy.props.EnumProperty(
+        name='Mode',
+        items=value_items,
+        default='REPLACE'
+    ),
+    'change': bpy.props.EnumProperty(
+        name='Change',
+        items=change_items,
+        default='SELECTED'
+    ),
+    'lod_ref': bpy.props.StringProperty(name='LOD Reference'),
+    'obj': bpy.props.StringProperty(name='Object'),
+    'text': bpy.props.StringProperty(name='Text')
+}
+
+
+class XRAY_OT_change_lod_ref(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.change_lod_ref'
+    bl_label = 'Change LOD Reference'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    props = op_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+
+    def draw(self, context):
+        layout = self.layout
+
+        column = layout.column(align=True)
+        column.label(text='Value:')
+        column.prop(self, 'value', expand=True)
+
+        column = layout.column(align=True)
+        column.label(text='Change:')
+        column.prop(self, 'change', expand=True)
+
+        row = utils.version.layout_split(layout, 0.2)
+
+        if self.value == 'REPLACE':
+            row.label(text='Value:')
+            row.prop(self, 'lod_ref', text='')
+
+        elif self.value == 'OBJECT':
+            row.label(text='Object:')
+            row.prop_search(self, 'obj', bpy.data, 'objects', text='')
+
+        elif self.value == 'ACTIVE':
+            obj = context.object
+            if obj:
+                layout.label(text='Active Object: "{}"'.format(obj.name))
+            else:
+                layout.label(text='No active object!')
+
+        elif self.value == 'TEXT':
+            row.label(text='Text:')
+            row.prop_search(self, 'text', bpy.data, 'texts', text='')
+
+    def execute(self, context):
+        result = search_objects(self, context)
+        if result == {'FINISHED'}:
+            return result
+        else:
+            root_objs = result
+
+        result = search_value(
+            self,
+            context,
+            'lod_ref',
+            get_lod_ref,
+            remove_end_line
+        )
+        if result == {'FINISHED'}:
+            return result
+        else:
+            lod_ref = result
+
+        # set value
+        for obj in root_objs:
+            obj.xray.lodref = lod_ref
 
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
@@ -412,6 +523,7 @@ class XRAY_OT_change_object_type(bpy.types.Operator):
 classes = (
     XRAY_OT_change_object_type,
     XRAY_OT_change_userdata,
+    XRAY_OT_change_lod_ref,
     XRAY_OT_change_motion_refs
 )
 

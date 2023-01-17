@@ -295,6 +295,7 @@ class XRAY_PT_props_tools(ui.base.XRayPanel):
 
         col.operator(ops.props_tools.XRAY_OT_change_object_type.bl_idname)
         col.operator(ops.props_tools.XRAY_OT_change_userdata.bl_idname)
+        col.operator(ops.props_tools.XRAY_OT_change_lod_ref.bl_idname)
         col.operator(ops.props_tools.XRAY_OT_change_motion_refs.bl_idname)
 
 
