@@ -291,7 +291,9 @@ class XRAY_PT_props_tools(ui.base.XRayPanel):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(ops.props_tools.XRAY_OT_change_userdata.bl_idname)
+        col = layout.column(align=True)
+        col.operator(ops.props_tools.XRAY_OT_change_userdata.bl_idname)
+        col.operator(ops.props_tools.XRAY_OT_change_motion_refs.bl_idname)
 
 
 class XRAY_PT_batch_tools(ui.base.XRayPanel):
