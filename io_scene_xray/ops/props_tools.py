@@ -228,11 +228,6 @@ value_items = (
     ('ACTIVE', 'Active Object', 'Copy motion refs from active object.'),
     ('TEXT', 'Text', 'Copy motion refs from text data block.')
 )
-change_items = (
-    ('ACTIVE', 'Active Object', ''),
-    ('SELECTED', 'Selected Objects', ''),
-    ('ALL', 'All Objects', '')
-)
 op_props = {
     'mode': bpy.props.EnumProperty(
         name='Mode',
@@ -348,7 +343,77 @@ class XRAY_OT_change_motion_refs(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
-classes = (XRAY_OT_change_userdata, XRAY_OT_change_motion_refs)
+type_items = (
+    ('st', 'Static', ''),
+    ('dy', 'Dynamic', ''),
+    ('pd', 'Propgressive Dynamic', ''),
+    ('ho', 'HOM', ''),
+    ('mu', 'Multiple Usage', ''),
+    ('so', 'SOM', ''),
+)
+op_props = {
+    'obj_type': bpy.props.EnumProperty(
+        name='Type',
+        items=type_items,
+        default='st'
+    ),
+    'change': bpy.props.EnumProperty(
+        name='Change',
+        items=change_items,
+        default='SELECTED'
+    ),
+    'hq_export': bpy.props.BoolProperty(name='HQ Export', default=False)
+}
+
+
+class XRAY_OT_change_object_type(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.change_object_type'
+    bl_label = 'Change Object Type'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    props = op_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):
+        layout = self.layout
+
+        column = layout.column(align=True)
+        column.label(text='Type:')
+        column.prop(self, 'obj_type', expand=True)
+
+        column = layout.column(align=True)
+        column.label(text='Change:')
+        column.prop(self, 'change', expand=True)
+
+        layout.prop(self, 'hq_export')
+
+    def execute(self, context):
+        result = search_objects(self, context)
+        if result == {'FINISHED'}:
+            return result
+        else:
+            root_objs = result
+
+        for obj in root_objs:
+            obj.xray.flags_simple = self.obj_type
+            obj.xray.flags_custom_hqexp = self.hq_export
+
+        self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
+classes = (
+    XRAY_OT_change_object_type,
+    XRAY_OT_change_userdata,
+    XRAY_OT_change_motion_refs
+)
 
 
 def register():
