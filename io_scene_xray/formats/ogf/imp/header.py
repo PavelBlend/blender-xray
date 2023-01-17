@@ -43,6 +43,17 @@ def import_header(chunks, visual, supported):
             import_bounding_box(packed_reader)
             import_bounding_sphere(packed_reader)
 
+        elif visual.format_version == fmt.FORMAT_VERSION_3:
+            bbox_data = chunks.pop(fmt.Chunks_v3.BBOX, None)
+            if bbox_data:
+                packed_reader = rw.read.PackedReader(bbox_data)
+                import_bounding_box(packed_reader)
+
+            bsphere_data = chunks.pop(fmt.Chunks_v3.BSPHERE, None)
+            if bsphere_data:
+                packed_reader = rw.read.PackedReader(bsphere_data)
+                import_bounding_sphere(packed_reader)
+
     else:
         raise log.AppError(
             text.error.ogf_bad_ver,

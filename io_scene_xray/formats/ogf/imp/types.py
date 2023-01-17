@@ -26,10 +26,10 @@ class Visual(object):
         self.bones = []
         self.deform_bones = None
         self.motion_refs = None
-        self.create_name = None
-        self.create_time = None
-        self.modif_name = None
-        self.modif_time = None
+        self.create_name = ''
+        self.create_time = 0
+        self.modif_name = ''
+        self.modif_time = 0
         self.user_data = None
         self.lod = None
         self.bpy_material = None

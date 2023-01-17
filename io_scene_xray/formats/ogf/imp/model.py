@@ -27,13 +27,13 @@ def import_model_v4(chunks, visual, lvl):
     chunks_fmt = fmt.Chunks_v4
 
     if visual.model_type == fmt.ModelType_v4.NORMAL:
-        bpy_obj = load.import_normal_visual(chunks, visual, lvl)
+        bpy_obj = load.import_normal_visual(chunks, visual, lvl, chunks_fmt)
 
     elif visual.model_type == fmt.ModelType_v4.HIERRARHY:
         bpy_obj = load.import_hierrarhy_visual(chunks, chunks_fmt, visual, lvl)
 
     elif visual.model_type == fmt.ModelType_v4.PROGRESSIVE:
-        bpy_obj = load.import_progressive_visual(chunks, visual, lvl)
+        bpy_obj = load.import_progressive_visual(chunks, visual, lvl, chunks_fmt)
 
     elif visual.model_type == fmt.ModelType_v4.TREE_ST:
         bpy_obj = tree.import_tree_st_visual(chunks, visual, lvl)
@@ -59,7 +59,7 @@ def import_model_v3(chunks, visual, lvl):
     shader.read_texture_l(chunks, chunks_ids, visual, lvl)
 
     if visual.model_type == fmt.ModelType_v3.NORMAL:
-        bpy_obj = load.import_normal_visual(chunks, visual, lvl)
+        bpy_obj = load.import_normal_visual(chunks, visual, lvl, chunks_ids)
 
     elif visual.model_type == fmt.ModelType_v3.HIERRARHY:
         bpy_obj = load.import_hierrarhy_visual(chunks, chunks_ids, visual, lvl)
@@ -71,7 +71,7 @@ def import_model_v3(chunks, visual, lvl):
         bpy_obj = lod.import_lod_visual(chunks, visual, lvl)
 
     elif visual.model_type == fmt.ModelType_v3.CACHED:
-        bpy_obj = load.import_normal_visual(chunks, visual, lvl)
+        bpy_obj = load.import_normal_visual(chunks, visual, lvl, chunks_ids)
 
     else:
         raise log.AppError(
@@ -89,7 +89,7 @@ def import_model_v2(chunks, visual, lvl):
 
     if visual.model_type == fmt.ModelType_v2.NORMAL:
         shader.read_texture_l(chunks, chunks_ids, visual, lvl)
-        bpy_obj = load.import_normal_visual(chunks, visual, lvl)
+        bpy_obj = load.import_normal_visual(chunks, visual, lvl, chunks_ids)
 
     elif visual.model_type == fmt.ModelType_v2.HIERRARHY:
         bpy_obj = load.import_hierrarhy_visual(chunks, chunks_ids, visual, lvl)

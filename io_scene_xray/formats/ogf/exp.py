@@ -507,7 +507,7 @@ def _export(bpy_obj, cwriter, context):
         pwriter.putv3f(mat.to_translation())
         pwriter.putf('<f', xray.mass.value)
         pwriter.putv3f(xray.mass.center)
-    cwriter.put(fmt.Chunks_v4.S_IKDATA, pwriter)
+    cwriter.put(fmt.Chunks_v4.S_IKDATA_2, pwriter)
 
     packed_writer = rw.write.PackedWriter()
     packed_writer.puts(bpy_obj.xray.userdata)

@@ -18,21 +18,36 @@ def read_vertices_v3(data, visual, lvl):
 
 
 def read_verts_1_link(visual, packed_reader, verices_count):
-    for vertex_index in range(verices_count):
-        coord = packed_reader.getv3fp()
-        normal = packed_reader.getv3fp()
-        tangent = packed_reader.getv3fp()
-        bitangent = packed_reader.getv3fp()
-        tex_u, tex_v = packed_reader.getf('<2f')
-        bone_index = packed_reader.getf('<I')[0]
+    if verices_count * 36 == packed_reader.get_size() - 8:
+        for vertex_index in range(verices_count):
+            coord = packed_reader.getv3fp()
+            normal = packed_reader.getv3fp()
+            tex_u, tex_v = packed_reader.getf('<2f')
+            bone_index = packed_reader.getf('<I')[0]
 
-        vertex_weights = [(bone_index, 1), ]
+            vertex_weights = [(bone_index, 1), ]
 
-        visual.vertices.append(coord)
-        visual.normals.append(normal)
-        visual.uvs.append((tex_u, 1 - tex_v))
-        visual.weights.append(vertex_weights)
-        visual.deform_bones.add(bone_index)
+            visual.vertices.append(coord)
+            visual.normals.append(normal)
+            visual.uvs.append((tex_u, 1 - tex_v))
+            visual.weights.append(vertex_weights)
+            visual.deform_bones.add(bone_index)
+    else:
+        for vertex_index in range(verices_count):
+            coord = packed_reader.getv3fp()
+            normal = packed_reader.getv3fp()
+            tangent = packed_reader.getv3fp()
+            bitangent = packed_reader.getv3fp()
+            tex_u, tex_v = packed_reader.getf('<2f')
+            bone_index = packed_reader.getf('<I')[0]
+
+            vertex_weights = [(bone_index, 1), ]
+
+            visual.vertices.append(coord)
+            visual.normals.append(normal)
+            visual.uvs.append((tex_u, 1 - tex_v))
+            visual.weights.append(vertex_weights)
+            visual.deform_bones.add(bone_index)
 
 
 def read_verts_2_link(visual, packed_reader, verices_count):

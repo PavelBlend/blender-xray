@@ -2,59 +2,72 @@
 HEADER = 0x1
 
 
+UNSUPPORTED = -1
+
+
 class Chunks_v4:
-    TEXTURE = 0x2
-    VERTICES = 0x3
-    INDICES = 0x4
-    SWIDATA = 0x6
-    VCONTAINER = 0x7
-    ICONTAINER = 0x8
-    CHILDREN = 0x9
-    CHILDREN_L = 0xa
-    LODDEF2 = 0xb
-    TREEDEF2 = 0xc
-    S_BONE_NAMES = 0xd
-    S_MOTIONS = 0xe
-    S_SMPARAMS = 0xf
-    S_IKDATA = 0x10
-    S_USERDATA = 0x11
-    S_DESC = 0x12
-    S_MOTION_REFS_0 = 0x13
-    SWICONTAINER = 0x14
-    GCONTAINER = 0x15
-    FASTPATH = 0x16
-    S_LODS = 0x17
-    S_MOTION_REFS_2 = 0x18
+    TEXTURE = 2
+    VERTICES = 3
+    INDICES = 4
+    SWIDATA = 6
+    VCONTAINER = 7
+    ICONTAINER = 8
+    CHILDREN = 9
+    CHILDREN_L = 10
+    LODDEF2 = 11
+    TREEDEF2 = 12
+    S_BONE_NAMES = 13
+    S_MOTIONS_0 = UNSUPPORTED
+    S_MOTIONS_1 = UNSUPPORTED
+    S_MOTIONS_2 = 14
+    S_SMPARAMS_0 = UNSUPPORTED
+    S_SMPARAMS_1 = 15
+    S_IKDATA_0 = UNSUPPORTED
+    S_IKDATA_1 = UNSUPPORTED
+    S_IKDATA_2 = 16
+    S_USERDATA = 17
+    S_DESC = 18
+    S_MOTION_REFS_0 = 19
+    SWICONTAINER = 20
+    GCONTAINER = 21
+    FASTPATH = 22
+    S_LODS = 23
+    S_MOTION_REFS_2 = 24
 
 
 class Chunks_v3:
-    TEXTURE = 0x2
-    TEXTURE_L = 0x3
-    CHILD_REFS = 0x5
-    BBOX = 0x6
-    VERTICES = 0x7
-    INDICES = 0x8
-    LODDATA = 0x9    # not sure
-    VCONTAINER = 0xa
-    BSPHERE = 0xb
-    CHILDREN_L = 0xc
-    S_BONE_NAMES = 0xd
-    S_MOTIONS = 0xe    # build 1469 - 1580
-    DPATCH = 0xf    # guessed name
-    LODS = 0x10    # guessed name
-    CHILDREN = 0x11
-    S_SMPARAMS = 0x12    # build 1469
-    ICONTAINER = 0x13    # build 1865
-    S_SMPARAMS_NEW = 0x14    # build 1472 - 1865
-    LODDEF2 = 0x15    # build 1865
-    TREEDEF2 = 0x16    # build 1865
-    S_IKDATA_0 = 0x17    # build 1475 - 1580
-    S_USERDATA = 0x18    # build 1537 - 1865
-    S_IKDATA = 0x19    # build 1616 - 1829, 1844
-    S_MOTIONS_NEW = 0x1a    # build 1616 - 1865
-    S_DESC = 0x1b    # build 1844
-    S_IKDATA_2 = 0x1c    # build 1842 - 1865
-    S_MOTION_REFS = 0x1D    # build 1842
+    TEXTURE = 2
+    TEXTURE_L = 3
+    CHILD_REFS = 5
+    BBOX = 6
+    VERTICES = 7
+    INDICES = 8
+    LODDATA = 9    # not sure
+    VCONTAINER = 10
+    BSPHERE = 11
+    CHILDREN_L = 12
+    S_BONE_NAMES = 13
+    S_MOTIONS_0 = 14    # build 1469 - 1580
+    DPATCH = 15    # guessed name
+    S_LODS = 16    # guessed name
+    CHILDREN = 17
+    S_SMPARAMS_0 = 18    # build 1469
+    ICONTAINER = 19    # build 1865
+    S_SMPARAMS_1 = 20    # build 1472 - 1865
+    LODDEF2 = 21    # build 1865
+    TREEDEF2 = 22    # build 1865
+    S_IKDATA_0 = 23    # build 1475 - 1580
+    S_USERDATA = 24    # build 1537 - 1865
+    S_IKDATA_1 = 25    # build 1616 - 1829, 1844
+    S_MOTIONS_1 = 26    # build 1616 - 1865
+    S_DESC = 27    # build 1844
+    S_IKDATA_2 = 28    # build 1842 - 1865
+    S_MOTION_REFS_0 = 29    # build 1842
+    SWICONTAINER = UNSUPPORTED
+    GCONTAINER = UNSUPPORTED
+    FASTPATH = UNSUPPORTED
+    S_MOTION_REFS_2 = UNSUPPORTED
+    S_MOTIONS_2 = UNSUPPORTED
 
 
 class Chunks_v2:
@@ -123,10 +136,14 @@ SUPPORT_LEVEL_FORMAT_VERSIONS = (
     FORMAT_VERSION_3,
     FORMAT_VERSION_2
 )
-SUPPORT_FILE_FORMAT_VERSIONS = (FORMAT_VERSION_4, )
+SUPPORT_FILE_FORMAT_VERSIONS = (
+    FORMAT_VERSION_4,
+    FORMAT_VERSION_3
+)
 
+BONE_VERSION_0 = 0
 BONE_VERSION_1 = 1
-SUPPORT_BONE_VERSIONS = (BONE_VERSION_1, )
+SUPPORT_BONE_VERSIONS = (BONE_VERSION_0, BONE_VERSION_1)
 
 # chunk names
 chunks_names_v4 = {
@@ -141,9 +158,9 @@ chunks_names_v4 = {
     Chunks_v4.LODDEF2: 'LODDEF2',
     Chunks_v4.TREEDEF2: 'TREEDEF2',
     Chunks_v4.S_BONE_NAMES: 'S_BONE_NAMES',
-    Chunks_v4.S_MOTIONS: 'S_MOTIONS',
-    Chunks_v4.S_SMPARAMS: 'S_SMPARAMS',
-    Chunks_v4.S_IKDATA: 'S_IKDATA',
+    Chunks_v4.S_MOTIONS_2: 'S_MOTIONS_2',
+    Chunks_v4.S_SMPARAMS_1: 'S_SMPARAMS_1',
+    Chunks_v4.S_IKDATA_2: 'S_IKDATA_2',
     Chunks_v4.S_USERDATA: 'S_USERDATA',
     Chunks_v4.S_DESC: 'S_DESC',
     Chunks_v4.S_MOTION_REFS_0: 'S_MOTION_REFS_0',
@@ -163,22 +180,20 @@ chunks_names_v3 = {
     Chunks_v3.BSPHERE: 'BSPHERE',
     Chunks_v3.CHILDREN_L: 'CHILDREN_L',
     Chunks_v3.S_BONE_NAMES: 'S_BONE_NAMES',
-    Chunks_v3.S_MOTIONS: 'S_MOTIONS',
+    Chunks_v3.S_MOTIONS_0: 'S_MOTIONS_0',
     Chunks_v3.DPATCH: 'DPATCH',
-    Chunks_v3.LODS: 'LODS',
     Chunks_v3.CHILDREN: 'CHILDREN',
-    Chunks_v3.S_SMPARAMS: 'S_SMPARAMS',
+    Chunks_v3.S_SMPARAMS_0: 'S_SMPARAMS_0',
     Chunks_v3.ICONTAINER: 'ICONTAINER',
-    Chunks_v3.S_SMPARAMS_NEW: 'S_SMPARAMS_NEW',
+    Chunks_v3.S_SMPARAMS_1: 'S_SMPARAMS_1',
     Chunks_v3.LODDEF2: 'LODDEF2',
     Chunks_v3.TREEDEF2: 'TREEDEF2',
     Chunks_v3.S_IKDATA_0: 'S_IKDATA_0',
     Chunks_v3.S_USERDATA: 'S_USERDATA',
-    Chunks_v3.S_IKDATA: 'S_IKDATA',
-    Chunks_v3.S_MOTIONS_NEW: 'S_MOTIONS_NEW',
+    Chunks_v3.S_IKDATA_1: 'S_IKDATA_1',
+    Chunks_v3.S_MOTIONS_1: 'S_MOTIONS_1',
     Chunks_v3.S_DESC: 'S_DESC',
     Chunks_v3.S_IKDATA_2: 'S_IKDATA_2',
-    Chunks_v3.S_MOTION_REFS: 'S_MOTION_REFS'
 }
 chunks_names_v2 = {
     Chunks_v2.TEXTURE_L: 'TEXTURE_L',

@@ -13,9 +13,19 @@ from .... import log
 
 def import_ik_data(chunks, ogf_chunks, visual):
     # create reader
-    chunk_data = chunks.pop(ogf_chunks.S_IKDATA, None)
+    read_ver = True
+    chunk_data = chunks.pop(ogf_chunks.S_IKDATA_2, None)
+
+    if not chunk_data:
+        read_ver = False
+        chunk_data = chunks.pop(ogf_chunks.S_IKDATA_1, None)
+
+    if not chunk_data:
+        chunk_data = chunks.pop(ogf_chunks.S_IKDATA_0, None)
+
     if not chunk_data:
         return
+
     packed_reader = rw.read.PackedReader(chunk_data)
 
     # create armature
@@ -57,7 +67,10 @@ def import_ik_data(chunks, ogf_chunks, visual):
     bpy.ops.object.mode_set(mode='EDIT')
 
     for bone_index, (bone_name, parent_name) in enumerate(visual.bones):
-        version = packed_reader.getf('<I')[0]
+        if read_ver:
+            version = packed_reader.getf('<I')[0]
+        else:
+            version = 0
 
         if not version in fmt.SUPPORT_BONE_VERSIONS:
             bpy.data.objects.remove(arm_obj)
@@ -109,7 +122,11 @@ def import_ik_data(chunks, ogf_chunks, visual):
         ik_flags = packed_reader.getf('<I')[0]
         breakable_force = packed_reader.getf('<f')[0]
         breakable_torque = packed_reader.getf('<f')[0]
-        friction = packed_reader.getf('<f')[0]
+
+        if version > fmt.BONE_VERSION_0:
+            friction = packed_reader.getf('<f')[0]
+        else:
+            friction = 0
 
         # bind pose
         bind_rotation = packed_reader.getv3f()

@@ -44,7 +44,7 @@ def import_hierrarhy_visual(chunks, chunks_fmt, visual, lvl):
     return bpy_object
 
 
-def import_render_visual(chunks, visual, lvl, visual_type):
+def import_render_visual(chunks, visual, lvl, visual_type, chunks_ogf):
     bpy_mesh, geometry_key = create.import_level_geometry(chunks, visual, lvl)
     visual.name = visual_type.lower()
 
@@ -53,7 +53,7 @@ def import_render_visual(chunks, visual, lvl, visual_type):
 
     else:
         if visual_type == 'PROGRESSIVE':
-            swi = swis.import_swidata(chunks)
+            swi = swis.import_swidata(chunks, chunks_ogf)
 
             visual.indices = visual.indices[swi[0].offset : ]
             visual.indices_count = swi[0].triangles_count * 3
@@ -72,13 +72,13 @@ def import_render_visual(chunks, visual, lvl, visual_type):
     return bpy_object
 
 
-def import_progressive_visual(chunks, visual, lvl):
-    bpy_object = import_render_visual(chunks, visual, lvl, 'PROGRESSIVE')
+def import_progressive_visual(chunks, visual, lvl, chunks_ogf):
+    bpy_object = import_render_visual(chunks, visual, lvl, 'PROGRESSIVE', chunks_ogf)
     return bpy_object
 
 
-def import_normal_visual(chunks, visual, lvl):
-    bpy_object = import_render_visual(chunks, visual, lvl, 'NORMAL')
+def import_normal_visual(chunks, visual, lvl, chunks_ogf):
+    bpy_object = import_render_visual(chunks, visual, lvl, 'NORMAL', chunks_ogf)
     return bpy_object
 
 
@@ -104,7 +104,7 @@ def read_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual):
 
 def read_mt_skeleton_geom_def_pm(context, chunks, ogf_chunks, visual):
     read_mt_skeleton_geom_def_st(context, chunks, ogf_chunks, visual)
-    swis.import_swi(visual, chunks)
+    swis.import_swi(visual, chunks, ogf_chunks)
 
 
 def read_mt_hierrarhy(context, chunks, ogf_chunks, visual):
@@ -115,7 +115,7 @@ def read_mt_hierrarhy(context, chunks, ogf_chunks, visual):
 
 def read_mt_progressive(context, chunks, ogf_chunks, visual):
     read_mt_normal(context, chunks, ogf_chunks, visual)
-    swis.import_swi(visual, chunks)
+    swis.import_swi(visual, chunks, ogf_chunks)
 
 
 def read_mt_normal(context, chunks, ogf_chunks, visual):

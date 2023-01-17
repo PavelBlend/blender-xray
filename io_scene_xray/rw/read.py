@@ -52,6 +52,12 @@ class PackedReader:
         self.__data = data
         self.__view = None
 
+    def __del__(self):
+        size = self.get_size()
+        diff = size - self.__offs
+        if diff > 0:
+            print('bytes not read: ', diff)
+
     def getb(self, count):
         self.__offs += count
         return self.__data[self.__offs - count:self.__offs]
@@ -158,6 +164,9 @@ class PackedReader:
         if view is None:
             self.__view = view = memoryview(self.__data)
         return view[self.__offs:]
+
+    def get_size(self):
+        return len(self.__data)
 
     def skip(self, count):
         self.__offs += count
