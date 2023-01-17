@@ -411,6 +411,7 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     props = op_props
+    init = False
 
     if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
@@ -422,6 +423,23 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
         if not obj:
             return False
         return True
+
+    def draw(self, context):
+        if not self.init:
+            self.init = True
+            space = context.space_data
+            params = space.params
+            prefs = utils.version.get_preferences()
+            meshes_folder = prefs.meshes_folder_auto
+            if not os.path.exists(meshes_folder):
+                return
+            if meshes_folder:
+                meshes_folder = bytes(meshes_folder, encoding='utf-8')
+                if type(params.directory) == str:
+                    path_check = str(meshes_folder)
+                elif type(params.directory) == bytes:
+                    path_check = meshes_folder
+                params.directory = meshes_folder
 
     def execute(self, context):
         obj = context.object
