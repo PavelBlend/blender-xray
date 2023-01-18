@@ -472,8 +472,7 @@ op_props = {
         name='Change',
         items=change_items,
         default='SELECTED'
-    ),
-    'hq_export': bpy.props.BoolProperty(name='HQ Export', default=False)
+    )
 }
 
 
@@ -499,6 +498,47 @@ class XRAY_OT_change_object_type(bpy.types.Operator):
         column.label(text='Change:')
         column.prop(self, 'change', expand=True)
 
+    def execute(self, context):
+        result = search_objects(self, context)
+        if result == {'FINISHED'}:
+            return result
+        else:
+            root_objs = result
+
+        for obj in root_objs:
+            obj.xray.flags_simple = self.obj_type
+
+        self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
+op_props = {
+    'change': bpy.props.EnumProperty(
+        name='Change',
+        items=change_items,
+        default='SELECTED'
+    ),
+    'hq_export': bpy.props.BoolProperty(name='HQ Export', default=False)
+}
+
+
+class XRAY_OT_change_hq_export(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.change_hq_export'
+    bl_label = 'Change HQ Export'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    props = op_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):
+        layout = self.layout
         layout.prop(self, 'hq_export')
 
     def execute(self, context):
@@ -509,7 +549,6 @@ class XRAY_OT_change_object_type(bpy.types.Operator):
             root_objs = result
 
         for obj in root_objs:
-            obj.xray.flags_simple = self.obj_type
             obj.xray.flags_custom_hqexp = self.hq_export
 
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
@@ -522,6 +561,7 @@ class XRAY_OT_change_object_type(bpy.types.Operator):
 
 classes = (
     XRAY_OT_change_object_type,
+    XRAY_OT_change_hq_export,
     XRAY_OT_change_userdata,
     XRAY_OT_change_lod_ref,
     XRAY_OT_change_motion_refs
