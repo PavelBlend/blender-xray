@@ -11,7 +11,8 @@ from .. import utils
 
 plane_items = (
     ('XY', 'XY', ''),
-    ('XZ', 'XZ', '')
+    ('XZ', 'XZ', ''),
+    ('YZ', 'YZ', '')
 )
 op_props = {
     'plane': bpy.props.EnumProperty(
@@ -20,10 +21,10 @@ op_props = {
         items=plane_items
     ),
     'rows': bpy.props.IntProperty(name='Rows', default=1, min=1, max=1000),
-    'offset_x': bpy.props.FloatProperty(
+    'offset_h': bpy.props.FloatProperty(
         name='Horizontal Offset', default=2.0, min=0.001
     ),
-    'offset_z': bpy.props.FloatProperty(
+    'offset_v': bpy.props.FloatProperty(
         name='Vertical Offset', default=2.0, min=0.001
     )
 }
@@ -52,8 +53,8 @@ class XRAY_OT_place_objects(bpy.types.Operator):
         row = column.row(align=True)
         row.prop(self, 'plane', expand=True)
         column.prop(self, 'rows')
-        column.prop(self, 'offset_x')
-        column.prop(self, 'offset_z')
+        column.prop(self, 'offset_h')
+        column.prop(self, 'offset_v')
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -72,14 +73,18 @@ class XRAY_OT_place_objects(bpy.types.Operator):
             offset = 0
         for obj_name in objs:
             obj = bpy.data.objects.get(obj_name)
-            obj.location.x = column * self.offset_x
-            obj.location.y = 0.0
             if self.plane == 'XY':
-                obj.location.y = row * self.offset_z
+                obj.location.x = column * self.offset_h
+                obj.location.y = row * self.offset_v
                 obj.location.z = 0.0
-            else:
+            elif self.plane == 'XZ':
+                obj.location.x = column * self.offset_h
                 obj.location.y = 0.0
-                obj.location.z = row * self.offset_z
+                obj.location.z = row * self.offset_v
+            else:
+                obj.location.x = 0.0
+                obj.location.y = column * self.offset_h
+                obj.location.z = row * self.offset_v
             if ((column + offset) % objects_in_row) == 0 and column != 0:
                 column = 0
                 row += 1
