@@ -176,7 +176,6 @@ def create_glow_object(
         material,
         image
     )
-    mesh.materials.append(material)
     glow_object = create.create_object(object_name, mesh)
     glow_object.location = position[0], position[2], position[1]
     return glow_object
