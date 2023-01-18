@@ -11,7 +11,42 @@ props = {
     'source_armature': bpy.props.StringProperty(name='Source Armature'),
 }
 NAME_SUFFIX = ' connected'
+WEIGHT_SUFFIX = ' weight'
 BONE_NAME_SUFFIX = ' c'
+
+
+def create_weights_bones(src_arm_obj, con_arm_obj):
+    weight_arm = src_arm_obj.data.copy()
+    weight_arm.name = src_arm_obj.data.name + WEIGHT_SUFFIX
+
+    weight_obj = src_arm_obj.copy()
+    weight_obj.name = src_arm_obj.name + WEIGHT_SUFFIX
+
+    weight_obj.data = weight_arm
+    utils.version.link_object(weight_obj)
+
+    transforms = {}
+
+    # collect connected bones transforms
+    utils.version.set_active_object(con_arm_obj)
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    for bone in con_arm_obj.data.edit_bones:
+        transforms[bone.name] = (bone.head.copy(), bone.tail.copy(), bone.roll)
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    # set new transforms
+    utils.version.set_active_object(weight_obj)
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    for bone in weight_obj.data.edit_bones:
+        head, tail, roll = transforms[bone.name + BONE_NAME_SUFFIX]
+        bone.head = head
+        bone.tail = tail
+        bone.roll = roll
+
+    bpy.ops.object.mode_set(mode='OBJECT')
 
 
 def set_con_tail_without_verts(bone, connected_bone):
@@ -180,6 +215,9 @@ class XRAY_OT_create_connected_bones(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='EDIT')
         connect_bones(arm, mesh_objects)
         bpy.ops.object.mode_set(mode='OBJECT')
+
+        # create weights bones
+        create_weights_bones(src_arm_obj, arm_obj)
 
         # link bones
         utils.version.set_active_object(src_arm_obj)
