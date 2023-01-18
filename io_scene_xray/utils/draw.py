@@ -70,3 +70,18 @@ def build_op_label(operator, compact=False):
         prefix = 'X-Ray '
     label = '{0}{1} ({2})'.format(prefix, operator.text, operator.ext)
     return label
+
+
+def draw_presets(layout, menu, op_add):
+    row = layout.row(align=True)
+    row.menu(menu.__name__, text=menu.bl_label)
+    row.operator(
+        op_add.bl_idname,
+        text='',
+        icon=version.get_icon('ZOOMIN')
+    )
+    row.operator(
+        op_add.bl_idname,
+        text='',
+        icon=version.get_icon('ZOOMOUT')
+    ).remove_active = True
