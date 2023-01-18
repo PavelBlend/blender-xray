@@ -911,7 +911,7 @@ class XRAY_PT_object(ui.base.XRayPanel):
                         'XRAY_UL_motion_list', 'name',
                         data, 'motions_collection',
                         data, 'motions_collection_index',
-                        rows=8
+                        rows=9
                     )
                     col = row.column(align=True)
                     ui.list_helper.draw_list_ops(
