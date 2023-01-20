@@ -364,6 +364,9 @@ class XRAY_PT_batch_tools(ui.base.XRayPanel):
             )
         column.operator(ops.action.XRAY_OT_rename_actions.bl_idname)
 
+        if utils.version.has_asset_browser():
+            column.operator(ops.obj.XRAY_OT_set_asset_author.bl_idname)
+
 
 class XRAY_PT_custom_props(ui.base.XRayPanel):
     bl_label = 'Custom Properties'

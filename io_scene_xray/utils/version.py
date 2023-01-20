@@ -38,6 +38,10 @@ def has_file_browser_show_tool_prop():
     return bpy.app.version >= (3, 0, 0)
 
 
+def has_asset_browser():
+    return bpy.app.version >= (3, 0, 0)
+
+
 IS_277 = is_blender_2_77()
 IS_28 = is_blender_2_80()
 IS_293 = is_blender_2_93()

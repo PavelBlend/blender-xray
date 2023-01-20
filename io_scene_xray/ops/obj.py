@@ -226,10 +226,37 @@ class XRAY_OT_colorize_objects(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
-classes = (
+class XRAY_OT_set_asset_author(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.set_asset_author'
+    bl_label = 'Set Object Asset Author'
+    bl_description = ''
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @utils.set_cursor_state
+    def execute(self, context):
+        if not context.selected_objects:
+            self.report({'ERROR'}, 'No selected objects')
+            return {'CANCELLED'}
+        changed = 0
+        for obj in context.selected_objects:
+            asset = obj.asset_data
+            if not asset:
+                continue
+            root = utils.find_root(obj)
+            owner = root.xray.revision.owner
+            asset.author = owner
+            changed += 1
+        self.report({'INFO'}, 'Changed Assets: {}'.format(changed))
+        return {'FINISHED'}
+
+
+classes = [
     XRAY_OT_place_objects,
     XRAY_OT_colorize_objects
-)
+]
+
+if utils.version.has_asset_browser():
+    classes.append(XRAY_OT_set_asset_author)
 
 
 def register():
