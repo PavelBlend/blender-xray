@@ -50,12 +50,13 @@ def create_weights_bones(src_arm_obj, con_arm_obj):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    # collect source shape matrices
+    # collect source shape matrices and mass centers
     src_arm_obj.hide_set(False)
     utils.version.set_active_object(src_arm_obj)
     bpy.ops.object.mode_set(mode='POSE')
 
     scr_shape_mats = {}
+    scr_mass_mats = {}
     for src_bone in src_arm_obj.data.bones:
         src_pose_bone = src_arm_obj.pose.bones[src_bone.name]
         edit_helpers.bone_shape.pose_bone = src_pose_bone
@@ -68,7 +69,9 @@ def create_weights_bones(src_arm_obj, con_arm_obj):
             shape.type = str(shape_type_id)
             shape_mat = edit_helpers.bone_shape.bone_matrix(src_bone)
             matrices[shape_type_id] = shape_mat
+        mass_mat = edit_helpers.bone_center.get_mass_matrix(src_bone)
         scr_shape_mats[src_bone.name] = matrices
+        scr_mass_mats[src_bone.name] = mass_mat
 
         shape.type = shape_type
 
@@ -92,6 +95,10 @@ def create_weights_bones(src_arm_obj, con_arm_obj):
             mat = scr_shape_mats[wght_bone.name][shape_type_id]
 
             edit_helpers.bone_shape.apply_shape(wght_bone, mat)
+
+        mass_mat = scr_mass_mats[wght_bone.name]
+        edit_helpers.bone_center.pose_bone = wght_pose_bone
+        edit_helpers.bone_center.apply_mass_matrix(wght_bone, mass_mat)
 
         wght_shape.type = src_shape.type
         wght_shape.box_hsz = src_shape.box_hsz
