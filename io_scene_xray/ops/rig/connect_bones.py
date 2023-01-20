@@ -51,6 +51,7 @@ def create_weights_bones(src_arm_obj, con_arm_obj):
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # collect source shape matrices
+    src_arm_obj.hide_set(False)
     utils.version.set_active_object(src_arm_obj)
     bpy.ops.object.mode_set(mode='POSE')
 
@@ -209,7 +210,7 @@ class XRAY_OT_create_connected_bones(bpy.types.Operator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        if context.object:
+        if context.mode != 'OBJECT':
             bpy.ops.object.mode_set(mode='OBJECT')
 
         # check input
