@@ -3,6 +3,7 @@ import bpy
 import mathutils
 
 # addon modules
+from .. import edit_helpers
 from ... import utils
 from ... import text
 
@@ -16,6 +17,7 @@ BONE_NAME_SUFFIX = ' c'
 
 
 def create_weights_bones(src_arm_obj, con_arm_obj):
+    # create weight armature
     weight_arm = src_arm_obj.data.copy()
     weight_arm.name = src_arm_obj.data.name + WEIGHT_SUFFIX
 
@@ -25,9 +27,9 @@ def create_weights_bones(src_arm_obj, con_arm_obj):
     weight_obj.data = weight_arm
     utils.version.link_object(weight_obj)
 
+    # collect connected bones transforms
     transforms = {}
 
-    # collect connected bones transforms
     utils.version.set_active_object(con_arm_obj)
     bpy.ops.object.mode_set(mode='EDIT')
 
@@ -36,15 +38,62 @@ def create_weights_bones(src_arm_obj, con_arm_obj):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    # set new transforms
+    # set weight bones transforms
     utils.version.set_active_object(weight_obj)
     bpy.ops.object.mode_set(mode='EDIT')
 
-    for bone in weight_obj.data.edit_bones:
-        head, tail, roll = transforms[bone.name + BONE_NAME_SUFFIX]
-        bone.head = head
-        bone.tail = tail
-        bone.roll = roll
+    for edit_bone in weight_obj.data.edit_bones:
+        head, tail, roll = transforms[edit_bone.name + BONE_NAME_SUFFIX]
+        edit_bone.head = head
+        edit_bone.tail = tail
+        edit_bone.roll = roll
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    # collect source shape matrices
+    utils.version.set_active_object(src_arm_obj)
+    bpy.ops.object.mode_set(mode='POSE')
+
+    scr_shape_mats = {}
+    for src_bone in src_arm_obj.data.bones:
+        src_pose_bone = src_arm_obj.pose.bones[src_bone.name]
+        edit_helpers.bone_shape.pose_bone = src_pose_bone
+
+        shape = src_bone.xray.shape
+        shape_type = shape.type
+
+        matrices = {}
+        for shape_type_id in range(1, 4):
+            shape.type = str(shape_type_id)
+            shape_mat = edit_helpers.bone_shape.bone_matrix(src_bone)
+            matrices[shape_type_id] = shape_mat
+        scr_shape_mats[src_bone.name] = matrices
+
+        shape.type = shape_type
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    # set weight bone shapes
+    utils.version.set_active_object(weight_obj)
+    bpy.ops.object.mode_set(mode='POSE')
+
+    for wght_bone in weight_obj.data.bones:
+        src_bone = src_arm_obj.data.bones[wght_bone.name]
+        wght_pose_bone = weight_obj.pose.bones[wght_bone.name]
+
+        edit_helpers.bone_shape.pose_bone = wght_pose_bone
+
+        src_shape = src_bone.xray.shape
+        wght_shape = wght_bone.xray.shape
+
+        for shape_type_id in range(1, 4):
+            wght_shape.type = str(shape_type_id)
+            mat = scr_shape_mats[wght_bone.name][shape_type_id]
+
+            edit_helpers.bone_shape.apply_shape(wght_bone, mat)
+
+        wght_shape.type = src_shape.type
+        wght_shape.box_hsz = src_shape.box_hsz
 
     bpy.ops.object.mode_set(mode='OBJECT')
 

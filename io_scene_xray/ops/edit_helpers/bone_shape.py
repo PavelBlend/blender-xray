@@ -45,7 +45,7 @@ class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
         mesh = _create_bmesh(shape_type)
         mesh.to_mesh(helper.data)
 
-        mat = _bone_matrix(bone)
+        mat = bone_matrix(bone)
         helper.matrix_local = mat
 
         vscale = mat.to_scale()
@@ -95,7 +95,8 @@ def _v2ms(vector):
         matrix[i][i] = val
     return matrix
 
-def _bone_matrix(bone):
+
+def bone_matrix(bone):
     xsh = bone.xray.shape
     global pose_bone
     pose_bone = bpy.context.object.pose.bones[bone.name]
@@ -125,55 +126,67 @@ def _bone_matrix(bone):
     return mat
 
 
+def maxabs(*args):
+    result = 0
+    for arg in args:
+        result = max(result, abs(arg))
+    return result
+
+
+def apply_shape(bone, shape_matrix):
+    xsh = bone.xray.shape
+    multiply = utils.version.get_multiply()
+    mat = multiply(
+        multiply(
+            pose_bone.matrix,
+            mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+        ).inverted(),
+        shape_matrix
+    )
+    if xsh.type == '1':  # box
+        mat = multiply(mat, mathutils.Matrix.Scale(-1, 4, (0, 0, 1)))
+        xsh.box_trn = mat.to_translation().to_tuple()
+        scale = mat.to_scale()
+        if not scale.length:
+            return
+        xsh.box_hsz = scale.to_tuple()
+        mrt = multiply(mat, _v2ms(scale).inverted()).to_3x3().transposed()
+        for index in range(3):
+            xsh.box_rot[index * 3 : index * 3 + 3] = mrt[index].to_tuple()
+    elif xsh.type == '2':  # sphere
+        scale = mat.to_scale()
+        if not scale.length:
+            return
+        xsh.sph_pos = mat.to_translation().to_tuple()
+        xsh.sph_rad = maxabs(*scale)
+    elif xsh.type == '3':  # cylinder
+        xsh.cyl_pos = mat.to_translation().to_tuple()
+        vscale = mat.to_scale()
+        if not vscale.length:
+            return
+        xsh.cyl_hgh = abs(vscale[2]) * 2
+        xsh.cyl_rad = maxabs(vscale[0], vscale[1])
+        mat3 = mat.to_3x3()
+        mscale = mathutils.Matrix.Identity(3)
+        for axis in range(3):
+            mscale[axis][axis] = 1 / vscale[axis]
+        mat3 = multiply(mat3, mscale)
+        qrot = mat3.transposed().to_quaternion().inverted()
+        vrot = multiply(qrot, mathutils.Vector((0, 0, 1)))
+        xsh.cyl_dir = vrot.to_tuple()
+    else:
+        raise AssertionError('unsupported shape type: ' + xsh.type)
+    xsh.set_curver()
+
+
 class XRAY_OT_apply_shape(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_shape_apply'
     bl_label = 'Apply Shape'
     bl_options = {'UNDO'}
 
     def execute(self, context):
-        def maxabs(*args):
-            result = 0
-            for arg in args:
-                result = max(result, abs(arg))
-            return result
-
         hobj, bone = HELPER.get_target()
-        xsh = bone.xray.shape
-        multiply = utils.version.get_multiply()
-        mat = multiply(
-            multiply(
-                pose_bone.matrix,
-                mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
-            ).inverted(),
-            hobj.matrix_local
-        )
-        if xsh.type == '1':  # box
-            mat = multiply(mat, mathutils.Matrix.Scale(-1, 4, (0, 0, 1)))
-            xsh.box_trn = mat.to_translation().to_tuple()
-            scale = mat.to_scale()
-            xsh.box_hsz = scale.to_tuple()
-            mrt = multiply(mat, _v2ms(scale).inverted()).to_3x3().transposed()
-            for index in range(3):
-                xsh.box_rot[index * 3 : index * 3 + 3] = mrt[index].to_tuple()
-        elif xsh.type == '2':  # sphere
-            xsh.sph_pos = mat.to_translation().to_tuple()
-            xsh.sph_rad = maxabs(*mat.to_scale())
-        elif xsh.type == '3':  # cylinder
-            xsh.cyl_pos = mat.to_translation().to_tuple()
-            vscale = mat.to_scale()
-            xsh.cyl_hgh = abs(vscale[2]) * 2
-            xsh.cyl_rad = maxabs(vscale[0], vscale[1])
-            mat3 = mat.to_3x3()
-            mscale = mathutils.Matrix.Identity(3)
-            for axis in range(3):
-                mscale[axis][axis] = 1 / vscale[axis]
-            mat3 = multiply(mat3, mscale)
-            qrot = mat3.transposed().to_quaternion().inverted()
-            vrot = multiply(qrot, mathutils.Vector((0, 0, 1)))
-            xsh.cyl_dir = vrot.to_tuple()
-        else:
-            raise AssertionError('unsupported shape type: ' + xsh.type)
-        xsh.set_curver()
+        apply_shape(bone, hobj.matrix_local)
         for obj in bpy.data.objects:
             if obj.data == bone.id_data:
                 utils.version.set_active_object(obj)
