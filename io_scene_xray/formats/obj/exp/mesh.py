@@ -405,9 +405,16 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
             for loop_index in (0, 2, 1):
                 bm_loop = face.loops[loop_index]
                 bpy_loop = temp_mesh.loops[bm_loop.index]
+
+                mesh_quat = temp_obj.matrix_world.to_quaternion()
+                mesh_rot_mat = mesh_quat.to_matrix().to_4x4()
+
+                root_quat = bpy_root.matrix_world.to_quaternion()
+                root_rot_mat = root_quat.to_matrix().to_4x4()
+
                 normal = utils.version.multiply(
-                    bpy_root.matrix_world.inverted(),
-                    temp_obj.matrix_world,
+                    root_rot_mat.inverted(),
+                    mesh_rot_mat,
                     bpy_loop.normal
                 )
                 packed_writer.putv3f(normal)

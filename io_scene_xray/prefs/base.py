@@ -5,6 +5,7 @@ import bpy
 from . import props
 from . import ops
 from . import ui
+from . import preset
 from .. import utils
 
 
@@ -19,7 +20,11 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        ui.draw_presets(self)
+        utils.draw.draw_presets(
+            layout,
+            preset.XRAY_MT_prefs_presets,
+            preset.XRAY_OT_add_prefs_preset
+        )
         layout.row().prop(self, 'category', expand=True)
         if self.category == 'PATHS':
             ui.draw_paths(self)

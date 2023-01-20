@@ -59,7 +59,8 @@ def set_initial_state(method):
     def wrapper(self, context, *args):
         context.window.cursor_set('WAIT')
         mode = context.mode
-        set_mode('OBJECT')
+        if mode != 'OBJECT':
+            set_mode('OBJECT')
         active_object, selected_objects = _get_selection_state(context)
 
         result = method(self, context, *args)

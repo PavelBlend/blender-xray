@@ -56,25 +56,6 @@ def draw_prop_name(prefs, name, param):
     row.prop(prefs.custom_props, param, text='')
 
 
-def draw_presets(prefs):
-    layout = prefs.layout
-    row = layout.row(align=True)
-    row.menu(
-        preset.XRAY_MT_prefs_presets.__name__,
-        text=preset.XRAY_MT_prefs_presets.bl_label
-    )
-    row.operator(
-        preset.XRAY_OT_add_prefs_preset.bl_idname,
-        text='',
-        icon=utils.version.get_icon('ZOOMIN')
-    )
-    row.operator(
-        preset.XRAY_OT_add_prefs_preset.bl_idname,
-        text='',
-        icon=utils.version.get_icon('ZOOMOUT')
-    ).remove_active = True
-
-
 def draw_paths(prefs):
     layout = prefs.layout
 

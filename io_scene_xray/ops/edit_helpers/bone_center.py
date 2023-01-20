@@ -8,6 +8,30 @@ from ... import formats
 from ... import utils
 
 
+def get_mass_matrix(bone):
+    global pose_bone
+    pose_bone = bpy.context.object.pose.bones[bone.name]
+    mat = utils.version.multiply(
+        pose_bone.matrix,
+        formats.motions.const.MATRIX_BONE_INVERTED
+    )
+    mat = utils.version.multiply(
+        mat,
+        mathutils.Matrix.Translation(bone.xray.mass.center)
+    )
+    return mat
+
+
+def apply_mass_matrix(bone, mass_mat):
+    global pose_bone
+    mat = utils.version.multiply(
+        formats.motions.const.MATRIX_BONE,
+        pose_bone.matrix.inverted(),
+        mass_mat
+    )
+    bone.xray.mass.center = mat.to_translation()
+
+
 class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
     size = 0.5
 
@@ -30,16 +54,8 @@ class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
         super()._update_helper(helper, target)
         bone = target
 
-        global pose_bone
-        pose_bone = bpy.context.object.pose.bones[bone.name]
-        mat = utils.version.multiply(
-            pose_bone.matrix,
-            formats.motions.const.MATRIX_BONE_INVERTED
-        )
-        mat = utils.version.multiply(
-            mat,
-            mathutils.Matrix.Translation(bone.xray.mass.center)
-        )
+        mat = get_mass_matrix(bone)
+
         helper.location = mat.to_translation()
 
 
@@ -101,12 +117,7 @@ class XRAY_OT_apply_center(bpy.types.Operator):
 
     def execute(self, context):
         helper, bone = HELPER.get_target()
-        mat = utils.version.multiply(
-            formats.motions.const.MATRIX_BONE,
-            pose_bone.matrix.inverted(),
-            helper.matrix_local
-        )
-        bone.xray.mass.center = mat.to_translation()
+        apply_mass_matrix(bone, helper.matrix_local)
         HELPER.deactivate()
         if utils.version.IS_28:
             bpy.context.view_layer.update()

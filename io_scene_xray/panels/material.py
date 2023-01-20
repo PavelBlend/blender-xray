@@ -1,5 +1,6 @@
 # blender modules
 import bpy
+import bl_operators
 
 # addon modules
 from .. import ui
@@ -53,10 +54,18 @@ class XRAY_PT_material(ui.base.XRayPanel):
         layout = self.layout
         material = context.object.active_material
         data = material.xray
-        layout.prop(data, 'flags_twosided', text='Two Sided', toggle=True)
-        gen_xr_selector(layout, data, 'eshader', 'Shader')
-        gen_xr_selector(layout, data, 'cshader', 'Compile')
-        gen_xr_selector(layout, data, 'gamemtl', 'Material')
+
+        box = layout.box()
+        box.label(text='Surface:')
+        utils.draw.draw_presets(
+            box,
+            XRAY_MT_surface_presets,
+            XRAY_OT_add_surface_preset
+        )
+        gen_xr_selector(box, data, 'eshader', 'Shader')
+        gen_xr_selector(box, data, 'cshader', 'Compile')
+        gen_xr_selector(box, data, 'gamemtl', 'Material')
+        box.prop(data, 'flags_twosided', text='Two Sided', toggle=True)
 
         preferences = utils.version.get_preferences()
         panel_used = (
@@ -94,7 +103,29 @@ class XRAY_PT_material(ui.base.XRayPanel):
         draw_level_prop('hemi_vert_color', 'Hemi Vertex Color:', 'VERTEX_COLOR')
 
 
+class XRAY_MT_surface_presets(bpy.types.Menu):
+    bl_label = 'Surface Presets'
+    preset_subdir = 'io_scene_xray/surfaces'
+    preset_operator = 'script.execute_preset'
+    draw = bpy.types.Menu.draw_preset
+
+
+class XRAY_OT_add_surface_preset(bl_operators.presets.AddPresetBase, bpy.types.Operator):
+    bl_idname = 'xray.surface_preset_add'
+    bl_label = 'Add Surface Preset'
+    preset_menu = 'XRAY_MT_surface_presets'
+
+    preset_defines = ['xray = bpy.context.material.xray', ]
+    preset_subdir = 'io_scene_xray/surfaces'
+
+    preset_values = []
+    for prop_key in ('eshader', 'cshader', 'gamemtl', 'flags_twosided'):
+        preset_values.append('xray.{}'.format(prop_key))
+
+
 classes = (
+    XRAY_MT_surface_presets,
+    XRAY_OT_add_surface_preset,
     XRAY_MT_shader,
     XRAY_MT_compile,
     XRAY_MT_material,

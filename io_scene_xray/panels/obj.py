@@ -301,6 +301,7 @@ def draw_motion_list_elements(layout):
     layout.operator(XRAY_OT_remove_all_actions.bl_idname, text='', icon='X')
     layout.operator(XRAY_OT_copy_actions_list.bl_idname, text='', icon='COPYDOWN')
     layout.operator(XRAY_OT_paste_actions_list.bl_idname, text='', icon='PASTEDOWN')
+    layout.operator(XRAY_OT_sort_motions_list.bl_idname, text='', icon='SORTALPHA')
 
 
 class XRAY_OT_remove_all_motion_refs(bpy.types.Operator):
@@ -391,6 +392,155 @@ class XRAY_OT_paste_motion_refs_list(bpy.types.Operator):
         return {'FINISHED'}
 
 
+sort_items = (
+    ('NAME', 'Action Name', ''),
+    ('EXPORT', 'Export Name', ''),
+    ('LENGTH', 'Action Length', '')
+)
+op_props = {
+    'sort_by': bpy.props.EnumProperty(items=sort_items),
+    'sort_reverse': bpy.props.BoolProperty(default=False)
+}
+
+
+class XRAY_OT_sort_motions_list(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.sort_motions_list'
+    bl_label = 'Sort Motions'
+    bl_description = 'Sort motions list'
+    bl_options = {'UNDO'}
+
+    props = op_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if not obj:
+            return False
+        return True
+
+    def draw(self, context):
+        lay = self.layout
+        lay.label(text='Sort by:')
+        lay.prop(self, 'sort_by', expand=True)
+        lay.prop(self, 'sort_reverse', text='Reverse Sort', toggle=True)
+
+    def execute(self, context):
+        obj = context.object
+        motions = obj.xray.motions_collection
+
+        if self.sort_by in ('NAME', 'LENGTH'):
+            sort_fun = lambda i: i[0]
+        else:
+            sort_fun = lambda i: i[2]
+
+        used_motions = []
+
+        if self.sort_by == 'LENGTH':
+            motions_length = {}
+            for motion in motions:
+                act = bpy.data.actions.get(motion.name)
+
+                if act:
+                    start, end = act.frame_range
+                    length = int(round(end - start, 0))
+                else:
+                    length = -1
+
+                motions_length.setdefault(length, []).append((
+                    motion.name,
+                    motion.export_name,
+                    None
+                ))
+
+            length_keys = list(motions_length.keys())
+            length_keys.sort()
+            for key in length_keys:
+                key_motions = motions_length[key]
+                key_motions.sort(key=sort_fun)
+                for name, exp, _ in key_motions:
+                    used_motions.append((name, exp, _))
+
+        else:
+            for motion in motions:
+                if motion.export_name:
+                    exp = motion.export_name
+                else:
+                    exp = motion.name
+                used_motions.append((motion.name, motion.export_name, exp))
+            used_motions.sort(key=sort_fun)
+
+        if self.sort_reverse:
+            used_motions.reverse()
+
+        motions.clear()
+
+        for name, exp, _ in used_motions:
+            elem = motions.add()
+            elem.name = name
+            elem.export_name = exp
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
+op_props = {
+    'sort_reverse': bpy.props.BoolProperty(default=False),
+}
+
+
+class XRAY_OT_sort_motion_refs_list(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.sort_motion_refs_list'
+    bl_label = 'Sort Motion References'
+    bl_description = 'Sort motion references list'
+    bl_options = {'UNDO'}
+
+    props = op_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if not obj:
+            return False
+        return True
+
+    def draw(self, context):
+        lay = self.layout
+        lay.prop(self, 'sort_reverse', text='Reverse Sort', toggle=True)
+
+    def execute(self, context):
+        obj = context.object
+        refs = obj.xray.motionrefs_collection
+
+        used_refs = [ref.name for ref in refs]
+        used_refs.sort()
+
+        if self.sort_reverse:
+            used_refs.reverse()
+
+        refs.clear()
+
+        for ref in used_refs:
+            elem = refs.add()
+            elem.name = ref
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
 op_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.omf', options={'HIDDEN'}
@@ -411,6 +561,7 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     props = op_props
+    init = False
 
     if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
@@ -422,6 +573,23 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
         if not obj:
             return False
         return True
+
+    def draw(self, context):
+        if not self.init:
+            self.init = True
+            space = context.space_data
+            params = space.params
+            prefs = utils.version.get_preferences()
+            meshes_folder = prefs.meshes_folder_auto
+            if not os.path.exists(meshes_folder):
+                return
+            if meshes_folder:
+                meshes_folder = bytes(meshes_folder, encoding='utf-8')
+                if type(params.directory) == str:
+                    path_check = str(meshes_folder)
+                elif type(params.directory) == bytes:
+                    path_check = meshes_folder
+                params.directory = meshes_folder
 
     def execute(self, context):
         obj = context.object
@@ -441,8 +609,9 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
                 continue
             relative_path = file_path[len(meshes_folder) : ]
             motion_ref = os.path.splitext(relative_path)[0]
-            ref = refs.add()
-            ref.name = motion_ref
+            if not motion_ref in refs:
+                ref = refs.add()
+                ref.name = motion_ref
         if fail_count:
             self.report(
                 {'WARNING'},
@@ -459,6 +628,7 @@ def draw_motion_refs_elements(layout):
     layout.operator(XRAY_OT_remove_all_motion_refs.bl_idname, text='', icon='X')
     layout.operator(XRAY_OT_copy_motion_refs_list.bl_idname, text='', icon='COPYDOWN')
     layout.operator(XRAY_OT_paste_motion_refs_list.bl_idname, text='', icon='PASTEDOWN')
+    layout.operator(XRAY_OT_sort_motion_refs_list.bl_idname, text='', icon='SORTALPHA')
     layout.operator(XRAY_OT_add_motion_ref_from_file.bl_idname, text='', icon='FILE_FOLDER')
 
 
@@ -796,7 +966,7 @@ class XRAY_PT_object(ui.base.XRayPanel):
                         'XRAY_UL_motion_list', 'name',
                         data, 'motions_collection',
                         data, 'motions_collection_index',
-                        rows=8
+                        rows=9
                     )
                     col = row.column(align=True)
                     ui.list_helper.draw_list_ops(
@@ -826,7 +996,7 @@ class XRAY_PT_object(ui.base.XRayPanel):
                         'motionrefs_collection',
                         data,
                         'motionrefs_collection_index',
-                        rows=7
+                        rows=8
                     )
                     col = row.column(align=True)
                     ui.list_helper.draw_list_ops(
@@ -889,6 +1059,8 @@ classes = (
     XRAY_OT_remove_all_motion_refs,
     XRAY_OT_copy_motion_refs_list,
     XRAY_OT_paste_motion_refs_list,
+    XRAY_OT_sort_motions_list,
+    XRAY_OT_sort_motion_refs_list,
     XRAY_OT_add_motion_ref_from_file,
     XRAY_PT_object
 )
