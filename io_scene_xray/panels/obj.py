@@ -398,6 +398,7 @@ sort_items = (
 )
 op_props = {
     'sort_by': bpy.props.EnumProperty(items=sort_items),
+    'sort_reverse': bpy.props.BoolProperty(default=False)
 }
 
 
@@ -424,6 +425,7 @@ class XRAY_OT_sort_motions_list(bpy.types.Operator):
         lay = self.layout
         lay.label(text='Sort by:')
         lay.prop(self, 'sort_by', expand=True)
+        lay.prop(self, 'sort_reverse', text='Reverse Sort', toggle=True)
 
     def execute(self, context):
         obj = context.object
@@ -442,6 +444,9 @@ class XRAY_OT_sort_motions_list(bpy.types.Operator):
                 exp = motion.name
             used_motions.append((motion.name, motion.export_name, exp))
         used_motions.sort(key=sort_fun)
+
+        if self.sort_reverse:
+            used_motions.reverse()
 
         motions.clear()
 
