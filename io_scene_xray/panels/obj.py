@@ -394,7 +394,8 @@ class XRAY_OT_paste_motion_refs_list(bpy.types.Operator):
 
 sort_items = (
     ('NAME', 'Action Name', ''),
-    ('EXPORT', 'Export Name', '')
+    ('EXPORT', 'Export Name', ''),
+    ('LENGTH', 'Action Length', '')
 )
 op_props = {
     'sort_by': bpy.props.EnumProperty(items=sort_items),
@@ -431,19 +432,46 @@ class XRAY_OT_sort_motions_list(bpy.types.Operator):
         obj = context.object
         motions = obj.xray.motions_collection
 
-        if self.sort_by == 'NAME':
+        if self.sort_by in ('NAME', 'LENGTH'):
             sort_fun = lambda i: i[0]
         else:
             sort_fun = lambda i: i[2]
 
         used_motions = []
-        for motion in motions:
-            if motion.export_name:
-                exp = motion.export_name
-            else:
-                exp = motion.name
-            used_motions.append((motion.name, motion.export_name, exp))
-        used_motions.sort(key=sort_fun)
+
+        if self.sort_by == 'LENGTH':
+            motions_length = {}
+            for motion in motions:
+                act = bpy.data.actions.get(motion.name)
+
+                if act:
+                    start, end = act.frame_range
+                    length = int(round(end - start, 0))
+                else:
+                    length = -1
+
+                motions_length.setdefault(length, []).append((
+                    motion.name,
+                    motion.export_name,
+                    None
+                ))
+
+            length_keys = list(motions_length.keys())
+            length_keys.sort()
+            for key in length_keys:
+                key_motions = motions_length[key]
+                key_motions.sort(key=sort_fun)
+                for name, exp, _ in key_motions:
+                    used_motions.append((name, exp, _))
+
+        else:
+            for motion in motions:
+                if motion.export_name:
+                    exp = motion.export_name
+                else:
+                    exp = motion.name
+                used_motions.append((motion.name, motion.export_name, exp))
+            used_motions.sort(key=sort_fun)
 
         if self.sort_reverse:
             used_motions.reverse()
