@@ -462,11 +462,22 @@ class XRAY_OT_sort_motions_list(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
+op_props = {
+    'sort_reverse': bpy.props.BoolProperty(default=False),
+}
+
+
 class XRAY_OT_sort_motion_refs_list(bpy.types.Operator):
     bl_idname = 'io_scene_xray.sort_motion_refs_list'
     bl_label = 'Sort Motion References'
     bl_description = 'Sort motion references list'
     bl_options = {'UNDO'}
+
+    props = op_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     @classmethod
     def poll(cls, context):
@@ -475,12 +486,19 @@ class XRAY_OT_sort_motion_refs_list(bpy.types.Operator):
             return False
         return True
 
+    def draw(self, context):
+        lay = self.layout
+        lay.prop(self, 'sort_reverse', text='Reverse Sort', toggle=True)
+
     def execute(self, context):
         obj = context.object
         refs = obj.xray.motionrefs_collection
 
         used_refs = [ref.name for ref in refs]
         used_refs.sort()
+
+        if self.sort_reverse:
+            used_refs.reverse()
 
         refs.clear()
 
@@ -489,6 +507,10 @@ class XRAY_OT_sort_motion_refs_list(bpy.types.Operator):
             elem.name = ref
 
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
 
 op_props = {
