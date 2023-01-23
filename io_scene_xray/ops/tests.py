@@ -47,6 +47,12 @@ op_props = {
         name='Import Motions',
         default=False
     ),
+    'min_size': bpy.props.IntProperty(default=0, min=0, max=2**31-1),
+    'max_size': bpy.props.IntProperty(
+        default=1_000_000_000,
+        min=0,
+        max=2**31-1
+    )
 }
 
 
@@ -67,6 +73,10 @@ class XRAY_OT_test_import_modal(bpy.types.Operator):
         self.files_list = []
         for root, dirs, files in os.walk(self.directory):
             for file in files:
+                file_path = os.path.join(root, file)
+                file_size = os.path.getsize(file_path)
+                if not (self.min_size < file_size < self.max_size):
+                    continue
                 name, ext = os.path.splitext(file)
                 ext = ext.lower()
                 if ext == '.object' and self.import_object:
@@ -80,13 +90,12 @@ class XRAY_OT_test_import_modal(bpy.types.Operator):
                 else:
                     skip = True
                 if not skip:
-                    self.files_list.append((root, file))
+                    self.files_list.append((root, file, file_path))
 
     def test_import(self):
         remove_bpy_data()
-        root, file = self.files_list[self.file_index]
+        root, file, file_path = self.files_list[self.file_index]
         ext = os.path.splitext(file)[-1]
-        file_path = os.path.join(root, file)
         file_message = '{0:0>6}: '.format(self.file_index) + file_path
         self.file_index += 1
 
@@ -227,13 +236,24 @@ class XRAY_OT_test_import(bpy.types.Operator):
     def draw(self, context):
         lay = self.layout
         lay.prop(self, 'pause')
-        lay.label(text='Import:')
-        lay.prop(self, 'import_object')
-        lay.prop(self, 'import_ogf')
-        lay.prop(self, 'import_dm')
-        lay.prop(self, 'import_details')
-        lay.label(text='')
+
+        lay.label(text='Formats:')
+
+        row = lay.row()
+        row.prop(self, 'import_object')
+        row.prop(self, 'import_ogf')
+
+        row = lay.row()
+        row.prop(self, 'import_dm')
+        row.prop(self, 'import_details')
+
+        lay.label(text='Options:')
         lay.prop(self, 'import_motions')
+
+        lay.label(text='Filters:')
+        lay.label(text='Skip Files by File Size (Size in Bytes)')
+        lay.prop(self, 'min_size', text='Min Size')
+        lay.prop(self, 'max_size', text='Max Size')
 
     def execute(self, context):
         bpy.ops.io_scene_xray.test_import_modal(
@@ -243,7 +263,9 @@ class XRAY_OT_test_import(bpy.types.Operator):
             import_ogf=self.import_ogf,
             import_dm=self.import_dm,
             import_details=self.import_details,
-            import_motions=self.import_motions
+            import_motions=self.import_motions,
+            min_size=self.min_size,
+            max_size=self.max_size
         )
         return {'FINISHED'}
 
