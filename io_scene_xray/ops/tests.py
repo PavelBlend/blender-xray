@@ -4,7 +4,6 @@ import time
 
 # blender modules
 import bpy
-import bpy_extras
 import mathutils
 
 # addon modules
@@ -43,7 +42,11 @@ op_props = {
     'import_object': bpy.props.BoolProperty(name='Object', default=True),
     'import_ogf': bpy.props.BoolProperty(name='Ogf', default=True),
     'import_dm': bpy.props.BoolProperty(name='Dm', default=True),
-    'import_details': bpy.props.BoolProperty(name='Details', default=True)
+    'import_details': bpy.props.BoolProperty(name='Details', default=True),
+    'import_motions': bpy.props.BoolProperty(
+        name='Import Motions',
+        default=False
+    ),
 }
 
 
@@ -101,13 +104,13 @@ class XRAY_OT_test_import_modal(bpy.types.Operator):
                 bpy.ops.xray_import.object(
                     directory=root,
                     files=[{'name': file}],
-                    import_motions=False
+                    import_motions=self.import_motions
                 )
             elif ext == '.ogf':
                 bpy.ops.xray_import.ogf(
                     directory=root,
                     files=[{'name': file}],
-                    import_motions=False
+                    import_motions=self.import_motions
                 )
             elif ext == '.dm':
                 bpy.ops.xray_import.dm(
@@ -236,6 +239,8 @@ class XRAY_OT_test_import(bpy.types.Operator):
         lay.prop(self, 'import_ogf')
         lay.prop(self, 'import_dm')
         lay.prop(self, 'import_details')
+        lay.label(text='')
+        lay.prop(self, 'import_motions')
 
     def execute(self, context):
         bpy.ops.io_scene_xray.test_import_modal(
@@ -244,7 +249,8 @@ class XRAY_OT_test_import(bpy.types.Operator):
             import_object=self.import_object,
             import_ogf=self.import_ogf,
             import_dm=self.import_dm,
-            import_details=self.import_details
+            import_details=self.import_details,
+            import_motions=self.import_motions
         )
         return {'FINISHED'}
 
