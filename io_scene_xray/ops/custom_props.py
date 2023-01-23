@@ -3,6 +3,7 @@ import bpy
 
 # addon modules
 from .. import prefs
+from .. import text
 from .. import utils
 
 
@@ -234,6 +235,7 @@ class XRAY_OT_set_custom_to_xray_props(bpy.types.Operator):
             self.set_custom(xray, 'bonepart', stgs.action_bone_part)
             self.set_custom(xray, 'flags', stgs.action_flags)
             self.set_custom(xray, 'power', stgs.action_power)
+        self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -340,6 +342,7 @@ class XRAY_OT_set_xray_to_custom_props(bpy.types.Operator):
             action[stgs.action_bone_part] = xray.bonepart
             action[stgs.action_flags] = xray.flags
             action[stgs.action_power] = xray.power
+        self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -389,6 +392,7 @@ class XRAY_OT_remove_xray_custom_props(bpy.types.Operator):
                 for prop_name in props_names:
                     if not bpy_data.get(prop_name, None) is None:
                         del bpy_data[prop_name]
+        self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -433,6 +437,7 @@ class XRAY_OT_remove_all_custom_props(bpy.types.Operator):
                 remove_keys.add(prop)
             for prop in remove_keys:
                 del data[prop]
+        self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
     def invoke(self, context, event):

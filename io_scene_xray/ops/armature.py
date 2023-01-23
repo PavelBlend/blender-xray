@@ -3,6 +3,7 @@ import bpy
 
 # addon modules
 from .. import utils
+from .. import text
 
 
 COPY_TRANSFORMS_NAME = '!-xray-link'
@@ -57,6 +58,7 @@ class XRAY_OT_link_bones(bpy.types.Operator):
                 constraint.name = COPY_TRANSFORMS_NAME
             constraint.target = link_arm_obj
             constraint.subtarget = link_bone.name
+        self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -86,6 +88,7 @@ class XRAY_OT_unlink_bones(bpy.types.Operator):
             if not constraint:
                 continue
             pose_bone.constraints.remove(constraint)
+        self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
 

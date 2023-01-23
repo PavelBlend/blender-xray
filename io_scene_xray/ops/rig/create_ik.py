@@ -375,6 +375,7 @@ class XRAY_OT_create_ik(bpy.types.Operator):
                 self.pole_target_offset,
                 self.ik_fk_name
             )
+        self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
     def invoke(self, context, event):

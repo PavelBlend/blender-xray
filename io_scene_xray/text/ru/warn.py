@@ -10,6 +10,9 @@ mat_many_tex = 'материал имеет больше одной тексту
 translations_table = (
     # general
     (warn.info_title, 'информация'),
+    (warn.ready, 'Готово!'),
+    (warn.imported, 'Импортировано'),
+    (warn.сhanged, 'Изменено'),
     (warn.full_log, 'Полный лог хранится в окне Text Editor в текстовом файле'),
     (warn.tex_not_found, 'файл текстуры не найден'),
     (warn.env_tex, 'материал имеет некорректный тип ноды изображения (Environment Texture)'),

@@ -6,6 +6,7 @@ import bpy
 
 # addon modules
 from .. import utils
+from .. import text
 
 
 KB = 1024
@@ -314,6 +315,7 @@ class XRAY_OT_viewer_open_folder(bpy.types.Operator):
         scene = context.scene
         scene.xray.viewer.folder = self.directory
         update_file_list(scene.xray.viewer.folder)
+        self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -395,19 +397,27 @@ class XRAY_OT_viewer_import_files(bpy.types.Operator):
         scene = context.scene
         viewer = scene.xray.viewer
         remove_preview_data()
+        count = 0
         if self.mode == 'IMPORT_SELECTED':
             for file in viewer.files:
                 if file.select:
                     import_file(file)
+                    count += 1
         elif self.mode == 'IMPORT_ALL':
             for file in viewer.files:
                 import_file(file)
+                count += 1
         elif self.mode == 'IMPORT_ACTIVE':
             file = viewer.files[viewer.files_index]
             import_file(file)
+            count += 1
         if scene.get('imported_objects'):
             scene['imported_objects'].clear()
             del scene['imported_objects']
+        self.report(
+            {'INFO'},
+            '{0}: {1}'.format(text.get_text(text.warn.imported), count)
+        )
         return {'FINISHED'}
 
 
@@ -433,15 +443,23 @@ class XRAY_OT_viewer_select_files(bpy.types.Operator):
     def execute(self, context):
         scene = context.scene
         files = scene.xray.viewer.files
+        count = 0
         if self.mode == 'SELECT_ALL':
             for file in files:
                 file.select = True
+                count += 1
         elif self.mode == 'DESELECT_ALL':
             for file in files:
                 file.select = False
+                count += 1
         elif self.mode == 'INVERT_SELECTION':
             for file in files:
                 file.select = not file.select
+                count += 1
+        self.report(
+            {'INFO'},
+            '{0}: {1}'.format(text.get_text(text.warn.сhanged), count)
+        )
         return {'FINISHED'}
 
 

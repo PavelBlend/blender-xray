@@ -217,7 +217,7 @@ class XRAY_OT_colorize_objects(bpy.types.Operator):
             changed_objects_count += 1
         self.report(
             {'INFO'},
-            'Changed {} material(s)'.format(changed_objects_count)
+            'Changed {} object(s)'.format(changed_objects_count)
         )
         return {'FINISHED'}
 
