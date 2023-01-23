@@ -27,6 +27,32 @@ def remove_bpy_data():
     clear_bpy_collection(data.texts)
 
 
+FORMAT_FULL = '%Y.%m.%d %H:%M'
+FORMAT_SHORT = '%Y.%m.%d'
+
+
+def get_float_time_by_str(time_str):
+    try:
+        struct_time = time.strptime(time_str, FORMAT_FULL)
+        float_time = time.mktime(struct_time)
+    except:
+        try:
+            struct_time = time.strptime(time_str, FORMAT_SHORT)
+            float_time = time.mktime(struct_time)
+        except:
+            float_time = None
+    return float_time
+
+
+def update_time(self, context):
+    for prop_name in ('time_min', 'time_max'):
+        time_str = getattr(self, prop_name)
+        if time_str:
+            float_time = get_float_time_by_str(time_str)
+            if float_time is None:
+                setattr(self, prop_name, '')
+
+
 op_props = {
     'directory': bpy.props.StringProperty(
         subtype='DIR_PATH',
@@ -52,7 +78,9 @@ op_props = {
         default=1_000_000_000,
         min=0,
         max=2**31-1
-    )
+    ),
+    'time_min': bpy.props.StringProperty(update=update_time),
+    'time_max': bpy.props.StringProperty(update=update_time)
 }
 
 
@@ -71,12 +99,27 @@ class XRAY_OT_test_import_modal(bpy.types.Operator):
     def collect_files(self, context):
         self.file_index = 0
         self.files_list = []
+
         for root, dirs, files in os.walk(self.directory):
             for file in files:
                 file_path = os.path.join(root, file)
+
                 file_size = os.path.getsize(file_path)
                 if not (self.min_size < file_size < self.max_size):
                     continue
+
+                date_float = os.path.getmtime(file_path)
+                min_time_float = get_float_time_by_str(self.time_min)
+                max_time_float = get_float_time_by_str(self.time_max)
+
+                if not min_time_float is None:
+                    if date_float < min_time_float:
+                        continue
+
+                if not max_time_float is None:
+                    if date_float > max_time_float:
+                        continue
+
                 name, ext = os.path.splitext(file)
                 ext = ext.lower()
                 if ext == '.object' and self.import_object:
@@ -237,23 +280,39 @@ class XRAY_OT_test_import(bpy.types.Operator):
         lay = self.layout
         lay.prop(self, 'pause')
 
-        lay.label(text='Formats:')
+        box = lay.box()
+        box.label(text='Formats:')
 
-        row = lay.row()
+        row = box.row()
         row.prop(self, 'import_object')
         row.prop(self, 'import_ogf')
 
-        row = lay.row()
+        row = box.row()
         row.prop(self, 'import_dm')
         row.prop(self, 'import_details')
 
-        lay.label(text='Options:')
-        lay.prop(self, 'import_motions')
+        box = lay.box()
+        box.label(text='Options:')
+        box.prop(self, 'import_motions')
 
         lay.label(text='Filters:')
-        lay.label(text='Skip Files by File Size (Size in Bytes)')
-        lay.prop(self, 'min_size', text='Min Size')
-        lay.prop(self, 'max_size', text='Max Size')
+
+        box = lay.box()
+        box.label(text='Skip Files by Size:')
+        box.prop(self, 'min_size', text='Min')
+        box.prop(self, 'max_size', text='Max')
+        box.label(text='Size in Bytes', icon='INFO')
+
+        box = lay.box()
+        box.label(text='Skip Files by Creation Date:')
+
+        row = box.row()
+        box.prop(self, 'time_min', text='Min')
+        box.prop(self, 'time_max', text='Max')
+
+        box.label(text='Time Formats:', icon='INFO')
+        box.label(text='Year.Month.Day Hours:Minutes')
+        box.label(text='Year.Month.Day')
 
     def execute(self, context):
         bpy.ops.io_scene_xray.test_import_modal(
@@ -265,7 +324,9 @@ class XRAY_OT_test_import(bpy.types.Operator):
             import_details=self.import_details,
             import_motions=self.import_motions,
             min_size=self.min_size,
-            max_size=self.max_size
+            max_size=self.max_size,
+            time_min=self.time_min,
+            time_max=self.time_max
         )
         return {'FINISHED'}
 
