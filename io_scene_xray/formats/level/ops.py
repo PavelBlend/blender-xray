@@ -8,6 +8,7 @@ from . import exp
 from .. import ie
 from .. import contexts
 from ... import utils
+from ... import text
 from ... import log
 
 
@@ -115,7 +116,18 @@ class XRAY_OT_export_level(ie.BaseOperator):
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
+        return self.export(context.object, context)
+
+    def invoke(self, context, event):
         level_object = context.object
+
+        if not context.object:
+            self.report(
+                {'ERROR'},
+                text.get_text(text.error.no_active_obj)
+            )
+            return {'CANCELLED'}
+
         if not level_object.xray.is_level:
             self.report(
                 {'ERROR'},
@@ -124,18 +136,17 @@ class XRAY_OT_export_level(ie.BaseOperator):
                 )
             )
             return {'CANCELLED'}
+
         if level_object.xray.level.object_type != 'LEVEL':
             self.report(
                 {'ERROR'},
-                'Object "{0}" has an invalid type: {1}. Must be Level.'.format(
+                'Object "{0}" has an invalid type: {1}. Must be "Level".'.format(
                     level_object.name,
                     level_object.xray.level.object_type
                 )
             )
             return {'CANCELLED'}
-        return self.export(level_object, context)
 
-    def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
