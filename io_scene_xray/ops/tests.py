@@ -75,7 +75,7 @@ op_props = {
     ),
     'min_size': bpy.props.IntProperty(default=0, min=0, max=2**31-1),
     'max_size': bpy.props.IntProperty(
-        default=1_000_000_000,
+        default=2**31-1,
         min=0,
         max=2**31-1
     ),
