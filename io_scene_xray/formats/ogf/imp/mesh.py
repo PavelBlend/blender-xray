@@ -4,12 +4,14 @@ import math
 # blender modules
 import bpy
 import bmesh
+import mathutils
 
 # addon modules
 from . import utility
 from . import material
 from .. import fmt
 from ... import level
+from ... import motions
 from .... import utils
 
 
@@ -322,6 +324,39 @@ def create_faces_old(visual, mesh, remap_vertices, norm_fun):
     return custom_normals
 
 
+def update_verts_coords_v3(mesh_obj, arm_obj, split_norms):
+    multiply = utils.version.get_multiply()
+    for vert in mesh_obj.data.vertices:
+        group_id = vert.groups[0].group
+        group_name = mesh_obj.vertex_groups[group_id].name
+        bone = arm_obj.data.bones[group_name]
+        vert.co = multiply(
+            bone.matrix_local,
+            motions.const.MATRIX_BONE_INVERTED,
+            vert.co
+        )
+
+    custom_normals = []
+    for loop in mesh_obj.data.loops:
+        vert_id = loop.vertex_index
+        vert = mesh_obj.data.vertices[vert_id]
+        group_id = vert.groups[0].group
+        group_name = mesh_obj.vertex_groups[group_id].name
+        bone = arm_obj.data.bones[group_name]
+        norm = split_norms[loop.index]
+        bone_mat = multiply(
+            bone.matrix_local,
+            motions.const.MATRIX_BONE_INVERTED
+        )
+        bone_rot = bone_mat.to_euler().to_matrix().to_4x4()
+        final_norm = multiply(
+            bone_rot, norm
+        )
+        custom_normals.append(final_norm)
+
+    mesh_obj.data.normals_split_custom_set(custom_normals)
+
+
 def create_visual(visual, lvl=None, geometry_key=None):
     vert_normals = get_vert_normals(visual)
     back_side = get_back_side(vert_normals)
@@ -394,14 +429,19 @@ def create_visual(visual, lvl=None, geometry_key=None):
     mesh.normal_update()
     mesh.to_mesh(bpy_mesh)
 
-    # set custom normals
-    if custom_normals:
-        bpy_mesh.normals_split_custom_set(custom_normals)
+
 
     # create object
     bpy_object = utils.create_object(visual.name, bpy_mesh)
 
     # assign vertex weights
     assign_visual_vertex_weights(visual, bpy_object, remap_vertices)
+
+    if visual.format_version == fmt.FORMAT_VERSION_3:
+        update_verts_coords_v3(bpy_object, visual.arm_obj, custom_normals)
+
+    # set custom normals
+    elif custom_normals:
+        bpy_mesh.normals_split_custom_set(custom_normals)
 
     return bpy_object
