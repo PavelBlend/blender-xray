@@ -25,6 +25,14 @@ op_props = {
         ),
         default='ADAPTIVE'
     ),
+    'change': bpy.props.EnumProperty(
+        name='Change',
+        items=(
+            ('SELECTED', 'Selected Bones', ''),
+            ('ALL', 'All Bones', '')
+        ),
+        default='SELECTED'
+    ),
     'size': bpy.props.FloatProperty(
         name='Bone Size', default=0.05, min=0.0001, max=1000.0, precision=4
     ),
@@ -53,12 +61,20 @@ class XRAY_OT_resize_bones(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         column = layout.column(align=True)
+
+        if context.mode == 'POSE':
+            column.label(text='Change:')
+            row = column.row(align=True)
+            row.prop(self, 'change', expand=True)
+
         column.label(text='Mode:')
         row = column.row(align=True)
         row.prop(self, 'mode', expand=True)
+
         row = column.row(align=True)
         row.active = self.mode == 'CONSTANT'
         row.prop(self, 'size')
+
         column.prop(self, 'custom_shapes', toggle=True)
 
     @utils.set_cursor_state
@@ -77,18 +93,20 @@ class XRAY_OT_resize_bones(bpy.types.Operator):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
-    def get_bones_length(self, bones):
-        lenghts = [0] * len(bones)
-        for index_0, bone_0 in enumerate(bones):
+    def get_bones_length(self, bones, arm):
+        lengths = {}
+        for bone_name_1 in bones:
+            bone_1 = arm.edit_bones[bone_name_1]
             min_rad_sq = math.inf
-            for index_1, bone_1 in enumerate(bones):
-                if index_1 == index_0:
+            for bone_name_2 in bones:
+                bone_2 = arm.edit_bones[bone_name_2]
+                if bone_name_1 == bone_name_2:
                     continue
-                rad_sq = (bone_1.head - bone_0.head).length_squared
+                rad_sq = (bone_2.head - bone_1.head).length_squared
                 if rad_sq < min_rad_sq:
                     min_rad_sq = rad_sq
-            lenghts[index_0] = math.sqrt(min_rad_sq)
-        return lenghts
+            lengths[bone_name_1] = math.sqrt(min_rad_sq)
+        return lengths
 
     def resize_bones(self, obj):
         correct_context = False
@@ -97,29 +115,49 @@ class XRAY_OT_resize_bones(bpy.types.Operator):
                 correct_context = True
         if not correct_context:
             return False
+
         utils.version.set_active_object(obj)
         mode = obj.mode
         bpy.ops.object.mode_set(mode='EDIT')
+
         try:
             bpy_armature = obj.data
-            bones = bpy_armature.edit_bones
-            if self.mode == 'ADAPTIVE':
-                lenghts = self.get_bones_length(bones)
-                for bone, length in zip(bones, lenghts):
-                    bone.length = min(max(length * 0.4, 0.01), 0.1)
+
+            # collect bones
+            if self.change == 'SELECTED' and mode == 'POSE':
+                bones = []
+                for edit_bone in bpy_armature.edit_bones:
+                    bone = bpy_armature.bones[edit_bone.name]
+                    if bone.select:
+                        bones.append(bone.name)
             else:
-                lenghts = [self.size] * len(bones)
-                for bone, length in zip(bones, lenghts):
-                    bone.length = length
+                bones = [bone.name for bone in bpy_armature.bones]
+
+            # set length
+            if self.mode == 'ADAPTIVE':
+                lenghts = self.get_bones_length(bones, bpy_armature)
+                for bone_name in bones:
+                    length = lenghts[bone_name]
+                    edit_bone = bpy_armature.edit_bones[bone_name]
+                    edit_bone.length = min(max(length * 0.4, 0.01), 0.1)
+            else:
+                for bone_name in bones:
+                    edit_bone = bpy_armature.edit_bones[bone_name]
+                    edit_bone.length = self.size
+
+            # set bone shape
             bpy.ops.object.mode_set(mode='POSE')
             if self.custom_shapes:
-                for pose_bone in obj.pose.bones:
-                    pose_bone.custom_shape = _get_real_bone_shape()
+                shape = _get_real_bone_shape()
             else:
-                for pose_bone in obj.pose.bones:
-                    pose_bone.custom_shape = None
+                shape = None
+            for bone_name in bones:
+                pose_bone = obj.pose.bones[bone_name]
+                pose_bone.custom_shape = shape
+
         finally:
             bpy.ops.object.mode_set(mode=mode)
+
         return True
 
 

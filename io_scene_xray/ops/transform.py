@@ -5,6 +5,9 @@ import math
 import bpy
 import mathutils
 
+# addon modules
+from .. import text
+
 
 def get_object_transforms():
     # get blender transforms
@@ -46,6 +49,7 @@ class XRAY_OT_copy_xray_tranforms(bpy.types.Operator):
             return {'FINISHED'}
         else:
             write_buffer_data()
+            self.report({'INFO'}, text.get_text(text.warn.ready))
             return {'FINISHED'}
 
 
@@ -63,6 +67,7 @@ class XRAY_OT_update_xray_tranforms(bpy.types.Operator):
             data = obj.xray
             data.position = xray_translation
             data.orientation = xray_rotation
+            self.report({'INFO'}, text.get_text(text.warn.ready))
             return {'FINISHED'}
 
 
@@ -96,6 +101,7 @@ class XRAY_OT_update_blender_tranforms(bpy.types.Operator):
                 obj.rotation_quaternion = rot_euler.to_quaternion()
             else:
                 obj.rotation_euler = rot_euler.to_matrix().to_euler(obj.rotation_mode)
+            self.report({'INFO'}, text.get_text(text.warn.ready))
             return {'FINISHED'}
 
 

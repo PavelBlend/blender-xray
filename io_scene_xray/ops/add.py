@@ -6,6 +6,7 @@ import bpy
 
 # addon modules
 from .. import utils
+from .. import text
 
 
 SOC_HUD_FOV = 30.5
@@ -67,6 +68,8 @@ class XRAY_OT_add_camera(bpy.types.Operator):
 
         # set active camera
         context.scene.camera = camera_obj
+
+        self.report({'INFO'}, text.get_text(text.warn.ready))
 
         return {'FINISHED'}
 

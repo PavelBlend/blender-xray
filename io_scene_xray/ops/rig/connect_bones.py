@@ -281,6 +281,8 @@ class XRAY_OT_create_connected_bones(bpy.types.Operator):
         bpy.ops.io_scene_xray.link_bones(armature=arm_obj.name)
         utils.version.set_active_object(arm_obj)
 
+        self.report({'INFO'}, text.get_text(text.warn.ready))
+
         return {'FINISHED'}
 
     def invoke(self, context, event):

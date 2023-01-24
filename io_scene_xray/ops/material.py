@@ -8,6 +8,7 @@ import mathutils
 
 # addon modules
 from .. import utils
+from .. import text
 
 
 def get_object_materials(bpy_object, materials):
@@ -627,6 +628,8 @@ class XRAY_OT_create_material(bpy.types.Operator):
         image_node.image = image
         image_node.name = rel_path
         image_node.label = rel_path
+
+        self.report({'INFO'}, text.get_text(text.warn.ready))
 
         return {'FINISHED'}
 

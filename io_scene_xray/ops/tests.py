@@ -4,7 +4,6 @@ import time
 
 # blender modules
 import bpy
-import bpy_extras
 import mathutils
 
 # addon modules
@@ -28,6 +27,32 @@ def remove_bpy_data():
     clear_bpy_collection(data.texts)
 
 
+FORMAT_FULL = '%Y.%m.%d %H:%M'
+FORMAT_SHORT = '%Y.%m.%d'
+
+
+def get_float_time_by_str(time_str):
+    try:
+        struct_time = time.strptime(time_str, FORMAT_FULL)
+        float_time = time.mktime(struct_time)
+    except:
+        try:
+            struct_time = time.strptime(time_str, FORMAT_SHORT)
+            float_time = time.mktime(struct_time)
+        except:
+            float_time = None
+    return float_time
+
+
+def update_time(self, context):
+    for prop_name in ('time_min', 'time_max'):
+        time_str = getattr(self, prop_name)
+        if time_str:
+            float_time = get_float_time_by_str(time_str)
+            if float_time is None:
+                setattr(self, prop_name, '')
+
+
 op_props = {
     'directory': bpy.props.StringProperty(
         subtype='DIR_PATH',
@@ -43,7 +68,19 @@ op_props = {
     'import_object': bpy.props.BoolProperty(name='Object', default=True),
     'import_ogf': bpy.props.BoolProperty(name='Ogf', default=True),
     'import_dm': bpy.props.BoolProperty(name='Dm', default=True),
-    'import_details': bpy.props.BoolProperty(name='Details', default=True)
+    'import_details': bpy.props.BoolProperty(name='Details', default=True),
+    'import_motions': bpy.props.BoolProperty(
+        name='Import Motions',
+        default=False
+    ),
+    'min_size': bpy.props.IntProperty(default=0, min=0, max=2**31-1),
+    'max_size': bpy.props.IntProperty(
+        default=2**31-1,
+        min=0,
+        max=2**31-1
+    ),
+    'time_min': bpy.props.StringProperty(update=update_time),
+    'time_max': bpy.props.StringProperty(update=update_time)
 }
 
 
@@ -61,15 +98,28 @@ class XRAY_OT_test_import_modal(bpy.types.Operator):
 
     def collect_files(self, context):
         self.file_index = 0
-        self.error_index = 0
-        self.messages_count = 10
-        self.ver_count = 1000
-        self.ver_err_index = 0
-        self.log = []
-        self.log_ver = []
         self.files_list = []
+
         for root, dirs, files in os.walk(self.directory):
             for file in files:
+                file_path = os.path.join(root, file)
+
+                file_size = os.path.getsize(file_path)
+                if not (self.min_size < file_size < self.max_size):
+                    continue
+
+                date_float = os.path.getmtime(file_path)
+                min_time_float = get_float_time_by_str(self.time_min)
+                max_time_float = get_float_time_by_str(self.time_max)
+
+                if not min_time_float is None:
+                    if date_float < min_time_float:
+                        continue
+
+                if not max_time_float is None:
+                    if date_float > max_time_float:
+                        continue
+
                 name, ext = os.path.splitext(file)
                 ext = ext.lower()
                 if ext == '.object' and self.import_object:
@@ -83,31 +133,28 @@ class XRAY_OT_test_import_modal(bpy.types.Operator):
                 else:
                     skip = True
                 if not skip:
-                    self.files_list.append((root, file))
-        return {'FINISHED'}
+                    self.files_list.append((root, file, file_path))
 
     def test_import(self):
         remove_bpy_data()
-        root, file = self.files_list[self.file_index]
+        root, file, file_path = self.files_list[self.file_index]
         ext = os.path.splitext(file)[-1]
-        file_path = os.path.join(root, file)
         file_message = '{0:0>6}: '.format(self.file_index) + file_path
         self.file_index += 1
-        has_error = False
-        err_text = None
+
         try:
             print(file_message)
             if ext == '.object':
                 bpy.ops.xray_import.object(
                     directory=root,
                     files=[{'name': file}],
-                    import_motions=False
+                    import_motions=self.import_motions
                 )
             elif ext == '.ogf':
                 bpy.ops.xray_import.ogf(
                     directory=root,
                     files=[{'name': file}],
-                    import_motions=False
+                    import_motions=self.import_motions
                 )
             elif ext == '.dm':
                 bpy.ops.xray_import.dm(
@@ -120,102 +167,103 @@ class XRAY_OT_test_import_modal(bpy.types.Operator):
                     files=[{'name': file}],
                     load_slots=False
                 )
-            for area in bpy.context.screen.areas:
-                if area.type == 'VIEW_3D':
-                    ctx = bpy.context.copy()
-                    ctx['area'] = area
-                    ctx['region'] = area.regions[-1]
-                    bpy.ops.view3d.view_all(ctx, center=False)
-                    bbox_min_x = 1000000.0
-                    bbox_min_y = 1000000.0
-                    bbox_min_z = 1000000.0
-                    bbox_max_x = -1000000.0
-                    bbox_max_y = -1000000.0
-                    bbox_max_z = -1000000.0
-                    for obj in bpy.data.objects:
-                        min_bbox = mathutils.Vector(obj.bound_box[0])
-                        max_bbox = mathutils.Vector(obj.bound_box[6])
-                        bbox_min_x = min(bbox_min_x, min_bbox.x)
-                        bbox_min_y = min(bbox_min_y, min_bbox.y)
-                        bbox_min_z = min(bbox_min_z, min_bbox.z)
-                        bbox_max_x = max(bbox_max_x, min_bbox.x)
-                        bbox_max_y = max(bbox_max_y, min_bbox.y)
-                        bbox_max_z = max(bbox_max_z, min_bbox.z)
-                    dim_all_x = bbox_max_x - bbox_min_x
-                    dim_all_y = bbox_max_y - bbox_min_y
-                    dim_all_z = bbox_max_z - bbox_min_z
-                    dim_max = max(dim_all_x, dim_all_y, dim_all_z)
-                    clip_end = max(500.0, dim_max * 10)
-                    for space in area.spaces:
-                        if space.type == 'VIEW_3D':
-                            if self.clip_end is None:
-                                self.clip_end = space.clip_end
-                            space.clip_end = clip_end
-        except Exception as err:
-            err_text = str(err)
-            if not 'Unsupported ogf format version' in err_text:
-                self.log.append(file_message)
-                self.log.append(err_text)
-                has_error = True
-                self.error_index += 1
-            else:
-                self.log_ver.append(file_message)
-                self.ver_err_index += 1
-        if has_error:
-            print(err_text)
-            print()
-        if not self.error_index % self.messages_count and self.error_index:
-            with open('E:\\logs\\errors\\log_{0:0>4}.txt'.format(
-                    self.error_index // self.messages_count), 'w'
-                ) as file:
-                for message in self.log:
-                    file.write(message + '\n')
-            self.log.clear()
-        if not self.ver_err_index % self.ver_count and self.ver_err_index:
-            with open('E:\\logs\\ver\\log_{0:0>4}.txt'.format(
-                        self.ver_err_index // self.ver_count
-                ), 'w') as file:
-                for message in self.log_ver:
-                    file.write(message + '\n')
-            self.log_ver.clear()
+            self.set_view()
 
-    def set_clip_end(self):
+        except BaseException as err:
+            print(str(err))
+
+    def calc_clip_end(self):
+        bbox_min_x = 1000000.0
+        bbox_min_y = 1000000.0
+        bbox_min_z = 1000000.0
+
+        bbox_max_x = -1000000.0
+        bbox_max_y = -1000000.0
+        bbox_max_z = -1000000.0
+
+        for obj in bpy.data.objects:
+            min_bbox = mathutils.Vector(obj.bound_box[0])
+            max_bbox = mathutils.Vector(obj.bound_box[6])
+
+            bbox_min_x = min(bbox_min_x, min_bbox.x)
+            bbox_min_y = min(bbox_min_y, min_bbox.y)
+            bbox_min_z = min(bbox_min_z, min_bbox.z)
+
+            bbox_max_x = max(bbox_max_x, min_bbox.x)
+            bbox_max_y = max(bbox_max_y, min_bbox.y)
+            bbox_max_z = max(bbox_max_z, min_bbox.z)
+
+        dim_x = bbox_max_x - bbox_min_x
+        dim_y = bbox_max_y - bbox_min_y
+        dim_z = bbox_max_z - bbox_min_z
+
+        dim_max = max(dim_x, dim_y, dim_z)
+        clip_end = max(500.0, dim_max * 10)
+
+        return clip_end
+
+    def set_view(self):
+        clip_end = self.calc_clip_end()
+
+        for area in bpy.context.screen.areas:
+            if area.type == 'VIEW_3D':
+                ctx = bpy.context.copy()
+                ctx['area'] = area
+                ctx['region'] = area.regions[-1]
+                bpy.ops.view3d.view_all(ctx, center=False)
+
+                for space in area.spaces:
+                    if space.type == 'VIEW_3D':
+                        space.clip_end = clip_end
+
+    def get_space_3d(self):
+        space_3d = None
         for area in bpy.context.screen.areas:
             if area.type == 'VIEW_3D':
                 for space in area.spaces:
                     if space.type == 'VIEW_3D':
-                        if not self.clip_end is None:
-                            space.clip_end = self.clip_end
+                        space_3d = space
+        return space_3d
+
+    def set_clip_end(self, clip_end):
+        space_3d = self.get_space_3d()
+        if space_3d:
+            space_3d.clip_end = clip_end
 
     def modal(self, context, event):
         if event.type == 'TIMER':
-            current_time = time.time()
-            if current_time > self.last_time + self.pause:
+            cur_time = time.time()
+            if cur_time > self.last_time + self.pause or not self.file_index:
                 if self.file_index < len(self.files_list):
                     self.test_import()
                 else:
-                    context.window_manager.event_timer_remove(self.timer)
-                    remove_bpy_data()
-                    self.set_clip_end()
-                    return {'FINISHED'}
+                    return self.cancel(context)
                 self.last_time = time.time()
 
         elif event.type == 'ESC':
-            remove_bpy_data()
-            self.set_clip_end()
-            return {'CANCELLED'}
+            return self.cancel(context)
 
         return {'RUNNING_MODAL'}
 
+    def cancel(self, context):
+        context.window_manager.event_timer_remove(self.timer)
+        remove_bpy_data()
+        self.set_clip_end(self.clip_end_old)
+        return {'CANCELLED'}
+
     def execute(self, context):
-        self.last_time = time.time()
-        self.clip_end = None
+        space_3d = self.get_space_3d()
+        self.clip_end_old = space_3d.clip_end
+
         self.collect_files(context)
+        self.last_time = time.time()
+
         self.timer = context.window_manager.event_timer_add(
             self.pause,
             window=context.window
         )
         context.window_manager.modal_handler_add(self)
+
         return {'RUNNING_MODAL'}
 
 
@@ -231,11 +279,40 @@ class XRAY_OT_test_import(bpy.types.Operator):
     def draw(self, context):
         lay = self.layout
         lay.prop(self, 'pause')
-        lay.label(text='Import:')
-        lay.prop(self, 'import_object')
-        lay.prop(self, 'import_ogf')
-        lay.prop(self, 'import_dm')
-        lay.prop(self, 'import_details')
+
+        box = lay.box()
+        box.label(text='Formats:')
+
+        row = box.row()
+        row.prop(self, 'import_object')
+        row.prop(self, 'import_ogf')
+
+        row = box.row()
+        row.prop(self, 'import_dm')
+        row.prop(self, 'import_details')
+
+        box = lay.box()
+        box.label(text='Options:')
+        box.prop(self, 'import_motions')
+
+        lay.label(text='Filters:')
+
+        box = lay.box()
+        box.label(text='Skip Files by Size:')
+        box.prop(self, 'min_size', text='Min')
+        box.prop(self, 'max_size', text='Max')
+        box.label(text='Size in Bytes', icon='INFO')
+
+        box = lay.box()
+        box.label(text='Skip Files by Creation Date:')
+
+        row = box.row()
+        box.prop(self, 'time_min', text='Min')
+        box.prop(self, 'time_max', text='Max')
+
+        box.label(text='Time Formats:', icon='INFO')
+        box.label(text='Year.Month.Day Hours:Minutes')
+        box.label(text='Year.Month.Day')
 
     def execute(self, context):
         bpy.ops.io_scene_xray.test_import_modal(
@@ -244,7 +321,12 @@ class XRAY_OT_test_import(bpy.types.Operator):
             import_object=self.import_object,
             import_ogf=self.import_ogf,
             import_dm=self.import_dm,
-            import_details=self.import_details
+            import_details=self.import_details,
+            import_motions=self.import_motions,
+            min_size=self.min_size,
+            max_size=self.max_size,
+            time_min=self.time_min,
+            time_max=self.time_max
         )
         return {'FINISHED'}
 
