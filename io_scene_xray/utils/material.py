@@ -185,6 +185,7 @@ def _create_texture_28(bpy_material, texture, context, principled_node):
     texture_node.name = texture
     texture_node.label = texture
     texture_node.image = context.image(texture)
+    texture_node.select = False
     bpy_image = texture_node.image
     texture_node.location.x = principled_node.location.x - 500.0
 
