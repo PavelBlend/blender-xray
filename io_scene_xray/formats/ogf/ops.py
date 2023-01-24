@@ -31,6 +31,7 @@ class ExportOgfContext(
     def __init__(self):
         super().__init__()
         self.fmt_ver = None
+        self.hq_export = None
 
 
 op_text = 'Game Object'
@@ -116,6 +117,7 @@ export_props = {
     ),
     'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
     'fmt_version': ie.PropSDKVersion(),
+    'hq_export': ie.prop_omf_high_quality(),
     'export_motions': ie.PropObjectMotionsExport()
 }
 
@@ -141,6 +143,9 @@ class XRAY_OT_export_ogf_file(
         layout = self.layout
         utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
         layout.prop(self, 'export_motions')
+        row = layout.row()
+        row.active = self.fmt_version == 'cscop' and self.export_motions
+        row.prop(self, 'hq_export', text='High Quatily Motions')
         layout.prop(self, 'texture_name_from_image_path')
 
     @log.execute_with_logger
@@ -150,6 +155,7 @@ class XRAY_OT_export_ogf_file(
         export_context = ExportOgfContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.fmt_ver = self.fmt_version
+        export_context.hq_export = self.hq_export
         export_context.export_motions = self.export_motions
         try:
             exp.export_file(self.exported_object, self.filepath, export_context)

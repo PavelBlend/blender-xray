@@ -548,8 +548,10 @@ def _export(bpy_obj, cwriter, context):
         motion_context.need_bone_groups = True
         if context.fmt_ver == 'soc':
             motion_context.params_ver = 3
+            motion_context.high_quality = False
         else:
             motion_context.params_ver = 4
+            motion_context.high_quality = context.hq_export
         motions_chunked_writer = omf.exp.export_omf(motion_context)
         cwriter.data.extend(motions_chunked_writer.data)
 
