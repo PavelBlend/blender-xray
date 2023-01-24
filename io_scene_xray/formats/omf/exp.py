@@ -223,7 +223,7 @@ def get_motions(context, bones_count):
     return motions, motion_names, chunks
 
 
-def write_motion_params(context, writer, name, index, params_version, actions_table):
+def write_motion_params(context, writer, name, index, actions_table):
     action_name = actions_table.get(name)
     action = bpy.data.actions.get(action_name)
     xray = action.xray
@@ -246,14 +246,14 @@ def write_motion_params(context, writer, name, index, params_version, actions_ta
     writer.putf('<4f', xray.speed, xray.power, xray.accrue, xray.falloff)
 
     # motion marks
-    if params_version == 4:
+    if context.params_ver == 4:
         marks_count = 0
         writer.putf('<I', marks_count)
 
 
-def write_motions_params(context, writer, motions, version, actions_table):
+def write_motions_params(context, writer, motions, actions_table):
     for name, index, _ in motions:
-        write_motion_params(context, writer, name, index, version, actions_table)
+        write_motion_params(context, writer, name, index, actions_table)
 
 
 def get_pose_bones_and_groups(context):
@@ -298,14 +298,13 @@ def export_motion_params(
         new_motions_count,
         motions,
         motions_ids,
-        params_version,
         motion_export_names,
         actions_table
     ):
     if not available_params:
         # overwrite mode
         packed_writer.putf('<H', motion_count)
-        write_motions_params(context, packed_writer, motions, params_version, actions_table)
+        write_motions_params(context, packed_writer, motions, actions_table)
     else:
 
         # add mode
@@ -318,7 +317,7 @@ def export_motion_params(
             for motion_name, motion_id, has_available in motions:
                 if not has_available:
                     motions_new.append((motion_name, motion_id, has_available))
-            write_motions_params(context, packed_writer, motions_new, params_version, actions_table)
+            write_motions_params(context, packed_writer, motions_new, actions_table)
 
         # replace mode
         elif context.export_mode == 'REPLACE':
@@ -336,12 +335,12 @@ def export_motion_params(
                         params = motion
                         if xray.use_custom_motion_names:
                             motion_name = motion_export_names[motion_name]
-                        write_motion_params(context, packed_writer, motion_name, params, params_version, actions_table)
+                        write_motion_params(context, packed_writer, motion_name, params, actions_table)
                 motions_new = []
                 for motion_name, motion_id, has_available in motions:
                     if not has_available:
                         motions_new.append((motion_name, motion_id, has_available))
-                write_motions_params(context, packed_writer, motions_new, params_version, actions_table)
+                write_motions_params(context, packed_writer, motions_new, actions_table)
             else:
                 packed_writer.putf('<H', len(available_params))
                 for motion_name, motion_params in available_params.items():
@@ -353,11 +352,10 @@ def export_boneparts(
         context,
         packed_writer,
         available_boneparts,
-        params_version,
         bone_groups
     ):
     if not available_boneparts:
-        packed_writer.putf('<H', params_version)
+        packed_writer.putf('<H', context.params_ver)
         partitions_count = len(bone_groups)
         packed_writer.putf('<H', partitions_count)
         for bone_group in context.bpy_arm_obj.pose.bone_groups:
@@ -372,7 +370,7 @@ def export_boneparts(
                 packed_writer.puts(bone_name)
                 packed_writer.putf('<I', bone_index)
     else:
-        packed_writer.putf('<H', params_version)
+        packed_writer.putf('<H', context.params_ver)
         packed_writer.putf('<H', available_boneparts.count)
         for bonepart in available_boneparts.items:
             packed_writer.puts(bonepart.name)
@@ -516,11 +514,6 @@ def get_available_params_and_boneparts(context, chunks):
     available_boneparts = []
     available_params = {}
 
-    if context.high_quality:
-        params_version = 4
-    else:
-        params_version = 3
-
     bone_indices = None
     bone_names = None
     if context.export_mode in ('REPLACE', 'ADD'):
@@ -533,8 +526,8 @@ def get_available_params_and_boneparts(context, chunks):
         ) = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS_1])
         if context.export_mode == 'REPLACE' and context.export_bone_parts:
             available_boneparts = []
-        params_version = available_version
-    return params_version, available_params, available_boneparts, bone_names, bone_indices
+        context.params_ver = available_version
+    return available_params, available_boneparts, bone_names, bone_indices
 
 
 def export_motions(
@@ -790,7 +783,6 @@ def export_omf(context):
     arm_obj.animation_data_create()
 
     (
-        params_version,
         available_params,
         available_boneparts,
         bone_names,
@@ -826,7 +818,6 @@ def export_omf(context):
         context,
         packed_writer,
         available_boneparts,
-        params_version,
         bone_groups
     )
 
@@ -839,7 +830,6 @@ def export_omf(context):
         new_motions_count,
         motions,
         motions_ids,
-        params_version,
         motion_export_names,
         actions_table
     )
@@ -862,5 +852,9 @@ def export_omf(context):
 @log.with_context('export-omf')
 def export_omf_file(context):
     log.update(object=context.bpy_arm_obj.name)
+    if context.high_quality:
+        context.params_ver = 4
+    else:
+        context.params_ver = 3
     chunked_writer = export_omf(context)
     rw.utils.save_file(context.filepath, chunked_writer)

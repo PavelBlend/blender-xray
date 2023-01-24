@@ -250,7 +250,11 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     vertices_count = len(vertices)
     # 1-link vertices
     if vertex_max_weights == 1:
-        vertices_writer.putf('<2I', fmt.VertexFormat.FVF_1L, vertices_count)
+        if context.fmt_ver == 'soc':
+            vert_fmt = fmt.VertexFormat.FVF_1L
+        else:
+            vert_fmt = fmt.VertexFormat.FVF_1L_CS
+        vertices_writer.putf('<2I', vert_fmt, vertices_count)
         for vertex in vertices:
             vertices_writer.putv3f(vertex[1])    # coord
             vertices_writer.putv3f(vertex[2])    # normal
@@ -265,7 +269,11 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
                 'max_weights_count',
                 count=vertex_max_weights
             )
-        vertices_writer.putf('<2I', fmt.VertexFormat.FVF_2L, vertices_count)
+        if context.fmt_ver == 'soc':
+            vert_fmt = fmt.VertexFormat.FVF_2L
+        else:
+            vert_fmt = fmt.VertexFormat.FVF_2L_CS
+        vertices_writer.putf('<2I', vert_fmt, vertices_count)
         for vertex in vertices:
             weights = vertex[6]
             if len(weights) > 2:
@@ -516,10 +524,18 @@ def _export(bpy_obj, cwriter, context):
         refs = []
         for ref in bpy_obj.xray.motionrefs_collection:
             refs.append(ref.name)
-        refs_string = ','.join(refs)
         motion_refs_writer = rw.write.PackedWriter()
-        motion_refs_writer.puts(refs_string)
-        cwriter.put(fmt.Chunks_v4.S_MOTION_REFS_0, motion_refs_writer)
+        if context.fmt_ver == 'soc':
+            refs_string = ','.join(refs)
+            motion_refs_writer.puts(refs_string)
+            chunk_id = fmt.Chunks_v4.S_MOTION_REFS_0
+        else:
+            refs_count = len(refs)
+            motion_refs_writer.putf('<I', refs_count)
+            for ref in refs:
+                motion_refs_writer.puts(ref)
+            chunk_id = fmt.Chunks_v4.S_MOTION_REFS_2
+        cwriter.put(chunk_id, motion_refs_writer)
 
     # export motions
     if context.export_motions and bpy_obj.xray.motions_collection:
@@ -530,6 +546,10 @@ def _export(bpy_obj, cwriter, context):
         motion_context.export_bone_parts = True
         motion_context.need_motions = True
         motion_context.need_bone_groups = True
+        if context.fmt_ver == 'soc':
+            motion_context.params_ver = 3
+        else:
+            motion_context.params_ver = 4
         motions_chunked_writer = omf.exp.export_omf(motion_context)
         cwriter.data.extend(motions_chunked_writer.data)
 
