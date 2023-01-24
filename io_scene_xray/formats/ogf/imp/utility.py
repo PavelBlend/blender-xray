@@ -40,7 +40,7 @@ def check_unread_chunks(chunks, context=''):
         size = len(data)
         print('Unknown OGF {} Chunk: {} ({} bytes)'.format(
             context,
-            hex(chunk_id),
+            chunk_id,
             size
         ))
 
@@ -73,17 +73,22 @@ def set_export_path(context, visual, bpy_object):
 
 
 def set_visual_type(visual, root_visual):
-    if visual.model_type == fmt.ModelType_v4.SKELETON_GEOMDEF_PM:
+    if visual.format_version == fmt.FORMAT_VERSION_4:
+        model_types = fmt.ModelType_v4
+    elif visual.format_version == fmt.FORMAT_VERSION_3:
+        model_types = fmt.ModelType_v3
+
+    if visual.model_type == model_types.SKELETON_GEOMDEF_PM:
         root_visual.arm_obj.xray.flags_simple = 'pd'
 
-    elif visual.model_type == fmt.ModelType_v4.SKELETON_GEOMDEF_ST:
+    elif visual.model_type == model_types.SKELETON_GEOMDEF_ST:
         root_visual.arm_obj.xray.flags_simple = 'dy'
 
-    elif visual.model_type == fmt.ModelType_v4.PROGRESSIVE:
+    elif visual.model_type == model_types.PROGRESSIVE:
         root_visual.root_obj.xray.flags_simple = 'pd'
 
-    elif visual.model_type == fmt.ModelType_v4.NORMAL:
+    elif visual.model_type == model_types.NORMAL:
         root_visual.root_obj.xray.flags_simple = 'dy'
 
     else:
-        print('WARRNING: Model type = {}'.format(visual.model_type))
+        print('WARNING: Model type = {}'.format(visual.model_type))

@@ -74,12 +74,12 @@ def validate_omf_file(context):
     for chunk_id, chunk_data in chunked_reader:
         chunks[chunk_id] = chunk_data
     chunks_ids = list(chunks.keys())
-    if not fmt.Chunks.S_MOTIONS in chunks_ids and context.export_motions:
+    if not fmt.Chunks.S_MOTIONS_2 in chunks_ids and context.export_motions:
         raise log.AppError(
             text.error.omf_no_anims,
             log.props(file=context.filepath)
         )
-    if not fmt.Chunks.S_SMPARAMS in chunks_ids and context.export_bone_parts:
+    if not fmt.Chunks.S_SMPARAMS_1 in chunks_ids and context.export_bone_parts:
         raise log.AppError(
             text.error.omf_no_params,
             log.props(file=context.filepath)
@@ -158,7 +158,7 @@ def get_motions(context, bones_count):
     _, chunks = validate_omf_file(context)
 
     # create chunk reader
-    chunked_reader = rw.read.ChunkedReader(chunks[fmt.Chunks.S_MOTIONS])
+    chunked_reader = rw.read.ChunkedReader(chunks[fmt.Chunks.S_MOTIONS_2])
     chunked_reader.next(fmt.MOTIONS_COUNT_CHUNK)
 
     motions = {}
@@ -530,7 +530,7 @@ def get_available_params_and_boneparts(context, chunks):
             available_params,
             bone_indices,
             bone_names
-        ) = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS])
+        ) = get_motion_params(chunks[fmt.Chunks.S_SMPARAMS_1])
         if context.export_mode == 'REPLACE' and context.export_bone_parts:
             available_boneparts = []
         params_version = available_version
@@ -818,7 +818,7 @@ def export_omf(context):
 
     main_chunked_writer = rw.write.ChunkedWriter()
     # write motions chunk
-    main_chunked_writer.put(fmt.Chunks.S_MOTIONS, motions_writer)
+    main_chunked_writer.put(fmt.Chunks.S_MOTIONS_2, motions_writer)
 
     packed_writer = rw.write.PackedWriter()
 
@@ -845,7 +845,7 @@ def export_omf(context):
     )
 
     # write params chunk
-    main_chunked_writer.put(fmt.Chunks.S_SMPARAMS, packed_writer)
+    main_chunked_writer.put(fmt.Chunks.S_SMPARAMS_1, packed_writer)
 
     utils.action.set_initial_state(
         arm_obj,

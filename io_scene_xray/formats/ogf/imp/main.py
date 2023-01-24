@@ -41,8 +41,12 @@ def import_ogf_visual(context, data, visual):
 
     header.read_ogf_file_header(chunks, visual)
 
-    ogf_chunks = fmt.Chunks_v4
-    model_types = fmt.ModelType_v4
+    if visual.format_version == fmt.FORMAT_VERSION_4:
+        ogf_chunks = fmt.Chunks_v4
+        model_types = fmt.ModelType_v4
+    elif visual.format_version == fmt.FORMAT_VERSION_3:
+        ogf_chunks = fmt.Chunks_v3
+        model_types = fmt.ModelType_v3
 
     if visual.model_type == model_types.SKELETON_RIGID:
         import_fun = load.read_mt_skeleton_rigid
