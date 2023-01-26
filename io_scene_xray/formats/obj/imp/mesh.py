@@ -61,11 +61,11 @@ def import_mesh(context, creader, renamemap):
     for (cid, data) in creader:
         if cid == fmt.Chunks.Mesh.VERTS:
             reader = rw.read.PackedReader(data)
-            vt_data = [reader.getv3fp() for _ in range(reader.int())]
+            vt_data = [reader.getv3fp() for _ in range(reader.uint32())]
         elif cid == fmt.Chunks.Mesh.FACES:
             s_6i = rw.read.PackedReader.prep('6I')
             reader = rw.read.PackedReader(data)
-            faces_count = reader.int()
+            faces_count = reader.uint32()
             fc_data = [reader.getp(s_6i) for _ in range(faces_count)]
         elif cid == fmt.Chunks.Mesh.MESHNAME:
             mesh_name = rw.read.PackedReader(data).gets()
@@ -103,7 +103,7 @@ def import_mesh(context, creader, renamemap):
             reader = rw.read.PackedReader(data)
             for _ in range(reader.getf('<H')[0]):
                 name = reader.gets()
-                s_faces.append((name, reader.getb(reader.int() * 4).cast('I')))
+                s_faces.append((name, reader.getb(reader.uint32() * 4).cast('I')))
         elif cid == fmt.Chunks.Mesh.VMREFS:
             s_ii = rw.read.PackedReader.prep('2I')
 
@@ -114,11 +114,11 @@ def import_mesh(context, creader, renamemap):
                 return [reader.getp(s_ii) for __ in range(count)]
 
             reader = rw.read.PackedReader(data)
-            vm_refs = [read_vmref(reader) for _ in range(reader.int())]
+            vm_refs = [read_vmref(reader) for _ in range(reader.uint32())]
         elif cid in (fmt.Chunks.Mesh.VMAPS1, fmt.Chunks.Mesh.VMAPS2):
             suppress_rename_warnings = {}
             reader = rw.read.PackedReader(data)
-            for _ in range(reader.int()):
+            for _ in range(reader.uint32()):
                 name = reader.gets()
                 if not name:
                     name = 'Texture'
@@ -126,7 +126,7 @@ def import_mesh(context, creader, renamemap):
                 if cid == fmt.Chunks.Mesh.VMAPS2:
                     discon = reader.byte() != 0
                 typ = reader.byte() & 0x3
-                size = reader.int()
+                size = reader.uint32()
                 if typ == fmt.VMapTypes.UVS:
                     new_name = renamemap.get(name.lower(), name)
                     if new_name != name:

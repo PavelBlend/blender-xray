@@ -113,7 +113,7 @@ class PackedReader:
     def byte(self):
         return self.__data[self._next(1)]
 
-    def int(self):
+    def uint32(self):
         return FastBytes.int_at(self.__data, self._next(4))
 
     def getq16f(self, min_val, max_val):

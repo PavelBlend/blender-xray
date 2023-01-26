@@ -47,7 +47,7 @@ def import_main(file_path, context, chunked_reader):
             ):
 
             reader = rw.read.PackedReader(chunk_data)
-            surfaces_count = reader.int()
+            surfaces_count = reader.uint32()
 
             if chunk_id == fmt.Chunks.Object.SURFACES:
                 try:
@@ -88,7 +88,7 @@ def import_main(file_path, context, chunked_reader):
                         gamemtl = 'default'
                     texture = reader.gets()
                     vmap = reader.gets()
-                    flags = reader.int()
+                    flags = reader.uint32()
                     reader.skip(4 + 4)    # fvf and TCs count
 
                     if texture:
@@ -118,7 +118,7 @@ def import_main(file_path, context, chunked_reader):
             ):
             if chunk_id == fmt.Chunks.Object.BONES:
                 reader = rw.read.PackedReader(chunk_data)
-                bones_count = reader.int()
+                bones_count = reader.uint32()
                 if not bones_count:
                     continue    # Do not create an armature if zero bones
             if bpy and (bpy_arm_obj is None):
@@ -193,7 +193,7 @@ def import_main(file_path, context, chunked_reader):
                 fmt.Chunks.Object.PARTITIONS1
             ):
             reader = rw.read.PackedReader(chunk_data)
-            parts_count = reader.int()
+            parts_count = reader.uint32()
             utils.version.set_active_object(bpy_arm_obj)
             bpy.ops.object.mode_set(mode='POSE')
             obj_pose = bpy_arm_obj.pose
@@ -201,12 +201,12 @@ def import_main(file_path, context, chunked_reader):
                 for part_id in range(parts_count):
                     part_name = reader.gets()
                     bone_group = obj_pose.bone_groups.new(name=part_name)
-                    bones_count = reader.int()
+                    bones_count = reader.uint32()
                     for bone_id in range(bones_count):
                         if chunk_id == fmt.Chunks.Object.PARTITIONS1:
                             bone_key = reader.gets()
                         else:
-                            bone_key = reader.int()
+                            bone_key = reader.uint32()
                         obj_pose.bones[bone_key].bone_group = bone_group
             finally:
                 bpy.ops.object.mode_set(mode='OBJECT')
@@ -319,7 +319,7 @@ def import_main(file_path, context, chunked_reader):
         # motion references for cs/cop
         elif chunk_id == fmt.Chunks.Object.SMOTIONS3:
             mrefs = xray.motionrefs_collection
-            count = reader.int()
+            count = reader.uint32()
             for _ in range(count):
                 mrefs.add().name = reader.gets()
 

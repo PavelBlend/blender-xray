@@ -12,7 +12,7 @@ from ... import rw
 @log.with_context(name='bones-partitions')
 def _import_partitions(import_context, data, arm_obj, bpy_bones):
     packed_reader = rw.read.PackedReader(data)
-    partitions_count = packed_reader.int()
+    partitions_count = packed_reader.uint32()
     if not partitions_count:
         log.warn(
             text.warn.bones_not_have_boneparts,
@@ -29,7 +29,7 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
                 bpy.ops.pose.group_add()
                 bone_group = arm_obj.pose.bone_groups.active
                 bone_group.name = name
-            bones_count = packed_reader.int()
+            bones_count = packed_reader.uint32()
             for bone_id in range(bones_count):
                 bone_name = packed_reader.gets()
                 bpy_bone = bpy_bones.get(bone_name, None)
@@ -87,7 +87,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
             xray.shape.set_curver()
         elif chunk_id == chunks.IK_JOINT:
             ik = xray.ikjoint
-            joint_type = str(packed_reader.int())
+            joint_type = str(packed_reader.uint32())
             obj.imp.bone.safe_assign_enum_property(
                 ik,
                 'type',
@@ -110,7 +110,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
             xray.mass.value = packed_reader.getf('<f')[0]
             xray.mass.center = packed_reader.getv3fp()
         elif chunk_id == chunks.IK_FLAGS:
-            xray.ikflags = packed_reader.int()
+            xray.ikflags = packed_reader.uint32()
         elif chunk_id == chunks.BREAK_PARAMS:
             xray.breakf.force = packed_reader.getf('<f')[0]
             xray.breakf.torque = packed_reader.getf('<f')[0]

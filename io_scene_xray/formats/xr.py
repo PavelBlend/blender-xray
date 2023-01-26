@@ -28,7 +28,7 @@ def parse_shaders(data):
     for (cid, cdata) in rw.read.ChunkedReader(data):
         if cid == 3:
             reader = rw.read.PackedReader(cdata)
-            for _ in range(reader.int()):
+            for _ in range(reader.uint32()):
                 yield (reader.gets(), '', None)
 
 

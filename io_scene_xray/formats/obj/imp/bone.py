@@ -174,7 +174,7 @@ def import_bone(
             xray.shape.set_curver()
         elif cid == fmt.Chunks.Bone.IK_JOINT:
             reader = rw.read.PackedReader(data)
-            value = str(reader.int())
+            value = str(reader.uint32())
             ik = xray.ikjoint
             safe_assign_enum_property(ik, 'type', value, 'bone ikjoint')
 
@@ -195,7 +195,7 @@ def import_bone(
             xray.mass.value = reader.getf('<f')[0]
             xray.mass.center = reader.getv3fp()
         elif cid == fmt.Chunks.Bone.IK_FLAGS:
-            xray.ikflags = rw.read.PackedReader(data).int()
+            xray.ikflags = rw.read.PackedReader(data).uint32()
         elif cid == fmt.Chunks.Bone.BREAK_PARAMS:
             reader = rw.read.PackedReader(data)
             xray.breakf.force = reader.getf('<f')[0]
