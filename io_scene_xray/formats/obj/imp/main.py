@@ -116,21 +116,26 @@ def import_main(file_path, context, chunked_reader):
                 fmt.Chunks.Object.BONES,
                 fmt.Chunks.Object.BONES1
             ):
+
             if chunk_id == fmt.Chunks.Object.BONES:
                 reader = rw.read.PackedReader(chunk_data)
                 bones_count = reader.uint32()
                 if not bones_count:
                     continue    # Do not create an armature if zero bones
-            if bpy and (bpy_arm_obj is None):
+
+            # create armature object
+            if bpy_arm_obj is None:
                 bpy_armature = bpy.data.armatures.new(object_name)
-                utils.version.set_arm_display_type(bpy_armature)
-                bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
                 bpy_armature.xray.joint_limits_type = 'XRAY'
-                utils.version.set_object_show_xray(bpy_arm_obj, True)
+                utils.version.set_arm_display_type(bpy_armature)
                 if not utils.version.IS_28:
                     bpy_armature.use_auto_ik = True
+
+                bpy_arm_obj = bpy.data.objects.new(object_name, bpy_armature)
+                utils.version.set_object_show_xray(bpy_arm_obj, True)
                 utils.version.link_object(bpy_arm_obj)
                 utils.version.set_active_object(bpy_arm_obj)
+
             if chunk_id == fmt.Chunks.Object.BONES:
                 for _ in range(bones_count):
                     name = reader.gets()
@@ -140,12 +145,19 @@ def import_main(file_path, context, chunked_reader):
                     rotate = reader.getv3fp()
                     length = reader.getf('<f')[0]
                     rotate = rotate[2], rotate[1], rotate[0]
+
                     bpy_bone = bone.create_bone(
-                        context, bpy_arm_obj,
-                        name, parent, vmap,
-                        offset, rotate, length,
+                        context,
+                        bpy_arm_obj,
+                        name,
+                        parent,
+                        vmap,
+                        offset,
+                        rotate,
+                        length,
                         renamemap
                     )
+
                     xray = bpy_bone.xray
                     xray.mass.gamemtl = 'default_object'
                     xray.mass.value = 10
@@ -162,17 +174,20 @@ def import_main(file_path, context, chunked_reader):
 
                     ik.spring = 1
                     ik.damping = 1
+
             else:
                 bones_chunks = []
                 bone_id_by_name = {}
                 bones_reader = rw.read.ChunkedReader(chunk_data)
                 for index, (_, bone_data) in enumerate(bones_reader):
                     bone_chunks = rw.utils.get_chunks(bone_data)
+                    bones_chunks.append(bone_chunks)
+
                     def_data = bone_chunks[fmt.Chunks.Bone.DEF]
                     def_reader = rw.read.PackedReader(def_data)
                     bone_name = def_reader.gets()
-                    bones_chunks.append(bone_chunks)
                     bone_id_by_name[bone_name] = index
+
                 imported_bones = set()
                 for bone_chunks in bones_chunks:
                     bone.import_bone(
@@ -184,8 +199,10 @@ def import_main(file_path, context, chunked_reader):
                         bones_chunks,
                         bone_id_by_name
                     )
-            for bone_ in bpy_arm_obj.pose.bones:
-                bone_.rotation_mode = 'ZXY'
+
+            # set rotation mode
+            for pose_bone in bpy_arm_obj.pose.bones:
+                pose_bone.rotation_mode = 'ZXY'
 
         # bones partitions
         elif chunk_id in (
