@@ -70,10 +70,13 @@ def import_main(file_path, context, chunked_reader):
                     vmap = reader.gets()
                     gamemtl = 'default'
                     cshader = xrlc_shaders[surface_index]
-                    if texture != vmap or not (texture and vmap):
-                        renamemap[vmap.lower()] = vmap
-                    else:    # old format (Objects\Rainbow\lest.object)
-                        vmap = 'Texture'
+
+                    if texture:
+                        # old format (Objects\Rainbow\lest.object)
+                        if texture == vmap:
+                            vmap = 'Texture'
+
+                    renamemap[vmap.lower()] = vmap
 
                 else:
                     name = reader.gets()
@@ -86,11 +89,13 @@ def import_main(file_path, context, chunked_reader):
                     texture = reader.gets()
                     vmap = reader.gets()
                     flags = reader.int()
-                    reader.skip(4 + 4)    # fvf and ?
-                    if texture != vmap or not (texture and vmap):
-                        renamemap[vmap.lower()] = vmap
-                    else:    # old format (Objects\corps\corp_BYAKA.object)
-                        vmap = 'Texture'
+                    reader.skip(4 + 4)    # fvf and TCs count
+
+                    if texture:
+                        # old format (Objects\corps\corp_BYAKA.object)
+                        if texture == vmap:
+                            vmap = 'Texture'
+
                     renamemap[vmap.lower()] = vmap
 
                 # create material
