@@ -19,7 +19,8 @@ class ImportObjectAnimationContext(contexts.ImportAnimationContext):
 
 
 class ImportObjectContext(
-        ImportObjectMeshContext, ImportObjectAnimationContext
+        ImportObjectMeshContext,
+        ImportObjectAnimationContext
     ):
     def __init__(self):
         super().__init__()
