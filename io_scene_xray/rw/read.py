@@ -46,6 +46,7 @@ class PackedReader:
     __slots__ = ['__offs', '__data', '__view']
     __PREP_I = struct.Struct('<I')
     __S_FFF = struct.Struct('<3f')
+    debug = False
 
     def __init__(self, data):
         self.__offs = 0
@@ -55,7 +56,7 @@ class PackedReader:
     def __del__(self):
         size = self.get_size()
         diff = size - self.__offs
-        if diff > 0:
+        if diff > 0 and self.debug:
             print('bytes not read: ', diff)
 
     def getb(self, count):

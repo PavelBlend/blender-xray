@@ -212,14 +212,15 @@ def import_main(file_path, context, chunked_reader):
                 bpy.ops.object.mode_set(mode='OBJECT')
 
         # motions
-        elif chunk_id == fmt.Chunks.Object.MOTIONS and context.import_motions:
-            reader = rw.read.PackedReader(chunk_data)
-            skl_context = skl.imp.ImportSklContext()
-            skl_context.bpy_arm_obj = bpy_arm_obj
-            skl_context.motions_filter = motions.utilites.MOTIONS_FILTER_ALL
-            skl_context.add_actions_to_motion_list = True
-            skl_context.filename = object_name
-            motions.imp.import_motions(reader, skl_context)
+        elif chunk_id == fmt.Chunks.Object.MOTIONS:
+            if context.import_motions:
+                reader = rw.read.PackedReader(chunk_data)
+                skl_ctx = skl.imp.ImportSklContext()
+                skl_ctx.bpy_arm_obj = bpy_arm_obj
+                skl_ctx.motions_filter = motions.utilites.MOTIONS_FILTER_ALL
+                skl_ctx.add_actions_to_motion_list = True
+                skl_ctx.filename = object_name
+                motions.imp.import_motions(reader, skl_ctx)
 
         # lib version
         elif chunk_id == fmt.Chunks.Object.LIB_VERSION:
