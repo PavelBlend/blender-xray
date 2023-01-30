@@ -16,7 +16,7 @@ __context__ = None
 class AppError(Exception):
     def __init__(self, message, log_context=None):
         super().__init__(message)
-        if log_context is None:
+        if log_context in None:
             log_context = props()
         self.log_context = log_context
 
@@ -70,24 +70,27 @@ class Logger:
         self._message(message, 'ERROR', ctx)
 
     def flush(self, logname='log'):
+        # collect message contexts
         uniq = dict()
         message_contexts = {}
         for msg, ctx, typ in self._full:
-            uniq[msg] = uniq.get(msg, (0, typ))[0] + 1, typ
+            count = uniq.get(msg, (0, typ))[0]
+            uniq[msg] = count + 1, typ
             message_contexts.setdefault(msg, []).append(ctx.data)
         if not uniq:
             return
 
+        # generate log lines and report
         lines = ['Digest:']
         for msg, (cnt, typ) in uniq.items():
             line = msg
             if cnt > 1:
-                line = ('[%dx] ' % cnt) + line
-                lines.append(' ' + line)
+                line = ' [{}x] '.format(cnt) + line
+                lines.append(line)
             else:
-                context = message_contexts[msg]
-                if context[0]:
-                    prop = tuple(context[0].values())[0]
+                context_data = message_contexts[msg][0]
+                if context_data:
+                    prop = tuple(context_data.values())[0]
                     if line.endswith('.'):
                         line = line[ : -1]
                     lines.append(' ' + line)
@@ -95,8 +98,8 @@ class Logger:
                 else:
                     lines.append(' ' + line)
             self._report({typ}, line)
-
         lines.extend(['', 'Full log:'])
+
         processed_groups = dict()
         last_line_is_message = False
 
@@ -110,7 +113,9 @@ class Logger:
                     prefix = '| ' * group.depth
                     if last_line_is_message:
                         lines.append(prefix + '|')
-                    lines.append('%s+-%s' % (prefix, self._format_data(group.data)))
+                    data = self._format_data(group.data)
+                    line = '{}+-{}'.format(prefix, data)
+                    lines.append(line)
                     last_line_is_message = False
                     prefix += '|  '
                 else:
@@ -130,22 +135,28 @@ class Logger:
             if data:
                 if msg.endswith('.'):
                     msg = msg[ : -1]
-                msg += (': %s' % data)
+                msg += (': {}'.format(data))
             if last_line_is_message and (last_message == msg):
                 last_message_count += 1
-                lines[-1] = '%s[%dx] %s' % (prefix, last_message_count, msg)
+                lines[-1] = '{}[{}x] {}'.format(
+                    prefix,
+                    last_message_count,
+                    msg
+                )
             else:
                 lines.append(prefix + msg)
                 last_message = msg
                 last_message_count = 1
                 last_line_is_message = True
 
+        # create log text
         text_data = bpy.data.texts.new(logname)
         text_data.user_clear()
         text_data.from_string('\n'.join(lines))
+        full_log_text = text.get_text(text.warn.full_log)
         self._report(
             {'WARNING'},
-            text.get_text(text.warn.full_log) + ': "' + text_data.name + '"'
+            full_log_text + ': "{}"'.format(text_data.name)
         )
 
 
