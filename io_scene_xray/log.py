@@ -16,7 +16,7 @@ __context__ = None
 class AppError(Exception):
     def __init__(self, message, log_context=None):
         super().__init__(message)
-        if log_context in None:
+        if log_context is None:
             log_context = props()
         self.log_context = log_context
 
@@ -85,8 +85,8 @@ class Logger:
         for msg, (cnt, typ) in uniq.items():
             line = msg
             if cnt > 1:
-                line = ' [{}x] '.format(cnt) + line
-                lines.append(line)
+                line = '[{}x] '.format(cnt) + line
+                lines.append(' ' + line)
             else:
                 context_data = message_contexts[msg][0]
                 if context_data:
