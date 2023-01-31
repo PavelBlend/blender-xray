@@ -17,6 +17,7 @@ class Context:
         self.multiply = utils.version.get_multiply()
         self.version = utils.addon_version_number()
         self.errors = []
+        self.fatal_errors = []
 
 
 # import contexts

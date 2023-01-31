@@ -36,6 +36,7 @@ def import_file(file_path, context):
     # import
 
     object_name = os.path.basename(file_path.lower())
+    context.before_import_file()
 
     bpy_arm_obj = None
     unread_chunks = []

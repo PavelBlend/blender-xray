@@ -10,6 +10,7 @@ from . import ctx
 from . import main
 from ... import ie
 from .... import log
+from .... import text
 from .... import utils
 
 
@@ -80,17 +81,12 @@ class XRAY_OT_import_object(
         imp_ctx.operator = self
 
         # import files
-        for file in self.files:
-            file_path = os.path.join(self.directory, file.name)
-            imp_ctx.before_import_file()
-            try:
-                main.import_file(file_path, imp_ctx)
-            except log.AppError as err:
-                imp_ctx.errors.append(err)
-
-        # report errors
-        for err in imp_ctx.errors:
-            log.err(err)
+        utils.ie.import_files(
+            self.directory,
+            self.files,
+            main.import_file,
+            imp_ctx
+        )
 
         return {'FINISHED'}
 

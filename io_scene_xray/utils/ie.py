@@ -8,6 +8,7 @@ import bpy
 from . import draw
 from . import version
 from .. import ui
+from .. import log
 from .. import text
 
 
@@ -86,3 +87,30 @@ def has_selected_files(operator):
 def check_textures_folder(operator, textures_folder):
     if not textures_folder:
         operator.report({'WARNING'}, 'No textures folder specified')
+
+
+def import_files(directory, files, imp_fun, context):
+    for file in files:
+        file_path = os.path.join(directory, file.name)
+        try:
+            imp_fun(file_path, context)
+        except log.AppError as err:
+            context.errors.append(err)
+        except BaseException as err:
+            context.fatal_errors.append((err, file_path))
+    report_errors(context)
+
+
+def report_errors(context):
+    for err in context.errors:
+        log.err(err)
+
+    for err, file_path in context.fatal_errors:
+        log.warn(
+            text.error.fatal_import_error,
+            file_path=file_path
+        )
+
+    if context.fatal_errors:
+        first_error = context.fatal_errors[0][0]
+        raise first_error

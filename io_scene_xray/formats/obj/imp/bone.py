@@ -10,6 +10,9 @@ from .... import log
 from .... import rw
 
 
+BONE_LENGTH = 0.02
+
+
 def create_bone(
         context,
         bpy_arm_obj,
@@ -23,10 +26,15 @@ def create_bone(
     ):
 
     bpy_armature = bpy_arm_obj.data
+
     if name != vmap:
         ex = renamemap.get(vmap, None)
         if ex is None:
-            log.warn(text.warn.object_bone_renamed, vmap=vmap, name=name)
+            log.warn(
+                text.warn.object_bone_renamed,
+                vmap=vmap,
+                name=name
+            )
         elif ex != name:
             log.warn(
                 text.warn.object_bone_already_renamed,
@@ -35,15 +43,16 @@ def create_bone(
                 name2=name
             )
         renamemap[vmap] = name
+
     bpy.ops.object.mode_set(mode='EDIT')
+
     try:
         bpy_bone = bpy_armature.edit_bones.new(name=name)
-        rot = mathutils.Euler(
-            (-rotate[0], -rotate[1], -rotate[2]), 'YXZ'
-        ).to_matrix().to_4x4()
+        rot = mathutils.Euler((-rotate[0], -rotate[1], -rotate[2]), 'YXZ')
+        rot_mat = rot.to_matrix().to_4x4()
         mat = context.multiply(
             mathutils.Matrix.Translation(offset),
-            rot,
+            rot_mat,
             motions.const.MATRIX_BONE
         )
         if parent:
@@ -60,15 +69,18 @@ def create_bone(
                     parent=parent,
                     child=name
                 )
-        bpy_bone.tail.y = 0.02
+        bpy_bone.tail.y = BONE_LENGTH
         bpy_bone.matrix = mat
-        name = bpy_bone.name
+        bone_name = bpy_bone.name
+
     finally:
         bpy.ops.object.mode_set(mode='OBJECT')
-    bpy_bone = bpy_armature.bones[name]
+
+    bpy_bone = bpy_armature.bones[bone_name]
     xray = bpy_bone.xray
     xray.version = context.version
     xray.length = length
+
     return bpy_bone
 
 
@@ -95,6 +107,7 @@ def import_bone(
         bones_chunks,
         bone_id_by_name
     ):
+
     data = chunks.get(fmt.Chunks.Bone.VERSION)
     reader = rw.read.PackedReader(data)
     ver = reader.getf('<H')[0]
@@ -133,6 +146,7 @@ def import_bone(
                 bones_chunks,
                 bone_id_by_name
             )
+
     bpy_bone = create_bone(
         context, bpy_arm_obj,
         name, parent,
@@ -142,6 +156,7 @@ def import_bone(
     )
     imported_bones.add(name)
     xray = bpy_bone.xray
+
     for cid, data in chunks.items():
         if cid == fmt.Chunks.Bone.DEF:
             def2 = rw.read.PackedReader(data).gets()
@@ -151,8 +166,10 @@ def import_bone(
                     name=name,
                     def2=def2
                 )
+
         elif cid == fmt.Chunks.Bone.MATERIAL:
             xray.gamemtl = rw.read.PackedReader(data).gets()
+
         elif cid == fmt.Chunks.Bone.SHAPE:
             reader = rw.read.PackedReader(data)
             safe_assign_enum_property(
@@ -173,6 +190,7 @@ def import_bone(
             xray.shape.cyl_hgh = reader.getf('<f')[0]
             xray.shape.cyl_rad = reader.getf('<f')[0]
             xray.shape.set_curver()
+
         elif cid == fmt.Chunks.Bone.IK_JOINT:
             reader = rw.read.PackedReader(data)
             value = str(reader.uint32())
@@ -201,18 +219,22 @@ def import_bone(
             reader = rw.read.PackedReader(data)
             xray.mass.value = reader.getf('<f')[0]
             xray.mass.center = reader.getv3fp()
+
         elif cid == fmt.Chunks.Bone.IK_FLAGS:
             xray.ikflags = rw.read.PackedReader(data).uint32()
+
         elif cid == fmt.Chunks.Bone.BREAK_PARAMS:
             reader = rw.read.PackedReader(data)
             xray.breakf.force = reader.getf('<f')[0]
             xray.breakf.torque = reader.getf('<f')[0]
+
         elif cid == fmt.Chunks.Bone.FRICTION:
             xray.friction = rw.read.PackedReader(data).getf('<f')[0]
+
         else:
             if not cid in (
                     fmt.Chunks.Bone.VERSION,
                     fmt.Chunks.Bone.DEF,
                     fmt.Chunks.Bone.BIND_POSE
                 ):
-                log.debug('unknown chunk', cid=cid)
+                log.debug('unknown chunk', chunk_id=cid)
