@@ -32,7 +32,7 @@ def import_cs_cop_objects(ltx, context, level_name):
                 loaded_object = imported_objects.get(ref)
                 if not loaded_object:
                     context.before_import_file()
-                    imported_object = obj.imp.import_file(object_path, context)
+                    imported_object = obj.imp.main.import_file(object_path, context)
                     utils.version.unlink_object_from_collections(imported_object)
                     exp_dir = os.path.dirname(ref)
                     if exp_dir:

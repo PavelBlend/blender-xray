@@ -7,29 +7,36 @@ import bpy_extras
 
 # addon modules
 from . import utility
-from .. import imp
+from . import main
 from ... import ie
 from .... import log
 from .... import utils
 
 
+filename_ext = '.object'
+
 import_props = {
     'filter_glob': bpy.props.StringProperty(
-        default='*.object', options={'HIDDEN'}
+        default='*'+filename_ext,
+        options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(subtype="DIR_PATH"),
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
+
+    # *.object format props
+    'fmt_version': ie.PropSDKVersion(),
     'import_motions': ie.PropObjectMotionsImport(),
-    'mesh_split_by_materials': ie.PropObjectMeshSplitByMaterials(),
-    'fmt_version': ie.PropSDKVersion()
+    'mesh_split_by_materials': ie.PropObjectMeshSplitByMaterials()
 }
 
-filename_ext = '.object'
 
+class XRAY_OT_import_object(
+        ie.BaseOperator,
+        bpy_extras.io_utils.ImportHelper
+    ):
 
-class XRAY_OT_import_object(ie.BaseOperator, bpy_extras.io_utils.ImportHelper):
     bl_idname = 'xray_import.object'
     bl_label = 'Import .object'
     bl_description = 'Imports X-Ray object'
@@ -47,30 +54,44 @@ class XRAY_OT_import_object(ie.BaseOperator, bpy_extras.io_utils.ImportHelper):
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        preferences = utils.version.get_preferences()
-        textures_folder = preferences.textures_folder_auto
-        objects_folder = preferences.objects_folder_auto
-        if not textures_folder:
-            self.report({'WARNING'}, 'No textures folder specified')
-        if not self.files or (len(self.files) == 1 and not self.files[0].name):
-            self.report({'ERROR'}, 'No files selected!')
+        # check selected files
+        has_sel = utils.ie.has_selected_files(self)
+        if not has_sel:
             return {'CANCELLED'}
-        import_context = utility.ImportObjectContext()
-        import_context.textures_folder=textures_folder
-        import_context.soc_sgroups=self.fmt_version == 'soc'
-        import_context.import_motions=self.import_motions
-        import_context.split_by_materials=self.mesh_split_by_materials
-        import_context.operator=self
-        import_context.objects_folder=objects_folder
+
+        # get addon preferences
+        pref = utils.version.get_preferences()
+
+        textures_folder = pref.textures_folder_auto
+        objects_folder = pref.objects_folder_auto
+
+        utils.ie.check_textures_folder(self, textures_folder)
+
+        # set import context
+        imp_ctx = utility.ImportObjectContext()
+
+        use_soc_sg = self.fmt_version == 'soc'
+
+        imp_ctx.textures_folder = textures_folder
+        imp_ctx.objects_folder = objects_folder
+        imp_ctx.soc_sgroups = use_soc_sg
+        imp_ctx.import_motions = self.import_motions
+        imp_ctx.split_by_materials = self.mesh_split_by_materials
+        imp_ctx.operator = self
+
+        # import files
         for file in self.files:
             file_path = os.path.join(self.directory, file.name)
-            import_context.before_import_file()
+            imp_ctx.before_import_file()
             try:
-                imp.import_file(file_path, import_context)
+                main.import_file(file_path, imp_ctx)
             except log.AppError as err:
-                import_context.errors.append(err)
-        for err in import_context.errors:
+                imp_ctx.errors.append(err)
+
+        # report errors
+        for err in imp_ctx.errors:
             log.err(err)
+
         return {'FINISHED'}
 
     def draw(self, context):
@@ -83,10 +104,12 @@ class XRAY_OT_import_object(ie.BaseOperator, bpy_extras.io_utils.ImportHelper):
         layout.prop(self, 'mesh_split_by_materials')
 
     def invoke(self, context, event):
-        preferences = utils.version.get_preferences()
-        self.fmt_version = preferences.sdk_version
-        self.import_motions = preferences.object_motions_import
-        self.mesh_split_by_materials = preferences.object_mesh_split_by_mat
+        pref = utils.version.get_preferences()
+
+        self.fmt_version = pref.sdk_version
+        self.import_motions = pref.object_motions_import
+        self.mesh_split_by_materials = pref.object_mesh_split_by_mat
+
         return super().invoke(context, event)
 
 

@@ -66,7 +66,7 @@ def _read_object_body(data, imported_objects, import_context):
     )
     if not imported_objects.get(object_path):
         if os.path.exists(import_path):
-            imported_object = obj.imp.import_file(import_path, import_context)
+            imported_object = obj.imp.main.import_file(import_path, import_context)
             imported_object.location = position[0], position[2], position[1]
             imported_object.rotation_euler = rotation[0], rotation[2], rotation[1]
             imported_object.scale = scale[0], scale[2], scale[1]

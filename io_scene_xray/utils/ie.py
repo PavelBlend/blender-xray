@@ -75,3 +75,23 @@ def set_initial_state(method):
         context.window.cursor_set('DEFAULT')
         return result
     return wrapper
+
+
+def has_selected_files(operator):
+    has_sel = True
+
+    if not operator.files:
+        has_sel = False
+
+    if len(operator.files) == 1 and not operator.files[0].name:
+        has_sel = False
+
+    if not has_sel:
+        operator.report({'ERROR'}, 'No files selected!')
+
+    return has_sel
+
+
+def check_textures_folder(operator, textures_folder):
+    if not textures_folder:
+        operator.report({'WARNING'}, 'No textures folder specified')
