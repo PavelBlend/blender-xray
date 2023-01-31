@@ -12,7 +12,7 @@ keymap_items_list = (
     (formats.obj.exp.ops.XRAY_OT_export_object, 'F5', False, False, True),
     (formats.skl.ops.XRAY_OT_import_skls, 'F6', False, False, False),
     (formats.skl.ops.XRAY_OT_export_skls, 'F6', False, False, True),
-    (formats.ogf.ops.XRAY_OT_import_ogf, 'F7', False, False, False),
+    (formats.ogf.imp.ops.XRAY_OT_import_ogf, 'F7', False, False, False),
     (formats.ogf.ops.XRAY_OT_export_ogf, 'F7', False, False, True),
     (formats.omf.ops.XRAY_OT_import_omf, 'F8', False, False, False),
     (formats.omf.ops.XRAY_OT_export_omf, 'F8', False, False, True),

@@ -11,7 +11,7 @@ from . import formats
 import_ops = (
     (formats.obj.imp.ops.XRAY_OT_import_object, 'Object'),
     (formats.skl.ops.XRAY_OT_import_skls, 'Skls'),
-    (formats.ogf.ops.XRAY_OT_import_ogf, 'Ogf'),
+    (formats.ogf.imp.ops.XRAY_OT_import_ogf, 'Ogf'),
     (formats.omf.ops.XRAY_OT_import_omf, 'Omf'),
     (formats.anm.ops.XRAY_OT_import_anm, 'Anm'),
     (formats.bones.ops.XRAY_OT_import_bones, 'Bones'),
