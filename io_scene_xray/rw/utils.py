@@ -43,3 +43,24 @@ def read_text_file(file_path):
     with open(file_path, mode='r', encoding='cp1251') as file:
         data = file.read()
     return data
+
+
+def check_file_exists(file_path):
+    if not os.path.exists(file_path):
+        raise log.AppError(
+            text.error.file_not_found,
+            log.props(file_path=file_path)
+        )
+
+
+def get_file_reader(file_path, chunked=False):
+    log.update(file=file_path)
+    check_file_exists(file_path)
+    file_data = read_file(file_path)
+
+    if chunked:
+        reader = read.ChunkedReader(memoryview(file_data))
+    else:
+        reader = read.PackedReader(file_data)
+
+    return reader

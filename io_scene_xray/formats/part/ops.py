@@ -14,7 +14,7 @@ from ... import utils
 from ... import log
 
 
-class ImportPartContext(obj.imp.utility.ImportObjectContext):
+class ImportPartContext(obj.imp.ctx.ImportObjectContext):
     def __init__(self):
         super().__init__()
 

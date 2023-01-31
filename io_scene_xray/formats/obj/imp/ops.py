@@ -6,7 +6,7 @@ import bpy
 import bpy_extras
 
 # addon modules
-from . import utility
+from . import ctx
 from . import main
 from ... import ie
 from .... import log
@@ -68,7 +68,7 @@ class XRAY_OT_import_object(
         utils.ie.check_textures_folder(self, textures_folder)
 
         # set import context
-        imp_ctx = utility.ImportObjectContext()
+        imp_ctx = ctx.ImportObjectContext()
 
         use_soc_sg = self.fmt_version == 'soc'
 

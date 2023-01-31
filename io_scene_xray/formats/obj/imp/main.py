@@ -17,14 +17,31 @@ from .... import utils
 from .... import rw
 
 
-def import_main(file_path, context, chunked_reader):
+@log.with_context(name='import-object')
+def import_file(file_path, context):
+    main_reader = rw.utils.get_file_reader(file_path, chunked=True)
+
+    # find main chunk
+    chunked_reader = None
+
+    for chunk_id, chunk_data in main_reader:
+        if chunk_id == fmt.Chunks.Object.MAIN:
+            chunked_reader = rw.read.ChunkedReader(chunk_data)
+        else:
+            log.debug('unknown chunk', chunk_id=chunk_id)
+
+    if not chunked_reader:
+        raise log.AppError(text.error.object_main_chunk)
+
+    # import
+
     object_name = os.path.basename(file_path.lower())
 
     bpy_arm_obj = None
     unread_chunks = []
     renamemap = {}
 
-    for (chunk_id, chunk_data) in chunked_reader:
+    for chunk_id, chunk_data in chunked_reader:
         # version
         if chunk_id == fmt.Chunks.Object.VERSION:
             reader = rw.read.PackedReader(chunk_data)
@@ -348,28 +365,4 @@ def import_main(file_path, context, chunked_reader):
                 chunk_size=len(chunk_data)
             )
 
-    return bpy_obj
-
-
-def _import(file_path, context, reader):
-    has_main_chunk = False
-    for (cid, data) in reader:
-        if cid == fmt.Chunks.Object.MAIN:
-            has_main_chunk = True
-            chunked_reader = rw.read.ChunkedReader(data)
-            bpy_obj = import_main(file_path, context, chunked_reader)
-            return bpy_obj
-        else:
-            log.debug('unknown chunk', cid=cid)
-    if not has_main_chunk:
-        raise log.AppError(text.error.object_main_chunk)
-
-
-@log.with_context(name='import-object')
-def import_file(file_path, context):
-    log.update(file=file_path)
-    utils.ie.check_file_exists(file_path)
-    file_data = rw.utils.read_file(file_path)
-    chunked_reader = rw.read.ChunkedReader(memoryview(file_data))
-    bpy_obj = _import(file_path, context, chunked_reader)
     return bpy_obj

@@ -5,7 +5,6 @@ import bpy
 from .. import obj
 from ... import log
 from ... import text
-from ... import utils
 from ... import rw
 
 
@@ -141,6 +140,6 @@ def _import_main(data, import_context):
 @log.with_context(name='import-bones')
 def import_file(import_context):
     log.update(file=import_context.filepath)
-    utils.ie.check_file_exists(import_context.filepath)
+    rw.utils.check_file_exists(import_context.filepath)
     data = rw.utils.read_file(import_context.filepath)
     _import_main(data, import_context)

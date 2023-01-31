@@ -102,7 +102,7 @@ def _import(file_path, context, chunked_reader):
 @log.with_context('import-details')
 def import_file(file_path, context):
     log.update(file=file_path)
-    utils.ie.check_file_exists(file_path)
+    rw.utils.check_file_exists(file_path)
     data = rw.utils.read_file(file_path)
     chunked_reader = rw.read.ChunkedReader(data)
     _import(file_path, context, chunked_reader)

@@ -13,7 +13,7 @@ from ... import utils
 from ... import rw
 
 
-class ImportSceneContext(obj.imp.utility.ImportObjectMeshContext):
+class ImportSceneContext(obj.imp.ctx.ImportObjectMeshContext):
     def __init__(self):
         super().__init__()
 
@@ -187,7 +187,7 @@ def import_(filepath, chunked_reader, import_context):
 @log.with_context(name='import-scene-selection')
 def import_file(filepath, operator):
     log.update(file=filepath)
-    utils.ie.check_file_exists(filepath)
+    rw.utils.check_file_exists(filepath)
     preferences = utils.version.get_preferences()
     textures_folder = preferences.textures_folder_auto
     objects_folder = preferences.objects_folder_auto

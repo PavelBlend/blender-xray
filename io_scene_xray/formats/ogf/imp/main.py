@@ -10,7 +10,6 @@ from .. import fmt
 from .... import log
 from .... import rw
 from .... import text
-from .... import utils
 
 
 def import_children(context, chunks, chunks_ids, root_visual):
@@ -120,7 +119,7 @@ def import_level_visual(data, visual_id, lvl, chunks, visuals_ids):
 @log.with_context(name='import-ogf')
 def import_file(context, file_path, file_name):
     log.update(file=file_path)
-    utils.ie.check_file_exists(file_path)
+    rw.utils.check_file_exists(file_path)
     data = rw.utils.read_file(file_path)
 
     # init visual
