@@ -48,7 +48,6 @@ object_missing_group = 'vertices have missing groups'
 # object import bone
 object_bone_renamed = 'bone vertex map: will be renamed'
 object_bone_already_renamed = 'bone vertex map: is already renamed'
-object_unsupport_prop = 'unsupported property value using default'
 object_bad_bone_name = 'not supported yet. bone name != bone def2'
 # object import main
 object_bad_userdata = 'bad userdata'
@@ -62,8 +61,8 @@ object_duplicate_faces = 'duplicate faces found'
 object_try_use_option = 'Try to use option'
 object_vert_group_created = 'Vertex groups created'
 # ogf import
-ogf_bad_shape = 'unsupported bone shape type'
-ogf_bad_joint = 'unsupported bone joint type'
+ogf_bad_shape = 'unsupported bone shape type using default'
+ogf_bad_joint = 'unsupported bone joint type using default'
 # scene import
 scene_no_file = 'cannot find file'
 # motion

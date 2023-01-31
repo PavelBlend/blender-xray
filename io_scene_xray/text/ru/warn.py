@@ -57,7 +57,6 @@ translations_table = (
     # object import bone
     (warn.object_bone_renamed, 'группа вершин кости: была переименована'),
     (warn.object_bone_already_renamed, 'группа вершин кости: уже переименована'),
-    (warn.object_unsupport_prop, 'неподдерживаемое значение свойства, используется значение по-умолчанию'),
     (warn.object_bad_bone_name, 'ещё не поддерживается. Имя кости не равно def2 кости'),
     # object import main
     (warn.object_bad_userdata, 'некорректные пользовательские данные (userdata)'),
@@ -71,8 +70,8 @@ translations_table = (
     (warn.object_try_use_option, 'Попробуйте включить параметр импорта'),
     (warn.object_vert_group_created, 'Создана группа вершин'),
     # ogf import
-    (warn.ogf_bad_shape, 'неподдерживаемый тип формы кости'),
-    (warn.ogf_bad_joint, 'неподдерживаемый тип сустава кости'),
+    (warn.ogf_bad_shape, 'неподдерживаемый тип формы кости, используется тип по-умолчанию'),
+    (warn.ogf_bad_joint, 'неподдерживаемый тип сустава кости, используется тип по-умолчанию'),
     # scene import
     (warn.scene_no_file, 'не найден файл'),
     # motion

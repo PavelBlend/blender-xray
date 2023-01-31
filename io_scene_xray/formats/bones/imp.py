@@ -68,10 +68,11 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
         elif chunk_id == chunks.SHAPE:
             shape_type = packed_reader.getf('<H')[0]
             obj.imp.bone.safe_assign_enum_property(
+                bpy_bone.name,
                 xray.shape,
                 'type',
                 str(shape_type),
-                'bone shape'
+                text.get_text(text.warn.ogf_bad_shape)
             )
             xray.shape.flags = packed_reader.getf('<H')[0]
             xray.shape.box_rot = packed_reader.getf('<9f')
@@ -88,10 +89,11 @@ def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
             ik = xray.ikjoint
             joint_type = str(packed_reader.uint32())
             obj.imp.bone.safe_assign_enum_property(
+                bpy_bone.name,
                 ik,
                 'type',
                 joint_type,
-                'bone ikjoint'
+                text.get_text(text.warn.ogf_bad_joint)
             )
             # limit x
             ik.lim_x_min, ik.lim_x_max = packed_reader.getf('<2f')
