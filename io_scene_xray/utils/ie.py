@@ -84,9 +84,12 @@ def has_selected_files(operator):
     return has_sel
 
 
-def check_textures_folder(operator, textures_folder):
-    if not textures_folder:
+def get_textures_folder(operator):
+    pref = version.get_preferences()
+    tex_folder = pref.textures_folder_auto
+    if not tex_folder:
         operator.report({'WARNING'}, 'No textures folder specified')
+    return tex_folder
 
 
 def import_files(directory, files, imp_fun, context):

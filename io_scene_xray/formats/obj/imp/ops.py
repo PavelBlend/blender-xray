@@ -62,11 +62,8 @@ class XRAY_OT_import_object(
 
         # get addon preferences
         pref = utils.version.get_preferences()
-
-        textures_folder = pref.textures_folder_auto
         objects_folder = pref.objects_folder_auto
-
-        utils.ie.check_textures_folder(self, textures_folder)
+        textures_folder = utils.ie.get_textures_folder(self)
 
         # set import context
         imp_ctx = ctx.ImportObjectContext()

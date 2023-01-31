@@ -27,19 +27,22 @@ class ExportDmContext(contexts.ExportMeshContext):
 filename_ext = '.dm'
 op_text = 'Detail Model'
 
-
 import_props = {
     'filter_glob': bpy.props.StringProperty(
-        default='*.dm', options={'HIDDEN'}
+        default='*.dm',
+        options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE', 'HIDDEN'}
+        subtype="DIR_PATH",
+        options={'SKIP_SAVE', 'HIDDEN'}
     ),
     'filepath': bpy.props.StringProperty(
-        subtype="FILE_PATH", options={'SKIP_SAVE', 'HIDDEN'}
+        subtype="FILE_PATH",
+        options={'SKIP_SAVE', 'HIDDEN'}
     ),
     'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE', 'HIDDEN'}
+        type=bpy.types.OperatorFileListElement,
+        options={'SKIP_SAVE', 'HIDDEN'}
     )
 }
 
@@ -48,6 +51,7 @@ class XRAY_OT_import_dm(
         ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
+
     bl_idname = 'xray_import.dm'
     bl_label = 'Import .dm'
     bl_description = 'Imports X-Ray Detail Models (.dm)'
@@ -65,30 +69,24 @@ class XRAY_OT_import_dm(
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        textures_folder = utils.version.get_preferences().textures_folder_auto
-
-        if not textures_folder:
-            self.report({'WARNING'}, 'No textures folder specified')
-
-        if not self.files or (len(self.files) == 1 and not self.files[0].name):
-            self.report({'ERROR'}, 'No files selected!')
+        # check selected files
+        has_sel = utils.ie.has_selected_files(self)
+        if not has_sel:
             return {'CANCELLED'}
 
-        import_context = ImportDmContext()
-        import_context.textures_folder=textures_folder
-        import_context.operator=self
+        tex_folder = utils.ie.get_textures_folder(self)
 
-        for file in self.files:
-            file_ext = os.path.splitext(file.name)[-1].lower()
-            try:
-                imp.import_file(
-                    os.path.join(self.directory, file.name),
-                    import_context
-                )
-            except log.AppError as err:
-                import_context.errors.append(err)
-        for err in import_context.errors:
-            log.err(err)
+        import_context = ImportDmContext()
+        import_context.textures_folder = tex_folder
+        import_context.operator = self
+
+        utils.ie.import_files(
+            self.directory,
+            self.files,
+            imp.import_file,
+            import_context
+        )
+
         return {'FINISHED'}
 
 
