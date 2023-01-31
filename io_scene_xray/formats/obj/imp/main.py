@@ -242,7 +242,9 @@ def import_file(file_path, context):
                             bone_key = reader.gets()
                         else:
                             bone_key = reader.uint32()
-                        obj_pose.bones[bone_key].bone_group = bone_group
+                        pose_bone = obj_pose.bones.get(bone_key)
+                        if pose_bone:
+                            pose_bone.bone_group = bone_group
             finally:
                 bpy.ops.object.mode_set(mode='OBJECT')
 
