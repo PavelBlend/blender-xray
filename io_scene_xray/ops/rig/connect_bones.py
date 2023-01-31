@@ -120,7 +120,9 @@ def set_con_tail_without_verts(bone, connected_bone):
 
 
 def connect_bones(arm, mesh_objs):
-    # collect vertex group
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    # collect vertex groups
     vertex_groups = {}
     for mesh_obj in mesh_objs:
         for vertex in mesh_obj.data.vertices:
@@ -200,6 +202,8 @@ def connect_bones(arm, mesh_objs):
         bone.layers = bone_layers
         connected_bone.layers = connected_layers
 
+    bpy.ops.object.mode_set(mode='OBJECT')
+
 
 class XRAY_OT_create_connected_bones(bpy.types.Operator):
     bl_idname = 'io_scene_xray.create_connected_bones'
@@ -269,9 +273,7 @@ class XRAY_OT_create_connected_bones(bpy.types.Operator):
                     mesh_objects.append(obj)
 
         # connect bones
-        bpy.ops.object.mode_set(mode='EDIT')
         connect_bones(arm, mesh_objects)
-        bpy.ops.object.mode_set(mode='OBJECT')
 
         # create weights bones
         create_weights_bones(src_arm_obj, arm_obj)
