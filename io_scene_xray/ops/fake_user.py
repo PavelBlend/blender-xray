@@ -214,6 +214,7 @@ class XRAY_OT_change_fake_user(bpy.types.Operator):
             self.set_fake_user(data_block)
             change_data_blocks_count += 1
 
+        utils.draw.redraw_areas()
         self.report_change(change_data_blocks_count)
 
         return {'FINISHED'}

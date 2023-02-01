@@ -90,6 +90,7 @@ class XRAY_OT_place_objects(bpy.types.Operator):
                 row += 1
             else:
                 column += 1
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Moved {0} objects'.format(objects_count))
         return {'FINISHED'}
 
@@ -215,6 +216,7 @@ class XRAY_OT_colorize_objects(bpy.types.Operator):
                 color.append(1.0)    # alpha
             obj.color = color
             changed_objects_count += 1
+        utils.draw.redraw_areas()
         self.report(
             {'INFO'},
             'Changed {} object(s)'.format(changed_objects_count)
@@ -246,6 +248,7 @@ class XRAY_OT_set_asset_author(bpy.types.Operator):
             owner = root.xray.revision.owner
             asset.author = owner
             changed += 1
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Changed Assets: {}'.format(changed))
         return {'FINISHED'}
 

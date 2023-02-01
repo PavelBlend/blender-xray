@@ -75,6 +75,7 @@ class XRAY_OT_paste_action_settings(bpy.types.Operator):
     @utils.set_cursor_state
     def execute(self, context):
         read_buffer_data()
+        utils.draw.redraw_areas()
         self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
@@ -215,6 +216,7 @@ class XRAY_OT_change_action_bake_settings(bpy.types.Operator):
             # rotation
             if self.change_rotation_threshold:
                 xray.autobake_refine_rotation = self.value_rotation_threshold
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Changed {} action(s)'.format(len(actions)))
         return {'FINISHED'}
 
@@ -427,6 +429,7 @@ class XRAY_OT_rename_actions(bpy.types.Operator):
         no_custom_name_objs = no_custom_name_objs - custom_name_objs
         for obj in no_custom_name_objs:
             obj.xray.use_custom_motion_names = False
+        utils.draw.redraw_areas()
         self.report(
             {'INFO'},
             'Renamed: {}, Not Renamed: {}'.format(renamed, not_renamed)

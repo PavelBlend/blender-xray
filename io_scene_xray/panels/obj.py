@@ -151,6 +151,7 @@ class XRAY_OT_add_all_actions(bpy.types.Operator):
                     motion.name = action.name
                     added_count += 1
 
+        utils.draw.redraw_areas()
         self.report(
             {'INFO'},
             text.get_text(text.warn.added_motions) + ': ' + str(added_count)
@@ -177,6 +178,7 @@ class XRAY_OT_remove_all_actions(bpy.types.Operator):
     def execute(self, context):
         obj = context.object
         obj.xray.motions_collection.clear()
+        utils.draw.redraw_areas()
         return {'FINISHED'}
 
 
@@ -208,6 +210,7 @@ class XRAY_OT_clean_actions(bpy.types.Operator):
         remove.reverse()
         for motion_index in remove:
             obj.xray.motions_collection.remove(motion_index)
+        utils.draw.redraw_areas()
         return {'FINISHED'}
 
 
@@ -292,6 +295,7 @@ class XRAY_OT_paste_actions_list(bpy.types.Operator):
                 use_custom_name = True
         if use_custom_name:
             obj.xray.use_custom_motion_names = True
+        utils.draw.redraw_areas()
         return {'FINISHED'}
 
 
@@ -322,6 +326,7 @@ class XRAY_OT_remove_all_motion_refs(bpy.types.Operator):
     def execute(self, context):
         obj = context.object
         obj.xray.motionrefs_collection.clear()
+        utils.draw.redraw_areas()
         return {'FINISHED'}
 
 
@@ -389,6 +394,7 @@ class XRAY_OT_paste_motion_refs_list(bpy.types.Operator):
                 continue
             ref = refs.add()
             ref.name = line
+        utils.draw.redraw_areas()
         return {'FINISHED'}
 
 
@@ -483,6 +489,8 @@ class XRAY_OT_sort_motions_list(bpy.types.Operator):
             elem.name = name
             elem.export_name = exp
 
+        utils.draw.redraw_areas()
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -533,6 +541,8 @@ class XRAY_OT_sort_motion_refs_list(bpy.types.Operator):
         for ref in used_refs:
             elem = refs.add()
             elem.name = ref
+
+        utils.draw.redraw_areas()
 
         return {'FINISHED'}
 
@@ -596,9 +606,11 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
         refs = obj.xray.motionrefs_collection
         preferences = utils.version.get_preferences()
         meshes_folder = preferences.meshes_folder_auto
+
         if not meshes_folder:
             self.report({'WARNING'}, 'Meshes folder not specified!')
             return {'FINISHED'}
+
         fail_count = 0
         for file in self.files:
             if not file.name.endswith('.omf'):
@@ -612,11 +624,15 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
             if not motion_ref in refs:
                 ref = refs.add()
                 ref.name = motion_ref
+
         if fail_count:
             self.report(
                 {'WARNING'},
                 'Could not add {} references!'.format(fail_count)
             )
+
+        utils.draw.redraw_areas()
+
         return {'FINISHED'}
 
     def invoke(self, context, _event):

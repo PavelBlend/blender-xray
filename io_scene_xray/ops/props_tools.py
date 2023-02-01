@@ -221,6 +221,7 @@ class XRAY_OT_change_userdata(bpy.types.Operator):
         for obj in root_objs:
             obj.xray.userdata = userdata
 
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
@@ -320,6 +321,7 @@ class XRAY_OT_change_lod_ref(bpy.types.Operator):
         for obj in root_objs:
             obj.xray.lodref = lod_ref
 
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
@@ -446,6 +448,7 @@ class XRAY_OT_change_motion_refs(bpy.types.Operator):
                 elem = refs.add()
                 elem.name = ref
 
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
@@ -508,6 +511,7 @@ class XRAY_OT_change_object_type(bpy.types.Operator):
         for obj in root_objs:
             obj.xray.flags_simple = self.obj_type
 
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
@@ -551,6 +555,7 @@ class XRAY_OT_change_hq_export(bpy.types.Operator):
         for obj in root_objs:
             obj.xray.flags_custom_hqexp = self.hq_export
 
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 

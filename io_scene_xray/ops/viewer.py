@@ -315,6 +315,7 @@ class XRAY_OT_viewer_open_folder(bpy.types.Operator):
         scene = context.scene
         scene.xray.viewer.folder = self.directory
         update_file_list(scene.xray.viewer.folder)
+        utils.draw.redraw_areas()
         self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
@@ -349,6 +350,7 @@ class XRAY_OT_viewer_close_folder(bpy.types.Operator):
         remove_preview_data()
         scene.xray.viewer.folder = ''
         scene.xray.viewer.files.clear()
+        utils.draw.redraw_areas()
         return {'FINISHED'}
 
 

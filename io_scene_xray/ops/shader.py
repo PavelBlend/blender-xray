@@ -265,6 +265,7 @@ class XRAY_OT_change_shader_params(bpy.types.Operator):
                 if self.transparency_alpha_change:
                     mat.alpha = self.transparency_alpha_value
             mat.update_tag()
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Changed {} material(s)'.format(len(materials)))
         return {'FINISHED'}
 

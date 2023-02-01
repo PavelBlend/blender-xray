@@ -85,3 +85,8 @@ def draw_presets(layout, menu, op_add):
         text='',
         icon=version.get_icon('ZOOMOUT')
     ).remove_active = True
+
+
+def redraw_areas():
+    for area in bpy.context.window.screen.areas:
+        area.tag_redraw()

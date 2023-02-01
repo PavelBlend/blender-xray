@@ -110,6 +110,7 @@ class XRAY_OT_switch_render(bpy.types.Operator):
             for material in materials:
                 material.use_nodes = False
 
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Changed {} material(s)'.format(len(materials)))
         return {'FINISHED'}
 
@@ -193,6 +194,7 @@ class XRAY_OT_convert_to_internal_material(bpy.types.Operator):
                 if uv_map:
                     texture_slot.uv_layer = uv_map
 
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Changed {} material(s)'.format(len(materials)))
         return {'FINISHED'}
 
@@ -304,6 +306,7 @@ class XRAY_OT_convert_to_cycles_material(bpy.types.Operator):
             output_name = shader_keys[self.shader_type][2]
             node_tree.links.new(image_node.outputs['Color'], shader_node.inputs[color_name])
             node_tree.links.new(shader_node.outputs[output_name], output_node.inputs['Surface'])
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Changed {} material(s)'.format(len(materials)))
         return {'FINISHED'}
 
@@ -504,6 +507,7 @@ class XRAY_OT_colorize_materials(bpy.types.Operator):
                             changed = True
             if changed:
                 changed_materials_count += 1
+        utils.draw.redraw_areas()
         self.report(
             {'INFO'},
             'Changed {} material(s)'.format(changed_materials_count)
@@ -629,6 +633,7 @@ class XRAY_OT_create_material(bpy.types.Operator):
         image_node.name = rel_path
         image_node.label = rel_path
 
+        utils.draw.redraw_areas()
         self.report({'INFO'}, text.get_text(text.warn.ready))
 
         return {'FINISHED'}

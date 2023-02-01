@@ -130,6 +130,7 @@ class XRAY_OT_convert_limits_to_constraints(JointLimitsBaseOperator):
                     constraint.max_y = pose_bone.ik_max_y
                     constraint.min_z = pose_bone.ik_min_z
                     constraint.max_z = pose_bone.ik_max_z
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Constraints created: {}'.format(created_count))
         return {'FINISHED'}
 
@@ -166,6 +167,7 @@ class XRAY_OT_remove_limits_constraints(JointLimitsBaseOperator):
             if constraint:
                 pose_bone.constraints.remove(constraint)
                 removed_count += 1
+        utils.draw.redraw_areas()
         self.report({'INFO'}, 'Constraints removed: {}'.format(removed_count))
         return {'FINISHED'}
 
@@ -193,6 +195,7 @@ class XRAY_OT_convert_ik_to_xray_limits(JointLimitsBaseOperator):
                 ik.lim_y_max = -pose_bone.ik_min_y
                 ik.lim_z_min = pose_bone.ik_min_z
                 ik.lim_z_max = pose_bone.ik_max_z
+        utils.draw.redraw_areas()
         self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
@@ -219,6 +222,7 @@ class XRAY_OT_convert_xray_to_ik_limits(JointLimitsBaseOperator):
                 pose_bone.ik_max_y = -ik.lim_y_min
                 pose_bone.ik_min_z = ik.lim_z_min
                 pose_bone.ik_max_z = ik.lim_z_max
+        utils.draw.redraw_areas()
         self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
@@ -251,6 +255,7 @@ class XRAY_OT_clear_ik_limits(JointLimitsBaseOperator):
                 pose_bone.ik_max_y = math.pi
                 pose_bone.ik_min_z = -math.pi
                 pose_bone.ik_max_z = math.pi
+        utils.draw.redraw_areas()
         self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 

@@ -65,6 +65,7 @@ class XRAY_OT_close_skls_file(BaseSklsBrowserOperator):
         browser.animations_prev_name = ''
         bpy.ops.screen.animation_cancel()
         utils.bone.reset_pose_bone_transforms(obj)
+        utils.draw.redraw_areas()
         return {'FINISHED'}
 
 
@@ -178,6 +179,7 @@ class XRAY_OT_browse_skls_file(BaseSklsBrowserOperator):
 
     def execute(self, context):
         init_skls_browser(self, context, self.filepath)
+        utils.draw.redraw_areas()
         return {'FINISHED'}
 
     def invoke(self, context, event):
