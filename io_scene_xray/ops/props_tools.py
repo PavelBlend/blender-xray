@@ -430,7 +430,6 @@ class XRAY_OT_change_motion_refs(bpy.types.Operator):
             motion_refs = result
 
         motion_refs = motion_refs.split('\n')
-        motion_refs.sort()
 
         # set value
         for obj in root_objs:
