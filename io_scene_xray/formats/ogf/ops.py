@@ -87,9 +87,13 @@ class XRAY_OT_export_ogf_file(
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = utils.version.get_preferences()
-        self.texture_name_from_image_path = preferences.ogf_texture_names_from_path
-        self.export_motions = preferences.ogf_export_motions
+        pref = utils.version.get_preferences()
+
+        self.texture_name_from_image_path = pref.ogf_texture_names_from_path
+        self.fmt_version = pref.ogf_export_fmt_ver
+        self.export_motions = pref.ogf_export_motions
+        self.hq_export = pref.ogf_export_hq_motions
+
         self.filepath = context.object.name
         objs = context.selected_objects
         self.selected_objects = context.selected_objects

@@ -147,7 +147,9 @@ def draw_defaults(prefs):
         # export
         box = layout.box()
         box.label(text='Export:')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'ogf_export_fmt_ver', lay_type='ROW')
         box.prop(prefs, 'ogf_export_motions')
+        box.prop(prefs, 'ogf_export_hq_motions')
         box.prop(prefs, 'ogf_texture_names_from_path')
     elif prefs.defaults_category == 'OMF':
         box = layout.box()

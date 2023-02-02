@@ -506,6 +506,8 @@ plugin_preferences_props = {
     # ogf export props
     'ogf_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
     'ogf_export_motions': formats.ie.PropObjectMotionsExport(),
+    'ogf_export_fmt_ver': formats.ie.PropSDKVersion(),
+    'ogf_export_hq_motions': formats.ie.prop_omf_high_quality(),
     # omf import props
     'omf_import_motions': formats.ie.PropObjectMotionsImport(),
     'import_bone_parts': formats.ie.prop_import_bone_parts(),
