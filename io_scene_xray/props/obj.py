@@ -167,7 +167,8 @@ def update_motion_collection_index(self, context):
     if not xray.play_active_motion:
         return
 
-    motion_name = xray.motions_collection[xray.motions_collection_index].name
+    motion_index = xray.motions_collection_index
+    motion_name = xray.motions_collection[motion_index].name
 
     if not bpy.data.actions.get(motion_name):
         return
@@ -189,19 +190,26 @@ def update_motion_collection_index(self, context):
         arm_obj = obj
 
     if arm_obj:
-        motion = bpy.data.actions[motion_name]
-        scene.frame_start = int(motion.frame_range[0])
-        scene.frame_end = int(motion.frame_range[1])
-        scene.frame_set(int(motion.frame_range[0]))
+        act = bpy.data.actions[motion_name]
 
-        if xray.dependency_object:
-            dependency = bpy.data.objects.get(xray.dependency_object)
-            if dependency:
-                anim_data = dependency.animation_data_create()
-                anim_data.action = motion
+        start_frm = int(act.frame_range[0])
+        end_frm = int(act.frame_range[1])
+
+        scene.frame_start = start_frm
+        scene.frame_end = end_frm
+        scene.frame_set(start_frm)
+
+        scene.use_preview_range = False
+
+        dep_obj_name = xray.dependency_object
+        if dep_obj_name:
+            dep_obj = bpy.data.objects.get(dep_obj_name)
+            if dep_obj:
+                anim_data = dep_obj.animation_data_create()
+                anim_data.action = act
         else:
             anim_data = arm_obj.animation_data_create()
-            anim_data.action = motion
+            anim_data.action = act
 
 
 object_type_items = (
