@@ -3,7 +3,7 @@ from .... import rw
 
 
 def read_ib(packed_reader):
-    indices_count = packed_reader.getf('<I')[0]
+    indices_count = packed_reader.uint32()
     indices_buffer = packed_reader.getf('<{0}H'.format(indices_count))
     return indices_buffer, indices_count
 

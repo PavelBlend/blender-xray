@@ -76,7 +76,7 @@ def import_sector_portal(data):
 
 def import_sector_root(data):
     packed_reader = rw.read.PackedReader(data)
-    root = packed_reader.getf('<I')[0]
+    root = packed_reader.uint32()
     return root
 
 
@@ -223,8 +223,8 @@ def import_glow(packed_reader, glow_index, materials, images):
 def import_glow_v5(level, packed_reader, glow_index):
     position = packed_reader.getf('<3f')
     radius = packed_reader.getf('<f')[0]
-    texture_index = packed_reader.getf('<I')[0]
-    shader_index = packed_reader.getf('<I')[0]
+    texture_index = packed_reader.uint32()
+    shader_index = packed_reader.uint32()
     glow_object = create_glow_object_v5(
         level, glow_index, position, radius,
         shader_index, texture_index
@@ -289,13 +289,13 @@ def import_light_dynamic(packed_reader, light_object):
     light_object.xray.is_level = True
 
     # controller id
-    controller_id = packed_reader.getf('<I')[0] # ???
+    controller_id = packed_reader.uint32() # ???
     if controller_id > INT_MAX:
         controller_id = -1
     data.controller_id = controller_id
 
     # light type
-    light_type = packed_reader.getf('<I')[0] # ???
+    light_type = packed_reader.uint32() # ???
     if light_type > INT_MAX:
         light_type = -1
     data.light_type = light_type
@@ -323,7 +323,7 @@ def import_light_dynamic_v8(packed_reader, light_object):
     data = light_object.xray.level
     data.object_type = 'LIGHT_DYNAMIC'
     light_object.xray.is_level = True
-    data.light_type = packed_reader.getf('<I')[0] # ???
+    data.light_type = packed_reader.uint32() # ???
     data.diffuse = packed_reader.getf('<4f')
     data.specular = packed_reader.getf('<4f')
     data.ambient = packed_reader.getf('<4f')
@@ -354,7 +354,7 @@ def import_light_dynamic_v5(packed_reader, light_object):
     data = light_object.xray.level
     data.object_type = 'LIGHT_DYNAMIC'
     light_object.xray.is_level = True
-    data.light_type = packed_reader.getf('<I')[0] # ???
+    data.light_type = packed_reader.uint32() # ???
     data.diffuse = packed_reader.getf('<4f')
     data.specular = packed_reader.getf('<4f')
     data.ambient = packed_reader.getf('<4f')
@@ -448,7 +448,7 @@ def import_portal(packed_reader, portal_index, collection, level):
     sector_front = packed_reader.getf('<H')[0]
     sector_back = packed_reader.getf('<H')[0]
     if level.xrlc_version <= fmt.VERSION_5:
-        used_vertices_count = packed_reader.getf('<I')[0]
+        used_vertices_count = packed_reader.uint32()
     vertices = []
 
     for vertex_index in range(fmt.PORTAL_VERTEX_COUNT):
@@ -456,7 +456,7 @@ def import_portal(packed_reader, portal_index, collection, level):
         vertices.append((coord_x, coord_z, coord_y))
 
     if level.xrlc_version >= fmt.VERSION_8:
-        used_vertices_count = packed_reader.getf('<I')[0]
+        used_vertices_count = packed_reader.uint32()
     vertices = vertices[ : used_vertices_count]
     portal_object = create_portal(portal_index, vertices, collection)
     portal_object.xray.is_level = True

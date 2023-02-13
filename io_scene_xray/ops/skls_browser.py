@@ -128,7 +128,7 @@ class SklsFile():
 
     def _index_animations(self):
         'Fills the cache (self.animations) by processing entire binary blob'
-        animations_count = self.pr.getf('I')[0]
+        animations_count = self.pr.uint32()
         for anim_index in range(animations_count):
             # index animation
             # first byte of the animation name

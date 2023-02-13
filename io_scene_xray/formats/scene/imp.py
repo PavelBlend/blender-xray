@@ -37,7 +37,7 @@ def _read_objects_count(objects_count_chunk):
         raise log.AppError(text.error.scene_obj_count)
 
     packed_reader = rw.read.PackedReader(objects_count_chunk)
-    objects_count = packed_reader.getf('<I')[0]
+    objects_count = packed_reader.uint32()
 
     return objects_count
 
@@ -49,8 +49,8 @@ def _read_object_body(data, imported_objects, import_context):
         packed_reader = rw.read.PackedReader(chunk_data)
         if chunk_id == fmt.Chunks.SCENEOBJ_CHUNK_REFERENCE:
             if scene_obj_version == fmt.SCENEOBJ_VERSION_SOC:
-                version = packed_reader.getf('<I')[0]
-                reserved = packed_reader.getf('<I')[0]
+                version = packed_reader.uint32()
+                reserved = packed_reader.uint32()
             object_path = packed_reader.gets()
             object_name = object_path.split(os.sep)[-1]
         elif chunk_id == fmt.Chunks.CUSTOMOBJECT_CHUNK_TRANSFORM:
@@ -162,7 +162,7 @@ def _read_version(version_chunk):
         )
 
     packed_reader = rw.read.PackedReader(version_chunk)
-    version = packed_reader.getf('<I')[0]
+    version = packed_reader.uint32()
     if version != fmt.FORMAT_VERSION:
         raise log.AppError(
             text.error.scene_ver,

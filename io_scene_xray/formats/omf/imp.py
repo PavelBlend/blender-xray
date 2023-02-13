@@ -12,7 +12,7 @@ from ... import rw
 
 def motion_mark(packed_reader):
     name = packed_reader.gets_a()
-    count = packed_reader.getf('<I')[0]
+    count = packed_reader.uint32()
     for index in range(count):
         interval_first = packed_reader.getf('<f')[0]
         interval_second = packed_reader.getf('<f')[0]
@@ -31,21 +31,21 @@ def examine_motions(data):
                 bone_count = packed_reader.getf('<H')[0]
                 for bone in range(bone_count):
                     if params_version == 1:
-                        bone_id = packed_reader.getf('<I')[0]
+                        bone_id = packed_reader.uint32()
                         bone_name = None
                     elif params_version == 2:
                         bone_id = None
                         bone_name = packed_reader.gets()
                     elif params_version in (3, 4):
                         bone_name = packed_reader.gets()
-                        bone_id = packed_reader.getf('<I')[0]
+                        bone_id = packed_reader.uint32()
                     else:
                         raise BaseException('Unknown params version')
             motion_count = packed_reader.getf('<H')[0]
             for motion_index in range(motion_count):
                 name = packed_reader.gets()
                 motion_names.append(name)
-                flags = packed_reader.getf('<I')[0]
+                flags = packed_reader.uint32()
                 bone_or_part = packed_reader.getf('<H')[0]
                 motion = packed_reader.getf('<H')[0]
                 speed = packed_reader.getf('<f')[0]
@@ -53,7 +53,7 @@ def examine_motions(data):
                 accrue = packed_reader.getf('<f')[0]
                 falloff = packed_reader.getf('<f')[0]
                 if params_version == 4:
-                    num_marks = packed_reader.getf('<I')[0]
+                    num_marks = packed_reader.uint32()
                     for mark_index in range(num_marks):
                         motion_mark(packed_reader)
     return motion_names
@@ -84,7 +84,7 @@ def convert_to_euler(quaternion):
 def read_motion(data, context, motions_params, bone_names, version):
     packed_reader = rw.read.PackedReader(data)
     name = packed_reader.gets()
-    length = packed_reader.getf('<I')[0]
+    length = packed_reader.uint32()
     motion_params = motions_params[name]
 
     import_motion = False
@@ -192,7 +192,7 @@ def read_motion(data, context, motions_params, bone_names, version):
                     euler = convert_to_euler(quaternion)
                     bone_rotations.append(euler)
                 else:
-                    motion_crc32 = packed_reader.getf('<I')[0]
+                    motion_crc32 = packed_reader.uint32()
                     for key_index in range(length):
                         quaternion = packed_reader.getf('<4h')
                         euler = convert_to_euler(quaternion)
@@ -201,7 +201,7 @@ def read_motion(data, context, motions_params, bone_names, version):
                 # translation
                 translations = []
                 if t_present:
-                    motion_crc32 = packed_reader.getf('<I')[0]
+                    motion_crc32 = packed_reader.uint32()
                     if hq:
                         translate_format = '3h'
                     else:
@@ -293,7 +293,7 @@ def read_motions(data, context, motions_params, bone_names, version=2):
 
     chunk_motion_count_data = chunked_reader.next(fmt.MOTIONS_COUNT_CHUNK)
     motion_count_packed_reader = rw.read.PackedReader(chunk_motion_count_data)
-    motions_count = motion_count_packed_reader.getf('<I')[0]
+    motions_count = motion_count_packed_reader.uint32()
 
     for chunk_id, chunk_data in chunked_reader:
         read_motion(chunk_data, context, motions_params, bone_names, version)
@@ -326,7 +326,7 @@ def read_params(data, context, version=1):
 
         for bone in range(bone_count):
             if params_version in (0, 1):
-                bone_id = packed_reader.getf('<I')[0]
+                bone_id = packed_reader.uint32()
                 bone_name = None
                 bone_names[bone_id] = None
             elif params_version == 2:
@@ -335,7 +335,7 @@ def read_params(data, context, version=1):
                 bone_names[bone] = bone_name
             elif params_version == 3 or params_version == 4:
                 bone_name = packed_reader.gets()
-                bone_id = packed_reader.getf('<I')[0]
+                bone_id = packed_reader.uint32()
                 bone_names[bone_id] = bone_name
             else:
                 raise BaseException('Unknown params version')
@@ -365,7 +365,7 @@ def read_params(data, context, version=1):
         motion_params = MotionParams()
 
         motion_params.name = packed_reader.gets()
-        motion_params.flags = packed_reader.getf('<I')[0]
+        motion_params.flags = packed_reader.uint32()
         motion_params.bone_or_part = packed_reader.getf('<H')[0]
         motion_params.motion = packed_reader.getf('<H')[0]
         motion_params.speed = packed_reader.getf('<f')[0]
@@ -379,7 +379,7 @@ def read_params(data, context, version=1):
         motions_params[motion_params.name] = motion_params
 
         if params_version == 4:
-            num_marks = packed_reader.getf('<I')[0]
+            num_marks = packed_reader.uint32()
             for mark_index in range(num_marks):
                 motion_mark(packed_reader)
 

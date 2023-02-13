@@ -7,7 +7,7 @@ def import_children_l(data, visual, lvl, visual_type):
     packed_reader = rw.read.PackedReader(data)
 
     hierrarhy_visual = types.HierrarhyVisual()
-    hierrarhy_visual.children_count = packed_reader.getf('<I')[0]
+    hierrarhy_visual.children_count = packed_reader.uint32()
     hierrarhy_visual.index = visual.visual_id
     hierrarhy_visual.visual_type = visual_type
 

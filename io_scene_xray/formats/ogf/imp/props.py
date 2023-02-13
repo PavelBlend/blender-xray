@@ -14,13 +14,13 @@ def read_description(chunks, ogf_chunks, visual):
     source_file = packed_reader.gets()
 
     build_name = packed_reader.gets()
-    build_time = packed_reader.getf('<I')[0]
+    build_time = packed_reader.uint32()
 
     visual.create_name = packed_reader.gets()
-    visual.create_time = packed_reader.getf('<I')[0]
+    visual.create_time = packed_reader.uint32()
 
     visual.modif_name = packed_reader.gets()
-    visual.modif_time = packed_reader.getf('<I')[0]
+    visual.modif_time = packed_reader.uint32()
 
 
 def read_user_data(chunks, ogf_chunks, visual):
@@ -61,7 +61,7 @@ def read_motion_refs_0(data, visual):
 
 def read_motion_refs_2(data, visual):
     packed_reader = rw.read.PackedReader(data)
-    count = packed_reader.getf('<I')[0]
+    count = packed_reader.uint32()
 
     visual.motion_refs = []
     for index in range(count):

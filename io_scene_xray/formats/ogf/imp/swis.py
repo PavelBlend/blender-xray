@@ -15,7 +15,7 @@ def import_swi(visual, chunks, ogf_chunks):
 def import_swicontainer(chunks):
     swicontainer_data = chunks.pop(fmt.Chunks_v4.SWICONTAINER)
     packed_reader = rw.read.PackedReader(swicontainer_data)
-    swi_index = packed_reader.getf('<I')[0]
+    swi_index = packed_reader.uint32()
     return swi_index
 
 

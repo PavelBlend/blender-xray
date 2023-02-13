@@ -68,7 +68,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
 
     for bone_index, (bone_name, parent_name) in enumerate(visual.bones):
         if read_ver:
-            version = packed_reader.getf('<I')[0]
+            version = packed_reader.uint32()
         else:
             version = 0
 
@@ -100,7 +100,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
         cylinder_shape_height = packed_reader.getf('<f')[0]
         cylinder_shape_radius = packed_reader.getf('<f')[0]
 
-        joint_type = packed_reader.getf('<I')[0]
+        joint_type = packed_reader.uint32()
 
         # x limits
         limit_x_min, limit_x_max = packed_reader.getf('<2f')
@@ -119,7 +119,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
 
         joint_spring = packed_reader.getf('<f')[0]
         joint_damping = packed_reader.getf('<f')[0]
-        ik_flags = packed_reader.getf('<I')[0]
+        ik_flags = packed_reader.uint32()
         breakable_force = packed_reader.getf('<f')[0]
         breakable_torque = packed_reader.getf('<f')[0]
 

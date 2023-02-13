@@ -23,7 +23,7 @@ def read_verts_1_link(visual, packed_reader, verices_count):
             coord = packed_reader.getv3fp()
             normal = packed_reader.getv3fp()
             tex_u, tex_v = packed_reader.getf('<2f')
-            bone_index = packed_reader.getf('<I')[0]
+            bone_index = packed_reader.uint32()
 
             vertex_weights = [(bone_index, 1), ]
 
@@ -39,7 +39,7 @@ def read_verts_1_link(visual, packed_reader, verices_count):
             tangent = packed_reader.getv3fp()
             bitangent = packed_reader.getv3fp()
             tex_u, tex_v = packed_reader.getf('<2f')
-            bone_index = packed_reader.getf('<I')[0]
+            bone_index = packed_reader.uint32()
 
             vertex_weights = [(bone_index, 1), ]
 
@@ -135,8 +135,8 @@ def read_skeleton_vertices(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.VERTICES)
     packed_reader = rw.read.PackedReader(chunk_data)
 
-    vertex_format = packed_reader.getf('<I')[0]
-    verices_count = packed_reader.getf('<I')[0]
+    vertex_format = packed_reader.uint32()
+    verices_count = packed_reader.uint32()
 
     visual.deform_bones = set()
 
@@ -163,8 +163,8 @@ def read_vertices(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.VERTICES)
     packed_reader = rw.read.PackedReader(chunk_data)
 
-    vertex_format = packed_reader.getf('<I')[0]
-    vertices_count = packed_reader.getf('<I')[0]
+    vertex_format = packed_reader.uint32()
+    vertices_count = packed_reader.uint32()
 
     if vertex_format == level.fmt.FVF_OGF:
         for vertex_index in range(vertices_count):

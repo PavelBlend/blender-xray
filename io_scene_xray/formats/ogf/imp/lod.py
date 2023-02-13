@@ -29,7 +29,7 @@ def import_lod_def_2(lvl, data):
                 # reading
                 coord_x, coord_y, coord_z = packed_reader.getf('<3f')
                 coord_u, coord_v = packed_reader.getf('<2f')
-                rgb_hemi = packed_reader.getf('<I')[0]
+                rgb_hemi = packed_reader.uint32()
                 sun = packed_reader.getf('<B')[0]
                 packed_reader.skip(3)    # pad (unused)
 
@@ -55,7 +55,7 @@ def import_lod_def_2(lvl, data):
                 # reading
                 coord_x, coord_y, coord_z = packed_reader.getf('<3f')
                 coord_u, coord_v = packed_reader.getf('<2f')
-                light = packed_reader.getf('<I')[0]
+                light = packed_reader.uint32()
 
                 # collect geometry
                 verts.append((coord_x, coord_z, coord_y))

@@ -18,7 +18,7 @@ def import_(filepath, chunked_reader, operator):
             continue
 
         packed_reader = rw.read.PackedReader(chunk_data)
-        faces_count = packed_reader.getf('<I')[0]
+        faces_count = packed_reader.uint32()
 
         if not faces_count:
             log.warn(
@@ -53,7 +53,7 @@ def import_(filepath, chunked_reader, operator):
                     face_indices.append(
                         face_index * 3 + vertex_order[vertex_index]
                     )
-                color = packed_reader.getf('<I')[0]    # RGBA
+                color = packed_reader.uint32()    # RGBA
                 draw_index = packed_reader.getf('<H')[0]    # bool
                 m = packed_reader.getf('<H')[0]    # ?
                 faces.append(face_indices)

@@ -82,9 +82,9 @@ def import_motion(
     multiply = utils.version.get_multiply()
     converted_shapes = []
     converted_shapes_names = set()
-    for _bone_idx in range(reader.getf('H')[0]):
+    for _bone_idx in range(reader.getf('<H')[0]):
         bname = reader.gets()
-        flags = reader.getf('B')[0]
+        flags = reader.getf('<B')[0]
         if flags != 0:
             log.warn(text.warn.motion_non_zero_flags, bone=bname, flags=flags)
         curves = [None, ] * const.CURVE_COUNT
@@ -289,16 +289,16 @@ def import_motion(
             keys_count=keys_count
         )
     if ver >= 7:
-        for _bone_idx in range(reader.getf('I')[0]):
+        for _bone_idx in range(reader.uint32()):
             name = reader.gets_a()
-            reader.skip((4 + 4) * reader.getf('I')[0])
+            reader.skip((4 + 4) * reader.uint32())
             log.warn(text.warn.motion_markers, name=name)
     return act
 
 
 def import_motions(reader, context, motions_filter=utilites.MOTIONS_FILTER_ALL):
     bpy_armature = context.bpy_arm_obj
-    motions_count = reader.getf('I')[0]
+    motions_count = reader.uint32()
     if motions_count:
         bonesmap = {
             bone.name.lower(): bone

@@ -204,7 +204,7 @@ def import_vertex_buffer(packed_reader, level):
     if level.xrlc_version >= fmt.VERSION_9:
         usage_list = import_vertex_buffer_declaration(packed_reader)
         vertex_buffer = VertexBuffer()
-        vertices_count = packed_reader.getf('<I')[0]
+        vertices_count = packed_reader.uint32()
         import_vertices(
             level.xrlc_version,
             packed_reader,
@@ -218,8 +218,8 @@ def import_vertex_buffer(packed_reader, level):
 
 def import_vertex_buffer_d3d7(packed_reader, level):
     if level.xrlc_version <= fmt.VERSION_9:
-        vertex_format = packed_reader.getf('<I')[0]
-        vertices_count = packed_reader.getf('<I')[0]
+        vertex_format = packed_reader.uint32()
+        vertices_count = packed_reader.uint32()
         vertex_buffer = VertexBuffer()
         import_vertices_d3d7(
             level,
@@ -233,7 +233,7 @@ def import_vertex_buffer_d3d7(packed_reader, level):
 
 def import_vertex_buffers(data, level, fast=False, d3d7=False):
     packed_reader = rw.read.PackedReader(data)
-    vertex_buffers_count = packed_reader.getf('<I')[0]
+    vertex_buffers_count = packed_reader.uint32()
     vertex_buffers = []
     if not d3d7:
         import_vertex_buffer_function = import_vertex_buffer

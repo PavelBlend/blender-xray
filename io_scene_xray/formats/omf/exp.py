@@ -105,12 +105,12 @@ def read_bone_parts(packed_reader, params_version):
         for bone_index in range(bonepart.bones_count):
             bone = Bone()
             if params_version == 1:
-                bone.index = packed_reader.getf('<I')[0]
+                bone.index = packed_reader.uint32()
             elif params_version == 2:
                 bone.name = packed_reader.gets()
             elif params_version in (3, 4):
                 bone.name = packed_reader.gets()
-                bone.index = packed_reader.getf('<I')[0]
+                bone.index = packed_reader.uint32()
             else:
                 raise BaseException('Unknown params version')
             bone_indices.append(bone.index)
@@ -128,11 +128,11 @@ def read_motion_params(packed_reader, params_version):
         motion.name = packed_reader.gets()
         motion.writer.data.extend(packed_reader.getb(24))
         if params_version == 4:
-            num_marks = packed_reader.getf('<I')[0]
+            num_marks = packed_reader.uint32()
             motion.writer.data.extend(struct.pack('<I', num_marks))
             for mark_index in range(num_marks):
                 mark_name = packed_reader.gets_a()
-                mark_count = packed_reader.getf('<I')[0]
+                mark_count = packed_reader.uint32()
                 mark_name = bytes(mark_name, 'cp1251')
                 motion.writer.data.extend(struct.pack(
                     '<{}s'.format(len(mark_name)),
@@ -174,7 +174,7 @@ def get_motions(context, bones_count):
         packed_writer.puts(name)
 
         # motion length
-        length = packed_reader.getf('<I')[0]
+        length = packed_reader.uint32()
         packed_writer.putf('I', length)
 
         # collect data
@@ -195,7 +195,7 @@ def get_motions(context, bones_count):
                 quaternion = packed_reader.getf('<4h')
                 packed_writer.putf('<4h', *quaternion)
             else:
-                motion_crc32 = packed_reader.getf('<I')[0]
+                motion_crc32 = packed_reader.uint32()
                 packed_writer.putf('<I', motion_crc32)
                 for key_index in range(length):
                     quaternion = packed_reader.getf('<4h')
@@ -207,7 +207,7 @@ def get_motions(context, bones_count):
                     translate_format = '<3h'
                 else:
                     translate_format = '<3b'
-                motion_crc32 = packed_reader.getf('<I')[0]
+                motion_crc32 = packed_reader.uint32()
                 packed_writer.putf('<I', motion_crc32)
                 for key_index in range(length):
                     translate = packed_reader.getf(translate_format)

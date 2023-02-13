@@ -14,13 +14,13 @@ def import_slide_window_item(packed_reader):
     reserved = 0
     slide_window_count = 0
     while not reserved and not packed_reader.is_end():
-        reserved = packed_reader.getf('<I')[0]
+        reserved = packed_reader.uint32()
         if reserved:
             slide_window_count = reserved
     swis = []
 
     for slide_window_index in range(slide_window_count):
-        offset = packed_reader.getf('<I')[0]
+        offset = packed_reader.uint32()
         triangles_count = packed_reader.getf('<H')[0]
         vertices_count = packed_reader.getf('<H')[0]
 
@@ -32,7 +32,7 @@ def import_slide_window_item(packed_reader):
 
 def import_slide_window_items(data):
     packed_reader = rw.read.PackedReader(data)
-    swis_count = packed_reader.getf('<I')[0]
+    swis_count = packed_reader.uint32()
     swis_buffer = []
 
     for swi_index in range(swis_count):

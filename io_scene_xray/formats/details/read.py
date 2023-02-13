@@ -13,8 +13,8 @@ from ... import utils
 
 def read_header(packed_reader):
     header = fmt.DetailsHeader()
-    header.format_version = packed_reader.getf('<I')[0]
-    header.meshes_count = packed_reader.getf('<I')[0]
+    header.format_version = packed_reader.uint32()
+    header.meshes_count = packed_reader.uint32()
     offset_x, offset_z = packed_reader.getf('<2i')
     size_x, size_z = packed_reader.getf('<2I')
     header.offset.x = offset_x

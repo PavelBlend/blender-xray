@@ -5,8 +5,8 @@ from .... import rw
 
 def import_texture_and_shader_v3(visual, lvl, data):
     packed_reader = rw.read.PackedReader(data)
-    visual.texture_id = packed_reader.getf('<I')[0]
-    visual.shader_id = packed_reader.getf('<I')[0]
+    visual.texture_id = packed_reader.uint32()
+    visual.shader_id = packed_reader.uint32()
 
 
 def read_texture_l(chunks, ogf_chunks, visual, lvl):

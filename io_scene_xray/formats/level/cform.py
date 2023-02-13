@@ -28,14 +28,14 @@ def import_main(context, level, data=None):
     packed_reader = rw.read.PackedReader(data)
 
     # read header
-    version = packed_reader.getf('<I')[0]
+    version = packed_reader.uint32()
     if not version in fmt.CFORM_SUPPORT_VERSIONS:
         raise log.AppError(
             text.error.cform_unsupport_ver,
             log.props(version=version, file=cform_path)
         )
-    verts_count = packed_reader.getf('<I')[0]
-    tris_count = packed_reader.getf('<I')[0]
+    verts_count = packed_reader.uint32()
+    tris_count = packed_reader.uint32()
     bbox_min = packed_reader.getf('<3f')
     bbox_max = packed_reader.getf('<3f')
 

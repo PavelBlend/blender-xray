@@ -93,7 +93,7 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
         for _ in range(keyframes_count):
             value = reader.getf('<f')[0]
             time = reader.getf('<f')[0] * fps
-            shape = interp.Shape(reader.getf('<I')[0] & 0xff)
+            shape = interp.Shape(reader.uint32() & 0xff)
             tension, continuity, bias = reader.getf('<3f')
             param = reader.getf('<4f')    # params
             values.append(value)

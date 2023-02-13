@@ -40,7 +40,7 @@ def parse_gamemtl(data):
                 for (cccid, ccdata) in rw.read.ChunkedReader(cdata):
                     if cccid == 0x1000:
                         reader = rw.read.PackedReader(ccdata)
-                        material_id = reader.getf('<I')[0]
+                        material_id = reader.uint32()
                         name = reader.gets()
                     if cccid == 0x1005:
                         desc = rw.read.PackedReader(ccdata).gets()
