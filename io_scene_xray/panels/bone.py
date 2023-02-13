@@ -49,14 +49,14 @@ class XRAY_PT_bone(ui.base.XRayPanel):
     def poll(cls, context):
         preferences = utils.version.get_preferences()
         panel_used = (
-            # import plugins
+            # import formats
             preferences.enable_object_import or
             preferences.enable_skls_import or
             preferences.enable_bones_import or
             preferences.enable_omf_import or
             preferences.enable_ogf_import or
             preferences.enable_part_import or
-            # export plugins
+            # export formats
             preferences.enable_object_export or
             preferences.enable_skls_export or
             preferences.enable_skl_export or

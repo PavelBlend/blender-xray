@@ -15,9 +15,9 @@ class XRAY_PT_scene(ui.base.XRayPanel):
     def poll(cls, context):
         preferences = utils.version.get_preferences()
         panel_used = (
-            # import plugins
+            # import formats
             preferences.enable_object_import or
-            # export plugins
+            # export formats
             preferences.enable_object_export
         )
         return panel_used

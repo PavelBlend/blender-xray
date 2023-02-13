@@ -12,7 +12,7 @@ class XRAY_PT_edit_helper(ui.base.XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        return ops.edit_helpers.base.get_object_helper(context) is not None
+        return ops.edit_helpers.base.get_object_helper(context)
 
     def draw(self, context):
         helper = ops.edit_helpers.base.get_object_helper(context)

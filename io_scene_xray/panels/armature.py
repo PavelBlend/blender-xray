@@ -25,14 +25,14 @@ class XRAY_PT_armature(ui.base.XRayPanel):
         pref = utils.version.get_preferences()
 
         panel_used = (
-            # import plugins
+            # import formats
             pref.enable_object_import or
             pref.enable_skls_import or
             pref.enable_ogf_import or
             pref.enable_omf_import or
             pref.enable_bones_import or
 
-            # export plugins
+            # export formats
             pref.enable_object_export or
             pref.enable_skls_export or
             pref.enable_skl_export or
