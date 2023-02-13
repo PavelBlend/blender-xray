@@ -92,3 +92,5 @@ ik_no_selected_bones = 'No selected bones'
 incorrect_uv_objs_count = 'selected objects with incorrect UV-maps'
 # other operators
 added_motions = 'Added animations'
+# armature panel
+bones_verdif = 'Found bones, edited with {} version of this plugin'
