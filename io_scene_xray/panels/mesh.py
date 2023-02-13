@@ -12,31 +12,37 @@ class XRAY_PT_mesh(ui.base.XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        preferences = utils.version.get_preferences()
+        obj = context.active_object
+
+        if not obj:
+            return
+
+        if obj.type != 'MESH':
+            return
+
+        is_helper = utils.is_helper_object(obj)
+        if is_helper:
+            return
+
+        pref = utils.version.get_preferences()
+
         panel_used = (
             # import formats
-            preferences.enable_object_import or
-            preferences.enable_scene_import or
+            pref.enable_object_import or
+            pref.enable_scene_import or
+            pref.enable_part_import or
+
             # export formats
-            preferences.enable_object_export or
-            preferences.enable_scene_export
+            pref.enable_object_export or
+            pref.enable_scene_export
         )
-        if not panel_used:
-            return False
-        bpy_obj = context.active_object
-        if not bpy_obj:
-            return False
-        if not bpy_obj.type == 'MESH':
-            return False
-        is_helper = utils.is_helper_object(bpy_obj)
-        if is_helper:
-            return False
-        return True
+
+        return panel_used
 
     def draw(self, context):
-        layout = self.layout
-        data = context.object.data.xray
-        row = layout.row(align=True)
+        row = self.layout.row(align=True)
+        data = context.active_object.data.xray
+
         row.prop(data, 'flags_visible', text='Visible', toggle=True)
         row.prop(data, 'flags_locked', text='Locked', toggle=True)
         row.prop(data, 'flags_sgmask', text='SGMask', toggle=True)

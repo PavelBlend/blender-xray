@@ -261,6 +261,7 @@ class XRAY_OT_export_project(ie.BaseOperator):
         export_context = ExportObjectContext()
         export_context.texname_from_path = data.object_texture_name_from_image_path
         export_context.soc_sgroups = data.fmt_version == 'soc'
+        export_context.smoothing_out_of = data.smoothing_out_of
         export_context.export_motions = data.object_export_motions
         path = bpy.path.abspath(self.filepath if self.filepath else data.export_root)
         os.makedirs(path, exist_ok=True)
@@ -269,7 +270,7 @@ class XRAY_OT_export_project(ie.BaseOperator):
             if not name.lower().endswith('.object'):
                 name += '.object'
             opath = path
-            if bpy_obj.xray.export_path:
+            if bpy_obj.xray.export_path and data.use_export_paths:
                 opath = os.path.join(opath, bpy_obj.xray.export_path)
                 os.makedirs(opath, exist_ok=True)
             try:
