@@ -14,18 +14,19 @@ class XRAY_PT_shader(ui.base.XRayPanel):
 
     @classmethod
     def poll(cls, context):
-        obj = context.object
+        obj = context.active_object
         if not obj:
-            return False
-        mat = obj.active_material
-        return bool(mat)
+            return
+
+        return obj.active_material
 
     def draw(self, context):
-        layout = self.layout
-        operator = layout.operator(ops.material.XRAY_OT_create_material.bl_idname)
-        obj = context.object
+        lay = self.layout
+        obj = context.active_object
         mat = obj.active_material
-        operator.material_name = mat.name
+
+        op = lay.operator(ops.material.XRAY_OT_create_material.bl_idname)
+        op.material_name = mat.name
 
 
 def register():
