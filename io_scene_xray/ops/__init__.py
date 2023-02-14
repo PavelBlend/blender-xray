@@ -5,6 +5,7 @@ from . import armature
 from . import bone
 from . import edit_helpers
 from . import material
+from . import motion
 from . import obj
 from . import props_tools
 from . import custom_props
@@ -27,6 +28,7 @@ modules = (
     bone,
     edit_helpers,
     material,
+    motion,
     obj,
     props_tools,
     custom_props,

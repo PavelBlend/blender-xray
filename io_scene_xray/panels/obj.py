@@ -7,6 +7,7 @@ import bpy
 # addon modules
 from .. import ui
 from .. import utils
+from .. import ops
 from .. import text
 from .. import formats
 from .. import rw
@@ -85,227 +86,37 @@ class XRAY_UL_motion_list(bpy.types.UIList):
                 )
 
 
-class XRAY_OT_add_all_actions(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.add_all_actions'
-    bl_label = 'Add All Actions'
-    bl_description = 'Add all actions to motion list'
-    bl_options = {'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        if not obj:
-            return False
-        return True
-
-    def execute(self, context):
-        obj = context.object
-
-        if obj.type != 'ARMATURE':
-            return {'FINISHED'}
-
-        # collect exportable bones
-        exportable_bones = set()
-        for bone in obj.data.bones:
-            if bone.xray.exportable:
-                exportable_bones.add(bone.name)
-
-        added_count = 0
-        path_pose = 'pose.bones["'
-        path_loc = '"].location'
-        path_euler = '"].rotation_euler'
-        path_quat = '"].rotation_quaternion'
-        path_angle = '"].rotation_axis_angle'
-
-        for action in bpy.data.actions:
-            action_bones = set()
-
-            for fcurve in action.fcurves:
-                path = fcurve.data_path
-
-                if path.startswith(path_pose):
-                    path = path[len(path_pose) : ]
-                else:
-                    continue
-
-                if path.endswith(path_loc):
-                    path = path[ : -len(path_loc)]
-
-                elif path.endswith(path_euler):
-                    path = path[ : -len(path_euler)]
-
-                elif path.endswith(path_quat):
-                    path = path[ : -len(path_quat)]
-
-                elif path.endswith(path_angle):
-                    path = path[ : -len(path_angle)]
-
-                else:
-                    continue
-
-                action_bones.add(path)
-
-            if not exportable_bones - action_bones:
-                if not obj.xray.motions_collection.get(action.name):
-                    motion = obj.xray.motions_collection.add()
-                    motion.name = action.name
-                    added_count += 1
-
-        utils.draw.redraw_areas()
-        self.report(
-            {'INFO'},
-            text.get_text(text.warn.added_motions) + ': ' + str(added_count)
-        )
-
-        return {'FINISHED'}
-
-
-class XRAY_OT_remove_all_actions(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.remove_all_actions'
-    bl_label = 'Remove All Actions'
-    bl_description = 'Remove all actions'
-    bl_options = {'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        if not obj:
-            return False
-        data = obj.xray
-        motions_count = len(data.motions_collection)
-        return bool(motions_count)
-
-    def execute(self, context):
-        obj = context.object
-        obj.xray.motions_collection.clear()
-        utils.draw.redraw_areas()
-        return {'FINISHED'}
-
-
-class XRAY_OT_clean_actions(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.clean_actions'
-    bl_label = 'Clean Actions'
-    bl_description = 'Remove non-existent actions'
-    bl_options = {'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        if not obj:
-            return False
-        return True
-
-    def execute(self, context):
-        obj = context.object
-        remove = []
-        available = set()
-        for motion_index, motion in enumerate(obj.xray.motions_collection):
-            action = bpy.data.actions.get(motion.name)
-            if not action:
-                remove.append(motion_index)
-            if motion.name in available:
-                remove.append(motion_index)
-            available.add(motion.name)
-        remove.sort()
-        remove.reverse()
-        for motion_index in remove:
-            obj.xray.motions_collection.remove(motion_index)
-        utils.draw.redraw_areas()
-        return {'FINISHED'}
-
-
-MOTION_NAME_PARAM = 'motion_name'
-EXPORT_NAME_PARAM = 'export_name'
-
-
-class XRAY_OT_copy_actions_list(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.copy_actions_list'
-    bl_label = 'Copy Actions'
-    bl_description = 'Copy actions list to clipboard'
-    bl_options = {'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        if not obj:
-            return False
-        return True
-
-    def execute(self, context):
-        obj = context.object
-        lines = []
-        saved_motions = set()
-        for motion_index, motion in enumerate(obj.xray.motions_collection):
-            if not motion.name:
-                continue
-            motion_key = (motion.name, motion.export_name)
-            if motion_key in saved_motions:
-                continue
-            lines.append('[{}]\n{} = "{}"\n{} = "{}"\n'.format(
-                motion_index,
-                MOTION_NAME_PARAM,
-                motion.name,
-                EXPORT_NAME_PARAM,
-                motion.export_name
-            ))
-            saved_motions.add(motion_key)
-        bpy.context.window_manager.clipboard = '\n'.join(lines)
-        return {'FINISHED'}
-
-
-class XRAY_OT_paste_actions_list(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.paste_actions_list'
-    bl_label = 'Past Actions'
-    bl_description = 'Paste actions list from clipboard'
-    bl_options = {'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        if not obj:
-            return False
-        return True
-
-    def execute(self, context):
-        obj = context.object
-        motions = obj.xray.motions_collection
-        motions_data = bpy.context.window_manager.clipboard
-        ltx = rw.ltx.StalkerLtxParser(None, data=motions_data)
-        section_keys = list(map(int, ltx.sections.keys()))
-        section_keys.sort()
-        use_custom_name = False
-        used_motions = {
-            (motion.name, motion.export_name)
-            for motion in obj.xray.motions_collection
-        }
-        for section_key in section_keys:
-            section = ltx.sections[str(section_key)]
-            params = section.params
-            motion_name = params.get(MOTION_NAME_PARAM, None)
-            export_name = params.get(EXPORT_NAME_PARAM, None)
-            if not motion_name:
-                continue
-            motion_key = (motion_name, export_name)
-            if motion_key in used_motions:
-                continue
-            motion = motions.add()
-            motion.name = motion_name
-            if export_name:
-                motion.export_name = export_name
-                use_custom_name = True
-        if use_custom_name:
-            obj.xray.use_custom_motion_names = True
-        utils.draw.redraw_areas()
-        return {'FINISHED'}
-
-
 def draw_motion_list_elements(layout):
-    layout.operator(XRAY_OT_add_all_actions.bl_idname, text='', icon='ACTION')
-    layout.operator(XRAY_OT_clean_actions.bl_idname, text='', icon='BRUSH_DATA')
-    layout.operator(XRAY_OT_remove_all_actions.bl_idname, text='', icon='X')
-    layout.operator(XRAY_OT_copy_actions_list.bl_idname, text='', icon='COPYDOWN')
-    layout.operator(XRAY_OT_paste_actions_list.bl_idname, text='', icon='PASTEDOWN')
-    layout.operator(XRAY_OT_sort_motions_list.bl_idname, text='', icon='SORTALPHA')
+    layout.operator(
+        ops.motion.XRAY_OT_add_all_actions.bl_idname,
+        text='',
+        icon='ACTION'
+    )
+    layout.operator(
+        ops.motion.XRAY_OT_clean_actions.bl_idname,
+        text='',
+        icon='BRUSH_DATA'
+    )
+    layout.operator(
+        ops.motion.XRAY_OT_remove_all_actions.bl_idname,
+        text='',
+        icon='X'
+    )
+    layout.operator(
+        ops.motion.XRAY_OT_copy_actions.bl_idname,
+        text='',
+        icon='COPYDOWN'
+    )
+    layout.operator(
+        ops.motion.XRAY_OT_paste_actions.bl_idname,
+        text='',
+        icon='PASTEDOWN'
+    )
+    layout.operator(
+        ops.motion.XRAY_OT_sort_actions.bl_idname,
+        text='',
+        icon='SORTALPHA'
+    )
 
 
 class XRAY_OT_remove_all_motion_refs(bpy.types.Operator):
@@ -328,10 +139,6 @@ class XRAY_OT_remove_all_motion_refs(bpy.types.Operator):
         obj.xray.motionrefs_collection.clear()
         utils.draw.redraw_areas()
         return {'FINISHED'}
-
-
-MOTION_NAME_PARAM = 'motion_name'
-EXPORT_NAME_PARAM = 'export_name'
 
 
 class XRAY_OT_copy_motion_refs_list(bpy.types.Operator):
@@ -396,106 +203,6 @@ class XRAY_OT_paste_motion_refs_list(bpy.types.Operator):
             ref.name = line
         utils.draw.redraw_areas()
         return {'FINISHED'}
-
-
-sort_items = (
-    ('NAME', 'Action Name', ''),
-    ('EXPORT', 'Export Name', ''),
-    ('LENGTH', 'Action Length', '')
-)
-op_props = {
-    'sort_by': bpy.props.EnumProperty(items=sort_items),
-    'sort_reverse': bpy.props.BoolProperty(default=False)
-}
-
-
-class XRAY_OT_sort_motions_list(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.sort_motions_list'
-    bl_label = 'Sort Motions'
-    bl_description = 'Sort motions list'
-    bl_options = {'UNDO'}
-
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        if not obj:
-            return False
-        return True
-
-    def draw(self, context):
-        lay = self.layout
-        lay.label(text='Sort by:')
-        lay.prop(self, 'sort_by', expand=True)
-        lay.prop(self, 'sort_reverse', text='Reverse Sort', toggle=True)
-
-    def execute(self, context):
-        obj = context.object
-        motions = obj.xray.motions_collection
-
-        if self.sort_by in ('NAME', 'LENGTH'):
-            sort_fun = lambda i: i[0]
-        else:
-            sort_fun = lambda i: i[2]
-
-        used_motions = []
-
-        if self.sort_by == 'LENGTH':
-            motions_length = {}
-            for motion in motions:
-                act = bpy.data.actions.get(motion.name)
-
-                if act:
-                    start, end = act.frame_range
-                    length = int(round(end - start, 0))
-                else:
-                    length = -1
-
-                motions_length.setdefault(length, []).append((
-                    motion.name,
-                    motion.export_name,
-                    None
-                ))
-
-            length_keys = list(motions_length.keys())
-            length_keys.sort()
-            for key in length_keys:
-                key_motions = motions_length[key]
-                key_motions.sort(key=sort_fun)
-                for name, exp, _ in key_motions:
-                    used_motions.append((name, exp, _))
-
-        else:
-            for motion in motions:
-                if motion.export_name:
-                    exp = motion.export_name
-                else:
-                    exp = motion.name
-                used_motions.append((motion.name, motion.export_name, exp))
-            used_motions.sort(key=sort_fun)
-
-        if self.sort_reverse:
-            used_motions.reverse()
-
-        motions.clear()
-
-        for name, exp, _ in used_motions:
-            elem = motions.add()
-            elem.name = name
-            elem.export_name = exp
-
-        utils.draw.redraw_areas()
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
 
 
 op_props = {
@@ -1067,15 +774,9 @@ class XRAY_PT_object(ui.base.XRayPanel):
 classes = (
     XRAY_OT_prop_clip,
     XRAY_UL_motion_list,
-    XRAY_OT_add_all_actions,
-    XRAY_OT_remove_all_actions,
-    XRAY_OT_clean_actions,
-    XRAY_OT_copy_actions_list,
-    XRAY_OT_paste_actions_list,
     XRAY_OT_remove_all_motion_refs,
     XRAY_OT_copy_motion_refs_list,
     XRAY_OT_paste_motion_refs_list,
-    XRAY_OT_sort_motions_list,
     XRAY_OT_sort_motion_refs_list,
     XRAY_OT_add_motion_ref_from_file,
     XRAY_PT_object
