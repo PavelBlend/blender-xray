@@ -102,13 +102,12 @@ class PackedReader:
             )
             self.__offs += size * count * vec_len
             values.shape = (values.shape[0] // vec_len, vec_len)
-            return values
         else:
             values = [
                 self.getf('<{0}{1}'.format(vec_len, fmt))
                 for _ in range(count)
             ]
-            return values
+        return values
 
     def byte(self):
         return self.__data[self._next(1)]
@@ -208,12 +207,11 @@ class ChunkedReader:
             return cid, memoryview(lzhuf.decompress_buffer(buffer, textsize))
         return cid, data[offs:offs + size]
 
-    def next(self, expected_cid, no_error=False):
+    def next(self, expected_cid, error=True):
         cid, data = next(self)
         if cid != expected_cid:
-            if no_error:
-                return
-            else:
+            data = None
+            if error:
                 raise Exception('expected chunk: {}, but found: {}'.format(
                     expected_cid,
                     cid

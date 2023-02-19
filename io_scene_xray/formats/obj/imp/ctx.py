@@ -14,13 +14,11 @@ class ImportObjectMeshContext(contexts.ImportMeshContext):
 
 
 class ImportObjectAnimationContext(contexts.ImportAnimationContext):
-    def __init__(self):
-        super().__init__()
+    pass
 
 
 class ImportObjectContext(
         ImportObjectMeshContext,
         ImportObjectAnimationContext
     ):
-    def __init__(self):
-        super().__init__()
+    pass

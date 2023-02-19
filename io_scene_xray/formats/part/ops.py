@@ -13,8 +13,7 @@ from ... import log
 
 
 class ImportPartContext(obj.imp.ctx.ImportObjectContext):
-    def __init__(self):
-        super().__init__()
+    pass
 
 
 filename_ext = '.part'

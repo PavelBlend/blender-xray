@@ -14,8 +14,7 @@ from ... import rw
 
 
 class ImportSceneContext(obj.imp.ctx.ImportObjectMeshContext):
-    def __init__(self):
-        super().__init__()
+    pass
 
 
 def _read_scene_version(scene_version_chunk):

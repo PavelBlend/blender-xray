@@ -33,8 +33,8 @@ def _check_sg_soc(bmedges, sgroups):
                 return text.warn.object_sg_sharp
 
 
-def _mark_fsg(face, sgroup, face_sgroup):
-    faces = [face]
+def _mark_fsg(bm_face, sgroup, face_sgroup):
+    faces = [bm_face, ]
     for face in faces:
         for edge in face.edges:
             if not edge.smooth:

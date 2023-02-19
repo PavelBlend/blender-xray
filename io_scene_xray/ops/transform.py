@@ -45,12 +45,12 @@ class XRAY_OT_copy_xray_tranforms(bpy.types.Operator):
     bl_label = 'Copy X-Ray Transforms'
 
     def execute(self, context):
-        if not context.object:
+        if not context.active_object:
             return {'FINISHED'}
-        else:
-            write_buffer_data()
-            self.report({'INFO'}, text.get_text(text.warn.ready))
-            return {'FINISHED'}
+
+        write_buffer_data()
+        self.report({'INFO'}, text.get_text(text.warn.ready))
+        return {'FINISHED'}
 
 
 class XRAY_OT_update_xray_tranforms(bpy.types.Operator):
@@ -59,16 +59,16 @@ class XRAY_OT_update_xray_tranforms(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
         if not obj:
             return {'FINISHED'}
-        else:
-            xray_translation, xray_rotation = get_object_transforms()
-            data = obj.xray
-            data.position = xray_translation
-            data.orientation = xray_rotation
-            self.report({'INFO'}, text.get_text(text.warn.ready))
-            return {'FINISHED'}
+
+        xray_translation, xray_rotation = get_object_transforms()
+        data = obj.xray
+        data.position = xray_translation
+        data.orientation = xray_rotation
+        self.report({'INFO'}, text.get_text(text.warn.ready))
+        return {'FINISHED'}
 
 
 class XRAY_OT_update_blender_tranforms(bpy.types.Operator):
@@ -77,32 +77,37 @@ class XRAY_OT_update_blender_tranforms(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
         if not obj:
             return {'FINISHED'}
-        else:
-            if obj.rotation_mode == 'AXIS_ANGLE':
-                self.report(
-                    {'ERROR'},
-                    'Object has unsupported rotation mode: {}'.format(
-                        obj.rotation_mode
-                    )
+
+        if obj.rotation_mode == 'AXIS_ANGLE':
+            self.report(
+                {'ERROR'},
+                'Object has unsupported rotation mode: {}'.format(
+                    obj.rotation_mode
                 )
-                return {'CANCELLED'}
-            data = obj.xray
-            # update location
-            pos = data.position
-            pos_mat = mathutils.Matrix.Translation((pos[0], pos[2], pos[1]))
-            obj.location = pos_mat.to_translation()
-            # update rotation
-            rot = data.orientation
-            rot_euler = mathutils.Euler((rot[1], rot[2], rot[0]), 'YXZ')
-            if obj.rotation_mode == 'QUATERNION':
-                obj.rotation_quaternion = rot_euler.to_quaternion()
-            else:
-                obj.rotation_euler = rot_euler.to_matrix().to_euler(obj.rotation_mode)
-            self.report({'INFO'}, text.get_text(text.warn.ready))
-            return {'FINISHED'}
+            )
+            return {'CANCELLED'}
+
+        data = obj.xray
+
+        # update location
+        pos = data.position
+        pos_mat = mathutils.Matrix.Translation((pos[0], pos[2], pos[1]))
+        obj.location = pos_mat.to_translation()
+
+        # update rotation
+        rot = data.orientation
+        rot_euler = mathutils.Euler((rot[1], rot[2], rot[0]), 'YXZ')
+
+        if obj.rotation_mode == 'QUATERNION':
+            obj.rotation_quaternion = rot_euler.to_quaternion()
+        else:
+            obj.rotation_euler = rot_euler.to_matrix().to_euler(obj.rotation_mode)
+
+        self.report({'INFO'}, text.get_text(text.warn.ready))
+        return {'FINISHED'}
 
 
 classes = (

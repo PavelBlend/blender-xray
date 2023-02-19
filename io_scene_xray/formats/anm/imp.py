@@ -26,7 +26,7 @@ class ImportAnmContext(contexts.ImportContext):
 
 def _import(file_path, creader, context):
     warn_list = []
-    chunk_data = creader.next(fmt.Chunks.MAIN, no_error=True)
+    chunk_data = creader.next(fmt.Chunks.MAIN, error=False)
     if chunk_data is None:
         raise log.AppError(
             text.error.anm_has_no_chunk,

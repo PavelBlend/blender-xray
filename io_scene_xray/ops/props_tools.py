@@ -199,8 +199,8 @@ class XRAY_OT_change_userdata(bpy.types.Operator):
         result = search_objects(self, context)
         if result == {'FINISHED'}:
             return result
-        else:
-            root_objs = result
+
+        root_objs = result
 
         result = search_value(
             self,
@@ -211,8 +211,8 @@ class XRAY_OT_change_userdata(bpy.types.Operator):
         )
         if result == {'FINISHED'}:
             return result
-        else:
-            userdata = result
+
+        userdata = result
 
         # set value
         for obj in root_objs:
@@ -299,8 +299,8 @@ class XRAY_OT_change_lod_ref(bpy.types.Operator):
         result = search_objects(self, context)
         if result == {'FINISHED'}:
             return result
-        else:
-            root_objs = result
+
+        root_objs = result
 
         result = search_value(
             self,
@@ -311,8 +311,8 @@ class XRAY_OT_change_lod_ref(bpy.types.Operator):
         )
         if result == {'FINISHED'}:
             return result
-        else:
-            lod_ref = result
+
+        lod_ref = result
 
         # set value
         for obj in root_objs:
@@ -411,8 +411,8 @@ class XRAY_OT_change_motion_refs(bpy.types.Operator):
         result = search_objects(self, context)
         if result == {'FINISHED'}:
             return result
-        else:
-            root_objs = result
+
+        root_objs = result
 
         result = search_value(
             self,
@@ -423,8 +423,8 @@ class XRAY_OT_change_motion_refs(bpy.types.Operator):
         )
         if result == {'FINISHED'}:
             return result
-        else:
-            motion_refs = result
+
+        motion_refs = result
 
         motion_refs = motion_refs.split('\n')
 
@@ -501,8 +501,8 @@ class XRAY_OT_change_object_type(bpy.types.Operator):
         result = search_objects(self, context)
         if result == {'FINISHED'}:
             return result
-        else:
-            root_objs = result
+
+        root_objs = result
 
         for obj in root_objs:
             obj.xray.flags_simple = self.obj_type
@@ -545,8 +545,8 @@ class XRAY_OT_change_hq_export(bpy.types.Operator):
         result = search_objects(self, context)
         if result == {'FINISHED'}:
             return result
-        else:
-            root_objs = result
+
+        root_objs = result
 
         for obj in root_objs:
             obj.xray.flags_custom_hqexp = self.hq_export

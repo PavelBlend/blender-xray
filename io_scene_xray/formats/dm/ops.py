@@ -15,13 +15,11 @@ from ... import utils
 
 
 class ImportDmContext(contexts.ImportMeshContext):
-    def __init__(self):
-        super().__init__()
+    pass
 
 
 class ExportDmContext(contexts.ExportMeshContext):
-    def __init__(self):
-        super().__init__()
+    pass
 
 
 filename_ext = '.dm'

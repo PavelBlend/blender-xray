@@ -13,8 +13,7 @@ from ... import log
 
 
 class ImportLevelContext(contexts.ImportMeshContext):
-    def __init__(self):
-        super().__init__()
+    pass
 
 
 op_text = 'Game Level'
@@ -80,9 +79,6 @@ class XRAY_OT_import_level(
         for err in import_context.errors:
             log.err(err)
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        return super().invoke(context, event)
 
 
 export_props = {

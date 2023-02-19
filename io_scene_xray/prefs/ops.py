@@ -13,10 +13,10 @@ class XRAY_OT_reset_prefs_settings(bpy.types.Operator):
     def execute(self, context):
         prefs = utils.version.get_preferences()
         # reset main settings
-        for prop_name in props.plugin_preferences_props.keys():
+        for prop_name in props.plugin_preferences_props:
             prefs.property_unset(prop_name)
         # reset custom properties settings
-        for prop_name in props.xray_custom_properties.keys():
+        for prop_name in props.xray_custom_properties:
             prefs.custom_props.property_unset(prop_name)
         return {'FINISHED'}
 

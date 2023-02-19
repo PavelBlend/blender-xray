@@ -33,9 +33,9 @@ def parse_shaders(data):
 
 
 def parse_gamemtl(data):
-    for (cid, data) in rw.read.ChunkedReader(data):
-        if cid == 4098:
-            for (_, cdata) in rw.read.ChunkedReader(data):
+    for (chunk_id, chunk_data) in rw.read.ChunkedReader(data):
+        if chunk_id == 4098:
+            for (_, cdata) in rw.read.ChunkedReader(chunk_data):
                 name, desc = None, None
                 for (cccid, ccdata) in rw.read.ChunkedReader(cdata):
                     if cccid == 0x1000:

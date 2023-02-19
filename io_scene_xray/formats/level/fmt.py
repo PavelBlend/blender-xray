@@ -212,7 +212,7 @@ usage = {
     10: COLOR,
     11: FOG,
     12: DEPTH,
-    12: SAMPLE
+    13: SAMPLE
 }
 
 usage_values = {
@@ -229,7 +229,7 @@ usage_values = {
     COLOR: 10,
     FOG: 11,
     DEPTH: 12,
-    SAMPLE: 12    # ???
+    SAMPLE: 13    # ???
 }
 
 UV_COEFFICIENT = 1024

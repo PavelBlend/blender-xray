@@ -122,10 +122,13 @@ class XRAY_OT_verify_uv(bpy.types.Operator):
                     if not self.MINIMUM_VALUE < uv.y < self.MAXIMUM_VALUE:
                         polygon.select = True
                         has_bad_uv = True
+
         if has_bad_uv:
-            return self.BAD_UV
+            result = self.BAD_UV
         else:
-            return self.CORRECT_UV
+            result = self.CORRECT_UV
+
+        return result
 
     def invoke(self, context, event):
         wm = context.window_manager

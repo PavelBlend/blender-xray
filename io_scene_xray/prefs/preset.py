@@ -28,7 +28,7 @@ class XRAY_OT_add_prefs_preset(bl_operators.presets.AddPresetBase, bpy.types.Ope
             'prefs = bpy.context.user_preferences.addons["io_scene_xray"].preferences'
         ]
     preset_values = []
-    for prop_key in props.plugin_preferences_props.keys():
+    for prop_key in props.plugin_preferences_props:
         preset_values.append('prefs.{}'.format(prop_key))
     for auto_prop_key in props.__AUTO_PROPS__:
         preset_values.append('prefs.{}'.format(auto_prop_key))

@@ -102,7 +102,7 @@ def import_main(context, level, data=None):
             sectors_mats[sector].add((mat_id, shadows, wallmarks))
 
     # sector sets to lists
-    for sector_index in sectors_tris.keys():
+    for sector_index in sectors_tris:
         sectors_mats[sector_index] = list(sectors_mats[sector_index])
         sectors_verts[sector_index] = list(sectors_verts[sector_index])
 
