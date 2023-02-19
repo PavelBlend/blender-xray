@@ -86,7 +86,7 @@ def import_geom_from_container(
         gcontainer.load_icontainer(
             visual,
             lvl,
-            ib_index, 
+            ib_index,
             ib_offset,
             ib_size
         )
@@ -109,7 +109,7 @@ def import_level_geometry_v4(chunks, visual, lvl):
         # vcontainer data
         vc_data = chunks.pop(chunks_ids.VCONTAINER)
         vb_index, vb_offset, vb_size = gcontainer.read_container_v3(vc_data)
-    
+
         # icontainer data
         ic_data = chunks.pop(chunks_ids.ICONTAINER)
         ib_index, ib_offset, ib_size = gcontainer.read_container_v3(ic_data)
@@ -198,7 +198,7 @@ def create_hierrarhy_obj(context, visual):
 
     root_obj.xray.version = context.version
     root_obj.xray.isroot = True
-    
+
     visual.root_obj = root_obj
 
     return root_obj

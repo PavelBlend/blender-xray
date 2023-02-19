@@ -1,6 +1,6 @@
 # standart modules
 import os
- 
+
 # blender modules
 import mathutils
 
