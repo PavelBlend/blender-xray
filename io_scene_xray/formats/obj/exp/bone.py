@@ -1,5 +1,4 @@
 # addon modules
-from . import main
 from .. import fmt
 from ... import motions
 from .... import text

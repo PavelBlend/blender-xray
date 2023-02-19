@@ -3,7 +3,6 @@ from . import imp
 from . import interp
 from . import utilites
 from ... import log
-from ... import utils
 from ... import text
 from ... import rw
 
@@ -72,7 +71,7 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
             shapes.append(shape)
             tcb.append((tension, continuity, bias))
             params.append(param)
-            if not shape in (
+            if shape not in (
                     interp.Shape.TCB,
                     interp.Shape.HERMITE,
                     interp.Shape.BEZIER_1D,
@@ -101,7 +100,7 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
             shapes.append(shape)
             tcb.append((tension, continuity, bias))
             params.append(param)
-            if not shape in (
+            if shape not in (
                     interp.Shape.TCB,
                     interp.Shape.HERMITE,
                     interp.Shape.BEZIER_1D,
@@ -122,7 +121,7 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
         start_frame = int(round(times[0], 0))
         end_frame = int(round(times[-1], 0))
         values, times = imp.interpolate_keys(
-            fps, start_frame, end_frame, values, times, shapes, tcb, params
+            start_frame, end_frame, values, times, shapes, tcb, params
         )
         for time, value in zip(times, values):
             key_frame = fckf.insert(time, value * koef)

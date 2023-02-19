@@ -1,6 +1,3 @@
-# blender modules
-import bpy
-
 # addon modules
 from .. import contexts
 from .. import motions

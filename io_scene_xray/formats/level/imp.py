@@ -565,7 +565,7 @@ def import_level(level, context, chunks, geomx_chunks):
 
     if level.xrlc_version <= fmt.VERSION_5:
         textures_chunk_data = chunks.pop(chunks_ids.TEXTURES)
-        shaders.import_textures(level, context, textures_chunk_data)
+        shaders.import_textures(level, textures_chunk_data)
         del textures_chunk_data
 
     # geometry
@@ -679,7 +679,7 @@ MAX_LEVEL_SIZE = 1024 * 1024 * 32    # 32 MB
 
 
 @log.with_context(name='import-game-level')
-def import_file(context, operator):
+def import_file(context):
     log.update(file=context.filepath)
     rw.utils.check_file_exists(context.filepath)
     level = Level()

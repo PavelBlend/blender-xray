@@ -112,7 +112,7 @@ def import_shaders(level, context, data):
     return materials, images
 
 
-def import_textures(level, context, data):
+def import_textures(level, data):
     packed_reader = rw.read.PackedReader(data)
     textures_count = packed_reader.uint32()
     level.textures = []

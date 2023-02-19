@@ -72,7 +72,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
         else:
             version = 0
 
-        if not version in fmt.SUPPORT_BONE_VERSIONS:
+        if version not in fmt.SUPPORT_BONE_VERSIONS:
             bpy.data.objects.remove(arm_obj)
             bpy.data.armatures.remove(armature)
             raise log.AppError(

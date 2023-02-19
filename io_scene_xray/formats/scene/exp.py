@@ -4,7 +4,6 @@ import string
 # addon modules
 from . import fmt
 from ... import rw
-from ... import utils
 from ... import log
 
 

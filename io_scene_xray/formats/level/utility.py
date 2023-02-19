@@ -2,7 +2,6 @@
 import os
 
 # addon modules
-from ... import utils
 from ... import rw
 
 

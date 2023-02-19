@@ -105,7 +105,7 @@ class XRAY_OT_test_import_modal(bpy.types.Operator):
                 file_path = os.path.join(root, file)
 
                 file_size = os.path.getsize(file_path)
-                if not (self.min_size < file_size < self.max_size):
+                if not self.min_size < file_size < self.max_size:
                     continue
 
                 date_float = os.path.getmtime(file_path)

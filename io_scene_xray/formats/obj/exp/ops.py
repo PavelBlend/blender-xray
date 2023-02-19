@@ -9,7 +9,6 @@ import bpy_extras
 from .. import exp
 from ... import ie
 from ... import contexts
-from ... import obj
 from .... import utils
 from .... import log
 

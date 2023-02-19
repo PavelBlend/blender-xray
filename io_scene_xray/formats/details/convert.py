@@ -1,7 +1,6 @@
 # addon modules
 from . import fmt
 from . import utility
-from ... import utils
 from ... import log
 from ... import text
 

@@ -187,7 +187,7 @@ def links_nodes(
         )
 
 
-def create_shader_nodes(level, bpy_material, bpy_image, bpy_image_lmaps):
+def create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps):
     offset = mathutils.Vector((-1000.0, 0.0))
     uv_map_node = create_shader_uv_map_texture_node(bpy_material, offset)
     image_node = create_shader_image_node(bpy_material, bpy_image, offset)
@@ -264,7 +264,7 @@ def create_image(context, texture, absolute_texture_path):
     return bpy_image
 
 
-def search_image(context, texture, absolute_texture_path):
+def search_image(absolute_texture_path):
     for bpy_image in bpy.data.images:
         if is_same_image_paths(bpy_image, absolute_texture_path):
             return bpy_image
@@ -272,7 +272,7 @@ def search_image(context, texture, absolute_texture_path):
 
 def find_image_lmap(context, lmap, level_dir):
     absolute_lmap_path = get_absolute_texture_path(level_dir, lmap)
-    bpy_image = search_image(context, lmap, absolute_lmap_path)
+    bpy_image = search_image(absolute_lmap_path)
     if not bpy_image:
         bpy_image = create_image(context, lmap, absolute_lmap_path)
     bpy_image.colorspace_settings.name = 'Non-Color'
@@ -309,7 +309,7 @@ def get_image_lmap(context, light_maps):
         return (image_lmap_1, image_lmap_2)
 
 
-def get_image(context, texture, light_maps, terrain=False):
+def get_image(context, texture, terrain=False):
     if terrain:
         # level dir (terrain texture)
         texture_dir = utility.get_level_dir(context.filepath)
@@ -319,7 +319,7 @@ def get_image(context, texture, light_maps, terrain=False):
         texture_dir,
         texture
     )
-    bpy_image = search_image(context, texture, absolute_texture_path)
+    bpy_image = search_image(absolute_texture_path)
     if not bpy_image:
         bpy_image = create_image(context, texture, absolute_texture_path)
     return bpy_image
@@ -412,9 +412,9 @@ def create_material(level, context, texture, engine_shader, *light_maps):
     bpy_material.xray.eshader = engine_shader
     bpy_material.xray.uv_texture = 'Texture'
     if len(light_maps) == 1 and level.xrlc_version >= fmt.VERSION_13:
-        bpy_image = get_image(context, texture, light_maps, terrain=True)
+        bpy_image = get_image(context, texture, terrain=True)
     else:
-        bpy_image = get_image(context, texture, light_maps)
+        bpy_image = get_image(context, texture)
     bpy_image_lmaps = get_image_lmap(context, light_maps)
     if bpy_image_lmaps:
         bpy_material.xray.uv_light_map = 'Light Map'
@@ -431,7 +431,7 @@ def create_material(level, context, texture, engine_shader, *light_maps):
     if utils.version.IS_28:
         set_material_settings(bpy_material)
         remove_default_shader_nodes(bpy_material)
-        create_shader_nodes(level, bpy_material, bpy_image, bpy_image_lmaps)
+        create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps)
     else:
         bpy_material.use_transparency = True
         bpy_material.alpha = 0.0

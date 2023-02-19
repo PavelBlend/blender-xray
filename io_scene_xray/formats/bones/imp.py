@@ -45,7 +45,7 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
 
 
 @log.with_context(name='bone-properties')
-def _import_bone_data(data, arm_obj_name, bpy_bones, bone_index):
+def _import_bone_data(data, arm_obj_name, bpy_bones):
     chunked_reader = rw.read.ChunkedReader(data)
     chunks = obj.fmt.Chunks.Bone
     # bone name
@@ -136,7 +136,7 @@ def _import_main(data, import_context):
             if not import_context.import_bone_properties:
                 continue
             bone_index = chunk_id
-            _import_bone_data(chunk_data, arm_obj.name, bpy_bones, bone_index)
+            _import_bone_data(chunk_data, arm_obj.name, bpy_bones)
 
 
 @log.with_context(name='import-bones')

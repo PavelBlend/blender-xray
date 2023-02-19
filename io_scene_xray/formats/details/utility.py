@@ -2,7 +2,6 @@
 import bpy
 
 # addon modules
-from ... import utils
 from ... import log
 from ... import text
 

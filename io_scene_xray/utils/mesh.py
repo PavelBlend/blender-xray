@@ -5,7 +5,6 @@ import bmesh
 
 # addon modules
 from . import version
-from .. import log
 
 
 def convert_object_to_space_bmesh(

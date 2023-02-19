@@ -6,7 +6,6 @@ from .. import ui
 from .. import menus
 from .. import utils
 from .. import ops
-from .. import formats
 
 
 class XRAY_PT_update(ui.base.XRayPanel):

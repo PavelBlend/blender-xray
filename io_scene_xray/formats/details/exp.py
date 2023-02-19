@@ -1,7 +1,6 @@
 # addon modules
 from . import convert
 from . import write
-from ... import utils
 from ... import log
 from ... import rw
 

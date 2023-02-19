@@ -382,12 +382,12 @@ def write_shaders(level):
     return packed_writer
 
 
-def write_visual_bounding_sphere(packed_writer, bpy_obj, center, radius):
+def write_visual_bounding_sphere(packed_writer, center, radius):
     packed_writer.putf('<3f', center[0], center[2], center[1])    # center
     packed_writer.putf('<f', radius)    # radius
 
 
-def write_visual_bounding_box(packed_writer, bpy_obj, bbox):
+def write_visual_bounding_box(packed_writer, bbox):
     bbox_min = bbox[0]
     bbox_max = bbox[1]
     packed_writer.putf('<3f', bbox_min[0], bbox_min[2], bbox_min[1])    # min
@@ -409,8 +409,8 @@ def write_visual_header(level, bpy_obj, visual=None, visual_type=0, shader_id=0)
     level.visuals_bbox[bpy_obj.name] = bbox
     level.visuals_center[bpy_obj.name] = center
     level.visuals_radius[bpy_obj.name] = radius
-    write_visual_bounding_box(packed_writer, bpy_obj, bbox)
-    write_visual_bounding_sphere(packed_writer, bpy_obj, center, radius)
+    write_visual_bounding_box(packed_writer, bbox)
+    write_visual_bounding_sphere(packed_writer, center, radius)
     return packed_writer
 
 
@@ -765,7 +765,7 @@ def write_ogf_color(packed_writer, bpy_obj, mode='SCALE'):
     packed_writer.putf('<f', sum(sun) / 3)    # sun
 
 
-def write_tree_def_2(bpy_obj, chunked_writer):
+def write_tree_def_2(bpy_obj):
     packed_writer = rw.write.PackedWriter()
 
     location = mathutils.Vector((
@@ -930,7 +930,7 @@ def write_visual(
         )
         if bpy_obj.xray.level.visual_type in ('TREE_ST', 'TREE_PM'):
             header_writer = write_visual_header(level, bpy_obj, visual=visual, visual_type=7)
-            tree_def_2_writer = write_tree_def_2(bpy_obj, chunked_writer)
+            tree_def_2_writer = write_tree_def_2(bpy_obj)
             chunked_writer.put(ogf.fmt.HEADER, header_writer)
             chunked_writer.put(ogf.fmt.Chunks_v4.GCONTAINER, gcontainer_writer)
             chunked_writer.put(ogf.fmt.Chunks_v4.TREEDEF2, tree_def_2_writer)
@@ -985,7 +985,7 @@ def write_rgb_hemi(red, green, blue, hemi):
     return int_color
 
 
-def write_lod_def_2(bpy_obj, hierrarhy, visuals_ids, level):
+def write_lod_def_2(bpy_obj, level):
     packed_writer = rw.write.PackedWriter()
     me = bpy_obj.data
     material = bpy_obj.data.materials[0]
@@ -1033,9 +1033,7 @@ def write_lod_visual(bpy_obj, hierrarhy, visuals_ids, level):
     visual_writer = rw.write.ChunkedWriter()
 
     children_l_writer = write_children_l(bpy_obj, hierrarhy, visuals_ids)
-    lod_def_2_writer, visual = write_lod_def_2(
-        bpy_obj, hierrarhy, visuals_ids, level
-    )
+    lod_def_2_writer, visual = write_lod_def_2(bpy_obj, level)
     header_writer = write_visual_header(
         level, bpy_obj, visual=visual, visual_type=ogf.fmt.ModelType_v4.LOD
     )
@@ -1287,7 +1285,7 @@ def write_header():
     return packed_writer
 
 
-def write_level(chunked_writer, level_object, file_path):
+def write_level(chunked_writer, level_object):
     level = Level()
     level.source_level_path = level_object.xray.level.source_path
 
@@ -1451,8 +1449,7 @@ def export_file(level_object, dir_path):
     level_chunked_writer = get_writer()
     vbs, ibs, fp_vbs, fp_ibs, level = write_level(
         level_chunked_writer,
-        level_object,
-        file_path
+        level_object
     )
 
     rw.utils.save_file(file_path, level_chunked_writer)

@@ -153,7 +153,7 @@ def import_motion(
                     shapes.append(shapes[-1])
                     tcb.append(tcb[-1])
                     params.append(params[-1])
-                values, times = interpolate_keys(fps, start_frame, end_frame, values, times, shapes, tcb, params)
+                values, times = interpolate_keys(start_frame, end_frame, values, times, shapes, tcb, params)
             curves[curve_index] = values, times
         used_times = set()
         if not has_interpolate:
@@ -323,7 +323,7 @@ def examine_motions(data):
         yield name
 
 
-def interpolate_keys(fps, start, end, values, times, shapes, tcb, params):
+def interpolate_keys(start, end, values, times, shapes, tcb, params):
     interpolated_values = []
     interpolated_times = []
     keys_count = len(values)

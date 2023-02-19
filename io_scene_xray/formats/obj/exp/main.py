@@ -1,6 +1,3 @@
-# standart modules
-import math
-
 # blender modules
 import bpy
 import mathutils
@@ -35,7 +32,7 @@ def export_flags(chunked_writer, xray, some_arm):
     if not some_arm is None:
         # 1 - Dynamic
         # 3 - Progressive Dynamic
-        if not (flags & ~0x40) in (1, 3):
+        if flags & ~0x40 not in (1, 3):
             # set Dynamic flag
             # so that it is possible to export to ogf from ActorEditor
             flags = 1 | (flags & 0x40)

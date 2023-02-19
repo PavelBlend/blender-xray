@@ -22,8 +22,7 @@ class Context:
 
 # import contexts
 class ImportContext(Context):
-    def __init__(self):
-        super().__init__()
+    pass
 
 
 class ImportMeshContext(ImportContext):
@@ -79,8 +78,7 @@ class ImportAnimationOnlyContext(ImportAnimationBaseContext):
 
 # export contexts
 class ExportContext(Context):
-    def __init__(self):
-        super().__init__()
+    pass
 
 
 class ExportMeshContext(ExportContext):

@@ -116,10 +116,10 @@ class XRAY_OT_verify_uv(bpy.types.Operator):
             for polygon in mesh.polygons:
                 for loop in polygon.loop_indices:
                     uv = uv_layer.data[loop].uv
-                    if not (self.MINIMUM_VALUE < uv.x < self.MAXIMUM_VALUE):
+                    if not self.MINIMUM_VALUE < uv.x < self.MAXIMUM_VALUE:
                         polygon.select = True
                         has_bad_uv = True
-                    if not (self.MINIMUM_VALUE < uv.y < self.MAXIMUM_VALUE):
+                    if not self.MINIMUM_VALUE < uv.y < self.MAXIMUM_VALUE:
                         polygon.select = True
                         has_bad_uv = True
         if has_bad_uv:

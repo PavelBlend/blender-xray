@@ -22,7 +22,9 @@ def register():
     # configuring addon modules.
     from . import log
     from . import rw
+    from . import utils
     rw.write.ENCODE_ERROR = log.AppError
+    utils.addon_version = bl_info['version']
 
     # registration
     from . import addon

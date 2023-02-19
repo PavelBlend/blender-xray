@@ -3,7 +3,6 @@ import bpy
 
 # addon modules
 from . import utility
-from . import create
 from . import header
 from . import child
 from . import material

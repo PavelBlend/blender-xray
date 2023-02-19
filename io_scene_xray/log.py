@@ -27,7 +27,7 @@ class _LoggerContext:
         self.parent = parent
         self.lightweight = lightweight
         if parent:
-            self.depth = (parent.depth + 1)
+            self.depth = parent.depth + 1
         else:
             self.depth = 0
 
@@ -71,7 +71,7 @@ class Logger:
 
     def flush(self, logname='log'):
         # collect message contexts
-        uniq = dict()
+        uniq = {}
         message_contexts = {}
         for msg, ctx, typ in self._full:
             count = uniq.get(msg, (0, typ))[0]
@@ -100,7 +100,7 @@ class Logger:
             self._report({typ}, line)
         lines.extend(['', 'Full log:'])
 
-        processed_groups = dict()
+        processed_groups = {}
         last_line_is_message = False
 
         def ensure_group_processed(group):
@@ -126,7 +126,7 @@ class Logger:
         last_message = None
         last_message_count = 0
         for msg, ctx, typ in self._full:
-            data = dict()
+            data = {}
             group = ctx
             while group and group.lightweight:
                 data.update(group.data)
@@ -191,7 +191,7 @@ def err(error):
 
 
 def debug(message, **kwargs):
-    print('debug: %s: %s' % (message, kwargs))
+    print('debug: {}: {}'.format(message, kwargs))
 
 
 def execute_with_logger(method):
@@ -223,8 +223,8 @@ def logger(name, report):
     try:
         with using_logger(logger_obj):
             yield
-    except AppError as err:
-        logger_obj.err(str(err), err.log_context)
-        raise err
+    except AppError as error:
+        logger_obj.err(str(error), error.log_context)
+        raise error
     finally:
         logger_obj.flush(name)

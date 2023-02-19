@@ -194,7 +194,7 @@ class XRAY_PT_bone(ui.base.XRayPanel):
                         )
 
                     for prop_text in text[1 : ]:
-                        if type(prop_text) == tuple:
+                        if isinstance(prop_text, tuple):
                             row = col.row(align=True)
                             for property_text in prop_text:
                                 row.prop(

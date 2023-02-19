@@ -8,9 +8,7 @@ import bpy
 from .. import ui
 from .. import utils
 from .. import ops
-from .. import text
 from .. import formats
-from .. import rw
 
 
 items = (
@@ -302,9 +300,9 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
                 return
             if meshes_folder:
                 meshes_folder = bytes(meshes_folder, encoding='utf-8')
-                if type(params.directory) == str:
+                if isinstance(params.directory, str):
                     path_check = str(meshes_folder)
-                elif type(params.directory) == bytes:
+                elif isinstance(params.directory, bytes):
                     path_check = meshes_folder
                 params.directory = meshes_folder
 
@@ -468,15 +466,15 @@ def details_draw_function(self, context):
         box.operator(formats.details.ops.XRAY_OT_pack_details_images.bl_idname)
 
 
-def draw_split_prop(layout, owner, prop, text):
+def draw_split_prop(layout, owner, prop, label):
     split = utils.version.layout_split(layout, 0.333, align=True)
-    split.label(text=text+':')
+    split.label(text=label+':')
     split.prop(owner, prop, text='')
 
 
-def draw_split_prop_search(layout, owner, prop, text, search_owner, search_prop):
+def draw_split_prop_search(layout, owner, prop, label, search_owner, search_prop):
     split = utils.version.layout_split(layout, 0.333, align=True)
-    split.label(text=text+':')
+    split.label(text=label+':')
     split.prop_search(owner, prop, search_owner, search_prop, text='')
 
 
@@ -666,7 +664,7 @@ class XRAY_PT_object(ui.base.XRayPanel):
                 _, box = ui.collapsible.draw(
                     object_box,
                     'object:motions',
-                    'Motions (%d)' % len(data.motions_collection)
+                    'Motions ({})'.format(len(data.motions_collection))
                 )
                 if box:
                     col = box.column(align=True)
@@ -707,7 +705,7 @@ class XRAY_PT_object(ui.base.XRayPanel):
                 _, box = ui.collapsible.draw(
                     object_box,
                     'object:motionsrefs',
-                    'Motion Refs (%d)' % len(data.motionrefs_collection)
+                    'Motion Refs ({})'.format(len(data.motionrefs_collection))
                 )
                 if box:
                     box.prop(data, 'load_active_motion_refs', toggle=True)

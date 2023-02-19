@@ -101,7 +101,7 @@ class XRAY_MT_xr_template(DynamicMenu):
             else:
                 nested = dct.get(split[0], None)
                 if nested is None:
-                    dct[split[0]] = nested = dict()
+                    dct[split[0]] = nested = {}
                 push_dict(nested, split[1:], value, desc)
 
         def dict_to_array(dct):
@@ -118,7 +118,7 @@ class XRAY_MT_xr_template(DynamicMenu):
             result.extend(root_result)
             return result
 
-        tmp = dict()
+        tmp = {}
         for (name, desc, _) in fparse(data):
             split = name.split('\\')
             push_dict(tmp, split, name, desc)

@@ -17,13 +17,13 @@ from . import mesh
 from . import action
 from . import bone
 from . import version
-from .. import bl_info
 from .. import log
 from .. import text
 
 
 BAD_VTX_GROUP_NAME = '.xr-bad!'
 HELPER_OBJECT_NAME_PREFIX = '.xray-helper--'
+addon_version = None
 __ADDON_VERSION_NUMBER__ = None
 
 
@@ -35,7 +35,7 @@ def addon_version_number():
     global __ADDON_VERSION_NUMBER__
     number = __ADDON_VERSION_NUMBER__
     if number is None:
-        number = version_to_number(*bl_info['version'])
+        number = version_to_number(*addon_version)
         __ADDON_VERSION_NUMBER__ = number
     return number
 
@@ -105,7 +105,7 @@ def time_log():
             try:
                 return func(*args, **kwargs)
             finally:
-                log.debug('time', func=name, time=(time.time() - start))
+                log.debug('time', func=name, time=time.time() - start)
         return wrap
     return decorator
 

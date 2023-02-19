@@ -1,5 +1,4 @@
 # standart modules
-import math
 import time
 
 # blender modules
@@ -298,7 +297,10 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
                     weights[0][0]
                 )
             else:
-                raise Exception('oops: %i %s' % (len(weights), weights.keys()))
+                raise Exception('oops: {} {}'.format(
+                    len(weights),
+                    weights.keys()
+                ))
             # write vertex data
             vertices_writer.putv3f(vertex[1])    # coord
             vertices_writer.putv3f(vertex[2])    # normal

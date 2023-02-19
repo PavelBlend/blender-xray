@@ -5,7 +5,7 @@ import bpy
 from ... import utils
 
 
-__HELPERS__ = dict()
+__HELPERS__ = {}
 
 
 class AbstractHelper:

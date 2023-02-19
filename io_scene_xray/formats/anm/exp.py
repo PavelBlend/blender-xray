@@ -105,9 +105,9 @@ def _export_action_data(pkw, ver, xray, fcurves):
     axis_keys = {0: 'X', 1: 'Y', 2: 'Z'}
     errors = []
     for axis in range(3):
-        if not (axis in location_curves):
+        if axis not in location_curves:
             errors.append('loc' + axis_keys[axis])
-        if not (axis in rotation_curves):
+        if axis not in rotation_curves:
             errors.append('rot' + axis_keys[axis])
     if errors:
         message = ' '.join(errors)

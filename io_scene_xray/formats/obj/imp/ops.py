@@ -1,6 +1,3 @@
-# standart modules
-import os
-
 # blender modules
 import bpy
 import bpy_extras
@@ -10,7 +7,6 @@ from . import ctx
 from . import main
 from ... import ie
 from .... import log
-from .... import text
 from .... import utils
 
 

@@ -12,7 +12,6 @@ import bpy
 # addon modules
 from .. import text
 from .. import utils
-from .. import bl_info
 
 
 RELEASES_URL = 'https://api.github.com/repos/PavelBlend/blender-xray/releases'
@@ -24,7 +23,7 @@ def check_for_updates():
     last_tag_str = releases_list[0]['tag_name']
     last_tag_tuple = last_tag_str[1 : ].split('.')
     last_tag = tuple(map(int, last_tag_tuple))
-    current_ver = bl_info['version']
+    current_ver = utils.addon_version
     has_new_release = False
     if last_tag[0] > current_ver[0]:
         has_new_release = True

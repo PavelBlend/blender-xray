@@ -4,7 +4,6 @@ import math
 # blender modules
 import gpu
 import bgl
-import mathutils
 
 # addon modules
 from . import const

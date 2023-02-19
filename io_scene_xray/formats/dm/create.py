@@ -20,7 +20,7 @@ def create_object(object_name):
     return bpy_object, bpy_mesh
 
 
-def create_empty_image(context, detail_model, absolute_image_path):
+def create_empty_image(detail_model, absolute_image_path):
     bpy_image = bpy.data.images.new(
         os.path.basename(detail_model.texture) + '.dds', 0, 0
     )
@@ -110,17 +110,11 @@ def create_bpy_image(det_model, abs_image_path):
                 bpy_image = bpy.data.images.load(abs_image_path)
             except RuntimeError:
                 log.warn(text.warn.tex_not_found, path=abs_image_path)
-                bpy_image = create_empty_image(
-                    det_model.context,
-                    det_model,
-                    abs_image_path
-                )
+                bpy_image = create_empty_image(det_model, abs_image_path)
 
         else:
             log.warn(text.warn.tex_not_found, path=abs_image_path)
-            bpy_image = create_empty_image(
-                det_model.context, det_model, abs_image_path
-            )
+            bpy_image = create_empty_image(det_model, abs_image_path)
 
     return bpy_image
 

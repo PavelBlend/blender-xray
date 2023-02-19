@@ -3,7 +3,6 @@ import bpy
 import bmesh
 
 # addon modules
-from . import main
 from .. import fmt
 from .... import text
 from .... import rw
@@ -47,7 +46,7 @@ def _mark_fsg(face, sgroup, face_sgroup):
 
 
 def _export_sg_soc(bmfaces):
-    face_sgroup = dict()
+    face_sgroup = {}
     sgroup_gen = 0
     for face in bmfaces:
         sgroup = face_sgroup.get(face)

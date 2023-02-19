@@ -78,7 +78,7 @@ def _gen_tex_name_by_level_folder(
         report_warn = False
         if errors is None:
             report_warn = True
-        if type(errors) == set:
+        if isinstance(errors, set):
             if not file_path in errors:
                 report_warn = True
         if report_warn:
@@ -89,7 +89,7 @@ def _gen_tex_name_by_level_folder(
                 textures_folder=textures_folder,
                 saved_as=tex_path
             )
-            if type(errors) == set:
+            if isinstance(errors, set):
                 errors.add(file_path)
 
     return tex_path

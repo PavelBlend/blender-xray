@@ -1,6 +1,3 @@
-# standart modules
-import math
-
 # blender modules
 import bpy
 import mathutils

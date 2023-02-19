@@ -12,7 +12,7 @@ from ... import log
 from ... import rw
 
 
-def import_(filepath, chunked_reader, operator):
+def import_(filepath, chunked_reader):
     for chunk_id, chunk_data in chunked_reader:
         if not chunk_id in (fmt.Chunks.INVALID, fmt.Chunks.INVALID_LE):
             continue
@@ -68,9 +68,9 @@ def import_(filepath, chunked_reader, operator):
 
 
 @log.with_context(name='import-err')
-def import_file(file_path, operator):
+def import_file(file_path):
     log.update(file=file_path)
     rw.utils.check_file_exists(file_path)
     data = rw.utils.read_file(file_path)
     chunked_reader = rw.read.ChunkedReader(data)
-    import_(file_path, chunked_reader, operator)
+    import_(file_path, chunked_reader)

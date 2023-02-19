@@ -5,7 +5,6 @@ import rna_keymap_ui
 from . import ops
 from . import hotkeys
 from . import props
-from . import preset
 from .. import utils
 
 

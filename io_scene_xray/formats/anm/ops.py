@@ -11,7 +11,6 @@ from . import exp
 from .. import ie
 from ... import log
 from ... import utils
-from ... import text
 
 
 filename_ext = '.anm'

@@ -69,20 +69,20 @@ class XRAY_OT_import_skls(ie.BaseOperator, bpy_extras.io_utils.ImportHelper):
 
         layout.prop(self, 'add_actions_to_motion_list')
 
-        motions, count = self._get_motions(), 0
-        text = 'Filter Motions'
-        enabled = len(motions) > 1
+        motions_list, count = self._get_motions(), 0
+        label = 'Filter Motions'
+        enabled = len(motions_list) > 1
         if enabled:
-            text = 'Filter Motions: '
-            count = len([motion for motion in motions if motion.flag])
-            if count == len(motions):
-                text += 'All (%d)' % count
+            label = 'Filter Motions: '
+            count = len([motion for motion in motions_list if motion.flag])
+            if count == len(motions_list):
+                label += 'All ({})'.format(count)
             else:
-                text += str(count)
+                label += str(count)
         _, box = ui.collapsible.draw(
             layout,
             self.bl_idname,
-            text,
+            label,
             enabled=enabled,
             icon='FILTER' if count < 100 else 'ERROR',
             style='nobox',

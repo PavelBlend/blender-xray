@@ -3,13 +3,11 @@ import os
 
 # blender modules
 import bpy
-import bpy_extras
 
 # addon modules
 from . import imp
 from .. import ie
 from .. import obj
-from .. import contexts
 from ... import utils
 from ... import log
 

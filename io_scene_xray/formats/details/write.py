@@ -5,7 +5,6 @@ from . import utility
 from .. import dm
 from ... import text
 from ... import log
-from ... import utils
 from ... import rw
 
 

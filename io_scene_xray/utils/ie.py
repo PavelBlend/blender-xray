@@ -61,7 +61,7 @@ def set_initial_state(method):
         _set_selection_state(active_object, selected_objects)
         if mode.startswith('EDIT_'):
             mode = 'EDIT'
-        if not mode in ('OBJECT', 'EDIT', 'POSE'):
+        if mode not in ('OBJECT', 'EDIT', 'POSE'):
             mode = 'OBJECT'
         set_mode(mode)
         context.window.cursor_set('DEFAULT')

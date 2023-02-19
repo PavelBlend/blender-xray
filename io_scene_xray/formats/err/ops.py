@@ -43,7 +43,7 @@ class XRAY_OT_import_err(
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        imp.import_file(self.filepath, self)
+        imp.import_file(self.filepath)
         return {'FINISHED'}
 
     def invoke(self, context, event):

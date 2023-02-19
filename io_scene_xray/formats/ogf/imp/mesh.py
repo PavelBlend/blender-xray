@@ -4,7 +4,6 @@ import math
 # blender modules
 import bpy
 import bmesh
-import mathutils
 
 # addon modules
 from . import utility

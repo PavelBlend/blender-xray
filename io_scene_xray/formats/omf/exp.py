@@ -74,12 +74,12 @@ def validate_omf_file(context):
     for chunk_id, chunk_data in chunked_reader:
         chunks[chunk_id] = chunk_data
     chunks_ids = list(chunks.keys())
-    if not fmt.Chunks.S_MOTIONS_2 in chunks_ids and context.export_motions:
+    if fmt.Chunks.S_MOTIONS_2 not in chunks_ids and context.export_motions:
         raise log.AppError(
             text.error.omf_no_anims,
             log.props(file=context.filepath)
         )
-    if not fmt.Chunks.S_SMPARAMS_1 in chunks_ids and context.export_bone_parts:
+    if fmt.Chunks.S_SMPARAMS_1 not in chunks_ids and context.export_bone_parts:
         raise log.AppError(
             text.error.omf_no_params,
             log.props(file=context.filepath)
@@ -161,7 +161,7 @@ def get_motions(context, bones_count):
     chunked_reader = rw.read.ChunkedReader(chunks[fmt.Chunks.S_MOTIONS_2])
     chunked_reader.next(fmt.MOTIONS_COUNT_CHUNK)
 
-    motions = {}
+    motion_writers = {}
     motion_names = []
 
     for motion_id, chunk_data in chunked_reader:
@@ -179,7 +179,7 @@ def get_motions(context, bones_count):
 
         # collect data
         motion_names.append(name)
-        motions[name] = (packed_writer, motion_id)
+        motion_writers[name] = (packed_writer, motion_id)
 
         # bones keyframes
         for bone_index in range(bones_count):
@@ -220,7 +220,7 @@ def get_motions(context, bones_count):
                 translate = packed_reader.getf('<3f')
                 packed_writer.putf('<3f', *translate)
 
-    return motions, motion_names, chunks
+    return motion_writers, motion_names, chunks
 
 
 def write_motion_params(context, writer, name, index, actions_table):
@@ -251,8 +251,8 @@ def write_motion_params(context, writer, name, index, actions_table):
         writer.putf('<I', marks_count)
 
 
-def write_motions_params(context, writer, motions, actions_table):
-    for name, index, _ in motions:
+def write_motions_params(context, writer, motions_list, actions_table):
+    for name, index, _ in motions_list:
         write_motion_params(context, writer, name, index, actions_table)
 
 
@@ -296,7 +296,7 @@ def export_motion_params(
         available_params,
         motion_count,
         new_motions_count,
-        motions,
+        motions_list,
         motions_ids,
         motion_export_names,
         actions_table
@@ -304,7 +304,12 @@ def export_motion_params(
     if not available_params:
         # overwrite mode
         packed_writer.putf('<H', motion_count)
-        write_motions_params(context, packed_writer, motions, actions_table)
+        write_motions_params(
+            context,
+            packed_writer,
+            motions_list,
+            actions_table
+        )
     else:
 
         # add mode
@@ -314,7 +319,7 @@ def export_motion_params(
                 packed_writer.puts(motion_name)
                 packed_writer.putp(motion_params.writer)
             motions_new = []
-            for motion_name, motion_id, has_available in motions:
+            for motion_name, motion_id, has_available in motions_list:
                 if not has_available:
                     motions_new.append((motion_name, motion_id, has_available))
             write_motions_params(context, packed_writer, motions_new, actions_table)
@@ -327,7 +332,7 @@ def export_motion_params(
                     motion_index = motions_ids.get(motion_name, None)
                     has_available = False
                     if not motion_index is None:
-                        _, _, has_available = motions[motion_index]
+                        _, _, has_available = motions_list[motion_index]
                     if has_available:
                         packed_writer.puts(motion_name)
                         packed_writer.putp(motion_params.writer)
@@ -337,7 +342,7 @@ def export_motion_params(
                             motion_name = motion_export_names[motion_name]
                         write_motion_params(context, packed_writer, motion_name, params, actions_table)
                 motions_new = []
-                for motion_name, motion_id, has_available in motions:
+                for motion_name, motion_id, has_available in motions_list:
                     if not has_available:
                         motions_new.append((motion_name, motion_id, has_available))
                 write_motions_params(context, packed_writer, motions_new, actions_table)
@@ -471,7 +476,7 @@ def search_available_data(context, bones_count, motion_export_names):
 
 def collect_motions_availability_table(context, export_motion_names, available_motions, actions_table):
     motion_count = 0
-    motions = []
+    motions_list = []
     motions_ids = {}
     if context.export_mode == 'OVERWRITE':
         available = False
@@ -484,7 +489,7 @@ def collect_motions_availability_table(context, export_motion_names, available_m
             if not action:
                 # TODO: added warning
                 continue
-            motions.append((motion_name, motion_count, available))
+            motions_list.append((motion_name, motion_count, available))
             motions_ids[motion_name] = motion_count
             motion_count += 1
     else:
@@ -501,13 +506,13 @@ def collect_motions_availability_table(context, export_motion_names, available_m
                     continue
             if not motion_id is None:
                 available = True
-                motions.append((motion_name, motion_id, available))
+                motions_list.append((motion_name, motion_id, available))
             else:
                 available = False
-                motions.append((motion_name, motion_count, available))
+                motions_list.append((motion_name, motion_count, available))
             motions_ids[motion_name] = motion_count
             motion_count += 1
-    return motion_count, motions, motions_ids
+    return motion_count, motions_list, motions_ids
 
 
 def get_available_params_and_boneparts(context, chunks):
@@ -765,7 +770,11 @@ def export_omf(context):
 
     pose_bones, bone_groups = get_pose_bones_and_groups(context)
 
-    motion_count, motions, motions_ids = collect_motions_availability_table(
+    (
+        motion_count,
+        motions_list,
+        motions_ids
+    ) = collect_motions_availability_table(
         context,
         export_motion_names,
         available_motions,
@@ -828,7 +837,7 @@ def export_omf(context):
         available_params,
         motion_count,
         new_motions_count,
-        motions,
+        motions_list,
         motions_ids,
         motion_export_names,
         actions_table

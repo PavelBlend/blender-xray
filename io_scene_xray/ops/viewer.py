@@ -272,7 +272,7 @@ def update_file_list(directory, active_folder=None):
         groups_keys.insert(0, True)
     for group_key in groups_keys:
         files_list = file_groups[group_key]
-        if group_key == True:    # folders
+        if group_key:    # folders
             files_list.sort(key=sort_by_name, reverse=viewer.sort_reverse)
         else:
             files_list.sort(key=key, reverse=viewer.sort_reverse)

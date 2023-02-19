@@ -1,14 +1,9 @@
-# standart modules
-import os
-
 # blender modules
 import bpy
 
 # addon modules
-from .. import ui
 from .. import utils
 from .. import text
-from .. import formats
 from .. import rw
 
 
