@@ -70,10 +70,8 @@ def import_soc_objects(data, context, level_name):
 
 @log.with_context(name='import-part')
 def import_file(file_path, context):
-    log.update(file=file_path)
-    rw.utils.check_file_exists(file_path)
     level_name = os.path.basename(os.path.dirname(file_path))
-    file_data = rw.utils.read_file(file_path)
+    file_data = rw.utils.get_file_data(file_path)
     try:
         ltx_data = file_data.decode(encoding='cp1251')
         ltx = rw.ltx.StalkerLtxParser(file_path, data=ltx_data)

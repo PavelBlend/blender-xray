@@ -121,8 +121,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones):
             log.debug('unknown chunk', chunk_id=chunk_id)
 
 
-def _import_main(data, import_context):
-    chunked_reader = rw.read.ChunkedReader(data)
+def _import_main(chunked_reader, import_context):
     chunks = obj.fmt.Chunks.Object
     arm_obj = import_context.bpy_arm_obj
     bpy_bones = {}
@@ -140,8 +139,6 @@ def _import_main(data, import_context):
 
 
 @log.with_context(name='import-bones')
-def import_file(import_context):
-    log.update(file=import_context.filepath)
-    rw.utils.check_file_exists(import_context.filepath)
-    data = rw.utils.read_file(import_context.filepath)
-    _import_main(data, import_context)
+def import_file(imp_context):
+    reader = rw.utils.get_file_reader(imp_context.filepath, chunked=True)
+    _import_main(reader, imp_context)

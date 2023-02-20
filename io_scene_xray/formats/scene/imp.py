@@ -185,11 +185,10 @@ def import_(filepath, chunked_reader, import_context):
 
 @log.with_context(name='import-scene-selection')
 def import_file(filepath, operator):
-    log.update(file=filepath)
-    rw.utils.check_file_exists(filepath)
     preferences = utils.version.get_preferences()
     textures_folder = preferences.textures_folder_auto
     objects_folder = preferences.objects_folder_auto
+
     import_context = ImportSceneContext()
     import_context.textures_folder=textures_folder
     import_context.soc_sgroups=operator.fmt_version == 'soc'
@@ -198,6 +197,7 @@ def import_file(filepath, operator):
     import_context.operator=operator
     import_context.objects_folder=objects_folder
     import_context.before_import_file()
-    file_data = rw.utils.read_file(filepath)
-    chunked_reader = rw.read.ChunkedReader(file_data)
+
+    chunked_reader = rw.utils.get_file_reader(filepath, chunked=True)
+
     import_(filepath, chunked_reader, import_context)

@@ -680,13 +680,13 @@ MAX_LEVEL_SIZE = 1024 * 1024 * 32    # 32 MB
 
 @log.with_context(name='import-game-level')
 def import_file(context):
-    log.update(file=context.filepath)
-    rw.utils.check_file_exists(context.filepath)
     level = Level()
     level.context = context
     level.usage_list = set()
     level.vertex_format_list = set()
-    chunked_reader = utility.get_level_reader(context.filepath)
+
+    chunked_reader = rw.utils.get_file_reader(context.filepath, chunked=True)
+
     level.name = utility.get_level_name(context.filepath)
     level.xrlc_version = get_version(
         chunked_reader.next(fmt.HEADER),

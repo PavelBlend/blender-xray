@@ -115,9 +115,6 @@ def _import(file_path, creader, context):
 @log.with_context('import-anm')
 def import_file(context):
     file_path = context.filepath
-    log.update(file=file_path)
-    rw.utils.check_file_exists(file_path)
-    data = rw.utils.read_file(file_path)
-    chunked_reader = rw.read.ChunkedReader(data)
+    chunked_reader = rw.utils.get_file_reader(file_path, chunked=True)
     frame_start, frame_end = _import(file_path, chunked_reader, context)
     return frame_start, frame_end

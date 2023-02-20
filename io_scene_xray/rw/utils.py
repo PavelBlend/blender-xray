@@ -53,10 +53,16 @@ def check_file_exists(file_path):
         )
 
 
+def get_file_data(file_path):
+    abs_path = os.path.abspath(file_path)
+    log.update(file=abs_path)
+    check_file_exists(abs_path)
+    file_data = read_file(abs_path)
+    return file_data
+
+
 def get_file_reader(file_path, chunked=False):
-    log.update(file=file_path)
-    check_file_exists(file_path)
-    file_data = read_file(file_path)
+    file_data = get_file_data(file_path)
 
     if chunked:
         reader = read.ChunkedReader(memoryview(file_data))

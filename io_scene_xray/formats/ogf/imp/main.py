@@ -121,9 +121,7 @@ def import_level_visual(data, visual_id, lvl, chunks, visuals_ids):
 
 @log.with_context(name='import-ogf')
 def import_file(file_path, context):
-    log.update(file=file_path)
-    rw.utils.check_file_exists(file_path)
-    data = rw.utils.read_file(file_path)
+    data = rw.utils.get_file_data(file_path)
     file_name = os.path.basename(file_path)
 
     # init visual

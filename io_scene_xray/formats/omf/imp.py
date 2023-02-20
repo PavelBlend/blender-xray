@@ -412,7 +412,5 @@ def read_main(data, context):
 
 @log.with_context(name='import-omf')
 def import_file(context):
-    log.update(file=context.filepath)
-    rw.utils.check_file_exists(context.filepath)
-    file_data = rw.utils.read_file(context.filepath)
+    file_data = rw.utils.get_file_data(context.filepath)
     read_main(file_data, context)

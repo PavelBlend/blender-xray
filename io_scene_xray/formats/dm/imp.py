@@ -60,8 +60,5 @@ def import_(
 
 @log.with_context('import-dm')
 def import_file(file_path, context):
-    log.update(file=file_path)
-    rw.utils.check_file_exists(file_path)
-    data = rw.utils.read_file(file_path)
-    packed_reader = rw.read.PackedReader(data)
+    packed_reader = rw.utils.get_file_reader(file_path, chunked=False)
     import_(file_path, context, packed_reader)
