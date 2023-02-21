@@ -61,15 +61,10 @@ class XRAY_OT_import_level(
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        preferences = utils.version.get_preferences()
-        textures_folder = preferences.textures_folder_auto
-        if not textures_folder:
-            self.report({'WARNING'}, 'No textures folder specified')
         if not self.filepath:
             self.report({'ERROR'}, 'No file selected')
             return {'CANCELLED'}
         import_context = ImportLevelContext()
-        import_context.textures_folder=textures_folder
         import_context.operator=self
         import_context.filepath = self.filepath
         try:

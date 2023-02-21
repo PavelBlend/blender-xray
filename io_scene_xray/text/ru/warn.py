@@ -15,6 +15,7 @@ translations_table = (
     (warn.сhanged, 'Изменено'),
     (warn.full_log, 'Полный лог хранится в окне Text Editor в текстовом файле'),
     (warn.tex_not_found, 'файл текстуры не найден'),
+    (warn.tex_folder_not_spec, 'Папка с текстурами не указана'),
     (warn.env_tex, 'материал имеет некорректный тип ноды изображения (Environment Texture)'),
     (warn.no_bone_parent, 'не найдена родительская кость'),
     (warn.invalid_image_path, 'изображение имеет некорректный путь'),

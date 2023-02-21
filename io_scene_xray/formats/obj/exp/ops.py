@@ -117,8 +117,6 @@ class XRAY_OT_export_object(ie.BaseOperator, _WithExportMotions):
         export_context.soc_sgroups = self.fmt_version == 'soc'
         export_context.export_motions = self.export_motions
         export_context.smoothing_out_of = self.smoothing_out_of
-        preferences = utils.version.get_preferences()
-        export_context.textures_folder = preferences.textures_folder_auto
         use_split_normals = self.smoothing_out_of == 'SPLIT_NORMALS'
         for name in self.objects.split(','):
             bpy_obj = context.scene.objects[name]
@@ -203,8 +201,6 @@ class XRAY_OT_export_object_file(
         export_context.export_motions = self.export_motions
         export_context.smoothing_out_of = self.smoothing_out_of
         bpy_obj = context.scene.objects[self.object]
-        preferences = utils.version.get_preferences()
-        export_context.textures_folder = preferences.textures_folder_auto
         use_split_normals = self.smoothing_out_of == 'SPLIT_NORMALS'
         try:
             exp.export_file(bpy_obj, self.filepath, export_context)

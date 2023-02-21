@@ -57,10 +57,8 @@ class XRAY_OT_import_part(ie.BaseOperator):
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
         preferences = utils.version.get_preferences()
-        textures_folder = preferences.textures_folder_auto
         objects_folder = preferences.objects_folder_auto
         import_context = ImportPartContext()
-        import_context.textures_folder=textures_folder
         import_context.soc_sgroups=self.fmt_version == 'soc'
         import_context.split_by_materials=self.mesh_split_by_materials
         import_context.operator=self

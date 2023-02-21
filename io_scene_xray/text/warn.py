@@ -1,6 +1,7 @@
 # general
 full_log = 'The full log was stored in the Text Editor in a text file'
 tex_not_found = 'texture file not found'
+tex_folder_not_spec = 'No textures folder specified'
 env_tex = 'material has incorrect image node type (Environment Texture)'
 no_bone_parent = 'bone parent isn\'t found'
 invalid_image_path = 'image has an invalid path'

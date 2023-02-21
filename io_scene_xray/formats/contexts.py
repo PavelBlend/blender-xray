@@ -6,6 +6,7 @@ import bpy
 
 # addon modules
 from .. import log
+from .. import text
 from .. import utils
 
 
@@ -20,16 +21,31 @@ class Context:
         self.fatal_errors = []
 
 
+class MeshContext(Context):
+    def __init__(self):
+        super().__init__()
+        pref = utils.version.get_preferences()
+        self.tex_folder = pref.textures_folder_auto
+        self.tex_folder_repored = False
+
+    @property
+    def textures_folder(self):
+        if not self.tex_folder:
+            if not self.tex_folder_repored:
+                self.tex_folder_repored = True
+                self.operator.report(
+                    {'WARNING'},
+                    text.get_text(text.warn.tex_folder_not_spec)
+                )
+        return self.tex_folder
+
+
 # import contexts
 class ImportContext(Context):
     pass
 
 
-class ImportMeshContext(ImportContext):
-    def __init__(self):
-        super().__init__()
-        self.textures_folder = None
-
+class ImportMeshContext(MeshContext):
     def image(self, relpath):
         relpath = relpath.lower().replace('\\', os.path.sep)
         if not self.textures_folder:
@@ -81,11 +97,9 @@ class ExportContext(Context):
     pass
 
 
-class ExportMeshContext(ExportContext):
+class ExportMeshContext(ExportContext, MeshContext):
     def __init__(self):
         super().__init__()
-        preferences = utils.version.get_preferences()
-        self.textures_folder = preferences.textures_folder_auto
         self.texname_from_path = None
 
 

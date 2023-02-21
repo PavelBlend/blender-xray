@@ -72,18 +72,12 @@ class XRAY_OT_import_details(
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        prefs = utils.version.get_preferences()
-        textures_folder = prefs.textures_folder_auto
-
-        if not textures_folder:
-            self.report({'WARNING'}, 'No textures folder specified')
-
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
 
         import_context = ImportDetailsContext()
-        import_context.textures_folder=textures_folder
+
         import_context.operator=self
         import_context.format_version = self.details_format
         import_context.details_models_in_a_row = self.details_models_in_a_row
@@ -186,11 +180,9 @@ class XRAY_OT_export_details(
             self.report({'ERROR'}, 'The selected object is not empty')
             return {'CANCELLED'}
 
-        textures_folder = utils.version.get_preferences().textures_folder_auto
         export_context = ExportDetailsContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.level_details_format_version = self.format_version
-        export_context.textures_folder=textures_folder
         export_context.unique_errors = set()
 
         try:

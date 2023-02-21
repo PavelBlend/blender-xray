@@ -63,15 +63,15 @@ class XRAY_OT_import_ogf(
     @utils.ie.set_initial_state
     def execute(self, context):
         prefs = utils.version.get_preferences()
-        textures_folder = prefs.textures_folder_auto
         meshes_folder = prefs.meshes_folder_auto
-        if not textures_folder:
-            self.report({'WARNING'}, 'No textures folder specified')
+
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
+
         import_context = ImportOgfContext()
-        import_context.textures_folder = textures_folder
+
+        import_context.operator = self
         import_context.meshes_folder = meshes_folder
         import_context.import_motions = self.import_motions
         import_context.import_bone_parts = True

@@ -72,10 +72,7 @@ class XRAY_OT_import_dm(
         if not has_sel:
             return {'CANCELLED'}
 
-        tex_folder = utils.ie.get_textures_folder(self)
-
         import_context = ImportDmContext()
-        import_context.textures_folder = tex_folder
         import_context.operator = self
 
         utils.ie.import_files(
