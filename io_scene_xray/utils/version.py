@@ -353,6 +353,13 @@ def create_collection(collection_name, parent_collection=None):
     return collection
 
 
+def remove_collection(collection):
+    if IS_28:
+        bpy.data.collections.remove(collection)
+    else:
+        bpy.data.groups.remove(collection)
+
+
 def unlink_object_from_collections(obj):
     if IS_28:
         for child in obj.children:
