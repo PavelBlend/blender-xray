@@ -2,6 +2,7 @@
 import os
 
 # addon modules
+from . import fmt
 from .. import obj
 from ... import log
 from ... import text
@@ -9,8 +10,69 @@ from ... import utils
 from ... import rw
 
 
+def read_soc_scene_object(data):
+    pos = None
+    rot = None
+    scl = None
+    ref = None
+
+    chunked_reader = rw.read.ChunkedReader(data)
+
+    for chunk_id, chunk_data in chunked_reader:
+        if chunk_id == fmt.Chunks.OBJECT_BODY:
+            body_reader = rw.read.ChunkedReader(chunk_data)
+
+            for body_chunk_id, body_chunk_data in body_reader:
+                if body_chunk_id == fmt.Chunks.REFERENCE:
+                    reader = rw.read.PackedReader(body_chunk_data)
+                    ver = reader.uint32()
+                    length = reader.uint32()
+                    ref = reader.gets()
+
+                elif body_chunk_id == fmt.Chunks.TRANSFORM:
+                    reader = rw.read.PackedReader(body_chunk_data)
+                    pos = reader.getf('<3f')
+                    rot = reader.getf('<3f')
+                    scl = reader.getf('<3f')
+
+    return ref, pos, rot, scl
+
+
+def read_soc_scene_objects(data):
+    refs = []
+    pos = []
+    rot = []
+    scl = []
+
+    chunked_reader = rw.read.ChunkedReader(data)
+
+    for chunk_id, chunk_data in chunked_reader:
+        ref, position, rotation, scale = read_soc_scene_object(chunk_data)
+
+        refs.append(ref)
+        pos.append(position)
+        rot.append(rotation)
+        scl.append(scale)
+
+    return refs, pos, rot, scl
+
+
+def read_soc_tools_data(data):
+    chunked_reader = rw.read.ChunkedReader(data)
+
+    for chunk_id, chunk_data in chunked_reader:
+        if chunk_id == fmt.Chunks.OBJECTS:
+            refs, pos, rot, scl = read_soc_scene_objects(chunk_data)
+            return refs, pos, rot, scl
+
+
 def read_soc_objects(data):
-    raise log.AppError('Binary Format not Supported!')
+    chunked_reader = rw.read.ChunkedReader(data)
+
+    for chunk_id, chunk_data in chunked_reader:
+        if chunk_id == fmt.Chunks.TOOLS_DATA:
+            refs, pos, rot, scl = read_soc_tools_data(chunk_data)
+            return refs, pos, rot, scl
 
 
 def read_cs_cop_objects(ltx):
@@ -35,9 +97,9 @@ def read_cs_cop_objects(ltx):
         scale = params.get('scale', None)
 
         refs.append(ref)
-        pos.append(position)
-        rot.append(rotation)
-        scl.append(scale)
+        pos.append(list(map(float, position.split(','))))
+        rot.append(list(map(float, rotation.split(','))))
+        scl.append(list(map(float, scale.split(','))))
 
     return refs, pos, rot, scl
 
@@ -85,21 +147,18 @@ def import_objects(refs, pos, rot, scl, context, level_name):
 
         utils.version.link_object_to_collection(imported_object, collection)
 
-        pos_str = pos[index]
-        rot_str = rot[index]
-        scl_str = scl[index]
+        position = pos[index]
+        rotate = rot[index]
+        scale = scl[index]
 
-        if pos_str:
-            position = list(map(float, pos_str.split(',')))
+        if position:
             imported_object.location = position[0], position[2], position[1]
 
-        if rot_str:
+        if rotate:
             imported_object.rotation_mode = 'XYZ'
-            rotate = list(map(float, rot_str.split(',')))
             imported_object.rotation_euler = rotate[0], rotate[2], rotate[1]
 
-        if scl_str:
-            scale = list(map(float, scl_str.split(',')))
+        if scale:
             imported_object.scale = scale[0], scale[2], scale[1]
 
         imported_count += 1
