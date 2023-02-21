@@ -7,6 +7,7 @@ from . import main
 from ... import ie
 from ... import contexts
 from .... import log
+from .... import text
 from .... import utils
 
 
@@ -16,8 +17,21 @@ class ImportOgfContext(
     ):
     def __init__(self):
         super().__init__()
-        self.meshes_folder = None
+        pref = utils.version.get_preferences()
+        self.meshes_path = pref.meshes_folder_auto
         self.import_bone_parts = None
+        self.repored = False
+
+    @property
+    def meshes_folder(self):
+        if not self.meshes_path:
+            if not self.repored:
+                self.repored = True
+                self.operator.report(
+                    {'WARNING'},
+                    text.get_text(text.warn.meshes_folder_not_spec)
+                )
+        return self.meshes_path
 
 
 op_text = 'Game Object'
@@ -62,9 +76,6 @@ class XRAY_OT_import_ogf(
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        prefs = utils.version.get_preferences()
-        meshes_folder = prefs.meshes_folder_auto
-
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
@@ -72,7 +83,6 @@ class XRAY_OT_import_ogf(
         import_context = ImportOgfContext()
 
         import_context.operator = self
-        import_context.meshes_folder = meshes_folder
         import_context.import_motions = self.import_motions
         import_context.import_bone_parts = True
         import_context.add_actions_to_motion_list = True
