@@ -20,6 +20,26 @@ class TestDmExport(utils.XRayTestCase):
             'test.dm'
         })
 
+    def test_export_batch(self):
+        # Arrange
+        self._create_dm_objects()
+
+        # select objects
+        names = set()
+        for obj in bpy.data.objects:
+            utils.select_object(obj)
+            names.add(obj.name)
+
+        # Act
+        bpy.ops.xray_export.dm(
+            detail_models=','.join(names),
+            directory=self.outpath(),
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertOutputFiles({'tdm1.dm', 'tdm2.dm', 'tdm3.dm'})
+
     def _create_dm_objects(self, create_uv=True, create_material=True):
         bmesh = utils.create_bmesh((
             (0, 0, 0),
