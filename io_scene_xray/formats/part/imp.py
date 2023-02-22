@@ -74,6 +74,8 @@ def read_soc_objects(data):
             refs, pos, rot, scl = read_soc_tools_data(chunk_data)
             return refs, pos, rot, scl
 
+    return [], [], [], []
+
 
 def read_cs_cop_objects(ltx):
     refs = []
