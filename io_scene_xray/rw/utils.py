@@ -27,11 +27,26 @@ def read_file(file_path):
 
 def save_file(file_path, writer):
     dir_path = os.path.dirname(file_path)
+    file_name = os.path.basename(file_path)
+    name, ext = os.path.splitext(file_name)
+
+    if name.count('.'):
+        name = name.replace('.', '_')
+        old_path = file_path
+        file_path = os.path.join(dir_path, name + ext)
+        log.warn(
+            text.warn.name_has_dot,
+            new=file_path,
+            old=old_path
+        )
+
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
+
     try:
         with open(file_path, 'wb') as file:
             file.write(writer.data)
+
     except PermissionError:
         raise log.AppError(
             text.error.file_another_prog,

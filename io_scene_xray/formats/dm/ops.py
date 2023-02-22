@@ -227,6 +227,8 @@ class XRAY_OT_export_dm_file(
 
         self.detail_model = objs[0].name
         self.filepath = self.detail_model
+        if not self.filepath.lower().endswith(self.filename_ext):
+            self.filepath += self.filename_ext
 
         return super().invoke(context, event)
 

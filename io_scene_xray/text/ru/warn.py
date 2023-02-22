@@ -26,6 +26,7 @@ translations_table = (
     (warn.use_shader_tex, mat_many_tex + '. Экспортирована текстура шейдера'),
     (warn.use_active_tex, mat_many_tex + '. Экспортирована активная текстура'),
     (warn.use_selected_tex, mat_many_tex + '. Экспортирована выделенная текстура'),
+    (warn.name_has_dot, 'имя файла имеет больше одной точки. Файл был переименован'),
     # updates
     (warn.new_update_available, 'доступно новое обновление аддона blender-xray'),
     (warn.has_no_update, 'нет нового обновления аддона blender-xray'),

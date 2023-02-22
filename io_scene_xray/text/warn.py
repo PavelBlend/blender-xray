@@ -17,6 +17,7 @@ info_title = 'info'
 ready = 'Ready!'
 imported = 'Imported'
 сhanged = 'Changed'
+name_has_dot = 'file name contains more than one dot. The file has been renamed'
 # update addon
 new_update_available = 'new update of blender-xray addon is available'
 has_no_update = 'no new updates for blender-xray addon'

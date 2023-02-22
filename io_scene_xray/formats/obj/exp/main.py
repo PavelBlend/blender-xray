@@ -468,9 +468,7 @@ def export_revision(chunked_writer, xray):
     chunked_writer.put(fmt.Chunks.Object.REVISION, writer)
 
 
-@log.with_context('export-object')
 def export_main(bpy_obj, chunked_writer, context):
-    log.update(object=bpy_obj.name)
     xray = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
 
     export_version(chunked_writer)

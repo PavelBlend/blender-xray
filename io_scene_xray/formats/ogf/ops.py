@@ -100,7 +100,9 @@ class XRAY_OT_export_ogf_file(
         self.export_motions = pref.ogf_export_motions
         self.hq_export = pref.ogf_export_hq_motions
 
-        self.filepath = context.object.name
+        self.filepath = context.active_object.name
+        if not self.filepath.lower().endswith(filename_ext):
+            self.filepath += filename_ext
         objs = context.selected_objects
         self.selected_objects = context.selected_objects
         roots = [obj for obj in objs if obj.xray.isroot]
