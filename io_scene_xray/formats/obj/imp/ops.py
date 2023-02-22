@@ -56,16 +56,11 @@ class XRAY_OT_import_object(
         if not has_sel:
             return {'CANCELLED'}
 
-        # get addon preferences
-        pref = utils.version.get_preferences()
-        objects_folder = pref.objects_folder_auto
-
         # set import context
         imp_ctx = ctx.ImportObjectContext()
 
         use_soc_sg = self.fmt_version == 'soc'
 
-        imp_ctx.objects_folder = objects_folder
         imp_ctx.soc_sgroups = use_soc_sg
         imp_ctx.import_motions = self.import_motions
         imp_ctx.split_by_materials = self.mesh_split_by_materials

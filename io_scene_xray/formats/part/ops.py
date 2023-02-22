@@ -56,14 +56,13 @@ class XRAY_OT_import_part(ie.BaseOperator):
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
-        preferences = utils.version.get_preferences()
-        objects_folder = preferences.objects_folder_auto
+
         import_context = ImportPartContext()
         import_context.soc_sgroups=self.fmt_version == 'soc'
         import_context.split_by_materials=self.mesh_split_by_materials
         import_context.operator=self
-        import_context.objects_folder=objects_folder
         import_context.import_motions = False
+
         for file in self.files:
             file_path = os.path.join(self.directory, file.name)
             try:

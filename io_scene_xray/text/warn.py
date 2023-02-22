@@ -2,6 +2,7 @@
 full_log = 'The full log was stored in the Text Editor in a text file'
 tex_not_found = 'texture file not found'
 tex_folder_not_spec = 'No textures folder specified in addon settings'
+objs_folder_not_spec = 'No objects folder specified in addon settings'
 meshes_folder_not_spec = 'No meshes folder specified in addon settings'
 env_tex = 'material has incorrect image node type (Environment Texture)'
 no_bone_parent = 'bone parent isn\'t found'

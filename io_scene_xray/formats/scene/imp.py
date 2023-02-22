@@ -185,15 +185,11 @@ def import_(filepath, chunked_reader, import_context):
 
 @log.with_context(name='import-scene-selection')
 def import_file(filepath, operator):
-    preferences = utils.version.get_preferences()
-    objects_folder = preferences.objects_folder_auto
-
     import_context = ImportSceneContext()
     import_context.soc_sgroups=operator.fmt_version == 'soc'
     import_context.import_motions=False
     import_context.split_by_materials=operator.mesh_split_by_materials
     import_context.operator=operator
-    import_context.objects_folder=objects_folder
     import_context.before_import_file()
 
     chunked_reader = rw.utils.get_file_reader(filepath, chunked=True)

@@ -16,6 +16,7 @@ translations_table = (
     (warn.full_log, 'Полный лог хранится в окне Text Editor в текстовом файле'),
     (warn.tex_not_found, 'файл текстуры не найден'),
     (warn.tex_folder_not_spec, 'Папка с текстурами не указана в настройках аддона'),
+    (warn.objs_folder_not_spec, 'Папка с объектами не указана в настройках аддона'),
     (warn.meshes_folder_not_spec, 'Папка с мешами не указана в настройках аддона'),
     (warn.env_tex, 'материал имеет некорректный тип ноды изображения (Environment Texture)'),
     (warn.no_bone_parent, 'не найдена родительская кость'),
