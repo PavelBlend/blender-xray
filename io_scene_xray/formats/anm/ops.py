@@ -33,6 +33,7 @@ class XRAY_OT_import_anm(
         ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
+
     bl_idname = 'xray_import.anm'
     bl_label = 'Import .anm'
     bl_description = 'Imports X-Ray animation'
@@ -55,31 +56,40 @@ class XRAY_OT_import_anm(
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        if not self.files[0].name:
-            self.report({'ERROR'}, 'No files selected!')
+        has_files = utils.ie.has_selected_files(self)
+        if not has_files:
             return {'CANCELLED'}
-        import_context = imp.ImportAnmContext()
-        import_context.camera_animation = self.camera_animation
-        files_count = 0
-        for file in self.files:
-            import_context.filepath = os.path.join(self.directory, file.name)
-            try:
-                frame_start, frame_end = imp.import_file(import_context)
-                files_count += 1
-            except log.AppError as err:
-                import_context.errors.append(err)
-        if files_count == 1:
+
+        imp_ctx = imp.ImportAnmContext()
+        imp_ctx.camera_animation = self.camera_animation
+
+        imp_fun = imp.import_file
+        results = []
+
+        utils.ie.import_files(
+            self.directory,
+            self.files,
+            imp_fun,
+            imp_ctx,
+            results
+        )
+
+        if results:
+            # search min and max frame range
+            frame_start = min(results, key=lambda x: x[0])[0]
+            frame_end = max(results, key=lambda x: x[1])[1]
+
             # set action frame range
             scn = context.scene
             scn.frame_start = frame_start
             scn.frame_end = frame_end
-        for err in import_context.errors:
-            log.err(err)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = utils.version.get_preferences()
-        self.camera_animation = preferences.anm_create_camera
+        pref = utils.version.get_preferences()
+        self.camera_animation = pref.anm_create_camera
+
         return super().invoke(context, event)
 
 

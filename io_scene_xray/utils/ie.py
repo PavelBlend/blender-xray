@@ -92,15 +92,20 @@ def get_textures_folder(operator):
     return tex_folder
 
 
-def import_files(directory, files, imp_fun, context):
+def import_files(directory, files, imp_fun, context, results=[]):
     for file in files:
         file_path = os.path.join(directory, file.name)
+
         try:
-            imp_fun(file_path, context)
+            result = imp_fun(file_path, context)
+            results.append(result)
+
         except log.AppError as err:
             context.errors.append(err)
+
         except BaseException as err:
             context.fatal_errors.append((err, file_path))
+
     report_errors(context)
 
 
