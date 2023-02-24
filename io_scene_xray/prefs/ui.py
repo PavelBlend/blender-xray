@@ -13,6 +13,7 @@ path_props_names = {
     'gamedata_folder': 'Gamedata Folder',
     'textures_folder': 'Textures Folder',
     'meshes_folder': 'Meshes Folder',
+    'levels_folder': 'Levels Folder',
     'gamemtl_file': 'Game Materials File',
     'eshader_file': 'Engine Shaders File',
     'cshader_file': 'Compile Shaders File',
@@ -68,6 +69,7 @@ def draw_paths(prefs):
     draw_path_prop(prefs, 'gamedata_folder')
     draw_path_prop(prefs, 'textures_folder')
     draw_path_prop(prefs, 'meshes_folder')
+    draw_path_prop(prefs, 'levels_folder')
     draw_path_prop(prefs, 'objects_folder')
 
     layout.separator()

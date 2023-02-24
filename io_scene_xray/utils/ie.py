@@ -122,3 +122,21 @@ def report_errors(context):
     if context.fatal_errors:
         first_error = context.fatal_errors[0][0]
         raise first_error
+
+
+def open_imp_exp_folder(operator, path_prop):
+    if not hasattr(operator, 'init'):
+        operator.init = True
+
+        space = bpy.context.space_data
+        params = space.params
+
+        pref = version.get_preferences()
+        path = getattr(pref, path_prop + '_auto')
+
+        if path:
+            if isinstance(params.directory, bytes):
+                path = bytes(path, encoding='utf-8')
+
+            if not params.directory.startswith(path):
+                params.directory = path

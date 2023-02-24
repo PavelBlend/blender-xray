@@ -49,6 +49,7 @@ class XRAY_OT_import_anm(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'gamedata_folder')
         layout = self.layout
         utils.draw.draw_files_count(self)
         layout.prop(self, 'camera_animation')
@@ -121,6 +122,7 @@ class XRAY_OT_export_anm(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'gamedata_folder')
         layout = self.layout
         utils.draw.draw_fmt_ver_prop(layout, self, 'format_version')
 

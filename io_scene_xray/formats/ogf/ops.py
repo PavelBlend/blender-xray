@@ -70,6 +70,7 @@ class XRAY_OT_export_ogf_file(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         draw_props(self, context, False)
 
     @log.execute_with_logger
@@ -148,6 +149,7 @@ class XRAY_OT_export_ogf(ie.BaseOperator):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         draw_props(self, context, True)
 
     @log.execute_with_logger

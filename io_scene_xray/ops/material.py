@@ -550,21 +550,23 @@ class XRAY_OT_create_material(bpy.types.Operator):
 
     def draw(self, context):
         if not self.init:
+            self.init = True
+
             space = context.space_data
             params = space.params
             params.display_type = 'THUMBNAIL'
+
             if utils.version.has_file_browser_show_tool_prop():
                 space.show_region_tool_props = False
-            self.init = True
-            prefs = utils.version.get_preferences()
-            tex_folder = prefs.textures_folder_auto
+
+            pref = utils.version.get_preferences()
+            tex_folder = pref.textures_folder_auto
+
             if tex_folder:
-                tex_folder = bytes(tex_folder, encoding='utf-8')
-                if isinstance(params.directory, str):
-                    path_check = str(tex_folder)
-                elif isinstance(params.directory, bytes):
-                    path_check = tex_folder
-                if not params.directory.startswith(path_check):
+                if isinstance(params.directory, bytes):
+                    tex_folder = bytes(tex_folder, encoding='utf-8')
+
+                if not params.directory.startswith(tex_folder):
                     params.directory = tex_folder
 
     @utils.set_cursor_state

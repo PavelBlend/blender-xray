@@ -64,6 +64,9 @@ class XRAY_OT_import_dm(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
+    def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'meshes_folder')
+
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
@@ -107,6 +110,7 @@ class XRAY_OT_export_dm(ie.BaseOperator):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         self.layout.prop(self, 'texture_name_from_image_path')
 
     @log.execute_with_logger
@@ -196,6 +200,7 @@ class XRAY_OT_export_dm_file(
         return {'FINISHED'}
 
     def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         self.layout.prop(self, 'texture_name_from_image_path')
 
     def exp(self, bpy_obj, context):

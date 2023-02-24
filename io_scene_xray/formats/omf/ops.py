@@ -137,6 +137,7 @@ class XRAY_OT_import_omf(
         return super().invoke(context, event)
 
     def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         layout = self.layout
         layout.prop(self, 'import_motions')
         layout.prop(self, 'import_bone_parts')
@@ -232,6 +233,7 @@ class XRAY_OT_export_omf(ie.BaseOperator, bpy_extras.io_utils.ExportHelper):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         layout = self.layout
         layout.label(text='Export Mode:')
         layout.prop(self, 'export_mode', expand=True)

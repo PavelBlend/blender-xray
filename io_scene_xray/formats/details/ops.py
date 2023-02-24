@@ -97,6 +97,8 @@ class XRAY_OT_import_details(
         return {'FINISHED'}
 
     def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'levels_folder')
+
         layout = self.layout
 
         utils.draw.draw_files_count(self)
@@ -152,6 +154,8 @@ class XRAY_OT_export_details(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'levels_folder')
+
         layout = self.layout
 
         utils.draw.draw_fmt_ver_prop(

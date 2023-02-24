@@ -107,6 +107,7 @@ class XRAY_OT_export_object(ie.BaseOperator, _WithExportMotions):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'objects_folder')
         draw_props(self, mode='BATCH')
 
     @log.execute_with_logger
@@ -190,6 +191,7 @@ class XRAY_OT_export_object_file(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'objects_folder')
         draw_props(self)
 
     @log.execute_with_logger

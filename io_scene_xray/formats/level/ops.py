@@ -58,6 +58,9 @@ class XRAY_OT_import_level(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
+    def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'levels_folder')
+
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
@@ -99,6 +102,9 @@ class XRAY_OT_export_level(ie.BaseOperator):
     if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'levels_folder')
 
     def export(self, level_object, context):
         exp.export_file(level_object, self.directory)

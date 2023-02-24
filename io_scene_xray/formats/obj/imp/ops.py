@@ -77,6 +77,8 @@ class XRAY_OT_import_object(
         return {'FINISHED'}
 
     def draw(self, context):
+        utils.ie.open_imp_exp_folder(self, 'objects_folder')
+
         layout = self.layout
 
         utils.draw.draw_files_count(self)
