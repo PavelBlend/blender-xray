@@ -32,6 +32,7 @@ def read_verts_1_link(visual, packed_reader, verices_count):
             visual.uvs.append((tex_u, 1 - tex_v))
             visual.weights.append(vertex_weights)
             visual.deform_bones.add(bone_index)
+
     else:
         for vertex_index in range(verices_count):
             coord = packed_reader.getv3fp()

@@ -348,9 +348,7 @@ def update_verts_coords_v3(mesh_obj, arm_obj, split_norms):
             motions.const.MATRIX_BONE_INVERTED
         )
         bone_rot = bone_mat.to_euler().to_matrix().to_4x4()
-        final_norm = multiply(
-            bone_rot, norm
-        )
+        final_norm = multiply(bone_rot, norm)
         custom_normals.append(final_norm)
 
     mesh_obj.data.normals_split_custom_set(custom_normals)
@@ -427,8 +425,6 @@ def create_visual(visual, lvl=None, geometry_key=None):
     # convert to bpy-mesh
     mesh.normal_update()
     mesh.to_mesh(bpy_mesh)
-
-
 
     # create object
     bpy_object = utils.create_object(visual.name, bpy_mesh)

@@ -37,7 +37,6 @@ class ImportOgfContext(
 op_text = 'Game Object'
 filename_ext = '.ogf'
 
-
 import_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.ogf', options={'HIDDEN'}
