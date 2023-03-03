@@ -106,14 +106,25 @@ def merge_meshes(mesh_objects):
     override = bpy.context.copy()
     for obj in mesh_objects:
         if len(obj.data.uv_layers) > 1:
-            raise log.AppError(
-                text.error.obj_many_uv,
-                log.props(object=obj.name)
+            log.warn(
+                text.warn.obj_many_uv,
+                exported_uv=obj.data.uv_layers.active.name,
+                mesh_object=obj.name
             )
         copy_obj = obj.copy()
         copy_mesh = obj.data.copy()
         copy_obj.data = copy_mesh
-        copy_mesh.uv_layers[0].name = 'Texture'
+
+        # rename uv layers
+        active_uv_name = copy_mesh.uv_layers.active.name
+        index = 0
+        for uv_layer in copy_mesh.uv_layers:
+            if uv_layer.name == active_uv_name:
+                continue
+            uv_layer.name = str(index)
+            index += 1
+
+        copy_mesh.uv_layers.active.name = 'Texture'
         utils.version.link_object(copy_obj)
         # apply modifiers
         override['active_object'] = copy_obj
@@ -135,6 +146,15 @@ def merge_meshes(mesh_objects):
         scene = bpy.context.scene
         override['selected_editable_bases'] = [scene.object_bases[ob.name] for ob in objects]
     bpy.ops.object.join(override)
+
+    # remove uvs
+    uv_layers = [uv_layer.name for uv_layer in active_object.data.uv_layers]
+    for uv_name in uv_layers:
+        if uv_name == 'Texture':
+            continue
+        uv_layer = active_object.data.uv_layers[uv_name]
+        active_object.data.uv_layers.remove(uv_layer)
+
     return active_object
 
 
@@ -157,19 +177,20 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
             mesh_writer,
             context
         )
+        uv_layers = bpy_obj.data.uv_layers
+        if len(uv_layers) > 1:
+            log.warn(
+                text.warn.obj_many_uv,
+                exported_uv=uv_layers.active.name,
+                mesh_object=bpy_obj.name
+            )
         mesh_writers.append(mesh_writer)
         for material in bpy_obj.data.materials:
             if not material:
                 continue
             if material.name in used_material_names:
                 materials.add(material)
-                uv_layers = bpy_obj.data.uv_layers
-                if len(uv_layers) > 1:
-                    raise log.AppError(
-                        text.error.obj_many_uv,
-                        log.props(object=bpy_obj.name)
-                    )
-                uv_maps_names[material.name] = uv_layers[0].name
+                uv_maps_names[material.name] = uv_layers.active.name
 
     def scan_r(bpy_obj):
         if utils.is_helper_object(bpy_obj):

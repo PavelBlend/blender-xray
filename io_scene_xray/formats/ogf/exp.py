@@ -126,7 +126,7 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
         )
     elif len(uv_layers) > 1:
         raise log.AppError(
-            text.error.obj_many_uv,
+            text.warn.obj_many_uv,
             log.props(object=bpy_obj.name)
         )
 
