@@ -160,7 +160,7 @@ def export_faces(chunked_writer, bm, bpy_obj):
     uv_layer = bm.loops.layers.uv.active
     if not uv_layer:
         raise log.AppError(
-            text.error.object_no_uv,
+            text.error.no_uv,
             log.props(object=bpy_obj.name)
         )
 

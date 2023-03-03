@@ -29,7 +29,7 @@ def _import(file_path, creader, context):
     chunk_data = creader.next(fmt.Chunks.MAIN, error=False)
     if chunk_data is None:
         raise log.AppError(
-            text.error.anm_has_no_chunk,
+            text.error.has_no_main_chunk,
             log.props(
                 file=os.path.basename(file_path),
                 path=file_path

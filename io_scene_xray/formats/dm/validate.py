@@ -47,7 +47,7 @@ def validate_material_and_uv(bpy_obj):
 
         if uv_count > 1:
             raise log.AppError(
-                text.error.dm_many_uv,
+                text.error.obj_many_uv,
                 log.props(object=bpy_obj.name)
             )
 

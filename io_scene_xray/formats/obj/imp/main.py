@@ -31,7 +31,7 @@ def import_file(file_path, context):
             log.debug('unknown chunk', chunk_id=chunk_id)
 
     if not chunked_reader:
-        raise log.AppError(text.error.object_main_chunk)
+        raise log.AppError(text.error.has_no_main_chunk)
 
     # import
 

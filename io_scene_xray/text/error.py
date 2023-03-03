@@ -19,11 +19,11 @@ is_not_arm = 'active object is not armature'
 file_not_found = 'file not found'
 file_folder_not_found = 'file or folder not found'
 ltx_invalid_syntax = 'ltx file syntax error'
+has_no_main_chunk = 'file has no main data block'
 # anm export
 anm_no_keys = 'action has keys not for all channels'
 # anm import
 anm_unsupport_ver = 'file has unsupported format version'
-anm_has_no_chunk = 'file has no main data block'
 # details convert
 details_light_1569 = 'object has incorrect light format: "Builds 1096-1558". Must be "Builds 1569-CoP"'
 details_light_1096 = 'object has incorrect light format: "Builds 1569-CoP". Must be "Builds 1096-1558"'
@@ -54,7 +54,6 @@ dm_bad_indices = 'bad dm triangle indices'
 # dm export
 dm_many_verts = 'mesh-object has too many vertices'
 # dm validate
-dm_many_uv = 'mesh-object has more than one UV-map'
 dm_tex_type = 'texture has an incorrect type'
 # level cform import
 cform_unsupport_ver = 'unsupported level cform version'
@@ -79,13 +78,10 @@ object_skel_many_meshes = 'skeletal object has more than one mesh'
 object_bad_boneparts = 'not all bones are tied to the bone part'
 object_many_parents = 'armature object has more than one parent'
 object_bad_scale = 'armature-object has incorrect scale'
-# object export mesh
-object_no_uv = 'mesh-object has no UV-map'
 # object import bone
 object_unsupport_bone_ver = 'unsupported bone format version'
 # object import main
 object_unsupport_format_ver = 'unsupported object format version'
-object_main_chunk = 'file does not have main chunk'
 # object import mesh
 object_unsupport_mesh_ver = 'unsupported mesh format version'
 object_bad_vmap = 'unsupported vertex map type'
