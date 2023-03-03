@@ -117,19 +117,6 @@ def top_two(dic):
 
 
 def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
-    # validate mesh-object
-    uv_layers = bpy_obj.data.uv_layers
-    if not len(uv_layers):
-        raise log.AppError(
-            text.error.no_uv,
-            log.props(object=bpy_obj.name)
-        )
-    elif len(uv_layers) > 1:
-        raise log.AppError(
-            text.warn.obj_many_uv,
-            log.props(object=bpy_obj.name)
-        )
-
     mesh = utils.mesh.convert_object_to_space_bmesh(
         bpy_obj,
         mathutils.Matrix.Identity(4)
@@ -381,6 +368,21 @@ def _export(bpy_obj, cwriter, context):
                     text.error.ogf_has_no_arm,
                     log.props(object=bpy_obj.name)
                 )
+
+            # check uv-maps
+            uv_layers = bpy_obj.data.uv_layers
+            if not len(uv_layers):
+                raise log.AppError(
+                    text.error.no_uv,
+                    log.props(object=bpy_obj.name)
+                )
+            elif len(uv_layers) > 1:
+                log.warn(
+                    text.warn.obj_many_uv,
+                    exported_uv=uv_layers.active.name,
+                    mesh_object=bpy_obj.name
+                )
+
             vertex_groups_map = {}
             for group_index, group in enumerate(bpy_obj.vertex_groups):
                 bone = arm_obj.data.bones.get(group.name, None)
