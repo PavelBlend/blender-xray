@@ -38,18 +38,18 @@ def validate_material_and_uv(bpy_obj):
     # validate uv
     uv_count = len(bpy_obj.data.uv_layers)
 
-    if uv_count != 1:
-        if not uv_count:
-            raise log.AppError(
-                text.error.no_uv,
-                log.props(object=bpy_obj.name)
-            )
+    if not uv_count:
+        raise log.AppError(
+            text.error.no_uv,
+            log.props(object=bpy_obj.name)
+        )
 
-        if uv_count > 1:
-            raise log.AppError(
-                text.warn.obj_many_uv,
-                log.props(object=bpy_obj.name)
-            )
+    if uv_count > 1:
+        log.warn(
+            text.warn.obj_many_uv,
+            exported_uv=bpy_obj.data.uv_layers.active.name,
+            mesh_object=bpy_obj.name
+        )
 
     return bpy_material
 
