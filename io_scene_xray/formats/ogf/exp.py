@@ -116,6 +116,48 @@ def top_two(dic):
     return [(key0, val0), (key1, val1)]
 
 
+def write_verts_2l(vertices_writer, vertices, norm_coef=1):
+    for vertex in vertices:
+        weights = vertex[6]
+        if len(weights) > 2:
+            weights = top_two(weights)
+        weight = 0
+        # 2-link vertex
+        if len(weights) == 2:
+            first = True
+            weight0 = 0
+            for vgi, vert_weight in weights:
+                vertices_writer.putf('<H', vgi)
+                if first:
+                    weight0 = vert_weight
+                    first = False
+                else:
+                    weight = 1 - (weight0 / (weight0 + vert_weight))
+        # 1-link vertex
+        elif len(weights) == 1:
+            vertices_writer.putf(
+                '<2H',
+                weights[0][0],
+                weights[0][0]
+            )
+        else:
+            raise Exception('oops: {} {}'.format(
+                len(weights),
+                weights.keys()
+            ))
+        # write vertex data
+        vertices_writer.putv3f(vertex[1])    # coord
+        vertices_writer.putv3f((
+            norm_coef * vertex[2][0],
+            norm_coef * vertex[2][1],
+            norm_coef * vertex[2][2]
+        ))    # normal
+        vertices_writer.putv3f(vertex[3])    # tangent
+        vertices_writer.putv3f(vertex[4])    # bitangent
+        vertices_writer.putf('<f', weight)    # weight
+        vertices_writer.putf('<2f', *vertex[5])    # uv
+
+
 def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     mesh = utils.mesh.convert_object_to_space_bmesh(
         bpy_obj,
@@ -170,6 +212,7 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
             log.props(object=bpy_obj.name)
         )
     material = materials[0]
+    two_sided = material.xray.flags_twosided
 
     # generate texture path
     texture_path = utils.material.get_image_relative_path(
@@ -234,6 +277,9 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     # write vertices chunk
     vertices_writer = rw.write.PackedWriter()
     vertices_count = len(vertices)
+    if two_sided:
+        vertices_count *= 2
+
     # 1-link vertices
     if vertex_max_weights == 1:
         if context.fmt_ver == 'soc':
@@ -248,6 +294,20 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
             vertices_writer.putv3f(vertex[4])    # bitangent
             vertices_writer.putf('<2f', *vertex[5])    # uv
             vertices_writer.putf('<I', vertex[6][0][0])
+
+        if two_sided:
+            for vertex in vertices:
+                vertices_writer.putv3f(vertex[1])    # coord
+                vertices_writer.putv3f((
+                    -vertex[2][0],
+                    -vertex[2][1],
+                    -vertex[2][2]
+                ))    # normal
+                vertices_writer.putv3f(vertex[3])    # tangent
+                vertices_writer.putv3f(vertex[4])    # bitangent
+                vertices_writer.putf('<2f', *vertex[5])    # uv
+                vertices_writer.putf('<I', vertex[6][0][0])
+
     # 2-link vertices
     else:
         if vertex_max_weights != 2:
@@ -260,48 +320,34 @@ def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
         else:
             vert_fmt = fmt.VertexFormat.FVF_2L_CS
         vertices_writer.putf('<2I', vert_fmt, vertices_count)
-        for vertex in vertices:
-            weights = vertex[6]
-            if len(weights) > 2:
-                weights = top_two(weights)
-            weight = 0
-            # 2-link vertex
-            if len(weights) == 2:
-                first = True
-                weight0 = 0
-                for vgi, vert_weight in weights:
-                    vertices_writer.putf('<H', vgi)
-                    if first:
-                        weight0 = vert_weight
-                        first = False
-                    else:
-                        weight = 1 - (weight0 / (weight0 + vert_weight))
-            # 1-link vertex
-            elif len(weights) == 1:
-                vertices_writer.putf(
-                    '<2H',
-                    weights[0][0],
-                    weights[0][0]
-                )
-            else:
-                raise Exception('oops: {} {}'.format(
-                    len(weights),
-                    weights.keys()
-                ))
-            # write vertex data
-            vertices_writer.putv3f(vertex[1])    # coord
-            vertices_writer.putv3f(vertex[2])    # normal
-            vertices_writer.putv3f(vertex[3])    # tangent
-            vertices_writer.putv3f(vertex[4])    # bitangent
-            vertices_writer.putf('<f', weight)    # weight
-            vertices_writer.putf('<2f', *vertex[5])    # uv
+
+        write_verts_2l(vertices_writer, vertices)
+        if two_sided:
+            write_verts_2l(vertices_writer, vertices, norm_coef=-1)
+
     chunked_writer.put(fmt.Chunks_v4.VERTICES, vertices_writer)
 
     # write indices chunk
     indices_writer = rw.write.PackedWriter()
-    indices_writer.putf('<I', 3 * len(triangles))
+
+    indices_count = 3 * len(triangles)
+    if two_sided:
+        indices_count *= 2
+    indices_writer.putf('<I', indices_count)
+
     for tris in triangles:
         indices_writer.putf('<3H', tris[0], tris[2], tris[1])
+
+    if two_sided:
+        offset = vertices_count // 2
+        for tris in triangles:
+            indices_writer.putf(
+                '<3H',
+                offset + tris[1],
+                offset + tris[2],
+                offset + tris[0]
+            )
+
     chunked_writer.put(fmt.Chunks_v4.INDICES, indices_writer)
 
 
