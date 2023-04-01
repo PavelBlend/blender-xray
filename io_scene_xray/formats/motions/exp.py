@@ -124,7 +124,7 @@ def _bake_motion_data(action, armature):
         act_old = anim_data.action
     else:
         act_old = None
-        armature.animation_data_create()
+        anim_data = armature.animation_data_create()
 
     frame_old = bpy.context.scene.frame_current
 
