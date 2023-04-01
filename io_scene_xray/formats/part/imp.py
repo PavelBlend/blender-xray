@@ -65,6 +65,8 @@ def read_soc_tools_data(data):
             refs, pos, rot, scl = read_soc_scene_objects(chunk_data)
             return refs, pos, rot, scl
 
+    return [], [], [], []
+
 
 def read_soc_objects(data):
     chunked_reader = rw.read.ChunkedReader(data)
