@@ -101,9 +101,10 @@ class XRAY_OT_export_ogf_file(
         self.export_motions = pref.ogf_export_motions
         self.hq_export = pref.ogf_export_hq_motions
 
-        self.filepath = context.active_object.name
-        if not self.filepath.lower().endswith(filename_ext):
-            self.filepath += filename_ext
+        self.filepath = utils.ie.add_file_ext(
+            context.active_object.name,
+            self.filename_ext
+        )
         objs = context.selected_objects
         self.selected_objects = context.selected_objects
         roots = [obj for obj in objs if obj.xray.isroot]
@@ -162,9 +163,7 @@ class XRAY_OT_export_ogf(ie.BaseOperator):
         export_context.hq_export = self.hq_export
 
         for obj in self.roots:
-            file_name = obj.name
-            if not file_name.endswith(filename_ext):
-                file_name += filename_ext
+            file_name = utils.ie.add_file_ext(obj.name, filename_ext)
 
             path = self.directory
             exp_path = obj.xray.export_path

@@ -341,7 +341,7 @@ class XRAY_OT_export_omf(ie.BaseOperator, bpy_extras.io_utils.ExportHelper):
             self.report({'ERROR'}, 'No selected objects')
             return {'CANCELLED'}
         self.obj = objs[0]
-        self.filepath = self.obj.name
+        self.filepath = utils.ie.add_file_ext(self.obj.name, filename_ext)
         motions_count = len(self.obj.xray.motions_collection)
         bone_groups_count = len(self.obj.pose.bone_groups)
         if not motions_count and not bone_groups_count:
@@ -352,8 +352,6 @@ class XRAY_OT_export_omf(ie.BaseOperator, bpy_extras.io_utils.ExportHelper):
                 )
             )
             return {'CANCELLED'}
-        if not self.filepath.lower().endswith(filename_ext):
-            self.filepath += filename_ext
         return super().invoke(context, event)
 
 

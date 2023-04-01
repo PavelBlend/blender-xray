@@ -121,8 +121,7 @@ class XRAY_OT_export_dm(ie.BaseOperator):
         export_context.unique_errors = set()
         for name in self.detail_models.split(','):
             detail_model = context.scene.objects[name]
-            if not name.lower().endswith(filename_ext):
-                name += filename_ext
+            name = utils.ie.add_file_ext(name, filename_ext)
             path = self.directory
             try:
                 exp.export_file(
@@ -231,9 +230,7 @@ class XRAY_OT_export_dm_file(
             return {'CANCELLED'}
 
         self.detail_model = objs[0].name
-        self.filepath = self.detail_model
-        if not self.filepath.lower().endswith(self.filename_ext):
-            self.filepath += self.filename_ext
+        self.filepath = utils.ie.add_file_ext(self.detail_model, filename_ext)
 
         return super().invoke(context, event)
 

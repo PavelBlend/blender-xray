@@ -143,22 +143,25 @@ class XRAY_OT_export_anm(
 
     def invoke(self, context, event):
         obj = context.active_object
+
         if obj:
-            self.filepath = obj.name
-            if not self.filepath.lower().endswith(self.filename_ext):
-                self.filepath += self.filename_ext
+            self.filepath = utils.ie.add_file_ext(obj.name, filename_ext)
         else:
             self.report({'ERROR'}, 'No active objects!')
             return {'CANCELLED'}
+
         if not obj.animation_data:
             self.report(
                 {'ERROR'},
                 'Object "{}" has no animation data.'.format(obj.name)
             )
             return {'CANCELLED'}
-        preferences = utils.version.get_preferences()
-        self.format_version = preferences.anm_format_version
+
+        pref = utils.version.get_preferences()
+        self.format_version = pref.anm_format_version
+
         context.window_manager.fileselect_add(self)
+
         return {'RUNNING_MODAL'}
 
 

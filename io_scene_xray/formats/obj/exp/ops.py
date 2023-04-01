@@ -121,8 +121,7 @@ class XRAY_OT_export_object(ie.BaseOperator, _WithExportMotions):
         use_split_normals = self.smoothing_out_of == 'SPLIT_NORMALS'
         for name in self.objects.split(','):
             bpy_obj = context.scene.objects[name]
-            if not name.lower().endswith('.object'):
-                name += '.object'
+            name = utils.ie.add_file_ext(name, filename_ext)
             path = self.directory
             if self.use_export_paths and bpy_obj.xray.export_path:
                 path = os.path.join(path, bpy_obj.xray.export_path)
@@ -198,45 +197,55 @@ class XRAY_OT_export_object_file(
     @utils.ie.set_initial_state
     def execute(self, context):
         export_context = ExportObjectContext()
+
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.soc_sgroups = self.fmt_version == 'soc'
         export_context.export_motions = self.export_motions
         export_context.smoothing_out_of = self.smoothing_out_of
+
         bpy_obj = context.scene.objects[self.object]
         use_split_normals = self.smoothing_out_of == 'SPLIT_NORMALS'
+
         try:
             exp.export_file(bpy_obj, self.filepath, export_context)
         except log.AppError as err:
             export_context.errors.append(err)
+
         for err in export_context.errors:
             log.err(err)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        preferences = utils.version.get_preferences()
-        roots = None
+        pref = utils.version.get_preferences()
+
         try:
             roots = find_objects_for_export(context)
         except log.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
+
         if len(roots) > 1:
             self.report({'ERROR'}, 'Too many \'root\'-objects selected')
             return {'CANCELLED'}
+
         self.object = roots[0].name
-        self.filepath = self.object
-        if not self.filepath.lower().endswith(filename_ext):
-            self.filepath += filename_ext
-        self.fmt_version = preferences.export_object_sdk_version
-        self.export_motions = preferences.object_motions_export
-        self.texture_name_from_image_path = \
-            preferences.object_texture_names_from_path
-        self.smoothing_out_of = preferences.smoothing_out_of
+        self.filepath = utils.ie.add_file_ext(self.object, filename_ext)
+
+        # set defaults
+        self.fmt_version = pref.export_object_sdk_version
+        self.export_motions = pref.object_motions_export
+        self.texture_name_from_image_path = pref.object_texture_names_from_path
+        self.smoothing_out_of = pref.smoothing_out_of
+
         return super().invoke(context, event)
 
 
 export_props = {
-    'filepath': bpy.props.StringProperty(subtype='DIR_PATH', options={'SKIP_SAVE'}),
+    'filepath': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE'}
+    ),
     'use_selection': bpy.props.BoolProperty()
 }
 
@@ -263,9 +272,7 @@ class XRAY_OT_export_project(ie.BaseOperator):
         path = bpy.path.abspath(self.filepath if self.filepath else data.export_root)
         os.makedirs(path, exist_ok=True)
         for bpy_obj in XRAY_OT_export_project.find_objects(context, self.use_selection):
-            name = bpy_obj.name
-            if not name.lower().endswith('.object'):
-                name += '.object'
+            name = utils.ie.add_file_ext(bpy_obj.name, filename_ext)
             opath = path
             if bpy_obj.xray.export_path and data.use_export_paths:
                 opath = os.path.join(opath, bpy_obj.xray.export_path)

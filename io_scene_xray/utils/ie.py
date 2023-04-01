@@ -140,3 +140,29 @@ def open_imp_exp_folder(operator, path_prop):
 
             if not params.directory.startswith(path):
                 params.directory = path
+
+
+EXT_LIST = (
+    '.object',
+    '.ogf',
+    '.dm',
+    '.bones',
+    '.details',
+    '.anm',
+    '.skl',
+    '.skls',
+    '.omf'
+)
+
+
+def add_file_ext(path, ext):
+    # remove preview extension
+    base, prev_ext = os.path.splitext(path)
+    if prev_ext.lower() in EXT_LIST:
+        path = base
+
+    # add extension
+    if not path.lower().endswith(ext):
+        path += ext
+
+    return path

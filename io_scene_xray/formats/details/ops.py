@@ -208,9 +208,7 @@ class XRAY_OT_export_details(
         self.texture_name_from_image_path = \
             preferences.details_texture_names_from_path
         self.format_version = preferences.format_version
-        self.filepath = obj.name
-        if not self.filepath.lower().endswith(self.filename_ext):
-            self.filepath += self.filename_ext
+        self.filepath = utils.ie.add_file_ext(obj.name, self.filename_ext)
         return super().invoke(context, event)
 
 

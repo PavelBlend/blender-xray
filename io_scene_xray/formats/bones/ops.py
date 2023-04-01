@@ -158,8 +158,7 @@ class XRAY_OT_export_bones(ie.BaseOperator):
         export_context = ExportBonesContext()
         for object_name in self.objects_list:
             filepath = os.path.join(self.directory, object_name)
-            if not filepath.lower().endswith(self.filename_ext):
-                filepath += self.filename_ext
+            filepath = utils.ie.add_file_ext(filepath, self.filename_ext)
             obj = context.scene.objects[object_name]
             try:
                 exp_parts = self.export_bone_parts
@@ -185,21 +184,27 @@ class XRAY_OT_export_bones(ie.BaseOperator):
 
     def invoke(self, context, event):
         selected_objects_count = len(context.selected_objects)
+
         if not selected_objects_count:
             self.report({'ERROR'}, 'There is no selected object')
             return {'CANCELLED'}
+
         self.get_objects(context)
+
         if not self.objects_list:
             self.report({'ERROR'}, 'No selected armatures')
             return {'CANCELLED'}
+
         if len(self.objects_list) == 1:
             return bpy.ops.xray_export.bone('INVOKE_DEFAULT')
-        prefs = utils.version.get_preferences()
-        # export bone parts
-        self.export_bone_parts = prefs.bones_export_bone_parts
-        # export bone properties
-        self.export_bone_properties = prefs.bones_export_bone_properties
+
+        pref = utils.version.get_preferences()
+
+        self.export_bone_parts = pref.bones_export_bone_parts
+        self.export_bone_properties = pref.bones_export_bone_properties
+
         context.window_manager.fileselect_add(self)
+
         return {'RUNNING_MODAL'}
 
 
@@ -257,23 +262,26 @@ class XRAY_OT_export_bone(
 
     def invoke(self, context, event):
         selected_objects_count = len(context.selected_objects)
+
         if not selected_objects_count:
             self.report({'ERROR'}, 'There is no selected object')
             return {'CANCELLED'}
+
         self.objects.clear()
-        for obj in context.selected_objects:
-            if obj.type == 'ARMATURE':
-                self.objects.append(obj.name)
-        bpy_obj = bpy.data.objects[self.objects[0]]
-        self.object_name = bpy_obj.name
+        for bpy_obj in context.selected_objects:
+            if bpy_obj.type == 'ARMATURE':
+                self.objects.append(bpy_obj.name)
+
+        obj = bpy.data.objects[self.objects[0]]
+
+        self.object_name = utils.ie.add_file_ext(obj.name, self.filename_ext)
         self.filepath = os.path.join(self.directory, self.object_name)
-        if not self.filepath.lower().endswith(self.filename_ext):
-            self.filepath += self.filename_ext
-        prefs = utils.version.get_preferences()
-        # export bone parts
-        self.export_bone_parts = prefs.bones_export_bone_parts
-        # export bone properties
-        self.export_bone_properties = prefs.bones_export_bone_properties
+
+        pref = utils.version.get_preferences()
+
+        self.export_bone_parts = pref.bones_export_bone_parts
+        self.export_bone_properties = pref.bones_export_bone_properties
+
         return super().invoke(context, event)
 
 

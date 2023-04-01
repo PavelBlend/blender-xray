@@ -267,9 +267,7 @@ class XRAY_OT_export_skls_file(
         else:
             obj = None
         if obj:
-            self.filepath = obj.name
-            if not self.filepath.lower().endswith(self.filename_ext):
-                self.filepath += self.filename_ext
+            self.filepath = utils.ie.add_file_ext(obj.name, self.filename_ext)
         else:
             self.report(
                 {'ERROR'},
@@ -327,8 +325,7 @@ class XRAY_OT_export_skls(ie.BaseOperator):
             export_context.bpy_arm_obj = obj
             # file path
             file_name = obj.name
-            if not file_name.lower().endswith(skls_ext):
-                file_name += skls_ext
+            file_name = utils.ie.add_file_ext(obj.name, skls_ext)
             filepath = os.path.join(self.directory, file_name)
             # collect actions
             actions = []
