@@ -87,7 +87,6 @@ object_bad_vmap = 'unsupported vertex map type'
 object_many_duplicated_faces = 'too many duplicated polygons'
 # ogf import
 ogf_bad_ver = 'unsupported ogf format version'
-ogf_unsupported_bone_ver = 'unsupported bone format version'
 ogf_bad_vertex_fmt = 'unsupported ogf vertex format'
 ogf_bad_model_type = 'unsupported ogf model type'
 # ogf export

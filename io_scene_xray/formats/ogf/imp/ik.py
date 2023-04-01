@@ -72,14 +72,6 @@ def import_ik_data(chunks, ogf_chunks, visual):
         else:
             version = 0
 
-        if version not in fmt.SUPPORT_BONE_VERSIONS:
-            bpy.data.objects.remove(arm_obj)
-            bpy.data.armatures.remove(armature)
-            raise log.AppError(
-                text.error.ogf_unsupported_bone_ver,
-                log.props(version=version)
-            )
-
         game_material = packed_reader.gets()
 
         shape_type = packed_reader.getf('<H')[0]
