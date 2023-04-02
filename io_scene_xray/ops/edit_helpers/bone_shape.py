@@ -230,7 +230,7 @@ def _bone_vertices(bone):
                 yield vtx.co
 
 
-def generate_obb(verts):
+def generate_obb(verts, for_cylinder):
     # generate orient bounding box
     # code adapted from here:
     # https://gist.github.com/iyadahmed/8874b92c27dee9d3ca63ab86bfc76295
@@ -250,6 +250,11 @@ def generate_obb(verts):
     center_world = center.dot(change_of_basis_mat.T)
     scale = (bbox_max - bbox_min) / 2
 
+    if for_cylinder:
+        radius = max(scale[0], scale[1])
+        scale[0] = radius
+        scale[1] = radius
+
     mat_loc = mathutils.Matrix.Translation(center_world)
     mat_rot = mathutils.Matrix(change_of_basis_mat).to_4x4()
     mat_scl = utils.version.multiply(
@@ -264,6 +269,36 @@ def generate_obb(verts):
     mat_obb = utils.version.multiply(mat_loc, mat_rot, mat_scl)
 
     return mat_obb
+
+
+def get_obb(bone, for_cylinder):
+    # create convex hull mesh for obb generation
+    bm = bmesh.new()
+    for vert in _bone_vertices(bone):
+        bm.verts.new(vert)
+    bm.verts.ensure_lookup_table()
+    if len(bm.verts) >=3:
+        input_geom = bmesh.ops.convex_hull(bm, input=bm.verts)
+    else:
+        input_geom = {'geom': bm.verts}
+
+    verts = []
+    for elem in input_geom['geom']:
+        if type(elem) == bmesh.types.BMVert:
+            verts.extend(elem.co)
+
+    # generate obb
+    obb_mat = None
+    if verts:
+        coord_count = len(verts)
+        verts_coord = numpy.empty(coord_count, dtype=numpy.float32)
+        for index, coord in enumerate(verts):
+            verts_coord[index] = coord
+        verts_coord.shape = (coord_count // 3, 3)
+
+    obb_mat = generate_obb(verts_coord, for_cylinder)
+
+    return obb_mat
 
 
 class XRAY_OT_fit_shape(bpy.types.Operator):
@@ -291,32 +326,8 @@ class XRAY_OT_fit_shape(bpy.types.Operator):
         xsh = bone.xray.shape
         multiply = utils.version.get_multiply()
 
-        if xsh.type == '1':  # box
-            # create convex hull mesh for obb generation
-            bm = bmesh.new()
-            for vert in _bone_vertices(bone):
-                bm.verts.new(vert)
-            bm.verts.ensure_lookup_table()
-            if len(bm.verts) >=3:
-                input_geom = bmesh.ops.convex_hull(bm, input=bm.verts)
-            else:
-                input_geom = {'geom': bm.verts}
-
-            verts = []
-            for elem in input_geom['geom']:
-                if type(elem) == bmesh.types.BMVert:
-                    verts.extend(elem.co)
-
-            # generate obb
-            obb_mat = None
-            if verts:
-                coord_count = len(verts)
-                verts_coord = numpy.empty(coord_count, dtype=numpy.float32)
-                for index, coord in enumerate(verts):
-                    verts_coord[index] = coord
-                verts_coord.shape = (coord_count // 3, 3)
-
-                obb_mat = generate_obb(verts_coord)
+        if xsh.type == '1':    # box
+            obb_mat = get_obb(bone, False)
 
             if obb_mat:
                 hobj.matrix_local = obb_mat
@@ -343,10 +354,12 @@ class XRAY_OT_fit_shape(bpy.types.Operator):
                 vfunc(vmin, vtx, min)
                 vfunc(vmax, vtx, max)
                 vertices.append(vtx)
+
             if vmax.x > vmin.x:
                 vcenter = (vmax + vmin) / 2
                 radius = 0
-                if xsh.type == '2':  # sphere
+
+                if xsh.type == '2':    # sphere
                     for vtx in vertices:
                         radius = max(radius, (vtx - vcenter).length)
                     hobj.matrix_local = multiply(
@@ -354,20 +367,31 @@ class XRAY_OT_fit_shape(bpy.types.Operator):
                         mathutils.Matrix.Translation(vcenter),
                         _v2ms((radius, radius, radius))
                     )
-                elif xsh.type == '3':  # cylinder
-                    for vtx in vertices:
-                        radius = max(radius, (vtx - vcenter).xy.length)
-                    hobj.matrix_local = multiply(
-                        matrix,
-                        mathutils.Matrix.Translation(vcenter),
-                        _v2ms((radius, radius, (vmax.z - vmin.z) * 0.5))
-                    )
+
+                elif xsh.type == '3':    # cylinder
+                    obb_mat = get_obb(bone, True)
+
+                    if obb_mat:
+                        hobj.matrix_local = obb_mat
+
+                    else:
+                        # generate aabb
+                        for vtx in vertices:
+                            radius = max(radius, (vtx - vcenter).xy.length)
+                        hobj.matrix_local = multiply(
+                            matrix,
+                            mathutils.Matrix.Translation(vcenter),
+                            _v2ms((radius, radius, (vmax.z - vmin.z) * 0.5))
+                        )
+
                 else:
                     raise AssertionError('unsupported shape type: ' + xsh.type)
+
         if utils.version.IS_28:
             bpy.context.view_layer.update()
         else:
             bpy.context.scene.update()
+
         return {'FINISHED'}
 
 
