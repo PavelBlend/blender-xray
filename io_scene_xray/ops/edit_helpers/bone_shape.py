@@ -5,6 +5,7 @@ import math
 import bpy
 import bmesh
 import mathutils
+import numpy
 
 # addon modules
 from . import base_bone
@@ -229,6 +230,42 @@ def _bone_vertices(bone):
                 yield vtx.co
 
 
+def generate_obb(verts):
+    # generate orient bounding box
+    # code adapted from here:
+    # https://gist.github.com/iyadahmed/8874b92c27dee9d3ca63ab86bfc76295
+
+    cov_mat = numpy.cov(verts, rowvar=False, bias=True)
+    eig_vals, eig_vecs = numpy.linalg.eigh(cov_mat)
+
+    change_of_basis_mat = eig_vecs
+    inv_change_of_basis_mat = numpy.linalg.inv(change_of_basis_mat)
+
+    aligned = verts.dot(inv_change_of_basis_mat.T)
+
+    bbox_min = aligned.min(axis=0)
+    bbox_max = aligned.max(axis=0)
+
+    center = (bbox_max + bbox_min) / 2
+    center_world = center.dot(change_of_basis_mat.T)
+    scale = (bbox_max - bbox_min) / 2
+
+    mat_loc = mathutils.Matrix.Translation(center_world)
+    mat_rot = mathutils.Matrix(change_of_basis_mat).to_4x4()
+    mat_scl = utils.version.multiply(
+        mathutils.Matrix.Scale(scale[0], 4, (1, 0, 0)),
+        mathutils.Matrix.Scale(scale[1], 4, (0, 1, 0)),
+        mathutils.Matrix.Scale(scale[2], 4, (0, 0, 1))
+    )
+    inv_scl = mat_scl.inverted(None)
+    if inv_scl is None:
+        return
+
+    mat_obb = utils.version.multiply(mat_loc, mat_rot, mat_scl)
+
+    return mat_obb
+
+
 class XRAY_OT_fit_shape(bpy.types.Operator):
     bl_idname = 'io_scene_xray.edit_bone_shape_fit'
     bl_label = 'Fit Shape'
@@ -253,19 +290,52 @@ class XRAY_OT_fit_shape(bpy.types.Operator):
         vmax = mathutils.Vector((-math.inf, -math.inf, -math.inf))
         xsh = bone.xray.shape
         multiply = utils.version.get_multiply()
+
         if xsh.type == '1':  # box
-            for vtx in _bone_vertices(bone):
-                vtx = multiply(matrix_inverted, vtx)
-                vfunc(vmin, vtx, min)
-                vfunc(vmax, vtx, max)
-            if vmax.x > vmin.x:
-                vcenter = (vmax + vmin) / 2
-                vscale = (vmax - vmin) / 2
-                hobj.matrix_local = multiply(
-                    matrix,
-                    mathutils.Matrix.Translation(vcenter),
-                    _v2ms(vscale)
-                )
+            # create convex hull mesh for obb generation
+            bm = bmesh.new()
+            for vert in _bone_vertices(bone):
+                bm.verts.new(vert)
+            bm.verts.ensure_lookup_table()
+            if len(bm.verts) >=3:
+                input_geom = bmesh.ops.convex_hull(bm, input=bm.verts)
+            else:
+                input_geom = {'geom': bm.verts}
+
+            verts = []
+            for elem in input_geom['geom']:
+                if type(elem) == bmesh.types.BMVert:
+                    verts.extend(elem.co)
+
+            # generate obb
+            obb_mat = None
+            if verts:
+                coord_count = len(verts)
+                verts_coord = numpy.empty(coord_count, dtype=numpy.float32)
+                for index, coord in enumerate(verts):
+                    verts_coord[index] = coord
+                verts_coord.shape = (coord_count // 3, 3)
+
+                obb_mat = generate_obb(verts_coord)
+
+            if obb_mat:
+                hobj.matrix_local = obb_mat
+
+            else:
+                # generate aabb
+                for vtx in _bone_vertices(bone):
+                    vtx = multiply(matrix_inverted, vtx)
+                    vfunc(vmin, vtx, min)
+                    vfunc(vmax, vtx, max)
+                if vmax.x > vmin.x:
+                    vcenter = (vmax + vmin) / 2
+                    vscale = (vmax - vmin) / 2
+                    hobj.matrix_local = multiply(
+                        matrix,
+                        mathutils.Matrix.Translation(vcenter),
+                        _v2ms(vscale)
+                    )
+
         else:
             vertices = []
             for vtx in _bone_vertices(bone):
