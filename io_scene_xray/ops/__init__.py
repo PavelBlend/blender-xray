@@ -10,6 +10,7 @@ from . import obj
 from . import props_tools
 from . import custom_props
 from . import fake_user
+from . import invalid_sg
 from . import joint_limits
 from . import rig
 from . import shader
@@ -33,6 +34,7 @@ modules = (
     props_tools,
     custom_props,
     fake_user,
+    invalid_sg,
     joint_limits,
     rig,
     shader,
