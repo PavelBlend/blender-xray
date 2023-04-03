@@ -278,12 +278,12 @@ def get_obb(bone, for_cylinder):
         bm.verts.new(vert)
     bm.verts.ensure_lookup_table()
     if len(bm.verts) >=3:
-        input_geom = bmesh.ops.convex_hull(bm, input=bm.verts)
+        input_geom = bmesh.ops.convex_hull(bm, input=bm.verts)['geom']
     else:
-        input_geom = {'geom': bm.verts}
+        input_geom = bm.verts
 
     verts = []
-    for elem in input_geom['geom']:
+    for elem in input_geom:
         if type(elem) == bmesh.types.BMVert:
             verts.extend(elem.co)
 
