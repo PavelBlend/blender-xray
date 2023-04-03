@@ -258,9 +258,9 @@ def generate_obb(verts, for_cylinder):
     mat_loc = mathutils.Matrix.Translation(center_world)
     mat_rot = mathutils.Matrix(change_of_basis_mat).to_4x4()
     mat_scl = utils.version.multiply(
-        mathutils.Matrix.Scale(scale[0], 4, (1, 0, 0)),
-        mathutils.Matrix.Scale(scale[1], 4, (0, 1, 0)),
-        mathutils.Matrix.Scale(scale[2], 4, (0, 0, 1))
+        mathutils.Matrix.Scale(abs(scale[0]), 4, (1, 0, 0)),
+        mathutils.Matrix.Scale(abs(scale[1]), 4, (0, 1, 0)),
+        mathutils.Matrix.Scale(abs(scale[2]), 4, (0, 0, 1))
     )
     inv_scl = mat_scl.inverted(None)
     if inv_scl is None:
