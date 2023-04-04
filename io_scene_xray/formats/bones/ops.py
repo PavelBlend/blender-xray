@@ -274,8 +274,9 @@ class XRAY_OT_export_bone(
 
         obj = bpy.data.objects[self.objects[0]]
 
-        self.object_name = utils.ie.add_file_ext(obj.name, self.filename_ext)
-        self.filepath = os.path.join(self.directory, self.object_name)
+        self.object_name = obj.name
+        file_name = utils.ie.add_file_ext(obj.name, self.filename_ext)
+        self.filepath = os.path.join(self.directory, file_name)
 
         pref = utils.version.get_preferences()
 
