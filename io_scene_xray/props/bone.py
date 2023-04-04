@@ -119,36 +119,36 @@ ik_joint_properties = {
         ('5', 'Slider', ''))
     ),
     'lim_x_min': bpy.props.FloatProperty(
-        min=-math.pi, max=0.0,
+        min=-math.pi, max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
     ),
     'lim_x_max': bpy.props.FloatProperty(
-        min=0.0, max=math.pi,
+        min=-math.pi, max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
     ),
     'lim_x_spr': bpy.props.FloatProperty(min=0.0, max=1000.0),
     'lim_x_dmp': bpy.props.FloatProperty(min=0.0, max=1000.0),
     'lim_y_min': bpy.props.FloatProperty(
-        min=-math.pi, max=0,
+        min=-math.pi, max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
     ),
     'lim_y_max': bpy.props.FloatProperty(
-        min=0, max=math.pi,
+        min=-math.pi, max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
     ),
     'lim_y_spr': bpy.props.FloatProperty(min=0.0, max=1000.0),
     'lim_y_dmp': bpy.props.FloatProperty(min=0.0, max=1000.0),
     'lim_z_min': bpy.props.FloatProperty(
-        min=-math.pi, max=0.0,
+        min=-math.pi, max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
     ),
     'lim_z_max': bpy.props.FloatProperty(
-        min=0, max=math.pi,
+        min=-math.pi, max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
     ),

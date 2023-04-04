@@ -16,14 +16,33 @@ def update_limit(self, context):
     obj = context.object
     if obj.type != 'ARMATURE':
         return
+
     bone = obj.data.bones.active
     if bone is None:
         return
+
     ik = bone.xray.ikjoint
+
+    if ik.lim_x_min > 0.0:
+        ik.lim_x_min = -ik.lim_x_min
+    if ik.lim_x_max < 0.0:
+        ik.lim_x_max = -ik.lim_x_max
+
+    if ik.lim_y_min > 0.0:
+        ik.lim_y_min = -ik.lim_y_min
+    if ik.lim_y_max < 0.0:
+        ik.lim_y_max = -ik.lim_y_max
+
+    if ik.lim_z_min > 0.0:
+        ik.lim_z_min = -ik.lim_z_min
+    if ik.lim_z_max < 0.0:
+        ik.lim_z_max = -ik.lim_z_max
+
     pose_bone = obj.pose.bones[bone.name]
     constraint = pose_bone.constraints.get(CONSTRAINT_NAME, None)
     if not constraint:
         return
+
     constraint.min_x = ik.lim_x_min
     constraint.max_x = ik.lim_x_max
     constraint.min_y = ik.lim_y_min
