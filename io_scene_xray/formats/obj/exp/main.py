@@ -158,14 +158,13 @@ def merge_meshes(mesh_objects):
     return active_object
 
 
-def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
-    mesh_writers = []
+def export_meshes(chunked_writer, bpy_root, context, obj_xray):
     armatures = set()
     materials = set()
     meshes = set()
-    uv_maps_names = {}
-    bpy_root = bpy_obj
     armature_meshes = set()
+    mesh_writers = []
+    uv_maps_names = {}
     skeletal_obj = None
 
     def write_mesh(bpy_obj, skeletal_obj=None):
@@ -207,7 +206,7 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
         for child in bpy_obj.children:
             scan_r(child)
 
-    scan_r(bpy_obj)
+    scan_r(bpy_root)
     if len(armatures) > 1:
         raise log.AppError(
             text.error.object_many_arms,
@@ -261,8 +260,12 @@ def export_meshes(chunked_writer, bpy_obj, context, obj_xray):
             if not real_parent:
                 root_bones.append(bone_.name)
             bone.export_bone(
-                bpy_arm_obj, bone_, bone_writers, bonemap,
-                edit_mode_matrices, context.multiply
+                bpy_arm_obj,
+                bone_,
+                bone_writers,
+                bonemap,
+                edit_mode_matrices,
+                context.multiply
             )
 
         invalid_bones = []
