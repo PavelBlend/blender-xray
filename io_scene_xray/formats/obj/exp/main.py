@@ -54,7 +54,9 @@ def validate_vertex_weights(bpy_obj, arm_obj):
             if bpy_bone.xray.exportable
     ]
     exportable_groups_indices = [
-        group.index for group in bpy_obj.vertex_groups if group.name in exportable_bones_names
+        group.index
+        for group in bpy_obj.vertex_groups
+            if group.name in exportable_bones_names
     ]
     has_ungrouped_vertices = None
     ungrouped_vertices_count = 0
@@ -165,9 +167,9 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
     armature_meshes = set()
     mesh_writers = []
     uv_maps_names = {}
-    skeletal_obj = None
+    merged_obj = None
 
-    def write_mesh(bpy_obj, skeletal_obj=None):
+    def write_mesh(bpy_obj):
         meshes.add(bpy_obj)
         mesh_writer = rw.write.ChunkedWriter()
         used_material_names = mesh.export_mesh(
@@ -215,13 +217,19 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
                 armature_objects=[arm_obj.name for arm_obj in armatures]
             )
         )
+
+    if armatures:
+        bpy_arm_obj = list(armatures)[0]
+    else:
+        bpy_arm_obj = None
+
     if armature_meshes:
         if len(armature_meshes) == 1:
             mesh_object = list(armature_meshes)[0]
             write_mesh(mesh_object)
         else:
-            skeletal_obj = merge_meshes(armature_meshes)
-            write_mesh(skeletal_obj)
+            merged_obj = merge_meshes(armature_meshes)
+            write_mesh(merged_obj)
             mesh_names = [mesh.name for mesh in armature_meshes]
             log.warn(
                 text.warn.object_merged,
@@ -232,21 +240,19 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             text.error.object_no_meshes,
             log.props(object=bpy_obj.name)
         )
-    if len(mesh_writers) > 1 and len(armatures):
+    if len(mesh_writers) > 1 and bpy_arm_obj:
         raise log.AppError(
             text.error.object_skel_many_meshes,
             log.props(object=bpy_obj.name)
         )
 
-    if len(armatures) == 1:
+    if bpy_arm_obj:
         for mesh_obj in meshes:
-            validate_vertex_weights(mesh_obj, list(armatures)[0])
+            validate_vertex_weights(mesh_obj, bpy_arm_obj)
 
     bone_writers = []
     root_bones = []
-    armatures = list(armatures)
-    if armatures:
-        bpy_arm_obj = armatures[0]
+    if bpy_arm_obj:
         _check_bone_names(bpy_arm_obj)
         bonemap = {}
         edit_mode_matrices = {}
@@ -295,41 +301,38 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             )
         )
 
-    arm_list = list(armatures)
-
     # take care of static objects
-    some_arm = arm_list[0] if arm_list else None
-    if some_arm:
-        if some_arm.scale != mathutils.Vector((1.0, 1.0, 1.0)):
+    if bpy_arm_obj:
+        if bpy_arm_obj.scale != mathutils.Vector((1.0, 1.0, 1.0)):
             raise log.AppError(
                 text.error.object_bad_scale,
                 log.props(
-                    object=some_arm.name,
-                    scale=tuple(some_arm.scale),
+                    object=bpy_arm_obj.name,
+                    scale=tuple(bpy_arm_obj.scale),
                     scale_must_be=(1.0, 1.0, 1.0)
                 )
             )
-    export_flags(chunked_writer, obj_xray, some_arm)
+    export_flags(chunked_writer, obj_xray, bpy_arm_obj)
 
-    msw = rw.write.ChunkedWriter()
-    idx = 0
+    meshes_writer = rw.write.ChunkedWriter()
+    mesh_index = 0
     for mesh_writer in mesh_writers:
-        msw.put(idx, mesh_writer)
-        idx += 1
+        meshes_writer.put(mesh_index, mesh_writer)
+        mesh_index += 1
 
-    chunked_writer.put(fmt.Chunks.Object.MESHES, msw)
+    chunked_writer.put(fmt.Chunks.Object.MESHES, meshes_writer)
 
-    if skeletal_obj:
-        merged_mesh = skeletal_obj.data
+    if merged_obj:
+        merged_mesh = merged_obj.data
         if not utils.version.IS_277:
-            bpy.data.objects.remove(skeletal_obj, do_unlink=True)
+            bpy.data.objects.remove(merged_obj, do_unlink=True)
         else:
-            bpy.context.scene.objects.unlink(skeletal_obj)
-            skeletal_obj.user_clear()
-            bpy.data.objects.remove(skeletal_obj)
+            bpy.context.scene.objects.unlink(merged_obj)
+            merged_obj.user_clear()
+            bpy.data.objects.remove(merged_obj)
         bpy.data.meshes.remove(merged_mesh)
 
-    return materials, bone_writers, some_arm, bpy_root, uv_maps_names
+    return materials, bone_writers, bpy_arm_obj, bpy_root, uv_maps_names
 
 
 def export_surfaces(chunked_writer, context, materials, uv_map_names):
@@ -367,10 +370,10 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
 def export_bones(chunked_writer, bone_writers):
     if bone_writers:
         writer = rw.write.ChunkedWriter()
-        idx = 0
+        index = 0
         for bone_writer in bone_writers:
-            writer.put(idx, bone_writer)
-            idx += 1
+            writer.put(index, bone_writer)
+            index += 1
         chunked_writer.put(fmt.Chunks.Object.BONES1, writer)
 
 
@@ -422,21 +425,26 @@ def export_partitions(chunked_writer, some_arm):
         exportable_bones = tuple(
             bone_
             for bone_ in some_arm.pose.bones
-            if utils.bone.is_exportable_bone(some_arm.data.bones[bone_.name])
+                if utils.bone.is_exportable_bone(
+                    some_arm.data.bones[bone_.name]
+                )
         )
+
         all_groups = (
             (group.name, tuple(
                 bone_.name
                 for bone_ in exportable_bones
-                if bone_.bone_group == group
+                    if bone_.bone_group == group
             ))
             for group in some_arm.pose.bone_groups
         )
+
         non_empty_groups = tuple(
             group
             for group in all_groups
-            if group[1]
+                if group[1]
         )
+
         if non_empty_groups:
             writer = rw.write.PackedWriter()
             writer.putf('<I', len(non_empty_groups))
@@ -493,7 +501,7 @@ def export_revision(chunked_writer, xray):
 
 
 def export_main(bpy_obj, chunked_writer, context):
-    xray = bpy_obj.xray if hasattr(bpy_obj, 'xray') else None
+    xray = bpy_obj.xray
 
     export_version(chunked_writer)
     export_user_data(chunked_writer, xray)

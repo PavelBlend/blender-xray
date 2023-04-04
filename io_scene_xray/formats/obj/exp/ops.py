@@ -113,49 +113,58 @@ class XRAY_OT_export_object(ie.BaseOperator, _WithExportMotions):
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        export_context = ExportObjectContext()
-        export_context.texname_from_path = self.texture_name_from_image_path
-        export_context.soc_sgroups = self.fmt_version == 'soc'
-        export_context.export_motions = self.export_motions
-        export_context.smoothing_out_of = self.smoothing_out_of
-        use_split_normals = self.smoothing_out_of == 'SPLIT_NORMALS'
+        exp_ctx = ExportObjectContext()
+
+        exp_ctx.texname_from_path = self.texture_name_from_image_path
+        exp_ctx.soc_sgroups = self.fmt_version == 'soc'
+        exp_ctx.export_motions = self.export_motions
+        exp_ctx.smoothing_out_of = self.smoothing_out_of
+
         for name in self.objects.split(','):
             bpy_obj = context.scene.objects[name]
             name = utils.ie.add_file_ext(name, filename_ext)
             path = self.directory
+
             if self.use_export_paths and bpy_obj.xray.export_path:
                 path = os.path.join(path, bpy_obj.xray.export_path)
                 os.makedirs(path, exist_ok=True)
+
             try:
                 exp.export_file(
                     bpy_obj,
                     os.path.join(path, name),
-                    export_context
+                    exp_ctx
                 )
             except log.AppError as err:
-                export_context.errors.append(err)
-        for err in export_context.errors:
+                exp_ctx.errors.append(err)
+
+        for err in exp_ctx.errors:
             log.err(err)
+
         return {'FINISHED'}
 
     def invoke(self, context, _event):
-        preferences = utils.version.get_preferences()
-        roots = None
         try:
             roots = find_objects_for_export(context)
         except log.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
+
         if len(roots) == 1:
             return bpy.ops.xray_export.object_file('INVOKE_DEFAULT')
+
         self.objects = ','.join([obj.name for obj in roots])
-        self.fmt_version = preferences.export_object_sdk_version
-        self.export_motions = preferences.object_motions_export
-        self.texture_name_from_image_path = \
-            preferences.object_texture_names_from_path
-        self.smoothing_out_of = preferences.smoothing_out_of
-        self.use_export_paths = preferences.export_object_use_export_paths
+
+        pref = utils.version.get_preferences()
+
+        self.fmt_version = pref.export_object_sdk_version
+        self.export_motions = pref.object_motions_export
+        self.texture_name_from_image_path = pref.object_texture_names_from_path
+        self.smoothing_out_of = pref.smoothing_out_of
+        self.use_export_paths = pref.export_object_use_export_paths
+
         context.window_manager.fileselect_add(self)
+
         return {'RUNNING_MODAL'}
 
 
@@ -204,7 +213,6 @@ class XRAY_OT_export_object_file(
         export_context.smoothing_out_of = self.smoothing_out_of
 
         bpy_obj = context.scene.objects[self.object]
-        use_split_normals = self.smoothing_out_of == 'SPLIT_NORMALS'
 
         try:
             exp.export_file(bpy_obj, self.filepath, export_context)

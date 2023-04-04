@@ -272,7 +272,7 @@ def import_file(file_path, context):
     meshes_reader = rw.read.ChunkedReader(meshes_data)
 
     chunks_count = meshes_reader.get_chunks_count()
-    if chunks_count == 1:
+    if chunks_count == 1 and not bpy_arm_obj:
         mesh_name = object_name
     else:
         mesh_name = None

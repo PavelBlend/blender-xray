@@ -43,7 +43,7 @@ class TestArmature(utils.XRayTestCase):
             files=[{'name': 'test.object'}],
         )
 
-        obj_arm = bpy.data.objects[-1]
+        obj_arm = bpy.data.objects['test.object']
         self.assertEqual(obj_arm.type, 'ARMATURE')
         self.assertEqual(obj_arm.xray.isroot, True)
 
