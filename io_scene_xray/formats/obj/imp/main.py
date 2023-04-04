@@ -269,9 +269,17 @@ def import_file(file_path, context):
 
     # import meshes
     mesh_objects = []
-    for mesh_id, mesh_data in rw.read.ChunkedReader(meshes_data):
+    meshes_reader = rw.read.ChunkedReader(meshes_data)
+
+    chunks_count = meshes_reader.get_chunks_count()
+    if chunks_count == 1:
+        mesh_name = object_name
+    else:
+        mesh_name = None
+
+    for mesh_id, mesh_data in meshes_reader:
         mesh_reader = rw.read.ChunkedReader(mesh_data)
-        mesh_obj = mesh.import_mesh(context, mesh_reader, renamemap)
+        mesh_obj = mesh.import_mesh(context, mesh_reader, renamemap, mesh_name)
         utils.version.link_object(mesh_obj)
         mesh_objects.append(mesh_obj)
 
@@ -285,7 +293,6 @@ def import_file(file_path, context):
     if bpy_obj is None:
         if len(mesh_objects) == 1:
             bpy_obj = mesh_objects[0]
-            bpy_obj.name = object_name
         else:
             bpy_obj = bpy.data.objects.new(object_name, None)
             utils.version.link_object(bpy_obj)

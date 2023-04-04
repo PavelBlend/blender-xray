@@ -31,7 +31,7 @@ def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
 
 
 @log.with_context(name='mesh')
-def import_mesh(context, creader, renamemap):
+def import_mesh(context, creader, renamemap, file_name):
     ver = creader.nextf(fmt.Chunks.Mesh.VERSION, '<H')[0]
     if ver != fmt.CURRENT_MESH_VERSION:
         raise log.AppError(
@@ -290,7 +290,12 @@ def import_mesh(context, creader, renamemap):
         if not utils.version.IS_28:
             bm_data.show_edge_sharp = True
 
-    bo_mesh = bpy.data.objects.new(mesh_name, bm_data)
+    if file_name:
+        obj_name = file_name
+    else:
+        obj_name = mesh_name
+
+    bo_mesh = bpy.data.objects.new(obj_name, bm_data)
     if mesh_flags is not None:
         bo_mesh.data.xray.flags = mesh_flags
     if mesh_options is not None:

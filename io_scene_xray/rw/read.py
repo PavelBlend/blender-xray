@@ -223,3 +223,10 @@ class ChunkedReader:
 
     def get_size(self):
         return len(self.__data)
+
+    def get_chunks_count(self):
+        chunks_count = 0
+        for chunk_id, chunk_data in self:
+            chunks_count += 1
+        self.__offs = 0
+        return chunks_count
