@@ -270,20 +270,54 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
         _check_bone_names(bpy_arm_obj)
         bonemap = {}
 
+        if bpy_root == bpy_arm_obj:
+            arm_mat = mathutils.Matrix.Identity(4)
+            scale = bpy_root.scale
+        else:
+            loc = bpy_arm_obj.matrix_world.to_translation()
+            loc_mat = mathutils.Matrix.Translation(loc)
+            rot_mat = bpy_arm_obj.matrix_world.to_quaternion().to_matrix().to_4x4()
+            arm_mat = utils.version.multiply(loc_mat, rot_mat)
+            scale = bpy_root.scale * bpy_arm_obj.scale
+
+        if not scale.x == scale.y == scale.z:
+            if bpy_root == bpy_arm_obj:
+                raise log.AppError(
+                    text.error.arm_non_uniform_scale,
+                    log.props(
+                        armature_scale=bpy_arm_obj.scale,
+                        armature_object=bpy_arm_obj.name
+                    )
+                )
+            else:
+                raise log.AppError(
+                    text.error.arm_non_uniform_scale,
+                    log.props(
+                        armature_object=bpy_arm_obj.name,
+                        armature_scale=bpy_arm_obj.scale,
+                        root_object=bpy_root.name,
+                        root_scale=bpy_root.scale
+                    )
+                )
+
         edit_mode_matrices = {}
         with utils.version.using_active_object(bpy_arm_obj), utils.version.using_mode('EDIT'):
             for edit_bone in bpy_arm_obj.data.edit_bones:
-                edit_mode_matrices[bone_.name] = bone_.matrix
+                bone_mat = utils.version.multiply(arm_mat, edit_bone.matrix)
+                bone_mat[0][3] *= scale.x
+                bone_mat[1][3] *= scale.y
+                bone_mat[2][3] *= scale.z
+                edit_mode_matrices[edit_bone.name] = bone_mat
 
-        for bone_ in bpy_arm_obj.data.bones:
-            if not utils.bone.is_exportable_bone(bone_):
+        for bpy_bone in bpy_arm_obj.data.bones:
+            if not utils.bone.is_exportable_bone(bpy_bone):
                 continue
-            real_parent = utils.bone.find_bone_exportable_parent(bone_)
+            real_parent = utils.bone.find_bone_exportable_parent(bpy_bone)
             if not real_parent:
-                root_bones.append(bone_.name)
+                root_bones.append(bpy_bone.name)
             bone.export_bone(
                 bpy_arm_obj,
-                bone_,
+                bpy_bone,
                 bone_writers,
                 bonemap,
                 edit_mode_matrices,

@@ -19,6 +19,7 @@ file_not_found = 'file not found'
 file_folder_not_found = 'file or folder not found'
 ltx_invalid_syntax = 'ltx file syntax error'
 has_no_main_chunk = 'file has no main data block'
+arm_non_uniform_scale = 'object has an non-uniform scale'
 # anm export
 anm_no_keys = 'action has keys not for all channels'
 # anm import

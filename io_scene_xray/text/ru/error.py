@@ -27,6 +27,7 @@ translations_table = (
     (error.file_folder_not_found, 'файл или папка не найден(а)'),
     (error.ltx_invalid_syntax, 'ошибка синтаксиса ltx файла'),
     (error.has_no_main_chunk, 'файл не имеет основного блока данных'),
+    (error.arm_non_uniform_scale, 'объект имеет неравномерный масштаб'),
 
     # anm export
     (error.anm_no_keys, 'анимация имеет ключи не для всех каналов'),
