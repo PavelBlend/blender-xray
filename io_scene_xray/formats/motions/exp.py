@@ -80,7 +80,10 @@ def _export_motion_data(
 
         if scale:
             for matrix in bone_anim:
-                translate = matrix.to_translation() * scale
+                translate = matrix.to_translation()
+                translate.x *= scale.x
+                translate.y *= scale.y
+                translate.z *= scale.z
                 rotate = matrix.to_euler('ZXY')
 
                 curves[0].append(+translate[0])
