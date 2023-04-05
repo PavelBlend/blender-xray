@@ -178,5 +178,8 @@ def get_obj_scale_matrix(bpy_root, bpy_obj):
         loc_mat = mathutils.Matrix.Translation(loc)
         rot_mat = bpy_obj.matrix_world.to_quaternion().to_matrix().to_4x4()
         matrix = version.multiply(loc_mat, rot_mat)
-        scale = bpy_root.scale * bpy_obj.scale
+        scale = mathutils.Vector((0.0, 0.0, 0.0))
+        scale.x = bpy_root.scale.x * bpy_obj.scale.x
+        scale.y = bpy_root.scale.y * bpy_obj.scale.y
+        scale.z = bpy_root.scale.z * bpy_obj.scale.z
     return matrix, scale
