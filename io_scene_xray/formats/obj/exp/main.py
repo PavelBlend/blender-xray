@@ -146,7 +146,10 @@ def merge_meshes(mesh_objects):
         override['selected_editable_objects'] = objects
     else:
         scene = bpy.context.scene
-        override['selected_editable_bases'] = [scene.object_bases[ob.name] for ob in objects]
+        override['selected_editable_bases'] = [
+            scene.object_bases[ob.name]
+            for ob in objects
+        ]
     bpy.ops.object.join(override)
 
     # remove uvs
@@ -169,6 +172,16 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
     uv_maps_names = {}
     merged_obj = None
 
+    space_matrix = bpy_root.matrix_world
+    if bpy_root.scale != mathutils.Vector((1.0, 1.0, 1.0)):
+        loc = bpy_root.matrix_world.to_translation()
+        loc_mat = mathutils.Matrix.Translation(loc)
+        rot_mat = bpy_root.matrix_world.to_quaternion().to_matrix().to_4x4()
+        space_matrix = utils.version.multiply(
+            loc_mat,
+            rot_mat
+        )
+
     def write_mesh(bpy_obj):
         meshes.add(bpy_obj)
         mesh_writer = rw.write.ChunkedWriter()
@@ -176,7 +189,8 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             bpy_obj,
             bpy_root,
             mesh_writer,
-            context
+            context,
+            space_matrix
         )
         uv_layers = bpy_obj.data.uv_layers
         if len(uv_layers) > 1:
@@ -255,10 +269,12 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
     if bpy_arm_obj:
         _check_bone_names(bpy_arm_obj)
         bonemap = {}
+
         edit_mode_matrices = {}
         with utils.version.using_active_object(bpy_arm_obj), utils.version.using_mode('EDIT'):
-            for bone_ in bpy_arm_obj.data.edit_bones:
+            for edit_bone in bpy_arm_obj.data.edit_bones:
                 edit_mode_matrices[bone_.name] = bone_.matrix
+
         for bone_ in bpy_arm_obj.data.bones:
             if not utils.bone.is_exportable_bone(bone_):
                 continue
@@ -301,17 +317,6 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             )
         )
 
-    # take care of static objects
-    if bpy_arm_obj:
-        if bpy_arm_obj.scale != mathutils.Vector((1.0, 1.0, 1.0)):
-            raise log.AppError(
-                text.error.object_bad_scale,
-                log.props(
-                    object=bpy_arm_obj.name,
-                    scale=tuple(bpy_arm_obj.scale),
-                    scale_must_be=(1.0, 1.0, 1.0)
-                )
-            )
     export_flags(chunked_writer, obj_xray, bpy_arm_obj)
 
     meshes_writer = rw.write.ChunkedWriter()

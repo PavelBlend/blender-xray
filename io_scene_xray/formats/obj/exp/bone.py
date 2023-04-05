@@ -58,6 +58,7 @@ def export_bone(
     # calculate bone matrix
     edit_mode_matrix = edit_mode_matrices[bpy_bone.name]
     matrix = edit_mode_matrix
+
     if real_parent:
         parent_matrix = edit_mode_matrices[real_parent.name]
         matrix = multiply(
@@ -67,6 +68,7 @@ def export_bone(
             ).inverted(),
             edit_mode_matrix
         )
+
     matrix = multiply(matrix, motions.const.MATRIX_BONE_INVERTED)
     euler = matrix.to_euler('YXZ')
 

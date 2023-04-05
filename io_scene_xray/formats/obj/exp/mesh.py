@@ -1,6 +1,7 @@
 # blender modules
 import bpy
 import bmesh
+import mathutils
 
 # addon modules
 from .. import fmt
@@ -179,7 +180,7 @@ def export_faces(chunked_writer, bm, bpy_obj):
 
 
 @log.with_context('mesh')
-def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
+def export_mesh(bpy_obj, bpy_root, chunked_writer, context, space_matrix):
     log.update(mesh=bpy_obj.data.name)
     export_version(chunked_writer)
     export_mesh_name(chunked_writer, bpy_obj, bpy_root)
@@ -209,7 +210,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
         bpy.ops.object.modifier_apply(override, modifier=tri_mod.name)
         bm = utils.mesh.convert_object_to_space_bmesh(
             temp_obj,
-            bpy_root.matrix_world,
+            space_matrix,
             local=False,
             split_normals=use_split_normals,
             mods=modifiers
@@ -217,7 +218,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
     else:
         bm = utils.mesh.convert_object_to_space_bmesh(
             bpy_obj,
-            bpy_root.matrix_world,
+            space_matrix,
             local=False,
             split_normals=use_split_normals,
             mods=modifiers
@@ -234,7 +235,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
 
     uvs, vert_indices, face_indices = export_faces(chunked_writer, bm, bpy_obj)
 
-    # smothing groups chunk
+    # smoothing groups chunk
     packed_writer = rw.write.PackedWriter()
     smooth_groups = []
     if context.soc_sgroups:

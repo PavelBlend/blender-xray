@@ -76,7 +76,6 @@ object_no_meshes = 'root object has no meshes'
 object_skel_many_meshes = 'skeletal object has more than one mesh'
 object_bad_boneparts = 'not all bones are tied to the bone part'
 object_many_parents = 'armature object has more than one parent'
-object_bad_scale = 'armature-object has incorrect scale'
 # object import bone
 object_unsupport_bone_ver = 'unsupported bone format version'
 # object import main
