@@ -270,15 +270,7 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
         _check_bone_names(bpy_arm_obj)
         bonemap = {}
 
-        if bpy_root == bpy_arm_obj:
-            arm_mat = mathutils.Matrix.Identity(4)
-            scale = bpy_root.scale
-        else:
-            loc = bpy_arm_obj.matrix_world.to_translation()
-            loc_mat = mathutils.Matrix.Translation(loc)
-            rot_mat = bpy_arm_obj.matrix_world.to_quaternion().to_matrix().to_4x4()
-            arm_mat = utils.version.multiply(loc_mat, rot_mat)
-            scale = bpy_root.scale * bpy_arm_obj.scale
+        arm_mat, scale = utils.ie.get_obj_scale_matrix(bpy_root, bpy_arm_obj)
 
         if not scale.x == scale.y == scale.z:
             if bpy_root == bpy_arm_obj:
@@ -431,11 +423,11 @@ def export_lod_ref(chunked_writer, xray):
         chunked_writer.put(fmt.Chunks.Object.LOD_REF, packed_writer)
 
 
-def export_motions(chunked_writer, some_arm, context, bpy_obj):
+def export_motions(chunked_writer, some_arm, context, root_obj):
     if some_arm and context.export_motions:
         motions_names = [
             motion.name
-            for motion in bpy_obj.xray.motions_collection
+            for motion in root_obj.xray.motions_collection
         ]
         motions_names = set(motions_names)
         motions_names = list(motions_names)
@@ -449,12 +441,12 @@ def export_motions(chunked_writer, some_arm, context, bpy_obj):
                 log.warn(
                     text.warn.object_no_action,
                     action=act_name,
-                    object=bpy_obj.name
+                    object=root_obj.name
                 )
         if not acts:
             return
         writer = rw.write.PackedWriter()
-        motions.exp.export_motions(writer, acts, some_arm)
+        motions.exp.export_motions(writer, acts, some_arm, root_obj)
         if writer.data:
             chunked_writer.put(fmt.Chunks.Object.MOTIONS, writer)
 
@@ -553,7 +545,7 @@ def export_main(bpy_obj, chunked_writer, context):
     )
     export_surfaces(chunked_writer, context, materials, uv_map_names)
     export_bones(chunked_writer, bone_writers)
-    export_motions(chunked_writer, some_arm, context, bpy_obj)
+    export_motions(chunked_writer, some_arm, context, bpy_root)
     export_motion_refs(chunked_writer, xray, context)
     export_partitions(chunked_writer, some_arm)
     export_transform(chunked_writer, bpy_root)

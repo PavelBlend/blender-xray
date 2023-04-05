@@ -3,6 +3,7 @@ import os
 
 # blender modules
 import bpy
+import mathutils
 
 # addon modules
 from . import draw
@@ -166,3 +167,16 @@ def add_file_ext(path, ext):
         path += ext
 
     return path
+
+
+def get_obj_scale_matrix(bpy_root, bpy_obj):
+    if bpy_root == bpy_obj:
+        matrix = mathutils.Matrix.Identity(4)
+        scale = bpy_root.scale
+    else:
+        loc = bpy_obj.matrix_world.to_translation()
+        loc_mat = mathutils.Matrix.Translation(loc)
+        rot_mat = bpy_obj.matrix_world.to_quaternion().to_matrix().to_4x4()
+        matrix = version.multiply(loc_mat, rot_mat)
+        scale = bpy_root.scale * bpy_obj.scale
+    return matrix, scale
