@@ -1,6 +1,7 @@
 # blender modules
 import bpy
 import bmesh
+import mathutils
 
 # addon modules
 from .. import fmt
@@ -197,6 +198,16 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
 
     prefs = utils.version.get_preferences()
 
+    space_matrix = bpy_root.matrix_world
+    if bpy_root.scale != mathutils.Vector((1.0, 1.0, 1.0)):
+        loc = bpy_root.matrix_world.to_translation()
+        loc_mat = mathutils.Matrix.Translation(loc)
+        rot_mat = bpy_root.matrix_world.to_quaternion().to_matrix().to_4x4()
+        space_matrix = utils.version.multiply(
+            loc_mat,
+            rot_mat
+        )
+
     if prefs.object_split_normals:
         temp_obj = bpy_obj.copy()
         temp_obj.data = bpy_obj.data.copy()
@@ -209,7 +220,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
         bpy.ops.object.modifier_apply(override, modifier=tri_mod.name)
         bm = utils.mesh.convert_object_to_space_bmesh(
             temp_obj,
-            bpy_root.matrix_world,
+            space_matrix,
             local=False,
             split_normals=use_split_normals,
             mods=modifiers
@@ -217,7 +228,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
     else:
         bm = utils.mesh.convert_object_to_space_bmesh(
             bpy_obj,
-            bpy_root.matrix_world,
+            space_matrix,
             local=False,
             split_normals=use_split_normals,
             mods=modifiers
@@ -234,7 +245,7 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context):
 
     uvs, vert_indices, face_indices = export_faces(chunked_writer, bm, bpy_obj)
 
-    # smothing groups chunk
+    # smoothing groups chunk
     packed_writer = rw.write.PackedWriter()
     smooth_groups = []
     if context.soc_sgroups:

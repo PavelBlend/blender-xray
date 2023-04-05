@@ -146,7 +146,10 @@ def merge_meshes(mesh_objects):
         override['selected_editable_objects'] = objects
     else:
         scene = bpy.context.scene
-        override['selected_editable_bases'] = [scene.object_bases[ob.name] for ob in objects]
+        override['selected_editable_bases'] = [
+            scene.object_bases[ob.name]
+            for ob in objects
+        ]
     bpy.ops.object.join(override)
 
     # remove uvs
@@ -301,17 +304,6 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             )
         )
 
-    # take care of static objects
-    if bpy_arm_obj:
-        if bpy_arm_obj.scale != mathutils.Vector((1.0, 1.0, 1.0)):
-            raise log.AppError(
-                text.error.object_bad_scale,
-                log.props(
-                    object=bpy_arm_obj.name,
-                    scale=tuple(bpy_arm_obj.scale),
-                    scale_must_be=(1.0, 1.0, 1.0)
-                )
-            )
     export_flags(chunked_writer, obj_xray, bpy_arm_obj)
 
     meshes_writer = rw.write.ChunkedWriter()

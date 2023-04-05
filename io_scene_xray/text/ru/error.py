@@ -98,7 +98,6 @@ translations_table = (
     (error.object_skel_many_meshes, 'скелетный объект имеет больше одного меша'),
     (error.object_bad_boneparts, 'не все кости привязаны к bone parts'),
     (error.object_many_parents, 'объект-арматура имеет больше одной главной кости'),
-    (error.object_bad_scale, 'объект-арматура имеет некорректный масштаб'),
 
     # object import bone
     (error.object_unsupport_bone_ver, 'неподдерживаемая версия формата костей'),
