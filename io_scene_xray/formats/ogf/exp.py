@@ -392,6 +392,7 @@ def get_ode_ik_limits(value_1, value_2):
 def _export(root_obj, cwriter, context):
     bbox, bsph = calculate_bbox_and_bsphere(root_obj)
     xray = root_obj.xray
+
     if len(xray.motionrefs_collection):
         model_type = fmt.ModelType_v4.SKELETON_ANIM
     elif len(xray.motions_collection) and context.export_motions:
@@ -403,9 +404,11 @@ def _export(root_obj, cwriter, context):
     header_writer.putf('<B', fmt.FORMAT_VERSION_4)  # ogf version
     header_writer.putf('<B', model_type)
     header_writer.putf('<H', 0)  # shader id
+
     # bbox
     header_writer.putv3f(bbox[0])
     header_writer.putv3f(bbox[1])
+
     # bsphere
     header_writer.putv3f(bsph[0])
     header_writer.putf('<f', bsph[1])
@@ -536,6 +539,26 @@ def _export(root_obj, cwriter, context):
 
     _, scale = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
 
+    if not scale.x == scale.y == scale.z:
+        if root_obj == arm_obj:
+            raise log.AppError(
+                text.error.arm_non_uniform_scale,
+                log.props(
+                    armature_scale=arm_obj.scale,
+                    armature_object=arm_obj.name
+                )
+            )
+        else:
+            raise log.AppError(
+                text.error.arm_non_uniform_scale,
+                log.props(
+                    armature_object=arm_obj.name,
+                    armature_scale=arm_obj.scale,
+                    root_object=root_obj.name,
+                    root_scale=root_obj.scale
+                )
+            )
+
     pwriter = rw.write.PackedWriter()
     pwriter.putf('<I', len(bones))
     for bone, _ in bones:
@@ -544,26 +567,71 @@ def _export(root_obj, cwriter, context):
         pwriter.puts(b_parent.name if b_parent else '')
         bxray = bone.xray
         pwriter.putf('<9f', *bxray.shape.box_rot)
-        pwriter.putf('<3f', *bxray.shape.box_trn)
-        pwriter.putf('<3f', *bxray.shape.box_hsz)
+        box_trn = list(bxray.shape.box_trn)
+        box_trn[0] *= scale.x
+        box_trn[1] *= scale.y
+        box_trn[2] *= scale.z
+        pwriter.putf('<3f', *box_trn)
+        box_hsz = list(bxray.shape.box_hsz)
+        box_hsz[0] *= scale.x
+        box_hsz[1] *= scale.y
+        box_hsz[2] *= scale.z
+        pwriter.putf('<3f', *box_hsz)
     cwriter.put(fmt.Chunks_v4.S_BONE_NAMES, pwriter)
 
     pwriter = rw.write.PackedWriter()
+
     for bone, obj in bones:
         bxray = bone.xray
+
         pwriter.putf('<I', 0x1)  # version
         pwriter.puts(bxray.gamemtl)
         pwriter.putf('<H', int(bxray.shape.type))
         pwriter.putf('<H', bxray.shape.flags)
+
+        # box shape rotation
         pwriter.putf('<9f', *bxray.shape.box_rot)
-        pwriter.putf('<3f', *bxray.shape.box_trn)
-        pwriter.putf('<3f', *bxray.shape.box_hsz)
-        pwriter.putf('<3f', *bxray.shape.sph_pos)
-        pwriter.putf('<f', bxray.shape.sph_rad)
-        pwriter.putf('<3f', *bxray.shape.cyl_pos)
+
+        # box shape position
+        box_trn = list(bxray.shape.box_trn)
+        box_trn[0] *= scale.x
+        box_trn[1] *= scale.y
+        box_trn[2] *= scale.z
+        pwriter.putf('<3f', *box_trn)
+
+        # box shape half size
+        box_hsz = list(bxray.shape.box_hsz)
+        box_hsz[0] *= scale.x
+        box_hsz[1] *= scale.y
+        box_hsz[2] *= scale.z
+        pwriter.putf('<3f', *box_hsz)
+
+        # sphere shape position
+        sph_pos = list(bxray.shape.sph_pos)
+        sph_pos[0] *= scale.x
+        sph_pos[1] *= scale.y
+        sph_pos[2] *= scale.z
+        pwriter.putf('<3f', *sph_pos)
+
+        # sphere shape radius
+        pwriter.putf('<f', bxray.shape.sph_rad * scale.x)
+
+        # cylinder shape position
+        cyl_pos = list(bxray.shape.cyl_pos)
+        cyl_pos[0] *= scale.x
+        cyl_pos[1] *= scale.y
+        cyl_pos[2] *= scale.z
+        pwriter.putf('<3f', *cyl_pos)
+
+        # cylinder shape direction
         pwriter.putf('<3f', *bxray.shape.cyl_dir)
-        pwriter.putf('<f', bxray.shape.cyl_hgh)
-        pwriter.putf('<f', bxray.shape.cyl_rad)
+
+        # cylinder shape height
+        pwriter.putf('<f', bxray.shape.cyl_hgh * scale.x)
+
+        # cylinder shape radius
+        pwriter.putf('<f', bxray.shape.cyl_rad * scale.x)
+
         pwriter.putf('<I', int(bxray.ikjoint.type))
 
         # x axis
@@ -613,7 +681,12 @@ def _export(root_obj, cwriter, context):
         trn.z *= scale.z
         pwriter.putv3f(trn)
         pwriter.putf('<f', bxray.mass.value)
-        pwriter.putv3f(bxray.mass.center)
+        cmass = list(bxray.mass.center)
+        cmass[0] *= scale.x
+        cmass[1] *= scale.y
+        cmass[2] *= scale.z
+        pwriter.putv3f(cmass)
+
     cwriter.put(fmt.Chunks_v4.S_IKDATA_2, pwriter)
 
     packed_writer = rw.write.PackedWriter()
