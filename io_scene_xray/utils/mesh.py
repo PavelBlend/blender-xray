@@ -4,12 +4,15 @@ import bmesh
 import mathutils
 
 # addon modules
+from . import ie
 from . import version
 
 
 def convert_object_to_space_bmesh(
         bpy_obj,
-        space_matrix,
+        loc_space,
+        rot_space,
+        scl_space,
         local=False,
         split_normals=False,
         mods=None
@@ -72,15 +75,29 @@ def convert_object_to_space_bmesh(
     if local:
         mat = mathutils.Matrix()
     else:
-        mat = bpy_obj.matrix_world
+        loc_mat, rot_mat, scl_world = ie.get_object_world_matrix(bpy_obj)
 
-    mat = version.multiply(space_matrix.inverted(), mat)
+    loc = version.multiply(loc_space.inverted(), loc_mat)
+    rot = version.multiply(rot_space.inverted(), rot_mat)
 
-    mesh.transform(mat)
+    loc_rot = version.multiply(loc, rot)
+    scl_mesh = mathutils.Vector()
+    scl_mesh.x = scl_world.x / scl_space.x
+    scl_mesh.y = scl_world.y / scl_space.y
+    scl_mesh.z = scl_world.z / scl_space.z
+
+    scl = mathutils.Vector()
+    scl.x = scl_world.x * scl_space.x
+    scl.y = scl_world.y * scl_space.y
+    scl.z = scl_world.z * scl_space.z
+
+    bmesh.ops.scale(mesh, vec=scl_mesh, verts=mesh.verts)
+    mesh.transform(loc_rot)
+    bmesh.ops.scale(mesh, vec=scl_space, verts=mesh.verts)
 
     # flip normals
     need_flip = False
-    for scale_component in mat.to_scale():
+    for scale_component in (*scl_space, *scl_mesh):
         if scale_component < 0:
             need_flip = not need_flip
     if need_flip:

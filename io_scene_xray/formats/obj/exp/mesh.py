@@ -180,7 +180,19 @@ def export_faces(chunked_writer, bm, bpy_obj):
 
 
 @log.with_context('mesh')
-def export_mesh(bpy_obj, bpy_root, chunked_writer, context, space_matrix):
+def export_mesh(
+        bpy_obj,
+        bpy_root,
+        chunked_writer,
+        context,
+        loc_space,
+        rot_space,
+        scl_space
+    ):
+
+    if bpy_obj == bpy_root:
+        scl_space = mathutils.Vector((1.0, 1.0, 1.0))
+
     log.update(mesh=bpy_obj.data.name)
     export_version(chunked_writer)
     export_mesh_name(chunked_writer, bpy_obj, bpy_root)
@@ -210,7 +222,9 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context, space_matrix):
         bpy.ops.object.modifier_apply(override, modifier=tri_mod.name)
         bm = utils.mesh.convert_object_to_space_bmesh(
             temp_obj,
-            space_matrix,
+            loc_space,
+            rot_space,
+            scl_space,
             local=False,
             split_normals=use_split_normals,
             mods=modifiers
@@ -218,7 +232,9 @@ def export_mesh(bpy_obj, bpy_root, chunked_writer, context, space_matrix):
     else:
         bm = utils.mesh.convert_object_to_space_bmesh(
             bpy_obj,
-            space_matrix,
+            loc_space,
+            rot_space,
+            scl_space,
             local=False,
             split_normals=use_split_normals,
             mods=modifiers

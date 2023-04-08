@@ -172,15 +172,7 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
     uv_maps_names = {}
     merged_obj = None
 
-    space_matrix = bpy_root.matrix_world
-    if bpy_root.scale != mathutils.Vector((1.0, 1.0, 1.0)):
-        loc = bpy_root.matrix_world.to_translation()
-        loc_mat = mathutils.Matrix.Translation(loc)
-        rot_mat = bpy_root.matrix_world.to_quaternion().to_matrix().to_4x4()
-        space_matrix = utils.version.multiply(
-            loc_mat,
-            rot_mat
-        )
+    loc_space, rot_space, scl_space = utils.ie.get_object_world_matrix(bpy_root)
 
     def write_mesh(bpy_obj):
         meshes.add(bpy_obj)
@@ -190,7 +182,9 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             bpy_root,
             mesh_writer,
             context,
-            space_matrix
+            loc_space,
+            rot_space,
+            scl_space
         )
         uv_layers = bpy_obj.data.uv_layers
         if len(uv_layers) > 1:
@@ -515,9 +509,10 @@ def export_motion_refs(chunked_writer, xray, context):
 def export_transform(chunked_writer, bpy_root):
     root_matrix = bpy_root.matrix_world
     if root_matrix != mathutils.Matrix.Identity(4):
+        loc_mat, rot_mat = utils.ie.get_object_transform_matrix(bpy_root)
         writer = rw.write.PackedWriter()
-        writer.putv3f(root_matrix.to_translation())
-        writer.putv3f(root_matrix.to_euler('YXZ'))
+        writer.putv3f(loc_mat.to_translation())
+        writer.putv3f(rot_mat.to_euler('YXZ'))
         chunked_writer.put(fmt.Chunks.Object.TRANSFORM, writer)
 
 

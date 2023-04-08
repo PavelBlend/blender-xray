@@ -183,3 +183,34 @@ def get_obj_scale_matrix(bpy_root, bpy_obj):
         scale.y = bpy_root.scale.y * bpy_obj.scale.y
         scale.z = bpy_root.scale.z * bpy_obj.scale.z
     return matrix, scale
+
+
+def get_object_transform_matrix(bpy_obj):
+    loc_mat = mathutils.Matrix.Translation(bpy_obj.location)
+
+    if bpy_obj.rotation_mode == 'QUATERNION':
+        rot_mat = bpy_obj.rotation_quaternion.to_matrix().to_4x4()
+    elif bpy_obj.rotation_mode == 'AXIS_ANGLE':
+        rot_mat = mathutils.Matrix.Rotation(
+            bpy_obj.rotation_axis_angle[0],
+            4,
+            bpy_obj.rotation_axis_angle[1:]
+        )
+    else:
+        rot_mat = bpy_obj.rotation_euler.to_matrix().to_4x4()
+
+    return loc_mat, rot_mat
+
+
+def get_object_world_matrix(bpy_obj):
+    loc_mat, rot_mat = get_object_transform_matrix(bpy_obj)
+    scl = bpy_obj.scale
+    if bpy_obj.parent:
+        loc_par, rot_par = get_object_transform_matrix(bpy_obj.parent)
+        loc_mat = version.multiply(loc_par, loc_mat)
+        rot_mat = version.multiply(rot_par, rot_mat)
+        scl = mathutils.Vector()
+        scl.x = bpy_obj.parent.scale.x * bpy_obj.scale.x
+        scl.y = bpy_obj.parent.scale.y * bpy_obj.scale.y
+        scl.z = bpy_obj.parent.scale.z * bpy_obj.scale.z
+    return loc_mat, rot_mat, scl
