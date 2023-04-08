@@ -761,6 +761,7 @@ def export_motions(
 
 def export_omf(context):
     arm_obj = context.bpy_arm_obj
+    utils.version.set_active_object(arm_obj)
     xray = arm_obj.xray
 
     (

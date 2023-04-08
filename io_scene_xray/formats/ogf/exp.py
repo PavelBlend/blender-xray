@@ -694,7 +694,7 @@ def _export(root_obj, cwriter, context):
     # export motions
     if context.export_motions and xray.motions_collection:
         motion_context = omf.ops.ExportOmfContext()
-        motion_context.bpy_arm_obj = root_obj
+        motion_context.bpy_arm_obj = arm_obj
         motion_context.export_mode = 'OVERWRITE'
         motion_context.export_motions = True
         motion_context.export_bone_parts = True
