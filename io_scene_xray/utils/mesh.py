@@ -73,7 +73,9 @@ def convert_object_to_space_bmesh(
 
     # apply mesh transforms
     if local:
-        mat = mathutils.Matrix()
+        loc_mat = mathutils.Matrix.Identity(4)
+        rot_mat = mathutils.Matrix.Identity(4)
+        scl_world = mathutils.Vector((1.0, 1.0, 1.0))
     else:
         loc_mat, rot_mat, scl_world = ie.get_object_world_matrix(bpy_obj)
 

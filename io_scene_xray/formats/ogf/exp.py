@@ -161,7 +161,9 @@ def write_verts_2l(vertices_writer, vertices, norm_coef=1):
 def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
     mesh = utils.mesh.convert_object_to_space_bmesh(
         bpy_obj,
-        mathutils.Matrix.Identity(4)
+        mathutils.Matrix.Identity(4),
+        mathutils.Matrix.Identity(4),
+        mathutils.Vector((1.0, 1.0, 1.0))
     )
     bbox = utils.mesh.calculate_mesh_bbox(mesh.verts)
     bsphere = calculate_mesh_bsphere(bbox, mesh.verts)
