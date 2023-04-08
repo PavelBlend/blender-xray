@@ -424,6 +424,7 @@ def _export(root_obj, cwriter, context):
     cwriter.put(fmt.Chunks_v4.S_DESC, revision_writer)
 
     meshes = []
+    armatures = []
     bones = []
     bones_map = {}
 
@@ -505,6 +506,7 @@ def _export(root_obj, cwriter, context):
                 if error:
                     raise error
         elif bpy_obj.type == 'ARMATURE':
+            armatures.append(bpy_obj)
             for bone in bpy_obj.data.bones:
                 if not utils.bone.is_exportable_bone(bone):
                     continue
@@ -514,12 +516,25 @@ def _export(root_obj, cwriter, context):
 
     scan_r(root_obj)
 
+    if len(armatures) > 1:
+        raise log.AppError(
+            text.error.object_many_arms,
+            log.props(
+                root_object=root_obj.name,
+                armatures=[arm.name for arm in armatures]
+            )
+        )
+
+    arm_obj = armatures[0]
+
     children_chunked_writer = rw.write.ChunkedWriter()
     mesh_index = 0
     for mesh_writer in meshes:
         children_chunked_writer.put(mesh_index, mesh_writer)
         mesh_index += 1
     cwriter.put(fmt.Chunks_v4.CHILDREN, children_chunked_writer)
+
+    _, scale = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
 
     pwriter = rw.write.PackedWriter()
     pwriter.putf('<I', len(bones))
@@ -592,7 +607,11 @@ def _export(root_obj, cwriter, context):
             ).inverted(), mat)
         euler = mat.to_euler('YXZ')
         pwriter.putf('<3f', -euler.x, -euler.z, -euler.y)
-        pwriter.putv3f(mat.to_translation())
+        trn = mat.to_translation()
+        trn.x *= scale.x
+        trn.y *= scale.y
+        trn.z *= scale.z
+        pwriter.putv3f(trn)
         pwriter.putf('<f', bxray.mass.value)
         pwriter.putv3f(bxray.mass.center)
     cwriter.put(fmt.Chunks_v4.S_IKDATA_2, pwriter)

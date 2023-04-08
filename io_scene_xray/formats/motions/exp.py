@@ -64,7 +64,7 @@ def _export_motion_data(
 
     epsilons = [epsilon_loc, epsilon_rot]
     _, scale = utils.ie.get_obj_scale_matrix(root_obj, armature)
-    if scale == mathutils.Vector((0.0, 0.0, 0.0)):
+    if scale == mathutils.Vector((1.0, 1.0, 1.0)):
         scale = None
 
     # write motions

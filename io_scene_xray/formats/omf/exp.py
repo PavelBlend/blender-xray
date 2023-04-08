@@ -536,6 +536,8 @@ def get_available_params_and_boneparts(context, chunks):
 
 
 def export_motions(
+        arm_obj,
+        root_obj,
         context,
         motions_writer,
         export_motion_names,
@@ -546,10 +548,14 @@ def export_motions(
         actions_table,
         motion_export_names
     ):
+
     scn = bpy.context.scene
     new_motions_count = 0
     chunk_id = fmt.MOTIONS_COUNT_CHUNK + 1
     object_motions = motion_export_names.values()
+
+    _, scale = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
+
     for motion_name in export_motion_names:
         action_name = actions_table.get(motion_name, None)
         if action_name:
@@ -622,6 +628,9 @@ def export_motions(
                     parent_matrix = motions.const.MATRIX_BONE_INVERTED
                 matrix = context.multiply(parent_matrix, pose_bone.matrix)
                 trn = matrix.to_translation()
+                trn.x *= scale.x
+                trn.y *= scale.y
+                trn.z *= scale.z
                 trn[2] = -trn[2]
                 unique_translate.setdefault(name, set()).add(tuple(trn))
                 bone_matrices.setdefault(name, []).append(matrix)
@@ -679,6 +688,9 @@ def export_motions(
                 # translation
                 translate = matrix.to_translation()
                 translate[2] = -translate[2]
+                translate.x *= scale.x
+                translate.y *= scale.y
+                translate.z *= scale.z
                 translate_final = [None, None, None]
                 for index in range(3):
                     if tr_size[index] > 0.000000001:
@@ -805,7 +817,10 @@ def export_omf(context):
         bones_count
     )
 
+    root_obj = utils.find_root(arm_obj)
     new_motions_count = export_motions(
+        arm_obj,
+        root_obj,
         context,
         motions_writer,
         export_motion_names,
