@@ -225,7 +225,6 @@ def export_mesh(
             loc_space,
             rot_space,
             scl_space,
-            local=False,
             split_normals=use_split_normals,
             mods=modifiers
         )
@@ -235,7 +234,6 @@ def export_mesh(
             loc_space,
             rot_space,
             scl_space,
-            local=False,
             split_normals=use_split_normals,
             mods=modifiers
         )
