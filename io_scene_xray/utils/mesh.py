@@ -13,7 +13,6 @@ def convert_object_to_space_bmesh(
         loc_space,
         rot_space,
         scl_space,
-        local=False,
         split_normals=False,
         mods=None
     ):
@@ -72,12 +71,7 @@ def convert_object_to_space_bmesh(
     mesh.from_mesh(exportable_obj.data)
 
     # apply mesh transforms
-    if local:
-        loc_mat = mathutils.Matrix.Identity(4)
-        rot_mat = mathutils.Matrix.Identity(4)
-        scl_world = mathutils.Vector((1.0, 1.0, 1.0))
-    else:
-        loc_mat, rot_mat, scl_world = ie.get_object_world_matrix(bpy_obj)
+    loc_mat, rot_mat, scl_world = ie.get_object_world_matrix(bpy_obj)
 
     loc = version.multiply(loc_space.inverted(), loc_mat)
     rot = version.multiply(rot_space.inverted(), rot_mat)
