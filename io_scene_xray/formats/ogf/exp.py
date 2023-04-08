@@ -539,25 +539,7 @@ def _export(root_obj, cwriter, context):
 
     _, scale = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
 
-    if not scale.x == scale.y == scale.z:
-        if root_obj == arm_obj:
-            raise log.AppError(
-                text.error.arm_non_uniform_scale,
-                log.props(
-                    armature_scale=arm_obj.scale,
-                    armature_object=arm_obj.name
-                )
-            )
-        else:
-            raise log.AppError(
-                text.error.arm_non_uniform_scale,
-                log.props(
-                    armature_object=arm_obj.name,
-                    armature_scale=arm_obj.scale,
-                    root_object=root_obj.name,
-                    root_scale=root_obj.scale
-                )
-            )
+    utils.ie.check_armature_scale(scale, root_obj, arm_obj)
 
     pwriter = rw.write.PackedWriter()
     pwriter.putf('<I', len(bones))

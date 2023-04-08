@@ -266,25 +266,7 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
 
         arm_mat, scale = utils.ie.get_obj_scale_matrix(bpy_root, bpy_arm_obj)
 
-        if not scale.x == scale.y == scale.z:
-            if bpy_root == bpy_arm_obj:
-                raise log.AppError(
-                    text.error.arm_non_uniform_scale,
-                    log.props(
-                        armature_scale=bpy_arm_obj.scale,
-                        armature_object=bpy_arm_obj.name
-                    )
-                )
-            else:
-                raise log.AppError(
-                    text.error.arm_non_uniform_scale,
-                    log.props(
-                        armature_object=bpy_arm_obj.name,
-                        armature_scale=bpy_arm_obj.scale,
-                        root_object=bpy_root.name,
-                        root_scale=bpy_root.scale
-                    )
-                )
+        utils.ie.check_armature_scale(scale, bpy_root, bpy_arm_obj)
 
         edit_mode_matrices = {}
         with utils.version.using_active_object(bpy_arm_obj), utils.version.using_mode('EDIT'):

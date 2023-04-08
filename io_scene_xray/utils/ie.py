@@ -214,3 +214,29 @@ def get_object_world_matrix(bpy_obj):
         scl.y = bpy_obj.parent.scale.y * bpy_obj.scale.y
         scl.z = bpy_obj.parent.scale.z * bpy_obj.scale.z
     return loc_mat, rot_mat, scl
+
+
+def format_scale(scale):
+    return '[{0:.3f}, {1:.3f}, {2:.3f}]'.format(*scale)
+
+
+def check_armature_scale(scale, bpy_root, bpy_arm_obj):
+    if not scale.x == scale.y == scale.z:
+        if bpy_root == bpy_arm_obj:
+            raise log.AppError(
+                text.error.arm_non_uniform_scale,
+                log.props(
+                    armature_scale=format_scale(bpy_arm_obj.scale),
+                    armature_object=bpy_arm_obj.name
+                )
+            )
+        else:
+            raise log.AppError(
+                text.error.arm_non_uniform_scale,
+                log.props(
+                    armature_object=bpy_arm_obj.name,
+                    armature_scale=format_scale(bpy_arm_obj.scale),
+                    root_object=bpy_root.name,
+                    root_scale=format_scale(bpy_root.scale)
+                )
+            )
