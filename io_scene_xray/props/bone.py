@@ -254,7 +254,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             color = preferences.gl_object_mode_shape_color
 
         if draw_overlays and arm_xray.display_bone_limits:
-            context_obj = bpy.context.object
+            context_obj = bpy.context.active_object
             if context_obj:
                 is_active_object = context_obj.name == obj_arm.name
             else:

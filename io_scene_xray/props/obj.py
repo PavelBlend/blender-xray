@@ -79,11 +79,11 @@ class XRayObjectDetailsSlotsProperties(bpy.types.PropertyGroup):
 
 def _update_detail_color_by_index(self, context):
 
-    if hasattr(context.object, 'xray'):
+    if hasattr(context.active_object, 'xray'):
         color_indices = formats.details.utility.generate_color_indices()
 
-        context.object.xray.detail.model.color = \
-            color_indices[context.object.xray.detail.model.index][0 : 3]
+        context.active_object.xray.detail.model.color = \
+            color_indices[context.active_object.xray.detail.model.index][0 : 3]
 
 
 model_props = {
@@ -161,7 +161,7 @@ def _gen_time_prop(prop, description=''):
 
 def update_motion_collection_index(self, context):
     scene = context.scene
-    obj = context.object
+    obj = context.active_object
     xray = obj.xray
 
     if not xray.play_active_motion:
@@ -304,7 +304,7 @@ def find_duplicate_name(motion, used_names):
 
 
 def update_export_name(self, context):
-    data = context.object.xray
+    data = context.active_object.xray
 
     if not self.export_name:
         return

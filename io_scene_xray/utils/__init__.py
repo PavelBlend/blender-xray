@@ -151,7 +151,7 @@ def get_revision_data(revision):
 
 
 def is_armature_context(context):
-    obj = context.object
+    obj = context.active_object
     if not obj:
         return False
     return obj.type == 'ARMATURE'

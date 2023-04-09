@@ -44,7 +44,7 @@ def _set_selection_state(active_object, selected_objects):
 
 
 def set_mode(mode):
-    if bpy.context.object:
+    if bpy.context.active_object:
         bpy.ops.object.mode_set(mode=mode)
 
 

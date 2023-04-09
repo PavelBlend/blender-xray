@@ -91,7 +91,7 @@ class XRAY_OT_change_fake_user(bpy.types.Operator):
         change_data_blocks_count = 0
 
         if self.mode == 'ACTIVE_OBJECT':
-            obj = context.object
+            obj = context.active_object
             if obj:
                 input_objects.add(obj)
 

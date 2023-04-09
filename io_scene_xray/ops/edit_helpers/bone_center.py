@@ -10,7 +10,7 @@ from ... import utils
 
 def get_mass_matrix(bone):
     global pose_bone
-    pose_bone = bpy.context.object.pose.bones[bone.name]
+    pose_bone = bpy.context.active_object.pose.bones[bone.name]
     mat = utils.version.multiply(
         pose_bone.matrix,
         formats.motions.const.MATRIX_BONE_INVERTED

@@ -62,7 +62,7 @@ class XRAY_UL_motion_list(bpy.types.UIList):
     bl_idname = 'XRAY_UL_motion_list'
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        data = context.object.xray
+        data = context.active_object.xray
         motion = data.motions_collection[index]
 
         if data.motions_collection_index == index:
@@ -125,7 +125,7 @@ class XRAY_OT_remove_all_motion_refs(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = context.object
+        obj = context.active_object
         if not obj:
             return False
         data = obj.xray
@@ -133,7 +133,7 @@ class XRAY_OT_remove_all_motion_refs(bpy.types.Operator):
         return bool(refs_count)
 
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
         obj.xray.motionrefs_collection.clear()
         utils.draw.redraw_areas()
         return {'FINISHED'}
@@ -147,13 +147,13 @@ class XRAY_OT_copy_motion_refs_list(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = context.object
+        obj = context.active_object
         if not obj:
             return False
         return True
 
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
         lines = []
         saved_refs = set()
         for ref_index, ref in enumerate(obj.xray.motionrefs_collection):
@@ -179,13 +179,13 @@ class XRAY_OT_paste_motion_refs_list(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = context.object
+        obj = context.active_object
         if not obj:
             return False
         return True
 
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
         refs = obj.xray.motionrefs_collection
         used_refs = {ref.name for ref in obj.xray.motionrefs_collection}
         refs_data = bpy.context.window_manager.clipboard
@@ -222,7 +222,7 @@ class XRAY_OT_sort_motion_refs_list(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = context.object
+        obj = context.active_object
         if not obj:
             return False
         return True
@@ -232,7 +232,7 @@ class XRAY_OT_sort_motion_refs_list(bpy.types.Operator):
         lay.prop(self, 'sort_reverse', text='Reverse Sort', toggle=True)
 
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
         refs = obj.xray.motionrefs_collection
 
         used_refs = [ref.name for ref in refs]
@@ -284,7 +284,7 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = context.object
+        obj = context.active_object
         if not obj:
             return False
         return True
@@ -307,7 +307,7 @@ class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
                 params.directory = meshes_folder
 
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
         refs = obj.xray.motionrefs_collection
         preferences = utils.version.get_preferences()
         meshes_folder = preferences.meshes_folder_auto
@@ -356,7 +356,7 @@ def draw_motion_refs_elements(layout):
 def details_draw_function(self, context):
     box = self.layout.box()
 
-    if not (context.object.type in {'MESH', 'EMPTY'}):
+    if not (context.active_object.type in {'MESH', 'EMPTY'}):
         box.label(
             text='Active object is not a mesh or empty',
             icon='ERROR'
@@ -365,7 +365,7 @@ def details_draw_function(self, context):
 
     if context.active_object.type == 'MESH':
 
-        model = context.object.xray.detail.model
+        model = context.active_object.xray.detail.model
 
         col = box.column(align=True)
         col.label(text='Detail Model Properties:')
@@ -378,7 +378,7 @@ def details_draw_function(self, context):
 
     elif context.active_object.type == 'EMPTY':
 
-        slots = context.object.xray.detail.slots
+        slots = context.active_object.xray.detail.slots
 
         box.label(text='Level Details Properties:')
 
@@ -604,7 +604,7 @@ class XRAY_PT_object(ui.base.XRayPanel):
         object_used, details_used, game_level_used = get_used(preferences)
 
         layout = self.layout
-        data = context.object.xray
+        data = context.active_object.xray
         if object_used:
             layout.prop(data, 'isroot', text='Object', toggle=True)
 

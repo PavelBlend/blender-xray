@@ -17,7 +17,7 @@ def find_data(operator, context):
     # find objects
     if operator.edit_data in ('OBJECT', 'ALL'):
         if operator.edit_mode == 'ACTIVE':
-            objects.add(context.object)
+            objects.add(context.active_object)
         elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 objects.add(obj)
@@ -28,8 +28,8 @@ def find_data(operator, context):
     # find meshes
     if operator.edit_data in ('MESH', 'ALL'):
         if operator.edit_mode == 'ACTIVE':
-            if context.object.type == 'MESH':
-                meshes.add(context.object.data)
+            if context.active_object.type == 'MESH':
+                meshes.add(context.active_object.data)
         elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 if obj.type == 'MESH':
@@ -41,8 +41,8 @@ def find_data(operator, context):
     # find materials
     if operator.edit_data in ('MATERIAL', 'ALL'):
         if operator.edit_mode == 'ACTIVE':
-            if context.object.type == 'MESH':
-                materials.add(context.object.active_material)
+            if context.active_object.type == 'MESH':
+                materials.add(context.active_object.active_material)
         elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 if obj.type == 'MESH':
@@ -55,8 +55,8 @@ def find_data(operator, context):
     # find bones
     if operator.edit_data in ('BONE', 'ALL'):
         if operator.edit_mode == 'ACTIVE':
-            if context.object.type == 'ARMATURE':
-                armatures.add(context.object)
+            if context.active_object.type == 'ARMATURE':
+                armatures.add(context.active_object)
         elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 if obj.type == 'ARMATURE':
@@ -69,8 +69,8 @@ def find_data(operator, context):
     # find actions
     if operator.edit_data in ('ACTION', 'ALL'):
         if operator.edit_mode == 'ACTIVE':
-            if context.object.animation_data:
-                actions.add(context.object.animation_data.action)
+            if context.active_object.animation_data:
+                actions.add(context.active_object.animation_data.action)
         elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 for motion in obj.xray.motions_collection:

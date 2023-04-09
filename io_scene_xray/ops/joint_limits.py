@@ -13,7 +13,7 @@ CONSTRAINT_NAME = '!-XRAY-JOINT-LIMITS'
 
 
 def update_limit(self, context):
-    obj = context.object
+    obj = context.active_object
     if obj.type != 'ARMATURE':
         return
 
@@ -115,7 +115,7 @@ class XRAY_OT_convert_limits_to_constraints(JointLimitsBaseOperator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
         bones = get_bone_list(obj, self.mode, self.report)
         created_count = 0
         for bone in bones:
@@ -177,7 +177,7 @@ class XRAY_OT_remove_limits_constraints(JointLimitsBaseOperator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
         bones = get_bone_list(obj, self.mode, self.report)
         removed_count = 0
         for bone in bones:
@@ -202,7 +202,7 @@ class XRAY_OT_convert_ik_to_xray_limits(JointLimitsBaseOperator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
         for bone in obj.data.bones:
             xray = bone.xray
             if bone.select:
@@ -226,7 +226,7 @@ class XRAY_OT_convert_xray_to_ik_limits(JointLimitsBaseOperator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
         for bone in obj.data.bones:
             xray = bone.xray
             if bone.select:
@@ -260,7 +260,7 @@ class XRAY_OT_clear_ik_limits(JointLimitsBaseOperator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
         for bone in obj.data.bones:
             xray = bone.xray
             if bone.select:

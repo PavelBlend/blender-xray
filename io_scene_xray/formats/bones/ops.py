@@ -86,7 +86,7 @@ class XRAY_OT_import_bones(
         import_context.import_bone_properties = imp_props
         import_context.import_bone_parts = imp_parts
         import_context.filepath = filepath
-        import_context.bpy_arm_obj = context.object
+        import_context.bpy_arm_obj = context.active_object
         try:
             imp.import_file(import_context)
         except log.AppError as err:
@@ -103,7 +103,7 @@ class XRAY_OT_import_bones(
             layout.label(text='Nothing is imported', icon='ERROR')
 
     def invoke(self, context, event):
-        obj = context.object
+        obj = context.active_object
         if not obj:
             self.report({'ERROR'}, 'There is no active object')
             return {'CANCELLED'}

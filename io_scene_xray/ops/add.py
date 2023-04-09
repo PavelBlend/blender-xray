@@ -20,7 +20,7 @@ class XRAY_OT_add_camera(bpy.types.Operator):
 
     def execute(self, context):
         # set object mode
-        if context.object:
+        if context.active_object:
             bpy.ops.object.mode_set(mode='OBJECT')
 
         # create camera

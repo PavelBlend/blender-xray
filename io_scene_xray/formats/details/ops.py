@@ -200,7 +200,7 @@ class XRAY_OT_export_details(
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        obj = context.object
+        obj = context.active_object
         if not obj:
             self.report({'ERROR'}, 'No active object.')
             return {'FINISHED'}
@@ -219,14 +219,14 @@ class XRAY_OT_pack_details_images(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if context.object:
-            if context.object.type == 'EMPTY':
+        if context.active_object:
+            if context.active_object.type == 'EMPTY':
                 return True
         return False
 
     @utils.ie.set_initial_state
     def execute(self, context):
-        slots = context.object.xray.detail.slots
+        slots = context.active_object.xray.detail.slots
         lighting = slots.ligthing
         meshes = slots.meshes
         images = bpy.data.images
