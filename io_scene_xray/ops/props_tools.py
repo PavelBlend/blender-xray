@@ -8,8 +8,8 @@ from .. import utils
 def search_objects(self, context):
     objects = []
     if self.change == 'ACTIVE':
-        if context.object:
-            objects.append(context.object)
+        if context.active_object:
+            objects.append(context.active_object)
         else:
             self.report({'INFO'}, 'No active object!')
             return {'FINISHED'}
@@ -97,7 +97,7 @@ def search_value(self, context, prop_name, prop_fun, text_fun):
             return {'FINISHED'}
 
     elif self.value == 'ACTIVE':
-        obj = context.object
+        obj = context.active_object
         if obj:
             value = prop_fun(obj)
         else:
@@ -185,7 +185,7 @@ class XRAY_OT_change_userdata(bpy.types.Operator):
             row.prop_search(self, 'obj', bpy.data, 'objects', text='')
 
         elif self.value == 'ACTIVE':
-            obj = context.object
+            obj = context.active_object
             if obj:
                 layout.label(text='Active Object: "{}"'.format(obj.name))
             else:
@@ -285,7 +285,7 @@ class XRAY_OT_change_lod_ref(bpy.types.Operator):
             row.prop_search(self, 'obj', bpy.data, 'objects', text='')
 
         elif self.value == 'ACTIVE':
-            obj = context.object
+            obj = context.active_object
             if obj:
                 layout.label(text='Active Object: "{}"'.format(obj.name))
             else:
@@ -397,7 +397,7 @@ class XRAY_OT_change_motion_refs(bpy.types.Operator):
             row.prop_search(self, 'obj', bpy.data, 'objects', text='')
 
         elif self.value == 'ACTIVE':
-            obj = context.object
+            obj = context.active_object
             if obj:
                 layout.label(text='Active Object: "{}"'.format(obj.name))
             else:

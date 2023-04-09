@@ -46,7 +46,7 @@ class XRAY_OT_verify_uv(bpy.types.Operator):
     @utils.set_cursor_state
     def execute(self, context):
         # set object mode
-        if context.object:
+        if context.active_object:
             bpy.ops.object.mode_set(mode='OBJECT')
         objects = self.get_objects()
         if not objects:
@@ -73,7 +73,7 @@ class XRAY_OT_verify_uv(bpy.types.Operator):
     def get_objects(self):
         objects = []
         if self.mode == 'ACTIVE_OBJECT':
-            active_obj = bpy.context.object
+            active_obj = bpy.context.active_object
             if active_obj:
                 objects.append(active_obj)
             else:

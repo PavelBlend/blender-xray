@@ -40,7 +40,7 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
     def draw(self, context):
         layout = self.layout
 
-        obj = context.object
+        obj = context.active_object
         active = False
         if not obj is None:
             if obj.type == 'ARMATURE':
@@ -248,10 +248,10 @@ class XRAY_PT_transforms(ui.base.XRayPanel):
 
     def draw(self, context):
         lay = self.layout
-        if not context.object:
+        if not context.active_object:
             lay.label(text='No active object!', icon='ERROR')
             return
-        data = context.object.xray
+        data = context.active_object.xray
         column = lay.column()
         column.prop(data, 'position')
         column.prop(data, 'orientation')
@@ -476,7 +476,7 @@ class XRAY_PT_rig(ui.base.XRayPanel):
                 icon='ERROR'
             )
             return
-        obj = context.object
+        obj = context.active_object
         bones = obj.pose.bones
         ik_fk_bones = []
         for bone in bones:

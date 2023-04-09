@@ -113,12 +113,12 @@ class XRAY_OT_export_level(ie.BaseOperator):
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        return self.export(context.object, context)
+        return self.export(context.active_object, context)
 
     def invoke(self, context, event):
-        level_object = context.object
+        level_object = context.active_object
 
-        if not context.object:
+        if not context.active_object:
             self.report(
                 {'ERROR'},
                 text.get_text(text.error.no_active_obj)

@@ -33,7 +33,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.ops.object.select_all(action='DESELECT')
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-    obj = bpy.context.object
+    obj = bpy.context.active_object
     arm = obj.data
     current_bone = arm.edit_bones[bone_name]
     ik_bones = {}
@@ -339,9 +339,9 @@ class XRAY_OT_create_ik(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if not context.object:
+        if not context.active_object:
             return False
-        if context.object.type != 'ARMATURE':
+        if context.active_object.type != 'ARMATURE':
             return False
         if context.mode != 'POSE':
             return False

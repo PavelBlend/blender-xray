@@ -100,7 +100,7 @@ def _v2ms(vector):
 def bone_matrix(bone):
     xsh = bone.xray.shape
     global pose_bone
-    pose_bone = bpy.context.object.pose.bones[bone.name]
+    pose_bone = bpy.context.active_object.pose.bones[bone.name]
     multiply = utils.version.get_multiply()
     mat = multiply(
         pose_bone.matrix,

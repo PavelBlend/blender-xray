@@ -102,7 +102,7 @@ class XRAY_OT_import_omf(
         for file in self.files:
             file_ext = os.path.splitext(file.name)[-1].lower()
             omf_path = os.path.join(self.directory, file.name)
-            import_context.bpy_arm_obj = context.object
+            import_context.bpy_arm_obj = context.active_object
             import_context.filepath = omf_path
             import_context.import_bone_parts = self.import_bone_parts
             import_context.import_motions = self.import_motions
@@ -127,7 +127,7 @@ class XRAY_OT_import_omf(
         self.import_motions = preferences.omf_import_motions
         self.import_bone_parts = preferences.import_bone_parts
         self.add_actions_to_motion_list = preferences.omf_add_actions_to_motion_list
-        obj = context.object
+        obj = context.active_object
         if not obj:
             self.report({'ERROR'}, 'No active object')
             return {'CANCELLED'}
@@ -249,7 +249,7 @@ class XRAY_OT_export_omf(ie.BaseOperator, bpy_extras.io_utils.ExportHelper):
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        active_object = context.object
+        active_object = context.active_object
         if self.obj:
             utils.version.set_active_object(self.obj)
         else:

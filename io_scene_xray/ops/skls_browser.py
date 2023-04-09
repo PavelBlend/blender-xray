@@ -79,7 +79,7 @@ def init_skls_browser(self, context, filepath):
             text.get_text(text.warn.browser_load).format(filepath)
         )
 
-    browser = context.object.xray.skls_browser
+    browser = context.active_object.xray.skls_browser
     browser.animations.clear()
     browser.available_actions.clear()
     skls = SklsFile(file_path=filepath)
@@ -241,7 +241,7 @@ def skls_animations_index_changed(self, context):
         # .skls file not loaded
         return
 
-    browser = context.object.xray.skls_browser
+    browser = context.active_object.xray.skls_browser
     if not browser.animations.keys():
         return
 

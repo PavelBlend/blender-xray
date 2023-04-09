@@ -11,7 +11,7 @@ from .. import text
 
 def get_object_transforms():
     # get blender transforms
-    obj = bpy.context.object
+    obj = bpy.context.active_object
     translation = obj.location
     if obj.rotation_mode == 'QUATERNION':
         rotation = obj.rotation_quaternion.to_euler('YXZ')

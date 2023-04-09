@@ -21,16 +21,16 @@ def get_object_materials(bpy_object, materials):
 def get_materials(context, mode):
     materials = set()
     if mode == 'ACTIVE_MATERIAL':
-        if not context.object:
+        if not context.active_object:
             return materials
-        if context.object.active_material:
-            materials.add(context.object.active_material)
+        if context.active_object.active_material:
+            materials.add(context.active_object.active_material)
         else:
             return materials
     elif mode == 'ACTIVE_OBJECT':
-        if not context.object:
+        if not context.active_object:
             return materials
-        get_object_materials(context.object, materials)
+        get_object_materials(context.active_object, materials)
     elif mode == 'SELECTED_OBJECTS':
         for bpy_object in context.selected_objects:
             get_object_materials(bpy_object, materials)

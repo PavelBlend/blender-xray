@@ -167,22 +167,29 @@ class XRAY_OT_export_details(
         )
         layout.prop(self, 'texture_name_from_image_path')
 
+    def search_details(self, obj, dets_objs):
+        if obj.type == 'EMPTY':
+            if obj.xray.is_details:
+                dets_objs.add(obj)
+        if obj.parent:
+            self.search_details(obj.parent, dets_objs)
+
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        objs = context.selected_objects
+        dets_objs = set()
+        for obj in context.selected_objects:
+            self.search_details(obj, dets_objs)
 
-        if not objs:
-            self.report({'ERROR'}, 'Cannot find selected object')
+        if not dets_objs:
+            self.report({'ERROR'}, 'Cannot find details object')
             return {'CANCELLED'}
 
-        if len(objs) > 1:
-            self.report({'ERROR'}, 'Too many selected objects found')
+        if len(dets_objs) > 1:
+            self.report({'ERROR'}, 'Too many details objects found')
             return {'CANCELLED'}
 
-        if objs[0].type != 'EMPTY':
-            self.report({'ERROR'}, 'The selected object is not empty')
-            return {'CANCELLED'}
+        deteils_object = list(dets_objs)[0]
 
         export_context = ExportDetailsContext()
         export_context.texname_from_path = self.texture_name_from_image_path
@@ -190,7 +197,7 @@ class XRAY_OT_export_details(
         export_context.unique_errors = set()
 
         try:
-            exp.export_file(objs[0], self.filepath, export_context)
+            exp.export_file(deteils_object, self.filepath, export_context)
         except log.AppError as err:
             export_context.errors.append(err)
 
@@ -200,7 +207,7 @@ class XRAY_OT_export_details(
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        obj = context.object
+        obj = context.active_object
         if not obj:
             self.report({'ERROR'}, 'No active object.')
             return {'FINISHED'}
@@ -219,14 +226,14 @@ class XRAY_OT_pack_details_images(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if context.object:
-            if context.object.type == 'EMPTY':
+        if context.active_object:
+            if context.active_object.type == 'EMPTY':
                 return True
         return False
 
     @utils.ie.set_initial_state
     def execute(self, context):
-        slots = context.object.xray.detail.slots
+        slots = context.active_object.xray.detail.slots
         lighting = slots.ligthing
         meshes = slots.meshes
         images = bpy.data.images

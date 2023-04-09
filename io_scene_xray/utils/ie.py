@@ -3,6 +3,7 @@ import os
 
 # blender modules
 import bpy
+import mathutils
 
 # addon modules
 from . import draw
@@ -43,7 +44,7 @@ def _set_selection_state(active_object, selected_objects):
 
 
 def set_mode(mode):
-    if bpy.context.object:
+    if bpy.context.active_object:
         bpy.ops.object.mode_set(mode=mode)
 
 
@@ -166,3 +167,97 @@ def add_file_ext(path, ext):
         path += ext
 
     return path
+
+
+def get_obj_scale_matrix(bpy_root, bpy_obj):
+    if bpy_root == bpy_obj:
+        matrix = mathutils.Matrix.Identity(4)
+        scale = bpy_root.scale
+    else:
+        loc = bpy_obj.matrix_world.to_translation()
+        loc_mat = mathutils.Matrix.Translation(loc)
+        rot_mat = bpy_obj.matrix_world.to_quaternion().to_matrix().to_4x4()
+        matrix = version.multiply(loc_mat, rot_mat)
+        scale = mathutils.Vector((0.0, 0.0, 0.0))
+        scale.x = bpy_root.scale.x * bpy_obj.scale.x
+        scale.y = bpy_root.scale.y * bpy_obj.scale.y
+        scale.z = bpy_root.scale.z * bpy_obj.scale.z
+    return matrix, scale
+
+
+def get_object_transform_matrix(bpy_obj):
+    loc_mat = mathutils.Matrix.Translation(bpy_obj.location)
+
+    if bpy_obj.rotation_mode == 'QUATERNION':
+        rot_mat = bpy_obj.rotation_quaternion.to_matrix().to_4x4()
+    elif bpy_obj.rotation_mode == 'AXIS_ANGLE':
+        rot_mat = mathutils.Matrix.Rotation(
+            bpy_obj.rotation_axis_angle[0],
+            4,
+            bpy_obj.rotation_axis_angle[1:]
+        )
+    else:
+        rot_mat = bpy_obj.rotation_euler.to_matrix().to_4x4()
+
+    return loc_mat, rot_mat
+
+
+def get_object_world_matrix(bpy_obj):
+    loc_mat, rot_mat = get_object_transform_matrix(bpy_obj)
+    scl = bpy_obj.scale
+    if bpy_obj.parent:
+        loc_par, rot_par, scl_par = get_object_world_matrix(bpy_obj.parent)
+        loc_mat = version.multiply(loc_par, loc_mat)
+        rot_mat = version.multiply(rot_par, rot_mat)
+        scl = mathutils.Vector()
+        scl.x = scl_par.x * bpy_obj.scale.x
+        scl.y = scl_par.y * bpy_obj.scale.y
+        scl.z = scl_par.z * bpy_obj.scale.z
+    return loc_mat, rot_mat, scl
+
+
+def format_scale(scale):
+    return '[{0:.3f}, {1:.3f}, {2:.3f}]'.format(*scale)
+
+
+def check_armature_scale(scale, bpy_root, bpy_arm_obj):
+    if not scale.x == scale.y == scale.z:
+        if bpy_root == bpy_arm_obj:
+            raise log.AppError(
+                text.error.arm_non_uniform_scale,
+                log.props(
+                    armature_scale=format_scale(bpy_arm_obj.scale),
+                    armature_object=bpy_arm_obj.name
+                )
+            )
+        else:
+            raise log.AppError(
+                text.error.arm_non_uniform_scale,
+                log.props(
+                    armature_object=bpy_arm_obj.name,
+                    armature_scale=format_scale(bpy_arm_obj.scale),
+                    root_object=bpy_root.name,
+                    root_scale=format_scale(bpy_root.scale)
+                )
+            )
+
+
+def get_arm_obj(root_obj, operator):
+    arm_objs = []
+
+    for obj in root_obj.children:
+        if obj.type == 'ARMATURE':
+            arm_objs.append(obj)
+
+    if root_obj.type == 'ARMATURE':
+        arm_objs.append(root_obj)
+
+    if len(arm_objs) > 1:
+        operator.report({'WARNING'}, 'Many armatures')
+        return
+
+    if not len(arm_objs):
+        operator.report({'WARNING'}, 'Has no armatures')
+        return
+
+    return arm_objs[0]

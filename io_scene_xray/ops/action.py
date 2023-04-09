@@ -11,7 +11,7 @@ SECTION_NAME = 'action_xray_settings'
 
 
 def get_xray_settings():
-    obj = bpy.context.object
+    obj = bpy.context.active_object
     if not obj:
         return
     anim_data = obj.animation_data
@@ -168,7 +168,7 @@ class XRAY_OT_change_action_bake_settings(bpy.types.Operator):
         actions = set()
         # active action
         if self.change_mode == 'ACTIVE_ACTION':
-            obj = context.object
+            obj = context.active_object
             if obj:
                 anim_data = obj.animation_data
                 if anim_data:
@@ -177,7 +177,7 @@ class XRAY_OT_change_action_bake_settings(bpy.types.Operator):
                         actions.add(action)
         # active object
         elif self.change_mode == 'ACTIVE_OBJECT':
-            obj = context.object
+            obj = context.active_object
             if obj:
                 for motion in obj.xray.motions_collection:
                     action = bpy.data.actions.get(motion.name)
@@ -377,7 +377,7 @@ class XRAY_OT_rename_actions(bpy.types.Operator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
         if not obj and self.data_mode in ('ACTIVE_MOTION', 'ACTIVE_OBJECT'):
             self.report({'WARNING'}, 'No active object!')
             return {'FINISHED'}

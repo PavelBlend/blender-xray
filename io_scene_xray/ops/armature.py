@@ -27,9 +27,9 @@ class XRAY_OT_link_bones(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if not context.object:
+        if not context.active_object:
             return False
-        if context.object.type == 'ARMATURE':
+        if context.active_object.type == 'ARMATURE':
             return True
 
     def draw(self, context):
@@ -37,7 +37,7 @@ class XRAY_OT_link_bones(bpy.types.Operator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        arm_obj = context.object
+        arm_obj = context.active_object
         link_arm_obj = bpy.data.objects.get(self.armature)
         if arm_obj.type != 'ARMATURE':
             return {'FINISHED'}
@@ -74,14 +74,14 @@ class XRAY_OT_unlink_bones(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if not context.object:
+        if not context.active_object:
             return False
-        if context.object.type == 'ARMATURE':
+        if context.active_object.type == 'ARMATURE':
             return True
 
     @utils.set_cursor_state
     def execute(self, context):
-        arm_obj = context.object
+        arm_obj = context.active_object
         for bone in arm_obj.data.bones:
             pose_bone = arm_obj.pose.bones[bone.name]
             constraint = pose_bone.constraints.get(COPY_TRANSFORMS_NAME)

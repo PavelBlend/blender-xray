@@ -1,5 +1,6 @@
 # blender modules
 import bpy
+import mathutils
 
 # addon modules
 from . import const
@@ -25,7 +26,8 @@ def _export_motion_data(
         action,
         bones_anims,
         armature,
-        root_bone_names
+        root_bone_names,
+        root_obj
     ):
 
     xray = action.xray
@@ -61,6 +63,9 @@ def _export_motion_data(
         epsilon_rot = utilites.EPSILON
 
     epsilons = [epsilon_loc, epsilon_rot]
+    _, scale = utils.ie.get_obj_scale_matrix(root_obj, armature)
+    if scale == mathutils.Vector((1.0, 1.0, 1.0)):
+        scale = None
 
     # write motions
     for bone, bone_anim in bones_anims:
@@ -73,16 +78,32 @@ def _export_motion_data(
         for curve_id in range(CURVE_COUNT):
             curves.append([])
 
-        for matrix in bone_anim:
-            translate = matrix.to_translation()
-            rotate = matrix.to_euler('ZXY')
+        if scale:
+            for matrix in bone_anim:
+                translate = matrix.to_translation()
+                translate.x *= scale.x
+                translate.y *= scale.y
+                translate.z *= scale.z
+                rotate = matrix.to_euler('ZXY')
 
-            curves[0].append(+translate[0])
-            curves[1].append(+translate[1])
-            curves[2].append(-translate[2])
-            curves[3].append(-rotate[1])
-            curves[4].append(-rotate[0])
-            curves[5].append(+rotate[2])
+                curves[0].append(+translate[0])
+                curves[1].append(+translate[1])
+                curves[2].append(-translate[2])
+                curves[3].append(-rotate[1])
+                curves[4].append(-rotate[0])
+                curves[5].append(+rotate[2])
+
+        else:
+            for matrix in bone_anim:
+                translate = matrix.to_translation()
+                rotate = matrix.to_euler('ZXY')
+
+                curves[0].append(+translate[0])
+                curves[1].append(+translate[1])
+                curves[2].append(-translate[2])
+                curves[3].append(-rotate[1])
+                curves[4].append(-rotate[0])
+                curves[5].append(+rotate[2])
 
         if bone.name in root_bone_names:
             time_end = (frame_end - frame_start) / fps
@@ -178,7 +199,7 @@ def _prepare_bones(armature):
 
 
 @log.with_context('motion')
-def export_motion(writer, action, armature):
+def export_motion(writer, action, armature, root_obj):
     log.update(action=action.name)
 
     dep_obj = None
@@ -201,14 +222,15 @@ def export_motion(writer, action, armature):
         action,
         bones_anims,
         armature,
-        root_bone_names
+        root_bone_names,
+        root_obj
     )
 
     if dep_obj:
         dep_obj.animation_data.action = old_action
 
 
-def export_motions(writer, actions, bpy_armature):
+def export_motions(writer, actions, bpy_armature, root_obj):
     (
         current_frame,
         mode,
@@ -220,7 +242,7 @@ def export_motions(writer, actions, bpy_armature):
     motions_count = len(actions)
     writer.putf('<I', motions_count)
     for action in actions:
-        export_motion(writer, action, bpy_armature)
+        export_motion(writer, action, bpy_armature, root_obj)
 
     utils.action.set_initial_state(
         bpy_armature,

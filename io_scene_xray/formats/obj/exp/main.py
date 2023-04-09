@@ -172,6 +172,8 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
     uv_maps_names = {}
     merged_obj = None
 
+    loc_space, rot_space, scl_space = utils.ie.get_object_world_matrix(bpy_root)
+
     def write_mesh(bpy_obj):
         meshes.add(bpy_obj)
         mesh_writer = rw.write.ChunkedWriter()
@@ -179,7 +181,10 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             bpy_obj,
             bpy_root,
             mesh_writer,
-            context
+            context,
+            loc_space,
+            rot_space,
+            scl_space
         )
         uv_layers = bpy_obj.data.uv_layers
         if len(uv_layers) > 1:
@@ -258,23 +263,34 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
     if bpy_arm_obj:
         _check_bone_names(bpy_arm_obj)
         bonemap = {}
+
+        arm_mat, scale = utils.ie.get_obj_scale_matrix(bpy_root, bpy_arm_obj)
+
+        utils.ie.check_armature_scale(scale, bpy_root, bpy_arm_obj)
+
         edit_mode_matrices = {}
         with utils.version.using_active_object(bpy_arm_obj), utils.version.using_mode('EDIT'):
-            for bone_ in bpy_arm_obj.data.edit_bones:
-                edit_mode_matrices[bone_.name] = bone_.matrix
-        for bone_ in bpy_arm_obj.data.bones:
-            if not utils.bone.is_exportable_bone(bone_):
+            for edit_bone in bpy_arm_obj.data.edit_bones:
+                bone_mat = utils.version.multiply(arm_mat, edit_bone.matrix)
+                bone_mat[0][3] *= scale.x
+                bone_mat[1][3] *= scale.y
+                bone_mat[2][3] *= scale.z
+                edit_mode_matrices[edit_bone.name] = bone_mat
+
+        for bpy_bone in bpy_arm_obj.data.bones:
+            if not utils.bone.is_exportable_bone(bpy_bone):
                 continue
-            real_parent = utils.bone.find_bone_exportable_parent(bone_)
+            real_parent = utils.bone.find_bone_exportable_parent(bpy_bone)
             if not real_parent:
-                root_bones.append(bone_.name)
+                root_bones.append(bpy_bone.name)
             bone.export_bone(
                 bpy_arm_obj,
-                bone_,
+                bpy_bone,
                 bone_writers,
                 bonemap,
                 edit_mode_matrices,
-                context.multiply
+                context.multiply,
+                scale
             )
 
         invalid_bones = []
@@ -384,11 +400,11 @@ def export_lod_ref(chunked_writer, xray):
         chunked_writer.put(fmt.Chunks.Object.LOD_REF, packed_writer)
 
 
-def export_motions(chunked_writer, some_arm, context, bpy_obj):
+def export_motions(chunked_writer, some_arm, context, root_obj):
     if some_arm and context.export_motions:
         motions_names = [
             motion.name
-            for motion in bpy_obj.xray.motions_collection
+            for motion in root_obj.xray.motions_collection
         ]
         motions_names = set(motions_names)
         motions_names = list(motions_names)
@@ -402,12 +418,12 @@ def export_motions(chunked_writer, some_arm, context, bpy_obj):
                 log.warn(
                     text.warn.object_no_action,
                     action=act_name,
-                    object=bpy_obj.name
+                    object=root_obj.name
                 )
         if not acts:
             return
         writer = rw.write.PackedWriter()
-        motions.exp.export_motions(writer, acts, some_arm)
+        motions.exp.export_motions(writer, acts, some_arm, root_obj)
         if writer.data:
             chunked_writer.put(fmt.Chunks.Object.MOTIONS, writer)
 
@@ -476,9 +492,10 @@ def export_motion_refs(chunked_writer, xray, context):
 def export_transform(chunked_writer, bpy_root):
     root_matrix = bpy_root.matrix_world
     if root_matrix != mathutils.Matrix.Identity(4):
+        loc_mat, rot_mat = utils.ie.get_object_transform_matrix(bpy_root)
         writer = rw.write.PackedWriter()
-        writer.putv3f(root_matrix.to_translation())
-        writer.putv3f(root_matrix.to_euler('YXZ'))
+        writer.putv3f(loc_mat.to_translation())
+        writer.putv3f(rot_mat.to_euler('YXZ'))
         chunked_writer.put(fmt.Chunks.Object.TRANSFORM, writer)
 
 
@@ -506,7 +523,7 @@ def export_main(bpy_obj, chunked_writer, context):
     )
     export_surfaces(chunked_writer, context, materials, uv_map_names)
     export_bones(chunked_writer, bone_writers)
-    export_motions(chunked_writer, some_arm, context, bpy_obj)
+    export_motions(chunked_writer, some_arm, context, bpy_root)
     export_motion_refs(chunked_writer, xray, context)
     export_partitions(chunked_writer, some_arm)
     export_transform(chunked_writer, bpy_root)

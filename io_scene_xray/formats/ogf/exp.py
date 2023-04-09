@@ -59,25 +59,45 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
 
     bbox = None
     spheres = []
+    loc_space, rot_space, scl_space = utils.ie.get_object_world_matrix(bpy_obj)
     for bpy_mesh in meshes:
+        mat_world = mathutils.Matrix.Identity(4)
         if cache:
             if cache.bounds.get(bpy_mesh.name, None):
                 bbx, center, radius = cache.bounds[bpy_mesh.name]
             else:
                 if apply_transforms:
-                    mat_world = bpy_mesh.matrix_world
+                    mesh = utils.mesh.convert_object_to_space_bmesh(
+                        bpy_mesh,
+                        mathutils.Matrix.Identity(4),
+                        mathutils.Matrix.Identity(4),
+                        mathutils.Vector((1.0, 1.0, 1.0))
+                    )
                 else:
-                    mat_world = mathutils.Matrix()
-                mesh = utils.mesh.convert_object_to_space_bmesh(bpy_mesh, mat_world)
+                    mesh = utils.mesh.convert_object_to_space_bmesh(
+                        bpy_mesh,
+                        loc_space,
+                        rot_space,
+                        scl_space
+                    )
                 bbx = utils.mesh.calculate_mesh_bbox(mesh.verts, mat=mat_world)
                 center, radius = calculate_mesh_bsphere(bbx, mesh.verts, mat=mat_world)
                 cache.bounds[bpy_mesh.name] = bbx, center, radius
         else:
             if apply_transforms:
-                mat_world = bpy_mesh.matrix_world
+                mesh = utils.mesh.convert_object_to_space_bmesh(
+                    bpy_mesh,
+                    mathutils.Matrix.Identity(4),
+                    mathutils.Matrix.Identity(4),
+                    mathutils.Vector((1.0, 1.0, 1.0))
+                )
             else:
-                mat_world = mathutils.Matrix()
-            mesh = utils.mesh.convert_object_to_space_bmesh(bpy_mesh, mat_world)
+                mesh = utils.mesh.convert_object_to_space_bmesh(
+                    bpy_mesh,
+                    loc_space,
+                    rot_space,
+                    scl_space
+                )
             bbx = utils.mesh.calculate_mesh_bbox(mesh.verts, mat=mat_world)
             center, radius = calculate_mesh_bsphere(bbx, mesh.verts, mat=mat_world)
 
@@ -158,11 +178,22 @@ def write_verts_2l(vertices_writer, vertices, norm_coef=1):
         vertices_writer.putf('<2f', *vertex[5])    # uv
 
 
-def _export_child(bpy_obj, chunked_writer, context, vertex_groups_map):
+def _export_child(
+        root_obj,
+        bpy_obj,
+        chunked_writer,
+        context,
+        vertex_groups_map
+    ):
+
+    loc_space, rot_space, scl_space = utils.ie.get_object_world_matrix(root_obj)
     mesh = utils.mesh.convert_object_to_space_bmesh(
         bpy_obj,
-        mathutils.Matrix.Identity(4)
+        loc_space,
+        rot_space,
+        scl_space
     )
+
     bbox = utils.mesh.calculate_mesh_bbox(mesh.verts)
     bsphere = calculate_mesh_bsphere(bbox, mesh.verts)
     bmesh.ops.triangulate(mesh, faces=mesh.faces)
@@ -358,9 +389,10 @@ def get_ode_ik_limits(value_1, value_2):
     return min_value, max_value
 
 
-def _export(bpy_obj, cwriter, context):
-    bbox, bsph = calculate_bbox_and_bsphere(bpy_obj)
-    xray = bpy_obj.xray
+def _export(root_obj, cwriter, context):
+    bbox, bsph = calculate_bbox_and_bsphere(root_obj)
+    xray = root_obj.xray
+
     if len(xray.motionrefs_collection):
         model_type = fmt.ModelType_v4.SKELETON_ANIM
     elif len(xray.motions_collection) and context.export_motions:
@@ -372,9 +404,11 @@ def _export(bpy_obj, cwriter, context):
     header_writer.putf('<B', fmt.FORMAT_VERSION_4)  # ogf version
     header_writer.putf('<B', model_type)
     header_writer.putf('<H', 0)  # shader id
+
     # bbox
     header_writer.putv3f(bbox[0])
     header_writer.putv3f(bbox[1])
+
     # bsphere
     header_writer.putv3f(bsph[0])
     header_writer.putf('<f', bsph[1])
@@ -383,7 +417,7 @@ def _export(bpy_obj, cwriter, context):
     owner, ctime, moder, mtime = utils.get_revision_data(xray.revision)
     currtime = int(time.time())
     revision_writer = rw.write.PackedWriter()
-    revision_writer.puts(bpy_obj.name)    # source file
+    revision_writer.puts(root_obj.name)    # source file
     revision_writer.puts('blender')    # build name
     revision_writer.putf('<I', currtime)    # build time
     revision_writer.puts(owner)
@@ -393,6 +427,7 @@ def _export(bpy_obj, cwriter, context):
     cwriter.put(fmt.Chunks_v4.S_DESC, revision_writer)
 
     meshes = []
+    armatures = []
     bones = []
     bones_map = {}
 
@@ -460,6 +495,7 @@ def _export(bpy_obj, cwriter, context):
             for child_object in child_objects:
                 mesh_writer = rw.write.ChunkedWriter()
                 error = _export_child(
+                    root_obj,
                     child_object,
                     mesh_writer,
                     context,
@@ -473,6 +509,7 @@ def _export(bpy_obj, cwriter, context):
                 if error:
                     raise error
         elif bpy_obj.type == 'ARMATURE':
+            armatures.append(bpy_obj)
             for bone in bpy_obj.data.bones:
                 if not utils.bone.is_exportable_bone(bone):
                     continue
@@ -480,7 +517,18 @@ def _export(bpy_obj, cwriter, context):
         for child in bpy_obj.children:
             scan_r(child)
 
-    scan_r(bpy_obj)
+    scan_r(root_obj)
+
+    if len(armatures) > 1:
+        raise log.AppError(
+            text.error.object_many_arms,
+            log.props(
+                root_object=root_obj.name,
+                armatures=[arm.name for arm in armatures]
+            )
+        )
+
+    arm_obj = armatures[0]
 
     children_chunked_writer = rw.write.ChunkedWriter()
     mesh_index = 0
@@ -489,90 +537,146 @@ def _export(bpy_obj, cwriter, context):
         mesh_index += 1
     cwriter.put(fmt.Chunks_v4.CHILDREN, children_chunked_writer)
 
+    _, scale = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
+
+    utils.ie.check_armature_scale(scale, root_obj, arm_obj)
+
     pwriter = rw.write.PackedWriter()
     pwriter.putf('<I', len(bones))
     for bone, _ in bones:
         b_parent = utils.bone.find_bone_exportable_parent(bone)
         pwriter.puts(bone.name)
         pwriter.puts(b_parent.name if b_parent else '')
-        xray = bone.xray
-        pwriter.putf('<9f', *xray.shape.box_rot)
-        pwriter.putf('<3f', *xray.shape.box_trn)
-        pwriter.putf('<3f', *xray.shape.box_hsz)
+        bxray = bone.xray
+        pwriter.putf('<9f', *bxray.shape.box_rot)
+        box_trn = list(bxray.shape.box_trn)
+        box_trn[0] *= scale.x
+        box_trn[1] *= scale.y
+        box_trn[2] *= scale.z
+        pwriter.putf('<3f', *box_trn)
+        box_hsz = list(bxray.shape.box_hsz)
+        box_hsz[0] *= scale.x
+        box_hsz[1] *= scale.y
+        box_hsz[2] *= scale.z
+        pwriter.putf('<3f', *box_hsz)
     cwriter.put(fmt.Chunks_v4.S_BONE_NAMES, pwriter)
 
     pwriter = rw.write.PackedWriter()
+
     for bone, obj in bones:
-        xray = bone.xray
+        bxray = bone.xray
+
         pwriter.putf('<I', 0x1)  # version
-        pwriter.puts(xray.gamemtl)
-        pwriter.putf('<H', int(xray.shape.type))
-        pwriter.putf('<H', xray.shape.flags)
-        pwriter.putf('<9f', *xray.shape.box_rot)
-        pwriter.putf('<3f', *xray.shape.box_trn)
-        pwriter.putf('<3f', *xray.shape.box_hsz)
-        pwriter.putf('<3f', *xray.shape.sph_pos)
-        pwriter.putf('<f', xray.shape.sph_rad)
-        pwriter.putf('<3f', *xray.shape.cyl_pos)
-        pwriter.putf('<3f', *xray.shape.cyl_dir)
-        pwriter.putf('<f', xray.shape.cyl_hgh)
-        pwriter.putf('<f', xray.shape.cyl_rad)
-        pwriter.putf('<I', int(xray.ikjoint.type))
+        pwriter.puts(bxray.gamemtl)
+        pwriter.putf('<H', int(bxray.shape.type))
+        pwriter.putf('<H', bxray.shape.flags)
+
+        # box shape rotation
+        pwriter.putf('<9f', *bxray.shape.box_rot)
+
+        # box shape position
+        box_trn = list(bxray.shape.box_trn)
+        box_trn[0] *= scale.x
+        box_trn[1] *= scale.y
+        box_trn[2] *= scale.z
+        pwriter.putf('<3f', *box_trn)
+
+        # box shape half size
+        box_hsz = list(bxray.shape.box_hsz)
+        box_hsz[0] *= scale.x
+        box_hsz[1] *= scale.y
+        box_hsz[2] *= scale.z
+        pwriter.putf('<3f', *box_hsz)
+
+        # sphere shape position
+        sph_pos = list(bxray.shape.sph_pos)
+        sph_pos[0] *= scale.x
+        sph_pos[1] *= scale.y
+        sph_pos[2] *= scale.z
+        pwriter.putf('<3f', *sph_pos)
+
+        # sphere shape radius
+        pwriter.putf('<f', bxray.shape.sph_rad * scale.x)
+
+        # cylinder shape position
+        cyl_pos = list(bxray.shape.cyl_pos)
+        cyl_pos[0] *= scale.x
+        cyl_pos[1] *= scale.y
+        cyl_pos[2] *= scale.z
+        pwriter.putf('<3f', *cyl_pos)
+
+        # cylinder shape direction
+        pwriter.putf('<3f', *bxray.shape.cyl_dir)
+
+        # cylinder shape height
+        pwriter.putf('<f', bxray.shape.cyl_hgh * scale.x)
+
+        # cylinder shape radius
+        pwriter.putf('<f', bxray.shape.cyl_rad * scale.x)
+
+        pwriter.putf('<I', int(bxray.ikjoint.type))
 
         # x axis
         x_min, x_max = get_ode_ik_limits(
-            xray.ikjoint.lim_x_min,
-            xray.ikjoint.lim_x_max
+            bxray.ikjoint.lim_x_min,
+            bxray.ikjoint.lim_x_max
         )
         pwriter.putf('<2f', x_min, x_max)
-        pwriter.putf('<2f', xray.ikjoint.lim_x_spr, xray.ikjoint.lim_x_dmp)
+        pwriter.putf('<2f', bxray.ikjoint.lim_x_spr, bxray.ikjoint.lim_x_dmp)
 
         # y axis
         y_min, y_max = get_ode_ik_limits(
-            xray.ikjoint.lim_y_min,
-            xray.ikjoint.lim_y_max
+            bxray.ikjoint.lim_y_min,
+            bxray.ikjoint.lim_y_max
         )
         pwriter.putf('<2f', y_min, y_max)
-        pwriter.putf('<2f', xray.ikjoint.lim_y_spr, xray.ikjoint.lim_y_dmp)
+        pwriter.putf('<2f', bxray.ikjoint.lim_y_spr, bxray.ikjoint.lim_y_dmp)
 
         # z axis
         z_min, z_max = get_ode_ik_limits(
-            xray.ikjoint.lim_z_min,
-            xray.ikjoint.lim_z_max
+            bxray.ikjoint.lim_z_min,
+            bxray.ikjoint.lim_z_max
         )
         pwriter.putf('<2f', z_min, z_max)
-        pwriter.putf('<2f', xray.ikjoint.lim_z_spr, xray.ikjoint.lim_z_dmp)
+        pwriter.putf('<2f', bxray.ikjoint.lim_z_spr, bxray.ikjoint.lim_z_dmp)
 
-        pwriter.putf('<2f', xray.ikjoint.spring, xray.ikjoint.damping)
-        pwriter.putf('<I', xray.ikflags)
-        pwriter.putf('<2f', xray.breakf.force, xray.breakf.torque)
-        pwriter.putf('<f', xray.friction)
-        world_matrix = obj.matrix_world
+        pwriter.putf('<2f', bxray.ikjoint.spring, bxray.ikjoint.damping)
+        pwriter.putf('<I', bxray.ikflags)
+        pwriter.putf('<2f', bxray.breakf.force, bxray.breakf.torque)
+        pwriter.putf('<f', bxray.friction)
+
         mat = multiply(
-            world_matrix,
             bone.matrix_local,
             motions.const.MATRIX_BONE_INVERTED
         )
         b_parent = utils.bone.find_bone_exportable_parent(bone)
         if b_parent:
             mat = multiply(multiply(
-                world_matrix,
                 b_parent.matrix_local,
                 motions.const.MATRIX_BONE_INVERTED
             ).inverted(), mat)
         euler = mat.to_euler('YXZ')
         pwriter.putf('<3f', -euler.x, -euler.z, -euler.y)
-        pwriter.putv3f(mat.to_translation())
-        pwriter.putf('<f', xray.mass.value)
-        pwriter.putv3f(xray.mass.center)
+        trn = mat.to_translation()
+        trn.x *= scale.x
+        trn.y *= scale.y
+        trn.z *= scale.z
+        pwriter.putv3f(trn)
+        pwriter.putf('<f', bxray.mass.value)
+        cmass = list(bxray.mass.center)
+        cmass[0] *= scale.x
+        cmass[1] *= scale.y
+        cmass[2] *= scale.z
+        pwriter.putv3f(cmass)
+
     cwriter.put(fmt.Chunks_v4.S_IKDATA_2, pwriter)
 
     packed_writer = rw.write.PackedWriter()
-    packed_writer.puts(bpy_obj.xray.userdata)
+    packed_writer.puts(xray.userdata)
     cwriter.put(fmt.Chunks_v4.S_USERDATA, packed_writer)
-    if len(bpy_obj.xray.motionrefs_collection):
+    if len(xray.motionrefs_collection):
         refs = []
-        for ref in bpy_obj.xray.motionrefs_collection:
+        for ref in xray.motionrefs_collection:
             refs.append(ref.name)
         motion_refs_writer = rw.write.PackedWriter()
         if context.fmt_ver == 'soc':
@@ -588,9 +692,9 @@ def _export(bpy_obj, cwriter, context):
         cwriter.put(chunk_id, motion_refs_writer)
 
     # export motions
-    if context.export_motions and bpy_obj.xray.motions_collection:
+    if context.export_motions and xray.motions_collection:
         motion_context = omf.ops.ExportOmfContext()
-        motion_context.bpy_arm_obj = bpy_obj
+        motion_context.bpy_arm_obj = arm_obj
         motion_context.export_mode = 'OVERWRITE'
         motion_context.export_motions = True
         motion_context.export_bone_parts = True
