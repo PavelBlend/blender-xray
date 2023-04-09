@@ -52,7 +52,7 @@ def _export_partitions(context, bpy_obj):
 
 
 @log.with_context(name='bone-properties')
-def _export_bone_data(bpy_obj, bone):
+def _export_bone_data(bpy_obj, bone, scale):
     log.update(bone=bone.name)
     chunked_writer = rw.write.ChunkedWriter()
     chunks = obj.fmt.Chunks.Bone
@@ -76,19 +76,39 @@ def _export_bone_data(bpy_obj, bone):
     packed_writer.putf('<H', shape.flags)
 
     # box shape
+    box_trn = list(shape.box_trn)
+    box_trn[0] *= scale.x
+    box_trn[1] *= scale.y
+    box_trn[2] *= scale.z
+
+    box_hsz = list(shape.box_hsz)
+    box_hsz[0] *= scale.x
+    box_hsz[1] *= scale.y
+    box_hsz[2] *= scale.z
+
     packed_writer.putf('<9f', *shape.box_rot)
-    packed_writer.putf('<3f', *shape.box_trn)
-    packed_writer.putf('<3f', *shape.box_hsz)
+    packed_writer.putf('<3f', *box_trn)
+    packed_writer.putf('<3f', *box_hsz)
 
     # sphere shape
-    packed_writer.putf('<3f', *shape.sph_pos)
-    packed_writer.putf('<f', shape.sph_rad)
+    sph_pos = list(shape.sph_pos)
+    sph_pos[0] *= scale.x
+    sph_pos[1] *= scale.y
+    sph_pos[2] *= scale.z
+
+    packed_writer.putf('<3f', *sph_pos)
+    packed_writer.putf('<f', shape.sph_rad * scale.x)
 
     # cylinder shape
-    packed_writer.putf('<3f', *shape.cyl_pos)
+    cyl_pos = list(shape.cyl_pos)
+    cyl_pos[0] *= scale.x
+    cyl_pos[1] *= scale.y
+    cyl_pos[2] *= scale.z
+
+    packed_writer.putf('<3f', *cyl_pos)
     packed_writer.putf('<3f', *shape.cyl_dir)
-    packed_writer.putf('<f', shape.cyl_hgh)
-    packed_writer.putf('<f', shape.cyl_rad)
+    packed_writer.putf('<f', shape.cyl_hgh * scale.x)
+    packed_writer.putf('<f', shape.cyl_rad * scale.x)
 
     chunked_writer.put(chunks.SHAPE, packed_writer)
 
@@ -149,9 +169,14 @@ def _export_bone_data(bpy_obj, bone):
     chunked_writer.put(chunks.FRICTION, packed_writer)
 
     # mass params
+    cmass = list(xray.mass.center)
+    cmass[0] *= scale.x
+    cmass[1] *= scale.y
+    cmass[2] *= scale.z
+
     packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<f', xray.mass.value)
-    packed_writer.putv3f(xray.mass.center)
+    packed_writer.putv3f(cmass)
     chunked_writer.put(chunks.MASS_PARAMS, packed_writer)
 
     return chunked_writer
@@ -159,22 +184,26 @@ def _export_bone_data(bpy_obj, bone):
 
 @log.with_context(name='export-bones')
 def export_file(context):
-    bpy_obj = context.bpy_arm_obj
-    log.update(object=bpy_obj.name)
+    arm_obj = context.bpy_arm_obj
+    log.update(object=arm_obj.name)
     chunked_writer = rw.write.ChunkedWriter()
+
+    # get armature scale
+    root_obj = utils.find_root(arm_obj)
+    _, scale = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
 
     # export bones data
     bone_index = 0
     if context.export_bone_properties:
-        for bone in bpy_obj.data.bones:
+        for bone in arm_obj.data.bones:
             if not utils.bone.is_exportable_bone(bone):
                 continue
-            bone_chunked_writer = _export_bone_data(bpy_obj, bone)
+            bone_chunked_writer = _export_bone_data(arm_obj, bone, scale)
             chunked_writer.put(bone_index, bone_chunked_writer)
             bone_index += 1
 
     # export partitions
-    partitions_packed_writer = _export_partitions(context, bpy_obj)
+    partitions_packed_writer = _export_partitions(context, arm_obj)
     chunked_writer.put(
         obj.fmt.Chunks.Object.PARTITIONS1,
         partitions_packed_writer
