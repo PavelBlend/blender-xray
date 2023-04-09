@@ -13,7 +13,8 @@ def export_bone(
         writers,
         bonemap,
         edit_mode_matrices,
-        multiply
+        multiply,
+        scale
     ):
 
     # export parent bone
@@ -26,7 +27,8 @@ def export_bone(
                 writers,
                 bonemap,
                 edit_mode_matrices,
-                multiply
+                multiply,
+                scale
             )
 
     xray = bpy_bone.xray
@@ -95,17 +97,45 @@ def export_bone(
 
     # shape chunk
     packed_writer = rw.write.PackedWriter()
+
     packed_writer.putf('<H', int(xray.shape.type))
     packed_writer.putf('<H', xray.shape.flags)
+
+    # box shape
+    box_trn = list(xray.shape.box_trn)
+    box_trn[0] *= scale.x
+    box_trn[1] *= scale.y
+    box_trn[2] *= scale.z
+
+    box_hsz = list(xray.shape.box_hsz)
+    box_hsz[0] *= scale.x
+    box_hsz[1] *= scale.y
+    box_hsz[2] *= scale.z
+
     packed_writer.putf('<9f', *xray.shape.box_rot)
-    packed_writer.putf('<3f', *xray.shape.box_trn)
-    packed_writer.putf('<3f', *xray.shape.box_hsz)
-    packed_writer.putf('<3f', *xray.shape.sph_pos)
-    packed_writer.putf('<f', xray.shape.sph_rad)
-    packed_writer.putf('<3f', *xray.shape.cyl_pos)
+    packed_writer.putf('<3f', *box_trn)
+    packed_writer.putf('<3f', *box_hsz)
+
+    # sphere shape
+    sph_pos = list(xray.shape.sph_pos)
+    sph_pos[0] *= scale.x
+    sph_pos[1] *= scale.y
+    sph_pos[2] *= scale.z
+
+    packed_writer.putf('<3f', *sph_pos)
+    packed_writer.putf('<f', xray.shape.sph_rad * scale.x)
+
+    # cylinder shape
+    cyl_pos = list(xray.shape.cyl_pos)
+    cyl_pos[0] *= scale.x
+    cyl_pos[1] *= scale.y
+    cyl_pos[2] *= scale.z
+
+    packed_writer.putf('<3f', *cyl_pos)
     packed_writer.putf('<3f', *xray.shape.cyl_dir)
-    packed_writer.putf('<f', xray.shape.cyl_hgh)
-    packed_writer.putf('<f', xray.shape.cyl_rad)
+    packed_writer.putf('<f', xray.shape.cyl_hgh * scale.x)
+    packed_writer.putf('<f', xray.shape.cyl_rad * scale.x)
+
     writer.put(fmt.Chunks.Bone.SHAPE, packed_writer)
 
     # ik flags chunk
@@ -158,7 +188,12 @@ def export_bone(
 
     # mass chunk
     if xray.mass.value:
+        cmass = list(xray.mass.center)
+        cmass[0] *= scale.x
+        cmass[1] *= scale.y
+        cmass[2] *= scale.z
+
         packed_writer = rw.write.PackedWriter()
         packed_writer.putf('<f', xray.mass.value)
-        packed_writer.putv3f(xray.mass.center)
+        packed_writer.putv3f(cmass)
         writer.put(fmt.Chunks.Bone.MASS_PARAMS, packed_writer)

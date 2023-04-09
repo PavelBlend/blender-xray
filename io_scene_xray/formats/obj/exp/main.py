@@ -289,7 +289,8 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
                 bone_writers,
                 bonemap,
                 edit_mode_matrices,
-                context.multiply
+                context.multiply,
+                scale
             )
 
         invalid_bones = []
