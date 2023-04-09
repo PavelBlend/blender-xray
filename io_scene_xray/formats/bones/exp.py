@@ -10,9 +10,11 @@ def _export_partitions(context, bpy_obj):
     log.update(object=bpy_obj.name)
     packed_writer = rw.write.PackedWriter()
     groups_count = len(bpy_obj.pose.bone_groups)
+
     if not groups_count or not context.export_bone_parts:
         packed_writer.putf('<I', 0)
         return packed_writer
+
     exportable_bones = tuple(
         bone
         for bone in bpy_obj.pose.bones
@@ -34,6 +36,7 @@ def _export_partitions(context, bpy_obj):
         for group in all_groups
             if group[1]
     )
+
     if non_empty_groups:
         packed_writer.putf('<I', len(non_empty_groups))
         for group_name, bones_names in non_empty_groups:
@@ -41,8 +44,10 @@ def _export_partitions(context, bpy_obj):
             packed_writer.putf('<I', len(bones_names))
             for bone_name in bones_names:
                 packed_writer.puts(bone_name)
+
     else:
         packed_writer.putf('<I', 0)
+
     return packed_writer
 
 
@@ -53,34 +58,46 @@ def _export_bone_data(bpy_obj, bone):
     chunks = obj.fmt.Chunks.Bone
     xray = bone.xray
     pose_bone = bpy_obj.pose.bones[bone.name]
+
     # name
     packed_writer = rw.write.PackedWriter()
     packed_writer.puts(bone.name)
     chunked_writer.put(chunks.DEF, packed_writer)
+
     # material
     packed_writer = rw.write.PackedWriter()
     packed_writer.puts(xray.gamemtl)
     chunked_writer.put(chunks.MATERIAL, packed_writer)
+
     # shape
     shape = xray.shape
     packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<H', int(shape.type))
     packed_writer.putf('<H', shape.flags)
+
+    # box shape
     packed_writer.putf('<9f', *shape.box_rot)
     packed_writer.putf('<3f', *shape.box_trn)
     packed_writer.putf('<3f', *shape.box_hsz)
+
+    # sphere shape
     packed_writer.putf('<3f', *shape.sph_pos)
     packed_writer.putf('<f', shape.sph_rad)
+
+    # cylinder shape
     packed_writer.putf('<3f', *shape.cyl_pos)
     packed_writer.putf('<3f', *shape.cyl_dir)
     packed_writer.putf('<f', shape.cyl_hgh)
     packed_writer.putf('<f', shape.cyl_rad)
+
     chunked_writer.put(chunks.SHAPE, packed_writer)
+
     # ik flags
     if xray.ikflags:
         packed_writer = rw.write.PackedWriter()
         packed_writer.putf('<I', xray.ikflags)
         chunked_writer.put(chunks.IK_FLAGS, packed_writer)
+
     # ik joint
     ik = xray.ikjoint
     if bpy_obj.data.xray.joint_limits_type == 'XRAY':
@@ -114,24 +131,29 @@ def _export_bone_data(bpy_obj, bone):
     # write limit z
     packed_writer.putf('<2f', z_min, z_max)
     packed_writer.putf('<2f', ik.lim_z_spr, ik.lim_z_dmp)
+
     # spring and damping
     packed_writer.putf('<2f', ik.spring, ik.damping)
     chunked_writer.put(chunks.IK_JOINT, packed_writer)
+
     # break params
     if xray.ikflags_breakable:
         packed_writer = rw.write.PackedWriter()
         packed_writer.putf('<f', xray.breakf.force)
         packed_writer.putf('<f', xray.breakf.torque)
         chunked_writer.put(chunks.BREAK_PARAMS, packed_writer)
+
     # friction
     packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<f', xray.friction)
     chunked_writer.put(chunks.FRICTION, packed_writer)
+
     # mass params
     packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<f', xray.mass.value)
     packed_writer.putv3f(xray.mass.center)
     chunked_writer.put(chunks.MASS_PARAMS, packed_writer)
+
     return chunked_writer
 
 
@@ -140,6 +162,8 @@ def export_file(context):
     bpy_obj = context.bpy_arm_obj
     log.update(object=bpy_obj.name)
     chunked_writer = rw.write.ChunkedWriter()
+
+    # export bones data
     bone_index = 0
     if context.export_bone_properties:
         for bone in bpy_obj.data.bones:
@@ -148,9 +172,13 @@ def export_file(context):
             bone_chunked_writer = _export_bone_data(bpy_obj, bone)
             chunked_writer.put(bone_index, bone_chunked_writer)
             bone_index += 1
+
+    # export partitions
     partitions_packed_writer = _export_partitions(context, bpy_obj)
     chunked_writer.put(
         obj.fmt.Chunks.Object.PARTITIONS1,
         partitions_packed_writer
     )
+
+    # save
     rw.utils.save_file(context.filepath, chunked_writer)
