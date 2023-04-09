@@ -18,14 +18,15 @@ class XRAY_OT_add_all_actions(bpy.types.Operator):
         return context.active_object
 
     def execute(self, context):
-        obj = context.active_object
+        root_obj = utils.find_root(context.active_object)
+        arm_obj = utils.ie.get_arm_obj(root_obj, self)
 
-        if obj.type != 'ARMATURE':
+        if not arm_obj:
             return {'FINISHED'}
 
         # collect exportable bones
         exportable_bones = set()
-        for bone in obj.data.bones:
+        for bone in arm_obj.data.bones:
             if bone.xray.exportable:
                 exportable_bones.add(bone.name)
 
@@ -65,8 +66,8 @@ class XRAY_OT_add_all_actions(bpy.types.Operator):
                 action_bones.add(path)
 
             if not exportable_bones - action_bones:
-                if not obj.xray.motions_collection.get(action.name):
-                    motion = obj.xray.motions_collection.add()
+                if not root_obj.xray.motions_collection.get(action.name):
+                    motion = root_obj.xray.motions_collection.add()
                     motion.name = action.name
                     added_count += 1
 

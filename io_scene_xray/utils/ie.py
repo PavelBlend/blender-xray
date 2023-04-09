@@ -240,3 +240,24 @@ def check_armature_scale(scale, bpy_root, bpy_arm_obj):
                     root_scale=format_scale(bpy_root.scale)
                 )
             )
+
+
+def get_arm_obj(root_obj, operator):
+    arm_objs = []
+
+    for obj in root_obj.children:
+        if obj.type == 'ARMATURE':
+            arm_objs.append(obj)
+
+    if root_obj.type == 'ARMATURE':
+        arm_objs.append(root_obj)
+
+    if len(arm_objs) > 1:
+        operator.report({'WARNING'}, 'Many armatures')
+        return
+
+    if not len(arm_objs):
+        operator.report({'WARNING'}, 'Has no armatures')
+        return
+
+    return arm_objs[0]
