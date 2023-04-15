@@ -90,3 +90,11 @@ def draw_presets(layout, menu, op_add):
 def redraw_areas():
     for area in bpy.context.window.screen.areas:
         area.tag_redraw()
+
+
+def get_shader(gpu):
+    name = 'UNIFORM_COLOR'
+    if not version.IS_34:
+        name = '3D_' + name
+    shader = gpu.shader.from_builtin(name)
+    return shader

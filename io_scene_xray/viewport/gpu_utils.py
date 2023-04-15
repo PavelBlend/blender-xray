@@ -67,7 +67,7 @@ def draw_wire_cube(half_size_x, half_size_y, half_size_z, color):
         (5, 6), (6, 7),
         (4, 7), (0, 3)
     )
-    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    shader = utils.draw.get_shader(gpu)
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -101,7 +101,7 @@ def draw_wire_sphere(radius, num_segments, color):
         indices
     )
 
-    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    shader = utils.draw.get_shader(gpu)
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -145,7 +145,7 @@ def draw_wire_cylinder(radius, half_height, num_segments, color):
             (i +1, i)
         ))
 
-    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    shader = utils.draw.get_shader(gpu)
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -166,7 +166,7 @@ def draw_cross(size, color):
         (0, 0, -size),
         (0, 0, +size)
     )
-    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    shader = utils.draw.get_shader(gpu)
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -182,7 +182,7 @@ def draw_line(start, end, color):
         start,
         end
     )
-    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    shader = utils.draw.get_shader(gpu)
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -219,7 +219,7 @@ def gen_limit_circle(
 
     fconsumer = draw_functions[axis]
     gen_arc_vary(radius, min_limit, max_limit, indices)
-    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    shader = utils.draw.get_shader(gpu)
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -233,7 +233,7 @@ def gen_limit_circle(
     coords = []
     indices = []
     gen_arc_vary(radius, max_limit, 2.0 * math.pi + min_limit, indices)
-    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    shader = utils.draw.get_shader(gpu)
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -250,7 +250,7 @@ def gen_limit_circle(
 
     bgl.glPointSize(const.POINT_SIZE)
 
-    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    shader = utils.draw.get_shader(gpu)
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'POINTS',
