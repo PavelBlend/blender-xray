@@ -3,7 +3,6 @@ import math
 
 # blender modules
 import gpu
-import bgl
 
 # addon modules
 from . import const
@@ -67,7 +66,7 @@ def draw_wire_cube(half_size_x, half_size_y, half_size_z, color):
         (5, 6), (6, 7),
         (4, 7), (0, 3)
     )
-    shader = utils.draw.get_shader(gpu)
+    shader = utils.draw.get_shader()
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -101,7 +100,7 @@ def draw_wire_sphere(radius, num_segments, color):
         indices
     )
 
-    shader = utils.draw.get_shader(gpu)
+    shader = utils.draw.get_shader()
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -145,7 +144,7 @@ def draw_wire_cylinder(radius, half_height, num_segments, color):
             (i +1, i)
         ))
 
-    shader = utils.draw.get_shader(gpu)
+    shader = utils.draw.get_shader()
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -166,7 +165,7 @@ def draw_cross(size, color):
         (0, 0, -size),
         (0, 0, +size)
     )
-    shader = utils.draw.get_shader(gpu)
+    shader = utils.draw.get_shader()
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -182,7 +181,7 @@ def draw_line(start, end, color):
         start,
         end
     )
-    shader = utils.draw.get_shader(gpu)
+    shader = utils.draw.get_shader()
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -219,7 +218,7 @@ def gen_limit_circle(
 
     fconsumer = draw_functions[axis]
     gen_arc_vary(radius, min_limit, max_limit, indices)
-    shader = utils.draw.get_shader(gpu)
+    shader = utils.draw.get_shader()
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -233,7 +232,7 @@ def gen_limit_circle(
     coords = []
     indices = []
     gen_arc_vary(radius, max_limit, 2.0 * math.pi + min_limit, indices)
-    shader = utils.draw.get_shader(gpu)
+    shader = utils.draw.get_shader()
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
@@ -248,9 +247,9 @@ def gen_limit_circle(
     indices = []
     gen_arc(radius, rotate, rotate + 1, 1, fconsumer, indices, close=False)
 
-    bgl.glPointSize(const.POINT_SIZE)
+    gpu.state.point_size_set(const.POINT_SIZE)
 
-    shader = utils.draw.get_shader(gpu)
+    shader = utils.draw.get_shader()
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'POINTS',

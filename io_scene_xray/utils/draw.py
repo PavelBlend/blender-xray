@@ -1,9 +1,13 @@
 # blender modules
 import bpy
+import gpu
 
 # addon modules
 from . import version
 from .. import text
+
+if not version.IS_34:
+    import bgl
 
 
 def draw_files_count(operator):
@@ -92,9 +96,33 @@ def redraw_areas():
         area.tag_redraw()
 
 
-def get_shader(gpu):
+def get_shader():
     name = 'UNIFORM_COLOR'
     if not version.IS_34:
         name = '3D_' + name
     shader = gpu.shader.from_builtin(name)
     return shader
+
+
+def set_gl_line_width(width):
+    if version.IS_34:
+        gpu.state.line_width_set(width)
+    else:
+        bgl.glLineWidth(width)
+
+
+def get_gl_line_width():
+    if version.IS_34:
+        prev_line_width = gpu.state.line_width_get()
+    else:
+        prev_line_width = bgl.Buffer(bgl.GL_FLOAT, [1])
+        bgl.glGetFloatv(bgl.GL_LINE_WIDTH, prev_line_width)
+        prev_line_width = prev_line_width[0]
+    return prev_line_width
+
+
+def set_gl_blend_mode():
+    if version.IS_34:
+        gpu.state.blend_set('ALPHA')
+    else:
+        bgl.glEnable(bgl.GL_BLEND)

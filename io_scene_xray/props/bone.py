@@ -4,7 +4,6 @@ import math
 # blender modules
 import bpy
 import mathutils
-import bgl
 import gpu
 
 # addon modules
@@ -12,6 +11,9 @@ from . import utility
 from .. import viewport
 from .. import ops
 from .. import utils
+
+if not utils.version.IS_34:
+    import bgl
 
 
 shape_properties = {
@@ -224,11 +226,10 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             hide = obj_arm.hide
         multiply = utils.version.get_multiply()
 
-        prev_line_width = bgl.Buffer(bgl.GL_FLOAT, [1])
-        bgl.glGetFloatv(bgl.GL_LINE_WIDTH, prev_line_width)
-        bgl.glLineWidth(viewport.const.LINE_WIDTH)
+        prev_line_width = utils.draw.get_gl_line_width()
+        utils.draw.set_gl_line_width(viewport.const.LINE_WIDTH)
 
-        bgl.glEnable(bgl.GL_BLEND)
+        utils.draw.set_gl_blend_mode()
 
         hide_bone = bone.hide
         hided = hide or hide_bone
@@ -373,7 +374,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
 
         shape = self.shape
         if shape.type == '0':
-            bgl.glLineWidth(prev_line_width[0])
+            utils.draw.set_gl_line_width(prev_line_width)
             return
 
         # draw mass centers
@@ -401,16 +402,16 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         # draw shapes
         draw_shapes = obj_arm.data.xray.display_bone_shapes
         if hided or not draw_shapes or not exportable or is_edit:
-            bgl.glLineWidth(prev_line_width[0])
+            utils.draw.set_gl_line_width(prev_line_width)
             return
 
         if utils.version.IS_28:
             if not obj_arm.name in bpy.context.view_layer.objects:
-                bgl.glLineWidth(prev_line_width[0])
+                utils.draw.set_gl_line_width(prev_line_width)
                 return
         else:
             if not obj_arm.name in bpy.context.scene.objects:
-                bgl.glLineWidth(prev_line_width[0])
+                utils.draw.set_gl_line_width(prev_line_width)
                 return
             visible_armature_object = False
             for layer_index, layer in enumerate(obj_arm.layers):
@@ -420,7 +421,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                     break
 
             if not visible_armature_object:
-                bgl.glLineWidth(prev_line_width[0])
+                utils.draw.set_gl_line_width(prev_line_width)
                 return
 
         if utils.version.IS_28:
@@ -468,7 +469,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                     )
             finally:
                 bgl.glPopMatrix()
-        bgl.glLineWidth(prev_line_width[0])
+        utils.draw.set_gl_line_width(prev_line_width)
 
 
 prop_groups = (
