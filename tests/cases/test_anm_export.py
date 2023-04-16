@@ -229,6 +229,32 @@ class TestAnmExport(utils.XRayTestCase):
             'test_v5.anm'
         })
 
+    def test_batch(self):
+        # Arrange
+        for object_index in range(3):
+            obj = self._create_active_object()
+            obj.name = 'test_{}.anm'.format(object_index)
+            obj.rotation_mode = 'YXZ'
+            act = bpy.data.actions.new('test_act_{}'.format(object_index))
+            for i in range(3):
+                fcu = act.fcurves.new('location', index=i)
+                fcu.keyframe_points.insert(1, 0)
+                fcu = act.fcurves.new('rotation_euler', index=i)
+                fcu.keyframe_points.insert(1, 0)
+
+            obj.animation_data_create().action = act
+
+        bpy.ops.object.select_all(action='SELECT')
+
+        # Act
+        bpy.ops.xray_export.anm(directory=self.outpath())
+
+        # Assert
+        out_files = set()
+        for file_index in range(3):
+            out_files.add('test_{}.anm'.format(file_index))
+        self.assertOutputFiles(out_files)
+
     def _create_active_object(self):
         obj = bpy.data.objects.new('tobj', None)
         utils.link_object(obj)
