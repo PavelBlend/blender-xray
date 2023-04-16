@@ -41,9 +41,7 @@ import_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*.ogf', options={'HIDDEN'}
     ),
-    'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE'}
-    ),
+    'directory': bpy.props.StringProperty(subtype="DIR_PATH"),
     'filepath': bpy.props.StringProperty(
         subtype="FILE_PATH", options={'SKIP_SAVE'}
     ),

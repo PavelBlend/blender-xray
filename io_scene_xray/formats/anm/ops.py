@@ -99,6 +99,7 @@ export_props = {
         default='*'+filename_ext,
         options={'HIDDEN'}
     ),
+    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'format_version': ie.prop_anm_format_version()
 }
 

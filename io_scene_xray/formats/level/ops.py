@@ -31,7 +31,7 @@ import_props = {
         default=file_filter_import, options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE', 'HIDDEN'}
+        subtype="DIR_PATH", options={'HIDDEN'}
     ),
     'filepath': bpy.props.StringProperty(
         subtype="FILE_PATH", options={'SKIP_SAVE', 'HIDDEN'}
