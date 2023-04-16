@@ -13,7 +13,7 @@ class TestAnmExport(utils.XRayTestCase):
         obj.animation_data_create().action = act
 
         # Act
-        bpy.ops.xray_export.anm(filepath=self.outpath('Cube1.anm'), )
+        bpy.ops.xray_export.anm_file(filepath=self.outpath('Cube1.anm'), )
 
         # Assert
         self.assertOutputFiles({
@@ -33,7 +33,7 @@ class TestAnmExport(utils.XRayTestCase):
         obj.animation_data_create().action = act
 
         # Act
-        bpy.ops.xray_export.anm(
+        bpy.ops.xray_export.anm_file(
             filepath=self.outpath('test.anm'),
         )
         self.assertReportsContains('ERROR', re.compile('Action has keys not for all channels'))
@@ -50,7 +50,7 @@ class TestAnmExport(utils.XRayTestCase):
         obj.animation_data_create().action = act
 
         # Act
-        bpy.ops.xray_export.anm(
+        bpy.ops.xray_export.anm_file(
             filepath=self.outpath('test.anm'),
         )
         self.assertReportsContains('ERROR', re.compile('Action has keys not for all channels'))
@@ -63,7 +63,7 @@ class TestAnmExport(utils.XRayTestCase):
         obj.animation_data_create().action = act
 
         # Act
-        bpy.ops.xray_export.anm(
+        bpy.ops.xray_export.anm_file(
             filepath=self.outpath('test.anm'),
         )
         self.assertReportsContains('ERROR', re.compile('Action has keys not for all channels'))
@@ -85,7 +85,7 @@ class TestAnmExport(utils.XRayTestCase):
             fcu.keyframe_points.insert(10, 1)
 
         # Act
-        bpy.ops.xray_export.anm(
+        bpy.ops.xray_export.anm_file(
             filepath=self.outpath('test.anm'),
         )
 
@@ -107,7 +107,7 @@ class TestAnmExport(utils.XRayTestCase):
             fcu.keyframe_points.insert(10, 1)
 
         # Act
-        bpy.ops.xray_export.anm(
+        bpy.ops.xray_export.anm_file(
             filepath=self.outpath('test.anm'),
         )
 
@@ -130,7 +130,7 @@ class TestAnmExport(utils.XRayTestCase):
             fcu.keyframe_points.insert(10, 1)
 
         # Act
-        bpy.ops.xray_export.anm(
+        bpy.ops.xray_export.anm_file(
             filepath=self.outpath('test.anm'),
         )
 
@@ -148,7 +148,7 @@ class TestAnmExport(utils.XRayTestCase):
         obj.animation_data_create().action = act
 
         # Act
-        bpy.ops.xray_export.anm(
+        bpy.ops.xray_export.anm_file(
             filepath=self.outpath('test.anm'),
         )
 
@@ -171,7 +171,7 @@ class TestAnmExport(utils.XRayTestCase):
         obj.animation_data_create().action = act
 
         # Act
-        bpy.ops.xray_export.anm(
+        bpy.ops.xray_export.anm_file(
             filepath=self.outpath('test_v3.anm'),
             format_version='3'
         )
@@ -195,7 +195,7 @@ class TestAnmExport(utils.XRayTestCase):
         obj.animation_data_create().action = act
 
         # Act
-        bpy.ops.xray_export.anm(
+        bpy.ops.xray_export.anm_file(
             filepath=self.outpath('test_v4.anm'),
             format_version='4'
         )
@@ -219,7 +219,7 @@ class TestAnmExport(utils.XRayTestCase):
         obj.animation_data_create().action = act
 
         # Act
-        bpy.ops.xray_export.anm(
+        bpy.ops.xray_export.anm_file(
             filepath=self.outpath('test_v5.anm'),
             format_version='5'
         )
