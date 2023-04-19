@@ -117,8 +117,8 @@ ik_joint_properties = {
         ('0', 'Rigid', ''),
         ('1', 'Cloth', ''),
         ('2', 'Joint', ''),
-        ('3', 'Wheel', ''),
-        ('5', 'Slider', ''))
+        ('3', 'Wheel ', ''),
+        ('5', 'Slider ', ''))
     ),
     'lim_x_min': bpy.props.FloatProperty(
         min=-math.pi, max=math.pi,

@@ -213,14 +213,14 @@ def update_motion_collection_index(self, context):
 
 
 object_type_items = (
-    ('LEVEL', 'Level', ''),
+    ('LEVEL', 'Level ', ''),
     ('VISUAL', 'Visual', ''),
     ('PORTAL', 'Portal', ''),
     ('LIGHT_DYNAMIC', 'Light Dynamic', ''),
     ('CFORM', 'CForm', '')
 )
 visual_type_items = (
-    ('NORMAL', 'Normal', ''),
+    ('NORMAL', 'Normal ', ''),
     ('HIERRARHY', 'Hierrarhy', ''),
     ('PROGRESSIVE', 'Progressive', ''),
     ('TREE_ST', 'Tree Static', ''),
@@ -505,7 +505,7 @@ xray_object_properties = {
         name='Show Motions Names',
         items=(
             ('ACTION', 'Action', ''),
-            ('EXPORT', 'Export', ''),
+            ('EXPORT', ' Export ', ''),
             ('BOTH', 'Both', '')
         ),
         default='ACTION'

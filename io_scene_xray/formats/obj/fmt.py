@@ -78,11 +78,11 @@ PD = 'pd'
 DY = 'dy'
 ST = 'st'
 type_names = {
-    CM: 'Custom',
+    CM: 'Custom ',
     SO: 'Sound Occluder',
     MU: 'Multiple Usage',
     HO: 'HOM',
     PD: 'Progressive Dynamic',
-    DY: 'Dynamic',
+    DY: 'Dynamic ',
     ST: 'Static'
 }

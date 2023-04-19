@@ -92,6 +92,7 @@ def check_invalid_smooth_groups():
         if invalid_verts:
             invalid_objects.add(bpy_obj)
 
+    bpy.ops.object.select_all(action='DESELECT')
     for bpy_obj in invalid_objects:
         utils.version.select_object(bpy_obj)
 

@@ -10,7 +10,9 @@ from .. import utils
 
 joint_limit_type_items = (
     ('IK', 'IK', ''),
-    ('XRAY', 'X-Ray', '')
+    # Added a space to the beginning and end of
+    # the string so that the translation does not work.
+    ('XRAY', ' X-Ray ', '')
 )
 xray_armature_properties = {
     'display_bone_shapes': bpy.props.BoolProperty(

@@ -5,7 +5,7 @@ import bpy
 from .. import ui
 
 
-CATEGORY = 'X-Ray'
+CATEGORY = ' X-Ray '
 
 
 def build_label(subtext=''):

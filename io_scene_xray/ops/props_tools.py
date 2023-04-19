@@ -455,7 +455,7 @@ class XRAY_OT_change_motion_refs(bpy.types.Operator):
 
 type_items = (
     ('st', 'Static', ''),
-    ('dy', 'Dynamic', ''),
+    ('dy', 'Dynamic ', ''),
     ('pd', 'Propgressive Dynamic', ''),
     ('ho', 'HOM', ''),
     ('mu', 'Multiple Usage', ''),

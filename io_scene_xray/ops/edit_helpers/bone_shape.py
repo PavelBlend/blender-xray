@@ -296,7 +296,7 @@ def get_obb(bone, for_cylinder):
             verts_coord[index] = coord
         verts_coord.shape = (coord_count // 3, 3)
 
-    obb_mat = generate_obb(verts_coord, for_cylinder)
+        obb_mat = generate_obb(verts_coord, for_cylinder)
 
     return obb_mat
 

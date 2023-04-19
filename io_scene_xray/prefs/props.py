@@ -423,15 +423,15 @@ key_items = (
 )
 
 defaults_category_items = (
-    ('OBJECT', 'Object', ''),
+    ('OBJECT', ' Object ', ''),
     ('SKLS', 'Skls', ''),
     ('OGF', 'Ogf', ''),
     ('OMF', 'Omf', ''),
     ('ANM', 'Anm', ''),
-    ('BONES', 'Bones', ''),
+    ('BONES', ' Bones ', ''),
     ('DM', 'Dm', ''),
     ('DETAILS', 'Details', ''),
-    ('SCENE', 'Scene', ''),
+    ('SCENE', ' Scene ', ''),
     ('PART', 'Part', '')
 )
 

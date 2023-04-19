@@ -95,7 +95,13 @@ class XRAY_PT_bone(ui.base.XRayPanel):
 
         layout = self.layout
 
-        layout.prop(data, 'exportable', toggle=True)
+        layout.prop(
+            data,
+            'exportable',
+            text='Exportable',
+            toggle=True,
+            translate=False
+        )
 
         main_col = layout.column(align=False)
         main_col.enabled = data.exportable
@@ -107,8 +113,8 @@ class XRAY_PT_bone(ui.base.XRayPanel):
         box = main_col.box()
 
         row = box.row()
-        row.label(text='Shape Type:')
-        row.prop(data.shape, 'type', text='')
+        row.label(text='Shape Type:', translate=False)
+        row.prop(data.shape, 'type', text='', translate=False)
 
         verdif = data.shape.check_version_different()
         if verdif != 0:
@@ -116,7 +122,8 @@ class XRAY_PT_bone(ui.base.XRayPanel):
                 text='shape edited with '
                 + data.shape.fmt_version_different(verdif)
                 + ' version of this plugin',
-                icon='ERROR'
+                icon='ERROR',
+                translate=False
             )
 
         ops.edit_helpers.bone_shape.HELPER.draw(
@@ -131,13 +138,15 @@ class XRAY_PT_bone(ui.base.XRayPanel):
             data.shape,
             'flags_nopickable',
             text='No Pickable',
-            toggle=True
+            toggle=True,
+            translate=False
         )
         row.prop(
             data.shape,
             'flags_nophysics',
             text='No Physics',
-            toggle=True
+            toggle=True,
+            translate=False
         )
 
         row = column.row(align=True)
@@ -145,27 +154,33 @@ class XRAY_PT_bone(ui.base.XRayPanel):
             data.shape,
             'flags_removeafterbreak',
             text='Remove After Break',
-            toggle=True
+            toggle=True,
+            translate=False
         )
         row.prop(
             data.shape,
             'flags_nofogcollider',
             text='No Fog Collider',
-            toggle=True
+            toggle=True,
+            translate=False
         )
 
         box = main_col.box()
 
         row = box.row()
-        row.label(text='Joint Type:')
-        row.prop(data.ikjoint, 'type', text='')
+        row.label(text='Joint Type:', translate=False)
+        row.prop(data.ikjoint, 'type', text='', translate=False)
 
         joint_type = int(data.ikjoint.type)
 
         if joint_type and joint_type != 4:    # 4 - None type
 
             if joint_type == 3:    # Wheel
-                box.label(text='Steer-X / Roll-Z', icon='INFO')
+                box.label(
+                    text='Steer-X / Roll-Z',
+                    icon='INFO',
+                    translate=False
+                )
 
             box.prop(data, 'friction', text='Friction')
 
@@ -184,13 +199,15 @@ class XRAY_PT_bone(ui.base.XRayPanel):
                             text='Limit Min: {0:.4f} m'.format(
                                 data.ikjoint.lim_x_min
                             ),
-                            icon='INFO'
+                            icon='INFO',
+                            translate=False
                         )
                         col.label(
                             text='Limit Max: {0:.4f} m'.format(
                                 data.ikjoint.lim_x_max
                             ),
-                            icon='INFO'
+                            icon='INFO',
+                            translate=False
                         )
 
                     for prop_text in text[1 : ]:
@@ -213,7 +230,13 @@ class XRAY_PT_bone(ui.base.XRayPanel):
                             prop_index += 1
 
         col = box.column(align=True)
-        col.prop(data, 'ikflags_breakable', text='Breakable', toggle=True)
+        col.prop(
+            data,
+            'ikflags_breakable',
+            text='Breakable',
+            toggle=True,
+            translate=False
+        )
 
         if data.ikflags_breakable:
             col.prop(data.breakf, 'force', text='Force')

@@ -606,7 +606,13 @@ class XRAY_PT_object(ui.base.XRayPanel):
         layout = self.layout
         data = context.active_object.xray
         if object_used:
-            layout.prop(data, 'isroot', text='Object', toggle=True)
+            layout.prop(
+                data,
+                'isroot',
+                text='Object',
+                toggle=True,
+                translate=False
+            )
 
             if data.isroot:
                 object_box = layout.box()
@@ -759,12 +765,24 @@ class XRAY_PT_object(ui.base.XRayPanel):
                     subbox.label(text='Year.Month.Day')
 
         if details_used:
-            layout.prop(data, 'is_details', text='Details', toggle=True)
+            layout.prop(
+                data,
+                'is_details',
+                text='Details',
+                toggle=True,
+                translate=False
+            )
             if data.is_details:
                 details_draw_function(self, context)
 
         if game_level_used:
-            layout.prop(data, 'is_level', text='Level', toggle=True)
+            layout.prop(
+                data,
+                'is_level',
+                text='Level',
+                toggle=True,
+                translate=False
+            )
             if data.is_level:
                 level_draw_function(layout, data)
 

@@ -127,7 +127,8 @@ class XRAY_PT_viewer(ui.base.XRayPanel):
         layout = self.layout
         col = layout.column(align=True)
         scn = context.scene
-        viewer_folder = scn.xray.viewer.folder
+        viewer_props = scn.xray.viewer
+        viewer_folder = viewer_props.folder
         if viewer_folder:
             row = col.row(align=True)
             row.label(text=viewer_folder)
@@ -139,23 +140,29 @@ class XRAY_PT_viewer(ui.base.XRayPanel):
 
             row = col.row(align=True)
             row.label(text='Sort:')
-            row.prop(scn.xray.viewer, 'sort', expand=True)
+            row.prop(viewer_props, 'sort', expand=True)
 
             col_settings = col.column(align=True)
 
             # formats
             col_settings.label(text='Use Formats:')
             row = col_settings.row(align=True)
-            row.prop(scn.xray.viewer, 'use_object', toggle=True)
-            row.prop(scn.xray.viewer, 'use_ogf', toggle=True)
-            row.prop(scn.xray.viewer, 'use_dm', toggle=True)
-            row.prop(scn.xray.viewer, 'use_details', toggle=True)
+            row.prop(
+                viewer_props,
+                'use_object',
+                text='Object',
+                toggle=True,
+                translate=False
+            )
+            row.prop(viewer_props, 'use_ogf', toggle=True)
+            row.prop(viewer_props, 'use_dm', toggle=True)
+            row.prop(viewer_props, 'use_details', toggle=True)
 
-            col_settings.prop(scn.xray.viewer, 'import_motions')
-            col_settings.prop(scn.xray.viewer, 'sort_reverse')
-            col_settings.prop(scn.xray.viewer, 'ignore_ext')
-            col_settings.prop(scn.xray.viewer, 'show_size')
-            col_settings.prop(scn.xray.viewer, 'group_by_ext')
+            col_settings.prop(viewer_props, 'import_motions')
+            col_settings.prop(viewer_props, 'sort_reverse')
+            col_settings.prop(viewer_props, 'ignore_ext')
+            col_settings.prop(viewer_props, 'show_size')
+            col_settings.prop(viewer_props, 'group_by_ext')
 
             col.operator(
                 ops.viewer.XRAY_OT_viewer_close_folder.bl_idname,
@@ -168,9 +175,9 @@ class XRAY_PT_viewer(ui.base.XRayPanel):
             col.template_list(
                 listtype_name='XRAY_UL_viewer_list_item',
                 list_id='compact',
-                dataptr=scn.xray.viewer,
+                dataptr=viewer_props,
                 propname='files',
-                active_dataptr=scn.xray.viewer,
+                active_dataptr=viewer_props,
                 active_propname='files_index',
                 rows=5
             )
@@ -522,7 +529,12 @@ class XRAY_PT_import_operators(ui.base.XRayPanel):
             enable_prop_name = 'enable_{}_import'.format(label.lower())
             enable_prop = getattr(preferences, enable_prop_name)
             if enable_prop:
-                col.operator(operator.bl_idname, text=label, icon='IMPORT')
+                col.operator(
+                    operator.bl_idname,
+                    text=label,
+                    icon='IMPORT',
+                    translate=False
+                )
 
 
 class XRAY_PT_export_operators(ui.base.XRayPanel):
@@ -550,7 +562,12 @@ class XRAY_PT_export_operators(ui.base.XRayPanel):
             enable_prop_name = 'enable_{}_export'.format(label.lower())
             enable_prop = getattr(preferences, enable_prop_name)
             if enable_prop:
-                col.operator(operator.bl_idname, text=label, icon='EXPORT')
+                col.operator(
+                    operator.bl_idname,
+                    text=label,
+                    icon='EXPORT',
+                    translate=False
+                )
 
 
 classes = (
