@@ -4,7 +4,7 @@ AXIS_COLORS = {
     'Y': (0.0, 1.0, 0.0, 1.0),
     'Z': (0.0, 0.0, 1.0, 1.0)
 }
-GREY_COLOR = (0.5, 0.5, 0.5, 0.8)
+GREY_COLOR = (0.7, 0.7, 0.7, 1.0)
 
 # geometry constants
 LINE_WIDTH = 2

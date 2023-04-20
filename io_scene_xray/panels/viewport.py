@@ -443,6 +443,34 @@ class XRAY_PT_armature_tools(ui.base.XRayPanel):
         col.operator(
             ops.armature.XRAY_OT_unlink_bones.bl_idname
         )
+
+        col.label(text='Set Joint Limits:')
+
+        for limit in ('min', 'max'):
+            row = col.row(align=True)
+            for axis in ('X', 'Y', 'Z'):
+                op_props = row.operator(
+                    ops.joint_limits.XRAY_OT_set_joint_limits.bl_idname,
+                    text='{0} {1}'.format(limit.title(), axis)
+                )
+                op_props.mode = '{0}_{1}'.format(limit.upper(), axis)
+
+        row = col.row(align=True)
+        for limit in ('min', 'max'):
+            op_props = row.operator(
+                ops.joint_limits.XRAY_OT_set_joint_limits.bl_idname,
+                text='{0} XYZ'.format(limit.title())
+            )
+            op_props.mode = '{0}_XYZ'.format(limit.upper())
+
+        row = col.row(align=True)
+        for axis in ('X', 'Y', 'Z'):
+            op_props = row.operator(
+                ops.joint_limits.XRAY_OT_set_joint_limits.bl_idname,
+                text='Min/Max {0}'.format(axis)
+            )
+            op_props.mode = 'MIN_MAX_{0}'.format(axis)
+
         col.label(text='Joint Limits:')
         col.operator(
             ops.joint_limits.XRAY_OT_convert_limits_to_constraints.bl_idname,

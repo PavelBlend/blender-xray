@@ -87,10 +87,20 @@ def gen_limit_circle(
 
     bgl.glLineWidth(2)
     bgl.glBegin(bgl.GL_LINE_STRIP)
+
+    # draw min limit
+    color_min = (color[0]*0.5, color[1]*0.5, color[2]*0.5, color[3])
+    bgl.glColor4f(*color_min)
+    gen_arc_vary(radius, min_limit, 0)
+
+    # draw max limit
     bgl.glColor4f(*color)
-    gen_arc_vary(radius, min_limit, max_limit)
+    gen_arc_vary(radius, 0, max_limit)
+
+    # draw circle
     bgl.glColor4f(*const.GREY_COLOR)
     gen_arc_vary(radius, max_limit, 2.0 * math.pi + min_limit)
+
     bgl.glEnd()
 
     bgl.glPointSize(const.POINT_SIZE)

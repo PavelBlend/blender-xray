@@ -207,17 +207,33 @@ def gen_limit_circle(
                 fconsumer, indices, close=True
             )
 
-    coords = []
-    indices = []
-
     draw_functions = {
         'X': (lambda x, y: coords.append((0, -x, -y))),
         'Y': (lambda x, y: coords.append((-y, 0, -x))),
         'Z': (lambda x, y: coords.append((x, y, 0)))
     }
-
     fconsumer = draw_functions[axis]
-    gen_arc_vary(radius, min_limit, max_limit, indices)
+
+    # draw min limit
+    color_min = (color[0]*0.5, color[1]*0.5, color[2]*0.5, color[3])
+    coords = []
+    indices = []
+    gen_arc_vary(radius, min_limit, 0, indices)
+    shader = utils.draw.get_shader()
+    batch = gpu_extras.batch.batch_for_shader(
+        shader,
+        'LINES',
+        {"pos": coords, },
+        indices=indices
+    )
+    shader.bind()
+    shader.uniform_float("color", color_min)
+    batch.draw(shader)
+
+    # draw max limit
+    coords = []
+    indices = []
+    gen_arc_vary(radius, 0, max_limit, indices)
     shader = utils.draw.get_shader()
     batch = gpu_extras.batch.batch_for_shader(
         shader,
@@ -229,6 +245,7 @@ def gen_limit_circle(
     shader.uniform_float("color", color)
     batch.draw(shader)
 
+    # draw circle
     coords = []
     indices = []
     gen_arc_vary(radius, max_limit, 2.0 * math.pi + min_limit, indices)
@@ -243,6 +260,7 @@ def gen_limit_circle(
     shader.uniform_float("color", const.GREY_COLOR)
     batch.draw(shader)
 
+    # draw current rotation point
     coords = []
     indices = []
     gen_arc(radius, rotate, rotate + 1, 1, fconsumer, indices, close=False)

@@ -237,23 +237,24 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
         exportable = bone.xray.exportable
         draw_overlays = not hided and is_pose and exportable
 
-        preferences = utils.version.get_preferences()
         # set color
+        pref = utils.version.get_preferences()
         if is_pose:
             active_bone = bpy.context.active_bone
             color = None
             if active_bone:
                 if active_bone.id_data == obj_arm.data:
                     if active_bone.name == bone.name:
-                        color = preferences.gl_active_shape_color
+                        color = pref.gl_active_shape_color
             if color is None:
                 if bone.select:
-                    color = preferences.gl_select_shape_color
+                    color = pref.gl_select_shape_color
                 else:
-                    color = preferences.gl_shape_color
+                    color = pref.gl_shape_color
         else:
-            color = preferences.gl_object_mode_shape_color
+            color = pref.gl_object_mode_shape_color
 
+        # draw limits
         if draw_overlays and arm_xray.display_bone_limits:
             context_obj = bpy.context.active_object
             if context_obj:
@@ -292,9 +293,9 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
 
                 pose_bone = obj_arm.pose.bones[bone.name]
                 if pose_bone.rotation_mode == 'QUATERNION':
-                    rotate = pose_bone.rotation_quaternion.to_euler('XYZ')
+                    rotate = pose_bone.rotation_quaternion.to_euler('ZXY')
                 else:
-                    rotate = obj_arm.pose.bones[bone.name].rotation_euler
+                    rotate = pose_bone.rotation_euler.to_matrix().to_euler('ZXY')
 
                 if arm_xray.joint_limits_type == 'IK':
                     limits = (

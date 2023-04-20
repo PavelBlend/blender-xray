@@ -3,6 +3,7 @@ import math
 
 # blender modules
 import bpy
+import mathutils
 
 # addon modules
 from .. import utils
@@ -262,7 +263,6 @@ class XRAY_OT_clear_ik_limits(JointLimitsBaseOperator):
     def execute(self, context):
         obj = context.active_object
         for bone in obj.data.bones:
-            xray = bone.xray
             if bone.select:
                 pose_bone = obj.pose.bones[bone.name]
                 pose_bone.use_ik_limit_x = False
@@ -283,12 +283,149 @@ class XRAY_OT_clear_ik_limits(JointLimitsBaseOperator):
         return wm.invoke_props_dialog(self)
 
 
+mode_items = (
+    ('MIN_X', 'Min X', ''),
+    ('MAX_X', 'Max X', ''),
+
+    ('MIN_Y', 'Min Y', ''),
+    ('MAX_Y', 'Max Y', ''),
+
+    ('MIN_Z', 'Min Z', ''),
+    ('MAX_Z', 'Max Z', ''),
+
+    ('MIN_MAX_X', 'Min/Max X', ''),
+    ('MIN_MAX_Y', 'Min/Max Y', ''),
+    ('MIN_MAX_Z', 'Min/Max Z', ''),
+
+    ('MIN_XYZ', 'Min XYZ', ''),
+    ('MAX_XYZ', 'Max XYZ', '')
+)
+
+op_props = {
+    'mode': bpy.props.EnumProperty(
+        name='Mode',
+        items=mode_items,
+        default='MIN_XYZ'
+    ),
+}
+
+
+class XRAY_OT_set_joint_limits(JointLimitsBaseOperator):
+    bl_idname = 'io_scene_xray.set_joint_limits'
+    bl_label = 'Set Joint Limits'
+    bl_description = 'Set joint limits by pose bone rotation'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    props = op_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'POSE' and context.active_pose_bone
+
+    @utils.set_cursor_state
+    def execute(self, context):
+        pose_bone = context.active_pose_bone
+        ik = pose_bone.bone.xray.ikjoint
+
+        # get bone rotation
+        if pose_bone.rotation_mode == 'QUATERNION':
+            rot_mat = pose_bone.rotation_quaternion.to_matrix()
+
+        elif pose_bone.rotation_mode == 'AXIS_ANGLE':
+            rot_mat = mathutils.Matrix.Rotation(
+                pose_bone.rotation_axis_angle[0],
+                4,
+                pose_bone.rotation_axis_angle[1:]
+            )
+
+        else:
+            rot_mat = pose_bone.rotation_euler.to_matrix()
+
+        rot = rot_mat.to_euler('ZXY')
+        rot.x *= -1.0
+        rot.y *= -1.0
+
+        # clipping value
+        if self.mode.startswith('MIN_MAX'):
+            for axis in range(3):
+                rot[axis] = abs(rot[axis])
+
+        else:
+            for axis in range(3):
+                value = rot[axis]
+                clip = False
+
+                if self.mode.startswith('MIN'):
+                    if value > 0.0:
+                        clip = True
+
+                else:
+                    if value < 0.0:
+                        clip = True
+
+                if clip:
+                    rot[axis] = 0.0
+
+        # set min limits
+        if self.mode in ('MIN_X'):
+            ik.lim_x_min = rot.x
+
+        elif self.mode in ('MIN_Y'):
+            ik.lim_y_min = rot.y
+
+        elif self.mode in ('MIN_Z'):
+            ik.lim_z_min = rot.z
+
+        elif self.mode in ('MIN_XYZ'):
+            ik.lim_x_min = rot.x
+            ik.lim_y_min = rot.y
+            ik.lim_z_min = rot.z
+
+        # set max limits
+        elif self.mode in ('MAX_X'):
+            ik.lim_x_max = rot.x
+
+        elif self.mode in ('MAX_Y'):
+            ik.lim_y_max = rot.y
+
+        elif self.mode == 'MAX_Z':
+            ik.lim_z_max = rot.z
+
+        elif self.mode in ('MAX_XYZ'):
+            ik.lim_x_max = rot.x
+            ik.lim_y_max = rot.y
+            ik.lim_z_max = rot.z
+
+        # set min/max limits
+        elif self.mode == 'MIN_MAX_X':
+            ik.lim_x_min = -rot.x
+            ik.lim_x_max = rot.x
+
+        elif self.mode == 'MIN_MAX_Y':
+            ik.lim_y_min = -rot.y
+            ik.lim_y_max = rot.y
+
+        elif self.mode == 'MIN_MAX_Z':
+            ik.lim_z_min = -rot.z
+            ik.lim_z_max = rot.z
+
+        utils.draw.redraw_areas()
+        self.report({'INFO'}, text.get_text(text.warn.ready))
+
+        return {'FINISHED'}
+
+
 classes = (
     XRAY_OT_convert_limits_to_constraints,
     XRAY_OT_remove_limits_constraints,
     XRAY_OT_convert_ik_to_xray_limits,
     XRAY_OT_convert_xray_to_ik_limits,
-    XRAY_OT_clear_ik_limits
+    XRAY_OT_clear_ik_limits,
+    XRAY_OT_set_joint_limits
 )
 
 
