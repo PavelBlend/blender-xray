@@ -2,16 +2,18 @@ import os
 
 import bpy
 
-from tests import utils
+import tests
 
 
-class TestSceneSelectionImport(utils.XRayTestCase):
-    def test_default(self):
-        prefs = utils.get_preferences()
+class TestSceneImport(tests.utils.XRayTestCase):
+    def test_scene_import(self):
+        prefs = tests.utils.get_preferences()
         prefs.objects_folder = os.path.join(os.curdir, 'tests', 'cases')
 
         # Act
-        bpy.ops.xray_import.scene(filepath=os.path.join(self.relpath(), 'test_fmt.level'))
+        bpy.ops.xray_import.scene(
+            filepath=os.path.join(self.relpath(), 'test_fmt.level')
+        )
 
         # Assert
         self.assertReportsNotContains('WARNING')

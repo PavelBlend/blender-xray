@@ -138,8 +138,10 @@ def _has_nonzero(vec):
             return True
     return False
 
+
 def round_vec(vec, ndigits):
     return tuple((round(val, ndigits) for val in vec))
+
 
 def reapply_max_difference(shape):
     def shape_to_plain(sh):

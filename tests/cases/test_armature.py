@@ -4,7 +4,7 @@ import bpy
 
 
 class TestArmature(utils.XRayTestCase):
-    def test_import_sg_maya(self):
+    def test_armature(self):
         # Arrange
         arm = bpy.data.armatures.new('test')
         obj = bpy.data.objects.new('test', arm)
