@@ -53,7 +53,6 @@ def create_weights_bones(src_arm_obj, con_arm_obj):
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # collect source shape matrices and mass centers
-    src_arm_obj.hide_set(False)
     utils.version.set_active_object(src_arm_obj)
     bpy.ops.object.mode_set(mode='POSE')
 
