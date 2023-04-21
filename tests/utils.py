@@ -16,7 +16,7 @@ class XRayTestCase(unittest.TestCase):
     blend_file = None
     __save_test_data = '--save-test-data' in sys.argv
     __tmp_base = os.path.join(tempfile.gettempdir(), 'io_scene_xray-tests')
-    __tmp = __tmp_base + '/out'
+    __tmp = os.path.join(__tmp_base, 'out')
     _reports = []
 
     @classmethod
