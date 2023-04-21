@@ -43,10 +43,12 @@ def create_weights_bones(src_arm_obj, con_arm_obj):
     bpy.ops.object.mode_set(mode='EDIT')
 
     for edit_bone in weight_obj.data.edit_bones:
-        head, tail, roll = transforms[edit_bone.name + BONE_NAME_SUFFIX]
-        edit_bone.head = head
-        edit_bone.tail = tail
-        edit_bone.roll = roll
+        con_name = edit_bone.name + BONE_NAME_SUFFIX
+        if transforms.get(con_name):
+            head, tail, roll = transforms[con_name]
+            edit_bone.head = head
+            edit_bone.tail = tail
+            edit_bone.roll = roll
 
     bpy.ops.object.mode_set(mode='OBJECT')
 

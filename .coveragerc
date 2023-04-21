@@ -5,6 +5,7 @@ omit =
     io_scene_xray/ui/*
     io_scene_xray/panels/*
     io_scene_xray/viewport/*
+	*/ui.py
 
 [report]
 exclude_lines =
