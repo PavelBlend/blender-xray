@@ -136,6 +136,7 @@ def merge_meshes(mesh_objects):
                 continue
             if not mod.show_viewport:
                 continue
+            override['modifier'] = mod
             bpy.ops.object.modifier_apply(override, modifier=mod.name)
         objects.append(copy_obj)
     active_object = objects[0]

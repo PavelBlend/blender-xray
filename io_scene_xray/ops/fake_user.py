@@ -43,7 +43,7 @@ op_props = {
 }
 
 
-class XRAY_OT_change_fake_user(bpy.types.Operator):
+class XRAY_OT_change_fake_user(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.change_fake_user'
     bl_label = 'Change Fake User'
     bl_options = {'REGISTER', 'UNDO'}

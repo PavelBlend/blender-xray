@@ -42,7 +42,7 @@ op_props = {
 }
 
 
-class XRAY_OT_resize_bones(bpy.types.Operator):
+class XRAY_OT_resize_bones(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.resize_bones'
     bl_label = 'Resize Bones'
     bl_description = ''

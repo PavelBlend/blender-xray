@@ -6,6 +6,7 @@ import bpy
 import mathutils
 
 # addon modules
+from .. import utils
 from .. import text
 
 
@@ -40,7 +41,7 @@ def write_buffer_data():
     bpy.context.window_manager.clipboard = buffer_text
 
 
-class XRAY_OT_copy_xray_tranforms(bpy.types.Operator):
+class XRAY_OT_copy_xray_tranforms(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.copy_xray_transforms'
     bl_label = 'Copy X-Ray Transforms'
 
@@ -53,7 +54,7 @@ class XRAY_OT_copy_xray_tranforms(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_update_xray_tranforms(bpy.types.Operator):
+class XRAY_OT_update_xray_tranforms(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.update_xray_transforms'
     bl_label = 'Update X-Ray Transforms'
     bl_options = {'UNDO'}
@@ -71,7 +72,7 @@ class XRAY_OT_update_xray_tranforms(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_update_blender_tranforms(bpy.types.Operator):
+class XRAY_OT_update_blender_tranforms(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.update_blender_transforms'
     bl_label = 'Update Blender Transforms'
     bl_options = {'UNDO'}

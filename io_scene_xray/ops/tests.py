@@ -84,7 +84,7 @@ op_props = {
 }
 
 
-class XRAY_OT_test_import_modal(bpy.types.Operator):
+class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.test_import_modal'
     bl_label = 'Test Import Modal'
     bl_options = {'REGISTER'}
@@ -267,7 +267,7 @@ class XRAY_OT_test_import_modal(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-class XRAY_OT_test_import(bpy.types.Operator):
+class XRAY_OT_test_import(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.test_import'
     bl_label = 'Test Import'
     bl_options = {'REGISTER'}

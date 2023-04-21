@@ -385,7 +385,7 @@ op_props = {
 }
 
 
-class XRAY_OT_add_keymap(bpy.types.Operator):
+class XRAY_OT_add_keymap(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.add_keymap'
     bl_label = 'Add Keymap'
 

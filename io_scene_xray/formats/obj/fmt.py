@@ -10,6 +10,7 @@ class Chunks:
         LIB_VERSION = 0x0911
         USERDATA = 0x0912
         BONES = 0x0913
+        OMOTIONS = 0x0914
         MOTIONS = 0x0916
         PARTITIONS0 = 0x0919
         SURFACES_XRLC = 0x0918

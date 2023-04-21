@@ -263,6 +263,9 @@ def import_file(file_path, context):
         elif chunk_id == fmt.Chunks.Object.LIB_VERSION:
             pass  # skip obsolete chunk
 
+        elif chunk_id == fmt.Chunks.Object.OMOTIONS:
+            pass    # not supported
+
         # other chunks
         else:
             unread_chunks.append((chunk_id, chunk_data))

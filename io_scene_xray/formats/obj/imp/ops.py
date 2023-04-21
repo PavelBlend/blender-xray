@@ -30,7 +30,7 @@ import_props = {
 
 
 class XRAY_OT_import_object(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
 

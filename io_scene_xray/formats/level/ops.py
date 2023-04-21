@@ -40,7 +40,7 @@ import_props = {
 
 
 class XRAY_OT_import_level(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
 
@@ -90,7 +90,7 @@ export_props = {
 }
 
 
-class XRAY_OT_export_level(ie.BaseOperator):
+class XRAY_OT_export_level(utils.ie.BaseOperator):
     bl_idname = 'xray_export.level'
     bl_label = 'Export level'
 

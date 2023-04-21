@@ -134,7 +134,7 @@ class XRAY_MT_surface_presets(bpy.types.Menu):
 
 class XRAY_OT_add_surface_preset(
         bl_operators.presets.AddPresetBase,
-        bpy.types.Operator
+        utils.ie.BaseOperator
     ):
     bl_idname = 'xray.surface_preset_add'
     bl_label = 'Add Surface Preset'

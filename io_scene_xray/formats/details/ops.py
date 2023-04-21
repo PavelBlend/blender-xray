@@ -50,7 +50,7 @@ import_props = {
 
 
 class XRAY_OT_import_details(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
     bl_idname = 'xray_import.details'
@@ -135,7 +135,7 @@ export_props = {
 
 
 class XRAY_OT_export_details(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.details'
@@ -217,7 +217,7 @@ class XRAY_OT_export_details(
         return super().invoke(context, event)
 
 
-class XRAY_OT_pack_details_images(bpy.types.Operator):
+class XRAY_OT_pack_details_images(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.pack_details_images'
     bl_label = 'Pack Details Images'
     bl_description = 'Pack Details Images as PNG'

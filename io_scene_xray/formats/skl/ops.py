@@ -45,7 +45,10 @@ import_props = {
 }
 
 
-class XRAY_OT_import_skls(ie.BaseOperator, bpy_extras.io_utils.ImportHelper):
+class XRAY_OT_import_skls(
+        utils.ie.BaseOperator,
+        bpy_extras.io_utils.ImportHelper
+    ):
     bl_idname = 'xray_import.skls'
     bl_label = 'Import .skl/.skls'
     bl_description = 'Imports X-Ray skeletal amination'
@@ -180,7 +183,10 @@ export_props = {
 }
 
 
-class XRAY_OT_export_skl(ie.BaseOperator, bpy_extras.io_utils.ExportHelper):
+class XRAY_OT_export_skl(
+        utils.ie.BaseOperator,
+        bpy_extras.io_utils.ExportHelper
+    ):
     bl_idname = 'xray_export.skl'
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animation'
@@ -227,7 +233,7 @@ export_props = {
 
 
 class XRAY_OT_export_skls_file(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.skls_file'
@@ -296,7 +302,7 @@ export_props = {
 }
 
 
-class XRAY_OT_export_skls(ie.BaseOperator):
+class XRAY_OT_export_skls(utils.ie.BaseOperator):
     bl_idname = 'xray_export.skls'
     bl_label = 'Export .skls'
     bl_description = 'Exports X-Ray skeletal animations'
@@ -374,7 +380,7 @@ export_props = {
 }
 
 
-class XRAY_OT_export_skl_batch(ie.BaseOperator):
+class XRAY_OT_export_skl_batch(utils.ie.BaseOperator):
     bl_idname = 'xray_export.skl_batch'
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animations'

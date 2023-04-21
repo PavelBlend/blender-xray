@@ -74,7 +74,7 @@ def get_bone_list(obj, mode, report):
     return bones
 
 
-class JointLimitsBaseOperator(bpy.types.Operator):
+class JointLimitsBaseOperator(utils.ie.BaseOperator):
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod

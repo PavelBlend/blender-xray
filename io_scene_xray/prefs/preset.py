@@ -14,7 +14,7 @@ class XRAY_MT_prefs_presets(bpy.types.Menu):
     draw = bpy.types.Menu.draw_preset
 
 
-class XRAY_OT_add_prefs_preset(bl_operators.presets.AddPresetBase, bpy.types.Operator):
+class XRAY_OT_add_prefs_preset(bl_operators.presets.AddPresetBase, utils.ie.BaseOperator):
     bl_idname = 'xray.prefs_preset_add'
     bl_label = 'Add XRay Preferences Preset'
     preset_menu = 'XRAY_MT_prefs_presets'

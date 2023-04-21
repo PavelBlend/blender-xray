@@ -112,7 +112,7 @@ op_props = {
 renders_28x = ('CYCLES', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH')
 
 
-class XRAY_OT_change_shader_params(bpy.types.Operator):
+class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.change_shader_params'
     bl_label = 'Change Shader Parameters'
     bl_description = ''

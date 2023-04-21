@@ -73,7 +73,8 @@ import_props = {
 
 
 class XRAY_OT_import_omf(
-        ie.BaseOperator, bpy_extras.io_utils.ImportHelper
+        utils.ie.BaseOperator,
+        bpy_extras.io_utils.ImportHelper
     ):
 
     bl_idname = 'xray_import.omf'
@@ -216,7 +217,10 @@ export_props = {
 }
 
 
-class XRAY_OT_export_omf(ie.BaseOperator, bpy_extras.io_utils.ExportHelper):
+class XRAY_OT_export_omf(
+        utils.ie.BaseOperator,
+        bpy_extras.io_utils.ExportHelper
+    ):
     bl_idname = 'xray_export.omf'
     bl_label = 'Export .omf'
     bl_description = 'Exports X-Ray skeletal game motions'

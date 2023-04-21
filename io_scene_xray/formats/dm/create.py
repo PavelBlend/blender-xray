@@ -94,9 +94,18 @@ def find_bpy_texture(det_model, abs_image_path, alternative_image_path):
     return bpy_texture
 
 
+def load_image(path):
+    if not os.path.exists(path):
+        raise RuntimeError(path)
+
+    bpy_image = bpy.data.images.load(path)
+
+    return bpy_image
+
+
 def create_bpy_image(det_model, abs_image_path):
     try:
-        bpy_image = bpy.data.images.load(abs_image_path)
+        bpy_image = load_image(abs_image_path)
 
     except RuntimeError:    # e.g. 'Error: Cannot read ...'
 
@@ -107,7 +116,7 @@ def create_bpy_image(det_model, abs_image_path):
                         os.path.dirname(det_model.file_path),
                         det_model.texture + '.dds'
                 ))
-                bpy_image = bpy.data.images.load(abs_image_path)
+                bpy_image = load_image(abs_image_path)
             except RuntimeError:
                 log.warn(text.warn.tex_not_found, path=abs_image_path)
                 bpy_image = create_empty_image(det_model, abs_image_path)

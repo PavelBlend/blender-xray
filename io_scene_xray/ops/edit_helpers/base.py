@@ -104,7 +104,7 @@ def get_object_helper(context):
     return helper
 
 
-class XRAY_OT_edit_cancel(bpy.types.Operator):
+class XRAY_OT_edit_cancel(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_cancel'
     bl_label = 'Cancel'
     bl_description = 'Cancel editing and remove a helper object'

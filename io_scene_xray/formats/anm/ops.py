@@ -38,7 +38,7 @@ import_props = {
 
 
 class XRAY_OT_import_anm(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
 
@@ -113,7 +113,7 @@ export_props = {
 
 
 class XRAY_OT_export_anm_file(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.anm_file'
@@ -194,7 +194,7 @@ export_props = {
 }
 
 
-class XRAY_OT_export_anm(ie.BaseOperator):
+class XRAY_OT_export_anm(utils.ie.BaseOperator):
     bl_idname = 'xray_export.anm'
     bl_label = 'Export .anm'
     bl_description = 'Exports X-Ray animation'

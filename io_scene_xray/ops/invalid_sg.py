@@ -99,7 +99,7 @@ def check_invalid_smooth_groups():
     utils.version.set_active_object(None)
 
 
-class XRAY_OT_check_invalid_sg_objs(bpy.types.Operator):
+class XRAY_OT_check_invalid_sg_objs(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.check_invalid_sg_objs'
     bl_label = 'Check Invalid Smooth Groups'
     bl_options = {'REGISTER', 'UNDO'}

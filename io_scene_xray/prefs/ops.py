@@ -6,7 +6,7 @@ from . import props
 from .. import utils
 
 
-class XRAY_OT_reset_prefs_settings(bpy.types.Operator):
+class XRAY_OT_reset_prefs_settings(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.reset_preferences_settings'
     bl_label = 'Reset All Settings'
 
@@ -29,7 +29,7 @@ op_props = {
 }
 
 
-class XRAY_OT_explicit_path(bpy.types.Operator):
+class XRAY_OT_explicit_path(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.explicit_path'
     bl_label = 'Make Explicit'
     bl_description = 'Make this path explicit using the automatically calculated value'

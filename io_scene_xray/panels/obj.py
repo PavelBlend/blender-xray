@@ -24,7 +24,7 @@ TRANSLATION_TEXT = 'Translation'
 ROTATION_TEXT = 'Rotation'
 
 
-class XRAY_OT_prop_clip(bpy.types.Operator):
+class XRAY_OT_prop_clip(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.propclip'
     bl_label = ''
 
@@ -117,7 +117,7 @@ def draw_motion_list_elements(layout):
     )
 
 
-class XRAY_OT_remove_all_motion_refs(bpy.types.Operator):
+class XRAY_OT_remove_all_motion_refs(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.remove_all_motion_refs'
     bl_label = 'Remove All'
     bl_description = 'Remove all motion references'
@@ -139,7 +139,7 @@ class XRAY_OT_remove_all_motion_refs(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_copy_motion_refs_list(bpy.types.Operator):
+class XRAY_OT_copy_motion_refs_list(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.copy_motion_refs_list'
     bl_label = 'Copy Motion References'
     bl_description = 'Copy motion references list to clipboard'
@@ -171,7 +171,7 @@ class XRAY_OT_copy_motion_refs_list(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_paste_motion_refs_list(bpy.types.Operator):
+class XRAY_OT_paste_motion_refs_list(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.paste_motion_refs_list'
     bl_label = 'Past Motion References'
     bl_description = 'Paste motion references list from clipboard'
@@ -208,7 +208,7 @@ op_props = {
 }
 
 
-class XRAY_OT_sort_motion_refs_list(bpy.types.Operator):
+class XRAY_OT_sort_motion_refs_list(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.sort_motion_refs_list'
     bl_label = 'Sort Motion References'
     bl_description = 'Sort motion references list'
@@ -269,7 +269,7 @@ op_props = {
 }
 
 
-class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
+class XRAY_OT_add_motion_ref_from_file(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.add_motion_ref_from_file'
     bl_label = 'Add Motion Reference'
     bl_description = 'Add motion reference from file path'

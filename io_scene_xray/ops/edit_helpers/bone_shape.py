@@ -70,7 +70,7 @@ def _create_bmesh(shape_type):
     return mesh
 
 
-class XRAY_OT_edit_shape(bpy.types.Operator):
+class XRAY_OT_edit_shape(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_bone_shape'
     bl_label = 'Edit Bone Shape'
     bl_description = 'Create a helper object that can be ' \
@@ -180,7 +180,7 @@ def apply_shape(bone, shape_matrix):
     xsh.set_curver()
 
 
-class XRAY_OT_apply_shape(bpy.types.Operator):
+class XRAY_OT_apply_shape(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_bone_shape_apply'
     bl_label = 'Apply Shape'
     bl_options = {'UNDO'}
@@ -301,7 +301,7 @@ def get_obb(bone, for_cylinder):
     return obb_mat
 
 
-class XRAY_OT_fit_shape(bpy.types.Operator):
+class XRAY_OT_fit_shape(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_bone_shape_fit'
     bl_label = 'Fit Shape'
     bl_options = {'UNDO'}

@@ -36,7 +36,7 @@ class XRAY_UL_skls_list_item(bpy.types.UIList):
         row.label(text=item.name)
 
 
-class BaseSklsBrowserOperator(bpy.types.Operator):
+class BaseSklsBrowserOperator(utils.ie.BaseOperator):
     @classmethod
     def poll(cls, context):
         obj = context.active_object

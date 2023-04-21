@@ -48,7 +48,7 @@ import_props = {
 
 
 class XRAY_OT_import_bones(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
     bl_idname = 'xray_import.bones'
@@ -129,7 +129,7 @@ export_props = {
 }
 
 
-class XRAY_OT_export_bones(ie.BaseOperator):
+class XRAY_OT_export_bones(utils.ie.BaseOperator):
     bl_idname = 'xray_export.bones'
     bl_label = 'Export .bones'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -221,7 +221,7 @@ export_props = {
 
 
 class XRAY_OT_export_bone(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.bone'

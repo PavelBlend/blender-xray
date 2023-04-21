@@ -7,7 +7,7 @@ from .. import text
 from .. import rw
 
 
-class XRAY_OT_add_all_actions(bpy.types.Operator):
+class XRAY_OT_add_all_actions(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.add_all_actions'
     bl_label = 'Add All Actions'
     bl_description = 'Add all actions to motion list'
@@ -80,7 +80,7 @@ class XRAY_OT_add_all_actions(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_remove_all_actions(bpy.types.Operator):
+class XRAY_OT_remove_all_actions(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.remove_all_actions'
     bl_label = 'Remove All Actions'
     bl_description = 'Remove all actions'
@@ -103,7 +103,7 @@ class XRAY_OT_remove_all_actions(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_clean_actions(bpy.types.Operator):
+class XRAY_OT_clean_actions(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.clean_actions'
     bl_label = 'Clean Actions'
     bl_description = 'Remove non-existent actions'
@@ -146,7 +146,7 @@ MOTION_NAME_PARAM = 'motion_name'
 EXPORT_NAME_PARAM = 'export_name'
 
 
-class XRAY_OT_copy_actions(bpy.types.Operator):
+class XRAY_OT_copy_actions(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.copy_actions'
     bl_label = 'Copy Actions'
     bl_description = 'Copy actions list to clipboard'
@@ -185,7 +185,7 @@ class XRAY_OT_copy_actions(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_paste_actions(bpy.types.Operator):
+class XRAY_OT_paste_actions(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.paste_actions'
     bl_label = 'Past Actions'
     bl_description = 'Paste actions list from clipboard'
@@ -246,7 +246,7 @@ op_props = {
 }
 
 
-class XRAY_OT_sort_actions(bpy.types.Operator):
+class XRAY_OT_sort_actions(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.sort_actions'
     bl_label = 'Sort Motions'
     bl_description = 'Sort motions list'

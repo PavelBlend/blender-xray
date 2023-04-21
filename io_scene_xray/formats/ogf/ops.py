@@ -53,7 +53,7 @@ export_props = {
 
 
 class XRAY_OT_export_ogf_file(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.ogf_file'
@@ -135,7 +135,7 @@ batch_export_props = {
 }
 
 
-class XRAY_OT_export_ogf(ie.BaseOperator):
+class XRAY_OT_export_ogf(utils.ie.BaseOperator):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

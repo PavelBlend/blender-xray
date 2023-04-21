@@ -52,7 +52,7 @@ def check_for_updates():
         )
 
 
-class XRAY_OT_check_update(bpy.types.Operator):
+class XRAY_OT_check_update(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.check_update'
     bl_label = 'Check for Update'
     bl_options = {'REGISTER', 'UNDO'}
@@ -67,7 +67,7 @@ op_props = {
 }
 
 
-class XRAY_OT_install_update(bpy.types.Operator):
+class XRAY_OT_install_update(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.download_update'
     bl_label = 'Download Update?'
     bl_description = 'Download Addon Last Release'

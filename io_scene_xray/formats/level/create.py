@@ -231,8 +231,12 @@ def create_empty_image(texture, absolute_image_path):
 
 
 def load_image(absolute_texture_path):
+    if not os.path.exists(absolute_texture_path):
+        raise RuntimeError(absolute_texture_path)
+
     bpy_image = bpy.data.images.load(absolute_texture_path)
     bpy_image.alpha_mode = 'STRAIGHT'
+
     return bpy_image
 
 

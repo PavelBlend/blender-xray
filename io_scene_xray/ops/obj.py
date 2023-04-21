@@ -30,7 +30,7 @@ op_props = {
 }
 
 
-class XRAY_OT_place_objects(bpy.types.Operator):
+class XRAY_OT_place_objects(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.place_objects'
     bl_label = 'Place Selected Objects'
     bl_description = ''
@@ -131,7 +131,7 @@ op_props = {
 }
 
 
-class XRAY_OT_colorize_objects(bpy.types.Operator):
+class XRAY_OT_colorize_objects(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.colorize_objects'
     bl_label = 'Colorize Objects'
     bl_description = 'Set a pseudo-random object color'
@@ -228,7 +228,7 @@ class XRAY_OT_colorize_objects(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
-class XRAY_OT_set_asset_author(bpy.types.Operator):
+class XRAY_OT_set_asset_author(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.set_asset_author'
     bl_label = 'Set Object Asset Author'
     bl_description = ''

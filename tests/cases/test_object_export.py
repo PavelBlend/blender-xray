@@ -253,9 +253,9 @@ class TestObjectExport(utils.XRayTestCase):
     def test_merge_objects(self):
         # Arrange
         objs = self._create_objects()
+        objs[0].modifiers.new('subsurf', 'SUBSURF')
         arm_obj = _create_armature(objs)
         utils.set_active_object(arm_obj)
-        objs[0].modifiers.new('subsurf', 'SUBSURF')
 
         # Act
         bpy.ops.xray_export.object(

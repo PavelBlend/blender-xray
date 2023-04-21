@@ -151,7 +151,7 @@ op_props = {
 }
 
 
-class XRAY_OT_change_userdata(bpy.types.Operator):
+class XRAY_OT_change_userdata(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.change_userdata'
     bl_label = 'Change Userdata'
     bl_options = {'REGISTER', 'UNDO'}
@@ -251,7 +251,7 @@ op_props = {
 }
 
 
-class XRAY_OT_change_lod_ref(bpy.types.Operator):
+class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.change_lod_ref'
     bl_label = 'Change LOD Reference'
     bl_options = {'REGISTER', 'UNDO'}
@@ -360,7 +360,7 @@ op_props = {
 }
 
 
-class XRAY_OT_change_motion_refs(bpy.types.Operator):
+class XRAY_OT_change_motion_refs(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.change_motion_refs'
     bl_label = 'Change Motion References'
     bl_options = {'REGISTER', 'UNDO'}
@@ -475,7 +475,7 @@ op_props = {
 }
 
 
-class XRAY_OT_change_object_type(bpy.types.Operator):
+class XRAY_OT_change_object_type(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.change_object_type'
     bl_label = 'Change Object Type'
     bl_options = {'REGISTER', 'UNDO'}
@@ -526,7 +526,7 @@ op_props = {
 }
 
 
-class XRAY_OT_change_hq_export(bpy.types.Operator):
+class XRAY_OT_change_hq_export(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.change_hq_export'
     bl_label = 'Change HQ Export'
     bl_options = {'REGISTER', 'UNDO'}

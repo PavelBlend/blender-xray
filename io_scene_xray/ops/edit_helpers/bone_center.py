@@ -62,7 +62,7 @@ class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
 HELPER = _BoneCenterEditHelper('bone-center-edit')
 
 
-class XRAY_OT_edit_center(bpy.types.Operator):
+class XRAY_OT_edit_center(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_bone_center'
     bl_label = 'Edit Bone Center'
     bl_description = 'Create a helper object that can be ' \
@@ -78,7 +78,7 @@ class XRAY_OT_edit_center(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_align_center(bpy.types.Operator):
+class XRAY_OT_align_center(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_bone_center_align'
     bl_label = 'Align Center'
 
@@ -110,7 +110,7 @@ class XRAY_OT_align_center(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_apply_center(bpy.types.Operator):
+class XRAY_OT_apply_center(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_bone_center_apply'
     bl_label = 'Apply Center'
     bl_options = {'UNDO'}

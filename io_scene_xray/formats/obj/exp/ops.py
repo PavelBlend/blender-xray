@@ -92,7 +92,7 @@ export_props = {
 }
 
 
-class XRAY_OT_export_object(ie.BaseOperator, _WithExportMotions):
+class XRAY_OT_export_object(utils.ie.BaseOperator, _WithExportMotions):
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
     bl_options = {'PRESET'}
@@ -182,7 +182,7 @@ export_props = {
 
 
 class XRAY_OT_export_object_file(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper,
         _WithExportMotions
     ):
@@ -258,7 +258,7 @@ export_props = {
 }
 
 
-class XRAY_OT_export_project(ie.BaseOperator):
+class XRAY_OT_export_project(utils.ie.BaseOperator):
     bl_idname = 'xray_export.project'
     bl_label = 'Export XRay Project'
 

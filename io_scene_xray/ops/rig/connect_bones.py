@@ -205,7 +205,7 @@ def connect_bones(arm, mesh_objs):
     bpy.ops.object.mode_set(mode='OBJECT')
 
 
-class XRAY_OT_create_connected_bones(bpy.types.Operator):
+class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.create_connected_bones'
     bl_label = 'Create Connected Bones'
     bl_options = {'REGISTER', 'UNDO'}

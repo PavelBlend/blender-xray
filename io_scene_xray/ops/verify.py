@@ -20,7 +20,7 @@ op_props = {
 }
 
 
-class XRAY_OT_verify_uv(bpy.types.Operator):
+class XRAY_OT_verify_uv(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.verify_uv'
     bl_label = 'Verify UV'
     bl_description = 'Find UV-maps errors in selected objects'

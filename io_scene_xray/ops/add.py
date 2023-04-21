@@ -13,7 +13,7 @@ SOC_HUD_FOV = 30.5
 DRAW_SIZE = 0.5
 
 
-class XRAY_OT_add_camera(bpy.types.Operator):
+class XRAY_OT_add_camera(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.add_camera'
     bl_label = 'Add X-Ray Camera'
     bl_options = {'REGISTER', 'UNDO'}

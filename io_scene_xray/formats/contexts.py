@@ -61,14 +61,20 @@ class ImportMeshContext(MeshContext):
             if bpy.path.abspath(bpy_image.filepath) == filepath:
                 result = bpy_image
                 break
+
         if result is None:
-            try:
-                result = bpy.data.images.load(filepath)
-            except RuntimeError:    # e.g. 'Error: Cannot read ...'
+            if os.path.exists(filepath):
+                try:
+                    result = bpy.data.images.load(filepath)
+                except RuntimeError:    # e.g. 'Error: Cannot read ...'
+                    pass
+
+            if not result:
                 log.warn('texture file not found', path=filepath)
                 result = bpy.data.images.new(os.path.basename(relpath), 0, 0)
                 result.source = 'FILE'
                 result.filepath = filepath
+
         return result
 
 

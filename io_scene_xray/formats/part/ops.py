@@ -31,7 +31,7 @@ import_props = {
 }
 
 
-class XRAY_OT_import_part(ie.BaseOperator):
+class XRAY_OT_import_part(utils.ie.BaseOperator):
     bl_idname = 'xray_import.part'
     bl_label = 'Import .part'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

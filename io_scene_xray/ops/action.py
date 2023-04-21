@@ -56,7 +56,7 @@ def read_buffer_data():
         xray.bonestart_name = params.get('bonestart_name')
 
 
-class XRAY_OT_copy_action_settings(bpy.types.Operator):
+class XRAY_OT_copy_action_settings(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.copy_action_settings'
     bl_label = 'Copy'
 
@@ -67,7 +67,7 @@ class XRAY_OT_copy_action_settings(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class XRAY_OT_paste_action_settings(bpy.types.Operator):
+class XRAY_OT_paste_action_settings(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.paste_action_settings'
     bl_label = 'Paste'
     bl_options = {'REGISTER', 'UNDO'}
@@ -126,7 +126,7 @@ op_props = {
 }
 
 
-class XRAY_OT_change_action_bake_settings(bpy.types.Operator):
+class XRAY_OT_change_action_bake_settings(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.change_action_bake_settings'
     bl_label = 'Change Action Bake Settings'
     bl_options = {'REGISTER', 'UNDO'}
@@ -281,7 +281,7 @@ op_props = {
 }
 
 
-class XRAY_OT_rename_actions(bpy.types.Operator):
+class XRAY_OT_rename_actions(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.rename_actions'
     bl_label = 'Rename Actions'
     bl_options = {'REGISTER', 'UNDO'}

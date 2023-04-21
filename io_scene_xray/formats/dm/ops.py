@@ -46,7 +46,7 @@ import_props = {
 
 
 class XRAY_OT_import_dm(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
 
@@ -95,7 +95,7 @@ export_props = {
 }
 
 
-class XRAY_OT_export_dm(ie.BaseOperator):
+class XRAY_OT_export_dm(utils.ie.BaseOperator):
     bl_idname = 'xray_export.dm'
     bl_label = 'Export .dm'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -175,7 +175,7 @@ export_props = {
 
 
 class XRAY_OT_export_dm_file(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
     bl_idname = 'xray_export.dm_file'

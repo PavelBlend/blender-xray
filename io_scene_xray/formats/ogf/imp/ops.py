@@ -53,7 +53,7 @@ import_props = {
 
 
 class XRAY_OT_import_ogf(
-        ie.BaseOperator,
+        utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
     bl_idname = 'xray_import.ogf'

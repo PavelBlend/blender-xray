@@ -73,7 +73,7 @@ op_props = {
 }
 
 
-class XRAY_OT_switch_render(bpy.types.Operator):
+class XRAY_OT_switch_render(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.switch_render'
     bl_label = 'Switch Render'
     bl_description = 'Switch Cycles/Internal Render'
@@ -119,7 +119,7 @@ class XRAY_OT_switch_render(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
-class XRAY_OT_convert_to_internal_material(bpy.types.Operator):
+class XRAY_OT_convert_to_internal_material(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.convert_to_internal'
     bl_label = 'Convert to Internal'
     bl_description = ''
@@ -233,7 +233,7 @@ op_props = {
 }
 
 
-class XRAY_OT_convert_to_cycles_material(bpy.types.Operator):
+class XRAY_OT_convert_to_cycles_material(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.convert_to_cycles'
     bl_label = 'Convert to Cycles'
     bl_description = ''
@@ -352,7 +352,7 @@ op_props = {
 }
 
 
-class XRAY_OT_colorize_materials(bpy.types.Operator):
+class XRAY_OT_colorize_materials(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.colorize_materials'
     bl_label = 'Colorize Materials'
     bl_description = 'Set a pseudo-random diffuse color for each surface (material)'
@@ -535,7 +535,7 @@ op_props = {
 }
 
 
-class XRAY_OT_create_material(bpy.types.Operator):
+class XRAY_OT_create_material(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.create_material'
     bl_label = 'Create X-Ray Material'
     bl_description = ''

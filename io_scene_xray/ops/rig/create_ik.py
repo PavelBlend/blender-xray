@@ -328,7 +328,7 @@ props = {
 }
 
 
-class XRAY_OT_create_ik(bpy.types.Operator):
+class XRAY_OT_create_ik(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.create_ik'
     bl_label = 'Create IK'
     bl_options = {'REGISTER', 'UNDO'}
