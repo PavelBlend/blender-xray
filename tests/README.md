@@ -6,7 +6,8 @@ To run tests from this directory the following components are required:
 - [Blender](http://www.blender.org/) - see the wiki for a list of [supported versions](https://github.com/PavelBlend/blender-xray/wiki#supported-blender-versions).
 - [Coverage](https://pypi.python.org/pypi/coverage) - required for gathering a statistics which lines of code are covered with tests.
 This package should be installed within blender embedded python rather than a system-wide one.
-To do this, you could download the package archive and extract the `coverage` folder (which contains the `__init__.py` file) from the archive into the blender embedded python directory (`bender-installation-directory`/`blender-version`/python/lib/`python-version`).
+To do this, you could download the package archive and extract the `coverage` folder (which contains the `__init__.py` file) from the archive into the blender embedded python directory:
+`blender-installation-directory`/`blender-version`/python/lib/site-packages/
 
 ## Running the Tests
 To run all tests, invoke the `runner.py` script from the repository-root directory using `blender`:
