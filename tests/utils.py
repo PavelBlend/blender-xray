@@ -153,13 +153,17 @@ class XRayTestCase(unittest.TestCase):
         return bpy.data.texts[-1].as_string()
 
 
-def create_bmesh(vertexes, indexes, create_uv=True):
+def create_bmesh(verts, faces, create_uv=True):
     bm = bmesh.new()
-    verts = [bm.verts.new(v) for v in vertexes]
-    for ii in indexes:
-        bm.faces.new((verts[i] for i in ii))
+
+    verts = [bm.verts.new(coord) for coord in verts]
+
+    for indices in faces:
+        bm.faces.new((verts[vert_index] for vert_index in indices))
+
     if create_uv:
         bm.loops.layers.uv.new('uv')
+
     return bm
 
 

@@ -82,10 +82,7 @@ filename_ext = '.object'
 export_props = {
     'objects': bpy.props.StringProperty(options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
-
-    'texture_name_from_image_path': \
-        ie.PropObjectTextureNamesFromPath(),
-
+    'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
     'fmt_version': ie.PropSDKVersion(),
     'use_export_paths': ie.PropUseExportPaths(),
     'smoothing_out_of': ie.prop_smoothing_out_of()
