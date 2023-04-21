@@ -9,7 +9,7 @@ class TestAnmImport(utils.XRayTestCase):
     def test_default(self):
         # Act
         bpy.ops.xray_import.anm(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.anm'}],
         )
 
@@ -23,7 +23,7 @@ class TestAnmImport(utils.XRayTestCase):
     def test_v3(self):
         # Act
         bpy.ops.xray_import.anm(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_v3.anm'}],
             camera_animation=False,
         )
@@ -41,7 +41,7 @@ class TestAnmImport(utils.XRayTestCase):
     def test_v4(self):
         # Act
         bpy.ops.xray_import.anm(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_v4.anm'}],
             camera_animation=False,
         )
@@ -59,7 +59,7 @@ class TestAnmImport(utils.XRayTestCase):
     def test_wo_camera(self):
         # Act
         bpy.ops.xray_import.anm(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.anm'}],
             camera_animation=False,
         )
@@ -71,7 +71,7 @@ class TestAnmImport(utils.XRayTestCase):
     def test_tcb(self):
         # Act
         bpy.ops.xray_import.anm(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_tcb.anm'}],
             camera_animation=False,
         )
@@ -85,7 +85,7 @@ class TestAnmImport(utils.XRayTestCase):
     def test_bezier_2d(self):
         # Act
         bpy.ops.xray_import.anm(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_bezier_2d.anm'}],
             camera_animation=False,
         )
@@ -99,7 +99,7 @@ class TestAnmImport(utils.XRayTestCase):
     def test_has_no_chunk(self):
         # Act
         bpy.ops.xray_import.anm(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.object'}],
             camera_animation=False,
         )
@@ -113,7 +113,7 @@ class TestAnmImport(utils.XRayTestCase):
     def test_file_not_found(self):
         # Act
         bpy.ops.xray_import.anm(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'not_found.anm'}],
             camera_animation=False,
         )
@@ -127,7 +127,7 @@ class TestAnmImport(utils.XRayTestCase):
     def test_name_and_linear(self):
         # Act
         bpy.ops.xray_import.anm(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_name_and_linear.anm'}],
             camera_animation=False,
         )

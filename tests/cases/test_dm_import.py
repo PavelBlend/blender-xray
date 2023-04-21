@@ -7,7 +7,7 @@ class TestDmImport(utils.XRayTestCase):
     def test_default(self):
         # Act
         bpy.ops.xray_import.dm(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.dm'}],
         )
 

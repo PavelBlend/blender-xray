@@ -11,7 +11,7 @@ class TestObjectInitialize(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.object'}],
         )
         handlers.scene_update_post(bpy.context.scene)

@@ -9,7 +9,7 @@ class TestBonesImport(utils.XRayTestCase):
     def test_default(self):
         # import mesh and armature
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_bones.object'}],
         )
         arm_obj = bpy.data.objects['test_fmt_bones.object']
@@ -21,7 +21,7 @@ class TestBonesImport(utils.XRayTestCase):
 
         # Act import
         bpy.ops.xray_import.bones(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.bones'}],
             import_bone_parts=True,
             import_bone_properties=True
@@ -134,7 +134,7 @@ class TestBonesImport(utils.XRayTestCase):
     def test_import_without_bone_parts(self):
         # import mesh and armature
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_bones.object'}],
         )
         arm_obj = bpy.data.objects['test_fmt_bones.object']
@@ -146,7 +146,7 @@ class TestBonesImport(utils.XRayTestCase):
 
         # Act import
         bpy.ops.xray_import.bones(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.bones'}],
             import_bone_parts=False,
             import_bone_properties=True
@@ -158,7 +158,7 @@ class TestBonesImport(utils.XRayTestCase):
     def test_import_without_bone_props(self):
         # import mesh and armature
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_bones.object'}],
         )
         arm_obj = bpy.data.objects['test_fmt_bones.object']
@@ -170,7 +170,7 @@ class TestBonesImport(utils.XRayTestCase):
 
         # Act import
         bpy.ops.xray_import.bones(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.bones'}],
             import_bone_parts=True,
             import_bone_properties=False
@@ -182,7 +182,7 @@ class TestBonesImport(utils.XRayTestCase):
     def test_import_replace_bone_groups(self):
         # import mesh and armature
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_bones.object'}],
         )
         arm_obj = bpy.data.objects['test_fmt_bones.object']
@@ -190,7 +190,7 @@ class TestBonesImport(utils.XRayTestCase):
 
         # Act import
         bpy.ops.xray_import.bones(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.bones'}],
             import_bone_parts=True,
             import_bone_properties=False
@@ -202,7 +202,7 @@ class TestBonesImport(utils.XRayTestCase):
     def test_import_has_no_bone(self):
         # import mesh and armature
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_bones.object'}],
         )
         arm_obj = bpy.data.objects['test_fmt_bones.object']
@@ -211,7 +211,7 @@ class TestBonesImport(utils.XRayTestCase):
 
         # Act import
         bpy.ops.xray_import.bones(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.bones'}],
             import_bone_parts=True,
             import_bone_properties=True
@@ -230,7 +230,7 @@ class TestBonesImport(utils.XRayTestCase):
     def test_import_not_have_bone_parts(self):
         # import mesh and armature
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_bones.object'}],
         )
         arm_obj = bpy.data.objects['test_fmt_bones.object']
@@ -238,7 +238,7 @@ class TestBonesImport(utils.XRayTestCase):
 
         # Act import
         bpy.ops.xray_import.bones(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_no_boneparts.bones'}],
             import_bone_parts=True,
             import_bone_properties=True

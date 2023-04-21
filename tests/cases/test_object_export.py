@@ -182,7 +182,8 @@ class TestObjectExport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_export.object_file(
-            object='empty', filepath=self.outpath('test.object'),
+            object='empty',
+            filepath=self.outpath('test.object'),
             texture_name_from_image_path=False
         )
 
@@ -197,7 +198,8 @@ class TestObjectExport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_export.object_file(
-            object='tobj1', filepath=self.outpath('test.object'),
+            object='tobj1',
+            filepath=self.outpath('test.object'),
         )
 
         # Assert
@@ -212,7 +214,8 @@ class TestObjectExport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_export.object_file(
-            object='tobj1', filepath=self.outpath('test.object'),
+            object='tobj1',
+            filepath=self.outpath('test.object'),
         )
 
         # Assert
@@ -241,8 +244,10 @@ class TestObjectExport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_export.object_file(
-            object='tobj1', filepath=self.outpath('test_split_normals.object'),
-            texture_name_from_image_path=False, smoothing_out_of='SPLIT_NORMALS'
+            object='tobj1',
+            filepath=self.outpath('test_split_normals.object'),
+            texture_name_from_image_path=False,
+            smoothing_out_of='SPLIT_NORMALS'
         )
 
         # Assert
@@ -259,7 +264,8 @@ class TestObjectExport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_export.object(
-            objects='tobj', directory=self.outpath(),
+            objects='tobj',
+            directory=self.outpath(),
             texture_name_from_image_path=False,
             export_motions=False,
         )
@@ -288,13 +294,15 @@ class TestObjectExport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_export.object(
-            objects='skeletal_object_soc_format', directory=self.outpath(),
+            objects='skeletal_object_soc_format',
+            directory=self.outpath(),
             texture_name_from_image_path=False,
             export_motions=False
         )
         obj.name = 'skeletal_object_cop_format'
         bpy.ops.xray_export.object(
-            objects='skeletal_object_cop_format', directory=self.outpath(),
+            objects='skeletal_object_cop_format',
+            directory=self.outpath(),
             texture_name_from_image_path=False,
             export_motions=False,
             fmt_version='cscop'

@@ -6,7 +6,7 @@ from tests import utils
 class TestErrImport(utils.XRayTestCase):
     def test_default(self):
         # Act
-        bpy.ops.xray_import.err(filepath=self.relpath('test_fmt.err'))
+        bpy.ops.xray_import.err(filepath=self.binpath('test_fmt.err'))
 
         # Assert
         self.assertReportsNotContains('WARNING')
@@ -16,7 +16,7 @@ class TestErrImport(utils.XRayTestCase):
 
     def test_sdk_err_format(self):
         # Act
-        bpy.ops.xray_import.err(filepath=self.relpath('test_fmt_sdk.err'))
+        bpy.ops.xray_import.err(filepath=self.binpath('test_fmt_sdk.err'))
 
         # Assert
         self.assertReportsNotContains('WARNING')

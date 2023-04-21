@@ -10,7 +10,7 @@ from tests import utils
 class TestLtxReading(utils.XRayTestCase):
     def test_paths(self):
         # Act
-        ltx_folder = 'tests/cases'.replace('/', os.sep)
+        ltx_folder = self.binpath()
         ltx_name = 'test_fmt_path.ltx'
         ltx_path = os.path.join(ltx_folder, ltx_name)
         ltx = io_scene_xray.rw.ltx.StalkerLtxParser(ltx_path)
@@ -31,7 +31,7 @@ class TestLtxReading(utils.XRayTestCase):
 
     def test_config(self):
         # Act
-        ltx_folder = 'tests/cases'.replace('/', os.sep)
+        ltx_folder = self.binpath()
         ltx_name = 'test_fmt_config.ltx'
         ltx_path = os.path.join(ltx_folder, ltx_name)
         ltx = io_scene_xray.rw.ltx.StalkerLtxParser(ltx_path)

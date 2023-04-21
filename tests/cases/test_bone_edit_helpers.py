@@ -15,7 +15,7 @@ class TestBoneEditHelpers(XRayTestCase):
         self.assertFalse(op_edit.poll(), msg='no armature')
 
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_armature.object'}]
         )
         arm = bpy.data.objects['test_fmt_armature.object']
@@ -91,7 +91,7 @@ class TestBoneEditHelpers(XRayTestCase):
         self.assertFalse(op_edit.poll(), msg='no armature')
 
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_armature.object'}]
         )
         arm = bpy.data.objects['test_fmt_armature.object']

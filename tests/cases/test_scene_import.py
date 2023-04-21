@@ -12,7 +12,7 @@ class TestSceneImport(tests.utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_import.scene(
-            filepath=os.path.join(self.relpath(), 'test_fmt.level')
+            filepath=os.path.join(self.binpath(), 'test_fmt.level')
         )
 
         # Assert

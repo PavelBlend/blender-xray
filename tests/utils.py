@@ -36,6 +36,14 @@ class XRayTestCase(unittest.TestCase):
             os.makedirs(cls.__tmp)
         return os.path.join(cls.__tmp, path)
 
+    @classmethod
+    def binpath(cls, path=None):
+        result = os.path.dirname(os.path.dirname(inspect.getfile(cls)))
+        result = os.path.join(result, 'tested')
+        if path is not None:
+            result = os.path.join(result, path)
+        return result
+
     def setUp(self):
         self._reports = []
         if self.blend_file:

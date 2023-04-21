@@ -8,7 +8,7 @@ import re
 class TestObjectImport(utils.XRayTestCase):
     def test_import_broken(self):
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_broken.object'}],
         )
         self.assertReportsContains('WARNING', re.compile('Unsupported bone shape type using default'))
@@ -20,7 +20,7 @@ class TestObjectImport(utils.XRayTestCase):
 
     def test_import_no_bone_shapes(self):
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_armature.object'}]
         )
         self.assertReportsNotContains('WARNING')
@@ -31,7 +31,7 @@ class TestObjectImport(utils.XRayTestCase):
 
     def test_import_uv(self):
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.object'}],
         )
         self.assertReportsNotContains('WARNING')
@@ -56,7 +56,7 @@ class TestObjectImport(utils.XRayTestCase):
 
     def test_import_vmrefs(self):
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_vmrefs.object'}],
         )
         self.assertReportsNotContains('WARNING')

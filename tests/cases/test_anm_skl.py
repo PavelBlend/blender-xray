@@ -14,7 +14,7 @@ class TestSklImport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_import.skls(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.skl'}],
         )
 
@@ -27,7 +27,7 @@ class TestSklImport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_import.skls(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.skl'}],
         )
 
@@ -43,10 +43,10 @@ class TestSklImport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_import.skls(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.skls'}],
         )
-        motions = list(XRAY_OT_import_skls._examine_file(self.relpath('test_fmt.skls')))
+        motions = list(XRAY_OT_import_skls._examine_file(self.binpath('test_fmt.skls')))
 
         # Assert
         self.assertReportsNotContains('WARNING')
@@ -61,7 +61,7 @@ class TestSklImport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_import.skls(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.skl'}],
             motions=[{'name': 'test_fmt', 'flag': False}],
         )
@@ -76,7 +76,7 @@ class TestSklImport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_import.skls(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.skls'}],
             motions=[{'name': 'xact', 'flag': False}],
         )

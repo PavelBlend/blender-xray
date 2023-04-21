@@ -10,7 +10,8 @@ class TestIOMotions(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_export.object(
-            objects=obj.name, directory=self.outpath(),
+            objects=obj.name,
+            directory=self.outpath(),
             texture_name_from_image_path=False,
             export_motions=True,
         )
@@ -31,7 +32,8 @@ class TestIOMotions(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_export.object(
-            objects=obj.name, directory=self.outpath(),
+            objects=obj.name,
+            directory=self.outpath(),
             texture_name_from_image_path=False,
             export_motions=True,
         )

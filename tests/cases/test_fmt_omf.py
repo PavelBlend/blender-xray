@@ -7,14 +7,14 @@ class TestOmf(utils.XRayTestCase):
     def test_import_general(self):
         # import mesh and armature
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_omf.object'}],
         )
         arm_obj = bpy.data.objects['test_fmt_omf.object']
         utils.set_active_object(arm_obj)
         # import motions
         bpy.ops.xray_import.omf(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.omf'}],
             import_motions=True,
             import_bone_parts=True,

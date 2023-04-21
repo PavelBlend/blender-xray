@@ -8,7 +8,7 @@ class TestFormatObject(utils.XRayTestCase):
     def test_import_sg_maya(self):
         # Act
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_sg_maya.object'}],
         )
 
@@ -20,7 +20,7 @@ class TestFormatObject(utils.XRayTestCase):
     def test_import_sg_new(self):
         # Act
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             fmt_version='cscop',
             files=[{'name': 'test_fmt_sg_new.object'}],
         )
@@ -36,11 +36,11 @@ class TestFormatObject(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_texture_caps.object'}],
         )
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_texture_caps.object'}],
         )
 
@@ -50,7 +50,7 @@ class TestFormatObject(utils.XRayTestCase):
     def test_import_with_empty_polygons(self):
         # Act
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_invalid_face.object'}],
         )
 
@@ -132,7 +132,7 @@ class TestFormatObject(utils.XRayTestCase):
     def _test_import_separate_materials(self, mat, tex, tex_equal=False):
         # Act
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.object'}],
         )
 
@@ -158,7 +158,7 @@ class TestFormatObject(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.object'}],
         )
 
@@ -175,7 +175,7 @@ class TestFormatObject(utils.XRayTestCase):
     def test_export_single_mesh(self):
         # Arrange
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt.object'}],
         )
 
@@ -199,7 +199,7 @@ class TestFormatObject(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_no_texture.object'}],
         )
 
@@ -213,7 +213,7 @@ class TestFormatObject(utils.XRayTestCase):
 
     def test_import_old_format(self):
         bpy.ops.xray_import.object(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_old.object'}],
         )
 

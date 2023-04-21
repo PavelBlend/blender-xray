@@ -8,15 +8,16 @@ from tests import utils
 class TestLevel(utils.XRayTestCase):
     def test_default(self):
         prefs = utils.get_preferences()
-        prefs.gamemtl_file = os.path.join(self.relpath(), 'gamemtl.xr')
+        prefs.gamemtl_file = os.path.join(self.binpath(), 'gamemtl.xr')
 
         # Import
         bpy.ops.xray_import.level(filepath=os.path.join(
-            self.relpath(), 'test_fmt_level', 'level'
+            self.binpath(),
+            'level'
         ))
 
         # Export
-        level_obj = bpy.data.objects['test_fmt_level']
+        level_obj = bpy.data.objects['tested']
 
         if bpy.app.version >= (2, 80, 0):
             level_obj.select_set(True)

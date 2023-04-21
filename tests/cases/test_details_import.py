@@ -7,7 +7,7 @@ class TestDetailsImport(utils.XRayTestCase):
     def test_format_version_3(self):
         # Act
         bpy.ops.xray_import.details(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_v3.details'}],
         )
 
@@ -60,7 +60,7 @@ class TestDetailsImport(utils.XRayTestCase):
     def test_format_version_2(self):
         # Act
         bpy.ops.xray_import.details(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[{'name': 'test_fmt_v2.details'}],
         )
 
@@ -93,7 +93,7 @@ class TestDetailsImport(utils.XRayTestCase):
     def test_batch_import(self):
         # Act
         bpy.ops.xray_import.details(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[
                 {'name': 'test_fmt_v2.details'},
                 {'name': 'test_fmt_v3.details'}
@@ -112,7 +112,7 @@ class TestDetailsImport(utils.XRayTestCase):
     def test_without_slots(self):
         # Act
         bpy.ops.xray_import.details(
-            directory=self.relpath(),
+            directory=self.binpath(),
             files=[
                 {'name': 'test_fmt_v2.details'},
                 {'name': 'test_fmt_v3.details'}
