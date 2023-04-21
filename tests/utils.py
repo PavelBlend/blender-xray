@@ -1,14 +1,18 @@
-import unittest
-import addon_utils
-import io
-import inspect
+# standart modules
 import os
-import shutil
 import sys
+import shutil
+import unittest
+import inspect
 import tempfile
-import bmesh
+
+# blender modules
 import bpy
-from io_scene_xray import handlers
+import bmesh
+import addon_utils
+
+# addon modules
+import io_scene_xray
 from io_scene_xray.utils.ie import BaseOperator as TestReadyOperator
 
 
@@ -39,16 +43,22 @@ class XRayTestCase(unittest.TestCase):
         else:
             bpy.ops.wm.read_homefile()
         addon_utils.enable('io_scene_xray', default_set=True)
-        handlers.load_post(None)
+        io_scene_xray.handlers.load_post(None)
         self.__prev_report_catcher = TestReadyOperator.report_catcher
-        TestReadyOperator.report_catcher = lambda op, type, message: self._reports.append((type, message))
+        TestReadyOperator.report_catcher = lambda op, report_type, message: self._reports.append((report_type, message))
 
     def tearDown(self):
         TestReadyOperator.report_catcher = self.__prev_report_catcher
         if os.path.exists(self.__tmp):
             if self.__save_test_data:
-                bpy.ops.wm.save_mainfile(filepath=os.path.join(self.__tmp, 'result.blend'))
-                new_path = os.path.join(self.__tmp_base, self.__class__.__name__, self._testMethodName)
+                bpy.ops.wm.save_mainfile(
+                    filepath=os.path.join(self.__tmp, 'result.blend')
+                )
+                new_path = os.path.join(
+                    self.__tmp_base,
+                    self.__class__.__name__,
+                    self._testMethodName
+                )
                 os.renames(self.__tmp, new_path)
             else:
                 shutil.rmtree(self.__tmp)
@@ -56,12 +66,19 @@ class XRayTestCase(unittest.TestCase):
 
     def assertFileExists(self, path, allow_empty=False, msg=None):
         if not os.path.isfile(path):
-            self.fail(self._formatMessage(msg, 'file {} is not exists'.format(path)))
+            self.fail(self._formatMessage(
+                msg,
+                'file {} is not exists'.format(path)
+            ))
+
         if (not allow_empty) and (os.path.getsize(path) == 0):
-            self.fail(self._formatMessage(msg, 'file {} is empty'.format(path)))
+            self.fail(self._formatMessage(
+                msg,
+                'file {} is empty'.format(path)
+            ))
 
     def assertOutputFiles(self, expected):
-        tmp = XRayTestCase.__tmp
+        tmp = self.__tmp
 
         normalized = {
             path.replace('/', os.path.sep)
@@ -82,41 +99,55 @@ class XRayTestCase(unittest.TestCase):
         scan_dir(existing, tmp)
         orphaned = existing - normalized
         if orphaned:
-            self.fail(self._formatMessage(None, 'files {} orphaned'.format(orphaned)))
+            self.fail(self._formatMessage(
+                None,
+                'files {} orphaned'.format(orphaned)
+            ))
 
     def assertFileContains(self, file_path, re_message=None):
         content = self.getFileSafeContent(file_path)
         match = re_message.match(content)
         if match is not None:
-            raise self.fail('Cannot match the \'{}\' file content with \'{}\''
-                            .format(file_path, re_message))
+            raise self.fail(
+                'Cannot match the "{}" file content with "{}"'.format(
+                    file_path,
+                    re_message
+                ))
 
     def getFileSafeContent(self, file_path):
-        full_path = os.path.join(XRayTestCase.__tmp, file_path)
-        with io.open(full_path, 'rb') as f:
-            return f.read().replace(b'\x00', b'')
+        full_path = os.path.join(self.__tmp, file_path)
+        with open(full_path, 'rb') as file:
+            return file.read().replace(b'\x00', b'')
 
-    def _findReport(self, type=None, re_message=None):
-        for r in self._reports:
-            if (type is not None) and (type not in r[0]):
+    def _findReport(self, report_type=None, re_message=None):
+        for report in self._reports:
+            if (report_type is not None) and (report_type not in report[0]):
                 continue
             if re_message is None:
                 continue
-            m = re_message.match(r[1])
-            if m is not None:
-                return m
+            match = re_message.match(report[1])
+            if match is not None:
+                return match
 
-    def assertReportsContains(self, type=None, re_message=None):
-        r = self._findReport(type, re_message)
-        if r is not None:
-            return r
-        raise self.fail('Cannot find report with: type={}, message={} in reports: {}'.format(type, re_message, self._reports))
+    def assertReportsContains(self, report_type=None, re_message=None):
+        report = self._findReport(report_type, re_message)
+        if report is not None:
+            return report
+        raise self.fail('Cannot find report with: type={}, message={} in reports: {}'.format(
+            report_type,
+            re_message,
+            self._reports
+        ))
 
-    def assertReportsNotContains(self, type=None, re_message=None):
-        r = self._findReport(type, re_message)
-        if r is None:
+    def assertReportsNotContains(self, report_type=None, re_message=None):
+        report = self._findReport(report_type, re_message)
+        if report is None:
             return
-        raise self.fail('Found report with: type={}, message={}: {}'.format(type, re_message, r))
+        raise self.fail('Found report with: type={}, message={}: {}'.format(
+            report_type,
+            re_message,
+            report
+        ))
 
     def getFullLogAsText(self):
         return bpy.data.texts[-1].as_string()
@@ -183,6 +214,7 @@ def create_object(bm, create_material=True):
 
 def get_preferences():
     if bpy.app.version >= (2, 80, 0):
-        return bpy.context.preferences.addons['io_scene_xray'].preferences
+        pref = bpy.context.preferences
     else:
-        return bpy.context.user_preferences.addons['io_scene_xray'].preferences
+        pref = bpy.context.user_preferences
+    return pref.addons['io_scene_xray'].preferences
