@@ -37,7 +37,7 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
     BAD_UV = True
     CORRECT_UV = False
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         column = layout.column(align=True)
         column.label(text='Mode:')
@@ -130,7 +130,7 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
 
         return result
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 

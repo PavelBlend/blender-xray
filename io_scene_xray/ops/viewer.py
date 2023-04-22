@@ -318,7 +318,7 @@ class XRAY_OT_viewer_open_folder(utils.ie.BaseOperator):
         self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         wm.fileselect_add(operator=self)
         return {'RUNNING_MODAL'}

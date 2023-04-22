@@ -64,7 +64,7 @@ class XRAY_OT_import_dm(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
 
     @log.execute_with_logger
@@ -109,7 +109,7 @@ class XRAY_OT_export_dm(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         self.layout.prop(self, 'texture_name_from_image_path')
 
@@ -135,7 +135,7 @@ class XRAY_OT_export_dm(utils.ie.BaseOperator):
             log.err(err)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         prefs = utils.version.get_preferences()
         self.texture_name_from_image_path = prefs.dm_texture_names_from_path
         objs = context.selected_objects
@@ -198,7 +198,7 @@ class XRAY_OT_export_dm_file(
             log.err(err)
         return {'FINISHED'}
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         self.layout.prop(self, 'texture_name_from_image_path')
 
@@ -208,7 +208,7 @@ class XRAY_OT_export_dm_file(
         export_context.unique_errors = set()
         exp.export_file(bpy_obj, self.filepath, export_context)
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         prefs = utils.version.get_preferences()
         self.texture_name_from_image_path = prefs.dm_texture_names_from_path
         objs = [

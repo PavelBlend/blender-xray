@@ -45,7 +45,7 @@ class XRAY_OT_import_part(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
         layout.prop(self, 'mesh_split_by_materials')
@@ -73,7 +73,7 @@ class XRAY_OT_import_part(utils.ie.BaseOperator):
             log.err(err)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
         self.mesh_split_by_materials = preferences.part_mesh_split_by_mat
         self.fmt_version = preferences.part_sdk_version

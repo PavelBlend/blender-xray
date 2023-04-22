@@ -351,7 +351,7 @@ class XRAY_OT_create_ik(utils.ie.BaseOperator):
             return False
         return True
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         split = utils.version.layout_split(self.layout, 0.35)
         split.label(text='Chain Length:')
         split.prop(self, 'chain_length', text='')
@@ -379,7 +379,7 @@ class XRAY_OT_create_ik(utils.ie.BaseOperator):
         self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 

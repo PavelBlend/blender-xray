@@ -69,7 +69,7 @@ class XRAY_OT_export_ogf_file(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         draw_props(self, context, False)
 
@@ -93,7 +93,7 @@ class XRAY_OT_export_ogf_file(
         utils.version.set_active_object(self.exported_object)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
 
         self.texture_name_from_image_path = pref.ogf_texture_names_from_path
@@ -149,7 +149,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         draw_props(self, context, True)
 
@@ -182,7 +182,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
 
         self.use_export_paths = pref.ogf_export_use_export_paths

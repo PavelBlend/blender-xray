@@ -123,7 +123,7 @@ class XRAY_OT_import_omf(
             log.err(err)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
         self.import_motions = preferences.omf_import_motions
         self.import_bone_parts = preferences.import_bone_parts
@@ -137,7 +137,7 @@ class XRAY_OT_import_omf(
             return {'CANCELLED'}
         return super().invoke(context, event)
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         layout = self.layout
         layout.prop(self, 'import_motions')
@@ -236,7 +236,7 @@ class XRAY_OT_export_omf(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         layout = self.layout
         layout.label(text='Export Mode:')
@@ -319,7 +319,7 @@ class XRAY_OT_export_omf(
             log.err(err)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
         self.export_mode = preferences.omf_export_mode
         self.export_bone_parts = preferences.omf_export_bone_parts

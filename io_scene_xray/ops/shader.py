@@ -131,7 +131,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         row.active = getattr(self, prop_active)
         row.prop(self, prop_value, toggle=True)
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         column = layout.column(align=True)
         column.label(text='Mode:')
@@ -269,7 +269,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Changed {} material(s)'.format(len(materials)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 

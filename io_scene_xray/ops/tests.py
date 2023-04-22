@@ -276,7 +276,7 @@ class XRAY_OT_test_import(utils.ie.BaseOperator):
         for prop_name, prop_value in op_props.items():
             exec('{0} = op_props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         lay = self.layout
         lay.prop(self, 'pause')
 
@@ -330,7 +330,7 @@ class XRAY_OT_test_import(utils.ie.BaseOperator):
         )
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

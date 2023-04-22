@@ -125,7 +125,7 @@ def append_menu_func():
 class XRayBaseMenu(bpy.types.Menu):
     bl_label = ui.base.build_label()
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         operators = get_enabled_operators(self.ops_list, self.mode)
         for operator in operators:

@@ -103,7 +103,7 @@ class XRAY_OT_export_object(utils.ie.BaseOperator, _WithExportMotions):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'objects_folder')
         draw_props(self, mode='BATCH')
 
@@ -195,7 +195,7 @@ class XRAY_OT_export_object_file(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'objects_folder')
         draw_props(self)
 
@@ -221,7 +221,7 @@ class XRAY_OT_export_object_file(
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
 
         try:

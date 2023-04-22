@@ -95,14 +95,14 @@ class XRAY_OT_import_bones(
             log.err(err)
         return {'FINISHED'}
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         layout.prop(self, 'import_bone_properties')
         layout.prop(self, 'import_bone_parts')
         if not self.import_bone_properties and not self.import_bone_parts:
             layout.label(text='Nothing is imported', icon='ERROR')
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         obj = context.active_object
         if not obj:
             self.report({'ERROR'}, 'There is no active object')
@@ -175,14 +175,14 @@ class XRAY_OT_export_bones(utils.ie.BaseOperator):
             log.err(err)
         return {'FINISHED'}
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         layout.prop(self, 'export_bone_properties')
         layout.prop(self, 'export_bone_parts')
         if not self.export_bone_properties and not self.export_bone_parts:
             layout.label(text='Nothing is exported', icon='ERROR')
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         selected_objects_count = len(context.selected_objects)
 
         if not selected_objects_count:
@@ -253,14 +253,14 @@ class XRAY_OT_export_bone(
             log.err(err)
         return {'FINISHED'}
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         layout.prop(self, 'export_bone_properties')
         layout.prop(self, 'export_bone_parts')
         if not self.export_bone_properties and not self.export_bone_parts:
             layout.label(text='Nothing is exported', icon='ERROR')
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         selected_objects_count = len(context.selected_objects)
 
         if not selected_objects_count:

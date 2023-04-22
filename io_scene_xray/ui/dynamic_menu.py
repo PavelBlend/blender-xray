@@ -62,7 +62,7 @@ class DynamicMenu(bpy.types.Menu):
             ('<text>', '<value>')
         ]
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         path = _detect_current_path(context)
         path_len = len(path)

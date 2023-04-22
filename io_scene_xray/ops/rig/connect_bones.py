@@ -215,7 +215,7 @@ class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         split = utils.version.layout_split(self.layout, 0.35)
         split.label(text='Source Armature:')
         split.prop_search(self, 'source_armature', bpy.data, 'objects', text='')
@@ -288,7 +288,7 @@ class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 

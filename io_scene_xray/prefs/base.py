@@ -18,7 +18,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         utils.draw.draw_presets(
             layout,

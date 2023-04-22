@@ -182,7 +182,7 @@ class XRAY_OT_browse_skls_file(BaseSklsBrowserOperator):
         utils.draw.redraw_areas()
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         context.window_manager.fileselect_add(operator=self)
         return {'RUNNING_MODAL'}
 

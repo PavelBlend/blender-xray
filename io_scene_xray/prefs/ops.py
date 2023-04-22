@@ -20,7 +20,7 @@ class XRAY_OT_reset_prefs_settings(utils.ie.BaseOperator):
             prefs.custom_props.property_unset(prop_name)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         return context.window_manager.invoke_confirm(self, event)
 
 

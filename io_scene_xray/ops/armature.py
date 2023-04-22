@@ -32,7 +32,7 @@ class XRAY_OT_link_bones(utils.ie.BaseOperator):
         if context.active_object.type == 'ARMATURE':
             return True
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         self.layout.prop_search(self, 'armature', bpy.data, 'objects')
 
     @utils.set_cursor_state
@@ -61,7 +61,7 @@ class XRAY_OT_link_bones(utils.ie.BaseOperator):
         self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 

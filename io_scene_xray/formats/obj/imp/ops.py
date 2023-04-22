@@ -76,7 +76,7 @@ class XRAY_OT_import_object(
 
         return {'FINISHED'}
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'objects_folder')
 
         layout = self.layout
@@ -87,7 +87,7 @@ class XRAY_OT_import_object(
         layout.prop(self, 'import_motions')
         layout.prop(self, 'mesh_split_by_materials')
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
 
         self.fmt_version = pref.sdk_version

@@ -85,7 +85,7 @@ class XRAY_OT_switch_render(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         column = layout.column(align=True)
         column.label(text='Mode:')
@@ -114,7 +114,7 @@ class XRAY_OT_switch_render(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Changed {} material(s)'.format(len(materials)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -131,7 +131,7 @@ class XRAY_OT_convert_to_internal_material(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         column = layout.column(align=True)
         column.label(text='Mode:')
@@ -198,7 +198,7 @@ class XRAY_OT_convert_to_internal_material(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Changed {} material(s)'.format(len(materials)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -245,7 +245,7 @@ class XRAY_OT_convert_to_cycles_material(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         column = layout.column(align=True)
         column.label(text='Mode:')
@@ -310,7 +310,7 @@ class XRAY_OT_convert_to_cycles_material(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Changed {} material(s)'.format(len(materials)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -364,7 +364,7 @@ class XRAY_OT_colorize_materials(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         active = self.change_viewport_color or self.change_shader_color
         column = layout.column(align=True)
@@ -514,7 +514,7 @@ class XRAY_OT_colorize_materials(utils.ie.BaseOperator):
         )
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -548,7 +548,7 @@ class XRAY_OT_create_material(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         if not self.init:
             self.init = True
 

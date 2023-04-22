@@ -48,7 +48,7 @@ class XRAY_OT_export_scene_selection(
     def export(self, bpy_objs, context):
         exp.export_file(bpy_objs, self.filepath)
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
 
         self.objs = context.selected_objects
 
@@ -86,7 +86,7 @@ class XRAY_OT_import_scene_selection(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
         layout.prop(self, 'mesh_split_by_materials')
@@ -100,7 +100,7 @@ class XRAY_OT_import_scene_selection(
             log.err(err)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
         self.mesh_split_by_materials = preferences.scene_selection_mesh_split_by_mat
         self.fmt_version = preferences.scene_selection_sdk_version

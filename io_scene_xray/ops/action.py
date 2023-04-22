@@ -137,7 +137,7 @@ class XRAY_OT_change_action_bake_settings(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         layout.label(text='Mode:')
         column = layout.column(align=True)
@@ -220,7 +220,7 @@ class XRAY_OT_change_action_bake_settings(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Changed {} action(s)'.format(len(actions)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -292,7 +292,7 @@ class XRAY_OT_rename_actions(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         column = self.layout.column(align=True)
 
         column.label(text='Data Mode:')
@@ -436,7 +436,7 @@ class XRAY_OT_rename_actions(utils.ie.BaseOperator):
         )
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 

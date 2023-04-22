@@ -251,7 +251,7 @@ class XRAY_OT_sort_motion_refs_list(utils.ie.BaseOperator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 

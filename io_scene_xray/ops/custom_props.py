@@ -239,7 +239,7 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
         self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -347,7 +347,7 @@ class XRAY_OT_set_xray_to_custom_props(utils.ie.BaseOperator):
         self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -398,7 +398,7 @@ class XRAY_OT_remove_xray_custom_props(utils.ie.BaseOperator):
         self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -444,7 +444,7 @@ class XRAY_OT_remove_all_custom_props(utils.ie.BaseOperator):
         self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 

@@ -163,7 +163,7 @@ class XRAY_OT_change_userdata(utils.ie.BaseOperator):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
 
         column = layout.column(align=True)
@@ -222,7 +222,7 @@ class XRAY_OT_change_userdata(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -263,7 +263,7 @@ class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
 
         column = layout.column(align=True)
@@ -322,7 +322,7 @@ class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -371,7 +371,7 @@ class XRAY_OT_change_motion_refs(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
 
         column = layout.column(align=True)
@@ -448,7 +448,7 @@ class XRAY_OT_change_motion_refs(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -486,7 +486,7 @@ class XRAY_OT_change_object_type(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
 
         column = layout.column(align=True)
@@ -511,7 +511,7 @@ class XRAY_OT_change_object_type(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -537,7 +537,7 @@ class XRAY_OT_change_hq_export(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         layout.prop(self, 'hq_export')
 
@@ -555,7 +555,7 @@ class XRAY_OT_change_hq_export(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Objects Changed: {}'.format(len(root_objs)))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 

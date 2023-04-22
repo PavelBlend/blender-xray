@@ -93,13 +93,13 @@ class XRAY_OT_import_ogf(
 
         return {'FINISHED'}
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         layout = self.layout
         utils.draw.draw_files_count(self)
         layout.prop(self, 'import_motions')
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
         self.import_motions = preferences.ogf_import_motions
         return super().invoke(context, event)

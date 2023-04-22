@@ -56,7 +56,7 @@ class XRAY_OT_import_anm(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'gamedata_folder')
         layout = self.layout
         utils.draw.draw_files_count(self)
@@ -95,7 +95,7 @@ class XRAY_OT_import_anm(
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
         self.camera_animation = pref.anm_create_camera
 
@@ -130,7 +130,7 @@ class XRAY_OT_export_anm_file(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'gamedata_folder')
         layout = self.layout
         utils.draw.draw_fmt_ver_prop(layout, self, 'format_version')
@@ -156,7 +156,7 @@ class XRAY_OT_export_anm_file(
             log.err(err)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         objects_list = get_objects(context)
         if len(objects_list) == 1:
             obj = objects_list[0]
@@ -211,7 +211,7 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
 
     objects_list = []
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'gamedata_folder')
         layout = self.layout
         utils.draw.draw_fmt_ver_prop(layout, self, 'format_version')
@@ -240,7 +240,7 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         selected_objects_count = len(context.selected_objects)
 
         if not selected_objects_count:

@@ -262,7 +262,7 @@ class XRAY_OT_sort_actions(utils.ie.BaseOperator):
     def poll(cls, context):
         return context.active_object
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         lay = self.layout
         lay.label(text='Sort by:')
         lay.prop(self, 'sort_by', expand=True)
@@ -326,7 +326,7 @@ class XRAY_OT_sort_actions(utils.ie.BaseOperator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 

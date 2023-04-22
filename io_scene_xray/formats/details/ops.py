@@ -94,7 +94,7 @@ class XRAY_OT_import_details(
             log.err(err)
         return {'FINISHED'}
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'levels_folder')
 
         layout = self.layout
@@ -114,7 +114,7 @@ class XRAY_OT_import_details(
             lay_type='COLUMN'
         )
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         prefs = utils.version.get_preferences()
         self.details_models_in_a_row = prefs.details_models_in_a_row
         self.load_slots = prefs.load_slots
@@ -151,7 +151,7 @@ class XRAY_OT_export_details(
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'levels_folder')
 
         layout = self.layout
@@ -204,7 +204,7 @@ class XRAY_OT_export_details(
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         obj = context.active_object
         if not obj:
             self.report({'ERROR'}, 'No active object.')

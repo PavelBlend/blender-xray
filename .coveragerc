@@ -9,6 +9,4 @@ omit =
 	*/draw.py
 
 [report]
-exclude_lines =
-    def draw(self, context):
-    def invoke(self, context, event):
+exclude_lines = pragma: no cover

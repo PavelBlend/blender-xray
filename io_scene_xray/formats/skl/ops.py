@@ -65,7 +65,7 @@ class XRAY_OT_import_skls(
 
     __parsed_file_name = None
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
 
         utils.draw.draw_files_count(self)
@@ -169,7 +169,7 @@ class XRAY_OT_import_skls(
         return {'FINISHED'}
 
     @utils.invoke_require_armature
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
         self.add_actions_to_motion_list = preferences.add_actions_to_motion_list
         return super().invoke(context, event)
@@ -215,7 +215,7 @@ class XRAY_OT_export_skl(
         return {'FINISHED'}
 
     @utils.invoke_require_armature
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         self.action = getattr(context, XRAY_OT_export_skl.bl_idname + '.action', None)
         assert self.action
         self.filepath = self.action.name
@@ -265,7 +265,7 @@ class XRAY_OT_export_skls_file(
         return {'FINISHED'}
 
     @utils.invoke_require_armature
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         if context.active_object:
             obj = context.active_object
         elif context.selected_objects:
@@ -351,7 +351,7 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
             log.err(err)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         if not context.selected_objects:
             self.report({'ERROR'}, 'No selected objects')
             return {'CANCELLED'}
@@ -444,7 +444,7 @@ class XRAY_OT_export_skl_batch(utils.ie.BaseOperator):
             log.err(err)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         if not context.selected_objects:
             self.report({'ERROR'}, 'No selected objects')
             return {'CANCELLED'}

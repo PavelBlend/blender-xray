@@ -108,7 +108,7 @@ class XRAY_OT_convert_limits_to_constraints(JointLimitsBaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         column = layout.column(align=True)
         column.label(text='Mode:')
@@ -154,7 +154,7 @@ class XRAY_OT_convert_limits_to_constraints(JointLimitsBaseOperator):
         self.report({'INFO'}, 'Constraints created: {}'.format(created_count))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -170,7 +170,7 @@ class XRAY_OT_remove_limits_constraints(JointLimitsBaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         column = layout.column(align=True)
         column.label(text='Mode:')
@@ -191,7 +191,7 @@ class XRAY_OT_remove_limits_constraints(JointLimitsBaseOperator):
         self.report({'INFO'}, 'Constraints removed: {}'.format(removed_count))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -253,7 +253,7 @@ class XRAY_OT_clear_ik_limits(JointLimitsBaseOperator):
     bl_description = 'Clear selected bones IK limits'
     bl_options = {'REGISTER', 'UNDO'}
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         self.layout.label(
             text='IK limits will be removed. Continue?',
             icon='ERROR'
@@ -278,7 +278,7 @@ class XRAY_OT_clear_ik_limits(JointLimitsBaseOperator):
         self.report({'INFO'}, text.get_text(text.warn.ready))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 

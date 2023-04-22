@@ -46,7 +46,7 @@ class XRAY_OT_import_err(
         imp.import_file(self.filepath)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

@@ -58,7 +58,7 @@ class XRAY_OT_resize_bones(utils.ie.BaseOperator):
     def poll(cls, context):
         return True
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         layout = self.layout
         column = layout.column(align=True)
 
@@ -89,7 +89,7 @@ class XRAY_OT_resize_bones(utils.ie.BaseOperator):
         self.report({'INFO'}, 'Edited {0} objects'.format(edited_count))
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, event):    # pragma: no cover
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
