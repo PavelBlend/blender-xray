@@ -131,15 +131,13 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         copy_rotation_constr.name = 'ik'
         copy_rotation_constr.target = obj
         copy_rotation_constr.subtarget = ik_subtarget_name
-        if utils.version.IS_28:
-            copy_rotation_constr.enabled = True
+        copy_rotation_constr.mute = False
         # fk
         copy_transforms_constr = child_pose_bone.constraints.new('COPY_TRANSFORMS')
         copy_transforms_constr.name = 'fk'
         copy_transforms_constr.target = obj
         copy_transforms_constr.subtarget = fk_subtarget_name
-        if utils.version.IS_28:
-            copy_transforms_constr.enabled = True
+        copy_transforms_constr.mute = False
         # create ik drivers
         ik_driver = copy_rotation_constr.driver_add('influence').driver
         ik_driver.expression = IK_FK_PROP_NAME
@@ -191,13 +189,19 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     # Vector of chain root to second bone's head
     AB = B - A
     # Multiply the two vectors to get the dot product
-    dot_prod = AB * AC
+    dot_prod = mathutils.Vector()
+    dot_prod.x = AB.x * AC.x
+    dot_prod.y = AB.y * AC.y
+    dot_prod.z = AB.z * AC.z
     # Find the point on the vector AC projected from point B
     proj = dot_prod / AC.length
     # Normalize AC vector to keep it a reasonable magnitude
     start_end_norm = AC.normalized()
     # Project an arrow from AC projection point to point B
-    proj_vec  = start_end_norm * proj
+    proj_vec = mathutils.Vector()
+    proj_vec.x = start_end_norm.x * proj.x
+    proj_vec.y = start_end_norm.y * proj.y
+    proj_vec.z = start_end_norm.z * proj.z
     arrow_vec = AB - proj_vec
     arrow_vec.normalize()
     # Place pole target at a reasonable distance from the chain
@@ -269,7 +273,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     # add drivers
     obj.pose.bones[target_bone_name][IK_FK_PROP_NAME] = 1.0
     obj.pose.bones[target_bone_name]['bone_category'] = category_name
-    if utils.version.IS_28:
+    if utils.version.has_id_props_ui():
         ui_prop = obj.pose.bones[target_bone_name].id_properties_ui(IK_FK_PROP_NAME)
         ui_prop.update(
             min=0,
