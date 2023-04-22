@@ -23,6 +23,38 @@ class TestRig(tests.utils.XRayTestCase):
             source_armature=arm_obj.name
         )
 
+        # test create ik, foot test
+        connected_obj = bpy.data.objects[arm_obj.name + ' connected']
+
+        ik_obj = connected_obj.copy()
+        ik_obj.data = connected_obj.data.copy()
+        bpy.ops.object.select_all(action='DESELECT')
+        tests.utils.link_object(ik_obj)
+        tests.utils.set_active_object(ik_obj)
+
+        bpy.ops.object.mode_set(mode='POSE')
+        bpy.ops.pose.select_all(action='DESELECT')
+        ik_obj.pose.bones['foot_l c'].bone.select = True
+
+        bpy.ops.io_scene_xray.create_ik()
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        # test create ik, knee test
+        ik_obj = connected_obj.copy()
+        ik_obj.data = connected_obj.data.copy()
+        bpy.ops.object.select_all(action='DESELECT')
+        tests.utils.link_object(ik_obj)
+        tests.utils.set_active_object(ik_obj)
+
+        bpy.ops.object.mode_set(mode='POSE')
+        bpy.ops.pose.select_all(action='DESELECT')
+        ik_obj.pose.bones['knee_l c'].bone.select = True
+
+        bpy.ops.io_scene_xray.create_ik()
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+
 
 def create_armature_object():
     # create armature
