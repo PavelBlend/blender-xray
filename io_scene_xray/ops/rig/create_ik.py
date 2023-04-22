@@ -102,6 +102,22 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         if bone.name.startswith(child.name):
             continue
         children.append(child)
+
+    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+    bpy.ops.object.mode_set(mode='POSE', toggle=False)
+    obj.pose.bones[target_bone_name][IK_FK_PROP_NAME] = 1.0
+    obj.pose.bones[target_bone_name]['bone_category'] = category_name
+    if utils.version.IS_28:
+        ui_prop = obj.pose.bones[target_bone_name].id_properties_ui(IK_FK_PROP_NAME)
+        ui_prop.update(
+            min=0,
+            max=1,
+            soft_min=0,
+            soft_max=1
+        )
+    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+    target_bone = arm.edit_bones[target_bone_name]
+
     # create transform bone
     if len(children) == 1:
         child_bone = children[0]
@@ -271,16 +287,6 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     ik_constr.pole_angle = pole_angle_in_radians
     ik_constr.chain_count = chain_length
     # add drivers
-    obj.pose.bones[target_bone_name][IK_FK_PROP_NAME] = 1.0
-    obj.pose.bones[target_bone_name]['bone_category'] = category_name
-    if utils.version.has_id_props_ui():
-        ui_prop = obj.pose.bones[target_bone_name].id_properties_ui(IK_FK_PROP_NAME)
-        ui_prop.update(
-            min=0,
-            max=1,
-            soft_min=0,
-            soft_max=1
-        )
     for ik_fk_bone_name in ik_fk_bones:
         ik_fk_bone = obj.pose.bones[ik_fk_bone_name]
         # ik driver
