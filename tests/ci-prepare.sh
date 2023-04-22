@@ -11,8 +11,8 @@ if [ ! -e "$DIR/blender" ]; then
             TBZ="blender-$BLENDER_VERSION-linux-glibc219-x86_64.tar.bz2"
             PYTHON_VERSION="3.5"
             ;;
-        "3.3")
-            TAR="blender-$BLENDER_VERSION.0-linux-x64.tar.xz"
+        "3.4")
+            TAR="blender-$BLENDER_VERSION.1-linux-x64.tar.xz"
             PYTHON_VERSION="3.10"
             ;;
         *)
