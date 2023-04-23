@@ -1,3 +1,6 @@
+# standart modules
+import os
+
 # blender modules
 import bpy
 
@@ -178,6 +181,17 @@ class XRAY_OT_browse_skls_file(BaseSklsBrowserOperator):
     skls_file = None
 
     def execute(self, context):
+        if not os.path.exists(self.filepath):
+            self.report({'ERROR'}, 'File not found: {}'.format(self.filepath))
+            return {'CANCELLED'}
+
+        if os.path.isdir(self.filepath):
+            self.report(
+                {'ERROR'},
+                'Is a folder, not a file: {}'.format(self.filepath)
+            )
+            return {'CANCELLED'}
+
         init_skls_browser(self, context, self.filepath)
         utils.draw.redraw_areas()
         return {'FINISHED'}
