@@ -532,70 +532,91 @@ class XRAY_PT_rig(ui.base.XRayPanel):
             )
 
 
-class XRAY_PT_import_operators(ui.base.XRayPanel):
+def get_operator_key(op_id):
+    wm = bpy.context.window_manager
+    view_3d_keys = wm.keyconfigs['Blender user'].keymaps['3D View']
+    key = view_3d_keys.keymap_items.get(op_id)
+
+    if not key:
+        return None, None, None, None
+
+    if key.shift:
+        shift = 'Shift'
+    else:
+        shift = None
+
+    if key.ctrl:
+        ctrl = 'Ctrl'
+    else:
+        ctrl = None
+
+    if key.alt:
+        alt = 'Alt'
+    else:
+        alt = None
+
+    return shift, ctrl, alt, key.type
+
+
+class ImportExportBasePanel(ui.base.XRayPanel):
+    bl_category = ui.base.CATEGORY
+    bl_space_type = 'VIEW_3D'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    if utils.version.IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    @classmethod
+    def poll(cls, context):
+        ops = getattr(menus, '{}_ops'.format(cls.panel_type))
+        enabled_operators = menus.get_enabled_operators(
+            ops,
+            cls.panel_type
+        )
+        return bool(enabled_operators)
+
+    def draw(self, context):
+        col = self.layout.column(align=True)
+        pref = utils.version.get_preferences()
+        ops = getattr(menus, '{}_ops'.format(self.panel_type))
+
+        for operator, label in ops:
+            enable_prop_name = 'enable_{}_{}'.format(
+                label.lower(),
+                self.panel_type
+            )
+            enable_prop = getattr(pref, enable_prop_name)
+
+            if enable_prop:
+                split = utils.version.layout_split(col, 0.7, align=True)
+
+                # draw button
+                split.operator(
+                    operator.bl_idname,
+                    text=label,
+                    icon=self.panel_type.upper(),
+                    translate=False
+                )
+
+                # draw keymap
+                key = get_operator_key(operator.bl_idname)
+                row_key = split.row(align=True)
+                row_key.alignment = 'RIGHT'
+                for label in key:
+                    if label:
+                        row_key.label(text=label)
+
+
+class XRAY_PT_import_operators(ImportExportBasePanel):
     bl_label = 'Import'
-    bl_category = ui.base.CATEGORY
-    bl_space_type = 'VIEW_3D'
-    bl_options = {'DEFAULT_CLOSED'}
-    if utils.version.IS_28:
-        bl_region_type = 'UI'
-    else:
-        bl_region_type = 'TOOLS'
-
-    @classmethod
-    def poll(cls, context):
-        enabled_import_operators = menus.get_enabled_operators(
-            menus.import_ops,
-            'import'
-        )
-        return bool(enabled_import_operators)
-
-    def draw(self, context):
-        col = self.layout.column(align=True)
-        preferences = utils.version.get_preferences()
-        for operator, label in menus.import_ops:
-            enable_prop_name = 'enable_{}_import'.format(label.lower())
-            enable_prop = getattr(preferences, enable_prop_name)
-            if enable_prop:
-                col.operator(
-                    operator.bl_idname,
-                    text=label,
-                    icon='IMPORT',
-                    translate=False
-                )
+    panel_type = 'import'
 
 
-class XRAY_PT_export_operators(ui.base.XRayPanel):
+class XRAY_PT_export_operators(ImportExportBasePanel):
     bl_label = 'Export'
-    bl_category = ui.base.CATEGORY
-    bl_space_type = 'VIEW_3D'
-    bl_options = {'DEFAULT_CLOSED'}
-    if utils.version.IS_28:
-        bl_region_type = 'UI'
-    else:
-        bl_region_type = 'TOOLS'
-
-    @classmethod
-    def poll(cls, context):
-        enabled_export_operators = menus.get_enabled_operators(
-            menus.export_ops,
-            'export'
-        )
-        return bool(enabled_export_operators)
-
-    def draw(self, context):
-        col = self.layout.column(align=True)
-        preferences = utils.version.get_preferences()
-        for operator, label in menus.export_ops:
-            enable_prop_name = 'enable_{}_export'.format(label.lower())
-            enable_prop = getattr(preferences, enable_prop_name)
-            if enable_prop:
-                col.operator(
-                    operator.bl_idname,
-                    text=label,
-                    icon='EXPORT',
-                    translate=False
-                )
+    panel_type = 'export'
 
 
 classes = (
