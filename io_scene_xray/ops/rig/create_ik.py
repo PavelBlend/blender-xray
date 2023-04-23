@@ -107,7 +107,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     bpy.ops.object.mode_set(mode='POSE', toggle=False)
     obj.pose.bones[target_bone_name][IK_FK_PROP_NAME] = 1.0
     obj.pose.bones[target_bone_name]['bone_category'] = category_name
-    if utils.version.IS_28:
+    if utils.version.has_id_props_ui():
         ui_prop = obj.pose.bones[target_bone_name].id_properties_ui(IK_FK_PROP_NAME)
         ui_prop.update(
             min=0,
