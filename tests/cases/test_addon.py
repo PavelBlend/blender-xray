@@ -1,10 +1,9 @@
-from tests import utils
-
 import bpy
 import io_scene_xray
+import tests
 
 
-class TestAddon(utils.XRayTestCase):
+class TestAddon(tests.utils.XRayTestCase):
     def test_blinfo(self):
         self.assertIsNotNone(io_scene_xray.bl_info)
 
