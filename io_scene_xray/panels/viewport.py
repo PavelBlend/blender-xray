@@ -534,28 +534,34 @@ class XRAY_PT_rig(ui.base.XRayPanel):
 
 def get_operator_key(op_id):
     wm = bpy.context.window_manager
-    view_3d_keys = wm.keyconfigs['Blender user'].keymaps['3D View']
+    if utils.version.IS_293:
+        config = 'Blender user'
+    elif utils.version.IS_28:
+        config = 'blender user'
+    else:
+        config = 'Blender User'
+    view_3d_keys = wm.keyconfigs[config].keymaps['3D View']
     key = view_3d_keys.keymap_items.get(op_id)
 
     if not key:
-        return None, None, None, None
+        return ''
 
     if key.shift:
-        shift = 'Shift'
+        shift = 'Shift '
     else:
-        shift = None
+        shift = ''
 
     if key.ctrl:
-        ctrl = 'Ctrl'
+        ctrl = 'Ctrl '
     else:
-        ctrl = None
+        ctrl = ''
 
     if key.alt:
-        alt = 'Alt'
+        alt = 'Alt '
     else:
-        alt = None
+        alt = ''
 
-    return shift, ctrl, alt, key.type
+    return shift + ctrl + alt + key.type
 
 
 class ImportExportBasePanel(ui.base.XRayPanel):
@@ -590,7 +596,7 @@ class ImportExportBasePanel(ui.base.XRayPanel):
             enable_prop = getattr(pref, enable_prop_name)
 
             if enable_prop:
-                split = utils.version.layout_split(col, 0.7, align=True)
+                split = utils.version.layout_split(col, 0.5, align=True)
 
                 # draw button
                 split.operator(
@@ -604,9 +610,7 @@ class ImportExportBasePanel(ui.base.XRayPanel):
                 key = get_operator_key(operator.bl_idname)
                 row_key = split.row(align=True)
                 row_key.alignment = 'RIGHT'
-                for label in key:
-                    if label:
-                        row_key.label(text=label)
+                row_key.label(text=key)
 
 
 class XRAY_PT_import_operators(ImportExportBasePanel):
