@@ -3,7 +3,7 @@ import bpy
 from tests import utils
 
 
-class TestAnmImport(utils.XRayTestCase):
+class TestOps(utils.XRayTestCase):
     def test_add_camera(self):
         bpy.ops.io_scene_xray.add_camera()
 

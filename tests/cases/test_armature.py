@@ -1,15 +1,14 @@
-from tests import utils
-
 import bpy
+import tests
 
 
-class TestArmature(utils.XRayTestCase):
+class TestArmature(tests.utils.XRayTestCase):
     def test_armature(self):
         # Arrange
         arm = bpy.data.armatures.new('test')
         obj = bpy.data.objects.new('test', arm)
-        utils.link_object(obj)
-        utils.set_active_object(obj)
+        tests.utils.link_object(obj)
+        tests.utils.set_active_object(obj)
         bpy.ops.object.mode_set(mode='EDIT')
         try:
             bone = arm.edit_bones.new('non-exp')
@@ -20,11 +19,11 @@ class TestArmature(utils.XRayTestCase):
             bpy.ops.object.mode_set(mode='OBJECT')
         arm.bones['non-exp'].xray.exportable = False
 
-        bmesh = utils.create_bmesh((
+        bmesh = tests.utils.create_bmesh((
             (0, 0, 0),
             (-1, -1, 0), (+1, -1, 0), (+1, +1, 0), (-1, +1, 0),
         ), ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)), True)
-        obj_me = utils.create_object(bmesh, True)
+        obj_me = tests.utils.create_object(bmesh, True)
         obj_me.parent = obj
         obj_me.xray.isroot = False
         group = obj_me.vertex_groups.new(name='exp')

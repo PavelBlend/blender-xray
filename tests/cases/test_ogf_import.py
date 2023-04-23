@@ -3,7 +3,7 @@ from tests import utils
 import bpy
 
 
-class TestOgf(utils.XRayTestCase):
+class TestOgfImport(utils.XRayTestCase):
     def test_import_general(self):
         bpy.ops.xray_import.ogf(
             directory=self.binpath(),
