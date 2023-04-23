@@ -1,14 +1,11 @@
 import re
-
 import bpy
 import bmesh
-
 import tests
 
 
 class TestObjectExport_IncompatibleSG(tests.utils.XRayTestCase):
-
-    def test_sharpEdgeAdjacentsHasSameSmoothingGroups(self):
+    def test_incompatible_sg(self):
         # Arrange
         bm = tests.utils.create_bmesh(
             # vertices
