@@ -91,9 +91,13 @@ class TestPartImport(tests.utils.XRayTestCase):
             fmt_version='cscop'
         )
 
-        # Assert
-        self.assertReportsNotContains('WARNING')
+        print(79 * '-')
+        for obj in bpy.data.objects:
+            print(obj.name)
+        print(79 * '-')
 
         for obj_name in ('test_level_1.object', 'test_level_2.object'):
             obj = bpy.data.objects[obj_name]
             self.assertEqual(obj.xray.export_path, 'tested')
+
+        self.assertReportsNotContains('WARNING')
