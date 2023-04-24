@@ -101,3 +101,7 @@ class TestPreferences(utils.XRayTestCase):
         self.assertEqual(prefs.eshader_file_auto, '')
         self.assertEqual(prefs.cshader_file, '')
         self.assertEqual(prefs.cshader_file_auto, '')
+
+    def test_compact_menus(self):
+        prefs = utils.get_preferences()
+        prefs.compact_menus = True
