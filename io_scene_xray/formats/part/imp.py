@@ -60,23 +60,33 @@ def read_soc_scene_objects(data):
 def read_soc_tools_data(data):
     chunked_reader = rw.read.ChunkedReader(data)
 
+    refs = []
+    pos = []
+    rot = []
+    scl = []
+
     for chunk_id, chunk_data in chunked_reader:
         if chunk_id == fmt.Chunks.OBJECTS:
             refs, pos, rot, scl = read_soc_scene_objects(chunk_data)
-            return refs, pos, rot, scl
+            break
 
-    return [], [], [], []
+    return refs, pos, rot, scl
 
 
 def read_soc_objects(data):
     chunked_reader = rw.read.ChunkedReader(data)
 
+    refs = []
+    pos = []
+    rot = []
+    scl = []
+
     for chunk_id, chunk_data in chunked_reader:
         if chunk_id == fmt.Chunks.TOOLS_DATA:
             refs, pos, rot, scl = read_soc_tools_data(chunk_data)
-            return refs, pos, rot, scl
+            break
 
-    return [], [], [], []
+    return refs, pos, rot, scl
 
 
 def read_cs_cop_objects(ltx):
@@ -101,9 +111,21 @@ def read_cs_cop_objects(ltx):
         scale = params.get('scale', None)
 
         refs.append(ref)
-        pos.append(list(map(float, position.split(','))))
-        rot.append(list(map(float, rotation.split(','))))
-        scl.append(list(map(float, scale.split(','))))
+
+        if position:
+            pos.append(list(map(float, position.split(','))))
+        else:
+            pos.append(None)
+
+        if rotation:
+            rot.append(list(map(float, rotation.split(','))))
+        else:
+            rot.append(None)
+
+        if scale:
+            scl.append(list(map(float, scale.split(','))))
+        else:
+            scl.append(None)
 
     return refs, pos, rot, scl
 
@@ -147,7 +169,7 @@ def import_objects(refs, pos, rot, scl, context, level_name):
             utils.version.unlink_object_from_collections(imported_object)
             exp_dir = os.path.dirname(ref)
             if exp_dir:
-                imported_object.xray.export_path = exp_dir + os.sep
+                imported_object.xray.export_path = exp_dir
 
         utils.version.link_object_to_collection(imported_object, collection)
 

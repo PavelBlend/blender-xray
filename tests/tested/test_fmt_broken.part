@@ -1,0 +1,56 @@
+[appendrandom]
+        AppendRandomMaxRotation          = 0.000000, 0.000000, 0.000000
+        AppendRandomMaxScale             = 1.000000, 1.000000, 1.000000
+        AppendRandomMinRotation          = 0.000000, 0.000000, 0.000000
+        AppendRandomMinScale             = 1.000000, 1.000000, 1.000000
+        AppendRandomObjects_size         = 0
+ 
+[guid]
+        guid_g0                          = 5344862489593434463
+        guid_g1                          = 5221489667145295241
+ 
+[main]
+        flags                            = 0
+        objects_count                    = 6
+        version                          = 0
+ 
+[modif]
+        name                             =
+        time                             = 0
+ 
+[object_0]
+        clsid                            = 2
+        co_flags                         = 3
+        flags                            = 0
+        name                             = part_object_1_ref_1
+        version                          = 18
+ 
+[object_1]
+        clsid                            = 2
+        co_flags                         = 3
+        flags                            = 0
+        name                             = part_object_3_ref_1
+        reference_name                   = test_level_1
+        version                          = 18
+ 
+[object_2]
+        clsid                            = 2
+        co_flags                         = 3
+        flags                            = 0
+        name                             = part_object_6_ref_2
+        position                         = -7.384345, 0.000000, -7.673724
+        reference_name                   = test_level_2
+        rotation                         = 0.000000, 0.000000, 0.000000
+        scale                            = 1.000000, 1.000000, 1.000000
+        version                          = 18
+ 
+[object_3]
+        clsid                            = 2
+        co_flags                         = 3
+        flags                            = 0
+        name                             = part_object_5_ref_2
+        position                         = -1.706217, 0.000000, -5.846602
+        reference_name                   = test_level_2.object
+        rotation                         = 0.000000, 0.000000, 0.000000
+        scale                            = 1.000000, 1.000000, 1.000000
+        version                          = 18

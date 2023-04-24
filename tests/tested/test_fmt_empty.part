@@ -1,0 +1,20 @@
+[appendrandom]
+        AppendRandomMaxRotation          = 0.000000, 0.000000, 0.000000
+        AppendRandomMaxScale             = 1.000000, 1.000000, 1.000000
+        AppendRandomMinRotation          = 0.000000, 0.000000, 0.000000
+        AppendRandomMinScale             = 1.000000, 1.000000, 1.000000
+        AppendRandomObjects_size         = 0
+ 
+[guid]
+        guid_g0                          = 5715941030714886317
+        guid_g1                          = 9302303324337700271
+ 
+[main]
+        flags                            = 0
+        objects_count                    = 0
+        version                          = 0
+ 
+[modif]
+        name                             =
+        time                             = 0
+ 
