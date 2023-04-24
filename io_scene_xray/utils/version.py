@@ -166,7 +166,8 @@ def link_object(obj):
     if IS_28:
         bpy.context.scene.collection.objects.link(obj)
     else:
-        bpy.context.scene.objects.link(obj)
+        if not bpy.context.scene.objects.get(obj.name):
+            bpy.context.scene.objects.link(obj)
 
 
 def set_active_object(obj):
@@ -366,7 +367,10 @@ def remove_collection(collection):
     if IS_28:
         bpy.data.collections.remove(collection)
     else:
-        bpy.data.groups.remove(collection)
+        if IS_277:
+            bpy.data.groups.remove(collection)
+        else:
+            bpy.data.groups.remove(collection, do_unlink=True)
 
 
 def unlink_object_from_collections(obj):
@@ -380,6 +384,7 @@ def unlink_object_from_collections(obj):
 def link_object_to_collection(obj, collection):
     for child in obj.children:
         link_object_to_collection(child, collection)
+    link_object(obj)
     collection.objects.link(obj)
 
 
