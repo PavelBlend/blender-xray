@@ -105,3 +105,42 @@ class TestPreferences(utils.XRayTestCase):
     def test_compact_menus(self):
         prefs = utils.get_preferences()
         prefs.compact_menus = True
+
+    def test_formats_enable(self):
+        prefs = utils.get_preferences()
+
+        for value in (False, True):
+            prefs.enable_object_import = value
+            prefs.enable_object_export = value
+
+            prefs.enable_skls_import = value
+            prefs.enable_skls_export = value
+            prefs.enable_skl_export = value
+
+            prefs.enable_ogf_import = value
+            prefs.enable_ogf_export = value
+
+            prefs.enable_omf_import = value
+            prefs.enable_omf_export = value
+
+            prefs.enable_anm_import = value
+            prefs.enable_anm_export = value
+
+            prefs.enable_bones_import = value
+            prefs.enable_bones_export = value
+
+            prefs.enable_dm_import = value
+            prefs.enable_dm_export = value
+
+            prefs.enable_details_import = value
+            prefs.enable_details_export = value
+
+            prefs.enable_level_import = value
+            prefs.enable_level_export = value
+
+            prefs.enable_scene_import = value
+            prefs.enable_scene_export = value
+
+            prefs.enable_part_import = value
+
+            prefs.enable_err_import = value
