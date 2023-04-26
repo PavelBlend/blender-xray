@@ -53,7 +53,7 @@ class AbstractHelper:
             AbstractHelper._select_object(helper.parent)
             self._delete_helper(helper)
 
-    def draw(self, layout, context):
+    def draw(self, layout, context):    # pragma: no cover
         if self.is_active(context):
             layout.operator(XRAY_OT_edit_cancel.bl_idname, icon='X')
 

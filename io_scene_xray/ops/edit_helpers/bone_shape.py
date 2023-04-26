@@ -14,7 +14,7 @@ from ... import formats
 
 
 class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
-    def draw(self, layout, context):
+    def draw(self, layout, context):    # pragma: no cover
         if self.is_active(context):
             layout.operator(XRAY_OT_apply_shape.bl_idname, icon='FILE_TICK')
             layout.operator(

@@ -20,7 +20,7 @@ export_props = {
 }
 
 
-class XRAY_OT_export_scene_selection(
+class XRAY_OT_export_scene(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
@@ -72,7 +72,7 @@ import_props = {
 }
 
 
-class XRAY_OT_import_scene_selection(
+class XRAY_OT_import_scene(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
@@ -112,8 +112,8 @@ class XRAY_OT_import_scene_selection(
 
 
 classes = (
-    XRAY_OT_import_scene_selection,
-    XRAY_OT_export_scene_selection
+    XRAY_OT_import_scene,
+    XRAY_OT_export_scene
 )
 
 

@@ -340,7 +340,7 @@ class XRAY_OT_add_motion_ref_from_file(utils.ie.BaseOperator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, _event):
+    def invoke(self, context, event):    # pragma: no cover
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

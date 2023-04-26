@@ -140,7 +140,7 @@ class XRAY_OT_export_object(utils.ie.BaseOperator, _WithExportMotions):
 
         return {'FINISHED'}
 
-    def invoke(self, context, _event):
+    def invoke(self, context, _event):    # pragma: no cover
         try:
             roots = find_objects_for_export(context)
         except log.AppError as err:

@@ -17,7 +17,7 @@ import_ops = (
     (formats.bones.ops.XRAY_OT_import_bones, 'Bones'),
     (formats.dm.ops.XRAY_OT_import_dm, 'Dm'),
     (formats.details.ops.XRAY_OT_import_details, 'Details'),
-    (formats.scene.ops.XRAY_OT_import_scene_selection, 'Scene'),
+    (formats.scene.ops.XRAY_OT_import_scene, 'Scene'),
     (formats.level.ops.XRAY_OT_import_level, 'Level'),
     (formats.part.ops.XRAY_OT_import_part, 'Part'),
     (formats.err.ops.XRAY_OT_import_err, 'Err')
@@ -34,7 +34,7 @@ export_ops = (
     (formats.bones.ops.XRAY_OT_export_bones, 'Bones'),
     (formats.dm.ops.XRAY_OT_export_dm, 'Dm'),
     (formats.details.ops.XRAY_OT_export_details, 'Details'),
-    (formats.scene.ops.XRAY_OT_export_scene_selection, 'Scene'),
+    (formats.scene.ops.XRAY_OT_export_scene, 'Scene'),
     (formats.level.ops.XRAY_OT_export_level, 'Level')
 )
 

@@ -35,7 +35,7 @@ def apply_mass_matrix(bone, mass_mat):
 class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
     size = 0.5
 
-    def draw(self, layout, context):
+    def draw(self, layout, context):    # pragma: no cover
         if self.is_active(context):
             layout.operator(XRAY_OT_apply_center.bl_idname, icon='FILE_TICK')
             layout.operator(XRAY_OT_align_center.bl_idname, icon='CURSOR')

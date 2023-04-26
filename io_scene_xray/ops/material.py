@@ -640,7 +640,7 @@ class XRAY_OT_create_material(utils.ie.BaseOperator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, _event):
+    def invoke(self, context, event):    # pragma: no cover
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
