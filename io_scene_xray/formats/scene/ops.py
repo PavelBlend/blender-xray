@@ -39,20 +39,23 @@ class XRAY_OT_export_scene_selection(
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
+        objs = context.selected_objects
+
         try:
-            self.export(self.objs, context)
+            self.export(objs, context)
+
         except log.AppError as err:
             log.err(err)
+
         return {'FINISHED'}
 
     def export(self, bpy_objs, context):
         exp.export_file(bpy_objs, self.filepath)
 
     def invoke(self, context, event):    # pragma: no cover
+        objs = context.selected_objects
 
-        self.objs = context.selected_objects
-
-        if not self.objs:
+        if not objs:
             self.report({'ERROR'}, 'Cannot find selected object')
             return {'CANCELLED'}
 
