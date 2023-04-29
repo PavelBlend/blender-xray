@@ -11,6 +11,7 @@ from . import text
 CONTEXT_NAME = '@context'
 _logger = None
 _context = None
+create_bpy_text = True
 
 
 class AppError(Exception):
@@ -170,14 +171,15 @@ class Logger:
                 self.last_line_is_message = True
 
     def _create_bpy_text(self, logname):
-        text_data = bpy.data.texts.new(logname)
-        text_data.user_clear()
-        text_data.from_string('\n'.join(self.lines))
-        full_log_text = text.get_text(text.warn.full_log)
-        self._report(
-            {'WARNING'},
-            '{0}: "{1}"'.format(full_log_text, text_data.name)
-        )
+        if create_bpy_text:
+            text_data = bpy.data.texts.new(logname)
+            text_data.user_clear()
+            text_data.from_string('\n'.join(self.lines))
+            full_log_text = text.get_text(text.warn.full_log)
+            self._report(
+                {'WARNING'},
+                '{0}: "{1}"'.format(full_log_text, text_data.name)
+            )
 
     def flush(self, logname='log'):
         has_massages = self._collect_contexts()

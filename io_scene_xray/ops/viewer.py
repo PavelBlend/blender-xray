@@ -5,6 +5,7 @@ import os
 import bpy
 
 # addon modules
+from .. import log
 from .. import utils
 from .. import text
 
@@ -113,6 +114,8 @@ def import_file(file):
     path = file.path
     directory = os.path.dirname(path)
     prefs = utils.version.get_preferences()
+    log_prev_text = log.create_bpy_text
+    log.create_bpy_text = False
 
     if not os.path.isfile(path):
         return
@@ -199,6 +202,8 @@ def import_file(file):
                     imported = True
                 except:
                     pass
+
+    log.create_bpy_text = log_prev_text
 
 
 ext_ignore = [
