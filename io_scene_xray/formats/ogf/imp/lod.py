@@ -80,7 +80,7 @@ def create_lod_mesh(visual, verts, faces):
 
 
 def create_lod_object(obj_name, bpy_mesh):
-    bpy_object = utils.create_object(obj_name, bpy_mesh)
+    bpy_object = utils.obj.create_object(obj_name, bpy_mesh)
     bpy_object.xray.is_level = True
     bpy_object.xray.level.object_type = 'VISUAL'
     bpy_object.xray.level.visual_type = 'LOD'

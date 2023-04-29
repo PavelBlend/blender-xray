@@ -203,10 +203,10 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
                 uv_maps_names[material.name] = uv_layers.active.name
 
     def scan_r(bpy_obj):
-        if utils.is_helper_object(bpy_obj):
+        if utils.obj.is_helper_object(bpy_obj):
             return
         if bpy_obj.type == 'MESH':
-            arm_obj = utils.get_armature_object(bpy_obj)
+            arm_obj = utils.obj.get_armature_object(bpy_obj)
             if arm_obj:
                 armature_meshes.add(bpy_obj)
                 armatures.add(arm_obj)
@@ -501,7 +501,7 @@ def export_transform(chunked_writer, bpy_root):
 
 
 def export_revision(chunked_writer, xray):
-    owner, ctime, moder, mtime = utils.get_revision_data(xray.revision)
+    owner, ctime, moder, mtime = utils.obj.get_revision_data(xray.revision)
     writer = rw.write.PackedWriter()
     writer.puts(owner)
     writer.putf('<I', ctime)

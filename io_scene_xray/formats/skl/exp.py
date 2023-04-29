@@ -21,7 +21,7 @@ def _export_skl(chunked_writer, context):
         dependency_object,
         dep_action
     ) = utils.action.get_initial_state(arm_obj)
-    root_obj = utils.find_root(arm_obj)
+    root_obj = utils.obj.find_root(arm_obj)
 
     writer = rw.write.PackedWriter()
     motions.exp.export_motion(writer, context.action, arm_obj, root_obj)
@@ -49,7 +49,7 @@ def export_skl_file(file_path, context):
 def export_skls_file(file_path, context, actions):
     log.update(object=context.bpy_arm_obj.name)
     writer = rw.write.PackedWriter()
-    root_obj = utils.find_root(context.bpy_arm_obj)
+    root_obj = utils.obj.find_root(context.bpy_arm_obj)
     motions.exp.export_motions(
         writer,
         actions,

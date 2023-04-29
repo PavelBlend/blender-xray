@@ -33,7 +33,7 @@ def import_hierrarhy_visual(chunks, chunks_fmt, visual, lvl):
     child.import_children_l(children_l_data, visual, lvl, 'HIERRARHY')
 
     visual.name = 'hierrarhy'
-    bpy_object = utils.create_object(visual.name, None)
+    bpy_object = utils.obj.create_object(visual.name, None)
 
     bpy_object.xray.is_level = True
     bpy_object.xray.level.object_type = 'VISUAL'
@@ -49,7 +49,7 @@ def import_render_visual(chunks, visual, lvl, visual_type, chunks_ogf):
     visual.name = visual_type.lower()
 
     if bpy_mesh:
-        bpy_object = utils.create_object(visual.name, bpy_mesh)
+        bpy_object = utils.obj.create_object(visual.name, bpy_mesh)
 
     else:
         if visual_type == 'PROGRESSIVE':

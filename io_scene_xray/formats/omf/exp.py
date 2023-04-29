@@ -818,7 +818,7 @@ def export_omf(context):
         bones_count
     )
 
-    root_obj = utils.find_root(arm_obj)
+    root_obj = utils.obj.find_root(arm_obj)
     new_motions_count = export_motions(
         arm_obj,
         root_obj,

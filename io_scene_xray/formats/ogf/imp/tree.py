@@ -75,7 +75,7 @@ def import_tree_pm_visual(chunks, visual, lvl):
     swi_index = swis.import_swicontainer(chunks)
 
     if bpy_mesh:
-        bpy_object = utils.create_object(visual.name, bpy_mesh)
+        bpy_object = utils.obj.create_object(visual.name, bpy_mesh)
 
     else:
         swi = lvl.swis[swi_index]
@@ -103,7 +103,7 @@ def import_tree_st_visual(chunks, visual, lvl):
     bpy_mesh, geometry_key = create.import_level_geometry(chunks, visual, lvl)
 
     if bpy_mesh:
-        bpy_object = utils.create_object(visual.name, bpy_mesh)
+        bpy_object = utils.obj.create_object(visual.name, bpy_mesh)
     else:
         indices.convert_indices_to_triangles(visual)
         bpy_object = mesh.create_visual(visual, lvl, geometry_key)

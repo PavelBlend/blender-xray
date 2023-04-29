@@ -271,3 +271,32 @@ def get_arm_obj(root_obj, operator):
         return
 
     return arm_objs[0]
+
+
+def execute_require_filepath(func):
+
+    def wrapper(self, context):
+        if not self.filepath:
+            self.report({'ERROR'}, text.warn.no_file)
+            return {'CANCELLED'}
+        return func(self, context)
+
+    return wrapper
+
+
+def invoke_require_armature(func):
+
+    def wrapper(self, context, event):
+        active = context.active_object
+        if not active:
+            if context.selected_objects:
+                active = context.selected_objects[0]
+        if not active:
+            self.report({'ERROR'}, text.error.no_active_obj)
+            return {'CANCELLED'}
+        if active.type != 'ARMATURE':
+            self.report({'ERROR'}, text.error.is_not_arm)
+            return {'CANCELLED'}
+        return func(self, context, event)
+
+    return wrapper

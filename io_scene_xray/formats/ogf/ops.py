@@ -74,7 +74,7 @@ class XRAY_OT_export_ogf_file(
         draw_props(self, context, False)
 
     @log.execute_with_logger
-    @utils.execute_require_filepath
+    @utils.ie.execute_require_filepath
     @utils.ie.set_initial_state
     def execute(self, context):
         export_context = ExportOgfContext()

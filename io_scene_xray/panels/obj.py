@@ -592,7 +592,7 @@ class XRAY_PT_object(ui.base.XRayPanel):
         bpy_obj = context.active_object
         if not bpy_obj:
             return False
-        is_helper = utils.is_helper_object(bpy_obj)
+        is_helper = utils.obj.is_helper_object(bpy_obj)
         if is_helper:
             return False
         preferences = utils.version.get_preferences()

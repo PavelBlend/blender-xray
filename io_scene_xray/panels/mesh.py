@@ -20,7 +20,7 @@ class XRAY_PT_mesh(ui.base.XRayPanel):
         if obj.type != 'MESH':
             return
 
-        is_helper = utils.is_helper_object(obj)
+        is_helper = utils.obj.is_helper_object(obj)
         if is_helper:
             return
 

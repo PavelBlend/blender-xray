@@ -18,7 +18,7 @@ class XRAY_OT_add_all_actions(utils.ie.BaseOperator):
         return context.active_object
 
     def execute(self, context):
-        root_obj = utils.find_root(context.active_object)
+        root_obj = utils.obj.find_root(context.active_object)
         arm_obj = utils.ie.get_arm_obj(root_obj, self)
 
         if not arm_obj:

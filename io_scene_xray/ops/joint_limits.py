@@ -79,7 +79,7 @@ class JointLimitsBaseOperator(utils.ie.BaseOperator):
 
     @classmethod
     def poll(cls, context):
-        return utils.is_armature_context(context)
+        return utils.obj.is_armature_context(context)
 
 
 mode_items = (

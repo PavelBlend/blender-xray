@@ -367,7 +367,7 @@ class MotionRef(bpy.types.PropertyGroup):
 def get_isroot(self):
     if not self.root:
         return False
-    if utils.is_helper_object(self.id_data):
+    if utils.obj.is_helper_object(self.id_data):
         return False
     if self.id_data.parent:
         return not self.id_data.parent.xray.isroot

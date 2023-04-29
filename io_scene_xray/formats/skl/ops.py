@@ -168,7 +168,7 @@ class XRAY_OT_import_skls(
             log.err(err)
         return {'FINISHED'}
 
-    @utils.invoke_require_armature
+    @utils.ie.invoke_require_armature
     def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
         self.add_actions_to_motion_list = preferences.add_actions_to_motion_list
@@ -202,7 +202,7 @@ class XRAY_OT_export_skl(
     action = None
 
     @log.execute_with_logger
-    @utils.execute_require_filepath
+    @utils.ie.execute_require_filepath
     @utils.ie.set_initial_state
     def execute(self, context):
         export_context = exp.ExportSklsContext()
@@ -214,7 +214,7 @@ class XRAY_OT_export_skl(
             log.err(err)
         return {'FINISHED'}
 
-    @utils.invoke_require_armature
+    @utils.ie.invoke_require_armature
     def invoke(self, context, event):    # pragma: no cover
         self.action = getattr(context, XRAY_OT_export_skl.bl_idname + '.action', None)
         assert self.action
@@ -251,7 +251,7 @@ class XRAY_OT_export_skls_file(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
-    @utils.execute_require_filepath
+    @utils.ie.execute_require_filepath
     @utils.ie.set_initial_state
     def execute(self, context):
         export_context = exp.ExportSklsContext()
@@ -264,7 +264,7 @@ class XRAY_OT_export_skls_file(
             log.err(err)
         return {'FINISHED'}
 
-    @utils.invoke_require_armature
+    @utils.ie.invoke_require_armature
     def invoke(self, context, event):    # pragma: no cover
         if context.active_object:
             obj = context.active_object

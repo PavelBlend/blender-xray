@@ -35,7 +35,7 @@ def calculate_mesh_bsphere(bbox, vertices, mat=mathutils.Matrix()):
 
 def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
     def scan_meshes(bpy_obj, meshes):
-        if utils.is_helper_object(bpy_obj):
+        if utils.obj.is_helper_object(bpy_obj):
             return
         if (bpy_obj.type == 'MESH') and bpy_obj.data.vertices:
             meshes.append(bpy_obj)
@@ -43,7 +43,7 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
             scan_meshes(child, meshes)
 
     def scan_meshes_using_cache(bpy_obj, meshes, cache):
-        if utils.is_helper_object(bpy_obj):
+        if utils.obj.is_helper_object(bpy_obj):
             return
         if (bpy_obj.type == 'MESH') and bpy_obj.data.vertices:
             meshes.append(bpy_obj)
@@ -414,7 +414,7 @@ def _export(root_obj, cwriter, context):
     header_writer.putf('<f', bsph[1])
     cwriter.put(fmt.HEADER, header_writer)
 
-    owner, ctime, moder, mtime = utils.get_revision_data(xray.revision)
+    owner, ctime, moder, mtime = utils.obj.get_revision_data(xray.revision)
     currtime = int(time.time())
     revision_writer = rw.write.PackedWriter()
     revision_writer.puts(root_obj.name)    # source file
@@ -440,10 +440,10 @@ def _export(root_obj, cwriter, context):
         return idx
 
     def scan_r(bpy_obj):
-        if utils.is_helper_object(bpy_obj):
+        if utils.obj.is_helper_object(bpy_obj):
             return
         if bpy_obj.type == 'MESH':
-            arm_obj = utils.get_armature_object(bpy_obj)
+            arm_obj = utils.obj.get_armature_object(bpy_obj)
             if not arm_obj:
                 raise log.AppError(
                     text.error.ogf_has_no_arm,

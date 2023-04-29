@@ -427,7 +427,7 @@ def create_visual(visual, lvl=None, geometry_key=None):
     mesh.to_mesh(bpy_mesh)
 
     # create object
-    bpy_object = utils.create_object(visual.name, bpy_mesh)
+    bpy_object = utils.obj.create_object(visual.name, bpy_mesh)
 
     # assign vertex weights
     assign_visual_vertex_weights(visual, bpy_object, remap_vertices)

@@ -15,7 +15,7 @@ class AbstractHelper:
                 'helper with name ' + name + ' is already registered'
             )
         __HELPERS__[name] = self
-        self._name = utils.HELPER_OBJECT_NAME_PREFIX + name
+        self._name = utils.obj.HELPER_OBJECT_NAME_PREFIX + name
 
     def get_helper(self):
         return bpy.data.objects.get(self._name)
@@ -59,7 +59,7 @@ class AbstractHelper:
 
     def is_active(self, context=bpy.context):
         obj = context.active_object
-        if utils.is_helper_object(obj):
+        if utils.obj.is_helper_object(obj):
             if obj.name != self._name:
                 return False
             target = self._get_target_object(obj)
@@ -95,9 +95,9 @@ class AbstractHelper:
 
 def get_object_helper(context):
     obj = context.active_object
-    if not utils.is_helper_object(obj):
+    if not utils.obj.is_helper_object(obj):
         return None
-    name = obj.name[len(utils.HELPER_OBJECT_NAME_PREFIX):]
+    name = obj.name[len(utils.obj.HELPER_OBJECT_NAME_PREFIX):]
     helper = __HELPERS__[name]
     if not helper.is_active(context):
         return None

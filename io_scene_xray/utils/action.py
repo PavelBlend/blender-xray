@@ -1,7 +1,6 @@
 # blender modules
 import bpy
 
-
 # addon modules
 from . import bone
 from . import ie
