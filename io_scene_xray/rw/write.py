@@ -1,8 +1,8 @@
 # standart modules
 import struct
 
-
-ENCODE_ERROR = BaseException
+# addon modules
+from .. import log
 
 
 class PackedWriter():
@@ -23,7 +23,7 @@ class PackedWriter():
         try:
             self.data += string.encode('cp1251')
         except UnicodeEncodeError:
-            raise ENCODE_ERROR('Not valid string: {}'.format(string))
+            raise log.AppError('Not valid string: {}'.format(string))
         self.data += b'\x00'
 
     def replace(self, offset, byte_list):

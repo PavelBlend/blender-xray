@@ -19,15 +19,11 @@ def register():
     import bpy.utils.previews
     import bpy_extras.io_utils
 
-    # configuring addon modules.
-    from . import log
-    from . import rw
-    rw.write.ENCODE_ERROR = log.AppError
-
     # registration
     from . import addon
     addon.register()
 
+    # configuring addon modules.
     from . import utils
     utils.addon_version = bl_info['version']
 
