@@ -1,5 +1,6 @@
 # standart modules
 import os
+import time
 
 # blender modules
 import bpy
@@ -25,6 +26,7 @@ class XRAY_UL_viewer_list_item(bpy.types.UIList):
                 row.active = False
             row.prop(item, 'select', text='')
             row.label(text=item.name, icon='FILE')
+
             if context.scene.xray.viewer.show_size:
                 row = row.row()
                 row.alignment = 'RIGHT'
@@ -34,6 +36,11 @@ class XRAY_UL_viewer_list_item(bpy.types.UIList):
                     row.label(text='{:.1f} KB'.format(item.size / KB))
                 else:
                     row.label(text='{} Bytes'.format(item.size))
+
+            if context.scene.xray.viewer.show_date:
+                row = row.row()
+                row.alignment = 'RIGHT'
+                row.label(text=item.date)
 
 
 def get_current_objects():
@@ -289,6 +296,9 @@ def update_file_list(directory, active_folder=None):
         for file_name, file_path in file_list:
             is_directory = is_dir[index]
             size = os.path.getsize(file_path)
+            create_time = os.path.getctime(file_path)
+            local_time = time.localtime(create_time)
+            time_str = time.strftime('%Y.%m.%d %H:%M:%S', local_time)
             if is_directory:
                 ext = ''
             else:
@@ -300,21 +310,25 @@ def update_file_list(directory, active_folder=None):
                     file_name,
                     file_path,
                     is_directory,
-                    size
+                    size,
+                    time_str
                 ))
             else:
                 file_groups.setdefault(ext, []).append((
                     file_name,
                     file_path,
                     is_directory,
-                    size
+                    size,
+                    time_str
                 ))
     file_index = 0
     sort_by_name = lambda item: item[0]
     if viewer.sort == 'NAME':
         key = sort_by_name
-    else:
+    elif viewer.sort == 'SIZE':
         key = lambda item: item[3]
+    elif viewer.sort == 'DATE':
+        key = lambda item: item[4]
     groups_keys = list(file_groups.keys())
     if True in file_groups:
         dir_index = groups_keys.index(True)
@@ -326,11 +340,12 @@ def update_file_list(directory, active_folder=None):
             files_list.sort(key=sort_by_name, reverse=viewer.sort_reverse)
         else:
             files_list.sort(key=key, reverse=viewer.sort_reverse)
-        for file_name, file_path, is_directory, size in files_list:
+        for file_name, file_path, is_directory, size, date in files_list:
             file = viewer_files.add()
             file.name = file_name
             file.path = file_path
             file.size = size
+            file.date = date
             file.is_dir = is_directory
             if is_directory:
                 if active_folder:
@@ -520,7 +535,8 @@ viewer_file_props = {
     'path': bpy.props.StringProperty(name='Path'),
     'select': bpy.props.BoolProperty(name='Select', default=True),
     'is_dir': bpy.props.BoolProperty(name='Directory'),
-    'size': bpy.props.IntProperty(name='Size')
+    'size': bpy.props.IntProperty(name='Size'),
+    'date': bpy.props.StringProperty(name='Date')
 }
 
 
@@ -532,7 +548,8 @@ class XRayViwerFileProperties(bpy.types.PropertyGroup):
 
 sort_items = (
     ('NAME', 'Name', ''),
-    ('SIZE', 'Size', '')
+    ('SIZE', 'Size', ''),
+    ('DATE', 'Date', '')
 )
 scene_viewer_props = {
     'files': bpy.props.CollectionProperty(type=XRayViwerFileProperties),
@@ -549,10 +566,12 @@ scene_viewer_props = {
         update=update_file_list_ext
     ),
     'show_size': bpy.props.BoolProperty(default=False, name='Show Size'),
+    'show_date': bpy.props.BoolProperty(default=False, name='Show Date'),
     'sort': bpy.props.EnumProperty(
         name='Sort',
         items=sort_items,
-        update=update_file_list_ext
+        update=update_file_list_ext,
+        default='NAME'
     ),
     'group_by_ext': bpy.props.BoolProperty(
         default=False,

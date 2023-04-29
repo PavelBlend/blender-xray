@@ -162,6 +162,7 @@ class XRAY_PT_viewer(ui.base.XRayPanel):
             col_settings.prop(viewer_props, 'sort_reverse')
             col_settings.prop(viewer_props, 'ignore_ext')
             col_settings.prop(viewer_props, 'show_size')
+            col_settings.prop(viewer_props, 'show_date')
             col_settings.prop(viewer_props, 'group_by_ext')
 
             col.operator(
