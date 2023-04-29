@@ -113,8 +113,10 @@ def import_file(file):
     path = file.path
     directory = os.path.dirname(path)
     prefs = utils.version.get_preferences()
+
     if not os.path.isfile(path):
         return
+
     if path.endswith('.object'):
         bpy.ops.xray_import.object(
             directory=directory,
@@ -123,17 +125,20 @@ def import_file(file):
             mesh_split_by_materials=prefs.object_mesh_split_by_mat,
             fmt_version=prefs.sdk_version
         )
+
     elif path.endswith('.ogf'):
         bpy.ops.xray_import.ogf(
             directory=directory,
             files=[{'name': file.name}],
             import_motions=viewer.import_motions
         )
+
     elif path.endswith('.dm'):
         bpy.ops.xray_import.dm(
             directory=directory,
             files=[{'name': file.name}],
         )
+
     elif path.endswith('.details'):
         bpy.ops.xray_import.details(
             directory=directory,
@@ -141,8 +146,12 @@ def import_file(file):
             details_models_in_a_row=True,
             load_slots=False
         )
+
     else:
         if viewer.ignore_ext:
+            imported = False
+
+            # try *.object import
             try:
                 bpy.ops.xray_import.object(
                     directory=directory,
@@ -151,8 +160,45 @@ def import_file(file):
                     mesh_split_by_materials=prefs.object_mesh_split_by_mat,
                     fmt_version=prefs.sdk_version
                 )
+                imported = True
             except:
                 pass
+
+            # try *.ogf import
+            if not imported:
+                try:
+                    bpy.ops.xray_import.ogf(
+                        directory=directory,
+                        files=[{'name': file.name}],
+                        import_motions=viewer.import_motions
+                    )
+                    imported = True
+                except:
+                    pass
+
+            # try *.dm import
+            if not imported:
+                try:
+                    bpy.ops.xray_import.dm(
+                        directory=directory,
+                        files=[{'name': file.name}],
+                    )
+                    imported = True
+                except:
+                    pass
+
+            # try *.details import
+            if not imported:
+                try:
+                    bpy.ops.xray_import.details(
+                        directory=directory,
+                        files=[{'name': file.name}],
+                        details_models_in_a_row=True,
+                        load_slots=False
+                    )
+                    imported = True
+                except:
+                    pass
 
 
 ext_ignore = [
