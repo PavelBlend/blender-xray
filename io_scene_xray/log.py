@@ -9,8 +9,8 @@ from . import text
 
 
 CONTEXT_NAME = '@context'
-__logger__ = None
-__context__ = None
+_logger = None
+_context = None
 
 
 class AppError(Exception):
@@ -69,137 +69,177 @@ class Logger:
     def err(self, message, ctx=None):
         self._message(message, 'ERROR', ctx)
 
-    def flush(self, logname='log'):
+    def _collect_contexts(self):
         # collect message contexts
-        uniq = {}
-        message_contexts = {}
-        for msg, ctx, typ in self._full:
-            count = uniq.get(msg, (0, typ))[0]
-            uniq[msg] = count + 1, typ
-            message_contexts.setdefault(msg, []).append(ctx.data)
-        if not uniq:
-            return
+        self.messages_count = {}
+        self.messages_type = {}
+        self.messages_context = {}
 
-        # generate log lines and report
-        lines = ['Digest:']
-        for msg, (cnt, typ) in uniq.items():
-            line = msg
-            if cnt > 1:
-                line = '[{}x] '.format(cnt) + line
-                lines.append(' ' + line)
+        for message, context, message_type in self._full:
+            count = self.messages_count.get(message, 0)
+            self.messages_count[message] = count + 1
+            self.messages_type[message] = message_type
+            self.messages_context.setdefault(message, []).append(context.data)
+
+        return bool(self.messages_count)
+
+    def _init_log(self):
+        self.lines = []
+        self.processed_groups = {}
+        self.last_line_is_message = False
+
+    def _generate_short_log(self):
+        # generate short log lines and report messages
+        self.lines.append('Digest:')
+
+        for message, count in self.messages_count.items():
+            message_type = self.messages_type[message]
+            line = message
+
+            if count > 1:
+                line = '[{0}x] {1}'.format(count, line)
+                self.lines.append(' ' + line)
+
             else:
-                context_data = message_contexts[msg][0]
+                context_data = self.messages_context[message][0]
+
                 if context_data:
                     prop = tuple(context_data.values())[0]
                     if line.endswith('.'):
                         line = line[ : -1]
-                    lines.append(' ' + line)
+                    self.lines.append(' ' + line)
                     line = '{0}: "{1}"'.format(line, prop)
+
                 else:
-                    lines.append(' ' + line)
-            self._report({typ}, line)
-        lines.extend(['', 'Full log:'])
+                    self.lines.append(' ' + line)
 
-        processed_groups = {}
-        last_line_is_message = False
+            # report
+            self._report({message_type}, line)
 
-        def ensure_group_processed(group):
-            nonlocal last_line_is_message
-            prefix = processed_groups.get(group, None)
-            if prefix is None:
-                if group is not None:
-                    if group.parent:
-                        ensure_group_processed(group.parent)
-                    prefix = '| ' * group.depth
-                    if last_line_is_message:
-                        lines.append(prefix + '|')
-                    data = self._format_data(group.data)
-                    line = '{}+-{}'.format(prefix, data)
-                    lines.append(line)
-                    last_line_is_message = False
-                    prefix += '|  '
-                else:
-                    prefix = ''
-                processed_groups[group] = prefix
-            return prefix
+    def _ensure_group_processed(self, group):
+        prefix = self.processed_groups.get(group, None)
+        if prefix is None:
+            if group is not None:
+                if group.parent:
+                    self._ensure_group_processed(group.parent)
+                prefix = '| ' * group.depth
+                if self.last_line_is_message:
+                    self.lines.append(prefix + '|')
+                data = self._format_data(group.data)
+                line = '{}+-{}'.format(prefix, data)
+                self.lines.append(line)
+                self.last_line_is_message = False
+                prefix += '|  '
+            else:
+                prefix = ''
+            self.processed_groups[group] = prefix
+        return prefix
 
+    def _generate_full_log(self):
+        self.lines.extend(['', 'Full log:'])
         last_message = None
         last_message_count = 0
-        for msg, ctx, typ in self._full:
+
+        for message, context, _ in self._full:
             data = {}
-            group = ctx
+            group = context
+
             while group and group.lightweight:
                 data.update(group.data)
                 group = group.parent
-            prefix = ensure_group_processed(group)
+
+            prefix = self._ensure_group_processed(group)
+
             if data:
-                if msg.endswith('.'):
-                    msg = msg[ : -1]
-                msg += (': {}'.format(data))
-            if last_line_is_message and (last_message == msg):
+                if message.endswith('.'):
+                    message = message[ : -1]
+                message += (': {}'.format(data))
+
+            if self.last_line_is_message and (last_message == message):
                 last_message_count += 1
-                lines[-1] = '{}[{}x] {}'.format(
+                self.lines[-1] = '{}[{}x] {}'.format(
                     prefix,
                     last_message_count,
-                    msg
+                    message
                 )
-            else:
-                lines.append(prefix + msg)
-                last_message = msg
-                last_message_count = 1
-                last_line_is_message = True
 
-        # create log text
+            else:
+                self.lines.append(prefix + message)
+                last_message = message
+                last_message_count = 1
+                self.last_line_is_message = True
+
+    def _create_bpy_text(self, logname):
         text_data = bpy.data.texts.new(logname)
         text_data.user_clear()
-        text_data.from_string('\n'.join(lines))
+        text_data.from_string('\n'.join(self.lines))
         full_log_text = text.get_text(text.warn.full_log)
         self._report(
             {'WARNING'},
-            full_log_text + ': "{}"'.format(text_data.name)
+            '{0}: "{1}"'.format(full_log_text, text_data.name)
         )
 
+    def flush(self, logname='log'):
+        has_massages = self._collect_contexts()
 
-def with_context(name=None):
-    def decorator(func):
-        def wrap(*args, **kwargs):
-            global __context__
-            saved = __context__
-            try:
-                __context__ = _LoggerContext({CONTEXT_NAME: name}, saved)
-                return func(*args, **kwargs)
-            finally:
-                __context__ = saved
-        return wrap
-    return decorator
+        if has_massages:
+            self._init_log()
+            self._generate_short_log()
+            self._generate_full_log()
+            self._create_bpy_text(logname)
 
 
 def update(**kwargs):
-    __context__.data.update(**kwargs)
+    _context.data.update(**kwargs)
 
 
 def props(**kwargs):
-    return _LoggerContext(kwargs, __context__, True)
+    return _LoggerContext(kwargs, _context, True)
 
 
 def warn(message, **kwargs):
-    __logger__.warn(message, props(**kwargs))
+    _logger.warn(message, props(**kwargs))
 
 
 def err(error):
-    __logger__.err(str(error), error.log_context)
+    _logger.err(str(error), error.log_context)
 
 
 def debug(message, **kwargs):
     print('debug: {}: {}'.format(message, kwargs))
 
 
+def set_logger(logger):
+    global _logger
+    _logger = logger
+
+
+def with_context(name=None):
+
+    def decorator(func):
+
+        def wrap(*args, **kwargs):
+            global _context
+            saved = _context
+            try:
+                _context = _LoggerContext({CONTEXT_NAME: name}, saved)
+                return func(*args, **kwargs)
+            finally:
+                _context = saved
+
+        return wrap
+
+    return decorator
+
+
 def execute_with_logger(method):
+
     def wrapper(self, context):
         try:
             name = self.__class__.bl_idname.replace('.', '_')
             with logger(name, self.report):
                 return method(self, context)
+
         except AppError:
             return {'CANCELLED'}
 
@@ -208,23 +248,28 @@ def execute_with_logger(method):
 
 @contextlib.contextmanager
 def using_logger(logger_obj):
-    global __logger__
-    saved = __logger__
+    global _logger
+    saved = _logger
+
     try:
-        __logger__ = logger_obj
+        _logger = logger_obj
         yield
+
     finally:
-        __logger__ = saved
+        _logger = saved
 
 
 @contextlib.contextmanager
 def logger(name, report):
     logger_obj = Logger(report)
+
     try:
         with using_logger(logger_obj):
             yield
+
     except AppError as error:
         logger_obj.err(str(error), error.log_context)
         raise error
+
     finally:
         logger_obj.flush(name)

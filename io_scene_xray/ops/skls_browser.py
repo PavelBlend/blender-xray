@@ -246,7 +246,7 @@ def skls_animations_index_changed(self, context):
 
     report = lambda error, text: None
     logger = log.Logger(report)
-    log.__logger__ = logger
+    log.set_logger(logger)
 
     skls = XRAY_OT_browse_skls_file.skls_file
 
