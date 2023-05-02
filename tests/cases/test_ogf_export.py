@@ -8,6 +8,7 @@ import tests
 class TestOgfExport(tests.utils.XRayTestCase):
     def test_export_active_object(self):
         # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
         self._create_object('test_object')
 
         # Act
@@ -23,6 +24,7 @@ class TestOgfExport(tests.utils.XRayTestCase):
 
     def test_export_selected_object(self):
         # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
         obj = self._create_object('test_object')
         tests.utils.select_object(obj)
 
@@ -39,6 +41,7 @@ class TestOgfExport(tests.utils.XRayTestCase):
 
     def test_export_batch(self):
         # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
         for obj_index in range(3):
             obj = self._create_object('test_object_{}'.format(obj_index))
             tests.utils.select_object(obj)
@@ -60,6 +63,7 @@ class TestOgfExport(tests.utils.XRayTestCase):
 
     def test_export_batch_export_path(self):
         # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
         for obj_index in range(3):
             obj = self._create_object('test_object_{}'.format(obj_index))
             obj.xray.export_path = 'test\\folder'
@@ -82,6 +86,9 @@ class TestOgfExport(tests.utils.XRayTestCase):
         })
 
     def test_export_batch_without_object(self):
+        bpy.ops.object.select_all(action='DESELECT')
+        tests.utils.set_active_object(None)
+
         # Act
         bpy.ops.xray_export.ogf(
             directory=self.outpath(),
@@ -97,6 +104,9 @@ class TestOgfExport(tests.utils.XRayTestCase):
         )
 
     def test_export_without_object(self):
+        bpy.ops.object.select_all(action='DESELECT')
+        tests.utils.set_active_object(None)
+
         # Act
         bpy.ops.xray_export.ogf_file(
             filepath=self.outpath('test.ogf'),
@@ -113,6 +123,7 @@ class TestOgfExport(tests.utils.XRayTestCase):
 
     def test_export_without_roots(self):
         # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
         obj = self._create_object('test_object')
         obj.xray.isroot = False
 
@@ -132,6 +143,7 @@ class TestOgfExport(tests.utils.XRayTestCase):
 
     def test_export_two_sided(self):
         # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
         obj = self._create_object('test_object', two_sided=True)
 
         # Act
@@ -153,15 +165,18 @@ class TestOgfExport(tests.utils.XRayTestCase):
             True
         )
 
+        ver = io_scene_xray.utils.addon_version_number()
+
         # create mesh-object
         obj = tests.utils.create_object(bmesh, True)
+        obj.xray.version = ver
+        obj.xray.isroot = False
         obj.name = name + '_mesh'
         obj.data.materials[0].xray.flags_twosided = two_sided
 
         # create armature-object
         arm = bpy.data.armatures.new(name)
         arm_obj = bpy.data.objects.new(name, arm)
-        ver = io_scene_xray.utils.addon_version_number()
         arm_obj.xray.version = ver
         arm_obj.xray.isroot = True
         tests.utils.link_object(arm_obj)
