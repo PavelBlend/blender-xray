@@ -1,12 +1,14 @@
+import re
+import os
 import bpy
 import io_scene_xray
 import tests
 
 
 class TestOgfExport(tests.utils.XRayTestCase):
-    def test_export_general(self):
+    def test_export_active_object(self):
         # Arrange
-        obj = self._create_object('test_object')
+        self._create_object('test_object')
 
         # Act
         bpy.ops.xray_export.ogf_file(
@@ -16,9 +18,134 @@ class TestOgfExport(tests.utils.XRayTestCase):
         )
 
         # Assert
+        self.assertReportsNotContains('WARNING')
         self.assertOutputFiles({'test.ogf'})
 
-    def _create_object(self, name, export_path=''):
+    def test_export_selected_object(self):
+        # Arrange
+        obj = self._create_object('test_object')
+        tests.utils.select_object(obj)
+
+        # Act
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test.ogf'),
+            fmt_version='cscop',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({'test.ogf'})
+
+    def test_export_batch(self):
+        # Arrange
+        for obj_index in range(3):
+            obj = self._create_object('test_object_{}'.format(obj_index))
+            tests.utils.select_object(obj)
+
+        # Act
+        bpy.ops.xray_export.ogf(
+            directory=self.outpath(),
+            fmt_version='soc',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({
+            'test_object_0.ogf',
+            'test_object_1.ogf',
+            'test_object_2.ogf'
+        })
+
+    def test_export_batch_export_path(self):
+        # Arrange
+        for obj_index in range(3):
+            obj = self._create_object('test_object_{}'.format(obj_index))
+            obj.xray.export_path = 'test\\folder'
+            tests.utils.select_object(obj)
+
+        # Act
+        bpy.ops.xray_export.ogf(
+            directory=self.outpath(),
+            fmt_version='soc',
+            texture_name_from_image_path=False,
+            use_export_paths=True
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({
+            'test/folder/test_object_0.ogf'.replace('/', os.sep),
+            'test/folder/test_object_1.ogf'.replace('/', os.sep),
+            'test/folder/test_object_2.ogf'.replace('/', os.sep)
+        })
+
+    def test_export_batch_without_object(self):
+        # Act
+        bpy.ops.xray_export.ogf(
+            directory=self.outpath(),
+            fmt_version='soc',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('Cannot find root-objects')
+        )
+
+    def test_export_without_object(self):
+        # Act
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test.ogf'),
+            fmt_version='soc',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('Cannot find object root')
+        )
+
+    def test_export_without_roots(self):
+        # Arrange
+        obj = self._create_object('test_object')
+        obj.xray.isroot = False
+
+        # Act
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test.ogf'),
+            fmt_version='cscop',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('Cannot find object root')
+        )
+
+    def test_export_two_sided(self):
+        # Arrange
+        obj = self._create_object('test_object', two_sided=True)
+
+        # Act
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_two_sided.ogf'),
+            fmt_version='soc',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({'test_two_sided.ogf'})
+
+    def _create_object(self, name, two_sided=False):
         # create mesh
         bmesh = tests.utils.create_bmesh(
             ((0, 0, 0), (-1, -1, 0), (+1, -1, 0), (+1, +1, 0), (-1, +1, 0)),
@@ -28,12 +155,12 @@ class TestOgfExport(tests.utils.XRayTestCase):
 
         # create mesh-object
         obj = tests.utils.create_object(bmesh, True)
-        obj.name = name
-        obj.xray.export_path = export_path
+        obj.name = name + '_mesh'
+        obj.data.materials[0].xray.flags_twosided = two_sided
 
         # create armature-object
         arm = bpy.data.armatures.new(name)
-        arm_obj = bpy.data.objects.new(name + '_arm', arm)
+        arm_obj = bpy.data.objects.new(name, arm)
         ver = io_scene_xray.utils.addon_version_number()
         arm_obj.xray.version = ver
         arm_obj.xray.isroot = True

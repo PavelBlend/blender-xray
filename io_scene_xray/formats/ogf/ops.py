@@ -40,6 +40,20 @@ def draw_props(self, context, batch):    # pragma: no cover
     layout.prop(self, 'texture_name_from_image_path')
 
 
+def get_root_objects(context):
+    root_objs = [
+        obj
+        for obj in context.selected_objects
+            if obj.xray.isroot
+    ]
+    if not root_objs:
+        active_obj = context.active_object
+        if active_obj:
+            if active_obj.xray.isroot:
+                root_objs = [active_obj, ]
+    return root_objs
+
+
 export_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext,
@@ -78,7 +92,13 @@ class XRAY_OT_export_ogf_file(
     @utils.ie.set_initial_state
     def execute(self, context):
         selected_objs = context.selected_objects
-        exported_obj = self.get_root_objects(context)[0]
+        root_objs = get_root_objects(context)
+
+        if not root_objs:
+            self.report({'ERROR'}, 'Cannot find object root')
+            return {'CANCELLED'}
+
+        exported_obj = root_objs[0]
 
         export_context = ExportOgfContext()
         export_context.texname_from_path = self.texture_name_from_image_path
@@ -101,18 +121,6 @@ class XRAY_OT_export_ogf_file(
 
         return {'FINISHED'}
 
-    def get_root_objects(self, context):
-        root_objs = [
-            obj
-            for obj in context.selected_objects
-                if obj.xray.isroot
-        ]
-        if not root_objs:
-            active_obj = context.active_object
-            if active_obj.xray.isroot:
-                root_objs = [active_obj, ]
-        return root_objs
-
     def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
 
@@ -121,7 +129,7 @@ class XRAY_OT_export_ogf_file(
         self.export_motions = pref.ogf_export_motions
         self.hq_export = pref.ogf_export_hq_motions
 
-        root_objs = self.get_root_objects(context)
+        root_objs = get_root_objects(context)
 
         if not root_objs:
             self.report({'ERROR'}, 'Cannot find object root')
@@ -185,7 +193,13 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         export_context.fmt_ver = self.fmt_version
         export_context.hq_export = self.hq_export
 
-        for obj in self.roots:
+        root_objs = get_root_objects(context)
+
+        if not root_objs:
+            self.report({'ERROR'}, 'Cannot find root-objects')
+            return {'CANCELLED'}
+
+        for obj in root_objs:
             file_name = utils.ie.add_file_ext(obj.name, filename_ext)
 
             path = self.directory
@@ -214,17 +228,13 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         self.fmt_version = pref.ogf_export_fmt_ver
         self.hq_export = pref.ogf_export_hq_motions
 
-        self.roots = [
-            obj
-            for obj in context.selected_objects
-                if obj.xray.isroot
-        ]
+        root_objs = get_root_objects(context)
 
-        if not self.roots:
+        if not root_objs:
             self.report({'ERROR'}, 'Cannot find root-objects')
             return {'CANCELLED'}
 
-        if len(self.roots) == 1:
+        if len(root_objs) == 1:
             return bpy.ops.xray_export.ogf_file('INVOKE_DEFAULT')
 
         context.window_manager.fileselect_add(self)
