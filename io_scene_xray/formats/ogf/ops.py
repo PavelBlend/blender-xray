@@ -28,7 +28,7 @@ op_text = 'Game Object'
 filename_ext = '.ogf'
 
 
-def draw_props(self, context, batch):
+def draw_props(self, context, batch):    # pragma: no cover
     layout = self.layout
     utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
     layout.prop(self, 'export_motions')
@@ -77,21 +77,41 @@ class XRAY_OT_export_ogf_file(
     @utils.ie.execute_require_filepath
     @utils.ie.set_initial_state
     def execute(self, context):
+        selected_objs = context.selected_objects
+        exported_obj = self.get_root_objects(context)[0]
+
         export_context = ExportOgfContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.fmt_ver = self.fmt_version
         export_context.hq_export = self.hq_export
         export_context.export_motions = self.export_motions
+
         try:
-            exp.export_file(self.exported_object, self.filepath, export_context)
+            exp.export_file(exported_obj, self.filepath, export_context)
         except log.AppError as err:
             export_context.errors.append(err)
+
         for err in export_context.errors:
             log.err(err)
-        for obj in self.selected_objects:
+
+        for obj in selected_objs:
             utils.version.select_object(obj)
-        utils.version.set_active_object(self.exported_object)
+
+        utils.version.set_active_object(exported_obj)
+
         return {'FINISHED'}
+
+    def get_root_objects(self, context):
+        root_objs = [
+            obj
+            for obj in context.selected_objects
+                if obj.xray.isroot
+        ]
+        if not root_objs:
+            active_obj = context.active_object
+            if active_obj.xray.isroot:
+                root_objs = [active_obj, ]
+        return root_objs
 
     def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
@@ -101,20 +121,23 @@ class XRAY_OT_export_ogf_file(
         self.export_motions = pref.ogf_export_motions
         self.hq_export = pref.ogf_export_hq_motions
 
-        self.filepath = utils.ie.add_file_ext(
-            context.active_object.name,
-            self.filename_ext
-        )
-        objs = context.selected_objects
-        self.selected_objects = context.selected_objects
-        roots = [obj for obj in objs if obj.xray.isroot]
-        if not roots:
+        root_objs = self.get_root_objects(context)
+
+        if not root_objs:
             self.report({'ERROR'}, 'Cannot find object root')
             return {'CANCELLED'}
-        if len(roots) > 1:
+
+        if len(root_objs) > 1:
             self.report({'ERROR'}, 'Too many object roots found')
             return {'CANCELLED'}
-        self.exported_object = roots[0]
+
+        exported_obj = root_objs[0]
+
+        self.filepath = utils.ie.add_file_ext(
+            exported_obj.name,
+            self.filename_ext
+        )
+
         return super().invoke(context, event)
 
 
