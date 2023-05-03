@@ -80,9 +80,9 @@ class TestOgfExport(tests.utils.XRayTestCase):
         # Assert
         self.assertReportsNotContains('WARNING')
         self.assertOutputFiles({
-            'test/folder/test_object_0.ogf'.replace('/', os.sep),
-            'test/folder/test_object_1.ogf'.replace('/', os.sep),
-            'test/folder/test_object_2.ogf'.replace('/', os.sep)
+            'test\\folder\\test_object_0.ogf',
+            'test\\folder\\test_object_1.ogf',
+            'test\\folder\\test_object_2.ogf'
         })
 
     def test_export_batch_without_object(self):
