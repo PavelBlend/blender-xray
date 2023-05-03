@@ -66,7 +66,7 @@ class TestOgfExport(tests.utils.XRayTestCase):
         bpy.ops.object.select_all(action='DESELECT')
         for obj_index in range(3):
             obj = self._create_object('test_object_{}'.format(obj_index))
-            obj.xray.export_path = 'test\\folder'
+            obj.xray.export_path = 'test/folder'
             tests.utils.select_object(obj)
 
         # Act
@@ -80,9 +80,9 @@ class TestOgfExport(tests.utils.XRayTestCase):
         # Assert
         self.assertReportsNotContains('WARNING')
         self.assertOutputFiles({
-            'test\\folder\\test_object_0.ogf',
-            'test\\folder\\test_object_1.ogf',
-            'test\\folder\\test_object_2.ogf'
+            'test/folder/test_object_0.ogf',
+            'test/folder/test_object_1.ogf',
+            'test/folder/test_object_2.ogf'
         })
 
     def test_export_batch_without_object(self):
