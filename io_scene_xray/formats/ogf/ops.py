@@ -203,7 +203,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
             file_name = utils.ie.add_file_ext(obj.name, filename_ext)
 
             path = self.directory
-            exp_path = obj.xray.export_path
+            exp_path = utils.ie.get_export_path(obj)
             if self.use_export_paths and exp_path:
                 path = os.path.join(path, exp_path)
                 os.makedirs(path, exist_ok=True)

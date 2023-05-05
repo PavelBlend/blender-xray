@@ -122,8 +122,9 @@ class XRAY_OT_export_object(utils.ie.BaseOperator, _WithExportMotions):
             name = utils.ie.add_file_ext(name, filename_ext)
             path = self.directory
 
-            if self.use_export_paths and bpy_obj.xray.export_path:
-                path = os.path.join(path, bpy_obj.xray.export_path)
+            exp_path = utils.ie.get_export_path(bpy_obj)
+            if self.use_export_paths and exp_path:
+                path = os.path.join(path, exp_path)
                 os.makedirs(path, exist_ok=True)
 
             try:
@@ -279,8 +280,9 @@ class XRAY_OT_export_project(utils.ie.BaseOperator):
         for bpy_obj in XRAY_OT_export_project.find_objects(context, self.use_selection):
             name = utils.ie.add_file_ext(bpy_obj.name, filename_ext)
             opath = path
-            if bpy_obj.xray.export_path and data.use_export_paths:
-                opath = os.path.join(opath, bpy_obj.xray.export_path)
+            exp_path = utils.ie.get_export_path(bpy_obj)
+            if exp_path and data.use_export_paths:
+                opath = os.path.join(opath, exp_path)
                 os.makedirs(opath, exist_ok=True)
             try:
                 exp.export_file(bpy_obj, os.path.join(opath, name), export_context)

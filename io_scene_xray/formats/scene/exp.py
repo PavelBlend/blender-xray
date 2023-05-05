@@ -5,6 +5,7 @@ import string
 from . import fmt
 from ... import rw
 from ... import log
+from ... import utils
 
 
 def write_objects_count(chunked_writer, bpy_objs):
@@ -20,10 +21,8 @@ def write_object_body(chunked_writer, bpy_obj):
     packed_reader.putf('<I', 3)   # flags
     body_chunked_writer.put(fmt.Chunks.CUSTOMOBJECT_CHUNK_FLAGS, packed_reader)
 
-    if bpy_obj.xray.export_path:
-        if bpy_obj.xray.export_path[-1] != '\\':
-            bpy_obj.xray.export_path += '\\'
-    object_name = bpy_obj.xray.export_path + bpy_obj.name
+    exp_path = utils.ie.get_export_path(bpy_obj)
+    object_name = exp_path + bpy_obj.name
     if len(object_name) > 4 and object_name[-4] == '.':
         if object_name[-1] in string.digits and \
            object_name[-2] in string.digits and \

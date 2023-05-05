@@ -300,3 +300,16 @@ def invoke_require_armature(func):
         return func(self, context, event)
 
     return wrapper
+
+
+def get_export_path(bpy_obj):
+    exp_path = bpy_obj.xray.export_path
+
+    if exp_path:
+        exp_path = exp_path.replace('\\', os.sep)
+        exp_path = exp_path.replace('/', os.sep)
+
+        if exp_path[-1] != os.sep:
+            exp_path += os.sep
+
+    return exp_path
