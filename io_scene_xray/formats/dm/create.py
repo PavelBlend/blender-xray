@@ -159,25 +159,8 @@ def create_material(det_model, abs_image_path, context):
     bpy_material = bpy.data.materials.new(det_model.texture)
     bpy_material.xray.eshader = det_model.shader
     bpy_material.xray.version = context.version
-    if not utils.version.IS_28:
-        bpy_material.use_shadeless = True
-        bpy_material.use_transparency = True
-        bpy_material.alpha = 0.0
-        alternative_image_path = os.path.join(
-            os.path.dirname(det_model.file_path),
-            det_model.texture + '.dds'
-        )
 
-        bpy_texture = find_bpy_texture(
-            det_model, abs_image_path, alternative_image_path
-        )
-
-        if bpy_texture is None:
-            create_bpy_texture(det_model, bpy_material, abs_image_path)
-        else:
-            bpy_texture_slot = bpy_material.texture_slots.add()
-            bpy_texture_slot.texture = bpy_texture
-    else:
+    if utils.version.IS_28:
         bpy_material.use_nodes = True
         bpy_material.blend_method = 'CLIP'
         node_tree = bpy_material.node_tree
@@ -204,6 +187,25 @@ def create_material(det_model, abs_image_path, context):
             texture_node.outputs['Alpha'],
             princ_shader.inputs['Alpha']
         )
+
+    else:
+        bpy_material.use_shadeless = True
+        bpy_material.use_transparency = True
+        bpy_material.alpha = 0.0
+        alternative_image_path = os.path.join(
+            os.path.dirname(det_model.file_path),
+            det_model.texture + '.dds'
+        )
+
+        bpy_texture = find_bpy_texture(
+            det_model, abs_image_path, alternative_image_path
+        )
+
+        if bpy_texture is None:
+            create_bpy_texture(det_model, bpy_material, abs_image_path)
+        else:
+            bpy_texture_slot = bpy_material.texture_slots.add()
+            bpy_texture_slot.texture = bpy_texture
 
     return bpy_material
 
@@ -252,14 +254,17 @@ def reconstruct_mesh(vertices, uvs, triangles):
     # generate new triangles indices and uvs
     remap_triangles = []
     remap_uvs = []
-    for triangle in triangles:
+    for vert_1, vert_2, vert_3 in triangles:
         remap_triangles.append((
-            remap_indices[triangle[0]],
-            remap_indices[triangle[1]],
-            remap_indices[triangle[2]]
+            remap_indices[vert_1],
+            remap_indices[vert_2],
+            remap_indices[vert_3]
         ))
-        for vertex_index in triangle:
-            remap_uvs.append(uvs[vertex_index])
+        remap_uvs.extend((
+            uvs[vert_1],
+            uvs[vert_2],
+            uvs[vert_3]
+        ))
 
     return remap_vertices, remap_uvs, remap_triangles
 
@@ -270,20 +275,16 @@ def read_mesh_data(packed_reader, det_model):
     vertices = []
     uvs = []
     for _ in range(det_model.mesh.vertices_count):
-        vertex = packed_reader.getp(S_FFFFF)    # x, y, z, u, v
-        vertices.append((vertex[0], vertex[2], vertex[1]))
-        uvs.append((vertex[3], 1 - vertex[4]))
+        co_x, co_y, co_z, co_u, co_v = packed_reader.getp(S_FFFFF)
+        vertices.append((co_x, co_z, co_y))
+        uvs.append((co_u, 1.0 - co_v))
 
     # read triangles indices
     S_HHH = rw.read.PackedReader.prep('3H')
     triangles = []
     for _ in range(det_model.mesh.indices_count // 3):
-        face_indices = packed_reader.getp(S_HHH)
-        triangles.append((
-            face_indices[0],
-            face_indices[2],
-            face_indices[1]
-        ))
+        vert_1, vert_2, vert_3 = packed_reader.getp(S_HHH)
+        triangles.append((vert_1, vert_3, vert_2))
 
     return vertices, uvs, triangles
 
@@ -296,17 +297,18 @@ def create_geometry(b_mesh, vertices, triangles):
 
     # create triangles
     bmesh_faces = []
-    for triangle in triangles:
+    for vert_1, vert_2, vert_3 in triangles:
         try:
             bmesh_face = b_mesh.faces.new((
-                b_mesh.verts[triangle[0]],
-                b_mesh.verts[triangle[1]],
-                b_mesh.verts[triangle[2]]
+                b_mesh.verts[vert_1],
+                b_mesh.verts[vert_2],
+                b_mesh.verts[vert_3]
             ))
             bmesh_face.smooth = True
             bmesh_faces.append(bmesh_face)
         except ValueError:
             bmesh_faces.append(None)
+
     b_mesh.faces.ensure_lookup_table()
 
     return bmesh_faces
@@ -325,7 +327,7 @@ def create_uv(b_mesh, det_model, bmesh_faces, uvs):
 
 
 def create_mesh(packed_reader, det_model):
-    if det_model.mesh.indices_count % 3 != 0:
+    if det_model.mesh.indices_count % 3:
         raise log.AppError(text.error.dm_bad_indices)
 
     b_mesh = bmesh.new()
