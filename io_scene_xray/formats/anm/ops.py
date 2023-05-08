@@ -14,11 +14,11 @@ from ... import utils
 
 
 def get_objects(context):
-    objects_list = []
-    for obj in context.selected_objects:
-        if obj.animation_data:
-            objects_list.append(obj)
-    return objects_list
+    return [
+        obj
+        for obj in context.selected_objects
+            if obj.animation_data
+    ]
 
 
 filename_ext = '.anm'
@@ -72,13 +72,12 @@ class XRAY_OT_import_anm(
         imp_ctx = imp.ImportAnmContext()
         imp_ctx.camera_animation = self.camera_animation
 
-        imp_fun = imp.import_file
         results = []
 
         utils.ie.import_files(
             self.directory,
             self.files,
-            imp_fun,
+            imp.import_file,
             imp_ctx,
             results
         )
@@ -148,12 +147,12 @@ class XRAY_OT_export_anm_file(
         export_context.format_version = self.format_version
         export_context.active_object = obj
         export_context.filepath = self.filepath
+
         try:
             exp.export_file(export_context)
         except log.AppError as err:
-            export_context.errors.append(err)
-        for err in export_context.errors:
             log.err(err)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
@@ -166,7 +165,7 @@ class XRAY_OT_export_anm_file(
         if obj:
             self.filepath = utils.ie.add_file_ext(obj.name, filename_ext)
         else:
-            self.report({'ERROR'}, 'No active objects!')
+            utils.ie.no_active_obj_report(self)
             return {'CANCELLED'}
 
         if not obj.animation_data:
@@ -209,8 +208,6 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
-    objects_list = []
-
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'gamedata_folder')
         layout = self.layout
@@ -224,19 +221,18 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
 
         objects_list = get_objects(context)
 
-        try:
-            for obj in objects_list:
-                export_context.active_object = obj
-                filepath = os.path.join(self.directory, obj.name)
-                filepath = utils.ie.add_file_ext(filepath, filename_ext)
-                export_context.filepath = filepath
+        for obj in objects_list:
+            filepath = os.path.join(self.directory, obj.name)
+            filepath = utils.ie.add_file_ext(filepath, filename_ext)
+            export_context.active_object = obj
+            export_context.filepath = filepath
+
+            try:
                 exp.export_file(export_context)
+            except log.AppError as err:
+                export_context.errors.append(err)
 
-        except log.AppError as err:
-            export_context.errors.append(err)
-
-        for err in export_context.errors:
-            log.err(err)
+        utils.ie.report_errors(export_context)
 
         return {'FINISHED'}
 
@@ -244,16 +240,16 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
         selected_objects_count = len(context.selected_objects)
 
         if not selected_objects_count:
-            self.report({'ERROR'}, 'No selected object')
+            utils.ie.no_selected_obj_report(self)
             return {'CANCELLED'}
 
-        self.objects_list = get_objects(context)
+        objects_list = get_objects(context)
 
-        if not self.objects_list:
+        if not objects_list:
             self.report({'ERROR'}, 'Selected objects has no animation data')
             return {'CANCELLED'}
 
-        if len(self.objects_list) == 1:
+        if len(objects_list) == 1:
             return bpy.ops.xray_export.anm_file('INVOKE_DEFAULT')
 
         pref = utils.version.get_preferences()

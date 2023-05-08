@@ -313,3 +313,11 @@ def get_export_path(bpy_obj):
             exp_path += os.sep
 
     return exp_path
+
+
+def no_active_obj_report(op):
+    op.report({'ERROR'}, 'No active object!')
+
+
+def no_selected_obj_report(op):
+    op.report({'ERROR'}, 'No selected objects!')
