@@ -14,6 +14,10 @@ def is_blender_2_80():
     return bpy.app.version >= (2, 80, 0)
 
 
+def is_blender_2_90():
+    return bpy.app.version >= (2, 90, 0)
+
+
 def is_blender_2_93():
     return bpy.app.version >= (2, 93, 0)
 
@@ -52,6 +56,7 @@ def has_id_props_ui():
 
 IS_277 = is_blender_2_77()
 IS_28 = is_blender_2_80()
+IS_29 = is_blender_2_90()
 IS_293 = is_blender_2_93()
 IS_3 = is_blender_3()
 IS_34 = is_blender_34()

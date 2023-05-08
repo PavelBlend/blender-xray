@@ -4,6 +4,7 @@ import bpy
 # addon modules
 from . import bone
 from . import ie
+from . import version
 
 
 def set_initial_state(
@@ -55,3 +56,25 @@ def get_initial_state(arm_obj):
             dep_action = dependency_object.animation_data.action
 
     return current_frame, mode, current_action, dependency_object, dep_action
+
+
+def insert_keyframes(frames_coords, fcurves):
+    for curve_index in range(6):
+        frames_count = len(frames_coords[curve_index]) // 2
+        curve = fcurves[curve_index]
+
+        # create keyframes
+        keyframes = curve.keyframe_points
+        keyframes.add(count=frames_count)
+        keyframes.foreach_set('co', frames_coords[curve_index])
+
+        # set linear interpolation
+        if version.IS_29:
+            interp_prop = bpy.types.Keyframe.bl_rna.properties['interpolation']
+            linear = interp_prop.enum_items['LINEAR'].value
+            keyframes.foreach_set('interpolation', [linear, ] * frames_count)
+        else:
+            for keyframe in keyframes:
+                keyframe.interpolation = 'LINEAR'
+
+        curve.update()

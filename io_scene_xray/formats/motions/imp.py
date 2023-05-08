@@ -170,17 +170,7 @@ def import_motion(
                     used_times.add(time)
 
             # insert keyframes
-            for curve_index in range(6):
-                frames_count = len(frames[curve_index]) // 2
-                curve = tmpfc[curve_index]
-                keyframes = curve.keyframe_points
-                keyframes.add(count=frames_count)
-                keyframes.foreach_set(
-                    'interpolation',
-                    [1, ] * frames_count
-                )
-                keyframes.foreach_set('co', frames[curve_index])
-                curve.update()
+            utils.action.insert_keyframes(frames, tmpfc)
 
         bone_key = bname
         bpy_bone = bpy_armature.data.bones.get(bname, None)
@@ -265,17 +255,7 @@ def import_motion(
                     act.fcurves.remove(fcurve)
 
             # insert keyframes
-            for curve_index in range(6):
-                frames_count = len(frames[curve_index]) // 2
-                curve = fcs[curve_index]
-                keyframes = curve.keyframe_points
-                keyframes.add(count=frames_count)
-                keyframes.foreach_set(
-                    'interpolation',
-                    [1, ] * frames_count
-                )
-                keyframes.foreach_set('co', frames[curve_index])
-                curve.update()
+            utils.action.insert_keyframes(frames, fcs)
 
         else:
             frames = [[], [], [], [], [], []]
@@ -304,17 +284,7 @@ def import_motion(
                     ))
 
             # insert keyframes
-            for curve_index in range(6):
-                frames_count = len(frames[curve_index]) // 2
-                curve = fcs[curve_index]
-                keyframes = curve.keyframe_points
-                keyframes.add(count=frames_count)
-                keyframes.foreach_set(
-                    'interpolation',
-                    [1, ] * frames_count
-                )
-                keyframes.foreach_set('co', frames[curve_index])
-                curve.update()
+            utils.action.insert_keyframes(frames, fcs)
 
     for warn_message, motion_name, bone_name in set(converted_warrnings):
         keys_count = converted_warrnings.count((
