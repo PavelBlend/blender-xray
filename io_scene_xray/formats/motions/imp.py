@@ -115,7 +115,7 @@ def import_motion(
                 shape = interp.Shape(reader.getf('<B')[0])
                 if shape == interp.Shape.STEPPED:
                     if val_raw != val_raw_prev:
-                        if (time - time_prev) > frame_time:
+                        if (round(time - time_prev, 5)) > frame_time:
                             values.append(val_prev)
                             times.append(time - frame_time)
                             shapes.append(shape)
@@ -155,18 +155,33 @@ def import_motion(
                     params.append(params[-1])
                 values, times = interpolate_keys(start_frame, end_frame, values, times, shapes, tcb, params)
             curves[curve_index] = values, times
+
         used_times = set()
         if not has_interpolate:
             tmpfc = [
                 act.fcurves.new('temp', index=curve_index)
                 for curve_index in range(6)
             ]
+            frames = [[], [], [], [], [], []]
             for curve_index in range(const.CURVE_COUNT):
                 fcurve = tmpfc[curve_index]
                 for value, time in zip(*curves[curve_index]):
-                    key_frame = fcurve.keyframe_points.insert(time, value)
-                    key_frame.interpolation = 'LINEAR'
+                    frames[curve_index].extend((time, value))
                     used_times.add(time)
+
+            # insert keyframes
+            for curve_index in range(6):
+                frames_count = len(frames[curve_index]) // 2
+                curve = tmpfc[curve_index]
+                keyframes = curve.keyframe_points
+                keyframes.add(count=frames_count)
+                keyframes.foreach_set(
+                    'interpolation',
+                    [1, ] * frames_count
+                )
+                keyframes.foreach_set('co', frames[curve_index])
+                curve.update()
+
         bone_key = bname
         bpy_bone = bpy_armature.data.bones.get(bname, None)
         if bpy_bone is None:
@@ -224,6 +239,7 @@ def import_motion(
             xmat = multiply(xmat, const.MATRIX_BONE)
         if not has_interpolate:
             try:
+                frames = [[], [], [], [], [], []]
                 for time in used_times:
                     mat = multiply(
                         xmat,
@@ -241,15 +257,28 @@ def import_motion(
                     trn = mat.to_translation()
                     rot = mat.to_euler('ZXY')
                     for axis in range(3):
-                        key_frame = fcs[axis].keyframe_points.insert(time, trn[axis])
-                        key_frame.interpolation = 'LINEAR'
+                        frames[axis].extend((time, trn[axis]))
                     for axis in range(3):
-                        key_frame = fcs[axis + 3].keyframe_points.insert(time, rot[axis])
-                        key_frame.interpolation = 'LINEAR'
+                        frames[axis + 3].extend((time, rot[axis]))
             finally:
                 for fcurve in tmpfc:
                     act.fcurves.remove(fcurve)
+
+            # insert keyframes
+            for curve_index in range(6):
+                frames_count = len(frames[curve_index]) // 2
+                curve = fcs[curve_index]
+                keyframes = curve.keyframe_points
+                keyframes.add(count=frames_count)
+                keyframes.foreach_set(
+                    'interpolation',
+                    [1, ] * frames_count
+                )
+                keyframes.foreach_set('co', frames[curve_index])
+                curve.update()
+
         else:
+            frames = [[], [], [], [], [], []]
             for index in range(end_frame - start_frame + 1):
                 mat = multiply(
                     xmat,
@@ -267,17 +296,26 @@ def import_motion(
                 trn = mat.to_translation()
                 rot = mat.to_euler('ZXY')
                 for axis in range(3):
-                    key_frame = fcs[axis].keyframe_points.insert(
-                        curves[axis][1][index],
-                        trn[axis]
-                    )
-                    key_frame.interpolation = 'LINEAR'
+                    frames[axis].extend((curves[axis][1][index], trn[axis]))
                 for axis in range(3):
-                    key_frame = fcs[axis + 3].keyframe_points.insert(
+                    frames[axis + 3].extend((
                         curves[axis + 3][1][index],
                         rot[axis]
-                    )
-                    key_frame.interpolation = 'LINEAR'
+                    ))
+
+            # insert keyframes
+            for curve_index in range(6):
+                frames_count = len(frames[curve_index]) // 2
+                curve = fcs[curve_index]
+                keyframes = curve.keyframe_points
+                keyframes.add(count=frames_count)
+                keyframes.foreach_set(
+                    'interpolation',
+                    [1, ] * frames_count
+                )
+                keyframes.foreach_set('co', frames[curve_index])
+                curve.update()
+
     for warn_message, motion_name, bone_name in set(converted_warrnings):
         keys_count = converted_warrnings.count((
             warn_message, motion_name, bone_name
