@@ -200,7 +200,8 @@ def import_file(file_path, context):
 
     try:
         ltx_data = file_data.decode(encoding='cp1251')
-        ltx = rw.ltx.StalkerLtxParser(file_path, data=ltx_data)
+        ltx = rw.ltx.LtxParser()
+        ltx.from_str(ltx_data)
     except:
         ltx = None
 

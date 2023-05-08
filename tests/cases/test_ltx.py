@@ -1,19 +1,16 @@
 import os
-
-import bpy
-
 import io_scene_xray
+import tests
 
-from tests import utils
 
-
-class TestLtxReading(utils.XRayTestCase):
+class TestLtxReading(tests.utils.XRayTestCase):
     def test_paths(self):
         # Act
         ltx_folder = self.binpath()
         ltx_name = 'test_fmt_path.ltx'
         ltx_path = os.path.join(ltx_folder, ltx_name)
-        ltx = io_scene_xray.rw.ltx.StalkerLtxParser(ltx_path)
+        ltx = io_scene_xray.rw.ltx.LtxParser()
+        ltx.from_file(ltx_path)
 
         self.assertEqual(ltx.values['$sdk_root$'], ltx_folder)
         self.assertEqual(
@@ -34,4 +31,5 @@ class TestLtxReading(utils.XRayTestCase):
         ltx_folder = self.binpath()
         ltx_name = 'test_fmt_config.ltx'
         ltx_path = os.path.join(ltx_folder, ltx_name)
-        ltx = io_scene_xray.rw.ltx.StalkerLtxParser(ltx_path)
+        ltx = io_scene_xray.rw.ltx.LtxParser()
+        ltx.from_file(ltx_path)

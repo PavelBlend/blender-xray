@@ -41,7 +41,8 @@ def read_buffer_data():
     xray = get_xray_settings()
     if xray:
         buffer_text = bpy.context.window_manager.clipboard
-        ltx = rw.ltx.StalkerLtxParser(None, data=buffer_text)
+        ltx = rw.ltx.LtxParser()
+        ltx.from_str(buffer_text)
         section = ltx.sections.get(SECTION_NAME, None)
         if not section:
             return

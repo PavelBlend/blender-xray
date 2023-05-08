@@ -198,10 +198,8 @@ class XRAY_OT_paste_actions(utils.ie.BaseOperator):
     def execute(self, context):
         xray = context.active_object.xray
 
-        ltx = rw.ltx.StalkerLtxParser(
-            None,
-            data=context.window_manager.clipboard
-        )
+        ltx = rw.ltx.LtxParser()
+        ltx.from_str(context.window_manager.clipboard)
         used_motions = [
             (motion.name, motion.export_name)
             for motion in xray.motions_collection

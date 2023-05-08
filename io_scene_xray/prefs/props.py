@@ -49,7 +49,8 @@ def _auto_path(prefs, self_name, path_suffix, checker):
         if not os.path.exists(prefs.fs_ltx_file):
             return '', prefs.fs_ltx_file
         try:
-            fs = rw.ltx.StalkerLtxParser(prefs.fs_ltx_file)
+            fs = rw.ltx.LtxParser()
+            fs.from_file(prefs.fs_ltx_file)
         except:
             utils.draw.show_message(
                 text.get_text(text.error.ltx_invalid_syntax),
