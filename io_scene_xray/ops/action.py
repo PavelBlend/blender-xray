@@ -330,6 +330,8 @@ class XRAY_OT_rename_actions(utils.ie.BaseOperator):
             row.prop(self, 'function_{}'.format(index), expand=True)
 
     def add_motion(self, obj, index):
+        if len(obj.xray.motions_collection) <= index:
+            return
         motion = obj.xray.motions_collection[index]
         action = bpy.data.actions.get(motion.name)
         if action:
