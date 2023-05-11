@@ -202,6 +202,17 @@ def set_active_object(obj):
         bpy.context.scene.objects.active = obj
 
 
+def remove_object(obj):
+    if bpy.app.version < (2, 80, 0):
+        bpy.context.scene.objects.unlink(obj)
+    bpy.data.objects.remove(obj)
+
+
+def remove_all_objects():
+    for obj in bpy.data.objects:
+        remove_object(obj)
+
+
 def create_object(bm, create_material=True):
     mesh = bpy.data.meshes.new('test')
     bm.to_mesh(mesh)

@@ -34,7 +34,7 @@ class TestOps(tests.utils.XRayTestCase):
         bpy.ops.io_scene_xray.change_action_bake_settings(
             change_mode='ALL_OBJECTS'
         )
-        bpy.data.objects.remove(obj)
+        tests.utils.remove_object(obj)
 
         # without motions test
         obj = bpy.data.objects.new('test_obj', None)
@@ -46,7 +46,7 @@ class TestOps(tests.utils.XRayTestCase):
         bpy.ops.io_scene_xray.change_action_bake_settings(
             change_mode='ACTIVE_ACTION'
         )
-        bpy.data.objects.remove(obj)
+        tests.utils.remove_object(obj)
 
         # without actions test
         obj = bpy.data.objects.new('test_obj', None)
@@ -65,7 +65,7 @@ class TestOps(tests.utils.XRayTestCase):
         bpy.ops.io_scene_xray.change_action_bake_settings(
             change_mode='ALL_OBJECTS'
         )
-        bpy.data.objects.remove(obj)
+        tests.utils.remove_object(obj)
 
         for index in range(3):
             name = 'test_' + str(index)
@@ -177,6 +177,8 @@ class TestOps(tests.utils.XRayTestCase):
         bpy.ops.io_scene_xray.paste_action_settings()
 
     def test_rename_actions(self):
+        tests.utils.remove_all_objects()
+
         # without objects test
         bpy.ops.io_scene_xray.rename_actions(
             data_mode='ACTIVE_MOTION',
@@ -225,7 +227,7 @@ class TestOps(tests.utils.XRayTestCase):
             'INFO',
             re.compile('Renamed: 0, Not Renamed: 0')
         )
-        bpy.data.objects.remove(obj)
+        tests.utils.remove_object(obj)
 
         # without action test
         arm = bpy.data.armatures.new('test_arm')
@@ -257,7 +259,7 @@ class TestOps(tests.utils.XRayTestCase):
             'INFO',
             re.compile('Renamed: 0, Not Renamed: 0')
         )
-        bpy.data.objects.remove(obj)
+        tests.utils.remove_object(obj)
 
         # long name test
         arm = bpy.data.armatures.new('test_arm')
@@ -291,7 +293,7 @@ class TestOps(tests.utils.XRayTestCase):
             'INFO',
             re.compile('Renamed: 0, Not Renamed: 0')
         )
-        bpy.data.objects.remove(obj)
+        tests.utils.remove_object(obj)
 
         # Arrange
         for obj_index in range(3):
