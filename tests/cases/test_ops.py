@@ -8,6 +8,65 @@ class TestOps(tests.utils.XRayTestCase):
         bpy.ops.io_scene_xray.add_camera()
 
     def test_change_action_bake_settings(self):
+        # without objects test
+        bpy.ops.io_scene_xray.change_action_bake_settings(
+            change_mode='ACTIVE_ACTION'
+        )
+        bpy.ops.io_scene_xray.change_action_bake_settings(
+            change_mode='ACTIVE_OBJECT'
+        )
+
+        # without anim data test
+        obj = bpy.data.objects.new('test_obj', None)
+        tests.utils.link_object(obj)
+        tests.utils.select_object(obj)
+        tests.utils.set_active_object(obj)
+
+        bpy.ops.io_scene_xray.change_action_bake_settings(
+            change_mode='ACTIVE_ACTION'
+        )
+        bpy.ops.io_scene_xray.change_action_bake_settings(
+            change_mode='ACTIVE_OBJECT'
+        )
+        bpy.ops.io_scene_xray.change_action_bake_settings(
+            change_mode='SELECTED_OBJECTS'
+        )
+        bpy.ops.io_scene_xray.change_action_bake_settings(
+            change_mode='ALL_OBJECTS'
+        )
+        bpy.data.objects.remove(obj)
+
+        # without motions test
+        obj = bpy.data.objects.new('test_obj', None)
+        tests.utils.link_object(obj)
+        tests.utils.select_object(obj)
+        tests.utils.set_active_object(obj)
+        obj.animation_data_create()
+
+        bpy.ops.io_scene_xray.change_action_bake_settings(
+            change_mode='ACTIVE_ACTION'
+        )
+        bpy.data.objects.remove(obj)
+
+        # without actions test
+        obj = bpy.data.objects.new('test_obj', None)
+        tests.utils.link_object(obj)
+        tests.utils.select_object(obj)
+        tests.utils.set_active_object(obj)
+        motion = obj.xray.motions_collection.add()
+        motion.name = 'test_motion'
+
+        bpy.ops.io_scene_xray.change_action_bake_settings(
+            change_mode='ACTIVE_OBJECT'
+        )
+        bpy.ops.io_scene_xray.change_action_bake_settings(
+            change_mode='SELECTED_OBJECTS'
+        )
+        bpy.ops.io_scene_xray.change_action_bake_settings(
+            change_mode='ALL_OBJECTS'
+        )
+        bpy.data.objects.remove(obj)
+
         for index in range(3):
             name = 'test_' + str(index)
             act = bpy.data.actions.new(name)
@@ -84,6 +143,19 @@ class TestOps(tests.utils.XRayTestCase):
         )
 
     def test_copy_paste_action_settings(self):
+        # test without object
+        bpy.ops.io_scene_xray.copy_action_settings()
+        bpy.ops.io_scene_xray.paste_action_settings()
+
+        # test without anim data
+        arm = bpy.data.armatures.new('test_arm')
+        obj = bpy.data.objects.new('test_obj', arm)
+        tests.utils.link_object(obj)
+        tests.utils.select_object(obj)
+        tests.utils.set_active_object(obj)
+        bpy.ops.io_scene_xray.copy_action_settings()
+        bpy.ops.io_scene_xray.paste_action_settings()
+
         # copy
         act = bpy.data.actions.new('test_act_copy')
         arm = bpy.data.armatures.new('test_arm_copy')
