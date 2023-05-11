@@ -54,6 +54,12 @@ class XRayTestCase(unittest.TestCase):
         io_scene_xray.handlers.load_post(None)
         self.__prev_report_catcher = TestReadyOperator.report_catcher
         TestReadyOperator.report_catcher = lambda op, report_type, message: self._reports.append((report_type, message))
+        # Enable scripts so that there are no warnings
+        # in the console about disabled drivers.
+        if bpy.app.version >= (2, 80, 0):
+            bpy.context.preferences.filepaths.use_scripts_auto_execute = True
+        else:
+            bpy.context.user_preferences.system.use_scripts_auto_execute = True
 
     def tearDown(self):
         TestReadyOperator.report_catcher = self.__prev_report_catcher

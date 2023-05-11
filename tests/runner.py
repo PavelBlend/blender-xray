@@ -25,3 +25,6 @@ if '--save-html-report' in sys.argv:
         cov.html_report(directory=save_directory)
     else:
         cov.html_report()
+
+# separator between tests outputs
+print('\n' * 5)
