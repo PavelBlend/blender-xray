@@ -5,6 +5,7 @@ from . import utilites
 from ... import log
 from ... import text
 from ... import rw
+from ... import utils
 
 
 @log.with_context('envelope')
@@ -37,7 +38,6 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
 
     replace_unsupported_to = 'BEZIER'
     unsupported_occured = set()
-    fckf = fcurve.keyframe_points
     use_interpolate = False
     values = []
     times = []
@@ -117,6 +117,9 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
                     interp.Shape.BEZIER_2D
                 ):
                 use_interpolate = True
+
+    frames_coords = []
+
     if use_interpolate:
         start_frame = int(round(times[0], 0))
         end_frame = int(round(times[-1], 0))
@@ -124,22 +127,29 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
             start_frame, end_frame, values, times, shapes, tcb, params
         )
         for time, value in zip(times, values):
-            key_frame = fckf.insert(time, value * koef)
-            key_frame.interpolation = 'LINEAR'
+            frames_coords.extend((time, value * koef))
+        utils.action.insert_keyframes_for_single_curve(frames_coords, fcurve)
+
     else:
         key_count = len(times)
+        interps = []
         for index, (time, value, shape_prev) in enumerate(zip(times, values, shapes)):
-            key_frame = fckf.insert(time, value * koef)
+            frames_coords.extend((time, value * koef))
             if index + 1 < key_count:
                 shape = shapes[index + 1]
             else:
                 shape = shapes[-1]
             if shape == interp.Shape.LINEAR:
-                key_frame.interpolation = 'LINEAR'
+                interps.append('LINEAR')
             elif shape == interp.Shape.STEPPED:
-                key_frame.interpolation = 'CONSTANT'
+                interps.append('CONSTANT')
             else:
-                key_frame.interpolation = replace_unsupported_to
+                interps.append(replace_unsupported_to)
+        utils.action.insert_keyframes_for_single_curve(
+            frames_coords,
+            fcurve,
+            interps=interps
+        )
 
     if unsupported_occured:
         warn_list.append((

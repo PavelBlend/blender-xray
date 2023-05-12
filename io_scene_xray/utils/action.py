@@ -59,22 +59,34 @@ def get_initial_state(arm_obj):
 
 
 def insert_keyframes(frames_coords, fcurves):
-    for curve_index in range(6):
-        frames_count = len(frames_coords[curve_index]) // 2
-        curve = fcurves[curve_index]
+    for curve_index in range(len(fcurves)):
+        coords = frames_coords[curve_index]
+        fcurve = fcurves[curve_index]
+        insert_keyframes_for_single_curve(coords, fcurve)
 
-        # create keyframes
-        keyframes = curve.keyframe_points
-        keyframes.add(count=frames_count)
-        keyframes.foreach_set('co', frames_coords[curve_index])
 
-        # set linear interpolation
+def insert_keyframes_for_single_curve(frames_coords, fcurve, interps=None):
+    frames_count = len(frames_coords) // 2
+
+    # create keyframes
+    keyframes = fcurve.keyframe_points
+    keyframes.add(count=frames_count)
+    keyframes.foreach_set('co', frames_coords)
+
+    # set interpolation
+    if interps:
+        for keyframe, key_interp in zip(keyframes, interps):
+            keyframe.interpolation = key_interp
+
+    else:
+        # set default linear interpolation
         if version.IS_29:
             interp_prop = bpy.types.Keyframe.bl_rna.properties['interpolation']
             linear = interp_prop.enum_items['LINEAR'].value
-            keyframes.foreach_set('interpolation', [linear, ] * frames_count)
+            interps = [linear, ] * frames_count
+            keyframes.foreach_set('interpolation', interps)
         else:
             for keyframe in keyframes:
                 keyframe.interpolation = 'LINEAR'
 
-        curve.update()
+    fcurve.update()
