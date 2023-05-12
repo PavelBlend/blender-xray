@@ -7,6 +7,7 @@ from . import fmt
 from .. import motions
 from ... import text
 from ... import log
+from ... import utils
 from ... import rw
 
 
@@ -225,6 +226,7 @@ def read_motion(data, context, motions_params, bone_names, version):
             tr_count = len(bone_translations)
             rot_count = len(bone_rotations)
             keys_count = max(tr_count, rot_count)
+            frames_coords = [[], [], [], [], [], []]
 
             for key_index in range(keys_count):
                 if t_present:
@@ -249,13 +251,15 @@ def read_motion(data, context, motions_params, bone_names, version):
 
                 if t_present or key_index == 0:
                     for axis in range(3):
-                        key_frame = translate_fcurves[axis].keyframe_points.insert(tr_index, trn[axis])
-                        key_frame.interpolation = 'LINEAR'
+                        frames_coords[axis].extend((tr_index, trn[axis]))
 
                 if not r_absent or key_index == 0:
                     for axis in range(3):
-                        key_frame = rotate_fcurves[axis].keyframe_points.insert(rot_index, rot[axis])
-                        key_frame.interpolation = 'LINEAR'
+                        frames_coords[axis + 3].extend((rot_index, rot[axis]))
+
+            # insert keyframes
+            fcurves = [*translate_fcurves, *rotate_fcurves]
+            utils.action.insert_keyframes(frames_coords, fcurves)
 
         if cannot_find_bones:
             raise log.AppError(
