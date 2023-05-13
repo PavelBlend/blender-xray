@@ -79,11 +79,20 @@ translations_table = (
     # level export
     (error.level_no_lmap, 'не найдено изображение для карты освещения'),
     (error.level_has_children, 'Normal/Progressive объекты не должны иметь потомков'),
-    (error.level_bad_portal, 'меш-объект портала имеет меньше 3 вершин'),
     (error.level_bad_glow, 'glow меш-объект не имеет полигонов'),
     (error.level_bad_glow_radius, 'glow объект имеет близкий к нулю радиус'),
     (error.level_lmap_no_dds, 'некорректный формат карты освещения (должен быть *.dds)'),
     (error.level_sector_has_no_cform, 'сектор не имеет cform-объекта'),
+
+    # level export portal
+    (error.level_portal_is_no_mesh, 'объект портала не является мешем'),
+    (error.level_portal_no_vert, 'меш-объект портала не имеет вершин'),
+    (error.level_portal_bad, 'меш-объект портала имеет меньше 3 вершин'),
+    (error.level_portal_many_verts, 'меш-объект портала должен иметь не более 6 вершин'),
+    (error.level_portal_no_faces, 'меш-объект портала не имеет полигонов'),
+    (error.level_portal_many_faces, 'меш-объект портала должен иметь не более 1 полигона'),
+    (error.level_portal_no_front, 'не указан объект "Sector Front" у портала'),
+    (error.level_portal_no_back, 'не указан объект "Sector Back" у портала'),
 
     # level cform export
     (error.level_bad_cform_type, 'cform-объект не является мешем'),

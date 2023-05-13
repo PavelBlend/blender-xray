@@ -1269,32 +1269,99 @@ def append_portal(sectors_portals, sector_index, portal_index):
 
 
 def write_portals(level, level_object):
-    packed_writer = rw.write.PackedWriter()
-    for child_obj_name in level.visuals_cache.children[level_object.name]:
-        child_obj = bpy.data.objects[child_obj_name]
+    portals_writer = rw.write.PackedWriter()
+
+    for child_name in level.visuals_cache.children[level_object.name]:
+        child_obj = bpy.data.objects[child_name]
+
         if child_obj.name.startswith('portals'):
-            for portal_index, portal_obj_name in enumerate(level.visuals_cache.children[child_obj.name]):
-                portal_obj = bpy.data.objects[portal_obj_name]
-                vertices_count = len(portal_obj.data.vertices)
-                if vertices_count < 3:
+            portals_objs = level.visuals_cache.children[child_obj.name]
+
+            for portal_index, portal_name in enumerate(portals_objs):
+                portal_obj = bpy.data.objects[portal_name]
+                xray = portal_obj.xray
+
+                if xray.level.object_type != 'PORTAL':
+                    continue
+
+                if portal_obj.type != 'MESH':
                     raise log.AppError(
-                        text.error.level_bad_portal,
+                        text.error.level_portal_is_no_mesh,
                         log.props(
-                            object=portal_obj.name,
-                            vertices_count=vertices_count
+                            portal_object=portal_obj.name,
+                            object_type=portal_obj.type
                         )
                     )
-                packed_writer.putf('<H', level.sectors_indices[portal_obj.xray.level.sector_front])
-                packed_writer.putf('<H', level.sectors_indices[portal_obj.xray.level.sector_back])
-                for vertex in portal_obj.data.vertices:
-                    packed_writer.putf(
-                        '<3f', vertex.co.x, vertex.co.z, vertex.co.y
+
+                portal_mesh = portal_obj.data
+                verts_count = len(portal_mesh.vertices)
+                faces_count = len(portal_mesh.polygons)
+                error_message = None
+
+                # check vertices
+                if not verts_count:
+                    error_message = text.error.level_portal_no_vert
+                elif verts_count < 3:
+                    error_message = text.error.level_portal_bad
+                elif verts_count > 6:
+                    error_message = text.error.level_portal_many_verts
+
+                if error_message:
+                    raise log.AppError(
+                        error_message,
+                        log.props(
+                            portal_object=portal_obj.name,
+                            vertices_count=verts_count
+                        )
                     )
-                vertices_count = len(portal_obj.data.vertices)
-                for vertex_index in range(vertices_count, 6):
-                    packed_writer.putf('<3f', 0.0, 0.0, 0.0)
-                packed_writer.putf('<I', vertices_count)
-    return packed_writer
+
+                # check polygons
+                if not faces_count:
+                    error_message = text.error.level_portal_no_faces
+                elif faces_count > 1:
+                    error_message = text.error.level_portal_many_faces
+
+                if error_message:
+                    raise log.AppError(
+                        error_message,
+                        log.props(
+                            portal_object=portal_obj.name,
+                            polygons_count=faces_count
+                        )
+                    )
+
+                # write portal sectors
+                if xray.level.sector_front:
+                    sect_front = level.sectors_indices[xray.level.sector_front]
+                else:
+                    raise log.AppError(
+                        text.error.level_portal_no_front,
+                        log.props(portal_object=portal_obj.name)
+                    )
+
+                if xray.level.sector_back:
+                    sect_back = level.sectors_indices[xray.level.sector_back]
+                else:
+                    raise log.AppError(
+                        text.error.level_portal_no_back,
+                        log.props(portal_object=portal_obj.name)
+                    )
+
+                portals_writer.putf('<2H', sect_front, sect_back)
+
+                # write vertices
+                for vert_index in portal_mesh.polygons[0].vertices:
+                    vert = portal_mesh.vertices[vert_index]
+                    portals_writer.putf('<3f', vert.co.x, vert.co.z, vert.co.y)
+
+                # write not used vertices
+                verts_count = len(portal_mesh.vertices)
+                for vert_index in range(verts_count, fmt.PORTAL_VERTEX_COUNT):
+                    portals_writer.putf('<3f', 0.0, 0.0, 0.0)
+
+                portals_writer.putf('<I', verts_count)
+
+    return portals_writer
 
 
 def get_sectors_portals(level, level_object):
@@ -1347,7 +1414,7 @@ def write_level(chunked_writer, level_object):
         fp_ibs
     ) = write_visuals(level_object, sectors_portals, level)
 
-    # portals
+    # write portals
     portals_writer = write_portals(level, level_object)
     chunked_writer.put(fmt.Chunks13.PORTALS, portals_writer)
     del portals_writer
