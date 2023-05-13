@@ -83,6 +83,7 @@ translations_table = (
     (error.level_bad_glow, 'glow меш-объект не имеет полигонов'),
     (error.level_bad_glow_radius, 'glow объект имеет близкий к нулю радиус'),
     (error.level_lmap_no_dds, 'некорректный формат карты освещения (должен быть *.dds)'),
+    (error.level_sector_has_no_cform, 'сектор не имеет cform-объекта'),
 
     # level cform export
     (error.level_bad_cform_type, 'cform-объект не является мешем'),

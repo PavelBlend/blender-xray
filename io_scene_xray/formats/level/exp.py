@@ -1115,17 +1115,26 @@ def write_visuals(level_object, sectors_map, level):
             for sector_obj_name in level.visuals_cache.children[child_obj.name]:
                 sector_obj = bpy.data.objects[sector_obj_name]
                 level.sectors_indices[sector_obj.name] = sector_id
+                cform_obj = None
                 for root_obj_name in level.visuals_cache.children[sector_obj.name]:
                     root_obj = bpy.data.objects[root_obj_name]
                     if root_obj.xray.level.object_type == 'VISUAL':
                         # write sector
                         root_index = visuals_ids[root_obj]
                         sector_chunked_writer = write_sector(
-                            root_index, sectors_map, sector_obj.name
+                            root_index,
+                            sectors_map,
+                            sector_obj.name
                         )
                         sectors_chunked_writer.put(sector_id, sector_chunked_writer)
                     elif root_obj.xray.level.object_type == 'CFORM':
-                        level.cform_objects[sector_id] = root_obj
+                        cform_obj = root_obj
+                        level.cform_objects[sector_id] = cform_obj
+                if not cform_obj:
+                    raise log.AppError(
+                        text.error.level_sector_has_no_cform,
+                        log.props(sector_object=sector_obj.name)
+                    )
                 sector_id += 1
 
     visual_index = write_visual_children(
