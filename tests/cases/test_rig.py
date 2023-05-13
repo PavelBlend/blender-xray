@@ -55,6 +55,18 @@ class TestRig(tests.utils.XRayTestCase):
 
         bpy.ops.object.mode_set(mode='OBJECT')
 
+    def test_link_bones(self):
+        arm_obj_1, me_obj_1 = create_armature_object()
+        arm_obj_2, me_obj_2 = create_armature_object()
+
+        tests.utils.set_active_object(arm_obj_1)
+
+        # test link bones
+        bpy.ops.io_scene_xray.link_bones(armature=arm_obj_2.name)
+
+        # test unlink bones
+        bpy.ops.io_scene_xray.unlink_bones()
+
 
 def create_armature_object():
     # create armature
