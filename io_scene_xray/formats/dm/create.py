@@ -176,6 +176,7 @@ def create_material(det_model, abs_image_path, context):
         texture_node.name = det_model.texture
         texture_node.label = det_model.texture
         texture_node.image = bpy_image
+        texture_node.select = False
         texture_node.location.x = princ_shader.location.x - 500.0
 
         # link nodes
