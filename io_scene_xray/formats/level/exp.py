@@ -1287,7 +1287,9 @@ def write_header():
 
 def write_level(chunked_writer, level_object):
     level = Level()
-    level.source_level_path = level_object.xray.level.source_path
+    pref = utils.version.get_preferences()
+    level_path = os.path.join(pref.levels_folder_auto, level_object.name)
+    level.source_level_path = level_path
 
     # header
     header_writer = write_header()

@@ -70,7 +70,6 @@ def create_level_object(level, level_collection):
         utils.version.link_object(level_object)
     level_object.xray.is_level = True
     level_object.xray.level.object_type = 'LEVEL'
-    level_object.xray.level.source_path = level.path
     return level_object
 
 

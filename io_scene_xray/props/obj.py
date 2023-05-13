@@ -232,7 +232,6 @@ visual_type_items = (
 xray_object_level_properties = {
     'object_type': bpy.props.EnumProperty(name='Type', items=object_type_items, default='VISUAL'),
     'visual_type': bpy.props.EnumProperty(name='Visual Type', items=visual_type_items, default='NORMAL'),
-    'source_path': bpy.props.StringProperty(name='Source Level Path', subtype='DIR_PATH'),
     # Tree Color Scale
     'color_scale_rgb': bpy.props.FloatVectorProperty(name='Light', min=0.0, max=1.0, subtype='COLOR'),
     'color_scale_hemi': bpy.props.FloatVectorProperty(name='Hemi', min=0.0, max=1.0, subtype='COLOR'),

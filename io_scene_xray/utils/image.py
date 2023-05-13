@@ -87,6 +87,7 @@ def _gen_tex_name_by_level_folder(
                 image=image.name,
                 image_path=image_abs_path,
                 textures_folder=textures_folder,
+                levels_folder=level_folder,
                 saved_as=tex_path
             )
             if isinstance(errors, set):

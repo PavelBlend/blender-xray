@@ -484,10 +484,7 @@ def level_draw_function(layout, data):
     draw_split_prop(box, level, 'object_type', 'Type')
     object_type = level.object_type
 
-    if object_type == 'LEVEL':
-        draw_split_prop(box, level, 'source_path', 'Source Path')
-
-    elif object_type == 'PORTAL':
+    if object_type == 'PORTAL':
         for portal in ('front', 'back'):
             prop_name = 'sector_' + portal
             draw_split_prop_search(
