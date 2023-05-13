@@ -88,6 +88,7 @@ translations_table = (
     # level cform export
     (error.level_bad_cform_type, 'cform-объект не является мешем'),
     (error.level_cform_no_geom, 'cform-объект не имеет полигонов'),
+    (error.level_cform_no_mats, 'cform-объект не имеет материалов'),
 
     # level import
     (error.level_unsupport_ver, 'неподдерживаемая версия game level формата'),

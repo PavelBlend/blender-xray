@@ -1152,6 +1152,11 @@ def write_visuals(level_object, sectors_map, level):
                         text.error.level_cform_no_geom,
                         log.props(object=cform_obj.name)
                     )
+                if not len(cform_obj.data.materials):
+                    raise log.AppError(
+                        text.error.level_cform_no_mats,
+                        log.props(object=cform_obj.name)
+                    )
 
                 sector_id += 1
 
