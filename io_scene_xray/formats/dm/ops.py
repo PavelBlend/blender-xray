@@ -41,7 +41,8 @@ import_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement,
         options={'SKIP_SAVE', 'HIDDEN'}
-    )
+    ),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -87,11 +88,16 @@ class XRAY_OT_import_dm(
 
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
+    def invoke(self, context, event):    # pragma: no cover
+        return super().invoke(context, event)
+
 
 export_props = {
     'detail_models': bpy.props.StringProperty(options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
-    'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath()
+    'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -135,6 +141,7 @@ class XRAY_OT_export_dm(utils.ie.BaseOperator):
             log.err(err)
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         prefs = utils.version.get_preferences()
         self.texture_name_from_image_path = prefs.dm_texture_names_from_path

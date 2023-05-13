@@ -28,6 +28,7 @@ translations_table = (
     (warn.use_selected_tex, mat_many_tex + '. Экспортирована выделенная текстура'),
     (warn.name_has_dot, 'имя файла имеет больше одной точки. Файл был переименован'),
     (warn.obj_many_uv, 'объект имеет больше одной UV-карты. Экспортирована активная UV-карта'),
+    (warn.keymap_assign_more_one, 'больше одного оператора назначено на'),
     # updates
     (warn.new_update_available, 'доступно новое обновление аддона blender-xray'),
     (warn.has_no_update, 'нет нового обновления аддона blender-xray'),

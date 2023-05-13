@@ -25,7 +25,8 @@ import_props = {
     # *.object format props
     'fmt_version': ie.PropSDKVersion(),
     'import_motions': ie.PropObjectMotionsImport(),
-    'mesh_split_by_materials': ie.PropObjectMeshSplitByMaterials()
+    'mesh_split_by_materials': ie.PropObjectMeshSplitByMaterials(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -87,6 +88,7 @@ class XRAY_OT_import_object(
         layout.prop(self, 'import_motions')
         layout.prop(self, 'mesh_split_by_materials')
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
 

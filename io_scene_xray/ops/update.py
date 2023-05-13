@@ -39,8 +39,8 @@ def check_for_updates():
             (last_tag_str, ),
             text.get_text(text.warn.info_title).capitalize(),
             'INFO',
-            operator=XRAY_OT_install_update.bl_idname,
-            operator_props={'download_url': download_url, }
+            operators=[XRAY_OT_install_update.bl_idname, ],
+            operators_props=[{'download_url': download_url, }, ]
         )
     else:
         message = text.get_text(text.warn.has_no_update).capitalize()

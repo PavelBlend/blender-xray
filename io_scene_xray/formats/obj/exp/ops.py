@@ -85,7 +85,8 @@ export_props = {
     'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
     'fmt_version': ie.PropSDKVersion(),
     'use_export_paths': ie.PropUseExportPaths(),
-    'smoothing_out_of': ie.prop_smoothing_out_of()
+    'smoothing_out_of': ie.prop_smoothing_out_of(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -141,6 +142,7 @@ class XRAY_OT_export_object(utils.ie.BaseOperator, _WithExportMotions):
 
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, _event):    # pragma: no cover
         try:
             roots = find_objects_for_export(context)

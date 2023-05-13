@@ -45,7 +45,8 @@ import_props = {
     ),
     'details_models_in_a_row': ie.prop_details_models_in_a_row(),
     'load_slots': ie.prop_details_load_slots(),
-    'details_format': ie.prop_details_format()
+    'details_format': ie.prop_details_format(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -114,6 +115,7 @@ class XRAY_OT_import_details(
             lay_type='COLUMN'
         )
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         prefs = utils.version.get_preferences()
         self.details_models_in_a_row = prefs.details_models_in_a_row
@@ -130,7 +132,8 @@ export_props = {
     'texture_name_from_image_path': \
         ie.PropObjectTextureNamesFromPath(),
 
-    'format_version': ie.prop_details_format_version()
+    'format_version': ie.prop_details_format_version(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -204,6 +207,7 @@ class XRAY_OT_export_details(
 
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         obj = context.active_object
         if not obj:

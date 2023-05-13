@@ -48,7 +48,8 @@ import_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
     ),
-    'import_motions': ie.PropObjectMotionsImport()
+    'import_motions': ie.PropObjectMotionsImport(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -99,6 +100,7 @@ class XRAY_OT_import_ogf(
         utils.draw.draw_files_count(self)
         layout.prop(self, 'import_motions')
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
         self.import_motions = preferences.ogf_import_motions

@@ -18,7 +18,8 @@ import_props = {
     ),
     'filter_glob': bpy.props.StringProperty(
         default='*.err', options={'HIDDEN'}
-    )
+    ),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -46,6 +47,7 @@ class XRAY_OT_import_err(
         imp.import_file(self.filepath)
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}

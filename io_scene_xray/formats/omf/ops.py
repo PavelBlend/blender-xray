@@ -68,7 +68,8 @@ import_props = {
     'import_motions': ie.PropObjectMotionsImport(),
     'import_bone_parts': ie.prop_import_bone_parts(),
     'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
-    'add_actions_to_motion_list': ie.prop_skl_add_actions_to_motion_list()
+    'add_actions_to_motion_list': ie.prop_skl_add_actions_to_motion_list(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -123,6 +124,7 @@ class XRAY_OT_import_omf(
             log.err(err)
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
         self.import_motions = preferences.omf_import_motions
@@ -213,7 +215,8 @@ export_props = {
     'export_mode': ie.prop_omf_export_mode(),
     'export_motions': ie.PropObjectMotionsExport(),
     'export_bone_parts': ie.prop_export_bone_parts(),
-    'high_quality': ie.prop_omf_high_quality()
+    'high_quality': ie.prop_omf_high_quality(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -319,6 +322,7 @@ class XRAY_OT_export_omf(
             log.err(err)
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
         self.export_mode = preferences.omf_export_mode

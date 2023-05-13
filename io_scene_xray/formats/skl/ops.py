@@ -41,7 +41,8 @@ import_props = {
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
     'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
-    'add_actions_to_motion_list': ie.prop_skl_add_actions_to_motion_list()
+    'add_actions_to_motion_list': ie.prop_skl_add_actions_to_motion_list(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -168,6 +169,7 @@ class XRAY_OT_import_skls(
             log.err(err)
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     @utils.ie.invoke_require_armature
     def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
@@ -180,6 +182,7 @@ export_props = {
         default='*'+skl_ext,
         options={'HIDDEN'}
     ),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -214,6 +217,7 @@ class XRAY_OT_export_skl(
             log.err(err)
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     @utils.ie.invoke_require_armature
     def invoke(self, context, event):    # pragma: no cover
         self.action = getattr(context, XRAY_OT_export_skl.bl_idname + '.action', None)
@@ -299,6 +303,7 @@ export_props = {
         default='*' + skls_ext,
         options={'HIDDEN'}
     ),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -351,6 +356,7 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
             log.err(err)
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         if not context.selected_objects:
             self.report({'ERROR'}, 'No selected objects')
@@ -377,6 +383,7 @@ op_text = 'Skeletal Animation'
 export_props = {
     'directory': bpy.props.StringProperty(subtype="FILE_PATH", options={'HIDDEN'}),
     'filter_glob': bpy.props.StringProperty(default='*' + skl_ext, options={'HIDDEN'}),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -444,6 +451,7 @@ class XRAY_OT_export_skl_batch(utils.ie.BaseOperator):
             log.err(err)
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         if not context.selected_objects:
             self.report({'ERROR'}, 'No selected objects')

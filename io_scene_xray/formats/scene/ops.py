@@ -17,6 +17,7 @@ export_props = {
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
     ),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -52,6 +53,7 @@ class XRAY_OT_export_scene(
     def export(self, bpy_objs, context):
         exp.export_file(bpy_objs, self.filepath)
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         objs = context.selected_objects
 
@@ -68,7 +70,8 @@ import_props = {
         default='*'+filename_ext, options={'HIDDEN'}
     ),
     'mesh_split_by_materials': ie.PropObjectMeshSplitByMaterials(),
-    'fmt_version': ie.PropSDKVersion()
+    'fmt_version': ie.PropSDKVersion(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -103,6 +106,7 @@ class XRAY_OT_import_scene(
             log.err(err)
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
         self.mesh_split_by_materials = preferences.scene_selection_mesh_split_by_mat

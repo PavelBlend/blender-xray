@@ -600,12 +600,13 @@ class ImportExportBasePanel(ui.base.XRayPanel):
                 split = utils.version.layout_split(col, 0.5, align=True)
 
                 # draw button
-                split.operator(
+                op = split.operator(
                     operator.bl_idname,
                     text=label,
                     icon=self.panel_type.upper(),
                     translate=False
                 )
+                op.processed = True
 
                 # draw keymap
                 key = get_operator_key(operator.bl_idname)

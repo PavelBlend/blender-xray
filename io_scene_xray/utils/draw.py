@@ -40,28 +40,39 @@ def show_message(
         elements,
         message_type,
         icon,
-        operator=None,
-        operator_props=None
+        operators=None,
+        operators_props=None,
+        message_props=None
     ):
 
     message = text.get_text(message_text).capitalize()
+
+    message_type = text.get_text(message_type).capitalize()
+    if message_props:
+        message_type = '{0}: {1}'.format(message_type, message_props)
 
     def show_message_menu(self, context):
         if elements:
             self.layout.label(text=message + ':')
         else:
-            self.layout.label(text=message + '.')
+            if message_text:
+                self.layout.label(text=message + '.')
         for element in elements:
             self.layout.label(text=' ' * 4 + element)
-        if operator:
-            op = self.layout.operator(operator)
-            for prop_name, prop_value in operator_props.items():
-                setattr(op, prop_name, prop_value)
+        if operators:
+            self.layout.operator_context = 'INVOKE_DEFAULT'
+            for op_index, operator in enumerate(operators):
+                op = self.layout.operator(operator)
+                op.processed = True
+                if operators_props:
+                    operator_props = operators_props[op_index]
+                    for prop_name, prop_value in operator_props.items():
+                        setattr(op, prop_name, prop_value)
 
     if not bpy.app.background:
         bpy.context.window_manager.popup_menu(
             show_message_menu,
-            title=message_type.capitalize(),
+            title=message_type,
             icon=icon
         )
 

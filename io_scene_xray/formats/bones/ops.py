@@ -43,7 +43,8 @@ import_props = {
         type=bpy.types.OperatorFileListElement
     ),
     'import_bone_parts': ie.prop_import_bone_parts(),
-    'import_bone_properties': ie.prop_import_bone_properties()
+    'import_bone_properties': ie.prop_import_bone_properties(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -102,6 +103,7 @@ class XRAY_OT_import_bones(
         if not self.import_bone_properties and not self.import_bone_parts:
             layout.label(text='Nothing is imported', icon='ERROR')
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         obj = context.active_object
         if not obj:
@@ -125,7 +127,8 @@ export_props = {
         options={'HIDDEN'}
     ),
     'export_bone_properties': ie.prop_export_bone_properties(),
-    'export_bone_parts': ie.prop_export_bone_parts()
+    'export_bone_parts': ie.prop_export_bone_parts(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -182,6 +185,7 @@ class XRAY_OT_export_bones(utils.ie.BaseOperator):
         if not self.export_bone_properties and not self.export_bone_parts:
             layout.label(text='Nothing is exported', icon='ERROR')
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         selected_objects_count = len(context.selected_objects)
 

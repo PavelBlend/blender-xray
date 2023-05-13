@@ -130,7 +130,8 @@ class XRayBaseMenu(bpy.types.Menu):
         operators = get_enabled_operators(self.ops_list, self.mode)
         for operator in operators:
             text = utils.draw.build_op_label(operator, compact=True)
-            layout.operator(operator.bl_idname, text=text)
+            op = layout.operator(operator.bl_idname, text=text)
+            op.processed = True
 
 
 class XRAY_MT_import(XRayBaseMenu):

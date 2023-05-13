@@ -35,7 +35,8 @@ import_props = {
     ),
     'filepath': bpy.props.StringProperty(
         subtype="FILE_PATH", options={'SKIP_SAVE', 'HIDDEN'}
-    )
+    ),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -78,6 +79,10 @@ class XRAY_OT_import_level(
             log.err(err)
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
+    def invoke(self, context, event):    # pragma: no cover
+        return super().invoke(context, event)
+
 
 export_props = {
     'directory': bpy.props.StringProperty(
@@ -86,7 +91,8 @@ export_props = {
     'filter_glob': bpy.props.StringProperty(
         default=file_filter_export,
         options={'HIDDEN'}
-    )
+    ),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -115,6 +121,7 @@ class XRAY_OT_export_level(utils.ie.BaseOperator):
     def execute(self, context):
         return self.export(context.active_object, context)
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         level_object = context.active_object
 

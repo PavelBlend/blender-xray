@@ -162,7 +162,8 @@ batch_export_props = {
     'export_motions': ie.PropObjectMotionsExport(),
     'fmt_version': ie.PropSDKVersion(),
     'hq_export': ie.prop_omf_high_quality(),
-    'use_export_paths': ie.PropUseExportPaths()
+    'use_export_paths': ie.PropUseExportPaths(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -219,6 +220,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
 
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
 

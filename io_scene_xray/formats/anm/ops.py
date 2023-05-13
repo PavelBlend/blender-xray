@@ -33,7 +33,8 @@ import_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
-    'camera_animation': ie.PropAnmCameraAnimation()
+    'camera_animation': ie.PropAnmCameraAnimation(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -94,6 +95,7 @@ class XRAY_OT_import_anm(
 
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
         self.camera_animation = pref.anm_create_camera
@@ -189,7 +191,8 @@ export_props = {
         options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-    'format_version': ie.prop_anm_format_version()
+    'format_version': ie.prop_anm_format_version(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
@@ -236,6 +239,7 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
 
         return {'FINISHED'}
 
+    @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         selected_objects_count = len(context.selected_objects)
 

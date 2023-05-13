@@ -19,6 +19,7 @@ imported = 'Imported'
 сhanged = 'Changed'
 name_has_dot = 'file name contains more than one dot. The file has been renamed'
 obj_many_uv = 'object has more than one UV-map. Active UV-map exported'
+keymap_assign_more_one = 'more than one operator is assigned to'
 # update addon
 new_update_available = 'new update of blender-xray addon is available'
 has_no_update = 'no new updates for blender-xray addon'

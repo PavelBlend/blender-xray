@@ -29,11 +29,12 @@ class BaseOperator(bpy.types.Operator):
 def get_draw_fun(operator):
     def menu_func(self, context):
         icon = ui.icons.get_stalker_icon()
-        self.layout.operator(
+        op = self.layout.operator(
             operator.bl_idname,
             text=draw.build_op_label(operator),
             icon_value=icon
         )
+        op.processed = True
     operator.draw_fun = menu_func
     return menu_func
 
@@ -321,3 +322,99 @@ def no_active_obj_report(op):
 
 def no_selected_obj_report(op):
     op.report({'ERROR'}, 'No selected objects!')
+
+
+def run_imp_exp_operator(method):    # pragma: no cover
+    def wrapper(self, context, event):
+        if self.processed:
+            self.processed = False
+            return method(self, context, event)
+
+        wm = context.window_manager
+
+        # collect addon keymaps
+        keymaps_addon = wm.keyconfigs.addon.keymaps['3D View'].keymap_items
+        addon_ops = {op_id for op_id in keymaps_addon.keys()}
+
+        # collect operators keymaps
+        keys = {}
+        current_op_key = None
+
+        if version.IS_293:
+            config = 'Blender user'
+        elif version.IS_28:
+            config = 'blender user'
+        else:
+            config = 'Blender User'
+        keymaps = wm.keyconfigs[config].keymaps['3D View'].keymap_items
+
+        for op_id in addon_ops:
+            keymap = keymaps[op_id]
+            if version.IS_3:
+                oskey = keymap.oskey_ui
+            else:
+                oskey = keymap.oskey
+            key = (
+                keymap.type,
+                keymap.shift,
+                keymap.ctrl,
+                keymap.alt,
+                oskey
+            )
+            keys.setdefault(key, []).append(op_id)
+
+            category, funct = op_id.split('.')
+            op_class = getattr(getattr(bpy.ops, category), funct).idname()
+
+            if op_class == self.bl_idname:
+                current_op_key = key
+
+        # run operator
+        if current_op_key:
+            op_ids = keys.get(current_op_key)
+            op_ids.sort()
+
+            if len(op_ids) == 1:
+                return method(self, context, event)
+
+            elif len(op_ids) > 1:
+                key_type, shift, ctrl, alt, oskey = current_op_key
+
+                if shift:
+                    shift = 'Shift '
+                else:
+                    shift = ''
+
+                if ctrl:
+                    ctrl = 'Ctrl '
+                else:
+                    ctrl = ''
+
+                if alt:
+                    alt = 'Alt '
+                else:
+                    alt = ''
+
+                if oskey:
+                    oskey = 'OS-Key'
+                else:
+                    oskey = ''
+
+                key_str = shift + ctrl + alt + oskey + key_type.upper()
+
+                header_text = text.get_text(text.warn.keymap_assign_more_one)
+                draw.show_message(
+                    '',    # message
+                    [],    # elements
+                    header_text.capitalize(),
+                    'INFO',
+                    operators=op_ids,
+                    operators_props=None,
+                    message_props=key_str
+                )
+                return {'FINISHED'}
+
+        else:
+            return method(self, context, event)
+
+    return wrapper
