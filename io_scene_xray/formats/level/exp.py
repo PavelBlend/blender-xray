@@ -280,23 +280,26 @@ def write_sector_root(root_index):
     return packed_writer
 
 
-def write_sector_portals(sectors_map, sector_name):
+def write_sector_portals(sectors_portals, sector_name):
     packed_writer = rw.write.PackedWriter()
     # None - when there are no sectors
-    if sectors_map.get(sector_name, None):
-        for portal in sectors_map[sector_name]:
-            packed_writer.putf('<H', portal)
+    portals = sectors_portals.get(sector_name, None)
+    if portals:
+        for portal_index in portals:
+            packed_writer.putf('<H', portal_index)
     return packed_writer
 
 
-def write_sector(root_index, sectors_map, sector_name):
+def write_sector(root_index, sectors_portals, sector_name):
     chunked_writer = rw.write.ChunkedWriter()
 
-    sector_portals_writer = write_sector_portals(sectors_map, sector_name)
-    chunked_writer.put(fmt.SectorChunks.PORTALS, sector_portals_writer)    # portals
+    # write portals
+    portals_writer = write_sector_portals(sectors_portals, sector_name)
+    chunked_writer.put(fmt.SectorChunks.PORTALS, portals_writer)
 
-    sector_root_writer = write_sector_root(root_index)
-    chunked_writer.put(fmt.SectorChunks.ROOT, sector_root_writer)    # root
+    # write root-visual
+    root_writer = write_sector_root(root_index)
+    chunked_writer.put(fmt.SectorChunks.ROOT, root_writer)
 
     return chunked_writer
 
@@ -1081,7 +1084,7 @@ def find_hierrarhy(level, visual_obj, visuals_hierrarhy, visual_index, visuals):
     return visuals_hierrarhy, visual_index
 
 
-def write_visuals(level_object, sectors_map, level):
+def write_visuals(level_object, sectors_portals, level):
     chunked_writer = rw.write.ChunkedWriter()
     sectors_chunked_writer = rw.write.ChunkedWriter()
     vertex_buffers = []
@@ -1125,7 +1128,7 @@ def write_visuals(level_object, sectors_map, level):
                         root_index = visuals_ids[root_obj]
                         sector_chunked_writer = write_sector(
                             root_index,
-                            sectors_map,
+                            sectors_portals,
                             sector_obj.name
                         )
                         sectors_chunked_writer.put(sector_id, sector_chunked_writer)
@@ -1261,8 +1264,8 @@ def write_light(level, level_object):
             return packed_writer
 
 
-def append_portal(sectors_map, sector_index, portal_index):
-    sectors_map.setdefault(sector_index, []).append(portal_index)
+def append_portal(sectors_portals, sector_index, portal_index):
+    sectors_portals.setdefault(sector_index, []).append(portal_index)
 
 
 def write_portals(level, level_object):
@@ -1294,20 +1297,24 @@ def write_portals(level, level_object):
     return packed_writer
 
 
-def get_sectors_map(level, level_object):
-    sectors_map = {}
+def get_sectors_portals(level, level_object):
+    sectors_portals = {}
     for child_obj_name in level.visuals_cache.children[level_object.name]:
         child_obj = bpy.data.objects[child_obj_name]
         if child_obj.name.startswith('portals'):
             for portal_index, portal_obj_name in enumerate(level.visuals_cache.children[child_obj.name]):
                 portal_obj = bpy.data.objects[portal_obj_name]
                 append_portal(
-                    sectors_map, portal_obj.xray.level.sector_front, portal_index
+                    sectors_portals,
+                    portal_obj.xray.level.sector_front,
+                    portal_index
                 )
                 append_portal(
-                    sectors_map, portal_obj.xray.level.sector_back, portal_index
+                    sectors_portals,
+                    portal_obj.xray.level.sector_back,
+                    portal_index
                 )
-    return sectors_map
+    return sectors_portals
 
 
 def write_header():
@@ -1328,7 +1335,7 @@ def write_level(chunked_writer, level_object):
     chunked_writer.put(fmt.HEADER, header_writer)
     del header_writer
 
-    sectors_map = get_sectors_map(level, level_object)
+    sectors_portals = get_sectors_portals(level, level_object)
 
     # visuals
     (
@@ -1338,7 +1345,7 @@ def write_level(chunked_writer, level_object):
         sectors_chunked_writer,
         fp_vbs,
         fp_ibs
-    ) = write_visuals(level_object, sectors_map, level)
+    ) = write_visuals(level_object, sectors_portals, level)
 
     # portals
     portals_writer = write_portals(level, level_object)
