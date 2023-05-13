@@ -1264,10 +1264,6 @@ def write_light(level, level_object):
             return packed_writer
 
 
-def append_portal(sectors_portals, sector_index, portal_index):
-    sectors_portals.setdefault(sector_index, []).append(portal_index)
-
-
 def write_portals(level, level_object):
     portals_writer = rw.write.PackedWriter()
 
@@ -1364,13 +1360,21 @@ def write_portals(level, level_object):
     return portals_writer
 
 
+def append_portal(sectors_portals, sector_index, portal_index):
+    sectors_portals.setdefault(sector_index, []).append(portal_index)
+
+
 def get_sectors_portals(level, level_object):
     sectors_portals = {}
-    for child_obj_name in level.visuals_cache.children[level_object.name]:
-        child_obj = bpy.data.objects[child_obj_name]
-        if child_obj.name.startswith('portals'):
-            for portal_index, portal_obj_name in enumerate(level.visuals_cache.children[child_obj.name]):
-                portal_obj = bpy.data.objects[portal_obj_name]
+
+    for obj_name in level.visuals_cache.children[level_object.name]:
+        obj = bpy.data.objects[obj_name]
+        if obj.name.startswith('portals'):
+            portal_objs = level.visuals_cache.children[obj.name]
+
+            for portal_index, portal_name in enumerate(portal_objs):
+                portal_obj = bpy.data.objects[portal_name]
+
                 append_portal(
                     sectors_portals,
                     portal_obj.xray.level.sector_front,
@@ -1381,6 +1385,7 @@ def get_sectors_portals(level, level_object):
                     portal_obj.xray.level.sector_back,
                     portal_index
                 )
+
     return sectors_portals
 
 
@@ -1409,10 +1414,12 @@ def write_level(chunked_writer, level_object):
         visuals_writer,
         vbs,
         ibs,
-        sectors_chunked_writer,
+        sectors_writer,
         fp_vbs,
         fp_ibs
     ) = write_visuals(level_object, sectors_portals, level)
+    chunked_writer.put(fmt.Chunks13.VISUALS, visuals_writer)
+    del visuals_writer
 
     # write portals
     portals_writer = write_portals(level, level_object)
@@ -1429,18 +1436,14 @@ def write_level(chunked_writer, level_object):
     chunked_writer.put(fmt.Chunks13.GLOWS, glows_writer)
     del glows_writer
 
-    # write visuals chunk
-    chunked_writer.put(fmt.Chunks13.VISUALS, visuals_writer)
-    del visuals_writer
-
     # shaders
     shaders_writer = write_shaders(level)
     chunked_writer.put(fmt.Chunks13.SHADERS, shaders_writer)
     del shaders_writer
 
     # sectors
-    chunked_writer.put(fmt.Chunks13.SECTORS, sectors_chunked_writer)
-    del sectors_chunked_writer
+    chunked_writer.put(fmt.Chunks13.SECTORS, sectors_writer)
+    del sectors_writer
 
     return vbs, ibs, fp_vbs, fp_ibs, level
 
