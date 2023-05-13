@@ -1109,6 +1109,7 @@ def write_visuals(level_object, sectors_map, level):
     for visual_index, visual_obj in enumerate(visuals):
         visuals_ids[visual_obj] = visual_index
     visual_index = 0
+
     for child_obj_name in level.visuals_cache.children[level_object.name]:
         child_obj = bpy.data.objects[child_obj_name]
         if child_obj.name.startswith('sectors'):
@@ -1116,6 +1117,7 @@ def write_visuals(level_object, sectors_map, level):
                 sector_obj = bpy.data.objects[sector_obj_name]
                 level.sectors_indices[sector_obj.name] = sector_id
                 cform_obj = None
+
                 for root_obj_name in level.visuals_cache.children[sector_obj.name]:
                     root_obj = bpy.data.objects[root_obj_name]
                     if root_obj.xray.level.object_type == 'VISUAL':
@@ -1130,11 +1132,27 @@ def write_visuals(level_object, sectors_map, level):
                     elif root_obj.xray.level.object_type == 'CFORM':
                         cform_obj = root_obj
                         level.cform_objects[sector_id] = cform_obj
+
+                # check cform-object
                 if not cform_obj:
                     raise log.AppError(
                         text.error.level_sector_has_no_cform,
                         log.props(sector_object=sector_obj.name)
                     )
+                if cform_obj.type != 'MESH':
+                    raise log.AppError(
+                        text.error.level_bad_cform_type,
+                        log.props(
+                            object=cform_obj.name,
+                            type=cform_obj.type
+                        )
+                    )
+                if not len(cform_obj.data.polygons):
+                    raise log.AppError(
+                        text.error.level_cform_no_geom,
+                        log.props(object=cform_obj.name)
+                    )
+
                 sector_id += 1
 
     visual_index = write_visual_children(
@@ -1398,19 +1416,6 @@ def write_level_cform(packed_writer, level):
 
     for sector_index in range(sectors_count):
         cform_object = level.cform_objects[sector_index]
-        if cform_object.type != 'MESH':
-            raise log.AppError(
-                text.error.level_bad_cform_type,
-                log.props(
-                    object=cform_object.name,
-                    type=cform_object.type
-                )
-            )
-        if not len(cform_object.data.polygons):
-            raise log.AppError(
-                text.error.level_cform_no_geom,
-                log.props(object=cform_object.name)
-            )
         bm = bmesh.new()
         bm.from_mesh(cform_object.data)
         bmesh.ops.triangulate(bm, faces=bm.faces)
