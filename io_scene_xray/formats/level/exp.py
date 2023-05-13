@@ -1401,7 +1401,8 @@ def write_level_cform(packed_writer, level):
         else:
             bbox_max = get_bbox(bbox_max, cform_object.bound_box[6], max)
         for material in cform_object.data.materials:
-            materials.add(material)
+            if material:
+                materials.add(material)
 
     preferences = utils.version.get_preferences()
     gamemtl_file_path = preferences.gamemtl_file_auto
@@ -1435,6 +1436,14 @@ def write_level_cform(packed_writer, level):
                 vert = face.verts[vert_index]
                 tris_packed_writer.putf('<I', vert.index + vertex_index_offset)
             material = cform_object.data.materials[face.material_index]
+            if not material:
+                raise log.AppError(
+                    text.error.level_cform_empty_mat_slot,
+                    log.props(
+                        cform_object=cform_object.name,
+                        material_slot_index=face.material_index
+                    )
+                )
             material_id = game_materials[material.name]
             suppress_shadows = (int(material.xray.suppress_shadows) << 14) & 0x4000
             suppress_wm = (int(material.xray.suppress_wm << 15)) & 0x8000
