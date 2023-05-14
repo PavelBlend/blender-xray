@@ -4,7 +4,7 @@ import time
 
 import utils
 
-from io_scene_xray import xray_io
+import xray_io
 
 
 XRCL_CURRENT_VERSION = 10
@@ -135,7 +135,7 @@ def read_sector_portals(data):
 
 def read_sector(data):
     chunked_reader = xray_io.ChunkedReader(data)
-    for chunk_id, chunk_data in chunked_reader:
+    for chunk_id, chunk_data in chunked_reader.read():
         if chunk_id == SectorChunks.PORTALS:
             read_sector_portals(chunk_data)
         elif chunk_id == SectorChunks.ROOT:
@@ -152,7 +152,7 @@ def read_sector(data):
 
 def read_sectors(data):
     chunked_reader = xray_io.ChunkedReader(data)
-    for sector_index, sector_data in chunked_reader:
+    for sector_index, sector_data in chunked_reader.read():
         read_sector(sector_data)
 
 
@@ -292,14 +292,14 @@ def read_vertex_buffers(data):
 
 def read_visual(data, chunks):
     chunked_reader = xray_io.ChunkedReader(data)
-    for chunk_id, chunk_data in chunked_reader:
+    for chunk_id, chunk_data in chunked_reader.read():
         chunks.add(chunk_id)
 
 
 def read_visuals(data):
     chunks = set()
     chunked_reader = xray_io.ChunkedReader(data)
-    for visual_index, visual_data in chunked_reader:
+    for visual_index, visual_data in chunked_reader.read():
         read_visual(visual_data, chunks)
     for chunk_id in sorted(chunks):
         print(hex(chunk_id), end=' ')
@@ -330,7 +330,7 @@ def read_header(data):
 
 def dump_level(level_data, print):
     chunked_reader = xray_io.ChunkedReader(level_data)
-    for chunk_id, chunk_data in chunked_reader:
+    for chunk_id, chunk_data in chunked_reader.read():
         if chunk_id == LevelChunks.HEADER:
             read_header(chunk_data)
         elif chunk_id == LevelChunks.TEXTURES:
