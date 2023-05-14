@@ -19,6 +19,8 @@ from ... import rw
 
 
 TWO_MEGABYTES = 1024 * 1024 * 2
+MAX_TILE = 16
+QUANT = 32768 / MAX_TILE
 
 
 class Level(object):
@@ -78,6 +80,12 @@ class VisualsCache:
             parent = child_obj.parent
             if parent:
                 self.children[parent.name].append(child_obj.name)
+
+
+class ExportLevelContext():
+    def __init__(self, textures_folder):
+        self.textures_folder = textures_folder
+        self.texname_from_path = True
 
 
 def write_geom_swis(geom_writer):
@@ -252,38 +260,39 @@ def write_geom(file_path, vbs, ibs, ext):
     rw.utils.save_file(geom_path, geom_writer)
 
 
-def write_sector_root(root_index):
-    packed_writer = rw.write.PackedWriter()
-    packed_writer.putf('<I', root_index)
-    return packed_writer
+def write_sector_root(sector_writer, root_index):
+    root_writer = rw.write.PackedWriter()
+    root_writer.putf('<I', root_index)
+    sector_writer.put(fmt.SectorChunks.ROOT, root_writer)
 
 
-def write_sector_portals(sectors_portals, sector_name):
-    packed_writer = rw.write.PackedWriter()
+def write_sector_portals(sector_writer, sectors_portals, sector_name):
+    portals_writer = rw.write.PackedWriter()
+
     # None - when there are no sectors
     portals = sectors_portals.get(sector_name, None)
     if portals:
         for portal_index in portals:
-            packed_writer.putf('<H', portal_index)
-    return packed_writer
+            portals_writer.putf('<H', portal_index)
+
+    sector_writer.put(fmt.SectorChunks.PORTALS, portals_writer)
 
 
 def write_sector(root_index, sectors_portals, sector_name):
-    chunked_writer = rw.write.ChunkedWriter()
+    sector_writer = rw.write.ChunkedWriter()
 
     # write portals
-    portals_writer = write_sector_portals(sectors_portals, sector_name)
-    chunked_writer.put(fmt.SectorChunks.PORTALS, portals_writer)
+    write_sector_portals(sector_writer, sectors_portals, sector_name)
 
     # write root-visual
-    root_writer = write_sector_root(root_index)
-    chunked_writer.put(fmt.SectorChunks.ROOT, root_writer)
+    write_sector_root(sector_writer, root_index)
 
-    return chunked_writer
+    return sector_writer
 
 
 def get_light_map_image(material, lmap_prop):
     lmap_image_name = getattr(material.xray, lmap_prop, None)
+
     if lmap_image_name:
         lmap_image = bpy.data.images.get(lmap_image_name, None)
         if not lmap_image:
@@ -307,28 +316,27 @@ def get_light_map_image(material, lmap_prop):
                 )
             )
         lmap_name = base_name
+
     else:
         lmap_image = None
         lmap_name = None
+
     return lmap_image, lmap_name
-
-
-class ExportLevelContext():
-    def __init__(self, textures_folder):
-        self.textures_folder = textures_folder
-        self.texname_from_path = True
 
 
 def write_shaders(level_writer, level):
     texture_folder = utils.version.get_preferences().textures_folder_auto
+
     materials = {}
     for material, shader_index in level.materials.items():
         materials[shader_index] = material
+
     materials_count = len(materials)
     shaders_writer = rw.write.PackedWriter()
     shaders_writer.putf('<I', materials_count + 1)    # shaders count
     shaders_writer.puts('')    # first empty shader
     context = ExportLevelContext(texture_folder)
+
     for shader_index in range(materials_count):
         material = materials[shader_index]
         texture_path = utils.material.get_image_relative_path(
@@ -343,56 +351,71 @@ def write_shaders(level_writer, level):
         lmap_1_image, lmap_1_name = get_light_map_image(material, 'lmap_0')
         lmap_2_image, lmap_2_name = get_light_map_image(material, 'lmap_1')
 
+        # lightmap shader
         if lmap_1_image and lmap_2_image:
             shaders_writer.puts('{0}/{1},{2},{3}'.format(
-                eshader, texture_path, lmap_1_name, lmap_2_name
+                eshader,
+                texture_path,
+                lmap_1_name,
+                lmap_2_name
             ))
+
+        # terrain shader
         elif lmap_1_image and not lmap_2_image:
             lmap_1_path = utils.image.gen_texture_name(
                 lmap_1_image,
                 texture_folder,
                 level_folder=level.source_level_path
-            )    # terrain\terrain_name_lm.dds file
+            )
             shaders_writer.puts('{0}/{1},{2}'.format(
-                eshader, texture_path, lmap_1_path
+                eshader,
+                texture_path,
+                lmap_1_path
             ))
+
+        # vertex colors shader
         else:
-            shaders_writer.puts('{0}/{1}'.format(
-                eshader, texture_path
-            ))
+            shaders_writer.puts('{0}/{1}'.format(eshader, texture_path))
+
     level_writer.put(fmt.Chunks13.SHADERS, shaders_writer)
 
 
-def write_visual_bounding_sphere(packed_writer, center, radius):
-    packed_writer.putf('<3f', center[0], center[2], center[1])    # center
-    packed_writer.putf('<f', radius)    # radius
+def write_visual_bounding_sphere(header_writer, center, radius):
+    header_writer.putf('<3f', center[0], center[2], center[1])
+    header_writer.putf('<f', radius)
 
 
-def write_visual_bounding_box(packed_writer, bbox):
+def write_visual_bounding_box(header_writer, bbox):
     bbox_min = bbox[0]
     bbox_max = bbox[1]
-    packed_writer.putf('<3f', bbox_min[0], bbox_min[2], bbox_min[1])    # min
-    packed_writer.putf('<3f', bbox_max[0], bbox_max[2], bbox_max[1])    # max
+    header_writer.putf('<3f', bbox_min[0], bbox_min[2], bbox_min[1])    # min
+    header_writer.putf('<3f', bbox_max[0], bbox_max[2], bbox_max[1])    # max
 
 
 def write_visual_header(level, bpy_obj, visual=None, visual_type=0, shader_id=0):
-    packed_writer = rw.write.PackedWriter()
-    packed_writer.putf('<B', ogf.fmt.FORMAT_VERSION_4)    # format version
-    packed_writer.putf('<B', visual_type)
+    header_writer = rw.write.PackedWriter()
+    header_writer.putf('<B', ogf.fmt.FORMAT_VERSION_4)    # format version
+    header_writer.putf('<B', visual_type)
+
     if visual:
         # +1 - skip first empty shader
-        packed_writer.putf('<H', visual.shader_index + 1)
+        header_writer.putf('<H', visual.shader_index + 1)
     else:
-        packed_writer.putf('<H', shader_id)    # shader id
+        header_writer.putf('<H', shader_id)    # shader id
+
     bbox, (center, radius) = ogf.exp.calculate_bbox_and_bsphere(
-        bpy_obj, apply_transforms=True, cache=level.visuals_cache
+        bpy_obj,
+        apply_transforms=True,
+        cache=level.visuals_cache
     )
     level.visuals_bbox[bpy_obj.name] = bbox
     level.visuals_center[bpy_obj.name] = center
     level.visuals_radius[bpy_obj.name] = radius
-    write_visual_bounding_box(packed_writer, bbox)
-    write_visual_bounding_sphere(packed_writer, center, radius)
-    return packed_writer
+
+    write_visual_bounding_box(header_writer, bbox)
+    write_visual_bounding_sphere(header_writer, center, radius)
+
+    return header_writer
 
 
 def get_bbox_center(bbox):
@@ -415,10 +438,6 @@ def find_distance(vertex_1, vertex_2):
     return distance
 
 
-MAX_TILE = 16
-QUANT = 32768 / MAX_TILE
-
-
 def clamp(value, min_value, max_value):
     if value > max_value:
         value = max_value
@@ -428,22 +447,23 @@ def clamp(value, min_value, max_value):
 
 
 def quant_value(float_value):
-    return clamp(
-        int(float_value * QUANT),
-        -32768,
-        32767
-    )
+    return clamp(int(float_value * QUANT), -32768, 32767)
 
 
-def get_tex_coord_correct(tex_coord_f, tex_coord_h, uv_coeff):
-    if tex_coord_f > 0:
-        tex_coord_diff = tex_coord_f - (tex_coord_h / uv_coeff)
+def get_tex_coord_correct(coord_f, coord_h, uv_coeff):
+    # coord_f - float texture coordinate
+    # coord_h - unsigned 16 bit integer texture coordinate
+    # uv_coeff - max unsigned 16 bit integer value for texture coordinate
+
+    if coord_f > 0:
+        diff = coord_f - (coord_h / uv_coeff)
     else:
-        tex_coord_diff = (1 + (tex_coord_f * uv_coeff - tex_coord_h)) / uv_coeff
-        tex_coord_h -= 1
+        diff = (1 + (coord_f * uv_coeff - coord_h)) / uv_coeff
+        coord_h -= 1
 
-    tex_correct = (255 * 0x8000 * tex_coord_diff) / 32
-    return int(round(tex_correct, 0)), tex_coord_h
+    tex_correct = (255 * 0x8000 * diff) / 32
+
+    return int(round(tex_correct, 0)), coord_h
 
 
 def write_gcontainer(bpy_obj, vbs, ibs, level):
@@ -1050,8 +1070,14 @@ def write_visual_children(
 
     for visual_obj in visuals:
         visual_chunked_writer = write_visual(
-            visual_obj, vbs, ibs,
-            hierrarhy, visuals_ids, level, fp_vbs, fp_ibs
+            visual_obj,
+            vbs,
+            ibs,
+            hierrarhy,
+            visuals_ids,
+            level,
+            fp_vbs,
+            fp_ibs
         )
         if visual_chunked_writer:
             chunked_writer.put(visual_index, visual_chunked_writer)
