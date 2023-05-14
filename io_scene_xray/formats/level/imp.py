@@ -24,6 +24,7 @@ from ... import rw
 
 class Level(object):
     def __init__(self):
+        self.addon_version = utils.addon_version_number()
         self.name = None
         self.path = None
         self.file = None
@@ -257,6 +258,8 @@ def import_glows(data, level):
             images
         )
         glow_object.parent = glows_object
+        glow_object.xray.version = level.addon_version
+        glow_object.xray.isroot = False
         collection.objects.link(glow_object)
         if not utils.version.IS_28:
             utils.version.link_object(glow_object)
@@ -273,6 +276,8 @@ def import_glows_v5(data, level):
     for glow_index in range(glows_count):
         glow_object = import_glow_v5(level, packed_reader, glow_index)
         glow_object.parent = glows_object
+        glow_object.xray.version = level.addon_version
+        glow_object.xray.isroot = False
         collection.objects.link(glow_object)
         if not utils.version.IS_28:
             utils.version.link_object(glow_object)
@@ -459,6 +464,8 @@ def import_portal(packed_reader, portal_index, collection, level):
         used_vertices_count = packed_reader.uint32()
     vertices = vertices[ : used_vertices_count]
     portal_object = create_portal(portal_index, vertices, collection)
+    portal_object.xray.version = level.addon_version
+    portal_object.xray.isroot = False
     portal_object.xray.is_level = True
     portal_object.xray.level.object_type = 'PORTAL'
     portal_object.xray.level.sector_front = level.sectors_objects[sector_front].name

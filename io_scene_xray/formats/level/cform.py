@@ -16,8 +16,6 @@ from ... import rw
 
 
 def import_main(context, level, data=None):
-    preferences = utils.version.get_preferences()
-
     # read level.cform file
     if level.xrlc_version >= fmt.VERSION_10:
         cform_path = os.path.join(level.path, 'level.cform')
@@ -43,7 +41,8 @@ def import_main(context, level, data=None):
     verts = packed_reader.get_array('f', verts_count, vec_len=3)
 
     # read game materials
-    gamemtl_file_path = preferences.gamemtl_file_auto
+    pref = utils.version.get_preferences()
+    gamemtl_file_path = pref.gamemtl_file_auto
     game_mtl_names = {}
     if os.path.exists(gamemtl_file_path):
         gmtl_data = rw.utils.read_file(gamemtl_file_path)
@@ -210,6 +209,8 @@ def import_main(context, level, data=None):
         bm.to_mesh(bpy_mesh)
         bpy_obj = bpy.data.objects.new(obj_name, bpy_mesh)
         bpy_obj.parent = level.sectors_objects[sector]
+        bpy_obj.xray.version = level.addon_version
+        bpy_obj.xray.isroot = False
         bpy_obj.xray.is_level = True
         bpy_obj.xray.level.object_type = 'CFORM'
         collection = level.collections[create.LEVEL_CFORM_COLLECTION_NAME]

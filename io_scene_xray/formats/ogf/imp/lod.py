@@ -79,12 +79,17 @@ def create_lod_mesh(visual, verts, faces):
     return bpy_mesh
 
 
-def create_lod_object(obj_name, bpy_mesh):
-    bpy_object = utils.obj.create_object(obj_name, bpy_mesh)
-    bpy_object.xray.is_level = True
-    bpy_object.xray.level.object_type = 'VISUAL'
-    bpy_object.xray.level.visual_type = 'LOD'
-    return bpy_object
+def create_lod_object(obj_name, bpy_mesh, level):
+    bpy_obj = utils.obj.create_object(obj_name, bpy_mesh)
+
+    xray = bpy_obj.xray
+    xray.version = level.addon_version
+    xray.isroot = False
+    xray.is_level = True
+    xray.level.object_type = 'VISUAL'
+    xray.level.visual_type = 'LOD'
+
+    return bpy_obj
 
 
 def create_lod_layers(bpy_mesh):
@@ -190,7 +195,7 @@ def import_lod_visual(chunks, visual, lvl):
         sun_color
     )
 
-    bpy_object = create_lod_object(visual.name, bpy_mesh)
+    bpy_object = create_lod_object(visual.name, bpy_mesh, lvl)
     material.assign_level_material(bpy_mesh, visual, lvl)
 
     return bpy_object
