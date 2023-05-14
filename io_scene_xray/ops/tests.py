@@ -182,6 +182,9 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
         bbox_max_z = -1000000.0
 
         for obj in bpy.data.objects:
+            if obj.type != 'MESH':
+                continue
+
             min_bbox = mathutils.Vector(obj.bound_box[0])
             max_bbox = mathutils.Vector(obj.bound_box[6])
 
@@ -189,20 +192,25 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
             bbox_min_y = min(bbox_min_y, min_bbox.y)
             bbox_min_z = min(bbox_min_z, min_bbox.z)
 
-            bbox_max_x = max(bbox_max_x, min_bbox.x)
-            bbox_max_y = max(bbox_max_y, min_bbox.y)
-            bbox_max_z = max(bbox_max_z, min_bbox.z)
+            bbox_max_x = max(bbox_max_x, max_bbox.x)
+            bbox_max_y = max(bbox_max_y, max_bbox.y)
+            bbox_max_z = max(bbox_max_z, max_bbox.z)
 
         dim_x = bbox_max_x - bbox_min_x
         dim_y = bbox_max_y - bbox_min_y
         dim_z = bbox_max_z - bbox_min_z
 
         dim_max = max(dim_x, dim_y, dim_z)
-        clip_end = max(500.0, dim_max * 10)
+        clip_end = max(500.0, dim_max * 4)
 
         return clip_end
 
     def set_view(self):
+        bpy.ops.object.select_all(action='DESELECT')
+        for obj in bpy.data.objects:
+            if obj.type == 'MESH':
+                utils.version.select_object(obj)
+
         clip_end = self.calc_clip_end()
 
         for area in bpy.context.screen.areas:
@@ -210,11 +218,13 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
                 ctx = bpy.context.copy()
                 ctx['area'] = area
                 ctx['region'] = area.regions[-1]
-                bpy.ops.view3d.view_all(ctx, center=False)
+                bpy.ops.view3d.view_selected(ctx)
 
                 for space in area.spaces:
                     if space.type == 'VIEW_3D':
                         space.clip_end = clip_end
+
+        bpy.ops.object.select_all(action='DESELECT')
 
     def get_space_3d(self):
         space_3d = None
@@ -249,6 +259,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
         context.window_manager.event_timer_remove(self.timer)
         remove_bpy_data()
         self.set_clip_end(self.clip_end_old)
+        bpy.ops.view3d.view_axis(type='TOP')
         return {'CANCELLED'}
 
     def execute(self, context):
