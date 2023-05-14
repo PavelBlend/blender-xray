@@ -18,9 +18,35 @@ from ... import log
 from ... import rw
 
 
+TWO_MEGABYTES = 1024 * 1024 * 2
+
+
+class Level(object):
+    def __init__(self):
+        self.active_material_index = 0
+
+        self.visuals = []
+        self.vbs_offsets = []
+        self.ibs_offsets = []
+        self.fp_vbs_offsets = []
+        self.fp_ibs_offsets = []
+
+        self.materials = {}
+        self.saved_visuals = {}
+        self.visuals_bbox = {}
+        self.visuals_center = {}
+        self.visuals_radius = {}
+        self.sectors_indices = {}
+        self.cform_objects = {}
+
+        self.visuals_cache = VisualsCache()
+
+
 class VertexBuffer(object):
     def __init__(self):
         self.vertex_count = 0
+        self.vertex_format = None
+
         self.position = bytearray()
         self.normal = bytearray()
         self.tangent = bytearray()
@@ -32,10 +58,6 @@ class VertexBuffer(object):
         self.uv_fix = bytearray()
         self.uv_lmap = bytearray()
         self.shader_data = bytearray()
-        self.vertex_format = None
-
-
-TWO_MEGABYTES = 1024 * 1024 * 2
 
 
 class Visual(object):
@@ -47,213 +69,166 @@ class VisualsCache:
     def __init__(self):
         self.bounds = {}
         self.children = {}
-        self._find_children()
 
-    def _find_children(self):
+        # search children
         for obj in bpy.data.objects:
             self.children[obj.name] = []
+
         for child_obj in bpy.data.objects:
             parent = child_obj.parent
             if parent:
                 self.children[parent.name].append(child_obj.name)
 
 
-class Level(object):
-    def __init__(self):
-        self.materials = {}
-        self.visuals = []
-        self.active_material_index = 0
-        self.vbs_offsets = []
-        self.ibs_offsets = []
-        self.fp_vbs_offsets = []
-        self.fp_ibs_offsets = []
-        self.saved_visuals = {}
-        self.sectors_indices = {}
-        self.visuals_bbox = {}
-        self.visuals_center = {}
-        self.visuals_radius = {}
-        self.visuals_cache = VisualsCache()
-        self.cform_objects = {}
-
-
-def write_level_geom_swis(geom_writer):
+def write_geom_swis(geom_writer):
     swis_writer = rw.write.PackedWriter()
     # TODO: export swis data
     swis_writer.putf('<I', 0)    # swis count
     geom_writer.put(fmt.Chunks13.SWIS, swis_writer)
 
 
-def write_level_geom_ib(geom_writer, ibs):
+def write_geom_ibs(geom_writer, ibs):
     ib_writer = rw.write.PackedWriter()
-    ib_writer.putf('<I', len(ibs))    # indices buffers count
+
+    buffers_count = len(ibs)
+    ib_writer.putf('<I', buffers_count)
 
     for ib in ibs:
-        indices_count = len(ib) // 2    # index size = 2 byte
-        ib_writer.putf('<I', indices_count)    # indices count
-
-        for index in range(0, indices_count, 3):
-            ib_writer.data.extend(ib[index * 2 : index * 2 + 2])
-            ib_writer.data.extend(ib[index * 2 + 4 : index * 2 + 6])
-            ib_writer.data.extend(ib[index * 2 + 2 : index * 2 + 4])
+        indices_count = len(ib) // fmt.INDEX_SIZE
+        ib_writer.putf('<I', indices_count)
+        ib_writer.data.extend(ib)
 
     geom_writer.put(fmt.Chunks13.IB, ib_writer)
 
 
-def write_level_geom_vb(geom_writer, vbs):
-    vb_writer = rw.write.PackedWriter()
+def write_geom_vbs(geom_writer, vbs):
+    vbs_writer = rw.write.PackedWriter()
 
-    vb_writer.putf('<I', len(vbs))    # vertex buffers count
+    buffers_count = len(vbs)
+    vbs_writer.putf('<I', buffers_count)
 
     for vb in vbs:
+
         if vb.vertex_format == 'NORMAL':
-            offsets = (0, 12, 16, 20, 24, 28)    # normal visual vertex buffer offsets
+            offsets = (0, 12, 16, 20, 24, 28)    # vertex buffer offsets
             usage_indices = (0, 0, 0, 0, 0, 1)
             vertex_type = fmt.VERTEX_TYPE_BRUSH_14
+
         elif vb.vertex_format == 'TREE':
             offsets = (0, 12, 16, 20, 24)
             usage_indices = (0, 0, 0, 0, 0)
             vertex_type = fmt.VERTEX_TYPE_TREE
+
         elif vb.vertex_format == 'COLOR':
             offsets = (0, 12, 16, 20, 24, 28)
             usage_indices = (0, 0, 0, 0, 0, 0)
             vertex_type = fmt.VERTEX_TYPE_COLOR_14
+
         elif vb.vertex_format == 'FASTPATH':
             offsets = (0, )
             usage_indices = (0, )
             vertex_type = fmt.VERTEX_TYPE_FASTPATH
+
         else:
             raise BaseException('Unknown VB format:', vb.vertex_format)
 
-        for index, (usage, type_) in enumerate(vertex_type):
-            vb_writer.putf('<H', 0)    # stream
-            vb_writer.putf('<H', offsets[index])    # offset
-            vb_writer.putf('<B', type_)    # type
-            vb_writer.putf('<B', 0)    # method
-            vb_writer.putf('<B', usage)    # usage
-            vb_writer.putf('<B', usage_indices[index])    # usage_index
+        # write buffer header
+        for index, (usage, value_type) in enumerate(vertex_type):
+            vbs_writer.putf('<H', 0)    # stream
+            vbs_writer.putf('<H', offsets[index])    # offset
+            vbs_writer.putf('<B', value_type)    # type
+            vbs_writer.putf('<B', 0)    # method
+            vbs_writer.putf('<B', usage)    # usage
+            vbs_writer.putf('<B', usage_indices[index])    # usage_index
 
-        vb_writer.putf('<H', 255)    # stream
-        vb_writer.putf('<H', 0)    # offset
-        vb_writer.putf('<B', 17)   # type UNUSED
-        vb_writer.putf('<B', 0)    # method
-        vb_writer.putf('<B', 0)    # usage
-        vb_writer.putf('<B', 0)    # usage_index
+        vbs_writer.putf('<H', 255)    # stream
+        vbs_writer.putf('<H', 0)    # offset
+        vbs_writer.putf('<B', fmt.types_values[fmt.UNUSED])   # type UNUSED
+        vbs_writer.putf('<B', 0)    # method
+        vbs_writer.putf('<B', 0)    # usage
+        vbs_writer.putf('<B', 0)    # usage_index
 
-        vb_writer.putf('<I', vb.vertex_count)    # vertices count
+        vbs_writer.putf('<I', vb.vertex_count)    # vertices count
 
+        # write vertices
         if vb.vertex_format == 'NORMAL':
-            for vertex_index in range(vb.vertex_count):
-                vertex_pos = vb.position[vertex_index * 12 : vertex_index * 12 + 12]
-                vb_writer.data.extend(vertex_pos)
-                vb_writer.putf(
-                    '<4B',
-                    vb.normal[vertex_index * 3],
-                    vb.normal[vertex_index * 3 + 1],
-                    vb.normal[vertex_index * 3 + 2],
-                    vb.color_hemi[vertex_index]
-                )    # normal, hemi
-                uv_fix = vb.uv_fix[vertex_index * 2 : vertex_index * 2 + 2]
+            for index in range(vb.vertex_count):
+                vbs_writer.data.extend(vb.position[index*12 : index*12 + 12])
+                vbs_writer.data.extend((
+                    *vb.normal[index*3 : index*3 + 3],
+                    vb.color_hemi[index]
+                ))    # normal, hemi
+                uv_fix = vb.uv_fix[index*2 : index*2 + 2]
                 # tangent
-                vb_writer.putf(
-                    '<4B',
-                    vb.tangent[vertex_index * 3],
-                    vb.tangent[vertex_index * 3 + 1],
-                    vb.tangent[vertex_index * 3 + 2],
+                vbs_writer.data.extend((
+                    *vb.tangent[index*3 : index*3 + 3],
                     uv_fix[0]
-                )
+                ))
                 # binormal
-                vb_writer.putf(
-                    '<4B',
-                    vb.binormal[vertex_index * 3],
-                    vb.binormal[vertex_index * 3 + 1],
-                    vb.binormal[vertex_index * 3 + 2],
+                vbs_writer.data.extend((
+                    *vb.binormal[index*3 : index*3 + 3],
                     uv_fix[1]
-                )
+                ))
                 # texture coordinate
-                vb_writer.data.extend(vb.uv[vertex_index * 4 : vertex_index * 4 + 4])
+                vbs_writer.data.extend(vb.uv[index*4 : index*4 + 4])
                 # light map texture coordinate
-                vb_writer.data.extend(vb.uv_lmap[vertex_index * 4 : vertex_index * 4 + 4])
+                vbs_writer.data.extend(vb.uv_lmap[index*4 : index*4 + 4])
 
         elif vb.vertex_format == 'TREE':
-            for vertex_index in range(vb.vertex_count):
-                vertex_pos = vb.position[vertex_index * 12 : vertex_index * 12 + 12]
-                vb_writer.data.extend(vertex_pos)
-                vb_writer.putf(
-                    '<4B',
-                    vb.normal[vertex_index * 3],
-                    vb.normal[vertex_index * 3 + 1],
-                    vb.normal[vertex_index * 3 + 2],
-                    vb.color_hemi[vertex_index]
-                )    # normal, hemi
-                uv_fix = vb.uv_fix[vertex_index * 2 : vertex_index * 2 + 2]
+            for index in range(vb.vertex_count):
+                vbs_writer.data.extend(vb.position[index*12 : index*12 + 12])
+                vbs_writer.data.extend((
+                    *vb.normal[index*3 : index*3 + 3],
+                    vb.color_hemi[index]
+                ))    # normal, hemi
+                uv_fix = vb.uv_fix[index*2 : index*2 + 2]
                 # tangent
-                vb_writer.putf(
-                    '<4B',
-                    vb.tangent[vertex_index * 3],
-                    vb.tangent[vertex_index * 3 + 1],
-                    vb.tangent[vertex_index * 3 + 2],
+                vbs_writer.data.extend((
+                    *vb.tangent[index*3 : index*3 + 3],
                     uv_fix[0]
-                )
+                ))
                 # binormal
-                vb_writer.putf(
-                    '<4B',
-                    vb.binormal[vertex_index * 3],
-                    vb.binormal[vertex_index * 3 + 1],
-                    vb.binormal[vertex_index * 3 + 2],
+                vbs_writer.data.extend((
+                    *vb.binormal[index*3 : index*3 + 3],
                     uv_fix[1]
-                )
+                ))
                 # texture coordinate
-                vb_writer.data.extend(vb.uv[vertex_index * 4 : vertex_index * 4 + 4])
+                vbs_writer.data.extend(vb.uv[index*4 : index*4 + 4])
                 # tree shader data (wind coefficient and unused 2 bytes)
-                frac = vb.shader_data[vertex_index * 2 : vertex_index * 2 + 2]
+                frac = vb.shader_data[index*2 : index*2 + 2]
                 frac.extend((0, 0))
-                vb_writer.data.extend(frac)
+                vbs_writer.data.extend(frac)
 
         elif vb.vertex_format == 'COLOR':
-            for vertex_index in range(vb.vertex_count):
-                vertex_pos = vb.position[vertex_index * 12 : vertex_index * 12 + 12]
-                vb_writer.data.extend(vertex_pos)
-                vb_writer.putf(
-                    '<4B',
-                    vb.normal[vertex_index * 3],
-                    vb.normal[vertex_index * 3 + 1],
-                    vb.normal[vertex_index * 3 + 2],
-                    vb.color_hemi[vertex_index]
-                )    # normal, hemi
-                uv_fix = vb.uv_fix[vertex_index * 2 : vertex_index * 2 + 2]
+            for index in range(vb.vertex_count):
+                vbs_writer.data.extend(vb.position[index*12 : index*12 + 12])
+                vbs_writer.data.extend((
+                    *vb.normal[index*3 : index*3 + 3],
+                    vb.color_hemi[index]
+                ))    # normal, hemi
+                uv_fix = vb.uv_fix[index*2 : index*2 + 2]
                 # tangent
-                vb_writer.putf(
-                    '<4B',
-                    vb.tangent[vertex_index * 3],
-                    vb.tangent[vertex_index * 3 + 1],
-                    vb.tangent[vertex_index * 3 + 2],
+                vbs_writer.data.extend((
+                    *vb.tangent[index*3 : index*3 + 3],
                     uv_fix[0]
-                )
+                ))
                 # binormal
-                vb_writer.putf(
-                    '<4B',
-                    vb.binormal[vertex_index * 3],
-                    vb.binormal[vertex_index * 3 + 1],
-                    vb.binormal[vertex_index * 3 + 2],
+                vbs_writer.data.extend((
+                    *vb.binormal[index*3 : index*3 + 3],
                     uv_fix[1]
-                )
+                ))
                 # vertex color
-                vb_writer.putf(
-                    '<4B',
-                    vb.color_light[vertex_index * 3],
-                    vb.color_light[vertex_index * 3 + 1],
-                    vb.color_light[vertex_index * 3 + 2],
-                    vb.color_sun[vertex_index]
-                )
+                vbs_writer.data.extend((
+                    *vb.color_light[index*3 : index*3 + 3],
+                    vb.color_sun[index]
+                ))
                 # texture coordinate
-                vb_writer.data.extend(vb.uv[vertex_index * 4 : vertex_index * 4 + 4])
+                vbs_writer.data.extend(vb.uv[index*4 : index*4 + 4])
 
         elif vb.vertex_format == 'FASTPATH':
-            for vertex_index in range(vb.vertex_count):
-                vertex_pos = vb.position[vertex_index * 12 : vertex_index * 12 + 12]
-                vb_writer.data.extend(vertex_pos)
+            vbs_writer.data.extend(vb.position)
 
-    geom_writer.put(fmt.Chunks13.VB, vb_writer)
+    geom_writer.put(fmt.Chunks13.VB, vbs_writer)
 
 
 def write_geom(file_path, vbs, ibs, ext):
@@ -264,13 +239,13 @@ def write_geom(file_path, vbs, ibs, ext):
     write_header(geom_writer)
 
     # vertex buffers
-    write_level_geom_vb(geom_writer, vbs)
+    write_geom_vbs(geom_writer, vbs)
 
     # indices buffers
-    write_level_geom_ib(geom_writer, ibs)
+    write_geom_ibs(geom_writer, ibs)
 
     # slide window items
-    write_level_geom_swis(geom_writer)
+    write_geom_swis(geom_writer)
 
     # save level.geom/level.geomx file
     geom_path = file_path + os.extsep + ext
@@ -619,6 +594,7 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     frac_low[2] = bpy_obj.bound_box[0][2]
     frac_y_size = bpy_obj.bound_box[6][2] - bpy_obj.bound_box[0][2]
     for face in bm.faces:
+        face_indices = []
         for loop in face.loops:
             vert = loop.vert
             vert_co = (vert.co[0], vert.co[1], vert.co[2])
@@ -653,29 +629,37 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                     vert_index = verts_indices[vert_co][index]
                     break
             packed_vertex_index = struct.pack('<H', vert_index)
-            ib.extend(packed_vertex_index)
+            face_indices.append(packed_vertex_index)
             indices_count += 1
             if not vert_index in saved_verts:
                 vb.vertex_count += 1
                 saved_verts.add(vert_index)
                 vertex_index += 1
                 vertices_count += 1
-                packed_co = struct.pack('<3f', vert.co[0], vert.co[2], vert.co[1])
+                packed_co = struct.pack(
+                    '<3f',
+                    vert.co[0],
+                    vert.co[2],
+                    vert.co[1]
+                )
                 vb.position.extend(packed_co)
-                vb.normal.extend((
+                vb.normal.extend(struct.pack(
+                    '<3B',
                     int(round(((normal[1] + 1.0) / 2) * 255, 0)),
                     int(round(((normal[2] + 1.0) / 2) * 255, 0)),
                     int(round(((normal[0] + 1.0) / 2) * 255, 0))
                 ))
                 tangent = export_mesh.loops[loop.index].tangent
-                vb.tangent.extend((
+                vb.tangent.extend(struct.pack(
+                    '<3B',
                     int(round(((tangent[1] + 1.0) / 2) * 255, 0)),
                     int(round(((tangent[2] + 1.0) / 2) * 255, 0)),
                     int(round(((tangent[0] + 1.0) / 2) * 255, 0))
                 ))
                 normal = mathutils.Vector(normal)
                 binormal = normal.cross(tangent).normalized()
-                vb.binormal.extend((
+                vb.binormal.extend(struct.pack(
+                    '<3B',
                     int(round(((-binormal[1] + 1.0) / 2) * 255, 0)),
                     int(round(((-binormal[2] + 1.0) / 2) * 255, 0)),
                     int(round(((-binormal[0] + 1.0) / 2) * 255, 0))
@@ -684,7 +668,8 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                 vb.color_hemi.append(int(round(hemi * 255, 0)))
                 if vertex_color_sun:
                     vb.color_sun.append(int(round(sun * 255, 0)))
-                    vb.color_light.extend((
+                    vb.color_light.extend(struct.pack(
+                        '<3B',
                         (int(round(light[2] * 255, 0))),
                         (int(round(light[1] * 255, 0))),
                         (int(round(light[0] * 255, 0)))
@@ -711,7 +696,11 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
 
                 packed_uv = struct.pack('<2h', tex_coord_u, tex_coord_v)
                 vb.uv.extend(packed_uv)
-                packed_uv_fix = struct.pack('<2B', tex_coord_u_correct, tex_coord_v_correct)
+                packed_uv_fix = struct.pack(
+                    '<2B',
+                    tex_coord_u_correct,
+                    tex_coord_v_correct
+                )
                 vb.uv_fix.extend(packed_uv_fix)
                 if uv_layer_lmap:
                     lmap_u = int(round(tex_uv_lmap[0] * fmt.LIGHT_MAP_UV_COEFFICIENT, 0))
@@ -725,6 +714,8 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                     frac = quant_value((f1 + f2) / 2)
                     packed_shader_data = struct.pack('<H', frac)
                     vb.shader_data.extend(packed_shader_data)    # wind coefficient
+
+        ib.extend((*face_indices[0], *face_indices[2], *face_indices[1]))
 
     vertex_buffer_index = vbs.index(vb)
     packed_writer.putf('<I', vertex_buffer_index)    # vb_index
