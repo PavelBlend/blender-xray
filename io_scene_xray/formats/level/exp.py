@@ -76,33 +76,33 @@ class Level(object):
         self.cform_objects = {}
 
 
-def write_level_geom_swis():
-    packed_writer = rw.write.PackedWriter()
+def write_level_geom_swis(geom_writer):
+    swis_writer = rw.write.PackedWriter()
     # TODO: export swis data
-    packed_writer.putf('<I', 0)    # swis count
-    return packed_writer
+    swis_writer.putf('<I', 0)    # swis count
+    geom_writer.put(fmt.Chunks13.SWIS, swis_writer)
 
 
-def write_level_geom_ib(ibs):
-    packed_writer = rw.write.PackedWriter()
-    packed_writer.putf('<I', len(ibs))    # indices buffers count
+def write_level_geom_ib(geom_writer, ibs):
+    ib_writer = rw.write.PackedWriter()
+    ib_writer.putf('<I', len(ibs))    # indices buffers count
 
     for ib in ibs:
         indices_count = len(ib) // 2    # index size = 2 byte
-        packed_writer.putf('<I', indices_count)    # indices count
+        ib_writer.putf('<I', indices_count)    # indices count
 
         for index in range(0, indices_count, 3):
-            packed_writer.data.extend(ib[index * 2 : index * 2 + 2])
-            packed_writer.data.extend(ib[index * 2 + 4 : index * 2 + 6])
-            packed_writer.data.extend(ib[index * 2 + 2 : index * 2 + 4])
+            ib_writer.data.extend(ib[index * 2 : index * 2 + 2])
+            ib_writer.data.extend(ib[index * 2 + 4 : index * 2 + 6])
+            ib_writer.data.extend(ib[index * 2 + 2 : index * 2 + 4])
 
-    return packed_writer
+    geom_writer.put(fmt.Chunks13.IB, ib_writer)
 
 
-def write_level_geom_vb(vbs):
-    packed_writer = rw.write.PackedWriter()
+def write_level_geom_vb(geom_writer, vbs):
+    vb_writer = rw.write.PackedWriter()
 
-    packed_writer.putf('<I', len(vbs))    # vertex buffers count
+    vb_writer.putf('<I', len(vbs))    # vertex buffers count
 
     for vb in vbs:
         if vb.vertex_format == 'NORMAL':
@@ -125,27 +125,27 @@ def write_level_geom_vb(vbs):
             raise BaseException('Unknown VB format:', vb.vertex_format)
 
         for index, (usage, type_) in enumerate(vertex_type):
-            packed_writer.putf('<H', 0)    # stream
-            packed_writer.putf('<H', offsets[index])    # offset
-            packed_writer.putf('<B', type_)    # type
-            packed_writer.putf('<B', 0)    # method
-            packed_writer.putf('<B', usage)    # usage
-            packed_writer.putf('<B', usage_indices[index])    # usage_index
+            vb_writer.putf('<H', 0)    # stream
+            vb_writer.putf('<H', offsets[index])    # offset
+            vb_writer.putf('<B', type_)    # type
+            vb_writer.putf('<B', 0)    # method
+            vb_writer.putf('<B', usage)    # usage
+            vb_writer.putf('<B', usage_indices[index])    # usage_index
 
-        packed_writer.putf('<H', 255)    # stream
-        packed_writer.putf('<H', 0)    # offset
-        packed_writer.putf('<B', 17)   # type UNUSED
-        packed_writer.putf('<B', 0)    # method
-        packed_writer.putf('<B', 0)    # usage
-        packed_writer.putf('<B', 0)    # usage_index
+        vb_writer.putf('<H', 255)    # stream
+        vb_writer.putf('<H', 0)    # offset
+        vb_writer.putf('<B', 17)   # type UNUSED
+        vb_writer.putf('<B', 0)    # method
+        vb_writer.putf('<B', 0)    # usage
+        vb_writer.putf('<B', 0)    # usage_index
 
-        packed_writer.putf('<I', vb.vertex_count)    # vertices count
+        vb_writer.putf('<I', vb.vertex_count)    # vertices count
 
         if vb.vertex_format == 'NORMAL':
             for vertex_index in range(vb.vertex_count):
                 vertex_pos = vb.position[vertex_index * 12 : vertex_index * 12 + 12]
-                packed_writer.data.extend(vertex_pos)
-                packed_writer.putf(
+                vb_writer.data.extend(vertex_pos)
+                vb_writer.putf(
                     '<4B',
                     vb.normal[vertex_index * 3],
                     vb.normal[vertex_index * 3 + 1],
@@ -154,7 +154,7 @@ def write_level_geom_vb(vbs):
                 )    # normal, hemi
                 uv_fix = vb.uv_fix[vertex_index * 2 : vertex_index * 2 + 2]
                 # tangent
-                packed_writer.putf(
+                vb_writer.putf(
                     '<4B',
                     vb.tangent[vertex_index * 3],
                     vb.tangent[vertex_index * 3 + 1],
@@ -162,7 +162,7 @@ def write_level_geom_vb(vbs):
                     uv_fix[0]
                 )
                 # binormal
-                packed_writer.putf(
+                vb_writer.putf(
                     '<4B',
                     vb.binormal[vertex_index * 3],
                     vb.binormal[vertex_index * 3 + 1],
@@ -170,15 +170,15 @@ def write_level_geom_vb(vbs):
                     uv_fix[1]
                 )
                 # texture coordinate
-                packed_writer.data.extend(vb.uv[vertex_index * 4 : vertex_index * 4 + 4])
+                vb_writer.data.extend(vb.uv[vertex_index * 4 : vertex_index * 4 + 4])
                 # light map texture coordinate
-                packed_writer.data.extend(vb.uv_lmap[vertex_index * 4 : vertex_index * 4 + 4])
+                vb_writer.data.extend(vb.uv_lmap[vertex_index * 4 : vertex_index * 4 + 4])
 
         elif vb.vertex_format == 'TREE':
             for vertex_index in range(vb.vertex_count):
                 vertex_pos = vb.position[vertex_index * 12 : vertex_index * 12 + 12]
-                packed_writer.data.extend(vertex_pos)
-                packed_writer.putf(
+                vb_writer.data.extend(vertex_pos)
+                vb_writer.putf(
                     '<4B',
                     vb.normal[vertex_index * 3],
                     vb.normal[vertex_index * 3 + 1],
@@ -187,7 +187,7 @@ def write_level_geom_vb(vbs):
                 )    # normal, hemi
                 uv_fix = vb.uv_fix[vertex_index * 2 : vertex_index * 2 + 2]
                 # tangent
-                packed_writer.putf(
+                vb_writer.putf(
                     '<4B',
                     vb.tangent[vertex_index * 3],
                     vb.tangent[vertex_index * 3 + 1],
@@ -195,7 +195,7 @@ def write_level_geom_vb(vbs):
                     uv_fix[0]
                 )
                 # binormal
-                packed_writer.putf(
+                vb_writer.putf(
                     '<4B',
                     vb.binormal[vertex_index * 3],
                     vb.binormal[vertex_index * 3 + 1],
@@ -203,17 +203,17 @@ def write_level_geom_vb(vbs):
                     uv_fix[1]
                 )
                 # texture coordinate
-                packed_writer.data.extend(vb.uv[vertex_index * 4 : vertex_index * 4 + 4])
+                vb_writer.data.extend(vb.uv[vertex_index * 4 : vertex_index * 4 + 4])
                 # tree shader data (wind coefficient and unused 2 bytes)
                 frac = vb.shader_data[vertex_index * 2 : vertex_index * 2 + 2]
                 frac.extend((0, 0))
-                packed_writer.data.extend(frac)
+                vb_writer.data.extend(frac)
 
         elif vb.vertex_format == 'COLOR':
             for vertex_index in range(vb.vertex_count):
                 vertex_pos = vb.position[vertex_index * 12 : vertex_index * 12 + 12]
-                packed_writer.data.extend(vertex_pos)
-                packed_writer.putf(
+                vb_writer.data.extend(vertex_pos)
+                vb_writer.putf(
                     '<4B',
                     vb.normal[vertex_index * 3],
                     vb.normal[vertex_index * 3 + 1],
@@ -222,7 +222,7 @@ def write_level_geom_vb(vbs):
                 )    # normal, hemi
                 uv_fix = vb.uv_fix[vertex_index * 2 : vertex_index * 2 + 2]
                 # tangent
-                packed_writer.putf(
+                vb_writer.putf(
                     '<4B',
                     vb.tangent[vertex_index * 3],
                     vb.tangent[vertex_index * 3 + 1],
@@ -230,7 +230,7 @@ def write_level_geom_vb(vbs):
                     uv_fix[0]
                 )
                 # binormal
-                packed_writer.putf(
+                vb_writer.putf(
                     '<4B',
                     vb.binormal[vertex_index * 3],
                     vb.binormal[vertex_index * 3 + 1],
@@ -238,7 +238,7 @@ def write_level_geom_vb(vbs):
                     uv_fix[1]
                 )
                 # vertex color
-                packed_writer.putf(
+                vb_writer.putf(
                     '<4B',
                     vb.color_light[vertex_index * 3],
                     vb.color_light[vertex_index * 3 + 1],
@@ -246,32 +246,35 @@ def write_level_geom_vb(vbs):
                     vb.color_sun[vertex_index]
                 )
                 # texture coordinate
-                packed_writer.data.extend(vb.uv[vertex_index * 4 : vertex_index * 4 + 4])
+                vb_writer.data.extend(vb.uv[vertex_index * 4 : vertex_index * 4 + 4])
 
         elif vb.vertex_format == 'FASTPATH':
             for vertex_index in range(vb.vertex_count):
                 vertex_pos = vb.position[vertex_index * 12 : vertex_index * 12 + 12]
-                packed_writer.data.extend(vertex_pos)
+                vb_writer.data.extend(vertex_pos)
 
-    return packed_writer
+    geom_writer.put(fmt.Chunks13.VB, vb_writer)
 
 
-def write_level_geom(chunked_writer, vbs, ibs):
-    header_packed_writer = write_header()
-    chunked_writer.put(fmt.HEADER, header_packed_writer)
-    del header_packed_writer
+def write_geom(file_path, vbs, ibs, ext):
+    # level.geom/level.geomx chunked writer
+    geom_writer = get_writer()
 
-    vb_packed_writer = write_level_geom_vb(vbs)
-    chunked_writer.put(fmt.Chunks13.VB, vb_packed_writer)
-    del vb_packed_writer
+    # header
+    write_header(geom_writer)
 
-    ib_packed_writer = write_level_geom_ib(ibs)
-    chunked_writer.put(fmt.Chunks13.IB, ib_packed_writer)
-    del ib_packed_writer
+    # vertex buffers
+    write_level_geom_vb(geom_writer, vbs)
 
-    swis_packed_writer = write_level_geom_swis()
-    chunked_writer.put(fmt.Chunks13.SWIS, swis_packed_writer)
-    del swis_packed_writer
+    # indices buffers
+    write_level_geom_ib(geom_writer, ibs)
+
+    # slide window items
+    write_level_geom_swis(geom_writer)
+
+    # save level.geom/level.geomx file
+    geom_path = file_path + os.extsep + ext
+    rw.utils.save_file(geom_path, geom_writer)
 
 
 def write_sector_root(root_index):
@@ -341,15 +344,15 @@ class ExportLevelContext():
         self.texname_from_path = True
 
 
-def write_shaders(level):
+def write_shaders(level_writer, level):
     texture_folder = utils.version.get_preferences().textures_folder_auto
     materials = {}
     for material, shader_index in level.materials.items():
         materials[shader_index] = material
     materials_count = len(materials)
-    packed_writer = rw.write.PackedWriter()
-    packed_writer.putf('<I', materials_count + 1)    # shaders count
-    packed_writer.puts('')    # first empty shader
+    shaders_writer = rw.write.PackedWriter()
+    shaders_writer.putf('<I', materials_count + 1)    # shaders count
+    shaders_writer.puts('')    # first empty shader
     context = ExportLevelContext(texture_folder)
     for shader_index in range(materials_count):
         material = materials[shader_index]
@@ -366,7 +369,7 @@ def write_shaders(level):
         lmap_2_image, lmap_2_name = get_light_map_image(material, 'lmap_1')
 
         if lmap_1_image and lmap_2_image:
-            packed_writer.puts('{0}/{1},{2},{3}'.format(
+            shaders_writer.puts('{0}/{1},{2},{3}'.format(
                 eshader, texture_path, lmap_1_name, lmap_2_name
             ))
         elif lmap_1_image and not lmap_2_image:
@@ -375,14 +378,14 @@ def write_shaders(level):
                 texture_folder,
                 level_folder=level.source_level_path
             )    # terrain\terrain_name_lm.dds file
-            packed_writer.puts('{0}/{1},{2}'.format(
+            shaders_writer.puts('{0}/{1},{2}'.format(
                 eshader, texture_path, lmap_1_path
             ))
         else:
-            packed_writer.puts('{0}/{1}'.format(
+            shaders_writer.puts('{0}/{1}'.format(
                 eshader, texture_path
             ))
-    return packed_writer
+    level_writer.put(fmt.Chunks13.SHADERS, shaders_writer)
 
 
 def write_visual_bounding_sphere(packed_writer, center, radius):
@@ -1084,8 +1087,8 @@ def find_hierrarhy(level, visual_obj, visuals_hierrarhy, visual_index, visuals):
     return visuals_hierrarhy, visual_index
 
 
-def write_visuals(level_object, sectors_portals, level):
-    chunked_writer = rw.write.ChunkedWriter()
+def write_visuals(level_writer, level_object, sectors_portals, level):
+    visuals_writer = rw.write.ChunkedWriter()
     sectors_chunked_writer = rw.write.ChunkedWriter()
     vertex_buffers = []
     indices_buffers = []
@@ -1164,20 +1167,23 @@ def write_visuals(level_object, sectors_portals, level):
                 sector_id += 1
 
     visual_index = write_visual_children(
-        chunked_writer, vertex_buffers, indices_buffers,
+        visuals_writer, vertex_buffers, indices_buffers,
         visual_index, visuals_hierrarhy, visuals_ids, visuals, level,
         fastpath_vertex_buffers, fastpath_indices_buffers
     )
+
+    level_writer.put(fmt.Chunks13.VISUALS, visuals_writer)
+
     return (
-        chunked_writer, vertex_buffers, indices_buffers,
-        sectors_chunked_writer, fastpath_vertex_buffers,
-        fastpath_indices_buffers
+        vertex_buffers, indices_buffers,
+        fastpath_vertex_buffers, fastpath_indices_buffers,
+        sectors_chunked_writer
     )
 
 
-def write_glow(packed_writer, glow_obj, level):
+def write_glow(glows_writer, glow_obj, level):
     # position
-    packed_writer.putf(
+    glows_writer.putf(
         '<3f',
         glow_obj.location[0],
         glow_obj.location[2],
@@ -1202,7 +1208,7 @@ def write_glow(packed_writer, glow_obj, level):
                 radius=glow_radius
             )
         )
-    packed_writer.putf('<f', glow_radius)
+    glows_writer.putf('<f', glow_radius)
     if not len(glow_obj.data.materials):
         raise BaseException('glow object "{}" has no material'.format(glow_obj.name))
     material = glow_obj.data.materials[0]
@@ -1214,22 +1220,22 @@ def write_glow(packed_writer, glow_obj, level):
         shader_index = level.materials[material]
     # shader index
     # +1 - skip first empty shader
-    packed_writer.putf('<H', shader_index + 1)
+    glows_writer.putf('<H', shader_index + 1)
 
 
-def write_glows(level_object, level):
-    packed_writer = rw.write.PackedWriter()
+def write_glows(level_writer, level_object, level):
+    glows_writer = rw.write.PackedWriter()
     for child_obj_name in level.visuals_cache.children[level_object.name]:
         child_obj = bpy.data.objects[child_obj_name]
         if child_obj.name.startswith('glows'):
             for glow_obj_name in level.visuals_cache.children[child_obj.name]:
                 glow_obj = bpy.data.objects[glow_obj_name]
-                write_glow(packed_writer, glow_obj, level)
-    return packed_writer
+                write_glow(glows_writer, glow_obj, level)
+    level_writer.put(fmt.Chunks13.GLOWS, glows_writer)
 
 
-def write_light(level, level_object):
-    packed_writer = rw.write.PackedWriter()
+def write_light(level_writer, level, level_object):
+    light_writer = rw.write.PackedWriter()
     for child_obj_name in level.visuals_cache.children[level_object.name]:
         child_obj = bpy.data.objects[child_obj_name]
         if child_obj.name.startswith('light dynamic'):
@@ -1239,12 +1245,12 @@ def write_light(level, level_object):
                 controller_id = data.controller_id
                 if controller_id == -1:
                     controller_id = 2 ** 32
-                packed_writer.putf('<I', controller_id)
-                packed_writer.putf('<I', data.light_type)
-                packed_writer.putf('<4f', *data.diffuse)
-                packed_writer.putf('<4f', *data.specular)
-                packed_writer.putf('<4f', *data.ambient)
-                packed_writer.putf(
+                light_writer.putf('<I', controller_id)
+                light_writer.putf('<I', data.light_type)
+                light_writer.putf('<4f', *data.diffuse)
+                light_writer.putf('<4f', *data.specular)
+                light_writer.putf('<4f', *data.ambient)
+                light_writer.putf(
                     '<3f',
                     light_obj.location[0],
                     light_obj.location[2],
@@ -1253,18 +1259,18 @@ def write_light(level, level_object):
                 euler = light_obj.matrix_world.to_euler('YXZ')
                 matrix = euler.to_matrix().to_3x3()
                 direction = (matrix[0][1], matrix[2][1], matrix[1][1])
-                packed_writer.putf('<3f', direction[0], direction[1], direction[2])
-                packed_writer.putf('<f', data.range_)
-                packed_writer.putf('<f', data.falloff)
-                packed_writer.putf('<f', data.attenuation_0)
-                packed_writer.putf('<f', data.attenuation_1)
-                packed_writer.putf('<f', data.attenuation_2)
-                packed_writer.putf('<f', data.theta)
-                packed_writer.putf('<f', data.phi)
-            return packed_writer
+                light_writer.putf('<3f', direction[0], direction[1], direction[2])
+                light_writer.putf('<f', data.range_)
+                light_writer.putf('<f', data.falloff)
+                light_writer.putf('<f', data.attenuation_0)
+                light_writer.putf('<f', data.attenuation_1)
+                light_writer.putf('<f', data.attenuation_2)
+                light_writer.putf('<f', data.theta)
+                light_writer.putf('<f', data.phi)
+    level_writer.put(fmt.Chunks13.LIGHT_DYNAMIC, light_writer)
 
 
-def write_portals(level, level_object):
+def write_portals(level_writer, level, level_object):
     portals_writer = rw.write.PackedWriter()
 
     for child_name in level.visuals_cache.children[level_object.name]:
@@ -1357,7 +1363,7 @@ def write_portals(level, level_object):
 
                 portals_writer.putf('<I', verts_count)
 
-    return portals_writer
+    level_writer.put(fmt.Chunks13.PORTALS, portals_writer)
 
 
 def append_portal(sectors_portals, sector_index, portal_index):
@@ -1389,63 +1395,52 @@ def get_sectors_portals(level, level_object):
     return sectors_portals
 
 
-def write_header():
-    packed_writer = rw.write.PackedWriter()
-    packed_writer.putf('<H', fmt.VERSION_14)
-    packed_writer.putf('<H', 0)    # quality
-    return packed_writer
+def write_header(geom_writer):
+    header_writer = rw.write.PackedWriter()
+
+    header_writer.putf('<H', fmt.VERSION_14)
+    header_writer.putf('<H', 0)    # quality
+
+    geom_writer.put(fmt.HEADER, header_writer)
 
 
-def write_level(chunked_writer, level_object):
+def write_level(file_path, level_object):
     level = Level()
-    pref = utils.version.get_preferences()
-    level_path = os.path.join(pref.levels_folder_auto, level_object.name)
-    level.source_level_path = level_path
+    level_folder = utils.version.get_preferences().levels_folder_auto
+    level.source_level_path = os.path.join(level_folder, level_object.name)
+    level_writer = get_writer()
 
     # header
-    header_writer = write_header()
-    chunked_writer.put(fmt.HEADER, header_writer)
-    del header_writer
+    write_header(level_writer)
 
     sectors_portals = get_sectors_portals(level, level_object)
 
     # visuals
     (
-        visuals_writer,
-        vbs,
-        ibs,
-        sectors_writer,
-        fp_vbs,
-        fp_ibs
-    ) = write_visuals(level_object, sectors_portals, level)
-    chunked_writer.put(fmt.Chunks13.VISUALS, visuals_writer)
-    del visuals_writer
+        vbs, ibs,
+        vbs_fp, ibs_fp,
+        sectors_writer
+    ) = write_visuals(level_writer, level_object, sectors_portals, level)
 
-    # write portals
-    portals_writer = write_portals(level, level_object)
-    chunked_writer.put(fmt.Chunks13.PORTALS, portals_writer)
-    del portals_writer
+    # portals
+    write_portals(level_writer, level, level_object)
 
-    # light dynamic
-    light_writer = write_light(level, level_object)
-    chunked_writer.put(fmt.Chunks13.LIGHT_DYNAMIC, light_writer)
-    del light_writer
+    # lights
+    write_light(level_writer, level, level_object)
 
-    # glow
-    glows_writer = write_glows(level_object, level)
-    chunked_writer.put(fmt.Chunks13.GLOWS, glows_writer)
-    del glows_writer
+    # glows
+    write_glows(level_writer, level_object, level)
 
     # shaders
-    shaders_writer = write_shaders(level)
-    chunked_writer.put(fmt.Chunks13.SHADERS, shaders_writer)
-    del shaders_writer
+    write_shaders(level_writer, level)
 
     # sectors
-    chunked_writer.put(fmt.Chunks13.SECTORS, sectors_writer)
-    del sectors_writer
+    level_writer.put(fmt.Chunks13.SECTORS, sectors_writer)
 
-    return vbs, ibs, fp_vbs, fp_ibs, level
+    # save level file
+    rw.utils.save_file(file_path, level_writer)
+
+    return vbs, ibs, vbs_fp, ibs_fp, level
 
 
 def get_bbox(bbox_1, bbox_2, function):
@@ -1582,39 +1577,17 @@ def get_writer():
 @log.with_context(name='export-game-level')
 def export_file(level_object, dir_path):
     log.update(object=level_object.name)
-    file_path = dir_path + os.sep + 'level'
-    level_chunked_writer = get_writer()
-    vbs, ibs, fp_vbs, fp_ibs, level = write_level(
-        level_chunked_writer,
-        level_object
-    )
 
-    rw.utils.save_file(file_path, level_chunked_writer)
-    del level_chunked_writer
+    file_path = os.path.join(dir_path, 'level')
 
-    # geometry
-    level_geom_chunked_writer = get_writer()
-    write_level_geom(level_geom_chunked_writer, vbs, ibs)
+    # write level file
+    vbs, ibs, fp_vbs, fp_ibs, level = write_level(file_path, level_object)
 
-    del (
-        vbs, ibs, level.materials, level.visuals, level.vbs_offsets,
-        level.ibs_offsets, level.saved_visuals, level.sectors_indices,
-        level.visuals_bbox, level.visuals_center, level.visuals_radius,
-        level.visuals_cache
-    )
+    # write level.geom file
+    write_geom(file_path, vbs, ibs, 'geom')
 
-    level_geom_file_path = file_path + os.extsep + 'geom'
-    rw.utils.save_file(level_geom_file_path, level_geom_chunked_writer)
-    del level_geom_chunked_writer
+    # write level.geomx file
+    write_geom(file_path, fp_vbs, fp_ibs, 'geomx')
 
-    # fast path geometry
-    level_geomx_chunked_writer = get_writer()
-    write_level_geom(level_geomx_chunked_writer, fp_vbs, fp_ibs)
-    del fp_vbs, fp_ibs, level.fp_vbs_offsets, level.fp_ibs_offsets
-
-    level_geomx_file_path = file_path + os.extsep + 'geomx'
-    rw.utils.save_file(level_geomx_file_path, level_geomx_chunked_writer)
-    del level_geomx_chunked_writer
-
-    # cform
+    # write level.cform file
     write_cform(file_path, level)
