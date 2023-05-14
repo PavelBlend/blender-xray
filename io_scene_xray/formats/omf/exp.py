@@ -613,16 +613,25 @@ def export_motions(
         start_frame = int(action.frame_range[0])
         end_frame = int(action.frame_range[1])
 
+        # find parents
+        parents = {}
+        for pose_bone in pose_bones:
+            bone = context.bpy_arm_obj.data.bones[pose_bone.name]
+            real_parent = utils.bone.find_bone_exportable_parent(bone)
+            if real_parent:
+                pose_parent = context.bpy_arm_obj.pose.bones[real_parent.name]
+            else:
+                pose_parent = None
+            parents[pose_bone] = pose_parent
+
         # collect pose bone matrices
         for frame_index in range(start_frame, end_frame + 1):
             scn.frame_set(frame_index)
 
             for pose_bone in pose_bones:
                 name = pose_bone.name
-                bone = context.bpy_arm_obj.data.bones[name]
-                real_parent = utils.bone.find_bone_exportable_parent(bone)
-                if real_parent:
-                    parent = context.bpy_arm_obj.pose.bones[real_parent.name]
+                parent = parents[pose_bone]
+                if parent:
                     parent_matrix = parent.matrix.inverted()
                 else:
                     parent_matrix = motions.const.MATRIX_BONE_INVERTED
@@ -819,6 +828,7 @@ def export_omf(context):
     )
 
     root_obj = utils.obj.find_root(arm_obj)
+
     new_motions_count = export_motions(
         arm_obj,
         root_obj,
