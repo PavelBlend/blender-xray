@@ -84,6 +84,43 @@ class XRAY_OT_import_level(
         return super().invoke(context, event)
 
 
+def get_level_objs(objs, level_objs):
+    for obj in objs:
+
+        if not obj:
+            continue
+
+        if not obj.xray.is_level:
+            continue
+
+        if obj.xray.level.object_type != 'LEVEL':
+            continue
+
+        level_objs.add(obj)
+
+
+def get_export_objs(context):
+    level_objs = set()
+    active_obj = context.active_object
+
+    get_level_objs((active_obj, *context.selected_objects), level_objs)
+
+    if not level_objs:
+        if active_obj:
+            level_objs.add(active_obj)
+
+    if not level_objs:
+        get_level_objs(bpy.data.objects, level_objs)
+
+        if len(level_objs) > 1:
+            level_objs.clear()
+
+    if not level_objs:
+        level_objs.add(active_obj)
+
+    return list(level_objs)
+
+
 export_props = {
     'directory': bpy.props.StringProperty(
         subtype='DIR_PATH', options={'HIDDEN'}
@@ -119,13 +156,23 @@ class XRAY_OT_export_level(utils.ie.BaseOperator):
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        return self.export(context.active_object, context)
+        level_objs = get_export_objs(context)
+        return self.export(level_objs[0], context)
 
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
-        level_object = context.active_object
+        level_objs = get_export_objs(context)
 
-        if not context.active_object:
+        if len(level_objs) > 1:
+            self.report(
+                {'ERROR'},
+                'Too many selected level-objects'
+            )
+            return {'CANCELLED'}
+
+        level_object = level_objs[0]
+
+        if not level_object:
             self.report(
                 {'ERROR'},
                 text.get_text(text.error.no_active_obj)
