@@ -593,15 +593,15 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                 light = loop[vertex_color_light]
             else:
                 light = (0, 0, 0)
-            if unique_verts.get(vert_co, None):
+            if unique_verts.get(vert_co, None) is None:
+                unique_verts[vert_co] = [(uv, uv_lmap, normal, hemi, sun, light), ]
+                verts_indices[vert_co] = [vertex_index, ]
+                vertex_index += 1
+            else:
                 if not (uv, uv_lmap, normal, hemi, sun, light) in unique_verts[vert_co]:
                     unique_verts[vert_co].append((uv, uv_lmap, normal, hemi, sun, light))
                     verts_indices[vert_co].append(vertex_index)
                     vertex_index += 1
-            else:
-                unique_verts[vert_co] = [(uv, uv_lmap, normal, hemi, sun, light), ]
-                verts_indices[vert_co] = [vertex_index, ]
-                vertex_index += 1
 
     vertex_index = 0
     saved_verts = set()
@@ -665,24 +665,24 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                 vb.position.extend(packed_co)
                 vb.normal.extend(struct.pack(
                     '<3B',
-                    int(round(((normal[1] + 1.0) / 2) * 255, 0)),
-                    int(round(((normal[2] + 1.0) / 2) * 255, 0)),
-                    int(round(((normal[0] + 1.0) / 2) * 255, 0))
+                    int(((normal[1] + 1.0) / 2) * 255),
+                    int(((normal[2] + 1.0) / 2) * 255),
+                    int(((normal[0] + 1.0) / 2) * 255)
                 ))
                 tangent = export_mesh.loops[loop.index].tangent
                 vb.tangent.extend(struct.pack(
                     '<3B',
-                    int(round(((tangent[1] + 1.0) / 2) * 255, 0)),
-                    int(round(((tangent[2] + 1.0) / 2) * 255, 0)),
-                    int(round(((tangent[0] + 1.0) / 2) * 255, 0))
+                    int(((tangent[1] + 1.0) / 2) * 255),
+                    int(((tangent[2] + 1.0) / 2) * 255),
+                    int(((tangent[0] + 1.0) / 2) * 255)
                 ))
                 normal = mathutils.Vector(normal)
                 binormal = normal.cross(tangent).normalized()
                 vb.binormal.extend(struct.pack(
                     '<3B',
-                    int(round(((-binormal[1] + 1.0) / 2) * 255, 0)),
-                    int(round(((-binormal[2] + 1.0) / 2) * 255, 0)),
-                    int(round(((-binormal[0] + 1.0) / 2) * 255, 0))
+                    int(((-binormal[1] + 1.0) / 2) * 255),
+                    int(((-binormal[2] + 1.0) / 2) * 255),
+                    int(((-binormal[0] + 1.0) / 2) * 255)
                 ))
                 # vertex color light
                 vb.color_hemi.append(int(round(hemi * 255, 0)))
@@ -877,26 +877,28 @@ def write_fastpath_gcontainer(fastpath_obj, fp_vbs, fp_ibs, level):
     verts_indices = {}
     for face in bm.faces:
         for vert in face.verts:
-            vert_co = (vert.co[0], vert.co[1], vert.co[2])
+            packed_co = struct.pack('<3f', vert.co[0], vert.co[2], vert.co[1])
 
-            if not unique_verts.get(vert_co, None):
-                unique_verts[vert_co] = vertex_index
+            if unique_verts.get(packed_co, None) is None:
+                unique_verts[packed_co] = vertex_index
                 verts_indices[vert.index] = vertex_index
-                packed_co = struct.pack('<3f', vert_co[0], vert_co[2], vert_co[1])
                 vb.position.extend(packed_co)
                 vb.vertex_count += 1
                 vertices_count += 1
                 vertex_index += 1
             else:
-                duplicate_vertex_index = unique_verts[vert_co]
+                duplicate_vertex_index = unique_verts[packed_co]
                 verts_indices[vert.index] = duplicate_vertex_index
 
     for face in bm.faces:
+        face_indices = []
         for vert in face.verts:
             vert_index = verts_indices[vert.index]
             packed_vert_index = struct.pack('<H', vert_index)
-            ib.extend(packed_vert_index)
+            face_indices.append(packed_vert_index)
             indices_count += 1
+
+        ib.extend((*face_indices[0], *face_indices[2], *face_indices[1]))
 
     vertex_buffer_index = fp_vbs.index(vb)
     packed_writer.putf('<I', vertex_buffer_index)    # vb_index
