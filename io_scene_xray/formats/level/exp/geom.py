@@ -169,7 +169,7 @@ def write_geom(file_path, vbs, ibs, ext):
     # vertex buffers
     _write_geom_vbs(geom_writer, vbs)
 
-    # indices buffers
+    # index buffers
     _write_geom_ibs(geom_writer, ibs)
 
     # slide window items
