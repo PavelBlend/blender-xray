@@ -9,7 +9,14 @@ import bmesh
 import mathutils
 
 # addon modules
+from . import header
+from . import shader
+from . import portal
+from . import light
+from . import glow
 from . import cform
+from . import geom
+from . import types
 from .. import fmt
 from ... import ogf
 from ... import xr
@@ -22,243 +29,6 @@ from .... import rw
 TWO_MEGABYTES = 1024 * 1024 * 2
 MAX_TILE = 16
 QUANT = 32768 / MAX_TILE
-
-
-class Level(object):
-    def __init__(self):
-        self.active_material_index = 0
-
-        self.visuals = []
-        self.vbs_offsets = []
-        self.ibs_offsets = []
-        self.fp_vbs_offsets = []
-        self.fp_ibs_offsets = []
-
-        self.materials = {}
-        self.saved_visuals = {}
-        self.visuals_bbox = {}
-        self.visuals_center = {}
-        self.visuals_radius = {}
-        self.sectors_indices = {}
-        self.cform_objects = {}
-
-        self.visuals_cache = VisualsCache()
-
-
-class VertexBuffer(object):
-    def __init__(self):
-        self.vertex_count = 0
-        self.vertex_format = None
-
-        self.position = bytearray()
-        self.normal = bytearray()
-        self.tangent = bytearray()
-        self.binormal = bytearray()
-        self.color_hemi = bytearray()
-        self.color_light = bytearray()
-        self.color_sun = bytearray()
-        self.uv = bytearray()
-        self.uv_fix = bytearray()
-        self.uv_lmap = bytearray()
-        self.shader_data = bytearray()
-
-
-class Visual(object):
-    def __init__(self):
-        self.shader_index = None
-
-
-class VisualsCache:
-    def __init__(self):
-        self.bounds = {}
-        self.children = {}
-
-        # search children
-        for obj in bpy.data.objects:
-            self.children[obj.name] = []
-
-        for child_obj in bpy.data.objects:
-            parent = child_obj.parent
-            if parent:
-                self.children[parent.name].append(child_obj.name)
-
-
-class ExportLevelContext():
-    def __init__(self, textures_folder):
-        self.textures_folder = textures_folder
-        self.texname_from_path = True
-
-
-def write_geom_swis(geom_writer):
-    swis_writer = rw.write.PackedWriter()
-    # TODO: export swis data
-    swis_writer.putf('<I', 0)    # swis count
-    geom_writer.put(fmt.Chunks13.SWIS, swis_writer)
-
-
-def write_geom_ibs(geom_writer, ibs):
-    ib_writer = rw.write.PackedWriter()
-
-    buffers_count = len(ibs)
-    ib_writer.putf('<I', buffers_count)
-
-    for ib in ibs:
-        indices_count = len(ib) // fmt.INDEX_SIZE
-        ib_writer.putf('<I', indices_count)
-        ib_writer.data.extend(ib)
-
-    geom_writer.put(fmt.Chunks13.IB, ib_writer)
-
-
-def write_geom_vbs(geom_writer, vbs):
-    vbs_writer = rw.write.PackedWriter()
-
-    buffers_count = len(vbs)
-    vbs_writer.putf('<I', buffers_count)
-
-    for vb in vbs:
-
-        if vb.vertex_format == 'NORMAL':
-            offsets = (0, 12, 16, 20, 24, 28)    # vertex buffer offsets
-            usage_indices = (0, 0, 0, 0, 0, 1)
-            vertex_type = fmt.VERTEX_TYPE_BRUSH_14
-
-        elif vb.vertex_format == 'TREE':
-            offsets = (0, 12, 16, 20, 24)
-            usage_indices = (0, 0, 0, 0, 0)
-            vertex_type = fmt.VERTEX_TYPE_TREE
-
-        elif vb.vertex_format == 'COLOR':
-            offsets = (0, 12, 16, 20, 24, 28)
-            usage_indices = (0, 0, 0, 0, 0, 0)
-            vertex_type = fmt.VERTEX_TYPE_COLOR_14
-
-        elif vb.vertex_format == 'FASTPATH':
-            offsets = (0, )
-            usage_indices = (0, )
-            vertex_type = fmt.VERTEX_TYPE_FASTPATH
-
-        else:
-            raise BaseException('Unknown VB format:', vb.vertex_format)
-
-        # write buffer header
-        for index, (usage, value_type) in enumerate(vertex_type):
-            vbs_writer.putf('<H', 0)    # stream
-            vbs_writer.putf('<H', offsets[index])    # offset
-            vbs_writer.putf('<B', value_type)    # type
-            vbs_writer.putf('<B', 0)    # method
-            vbs_writer.putf('<B', usage)    # usage
-            vbs_writer.putf('<B', usage_indices[index])    # usage_index
-
-        vbs_writer.putf('<H', 255)    # stream
-        vbs_writer.putf('<H', 0)    # offset
-        vbs_writer.putf('<B', fmt.types_values[fmt.UNUSED])   # type UNUSED
-        vbs_writer.putf('<B', 0)    # method
-        vbs_writer.putf('<B', 0)    # usage
-        vbs_writer.putf('<B', 0)    # usage_index
-
-        vbs_writer.putf('<I', vb.vertex_count)    # vertices count
-
-        # write vertices
-        if vb.vertex_format == 'NORMAL':
-            for index in range(vb.vertex_count):
-                vbs_writer.data.extend(vb.position[index*12 : index*12 + 12])
-                vbs_writer.data.extend((
-                    *vb.normal[index*3 : index*3 + 3],
-                    vb.color_hemi[index]
-                ))    # normal, hemi
-                uv_fix = vb.uv_fix[index*2 : index*2 + 2]
-                # tangent
-                vbs_writer.data.extend((
-                    *vb.tangent[index*3 : index*3 + 3],
-                    uv_fix[0]
-                ))
-                # binormal
-                vbs_writer.data.extend((
-                    *vb.binormal[index*3 : index*3 + 3],
-                    uv_fix[1]
-                ))
-                # texture coordinate
-                vbs_writer.data.extend(vb.uv[index*4 : index*4 + 4])
-                # light map texture coordinate
-                vbs_writer.data.extend(vb.uv_lmap[index*4 : index*4 + 4])
-
-        elif vb.vertex_format == 'TREE':
-            for index in range(vb.vertex_count):
-                vbs_writer.data.extend(vb.position[index*12 : index*12 + 12])
-                vbs_writer.data.extend((
-                    *vb.normal[index*3 : index*3 + 3],
-                    vb.color_hemi[index]
-                ))    # normal, hemi
-                uv_fix = vb.uv_fix[index*2 : index*2 + 2]
-                # tangent
-                vbs_writer.data.extend((
-                    *vb.tangent[index*3 : index*3 + 3],
-                    uv_fix[0]
-                ))
-                # binormal
-                vbs_writer.data.extend((
-                    *vb.binormal[index*3 : index*3 + 3],
-                    uv_fix[1]
-                ))
-                # texture coordinate
-                vbs_writer.data.extend(vb.uv[index*4 : index*4 + 4])
-                # tree shader data (wind coefficient and unused 2 bytes)
-                frac = vb.shader_data[index*2 : index*2 + 2]
-                frac.extend((0, 0))
-                vbs_writer.data.extend(frac)
-
-        elif vb.vertex_format == 'COLOR':
-            for index in range(vb.vertex_count):
-                vbs_writer.data.extend(vb.position[index*12 : index*12 + 12])
-                vbs_writer.data.extend((
-                    *vb.normal[index*3 : index*3 + 3],
-                    vb.color_hemi[index]
-                ))    # normal, hemi
-                uv_fix = vb.uv_fix[index*2 : index*2 + 2]
-                # tangent
-                vbs_writer.data.extend((
-                    *vb.tangent[index*3 : index*3 + 3],
-                    uv_fix[0]
-                ))
-                # binormal
-                vbs_writer.data.extend((
-                    *vb.binormal[index*3 : index*3 + 3],
-                    uv_fix[1]
-                ))
-                # vertex color
-                vbs_writer.data.extend((
-                    *vb.color_light[index*3 : index*3 + 3],
-                    vb.color_sun[index]
-                ))
-                # texture coordinate
-                vbs_writer.data.extend(vb.uv[index*4 : index*4 + 4])
-
-        elif vb.vertex_format == 'FASTPATH':
-            vbs_writer.data.extend(vb.position)
-
-    geom_writer.put(fmt.Chunks13.VB, vbs_writer)
-
-
-def write_geom(file_path, vbs, ibs, ext):
-    # level.geom/level.geomx chunked writer
-    geom_writer = get_writer()
-
-    # header
-    write_header(geom_writer)
-
-    # vertex buffers
-    write_geom_vbs(geom_writer, vbs)
-
-    # indices buffers
-    write_geom_ibs(geom_writer, ibs)
-
-    # slide window items
-    write_geom_swis(geom_writer)
-
-    # save level.geom/level.geomx file
-    geom_path = file_path + os.extsep + ext
-    rw.utils.save_file(geom_path, geom_writer)
 
 
 def write_sector_root(sector_writer, root_index):
@@ -289,96 +59,6 @@ def write_sector(root_index, sectors_portals, sector_name):
     write_sector_root(sector_writer, root_index)
 
     return sector_writer
-
-
-def get_light_map_image(material, lmap_prop):
-    lmap_image_name = getattr(material.xray, lmap_prop, None)
-
-    if lmap_image_name:
-        lmap_image = bpy.data.images.get(lmap_image_name, None)
-        if not lmap_image:
-            raise log.AppError(
-                text.error.level_no_lmap,
-                log.props(
-                    light_map=lmap_image_name,
-                    material=material.name
-                )
-            )
-        image_path = lmap_image.filepath
-        image_name = os.path.basename(image_path)
-        base_name, ext = os.path.splitext(image_name)
-        if ext != '.dds':
-            raise log.AppError(
-                text.error.level_lmap_no_dds,
-                log.props(
-                    image=lmap_image.name,
-                    path=lmap_image.filepath,
-                    extension=ext
-                )
-            )
-        lmap_name = base_name
-
-    else:
-        lmap_image = None
-        lmap_name = None
-
-    return lmap_image, lmap_name
-
-
-def write_shaders(level_writer, level):
-    texture_folder = utils.version.get_preferences().textures_folder_auto
-
-    materials = {}
-    for material, shader_index in level.materials.items():
-        materials[shader_index] = material
-
-    materials_count = len(materials)
-    shaders_writer = rw.write.PackedWriter()
-    shaders_writer.putf('<I', materials_count + 1)    # shaders count
-    shaders_writer.puts('')    # first empty shader
-    context = ExportLevelContext(texture_folder)
-
-    for shader_index in range(materials_count):
-        material = materials[shader_index]
-        texture_path = utils.material.get_image_relative_path(
-            material,
-            context,
-            level_folder=level.source_level_path,
-            no_err=False
-        )
-
-        eshader = material.xray.eshader
-
-        lmap_1_image, lmap_1_name = get_light_map_image(material, 'lmap_0')
-        lmap_2_image, lmap_2_name = get_light_map_image(material, 'lmap_1')
-
-        # lightmap shader
-        if lmap_1_image and lmap_2_image:
-            shaders_writer.puts('{0}/{1},{2},{3}'.format(
-                eshader,
-                texture_path,
-                lmap_1_name,
-                lmap_2_name
-            ))
-
-        # terrain shader
-        elif lmap_1_image and not lmap_2_image:
-            lmap_1_path = utils.image.gen_texture_name(
-                lmap_1_image,
-                texture_folder,
-                level_folder=level.source_level_path
-            )
-            shaders_writer.puts('{0}/{1},{2}'.format(
-                eshader,
-                texture_path,
-                lmap_1_path
-            ))
-
-        # vertex colors shader
-        else:
-            shaders_writer.puts('{0}/{1}'.format(eshader, texture_path))
-
-    level_writer.put(fmt.Chunks13.SHADERS, shaders_writer)
 
 
 def write_visual_bounding_sphere(header_writer, center, radius):
@@ -468,7 +148,7 @@ def get_tex_coord_correct(coord_f, coord_h, uv_coeff):
 
 
 def write_gcontainer(bpy_obj, vbs, ibs, level):
-    visual = Visual()
+    visual = types.Visual()
     material = bpy_obj.data.materials[0]
     if level.materials.get(material, None) is None:
         level.materials[material] = level.active_material_index
@@ -533,12 +213,12 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                     vb = vertex_buffer
                     break
         if vb is None:
-            vb = VertexBuffer()
+            vb = types.VertexBuffer()
             vb.vertex_format = vertex_format
             vbs.append(vb)
             level.vbs_offsets.append(0)
     else:
-        vb = VertexBuffer()
+        vb = types.VertexBuffer()
         vb.vertex_format = vertex_format
         vbs.append(vb)
         level.vbs_offsets.append(0)
@@ -842,12 +522,12 @@ def write_fastpath_gcontainer(fastpath_obj, fp_vbs, fp_ibs, level):
                     vb = vertex_buffer
                     break
         if vb is None:
-            vb = VertexBuffer()
+            vb = types.VertexBuffer()
             vb.vertex_format = vertex_format
             fp_vbs.append(vb)
             level.fp_vbs_offsets.append(0)
     else:
-        vb = VertexBuffer()
+        vb = types.VertexBuffer()
         vb.vertex_format = vertex_format
         fp_vbs.append(vb)
         level.fp_vbs_offsets.append(0)
@@ -1014,7 +694,7 @@ def write_lod_def_2(bpy_obj, level):
     hemi_layer = me.vertex_colors[material.xray.hemi_vert_color]
     sun_layer = me.vertex_colors[material.xray.sun_vert_color]
 
-    visual = Visual()
+    visual = types.Visual()
     if level.materials.get(material, None) is None:
         level.materials[material] = level.active_material_index
         visual.shader_index = level.active_material_index
@@ -1201,191 +881,6 @@ def write_visuals(level_writer, level_object, sectors_portals, level):
     )
 
 
-def write_glow(glows_writer, glow_obj, level):
-    # position
-    glows_writer.putf(
-        '<3f',
-        glow_obj.location[0],
-        glow_obj.location[2],
-        glow_obj.location[1]
-    )
-    faces_count = len(glow_obj.data.polygons)
-    if not faces_count:
-        raise log.AppError(
-            text.error.level_bad_glow,
-            log.props(
-                object=glow_obj.name,
-                faces_count=faces_count
-            )
-        )
-    dim_max = max(glow_obj.dimensions)
-    glow_radius = dim_max / 2
-    if glow_radius < 0.0005:
-        raise log.AppError(
-            text.error.level_bad_glow_radius,
-            log.props(
-                object=glow_obj.name,
-                radius=glow_radius
-            )
-        )
-    glows_writer.putf('<f', glow_radius)
-    if not len(glow_obj.data.materials):
-        raise BaseException('glow object "{}" has no material'.format(glow_obj.name))
-    material = glow_obj.data.materials[0]
-    if level.materials.get(material, None) is None:
-        level.materials[material] = level.active_material_index
-        shader_index = level.active_material_index
-        level.active_material_index += 1
-    else:
-        shader_index = level.materials[material]
-    # shader index
-    # +1 - skip first empty shader
-    glows_writer.putf('<H', shader_index + 1)
-
-
-def write_glows(level_writer, level_object, level):
-    glows_writer = rw.write.PackedWriter()
-    for child_obj_name in level.visuals_cache.children[level_object.name]:
-        child_obj = bpy.data.objects[child_obj_name]
-        if child_obj.name.startswith('glows'):
-            for glow_obj_name in level.visuals_cache.children[child_obj.name]:
-                glow_obj = bpy.data.objects[glow_obj_name]
-                write_glow(glows_writer, glow_obj, level)
-    level_writer.put(fmt.Chunks13.GLOWS, glows_writer)
-
-
-def write_light(level_writer, level, level_object):
-    light_writer = rw.write.PackedWriter()
-    for child_obj_name in level.visuals_cache.children[level_object.name]:
-        child_obj = bpy.data.objects[child_obj_name]
-        if child_obj.name.startswith('light dynamic'):
-            for light_obj_name in level.visuals_cache.children[child_obj.name]:
-                light_obj = bpy.data.objects[light_obj_name]
-                data = light_obj.xray.level
-                controller_id = data.controller_id
-                if controller_id == -1:
-                    controller_id = 2 ** 32
-                light_writer.putf('<I', controller_id)
-                light_writer.putf('<I', data.light_type)
-                light_writer.putf('<4f', *data.diffuse)
-                light_writer.putf('<4f', *data.specular)
-                light_writer.putf('<4f', *data.ambient)
-                light_writer.putf(
-                    '<3f',
-                    light_obj.location[0],
-                    light_obj.location[2],
-                    light_obj.location[1]
-                )
-                euler = light_obj.matrix_world.to_euler('YXZ')
-                matrix = euler.to_matrix().to_3x3()
-                direction = (matrix[0][1], matrix[2][1], matrix[1][1])
-                light_writer.putf('<3f', direction[0], direction[1], direction[2])
-                light_writer.putf('<f', data.range_)
-                light_writer.putf('<f', data.falloff)
-                light_writer.putf('<f', data.attenuation_0)
-                light_writer.putf('<f', data.attenuation_1)
-                light_writer.putf('<f', data.attenuation_2)
-                light_writer.putf('<f', data.theta)
-                light_writer.putf('<f', data.phi)
-    level_writer.put(fmt.Chunks13.LIGHT_DYNAMIC, light_writer)
-
-
-def write_portals(level_writer, level, level_object):
-    portals_writer = rw.write.PackedWriter()
-
-    for child_name in level.visuals_cache.children[level_object.name]:
-        child_obj = bpy.data.objects[child_name]
-
-        if child_obj.name.startswith('portals'):
-            portals_objs = level.visuals_cache.children[child_obj.name]
-
-            for portal_index, portal_name in enumerate(portals_objs):
-                portal_obj = bpy.data.objects[portal_name]
-                xray = portal_obj.xray
-
-                if xray.level.object_type != 'PORTAL':
-                    continue
-
-                if portal_obj.type != 'MESH':
-                    raise log.AppError(
-                        text.error.level_portal_is_no_mesh,
-                        log.props(
-                            portal_object=portal_obj.name,
-                            object_type=portal_obj.type
-                        )
-                    )
-
-                portal_mesh = portal_obj.data
-                verts_count = len(portal_mesh.vertices)
-                faces_count = len(portal_mesh.polygons)
-                error_message = None
-
-                # check vertices
-                if not verts_count:
-                    error_message = text.error.level_portal_no_vert
-                elif verts_count < 3:
-                    error_message = text.error.level_portal_bad
-                elif verts_count > 6:
-                    error_message = text.error.level_portal_many_verts
-
-                if error_message:
-                    raise log.AppError(
-                        error_message,
-                        log.props(
-                            portal_object=portal_obj.name,
-                            vertices_count=verts_count
-                        )
-                    )
-
-                # check polygons
-                if not faces_count:
-                    error_message = text.error.level_portal_no_faces
-                elif faces_count > 1:
-                    error_message = text.error.level_portal_many_faces
-
-                if error_message:
-                    raise log.AppError(
-                        error_message,
-                        log.props(
-                            portal_object=portal_obj.name,
-                            polygons_count=faces_count
-                        )
-                    )
-
-                # write portal sectors
-                if xray.level.sector_front:
-                    sect_front = level.sectors_indices[xray.level.sector_front]
-                else:
-                    raise log.AppError(
-                        text.error.level_portal_no_front,
-                        log.props(portal_object=portal_obj.name)
-                    )
-
-                if xray.level.sector_back:
-                    sect_back = level.sectors_indices[xray.level.sector_back]
-                else:
-                    raise log.AppError(
-                        text.error.level_portal_no_back,
-                        log.props(portal_object=portal_obj.name)
-                    )
-
-                portals_writer.putf('<2H', sect_front, sect_back)
-
-                # write vertices
-                for vert_index in portal_mesh.polygons[0].vertices:
-                    vert = portal_mesh.vertices[vert_index]
-                    portals_writer.putf('<3f', vert.co.x, vert.co.z, vert.co.y)
-
-                # write not used vertices
-                verts_count = len(portal_mesh.vertices)
-                for vert_index in range(verts_count, fmt.PORTAL_VERTEX_COUNT):
-                    portals_writer.putf('<3f', 0.0, 0.0, 0.0)
-
-                portals_writer.putf('<I', verts_count)
-
-    level_writer.put(fmt.Chunks13.PORTALS, portals_writer)
-
-
 def append_portal(sectors_portals, sector_index, portal_index):
     sectors_portals.setdefault(sector_index, []).append(portal_index)
 
@@ -1415,23 +910,14 @@ def get_sectors_portals(level, level_object):
     return sectors_portals
 
 
-def write_header(geom_writer):
-    header_writer = rw.write.PackedWriter()
-
-    header_writer.putf('<H', fmt.VERSION_14)
-    header_writer.putf('<H', 0)    # quality
-
-    geom_writer.put(fmt.HEADER, header_writer)
-
-
 def write_level(file_path, level_object):
-    level = Level()
+    level = types.Level()
     level_folder = utils.version.get_preferences().levels_folder_auto
     level.source_level_path = os.path.join(level_folder, level_object.name)
-    level_writer = get_writer()
+    level_writer = rw.write.ChunkedWriter()
 
     # header
-    write_header(level_writer)
+    header.write_header(level_writer)
 
     sectors_portals = get_sectors_portals(level, level_object)
 
@@ -1443,16 +929,16 @@ def write_level(file_path, level_object):
     ) = write_visuals(level_writer, level_object, sectors_portals, level)
 
     # portals
-    write_portals(level_writer, level, level_object)
+    portal.write_portals(level_writer, level, level_object)
 
     # lights
-    write_light(level_writer, level, level_object)
+    light.write_lights(level_writer, level, level_object)
 
     # glows
-    write_glows(level_writer, level_object, level)
+    glow.write_glows(level_writer, level_object, level)
 
     # shaders
-    write_shaders(level_writer, level)
+    shader.write_shaders(level_writer, level)
 
     # sectors
     level_writer.put(fmt.Chunks13.SECTORS, sectors_writer)
@@ -1461,11 +947,6 @@ def write_level(file_path, level_object):
     rw.utils.save_file(file_path, level_writer)
 
     return vbs, ibs, vbs_fp, ibs_fp, level
-
-
-def get_writer():
-    chunked_writer = rw.write.ChunkedWriter()
-    return chunked_writer
 
 
 @log.with_context(name='export-game-level')
@@ -1478,10 +959,10 @@ def export_file(level_object, dir_path):
     vbs, ibs, fp_vbs, fp_ibs, level = write_level(file_path, level_object)
 
     # write level.geom file
-    write_geom(file_path, vbs, ibs, 'geom')
+    geom.write_geom(file_path, vbs, ibs, 'geom')
 
     # write level.geomx file
-    write_geom(file_path, fp_vbs, fp_ibs, 'geomx')
+    geom.write_geom(file_path, fp_vbs, fp_ibs, 'geomx')
 
     # write level.cform file
     cform.write_cform(file_path, level)
