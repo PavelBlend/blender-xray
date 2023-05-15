@@ -6,13 +6,13 @@ import bpy
 import bmesh
 
 # addon modules
-from . import fmt
 from . import create
-from .. import xr
-from ... import utils
-from ... import log
-from ... import text
-from ... import rw
+from .. import fmt
+from ... import xr
+from .... import utils
+from .... import log
+from .... import text
+from .... import rw
 
 
 def import_main(context, level, data=None):

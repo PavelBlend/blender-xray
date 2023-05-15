@@ -24,5 +24,5 @@ def import_swidata(chunks, ogf_chunks):
         return
     swi_data = chunks.pop(ogf_chunks.SWIDATA)
     packed_reader = rw.read.PackedReader(swi_data)
-    swi = level.swi.import_slide_window_item(packed_reader)
+    swi = level.imp.swi.import_slide_window_item(packed_reader)
     return swi

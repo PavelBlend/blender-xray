@@ -131,3 +131,11 @@ class XRAY_OT_export_level(utils.ie.BaseOperator):
 
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+
+def register():
+    utils.version.register_operators(XRAY_OT_export_level)
+
+
+def unregister():
+    bpy.utils.unregister_class(XRAY_OT_export_level)

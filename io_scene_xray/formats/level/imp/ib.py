@@ -1,6 +1,6 @@
 # addon modules
-from .. import ogf
-from ... import rw
+from ... import ogf
+from .... import rw
 
 
 def import_indices_buffers(data):

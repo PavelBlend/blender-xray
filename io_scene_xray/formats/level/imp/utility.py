@@ -2,7 +2,7 @@
 import os
 
 # addon modules
-from ... import rw
+from .... import rw
 
 
 def get_level_dir(file_path):

@@ -9,7 +9,7 @@ from .... import log
 def read_vertices_v3(data, visual, lvl):
     packed_reader = rw.read.PackedReader(data)
 
-    vb = level.vb.import_vertex_buffer_d3d7(packed_reader, lvl)
+    vb = level.imp.vb.import_vertex_buffer_d3d7(packed_reader, lvl)
 
     visual.vertices = vb.position
     visual.normals = vb.normal

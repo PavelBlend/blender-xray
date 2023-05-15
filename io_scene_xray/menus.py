@@ -18,7 +18,7 @@ import_ops = (
     (formats.dm.ops.XRAY_OT_import_dm, 'Dm'),
     (formats.details.ops.XRAY_OT_import_details, 'Details'),
     (formats.scene.ops.XRAY_OT_import_scene, 'Scene'),
-    (formats.level.ops.XRAY_OT_import_level, 'Level'),
+    (formats.level.imp.ops.XRAY_OT_import_level, 'Level'),
     (formats.part.ops.XRAY_OT_import_part, 'Part'),
     (formats.err.ops.XRAY_OT_import_err, 'Err')
 )

@@ -1,6 +1,6 @@
 # addon modules
-from . import fmt
-from ... import rw
+from .. import fmt
+from .... import rw
 
 
 class VertexBuffer(object):

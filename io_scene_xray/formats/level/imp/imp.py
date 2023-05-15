@@ -7,7 +7,6 @@ import mathutils
 
 # addon modules
 from . import create
-from . import fmt
 from . import shaders
 from . import visuals
 from . import vb
@@ -15,11 +14,12 @@ from . import ib
 from . import swi
 from . import cform
 from . import utility
-from .. import ogf
-from ... import text
-from ... import log
-from ... import utils
-from ... import rw
+from .. import fmt
+from ... import ogf
+from .... import text
+from .... import log
+from .... import utils
+from .... import rw
 
 
 class Level(object):

@@ -4,12 +4,11 @@ import bpy_extras
 
 # addon modules
 from . import imp
-from . import exp
-from .. import ie
-from .. import contexts
-from ... import utils
-from ... import text
-from ... import log
+from ... import ie
+from ... import contexts
+from .... import utils
+from .... import text
+from .... import log
 
 
 class ImportLevelContext(contexts.ImportMeshContext):
@@ -83,16 +82,9 @@ class XRAY_OT_import_level(
         return super().invoke(context, event)
 
 
-classes = (
-    XRAY_OT_import_level,
-    exp.ops.XRAY_OT_export_level
-)
-
-
 def register():
-    utils.version.register_operators(classes)
+    utils.version.register_operators(XRAY_OT_import_level)
 
 
 def unregister():
-    for operator in reversed(classes):
-        bpy.utils.unregister_class(operator)
+    bpy.utils.unregister_class(XRAY_OT_import_level)

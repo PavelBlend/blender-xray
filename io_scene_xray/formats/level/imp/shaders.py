@@ -1,7 +1,7 @@
 # addon modules
 from . import create
-from . import fmt
-from ... import rw
+from .. import fmt
+from .... import rw
 
 
 def import_brush_shader(level, context, engine_shader, textures):

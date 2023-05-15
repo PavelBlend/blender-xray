@@ -6,11 +6,11 @@ import bpy
 import mathutils
 
 # addon modules
-from . import fmt
 from . import utility
-from ... import log
-from ... import text
-from ... import utils
+from .. import fmt
+from .... import log
+from .... import text
+from .... import utils
 
 
 # level collection names

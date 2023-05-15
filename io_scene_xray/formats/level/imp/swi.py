@@ -1,5 +1,5 @@
 # addon modules
-from ... import rw
+from .... import rw
 
 
 class SlideWindowItem(object):
