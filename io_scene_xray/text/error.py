@@ -60,6 +60,7 @@ cform_unsupport_ver = 'unsupported level cform version'
 # level export
 level_no_lmap = 'cannot find light map image'
 level_has_children = 'Normal/Progressive object must not have children'
+level_visual_is_not_mesh = 'visual-object is not a mesh'
 level_no_glow = 'level-object has no glow-objects'
 level_bad_glow_type = 'glow-object is not a mesh'
 level_bad_glow = 'glow mesh-object has no faces'

@@ -576,27 +576,53 @@ def write_visual(
         fp_vbs,
         fp_ibs
     ):
-    if bpy_obj.xray.level.visual_type == 'HIERRARHY':
+
+    level_props = bpy_obj.xray.level
+
+    if level_props.visual_type == 'HIERRARHY':
         chunked_writer = write_hierrarhy_visual(
-            bpy_obj, hierrarhy, visuals_ids, level
+            bpy_obj,
+            hierrarhy,
+            visuals_ids,
+            level
         )
         return chunked_writer
-    elif bpy_obj.xray.level.visual_type == 'LOD':
+
+    elif level_props.visual_type == 'LOD':
         chunked_writer = write_lod_visual(
-            bpy_obj, hierrarhy, visuals_ids, level
+            bpy_obj,
+            hierrarhy,
+            visuals_ids,
+            level
         )
         return chunked_writer
+
     else:
+        if bpy_obj.type != 'MESH':
+            raise log.AppError(
+                text.error.level_visual_is_not_mesh,
+                log.props(
+                    object=bpy_obj.name,
+                    type=bpy_obj.type,
+                    visual_type=level_props.visual_type
+                )
+            )
+
         chunked_writer = rw.write.ChunkedWriter()
         gcontainer_writer, visual = write_gcontainer(
-            bpy_obj, vbs, ibs, level
+            bpy_obj,
+            vbs,
+            ibs,
+            level
         )
-        if bpy_obj.xray.level.visual_type in ('TREE_ST', 'TREE_PM'):
+
+        if level_props.visual_type in ('TREE_ST', 'TREE_PM'):
             header_writer = write_visual_header(level, bpy_obj, visual=visual, visual_type=7)
             tree_def_2_writer = write_tree_def_2(bpy_obj)
             chunked_writer.put(ogf.fmt.HEADER, header_writer)
             chunked_writer.put(ogf.fmt.Chunks_v4.GCONTAINER, gcontainer_writer)
             chunked_writer.put(ogf.fmt.Chunks_v4.TREEDEF2, tree_def_2_writer)
+
         else:    # NORMAL or PROGRESSIVE visual
             header_writer = write_visual_header(level, bpy_obj, visual=visual)
             chunked_writer.put(ogf.fmt.HEADER, header_writer)
@@ -606,9 +632,10 @@ def write_visual(
                     text.error.level_has_children,
                     log.props(object=bpy_obj.name)
                 )
-            if bpy_obj.xray.level.use_fastpath:
+            if level_props.use_fastpath:
                 fastpath_writer = write_fastpath(bpy_obj, fp_vbs, fp_ibs, level)
                 chunked_writer.put(ogf.fmt.Chunks_v4.FASTPATH, fastpath_writer)
+
         return chunked_writer
 
 
