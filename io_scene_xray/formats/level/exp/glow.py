@@ -52,10 +52,21 @@ def _write_glow(glows_writer, glow_obj, level):
 
 def write_glows(level_writer, level_object, level):
     glows_writer = rw.write.PackedWriter()
-    for child_obj_name in level.visuals_cache.children[level_object.name]:
-        child_obj = bpy.data.objects[child_obj_name]
+    glows_count = 0
+
+    for child_name in level.visuals_cache.children[level_object.name]:
+        child_obj = bpy.data.objects[child_name]
         if child_obj.name.startswith('glows'):
-            for glow_obj_name in level.visuals_cache.children[child_obj.name]:
-                glow_obj = bpy.data.objects[glow_obj_name]
+
+            for glow_name in level.visuals_cache.children[child_obj.name]:
+                glow_obj = bpy.data.objects[glow_name]
                 _write_glow(glows_writer, glow_obj, level)
+                glows_count += 1
+
+    if not glows_count:
+        raise log.AppError(
+            text.error.level_no_glow,
+            log.props(object=level_object.name)
+        )
+
     level_writer.put(fmt.Chunks13.GLOWS, glows_writer)
