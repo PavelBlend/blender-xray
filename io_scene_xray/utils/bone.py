@@ -15,3 +15,10 @@ def reset_pose_bone_transforms(armature_object):
         bone.rotation_euler = (0, 0, 0)
         bone.rotation_quaternion = (1, 0, 0, 0)
         bone.scale = (1, 1, 1)
+
+
+def get_ode_ik_limits(value_1, value_2):
+    # swap special for ODE
+    min_value = min(-value_1, -value_2)
+    max_value = max(-value_1, -value_2)
+    return min_value, max_value

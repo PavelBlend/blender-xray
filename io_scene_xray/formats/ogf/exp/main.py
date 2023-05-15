@@ -16,131 +16,11 @@ from .... import log
 from .... import utils
 
 
-multiply = utils.version.get_multiply()
-
-
-def calculate_mesh_bsphere(bbox, vertices, mat=mathutils.Matrix()):
-    center = (bbox[0] + bbox[1]) / 2
-    _delta = bbox[1] - bbox[0]
-    max_radius = max(abs(_delta.x), abs(_delta.y), abs(_delta.z)) / 2
-    for vtx in vertices:
-        relative = multiply(mat, vtx.co) - center
-        radius = relative.length
-        if radius > max_radius:
-            offset = center - relative.normalized() * max_radius
-            center = (multiply(mat, vtx.co) + offset) / 2
-            max_radius = (center - offset).length
-    return center, max_radius
-
-
-def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
-    def scan_meshes(bpy_obj, meshes):
-        if utils.obj.is_helper_object(bpy_obj):
-            return
-        if (bpy_obj.type == 'MESH') and bpy_obj.data.vertices:
-            meshes.append(bpy_obj)
-        for child in bpy_obj.children:
-            scan_meshes(child, meshes)
-
-    def scan_meshes_using_cache(bpy_obj, meshes, cache):
-        if utils.obj.is_helper_object(bpy_obj):
-            return
-        if (bpy_obj.type == 'MESH') and bpy_obj.data.vertices:
-            meshes.append(bpy_obj)
-        for child_name in cache.children[bpy_obj.name]:
-            child = bpy.data.objects[child_name]
-            scan_meshes_using_cache(child, meshes, cache)
-
-    meshes = []
-    if cache:
-        scan_meshes_using_cache(bpy_obj, meshes, cache)
-    else:
-        scan_meshes(bpy_obj, meshes)
-
-    bbox = None
-    spheres = []
-    loc_space, rot_space, scl_space = utils.ie.get_object_world_matrix(bpy_obj)
-    for bpy_mesh in meshes:
-        mat_world = mathutils.Matrix.Identity(4)
-        if cache:
-            if cache.bounds.get(bpy_mesh.name, None):
-                bbx, center, radius = cache.bounds[bpy_mesh.name]
-            else:
-                if apply_transforms:
-                    mesh = utils.mesh.convert_object_to_space_bmesh(
-                        bpy_mesh,
-                        mathutils.Matrix.Identity(4),
-                        mathutils.Matrix.Identity(4),
-                        mathutils.Vector((1.0, 1.0, 1.0))
-                    )
-                else:
-                    mesh = utils.mesh.convert_object_to_space_bmesh(
-                        bpy_mesh,
-                        loc_space,
-                        rot_space,
-                        scl_space
-                    )
-                bbx = utils.mesh.calculate_mesh_bbox(mesh.verts, mat=mat_world)
-                center, radius = calculate_mesh_bsphere(bbx, mesh.verts, mat=mat_world)
-                cache.bounds[bpy_mesh.name] = bbx, center, radius
-        else:
-            if apply_transforms:
-                mesh = utils.mesh.convert_object_to_space_bmesh(
-                    bpy_mesh,
-                    mathutils.Matrix.Identity(4),
-                    mathutils.Matrix.Identity(4),
-                    mathutils.Vector((1.0, 1.0, 1.0))
-                )
-            else:
-                mesh = utils.mesh.convert_object_to_space_bmesh(
-                    bpy_mesh,
-                    loc_space,
-                    rot_space,
-                    scl_space
-                )
-            bbx = utils.mesh.calculate_mesh_bbox(mesh.verts, mat=mat_world)
-            center, radius = calculate_mesh_bsphere(bbx, mesh.verts, mat=mat_world)
-
-        if bbox is None:
-            bbox = bbx
-        else:
-            for axis in range(3):
-                bbox[0][axis] = min(bbox[0][axis], bbx[0][axis])
-                bbox[1][axis] = max(bbox[1][axis], bbx[1][axis])
-        spheres.append((center, radius))
-
-    center = mathutils.Vector()
-    radius = 0
-    if not spheres:
-        return (mathutils.Vector(), mathutils.Vector()), (center, radius)
-    for sphere in spheres:
-        center += sphere[0]
-    center /= len(spheres)
-    for ctr, rad in spheres:
-        radius = max(radius, (ctr - center).length + rad)
-    return bbox, (center, radius)
-
-
-def top_two(dic):
-    def top_one(dic, skip=None):
-        max_key = None
-        max_val = -1
-        for key, val in dic:
-            if (key != skip) and (val > max_val):
-                max_val = val
-                max_key = key
-        return max_key, max_val
-
-    key0, val0 = top_one(dic)
-    key1, val1 = top_one(dic, key0)
-    return [(key0, val0), (key1, val1)]
-
-
 def write_verts_2l(vertices_writer, vertices, norm_coef=1):
     for vertex in vertices:
         weights = vertex[6]
         if len(weights) > 2:
-            weights = top_two(weights)
+            weights = utils.mesh.weights_top_two(weights)
         weight = 0
         # 2-link vertex
         if len(weights) == 2:
@@ -195,7 +75,7 @@ def _export_child(
     )
 
     bbox = utils.mesh.calculate_mesh_bbox(mesh.verts)
-    bsphere = calculate_mesh_bsphere(bbox, mesh.verts)
+    bsphere = utils.mesh.calculate_mesh_bsphere(bbox, mesh.verts)
     bmesh.ops.triangulate(mesh, faces=mesh.faces)
     bpy_mesh = bpy.data.meshes.new('.export-ogf')
     bpy_mesh.use_auto_smooth = bpy_obj.data.use_auto_smooth
@@ -382,15 +262,8 @@ def _export_child(
     chunked_writer.put(fmt.Chunks_v4.INDICES, indices_writer)
 
 
-def get_ode_ik_limits(value_1, value_2):
-    # swap special for ODE
-    min_value = min(-value_1, -value_2)
-    max_value = max(-value_1, -value_2)
-    return min_value, max_value
-
-
 def _export(root_obj, cwriter, context):
-    bbox, bsph = calculate_bbox_and_bsphere(root_obj)
+    bbox, bsph = utils.mesh.calculate_bbox_and_bsphere(root_obj)
     xray = root_obj.xray
 
     if len(xray.motionrefs_collection):
@@ -562,6 +435,7 @@ def _export(root_obj, cwriter, context):
     cwriter.put(fmt.Chunks_v4.S_BONE_NAMES, pwriter)
 
     pwriter = rw.write.PackedWriter()
+    multiply = utils.version.get_multiply()
 
     for bone, obj in bones:
         bxray = bone.xray
@@ -617,7 +491,7 @@ def _export(root_obj, cwriter, context):
         pwriter.putf('<I', int(bxray.ikjoint.type))
 
         # x axis
-        x_min, x_max = get_ode_ik_limits(
+        x_min, x_max = utils.bone.get_ode_ik_limits(
             bxray.ikjoint.lim_x_min,
             bxray.ikjoint.lim_x_max
         )
@@ -625,7 +499,7 @@ def _export(root_obj, cwriter, context):
         pwriter.putf('<2f', bxray.ikjoint.lim_x_spr, bxray.ikjoint.lim_x_dmp)
 
         # y axis
-        y_min, y_max = get_ode_ik_limits(
+        y_min, y_max = utils.bone.get_ode_ik_limits(
             bxray.ikjoint.lim_y_min,
             bxray.ikjoint.lim_y_max
         )
@@ -633,7 +507,7 @@ def _export(root_obj, cwriter, context):
         pwriter.putf('<2f', bxray.ikjoint.lim_y_spr, bxray.ikjoint.lim_y_dmp)
 
         # z axis
-        z_min, z_max = get_ode_ik_limits(
+        z_min, z_max = utils.bone.get_ode_ik_limits(
             bxray.ikjoint.lim_z_min,
             bxray.ikjoint.lim_z_max
         )

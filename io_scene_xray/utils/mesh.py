@@ -5,6 +5,7 @@ import mathutils
 
 # addon modules
 from . import ie
+from . import obj
 from . import version
 
 
@@ -131,3 +132,134 @@ def calculate_mesh_bbox(verts, mat=mathutils.Matrix()):
         set_bound_coord(bbox_max, multiply(mat, vertex.co), max)
 
     return bbox_min, bbox_max
+
+
+def calculate_mesh_bsphere(bbox, vertices, mat=mathutils.Matrix()):
+    center = (bbox[0] + bbox[1]) / 2
+    _delta = bbox[1] - bbox[0]
+    max_radius = max(abs(_delta.x), abs(_delta.y), abs(_delta.z)) / 2
+    multiply = version.get_multiply()
+
+    for vtx in vertices:
+        relative = multiply(mat, vtx.co) - center
+        radius = relative.length
+        if radius > max_radius:
+            offset = center - relative.normalized() * max_radius
+            center = (multiply(mat, vtx.co) + offset) / 2
+            max_radius = (center - offset).length
+
+    return center, max_radius
+
+
+def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
+    def scan_meshes(bpy_obj, meshes):
+        if obj.is_helper_object(bpy_obj):
+            return
+        if (bpy_obj.type == 'MESH') and bpy_obj.data.vertices:
+            meshes.append(bpy_obj)
+        for child in bpy_obj.children:
+            scan_meshes(child, meshes)
+
+    def scan_meshes_using_cache(bpy_obj, meshes, cache):
+        if obj.is_helper_object(bpy_obj):
+            return
+        if (bpy_obj.type == 'MESH') and bpy_obj.data.vertices:
+            meshes.append(bpy_obj)
+        for child_name in cache.children[bpy_obj.name]:
+            child = bpy.data.objects[child_name]
+            scan_meshes_using_cache(child, meshes, cache)
+
+    meshes = []
+    if cache:
+        scan_meshes_using_cache(bpy_obj, meshes, cache)
+    else:
+        scan_meshes(bpy_obj, meshes)
+
+    bbox = None
+    spheres = []
+    loc_space, rot_space, scl_space = ie.get_object_world_matrix(bpy_obj)
+    for bpy_mesh in meshes:
+        mat_world = mathutils.Matrix.Identity(4)
+        if cache:
+            if cache.bounds.get(bpy_mesh.name, None):
+                bbx, center, radius = cache.bounds[bpy_mesh.name]
+            else:
+                if apply_transforms:
+                    mesh = convert_object_to_space_bmesh(
+                        bpy_mesh,
+                        mathutils.Matrix.Identity(4),
+                        mathutils.Matrix.Identity(4),
+                        mathutils.Vector((1.0, 1.0, 1.0))
+                    )
+                else:
+                    mesh = convert_object_to_space_bmesh(
+                        bpy_mesh,
+                        loc_space,
+                        rot_space,
+                        scl_space
+                    )
+                bbx = calculate_mesh_bbox(mesh.verts, mat=mat_world)
+                center, radius = calculate_mesh_bsphere(
+                    bbx,
+                    mesh.verts,
+                    mat=mat_world
+                )
+                cache.bounds[bpy_mesh.name] = bbx, center, radius
+        else:
+            if apply_transforms:
+                mesh = convert_object_to_space_bmesh(
+                    bpy_mesh,
+                    mathutils.Matrix.Identity(4),
+                    mathutils.Matrix.Identity(4),
+                    mathutils.Vector((1.0, 1.0, 1.0))
+                )
+            else:
+                mesh = convert_object_to_space_bmesh(
+                    bpy_mesh,
+                    loc_space,
+                    rot_space,
+                    scl_space
+                )
+            bbx = calculate_mesh_bbox(mesh.verts, mat=mat_world)
+            center, radius = calculate_mesh_bsphere(
+                bbx,
+                mesh.verts,
+                mat=mat_world
+            )
+
+        if bbox is None:
+            bbox = bbx
+        else:
+            for axis in range(3):
+                bbox[0][axis] = min(bbox[0][axis], bbx[0][axis])
+                bbox[1][axis] = max(bbox[1][axis], bbx[1][axis])
+        spheres.append((center, radius))
+
+    center = mathutils.Vector()
+    radius = 0
+    if not spheres:
+        return (mathutils.Vector(), mathutils.Vector()), (center, radius)
+
+    for sphere in spheres:
+        center += sphere[0]
+    center /= len(spheres)
+
+    for ctr, rad in spheres:
+        radius = max(radius, (ctr - center).length + rad)
+
+    return bbox, (center, radius)
+
+
+def weights_top_two(dic):
+    def top_one(dic, skip=None):
+        max_key = None
+        max_val = -1
+        for key, val in dic:
+            if (key != skip) and (val > max_val):
+                max_val = val
+                max_key = key
+        return max_key, max_val
+
+    key0, val0 = top_one(dic)
+    key1, val1 = top_one(dic, key0)
+    return [(key0, val0), (key1, val1)]
