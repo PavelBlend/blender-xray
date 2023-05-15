@@ -9,13 +9,13 @@ import bmesh
 import mathutils
 
 # addon modules
-from . import fmt
-from .. import ogf
-from .. import xr
-from ... import text
-from ... import utils
-from ... import log
-from ... import rw
+from .. import fmt
+from ... import ogf
+from ... import xr
+from .... import text
+from .... import utils
+from .... import log
+from .... import rw
 
 
 TWO_MEGABYTES = 1024 * 1024 * 2

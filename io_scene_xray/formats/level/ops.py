@@ -150,7 +150,7 @@ class XRAY_OT_export_level(utils.ie.BaseOperator):
         utils.ie.open_imp_exp_folder(self, 'levels_folder')
 
     def export(self, level_object, context):
-        exp.export_file(level_object, self.directory)
+        exp.exp.export_file(level_object, self.directory)
         return {'FINISHED'}
 
     @log.execute_with_logger
