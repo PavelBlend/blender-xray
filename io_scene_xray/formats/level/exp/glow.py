@@ -9,13 +9,15 @@ from .... import rw
 
 
 def _write_glow(glows_writer, glow_obj, level):
-    # position
-    glows_writer.putf(
-        '<3f',
-        glow_obj.location[0],
-        glow_obj.location[2],
-        glow_obj.location[1]
-    )
+    if glow_obj.type != 'MESH':
+        raise log.AppError(
+            text.error.level_bad_glow_type,
+            log.props(
+                object=glow_obj.name,
+                type=glow_obj.type
+            )
+        )
+
     faces_count = len(glow_obj.data.polygons)
     if not faces_count:
         raise log.AppError(
@@ -25,6 +27,15 @@ def _write_glow(glows_writer, glow_obj, level):
                 faces_count=faces_count
             )
         )
+
+    # position
+    glows_writer.putf(
+        '<3f',
+        glow_obj.location[0],
+        glow_obj.location[2],
+        glow_obj.location[1]
+    )
+
     dim_max = max(glow_obj.dimensions)
     glow_radius = dim_max / 2
     if glow_radius < 0.0005:
