@@ -27,7 +27,7 @@ keymap_items_list = (
     (formats.scene.ops.XRAY_OT_import_scene, 'F5', True, True, False),
     (formats.scene.ops.XRAY_OT_export_scene, 'F5', True, True, True),
     (formats.level.ops.XRAY_OT_import_level, 'F6', True, True, False),
-    (formats.level.ops.XRAY_OT_export_level, 'F6', True, True, True),
+    (formats.level.exp.ops.XRAY_OT_export_level, 'F6', True, True, True),
     (formats.part.ops.XRAY_OT_import_part, 'F7', True, True, False),
     (formats.err.ops.XRAY_OT_import_err, 'F8', True, True, False)
 )
