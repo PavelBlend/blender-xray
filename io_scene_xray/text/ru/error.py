@@ -80,6 +80,7 @@ translations_table = (
     (error.level_no_lmap, 'не найдено изображение для карты освещения'),
     (error.level_has_children, 'Normal/Progressive объекты не должны иметь потомков'),
     (error.level_visual_is_not_mesh, 'visual-объект не является мешем'),
+    (error.level_visual_no_faces, 'visual меш-объект не имеет полигонов'),
     (error.level_no_glow, 'level-объект не имеет glow-объектов'),
     (error.level_bad_glow_type, 'glow-объект не является мешем'),
     (error.level_bad_glow, 'glow меш-объект не имеет полигонов'),

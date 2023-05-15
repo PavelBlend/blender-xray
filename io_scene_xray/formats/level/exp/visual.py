@@ -111,8 +111,27 @@ def get_tex_coord_correct(coord_f, coord_h, uv_coeff):
 
 
 def write_gcontainer(bpy_obj, vbs, ibs, level):
+    if bpy_obj.type != 'MESH':
+        raise log.AppError(
+            text.error.level_visual_is_not_mesh,
+            log.props(
+                object=bpy_obj.name,
+                type=bpy_obj.type,
+                visual_type=bpy_obj.xray.level.visual_type
+            )
+        )
+
+    bpy_mesh = bpy_obj.data
+    faces_count = len(bpy_mesh.polygons)
+
+    if not faces_count:
+        raise log.AppError(
+            text.error.level_visual_no_faces,
+            log.props(object=bpy_obj.name)
+        )
+
     visual = types.Visual()
-    material = bpy_obj.data.materials[0]
+    material = bpy_mesh.materials[0]
     if level.materials.get(material, None) is None:
         level.materials[material] = level.active_material_index
         visual.shader_index = level.active_material_index
@@ -123,7 +142,7 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     packed_writer = rw.write.PackedWriter()
 
     # multiple usage visuals
-    gcontainer = level.saved_visuals.get(bpy_obj.data.name, None)
+    gcontainer = level.saved_visuals.get(bpy_mesh.name, None)
     if gcontainer:
         packed_writer.putf('<I', gcontainer[0])    # vb_index
         packed_writer.putf('<I', gcontainer[1])    # vb_offset
@@ -136,7 +155,7 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
         return packed_writer, visual
 
     bm = bmesh.new()
-    bm.from_mesh(bpy_obj.data)
+    bm.from_mesh(bpy_mesh)
     bmesh.ops.triangulate(bm, faces=bm.faces)
     export_mesh = bpy.data.meshes.new('temp_mesh')
     export_mesh.use_auto_smooth = True
@@ -390,7 +409,7 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     packed_writer.putf('<I', ib_offset)    # ib_offset
     packed_writer.putf('<I', indices_count)    # ib_size
 
-    level.saved_visuals[bpy_obj.data.name] = (
+    level.saved_visuals[bpy_mesh.name] = (
         # vertices info
         vertex_buffer_index,
         level.vbs_offsets[vertex_buffer_index],
@@ -598,16 +617,6 @@ def write_visual(
         return chunked_writer
 
     else:
-        if bpy_obj.type != 'MESH':
-            raise log.AppError(
-                text.error.level_visual_is_not_mesh,
-                log.props(
-                    object=bpy_obj.name,
-                    type=bpy_obj.type,
-                    visual_type=level_props.visual_type
-                )
-            )
-
         chunked_writer = rw.write.ChunkedWriter()
         gcontainer_writer, visual = write_gcontainer(
             bpy_obj,
