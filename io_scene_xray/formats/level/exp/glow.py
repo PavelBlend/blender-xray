@@ -48,7 +48,7 @@ def _write_glow(glows_writer, glow_obj, level):
         )
 
     if mats_count == 1:
-        material = glow_mesh.materials[0]
+        bpy_mat = glow_mesh.materials[0]
 
     else:
         mats = set()
@@ -59,7 +59,7 @@ def _write_glow(glows_writer, glow_obj, level):
         mats = list(mats)
 
         if len(mats) == 1:
-            material = mats[0]
+            bpy_mat = mats[0]
         else:
             raise log.AppError(
                 text.error.level_glow_many_mats,
@@ -69,12 +69,12 @@ def _write_glow(glows_writer, glow_obj, level):
                 )
             )
 
-    if level.materials.get(material, None) is None:
-        level.materials[material] = level.active_material_index
+    shader_index = level.materials.get(bpy_mat, None)
+
+    if shader_index is None:
         shader_index = level.active_material_index
         level.active_material_index += 1
-    else:
-        shader_index = level.materials[material]
+        level.materials[bpy_mat] = shader_index
 
     # position
     glows_writer.putf(
