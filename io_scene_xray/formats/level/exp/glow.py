@@ -40,13 +40,35 @@ def _write_glow(glows_writer, glow_obj, level):
             )
         )
 
-    if not len(glow_mesh.materials):
+    mats_count = len(glow_mesh.materials)
+    if not mats_count:
         raise log.AppError(
             text.error.level_no_mat_glow,
             log.props(object=glow_obj.name)
         )
 
-    material = glow_mesh.materials[0]
+    if mats_count == 1:
+        material = glow_mesh.materials[0]
+
+    else:
+        mats = set()
+        for face in glow_mesh.polygons:
+            mat = glow_mesh.materials[face.material_index]
+            if mat:
+                mats.add(mat)
+        mats = list(mats)
+
+        if len(mats) == 1:
+            material = mats[0]
+        else:
+            raise log.AppError(
+                text.error.level_glow_many_mats,
+                log.props(
+                    object=glow_obj.name,
+                    materials=[mat.name for mat in mats]
+                )
+            )
+
     if level.materials.get(material, None) is None:
         level.materials[material] = level.active_material_index
         shader_index = level.active_material_index
