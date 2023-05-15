@@ -4,7 +4,6 @@ import time
 # blender modules
 import bpy
 import bmesh
-import mathutils
 
 # addon modules
 from .. import fmt
@@ -14,6 +13,20 @@ from .... import text
 from .... import rw
 from .... import log
 from .... import utils
+
+
+def write_verts_1l(vertices_writer, vertices, norm_coef=1):
+    for vertex in vertices:
+        vertices_writer.putv3f(vertex[1])    # coord
+        vertices_writer.putv3f((
+            norm_coef * vertex[2][0],
+            norm_coef * vertex[2][1],
+            norm_coef * vertex[2][2]
+        ))    # normal
+        vertices_writer.putv3f(vertex[3])    # tangent
+        vertices_writer.putv3f(vertex[4])    # bitangent
+        vertices_writer.putf('<2f', *vertex[5])    # uv
+        vertices_writer.putf('<I', vertex[6][0][0])
 
 
 def write_verts_2l(vertices_writer, vertices, norm_coef=1):
@@ -197,27 +210,12 @@ def _export_child(
             vert_fmt = fmt.VertexFormat.FVF_1L
         else:
             vert_fmt = fmt.VertexFormat.FVF_1L_CS
+
         vertices_writer.putf('<2I', vert_fmt, vertices_count)
-        for vertex in vertices:
-            vertices_writer.putv3f(vertex[1])    # coord
-            vertices_writer.putv3f(vertex[2])    # normal
-            vertices_writer.putv3f(vertex[3])    # tangent
-            vertices_writer.putv3f(vertex[4])    # bitangent
-            vertices_writer.putf('<2f', *vertex[5])    # uv
-            vertices_writer.putf('<I', vertex[6][0][0])
+        write_verts_1l(vertices_writer, vertices)
 
         if two_sided:
-            for vertex in vertices:
-                vertices_writer.putv3f(vertex[1])    # coord
-                vertices_writer.putv3f((
-                    -vertex[2][0],
-                    -vertex[2][1],
-                    -vertex[2][2]
-                ))    # normal
-                vertices_writer.putv3f(vertex[3])    # tangent
-                vertices_writer.putv3f(vertex[4])    # bitangent
-                vertices_writer.putf('<2f', *vertex[5])    # uv
-                vertices_writer.putf('<I', vertex[6][0][0])
+            write_verts_1l(vertices_writer, vertices, norm_coef=-1)
 
     # 2-link vertices
     else:
@@ -230,9 +228,10 @@ def _export_child(
             vert_fmt = fmt.VertexFormat.FVF_2L
         else:
             vert_fmt = fmt.VertexFormat.FVF_2L_CS
-        vertices_writer.putf('<2I', vert_fmt, vertices_count)
 
+        vertices_writer.putf('<2I', vert_fmt, vertices_count)
         write_verts_2l(vertices_writer, vertices)
+
         if two_sided:
             write_verts_2l(vertices_writer, vertices, norm_coef=-1)
 
@@ -263,33 +262,42 @@ def _export_child(
 
 
 def _export(root_obj, cwriter, context):
-    bbox, bsph = utils.mesh.calculate_bbox_and_bsphere(root_obj)
     xray = root_obj.xray
 
+    # get ogf type
     if len(xray.motionrefs_collection):
         model_type = fmt.ModelType_v4.SKELETON_ANIM
+
     elif len(xray.motions_collection) and context.export_motions:
         model_type = fmt.ModelType_v4.SKELETON_ANIM
+
     else:
         model_type = fmt.ModelType_v4.SKELETON_RIGID
 
+    # export header
     header_writer = rw.write.PackedWriter()
-    header_writer.putf('<B', fmt.FORMAT_VERSION_4)  # ogf version
+
+    header_writer.putf('<B', fmt.FORMAT_VERSION_4)
     header_writer.putf('<B', model_type)
-    header_writer.putf('<H', 0)  # shader id
+    header_writer.putf('<H', 0)    # shader id
 
     # bbox
+    bbox, bsph = utils.mesh.calculate_bbox_and_bsphere(root_obj)
     header_writer.putv3f(bbox[0])
     header_writer.putv3f(bbox[1])
 
     # bsphere
     header_writer.putv3f(bsph[0])
     header_writer.putf('<f', bsph[1])
+
     cwriter.put(fmt.HEADER, header_writer)
 
+    # export revision
     owner, ctime, moder, mtime = utils.obj.get_revision_data(xray.revision)
     currtime = int(time.time())
+
     revision_writer = rw.write.PackedWriter()
+
     revision_writer.puts(root_obj.name)    # source file
     revision_writer.puts('blender')    # build name
     revision_writer.putf('<I', currtime)    # build time
@@ -297,6 +305,7 @@ def _export(root_obj, cwriter, context):
     revision_writer.putf('<I', ctime)
     revision_writer.puts(moder)
     revision_writer.putf('<I', mtime)
+
     cwriter.put(fmt.Chunks_v4.S_DESC, revision_writer)
 
     meshes = []
@@ -403,121 +412,141 @@ def _export(root_obj, cwriter, context):
 
     arm_obj = armatures[0]
 
-    children_chunked_writer = rw.write.ChunkedWriter()
-    mesh_index = 0
+    # export children
+    child_index = 0
+    children_writer = rw.write.ChunkedWriter()
+
     for mesh_writer in meshes:
-        children_chunked_writer.put(mesh_index, mesh_writer)
-        mesh_index += 1
-    cwriter.put(fmt.Chunks_v4.CHILDREN, children_chunked_writer)
+        children_writer.put(child_index, mesh_writer)
+        child_index += 1
 
+    cwriter.put(fmt.Chunks_v4.CHILDREN, children_writer)
+
+    # get armature scale
     _, scale = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
-
     utils.ie.check_armature_scale(scale, root_obj, arm_obj)
 
-    pwriter = rw.write.PackedWriter()
-    pwriter.putf('<I', len(bones))
+    # export bone names
+    bones_writer = rw.write.PackedWriter()
+    bones_writer.putf('<I', len(bones))
+
     for bone, _ in bones:
         b_parent = utils.bone.find_bone_exportable_parent(bone)
-        pwriter.puts(bone.name)
-        pwriter.puts(b_parent.name if b_parent else '')
+
+        # names
+        bones_writer.puts(bone.name)
+        if b_parent:
+            parent_name = b_parent.name
+        else:
+            parent_name = ''
+        bones_writer.puts(parent_name)
+
         bxray = bone.xray
-        pwriter.putf('<9f', *bxray.shape.box_rot)
-        box_trn = list(bxray.shape.box_trn)
-        box_trn[0] *= scale.x
-        box_trn[1] *= scale.y
-        box_trn[2] *= scale.z
-        pwriter.putf('<3f', *box_trn)
-        box_hsz = list(bxray.shape.box_hsz)
-        box_hsz[0] *= scale.x
-        box_hsz[1] *= scale.y
-        box_hsz[2] *= scale.z
-        pwriter.putf('<3f', *box_hsz)
-    cwriter.put(fmt.Chunks_v4.S_BONE_NAMES, pwriter)
-
-    pwriter = rw.write.PackedWriter()
-    multiply = utils.version.get_multiply()
-
-    for bone, obj in bones:
-        bxray = bone.xray
-
-        pwriter.putf('<I', 0x1)  # version
-        pwriter.puts(bxray.gamemtl)
-        pwriter.putf('<H', int(bxray.shape.type))
-        pwriter.putf('<H', bxray.shape.flags)
 
         # box shape rotation
-        pwriter.putf('<9f', *bxray.shape.box_rot)
+        bones_writer.putf('<9f', *bxray.shape.box_rot)
 
-        # box shape position
+        # box shape translation
         box_trn = list(bxray.shape.box_trn)
         box_trn[0] *= scale.x
         box_trn[1] *= scale.y
         box_trn[2] *= scale.z
-        pwriter.putf('<3f', *box_trn)
+        bones_writer.putf('<3f', *box_trn)
 
         # box shape half size
         box_hsz = list(bxray.shape.box_hsz)
         box_hsz[0] *= scale.x
         box_hsz[1] *= scale.y
         box_hsz[2] *= scale.z
-        pwriter.putf('<3f', *box_hsz)
+        bones_writer.putf('<3f', *box_hsz)
+
+    cwriter.put(fmt.Chunks_v4.S_BONE_NAMES, bones_writer)
+
+    # export ik data
+    ik_writer = rw.write.PackedWriter()
+    multiply = utils.version.get_multiply()
+
+    for bone, obj in bones:
+        bxray = bone.xray
+
+        ik_writer.putf('<I', 0x1)  # version
+        ik_writer.puts(bxray.gamemtl)
+        ik_writer.putf('<H', int(bxray.shape.type))
+        ik_writer.putf('<H', bxray.shape.flags)
+
+        # box shape rotation
+        ik_writer.putf('<9f', *bxray.shape.box_rot)
+
+        # box shape position
+        box_trn = list(bxray.shape.box_trn)
+        box_trn[0] *= scale.x
+        box_trn[1] *= scale.y
+        box_trn[2] *= scale.z
+        ik_writer.putf('<3f', *box_trn)
+
+        # box shape half size
+        box_hsz = list(bxray.shape.box_hsz)
+        box_hsz[0] *= scale.x
+        box_hsz[1] *= scale.y
+        box_hsz[2] *= scale.z
+        ik_writer.putf('<3f', *box_hsz)
 
         # sphere shape position
         sph_pos = list(bxray.shape.sph_pos)
         sph_pos[0] *= scale.x
         sph_pos[1] *= scale.y
         sph_pos[2] *= scale.z
-        pwriter.putf('<3f', *sph_pos)
+        ik_writer.putf('<3f', *sph_pos)
 
         # sphere shape radius
-        pwriter.putf('<f', bxray.shape.sph_rad * scale.x)
+        ik_writer.putf('<f', bxray.shape.sph_rad * scale.x)
 
         # cylinder shape position
         cyl_pos = list(bxray.shape.cyl_pos)
         cyl_pos[0] *= scale.x
         cyl_pos[1] *= scale.y
         cyl_pos[2] *= scale.z
-        pwriter.putf('<3f', *cyl_pos)
+        ik_writer.putf('<3f', *cyl_pos)
 
         # cylinder shape direction
-        pwriter.putf('<3f', *bxray.shape.cyl_dir)
+        ik_writer.putf('<3f', *bxray.shape.cyl_dir)
 
         # cylinder shape height
-        pwriter.putf('<f', bxray.shape.cyl_hgh * scale.x)
+        ik_writer.putf('<f', bxray.shape.cyl_hgh * scale.x)
 
         # cylinder shape radius
-        pwriter.putf('<f', bxray.shape.cyl_rad * scale.x)
+        ik_writer.putf('<f', bxray.shape.cyl_rad * scale.x)
 
-        pwriter.putf('<I', int(bxray.ikjoint.type))
+        ik_writer.putf('<I', int(bxray.ikjoint.type))
 
         # x axis
         x_min, x_max = utils.bone.get_ode_ik_limits(
             bxray.ikjoint.lim_x_min,
             bxray.ikjoint.lim_x_max
         )
-        pwriter.putf('<2f', x_min, x_max)
-        pwriter.putf('<2f', bxray.ikjoint.lim_x_spr, bxray.ikjoint.lim_x_dmp)
+        ik_writer.putf('<2f', x_min, x_max)
+        ik_writer.putf('<2f', bxray.ikjoint.lim_x_spr, bxray.ikjoint.lim_x_dmp)
 
         # y axis
         y_min, y_max = utils.bone.get_ode_ik_limits(
             bxray.ikjoint.lim_y_min,
             bxray.ikjoint.lim_y_max
         )
-        pwriter.putf('<2f', y_min, y_max)
-        pwriter.putf('<2f', bxray.ikjoint.lim_y_spr, bxray.ikjoint.lim_y_dmp)
+        ik_writer.putf('<2f', y_min, y_max)
+        ik_writer.putf('<2f', bxray.ikjoint.lim_y_spr, bxray.ikjoint.lim_y_dmp)
 
         # z axis
         z_min, z_max = utils.bone.get_ode_ik_limits(
             bxray.ikjoint.lim_z_min,
             bxray.ikjoint.lim_z_max
         )
-        pwriter.putf('<2f', z_min, z_max)
-        pwriter.putf('<2f', bxray.ikjoint.lim_z_spr, bxray.ikjoint.lim_z_dmp)
+        ik_writer.putf('<2f', z_min, z_max)
+        ik_writer.putf('<2f', bxray.ikjoint.lim_z_spr, bxray.ikjoint.lim_z_dmp)
 
-        pwriter.putf('<2f', bxray.ikjoint.spring, bxray.ikjoint.damping)
-        pwriter.putf('<I', bxray.ikflags)
-        pwriter.putf('<2f', bxray.breakf.force, bxray.breakf.torque)
-        pwriter.putf('<f', bxray.friction)
+        ik_writer.putf('<2f', bxray.ikjoint.spring, bxray.ikjoint.damping)
+        ik_writer.putf('<I', bxray.ikflags)
+        ik_writer.putf('<2f', bxray.breakf.force, bxray.breakf.torque)
+        ik_writer.putf('<f', bxray.friction)
 
         mat = multiply(
             bone.matrix_local,
@@ -530,58 +559,67 @@ def _export(root_obj, cwriter, context):
                 motions.const.MATRIX_BONE_INVERTED
             ).inverted(), mat)
         euler = mat.to_euler('YXZ')
-        pwriter.putf('<3f', -euler.x, -euler.z, -euler.y)
+        ik_writer.putf('<3f', -euler.x, -euler.z, -euler.y)
         trn = mat.to_translation()
         trn.x *= scale.x
         trn.y *= scale.y
         trn.z *= scale.z
-        pwriter.putv3f(trn)
-        pwriter.putf('<f', bxray.mass.value)
+        ik_writer.putv3f(trn)
+        ik_writer.putf('<f', bxray.mass.value)
         cmass = list(bxray.mass.center)
         cmass[0] *= scale.x
         cmass[1] *= scale.y
         cmass[2] *= scale.z
-        pwriter.putv3f(cmass)
+        ik_writer.putv3f(cmass)
 
-    cwriter.put(fmt.Chunks_v4.S_IKDATA_2, pwriter)
+    cwriter.put(fmt.Chunks_v4.S_IKDATA_2, ik_writer)
 
-    packed_writer = rw.write.PackedWriter()
-    packed_writer.puts(xray.userdata)
-    cwriter.put(fmt.Chunks_v4.S_USERDATA, packed_writer)
+    # export userdata
+    userdata_writer = rw.write.PackedWriter()
+    userdata_writer.puts(xray.userdata)
+    cwriter.put(fmt.Chunks_v4.S_USERDATA, userdata_writer)
+
+    # export motion references
     if len(xray.motionrefs_collection):
-        refs = []
-        for ref in xray.motionrefs_collection:
-            refs.append(ref.name)
         motion_refs_writer = rw.write.PackedWriter()
+        refs = [ref.name for ref in xray.motionrefs_collection]
+
+        # soc format
         if context.fmt_ver == 'soc':
             refs_string = ','.join(refs)
             motion_refs_writer.puts(refs_string)
             chunk_id = fmt.Chunks_v4.S_MOTION_REFS_0
+
+        # sc/cop format
         else:
             refs_count = len(refs)
             motion_refs_writer.putf('<I', refs_count)
             for ref in refs:
                 motion_refs_writer.puts(ref)
             chunk_id = fmt.Chunks_v4.S_MOTION_REFS_2
+
         cwriter.put(chunk_id, motion_refs_writer)
 
     # export motions
     if context.export_motions and xray.motions_collection:
         motion_context = omf.ops.ExportOmfContext()
+
         motion_context.bpy_arm_obj = arm_obj
         motion_context.export_mode = 'OVERWRITE'
         motion_context.export_motions = True
         motion_context.export_bone_parts = True
         motion_context.need_motions = True
         motion_context.need_bone_groups = True
+
         if context.fmt_ver == 'soc':
             motion_context.params_ver = 3
             motion_context.high_quality = False
         else:
             motion_context.params_ver = 4
             motion_context.high_quality = context.hq_export
-        motions_chunked_writer = omf.exp.export_omf(motion_context)
-        cwriter.data.extend(motions_chunked_writer.data)
+
+        motions_writer = omf.exp.export_omf(motion_context)
+        cwriter.data.extend(motions_writer.data)
 
 
 @log.with_context('export-object')
