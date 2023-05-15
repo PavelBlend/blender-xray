@@ -18,7 +18,8 @@ def _write_glow(glows_writer, glow_obj, level):
             )
         )
 
-    faces_count = len(glow_obj.data.polygons)
+    glow_mesh = glow_obj.data
+    faces_count = len(glow_mesh.polygons)
     if not faces_count:
         raise log.AppError(
             text.error.level_bad_glow,
@@ -27,14 +28,6 @@ def _write_glow(glows_writer, glow_obj, level):
                 faces_count=faces_count
             )
         )
-
-    # position
-    glows_writer.putf(
-        '<3f',
-        glow_obj.location[0],
-        glow_obj.location[2],
-        glow_obj.location[1]
-    )
 
     dim_max = max(glow_obj.dimensions)
     glow_radius = dim_max / 2
@@ -46,19 +39,34 @@ def _write_glow(glows_writer, glow_obj, level):
                 radius=glow_radius
             )
         )
-    glows_writer.putf('<f', glow_radius)
-    if not len(glow_obj.data.materials):
-        raise BaseException('glow object "{}" has no material'.format(glow_obj.name))
-    material = glow_obj.data.materials[0]
+
+    if not len(glow_mesh.materials):
+        raise log.AppError(
+            text.error.level_no_mat_glow,
+            log.props(object=glow_obj.name)
+        )
+
+    material = glow_mesh.materials[0]
     if level.materials.get(material, None) is None:
         level.materials[material] = level.active_material_index
         shader_index = level.active_material_index
         level.active_material_index += 1
     else:
         shader_index = level.materials[material]
+
+    # position
+    glows_writer.putf(
+        '<3f',
+        glow_obj.location[0],
+        glow_obj.location[2],
+        glow_obj.location[1]
+    )
+
+    # radius
+    glows_writer.putf('<f', glow_radius)
+
     # shader index
-    # +1 - skip first empty shader
-    glows_writer.putf('<H', shader_index + 1)
+    glows_writer.putf('<H', shader_index + 1)    # +1 - skip first empty shader
 
 
 def write_glows(level_writer, level_object, level):
