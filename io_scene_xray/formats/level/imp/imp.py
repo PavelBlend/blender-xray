@@ -109,27 +109,35 @@ def import_sectors(data, level, level_object):
 
 
 def generate_glow_mesh_data(radius):
-    vertices = (
-        # XZ-plane
-        (radius, 0.0, -radius),
-        (radius, 0.0, radius),
-        (-radius, 0.0, radius),
-        (-radius, 0.0, -radius),
-        # YZ-plane
-        (0.0, radius, -radius),
-        (0.0, radius, radius),
-        (0.0, -radius, radius),
-        (0.0, -radius, -radius),
-        # XY-plane
-        (radius, -radius, 0.0),
-        (radius, radius, 0.0),
-        (-radius, radius, 0.0),
-        (-radius, -radius, 0.0)
-    )
+    vertices = []
+    for side_index in range(2):    # two sided mesh
+        vertices.extend((
+            # XZ-plane
+            (radius, 0.0, -radius),
+            (radius, 0.0, radius),
+            (-radius, 0.0, radius),
+            (-radius, 0.0, -radius),
+            # YZ-plane
+            (0.0, radius, -radius),
+            (0.0, radius, radius),
+            (0.0, -radius, radius),
+            (0.0, -radius, -radius),
+            # XY-plane
+            (radius, -radius, 0.0),
+            (radius, radius, 0.0),
+            (-radius, radius, 0.0),
+            (-radius, -radius, 0.0)
+        ))
+
     faces = (
+        # front side
         (0, 1, 2, 3),
         (4, 5, 6, 7),
-        (8, 9, 10, 11)
+        (8, 9, 10, 11),
+        # back side
+        (15, 14, 13, 12),
+        (19, 18, 17, 16),
+        (23, 22, 21, 20),
     )
     uv_face = (
         (1.0, 0.0),
@@ -137,9 +145,11 @@ def generate_glow_mesh_data(radius):
         (0.0, 1.0),
         (0.0, 0.0),
     )
+
     uvs = []
-    for face_index in range(3):
+    for face_index in range(6):
         uvs.extend(uv_face)
+
     return vertices, faces, uvs
 
 
