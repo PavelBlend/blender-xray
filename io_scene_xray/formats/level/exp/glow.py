@@ -2,6 +2,7 @@
 import bpy
 
 # addon modules
+from . import shader
 from .. import fmt
 from .... import text
 from .... import log
@@ -40,41 +41,13 @@ def _write_glow(glows_writer, glow_obj, level):
             )
         )
 
-    mats_count = len(glow_mesh.materials)
-    if not mats_count:
-        raise log.AppError(
-            text.error.level_no_mat_glow,
-            log.props(object=glow_obj.name)
-        )
-
-    if mats_count == 1:
-        bpy_mat = glow_mesh.materials[0]
-
-    else:
-        mats = set()
-        for face in glow_mesh.polygons:
-            mat = glow_mesh.materials[face.material_index]
-            if mat:
-                mats.add(mat)
-        mats = list(mats)
-
-        if len(mats) == 1:
-            bpy_mat = mats[0]
-        else:
-            raise log.AppError(
-                text.error.level_glow_many_mats,
-                log.props(
-                    object=glow_obj.name,
-                    materials=[mat.name for mat in mats]
-                )
-            )
-
-    shader_index = level.materials.get(bpy_mat, None)
-
-    if shader_index is None:
-        shader_index = level.active_material_index
-        level.active_material_index += 1
-        level.materials[bpy_mat] = shader_index
+    bpy_mat, shader_index = shader.get_shader_index(
+        level,
+        glow_obj,
+        text.error.level_no_mat_glow,
+        text.error.level_glow_many_mats,
+        text.error.level_glow_empty_mat
+    )
 
     # position
     glows_writer.putf(

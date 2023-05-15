@@ -8,7 +8,7 @@ import bmesh
 import mathutils
 
 # addon modules
-
+from . import shader
 from . import sector
 from . import types
 from .. import fmt
@@ -130,14 +130,16 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
             log.props(object=bpy_obj.name)
         )
 
+    material, shader_index = shader.get_shader_index(
+        level,
+        bpy_obj,
+        text.error.level_visual_no_mat,
+        text.error.level_visual_many_mats,
+        text.error.level_visual_empty_mat
+    )
+
     visual = types.Visual()
-    material = bpy_mesh.materials[0]
-    if level.materials.get(material, None) is None:
-        level.materials[material] = level.active_material_index
-        visual.shader_index = level.active_material_index
-        level.active_material_index += 1
-    else:
-        visual.shader_index = level.materials[material]
+    visual.shader_index = shader_index
 
     packed_writer = rw.write.PackedWriter()
 

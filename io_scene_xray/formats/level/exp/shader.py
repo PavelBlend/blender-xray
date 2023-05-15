@@ -101,3 +101,55 @@ def write_shaders(level_writer, level):
             shaders_writer.puts('{0}/{1}'.format(eshader, texture_path))
 
     level_writer.put(fmt.Chunks13.SHADERS, shaders_writer)
+
+
+def get_shader_index(level, obj, no_mat_text, many_mats_text, empty_mat_text):
+    mesh = obj.data
+
+    mats_count = len(mesh.materials)
+    if not mats_count:
+        raise log.AppError(
+            no_mat_text,
+            log.props(object=obj.name)
+        )
+
+    if mats_count == 1:
+        bpy_mat = mesh.materials[0]
+        if not bpy_mat:
+            raise log.AppError(
+                empty_mat_text,
+                log.props(object=obj.name)
+            )
+
+    else:
+        mats = set()
+        for face in mesh.polygons:
+            mat = mesh.materials[face.material_index]
+            if mat:
+                mats.add(mat)
+        mats = list(mats)
+
+        if len(mats) == 1:
+            bpy_mat = mats[0]
+            if not bpy_mat:
+                raise log.AppError(
+                    empty_mat_text,
+                    log.props(object=obj.name)
+                )
+        else:
+            raise log.AppError(
+                many_mats_text,
+                log.props(
+                    object=obj.name,
+                    materials=[mat.name for mat in mats]
+                )
+            )
+
+    shader_index = level.materials.get(bpy_mat, None)
+
+    if shader_index is None:
+        shader_index = level.active_material_index
+        level.active_material_index += 1
+        level.materials[bpy_mat] = shader_index
+
+    return bpy_mat, shader_index
