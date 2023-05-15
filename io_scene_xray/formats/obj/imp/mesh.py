@@ -17,6 +17,7 @@ from .... import utils
 
 _SHARP = 0xffffffff
 _MIN_WEIGHT = 0.0002
+DEFAULT_UV_NAME = 'Texture'
 
 
 def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
@@ -58,18 +59,23 @@ def import_mesh(context, creader, renamemap, file_name):
     bml_deform = bmsh.verts.layers.deform.verify()
     bml_texture = None
     has_sg_chunk = False
+    has_multiple_uvs = False
+
     for (cid, data) in creader:
         if cid == fmt.Chunks.Mesh.VERTS:
             reader = rw.read.PackedReader(data)
             vt_data = [reader.getv3fp() for _ in range(reader.uint32())]
+
         elif cid == fmt.Chunks.Mesh.FACES:
             s_6i = rw.read.PackedReader.prep('6I')
             reader = rw.read.PackedReader(data)
             faces_count = reader.uint32()
             fc_data = [reader.getp(s_6i) for _ in range(faces_count)]
+
         elif cid == fmt.Chunks.Mesh.MESHNAME:
             mesh_name = rw.read.PackedReader(data).gets()
             log.update(name=mesh_name)
+
         elif cid == fmt.Chunks.Mesh.SG:
             if not data:    # old object format
                 continue
@@ -91,7 +97,9 @@ def import_mesh(context, creader, renamemap, file_name):
                         edict[bme.index] = (sm_group, eidx)
                     elif not sgfuncs[1](prev[0], sm_group, prev[1], eidx):
                         bme.smooth = False
+
             face_sg = face_sg_impl
+
         elif cid == fmt.Chunks.Mesh.NORMALS and prefs.object_split_normals:
             reader = rw.read.PackedReader(data)
             for face_index in range(faces_count):
@@ -99,11 +107,13 @@ def import_mesh(context, creader, renamemap, file_name):
                 norm_2 = mathutils.Vector(reader.getv3fp()).normalized()
                 norm_3 = mathutils.Vector(reader.getv3fp()).normalized()
                 split_normals.extend((norm_1, norm_3, norm_2))
+
         elif cid == fmt.Chunks.Mesh.SFACE:
             reader = rw.read.PackedReader(data)
             for _ in range(reader.getf('<H')[0]):
                 name = reader.gets()
                 s_faces.append((name, reader.getb(reader.uint32() * 4).cast('I')))
+
         elif cid == fmt.Chunks.Mesh.VMREFS:
             s_ii = rw.read.PackedReader.prep('2I')
 
@@ -115,13 +125,14 @@ def import_mesh(context, creader, renamemap, file_name):
 
             reader = rw.read.PackedReader(data)
             vm_refs = [read_vmref(reader) for _ in range(reader.uint32())]
+
         elif cid in (fmt.Chunks.Mesh.VMAPS1, fmt.Chunks.Mesh.VMAPS2):
             suppress_rename_warnings = {}
             reader = rw.read.PackedReader(data)
             for _ in range(reader.uint32()):
                 name = reader.gets()
                 if not name:
-                    name = 'Texture'
+                    name = DEFAULT_UV_NAME
                 reader.skip(1)  # dim
                 if cid == fmt.Chunks.Mesh.VMAPS2:
                     discon = reader.byte() != 0
@@ -140,7 +151,11 @@ def import_mesh(context, creader, renamemap, file_name):
                         name = new_name
                     bml = bmsh.loops.layers.uv.get(name)
                     if bml is None:
-                        bml = bmsh.loops.layers.uv.new(name)
+                        if len(bmsh.loops.layers.uv):
+                            bml = bmsh.loops.layers.uv[0]
+                            has_multiple_uvs = True
+                        else:
+                            bml = bmsh.loops.layers.uv.new(name)
                         if utils.version.IS_28:
                             bml_texture = None
                         else:
@@ -178,16 +193,21 @@ def import_mesh(context, creader, renamemap, file_name):
                         text.error.object_bad_vmap,
                         log.props(type=typ)
                     )
+
         elif cid == fmt.Chunks.Mesh.FLAGS:
             mesh_flags = rw.read.PackedReader(data).getf('<B')[0]
             if mesh_flags & 0x4 and context.soc_sgroups:  # sgmask
                 sgfuncs = (0, lambda ga, gb, ea, eb: ga == gb)
+
         elif cid == fmt.Chunks.Mesh.BBOX:
             pass  # blender automatically calculates bbox
+
         elif cid == fmt.Chunks.Mesh.OPTIONS:
             mesh_options = rw.read.PackedReader(data).getf('<2I')
+
         elif cid == fmt.Chunks.Mesh.NOT_USED_0:
             pass  # not used chunk
+
         else:
             log.debug('unknown chunk', cid=cid)
 
@@ -390,6 +410,9 @@ def import_mesh(context, creader, renamemap, file_name):
 
     bmsh.normal_update()
     bmsh.to_mesh(bm_data)
+
+    if has_multiple_uvs:
+        bm_data.uv_layers[0].name = DEFAULT_UV_NAME
 
     if split_normals:
         bm_data.normals_split_custom_set(split_normals)
