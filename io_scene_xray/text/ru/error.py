@@ -79,11 +79,18 @@ translations_table = (
     # level export
     (error.level_no_lmap, 'не найдено изображение для карты освещения'),
     (error.level_has_children, 'Normal/Progressive объекты не должны иметь потомков'),
+    (error.level_lmap_no_dds, 'некорректный формат карты освещения (должен быть *.dds)'),
+    (error.level_sector_has_no_cform, 'сектор не имеет cform-объекта'),
+
+    # level export visual
     (error.level_visual_is_not_mesh, 'visual-объект не является мешем'),
     (error.level_visual_no_faces, 'visual меш-объект не имеет полигонов'),
     (error.level_visual_no_mat, 'visual-объект не имеет материала'),
     (error.level_visual_empty_mat, 'visual-объект имеет пустой слот материала'),
     (error.level_visual_many_mats, 'visual-объект имеет больше одного материала'),
+    (error.level_visual_no_uv, 'visual-объект не имеет UV-карты'),
+
+    # level export glow
     (error.level_no_glow, 'level-объект не имеет glow-объектов'),
     (error.level_bad_glow_type, 'glow-объект не является мешем'),
     (error.level_bad_glow, 'glow меш-объект не имеет полигонов'),
@@ -91,8 +98,6 @@ translations_table = (
     (error.level_glow_empty_mat, 'glow-объект имеет пустой слот материала'),
     (error.level_glow_many_mats, 'glow-объект имеет больше одного материала'),
     (error.level_bad_glow_radius, 'glow объект имеет близкий к нулю радиус'),
-    (error.level_lmap_no_dds, 'некорректный формат карты освещения (должен быть *.dds)'),
-    (error.level_sector_has_no_cform, 'сектор не имеет cform-объекта'),
 
     # level export portal
     (error.level_portal_is_no_mesh, 'объект портала не является мешем'),

@@ -165,7 +165,17 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     bm.to_mesh(export_mesh)
     export_mesh.calc_normals_split()
 
-    uv_layer = bm.loops.layers.uv[material.xray.uv_texture]
+    uv_layer = bm.loops.layers.uv.get(material.xray.uv_texture)
+
+    if not uv_layer:
+        raise log.AppError(
+            text.error.level_visual_no_uv,
+            log.props(
+                object=bpy_obj.name,
+                uv=material.xray.uv_texture
+            )
+        )
+
     uv_layer_lmap = bm.loops.layers.uv.get(material.xray.uv_light_map, None)
     vertex_color_sun = bm.loops.layers.color.get(
         material.xray.sun_vert_color, None
