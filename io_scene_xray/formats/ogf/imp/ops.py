@@ -105,3 +105,11 @@ class XRAY_OT_import_ogf(
         preferences = utils.version.get_preferences()
         self.import_motions = preferences.ogf_import_motions
         return super().invoke(context, event)
+
+
+def register():
+    utils.version.register_operators(XRAY_OT_import_ogf)
+
+
+def unregister():
+    bpy.utils.unregister_class(XRAY_OT_import_ogf)

@@ -6,12 +6,11 @@ import bpy
 import bpy_extras
 
 # addon modules
-from . import imp
-from . import exp
-from .. import ie
-from .. import contexts
-from ... import log
-from ... import utils
+from . import main
+from ... import ie
+from ... import contexts
+from .... import log
+from .... import utils
 
 
 class ExportOgfContext(
@@ -107,7 +106,7 @@ class XRAY_OT_export_ogf_file(
         export_context.export_motions = self.export_motions
 
         try:
-            exp.export_file(exported_obj, self.filepath, export_context)
+            main.export_file(exported_obj, self.filepath, export_context)
         except log.AppError as err:
             export_context.errors.append(err)
 
@@ -211,7 +210,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
             file_path = os.path.join(path, file_name)
 
             try:
-                exp.export_file(obj, file_path, export_context)
+                main.export_file(obj, file_path, export_context)
             except log.AppError as err:
                 export_context.errors.append(err)
 
@@ -245,7 +244,6 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
 
 
 classes = (
-    imp.ops.XRAY_OT_import_ogf,
     XRAY_OT_export_ogf,
     XRAY_OT_export_ogf_file
 )

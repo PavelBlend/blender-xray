@@ -28,7 +28,7 @@ export_ops = (
     (formats.obj.exp.ops.XRAY_OT_export_object, 'Object'),
     (formats.skl.ops.XRAY_OT_export_skls, 'Skls'),
     (formats.skl.ops.XRAY_OT_export_skl_batch, 'Skl'),
-    (formats.ogf.ops.XRAY_OT_export_ogf, 'Ogf'),
+    (formats.ogf.exp.ops.XRAY_OT_export_ogf, 'Ogf'),
     (formats.omf.ops.XRAY_OT_export_omf, 'Omf'),
     (formats.anm.ops.XRAY_OT_export_anm, 'Anm'),
     (formats.bones.ops.XRAY_OT_export_bones, 'Bones'),

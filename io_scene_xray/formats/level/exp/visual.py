@@ -47,7 +47,7 @@ def write_visual_header(level, bpy_obj, visual=None, visual_type=0, shader_id=0)
     else:
         header_writer.putf('<H', shader_id)    # shader id
 
-    bbox, (center, radius) = ogf.exp.calculate_bbox_and_bsphere(
+    bbox, (center, radius) = ogf.exp.main.calculate_bbox_and_bsphere(
         bpy_obj,
         apply_transforms=True,
         cache=level.visuals_cache
