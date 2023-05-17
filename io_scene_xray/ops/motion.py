@@ -26,9 +26,12 @@ class XRAY_OT_add_all_actions(utils.ie.BaseOperator):
 
         # collect exportable bones
         exportable_bones = set()
+        non_exportable_bones = set()
         for bone in arm_obj.data.bones:
             if bone.xray.exportable:
                 exportable_bones.add(bone.name)
+            else:
+                non_exportable_bones.add(bone.name)
 
         added_count = 0
         path_pose = 'pose.bones["'
@@ -65,7 +68,8 @@ class XRAY_OT_add_all_actions(utils.ie.BaseOperator):
 
                 action_bones.add(path)
 
-            if not exportable_bones - action_bones:
+            action_exportable_bones = action_bones - non_exportable_bones
+            if not action_exportable_bones - exportable_bones:
                 if not root_obj.xray.motions_collection.get(action.name):
                     motion = root_obj.xray.motions_collection.add()
                     motion.name = action.name
