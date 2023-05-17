@@ -5,6 +5,7 @@ import bpy
 from .. import ui
 from .. import menus
 from .. import utils
+from .. import text
 from .. import ops
 
 
@@ -47,13 +48,13 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
                 active = True
             else:
                 layout.label(
-                    text='Active object is not Armature!',
+                    text=text.get_text(text.error.is_not_arm),
                     icon='ERROR'
                 )
                 return
         else:
             layout.label(
-                text='No active object!',
+                text=text.get_text(text.error.no_active_obj),
                 icon='ERROR'
             )
             return
@@ -289,7 +290,10 @@ class XRAY_PT_transforms(ui.base.XRayPanel):
     def draw(self, context):
         lay = self.layout
         if not context.active_object:
-            lay.label(text='No active object!', icon='ERROR')
+            lay.label(
+                text=text.get_text(text.error.no_active_obj),
+                icon='ERROR'
+            )
             return
         data = context.active_object.xray
         column = lay.column()
@@ -461,14 +465,30 @@ class XRAY_PT_armature_tools(ui.base.XRayPanel):
     def draw(self, context):
         col = self.layout.column(align=True)
         col.operator(
-            ops.rig.connect_bones.XRAY_OT_create_connected_bones.bl_idname
-        )
-        col.operator(
-            ops.rig.create_ik.XRAY_OT_create_ik.bl_idname
-        )
-        col.operator(
             ops.bone.XRAY_OT_resize_bones.bl_idname,
             icon='FULLSCREEN_ENTER'
+        )
+
+        has_arm = False
+        active_obj = context.active_object
+        if active_obj:
+            if active_obj.type == 'ARMATURE':
+                has_arm = True
+            else:
+                col = col.row().box()
+                col.label(
+                    text=text.get_text(text.error.is_not_arm),
+                    icon='ERROR'
+                )
+        else:
+            col = col.row().box()
+            col.label(
+                text=text.get_text(text.error.no_active_obj),
+                icon='ERROR'
+            )
+
+        col.operator(
+            ops.rig.connect_bones.XRAY_OT_create_connected_bones.bl_idname
         )
         col.operator(
             ops.armature.XRAY_OT_link_bones.bl_idname
@@ -477,10 +497,35 @@ class XRAY_PT_armature_tools(ui.base.XRayPanel):
             ops.armature.XRAY_OT_unlink_bones.bl_idname
         )
 
-        col.label(text='Set Joint Limits:')
+        if has_arm and context.mode != 'POSE':
+            pose_mode = False
+            pose_lay = col.row().box()
+            pose_lay.label(
+                text=text.get_text(text.error.not_pose_mode),
+                icon='ERROR'
+            )
+        else:
+            pose_mode = True
+            pose_lay = col
+
+        pose_lay.operator(
+            ops.rig.create_ik.XRAY_OT_create_ik.bl_idname
+        )
+
+        limit_lay = pose_lay
+
+        if has_arm and pose_mode:
+            if not context.active_pose_bone:
+                limit_lay = pose_lay.box()
+                limit_lay.label(
+                    text=text.get_text(text.error.no_active_bone),
+                    icon='ERROR'
+                )
+
+        limit_lay.label(text='Set Joint Limits:')
 
         for limit in ('min', 'max'):
-            row = col.row(align=True)
+            row = limit_lay.row(align=True)
             for axis in ('X', 'Y', 'Z'):
                 op_props = row.operator(
                     ops.joint_limits.XRAY_OT_set_joint_limits.bl_idname,
@@ -488,7 +533,7 @@ class XRAY_PT_armature_tools(ui.base.XRayPanel):
                 )
                 op_props.mode = '{0}_{1}'.format(limit.upper(), axis)
 
-        row = col.row(align=True)
+        row = limit_lay.row(align=True)
         for limit in ('min', 'max'):
             op_props = row.operator(
                 ops.joint_limits.XRAY_OT_set_joint_limits.bl_idname,
@@ -496,7 +541,7 @@ class XRAY_PT_armature_tools(ui.base.XRayPanel):
             )
             op_props.mode = '{0}_XYZ'.format(limit.upper())
 
-        row = col.row(align=True)
+        row = limit_lay.row(align=True)
         for axis in ('X', 'Y', 'Z'):
             op_props = row.operator(
                 ops.joint_limits.XRAY_OT_set_joint_limits.bl_idname,
