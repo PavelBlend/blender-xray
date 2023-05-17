@@ -89,10 +89,7 @@ browser_load = 'Loading animations from .skls file: "{}"'
 browser_done = 'Done: {} animation(s)'
 browser_import = 'Imported animation(s)'
 # rig operators
-connect_not_spec_arm = 'Source armature not specified'
-connect_not_found_arm = 'Source armature object not found'
-connect_is_not_arm = 'Source armature object is not an armature'
-connect_nas_no_bones = 'Source armature has no bones'
+connect_has_no_bones = 'Active armature has no bones'
 ik_no_selected_bones = 'No selected bones'
 # verify operator
 incorrect_uv_objs_count = 'selected objects with incorrect UV-maps'

@@ -22,7 +22,7 @@ translations_table = (
     (error.no_active_obj, 'нет активного объекта'),
     (error.no_selected_obj, 'нет выделенных объектов'),
     (error.no_blend_obj, 'текущий blend-файл не имеет объектов'),
-    (error.is_not_arm, 'активный объект не является арматурой'),
+    (error.is_not_arm, 'Активный объект не является арматурой'),
     (error.file_not_found, 'файл не найден'),
     (error.file_folder_not_found, 'файл или папка не найден(а)'),
     (error.ltx_invalid_syntax, 'ошибка синтаксиса ltx файла'),

@@ -8,9 +8,6 @@ from ... import utils
 from ... import text
 
 
-props = {
-    'source_armature': bpy.props.StringProperty(name='Source Armature'),
-}
 NAME_SUFFIX = ' connected'
 WEIGHT_SUFFIX = ' weight'
 BONE_NAME_SUFFIX = ' c'
@@ -211,39 +208,33 @@ class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
     bl_label = 'Create Connected Bones'
     bl_options = {'REGISTER', 'UNDO'}
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
-
-    def draw(self, context):    # pragma: no cover
-        split = utils.version.layout_split(self.layout, 0.35)
-        split.label(text='Source Armature:')
-        split.prop_search(self, 'source_armature', bpy.data, 'objects', text='')
+    @classmethod
+    def poll(cls, context):
+        active = context.active_object
+        return active and active.type == 'ARMATURE'
 
     @utils.set_cursor_state
     def execute(self, context):
-        if context.mode != 'OBJECT':
-            bpy.ops.object.mode_set(mode='OBJECT')
-
         # check input
-        src_name = self.source_armature
-        if not src_name:
-            self.report({'WARNING'}, text.warn.connect_not_spec_arm)
-            return {'FINISHED'}
-
-        src_arm_obj = bpy.data.objects.get(src_name)
+        src_arm_obj = context.active_object
         if not src_arm_obj:
-            self.report({'WARNING'}, text.warn.connect_not_found_arm)
+            self.report({'WARNING'}, text.get_text(text.error.no_active_obj))
             return {'FINISHED'}
 
         if src_arm_obj.type != 'ARMATURE':
-            self.report({'WARNING'}, text.warn.connect_is_not_arm)
+            self.report({'WARNING'}, text.get_text(text.error.is_not_arm))
             return {'FINISHED'}
 
         src_arm = src_arm_obj.data
         if not len(src_arm.bones):
-            self.report({'WARNING'}, text.warn.connect_nas_no_bones)
+            self.report(
+                {'WARNING'},
+                text.get_text(text.warn.connect_has_no_bones)
+            )
             return {'FINISHED'}
+
+        if context.mode != 'OBJECT':
+            bpy.ops.object.mode_set(mode='OBJECT')
 
         # create armature
         arm_obj = src_arm_obj.copy()
@@ -288,13 +279,8 @@ class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):    # pragma: no cover
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
-
 
 def register():
-    utils.version.assign_props([(props, XRAY_OT_create_connected_bones), ])
     bpy.utils.register_class(XRAY_OT_create_connected_bones)
 
 

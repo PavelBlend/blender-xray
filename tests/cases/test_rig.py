@@ -7,11 +7,10 @@ import tests
 class TestRig(tests.utils.XRayTestCase):
     def test_rig(self):
         arm_obj, me_obj = create_armature_object()
+        tests.utils.set_active_object(arm_obj)
 
         # test connected bones without mesh
-        bpy.ops.io_scene_xray.create_connected_bones(
-            source_armature=arm_obj.name
-        )
+        bpy.ops.io_scene_xray.create_connected_bones()
 
         # add armature modifier
         me_obj.parent = arm_obj
@@ -19,9 +18,7 @@ class TestRig(tests.utils.XRayTestCase):
         arm_mode.object = arm_obj
 
         # test connected bones with mesh
-        bpy.ops.io_scene_xray.create_connected_bones(
-            source_armature=arm_obj.name
-        )
+        bpy.ops.io_scene_xray.create_connected_bones()
 
         # test create ik, foot test
         connected_obj = bpy.data.objects[arm_obj.name + ' connected']
