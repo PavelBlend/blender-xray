@@ -158,14 +158,6 @@ def import_lod_visual(chunks, visual, lvl):
     elif visual.format_version == fmt.FORMAT_VERSION_3:
         chunks_ids = fmt.Chunks_v3
 
-        # bbox
-        bbox_data = chunks.pop(chunks_ids.BBOX)
-        header.read_bbox_v3(bbox_data)
-
-        # bsphere
-        bsphere_data = chunks.pop(chunks_ids.BSPHERE)
-        header.read_bsphere_v3(bsphere_data)
-
     # read chunks
 
     visual.name = 'lod'

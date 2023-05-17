@@ -18,17 +18,6 @@ from .... import utils
 
 
 def import_hierrarhy_visual(chunks, chunks_fmt, visual, lvl):
-    if visual.format_version in (fmt.FORMAT_VERSION_2, fmt.FORMAT_VERSION_3):
-        # bbox
-        bbox_data = chunks.pop(chunks_fmt.BBOX, None)
-        if bbox_data:
-            header.read_bbox_v3(bbox_data)
-
-        # bsphere
-        bsphere_data = chunks.pop(chunks_fmt.BSPHERE, None)
-        if bsphere_data:
-            header.read_bsphere_v3(bsphere_data)
-
     # children link
     children_l_data = chunks.pop(chunks_fmt.CHILDREN_L)
     child.import_children_l(children_l_data, visual, lvl, 'HIERRARHY')
