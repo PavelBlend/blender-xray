@@ -30,17 +30,22 @@ class XRAY_UL_viewer_list_item(bpy.types.UIList):
             if context.scene.xray.viewer.show_size:
                 row = row.row()
                 row.alignment = 'RIGHT'
-                if item.size > MB:
-                    row.label(text='{:.1f} MB'.format(item.size / MB))
-                elif item.size > KB:
-                    row.label(text='{:.1f} KB'.format(item.size / KB))
-                else:
-                    row.label(text='{} Bytes'.format(item.size))
+                row.label(text=get_size_label(item.size))
 
             if context.scene.xray.viewer.show_date:
                 row = row.row()
                 row.alignment = 'RIGHT'
                 row.label(text=item.date)
+
+
+def get_size_label(size):
+    if size > MB:
+        text = '{:.1f} MB'.format(size / MB)
+    elif size > KB:
+        text = '{:.1f} KB'.format(size / KB)
+    else:
+        text = '{} Bytes'.format(size)
+    return text
 
 
 def get_current_objects():
@@ -334,6 +339,10 @@ def update_file_list(directory, active_folder=None):
         dir_index = groups_keys.index(True)
         groups_keys.pop(dir_index)
         groups_keys.insert(0, True)
+
+    viewer.files_count = 0
+    viewer.dirs_count = 0
+    viewer.files_size = 0
     for group_key in groups_keys:
         files_list = file_groups[group_key]
         if group_key:    # folders
@@ -348,9 +357,13 @@ def update_file_list(directory, active_folder=None):
             file.date = date
             file.is_dir = is_directory
             if is_directory:
+                viewer.dirs_count += 1
                 if active_folder:
                     if file_name == active_folder:
                         viewer.files_index = file_index
+            else:
+                viewer.files_count += 1
+                viewer.files_size += size
             file_index += 1
 
 
@@ -555,6 +568,9 @@ scene_viewer_props = {
     'files': bpy.props.CollectionProperty(type=XRayViwerFileProperties),
     'files_index': bpy.props.IntProperty(update=update_file),
     'folder': bpy.props.StringProperty(),
+    'files_count': bpy.props.IntProperty(default=0, name='Files Count'),
+    'dirs_count': bpy.props.IntProperty(default=0, name='Folders Count'),
+    'files_size': bpy.props.IntProperty(default=0, name='Files Size'),
     'is_preview_folder_mode': bpy.props.BoolProperty(default=False),
     'import_motions': bpy.props.BoolProperty(
         default=False,

@@ -129,24 +129,23 @@ class XRAY_PT_viewer(ui.base.XRayPanel):
         scn = context.scene
         viewer_props = scn.xray.viewer
         viewer_folder = viewer_props.folder
+
         if viewer_folder:
-            row = col.row(align=True)
-            row.label(text=viewer_folder)
-            row.operator(
+            col.operator(
+                ops.viewer.XRAY_OT_viewer_close_folder.bl_idname,
+                icon='X'
+            )
+            col.operator(
                 ops.viewer.XRAY_OT_viewer_open_current_folder.bl_idname,
-                text='',
+                text=viewer_folder,
                 icon='FILE_FOLDER'
             )
 
-            row = col.row(align=True)
-            row.label(text='Sort:')
-            row.prop(viewer_props, 'sort', expand=True)
-
-            col_settings = col.column(align=True)
+            col_fmt = col.column(align=True)
 
             # formats
-            col_settings.label(text='Use Formats:')
-            row = col_settings.row(align=True)
+            col_fmt.label(text='Use Formats:')
+            row = col_fmt.row(align=True)
             row.prop(
                 viewer_props,
                 'use_object',
@@ -158,21 +157,48 @@ class XRAY_PT_viewer(ui.base.XRayPanel):
             row.prop(viewer_props, 'use_dm', toggle=True)
             row.prop(viewer_props, 'use_details', toggle=True)
 
-            col_settings.prop(viewer_props, 'import_motions')
-            col_settings.prop(viewer_props, 'sort_reverse')
-            col_settings.prop(viewer_props, 'ignore_ext')
-            col_settings.prop(viewer_props, 'show_size')
-            col_settings.prop(viewer_props, 'show_date')
-            col_settings.prop(viewer_props, 'group_by_ext')
+            row = col.row(align=True)
+            col_1 = row.column(align=True)
+            col_2 = row.column(align=True)
 
-            col.operator(
-                ops.viewer.XRAY_OT_viewer_close_folder.bl_idname,
-                icon='X'
-            )
+            col_1.prop(viewer_props, 'import_motions')
+            col_1.prop(viewer_props, 'sort_reverse')
+            col_1.prop(viewer_props, 'ignore_ext')
+            col_2.prop(viewer_props, 'show_size')
+            col_2.prop(viewer_props, 'show_date')
+            col_2.prop(viewer_props, 'group_by_ext')
+
+            row = col.row(align=True)
+            row.label(text='Sort:')
+            row.prop(viewer_props, 'sort', expand=True)
+
+            # folders count
+            row = col.row()
+            row.label(text='Folders:', icon='FILE_FOLDER')
+            row = row.row()
+            row.alignment = 'RIGHT'
+            row.label(text=str(viewer_props.dirs_count))
+
+            # files count
+            row = col.row()
+            row.label(text='Files:', icon='FILE')
+            row = row.row()
+            row.alignment = 'RIGHT'
+            row.label(text=str(viewer_props.files_count))
+
+            # files size
+            row = col.row()
+            row.label(text='Files Size:', icon='INFO')
+            row = row.row()
+            row.alignment = 'RIGHT'
+            row.label(text=ops.viewer.get_size_label(viewer_props.files_size))
+
             col.operator(
                 ops.viewer.XRAY_OT_viewer_preview_folder.bl_idname,
                 icon='FILE_PARENT'
             )
+
+            # files list
             col.template_list(
                 listtype_name='XRAY_UL_viewer_list_item',
                 list_id='compact',
@@ -182,6 +208,7 @@ class XRAY_PT_viewer(ui.base.XRayPanel):
                 active_propname='files_index',
                 rows=5
             )
+
             # select operators
             row = col.row(align=True)
             row.label(text='Select:')
@@ -200,6 +227,7 @@ class XRAY_PT_viewer(ui.base.XRayPanel):
                 text='Invert'
             )
             op_select_all.mode = 'INVERT_SELECTION'
+
             # import operators
             row = col.row(align=True)
             row.label(text='Import:')
@@ -218,6 +246,7 @@ class XRAY_PT_viewer(ui.base.XRayPanel):
                 text='All'
             )
             op_import_all.mode = 'IMPORT_ALL'
+
         else:
             col.operator(
                 ops.viewer.XRAY_OT_viewer_open_folder.bl_idname,
