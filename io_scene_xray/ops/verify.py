@@ -208,8 +208,12 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
                         uv_coord = face.loops[vert_index][uv_layer].uv
                         uvs.append(uv_coord)
 
-                    area = mathutils.geometry.area_tri(*uvs)
-                    if area < self.EPS_UV:
+                    dist_1 = abs((uvs[0] - uvs[1]).length)
+                    dist_2 = abs((uvs[1] - uvs[2]).length)
+                    dist_3 = abs((uvs[2] - uvs[0]).length)
+                    perimeter = dist_1 + dist_2 + dist_3
+
+                    if perimeter < self.EPS_UV:
                         bpy.ops.object.mode_set(mode='EDIT')
                         bpy.ops.mesh.select_mode(type='VERT')
                         bpy.ops.object.mode_set(mode='OBJECT')
