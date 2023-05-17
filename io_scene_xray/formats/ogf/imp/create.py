@@ -136,12 +136,14 @@ def import_level_geometry_v2_v3(chunks, visual, lvl):
         chunks_ids = fmt.Chunks_v2
 
     # bbox
-    bbox_data = chunks.pop(chunks_ids.BBOX)
-    header.read_bbox_v3(bbox_data)
+    bbox_data = chunks.pop(chunks_ids.BBOX, None)
+    if bbox_data:
+        header.read_bbox_v3(bbox_data)
 
     # bsphere
-    bsphere_data = chunks.pop(chunks_ids.BSPHERE)
-    header.read_bsphere_v3(bsphere_data)
+    bsphere_data = chunks.pop(chunks_ids.BSPHERE, None)
+    if bsphere_data:
+        header.read_bsphere_v3(bsphere_data)
 
     has_vc = False
     has_ic = False
