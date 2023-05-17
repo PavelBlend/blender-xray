@@ -281,4 +281,4 @@ def register():
 
 def unregister():
     for clas in reversed(classes):
-        bpy.utils.unregister_class(XRAY_OT_verify_uv)
+        bpy.utils.unregister_class(clas)
