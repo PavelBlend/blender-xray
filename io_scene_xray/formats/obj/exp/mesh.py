@@ -223,12 +223,15 @@ def export_mesh(
     if prefs.object_split_normals:
         temp_obj = bpy_obj.copy()
         temp_obj.data = bpy_obj.data.copy()
+        mods_count = len(temp_obj.modifiers)
         tri_mod = temp_obj.modifiers.new('Triangulate', 'TRIANGULATE')
         if utils.version.IS_28:
             tri_mod.keep_custom_normals = True
         override = bpy.context.copy()
         override['active_object'] = temp_obj
         override['object'] = temp_obj
+        for i in range(mods_count):
+            bpy.ops.object.modifier_move_up(override, modifier=tri_mod.name)
         bpy.ops.object.modifier_apply(override, modifier=tri_mod.name)
         bm = utils.mesh.convert_object_to_space_bmesh(
             temp_obj,
