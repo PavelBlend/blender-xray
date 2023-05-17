@@ -79,12 +79,19 @@ def _export_child(
         vertex_groups_map
     ):
 
+    modifiers = [
+        mod
+        for mod in bpy_obj.modifiers
+            if mod.type != 'ARMATURE' and mod.show_viewport
+    ]
+
     loc_space, rot_space, scl_space = utils.ie.get_object_world_matrix(root_obj)
     mesh = utils.mesh.convert_object_to_space_bmesh(
         bpy_obj,
         loc_space,
         rot_space,
-        scl_space
+        scl_space,
+        mods=modifiers
     )
 
     bbox = utils.mesh.calculate_mesh_bbox(mesh.verts)
