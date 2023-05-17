@@ -324,6 +324,8 @@ def create_faces_old(visual, mesh, remap_vertices, norm_fun):
 
 
 def update_verts_coords_v3(mesh_obj, arm_obj, split_norms):
+    if not len(mesh_obj.vertex_groups):
+        return
     multiply = utils.version.get_multiply()
     for vert in mesh_obj.data.vertices:
         group_id = vert.groups[0].group
