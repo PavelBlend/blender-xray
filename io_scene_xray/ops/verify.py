@@ -1,9 +1,41 @@
 # blender modules
 import bpy
+import bmesh
+import mathutils
 
 # addon modules
 from .. import utils
 from .. import text
+
+
+def get_objects(self):
+    objects = []
+    if self.mode == 'ACTIVE_OBJECT':
+        active_obj = bpy.context.active_object
+        if active_obj:
+            objects.append(active_obj)
+        else:
+            self.report(
+                {'WARNING'},
+                text.get_text(text.error.no_active_obj).capitalize()
+            )
+    elif self.mode == 'SELECTED_OBJECTS':
+        if not bpy.context.selected_objects:
+            self.report(
+                {'WARNING'},
+                text.get_text(text.error.no_selected_obj).capitalize()
+            )
+        else:
+            objects = [obj for obj in bpy.context.selected_objects]
+    elif self.mode == 'ALL_OBJECTS':
+        if not bpy.data.objects:
+            self.report(
+                {'WARNING'},
+                text.get_text(text.error.no_blend_obj).capitalize()
+            )
+        else:
+            objects = [obj for obj in bpy.context.scene.objects]
+    return objects
 
 
 mode_items = (
@@ -48,7 +80,7 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
         # set object mode
         if context.active_object:
             bpy.ops.object.mode_set(mode='OBJECT')
-        objects = self.get_objects()
+        objects = get_objects(self)
         if not objects:
             bpy.ops.object.select_all(action='DESELECT')
             utils.version.set_active_object(None)
@@ -69,37 +101,6 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
             ': {}'.format(len(bad_objects))
         )
         return {'FINISHED'}
-
-    def get_objects(self):
-        objects = []
-        if self.mode == 'ACTIVE_OBJECT':
-            active_obj = bpy.context.active_object
-            if active_obj:
-                objects.append(active_obj)
-            else:
-                self.report(
-                    {'WARNING'},
-                    text.get_text(text.error.no_active_obj).capitalize()
-                )
-        elif self.mode == 'SELECTED_OBJECTS':
-            if not bpy.context.selected_objects:
-                self.report(
-                    {'WARNING'},
-                    text.get_text(text.error.no_selected_obj).capitalize()
-                )
-            else:
-                objects = [obj for obj in bpy.context.selected_objects]
-        elif self.mode == 'ALL_OBJECTS':
-            if not bpy.data.objects:
-                self.report(
-                    {'WARNING'},
-                    text.get_text(text.error.no_blend_obj).capitalize()
-                )
-            else:
-                objects = [obj for obj in bpy.context.scene.objects]
-        else:
-            raise Exception('incorrect verify uv mode')
-        return objects
 
     def verify_uv(self, context, bpy_object):
         if bpy_object.type != 'MESH':
@@ -135,9 +136,145 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
         return wm.invoke_props_dialog(self)
 
 
+mode_items = (
+    ('ACTIVE_OBJECT', 'Active Object', ''),
+    ('SELECTED_OBJECTS', 'Selected Objects', ''),
+    ('ALL_OBJECTS', 'All Objects', '')
+)
+op_props = {
+    'mode': bpy.props.EnumProperty(
+        name='Mode',
+        default='SELECTED_OBJECTS',
+        items=mode_items
+    ),
+    'face_area': bpy.props.BoolProperty(
+        name='Check Face Area',
+        default=True
+    ),
+    'uv_area': bpy.props.BoolProperty(
+        name='Check UV Area',
+        default=True
+    )
+}
+
+
+class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
+    bl_idname = 'io_scene_xray.check_invalid_faces'
+    bl_label = 'Check Invalid Faces'
+    bl_description = 'Find invalid faces'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    props = op_props
+
+    EPS = 0.00001
+    EPS_UV = 0.5 / 4096    # half pixel from 4096 texture
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+    def check_invalid(self, context, bpy_obj):
+        if bpy_obj.type != 'MESH':
+            return False
+
+        utils.version.set_active_object(bpy_obj)
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.reveal()
+        bpy.ops.mesh.select_all(action='DESELECT')
+        bpy.ops.mesh.select_mode(type='FACE')
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.select_all(action='DESELECT')
+        mesh = bpy_obj.data
+        is_invalid = False
+
+        # check face area
+        if self.face_area:
+            for face in mesh.polygons:
+                if face.area < self.EPS:
+                    face.select = True
+                    is_invalid = True
+
+        # check uv area
+        if self.uv_area:
+            bm = bmesh.new()
+            bm.from_mesh(mesh)
+            bmesh.ops.triangulate(bm, faces=bm.faces)
+
+            for uv_name in bm.loops.layers.uv.keys():
+                uv_layer = bm.loops.layers.uv[uv_name]
+                for face in bm.faces:
+                    uvs = []
+                    for vert_index, vert in enumerate(face.verts):
+                        uv_coord = face.loops[vert_index][uv_layer].uv
+                        uvs.append(uv_coord)
+
+                    area = mathutils.geometry.area_tri(*uvs)
+                    if area < self.EPS_UV:
+                        bpy.ops.object.mode_set(mode='EDIT')
+                        bpy.ops.mesh.select_mode(type='VERT')
+                        bpy.ops.object.mode_set(mode='OBJECT')
+                        for vert in face.verts:
+                            mesh.vertices[vert.index].select = True
+                        is_invalid = True
+
+        return is_invalid
+
+    def draw(self, context):    # pragma: no cover
+        layout = self.layout
+        column = layout.column(align=True)
+        column.label(text='Mode:')
+        column.prop(self, 'mode', expand=True)
+        column.prop(self, 'face_area')
+        column.prop(self, 'uv_area')
+
+    @utils.set_cursor_state
+    def execute(self, context):
+        # set object mode
+        if context.active_object:
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        objs = get_objects(self)
+
+        if not objs:
+            bpy.ops.object.select_all(action='DESELECT')
+            utils.version.set_active_object(None)
+            return {'CANCELLED'}
+
+        bad_objects = []
+        for obj in objs:
+            is_invalid = self.check_invalid(context, obj)
+            if is_invalid:
+                bad_objects.append(obj.name)
+
+        bpy.ops.object.select_all(action='DESELECT')
+        for obj_name in bad_objects:
+            obj = bpy.data.objects[obj_name]
+            utils.version.select_object(obj)
+        utils.version.set_active_object(None)
+
+        self.report(
+            {'INFO'},
+            text.get_text(text.warn.invalid_face_objs_count).capitalize() + \
+            ': {}'.format(len(bad_objects))
+        )
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):    # pragma: no cover
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
+classes = (
+    XRAY_OT_verify_uv,
+    XRAY_OT_check_invalid_faces
+)
+
+
 def register():
-    utils.version.register_operators(XRAY_OT_verify_uv)
+    utils.version.register_operators(classes)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_OT_verify_uv)
+    for clas in reversed(classes):
+        bpy.utils.unregister_class(XRAY_OT_verify_uv)

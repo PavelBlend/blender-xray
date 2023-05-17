@@ -97,8 +97,9 @@ translations_table = (
     (warn.browser_load, 'Загрузка анимаций из .skls файла: "{}"'),
     (warn.browser_done, 'Готово: {} анимаций'),
     (warn.browser_import, 'Импортировано анимаций'),
-    # verify uv
+    # verify
     (warn.incorrect_uv_objs_count, 'выделено объектов с некорректной uv-картой'),
+    (warn.invalid_face_objs_count, 'выделено объектов с invalid face'),
     # others operators
     (warn.added_motions, 'Добавлено анимаций'),
 )

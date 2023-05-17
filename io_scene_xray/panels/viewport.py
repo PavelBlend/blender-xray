@@ -266,11 +266,14 @@ class XRAY_PT_verify_tools(ui.base.XRayPanel):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(
+        col = layout.column(align=True)
+
+        col.operator(
             ops.verify.XRAY_OT_verify_uv.bl_idname,
             icon='GROUP_UVS'
         )
-        layout.operator(ops.invalid_sg.XRAY_OT_check_invalid_sg_objs.bl_idname)
+        col.operator(ops.verify.XRAY_OT_check_invalid_faces.bl_idname)
+        col.operator(ops.invalid_sg.XRAY_OT_check_invalid_sg_objs.bl_idname)
 
 
 class XRAY_PT_transforms(ui.base.XRayPanel):

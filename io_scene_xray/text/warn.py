@@ -96,6 +96,7 @@ connect_nas_no_bones = 'Source armature has no bones'
 ik_no_selected_bones = 'No selected bones'
 # verify operator
 incorrect_uv_objs_count = 'selected objects with incorrect UV-maps'
+invalid_face_objs_count = 'selected objects with invalid faces'
 # other operators
 added_motions = 'Added animations'
 # armature panel
