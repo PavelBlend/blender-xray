@@ -15,14 +15,8 @@ from .... import text
 from .... import rw
 
 
-def import_main(context, level, data=None):
-    # read level.cform file
-    if level.xrlc_version >= fmt.VERSION_10:
-        cform_path = os.path.join(level.path, 'level.cform')
-        data = rw.utils.read_file(cform_path)
-    else:
-        cform_path = level.file
-
+def import_main(context, level, cform_path, data):
+    # get reader
     packed_reader = rw.read.PackedReader(data)
 
     # read header

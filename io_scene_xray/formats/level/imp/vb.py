@@ -30,18 +30,15 @@ def import_vertices(
         packed_reader,
         vertex_buffer,
         vertices_count,
-        usage_list,
-        global_usage_list
+        usage_list
     ):
     code = ''
     code += 'for vertex_index in range({}):\n'.format(vertices_count)
     has_uv_corrector = False
-    usages = []
     for usage_info in usage_list:
         data_type = usage_info[2]
         usage = usage_info[4]
         usage_index = usage_info[5]
-        usages.append(usage_info)
         data_format = fmt.types_struct[data_type]
         data_type = fmt.types[data_type]
         usage = fmt.usage[usage]
@@ -124,7 +121,7 @@ def import_vertices(
                     '       red, green, blue\n' \
                     '    ))\n'
             code += '    vertex_buffer.color_sun.append(sun)\n'
-    global_usage_list.add(tuple(usages))
+
     exec(code)
 
 
@@ -138,25 +135,25 @@ def import_vertices_d3d7(
     code = ''
     code += 'for vertex_index in range({0}):\n'.format(vertices_count)
     # xyz, normal, diffuse, tex coord
-    vertex_format_key = [False, ] * 4
+
     if (vertex_format & fmt.D3D7FVF.POSITION_MASK) == fmt.D3D7FVF.XYZ:
-        vertex_format_key[0] = True    # xyz
         code += '    coord_x, coord_y, coord_z = packed_reader.getf("<3f")\n'
         code += '    vertex_buffer.position.append((coord_x, coord_z, coord_y))\n'
+
     if vertex_format & fmt.D3D7FVF.NORMAL:
-        vertex_format_key[1] = True    # normal
         vertex_buffer.float_normals = True
         code += '    norm_x, norm_y, norm_z = packed_reader.getf("<3f")\n'
         code += '    vertex_buffer.normal.append((norm_z, norm_x, norm_y))\n'
+
     if vertex_format & fmt.D3D7FVF.DIFFUSE:
-        vertex_format_key[2] = True    # diffuse
         code += '    red, green, blue, unknown = packed_reader.getf("<4B")\n'
         code += '    red = red / 255\n'
         code += '    green = green / 255\n'
         code += '    blue = blue / 255\n'
         code += '    vertex_buffer.color_light.append((red, green, blue))\n'
+
     tex_coord = (vertex_format & fmt.D3D7FVF.TEXCOUNT_MASK) >> fmt.D3D7FVF.TEXCOUNT_SHIFT
-    vertex_format_key[3] = tex_coord    # texture coord count
+
     lmap_uv_code = ''
     if tex_coord in (1, 2):
         tex_uv_code = '    coord_u, coord_v = packed_reader.getf("<2f")\n'
@@ -170,7 +167,7 @@ def import_vertices_d3d7(
     else:
         code += lmap_uv_code
         code += tex_uv_code
-    level.vertex_format_list.add(tuple(vertex_format_key))
+
     exec(code)
 
 
@@ -210,8 +207,7 @@ def import_vertex_buffer(packed_reader, level):
             packed_reader,
             vertex_buffer,
             vertices_count,
-            usage_list,
-            level.usage_list
+            usage_list
         )
     return vertex_buffer
 
@@ -231,45 +227,13 @@ def import_vertex_buffer_d3d7(packed_reader, level):
     return vertex_buffer
 
 
-def import_vertex_buffers(data, level, fast=False, d3d7=False):
-    packed_reader = rw.read.PackedReader(data)
-    vertex_buffers_count = packed_reader.uint32()
-    vertex_buffers = []
-    if not d3d7:
-        import_vertex_buffer_function = import_vertex_buffer
-    else:
-        import_vertex_buffer_function = import_vertex_buffer_d3d7
+def import_vertex_buffers(data, level, import_fun):
+    vbs_reader = rw.read.PackedReader(data)
+    buffers_count = vbs_reader.uint32()
 
-    for vertex_buffer_index in range(vertex_buffers_count):
-        vertex_buffer = import_vertex_buffer_function(packed_reader, level)
+    vertex_buffers = []
+    for buffer_index in range(buffers_count):
+        vertex_buffer = import_fun(vbs_reader, level)
         vertex_buffers.append(vertex_buffer)
 
-    stats = ''
-    if fast:
-        stats += '\n\nFAST_PATH VBs Info\n'
-    else:
-        stats += '\n\nVISUALS VBs Info\n'
-    if not d3d7:
-        for usages in level.usage_list:
-            stats += '-' * 79 + '\n'
-            for usage_info in usages:
-                stream, offset, data_type, method, usage, usage_index = usage_info
-                stats += 'Stream:{0} Offset:{1} Type:{2} Method:{3} Usage:{4} UsageIndex:{5}\n'.format(
-                    stream,
-                    offset,
-                    fmt.types[data_type],
-                    fmt.methods[method],
-                    fmt.usage[usage],
-                    usage_index
-                )
-        stats += '-' * 79 + '\n\n'
-    else:
-        for vertex_format in level.vertex_format_list:
-            stats += '-' * 79 + '\n'
-            xyz, normal, diffuse, tex_coord = vertex_format
-            stats += 'XYZ:{0} Normal:{1} Diffuse:{2} Tex Coord:{3}\n'.format(
-                xyz, normal, diffuse, tex_coord
-            )
-        stats += '-' * 79 + '\n\n'
-
-    return vertex_buffers, stats
+    return vertex_buffers
