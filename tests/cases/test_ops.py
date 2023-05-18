@@ -430,22 +430,184 @@ class TestOps(tests.utils.XRayTestCase):
             else:
                 uv_tex = mesh.uv_textures.new(name='uv')
                 uv_layer = mesh.uv_layers[uv_tex.name]
-            uv_layer.data.foreach_set('uv', uvs)
-            obj = bpy.data.objects.new('test_verify_uv', mesh)
+            obj = bpy.data.objects.new('test_verify_uv_{}'.format(i), mesh)
             tests.utils.link_object(obj)
             tests.utils.select_object(obj)
             for vert in verts:
                 vert[0] += 2
             uv_offset_x, uv_offset_y = uv_offsets[i]
-            for uv_index in range(0, len(uvs), 2):
-                uvs[uv_index] += uv_offset_x
-                uvs[uv_index + 1] += uv_offset_y
+            current_uvs = uvs.copy()
+            for uv_index in range(0, len(current_uvs), 2):
+                current_uvs[uv_index] += uv_offset_x
+                current_uvs[uv_index + 1] += uv_offset_y
+            uv_layer.data.foreach_set('uv', current_uvs)
         obj = bpy.data.objects.new('test_verify_uv_empty', None)
         tests.utils.link_object(obj)
         tests.utils.select_object(obj)
         bpy.ops.io_scene_xray.verify_uv()
 
         self.assertEqual(len(bpy.context.selected_objects), 1)
+
+        bpy.ops.object.select_all(action='DESELECT')
+
+        tests.utils.set_active_object(bpy.data.objects['test_verify_uv_1'])
+        bpy.ops.io_scene_xray.verify_uv(mode='ACTIVE_OBJECT')
+        self.assertEqual(len(bpy.context.selected_objects), 1)
+
+    def test_check_invalid_faces(self):
+        # remove default objects
+        tests.utils.remove_all_objects()
+
+        # test without selected objects
+        bpy.ops.io_scene_xray.check_invalid_faces(
+            mode='ACTIVE_OBJECT',
+            face_area=True,
+            uv_area=True
+        )
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('No active object!')
+        )
+        self._reports.clear()
+
+        bpy.ops.io_scene_xray.check_invalid_faces(
+            mode='SELECTED_OBJECTS',
+            face_area=True,
+            uv_area=True
+        )
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('No selected objects')
+        )
+        self._reports.clear()
+
+        bpy.ops.io_scene_xray.check_invalid_faces(
+            mode='ALL_OBJECTS',
+            face_area=True,
+            uv_area=True
+        )
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Current blend-file has no objects')
+        )
+        self._reports.clear()
+
+        # test selected objects
+        verts = [
+            # correct face
+            [0, 0, 0],
+            [1, 0, 0],
+            [1, 1, 0],
+            [0, 1, 0],
+            # invalid face 1
+            [0, 0, 0],
+            [0.0003, 0, 0],
+            [0.0003, 0.0003, 0],
+            [0, 0.0003, 0],
+            # invalid face 2
+            [0, 0, 0],
+            [1, 0, 0],
+            [0.5, 0, 0]
+        ]
+        faces = (
+            (0, 1, 2),
+            (2, 3, 0),
+            (4, 5, 6, 7),
+            (8, 9, 10)
+        )
+        uvs = [
+            # correct face
+            0, 0,
+            1, 0,
+            1, 1,
+            1, 1,
+            0, 1,
+            0, 0,
+            # invalid face 1
+            0, 0,
+            0.00003, 0,
+            0.00003, 0.00003,
+            0.00003, 0.00003,
+            # invalid face 2
+            0, 0,
+            0, 0,
+            0, 0
+        ]
+
+        correct_verts = [
+            [0, 0, 0],
+            [1, 0, 0],
+            [1, 1, 0]
+        ]
+        correct_faces = [(0, 1, 2), ]
+        correct_uvs = [
+            0, 0,
+            1, 0,
+            1, 1
+        ]
+
+        for i in range(5):
+            mesh = bpy.data.meshes.new('test_invalid_face')
+            if i == 3:
+                mesh.from_pydata(correct_verts, (), correct_faces)
+                uv_coords = correct_uvs
+            else:
+                mesh.from_pydata(verts, (), faces)
+                uv_coords = uvs
+            if bpy.app.version >= (2, 80, 0):
+                uv_layer = mesh.uv_layers.new(name='uv')
+            else:
+                uv_tex = mesh.uv_textures.new(name='uv')
+                uv_layer = mesh.uv_layers[uv_tex.name]
+            uv_layer.data.foreach_set('uv', uv_coords)
+            if i == 4:
+                obj = bpy.data.objects.new(
+                    'test_invalid_face_{}'.format(i),
+                    None
+                )
+            else:
+                obj = bpy.data.objects.new(
+                    'test_invalid_face_{}'.format(i),
+                    mesh
+                )
+            tests.utils.link_object(obj)
+            tests.utils.select_object(obj)
+
+        tests.utils.set_active_object(bpy.data.objects['test_invalid_face_0'])
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        bpy.ops.io_scene_xray.check_invalid_faces(
+            mode='SELECTED_OBJECTS',
+            face_area=True,
+            uv_area=True
+        )
+        self.assertReportsContains(
+            'INFO',
+            re.compile('Selected objects with invalid faces: 3')
+        )
+        self._reports.clear()
+
+        bpy.ops.io_scene_xray.check_invalid_faces(
+            mode='SELECTED_OBJECTS',
+            face_area=True,
+            uv_area=False
+        )
+        self.assertReportsContains(
+            'INFO',
+            re.compile('Selected objects with invalid faces: 3')
+        )
+        self._reports.clear()
+
+        bpy.ops.io_scene_xray.check_invalid_faces(
+            mode='ALL_OBJECTS',
+            face_area=False,
+            uv_area=True
+        )
+        self.assertReportsContains(
+            'INFO',
+            re.compile('Selected objects with invalid faces: 3')
+        )
+        self._reports.clear()
 
     def test_change_fake_user(self):
         for index in range(3):

@@ -46,7 +46,7 @@ def _export_motion_data(
     writer.puts(motion_name)
     writer.putf('<2I', int(frame_start), int(frame_end))
     writer.putf('<f', fps)
-    writer.putf('<H', FORMAT_VERSION_6)
+    writer.putf('<H', const.FORMAT_VERSION_6)
     writer.putf('<B', xray.flags)
     writer.putf('<H', xray.bonepart)
     writer.putf('<4f', xray.speed, xray.accrue, xray.falloff, xray.power)
