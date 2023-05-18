@@ -1,7 +1,7 @@
 # header chunk id
 HEADER = 0x1
 
-
+# unsupported chunk id
 UNSUPPORTED = -1
 
 
