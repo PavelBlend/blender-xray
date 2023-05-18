@@ -3,7 +3,7 @@ import bpy
 import bpy_extras
 
 # addon modules
-from . import imp
+from . import main
 from ... import ie
 from ... import contexts
 from .... import utils
@@ -70,7 +70,7 @@ class XRAY_OT_import_level(
         import_context.operator=self
         import_context.filepath = self.filepath
         try:
-            imp.import_file(import_context)
+            main.import_file(import_context)
         except log.AppError as err:
             import_context.errors.append(err)
         for err in import_context.errors:
