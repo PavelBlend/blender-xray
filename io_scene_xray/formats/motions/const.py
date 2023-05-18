@@ -10,4 +10,6 @@ MATRIX_BONE = mathutils.Matrix((
 )).freeze()
 MATRIX_BONE_INVERTED = MATRIX_BONE.inverted().freeze()
 
+FORMAT_VERSION_6 = 6
+FORMAT_VERSION_7 = 7
 CURVE_COUNT = 6    # translation xyz, rotation xyz

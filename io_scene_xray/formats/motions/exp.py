@@ -11,8 +11,6 @@ from ... import log
 from ... import rw
 
 
-FORMAT_VERSION = 6
-CURVE_COUNT = 6    # location xyz, rotation xyz
 MOTION_DEFAULT_FLAGS = 0
 
 
@@ -48,7 +46,7 @@ def _export_motion_data(
     writer.puts(motion_name)
     writer.putf('<2I', int(frame_start), int(frame_end))
     writer.putf('<f', fps)
-    writer.putf('<H', FORMAT_VERSION)
+    writer.putf('<H', FORMAT_VERSION_6)
     writer.putf('<B', xray.flags)
     writer.putf('<H', xray.bonepart)
     writer.putf('<4f', xray.speed, xray.accrue, xray.falloff, xray.power)
@@ -75,7 +73,7 @@ def _export_motion_data(
 
         # collect translation and rotation curves
         curves = []
-        for curve_id in range(CURVE_COUNT):
+        for curve_id in range(const.CURVE_COUNT):
             curves.append([])
 
         if scale:

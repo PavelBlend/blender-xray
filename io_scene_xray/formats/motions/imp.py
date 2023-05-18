@@ -15,20 +15,20 @@ from ... import rw
 def skip_motion_rest(data, offs):
     ptr = offs + 4 + 4 + 4 + 2
     ver = rw.read.FastBytes.short_at(data, ptr - 2)
-    if ver < 6:
+    if ver < const.FORMAT_VERSION_6:
         raise log.AppError(text.error.motion_ver, log.props(version=ver))
 
     ptr += (1 + 2 + 4 * 4) + 2
     for _bone_idx in range(rw.read.FastBytes.short_at(data, ptr - 2)):
         ptr = rw.read.FastBytes.skip_str_at(data, ptr) + 1
-        for _fcurve_idx in range(6):
+        for _fcurve_idx in range(const.CURVE_COUNT):
             ptr += 1 + 1 + 2
             for _kf_idx in range(rw.read.FastBytes.short_at(data, ptr - 2)):
                 ptr += (4 + 4) + 1
                 shape = data[ptr - 1]
                 if shape != 4:
                     ptr += (2 * 3 + 2 * 4)
-    if ver >= 7:
+    if ver >= const.FORMAT_VERSION_7:
         ptr += 4
         for _bone_idx in range(rw.read.FastBytes.int_at(data, ptr - 4)):
             ptr = rw.read.FastBytes.skip_str_at_a(data, ptr) + 4
@@ -64,7 +64,7 @@ def import_motion(
     start_frame, end_frame = reader.getf('<2I')
     fps, ver = reader.getf('<fH')
     xray.fps = fps
-    if ver < 6:
+    if ver < const.FORMAT_VERSION_6:
         raise log.AppError(text.error.motion_ver, log.props(version=ver))
 
     if context.add_actions_to_motion_list:
@@ -160,7 +160,7 @@ def import_motion(
         if not has_interpolate:
             tmpfc = [
                 act.fcurves.new('temp', index=curve_index)
-                for curve_index in range(6)
+                for curve_index in range(const.CURVE_COUNT)
             ]
             frames = [[], [], [], [], [], []]
             for curve_index in range(const.CURVE_COUNT):
@@ -296,7 +296,7 @@ def import_motion(
             motion=motion_name, bone=bone_name,
             keys_count=keys_count
         )
-    if ver >= 7:
+    if ver >= const.FORMAT_VERSION_7:
         for _bone_idx in range(reader.uint32()):
             name = reader.gets_a()
             reader.skip((4 + 4) * reader.uint32())
