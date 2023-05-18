@@ -1,9 +1,3 @@
-class Chunks:
-    S_MOTIONS_1 = 0xe
-    S_MOTIONS_2 = 0xe
-    S_SMPARAMS_1 = 0xf
-
-
 MOTIONS_COUNT_CHUNK = 0x0
 
 # motion flags

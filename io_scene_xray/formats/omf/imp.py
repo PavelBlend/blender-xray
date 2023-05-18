@@ -4,6 +4,7 @@ import mathutils
 
 # addon modules
 from . import fmt
+from .. import ogf
 from .. import motions
 from ... import text
 from ... import log
@@ -23,7 +24,7 @@ def examine_motions(data):
     motion_names = []
     chunked_reader = rw.read.ChunkedReader(data)
     for chunk_id, chunk_data in chunked_reader:
-        if chunk_id == fmt.Chunks.S_SMPARAMS_1:
+        if chunk_id == ogf.fmt.Chunks_v4.S_SMPARAMS_1:
             packed_reader = rw.read.PackedReader(chunk_data)
             params_version = packed_reader.getf('<H')[0]
             partition_count = packed_reader.getf('<H')[0]
@@ -401,12 +402,12 @@ def read_main(data, context):
     for chunk_id, chunk_data in chunked_reader:
         chunks[chunk_id] = chunk_data
 
-    params_chunk_data = chunks.pop(fmt.Chunks.S_SMPARAMS_1)
+    params_chunk_data = chunks.pop(ogf.fmt.Chunks_v4.S_SMPARAMS_1)
     motions_params, bone_names = read_params(params_chunk_data, context)
     del params_chunk_data
 
     if context.import_motions:
-        motions_chunk_data = chunks.pop(fmt.Chunks.S_MOTIONS_2)
+        motions_chunk_data = chunks.pop(ogf.fmt.Chunks_v4.S_MOTIONS_2)
         read_motions(motions_chunk_data, context, motions_params, bone_names)
         del motions_chunk_data
 
