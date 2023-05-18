@@ -260,7 +260,7 @@ def create_glows_object(collection):
     return bpy_object
 
 
-def import_glows(data, level):
+def import_glows(data, level, level_object):
     packed_reader = rw.read.PackedReader(data)
     glows_count = len(data) // fmt.GLOW_SIZE
     collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
@@ -282,10 +282,10 @@ def import_glows(data, level):
         if not utils.version.IS_28:
             utils.version.link_object(glow_object)
 
-    return glows_object
+    glows_object.parent = level_object
 
 
-def import_glows_v5(data, level):
+def import_glows_v5(data, level, level_object):
     packed_reader = rw.read.PackedReader(data)
     glows_count = len(data) // fmt.GLOW_SIZE_V5
     collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
@@ -300,7 +300,7 @@ def import_glows_v5(data, level):
         if not utils.version.IS_28:
             utils.version.link_object(glow_object)
 
-    return glows_object
+    glows_object.parent = level_object
 
 
 INT_MAX = 2 ** 31 - 1
@@ -426,7 +426,7 @@ def create_lights_object(collection):
     return bpy_object
 
 
-def import_lights_dynamic(data, level):
+def import_lights(data, level, level_object):
     packed_reader = rw.read.PackedReader(data)
     collection = level.collections[create.LEVEL_LIGHTS_COLLECTION_NAME]
     lights_dynamic_object = create_lights_object(collection)
@@ -447,7 +447,7 @@ def import_lights_dynamic(data, level):
         import_light_funct(packed_reader, light_object)
         light_object.parent = lights_dynamic_object
 
-    return lights_dynamic_object
+    lights_dynamic_object.parent = level_object
 
 
 def create_portal(portal_index, verts, collection):
@@ -496,7 +496,7 @@ def import_portal(packed_reader, portal_index, collection, level):
     return portal_obj
 
 
-def import_portals(data, level):
+def import_portals(data, level, level_object):
     portal_reader = rw.read.PackedReader(data)
 
     collection = level.collections[create.LEVEL_PORTALS_COLLECTION_NAME]
@@ -516,7 +516,7 @@ def import_portals(data, level):
         )
         portal_object.parent = portals_object
 
-    return portals_object
+    portals_object.parent = level_object
 
 
 def get_chunks(chunked_reader):
@@ -660,23 +660,19 @@ def import_level(level, context, chunks, geomx_chunks):
 
     # portals
     portals_data = chunks.pop(chunks_ids.PORTALS)
-    portals_object = import_portals(portals_data, level)
-    portals_object.parent = level_object
+    import_portals(portals_data, level, level_object)
 
     # glows
     glows_data = chunks.pop(chunks_ids.GLOWS)
 
     if level.xrlc_version >= fmt.VERSION_12:
-        glows_object = import_glows(glows_data, level)
+        import_glows(glows_data, level, level_object)
     else:
-        glows_object = import_glows_v5(glows_data, level)
-
-    glows_object.parent = level_object
+        import_glows_v5(glows_data, level, level_object)
 
     # lights
     lights_data = chunks.pop(chunks_ids.LIGHT_DYNAMIC)
-    lights_object = import_lights_dynamic(lights_data, level)
-    lights_object.parent = level_object
+    import_lights(lights_data, level, level_object)
 
     # cform
     if level.xrlc_version >= fmt.VERSION_10:
