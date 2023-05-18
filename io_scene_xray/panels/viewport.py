@@ -475,13 +475,13 @@ class XRAY_PT_armature_tools(ui.base.XRayPanel):
             if active_obj.type == 'ARMATURE':
                 has_arm = True
             else:
-                col = col.row().box()
+                col = col.row().box().column(align=True)
                 col.label(
                     text=text.get_text(text.error.is_not_arm),
                     icon='ERROR'
                 )
         else:
-            col = col.row().box()
+            col = col.row().box().column(align=True)
             col.label(
                 text=text.get_text(text.error.no_active_obj),
                 icon='ERROR'
@@ -499,7 +499,7 @@ class XRAY_PT_armature_tools(ui.base.XRayPanel):
 
         if has_arm and context.mode != 'POSE':
             pose_mode = False
-            pose_lay = col.row().box()
+            pose_lay = col.row().box().column(align=True)
             pose_lay.label(
                 text=text.get_text(text.error.not_pose_mode),
                 icon='ERROR'
@@ -516,7 +516,7 @@ class XRAY_PT_armature_tools(ui.base.XRayPanel):
 
         if has_arm and pose_mode:
             if not context.active_pose_bone:
-                limit_lay = pose_lay.box()
+                limit_lay = pose_lay.box().column(align=True)
                 limit_lay.label(
                     text=text.get_text(text.error.no_active_bone),
                     icon='ERROR'
