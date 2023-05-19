@@ -8,8 +8,10 @@ import bpy
 def PropObjectTextureNamesFromPath():
     return bpy.props.BoolProperty(
         name='Texture Names from Image Paths',
-        description='Generate texture names from image paths ' \
-        + '(by subtract <gamedata/textures> prefix and <file-extension> suffix)',
+        description=
+            'Generate texture names from image paths '
+            '(by subtract <gamedata/textures> prefix and '
+            '<file-extension> suffix)',
         default=True
     )
 
@@ -35,7 +37,9 @@ def PropObjectMotionsExport():
 def PropUseExportPaths():
     return bpy.props.BoolProperty(
         name='Use Export Paths',
-        description='Append the Object.ExportPath to the export directory for each object',
+        description=
+            'Append the Object.ExportPath to the '
+            'export directory for each object',
         default=True
     )
 
@@ -72,7 +76,10 @@ def PropObjectMeshSplitByMaterials():
 
 
 def prop_skl_add_actions_to_motion_list():
-    return bpy.props.BoolProperty(default=True, name='Add Actions to Motion List')
+    return bpy.props.BoolProperty(
+        default=True,
+        name='Add Actions to Motion List'
+    )
 
 
 def PropAnmCameraAnimation():
@@ -96,15 +103,11 @@ def prop_anm_format_version():
 
 
 def prop_import_bone_properties():
-    return bpy.props.BoolProperty(
-        name='Import Bone Properties', default=True
-    )
+    return bpy.props.BoolProperty(name='Import Bone Properties', default=True)
 
 
 def prop_export_bone_properties():
-    return bpy.props.BoolProperty(
-        name='Export Bone Properties', default=True
-    )
+    return bpy.props.BoolProperty(name='Export Bone Properties', default=True)
 
 
 def prop_details_models_in_a_row():
@@ -138,15 +141,11 @@ def prop_details_format_version():
 
 
 def prop_import_bone_parts():
-    return bpy.props.BoolProperty(
-        name='Import Bone Parts', default=False
-    )
+    return bpy.props.BoolProperty(name='Import Bone Parts', default=False)
 
 
 def prop_export_bone_parts():
-    return bpy.props.BoolProperty(
-        name='Export Bone Parts', default=False
-    )
+    return bpy.props.BoolProperty(name='Export Bone Parts', default=False)
 
 
 export_mode_items = (
@@ -157,12 +156,8 @@ export_mode_items = (
 
 
 def prop_omf_export_mode():
-    return bpy.props.EnumProperty(
-        name='Export Mode', items=export_mode_items
-    )
+    return bpy.props.EnumProperty(name='Export Mode', items=export_mode_items)
 
 
 def prop_omf_high_quality():
-    return bpy.props.BoolProperty(
-        name='High Quality', default=False
-    )
+    return bpy.props.BoolProperty(name='High Quality', default=False)

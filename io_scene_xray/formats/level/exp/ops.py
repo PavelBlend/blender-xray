@@ -122,7 +122,8 @@ class XRAY_OT_export_level(utils.ie.BaseOperator):
         if level_object.xray.level.object_type != 'LEVEL':
             self.report(
                 {'ERROR'},
-                'Object "{0}" has an invalid type: {1}. Must be "Level".'.format(
+                'Object "{0}" has an invalid type: {1}. '
+                'Must be "Level".'.format(
                     level_object.name,
                     level_object.xray.level.object_type
                 )

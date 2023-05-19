@@ -20,7 +20,13 @@ def create_object(object_name):
     return bpy_object, bpy_mesh
 
 
-def create_details_slots_object(base_name, header, y_coords_top, y_coords_base):
+def create_details_slots_object(
+        base_name,
+        header,
+        y_coords_top,
+        y_coords_base
+    ):
+
     slots_base_object, slots_base_mesh = create_object(
         '{0} slots base'.format(base_name)
     )
