@@ -12,6 +12,7 @@ CONTEXT_NAME = '@context'
 _logger = None
 _context = None
 create_bpy_text = True
+general_log = None
 
 
 class AppError(Exception):
@@ -172,19 +173,29 @@ class Logger:
 
     def _create_bpy_text(self, logname):
         if create_bpy_text:
+            log_str = '\n'.join(self.lines)
             text_data = bpy.data.texts.new(logname)
             text_data.user_clear()
-            text_data.from_string('\n'.join(self.lines))
+            text_data.from_string(log_str)
+
             full_log_text = text.get_text(text.warn.full_log)
             self._report(
                 {'WARNING'},
                 '{0}: "{1}"'.format(full_log_text, text_data.name)
             )
 
-    def flush(self, logname='log'):
+    def flush(self, logname='log', is_last_flush=False):
         has_massages = self._collect_contexts()
 
+        generate_log = False
         if has_massages:
+            if general_log:
+                if is_last_flush:
+                    generate_log = True
+            else:
+                generate_log = True
+
+        if generate_log:
             self._init_log()
             self._generate_short_log()
             self._generate_full_log()
@@ -263,7 +274,10 @@ def using_logger(logger_obj):
 
 @contextlib.contextmanager
 def logger(name, report):
-    logger_obj = Logger(report)
+    if general_log:
+        logger_obj = general_log
+    else:
+        logger_obj = Logger(report)
 
     try:
         with using_logger(logger_obj):

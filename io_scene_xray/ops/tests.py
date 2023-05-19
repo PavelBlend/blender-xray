@@ -7,6 +7,7 @@ import bpy
 import mathutils
 
 # addon modules
+from .. import log
 from .. import utils
 
 
@@ -24,7 +25,6 @@ def remove_bpy_data():
     clear_bpy_collection(data.images)
     clear_bpy_collection(data.armatures)
     clear_bpy_collection(data.actions)
-    clear_bpy_collection(data.texts)
 
 
 FORMAT_FULL = '%Y.%m.%d %H:%M'
@@ -100,6 +100,9 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
         self.file_index = 0
         self.files_list = []
 
+        min_time_float = get_float_time_by_str(self.time_min)
+        max_time_float = get_float_time_by_str(self.time_max)
+
         for root, dirs, files in os.walk(self.directory):
             for file in files:
                 file_path = os.path.join(root, file)
@@ -109,8 +112,6 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
                     continue
 
                 date_float = os.path.getmtime(file_path)
-                min_time_float = get_float_time_by_str(self.time_min)
-                max_time_float = get_float_time_by_str(self.time_max)
 
                 if not min_time_float is None:
                     if date_float < min_time_float:
@@ -122,6 +123,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
 
                 name, ext = os.path.splitext(file)
                 ext = ext.lower()
+
                 if ext == '.object' and self.import_object:
                     skip = False
                 elif ext == '.ogf' and self.import_ogf:
@@ -132,6 +134,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
                     skip = False
                 else:
                     skip = True
+
                 if not skip:
                     self.files_list.append((root, file, file_path))
 
@@ -139,7 +142,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
         remove_bpy_data()
         root, file, file_path = self.files_list[self.file_index]
         ext = os.path.splitext(file)[-1]
-        file_message = '{0:0>6}: '.format(self.file_index) + file_path
+        file_message = '{0:0>6}: {1}'.format(self.file_index, file_path)
         self.file_index += 1
 
         try:
@@ -246,9 +249,9 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
             if cur_time > self.last_time + self.pause or not self.file_index:
                 if self.file_index < len(self.files_list):
                     self.test_import()
+                    self.last_time = time.time()
                 else:
                     return self.cancel(context)
-                self.last_time = time.time()
 
         elif event.type == 'ESC':
             return self.cancel(context)
@@ -258,16 +261,23 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
     def cancel(self, context):
         context.window_manager.event_timer_remove(self.timer)
         remove_bpy_data()
+
+        log.general_log.flush(logname='tests_log', is_last_flush=True)
+        log.general_log = None
+
         self.set_clip_end(self.clip_end_old)
         bpy.ops.view3d.view_axis(type='TOP')
         return {'CANCELLED'}
 
+    @log.execute_with_logger
     def execute(self, context):
         space_3d = self.get_space_3d()
         self.clip_end_old = space_3d.clip_end
 
         self.collect_files(context)
         self.last_time = time.time()
+
+        log.general_log = log.Logger(self.report)
 
         self.timer = context.window_manager.event_timer_add(
             self.pause,
