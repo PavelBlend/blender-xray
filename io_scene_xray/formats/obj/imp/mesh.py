@@ -128,6 +128,7 @@ def import_mesh(context, creader, renamemap, file_name):
 
         elif cid in (fmt.Chunks.Mesh.VMAPS1, fmt.Chunks.Mesh.VMAPS2):
             suppress_rename_warnings = {}
+            zero_maps = set()
             reader = rw.read.PackedReader(data)
             for _ in range(reader.uint32()):
                 name = reader.gets()
@@ -179,10 +180,7 @@ def import_mesh(context, creader, renamemap, file_name):
                             bad = True
                             wgs[i] = _MIN_WEIGHT
                     if bad:
-                        log.warn(
-                            text.warn.object_zero_weight,
-                            vmap=name
-                        )
+                        zero_maps.add(name)
                     if cid == fmt.Chunks.Mesh.VMAPS2:
                         reader.skip(size * 4)
                         if discon:
@@ -193,6 +191,14 @@ def import_mesh(context, creader, renamemap, file_name):
                         text.error.object_bad_vmap,
                         log.props(type=typ)
                     )
+
+            if zero_maps:
+                zero_maps = list(zero_maps)
+                zero_maps.sort()
+                log.warn(
+                    text.warn.object_zero_weight,
+                    vmaps=zero_maps
+                )
 
         elif cid == fmt.Chunks.Mesh.FLAGS:
             mesh_flags = rw.read.PackedReader(data).getf('<B')[0]
