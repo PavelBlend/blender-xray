@@ -72,9 +72,11 @@ class XRAY_UL_motion_list(bpy.types.UIList):
 
         row = layout.row()
         row.label(text='', icon=icon)
+
         if data.show_motions_names in ('ACTION', 'BOTH'):
             row.prop_search(motion, 'name', bpy.data, 'actions', text='')
-        if data.show_motions_names in ('EXPORT', 'BOTH'):
+
+        if data.show_motions_names == 'BOTH':
             if data.use_custom_motion_names:
                 row.prop(motion, 'export_name', icon_only=True)
             else:
@@ -82,6 +84,12 @@ class XRAY_UL_motion_list(bpy.types.UIList):
                     text='Enable the "Custom Names" option',
                     icon='ERROR'
                 )
+
+        if data.show_motions_names == 'EXPORT':
+            if motion.export_name:
+                row.label(text=motion.export_name)
+            else:
+                row.label(text=motion.name)
 
 
 def draw_motion_list_elements(layout):
