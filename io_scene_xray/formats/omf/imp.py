@@ -90,11 +90,11 @@ def read_motion(data, context, motions_params, bone_names, version):
     motion_params = motions_params[name]
 
     import_motion = False
-    if not context.selected_names is None:
+    if context.selected_names is None:
+        import_motion = True
+    else:
         if name in context.selected_names:
             import_motion = True
-    else:
-        import_motion = True
 
     if import_motion:
         act = bpy.data.actions.new(name)
@@ -160,6 +160,12 @@ def read_motion(data, context, motions_params, bone_names, version):
                 t_present = flags & fmt.FL_T_KEY_PRESENT
                 r_absent = flags & fmt.FL_R_KEY_ABSENT
                 hq = flags & fmt.KPF_T_HQ
+
+            elif version == 1:
+                t_present = packed_reader.getf('<B')[0]
+                r_absent = False
+                hq = False
+
             elif version == 0:
                 frame_len = 4 * 2 + 3 * 4    # quaternion: 4H, translate: 3f
                 head_len = len(name) + 1 + 4
@@ -182,10 +188,6 @@ def read_motion(data, context, motions_params, bone_names, version):
 
                         translate = loc[0], loc[1], -loc[2]
                         bone_translations.append(translate)
-            else:
-                t_present = packed_reader.getf('<B')[0]
-                r_absent = False
-                hq = False
 
             if version != 0:
                 # rotation
@@ -277,12 +279,16 @@ def read_motion(data, context, motions_params, bone_names, version):
             t_present = flags & fmt.FL_T_KEY_PRESENT
             r_absent = flags & fmt.FL_R_KEY_ABSENT
             hq = flags & fmt.KPF_T_HQ
+
+            # skip rotation
             if r_absent:
                 # quaternion
                 packed_reader.skip(4 * 2)
             else:
                 # quaternions + motion_crc32
                 packed_reader.skip(4 * 2 * length + 4)
+
+            # skip translation
             if t_present:
                 if hq:
                     translate_size = 3 * 2
@@ -296,9 +302,9 @@ def read_motion(data, context, motions_params, bone_names, version):
 def read_motions(data, context, motions_params, bone_names, version=2):
     chunked_reader = rw.read.ChunkedReader(data)
 
-    chunk_motion_count_data = chunked_reader.next(fmt.MOTIONS_COUNT_CHUNK)
-    motion_count_packed_reader = rw.read.PackedReader(chunk_motion_count_data)
-    motions_count = motion_count_packed_reader.uint32()
+    count_data = chunked_reader.next(fmt.MOTIONS_COUNT_CHUNK)
+    count_reader = rw.read.PackedReader(count_data)
+    motions_count = count_reader.uint32()
 
     for chunk_id, chunk_data in chunked_reader:
         read_motion(chunk_data, context, motions_params, bone_names, version)
@@ -394,22 +400,19 @@ def read_params(data, context, version=1):
 def read_main(data, context):
     if not context.import_motions and not context.import_bone_parts:
         raise log.AppError(text.error.omf_nothing)
-        return
 
     chunked_reader = rw.read.ChunkedReader(data)
-    chunks = {}
 
+    chunks = {}
     for chunk_id, chunk_data in chunked_reader:
         chunks[chunk_id] = chunk_data
 
-    params_chunk_data = chunks.pop(ogf.fmt.Chunks_v4.S_SMPARAMS_1)
-    motions_params, bone_names = read_params(params_chunk_data, context)
-    del params_chunk_data
+    params_data = chunks.pop(ogf.fmt.Chunks_v4.S_SMPARAMS_1)
+    motions_params, bone_names = read_params(params_data, context)
 
     if context.import_motions:
-        motions_chunk_data = chunks.pop(ogf.fmt.Chunks_v4.S_MOTIONS_2)
-        read_motions(motions_chunk_data, context, motions_params, bone_names)
-        del motions_chunk_data
+        motions_data = chunks.pop(ogf.fmt.Chunks_v4.S_MOTIONS_2)
+        read_motions(motions_data, context, motions_params, bone_names)
 
     for chunk_id, chunk_data in chunks.items():
         print('Unknown OMF chunk: 0x{:x}'.format(chunk_id))
