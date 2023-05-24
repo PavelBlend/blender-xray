@@ -24,6 +24,7 @@ class Visual(object):
         self.arm_obj = None
         self.root_obj = None
         self.bones = []
+        self.bones_indices = {}
         self.deform_bones = None
         self.motion_refs = None
         self.create_name = ''

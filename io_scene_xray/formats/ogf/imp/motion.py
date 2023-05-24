@@ -30,7 +30,8 @@ def import_skeleton_motions(context, chunks, ogf_chunks, visual):
         motions_params, bone_names = omf.imp.read_params(
             params_data,
             context,
-            version=param_ver
+            version=param_ver,
+            bones_indices=visual.bones_indices
         )
 
         if motions_data and context.import_motions:

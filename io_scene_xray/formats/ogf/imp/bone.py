@@ -17,3 +17,4 @@ def read_bone_names(chunks, chunks_ids, visual):
         half_size = packed_reader.getf('<3f')
 
         visual.bones.append((bone_name, bone_parent))
+        visual.bones_indices[bone_index] = bone_name

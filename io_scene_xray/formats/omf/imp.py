@@ -310,7 +310,7 @@ def read_motions(data, context, motions_params, bone_names, version=2):
         read_motion(chunk_data, context, motions_params, bone_names, version)
 
 
-def read_params(data, context, version=1):
+def read_params(data, context, version=1, bones_indices={}):
     packed_reader = rw.read.PackedReader(data)
 
     if version != 0:
@@ -338,18 +338,22 @@ def read_params(data, context, version=1):
         for bone in range(bone_count):
             if params_version in (0, 1):
                 bone_id = packed_reader.uint32()
-                bone_name = None
-                bone_names[bone_id] = None
+                bone_name = bones_indices.get(bone_id, None)
+                bone_names[bone_id] = bone_name
+
             elif params_version == 2:
-                bone_id = None
+                bone_id = bone
                 bone_name = packed_reader.gets()
-                bone_names[bone] = bone_name
-            elif params_version == 3 or params_version == 4:
+                bone_names[bone_id] = bone_name
+
+            elif params_version in (3, 4):
                 bone_name = packed_reader.gets()
                 bone_id = packed_reader.uint32()
                 bone_names[bone_id] = bone_name
+
             else:
                 raise BaseException('Unknown params version')
+
             if bone_name:
                 pose_bone = pose.bones.get(bone_name, None)
                 if not pose_bone:
@@ -357,6 +361,7 @@ def read_params(data, context, version=1):
                     continue
             else:
                 pose_bone = pose.bones[bone_id]
+
             if context.import_bone_parts:
                 pose_bone.bone_group = bone_group
 
