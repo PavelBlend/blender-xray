@@ -42,7 +42,7 @@ class Chunks_v3:
     BBOX = 6
     VERTICES = 7
     INDICES = 8
-    LODDATA = 9    # not sure
+    SWIDATA = 9    # not sure
     VCONTAINER = 10
     BSPHERE = 11
     CHILDREN_L = 12
@@ -78,6 +78,15 @@ class Chunks_v2:
     ICONTAINER = 0xffff    # 0xffff - unknown value (replace)
     BSPHERE = 0xc
     CHILDREN_L = 0xd
+
+
+class ChunksSwi_v3:
+    HEADER = 1
+    VSPLIT = 2
+    FACES = 3
+
+
+VSPLIT_SIZE = 4
 
 
 class ModelType_v4:
@@ -175,7 +184,7 @@ chunks_names_v3 = {
     Chunks_v3.BBOX: 'BBOX',
     Chunks_v3.VERTICES: 'VERTICES',
     Chunks_v3.INDICES: 'INDICES',
-    Chunks_v3.LODDATA: 'LODDATA',
+    Chunks_v3.SWIDATA: 'SWIDATA',
     Chunks_v3.VCONTAINER: 'VCONTAINER',
     Chunks_v3.BSPHERE: 'BSPHERE',
     Chunks_v3.CHILDREN_L: 'CHILDREN_L',
