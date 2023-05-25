@@ -12,12 +12,15 @@ from ... import utils
 from ... import rw
 
 
-def motion_mark(packed_reader):
-    name = packed_reader.gets_a()
-    count = packed_reader.uint32()
-    for index in range(count):
-        interval_first = packed_reader.getf('<f')[0]
-        interval_second = packed_reader.getf('<f')[0]
+def read_motion_marks(packed_reader):
+    num_marks = packed_reader.uint32()
+
+    for mark_index in range(num_marks):
+        name = packed_reader.gets_a()
+        count = packed_reader.uint32()
+
+        for index in range(count):
+            interval_first, interval_second = packed_reader.getf('<2f')
 
 
 def examine_motions(data):
@@ -55,9 +58,7 @@ def examine_motions(data):
                 accrue = packed_reader.getf('<f')[0]
                 falloff = packed_reader.getf('<f')[0]
                 if params_version == 4:
-                    num_marks = packed_reader.uint32()
-                    for mark_index in range(num_marks):
-                        motion_mark(packed_reader)
+                    read_motion_marks(packed_reader)
     return motion_names
 
 
@@ -395,9 +396,7 @@ def read_params(data, context, version=1, bones_indices={}):
         motions_params[motion_params.name] = motion_params
 
         if params_version == 4:
-            num_marks = packed_reader.uint32()
-            for mark_index in range(num_marks):
-                motion_mark(packed_reader)
+            read_motion_marks(packed_reader)
 
     return motions_params, bone_names
 
