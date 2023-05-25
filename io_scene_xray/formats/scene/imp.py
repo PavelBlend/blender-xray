@@ -13,10 +13,6 @@ from ... import utils
 from ... import rw
 
 
-class ImportSceneContext(obj.imp.ctx.ImportObjectMeshContext):
-    pass
-
-
 def _read_scene_version(scene_version_chunk):
     if not scene_version_chunk:
         raise log.AppError(text.error.scene_bad_file)
@@ -184,14 +180,6 @@ def import_(filepath, chunked_reader, import_context):
 
 
 @log.with_context(name='import-scene-selection')
-def import_file(filepath, operator):
-    import_context = ImportSceneContext()
-    import_context.soc_sgroups=operator.fmt_version == 'soc'
-    import_context.import_motions=False
-    import_context.split_by_materials=operator.mesh_split_by_materials
-    import_context.operator=operator
-    import_context.before_import_file()
-
+def import_file(filepath, import_context):
     chunked_reader = rw.utils.get_file_reader(filepath, chunked=True)
-
     import_(filepath, chunked_reader, import_context)

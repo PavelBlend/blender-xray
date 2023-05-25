@@ -6,8 +6,13 @@ import bpy_extras
 from . import imp
 from . import exp
 from .. import ie
+from .. import obj
 from ... import utils
 from ... import log
+
+
+class ImportSceneContext(obj.imp.ctx.ImportObjectMeshContext):
+    pass
 
 
 op_text = 'Scene Selection'
@@ -65,7 +70,10 @@ class XRAY_OT_export_scene(
 
 
 import_props = {
-    'filepath': bpy.props.StringProperty(subtype="FILE_PATH"),
+    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
+    'files': bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement
+    ),
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext, options={'HIDDEN'}
     ),
@@ -100,18 +108,32 @@ class XRAY_OT_import_scene(
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        try:
-            imp.import_file(self.filepath, self)
-        except log.AppError as err:
-            log.err(err)
+        imp_context = ImportSceneContext()
+
+        imp_context.import_motions = False
+        imp_context.soc_sgroups = self.fmt_version == 'soc'
+        imp_context.split_by_materials = self.mesh_split_by_materials
+        imp_context.operator = self
+        imp_context.before_import_file()
+
+        # import files
+        utils.ie.import_files(
+            self.directory,
+            self.files,
+            imp.import_file,
+            imp_context
+        )
+
         return {'FINISHED'}
 
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
-        preferences = utils.version.get_preferences()
-        self.mesh_split_by_materials = preferences.scene_selection_mesh_split_by_mat
-        self.fmt_version = preferences.scene_selection_sdk_version
+        pref = utils.version.get_preferences()
+        self.mesh_split_by_materials = pref.scene_selection_mesh_split_by_mat
+        self.fmt_version = pref.scene_selection_sdk_version
+
         context.window_manager.fileselect_add(self)
+
         return {'RUNNING_MODAL'}
 
 
