@@ -5,7 +5,10 @@ import tests
 class TestErrImport(tests.utils.XRayTestCase):
     def test_default(self):
         # Act
-        bpy.ops.xray_import.err(filepath=self.binpath('test_fmt.err'))
+        bpy.ops.xray_import.err(
+            directory=self.binpath(),
+            files=[{'name': 'test_fmt.err'}]
+        )
 
         # Arrange
         obj = bpy.data.objects['test_fmt.err']
@@ -17,7 +20,10 @@ class TestErrImport(tests.utils.XRayTestCase):
 
     def test_sdk_err_format(self):
         # Act
-        bpy.ops.xray_import.err(filepath=self.binpath('test_fmt_sdk.err'))
+        bpy.ops.xray_import.err(
+            directory=self.binpath(),
+            files=[{'name': 'test_fmt_sdk.err'}]
+        )
 
         # Arrange
         obj = bpy.data.objects['test_fmt_sdk.err']

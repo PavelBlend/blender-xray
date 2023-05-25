@@ -5,6 +5,7 @@ import bpy_extras
 # addon modules
 from . import imp
 from .. import ie
+from .. import contexts
 from ... import log
 from ... import utils
 
@@ -13,11 +14,13 @@ op_text = 'Error List'
 filename_ext = '.err'
 
 import_props = {
-    'filepath': bpy.props.StringProperty(
-        subtype="FILE_PATH", options={'HIDDEN'}
+    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
+    'files': bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement
     ),
     'filter_glob': bpy.props.StringProperty(
-        default='*.err', options={'HIDDEN'}
+        default='*.err',
+        options={'HIDDEN'}
     ),
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
@@ -44,7 +47,16 @@ class XRAY_OT_import_err(
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        imp.import_file(self.filepath)
+        imp_ctx = contexts.ImportContext()
+
+        # import files
+        utils.ie.import_files(
+            self.directory,
+            self.files,
+            imp.import_file,
+            imp_ctx
+        )
+
         return {'FINISHED'}
 
     @utils.ie.run_imp_exp_operator

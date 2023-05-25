@@ -68,6 +68,6 @@ def import_(filepath, chunked_reader):
 
 
 @log.with_context(name='import-err')
-def import_file(file_path):
+def import_file(file_path, imp_context):
     chunked_reader = rw.utils.get_file_reader(file_path, chunked=True)
     import_(file_path, chunked_reader)
