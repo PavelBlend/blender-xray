@@ -9,48 +9,58 @@ class TestDetailsExport(utils.XRayTestCase):
         self._create_details_objects(3)
 
         # Act
-        bpy.ops.xray_export.details(
+        bpy.ops.xray_export.details_file(
             filepath=self.outpath('test_v3.details'),
             format_version='builds_1569-cop',
-            texture_name_from_image_path=False
+            tex_name_from_path=False
         )
 
         # Assert
-        self.assertOutputFiles({
-            'test_v3.details'
-        })
+        self.assertOutputFiles({'test_v3.details'})
 
     def test_export_version_2_1096(self):
         # Arrange
         self._create_details_objects(2)
 
         # Act
-        bpy.ops.xray_export.details(
+        bpy.ops.xray_export.details_file(
             filepath=self.outpath('test_v2_1096.details'),
             format_version='builds_1096-1230',
-            texture_name_from_image_path=False
+            tex_name_from_path=False
         )
 
         # Assert
-        self.assertOutputFiles({
-            'test_v2_1096.details'
-        })
+        self.assertOutputFiles({'test_v2_1096.details'})
 
     def test_export_version_2_1233(self):
         # Arrange
         self._create_details_objects(2)
 
         # Act
-        bpy.ops.xray_export.details(
+        bpy.ops.xray_export.details_file(
             filepath=self.outpath('test_v2_1233.details'),
             format_version='builds_1233-1558',
-            texture_name_from_image_path=False
+            tex_name_from_path=False
         )
 
         # Assert
-        self.assertOutputFiles({
-            'test_v2_1233.details'
-        })
+        self.assertOutputFiles({'test_v2_1233.details'})
+
+    def test_export_batch(self):
+        # Arrange
+        self._create_details_objects(3, name='test_1')
+        self._create_details_objects(3, name='test_2')
+        bpy.ops.object.select_all(action='SELECT')
+
+        # Act
+        bpy.ops.xray_export.details(
+            directory=self.outpath(),
+            format_version='builds_1569-cop',
+            tex_name_from_path=False
+        )
+
+        # Assert
+        self.assertOutputFiles({'test_1.details', 'test_2.details'})
 
     def _create_details_slots_objects(self, data):
 
@@ -110,13 +120,20 @@ class TestDetailsExport(utils.XRayTestCase):
         data.slots.slots_base_object = object_1.name
         data.slots.slots_top_object = object_2.name
 
-    def _create_details_objects(self, version, create_uv=True, create_material=True):
+    def _create_details_objects(
+            self,
+            version,
+            name='details',
+            create_uv=True,
+            create_material=True
+        ):
+
         bmesh = utils.create_bmesh((
             (0, 0, 0),
             (-1, -1, 0), (+1, -1, 0), (+1, +1, 0), (-1, +1, 0),
         ), ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)), create_uv)
 
-        root_object = bpy.data.objects.new('Details', None)
+        root_object = bpy.data.objects.new(name, None)
         bpy.ops.object.select_all(action='DESELECT')
         utils.link_object(root_object)
         if bpy.app.version >= (2, 80, 0):
