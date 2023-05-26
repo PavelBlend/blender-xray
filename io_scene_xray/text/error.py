@@ -45,6 +45,7 @@ details_cannot_find_img = 'cannot find image'
 details_cannot_find_obj = 'cannot find object'
 details_wrong_type = 'object has wrong type'
 # details write
+details_file_duplicates = 'duplicate paths found'
 details_no_children = 'details meshes object has no children'
 details_many_children = 'meshes object has too many children'
 details_not_mesh = 'meshes object child is not a mesh'

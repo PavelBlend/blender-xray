@@ -11,6 +11,7 @@ from . import exp
 from .. import ie
 from .. import contexts
 from ... import log
+from ... import text
 from ... import utils
 
 
@@ -124,23 +125,145 @@ class XRAY_OT_import_details(
         return super().invoke(context, event)
 
 
+def search_details_obj(obj, dets_objs):
+    if obj.type == 'EMPTY':
+        if obj.xray.is_details:
+            dets_objs.add(obj)
+
+    if obj.parent:
+        search_details_obj(obj.parent, dets_objs)
+
+
+def search_details():
+    dets_objs = set()
+
+    for obj in bpy.context.selected_objects:
+        search_details_obj(obj, dets_objs)
+
+    if not dets_objs:
+        active_obj = bpy.context.active_object
+
+        if active_obj:
+            search_details_obj(active_obj, dets_objs)
+
+    return list(dets_objs)
+
+
+def draw_export_props(self):    # pragma: no cover
+    utils.ie.open_imp_exp_folder(self, 'levels_folder')
+
+    layout = self.layout
+
+    utils.draw.draw_fmt_ver_prop(
+        layout,
+        self,
+        'format_version',
+        lay_type='COLUMN',
+        use_row=False
+    )
+    layout.prop(self, 'tex_name_from_path')
+
+
 export_props = {
     'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext, options={'HIDDEN'}
+        default='*'+filename_ext,
+        options={'HIDDEN'}
     ),
 
-    'texture_name_from_image_path': \
-        ie.PropObjectTextureNamesFromPath(),
-
+    'tex_name_from_path': ie.PropObjectTextureNamesFromPath(),
     'format_version': ie.prop_details_format_version(),
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
-class XRAY_OT_export_details(
+class XRAY_OT_export_details_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
+
+    bl_idname = 'xray_export.details_file'
+    bl_label = 'Export .details'
+    bl_options = {'PRESET'}
+
+    text = op_text
+    ext = filename_ext
+    filename_ext = filename_ext
+    props = export_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):    # pragma: no cover
+        draw_export_props(self)
+
+    @log.execute_with_logger
+    @utils.ie.set_initial_state
+    def execute(self, context):
+        dets_objs = search_details()
+
+        if not dets_objs:
+            self.report({'ERROR'}, 'Cannot find details object')
+            return {'CANCELLED'}
+
+        if len(dets_objs) > 1:
+            self.report({'ERROR'}, 'Too many details objects found')
+            return {'CANCELLED'}
+
+        details_object = dets_objs[0]
+
+        export_context = ExportDetailsContext()
+        export_context.texname_from_path = self.tex_name_from_path
+        export_context.level_details_format_version = self.format_version
+        export_context.unique_errors = set()
+
+        try:
+            exp.export_file(details_object, self.filepath, export_context)
+        except log.AppError as err:
+            export_context.errors.append(err)
+
+        for err in export_context.errors:
+            log.err(err)
+
+        return {'FINISHED'}
+
+    @utils.ie.run_imp_exp_operator
+    def invoke(self, context, event):    # pragma: no cover
+        dets_objs = search_details()
+
+        if not dets_objs:
+            self.report({'ERROR'}, 'Cannot find details object')
+            return {'CANCELLED'}
+
+        if len(dets_objs) > 1:
+            self.report({'ERROR'}, 'Too many details objects found')
+            return {'CANCELLED'}
+
+        obj = dets_objs[0]
+
+        pref = utils.version.get_preferences()
+        self.tex_name_from_path = pref.details_texture_names_from_path
+        self.format_version = pref.format_version
+
+        self.filepath = utils.ie.add_file_ext(obj.name, self.filename_ext)
+
+        return super().invoke(context, event)
+
+
+export_props = {
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    ),
+    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
+
+    'tex_name_from_path': ie.PropObjectTextureNamesFromPath(),
+    'format_version': ie.prop_details_format_version(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
+}
+
+
+class XRAY_OT_export_details(utils.ie.BaseOperator):
     bl_idname = 'xray_export.details'
     bl_label = 'Export .details'
     bl_options = {'PRESET'}
@@ -155,52 +278,49 @@ class XRAY_OT_export_details(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):    # pragma: no cover
-        utils.ie.open_imp_exp_folder(self, 'levels_folder')
-
-        layout = self.layout
-
-        utils.draw.draw_fmt_ver_prop(
-            layout,
-            self,
-            'format_version',
-            lay_type='COLUMN',
-            use_row=False
-        )
-        layout.prop(self, 'texture_name_from_image_path')
-
-    def search_details(self, obj, dets_objs):
-        if obj.type == 'EMPTY':
-            if obj.xray.is_details:
-                dets_objs.add(obj)
-        if obj.parent:
-            self.search_details(obj.parent, dets_objs)
+        draw_export_props(self)
 
     @log.execute_with_logger
     @utils.ie.set_initial_state
     def execute(self, context):
-        dets_objs = set()
-        for obj in context.selected_objects:
-            self.search_details(obj, dets_objs)
+        dets_objs = search_details()
 
         if not dets_objs:
             self.report({'ERROR'}, 'Cannot find details object')
             return {'CANCELLED'}
 
-        if len(dets_objs) > 1:
-            self.report({'ERROR'}, 'Too many details objects found')
-            return {'CANCELLED'}
-
-        deteils_object = list(dets_objs)[0]
-
         export_context = ExportDetailsContext()
-        export_context.texname_from_path = self.texture_name_from_image_path
+        export_context.texname_from_path = self.tex_name_from_path
         export_context.level_details_format_version = self.format_version
         export_context.unique_errors = set()
 
-        try:
-            exp.export_file(deteils_object, self.filepath, export_context)
-        except log.AppError as err:
-            export_context.errors.append(err)
+        objs = []
+        paths = []
+        for obj in dets_objs:
+            file_path = os.path.join(self.directory, obj.name)
+            file_path = utils.ie.add_file_ext(file_path, filename_ext)
+            objs.append(obj)
+            paths.append(file_path)
+
+        dupli_errors = []
+        for obj, path in zip(objs, paths):
+            if paths.count(path) > 1:
+                error = log.AppError(
+                    text.get_text(text.error.details_file_duplicates),
+                    log.props(file_path=file_path, object=obj.name)
+                )
+                dupli_errors.append(error)
+
+        if dupli_errors:
+            for error in dupli_errors:
+                log.err(error)
+            return {'CANCELLED'}
+
+        for obj, path in zip(objs, paths):
+            try:
+                exp.export_file(obj, path, export_context)
+            except log.AppError as err:
+                export_context.errors.append(err)
 
         for err in export_context.errors:
             log.err(err)
@@ -209,16 +329,22 @@ class XRAY_OT_export_details(
 
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
-        obj = context.active_object
-        if not obj:
-            self.report({'ERROR'}, 'No active object.')
-            return {'FINISHED'}
-        preferences = utils.version.get_preferences()
-        self.texture_name_from_image_path = \
-            preferences.details_texture_names_from_path
-        self.format_version = preferences.format_version
-        self.filepath = utils.ie.add_file_ext(obj.name, self.filename_ext)
-        return super().invoke(context, event)
+        dets_objs = search_details()
+
+        if not dets_objs:
+            self.report({'ERROR'}, 'Cannot find details object')
+            return {'CANCELLED'}
+
+        if len(dets_objs) == 1:
+            return bpy.ops.xray_export.details_file('INVOKE_DEFAULT')
+
+        pref = utils.version.get_preferences()
+        self.tex_name_from_path = pref.details_texture_names_from_path
+        self.format_version = pref.format_version
+
+        context.window_manager.fileselect_add(self)
+
+        return {'RUNNING_MODAL'}
 
 
 class XRAY_OT_pack_details_images(utils.ie.BaseOperator):
@@ -272,6 +398,7 @@ class XRAY_OT_pack_details_images(utils.ie.BaseOperator):
 classes = (
     XRAY_OT_import_details,
     XRAY_OT_export_details,
+    XRAY_OT_export_details_file,
     XRAY_OT_pack_details_images
 )
 

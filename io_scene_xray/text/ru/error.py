@@ -59,6 +59,7 @@ translations_table = (
     (error.details_wrong_type, 'объект имеет неправильный тип'),
 
     # details write
+    (error.details_file_duplicates, 'найдены дубликаты путей'),
     (error.details_no_children, 'объект details-мешей не имеет потомков'),
     (error.details_many_children, 'объект details-мешей имеет слишком много потомков'),
     (error.details_not_mesh, 'потомок объекта details-мешей не является мешем'),
