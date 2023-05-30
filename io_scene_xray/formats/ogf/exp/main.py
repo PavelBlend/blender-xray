@@ -637,9 +637,10 @@ def _export(root_obj, cwriter, context):
     cwriter.put(fmt.Chunks_v4.S_IKDATA_2, ik_writer)
 
     # export userdata
-    userdata_writer = rw.write.PackedWriter()
-    userdata_writer.puts(xray.userdata)
-    cwriter.put(fmt.Chunks_v4.S_USERDATA, userdata_writer)
+    if xray.userdata:
+        userdata_writer = rw.write.PackedWriter()
+        userdata_writer.puts(xray.userdata)
+        cwriter.put(fmt.Chunks_v4.S_USERDATA, userdata_writer)
 
     # export motion references
     if len(xray.motionrefs_collection):
