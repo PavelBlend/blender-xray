@@ -5,7 +5,8 @@ import tests
 
 class TestOps(tests.utils.XRayTestCase):
     def test_add_camera(self):
-        bpy.ops.io_scene_xray.add_camera()
+        bpy.ops.io_scene_xray.add_camera(camera_type='HUD')
+        bpy.ops.io_scene_xray.add_camera(camera_type='LEVEL')
 
     def test_change_action_bake_settings(self):
         # without objects test
