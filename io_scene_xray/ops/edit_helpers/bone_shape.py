@@ -5,7 +5,6 @@ import math
 import bpy
 import bmesh
 import mathutils
-import numpy
 
 # addon modules
 from . import base_bone
@@ -90,13 +89,6 @@ class XRAY_OT_edit_shape(utils.ie.BaseOperator):
         return {'FINISHED'}
 
 
-def _v2ms(vector):
-    matrix = mathutils.Matrix.Identity(4)
-    for i, val in enumerate(vector):
-        matrix[i][i] = val
-    return matrix
-
-
 def bone_matrix(bone):
     xsh = bone.xray.shape
     global pose_bone
@@ -109,14 +101,14 @@ def bone_matrix(bone):
     mat = multiply(mat, xsh.get_matrix_basis())
     if xsh.type == '1':  # box
         mat = multiply(mat, mathutils.Matrix.Scale(-1, 4, (0, 0, 1)))
-        mat = multiply(mat, _v2ms(xsh.box_hsz))
+        mat = multiply(mat, utils.bone.convert_vector_to_matrix(xsh.box_hsz))
     elif xsh.type == '2':  # sphere
-        mat = multiply(mat, _v2ms((xsh.sph_rad, xsh.sph_rad, xsh.sph_rad)))
+        mat = multiply(mat, utils.bone.convert_vector_to_matrix((xsh.sph_rad, xsh.sph_rad, xsh.sph_rad)))
     elif xsh.type == '3':  # cylinder
         mat = multiply(mat, formats.motions.const.MATRIX_BONE_INVERTED)
         mat = multiply(
             mat,
-            _v2ms((
+            utils.bone.convert_vector_to_matrix((
                 xsh.cyl_rad,
                 xsh.cyl_rad,
                 xsh.cyl_hgh * 0.5
@@ -151,7 +143,7 @@ def apply_shape(bone, shape_matrix):
         if not scale.length:
             return
         xsh.box_hsz = scale.to_tuple()
-        mrt = multiply(mat, _v2ms(scale).inverted()).to_3x3().transposed()
+        mrt = multiply(mat, utils.bone.convert_vector_to_matrix(scale).inverted()).to_3x3().transposed()
         for index in range(3):
             xsh.box_rot[index * 3 : index * 3 + 3] = mrt[index].to_tuple()
     elif xsh.type == '2':  # sphere
@@ -200,107 +192,6 @@ class XRAY_OT_apply_shape(utils.ie.BaseOperator):
         return {'FINISHED'}
 
 
-def _bone_objects(bone):
-    arm = bone.id_data
-    for obj in bpy.data.objects:
-        if obj.type != 'MESH':
-            continue
-        group = obj.vertex_groups.get(bone.name, None)
-        if group is None:
-            continue
-        for mod in obj.modifiers:
-            if (mod.type == 'ARMATURE') and mod.object and \
-                    (mod.object.data == arm):
-                yield obj, group.index
-                break
-
-
-def _bone_vertices(bone):
-    for obj, vgi in _bone_objects(bone):
-        bmsh = bmesh.new()
-        if utils.version.IS_28:
-            bmsh.from_object(obj, bpy.context.view_layer.depsgraph)
-        else:
-            bmsh.from_object(obj, bpy.context.scene)
-        layer_deform = bmsh.verts.layers.deform.verify()
-        utils.mesh.fix_ensure_lookup_table(bmsh.verts)
-        for vtx in bmsh.verts:
-            weight = vtx[layer_deform].get(vgi, 0)
-            if weight:
-                yield vtx.co
-
-
-def generate_obb(verts, for_cylinder):
-    # generate orient bounding box
-    # code adapted from here:
-    # https://gist.github.com/iyadahmed/8874b92c27dee9d3ca63ab86bfc76295
-
-    cov_mat = numpy.cov(verts, rowvar=False, bias=True)
-    eig_vals, eig_vecs = numpy.linalg.eigh(cov_mat)
-
-    change_of_basis_mat = eig_vecs
-    inv_change_of_basis_mat = numpy.linalg.inv(change_of_basis_mat)
-
-    aligned = verts.dot(inv_change_of_basis_mat.T)
-
-    bbox_min = aligned.min(axis=0)
-    bbox_max = aligned.max(axis=0)
-
-    center = (bbox_max + bbox_min) / 2
-    center_world = center.dot(change_of_basis_mat.T)
-    scale = (bbox_max - bbox_min) / 2
-
-    if for_cylinder:
-        radius = max(scale[0], scale[1])
-        scale[0] = radius
-        scale[1] = radius
-
-    mat_loc = mathutils.Matrix.Translation(center_world)
-    mat_rot = mathutils.Matrix(change_of_basis_mat).to_4x4()
-    mat_scl = utils.version.multiply(
-        mathutils.Matrix.Scale(abs(scale[0]), 4, (1, 0, 0)),
-        mathutils.Matrix.Scale(abs(scale[1]), 4, (0, 1, 0)),
-        mathutils.Matrix.Scale(abs(scale[2]), 4, (0, 0, 1))
-    )
-    inv_scl = mat_scl.inverted(None)
-    if inv_scl is None:
-        return
-
-    mat_obb = utils.version.multiply(mat_loc, mat_rot, mat_scl)
-
-    return mat_obb
-
-
-def get_obb(bone, for_cylinder):
-    # create convex hull mesh for obb generation
-    bm = bmesh.new()
-    for vert in _bone_vertices(bone):
-        bm.verts.new(vert)
-    bm.verts.ensure_lookup_table()
-    if len(bm.verts) >=3:
-        input_geom = bmesh.ops.convex_hull(bm, input=bm.verts)['geom']
-    else:
-        input_geom = bm.verts
-
-    verts = []
-    for elem in input_geom:
-        if type(elem) == bmesh.types.BMVert:
-            verts.extend(elem.co)
-
-    # generate obb
-    obb_mat = None
-    if verts:
-        coord_count = len(verts)
-        verts_coord = numpy.empty(coord_count, dtype=numpy.float32)
-        for index, coord in enumerate(verts):
-            verts_coord[index] = coord
-        verts_coord.shape = (coord_count // 3, 3)
-
-        obb_mat = generate_obb(verts_coord, for_cylinder)
-
-    return obb_mat
-
-
 class XRAY_OT_fit_shape(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_bone_shape_fit'
     bl_label = 'Fit Shape'
@@ -327,14 +218,14 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
         multiply = utils.version.get_multiply()
 
         if xsh.type == '1':    # box
-            obb_mat = get_obb(bone, False)
+            obb_mat = utils.bone.get_obb(bone, False)
 
             if obb_mat:
                 hobj.matrix_local = obb_mat
 
             else:
                 # generate aabb
-                for vtx in _bone_vertices(bone):
+                for vtx in utils.bone.bone_vertices(bone):
                     vtx = multiply(matrix_inverted, vtx)
                     vfunc(vmin, vtx, min)
                     vfunc(vmax, vtx, max)
@@ -344,12 +235,12 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                     hobj.matrix_local = multiply(
                         matrix,
                         mathutils.Matrix.Translation(vcenter),
-                        _v2ms(vscale)
+                        utils.bone.convert_vector_to_matrix(vscale)
                     )
 
         else:
             vertices = []
-            for vtx in _bone_vertices(bone):
+            for vtx in utils.bone.bone_vertices(bone):
                 vtx = multiply(matrix_inverted, vtx)
                 vfunc(vmin, vtx, min)
                 vfunc(vmax, vtx, max)
@@ -365,11 +256,11 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                     hobj.matrix_local = multiply(
                         matrix,
                         mathutils.Matrix.Translation(vcenter),
-                        _v2ms((radius, radius, radius))
+                        utils.bone.convert_vector_to_matrix((radius, radius, radius))
                     )
 
                 elif xsh.type == '3':    # cylinder
-                    obb_mat = get_obb(bone, True)
+                    obb_mat = utils.bone.get_obb(bone, True)
 
                     if obb_mat:
                         hobj.matrix_local = obb_mat
@@ -381,7 +272,7 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                         hobj.matrix_local = multiply(
                             matrix,
                             mathutils.Matrix.Translation(vcenter),
-                            _v2ms((radius, radius, (vmax.z - vmin.z) * 0.5))
+                            utils.bone.convert_vector_to_matrix((radius, radius, (vmax.z - vmin.z) * 0.5))
                         )
 
                 else:

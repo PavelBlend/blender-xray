@@ -1,9 +1,11 @@
 # standart modules
 import time
+import math
 
 # blender modules
 import bpy
 import bmesh
+import mathutils
 
 # addon modules
 from .. import fmt
@@ -268,6 +270,12 @@ def _export_child(
     chunked_writer.put(fmt.Chunks_v4.INDICES, indices_writer)
 
 
+def vfunc(vtx_a, vtx_b, func):
+    vtx_a.x = func(vtx_a.x, vtx_b.x)
+    vtx_a.y = func(vtx_a.y, vtx_b.y)
+    vtx_a.z = func(vtx_a.z, vtx_b.z)
+
+
 def _export(root_obj, cwriter, context):
     xray = root_obj.xray
 
@@ -432,6 +440,7 @@ def _export(root_obj, cwriter, context):
     # get armature scale
     _, scale = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
     utils.ie.check_armature_scale(scale, root_obj, arm_obj)
+    multiply = utils.version.get_multiply()
 
     # export bone names
     bones_writer = rw.write.PackedWriter()
@@ -450,18 +459,64 @@ def _export(root_obj, cwriter, context):
 
         bxray = bone.xray
 
-        # box shape rotation
-        bones_writer.putf('<9f', *bxray.shape.box_rot)
+        # generate obb
+        bone_mat = utils.bone.get_obb(bone, False)
 
-        # box shape translation
-        box_trn = list(bxray.shape.box_trn)
+        # generate aabb
+        if not bone_mat:
+            vmin = mathutils.Vector((+math.inf, +math.inf, +math.inf))
+            vmax = mathutils.Vector((-math.inf, -math.inf, -math.inf))
+
+            for vtx in utils.bone.bone_vertices(bone):
+                vfunc(vmin, vtx, min)
+                vfunc(vmax, vtx, max)
+
+            if vmax.x > vmin.x:
+                vcenter = (vmax + vmin) / 2
+                vscale = (vmax - vmin) / 2
+                bone_mat = multiply(
+                    mathutils.Matrix.Identity(4),
+                    mathutils.Matrix.Translation(vcenter),
+                    utils.bone.convert_vector_to_matrix(vscale)
+                )
+
+        bone_mat = multiply(
+            multiply(
+                bone.matrix_local,
+                mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+            ).inverted(),
+            bone_mat
+        )
+
+        bone_mat = multiply(bone_mat, mathutils.Matrix.Scale(-1, 4, (0, 0, 1)))
+        box_trn = list(bone_mat.to_translation().to_tuple())
+
+        scale = bone_mat.to_scale()
+        for axis in range(3):
+            if not scale[axis]:
+                scale[axis] = 0.0001
+
+        box_hsz = list(scale.to_tuple())
+
+        mat_rot = multiply(
+            bone_mat,
+            utils.bone.convert_vector_to_matrix(scale).inverted()
+        ).to_3x3().transposed()
+
+        box_rot = []
+        for row in range(3):
+            box_rot.extend(mat_rot[row].to_tuple())
+
+        # bone rotation
+        bones_writer.putf('<9f', *box_rot)
+
+        # bone translation
         box_trn[0] *= scale.x
         box_trn[1] *= scale.y
         box_trn[2] *= scale.z
         bones_writer.putf('<3f', *box_trn)
 
-        # box shape half size
-        box_hsz = list(bxray.shape.box_hsz)
+        # bone half size
         box_hsz[0] *= scale.x
         box_hsz[1] *= scale.y
         box_hsz[2] *= scale.z
