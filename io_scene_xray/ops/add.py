@@ -10,13 +10,33 @@ from .. import text
 
 
 SOC_HUD_FOV = 30.5
+SOC_LEVEL_FOV = 67.5
 DRAW_SIZE = 0.5
+
+
+op_props = {
+    'camera_type': bpy.props.EnumProperty(
+        name='Camera Type',
+        items=(('HUD', 'HUD', ''), ('LEVEL', 'Level', ''))
+    ),
+}
 
 
 class XRAY_OT_add_camera(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.add_camera'
     bl_label = 'Add X-Ray Camera'
     bl_options = {'REGISTER', 'UNDO'}
+
+    props = op_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):    # pragma: no cover
+        row = self.layout.row(align=True)
+        row.label(text='Camera Type:')
+        row.prop(self, 'camera_type', expand=True)
 
     def execute(self, context):
         # set object mode
@@ -45,11 +65,16 @@ class XRAY_OT_add_camera(utils.ie.BaseOperator):
         else:
             camera.draw_size = DRAW_SIZE
 
+        if self.camera_type == 'HUD':
+            fov = SOC_HUD_FOV
+        else:
+            fov = SOC_LEVEL_FOV
+
         # set camera settings
         camera.clip_start = 0.2
         camera.lens_unit = 'FOV'
         camera.sensor_fit = 'VERTICAL'
-        camera.angle = math.radians(SOC_HUD_FOV)
+        camera.angle = math.radians(fov)
 
         # create camera parent
         parent = bpy.data.objects.new('xray-camera-root', None)
@@ -73,9 +98,13 @@ class XRAY_OT_add_camera(utils.ie.BaseOperator):
 
         return {'FINISHED'}
 
+    def invoke(self, context, event):    # pragma: no cover
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
 
 def register():
-    bpy.utils.register_class(XRAY_OT_add_camera)
+    utils.version.register_operators(XRAY_OT_add_camera)
 
 
 def unregister():
