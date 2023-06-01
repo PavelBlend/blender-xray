@@ -713,7 +713,10 @@ def import_main(context, chunked_reader, level):
 
 
 @log.with_context(name='import-game-level')
+@utils.stats.timer
 def import_file(context):
+    utils.stats.status('Import File: "{}"'.format(context.filepath))
+
     level = Level()
 
     level.context = context

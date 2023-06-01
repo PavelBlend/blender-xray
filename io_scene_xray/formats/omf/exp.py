@@ -886,7 +886,10 @@ def export_omf(context):
 
 
 @log.with_context('export-omf')
+@utils.stats.timer
 def export_omf_file(context):
+    utils.stats.status('Export File: "{}"'.format(context.filepath))
+
     log.update(object=context.bpy_arm_obj.name)
     if context.high_quality:
         context.params_ver = 4

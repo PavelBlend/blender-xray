@@ -11,6 +11,7 @@ from . import model
 from . import load
 from .. import fmt
 from .... import log
+from .... import utils
 from .... import rw
 from .... import text
 
@@ -120,7 +121,10 @@ def import_level_visual(data, visual_id, lvl, chunks, visuals_ids):
 
 
 @log.with_context(name='import-ogf')
+@utils.stats.timer
 def import_file(file_path, context):
+    utils.stats.status('Import File: "{}"'.format(file_path))
+
     data = rw.utils.get_file_data(file_path)
     file_name = os.path.basename(file_path)
 

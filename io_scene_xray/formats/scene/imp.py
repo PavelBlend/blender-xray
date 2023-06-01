@@ -180,6 +180,9 @@ def import_(filepath, chunked_reader, import_context):
 
 
 @log.with_context(name='import-scene-selection')
+@utils.stats.timer
 def import_file(filepath, import_context):
+    utils.stats.status('Import File: "{}"'.format(filepath))
+
     chunked_reader = rw.utils.get_file_reader(filepath, chunked=True)
     import_(filepath, chunked_reader, import_context)

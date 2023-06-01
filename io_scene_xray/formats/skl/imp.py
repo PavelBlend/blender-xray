@@ -5,6 +5,7 @@ import os
 from .. import contexts
 from .. import motions
 from ... import log
+from ... import utils
 from ... import rw
 
 
@@ -38,12 +39,18 @@ def _import_skl(file_path, context, chunked_reader):
 
 
 @log.with_context(name='import-skl')
+@utils.stats.timer
 def import_skl_file(file_path, context):
+    utils.stats.status('Import File: "{}"'.format(file_path))
+
     chunked_reader = rw.utils.get_file_reader(file_path, chunked=True)
     _import_skl(file_path, context, chunked_reader)
 
 
 @log.with_context(name='import-skls')
+@utils.stats.timer
 def import_skls_file(file_path, context):
+    utils.stats.status('Import File: "{}"'.format(file_path))
+
     reader = rw.utils.get_file_reader(file_path, chunked=False)
     motions.imp.import_motions(reader, context, context.motions_filter)
