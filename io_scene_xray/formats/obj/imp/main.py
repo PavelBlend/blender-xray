@@ -20,7 +20,7 @@ from .... import rw
 @log.with_context(name='import-object')
 @utils.stats.timer
 def import_file(file_path, context):
-    utils.stats.status('import file: "{}"'.format(file_path))
+    utils.stats.status('Import File: "{}"'.format(file_path))
 
     main_reader = rw.utils.get_file_reader(file_path, chunked=True)
 

@@ -53,7 +53,7 @@ class XRAY_OT_import_object(
     @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
-        utils.stats.update('import *.object')
+        utils.stats.update('Import *.object')
 
         # check selected files
         has_sel = utils.ie.has_selected_files(self)

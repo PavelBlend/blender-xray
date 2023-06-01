@@ -67,7 +67,7 @@ class XRAY_OT_import_anm(
     @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
-        utils.stats.update('import *.anm')
+        utils.stats.update('Import *.anm')
 
         has_files = utils.ie.has_selected_files(self)
         if not has_files:
@@ -143,7 +143,7 @@ class XRAY_OT_export_anm_file(
     @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
-        utils.stats.update('export *.anm')
+        utils.stats.update('Export *.anm')
 
         objects_list = get_objects(context)
         if len(objects_list) == 1:
@@ -226,7 +226,7 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
     @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
-        utils.stats.update('export *.anm')
+        utils.stats.update('Export *.anm')
 
         export_context = exp.ExportAnmContext()
         export_context.format_version = self.format_version

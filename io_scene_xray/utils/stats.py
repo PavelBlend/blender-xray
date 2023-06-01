@@ -24,7 +24,7 @@ class Statistics:
         self.lines.append(data)
 
     def create_bpy_text(self):
-        date_info = 'started {0}: {1}\n\n'.format(self.context, self.date)
+        date_info = 'Started {0}: {1}\n\n'.format(self.context, self.date)
         info_str = date_info + '\n'.join(self.lines)
 
         # get history text
@@ -124,7 +124,7 @@ def execute_with_stats(method):
         result = method(self, context)
 
         # after executing
-        statistics.status = '\ntotal time'
+        statistics.status = '\nTotal Time'
         end_time(is_global=True)
         statistics.flush()
         statistics = None
