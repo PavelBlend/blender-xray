@@ -211,7 +211,10 @@ class XRAY_OT_import_omf(
 
 
 export_props = {
-    'filter_glob': bpy.props.StringProperty(default='*' + filename_ext, options={'HIDDEN'}),
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    ),
     'export_mode': ie.prop_omf_export_mode(),
     'export_motions': ie.PropObjectMotionsExport(),
     'export_bone_parts': ie.prop_export_bone_parts(),
@@ -220,11 +223,11 @@ export_props = {
 }
 
 
-class XRAY_OT_export_omf(
+class XRAY_OT_export_omf_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
-    bl_idname = 'xray_export.omf'
+    bl_idname = 'xray_export.omf_file'
     bl_label = 'Export .omf'
     bl_description = 'Exports X-Ray skeletal game motions'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -363,10 +366,148 @@ class XRAY_OT_export_omf(
         return super().invoke(context, event)
 
 
+def get_arm_objs(operator, context):
+    sel_objs_count = len(context.selected_objects)
+    objs = [
+        obj
+        for obj in context.selected_objects
+            if obj.type == 'ARMATURE'
+    ]
+    arm_count = len(objs)
+    
+    if not arm_count and sel_objs_count:
+        operator.report(
+            {'ERROR'},
+            'There are no armatures among the selected objects'
+        )
+        return
+    
+    if not arm_count and not sel_objs_count:
+        operator.report({'ERROR'}, 'No selected objects')
+        return
+
+    return objs
+
+
+export_props = {
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    ),
+    'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
+    'export_motions': ie.PropObjectMotionsExport(),
+    'export_bone_parts': ie.prop_export_bone_parts(),
+    'high_quality': ie.prop_omf_high_quality(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
+}
+
+
+class XRAY_OT_export_omf(utils.ie.BaseOperator):
+    bl_idname = 'xray_export.omf'
+    bl_label = 'Export .omf'
+    bl_description = 'Exports X-Ray skeletal game motions'
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+
+    text = op_text
+    ext = filename_ext
+    filename_ext = filename_ext
+    props = export_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
+
+    def draw(self, context):    # pragma: no cover
+        utils.ie.open_imp_exp_folder(self, 'meshes_folder')
+
+        layout = self.layout
+
+        layout.prop(self, 'high_quality')
+
+        if not self.export_motions and not self.export_bone_parts:
+            layout.label(text='Nothing was Exported!', icon='ERROR')
+
+    @log.execute_with_logger
+    @log.with_context('export-omf')
+    @utils.ie.set_initial_state
+    def execute(self, context):
+        arm_objs = get_arm_objs(self, context)
+        if not arm_objs:
+            return {'CANCELLED'}
+
+        export_context = ExportOmfContext()
+
+        export_context.high_quality = self.high_quality
+        export_context.need_motions = True
+        export_context.need_bone_groups = True
+
+        for obj in arm_objs:
+            name = utils.ie.add_file_ext(obj.name, filename_ext)
+            filepath = os.path.join(self.directory, name)
+
+            skip = False
+
+            motions_count = len(obj.xray.motions_collection)
+            try:
+                if not motions_count:
+                    raise log.AppError(
+                        'Armature object has no motions',
+                        log.props(object=obj.name)
+                    )
+            except log.AppError as err:
+                log.err(err)
+                skip = True
+
+            bone_groups_count = len(obj.pose.bone_groups)
+            try:
+                if not bone_groups_count:
+                    raise log.AppError(
+                        'Armature object has no bone groups',
+                        log.props(object=obj.name)
+                    )
+            except log.AppError as err:
+                log.err(err)
+                skip = True
+
+            if skip:
+                continue
+
+            export_context.bpy_arm_obj = obj
+            export_context.filepath = filepath
+
+            try:
+                exp.export_omf_file(export_context)
+            except log.AppError as err:
+                export_context.errors.append(err)
+
+        for err in export_context.errors:
+            log.err(err)
+
+        return {'FINISHED'}
+
+    @utils.ie.run_imp_exp_operator
+    def invoke(self, context, event):    # pragma: no cover
+        pref = utils.version.get_preferences()
+
+        self.high_quality = pref.omf_high_quality
+
+        arm_objs = get_arm_objs(self, context)
+        if not arm_objs:
+            return {'CANCELLED'}
+
+        if len(arm_objs) == 1:
+            return bpy.ops.xray_export.omf_file('INVOKE_DEFAULT')
+
+        context.window_manager.fileselect_add(self)
+
+        return {'RUNNING_MODAL'}
+
+
 classes = (
     Motion,
     XRAY_OT_import_omf,
-    XRAY_OT_export_omf
+    XRAY_OT_export_omf,
+    XRAY_OT_export_omf_file
 )
 
 

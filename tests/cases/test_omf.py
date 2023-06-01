@@ -12,6 +12,7 @@ class TestOmf(utils.XRayTestCase):
         )
         arm_obj = bpy.data.objects['test_fmt_omf.object']
         utils.set_active_object(arm_obj)
+
         # import motions
         bpy.ops.xray_import.omf(
             directory=self.binpath(),
@@ -20,20 +21,21 @@ class TestOmf(utils.XRayTestCase):
             import_bone_parts=True,
             add_actions_to_motion_list=True
         )
+
         # export motions
-        bpy.ops.xray_export.omf(
+        bpy.ops.xray_export.omf_file(
             filepath=self.outpath('test.omf'),
             export_mode='OVERWRITE',
             export_motions=True,
             export_bone_parts=True
         )
-        bpy.ops.xray_export.omf(
+        bpy.ops.xray_export.omf_file(
             filepath=self.outpath('test.omf'),
             export_mode='REPLACE',
             export_motions=True,
             export_bone_parts=True
         )
-        bpy.ops.xray_export.omf(
+        bpy.ops.xray_export.omf_file(
             filepath=self.outpath('test.omf'),
             export_mode='ADD',
             export_motions=True,
