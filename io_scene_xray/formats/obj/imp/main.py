@@ -380,7 +380,6 @@ def import_file(file_path, context):
                 chunk_size=len(chunk_data)
             )
 
-    utils.stats.end_time()
-    utils.stats.total_time('import file "{}"'.format(file_path))
+    utils.stats.end_time('import file "{}"'.format(file_path))
 
     return bpy_obj

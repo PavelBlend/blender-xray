@@ -17,10 +17,7 @@ class Statistics:
         self.date = time.strftime('%Y.%m.%d %H:%M:%S')
 
         self.start_time = None
-        self.end_time = None
-
         self.global_start_time = None
-        self.global_end_time = None
 
     def info(self, data):
         self.lines.append(data)
@@ -76,18 +73,15 @@ def start_time():
     statistics.start_time = time.time()
 
 
-def end_time():
+def end_time(message, is_global=False):
     global statistics
-    statistics.end_time = time.time()
 
-
-def total_time(message, is_global=False):
-    global statistics
+    end_tm = time.time()
 
     if is_global:
-        total_time = statistics.global_end_time - statistics.global_start_time
+        total_time = end_tm - statistics.global_start_time
     else:
-        total_time = statistics.end_time - statistics.start_time
+        total_time = end_tm - statistics.start_time
 
     total_time_str = '{0:.3f} sec'.format(total_time)
     total_time_message = '{0}: {1}'.format(message, total_time_str)
@@ -106,8 +100,7 @@ def execute_with_stats(method):
         result = method(self, context)
 
         # after executing
-        statistics.global_end_time = time.time()
-        total_time('\ntotal time', is_global=True)
+        end_time('\ntotal time', is_global=True)
         statistics.flush()
         statistics = None
 

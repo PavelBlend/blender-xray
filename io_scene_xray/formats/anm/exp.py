@@ -197,7 +197,11 @@ def _export_action_data(packed_writer, ver, xray, fcurves):
 
 @log.with_context('export-anm')
 def export_file(export_context):
+    utils.stats.start_time()
+
     log.update(file=export_context.filepath)
     writer = rw.write.ChunkedWriter()
     _export(export_context, writer)
     rw.utils.save_file(export_context.filepath, writer)
+
+    utils.stats.end_time(export_context.filepath)
