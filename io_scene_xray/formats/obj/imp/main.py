@@ -19,6 +19,8 @@ from .... import rw
 
 @log.with_context(name='import-object')
 def import_file(file_path, context):
+    utils.stats.start_time()
+
     main_reader = rw.utils.get_file_reader(file_path, chunked=True)
 
     # find main chunk
@@ -377,5 +379,8 @@ def import_file(file_path, context):
                 chunk_id=chunk_id,
                 chunk_size=len(chunk_data)
             )
+
+    utils.stats.end_time()
+    utils.stats.total_time('import file "{}"'.format(file_path))
 
     return bpy_obj

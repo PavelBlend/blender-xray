@@ -12,6 +12,7 @@ from . import mesh
 from . import action
 from . import bone
 from . import version
+from . import stats
 from .. import log
 from .. import text
 
