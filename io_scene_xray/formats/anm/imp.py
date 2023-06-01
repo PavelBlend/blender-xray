@@ -113,12 +113,11 @@ def _import(file_path, creader, context):
 
 
 @log.with_context('import-anm')
+@utils.stats.timer
 def import_file(file_path, context):
-    utils.stats.start_time()
+    utils.stats.status('import file: "{}"'.format(file_path))
 
     chunked_reader = rw.utils.get_file_reader(file_path, chunked=True)
     frame_start, frame_end = _import(file_path, chunked_reader, context)
-
-    utils.stats.end_time(file_path)
 
     return frame_start, frame_end

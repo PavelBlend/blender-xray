@@ -13,6 +13,7 @@ HISTORY_FILE_NAME = 'xray_stats_history'
 class Statistics:
     def __init__(self):
         self.lines = []
+        self.status = ''
         self.context = ''
         self.date = time.strftime('%Y.%m.%d %H:%M:%S')
 
@@ -58,6 +59,11 @@ class Statistics:
         self.create_bpy_text()
 
 
+def status(status_str):
+    global statistics
+    statistics.status = status_str
+
+
 def update(context):
     global statistics
     statistics.context = context
@@ -73,7 +79,7 @@ def start_time():
     statistics.start_time = time.time()
 
 
-def end_time(message, is_global=False):
+def end_time(is_global=False):
     global statistics
 
     end_tm = time.time()
@@ -84,8 +90,26 @@ def end_time(message, is_global=False):
         total_time = end_tm - statistics.start_time
 
     total_time_str = '{0:.3f} sec'.format(total_time)
-    total_time_message = '{0}: {1}'.format(message, total_time_str)
+    total_time_message = '{0}: {1}'.format(statistics.status, total_time_str)
     info(total_time_message)
+
+
+def timer(method):
+
+    def wrapper(*args, **kwargs):
+        global statistics
+
+        # before executing
+        statistics.start_time = time.time()
+
+        result = method(*args, **kwargs)
+
+        # after executing
+        end_time()
+
+        return result
+
+    return wrapper
 
 
 def execute_with_stats(method):
@@ -100,7 +124,8 @@ def execute_with_stats(method):
         result = method(self, context)
 
         # after executing
-        end_time('\ntotal time', is_global=True)
+        statistics.status = '\ntotal time'
+        end_time(is_global=True)
         statistics.flush()
         statistics = None
 
