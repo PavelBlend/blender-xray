@@ -61,8 +61,11 @@ class XRAY_OT_import_level(
         utils.ie.open_imp_exp_folder(self, 'levels_folder')
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Import level')
+
         if not self.filepath:
             self.report({'ERROR'}, 'No file selected')
             return {'CANCELLED'}

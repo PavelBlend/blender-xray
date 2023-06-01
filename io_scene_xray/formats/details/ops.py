@@ -70,8 +70,11 @@ class XRAY_OT_import_details(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Import *.details')
+
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
@@ -198,8 +201,11 @@ class XRAY_OT_export_details_file(
         draw_export_props(self)
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.details')
+
         dets_objs = search_details()
 
         if not dets_objs:
@@ -281,8 +287,11 @@ class XRAY_OT_export_details(utils.ie.BaseOperator):
         draw_export_props(self)
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.details')
+
         dets_objs = search_details()
 
         if not dets_objs:

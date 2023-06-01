@@ -87,9 +87,12 @@ class XRAY_OT_export_ogf_file(
         draw_props(self, context, False)
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.execute_require_filepath
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.ogf')
+
         selected_objs = context.selected_objects
         root_objs = get_root_objects(context)
 
@@ -185,8 +188,11 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         draw_props(self, context, True)
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.ogf')
+
         export_context = ExportOgfContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.export_motions = self.export_motions

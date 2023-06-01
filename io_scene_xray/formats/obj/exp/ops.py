@@ -109,8 +109,11 @@ class XRAY_OT_export_object(utils.ie.BaseOperator, _WithExportMotions):
         draw_props(self, mode='BATCH')
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.object')
+
         exp_ctx = ExportObjectContext()
 
         exp_ctx.texname_from_path = self.texture_name_from_image_path
@@ -203,8 +206,11 @@ class XRAY_OT_export_object_file(
         draw_props(self)
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.object')
+
         export_context = ExportObjectContext()
 
         export_context.texname_from_path = self.texture_name_from_image_path
@@ -269,8 +275,11 @@ class XRAY_OT_export_project(utils.ie.BaseOperator):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.object')
+
         data = context.scene.xray
         export_context = ExportObjectContext()
         export_context.texname_from_path = data.object_texture_name_from_image_path

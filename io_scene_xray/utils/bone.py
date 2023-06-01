@@ -118,7 +118,7 @@ def get_obb(bone, for_cylinder):
     for vert in bone_vertices(bone):
         bm.verts.new(vert)
     bm.verts.ensure_lookup_table()
-    if len(bm.verts) >=3:
+    if len(bm.verts) >= 3:
         input_geom = bmesh.ops.convex_hull(bm, input=bm.verts)['geom']
     else:
         input_geom = bm.verts

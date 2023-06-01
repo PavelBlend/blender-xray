@@ -95,8 +95,11 @@ class XRAY_OT_import_omf(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Import *.omf')
+
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
@@ -257,8 +260,11 @@ class XRAY_OT_export_omf_file(
                 layout.label(text='Nothing was Exported!', icon='ERROR')
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.omf')
+
         active_object = context.active_object
         if self.obj:
             utils.version.set_active_object(self.obj)
@@ -428,9 +434,12 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
             layout.label(text='Nothing was Exported!', icon='ERROR')
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @log.with_context('export-omf')
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.omf')
+
         arm_objs = get_arm_objs(self, context)
         if not arm_objs:
             return {'CANCELLED'}

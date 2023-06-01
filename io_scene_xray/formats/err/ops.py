@@ -45,8 +45,11 @@ class XRAY_OT_import_err(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Import *.err')
+
         imp_ctx = contexts.ImportContext()
 
         # import files
