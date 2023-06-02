@@ -462,7 +462,7 @@ def _export(root_obj, cwriter, context):
         # generate obb
         verts = utils.bone.bone_vertices(bone)
 
-        if len(list(verts)) > 3:
+        if len(verts) > 3:
             bone_mat = utils.bone.get_obb(bone, False)
 
             # generate aabb

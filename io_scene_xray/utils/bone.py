@@ -98,6 +98,7 @@ def _bone_objects(bone):
 
 
 def bone_vertices(bone):
+    verts = []
     for obj, vgi in _bone_objects(bone):
         bmsh = bmesh.new()
         if version.IS_28:
@@ -109,7 +110,8 @@ def bone_vertices(bone):
         for vtx in bmsh.verts:
             weight = vtx[layer_deform].get(vgi, 0)
             if weight:
-                yield vtx.co
+                verts.append(vtx.co)
+    return verts
 
 
 def get_obb(bone, for_cylinder):
