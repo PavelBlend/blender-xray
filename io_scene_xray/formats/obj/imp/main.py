@@ -156,6 +156,8 @@ def import_file(file_path, context):
                 utils.version.set_object_show_xray(bpy_arm_obj, True)
                 utils.version.link_object(bpy_arm_obj)
                 utils.version.set_active_object(bpy_arm_obj)
+                utils.stats.created_obj()
+                utils.stats.created_arm()
 
             if chunk_id == fmt.Chunks.Object.BONES:
                 for _ in range(bones_count):
@@ -302,6 +304,7 @@ def import_file(file_path, context):
         else:
             bpy_obj = bpy.data.objects.new(object_name, None)
             utils.version.link_object(bpy_obj)
+            utils.stats.created_obj()
             for mesh_obj in mesh_objects:
                 mesh_obj.parent = bpy_obj
 

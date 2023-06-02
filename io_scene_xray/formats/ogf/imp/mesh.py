@@ -402,6 +402,7 @@ def create_visual(visual, lvl=None, geometry_key=None):
     bpy_mesh = bpy.data.meshes.new(visual.name)
     bpy_mesh.use_auto_smooth = True
     bpy_mesh.auto_smooth_angle = math.pi
+    utils.stats.created_msh()
 
     # append material
     if lvl:

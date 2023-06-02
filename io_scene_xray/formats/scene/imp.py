@@ -77,6 +77,7 @@ def _read_object_body(data, imported_objects, import_context):
         imported_object = imported_objects.get(object_path)
         if imported_object.type == 'EMPTY':
             new_empty = bpy.data.objects.new(imported_object.name, None)
+            utils.stats.created_obj()
             new_empty.xray.flags = imported_object.xray.flags
             new_empty.xray.export_path = imported_object.xray.export_path
             new_empty.xray.revision.owner = imported_object.xray.revision.owner
@@ -84,6 +85,7 @@ def _read_object_body(data, imported_objects, import_context):
             utils.version.link_object(new_empty)
             for mesh in imported_object.children:
                 new_object = bpy.data.objects.new(mesh.name, mesh.data)
+                utils.stats.created_obj()
                 new_object.parent = new_empty
                 new_object.xray.isroot = False
                 utils.version.link_object(new_object)
@@ -92,6 +94,7 @@ def _read_object_body(data, imported_objects, import_context):
             new_empty.scale = scale[0], scale[2], scale[1]
         else:
             new_object = bpy.data.objects.new(imported_object.name, imported_object.data)
+            utils.stats.created_obj()
             new_object.xray.flags = imported_object.xray.flags
             new_object.xray.export_path = imported_object.xray.export_path
             new_object.xray.revision.owner = imported_object.xray.revision.owner

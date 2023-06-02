@@ -60,6 +60,7 @@ LEVEL_VISUALS_COLLECTION_NAMES_TABLE = {
 
 def create_object(object_name, object_data):
     bpy_object = bpy.data.objects.new(object_name, object_data)
+    utils.stats.created_obj()
     return bpy_object
 
 
@@ -226,6 +227,7 @@ def create_empty_image(texture, absolute_image_path):
     bpy_image.source = 'FILE'
     bpy_image.filepath = absolute_image_path
     bpy_image.alpha_mode = 'STRAIGHT'
+    utils.stats.created_img()
     return bpy_image
 
 
@@ -235,6 +237,7 @@ def load_image(absolute_texture_path):
 
     bpy_image = bpy.data.images.load(absolute_texture_path)
     bpy_image.alpha_mode = 'STRAIGHT'
+    utils.stats.created_img()
 
     return bpy_image
 
@@ -414,6 +417,7 @@ def create_material(level, context, texture, engine_shader, *light_maps):
     bpy_material.xray.version = context.version
     bpy_material.xray.eshader = engine_shader
     bpy_material.xray.uv_texture = 'Texture'
+    utils.stats.created_mat()
     if len(light_maps) == 1 and level.xrlc_version >= fmt.VERSION_13:
         bpy_image = get_image(context, texture, terrain=True)
     else:
@@ -452,6 +456,7 @@ def create_material(level, context, texture, engine_shader, *light_maps):
         if not bpy_texture:
             bpy_texture = bpy.data.textures.new(texture, 'IMAGE')
             bpy_texture.image = bpy_image
+            utils.stats.created_tex()
         tex_slot.texture = bpy_texture
         tex_slot.use_map_alpha = True
     return bpy_material, bpy_image

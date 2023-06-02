@@ -59,6 +59,7 @@ def import_motion(
         reader.skip(skip)
         return
     act = bpy.data.actions.new(name=name)
+    utils.stats.created_act()
     act.use_fake_user = True
     xray = act.xray
     start_frame, end_frame = reader.getf('<2I')

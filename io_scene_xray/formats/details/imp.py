@@ -75,6 +75,7 @@ def _import(file_path, context, chunked_reader):
         root_obj = bpy.data.objects.new(base_name, None)
         root_obj.xray.is_details = True
         utils.version.link_object(root_obj)
+        utils.stats.created_obj()
 
         meshes_obj.parent = root_obj
 

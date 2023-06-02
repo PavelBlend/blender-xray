@@ -310,6 +310,7 @@ def import_mesh(context, creader, renamemap, file_name):
     bmfaces = [None] * len(fc_data)
 
     bm_data = bpy.data.meshes.new(mesh_name)
+    utils.stats.created_msh()
     if face_sg or split_normals:
         bm_data.use_auto_smooth = True
         bm_data.auto_smooth_angle = math.pi
@@ -322,6 +323,7 @@ def import_mesh(context, creader, renamemap, file_name):
         obj_name = mesh_name
 
     bo_mesh = bpy.data.objects.new(obj_name, bm_data)
+    utils.stats.created_obj()
     if mesh_flags is not None:
         bo_mesh.data.xray.flags = mesh_flags
     if mesh_options is not None:
@@ -337,6 +339,7 @@ def import_mesh(context, creader, renamemap, file_name):
             context.loaded_materials[name] = bmat = \
                 bpy.data.materials.new(name)
             bmat.xray.version = context.version
+            utils.stats.created_mat()
         midx = len(bm_data.materials)
         bm_data.materials.append(bmat)
         if not utils.version.IS_28:

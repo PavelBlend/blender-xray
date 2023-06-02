@@ -187,6 +187,7 @@ def import_level_geometry(chunks, visual, lvl):
 def create_hierrarhy_obj(context, visual):
     root_obj = bpy.data.objects.new(visual.name, None)
     utils.version.link_object(root_obj)
+    utils.stats.created_obj()
 
     root_obj.xray.version = context.version
     root_obj.xray.isroot = True

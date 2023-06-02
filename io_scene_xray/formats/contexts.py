@@ -52,6 +52,7 @@ class ImportMeshContext(MeshContext):
             result = bpy.data.images.new(os.path.basename(relpath), 0, 0)
             result.source = 'FILE'
             result.filepath = relpath + '.dds'
+            utils.stats.created_img()
             return result
         filepath = os.path.abspath(
             os.path.join(self.textures_folder, relpath + '.dds')
@@ -66,12 +67,14 @@ class ImportMeshContext(MeshContext):
             if os.path.exists(filepath):
                 try:
                     result = bpy.data.images.load(filepath)
+                    utils.stats.created_img()
                 except RuntimeError:    # e.g. 'Error: Cannot read ...'
                     pass
 
             if not result:
                 log.warn('texture file not found', path=filepath)
                 result = bpy.data.images.new(os.path.basename(relpath), 0, 0)
+                utils.stats.created_img()
                 result.source = 'FILE'
                 result.filepath = filepath
 

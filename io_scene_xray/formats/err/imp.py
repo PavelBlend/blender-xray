@@ -65,6 +65,8 @@ def import_(filepath, chunked_reader):
         utils.version.set_object_show_xray(bpy_obj, True)
         utils.version.link_object(bpy_obj)
         bpy_mesh.from_pydata(vertices, (), faces)
+        utils.stats.created_obj()
+        utils.stats.created_msh()
 
 
 @log.with_context(name='import-err')

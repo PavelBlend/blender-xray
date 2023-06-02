@@ -18,6 +18,14 @@ class Statistics:
         self.context = ''
         self.date = time.strftime('%Y.%m.%d %H:%M:%S')
 
+        self.objs_count = 0
+        self.mshs_count = 0
+        self.arms_count = 0
+        self.mats_count = 0
+        self.texs_count = 0
+        self.imgs_count = 0
+        self.acts_count = 0
+
         self.start_time = None
         self.global_start_time = None
         self.props = None
@@ -59,6 +67,41 @@ class Statistics:
 
     def flush(self):
         self.create_bpy_text()
+
+
+def created_obj():
+    global statistics
+    statistics.objs_count += 1
+
+
+def created_msh():
+    global statistics
+    statistics.mshs_count += 1
+
+
+def created_arm():
+    global statistics
+    statistics.arms_count += 1
+
+
+def created_mat():
+    global statistics
+    statistics.mats_count += 1
+
+
+def created_tex():
+    global statistics
+    statistics.texs_count += 1
+
+
+def created_img():
+    global statistics
+    statistics.imgs_count += 1
+
+
+def created_act():
+    global statistics
+    statistics.acts_count += 1
 
 
 def status(status_str, *props):
@@ -110,6 +153,43 @@ def end_time(is_global=False):
     info(total_time_message)
 
 
+def data_blocks_count_info():
+    global statistics
+
+    if statistics.context.split(' ')[0] == 'Export':
+        return
+
+    info('Created:')
+
+    if statistics.objs_count:
+        objs_count = '    Objects: {}'.format(statistics.objs_count)
+        info(objs_count)
+
+    if statistics.mshs_count:
+        objs_count = '    Meshes: {}'.format(statistics.mshs_count)
+        info(objs_count)
+
+    if statistics.arms_count:
+        objs_count = '    Armatures: {}'.format(statistics.arms_count)
+        info(objs_count)
+
+    if statistics.mats_count:
+        objs_count = '    Materials: {}'.format(statistics.mats_count)
+        info(objs_count)
+
+    if statistics.texs_count:
+        objs_count = '    Textures: {}'.format(statistics.texs_count)
+        info(objs_count)
+
+    if statistics.imgs_count:
+        objs_count = '    Images: {}'.format(statistics.imgs_count)
+        info(objs_count)
+
+    if statistics.acts_count:
+        objs_count = '    Actions: {}'.format(statistics.acts_count)
+        info(objs_count)
+
+
 def timer(method):
 
     def wrapper(*args, **kwargs):
@@ -141,12 +221,14 @@ def execute_with_stats(method):
         result = method(self, context)
 
         # after executing
-        files_count_info = '\n{0} Files: {1}'.format(
+        files_count_info = '\n{0}ed Files: {1}'.format(
             statistics.context.split(' ')[0],
             statistics.files_count
         )
         info(files_count_info)
-        statistics.status = 'Total Time'
+        data_blocks_count_info()
+
+        statistics.status = '\nTotal Time'
         statistics.props = None
         end_time(is_global=True)
         statistics.flush()

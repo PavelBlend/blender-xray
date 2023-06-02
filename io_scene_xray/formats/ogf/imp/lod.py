@@ -76,6 +76,7 @@ def import_lod_def_2(lvl, data):
 def create_lod_mesh(visual, verts, faces):
     bpy_mesh = bpy.data.meshes.new(visual.name)
     bpy_mesh.from_pydata(verts, (), faces)
+    utils.stats.created_msh()
     return bpy_mesh
 
 

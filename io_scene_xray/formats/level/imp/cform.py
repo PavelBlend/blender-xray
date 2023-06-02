@@ -128,6 +128,7 @@ def import_main(context, level, cform_path, data):
             material.xray.gamemtl = gmtl
             material.xray.suppress_shadows = shadows
             material.xray.suppress_wm = wallmarks
+            utils.stats.created_mat()
 
         bpy_materials[mat_id] = material
 
@@ -193,6 +194,7 @@ def import_main(context, level, cform_path, data):
         # create mesh
         obj_name = 'cform_{:0>3}'.format(sector)
         bpy_mesh = bpy.data.meshes.new(obj_name)
+        utils.stats.created_msh()
 
         # append materials
         for mat_id, _, _ in sectors_mats[sector]:
@@ -209,5 +211,6 @@ def import_main(context, level, cform_path, data):
         bpy_obj.xray.level.object_type = 'CFORM'
         collection = level.collections[create.LEVEL_CFORM_COLLECTION_NAME]
         collection.objects.link(bpy_obj)
+        utils.stats.created_obj()
         if not utils.version.IS_28:
             utils.version.link_object(bpy_obj)

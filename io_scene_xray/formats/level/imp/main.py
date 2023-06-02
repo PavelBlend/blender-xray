@@ -154,6 +154,7 @@ def generate_glow_mesh_data(radius):
 def create_glow_mesh(name, vertices, faces, uvs, material, image):
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(vertices, (), faces)
+    utils.stats.created_msh()
     if utils.version.IS_28:
         uv_layer = mesh.uv_layers.new(name='Texture')
     else:
@@ -456,6 +457,7 @@ def create_portal(portal_index, verts, collection):
     faces = [list(range(len(verts))), ]
     portal_mesh = bpy.data.meshes.new(object_name)
     portal_mesh.from_pydata(verts, (), faces)
+    utils.stats.created_msh()
 
     portal_obj = create.create_object(object_name, portal_mesh)
 
