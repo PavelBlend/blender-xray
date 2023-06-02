@@ -19,7 +19,7 @@ GEOMX_EXT = 'geomx'
 def export_file(bpy_obj, dir_path):
     log.update(object=bpy_obj.name)
     file_path = os.path.join(dir_path, FILE_NAME)
-    utils.stats.status('Export File: "{}"'.format(file_path))
+    utils.stats.status('Export File', file_path)
 
     # write level file
     vbs, ibs, fp_vbs, fp_ibs, lvl = level.write_level(file_path, bpy_obj)

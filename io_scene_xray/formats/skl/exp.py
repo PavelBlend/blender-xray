@@ -40,7 +40,7 @@ def _export_skl(chunked_writer, context):
 @log.with_context(name='export-skl')
 @utils.stats.timer
 def export_skl_file(file_path, context):
-    utils.stats.status('Export File: "{}"'.format(file_path))
+    utils.stats.status('Export File', file_path)
     log.update(action=context.action.name)
 
     writer = rw.write.ChunkedWriter()
@@ -51,7 +51,7 @@ def export_skl_file(file_path, context):
 @log.with_context(name='export-skls')
 @utils.stats.timer
 def export_skls_file(file_path, context, actions):
-    utils.stats.status('Export File: "{}"'.format(file_path))
+    utils.stats.status('Export File', file_path)
     log.update(object=context.bpy_arm_obj.name)
 
     writer = rw.write.PackedWriter()

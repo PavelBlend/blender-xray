@@ -62,7 +62,7 @@ def import_(
 @log.with_context('import-dm')
 @utils.stats.timer
 def import_file(file_path, context):
-    utils.stats.status('Import File: "{}"'.format(file_path))
+    utils.stats.status('Import File', file_path)
 
     packed_reader = rw.utils.get_file_reader(file_path, chunked=False)
     import_(file_path, context, packed_reader)

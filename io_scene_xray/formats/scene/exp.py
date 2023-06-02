@@ -115,9 +115,9 @@ def _export(bpy_objs, chunked_writer):
 
 @log.with_context(name='export-scene-selection')
 @utils.stats.timer
-def export_file(bpy_objs, filepath):
-    utils.stats.status('Export File: "{}"'.format(filepath))
+def export_file(bpy_objs, file_path):
+    utils.stats.status('Export File', file_path)
 
     writer = rw.write.ChunkedWriter()
     _export(bpy_objs, writer)
-    rw.utils.save_file(filepath, writer)
+    rw.utils.save_file(file_path, writer)

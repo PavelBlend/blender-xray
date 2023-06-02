@@ -425,6 +425,6 @@ def read_main(data, context):
 @log.with_context(name='import-omf')
 @utils.stats.timer
 def import_file(context):
-    utils.stats.status('Import File: "{}"'.format(context.filepath))
+    utils.stats.status('Import File', context.filepath)
     file_data = rw.utils.get_file_data(context.filepath)
     read_main(file_data, context)

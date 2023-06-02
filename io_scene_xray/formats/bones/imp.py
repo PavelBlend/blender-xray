@@ -185,7 +185,7 @@ def _import_main(chunked_reader, import_context):
 @log.with_context(name='import-bones')
 @utils.stats.timer
 def import_file(imp_context):
-    utils.stats.status('Import File: "{}"'.format(imp_context.filepath))
+    utils.stats.status('Import File', imp_context.filepath)
 
     reader = rw.utils.get_file_reader(imp_context.filepath, chunked=True)
     _import_main(reader, imp_context)

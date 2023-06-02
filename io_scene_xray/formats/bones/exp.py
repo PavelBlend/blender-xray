@@ -185,7 +185,7 @@ def _export_bone_data(bpy_obj, bone, scale):
 @log.with_context(name='export-bones')
 @utils.stats.timer
 def export_file(context):
-    utils.stats.status('Export File: "{}"'.format(context.filepath))
+    utils.stats.status('Export File', context.filepath)
 
     arm_obj = context.bpy_arm_obj
     log.update(object=arm_obj.name)

@@ -13,12 +13,14 @@ HISTORY_FILE_NAME = 'xray_stats_history'
 class Statistics:
     def __init__(self):
         self.lines = []
+        self.files_count = 0
         self.status = ''
         self.context = ''
         self.date = time.strftime('%Y.%m.%d %H:%M:%S')
 
         self.start_time = None
         self.global_start_time = None
+        self.props = None
 
     def info(self, data):
         self.lines.append(data)
@@ -59,9 +61,10 @@ class Statistics:
         self.create_bpy_text()
 
 
-def status(status_str):
+def status(status_str, *props):
     global statistics
     statistics.status = status_str
+    statistics.props = props
 
 
 def update(context):
@@ -89,8 +92,21 @@ def end_time(is_global=False):
     else:
         total_time = end_tm - statistics.start_time
 
-    total_time_str = '{0:.3f} sec'.format(total_time)
-    total_time_message = '{0}: {1}'.format(statistics.status, total_time_str)
+    total_time_str = '({0:.3f} sec)'.format(total_time)
+
+    if statistics.props:
+        file_path = statistics.props[0]
+        total_time_message = '{0} {1:>12}: "{2}"'.format(
+            statistics.status,
+            total_time_str,
+            file_path
+        )
+    else:
+        total_time_message = '{0}: {1}'.format(
+            statistics.status,
+            total_time_str
+        )
+
     info(total_time_message)
 
 
@@ -106,6 +122,7 @@ def timer(method):
 
         # after executing
         end_time()
+        statistics.files_count += 1
 
         return result
 
@@ -124,7 +141,13 @@ def execute_with_stats(method):
         result = method(self, context)
 
         # after executing
-        statistics.status = '\nTotal Time'
+        files_count_info = '\n{0} Files: {1}'.format(
+            statistics.context.split(' ')[0],
+            statistics.files_count
+        )
+        info(files_count_info)
+        statistics.status = 'Total Time'
+        statistics.props = None
         end_time(is_global=True)
         statistics.flush()
         statistics = None
