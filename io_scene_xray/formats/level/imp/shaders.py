@@ -37,7 +37,12 @@ def import_terrain_shader(level, context, engine_shader, textures):
 
 
 def import_vertex_color_shader(level, context, engine_shader, texture):
-    bpy_material, bpy_image = create.get_material(level, context, texture, engine_shader)
+    bpy_material, bpy_image = create.get_material(
+        level,
+        context,
+        texture,
+        engine_shader
+    )
     return bpy_material, bpy_image
 
 
@@ -55,7 +60,7 @@ def import_shader(level, context, shader_data):
             bpy_material, bpy_image = import_terrain_shader(
                 level, context, engine_shader, textures
             )
-        elif level.xrlc_version >= fmt.VERSION_8 and level.xrlc_version <= fmt.VERSION_12:
+        elif fmt.VERSION_8 <= level.xrlc_version <= fmt.VERSION_12:
             bpy_material, bpy_image = import_brush_shader_v12(
                 level, context, engine_shader, textures
             )
