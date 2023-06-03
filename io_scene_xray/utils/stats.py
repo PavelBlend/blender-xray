@@ -16,6 +16,8 @@ class Statistics:
         self.files_count = 0
         self.status = ''
         self.context = ''
+        self.time_stage = None
+        self.stage_name = None
         self.date = time.strftime('%Y.%m.%d %H:%M:%S')
 
         self.objs_count = 0
@@ -26,8 +28,6 @@ class Statistics:
         self.imgs_count = 0
         self.acts_count = 0
 
-        self.start_time = None
-        self.global_start_time = None
         self.props = None
 
     def info(self, data):
@@ -110,6 +110,11 @@ def status(status_str, *props):
     statistics.props = props
 
 
+def stage(stage_name):
+    global statistics
+    statistics.stage_name = stage_name
+
+
 def update(context):
     global statistics
     statistics.context = context
@@ -120,36 +125,45 @@ def info(data):
     statistics.info(data)
 
 
-def start_time():
-    global statistics
-    statistics.start_time = time.time()
-
-
-def end_time(is_global=False):
+def end_time(start_time):
     global statistics
 
-    end_tm = time.time()
+    end_time = time.time()
+    total_time = end_time - start_time
 
-    if is_global:
-        total_time = end_tm - statistics.global_start_time
-    else:
-        total_time = end_tm - statistics.start_time
-
-    total_time_str = '({0:.3f} sec)'.format(total_time)
+    total_time_str = '{0:.3f} sec'.format(total_time)
 
     if statistics.props:
         file_path = statistics.props[0]
-        total_time_message = '{0} {1:>12}: "{2}"'.format(
-            statistics.status,
-            total_time_str,
-            file_path
-        )
+
+        if statistics.time_stage:
+            time_stage_str = '{0:.3f} sec'.format(statistics.time_stage)
+            others_time_str = '{0:.3f} sec'.format(
+                total_time - statistics.time_stage
+            )
+            total_time_message = '{0} {1:>12} ({2}: {3:>12}, Others: {4:>12}): "{5}"'.format(
+                statistics.status,
+                total_time_str,
+                statistics.stage_name,
+                time_stage_str,
+                others_time_str,
+                file_path
+            )
+
+        else:
+            total_time_message = '{0} {1:>12}: "{2}"'.format(
+                statistics.status,
+                total_time_str,
+                file_path
+            )
+
     else:
         total_time_message = '{0}: {1}'.format(
             statistics.status,
             total_time_str
         )
 
+    statistics.time_stage = None
     info(total_time_message)
 
 
@@ -196,13 +210,32 @@ def timer(method):
         global statistics
 
         # before executing
-        statistics.start_time = time.time()
+        start_time = time.time()
 
         result = method(*args, **kwargs)
 
         # after executing
-        end_time()
+        end_time(start_time)
         statistics.files_count += 1
+
+        return result
+
+    return wrapper
+
+
+def timer_stage(method):
+
+    def wrapper(*args, **kwargs):
+        global statistics
+
+        # before executing
+        start_time = time.time()
+
+        result = method(*args, **kwargs)
+
+        # after executing
+        end_time = time.time()
+        statistics.time_stage = end_time - start_time
 
         return result
 
@@ -216,7 +249,7 @@ def execute_with_stats(method):
 
         # before executing
         statistics = Statistics()
-        statistics.global_start_time = time.time()
+        start_time = time.time()
 
         result = method(self, context)
 
@@ -230,7 +263,7 @@ def execute_with_stats(method):
 
         statistics.status = '\nTotal Time'
         statistics.props = None
-        end_time(is_global=True)
+        end_time(start_time)
         statistics.flush()
         statistics = None
 

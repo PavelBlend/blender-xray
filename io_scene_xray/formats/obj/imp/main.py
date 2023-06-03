@@ -17,6 +17,21 @@ from .... import utils
 from .... import rw
 
 
+@utils.stats.timer_stage
+def _import_motions(context, data, bpy_arm_obj, object_name):
+    utils.stats.stage('Motions')
+
+    reader = rw.read.PackedReader(data)
+
+    skl_ctx = skl.imp.ImportSklContext()
+    skl_ctx.bpy_arm_obj = bpy_arm_obj
+    skl_ctx.motions_filter = motions.utilites.MOTIONS_FILTER_ALL
+    skl_ctx.add_actions_to_motion_list = True
+    skl_ctx.filename = object_name
+
+    motions.imp.import_motions(reader, skl_ctx)
+
+
 @log.with_context(name='import-object')
 @utils.stats.timer
 def import_file(file_path, context):
@@ -256,13 +271,7 @@ def import_file(file_path, context):
         # motions
         elif chunk_id == fmt.Chunks.Object.MOTIONS:
             if context.import_motions:
-                reader = rw.read.PackedReader(chunk_data)
-                skl_ctx = skl.imp.ImportSklContext()
-                skl_ctx.bpy_arm_obj = bpy_arm_obj
-                skl_ctx.motions_filter = motions.utilites.MOTIONS_FILTER_ALL
-                skl_ctx.add_actions_to_motion_list = True
-                skl_ctx.filename = object_name
-                motions.imp.import_motions(reader, skl_ctx)
+                _import_motions(context, chunk_data, bpy_arm_obj, object_name)
 
         # lib version
         elif chunk_id == fmt.Chunks.Object.LIB_VERSION:
