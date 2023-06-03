@@ -6,6 +6,7 @@ import bpy
 
 # addon modules
 from . import image
+from . import stats
 from . import version
 from .. import log
 from .. import text
@@ -137,6 +138,7 @@ def _search_material_and_image(
 
 def _create_material(name, context, flags, eshader, cshader, gamemtl):
     bpy_material = bpy.data.materials.new(name)
+    stats.created_mat()
     bpy_material.xray.version = context.version
     bpy_material.xray.flags = flags
     bpy_material.xray.eshader = eshader
@@ -223,6 +225,7 @@ def _create_texture_27(
         bpy_texture.image = context.image(texture)
         bpy_texture.use_preview_alpha = True
         bpy_image = bpy_texture.image
+        stats.created_tex()
 
     # create texture slot
     bpy_texture_slot = bpy_material.texture_slots.add()

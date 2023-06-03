@@ -75,6 +75,7 @@ def _import(file_path, context, chunked_reader):
         root_obj = bpy.data.objects.new(base_name, None)
         root_obj.xray.is_details = True
         utils.version.link_object(root_obj)
+        utils.stats.created_obj()
 
         meshes_obj.parent = root_obj
 
@@ -100,6 +101,9 @@ def _import(file_path, context, chunked_reader):
 
 
 @log.with_context('import-details')
+@utils.stats.timer
 def import_file(file_path, context):
+    utils.stats.status('Import File', file_path)
+
     chunked_reader = rw.utils.get_file_reader(file_path, chunked=True)
     _import(file_path, context, chunked_reader)

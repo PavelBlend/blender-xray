@@ -67,8 +67,11 @@ class XRAY_OT_import_bones(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Import *.bones')
+
         if len(self.files) > 1:
             self.report({'ERROR'}, 'Too many selected files. Select one file')
             return {'CANCELLED'}
@@ -155,8 +158,11 @@ class XRAY_OT_export_bones(utils.ie.BaseOperator):
                 self.objects_list.append(obj.name)
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.bones')
+
         self.get_objects(context)
         export_context = ExportBonesContext()
         for object_name in self.objects_list:
@@ -241,8 +247,11 @@ class XRAY_OT_export_bone(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.bones')
+
         obj = context.scene.objects[self.object_name]
         try:
             export_context = ExportBonesContext()

@@ -50,8 +50,11 @@ class XRAY_OT_import_object(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Import *.object')
+
         # check selected files
         has_sel = utils.ie.has_selected_files(self)
         if not has_sel:

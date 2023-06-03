@@ -85,8 +85,10 @@ class XRAY_OT_export_level(utils.ie.BaseOperator):
         return {'FINISHED'}
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export level')
         level_objs = get_export_objs(context)
         return self.export(level_objs[0], context)
 

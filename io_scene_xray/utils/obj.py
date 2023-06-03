@@ -8,6 +8,7 @@ import bpy
 
 # addon modules
 from . import version
+from . import stats
 from .. import log
 from .. import text
 
@@ -66,6 +67,7 @@ def find_root(obj):
 def create_object(name, data):
     bpy_object = bpy.data.objects.new(name, data)
     version.link_object(bpy_object)
+    stats.created_obj()
     return bpy_object
 
 

@@ -1,5 +1,18 @@
 # addon modules
 from ... import omf
+from .... import utils
+
+
+@utils.stats.timer_stage
+def _import_motions(data, context, motions_params, bone_names, ver):
+    utils.stats.stage('Motions')
+    omf.imp.read_motions(
+        data,
+        context,
+        motions_params,
+        bone_names,
+        version=ver
+    )
 
 
 def import_skeleton_motions(context, chunks, ogf_chunks, visual):
@@ -35,11 +48,10 @@ def import_skeleton_motions(context, chunks, ogf_chunks, visual):
         )
 
         if motions_data and context.import_motions:
-            omf.imp.read_motions(
+            _import_motions(
                 motions_data,
                 context,
                 motions_params,
                 bone_names,
-                version=ver
+                ver
             )
-

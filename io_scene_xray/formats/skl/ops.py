@@ -127,8 +127,11 @@ class XRAY_OT_import_skls(
         return tuple()
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Import *.skl/*skls')
+
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
@@ -205,9 +208,12 @@ class XRAY_OT_export_skl(
     action = None
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.execute_require_filepath
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.skl')
+
         export_context = exp.ExportSklsContext()
         export_context.bpy_arm_obj = context.selected_objects[0]
         export_context.action = self.action
@@ -255,17 +261,23 @@ class XRAY_OT_export_skls_file(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.execute_require_filepath
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.skls')
+
         export_context = exp.ExportSklsContext()
         export_context.bpy_arm_obj = context.selected_objects[0]
+
         if not self.filepath.lower().endswith(skls_ext):
             self.filepath += skls_ext
+
         try:
             exp.export_skls_file(self.filepath, export_context, self.actions)
         except log.AppError as err:
             log.err(err)
+
         return {'FINISHED'}
 
     @utils.ie.invoke_require_armature
@@ -323,8 +335,11 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.skls')
+
         export_context = exp.ExportSklsContext()
         exp_actions_count = 0
         objects = []
@@ -403,8 +418,11 @@ class XRAY_OT_export_skl_batch(utils.ie.BaseOperator):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.skl')
+
         export_context = exp.ExportSklsContext()
         exp_actions_count = 0
         objects = []

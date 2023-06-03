@@ -36,6 +36,7 @@ def read_details_meshes(
     bpy_obj_root = bpy.data.objects.new('{} meshes'.format(base_name), None)
     utils.version.set_empty_draw_type(bpy_obj_root, 'SPHERE')
     utils.version.link_object(bpy_obj_root)
+    utils.stats.created_obj()
 
     step_x = 0.5
 

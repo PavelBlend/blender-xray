@@ -69,8 +69,11 @@ class XRAY_OT_import_dm(
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Import *.dm')
+
         # check selected files
         has_sel = utils.ie.has_selected_files(self)
         if not has_sel:
@@ -120,8 +123,11 @@ class XRAY_OT_export_dm(utils.ie.BaseOperator):
         self.layout.prop(self, 'texture_name_from_image_path')
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.dm')
+
         export_context = ExportDmContext()
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.unique_errors = set()
@@ -197,12 +203,16 @@ class XRAY_OT_export_dm_file(
             exec('{0} = export_props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.dm')
+
         try:
             self.exp(context.scene.objects[self.detail_model], context)
         except log.AppError as err:
             log.err(err)
+
         return {'FINISHED'}
 
     def draw(self, context):    # pragma: no cover

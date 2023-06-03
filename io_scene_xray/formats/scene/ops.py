@@ -43,8 +43,11 @@ class XRAY_OT_export_scene(
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.level')
+
         objs = context.selected_objects
 
         try:
@@ -106,8 +109,11 @@ class XRAY_OT_import_scene(
         layout.prop(self, 'mesh_split_by_materials')
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Import *.level')
+
         imp_context = ImportSceneContext()
 
         imp_context.import_motions = False

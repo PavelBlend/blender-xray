@@ -64,8 +64,11 @@ class XRAY_OT_import_anm(
         layout.prop(self, 'camera_animation')
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Import *.anm')
+
         has_files = utils.ie.has_selected_files(self)
         if not has_files:
             return {'CANCELLED'}
@@ -137,8 +140,11 @@ class XRAY_OT_export_anm_file(
         utils.draw.draw_fmt_ver_prop(layout, self, 'format_version')
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.anm')
+
         objects_list = get_objects(context)
         if len(objects_list) == 1:
             obj = objects_list[0]
@@ -217,8 +223,11 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
         utils.draw.draw_fmt_ver_prop(layout, self, 'format_version')
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Export *.anm')
+
         export_context = exp.ExportAnmContext()
         export_context.format_version = self.format_version
 

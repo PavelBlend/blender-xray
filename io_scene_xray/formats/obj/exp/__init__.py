@@ -14,7 +14,10 @@ def _export(bpy_obj, chunked_writer, context):
 
 
 @log.with_context('export-object')
+@utils.stats.timer
 def export_file(bpy_obj, file_path, context):
+    utils.stats.status('Export File', file_path)
+
     log.update(object=bpy_obj.name)
     writer = rw.write.ChunkedWriter()
     _export(bpy_obj, writer, context)

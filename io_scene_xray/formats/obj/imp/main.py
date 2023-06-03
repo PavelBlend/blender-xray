@@ -17,8 +17,26 @@ from .... import utils
 from .... import rw
 
 
+@utils.stats.timer_stage
+def _import_motions(context, data, bpy_arm_obj, object_name):
+    utils.stats.stage('Motions')
+
+    reader = rw.read.PackedReader(data)
+
+    skl_ctx = skl.imp.ImportSklContext()
+    skl_ctx.bpy_arm_obj = bpy_arm_obj
+    skl_ctx.motions_filter = motions.utilites.MOTIONS_FILTER_ALL
+    skl_ctx.add_actions_to_motion_list = True
+    skl_ctx.filename = object_name
+
+    motions.imp.import_motions(reader, skl_ctx)
+
+
 @log.with_context(name='import-object')
+@utils.stats.timer
 def import_file(file_path, context):
+    utils.stats.status('Import File', file_path)
+
     main_reader = rw.utils.get_file_reader(file_path, chunked=True)
 
     # find main chunk
@@ -153,6 +171,8 @@ def import_file(file_path, context):
                 utils.version.set_object_show_xray(bpy_arm_obj, True)
                 utils.version.link_object(bpy_arm_obj)
                 utils.version.set_active_object(bpy_arm_obj)
+                utils.stats.created_obj()
+                utils.stats.created_arm()
 
             if chunk_id == fmt.Chunks.Object.BONES:
                 for _ in range(bones_count):
@@ -251,13 +271,7 @@ def import_file(file_path, context):
         # motions
         elif chunk_id == fmt.Chunks.Object.MOTIONS:
             if context.import_motions:
-                reader = rw.read.PackedReader(chunk_data)
-                skl_ctx = skl.imp.ImportSklContext()
-                skl_ctx.bpy_arm_obj = bpy_arm_obj
-                skl_ctx.motions_filter = motions.utilites.MOTIONS_FILTER_ALL
-                skl_ctx.add_actions_to_motion_list = True
-                skl_ctx.filename = object_name
-                motions.imp.import_motions(reader, skl_ctx)
+                _import_motions(context, chunk_data, bpy_arm_obj, object_name)
 
         # lib version
         elif chunk_id == fmt.Chunks.Object.LIB_VERSION:
@@ -299,6 +313,7 @@ def import_file(file_path, context):
         else:
             bpy_obj = bpy.data.objects.new(object_name, None)
             utils.version.link_object(bpy_obj)
+            utils.stats.created_obj()
             for mesh_obj in mesh_objects:
                 mesh_obj.parent = bpy_obj
 

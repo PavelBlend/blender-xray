@@ -460,66 +460,83 @@ def _export(root_obj, cwriter, context):
         bxray = bone.xray
 
         # generate obb
-        bone_mat = utils.bone.get_obb(bone, False)
+        verts = utils.bone.bone_vertices(bone)
 
-        # generate aabb
-        if not bone_mat:
-            vmin = mathutils.Vector((+math.inf, +math.inf, +math.inf))
-            vmax = mathutils.Vector((-math.inf, -math.inf, -math.inf))
+        if len(verts) > 3:
+            bone_mat = utils.bone.get_obb(bone, False)
 
-            for vtx in utils.bone.bone_vertices(bone):
-                vfunc(vmin, vtx, min)
-                vfunc(vmax, vtx, max)
+            # generate aabb
+            if not bone_mat:
+                vmin = mathutils.Vector((+math.inf, +math.inf, +math.inf))
+                vmax = mathutils.Vector((-math.inf, -math.inf, -math.inf))
 
-            if vmax.x > vmin.x:
-                vcenter = (vmax + vmin) / 2
-                vscale = (vmax - vmin) / 2
-                bone_mat = multiply(
-                    mathutils.Matrix.Identity(4),
-                    mathutils.Matrix.Translation(vcenter),
-                    utils.bone.convert_vector_to_matrix(vscale)
-                )
+                for vtx in verts:
+                    vfunc(vmin, vtx, min)
+                    vfunc(vmax, vtx, max)
 
-        bone_mat = multiply(
-            multiply(
-                bone.matrix_local,
+                if vmax.x > vmin.x:
+                    vcenter = (vmax + vmin) / 2
+                    vscale = (vmax - vmin) / 2
+                    bone_mat = multiply(
+                        mathutils.Matrix.Identity(4),
+                        mathutils.Matrix.Translation(vcenter),
+                        utils.bone.convert_vector_to_matrix(vscale)
+                    )
+
+            bone_mat = multiply(
+                multiply(
+                    bone.matrix_local,
+                    mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+                ).inverted(),
+                bone_mat
+            )
+
+            bone_mat = multiply(
+                bone_mat,
                 mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
-            ).inverted(),
-            bone_mat
-        )
+            )
+            box_trn = list(bone_mat.to_translation().to_tuple())
 
-        bone_mat = multiply(bone_mat, mathutils.Matrix.Scale(-1, 4, (0, 0, 1)))
-        box_trn = list(bone_mat.to_translation().to_tuple())
+            bone_scale = bone_mat.to_scale()
+            for axis in range(3):
+                if not bone_scale[axis]:
+                    bone_scale[axis] = 0.0001
 
-        scale = bone_mat.to_scale()
-        for axis in range(3):
-            if not scale[axis]:
-                scale[axis] = 0.0001
+            box_hsz = list(bone_scale.to_tuple())
 
-        box_hsz = list(scale.to_tuple())
+            mat_rot = multiply(
+                bone_mat,
+                utils.bone.convert_vector_to_matrix(bone_scale).inverted()
+            ).to_3x3().transposed()
 
-        mat_rot = multiply(
-            bone_mat,
-            utils.bone.convert_vector_to_matrix(scale).inverted()
-        ).to_3x3().transposed()
+            box_rot = []
+            for row in range(3):
+                box_rot.extend(mat_rot[row].to_tuple())
 
-        box_rot = []
-        for row in range(3):
-            box_rot.extend(mat_rot[row].to_tuple())
+            box_trn[0] *= scale.x
+            box_trn[1] *= scale.y
+            box_trn[2] *= scale.z
+
+            box_hsz[0] *= scale.x
+            box_hsz[1] *= scale.y
+            box_hsz[2] *= scale.z
+
+        else:
+            box_rot = (
+                1.0, 0.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 0.0, 1.0
+            )
+            box_trn = (0.0, 0.0, 0.0)
+            box_hsz = (0.0, 0.0, 0.0)
 
         # bone rotation
         bones_writer.putf('<9f', *box_rot)
 
         # bone translation
-        box_trn[0] *= scale.x
-        box_trn[1] *= scale.y
-        box_trn[2] *= scale.z
         bones_writer.putf('<3f', *box_trn)
 
         # bone half size
-        box_hsz[0] *= scale.x
-        box_hsz[1] *= scale.y
-        box_hsz[2] *= scale.z
         bones_writer.putf('<3f', *box_hsz)
 
     cwriter.put(fmt.Chunks_v4.S_BONE_NAMES, bones_writer)
@@ -686,8 +703,11 @@ def _export(root_obj, cwriter, context):
 
 
 @log.with_context('export-object')
+@utils.stats.timer
 def export_file(bpy_obj, file_path, context):
+    utils.stats.status('Export File', file_path)
     log.update(object=bpy_obj.name)
+
     cwriter = rw.write.ChunkedWriter()
     _export(bpy_obj, cwriter, context)
     rw.utils.save_file(file_path, cwriter)

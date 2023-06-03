@@ -17,13 +17,18 @@ def create_object(object_name):
     bpy_object = bpy.data.objects.new(object_name, bpy_mesh)
     bpy_object.xray.is_details = True
     utils.version.link_object(bpy_object)
+    utils.stats.created_obj()
+    utils.stats.created_msh()
     return bpy_object, bpy_mesh
 
 
 def create_empty_image(detail_model, absolute_image_path):
     bpy_image = bpy.data.images.new(
-        os.path.basename(detail_model.texture) + '.dds', 0, 0
+        os.path.basename(detail_model.texture) + '.dds',
+        0,
+        0
     )
+    utils.stats.created_img()
 
     bpy_image.source = 'FILE'
     bpy_image.filepath = absolute_image_path
@@ -99,6 +104,7 @@ def load_image(path):
         raise RuntimeError(path)
 
     bpy_image = bpy.data.images.load(path)
+    utils.stats.created_img()
 
     return bpy_image
 
@@ -153,12 +159,14 @@ def create_bpy_texture(det_model, bpy_material, abs_image_path):
     bpy_texture_slot.use_map_alpha = True
     bpy_image = find_bpy_image(det_model, abs_image_path)
     bpy_texture.image = bpy_image
+    utils.stats.created_tex()
 
 
 def create_material(det_model, abs_image_path, context):
     bpy_material = bpy.data.materials.new(det_model.texture)
     bpy_material.xray.eshader = det_model.shader
     bpy_material.xray.version = context.version
+    utils.stats.created_mat()
 
     if utils.version.IS_28:
         bpy_material.use_nodes = True

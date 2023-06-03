@@ -52,6 +52,7 @@ def _import(file_path, creader, context):
         name = os.path.basename(file_path)
     bpy_obj = bpy.data.objects.new(name, None)
     bpy_obj.rotation_mode = 'YXZ'
+    utils.stats.created_obj()
     if context.camera_animation:
         bpy_cam = bpy.data.objects.new(
             name + '.camera',
@@ -60,11 +61,13 @@ def _import(file_path, creader, context):
         bpy_cam.parent = bpy_obj
         bpy_cam.rotation_euler = (math.pi / 2, 0, 0)
         utils.version.link_object(bpy_cam)
+        utils.stats.created_obj()
     else:
         utils.version.set_empty_draw_type(bpy_obj, 'SPHERE')
     utils.version.set_empty_draw_size(bpy_obj, DISPLAY_SIZE)
     utils.version.link_object(bpy_obj)
     action = bpy.data.actions.new(name=name)
+    utils.stats.created_act()
     action.xray.fps = fps
     bpy_obj.animation_data_create().action = action
     loc = 'location'
@@ -113,7 +116,10 @@ def _import(file_path, creader, context):
 
 
 @log.with_context('import-anm')
+@utils.stats.timer
 def import_file(file_path, context):
+    utils.stats.status('Import File', file_path)
+
     chunked_reader = rw.utils.get_file_reader(file_path, chunked=True)
     frame_start, frame_end = _import(file_path, chunked_reader, context)
 

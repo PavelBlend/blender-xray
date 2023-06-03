@@ -43,10 +43,7 @@ def import_render_visual(chunks, visual, lvl, visual_type, chunks_ogf):
 
     else:
         if visual_type == 'PROGRESSIVE':
-            swi = swis.import_swidata(visual, chunks, chunks_ogf)
-
-            visual.indices = visual.indices[swi[0].offset : ]
-            visual.indices_count = swi[0].triangles_count * 3
+            swis.import_swi(visual, chunks, chunks_ogf)
 
         indices.convert_indices_to_triangles(visual)
 

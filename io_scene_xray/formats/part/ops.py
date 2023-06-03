@@ -52,8 +52,11 @@ class XRAY_OT_import_part(utils.ie.BaseOperator):
         layout.prop(self, 'mesh_split_by_materials')
 
     @log.execute_with_logger
+    @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
+        utils.stats.update('Import *.part')
+
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}

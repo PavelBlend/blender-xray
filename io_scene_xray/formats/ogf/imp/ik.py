@@ -31,6 +31,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
     # create armature
     armature = bpy.data.armatures.new(name=visual.name)
     utils.version.set_arm_display_type(armature)
+    utils.stats.created_arm()
 
     # create object
     arm_obj = bpy.data.objects.new(visual.name, armature)
@@ -38,6 +39,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
     utils.version.set_object_show_xray(arm_obj, True)
     utils.version.link_object(arm_obj)
     utils.version.set_active_object(arm_obj)
+    utils.stats.created_obj()
     visual.arm_obj = arm_obj
 
     # motion references

@@ -17,6 +17,8 @@ def create_object(object_name):
     bpy_mesh = bpy.data.meshes.new(object_name)
     bpy_object = bpy.data.objects.new(object_name, bpy_mesh)
     utils.version.link_object(bpy_object)
+    utils.stats.created_obj()
+    utils.stats.created_msh()
     return bpy_object, bpy_mesh
 
 
@@ -151,6 +153,7 @@ def create_images(
             alpha=True
         )
         bpy_image.use_fake_user = True
+        utils.stats.created_img()
         return bpy_image
 
     slots = root_obj.xray.detail.slots
@@ -210,7 +213,9 @@ def create_pallete(color_indices):
         for color_index in color_indices:
             meshes_indices_pixels.extend(color_index)
         meshes_indices_image = bpy.data.images.new(
-            pallete_name, fmt.DETAIL_MODEL_COUNT_LIMIT + 1, 1
+            pallete_name,
+            fmt.DETAIL_MODEL_COUNT_LIMIT + 1,
+            1
         )
         meshes_indices_image.pixels = meshes_indices_pixels
         meshes_indices_image.use_fake_user = True
