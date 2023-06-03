@@ -144,10 +144,10 @@ def create_shader_uv_map_texture_node(bpy_material, offset):
     return uv_map_node
 
 
-def create_shader_image_node(bpy_material, bpy_image, offset):
+def create_shader_image_node(bpy_material, bpy_image, offset, rel_tex):
     image_node = bpy_material.node_tree.nodes.new('ShaderNodeTexImage')
-    image_node.name = 'Texture'
-    image_node.label = 'Texture'
+    image_node.name = rel_tex
+    image_node.label = rel_tex
     image_node.select = False
     image_node.image = bpy_image
     offset.x += 400.0
@@ -187,10 +187,15 @@ def links_nodes(
         )
 
 
-def create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps):
+def create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps, texture):
     offset = mathutils.Vector((-1000.0, 0.0))
     uv_map_node = create_shader_uv_map_texture_node(bpy_material, offset)
-    image_node = create_shader_image_node(bpy_material, bpy_image, offset)
+    image_node = create_shader_image_node(
+        bpy_material,
+        bpy_image,
+        offset,
+        texture
+    )
     principled_node = create_shader_principled_node(bpy_material, offset)
     output_node = create_shader_output_node(bpy_material, offset)
     if bpy_image_lmaps:
@@ -198,9 +203,12 @@ def create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps):
     else:
         lmaps_count = 0
     links_nodes(
-        bpy_material, output_node,
-        principled_node, image_node,
-        uv_map_node, lmaps_count
+        bpy_material,
+        output_node,
+        principled_node,
+        image_node,
+        uv_map_node,
+        lmaps_count
     )
 
 
@@ -438,7 +446,7 @@ def create_material(level, context, texture, engine_shader, *light_maps):
     if utils.version.IS_28:
         set_material_settings(bpy_material)
         remove_default_shader_nodes(bpy_material)
-        create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps)
+        create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps, texture)
     else:
         bpy_material.use_transparency = True
         bpy_material.alpha = 0.0
