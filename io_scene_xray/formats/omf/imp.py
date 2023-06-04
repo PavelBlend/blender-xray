@@ -26,39 +26,51 @@ def read_motion_marks(packed_reader):
 def examine_motions(data):
     motion_names = []
     chunked_reader = rw.read.ChunkedReader(data)
+
+    # size of motion flags, part, id, speed, power, accrue, falloff
+    params_size = 4 + 2 + 2 + 4 + 4 + 4 + 4
+
     for chunk_id, chunk_data in chunked_reader:
         if chunk_id == ogf.fmt.Chunks_v4.S_SMPARAMS_1:
             packed_reader = rw.read.PackedReader(chunk_data)
-            params_version = packed_reader.getf('<H')[0]
-            partition_count = packed_reader.getf('<H')[0]
-            for partition_index in range(partition_count):
-                partition_name = packed_reader.gets()
+
+            # bone partitions
+            params_ver, parts_count = packed_reader.getf('<2H')
+
+            for partition_index in range(parts_count):
+                packed_reader.gets()    # partition name
                 bone_count = packed_reader.getf('<H')[0]
+
                 for bone in range(bone_count):
-                    if params_version == 1:
-                        bone_id = packed_reader.uint32()
-                        bone_name = None
-                    elif params_version == 2:
-                        bone_id = None
-                        bone_name = packed_reader.gets()
-                    elif params_version in (3, 4):
-                        bone_name = packed_reader.gets()
-                        bone_id = packed_reader.uint32()
+                    if params_ver == 1:
+                        packed_reader.skip(4)    # bone id
+
+                    elif params_ver == 2:
+                        packed_reader.gets()    # bone name
+
+                    elif params_ver in (3, 4):
+                        packed_reader.gets()    # bone name
+                        packed_reader.skip(4)    # bone id
+
                     else:
                         raise BaseException('Unknown params version')
+
+            # motion params
             motion_count = packed_reader.getf('<H')[0]
+
             for motion_index in range(motion_count):
-                name = packed_reader.gets()
-                motion_names.append(name)
-                flags = packed_reader.uint32()
-                bone_or_part = packed_reader.getf('<H')[0]
-                motion = packed_reader.getf('<H')[0]
-                speed = packed_reader.getf('<f')[0]
-                power = packed_reader.getf('<f')[0]
-                accrue = packed_reader.getf('<f')[0]
-                falloff = packed_reader.getf('<f')[0]
-                if params_version == 4:
-                    read_motion_marks(packed_reader)
+                motion_name = packed_reader.gets()
+                packed_reader.skip(params_size)
+
+                if params_ver == 4:
+                    num_marks = packed_reader.uint32()
+                    for mark_index in range(num_marks):
+                        packed_reader.gets_a()    # mark name
+                        count = packed_reader.uint32()
+                        packed_reader.skip(count * 8)    # intervals
+
+                motion_names.append(motion_name)
+
     return motion_names
 
 
