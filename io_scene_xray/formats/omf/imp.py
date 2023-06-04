@@ -406,17 +406,15 @@ def read_main(data, context):
     if not context.import_motions and not context.import_bone_parts:
         raise log.AppError(text.error.omf_nothing)
 
-    chunked_reader = rw.read.ChunkedReader(data)
+    chunks = rw.utils.get_chunks(data)
 
-    chunks = {}
-    for chunk_id, chunk_data in chunked_reader:
-        chunks[chunk_id] = chunk_data
-
+    # params
     params_data = chunks.pop(ogf.fmt.Chunks_v4.S_SMPARAMS_1)
     motions_params, bone_names = read_params(params_data, context)
 
+    # motions
+    motions_data = chunks.pop(ogf.fmt.Chunks_v4.S_MOTIONS_2)
     if context.import_motions:
-        motions_data = chunks.pop(ogf.fmt.Chunks_v4.S_MOTIONS_2)
         read_motions(motions_data, context, motions_params, bone_names)
 
     for chunk_id, chunk_data in chunks.items():
