@@ -22,28 +22,34 @@ has_no_main_chunk = 'file has no main data block'
 arm_non_uniform_scale = 'object has an non-uniform scale'
 not_pose_mode = 'Pose mode not activated'
 no_active_bone = 'No active bone!'
+
 # anm export
 anm_no_keys = 'action has keys not for all channels'
+
 # anm import
 anm_unsupport_ver = 'file has unsupported format version'
+
 # details convert
 details_light_1569 = 'object has incorrect light format: "Builds 1096-1558". Must be "Builds 1569-CoP"'
 details_light_1096 = 'object has incorrect light format: "Builds 1569-CoP". Must be "Builds 1096-1558"'
 details_slots_size = '"Slots Base Object" size not equal "Slots Top Object" size'
 details_poly_count = 'slots object has an incorrect number of polygons'
 details_img_size = 'image has incorrect size'
+
 # details import
 details_bad_header = 'bad details file. HEADER chunk size not equal 24'
 details_unsupport_ver = 'unsupported details format version'
 details_no_header = 'bad details file. Cannot find HEADER chunk'
 details_no_meshes = 'bad details file. Cannot find MESHES chunk'
 details_no_slots = 'bad details file. Cannot find SLOTS chunk'
+
 # details utility
 details_has_no_img = 'level details object has no image property'
 details_has_no_obj = 'level details object has no object property'
 details_cannot_find_img = 'cannot find image'
 details_cannot_find_obj = 'cannot find object'
 details_wrong_type = 'object has wrong type'
+
 # details write
 details_file_duplicates = 'duplicate paths found'
 details_no_children = 'details meshes object has no children'
@@ -52,19 +58,25 @@ details_not_mesh = 'meshes object child is not a mesh'
 details_bad_detail_index = 'object has incorrect "Detail Index"'
 details_no_model_index = 'not detail model with index'
 details_duplicate_model = 'duplicated index in detail models'
+
 # dm create
 dm_bad_indices = 'bad dm triangle indices'
+
 # dm export
 dm_many_verts = 'mesh-object has too many vertices'
+
 # dm validate
 dm_tex_type = 'texture has an incorrect type'
+
 # level cform import
 cform_unsupport_ver = 'unsupported level cform version'
+
 # level export
 level_no_lmap = 'cannot find light map image'
 level_has_children = 'Normal/Progressive object must not have children'
 level_lmap_no_dds = 'incorrect light map format (must be *.dds)'
 level_sector_has_no_cform = 'sector has no cform-object'
+
 # level export visual
 level_visual_is_not_mesh = 'visual-object is not a mesh'
 level_visual_no_faces = 'visual mesh-object has no faces'
@@ -72,6 +84,7 @@ level_visual_no_mat = 'visual-object has no material'
 level_visual_empty_mat = 'visual-object has empty material slot'
 level_visual_many_mats = 'visual-object has more than one material'
 level_visual_no_uv = 'visual-object has no UV-map'
+
 # level export glow
 level_no_glow = 'level-object has no glow-objects'
 level_bad_glow_type = 'glow-object is not a mesh'
@@ -80,6 +93,7 @@ level_no_mat_glow = 'glow-object has no material'
 level_glow_empty_mat = 'glow-object has empty material slot'
 level_glow_many_mats = 'glow-object has more than one material'
 level_bad_glow_radius = 'glow object has radius close to zero'
+
 # level export portal
 level_portal_is_no_mesh = 'portal-object is not a mesh'
 level_portal_no_vert = 'portal mesh-object has no vertices'
@@ -89,13 +103,16 @@ level_portal_no_faces = 'portal mesh-object has no polygons'
 level_portal_many_faces = 'portal mesh-object must have no more than 1 polygon'
 level_portal_no_front = 'portal "Sector Front" object not specified'
 level_portal_no_back = 'portal "Sector Back" object not specified'
+
 # level cform export
 level_bad_cform_type = 'cform-object is not mesh'
 level_cform_no_geom = 'cform-object has no polygons'
 level_cform_no_mats = 'cform-object has no materials'
 level_cform_empty_mat_slot = 'cform-object has empty material slot'
+
 # level import
 level_unsupport_ver = 'unsupported game level version'
+
 # object export main
 object_ungroupped_verts = 'mesh-object has vertices that are not tied to any exportable bones'
 object_duplicate_bones = 'object has duplicate bones'
@@ -104,28 +121,36 @@ object_no_meshes = 'root object has no meshes'
 object_skel_many_meshes = 'skeletal object has more than one mesh'
 object_bad_boneparts = 'not all bones are tied to the bone part'
 object_many_parents = 'armature object has more than one parent'
+
 # object import bone
 object_unsupport_bone_ver = 'unsupported bone format version'
+
 # object import main
 object_unsupport_format_ver = 'unsupported object format version'
+
 # object import mesh
 object_unsupport_mesh_ver = 'unsupported mesh format version'
 object_bad_vmap = 'unsupported vertex map type'
 object_many_duplicated_faces = 'too many duplicated polygons'
+
 # ogf import
 ogf_bad_ver = 'unsupported ogf format version'
 ogf_bad_vertex_fmt = 'unsupported ogf vertex format'
 ogf_bad_model_type = 'unsupported ogf model type'
+
 # ogf export
 ogf_has_no_arm = 'skeletal mesh-object has no armature'
+
 # omf export
 omf_empty = 'use different export mode. This omf file is empty'
 omf_no_anims = 'omf file does not have an animation block'
 omf_no_params = 'omf file does not have an parameters block'
 omf_bone_no_group = 'not all bones in an armature have bone group'
+
 # omf import
 omf_no_bone = 'armature does not have all bones that file has'
 omf_nothing = 'nothing was imported. Change import settings'
+
 # scene import
 scene_bad_file = 'bad scene selection file. Cannot find "scene version" chunk'
 scene_obj_tool_ver = 'unsupported object tools version'
@@ -135,6 +160,7 @@ scene_objs = 'bad scene selection file. Cannot find "objects" chunk'
 scene_no_ver = 'bad scene selection file. Cannot find "version" chunk'
 scene_ver_size = 'bad scene selection file. "version" chunk size is not equal to 4'
 scene_ver = 'unsupported format version'
+
 # motion
 motion_shape = 'unsupported keyframe shapes'
 motion_ver = 'unsupported motions version'
