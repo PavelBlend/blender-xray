@@ -113,14 +113,12 @@ def layout_split(layout, percentage, align=False):
     return split
 
 
-def assign_props(items, replace=True):
+def assign_props(items):
     if IS_28:
         for item in items:
             props, clas = item
-            if replace:
-                clas.__annotations__ = props
-            else:
-                clas.__annotations__.update(props)
+            clas.__annotations__ = props
+
     else:
         for item in items:
             props, clas = item
@@ -128,12 +126,10 @@ def assign_props(items, replace=True):
                 setattr(clas, prop_name, prop_value)
 
 
-def set_props(clas, props, replace=True):
+def set_props(clas, props):
     if IS_28:
-        if replace:
-            clas.__annotations__ = props
-        else:
-            clas.__annotations__.update(props)
+        clas.__annotations__ = props
+
     else:
         for prop_name, prop_value in props.items():
             setattr(clas, prop_name, prop_value)
