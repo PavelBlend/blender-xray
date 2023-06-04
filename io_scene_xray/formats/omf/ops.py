@@ -12,12 +12,18 @@ from .. import ie
 from .. import contexts
 from ... import utils
 from ... import log
+from ... import text
 from ... import rw
 from ... import ui
 
 
+OP_TEXT = 'Game Motion'
+OMF_EXT = '.omf'
+
+
 class ImportOmfContext(
-        contexts.ImportAnimationContext, contexts.ImportAnimationOnlyContext
+        contexts.ImportAnimationContext,
+        contexts.ImportAnimationOnlyContext
     ):
     def __init__(self):
         super().__init__()
@@ -37,9 +43,6 @@ class ExportOmfContext(
         self.need_bone_groups = None
 
 
-op_text = 'Game Motion'
-filename_ext = '.omf'
-
 motion_props = {
     'flag': bpy.props.BoolProperty(name='Selected for Import', default=True),
     'name': bpy.props.StringProperty(name='Motion Name'),
@@ -56,19 +59,29 @@ class Motion(bpy.types.PropertyGroup):
 
 
 import_props = {
+    # file browser properties
     'filter_glob': bpy.props.StringProperty(
-        default='*.omf', options={'HIDDEN'}
+        default='*.omf',
+        options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE'}
+        subtype="DIR_PATH",
+        options={'SKIP_SAVE'}
     ),
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
+
+    # import properties
     'import_motions': ie.PropObjectMotionsImport(),
     'import_bone_parts': ie.prop_import_bone_parts(),
-    'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
-    'add_actions_to_motion_list': ie.prop_skl_add_actions_to_motion_list(),
+    'add_to_motion_list': ie.prop_skl_add_actions_to_motion_list(),
+    'motions': bpy.props.CollectionProperty(
+        type=Motion,
+        name='Motions Filter'
+    ),
+
+    # system properties
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
@@ -83,9 +96,9 @@ class XRAY_OT_import_omf(
     bl_description = 'Import X-Ray Game Motion (omf)'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    text = op_text
-    ext = filename_ext
-    filename_ext = filename_ext
+    text = OP_TEXT
+    ext = OMF_EXT
+    filename_ext = OMF_EXT
     props = import_props
 
     __parsed_file_name = None
@@ -100,73 +113,98 @@ class XRAY_OT_import_omf(
     def execute(self, context):
         utils.stats.update('Import *.omf')
 
-        if not self.files or (len(self.files) == 1 and not self.files[0].name):
-            self.report({'ERROR'}, 'No files selected!')
+        has_sel = utils.ie.has_selected_files(self)
+        if not has_sel:
             return {'CANCELLED'}
-        import_context = ImportOmfContext()
+
+        # import context
+        imp_ctx = ImportOmfContext()
+
+        imp_ctx.bpy_arm_obj = context.active_object
+        imp_ctx.import_bone_parts = self.import_bone_parts
+        imp_ctx.import_motions = self.import_motions
+        imp_ctx.add_to_motion_list = self.add_to_motion_list
+
         for file in self.files:
-            file_ext = os.path.splitext(file.name)[-1].lower()
-            omf_path = os.path.join(self.directory, file.name)
-            import_context.bpy_arm_obj = context.active_object
-            import_context.filepath = omf_path
-            import_context.import_bone_parts = self.import_bone_parts
-            import_context.import_motions = self.import_motions
-            import_context.add_actions_to_motion_list = \
-                self.add_actions_to_motion_list
+            imp_ctx.filepath = os.path.join(self.directory, file.name)
+
+            # search selected motions
             if self.motions:
-                import_context.selected_names = {
+                imp_ctx.selected_names = {
                     motion.name
                     for motion in self.motions
                         if motion.flag
                 }
+
+            # import
             try:
-                imp.import_file(import_context)
+                imp.import_file(imp_ctx)
             except log.AppError as err:
-                import_context.errors.append(err)
-        for err in import_context.errors:
+                imp_ctx.errors.append(err)
+
+        # report errors
+        for err in imp_ctx.errors:
             log.err(err)
+
         return {'FINISHED'}
 
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
-        preferences = utils.version.get_preferences()
-        self.import_motions = preferences.omf_import_motions
-        self.import_bone_parts = preferences.import_bone_parts
-        self.add_actions_to_motion_list = preferences.omf_add_actions_to_motion_list
+        # set default settings
+        pref = utils.version.get_preferences()
+        self.import_motions = pref.omf_import_motions
+        self.import_bone_parts = pref.import_bone_parts
+        self.add_to_motion_list = pref.omf_add_actions_to_motion_list
+
+        # verify object
         obj = context.active_object
+
         if not obj:
-            self.report({'ERROR'}, 'No active object')
+            self.report({'ERROR'}, text.get_text(text.error.no_active_obj))
             return {'CANCELLED'}
+
         if obj.type != 'ARMATURE':
-            self.report({'ERROR'}, 'Active object "{}" is not armature'.format(obj.name))
+            self.report({'ERROR'}, text.get_text(text.error.is_not_arm))
             return {'CANCELLED'}
+
         return super().invoke(context, event)
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
+
         layout = self.layout
+
         layout.prop(self, 'import_motions')
         layout.prop(self, 'import_bone_parts')
+
         row = layout.row()
         row.active = self.import_motions
-        row.prop(self, 'add_actions_to_motion_list')
+        row.prop(self, 'add_to_motion_list')
+
         if not self.import_motions and not self.import_bone_parts:
-            layout.label(text='Nothing was Imported!', icon='ERROR')
+            layout.label(
+                text=text.get_text(text.error.omf_nothing_imp),
+                icon='ERROR'
+            )
+
         if self.import_motions:
-            motions = self._get_motions()
+            self._update_motions_list()
+            motions = self.motions
         else:
             motions = []
+
         count = 0
-        text = 'Filter Motions'
+        label = 'Filter Motions'
         enabled = len(motions) > 1
 
         if enabled:
-            text = 'Filter Motions: '
+            label = 'Filter Motions: '
             count = len([motion for motion in motions if motion.flag])
             if count == len(motions):
-                text += 'All ({})'.format(count)
+                label += 'All ({})'.format(count)
             else:
-                text += str(count)
+                label += str(count)
+
         else:
             if len(motions) == 1:
                 layout.label(text='OMF file contains one motion')
@@ -175,47 +213,63 @@ class XRAY_OT_import_omf(
             _, box = ui.collapsible.draw(
                 layout,
                 self.bl_idname,
-                text,
+                label,
                 enabled=enabled,
                 icon='FILTER' if count < 100 else 'ERROR',
                 style='nobox',
             )
 
+            # motion list
             if box:
                 col = box.column(align=True)
                 ui.motion_list.BaseSelectMotionsOp.set_motions_list(None)
                 col.template_list(
-                    'XRAY_UL_motions_list', '',
-                    self, 'motions',
-                    context.scene.xray.import_omf, 'motion_index',
+                    'XRAY_UL_motions_list',
+                    '',
+                    self,
+                    'motions',
+                    context.scene.xray.import_omf,
+                    'motion_index'
                 )
                 row = col.row(align=True)
                 ui.motion_list.BaseSelectMotionsOp.set_data(self)
-                row.operator(ui.motion_list.XRAY_OT_select_motions.bl_idname, icon='CHECKBOX_HLT')
-                row.operator(ui.motion_list.XRAY_OT_deselect_motions.bl_idname, icon='CHECKBOX_DEHLT')
-                row.operator(ui.motion_list.XRAY_OT_deselect_duplicated_motions.bl_idname, icon='COPY_ID')
 
-    def _get_motions(self):
-        items = self.motions
+                # select/deselect operators
+                row.operator(
+                    ui.motion_list.XRAY_OT_select_motions.bl_idname,
+                    icon='CHECKBOX_HLT'
+                )
+                row.operator(
+                    ui.motion_list.XRAY_OT_deselect_motions.bl_idname,
+                    icon='CHECKBOX_DEHLT'
+                )
+                row.operator(
+                    ui.motion_list.XRAY_OT_deselect_dupli_motions.bl_idname,
+                    icon='COPY_ID'
+                )
+
+    def _update_motions_list(self):
         if len(self.files) == 1:
             file_path = os.path.join(self.directory, self.files[0].name)
-            if file_path.lower().endswith('.omf'):
-                if os.path.exists(file_path):
-                    if self.__parsed_file_name != file_path:
-                        file_data = rw.utils.read_file(file_path)
-                        motions_names = imp.examine_motions(file_data)
-                        items.clear()
-                        for name in motions_names:
-                            items.add().name = name
-                        self.__parsed_file_name = file_path
+
+            if os.path.exists(file_path):
+                if self.__parsed_file_name != file_path:
+
+                    self.__parsed_file_name = file_path
+                    self.motions.clear()
+                    file_data = rw.utils.read_file(file_path)
+                    motions_names = imp.examine_motions(file_data)
+
+                    for name in motions_names:
+                        self.motions.add().name = name
+
         else:
-            items.clear()
-        return items
+            self.motions.clear()
 
 
 export_props = {
     'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
+        default='*'+OMF_EXT,
         options={'HIDDEN'}
     ),
     'export_mode': ie.prop_omf_export_mode(),
@@ -235,9 +289,9 @@ class XRAY_OT_export_omf_file(
     bl_description = 'Exports X-Ray skeletal game motions'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    text = op_text
-    ext = filename_ext
-    filename_ext = filename_ext
+    text = OP_TEXT
+    ext = OMF_EXT
+    filename_ext = OMF_EXT
     props = export_props
     obj = None
 
@@ -358,7 +412,7 @@ class XRAY_OT_export_omf_file(
             self.report({'ERROR'}, 'No selected objects')
             return {'CANCELLED'}
         self.obj = objs[0]
-        self.filepath = utils.ie.add_file_ext(self.obj.name, filename_ext)
+        self.filepath = utils.ie.add_file_ext(self.obj.name, OMF_EXT)
         motions_count = len(self.obj.xray.motions_collection)
         bone_groups_count = len(self.obj.pose.bone_groups)
         if not motions_count and not bone_groups_count:
@@ -397,7 +451,7 @@ def get_arm_objs(operator, context):
 
 export_props = {
     'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
+        default='*'+OMF_EXT,
         options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
@@ -414,9 +468,9 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
     bl_description = 'Exports X-Ray skeletal game motions'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    text = op_text
-    ext = filename_ext
-    filename_ext = filename_ext
+    text = OP_TEXT
+    ext = OMF_EXT
+    filename_ext = OMF_EXT
     props = export_props
 
     if not utils.version.IS_28:
@@ -451,7 +505,7 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
         export_context.need_bone_groups = True
 
         for obj in arm_objs:
-            name = utils.ie.add_file_ext(obj.name, filename_ext)
+            name = utils.ie.add_file_ext(obj.name, OMF_EXT)
             filepath = os.path.join(self.directory, name)
 
             skip = False

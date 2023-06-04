@@ -492,7 +492,7 @@ plugin_preferences_props = {
     # anm export props
     'anm_format_version': formats.ie.prop_anm_format_version(),
     # skl/skls import props
-    'add_actions_to_motion_list': formats.ie.prop_skl_add_actions_to_motion_list(),
+    'add_to_motion_list': formats.ie.prop_skl_add_actions_to_motion_list(),
     # bones import props
     'bones_import_bone_parts': formats.ie.prop_import_bone_parts(),
     'bones_import_bone_properties': formats.ie.prop_import_bone_properties(),

@@ -158,6 +158,7 @@ translations_table = (
     # omf import
     (error.omf_no_bone, 'арматура не имеет всех костей, которые есть в omf файле'),
     (error.omf_nothing, 'ничего не импортировано. Измените настройки импорта'),
+    (error.omf_nothing_imp, 'Ничего не импортируется!'),
 
     # scene import
     (error.scene_bad_file, 'недопустимый scene selection файл. Не найден "scene version" блок'),

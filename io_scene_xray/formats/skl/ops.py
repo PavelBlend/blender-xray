@@ -41,7 +41,7 @@ import_props = {
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
     'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
-    'add_actions_to_motion_list': ie.prop_skl_add_actions_to_motion_list(),
+    'add_to_motion_list': ie.prop_skl_add_actions_to_motion_list(),
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
@@ -71,7 +71,7 @@ class XRAY_OT_import_skls(
 
         utils.draw.draw_files_count(self)
 
-        layout.prop(self, 'add_actions_to_motion_list')
+        layout.prop(self, 'add_to_motion_list')
 
         motions_list, count = self._get_motions(), 0
         label = 'Filter Motions'
@@ -103,7 +103,7 @@ class XRAY_OT_import_skls(
             ui.motion_list.BaseSelectMotionsOp.set_data(self)
             row.operator(ui.motion_list.XRAY_OT_select_motions.bl_idname, icon='CHECKBOX_HLT')
             row.operator(ui.motion_list.XRAY_OT_deselect_motions.bl_idname, icon='CHECKBOX_DEHLT')
-            row.operator(ui.motion_list.XRAY_OT_deselect_duplicated_motions.bl_idname, icon='COPY_ID')
+            row.operator(ui.motion_list.XRAY_OT_deselect_dupli_motions.bl_idname, icon='COPY_ID')
 
     def _get_motions(self):
         items = self.motions
@@ -151,7 +151,7 @@ class XRAY_OT_import_skls(
         import_context.bpy_arm_obj = obj
         import_context.motions_filter = motions_filter
         import_context.filename = None
-        import_context.add_actions_to_motion_list = self.add_actions_to_motion_list
+        import_context.add_to_motion_list = self.add_to_motion_list
         for file in self.files:
             file_ext = os.path.splitext(file.name)[-1].lower()
             file_path = os.path.join(self.directory, file.name)
@@ -176,7 +176,7 @@ class XRAY_OT_import_skls(
     @utils.ie.invoke_require_armature
     def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
-        self.add_actions_to_motion_list = preferences.add_actions_to_motion_list
+        self.add_to_motion_list = preferences.add_to_motion_list
         return super().invoke(context, event)
 
 

@@ -101,7 +101,7 @@ def read_motion(data, context, motions_params, bone_names, version):
         act = bpy.data.actions.new(name)
         utils.stats.created_act()
         act.use_fake_user = True
-        if context.add_actions_to_motion_list:
+        if context.add_to_motion_list:
             xray_motion = context.bpy_arm_obj.xray.motions_collection.add()
             xray_motion.name = name
             if xray_motion.name != act.name:

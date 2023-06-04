@@ -19,7 +19,7 @@ class TestOmf(utils.XRayTestCase):
             files=[{'name': 'test_fmt.omf'}],
             import_motions=True,
             import_bone_parts=True,
-            add_actions_to_motion_list=True
+            add_to_motion_list=True
         )
 
         # export motions
@@ -59,7 +59,7 @@ class TestOmf(utils.XRayTestCase):
             files=[{'name': 'test_fmt.omf'}],
             import_motions=True,
             import_bone_parts=True,
-            add_actions_to_motion_list=True
+            add_to_motion_list=True
         )
 
         # create second object

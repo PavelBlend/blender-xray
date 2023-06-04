@@ -150,6 +150,7 @@ omf_bone_no_group = 'not all bones in an armature have bone group'
 # omf import
 omf_no_bone = 'armature does not have all bones that file has'
 omf_nothing = 'nothing was imported. Change import settings'
+omf_nothing_imp = 'Nothing is imported!'
 
 # scene import
 scene_bad_file = 'bad scene selection file. Cannot find "scene version" chunk'

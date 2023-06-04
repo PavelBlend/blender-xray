@@ -84,7 +84,7 @@ class ImportMeshContext(MeshContext):
 class ImportAnimationBaseContext(ImportContext):
     def __init__(self):
         super().__init__()
-        self.add_actions_to_motion_list = None
+        self.add_to_motion_list = None
         self.selected_names = None
         self.motions_filter = None
 

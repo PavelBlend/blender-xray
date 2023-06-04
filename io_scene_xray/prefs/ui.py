@@ -112,7 +112,7 @@ def draw_defaults(prefs):
     elif prefs.defaults_category == 'SKLS':
         box = layout.box()
         box.label(text='Import:')
-        box.prop(prefs, 'add_actions_to_motion_list')
+        box.prop(prefs, 'add_to_motion_list')
     elif prefs.defaults_category == 'BONES':
         box = layout.box()
         # import

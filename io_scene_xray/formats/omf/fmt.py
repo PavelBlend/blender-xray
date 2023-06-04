@@ -1,4 +1,5 @@
 MOTIONS_COUNT_CHUNK = 0x0
+BONEPART_NONE = 0xffff
 
 # motion flags
 FL_T_KEY_PRESENT = 1 << 0
@@ -14,5 +15,3 @@ USE_FOOT_STEPS = 1 << 4
 ROOT_MOVER = 1 << 5
 IDLE = 1 << 6
 USE_WEAPON_BONE = 1 << 7
-
-BONEPART_NONE = 0xffff

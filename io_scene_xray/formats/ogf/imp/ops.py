@@ -86,7 +86,7 @@ class XRAY_OT_import_ogf(
         import_context.operator = self
         import_context.import_motions = self.import_motions
         import_context.import_bone_parts = True
-        import_context.add_actions_to_motion_list = True
+        import_context.add_to_motion_list = True
 
         utils.ie.import_files(
             self.directory,

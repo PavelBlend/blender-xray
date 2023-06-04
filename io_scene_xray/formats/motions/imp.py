@@ -68,7 +68,7 @@ def import_motion(
     if ver < const.FORMAT_VERSION_6:
         raise log.AppError(text.error.motion_ver, log.props(version=ver))
 
-    if context.add_actions_to_motion_list:
+    if context.add_to_motion_list:
         motion = bpy_armature.xray.motions_collection.add()
         motion.name = act.name
     else:

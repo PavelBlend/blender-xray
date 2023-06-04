@@ -26,7 +26,7 @@ def _import_motions(context, data, bpy_arm_obj, object_name):
     skl_ctx = skl.imp.ImportSklContext()
     skl_ctx.bpy_arm_obj = bpy_arm_obj
     skl_ctx.motions_filter = motions.utilites.MOTIONS_FILTER_ALL
-    skl_ctx.add_actions_to_motion_list = True
+    skl_ctx.add_to_motion_list = True
     skl_ctx.filename = object_name
 
     motions.imp.import_motions(reader, skl_ctx)

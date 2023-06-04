@@ -52,7 +52,7 @@ class XRAY_OT_deselect_motions(BaseSelectMotionsOp):
         motion.flag = False
 
 
-class XRAY_OT_deselect_duplicated_motions(BaseSelectMotionsOp):
+class XRAY_OT_deselect_dupli_motions(BaseSelectMotionsOp):
     bl_idname = 'io_scene_xray.motions_deselect_duplicated'
     bl_label = 'Dups'
     bl_description = 'Deselect displayed importing motions which already exist in the scene'
@@ -78,7 +78,7 @@ class XRAY_UL_motions_list(bpy.types.UIList):
 classes = (
     XRAY_OT_select_motions,
     XRAY_OT_deselect_motions,
-    XRAY_OT_deselect_duplicated_motions,
+    XRAY_OT_deselect_dupli_motions,
     XRAY_UL_motions_list
 )
 
