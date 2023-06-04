@@ -21,6 +21,7 @@ OP_TEXT = 'Game Motion'
 OMF_EXT = '.omf'
 
 
+# contexts
 class ImportOmfContext(
         contexts.ImportAnimationContext,
         contexts.ImportAnimationOnlyContext
@@ -43,6 +44,7 @@ class ExportOmfContext(
         self.need_bone_groups = None
 
 
+# motion list item
 motion_props = {
     'flag': bpy.props.BoolProperty(name='Selected for Import', default=True),
     'name': bpy.props.StringProperty(name='Motion Name'),
@@ -268,14 +270,19 @@ class XRAY_OT_import_omf(
 
 
 export_props = {
+    # file browser properties
     'filter_glob': bpy.props.StringProperty(
         default='*'+OMF_EXT,
         options={'HIDDEN'}
     ),
+
+    # export properties
     'export_mode': ie.prop_omf_export_mode(),
     'export_motions': ie.PropObjectMotionsExport(),
     'export_bone_parts': ie.prop_export_bone_parts(),
     'high_quality': ie.prop_omf_high_quality(),
+
+    # system properties
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
@@ -284,6 +291,7 @@ class XRAY_OT_export_omf_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
+
     bl_idname = 'xray_export.omf_file'
     bl_label = 'Export .omf'
     bl_description = 'Exports X-Ray skeletal game motions'
@@ -293,6 +301,7 @@ class XRAY_OT_export_omf_file(
     ext = OMF_EXT
     filename_ext = OMF_EXT
     props = export_props
+
     obj = None
 
     if not utils.version.IS_28:
@@ -301,14 +310,19 @@ class XRAY_OT_export_omf_file(
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
+
         layout = self.layout
+
         layout.label(text='Export Mode:')
         layout.prop(self, 'export_mode', expand=True)
+
         layout.prop(self, 'high_quality')
+
         col = layout.column()
         col.active = not self.export_mode in ('OVERWRITE', 'ADD')
         col.prop(self, 'export_motions')
         col.prop(self, 'export_bone_parts')
+
         if self.export_mode == 'REPLACE':
             if not self.export_motions and not self.export_bone_parts:
                 layout.label(text='Nothing was Exported!', icon='ERROR')
@@ -319,25 +333,29 @@ class XRAY_OT_export_omf_file(
     def execute(self, context):
         utils.stats.update('Export *.omf')
 
-        active_object = context.active_object
         if self.obj:
             utils.version.set_active_object(self.obj)
         else:
-            self.obj = active_object
-        export_context = ExportOmfContext()
-        export_context.bpy_arm_obj = self.obj
-        export_context.filepath = self.filepath
-        export_context.export_mode = self.export_mode
-        export_context.export_motions = self.export_motions
-        export_context.export_bone_parts = self.export_bone_parts
-        export_context.high_quality = self.high_quality
+            self.obj = context.active_object
+
+        # export context
+        exp_ctx = ExportOmfContext()
+
+        exp_ctx.bpy_arm_obj = self.obj
+        exp_ctx.filepath = self.filepath
+        exp_ctx.export_mode = self.export_mode
+        exp_ctx.export_motions = self.export_motions
+        exp_ctx.export_bone_parts = self.export_bone_parts
+        exp_ctx.high_quality = self.high_quality
+
         if self.export_mode in ('REPLACE', 'ADD'):
-            if not os.path.exists(export_context.filepath):
+            if not os.path.exists(exp_ctx.filepath):
                 self.report(
                     {'ERROR'},
-                    'File not found: "{}"'.format(export_context.filepath)
+                    'File not found: "{}"'.format(exp_ctx.filepath)
                 )
                 return {'CANCELLED'}
+
         if self.export_mode == 'REPLACE':
             if not self.export_motions and not self.export_bone_parts:
                 self.report(
@@ -345,53 +363,58 @@ class XRAY_OT_export_omf_file(
                     'Nothing was exported. Change the export settings.'
                 )
                 return {'CANCELLED'}
+
         if self.export_mode in ('OVERWRITE', 'ADD'):
             need_motions = True
+
             if self.export_mode == 'OVERWRITE':
                 need_bone_groups = True
             else:
                 need_bone_groups = False
+
         else:
-            if self.export_motions:
-                need_motions = True
-            else:
-                need_motions = False
-            if self.export_bone_parts:
-                need_bone_groups = True
-            else:
-                need_bone_groups = False
+            need_motions = self.export_motions
+            need_bone_groups = self.export_bone_parts
+
         motions_count = len(self.obj.xray.motions_collection)
         bone_groups_count = len(self.obj.pose.bone_groups)
+
         if not motions_count and need_motions:
             self.report(
                 {'ERROR'},
                 'Armature object "{}" has no actions'.format(self.obj.name)
             )
             return {'CANCELLED'}
+
         if not bone_groups_count and need_bone_groups:
             self.report(
                 {'ERROR'},
                 'Armature object "{}" has no bone groups'.format(self.obj.name)
             )
             return {'CANCELLED'}
-        export_context.need_motions = need_motions
-        export_context.need_bone_groups = need_bone_groups
+
+        exp_ctx.need_motions = need_motions
+        exp_ctx.need_bone_groups = need_bone_groups
+
         try:
-            exp.export_omf_file(export_context)
+            exp.export_omf_file(exp_ctx)
         except log.AppError as err:
-            export_context.errors.append(err)
-        utils.version.set_active_object(active_object)
-        for err in export_context.errors:
+            exp_ctx.errors.append(err)
+
+        for err in exp_ctx.errors:
             log.err(err)
+
         return {'FINISHED'}
 
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
-        preferences = utils.version.get_preferences()
-        self.export_mode = preferences.omf_export_mode
-        self.export_bone_parts = preferences.omf_export_bone_parts
-        self.export_motions = preferences.omf_motions_export
-        self.high_quality = preferences.omf_high_quality
+        # set default settings
+        pref = utils.version.get_preferences()
+        self.export_mode = pref.omf_export_mode
+        self.export_bone_parts = pref.omf_export_bone_parts
+        self.export_motions = pref.omf_motions_export
+        self.high_quality = pref.omf_high_quality
+
         sel_objs_count = len(context.selected_objects)
         objs = [
             obj
@@ -399,22 +422,27 @@ class XRAY_OT_export_omf_file(
                 if obj.type == 'ARMATURE'
         ]
         arm_count = len(objs)
+
         if arm_count > 1:
             self.report({'ERROR'}, 'Too many selected armature-objects')
             return {'CANCELLED'}
+
         if not arm_count and sel_objs_count:
             self.report(
                 {'ERROR'},
                 'There are no armatures among the selected objects'
             )
             return {'CANCELLED'}
+
         if not sel_objs_count and not arm_count:
             self.report({'ERROR'}, 'No selected objects')
             return {'CANCELLED'}
+
         self.obj = objs[0]
         self.filepath = utils.ie.add_file_ext(self.obj.name, OMF_EXT)
         motions_count = len(self.obj.xray.motions_collection)
         bone_groups_count = len(self.obj.pose.bone_groups)
+
         if not motions_count and not bone_groups_count:
             self.report(
                 {'ERROR'},
@@ -423,6 +451,7 @@ class XRAY_OT_export_omf_file(
                 )
             )
             return {'CANCELLED'}
+
         return super().invoke(context, event)
 
 
