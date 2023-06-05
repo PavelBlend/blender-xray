@@ -1,4 +1,5 @@
 # standart modules
+import os
 import struct
 import zlib
 
@@ -885,15 +886,62 @@ def export_omf(context):
     return main_chunked_writer
 
 
+def check_context(exp_ctx):
+    if exp_ctx.export_mode in ('REPLACE', 'ADD'):
+        if not os.path.exists(exp_ctx.filepath):
+            raise log.AppError(
+                'File not found',
+                log.props(file=exp_ctx.filepath)
+            )
+
+    if exp_ctx.export_mode == 'REPLACE':
+        if not exp_ctx.export_motions and not exp_ctx.export_bone_parts:
+            raise log.AppError(
+                'Nothing was exported. Change the export settings.'
+            )
+
+    if exp_ctx.export_mode in ('OVERWRITE', 'ADD'):
+        need_motions = True
+
+        if exp_ctx.export_mode == 'OVERWRITE':
+            need_bone_groups = True
+        else:
+            need_bone_groups = False
+
+    else:
+        need_motions = exp_ctx.export_motions
+        need_bone_groups = exp_ctx.export_bone_parts
+
+    motions_count = len(exp_ctx.bpy_arm_obj.xray.motions_collection)
+    if not motions_count and need_motions:
+        raise log.AppError(
+            'Armature object has no actions',
+            log.props(object=exp_ctx.bpy_arm_obj.name)
+        )
+
+    bone_groups_count = len(exp_ctx.bpy_arm_obj.pose.bone_groups)
+    if not bone_groups_count and need_bone_groups:
+        raise log.AppError(
+            'Armature object has no bone groups',
+            log.props(object=exp_ctx.bpy_arm_obj.name)
+        )
+
+    exp_ctx.need_motions = need_motions
+    exp_ctx.need_bone_groups = need_bone_groups
+
+
 @log.with_context('export-omf')
 @utils.stats.timer
 def export_omf_file(context):
     utils.stats.status('Export File', context.filepath)
-
     log.update(object=context.bpy_arm_obj.name)
+
+    check_context(context)
+
     if context.high_quality:
         context.params_ver = 4
     else:
         context.params_ver = 3
+
     chunked_writer = export_omf(context)
     rw.utils.save_file(context.filepath, chunked_writer)

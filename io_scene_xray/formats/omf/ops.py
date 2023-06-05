@@ -287,6 +287,15 @@ export_props = {
 }
 
 
+def get_exp_obj(context):
+    objs = [
+        obj
+        for obj in context.selected_objects
+            if obj.type == 'ARMATURE'
+    ]
+    return objs
+
+
 class XRAY_OT_export_omf_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
@@ -325,7 +334,10 @@ class XRAY_OT_export_omf_file(
 
         if self.export_mode == 'REPLACE':
             if not self.export_motions and not self.export_bone_parts:
-                layout.label(text='Nothing was Exported!', icon='ERROR')
+                layout.label(
+                    text=text.get_text(text.error.omf_nothing_exp),
+                    icon='ERROR'
+                )
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -333,68 +345,22 @@ class XRAY_OT_export_omf_file(
     def execute(self, context):
         utils.stats.update('Export *.omf')
 
-        if self.obj:
-            utils.version.set_active_object(self.obj)
+        objs = get_exp_obj(context)
+        if objs:
+            obj = objs[0]
+            utils.version.set_active_object(obj)
         else:
-            self.obj = context.active_object
+            obj = context.active_object
 
         # export context
         exp_ctx = ExportOmfContext()
 
-        exp_ctx.bpy_arm_obj = self.obj
+        exp_ctx.bpy_arm_obj = obj
         exp_ctx.filepath = self.filepath
         exp_ctx.export_mode = self.export_mode
         exp_ctx.export_motions = self.export_motions
         exp_ctx.export_bone_parts = self.export_bone_parts
         exp_ctx.high_quality = self.high_quality
-
-        if self.export_mode in ('REPLACE', 'ADD'):
-            if not os.path.exists(exp_ctx.filepath):
-                self.report(
-                    {'ERROR'},
-                    'File not found: "{}"'.format(exp_ctx.filepath)
-                )
-                return {'CANCELLED'}
-
-        if self.export_mode == 'REPLACE':
-            if not self.export_motions and not self.export_bone_parts:
-                self.report(
-                    {'ERROR'},
-                    'Nothing was exported. Change the export settings.'
-                )
-                return {'CANCELLED'}
-
-        if self.export_mode in ('OVERWRITE', 'ADD'):
-            need_motions = True
-
-            if self.export_mode == 'OVERWRITE':
-                need_bone_groups = True
-            else:
-                need_bone_groups = False
-
-        else:
-            need_motions = self.export_motions
-            need_bone_groups = self.export_bone_parts
-
-        motions_count = len(self.obj.xray.motions_collection)
-        bone_groups_count = len(self.obj.pose.bone_groups)
-
-        if not motions_count and need_motions:
-            self.report(
-                {'ERROR'},
-                'Armature object "{}" has no actions'.format(self.obj.name)
-            )
-            return {'CANCELLED'}
-
-        if not bone_groups_count and need_bone_groups:
-            self.report(
-                {'ERROR'},
-                'Armature object "{}" has no bone groups'.format(self.obj.name)
-            )
-            return {'CANCELLED'}
-
-        exp_ctx.need_motions = need_motions
-        exp_ctx.need_bone_groups = need_bone_groups
 
         try:
             exp.export_omf_file(exp_ctx)
@@ -415,42 +381,8 @@ class XRAY_OT_export_omf_file(
         self.export_motions = pref.omf_motions_export
         self.high_quality = pref.omf_high_quality
 
-        sel_objs_count = len(context.selected_objects)
-        objs = [
-            obj
-            for obj in context.selected_objects
-                if obj.type == 'ARMATURE'
-        ]
-        arm_count = len(objs)
-
-        if arm_count > 1:
-            self.report({'ERROR'}, 'Too many selected armature-objects')
-            return {'CANCELLED'}
-
-        if not arm_count and sel_objs_count:
-            self.report(
-                {'ERROR'},
-                'There are no armatures among the selected objects'
-            )
-            return {'CANCELLED'}
-
-        if not sel_objs_count and not arm_count:
-            self.report({'ERROR'}, 'No selected objects')
-            return {'CANCELLED'}
-
-        self.obj = objs[0]
-        self.filepath = utils.ie.add_file_ext(self.obj.name, OMF_EXT)
-        motions_count = len(self.obj.xray.motions_collection)
-        bone_groups_count = len(self.obj.pose.bone_groups)
-
-        if not motions_count and not bone_groups_count:
-            self.report(
-                {'ERROR'},
-                'Armature object "{}" has no actions and bone groups'.format(
-                    self.obj.name
-                )
-            )
-            return {'CANCELLED'}
+        obj = get_arm_objs(self, context)[0]
+        self.filepath = utils.ie.add_file_ext(obj.name, OMF_EXT)
 
         return super().invoke(context, event)
 
@@ -479,14 +411,19 @@ def get_arm_objs(operator, context):
 
 
 export_props = {
+    # file browser properties
     'filter_glob': bpy.props.StringProperty(
         default='*'+OMF_EXT,
         options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
+
+    # export properties
     'export_motions': ie.PropObjectMotionsExport(),
     'export_bone_parts': ie.prop_export_bone_parts(),
     'high_quality': ie.prop_omf_high_quality(),
+
+    # system properties
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
@@ -514,7 +451,10 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
         layout.prop(self, 'high_quality')
 
         if not self.export_motions and not self.export_bone_parts:
-            layout.label(text='Nothing was Exported!', icon='ERROR')
+            layout.label(
+                text=text.get_text(text.error.omf_nothing_exp),
+                icon='ERROR'
+            )
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -532,37 +472,11 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
         export_context.high_quality = self.high_quality
         export_context.need_motions = True
         export_context.need_bone_groups = True
+        export_context.export_mode = 'OVERWRITE'
 
         for obj in arm_objs:
             name = utils.ie.add_file_ext(obj.name, OMF_EXT)
             filepath = os.path.join(self.directory, name)
-
-            skip = False
-
-            motions_count = len(obj.xray.motions_collection)
-            try:
-                if not motions_count:
-                    raise log.AppError(
-                        'Armature object has no motions',
-                        log.props(object=obj.name)
-                    )
-            except log.AppError as err:
-                log.err(err)
-                skip = True
-
-            bone_groups_count = len(obj.pose.bone_groups)
-            try:
-                if not bone_groups_count:
-                    raise log.AppError(
-                        'Armature object has no bone groups',
-                        log.props(object=obj.name)
-                    )
-            except log.AppError as err:
-                log.err(err)
-                skip = True
-
-            if skip:
-                continue
 
             export_context.bpy_arm_obj = obj
             export_context.filepath = filepath
@@ -588,6 +502,20 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
             return {'CANCELLED'}
 
         if len(arm_objs) == 1:
+            obj = arm_objs[0]
+
+            motions_count = len(obj.xray.motions_collection)
+            bone_groups_count = len(obj.pose.bone_groups)
+
+            if not motions_count and not bone_groups_count:
+                self.report(
+                    {'ERROR'},
+                    'Object "{}" has no actions and bone groups'.format(
+                        obj.name
+                    )
+                )
+                return {'CANCELLED'}
+
             return bpy.ops.xray_export.omf_file('INVOKE_DEFAULT')
 
         context.window_manager.fileselect_add(self)

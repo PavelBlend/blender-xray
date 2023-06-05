@@ -146,6 +146,7 @@ omf_empty = 'use different export mode. This omf file is empty'
 omf_no_anims = 'omf file does not have an animation block'
 omf_no_params = 'omf file does not have an parameters block'
 omf_bone_no_group = 'not all bones in an armature have bone group'
+omf_nothing_exp = 'Nothing is exported!'
 
 # omf import
 omf_no_bone = 'armature does not have all bones that file has'

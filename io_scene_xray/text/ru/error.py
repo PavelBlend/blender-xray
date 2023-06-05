@@ -154,6 +154,7 @@ translations_table = (
     (error.omf_no_anims, 'omf файл не имеет блок анимаций'),
     (error.omf_no_params, 'omf файл не имеет блок параметров'),
     (error.omf_bone_no_group, 'не все кости арматуры имеют группу костей (bone part)'),
+    (error.omf_nothing_exp, 'Ничего не экспортируется!'),
 
     # omf import
     (error.omf_no_bone, 'арматура не имеет всех костей, которые есть в omf файле'),
