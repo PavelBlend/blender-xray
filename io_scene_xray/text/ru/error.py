@@ -92,6 +92,7 @@ translations_table = (
     (error.level_visual_empty_mat, 'visual-объект имеет пустой слот материала'),
     (error.level_visual_many_mats, 'visual-объект имеет больше одного материала'),
     (error.level_visual_no_uv, 'visual-объект не имеет UV-карты'),
+    (error.level_visual_no_hemi, 'visual-объект не имеет hemi слоя'),
 
     # level export glow
     (error.level_no_glow, 'level-объект не имеет glow-объектов'),

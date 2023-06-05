@@ -189,20 +189,23 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
             )
         )
 
-    uv_layer_lmap = bm.loops.layers.uv.get(material.xray.uv_light_map, None)
-    color_sun = bm.loops.layers.color.get(material.xray.sun_vert_color, None)
-    vertex_color_hemi = bm.loops.layers.color.get(
-        material.xray.hemi_vert_color, None
-    )
-    color_light = bm.loops.layers.color.get(
-        material.xray.light_vert_color, None
-    )
+    uv_lmap_lay = bm.loops.layers.uv.get(material.xray.uv_light_map, None)
+    sun_col = bm.loops.layers.color.get(material.xray.sun_vert_color, None)
+    hemi_col = bm.loops.layers.color.get(material.xray.hemi_vert_color, None)
+    light_col = bm.loops.layers.color.get(material.xray.light_vert_color, None)
+
+    if not hemi_col:
+        raise log.AppError(
+            text.error.level_visual_no_hemi,
+            log.props(object=bpy_obj.name)
+        )
+
     export_mesh.calc_tangents(uvmap=uv_layer.name)
 
     vertex_size = 32
-    if color_sun:
+    if sun_col:
         vertex_format = 'COLOR'
-    elif uv_layer_lmap:
+    elif uv_lmap_lay:
         vertex_format = 'NORMAL'
     else:
         vertex_format = 'TREE'
@@ -267,29 +270,29 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
             uv = loop[uv_layer].uv[0], loop[uv_layer].uv[1]
 
             # light map uv
-            if uv_layer_lmap:
-                uv_lmap = loop[uv_layer_lmap].uv[0], loop[uv_layer_lmap].uv[1]
+            if uv_lmap_lay:
+                uv_lmap = loop[uv_lmap_lay].uv[0], loop[uv_lmap_lay].uv[1]
             else:
                 uv_lmap = None
             lmap_uvs.append(uv_lmap)
 
             # hemi
-            if vertex_color_hemi:
-                hemi = loop[vertex_color_hemi][0]
+            if hemi_col:
+                hemi = loop[hemi_col][0]
             else:
                 hemi = None
             hemies.append(hemi)
 
             # sun
-            if color_sun:
-                sun = loop[color_sun][0]
+            if sun_col:
+                sun = loop[sun_col][0]
             else:
                 sun = None
             suns.append(sun)
 
             # light
-            if color_light:
-                light = loop[color_light]
+            if light_col:
+                light = loop[light_col]
             else:
                 light = None
             lights.append(light)
@@ -306,10 +309,12 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                     vertex_index += 1
 
     saved_verts = set()
-    if uv_layer_lmap or color_sun:
+
+    if uv_lmap_lay or sun_col:
         uv_coeff = fmt.UV_COEFFICIENT
     else:
         uv_coeff = fmt.UV_COEFFICIENT_2
+
     # tree shader params
     frac_low = get_bbox_center(bpy_obj.bound_box)
     frac_low[2] = bpy_obj.bound_box[0][2]
@@ -394,7 +399,7 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                 vb.color_hemi.append(int(round(hemi * 255, 0)))
 
                 # sun
-                if color_sun:
+                if sun_col:
                     vb.color_sun.append(int(round(sun * 255, 0)))
 
                     # light
@@ -427,7 +432,7 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                 # write uv corrector
                 vb.uv_fix.extend(struct.pack('<2B', correct_u, correct_v))
 
-                if uv_layer_lmap:
+                if uv_lmap_lay:
                     lmap_u = int(round(
                         tex_uv_lmap[0] * fmt.LIGHT_MAP_UV_COEFFICIENT,
                         0
@@ -439,7 +444,7 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                     vb.uv_lmap.extend(struct.pack('<2h', lmap_u, lmap_v))
 
                 # tree shader data (wind coefficient)
-                if not (uv_layer_lmap or color_sun or color_light):
+                if not (uv_lmap_lay or sun_col or light_col):
                     f1 = (vert.co[2] - frac_low[2]) / frac_y_size
                     f2 = find_distance(vert.co, frac_low) / frac_y_size
                     frac = quant_value((f1 + f2) / 2)    # wind coefficient
