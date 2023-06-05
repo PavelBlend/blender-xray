@@ -160,11 +160,6 @@ def read_details_slots(
             hemi=hemi_image_pixels
         )
 
-        del meshes_images_pixels
-        del lights_image_pixels
-        del shadows_image_pixels
-        del hemi_image_pixels
-
     else:    # version 2
         S_ffBHBHBHBHH = rw.read.PackedReader.prep('2fBHBHBHB2H')
 
@@ -261,9 +256,6 @@ def read_details_slots(
             lights_old=lighting_image_pixels
         )
 
-        del meshes_images_pixels
-        del lighting_image_pixels
-
         if bad_y_base_count > 0:
             log.warn(
                 text.warn.details_coord_base,
@@ -282,8 +274,5 @@ def read_details_slots(
         y_coords,
         y_coords_base
     )
-
-    del y_coords
-    del y_coords_base
 
     return slots_base_object, slots_top_object

@@ -21,5 +21,5 @@ def convert_indices_to_triangles(visual):
             visual.indices[index + 2],
             visual.indices[index + 1]
         ))
-    del visual.indices
-    del visual.indices_count
+
+    visual.indices.clear()

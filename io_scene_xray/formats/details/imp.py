@@ -46,12 +46,12 @@ def _import(file_path, context, chunked_reader):
                 pr_slots = rw.read.PackedReader(chunk_data)
             has_slots = True
 
-    del chunked_reader
-
     if not has_header:
         raise log.AppError(text.error.details_no_header)
+
     if not has_meshes:
         raise log.AppError(text.error.details_no_meshes)
+
     if not has_slots and context.load_slots:
         raise log.AppError(text.error.details_no_slots)
 
@@ -66,9 +66,6 @@ def _import(file_path, context, chunked_reader):
         color_indices,
         header
     )
-
-    del cr_meshes
-    del has_header, has_meshes, has_slots
 
     if context.load_slots:
 
@@ -87,8 +84,6 @@ def _import(file_path, context, chunked_reader):
             color_indices,
             root_obj
         )
-
-        del pr_slots
 
         slots_base_object.parent = root_obj
         slots_top_object.parent = root_obj

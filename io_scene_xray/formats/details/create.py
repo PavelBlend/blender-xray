@@ -102,15 +102,8 @@ def create_details_slots_object(
 
         cur_vert_id += 4
 
-    del slots_base
-
     slots_base_mesh.from_pydata(vertices_base, (), faces)
-
-    del vertices_base
-
     slots_top_mesh.from_pydata(vertices_top, (), faces)
-
-    del vertices_top, faces
 
     # create UV's
 
