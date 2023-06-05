@@ -254,13 +254,17 @@ class XRAY_OT_import_omf(
         if len(self.files) == 1:
             file_path = os.path.join(self.directory, self.files[0].name)
 
-            if os.path.exists(file_path):
+            if os.path.exists(file_path) and os.path.isfile(file_path):
                 if self.__parsed_file_name != file_path:
 
                     self.__parsed_file_name = file_path
                     self.motions.clear()
                     file_data = rw.utils.read_file(file_path)
-                    motions_names = imp.examine_motions(file_data)
+
+                    try:
+                        motions_names = imp.examine_motions(file_data)
+                    except:
+                        motions_names = []
 
                     for name in motions_names:
                         self.motions.add().name = name
