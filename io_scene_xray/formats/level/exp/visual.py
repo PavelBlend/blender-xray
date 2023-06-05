@@ -286,7 +286,6 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                     verts_indices[vert_co].append(vertex_index)
                     vertex_index += 1
 
-    vertex_index = 0
     saved_verts = set()
     if uv_layer_lmap or color_sun:
         uv_coeff = fmt.UV_COEFFICIENT
@@ -296,33 +295,41 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     frac_low = get_bbox_center(bpy_obj.bound_box)
     frac_low[2] = bpy_obj.bound_box[0][2]
     frac_y_size = bpy_obj.bound_box[6][2] - bpy_obj.bound_box[0][2]
+
     for face in bm.faces:
         face_indices = []
+
         for loop in face.loops:
             vert = loop.vert
-            vert_co = tuple(vert.co)
-            vert_data = unique_verts[vert_co]
+            vert_key = tuple(vert.co)
+            vert_data = unique_verts[vert_key]
             uv = tuple(loop[uv_layer].uv)
             split_normal = tuple(export_mesh.loops[loop.index].normal)
+
+            # light map uv
             if uv_layer_lmap:
                 uv_lmap = tuple(loop[uv_layer_lmap].uv)
             else:
                 uv_lmap = (0.0, 0.0)
-            # Vertex Color Hemi
+
+            # vertex color hemi
             if vertex_color_hemi:
                 hemi = loop[vertex_color_hemi][0]
             else:
                 hemi = 0.0
-            # Vertex Color Sun
+
+            # vertex color sun
             if color_sun:
                 sun = loop[color_sun][0]
             else:
                 sun = 0.0
-            # Vertex Color Light
+
+            # vertex color light
             if color_light:
                 light = loop[color_light]
             else:
                 light = (0.0, 0.0, 0.0)
+
             for index, data in enumerate(vert_data):
                 if (
                         data[0] == uv and
@@ -333,29 +340,32 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                         data[5] == light
                     ):
                     tex_uv, tex_uv_lmap, normal, hemi, sun, light = data
-                    vert_index = verts_indices[vert_co][index]
+                    vert_index = verts_indices[vert_key][index]
                     break
+
             packed_vertex_index = struct.pack('<H', vert_index)
             face_indices.append(packed_vertex_index)
             indices_count += 1
+
             if not vert_index in saved_verts:
-                vb.vertex_count += 1
                 saved_verts.add(vert_index)
-                vertex_index += 1
+                vb.vertex_count += 1
                 vertices_count += 1
-                packed_co = struct.pack(
-                    '<3f',
-                    vert.co[0],
-                    vert.co[2],
-                    vert.co[1]
+
+                # position
+                vb.position.extend(
+                    struct.pack('<3f', vert.co[0], vert.co[2], vert.co[1])
                 )
-                vb.position.extend(packed_co)
+
+                # normal
                 vb.normal.extend(struct.pack(
                     '<3B',
                     int(((normal[1] + 1.0) / 2) * 255),
                     int(((normal[2] + 1.0) / 2) * 255),
                     int(((normal[0] + 1.0) / 2) * 255)
                 ))
+
+                # tangent
                 tangent = export_mesh.loops[loop.index].tangent
                 vb.tangent.extend(struct.pack(
                     '<3B',
@@ -363,28 +373,36 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                     int(((tangent[2] + 1.0) / 2) * 255),
                     int(((tangent[0] + 1.0) / 2) * 255)
                 ))
-                normal = mathutils.Vector(normal)
-                binormal = normal.cross(tangent).normalized()
+
+                # binormal
+                binorm = mathutils.Vector(normal).cross(tangent).normalized()
                 vb.binormal.extend(struct.pack(
                     '<3B',
-                    int(((-binormal[1] + 1.0) / 2) * 255),
-                    int(((-binormal[2] + 1.0) / 2) * 255),
-                    int(((-binormal[0] + 1.0) / 2) * 255)
+                    int(((-binorm[1] + 1.0) / 2) * 255),
+                    int(((-binorm[2] + 1.0) / 2) * 255),
+                    int(((-binorm[0] + 1.0) / 2) * 255)
                 ))
-                # vertex color light
+
+                # hemi
                 vb.color_hemi.append(int(round(hemi * 255, 0)))
+
+                # sun
                 if color_sun:
                     vb.color_sun.append(int(round(sun * 255, 0)))
+
+                    # light
                     vb.color_light.extend(struct.pack(
                         '<3B',
                         (int(round(light[2] * 255, 0))),
                         (int(round(light[1] * 255, 0))),
                         (int(round(light[0] * 255, 0)))
                     ))
+
                 # uv
                 coord_u = int(tex_uv[0] * uv_coeff)
-                coord_v = int((1 - tex_uv[1]) * uv_coeff)
-                # uv correct
+                coord_v = int((1.0 - tex_uv[1]) * uv_coeff)
+
+                # uv corrector
                 correct_u, coord_u = get_tex_coord_correct(
                     tex_uv[0],
                     coord_u,
@@ -395,8 +413,6 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                     coord_v,
                     uv_coeff
                 )
-                pw = rw.write.PackedWriter()
-                pw.putf('<2B', correct_u, correct_v)
 
                 # set uv limits
                 if coord_u > 0x7fff:
@@ -409,14 +425,11 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                 elif coord_v < -0x8000:
                     coord_v = -0x8000
 
-                packed_uv = struct.pack('<2h', coord_u, coord_v)
-                vb.uv.extend(packed_uv)
-                packed_uv_fix = struct.pack(
-                    '<2B',
-                    correct_u,
-                    correct_v
-                )
-                vb.uv_fix.extend(packed_uv_fix)
+                # write uv
+                vb.uv.extend(struct.pack('<2h', coord_u, coord_v))
+
+                # write uv corrector
+                vb.uv_fix.extend(struct.pack('<2B', correct_u, correct_v))
 
                 if uv_layer_lmap:
                     lmap_u = int(round(
@@ -427,17 +440,14 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                         1 - tex_uv_lmap[1]) * fmt.LIGHT_MAP_UV_COEFFICIENT,
                         0
                     ))
-                    packed_uv_lmap = struct.pack('<2h', lmap_u, lmap_v)
-                    vb.uv_lmap.extend(packed_uv_lmap)
+                    vb.uv_lmap.extend(struct.pack('<2h', lmap_u, lmap_v))
 
                 # tree shader data (wind coefficient)
-                color_sun
                 if not (uv_layer_lmap or color_sun or color_light):
                     f1 = (vert.co[2] - frac_low[2]) / frac_y_size
                     f2 = find_distance(vert.co, frac_low) / frac_y_size
                     frac = quant_value((f1 + f2) / 2)    # wind coefficient
-                    packed_shader_data = struct.pack('<H', frac)
-                    vb.shader_data.extend(packed_shader_data)
+                    vb.shader_data.extend(struct.pack('<H', frac))
 
         ib.extend((*face_indices[0], *face_indices[2], *face_indices[1]))
 
@@ -811,10 +821,18 @@ def write_lod_visual(bpy_obj, hierrarhy, visuals_ids, level):
 
 
 def write_visual_children(
-        chunked_writer, vbs, ibs,
-        visual_index, hierrarhy,
-        visuals_ids, visuals, level, fp_vbs, fp_ibs
+        chunked_writer,
+        vbs,
+        ibs,
+        hierrarhy,
+        visuals_ids,
+        visuals,
+        level,
+        fp_vbs,
+        fp_ibs
     ):
+
+    visual_index = 0
 
     for visual_obj in visuals:
         visual_chunked_writer = write_visual(
@@ -830,7 +848,6 @@ def write_visual_children(
         if visual_chunked_writer:
             chunked_writer.put(visual_index, visual_chunked_writer)
             visual_index += 1
-    return visual_index
 
 
 def find_hierrarhy(
@@ -898,7 +915,6 @@ def write_visuals(level_writer, level_object, level):
     visuals_ids = {}
     for visual_index, visual_obj in enumerate(visuals):
         visuals_ids[visual_obj] = visual_index
-    visual_index = 0
 
     sectors_portals = sector.get_sectors_portals(level, level_object)
 
@@ -952,11 +968,11 @@ def write_visuals(level_writer, level_object, level):
 
                 sector_id += 1
 
-    visual_index = write_visual_children(
+    visual_index = 0
+    write_visual_children(
         visuals_writer,
         vertex_buffers,
         indices_buffers,
-        visual_index,
         visuals_hierrarhy,
         visuals_ids,
         visuals,
