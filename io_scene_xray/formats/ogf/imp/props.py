@@ -31,9 +31,9 @@ def read_user_data(chunks, ogf_chunks, visual):
     packed_reader = rw.read.PackedReader(chunk_data)
 
     visual.user_data = packed_reader.gets(
-        onerror=lambda e: log.warn(
+        onerror=lambda err: log.warn(
             text.warn.object_bad_userdata,
-            error=str(e),
+            error=str(err),
             file=visual.file_path
         )
     )

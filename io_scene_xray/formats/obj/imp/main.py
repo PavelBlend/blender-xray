@@ -354,9 +354,9 @@ def import_file(file_path, context):
         # userdata
         elif chunk_id == fmt.Chunks.Object.USERDATA:
             xray.userdata = reader.gets(
-                onerror=lambda e: log.warn(
+                onerror=lambda err: log.warn(
                     text.warn.object_bad_userdata,
-                    error=str(e),
+                    error=str(err),
                     file=file_path
                 )
             )
