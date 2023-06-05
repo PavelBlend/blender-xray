@@ -324,11 +324,11 @@ def read_motions(data, context, motions_params, bone_names, version=2):
         read_motion(chunk_data, context, motions_params, bone_names, version)
 
 
-def read_params(data, context, version=1, bones_indices={}):
-    packed_reader = rw.read.PackedReader(data)
+def read_params(data, context, chunk, bones_indices={}):
+    reader = rw.read.PackedReader(data)
 
-    if version != 0:
-        params_version = packed_reader.getf('<H')[0]
+    if chunk == 1:
+        params_version = reader.getf('<H')[0]
 
         if not params_version in (1, 2, 3, 4):
             raise 'unsupported motion params version: ' + str(params_version)
@@ -336,14 +336,14 @@ def read_params(data, context, version=1, bones_indices={}):
     else:
         params_version = 0
 
-    partition_count = packed_reader.getf('<H')[0]
+    partition_count = reader.getf('<H')[0]
     bone_names = {}
     cannot_find_bones = set()
     pose = context.bpy_arm_obj.pose
 
     for partition_index in range(partition_count):
-        partition_name = packed_reader.gets()
-        bone_count = packed_reader.getf('<H')[0]
+        partition_name = reader.gets()
+        bone_count = reader.getf('<H')[0]
         if context.import_bone_parts:
             bone_group = pose.bone_groups.get(partition_name)
             if not bone_group:
@@ -351,18 +351,18 @@ def read_params(data, context, version=1, bones_indices={}):
 
         for bone in range(bone_count):
             if params_version in (0, 1):
-                bone_id = packed_reader.uint32()
+                bone_id = reader.uint32()
                 bone_name = bones_indices.get(bone_id, None)
                 bone_names[bone_id] = bone_name
 
             elif params_version == 2:
                 bone_id = bone
-                bone_name = packed_reader.gets()
+                bone_name = reader.gets()
                 bone_names[bone_id] = bone_name
 
             elif params_version in (3, 4):
-                bone_name = packed_reader.gets()
-                bone_id = packed_reader.uint32()
+                bone_name = reader.gets()
+                bone_id = reader.uint32()
                 bone_names[bone_id] = bone_name
 
             else:
@@ -388,28 +388,23 @@ def read_params(data, context, version=1, bones_indices={}):
             )
         )
 
-    motion_count = packed_reader.getf('<H')[0]
+    motion_count = reader.getf('<H')[0]
     motions_params = {}
 
     for motion_index in range(motion_count):
-        motion_params = MotionParams()
+        motion_name = reader.gets()
+        prm = MotionParams()
+        motions_params[motion_name] = prm
 
-        motion_params.name = packed_reader.gets()
-        motion_params.flags = packed_reader.uint32()
-        motion_params.bone_or_part = packed_reader.getf('<H')[0]
-        motion_params.motion = packed_reader.getf('<H')[0]
-        motion_params.speed = packed_reader.getf('<f')[0]
-        motion_params.power = packed_reader.getf('<f')[0]
-        motion_params.accrue = packed_reader.getf('<f')[0]
-        motion_params.falloff = packed_reader.getf('<f')[0]
-
-        if params_version == 0:
-            b_no_loop = packed_reader.getf('<B')[0]
-
-        motions_params[motion_params.name] = motion_params
+        prm.flags = reader.uint32()
+        prm.bone_or_part, prm.motion = reader.getf('<2H')
+        prm.speed, prm.power, prm.accrue, prm.falloff = reader.getf('<4f')
 
         if params_version == 4:
-            read_motion_marks(packed_reader)
+            read_motion_marks(reader)
+
+        elif params_version == 0:
+            b_no_loop = reader.getf('<B')[0]
 
     return motions_params, bone_names
 
@@ -422,7 +417,12 @@ def read_main(data, context):
 
     # params
     params_data = chunks.pop(ogf.fmt.Chunks_v4.S_SMPARAMS_1)
-    motions_params, bone_names = read_params(params_data, context)
+    param_chunk = 1
+    motions_params, bone_names = read_params(
+        params_data,
+        context,
+        param_chunk
+    )
 
     # motions
     motions_data = chunks.pop(ogf.fmt.Chunks_v4.S_MOTIONS_2)

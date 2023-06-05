@@ -32,10 +32,10 @@ def import_skeleton_motions(context, chunks, ogf_chunks, visual):
 
     params_data = chunks.pop(ogf_chunks.S_SMPARAMS_1, None)
     if params_data:
-        param_ver = 1
+        param_chunk = 1
     else:
         params_data = chunks.pop(ogf_chunks.S_SMPARAMS_0, None)
-        param_ver = 0
+        param_chunk = 0
 
     context.bpy_arm_obj = visual.arm_obj
 
@@ -43,7 +43,7 @@ def import_skeleton_motions(context, chunks, ogf_chunks, visual):
         motions_params, bone_names = omf.imp.read_params(
             params_data,
             context,
-            version=param_ver,
+            param_chunk,
             bones_indices=visual.bones_indices
         )
 
