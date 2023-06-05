@@ -114,6 +114,12 @@ def get_tex_coord_correct(coord_f, coord_h, uv_coeff):
 
     tex_correct = (255 * 0x8000 * diff) / 32
 
+    # clamp uv
+    if coord_h > 0x7fff:
+        coord_h = 0x7fff
+    elif coord_h < -0x8000:
+        coord_h = -0x8000
+
     return int(round(tex_correct, 0)), coord_h
 
 
@@ -247,6 +253,11 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
 
     unique_verts = {}
     verts_indices = {}
+    lmap_uvs = []
+    hemies = []
+    suns = []
+    lights = []
+
     for face in bm.faces:
         for loop in face.loops:
             vert = loop.vert
@@ -254,26 +265,34 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
             split_normal = export_mesh.loops[loop.index].normal
             normal = (split_normal[0], split_normal[1], split_normal[2])
             uv = loop[uv_layer].uv[0], loop[uv_layer].uv[1]
-            # UV-LightMaps
+
+            # light map uv
             if uv_layer_lmap:
                 uv_lmap = loop[uv_layer_lmap].uv[0], loop[uv_layer_lmap].uv[1]
             else:
-                uv_lmap = (0.0, 0.0)
-            # Vertex Color Hemi
+                uv_lmap = None
+            lmap_uvs.append(uv_lmap)
+
+            # hemi
             if vertex_color_hemi:
                 hemi = loop[vertex_color_hemi][0]
             else:
-                hemi = 0
-            # Vertex Color Sun
+                hemi = None
+            hemies.append(hemi)
+
+            # sun
             if color_sun:
                 sun = loop[color_sun][0]
             else:
-                sun = 0
-            # Vertex Color Light
+                sun = None
+            suns.append(sun)
+
+            # light
             if color_light:
                 light = loop[color_light]
             else:
-                light = (0, 0, 0)
+                light = None
+            lights.append(light)
 
             vert_key = (uv, uv_lmap, normal, hemi, sun, light)
             if unique_verts.get(vert_co, None) is None:
@@ -307,28 +326,16 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
             split_normal = tuple(export_mesh.loops[loop.index].normal)
 
             # light map uv
-            if uv_layer_lmap:
-                uv_lmap = tuple(loop[uv_layer_lmap].uv)
-            else:
-                uv_lmap = (0.0, 0.0)
+            uv_lmap = lmap_uvs[loop.index]
 
             # vertex color hemi
-            if vertex_color_hemi:
-                hemi = loop[vertex_color_hemi][0]
-            else:
-                hemi = 0.0
+            hemi = hemies[loop.index]
 
             # vertex color sun
-            if color_sun:
-                sun = loop[color_sun][0]
-            else:
-                sun = 0.0
+            sun = suns[loop.index]
 
             # vertex color light
-            if color_light:
-                light = loop[color_light]
-            else:
-                light = (0.0, 0.0, 0.0)
+            light = lights[loop.index]
 
             for index, data in enumerate(vert_data):
                 if (
@@ -413,17 +420,6 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                     coord_v,
                     uv_coeff
                 )
-
-                # set uv limits
-                if coord_u > 0x7fff:
-                    coord_u = 0x7fff
-                elif coord_u < -0x8000:
-                    coord_u = -0x8000
-
-                if coord_v > 0x7fff:
-                    coord_v = 0x7fff
-                elif coord_v < -0x8000:
-                    coord_v = -0x8000
 
                 # write uv
                 vb.uv.extend(struct.pack('<2h', coord_u, coord_v))
