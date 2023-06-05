@@ -22,4 +22,4 @@ def convert_indices_to_triangles(visual):
             visual.indices[index + 1]
         ))
 
-    visual.indices.clear()
+    visual.indices = None
