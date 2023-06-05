@@ -269,6 +269,35 @@ class XRAY_OT_import_omf(
             self.motions.clear()
 
 
+def get_arm_objs(operator, context):
+    objs = [
+        obj
+        for obj in context.selected_objects
+            if obj.type == 'ARMATURE'
+    ]
+
+    if not objs:
+        active = context.active_object
+        if active and active.type == 'ARMATURE':
+            objs = [active, ]
+
+    arm_count = len(objs)
+    sel_objs_count = len(context.selected_objects)
+
+    if not arm_count and sel_objs_count:
+        operator.report(
+            {'ERROR'},
+            'There are no armatures among the selected objects'
+        )
+        return
+    
+    if not arm_count and not sel_objs_count:
+        operator.report({'ERROR'}, 'No selected objects')
+        return
+
+    return objs
+
+
 export_props = {
     # file browser properties
     'filter_glob': bpy.props.StringProperty(
@@ -285,15 +314,6 @@ export_props = {
     # system properties
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
-
-
-def get_exp_obj(context):
-    objs = [
-        obj
-        for obj in context.selected_objects
-            if obj.type == 'ARMATURE'
-    ]
-    return objs
 
 
 class XRAY_OT_export_omf_file(
@@ -345,12 +365,7 @@ class XRAY_OT_export_omf_file(
     def execute(self, context):
         utils.stats.update('Export *.omf')
 
-        objs = get_exp_obj(context)
-        if objs:
-            obj = objs[0]
-            utils.version.set_active_object(obj)
-        else:
-            obj = context.active_object
+        obj = get_arm_objs(self, context)[0]
 
         # export context
         exp_ctx = ExportOmfContext()
@@ -387,29 +402,6 @@ class XRAY_OT_export_omf_file(
         return super().invoke(context, event)
 
 
-def get_arm_objs(operator, context):
-    sel_objs_count = len(context.selected_objects)
-    objs = [
-        obj
-        for obj in context.selected_objects
-            if obj.type == 'ARMATURE'
-    ]
-    arm_count = len(objs)
-    
-    if not arm_count and sel_objs_count:
-        operator.report(
-            {'ERROR'},
-            'There are no armatures among the selected objects'
-        )
-        return
-    
-    if not arm_count and not sel_objs_count:
-        operator.report({'ERROR'}, 'No selected objects')
-        return
-
-    return objs
-
-
 export_props = {
     # file browser properties
     'filter_glob': bpy.props.StringProperty(
@@ -419,8 +411,6 @@ export_props = {
     'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
 
     # export properties
-    'export_motions': ie.PropObjectMotionsExport(),
-    'export_bone_parts': ie.prop_export_bone_parts(),
     'high_quality': ie.prop_omf_high_quality(),
 
     # system properties
@@ -447,14 +437,7 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
 
         layout = self.layout
-
         layout.prop(self, 'high_quality')
-
-        if not self.export_motions and not self.export_bone_parts:
-            layout.label(
-                text=text.get_text(text.error.omf_nothing_exp),
-                icon='ERROR'
-            )
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -470,8 +453,6 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
         export_context = ExportOmfContext()
 
         export_context.high_quality = self.high_quality
-        export_context.need_motions = True
-        export_context.need_bone_groups = True
         export_context.export_mode = 'OVERWRITE'
 
         for obj in arm_objs:
