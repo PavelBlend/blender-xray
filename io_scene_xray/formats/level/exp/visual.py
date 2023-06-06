@@ -20,6 +20,7 @@ from .... import rw
 
 
 TWO_MEGABYTES = 1024 * 1024 * 2
+VERTEX_SIZE = 32
 MAX_TILE = 16
 QUANT = 32768 / MAX_TILE
 
@@ -172,27 +173,29 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     bm = bmesh.new()
     bm.from_mesh(bpy_mesh)
     bmesh.ops.triangulate(bm, faces=bm.faces)
+
     export_mesh = bpy.data.meshes.new('temp_mesh')
+    bm.to_mesh(export_mesh)
     export_mesh.use_auto_smooth = True
     export_mesh.auto_smooth_angle = math.pi
-    bm.to_mesh(export_mesh)
     export_mesh.calc_normals_split()
 
-    uv_layer = bm.loops.layers.uv.get(material.xray.uv_texture)
+    xray = material.xray
+    uv_layer = bm.loops.layers.uv.get(xray.uv_texture)
 
     if not uv_layer:
         raise log.AppError(
             text.error.level_visual_no_uv,
             log.props(
                 object=bpy_obj.name,
-                uv=material.xray.uv_texture
+                uv=xray.uv_texture
             )
         )
 
-    uv_lmap_lay = bm.loops.layers.uv.get(material.xray.uv_light_map, None)
-    sun_col = bm.loops.layers.color.get(material.xray.sun_vert_color, None)
-    hemi_col = bm.loops.layers.color.get(material.xray.hemi_vert_color, None)
-    light_col = bm.loops.layers.color.get(material.xray.light_vert_color, None)
+    uv_lmap_lay = bm.loops.layers.uv.get(xray.uv_light_map, None)
+    sun_col = bm.loops.layers.color.get(xray.sun_vert_color, None)
+    hemi_col = bm.loops.layers.color.get(xray.hemi_vert_color, None)
+    light_col = bm.loops.layers.color.get(xray.light_vert_color, None)
 
     if not hemi_col:
         raise log.AppError(
@@ -202,7 +205,6 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
 
     export_mesh.calc_tangents(uvmap=uv_layer.name)
 
-    vertex_size = 32
     if sun_col:
         vertex_format = 'COLOR'
     elif uv_lmap_lay:
@@ -211,22 +213,19 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
         vertex_format = 'TREE'
 
     # find vertex buffer
+    vb = None
+
     if vbs:
-        vb = None
         for vertex_buffer in vbs:
             if vertex_buffer.vertex_format == vertex_format:
-                if vertex_buffer.vertex_count * vertex_size > TWO_MEGABYTES:
+                if vertex_buffer.vertex_count * VERTEX_SIZE > TWO_MEGABYTES:
                     # vertex buffer should not be more than 2 MB
                     continue
                 else:
                     vb = vertex_buffer
                     break
-        if vb is None:
-            vb = types.VertexBuffer()
-            vb.vertex_format = vertex_format
-            vbs.append(vb)
-            level.vbs_offsets.append(0)
-    else:
+
+    if vb is None:
         vb = types.VertexBuffer()
         vb.vertex_format = vertex_format
         vbs.append(vb)
@@ -243,6 +242,7 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
             ib_offset = 0
             indices_buffer_index += 1
             level.ibs_offsets.append(ib_offset)
+
     else:
         ib = bytearray()
         ibs.append(ib)
