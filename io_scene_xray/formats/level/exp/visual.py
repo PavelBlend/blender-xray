@@ -255,63 +255,7 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     vertex_index = 0
 
     unique_verts = {}
-    verts_indices = {}
-    lmap_uvs = []
-    hemies = []
-    suns = []
-    lights = []
-
-    for face in bm.faces:
-        for loop in face.loops:
-            vert = loop.vert
-
-            # light map uv
-            if uv_lmap_lay:
-                uv_lmap = loop[uv_lmap_lay].uv
-            else:
-                uv_lmap = None
-            lmap_uvs.append(uv_lmap)
-
-            # hemi
-            hemi = loop[hemi_col][0]
-            hemies.append(hemi)
-
-            # sun
-            if sun_col:
-                sun = loop[sun_col][0]
-            else:
-                sun = None
-            suns.append(sun)
-
-            # light
-            if light_col:
-                light = loop[light_col]
-            else:
-                light = None
-            lights.append(light)
-
-            vert_data = (
-                loop[uv_layer].uv,
-                uv_lmap,
-                export_mesh.loops[loop.index].normal,
-                hemi,
-                sun,
-                light
-            )
-
-            vert_key = tuple(vert.co)
-
-            if unique_verts.get(vert_key, None) is None:
-                unique_verts[vert_key] = [vert_data, ]
-                verts_indices[vert_key] = [vertex_index, ]
-                vertex_index += 1
-            else:
-                if not vert_data in unique_verts[vert_key]:
-                    unique_verts[vert_key].append(vert_data)
-                    verts_indices[vert_key].append(vertex_index)
-                    vertex_index += 1
-
-    saved_verts = set()
+    vertex_indices = {}
 
     if uv_lmap_lay or sun_col:
         uv_coeff = fmt.UV_COEFFICIENT
@@ -328,128 +272,161 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
 
         for loop in face.loops:
             vert = loop.vert
-            vert_key = tuple(vert.co)
-            vert_data = unique_verts[vert_key]
 
             # light map uv
-            uv_lmap = lmap_uvs[loop.index]
+            if uv_lmap_lay:
+                tex_uv_lmap = loop[uv_lmap_lay].uv
+            else:
+                tex_uv_lmap = None
 
-            # vertex color hemi
-            hemi = hemies[loop.index]
+            # hemi
+            hemi = loop[hemi_col][0]
 
-            # vertex color sun
-            sun = suns[loop.index]
+            # sun
+            if sun_col:
+                sun = loop[sun_col][0]
+            else:
+                sun = None
 
-            # vertex color light
-            light = lights[loop.index]
+            # light
+            if light_col:
+                light = loop[light_col]
+            else:
+                light = None
 
-            for index, data in enumerate(vert_data):
-                if (
-                        data[0] == loop[uv_layer].uv and
-                        data[1] == uv_lmap and
-                        data[2] == export_mesh.loops[loop.index].normal and
-                        data[3] == hemi and
-                        data[4] == sun and
-                        data[5] == light
-                    ):
-                    tex_uv, tex_uv_lmap, normal, hemi, sun, light = data
-                    vert_index = verts_indices[vert_key][index]
-                    break
+            # uv
+            tex_uv = loop[uv_layer].uv
 
-            packed_vertex_index = struct.pack('<H', vert_index)
+            # normal
+            normal = export_mesh.loops[loop.index].normal
+
+            vert_key = tuple(vert.co)
+
+            vert_data = (
+                tex_uv,
+                tex_uv_lmap,
+                normal,
+                hemi,
+                sun,
+                light
+            )
+
+            vert_data_list = unique_verts.get(vert_key, None)
+
+            if vert_data_list is None:
+                unique_verts[vert_key] = [vert_data, ]
+                vertex_indices[vert_key] = [vertex_index, ]
+
+            else:
+
+                if vert_data in vert_data_list:
+                    # is duplicate vertex
+                    for i, data in enumerate(vert_data_list):
+                        if vert_data == data:
+                            index = vertex_indices[vert_key][i]
+                            packed_vertex_index = struct.pack('<H', index)
+                            face_indices.append(packed_vertex_index)
+                            indices_count += 1
+                            break
+                    continue
+
+                else:
+                    unique_verts[vert_key].append(vert_data)
+                    vertex_indices[vert_key].append(vertex_index)
+
+            packed_vertex_index = struct.pack('<H', vertex_index)
             face_indices.append(packed_vertex_index)
             indices_count += 1
 
-            if not vert_index in saved_verts:
-                saved_verts.add(vert_index)
-                vb.vertex_count += 1
-                vertices_count += 1
+            vb.vertex_count += 1
+            vertices_count += 1
+            vertex_index += 1
 
-                # position
-                vb.position.extend(
-                    struct.pack('<3f', vert.co[0], vert.co[2], vert.co[1])
-                )
+            # position
+            vb.position.extend(
+                struct.pack('<3f', vert.co[0], vert.co[2], vert.co[1])
+            )
 
-                # normal
-                vb.normal.extend(struct.pack(
+            # normal
+            vb.normal.extend(struct.pack(
+                '<3B',
+                int(((normal[1] + 1.0) / 2) * 255),
+                int(((normal[2] + 1.0) / 2) * 255),
+                int(((normal[0] + 1.0) / 2) * 255)
+            ))
+
+            # tangent
+            tangent = export_mesh.loops[loop.index].tangent
+            vb.tangent.extend(struct.pack(
+                '<3B',
+                int(((tangent[1] + 1.0) / 2) * 255),
+                int(((tangent[2] + 1.0) / 2) * 255),
+                int(((tangent[0] + 1.0) / 2) * 255)
+            ))
+
+            # binormal
+            binorm = mathutils.Vector(normal).cross(tangent).normalized()
+            vb.binormal.extend(struct.pack(
+                '<3B',
+                int(((-binorm[1] + 1.0) / 2) * 255),
+                int(((-binorm[2] + 1.0) / 2) * 255),
+                int(((-binorm[0] + 1.0) / 2) * 255)
+            ))
+
+            # hemi
+            vb.color_hemi.append(int(round(hemi * 255, 0)))
+
+            # sun
+            if sun_col:
+                vb.color_sun.append(int(round(sun * 255, 0)))
+
+                # light
+                vb.color_light.extend(struct.pack(
                     '<3B',
-                    int(((normal[1] + 1.0) / 2) * 255),
-                    int(((normal[2] + 1.0) / 2) * 255),
-                    int(((normal[0] + 1.0) / 2) * 255)
+                    int(round(light[2] * 255, 0)),
+                    int(round(light[1] * 255, 0)),
+                    int(round(light[0] * 255, 0))
                 ))
 
-                # tangent
-                tangent = export_mesh.loops[loop.index].tangent
-                vb.tangent.extend(struct.pack(
-                    '<3B',
-                    int(((tangent[1] + 1.0) / 2) * 255),
-                    int(((tangent[2] + 1.0) / 2) * 255),
-                    int(((tangent[0] + 1.0) / 2) * 255)
+            # uv
+            coord_u = int(tex_uv[0] * uv_coeff)
+            coord_v = int((1.0 - tex_uv[1]) * uv_coeff)
+
+            # uv corrector
+            correct_u, coord_u = get_tex_coord_correct(
+                tex_uv[0],
+                coord_u,
+                uv_coeff
+            )
+            correct_v, coord_v = get_tex_coord_correct(
+                1 - tex_uv[1],
+                coord_v,
+                uv_coeff
+            )
+
+            # write uv
+            vb.uv.extend(struct.pack('<2h', coord_u, coord_v))
+
+            # write uv corrector
+            vb.uv_fix.extend(struct.pack('<2B', correct_u, correct_v))
+
+            if uv_lmap_lay:
+                lmap_u = int(round(
+                    tex_uv_lmap[0] * fmt.LIGHT_MAP_UV_COEFFICIENT,
+                    0
                 ))
-
-                # binormal
-                binorm = mathutils.Vector(normal).cross(tangent).normalized()
-                vb.binormal.extend(struct.pack(
-                    '<3B',
-                    int(((-binorm[1] + 1.0) / 2) * 255),
-                    int(((-binorm[2] + 1.0) / 2) * 255),
-                    int(((-binorm[0] + 1.0) / 2) * 255)
+                lmap_v = int(round(
+                    (1.0 - tex_uv_lmap[1]) * fmt.LIGHT_MAP_UV_COEFFICIENT,
+                    0
                 ))
+                vb.uv_lmap.extend(struct.pack('<2h', lmap_u, lmap_v))
 
-                # hemi
-                vb.color_hemi.append(int(round(hemi * 255, 0)))
-
-                # sun
-                if sun_col:
-                    vb.color_sun.append(int(round(sun * 255, 0)))
-
-                    # light
-                    vb.color_light.extend(struct.pack(
-                        '<3B',
-                        int(round(light[2] * 255, 0)),
-                        int(round(light[1] * 255, 0)),
-                        int(round(light[0] * 255, 0))
-                    ))
-
-                # uv
-                coord_u = int(tex_uv[0] * uv_coeff)
-                coord_v = int((1.0 - tex_uv[1]) * uv_coeff)
-
-                # uv corrector
-                correct_u, coord_u = get_tex_coord_correct(
-                    tex_uv[0],
-                    coord_u,
-                    uv_coeff
-                )
-                correct_v, coord_v = get_tex_coord_correct(
-                    1 - tex_uv[1],
-                    coord_v,
-                    uv_coeff
-                )
-
-                # write uv
-                vb.uv.extend(struct.pack('<2h', coord_u, coord_v))
-
-                # write uv corrector
-                vb.uv_fix.extend(struct.pack('<2B', correct_u, correct_v))
-
-                if uv_lmap_lay:
-                    lmap_u = int(round(
-                        tex_uv_lmap[0] * fmt.LIGHT_MAP_UV_COEFFICIENT,
-                        0
-                    ))
-                    lmap_v = int(round(
-                        (1.0 - tex_uv_lmap[1]) * fmt.LIGHT_MAP_UV_COEFFICIENT,
-                        0
-                    ))
-                    vb.uv_lmap.extend(struct.pack('<2h', lmap_u, lmap_v))
-
-                # tree shader data (wind coefficient)
-                if not (uv_lmap_lay or sun_col or light_col):
-                    f1 = (vert.co[2] - frac_low[2]) / frac_y_size
-                    f2 = find_distance(vert.co, frac_low) / frac_y_size
-                    frac = quant_value((f1 + f2) / 2)    # wind coefficient
-                    vb.shader_data.extend(struct.pack('<H', frac))
+            # tree shader data (wind coefficient)
+            if not (uv_lmap_lay or sun_col or light_col):
+                f1 = (vert.co[2] - frac_low[2]) / frac_y_size
+                f2 = find_distance(vert.co, frac_low) / frac_y_size
+                frac = quant_value((f1 + f2) / 2)    # wind coefficient
+                vb.shader_data.extend(struct.pack('<H', frac))
 
         ib.extend((*face_indices[0], *face_indices[2], *face_indices[1]))
 
