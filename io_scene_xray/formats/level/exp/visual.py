@@ -264,23 +264,16 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     for face in bm.faces:
         for loop in face.loops:
             vert = loop.vert
-            vert_co = (vert.co[0], vert.co[1], vert.co[2])
-            split_normal = export_mesh.loops[loop.index].normal
-            normal = (split_normal[0], split_normal[1], split_normal[2])
-            uv = loop[uv_layer].uv[0], loop[uv_layer].uv[1]
 
             # light map uv
             if uv_lmap_lay:
-                uv_lmap = loop[uv_lmap_lay].uv[0], loop[uv_lmap_lay].uv[1]
+                uv_lmap = loop[uv_lmap_lay].uv
             else:
                 uv_lmap = None
             lmap_uvs.append(uv_lmap)
 
             # hemi
-            if hemi_col:
-                hemi = loop[hemi_col][0]
-            else:
-                hemi = None
+            hemi = loop[hemi_col][0]
             hemies.append(hemi)
 
             # sun
@@ -297,15 +290,25 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                 light = None
             lights.append(light)
 
-            vert_key = (uv, uv_lmap, normal, hemi, sun, light)
-            if unique_verts.get(vert_co, None) is None:
-                unique_verts[vert_co] = [vert_key, ]
-                verts_indices[vert_co] = [vertex_index, ]
+            vert_data = (
+                loop[uv_layer].uv,
+                uv_lmap,
+                export_mesh.loops[loop.index].normal,
+                hemi,
+                sun,
+                light
+            )
+
+            vert_key = tuple(vert.co)
+
+            if unique_verts.get(vert_key, None) is None:
+                unique_verts[vert_key] = [vert_data, ]
+                verts_indices[vert_key] = [vertex_index, ]
                 vertex_index += 1
             else:
-                if not vert_key in unique_verts[vert_co]:
-                    unique_verts[vert_co].append(vert_key)
-                    verts_indices[vert_co].append(vertex_index)
+                if not vert_data in unique_verts[vert_key]:
+                    unique_verts[vert_key].append(vert_data)
+                    verts_indices[vert_key].append(vertex_index)
                     vertex_index += 1
 
     saved_verts = set()
@@ -327,8 +330,6 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
             vert = loop.vert
             vert_key = tuple(vert.co)
             vert_data = unique_verts[vert_key]
-            uv = tuple(loop[uv_layer].uv)
-            split_normal = tuple(export_mesh.loops[loop.index].normal)
 
             # light map uv
             uv_lmap = lmap_uvs[loop.index]
@@ -344,9 +345,9 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
 
             for index, data in enumerate(vert_data):
                 if (
-                        data[0] == uv and
+                        data[0] == loop[uv_layer].uv and
                         data[1] == uv_lmap and
-                        data[2] == split_normal and
+                        data[2] == export_mesh.loops[loop.index].normal and
                         data[3] == hemi and
                         data[4] == sun and
                         data[5] == light
@@ -405,9 +406,9 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                     # light
                     vb.color_light.extend(struct.pack(
                         '<3B',
-                        (int(round(light[2] * 255, 0))),
-                        (int(round(light[1] * 255, 0))),
-                        (int(round(light[0] * 255, 0)))
+                        int(round(light[2] * 255, 0)),
+                        int(round(light[1] * 255, 0)),
+                        int(round(light[0] * 255, 0))
                     ))
 
                 # uv
@@ -437,8 +438,8 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                         tex_uv_lmap[0] * fmt.LIGHT_MAP_UV_COEFFICIENT,
                         0
                     ))
-                    lmap_v = int(round((
-                        1 - tex_uv_lmap[1]) * fmt.LIGHT_MAP_UV_COEFFICIENT,
+                    lmap_v = int(round(
+                        (1.0 - tex_uv_lmap[1]) * fmt.LIGHT_MAP_UV_COEFFICIENT,
                         0
                     ))
                     vb.uv_lmap.extend(struct.pack('<2h', lmap_u, lmap_v))
