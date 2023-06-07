@@ -24,7 +24,7 @@ class ExportObjectContext(
         self.smoothing_out_of = None
 
 
-def draw_props(self, mode='SINGLE'):
+def draw_props(self, mode='SINGLE'):    # pragma: no cover
     layout = self.layout
 
     utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
