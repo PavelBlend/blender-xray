@@ -720,6 +720,10 @@ class XRAY_PT_object(ui.base.XRayPanel):
                 )
                 if box:
                     box.prop(data, 'load_active_motion_refs', toggle=True)
+                    if data.load_active_motion_refs:
+                        row = box.row()
+                        row.label(text='Format:')
+                        row.prop(data.motions_browser, 'file_format', expand=True)
                     row = box.row()
                     row.template_list(
                         'UI_UL_list',

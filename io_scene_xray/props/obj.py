@@ -326,10 +326,19 @@ def update_export_name(self, context):
 def load_motion_refs(self, context):
     if not self.load_active_motion_refs:
         return
+
     if self.motionrefs_collection:
-        objects_folder = utils.version.get_preferences().objects_folder_auto
         motion_refs = self.motionrefs_collection[self.motionrefs_collection_index]
-        file_path = os.path.join(objects_folder, motion_refs.name + os.extsep + 'skls')
+
+        if context.active_object.xray.motions_browser.file_format == 'SKLS':
+            folder = utils.version.get_preferences().objects_folder_auto
+            ext = os.extsep + 'skls'
+        else:
+            folder = utils.version.get_preferences().meshes_folder_auto
+            ext = os.extsep + 'omf'
+
+        file_path = os.path.join(folder, motion_refs.name + ext)
+
         if os.path.exists(file_path):
             ops.motions_browser.init_browser(self, context, file_path)
         else:
@@ -487,7 +496,8 @@ xray_object_properties = {
     ),
     'motionrefs_collection': bpy.props.CollectionProperty(type=MotionRef),
     'motionrefs_collection_index': bpy.props.IntProperty(
-        options={'SKIP_SAVE'}, update=load_motion_refs
+        options={'SKIP_SAVE'},
+        update=load_motion_refs
     ),
     'show_motionsrefs': bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'}),
 

@@ -228,7 +228,7 @@ class XRAY_OT_browse_motions_file(BaseBrowserOperator):
     clears & populates animations list
     '''
 
-    bl_idname = 'xray.motions_skls_file'
+    bl_idname = 'xray.browse_motions_file'
     bl_label = 'Open file'
     bl_description = \
         'Opens .skls/.omf file with collection of animations. ' \
