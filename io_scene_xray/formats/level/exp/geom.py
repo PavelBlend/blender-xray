@@ -10,7 +10,6 @@ from .... import rw
 
 def _write_geom_swis(geom_writer):
     swis_writer = rw.write.PackedWriter()
-    # TODO: export swis data
     swis_writer.putf('<I', 0)    # swis count
     geom_writer.put(fmt.Chunks13.SWIS, swis_writer)
 
