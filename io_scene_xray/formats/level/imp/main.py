@@ -344,23 +344,32 @@ def import_light_dynamic(packed_reader, light_object):
 
 
 def import_light_dynamic_v8(packed_reader, light_object):
+    light_object.xray.is_level = True
     data = light_object.xray.level
     data.object_type = 'LIGHT_DYNAMIC'
-    light_object.xray.is_level = True
-    data.light_type = packed_reader.uint32() # ???
+
+    data.light_type = packed_reader.uint32()    # type of light source
     data.diffuse = packed_reader.getf('<4f')
     data.specular = packed_reader.getf('<4f')
     data.ambient = packed_reader.getf('<4f')
+
     position = packed_reader.getf('<3f')
     direction = packed_reader.getf('<3f')
-    data.range_ = packed_reader.getf('<f')[0]
+
+    data.range_ = packed_reader.getf('<f')[0]    # cutoff range
     data.falloff = packed_reader.getf('<f')[0]
-    data.attenuation_0 = packed_reader.getf('<f')[0]
-    data.attenuation_1 = packed_reader.getf('<f')[0]
-    data.attenuation_2 = packed_reader.getf('<f')[0]
-    data.theta = packed_reader.getf('<f')[0]
-    data.phi = packed_reader.getf('<f')[0]
-    unknown = packed_reader.getf('<2I')
+    data.attenuation_0 = packed_reader.getf('<f')[0]    # constant attenuation
+    data.attenuation_1 = packed_reader.getf('<f')[0]    # linear attenuation
+    data.attenuation_2 = packed_reader.getf('<f')[0]    # quadratic attenuation
+    data.theta = packed_reader.getf('<f')[0]    # inner angle of spotlight cone
+    data.phi = packed_reader.getf('<f')[0]    # outer angle of spotlight cone
+    dw_frame = packed_reader.getf('<I')[0]
+
+    flags = packed_reader.getf('<I')[0]
+    affect_static = bool(flags & fmt.FLAG_AFFECT_STATIC)
+    affect_dynamic = bool(flags & fmt.FLAG_AFFECT_DYNAMIC)
+    procedural = bool(flags & fmt.FLAG_PROCEDURAL)
+
     name = packed_reader.getf('<{}s'.format(fmt.LIGHT_V8_NAME_LEN))
 
     if data.light_type == fmt.D3D_LIGHT_POINT:
@@ -432,7 +441,7 @@ def import_lights(data, level, level_object):
     collection = level.collections[create.LEVEL_LIGHTS_COLLECTION_NAME]
     lights_dynamic_object = create_lights_object(collection)
 
-    if level.xrlc_version >= fmt.VERSION_8:
+    if level.xrlc_version > fmt.VERSION_8:
         light_size = fmt.LIGHT_DYNAMIC_SIZE
         import_light_funct = import_light_dynamic
     elif level.xrlc_version == fmt.VERSION_8:
