@@ -102,7 +102,7 @@ TRN_INIT_SZ = 3 * 4    # x, y, z float
 TRN_SIZE_SZ = 3 * 4    # x, y, z float
 
 
-def skip_motion(packed_reader, bone_names):
+def skip_motion(packed_reader, bone_names, length):
     for bone_index in range(len(bone_names)):
         flags = packed_reader.getf('<B')[0]
         t_present = flags & fmt.FL_T_KEY_PRESENT
@@ -127,8 +127,7 @@ def skip_motion(packed_reader, bone_names):
             packed_reader.skip(TRN_FLOAT_SZ)
 
 
-def read_motion(data, context, motions_params, bone_names, version):
-    packed_reader = rw.read.PackedReader(data)
+def read_motion(packed_reader, context, motions_params, bone_names, version):
     name = packed_reader.gets()
     length = packed_reader.uint32()
 
@@ -320,7 +319,7 @@ def read_motion(data, context, motions_params, bone_names, version):
             )
 
     else:
-        skip_motion(packed_reader, bone_names)
+        skip_motion(packed_reader, bone_names, length)
 
 
 def read_motions(data, context, motions_params, bone_names, version=2):
@@ -331,7 +330,14 @@ def read_motions(data, context, motions_params, bone_names, version=2):
     motions_count = count_reader.uint32()
 
     for chunk_id, chunk_data in chunked_reader:
-        read_motion(chunk_data, context, motions_params, bone_names, version)
+        packed_reader = rw.read.PackedReader(chunk_data)
+        read_motion(
+            packed_reader,
+            context,
+            motions_params,
+            bone_names,
+            version
+        )
 
 
 def read_params(data, context, chunk, bones_indices={}):

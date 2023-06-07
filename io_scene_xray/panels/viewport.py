@@ -30,7 +30,7 @@ class XRAY_PT_update(ui.base.XRayPanel):
 class XRAY_PT_skls_animations(ui.base.XRayPanel):
     'Contains open .skls file operator, animations list'
     bl_space_type = 'VIEW_3D'
-    bl_label = 'Skls Browser'
+    bl_label = 'Motions Browser'
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = ui.base.CATEGORY
     if utils.version.IS_28:
@@ -58,60 +58,70 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
                 icon='ERROR'
             )
             return
+
+        has_anims = len(obj.xray.motions_browser.animations)
+
         col = layout.column(align=True)
         col.active = active
+
+        if not has_anims:
+            row = col.row()
+            row.label(text='Format:')
+            row.prop(obj.xray.motions_browser, 'file_format', expand=True)
+
         col.operator(
-            operator=ops.skls_browser.XRAY_OT_browse_skls_file.bl_idname,
-            text='Open Skls File',
+            operator=ops.motions_browser.XRAY_OT_browse_motions_file.bl_idname,
+            text='Open File',
             icon='FILE_FOLDER'
         )
-        if hasattr(obj.xray, 'skls_browser'):
-            has_anims = len(obj.xray.skls_browser.animations)
-            if has_anims:
-                col.operator(
-                    ops.skls_browser.XRAY_OT_close_skls_file.bl_idname,
-                    icon='X'
-                )
-            col.template_list(
-                listtype_name='XRAY_UL_skls_list_item',
-                list_id='compact',
-                dataptr=obj.xray.skls_browser,
-                propname='animations',
-                active_dataptr=obj.xray.skls_browser,
-                active_propname='animations_index',
-                rows=5
+
+        if has_anims:
+            col.operator(
+                ops.motions_browser.XRAY_OT_close_motions_file.bl_idname,
+                icon='X'
             )
+        col.template_list(
+            listtype_name='XRAY_UL_motions_list_item',
+            list_id='compact',
+            dataptr=obj.xray.motions_browser,
+            propname='animations',
+            active_dataptr=obj.xray.motions_browser,
+            active_propname='animations_index',
+            rows=5
+        )
 
-            if not has_anims:
-                return
+        if not has_anims:
+            return
 
-            # select
-            select_op_class = ops.skls_browser.XRAY_OT_skls_browser_select
-            row = col.row(align=True)
-            row.label(text='Select:')
+        col = col.column()
 
-            select_op = row.operator(select_op_class.bl_idname, text='All')
-            select_op.mode = 'ALL'
+        # select
+        select_op_class = ops.motions_browser.XRAY_OT_motions_browser_select
+        row = col.row(align=True)
+        row.label(text='Select:')
 
-            select_op = row.operator(select_op_class.bl_idname, text='None')
-            select_op.mode = 'NONE'
+        select_op = row.operator(select_op_class.bl_idname, text='All')
+        select_op.mode = 'ALL'
 
-            select_op = row.operator(select_op_class.bl_idname, text='Invert')
-            select_op.mode = 'INVERT'
+        select_op = row.operator(select_op_class.bl_idname, text='None')
+        select_op.mode = 'NONE'
 
-            # import
-            import_op_class = ops.skls_browser.XRAY_OT_skls_browser_import
-            row = col.row(align=True)
-            row.label(text='Import:')
+        select_op = row.operator(select_op_class.bl_idname, text='Invert')
+        select_op.mode = 'INVERT'
 
-            imp_op = row.operator(import_op_class.bl_idname, text='Active')
-            imp_op.mode = 'ACTIVE'
+        # import
+        import_op_class = ops.motions_browser.XRAY_OT_motions_browser_import
+        row = col.row(align=True)
+        row.label(text='Import:')
 
-            imp_op = row.operator(import_op_class.bl_idname, text='Selected')
-            imp_op.mode = 'SELECTED'
+        imp_op = row.operator(import_op_class.bl_idname, text='Active')
+        imp_op.mode = 'ACTIVE'
 
-            imp_op = row.operator(import_op_class.bl_idname, text='All')
-            imp_op.mode = 'ALL'
+        imp_op = row.operator(import_op_class.bl_idname, text='Selected')
+        imp_op.mode = 'SELECTED'
+
+        imp_op = row.operator(import_op_class.bl_idname, text='All')
+        imp_op.mode = 'ALL'
 
 
 class XRAY_PT_viewer(ui.base.XRayPanel):

@@ -331,7 +331,7 @@ def load_motion_refs(self, context):
         motion_refs = self.motionrefs_collection[self.motionrefs_collection_index]
         file_path = os.path.join(objects_folder, motion_refs.name + os.extsep + 'skls')
         if os.path.exists(file_path):
-            ops.skls_browser.init_skls_browser(self, context, file_path)
+            ops.motions_browser.init_browser(self, context, file_path)
         else:
             message = text.get_text(text.error.file_not_found).capitalize()
             utils.draw.show_message(
@@ -348,7 +348,7 @@ def update_load_active_motion_refs(self, context):
     if not hasattr(context.active_object.data, 'bones'):
         return
     if not self.load_active_motion_refs:
-        bpy.ops.xray.close_skls_file()
+        bpy.ops.xray.close_motions_file()
 
 
 motion_ref_props = {
@@ -519,7 +519,7 @@ xray_object_properties = {
     'detail': bpy.props.PointerProperty(
         type=XRayObjectDetailsProperties
     ),
-    'skls_browser': bpy.props.PointerProperty(type=ops.skls_browser.XRaySklsBrowserProps),
+    'motions_browser': bpy.props.PointerProperty(type=ops.motions_browser.XRayMotionsBrowserProps),
     'level': bpy.props.PointerProperty(type=XRayObjectLevelProperties),
     # transforms utils properties
     'position': bpy.props.FloatVectorProperty(

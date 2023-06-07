@@ -14,7 +14,7 @@ from . import invalid_sg
 from . import joint_limits
 from . import rig
 from . import shader
-from . import skls_browser
+from . import motions_browser
 from . import tests
 from . import transform
 from . import verify
@@ -38,7 +38,7 @@ modules = (
     joint_limits,
     rig,
     shader,
-    skls_browser,
+    motions_browser,
     tests,
     transform,
     verify,
