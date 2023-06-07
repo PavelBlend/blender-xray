@@ -92,6 +92,9 @@ translations_table = (
     (warn.ogf_bad_shape, 'неподдерживаемый тип формы кости, используется тип по-умолчанию'),
     (warn.ogf_bad_joint, 'неподдерживаемый тип сустава кости, используется тип по-умолчанию'),
 
+    # omf import
+    (warn.omf_exp_no_act, 'не найден action объекта'),
+
     # scene import
     (warn.scene_no_file, 'не найден файл'),
 

@@ -83,6 +83,9 @@ object_vert_group_created = 'Vertex groups created'
 ogf_bad_shape = 'unsupported bone shape type using default'
 ogf_bad_joint = 'unsupported bone joint type using default'
 
+# omf export
+omf_exp_no_act = 'object action not found'
+
 # scene import
 scene_no_file = 'cannot find file'
 

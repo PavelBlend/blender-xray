@@ -397,8 +397,7 @@ def collect_bones(context, bone_names, bone_indices, bones_count):
             if pose_bone:
                 export_bones[bone_index] = pose_bone
             else:
-                # TODO: error, cannot find bone
-                export_bones = []
+                export_bones.clear()
                 break
 
     # collect bones by names
@@ -409,7 +408,7 @@ def collect_bones(context, bone_names, bone_indices, bones_count):
                 if pose_bone:
                     export_bones.append(pose_bone)
                 else:
-                    export_bones = []
+                    export_bones.clear()
                     break
 
     # collect bones by indices
@@ -424,7 +423,7 @@ def collect_bones(context, bone_names, bone_indices, bones_count):
                     if pose_bone:
                         export_bones.append(pose_bone)
                     else:
-                        export_bones = []
+                        export_bones.clear()
                         break
 
     # collect bones by pose bones
@@ -476,12 +475,21 @@ def search_available_data(context, bones_count, motion_export_names):
     return available_motions, export_motion_names, chunks
 
 
-def collect_motions_availability_table(context, export_motion_names, available_motions, actions_table):
+def collect_motions_availability_table(
+        context,
+        export_motion_names,
+        available_motions,
+        actions_table
+    ):
+
     motion_count = 0
     motions_list = []
     motions_ids = {}
+    act_not_found = set()
+
     if context.export_mode == 'OVERWRITE':
         available = False
+
         for motion_name in export_motion_names:
             action_name = actions_table.get(motion_name, None)
             if action_name:
@@ -489,11 +497,12 @@ def collect_motions_availability_table(context, export_motion_names, available_m
             else:
                 action = None
             if not action:
-                # TODO: added warning
+                act_not_found.add(action_name)
                 continue
             motions_list.append((motion_name, motion_count, available))
             motions_ids[motion_name] = motion_count
             motion_count += 1
+
     else:
         for motion_name in export_motion_names:
             action_name = actions_table.get(motion_name, None)
@@ -504,7 +513,7 @@ def collect_motions_availability_table(context, export_motion_names, available_m
             _, motion_id = available_motions.get(motion_name, (None, None))
             if not action:
                 if motion_id is None:
-                    # TODO: added warning
+                    act_not_found.add(action_name)
                     continue
             if not motion_id is None:
                 available = True
@@ -514,6 +523,14 @@ def collect_motions_availability_table(context, export_motion_names, available_m
                 motions_list.append((motion_name, motion_count, available))
             motions_ids[motion_name] = motion_count
             motion_count += 1
+
+    if act_not_found:
+        log.warn(
+            text.warn.omf_exp_no_act,
+            object=context.bpy_arm_obj.name,
+            actions=act_not_found
+        )
+
     return motion_count, motions_list, motions_ids
 
 
