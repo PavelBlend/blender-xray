@@ -7,7 +7,7 @@ from . import ie
 from . import version
 
 
-def set_initial_state(
+def set_arm_initial_state(
         arm_obj,
         mode,
         current_frame,
@@ -23,7 +23,6 @@ def set_initial_state(
     else:
         arm_obj.animation_data_clear()
         # reset transforms
-        # TODO: do not delete transformations but keep the original ones
         bone.reset_pose_bone_transforms(arm_obj)
 
     # return dependency object state
@@ -33,7 +32,6 @@ def set_initial_state(
         else:
             dependency_object.animation_data_clear()
             # reset dependency object transforms
-            # TODO: do not delete transformations but keep the original ones
             bone.reset_pose_bone_transforms(dependency_object)
 
 

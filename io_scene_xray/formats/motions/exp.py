@@ -242,7 +242,7 @@ def export_motions(writer, actions, bpy_armature, root_obj):
     for action in actions:
         export_motion(writer, action, bpy_armature, root_obj)
 
-    utils.action.set_initial_state(
+    utils.action.set_arm_initial_state(
         bpy_armature,
         mode,
         current_frame,

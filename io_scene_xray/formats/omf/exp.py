@@ -891,7 +891,7 @@ def export_omf(context):
     # write params chunk
     main_chunked_writer.put(ogf.fmt.Chunks_v4.S_SMPARAMS_1, packed_writer)
 
-    utils.action.set_initial_state(
+    utils.action.set_arm_initial_state(
         arm_obj,
         mode,
         current_frame,

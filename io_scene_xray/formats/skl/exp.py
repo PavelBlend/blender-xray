@@ -27,7 +27,7 @@ def _export_skl(chunked_writer, context):
     motions.exp.export_motion(writer, context.action, arm_obj, root_obj)
     chunked_writer.put(0x1200, writer)
 
-    utils.action.set_initial_state(
+    utils.action.set_arm_initial_state(
         arm_obj,
         mode,
         current_frame,
