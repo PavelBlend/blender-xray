@@ -318,24 +318,7 @@ def import_light_dynamic(packed_reader, light_object):
         controller_id = -1
     data.controller_id = controller_id
 
-    # light type
-    light_type = packed_reader.uint32() # ???
-    if light_type > INT_MAX:
-        light_type = -1
-    data.light_type = light_type
-
-    data.diffuse = packed_reader.getf('<4f')
-    data.specular = packed_reader.getf('<4f')
-    data.ambient = packed_reader.getf('<4f')
-    position = packed_reader.getf('<3f')
-    direction = packed_reader.getf('<3f')
-    data.range_ = packed_reader.getf('<f')[0]
-    data.falloff = packed_reader.getf('<f')[0]
-    data.attenuation_0 = packed_reader.getf('<f')[0]
-    data.attenuation_1 = packed_reader.getf('<f')[0]
-    data.attenuation_2 = packed_reader.getf('<f')[0]
-    data.theta = packed_reader.getf('<f')[0]
-    data.phi = packed_reader.getf('<f')[0]
+    position, direction = read_light(packed_reader, data)
 
     dir_vec = mathutils.Vector((direction[0], direction[2], direction[1]))
     euler = dir_vec.to_track_quat('Y', 'Z').to_euler('XYZ')
@@ -343,12 +326,12 @@ def import_light_dynamic(packed_reader, light_object):
     light_object.rotation_euler = euler[0], euler[1], euler[2]
 
 
-def import_light_dynamic_v8(packed_reader, light_object):
-    light_object.xray.is_level = True
-    data = light_object.xray.level
-    data.object_type = 'LIGHT_DYNAMIC'
+def read_light(packed_reader, data):
+    light_type = packed_reader.uint32()    # type of light source
+    if light_type > INT_MAX:
+        light_type = -1
+    data.light_type = light_type
 
-    data.light_type = packed_reader.uint32()    # type of light source
     data.diffuse = packed_reader.getf('<4f')
     data.specular = packed_reader.getf('<4f')
     data.ambient = packed_reader.getf('<4f')
@@ -363,8 +346,18 @@ def import_light_dynamic_v8(packed_reader, light_object):
     data.attenuation_2 = packed_reader.getf('<f')[0]    # quadratic attenuation
     data.theta = packed_reader.getf('<f')[0]    # inner angle of spotlight cone
     data.phi = packed_reader.getf('<f')[0]    # outer angle of spotlight cone
-    dw_frame = packed_reader.getf('<I')[0]
 
+    return position, direction
+
+
+def import_light_dynamic_v8(packed_reader, light_object):
+    light_object.xray.is_level = True
+    data = light_object.xray.level
+    data.object_type = 'LIGHT_DYNAMIC'
+
+    position, direction = read_light(packed_reader, data)
+
+    dw_frame = packed_reader.getf('<I')[0]
     flags = packed_reader.getf('<I')[0]
     affect_static = bool(flags & fmt.FLAG_AFFECT_STATIC)
     affect_dynamic = bool(flags & fmt.FLAG_AFFECT_DYNAMIC)
@@ -384,23 +377,15 @@ def import_light_dynamic_v8(packed_reader, light_object):
 
 
 def import_light_dynamic_v5(packed_reader, light_object):
+    light_object.xray.is_level = True
     data = light_object.xray.level
     data.object_type = 'LIGHT_DYNAMIC'
-    light_object.xray.is_level = True
-    data.light_type = packed_reader.uint32() # ???
-    data.diffuse = packed_reader.getf('<4f')
-    data.specular = packed_reader.getf('<4f')
-    data.ambient = packed_reader.getf('<4f')
-    position = packed_reader.getf('<3f')
-    direction = packed_reader.getf('<3f')
-    data.range_ = packed_reader.getf('<f')[0]
-    data.falloff = packed_reader.getf('<f')[0]
-    data.attenuation_0 = packed_reader.getf('<f')[0]
-    data.attenuation_1 = packed_reader.getf('<f')[0]
-    data.attenuation_2 = packed_reader.getf('<f')[0]
-    data.theta = packed_reader.getf('<f')[0]
-    data.phi = packed_reader.getf('<f')[0]
-    unknown = packed_reader.getf('<5I')
+
+    position, direction = read_light(packed_reader, data)
+
+    dw_frame, flags = packed_reader.getf('<2I')
+    current_time, speed = packed_reader.getf('<2f')
+    key_start, key_count = packed_reader.getf('<2H')
 
     if data.light_type == fmt.D3D_LIGHT_POINT:
         data.controller_id = 2
