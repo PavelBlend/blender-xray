@@ -56,19 +56,23 @@ class XRAY_OT_close_skls_file(BaseSklsBrowserOperator):
     def execute(self, context):
         obj = context.active_object
         browser = obj.xray.skls_browser
+
         anim_data = obj.animation_data
         if anim_data:
             act = anim_data.action
             obj.animation_data_clear()
-            if not act.name in browser.available_actions.keys():
+            if not act.name in browser.exist_acts.keys():
                 utils.version.remove_action(act)
+
         browser.animations.clear()
-        browser.available_actions.clear()
+        browser.exist_acts.clear()
         browser.animations_index = 0
         browser.animations_prev_name = ''
+
         bpy.ops.screen.animation_cancel()
         utils.bone.reset_pose_bone_transforms(obj)
         utils.draw.redraw_areas()
+
         return {'FINISHED'}
 
 
@@ -84,7 +88,8 @@ def init_skls_browser(self, context, filepath):
 
     browser = context.active_object.xray.skls_browser
     browser.animations.clear()
-    browser.available_actions.clear()
+    browser.exist_acts.clear()
+
     skls = SklsFile(file_path=filepath)
     XRAY_OT_browse_skls_file.skls_file = skls
 
@@ -97,7 +102,7 @@ def init_skls_browser(self, context, filepath):
 
     # collect available actions
     for action in bpy.data.actions:
-        action_item = browser.available_actions.add()
+        action_item = browser.exist_acts.add()
         # animation name
         action_item.name = action.name
 
@@ -118,7 +123,7 @@ class SklsFile():
     Holds entire .skls file in memory as binary blob.
     '''
 
-    __slots__ = 'pr', 'file_path', 'animations'
+    __slots__ = 'reader', 'file_path', 'animations'
 
     def __init__(self, file_path):
         self.file_path = file_path
@@ -126,26 +131,29 @@ class SklsFile():
         self.animations = {}
         # read entire .skls file into memory
         file_data = rw.utils.read_file(file_path)
-        self.pr = rw.read.PackedReader(file_data)
+        self.reader = rw.read.PackedReader(file_data)
         self._index_animations()
 
     def _index_animations(self):
-        'Fills the cache (self.animations) by processing entire binary blob'
-        animations_count = self.pr.uint32()
+        '''
+        Fills the cache (self.animations) by
+        processing entire binary blob
+        '''
+        animations_count = self.reader.uint32()
         for anim_index in range(animations_count):
             # index animation
             # first byte of the animation name
-            offset = self.pr.offset()
+            offset = self.reader.offset()
             # animation name
-            name = self.pr.gets()
-            offset_skip = self.pr.offset()
-            frame_start, frame_end = self.pr.getf('<2I')
+            name = self.reader.gets()
+            offset_skip = self.reader.offset()
+            frame_start, frame_end = self.reader.getf('<2I')
             length = int(frame_end - frame_start)
             self.animations[name] = (offset, length)
             # skip the rest bytes of skl animation to the next animation
-            self.pr.set_offset(offset_skip)
-            skip = formats.motions.imp.skip_motion_rest(self.pr.getv(), 0)
-            self.pr.skip(skip)
+            self.reader.set_offset(offset_skip)
+            skip = formats.motions.imp.skip_motion_rest(self.reader.getv(), 0)
+            self.reader.skip(skip)
 
 
 browse_props = {
@@ -203,7 +211,7 @@ class XRAY_OT_browse_skls_file(BaseSklsBrowserOperator):
 
 def import_anim(obj, skls, animation_name):
     offset, length = skls.animations[animation_name]
-    skls.pr.set_offset(offset)
+    skls.reader.set_offset(offset)
 
     # used to bone's reference detection
     bones_map = {bone.name.lower(): bone for bone in obj.data.bones}
@@ -211,15 +219,15 @@ def import_anim(obj, skls, animation_name):
     # bones names that has problems while import
     reported = set()
 
-    import_context = formats.skl.imp.ImportSklContext()
-    import_context.bpy_arm_obj = obj
-    import_context.motions_filter = formats.motions.utilites.MOTIONS_FILTER_ALL
-    import_context.filename = skls.file_path
+    imp_ctx = formats.skl.imp.ImportSklContext()
+    imp_ctx.bpy_arm_obj = obj
+    imp_ctx.motions_filter = formats.motions.utilites.MOTIONS_FILTER_ALL
+    imp_ctx.filename = skls.file_path
 
     # import
     formats.motions.imp.import_motion(
-        skls.pr,
-        import_context,
+        skls.reader,
+        imp_ctx,
         bones_map,
         reported
     )
@@ -241,7 +249,8 @@ def import_anim(obj, skls, animation_name):
 
 
 @utils.set_cursor_state
-def skls_animations_index_changed(self, context):
+@utils.stats.execute_with_stats
+def anim_index_changed(self, context):
     '''Selected animation changed in .skls list'''
 
     report = lambda error, text: None
@@ -279,12 +288,12 @@ def skls_animations_index_changed(self, context):
         act = obj.animation_data.action
         obj.animation_data_clear()
         if act:
-            if not act.name in browser.available_actions.keys():
+            if not act.name in browser.exist_acts.keys():
                 utils.version.remove_action(act)
 
     # delete from xray property group
     motion_name = browser.animations_prev_name
-    if not motion_name in browser.available_actions.keys():
+    if not motion_name in browser.exist_acts.keys():
         motion_names = obj.xray.motions_collection.keys()
         try:
             motion_index = motion_names.index(motion_name)
@@ -331,16 +340,20 @@ class XRAY_OT_skls_browser_select(BaseSklsBrowserOperator):
     def execute(self, context):
         obj = context.active_object
         browser = obj.xray.skls_browser
+
         if self.mode in ('ALL', 'NONE'):
             if self.mode == 'ALL':
                 select_state = True
             else:
                 select_state = False
+
             for anim in browser.animations:
                 anim.select = select_state
+
         elif self.mode == 'INVERT':
             for anim in browser.animations:
                 anim.select = not anim.select
+
         return {'FINISHED'}
 
 
@@ -390,12 +403,13 @@ class XRAY_OT_skls_browser_import(BaseSklsBrowserOperator):
         for anim_name in anims:
             motion = obj.xray.motions_collection.add()
             motion.name = anim_name
-            available_act = browser.available_actions.add()
+            available_act = browser.exist_acts.add()
             available_act.name = anim_name
             if anim_name in bpy.data.actions:
                 continue
             import_anim(obj, skls, anim_name)
             count += 1
+
         self.report(
             {'INFO'},
             text.get_text(text.warn.browser_import) + ': ' + str(count)
@@ -412,7 +426,7 @@ anim_props = {
 }
 
 
-class XRaySklsAnimationProperties(bpy.types.PropertyGroup):
+class XRaySklsAnimationProps(bpy.types.PropertyGroup):
     '''Contains animation properties in animations list of .skls file'''
 
     if not utils.version.IS_28:
@@ -425,7 +439,7 @@ action_props = {
 }
 
 
-class XRaySklsAvailableActions(bpy.types.PropertyGroup):
+class XRaySklsExistingActs(bpy.types.PropertyGroup):
     '''Contains available actions before importing new'''
 
     if not utils.version.IS_28:
@@ -434,30 +448,29 @@ class XRaySklsAvailableActions(bpy.types.PropertyGroup):
 
 
 skls_browser_props = {
-    'animations': bpy.props.CollectionProperty(
-        type=XRaySklsAnimationProperties
-    ),
-    'animations_index': bpy.props.IntProperty(
-        update=skls_animations_index_changed
-    ),
+    'animations': bpy.props.CollectionProperty(type=XRaySklsAnimationProps),
+    'animations_index': bpy.props.IntProperty(update=anim_index_changed),
     'animations_prev_name': bpy.props.StringProperty(),
-    'available_actions': bpy.props.CollectionProperty(
-        type=XRaySklsAvailableActions
-    )
+    'exist_acts': bpy.props.CollectionProperty(type=XRaySklsExistingActs)
 }
 
 
-class XRayObjectSklsBrowserProperties(bpy.types.PropertyGroup):
+class XRaySklsBrowserProps(bpy.types.PropertyGroup):
     if not utils.version.IS_28:
         for prop_name, prop_value in skls_browser_props.items():
             exec('{0} = skls_browser_props.get("{0}")'.format(prop_name))
 
 
 classes = (
+    # lists
     (XRAY_UL_skls_list_item, None),
-    (XRaySklsAnimationProperties, anim_props),
-    (XRaySklsAvailableActions, action_props),
-    (XRayObjectSklsBrowserProperties, skls_browser_props),
+
+    # props
+    (XRaySklsAnimationProps, anim_props),
+    (XRaySklsExistingActs, action_props),
+    (XRaySklsBrowserProps, skls_browser_props),
+
+    # operators
     (XRAY_OT_browse_skls_file, browse_props),
     (XRAY_OT_close_skls_file, None),
     (XRAY_OT_skls_browser_select, select_props),
