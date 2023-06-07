@@ -42,18 +42,15 @@ def examine_motions(data):
                 bone_count = packed_reader.getf('<H')[0]
 
                 for bone in range(bone_count):
-                    if params_ver == 1:
+                    if params_ver in (3, 4):
+                        packed_reader.gets()    # bone name
                         packed_reader.skip(4)    # bone id
 
                     elif params_ver == 2:
                         packed_reader.gets()    # bone name
 
-                    elif params_ver in (3, 4):
-                        packed_reader.gets()    # bone name
+                    else:    # version 1
                         packed_reader.skip(4)    # bone id
-
-                    else:
-                        raise BaseException('Unknown params version')
 
             # motion params
             motion_count = packed_reader.getf('<H')[0]
@@ -86,21 +83,54 @@ class MotionParams:
         self.falloff = None
 
 
-def convert_to_euler(quaternion):
-    euler = mathutils.Quaternion((
+def quat_to_euler(quaternion):
+    return mathutils.Quaternion((
         quaternion[3] / 0x7fff,
         quaternion[0] / 0x7fff,
         quaternion[1] / 0x7fff,
         -quaternion[2] / 0x7fff
     )).to_euler('ZXY')
-    return euler
+
+
+# data size
+CRC32_SZ = 4
+QUAT_16_SZ = 4 * 2    # x, y, z, w 16 bit
+TRN_8_SZ = 3 * 1    # x, y, z 8 bit
+TRN_16_SZ = 3 * 2    # x, y, z 16 bit
+TRN_FLOAT_SZ = 3 * 4    # x, y, z float
+TRN_INIT_SZ = 3 * 4    # x, y, z float
+TRN_SIZE_SZ = 3 * 4    # x, y, z float
+
+
+def skip_motion(packed_reader, bone_names):
+    for bone_index in range(len(bone_names)):
+        flags = packed_reader.getf('<B')[0]
+        t_present = flags & fmt.FL_T_KEY_PRESENT
+        r_absent = flags & fmt.FL_R_KEY_ABSENT
+        hq = flags & fmt.KPF_T_HQ
+
+        # skip rotation
+        if r_absent:
+            packed_reader.skip(QUAT_16_SZ)
+        else:
+            packed_reader.skip(QUAT_16_SZ * length + CRC32_SZ)
+
+        # skip translation
+        if t_present:
+            if hq:
+                trn_sz = TRN_16_SZ * length
+            else:
+                trn_sz = TRN_8_SZ * length
+            packed_reader.skip(trn_sz + CRC32_SZ + TRN_INIT_SZ + TRN_SIZE_SZ)
+        else:
+            # translate x, y, z float
+            packed_reader.skip(TRN_FLOAT_SZ)
 
 
 def read_motion(data, context, motions_params, bone_names, version):
     packed_reader = rw.read.PackedReader(data)
     name = packed_reader.gets()
     length = packed_reader.uint32()
-    motion_params = motions_params[name]
 
     import_motion = False
     if context.selected_names is None:
@@ -120,6 +150,8 @@ def read_motion(data, context, motions_params, bone_names, version):
                 xray_motion.name = act.name
                 xray_motion.export_name = name
                 context.bpy_arm_obj.xray.use_custom_motion_names = True
+
+        motion_params = motions_params[name]
 
         act.xray.flags = motion_params.flags
         act.xray.bonepart = motion_params.bone_or_part
@@ -207,13 +239,13 @@ def read_motion(data, context, motions_params, bone_names, version):
                 # rotation
                 if r_absent:
                     quaternion = packed_reader.getf('<4h')
-                    euler = convert_to_euler(quaternion)
+                    euler = quat_to_euler(quaternion)
                     bone_rotations.append(euler)
                 else:
                     motion_crc32 = packed_reader.uint32()
                     for key_index in range(length):
                         quaternion = packed_reader.getf('<4h')
-                        euler = convert_to_euler(quaternion)
+                        euler = quat_to_euler(quaternion)
                         bone_rotations.append(euler)
 
                 # translation
@@ -288,29 +320,7 @@ def read_motion(data, context, motions_params, bone_names, version):
             )
 
     else:
-        for bone_index in range(len(bone_names)):
-            flags = packed_reader.getf('<B')[0]
-            t_present = flags & fmt.FL_T_KEY_PRESENT
-            r_absent = flags & fmt.FL_R_KEY_ABSENT
-            hq = flags & fmt.KPF_T_HQ
-
-            # skip rotation
-            if r_absent:
-                # quaternion
-                packed_reader.skip(4 * 2)
-            else:
-                # quaternions + motion_crc32
-                packed_reader.skip(4 * 2 * length + 4)
-
-            # skip translation
-            if t_present:
-                if hq:
-                    translate_size = 3 * 2
-                else:
-                    translate_size = 3 * 1
-                packed_reader.skip(length * translate_size + 4 + 12 + 12)
-            else:
-                packed_reader.skip(12)
+        skip_motion(packed_reader, bone_names)
 
 
 def read_motions(data, context, motions_params, bone_names, version=2):
@@ -336,6 +346,7 @@ def read_params(data, context, chunk, bones_indices={}):
     else:
         params_version = 0
 
+    # read bone parts
     partition_count = reader.getf('<H')[0]
     bone_names = {}
     cannot_find_bones = set()
@@ -344,15 +355,17 @@ def read_params(data, context, chunk, bones_indices={}):
     for partition_index in range(partition_count):
         partition_name = reader.gets()
         bone_count = reader.getf('<H')[0]
+
+        # create bone group
         if context.import_bone_parts:
             bone_group = pose.bone_groups.get(partition_name)
             if not bone_group:
                 bone_group = pose.bone_groups.new(name=partition_name)
 
         for bone in range(bone_count):
-            if params_version in (0, 1):
+            if params_version in (3, 4):
+                bone_name = reader.gets()
                 bone_id = reader.uint32()
-                bone_name = bones_indices.get(bone_id, None)
                 bone_names[bone_id] = bone_name
 
             elif params_version == 2:
@@ -360,13 +373,10 @@ def read_params(data, context, chunk, bones_indices={}):
                 bone_name = reader.gets()
                 bone_names[bone_id] = bone_name
 
-            elif params_version in (3, 4):
-                bone_name = reader.gets()
+            else:    # versions 0, 1
                 bone_id = reader.uint32()
+                bone_name = bones_indices.get(bone_id, None)
                 bone_names[bone_id] = bone_name
-
-            else:
-                raise BaseException('Unknown params version')
 
             if bone_name:
                 pose_bone = pose.bones.get(bone_name, None)
@@ -388,6 +398,7 @@ def read_params(data, context, chunk, bones_indices={}):
             )
         )
 
+    # read motions params
     motion_count = reader.getf('<H')[0]
     motions_params = {}
 
@@ -417,11 +428,11 @@ def read_main(data, context):
 
     # params
     params_data = chunks.pop(ogf.fmt.Chunks_v4.S_SMPARAMS_1)
-    param_chunk = 1
+    params_chunk = 1
     motions_params, bone_names = read_params(
         params_data,
         context,
-        param_chunk
+        params_chunk
     )
 
     # motions
