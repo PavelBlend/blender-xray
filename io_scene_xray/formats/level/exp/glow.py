@@ -68,14 +68,20 @@ def write_glows(level_writer, level_object, level):
     glows_writer = rw.write.PackedWriter()
     glows_count = 0
 
-    for child_name in level.visuals_cache.children[level_object.name]:
-        child_obj = bpy.data.objects[child_name]
-        if child_obj.name.startswith('glows'):
+    glows_obj = bpy.data.objects.get(level_object.xray.level.glows_obj)
 
-            for glow_name in level.visuals_cache.children[child_obj.name]:
-                glow_obj = bpy.data.objects[glow_name]
-                _write_glow(glows_writer, glow_obj, level)
-                glows_count += 1
+    if not glows_obj:
+
+        for child_name in level.visuals_cache.children[level_object.name]:
+            child_obj = bpy.data.objects[child_name]
+            if child_obj.name.startswith('glows'):
+                glows_obj = child_obj
+
+    if glows_obj:
+        for glow_name in level.visuals_cache.children[glows_obj.name]:
+            glow_obj = bpy.data.objects[glow_name]
+            _write_glow(glows_writer, glow_obj, level)
+            glows_count += 1
 
     if not glows_count:
         raise log.AppError(

@@ -492,7 +492,41 @@ def level_draw_function(layout, data):
     draw_split_prop(box, level, 'object_type', 'Type')
     object_type = level.object_type
 
-    if object_type == 'PORTAL':
+    if object_type == 'LEVEL':
+        draw_split_prop_search(
+            box,
+            level,
+            'sectors_obj',
+            'Sectors Object',
+            bpy.data,
+            'objects'
+        )
+        draw_split_prop_search(
+            box,
+            level,
+            'portals_obj',
+            'Portals Object',
+            bpy.data,
+            'objects'
+        )
+        draw_split_prop_search(
+            box,
+            level,
+            'lights_obj',
+            'Lights Object',
+            bpy.data,
+            'objects'
+        )
+        draw_split_prop_search(
+            box,
+            level,
+            'glows_obj',
+            'Glows Object',
+            bpy.data,
+            'objects'
+        )
+
+    elif object_type == 'PORTAL':
         for portal in ('front', 'back'):
             prop_name = 'sector_' + portal
             draw_split_prop_search(

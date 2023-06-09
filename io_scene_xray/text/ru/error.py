@@ -84,6 +84,8 @@ translations_table = (
     (error.level_has_children, 'Normal/Progressive объекты не должны иметь потомков'),
     (error.level_lmap_no_dds, 'некорректный формат карты освещения (должен быть *.dds)'),
     (error.level_sector_has_no_cform, 'сектор не имеет cform-объекта'),
+    (error.level_no_lights, 'level-объект не имеет light-объектов'),
+    (error.level_no_sectors, 'level-объект не имеет sector-объектов'),
 
     # level export visual
     (error.level_visual_is_not_mesh, 'visual-объект не является мешем'),

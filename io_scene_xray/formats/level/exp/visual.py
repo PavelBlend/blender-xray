@@ -896,56 +896,66 @@ def write_visuals(level_writer, level_object, level):
         visuals_ids[visual_obj] = visual_index
 
     sectors_portals = sector.get_sectors_portals(level, level_object)
+    sectors_obj = bpy.data.objects.get(level_object.xray.level.sectors_obj)
 
-    for child_obj_name in children[level_object.name]:
-        child_obj = bpy.data.objects[child_obj_name]
-        if child_obj.name.startswith('sectors'):
-            for sector_obj_name in children[child_obj.name]:
-                sector_obj = bpy.data.objects[sector_obj_name]
-                level.sectors_indices[sector_obj.name] = sector_id
-                cform_obj = None
+    if not sectors_obj:
+        for child_obj_name in children[level_object.name]:
+            child_obj = bpy.data.objects[child_obj_name]
+            if child_obj.name.startswith('sectors'):
+                sectors_obj = child_obj
 
-                for root_obj_name in children[sector_obj.name]:
-                    root_obj = bpy.data.objects[root_obj_name]
-                    if root_obj.xray.level.object_type == 'VISUAL':
-                        # write sector
-                        root_index = visuals_ids[root_obj]
-                        sector_chunked_writer = sector.write_sector(
-                            root_index,
-                            sectors_portals,
-                            sector_obj.name
-                        )
-                        sectors_writer.put(sector_id, sector_chunked_writer)
-                    elif root_obj.xray.level.object_type == 'CFORM':
-                        cform_obj = root_obj
-                        level.cform_objects[sector_id] = cform_obj
+    if not sectors_obj:
+        raise log.AppError(
+            text.error.level_no_sectors,
+            log.props(object=level_object.name)
+        )
 
-                # check cform-object
-                if not cform_obj:
-                    raise log.AppError(
-                        text.error.level_sector_has_no_cform,
-                        log.props(sector_object=sector_obj.name)
-                    )
-                if cform_obj.type != 'MESH':
-                    raise log.AppError(
-                        text.error.level_bad_cform_type,
-                        log.props(
-                            object=cform_obj.name,
-                            type=cform_obj.type
-                        )
-                    )
-                if not len(cform_obj.data.polygons):
-                    raise log.AppError(
-                        text.error.level_cform_no_geom,
-                        log.props(object=cform_obj.name)
-                    )
-                if not len(cform_obj.data.materials):
-                    raise log.AppError(
-                        text.error.level_cform_no_mats,
-                        log.props(object=cform_obj.name)
-                    )
+    for sector_obj_name in children[sectors_obj.name]:
+        sector_obj = bpy.data.objects[sector_obj_name]
+        level.sectors_indices[sector_obj.name] = sector_id
+        cform_obj = None
 
-                sector_id += 1
+        for root_obj_name in children[sector_obj.name]:
+            root_obj = bpy.data.objects[root_obj_name]
+            if root_obj.xray.level.object_type == 'VISUAL':
+                # write sector
+                root_index = visuals_ids[root_obj]
+                sector_chunked_writer = sector.write_sector(
+                    root_index,
+                    sectors_portals,
+                    sector_obj.name
+                )
+                sectors_writer.put(sector_id, sector_chunked_writer)
+            elif root_obj.xray.level.object_type == 'CFORM':
+                cform_obj = root_obj
+                level.cform_objects[sector_id] = cform_obj
+
+        # check cform-object
+        if not cform_obj:
+            raise log.AppError(
+                text.error.level_sector_has_no_cform,
+                log.props(sector_object=sector_obj.name)
+            )
+        if cform_obj.type != 'MESH':
+            raise log.AppError(
+                text.error.level_bad_cform_type,
+                log.props(
+                    object=cform_obj.name,
+                    type=cform_obj.type
+                )
+            )
+        if not len(cform_obj.data.polygons):
+            raise log.AppError(
+                text.error.level_cform_no_geom,
+                log.props(object=cform_obj.name)
+            )
+        if not len(cform_obj.data.materials):
+            raise log.AppError(
+                text.error.level_cform_no_mats,
+                log.props(object=cform_obj.name)
+            )
+
+        sector_id += 1
 
     visual_index = 0
     write_visual_children(

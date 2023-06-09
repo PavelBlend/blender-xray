@@ -212,6 +212,16 @@ def update_motion_collection_index(self, context):
             anim_data.action = act
 
 
+def get_color_prop(name, size):
+    return bpy.props.FloatVectorProperty(
+        name='Light',
+        min=0.0,
+        max=1.0,
+        subtype='COLOR',
+        size=size
+    )
+
+
 object_type_items = (
     ('LEVEL', 'Level ', ''),
     ('VISUAL', 'Visual', ''),
@@ -230,31 +240,50 @@ visual_type_items = (
 
 
 xray_object_level_properties = {
-    'object_type': bpy.props.EnumProperty(name='Type', items=object_type_items, default='VISUAL'),
-    'visual_type': bpy.props.EnumProperty(name='Visual Type', items=visual_type_items, default='NORMAL'),
-    # Tree Color Scale
-    'color_scale_rgb': bpy.props.FloatVectorProperty(name='Light', min=0.0, max=1.0, subtype='COLOR'),
-    'color_scale_hemi': bpy.props.FloatVectorProperty(name='Hemi', min=0.0, max=1.0, subtype='COLOR'),
-    'color_scale_sun': bpy.props.FloatVectorProperty(name='Sun', min=0.0, max=1.0, subtype='COLOR'),
-    # Tree Color Bias
-    'color_bias_rgb': bpy.props.FloatVectorProperty(name='Light', min=0.0, max=1.0, subtype='COLOR'),
-    'color_bias_hemi': bpy.props.FloatVectorProperty(name='Hemi', min=0.0, max=1.0, subtype='COLOR'),
-    'color_bias_sun': bpy.props.FloatVectorProperty(name='Sun', min=0.0, max=1.0, subtype='COLOR'),
-    # Portal Properties
+    # general
+    'object_type': bpy.props.EnumProperty(
+        name='Type',
+        items=object_type_items,
+        default='VISUAL'
+    ),
+
+    # level
+    'sectors_obj': bpy.props.StringProperty(name='Sectors Object'),
+    'portals_obj': bpy.props.StringProperty(name='Portals Object'),
+    'lights_obj': bpy.props.StringProperty(name='Lights Object'),
+    'glows_obj': bpy.props.StringProperty(name='Glows Object'),
+
+    # visual
+    'visual_type': bpy.props.EnumProperty(
+        name='Visual Type',
+        items=visual_type_items,
+        default='NORMAL'
+    ),
+    'use_fastpath': bpy.props.BoolProperty(
+        name='Use Fastpath Geometry',
+        default=True
+    ),
+
+    # tree color scale
+    'color_scale_rgb': get_color_prop('Light', 3),
+    'color_scale_hemi': get_color_prop('Hemi', 3),
+    'color_scale_sun': get_color_prop('Sun', 3),
+
+    # tree color bias
+    'color_bias_rgb': get_color_prop('Light', 3),
+    'color_bias_hemi': get_color_prop('Hemi', 3),
+    'color_bias_sun': get_color_prop('Sun', 3),
+
+    # portal
     'sector_front': bpy.props.StringProperty(name='Sector Front'),
     'sector_back': bpy.props.StringProperty(name='Sector Back'),
-    # Light Dynamic Properties
+
+    # light
     'controller_id': bpy.props.IntProperty(name='Controller ID'),
     'light_type': bpy.props.IntProperty(name='Light Type'),
-    'diffuse': bpy.props.FloatVectorProperty(
-        name='Diffuse', min=0, max=1, subtype='COLOR', size=4
-    ),
-    'specular': bpy.props.FloatVectorProperty(
-        name='Specular', min=0, max=1, subtype='COLOR', size=4
-    ),
-    'ambient': bpy.props.FloatVectorProperty(
-        name='Ambient', min=0, max=1, subtype='COLOR', size=4
-    ),
+    'diffuse': get_color_prop('Diffuse', size=4),
+    'specular': get_color_prop('Specular', size=4),
+    'ambient': get_color_prop('Ambient', size=4),
     'range_': bpy.props.FloatProperty(name='Range'),
     'falloff': bpy.props.FloatProperty(name='Falloff'),
     'attenuation_0': bpy.props.FloatProperty(name='Attenuation 0'),
@@ -262,7 +291,6 @@ xray_object_level_properties = {
     'attenuation_2': bpy.props.FloatProperty(name='Attenuation 2'),
     'theta': bpy.props.FloatProperty(name='Theta'),
     'phi': bpy.props.FloatProperty(name='Phi'),
-    'use_fastpath': bpy.props.BoolProperty(name='Use Fastpath Geometry', default=True)
 }
 
 

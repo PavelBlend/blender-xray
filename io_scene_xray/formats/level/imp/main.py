@@ -98,9 +98,13 @@ def import_sectors(data, level, level_object):
     collection = level.collections[create.LEVEL_SECTORS_COLLECTION_NAME]
     sectors_object = create_sectors_object(collection)
     sectors_object.parent = level_object
+    level_object.xray.level.sectors_obj = sectors_object.name
+
     for sector_id, sector_data in chunked_reader:
         sector_object = create_sector_object(
-            sector_id, collection, sectors_object
+            sector_id,
+            collection,
+            sectors_object
         )
         level.sectors_objects[sector_id] = sector_object
         import_sector(sector_data, level, sector_object)
@@ -266,6 +270,8 @@ def import_glows(data, level, level_object):
     glows_count = len(data) // fmt.GLOW_SIZE
     collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
     glows_object = create_glows_object(collection)
+    glows_object.parent = level_object
+    level_object.xray.level.glows_obj = glows_object.name
     materials = level.materials
     images = level.images
 
@@ -283,14 +289,14 @@ def import_glows(data, level, level_object):
         if not utils.version.IS_28:
             utils.version.link_object(glow_object)
 
-    glows_object.parent = level_object
-
 
 def import_glows_v5(data, level, level_object):
     packed_reader = rw.read.PackedReader(data)
     glows_count = len(data) // fmt.GLOW_SIZE_V5
     collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
     glows_object = create_glows_object(collection)
+    glows_object.parent = level_object
+    level_object.xray.level.glows_obj = glows_object.name
 
     for glow_index in range(glows_count):
         glow_object = import_glow_v5(level, packed_reader, glow_index)
@@ -300,8 +306,6 @@ def import_glows_v5(data, level, level_object):
         collection.objects.link(glow_object)
         if not utils.version.IS_28:
             utils.version.link_object(glow_object)
-
-    glows_object.parent = level_object
 
 
 INT_MAX = 2 ** 31 - 1
@@ -424,7 +428,9 @@ def create_lights_object(collection):
 def import_lights(data, level, level_object):
     packed_reader = rw.read.PackedReader(data)
     collection = level.collections[create.LEVEL_LIGHTS_COLLECTION_NAME]
-    lights_dynamic_object = create_lights_object(collection)
+    lights_object = create_lights_object(collection)
+    lights_object.parent = level_object
+    level_object.xray.level.lights_obj = lights_object.name
 
     if level.xrlc_version > fmt.VERSION_8:
         light_size = fmt.LIGHT_DYNAMIC_SIZE
@@ -440,9 +446,7 @@ def import_lights(data, level, level_object):
     for light_index in range(light_count):
         light_object = create_light_object(light_index, collection)
         import_light_funct(packed_reader, light_object)
-        light_object.parent = lights_dynamic_object
-
-    lights_dynamic_object.parent = level_object
+        light_object.parent = lights_object
 
 
 def create_portal(portal_index, verts, collection):
@@ -498,6 +502,7 @@ def import_portals(data, level, level_object):
     collection = level.collections[create.LEVEL_PORTALS_COLLECTION_NAME]
     portals_object = create.create_object('portals', None)
     collection.objects.link(portals_object)
+    level_object.xray.level.portals_obj = portals_object.name
 
     if not utils.version.IS_28:
         utils.version.link_object(portals_object)

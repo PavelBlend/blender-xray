@@ -76,6 +76,8 @@ level_no_lmap = 'cannot find light map image'
 level_has_children = 'Normal/Progressive object must not have children'
 level_lmap_no_dds = 'incorrect light map format (must be *.dds)'
 level_sector_has_no_cform = 'sector has no cform-object'
+level_no_lights = 'level-object has no light-objects'
+level_no_sectors = 'level-object has no sector-objects'
 
 # level export visual
 level_visual_is_not_mesh = 'visual-object is not a mesh'
