@@ -98,8 +98,8 @@ def export_bone(
     # shape chunk
     packed_writer = rw.write.PackedWriter()
 
-    packed_writer.putf('<H', int(xray.shape.type))
-    packed_writer.putf('<H', xray.shape.flags)
+    shape_type = utils.bone.get_bone_prop(xray.shape, 'type', 4)
+    packed_writer.putf('<2H', shape_type, xray.shape.flags)
 
     # box shape
     box_trn = list(xray.shape.box_trn)
@@ -161,8 +161,10 @@ def export_bone(
         lim_y_max = pose_bone.ik_max_y
         lim_z_min = pose_bone.ik_min_z
         lim_z_max = pose_bone.ik_max_z
+
     packed_writer = rw.write.PackedWriter()
-    ik_type = int(ik.type)
+
+    ik_type = utils.bone.get_bone_prop(ik, 'type', 6)
     packed_writer.putf('<I', ik_type)
     packed_writer.putf('<2f', lim_x_min, lim_x_max)
     packed_writer.putf('<2f', ik.lim_x_spr, ik.lim_x_dmp)

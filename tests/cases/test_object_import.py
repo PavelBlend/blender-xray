@@ -11,8 +11,14 @@ class TestObjectImport(utils.XRayTestCase):
             directory=self.binpath(),
             files=[{'name': 'test_fmt_broken.object'}],
         )
-        self.assertReportsContains('WARNING', re.compile('Unsupported bone shape type using default'))
-        self.assertReportsContains('WARNING', re.compile('Unsupported bone joint type using default'))
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Unsupported bone shape type using Custom')
+        )
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Unsupported bone joint type using Custom')
+        )
 
         log = self.getFullLogAsText()
         self.assertRegex(log, re.escape("import-object(file='"))

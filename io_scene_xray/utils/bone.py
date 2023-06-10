@@ -7,6 +7,7 @@ import numpy
 # addon modules
 from . import mesh
 from . import version
+from .. import log
 
 
 def is_exportable_bone(bpy_bone):
@@ -33,6 +34,26 @@ def get_ode_ik_limits(value_1, value_2):
     min_value = min(-value_1, -value_2)
     max_value = max(-value_1, -value_2)
     return min_value, max_value
+
+
+def safe_assign_enum_property(bone_name, obj, prop_name, value, desc, custom):
+    if value < custom:
+        setattr(obj, prop_name, str(value))
+    else:
+        setattr(obj, prop_name, str(custom))
+        setattr(obj, prop_name + '_custom_id', value)
+        log.warn(
+            desc,
+            bone=bone_name,
+            value=value
+        )
+
+
+def get_bone_prop(xray, prop_name, custom):
+    value = int(getattr(xray, prop_name))
+    if value == custom:
+        value = getattr(xray, prop_name + '_custom_id')
+    return value
 
 
 def convert_vector_to_matrix(vector):

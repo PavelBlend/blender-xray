@@ -80,8 +80,8 @@ object_try_use_option = 'Try to use option'
 object_vert_group_created = 'Vertex groups created'
 
 # ogf import
-ogf_bad_shape = 'unsupported bone shape type using default'
-ogf_bad_joint = 'unsupported bone joint type using default'
+ogf_bad_shape = 'unsupported bone shape type using Custom'
+ogf_bad_joint = 'unsupported bone joint type using Custom'
 
 # omf export
 omf_exp_no_act = 'object action not found'

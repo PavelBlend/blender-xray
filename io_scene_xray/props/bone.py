@@ -22,10 +22,12 @@ shape_properties = {
             ('0', 'None', ''),
             ('1', 'Box', ''),
             ('2', 'Sphere', ''),
-            ('3', 'Cylinder', '')
+            ('3', 'Cylinder', ''),
+            ('4', 'Custom', '')
         ),
         update=lambda self, ctx: ops.edit_helpers.bone_shape.HELPER.update(),
     ),
+    'type_custom_id': bpy.props.IntProperty(default=0, min=0),
     'flags': bpy.props.IntProperty(),
     'flags_nopickable': utility.gen_flag_prop(mask=0x1),
     'flags_removeafterbreak': utility.gen_flag_prop(mask=0x2),
@@ -57,20 +59,22 @@ class ShapeProperties(bpy.types.PropertyGroup):
 
         if self.version_data == self._CURVER_DATA:
             return 0
-        if self.type == '0':  # none
+        if self.type == '0':    # none
             return 0
-        elif self.type == '1':  # box
+        elif self.type == '1':    # box
             if iszero(self.box_trn) and iszero(self.box_rot) and iszero(self.box_hsz):
-                return 0  # default shape
-        elif self.type == '2':  # sphere
+                return 0    # default shape
+        elif self.type == '2':    # sphere
             if iszero(self.sph_pos) and not self.sph_rad:
-                return 0  # default shape
-        elif self.type == '3':  # cylinder
+                return 0    # default shape
+        elif self.type == '3':    # cylinder
             if iszero(self.cyl_pos) \
                 and iszero(self.cyl_dir) \
                 and not self.cyl_rad \
                 and not self.cyl_hgh:
-                return 0  # default shape
+                return 0    # default shape
+        elif self.type == '4':    # custom
+            return 0
         return 1 if self.version_data < self._CURVER_DATA else 2
 
     @staticmethod
@@ -113,13 +117,15 @@ class BreakProperties(bpy.types.PropertyGroup):
 
 ik_joint_properties = {
     'type': bpy.props.EnumProperty(items=(
-        ('4', 'None', ''),
-        ('0', 'Rigid', ''),
-        ('1', 'Cloth', ''),
-        ('2', 'Joint', ''),
-        ('3', 'Wheel ', ''),
-        ('5', 'Slider ', ''))
-    ),
+            ('4', 'None', ''),
+            ('0', 'Rigid', ''),
+            ('1', 'Cloth', ''),
+            ('2', 'Joint', ''),
+            ('3', 'Wheel ', ''),
+            ('5', 'Slider ', ''),
+            ('6', 'Custom ', '')
+    )),
+    'type_custom_id': bpy.props.IntProperty(default=0, min=0),
     'lim_x_min': bpy.props.FloatProperty(
         min=-math.pi, max=math.pi,
         update=ops.joint_limits.update_limit,
@@ -374,7 +380,7 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             bgl.glColor4f(*color)
 
         shape = self.shape
-        if shape.type == '0':
+        if shape.type in ('0', '4'):
             utils.draw.set_gl_line_width(prev_line_width)
             return
 

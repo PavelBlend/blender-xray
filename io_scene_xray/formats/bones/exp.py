@@ -71,9 +71,9 @@ def _export_bone_data(bpy_obj, bone, scale):
 
     # shape
     shape = xray.shape
+    shape_type = utils.bone.get_bone_prop(shape, 'type', 4)
     packed_writer = rw.write.PackedWriter()
-    packed_writer.putf('<H', int(shape.type))
-    packed_writer.putf('<H', shape.flags)
+    packed_writer.putf('<2H', shape_type, shape.flags)
 
     # box shape
     box_trn = list(shape.box_trn)
@@ -140,14 +140,19 @@ def _export_bone_data(bpy_obj, bone, scale):
         # z limits
         z_min = pose_bone.ik_min_z
         z_max = pose_bone.ik_max_z
+
     packed_writer = rw.write.PackedWriter()
-    packed_writer.putf('<I', int(ik.type))
+    ik_type = utils.bone.get_bone_prop(ik, 'type', 6)
+    packed_writer.putf('<I', ik_type)
+
     # write limit x
     packed_writer.putf('<2f', x_min, x_max)
     packed_writer.putf('<2f', ik.lim_x_spr, ik.lim_x_dmp)
+
     # write limit y
     packed_writer.putf('<2f', y_min, y_max)
     packed_writer.putf('<2f', ik.lim_y_spr, ik.lim_y_dmp)
+
     # write limit z
     packed_writer.putf('<2f', z_min, z_max)
     packed_writer.putf('<2f', ik.lim_z_spr, ik.lim_z_dmp)

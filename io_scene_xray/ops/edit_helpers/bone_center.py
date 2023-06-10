@@ -87,7 +87,7 @@ class XRAY_OT_align_center(utils.ie.BaseOperator):
         _, bone = HELPER.get_target()
         if not bone:
             return
-        return bone.xray.shape.type != '0'
+        return bone.xray.shape.type not in ('0', '4')
 
     def execute(self, context):
         helper, bone = HELPER.get_target()

@@ -80,7 +80,7 @@ class XRAY_OT_edit_shape(utils.ie.BaseOperator):
         if context.mode == 'EDIT_ARMATURE':
             return False
         bone = context.active_bone
-        return bone and (bone.xray.shape.type != '0') and \
+        return bone and (bone.xray.shape.type not in ('0', '4')) and \
             not HELPER.is_active(context)
 
     def execute(self, context):

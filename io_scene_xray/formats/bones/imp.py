@@ -83,12 +83,13 @@ def _import_bone_data(data, arm_obj_name, bpy_bones):
 
         elif chunk_id == chunks.SHAPE:
             shape_type = packed_reader.getf('<H')[0]
-            obj.imp.bone.safe_assign_enum_property(
+            utils.bone.safe_assign_enum_property(
                 bpy_bone.name,
                 xray.shape,
                 'type',
-                str(shape_type),
-                text.get_text(text.warn.ogf_bad_shape)
+                shape_type,
+                text.get_text(text.warn.ogf_bad_shape),
+                4
             )
 
             xray.shape.flags = packed_reader.getf('<H')[0]
@@ -113,13 +114,14 @@ def _import_bone_data(data, arm_obj_name, bpy_bones):
         elif chunk_id == chunks.IK_JOINT:
             ik = xray.ikjoint
 
-            joint_type = str(packed_reader.uint32())
-            obj.imp.bone.safe_assign_enum_property(
+            joint_type = packed_reader.uint32()
+            utils.bone.safe_assign_enum_property(
                 bpy_bone.name,
                 ik,
                 'type',
                 joint_type,
-                text.get_text(text.warn.ogf_bad_joint)
+                text.get_text(text.warn.ogf_bad_joint),
+                6
             )
 
             # limit x

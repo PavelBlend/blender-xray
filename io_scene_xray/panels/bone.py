@@ -116,6 +116,11 @@ class XRAY_PT_bone(ui.base.XRayPanel):
         row.label(text='Shape Type:', translate=False)
         row.prop(data.shape, 'type', text='', translate=False)
 
+        if data.shape.type == '4':
+            row = box.row()
+            row.label(text='Shape ID:', translate=False)
+            row.prop(data.shape, 'type_custom_id', text='', translate=False)
+
         verdif = data.shape.check_version_different()
         if verdif != 0:
             box.label(
@@ -171,9 +176,14 @@ class XRAY_PT_bone(ui.base.XRayPanel):
         row.label(text='Joint Type:', translate=False)
         row.prop(data.ikjoint, 'type', text='', translate=False)
 
+        if data.ikjoint.type == '6':
+            row = box.row()
+            row.label(text='Joint ID:', translate=False)
+            row.prop(data.ikjoint, 'type_custom_id', text='', translate=False)
+
         joint_type = int(data.ikjoint.type)
 
-        if joint_type and joint_type != 4:    # 4 - None type
+        if 0 < joint_type < 6 and joint_type != 4:    # 4 - None type
 
             if joint_type == 3:    # Wheel
                 box.label(
@@ -188,7 +198,7 @@ class XRAY_PT_bone(ui.base.XRayPanel):
             col.prop(data.ikjoint, 'spring', text='Spring')
             col.prop(data.ikjoint, 'damping', text='Damping')
 
-            if joint_type > 1:
+            if 1 < joint_type < 6:
                 prop_index = 0
                 for text in BONE_TEXT[joint_type]:
                     col = box.column(align=True)

@@ -8,6 +8,7 @@ from ... import motions
 from .... import text
 from .... import log
 from .... import rw
+from .... import utils
 
 
 BONE_LENGTH = 0.02
@@ -82,19 +83,6 @@ def create_bone(
     xray.length = length
 
     return bpy_bone
-
-
-def safe_assign_enum_property(bone_name, obj, prop_name, value, desc):
-    defval = getattr(obj, prop_name)
-    try:
-        setattr(obj, prop_name, value)
-    except TypeError:
-        log.warn(
-            desc,
-            bone=bone_name,
-            value=value,
-            default=defval
-        )
 
 
 @log.with_context(name='bone')
@@ -172,12 +160,13 @@ def import_bone(
 
         elif cid == fmt.Chunks.Bone.SHAPE:
             reader = rw.read.PackedReader(data)
-            safe_assign_enum_property(
+            utils.bone.safe_assign_enum_property(
                 bpy_bone.name,
                 xray.shape,
                 'type',
-                str(reader.getf('<H')[0]),
-                text.get_text(text.warn.ogf_bad_shape)
+                reader.getf('<H')[0],
+                text.get_text(text.warn.ogf_bad_shape),
+                4
             )
             xray.shape.flags = reader.getf('<H')[0]
             xray.shape.box_rot = reader.getf('<9f')
@@ -193,14 +182,15 @@ def import_bone(
 
         elif cid == fmt.Chunks.Bone.IK_JOINT:
             reader = rw.read.PackedReader(data)
-            value = str(reader.uint32())
+            value = reader.uint32()
             ik = xray.ikjoint
-            safe_assign_enum_property(
+            utils.bone.safe_assign_enum_property(
                 bpy_bone.name,
                 ik,
                 'type',
                 value,
-                text.get_text(text.warn.ogf_bad_joint)
+                text.get_text(text.warn.ogf_bad_joint),
+                6
             )
 
             ik.lim_x_min, ik.lim_x_max = reader.getf('<2f')

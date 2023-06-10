@@ -275,14 +275,14 @@ def import_ik_data(chunks, ogf_chunks, visual):
 
         xray.gamemtl = game_material
 
-        if shape_type <= 3:
-            shape.type = str(shape_type)
-        else:
-            log.warn(
-                text.warn.ogf_bad_shape,
-                file=visual.file_path,
-                bone=bone.name
-            )
+        utils.bone.safe_assign_enum_property(
+            bone.name,
+            xray.shape,
+            'type',
+            shape_type,
+            text.get_text(text.warn.ogf_bad_shape),
+            4
+        )
 
         shape.flags = shape_flags
 
@@ -298,14 +298,14 @@ def import_ik_data(chunks, ogf_chunks, visual):
         shape.cyl_hgh = cylinder_shape_height
         shape.cyl_rad = cylinder_shape_radius
 
-        if joint_type <= 5:
-            ik.type = str(joint_type)
-        else:
-            log.warn(
-                text.warn.ogf_bad_joint,
-                file=visual.file_path,
-                bone=bone.name
-            )
+        utils.bone.safe_assign_enum_property(
+            bone.name,
+            ik,
+            'type',
+            joint_type,
+            text.get_text(text.warn.ogf_bad_joint),
+            6
+        )
 
         # x-limits
         ik.lim_x_max = -limit_x_min

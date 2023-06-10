@@ -560,8 +560,8 @@ def _export(root_obj, cwriter, context):
 
         ik_writer.putf('<I', 0x1)  # version
         ik_writer.puts(bxray.gamemtl)
-        ik_writer.putf('<H', int(bxray.shape.type))
-        ik_writer.putf('<H', bxray.shape.flags)
+        shape_type = utils.bone.get_bone_prop(bxray.shape, 'type', 4)
+        ik_writer.putf('<2H', shape_type, bxray.shape.flags)
 
         # box shape rotation
         ik_writer.putf('<9f', *bxray.shape.box_rot)
@@ -606,7 +606,8 @@ def _export(root_obj, cwriter, context):
         # cylinder shape radius
         ik_writer.putf('<f', bxray.shape.cyl_rad * scale.x)
 
-        ik_writer.putf('<I', int(bxray.ikjoint.type))
+        ik_type = utils.bone.get_bone_prop(bxray.ikjoint, 'type', 6)
+        ik_writer.putf('<I', ik_type)
 
         # x axis
         x_min, x_max = utils.bone.get_ode_ik_limits(
