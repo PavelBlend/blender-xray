@@ -20,6 +20,7 @@ from . import transform
 from . import verify
 from . import update
 from . import viewer
+from . import omf_editor
 
 
 modules = (
@@ -43,7 +44,8 @@ modules = (
     transform,
     verify,
     update,
-    viewer
+    viewer,
+    omf_editor
 )
 
 
