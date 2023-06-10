@@ -9,8 +9,9 @@ from .. import utils
 from .. import text
 
 
-SOC_HUD_FOV = 30.5
 SOC_LEVEL_FOV = 67.5
+SOC_HUD_FOV_FACTOR = 0.45
+SOC_HUD_FOV = SOC_LEVEL_FOV * SOC_HUD_FOV_FACTOR
 DRAW_SIZE = 0.5
 
 
