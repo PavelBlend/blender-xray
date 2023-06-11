@@ -64,6 +64,7 @@ class XRAY_OT_check_update(utils.ie.BaseOperator):
 
 op_props = {
     'download_url': bpy.props.StringProperty(),
+    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
