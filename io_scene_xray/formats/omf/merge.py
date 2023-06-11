@@ -1,4 +1,5 @@
 # standart modules
+import zlib
 import struct
 
 # addon modules
@@ -21,6 +22,12 @@ class OmfMotion:
         self.params_end = None
 
         self.id_offset = None
+
+        self.quat_offset = None
+        self.quat_end = None
+
+        self.trn_offset = None
+        self.trn_end = None
 
 
 class OmfParts:
@@ -185,6 +192,15 @@ def merge_files(files):
                     motion_id = reader.getf('<H')[0]
                     omf_file.motions[motion_id] = motion
                     reader.skip(4 * 4)
+
+                    if params_ver == 4:
+                        # skip motion marks
+                        num_marks = reader.uint32()
+                        for mark_index in range(num_marks):
+                            reader.gets_a()    # mark name
+                            count = reader.uint32()
+                            reader.skip(count * 8)    # intervals
+
                     motion.params_end = reader.offset()
 
             # get motions chunk
@@ -223,6 +239,8 @@ def merge_files(files):
                 if r_absent:
                     reader.skip(fmt.QUAT_16_SZ)
                 else:
+                    motion.quat_offset = reader.offset() + fmt.CRC32_SZ
+                    motion.quat_end = motion.quat_offset + fmt.QUAT_16_SZ * length
                     reader.skip(fmt.QUAT_16_SZ * length + fmt.CRC32_SZ)
 
                 # skip translation
@@ -231,6 +249,8 @@ def merge_files(files):
                         trn_sz = fmt.TRN_16_SZ * length
                     else:
                         trn_sz = fmt.TRN_8_SZ * length
+                    motion.trn_offset = reader.offset() + fmt.CRC32_SZ
+                    motion.trn_end = motion.trn_offset + trn_sz
                     reader.skip(trn_sz + fmt.CRC32_SZ + fmt.TRN_INIT_SZ + fmt.TRN_SIZE_SZ)
                 else:
                     # translate x, y, z float
@@ -297,6 +317,20 @@ def merge_files(files):
 
             # get motion data
             data = omf_file.data[motion.motion_offset : motion.motion_end]
+
+            if motion.quat_offset is not None:
+                crc32_value = zlib.crc32(
+                    omf_file.data[motion.quat_offset : motion.quat_end]
+                )
+                crc32_data = struct.pack('<I', crc32_value)
+                omf_file.data[motion.quat_offset-4 : motion.quat_offset] = crc32_data
+
+            if motion.trn_offset is not None:
+                crc32_value = zlib.crc32(
+                    omf_file.data[motion.trn_offset : motion.trn_end]
+                )
+                crc32_data = struct.pack('<I', crc32_value)
+                omf_file.data[motion.trn_offset-4 : motion.trn_offset] = crc32_data
 
             # write motion chunk
             chunk_id = motion_id + 1
