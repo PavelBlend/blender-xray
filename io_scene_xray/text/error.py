@@ -1,5 +1,7 @@
 # general
 error_title = 'error'
+no_sel_files = 'No files selected!'
+few_files = 'More than one file needs to be selected!'
 fatal_import_error = 'import error. File not imported'
 mat_no_img = 'material has no image'
 mat_many_img = 'material has more the one image'

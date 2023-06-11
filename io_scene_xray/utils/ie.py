@@ -91,7 +91,10 @@ def has_selected_files(operator):
         has_sel = False
 
     if not has_sel:
-        operator.report({'ERROR'}, 'No files selected!')
+        operator.report(
+            {'ERROR'},
+            text.get_text(text.error.no_sel_files)
+        )
 
     return has_sel
 

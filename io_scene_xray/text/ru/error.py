@@ -8,6 +8,8 @@ from .. import error
 translations_table = (
     # general
     (error.error_title, 'ошибка'),
+    (error.no_sel_files, 'Нет выделенных файлов!'),
+    (error.few_files, 'Необходимо выделить больше одного файла!'),
     (error.fatal_import_error, 'ошибка импорта. Файл не импортирован'),
     (error.mat_no_img, 'материал не имеет изображения'),
     (error.mat_many_img, 'материал имеет больше одного изображения'),

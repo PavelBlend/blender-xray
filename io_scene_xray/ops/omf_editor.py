@@ -7,6 +7,7 @@ import bpy
 # addon modules
 from .. import utils
 from .. import formats
+from .. import text
 
 
 OMF_EXT = '.omf'
@@ -52,7 +53,7 @@ class XRAY_OT_save_omf(utils.ie.BaseOperator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-    def check(self, context):
+    def check(self, context):    # pragma: no cover
         change_ext = False
         filepath = self.filepath
 
@@ -96,7 +97,22 @@ class XRAY_OT_merge_omf(utils.ie.BaseOperator):
         omf_files = [
             os.path.join(self.directory, file.name)
             for file in self.files
+                if file.name
         ]
+
+        if not len(omf_files):
+            self.report(
+                {'ERROR'},
+                text.get_text(text.error.no_sel_files)
+            )
+            return {'CANCELLED'}
+
+        if len(omf_files) == 1:
+            self.report(
+                {'ERROR'},
+                text.get_text(text.error.few_files)
+            )
+            return {'CANCELLED'}
 
         merged_data = formats.omf.merge.merge_files(omf_files)
         XRAY_OT_save_omf.omf_data = merged_data
