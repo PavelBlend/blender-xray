@@ -300,6 +300,7 @@ def merge_files(files):
     )
 
     saved_motions = set()
+    motion_chunk_id = 1
 
     for omf_file in omf_files:
         for motion_id in range(omf_file.motion_count):
@@ -333,10 +334,10 @@ def merge_files(files):
                 omf_file.data[motion.trn_offset-4 : motion.trn_offset] = crc32_data
 
             # write motion chunk
-            chunk_id = motion_id + 1
             chunk_size = len(data)
-            motions_chunk += struct.pack('<2I', chunk_id, chunk_size)
+            motions_chunk += struct.pack('<2I', motion_chunk_id, chunk_size)
             motions_chunk += data
+            motion_chunk_id += 1
 
     # write file data
     file_data = bytearray()
