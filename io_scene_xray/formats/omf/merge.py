@@ -35,6 +35,7 @@ class OmfParts:
         self.data = None
         self.offset = None
         self.size = None
+        self.motion_count_offset = None
 
 
 class OmfFile:
@@ -178,6 +179,7 @@ def merge_files(files):
                     omf_parts.data = file_data
                     omf_parts.start = parts_offset
                     omf_parts.end = reader.offset()
+                    omf_parts.motion_count_offset = reader.offset()
 
                 # read motions params
                 motion_count = reader.getf('<H')[0]
@@ -258,46 +260,8 @@ def merge_files(files):
 
             motion.motion_end = reader.offset()
 
-    # merge params
-    params_data = bytearray()
-
-    # merge bone parts
-    params_data += omf_parts.data[omf_parts.start : omf_parts.end]
-
-    # merge motions params
-    motion_index = 0
-    motions_param_data = bytearray()
-
-    for omf_file in omf_files:
-        for motion_id in range(omf_file.motion_count):
-            motion = omf_file.motions[motion_id]
-
-            # replace motion id
-            id_data = struct.pack('<H', motion_index)
-            omf_file.data[motion.id_offset : motion.id_offset+2] = id_data
-
-            # append motion params
-            params = omf_file.data[motion.params_offset : motion.params_end]
-            motions_param_data += params
-
-            motion_index += 1
-
-    # write motions count
-    motions_count_data = struct.pack('<H', motion_index)
-
-    # write motions params
-    params_data += motions_count_data + motions_param_data
-
     # merge motions
-    motions_chunk = bytearray()
-
-    # write motions count chunk
-    motions_chunk += struct.pack(
-        '<3I',
-        omf.fmt.MOTIONS_COUNT_CHUNK,    # chunk id
-        4,    # chunk size
-        motion_index    # motion count
-    )
+    motions_chunks = bytearray()
 
     saved_motions = set()
     motion_chunk_id = 1
@@ -335,9 +299,48 @@ def merge_files(files):
 
             # write motion chunk
             chunk_size = len(data)
-            motions_chunk += struct.pack('<2I', motion_chunk_id, chunk_size)
-            motions_chunk += data
+            motions_chunks += struct.pack('<2I', motion_chunk_id, chunk_size)
+            motions_chunks += data
             motion_chunk_id += 1
+
+    # write motions count chunk
+    motions_count_chunk = struct.pack(
+        '<3I',
+        omf.fmt.MOTIONS_COUNT_CHUNK,    # chunk id
+        4,    # chunk size
+        motion_chunk_id - 1    # motion count
+    )
+    motions_chunk = motions_count_chunk + motions_chunks
+
+    # merge params
+    params_data = bytearray()
+
+    # merge bone parts
+    params_data += omf_parts.data[omf_parts.start : omf_parts.end]
+
+    # merge motions params
+    motion_index = 0
+    motions_param_data = bytearray()
+
+    for omf_file in omf_files:
+        for motion_id in range(omf_file.motion_count):
+            motion = omf_file.motions[motion_id]
+
+            # replace motion id
+            id_data = struct.pack('<H', motion_index)
+            omf_file.data[motion.id_offset : motion.id_offset+2] = id_data
+
+            # append motion params
+            params = omf_file.data[motion.params_offset : motion.params_end]
+            motions_param_data += params
+
+            motion_index += 1
+
+    # write motions count
+    motions_count_data = struct.pack('<H', motion_chunk_id - 1)
+
+    # write motions params
+    params_data += motions_count_data + motions_param_data
 
     # write file data
     file_data = bytearray()
