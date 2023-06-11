@@ -264,6 +264,7 @@ def merge_files(files):
     motions_chunks = bytearray()
 
     saved_motions = set()
+    motions_params = []
     motion_chunk_id = 1
 
     for omf_file in omf_files:
@@ -279,6 +280,7 @@ def merge_files(files):
                 continue
 
             saved_motions.add(motion.name)
+            motions_params.append((omf_file, motion))
 
             # get motion data
             data = omf_file.data[motion.motion_offset : motion.motion_end]
@@ -322,19 +324,16 @@ def merge_files(files):
     motion_index = 0
     motions_param_data = bytearray()
 
-    for omf_file in omf_files:
-        for motion_id in range(omf_file.motion_count):
-            motion = omf_file.motions[motion_id]
+    for omf_file, motion in motions_params:
+        # replace motion id
+        id_data = struct.pack('<H', motion_index)
+        omf_file.data[motion.id_offset : motion.id_offset+2] = id_data
 
-            # replace motion id
-            id_data = struct.pack('<H', motion_index)
-            omf_file.data[motion.id_offset : motion.id_offset+2] = id_data
+        # append motion params
+        params = omf_file.data[motion.params_offset : motion.params_end]
+        motions_param_data += params
 
-            # append motion params
-            params = omf_file.data[motion.params_offset : motion.params_end]
-            motions_param_data += params
-
-            motion_index += 1
+        motion_index += 1
 
     # write motions count
     motions_count_data = struct.pack('<H', motion_chunk_id - 1)
