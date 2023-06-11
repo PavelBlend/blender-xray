@@ -86,6 +86,11 @@ ogf_bad_joint = 'unsupported bone joint type using Custom'
 # omf export
 omf_exp_no_act = 'object action not found'
 
+# omf merge
+omf_merge_part_names = 'Bonepart names are not identical'
+omf_merge_part_bone_names = 'Bonepart bones names are not identical'
+omf_merge_motion_duplicate = 'Animation was not saved because an animation with the same name already exists'
+
 # scene import
 scene_no_file = 'cannot find file'
 

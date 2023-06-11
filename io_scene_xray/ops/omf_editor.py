@@ -8,6 +8,7 @@ import bpy
 from .. import utils
 from .. import formats
 from .. import text
+from .. import log
 
 
 OMF_EXT = '.omf'
@@ -92,6 +93,7 @@ class XRAY_OT_merge_omf(utils.ie.BaseOperator):
         for prop_name, prop_value in props.items():
             exec('{0} = props.get("{0}")'.format(prop_name))
 
+    @log.execute_with_logger
     @utils.set_cursor_state
     def execute(self, context):
         omf_files = [
@@ -114,7 +116,12 @@ class XRAY_OT_merge_omf(utils.ie.BaseOperator):
             )
             return {'CANCELLED'}
 
-        merged_data = formats.omf.merge.merge_files(omf_files)
+        try:
+            merged_data = formats.omf.merge.merge_files(omf_files)
+        except log.AppError as err:
+            log.err(err)
+            return {'CANCELLED'}
+
         XRAY_OT_save_omf.omf_data = merged_data
 
         return bpy.ops.io_scene_xray.save_omf('INVOKE_DEFAULT')

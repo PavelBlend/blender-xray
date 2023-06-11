@@ -2,14 +2,16 @@
 import struct
 
 # addon modules
+from . import fmt
 from .. import ogf
 from .. import omf
 from ... import rw
+from ... import text
+from ... import log
 
 
 class OmfMotion:
     def __init__(self):
-        self.file = None
         self.name = None
 
         self.motion_offset = None
@@ -30,22 +32,13 @@ class OmfParts:
 
 class OmfFile:
     def __init__(self):
-        self.file = None
+        self.file_path = None
         self.data = None
         self.motion_count = None
         self.motions = {}
 
 
-# data size
-CRC32_SZ = 4
-QUAT_16_SZ = 4 * 2    # x, y, z, w 16 bit
-TRN_8_SZ = 3 * 1    # x, y, z 8 bit
-TRN_16_SZ = 3 * 2    # x, y, z 16 bit
-TRN_FLOAT_SZ = 3 * 4    # x, y, z float
-TRN_INIT_SZ = 3 * 4    # x, y, z float
-TRN_SIZE_SZ = 3 * 4    # x, y, z float
-
-
+@log.with_context(name='merge-omf')
 def merge_files(files):
     required_params_ver = None
     required_part_count = None
@@ -56,15 +49,16 @@ def merge_files(files):
 
     omf_files = []
 
-    for file_index, file in enumerate(files):
+    for file_index, file_path in enumerate(files):
 
         # read file
-        with open(file, 'rb') as file:
+        with open(file_path, 'rb') as file:
             file_data = bytearray(file.read())
 
         reader = rw.read.PackedReader(file_data)
+
         omf_file = OmfFile()
-        omf_file.file = file
+        omf_file.file_path = file_path
         omf_file.data = file_data
         omf_files.append(omf_file)
 
@@ -79,7 +73,10 @@ def merge_files(files):
                 # read header
                 params_ver = reader.getf('<H')[0]
                 if not params_ver in (3, 4):
-                    raise 'ver'
+                    raise log.AppError(
+                        'unsupported params version',
+                        log.props(file=file_path)
+                    )
 
                 # read bone parts
                 parts_count = reader.getf('<H')[0]
@@ -106,40 +103,76 @@ def merge_files(files):
 
                 # check bone parts
                 if file_index:
+                    # Check boneparts for subsequent files.
+                    # Bonepart should be identical to
+                    # the bonepart for the first file.
+
                     if required_params_ver != params_ver:
-                        raise 'params_ver'
+                        raise log.AppError(
+                            'file have different params versions',
+                            log.props(file=file_path, version=params_ver)
+                        )
 
                     if required_part_count != parts_count:
-                        raise 'parts_count'
+                        raise log.AppError(
+                            text.get_text(text.error.omf_merge_parts_count),
+                            log.props(
+                                file=file_path,
+                                count=parts_count,
+                                must_be=required_part_count
+                            )
+                        )
 
-                    if required_part_names != part_names:
-                        raise 'part_names'
+                    if required_part_names == part_names:
+                        for part_name in required_part_names:
+                            req_bone_names = required_part_bone_names[part_name]
+                            bone_names = part_bone_names[part_name]
 
-                    for part_name in required_part_names:
-                        req_bone_names = required_part_bone_names[part_name]
-                        bone_names = part_bone_names[part_name]
-                        if req_bone_names != bone_names:
-                            raise 'part_bone_names'
+                            if req_bone_names != bone_names:
+                                log.warn(
+                                    text.warn.omf_merge_part_bone_names,
+                                    file=file_path,
+                                    part_name=part_name,
+                                    bone_names=bone_names,
+                                    saved_as=req_bone_names
+                                )
 
-                    for part_name in required_part_names:
-                        req_bone_ids = required_part_bone_ids[part_name]
-                        bone_ids = part_bone_ids[part_name]
-                        if req_bone_ids != bone_ids:
-                            raise 'part_bone_ids'
+                    else:
+                        log.warn(
+                            text.warn.omf_merge_part_names,
+                            file=file_path,
+                            parts=part_names,
+                            saved_as=required_part_names
+                        )
+
+                        for req_name, part_name in zip(required_part_names, part_names):
+                            req_bone_names = required_part_bone_names[req_name]
+                            bone_names = part_bone_names[part_name]
+
+                            if req_bone_names != bone_names:
+                                log.warn(
+                                    text.warn.omf_merge_part_bone_names,
+                                    file=file_path,
+                                    part_name=part_name,
+                                    bone_names=bone_names,
+                                    saved_as=req_bone_names
+                                )
 
                 else:
+                    # params for first file
                     required_params_ver = params_ver
                     required_part_count = parts_count
                     required_part_names = part_names
                     required_part_bone_names = part_bone_names
                     required_part_bone_ids = part_bone_ids
 
+                    # bone part for first file
                     omf_parts = OmfParts()
                     omf_parts.data = file_data
                     omf_parts.start = parts_offset
                     omf_parts.end = reader.offset()
 
-                # read motions
+                # read motions params
                 motion_count = reader.getf('<H')[0]
 
                 for _ in range(motion_count):
@@ -147,7 +180,6 @@ def merge_files(files):
 
                     motion.params_offset = reader.offset()
                     motion.name = reader.gets()
-                    motion.file = file
                     reader.skip(4 + 2)    # flags, part
                     motion.id_offset = reader.offset()
                     motion_id = reader.getf('<H')[0]
@@ -155,7 +187,7 @@ def merge_files(files):
                     reader.skip(4 * 4)
                     motion.params_end = reader.offset()
 
-            # read motions chunk
+            # get motions chunk
             elif chunk_id == ogf.fmt.Chunks_v4.S_MOTIONS_2:
                 motions_chunk_offset = reader.offset()
                 reader.skip(chunk_size)
@@ -163,10 +195,14 @@ def merge_files(files):
             else:
                 reader.skip(chunk_size)
 
+        # read motions chunk
         reader.set_offset(motions_chunk_offset)
+
+        # read motions count chunk
         chunk_id, chunk_size, motions_count = reader.getf('<3I')
         omf_file.motion_count = motions_count
 
+        # read motions
         for motion_id in range(motions_count):
             chunk_id, chunk_size = reader.getf('<2I')
 
@@ -185,58 +221,93 @@ def merge_files(files):
 
                 # skip rotation
                 if r_absent:
-                    reader.skip(QUAT_16_SZ)
+                    reader.skip(fmt.QUAT_16_SZ)
                 else:
-                    reader.skip(QUAT_16_SZ * length + CRC32_SZ)
+                    reader.skip(fmt.QUAT_16_SZ * length + fmt.CRC32_SZ)
 
                 # skip translation
                 if t_present:
                     if hq:
-                        trn_sz = TRN_16_SZ * length
+                        trn_sz = fmt.TRN_16_SZ * length
                     else:
-                        trn_sz = TRN_8_SZ * length
-                    reader.skip(trn_sz + CRC32_SZ + TRN_INIT_SZ + TRN_SIZE_SZ)
+                        trn_sz = fmt.TRN_8_SZ * length
+                    reader.skip(trn_sz + fmt.CRC32_SZ + fmt.TRN_INIT_SZ + fmt.TRN_SIZE_SZ)
                 else:
                     # translate x, y, z float
-                    reader.skip(TRN_FLOAT_SZ)
+                    reader.skip(fmt.TRN_FLOAT_SZ)
 
             motion.motion_end = reader.offset()
 
     # merge params
     params_data = bytearray()
 
+    # merge bone parts
     params_data += omf_parts.data[omf_parts.start : omf_parts.end]
 
+    # merge motions params
     motion_index = 0
-    motions_data = bytearray()
+    motions_param_data = bytearray()
+
     for omf_file in omf_files:
         for motion_id in range(omf_file.motion_count):
-            id_data = struct.pack('<H', motion_index)
             motion = omf_file.motions[motion_id]
+
+            # replace motion id
+            id_data = struct.pack('<H', motion_index)
             omf_file.data[motion.id_offset : motion.id_offset+2] = id_data
-            motion_data = omf_file.data[motion.params_offset : motion.params_end]
-            motions_data += motion_data
+
+            # append motion params
+            params = omf_file.data[motion.params_offset : motion.params_end]
+            motions_param_data += params
+
             motion_index += 1
 
+    # write motions count
     motions_count_data = struct.pack('<H', motion_index)
 
-    params_data += motions_count_data + motions_data
+    # write motions params
+    params_data += motions_count_data + motions_param_data
 
     # merge motions
     motions_chunk = bytearray()
 
-    motions_chunk += struct.pack('<3I', 0, 4, motion_index)    # motion count
+    # write motions count chunk
+    motions_chunk += struct.pack(
+        '<3I',
+        omf.fmt.MOTIONS_COUNT_CHUNK,    # chunk id
+        4,    # chunk size
+        motion_index    # motion count
+    )
+
+    saved_motions = set()
 
     for omf_file in omf_files:
         for motion_id in range(omf_file.motion_count):
             motion = omf_file.motions[motion_id]
-            motion_data = omf_file.data[motion.motion_offset : motion.motion_end]
-            motions_chunk += struct.pack('<2I', motion_id+1, len(motion_data))
-            motions_chunk += motion_data
 
-    # merge file data
+            if motion.name in saved_motions:
+                log.warn(
+                    text.warn.omf_merge_motion_duplicate,
+                    file=omf_file.file_path,
+                    motion=motion.name
+                )
+                continue
+
+            saved_motions.add(motion.name)
+
+            # get motion data
+            data = omf_file.data[motion.motion_offset : motion.motion_end]
+
+            # write motion chunk
+            chunk_id = motion_id + 1
+            chunk_size = len(data)
+            motions_chunk += struct.pack('<2I', chunk_id, chunk_size)
+            motions_chunk += data
+
+    # write file data
     file_data = bytearray()
 
+    # write motions chunk
     file_data += struct.pack(
         '<2I',
         ogf.fmt.Chunks_v4.S_MOTIONS_2,
@@ -244,6 +315,7 @@ def merge_files(files):
     )
     file_data += motions_chunk
 
+    # write params chunk
     file_data += struct.pack(
         '<2I',
         ogf.fmt.Chunks_v4.S_SMPARAMS_1,

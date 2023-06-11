@@ -9,7 +9,6 @@ translations_table = (
     # general
     (error.error_title, 'ошибка'),
     (error.no_sel_files, 'Нет выделенных файлов!'),
-    (error.few_files, 'Необходимо выделить больше одного файла!'),
     (error.fatal_import_error, 'ошибка импорта. Файл не импортирован'),
     (error.mat_no_img, 'материал не имеет изображения'),
     (error.mat_many_img, 'материал имеет больше одного изображения'),
@@ -165,6 +164,10 @@ translations_table = (
     (error.omf_no_bone, 'арматура не имеет всех костей, которые есть в omf файле'),
     (error.omf_nothing, 'ничего не импортировано. Измените настройки импорта'),
     (error.omf_nothing_imp, 'Ничего не импортируется!'),
+
+    # omf merge
+    (error.few_files, 'Необходимо выделить больше одного файла!'),
+    (error.omf_merge_parts_count, 'Файл имеет разное количество boneparts'),
 
     # scene import
     (error.scene_bad_file, 'недопустимый scene selection файл. Не найден "scene version" блок'),
