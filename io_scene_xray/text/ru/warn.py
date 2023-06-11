@@ -95,6 +95,11 @@ translations_table = (
     # omf import
     (warn.omf_exp_no_act, 'не найден action объекта'),
 
+    # omf merge
+    (warn.omf_merge_part_names, 'Имена bonepart не идентичны'),
+    (warn.omf_merge_part_bone_names, 'Имена костей bonepart не идентичны'),
+    (warn.omf_merge_motion_duplicate, 'Анимация не сохранена, так как анимация с таким именем уже существует'),
+
     # scene import
     (warn.scene_no_file, 'не найден файл'),
 

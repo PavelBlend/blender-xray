@@ -287,6 +287,22 @@ class XRAY_PT_verify_tools(ui.base.XRayPanel):
         col.operator(ops.invalid_sg.XRAY_OT_check_invalid_sg_objs.bl_idname)
 
 
+class XRAY_PT_omf_editor(ui.base.XRayPanel):
+    bl_label = 'OMF Editor'
+    bl_space_type = 'VIEW_3D'
+    bl_category = ui.base.CATEGORY
+    bl_options = {'DEFAULT_CLOSED'}
+    if utils.version.IS_28:
+        bl_region_type = 'UI'
+    else:
+        bl_region_type = 'TOOLS'
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+        col.operator(ops.omf_editor.XRAY_OT_merge_omf.bl_idname)
+
+
 class XRAY_PT_transforms(ui.base.XRayPanel):
     bl_label = 'Transforms'
     bl_category = ui.base.CATEGORY
@@ -715,6 +731,7 @@ class XRAY_PT_export_operators(ImportExportBasePanel):
 classes = (
     XRAY_PT_skls_animations,
     XRAY_PT_viewer,
+    XRAY_PT_omf_editor,
     XRAY_PT_transforms,
     XRAY_PT_add,
     XRAY_PT_verify_tools,

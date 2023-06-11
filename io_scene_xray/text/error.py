@@ -1,5 +1,6 @@
 # general
 error_title = 'error'
+no_sel_files = 'No files selected!'
 fatal_import_error = 'import error. File not imported'
 mat_no_img = 'material has no image'
 mat_many_img = 'material has more the one image'
@@ -155,6 +156,10 @@ omf_nothing_exp = 'Nothing is exported!'
 omf_no_bone = 'armature does not have all bones that file has'
 omf_nothing = 'nothing was imported. Change import settings'
 omf_nothing_imp = 'Nothing is imported!'
+
+# omf merge
+few_files = 'More than one file needs to be selected'
+omf_merge_parts_count = 'File have different boneparts count'
 
 # scene import
 scene_bad_file = 'bad scene selection file. Cannot find "scene version" chunk'

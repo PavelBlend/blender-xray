@@ -92,16 +92,6 @@ def quat_to_euler(quaternion):
     )).to_euler('ZXY')
 
 
-# data size
-CRC32_SZ = 4
-QUAT_16_SZ = 4 * 2    # x, y, z, w 16 bit
-TRN_8_SZ = 3 * 1    # x, y, z 8 bit
-TRN_16_SZ = 3 * 2    # x, y, z 16 bit
-TRN_FLOAT_SZ = 3 * 4    # x, y, z float
-TRN_INIT_SZ = 3 * 4    # x, y, z float
-TRN_SIZE_SZ = 3 * 4    # x, y, z float
-
-
 def skip_motion(packed_reader, bone_names, length):
     for bone_index in range(len(bone_names)):
         flags = packed_reader.getf('<B')[0]
@@ -111,20 +101,20 @@ def skip_motion(packed_reader, bone_names, length):
 
         # skip rotation
         if r_absent:
-            packed_reader.skip(QUAT_16_SZ)
+            packed_reader.skip(fmt.QUAT_16_SZ)
         else:
-            packed_reader.skip(QUAT_16_SZ * length + CRC32_SZ)
+            packed_reader.skip(fmt.QUAT_16_SZ * length + fmt.CRC32_SZ)
 
         # skip translation
         if t_present:
             if hq:
-                trn_sz = TRN_16_SZ * length
+                trn_sz = fmt.TRN_16_SZ * length
             else:
-                trn_sz = TRN_8_SZ * length
-            packed_reader.skip(trn_sz + CRC32_SZ + TRN_INIT_SZ + TRN_SIZE_SZ)
+                trn_sz = fmt.TRN_8_SZ * length
+            packed_reader.skip(trn_sz + fmt.CRC32_SZ + fmt.TRN_INIT_SZ + fmt.TRN_SIZE_SZ)
         else:
             # translate x, y, z float
-            packed_reader.skip(TRN_FLOAT_SZ)
+            packed_reader.skip(fmt.TRN_FLOAT_SZ)
 
 
 def read_motion(packed_reader, context, motions_params, bone_names, version):
