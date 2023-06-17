@@ -200,6 +200,9 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
             bm.from_mesh(mesh)
             bmesh.ops.triangulate(bm, faces=bm.faces)
 
+            # search invalid faces
+            invalid_faces = set()
+
             for uv_name in bm.loops.layers.uv.keys():
                 uv_layer = bm.loops.layers.uv[uv_name]
                 for face in bm.faces:
@@ -214,12 +217,19 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
                     perimeter = dist_1 + dist_2 + dist_3
 
                     if perimeter < self.EPS_UV:
-                        bpy.ops.object.mode_set(mode='EDIT')
-                        bpy.ops.mesh.select_mode(type='VERT')
-                        bpy.ops.object.mode_set(mode='OBJECT')
-                        for vert in face.verts:
-                            mesh.vertices[vert.index].select = True
-                        is_invalid = True
+                        invalid_faces.add(face)
+
+            # select vertices
+            if invalid_faces:
+                bpy.ops.object.mode_set(mode='EDIT')
+                bpy.ops.mesh.select_mode(type='VERT')
+                bpy.ops.object.mode_set(mode='OBJECT')
+
+                for face in invalid_faces:
+                    for vert in face.verts:
+                        # select vertices as model is triangulated
+                        mesh.vertices[vert.index].select = True
+                is_invalid = True
 
         return is_invalid
 
