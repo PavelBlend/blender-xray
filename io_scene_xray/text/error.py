@@ -118,7 +118,8 @@ level_cform_empty_mat_slot = 'cform-object has empty material slot'
 level_unsupport_ver = 'unsupported game level version'
 
 # object export main
-object_ungroupped_verts = 'mesh-object has vertices that are not tied to any exportable bones'
+object_nonexp_group_verts = 'mesh-object has vertices that are not tied to any exportable bones'
+object_ungroupped_verts = 'mesh-object has vertices that don\'t have vertex groups'
 object_duplicate_bones = 'object has duplicate bones'
 object_many_arms = 'root object has more than one armature'
 object_no_meshes = 'root object has no meshes'

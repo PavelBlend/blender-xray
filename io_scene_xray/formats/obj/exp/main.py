@@ -58,26 +58,43 @@ def validate_vertex_weights(bpy_obj, arm_obj):
         for group in bpy_obj.vertex_groups
             if group.name in exportable_bones_names
     ]
-    has_ungrouped_vertices = None
-    ungrouped_vertices_count = 0
+
+    has_ungrouped_verts = None
+    ungrouped_verts_count = 0
+
+    has_nonexp_vert_groups = None
+    nonexp_group_verts_count = 0
+
     for vertex in bpy_obj.data.vertices:
-        if not len(vertex.groups):
-            has_ungrouped_vertices = True
-            ungrouped_vertices_count += 1
-        else:
+
+        if len(vertex.groups):
             exportable_groups_count = 0
             for vertex_group in vertex.groups:
                 if vertex_group.group in exportable_groups_indices:
                     exportable_groups_count += 1
             if not exportable_groups_count:
-                has_ungrouped_vertices = True
-                ungrouped_vertices_count += 1
-    if has_ungrouped_vertices:
+                has_nonexp_vert_groups = True
+                nonexp_group_verts_count += 1
+
+        else:
+            has_ungrouped_verts = True
+            ungrouped_verts_count += 1
+
+    if has_ungrouped_verts:
         raise log.AppError(
             text.error.object_ungroupped_verts,
             log.props(
                 object=bpy_obj.name,
-                vertices_count=ungrouped_vertices_count
+                vertices_count=ungrouped_verts_count
+            )
+        )
+
+    if has_nonexp_vert_groups:
+        raise log.AppError(
+            text.error.object_nonexp_group_verts,
+            log.props(
+                object=bpy_obj.name,
+                vertices_count=nonexp_group_verts_count
             )
         )
 
@@ -176,7 +193,7 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
     loc_space, rot_space, scl_space = utils.ie.get_object_world_matrix(bpy_root)
 
     def write_mesh(bpy_obj):
-        meshes.add(bpy_obj)
+        # write mesh chunk
         mesh_writer = rw.write.ChunkedWriter()
         used_material_names = mesh.export_mesh(
             bpy_obj,
@@ -187,24 +204,31 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             rot_space,
             scl_space
         )
+        mesh_writers.append(mesh_writer)
+        meshes.add(bpy_obj)
+
+        # collect materials and uv-map names
         uv_layers = bpy_obj.data.uv_layers
+
+        for material in bpy_obj.data.materials:
+            if material:
+                if material.name in used_material_names:
+                    materials.add(material)
+                    uv_maps_names[material.name] = uv_layers.active.name
+
         if len(uv_layers) > 1:
             log.warn(
                 text.warn.obj_many_uv,
                 exported_uv=uv_layers.active.name,
                 mesh_object=bpy_obj.name
             )
-        mesh_writers.append(mesh_writer)
-        for material in bpy_obj.data.materials:
-            if not material:
-                continue
-            if material.name in used_material_names:
-                materials.add(material)
-                uv_maps_names[material.name] = uv_layers.active.name
 
-    def scan_r(bpy_obj):
+    def scan_root_obj(bpy_obj):
+        # scan bone shape helper object
         if utils.obj.is_helper_object(bpy_obj):
             return
+
+        # scan mesh object
         if bpy_obj.type == 'MESH':
             arm_obj = utils.obj.get_armature_object(bpy_obj)
             if arm_obj:
@@ -212,12 +236,17 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
                 armatures.add(arm_obj)
             else:
                 write_mesh(bpy_obj)
+
+        # scan armature object
         elif bpy_obj.type == 'ARMATURE':
             armatures.add(bpy_obj)
-        for child in bpy_obj.children:
-            scan_r(child)
 
-    scan_r(bpy_root)
+        # scan children
+        for child in bpy_obj.children:
+            scan_root_obj(child)
+
+    scan_root_obj(bpy_root)
+
     if len(armatures) > 1:
         raise log.AppError(
             text.error.object_many_arms,
@@ -227,15 +256,21 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             )
         )
 
+    # find armature object
     if armatures:
         bpy_arm_obj = list(armatures)[0]
     else:
         bpy_arm_obj = None
 
+    # write armature meshes
     if armature_meshes:
+
+        # one mesh
         if len(armature_meshes) == 1:
             mesh_object = list(armature_meshes)[0]
             write_mesh(mesh_object)
+
+        # many meshes
         else:
             merged_obj = merge_meshes(armature_meshes)
             write_mesh(merged_obj)
@@ -244,11 +279,13 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
                 text.warn.object_merged,
                 objects=mesh_names
             )
+
     if not mesh_writers:
         raise log.AppError(
             text.error.object_no_meshes,
             log.props(object=bpy_obj.name)
         )
+
     if len(mesh_writers) > 1 and bpy_arm_obj:
         raise log.AppError(
             text.error.object_skel_many_meshes,

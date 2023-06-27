@@ -72,11 +72,15 @@ def create_object(name, data):
 
 
 def get_armature_object(bpy_obj):
-    arm_mods = []    # armature modifiers
     armature = None
+    arm_mods = []    # armature modifiers
+
+    # collect armature modifiers
     for modifier in bpy_obj.modifiers:
-        if (modifier.type == 'ARMATURE') and modifier.object:
+        if modifier.type == 'ARMATURE' and modifier.object:
             arm_mods.append(modifier)
+
+    # one armature case
     if len(arm_mods) == 1:
         modifier = arm_mods[0]
         if not modifier.show_viewport:
@@ -86,19 +90,26 @@ def get_armature_object(bpy_obj):
                 modifier=modifier.name
             )
         armature = modifier.object
+
+    # many armatures
     elif len(arm_mods) > 1:
+
+        # collect used armature modifiers
         used_mods = []
         for modifier in arm_mods:
             if modifier.show_viewport:
                 used_mods.append(modifier)
+
         if len(used_mods) > 1:
             raise log.AppError(
                 text.error.object_many_arms,
                 log.props(
                     root_object=bpy_obj.name,
-                    armature_objects=[mod.object.name for mod in used_mods]
+                    armature_objects=[mod.object.name for mod in used_mods],
+                    armature_modifiers=[mod.name for mod in used_mods]
                 )
             )
         else:
             armature = used_mods[0].object
+
     return armature

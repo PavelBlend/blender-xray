@@ -126,7 +126,8 @@ translations_table = (
     (error.level_unsupport_ver, 'неподдерживаемая версия game level формата'),
 
     # object export main
-    (error.object_ungroupped_verts, 'меш-объект имеет вершины, которые не привязаны к экспортируемым костям'),
+    (error.object_nonexp_group_verts, 'меш-объект имеет вершины, которые не привязаны к экспортируемым костям'),
+    (error.object_ungroupped_verts, 'меш-объект имеет вершины, которые не имеют групп вершин'),
     (error.object_duplicate_bones, 'объект имеет дубликаты костей'),
     (error.object_many_arms, 'root-объект имеет более одной арматуры'),
     (error.object_no_meshes, 'root-объект не имеет мешей'),
