@@ -234,31 +234,38 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             if arm_obj:
                 armature_meshes.add(bpy_obj)
                 armatures.add(arm_obj)
+            elif armatures:
+                armature_meshes.add(bpy_obj)
             else:
                 write_mesh(bpy_obj)
-
-        # scan armature object
-        elif bpy_obj.type == 'ARMATURE':
-            armatures.add(bpy_obj)
 
         # scan children
         for child in bpy_obj.children:
             scan_root_obj(child)
 
+    def search_armatures(bpy_obj):
+        if bpy_obj.type == 'ARMATURE':
+            armatures.add(bpy_obj)
+
+        for child in bpy_obj.children:
+            search_armatures(child)
+
+    search_armatures(bpy_root)
     scan_root_obj(bpy_root)
 
-    if len(armatures) > 1:
+    # find armature object
+    if len(armatures) == 1:
+        bpy_arm_obj = list(armatures)[0]
+
+    elif len(armatures) > 1:
         raise log.AppError(
             text.error.object_many_arms,
             log.props(
-                root_object=bpy_obj.name,
-                armature_objects=[arm_obj.name for arm_obj in armatures]
+                root_object=bpy_root.name,
+                armature_objects=[obj.name for obj in armatures]
             )
         )
 
-    # find armature object
-    if armatures:
-        bpy_arm_obj = list(armatures)[0]
     else:
         bpy_arm_obj = None
 
@@ -283,13 +290,13 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
     if not mesh_writers:
         raise log.AppError(
             text.error.object_no_meshes,
-            log.props(object=bpy_obj.name)
+            log.props(object=bpy_root.name)
         )
 
     if len(mesh_writers) > 1 and bpy_arm_obj:
         raise log.AppError(
             text.error.object_skel_many_meshes,
-            log.props(object=bpy_obj.name)
+            log.props(object=bpy_root.name)
         )
 
     if bpy_arm_obj:
@@ -349,6 +356,7 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
                     bones=invalid_bones
                 )
             )
+
     if len(root_bones) > 1:
         raise log.AppError(
             text.error.object_many_parents,
