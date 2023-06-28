@@ -63,6 +63,7 @@ translations_table = (
     (warn.object_legacy_motionrefs, 'пропущены устаревшие motion references данные'),
     (warn.object_set_dynamic, 'скелетный объект имеет неправильный тип. Тип объекта записан как Dynamic'),
     (warn.object_arm_mod_disabled, 'модификатор armature отключён в 3D viewport'),
+    (warn.obj_used_arm, 'Не указан объект в модификаторе "Armature". Был использован объект из иерархии'),
 
     # object export mesh
     (warn.object_sg_smooth, 'Несовместимость Maya-сглаживания: сглаженные смежные рёбра имеют различные группы сглаживания'),

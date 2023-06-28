@@ -193,6 +193,7 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
     materials = set()
     meshes = set()
     armature_meshes = set()
+    meshes_without_arms = set()
     mesh_writers = []
     uv_maps_names = {}
     merged_obj = None
@@ -243,6 +244,7 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
                 armatures.add(arm_obj)
             elif armatures:
                 armature_meshes.add(bpy_obj)
+                meshes_without_arms.add(bpy_obj)
             else:
                 write_mesh(bpy_obj)
 
@@ -263,6 +265,14 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
     # find armature object
     if len(armatures) == 1:
         bpy_arm_obj = list(armatures)[0]
+
+        if meshes_without_arms:
+            for obj in meshes_without_arms:
+                log.warn(
+                    text.warn.obj_used_arm,
+                    used_armature=bpy_arm_obj.name,
+                    mesh_object=obj.name
+                )
 
     elif len(armatures) > 1:
         raise log.AppError(
