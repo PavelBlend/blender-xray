@@ -180,28 +180,28 @@ def data_blocks_count_info():
         info(objs_count)
 
     if statistics.mshs_count:
-        objs_count = '    Meshes: {}'.format(statistics.mshs_count)
-        info(objs_count)
+        mshs_count = '    Meshes: {}'.format(statistics.mshs_count)
+        info(mshs_count)
 
     if statistics.arms_count:
-        objs_count = '    Armatures: {}'.format(statistics.arms_count)
-        info(objs_count)
+        arms_count = '    Armatures: {}'.format(statistics.arms_count)
+        info(arms_count)
 
     if statistics.mats_count:
-        objs_count = '    Materials: {}'.format(statistics.mats_count)
-        info(objs_count)
+        mats_count = '    Materials: {}'.format(statistics.mats_count)
+        info(mats_count)
 
     if statistics.texs_count:
-        objs_count = '    Textures: {}'.format(statistics.texs_count)
-        info(objs_count)
+        texs_count = '    Textures: {}'.format(statistics.texs_count)
+        info(texs_count)
 
     if statistics.imgs_count:
-        objs_count = '    Images: {}'.format(statistics.imgs_count)
-        info(objs_count)
+        imgs_count = '    Images: {}'.format(statistics.imgs_count)
+        info(imgs_count)
 
     if statistics.acts_count:
-        objs_count = '    Actions: {}'.format(statistics.acts_count)
-        info(objs_count)
+        acts_count = '    Actions: {}'.format(statistics.acts_count)
+        info(acts_count)
 
 
 def timer(method):
