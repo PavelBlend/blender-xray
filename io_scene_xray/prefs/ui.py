@@ -1,3 +1,6 @@
+# standart modules
+import os
+
 # blender modules
 import rna_keymap_ui
 
@@ -34,10 +37,13 @@ def draw_path_prop(prefs, prop):
     split = get_split(layout)
     split.label(text=path_props_names[prop] + ':')
     auto_prop = props.build_auto_id(prop)
+
     if getattr(prefs, auto_prop) and not getattr(prefs, prop):
         row = split.row(align=True)
         row_prop = row.row(align=True)
         row_prop.enabled = False
+        if not os.path.exists(getattr(prefs, auto_prop)):
+            row_prop.alert = True
         row_prop.prop(prefs, auto_prop, text='')
         operator = row.operator(
             ops.XRAY_OT_explicit_path.bl_idname,
@@ -45,7 +51,10 @@ def draw_path_prop(prefs, prop):
             text=''
         )
         operator.path = prop
+
     else:
+        if not os.path.exists(getattr(prefs, prop)):
+            split.alert = True
         split.prop(prefs, prop, text='')
 
 
