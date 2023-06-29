@@ -21,47 +21,50 @@ def find_data(operator, context):
         elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 objects.add(obj)
-        elif operator.edit_mode == 'ALL':
+        else:    # all
             for obj in bpy.data.objects:
                 objects.add(obj)
 
     # find meshes
     if operator.edit_data in ('MESH', 'ALL'):
         if operator.edit_mode == 'ACTIVE':
-            if context.active_object.type == 'MESH':
-                meshes.add(context.active_object.data)
+            active_obj = context.active_object
+            if active_obj and active_obj.type == 'MESH':
+                meshes.add(active_obj.data)
         elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 if obj.type == 'MESH':
                     meshes.add(obj.data)
-        elif operator.edit_mode == 'ALL':
+        else:    # all
             for mesh in bpy.data.meshes:
                 meshes.add(mesh)
 
     # find materials
     if operator.edit_data in ('MATERIAL', 'ALL'):
         if operator.edit_mode == 'ACTIVE':
-            if context.active_object.type == 'MESH':
-                materials.add(context.active_object.active_material)
+            active_obj = context.active_object
+            if active_obj and active_obj.type == 'MESH':
+                materials.add(active_obj.active_material)
         elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 if obj.type == 'MESH':
                     for material in obj.data.materials:
                         materials.add(material)
-        elif operator.edit_mode == 'ALL':
+        else:    # all
             for material in bpy.data.materials:
                 materials.add(material)
 
     # find bones
     if operator.edit_data in ('BONE', 'ALL'):
         if operator.edit_mode == 'ACTIVE':
-            if context.active_object.type == 'ARMATURE':
-                armatures.add(context.active_object)
+            active_obj = context.active_object
+            if active_obj and active_obj.type == 'ARMATURE':
+                armatures.add(active_obj)
         elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 if obj.type == 'ARMATURE':
                     armatures.add(obj)
-        elif operator.edit_mode == 'ALL':
+        else:    # all
             for obj in bpy.data.objects:
                 if obj.type == 'ARMATURE':
                     armatures.add(obj)
@@ -69,8 +72,9 @@ def find_data(operator, context):
     # find actions
     if operator.edit_data in ('ACTION', 'ALL'):
         if operator.edit_mode == 'ACTIVE':
-            if context.active_object.animation_data:
-                actions.add(context.active_object.animation_data.action)
+            active_obj = context.active_object
+            if active_obj and active_obj.animation_data:
+                actions.add(active_obj.animation_data.action)
         elif operator.edit_mode == 'SELECTED':
             for obj in context.selected_objects:
                 for motion in obj.xray.motions_collection:
@@ -79,7 +83,7 @@ def find_data(operator, context):
                         actions.add(action)
                 if obj.animation_data:
                     actions.add(obj.animation_data.action)
-        elif operator.edit_mode == 'ALL':
+        else:    # all
             for action in bpy.data.actions:
                 actions.add(action)
 
@@ -90,7 +94,7 @@ def find_data(operator, context):
     return objects, meshes, materials, armatures, actions
 
 
-def draw_function(self, context):
+def draw_function(self, context):    # pragma: no cover
     lay = self.layout
     col = lay.column(align=True)
     col.label(text='Edit Data:')
