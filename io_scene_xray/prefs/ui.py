@@ -32,7 +32,24 @@ def prop_bool(layout, data, prop):
     layout.prop(data, prop)
 
 
-def draw_path_prop(prefs, prop):
+def check_path(prefs, prop, lay, isfile):
+    path = getattr(prefs, prop)
+
+    if os.path.exists(path):
+
+        if isfile:
+            if os.path.isdir(path):
+                lay.alert = True
+
+        else:
+            if os.path.isfile(path):
+                lay.alert = True
+
+    else:
+        lay.alert = True
+
+
+def draw_path_prop(prefs, prop, isfile):
     layout = prefs.layout
     split = get_split(layout)
     split.label(text=path_props_names[prop] + ':')
@@ -42,8 +59,7 @@ def draw_path_prop(prefs, prop):
         row = split.row(align=True)
         row_prop = row.row(align=True)
         row_prop.enabled = False
-        if not os.path.exists(getattr(prefs, auto_prop)):
-            row_prop.alert = True
+        check_path(prefs, auto_prop, row_prop, isfile)
         row_prop.prop(prefs, auto_prop, text='')
         operator = row.operator(
             ops.XRAY_OT_explicit_path.bl_idname,
@@ -53,8 +69,7 @@ def draw_path_prop(prefs, prop):
         operator.path = prop
 
     else:
-        if not os.path.exists(getattr(prefs, prop)):
-            split.alert = True
+        check_path(prefs, prop, split, isfile)
         split.prop(prefs, prop, text='')
 
 
@@ -75,18 +90,18 @@ def draw_paths(prefs):
     layout.separator()
 
     # folders
-    draw_path_prop(prefs, 'gamedata_folder')
-    draw_path_prop(prefs, 'textures_folder')
-    draw_path_prop(prefs, 'meshes_folder')
-    draw_path_prop(prefs, 'levels_folder')
-    draw_path_prop(prefs, 'objects_folder')
+    draw_path_prop(prefs, 'gamedata_folder', False)
+    draw_path_prop(prefs, 'textures_folder', False)
+    draw_path_prop(prefs, 'meshes_folder', False)
+    draw_path_prop(prefs, 'levels_folder', False)
+    draw_path_prop(prefs, 'objects_folder', False)
 
     layout.separator()
 
     # files
-    draw_path_prop(prefs, 'eshader_file')
-    draw_path_prop(prefs, 'cshader_file')
-    draw_path_prop(prefs, 'gamemtl_file')
+    draw_path_prop(prefs, 'eshader_file', True)
+    draw_path_prop(prefs, 'cshader_file', True)
+    draw_path_prop(prefs, 'gamemtl_file', True)
 
 
 def draw_defaults(prefs):
