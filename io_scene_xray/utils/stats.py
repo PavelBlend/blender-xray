@@ -125,20 +125,32 @@ def info(data):
     statistics.info(data)
 
 
+def normalize_time(time_sec):
+    if time_sec <= 60:
+        norm_time = '{0:.3f} sec'.format(time_sec)
+
+    else:
+        mins = int(time_sec // 60)
+        secs = time_sec % 60
+        norm_time = '{0:d} min {1:.3f} sec'.format(mins, secs)
+
+    return norm_time
+
+
 def end_time(start_time):
     global statistics
 
     end_time = time.time()
     total_time = end_time - start_time
 
-    total_time_str = '{0:.3f} sec'.format(total_time)
+    total_time_str = normalize_time(total_time)
 
     if statistics.props:
         file_path = statistics.props[0]
 
         if statistics.time_stage:
-            time_stage_str = '{0:.3f} sec'.format(statistics.time_stage)
-            others_time_str = '{0:.3f} sec'.format(
+            time_stage_str = normalize_time(statistics.time_stage)
+            others_time_str = normalize_time(
                 total_time - statistics.time_stage
             )
             total_time_message = '{0} {1:>12} ({2}: {3:>12}, Others: {4:>12}): "{5}"'.format(
