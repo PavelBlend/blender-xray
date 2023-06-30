@@ -313,8 +313,16 @@ def _export(root_obj, cwriter, context):
 
     revision_writer = rw.write.PackedWriter()
 
-    revision_writer.puts(root_obj.name)    # source file
-    revision_writer.puts('blender')    # build name
+    prog_name = 'program: blender v{}.{}.{}'.format(*bpy.app.version)
+    addon_name = 'addon: blender-xray-v{}.{}.{}'.format(*utils.addon_version)
+    build_name = '{}, {}'.format(prog_name, addon_name)
+
+    blend_file = '*.blend file: "{}"'.format(bpy.data.filepath)
+    obj_name = 'object: "{}"'.format(root_obj.name)
+    source_file = '{}, {}'.format(blend_file, obj_name)
+
+    revision_writer.puts(source_file)
+    revision_writer.puts(build_name)
     revision_writer.putf('<I', currtime)    # build time
     revision_writer.puts(owner)
     revision_writer.putf('<I', ctime)
