@@ -195,10 +195,17 @@ def import_mesh(context, creader, renamemap, file_name):
             if zero_maps:
                 zero_maps = list(zero_maps)
                 zero_maps.sort()
-                log.warn(
-                    text.warn.object_zero_weight,
-                    vmaps=zero_maps
-                )
+                if len(zero_maps) == 1:
+                    log.warn(
+                        text.warn.object_zero_weight,
+                        vmaps=zero_maps[0]
+                    )
+                else:
+                    log.warn(
+                        text.warn.object_zero_weight,
+                        count='[{}x]'.format(len(zero_maps)),
+                        vmaps=zero_maps
+                    )
 
         elif cid == fmt.Chunks.Mesh.FLAGS:
             mesh_flags = rw.read.PackedReader(data).getf('<B')[0]
