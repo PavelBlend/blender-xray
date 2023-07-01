@@ -255,64 +255,9 @@ class XRAY_OT_export_object_file(
         return super().invoke(context, event)
 
 
-export_props = {
-    'filepath': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        options={'SKIP_SAVE'}
-    ),
-    'use_selection': bpy.props.BoolProperty()
-}
-
-
-class XRAY_OT_export_project(utils.ie.BaseOperator):
-    bl_idname = 'xray_export.project'
-    bl_label = 'Export XRay Project'
-
-    props = export_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
-
-    @log.execute_with_logger
-    @utils.stats.execute_with_stats
-    @utils.ie.set_initial_state
-    def execute(self, context):
-        utils.stats.update('Export *.object')
-
-        data = context.scene.xray
-        export_context = ExportObjectContext()
-        export_context.texname_from_path = data.object_texture_name_from_image_path
-        export_context.soc_sgroups = data.fmt_version == 'soc'
-        export_context.smoothing_out_of = data.smoothing_out_of
-        export_context.export_motions = data.object_export_motions
-        path = bpy.path.abspath(self.filepath if self.filepath else data.export_root)
-        os.makedirs(path, exist_ok=True)
-        for bpy_obj in XRAY_OT_export_project.find_objects(context, self.use_selection):
-            name = utils.ie.add_file_ext(bpy_obj.name, filename_ext)
-            opath = path
-            exp_path = utils.ie.get_export_path(bpy_obj)
-            if exp_path and data.use_export_paths:
-                opath = os.path.join(opath, exp_path)
-                os.makedirs(opath, exist_ok=True)
-            try:
-                exp.export_file(bpy_obj, os.path.join(opath, name), export_context)
-            except log.AppError as err:
-                export_context.errors.append(err)
-        for err in export_context.errors:
-            log.err(err)
-        return {'FINISHED'}
-
-    @staticmethod
-    def find_objects(context, use_selection=False):
-        objects = context.selected_objects if use_selection else context.scene.objects
-        return [obj for obj in objects if obj.xray.isroot]
-
-
 classes = (
     XRAY_OT_export_object,
-    XRAY_OT_export_object_file,
-    XRAY_OT_export_project
+    XRAY_OT_export_object_file
 )
 
 

@@ -6,7 +6,6 @@ from . import edit_helper
 from . import material
 from . import mesh
 from . import obj
-from . import scene
 from . import viewport
 from . import shader
 
@@ -19,7 +18,6 @@ modules = (
     material,
     mesh,
     obj,
-    scene,
     viewport,
     shader
 )

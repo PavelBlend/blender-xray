@@ -56,25 +56,6 @@ class TestObjectExport(utils.XRayTestCase):
             'tobj2.object'
         })
 
-    def test_export_project(self):
-        # Arrange
-        self._create_objects()
-        for obj in bpy.data.objects:
-            if bpy.app.version >= (2, 80, 0):
-                obj.select_set(obj.name in {'tobj1', 'tobj2'})
-            else:
-                obj.select = obj.name in {'tobj1', 'tobj2'}
-
-        # Act
-        bpy.ops.xray_export.project(
-            filepath=self.outpath(),
-            use_selection=True
-        )
-        self.assertOutputFiles({
-            'tobj1.object',
-            'a/b/tobj2.object'
-        })
-
     def test_obsolete_bones(self):
         # Arrange
         objs = self._create_objects()
