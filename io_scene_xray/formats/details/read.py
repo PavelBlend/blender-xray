@@ -12,16 +12,25 @@ from ... import utils
 
 
 def read_header(packed_reader):
+    # create header object
     header = fmt.DetailsHeader()
+
+    # read header data
     header.format_version = packed_reader.uint32()
+
+    if header.format_version not in fmt.SUPPORT_FORMAT_VERSIONS:
+        raise log.AppError(
+            text.error.details_unsupport_ver,
+            log.props(version=header.format_version)
+        )
+
     header.meshes_count = packed_reader.uint32()
-    offset_x, offset_z = packed_reader.getf('<2i')
-    size_x, size_z = packed_reader.getf('<2I')
-    header.offset.x = offset_x
-    header.offset.y = offset_z
-    header.size.x = size_x
-    header.size.y = size_z
+    header.offset.x, header.offset.y = packed_reader.getf('<2i')
+    header.size.x, header.size.y = packed_reader.getf('<2I')
+
+    # calculate slots count
     header.calc_slots_count()
+
     return header
 
 
@@ -33,22 +42,24 @@ def read_details_meshes(
         color_indices,
         header
     ):
-    bpy_obj_root = bpy.data.objects.new('{} meshes'.format(base_name), None)
+
+    root_name = '{} meshes'.format(base_name)
+    bpy_obj_root = bpy.data.objects.new(root_name, None)
     utils.version.set_empty_draw_type(bpy_obj_root, 'SPHERE')
     utils.version.link_object(bpy_obj_root)
     utils.stats.created_obj()
 
     step_x = 0.5
 
-    if context.details_models_in_a_row:
+    if context.models_in_row:
         first_offset_x = -step_x * header.meshes_count / 2
 
     for mesh_id, mesh_data in chunked_reader:
         packed_reader = rw.read.PackedReader(mesh_data)
-        fpath_mesh = '{0} mesh_{1:0>2}'.format(file_path, mesh_id)
+        mesh_path = '{0} mesh_{1:0>2}'.format(file_path, mesh_id)
 
         bpy_obj_mesh = dm.imp.import_(
-            fpath_mesh,
+            mesh_path,
             context,
             packed_reader,
             mode='DETAILS',
@@ -58,7 +69,7 @@ def read_details_meshes(
 
         bpy_obj_mesh.parent = bpy_obj_root
 
-        if context.details_models_in_a_row:
+        if context.models_in_row:
             bpy_obj_mesh.location[0] = first_offset_x + step_x * mesh_id
 
     return bpy_obj_root
@@ -73,6 +84,7 @@ def read_details_slots(
         color_indices,
         root_obj
     ):
+
     create.create_pallete(color_indices)
 
     y_coords = []
@@ -82,7 +94,7 @@ def read_details_slots(
         [1.0 for _ in range(header.slots_count * 4 * 4)] for _ in range(4)
     ]
 
-    if header.format_version == 3:
+    if header.format_version == fmt.FORMAT_VERSION_3:
         lights_image_pixels = []
         shadows_image_pixels = []
         hemi_image_pixels = []
@@ -122,21 +134,19 @@ def read_details_slots(
                 lights_image_pixels.extend((light_r, light_g, light_b, 1.0))
 
                 # meshes density
-                meshes_density_data = slot_data[2 : 6]
-                for mesh_index, mesh_density in enumerate(meshes_density_data):
-                    for corner_index in range(4):
+                density_data = slot_data[2 : 6]
+                for mesh_index, density in enumerate(density_data):
+                    for corner in range(4):
 
-                        corner_density = (
-                            (mesh_density >> corner_index * 4) & 0xf
-                        ) / 0xf
+                        corner_density = ((density >> corner * 4) & 0xf) / 0xf
 
                         pixel_index = \
                             slot_x * 2 + \
-                            fmt.PIXELS_OFFSET_1[corner_index][0] + \
+                            fmt.PIXELS_OFFSET_1[corner][0] + \
                             header.size.x * 2 * \
                             (
                                 slot_y * 2 + \
-                                fmt.PIXELS_OFFSET_1[corner_index][1]
+                                fmt.PIXELS_OFFSET_1[corner][1]
                             )
 
                         color = color_indices[meshes[mesh_index]]
@@ -170,7 +180,8 @@ def read_details_slots(
         if context.format_version == 'builds_1233-1558':
             pixels_offset = fmt.PIXELS_OFFSET_2
 
-        else:    # builds 1096-1230
+        else:
+            # builds 1096-1230
             pixels_offset = fmt.PIXELS_OFFSET_1
 
         density_pixels_offset = fmt.PIXELS_OFFSET_1
@@ -184,12 +195,17 @@ def read_details_slots(
 
                 y_base = slot_data[0]
                 y_top = slot_data[1]
-                if y_base > 200.0:    # bad y_base coordinate (inf)
+
+                # bad y_base coordinate (inf)
+                if y_base > 200.0:
                     y_base = 200.0
                     bad_y_base_count += 1
-                if y_top < -200.0:    # bad y_top coordinate (-inf)
+
+                # bad y_top coordinate (-inf)
+                if y_top < -200.0:
                     y_top = -200.0
                     bad_y_top_count += 1
+
                 y_coords.append(y_top)
                 y_coords_base.append(y_base)
 

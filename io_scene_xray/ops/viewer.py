@@ -158,7 +158,7 @@ def import_file(file):
         bpy.ops.xray_import.details(
             directory=directory,
             files=[{'name': file.name}],
-            details_models_in_a_row=True,
+            models_in_row=True,
             load_slots=False
         )
 
@@ -208,7 +208,7 @@ def import_file(file):
                     bpy.ops.xray_import.details(
                         directory=directory,
                         files=[{'name': file.name}],
-                        details_models_in_a_row=True,
+                        models_in_row=True,
                         load_slots=False
                     )
                     imported = True

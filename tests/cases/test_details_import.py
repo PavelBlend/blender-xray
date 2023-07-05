@@ -118,7 +118,7 @@ class TestDetailsImport(utils.XRayTestCase):
                 {'name': 'test_fmt_v3.details'}
             ],
             load_slots=False,
-            details_models_in_a_row=False
+            models_in_row=False
         )
 
         # Assert

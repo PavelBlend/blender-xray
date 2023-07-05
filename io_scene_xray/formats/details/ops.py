@@ -19,7 +19,7 @@ class ImportDetailsContext(contexts.ImportMeshContext):
     def __init__(self):
         super().__init__()
         self.format_version = None
-        self.details_models_in_a_row = None
+        self.models_in_row = None
         self.load_slots = None
 
 
@@ -34,19 +34,27 @@ op_text = 'Level Details'
 
 
 import_props = {
+    # file browser properties
     'filter_glob': bpy.props.StringProperty(
-        default='*.details', options={'HIDDEN'}
+        default='*.details',
+        options={'HIDDEN'}
     ),
-    'directory': bpy.props.StringProperty(subtype="DIR_PATH"),
+    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'filepath': bpy.props.StringProperty(
-        subtype="FILE_PATH", options={'SKIP_SAVE'}
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE'}
     ),
     'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
+        type=bpy.types.OperatorFileListElement,
+        options={'SKIP_SAVE'}
     ),
-    'details_models_in_a_row': ie.prop_details_models_in_a_row(),
+
+    # import properties
+    'models_in_row': ie.prop_details_models_in_a_row(),
     'load_slots': ie.prop_details_load_slots(),
     'details_format': ie.prop_details_format(),
+
+    # system properties
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
@@ -55,6 +63,7 @@ class XRAY_OT_import_details(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
+
     bl_idname = 'xray_import.details'
     bl_label = 'Import .details'
     bl_description = 'Imports X-Ray Level Details Models (.details)'
@@ -75,28 +84,27 @@ class XRAY_OT_import_details(
     def execute(self, context):
         utils.stats.update('Import *.details')
 
-        if not self.files or (len(self.files) == 1 and not self.files[0].name):
-            self.report({'ERROR'}, 'No files selected!')
+        # check selected files
+        has_files = utils.ie.has_selected_files(self)
+        if not has_files:
             return {'CANCELLED'}
 
-        import_context = ImportDetailsContext()
+        # create import context
+        imp_ctx = ImportDetailsContext()
 
-        import_context.operator=self
-        import_context.format_version = self.details_format
-        import_context.details_models_in_a_row = self.details_models_in_a_row
-        import_context.load_slots = self.load_slots
+        imp_ctx.operator = self
+        imp_ctx.format_version = self.details_format
+        imp_ctx.models_in_row = self.models_in_row
+        imp_ctx.load_slots = self.load_slots
 
-        for file in self.files:
-            file_ext = os.path.splitext(file.name)[-1].lower()
-            try:
-                imp.import_file(
-                    os.path.join(self.directory, file.name),
-                    import_context
-                )
-            except log.AppError as err:
-                import_context.errors.append(err)
-        for err in import_context.errors:
-            log.err(err)
+        # import
+        utils.ie.import_files(
+            self.directory,
+            self.files,
+            imp.import_file,
+            imp_ctx
+        )
+
         return {'FINISHED'}
 
     def draw(self, context):    # pragma: no cover
@@ -106,7 +114,7 @@ class XRAY_OT_import_details(
 
         utils.draw.draw_files_count(self)
 
-        layout.prop(self, 'details_models_in_a_row')
+        layout.prop(self, 'models_in_row')
         layout.prop(self, 'load_slots')
 
         col = layout.column()
@@ -121,10 +129,12 @@ class XRAY_OT_import_details(
 
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
-        prefs = utils.version.get_preferences()
-        self.details_models_in_a_row = prefs.details_models_in_a_row
-        self.load_slots = prefs.load_slots
-        self.details_format = prefs.details_format
+        pref = utils.version.get_preferences()
+
+        self.models_in_row = pref.details_models_in_a_row
+        self.load_slots = pref.load_slots
+        self.details_format = pref.details_format
+
         return super().invoke(context, event)
 
 
@@ -168,13 +178,17 @@ def draw_export_props(self):    # pragma: no cover
 
 
 export_props = {
+    # file browser properties
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext,
         options={'HIDDEN'}
     ),
 
+    # export properties
     'tex_name_from_path': ie.PropObjectTextureNamesFromPath(),
     'format_version': ie.prop_details_format_version(),
+
+    # system properties
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
@@ -206,6 +220,7 @@ class XRAY_OT_export_details_file(
     def execute(self, context):
         utils.stats.update('Export *.details')
 
+        # search details object
         dets_objs = search_details()
 
         if not dets_objs:
@@ -218,17 +233,20 @@ class XRAY_OT_export_details_file(
 
         details_object = dets_objs[0]
 
-        export_context = ExportDetailsContext()
-        export_context.texname_from_path = self.tex_name_from_path
-        export_context.level_details_format_version = self.format_version
-        export_context.unique_errors = set()
+        # create export context
+        exp_ctx = ExportDetailsContext()
 
+        exp_ctx.texname_from_path = self.tex_name_from_path
+        exp_ctx.level_details_format_version = self.format_version
+
+        # export
         try:
-            exp.export_file(details_object, self.filepath, export_context)
+            exp.export_file(details_object, self.filepath, exp_ctx)
         except log.AppError as err:
-            export_context.errors.append(err)
+            exp_ctx.errors.append(err)
 
-        for err in export_context.errors:
+        # report errors
+        for err in exp_ctx.errors:
             log.err(err)
 
         return {'FINISHED'}
@@ -257,14 +275,18 @@ class XRAY_OT_export_details_file(
 
 
 export_props = {
+    # file browser properties
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext,
         options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
 
+    # export properties
     'tex_name_from_path': ie.PropObjectTextureNamesFromPath(),
     'format_version': ie.prop_details_format_version(),
+
+    # system properties
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
@@ -298,11 +320,13 @@ class XRAY_OT_export_details(utils.ie.BaseOperator):
             self.report({'ERROR'}, 'Cannot find details object')
             return {'CANCELLED'}
 
-        export_context = ExportDetailsContext()
-        export_context.texname_from_path = self.tex_name_from_path
-        export_context.level_details_format_version = self.format_version
-        export_context.unique_errors = set()
+        # create export context
+        exp_ctx = ExportDetailsContext()
 
+        exp_ctx.texname_from_path = self.tex_name_from_path
+        exp_ctx.level_details_format_version = self.format_version
+
+        # collect object and paths
         objs = []
         paths = []
         for obj in dets_objs:
@@ -311,6 +335,7 @@ class XRAY_OT_export_details(utils.ie.BaseOperator):
             objs.append(obj)
             paths.append(file_path)
 
+        # find duplicate files
         dupli_errors = []
         for obj, path in zip(objs, paths):
             if paths.count(path) > 1:
@@ -325,13 +350,15 @@ class XRAY_OT_export_details(utils.ie.BaseOperator):
                 log.err(error)
             return {'CANCELLED'}
 
+        # export
         for obj, path in zip(objs, paths):
             try:
-                exp.export_file(obj, path, export_context)
+                exp.export_file(obj, path, exp_ctx)
             except log.AppError as err:
-                export_context.errors.append(err)
+                exp_ctx.errors.append(err)
 
-        for err in export_context.errors:
+        # report errors
+        for err in exp_ctx.errors:
             log.err(err)
 
         return {'FINISHED'}

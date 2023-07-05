@@ -130,7 +130,7 @@ class XRAY_OT_export_dm(utils.ie.BaseOperator):
 
         export_context = ExportDmContext()
         export_context.texname_from_path = self.texture_name_from_image_path
-        export_context.unique_errors = set()
+
         for name in self.detail_models.split(','):
             detail_model = context.scene.objects[name]
             name = utils.ie.add_file_ext(name, filename_ext)
@@ -222,7 +222,6 @@ class XRAY_OT_export_dm_file(
     def exp(self, bpy_obj, context):
         export_context = ExportDmContext()
         export_context.texname_from_path = self.texture_name_from_image_path
-        export_context.unique_errors = set()
         exp.export_file(bpy_obj, self.filepath, export_context)
 
     def invoke(self, context, event):    # pragma: no cover

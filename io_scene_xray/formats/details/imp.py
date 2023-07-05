@@ -20,27 +20,25 @@ def _import(file_path, context, chunked_reader):
     has_slots = False
 
     for chunk_id, chunk_data in chunked_reader:
-        if chunk_id == 0x0 and not chunk_data:    # bad file (build 1233)
+
+        # bad file (build 1233)
+        if chunk_id == 0x0 and not chunk_data:
             break
 
+        # header
         if chunk_id == fmt.Chunks.HEADER:
             if len(chunk_data) < fmt.HEADER_SIZE:
                 raise log.AppError(text.error.details_bad_header)
 
             header = read.read_header(rw.read.PackedReader(chunk_data))
-
-            if header.format_version not in fmt.SUPPORT_FORMAT_VERSIONS:
-                raise log.AppError(
-                    text.error.details_unsupport_ver,
-                    log.props(version=header.format_version)
-                )
-
             has_header = True
 
+        # meshes
         elif chunk_id == fmt.Chunks.MESHES:
             cr_meshes = rw.read.ChunkedReader(chunk_data)
             has_meshes = True
 
+        # slots
         elif chunk_id == fmt.Chunks.SLOTS:
             if context.load_slots:
                 pr_slots = rw.read.PackedReader(chunk_data)

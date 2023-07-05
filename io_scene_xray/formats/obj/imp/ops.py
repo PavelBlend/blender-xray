@@ -26,6 +26,7 @@ import_props = {
     'fmt_version': ie.PropSDKVersion(),
     'import_motions': ie.PropObjectMotionsImport(),
     'mesh_split_by_materials': ie.PropObjectMeshSplitByMaterials(),
+
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
