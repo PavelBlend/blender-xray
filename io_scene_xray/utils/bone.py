@@ -131,7 +131,7 @@ def bone_vertices(bone):
         for vtx in bmsh.verts:
             weight = vtx[layer_deform].get(vgi, 0)
             if weight:
-                verts.append(vtx.co)
+                verts.append(tuple(vtx.co))
     return verts
 
 
