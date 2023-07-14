@@ -164,7 +164,7 @@ class XRayTestCase(unittest.TestCase):
         ))
 
     def getFullLogAsText(self):
-        return bpy.data.texts['xray_import_object'].as_string()
+        return bpy.data.texts['xray_log'].as_string()
 
 
 def create_bmesh(verts, faces, create_uv=True):

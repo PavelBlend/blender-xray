@@ -8,6 +8,8 @@ import bpy
 from . import text
 
 
+LOG_FILE_NAME = 'xray_log'
+HISTORY_FILE_NAME = 'xray_log_history'
 CONTEXT_NAME = '@context'
 _logger = None
 _context = None
@@ -171,20 +173,46 @@ class Logger:
                 last_message_count = 1
                 self.last_line_is_message = True
 
-    def _create_bpy_text(self, logname):
+    def _create_bpy_text(self):
         if create_bpy_text:
             log_str = '\n'.join(self.lines)
-            text_data = bpy.data.texts.new(logname)
-            text_data.user_clear()
-            text_data.from_string(log_str)
 
+            # get log text
+            text_log = bpy.data.texts.get(LOG_FILE_NAME)
+            if not text_log:
+                text_log = bpy.data.texts.new(LOG_FILE_NAME)
+                text_log.user_clear()
+
+            # get log history text
+            text_history = bpy.data.texts.get(HISTORY_FILE_NAME)
+            if not text_history:
+                text_history = bpy.data.texts.new(HISTORY_FILE_NAME)
+                text_history.user_clear()
+
+            # write log
+            text_log.from_string(log_str)
+
+            # write log history
+            log_data = text_log.as_string()
+            history_data = text_history.as_string()
+
+            separator = '\n' + '-'*100
+
+            if history_data:
+                history = history_data + '\n'*4 + log_data + separator
+            else:
+                history = log_data + separator
+
+            text_history.from_string(history)
+
+            # report info
             full_log_text = text.get_text(text.warn.full_log)
             self._report(
                 {'WARNING'},
-                '{0}: "{1}"'.format(full_log_text, text_data.name)
+                '{0}: "{1}"'.format(full_log_text, text_log.name)
             )
 
-    def flush(self, logname='log', is_last_flush=False):
+    def flush(self, is_last_flush=False):
         has_massages = self._collect_contexts()
 
         generate_log = False
@@ -199,7 +227,7 @@ class Logger:
             self._init_log()
             self._generate_short_log()
             self._generate_full_log()
-            self._create_bpy_text(logname)
+            self._create_bpy_text()
 
 
 def update(**kwargs):
@@ -249,8 +277,7 @@ def execute_with_logger(method):
 
     def wrapper(self, context):
         try:
-            name = self.__class__.bl_idname.replace('.', '_')
-            with logger(name, self.report):
+            with logger(self.report):
                 return method(self, context)
 
         except AppError:
@@ -273,7 +300,7 @@ def using_logger(logger_obj):
 
 
 @contextlib.contextmanager
-def logger(name, report):
+def logger(report):
     if general_log:
         logger_obj = general_log
     else:
@@ -288,4 +315,4 @@ def logger(name, report):
         raise error
 
     finally:
-        logger_obj.flush(name)
+        logger_obj.flush()

@@ -262,7 +262,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
         context.window_manager.event_timer_remove(self.timer)
         remove_bpy_data()
 
-        log.general_log.flush(logname='tests_log', is_last_flush=True)
+        log.general_log.flush(is_last_flush=True)
         log.general_log = None
 
         self.set_clip_end(self.clip_end_old)
