@@ -689,7 +689,7 @@ def _export(root_obj, cwriter, context):
             motion_refs_writer.puts(refs_string)
             chunk_id = fmt.Chunks_v4.S_MOTION_REFS_0
 
-        # sc/cop format
+        # cs/cop format
         else:
             refs_count = len(refs)
             motion_refs_writer.putf('<I', refs_count)
