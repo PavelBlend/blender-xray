@@ -153,8 +153,8 @@ def get_obb(bone, for_cylinder):
 
     # generate obb
     obb_mat = None
-    if verts:
-        coord_count = len(verts)
+    coord_count = len(verts)
+    if coord_count > 3:
         verts_coord = numpy.empty(coord_count, dtype=numpy.float32)
         for index, coord in enumerate(verts):
             verts_coord[index] = coord
