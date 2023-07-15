@@ -236,6 +236,7 @@ class XRAY_OT_export_details_file(
         # create export context
         exp_ctx = ExportDetailsContext()
 
+        exp_ctx.operator = self
         exp_ctx.texname_from_path = self.tex_name_from_path
         exp_ctx.level_details_format_version = self.format_version
 
@@ -323,6 +324,7 @@ class XRAY_OT_export_details(utils.ie.BaseOperator):
         # create export context
         exp_ctx = ExportDetailsContext()
 
+        exp_ctx.operator = self
         exp_ctx.texname_from_path = self.tex_name_from_path
         exp_ctx.level_details_format_version = self.format_version
 

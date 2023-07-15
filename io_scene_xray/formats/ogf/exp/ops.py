@@ -103,6 +103,7 @@ class XRAY_OT_export_ogf_file(
         exported_obj = root_objs[0]
 
         export_context = ExportOgfContext()
+        export_context.operator = self
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.fmt_ver = self.fmt_version
         export_context.hq_export = self.hq_export
@@ -194,6 +195,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         utils.stats.update('Export *.ogf')
 
         export_context = ExportOgfContext()
+        export_context.operator = self
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.export_motions = self.export_motions
         export_context.fmt_ver = self.fmt_version

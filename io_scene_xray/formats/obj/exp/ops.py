@@ -116,6 +116,7 @@ class XRAY_OT_export_object(utils.ie.BaseOperator, _WithExportMotions):
 
         exp_ctx = ExportObjectContext()
 
+        exp_ctx.operator = self
         exp_ctx.texname_from_path = self.texture_name_from_image_path
         exp_ctx.soc_sgroups = self.fmt_version == 'soc'
         exp_ctx.export_motions = self.export_motions
@@ -213,6 +214,7 @@ class XRAY_OT_export_object_file(
 
         export_context = ExportObjectContext()
 
+        export_context.operator = self
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.soc_sgroups = self.fmt_version == 'soc'
         export_context.export_motions = self.export_motions

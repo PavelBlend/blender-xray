@@ -129,6 +129,7 @@ class XRAY_OT_export_dm(utils.ie.BaseOperator):
         utils.stats.update('Export *.dm')
 
         export_context = ExportDmContext()
+        export_context.operator = self
         export_context.texname_from_path = self.texture_name_from_image_path
 
         for name in self.detail_models.split(','):
@@ -221,6 +222,7 @@ class XRAY_OT_export_dm_file(
 
     def exp(self, bpy_obj, context):
         export_context = ExportDmContext()
+        export_context.operator = self
         export_context.texname_from_path = self.texture_name_from_image_path
         exp.export_file(bpy_obj, self.filepath, export_context)
 

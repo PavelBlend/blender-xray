@@ -64,7 +64,7 @@ class XRAY_OT_import_part(utils.ie.BaseOperator):
         import_context = ImportPartContext()
         import_context.soc_sgroups=self.fmt_version == 'soc'
         import_context.split_by_materials=self.mesh_split_by_materials
-        import_context.operator=self
+        import_context.operator = self
         import_context.import_motions = False
 
         for file in self.files:

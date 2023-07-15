@@ -70,7 +70,7 @@ class XRAY_OT_import_level(
             self.report({'ERROR'}, 'No file selected')
             return {'CANCELLED'}
         import_context = ImportLevelContext()
-        import_context.operator=self
+        import_context.operator = self
         import_context.filepath = self.filepath
         try:
             main.import_file(import_context)
