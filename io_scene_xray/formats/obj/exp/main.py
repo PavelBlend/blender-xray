@@ -123,13 +123,21 @@ def _check_bone_names(armature_object):
 def merge_meshes(mesh_objects):
     objects = []
     override = bpy.context.copy()
+
     for obj in mesh_objects:
+        if not len(obj.data.uv_layers):
+            raise log.AppError(
+                text.error.no_uv,
+                log.props(object=obj.name)
+            )
+
         if len(obj.data.uv_layers) > 1:
             log.warn(
                 text.warn.obj_many_uv,
                 exported_uv=obj.data.uv_layers.active.name,
                 mesh_object=obj.name
             )
+
         copy_obj = obj.copy()
         copy_mesh = obj.data.copy()
         copy_obj.data = copy_mesh
