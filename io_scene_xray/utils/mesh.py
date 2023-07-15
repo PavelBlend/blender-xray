@@ -67,11 +67,7 @@ def convert_object_to_space_bmesh(
             version.set_active_object(temp_obj)
             exportable_obj = temp_obj
         for mod in mods:
-            try:
-                bpy.ops.object.modifier_apply(modifier=mod.name)
-            except RuntimeError as err:
-                # modifier is disabled, skipping apply
-                pass
+            obj.apply_obj_modifier(mod)
 
     mesh.from_mesh(exportable_obj.data)
 

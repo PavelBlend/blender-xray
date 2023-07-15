@@ -155,7 +155,7 @@ def merge_meshes(mesh_objects):
             if not mod.show_viewport:
                 continue
             override['modifier'] = mod
-            bpy.ops.object.modifier_apply(override, modifier=mod.name)
+            utils.obj.apply_obj_modifier(mod, context=override)
         objects.append(copy_obj)
 
         # apply shape keys

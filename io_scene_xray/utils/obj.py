@@ -113,3 +113,15 @@ def get_armature_object(bpy_obj):
             armature = used_mods[0].object
 
     return armature
+
+
+def apply_obj_modifier(mod, context=None):
+    try:
+        if context:
+            bpy.ops.object.modifier_apply(context, modifier=mod.name)
+        else:
+            bpy.ops.object.modifier_apply(modifier=mod.name)
+
+    except RuntimeError as err:
+        # modifier is disabled, skipping apply
+        pass

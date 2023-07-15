@@ -232,7 +232,7 @@ def export_mesh(
         override['object'] = temp_obj
         for i in range(mods_count):
             bpy.ops.object.modifier_move_up(override, modifier=tri_mod.name)
-        bpy.ops.object.modifier_apply(override, modifier=tri_mod.name)
+        utils.obj.apply_obj_modifier(tri_mod, context=override)
         bm = utils.mesh.convert_object_to_space_bmesh(
             temp_obj,
             loc_space,
