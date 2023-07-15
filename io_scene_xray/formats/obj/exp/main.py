@@ -159,9 +159,10 @@ def merge_meshes(mesh_objects):
         objects.append(copy_obj)
 
         # apply shape keys
-        copy_obj.shape_key_add(name='last_shape_key', from_mix=True)
-        for shape_key in copy_mesh.shape_keys.key_blocks:
-            copy_obj.shape_key_remove(shape_key)
+        if copy_mesh.shape_keys:
+            copy_obj.shape_key_add(name='last_shape_key', from_mix=True)
+            for shape_key in copy_mesh.shape_keys.key_blocks:
+                copy_obj.shape_key_remove(shape_key)
 
     active_object = objects[0]
     override['active_object'] = active_object
