@@ -9,9 +9,10 @@ from ... import rw
 def _export_partitions(context, bpy_obj):
     log.update(object=bpy_obj.name)
     packed_writer = rw.write.PackedWriter()
-    groups_count = len(bpy_obj.pose.bone_groups)
+    all_groups_count = len(bpy_obj.pose.bone_groups)
 
-    if not groups_count or not context.export_bone_parts:
+    if not all_groups_count or not context.export_bone_parts:
+        # boneparts count
         packed_writer.putf('<I', 0)
         return packed_writer
 
@@ -34,18 +35,25 @@ def _export_partitions(context, bpy_obj):
     non_empty_groups = tuple(
         group
         for group in all_groups
-            if group[1]
+            if group[1]    # bone names
     )
 
     if non_empty_groups:
+        # boneparts count
         packed_writer.putf('<I', len(non_empty_groups))
+
         for group_name, bones_names in non_empty_groups:
+            # bonepart name
             packed_writer.puts(group_name)
+            # bones count
             packed_writer.putf('<I', len(bones_names))
+
+            # bone names
             for bone_name in bones_names:
                 packed_writer.puts(bone_name)
 
     else:
+        # boneparts count
         packed_writer.putf('<I', 0)
 
     return packed_writer
@@ -204,18 +212,14 @@ def export_file(context):
     bone_index = 0
     if context.export_bone_properties:
         for bone in arm_obj.data.bones:
-            if not utils.bone.is_exportable_bone(bone):
-                continue
-            bone_chunked_writer = _export_bone_data(arm_obj, bone, scale)
-            chunked_writer.put(bone_index, bone_chunked_writer)
-            bone_index += 1
+            if utils.bone.is_exportable_bone(bone):
+                bone_writer = _export_bone_data(arm_obj, bone, scale)
+                chunked_writer.put(bone_index, bone_writer)
+                bone_index += 1
 
     # export partitions
-    partitions_packed_writer = _export_partitions(context, arm_obj)
-    chunked_writer.put(
-        obj.fmt.Chunks.Object.PARTITIONS1,
-        partitions_packed_writer
-    )
+    parts_writer = _export_partitions(context, arm_obj)
+    chunked_writer.put(obj.fmt.Chunks.Object.PARTITIONS1, parts_writer)
 
     # save
     rw.utils.save_file(context.filepath, chunked_writer)
