@@ -5,20 +5,6 @@ from .... import text
 from .... import rw
 
 
-def read_bbox_v3(data):
-    packed_reader = rw.read.PackedReader(data)
-
-    bbox_min = packed_reader.getf('<3f')
-    bbox_max = packed_reader.getf('<3f')
-
-
-def read_bsphere_v3(data):
-    packed_reader = rw.read.PackedReader(data)
-
-    center = packed_reader.getf('<3f')
-    radius = packed_reader.getf('<f')[0]
-
-
 def import_bounding_sphere(packed_reader):
     center = packed_reader.getf('<3f')
     radius = packed_reader.getf('<f')[0]
