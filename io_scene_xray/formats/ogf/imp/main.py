@@ -16,27 +16,6 @@ from .... import rw
 from .... import text
 
 
-def import_children(context, chunks, chunks_ids, root_visual):
-    chunk_data = chunks.pop(chunks_ids.CHILDREN, None)
-    if not chunk_data:
-        return
-    chunked_reader = rw.read.ChunkedReader(chunk_data)
-
-    for child_index, child_data in chunked_reader:
-        visual = types.Visual()
-        visual.file_path = root_visual.file_path
-        visual.name = root_visual.name + ' {:0>2}'.format(child_index)
-        visual.visual_id = child_index
-        visual.is_root = False
-        visual.arm_obj = root_visual.arm_obj
-        visual.root_obj = root_visual.root_obj
-        visual.bones = root_visual.bones
-
-        import_ogf_visual(context, child_data, visual)
-
-        utility.set_visual_type(visual, root_visual)
-
-
 def import_ogf_visual(context, data, visual):
     # visual from *.ogf file
 

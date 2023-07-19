@@ -49,12 +49,12 @@ def read_lods(context, chunks, ogf_chunks, visual):
             visual.lod = visual.lod[ : -2]
 
 
-def read_motion_refs_soc(data, visual):
+def _read_motion_refs_soc(data, visual):
     packed_reader = rw.read.PackedReader(data)
     visual.motion_refs = packed_reader.gets().split(',')
 
 
-def read_motion_refs_cs_cop(data, visual):
+def _read_motion_refs_cs_cop(data, visual):
     packed_reader = rw.read.PackedReader(data)
 
     count = packed_reader.uint32()
@@ -66,10 +66,10 @@ def read_motion_references(chunks, ogf_chunks, visual):
 
     if data:
         # soc
-        read_motion_refs_soc(data, visual)
+        _read_motion_refs_soc(data, visual)
 
     else:
         # cs/cop
         data = chunks.pop(ogf_chunks.S_MOTION_REFS_2, None)
         if data:
-            read_motion_refs_cs_cop(data, visual)
+            _read_motion_refs_cs_cop(data, visual)
