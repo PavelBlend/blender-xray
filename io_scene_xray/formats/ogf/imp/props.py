@@ -6,76 +6,70 @@ from .... import text
 
 def read_description(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_DESC, None)
-    if not chunk_data:
-        return
 
-    packed_reader = rw.read.PackedReader(chunk_data)
+    if chunk_data:
+        packed_reader = rw.read.PackedReader(chunk_data)
 
-    source_file = packed_reader.gets()
+        source_file = packed_reader.gets()
 
-    build_name = packed_reader.gets()
-    build_time = packed_reader.uint32()
+        build_name = packed_reader.gets()
+        build_time = packed_reader.uint32()
 
-    visual.create_name = packed_reader.gets()
-    visual.create_time = packed_reader.uint32()
+        visual.create_name = packed_reader.gets()
+        visual.create_time = packed_reader.uint32()
 
-    visual.modif_name = packed_reader.gets()
-    visual.modif_time = packed_reader.uint32()
+        visual.modif_name = packed_reader.gets()
+        visual.modif_time = packed_reader.uint32()
 
 
 def read_user_data(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_USERDATA, None)
-    if not chunk_data:
-        return
 
-    packed_reader = rw.read.PackedReader(chunk_data)
+    if chunk_data:
+        packed_reader = rw.read.PackedReader(chunk_data)
 
-    visual.user_data = packed_reader.gets(
-        onerror=lambda err: log.warn(
-            text.warn.object_bad_userdata,
-            error=str(err),
-            file=visual.file_path
+        visual.user_data = packed_reader.gets(
+            onerror=lambda err: log.warn(
+                text.warn.object_bad_userdata,
+                error=str(err),
+                file=visual.file_path
+            )
         )
-    )
 
 
 def read_lods(context, chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_LODS, None)
-    if not chunk_data:
-        return
 
-    packed_reader = rw.read.PackedReader(chunk_data)
+    if chunk_data:
+        packed_reader = rw.read.PackedReader(chunk_data)
 
-    lod = packed_reader.gets()
+        visual.lod = packed_reader.gets()
 
-    if lod.endswith('\r\n'):
-        lod = lod[ : -2]
-
-    visual.lod = lod
+        if visual.lod.endswith('\r\n'):
+            visual.lod = visual.lod[ : -2]
 
 
-def read_motion_refs_0(data, visual):
+def read_motion_refs_soc(data, visual):
     packed_reader = rw.read.PackedReader(data)
     visual.motion_refs = packed_reader.gets().split(',')
 
 
-def read_motion_refs_2(data, visual):
+def read_motion_refs_cs_cop(data, visual):
     packed_reader = rw.read.PackedReader(data)
-    count = packed_reader.uint32()
 
-    visual.motion_refs = []
-    for index in range(count):
-        ref = packed_reader.gets()
-        visual.motion_refs.append(ref)
+    count = packed_reader.uint32()
+    visual.motion_refs = [packed_reader.gets() for index in range(count)]
 
 
 def read_motion_references(chunks, ogf_chunks, visual):
     data = chunks.pop(ogf_chunks.S_MOTION_REFS_0, None)
 
     if data:
-        read_motion_refs_0(data, visual)
+        # soc
+        read_motion_refs_soc(data, visual)
 
     else:
+        # cs/cop
         data = chunks.pop(ogf_chunks.S_MOTION_REFS_2, None)
         if data:
-            read_motion_refs_2(data, visual)
+            read_motion_refs_cs_cop(data, visual)
