@@ -82,6 +82,92 @@ class TestObjectExport(utils.XRayTestCase):
             re.compile('Bone edited with a different version of this plugin')
         )
 
+    def test_bone_names(self):
+        # Arrange
+        objs = self._create_objects()
+
+        obj = _create_armature((objs[0], ))
+        utils.set_active_object(obj)
+        arm = obj.data
+        arm.bones[0].name = arm.bones[0].name.capitalize()
+
+        # Act
+        bpy.ops.xray_export.object(
+            objects='tobj',
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False
+        )
+
+        # Assert
+        self.assertOutputFiles({'tobj.object', })
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('The bone name has been saved without uppercase characters')
+        )
+
+    def test_bone_ik_flags(self):
+        # Arrange
+        objs = self._create_objects()
+
+        obj = _create_armature((objs[0], ))
+        utils.set_active_object(obj)
+        arm = obj.data
+        arm.bones[0].xray.ikflags_breakable = True
+
+        # Act
+        bpy.ops.xray_export.object(
+            objects='tobj',
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False
+        )
+
+        # Assert
+        self.assertOutputFiles({'tobj.object', })
+
+    def test_bone_ik_limits(self):
+        # Arrange
+        objs = self._create_objects()
+
+        obj = _create_armature((objs[0], ))
+        utils.set_active_object(obj)
+        arm = obj.data
+        arm.xray.joint_limits_type = 'IK'
+
+        # Act
+        bpy.ops.xray_export.object(
+            objects='tobj',
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False
+        )
+
+        # Assert
+        self.assertOutputFiles({'tobj.object', })
+
+    def test_bone_friction_and_mass(self):
+        # Arrange
+        objs = self._create_objects()
+
+        obj = _create_armature((objs[0], ))
+        utils.set_active_object(obj)
+        arm = obj.data
+        bone = arm.bones[0]
+        bone.xray.friction = 0.5
+        bone.xray.mass.value = 2.0
+
+        # Act
+        bpy.ops.xray_export.object(
+            objects='tobj',
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False
+        )
+
+        # Assert
+        self.assertOutputFiles({'tobj.object', })
+
     def test_empty_bone_groups(self):
         # Arrange
         arm = bpy.data.armatures.new('tarm')

@@ -183,7 +183,7 @@ def export_bone(
         writer.put(fmt.Chunks.Bone.BREAK_PARAMS, packed_writer)
 
     # friction chunk
-    if ik_type and xray.friction:
+    if xray.friction:
         packed_writer = rw.write.PackedWriter()
         packed_writer.putf('<f', xray.friction)
         writer.put(fmt.Chunks.Bone.FRICTION, packed_writer)
