@@ -56,6 +56,29 @@ class TestObjectExport(utils.XRayTestCase):
             'tobj2.object'
         })
 
+    def test_many_uvs(self):
+        # Arrange
+        obj = self._create_objects()[0]
+
+        # add new uv layer
+        if bpy.app.version >= (2, 80, 0):
+            obj.data.uv_layers.new(name='test')
+        else:
+            obj.data.uv_textures.new(name='test')
+
+        # Act
+        bpy.ops.xray_export.object_file(
+            object='tobj1',
+            filepath=self.outpath('test.object'),
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Object has more than one UV-map. Active UV-map exported')
+        )
+
     def test_obsolete_bones(self):
         # Arrange
         objs = self._create_objects()
