@@ -40,6 +40,10 @@ class TestObjectExport(utils.XRayTestCase):
         })
 
     def test_export_using_context(self):
+        # remove default objects (cube, camera, lamp)
+        for obj in bpy.data.objects:
+            bpy.data.objects.remove(obj)
+
         # Arrange
         self._create_objects()
         ob1 = bpy.data.objects['tobj1']
@@ -64,6 +68,10 @@ class TestObjectExport(utils.XRayTestCase):
         self.assertOutputFiles({'root_obj.object', })
 
     def test_export_without_selection(self):
+        # remove default objects (cube, camera, lamp)
+        for obj in bpy.data.objects:
+            bpy.data.objects.remove(obj)
+
         # Act
         bpy.ops.xray_export.object(
             directory=self.outpath(),
@@ -91,7 +99,7 @@ class TestObjectExport(utils.XRayTestCase):
         # Assert
         self.assertReportsContains(
             'ERROR',
-            re.compile('Too many \'root\'-objects found, but none selected' )
+            re.compile('Too many \'root\'-objects found, but none selected')
         )
 
         # Arrange
