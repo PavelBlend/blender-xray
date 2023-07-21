@@ -169,6 +169,45 @@ class TestObjectExport(utils.XRayTestCase):
         # Assert
         self.assertOutputFiles({'tobj.object', })
 
+    def test_bone_duplicates(self):
+        # Arrange
+        objs = self._create_objects()
+
+        obj = _create_armature((objs[0], ))
+        utils.set_active_object(obj)
+
+        # add duplicated bones
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        try:
+            root_bone = obj.data.edit_bones[0]
+            name = root_bone.name.upper()
+            dupli_bone = obj.data.edit_bones.new(name)
+            dupli_bone.parent = root_bone
+            dupli_bone.tail.y = 1
+
+            name = root_bone.name.capitalize()
+            dupli_bone = obj.data.edit_bones.new(name)
+            dupli_bone.parent = root_bone
+            dupli_bone.tail.y = 1
+
+        finally:
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        # Act
+        bpy.ops.xray_export.object(
+            objects='tobj',
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('Object has duplicate bones')
+        )
+
     def test_ungroupped_verts(self):
         # Arrange
         objs = self._create_objects()

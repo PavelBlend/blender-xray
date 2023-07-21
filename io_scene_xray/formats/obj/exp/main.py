@@ -97,6 +97,7 @@ def validate_vertex_weights(bpy_obj, arm_obj):
 def _check_bone_names(armature_object):
     bone_names = {}
     bone_duplicates = {}
+
     for bpy_bone in armature_object.data.bones:
         name = bpy_bone.name
         name_lower = name.lower()
@@ -106,6 +107,7 @@ def _check_bone_names(armature_object):
             bone_duplicates[name_lower].append(name)
         else:
             bone_names[name_lower] = name
+
     if bone_duplicates:
         log.update(object=armature_object.name)
         raise log.AppError(
