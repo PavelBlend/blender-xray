@@ -10,6 +10,7 @@ from . import main
 from ... import ie
 from ... import contexts
 from .... import utils
+from .... import text
 from .... import log
 
 
@@ -41,8 +42,8 @@ def draw_props(self, export_paths=False):    # pragma: no cover
 
 
 def find_objects_for_export(context):
-    processed_objs = set()
     roots = []
+    processed_objs = set()
 
     for bpy_obj in context.selected_objects:
         while bpy_obj:
@@ -55,17 +56,13 @@ def find_objects_for_export(context):
             bpy_obj = bpy_obj.parent
 
     if not roots:
-        roots = [
-            bpy_obj
-            for bpy_obj in context.scene.objects
-                if bpy_obj.xray.isroot
-        ]
+        roots = [obj for obj in context.scene.objects if obj.xray.isroot]
+
         if not roots:
-            raise log.AppError('No \'root\'-objects found')
+            raise log.AppError(text.get_text(text.error.object_no_roots))
+
         if len(roots) > 1:
-            raise log.AppError(
-                'Too many \'root\'-objects found, but none selected'
-            )
+            raise log.AppError(text.get_text(text.error.object_many_roots))
 
     return roots
 

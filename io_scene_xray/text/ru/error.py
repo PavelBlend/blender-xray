@@ -8,7 +8,7 @@ from .. import error
 translations_table = (
     # general
     (error.error_title, 'ошибка'),
-    (error.no_sel_files, 'Нет выделенных файлов!'),
+    (error.no_sel_files, 'нет выделенных файлов!'),
     (error.fatal_import_error, 'ошибка импорта. Файл не импортирован'),
     (error.mat_no_img, 'материал не имеет изображения'),
     (error.mat_many_img, 'материал имеет больше одного изображения'),
@@ -20,17 +20,17 @@ translations_table = (
     (error.obj_no_mat, 'объект не имеет материала'),
     (error.many_mat, 'меш-объект имеет более одного материала'),
     (error.file_another_prog, 'невозможно записать файл. Файл открыт в другой программе'),
-    (error.no_active_obj, 'Нет активного объекта!'),
+    (error.no_active_obj, 'нет активного объекта!'),
     (error.no_selected_obj, 'нет выделенных объектов'),
     (error.no_blend_obj, 'текущий blend-файл не имеет объектов'),
-    (error.is_not_arm, 'Активный объект не является арматурой!'),
+    (error.is_not_arm, 'активный объект не является арматурой!'),
     (error.file_not_found, 'файл не найден'),
     (error.file_folder_not_found, 'файл или папка не найден(а)'),
     (error.ltx_invalid_syntax, 'ошибка синтаксиса ltx файла'),
     (error.has_no_main_chunk, 'файл не имеет основного блока данных'),
     (error.arm_non_uniform_scale, 'объект имеет неравномерный масштаб'),
-    (error.not_pose_mode, 'Pose mode не активирован'),
-    (error.no_active_bone, 'Нет активной кости!'),
+    (error.not_pose_mode, 'pose mode не активирован'),
+    (error.no_active_bone, 'нет активной кости!'),
 
     # anm export
     (error.anm_no_keys, 'анимация имеет ключи не для всех каналов'),
@@ -82,7 +82,7 @@ translations_table = (
 
     # level export
     (error.level_no_lmap, 'не найдено изображение для карты освещения'),
-    (error.level_has_children, 'Normal/Progressive объекты не должны иметь потомков'),
+    (error.level_has_children, 'объекты Normal/Progressive не должны иметь потомков'),
     (error.level_lmap_no_dds, 'некорректный формат карты освещения (должен быть *.dds)'),
     (error.level_sector_has_no_cform, 'сектор не имеет cform-объекта'),
     (error.level_no_lights, 'level-объект не имеет light-объектов'),
@@ -134,6 +134,8 @@ translations_table = (
     (error.object_skel_many_meshes, 'скелетный объект имеет больше одного меша'),
     (error.object_bad_boneparts, 'не все кости привязаны к bone parts'),
     (error.object_many_parents, 'объект-арматура имеет больше одной главной кости'),
+    (error.object_no_roots, 'не найдены root-объекты.'),
+    (error.object_many_roots, 'найдено слишком много root-объектов, но ни один не выбран.'),
 
     # object import bone
     (error.object_unsupport_bone_ver, 'неподдерживаемая версия формата костей'),
@@ -159,16 +161,16 @@ translations_table = (
     (error.omf_no_anims, 'omf файл не имеет блок анимаций'),
     (error.omf_no_params, 'omf файл не имеет блок параметров'),
     (error.omf_bone_no_group, 'не все кости арматуры имеют группу костей (bone part)'),
-    (error.omf_nothing_exp, 'Ничего не экспортируется!'),
+    (error.omf_nothing_exp, 'ничего не экспортируется!'),
 
     # omf import
     (error.omf_no_bone, 'арматура не имеет всех костей, которые есть в omf файле'),
     (error.omf_nothing, 'ничего не импортировано. Измените настройки импорта'),
-    (error.omf_nothing_imp, 'Ничего не импортируется!'),
+    (error.omf_nothing_imp, 'ничего не импортируется!'),
 
     # omf merge
-    (error.few_files, 'Необходимо выделить больше одного файла!'),
-    (error.omf_merge_parts_count, 'Файл имеет разное количество boneparts'),
+    (error.few_files, 'необходимо выделить больше одного файла!'),
+    (error.omf_merge_parts_count, 'файл имеет разное количество boneparts'),
 
     # scene import
     (error.scene_bad_file, 'недопустимый scene selection файл. Не найден "scene version" блок'),

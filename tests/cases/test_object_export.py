@@ -82,7 +82,7 @@ class TestObjectExport(utils.XRayTestCase):
         # Assert
         self.assertReportsContains(
             'ERROR',
-            re.compile('No \'root\'-objects found')
+            re.compile('No root-objects found')
         )
 
         # Arrange
@@ -99,7 +99,7 @@ class TestObjectExport(utils.XRayTestCase):
         # Assert
         self.assertReportsContains(
             'ERROR',
-            re.compile('Too many \'root\'-objects found, but none selected')
+            re.compile('Too many root-objects found, but none selected')
         )
 
         # Arrange

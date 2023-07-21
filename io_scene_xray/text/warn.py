@@ -1,9 +1,9 @@
 # general
-full_log = 'The full log was stored in the Text Editor in a text file'
+full_log = 'the full log was stored in the Text Editor in a text file'
 tex_not_found = 'texture file not found'
-tex_folder_not_spec = 'No textures folder specified in addon settings'
-objs_folder_not_spec = 'No objects folder specified in addon settings'
-meshes_folder_not_spec = 'No meshes folder specified in addon settings'
+tex_folder_not_spec = 'no textures folder specified in addon settings'
+objs_folder_not_spec = 'no objects folder specified in addon settings'
+meshes_folder_not_spec = 'no meshes folder specified in addon settings'
 env_tex = 'material has incorrect image node type (Environment Texture)'
 no_bone_parent = 'bone parent isn\'t found'
 invalid_image_path = 'image has an invalid path'
@@ -14,9 +14,9 @@ use_shader_tex = mat_many_tex + '. Shader texture exported'
 use_active_tex = mat_many_tex + '. Active texture exported'
 use_selected_tex = mat_many_tex + '. Selected texture exported'
 info_title = 'info'
-ready = 'Ready!'
-imported = 'Imported'
-сhanged = 'Changed'
+ready = 'ready!'
+imported = 'imported'
+сhanged = 'changed'
 name_has_dot = 'file name contains more than one dot. The file has been renamed'
 obj_many_uv = 'object has more than one UV-map. Active UV-map exported'
 keymap_assign_more_one = 'more than one operator is assigned to'
@@ -88,9 +88,9 @@ ogf_bad_joint = 'unsupported bone joint type using Custom'
 omf_exp_no_act = 'object action not found'
 
 # omf merge
-omf_merge_part_names = 'Bonepart names are not identical'
-omf_merge_part_bone_names = 'Bonepart bones names are not identical'
-omf_merge_motion_duplicate = 'Animation was not saved because an animation with the same name already exists'
+omf_merge_part_names = 'bonepart names are not identical'
+omf_merge_part_bone_names = 'bonepart bones names are not identical'
+omf_merge_motion_duplicate = 'animation was not saved because an animation with the same name already exists'
 
 # scene import
 scene_no_file = 'cannot find file'
@@ -116,15 +116,15 @@ browser_done = 'Done: {} animation(s)'
 browser_import = 'Imported animation(s)'
 
 # rig operators
-connect_has_no_bones = 'Active armature has no bones'
-ik_no_selected_bones = 'No selected bones'
+connect_has_no_bones = 'active armature has no bones'
+ik_no_selected_bones = 'no selected bones'
 
 # verify operator
 incorrect_uv_objs_count = 'selected objects with incorrect UV-maps'
 invalid_face_objs_count = 'selected objects with invalid faces'
 
 # other operators
-added_motions = 'Added animations'
+added_motions = 'added animations'
 
 # armature panel
-bones_verdif = 'Found bones, edited with {} version of this plugin'
+bones_verdif = 'found bones, edited with {} version of this plugin'

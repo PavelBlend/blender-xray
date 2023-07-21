@@ -44,8 +44,6 @@ class Logger:
     def _format_message(self, message):
         message = str(message)
         message = text.get_text(message)
-        message = message.strip()
-        message = message[0].upper() + message[1: ]
         return message
 
     def _format_data(self, data):

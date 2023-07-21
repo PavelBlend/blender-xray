@@ -1,6 +1,6 @@
 # general
 error_title = 'error'
-no_sel_files = 'No files selected!'
+no_sel_files = 'no files selected!'
 fatal_import_error = 'import error. File not imported'
 mat_no_img = 'material has no image'
 mat_many_img = 'material has more the one image'
@@ -12,17 +12,17 @@ obj_empty_mat = 'object use empty material slot'
 obj_no_mat = 'object has no material'
 many_mat = 'mesh-object has more than one material'
 file_another_prog = 'unable to write file. The file is open in another program'
-no_active_obj = 'No active object!'
+no_active_obj = 'no active object!'
 no_selected_obj = 'no selected objects'
 no_blend_obj = 'current blend-file has no objects'
-is_not_arm = 'Active object is not armature!'
+is_not_arm = 'active object is not armature!'
 file_not_found = 'file not found'
 file_folder_not_found = 'file or folder not found'
 ltx_invalid_syntax = 'ltx file syntax error'
 has_no_main_chunk = 'file has no main data block'
 arm_non_uniform_scale = 'object has an non-uniform scale'
-not_pose_mode = 'Pose mode not activated'
-no_active_bone = 'No active bone!'
+not_pose_mode = 'pose mode not activated'
+no_active_bone = 'no active bone!'
 
 # anm export
 anm_no_keys = 'action has keys not for all channels'
@@ -126,6 +126,8 @@ object_no_meshes = 'root object has no meshes'
 object_skel_many_meshes = 'skeletal object has more than one mesh'
 object_bad_boneparts = 'not all bones are tied to the bone part'
 object_many_parents = 'armature object has more than one parent'
+object_no_roots = 'no root-objects found'
+object_many_roots = 'too many root-objects found, but none selected'
 
 # object import bone
 object_unsupport_bone_ver = 'unsupported bone format version'
@@ -151,16 +153,16 @@ omf_empty = 'use different export mode. This omf file is empty'
 omf_no_anims = 'omf file does not have an animation block'
 omf_no_params = 'omf file does not have an parameters block'
 omf_bone_no_group = 'not all bones in an armature have bone group'
-omf_nothing_exp = 'Nothing is exported!'
+omf_nothing_exp = 'nothing is exported!'
 
 # omf import
 omf_no_bone = 'armature does not have all bones that file has'
 omf_nothing = 'nothing was imported. Change import settings'
-omf_nothing_imp = 'Nothing is imported!'
+omf_nothing_imp = 'nothing is imported!'
 
 # omf merge
-few_files = 'More than one file needs to be selected'
-omf_merge_parts_count = 'File have different boneparts count'
+few_files = 'more than one file needs to be selected'
+omf_merge_parts_count = 'file have different boneparts count'
 
 # scene import
 scene_bad_file = 'bad scene selection file. Cannot find "scene version" chunk'

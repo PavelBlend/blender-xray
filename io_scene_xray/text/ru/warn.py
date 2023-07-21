@@ -10,14 +10,14 @@ mat_many_tex = 'материал имеет больше одной тексту
 translations_table = (
     # general
     (warn.info_title, 'информация'),
-    (warn.ready, 'Готово!'),
-    (warn.imported, 'Импортировано'),
-    (warn.сhanged, 'Изменено'),
-    (warn.full_log, 'Полный лог хранится в окне Text Editor в текстовом файле'),
+    (warn.ready, 'готово!'),
+    (warn.imported, 'импортировано'),
+    (warn.сhanged, 'изменено'),
+    (warn.full_log, 'полный лог хранится в окне Text Editor в текстовом файле'),
     (warn.tex_not_found, 'файл текстуры не найден'),
-    (warn.tex_folder_not_spec, 'Папка с текстурами не указана в настройках аддона'),
-    (warn.objs_folder_not_spec, 'Папка с объектами не указана в настройках аддона'),
-    (warn.meshes_folder_not_spec, 'Папка с мешами не указана в настройках аддона'),
+    (warn.tex_folder_not_spec, 'папка с текстурами не указана в настройках аддона'),
+    (warn.objs_folder_not_spec, 'папка с объектами не указана в настройках аддона'),
+    (warn.meshes_folder_not_spec, 'папка с мешами не указана в настройках аддона'),
     (warn.env_tex, 'материал имеет некорректный тип ноды изображения (Environment Texture)'),
     (warn.no_bone_parent, 'не найдена родительская кость'),
     (warn.invalid_image_path, 'изображение имеет некорректный путь'),
@@ -63,11 +63,11 @@ translations_table = (
     (warn.object_legacy_motionrefs, 'пропущены устаревшие motion references данные'),
     (warn.object_set_dynamic, 'скелетный объект имеет неправильный тип. Тип объекта записан как Dynamic'),
     (warn.object_arm_mod_disabled, 'модификатор armature отключён в 3D viewport'),
-    (warn.obj_used_arm, 'Не указан объект в модификаторе "Armature". Был использован объект из иерархии'),
+    (warn.obj_used_arm, 'не указан объект в модификаторе "Armature". Был использован объект из иерархии'),
 
     # object export mesh
-    (warn.object_sg_smooth, 'Несовместимость Maya-сглаживания: сглаженные смежные рёбра имеют различные группы сглаживания'),
-    (warn.object_sg_sharp, 'Несовместимость Maya-сглаживания: не сглаженные смежные рёбра имеют одинаковую группу сглаживания'),
+    (warn.object_sg_smooth, 'несовместимость Maya-сглаживания: сглаженные смежные рёбра имеют различные группы сглаживания'),
+    (warn.object_sg_sharp, 'несовместимость Maya-сглаживания: не сглаженные смежные рёбра имеют одинаковую группу сглаживания'),
     (warn.object_skip_geom, 'пропущена геометрия из групп вершин'),
     (warn.object_missing_group, 'вершины имеют отсутствующие группы'),
 
@@ -97,9 +97,9 @@ translations_table = (
     (warn.omf_exp_no_act, 'не найден action объекта'),
 
     # omf merge
-    (warn.omf_merge_part_names, 'Имена bonepart не идентичны'),
-    (warn.omf_merge_part_bone_names, 'Имена костей bonepart не идентичны'),
-    (warn.omf_merge_motion_duplicate, 'Анимация не сохранена, так как анимация с таким именем уже существует'),
+    (warn.omf_merge_part_names, 'имена bonepart не идентичны'),
+    (warn.omf_merge_part_bone_names, 'имена костей bonepart не идентичны'),
+    (warn.omf_merge_motion_duplicate, 'анимация не сохранена, так как анимация с таким именем уже существует'),
 
     # scene import
     (warn.scene_no_file, 'не найден файл'),
@@ -129,7 +129,7 @@ translations_table = (
     (warn.invalid_face_objs_count, 'выделено объектов с invalid face'),
 
     # others operators
-    (warn.added_motions, 'Добавлено анимаций'),
+    (warn.added_motions, 'добавлено анимаций'),
 )
 
 translation = {}
