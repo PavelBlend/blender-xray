@@ -42,6 +42,15 @@ class TestObjectExport(utils.XRayTestCase):
     def test_export_using_context(self):
         # Arrange
         self._create_objects()
+        ob1 = bpy.data.objects['tobj1']
+        ob2 = bpy.data.objects['tobj2']
+        ob3 = bpy.data.objects['tobj3']
+        ob2.xray.isroot = False
+        ob3.xray.isroot = False
+        ob2.parent = ob1
+        ob3.parent = ob1
+        bpy.ops.object.empty_add()
+        ob1.name = 'root_obj'
         bpy.ops.object.select_all(action='SELECT')
 
         # Act
@@ -52,11 +61,54 @@ class TestObjectExport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertOutputFiles({
-            'tobj1.object',
-            'tobj2.object',
-            'tobj3.object'
-        })
+        self.assertOutputFiles({'root_obj.object', })
+
+    def test_export_without_selection(self):
+        # Act
+        bpy.ops.xray_export.object(
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            use_export_paths=False
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('No \'root\'-objects found')
+        )
+
+        # Arrange
+        self._create_objects()
+        bpy.ops.object.select_all(action='DESELECT')
+
+        # Act
+        bpy.ops.xray_export.object(
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            use_export_paths=False
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('Too many \'root\'-objects found, but none selected' )
+        )
+
+        # Arrange
+        ob2 = bpy.data.objects['tobj2']
+        ob3 = bpy.data.objects['tobj3']
+        bpy.data.objects.remove(ob2)
+        bpy.data.objects.remove(ob3)
+
+        # Act
+        bpy.ops.xray_export.object(
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            use_export_paths=False
+        )
+
+        # Assert
+        self.assertOutputFiles({'tobj1.object', })
 
     def test_export_multi_notusing_paths(self):
         # Arrange
