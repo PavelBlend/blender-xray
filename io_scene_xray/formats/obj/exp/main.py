@@ -19,17 +19,10 @@ def export_version(chunked_writer):
     chunked_writer.put(fmt.Chunks.Object.VERSION, packed_writer)
 
 
-def get_object_flags(xray):
-    if xray is not None:
-        flags = xray.flags
-    else:
-        flags = 0
-    return flags
-
-
 def export_flags(chunked_writer, xray, some_arm):
-    flags = get_object_flags(xray)
-    if not some_arm is None:
+    flags = xray.flags
+
+    if some_arm:
         # 1 - Dynamic
         # 3 - Progressive Dynamic
         if flags & ~0x40 not in (1, 3):
@@ -42,6 +35,7 @@ def export_flags(chunked_writer, xray, some_arm):
                 has_type=fmt.type_names[xray.flags_simple],
                 save_as=fmt.type_names[fmt.DY]
             )
+
     packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<I', flags)
     chunked_writer.put(fmt.Chunks.Object.FLAGS, packed_writer)
