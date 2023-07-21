@@ -114,6 +114,7 @@ class TestObjectExport(utils.XRayTestCase):
         utils.set_active_object(obj)
         arm = obj.data
         arm.bones[0].xray.ikflags_breakable = True
+        obj.xray.flags_simple = 'dy'
 
         # Act
         bpy.ops.xray_export.object(
