@@ -53,8 +53,8 @@ class ChunkedReader:
             chunk_data = self.data[self.offs : self.offs + chunk_size]
             self.offs += chunk_size
             if (chunk_id & ChunkedReader.__MASK_COMPRESSED) != 0:
-                print('unsupported: compressed chunk {:#x}'.format(i))
+                chunk_id = chunk_id & ~ChunkedReader.__MASK_COMPRESSED
+                print('unsupported: compressed chunk {:#x}'.format(chunk_id))
                 continue
-            chunk_id = chunk_id & ~ChunkedReader.__MASK_COMPRESSED
             chunks.append((chunk_id, chunk_data))
         return chunks
