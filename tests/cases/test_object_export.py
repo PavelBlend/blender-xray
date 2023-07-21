@@ -56,7 +56,7 @@ class TestObjectExport(utils.XRayTestCase):
             'tobj2.object'
         })
 
-    def test_many_uvs(self):
+    def test_many_uvs_and_not_used_mat(self):
         # Arrange
         obj = self._create_objects()[0]
 
@@ -65,6 +65,14 @@ class TestObjectExport(utils.XRayTestCase):
             obj.data.uv_layers.new(name='test')
         else:
             obj.data.uv_textures.new(name='test')
+
+        # add not used material
+        mat = bpy.data.materials.new('test')
+        obj.data.materials.append(mat)
+
+        # add empty material slot
+        utils.set_active_object(obj)
+        bpy.ops.object.material_slot_add()
 
         # Act
         bpy.ops.xray_export.object_file(
