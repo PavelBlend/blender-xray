@@ -416,14 +416,9 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
     sfw.putf('<I', len(materials))
     for material in materials:
         sfw.puts(material.name)
-        if hasattr(material, 'xray'):
-            sfw.puts(material.xray.eshader)
-            sfw.puts(material.xray.cshader)
-            sfw.puts(material.xray.gamemtl)
-        else:
-            sfw.puts('')
-            sfw.puts('')
-            sfw.puts('')
+        sfw.puts(material.xray.eshader)
+        sfw.puts(material.xray.cshader)
+        sfw.puts(material.xray.gamemtl)
         tex_name = utils.material.get_image_relative_path(
             material,
             context
@@ -434,10 +429,7 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
         else:
             slot = material.texture_slots[material.active_texture_index]
             sfw.puts(slot.uv_layer if slot else '')
-        if hasattr(material, 'xray'):
-            sfw.putf('<I', material.xray.flags)
-        else:
-            sfw.putf('<I', 0)
+        sfw.putf('<I', material.xray.flags)
         sfw.putf('<I', 0x112)
         sfw.putf('<I', 1)
     chunked_writer.put(fmt.Chunks.Object.SURFACES2, sfw)
