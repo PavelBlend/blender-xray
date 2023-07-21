@@ -169,6 +169,68 @@ class TestObjectExport(utils.XRayTestCase):
         # Assert
         self.assertOutputFiles({'tobj.object', })
 
+    def test_ungroupped_verts(self):
+        # Arrange
+        objs = self._create_objects()
+        mesh_obj = objs[0]
+
+        obj = _create_armature((mesh_obj, ))
+        utils.set_active_object(obj)
+
+        # remove vertex group
+        group = mesh_obj.vertex_groups[0]
+        mesh_obj.vertex_groups.remove(group)
+
+        # Act
+        bpy.ops.xray_export.object(
+            objects='tobj',
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('Mesh-object has vertices that don\'t have vertex groups')
+        )
+
+    def test_nonexp_vert_groups(self):
+        # Arrange
+        objs = self._create_objects()
+        mesh_obj = objs[0]
+
+        obj = _create_armature((mesh_obj, ))
+        utils.set_active_object(obj)
+
+        # add non-exportable bone
+        bpy.ops.object.mode_set(mode='EDIT')
+        try:
+            nonexp_bone = obj.data.edit_bones.new('non_exportable')
+            nonexp_bone.tail.y = 1
+        finally:
+            bpy.ops.object.mode_set(mode='OBJECT')
+        obj.data.bones['non_exportable'].xray.exportable = False
+
+        # assign vertex for non-exportable group
+        grp = mesh_obj.vertex_groups.new(name='non_exportable')
+        grp.add([0, ], 1, 'REPLACE')
+        mesh_obj.vertex_groups['tbone'].remove([0, ])
+
+        # Act
+        bpy.ops.xray_export.object(
+            objects='tobj',
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('Mesh-object has vertices that are not tied to any exportable bones')
+        )
+
     def test_empty_bone_groups(self):
         # Arrange
         arm = bpy.data.armatures.new('tarm')
