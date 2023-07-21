@@ -593,3 +593,20 @@ def export_main(bpy_obj, chunked_writer, context):
     export_partitions(chunked_writer, some_arm)
     export_transform(chunked_writer, bpy_root)
     export_revision(chunked_writer, xray)
+
+
+def export_body(bpy_obj, chunked_writer, context):
+    writer = rw.write.ChunkedWriter()
+    export_main(bpy_obj, writer, context)
+    chunked_writer.put(fmt.Chunks.Object.MAIN, writer)
+
+
+@log.with_context('export-object')
+@utils.stats.timer
+def export_file(bpy_obj, file_path, context):
+    utils.stats.status('Export File', file_path)
+
+    log.update(object=bpy_obj.name)
+    writer = rw.write.ChunkedWriter()
+    export_body(bpy_obj, writer, context)
+    rw.utils.save_file(file_path, writer)

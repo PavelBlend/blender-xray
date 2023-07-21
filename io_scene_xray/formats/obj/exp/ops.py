@@ -6,7 +6,7 @@ import bpy
 import bpy_extras
 
 # addon modules
-from .. import exp
+from . import main
 from ... import ie
 from ... import contexts
 from .... import utils
@@ -133,7 +133,7 @@ class XRAY_OT_export_object(utils.ie.BaseOperator, _WithExportMotions):
                 os.makedirs(path, exist_ok=True)
 
             try:
-                exp.export_file(
+                main.export_file(
                     bpy_obj,
                     os.path.join(path, name),
                     exp_ctx
@@ -223,7 +223,7 @@ class XRAY_OT_export_object_file(
         bpy_obj = context.scene.objects[self.object]
 
         try:
-            exp.export_file(bpy_obj, self.filepath, export_context)
+            main.export_file(bpy_obj, self.filepath, export_context)
         except log.AppError as err:
             export_context.errors.append(err)
 
