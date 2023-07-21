@@ -24,7 +24,7 @@ class ExportObjectContext(
         self.smoothing_out_of = None
 
 
-def draw_props(self, mode='SINGLE'):    # pragma: no cover
+def draw_props(self, export_paths=False):    # pragma: no cover
     layout = self.layout
 
     utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
@@ -33,24 +33,27 @@ def draw_props(self, mode='SINGLE'):    # pragma: no cover
     row.label(text='Smoothing:')
     row.row().prop(self, 'smoothing_out_of', expand=True)
 
-    if mode == 'BATCH':
+    if export_paths:
         layout.prop(self, 'use_export_paths')
+
     layout.prop(self, 'export_motions')
     layout.prop(self, 'texture_name_from_image_path')
 
 
 def find_objects_for_export(context):
-    processed = set()
+    processed_objs = set()
     roots = []
+
     for bpy_obj in context.selected_objects:
         while bpy_obj:
-            if bpy_obj in processed:
+            if bpy_obj in processed_objs:
                 break
-            processed.add(bpy_obj)
+            processed_objs.add(bpy_obj)
             if bpy_obj.xray.isroot:
                 roots.append(bpy_obj)
                 break
             bpy_obj = bpy_obj.parent
+
     if not roots:
         roots = [
             bpy_obj
@@ -63,34 +66,30 @@ def find_objects_for_export(context):
             raise log.AppError(
                 'Too many \'root\'-objects found, but none selected'
             )
+
     return roots
-
-
-_with_export_motions_props = {
-    'export_motions': ie.PropObjectMotionsExport(),
-}
-
-
-class _WithExportMotions:
-    if not utils.version.IS_28:
-        for prop_name, prop_value in _with_export_motions_props.items():
-            exec('{0} = _with_export_motions_props.get("{0}")'.format(prop_name))
 
 
 filename_ext = '.object'
 
 export_props = {
-    'objects': bpy.props.StringProperty(options={'HIDDEN'}),
-    'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
+    # file browser properties
+    'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
     'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
+
+    # export properties
     'fmt_version': ie.PropSDKVersion(),
     'use_export_paths': ie.PropUseExportPaths(),
     'smoothing_out_of': ie.prop_smoothing_out_of(),
+    'export_motions': ie.PropObjectMotionsExport(),
+
+    # system properties
+    'objects': bpy.props.StringProperty(options={'HIDDEN'}),
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
 
-class XRAY_OT_export_object(utils.ie.BaseOperator, _WithExportMotions):
+class XRAY_OT_export_object(utils.ie.BaseOperator):
     bl_idname = 'xray_export.object'
     bl_label = 'Export .object'
     bl_options = {'PRESET'}
@@ -106,13 +105,17 @@ class XRAY_OT_export_object(utils.ie.BaseOperator, _WithExportMotions):
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'objects_folder')
-        draw_props(self, mode='BATCH')
+        draw_props(self, export_paths=True)
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
         utils.stats.update('Export *.object')
+
+        if not self.objects:
+            roots = find_objects_for_export(context)
+            self.objects = ','.join([obj.name for obj in roots])
 
         exp_ctx = ExportObjectContext()
 
@@ -173,22 +176,26 @@ class XRAY_OT_export_object(utils.ie.BaseOperator, _WithExportMotions):
 
 
 export_props = {
-    'object': bpy.props.StringProperty(options={'HIDDEN'}),
+    # file browser properties
     'filter_glob': bpy.props.StringProperty(
         default='*'+filename_ext,
         options={'HIDDEN'}
     ),
-    'texture_name_from_image_path': \
-        ie.PropObjectTextureNamesFromPath(),
+
+    # export properties
+    'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
     'fmt_version': ie.PropSDKVersion(),
-    'smoothing_out_of': ie.prop_smoothing_out_of()
+    'smoothing_out_of': ie.prop_smoothing_out_of(),
+    'export_motions': ie.PropObjectMotionsExport(),
+
+    # system properties
+    'object': bpy.props.StringProperty(options={'HIDDEN'})
 }
 
 
 class XRAY_OT_export_object_file(
         utils.ie.BaseOperator,
-        bpy_extras.io_utils.ExportHelper,
-        _WithExportMotions
+        bpy_extras.io_utils.ExportHelper
     ):
 
     bl_idname = 'xray_export.object_file'
@@ -204,7 +211,7 @@ class XRAY_OT_export_object_file(
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'objects_folder')
-        draw_props(self)
+        draw_props(self, export_paths=False)
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -264,9 +271,6 @@ classes = (
 
 
 def register():
-    utils.version.assign_props(
-        [(_with_export_motions_props, _WithExportMotions), ]
-    )
     utils.version.register_operators(classes)
 
 

@@ -39,13 +39,33 @@ class TestObjectExport(utils.XRayTestCase):
             'a/b/tobj2.object'
         })
 
+    def test_export_using_context(self):
+        # Arrange
+        self._create_objects()
+        bpy.ops.object.select_all(action='SELECT')
+
+        # Act
+        bpy.ops.xray_export.object(
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            use_export_paths=False
+        )
+
+        # Assert
+        self.assertOutputFiles({
+            'tobj1.object',
+            'tobj2.object',
+            'tobj3.object'
+        })
+
     def test_export_multi_notusing_paths(self):
         # Arrange
         self._create_objects()
 
         # Act
         bpy.ops.xray_export.object(
-            objects='tobj1,tobj2', directory=self.outpath(),
+            objects='tobj1,tobj2',
+            directory=self.outpath(),
             use_export_paths=False,
             texture_name_from_image_path=False
         )
