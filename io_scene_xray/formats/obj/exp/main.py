@@ -412,27 +412,32 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
 
 
 def export_surfaces(chunked_writer, context, materials, uv_map_names):
-    sfw = rw.write.PackedWriter()
-    sfw.putf('<I', len(materials))
+    writer = rw.write.PackedWriter()
+
+    surface_count = len(materials)
+    writer.putf('<I', surface_count)
+
     for material in materials:
-        sfw.puts(material.name)
-        sfw.puts(material.xray.eshader)
-        sfw.puts(material.xray.cshader)
-        sfw.puts(material.xray.gamemtl)
-        tex_name = utils.material.get_image_relative_path(
-            material,
-            context
-        )
-        sfw.puts(tex_name)
+        tex_name = utils.material.get_image_relative_path(material, context)
+
         if utils.version.IS_28:
-            sfw.puts(uv_map_names[material.name])
+            uv_name = uv_map_names[material.name]
         else:
             slot = material.texture_slots[material.active_texture_index]
-            sfw.puts(slot.uv_layer if slot else '')
-        sfw.putf('<I', material.xray.flags)
-        sfw.putf('<I', 0x112)
-        sfw.putf('<I', 1)
-    chunked_writer.put(fmt.Chunks.Object.SURFACES2, sfw)
+            uv_name = slot.uv_layer if slot else ''
+
+        # write
+        writer.puts(material.name)
+        writer.puts(material.xray.eshader)
+        writer.puts(material.xray.cshader)
+        writer.puts(material.xray.gamemtl)
+        writer.puts(tex_name)
+        writer.puts(uv_name)
+        writer.putf('<I', material.xray.flags)
+        writer.putf('<I', fmt.VERTEX_FORMAT)
+        writer.putf('<I', fmt.UV_COUNT)
+
+    chunked_writer.put(fmt.Chunks.Object.SURFACES2, writer)
 
 
 def export_bones(chunked_writer, bone_writers):
