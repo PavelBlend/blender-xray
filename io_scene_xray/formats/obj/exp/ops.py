@@ -72,13 +72,17 @@ filename_ext = '.object'
 export_props = {
     # file browser properties
     'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
-    'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    ),
 
     # export properties
     'fmt_version': ie.PropSDKVersion(),
     'use_export_paths': ie.PropUseExportPaths(),
     'smoothing_out_of': ie.prop_smoothing_out_of(),
     'export_motions': ie.PropObjectMotionsExport(),
+    'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
 
     # system properties
     'objects': bpy.props.StringProperty(options={'HIDDEN'}),
