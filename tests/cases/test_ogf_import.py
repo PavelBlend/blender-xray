@@ -25,3 +25,7 @@ class TestOgfImport(utils.XRayTestCase):
                 {'name': 'test_fmt_ogf_st.ogf'}
             ],
         )
+        bpy.ops.xray_import.ogf(
+            directory=self.binpath(),
+            files=[{'name': 'test_fmt_ogf_v3.ogf'}],
+        )
