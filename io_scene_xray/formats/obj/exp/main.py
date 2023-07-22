@@ -443,10 +443,10 @@ def export_surfaces(chunked_writer, context, materials, uv_map_names):
 def export_bones(chunked_writer, bone_writers):
     if bone_writers:
         writer = rw.write.ChunkedWriter()
-        index = 0
-        for bone_writer in bone_writers:
-            writer.put(index, bone_writer)
-            index += 1
+
+        for bone_index, bone_writer in enumerate(bone_writers):
+            writer.put(bone_index, bone_writer)
+
         chunked_writer.put(fmt.Chunks.Object.BONES1, writer)
 
 
