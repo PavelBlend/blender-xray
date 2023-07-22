@@ -27,7 +27,7 @@ op_text = 'Detail Model'
 
 import_props = {
     'filter_glob': bpy.props.StringProperty(
-        default='*.dm',
+        default='*'+filename_ext,
         options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
@@ -97,6 +97,10 @@ class XRAY_OT_import_dm(
 
 
 export_props = {
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    ),
     'detail_models': bpy.props.StringProperty(options={'HIDDEN'}),
     'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
     'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
