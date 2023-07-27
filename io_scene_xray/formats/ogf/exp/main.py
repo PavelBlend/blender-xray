@@ -17,6 +17,9 @@ from .... import log
 from .... import utils
 
 
+FIRST_SHADER = 0
+
+
 def write_verts_1l(vertices_writer, vertices, norm_coef=1):
     for vertex in vertices:
         vertices_writer.putv3f(vertex[1])    # coord
@@ -276,10 +279,34 @@ def vfunc(vtx_a, vtx_b, func):
     vtx_a.z = func(vtx_a.z, vtx_b.z)
 
 
-def _export(root_obj, cwriter, context):
-    xray = root_obj.xray
+def _write_header_bounds(obj, header_writer):
+    # get bounds
+    (b_min, b_max), (cntr, rad) = utils.mesh.calculate_bbox_and_bsphere(obj)
 
-    # get ogf type
+    # bbox
+    header_writer.putv3f(b_min)    # min bbox
+    header_writer.putv3f(b_max)    # max bbox
+
+    # bsphere
+    header_writer.putv3f(cntr)    # bsphere center
+    header_writer.putf('<f', rad)    # bsphere radius
+
+
+def _write_header_base(obj, header_writer):
+    model_type = _get_model_type(obj.xray)
+    header_writer.putf('<2BH', fmt.FORMAT_VERSION_4, model_type, FIRST_SHADER)
+
+
+def _write_header(root_obj, ogf_writer):
+    header_writer = rw.write.PackedWriter()
+
+    _write_header_base(root_obj, header_writer)
+    _write_header_bounds(root_obj, header_writer)
+
+    ogf_writer.put(fmt.HEADER, header_writer)
+
+
+def _get_model_type(xray):
     if len(xray.motionrefs_collection):
         model_type = fmt.ModelType_v4.SKELETON_ANIM
 
@@ -289,47 +316,108 @@ def _export(root_obj, cwriter, context):
     else:
         model_type = fmt.ModelType_v4.SKELETON_RIGID
 
-    # export header
-    header_writer = rw.write.PackedWriter()
+    return model_type
 
-    header_writer.putf('<B', fmt.FORMAT_VERSION_4)
-    header_writer.putf('<B', model_type)
-    header_writer.putf('<H', 0)    # shader id
 
-    # bbox
-    bbox, bsph = utils.mesh.calculate_bbox_and_bsphere(root_obj)
-    header_writer.putv3f(bbox[0])
-    header_writer.putv3f(bbox[1])
-
-    # bsphere
-    header_writer.putv3f(bsph[0])
-    header_writer.putf('<f', bsph[1])
-
-    cwriter.put(fmt.HEADER, header_writer)
-
-    # export revision
-    owner, ctime, moder, mtime = utils.obj.get_revision_data(xray.revision)
-    currtime = int(time.time())
-
+def _write_revision(obj, ogf_writer):
     revision_writer = rw.write.PackedWriter()
 
+    # get values
+    owner, ctime, moder, mtime = utils.obj.get_revision_data(obj.xray.revision)
+    build_time = int(time.time())
+
+    # formatting build name
     prog_name = 'program: blender v{}.{}.{}'.format(*bpy.app.version)
     addon_name = 'addon: blender-xray-v{}.{}.{}'.format(*utils.addon_version)
     build_name = '{}, {}'.format(prog_name, addon_name)
 
+    # formatting source file name
     blend_file = '*.blend file: "{}"'.format(bpy.data.filepath)
-    obj_name = 'object: "{}"'.format(root_obj.name)
+    obj_name = 'object: "{}"'.format(obj.name)
     source_file = '{}, {}'.format(blend_file, obj_name)
 
+    # write
     revision_writer.puts(source_file)
     revision_writer.puts(build_name)
-    revision_writer.putf('<I', currtime)    # build time
+    revision_writer.putf('<I', build_time)
     revision_writer.puts(owner)
     revision_writer.putf('<I', ctime)
     revision_writer.puts(moder)
     revision_writer.putf('<I', mtime)
 
-    cwriter.put(fmt.Chunks_v4.S_DESC, revision_writer)
+    # write chunk
+    ogf_writer.put(fmt.Chunks_v4.S_DESC, revision_writer)
+
+
+def _get_motion_context(context, arm_obj):
+    motion_context = omf.ops.ExportOmfContext()
+
+    motion_context.bpy_arm_obj = arm_obj
+    motion_context.export_mode = 'OVERWRITE'
+    motion_context.export_motions = True
+    motion_context.export_bone_parts = True
+    motion_context.need_motions = True
+    motion_context.need_bone_groups = True
+
+    if context.fmt_ver == 'soc':
+        motion_context.params_ver = 3
+        motion_context.high_quality = False
+    else:
+        motion_context.params_ver = 4
+        motion_context.high_quality = context.hq_export
+
+    return motion_context
+
+
+def _write_motions(xray, context, arm_obj, ogf_writer):
+    if context.export_motions and xray.motions_collection:
+        motion_context = _get_motion_context(context, arm_obj)
+        motions_writer = omf.exp.export_omf(motion_context)
+        # append motions chunks
+        ogf_writer.data.extend(motions_writer.data)
+
+
+def _write_motion_refs(obj, context, ogf_writer):
+    refs_collect = obj.xray.motionrefs_collection
+
+    if len(refs_collect):
+        refs_writer = rw.write.PackedWriter()
+        refs = [ref.name for ref in refs_collect]
+
+        # soc format
+        if context.fmt_ver == 'soc':
+            refs_string = ','.join(refs)
+            refs_writer.puts(refs_string)
+            chunk_id = fmt.Chunks_v4.S_MOTION_REFS_0
+
+        # cs/cop format
+        else:
+            refs_count = len(refs)
+            refs_writer.putf('<I', refs_count)
+            for ref in refs:
+                refs_writer.puts(ref)
+            chunk_id = fmt.Chunks_v4.S_MOTION_REFS_2
+
+        ogf_writer.put(chunk_id, refs_writer)
+
+
+def _write_userdata(obj, ogf_writer):
+    userdata = obj.xray.userdata
+
+    if userdata:
+        userdata_writer = rw.write.PackedWriter()
+        userdata_writer.puts(userdata)
+        ogf_writer.put(fmt.Chunks_v4.S_USERDATA, userdata_writer)
+
+
+def _export_main(root_obj, ogf_writer, context):
+    xray = root_obj.xray
+
+    # header
+    _write_header(root_obj, ogf_writer)
+
+    # revision
+    _write_revision(root_obj, ogf_writer)
 
     meshes = []
     armatures = []
@@ -443,7 +531,7 @@ def _export(root_obj, cwriter, context):
         children_writer.put(child_index, mesh_writer)
         child_index += 1
 
-    cwriter.put(fmt.Chunks_v4.CHILDREN, children_writer)
+    ogf_writer.put(fmt.Chunks_v4.CHILDREN, children_writer)
 
     # get armature scale
     _, scale = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
@@ -557,7 +645,7 @@ def _export(root_obj, cwriter, context):
         # bone half size
         bones_writer.putf('<3f', *box_hsz)
 
-    cwriter.put(fmt.Chunks_v4.S_BONE_NAMES, bones_writer)
+    ogf_writer.put(fmt.Chunks_v4.S_BONE_NAMES, bones_writer)
 
     # export ik data
     ik_writer = rw.write.PackedWriter()
@@ -670,55 +758,16 @@ def _export(root_obj, cwriter, context):
         cmass[2] *= scale.z
         ik_writer.putv3f(cmass)
 
-    cwriter.put(fmt.Chunks_v4.S_IKDATA_2, ik_writer)
+    ogf_writer.put(fmt.Chunks_v4.S_IKDATA_2, ik_writer)
 
     # export userdata
-    if xray.userdata:
-        userdata_writer = rw.write.PackedWriter()
-        userdata_writer.puts(xray.userdata)
-        cwriter.put(fmt.Chunks_v4.S_USERDATA, userdata_writer)
+    _write_userdata(root_obj, ogf_writer)
 
-    # export motion references
-    if len(xray.motionrefs_collection):
-        motion_refs_writer = rw.write.PackedWriter()
-        refs = [ref.name for ref in xray.motionrefs_collection]
+    # motion references
+    _write_motion_refs(root_obj, context, ogf_writer)
 
-        # soc format
-        if context.fmt_ver == 'soc':
-            refs_string = ','.join(refs)
-            motion_refs_writer.puts(refs_string)
-            chunk_id = fmt.Chunks_v4.S_MOTION_REFS_0
-
-        # cs/cop format
-        else:
-            refs_count = len(refs)
-            motion_refs_writer.putf('<I', refs_count)
-            for ref in refs:
-                motion_refs_writer.puts(ref)
-            chunk_id = fmt.Chunks_v4.S_MOTION_REFS_2
-
-        cwriter.put(chunk_id, motion_refs_writer)
-
-    # export motions
-    if context.export_motions and xray.motions_collection:
-        motion_context = omf.ops.ExportOmfContext()
-
-        motion_context.bpy_arm_obj = arm_obj
-        motion_context.export_mode = 'OVERWRITE'
-        motion_context.export_motions = True
-        motion_context.export_bone_parts = True
-        motion_context.need_motions = True
-        motion_context.need_bone_groups = True
-
-        if context.fmt_ver == 'soc':
-            motion_context.params_ver = 3
-            motion_context.high_quality = False
-        else:
-            motion_context.params_ver = 4
-            motion_context.high_quality = context.hq_export
-
-        motions_writer = omf.exp.export_omf(motion_context)
-        cwriter.data.extend(motions_writer.data)
+    # motions
+    _write_motions(xray, context, arm_obj, ogf_writer)
 
 
 @log.with_context('export-object')
@@ -727,6 +776,6 @@ def export_file(bpy_obj, file_path, context):
     utils.stats.status('Export File', file_path)
     log.update(object=bpy_obj.name)
 
-    cwriter = rw.write.ChunkedWriter()
-    _export(bpy_obj, cwriter, context)
-    rw.utils.save_file(file_path, cwriter)
+    ogf_writer = rw.write.ChunkedWriter()
+    _export_main(bpy_obj, ogf_writer, context)
+    rw.utils.save_file(file_path, ogf_writer)
