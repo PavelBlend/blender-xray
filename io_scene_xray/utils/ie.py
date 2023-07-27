@@ -296,10 +296,10 @@ def invoke_require_armature(func):
             if context.selected_objects:
                 active = context.selected_objects[0]
         if not active:
-            self.report({'ERROR'}, text.error.no_active_obj)
+            self.report({'ERROR'}, text.get_text(text.error.no_active_obj))
             return {'CANCELLED'}
         if active.type != 'ARMATURE':
-            self.report({'ERROR'}, text.error.is_not_arm)
+            self.report({'ERROR'}, text.get_text(text.error.is_not_arm))
             return {'CANCELLED'}
         return func(self, context, event)
 
