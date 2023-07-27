@@ -190,7 +190,7 @@ class TestObjectExport(utils.XRayTestCase):
         })
         self.assertReportsContains(
             'WARNING',
-            re.compile('Bone edited with a different version of this plugin')
+            re.compile('Bone edited with a different version of this addon')
         )
 
     def test_bone_names(self):
@@ -214,7 +214,7 @@ class TestObjectExport(utils.XRayTestCase):
         self.assertOutputFiles({'tobj.object', })
         self.assertReportsContains(
             'WARNING',
-            re.compile('The bone name has been saved without uppercase characters')
+            re.compile('Bone name has been saved without uppercase characters')
         )
 
     def test_bone_ik_flags(self):

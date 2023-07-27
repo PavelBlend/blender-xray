@@ -7,12 +7,11 @@ from . import warn
 from . import ru
 
 
+MESSAGE_CONTEXT = '*'
+
+
 def get_text(message):
-    message_context = '*'
-    translate = bpy.app.translations.pgettext_tip(message, message_context)
-    translate = translate.strip()
-    translate = translate[0].upper() + translate[1: ]
-    return translate
+    return bpy.app.translations.pgettext_tip(message, MESSAGE_CONTEXT)
 
 
 def register():

@@ -247,5 +247,5 @@ class TestBonesImport(utils.XRayTestCase):
         # Assert
         self.assertReportsContains(
             'WARNING',
-            re.compile('Bones file does not have boneparts')
+            re.compile('BONES file does not have boneparts')
         )
