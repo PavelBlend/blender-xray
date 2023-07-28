@@ -1,3 +1,6 @@
+# standart modules
+import math
+
 # blender modules
 import bpy
 import bmesh
@@ -163,3 +166,30 @@ def get_obb(bone, for_cylinder):
         obb_mat = generate_obb(verts_coord, for_cylinder)
 
     return obb_mat
+
+
+def _vfunc(vtx_a, vtx_b, func):
+    vtx_a.x = func(vtx_a.x, vtx_b.x)
+    vtx_a.y = func(vtx_a.y, vtx_b.y)
+    vtx_a.z = func(vtx_a.z, vtx_b.z)
+
+
+def get_aabb(verts):
+    vmin = mathutils.Vector((+math.inf, +math.inf, +math.inf))
+    vmax = mathutils.Vector((-math.inf, -math.inf, -math.inf))
+
+    for vtx in verts:
+        _vfunc(vmin, vtx, min)
+        _vfunc(vmax, vtx, max)
+
+    multiply = version.get_multiply()
+
+    if vmax.x > vmin.x:
+        vcenter = (vmax + vmin) / 2
+        vscale = (vmax - vmin) / 2
+        aabb_mat = multiply(
+            mathutils.Matrix.Identity(4),
+            mathutils.Matrix.Translation(vcenter),
+            convert_vector_to_matrix(vscale)
+        )
+        return aabb_mat

@@ -273,12 +273,6 @@ def _export_child(
     chunked_writer.put(fmt.Chunks_v4.INDICES, indices_writer)
 
 
-def vfunc(vtx_a, vtx_b, func):
-    vtx_a.x = func(vtx_a.x, vtx_b.x)
-    vtx_a.y = func(vtx_a.y, vtx_b.y)
-    vtx_a.z = func(vtx_a.z, vtx_b.z)
-
-
 def _write_header_bounds(obj, header_writer):
     # get bounds
     (b_min, b_max), (cntr, rad) = utils.mesh.calculate_bbox_and_bsphere(obj)
@@ -548,6 +542,121 @@ def _write_ik_data(bones, scale, ogf_writer):
     ogf_writer.put(fmt.Chunks_v4.S_IKDATA_2, ik_writer)
 
 
+def _write_children(meshes, ogf_writer):
+    children_writer = rw.write.ChunkedWriter()
+
+    for child_index, mesh_writer in enumerate(meshes):
+        children_writer.put(child_index, mesh_writer)
+
+    ogf_writer.put(fmt.Chunks_v4.CHILDREN, children_writer)
+
+
+def _get_default_bone_bound():
+    box_rot = (
+        1.0, 0.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 0.0, 1.0
+    )
+    box_trn = (0.0, 0.0, 0.0)
+    box_hsz = (0.0, 0.0, 0.0)
+    return box_rot, box_trn, box_hsz
+
+
+MATRIX_BONE = mathutils.Matrix.Scale(-1, 4, (0, 0, 1)).freeze()
+
+
+def _bone_mat_to_scale(bone_mat):
+    bone_scale = bone_mat.to_scale()
+
+    for axis in range(3):
+        if not bone_scale[axis]:
+            bone_scale[axis] = 0.0001
+
+    return bone_scale
+
+
+def _bone_mat_to_rotate(bone_mat, bone_scale, mul):
+    scale_mat = utils.bone.convert_vector_to_matrix(bone_scale)
+    mat_rot = mul(bone_mat, scale_mat.inverted()).to_3x3().transposed()
+
+    box_rot = []
+    for row in range(3):
+        box_rot.extend(mat_rot[row].to_tuple())
+
+    return box_rot
+
+
+def _get_bone_half_size(bone_scale, scale):
+    half_size = bone_scale * scale
+
+    for axis in range(3):
+        half_size[axis] = abs(half_size[axis])
+
+    return half_size
+
+
+def _get_bone_box(bone, bone_mat, scale, mul):
+    local_mat = mul(bone.matrix_local, MATRIX_BONE)
+    bone_mat = mul(local_mat.inverted(), bone_mat)
+    bone_mat = mul(bone_mat, MATRIX_BONE)
+    bone_scale = _bone_mat_to_scale(bone_mat)
+
+    box_rot = _bone_mat_to_rotate(bone_mat, bone_scale, mul)
+    box_trn = bone_mat.to_translation() * scale
+    box_hsz = _get_bone_half_size(bone_scale, scale)
+
+    return box_rot, box_trn, box_hsz
+
+
+def _get_bone_bound(bone, scale, mul):
+    verts = utils.bone.bone_vertices(bone)
+
+    if len(verts) > 3:
+        # generate obb
+        mat = utils.bone.get_obb(bone, False)
+
+        if not mat:
+            # generate aabb
+            mat = utils.bone.get_aabb(verts)
+
+        if mat:
+            box_rot, box_trn, box_hsz = _get_bone_box(bone, mat, scale, mul)
+
+        else:
+            box_rot, box_trn, box_hsz = _get_default_bone_bound()
+
+    else:
+        box_rot, box_trn, box_hsz = _get_default_bone_bound()
+
+    return box_rot, box_trn, box_hsz
+
+
+def _write_bone_names(bones, scale, multiply, ogf_writer):
+    bones_writer = rw.write.PackedWriter()
+
+    bones_count = len(bones)
+    bones_writer.putf('<I', bones_count)
+
+    for bone, _ in bones:
+        parent = utils.bone.find_bone_exportable_parent(bone)
+
+        if parent:
+            parent_name = parent.name
+        else:
+            parent_name = ''
+
+        # bone bound
+        box_rot, box_trn, box_hsz = _get_bone_bound(bone, scale, multiply)
+
+        # write
+        bones_writer.puts(bone.name)
+        bones_writer.puts(parent_name)
+        bones_writer.putf('<15f', *box_rot, *box_trn, *box_hsz)
+
+    # write chunk
+    ogf_writer.put(fmt.Chunks_v4.S_BONE_NAMES, bones_writer)
+
+
 def _export_main(root_obj, ogf_writer, context):
     xray = root_obj.xray
 
@@ -661,130 +770,14 @@ def _export_main(root_obj, ogf_writer, context):
 
     arm_obj = armatures[0]
 
-    # export children
-    child_index = 0
-    children_writer = rw.write.ChunkedWriter()
-
-    for mesh_writer in meshes:
-        children_writer.put(child_index, mesh_writer)
-        child_index += 1
-
-    ogf_writer.put(fmt.Chunks_v4.CHILDREN, children_writer)
+    _write_children(meshes, ogf_writer)
 
     # get armature scale
     _, scale_vec = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
     scale = utils.ie.check_armature_scale(scale_vec, root_obj, arm_obj)
     multiply = utils.version.get_multiply()
 
-    # export bone names
-    bones_writer = rw.write.PackedWriter()
-    bones_writer.putf('<I', len(bones))
-
-    for bone, _ in bones:
-        b_parent = utils.bone.find_bone_exportable_parent(bone)
-
-        # names
-        bones_writer.puts(bone.name)
-        if b_parent:
-            parent_name = b_parent.name
-        else:
-            parent_name = ''
-        bones_writer.puts(parent_name)
-
-        bxray = bone.xray
-
-        # generate obb
-        verts = utils.bone.bone_vertices(bone)
-
-        if len(verts) > 3:
-            bone_mat = utils.bone.get_obb(bone, False)
-
-            # generate aabb
-            if not bone_mat:
-                vmin = mathutils.Vector((+math.inf, +math.inf, +math.inf))
-                vmax = mathutils.Vector((-math.inf, -math.inf, -math.inf))
-
-                for vtx in verts:
-                    vfunc(vmin, vtx, min)
-                    vfunc(vmax, vtx, max)
-
-                if vmax.x > vmin.x:
-                    vcenter = (vmax + vmin) / 2
-                    vscale = (vmax - vmin) / 2
-                    bone_mat = multiply(
-                        mathutils.Matrix.Identity(4),
-                        mathutils.Matrix.Translation(vcenter),
-                        utils.bone.convert_vector_to_matrix(vscale)
-                    )
-
-            if bone_mat:
-                bone_mat = multiply(
-                    multiply(
-                        bone.matrix_local,
-                        mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
-                    ).inverted(),
-                    bone_mat
-                )
-
-                bone_mat = multiply(
-                    bone_mat,
-                    mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
-                )
-                box_trn = list(bone_mat.to_translation().to_tuple())
-
-                bone_scale = bone_mat.to_scale()
-                for axis in range(3):
-                    if not bone_scale[axis]:
-                        bone_scale[axis] = 0.0001
-
-                box_hsz = list(bone_scale.to_tuple())
-
-                mat_rot = multiply(
-                    bone_mat,
-                    utils.bone.convert_vector_to_matrix(bone_scale).inverted()
-                ).to_3x3().transposed()
-
-                box_rot = []
-                for row in range(3):
-                    box_rot.extend(mat_rot[row].to_tuple())
-
-                box_trn[0] *= scale
-                box_trn[1] *= scale
-                box_trn[2] *= scale
-
-                box_hsz[0] *= scale
-                box_hsz[1] *= scale
-                box_hsz[2] *= scale
-
-            else:
-                box_rot = (
-                    1.0, 0.0, 0.0,
-                    0.0, 1.0, 0.0,
-                    0.0, 0.0, 1.0
-                )
-                box_trn = (0.0, 0.0, 0.0)
-                box_hsz = (0.0, 0.0, 0.0)
-
-        else:
-            box_rot = (
-                1.0, 0.0, 0.0,
-                0.0, 1.0, 0.0,
-                0.0, 0.0, 1.0
-            )
-            box_trn = (0.0, 0.0, 0.0)
-            box_hsz = (0.0, 0.0, 0.0)
-
-        # bone rotation
-        bones_writer.putf('<9f', *box_rot)
-
-        # bone translation
-        bones_writer.putf('<3f', *box_trn)
-
-        # bone half size
-        bones_writer.putf('<3f', *box_hsz)
-
-    ogf_writer.put(fmt.Chunks_v4.S_BONE_NAMES, bones_writer)
-
+    _write_bone_names(bones, scale, multiply, ogf_writer)
     _write_ik_data(bones, scale, ogf_writer)
     _write_userdata(root_obj, ogf_writer)
     _write_motion_refs(root_obj, context, ogf_writer)
