@@ -410,6 +410,144 @@ def _write_userdata(obj, ogf_writer):
         ogf_writer.put(fmt.Chunks_v4.S_USERDATA, userdata_writer)
 
 
+def _write_ik_data(bones, scale, ogf_writer):
+    ik_writer = rw.write.PackedWriter()
+    mul = utils.version.get_multiply()
+
+    for bone, obj in bones:
+        xray = bone.xray
+
+        # get types
+        shape_type = utils.bone.get_bone_prop(xray.shape, 'type', 4)
+        ik_type = utils.bone.get_bone_prop(xray.ikjoint, 'type', 6)
+
+        # get shapes
+
+        # box translation and half size
+        box_trn = mathutils.Vector(xray.shape.box_trn) * scale
+        box_hsz = mathutils.Vector(xray.shape.box_hsz) * scale
+
+        # sphere position and radius
+        sph_pos = mathutils.Vector(xray.shape.sph_pos) * scale
+        sph_rad = xray.shape.sph_rad * scale
+
+        # cylinder position, height, radius
+        cyl_pos = mathutils.Vector(xray.shape.cyl_pos) * scale
+        cyl_hgt = xray.shape.cyl_hgh * scale
+        cyl_rad = xray.shape.cyl_rad * scale
+
+        # get limits
+        x_min, x_max = utils.bone.get_ode_ik_limits(
+            xray.ikjoint.lim_x_min,
+            xray.ikjoint.lim_x_max
+        )
+        y_min, y_max = utils.bone.get_ode_ik_limits(
+            xray.ikjoint.lim_y_min,
+            xray.ikjoint.lim_y_max
+        )
+        z_min, z_max = utils.bone.get_ode_ik_limits(
+            xray.ikjoint.lim_z_min,
+            xray.ikjoint.lim_z_max
+        )
+
+        # get center of mass
+        cmass = mathutils.Vector(xray.mass.center) * scale
+
+        # get bind pose matrix
+
+        # bind pose matrix
+        mat = mul(bone.matrix_local, motions.const.MATRIX_BONE_INVERTED)
+        # parent bone
+        par = utils.bone.find_bone_exportable_parent(bone)
+
+        if par:
+            # parent matrix
+            pmat = mul(par.matrix_local, motions.const.MATRIX_BONE_INVERTED)
+            # bind pose matrix
+            mat = mul(pmat.inverted(), mat)
+
+        # bind rotation
+        euler = mat.to_euler('YXZ')
+        euler.x = -euler.x
+        euler.y = -euler.y
+        euler.z = -euler.z
+
+        # bind translation
+        trn = mat.to_translation() * scale
+
+        # write
+
+        # header
+        ik_writer.putf('<I', fmt.BONE_VERSION_1)
+        ik_writer.puts(xray.gamemtl)
+        ik_writer.putf('<2H', shape_type, xray.shape.flags)
+
+        # shapes
+        ik_writer.putf(
+            '<27f',
+
+            # box
+            *xray.shape.box_rot,    # box rotate 3x3 matrix 9 float
+            *box_trn,    # box translate 3 float
+            *box_hsz,    # box half size 3 float
+
+            # sphere
+            *sph_pos,    # sphere position 3 float
+            sph_rad,    # sphere radius 1 float
+
+            # cylinder
+            *cyl_pos,    # cylinder position 3 float
+            *xray.shape.cyl_dir,    # cylinder direction 3 float
+            cyl_hgt,    # cylinder height 1 float
+            cyl_rad    # cylinder radius 1 float
+        )
+
+        # limits and others
+        ik_writer.putf(
+            '<I14fI3f',
+
+            ik_type,
+
+            # x limits
+            x_min,
+            x_max,
+            xray.ikjoint.lim_x_spr,
+            xray.ikjoint.lim_x_dmp,
+
+            # y limits
+            y_min,
+            y_max,
+            xray.ikjoint.lim_y_spr,
+            xray.ikjoint.lim_y_dmp,
+
+            # z limits
+            z_min,
+            z_max,
+            xray.ikjoint.lim_z_spr,
+            xray.ikjoint.lim_z_dmp,
+
+            xray.ikjoint.spring,
+            xray.ikjoint.damping,
+
+            xray.ikflags,
+
+            xray.breakf.force,
+            xray.breakf.torque,
+            xray.friction
+        )
+
+        # bind pose
+        ik_writer.putv3f(euler)
+        ik_writer.putv3f(trn)
+
+        # mass
+        ik_writer.putf('<f', xray.mass.value)
+        ik_writer.putv3f(cmass)
+
+    # write chunk
+    ogf_writer.put(fmt.Chunks_v4.S_IKDATA_2, ik_writer)
+
+
 def _export_main(root_obj, ogf_writer, context):
     xray = root_obj.xray
 
@@ -534,8 +672,8 @@ def _export_main(root_obj, ogf_writer, context):
     ogf_writer.put(fmt.Chunks_v4.CHILDREN, children_writer)
 
     # get armature scale
-    _, scale = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
-    utils.ie.check_armature_scale(scale, root_obj, arm_obj)
+    _, scale_vec = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
+    scale = utils.ie.check_armature_scale(scale_vec, root_obj, arm_obj)
     multiply = utils.version.get_multiply()
 
     # export bone names
@@ -610,13 +748,13 @@ def _export_main(root_obj, ogf_writer, context):
                 for row in range(3):
                     box_rot.extend(mat_rot[row].to_tuple())
 
-                box_trn[0] *= scale.x
-                box_trn[1] *= scale.y
-                box_trn[2] *= scale.z
+                box_trn[0] *= scale
+                box_trn[1] *= scale
+                box_trn[2] *= scale
 
-                box_hsz[0] *= scale.x
-                box_hsz[1] *= scale.y
-                box_hsz[2] *= scale.z
+                box_hsz[0] *= scale
+                box_hsz[1] *= scale
+                box_hsz[2] *= scale
 
             else:
                 box_rot = (
@@ -647,126 +785,9 @@ def _export_main(root_obj, ogf_writer, context):
 
     ogf_writer.put(fmt.Chunks_v4.S_BONE_NAMES, bones_writer)
 
-    # export ik data
-    ik_writer = rw.write.PackedWriter()
-    multiply = utils.version.get_multiply()
-
-    for bone, obj in bones:
-        bxray = bone.xray
-
-        ik_writer.putf('<I', 0x1)  # version
-        ik_writer.puts(bxray.gamemtl)
-        shape_type = utils.bone.get_bone_prop(bxray.shape, 'type', 4)
-        ik_writer.putf('<2H', shape_type, bxray.shape.flags)
-
-        # box shape rotation
-        ik_writer.putf('<9f', *bxray.shape.box_rot)
-
-        # box shape position
-        box_trn = list(bxray.shape.box_trn)
-        box_trn[0] *= scale.x
-        box_trn[1] *= scale.y
-        box_trn[2] *= scale.z
-        ik_writer.putf('<3f', *box_trn)
-
-        # box shape half size
-        box_hsz = list(bxray.shape.box_hsz)
-        box_hsz[0] *= scale.x
-        box_hsz[1] *= scale.y
-        box_hsz[2] *= scale.z
-        ik_writer.putf('<3f', *box_hsz)
-
-        # sphere shape position
-        sph_pos = list(bxray.shape.sph_pos)
-        sph_pos[0] *= scale.x
-        sph_pos[1] *= scale.y
-        sph_pos[2] *= scale.z
-        ik_writer.putf('<3f', *sph_pos)
-
-        # sphere shape radius
-        ik_writer.putf('<f', bxray.shape.sph_rad * scale.x)
-
-        # cylinder shape position
-        cyl_pos = list(bxray.shape.cyl_pos)
-        cyl_pos[0] *= scale.x
-        cyl_pos[1] *= scale.y
-        cyl_pos[2] *= scale.z
-        ik_writer.putf('<3f', *cyl_pos)
-
-        # cylinder shape direction
-        ik_writer.putf('<3f', *bxray.shape.cyl_dir)
-
-        # cylinder shape height
-        ik_writer.putf('<f', bxray.shape.cyl_hgh * scale.x)
-
-        # cylinder shape radius
-        ik_writer.putf('<f', bxray.shape.cyl_rad * scale.x)
-
-        ik_type = utils.bone.get_bone_prop(bxray.ikjoint, 'type', 6)
-        ik_writer.putf('<I', ik_type)
-
-        # x axis
-        x_min, x_max = utils.bone.get_ode_ik_limits(
-            bxray.ikjoint.lim_x_min,
-            bxray.ikjoint.lim_x_max
-        )
-        ik_writer.putf('<2f', x_min, x_max)
-        ik_writer.putf('<2f', bxray.ikjoint.lim_x_spr, bxray.ikjoint.lim_x_dmp)
-
-        # y axis
-        y_min, y_max = utils.bone.get_ode_ik_limits(
-            bxray.ikjoint.lim_y_min,
-            bxray.ikjoint.lim_y_max
-        )
-        ik_writer.putf('<2f', y_min, y_max)
-        ik_writer.putf('<2f', bxray.ikjoint.lim_y_spr, bxray.ikjoint.lim_y_dmp)
-
-        # z axis
-        z_min, z_max = utils.bone.get_ode_ik_limits(
-            bxray.ikjoint.lim_z_min,
-            bxray.ikjoint.lim_z_max
-        )
-        ik_writer.putf('<2f', z_min, z_max)
-        ik_writer.putf('<2f', bxray.ikjoint.lim_z_spr, bxray.ikjoint.lim_z_dmp)
-
-        ik_writer.putf('<2f', bxray.ikjoint.spring, bxray.ikjoint.damping)
-        ik_writer.putf('<I', bxray.ikflags)
-        ik_writer.putf('<2f', bxray.breakf.force, bxray.breakf.torque)
-        ik_writer.putf('<f', bxray.friction)
-
-        mat = multiply(
-            bone.matrix_local,
-            motions.const.MATRIX_BONE_INVERTED
-        )
-        b_parent = utils.bone.find_bone_exportable_parent(bone)
-        if b_parent:
-            mat = multiply(multiply(
-                b_parent.matrix_local,
-                motions.const.MATRIX_BONE_INVERTED
-            ).inverted(), mat)
-        euler = mat.to_euler('YXZ')
-        ik_writer.putf('<3f', -euler.x, -euler.z, -euler.y)
-        trn = mat.to_translation()
-        trn.x *= scale.x
-        trn.y *= scale.y
-        trn.z *= scale.z
-        ik_writer.putv3f(trn)
-        ik_writer.putf('<f', bxray.mass.value)
-        cmass = list(bxray.mass.center)
-        cmass[0] *= scale.x
-        cmass[1] *= scale.y
-        cmass[2] *= scale.z
-        ik_writer.putv3f(cmass)
-
-    ogf_writer.put(fmt.Chunks_v4.S_IKDATA_2, ik_writer)
-
-    # export userdata
+    _write_ik_data(bones, scale, ogf_writer)
     _write_userdata(root_obj, ogf_writer)
-
-    # motion references
     _write_motion_refs(root_obj, context, ogf_writer)
-
-    # motions
     _write_motions(xray, context, arm_obj, ogf_writer)
 
 
