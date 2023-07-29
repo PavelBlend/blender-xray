@@ -60,7 +60,7 @@ class ImportMeshContext(MeshContext):
             bpy_img = utils.tex.load_image_by_tex_path(tex_abspath)
 
             if not bpy_img:
-                log.warn('texture file not found', path=tex_abspath)
+                log.warn('Texture file not found', path=tex_abspath)
                 bpy_img = utils.tex.create_empty_img(tex_abspath)
 
         return bpy_img

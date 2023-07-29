@@ -36,6 +36,22 @@ def search_image_by_tex_path(tex_abspath):
             return bpy_image
 
 
+def search_texture_by_tex_path(name, abs_path):
+    for bpy_tex in bpy.data.textures:
+
+        if not bpy_tex.name.startswith(name):
+            continue
+
+        if not hasattr(bpy_texture, 'image'):
+            continue
+
+        if not bpy_texture.image:
+            continue
+
+        if bpy_tex.image.filepath == abs_path:
+            return bpy_tex
+
+
 def load_image_by_tex_path(tex_abspath):
     if os.path.exists(tex_abspath):
 
