@@ -99,13 +99,51 @@ def has_selected_files(operator):
     return has_sel
 
 
-def get_textures_folder(operator=None):
+def get_pref_dirs(operator=None):
+    tex_folder = None
+    tex_mod_folder = None
+
+    lvl_folder = None
+    lvl_mod_folder = None
+
     pref = version.get_preferences()
-    tex_folder = pref.textures_folder_auto
+
+    # simple mode
+    if pref.paths_mode == 'SIMPLE':
+        tex_folder = bpy.path.abspath(pref.textures_folder_auto)
+        lvl_folder = bpy.path.abspath(pref.levels_folder_auto)
+
+    # advanced mode
+    else:
+        used_config = pref.paths_configs.get(pref.used_config)
+
+        if used_config:
+
+            # platform
+            platform_paths = pref.paths_presets.get(used_config.platform)
+
+            if platform_paths:
+                tex_folder = platform_paths.textures_folder_auto
+                tex_folder = bpy.path.abspath(tex_folder)
+
+                lvl_folder = platform_paths.levels_folder_auto
+                lvl_folder = bpy.path.abspath(lvl_folder)
+
+            # mod
+            mod_paths = pref.paths_presets.get(used_config.mod)
+
+            if mod_paths:
+                tex_mod_folder = mod_paths.textures_folder_auto
+                tex_mod_folder = bpy.path.abspath(tex_mod_folder)
+
+                lvl_mod_folder = platform_paths.levels_folder_auto
+                lvl_mod_folder = bpy.path.abspath(lvl_mod_folder)
+
     if not tex_folder:
         if operator:
             operator.report({'WARNING'}, 'No textures folder specified')
-    return bpy.path.abspath(tex_folder)
+
+    return tex_folder, tex_mod_folder, lvl_folder, lvl_mod_folder
 
 
 def import_files(directory, files, imp_fun, context, results=[]):
