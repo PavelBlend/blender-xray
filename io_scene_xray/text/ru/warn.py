@@ -124,6 +124,9 @@ translations_table = (
     (warn.browser_done, 'Готово: {} анимаций'),
     (warn.browser_import, 'Импортировано анимаций'),
 
+    # rig operators
+    (warn.remove_rig_warn, 'Будут удалены все констрейнты костей и кости, у которых выключен параметр "Exportable". Продолжить?'),
+
     # verify
     (warn.incorrect_uv_objs_count, 'Выделено объектов с некорректной uv-картой'),
     (warn.invalid_face_objs_count, 'Выделено объектов с invalid face'),

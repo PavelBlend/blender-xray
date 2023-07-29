@@ -1,11 +1,13 @@
 # addon modules
 from . import connect_bones
 from . import create_ik
+from . import remove_rig
 
 
 modules = (
     connect_bones,
-    create_ik
+    create_ik,
+    remove_rig
 )
 
 

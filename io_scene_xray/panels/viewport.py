@@ -523,6 +523,12 @@ class XRAY_PT_armature_tools(ui.base.XRayPanel):
             ops.armature.XRAY_OT_unlink_bones.bl_idname
         )
 
+        col_danger = col.column(align=True)
+        col_danger.alert = True
+        col_danger.operator(
+            ops.rig.remove_rig.XRAY_OT_remove_rig.bl_idname
+        )
+
         if has_arm and context.mode != 'POSE':
             pose_mode = False
             pose_lay = col.row().box().column(align=True)

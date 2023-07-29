@@ -118,6 +118,7 @@ browser_import = 'Imported animation(s)'
 # rig operators
 connect_has_no_bones = 'Active armature has no bones'
 ik_no_selected_bones = 'No selected bones'
+remove_rig_warn = 'All bone constraints and bones that have the "Exportable" parameter disabled will be deleted. Continue?'
 
 # verify operator
 incorrect_uv_objs_count = 'Selected objects with incorrect UV-maps'
