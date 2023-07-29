@@ -46,38 +46,24 @@ class ImportContext(Context):
 
 class ImportMeshContext(MeshContext):
     def image(self, relpath):
-        relpath = relpath.lower().replace('\\', os.path.sep)
+        relpath = utils.tex.normalize_tex_relpath(relpath)
+
         if not self.tex_folder:
-            result = bpy.data.images.new(os.path.basename(relpath), 0, 0)
-            result.source = 'FILE'
-            result.filepath = relpath + '.dds'
-            utils.stats.created_img()
-            return result
-        filepath = os.path.abspath(
-            os.path.join(self.tex_folder, relpath + '.dds')
-        )
-        result = None
-        for bpy_image in bpy.data.images:
-            if bpy.path.abspath(bpy_image.filepath) == filepath:
-                result = bpy_image
-                break
+            relpath = utils.tex.add_tex_ext(relpath)
+            return utils.tex.create_empty_img(relpath)
 
-        if result is None:
-            if os.path.exists(filepath):
-                try:
-                    result = bpy.data.images.load(filepath)
-                    utils.stats.created_img()
-                except RuntimeError:    # e.g. 'Error: Cannot read ...'
-                    pass
+        tex_abspath = utils.tex.make_abs_tex_path(self.tex_folder, relpath)
 
-            if not result:
-                log.warn('texture file not found', path=filepath)
-                result = bpy.data.images.new(os.path.basename(relpath), 0, 0)
-                utils.stats.created_img()
-                result.source = 'FILE'
-                result.filepath = filepath
+        bpy_img = utils.tex.search_image_by_tex_path(tex_abspath)
 
-        return result
+        if not bpy_img:
+            bpy_img = utils.tex.load_image_by_tex_path(tex_abspath)
+
+            if not bpy_img:
+                log.warn('texture file not found', path=tex_abspath)
+                bpy_img = utils.tex.create_empty_img(tex_abspath)
+
+        return bpy_img
 
 
 class ImportAnimationBaseContext(ImportContext):
