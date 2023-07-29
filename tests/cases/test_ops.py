@@ -660,3 +660,46 @@ class TestOps(tests.utils.XRayTestCase):
                         data={data_, },
                         fake_user=fake_user
                     )
+
+    def test_remove_rig(self):
+        bpy.ops.object.select_all(action='DESELECT')
+
+        arm = bpy.data.armatures.new('test')
+        obj = bpy.data.objects.new('test', arm)
+
+        tests.utils.link_object(obj)
+        tests.utils.set_active_object(obj)
+
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        try:
+            exp_bone = arm.edit_bones.new('root_bone')
+            exp_bone.head = (0, 0, 0)
+            exp_bone.tail = (0, 1, 0)
+
+            non_exp_child = arm.edit_bones.new('non_exp_child_bone')
+            non_exp_child.head = (2, 0, 0)
+            non_exp_child.tail = (0, 3, 0)
+            non_exp_child.parent = exp_bone
+            non_exp_name = non_exp_child.name
+
+            exp_child = arm.edit_bones.new('exp_child_bone')
+            exp_child.head = (2, 0, 2)
+            exp_child.tail = (0, 3, 2)
+            exp_child.parent = non_exp_child
+
+        finally:
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        arm.bones[non_exp_name].xray.exportable = False
+
+        bpy.ops.object.mode_set(mode='POSE')
+
+        try:
+            for bone in obj.pose.bones:
+                bone.constraints.new('LIMIT_LOCATION')
+
+        finally:
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        bpy.ops.io_scene_xray.remove_rig()
