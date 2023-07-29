@@ -81,10 +81,11 @@ path_presets_props = {
     'paths_presets_index': bpy.props.IntProperty(),
 
     'paths_configs': bpy.props.CollectionProperty(type=PathsConfigs),
-    'paths_configs_index': bpy.props.IntProperty()
+    'paths_configs_index': bpy.props.IntProperty(),
+
+    'used_config': bpy.props.StringProperty()
 }
 props.plugin_preferences_props.update(path_presets_props)
-
 
 classes = (
     PathsSettings,

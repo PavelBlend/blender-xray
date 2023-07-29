@@ -104,6 +104,14 @@ def draw_paths_simple(layout, prefs):
 
 
 def draw_paths_advanced(layout, prefs):
+    layout.prop_search(
+        prefs,
+        'used_config',
+        prefs,
+        'paths_configs',
+        text='Used Config'
+    )
+
     # separator
     layout.label(text='')
 
