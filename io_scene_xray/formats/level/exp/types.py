@@ -62,6 +62,6 @@ class VisualsCache:
 
 
 class ExportLevelContext():
-    def __init__(self, textures_folder):
-        self.textures_folder = textures_folder
+    def __init__(self, tex_folder):
+        self.tex_folder = tex_folder
         self.texname_from_path = True

@@ -221,7 +221,7 @@ def create_material(det_model, abs_image_path, context):
 
 def search_material(context, det_model, file_path=None):
     abs_image_path = os.path.abspath(os.path.join(
-        context.textures_folder,
+        context.tex_folder,
         det_model.texture + '.dds'
     ))
 

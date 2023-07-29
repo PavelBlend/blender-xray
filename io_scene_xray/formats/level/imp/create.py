@@ -259,7 +259,7 @@ def load_image_from_level_folder(context, texture, abs_path):
         bpy_image = load_image(absolute_texture_path)
     except RuntimeError:    # e.g. 'Error: Cannot read ...'
         absolute_texture_path = get_absolute_texture_path(
-            context.textures_folder, texture
+            context.tex_folder, texture
         )
         try:
             bpy_image = load_image(absolute_texture_path)
@@ -328,7 +328,7 @@ def get_image(context, texture, terrain=False):
         # level dir (terrain texture)
         texture_dir = utility.get_level_dir(context.filepath)
     else:
-        texture_dir = context.textures_folder
+        texture_dir = context.tex_folder
     absolute_texture_path = get_absolute_texture_path(
         texture_dir,
         texture
@@ -362,7 +362,7 @@ def is_same_light_maps(context, bpy_material, light_maps):
 
 def is_same_image(context, bpy_material, texture):
     absolute_texture_path = get_absolute_texture_path(
-        context.textures_folder, texture
+        context.tex_folder, texture
     )
     level_dir = utility.get_level_dir(context.filepath)
     absolute_texture_path_in_level_folder = get_absolute_texture_path(

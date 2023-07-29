@@ -443,7 +443,7 @@ def _get_image_relative_path_28(
                 if context.texname_from_path:
                     tex_name = image.gen_texture_name(
                         tex_node.image,
-                        context.textures_folder,
+                        context.tex_folder,
                         level_folder=level_folder,
                         errors=errors
                     )
@@ -508,7 +508,7 @@ def _get_image_relative_path_27(
         if context.texname_from_path:
             tex_name = image.gen_texture_name(
                 texture.image,
-                context.textures_folder,
+                context.tex_folder,
                 level_folder=level_folder,
                 errors=errors
             )

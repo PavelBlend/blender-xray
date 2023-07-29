@@ -25,19 +25,19 @@ class MeshContext(Context):
     def __init__(self):
         super().__init__()
         pref = utils.version.get_preferences()
-        self.tex_folder = pref.textures_folder_auto
+        self._tex_folder = pref.textures_folder_auto
         self.tex_folder_repored = False
 
     @property
-    def textures_folder(self):
-        if not self.tex_folder:
+    def tex_folder(self):
+        if not self._tex_folder:
             if not self.tex_folder_repored:
                 self.tex_folder_repored = True
                 self.operator.report(
                     {'WARNING'},
                     text.get_text(text.warn.tex_folder_not_spec)
                 )
-        return self.tex_folder
+        return self._tex_folder
 
 
 # import contexts
@@ -48,14 +48,14 @@ class ImportContext(Context):
 class ImportMeshContext(MeshContext):
     def image(self, relpath):
         relpath = relpath.lower().replace('\\', os.path.sep)
-        if not self.textures_folder:
+        if not self.tex_folder:
             result = bpy.data.images.new(os.path.basename(relpath), 0, 0)
             result.source = 'FILE'
             result.filepath = relpath + '.dds'
             utils.stats.created_img()
             return result
         filepath = os.path.abspath(
-            os.path.join(self.textures_folder, relpath + '.dds')
+            os.path.join(self.tex_folder, relpath + '.dds')
         )
         result = None
         for bpy_image in bpy.data.images:
