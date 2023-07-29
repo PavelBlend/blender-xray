@@ -136,7 +136,7 @@ def get_pref_dirs(operator=None):
                 tex_mod_folder = mod_paths.textures_folder_auto
                 tex_mod_folder = bpy.path.abspath(tex_mod_folder)
 
-                lvl_mod_folder = platform_paths.levels_folder_auto
+                lvl_mod_folder = mod_paths.levels_folder_auto
                 lvl_mod_folder = bpy.path.abspath(lvl_mod_folder)
 
     if not tex_folder:

@@ -68,7 +68,9 @@ class ImportMeshContext(MeshContext):
         # collect texture folders
         tex_dirs = []
         if self.level_name:
-            tex_dirs.extend([self.lvl_mod_folder, self.lvl_folder])
+            for folder in (self.lvl_mod_folder, self.lvl_folder):
+                level_folder = os.path.join(folder, self.level_name)
+                tex_dirs.append(level_folder)
         tex_dirs.extend([self.tex_mod_folder, self.tex_folder])
 
         # collect texture absolute paths
