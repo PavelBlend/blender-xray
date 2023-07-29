@@ -99,12 +99,13 @@ def has_selected_files(operator):
     return has_sel
 
 
-def get_textures_folder(operator):
+def get_textures_folder(operator=None):
     pref = version.get_preferences()
     tex_folder = pref.textures_folder_auto
     if not tex_folder:
-        operator.report({'WARNING'}, 'No textures folder specified')
-    return tex_folder
+        if operator:
+            operator.report({'WARNING'}, 'No textures folder specified')
+    return bpy.path.abspath(tex_folder)
 
 
 def import_files(directory, files, imp_fun, context, results=[]):

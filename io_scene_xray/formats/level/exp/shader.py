@@ -48,7 +48,7 @@ def _get_light_map_image(material, lmap_prop):
 
 
 def write_shaders(level_writer, level):
-    texture_folder = utils.version.get_preferences().textures_folder_auto
+    texture_folder = utils.ie.get_textures_folder()
 
     materials = {}
     for material, shader_index in level.materials.items():

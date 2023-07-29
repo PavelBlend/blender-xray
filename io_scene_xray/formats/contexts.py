@@ -24,8 +24,7 @@ class Context:
 class MeshContext(Context):
     def __init__(self):
         super().__init__()
-        pref = utils.version.get_preferences()
-        self._tex_folder = pref.textures_folder_auto
+        self._tex_folder = utils.ie.get_textures_folder()
         self.tex_folder_repored = False
 
     @property

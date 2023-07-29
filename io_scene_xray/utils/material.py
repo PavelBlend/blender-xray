@@ -5,6 +5,7 @@ import os
 import bpy
 
 # addon modules
+from . import ie
 from . import image
 from . import stats
 from . import version
@@ -13,7 +14,7 @@ from .. import text
 
 
 def _is_compatible_texture(texture, file_part):
-    tex_folder = version.get_preferences().textures_folder_auto
+    tex_folder = ie.get_textures_folder()
     tex_path = os.path.join(tex_folder, file_part) + os.extsep + 'dds'
     bpy_image = getattr(texture, 'image', None)
     if bpy_image is None:
