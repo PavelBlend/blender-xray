@@ -7,8 +7,10 @@ import rna_keymap_ui
 # addon modules
 from . import ops
 from . import hotkeys
+from . import paths
 from . import props
 from .. import utils
+from .. import ui
 
 
 path_props_names = {
@@ -49,8 +51,7 @@ def check_path(prefs, prop, lay, isfile):
         lay.alert = True
 
 
-def draw_path_prop(prefs, prop, isfile):
-    layout = prefs.layout
+def draw_path_prop(layout, prefs, prop, isfile):
     split = get_split(layout)
     split.label(text=path_props_names[prop] + ':')
     auto_prop = props.build_auto_id(prop)
@@ -80,9 +81,7 @@ def draw_prop_name(prefs, name, param):
     row.prop(prefs.custom_props, param, text='')
 
 
-def draw_paths(prefs):
-    layout = prefs.layout
-
+def draw_paths_simple(layout, prefs):
     split = get_split(layout)
     split.label(text=path_props_names['fs_ltx_file'] + ':')
     split.prop(prefs, 'fs_ltx_file', text='')
@@ -90,18 +89,117 @@ def draw_paths(prefs):
     layout.separator()
 
     # folders
-    draw_path_prop(prefs, 'gamedata_folder', False)
-    draw_path_prop(prefs, 'textures_folder', False)
-    draw_path_prop(prefs, 'meshes_folder', False)
-    draw_path_prop(prefs, 'levels_folder', False)
-    draw_path_prop(prefs, 'objects_folder', False)
+    draw_path_prop(layout, prefs, 'gamedata_folder', False)
+    draw_path_prop(layout, prefs, 'textures_folder', False)
+    draw_path_prop(layout, prefs, 'meshes_folder', False)
+    draw_path_prop(layout, prefs, 'levels_folder', False)
+    draw_path_prop(layout, prefs, 'objects_folder', False)
 
     layout.separator()
 
     # files
-    draw_path_prop(prefs, 'eshader_file', True)
-    draw_path_prop(prefs, 'cshader_file', True)
-    draw_path_prop(prefs, 'gamemtl_file', True)
+    draw_path_prop(layout, prefs, 'eshader_file', True)
+    draw_path_prop(layout, prefs, 'cshader_file', True)
+    draw_path_prop(layout, prefs, 'gamemtl_file', True)
+
+
+def draw_paths_advanced(layout, prefs):
+    # separator
+    layout.label(text='')
+
+    # paths configs
+    box = layout.box()
+
+    box.label(text='Paths Configs:')
+
+    row = box.row()
+    row.template_list(
+        'XRAY_UL_path_configs_list',
+        'name',
+        prefs,
+        'paths_configs',
+        prefs,
+        'paths_configs_index',
+        rows=3
+    )
+
+    col = row.column(align=True)
+    ui.list_helper.draw_list_ops(
+        col,
+        prefs,
+        'paths_configs',
+        'paths_configs_index'
+    )
+
+    # active config settings
+    if len(prefs.paths_configs):
+        active_config = prefs.paths_configs[prefs.paths_configs_index]
+        box.label(text='Active Paths Config:')
+
+        box.prop_search(
+            active_config,
+            'platform',
+            prefs,
+            'paths_presets',
+            text='Platform'
+        )
+        box.prop_search(
+            active_config,
+            'mod',
+            prefs,
+            'paths_presets',
+            text='Mod'
+        )
+
+    # separator
+    layout.label(text='')
+
+    # paths presets
+    box = layout.box()
+
+    box.label(text='Paths Presets:')
+
+    row = box.row()
+    row.template_list(
+        'XRAY_UL_path_presets_list',
+        'name',
+        prefs,
+        'paths_presets',
+        prefs,
+        'paths_presets_index',
+        rows=3
+    )
+
+    col = row.column(align=True)
+    ui.list_helper.draw_list_ops(
+        col,
+        prefs,
+        'paths_presets',
+        'paths_presets_index'
+    )
+
+    # active preset settings
+    if len(prefs.paths_presets):
+        paths_preset = prefs.paths_presets[prefs.paths_presets_index]
+        box.label(text='Active Paths Preset:')
+        draw_paths_simple(box, paths_preset)
+        utils.draw.draw_fmt_ver_prop(box, paths_preset, 'sdk_ver')
+
+    # separator
+    layout.label(text='')
+
+
+def draw_paths(prefs):
+    layout = prefs.layout
+
+    split = get_split(layout)
+    split.label(text='Mode:')
+    split.row(align=True).prop(prefs, 'paths_mode', expand=True)
+
+    if prefs.paths_mode == 'SIMPLE':
+        draw_paths_simple(layout, prefs)
+    else:
+        draw_paths_advanced(layout, prefs)
 
 
 def draw_defaults(prefs):
