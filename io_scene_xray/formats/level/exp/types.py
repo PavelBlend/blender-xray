@@ -4,6 +4,7 @@ import bpy
 
 class Level(object):
     def __init__(self):
+        self.name = None
         self.active_material_index = 0
 
         self.visuals = []
