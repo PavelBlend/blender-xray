@@ -23,7 +23,10 @@ def normalize_tex_relpath(tex_relpath):
 
 
 def add_tex_ext(tex_path):
-    return tex_path + '.dds'
+    if tex_path.endswith('.dds'):
+        return tex_path
+    else:
+        return tex_path + os.extsep + 'dds'
 
 
 def make_abs_tex_path(tex_folder, tex_relpath):
@@ -32,7 +35,8 @@ def make_abs_tex_path(tex_folder, tex_relpath):
 
 def search_image_by_tex_path(tex_abspath):
     for bpy_image in bpy.data.images:
-        if bpy.path.abspath(bpy_image.filepath) == tex_abspath:
+        img_path = bpy.path.abspath(bpy_image.filepath).lower()
+        if img_path == tex_abspath.lower():
             return bpy_image
 
 

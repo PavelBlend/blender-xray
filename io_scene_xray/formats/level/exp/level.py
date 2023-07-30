@@ -14,12 +14,15 @@ from .... import utils
 from .... import rw
 
 
-def write_level(file_path, bpy_obj):
+def write_level(context, file_path, bpy_obj):
     level = types.Level()
     level.name = os.path.dirname(os.path.basename(file_path))
     levels_folder = utils.version.get_preferences().levels_folder_auto
     level.source_level_path = os.path.join(levels_folder, bpy_obj.name)
     level_writer = rw.write.ChunkedWriter()
+
+    context.level_name = level.name
+    level.context = context
 
     # header
     header.write_header(level_writer)

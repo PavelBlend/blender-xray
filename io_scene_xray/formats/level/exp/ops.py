@@ -3,6 +3,7 @@ import bpy
 
 # addon modules
 from . import main
+from . import types
 from ... import ie
 from .... import utils
 from .... import text
@@ -81,7 +82,9 @@ class XRAY_OT_export_level(utils.ie.BaseOperator):
         utils.ie.open_imp_exp_folder(self, 'levels_folder')
 
     def export(self, level_object, context):
-        main.export_file(level_object, self.directory)
+        context = types.ExportLevelContext()
+        context.operator = self
+        main.export_file(context, level_object, self.directory)
         return {'FINISHED'}
 
     @log.execute_with_logger

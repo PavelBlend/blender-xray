@@ -14,15 +14,20 @@ from .. import text
 
 
 def _is_compatible_texture(texture, file_part):
-    tex_folder, _, _, _ = ie.get_pref_dirs()
-    tex_path = os.path.join(tex_folder, file_part) + os.extsep + 'dds'
     bpy_image = getattr(texture, 'image', None)
+
     if bpy_image is None:
         return False, None
-    abs_tex_path = os.path.abspath(tex_path)
-    abs_image_path = os.path.abspath(bpy_image.filepath)
+
+    tex_folder, _, _, _ = ie.get_pref_dirs()
+    tex_path = os.path.join(tex_folder, file_part) + os.extsep + 'dds'
+
+    abs_tex_path = os.path.abspath(tex_path).lower()
+    abs_image_path = os.path.abspath(bpy_image.filepath).lower()
+
     if abs_tex_path != abs_image_path:
         return False, None
+
     return True, bpy_image
 
 

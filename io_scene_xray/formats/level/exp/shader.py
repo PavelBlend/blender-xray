@@ -5,7 +5,6 @@ import os
 import bpy
 
 # addon modules
-from . import types
 from .. import fmt
 from .... import utils
 from .... import log
@@ -56,14 +55,12 @@ def write_shaders(level_writer, level):
     shaders_writer = rw.write.PackedWriter()
     shaders_writer.putf('<I', materials_count + 1)    # shaders count
     shaders_writer.puts('')    # first empty shader
-    context = types.ExportLevelContext()
-    context.level_name = level.name
 
     for shader_index in range(materials_count):
         material = materials[shader_index]
         texture_path = utils.material.get_image_relative_path(
             material,
-            context,
+            level.context,
             level_folder=level.source_level_path,
             no_err=False
         )
@@ -86,7 +83,7 @@ def write_shaders(level_writer, level):
         elif lmap_1_image and not lmap_2_image:
             lmap_1_path = utils.image.gen_texture_name(
                 lmap_1_image,
-                context,
+                level.context,
                 level_folder=level.source_level_path
             )
             shaders_writer.puts('{0}/{1},{2}'.format(
