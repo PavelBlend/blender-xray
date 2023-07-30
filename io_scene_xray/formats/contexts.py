@@ -98,6 +98,7 @@ class ImportMeshContext(MeshContext):
 
             # create empty image
             if not bpy_img:
+                tex_abspath = utils.tex.make_abs_tex_path(self.tex_folder, relpath + '.dds')
                 log.warn('Texture file not found', path=tex_abspath)
                 bpy_img = utils.tex.create_empty_img(tex_abspath)
 

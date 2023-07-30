@@ -48,8 +48,6 @@ def _get_light_map_image(material, lmap_prop):
 
 
 def write_shaders(level_writer, level):
-    texture_folder, _, _, _ = utils.ie.get_pref_dirs()
-
     materials = {}
     for material, shader_index in level.materials.items():
         materials[shader_index] = material
@@ -58,7 +56,7 @@ def write_shaders(level_writer, level):
     shaders_writer = rw.write.PackedWriter()
     shaders_writer.putf('<I', materials_count + 1)    # shaders count
     shaders_writer.puts('')    # first empty shader
-    context = types.ExportLevelContext(texture_folder)
+    context = types.ExportLevelContext()
     context.level_name = level.name
 
     for shader_index in range(materials_count):

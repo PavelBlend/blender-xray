@@ -39,7 +39,6 @@ def _gen_relative_path(tex_path):
 def _gen_tex_name_by_textures_folder(tex_path, context, image):
     # collect texture folders
     tex_dirs = []
-    print(context.level_name)
     if context.level_name:
         for folder in (context.lvl_mod_folder, context.lvl_folder):
             if folder:
