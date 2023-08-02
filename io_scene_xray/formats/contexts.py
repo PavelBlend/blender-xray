@@ -30,7 +30,7 @@ class MeshContext(Context):
             self.tex_mod_dir,
             self.lvl_folder,
             self.lvl_mod_folder
-        ) = utils.ie.get_pref_dirs()
+        ) = utils.ie.get_tex_dirs()
 
         self.level_name = None
         self.tex_folder_repored = False

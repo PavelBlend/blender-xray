@@ -21,7 +21,7 @@ def _is_compatible_texture(texture, file_part):
 
     exists_paths = []
     find_img = False
-    for tex_folder in ie.get_pref_dirs():
+    for tex_folder in ie.get_tex_dirs():
         if not tex_folder:
             continue
 

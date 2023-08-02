@@ -357,26 +357,30 @@ def load_motion_refs(self, context):
 
     if self.motionrefs_collection:
         motion_refs = self.motionrefs_collection[self.motionrefs_collection_index]
+        mod_paths, platform_paths = utils.ie.get_paths_prefs()
 
-        if context.active_object.xray.motions_browser.file_format == 'SKLS':
-            folder = utils.version.get_preferences().objects_folder_auto
-            ext = os.extsep + 'skls'
-        else:
-            folder = utils.version.get_preferences().meshes_folder_auto
-            ext = os.extsep + 'omf'
+        for paths_prefs in (mod_paths, platform_paths):
 
-        file_path = os.path.join(folder, motion_refs.name + ext)
+            if context.active_object.xray.motions_browser.file_format == 'SKLS':
+                folder = paths_prefs.objects_folder_auto
+                ext = os.extsep + 'skls'
+            else:
+                folder = paths_prefs.meshes_folder_auto
+                ext = os.extsep + 'omf'
 
-        if os.path.exists(file_path):
-            ops.motions_browser.init_browser(self, context, file_path)
-        else:
-            message = text.get_text(text.error.file_not_found).capitalize()
-            utils.draw.show_message(
-                message,
-                (file_path, ),
-                text.get_text(text.error.error_title),
-                'ERROR'
-            )
+            file_path = os.path.join(folder, motion_refs.name + ext)
+
+            if os.path.exists(file_path):
+                ops.motions_browser.init_browser(self, context, file_path)
+                return
+
+        message = text.get_text(text.error.file_not_found).capitalize()
+        utils.draw.show_message(
+            message,
+            (file_path, ),
+            text.get_text(text.error.error_title),
+            'ERROR'
+        )
 
 
 def update_load_active_motion_refs(self, context):

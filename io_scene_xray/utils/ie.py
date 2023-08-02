@@ -99,7 +99,7 @@ def has_selected_files(operator):
     return has_sel
 
 
-def get_pref_dirs(operator=None):
+def get_tex_dirs(operator=None):
     tex_folder = None
     tex_mod_folder = None
 
@@ -146,6 +146,39 @@ def get_pref_dirs(operator=None):
     return tex_folder, tex_mod_folder, lvl_folder, lvl_mod_folder
 
 
+def get_obj_dirs(operator=None):
+    obj_folder = None
+    obj_mod_folder = None
+
+    pref = version.get_preferences()
+
+    # simple mode
+    if pref.paths_mode == 'SIMPLE':
+        obj_folder = bpy.path.abspath(pref.objects_folder_auto)
+
+    # advanced mode
+    else:
+        used_config = pref.paths_configs.get(pref.used_config)
+
+        if used_config:
+
+            # platform
+            platform_paths = pref.paths_presets.get(used_config.platform)
+
+            if platform_paths:
+                obj_folder = platform_paths.objects_folder_auto
+                obj_folder = bpy.path.abspath(obj_folder)
+
+            # mod
+            mod_paths = pref.paths_presets.get(used_config.mod)
+
+            if obj_mod_folder:
+                obj_mod_folder = mod_paths.objects_folder_auto
+                obj_mod_folder = bpy.path.abspath(obj_mod_folder)
+
+    return obj_folder, obj_mod_folder
+
+
 def import_files(directory, files, imp_fun, context, results=[]):
     for file in files:
         file_path = os.path.join(directory, file.name)
@@ -178,6 +211,32 @@ def report_errors(context):
         raise first_error
 
 
+def get_paths_prefs():
+    pref = version.get_preferences()
+
+    # simple mode
+    if pref.paths_mode == 'SIMPLE':
+        platform_paths = pref
+        mod_paths = None
+
+    # advanced mode
+    else:
+        platform_paths = None
+        mod_paths = None
+
+        used_config = pref.paths_configs.get(pref.used_config)
+
+        if used_config:
+
+            # platform
+            platform_paths = pref.paths_presets.get(used_config.platform)
+
+            # mod
+            mod_paths = pref.paths_presets.get(used_config.mod)
+
+    return mod_paths, platform_paths
+
+
 def open_imp_exp_folder(operator, path_prop):
     if not hasattr(operator, 'init'):
         operator.init = True
@@ -185,8 +244,13 @@ def open_imp_exp_folder(operator, path_prop):
         space = bpy.context.space_data
         params = space.params
 
-        pref = version.get_preferences()
-        path = getattr(pref, path_prop + '_auto')
+        mod_paths, platform_paths = get_paths_prefs()
+
+        path = None
+        for paths_pref in (mod_paths, platform_paths):
+            if paths_pref:
+                path = getattr(paths_pref, path_prop + '_auto')
+                break
 
         if path:
             if isinstance(params.directory, bytes):

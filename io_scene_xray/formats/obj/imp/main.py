@@ -322,12 +322,15 @@ def import_file(file_path, context):
     xray.isroot = True
 
     # set export path
-    if context.objects_folder:
+    for objs_folder in context.objects_folders:
+        if not objs_folder:
+            continue
         path_lower = file_path.lower()
-        objs_lower = context.objects_folder.lower()
+        objs_lower = objs_folder.lower()
         if path_lower.startswith(objs_lower):
             length = len(objs_lower)
             xray.export_path = os.path.dirname(path_lower)[length : ]
+            break
 
     for (chunk_id, chunk_data) in unread_chunks:
         reader = rw.read.PackedReader(chunk_data)
