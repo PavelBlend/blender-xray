@@ -18,20 +18,20 @@ class ImportOgfContext(
     def __init__(self):
         super().__init__()
         pref = utils.version.get_preferences()
-        self.meshes_path = pref.meshes_folder_auto
         self.import_bone_parts = None
         self.repored = False
+        self._meshes_folders = utils.ie.get_pref_dirs('meshes_folder')
 
     @property
-    def meshes_folder(self):
-        if not self.meshes_path:
+    def meshes_folders(self):
+        if not self._meshes_folders:
             if not self.repored:
                 self.repored = True
                 self.operator.report(
                     {'WARNING'},
                     text.get_text(text.warn.meshes_folder_not_spec)
                 )
-        return self.meshes_path
+        return self._meshes_folders
 
 
 op_text = 'Game Object'

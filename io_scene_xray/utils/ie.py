@@ -146,15 +146,16 @@ def get_tex_dirs(operator=None):
     return tex_folder, tex_mod_folder, lvl_folder, lvl_mod_folder
 
 
-def get_obj_dirs(operator=None):
-    obj_folder = None
-    obj_mod_folder = None
+def get_pref_dirs(prop_name):
+    platform_folder = None
+    mod_folder = None
 
     pref = version.get_preferences()
 
     # simple mode
     if pref.paths_mode == 'SIMPLE':
-        obj_folder = bpy.path.abspath(pref.objects_folder_auto)
+        val = getattr(pref, prop_name + '_auto')
+        platform_folder = bpy.path.abspath(val)
 
     # advanced mode
     else:
@@ -166,17 +167,17 @@ def get_obj_dirs(operator=None):
             platform_paths = pref.paths_presets.get(used_config.platform)
 
             if platform_paths:
-                obj_folder = platform_paths.objects_folder_auto
-                obj_folder = bpy.path.abspath(obj_folder)
+                val = getattr(platform_paths, prop_name + '_auto')
+                platform_folder = bpy.path.abspath(val)
 
             # mod
             mod_paths = pref.paths_presets.get(used_config.mod)
 
-            if obj_mod_folder:
-                obj_mod_folder = mod_paths.objects_folder_auto
-                obj_mod_folder = bpy.path.abspath(obj_mod_folder)
+            if mod_paths:
+                val = getattr(mod_paths, prop_name + '_auto')
+                mod_folder = bpy.path.abspath(val)
 
-    return obj_folder, obj_mod_folder
+    return platform_folder, mod_folder
 
 
 def import_files(directory, files, imp_fun, context, results=[]):

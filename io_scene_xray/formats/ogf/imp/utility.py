@@ -57,19 +57,20 @@ def get_ogf_chunks(data):
 
 
 def set_export_path(context, visual, bpy_object):
-    meshes_folder = context.meshes_folder.lower()
-    if not meshes_folder:
-        return
+    for meshes_folder in context.meshes_folders:
+        if not meshes_folder:
+            continue
 
-    file_path = visual.file_path.lower()
-    if not file_path.startswith(meshes_folder):
-        return
+        meshes_folder = meshes_folder.lower()
+        file_path = visual.file_path.lower()
 
-    file_dir = os.path.dirname(file_path)
-    offset = len(meshes_folder)
-    exp_path = file_dir[offset : ]
+        if file_path.startswith(meshes_folder):
+            file_dir = os.path.dirname(file_path)
+            offset = len(meshes_folder)
+            exp_path = file_dir[offset : ]
 
-    bpy_object.xray.export_path = exp_path
+            bpy_object.xray.export_path = exp_path
+            break
 
 
 def set_visual_type(visual, root_visual):

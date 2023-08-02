@@ -11,7 +11,7 @@ class ImportObjectMeshContext(contexts.ImportMeshContext):
         self.split_by_materials = None
         pref = utils.version.get_preferences()
         self.reported = False
-        self.objs_folders = utils.ie.get_obj_dirs()
+        self.objs_folders = utils.ie.get_pref_dirs('objects_folder')
 
     def before_import_file(self):
         self.loaded_materials = {}
