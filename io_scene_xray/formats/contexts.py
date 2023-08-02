@@ -82,12 +82,27 @@ class ImportMeshContext(MeshContext):
             tex_abspath = utils.tex.make_abs_tex_path(tex_dir, relpath)
             abs_paths.append(tex_abspath)
 
-        # search bpy-image
-        bpy_img = None
+        # collect bpy-images
+        img_files = []
+        exists_paths = []
         for tex_path in abs_paths:
             bpy_img = utils.tex.search_image_by_tex_path(tex_path)
+            file_exists = os.path.exists(tex_path)
             if bpy_img:
+                img_files.append((bpy_img, file_exists))
+            if file_exists:
+                exists_paths.append(tex_path)
+
+        # search bpy-images
+        bpy_img = None
+        for img, file_exists in img_files:
+            if file_exists:
+                bpy_img = img
                 break
+
+        if not bpy_img and not exists_paths:
+            if img_files:
+                bpy_img = img_files[0][0]
 
         # load bpy-image
         if not bpy_img:
