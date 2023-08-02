@@ -177,7 +177,7 @@ def get_pref_dirs(prop_name):
                 val = getattr(mod_paths, prop_name + '_auto')
                 mod_folder = bpy.path.abspath(val)
 
-    return platform_folder, mod_folder
+    return mod_folder, platform_folder
 
 
 def import_files(directory, files, imp_fun, context, results=[]):
