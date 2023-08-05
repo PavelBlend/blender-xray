@@ -100,11 +100,11 @@ def has_selected_files(operator):
 
 
 def get_tex_dirs(operator=None):
-    tex_folder = None
-    tex_mod_folder = None
+    tex_folder = ''
+    tex_mod_folder = ''
 
-    lvl_folder = None
-    lvl_mod_folder = None
+    lvl_folder = ''
+    lvl_mod_folder = ''
 
     pref = version.get_preferences()
 
@@ -147,8 +147,8 @@ def get_tex_dirs(operator=None):
 
 
 def get_pref_dirs(prop_name):
-    platform_folder = None
-    mod_folder = None
+    platform_folder = ''
+    mod_folder = ''
 
     pref = version.get_preferences()
 

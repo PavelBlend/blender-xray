@@ -21,10 +21,8 @@ def _is_compatible_texture(texture, file_part):
 
     exists_paths = []
     find_img = False
-    for tex_folder in ie.get_tex_dirs():
-        if not tex_folder:
-            continue
 
+    for tex_folder in ie.get_tex_dirs():
         tex_path = os.path.join(tex_folder, file_part) + os.extsep + 'dds'
         abs_tex_path = os.path.abspath(tex_path).lower()
         abs_image_path = os.path.abspath(bpy_image.filepath).lower()
