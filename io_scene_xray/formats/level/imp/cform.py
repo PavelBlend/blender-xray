@@ -35,13 +35,16 @@ def import_main(context, level, cform_path, data):
     verts = packed_reader.get_array('f', verts_count, vec_len=3)
 
     # read game materials
-    pref = utils.version.get_preferences()
-    gamemtl_file_path = pref.gamemtl_file_auto
     game_mtl_names = {}
-    if os.path.exists(gamemtl_file_path):
-        gmtl_data = rw.utils.read_file(gamemtl_file_path)
-        for gmtl_name, _, gmtl_id in xr.parse_gamemtl(gmtl_data):
-            game_mtl_names[gmtl_id] = gmtl_name
+    pref = utils.version.get_preferences()
+    game_mtl_files = utils.ie.get_pref_paths('gamemtl_file')
+
+    for gamemtl_file_path in game_mtl_files:
+        if os.path.exists(gamemtl_file_path):
+            gmtl_data = rw.utils.read_file(gamemtl_file_path)
+            for gmtl_name, _, gmtl_id in xr.parse_gamemtl(gmtl_data):
+                game_mtl_names[gmtl_id] = gmtl_name
+            break
 
     # read tris
     sectors_tris = {}

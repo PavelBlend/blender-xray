@@ -38,11 +38,13 @@ def write_cform(file_path, level):
 
     # get gamemtl.xr data
     pref = utils.version.get_preferences()
-    gamemtl_file = pref.gamemtl_file_auto
-    if os.path.exists(gamemtl_file):
-        gamemtl_data = rw.utils.read_file(gamemtl_file)
-    else:
-        gamemtl_data = None
+    game_mtl_files = utils.ie.get_pref_paths('gamemtl_file')
+    gamemtl_data = None
+
+    for game_mtl_file in game_mtl_files:
+        if os.path.exists(game_mtl_file):
+            gamemtl_data = rw.utils.read_file(game_mtl_file)
+            break
 
     # read gamemtl.xr
     gamemtl_ids = {}

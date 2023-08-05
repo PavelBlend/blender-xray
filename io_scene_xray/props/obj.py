@@ -352,7 +352,7 @@ def update_export_name(self, context):
 
 
 def _get_motions_folder(prop):
-    folders = utils.ie.get_pref_dirs(prop)
+    folders = utils.ie.get_pref_paths(prop)
 
     for folder in folders:
 

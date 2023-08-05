@@ -303,7 +303,7 @@ class XRAY_OT_add_motion_ref_from_file(utils.ie.BaseOperator):
             space = context.space_data
             params = space.params
             prefs = utils.version.get_preferences()
-            meshes_folders = utils.ie.get_pref_dirs('meshes_folder')
+            meshes_folders = utils.ie.get_pref_paths('meshes_folder')
 
             for mshs_folder in meshes_folders:
                 if mshs_folder and os.path.exists(mshs_folder):
@@ -317,14 +317,14 @@ class XRAY_OT_add_motion_ref_from_file(utils.ie.BaseOperator):
     def execute(self, context):
         obj = context.active_object
         refs = obj.xray.motionrefs_collection
-        meshes_folders = utils.ie.get_pref_dirs('meshes_folder')
+        meshes_folders = utils.ie.get_pref_paths('meshes_folder')
 
-        meshes_folder = None
+        mshs_folder = None
         for val in meshes_folders:
             if val:
-                meshes_folder = val
+                mshs_folder = val
 
-        if not meshes_folder:
+        if not mshs_folder:
             self.report({'WARNING'}, 'Meshes folder not specified!')
             return {'FINISHED'}
 
@@ -333,10 +333,10 @@ class XRAY_OT_add_motion_ref_from_file(utils.ie.BaseOperator):
             if not file.name.endswith('.omf'):
                 continue
             file_path = os.path.join(self.directory, file.name)
-            if not file_path.startswith(meshes_folder):
+            if not file_path.startswith(mshs_folder):
                 fail_count += 1
                 continue
-            relative_path = file_path[len(meshes_folder) : ]
+            relative_path = file_path[len(mshs_folder) : ]
             motion_ref = os.path.splitext(relative_path)[0]
             if not motion_ref in refs:
                 ref = refs.add()

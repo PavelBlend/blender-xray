@@ -12,7 +12,7 @@ class XRAY_MT_shader(ui.dynamic_menu.XRAY_MT_xr_template):
     bl_idname = 'XRAY_MT_shader'
     prop_name = 'eshader'
     cached = ui.dynamic_menu.XRAY_MT_xr_template.create_cached(
-        'eshader_file_auto',
+        'eshader_file',
         formats.xr.parse_shaders
     )
 
@@ -21,7 +21,7 @@ class XRAY_MT_compile(ui.dynamic_menu.XRAY_MT_xr_template):
     bl_idname = 'XRAY_MT_compile'
     prop_name = 'cshader'
     cached = ui.dynamic_menu.XRAY_MT_xr_template.create_cached(
-        'cshader_file_auto',
+        'cshader_file',
         formats.xr.parse_shaders_xrlc
     )
 
@@ -30,7 +30,7 @@ class XRAY_MT_material(ui.dynamic_menu.XRAY_MT_xr_template):
     bl_idname = 'XRAY_MT_material'
     prop_name = 'gamemtl'
     cached = ui.dynamic_menu.XRAY_MT_xr_template.create_cached(
-        'gamemtl_file_auto',
+        'gamemtl_file',
         formats.xr.parse_gamemtl
     )
 

@@ -55,7 +55,7 @@ def _read_object_body(data, imported_objects, import_context):
         elif chunk_id == fmt.Chunks.SCENEOBJ_CHUNK_VERSION:
             scene_obj_version = packed_reader.getf('<H')[0]
 
-    objs_folders = utils.ie.get_pref_dirs('objects_folder')
+    objs_folders = utils.ie.get_pref_paths('objects_folder')
 
     for objs_folder in objs_folders:
         if not objs_folder:

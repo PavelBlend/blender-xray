@@ -146,11 +146,14 @@ def get_tex_dirs(operator=None):
     return tex_folder, tex_mod_folder, lvl_folder, lvl_mod_folder
 
 
-def get_pref_dirs(prop_name):
+def get_pref_paths(prop_name):
     platform_folder = ''
     mod_folder = ''
 
     pref = version.get_preferences()
+
+    if not pref:
+        return ('', )
 
     # simple mode
     if pref.paths_mode == 'SIMPLE':
@@ -212,7 +215,7 @@ def report_errors(context):
         raise first_error
 
 
-def get_paths_prefs():
+def _get_paths_configs():
     pref = version.get_preferences()
 
     # simple mode
@@ -245,7 +248,7 @@ def open_imp_exp_folder(operator, path_prop):
         space = bpy.context.space_data
         params = space.params
 
-        mod_paths, platform_paths = get_paths_prefs()
+        mod_paths, platform_paths = _get_paths_configs()
 
         path = None
         for paths_pref in (mod_paths, platform_paths):
