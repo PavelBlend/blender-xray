@@ -67,7 +67,11 @@ def draw_path_prop(layout, prefs, prop, isfile):
             icon='MODIFIER',
             text=''
         )
+
+        preset = getattr(prefs, 'name', '')
+
         operator.path = prop
+        operator.paths_preset = preset
 
     else:
         check_path(prefs, prop, split, isfile)
