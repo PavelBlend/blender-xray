@@ -144,6 +144,9 @@ def import_objects(refs, pos, rot, scl, context, level_name):
         exists = False
 
         for obj_folder in context.objects_folders:
+            if not obj_folder:
+                continue
+
             object_path = os.path.join(obj_folder, ref)
 
             if object_path[-1] == '\r':
