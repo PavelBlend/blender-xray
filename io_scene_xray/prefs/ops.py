@@ -26,7 +26,6 @@ class XRAY_OT_reset_prefs_settings(utils.ie.BaseOperator):
 
 op_props = {
     'path': bpy.props.StringProperty(),
-    'paths_preset': bpy.props.StringProperty(),
 }
 
 
@@ -44,10 +43,10 @@ class XRAY_OT_explicit_path(utils.ie.BaseOperator):
     def execute(self, context):
         pref = utils.version.get_preferences()
 
-        if self.paths_preset:
-            settings = pref.paths_presets[pref.paths_presets_index]
-        else:
+        if pref.paths_mode == 'BASE':
             settings = pref
+        else:
+            settings = pref.paths_presets[pref.paths_presets_index]
 
         auto_prop = props.build_auto_id(self.path)
 
