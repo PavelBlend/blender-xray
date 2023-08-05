@@ -27,7 +27,7 @@ def decompress_buffer(buffer: bytearray, textsize: int) -> bytearray:
     def getcz():
         nonlocal buffer_pos, buffer_size
         if buffer_pos == buffer_size:
-            return 0
+            raise Exception('End of compressed stream')
         result = buffer[buffer_pos]
         buffer_pos += 1
         return result
