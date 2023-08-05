@@ -26,6 +26,20 @@ def PropSDKVersion():
     )
 
 
+def PropOGFVersion():
+    return bpy.props.EnumProperty(
+        name='OGF Version',
+        items=(
+            ('norm', 'Normal', ''),
+            (
+                'gunslinger', 'GUNSLINGER mod',
+                'Suppress errors while parsing "encrypted" Revision'
+                ' and deal with "compressed" chunks',
+            ),
+        )
+    )
+
+
 def PropObjectMotionsExport():
     return bpy.props.BoolProperty(
         name='Export Motions',

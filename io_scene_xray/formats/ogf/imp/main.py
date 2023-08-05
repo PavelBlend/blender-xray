@@ -19,7 +19,7 @@ from .... import text
 def import_ogf_visual(context, data, visual):
     # visual from *.ogf file
 
-    chunks = utility.get_ogf_chunks(data)
+    chunks = utility.get_ogf_chunks(data, ignore_compression=context.gunslinger_mod)
 
     header.read_ogf_file_header(chunks, visual)
 

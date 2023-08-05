@@ -18,6 +18,7 @@ class ImportOgfContext(
     def __init__(self):
         super().__init__()
         pref = utils.version.get_preferences()
+        self.gunslinger_mod = False
         self.import_bone_parts = None
         self.repored = False
         self._meshes_folders = utils.ie.get_pref_paths('meshes_folder')
@@ -48,6 +49,7 @@ import_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
     ),
+    'fmt_version': ie.PropOGFVersion(),
     'import_motions': ie.PropObjectMotionsImport(),
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
@@ -84,6 +86,7 @@ class XRAY_OT_import_ogf(
         import_context = ImportOgfContext()
 
         import_context.operator = self
+        import_context.gunslinger_mod = self.fmt_version == 'gunslinger'
         import_context.import_motions = self.import_motions
         import_context.import_bone_parts = True
         import_context.add_to_motion_list = True
@@ -101,11 +104,13 @@ class XRAY_OT_import_ogf(
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
         layout = self.layout
         utils.draw.draw_files_count(self)
+        utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
         layout.prop(self, 'import_motions')
 
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         preferences = utils.version.get_preferences()
+        self.fmt_version = preferences.ogf_version
         self.import_motions = preferences.ogf_import_motions
         return super().invoke(context, event)
 

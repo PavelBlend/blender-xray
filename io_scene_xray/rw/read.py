@@ -47,6 +47,7 @@ class PackedReader:
     __PREP_I = struct.Struct('<I')
     __S_FFF = struct.Struct('<3f')
     debug = False
+    Error = struct.error
 
     def __init__(self, data):
         self.__offs = 0
@@ -184,9 +185,10 @@ class PackedReader:
 class ChunkedReader:
     __MASK_COMPRESSED = 0x80000000
 
-    def __init__(self, data):
+    def __init__(self, data, ignore_compression=False):
         self.__offs = 0
         self.__data = data
+        self.__ignore_compression = ignore_compression
 
     def __iter__(self):
         return self
@@ -202,6 +204,8 @@ class ChunkedReader:
         self.__offs = offs + size
         if cid & ChunkedReader.__MASK_COMPRESSED:
             cid &= ~ChunkedReader.__MASK_COMPRESSED
+            if self.__ignore_compression:
+                return cid, data[offs:offs + size]
             textsize = FastBytes.int_at(data, offs)
             buffer = data[offs + 4:offs + size]
             return cid, memoryview(lzhuf.decompress_buffer(buffer, textsize))

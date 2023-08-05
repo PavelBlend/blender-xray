@@ -543,6 +543,7 @@ plugin_preferences_props = {
     # dm export props
     'dm_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
     # ogf import props
+    'ogf_version': formats.ie.PropOGFVersion(),
     'ogf_import_motions': formats.ie.PropObjectMotionsImport(),
     # ogf export props
     'ogf_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),

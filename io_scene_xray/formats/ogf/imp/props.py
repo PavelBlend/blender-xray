@@ -4,7 +4,7 @@ from .... import log
 from .... import text
 
 
-def read_description(chunks, ogf_chunks, visual):
+def read_description(context, chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_DESC, None)
 
     if chunk_data:
@@ -12,15 +12,19 @@ def read_description(chunks, ogf_chunks, visual):
 
         source_file = packed_reader.gets()
 
-        build_name = packed_reader.gets()
-        build_time = packed_reader.uint32()
+        try:
+            build_name = packed_reader.gets()
+            build_time = packed_reader.uint32()
 
-        visual.create_name = packed_reader.gets()
-        visual.create_time = packed_reader.uint32()
+            visual.create_name = packed_reader.gets()
+            visual.create_time = packed_reader.uint32()
 
-        visual.modif_name = packed_reader.gets()
-        visual.modif_time = packed_reader.uint32()
-
+            visual.modif_name = packed_reader.gets()
+            visual.modif_time = packed_reader.uint32()
+        except (rw.read.PackedReader.Error, UnicodeDecodeError) as err:
+            if not context.gunslinger_mod:
+                raise err  # keep the original behavior until any bug-reports
+            log.debug('Description isn\'t properly read', exception=err)
 
 def read_user_data(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_USERDATA, None)

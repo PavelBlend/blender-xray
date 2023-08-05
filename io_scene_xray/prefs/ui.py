@@ -274,6 +274,7 @@ def draw_defaults(prefs):
         # import
         box = layout.box()
         box.label(text='Import:')
+        utils.draw.draw_fmt_ver_prop(box, prefs, 'ogf_version', lay_type='ROW')
         box.prop(prefs, 'ogf_import_motions')
         # export
         box = layout.box()
