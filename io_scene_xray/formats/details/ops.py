@@ -239,6 +239,7 @@ class XRAY_OT_export_details_file(
         exp_ctx.operator = self
         exp_ctx.texname_from_path = self.tex_name_from_path
         exp_ctx.level_details_format_version = self.format_version
+        exp_ctx.level_name = os.path.basename(os.path.dirname(self.filepath))
 
         # export
         try:
@@ -355,6 +356,7 @@ class XRAY_OT_export_details(utils.ie.BaseOperator):
         # export
         for obj, path in zip(objs, paths):
             try:
+                exp_ctx.level_name = os.path.basename(os.path.dirname(path))
                 exp.export_file(obj, path, exp_ctx)
             except log.AppError as err:
                 exp_ctx.errors.append(err)

@@ -22,22 +22,6 @@ def create_object(object_name):
     return bpy_object, bpy_mesh
 
 
-def create_empty_image(detail_model, absolute_image_path):
-    bpy_image = bpy.data.images.new(
-        os.path.basename(detail_model.texture) + '.dds',
-        0,
-        0
-    )
-    utils.stats.created_img()
-
-    bpy_image.source = 'FILE'
-    bpy_image.filepath = absolute_image_path
-    if not utils.version.IS_28:
-        bpy_image.use_alpha = True
-
-    return bpy_image
-
-
 def check_estimated_material(material, det_model):
     if not material.name.startswith(det_model.texture):
         return False
@@ -99,56 +83,7 @@ def find_bpy_texture(det_model, abs_image_path, alternative_image_path):
     return bpy_texture
 
 
-def load_image(path):
-    if not os.path.exists(path):
-        raise RuntimeError(path)
-
-    bpy_image = bpy.data.images.load(path)
-    utils.stats.created_img()
-
-    return bpy_image
-
-
-def create_bpy_image(det_model, abs_image_path):
-    try:
-        bpy_image = load_image(abs_image_path)
-
-    except RuntimeError:    # e.g. 'Error: Cannot read ...'
-
-        if det_model.mode == 'DETAILS':
-            try:
-                abs_image_path = os.path.abspath(
-                    os.path.join(
-                        os.path.dirname(det_model.file_path),
-                        det_model.texture + '.dds'
-                ))
-                bpy_image = load_image(abs_image_path)
-            except RuntimeError:
-                log.warn(text.warn.tex_not_found, path=abs_image_path)
-                bpy_image = create_empty_image(det_model, abs_image_path)
-
-        else:
-            log.warn(text.warn.tex_not_found, path=abs_image_path)
-            bpy_image = create_empty_image(det_model, abs_image_path)
-
-    return bpy_image
-
-
-def find_bpy_image(det_model, abs_image_path):
-    bpy_image = None
-
-    for image in bpy.data.images:
-        if abs_image_path == image.filepath:
-            bpy_image = image
-            break
-
-    if not bpy_image:
-        bpy_image = create_bpy_image(det_model, abs_image_path)
-
-    return bpy_image
-
-
-def create_bpy_texture(det_model, bpy_material, abs_image_path):
+def create_bpy_texture(det_model, bpy_material, context):
     bpy_texture = bpy.data.textures.new(det_model.texture, type='IMAGE')
     bpy_texture.use_preview_alpha = True
     bpy_texture_slot = bpy_material.texture_slots.add()
@@ -157,7 +92,7 @@ def create_bpy_texture(det_model, bpy_material, abs_image_path):
     bpy_texture_slot.uv_layer = det_model.mesh.uv_map_name
     bpy_texture_slot.use_map_color_diffuse = True
     bpy_texture_slot.use_map_alpha = True
-    bpy_image = find_bpy_image(det_model, abs_image_path)
+    bpy_image = context.image(det_model.texture)
     bpy_texture.image = bpy_image
     utils.stats.created_tex()
 
@@ -177,7 +112,7 @@ def create_material(det_model, abs_image_path, context):
         node_tree.nodes.clear()
 
         princ_shader = utils.material.create_mat_nodes(bpy_material)
-        bpy_image = find_bpy_image(det_model, abs_image_path)
+        bpy_image = context.image(det_model.texture)
 
         # texture node
         texture_node = node_tree.nodes.new('ShaderNodeTexImage')
@@ -206,12 +141,10 @@ def create_material(det_model, abs_image_path, context):
             det_model.texture + '.dds'
         )
 
-        bpy_texture = find_bpy_texture(
-            det_model, abs_image_path, alternative_image_path
-        )
+        bpy_texture = utils.tex.search_texture_by_tex_path(det_model.texture, abs_image_path)
 
         if bpy_texture is None:
-            create_bpy_texture(det_model, bpy_material, abs_image_path)
+            create_bpy_texture(det_model, bpy_material, context)
         else:
             bpy_texture_slot = bpy_material.texture_slots.add()
             bpy_texture_slot.texture = bpy_texture
@@ -221,7 +154,7 @@ def create_material(det_model, abs_image_path, context):
 
 def search_material(context, det_model, file_path=None):
     abs_image_path = os.path.abspath(os.path.join(
-        context.textures_folder,
+        context.tex_folder,
         det_model.texture + '.dds'
     ))
 

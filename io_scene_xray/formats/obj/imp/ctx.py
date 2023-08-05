@@ -11,21 +11,21 @@ class ImportObjectMeshContext(contexts.ImportMeshContext):
         self.split_by_materials = None
         pref = utils.version.get_preferences()
         self.reported = False
-        self.objs_folder = pref.objects_folder_auto
+        self.objs_folders = utils.ie.get_pref_paths('objects_folder')
 
     def before_import_file(self):
         self.loaded_materials = {}
 
     @property
-    def objects_folder(self):
-        if not self.objs_folder:
+    def objects_folders(self):
+        if not self.objs_folders:
             if not self.reported:
                 self.reported = True
                 self.operator.report(
                     {'WARNING'},
                     text.get_text(text.warn.objs_folder_not_spec)
                 )
-        return self.objs_folder
+        return self.objs_folders
 
 
 class ImportObjectAnimationContext(contexts.ImportAnimationContext):

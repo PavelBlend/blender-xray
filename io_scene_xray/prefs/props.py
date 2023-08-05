@@ -445,19 +445,46 @@ category_items = (
     ('OTHERS', 'Others', '')
 )
 
-plugin_preferences_props = {
+paths_props = {
     # path props
     'fs_ltx_file': bpy.props.StringProperty(
-        subtype='FILE_PATH', name='fs.ltx File', update=update_paths
+        subtype='FILE_PATH',
+        name='fs.ltx File',
+        update=update_paths
     ),
-    'gamedata_folder': bpy.props.StringProperty(subtype='DIR_PATH', update=update_paths),
-    'textures_folder': bpy.props.StringProperty(subtype='DIR_PATH', update=update_paths),
-    'meshes_folder': bpy.props.StringProperty(subtype='DIR_PATH', update=update_paths),
-    'levels_folder': bpy.props.StringProperty(subtype='DIR_PATH', update=update_paths),
-    'gamemtl_file': bpy.props.StringProperty(subtype='FILE_PATH', update=update_paths),
-    'eshader_file': bpy.props.StringProperty(subtype='FILE_PATH', update=update_paths),
-    'cshader_file': bpy.props.StringProperty(subtype='FILE_PATH', update=update_paths),
-    'objects_folder': bpy.props.StringProperty(subtype='DIR_PATH', update=update_paths),
+    'gamedata_folder': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    ),
+    'textures_folder': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    ),
+    'meshes_folder': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    ),
+    'levels_folder': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    ),
+    'gamemtl_file': bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        update=update_paths
+    ),
+    'eshader_file': bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        update=update_paths
+    ),
+    'cshader_file': bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        update=update_paths
+    ),
+    'objects_folder': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    ),
+
     # path auto props
     'gamedata_folder_auto': bpy.props.StringProperty(),
     'textures_folder_auto': bpy.props.StringProperty(),
@@ -466,10 +493,17 @@ plugin_preferences_props = {
     'gamemtl_file_auto': bpy.props.StringProperty(),
     'eshader_file_auto': bpy.props.StringProperty(),
     'cshader_file_auto': bpy.props.StringProperty(),
-    'objects_folder_auto': bpy.props.StringProperty(),
+    'objects_folder_auto': bpy.props.StringProperty()
+}
 
+plugin_preferences_props = {
     'compact_menus': bpy.props.BoolProperty(
         name='Compact Import/Export Menus', update=update_menu_func
+    ),
+
+    'paths_mode': bpy.props.EnumProperty(
+        default='BASE',
+        items=(('BASE', 'Base', ''), ('ADVANCED', 'Advanced', ''))
     ),
 
     # defaults
@@ -605,6 +639,8 @@ plugin_preferences_props = {
         default=False
     )
 }
+
+plugin_preferences_props.update(paths_props)
 
 
 classes = (

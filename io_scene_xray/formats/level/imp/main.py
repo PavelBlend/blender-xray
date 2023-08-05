@@ -722,6 +722,7 @@ def import_file(context):
 
     level.context = context
     level.name = utility.get_level_name(context.filepath)
+    context.level_name = level.name
     level.file = context.filepath
     level.path = os.path.dirname(context.filepath)
 

@@ -13,6 +13,7 @@ from . import action
 from . import bone
 from . import version
 from . import stats
+from . import tex
 from .. import log
 from .. import text
 

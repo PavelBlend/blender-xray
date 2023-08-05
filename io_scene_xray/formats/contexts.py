@@ -24,20 +24,31 @@ class Context:
 class MeshContext(Context):
     def __init__(self):
         super().__init__()
-        pref = utils.version.get_preferences()
-        self.tex_folder = pref.textures_folder_auto
+
+        (
+            self.tex_dir,
+            self.tex_mod_dir,
+            self.lvl_folder,
+            self.lvl_mod_folder
+        ) = utils.ie.get_tex_dirs()
+
+        self.level_name = None
         self.tex_folder_repored = False
 
     @property
-    def textures_folder(self):
-        if not self.tex_folder:
+    def tex_folder(self):
+        if not self.tex_dir:
             if not self.tex_folder_repored:
                 self.tex_folder_repored = True
                 self.operator.report(
                     {'WARNING'},
                     text.get_text(text.warn.tex_folder_not_spec)
                 )
-        return self.tex_folder
+        return self.tex_dir
+
+    @property
+    def tex_mod_folder(self):
+        return self.tex_mod_dir
 
 
 # import contexts
@@ -47,38 +58,66 @@ class ImportContext(Context):
 
 class ImportMeshContext(MeshContext):
     def image(self, relpath):
-        relpath = relpath.lower().replace('\\', os.path.sep)
-        if not self.textures_folder:
-            result = bpy.data.images.new(os.path.basename(relpath), 0, 0)
-            result.source = 'FILE'
-            result.filepath = relpath + '.dds'
-            utils.stats.created_img()
-            return result
-        filepath = os.path.abspath(
-            os.path.join(self.textures_folder, relpath + '.dds')
-        )
-        result = None
-        for bpy_image in bpy.data.images:
-            if bpy.path.abspath(bpy_image.filepath) == filepath:
-                result = bpy_image
+        relpath = utils.tex.normalize_tex_relpath(relpath)
+
+        # create empty image
+        if not self.tex_mod_folder and not self.tex_folder and not self.level_name:
+            relpath = utils.tex.add_tex_ext(relpath)
+            return utils.tex.create_empty_img(relpath)
+
+        # collect texture folders
+        tex_dirs = []
+        if self.level_name:
+            for folder in (self.lvl_mod_folder, self.lvl_folder):
+                if folder:
+                    level_folder = os.path.join(folder, self.level_name)
+                    tex_dirs.append(level_folder)
+        tex_dirs.extend([self.tex_mod_folder, self.tex_folder])
+
+        # collect texture absolute paths
+        abs_paths = []
+        for tex_dir in tex_dirs:
+            if not tex_dir:
+                continue
+            tex_abspath = utils.tex.make_abs_tex_path(tex_dir, relpath)
+            abs_paths.append(tex_abspath)
+
+        # collect bpy-images
+        img_files = []
+        exists_paths = []
+        for tex_path in abs_paths:
+            bpy_img = utils.tex.search_image_by_tex_path(tex_path)
+            file_exists = os.path.exists(tex_path)
+            if bpy_img:
+                img_files.append((bpy_img, file_exists))
+            if file_exists:
+                exists_paths.append(tex_path)
+
+        # search bpy-images
+        bpy_img = None
+        for img, file_exists in img_files:
+            if file_exists:
+                bpy_img = img
                 break
 
-        if result is None:
-            if os.path.exists(filepath):
-                try:
-                    result = bpy.data.images.load(filepath)
-                    utils.stats.created_img()
-                except RuntimeError:    # e.g. 'Error: Cannot read ...'
-                    pass
+        if not bpy_img and not exists_paths:
+            if img_files:
+                bpy_img = img_files[0][0]
 
-            if not result:
-                log.warn('texture file not found', path=filepath)
-                result = bpy.data.images.new(os.path.basename(relpath), 0, 0)
-                utils.stats.created_img()
-                result.source = 'FILE'
-                result.filepath = filepath
+        # load bpy-image
+        if not bpy_img:
+            for tex_abspath in abs_paths:
+                bpy_img = utils.tex.load_image_by_tex_path(tex_abspath)
+                if bpy_img:
+                    break
 
-        return result
+            # create empty image
+            if not bpy_img:
+                tex_abspath = utils.tex.make_abs_tex_path(self.tex_folder, relpath + '.dds')
+                log.warn('Texture file not found', path=tex_abspath)
+                bpy_img = utils.tex.create_empty_img(tex_abspath)
+
+        return bpy_img
 
 
 class ImportAnimationBaseContext(ImportContext):

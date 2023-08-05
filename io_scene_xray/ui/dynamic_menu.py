@@ -124,10 +124,19 @@ class XRAY_MT_xr_template(DynamicMenu):
             push_dict(tmp, split, name, desc)
         return dict_to_array(tmp)
 
+    def _get_file_path(self, pref_prop):
+        file_path = None
+        file_paths = utils.ie.get_pref_paths(pref_prop)
+        for path in file_paths:
+            if path:
+                file_path = path
+                break
+        return file_path
+
     @classmethod
     def create_cached(cls, pref_prop, fparse):
         return formats.xr.create_cached_file_data(
-            lambda: getattr(utils.version.get_preferences(), pref_prop, None),
+            lambda: cls._get_file_path(cls, pref_prop),
             lambda data: cls.parse(data, fparse)
         )
 
@@ -148,7 +157,9 @@ classes = (
 
 
 def register():
-    utils.version.assign_props([(_dynamic_menu_op_props, XRAY_OT_dynamic_menu), ])
+    utils.version.assign_props([
+        (_dynamic_menu_op_props, XRAY_OT_dynamic_menu),
+    ])
     for operator in classes:
         bpy.utils.register_class(operator)
 

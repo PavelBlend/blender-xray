@@ -99,12 +99,88 @@ def has_selected_files(operator):
     return has_sel
 
 
-def get_textures_folder(operator):
+def get_tex_dirs(operator=None):
+    tex_folder = ''
+    tex_mod_folder = ''
+
+    lvl_folder = ''
+    lvl_mod_folder = ''
+
     pref = version.get_preferences()
-    tex_folder = pref.textures_folder_auto
+
+    # simple mode
+    if pref.paths_mode == 'BASE':
+        tex_folder = bpy.path.abspath(pref.textures_folder_auto)
+        lvl_folder = bpy.path.abspath(pref.levels_folder_auto)
+
+    # advanced mode
+    else:
+        used_config = pref.paths_configs.get(pref.used_config)
+
+        if used_config:
+
+            # platform
+            platform_paths = pref.paths_presets.get(used_config.platform)
+
+            if platform_paths:
+                tex_folder = platform_paths.textures_folder_auto
+                tex_folder = bpy.path.abspath(tex_folder)
+
+                lvl_folder = platform_paths.levels_folder_auto
+                lvl_folder = bpy.path.abspath(lvl_folder)
+
+            # mod
+            mod_paths = pref.paths_presets.get(used_config.mod)
+
+            if mod_paths:
+                tex_mod_folder = mod_paths.textures_folder_auto
+                tex_mod_folder = bpy.path.abspath(tex_mod_folder)
+
+                lvl_mod_folder = mod_paths.levels_folder_auto
+                lvl_mod_folder = bpy.path.abspath(lvl_mod_folder)
+
     if not tex_folder:
-        operator.report({'WARNING'}, 'No textures folder specified')
-    return tex_folder
+        if operator:
+            operator.report({'WARNING'}, 'No textures folder specified')
+
+    return tex_folder, tex_mod_folder, lvl_folder, lvl_mod_folder
+
+
+def get_pref_paths(prop_name):
+    platform_folder = ''
+    mod_folder = ''
+
+    pref = version.get_preferences()
+
+    if not pref:
+        return ('', )
+
+    # simple mode
+    if pref.paths_mode == 'BASE':
+        val = getattr(pref, prop_name + '_auto')
+        platform_folder = bpy.path.abspath(val)
+
+    # advanced mode
+    else:
+        used_config = pref.paths_configs.get(pref.used_config)
+
+        if used_config:
+
+            # platform
+            platform_paths = pref.paths_presets.get(used_config.platform)
+
+            if platform_paths:
+                val = getattr(platform_paths, prop_name + '_auto')
+                platform_folder = bpy.path.abspath(val)
+
+            # mod
+            mod_paths = pref.paths_presets.get(used_config.mod)
+
+            if mod_paths:
+                val = getattr(mod_paths, prop_name + '_auto')
+                mod_folder = bpy.path.abspath(val)
+
+    return mod_folder, platform_folder
 
 
 def import_files(directory, files, imp_fun, context, results=[]):
@@ -139,6 +215,32 @@ def report_errors(context):
         raise first_error
 
 
+def _get_paths_configs():
+    pref = version.get_preferences()
+
+    # simple mode
+    if pref.paths_mode == 'BASE':
+        platform_paths = pref
+        mod_paths = None
+
+    # advanced mode
+    else:
+        platform_paths = None
+        mod_paths = None
+
+        used_config = pref.paths_configs.get(pref.used_config)
+
+        if used_config:
+
+            # platform
+            platform_paths = pref.paths_presets.get(used_config.platform)
+
+            # mod
+            mod_paths = pref.paths_presets.get(used_config.mod)
+
+    return mod_paths, platform_paths
+
+
 def open_imp_exp_folder(operator, path_prop):
     if not hasattr(operator, 'init'):
         operator.init = True
@@ -146,8 +248,13 @@ def open_imp_exp_folder(operator, path_prop):
         space = bpy.context.space_data
         params = space.params
 
-        pref = version.get_preferences()
-        path = getattr(pref, path_prop + '_auto')
+        mod_paths, platform_paths = _get_paths_configs()
+
+        path = None
+        for paths_pref in (mod_paths, platform_paths):
+            if paths_pref:
+                path = getattr(paths_pref, path_prop + '_auto')
+                break
 
         if path:
             if isinstance(params.directory, bytes):

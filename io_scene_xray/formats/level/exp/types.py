@@ -1,9 +1,13 @@
 # blender modules
 import bpy
 
+# addon modules
+from ... import contexts
+
 
 class Level(object):
     def __init__(self):
+        self.name = None
         self.active_material_index = 0
 
         self.visuals = []
@@ -61,7 +65,6 @@ class VisualsCache:
                 self.children[parent.name].append(child_obj.name)
 
 
-class ExportLevelContext():
-    def __init__(self, textures_folder):
-        self.textures_folder = textures_folder
-        self.texname_from_path = True
+class ExportLevelContext(contexts.ExportMeshContext):
+    def __init__(self):
+        super().__init__()

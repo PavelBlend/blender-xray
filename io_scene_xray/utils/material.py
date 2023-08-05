@@ -5,6 +5,7 @@ import os
 import bpy
 
 # addon modules
+from . import ie
 from . import image
 from . import stats
 from . import version
@@ -13,16 +14,34 @@ from .. import text
 
 
 def _is_compatible_texture(texture, file_part):
-    tex_folder = version.get_preferences().textures_folder_auto
-    tex_path = os.path.join(tex_folder, file_part) + os.extsep + 'dds'
     bpy_image = getattr(texture, 'image', None)
+
     if bpy_image is None:
-        return False, None
-    abs_tex_path = os.path.abspath(tex_path)
-    abs_image_path = os.path.abspath(bpy_image.filepath)
-    if abs_tex_path != abs_image_path:
-        return False, None
-    return True, bpy_image
+        return
+
+    exists_paths = []
+    find_img = False
+
+    for tex_folder in ie.get_tex_dirs():
+        tex_path = os.path.join(tex_folder, file_part) + os.extsep + 'dds'
+        abs_tex_path = os.path.abspath(tex_path).lower()
+        abs_image_path = os.path.abspath(bpy_image.filepath).lower()
+
+        exists = os.path.exists(abs_tex_path)
+        if exists:
+            exists_paths.append(abs_tex_path)
+
+        if abs_tex_path == abs_image_path:
+            find_img = True
+
+            if exists:
+                return bpy_image
+
+    if exists_paths:
+        return
+
+    if find_img:
+        return bpy_image
 
 
 def _check_xray_props(material, eshader, cshader, gamemtl, flags):
@@ -47,11 +66,11 @@ def _check_material_image_28(bpy_material, tex_file_part):
         # check image node
         if len(tex_nodes) == 1:
             tex_node = tex_nodes[0]
-            find_texture, bpy_image = _is_compatible_texture(
+            bpy_image = _is_compatible_texture(
                 tex_node,
                 tex_file_part
             )
-            if find_texture:
+            if bpy_image:
                 return bpy_material, bpy_image
     return None, None
 
@@ -67,11 +86,11 @@ def _check_material_image_27(bpy_material, tex_file_part, uv_map_name):
     if len(tex_slots) == 1:
         slot = tex_slots[0]
         if slot.uv_layer == uv_map_name:
-            find_texture, bpy_image = _is_compatible_texture(
+            bpy_image = _is_compatible_texture(
                 slot.texture,
                 tex_file_part
             )
-            if find_texture:
+            if bpy_image:
                 return bpy_material, bpy_image
     return None, None
 
@@ -214,13 +233,13 @@ def _create_texture_27(
 
     # search texture
     bpy_texture = bpy.data.textures.get(texture)
-    find_texture, bpy_image = _is_compatible_texture(
+    bpy_image = _is_compatible_texture(
         bpy_texture,
         tex_file_part
     )
 
     # create texture
-    if not bpy_texture or not find_texture:
+    if not bpy_texture or not bpy_image:
         bpy_texture = bpy.data.textures.new(texture, type='IMAGE')
         bpy_texture.image = context.image(texture)
         bpy_texture.use_preview_alpha = True
@@ -443,7 +462,7 @@ def _get_image_relative_path_28(
                 if context.texname_from_path:
                     tex_name = image.gen_texture_name(
                         tex_node.image,
-                        context.textures_folder,
+                        context,
                         level_folder=level_folder,
                         errors=errors
                     )
@@ -508,7 +527,7 @@ def _get_image_relative_path_27(
         if context.texname_from_path:
             tex_name = image.gen_texture_name(
                 texture.image,
-                context.textures_folder,
+                context,
                 level_folder=level_folder,
                 errors=errors
             )

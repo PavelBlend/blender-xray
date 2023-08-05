@@ -41,11 +41,19 @@ class XRAY_OT_explicit_path(utils.ie.BaseOperator):
             exec('{0} = props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
-        preferences = utils.version.get_preferences()
+        pref = utils.version.get_preferences()
+
+        if pref.paths_mode == 'BASE':
+            settings = pref
+        else:
+            settings = pref.paths_presets[pref.paths_presets_index]
+
         auto_prop = props.build_auto_id(self.path)
-        value = getattr(preferences, auto_prop)
-        setattr(preferences, self.path, value)
-        setattr(preferences, auto_prop, '')
+
+        value = getattr(settings, auto_prop)
+        setattr(settings, self.path, value)
+        setattr(settings, auto_prop, '')
+
         return {'FINISHED'}
 
 

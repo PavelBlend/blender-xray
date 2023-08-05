@@ -230,113 +230,25 @@ def get_absolute_texture_path(folder, texture):
     return absolute_texture_path
 
 
-def create_empty_image(texture, absolute_image_path):
-    bpy_image = bpy.data.images.new(add_extension_to_texture(texture), 0, 0)
-    bpy_image.source = 'FILE'
-    bpy_image.filepath = absolute_image_path
-    bpy_image.alpha_mode = 'STRAIGHT'
-    utils.stats.created_img()
-    return bpy_image
-
-
-def load_image(absolute_texture_path):
-    if not os.path.exists(absolute_texture_path):
-        raise RuntimeError(absolute_texture_path)
-
-    bpy_image = bpy.data.images.load(absolute_texture_path)
-    bpy_image.alpha_mode = 'STRAIGHT'
-    utils.stats.created_img()
-
-    return bpy_image
-
-
-def load_image_from_level_folder(context, texture, abs_path):
-    level_dir = utility.get_level_dir(context.filepath)
-    absolute_texture_path = get_absolute_texture_path(
-        level_dir, texture
-    )
-    try:
-        bpy_image = load_image(absolute_texture_path)
-    except RuntimeError:    # e.g. 'Error: Cannot read ...'
-        absolute_texture_path = get_absolute_texture_path(
-            context.textures_folder, texture
-        )
-        try:
-            bpy_image = load_image(absolute_texture_path)
-        except RuntimeError:    # e.g. 'Error: Cannot read ...'
-            log.warn(text.warn.tex_not_found, path=abs_path)
-            bpy_image = create_empty_image(texture, abs_path)
-    return bpy_image
-
-
-def create_image(context, texture, absolute_texture_path):
-    try:
-        bpy_image = load_image(absolute_texture_path)
-    except RuntimeError:    # e.g. 'Error: Cannot read ...'
-        bpy_image = load_image_from_level_folder(context, texture, absolute_texture_path)
-    bpy_image.use_fake_user = True
-    return bpy_image
-
-
-def search_image(absolute_texture_path):
-    for bpy_image in bpy.data.images:
-        if is_same_image_paths(bpy_image, absolute_texture_path):
-            return bpy_image
-
-
-def find_image_lmap(context, lmap, level_dir):
-    absolute_lmap_path = get_absolute_texture_path(level_dir, lmap)
-    bpy_image = search_image(absolute_lmap_path)
-    if not bpy_image:
-        bpy_image = create_image(context, lmap, absolute_lmap_path)
-    bpy_image.colorspace_settings.name = 'Non-Color'
-    return bpy_image
-
-
-def get_image_lmap_terrain(context, lmap):
-    level_dir = utility.get_level_dir(context.filepath)
-    bpy_image = find_image_lmap(context, lmap, level_dir)
-    return bpy_image
-
-
-def get_image_lmap_brush(context, lmap_1, lmap_2):
-    bpy_images = []
-    level_dir = utility.get_level_dir(context.filepath)
-    for lmap in (lmap_1, lmap_2):
-        bpy_image = find_image_lmap(context, lmap, level_dir)
-        bpy_images.append(bpy_image)
-    return bpy_images[0], bpy_images[1]
-
-
 def get_image_lmap(context, light_maps):
     if not light_maps:
         return None
     light_maps_count = len(light_maps)
+
     if light_maps_count == 1:
-        image_lmap = get_image_lmap_terrain(context, light_maps[0])
+        image_lmap = context.image(light_maps[0])
+        image_lmap.colorspace_settings.name = 'Non-Color'
+        image_lmap.use_fake_user = True
         return (image_lmap, )
+
     elif light_maps_count == 2:
-        image_lmap_1, image_lmap_2 = get_image_lmap_brush(
-            context,
-            *light_maps
-        )
+        image_lmap_1 = context.image(light_maps[0])
+        image_lmap_2 = context.image(light_maps[1])
+        image_lmap_1.colorspace_settings.name = 'Non-Color'
+        image_lmap_2.colorspace_settings.name = 'Non-Color'
+        image_lmap_1.use_fake_user = True
+        image_lmap_2.use_fake_user = True
         return (image_lmap_1, image_lmap_2)
-
-
-def get_image(context, texture, terrain=False):
-    if terrain:
-        # level dir (terrain texture)
-        texture_dir = utility.get_level_dir(context.filepath)
-    else:
-        texture_dir = context.textures_folder
-    absolute_texture_path = get_absolute_texture_path(
-        texture_dir,
-        texture
-    )
-    bpy_image = search_image(absolute_texture_path)
-    if not bpy_image:
-        bpy_image = create_image(context, texture, absolute_texture_path)
-    return bpy_image
 
 
 def is_same_light_maps(context, bpy_material, light_maps):
@@ -362,7 +274,7 @@ def is_same_light_maps(context, bpy_material, light_maps):
 
 def is_same_image(context, bpy_material, texture):
     absolute_texture_path = get_absolute_texture_path(
-        context.textures_folder, texture
+        context.tex_folder, texture
     )
     level_dir = utility.get_level_dir(context.filepath)
     absolute_texture_path_in_level_folder = get_absolute_texture_path(
@@ -426,11 +338,10 @@ def create_material(level, context, texture, engine_shader, *light_maps):
     bpy_material.xray.eshader = engine_shader
     bpy_material.xray.uv_texture = 'Texture'
     utils.stats.created_mat()
-    if len(light_maps) == 1 and level.xrlc_version >= fmt.VERSION_13:
-        bpy_image = get_image(context, texture, terrain=True)
-    else:
-        bpy_image = get_image(context, texture)
+
+    bpy_image = context.image(texture)
     bpy_image_lmaps = get_image_lmap(context, light_maps)
+
     if bpy_image_lmaps:
         bpy_material.xray.uv_light_map = 'Light Map'
         for index, light_map_image in enumerate(bpy_image_lmaps):
@@ -442,7 +353,9 @@ def create_material(level, context, texture, engine_shader, *light_maps):
     else:
         bpy_material.xray.light_vert_color = 'Light'
         bpy_material.xray.sun_vert_color = 'Sun'
+
     bpy_material.xray.hemi_vert_color = 'Hemi'
+
     if utils.version.IS_28:
         set_material_settings(bpy_material)
         remove_default_shader_nodes(bpy_material)
@@ -467,6 +380,7 @@ def create_material(level, context, texture, engine_shader, *light_maps):
             utils.stats.created_tex()
         tex_slot.texture = bpy_texture
         tex_slot.use_map_alpha = True
+
     return bpy_material, bpy_image
 
 

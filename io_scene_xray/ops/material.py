@@ -559,8 +559,7 @@ class XRAY_OT_create_material(utils.ie.BaseOperator):
             if utils.version.has_file_browser_show_tool_prop():
                 space.show_region_tool_props = False
 
-            pref = utils.version.get_preferences()
-            tex_folder = pref.textures_folder_auto
+            tex_folder = utils.ie.get_tex_dirs(self)[0]
 
             if tex_folder:
                 if isinstance(params.directory, bytes):
@@ -616,8 +615,7 @@ class XRAY_OT_create_material(utils.ie.BaseOperator):
         if not image:
             image = bpy.data.images.load(file_path)
 
-        prefs = utils.version.get_preferences()
-        tex_folder = bpy.path.abspath(prefs.textures_folder_auto)
+        tex_folder = utils.ie.get_tex_dirs(self)[0]
 
         if file_path.startswith(tex_folder):
             rel_path = file_path[len(tex_folder) : ]

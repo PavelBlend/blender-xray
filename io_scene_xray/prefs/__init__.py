@@ -4,10 +4,11 @@ from . import hotkeys
 from . import ops
 from . import props
 from . import preset
+from . import paths
 from . import ui
 
 
-modules = (ops, props, base, preset, hotkeys)
+modules = (ops, paths, props, base, preset, hotkeys)
 
 
 def register():

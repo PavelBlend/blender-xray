@@ -15,6 +15,8 @@ from ... import rw
 
 
 def _import(file_path, context, chunked_reader):
+    context.level_name = os.path.basename(os.path.dirname(file_path))
+
     has_header = False
     has_meshes = False
     has_slots = False

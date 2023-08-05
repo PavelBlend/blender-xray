@@ -141,15 +141,25 @@ def import_objects(refs, pos, rot, scl, context, level_name):
     imported_count = 0
 
     for index, ref in enumerate(refs):
-        object_path = os.path.join(context.objects_folder, ref)
+        exists = False
 
-        if object_path[-1] == '\r':
-            object_path = object_path[ : -1]
+        for obj_folder in context.objects_folders:
+            if not obj_folder:
+                continue
 
-        if not object_path.endswith('.object'):
-            object_path += '.object'
+            object_path = os.path.join(obj_folder, ref)
 
-        if not os.path.exists(object_path):
+            if object_path[-1] == '\r':
+                object_path = object_path[ : -1]
+
+            if not object_path.endswith('.object'):
+                object_path += '.object'
+
+            if os.path.exists(object_path):
+                exists = True
+                break
+
+        if not exists:
             log.warn(
                 text.warn.scene_no_file,
                 file=object_path

@@ -351,32 +351,60 @@ def update_export_name(self, context):
     find_duplicate_name(self, used_names)
 
 
+def _get_motions_folder(prop):
+    folders = utils.ie.get_pref_paths(prop)
+
+    for folder in folders:
+
+        if not folder:
+            continue
+
+        if not os.path.exists(folder):
+            continue
+
+        return folder
+
+
 def load_motion_refs(self, context):
     if not self.load_active_motion_refs:
         return
 
     if self.motionrefs_collection:
+        obj = context.active_object
         motion_refs = self.motionrefs_collection[self.motionrefs_collection_index]
 
-        if context.active_object.xray.motions_browser.file_format == 'SKLS':
-            folder = utils.version.get_preferences().objects_folder_auto
+        if obj.xray.motions_browser.file_format == 'SKLS':
+            folder = _get_motions_folder('objects_folder')
             ext = os.extsep + 'skls'
+            message = text.get_text(text.warn.objs_folder_not_spec)
+
         else:
-            folder = utils.version.get_preferences().meshes_folder_auto
+            folder = _get_motions_folder('meshes_folder')
             ext = os.extsep + 'omf'
+            message = text.get_text(text.warn.meshes_folder_not_spec)
+
+        if not folder:
+            utils.draw.show_message(
+                message,
+                (),
+                text.get_text(text.error.error_title),
+                'ERROR'
+            )
+            return
 
         file_path = os.path.join(folder, motion_refs.name + ext)
 
         if os.path.exists(file_path):
             ops.motions_browser.init_browser(self, context, file_path)
-        else:
-            message = text.get_text(text.error.file_not_found).capitalize()
-            utils.draw.show_message(
-                message,
-                (file_path, ),
-                text.get_text(text.error.error_title),
-                'ERROR'
-            )
+            return
+
+        message = text.get_text(text.error.file_not_found)
+        utils.draw.show_message(
+            message,
+            (file_path, ),
+            text.get_text(text.error.error_title),
+            'ERROR'
+        )
 
 
 def update_load_active_motion_refs(self, context):
