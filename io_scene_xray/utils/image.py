@@ -74,48 +74,6 @@ def _gen_tex_name_by_textures_folder(tex_path, context, image):
     return rel_path
 
 
-def _gen_tex_name_by_level_folder(
-        tex_path,
-        tex_folder,
-        level_folder,
-        image,
-        file_path,
-        errors
-    ):
-    if tex_path.startswith(tex_folder):
-        # gamedata\textures folder
-        tex_path = _make_relative_texture_path(tex_path, tex_folder)
-
-    elif tex_path.startswith(level_folder):
-        # gamedata\levels\level_name folder
-        tex_path = _make_relative_texture_path(tex_path, level_folder)
-
-    else:
-        # automatically fix relative path
-        tex_path = _gen_relative_path(tex_path)
-        image_abs_path = bpy.path.abspath(image.filepath)
-
-        report_warn = False
-        if errors is None:
-            report_warn = True
-        if isinstance(errors, set):
-            if not file_path in errors:
-                report_warn = True
-        if report_warn:
-            log.warn(
-                text.warn.invalid_image_path,
-                image=image.name,
-                image_path=image_abs_path,
-                textures_folder=tex_folder,
-                levels_folder=level_folder,
-                saved_as=tex_path
-            )
-            if isinstance(errors, set):
-                errors.add(file_path)
-
-    return tex_path
-
-
 def gen_texture_name(image, context, level_folder=None, errors=None):
     file_path = image.filepath
     tex_path = bpy.path.abspath(file_path)

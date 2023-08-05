@@ -351,30 +351,54 @@ def update_export_name(self, context):
     find_duplicate_name(self, used_names)
 
 
+def _get_motions_folder(prop):
+    folders = utils.ie.get_pref_dirs(prop)
+
+    for folder in folders:
+
+        if not folder:
+            continue
+
+        if not os.path.exists(folder):
+            continue
+
+        return folder
+
+
 def load_motion_refs(self, context):
     if not self.load_active_motion_refs:
         return
 
     if self.motionrefs_collection:
+        obj = context.active_object
         motion_refs = self.motionrefs_collection[self.motionrefs_collection_index]
-        mod_paths, platform_paths = utils.ie.get_paths_prefs()
 
-        for paths_prefs in (mod_paths, platform_paths):
+        if obj.xray.motions_browser.file_format == 'SKLS':
+            folder = _get_motions_folder('objects_folder')
+            ext = os.extsep + 'skls'
+            message = text.get_text(text.warn.objs_folder_not_spec)
 
-            if context.active_object.xray.motions_browser.file_format == 'SKLS':
-                folder = paths_prefs.objects_folder_auto
-                ext = os.extsep + 'skls'
-            else:
-                folder = paths_prefs.meshes_folder_auto
-                ext = os.extsep + 'omf'
+        else:
+            folder = _get_motions_folder('meshes_folder')
+            ext = os.extsep + 'omf'
+            message = text.get_text(text.warn.meshes_folder_not_spec)
 
-            file_path = os.path.join(folder, motion_refs.name + ext)
+        if not folder:
+            utils.draw.show_message(
+                message,
+                (),
+                text.get_text(text.error.error_title),
+                'ERROR'
+            )
+            return
 
-            if os.path.exists(file_path):
-                ops.motions_browser.init_browser(self, context, file_path)
-                return
+        file_path = os.path.join(folder, motion_refs.name + ext)
 
-        message = text.get_text(text.error.file_not_found).capitalize()
+        if os.path.exists(file_path):
+            ops.motions_browser.init_browser(self, context, file_path)
+            return
+
+        message = text.get_text(text.error.file_not_found)
         utils.draw.show_message(
             message,
             (file_path, ),
