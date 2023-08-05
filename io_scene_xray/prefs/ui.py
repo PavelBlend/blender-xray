@@ -204,7 +204,7 @@ def draw_paths(prefs):
     split.label(text='Mode:')
     split.row(align=True).prop(prefs, 'paths_mode', expand=True)
 
-    if prefs.paths_mode == 'SIMPLE':
+    if prefs.paths_mode == 'BASE':
         draw_paths_simple(layout, prefs)
     else:
         draw_paths_advanced(layout, prefs)

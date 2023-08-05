@@ -109,7 +109,7 @@ def get_tex_dirs(operator=None):
     pref = version.get_preferences()
 
     # simple mode
-    if pref.paths_mode == 'SIMPLE':
+    if pref.paths_mode == 'BASE':
         tex_folder = bpy.path.abspath(pref.textures_folder_auto)
         lvl_folder = bpy.path.abspath(pref.levels_folder_auto)
 
@@ -156,7 +156,7 @@ def get_pref_paths(prop_name):
         return ('', )
 
     # simple mode
-    if pref.paths_mode == 'SIMPLE':
+    if pref.paths_mode == 'BASE':
         val = getattr(pref, prop_name + '_auto')
         platform_folder = bpy.path.abspath(val)
 
@@ -219,7 +219,7 @@ def _get_paths_configs():
     pref = version.get_preferences()
 
     # simple mode
-    if pref.paths_mode == 'SIMPLE':
+    if pref.paths_mode == 'BASE':
         platform_paths = pref
         mod_paths = None
 

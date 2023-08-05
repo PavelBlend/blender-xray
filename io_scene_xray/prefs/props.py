@@ -502,8 +502,8 @@ plugin_preferences_props = {
     ),
 
     'paths_mode': bpy.props.EnumProperty(
-        default='SIMPLE',
-        items=(('SIMPLE', 'Simple', ''), ('ADVANCED', 'Advanced', ''))
+        default='BASE',
+        items=(('BASE', 'Base', ''), ('ADVANCED', 'Advanced', ''))
     ),
 
     # defaults
