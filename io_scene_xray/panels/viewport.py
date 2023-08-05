@@ -694,8 +694,20 @@ class ImportExportBasePanel(ui.base.XRayPanel):
         return bool(enabled_operators)
 
     def draw(self, context):
-        col = self.layout.column(align=True)
         pref = utils.version.get_preferences()
+
+        if pref.paths_mode == 'ADVANCED':
+            col = self.layout.column(align=True)
+            col.label(text='Paths Config:')
+            col.prop_search(
+                pref,
+                'used_config',
+                pref,
+                'paths_configs',
+                text=''
+            )
+
+        col = self.layout.column(align=True)
         ops = getattr(menus, '{}_ops'.format(self.panel_type))
 
         for operator, label in ops:
