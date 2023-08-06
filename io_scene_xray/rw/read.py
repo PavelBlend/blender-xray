@@ -14,6 +14,8 @@ from . import lzhuf
 
 
 class FastBytes:
+    Error = IndexError
+
     @staticmethod
     def short_at(data, offs):
         return data[offs] | (data[offs + 1] << 8)
@@ -47,7 +49,7 @@ class PackedReader:
     __PREP_I = struct.Struct('<I')
     __S_FFF = struct.Struct('<3f')
     debug = False
-    Error = struct.error
+    Errors = (struct.error, FastBytes.Error, UnicodeDecodeError)
 
     def __init__(self, data):
         self.__offs = 0

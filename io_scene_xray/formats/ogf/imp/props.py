@@ -21,7 +21,7 @@ def read_description(context, chunks, ogf_chunks, visual):
 
             visual.modif_name = packed_reader.gets()
             visual.modif_time = packed_reader.uint32()
-        except (rw.read.PackedReader.Error, UnicodeDecodeError) as err:
+        except rw.read.PackedReader.Errors as err:
             if not context.gunslinger_mod:
                 raise err  # keep the original behavior until any bug-reports
             log.debug('Description isn\'t properly read', exception=err)
