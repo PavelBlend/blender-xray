@@ -12,15 +12,21 @@ def read_description(chunks, ogf_chunks, visual):
 
         source_file = packed_reader.gets()
 
-        build_name = packed_reader.gets()
-        build_time = packed_reader.uint32()
+        try:
+            build_name = packed_reader.gets()
+            build_time = packed_reader.uint32()
 
-        visual.create_name = packed_reader.gets()
-        visual.create_time = packed_reader.uint32()
+            visual.create_name = packed_reader.gets()
+            visual.create_time = packed_reader.uint32()
 
-        visual.modif_name = packed_reader.gets()
-        visual.modif_time = packed_reader.uint32()
-
+            visual.modif_name = packed_reader.gets()
+            visual.modif_time = packed_reader.uint32()
+        except rw.read.PackedReader.Errors as err:
+            log.warn(
+                text.warn.ogf_bad_description,
+                error=str(err),
+                file=visual.file_path
+            )
 
 def read_user_data(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_USERDATA, None)

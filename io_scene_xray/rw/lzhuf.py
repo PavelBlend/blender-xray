@@ -20,13 +20,18 @@ MAX_FREQ = 0x4000  # updates tree when the root frequency comes to this value
 N_MASK = N - 1
 
 
+class error(Exception): ...
+
+
 def decompress_buffer(buffer: bytearray, textsize: int) -> bytearray:
     buffer_pos = 0
     buffer_size = len(buffer)
 
+    end_of_stream = False
     def getcz():
-        nonlocal buffer_pos, buffer_size
+        nonlocal buffer_pos, buffer_size, end_of_stream
         if buffer_pos == buffer_size:
+            end_of_stream = True
             return 0
         result = buffer[buffer_pos]
         buffer_pos += 1
@@ -193,6 +198,9 @@ def decompress_buffer(buffer: bytearray, textsize: int) -> bytearray:
     r = N - F
     count = 0
     while count < textsize:
+        if end_of_stream:
+            raise error('End of compressed stream')
+
         c = DecodeChar()
         if c < 256:
             result.append(c)

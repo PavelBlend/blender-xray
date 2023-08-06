@@ -1,5 +1,6 @@
 from tests import utils
 
+import re
 import bpy
 
 
@@ -28,4 +29,14 @@ class TestOgfImport(utils.XRayTestCase):
         bpy.ops.xray_import.ogf(
             directory=self.binpath(),
             files=[{'name': 'test_fmt_ogf_v3.ogf'}],
+        )
+
+    def test_import_gunslinger(self):
+        bpy.ops.xray_import.ogf(
+            directory=self.binpath(),
+            files=[{'name': 'test_fmt_ogf_gl.ogf'}],
+        )
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Description isn\'t properly read')
         )
