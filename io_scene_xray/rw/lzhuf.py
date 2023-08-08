@@ -20,7 +20,7 @@ MAX_FREQ = 0x4000  # updates tree when the root frequency comes to this value
 N_MASK = N - 1
 
 
-class error(Exception): ...
+class error(Exception): pass
 
 
 def decompress_buffer(buffer: bytearray, textsize: int) -> bytearray:
