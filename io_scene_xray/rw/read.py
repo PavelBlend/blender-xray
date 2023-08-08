@@ -207,7 +207,7 @@ class ChunkedReader:
         self.__offs = offs + size
         if cid & ChunkedReader.__MASK_COMPRESSED:
             cid &= ~ChunkedReader.__MASK_COMPRESSED
-            if self.__ignore_compression:
+            if (size == 0) or self.__ignore_compression:
                 return cid, data[offs:offs + size]
             textsize = FastBytes.int_at(data, offs)
             buffer = data[offs + 4:offs + size]
