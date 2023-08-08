@@ -1,8 +1,14 @@
-import struct
+import os.path
 import sys
 
-from io_scene_xray.rw.read import ChunkedReader, PackedReader
-from io_scene_xray.formats.ogf.fmt import Chunks_v4 as Chunks, VertexFormat, HEADER
+for path in (
+    '../io_scene_xray/rw',
+    '../io_scene_xray/formats/ogf',
+):
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), path)))
+
+from read import ChunkedReader, PackedReader
+from fmt import Chunks_v4 as Chunks, VertexFormat, HEADER
 import io
 
 
@@ -117,7 +123,7 @@ def dump_ogf4_m10(cr, out, opts):
                 out('  create time:', pr.getf('I')[0])
                 out('  modify tool:', pr.gets(onerror=print))
                 out('  modify time:', pr.getf('I')[0])
-            except struct.error as e:
+            except PackedReader.Errors as e:
                 print(e, bytes(pr.getv()))
             out('}')
         elif cid == Chunks.CHILDREN:
