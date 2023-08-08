@@ -83,6 +83,7 @@ object_vert_group_created = 'Vertex groups created'
 # ogf import
 ogf_bad_shape = 'Unsupported bone shape type using Custom'
 ogf_bad_joint = 'Unsupported bone joint type using Custom'
+ogf_bad_description = 'Description isn\'t properly read'
 
 # omf export
 omf_exp_no_act = 'Object action not found'

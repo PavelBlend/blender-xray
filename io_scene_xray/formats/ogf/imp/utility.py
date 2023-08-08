@@ -6,6 +6,7 @@ import mathutils
 
 # addon modules
 from .. import fmt
+from .... import log
 from .... import rw
 
 
@@ -45,15 +46,16 @@ def check_unread_chunks(chunks, context=''):
         ))
 
 
+def read_chunks(data, ignore_compression=False):
+    chunked_reader = rw.read.ChunkedReader(data, ignore_compression)
+    return {id: data for id, data in chunked_reader}
+
 def get_ogf_chunks(data):
-    chunked_reader = rw.read.ChunkedReader(data)
-
-    chunks = {}
-
-    for chunk_id, chunkd_data in chunked_reader:
-        chunks[chunk_id] = chunkd_data
-
-    return chunks
+    try:
+        return read_chunks(data)
+    except rw.read.ChunkedReader.Errors as err:
+        log.debug(err)
+        return read_chunks(data, ignore_compression=True)
 
 
 def set_export_path(context, visual, bpy_object):

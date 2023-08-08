@@ -1,10 +1,14 @@
 import os.path
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+for path in (
+    '../io_scene_xray/rw',
+    '../io_scene_xray/formats/ogf',
+):
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), path)))
 
-from io_scene_xray.xray_io import ChunkedReader, PackedReader
-from io_scene_xray.ogf.fmt import Chunks_v4 as Chunks, VertexFormat
+from read import ChunkedReader, PackedReader
+from fmt import Chunks_v4 as Chunks, VertexFormat, HEADER
 import io
 
 
@@ -112,10 +116,15 @@ def dump_ogf4_m10(cr, out, opts):
         if cid == Chunks.S_DESC:
             out('s desc: {')
             out('  src:', pr.gets())
-            out('  export tool:', pr.gets())
-            out('  export time:', pr.getf('I')[0])
-            out('  create time:', pr.getf('I')[0])
-            out('  modify time:', pr.getf('I')[0])
+            try:
+                out('  export tool:', pr.gets(onerror=print))
+                out('  export time:', pr.getf('I')[0])
+                out('  create tool:', pr.gets(onerror=print))
+                out('  create time:', pr.getf('I')[0])
+                out('  modify tool:', pr.gets(onerror=print))
+                out('  modify time:', pr.getf('I')[0])
+            except PackedReader.Errors as e:
+                print(e, bytes(pr.getv()))
             out('}')
         elif cid == Chunks.CHILDREN:
             out('children: [{')
@@ -134,13 +143,14 @@ def dump_ogf4_m10(cr, out, opts):
                 out('  parent:', pr.gets())
                 dump_box(pr, oout)
             out('}]')
-        elif cid == Chunks.S_IKDATA:
-            out('s ikdata: [{')
+        elif cid == Chunks.S_IKDATA_2:
+            out('s ikdata 2: [{')
             for _ in range(bonescount):
                 if _: out('}, {')
                 ver = pr.getf('I')[0]
                 if ver != 0x1:
-                    raise Exception('unexpected ikdata version: {:#x}'.format(ver))
+                    print('unexpected ikdata version: {:#x}'.format(ver))
+                out('  version:', ver)
                 out('  gamemtl:', pr.gets())
                 out('  shape: {')
                 out('    type:', pr.getf('H')[0])
@@ -182,9 +192,12 @@ def dump_ogf4_m10(cr, out, opts):
             out('}]')
         elif cid == Chunks.S_MOTION_REFS_0:
             out('s motion refs 0:', pr.gets())
-        elif cid == Chunks.S_MOTIONS:
+        elif cid == Chunks.S_MOTION_REFS_2:
+            count = pr.getf('I')[0]
+            out('s motion refs 2:', [pr.gets() for _ in range(count)])
+        elif cid == Chunks.S_MOTIONS_0:
             out('s motions: len={}, hash={}'.format(len(data), calc_hash(data)))
-        elif cid == Chunks.S_SMPARAMS:
+        elif cid == Chunks.S_SMPARAMS_0:
             out('s smparams: {')
             ver = pr.getf('H')[0]
             if (ver != 3) and (ver != 4):
@@ -205,7 +218,7 @@ def dump_ogf4_m10(cr, out, opts):
             out('  }]')
             out('}')
         else:
-            print('unknown ogf4_m10 chunk={:#x}, len={}, hash={}'.format(cid, len(data), calc_hash(data)))
+            print('unknown ogf4_m10 chunk={}({:#x}), len={}, hash={}'.format(cid, cid, len(data), calc_hash(data)))
 
 
 def dump_ogf4(pr, cr, out, opts):
@@ -227,7 +240,7 @@ def dump_ogf4(pr, cr, out, opts):
 
 
 def dump_ogf(cr, out, opts):
-    pr = PackedReader(cr.next(Chunks.HEADER))
+    pr = PackedReader(cr.next(HEADER))
     ver = pr.getf('B')[0]
     out('version:', ver)
     if ver == 4:
