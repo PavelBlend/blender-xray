@@ -49,7 +49,7 @@ def check_unread_chunks(chunks, context=''):
 def get_ogf_chunks(data):
     def read_chunks(ignore_compression=False):
         chunked_reader = rw.read.ChunkedReader(data, ignore_compression)
-        return { id: data for id, data in chunked_reader }
+        return {id: data for id, data in chunked_reader}
 
     try:
         return read_chunks()

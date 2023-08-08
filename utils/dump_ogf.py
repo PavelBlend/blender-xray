@@ -1,15 +1,8 @@
-import os.path
 import struct
 import sys
 
-for path in (
-    '../io_scene_xray/rw',
-    '../io_scene_xray/formats/ogf',
-):
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), path)))
-
-from read import ChunkedReader, PackedReader
-from fmt import Chunks_v4 as Chunks, VertexFormat, HEADER
+from io_scene_xray.rw.read import ChunkedReader, PackedReader
+from io_scene_xray.formats.ogf.fmt import Chunks_v4 as Chunks, VertexFormat, HEADER
 import io
 
 

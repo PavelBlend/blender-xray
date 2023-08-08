@@ -21,6 +21,7 @@ def read_description(chunks, ogf_chunks, visual):
 
             visual.modif_name = packed_reader.gets()
             visual.modif_time = packed_reader.uint32()
+
         except rw.read.PackedReader.Errors as err:
             log.warn(
                 text.warn.ogf_bad_description,

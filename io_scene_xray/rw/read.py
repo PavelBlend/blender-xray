@@ -14,7 +14,7 @@ from . import lzhuf
 
 
 class FastBytes:
-    Errors = (IndexError,)
+    Errors = (IndexError, )
 
     @staticmethod
     def short_at(data, offs):
@@ -186,7 +186,7 @@ class PackedReader:
 
 class ChunkedReader:
     __MASK_COMPRESSED = 0x80000000
-    Errors = (lzhuf.error,)
+    Errors = (lzhuf.error, )
 
     def __init__(self, data, ignore_compression=False):
         self.__offs = 0
