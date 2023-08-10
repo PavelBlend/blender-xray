@@ -39,16 +39,23 @@ def check_unread_chunks(chunks, context=''):
     for chunk_id in chunks_ids:
         data = chunks[chunk_id]
         size = len(data)
-        print('Unknown OGF {} Chunk: {} ({} bytes)'.format(
-            context,
-            chunk_id,
-            size
-        ))
+        if context:
+            log.debug('Unknown OGF {} Chunk: {} ({} bytes)'.format(
+                context,
+                chunk_id,
+                size
+            ))
+        else:
+            log.debug('Unknown OGF Chunk: {} ({} bytes)'.format(
+                chunk_id,
+                size
+            ))
 
 
 def read_chunks(data, ignore_compression=False):
     chunked_reader = rw.read.ChunkedReader(data, ignore_compression)
     return {id: data for id, data in chunked_reader}
+
 
 def get_ogf_chunks(data):
     try:

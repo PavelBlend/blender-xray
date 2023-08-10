@@ -245,7 +245,9 @@ def err(error):
 
 
 def debug(message, **kwargs):
-    print('debug: {}: {}'.format(message, kwargs))
+    # do not print warnings during automated tests
+    if not bpy.app.background:
+        print('debug: {}: {}'.format(message, kwargs))
 
 
 def set_logger(logger):

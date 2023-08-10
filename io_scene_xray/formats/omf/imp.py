@@ -465,7 +465,7 @@ def read_main(data, context):
         read_motions(motions_data, context, motions_params, bone_names)
 
     for chunk_id, chunk_data in chunks.items():
-        print('Unknown OMF chunk: 0x{:x}'.format(chunk_id))
+        log.debug('Unknown OMF chunk: {}'.format(chunk_id))
 
 
 @log.with_context(name='import-omf')
