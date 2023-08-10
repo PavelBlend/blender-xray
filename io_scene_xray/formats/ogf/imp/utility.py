@@ -66,6 +66,9 @@ def set_export_path(context, visual, bpy_object):
         mshs_folder = mshs_folder.lower()
         file_path = visual.file_path.lower()
 
+        if not mshs_folder.endswith(os.sep):
+            mshs_folder += os.sep
+
         if file_path.startswith(mshs_folder):
             file_dir = os.path.dirname(file_path)
             offset = len(mshs_folder)

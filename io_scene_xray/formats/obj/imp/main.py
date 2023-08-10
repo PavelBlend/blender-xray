@@ -325,11 +325,17 @@ def import_file(file_path, context):
     for objs_folder in context.objects_folders:
         if not objs_folder:
             continue
+
         path_lower = file_path.lower()
         objs_lower = objs_folder.lower()
+
+        if not objs_lower.endswith(os.sep):
+            objs_lower += os.sep
+
         if path_lower.startswith(objs_lower):
-            length = len(objs_lower)
-            xray.export_path = os.path.dirname(path_lower)[length : ]
+            offset = len(objs_lower)
+            exp_path = os.path.dirname(path_lower)[offset : ]
+            xray.export_path = exp_path
             break
 
     for (chunk_id, chunk_data) in unread_chunks:

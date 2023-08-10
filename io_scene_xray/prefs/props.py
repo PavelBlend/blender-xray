@@ -136,6 +136,9 @@ def update_paths(prefs, context):
         )
         if not_found:
             not_found_paths.add(os.path.abspath(not_found))
+        if path_value and prop_type == DIRECTORY:
+            if not path_value.endswith(os.sep):
+                path_value += os.sep
         setattr(prefs, build_auto_id(path_prop), path_value)
     if not_found_paths:
         not_found_paths = list(not_found_paths)
