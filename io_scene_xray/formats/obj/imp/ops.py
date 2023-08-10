@@ -96,7 +96,7 @@ class XRAY_OT_import_object(
     def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
 
-        self.fmt_version = pref.sdk_version
+        self.fmt_version = utils.ie.get_sdk_ver(pref.sdk_version)
         self.import_motions = pref.object_motions_import
         self.mesh_split_by_materials = pref.object_mesh_split_by_mat
 

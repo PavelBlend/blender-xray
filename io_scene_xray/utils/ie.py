@@ -531,3 +531,31 @@ def run_imp_exp_operator(method):    # pragma: no cover
             return method(self, context, event)
 
     return wrapper
+
+
+def get_sdk_ver(default):
+    ver = None
+
+    pref = version.get_preferences()
+
+    if pref.paths_mode == 'BASE':
+        ver = default
+
+    else:
+        used_config = pref.paths_configs.get(pref.used_config)
+
+        if used_config:
+
+            platform_props = pref.paths_presets.get(used_config.platform)
+            mod_props = pref.paths_presets.get(used_config.mod)
+
+            if mod_props:
+                ver = mod_props.sdk_ver
+
+            if not ver and platform_props:
+                ver = platform_props.sdk_ver
+
+    if not ver:
+        ver = default
+
+    return ver

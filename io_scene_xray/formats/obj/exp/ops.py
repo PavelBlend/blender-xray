@@ -165,7 +165,7 @@ class XRAY_OT_export_object(utils.ie.BaseOperator):
 
         pref = utils.version.get_preferences()
 
-        self.fmt_version = pref.export_object_sdk_version
+        self.fmt_version = utils.ie.get_sdk_ver(pref.export_object_sdk_version)
         self.export_motions = pref.object_motions_export
         self.texture_name_from_image_path = pref.object_texture_names_from_path
         self.smoothing_out_of = pref.smoothing_out_of
@@ -257,7 +257,7 @@ class XRAY_OT_export_object_file(
         self.filepath = utils.ie.add_file_ext(self.object, filename_ext)
 
         # set defaults
-        self.fmt_version = pref.export_object_sdk_version
+        self.fmt_version = utils.ie.get_sdk_ver(pref.export_object_sdk_version)
         self.export_motions = pref.object_motions_export
         self.texture_name_from_image_path = pref.object_texture_names_from_path
         self.smoothing_out_of = pref.smoothing_out_of

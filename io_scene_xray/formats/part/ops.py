@@ -79,9 +79,11 @@ class XRAY_OT_import_part(utils.ie.BaseOperator):
 
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
-        preferences = utils.version.get_preferences()
-        self.mesh_split_by_materials = preferences.part_mesh_split_by_mat
-        self.fmt_version = preferences.part_sdk_version
+        pref = utils.version.get_preferences()
+
+        self.mesh_split_by_materials = pref.part_mesh_split_by_mat
+        self.fmt_version = utils.ie.get_sdk_ver(pref.part_sdk_version)
+
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

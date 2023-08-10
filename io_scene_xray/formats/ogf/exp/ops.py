@@ -128,7 +128,7 @@ class XRAY_OT_export_ogf_file(
         pref = utils.version.get_preferences()
 
         self.texture_name_from_image_path = pref.ogf_texture_names_from_path
-        self.fmt_version = pref.ogf_export_fmt_ver
+        self.fmt_version = utils.ie.get_sdk_ver(pref.ogf_export_fmt_ver)
         self.export_motions = pref.ogf_export_motions
         self.hq_export = pref.ogf_export_hq_motions
 
@@ -234,7 +234,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         self.use_export_paths = pref.ogf_export_use_export_paths
         self.export_motions = pref.ogf_export_motions
         self.texture_name_from_image_path = pref.ogf_texture_names_from_path
-        self.fmt_version = pref.ogf_export_fmt_ver
+        self.fmt_version = utils.ie.get_sdk_ver(pref.ogf_export_fmt_ver)
         self.hq_export = pref.ogf_export_hq_motions
 
         root_objs = get_root_objects(context)

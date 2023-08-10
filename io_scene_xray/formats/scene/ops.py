@@ -135,8 +135,9 @@ class XRAY_OT_import_scene(
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
+
         self.mesh_split_by_materials = pref.scene_selection_mesh_split_by_mat
-        self.fmt_version = pref.scene_selection_sdk_version
+        self.fmt_version = utils.ie.get_sdk_ver(pref.scene_selection_sdk_version)
 
         context.window_manager.fileselect_add(self)
 
