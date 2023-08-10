@@ -71,6 +71,12 @@ def examine_motions(data):
     return motion_names
 
 
+class MotionsParams:
+    def __init__(self):
+        self.by_dict = {}
+        self.by_list = []
+
+
 class MotionParams:
     def __init__(self):
         self.name = None
@@ -117,9 +123,29 @@ def skip_motion(packed_reader, bone_names, length):
             packed_reader.skip(fmt.TRN_FLOAT_SZ)
 
 
-def read_motion(packed_reader, context, motions_params, bone_names, version):
-    name = packed_reader.gets()
+def read_motion(
+        motion_id,
+        packed_reader,
+        context,
+        motions_params,
+        bone_names,
+        version
+    ):
+
+    try:
+        name = packed_reader.gets()
+    except:
+        # animation names in GUNSLINGER mod are broken
+        name = None
+
     length = packed_reader.uint32()
+
+    motion_params = None
+    if name:
+        motion_params = motions_params.by_dict.get(name, None)
+    if not motion_params:
+        motion_params = motions_params.by_list[motion_id]
+        name = motion_params.name
 
     import_motion = False
     if context.selected_names is None:
@@ -139,8 +165,6 @@ def read_motion(packed_reader, context, motions_params, bone_names, version):
                 xray_motion.name = act.name
                 xray_motion.export_name = name
                 context.bpy_arm_obj.xray.use_custom_motion_names = True
-
-        motion_params = motions_params[name]
 
         act.xray.flags = motion_params.flags
         act.xray.bonepart = motion_params.bone_or_part
@@ -321,7 +345,9 @@ def read_motions(data, context, motions_params, bone_names, version=2):
 
     for chunk_id, chunk_data in chunked_reader:
         packed_reader = rw.read.PackedReader(chunk_data)
+        motion_id = chunk_id - 1
         read_motion(
+            motion_id,
             packed_reader,
             context,
             motions_params,
@@ -396,13 +422,15 @@ def read_params(data, context, chunk, bones_indices={}):
 
     # read motions params
     motion_count = reader.getf('<H')[0]
-    motions_params = {}
+    motions_params = MotionsParams()
 
     for motion_index in range(motion_count):
         motion_name = reader.gets()
         prm = MotionParams()
-        motions_params[motion_name] = prm
+        motions_params.by_dict[motion_name] = prm
+        motions_params.by_list.append(prm)
 
+        prm.name = motion_name
         prm.flags = reader.uint32()
         prm.bone_or_part, prm.motion = reader.getf('<2H')
         prm.speed, prm.power, prm.accrue, prm.falloff = reader.getf('<4f')

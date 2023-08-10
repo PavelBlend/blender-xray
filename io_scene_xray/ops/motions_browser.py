@@ -96,7 +96,7 @@ def init_browser(self, context, filepath):
         action_item.name = action.name
 
     # fill list with animations names
-    for name, (offset, length) in file.animations.items():
+    for name, (offset, length, index) in file.animations.items():
         anim = browser.animations.add()
         anim.name = name
         anim.frames = length
@@ -144,7 +144,7 @@ class SklsFile():
             offset_skip = self.reader.offset()
             frame_start, frame_end = self.reader.getf('<2I')
             length = int(frame_end - frame_start)
-            self.animations[name] = (offset, length)
+            self.animations[name] = (offset, length, anim_index)
             # skip the rest bytes of skl animation to the next animation
             self.reader.set_offset(offset_skip)
             skip = formats.motions.imp.skip_motion_rest(self.reader.getv(), 0)
@@ -199,13 +199,26 @@ class OmfFile():
 
         for anim_index in range(motions_count):
             chunk_id, chunk_size = self.reader.getf('<2I')
+            motion_id = chunk_id - 1
             # index animation
             # first byte of the animation name
             offset = self.reader.offset()
+
             # animation name
-            name = self.reader.gets()
+            try:
+                name = self.reader.gets()
+            except:
+                name = None
+
+            motion_params = None
+            if name:
+                motion_params = self.motions_params.by_dict.get(name, None)
+            if not motion_params:
+                motion_params = self.motions_params.by_list[motion_id]
+                name = motion_params.name
+
             length = self.reader.uint32()
-            self.animations[name] = (offset, length)
+            self.animations[name] = (offset, length, motion_id)
             # skip the rest bytes of skl animation to the next animation
             formats.omf.imp.skip_motion(self.reader, self.bone_names, length)
 
@@ -272,7 +285,7 @@ class XRAY_OT_browse_motions_file(BaseBrowserOperator):
 
 def import_anim(obj, file, animation_name):
     browser = obj.xray.motions_browser
-    offset, length = file.animations[animation_name]
+    offset, length, motion_id = file.animations[animation_name]
     file.reader.set_offset(offset)
 
     # used to bone's reference detection
@@ -308,6 +321,7 @@ def import_anim(obj, file, animation_name):
 
         # import
         formats.omf.imp.read_motion(
+            motion_id,
             file.reader,
             imp_ctx,
             file.motions_params,
@@ -485,8 +499,9 @@ class XRAY_OT_motions_browser_import(BaseBrowserOperator):
         # import animations
         count = 0
         for anim_name in anims:
-            motion = obj.xray.motions_collection.add()
-            motion.name = anim_name
+            if not anim_name in obj.xray.motions_collection:
+                motion = obj.xray.motions_collection.add()
+                motion.name = anim_name
             available_act = browser.exist_acts.add()
             available_act.name = anim_name
             if anim_name in bpy.data.actions:
