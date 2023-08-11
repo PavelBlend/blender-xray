@@ -784,7 +784,7 @@ def _export_main(root_obj, ogf_writer, context):
     _write_motions(xray, context, arm_obj, ogf_writer)
 
 
-@log.with_context('export-object')
+@log.with_context('export-ogf')
 @utils.stats.timer
 def export_file(bpy_obj, file_path, context):
     utils.stats.status('Export File', file_path)
