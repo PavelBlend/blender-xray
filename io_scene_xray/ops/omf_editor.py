@@ -34,6 +34,7 @@ class XRAY_OT_save_omf(utils.ie.BaseOperator):
     filename_ext = OMF_EXT
 
     omf_data = None
+    filepath_for_tests = None
 
     if not utils.version.IS_28:
         for prop_name, prop_value in props.items():
@@ -41,6 +42,9 @@ class XRAY_OT_save_omf(utils.ie.BaseOperator):
 
     def execute(self, context):
         path = os.path.join(self.directory, self.filepath)
+
+        if not path:
+            path = self.filepath_for_tests
 
         with open(path, 'wb') as file:
             file.write(XRAY_OT_save_omf.omf_data)
@@ -77,6 +81,10 @@ op_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement,
         options={'SKIP_SAVE'}
+    ),
+    'filepath_for_tests': bpy.props.StringProperty(
+        subtype="FILE_PATH",
+        options={'SKIP_SAVE', 'HIDDEN'}
     )
 }
 
@@ -123,6 +131,7 @@ class XRAY_OT_merge_omf(utils.ie.BaseOperator):
             return {'CANCELLED'}
 
         XRAY_OT_save_omf.omf_data = merged_data
+        XRAY_OT_save_omf.filepath_for_tests = self.filepath_for_tests
 
         return bpy.ops.io_scene_xray.save_omf('INVOKE_DEFAULT')
 
