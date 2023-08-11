@@ -104,7 +104,7 @@ def get_armature_object(bpy_obj):
             raise log.AppError(
                 text.error.object_many_arms,
                 log.props(
-                    root_object=bpy_obj.name,
+                    object=bpy_obj.name,
                     armature_objects=[mod.object.name for mod in used_mods],
                     armature_modifiers=[mod.name for mod in used_mods]
                 )
