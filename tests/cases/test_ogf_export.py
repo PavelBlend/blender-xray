@@ -202,6 +202,37 @@ class TestOgfExport(tests.utils.XRayTestCase):
             'test_motion_refs_cscop.ogf'
         })
 
+    def test_export_multiple_bones(self):
+        # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
+        obj = self._create_object('test_object')
+
+        # create new bones
+        arm = obj.data
+        bpy.ops.object.mode_set(mode='EDIT')
+        parent = arm.edit_bones[0]
+        try:
+            for i in range(2):
+                bone = arm.edit_bones.new('test_bone_{}'.format(i))
+                bone.head.z = 1.0 + i
+                bone.tail.y = 1.0
+                bone.tail.z = 1.0 + i
+                bone.parent = parent
+                parent = bone
+        finally:
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        # Act
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_multiple_bones.ogf'),
+            fmt_version='soc',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({'test_multiple_bones.ogf'})
+
     def _create_object(self, name, two_sided=False):
         # create mesh
         bmesh = tests.utils.create_bmesh(
