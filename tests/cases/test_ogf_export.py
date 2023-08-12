@@ -174,6 +174,34 @@ class TestOgfExport(tests.utils.XRayTestCase):
         self.assertReportsNotContains('WARNING')
         self.assertOutputFiles({'test_userdata.ogf'})
 
+    def test_export_motion_refs(self):
+        # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
+        obj = self._create_object('test_object')
+
+        for i in range(3):
+            ref = obj.xray.motionrefs_collection.add()
+            ref.name = 'test\\ref_{}'.format(i)
+
+        # Act
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_motion_refs_soc.ogf'),
+            fmt_version='soc',
+            texture_name_from_image_path=False
+        )
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_motion_refs_cscop.ogf'),
+            fmt_version='cscop',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({
+            'test_motion_refs_soc.ogf',
+            'test_motion_refs_cscop.ogf'
+        })
+
     def _create_object(self, name, two_sided=False):
         # create mesh
         bmesh = tests.utils.create_bmesh(
