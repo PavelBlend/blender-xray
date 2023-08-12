@@ -1,8 +1,8 @@
 import re
 import os
 import bpy
-import io_scene_xray
 import tests
+import io_scene_xray
 
 
 class TestOgfExport(tests.utils.XRayTestCase):
@@ -156,6 +156,23 @@ class TestOgfExport(tests.utils.XRayTestCase):
         # Assert
         self.assertReportsNotContains('WARNING')
         self.assertOutputFiles({'test_two_sided.ogf'})
+
+    def test_export_userdata(self):
+        # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
+        obj = self._create_object('test_object')
+        obj.xray.userdata = 'test user data'
+
+        # Act
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_userdata.ogf'),
+            fmt_version='soc',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({'test_userdata.ogf'})
 
     def _create_object(self, name, two_sided=False):
         # create mesh
