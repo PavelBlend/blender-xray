@@ -233,6 +233,55 @@ class TestOgfExport(tests.utils.XRayTestCase):
         self.assertReportsNotContains('WARNING')
         self.assertOutputFiles({'test_multiple_bones.ogf'})
 
+    def test_export_two_links(self):
+        # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
+        obj = self._create_object('test_object')
+
+        # create new bone
+        arm = obj.data
+        bpy.ops.object.mode_set(mode='EDIT')
+        parent = arm.edit_bones[0]
+        try:
+            bone = arm.edit_bones.new('test_child')
+            bone.head.z = 1.0
+            bone.tail.y = 1.0
+            bone.tail.z = 1.0
+            bone.parent = parent
+        finally:
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        # remove preview vertex groups
+        mesh_obj = obj.children[0]
+
+        group = mesh_obj.vertex_groups.clear()
+
+        grp1 = mesh_obj.vertex_groups.new(name='test_bone')
+        grp2 = mesh_obj.vertex_groups.new(name='test_child')
+
+        verts_count = len(mesh_obj.data.vertices)
+        grp1.add(range(verts_count), 0.5, 'REPLACE')
+        grp2.add(range(verts_count), 0.5, 'REPLACE')
+
+        # Act
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_two_links_soc.ogf'),
+            fmt_version='soc',
+            texture_name_from_image_path=False
+        )
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_two_links_cscop.ogf'),
+            fmt_version='cscop',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({
+            'test_two_links_soc.ogf',
+            'test_two_links_cscop.ogf'
+        })
+
     def _create_object(self, name, two_sided=False):
         # create mesh
         bmesh = tests.utils.create_bmesh(
