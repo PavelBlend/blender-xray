@@ -21,7 +21,7 @@ file_folder_not_found = 'File or folder not found'
 ltx_invalid_syntax = 'LTX file syntax error'
 has_no_main_chunk = 'File has no main data block'
 arm_non_uniform_scale = 'Object has an non-uniform scale'
-not_pose_mode = 'Pose mode not activated'
+not_pose_mode = 'Pose mode not activated!'
 no_active_bone = 'No active bone!'
 
 # anm export

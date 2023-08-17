@@ -29,7 +29,7 @@ translations_table = (
     (error.ltx_invalid_syntax, 'Ошибка синтаксиса ltx файла'),
     (error.has_no_main_chunk, 'Файл не имеет основного блока данных'),
     (error.arm_non_uniform_scale, 'Объект имеет неравномерный масштаб'),
-    (error.not_pose_mode, 'Pose mode не активирован'),
+    (error.not_pose_mode, 'Pose mode не активирован!'),
     (error.no_active_bone, 'Нет активной кости!'),
 
     # anm export

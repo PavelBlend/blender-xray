@@ -615,25 +615,46 @@ class XRAY_PT_rig(ui.base.XRayPanel):
 
     def draw(self, context):
         col = self.layout.column(align=True)
-        if context.mode != 'POSE':
+
+        obj = context.active_object
+
+        if obj:
+            if obj.type != 'ARMATURE':
+                col.label(
+                    text=text.get_text(text.error.is_not_arm),
+                    icon='ERROR'
+                )
+                return
+
+        else:
             col.label(
-                text='Pose mode is not enabled!',
+                text=text.get_text(text.error.no_active_obj),
                 icon='ERROR'
             )
             return
-        obj = context.active_object
-        bones = obj.pose.bones
+
+        if context.mode != 'POSE':
+            col.label(
+                text=text.get_text(text.error.not_pose_mode),
+                icon='ERROR'
+            )
+            return
+
         ik_fk_bones = []
+        bones = obj.pose.bones
+
         for bone in bones:
             ik_fk_prop = bone.get(ops.rig.create_ik.IK_FK_PROP_NAME, None)
             if not ik_fk_prop is None:
                 ik_fk_bones.append(bone)
+
         if not ik_fk_bones:
             col.label(
                 text='Bones has not IK/FK properties!',
                 icon='ERROR'
             )
             return
+
         for ik_bone in ik_fk_bones:
             col.prop(
                 ik_bone,
