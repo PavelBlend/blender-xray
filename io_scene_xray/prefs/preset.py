@@ -14,25 +14,37 @@ class XRAY_MT_prefs_presets(bpy.types.Menu):
     draw = bpy.types.Menu.draw_preset
 
 
-class XRAY_OT_add_prefs_preset(bl_operators.presets.AddPresetBase, utils.ie.BaseOperator):
+class XRAY_OT_add_prefs_preset(
+        bl_operators.presets.AddPresetBase,
+        utils.ie.BaseOperator
+    ):
+
     bl_idname = 'xray.prefs_preset_add'
     bl_label = 'Add XRay Preferences Preset'
     preset_menu = 'XRAY_MT_prefs_presets'
 
     if utils.version.IS_28:
         preset_defines = [
-            'prefs = bpy.context.preferences.addons["io_scene_xray"].preferences'
+            'prefs = bpy.context.preferences.'
+            'addons["io_scene_xray"].preferences',
         ]
     else:
         preset_defines = [
-            'prefs = bpy.context.user_preferences.addons["io_scene_xray"].preferences'
+            'prefs = bpy.context.user_preferences.'
+            'addons["io_scene_xray"].preferences',
         ]
+
     preset_values = []
+
     for prop_key in props.plugin_preferences_props:
         preset_values.append('prefs.{}'.format(prop_key))
-    for auto_prop_key in props.__AUTO_PROPS__:
-        preset_values.append('prefs.{}'.format(auto_prop_key))
-        preset_values.append('prefs.{}_auto'.format(auto_prop_key))
+
+    for prop in props.__AUTO_PROPS__:
+        auto_prop = props.build_auto_id(prop)
+
+        preset_values.append('prefs.{}'.format(prop))
+        preset_values.append('prefs.{}'.format(auto_prop))
+
     preset_subdir = 'io_scene_xray/preferences'
 
 

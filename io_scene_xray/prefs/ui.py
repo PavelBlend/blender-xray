@@ -213,23 +213,35 @@ def draw_paths(prefs):
 def draw_defaults(prefs):
     layout = prefs.layout
     layout.row().prop(prefs, 'defaults_category', expand=True)
+
     if prefs.defaults_category == 'OBJECT':
         # import object props
         box = layout.box()
         box.label(text='Import:')
-        utils.draw.draw_fmt_ver_prop(box, prefs, 'sdk_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(
+            box,
+            prefs,
+            'sdk_version',
+            lay_type='ROW'
+        )
         box.prop(prefs, 'object_motions_import')
         box.prop(prefs, 'object_mesh_split_by_mat')
         # export object props
         box = layout.box()
         box.label(text='Export:')
-        utils.draw.draw_fmt_ver_prop(box, prefs, 'export_object_sdk_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(
+            box,
+            prefs,
+            'export_object_sdk_version',
+            lay_type='ROW'
+        )
         row = box.row()
         row.label(text='Smoothing:')
         row.prop(prefs, 'smoothing_out_of', expand=True)
         box.prop(prefs, 'object_motions_export')
         box.prop(prefs, 'export_object_use_export_paths')
         box.prop(prefs, 'object_texture_names_from_path')
+
     elif prefs.defaults_category == 'ANM':
         # import
         box = layout.box()
@@ -238,11 +250,18 @@ def draw_defaults(prefs):
         # export
         box = layout.box()
         box.label(text='Export:')
-        utils.draw.draw_fmt_ver_prop(box, prefs, 'anm_format_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(
+            box,
+            prefs,
+            'anm_format_version',
+            lay_type='ROW'
+        )
+
     elif prefs.defaults_category == 'SKLS':
         box = layout.box()
         box.label(text='Import:')
         box.prop(prefs, 'add_to_motion_list')
+
     elif prefs.defaults_category == 'BONES':
         box = layout.box()
         # import
@@ -254,22 +273,35 @@ def draw_defaults(prefs):
         box.label(text='Export:')
         box.prop(prefs, 'bones_export_bone_parts')
         box.prop(prefs, 'bones_export_bone_properties')
+
     elif prefs.defaults_category == 'DETAILS':
         box = layout.box()
         # import
         box.label(text='Import:')
-        utils.draw.draw_fmt_ver_prop(box, prefs, 'details_format', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(
+            box,
+            prefs,
+            'details_format',
+            lay_type='ROW'
+        )
         box.prop(prefs, 'details_models_in_a_row')
         box.prop(prefs, 'load_slots')
         # export
         box = layout.box()
         box.label(text='Export:')
-        utils.draw.draw_fmt_ver_prop(box, prefs, 'format_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(
+            box,
+            prefs,
+            'format_version',
+            lay_type='ROW'
+        )
         box.prop(prefs, 'details_texture_names_from_path')
+
     elif prefs.defaults_category == 'DM':
         box = layout.box()
         box.label(text='Export:')
         box.prop(prefs, 'dm_texture_names_from_path')
+
     elif prefs.defaults_category == 'OGF':
         # import
         box = layout.box()
@@ -278,11 +310,17 @@ def draw_defaults(prefs):
         # export
         box = layout.box()
         box.label(text='Export:')
-        utils.draw.draw_fmt_ver_prop(box, prefs, 'ogf_export_fmt_ver', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(
+            box,
+            prefs,
+            'ogf_export_fmt_ver',
+            lay_type='ROW'
+        )
         box.prop(prefs, 'ogf_export_motions')
         box.prop(prefs, 'ogf_export_hq_motions')
         box.prop(prefs, 'ogf_export_use_export_paths')
         box.prop(prefs, 'ogf_texture_names_from_path')
+
     elif prefs.defaults_category == 'OMF':
         box = layout.box()
         # import
@@ -299,21 +337,34 @@ def draw_defaults(prefs):
         box.prop(prefs, 'omf_motions_export')
         box.prop(prefs, 'omf_export_bone_parts')
         box.prop(prefs, 'omf_high_quality')
+
     elif prefs.defaults_category == 'SCENE':
         box = layout.box()
         box.label(text='Import:')
-        utils.draw.draw_fmt_ver_prop(box, prefs, 'scene_selection_sdk_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(
+            box,
+            prefs,
+            'scene_selection_sdk_version',
+            lay_type='ROW'
+        )
         box.prop(prefs, 'scene_selection_mesh_split_by_mat')
+
     elif prefs.defaults_category == 'PART':
         box = layout.box()
         box.label(text='Import:')
-        utils.draw.draw_fmt_ver_prop(box, prefs, 'part_sdk_version', lay_type='ROW')
+        utils.draw.draw_fmt_ver_prop(
+            box,
+            prefs,
+            'part_sdk_version',
+            lay_type='ROW'
+        )
         box.prop(prefs, 'part_mesh_split_by_mat')
 
 
 def draw_formats_enable_disable(prefs):
     layout = prefs.layout
     row = layout.row(align=True)
+
     # import operators
     column_import = row.column(align=True)
     column_import.label(text='Import Formats:')
@@ -329,6 +380,7 @@ def draw_formats_enable_disable(prefs):
     column_import.prop(prefs, 'enable_level_import', text='level')
     column_import.prop(prefs, 'enable_part_import', text='*.part')
     column_import.prop(prefs, 'enable_err_import', text='*.err')
+
     # export operators
     column_export = row.column(align=True)
     column_export.label(text='Export Formats:')
@@ -352,17 +404,21 @@ def draw_keymaps(context, prefs):
     win_manager = context.window_manager
     keyconfig = win_manager.keyconfigs.user
     keymaps = keyconfig.keymaps.get('3D View')
+
     if keymaps:
         keymap_items = keymaps.keymap_items
+
         for operator, _, _, _, _ in hotkeys.keymap_items_list:
             row = layout.row(align=True)
             keymap = keymap_items.get(operator.bl_idname)
+
             if keymap:
                 row.context_pointer_set('keymap', keymaps)
                 rna_keymap_ui.draw_kmi(
                     ["ADDON", "USER", "DEFAULT"],
                     keyconfig, keymaps, keymap, row, 0
                 )
+
             else:
                 row.label(text=operator.bl_label)
                 change_keymap_op = row.operator(
@@ -375,6 +431,7 @@ def draw_keymaps(context, prefs):
 def draw_custom_props(prefs):
     layout = prefs.layout
     layout.row().prop(prefs.custom_props, 'category', expand=True)
+
     # object
     if prefs.custom_props.category == 'OBJECT':
         draw_prop_name(prefs, 'Flags:', 'object_flags')
@@ -385,18 +442,22 @@ def draw_custom_props(prefs):
         draw_prop_name(prefs, 'Modif Name:', 'object_modif_name')
         draw_prop_name(prefs, 'Modified Time:', 'object_modified_time')
         draw_prop_name(prefs, 'Motion References:', 'object_motion_references')
+
     # mesh
     elif prefs.custom_props.category == 'MESH':
         draw_prop_name(prefs, 'Flags:', 'mesh_flags')
+
     # material
     elif prefs.custom_props.category == 'MATERIAL':
         draw_prop_name(prefs, 'Two Sided:', 'material_two_sided')
         draw_prop_name(prefs, 'Shader:', 'material_shader')
         draw_prop_name(prefs, 'Compile:', 'material_compile')
         draw_prop_name(prefs, 'Game Mtl:', 'material_game_mtl')
+
     # bone
     elif prefs.custom_props.category == 'BONE':
         layout.row().prop(prefs.custom_props, 'bone_category', expand=True)
+
         if prefs.custom_props.bone_category == 'MAIN':
             draw_prop_name(prefs, 'Game Mtl:', 'bone_game_mtl')
             draw_prop_name(prefs, 'Length:', 'bone_length')
@@ -407,6 +468,7 @@ def draw_custom_props(prefs):
             draw_prop_name(prefs, 'Breakable Force:', 'bone_breakable_force')
             draw_prop_name(prefs, 'Breakable Torque:', 'bone_breakable_torque')
             draw_prop_name(prefs, 'Friction:', 'bone_friction')
+
         elif prefs.custom_props.bone_category == 'SHAPE':
             draw_prop_name(prefs, 'Shape Flags:', 'bone_shape_flags')
             draw_prop_name(prefs, 'Shape Type:', 'bone_shape_type')
@@ -422,6 +484,7 @@ def draw_custom_props(prefs):
             draw_prop_name(prefs, 'Cylinder Shape Direction:', 'bone_cylinder_shape_direction')
             draw_prop_name(prefs, 'Cylinder Shape Hight:', 'bone_cylinder_shape_hight')
             draw_prop_name(prefs, 'Cylinder Shape Radius:', 'bone_cylinder_shape_radius')
+
         elif prefs.custom_props.bone_category == 'IK':
             # ik
             draw_prop_name(prefs, 'IK Joint Type:', 'bone_ik_joint_type')
@@ -444,6 +507,7 @@ def draw_custom_props(prefs):
             # spring and damping
             draw_prop_name(prefs, 'Spring:', 'bone_spring')
             draw_prop_name(prefs, 'Damping:', 'bone_damping')
+
     # action
     elif prefs.custom_props.category == 'ACTION':
         draw_prop_name(prefs, 'FPS:', 'action_fps')
@@ -457,18 +521,25 @@ def draw_custom_props(prefs):
 
 def draw_others(prefs):
     layout = prefs.layout
+
     split = utils.version.layout_split(layout, 0.4)
     split.label(text='Custom Owner Name:')
     split.prop(prefs, 'custom_owner_name', text='')
+
     prop_bool(layout, prefs, 'compact_menus')
     layout.prop(prefs, 'object_split_normals')
+
     box = layout.box()
     box.label(text='Bone Shape Colors:')
+
     row = box.row()
     row.prop(prefs, 'gl_active_shape_color')
+
     row = box.row()
     row.prop(prefs, 'gl_select_shape_color')
+
     row = box.row()
     row.prop(prefs, 'gl_shape_color')
+
     row = box.row()
     row.prop(prefs, 'gl_object_mode_shape_color')

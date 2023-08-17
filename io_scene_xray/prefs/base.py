@@ -2,9 +2,9 @@
 import bpy
 
 # addon modules
-from . import props
-from . import ops
 from . import ui
+from . import ops
+from . import props
 from . import preset
 from .. import utils
 
@@ -26,18 +26,25 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
             preset.XRAY_OT_add_prefs_preset
         )
         layout.row().prop(self, 'category', expand=True)
+
         if self.category == 'PATHS':
             ui.draw_paths(self)
+
         elif self.category == 'DEFAULTS':
             ui.draw_defaults(self)
+
         elif self.category == 'PLUGINS':
             ui.draw_formats_enable_disable(self)
+
         elif self.category == 'KEYMAP':
             ui.draw_keymaps(context, self)
+
         elif self.category == 'CUSTOM_PROPS':
             ui.draw_custom_props(self)
+
         elif self.category == 'OTHERS':
             ui.draw_others(self)
+
         split = utils.version.layout_split(layout, 0.6)
         split.label(text='')
         split.operator(

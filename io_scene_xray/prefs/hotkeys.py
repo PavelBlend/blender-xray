@@ -34,20 +34,26 @@ keymap_items_list = (
 
 
 def add_keymaps(only=None):
-    preferences = utils.version.get_preferences()
+    pref = utils.version.get_preferences()
     win_manager = bpy.context.window_manager
+
     if only:
         keyconfig = win_manager.keyconfigs.user
     else:
         keyconfig = win_manager.keyconfigs.addon
+
     if keyconfig:
         keymaps = keyconfig.keymaps.get('3D View')
+
         if not keymaps:
             keymaps = keyconfig.keymaps.new(
-                name='3D View', space_type='VIEW_3D'
+                name='3D View',
+                space_type='VIEW_3D'
             )
+
         for operator, key, shift, ctrl, alt in keymap_items_list:
             keymap_item = keymaps.keymap_items.get(operator.bl_idname)
+
             if not keymap_item:
                 create = True
                 if not only is None:
@@ -64,12 +70,14 @@ def add_keymaps(only=None):
                         key_modifier='NONE'
                     )
                     keymap_item.active = True
+
             has_key = False
-            for item in preferences.keymaps_collection:
+            for item in pref.keymaps_collection:
                 if item.operator == operator.bl_idname:
                     has_key = True
+
             if not has_key:
-                key_map_element = preferences.keymaps_collection.add()
+                key_map_element = pref.keymaps_collection.add()
                 key_map_element.name = operator.bl_label
                 key_map_element.operator = operator.bl_idname
 
@@ -82,11 +90,19 @@ def unregister():
     win_manager = bpy.context.window_manager
     keyconfig_addon = win_manager.keyconfigs.addon
     keyconfig_user = win_manager.keyconfigs.user
+
     for keyconfig in (keyconfig_addon, keyconfig_user):
-        if keyconfig:
-            keymaps = keyconfig.keymaps.get('3D View')
-            if keymaps:
-                for op, _, _, _, _ in keymap_items_list:
-                    keymap_item = keymaps.keymap_items.get(op.bl_idname)
-                    if keymap_item:
-                        keymaps.keymap_items.remove(keymap_item)
+
+        if not keyconfig:
+            continue
+
+        keymaps = keyconfig.keymaps.get('3D View')
+
+        if not keymaps:
+            continue
+
+        for op, _, _, _, _ in keymap_items_list:
+            keymap_item = keymaps.keymap_items.get(op.bl_idname)
+
+            if keymap_item:
+                keymaps.keymap_items.remove(keymap_item)

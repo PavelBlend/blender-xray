@@ -180,191 +180,246 @@ custom_main_props = {
 custom_object_props = {
     # object custom properties names
     'object_flags': bpy.props.StringProperty(
-        name='Flags', default='flags'
+        name='Flags',
+        default='flags'
     ),
     'object_userdata': bpy.props.StringProperty(
-        name='Userdata', default='userdata'
+        name='Userdata',
+        default='userdata'
     ),
     'object_lod_reference': bpy.props.StringProperty(
-        name='LOD Reference', default='lod_reference'
+        name='LOD Reference',
+        default='lod_reference'
     ),
     'object_owner_name': bpy.props.StringProperty(
-        name='Owner Name', default='owner_name'
+        name='Owner Name',
+        default='owner_name'
     ),
     'object_creation_time': bpy.props.StringProperty(
-        name='Creation Time', default='creation_time'
+        name='Creation Time',
+        default='creation_time'
     ),
     'object_modif_name': bpy.props.StringProperty(
-        name='Modif Name', default='modif_name'
+        name='Modif Name',
+        default='modif_name'
     ),
     'object_modified_time': bpy.props.StringProperty(
-        name='Modified Time', default='modified_time'
+        name='Modified Time',
+        default='modified_time'
     ),
     'object_motion_references': bpy.props.StringProperty(
-        name='Motion References', default='motion_references'
+        name='Motion References',
+        default='motion_references'
     )
 }
 custom_mesh_props = {
     # mesh custom properties names
     'mesh_flags': bpy.props.StringProperty(
-        name='Flags', default='flags'
+        name='Flags',
+        default='flags'
     ),
 }
 custom_material_props = {
     # material custom properties names
     'material_two_sided': bpy.props.StringProperty(
-        name='Two Sided', default='two_sided'
+        name='Two Sided',
+        default='two_sided'
     ),
     'material_shader': bpy.props.StringProperty(
-        name='Shader', default='shader'
+        name='Shader',
+        default='shader'
     ),
     'material_compile': bpy.props.StringProperty(
-        name='Compile', default='compile'
+        name='Compile',
+        default='compile'
     ),
     'material_game_mtl': bpy.props.StringProperty(
-        name='Game Mtl', default='game_mtl'
+        name='Game Mtl',
+        default='game_mtl'
     )
 }
 custom_bone_props = {
     # bone custom properties names
     'bone_game_mtl': bpy.props.StringProperty(
-        name='Game Mtl', default='game_mtl'
+        name='Game Mtl',
+        default='game_mtl'
     ),
     'bone_length': bpy.props.StringProperty(
-        name='Length', default='length'
+        name='Length',
+        default='length'
     ),
     'bone_shape_flags': bpy.props.StringProperty(
-        name='Shape Flags', default='shape_flags'
+        name='Shape Flags',
+        default='shape_flags'
     ),
     'bone_shape_type': bpy.props.StringProperty(
-        name='Shape Type', default='shape_type'
+        name='Shape Type',
+        default='shape_type'
     ),
     'bone_part': bpy.props.StringProperty(
-        name='Bone Part', default='bone_part'
+        name='Bone Part',
+        default='bone_part'
     ),
     # box shape
     'bone_box_shape_rotation': bpy.props.StringProperty(
-        name='Box Shape Rotation', default='box_shape_rotation'
+        name='Box Shape Rotation',
+        default='box_shape_rotation'
     ),
     'bone_box_shape_translate': bpy.props.StringProperty(
-        name='Box Shape Translate', default='box_shape_translate'
+        name='Box Shape Translate',
+        default='box_shape_translate'
     ),
     'bone_box_shape_half_size': bpy.props.StringProperty(
-        name='Box Shape Half Size', default='box_shape_half_size'
+        name='Box Shape Half Size',
+        default='box_shape_half_size'
     ),
     # sphere shape
     'bone_sphere_shape_position': bpy.props.StringProperty(
-        name='Sphere Shape Position', default='sphere_shape_position'
+        name='Sphere Shape Position',
+        default='sphere_shape_position'
     ),
     'bone_sphere_shape_radius': bpy.props.StringProperty(
-        name='Sphere Shape Radius', default='sphere_shape_radius'
+        name='Sphere Shape Radius',
+        default='sphere_shape_radius'
     ),
     # cylinder shape
     'bone_cylinder_shape_position': bpy.props.StringProperty(
-        name='Cylinder Shape Position', default='cylinder_shape_position'
+        name='Cylinder Shape Position',
+        default='cylinder_shape_position'
     ),
     'bone_cylinder_shape_direction': bpy.props.StringProperty(
-        name='Cylinder Shape Direction', default='cylinder_shape_direction'
+        name='Cylinder Shape Direction',
+        default='cylinder_shape_direction'
     ),
     'bone_cylinder_shape_hight': bpy.props.StringProperty(
-        name='Cylinder Shape Hight', default='cylinder_shape_hight'
+        name='Cylinder Shape Hight',
+        default='cylinder_shape_hight'
     ),
     'bone_cylinder_shape_radius': bpy.props.StringProperty(
-        name='Cylinder Shape Radius', default='cylinder_shape_radius'
+        name='Cylinder Shape Radius',
+        default='cylinder_shape_radius'
     ),
     # ik joint type
     'bone_ik_joint_type': bpy.props.StringProperty(
-        name='IK Joint Type', default='ik_joint_type'
+        name='IK Joint Type',
+        default='ik_joint_type'
     ),
     # limit
     'bone_limit_x_min': bpy.props.StringProperty(
-        name='Limit X Min', default='limit_x_min'
+        name='Limit X Min',
+        default='limit_x_min'
     ),
     'bone_limit_x_max': bpy.props.StringProperty(
-        name='Limit X Max', default='limit_x_max'
+        name='Limit X Max',
+        default='limit_x_max'
     ),
     'bone_limit_y_min': bpy.props.StringProperty(
-        name='Limit Y Min', default='limit_y_min'
+        name='Limit Y Min',
+        default='limit_y_min'
     ),
     'bone_limit_y_max': bpy.props.StringProperty(
-        name='Limit Y Max', default='limit_y_max'
+        name='Limit Y Max',
+        default='limit_y_max'
     ),
     'bone_limit_z_min': bpy.props.StringProperty(
-        name='Limit Z Min', default='limit_z_min'
+        name='Limit Z Min',
+        default='limit_z_min'
     ),
     'bone_limit_z_max': bpy.props.StringProperty(
-        name='Limit Z Max', default='limit_z_max'
+        name='Limit Z Max',
+        default='limit_z_max'
     ),
     # spring limit
     'bone_limit_x_spring': bpy.props.StringProperty(
-        name='Limit X Spring', default='limit_x_spring'
+        name='Limit X Spring',
+        default='limit_x_spring'
     ),
     'bone_limit_y_spring': bpy.props.StringProperty(
-        name='Limit Y Spring', default='limit_y_spring'
+        name='Limit Y Spring',
+        default='limit_y_spring'
     ),
     'bone_limit_z_spring': bpy.props.StringProperty(
-        name='Limit Z Spring', default='limit_z_spring'
+        name='Limit Z Spring',
+        default='limit_z_spring'
     ),
     # damping limit
     'bone_limit_x_damping': bpy.props.StringProperty(
-        name='Limit X Damping', default='limit_x_damping'
+        name='Limit X Damping',
+        default='limit_x_damping'
     ),
     'bone_limit_y_damping': bpy.props.StringProperty(
-        name='Limit Y Damping', default='limit_y_damping'
+        name='Limit Y Damping',
+        default='limit_y_damping'
     ),
     'bone_limit_z_damping': bpy.props.StringProperty(
-        name='Limit Z Damping', default='limit_z_damping'
+        name='Limit Z Damping',
+        default='limit_z_damping'
     ),
     # spring and damping
     'bone_spring': bpy.props.StringProperty(
-        name='Spring', default='spring'
+        name='Spring',
+        default='spring'
     ),
     'bone_damping': bpy.props.StringProperty(
-        name='Damping', default='damping'
+        name='Damping',
+        default='damping'
     ),
     # mass
     'bone_mass': bpy.props.StringProperty(
-        name='Mass', default='mass'
+        name='Mass',
+        default='mass'
     ),
     'bone_center_of_mass': bpy.props.StringProperty(
-        name='Center of Mass', default='center_of_mass'
+        name='Center of Mass',
+        default='center_of_mass'
     ),
     # other
     'bone_ik_flags': bpy.props.StringProperty(
-        name='IK Flags', default='ik_flags'
+        name='IK Flags',
+        default='ik_flags'
     ),
     'bone_breakable_force': bpy.props.StringProperty(
-        name='Breakable Force', default='breakable_force'
+        name='Breakable Force',
+        default='breakable_force'
     ),
     'bone_breakable_torque': bpy.props.StringProperty(
-        name='Breakable Torque', default='breakable_torque'
+        name='Breakable Torque',
+        default='breakable_torque'
     ),
     'bone_friction': bpy.props.StringProperty(
-        name='Friction', default='friction'
+        name='Friction',
+        default='friction'
     )
 }
 custom_action_props = {
     # action custom properties names
     'action_fps': bpy.props.StringProperty(
-        name='FPS', default='fps'
+        name='FPS',
+        default='fps'
     ),
     'action_speed': bpy.props.StringProperty(
-        name='Speed', default='speed'
+        name='Speed',
+        default='speed'
     ),
     'action_accrue': bpy.props.StringProperty(
-        name='Accrue', default='accrue'
+        name='Accrue',
+        default='accrue'
     ),
     'action_falloff': bpy.props.StringProperty(
-        name='Falloff', default='falloff'
+        name='Falloff', 
+        default='falloff'
     ),
     'action_bone_part': bpy.props.StringProperty(
-        name='Bone Part', default='bone_part'
+        name='Bone Part',
+        default='bone_part'
     ),
     'action_flags': bpy.props.StringProperty(
-        name='Flags', default='flags'
+        name='Flags',
+        default='flags'
     ),
     'action_power': bpy.props.StringProperty(
-        name='Power', default='power'
+        name='Power',
+        default='power'
     )
 }
 xray_custom_properties = {}
@@ -501,7 +556,8 @@ paths_props = {
 
 plugin_preferences_props = {
     'compact_menus': bpy.props.BoolProperty(
-        name='Compact Import/Export Menus', update=update_menu_func
+        name='Compact Import/Export Menus',
+        update=update_menu_func
     ),
 
     'paths_mode': bpy.props.EnumProperty(
