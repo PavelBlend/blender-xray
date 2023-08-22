@@ -33,12 +33,16 @@ def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
 
 @log.with_context(name='mesh')
 def import_mesh(context, creader, renamemap, file_name):
-    ver = creader.nextf(fmt.Chunks.Mesh.VERSION, '<H')[0]
+    ver_chunk = creader.next(fmt.Chunks.Mesh.VERSION)
+    ver_reader = rw.read.PackedReader(ver_chunk)
+    ver = ver_reader.getf('<H')[0]
+
     if ver != fmt.CURRENT_MESH_VERSION:
         raise log.AppError(
             text.error.object_unsupport_mesh_ver,
             log.props(version=ver)
         )
+
     mesh_name = None
     mesh_flags = None
     mesh_options = None

@@ -225,9 +225,6 @@ class ChunkedReader:
                 ))
         return data
 
-    def nextf(self, expected_cid, fmt):
-        return struct.unpack(fmt, self.next(expected_cid))
-
     def get_size(self):
         return len(self.__data)
 
