@@ -29,6 +29,7 @@ def read_description(chunks, ogf_chunks, visual):
                 file=visual.file_path
             )
 
+
 def read_user_data(chunks, ogf_chunks, visual):
     chunk_data = chunks.pop(ogf_chunks.S_USERDATA, None)
 
