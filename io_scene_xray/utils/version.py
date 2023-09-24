@@ -385,7 +385,6 @@ def unlink_object_from_collections(obj):
 def link_object_to_collection(obj, collection):
     for child in obj.children:
         link_object_to_collection(child, collection)
-    link_object(obj)
     collection.objects.link(obj)
 
 
