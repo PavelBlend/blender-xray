@@ -183,6 +183,9 @@ translations_table = (
     (error.scene_ver, 'Неподдерживаемая версия формата'),
     (error.scene_obj_ver, 'Неподдерживаемая версия формата объектов сцены'),
 
+    # part import
+    (error.part_no_objs, 'Файл не имеет объектов!'),
+
     # motion
     (error.motion_shape, 'Неподдерживаемая форма ключевого кадра'),
     (error.motion_ver, 'Неподдерживаемая версия анимации')

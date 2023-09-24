@@ -175,6 +175,9 @@ scene_ver_size = 'Bad scene selection file. "version" chunk size is not equal to
 scene_ver = 'Unsupported format version'
 scene_obj_ver = 'Unsupported scene object format version'
 
+# part import
+part_no_objs = 'File has no objects!'
+
 # motion
 motion_shape = 'Unsupported keyframe shapes'
 motion_ver = 'Unsupported motions version'

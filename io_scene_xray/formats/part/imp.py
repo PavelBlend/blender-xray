@@ -132,7 +132,7 @@ def read_cs_cop_objects(ltx):
 
 def import_objects(refs, pos, rot, scl, context, level_name):
     if not len(refs):
-        raise log.AppError('File has no objects!')
+        raise log.AppError(text.error.part_no_objs)
 
     imported_objects = {}
     context.before_import_file()
