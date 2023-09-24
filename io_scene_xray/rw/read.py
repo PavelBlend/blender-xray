@@ -227,7 +227,7 @@ class ChunkedReader:
 
     def get_chunk(self, expected_chunk_id):
         result = None
-        temp_offs = self.__offs
+        prev_offs = self.__offs
 
         while result is None:
             try:
@@ -238,7 +238,7 @@ class ChunkedReader:
             if chunk_id == expected_chunk_id:
                 result = chunk_data
 
-        self.__offs = temp_offs
+        self.__offs = prev_offs
         return result
 
     def get_size(self):
