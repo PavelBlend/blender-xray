@@ -112,20 +112,11 @@ def read_cs_cop_objects(ltx):
 
         refs.append(ref)
 
-        if position:
-            pos.append(list(map(float, position.split(','))))
-        else:
-            pos.append(None)
-
-        if rotation:
-            rot.append(list(map(float, rotation.split(','))))
-        else:
-            rot.append(None)
-
-        if scale:
-            scl.append(list(map(float, scale.split(','))))
-        else:
-            scl.append(None)
+        for elem, array in zip((position, rotation, scale), (pos, rot, scl)):
+            if elem:
+                array.append(list(map(float, elem.split(','))))
+            else:
+                array.append(None)
 
     return refs, pos, rot, scl
 
