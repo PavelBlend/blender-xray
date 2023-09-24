@@ -13,6 +13,12 @@ from ... import utils
 from ... import rw
 
 
+def _set_obj_transforms(obj, loc, rot, scl):
+    obj.location = loc[0], loc[2], loc[1]
+    obj.rotation_euler = rot[0], rot[2], rot[1]
+    obj.scale = scl[0], scl[2], scl[1]
+
+
 def _read_scene_version(scene_version_chunk):
     if not scene_version_chunk:
         raise log.AppError(text.error.scene_bad_file)
@@ -45,12 +51,14 @@ def _read_object_body(data, imported_objects, import_context):
     packed_reader = rw.read.PackedReader(ver_chunk)
     ver = packed_reader.getf('<H')[0]
 
+    # check version
     if not ver in (fmt.SCENEOBJ_VERSION_SOC, fmt.SCENEOBJ_VERSION_COP):
         raise log.AppError(
             text.error.scene_obj_ver,
             log.props(version=ver)
         )
 
+    # read object data
     for chunk_id, chunk_data in chunked_reader:
         packed_reader = rw.read.PackedReader(chunk_data)
 
@@ -65,6 +73,7 @@ def _read_object_body(data, imported_objects, import_context):
             rotation = packed_reader.getf('<3f')
             scale = packed_reader.getf('<3f')
 
+    # get file path
     objs_folders = utils.ie.get_pref_paths('objects_folder')
 
     for objs_folder in objs_folders:
@@ -78,51 +87,54 @@ def _read_object_body(data, imported_objects, import_context):
         if os.path.exists(import_path):
             break
 
-    if not imported_objects.get(object_path):
+    # get imported object
+    imp_obj = imported_objects.get(object_path)
+
+    # create/import object
+    if imp_obj:
+
+        if imp_obj.type == 'EMPTY':
+            # copy root
+            new_empty = imp_obj.copy()
+            utils.stats.created_obj()
+            utils.version.link_object(new_empty)
+
+            # copy meshes
+            for mesh_obj in imp_obj.children:
+                new_mesh = mesh_obj.copy()
+                utils.stats.created_obj()
+                utils.version.link_object(new_mesh)
+                new_mesh.parent = new_empty
+                new_mesh.xray.isroot = False
+
+            # set root-object transforms
+            _set_obj_transforms(new_empty, position, rotation, scale)
+
+        else:
+            new_obj = imp_obj.copy()
+            utils.stats.created_obj()
+            utils.version.link_object(new_obj)
+
+            # set root-object transforms
+            _set_obj_transforms(new_obj, position, rotation, scale)
+
+    else:
+
         if os.path.exists(import_path):
-            imported_object = obj.imp.main.import_file(import_path, import_context)
-            imported_object.location = position[0], position[2], position[1]
-            imported_object.rotation_euler = rotation[0], rotation[2], rotation[1]
-            imported_object.scale = scale[0], scale[2], scale[1]
-            imported_object.xray.export_path = os.path.dirname(object_path) + os.sep
-            imported_objects[object_path] = imported_object
+            # import file
+            imp_obj = obj.imp.main.import_file(import_path, import_context)
+            imp_obj.xray.export_path = os.path.dirname(object_path) + os.sep
+            imported_objects[object_path] = imp_obj
+
+            # set transforms
+            _set_obj_transforms(imp_obj, position, rotation, scale)
+
         else:
             log.warn(
                 text.warn.scene_no_file,
                 file=object_path + '.object',
                 path=import_path
             )
-
-    else:
-        imported_object = imported_objects.get(object_path)
-        if imported_object.type == 'EMPTY':
-            new_empty = bpy.data.objects.new(imported_object.name, None)
-            utils.stats.created_obj()
-            new_empty.xray.flags = imported_object.xray.flags
-            new_empty.xray.export_path = imported_object.xray.export_path
-            new_empty.xray.revision.owner = imported_object.xray.revision.owner
-            new_empty.xray.revision.ctime_str = imported_object.xray.revision.ctime_str
-            utils.version.link_object(new_empty)
-            for mesh in imported_object.children:
-                new_object = bpy.data.objects.new(mesh.name, mesh.data)
-                utils.stats.created_obj()
-                new_object.parent = new_empty
-                new_object.xray.isroot = False
-                utils.version.link_object(new_object)
-            new_empty.location = position[0], position[2], position[1]
-            new_empty.rotation_euler = rotation[0], rotation[2], rotation[1]
-            new_empty.scale = scale[0], scale[2], scale[1]
-        else:
-            new_object = bpy.data.objects.new(imported_object.name, imported_object.data)
-            utils.stats.created_obj()
-            new_object.xray.flags = imported_object.xray.flags
-            new_object.xray.export_path = imported_object.xray.export_path
-            new_object.xray.revision.owner = imported_object.xray.revision.owner
-            new_object.xray.revision.ctime_str = imported_object.xray.revision.ctime_str
-            utils.version.link_object(new_object)
-            new_object.location = position[0], position[2], position[1]
-            new_object.rotation_euler = rotation[0], rotation[2], rotation[1]
-            new_object.scale = scale[0], scale[2], scale[1]
 
 
 def _read_scene_object(data, imported_objects, import_context):
