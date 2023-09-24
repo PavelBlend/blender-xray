@@ -123,7 +123,7 @@ def _read_object_body(data, imported_objects, import_context):
         if os.path.exists(import_path):
             # import file
             imp_obj = obj.imp.main.import_file(import_path, import_context)
-            imp_obj.xray.export_path = os.path.dirname(object_path) + os.sep
+            utils.ie.set_export_path(imp_obj, '', object_path)
             imported_objects[object_path] = imp_obj
 
             # set transforms

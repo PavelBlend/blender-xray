@@ -6,6 +6,7 @@ import mathutils
 
 # addon modules
 from .. import fmt
+from .... import utils
 from .... import log
 from .... import rw
 
@@ -77,11 +78,7 @@ def set_export_path(context, visual, bpy_object):
             mshs_folder += os.sep
 
         if file_path.startswith(mshs_folder):
-            file_dir = os.path.dirname(file_path)
-            offset = len(mshs_folder)
-            exp_path = file_dir[offset : ]
-
-            bpy_object.xray.export_path = exp_path
+            utils.ie.set_export_path(bpy_object, mshs_folder, file_path)
             break
 
 

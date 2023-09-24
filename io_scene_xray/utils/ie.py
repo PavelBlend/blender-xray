@@ -429,6 +429,28 @@ def get_export_path(bpy_obj):
     return exp_path
 
 
+def set_export_path(bpy_obj, folder, file):
+    file = file.lower()
+    folder = folder.lower()
+
+    if not file.startswith(folder):
+        return
+
+    file_dir = os.path.dirname(file)
+
+    if file_dir and not file_dir.endswith(os.sep):
+        file_dir += os.sep
+
+    if folder and not folder.endswith(os.sep):
+        folder += os.sep
+
+    offset = len(folder)
+    exp_path = file_dir[offset : ]
+
+    if exp_path:
+        bpy_obj.xray.export_path = exp_path
+
+
 def no_active_obj_report(op):
     op.report({'ERROR'}, 'No active object!')
 

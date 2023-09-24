@@ -177,9 +177,7 @@ def import_objects(refs, pos, rot, scl, context, level_name):
             imported_object = obj.imp.main.import_file(object_path, context)
             imported_objects[ref] = imported_object
             utils.version.unlink_object_from_collections(imported_object)
-            exp_dir = os.path.dirname(ref)
-            if exp_dir:
-                imported_object.xray.export_path = exp_dir
+            utils.ie.set_export_path(imported_object, '', ref)
 
         utils.version.link_object_to_collection(imported_object, collection)
 

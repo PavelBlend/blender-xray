@@ -333,9 +333,7 @@ def import_file(file_path, context):
             objs_lower += os.sep
 
         if path_lower.startswith(objs_lower):
-            offset = len(objs_lower)
-            exp_path = os.path.dirname(path_lower)[offset : ]
-            xray.export_path = exp_path
+            utils.ie.set_export_path(bpy_obj, objs_lower, path_lower)
             break
 
     for (chunk_id, chunk_data) in unread_chunks:
