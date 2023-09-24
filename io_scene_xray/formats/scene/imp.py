@@ -127,11 +127,9 @@ def _read_scene_objects(scene_objects_chunk, objects_count, import_context):
         raise log.AppError(text.error.scene_scn_objs)
 
     chunked_reader = rw.read.ChunkedReader(scene_objects_chunk)
-    object_index = 0
 
     imported_objects = {}
     for chunk_id, chunk_data in chunked_reader:
-        object_index += 1
         _read_scene_object(chunk_data, imported_objects, import_context)
 
 
