@@ -93,30 +93,21 @@ def _read_object_body(data, imported_objects, import_context):
     # create/import object
     if imp_obj:
 
-        if imp_obj.type == 'EMPTY':
-            # copy root
-            new_empty = imp_obj.copy()
+        # copy root
+        new_root = imp_obj.copy()
+        utils.stats.created_obj()
+        utils.version.link_object(new_root)
+
+        # copy meshes
+        for child_obj in imp_obj.children:
+            new_mesh = child_obj.copy()
             utils.stats.created_obj()
-            utils.version.link_object(new_empty)
+            utils.version.link_object(new_mesh)
+            new_mesh.parent = new_root
+            new_mesh.xray.isroot = False
 
-            # copy meshes
-            for mesh_obj in imp_obj.children:
-                new_mesh = mesh_obj.copy()
-                utils.stats.created_obj()
-                utils.version.link_object(new_mesh)
-                new_mesh.parent = new_empty
-                new_mesh.xray.isroot = False
-
-            # set root-object transforms
-            _set_obj_transforms(new_empty, position, rotation, scale)
-
-        else:
-            new_obj = imp_obj.copy()
-            utils.stats.created_obj()
-            utils.version.link_object(new_obj)
-
-            # set root-object transforms
-            _set_obj_transforms(new_obj, position, rotation, scale)
+        # set root-object transforms
+        _set_obj_transforms(new_root, position, rotation, scale)
 
     else:
 
