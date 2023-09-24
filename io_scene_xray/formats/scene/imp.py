@@ -43,9 +43,7 @@ def _read_objects_count(objects_count_chunk):
     return objects_count
 
 
-def _read_object_body(data, imported_objects, import_context):
-    chunked_reader = rw.read.ChunkedReader(data)
-
+def _read_object_body_version(chunked_reader):
     # get scene object version
     ver_chunk = chunked_reader.get_chunk(fmt.Chunks.SCENEOBJ_CHUNK_VERSION)
     packed_reader = rw.read.PackedReader(ver_chunk)
@@ -58,22 +56,40 @@ def _read_object_body(data, imported_objects, import_context):
             log.props(version=ver)
         )
 
-    # read object data
-    for chunk_id, chunk_data in chunked_reader:
-        packed_reader = rw.read.PackedReader(chunk_data)
+    return ver
 
+
+def _read_object_body_data(chunked_reader, ver):
+    object_path = None
+    position = None
+    rotation = None
+    scale = None
+
+    for chunk_id, chunk_data in chunked_reader:
+
+        # reference
         if chunk_id == fmt.Chunks.SCENEOBJ_CHUNK_REFERENCE:
+            packed_reader = rw.read.PackedReader(chunk_data)
+
             if ver == fmt.SCENEOBJ_VERSION_SOC:
                 version = packed_reader.uint32()
                 reserved = packed_reader.uint32()
+
             object_path = packed_reader.gets()
 
+        # transforms
         elif chunk_id == fmt.Chunks.CUSTOMOBJECT_CHUNK_TRANSFORM:
+            packed_reader = rw.read.PackedReader(chunk_data)
+
             position = packed_reader.getf('<3f')
             rotation = packed_reader.getf('<3f')
             scale = packed_reader.getf('<3f')
 
-    # get file path
+    return object_path, position, rotation, scale
+
+
+def _get_file_path(object_path):
+    import_path = None
     objs_folders = utils.ie.get_pref_paths('objects_folder')
 
     for objs_folder in objs_folders:
@@ -87,62 +103,106 @@ def _read_object_body(data, imported_objects, import_context):
         if os.path.exists(import_path):
             break
 
+    return import_path
+
+
+def _copy_object(imp_obj, position, rotation, scale):
+    # copy root
+    new_root = imp_obj.copy()
+    utils.stats.created_obj()
+    utils.version.link_object(new_root)
+
+    # copy meshes
+    for child_obj in imp_obj.children:
+        new_mesh = child_obj.copy()
+        utils.stats.created_obj()
+        utils.version.link_object(new_mesh)
+        new_mesh.parent = new_root
+        new_mesh.xray.isroot = False
+
+    # set root-object transforms
+    _set_obj_transforms(new_root, position, rotation, scale)
+
+
+def _import_object(
+        import_context,
+        import_path,
+        object_path,
+        imported_objects,
+        position,
+        rotation,
+        scale
+    ):
+
+    if os.path.exists(import_path):
+        # import file
+        imp_obj = obj.imp.main.import_file(import_path, import_context)
+        utils.ie.set_export_path(imp_obj, '', object_path)
+        imported_objects[object_path] = imp_obj
+
+        # set transforms
+        _set_obj_transforms(imp_obj, position, rotation, scale)
+
+    else:
+        log.warn(
+            text.warn.scene_no_file,
+            file=object_path + '.object',
+            path=import_path
+        )
+
+
+def _read_object_body(data, imported_objects, import_context):
+    chunked_reader = rw.read.ChunkedReader(data)
+
+    # read version
+    ver = _read_object_body_version(chunked_reader)
+
+    # read object data
+    object_path, position, rotation, scale = _read_object_body_data(
+        chunked_reader,
+        ver
+    )
+
+    # get file path
+    import_path = _get_file_path(object_path)
+
     # get imported object
     imp_obj = imported_objects.get(object_path)
 
-    # create/import object
     if imp_obj:
-
-        # copy root
-        new_root = imp_obj.copy()
-        utils.stats.created_obj()
-        utils.version.link_object(new_root)
-
-        # copy meshes
-        for child_obj in imp_obj.children:
-            new_mesh = child_obj.copy()
-            utils.stats.created_obj()
-            utils.version.link_object(new_mesh)
-            new_mesh.parent = new_root
-            new_mesh.xray.isroot = False
-
-        # set root-object transforms
-        _set_obj_transforms(new_root, position, rotation, scale)
+        # copy object
+        _copy_object(imp_obj, position, rotation, scale)
 
     else:
-
-        if os.path.exists(import_path):
-            # import file
-            imp_obj = obj.imp.main.import_file(import_path, import_context)
-            utils.ie.set_export_path(imp_obj, '', object_path)
-            imported_objects[object_path] = imp_obj
-
-            # set transforms
-            _set_obj_transforms(imp_obj, position, rotation, scale)
-
-        else:
-            log.warn(
-                text.warn.scene_no_file,
-                file=object_path + '.object',
-                path=import_path
-            )
+        # import object
+        _import_object(
+            import_context,
+            import_path,
+            object_path,
+            imported_objects,
+            position,
+            rotation,
+            scale
+        )
 
 
 def _read_scene_object(data, imported_objects, import_context):
     chunked_reader = rw.read.ChunkedReader(data)
 
     for chunk_id, chunk_data in chunked_reader:
+
         if chunk_id == fmt.Chunks.CHUNK_OBJECT_BODY:
             _read_object_body(chunk_data, imported_objects, import_context)
+            break
 
 
 def _read_scene_objects(scene_objects_chunk, objects_count, import_context):
     if not scene_objects_chunk:
         raise log.AppError(text.error.scene_scn_objs)
 
+    imported_objects = {}
     chunked_reader = rw.read.ChunkedReader(scene_objects_chunk)
 
-    imported_objects = {}
     for chunk_id, chunk_data in chunked_reader:
         _read_scene_object(chunk_data, imported_objects, import_context)
 
