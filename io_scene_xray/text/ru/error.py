@@ -181,6 +181,7 @@ translations_table = (
     (error.scene_no_ver, 'Недопустимый scene selection файл. Не найден "version" блок'),
     (error.scene_ver_size, 'Недопустимый scene selection файл. Размер "version" блока не равен 4'),
     (error.scene_ver, 'Неподдерживаемая версия формата'),
+    (error.scene_obj_ver, 'Неподдерживаемая версия формата объектов сцены'),
 
     # motion
     (error.motion_shape, 'Неподдерживаемая форма ключевого кадра'),

@@ -40,20 +40,30 @@ def _read_objects_count(objects_count_chunk):
 def _read_object_body(data, imported_objects, import_context):
     chunked_reader = rw.read.ChunkedReader(data)
 
+    # get scene object version
+    ver_chunk = chunked_reader.get_chunk(fmt.Chunks.SCENEOBJ_CHUNK_VERSION)
+    packed_reader = rw.read.PackedReader(ver_chunk)
+    ver = packed_reader.getf('<H')[0]
+
+    if not ver in (fmt.SCENEOBJ_VERSION_SOC, fmt.SCENEOBJ_VERSION_COP):
+        raise log.AppError(
+            text.error.scene_obj_ver,
+            log.props(version=ver)
+        )
+
     for chunk_id, chunk_data in chunked_reader:
         packed_reader = rw.read.PackedReader(chunk_data)
+
         if chunk_id == fmt.Chunks.SCENEOBJ_CHUNK_REFERENCE:
-            if scene_obj_version == fmt.SCENEOBJ_VERSION_SOC:
+            if ver == fmt.SCENEOBJ_VERSION_SOC:
                 version = packed_reader.uint32()
                 reserved = packed_reader.uint32()
             object_path = packed_reader.gets()
-            object_name = object_path.split(os.sep)[-1]
+
         elif chunk_id == fmt.Chunks.CUSTOMOBJECT_CHUNK_TRANSFORM:
             position = packed_reader.getf('<3f')
             rotation = packed_reader.getf('<3f')
             scale = packed_reader.getf('<3f')
-        elif chunk_id == fmt.Chunks.SCENEOBJ_CHUNK_VERSION:
-            scene_obj_version = packed_reader.getf('<H')[0]
 
     objs_folders = utils.ie.get_pref_paths('objects_folder')
 
@@ -82,6 +92,7 @@ def _read_object_body(data, imported_objects, import_context):
                 file=object_path + '.object',
                 path=import_path
             )
+
     else:
         imported_object = imported_objects.get(object_path)
         if imported_object.type == 'EMPTY':
@@ -138,21 +149,16 @@ def _read_objects(objects_chunk, import_context):
         raise log.AppError(text.error.scene_objs)
 
     chunked_reader = rw.read.ChunkedReader(objects_chunk)
-    scene_version_chunk = None
-    objects_count_chunk = None
-    scene_objects_chunk = None
 
-    for chunk_id, chunk_data in chunked_reader:
-        if chunk_id == fmt.Chunks.SCENE_VERSION_CHUNK:
-            scene_version_chunk = chunk_data
-        elif chunk_id == fmt.Chunks.OBJECTS_COUNT_CHUNK:
-            objects_count_chunk = chunk_data
-        elif chunk_id == fmt.Chunks.SCENE_OBJECTS_CHUNK:
-            scene_objects_chunk = chunk_data
+    # get chunks
+    ver_chunk = chunked_reader.get_chunk(fmt.Chunks.SCENE_VERSION_CHUNK)
+    count_chunk = chunked_reader.get_chunk(fmt.Chunks.OBJECTS_COUNT_CHUNK)
+    objs_chunk = chunked_reader.get_chunk(fmt.Chunks.SCENE_OBJECTS_CHUNK)
 
-    _read_scene_version(scene_version_chunk)
-    objects_count = _read_objects_count(objects_count_chunk)
-    _read_scene_objects(scene_objects_chunk, objects_count, import_context)
+    # read
+    _read_scene_version(ver_chunk)
+    objects_count = _read_objects_count(count_chunk)
+    _read_scene_objects(objs_chunk, objects_count, import_context)
 
 
 def _read_version(version_chunk):
@@ -176,15 +182,11 @@ def _read_version(version_chunk):
 
 
 def import_(filepath, chunked_reader, import_context):
-    version_chunk = None
-    objects_chunk = None
+    # get chunks
+    version_chunk = chunked_reader.get_chunk(fmt.Chunks.VERSION_CHUNK)
+    objects_chunk = chunked_reader.get_chunk(fmt.Chunks.OBJECTS_CHUNK)
 
-    for chunk_id, chunk_data in chunked_reader:
-        if chunk_id == fmt.Chunks.VERSION_CHUNK:
-            version_chunk = chunk_data
-        elif chunk_id == fmt.Chunks.OBJECTS_CHUNK:
-            objects_chunk = chunk_data
-
+    # read
     _read_version(version_chunk)
     _read_objects(objects_chunk, import_context)
 

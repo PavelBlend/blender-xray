@@ -225,6 +225,22 @@ class ChunkedReader:
                 ))
         return data
 
+    def get_chunk(self, expected_chunk_id):
+        result = None
+        temp_offs = self.__offs
+
+        while result is None:
+            try:
+                chunk_id, chunk_data = next(self)
+            except StopIteration:
+                break
+
+            if chunk_id == expected_chunk_id:
+                result = chunk_data
+
+        self.__offs = temp_offs
+        return result
+
     def get_size(self):
         return len(self.__data)
 

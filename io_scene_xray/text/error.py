@@ -173,6 +173,7 @@ scene_objs = 'Bad scene selection file. Cannot find "objects" chunk'
 scene_no_ver = 'Bad scene selection file. Cannot find "version" chunk'
 scene_ver_size = 'Bad scene selection file. "version" chunk size is not equal to 4'
 scene_ver = 'Unsupported format version'
+scene_obj_ver = 'Unsupported scene object format version'
 
 # motion
 motion_shape = 'Unsupported keyframe shapes'
