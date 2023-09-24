@@ -18,7 +18,7 @@ def write_object_body(chunked_writer, bpy_obj):
     body_chunked_writer = rw.write.ChunkedWriter()
 
     packed_reader = rw.write.PackedWriter()
-    packed_reader.putf('<I', 3)   # flags
+    packed_reader.putf('<I', 3)    # flags
     body_chunked_writer.put(fmt.Chunks.CUSTOMOBJECT_CHUNK_FLAGS, packed_reader)
 
     exp_path = utils.ie.get_export_path(bpy_obj)
