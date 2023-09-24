@@ -25,7 +25,7 @@ def read_soc_scene_object(data):
             for body_chunk_id, body_chunk_data in body_reader:
                 if body_chunk_id == fmt.Chunks.REFERENCE:
                     reader = rw.read.PackedReader(body_chunk_data)
-                    ver = reader.uint32()
+                    file_version = reader.uint32()
                     length = reader.uint32()
                     ref = reader.gets()
 
