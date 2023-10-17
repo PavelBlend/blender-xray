@@ -270,6 +270,41 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
     for face in bm.faces:
         face_indices = []
 
+        # Calculate UV offset.
+        # Here the offset is calculated for the entire triangle.
+        # This is necessary in order to move the triangle as a whole,
+        # and not along a separate vertex.
+
+        max_u = -1000000.0
+        max_v = -1000000.0
+
+        min_u = +1000000.0
+        min_v = +1000000.0
+
+        for loop in face.loops:
+            tex_u, tex_v = loop[uv_layer].uv
+
+            max_u = max(max_u, tex_u)
+            min_u = min(min_u, tex_u)
+
+            max_v = max(max_v, tex_v)
+            min_v = min(min_v, tex_v)
+
+        u_offset = 0
+        v_offset = 0
+
+        if max_u > 32:
+            u_offset = max_u - max_u % 32
+
+        elif min_u < -32:
+            u_offset = min_u - min_u % -32
+
+        if max_v > 32:
+            v_offset = max_v - max_v % 32
+
+        elif min_v < -32:
+            v_offset = min_v - min_v % -32
+
         for loop in face.loops:
             vert = loop.vert
 
@@ -295,7 +330,8 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                 light = None
 
             # uv
-            tex_uv = loop[uv_layer].uv
+            tex_u = loop[uv_layer].uv[0] - u_offset
+            tex_v = loop[uv_layer].uv[1] - v_offset
 
             # normal
             normal = export_mesh.loops[loop.index].normal
@@ -303,7 +339,7 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
             vert_key = tuple(vert.co)
 
             vert_data = (
-                tex_uv,
+                (tex_u, tex_v),
                 tex_uv_lmap,
                 normal,
                 hemi,
@@ -389,17 +425,17 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
                 ))
 
             # uv
-            coord_u = int(tex_uv[0] * uv_coeff)
-            coord_v = int((1.0 - tex_uv[1]) * uv_coeff)
+            coord_u = int(tex_u * uv_coeff)
+            coord_v = int((1.0 - tex_v) * uv_coeff)
 
             # uv corrector
             correct_u, coord_u = get_tex_coord_correct(
-                tex_uv[0],
+                tex_u,
                 coord_u,
                 uv_coeff
             )
             correct_v, coord_v = get_tex_coord_correct(
-                1 - tex_uv[1],
+                1 - tex_v,
                 coord_v,
                 uv_coeff
             )
