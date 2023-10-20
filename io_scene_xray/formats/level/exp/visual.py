@@ -207,8 +207,28 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
 
     if sun_col:
         vertex_format = 'COLOR'
+
+        if not light_col:
+            if xray.light_vert_color:
+                raise log.AppError(
+                    text.error.level_visual_no_light,
+                    log.props(
+                        object=bpy_obj.name,
+                        vertex_color_name=xray.light_vert_color
+                    )
+                )
+            else:
+                raise log.AppError(
+                    text.error.level_light_not_spec,
+                    log.props(
+                        material=material.name,
+                        object=bpy_obj.name
+                    )
+                )
+
     elif uv_lmap_lay:
         vertex_format = 'NORMAL'
+
     else:
         vertex_format = 'TREE'
 

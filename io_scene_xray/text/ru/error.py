@@ -96,6 +96,8 @@ translations_table = (
     (error.level_visual_many_mats, 'Visual-объект имеет больше одного материала'),
     (error.level_visual_no_uv, 'Visual-объект не имеет UV-карты'),
     (error.level_visual_no_hemi, 'Visual-объект не имеет hemi слоя'),
+    (error.level_visual_no_light, 'Visual-объект не имеет light слоя'),
+    (error.level_light_not_spec, 'У материала не указан параметр "Light"'),
 
     # level export glow
     (error.level_no_glow, 'Level-объект не имеет glow-объектов'),

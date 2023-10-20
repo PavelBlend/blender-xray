@@ -88,6 +88,8 @@ level_visual_empty_mat = 'Visual-object has empty material slot'
 level_visual_many_mats = 'Visual-object has more than one material'
 level_visual_no_uv = 'Visual-object has no UV-map'
 level_visual_no_hemi = 'Visual-object has no hemi layer'
+level_visual_no_light = 'Visual-object has no light layer'
+level_light_not_spec = '"Light" parameter for the material is not specified'
 
 # level export glow
 level_no_glow = 'Level-object has no glow-objects'
