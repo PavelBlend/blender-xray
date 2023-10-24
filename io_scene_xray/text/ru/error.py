@@ -175,6 +175,8 @@ translations_table = (
     (error.omf_merge_parts_count, 'Файл имеет разное количество boneparts'),
 
     # scene import
+    (error.scene_incorrect_file, 'Недопустимый *.level файл'),
+    (error.scene_err_info, 'Для получения подробной информации перейдите по этой ссылке:'),
     (error.scene_bad_file, 'Недопустимый scene selection файл. Не найден "scene version" блок'),
     (error.scene_obj_tool_ver, 'Неподдерживаемая версия "object tools"'),
     (error.scene_obj_count, 'Недопустимый scene selection файл. Не найден "scene objects count" блок'),

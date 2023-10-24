@@ -42,6 +42,7 @@ def show_message(
         icon,
         operators=None,
         operators_props=None,
+        operators_labels=None,
         message_props=None
     ):
 
@@ -62,8 +63,13 @@ def show_message(
         if operators:
             self.layout.operator_context = 'INVOKE_DEFAULT'
             for op_index, operator in enumerate(operators):
-                op = self.layout.operator(operator)
-                op.processed = True
+                label = operators_labels[op_index]
+                if label:
+                    op = self.layout.operator(operator, text=label)
+                else:
+                    op = self.layout.operator(operator)
+                if hasattr(op, 'processed'):
+                    op.processed = True
                 if operators_props:
                     operator_props = operators_props[op_index]
                     for prop_name, prop_value in operator_props.items():

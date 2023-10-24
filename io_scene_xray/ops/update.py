@@ -37,7 +37,7 @@ def check_for_updates():
         utils.draw.show_message(
             message,
             (last_tag_str, ),
-            text.get_text(text.warn.info_title).capitalize(),
+            text.get_text(text.warn.info_title),
             'INFO',
             operators=[XRAY_OT_install_update.bl_idname, ],
             operators_props=[{'download_url': download_url, }, ]
@@ -47,7 +47,7 @@ def check_for_updates():
         utils.draw.show_message(
             message,
             (),
-            text.get_text(text.warn.info_title).capitalize(),
+            text.get_text(text.warn.info_title),
             'INFO'
         )
 

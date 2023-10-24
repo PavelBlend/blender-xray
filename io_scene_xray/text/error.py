@@ -167,6 +167,8 @@ few_files = 'More than one file needs to be selected'
 omf_merge_parts_count = 'File have different boneparts count'
 
 # scene import
+scene_incorrect_file = 'Invalid *.level file'
+scene_err_info = 'For detailed information please follow this link:'
 scene_bad_file = 'Bad scene selection file. Cannot find "scene version" chunk'
 scene_obj_tool_ver = 'Unsupported object tools version'
 scene_obj_count = 'Bad scene selection file. Cannot find "scene objects count" chunk'

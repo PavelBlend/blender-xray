@@ -13,6 +13,9 @@ from ... import utils
 from ... import rw
 
 
+URL_FOR_ERR = 'https://github.com/PavelBlend/blender-xray/wiki/Scene-Selection-Import'
+
+
 def _set_obj_transforms(obj, loc, rot, scl):
     obj.location = loc[0], loc[2], loc[1]
     obj.rotation_euler = rot[0], rot[2], rot[1]
@@ -248,6 +251,18 @@ def import_(filepath, chunked_reader, import_context):
     # get chunks
     version_chunk = chunked_reader.get_chunk(fmt.Chunks.VERSION_CHUNK)
     objects_chunk = chunked_reader.get_chunk(fmt.Chunks.OBJECTS_CHUNK)
+
+    if not version_chunk or not objects_chunk:
+        utils.draw.show_message(
+            text.error.scene_incorrect_file,
+            (text.get_text(text.error.scene_err_info), ),
+            text.get_text(text.warn.info_title),
+            'ERROR',
+            operators=('wm.url_open', ),
+            operators_props=({'url': URL_FOR_ERR, }, ),
+            operators_labels=(URL_FOR_ERR, )
+        )
+        return
 
     # read
     _read_version(version_chunk)
