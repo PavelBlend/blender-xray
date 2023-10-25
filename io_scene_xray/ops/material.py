@@ -568,7 +568,6 @@ class XRAY_OT_create_material(utils.ie.BaseOperator):
                 if not params.directory.startswith(tex_folder):
                     params.directory = tex_folder
 
-    @utils.set_cursor_state
     def execute(self, context):
         mat = bpy.data.materials[self.material_name]
         mat.use_nodes = True
