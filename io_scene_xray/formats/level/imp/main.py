@@ -6,6 +6,7 @@ import bpy
 import mathutils
 
 # addon modules
+from . import header
 from . import create
 from . import shaders
 from . import visuals
@@ -13,6 +14,7 @@ from . import vb
 from . import ib
 from . import swi
 from . import cform
+from . import geom
 from . import glow
 from . import sector
 from . import utility
@@ -258,44 +260,6 @@ def import_portals(data, level, level_object):
     portals_object.parent = level_object
 
 
-def get_version(chunks, file):
-    data = chunks.pop(fmt.HEADER)
-    header_reader = rw.read.PackedReader(data)
-
-    xrlc_version = header_reader.getf('<H')[0]
-    if not xrlc_version in fmt.SUPPORTED_VERSIONS:
-        raise log.AppError(
-            text.error.level_unsupport_ver,
-            log.props(
-                version=xrlc_version,
-                file=file
-            )
-        )
-
-    xrlc_quality = header_reader.getf('<H')[0]
-
-    return xrlc_version
-
-
-def read_geom(level, chunks, context):
-    geom_chunks = {}
-
-    if level.xrlc_version >= fmt.VERSION_13:
-        geom_path = context.filepath + os.extsep + 'geom'
-
-        if os.path.exists(geom_path):
-            geom_reader = rw.utils.get_file_reader(geom_path, chunked=True)
-            geom_chunks = rw.utils.get_reader_chunks(geom_reader)
-            get_version(geom_chunks, geom_path)
-        else:
-            raise log.AppError(
-                text.error.level_has_no_geom,
-                log.props(path=geom_path)
-            )
-
-    return geom_chunks
-
-
 def import_level(level, context, chunks):
     # find chunks ids
     if level.xrlc_version >= fmt.VERSION_13:
@@ -408,10 +372,10 @@ def import_main(context, chunked_reader, level):
     chunks = rw.utils.get_reader_chunks(chunked_reader)
 
     # level version
-    level.xrlc_version = get_version(chunks, context.filepath)
+    level.xrlc_version = header.get_version(chunks, context.filepath)
 
     # read level.geom
-    geom_chunks = read_geom(level, chunks, context)
+    geom_chunks = geom.read_geom(level, chunks, context)
     chunks.update(geom_chunks)
 
     # import level
