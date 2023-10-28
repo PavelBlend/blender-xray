@@ -36,5 +36,5 @@ class ChunkedWriter():
         self.data = bytearray()
 
     def put(self, cid, writer):
-        self.data += struct.pack('II', cid, len(writer.data))
+        self.data += struct.pack('<2I', cid, len(writer.data))
         self.data += writer.data
