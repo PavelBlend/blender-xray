@@ -424,7 +424,6 @@ def import_level(level, context, chunks):
     # visuals
     visuals_data = chunks.pop(chunks_ids.VISUALS)
     visuals.import_visuals(visuals_data, level)
-    visuals.import_hierrarhy_visuals(level)
 
     # sectors
     sectors_data = chunks.pop(chunks_ids.SECTORS)

@@ -69,7 +69,7 @@ def import_ogf_visual(context, data, visual):
         create.create_child_visual(context, visual)
 
 
-def import_level_visual(data, visual_id, lvl, chunks, visuals_ids):
+def import_level_visual(data, visual_id, lvl):
     # visual from game level file
 
     chunks = utility.get_ogf_chunks(data)
