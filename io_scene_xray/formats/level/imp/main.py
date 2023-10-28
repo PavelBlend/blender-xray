@@ -364,12 +364,11 @@ def import_level(level, context, chunks):
             len(chunk_data)
         ))
 
-    return cform_path, cform_data
 
-
-def import_main(context, chunked_reader, level):
+def import_main(context, level):
     # level chunks
-    chunks = rw.utils.get_reader_chunks(chunked_reader)
+    level_reader = rw.utils.get_file_reader(level.file, chunked=True)
+    chunks = rw.utils.get_reader_chunks(level_reader)
 
     # level version
     level.xrlc_version = header.get_version(chunks, context.filepath)
@@ -396,6 +395,4 @@ def import_file(context):
 
     context.level_name = level.name
 
-    level_reader = rw.utils.get_file_reader(level.file, chunked=True)
-
-    import_main(context, level_reader, level)
+    import_main(context, level)
