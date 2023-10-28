@@ -83,11 +83,8 @@ def export_bbox(chunked_writer, bm):
 
 
 def export_flags(chunked_writer, bpy_obj):
-    if hasattr(bpy_obj.data, 'xray'):
-        # MAX sg-format currently unsupported (we use Maya sg-format)
-        flags = bpy_obj.data.xray.flags & ~fmt.Chunks.Mesh.Flags.SG_MASK
-    else:
-        flags = fmt.Chunks.Mesh.Flags.VISIBLE
+    # MAX sg-format currently unsupported (we use Maya sg-format)
+    flags = bpy_obj.data.xray.flags & ~fmt.Chunks.Mesh.Flags.SG_MASK
     packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<B', flags)
     chunked_writer.put(fmt.Chunks.Mesh.FLAGS, packed_writer)

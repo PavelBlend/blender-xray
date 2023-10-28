@@ -78,12 +78,9 @@ class XRayObjectDetailsSlotsProperties(bpy.types.PropertyGroup):
 
 
 def _update_detail_color_by_index(self, context):
-
-    if hasattr(context.active_object, 'xray'):
-        color_indices = formats.details.utility.generate_color_indices()
-
-        context.active_object.xray.detail.model.color = \
-            color_indices[context.active_object.xray.detail.model.index][0 : 3]
+    color_indices = formats.details.utility.generate_color_indices()
+    xray = context.active_object.xray
+    xray.detail.model.color = color_indices[xray.detail.model.index][0 : 3]
 
 
 model_props = {
