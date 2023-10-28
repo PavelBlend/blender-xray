@@ -20,7 +20,6 @@ if utils.version.broken_file_browser_filter():
 else:
     file_filter_import = 'level'
 
-
 import_props = {
     'filter_glob': bpy.props.StringProperty(
         default=file_filter_import,
@@ -49,8 +48,8 @@ class XRAY_OT_import_level(
     bl_options = {'REGISTER', 'UNDO'}
 
     text = 'Game Level'
-    filename_ext = ''
     ext = 'level'
+    filename_ext = ''
     props = import_props
 
     if not utils.version.IS_28:
@@ -66,18 +65,27 @@ class XRAY_OT_import_level(
     def execute(self, context):
         utils.stats.update('Import level')
 
-        if not self.filepath:
-            self.report({'ERROR'}, 'No file selected')
+        # check selected files
+        filename = self.filepath[len(self.directory) : ]
+        if not filename:
+            self.report({'ERROR'}, text.get_text(text.error.no_sel_files))
             return {'CANCELLED'}
+
+        # create context
         import_context = ImportLevelContext()
         import_context.operator = self
         import_context.filepath = self.filepath
+
+        # import file
         try:
             main.import_file(import_context)
         except log.AppError as err:
             import_context.errors.append(err)
+
+        # report errors
         for err in import_context.errors:
             log.err(err)
+
         return {'FINISHED'}
 
     @utils.ie.run_imp_exp_operator
