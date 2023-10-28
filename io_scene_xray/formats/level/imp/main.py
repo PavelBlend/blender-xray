@@ -415,7 +415,7 @@ def import_level(level, context, chunks):
     if level.xrlc_version >= fmt.VERSION_12:
         swis_data = chunks.pop(chunks_ids.SWIS, None)
         if swis_data:
-            level.swis = swi.import_slide_window_items(swis_data)
+            level.swis = swi.import_swi_buffers(swis_data)
 
     # create level object
     level_collection = create.create_level_collections(level)

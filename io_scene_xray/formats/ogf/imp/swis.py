@@ -58,7 +58,7 @@ def import_swi(visual, chunks, ogf_chunks):
 
     if visual.format_version == fmt.FORMAT_VERSION_4:
         packed_reader = rw.read.PackedReader(swi_data)
-        swi = level.imp.swi.import_slide_window_item(packed_reader)
+        swi = level.imp.swi.import_swi_buffer(packed_reader)
 
         if swi:
             visual.indices = visual.indices[swi[0].offset : ]
