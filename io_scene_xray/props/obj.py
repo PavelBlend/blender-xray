@@ -79,7 +79,10 @@ class XRayObjectDetailsSlotsProperties(bpy.types.PropertyGroup):
 
 def _update_detail_color_by_index(self, context):
     color_indices = formats.details.utility.generate_color_indices()
-    xray = context.active_object.xray
+    ob = context.active_object
+    if not ob:
+        return
+    xray = ob.xray
     xray.detail.model.color = color_indices[xray.detail.model.index][0 : 3]
 
 
