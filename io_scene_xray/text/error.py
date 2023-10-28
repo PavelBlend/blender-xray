@@ -69,6 +69,10 @@ dm_many_verts = 'Mesh-object has too many vertices'
 # dm validate
 dm_tex_type = 'Texture has an incorrect type'
 
+# level import
+level_unsupport_ver = 'Unsupported game level version'
+level_has_no_geom = 'File *.geom not found'
+
 # level cform import
 cform_unsupport_ver = 'Unsupported level cform version'
 
@@ -115,9 +119,6 @@ level_bad_cform_type = 'Cform-object is not mesh'
 level_cform_no_geom = 'Cform-object has no polygons'
 level_cform_no_mats = 'Cform-object has no materials'
 level_cform_empty_mat_slot = 'Cform-object has empty material slot'
-
-# level import
-level_unsupport_ver = 'Unsupported game level version'
 
 # object export main
 object_nonexp_group_verts = 'Mesh-object has vertices that are not tied to any exportable bones'

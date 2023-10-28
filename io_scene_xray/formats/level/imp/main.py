@@ -36,9 +36,6 @@ class Level(object):
         self.vertex_buffers = None
         self.indices_buffers = None
         self.swis = None
-        self.fastpath_vertex_buffers = None
-        self.fastpath_indices_buffers = None
-        self.fastpath_swis = None
         self.loaded_geometry = {}
         self.loaded_fastpath_geometry = {}
         self.hierrarhy_visuals = []
@@ -520,11 +517,8 @@ def import_portals(data, level, level_object):
     portals_object.parent = level_object
 
 
-def get_chunks(chunked_reader):
-    return {chunk_id: chunk_data for chunk_id, chunk_data in chunked_reader}
-
-
-def get_version(data, file):
+def get_version(chunks, file):
+    data = chunks.pop(fmt.HEADER)
     header_reader = rw.read.PackedReader(data)
 
     xrlc_version = header_reader.getf('<H')[0]
@@ -542,33 +536,26 @@ def get_version(data, file):
     return xrlc_version
 
 
-def read_geomx(level, context):
-    geomx_chunks = {}
-
-    if level.xrlc_version == fmt.VERSION_14:
-        geomx_path = context.filepath + os.extsep + 'geomx'
-
-        if os.path.exists(geomx_path):
-            geomx_reader = utility.get_level_reader(geomx_path)
-            geomx_chunks = get_chunks(geomx_reader)
-            get_version(geomx_chunks.pop(fmt.HEADER), geomx_path)
-
-    return geomx_chunks
-
-
 def read_geom(level, chunks, context):
     geom_chunks = {}
 
     if level.xrlc_version >= fmt.VERSION_13:
         geom_path = context.filepath + os.extsep + 'geom'
-        geom_reader = utility.get_level_reader(geom_path)
-        geom_chunks = get_chunks(geom_reader)
-        get_version(geom_chunks.pop(fmt.HEADER), geom_path)
+
+        if os.path.exists(geom_path):
+            geom_reader = rw.utils.get_file_reader(geom_path, chunked=True)
+            geom_chunks = rw.utils.get_reader_chunks(geom_reader)
+            get_version(geom_chunks, geom_path)
+        else:
+            raise log.AppError(
+                text.error.level_has_no_geom,
+                log.props(path=geom_path)
+            )
 
     return geom_chunks
 
 
-def import_level(level, context, chunks, geomx_chunks):
+def import_level(level, context, chunks):
     # find chunks ids
     if level.xrlc_version >= fmt.VERSION_13:
         chunks_ids = fmt.Chunks13
@@ -627,25 +614,6 @@ def import_level(level, context, chunks, geomx_chunks):
         if swis_data:
             level.swis = swi.import_slide_window_items(swis_data)
 
-    # fastpath geometry
-    if level.xrlc_version == fmt.VERSION_14 and geomx_chunks:
-
-        # fastpath vertex buffers
-        vb_fp_data = geomx_chunks.pop(chunks_ids.VB)
-        level.fastpath_vertex_buffers = vb.import_vertex_buffers(
-            vb_fp_data,
-            level,
-            vb.import_vertex_buffer
-        )
-
-        # fastpath index buffers
-        ib_fp_data = geomx_chunks.pop(chunks_ids.IB)
-        level.fastpath_indices_buffers = ib.import_indices_buffers(ib_fp_data)
-
-        # fastpath swis
-        swis_fp_data = geomx_chunks.pop(chunks_ids.SWIS)
-        level.fastpath_swis = swi.import_slide_window_items(swis_fp_data)
-
     # create level object
     level_collection = create.create_level_collections(level)
     level_object = create.create_level_object(level, level_collection)
@@ -697,20 +665,17 @@ def import_level(level, context, chunks, geomx_chunks):
 
 def import_main(context, chunked_reader, level):
     # level chunks
-    chunks = get_chunks(chunked_reader)
+    chunks = rw.utils.get_reader_chunks(chunked_reader)
 
     # level version
-    level.xrlc_version = get_version(chunks.pop(fmt.HEADER), context.filepath)
+    level.xrlc_version = get_version(chunks, context.filepath)
 
     # read level.geom
     geom_chunks = read_geom(level, chunks, context)
     chunks.update(geom_chunks)
 
-    # read level.geomx
-    geomx_chunks = read_geomx(level, context)
-
     # import level
-    import_level(level, context, chunks, geomx_chunks)
+    import_level(level, context, chunks)
 
 
 @log.with_context(name='import-game-level')

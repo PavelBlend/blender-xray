@@ -16,6 +16,10 @@ def get_chunks(data):
     return chunks
 
 
+def get_reader_chunks(chunked_reader):
+    return {chunk_id: chunk_data for chunk_id, chunk_data in chunked_reader}
+
+
 def read_file(file_path):
     try:
         with open(file_path, 'rb') as file:

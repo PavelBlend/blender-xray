@@ -77,6 +77,10 @@ translations_table = (
     # dm validate
     (error.dm_tex_type, 'Текстура имеет некорректный тип'),
 
+    # level import
+    (error.level_unsupport_ver, 'Неподдерживаемая версия game level формата'),
+    (error.level_has_no_geom, 'Не найден *.geom файл'),
+
     # level cform import
     (error.cform_unsupport_ver, 'Неподдерживаемая версия level cform формата'),
 
@@ -123,9 +127,6 @@ translations_table = (
     (error.level_cform_no_geom, 'Cform-объект не имеет полигонов'),
     (error.level_cform_no_mats, 'Cform-объект не имеет материалов'),
     (error.level_cform_empty_mat_slot, 'Cform-объект имеет пустой слот материала'),
-
-    # level import
-    (error.level_unsupport_ver, 'Неподдерживаемая версия game level формата'),
 
     # object export main
     (error.object_nonexp_group_verts, 'Меш-объект имеет вершины, которые не привязаны к экспортируемым костям'),
