@@ -74,14 +74,6 @@ def create_level_object(level, level_collection):
     return level_object
 
 
-def create_sectors_object(level_collection):
-    sectors_object = create_object('sectors', None)
-    level_collection.objects.link(sectors_object)
-    if not utils.version.IS_28:
-        utils.version.link_object(sectors_object)
-    return sectors_object
-
-
 def create_level_collections(level):
     if utils.version.IS_28:
         scene_collection = bpy.context.scene.collection

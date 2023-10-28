@@ -14,6 +14,7 @@ from . import ib
 from . import swi
 from . import cform
 from . import glow
+from . import sector
 from . import utility
 from .. import fmt
 from ... import ogf
@@ -43,69 +44,6 @@ class Level(object):
         self.visuals = []
         self.collections = {}
         self.sectors_objects = {}
-
-
-def create_sector_object(sector_id, collection, sectors_object):
-    object_name = 'sector_{:0>3}'.format(sector_id)
-    bpy_object = create.create_object(object_name, None)
-    bpy_object.parent = sectors_object
-    collection.objects.link(bpy_object)
-    if not utils.version.IS_28:
-        utils.version.link_object(bpy_object)
-    return bpy_object
-
-
-def create_sectors_object(collection):
-    object_name = 'sectors'
-    bpy_object = create.create_object(object_name, None)
-    collection.objects.link(bpy_object)
-    if not utils.version.IS_28:
-        utils.version.link_object(bpy_object)
-    return bpy_object
-
-
-def import_sector_portal(data):
-    packed_reader = rw.read.PackedReader(data)
-    portal_count = len(data) // fmt.SECTOR_PORTAL_SIZE
-    for portal_index in range(portal_count):
-        portal = packed_reader.getf('<H')[0]
-
-
-def import_sector_root(data):
-    packed_reader = rw.read.PackedReader(data)
-    root = packed_reader.uint32()
-    return root
-
-
-def import_sector(data, level, sector_object):
-    chunked_reader = rw.read.ChunkedReader(data)
-    for chunk_id, chunk_data in chunked_reader:
-        if chunk_id == fmt.SectorChunks.PORTALS:
-            import_sector_portal(chunk_data)
-        elif chunk_id == fmt.SectorChunks.ROOT:
-            root_visual_index = import_sector_root(chunk_data)
-            level.visuals[root_visual_index].parent = sector_object
-        else:
-            print('UNKNOWN LEVEL SECTOR CHUNK: {0:#x}, SIZE = {1}'.format(
-                chunk_id, len(chunk_data)
-            ))
-
-
-def import_sectors(data, level, level_object):
-    chunked_reader = rw.read.ChunkedReader(data)
-    collection = level.collections[create.LEVEL_SECTORS_COLLECTION_NAME]
-    sectors_object = create_sectors_object(collection)
-    sectors_object.parent = level_object
-    level_object.xray.level.sectors_obj = sectors_object.name
-
-    for sector_id, sector_data in chunked_reader:
-        sector_object = create_sector_object(
-            sector_id,
-            collection,
-            sectors_object
-        )
-        level.sectors_objects[sector_id] = sector_object
-        import_sector(sector_data, level, sector_object)
 
 
 INT_MAX = 2 ** 31 - 1
@@ -427,7 +365,7 @@ def import_level(level, context, chunks):
 
     # sectors
     sectors_data = chunks.pop(chunks_ids.SECTORS)
-    import_sectors(sectors_data, level, level_object)
+    sector.import_sectors(sectors_data, level, level_object)
 
     # portals
     portals_data = chunks.pop(chunks_ids.PORTALS)
@@ -489,9 +427,10 @@ def import_file(context):
 
     level.context = context
     level.name = utility.get_level_name(context.filepath)
-    context.level_name = level.name
     level.file = context.filepath
     level.path = os.path.dirname(context.filepath)
+
+    context.level_name = level.name
 
     level_reader = rw.utils.get_file_reader(level.file, chunked=True)
 
