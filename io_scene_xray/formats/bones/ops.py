@@ -37,7 +37,8 @@ import_props = {
         default='*'+BONES_EXT, options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE'}
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE'}
     ),
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement

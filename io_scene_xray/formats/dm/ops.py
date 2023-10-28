@@ -31,11 +31,11 @@ import_props = {
         options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH",
+        subtype='DIR_PATH',
         options={'HIDDEN'}
     ),
     'filepath': bpy.props.StringProperty(
-        subtype="FILE_PATH",
+        subtype='FILE_PATH',
         options={'SKIP_SAVE', 'HIDDEN'}
     ),
     'files': bpy.props.CollectionProperty(
@@ -102,7 +102,7 @@ export_props = {
         options={'HIDDEN'}
     ),
     'detail_models': bpy.props.StringProperty(options={'HIDDEN'}),
-    'directory': bpy.props.StringProperty(subtype="FILE_PATH"),
+    'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
     'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }

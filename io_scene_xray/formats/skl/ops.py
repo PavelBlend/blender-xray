@@ -37,10 +37,18 @@ class Motion(bpy.types.PropertyGroup):
 
 
 import_props = {
-    'filter_glob': bpy.props.StringProperty(default='*.skl;*.skls', options={'HIDDEN'}),
+    'filter_glob': bpy.props.StringProperty(
+        default='*.skl;*.skls',
+        options={'HIDDEN'}
+    ),
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-    'files': bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement),
-    'motions': bpy.props.CollectionProperty(type=Motion, name='Motions Filter'),
+    'files': bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement
+    ),
+    'motions': bpy.props.CollectionProperty(
+        type=Motion,
+        name='Motions Filter'
+    ),
     'add_to_motion_list': ie.prop_skl_add_actions_to_motion_list(),
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
@@ -308,7 +316,7 @@ class XRAY_OT_export_skls_file(
 op_text = 'Skeletal Animations'
 export_props = {
     'directory': bpy.props.StringProperty(
-        subtype="FILE_PATH",
+        subtype='FILE_PATH',
         options={'HIDDEN'}
     ),
     'filter_glob': bpy.props.StringProperty(
@@ -396,8 +404,14 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
 
 op_text = 'Skeletal Animation'
 export_props = {
-    'directory': bpy.props.StringProperty(subtype="FILE_PATH", options={'HIDDEN'}),
-    'filter_glob': bpy.props.StringProperty(default='*' + skl_ext, options={'HIDDEN'}),
+    'directory': bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'HIDDEN'}
+    ),
+    'filter_glob': bpy.props.StringProperty(
+        default='*'+skl_ext,
+        options={'HIDDEN'}
+    ),
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 

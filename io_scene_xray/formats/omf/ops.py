@@ -67,7 +67,7 @@ import_props = {
         options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH",
+        subtype='DIR_PATH',
         options={'SKIP_SAVE'}
     ),
     'files': bpy.props.CollectionProperty(

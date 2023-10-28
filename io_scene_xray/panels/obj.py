@@ -266,10 +266,12 @@ class XRAY_OT_sort_motion_refs_list(utils.ie.BaseOperator):
 
 op_props = {
     'filter_glob': bpy.props.StringProperty(
-        default='*.omf', options={'HIDDEN'}
+        default='*.omf',
+        options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE'}
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE'}
     ),
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement

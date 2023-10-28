@@ -524,10 +524,12 @@ op_props = {
         default='*.dds', options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE', 'HIDDEN'}
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
     ),
     'filepath': bpy.props.StringProperty(
-        subtype="FILE_PATH", options={'SKIP_SAVE', 'HIDDEN'}
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
     ),
     'material_name': bpy.props.StringProperty(
         options={'SKIP_SAVE', 'HIDDEN'}

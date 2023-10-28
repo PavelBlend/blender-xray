@@ -17,7 +17,7 @@ import_props = {
         default='*'+filename_ext,
         options={'HIDDEN'}
     ),
-    'directory': bpy.props.StringProperty(subtype="DIR_PATH"),
+    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),

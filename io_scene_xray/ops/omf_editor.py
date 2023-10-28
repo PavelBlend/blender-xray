@@ -19,7 +19,7 @@ op_props = {
     ),
     'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'filepath': bpy.props.StringProperty(
-        subtype="FILE_PATH",
+        subtype='FILE_PATH',
         options={'SKIP_SAVE', 'HIDDEN'}
     )
 }
@@ -83,7 +83,7 @@ op_props = {
         options={'SKIP_SAVE'}
     ),
     'filepath_for_tests': bpy.props.StringProperty(
-        subtype="FILE_PATH",
+        subtype='FILE_PATH',
         options={'SKIP_SAVE', 'HIDDEN'}
     )
 }

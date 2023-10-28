@@ -27,11 +27,11 @@ import_props = {
         options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH",
+        subtype='DIR_PATH',
         options={'HIDDEN'}
     ),
     'filepath': bpy.props.StringProperty(
-        subtype="FILE_PATH",
+        subtype='FILE_PATH',
         options={'SKIP_SAVE', 'HIDDEN'}
     ),
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})

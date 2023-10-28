@@ -70,11 +70,11 @@ def draw_wire_cube(half_size_x, half_size_y, half_size_z, color):
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
-        {"pos": coords},
+        {'pos': coords},
         indices=indices
     )
     shader.bind()
-    shader.uniform_float("color", color)
+    shader.uniform_float('color', color)
     batch.draw(shader)
 
 
@@ -104,11 +104,11 @@ def draw_wire_sphere(radius, num_segments, color):
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
-        {"pos": coords},
+        {'pos': coords},
         indices=indices
     )
     shader.bind()
-    shader.uniform_float("color", color)
+    shader.uniform_float('color', color)
     batch.draw(shader)
 
 
@@ -148,11 +148,11 @@ def draw_wire_cylinder(radius, half_height, num_segments, color):
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
-        {"pos": coords},
+        {'pos': coords},
         indices=indices
     )
     shader.bind()
-    shader.uniform_float("color", color)
+    shader.uniform_float('color', color)
     batch.draw(shader)
 
 
@@ -169,10 +169,10 @@ def draw_cross(size, color):
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
-        {"pos": coords}
+        {'pos': coords}
     )
     shader.bind()
-    shader.uniform_float("color", color)
+    shader.uniform_float('color', color)
     batch.draw(shader)
 
 
@@ -185,10 +185,10 @@ def draw_line(start, end, color):
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
-        {"pos": coords}
+        {'pos': coords}
     )
     shader.bind()
-    shader.uniform_float("color", color)
+    shader.uniform_float('color', color)
     batch.draw(shader)
 
 
@@ -223,11 +223,11 @@ def gen_limit_circle(
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
-        {"pos": coords, },
+        {'pos': coords, },
         indices=indices
     )
     shader.bind()
-    shader.uniform_float("color", color_min)
+    shader.uniform_float('color', color_min)
     batch.draw(shader)
 
     # draw max limit
@@ -238,11 +238,11 @@ def gen_limit_circle(
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
-        {"pos": coords, },
+        {'pos': coords, },
         indices=indices
     )
     shader.bind()
-    shader.uniform_float("color", color)
+    shader.uniform_float('color', color)
     batch.draw(shader)
 
     # draw circle
@@ -253,11 +253,11 @@ def gen_limit_circle(
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
-        {"pos": coords, },
+        {'pos': coords, },
         indices=indices
     )
     shader.bind()
-    shader.uniform_float("color", const.GREY_COLOR)
+    shader.uniform_float('color', const.GREY_COLOR)
     batch.draw(shader)
 
     # draw current rotation point
@@ -271,10 +271,10 @@ def gen_limit_circle(
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'POINTS',
-        {"pos": coords, }
+        {'pos': coords, }
     )
     shader.bind()
-    shader.uniform_float("color", color)
+    shader.uniform_float('color', color)
     batch.draw(shader)
 
 

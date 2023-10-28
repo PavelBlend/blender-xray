@@ -374,7 +374,8 @@ def update_file_list_ext(self, context):
 
 op_props = {
     'directory': bpy.props.StringProperty(
-        subtype="DIR_PATH", options={'SKIP_SAVE', 'HIDDEN'}
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
     ),
 }
 

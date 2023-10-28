@@ -19,12 +19,13 @@ class ImportPartContext(obj.imp.ctx.ImportObjectContext):
 filename_ext = '.part'
 op_text = 'Scene Objects'
 import_props = {
-    'directory': bpy.props.StringProperty(subtype="DIR_PATH"),
+    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
     'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext, options={'HIDDEN'}
+        default='*'+filename_ext,
+        options={'HIDDEN'}
     ),
     'mesh_split_by_materials': ie.PropObjectMeshSplitByMaterials(),
     'fmt_version': ie.PropSDKVersion(),

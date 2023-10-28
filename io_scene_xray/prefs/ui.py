@@ -415,7 +415,7 @@ def draw_keymaps(context, prefs):
             if keymap:
                 row.context_pointer_set('keymap', keymaps)
                 rna_keymap_ui.draw_kmi(
-                    ["ADDON", "USER", "DEFAULT"],
+                    ['ADDON', 'USER', 'DEFAULT'],
                     keyconfig, keymaps, keymap, row, 0
                 )
 

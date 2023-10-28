@@ -39,14 +39,17 @@ filename_ext = '.ogf'
 
 import_props = {
     'filter_glob': bpy.props.StringProperty(
-        default='*.ogf', options={'HIDDEN'}
+        default='*.ogf',
+        options={'HIDDEN'}
     ),
-    'directory': bpy.props.StringProperty(subtype="DIR_PATH"),
+    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
     'filepath': bpy.props.StringProperty(
-        subtype="FILE_PATH", options={'SKIP_SAVE'}
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE'}
     ),
     'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'}
+        type=bpy.types.OperatorFileListElement,
+        options={'SKIP_SAVE'}
     ),
     'import_motions': ie.PropObjectMotionsImport(),
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})

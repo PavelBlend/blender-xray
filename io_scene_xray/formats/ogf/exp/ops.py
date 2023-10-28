@@ -154,7 +154,7 @@ class XRAY_OT_export_ogf_file(
 
 batch_export_props = {
     'directory': bpy.props.StringProperty(
-        subtype="FILE_PATH",
+        subtype='FILE_PATH',
         options={'HIDDEN'}
     ),
     'filter_glob': bpy.props.StringProperty(
