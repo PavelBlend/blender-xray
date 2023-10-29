@@ -33,6 +33,7 @@ class MeshContext(Context):
         ) = utils.ie.get_tex_dirs()
 
         self.level_name = None
+        self.level_path = None
         self.tex_folder_repored = False
 
     @property
@@ -66,7 +67,7 @@ class ImportMeshContext(MeshContext):
             return utils.tex.create_empty_img(relpath)
 
         # collect texture folders
-        tex_dirs = []
+        tex_dirs = [self.level_path, ]
         if self.level_name:
             for folder in (self.lvl_mod_folder, self.lvl_folder):
                 if folder:

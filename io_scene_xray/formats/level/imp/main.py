@@ -186,25 +186,9 @@ def _get_level_name(file_path):
     return os.path.basename(dir_path)
 
 
-def _check_level_path(context, path):
+def _check_levels_folder(context, path):
     if not context.lvl_mod_folder and not context.lvl_folder:
         log.warn(text.warn.level_folder_not_spec)
-        return
-
-    if context.lvl_mod_folder:
-        if path.startswith(context.lvl_mod_folder):
-            return
-
-    if context.lvl_folder:
-        if path.startswith(context.lvl_folder):
-            return
-
-    log.warn(
-        text.warn.level_incorrect_path,
-        file_path=path,
-        platform_levels_folder=context.lvl_folder,
-        mod_levels_folder=context.lvl_mod_folder,
-    )
 
 
 @log.with_context(name='import-game-level')
@@ -219,7 +203,8 @@ def import_file(context):
     level.name = _get_level_name(context.filepath)
     level.path = os.path.dirname(context.filepath)
 
+    context.level_path = os.path.dirname(level.file)
     context.level_name = level.name
 
-    _check_level_path(context, level.file)
+    _check_levels_folder(context, level.file)
     _import_main(context, level)

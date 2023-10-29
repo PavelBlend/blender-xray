@@ -104,7 +104,6 @@ translations_table = (
 
     # level import
     (warn.level_folder_not_spec, 'Не указан параметр "Levels Folder" в настройках аддона. Некоторые текстуры могут быть не загружены'),
-    (warn.level_incorrect_path, 'Level файл не находится в папке "Levels Folder". Некоторые текстуры могут быть не загружены'),
 
     # scene import
     (warn.scene_no_file, 'Не найден файл'),
