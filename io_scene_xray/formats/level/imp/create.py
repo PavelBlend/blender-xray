@@ -78,7 +78,7 @@ def links_nodes(
         uv_map_node.outputs['UV'],
         image_node.inputs['Vector']
     )
-    if lmap_count != 1:    # != terrain
+    if lmap_count != 1:    # is not terrain
         link_nodes(
             bpy_material,
             image_node.outputs['Alpha'],
@@ -86,26 +86,26 @@ def links_nodes(
         )
 
 
-def create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps, texture):
+def create_shader_nodes(bpy_mat, bpy_img, bpy_img_lmaps, texture):
     # remove default nodes
-    bpy_material.node_tree.nodes.clear()
+    bpy_mat.node_tree.nodes.clear()
 
     offset = mathutils.Vector((-1000.0, 0.0))
-    uv_map_node = create_shader_uv_map_texture_node(bpy_material, offset)
-    image_node = create_shader_image_node(
-        bpy_material,
-        bpy_image,
-        offset,
-        texture
-    )
-    principled_node = create_shader_principled_node(bpy_material, offset)
-    output_node = create_shader_output_node(bpy_material, offset)
-    if bpy_image_lmaps:
-        lmaps_count = len(bpy_image_lmaps)
+
+    if bpy_img_lmaps:
+        lmaps_count = len(bpy_img_lmaps)
     else:
         lmaps_count = 0
+
+    # create nodes
+    uv_map_node = create_shader_uv_map_texture_node(bpy_mat, offset)
+    image_node = create_shader_image_node(bpy_mat, bpy_img, offset, texture)
+    principled_node = create_shader_principled_node(bpy_mat, offset)
+    output_node = create_shader_output_node(bpy_mat, offset)
+
+    # link nodes
     links_nodes(
-        bpy_material,
+        bpy_mat,
         output_node,
         principled_node,
         image_node,
@@ -114,118 +114,134 @@ def create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps, texture):
     )
 
 
-def is_same_image_paths(bpy_image, absolute_texture_path):
-    absolute_image_path = bpy.path.abspath(bpy_image.filepath)
-    is_same_path = absolute_image_path == absolute_texture_path
-    return is_same_path
+def is_same_image_paths(bpy_img, abs_texture_path):
+    abs_img_path = bpy.path.abspath(bpy_img.filepath)
+    return abs_img_path == abs_texture_path
 
 
-def add_extension_to_texture(texture):
-    texture_and_extension = texture + os.extsep + 'dds'
-    return texture_and_extension
+def add_texture_ext(texture):
+    return texture + os.extsep + 'dds'
 
 
-def get_absolute_texture_path(folder, texture):
-    absolute_texture_path = os.path.join(
-        folder, add_extension_to_texture(texture)
-    )
-    return absolute_texture_path
+def get_abs_tex_path(folder, texture):
+    return os.path.join(folder, add_texture_ext(texture))
+
+
+def load_lmap_img(context, path):
+    lmap_img = context.image(path)
+    lmap_img.colorspace_settings.name = 'Non-Color'
+    lmap_img.use_fake_user = True
+    return lmap_img
 
 
 def get_image_lmap(context, light_maps):
     if not light_maps:
         return None
+
     light_maps_count = len(light_maps)
 
     if light_maps_count == 1:
-        image_lmap = context.image(light_maps[0])
-        image_lmap.colorspace_settings.name = 'Non-Color'
-        image_lmap.use_fake_user = True
-        return (image_lmap, )
+        lmap_img = load_lmap_img(context, light_maps[0])
+        lmap_imgs = (lmap_img, )
 
     elif light_maps_count == 2:
-        image_lmap_1 = context.image(light_maps[0])
-        image_lmap_2 = context.image(light_maps[1])
-        image_lmap_1.colorspace_settings.name = 'Non-Color'
-        image_lmap_2.colorspace_settings.name = 'Non-Color'
-        image_lmap_1.use_fake_user = True
-        image_lmap_2.use_fake_user = True
-        return (image_lmap_1, image_lmap_2)
+        lmap_img_1 = load_lmap_img(context, light_maps[0])
+        lmap_img_2 = load_lmap_img(context, light_maps[1])
+        lmap_imgs = (lmap_img_1, lmap_img_2)
+
+    return lmap_imgs
 
 
-def is_same_light_maps(context, bpy_material, light_maps):
+def is_same_light_maps(context, bpy_mat, light_maps):
     has_images = []
+    level_dir = os.path.dirname(context.filepath)
+
     for index, light_map in enumerate(light_maps):
-        level_dir = os.path.dirname(context.filepath)
-        absolute_texture_path_in_level_folder = get_absolute_texture_path(
-            level_dir, light_map
-        )
-        image_name = getattr(bpy_material.xray, 'lmap_{}'.format(index))
+        # absolute texture path in level folder
+        abs_lvl_path = get_abs_tex_path(level_dir, light_map)
+        image_name = getattr(bpy_mat.xray, 'lmap_{}'.format(index))
         bpy_image = bpy.data.images.get(image_name)
+
         if not bpy_image:
             continue
-        if not is_same_image_paths(
-                bpy_image,
-                absolute_texture_path_in_level_folder
-            ):
+
+        if not is_same_image_paths(bpy_image, abs_lvl_path):
             continue
+
         has_images.append(True)
+
     if len(has_images) == len(light_maps):
         return True
 
 
-def is_same_image(context, bpy_material, texture):
-    absolute_texture_path = get_absolute_texture_path(
-        context.tex_folder, texture
-    )
+def is_same_image(context, bpy_mat, texture):
     level_dir = os.path.dirname(context.filepath)
-    absolute_texture_path_in_level_folder = get_absolute_texture_path(
-        level_dir, texture
-    )
+    # absolute texture path in textures folder
+    abs_tex_path = get_abs_tex_path(context.tex_folder, texture)
+    # absolute texture path in level folder
+    abs_lvl_path = get_abs_tex_path(level_dir, texture)
+
     if utils.version.IS_28:
-        for node in bpy_material.node_tree.nodes:
+        for node in bpy_mat.node_tree.nodes:
             if node.type in utils.version.IMAGE_NODES:
                 bpy_image = node.image
+
                 if not bpy_image:
                     continue
-                if not is_same_image_paths(bpy_image, absolute_texture_path):
-                    if not is_same_image_paths(
-                            bpy_image,
-                            absolute_texture_path_in_level_folder
-                        ):
+
+                if not is_same_image_paths(bpy_image, abs_lvl_path):
+                    if not is_same_image_paths(bpy_image, abs_tex_path):
                         continue
+
                 return bpy_image
+
     else:
-        for texture_slot in bpy_material.texture_slots:
+        for texture_slot in bpy_mat.texture_slots:
+
             if not texture_slot:
                 continue
+
             if not hasattr(texture_slot.texture, 'image'):
                 continue
+
             bpy_image = texture_slot.texture.image
+
             if not bpy_image:
                 continue
-            if not is_same_image_paths(bpy_image, absolute_texture_path):
-                if not is_same_image_paths(
-                        bpy_image,
-                        absolute_texture_path_in_level_folder
-                    ):
+
+            if not is_same_image_paths(bpy_image, abs_lvl_path):
+                if not is_same_image_paths(bpy_image, abs_tex_path):
                     continue
+
             return bpy_image
 
 
 def search_material(context, texture, engine_shader, light_maps):
-    for material in bpy.data.materials:
-        if not material.name.startswith(texture):
+    found_mat = None
+    found_img = None
+
+    for mat in bpy.data.materials:
+
+        if not mat.name.startswith(texture):
             continue
-        if material.xray.eshader != engine_shader:
+
+        if mat.xray.eshader != engine_shader:
             continue
-        image = is_same_image(context, material, texture)
-        if not image:
+
+        img = is_same_image(context, mat, texture)
+
+        if not img:
             continue
-        if not is_same_light_maps(context, material, light_maps):
+
+        if not is_same_light_maps(context, mat, light_maps):
             continue
-        return material, image
-    return None, None
+
+        found_mat = mat
+        found_img = img
+
+        break
+
+    return found_mat, found_img
 
 
 def set_material_settings(bpy_material):
@@ -235,64 +251,78 @@ def set_material_settings(bpy_material):
 
 
 def create_material(level, context, texture, engine_shader, light_maps):
-    bpy_material = bpy.data.materials.new(name=texture)
-    bpy_material.xray.version = context.version
-    bpy_material.xray.eshader = engine_shader
-    bpy_material.xray.uv_texture = 'Texture'
+    # create material
+    bpy_mat = bpy.data.materials.new(name=texture)
+    bpy_mat.xray.version = context.version
+    bpy_mat.xray.eshader = engine_shader
+    bpy_mat.xray.uv_texture = 'Texture'
     utils.stats.created_mat()
 
-    bpy_image = context.image(texture)
-    bpy_image_lmaps = get_image_lmap(context, light_maps)
+    # load images
+    bpy_img = context.image(texture)
+    bpy_img_lmaps = get_image_lmap(context, light_maps)
 
-    if bpy_image_lmaps:
-        bpy_material.xray.uv_light_map = 'Light Map'
-        for index, light_map_image in enumerate(bpy_image_lmaps):
-            setattr(
-                bpy_material.xray,
-                'lmap_{}'.format(index),
-                light_map_image.name
-            )
+    # set light map properties for material
+    if bpy_img_lmaps:
+        bpy_mat.xray.uv_light_map = 'Light Map'
+
+        for index, lmap_img in enumerate(bpy_img_lmaps):
+            setattr(bpy_mat.xray, 'lmap_{}'.format(index), lmap_img.name)
+
+    # set vertex color layers
     else:
-        bpy_material.xray.light_vert_color = 'Light'
-        bpy_material.xray.sun_vert_color = 'Sun'
+        bpy_mat.xray.light_vert_color = 'Light'
+        bpy_mat.xray.sun_vert_color = 'Sun'
 
-    bpy_material.xray.hemi_vert_color = 'Hemi'
+    bpy_mat.xray.hemi_vert_color = 'Hemi'
 
+    # create shader nodes
     if utils.version.IS_28:
-        set_material_settings(bpy_material)
-        create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps, texture)
+        set_material_settings(bpy_mat)
+        create_shader_nodes(bpy_mat, bpy_img, bpy_img_lmaps, texture)
+
+    # search or create texture
     else:
-        bpy_material.use_transparency = True
-        bpy_material.alpha = 0.0
-        bpy_material.use_shadeless = True
-        bpy_material.diffuse_intensity = 1.0
-        bpy_material.specular_intensity = 0.0
-        tex_slot = bpy_material.texture_slots.add()
+        bpy_mat.use_transparency = True
+        bpy_mat.alpha = 0.0
+        bpy_mat.use_shadeless = True
+        bpy_mat.diffuse_intensity = 1.0
+        bpy_mat.specular_intensity = 0.0
+        tex_slot = bpy_mat.texture_slots.add()
+
         # find texture
         bpy_texture = None
         for tex in bpy.data.textures:
             if hasattr(tex, 'image'):
                 image_path = bpy.path.abspath(tex.image.filepath)
-                if is_same_image_paths(bpy_image, image_path):
+                if is_same_image_paths(bpy_img, image_path):
                     bpy_texture = tex
+                    break
+
+        # create texture
         if not bpy_texture:
             bpy_texture = bpy.data.textures.new(texture, 'IMAGE')
-            bpy_texture.image = bpy_image
+            bpy_texture.image = bpy_img
             utils.stats.created_tex()
+
         tex_slot.texture = bpy_texture
         tex_slot.use_map_alpha = True
 
-    return bpy_material, bpy_image
+    return bpy_mat, bpy_img
 
 
-def get_material(level, context, texture, engine_shader, light_maps):
-    bpy_material, bpy_image = search_material(context, texture, engine_shader, light_maps)
-    if not bpy_material:
-        bpy_material, bpy_image = create_material(
+def get_material(level, context, texture, eshader, lmaps):
+    # search material
+    bpy_mat, bpy_img = search_material(context, texture, eshader, lmaps)
+
+    # create material
+    if not bpy_mat:
+        bpy_mat, bpy_img = create_material(
             level,
             context,
             texture,
-            engine_shader,
-            light_maps
+            eshader,
+            lmaps
         )
-    return bpy_material, bpy_image
+
+    return bpy_mat, bpy_img
