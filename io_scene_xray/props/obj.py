@@ -214,7 +214,7 @@ def update_motion_collection_index(self, context):
 
 def get_color_prop(name, size):
     return bpy.props.FloatVectorProperty(
-        name='Light',
+        name=name,
         min=0.0,
         max=1.0,
         subtype='COLOR',
