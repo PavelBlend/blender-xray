@@ -26,107 +26,108 @@ get_corrector_u = get_uv_corrector.format('correct_u')
 get_corrector_v = get_uv_corrector.format('correct_v')
 
 
-def _import_vertices_d3d9(
-        xrlc_version,
-        packed_reader,
-        vertex_buffer,
-        vertices_count,
-        usage_list
-    ):
-
-    code = ''
-    code += 'for vertex_index in range({}):\n'.format(vertices_count)
+def _import_vertices_d3d9(ver, reader, vb, verts_count, usage_list):
+    code = 'for vertex_index in range({}):\n'.format(verts_count)
     has_uv_corrector = False
+
     for usage_info in usage_list:
+
         data_type = usage_info[2]
         usage = usage_info[4]
         usage_index = usage_info[5]
         data_format = fmt.types_struct[data_type]
         data_type = fmt.types[data_type]
         usage = fmt.usage[usage]
+
+        # position
         if usage == fmt.POSITION:
-            code += '    coord_x, coord_y, coord_z = packed_reader.getf("<{}")\n'.format(data_format)
-            code += '    vertex_buffer.position.append((coord_x, coord_z, coord_y))\n'
+            code += '    coord_x, coord_y, coord_z = reader.getf("<{}")\n'.format(data_format)
+            code += '    vb.position.append((coord_x, coord_z, coord_y))\n'
+
+        # normal
         elif usage == fmt.NORMAL:
-            code += '    norm_x, norm_y, norm_z, hemi = packed_reader.getf("<{}")\n'.format(data_format)
-            code += '    vertex_buffer.normal.append((\n' \
-                    '       norm_z,\n' \
-                    '       norm_x,\n' \
-                    '       norm_y\n' \
-                    '    ))\n'
-            code += '    vertex_buffer.color_hemi.append(hemi / 255)\n'
+            code += '    norm_x, norm_y, norm_z, hemi = reader.getf("<{}")\n'.format(data_format)
+            code += '    vb.normal.append((norm_z, norm_x, norm_y))\n'
+            code += '    vb.color_hemi.append(hemi / 255)\n'
+
+        # tangent
         elif usage == fmt.TANGENT:
-            code += '    tangent_x, tangent_y, tangent_z, correct_u = packed_reader.getf("<{}")\n'.format(data_format)
             has_uv_corrector = True
+            code += '    tan_x, tan_y, tan_z, correct_u = reader.getf("<{}")\n'.format(data_format)
+
+        # binormal
         elif usage == fmt.BINORMAL:
-            code += '    binorm_x, binorm_y, binorm_z, correct_v = packed_reader.getf("<{}")\n'.format(data_format)
             has_uv_corrector = True
+            code += '    bin_x, bin_y, bin_z, correct_v = reader.getf("<{}")\n'.format(data_format)
+
         elif usage == fmt.TEXCOORD:
-            if usage_index == 0:    # texture uv
-                if data_type in (fmt.FLOAT2, fmt.SHORT2):
-                    code += '    coord_u, coord_v = packed_reader.getf("<{}")\n'.format(data_format)
-                elif data_type == fmt.SHORT4:
-                    if xrlc_version >= fmt.VERSION_12:
-                        code += '    coord_u, coord_v, shader_data, unused = packed_reader.getf("<{}")\n'.format(data_format)
-                    else:
-                        code += '    coord_u, coord_v, lmap_u, lmap_v = packed_reader.getf("<{}")\n'.format(data_format)
+
+            # texture uv
+            if usage_index == 0:
+
                 if data_type == fmt.FLOAT2:
-                    code += '    vertex_buffer.uv.append((coord_u, 1 - coord_v))\n'
-                elif data_type == fmt.SHORT2:
-                    if has_uv_corrector:
-                        code += '    vertex_buffer.uv.append((\n' \
-                                '        coord_u / fmt.UV_COEFFICIENT + {0},\n' \
-                                '        1 - coord_v / fmt.UV_COEFFICIENT - {1}\n' \
-                                '    ))\n'.format(get_corrector_u, get_corrector_v)
-                    else:
-                        code += '    vertex_buffer.uv.append((\n' \
-                                '        coord_u / fmt.UV_COEFFICIENT,\n' \
-                                '        1 - coord_v / fmt.UV_COEFFICIENT\n' \
-                                '    ))\n'
-                elif data_type == fmt.SHORT4:
-                    if xrlc_version >= fmt.VERSION_12:
-                        if has_uv_corrector:
-                            code += '    vertex_buffer.uv.append((\n' \
-                                    '        coord_u / fmt.UV_COEFFICIENT_2 + {0},\n' \
-                                    '        1 - coord_v / fmt.UV_COEFFICIENT_2 - {1}\n' \
-                                    '    ))\n'.format(get_corrector_u, get_corrector_v)
-                        else:
-                            code += '    vertex_buffer.uv.append((\n' \
-                                    '        coord_u / fmt.UV_COEFFICIENT_2,\n' \
-                                    '        1 - coord_v / fmt.UV_COEFFICIENT_2\n' \
-                                    '    ))\n'
-                    else:
-                        code += '    vertex_buffer.uv.append((\n' \
-                                '        coord_u / fmt.UV_COEFFICIENT,\n' \
-                                '        1 - coord_v / fmt.UV_COEFFICIENT\n' \
-                                '    ))\n' \
-                                '    vertex_buffer.uv_lmap.append((\n' \
-                                '        lmap_u / fmt.LIGHT_MAP_UV_COEFFICIENT,\n' \
-                                '        1 - lmap_v / fmt.LIGHT_MAP_UV_COEFFICIENT\n' \
-                                '    ))\n'
-            elif usage_index == 1:    # lmap uv
-                code += '    lmap_u, lmap_v = packed_reader.getf("<{}")\n'.format(data_format)
+                    code += '    coord_u, coord_v = reader.getf("<{}")\n'.format(data_format)
+                    code += '    vb.uv.append((coord_u, 1 - coord_v))\n'
+
                 if data_type == fmt.SHORT2:
-                    code += '    lmap_u = lmap_u / fmt.LIGHT_MAP_UV_COEFFICIENT\n'
-                    code += '    lmap_v = 1 - lmap_v / fmt.LIGHT_MAP_UV_COEFFICIENT\n'
-                code += '    vertex_buffer.uv_lmap.append((lmap_u, lmap_v))\n'
+                    code += '    coord_u, coord_v = reader.getf("<{}")\n'.format(data_format)
+
+                    if has_uv_corrector:
+                        code += '    vb.uv.append((coord_u / fmt.UV_COEFFICIENT + {0}, 1 - coord_v / fmt.UV_COEFFICIENT - {1}))\n'.format(
+                            get_corrector_u,
+                            get_corrector_v
+                        )
+                    else:
+                        code += '    vb.uv.append((coord_u / fmt.UV_COEFFICIENT, 1 - coord_v / fmt.UV_COEFFICIENT))\n'
+
+                elif data_type == fmt.SHORT4:
+
+                    if ver >= fmt.VERSION_12:
+                        # MU meshes
+                        code += '    coord_u, coord_v, shader_data, unused = reader.getf("<{}")\n'.format(data_format)
+
+                        if has_uv_corrector:
+                            code += '    vb.uv.append((coord_u / fmt.UV_COEFFICIENT_2 + {0}, 1 - coord_v / fmt.UV_COEFFICIENT_2 - {1}))\n'.format(
+                                get_corrector_u,
+                                get_corrector_v
+                            )
+                        else:
+                            code += '    vb.uv.append((coord_u / fmt.UV_COEFFICIENT_2, 1 - coord_v / fmt.UV_COEFFICIENT_2))\n'
+
+                    else:
+                        code += '    coord_u, coord_v, lmap_u, lmap_v = reader.getf("<{}")\n'.format(data_format)
+                        code += '    vb.uv.append((coord_u / fmt.UV_COEFFICIENT, 1 - coord_v / fmt.UV_COEFFICIENT))\n'
+                        code += '    vb.uv_lmap.append((lmap_u / fmt.LIGHT_MAP_UV_COEFFICIENT, 1 - lmap_v / fmt.LIGHT_MAP_UV_COEFFICIENT))\n'
+
+            # lmap uv
+            elif usage_index == 1:
+                code += '    lmap_u, lmap_v = reader.getf("<{}")\n'.format(data_format)
+
+                if data_type == fmt.SHORT2:
+                    code += '    lmap_u /= fmt.LIGHT_MAP_UV_COEFFICIENT\n'
+                    code += '    lmap_v /= fmt.LIGHT_MAP_UV_COEFFICIENT\n'
+
+                code += '    vb.uv_lmap.append((lmap_u, 1 - lmap_v))\n'
+
             else:
                 raise BaseException('Unsupported uv usage index: {}'.format(usage_index))
+
+        # vertex color
         elif usage == fmt.COLOR:
-            code += '    blue, green, red, sun = packed_reader.getf("<{}")\n'.format(data_format)
+            code += '    blue, green, red, sun = reader.getf("<{}")\n'.format(data_format)
+
             if data_type == fmt.D3DCOLOR:
-                code += '    red = red / 255\n'
-                code += '    green = green / 255\n'
-                code += '    blue = blue / 255\n'
-            code += '    vertex_buffer.color_light.append((\n' \
-                    '       red, green, blue\n' \
-                    '    ))\n'
-            code += '    vertex_buffer.color_sun.append(sun)\n'
+                code += '    red /= 255\n'
+                code += '    green /= 255\n'
+                code += '    blue /= 255\n'
+
+            code += '    vb.color_light.append((red, green, blue))\n'
+            code += '    vb.color_sun.append(sun)\n'
 
     exec(code)
 
 
-def _import_vertices_d3d7(level, reader, vb, verts_count, vert_fmt):
+def _import_vertices_d3d7(ver, reader, vb, verts_count, vert_fmt):
     code = 'for vertex_index in range({0}):\n'.format(verts_count)
 
     # position, normal, diffuse, tex coord
@@ -157,7 +158,7 @@ def _import_vertices_d3d7(level, reader, vb, verts_count, vert_fmt):
         lmap_uv_code += '    lmap_u, lmap_v = reader.getf("<2f")\n'
         lmap_uv_code += '    vb.uv_lmap.append((lmap_u, 1 - lmap_v))\n'
 
-    if level.xrlc_version >= fmt.VERSION_5:
+    if ver >= fmt.VERSION_5:
         code += tex_uv_code
         code += lmap_uv_code
     else:
@@ -171,12 +172,8 @@ def _import_vertex_buffer_declaration(packed_reader):
     usage_list = []
 
     while True:
-        stream = packed_reader.getf('<H')[0]             # ?
-        offset = packed_reader.getf('<H')[0]
-        type_ = packed_reader.getf('<B')[0]
-        method = packed_reader.getf('<B')[0]             # ?
-        usage = packed_reader.getf('<B')[0]
-        usage_index = packed_reader.getf('<B')[0]
+        stream, offset = packed_reader.getf('<2H')
+        type_, method, usage, usage_index = packed_reader.getf('<4B')
 
         if fmt.types[type_] == fmt.UNUSED:
             break
@@ -193,14 +190,14 @@ def _import_vertex_buffer_declaration(packed_reader):
     return usage_list
 
 
-def _import_vertex_buffer_d3d9(packed_reader, level):
+def _import_vertex_buffer_d3d9(packed_reader, ver):
     usage_list = _import_vertex_buffer_declaration(packed_reader)
     vertices_count = packed_reader.uint32()
 
     vertex_buffer = VertexBuffer()
 
     _import_vertices_d3d9(
-        level.xrlc_version,
+        ver,
         packed_reader,
         vertex_buffer,
         vertices_count,
@@ -210,14 +207,14 @@ def _import_vertex_buffer_d3d9(packed_reader, level):
     return vertex_buffer
 
 
-def import_vertex_buffer_d3d7(packed_reader, level):
+def import_vertex_buffer_d3d7(packed_reader, ver):
     vertex_format = packed_reader.uint32()
     vertices_count = packed_reader.uint32()
 
     vertex_buffer = VertexBuffer()
 
     _import_vertices_d3d7(
-        level,
+        ver,
         packed_reader,
         vertex_buffer,
         vertices_count,
@@ -249,7 +246,7 @@ def import_vertex_buffers(level, chunks, chunks_ids):
 
     vertex_buffers = []
     for buffer_index in range(buffers_count):
-        vertex_buffer = import_fun(vbs_reader, level)
+        vertex_buffer = import_fun(vbs_reader, level.xrlc_version)
         vertex_buffers.append(vertex_buffer)
 
     level.vertex_buffers = vertex_buffers
