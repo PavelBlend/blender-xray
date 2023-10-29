@@ -19,7 +19,7 @@ def get_level_material(lvl, shader_id, texture_id):
         texture_raw = lvl.shaders_or_textures[texture_id]
 
     shader_data = shader_raw + '/' + texture_raw
-    bpy_material, bpy_image = level.imp.shaders.import_shader(
+    bpy_material, bpy_image = level.imp.shader.import_shader(
         lvl,
         lvl.context,
         shader_data

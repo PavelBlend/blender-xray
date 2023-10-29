@@ -8,8 +8,8 @@ import mathutils
 # addon modules
 from . import header
 from . import create
-from . import shaders
-from . import visuals
+from . import shader
+from . import visual
 from . import vb
 from . import ib
 from . import swi
@@ -69,7 +69,7 @@ def _import_level(level, context, chunks):
 
     # shaders
     shaders_data = chunks.pop(chunks_ids.SHADERS)
-    level.materials, level.images = shaders.import_shaders(
+    level.materials, level.images = shader.import_shaders(
         level,
         context,
         shaders_data
@@ -78,7 +78,7 @@ def _import_level(level, context, chunks):
     # textures for 4, 5 versions
     if level.xrlc_version <= fmt.VERSION_5:
         tex_data = chunks.pop(chunks_ids.TEXTURES)
-        shaders.import_textures(level, tex_data)
+        shader.import_textures(level, tex_data)
 
     # vertex buffers
     vb_data = chunks.pop(chunks_ids.VB, None)
@@ -115,7 +115,7 @@ def _import_level(level, context, chunks):
 
     # visuals
     visuals_data = chunks.pop(chunks_ids.VISUALS)
-    visuals.import_visuals(visuals_data, level)
+    visual.import_visuals(visuals_data, level)
 
     # sectors
     sectors_data = chunks.pop(chunks_ids.SECTORS)
