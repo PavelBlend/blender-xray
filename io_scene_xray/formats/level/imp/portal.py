@@ -2,17 +2,15 @@
 import bpy
 
 # addon modules
+from . import name
 from . import create
 from .. import fmt
 from .... import utils
 from .... import rw
 
 
-PORTAL_OBJECT_NAME = 'portal'
-
-
 def _create_portal_object(portal_index, verts, collection, portals_obj):
-    object_name = '{0}_{1:0>3}'.format(PORTAL_OBJECT_NAME, portal_index)
+    object_name = '{0}_{1:0>3}'.format(name.PORTAL_NAME, portal_index)
 
     faces = [list(range(len(verts))), ]
     portal_mesh = bpy.data.meshes.new(object_name)
@@ -62,7 +60,7 @@ def _import_portal(reader, index, collection, level, portals_obj):
 
 
 def _create_portals_object(level_object, collection):
-    portals_object = create.create_object('portals', None)
+    portals_object = create.create_object(name.PORTAL_NAME + 's', None)
     portals_object.parent = level_object
     level_object.xray.level.portals_obj = portals_object.name
 
@@ -76,7 +74,7 @@ def _create_portals_object(level_object, collection):
 def import_portals(level, level_object, chunks, chunks_ids):
     data = chunks.pop(chunks_ids.PORTALS)
     reader = rw.read.PackedReader(data)
-    collection = level.collections[create.LEVEL_PORTALS_COLLECTION_NAME]
+    collection = level.collections[name.LEVEL_PORTALS_COLLECTION_NAME]
 
     # create portals root-object
     portals_obj = _create_portals_object(level_object, collection)

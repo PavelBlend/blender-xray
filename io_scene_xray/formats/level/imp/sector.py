@@ -1,16 +1,13 @@
 # addon modules
+from . import name
 from . import create
 from .. import fmt
 from .... import rw
 from .... import utils
 
 
-SECTOR_OBJECT_NAME = 'sector'
-SECTORS_OBJECT_NAME = 'sectors'
-
-
 def _create_sector_object(sector_id, collection, sectors_object):
-    object_name = '{0}_{1:0>3}'.format(SECTOR_OBJECT_NAME, sector_id)
+    object_name = '{0}_{1:0>3}'.format(name.SECTOR_NAME, sector_id)
     sector_object = create.create_object(object_name, None)
     sector_object.parent = sectors_object
     collection.objects.link(sector_object)
@@ -22,7 +19,7 @@ def _create_sector_object(sector_id, collection, sectors_object):
 
 
 def _create_sectors_object(collection, level_object):
-    sectors_object = create.create_object(SECTORS_OBJECT_NAME, None)
+    sectors_object = create.create_object(name.SECTOR_NAME + 's', None)
     sectors_object.parent = level_object
     level_object.xray.level.sectors_obj = sectors_object.name
     collection.objects.link(sectors_object)
@@ -49,7 +46,7 @@ def import_sectors(level, level_object, chunks, chunks_ids):
     chunked_reader = rw.read.ChunkedReader(data)
 
     # create sectors root-object
-    collection = level.collections[create.LEVEL_SECTORS_COLLECTION_NAME]
+    collection = level.collections[name.LEVEL_SECTORS_COLLECTION_NAME]
     sectors_object = _create_sectors_object(collection, level_object)
 
     for sector_id, sector_data in chunked_reader:

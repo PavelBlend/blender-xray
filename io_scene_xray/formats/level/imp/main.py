@@ -1,6 +1,9 @@
 # standart modules
 import os
 
+# blender modules
+import bpy
+
 # addon modules
 from . import header
 from . import create
@@ -15,6 +18,7 @@ from . import light
 from . import glow
 from . import sector
 from . import portal
+from . import name
 from .. import fmt
 from .... import log
 from .... import utils
@@ -87,11 +91,44 @@ def _create_level_object(level, level_collection):
     return level_object
 
 
+def _create_level_collections(level):
+    if utils.version.IS_28:
+        scene_collection = bpy.context.scene.collection
+    else:
+        scene_collection = None
+
+    # create main collection
+    level_collection = utils.version.create_collection(
+        level.name,
+        scene_collection
+    )
+    level.collections[name.LEVEL_MAIN_COLLECTION_NAME] = level_collection
+
+    # create level collections
+    for collection_name in name.LEVEL_COLLECTION_NAMES:
+        collection = utils.version.create_collection(
+            collection_name,
+            level_collection
+        )
+        level.collections[collection_name] = collection
+
+    # create visuals collections
+    visuals_collection = level.collections[name.LEVEL_VISUALS_COLLECTION_NAME]
+    for collection_name in name.LEVEL_VISUALS_COLLECTION_NAMES:
+        collection = utils.version.create_collection(
+            collection_name,
+            visuals_collection
+        )
+        level.collections[collection_name] = collection
+
+    return level_collection
+
+
 def _import_level(level, context, chunks):
     chunks_ids = _get_level_chunks_ids(level)
 
     # create level object
-    level_collection = create.create_level_collections(level)
+    level_collection = _create_level_collections(level)
     level_object = _create_level_object(level, level_collection)
 
     # shaders

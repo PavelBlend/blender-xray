@@ -14,7 +14,7 @@ from .... import text
 
 
 def link_visual_object(lvl, visual, bpy_obj):
-    coll_name = level.imp.create.LEVEL_VISUALS_COLLECTION_NAMES_TABLE[visual.name]
+    coll_name = level.imp.name.LEVEL_VISUALS_COLLECTION_NAMES_TABLE[visual.name]
     collection = lvl.collections[coll_name]
     collection.objects.link(bpy_obj)
 

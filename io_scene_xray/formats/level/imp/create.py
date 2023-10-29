@@ -12,80 +12,10 @@ from .... import text
 from .... import utils
 
 
-# level collection names
-LEVEL_MAIN_COLLECTION_NAME = 'Level'
-LEVEL_VISUALS_COLLECTION_NAME = 'Visuals'
-LEVEL_CFORM_COLLECTION_NAME = 'CForm'
-LEVEL_GLOWS_COLLECTION_NAME = 'Glows'
-LEVEL_LIGHTS_COLLECTION_NAME = 'Lights'
-LEVEL_PORTALS_COLLECTION_NAME = 'Portals'
-LEVEL_SECTORS_COLLECTION_NAME = 'Sectors'
-
-LEVEL_COLLECTION_NAMES = (
-    LEVEL_VISUALS_COLLECTION_NAME,
-    LEVEL_CFORM_COLLECTION_NAME,
-    LEVEL_GLOWS_COLLECTION_NAME,
-    LEVEL_LIGHTS_COLLECTION_NAME,
-    LEVEL_PORTALS_COLLECTION_NAME,
-    LEVEL_SECTORS_COLLECTION_NAME
-)
-
-# visuals collection names
-LEVEL_VISUALS_NORMAL_COLLECTION_NAME = 'Normal'
-LEVEL_VISUALS_HIERRARHY_COLLECTION_NAME = 'Hierrarhy'
-LEVEL_VISUALS_PROGRESSIVE_COLLECTION_NAME = 'Progressive'
-LEVEL_VISUALS_LOD_COLLECTION_NAME = 'LoD'
-LEVEL_VISUALS_TREE_PM_COLLECTION_NAME = 'Tree Progressive'
-LEVEL_VISUALS_TREE_ST_COLLECTION_NAME = 'Tree Static'
-
-LEVEL_VISUALS_COLLECTION_NAMES = (
-    LEVEL_VISUALS_NORMAL_COLLECTION_NAME,
-    LEVEL_VISUALS_HIERRARHY_COLLECTION_NAME,
-    LEVEL_VISUALS_PROGRESSIVE_COLLECTION_NAME,
-    LEVEL_VISUALS_LOD_COLLECTION_NAME,
-    LEVEL_VISUALS_TREE_PM_COLLECTION_NAME,
-    LEVEL_VISUALS_TREE_ST_COLLECTION_NAME
-)
-
-LEVEL_VISUALS_COLLECTION_NAMES_TABLE = {
-    'normal': LEVEL_VISUALS_NORMAL_COLLECTION_NAME,
-    'hierrarhy': LEVEL_VISUALS_HIERRARHY_COLLECTION_NAME,
-    'progressive': LEVEL_VISUALS_PROGRESSIVE_COLLECTION_NAME,
-    'lod': LEVEL_VISUALS_LOD_COLLECTION_NAME,
-    'tree_pm': LEVEL_VISUALS_TREE_PM_COLLECTION_NAME,
-    'tree_st': LEVEL_VISUALS_TREE_ST_COLLECTION_NAME
-}
-
-
 def create_object(object_name, object_data):
     bpy_object = bpy.data.objects.new(object_name, object_data)
     utils.stats.created_obj()
     return bpy_object
-
-
-def create_level_collections(level):
-    if utils.version.IS_28:
-        scene_collection = bpy.context.scene.collection
-    else:
-        scene_collection = None
-    # create main collection
-    level_collection = utils.version.create_collection(
-        level.name, scene_collection
-    )
-    level.collections[LEVEL_MAIN_COLLECTION_NAME] = level_collection
-
-    # create level collections
-    for collection_name in LEVEL_COLLECTION_NAMES:
-        collection = utils.version.create_collection(collection_name, level_collection)
-        level.collections[collection_name] = collection
-
-    # create visuals collections
-    visuals_collection = level.collections[LEVEL_VISUALS_COLLECTION_NAME]
-    for collection_name in LEVEL_VISUALS_COLLECTION_NAMES:
-        collection = utils.version.create_collection(collection_name, visuals_collection)
-        level.collections[collection_name] = collection
-
-    return level_collection
 
 
 def remove_default_shader_nodes(bpy_material):

@@ -6,7 +6,7 @@ import bpy
 import bmesh
 
 # addon modules
-from . import create
+from . import name
 from .. import fmt
 from ... import xr
 from .... import utils
@@ -212,7 +212,7 @@ def _import_main(context, level, cform_path, data):
         bpy_obj.xray.isroot = False
         bpy_obj.xray.is_level = True
         bpy_obj.xray.level.object_type = 'CFORM'
-        collection = level.collections[create.LEVEL_CFORM_COLLECTION_NAME]
+        collection = level.collections[name.LEVEL_CFORM_COLLECTION_NAME]
         collection.objects.link(bpy_obj)
         utils.stats.created_obj()
         if not utils.version.IS_28:

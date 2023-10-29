@@ -3,13 +3,13 @@ import bpy
 import mathutils
 
 # addon modules
+from . import name
 from . import create
 from .. import fmt
 from .... import rw
 from .... import utils
 
 
-LIGHT_OBJECT_NAME = 'light'
 INT_MAX = 2 ** 31 - 1
 
 
@@ -94,7 +94,7 @@ def _import_light_v5(packed_reader, light_object):
 
 
 def _create_light_object(light_index, collection, lights_object):
-    object_name = '{0}_{1:0>3}'.format(LIGHT_OBJECT_NAME, light_index)
+    object_name = '{0}_{1:0>3}'.format(name.LIGHT_NAME, light_index)
 
     if utils.version.IS_28:
         bpy_data = bpy.data.lights
@@ -116,7 +116,7 @@ def _create_light_object(light_index, collection, lights_object):
 
 
 def _create_lights_object(level_object, collection):
-    lights_object = create.create_object('lights', None)
+    lights_object = create.create_object(name.LIGHT_NAME + 's', None)
 
     lights_object.parent = level_object
     level_object.xray.level.lights_obj = lights_object.name
@@ -131,7 +131,7 @@ def _create_lights_object(level_object, collection):
 def import_lights(level, level_object, chunks, chunks_ids):
     data = chunks.pop(chunks_ids.LIGHT_DYNAMIC)
     packed_reader = rw.read.PackedReader(data)
-    collection = level.collections[create.LEVEL_LIGHTS_COLLECTION_NAME]
+    collection = level.collections[name.LEVEL_LIGHTS_COLLECTION_NAME]
 
     # create lights root-object
     lights_obj = _create_lights_object(level_object, collection)

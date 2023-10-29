@@ -2,6 +2,7 @@
 import bpy
 
 # addon modules
+from . import name
 from . import create
 from .. import fmt
 from ... import ogf
@@ -91,7 +92,7 @@ def _create_glow_mesh(name, verts, faces, uvs, material, image):
 
 
 def _create_glow_object(glow_id, pos, radius, material, image):
-    obj_name = 'glow_{:0>3}'.format(glow_id)
+    obj_name = '{0}_{1:0>3}'.format(name.GLOW_NAME, glow_id)
 
     # get geometry
     verts, faces, uvs = _generate_glow_mesh_data(radius)
@@ -168,7 +169,7 @@ def _import_glow_v5(level, packed_reader, glow_index):
 
 
 def _create_glows_object(collection, level_object):
-    glows_object = create.create_object('glows', None)
+    glows_object = create.create_object(name.GLOW_NAME + 's', None)
     glows_object.parent = level_object
     collection.objects.link(glows_object)
     level_object.xray.level.glows_obj = glows_object.name
@@ -192,7 +193,7 @@ def _import_glows_v12(data, level, level_object):
     packed_reader = rw.read.PackedReader(data)
 
     # create glows root-object
-    collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
+    collection = level.collections[name.LEVEL_GLOWS_COLLECTION_NAME]
     glows_object = _create_glows_object(collection, level_object)
 
     glows_count = len(data) // fmt.GLOW_SIZE_V12
@@ -209,7 +210,7 @@ def _import_glows_v5(data, level, level_object):
     packed_reader = rw.read.PackedReader(data)
 
     # create glows root-object
-    collection = level.collections[create.LEVEL_GLOWS_COLLECTION_NAME]
+    collection = level.collections[name.LEVEL_GLOWS_COLLECTION_NAME]
     glows_object = _create_glows_object(collection, level_object)
 
     glows_count = len(data) // fmt.GLOW_SIZE_V5
