@@ -17,6 +17,7 @@ from . import cform
 from . import geom
 from . import glow
 from . import sector
+from . import portal
 from . import utility
 from .. import fmt
 from ... import ogf
@@ -189,77 +190,6 @@ def import_lights(data, level, level_object):
         light_object.parent = lights_object
 
 
-def create_portal(portal_index, verts, collection):
-    object_name = 'portal_{:0>3}'.format(portal_index)
-
-    faces = [list(range(len(verts))), ]
-    portal_mesh = bpy.data.meshes.new(object_name)
-    portal_mesh.from_pydata(verts, (), faces)
-    utils.stats.created_msh()
-
-    portal_obj = create.create_object(object_name, portal_mesh)
-
-    collection.objects.link(portal_obj)
-    if not utils.version.IS_28:
-        utils.version.link_object(portal_obj)
-
-    return portal_obj
-
-
-def import_portal(packed_reader, portal_index, collection, level):
-    sector_front = packed_reader.getf('<H')[0]
-    sector_back = packed_reader.getf('<H')[0]
-
-    if level.xrlc_version <= fmt.VERSION_5:
-        used_verts_count = packed_reader.uint32()
-
-    verts = []
-    for vertex_index in range(fmt.PORTAL_VERTEX_COUNT):
-        coord_x, coord_y, coord_z = packed_reader.getf('<3f')
-        verts.append((coord_x, coord_z, coord_y))
-
-    if level.xrlc_version >= fmt.VERSION_8:
-        used_verts_count = packed_reader.uint32()
-
-    verts = verts[ : used_verts_count]
-
-    portal_obj = create_portal(portal_index, verts, collection)
-
-    xray = portal_obj.xray
-    xray.version = level.addon_version
-    xray.isroot = False
-    xray.is_level = True
-    xray.level.object_type = 'PORTAL'
-    xray.level.sector_front = level.sectors_objects[sector_front].name
-    xray.level.sector_back = level.sectors_objects[sector_back].name
-
-    return portal_obj
-
-
-def import_portals(data, level, level_object):
-    portal_reader = rw.read.PackedReader(data)
-
-    collection = level.collections[create.LEVEL_PORTALS_COLLECTION_NAME]
-    portals_object = create.create_object('portals', None)
-    collection.objects.link(portals_object)
-    level_object.xray.level.portals_obj = portals_object.name
-
-    if not utils.version.IS_28:
-        utils.version.link_object(portals_object)
-
-    portals_count = len(data) // fmt.PORTAL_SIZE
-    for portal_index in range(portals_count):
-        portal_object = import_portal(
-            portal_reader,
-            portal_index,
-            collection,
-            level
-        )
-        portal_object.parent = portals_object
-
-    portals_object.parent = level_object
-
-
 def import_level(level, context, chunks):
     # find chunks ids
     if level.xrlc_version >= fmt.VERSION_13:
@@ -333,7 +263,7 @@ def import_level(level, context, chunks):
 
     # portals
     portals_data = chunks.pop(chunks_ids.PORTALS)
-    import_portals(portals_data, level, level_object)
+    portal.import_portals(portals_data, level, level_object)
 
     # glows
     glows_data = chunks.pop(chunks_ids.GLOWS)
