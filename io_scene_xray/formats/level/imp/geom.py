@@ -1,9 +1,6 @@
 # standart modules
 import os
 
-# standart modules
-import os
-
 # addon modules
 from . import header
 from .. import fmt
