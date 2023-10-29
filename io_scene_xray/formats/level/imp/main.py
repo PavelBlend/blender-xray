@@ -79,7 +79,7 @@ def _get_level_chunks_ids(level):
 
 
 def _create_level_object(level, level_collection):
-    level_object = create.create_object(level.name, None)
+    level_object = utils.obj.create_object(level.name, None, False)
 
     level_collection.objects.link(level_object)
     if not utils.version.IS_28:

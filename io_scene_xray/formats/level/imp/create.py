@@ -12,18 +12,6 @@ from .... import text
 from .... import utils
 
 
-def create_object(object_name, object_data):
-    bpy_object = bpy.data.objects.new(object_name, object_data)
-    utils.stats.created_obj()
-    return bpy_object
-
-
-def remove_default_shader_nodes(bpy_material):
-    nodes = bpy_material.node_tree.nodes
-    for node in nodes:
-        nodes.remove(node)
-
-
 def link_nodes(bpy_material, input_, output):
     links = bpy_material.node_tree.links
     links.new(input_, output)
@@ -99,6 +87,9 @@ def links_nodes(
 
 
 def create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps, texture):
+    # remove default nodes
+    bpy_material.node_tree.nodes.clear()
+
     offset = mathutils.Vector((-1000.0, 0.0))
     uv_map_node = create_shader_uv_map_texture_node(bpy_material, offset)
     image_node = create_shader_image_node(
@@ -269,7 +260,6 @@ def create_material(level, context, texture, engine_shader, light_maps):
 
     if utils.version.IS_28:
         set_material_settings(bpy_material)
-        remove_default_shader_nodes(bpy_material)
         create_shader_nodes(bpy_material, bpy_image, bpy_image_lmaps, texture)
     else:
         bpy_material.use_transparency = True

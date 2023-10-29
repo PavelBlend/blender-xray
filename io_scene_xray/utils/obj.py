@@ -64,10 +64,13 @@ def find_root(obj):
         return obj
 
 
-def create_object(name, data):
+def create_object(name, data, link=True):
     bpy_object = bpy.data.objects.new(name, data)
-    version.link_object(bpy_object)
     stats.created_obj()
+
+    if link:
+        version.link_object(bpy_object)
+
     return bpy_object
 
 

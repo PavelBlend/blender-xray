@@ -8,7 +8,7 @@ from .... import utils
 
 def _create_sector_object(sector_id, collection, sectors_object):
     object_name = '{0}_{1:0>3}'.format(name.SECTOR_NAME, sector_id)
-    sector_object = create.create_object(object_name, None)
+    sector_object = utils.obj.create_object(object_name, None, False)
     sector_object.parent = sectors_object
     collection.objects.link(sector_object)
 
@@ -19,7 +19,7 @@ def _create_sector_object(sector_id, collection, sectors_object):
 
 
 def _create_sectors_object(collection, level_object):
-    sectors_object = create.create_object(name.SECTOR_NAME + 's', None)
+    sectors_object = utils.obj.create_object(name.SECTOR_NAME + 's', None, False)
     sectors_object.parent = level_object
     level_object.xray.level.sectors_obj = sectors_object.name
     collection.objects.link(sectors_object)

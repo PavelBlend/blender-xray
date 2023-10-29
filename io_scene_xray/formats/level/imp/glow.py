@@ -101,7 +101,7 @@ def _create_glow_object(glow_id, pos, radius, material, image):
     mesh = _create_glow_mesh(obj_name, verts, faces, uvs, material, image)
 
     # create object
-    glow_object = create.create_object(obj_name, mesh)
+    glow_object = utils.obj.create_object(obj_name, mesh, False)
     glow_object.xray.isroot = False
     glow_object.location = pos
 
@@ -169,7 +169,7 @@ def _import_glow_v5(level, packed_reader, glow_index):
 
 
 def _create_glows_object(collection, level_object):
-    glows_object = create.create_object(name.GLOW_NAME + 's', None)
+    glows_object = utils.obj.create_object(name.GLOW_NAME + 's', None, False)
     glows_object.parent = level_object
     collection.objects.link(glows_object)
     level_object.xray.level.glows_obj = glows_object.name

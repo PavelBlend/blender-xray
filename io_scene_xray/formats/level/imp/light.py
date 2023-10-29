@@ -102,7 +102,7 @@ def _create_light_object(light_index, collection, lights_object):
         bpy_data = bpy.data.lamps
 
     light = bpy_data.new(object_name, 'SPOT')
-    light_object = create.create_object(object_name, light)
+    light_object = utils.obj.create_object(object_name, light, False)
 
     light_object.parent = lights_object
     light_object.xray.is_level = True
@@ -116,7 +116,7 @@ def _create_light_object(light_index, collection, lights_object):
 
 
 def _create_lights_object(level_object, collection):
-    lights_object = create.create_object(name.LIGHT_NAME + 's', None)
+    lights_object = utils.obj.create_object(name.LIGHT_NAME + 's', None, False)
 
     lights_object.parent = level_object
     level_object.xray.level.lights_obj = lights_object.name

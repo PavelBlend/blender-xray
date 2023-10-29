@@ -17,7 +17,7 @@ def _create_portal_object(portal_index, verts, collection, portals_obj):
     portal_mesh.from_pydata(verts, (), faces)
     utils.stats.created_msh()
 
-    portal_obj = create.create_object(object_name, portal_mesh)
+    portal_obj = utils.obj.create_object(object_name, portal_mesh, False)
     portal_obj.parent = portals_obj
 
     collection.objects.link(portal_obj)
@@ -60,7 +60,7 @@ def _import_portal(reader, index, collection, level, portals_obj):
 
 
 def _create_portals_object(level_object, collection):
-    portals_object = create.create_object(name.PORTAL_NAME + 's', None)
+    portals_object = utils.obj.create_object(name.PORTAL_NAME + 's', None, False)
     portals_object.parent = level_object
     level_object.xray.level.portals_obj = portals_object.name
 
