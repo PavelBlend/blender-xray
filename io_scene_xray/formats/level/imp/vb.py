@@ -155,7 +155,7 @@ def _import_vertices_d3d7(level, reader, vb, verts_count, vert_fmt):
 
     if tex_count == 2:
         lmap_uv_code += '    lmap_u, lmap_v = reader.getf("<2f")\n'
-        lmap_uv_code += '    vb.uv_lmap.append((lmap_u, lmap_v))\n'
+        lmap_uv_code += '    vb.uv_lmap.append((lmap_u, 1 - lmap_v))\n'
 
     if level.xrlc_version >= fmt.VERSION_5:
         code += tex_uv_code
