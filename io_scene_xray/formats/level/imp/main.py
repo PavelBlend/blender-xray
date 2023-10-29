@@ -35,6 +35,7 @@ class Level(object):
         self.images = None
         self.shaders = None
         self.textures = None
+        self.shaders_or_textures = None
 
         self.vertex_buffers = None
         self.indices_buffers = None

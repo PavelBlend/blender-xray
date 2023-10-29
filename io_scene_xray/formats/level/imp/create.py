@@ -292,7 +292,7 @@ def is_same_image(context, bpy_material, texture):
             return bpy_image
 
 
-def search_material(context, texture, engine_shader, *light_maps):
+def search_material(context, texture, engine_shader, light_maps):
     for material in bpy.data.materials:
         if not material.name.startswith(texture):
             continue
@@ -313,7 +313,7 @@ def set_material_settings(bpy_material):
     bpy_material.blend_method = 'CLIP'
 
 
-def create_material(level, context, texture, engine_shader, *light_maps):
+def create_material(level, context, texture, engine_shader, light_maps):
     bpy_material = bpy.data.materials.new(name=texture)
     bpy_material.xray.version = context.version
     bpy_material.xray.eshader = engine_shader
@@ -365,14 +365,14 @@ def create_material(level, context, texture, engine_shader, *light_maps):
     return bpy_material, bpy_image
 
 
-def get_material(level, context, texture, engine_shader, *light_maps):
-    bpy_material, bpy_image = search_material(context, texture, engine_shader, *light_maps)
+def get_material(level, context, texture, engine_shader, light_maps):
+    bpy_material, bpy_image = search_material(context, texture, engine_shader, light_maps)
     if not bpy_material:
         bpy_material, bpy_image = create_material(
             level,
             context,
             texture,
             engine_shader,
-            *light_maps
+            light_maps
         )
     return bpy_material, bpy_image

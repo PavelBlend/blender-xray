@@ -69,7 +69,7 @@ def _import_vertices_d3d9(ver, reader, vb, verts_count, usage_list):
                     code += '    coord_u, coord_v = reader.getf("<{}")\n'.format(data_format)
                     code += '    vb.uv.append((coord_u, 1 - coord_v))\n'
 
-                if data_type == fmt.SHORT2:
+                elif data_type == fmt.SHORT2:
                     code += '    coord_u, coord_v = reader.getf("<{}")\n'.format(data_format)
 
                     if has_uv_corrector:
