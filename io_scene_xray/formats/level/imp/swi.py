@@ -1,4 +1,5 @@
 # addon modules
+from .. import fmt
 from .... import rw
 
 
@@ -33,7 +34,14 @@ def import_swi_buffer(packed_reader):
     return swis
 
 
-def import_swi_buffers(data):
+def import_swi_buffers(level, chunks, chunks_ids):
+    if level.xrlc_version < fmt.VERSION_12:
+        return
+
+    data = chunks.pop(chunks_ids.SWIS, None)
+    if not data:
+        return
+
     packed_reader = rw.read.PackedReader(data)
     buffers_count = packed_reader.uint32()
 
@@ -42,4 +50,4 @@ def import_swi_buffers(data):
         buffer = import_swi_buffer(packed_reader)
         buffers.append(buffer)
 
-    return buffers
+    level.swis = buffers

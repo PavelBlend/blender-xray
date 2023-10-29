@@ -44,7 +44,8 @@ def _read_sector(data, level, sector_object):
             level.visuals[root_visual].parent = sector_object
 
 
-def import_sectors(data, level, level_object):
+def import_sectors(level, level_object, chunks, chunks_ids):
+    data = chunks.pop(chunks_ids.SECTORS)
     chunked_reader = rw.read.ChunkedReader(data)
 
     # create sectors root-object

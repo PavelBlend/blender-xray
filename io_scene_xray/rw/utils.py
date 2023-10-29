@@ -89,3 +89,11 @@ def get_file_reader(file_path, chunked=False):
         reader = read.PackedReader(file_data)
 
     return reader
+
+
+def get_file_chunks(file_path):
+    file_data = get_file_data(file_path)
+    reader = read.ChunkedReader(memoryview(file_data))
+    chunks = get_reader_chunks(reader)
+
+    return chunks

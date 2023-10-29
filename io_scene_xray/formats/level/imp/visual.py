@@ -11,7 +11,8 @@ def _set_hierrarhy_children(level):
             child_obj.parent = hierrarhy_obj
 
 
-def import_visuals(data, level):
+def import_visuals(level, chunks, chunks_ids):
+    data = chunks.pop(chunks_ids.VISUALS)
     chunked_reader = rw.read.ChunkedReader(data)
 
     for visual_id, visual_data in chunked_reader:

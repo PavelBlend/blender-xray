@@ -73,7 +73,8 @@ def _create_portals_object(level_object, collection):
     return portals_object
 
 
-def import_portals(data, level, level_object):
+def import_portals(level, level_object, chunks, chunks_ids):
+    data = chunks.pop(chunks_ids.PORTALS)
     reader = rw.read.PackedReader(data)
     collection = level.collections[create.LEVEL_PORTALS_COLLECTION_NAME]
 

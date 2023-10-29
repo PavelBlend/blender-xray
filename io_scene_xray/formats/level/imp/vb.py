@@ -227,7 +227,23 @@ def import_vertex_buffer_d3d7(packed_reader, level):
     return vertex_buffer
 
 
-def import_vertex_buffers(data, level, import_fun):
+def _get_vbs_data(level, chunks, chunks_ids):
+    vbs_data = chunks.pop(chunks_ids.VB, None)
+    import_fun = import_vertex_buffer
+
+    if level.xrlc_version <= fmt.VERSION_8:
+        import_fun = import_vertex_buffer_d3d7
+
+    elif level.xrlc_version == fmt.VERSION_9:
+        if not vbs_data:
+            vbs_data = chunks.pop(chunks_ids.VB_OLD)
+            import_fun = import_vertex_buffer_d3d7
+
+    return vbs_data, import_fun
+
+
+def import_vertex_buffers(level, chunks, chunks_ids):
+    data, import_fun = _get_vbs_data(level, chunks, chunks_ids)
     vbs_reader = rw.read.PackedReader(data)
     buffers_count = vbs_reader.uint32()
 
@@ -236,4 +252,4 @@ def import_vertex_buffers(data, level, import_fun):
         vertex_buffer = import_fun(vbs_reader, level)
         vertex_buffers.append(vertex_buffer)
 
-    return vertex_buffers
+    level.vertex_buffers = vertex_buffers

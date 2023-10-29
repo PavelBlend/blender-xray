@@ -128,7 +128,8 @@ def _create_lights_object(level_object, collection):
     return lights_object
 
 
-def import_lights(data, level, level_object):
+def import_lights(level, level_object, chunks, chunks_ids):
+    data = chunks.pop(chunks_ids.LIGHT_DYNAMIC)
     packed_reader = rw.read.PackedReader(data)
     collection = level.collections[create.LEVEL_LIGHTS_COLLECTION_NAME]
 

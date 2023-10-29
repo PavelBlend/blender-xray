@@ -63,16 +63,6 @@ def create_object(object_name, object_data):
     return bpy_object
 
 
-def create_level_object(level, level_collection):
-    level_object = create_object(level.name, None)
-    level_collection.objects.link(level_object)
-    if not utils.version.IS_28:
-        utils.version.link_object(level_object)
-    level_object.xray.is_level = True
-    level_object.xray.level.object_type = 'LEVEL'
-    return level_object
-
-
 def create_level_collections(level):
     if utils.version.IS_28:
         scene_collection = bpy.context.scene.collection

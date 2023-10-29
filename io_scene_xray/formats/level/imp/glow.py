@@ -188,7 +188,7 @@ def _link_glow_object(glow_object, glows_object, level, collection):
         utils.version.link_object(glow_object)
 
 
-def import_glows_v12(data, level, level_object):
+def _import_glows_v12(data, level, level_object):
     packed_reader = rw.read.PackedReader(data)
 
     # create glows root-object
@@ -205,7 +205,7 @@ def import_glows_v12(data, level, level_object):
         _link_glow_object(glow_object, glows_object, level, collection)
 
 
-def import_glows_v5(data, level, level_object):
+def _import_glows_v5(data, level, level_object):
     packed_reader = rw.read.PackedReader(data)
 
     # create glows root-object
@@ -220,3 +220,12 @@ def import_glows_v5(data, level, level_object):
         glow_object = _import_glow_v5(level, packed_reader, glow_index)
 
         _link_glow_object(glow_object, glows_object, level, collection)
+
+
+def import_glows(level, level_object, chunks, chunks_ids):
+    glows_data = chunks.pop(chunks_ids.GLOWS)
+
+    if level.xrlc_version >= fmt.VERSION_12:
+        _import_glows_v12(glows_data, level, level_object)
+    else:
+        _import_glows_v5(glows_data, level, level_object)

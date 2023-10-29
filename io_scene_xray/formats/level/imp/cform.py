@@ -15,7 +15,7 @@ from .... import text
 from .... import rw
 
 
-def import_main(context, level, cform_path, data):
+def _import_main(context, level, cform_path, data):
     # get reader
     packed_reader = rw.read.PackedReader(data)
 
@@ -217,3 +217,14 @@ def import_main(context, level, cform_path, data):
         utils.stats.created_obj()
         if not utils.version.IS_28:
             utils.version.link_object(bpy_obj)
+
+
+def import_cform(context, level, chunks, chunks_ids):
+    if level.xrlc_version >= fmt.VERSION_10:
+        cform_path = os.path.join(level.path, 'level.cform')
+        cform_data = rw.utils.read_file(cform_path)
+    else:
+        cform_path = level.file
+        cform_data = chunks.pop(chunks_ids.CFORM)
+
+    _import_main(context, level, cform_path, cform_data)
