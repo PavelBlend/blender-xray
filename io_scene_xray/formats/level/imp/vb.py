@@ -5,33 +5,35 @@ from .... import rw
 
 class VertexBuffer(object):
     def __init__(self):
+        # geometry
         self.position = []
         self.normal = []
-        self.tangent = []
-        self.binormal = []
+
+        # texture coordinates
+        self.uv = []
+        self.uv_lmap = []
+
+        # vertex colors
         self.color_hemi = []
         self.color_light = []
         self.color_sun = []
-        self.uv = []
-        self.uv_fix = []
-        self.uv_lmap = []
-        self.shader_data = []
-        self.vertex_format = None
+
         self.float_normals = False
 
 
-def get_uv_corrector(value):
-    uv_corrector = (value / 255) * (32 / 0x8000)
-    return uv_corrector
+get_uv_corrector = '({} / 255) * (32 / 0x8000)'
+get_corrector_u = get_uv_corrector.format('correct_u')
+get_corrector_v = get_uv_corrector.format('correct_v')
 
 
-def import_vertices(
+def _import_vertices_d3d9(
         xrlc_version,
         packed_reader,
         vertex_buffer,
         vertices_count,
         usage_list
     ):
+
     code = ''
     code += 'for vertex_index in range({}):\n'.format(vertices_count)
     has_uv_corrector = False
@@ -73,9 +75,9 @@ def import_vertices(
                 elif data_type == fmt.SHORT2:
                     if has_uv_corrector:
                         code += '    vertex_buffer.uv.append((\n' \
-                                '        coord_u / fmt.UV_COEFFICIENT + get_uv_corrector(correct_u),\n' \
-                                '        1 - coord_v / fmt.UV_COEFFICIENT - get_uv_corrector(correct_v)\n' \
-                                '    ))\n'
+                                '        coord_u / fmt.UV_COEFFICIENT + {0},\n' \
+                                '        1 - coord_v / fmt.UV_COEFFICIENT - {1}\n' \
+                                '    ))\n'.format(get_corrector_u, get_corrector_v)
                     else:
                         code += '    vertex_buffer.uv.append((\n' \
                                 '        coord_u / fmt.UV_COEFFICIENT,\n' \
@@ -85,15 +87,14 @@ def import_vertices(
                     if xrlc_version >= fmt.VERSION_12:
                         if has_uv_corrector:
                             code += '    vertex_buffer.uv.append((\n' \
-                                    '        coord_u / fmt.UV_COEFFICIENT_2 + get_uv_corrector(correct_u),\n' \
-                                    '        1 - coord_v / fmt.UV_COEFFICIENT_2 - get_uv_corrector(correct_v)\n' \
-                                    '    ))\n'
+                                    '        coord_u / fmt.UV_COEFFICIENT_2 + {0},\n' \
+                                    '        1 - coord_v / fmt.UV_COEFFICIENT_2 - {1}\n' \
+                                    '    ))\n'.format(get_corrector_u, get_corrector_v)
                         else:
                             code += '    vertex_buffer.uv.append((\n' \
                                     '        coord_u / fmt.UV_COEFFICIENT_2,\n' \
                                     '        1 - coord_v / fmt.UV_COEFFICIENT_2\n' \
                                     '    ))\n'
-                        code += '    vertex_buffer.shader_data.append(shader_data)\n'
                     else:
                         code += '    vertex_buffer.uv.append((\n' \
                                 '        coord_u / fmt.UV_COEFFICIENT,\n' \
@@ -125,42 +126,37 @@ def import_vertices(
     exec(code)
 
 
-def import_vertices_d3d7(
-        level,
-        packed_reader,
-        vertex_buffer,
-        vertices_count,
-        vertex_format
-    ):
-    code = ''
-    code += 'for vertex_index in range({0}):\n'.format(vertices_count)
-    # xyz, normal, diffuse, tex coord
+def _import_vertices_d3d7(level, reader, vb, verts_count, vert_fmt):
+    code = 'for vertex_index in range({0}):\n'.format(verts_count)
 
-    if (vertex_format & fmt.D3D7FVF.POSITION_MASK) == fmt.D3D7FVF.XYZ:
-        code += '    coord_x, coord_y, coord_z = packed_reader.getf("<3f")\n'
-        code += '    vertex_buffer.position.append((coord_x, coord_z, coord_y))\n'
+    # position, normal, diffuse, tex coord
 
-    if vertex_format & fmt.D3D7FVF.NORMAL:
-        vertex_buffer.float_normals = True
-        code += '    norm_x, norm_y, norm_z = packed_reader.getf("<3f")\n'
-        code += '    vertex_buffer.normal.append((norm_z, norm_x, norm_y))\n'
+    if (vert_fmt & fmt.D3D7FVF.POSITION_MASK) == fmt.D3D7FVF.XYZ:
+        code += '    pos = reader.getv3f()\n'
+        code += '    vb.position.append(pos)\n'
 
-    if vertex_format & fmt.D3D7FVF.DIFFUSE:
-        code += '    red, green, blue, unknown = packed_reader.getf("<4B")\n'
-        code += '    red = red / 255\n'
-        code += '    green = green / 255\n'
-        code += '    blue = blue / 255\n'
-        code += '    vertex_buffer.color_light.append((red, green, blue))\n'
+    if vert_fmt & fmt.D3D7FVF.NORMAL:
+        vb.float_normals = True
+        code += '    norm_x, norm_y, norm_z = reader.getf("<3f")\n'
+        code += '    vb.normal.append((norm_z, norm_x, norm_y))\n'
 
-    tex_coord = (vertex_format & fmt.D3D7FVF.TEXCOUNT_MASK) >> fmt.D3D7FVF.TEXCOUNT_SHIFT
+    if vert_fmt & fmt.D3D7FVF.DIFFUSE:
+        code += '    red, green, blue, unknown = reader.getf("<4B")\n'
+        code += '    vb.color_light.append((red/255, green/255, blue/255))\n'
 
+    tex_count = (vert_fmt & fmt.D3D7FVF.TEXCOUNT_MASK) >> fmt.D3D7FVF.TEXCOUNT_SHIFT
+
+    tex_uv_code = ''
     lmap_uv_code = ''
-    if tex_coord in (1, 2):
-        tex_uv_code = '    coord_u, coord_v = packed_reader.getf("<2f")\n'
-        tex_uv_code += '    vertex_buffer.uv.append((coord_u, 1 - coord_v))\n'
-    if tex_coord == 2:
-        lmap_uv_code = '    lmap_u, lmap_v = packed_reader.getf("<2f")\n'
-        lmap_uv_code += '    vertex_buffer.uv_lmap.append((lmap_u, lmap_v))\n'
+
+    if tex_count in (1, 2):
+        tex_uv_code += '    coord_u, coord_v = reader.getf("<2f")\n'
+        tex_uv_code += '    vb.uv.append((coord_u, 1 - coord_v))\n'
+
+    if tex_count == 2:
+        lmap_uv_code += '    lmap_u, lmap_v = reader.getf("<2f")\n'
+        lmap_uv_code += '    vb.uv_lmap.append((lmap_u, lmap_v))\n'
+
     if level.xrlc_version >= fmt.VERSION_5:
         code += tex_uv_code
         code += lmap_uv_code
@@ -171,7 +167,7 @@ def import_vertices_d3d7(
     exec(code)
 
 
-def import_vertex_buffer_declaration(packed_reader):
+def _import_vertex_buffer_declaration(packed_reader):
     usage_list = []
 
     while True:
@@ -197,39 +193,43 @@ def import_vertex_buffer_declaration(packed_reader):
     return usage_list
 
 
-def import_vertex_buffer(packed_reader, level):
-    if level.xrlc_version >= fmt.VERSION_9:
-        usage_list = import_vertex_buffer_declaration(packed_reader)
-        vertex_buffer = VertexBuffer()
-        vertices_count = packed_reader.uint32()
-        import_vertices(
-            level.xrlc_version,
-            packed_reader,
-            vertex_buffer,
-            vertices_count,
-            usage_list
-        )
+def _import_vertex_buffer_d3d9(packed_reader, level):
+    usage_list = _import_vertex_buffer_declaration(packed_reader)
+    vertices_count = packed_reader.uint32()
+
+    vertex_buffer = VertexBuffer()
+
+    _import_vertices_d3d9(
+        level.xrlc_version,
+        packed_reader,
+        vertex_buffer,
+        vertices_count,
+        usage_list
+    )
+
     return vertex_buffer
 
 
 def import_vertex_buffer_d3d7(packed_reader, level):
-    if level.xrlc_version <= fmt.VERSION_9:
-        vertex_format = packed_reader.uint32()
-        vertices_count = packed_reader.uint32()
-        vertex_buffer = VertexBuffer()
-        import_vertices_d3d7(
-            level,
-            packed_reader,
-            vertex_buffer,
-            vertices_count,
-            vertex_format
-        )
+    vertex_format = packed_reader.uint32()
+    vertices_count = packed_reader.uint32()
+
+    vertex_buffer = VertexBuffer()
+
+    _import_vertices_d3d7(
+        level,
+        packed_reader,
+        vertex_buffer,
+        vertices_count,
+        vertex_format
+    )
+
     return vertex_buffer
 
 
 def _get_vbs_data(level, chunks, chunks_ids):
     vbs_data = chunks.pop(chunks_ids.VB, None)
-    import_fun = import_vertex_buffer
+    import_fun = _import_vertex_buffer_d3d9
 
     if level.xrlc_version <= fmt.VERSION_8:
         import_fun = import_vertex_buffer_d3d7
