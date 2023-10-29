@@ -19,7 +19,6 @@ from . import light
 from . import glow
 from . import sector
 from . import portal
-from . import utility
 from .. import fmt
 from ... import ogf
 from .... import text
@@ -171,6 +170,11 @@ def _import_main(context, level):
     _import_level(level, context, chunks)
 
 
+def get_level_name(file_path):
+    dir_path = os.path.dirname(file_path)
+    return os.path.basename(dir_path)
+
+
 @log.with_context(name='import-game-level')
 @utils.stats.timer
 def import_file(context):
@@ -179,7 +183,7 @@ def import_file(context):
     level = Level()
 
     level.context = context
-    level.name = utility.get_level_name(context.filepath)
+    level.name = get_level_name(context.filepath)
     level.file = context.filepath
     level.path = os.path.dirname(context.filepath)
 

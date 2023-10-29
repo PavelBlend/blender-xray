@@ -6,7 +6,6 @@ import bpy
 import mathutils
 
 # addon modules
-from . import utility
 from .. import fmt
 from .... import log
 from .... import text
@@ -246,7 +245,7 @@ def get_image_lmap(context, light_maps):
 def is_same_light_maps(context, bpy_material, light_maps):
     has_images = []
     for index, light_map in enumerate(light_maps):
-        level_dir = utility.get_level_dir(context.filepath)
+        level_dir = os.path.dirname(context.filepath)
         absolute_texture_path_in_level_folder = get_absolute_texture_path(
             level_dir, light_map
         )
@@ -268,7 +267,7 @@ def is_same_image(context, bpy_material, texture):
     absolute_texture_path = get_absolute_texture_path(
         context.tex_folder, texture
     )
-    level_dir = utility.get_level_dir(context.filepath)
+    level_dir = os.path.dirname(context.filepath)
     absolute_texture_path_in_level_folder = get_absolute_texture_path(
         level_dir, texture
     )
