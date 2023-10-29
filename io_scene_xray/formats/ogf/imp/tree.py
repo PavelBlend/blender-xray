@@ -20,6 +20,7 @@ def set_tree_transforms(bpy_object, xform):
         (xform[8], xform[9], xform[10], xform[11]),
         (xform[12], xform[13], xform[14], xform[15])
     ))
+    # transpose DirectX transformation matrix for OpenGL
     transform_matrix.transpose()
 
     translate, rotate, scale = transform_matrix.decompose()
