@@ -21,6 +21,7 @@ from . import portal
 from . import name
 from .. import fmt
 from .... import log
+from .... import text
 from .... import utils
 from .... import rw
 
@@ -185,6 +186,27 @@ def _get_level_name(file_path):
     return os.path.basename(dir_path)
 
 
+def _check_level_path(context, path):
+    if not context.lvl_mod_folder and not context.lvl_folder:
+        log.warn(text.warn.level_folder_not_spec)
+        return
+
+    if context.lvl_mod_folder:
+        if path.startswith(context.lvl_mod_folder):
+            return
+
+    if context.lvl_folder:
+        if path.startswith(context.lvl_folder):
+            return
+
+    log.warn(
+        text.warn.level_incorrect_path,
+        file_path=path,
+        platform_levels_folder=context.lvl_folder,
+        mod_levels_folder=context.lvl_mod_folder,
+    )
+
+
 @log.with_context(name='import-game-level')
 @utils.stats.timer
 def import_file(context):
@@ -199,4 +221,5 @@ def import_file(context):
 
     context.level_name = level.name
 
+    _check_level_path(context, level.file)
     _import_main(context, level)

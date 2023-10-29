@@ -102,6 +102,10 @@ translations_table = (
     (warn.omf_merge_part_bone_names, 'Имена костей bonepart не идентичны'),
     (warn.omf_merge_motion_duplicate, 'Анимация не сохранена, так как анимация с таким именем уже существует'),
 
+    # level import
+    (warn.level_folder_not_spec, 'Не указан параметр "Levels Folder" в настройках аддона. Некоторые текстуры могут быть не загружены'),
+    (warn.level_incorrect_path, 'Level файл не находится в папке "Levels Folder". Некоторые текстуры могут быть не загружены'),
+
     # scene import
     (warn.scene_no_file, 'Не найден файл'),
 

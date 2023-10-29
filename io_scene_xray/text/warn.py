@@ -93,6 +93,10 @@ omf_merge_part_names = 'Bonepart names are not identical'
 omf_merge_part_bone_names = 'Bonepart bones names are not identical'
 omf_merge_motion_duplicate = 'Animation was not saved because an animation with the same name already exists'
 
+# level import
+level_folder_not_spec = '"Levels Folder" parameter is not specified in the addon settings. Some textures may not be loaded'
+level_incorrect_path = 'Level file is not located in the "Levels Folder". Some textures may not be loaded'
+
 # scene import
 scene_no_file = 'Cannot find file'
 

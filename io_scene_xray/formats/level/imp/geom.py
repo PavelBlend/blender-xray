@@ -16,7 +16,11 @@ def read_geom(level, chunks, context):
         geom_path = context.filepath + os.extsep + 'geom'
 
         if os.path.exists(geom_path):
-            geom_reader = rw.utils.get_file_reader(geom_path, chunked=True)
+            geom_reader = rw.utils.get_file_reader(
+                geom_path,
+                chunked=True,
+                update_log=False
+            )
             geom_chunks = rw.utils.get_reader_chunks(geom_reader)
             header.get_version(geom_chunks, geom_path)
         else:
