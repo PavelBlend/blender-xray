@@ -30,12 +30,6 @@ class Code:
         ''' Add 4 spaces indentation level. '''
         self.tabs += 1
 
-    def remove_indent(self):
-        ''' Remove 4 spaces indentation level. '''
-        self.tabs -= 1
-        if self.tabs < 0:
-            self.tabs = 0
-
     def add_line(self, line):
         ''' Add a line of code to the end. '''
         self.lines.append(' ' * self.tabs * 4 + line)
@@ -334,9 +328,7 @@ def import_vertex_buffers(level, chunks, chunks_ids):
     vbs_reader = rw.read.PackedReader(data)
     buffers_count = vbs_reader.uint32()
 
-    vertex_buffers = []
+    level.vertex_buffers = []
     for _ in range(buffers_count):
         vertex_buffer = import_fun(vbs_reader, level.xrlc_version)
-        vertex_buffers.append(vertex_buffer)
-
-    level.vertex_buffers = vertex_buffers
+        level.vertex_buffers.append(vertex_buffer)

@@ -45,9 +45,7 @@ def import_swi_buffers(level, chunks, chunks_ids):
     packed_reader = rw.read.PackedReader(data)
     buffers_count = packed_reader.uint32()
 
-    buffers = []
+    level.swis = []
     for _ in range(buffers_count):
         buffer = import_swi_buffer(packed_reader)
-        buffers.append(buffer)
-
-    level.swis = buffers
+        level.swis.append(buffer)
