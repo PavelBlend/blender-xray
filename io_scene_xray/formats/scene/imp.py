@@ -1,9 +1,6 @@
 # standart modules
 import os
 
-# blender modules
-import bpy
-
 # addon modules
 from . import fmt
 from .. import obj

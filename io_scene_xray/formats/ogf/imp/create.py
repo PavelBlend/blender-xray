@@ -2,7 +2,6 @@
 import bpy
 
 # addon modules
-from . import header
 from . import indices
 from . import utility
 from . import mesh

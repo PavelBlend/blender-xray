@@ -4,7 +4,6 @@ import bpy
 # addon modules
 from . import main
 from . import types
-from ... import ie
 from .... import utils
 from .... import text
 from .... import log

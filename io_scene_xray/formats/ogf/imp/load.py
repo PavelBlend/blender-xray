@@ -1,6 +1,4 @@
 # addon modules
-from . import main
-from . import header
 from . import child
 from . import create
 from . import indices
@@ -13,7 +11,6 @@ from . import props
 from . import utility
 from . import motion
 from . import swis
-from .. import fmt
 from .... import utils
 
 

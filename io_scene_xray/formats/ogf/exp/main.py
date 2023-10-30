@@ -1,6 +1,5 @@
 # standart modules
 import time
-import math
 
 # blender modules
 import bpy

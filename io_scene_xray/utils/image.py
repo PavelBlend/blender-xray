@@ -5,7 +5,6 @@ import os
 import bpy
 
 # addon modules
-from . import tex
 from .. import log
 from .. import text
 

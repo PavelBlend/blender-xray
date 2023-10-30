@@ -3,7 +3,6 @@ import bpy
 
 # addon modules
 from .. import utils
-from .. import formats
 from .. import ops
 
 

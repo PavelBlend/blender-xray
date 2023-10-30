@@ -4,7 +4,6 @@ import os
 # addon modules
 from . import header
 from .. import fmt
-from .... import utils
 from .... import rw
 
 
