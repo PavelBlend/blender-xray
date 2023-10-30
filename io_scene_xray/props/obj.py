@@ -239,6 +239,14 @@ visual_type_items = (
 )
 
 
+def _update_light_type_name(self, context):
+    self.light_type = int(self.light_type_name)
+
+
+POINT_NAME = 'Point'
+SPOT_NAME = 'Spot'
+DIRECT_NAME = 'Directional'
+
 xray_object_level_properties = {
     # general
     'object_type': bpy.props.EnumProperty(
@@ -280,7 +288,23 @@ xray_object_level_properties = {
 
     # light
     'controller_id': bpy.props.IntProperty(name='Controller ID'),
-    'light_type': bpy.props.IntProperty(name='Light Type'),
+    'light_type': bpy.props.IntProperty(
+        name='Light Type',
+        default=1,
+        min=1,
+        max=3,
+        soft_min=1,
+        soft_max=3
+    ),
+    'light_type_name': bpy.props.EnumProperty(
+        name='Light Type',
+        items=(
+            (str(formats.level.fmt.D3D_LIGHT_POINT), POINT_NAME, ''),
+            (str(formats.level.fmt.D3D_LIGHT_SPOT), SPOT_NAME, ''),
+            (str(formats.level.fmt.D3D_LIGHT_DIRECTIONAL), DIRECT_NAME, '')
+        ),
+        update=_update_light_type_name
+    ),
     'diffuse': get_color_prop('Diffuse', size=4),
     'specular': get_color_prop('Specular', size=4),
     'ambient': get_color_prop('Ambient', size=4),
