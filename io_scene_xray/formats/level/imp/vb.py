@@ -150,15 +150,21 @@ def _import_vertices_d3d7(ver, reader, vb, verts_count, vert_fmt):
     tex_uv_code = ''
     lmap_uv_code = ''
 
-    if tex_count in (1, 2):
+    # texture uv
+    if tex_count:
         tex_uv_code += '    coord_u, coord_v = reader.getf("<2f")\n'
         tex_uv_code += '    vb.uv.append((coord_u, 1 - coord_v))\n'
 
-    if tex_count == 2:
+    # light map uv
+    if tex_count > 1:
         lmap_uv_code += '    lmap_u, lmap_v = reader.getf("<2f")\n'
         lmap_uv_code += '    vb.uv_lmap.append((lmap_u, 1 - lmap_v))\n'
 
-    if ver >= fmt.VERSION_5:
+    if tex_count > 2:
+        for i in range(tex_count - 2):
+            lmap_uv_code += '    reader.skip(8)\n'
+
+    if ver >= fmt.VERSION_8:
         code += tex_uv_code
         code += lmap_uv_code
     else:
