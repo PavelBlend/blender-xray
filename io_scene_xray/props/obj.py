@@ -226,7 +226,7 @@ object_type_items = (
     ('LEVEL', 'Level ', ''),
     ('VISUAL', 'Visual', ''),
     ('PORTAL', 'Portal', ''),
-    ('LIGHT_DYNAMIC', 'Light Dynamic', ''),
+    ('LIGHT_DYNAMIC', 'Light', ''),
     ('CFORM', 'CForm', '')
 )
 visual_type_items = (
