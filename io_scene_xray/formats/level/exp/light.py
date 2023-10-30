@@ -39,25 +39,17 @@ def write_lights(level_writer, level, level_object):
                 controller_id = 2 ** 32
 
             # write
-            lights_writer.putf('<I', controller_id)
-            lights_writer.putf('<I', data.light_type)
+            lights_writer.putf('<2I', controller_id, data.light_type)
             lights_writer.putf('<4f', *data.diffuse)
             lights_writer.putf('<4f', *data.specular)
             lights_writer.putf('<4f', *data.ambient)
-            lights_writer.putf(
-                '<3f',
-                light_obj.location[0],
-                light_obj.location[2],
-                light_obj.location[1]
-            )
+            lights_writer.putv3f(light_obj.location)
             lights_writer.putf('<3f', *direction)
-            lights_writer.putf('<f', data.range_)
-            lights_writer.putf('<f', data.falloff)
+            lights_writer.putf('<2f', data.range_, data.falloff)
             lights_writer.putf('<f', data.attenuation_0)
             lights_writer.putf('<f', data.attenuation_1)
             lights_writer.putf('<f', data.attenuation_2)
-            lights_writer.putf('<f', data.theta)
-            lights_writer.putf('<f', data.phi)
+            lights_writer.putf('<2f', data.theta, data.phi)
 
         level_writer.put(fmt.Chunks13.LIGHT_DYNAMIC, lights_writer)
 

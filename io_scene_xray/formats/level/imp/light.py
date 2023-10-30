@@ -14,10 +14,7 @@ INT_MAX = 2 ** 31 - 1
 
 
 def _read_light(packed_reader, data):
-    light_type = packed_reader.uint32()    # type of light source
-    if light_type > INT_MAX:
-        light_type = -1
-    data.light_type = light_type
+    data.light_type = packed_reader.uint32()    # type of light source
 
     data.diffuse = packed_reader.getf('<4f')
     data.specular = packed_reader.getf('<4f')
