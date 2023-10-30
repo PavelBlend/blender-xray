@@ -32,7 +32,8 @@ class Code:
 
     def add_line(self, line):
         ''' Add a line of code to the end. '''
-        self.lines.append(' ' * self.tabs * 4 + line)
+        if line:
+            self.lines.append(' ' * self.tabs * 4 + line)
 
     def get_code(self):
         ''' Get full code. '''
@@ -40,6 +41,7 @@ class Code:
         return code
 
     def _get_merged_lines(self):
+        self.lines.append('')
         return '\n'.join(self.lines)
 
 
@@ -206,53 +208,70 @@ def _import_vertices_d3d9(ver, reader, vb, verts_count, usage_list):
 
 
 def _import_vertices_d3d7(ver, reader, vb, verts_count, vert_fmt):
-    code = 'for vertex_index in range({0}):\n'.format(verts_count)
+    code = Code()
+
+    code.add_line('for _ in range({}):'.format(verts_count))
+    code.add_indent()
 
     # position, normal, diffuse, tex coord
 
     if (vert_fmt & fmt.D3D7FVF.POSITION_MASK) == fmt.D3D7FVF.XYZ:
-        code += '    pos = reader.getv3f()\n'
-        code += '    vb.position.append(pos)\n'
+        code.add_line('pos = reader.getv3f()')
+        code.add_line('vb.position.append(pos)')
 
     if vert_fmt & fmt.D3D7FVF.NORMAL:
         vb.float_normals = True
-        code += '    norm_x, norm_y, norm_z = reader.getf("<3f")\n'
-        code += '    vb.normal.append((norm_z, norm_x, norm_y))\n'
+        code.add_line('norm_x, norm_y, norm_z = reader.getf("<3f")')
+        code.add_line('vb.normal.append((norm_z, norm_x, norm_y))')
 
     if vert_fmt & fmt.D3D7FVF.DIFFUSE:
-        code += '    red, green, blue, unknown = reader.getf("<4B")\n'
-        code += '    vb.color_light.append((red/255, green/255, blue/255))\n'
+        code.add_line('red, green, blue, _ = reader.getf("<4B")')
+        code.add_line('vb.color_light.append((red/255, green/255, blue/255))')
 
     tex_count = (vert_fmt & fmt.D3D7FVF.TEXCOUNT_MASK) >> fmt.D3D7FVF.TEXCOUNT_SHIFT
 
-    tex_uv_code = ''
-    lmap_uv_code = ''
+    tex_uv_read_code = ''
+    tex_uv_append_code = ''
+
+    lmap_uv_read_code = ''
+    lmap_uv_append_code = ''
 
     # texture uv
     if tex_count:
-        tex_uv_code += '    coord_u, coord_v = reader.getf("<2f")\n'
-        tex_uv_code += '    vb.uv.append((coord_u, 1 - coord_v))\n'
+        tex_uv_read_code = 'coord_u, coord_v = reader.getf("<2f")'
+        tex_uv_append_code = 'vb.uv.append((coord_u, 1 - coord_v))'
 
     # light map uv
     if tex_count > 1:
-        lmap_uv_code += '    lmap_u, lmap_v = reader.getf("<2f")\n'
-        lmap_uv_code += '    vb.uv_lmap.append((lmap_u, 1 - lmap_v))\n'
+        lmap_uv_read_code += 'lmap_u, lmap_v = reader.getf("<2f")'
+        lmap_uv_append_code += 'vb.uv_lmap.append((lmap_u, 1 - lmap_v))'
+
+    if ver >= fmt.VERSION_8:
+        # texture
+        code.add_line(tex_uv_read_code)
+        code.add_line(tex_uv_append_code)
+
+        # lmap
+        code.add_line(lmap_uv_read_code)
+        code.add_line(lmap_uv_append_code)
+
+    else:
+        # lmap
+        code.add_line(lmap_uv_read_code)
+        code.add_line(lmap_uv_append_code)
+
+        # texture
+        code.add_line(tex_uv_read_code)
+        code.add_line(tex_uv_append_code)
 
     if tex_count > 2:
         for _ in range(tex_count - 2):
-            lmap_uv_code += '    reader.skip(8)\n'
+            code.add_line('reader.skip(8)')
 
-    if ver >= fmt.VERSION_8:
-        code += tex_uv_code
-        code += lmap_uv_code
-    else:
-        code += lmap_uv_code
-        code += tex_uv_code
-
-    exec(code)
+    exec(code.get_code())
 
 
-def _import_vertex_buffer_declaration(packed_reader):
+def _read_d3d9_declaration(packed_reader):
     usage_list = []
 
     while True:
@@ -275,7 +294,7 @@ def _import_vertex_buffer_declaration(packed_reader):
 
 
 def _import_vertex_buffer_d3d9(packed_reader, ver):
-    usage_list = _import_vertex_buffer_declaration(packed_reader)
+    usage_list = _read_d3d9_declaration(packed_reader)
     vertices_count = packed_reader.uint32()
 
     vertex_buffer = VertexBuffer()
@@ -309,16 +328,21 @@ def import_vertex_buffer_d3d7(packed_reader, ver):
 
 
 def _get_vbs_data(level, chunks, chunks_ids):
-    vbs_data = chunks.pop(chunks_ids.VB, None)
-    import_fun = _import_vertex_buffer_d3d9
-
-    if level.xrlc_version <= fmt.VERSION_8:
-        import_fun = import_vertex_buffer_d3d7
+    if level.xrlc_version >= fmt.VERSION_10:
+        vbs_data = chunks.pop(chunks_ids.VB)
+        import_fun = _import_vertex_buffer_d3d9
 
     elif level.xrlc_version == fmt.VERSION_9:
-        if not vbs_data:
+        vbs_data = chunks.pop(chunks_ids.VB, None)
+        if vbs_data:
+            import_fun = _import_vertex_buffer_d3d9
+        else:
             vbs_data = chunks.pop(chunks_ids.VB_OLD)
             import_fun = import_vertex_buffer_d3d7
+
+    elif level.xrlc_version <= fmt.VERSION_8:
+        vbs_data = chunks.pop(chunks_ids.VB)
+        import_fun = import_vertex_buffer_d3d7
 
     return vbs_data, import_fun
 
