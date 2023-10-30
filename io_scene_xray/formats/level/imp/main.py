@@ -6,7 +6,6 @@ import bpy
 
 # addon modules
 from . import header
-from . import create
 from . import shader
 from . import visual
 from . import vb

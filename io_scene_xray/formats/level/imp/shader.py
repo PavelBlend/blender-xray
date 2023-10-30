@@ -1,5 +1,5 @@
 # addon modules
-from . import create
+from . import material
 from .. import fmt
 from .... import rw
 
@@ -32,7 +32,7 @@ def import_shader(level, context, shader_data):
         lmaps = (light_map_1, light_map_2)
 
     # get material
-    bpy_material, bpy_image = create.get_material(
+    bpy_material, bpy_image = material.get_material(
         level,
         context,
         texture,

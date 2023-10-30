@@ -3,7 +3,6 @@ import bpy
 
 # addon modules
 from . import name
-from . import create
 from .. import fmt
 from .... import utils
 from .... import rw

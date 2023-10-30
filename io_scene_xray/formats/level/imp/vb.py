@@ -183,15 +183,15 @@ def _import_vertex_buffer_declaration(packed_reader):
 
         if fmt.types[type_] == fmt.UNUSED:
             break
-        else:
-            usage_list.append((
-                stream,
-                offset,
-                type_,
-                method,
-                usage,
-                usage_index
-            ))
+
+        usage_list.append((
+            stream,
+            offset,
+            type_,
+            method,
+            usage,
+            usage_index
+        ))
 
     return usage_list
 

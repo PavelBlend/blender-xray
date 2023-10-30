@@ -4,7 +4,6 @@ import bpy_extras
 
 # addon modules
 from . import main
-from ... import ie
 from ... import contexts
 from .... import utils
 from .... import text
