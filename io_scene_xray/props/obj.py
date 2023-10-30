@@ -284,13 +284,13 @@ xray_object_level_properties = {
     'diffuse': get_color_prop('Diffuse', size=4),
     'specular': get_color_prop('Specular', size=4),
     'ambient': get_color_prop('Ambient', size=4),
-    'range_': bpy.props.FloatProperty(name='Range'),
+    'range_': bpy.props.FloatProperty(name='Cutoff Range'),
     'falloff': bpy.props.FloatProperty(name='Falloff'),
-    'attenuation_0': bpy.props.FloatProperty(name='Attenuation 0'),
-    'attenuation_1': bpy.props.FloatProperty(name='Attenuation 1'),
-    'attenuation_2': bpy.props.FloatProperty(name='Attenuation 2'),
-    'theta': bpy.props.FloatProperty(name='Theta'),
-    'phi': bpy.props.FloatProperty(name='Phi'),
+    'attenuation_0': bpy.props.FloatProperty(name='Constant Attenuation'),
+    'attenuation_1': bpy.props.FloatProperty(name='Linear Attenuation'),
+    'attenuation_2': bpy.props.FloatProperty(name='Quadratic Attenuation'),
+    'theta': bpy.props.FloatProperty(name='Inner Angle Theta'),
+    'phi': bpy.props.FloatProperty(name='Outer Angle Phi'),
 }
 
 
