@@ -207,7 +207,7 @@ def _import_vertices_d3d9(ver, reader, vb, verts_count, usage_list):
     exec(code.get_code())
 
 
-def _import_vertices_d3d7(ver, reader, vb, verts_count, vert_fmt):
+def _import_vertices_d3d7(ver, reader, vb, verts_count, fvf):
     code = Code()
 
     code.add_line('for _ in range({}):'.format(verts_count))
@@ -215,20 +215,20 @@ def _import_vertices_d3d7(ver, reader, vb, verts_count, vert_fmt):
 
     # position, normal, diffuse, tex coord
 
-    if (vert_fmt & fmt.D3D7FVF.POSITION_MASK) == fmt.D3D7FVF.XYZ:
+    if (fvf & fmt.D3D7FVF.POSITION_MASK) == fmt.D3D7FVF.XYZ:
         code.add_line('pos = reader.getv3f()')
         code.add_line('vb.position.append(pos)')
 
-    if vert_fmt & fmt.D3D7FVF.NORMAL:
+    if fvf & fmt.D3D7FVF.NORMAL:
         vb.float_normals = True
         code.add_line('norm_x, norm_y, norm_z = reader.getf("<3f")')
         code.add_line('vb.normal.append((norm_z, norm_x, norm_y))')
 
-    if vert_fmt & fmt.D3D7FVF.DIFFUSE:
+    if fvf & fmt.D3D7FVF.DIFFUSE:
         code.add_line('red, green, blue, _ = reader.getf("<4B")')
         code.add_line('vb.color_light.append((red/255, green/255, blue/255))')
 
-    tex_count = (vert_fmt & fmt.D3D7FVF.TEXCOUNT_MASK) >> fmt.D3D7FVF.TEXCOUNT_SHIFT
+    tex_count = (fvf&fmt.D3D7FVF.TEXCOUNT_MASK) >> fmt.D3D7FVF.TEXCOUNT_SHIFT
 
     tex_uv_read_code = ''
     tex_uv_append_code = ''

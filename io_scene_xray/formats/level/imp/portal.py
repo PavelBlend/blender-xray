@@ -59,15 +59,15 @@ def _import_portal(reader, index, collection, level, portals_obj):
 
 
 def _create_portals_object(level_object, collection):
-    portals_object = utils.obj.create_object(name.PORTAL_NAME + 's', None, False)
-    portals_object.parent = level_object
-    level_object.xray.level.portals_obj = portals_object.name
+    portals_obj = utils.obj.create_object(name.PORTAL_NAME + 's', None, False)
+    portals_obj.parent = level_object
+    level_object.xray.level.portals_obj = portals_obj.name
 
-    collection.objects.link(portals_object)
+    collection.objects.link(portals_obj)
     if not utils.version.IS_28:
-        utils.version.link_object(portals_object)
+        utils.version.link_object(portals_obj)
 
-    return portals_object
+    return portals_obj
 
 
 def import_portals(level, level_object, chunks, chunks_ids):

@@ -107,16 +107,16 @@ def _create_light_object(light_index, collection, lights_object):
 
 
 def _create_lights_object(level_object, collection):
-    lights_object = utils.obj.create_object(name.LIGHT_NAME + 's', None, False)
+    lights_obj = utils.obj.create_object(name.LIGHT_NAME + 's', None, False)
 
-    lights_object.parent = level_object
-    level_object.xray.level.lights_obj = lights_object.name
+    lights_obj.parent = level_object
+    level_object.xray.level.lights_obj = lights_obj.name
 
-    collection.objects.link(lights_object)
+    collection.objects.link(lights_obj)
     if not utils.version.IS_28:
-        utils.version.link_object(lights_object)
+        utils.version.link_object(lights_obj)
 
-    return lights_object
+    return lights_obj
 
 
 def import_lights(level, level_object, chunks, chunks_ids):

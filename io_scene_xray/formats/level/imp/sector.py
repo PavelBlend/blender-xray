@@ -18,15 +18,15 @@ def _create_sector_object(sector_id, collection, sectors_object):
 
 
 def _create_sectors_object(collection, level_object):
-    sectors_object = utils.obj.create_object(name.SECTOR_NAME + 's', None, False)
-    sectors_object.parent = level_object
-    level_object.xray.level.sectors_obj = sectors_object.name
-    collection.objects.link(sectors_object)
+    sectors_obj = utils.obj.create_object(name.SECTOR_NAME + 's', None, False)
+    sectors_obj.parent = level_object
+    level_object.xray.level.sectors_obj = sectors_obj.name
+    collection.objects.link(sectors_obj)
 
     if not utils.version.IS_28:
-        utils.version.link_object(sectors_object)
+        utils.version.link_object(sectors_obj)
 
-    return sectors_object
+    return sectors_obj
 
 
 def _read_sector(data, level, sector_object):
