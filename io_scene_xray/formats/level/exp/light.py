@@ -34,12 +34,8 @@ def write_lights(level_writer, level, level_object):
             matrix = euler.to_matrix().to_3x3()
             direction = (matrix[0][1], matrix[2][1], matrix[1][1])
 
-            controller_id = data.controller_id
-            if controller_id == -1:
-                controller_id = 2 ** 32
-
             # write
-            lights_writer.putf('<2I', controller_id, data.light_type)
+            lights_writer.putf('<2I', data.controller_id, data.light_type)
             lights_writer.putf('<4f', *data.diffuse)
             lights_writer.putf('<4f', *data.specular)
             lights_writer.putf('<4f', *data.ambient)

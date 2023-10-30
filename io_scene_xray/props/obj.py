@@ -243,6 +243,10 @@ def _update_light_type_name(self, context):
     self.light_type = int(self.light_type_name)
 
 
+def _update_controller_name(self, context):
+    self.controller_id = int(self.controller_name)
+
+
 POINT_NAME = 'Point'
 SPOT_NAME = 'Spot'
 DIRECT_NAME = 'Directional'
@@ -288,6 +292,15 @@ xray_object_level_properties = {
 
     # light
     'controller_id': bpy.props.IntProperty(name='Controller ID'),
+    'controller_name': bpy.props.EnumProperty(
+        name='Controller',
+        items=(
+            ('2', 'Static', ''),
+            ('0', 'Hemi', ''),
+            ('1', 'Sun', '')
+        ),
+        update=_update_controller_name
+    ),
     'light_type': bpy.props.IntProperty(
         name='Light Type',
         default=1,

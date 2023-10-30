@@ -577,7 +577,7 @@ def level_draw_function(layout, data):
             box.prop(level, 'use_fastpath')
 
     elif object_type == 'LIGHT_DYNAMIC':
-        box.prop(level, 'controller_id')
+        draw_split_prop(box, level, 'controller_name', 'Controller')
         draw_split_prop(box, level, 'light_type_name', 'Light Type')
         row = box.row()
         row.prop(level, 'diffuse')

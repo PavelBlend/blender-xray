@@ -10,11 +10,9 @@ from .... import rw
 from .... import utils
 
 
-INT_MAX = 2 ** 31 - 1
-
-
 def _read_light(packed_reader, data):
-    data.light_type = packed_reader.uint32()    # type of light source
+    # type of light source
+    data.light_type_name = str(packed_reader.uint32())
 
     data.diffuse = packed_reader.getf('<4f')
     data.specular = packed_reader.getf('<4f')
@@ -45,10 +43,7 @@ def _import_light_v9(packed_reader, light_object):
     data = light_object.xray.level
 
     # controller id
-    controller_id = packed_reader.uint32()    # ???
-    if controller_id > INT_MAX:
-        controller_id = -1
-    data.controller_id = controller_id
+    data.controller_name = str(packed_reader.uint32())
 
     position, direction = _read_light(packed_reader, data)
 
@@ -67,9 +62,9 @@ def _import_light_v8(packed_reader, light_object):
     name = packed_reader.getf('<{}s'.format(fmt.LIGHT_V8_NAME_LEN))
 
     if data.light_type == fmt.D3D_LIGHT_POINT:
-        data.controller_id = 2
+        data.controller_name = str(fmt.CONTROLLER_STATIC)
     elif data.light_type == fmt.D3D_LIGHT_DIRECTIONAL:
-        data.controller_id = 1
+        data.controller_name = str(fmt.CONTROLLER_SUN)
 
     _set_light_transforms(light_object, position, direction)
 
@@ -83,9 +78,9 @@ def _import_light_v5(packed_reader, light_object):
     key_start, key_count = packed_reader.getf('<2H')
 
     if data.light_type == fmt.D3D_LIGHT_POINT:
-        data.controller_id = 2
+        data.controller_name = str(fmt.CONTROLLER_STATIC)
     elif data.light_type == fmt.D3D_LIGHT_DIRECTIONAL:
-        data.controller_id = 1
+        data.controller_name = str(fmt.CONTROLLER_SUN)
 
     _set_light_transforms(light_object, position, direction)
 
