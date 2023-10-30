@@ -12,7 +12,7 @@ from .... import utils
 def _generate_glow_mesh_data(radius):
     verts = []
 
-    for side_index in range(2):    # two sided mesh
+    for _ in range(2):    # two sided mesh
 
         verts.extend((
             # XZ-plane
@@ -45,6 +45,7 @@ def _generate_glow_mesh_data(radius):
         (19, 18, 17, 16),
         (23, 22, 21, 20),
     )
+    faces_count = len(faces)
 
     uv_face = (
         (1.0, 0.0),
@@ -54,15 +55,15 @@ def _generate_glow_mesh_data(radius):
     )
 
     uvs = []
-    for face_index in range(6):
+    for _ in range(faces_count):
         uvs.extend(uv_face)
 
     return verts, faces, uvs
 
 
-def _create_glow_mesh(name, verts, faces, uvs, material, image):
+def _create_glow_mesh(glow_name, verts, faces, uvs, material, image):
     # create mesh
-    mesh = bpy.data.meshes.new(name)
+    mesh = bpy.data.meshes.new(glow_name)
     mesh.from_pydata(verts, (), faces)
     utils.stats.created_msh()
 

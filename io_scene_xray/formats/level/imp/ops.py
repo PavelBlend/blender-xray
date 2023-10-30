@@ -15,13 +15,13 @@ class ImportLevelContext(contexts.ImportMeshContext):
 
 
 if utils.version.broken_file_browser_filter():
-    file_filter_import = '*'
+    FILE_FILTER_IMPORT = '*'
 else:
-    file_filter_import = 'level'
+    FILE_FILTER_IMPORT = 'level'
 
 import_props = {
     'filter_glob': bpy.props.StringProperty(
-        default=file_filter_import,
+        default=FILE_FILTER_IMPORT,
         options={'HIDDEN'}
     ),
     'directory': bpy.props.StringProperty(

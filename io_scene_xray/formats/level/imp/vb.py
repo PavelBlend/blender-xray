@@ -3,7 +3,7 @@ from .. import fmt
 from .... import rw
 
 
-class VertexBuffer(object):
+class VertexBuffer:
     def __init__(self):
         # geometry
         self.position = []
@@ -21,9 +21,9 @@ class VertexBuffer(object):
         self.float_normals = False
 
 
-get_uv_corrector = '({} / 255) * (32 / 0x8000)'
-get_corrector_u = get_uv_corrector.format('correct_u')
-get_corrector_v = get_uv_corrector.format('correct_v')
+UV_CORRECTOR = '({} / 255) * (32 / 0x8000)'
+CORRECTOR_U = UV_CORRECTOR.format('correct_u')
+CORRECTOR_V = UV_CORRECTOR.format('correct_v')
 
 
 def _import_vertices_d3d9(ver, reader, vb, verts_count, usage_list):
@@ -74,8 +74,8 @@ def _import_vertices_d3d9(ver, reader, vb, verts_count, usage_list):
 
                     if has_uv_corrector:
                         code += '    vb.uv.append((coord_u / fmt.UV_COEFFICIENT + {0}, 1 - coord_v / fmt.UV_COEFFICIENT - {1}))\n'.format(
-                            get_corrector_u,
-                            get_corrector_v
+                            CORRECTOR_U,
+                            CORRECTOR_V
                         )
                     else:
                         code += '    vb.uv.append((coord_u / fmt.UV_COEFFICIENT, 1 - coord_v / fmt.UV_COEFFICIENT))\n'
@@ -88,8 +88,8 @@ def _import_vertices_d3d9(ver, reader, vb, verts_count, usage_list):
 
                         if has_uv_corrector:
                             code += '    vb.uv.append((coord_u / fmt.UV_COEFFICIENT_2 + {0}, 1 - coord_v / fmt.UV_COEFFICIENT_2 - {1}))\n'.format(
-                                get_corrector_u,
-                                get_corrector_v
+                                CORRECTOR_U,
+                                CORRECTOR_V
                             )
                         else:
                             code += '    vb.uv.append((coord_u / fmt.UV_COEFFICIENT_2, 1 - coord_v / fmt.UV_COEFFICIENT_2))\n'
@@ -110,7 +110,7 @@ def _import_vertices_d3d9(ver, reader, vb, verts_count, usage_list):
                 code += '    vb.uv_lmap.append((lmap_u, 1 - lmap_v))\n'
 
             else:
-                raise BaseException('Unsupported uv usage index: {}'.format(usage_index))
+                raise ValueError('Unsupported uv usage index: {}'.format(usage_index))
 
         # vertex color
         elif usage == fmt.COLOR:
@@ -161,7 +161,7 @@ def _import_vertices_d3d7(ver, reader, vb, verts_count, vert_fmt):
         lmap_uv_code += '    vb.uv_lmap.append((lmap_u, 1 - lmap_v))\n'
 
     if tex_count > 2:
-        for i in range(tex_count - 2):
+        for _ in range(tex_count - 2):
             lmap_uv_code += '    reader.skip(8)\n'
 
     if ver >= fmt.VERSION_8:
@@ -251,7 +251,7 @@ def import_vertex_buffers(level, chunks, chunks_ids):
     buffers_count = vbs_reader.uint32()
 
     vertex_buffers = []
-    for buffer_index in range(buffers_count):
+    for _ in range(buffers_count):
         vertex_buffer = import_fun(vbs_reader, level.xrlc_version)
         vertex_buffers.append(vertex_buffer)
 

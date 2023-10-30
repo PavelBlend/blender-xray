@@ -19,6 +19,6 @@ def get_version(chunks, file):
             )
         )
 
-    xrlc_quality = header_reader.getf('<H')[0]
+    header_reader.skip(2)    # xrlc quality
 
     return xrlc_version

@@ -33,7 +33,6 @@ def import_shader(level, context, shader_data):
 
     # get material
     bpy_material, bpy_image = material.get_material(
-        level,
         context,
         texture,
         engine_shader,
@@ -53,7 +52,7 @@ def import_shaders(level, context, chunks, chunks_ids):
         level.materials = []
         level.images = []
 
-        for shader_index in range(shaders_count):
+        for _ in range(shaders_count):
             shader = packed_reader.gets()
 
             if shader:
@@ -72,7 +71,7 @@ def import_shaders(level, context, chunks, chunks_ids):
         level.materials = {}
         level.images = {}
 
-        for shader_index in range(shaders_count):
+        for _ in range(shaders_count):
             shader = packed_reader.gets()
             level.shaders_or_textures.append(shader)
 
@@ -82,7 +81,7 @@ def import_shaders(level, context, chunks, chunks_ids):
         level.materials = {}
         level.images = {}
 
-        for shader_index in range(shaders_count):
+        for _ in range(shaders_count):
             shader = packed_reader.gets()
             level.shaders.append(shader)
 
@@ -99,12 +98,12 @@ def import_textures(level, chunks, chunks_ids):
 
     # version 5
     if level.xrlc_version == fmt.VERSION_5:
-        for texture_index in range(textures_count):
+        for _ in range(textures_count):
             texture = packed_reader.gets()
             level.textures.append(texture)
 
     # version 4
     else:
-        for texture_index in range(textures_count):
-            texture = packed_reader.gets().split(':')[-1]
+        for _ in range(textures_count):
+            texture = packed_reader.gets().split(':', maxsplit=1)[-1]
             level.textures.append(texture)

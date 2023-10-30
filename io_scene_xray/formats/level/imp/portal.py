@@ -34,7 +34,7 @@ def _import_portal(reader, index, collection, level, portals_obj):
         used_verts_count = reader.uint32()
 
     verts = []
-    for vertex_index in range(fmt.PORTAL_VERTEX_COUNT):
+    for _ in range(fmt.PORTAL_VERTEX_COUNT):
         coord = reader.getv3f()
         verts.append(coord)
 

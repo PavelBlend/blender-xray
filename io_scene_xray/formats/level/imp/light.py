@@ -58,7 +58,7 @@ def _import_light_v8(packed_reader, light_object):
     affect_dynamic = bool(flags & fmt.FLAG_AFFECT_DYNAMIC)
     procedural = bool(flags & fmt.FLAG_PROCEDURAL)
 
-    name = packed_reader.getf('<{}s'.format(fmt.LIGHT_V8_NAME_LEN))
+    light_name = packed_reader.getf('<{}s'.format(fmt.LIGHT_V8_NAME_LEN))
 
     if data.light_type == fmt.D3D_LIGHT_POINT:
         data.controller_name = str(fmt.CONTROLLER_STATIC)

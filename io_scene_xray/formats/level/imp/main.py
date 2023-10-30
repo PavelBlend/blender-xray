@@ -25,13 +25,14 @@ from .... import utils
 from .... import rw
 
 
-class Level(object):
+class Level:
     def __init__(self):
         self.addon_version = utils.addon_version_number()
 
         self.name = None
         self.file = None
         self.path = None
+        self.context = None
 
         self.xrlc_version = None
 
@@ -167,8 +168,7 @@ def _import_main(context, level):
     level.xrlc_version = header.get_version(chunks, context.filepath)
 
     # read level.geom
-    geom_chunks = geom.read_geom(level, chunks, context)
-    chunks.update(geom_chunks)
+    geom.read_geom(level, chunks, context)
 
     # get chunks
     chunks_ids = _get_level_chunks_ids(level)
@@ -186,25 +186,25 @@ def _get_level_name(file_path):
     return os.path.basename(dir_path)
 
 
-def _check_levels_folder(context, path):
+def _check_levels_folder(context):
     if not context.lvl_mod_folder and not context.lvl_folder:
         log.warn(text.warn.level_folder_not_spec)
 
 
 @log.with_context(name='import-game-level')
 @utils.stats.timer
-def import_file(context):
-    utils.stats.status('Import File', context.filepath)
+def import_file(imp_ctx):
+    utils.stats.status('Import File', imp_ctx.filepath)
 
     level = Level()
 
-    level.context = context
-    level.file = context.filepath
-    level.name = _get_level_name(context.filepath)
-    level.path = os.path.dirname(context.filepath)
+    level.context = imp_ctx
+    level.file = imp_ctx.filepath
+    level.name = _get_level_name(imp_ctx.filepath)
+    level.path = os.path.dirname(imp_ctx.filepath)
 
-    context.level_path = os.path.dirname(level.file)
-    context.level_name = level.name
+    imp_ctx.level_path = os.path.dirname(level.file)
+    imp_ctx.level_name = level.name
 
-    _check_levels_folder(context, level.file)
-    _import_main(context, level)
+    _check_levels_folder(imp_ctx)
+    _import_main(imp_ctx, level)

@@ -29,4 +29,4 @@ def read_geom(level, chunks, context):
                 log.props(path=geom_path)
             )
 
-    return geom_chunks
+    chunks.update(geom_chunks)

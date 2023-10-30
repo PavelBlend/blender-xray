@@ -28,15 +28,13 @@ def _import_main(context, level, cform_path, data):
         )
     verts_count = packed_reader.uint32()
     tris_count = packed_reader.uint32()
-    bbox_min = packed_reader.getf('<3f')
-    bbox_max = packed_reader.getf('<3f')
+    packed_reader.skip(24)    # min/max bbox 6 float
 
     # read verts
     verts = packed_reader.get_array('f', verts_count, vec_len=3)
 
     # read game materials
     game_mtl_names = {}
-    pref = utils.version.get_preferences()
     game_mtl_files = utils.ie.get_pref_paths('gamemtl_file')
 
     for gamemtl_file_path in game_mtl_files:
@@ -145,9 +143,9 @@ def _import_main(context, level, cform_path, data):
             vert_co = verts[vert_index]
             bm.verts.new((vert_co[0], vert_co[2], vert_co[1]))
             remap_verts[vert_index] = remap_vertex_index
-        verts_count = remap_vertex_index + 1
         bm.verts.ensure_lookup_table()
         bm.verts.index_update()
+        verts_count = len(bm.verts)
 
         # create tris
         tris_2 = []    # two sided tris

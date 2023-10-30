@@ -64,12 +64,15 @@ def is_same_light_maps(context, bpy_mat, light_maps):
 
         has_images.append(True)
 
-    if len(has_images) == len(light_maps):
-        return True
+    is_same_tex_count = len(has_images) == len(light_maps)
+
+    return is_same_tex_count
 
 
 def is_same_image(context, bpy_mat, texture):
+    result = None
     level_dir = os.path.dirname(context.filepath)
+
     # absolute texture path in textures folder
     abs_tex_path = _get_abs_tex_path(context.tex_folder, texture)
     # absolute texture path in level folder
@@ -87,7 +90,8 @@ def is_same_image(context, bpy_mat, texture):
                     if not is_same_image_paths(bpy_image, abs_tex_path):
                         continue
 
-                return bpy_image
+                result = bpy_image
+                break
 
     else:
         for texture_slot in bpy_mat.texture_slots:
@@ -107,4 +111,7 @@ def is_same_image(context, bpy_mat, texture):
                 if not is_same_image_paths(bpy_image, abs_tex_path):
                     continue
 
-            return bpy_image
+            result = bpy_image
+            break
+
+    return result

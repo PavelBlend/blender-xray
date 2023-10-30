@@ -14,7 +14,7 @@ def import_indices_buffers(level, chunks, chunks_ids):
     buffers = []
     buffers_count = reader.uint32()
 
-    for index in range(buffers_count):
+    for _ in range(buffers_count):
         buffer, _ = ogf.imp.indices.read_ib(reader)
         buffers.append(buffer)
 

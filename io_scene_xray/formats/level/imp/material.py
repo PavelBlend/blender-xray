@@ -143,7 +143,7 @@ def _set_material_settings(bpy_material):
     bpy_material.blend_method = 'CLIP'
 
 
-def _create_material(level, context, rel_tex, engine_shader, light_maps):
+def _create_material(context, rel_tex, engine_shader, light_maps):
     # create material
     bpy_mat = bpy.data.materials.new(name=rel_tex)
     bpy_mat.xray.version = context.version
@@ -204,14 +204,13 @@ def _create_material(level, context, rel_tex, engine_shader, light_maps):
     return bpy_mat, bpy_img
 
 
-def get_material(level, context, rel_tex, eshader, lmaps):
+def get_material(context, rel_tex, eshader, lmaps):
     # search material
     bpy_mat, bpy_img = _search_material(context, rel_tex, eshader, lmaps)
 
     # create material
     if not bpy_mat:
         bpy_mat, bpy_img = _create_material(
-            level,
             context,
             rel_tex,
             eshader,

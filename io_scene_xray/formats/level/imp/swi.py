@@ -3,7 +3,7 @@ from .. import fmt
 from .... import rw
 
 
-class SlideWindowItem(object):
+class SlideWindowItem:
     def __init__(self, offset, triangles_count, vertices_count):
         self.offset = offset
         self.triangles_count = triangles_count
@@ -21,7 +21,7 @@ def import_swi_buffer(packed_reader):
 
     swis = []
 
-    for index in range(items_count):
+    for _ in range(items_count):
 
         # read swi
         offset = packed_reader.uint32()
@@ -46,7 +46,7 @@ def import_swi_buffers(level, chunks, chunks_ids):
     buffers_count = packed_reader.uint32()
 
     buffers = []
-    for index in range(buffers_count):
+    for _ in range(buffers_count):
         buffer = import_swi_buffer(packed_reader)
         buffers.append(buffer)
 
