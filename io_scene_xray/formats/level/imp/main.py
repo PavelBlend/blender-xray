@@ -124,23 +124,17 @@ def _create_level_collections(level):
     return level_collection
 
 
-def _import_level(level, context, chunks):
-    chunks_ids = _get_level_chunks_ids(level)
-
-    # create level object
-    level_collection = _create_level_collections(level)
-    level_object = _create_level_object(level, level_collection)
-
+def _import_level(level, context, chunks, chunks_ids, level_object):
     # shaders
     shader.import_shaders(level, context, chunks, chunks_ids)
 
-    # textures for 4, 5 versions
+    # textures
     shader.import_textures(level, chunks, chunks_ids)
 
-    # vertex buffers
+    # vertices
     vb.import_vertex_buffers(level, chunks, chunks_ids)
 
-    # index buffers
+    # indices
     ib.import_indices_buffers(level, chunks, chunks_ids)
 
     # swis
@@ -161,7 +155,7 @@ def _import_level(level, context, chunks):
     # lights
     light.import_lights(level, level_object, chunks, chunks_ids)
 
-    # cform
+    # cforms
     cform.import_cform(context, level, chunks, chunks_ids)
 
 
@@ -176,8 +170,15 @@ def _import_main(context, level):
     geom_chunks = geom.read_geom(level, chunks, context)
     chunks.update(geom_chunks)
 
+    # get chunks
+    chunks_ids = _get_level_chunks_ids(level)
+
+    # create level object
+    level_collection = _create_level_collections(level)
+    level_object = _create_level_object(level, level_collection)
+
     # import level
-    _import_level(level, context, chunks)
+    _import_level(level, context, chunks, chunks_ids, level_object)
 
 
 def _get_level_name(file_path):
