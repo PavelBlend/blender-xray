@@ -7,14 +7,6 @@ from .. import utils
 from .. import formats
 
 
-def draw_paths_list_elements(layout):
-    layout.operator(
-        ops.motion.XRAY_OT_add_all_actions.bl_idname,
-        text='',
-        icon='ACTION'
-    )
-
-
 path_settings_props = {
     'name': bpy.props.StringProperty(),
     'sdk_ver': formats.ie.PropSDKVersion()

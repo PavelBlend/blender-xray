@@ -46,10 +46,10 @@ def search_texture_by_tex_path(name, abs_path):
         if not bpy_tex.name.startswith(name):
             continue
 
-        if not hasattr(bpy_texture, 'image'):
+        if not hasattr(bpy_tex, 'image'):
             continue
 
-        if not bpy_texture.image:
+        if not bpy_tex.image:
             continue
 
         if bpy_tex.image.filepath == abs_path:
