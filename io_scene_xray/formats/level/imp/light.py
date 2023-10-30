@@ -9,24 +9,24 @@ from .... import rw
 from .... import utils
 
 
-def _read_light(packed_reader, data):
+def _read_light(reader, data):
     # type of light source
-    data.light_type_name = str(packed_reader.uint32())
+    data.light_type_name = str(reader.uint32())
 
-    data.diffuse = packed_reader.getf('<4f')
-    data.specular = packed_reader.getf('<4f')
-    data.ambient = packed_reader.getf('<4f')
+    data.diffuse = reader.getf('<4f')
+    data.specular = reader.getf('<4f')
+    data.ambient = reader.getf('<4f')
 
-    position = packed_reader.getv3f()
-    direction = packed_reader.getv3f()
+    position = reader.getv3f()
+    direction = reader.getv3f()
 
-    data.range_ = packed_reader.getf('<f')[0]    # cutoff range
-    data.falloff = packed_reader.getf('<f')[0]
-    data.attenuation_0 = packed_reader.getf('<f')[0]    # constant attenuation
-    data.attenuation_1 = packed_reader.getf('<f')[0]    # linear attenuation
-    data.attenuation_2 = packed_reader.getf('<f')[0]    # quadratic attenuation
-    data.theta = packed_reader.getf('<f')[0]    # inner angle of spotlight cone
-    data.phi = packed_reader.getf('<f')[0]    # outer angle of spotlight cone
+    data.range_ = reader.getf('<f')[0]    # cutoff range
+    data.falloff = reader.getf('<f')[0]
+    data.attenuation_0 = reader.getf('<f')[0]    # constant attenuation
+    data.attenuation_1 = reader.getf('<f')[0]    # linear attenuation
+    data.attenuation_2 = reader.getf('<f')[0]    # quadratic attenuation
+    data.theta = reader.getf('<f')[0]    # inner angle of spotlight cone
+    data.phi = reader.getf('<f')[0]    # outer angle of spotlight cone
 
     return position, direction
 
@@ -38,27 +38,27 @@ def _set_light_transforms(light_object, position, direction):
     light_object.rotation_euler = euler
 
 
-def _import_light_v9(packed_reader, light_object):
+def _import_light_v9(reader, light_object):
     data = light_object.xray.level
 
     # controller id
-    data.controller_name = str(packed_reader.uint32())
+    data.controller_name = str(reader.uint32())
 
-    position, direction = _read_light(packed_reader, data)
+    position, direction = _read_light(reader, data)
 
     _set_light_transforms(light_object, position, direction)
 
 
-def _import_light_v8(packed_reader, light_object):
+def _import_light_v8(reader, light_object):
     data = light_object.xray.level
-    position, direction = _read_light(packed_reader, data)
+    position, direction = _read_light(reader, data)
 
-    dw_frame, flags = packed_reader.getf('<2I')
+    dw_frame, flags = reader.getf('<2I')
     affect_static = bool(flags & fmt.FLAG_AFFECT_STATIC)
     affect_dynamic = bool(flags & fmt.FLAG_AFFECT_DYNAMIC)
     procedural = bool(flags & fmt.FLAG_PROCEDURAL)
 
-    light_name = packed_reader.getf('<{}s'.format(fmt.LIGHT_V8_NAME_LEN))
+    light_name = reader.getf('<{}s'.format(fmt.LIGHT_V8_NAME_LEN))
 
     if data.light_type == fmt.D3D_LIGHT_POINT:
         data.controller_name = str(fmt.CONTROLLER_STATIC)
@@ -68,13 +68,13 @@ def _import_light_v8(packed_reader, light_object):
     _set_light_transforms(light_object, position, direction)
 
 
-def _import_light_v5(packed_reader, light_object):
+def _import_light_v5(reader, light_object):
     data = light_object.xray.level
-    position, direction = _read_light(packed_reader, data)
+    position, direction = _read_light(reader, data)
 
-    dw_frame, flags = packed_reader.getf('<2I')
-    current_time, speed = packed_reader.getf('<2f')
-    key_start, key_count = packed_reader.getf('<2H')
+    dw_frame, flags = reader.getf('<2I')
+    current_time, speed = reader.getf('<2f')
+    key_start, key_count = reader.getf('<2H')
 
     if data.light_type == fmt.D3D_LIGHT_POINT:
         data.controller_name = str(fmt.CONTROLLER_STATIC)

@@ -87,7 +87,7 @@ def import_shaders(level, context, chunks, chunks_ids):
 
 
 def import_textures(level, chunks, chunks_ids):
-    if level.xrlc_version > fmt.VERSION_5:
+    if level.xrlc_version >= fmt.VERSION_8:
         return
 
     data = chunks.pop(chunks_ids.TEXTURES)

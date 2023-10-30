@@ -35,7 +35,7 @@ def import_swi_buffer(packed_reader):
 
 
 def import_swi_buffers(level, chunks, chunks_ids):
-    if level.xrlc_version < fmt.VERSION_12:
+    if level.xrlc_version <= fmt.VERSION_11:
         return
 
     data = chunks.pop(chunks_ids.SWIS, None)
