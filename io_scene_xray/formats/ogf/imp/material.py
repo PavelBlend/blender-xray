@@ -30,6 +30,10 @@ def get_level_material(lvl, shader_id, texture_id):
     return bpy_material
 
 
+trees = (fmt.ModelType_v4.TREE_ST, fmt.ModelType_v4.TREE_PM)
+normals = (fmt.ModelType_v4.NORMAL, fmt.ModelType_v4.PROGRESSIVE)
+
+
 def assign_level_material(bpy_mesh, visual, lvl):
     if (
             visual.format_version == fmt.FORMAT_VERSION_4 or
@@ -39,11 +43,21 @@ def assign_level_material(bpy_mesh, visual, lvl):
         bpy_material = lvl.materials[shader_id]
 
         if visual.format_version == fmt.FORMAT_VERSION_4:
-            trees = (fmt.ModelType_v4.TREE_ST, fmt.ModelType_v4.TREE_PM)
 
+            # for MU visuals
             if visual.model_type in trees:
                 bpy_material.xray.light_vert_color = ''
                 bpy_material.xray.sun_vert_color = ''
+
+            # for draft terrain
+            elif (
+                    visual.light and
+                    not visual.uvs_lmap and
+                    visual.model_type in normals
+                ):
+                bpy_material.xray.uv_light_map = ''
+                bpy_material.xray.light_vert_color = 'Light'
+                bpy_material.xray.sun_vert_color = 'Sun'
 
     else:
         bpy_material = get_level_material(
