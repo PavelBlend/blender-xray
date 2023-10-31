@@ -230,7 +230,7 @@ class XRAY_OT_import_omf(
                     '',
                     self,
                     'motions',
-                    context.scene.xray.import_motion,
+                    context.scene.xray,
                     'motion_index'
                 )
                 row = col.row(align=True)

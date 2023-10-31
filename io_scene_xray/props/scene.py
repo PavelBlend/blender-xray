@@ -6,19 +6,11 @@ from .. import ops
 from .. import utils
 
 
-motion_props = {
-    'motion_index': bpy.props.IntProperty(),
-}
-
-
-class XRayImportMotionProps(bpy.types.PropertyGroup):
-    if not utils.version.IS_28:
-        for prop_name, prop_value in motion_props.items():
-            exec('{0} = motion_props.get("{0}")'.format(prop_name))
-
-
 scene_props = {
-    'import_motion': bpy.props.PointerProperty(type=XRayImportMotionProps),
+    # Motion index is used in the list of animations in
+    # the File Browser window when importing skls/omf.
+    'motion_index': bpy.props.IntProperty(),
+
     'viewer': bpy.props.PointerProperty(type=ops.viewer.XRayViewerProps),
 }
 
@@ -32,8 +24,7 @@ class XRaySceneProps(bpy.types.PropertyGroup):
 
 
 prop_groups = (
-    (XRayImportMotionProps, motion_props),
-    (XRaySceneProps, scene_props)
+    (XRaySceneProps, scene_props),
 )
 
 
