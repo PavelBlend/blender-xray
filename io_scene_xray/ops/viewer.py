@@ -623,7 +623,7 @@ scene_viewer_props = {
 }
 
 
-class XRaySceneViewerProperties(bpy.types.PropertyGroup):
+class XRayViewerProps(bpy.types.PropertyGroup):
     if not utils.version.IS_28:
         for prop_name, prop_value in scene_viewer_props.items():
             exec('{0} = scene_viewer_props.get("{0}")'.format(prop_name))
@@ -632,7 +632,7 @@ class XRaySceneViewerProperties(bpy.types.PropertyGroup):
 classes = (
     (XRAY_UL_viewer_list_item, None),
     (XRayViwerFileProperties, viewer_file_props),
-    (XRaySceneViewerProperties, scene_viewer_props),
+    (XRayViewerProps, scene_viewer_props),
     (XRAY_OT_viewer_close_folder, None),
     (XRAY_OT_viewer_preview_folder, None),
     (XRAY_OT_viewer_open_folder, op_props),

@@ -105,7 +105,8 @@ class XRAY_OT_import_skls(
             col.template_list(
                 'XRAY_UL_motions_list', '',
                 self, 'motions',
-                context.scene.xray.import_skls, 'motion_index',
+                context.scene.xray.import_motion,
+                'motion_index'
             )
             row = col.row(align=True)
             ui.motion_list.BaseSelectMotionsOp.set_data(self)
