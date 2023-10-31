@@ -542,30 +542,30 @@ xray_object_properties = {
     'flags_custom_progressive': utility.gen_flag_prop(
         mask=0x02,
         description='Make Progressive',
-        customprop='flags_force_custom'
+        custom_prop='flags_force_custom'
     ),
     'flags_custom_lod': utility.gen_flag_prop(
         mask=0x04,
         description='Using LOD',
-        customprop='flags_force_custom'
+        custom_prop='flags_force_custom'
     ),
     'flags_custom_hom': utility.gen_flag_prop(
         mask=0x08,
         description='Hierarchical Occlusion Mapping',
-        customprop='flags_force_custom'
+        custom_prop='flags_force_custom'
     ),
     'flags_custom_musage': utility.gen_flag_prop(
         mask=0x10,
-        customprop='flags_force_custom'
+        custom_prop='flags_force_custom'
     ),
     'flags_custom_soccl': utility.gen_flag_prop(
         mask=0x20,
-        customprop='flags_force_custom'
+        custom_prop='flags_force_custom'
     ),
     'flags_custom_hqexp': utility.gen_flag_prop(
         mask=0x40,
         description='HQ Geometry',
-        customprop=''
+        custom_prop=''
     ),
     'flags_simple': bpy.props.EnumProperty(name='Object Type', items=(
         (formats.obj.fmt.CM, formats.obj.fmt.type_names[formats.obj.fmt.CM], ''),

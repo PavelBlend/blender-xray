@@ -2,17 +2,23 @@
 import bpy
 
 
-def gen_flag_prop(mask, description='', customprop=''):
+def gen_flag_prop(mask, description='', custom_prop=''):
+
     def getter(self):
         return bool(self.flags & mask)
 
     def setter(self, value):
-        self.flags = self.flags | mask if value else self.flags & ~mask
-        if customprop and hasattr(self, customprop):
-            setattr(self, customprop, True)
+        if value:
+            self.flags |= mask
+        else:
+            self.flags &= ~mask
+
+        if custom_prop and hasattr(self, custom_prop):
+            setattr(self, custom_prop, True)
 
     return bpy.props.BoolProperty(
         description=description,
-        get=getter, set=setter,
+        get=getter,
+        set=setter,
         options={'SKIP_SAVE'}
     )
