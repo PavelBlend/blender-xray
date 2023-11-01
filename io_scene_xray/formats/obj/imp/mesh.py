@@ -252,7 +252,7 @@ def import_mesh(context, creader, renamemap, file_name):
             return bmf
 
         def _vtx(self, _fr, _i):
-            raise 'abstract'
+            raise NotImplementedError
 
         def _vgvtx(self, vtx):
             if self.__badvg != -1:

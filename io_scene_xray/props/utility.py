@@ -6,7 +6,7 @@ class InitPropGroup(bpy.types.PropertyGroup):
     ''' Base class for property group having initialization. '''
 
     def _during_creation(self):
-        raise 'abstract'
+        raise NotImplementedError
 
     def initialize(self, operation, addon_ver):
         if not self.version:
