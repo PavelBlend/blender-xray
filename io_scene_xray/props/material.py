@@ -33,7 +33,7 @@ mat_props = {
 }
 
 
-class XRayMaterialProps(bpy.types.PropertyGroup):
+class XRayMaterialProps(utility.InitPropGroup):
     b_type = bpy.types.Material
     props = mat_props
 
@@ -41,18 +41,11 @@ class XRayMaterialProps(bpy.types.PropertyGroup):
         for prop_name, prop_value in mat_props.items():
             exec('{0} = mat_props.get("{0}")'.format(prop_name))
 
-    def initialize(self, operation, addon_ver):
-        if not self.version:
+    def _during_creation(self):
+        obj = bpy.context.active_object
 
-            if operation == 'LOADED':
-                self.version = -1
-
-            elif operation == 'CREATED':
-                self.version = addon_ver
-                obj = bpy.context.active_object
-
-                if obj and obj.xray.flags_custom_type == 'st':
-                    self.eshader = 'default'
+        if obj and obj.xray.flags_custom_type == 'st':
+            self.eshader = 'default'
 
 
 def register():

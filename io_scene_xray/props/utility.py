@@ -2,6 +2,23 @@
 import bpy
 
 
+class InitPropGroup(bpy.types.PropertyGroup):
+    ''' Base class for property group having initialization. '''
+
+    def _during_creation(self):
+        raise 'abstract'
+
+    def initialize(self, operation, addon_ver):
+        if not self.version:
+
+            if operation == 'LOADED':
+                self.version = -1
+
+            elif operation == 'CREATED':
+                self.version = addon_ver
+                self._during_creation()
+
+
 def gen_flag_prop(mask, description='', custom_prop=''):
 
     def getter(self):

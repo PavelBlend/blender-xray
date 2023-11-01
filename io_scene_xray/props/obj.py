@@ -634,23 +634,19 @@ xray_object_properties = {
 }
 
 
-class XRayObjectProperties(bpy.types.PropertyGroup):
+class XRayObjectProperties(utility.InitPropGroup):
     b_type = bpy.types.Object
 
     if not utils.version.IS_28:
         for prop_name, prop_value in xray_object_properties.items():
             exec('{0} = xray_object_properties.get("{0}")'.format(prop_name))
 
-    def initialize(self, operation, addon_ver):
-        if not self.version:
-            if operation == 'LOADED':
-                self.version = -1
-            elif operation == 'CREATED':
-                self.version = addon_ver
-                obj = self.id_data
-                self.root = obj.type == 'MESH'
-                if obj.type == 'ARMATURE':
-                    obj.data.xray.joint_limits_type = 'XRAY'
+    def _during_creation(self):
+        obj = self.id_data
+        self.root = obj.type == 'MESH'
+
+        if obj.type == 'ARMATURE':
+            obj.data.xray.joint_limits_type = 'XRAY'
 
 
 prop_groups = (
