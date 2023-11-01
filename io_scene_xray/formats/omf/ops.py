@@ -82,6 +82,7 @@ import_props = {
         type=Motion,
         name='Motions Filter'
     ),
+    'motion_index': bpy.props.IntProperty(options={'HIDDEN'}),
 
     # system properties
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
@@ -230,7 +231,7 @@ class XRAY_OT_import_omf(
                     '',
                     self,
                     'motions',
-                    context.scene.xray,
+                    self,
                     'motion_index'
                 )
                 row = col.row(align=True)

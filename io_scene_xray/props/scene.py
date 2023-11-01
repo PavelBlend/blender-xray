@@ -7,10 +7,6 @@ from .. import utils
 
 
 scene_props = {
-    # Motion index is used in the list of animations in
-    # the File Browser window when importing skls/omf.
-    'motion_index': bpy.props.IntProperty(),
-
     'viewer': bpy.props.PointerProperty(type=ops.viewer.XRayViewerProps),
 }
 

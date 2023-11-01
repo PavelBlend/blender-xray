@@ -37,6 +37,7 @@ class Motion(bpy.types.PropertyGroup):
 
 
 import_props = {
+    # file browser properties
     'filter_glob': bpy.props.StringProperty(
         default='*.skl;*.skls',
         options={'HIDDEN'}
@@ -45,11 +46,16 @@ import_props = {
     'files': bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement
     ),
+
+    # import properties
     'motions': bpy.props.CollectionProperty(
         type=Motion,
         name='Motions Filter'
     ),
+    'motion_index': bpy.props.IntProperty(options={'HIDDEN'}),
     'add_to_motion_list': ie.prop_skl_add_actions_to_motion_list(),
+
+    # system properties
     'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 }
 
@@ -103,9 +109,11 @@ class XRAY_OT_import_skls(
             col = box.column(align=True)
             ui.motion_list.BaseSelectMotionsOp.set_motions_list(None)
             col.template_list(
-                'XRAY_UL_motions_list', '',
-                self, 'motions',
-                context.scene.xray,
+                'XRAY_UL_motions_list',
+                '',
+                self,
+                'motions',
+                self,
                 'motion_index'
             )
             row = col.row(align=True)
