@@ -113,26 +113,31 @@ def layout_split(layout, percentage, align=False):
     return split
 
 
+def _set_props_27(clas, props):
+    for prop_name, prop_value in props.items():
+        setattr(clas, prop_name, prop_value)
+
+
+def _set_props_28(clas, props):
+    clas.__annotations__ = props
+
+
 def assign_props(items):
     if IS_28:
-        for item in items:
-            props, clas = item
-            clas.__annotations__ = props
+        for props, clas in items:
+            _set_props_28(clas, props)
 
     else:
-        for item in items:
-            props, clas = item
-            for prop_name, prop_value in props.items():
-                setattr(clas, prop_name, prop_value)
+        for props, clas in items:
+            _set_props_27(clas, props)
 
 
 def set_props(clas, props):
     if IS_28:
-        clas.__annotations__ = props
+        _set_props_28(clas, props)
 
     else:
-        for prop_name, prop_value in props.items():
-            setattr(clas, prop_name, prop_value)
+        _set_props_27(clas, props)
 
 
 def _register_operator(operator_class):
@@ -148,6 +153,24 @@ def register_operators(operators):
             _register_operator(operator)
     else:
         _register_operator(operators)
+
+
+def register_prop_group(clas):
+    # clas inherits from bpy.types.PropertyGroup
+    set_props(clas, clas.props)
+    bpy.utils.register_class(clas)
+
+    b_type = getattr(clas, 'b_type', None)
+    if b_type:
+        b_type.xray = bpy.props.PointerProperty(type=clas)
+
+
+def unregister_prop_group(clas):
+    # clas inherits from bpy.types.PropertyGroup
+    if hasattr(clas, 'b_type'):
+        del clas.b_type.xray
+
+    bpy.utils.unregister_class(clas)
 
 
 IMAGE_NODES = ('TEX_IMAGE', 'TEX_ENVIRONMENT')
