@@ -173,6 +173,18 @@ def unregister_prop_group(clas):
     bpy.utils.unregister_class(clas)
 
 
+def register_prop_groups(classes):
+    # clas inherits from bpy.types.PropertyGroup
+    for clas in classes:
+        register_prop_group(clas)
+
+
+def unregister_prop_groups(classes):
+    # clas inherits from bpy.types.PropertyGroup
+    for clas in reversed(classes):
+        unregister_prop_group(clas)
+
+
 IMAGE_NODES = ('TEX_IMAGE', 'TEX_ENVIRONMENT')
 
 

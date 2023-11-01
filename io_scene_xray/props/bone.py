@@ -16,7 +16,10 @@ if not utils.version.IS_34:
     import bgl
 
 
-shape_properties = {
+shape_props = {
+    'version_data': bpy.props.IntProperty(),
+
+    # type
     'type': bpy.props.EnumProperty(
         items=(
             ('0', 'None', ''),
@@ -28,128 +31,184 @@ shape_properties = {
         update=lambda self, ctx: ops.edit_helpers.bone_shape.HELPER.update(),
     ),
     'type_custom_id': bpy.props.IntProperty(default=0, min=0),
+
+    # flags
     'flags': bpy.props.IntProperty(),
     'flags_nopickable': utility.gen_flag_prop(mask=0x1),
     'flags_removeafterbreak': utility.gen_flag_prop(mask=0x2),
     'flags_nophysics': utility.gen_flag_prop(mask=0x4),
     'flags_nofogcollider': utility.gen_flag_prop(mask=0x8),
+
+    # box
     'box_rot': bpy.props.FloatVectorProperty(size=9),
     'box_trn': bpy.props.FloatVectorProperty(),
     'box_hsz': bpy.props.FloatVectorProperty(),
+
+    # sphere
     'sph_pos': bpy.props.FloatVectorProperty(),
     'sph_rad': bpy.props.FloatProperty(),
+
+    # cylinder
     'cyl_pos': bpy.props.FloatVectorProperty(),
     'cyl_dir': bpy.props.FloatVectorProperty(),
     'cyl_hgh': bpy.props.FloatProperty(),
-    'cyl_rad': bpy.props.FloatProperty(),
-    'version_data': bpy.props.IntProperty()
+    'cyl_rad': bpy.props.FloatProperty()
 }
 
 
-class ShapeProperties(bpy.types.PropertyGroup):
+def _iszero(vector):
+    return not any(vector)
+
+
+class XRayShapeProps(bpy.types.PropertyGroup):
     _CURVER_DATA = 1
+    props = shape_props
 
     if not utils.version.IS_28:
-        for prop_name, prop_value in shape_properties.items():
-            exec('{0} = shape_properties.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in shape_props.items():
+            exec('{0} = shape_props.get("{0}")'.format(prop_name))
 
     def check_version_different(self):
-        def iszero(vec):
-            return not any(v for v in vec)
+        ver = 0
 
         if self.version_data == self._CURVER_DATA:
-            return 0
+            return ver
+
         if self.type == '0':    # none
-            return 0
+            return ver
+
         elif self.type == '1':    # box
-            if iszero(self.box_trn) and iszero(self.box_rot) and iszero(self.box_hsz):
-                return 0    # default shape
+            if (
+                _iszero(self.box_trn) and
+                _iszero(self.box_rot) and
+                _iszero(self.box_hsz)
+            ):
+                return ver    # default shape
+
         elif self.type == '2':    # sphere
-            if iszero(self.sph_pos) and not self.sph_rad:
-                return 0    # default shape
+            if (
+                _iszero(self.sph_pos) and
+                not self.sph_rad
+            ):
+                return ver    # default shape
+
         elif self.type == '3':    # cylinder
-            if iszero(self.cyl_pos) \
-                and iszero(self.cyl_dir) \
-                and not self.cyl_rad \
-                and not self.cyl_hgh:
-                return 0    # default shape
+            if (
+                _iszero(self.cyl_pos) and
+                _iszero(self.cyl_dir) and
+                not self.cyl_rad and
+                not self.cyl_hgh
+            ):
+                return ver    # default shape
+
         elif self.type == '4':    # custom
-            return 0
-        return 1 if self.version_data < self._CURVER_DATA else 2
+            return ver
+
+        if self.version_data < self._CURVER_DATA:
+            ver = 1
+        else:
+            ver = 2
+
+        return ver
 
     @staticmethod
     def fmt_version_different(res):
-        return 'obsolete' if res == 1 else ('newest' if res == 2 else 'different')
+        if res == 1:
+            ver = 'obsolete'
+        elif res == 2:
+            ver = 'newest'
+        else:
+            ver = 'different'
+        return ver
 
     def set_curver(self):
         self.version_data = self._CURVER_DATA
 
     def get_matrix_basis(self) -> mathutils.Matrix:
-        typ = self.type
-        if typ == '1':  # box
+        result = None
+
+        if self.type == '1':    # box
             rot = self.box_rot
-            return utils.version.multiply(
+            rot_mat = mathutils.Matrix((rot[0:3], rot[3:6], rot[6:9]))
+            result = utils.version.multiply(
                 mathutils.Matrix.Translation(self.box_trn),
-                mathutils.Matrix((rot[0:3], rot[3:6], rot[6:9])).transposed().to_4x4()
+                rot_mat.transposed().to_4x4()
             )
-        if typ == '2':  # sphere
-            return mathutils.Matrix.Translation(self.sph_pos)
-        if typ == '3':  # cylinder
+
+        elif self.type == '2':    # sphere
+            result = mathutils.Matrix.Translation(self.sph_pos)
+
+        elif self.type == '3':    # cylinder
             v_dir = mathutils.Vector(self.cyl_dir)
             q_rot = v_dir.rotation_difference((0, 1, 0))
-            return utils.version.multiply(
+            result = utils.version.multiply(
                 mathutils.Matrix.Translation(self.cyl_pos),
                 q_rot.to_matrix().transposed().to_4x4()
             )
 
+        return result
 
-break_properties = {
+
+break_props = {
     'force': bpy.props.FloatProperty(min=0.0),
     'torque': bpy.props.FloatProperty(min=0.0)
 }
 
 
-class BreakProperties(bpy.types.PropertyGroup):
+class XRayBreakProps(bpy.types.PropertyGroup):
+    props = break_props
+
     if not utils.version.IS_28:
-        for prop_name, prop_value in break_properties.items():
-            exec('{0} = break_properties.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in break_props.items():
+            exec('{0} = break_props.get("{0}")'.format(prop_name))
 
 
-ik_joint_properties = {
+ik_joint_props = {
+    # type
     'type': bpy.props.EnumProperty(items=(
-            ('4', 'None', ''),
-            ('0', 'Rigid', ''),
-            ('1', 'Cloth', ''),
-            ('2', 'Joint', ''),
-            ('3', 'Wheel ', ''),
-            ('5', 'Slider ', ''),
-            ('6', 'Custom ', '')
+        ('4', 'None', ''),
+        ('0', 'Rigid', ''),
+        ('1', 'Cloth', ''),
+        ('2', 'Joint', ''),
+        ('3', 'Wheel ', ''),
+        ('5', 'Slider ', ''),
+        ('6', 'Custom ', '')
     )),
     'type_custom_id': bpy.props.IntProperty(default=0, min=0),
+
+    # x limits
     'lim_x_min': bpy.props.FloatProperty(
-        min=-math.pi, max=math.pi,
+        min=-math.pi,
+        max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
     ),
     'lim_x_max': bpy.props.FloatProperty(
-        min=-math.pi, max=math.pi,
+        min=-math.pi,
+        max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
     ),
     'lim_x_spr': bpy.props.FloatProperty(min=0.0, max=1000.0),
     'lim_x_dmp': bpy.props.FloatProperty(min=0.0, max=1000.0),
+
+    # y limits
     'lim_y_min': bpy.props.FloatProperty(
-        min=-math.pi, max=math.pi,
+        min=-math.pi,
+        max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
     ),
     'lim_y_max': bpy.props.FloatProperty(
-        min=-math.pi, max=math.pi,
+        min=-math.pi,
+        max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
     ),
     'lim_y_spr': bpy.props.FloatProperty(min=0.0, max=1000.0),
     'lim_y_dmp': bpy.props.FloatProperty(min=0.0, max=1000.0),
+
+    # z limits
     'lim_z_min': bpy.props.FloatProperty(
         min=-math.pi, max=math.pi,
         update=ops.joint_limits.update_limit,
@@ -162,35 +221,43 @@ ik_joint_properties = {
     ),
     'lim_z_spr': bpy.props.FloatProperty(min=0.0, max=1000.0),
     'lim_z_dmp': bpy.props.FloatProperty(min=0.0, max=1000.0),
+
+    # others
     'spring': bpy.props.FloatProperty(min=0.0, max=1000.0),
-    'damping': bpy.props.FloatProperty(min=0.0, max=1000.0),
-    'is_rigid': bpy.props.BoolProperty(get=lambda self: self.type == '0')
+    'damping': bpy.props.FloatProperty(min=0.0, max=1000.0)
 }
 
 
-class IKJointProperties(bpy.types.PropertyGroup):
+class XRayIKJointProps(bpy.types.PropertyGroup):
+    props = ik_joint_props
+
     if not utils.version.IS_28:
-        for prop_name, prop_value in ik_joint_properties.items():
-            exec('{0} = ik_joint_properties.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in ik_joint_props.items():
+            exec('{0} = ik_joint_props.get("{0}")'.format(prop_name))
 
 
-mass_properties = {
+mass_props = {
     'value': bpy.props.FloatProperty(name='Mass', precision=3, min=0.0),
-    'center': bpy.props.FloatVectorProperty(name='Center of Mass', precision=3)
+    'center': bpy.props.FloatVectorProperty(
+        name='Center of Mass',
+        precision=3
+    )
 }
 
 
-class MassProperties(bpy.types.PropertyGroup):
+class XRayMassProps(bpy.types.PropertyGroup):
+    props = mass_props
+
     if not utils.version.IS_28:
-        for prop_name, prop_value in mass_properties.items():
-            exec('{0} = mass_properties.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in mass_props.items():
+            exec('{0} = mass_props.get("{0}")'.format(prop_name))
 
 
-def set_ikflags_breakable(self, value):
+def _set_ikflags_breakable(self, value):
     self.ikflags = self.ikflags | 0x1 if value else self.ikflags & ~0x1
 
 
-xray_bone_properties = {
+bone_props = {
     'exportable': bpy.props.BoolProperty(
         name='Exportable',
         default=True,
@@ -199,26 +266,27 @@ xray_bone_properties = {
     'version': bpy.props.IntProperty(),
     'length': bpy.props.FloatProperty(name='Length'),
     'gamemtl': bpy.props.StringProperty(default='default_object'),
-    'shape': bpy.props.PointerProperty(type=ShapeProperties),
+    'shape': bpy.props.PointerProperty(type=XRayShapeProps),
     'ikflags': bpy.props.IntProperty(),
     'ikflags_breakable': bpy.props.BoolProperty(
         get=lambda self: self.ikflags & 0x1,
-        set=set_ikflags_breakable,
+        set=_set_ikflags_breakable,
         options={'SKIP_SAVE'}
     ),
-    'ikjoint': bpy.props.PointerProperty(type=IKJointProperties),
-    'breakf': bpy.props.PointerProperty(type=BreakProperties),
+    'ikjoint': bpy.props.PointerProperty(type=XRayIKJointProps),
+    'breakf': bpy.props.PointerProperty(type=XRayBreakProps),
     'friction': bpy.props.FloatProperty(min=0.0),
-    'mass': bpy.props.PointerProperty(type=MassProperties)
+    'mass': bpy.props.PointerProperty(type=XRayMassProps)
 }
 
 
-class XRayBoneProperties(bpy.types.PropertyGroup):
+class XRayBoneProps(bpy.types.PropertyGroup):
     b_type = bpy.types.Bone
+    props = bone_props
 
     if not utils.version.IS_28:
-        for prop_name, prop_value in xray_bone_properties.items():
-            exec('{0} = xray_bone_properties.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in bone_props.items():
+            exec('{0} = bone_props.get("{0}")'.format(prop_name))
 
     def ondraw_postview(self, obj_arm, bone):
         # draw limits
@@ -436,15 +504,15 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
             try:
                 mat = multiply(mat, shape.get_matrix_basis())
                 gpu.matrix.multiply_matrix(mat)
-                if shape.type == '1':  # box
+                if shape.type == '1':    # box
                     viewport.draw_cube(*shape.box_hsz, color=color)
-                if shape.type == '2':  # sphere
+                if shape.type == '2':    # sphere
                     viewport.draw_sphere(
                         shape.sph_rad,
                         viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT,
                         color=color
                     )
-                if shape.type == '3':  # cylinder
+                if shape.type == '3':    # cylinder
                     viewport.draw_cylinder(
                         shape.cyl_rad,
                         shape.cyl_hgh * 0.5,
@@ -461,14 +529,14 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
                 bgl.glMultMatrixf(
                     viewport.gl_utils.matrix_to_buffer(mat.transposed())
                 )
-                if shape.type == '1':  # box
+                if shape.type == '1':    # box
                     viewport.draw_cube(*shape.box_hsz)
-                if shape.type == '2':  # sphere
+                if shape.type == '2':    # sphere
                     viewport.draw_sphere(
                         shape.sph_rad,
                         viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT
                     )
-                if shape.type == '3':  # cylinder
+                if shape.type == '3':    # cylinder
                     viewport.draw_cylinder(
                         shape.cyl_rad,
                         shape.cyl_hgh * 0.5,
@@ -480,26 +548,17 @@ class XRayBoneProperties(bpy.types.PropertyGroup):
 
 
 prop_groups = (
-    (ShapeProperties, shape_properties, False),
-    (BreakProperties, break_properties, False),
-    (IKJointProperties, ik_joint_properties, False),
-    (MassProperties, mass_properties, False),
-    (XRayBoneProperties, xray_bone_properties, True),
+    XRayShapeProps,
+    XRayBreakProps,
+    XRayIKJointProps,
+    XRayMassProps,
+    XRayBoneProps
 )
 
 
 def register():
-    for prop_group, props, is_group in prop_groups:
-        utils.version.assign_props([
-            (props, prop_group),
-        ])
-        bpy.utils.register_class(prop_group)
-        if is_group:
-            prop_group.b_type.xray = bpy.props.PointerProperty(type=prop_group)
+    utils.version.register_prop_groups(prop_groups)
 
 
 def unregister():
-    for prop_group, props, is_group in reversed(prop_groups):
-        if is_group:
-            del prop_group.b_type.xray
-        bpy.utils.unregister_class(prop_group)
+    utils.version.unregister_prop_groups(prop_groups)

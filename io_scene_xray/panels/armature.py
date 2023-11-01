@@ -49,7 +49,7 @@ class XRAY_PT_armature(ui.base.XRayPanel):
 
         verdif = data.check_different_version_bones()
         if verdif != 0:
-            ver = props.bone.ShapeProperties.fmt_version_different(verdif)
+            ver = props.bone.XRayShapeProps.fmt_version_different(verdif)
             layout.label(
                 text=text.get_text(text.warn.bones_verdif).format(ver),
                 icon='ERROR'
