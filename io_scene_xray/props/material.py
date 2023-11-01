@@ -6,13 +6,19 @@ from . import utility
 from .. import utils
 
 
-xray_material_properties = {
-    'flags': bpy.props.IntProperty(name='flags'),
-    'flags_twosided': utility.gen_flag_prop(mask=0x01),
+mat_props = {
+    'version': bpy.props.IntProperty(),
+
+    # general
     'eshader': bpy.props.StringProperty(default='models\\model'),
     'cshader': bpy.props.StringProperty(default='default'),
     'gamemtl': bpy.props.StringProperty(default='default'),
-    'version': bpy.props.IntProperty(),
+
+    # flags
+    'flags': bpy.props.IntProperty(name='flags'),
+    'flags_twosided': utility.gen_flag_prop(mask=0x01),
+
+    # level
     'uv_texture': bpy.props.StringProperty(default=''),
     'uv_light_map': bpy.props.StringProperty(default=''),
     'lmap_0': bpy.props.StringProperty(default=''),
@@ -20,44 +26,38 @@ xray_material_properties = {
     'light_vert_color': bpy.props.StringProperty(default=''),
     'sun_vert_color': bpy.props.StringProperty(default=''),
     'hemi_vert_color': bpy.props.StringProperty(default=''),
+
+    # cform
     'suppress_shadows': bpy.props.BoolProperty(),
     'suppress_wm': bpy.props.BoolProperty()
 }
 
 
-class XRayMaterialProperties(bpy.types.PropertyGroup):
+class XRayMaterialProps(bpy.types.PropertyGroup):
     b_type = bpy.types.Material
+    props = mat_props
 
     if not utils.version.IS_28:
-        for prop_name, prop_value in xray_material_properties.items():
-            exec('{0} = xray_material_properties.get("{0}")'.format(prop_name))
+        for prop_name, prop_value in mat_props.items():
+            exec('{0} = mat_props.get("{0}")'.format(prop_name))
 
     def initialize(self, operation, addon_ver):
         if not self.version:
+
             if operation == 'LOADED':
                 self.version = -1
+
             elif operation == 'CREATED':
                 self.version = addon_ver
                 obj = bpy.context.active_object
+
                 if obj and obj.xray.flags_custom_type == 'st':
                     self.eshader = 'default'
 
 
-prop_groups = (
-    (XRayMaterialProperties, xray_material_properties),
-)
-
-
 def register():
-    for prop_group, props in prop_groups:
-        utils.version.assign_props([
-            (props, prop_group),
-        ])
-    bpy.utils.register_class(prop_group)
-    prop_group.b_type.xray = bpy.props.PointerProperty(type=prop_group)
+    utils.version.register_prop_group(XRayMaterialProps)
 
 
 def unregister():
-    for prop_group, props in reversed(prop_groups):
-        del prop_group.b_type.xray
-        bpy.utils.unregister_class(prop_group)
+    utils.version.unregister_prop_group(XRayMaterialProps)
