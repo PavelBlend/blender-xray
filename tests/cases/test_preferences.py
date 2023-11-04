@@ -1,6 +1,7 @@
 from os.path import sep
 from unittest.mock import patch
 
+import bpy
 from tests import utils
 
 from io_scene_xray import prefs as addon_prefs
@@ -144,3 +145,6 @@ class TestPreferences(utils.XRayTestCase):
             prefs.enable_part_import = value
 
             prefs.enable_err_import = value
+
+    def test_prefs_preset(self):
+        bpy.ops.xray.prefs_preset_add(name='test_preset')
