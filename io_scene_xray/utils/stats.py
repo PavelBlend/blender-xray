@@ -71,58 +71,69 @@ class Statistics:
 
 def created_obj():
     global statistics
-    statistics.objs_count += 1
+    if statistics:
+        statistics.objs_count += 1
 
 
 def created_msh():
     global statistics
-    statistics.mshs_count += 1
+    if statistics:
+        statistics.mshs_count += 1
 
 
 def created_arm():
     global statistics
-    statistics.arms_count += 1
+    if statistics:
+        statistics.arms_count += 1
 
 
 def created_mat():
     global statistics
-    statistics.mats_count += 1
+    if statistics:
+        statistics.mats_count += 1
 
 
 def created_tex():
     global statistics
-    statistics.texs_count += 1
+    if statistics:
+        statistics.texs_count += 1
 
 
 def created_img():
     global statistics
-    statistics.imgs_count += 1
+    if statistics:
+        statistics.imgs_count += 1
 
 
 def created_act():
     global statistics
-    statistics.acts_count += 1
+    if statistics:
+        statistics.acts_count += 1
 
 
 def status(status_str, *props):
     global statistics
-    statistics.status = status_str
-    statistics.props = props
+    if statistics:
+        statistics.status = status_str
+        statistics.props = props
 
 
 def stage(stage_name):
     global statistics
-    statistics.stage_name = stage_name
+    if statistics:
+        statistics.stage_name = stage_name
 
 
 def update(context):
     global statistics
-    statistics.context = context
+    if statistics:
+        statistics.context = context
 
 
 def info(data):
     global statistics
-    statistics.info(data)
+    if statistics:
+        statistics.info(data)
 
 
 def normalize_time(time_sec):

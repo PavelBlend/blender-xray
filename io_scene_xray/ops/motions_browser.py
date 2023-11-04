@@ -338,7 +338,6 @@ def import_anim(obj, file, animation_name):
 
 
 @utils.set_cursor_state
-@utils.stats.execute_with_stats
 def anim_index_changed(self, context):
     '''Selected animation changed in .skls/.omf list'''
 

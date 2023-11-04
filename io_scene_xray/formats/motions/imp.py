@@ -46,6 +46,7 @@ def import_motion(
         motions_filter=utilites.MOTIONS_FILTER_ALL,
         skl_file_name=None
     ):
+
     bpy_armature = context.bpy_arm_obj
     name = reader.gets()
     log.update(motion=name)
