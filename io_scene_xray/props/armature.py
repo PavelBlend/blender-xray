@@ -14,17 +14,17 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
     display_bone_shapes = bpy.props.BoolProperty(
         name='Display Bone Shapes',
         default=False
-    ),
+    )
     display_bone_mass_centers = bpy.props.BoolProperty(
         name='Display Bone Mass Centers',
         default=False
-    ),
+    )
     bone_mass_center_cross_size = bpy.props.FloatProperty(
         name='Cross Size',
         default=0.02,
         min=0.00001,
         precision=5
-    ),
+    )
     joint_limits_type = bpy.props.EnumProperty(
         items=(
             ('IK', 'IK', ''),
@@ -34,25 +34,25 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
         ),
         name='Export Limits From',
         default='IK'
-    ),
+    )
     display_bone_limits = bpy.props.BoolProperty(
         name='Display Bone Limits',
         default=False
-    ),
+    )
     display_bone_limits_radius = bpy.props.FloatProperty(
         name='Gizmo Radius',
         default=0.1,
         min=0.00001,
         precision=5
-    ),
+    )
     display_bone_limit_x = bpy.props.BoolProperty(
         name='Limit X',
         default=True
-    ),
+    )
     display_bone_limit_y = bpy.props.BoolProperty(
         name='Limit Y',
         default=True
-    ),
+    )
     display_bone_limit_z = bpy.props.BoolProperty(
         name='Limit Z',
         default=True

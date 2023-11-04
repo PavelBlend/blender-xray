@@ -133,11 +133,8 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
     bl_label = 'Set Custom to X-Ray'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    for prop_name, prop_value in op_props.items():
+        exec('{0} = op_props.get("{0}")'.format(prop_name))
 
     draw = draw_function
 
@@ -250,11 +247,8 @@ class XRAY_OT_set_xray_to_custom_props(utils.ie.BaseOperator):
     bl_label = 'Set X-Ray to Custom'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    for prop_name, prop_value in op_props.items():
+        exec('{0} = op_props.get("{0}")'.format(prop_name))
 
     draw = draw_function
 
@@ -433,11 +427,8 @@ class XRAY_OT_remove_xray_custom_props(utils.ie.BaseOperator):
     bl_label = 'Remove X-Ray Custom Properties'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    for prop_name, prop_value in op_props.items():
+        exec('{0} = op_props.get("{0}")'.format(prop_name))
 
     draw = draw_function
 
@@ -483,11 +474,8 @@ class XRAY_OT_remove_all_custom_props(utils.ie.BaseOperator):
     bl_label = 'Remove All Custom Properties'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    for prop_name, prop_value in op_props.items():
+        exec('{0} = op_props.get("{0}")'.format(prop_name))
 
     draw = draw_function
 
