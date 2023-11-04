@@ -19,6 +19,9 @@ class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
 
             col = layout.column(align=True)
 
+            hobj, bone = HELPER.get_target()
+            shape_type = bone.xray.shape.type
+
             op = col.operator(
                 XRAY_OT_fit_shape.bl_idname,
                 text='Fit Shape',
@@ -26,19 +29,20 @@ class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
             )
             op.mode = 'FIT'
 
-            op = col.operator(
-                XRAY_OT_fit_shape.bl_idname,
-                text='Axis Align Bounding Box',
-                icon=utils.version.get_icon('BBOX')
-            )
-            op.mode = 'AABB'
+            if shape_type in ('1', '3'):    # box, cylinder
+                op = col.operator(
+                    XRAY_OT_fit_shape.bl_idname,
+                    text='Axis Align Bounding Box',
+                    icon=utils.version.get_icon('BBOX')
+                )
+                op.mode = 'AABB'
 
-            op = col.operator(
-                XRAY_OT_fit_shape.bl_idname,
-                text='Orient Bounding Box',
-                icon=utils.version.get_icon('BBOX')
-            )
-            op.mode = 'OBB'
+                op = col.operator(
+                    XRAY_OT_fit_shape.bl_idname,
+                    text='Orient Bounding Box',
+                    icon=utils.version.get_icon('BBOX')
+                )
+                op.mode = 'OBB'
 
             super().draw(layout, context)
             return
@@ -243,13 +247,19 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
             vtx_a.z = func(vtx_a.z, vtx_b.z)
 
         hobj, bone = HELPER.get_target()
-        matrix = hobj.matrix_local
-        matrix_inverted = matrix
-        try:
-            matrix_inverted = matrix.inverted()
-        except ValueError:
+
+        if self.mode == 'AABB':
             matrix = mathutils.Matrix.Identity(4)
             matrix_inverted = matrix
+        else:
+            matrix = hobj.matrix_local
+            matrix_inverted = matrix
+            try:
+                matrix_inverted = matrix.inverted()
+            except ValueError:
+                matrix = mathutils.Matrix.Identity(4)
+                matrix_inverted = matrix
+
         hobj.scale = (1, 1, 1)  # ugly: force delayed refresh 3d-view
         vmin = mathutils.Vector((+math.inf, +math.inf, +math.inf))
         vmax = mathutils.Vector((-math.inf, -math.inf, -math.inf))
@@ -263,10 +273,6 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                 hobj.matrix_local = obb_mat
 
             else:
-
-                if self.mode == 'AABB':
-                    matrix = mathutils.Matrix.Identity(4)
-                    matrix_inverted = matrix
 
                 # generate aabb
                 for vtx in utils.bone.bone_vertices(bone):
@@ -307,10 +313,11 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                 elif xsh.type == '3':    # cylinder
                     obb_mat = utils.bone.get_obb(bone, True)
 
-                    if obb_mat:
+                    if obb_mat and self.mode == 'OBB':
                         hobj.matrix_local = obb_mat
 
                     else:
+
                         # generate aabb
                         for vtx in vertices:
                             radius = max(radius, (vtx - vcenter).xy.length)
