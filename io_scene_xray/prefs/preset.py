@@ -44,12 +44,6 @@ class XRAY_OT_add_prefs_preset(
     for prop_key in props.xray_custom_properties:
         preset_values.append('prefs.custom_props.{}'.format(prop_key))
 
-    for prop in props.__AUTO_PROPS__:
-        auto_prop = props.build_auto_id(prop)
-
-        preset_values.append('prefs.{}'.format(prop))
-        preset_values.append('prefs.{}'.format(auto_prop))
-
 
 classes = (
     XRAY_MT_prefs_presets,
