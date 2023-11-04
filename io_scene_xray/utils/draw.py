@@ -63,7 +63,9 @@ def show_message(
         if operators:
             self.layout.operator_context = 'INVOKE_DEFAULT'
             for op_index, operator in enumerate(operators):
-                label = operators_labels[op_index]
+                label = None
+                if operators_labels:
+                    label = operators_labels[op_index]
                 if label:
                     op = self.layout.operator(operator, text=label)
                 else:
