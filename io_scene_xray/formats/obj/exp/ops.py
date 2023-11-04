@@ -69,26 +69,6 @@ def find_objects_for_export(context):
 
 filename_ext = '.object'
 
-export_props = {
-    # file browser properties
-    'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
-        options={'HIDDEN'}
-    ),
-
-    # export properties
-    'fmt_version': ie.PropSDKVersion(),
-    'use_export_paths': ie.PropUseExportPaths(),
-    'smoothing_out_of': ie.prop_smoothing_out_of(),
-    'export_motions': ie.PropObjectMotionsExport(),
-    'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
-
-    # system properties
-    'objects': bpy.props.StringProperty(options={'HIDDEN'}),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
 
 class XRAY_OT_export_object(utils.ie.BaseOperator):
     bl_idname = 'xray_export.object'
@@ -98,11 +78,24 @@ class XRAY_OT_export_object(utils.ie.BaseOperator):
     text = 'Source Object'
     ext = filename_ext
     filename_ext = filename_ext
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    # file browser properties
+    directory = bpy.props.StringProperty(subtype='FILE_PATH')
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    )
+
+    # export properties
+    fmt_version = ie.PropSDKVersion()
+    use_export_paths = ie.PropUseExportPaths()
+    smoothing_out_of = ie.prop_smoothing_out_of()
+    export_motions = ie.PropObjectMotionsExport()
+    texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
+
+    # system properties
+    objects = bpy.props.StringProperty(options={'HIDDEN'})
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'objects_folder')
@@ -176,24 +169,6 @@ class XRAY_OT_export_object(utils.ie.BaseOperator):
         return {'RUNNING_MODAL'}
 
 
-export_props = {
-    # file browser properties
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
-        options={'HIDDEN'}
-    ),
-
-    # export properties
-    'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
-    'fmt_version': ie.PropSDKVersion(),
-    'smoothing_out_of': ie.prop_smoothing_out_of(),
-    'export_motions': ie.PropObjectMotionsExport(),
-
-    # system properties
-    'object': bpy.props.StringProperty(options={'HIDDEN'})
-}
-
-
 class XRAY_OT_export_object_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
@@ -204,11 +179,21 @@ class XRAY_OT_export_object_file(
     bl_options = {'PRESET'}
 
     filename_ext = '.object'
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    # file browser properties
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    )
+
+    # export properties
+    texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
+    fmt_version = ie.PropSDKVersion()
+    smoothing_out_of = ie.prop_smoothing_out_of()
+    export_motions = ie.PropObjectMotionsExport()
+
+    # system properties
+    object = bpy.props.StringProperty(options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'objects_folder')

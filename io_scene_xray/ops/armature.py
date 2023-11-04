@@ -8,10 +8,6 @@ from .. import text
 
 COPY_TRANSFORMS_NAME = '!-xray-link'
 
-op_props = {
-    'armature': bpy.props.StringProperty(name='Link to'),
-}
-
 
 class XRAY_OT_link_bones(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.link_bones'
@@ -19,11 +15,7 @@ class XRAY_OT_link_bones(utils.ie.BaseOperator):
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    armature = bpy.props.StringProperty(name='Link to')
 
     @classmethod
     def poll(cls, context):

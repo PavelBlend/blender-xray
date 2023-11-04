@@ -32,22 +32,6 @@ class ExportBonesContext(contexts.ExportAnimationOnlyContext):
 BONES_EXT = '.bones'
 op_text = 'Bones Data'
 
-import_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+BONES_EXT, options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        options={'SKIP_SAVE'}
-    ),
-    'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement
-    ),
-    'import_bone_parts': ie.prop_import_bone_parts(),
-    'import_bone_properties': ie.prop_import_bone_properties(),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
 
 class XRAY_OT_import_bones(
         utils.ie.BaseOperator,
@@ -61,11 +45,21 @@ class XRAY_OT_import_bones(
     text = op_text
     ext = BONES_EXT
     filename_ext = BONES_EXT
-    props = import_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*'+BONES_EXT,
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE'}
+    )
+    files = bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement
+    )
+    import_bone_parts = ie.prop_import_bone_parts()
+    import_bone_properties = ie.prop_import_bone_properties()
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -124,18 +118,6 @@ class XRAY_OT_import_bones(
         return super().invoke(context, event)
 
 
-export_props = {
-    'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+BONES_EXT,
-        options={'HIDDEN'}
-    ),
-    'export_bone_properties': ie.prop_export_bone_properties(),
-    'export_bone_parts': ie.prop_export_bone_parts(),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
-
 class XRAY_OT_export_bones(utils.ie.BaseOperator):
     bl_idname = 'xray_export.bones'
     bl_label = 'Export .bones'
@@ -144,13 +126,17 @@ class XRAY_OT_export_bones(utils.ie.BaseOperator):
     text = op_text
     ext = BONES_EXT
     filename_ext = BONES_EXT
-    props = export_props
+
+    directory = bpy.props.StringProperty(subtype='FILE_PATH')
+    filter_glob = bpy.props.StringProperty(
+        default='*'+BONES_EXT,
+        options={'HIDDEN'}
+    )
+    export_bone_properties = ie.prop_export_bone_properties()
+    export_bone_parts = ie.prop_export_bone_parts()
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     objects_list = []
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def get_objects(self, context):
         self.objects_list.clear()
@@ -219,18 +205,6 @@ class XRAY_OT_export_bones(utils.ie.BaseOperator):
         return {'RUNNING_MODAL'}
 
 
-export_props = {
-    'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
-    'object_name': bpy.props.StringProperty(options={'HIDDEN'}),
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+BONES_EXT,
-        options={'HIDDEN'}
-    ),
-    'export_bone_properties': ie.prop_export_bone_properties(),
-    'export_bone_parts': ie.prop_export_bone_parts()
-}
-
-
 class XRAY_OT_export_bone(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
@@ -240,12 +214,16 @@ class XRAY_OT_export_bone(
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     filename_ext = BONES_EXT
-    props = export_props
     objects = []
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    directory = bpy.props.StringProperty(subtype='FILE_PATH')
+    object_name = bpy.props.StringProperty(options={'HIDDEN'})
+    filter_glob = bpy.props.StringProperty(
+        default='*'+BONES_EXT,
+        options={'HIDDEN'}
+    )
+    export_bone_properties = ie.prop_export_bone_properties()
+    export_bone_parts = ie.prop_export_bone_parts()
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats

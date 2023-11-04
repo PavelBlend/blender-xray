@@ -372,22 +372,15 @@ def update_file_list_ext(self, context):
     update_file_list(scene.xray.viewer.folder)
 
 
-op_props = {
-    'directory': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        options={'SKIP_SAVE', 'HIDDEN'}
-    ),
-}
-
-
 class XRAY_OT_viewer_open_folder(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.viewer_open_folder'
     bl_label = 'Open Folder'
     bl_options = {'REGISTER'}
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in op_props.items():
-            exec('{0} = op_props.get("{0}")'.format(prop_name))
+    directory = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -454,24 +447,19 @@ class XRAY_OT_viewer_preview_folder(utils.ie.BaseOperator):
         return {'FINISHED'}
 
 
-op_import_items = (
-    ('IMPORT_ALL', 'Import All', ''),
-    ('IMPORT_SELECTED', 'Import Selected', ''),
-    ('IMPORT_ACTIVE', 'Import Active', '')
-)
-op_import_props = {
-    'mode': bpy.props.EnumProperty(name='Mode', items=op_import_items),
-}
-
-
 class XRAY_OT_viewer_import_files(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.viewer_import_files'
     bl_label = 'Import Files'
     bl_options = {'REGISTER'}
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in op_import_props.items():
-            exec('{0} = op_import_props.get("{0}")'.format(prop_name))
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        items=(
+            ('IMPORT_ALL', 'Import All', ''),
+            ('IMPORT_SELECTED', 'Import Selected', ''),
+            ('IMPORT_ACTIVE', 'Import Active', '')
+        )
+    )
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -502,24 +490,19 @@ class XRAY_OT_viewer_import_files(utils.ie.BaseOperator):
         return {'FINISHED'}
 
 
-op_select_items = (
-    ('SELECT_ALL', 'Select All', ''),
-    ('DESELECT_ALL', 'Deselect All', ''),
-    ('INVERT_SELECTION', 'Invert Selection', '')
-)
-op_select_props = {
-    'mode': bpy.props.EnumProperty(name='Mode', items=op_select_items),
-}
-
-
 class XRAY_OT_viewer_select_files(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.viewer_select_files'
     bl_label = 'Select'
     bl_options = {'REGISTER'}
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in op_select_props.items():
-            exec('{0} = op_select_props.get("{0}")'.format(prop_name))
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        items=(
+            ('SELECT_ALL', 'Select All', ''),
+            ('DESELECT_ALL', 'Deselect All', ''),
+            ('INVERT_SELECTION', 'Invert Selection', '')
+        )
+    )
 
     def execute(self, context):
         scene = context.scene
@@ -544,111 +527,94 @@ class XRAY_OT_viewer_select_files(utils.ie.BaseOperator):
         return {'FINISHED'}
 
 
-viewer_file_props = {
-    'name': bpy.props.StringProperty(name='Name'),
-    'path': bpy.props.StringProperty(name='Path'),
-    'select': bpy.props.BoolProperty(name='Select', default=True),
-    'is_dir': bpy.props.BoolProperty(name='Directory'),
-    'size': bpy.props.IntProperty(name='Size'),
-    'date': bpy.props.StringProperty(name='Date')
-}
-
-
 class XRayViwerFileProperties(bpy.types.PropertyGroup):
-    if not utils.version.IS_28:
-        for prop_name, prop_value in viewer_file_props.items():
-            exec('{0} = viewer_file_props.get("{0}")'.format(prop_name))
+    name = bpy.props.StringProperty(name='Name')
+    path = bpy.props.StringProperty(name='Path')
+    select = bpy.props.BoolProperty(name='Select', default=True)
+    is_dir = bpy.props.BoolProperty(name='Directory')
+    size = bpy.props.IntProperty(name='Size')
+    date = bpy.props.StringProperty(name='Date')
 
 
-sort_items = (
-    ('NAME', 'Name', ''),
-    ('SIZE', 'Size', ''),
-    ('DATE', 'Date', '')
-)
-scene_viewer_props = {
-    'files': bpy.props.CollectionProperty(type=XRayViwerFileProperties),
-    'files_index': bpy.props.IntProperty(update=update_file),
-    'folder': bpy.props.StringProperty(),
-    'files_count': bpy.props.IntProperty(default=0, name='Files Count'),
-    'dirs_count': bpy.props.IntProperty(default=0, name='Folders Count'),
-    'files_size': bpy.props.IntProperty(default=0, name='Files Size'),
-    'is_preview_folder_mode': bpy.props.BoolProperty(default=False),
-    'import_motions': bpy.props.BoolProperty(
+class XRayViewerProps(bpy.types.PropertyGroup):
+    files = bpy.props.CollectionProperty(type=XRayViwerFileProperties)
+    files_index = bpy.props.IntProperty(update=update_file)
+    folder = bpy.props.StringProperty()
+    files_count = bpy.props.IntProperty(default=0, name='Files Count')
+    dirs_count = bpy.props.IntProperty(default=0, name='Folders Count')
+    files_size = bpy.props.IntProperty(default=0, name='Files Size')
+    is_preview_folder_mode = bpy.props.BoolProperty(default=False)
+    import_motions = bpy.props.BoolProperty(
         default=False,
         name='Import Motions'
-    ),
-    'ignore_ext': bpy.props.BoolProperty(
+    )
+    ignore_ext = bpy.props.BoolProperty(
         default=False,
         name='Ignore Extension',
         update=update_file_list_ext
-    ),
-    'show_size': bpy.props.BoolProperty(default=False, name='Show Size'),
-    'show_date': bpy.props.BoolProperty(default=False, name='Show Date'),
-    'sort': bpy.props.EnumProperty(
+    )
+    show_size = bpy.props.BoolProperty(default=False, name='Show Size')
+    show_date = bpy.props.BoolProperty(default=False, name='Show Date')
+    sort = bpy.props.EnumProperty(
         name='Sort',
-        items=sort_items,
+        items=(
+            ('NAME', 'Name', ''),
+            ('SIZE', 'Size', ''),
+            ('DATE', 'Date', '')
+        ),
         update=update_file_list_ext,
         default='NAME'
-    ),
-    'group_by_ext': bpy.props.BoolProperty(
+    )
+    group_by_ext = bpy.props.BoolProperty(
         default=False,
         name='Group by Extension',
         update=update_file_list_ext
-    ),
-    'sort_reverse': bpy.props.BoolProperty(
+    )
+    sort_reverse = bpy.props.BoolProperty(
         default=False,
         name='Reverse Sort',
         update=update_file_list_ext
-    ),
-    'use_object': bpy.props.BoolProperty(
+    )
+    use_object = bpy.props.BoolProperty(
         default=True,
         name='Object',
         update=update_file_list_ext
-    ),
-    'use_ogf': bpy.props.BoolProperty(
+    )
+    use_ogf = bpy.props.BoolProperty(
         default=True,
         name='Ogf',
         update=update_file_list_ext
-    ),
-    'use_dm': bpy.props.BoolProperty(
+    )
+    use_dm = bpy.props.BoolProperty(
         default=True,
         name='Dm',
         update=update_file_list_ext
-    ),
-    'use_details': bpy.props.BoolProperty(
+    )
+    use_details = bpy.props.BoolProperty(
         default=True,
         name='Details',
         update=update_file_list_ext
     )
-}
-
-
-class XRayViewerProps(bpy.types.PropertyGroup):
-    if not utils.version.IS_28:
-        for prop_name, prop_value in scene_viewer_props.items():
-            exec('{0} = scene_viewer_props.get("{0}")'.format(prop_name))
 
 
 classes = (
-    (XRAY_UL_viewer_list_item, None),
-    (XRayViwerFileProperties, viewer_file_props),
-    (XRayViewerProps, scene_viewer_props),
-    (XRAY_OT_viewer_close_folder, None),
-    (XRAY_OT_viewer_preview_folder, None),
-    (XRAY_OT_viewer_open_folder, op_props),
-    (XRAY_OT_viewer_open_current_folder, None),
-    (XRAY_OT_viewer_import_files, op_import_props),
-    (XRAY_OT_viewer_select_files, op_select_props)
+    XRAY_UL_viewer_list_item,
+    XRAY_OT_viewer_close_folder,
+    XRAY_OT_viewer_preview_folder,
+    XRAY_OT_viewer_open_folder,
+    XRAY_OT_viewer_open_current_folder,
+    XRAY_OT_viewer_import_files,
+    XRAY_OT_viewer_select_files
 )
+prop_groups = (XRayViwerFileProperties, XRayViewerProps)
 
 
 def register():
-    for operator, props in classes:
-        if props:
-            utils.version.assign_props([(props, operator), ])
-        bpy.utils.register_class(operator)
+    utils.version.register_operators(classes)
+    utils.version.register_prop_groups(prop_groups)
 
 
 def unregister():
-    for operator, props in reversed(classes):
+    utils.version.unregister_prop_groups(prop_groups)
+    for operator in reversed(classes):
         bpy.utils.unregister_class(operator)

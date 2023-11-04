@@ -9,38 +9,32 @@ import mathutils
 from .. import utils
 
 
-plane_items = (
-    ('XY', 'XY', ''),
-    ('XZ', 'XZ', ''),
-    ('YZ', 'YZ', '')
-)
-op_props = {
-    'plane': bpy.props.EnumProperty(
-        name='Plane',
-        default='XY',
-        items=plane_items
-    ),
-    'rows': bpy.props.IntProperty(name='Rows', default=1, min=1, max=1000),
-    'offset_h': bpy.props.FloatProperty(
-        name='Horizontal Offset', default=2.0, min=0.001
-    ),
-    'offset_v': bpy.props.FloatProperty(
-        name='Vertical Offset', default=2.0, min=0.001
-    )
-}
-
-
 class XRAY_OT_place_objects(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.place_objects'
     bl_label = 'Place Selected Objects'
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    plane = bpy.props.EnumProperty(
+        name='Plane',
+        default='XY',
+        items=(
+            ('XY', 'XY', ''),
+            ('XZ', 'XZ', ''),
+            ('YZ', 'YZ', '')
+        )
+    )
+    rows = bpy.props.IntProperty(name='Rows', default=1, min=1, max=1000),
+    offset_h = bpy.props.FloatProperty(
+        name='Horizontal Offset',
+        default=2.0,
+        min=0.001
+    )
+    offset_v = bpy.props.FloatProperty(
+        name='Vertical Offset',
+        default=2.0,
+        min=0.001
+    )
 
     @classmethod
     def poll(cls, context):
@@ -99,49 +93,38 @@ class XRAY_OT_place_objects(utils.ie.BaseOperator):
         return wm.invoke_props_dialog(self)
 
 
-colorize_mode_items = (
-    ('ACTIVE_OBJECT', 'Active Object', ''),
-    ('SELECTED_OBJECTS', 'Selected Objects', ''),
-    ('ALL_OBJECTS', 'All Objects', '')
-)
-colorize_color_mode_items = (
-    ('RANDOM_BY_MESH', 'Random by Mesh', ''),
-    ('RANDOM_BY_OBJECT', 'Random by Object', ''),
-    ('RANDOM_BY_ROOT', 'Random by Root', ''),
-    ('SINGLE_COLOR', 'Single Color', '')
-)
-op_props = {
-    'mode': bpy.props.EnumProperty(
-        default='SELECTED_OBJECTS',
-        items=colorize_mode_items
-    ),
-    'color_mode': bpy.props.EnumProperty(
-        default='RANDOM_BY_OBJECT',
-        items=colorize_color_mode_items
-    ),
-    'seed': bpy.props.IntProperty(min=0, max=255),
-    'power': bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0),
-    'color': bpy.props.FloatVectorProperty(
-        default=(0.5, 0.5, 0.5),
-        size=3,
-        min=0.0,
-        max=1.0,
-        subtype='COLOR'
-    )
-}
-
-
 class XRAY_OT_colorize_objects(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.colorize_objects'
     bl_label = 'Colorize Objects'
     bl_description = 'Set a pseudo-random object color'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    mode = bpy.props.EnumProperty(
+        default='SELECTED_OBJECTS',
+        items=(
+            ('ACTIVE_OBJECT', 'Active Object', ''),
+            ('SELECTED_OBJECTS', 'Selected Objects', ''),
+            ('ALL_OBJECTS', 'All Objects', '')
+        )
+    )
+    color_mode = bpy.props.EnumProperty(
+        default='RANDOM_BY_OBJECT',
+        items=(
+            ('RANDOM_BY_MESH', 'Random by Mesh', ''),
+            ('RANDOM_BY_OBJECT', 'Random by Object', ''),
+            ('RANDOM_BY_ROOT', 'Random by Root', ''),
+            ('SINGLE_COLOR', 'Single Color', '')
+        )
+    )
+    seed = bpy.props.IntProperty(min=0, max=255)
+    power = bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0)
+    color = bpy.props.FloatVectorProperty(
+        default=(0.5, 0.5, 0.5),
+        size=3,
+        min=0.0,
+        max=1.0,
+        subtype='COLOR'
+    )
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout

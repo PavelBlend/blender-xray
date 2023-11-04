@@ -55,22 +55,17 @@ def get_image_nodes(node, image_nodes):
             get_image_nodes(from_node, image_nodes)
 
 
-convert_materials_mode_items = (
-    ('ACTIVE_MATERIAL', 'Active Material', ''),
-    ('ACTIVE_OBJECT', 'Active Object', ''),
-    ('SELECTED_OBJECTS', 'Selected Objects', ''),
-    ('ALL_OBJECTS', 'All Objects', ''),
-    ('ALL_MATERIALS', 'All Materials', '')
-)
 mode_prop = bpy.props.EnumProperty(
     name='Mode',
-    items=convert_materials_mode_items,
+    items=(
+        ('ACTIVE_MATERIAL', 'Active Material', ''),
+        ('ACTIVE_OBJECT', 'Active Object', ''),
+        ('SELECTED_OBJECTS', 'Selected Objects', ''),
+        ('ALL_OBJECTS', 'All Objects', ''),
+        ('ALL_MATERIALS', 'All Materials', '')
+    ),
     default='ACTIVE_MATERIAL'
 )
-
-op_props = {
-    'mode': mode_prop,
-}
 
 
 class XRAY_OT_switch_render(utils.ie.BaseOperator):
@@ -79,11 +74,7 @@ class XRAY_OT_switch_render(utils.ie.BaseOperator):
     bl_description = 'Switch Cycles/Internal Render'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    mode = mode_prop
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
@@ -125,11 +116,7 @@ class XRAY_OT_convert_to_internal_material(utils.ie.BaseOperator):
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    mode = mode_prop
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
@@ -223,15 +210,6 @@ else:
     )
     default_shader = 'DIFFUSE'
 
-op_props = {
-    'mode': mode_prop,
-    'shader_type': bpy.props.EnumProperty(
-        name='Shader',
-        items=convert_materials_shader_type_items,
-        default=default_shader
-    )
-}
-
 
 class XRAY_OT_convert_to_cycles_material(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.convert_to_cycles'
@@ -239,11 +217,12 @@ class XRAY_OT_convert_to_cycles_material(utils.ie.BaseOperator):
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    mode = mode_prop
+    shader_type = bpy.props.EnumProperty(
+        name='Shader',
+        items=convert_materials_shader_type_items,
+        default=default_shader
+    )
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
@@ -315,54 +294,43 @@ class XRAY_OT_convert_to_cycles_material(utils.ie.BaseOperator):
         return wm.invoke_props_dialog(self)
 
 
-colorize_mode_items = (
-    ('ACTIVE_MATERIAL', 'Active Material', ''),
-    ('ACTIVE_OBJECT', 'Active Object', ''),
-    ('SELECTED_OBJECTS', 'Selected Objects', ''),
-    ('ALL_OBJECTS', 'All Objects', ''),
-    ('ALL_MATERIALS', 'All Materials', '')
-)
-colorize_color_mode_items = (
-    ('RANDOM_BY_MATERIAL', 'Random by Material', ''),
-    ('RANDOM_BY_MESH', 'Random by Mesh', ''),
-    ('RANDOM_BY_OBJECT', 'Random by Object', ''),
-    ('RANDOM_BY_ROOT', 'Random by Root', ''),
-    ('SINGLE_COLOR', 'Single Color', '')
-)
-op_props = {
-    'mode': bpy.props.EnumProperty(
-        default='SELECTED_OBJECTS',
-        items=colorize_mode_items
-    ),
-    'color_mode': bpy.props.EnumProperty(
-        default='RANDOM_BY_MATERIAL',
-        items=colorize_color_mode_items
-    ),
-    'change_viewport_color': bpy.props.BoolProperty(default=True),
-    'change_shader_color': bpy.props.BoolProperty(default=False),
-    'seed': bpy.props.IntProperty(min=0, max=255),
-    'power': bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0),
-    'color': bpy.props.FloatVectorProperty(
-        default=(0.5, 0.5, 0.5),
-        size=3,
-        min=0.0,
-        max=1.0,
-        subtype='COLOR'
-    )
-}
-
-
 class XRAY_OT_colorize_materials(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.colorize_materials'
     bl_label = 'Colorize Materials'
     bl_description = 'Set a pseudo-random diffuse color for each surface (material)'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    mode = bpy.props.EnumProperty(
+        default='SELECTED_OBJECTS',
+        items=(
+            ('ACTIVE_MATERIAL', 'Active Material', ''),
+            ('ACTIVE_OBJECT', 'Active Object', ''),
+            ('SELECTED_OBJECTS', 'Selected Objects', ''),
+            ('ALL_OBJECTS', 'All Objects', ''),
+            ('ALL_MATERIALS', 'All Materials', '')
+        )
+    )
+    color_mode = bpy.props.EnumProperty(
+        default='RANDOM_BY_MATERIAL',
+        items=(
+            ('RANDOM_BY_MATERIAL', 'Random by Material', ''),
+            ('RANDOM_BY_MESH', 'Random by Mesh', ''),
+            ('RANDOM_BY_OBJECT', 'Random by Object', ''),
+            ('RANDOM_BY_ROOT', 'Random by Root', ''),
+            ('SINGLE_COLOR', 'Single Color', '')
+        )
+    )
+    change_viewport_color = bpy.props.BoolProperty(default=True)
+    change_shader_color = bpy.props.BoolProperty(default=False)
+    seed = bpy.props.IntProperty(min=0, max=255)
+    power = bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0)
+    color = bpy.props.FloatVectorProperty(
+        default=(0.5, 0.5, 0.5),
+        size=3,
+        min=0.0,
+        max=1.0,
+        subtype='COLOR'
+    )
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
@@ -519,36 +487,29 @@ class XRAY_OT_colorize_materials(utils.ie.BaseOperator):
         return wm.invoke_props_dialog(self)
 
 
-op_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*.dds', options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        options={'SKIP_SAVE', 'HIDDEN'}
-    ),
-    'filepath': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        options={'SKIP_SAVE', 'HIDDEN'}
-    ),
-    'material_name': bpy.props.StringProperty(
-        options={'SKIP_SAVE', 'HIDDEN'}
-    )
-}
-
-
 class XRAY_OT_create_material(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.create_material'
     bl_label = 'Create X-Ray Material'
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
     init = False
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*.dds',
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
+    filepath = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
+    material_name = bpy.props.StringProperty(
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
 
     def draw(self, context):    # pragma: no cover
         if not self.init:

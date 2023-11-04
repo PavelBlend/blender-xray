@@ -25,26 +25,6 @@ class ExportDmContext(contexts.ExportMeshContext):
 filename_ext = '.dm'
 op_text = 'Detail Model'
 
-import_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        options={'HIDDEN'}
-    ),
-    'filepath': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        options={'SKIP_SAVE', 'HIDDEN'}
-    ),
-    'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement,
-        options={'SKIP_SAVE', 'HIDDEN'}
-    ),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
 
 class XRAY_OT_import_dm(
         utils.ie.BaseOperator,
@@ -59,11 +39,24 @@ class XRAY_OT_import_dm(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
-    props = import_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'HIDDEN'}
+    )
+    filepath = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
+    files = bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement,
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
@@ -96,18 +89,6 @@ class XRAY_OT_import_dm(
         return super().invoke(context, event)
 
 
-export_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
-        options={'HIDDEN'}
-    ),
-    'detail_models': bpy.props.StringProperty(options={'HIDDEN'}),
-    'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
-    'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
-
 class XRAY_OT_export_dm(utils.ie.BaseOperator):
     bl_idname = 'xray_export.dm'
     bl_label = 'Export .dm'
@@ -116,11 +97,15 @@ class XRAY_OT_export_dm(utils.ie.BaseOperator):
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    )
+    detail_models = bpy.props.StringProperty(options={'HIDDEN'})
+    directory = bpy.props.StringProperty(subtype='FILE_PATH')
+    texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
@@ -183,15 +168,6 @@ class XRAY_OT_export_dm(utils.ie.BaseOperator):
         return {'RUNNING_MODAL'}
 
 
-export_props = {
-    'detail_model': bpy.props.StringProperty(options={'HIDDEN'}),
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext, options={'HIDDEN'}
-    ),
-    'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath()
-}
-
-
 class XRAY_OT_export_dm_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
@@ -201,11 +177,13 @@ class XRAY_OT_export_dm_file(
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     filename_ext = filename_ext
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in export_props.items():
-            exec('{0} = export_props.get("{0}")'.format(prop_name))
+    detail_model = bpy.props.StringProperty(options={'HIDDEN'})
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    )
+    texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats

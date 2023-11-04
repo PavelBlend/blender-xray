@@ -53,37 +53,6 @@ def update_time(self, context):
                 setattr(self, prop_name, '')
 
 
-op_props = {
-    'directory': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        options={'SKIP_SAVE', 'HIDDEN'}
-    ),
-    'pause': bpy.props.FloatProperty(
-        default=0.1,
-        min=0.0001,
-        max=100.0,
-        precision=4,
-        name='Pause'
-    ),
-    'import_object': bpy.props.BoolProperty(name='Object', default=True),
-    'import_ogf': bpy.props.BoolProperty(name='Ogf', default=True),
-    'import_dm': bpy.props.BoolProperty(name='Dm', default=True),
-    'import_details': bpy.props.BoolProperty(name='Details', default=True),
-    'import_motions': bpy.props.BoolProperty(
-        name='Import Motions',
-        default=False
-    ),
-    'min_size': bpy.props.IntProperty(default=0, min=0, max=2**31-1),
-    'max_size': bpy.props.IntProperty(
-        default=2**31-1,
-        min=0,
-        max=2**31-1
-    ),
-    'time_min': bpy.props.StringProperty(update=update_time),
-    'time_max': bpy.props.StringProperty(update=update_time)
-}
-
-
 class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.test_import_modal'
     bl_label = 'Test Import Modal'
@@ -92,9 +61,33 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
     timer = None
     last_time = 0
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in op_props.items():
-            exec('{0} = op_props.get("{0}")'.format(prop_name))
+    directory = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
+    pause = bpy.props.FloatProperty(
+        default=0.1,
+        min=0.0001,
+        max=100.0,
+        precision=4,
+        name='Pause'
+    )
+    import_object = bpy.props.BoolProperty(name='Object', default=True)
+    import_ogf = bpy.props.BoolProperty(name='Ogf', default=True)
+    import_dm = bpy.props.BoolProperty(name='Dm', default=True)
+    import_details = bpy.props.BoolProperty(name='Details', default=True)
+    import_motions = bpy.props.BoolProperty(
+        name='Import Motions',
+        default=False
+    )
+    min_size = bpy.props.IntProperty(default=0, min=0, max=2**31-1)
+    max_size = bpy.props.IntProperty(
+        default=2**31-1,
+        min=0,
+        max=2**31-1
+    )
+    time_min = bpy.props.StringProperty(update=update_time)
+    time_max = bpy.props.StringProperty(update=update_time)
 
     def collect_files(self, context):
         self.file_index = 0
@@ -293,9 +286,33 @@ class XRAY_OT_test_import(utils.ie.BaseOperator):
     bl_label = 'Test Import'
     bl_options = {'REGISTER'}
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in op_props.items():
-            exec('{0} = op_props.get("{0}")'.format(prop_name))
+    directory = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
+    pause = bpy.props.FloatProperty(
+        default=0.1,
+        min=0.0001,
+        max=100.0,
+        precision=4,
+        name='Pause'
+    )
+    import_object = bpy.props.BoolProperty(name='Object', default=True)
+    import_ogf = bpy.props.BoolProperty(name='Ogf', default=True)
+    import_dm = bpy.props.BoolProperty(name='Dm', default=True)
+    import_details = bpy.props.BoolProperty(name='Details', default=True)
+    import_motions = bpy.props.BoolProperty(
+        name='Import Motions',
+        default=False
+    )
+    min_size = bpy.props.IntProperty(default=0, min=0, max=2**31-1)
+    max_size = bpy.props.IntProperty(
+        default=2**31-1,
+        min=0,
+        max=2**31-1
+    )
+    time_min = bpy.props.StringProperty(update=update_time)
+    time_max = bpy.props.StringProperty(update=update_time)
 
     def draw(self, context):    # pragma: no cover
         lay = self.layout
@@ -357,17 +374,15 @@ class XRAY_OT_test_import(utils.ie.BaseOperator):
 
 
 classes = (
-    (XRAY_OT_test_import, op_props),
-    (XRAY_OT_test_import_modal, op_props)
+    XRAY_OT_test_import,
+    XRAY_OT_test_import_modal
 )
 
 
 def register():
-    for clas, props in classes:
-        utils.version.assign_props([(props, clas), ])
-        bpy.utils.register_class(clas)
+    utils.version.register_operators(classes)
 
 
 def unregister():
-    for clas, props in reversed(classes):
+    for clas in reversed(classes):
         bpy.utils.unregister_class(clas)

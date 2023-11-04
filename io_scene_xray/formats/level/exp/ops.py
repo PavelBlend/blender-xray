@@ -51,18 +51,6 @@ if utils.version.broken_file_browser_filter():
 else:
     file_filter_export = 'level;level.geom;level.geomx;level.cform'
 
-export_props = {
-    'directory': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        options={'HIDDEN'}
-    ),
-    'filter_glob': bpy.props.StringProperty(
-        default=file_filter_export,
-        options={'HIDDEN'}
-    ),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
 
 class XRAY_OT_export_level(utils.ie.BaseOperator):
     bl_idname = 'xray_export.level'
@@ -71,11 +59,16 @@ class XRAY_OT_export_level(utils.ie.BaseOperator):
     text = 'Game Level'
     filename_ext = ''
     ext = 'level'
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    directory = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'HIDDEN'}
+    )
+    filter_glob = bpy.props.StringProperty(
+        default=file_filter_export,
+        options={'HIDDEN'}
+    )
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'levels_folder')

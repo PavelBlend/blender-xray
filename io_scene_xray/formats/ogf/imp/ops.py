@@ -37,24 +37,6 @@ class ImportOgfContext(
 op_text = 'Game Object'
 filename_ext = '.ogf'
 
-import_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*.ogf',
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-    'filepath': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        options={'SKIP_SAVE'}
-    ),
-    'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement,
-        options={'SKIP_SAVE'}
-    ),
-    'import_motions': ie.PropObjectMotionsImport(),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
 
 class XRAY_OT_import_ogf(
         utils.ie.BaseOperator,
@@ -68,11 +50,22 @@ class XRAY_OT_import_ogf(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
-    props = import_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*.ogf',
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    filepath = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE'}
+    )
+    files = bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement,
+        options={'SKIP_SAVE'}
+    )
+    import_motions = ie.PropObjectMotionsImport()
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats

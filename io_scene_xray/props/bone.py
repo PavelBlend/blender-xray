@@ -16,11 +16,17 @@ if not utils.version.IS_34:
     import bgl
 
 
-shape_props = {
-    'version_data': bpy.props.IntProperty(),
+def _iszero(vector):
+    return not any(vector)
+
+
+class XRayShapeProps(bpy.types.PropertyGroup):
+    _CURVER_DATA = 1
+
+    version_data = bpy.props.IntProperty()
 
     # type
-    'type': bpy.props.EnumProperty(
+    type = bpy.props.EnumProperty(
         items=(
             ('0', 'None', ''),
             ('1', 'Box', ''),
@@ -29,44 +35,30 @@ shape_props = {
             ('4', 'Custom', '')
         ),
         update=lambda self, ctx: ops.edit_helpers.bone_shape.HELPER.update(),
-    ),
-    'type_custom_id': bpy.props.IntProperty(default=0, min=0),
+    )
+    type_custom_id = bpy.props.IntProperty(default=0, min=0)
 
     # flags
-    'flags': bpy.props.IntProperty(),
-    'flags_nopickable': utility.gen_flag_prop(mask=0x1),
-    'flags_removeafterbreak': utility.gen_flag_prop(mask=0x2),
-    'flags_nophysics': utility.gen_flag_prop(mask=0x4),
-    'flags_nofogcollider': utility.gen_flag_prop(mask=0x8),
+    flags = bpy.props.IntProperty()
+    flags_nopickable = utility.gen_flag_prop(mask=0x1)
+    flags_removeafterbreak = utility.gen_flag_prop(mask=0x2)
+    flags_nophysics = utility.gen_flag_prop(mask=0x4),
+    flags_nofogcollider = utility.gen_flag_prop(mask=0x8)
 
     # box
-    'box_rot': bpy.props.FloatVectorProperty(size=9),
-    'box_trn': bpy.props.FloatVectorProperty(),
-    'box_hsz': bpy.props.FloatVectorProperty(),
+    box_rot = bpy.props.FloatVectorProperty(size=9)
+    box_trn = bpy.props.FloatVectorProperty()
+    box_hsz = bpy.props.FloatVectorProperty()
 
     # sphere
-    'sph_pos': bpy.props.FloatVectorProperty(),
-    'sph_rad': bpy.props.FloatProperty(),
+    sph_pos = bpy.props.FloatVectorProperty()
+    sph_rad = bpy.props.FloatProperty()
 
     # cylinder
-    'cyl_pos': bpy.props.FloatVectorProperty(),
-    'cyl_dir': bpy.props.FloatVectorProperty(),
-    'cyl_hgh': bpy.props.FloatProperty(),
-    'cyl_rad': bpy.props.FloatProperty()
-}
-
-
-def _iszero(vector):
-    return not any(vector)
-
-
-class XRayShapeProps(bpy.types.PropertyGroup):
-    _CURVER_DATA = 1
-    props = shape_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in shape_props.items():
-            exec('{0} = shape_props.get("{0}")'.format(prop_name))
+    cyl_pos = bpy.props.FloatVectorProperty()
+    cyl_dir = bpy.props.FloatVectorProperty()
+    cyl_hgh = bpy.props.FloatProperty()
+    cyl_rad = bpy.props.FloatProperty()
 
     def check_version_different(self):
         ver = 0
@@ -149,23 +141,14 @@ class XRayShapeProps(bpy.types.PropertyGroup):
         return result
 
 
-break_props = {
-    'force': bpy.props.FloatProperty(min=0.0),
-    'torque': bpy.props.FloatProperty(min=0.0)
-}
-
-
 class XRayBreakProps(bpy.types.PropertyGroup):
-    props = break_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in break_props.items():
-            exec('{0} = break_props.get("{0}")'.format(prop_name))
+    force = bpy.props.FloatProperty(min=0.0)
+    torque = bpy.props.FloatProperty(min=0.0)
 
 
-ik_joint_props = {
+class XRayIKJointProps(bpy.types.PropertyGroup):
     # type
-    'type': bpy.props.EnumProperty(items=(
+    type = bpy.props.EnumProperty(items=(
         ('4', 'None', ''),
         ('0', 'Rigid', ''),
         ('1', 'Cloth', ''),
@@ -173,120 +156,94 @@ ik_joint_props = {
         ('3', 'Wheel ', ''),
         ('5', 'Slider ', ''),
         ('6', 'Custom ', '')
-    )),
-    'type_custom_id': bpy.props.IntProperty(default=0, min=0),
+    ))
+    type_custom_id = bpy.props.IntProperty(default=0, min=0)
 
     # x limits
-    'lim_x_min': bpy.props.FloatProperty(
+    lim_x_min = bpy.props.FloatProperty(
         min=-math.pi,
         max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
-    ),
-    'lim_x_max': bpy.props.FloatProperty(
+    )
+    lim_x_max = bpy.props.FloatProperty(
         min=-math.pi,
         max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
-    ),
-    'lim_x_spr': bpy.props.FloatProperty(min=0.0, max=1000.0),
-    'lim_x_dmp': bpy.props.FloatProperty(min=0.0, max=1000.0),
+    )
+    lim_x_spr = bpy.props.FloatProperty(min=0.0, max=1000.0)
+    lim_x_dmp = bpy.props.FloatProperty(min=0.0, max=1000.0)
 
     # y limits
-    'lim_y_min': bpy.props.FloatProperty(
+    lim_y_min = bpy.props.FloatProperty(
         min=-math.pi,
         max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
-    ),
-    'lim_y_max': bpy.props.FloatProperty(
+    )
+    lim_y_max = bpy.props.FloatProperty(
         min=-math.pi,
         max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
-    ),
-    'lim_y_spr': bpy.props.FloatProperty(min=0.0, max=1000.0),
-    'lim_y_dmp': bpy.props.FloatProperty(min=0.0, max=1000.0),
+    )
+    lim_y_spr = bpy.props.FloatProperty(min=0.0, max=1000.0)
+    lim_y_dmp = bpy.props.FloatProperty(min=0.0, max=1000.0)
 
     # z limits
-    'lim_z_min': bpy.props.FloatProperty(
+    lim_z_min = bpy.props.FloatProperty(
         min=-math.pi, max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
-    ),
-    'lim_z_max': bpy.props.FloatProperty(
+    )
+    lim_z_max = bpy.props.FloatProperty(
         min=-math.pi, max=math.pi,
         update=ops.joint_limits.update_limit,
         subtype='ANGLE'
-    ),
-    'lim_z_spr': bpy.props.FloatProperty(min=0.0, max=1000.0),
-    'lim_z_dmp': bpy.props.FloatProperty(min=0.0, max=1000.0),
+    )
+    lim_z_spr = bpy.props.FloatProperty(min=0.0, max=1000.0)
+    lim_z_dmp = bpy.props.FloatProperty(min=0.0, max=1000.0)
 
     # others
-    'spring': bpy.props.FloatProperty(min=0.0, max=1000.0),
-    'damping': bpy.props.FloatProperty(min=0.0, max=1000.0)
-}
-
-
-class XRayIKJointProps(bpy.types.PropertyGroup):
-    props = ik_joint_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in ik_joint_props.items():
-            exec('{0} = ik_joint_props.get("{0}")'.format(prop_name))
-
-
-mass_props = {
-    'value': bpy.props.FloatProperty(name='Mass', precision=3, min=0.0),
-    'center': bpy.props.FloatVectorProperty(
-        name='Center of Mass',
-        precision=3
-    )
-}
+    spring = bpy.props.FloatProperty(min=0.0, max=1000.0)
+    damping = bpy.props.FloatProperty(min=0.0, max=1000.0)
 
 
 class XRayMassProps(bpy.types.PropertyGroup):
-    props = mass_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in mass_props.items():
-            exec('{0} = mass_props.get("{0}")'.format(prop_name))
+    value = bpy.props.FloatProperty(name='Mass', precision=3, min=0.0)
+    center = bpy.props.FloatVectorProperty(
+        name='Center of Mass',
+        precision=3
+    )
 
 
 def _set_ikflags_breakable(self, value):
     self.ikflags = self.ikflags | 0x1 if value else self.ikflags & ~0x1
 
 
-bone_props = {
-    'exportable': bpy.props.BoolProperty(
+class XRayBoneProps(bpy.types.PropertyGroup):
+    b_type = bpy.types.Bone
+
+    exportable = bpy.props.BoolProperty(
         name='Exportable',
         default=True,
         description='Enable Bone to be exported'
-    ),
-    'version': bpy.props.IntProperty(),
-    'length': bpy.props.FloatProperty(name='Length'),
-    'gamemtl': bpy.props.StringProperty(default='default_object'),
-    'shape': bpy.props.PointerProperty(type=XRayShapeProps),
-    'ikflags': bpy.props.IntProperty(),
-    'ikflags_breakable': bpy.props.BoolProperty(
+    )
+    version = bpy.props.IntProperty()
+    length = bpy.props.FloatProperty(name='Length')
+    gamemtl = bpy.props.StringProperty(default='default_object')
+    shape = bpy.props.PointerProperty(type=XRayShapeProps)
+    ikflags = bpy.props.IntProperty()
+    ikflags_breakable = bpy.props.BoolProperty(
         get=lambda self: self.ikflags & 0x1,
         set=_set_ikflags_breakable,
         options={'SKIP_SAVE'}
-    ),
-    'ikjoint': bpy.props.PointerProperty(type=XRayIKJointProps),
-    'breakf': bpy.props.PointerProperty(type=XRayBreakProps),
-    'friction': bpy.props.FloatProperty(min=0.0),
-    'mass': bpy.props.PointerProperty(type=XRayMassProps)
-}
-
-
-class XRayBoneProps(bpy.types.PropertyGroup):
-    b_type = bpy.types.Bone
-    props = bone_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in bone_props.items():
-            exec('{0} = bone_props.get("{0}")'.format(prop_name))
+    )
+    ikjoint = bpy.props.PointerProperty(type=XRayIKJointProps)
+    breakf = bpy.props.PointerProperty(type=XRayBreakProps)
+    friction = bpy.props.FloatProperty(min=0.0)
+    mass = bpy.props.PointerProperty(type=XRayMassProps)
 
     def ondraw_postview(self, obj_arm, bone):
         # draw limits

@@ -12,18 +12,6 @@ from ... import utils
 op_text = 'Error List'
 filename_ext = '.err'
 
-import_props = {
-    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-    'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement
-    ),
-    'filter_glob': bpy.props.StringProperty(
-        default='*.err',
-        options={'HIDDEN'}
-    ),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
 
 class XRAY_OT_import_err(
         utils.ie.BaseOperator,
@@ -37,11 +25,16 @@ class XRAY_OT_import_err(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
-    props = import_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    files = bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement
+    )
+    filter_glob = bpy.props.StringProperty(
+        default='*.err',
+        options={'HIDDEN'}
+    )
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats

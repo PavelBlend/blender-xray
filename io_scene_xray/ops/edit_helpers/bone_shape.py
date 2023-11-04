@@ -216,8 +216,12 @@ class XRAY_OT_apply_shape(utils.ie.BaseOperator):
         return {'FINISHED'}
 
 
-fit_shape_props = {
-    'mode': bpy.props.EnumProperty(
+class XRAY_OT_fit_shape(utils.ie.BaseOperator):
+    bl_idname = 'io_scene_xray.edit_bone_shape_fit'
+    bl_label = 'Fit Shape'
+    bl_options = {'UNDO'}
+
+    mode = bpy.props.EnumProperty(
         name='Mode',
         default='FIT',
         items=(
@@ -225,20 +229,7 @@ fit_shape_props = {
             ('AABB', 'Axis Align Bounding Box', ''),
             ('OBB', 'Orient Bounding Box', '')
         )
-    ),
-}
-
-
-class XRAY_OT_fit_shape(utils.ie.BaseOperator):
-    bl_idname = 'io_scene_xray.edit_bone_shape_fit'
-    bl_label = 'Fit Shape'
-    bl_options = {'UNDO'}
-
-    props = fit_shape_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    )
 
     def execute(self, context):
         def vfunc(vtx_a, vtx_b, func):

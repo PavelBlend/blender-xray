@@ -22,42 +22,10 @@ filename_ext = '.skls'
 skls_ext = '.skls'
 skl_ext = '.skl'
 
-motion_props = {
-    'flag': bpy.props.BoolProperty(name='Selected for Import', default=True),
-    'name': bpy.props.StringProperty(name='Motion Name')
-}
-
 
 class Motion(bpy.types.PropertyGroup):
-    props = motion_props
-
-    if not utils.version.IS_28:
-        exec('{0} = props.get("{0}")'.format('flag'))
-        exec('{0} = props.get("{0}")'.format('name'))
-
-
-import_props = {
-    # file browser properties
-    'filter_glob': bpy.props.StringProperty(
-        default='*.skl;*.skls',
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-    'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement
-    ),
-
-    # import properties
-    'motions': bpy.props.CollectionProperty(
-        type=Motion,
-        name='Motions Filter'
-    ),
-    'motion_index': bpy.props.IntProperty(options={'HIDDEN'}),
-    'add_to_motion_list': ie.prop_skl_add_actions_to_motion_list(),
-
-    # system properties
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
+    flag = bpy.props.BoolProperty(name='Selected for Import', default=True)
+    name = bpy.props.StringProperty(name='Motion Name')
 
 
 class XRAY_OT_import_skls(
@@ -72,11 +40,27 @@ class XRAY_OT_import_skls(
     text = op_text
     ext = '.skl/.skls'
     filename_ext = skls_ext
-    props = import_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    # file browser properties
+    filter_glob = bpy.props.StringProperty(
+        default='*.skl;*.skls',
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    files = bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement
+    )
+
+    # import properties
+    motions = bpy.props.CollectionProperty(
+        type=Motion,
+        name='Motions Filter'
+    )
+    motion_index = bpy.props.IntProperty(options={'HIDDEN'})
+    add_to_motion_list = ie.prop_skl_add_actions_to_motion_list()
+
+    # system properties
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     __parsed_file_name = None
 
@@ -197,15 +181,6 @@ class XRAY_OT_import_skls(
         return super().invoke(context, event)
 
 
-export_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+skl_ext,
-        options={'HIDDEN'}
-    ),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
-
 class XRAY_OT_export_skl(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
@@ -216,11 +191,12 @@ class XRAY_OT_export_skl(
     bl_options = {'UNDO'}
 
     filename_ext = skl_ext
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*'+skl_ext,
+        options={'HIDDEN'}
+    ),
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     action = None
 
@@ -251,14 +227,6 @@ class XRAY_OT_export_skl(
         return super().invoke(context, event)
 
 
-export_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+skls_ext,
-        options={'HIDDEN'}
-    ),
-}
-
-
 class XRAY_OT_export_skls_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
@@ -271,11 +239,11 @@ class XRAY_OT_export_skls_file(
     text = op_text
     ext = skls_ext
     filename_ext = skls_ext
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*'+skls_ext,
+        options={'HIDDEN'}
+    ),
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -323,17 +291,6 @@ class XRAY_OT_export_skls_file(
 
 
 op_text = 'Skeletal Animations'
-export_props = {
-    'directory': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        options={'HIDDEN'}
-    ),
-    'filter_glob': bpy.props.StringProperty(
-        default='*' + skls_ext,
-        options={'HIDDEN'}
-    ),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
 
 
 class XRAY_OT_export_skls(utils.ie.BaseOperator):
@@ -345,11 +302,16 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
     text = op_text
     ext = skls_ext
     filename_ext = skls_ext
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    directory = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'HIDDEN'}
+    )
+    filter_glob = bpy.props.StringProperty(
+        default='*' + skls_ext,
+        options={'HIDDEN'}
+    )
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -412,17 +374,6 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
 
 
 op_text = 'Skeletal Animation'
-export_props = {
-    'directory': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        options={'HIDDEN'}
-    ),
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+skl_ext,
-        options={'HIDDEN'}
-    ),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
 
 
 class XRAY_OT_export_skl_batch(utils.ie.BaseOperator):
@@ -434,11 +385,16 @@ class XRAY_OT_export_skl_batch(utils.ie.BaseOperator):
     text = op_text
     ext = skl_ext
     filename_ext = skl_ext
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    directory = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'HIDDEN'}
+    )
+    filter_glob = bpy.props.StringProperty(
+        default='*'+skl_ext,
+        options={'HIDDEN'}
+    )
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats

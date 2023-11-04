@@ -42,13 +42,6 @@ mode_items = (
     ('SELECTED_OBJECTS', 'Selected Objects', ''),
     ('ALL_OBJECTS', 'All Objects', '')
 )
-op_props = {
-    'mode': bpy.props.EnumProperty(
-        name='Mode',
-        default='SELECTED_OBJECTS',
-        items=mode_items
-    ),
-}
 
 
 class XRAY_OT_verify_uv(utils.ie.BaseOperator):
@@ -57,11 +50,11 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
     bl_description = 'Find UV-maps errors in selected objects'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        default='SELECTED_OBJECTS',
+        items=mode_items
+    )
 
     MINIMUM_VALUE = -32.0
     MAXIMUM_VALUE = 32.0
@@ -135,42 +128,28 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
         return wm.invoke_props_dialog(self)
 
 
-mode_items = (
-    ('ACTIVE_OBJECT', 'Active Object', ''),
-    ('SELECTED_OBJECTS', 'Selected Objects', ''),
-    ('ALL_OBJECTS', 'All Objects', '')
-)
-op_props = {
-    'mode': bpy.props.EnumProperty(
-        name='Mode',
-        default='SELECTED_OBJECTS',
-        items=mode_items
-    ),
-    'face_area': bpy.props.BoolProperty(
-        name='Check Face Area',
-        default=True
-    ),
-    'uv_area': bpy.props.BoolProperty(
-        name='Check UV Area',
-        default=True
-    )
-}
-
-
 class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.check_invalid_faces'
     bl_label = 'Check Invalid Faces'
     bl_description = 'Find invalid faces'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
     EPS = 0.00001
     EPS_UV = 0.5 / 4096    # half pixel from 4096 texture
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        default='SELECTED_OBJECTS',
+        items=mode_items
+    )
+    face_area = bpy.props.BoolProperty(
+        name='Check Face Area',
+        default=True
+    )
+    uv_area = bpy.props.BoolProperty(
+        name='Check UV Area',
+        default=True
+    )
 
     def check_invalid(self, context, bpy_obj):
         if bpy_obj.type != 'MESH':

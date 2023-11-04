@@ -8,13 +8,208 @@ import bpy
 from . import hotkeys
 from .. import rw
 from .. import utils
-from .. import menus
 from .. import text
-from .. import formats
 
 
-def update_menu_func(self, context):
-    menus.append_menu_func()
+plugin_preferences_props = (
+    'fs_ltx_file',
+    'gamedata_folder',
+    'textures_folder',
+    'meshes_folder',
+    'levels_folder',
+    'gamemtl_file',
+    'eshader_file',
+    'cshader_file',
+    'objects_folder',
+
+    'gamedata_folder_auto',
+    'textures_folder_auto',
+    'meshes_folder_auto',
+    'levels_folder_auto',
+    'gamemtl_file_auto',
+    'eshader_file_auto',
+    'cshader_file_auto',
+    'objects_folder_auto',
+
+    'compact_menus',
+    'paths_mode',
+    'defaults_category',
+    'sdk_version',
+    'object_motions_import',
+    'object_mesh_split_by_mat',
+    'export_object_sdk_version',
+    'smoothing_out_of',
+    'object_motions_export',
+    'object_texture_names_from_path',
+    'export_object_use_export_paths',
+    'anm_create_camera',
+    'anm_format_version',
+    'add_to_motion_list',
+    'bones_import_bone_parts',
+    'bones_import_bone_properties',
+    'bones_export_bone_parts',
+    'bones_export_bone_properties',
+    'details_models_in_a_row',
+    'load_slots',
+    'details_format',
+    'details_texture_names_from_path',
+    'format_version',
+    'dm_texture_names_from_path',
+    'ogf_import_motions',
+    'ogf_texture_names_from_path',
+    'ogf_export_motions',
+    'ogf_export_fmt_ver',
+    'ogf_export_hq_motions',
+    'ogf_export_use_export_paths',
+    'omf_import_motions',
+    'import_bone_parts',
+    'omf_add_actions_to_motion_list',
+    'omf_export_bone_parts',
+    'omf_export_mode',
+    'omf_motions_export',
+    'omf_high_quality',
+    'scene_selection_sdk_version',
+    'scene_selection_mesh_split_by_mat',
+    'part_sdk_version',
+    'part_mesh_split_by_mat',
+    'keymaps_collection',
+    'keymaps_collection_index',
+    'enable_object_import',
+    'enable_anm_import',
+    'enable_dm_import',
+    'enable_details_import',
+    'enable_skls_import',
+    'enable_bones_import',
+    'enable_err_import',
+    'enable_scene_import',
+    'enable_level_import',
+    'enable_omf_import',
+    'enable_ogf_import',
+    'enable_part_import',
+    'enable_object_export',
+    'enable_anm_export',
+    'enable_dm_export',
+    'enable_details_export',
+    'enable_skls_export',
+    'enable_skl_export',
+    'enable_bones_export',
+    'enable_scene_export',
+    'enable_level_export',
+    'enable_omf_export',
+    'enable_ogf_export',
+    'category',
+    'custom_owner_name',
+    'gl_shape_color',
+    'gl_active_shape_color',
+    'gl_select_shape_color',
+    'gl_object_mode_shape_color',
+    'object_split_normals'
+)
+xray_custom_properties = (
+    'object_flags',
+    'object_userdata',
+    'object_lod_reference',
+    'object_owner_name',
+    'object_creation_time',
+    'object_modif_name',
+    'object_modified_time',
+    'object_motion_references',
+
+    'mesh_flags',
+
+    'material_two_sided',
+    'material_shader',
+    'material_compile',
+    'material_game_mtl',
+
+    'bone_game_mtl',
+    'bone_length',
+    'bone_shape_flags',
+    'bone_shape_type',
+    'bone_part',
+
+    'bone_box_shape_rotation',
+    'bone_box_shape_translate',
+    'bone_box_shape_half_size',
+
+    'bone_sphere_shape_position',
+    'bone_sphere_shape_radius',
+
+    'bone_cylinder_shape_position',
+    'bone_cylinder_shape_direction',
+    'bone_cylinder_shape_hight',
+    'bone_cylinder_shape_radius',
+
+    'bone_ik_joint_type',
+
+    'bone_limit_x_min',
+    'bone_limit_x_max',
+    'bone_limit_y_min',
+    'bone_limit_y_max',
+    'bone_limit_z_min',
+    'bone_limit_z_max',
+
+    'bone_limit_x_spring',
+    'bone_limit_y_spring',
+    'bone_limit_z_spring',
+
+    'bone_limit_x_damping',
+    'bone_limit_y_damping',
+    'bone_limit_z_damping',
+
+    'bone_spring',
+    'bone_damping',
+
+    'bone_mass',
+    'bone_center_of_mass',
+
+    'bone_ik_flags',
+    'bone_breakable_force',
+    'bone_breakable_torque',
+    'bone_friction',
+
+    'action_fps',
+    'action_speed',
+    'action_accrue',
+    'action_falloff',
+    'action_bone_part',
+    'action_flags',
+    'action_power'
+)
+
+
+def update_paths(prefs, context):
+    not_found_paths = set()
+    for path_prop, suffix in path_props_suffix_values.items():
+        if getattr(prefs, path_prop):
+            setattr(prefs, build_auto_id(path_prop), getattr(prefs, path_prop))
+            continue
+        prop_type = path_props_types[path_prop]
+        if prop_type == DIRECTORY:
+            cheker_function = os.path.isdir
+        elif prop_type == FILE:
+            cheker_function = os.path.isfile
+        path_value, not_found = _auto_path(
+            prefs,
+            path_prop,
+            suffix,
+            cheker_function
+        )
+        if not_found:
+            not_found_paths.add(os.path.abspath(not_found))
+        if path_value and prop_type == DIRECTORY:
+            if not path_value.endswith(os.sep):
+                path_value += os.sep
+        setattr(prefs, build_auto_id(path_prop), path_value)
+    if not_found_paths:
+        not_found_paths = list(not_found_paths)
+        not_found_paths.sort()
+        utils.draw.show_message(
+            text.get_text(text.error.file_folder_not_found),
+            not_found_paths,
+            text.get_text(text.error.error_title),
+            'ERROR'
+        )
 
 
 def build_auto_id(prop):
@@ -117,594 +312,293 @@ path_props_types = {
 }
 
 
-def update_paths(prefs, context):
-    not_found_paths = set()
-    for path_prop, suffix in path_props_suffix_values.items():
-        if getattr(prefs, path_prop):
-            setattr(prefs, build_auto_id(path_prop), getattr(prefs, path_prop))
-            continue
-        prop_type = path_props_types[path_prop]
-        if prop_type == DIRECTORY:
-            cheker_function = os.path.isdir
-        elif prop_type == FILE:
-            cheker_function = os.path.isfile
-        path_value, not_found = _auto_path(
-            prefs,
-            path_prop,
-            suffix,
-            cheker_function
-        )
-        if not_found:
-            not_found_paths.add(os.path.abspath(not_found))
-        if path_value and prop_type == DIRECTORY:
-            if not path_value.endswith(os.sep):
-                path_value += os.sep
-        setattr(prefs, build_auto_id(path_prop), path_value)
-    if not_found_paths:
-        not_found_paths = list(not_found_paths)
-        not_found_paths.sort()
-        utils.draw.show_message(
-            text.get_text(text.error.file_folder_not_found),
-            not_found_paths,
-            text.get_text(text.error.error_title),
-            'ERROR'
-        )
-
-
-custom_props_category_items = (
-    ('OBJECT', 'Object', ''),
-    ('MESH', 'Mesh', ''),
-    ('MATERIAL', 'Material', ''),
-    ('BONE', 'Bone', ''),
-    ('ACTION', 'Action', '')
-)
-
-custom_props_bone_category_items = (
-    ('MAIN', 'Main', ''),
-    ('SHAPE', 'Shape', ''),
-    ('IK', 'IK', '')
-)
-
-custom_main_props = {
-    'category': bpy.props.EnumProperty(
+class XRayPrefsCustomProperties(bpy.types.PropertyGroup):
+    # main
+    category = bpy.props.EnumProperty(
         name='Custom Property Category',
         default='OBJECT',
-        items=custom_props_category_items
-    ),
-    'bone_category': bpy.props.EnumProperty(
+        items=(
+            ('OBJECT', 'Object', ''),
+            ('MESH', 'Mesh', ''),
+            ('MATERIAL', 'Material', ''),
+            ('BONE', 'Bone', ''),
+            ('ACTION', 'Action', '')
+        )
+    )
+    bone_category = bpy.props.EnumProperty(
         name='Custom Property Bone Category',
         default='MAIN',
-        items=custom_props_bone_category_items
+        items=(
+            ('MAIN', 'Main', ''),
+            ('SHAPE', 'Shape', ''),
+            ('IK', 'IK', '')
+        )
     )
-}
-custom_object_props = {
-    # object custom properties names
-    'object_flags': bpy.props.StringProperty(
+
+    # object
+    object_flags = bpy.props.StringProperty(
         name='Flags',
         default='flags'
-    ),
-    'object_userdata': bpy.props.StringProperty(
+    )
+    object_userdata = bpy.props.StringProperty(
         name='Userdata',
         default='userdata'
-    ),
-    'object_lod_reference': bpy.props.StringProperty(
+    )
+    object_lod_reference = bpy.props.StringProperty(
         name='LOD Reference',
         default='lod_reference'
-    ),
-    'object_owner_name': bpy.props.StringProperty(
+    )
+    object_owner_name = bpy.props.StringProperty(
         name='Owner Name',
         default='owner_name'
-    ),
-    'object_creation_time': bpy.props.StringProperty(
+    )
+    object_creation_time = bpy.props.StringProperty(
         name='Creation Time',
         default='creation_time'
-    ),
-    'object_modif_name': bpy.props.StringProperty(
+    )
+    object_modif_name = bpy.props.StringProperty(
         name='Modif Name',
         default='modif_name'
-    ),
-    'object_modified_time': bpy.props.StringProperty(
+    )
+    object_modified_time = bpy.props.StringProperty(
         name='Modified Time',
         default='modified_time'
-    ),
-    'object_motion_references': bpy.props.StringProperty(
+    )
+    object_motion_references = bpy.props.StringProperty(
         name='Motion References',
         default='motion_references'
     )
-}
-custom_mesh_props = {
-    # mesh custom properties names
-    'mesh_flags': bpy.props.StringProperty(
+
+    # mesh
+    mesh_flags = bpy.props.StringProperty(
         name='Flags',
         default='flags'
-    ),
-}
-custom_material_props = {
-    # material custom properties names
-    'material_two_sided': bpy.props.StringProperty(
+    )
+
+    # material
+    material_two_sided = bpy.props.StringProperty(
         name='Two Sided',
         default='two_sided'
-    ),
-    'material_shader': bpy.props.StringProperty(
+    )
+    material_shader = bpy.props.StringProperty(
         name='Shader',
         default='shader'
-    ),
-    'material_compile': bpy.props.StringProperty(
+    )
+    material_compile = bpy.props.StringProperty(
         name='Compile',
         default='compile'
-    ),
-    'material_game_mtl': bpy.props.StringProperty(
+    )
+    material_game_mtl = bpy.props.StringProperty(
         name='Game Mtl',
         default='game_mtl'
     )
-}
-custom_bone_props = {
-    # bone custom properties names
-    'bone_game_mtl': bpy.props.StringProperty(
+
+    # bone
+    bone_game_mtl = bpy.props.StringProperty(
         name='Game Mtl',
         default='game_mtl'
-    ),
-    'bone_length': bpy.props.StringProperty(
+    )
+    bone_length = bpy.props.StringProperty(
         name='Length',
         default='length'
-    ),
-    'bone_shape_flags': bpy.props.StringProperty(
+    )
+    bone_shape_flags = bpy.props.StringProperty(
         name='Shape Flags',
         default='shape_flags'
-    ),
-    'bone_shape_type': bpy.props.StringProperty(
+    )
+    bone_shape_type = bpy.props.StringProperty(
         name='Shape Type',
         default='shape_type'
-    ),
-    'bone_part': bpy.props.StringProperty(
+    )
+    bone_part = bpy.props.StringProperty(
         name='Bone Part',
         default='bone_part'
-    ),
+    )
+
     # box shape
-    'bone_box_shape_rotation': bpy.props.StringProperty(
+    bone_box_shape_rotation = bpy.props.StringProperty(
         name='Box Shape Rotation',
         default='box_shape_rotation'
-    ),
-    'bone_box_shape_translate': bpy.props.StringProperty(
+    )
+    bone_box_shape_translate = bpy.props.StringProperty(
         name='Box Shape Translate',
         default='box_shape_translate'
-    ),
-    'bone_box_shape_half_size': bpy.props.StringProperty(
+    )
+    bone_box_shape_half_size = bpy.props.StringProperty(
         name='Box Shape Half Size',
         default='box_shape_half_size'
-    ),
+    )
+
     # sphere shape
-    'bone_sphere_shape_position': bpy.props.StringProperty(
+    bone_sphere_shape_position = bpy.props.StringProperty(
         name='Sphere Shape Position',
         default='sphere_shape_position'
-    ),
-    'bone_sphere_shape_radius': bpy.props.StringProperty(
+    )
+    bone_sphere_shape_radius = bpy.props.StringProperty(
         name='Sphere Shape Radius',
         default='sphere_shape_radius'
-    ),
+    )
+
     # cylinder shape
-    'bone_cylinder_shape_position': bpy.props.StringProperty(
+    bone_cylinder_shape_position = bpy.props.StringProperty(
         name='Cylinder Shape Position',
         default='cylinder_shape_position'
-    ),
-    'bone_cylinder_shape_direction': bpy.props.StringProperty(
+    )
+    bone_cylinder_shape_direction = bpy.props.StringProperty(
         name='Cylinder Shape Direction',
         default='cylinder_shape_direction'
-    ),
-    'bone_cylinder_shape_hight': bpy.props.StringProperty(
+    )
+    bone_cylinder_shape_hight = bpy.props.StringProperty(
         name='Cylinder Shape Hight',
         default='cylinder_shape_hight'
-    ),
-    'bone_cylinder_shape_radius': bpy.props.StringProperty(
+    )
+    bone_cylinder_shape_radius = bpy.props.StringProperty(
         name='Cylinder Shape Radius',
         default='cylinder_shape_radius'
-    ),
+    )
+
     # ik joint type
-    'bone_ik_joint_type': bpy.props.StringProperty(
+    bone_ik_joint_type = bpy.props.StringProperty(
         name='IK Joint Type',
         default='ik_joint_type'
-    ),
+    )
+
     # limit
-    'bone_limit_x_min': bpy.props.StringProperty(
+    bone_limit_x_min = bpy.props.StringProperty(
         name='Limit X Min',
         default='limit_x_min'
-    ),
-    'bone_limit_x_max': bpy.props.StringProperty(
+    )
+    bone_limit_x_max = bpy.props.StringProperty(
         name='Limit X Max',
         default='limit_x_max'
-    ),
-    'bone_limit_y_min': bpy.props.StringProperty(
+    )
+    bone_limit_y_min = bpy.props.StringProperty(
         name='Limit Y Min',
         default='limit_y_min'
-    ),
-    'bone_limit_y_max': bpy.props.StringProperty(
+    )
+    bone_limit_y_max = bpy.props.StringProperty(
         name='Limit Y Max',
         default='limit_y_max'
-    ),
-    'bone_limit_z_min': bpy.props.StringProperty(
+    )
+    bone_limit_z_min = bpy.props.StringProperty(
         name='Limit Z Min',
         default='limit_z_min'
-    ),
-    'bone_limit_z_max': bpy.props.StringProperty(
+    )
+    bone_limit_z_max = bpy.props.StringProperty(
         name='Limit Z Max',
         default='limit_z_max'
-    ),
+    )
+
     # spring limit
-    'bone_limit_x_spring': bpy.props.StringProperty(
+    bone_limit_x_spring = bpy.props.StringProperty(
         name='Limit X Spring',
         default='limit_x_spring'
-    ),
-    'bone_limit_y_spring': bpy.props.StringProperty(
+    )
+    bone_limit_y_spring = bpy.props.StringProperty(
         name='Limit Y Spring',
         default='limit_y_spring'
-    ),
-    'bone_limit_z_spring': bpy.props.StringProperty(
+    )
+    bone_limit_z_spring = bpy.props.StringProperty(
         name='Limit Z Spring',
         default='limit_z_spring'
-    ),
+    )
+
     # damping limit
-    'bone_limit_x_damping': bpy.props.StringProperty(
+    bone_limit_x_damping = bpy.props.StringProperty(
         name='Limit X Damping',
         default='limit_x_damping'
-    ),
-    'bone_limit_y_damping': bpy.props.StringProperty(
+    )
+    bone_limit_y_damping = bpy.props.StringProperty(
         name='Limit Y Damping',
         default='limit_y_damping'
-    ),
-    'bone_limit_z_damping': bpy.props.StringProperty(
+    )
+    bone_limit_z_damping = bpy.props.StringProperty(
         name='Limit Z Damping',
         default='limit_z_damping'
-    ),
+    )
+
     # spring and damping
-    'bone_spring': bpy.props.StringProperty(
+    bone_spring = bpy.props.StringProperty(
         name='Spring',
         default='spring'
-    ),
-    'bone_damping': bpy.props.StringProperty(
+    )
+    bone_damping = bpy.props.StringProperty(
         name='Damping',
         default='damping'
-    ),
+    )
+
     # mass
-    'bone_mass': bpy.props.StringProperty(
+    bone_mass = bpy.props.StringProperty(
         name='Mass',
         default='mass'
-    ),
-    'bone_center_of_mass': bpy.props.StringProperty(
+    )
+    bone_center_of_mass = bpy.props.StringProperty(
         name='Center of Mass',
         default='center_of_mass'
-    ),
+    )
+
     # other
-    'bone_ik_flags': bpy.props.StringProperty(
+    bone_ik_flags = bpy.props.StringProperty(
         name='IK Flags',
         default='ik_flags'
-    ),
-    'bone_breakable_force': bpy.props.StringProperty(
+    )
+    bone_breakable_force = bpy.props.StringProperty(
         name='Breakable Force',
         default='breakable_force'
-    ),
-    'bone_breakable_torque': bpy.props.StringProperty(
+    )
+    bone_breakable_torque = bpy.props.StringProperty(
         name='Breakable Torque',
         default='breakable_torque'
-    ),
-    'bone_friction': bpy.props.StringProperty(
+    )
+    bone_friction = bpy.props.StringProperty(
         name='Friction',
         default='friction'
     )
-}
-custom_action_props = {
-    # action custom properties names
-    'action_fps': bpy.props.StringProperty(
+
+    # action
+    action_fps = bpy.props.StringProperty(
         name='FPS',
         default='fps'
-    ),
-    'action_speed': bpy.props.StringProperty(
+    )
+    action_speed = bpy.props.StringProperty(
         name='Speed',
         default='speed'
-    ),
-    'action_accrue': bpy.props.StringProperty(
+    )
+    action_accrue = bpy.props.StringProperty(
         name='Accrue',
         default='accrue'
-    ),
-    'action_falloff': bpy.props.StringProperty(
+    )
+    action_falloff = bpy.props.StringProperty(
         name='Falloff', 
         default='falloff'
-    ),
-    'action_bone_part': bpy.props.StringProperty(
+    )
+    action_bone_part = bpy.props.StringProperty(
         name='Bone Part',
         default='bone_part'
-    ),
-    'action_flags': bpy.props.StringProperty(
+    )
+    action_flags = bpy.props.StringProperty(
         name='Flags',
         default='flags'
-    ),
-    'action_power': bpy.props.StringProperty(
+    )
+    action_power = bpy.props.StringProperty(
         name='Power',
         default='power'
     )
-}
-xray_custom_properties = {}
-xray_custom_properties.update(custom_main_props)
-xray_custom_properties.update(custom_object_props)
-xray_custom_properties.update(custom_mesh_props)
-xray_custom_properties.update(custom_material_props)
-xray_custom_properties.update(custom_bone_props)
-xray_custom_properties.update(custom_action_props)
-
-
-class XRayPrefsCustomProperties(bpy.types.PropertyGroup):
-    props = xray_custom_properties
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
-
-
-op_props = {
-    'operator': bpy.props.StringProperty(),
-}
 
 
 class XRAY_OT_add_keymap(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.add_keymap'
     bl_label = 'Add Keymap'
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    operator = bpy.props.StringProperty()
 
     def execute(self, context):
         hotkeys.add_keymaps(only=self.operator)
         return {'FINISHED'}
 
 
-key_map_props = {
-    'name': bpy.props.StringProperty(),
-    'operator': bpy.props.StringProperty()
-}
-
-
-class XRayKeyMap(bpy.types.PropertyGroup):
-    props = key_map_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
-
-
-key_items = (
-    ('F5', 'F5', ''),
-    ('F6', 'F6', ''),
-    ('F7', 'F7', ''),
-    ('F8', 'F8', ''),
-    ('F9', 'F9', ''),
-)
-
-defaults_category_items = (
-    ('OBJECT', ' Object ', ''),
-    ('SKLS', 'Skls', ''),
-    ('OGF', 'Ogf', ''),
-    ('OMF', 'Omf', ''),
-    ('ANM', 'Anm', ''),
-    ('BONES', ' Bones ', ''),
-    ('DM', 'Dm', ''),
-    ('DETAILS', 'Details', ''),
-    ('SCENE', ' Scene ', ''),
-    ('PART', 'Part', '')
-)
-
-category_items = (
-    ('PATHS', 'Paths', ''),
-    ('DEFAULTS', 'Defaults', ''),
-    ('PLUGINS', 'Formats', ''),
-    ('KEYMAP', 'Keymap', ''),
-    ('CUSTOM_PROPS', 'Custom Props', ''),
-    ('OTHERS', 'Others', '')
-)
-
-paths_props = {
-    # path props
-    'fs_ltx_file': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        name='fs.ltx File',
-        update=update_paths
-    ),
-    'gamedata_folder': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        update=update_paths
-    ),
-    'textures_folder': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        update=update_paths
-    ),
-    'meshes_folder': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        update=update_paths
-    ),
-    'levels_folder': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        update=update_paths
-    ),
-    'gamemtl_file': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        update=update_paths
-    ),
-    'eshader_file': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        update=update_paths
-    ),
-    'cshader_file': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        update=update_paths
-    ),
-    'objects_folder': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        update=update_paths
-    ),
-
-    # path auto props
-    'gamedata_folder_auto': bpy.props.StringProperty(),
-    'textures_folder_auto': bpy.props.StringProperty(),
-    'meshes_folder_auto': bpy.props.StringProperty(),
-    'levels_folder_auto': bpy.props.StringProperty(),
-    'gamemtl_file_auto': bpy.props.StringProperty(),
-    'eshader_file_auto': bpy.props.StringProperty(),
-    'cshader_file_auto': bpy.props.StringProperty(),
-    'objects_folder_auto': bpy.props.StringProperty()
-}
-
-plugin_preferences_props = {
-    'compact_menus': bpy.props.BoolProperty(
-        name='Compact Import/Export Menus',
-        update=update_menu_func
-    ),
-
-    'paths_mode': bpy.props.EnumProperty(
-        default='BASE',
-        items=(('BASE', 'Base', ''), ('ADVANCED', 'Advanced', ''))
-    ),
-
-    # defaults
-    'defaults_category': bpy.props.EnumProperty(
-        default='OBJECT', items=defaults_category_items
-    ),
-
-    # object import props
-    'sdk_version': formats.ie.PropSDKVersion(),
-    'object_motions_import': formats.ie.PropObjectMotionsImport(),
-    'object_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
-    # object export props
-    'export_object_sdk_version': formats.ie.PropSDKVersion(),
-    'smoothing_out_of': formats.ie.prop_smoothing_out_of(),
-    'object_motions_export': formats.ie.PropObjectMotionsExport(),
-    'object_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
-    'export_object_use_export_paths': formats.ie.PropUseExportPaths(),
-    # anm import props
-    'anm_create_camera': formats.ie.PropAnmCameraAnimation(),
-    # anm export props
-    'anm_format_version': formats.ie.prop_anm_format_version(),
-    # skl/skls import props
-    'add_to_motion_list': formats.ie.prop_skl_add_actions_to_motion_list(),
-    # bones import props
-    'bones_import_bone_parts': formats.ie.prop_import_bone_parts(),
-    'bones_import_bone_properties': formats.ie.prop_import_bone_properties(),
-    # bones export props
-    'bones_export_bone_parts': formats.ie.prop_export_bone_parts(),
-    'bones_export_bone_properties': formats.ie.prop_export_bone_properties(),
-    # details import props
-    'details_models_in_a_row': formats.ie.prop_details_models_in_a_row(),
-    'load_slots': formats.ie.prop_details_load_slots(),
-    'details_format': formats.ie.prop_details_format(),
-    # details export props
-    'details_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
-    'format_version': formats.ie.prop_details_format_version(),
-    # dm export props
-    'dm_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
-    # ogf import props
-    'ogf_import_motions': formats.ie.PropObjectMotionsImport(),
-    # ogf export props
-    'ogf_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
-    'ogf_export_motions': formats.ie.PropObjectMotionsExport(),
-    'ogf_export_fmt_ver': formats.ie.PropSDKVersion(),
-    'ogf_export_hq_motions': formats.ie.prop_omf_high_quality(),
-    'ogf_export_use_export_paths': formats.ie.PropUseExportPaths(),
-    # omf import props
-    'omf_import_motions': formats.ie.PropObjectMotionsImport(),
-    'import_bone_parts': formats.ie.prop_import_bone_parts(),
-    'omf_add_actions_to_motion_list': formats.ie.prop_skl_add_actions_to_motion_list(),
-    # omf export props
-    'omf_export_bone_parts': formats.ie.prop_export_bone_parts(),
-    'omf_export_mode': formats.ie.prop_omf_export_mode(),
-    'omf_motions_export': formats.ie.PropObjectMotionsExport(),
-    'omf_high_quality': formats.ie.prop_omf_high_quality(),
-    # scene selection import props
-    'scene_selection_sdk_version': formats.ie.PropSDKVersion(),
-    'scene_selection_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
-    # part import props
-    'part_sdk_version': formats.ie.PropSDKVersion(),
-    'part_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
-
-    # keymap
-    'keymaps_collection': bpy.props.CollectionProperty(type=XRayKeyMap),
-    'keymaps_collection_index': bpy.props.IntProperty(options={'SKIP_SAVE'}),
-    # enable import plugins
-    'enable_object_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_anm_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_dm_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_details_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_skls_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_bones_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_err_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_scene_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_level_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_omf_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_ogf_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_part_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    # enable export plugins
-    'enable_object_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_anm_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_dm_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_details_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_skls_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_skl_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_bones_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_scene_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_omf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-    'enable_ogf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
-
-    'category': bpy.props.EnumProperty(default='PATHS', items=category_items),
-    'custom_props': bpy.props.PointerProperty(type=XRayPrefsCustomProperties),
-    'custom_owner_name': bpy.props.StringProperty(),
-
-    # viewport props
-    'gl_shape_color': bpy.props.FloatVectorProperty(
-        name='Unselected Shape',
-        default=(0.0, 0.0, 1.0, 0.5),
-        min=0.0,
-        max=1.0,
-        subtype='COLOR',
-        size=4
-    ),
-    'gl_active_shape_color': bpy.props.FloatVectorProperty(
-        name='Active Shape',
-        default=(1.0, 1.0, 1.0, 0.7),
-        min=0.0,
-        max=1.0,
-        subtype='COLOR',
-        size=4
-    ),
-    'gl_select_shape_color': bpy.props.FloatVectorProperty(
-        name='Selected Shape',
-        default=(0.0, 1.0, 1.0, 0.7),
-        min=0.0,
-        max=1.0,
-        subtype='COLOR',
-        size=4
-    ),
-    'gl_object_mode_shape_color': bpy.props.FloatVectorProperty(
-        name='Shape in Object Mode',
-        default=(0.8, 0.8, 0.8, 0.8),
-        min=0.0,
-        max=1.0,
-        subtype='COLOR',
-        size=4
-    ),
-
-    # custom data props
-    'object_split_normals': bpy.props.BoolProperty(
-        name='Use *.object Split Normals',
-        default=False
-    )
-}
-
-plugin_preferences_props.update(paths_props)
-
-
 classes = (
     XRAY_OT_add_keymap,
-    XRayKeyMap,
     XRayPrefsCustomProperties
 )
 

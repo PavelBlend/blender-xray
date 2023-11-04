@@ -82,31 +82,20 @@ class JointLimitsBaseOperator(utils.ie.BaseOperator):
         return utils.obj.is_armature_context(context)
 
 
-mode_items = (
-    ('ACTIVE_BONE', 'Active Bone', ''),
-    ('SELECTED_BONES', 'Selected Bones', ''),
-    ('ALL_BONES', 'All Bones', '')
-)
-
-op_props = {
-    'mode': bpy.props.EnumProperty(
-        name='Mode',
-        items=mode_items,
-        default='SELECTED_BONES'
-    ),
-}
-
-
 class XRAY_OT_convert_limits_to_constraints(JointLimitsBaseOperator):
     bl_idname = 'io_scene_xray.convert_joint_limits'
     bl_label = 'Convert Limits to Constraints'
     bl_description = 'Convert selected bones joint limits to constraints'
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        items=(
+            ('ACTIVE_BONE', 'Active Bone', ''),
+            ('SELECTED_BONES', 'Selected Bones', ''),
+            ('ALL_BONES', 'All Bones', '')
+        ),
+        default='SELECTED_BONES'
+    )
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
@@ -164,11 +153,15 @@ class XRAY_OT_remove_limits_constraints(JointLimitsBaseOperator):
     bl_label = 'Remove Limits Constraints'
     bl_description = 'Remove selected bones joint limits constraints'
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        items=(
+            ('ACTIVE_BONE', 'Active Bone', ''),
+            ('SELECTED_BONES', 'Selected Bones', ''),
+            ('ALL_BONES', 'All Bones', '')
+        ),
+        default='SELECTED_BONES'
+    )
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
@@ -283,44 +276,33 @@ class XRAY_OT_clear_ik_limits(JointLimitsBaseOperator):
         return wm.invoke_props_dialog(self)
 
 
-mode_items = (
-    ('MIN_X', 'Min X', ''),
-    ('MAX_X', 'Max X', ''),
-
-    ('MIN_Y', 'Min Y', ''),
-    ('MAX_Y', 'Max Y', ''),
-
-    ('MIN_Z', 'Min Z', ''),
-    ('MAX_Z', 'Max Z', ''),
-
-    ('MIN_MAX_X', 'Min/Max X', ''),
-    ('MIN_MAX_Y', 'Min/Max Y', ''),
-    ('MIN_MAX_Z', 'Min/Max Z', ''),
-
-    ('MIN_XYZ', 'Min XYZ', ''),
-    ('MAX_XYZ', 'Max XYZ', '')
-)
-
-op_props = {
-    'mode': bpy.props.EnumProperty(
-        name='Mode',
-        items=mode_items,
-        default='MIN_XYZ'
-    ),
-}
-
-
 class XRAY_OT_set_joint_limits(JointLimitsBaseOperator):
     bl_idname = 'io_scene_xray.set_joint_limits'
     bl_label = 'Set Joint Limits'
     bl_description = 'Set joint limits by pose bone rotation'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        items=(
+            ('MIN_X', 'Min X', ''),
+            ('MAX_X', 'Max X', ''),
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+            ('MIN_Y', 'Min Y', ''),
+            ('MAX_Y', 'Max Y', ''),
+
+            ('MIN_Z', 'Min Z', ''),
+            ('MAX_Z', 'Max Z', ''),
+
+            ('MIN_MAX_X', 'Min/Max X', ''),
+            ('MIN_MAX_Y', 'Min/Max Y', ''),
+            ('MIN_MAX_Z', 'Min/Max Z', ''),
+
+            ('MIN_XYZ', 'Min XYZ', ''),
+            ('MAX_XYZ', 'Max XYZ', '')
+        ),
+        default='MIN_XYZ'
+    )
 
     @classmethod
     def poll(cls, context):

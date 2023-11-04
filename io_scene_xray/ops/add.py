@@ -15,24 +15,15 @@ SOC_HUD_FOV = SOC_LEVEL_FOV * SOC_HUD_FOV_FACTOR
 DRAW_SIZE = 0.5
 
 
-op_props = {
-    'camera_type': bpy.props.EnumProperty(
-        name='Camera Type',
-        items=(('HUD', 'HUD', ''), ('LEVEL', 'Level', ''))
-    ),
-}
-
-
 class XRAY_OT_add_camera(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.add_camera'
     bl_label = 'Add X-Ray Camera'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    camera_type = bpy.props.EnumProperty(
+        name='Camera Type',
+        items=(('HUD', 'HUD', ''), ('LEVEL', 'Level', ''))
+    )
 
     def draw(self, context):    # pragma: no cover
         row = self.layout.row(align=True)

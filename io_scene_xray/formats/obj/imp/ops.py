@@ -12,24 +12,6 @@ from .... import utils
 
 filename_ext = '.object'
 
-import_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-    'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement
-    ),
-
-    # *.object format props
-    'fmt_version': ie.PropSDKVersion(),
-    'import_motions': ie.PropObjectMotionsImport(),
-    'mesh_split_by_materials': ie.PropObjectMeshSplitByMaterials(),
-
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
 
 class XRAY_OT_import_object(
         utils.ie.BaseOperator,
@@ -44,11 +26,22 @@ class XRAY_OT_import_object(
     text = 'Source Object'
     ext = filename_ext
     filename_ext = filename_ext
-    props = import_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    files = bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement
+    )
+
+    # *.object format props
+    fmt_version = ie.PropSDKVersion()
+    import_motions = ie.PropObjectMotionsImport()
+    mesh_split_by_materials = ie.PropObjectMeshSplitByMaterials()
+
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats

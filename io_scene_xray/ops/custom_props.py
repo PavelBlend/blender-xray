@@ -2,7 +2,6 @@
 import bpy
 
 # addon modules
-from .. import prefs
 from .. import text
 from .. import utils
 
@@ -103,29 +102,27 @@ def draw_function(self, context):    # pragma: no cover
     col.prop(self, 'edit_mode', expand=True)
 
 
-edit_data_items = (
-    ('ALL', 'All', ''),
-    ('OBJECT', 'Object', ''),
-    ('MESH', 'Mesh', ''),
-    ('MATERIAL', 'Material', ''),
-    ('BONE', 'Bone', ''),
-    ('ACTION', 'Action', '')
-)
-edit_mode_items = (
-    ('ALL', 'All', ''),
-    ('SELECTED', 'Selected Objects', ''),
-    ('ACTIVE', 'Active Object', '')
-)
 op_props = {
     # custom properties utils
     'edit_data': bpy.props.EnumProperty(
         name='Edit Data',
-        items=edit_data_items,
+        items=(
+            ('ALL', 'All', ''),
+            ('OBJECT', 'Object', ''),
+            ('MESH', 'Mesh', ''),
+            ('MATERIAL', 'Material', ''),
+            ('BONE', 'Bone', ''),
+            ('ACTION', 'Action', '')
+        ),
         default='ALL'
     ),
     'edit_mode': bpy.props.EnumProperty(
         name='Edit Mode',
-        items=edit_mode_items,
+        items=(
+            ('ALL', 'All', ''),
+            ('SELECTED', 'Selected Objects', ''),
+            ('ACTIVE', 'Active Object', '')
+        ),
         default='SELECTED'
     )
 }
@@ -356,6 +353,81 @@ class XRAY_OT_set_xray_to_custom_props(utils.ie.BaseOperator):
         return wm.invoke_props_dialog(self)
 
 
+custom_object_props = (
+    'object_flags',
+    'object_userdata',
+    'object_lod_reference',
+    'object_owner_name',
+    'object_creation_time',
+    'object_modif_name',
+    'object_modified_time',
+    'object_motion_references'
+)
+custom_mesh_props = ('mesh_flags', )
+custom_material_props = (
+    'material_two_sided',
+    'material_shader',
+    'material_compile',
+    'material_game_mtl'
+)
+custom_bone_props = (
+    'bone_game_mtl',
+    'bone_length',
+    'bone_shape_flags',
+    'bone_shape_type',
+    'bone_part',
+
+    'bone_box_shape_rotation',
+    'bone_box_shape_translate',
+    'bone_box_shape_half_size',
+
+    'bone_sphere_shape_position',
+    'bone_sphere_shape_radius',
+
+    'bone_cylinder_shape_position',
+    'bone_cylinder_shape_direction',
+    'bone_cylinder_shape_hight',
+    'bone_cylinder_shape_radius',
+
+    'bone_ik_joint_type',
+
+    'bone_limit_x_min',
+    'bone_limit_x_max',
+    'bone_limit_y_min',
+    'bone_limit_y_max',
+    'bone_limit_z_min',
+    'bone_limit_z_max',
+
+    'bone_limit_x_spring',
+    'bone_limit_y_spring',
+    'bone_limit_z_spring',
+
+    'bone_limit_x_damping',
+    'bone_limit_y_damping',
+    'bone_limit_z_damping',
+
+    'bone_spring',
+    'bone_damping',
+
+    'bone_mass',
+    'bone_center_of_mass',
+
+    'bone_ik_flags',
+    'bone_breakable_force',
+    'bone_breakable_torque',
+    'bone_friction'
+)
+custom_action_props = (
+    'action_fps',
+    'action_speed',
+    'action_accrue',
+    'action_falloff',
+    'action_bone_part',
+    'action_flags',
+    'action_power'
+)
+
+
 class XRAY_OT_remove_xray_custom_props(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.remove_xray_custom_props'
     bl_label = 'Remove X-Ray Custom Properties'
@@ -381,14 +453,13 @@ class XRAY_OT_remove_xray_custom_props(utils.ie.BaseOperator):
                     continue
                 bones.add(bone)
         data = (
-            (objects, prefs.props.custom_object_props),
-            (meshes, prefs.props.custom_mesh_props),
-            (materials, prefs.props.custom_material_props),
-            (bones, prefs.props.custom_bone_props),
-            (actions, prefs.props.custom_action_props)
+            (objects, custom_object_props),
+            (meshes, custom_mesh_props),
+            (materials, custom_material_props),
+            (bones, custom_bone_props),
+            (actions, custom_action_props)
         )
-        for bpy_data_list, custom_props_dict in data:
-            custom_props = custom_props_dict.keys()
+        for bpy_data_list, custom_props in data:
             props_names = []
             for prop_id in custom_props:
                 prop_name = getattr(preferences.custom_props, prop_id, None)

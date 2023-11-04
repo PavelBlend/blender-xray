@@ -6,20 +6,13 @@ from .. import utils
 from .. import formats
 
 
-_dynamic_menu_op_props = {
-    'prop': bpy.props.StringProperty(),
-    'value': bpy.props.StringProperty(),
-    'desc': bpy.props.StringProperty()
-}
-
-
 class XRAY_OT_dynamic_menu(bpy.types.Operator):
     bl_idname = 'io_scene_xray.dynmenu'
     bl_label = ''
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in _dynamic_menu_op_props.items():
-            exec('{0} = _dynamic_menu_op_props.get("{0}")'.format(prop_name))
+    prop = bpy.props.StringProperty()
+    value = bpy.props.StringProperty()
+    desc = bpy.props.StringProperty()
 
     @classmethod
     def description(self, context, properties):
@@ -157,11 +150,7 @@ classes = (
 
 
 def register():
-    utils.version.assign_props([
-        (_dynamic_menu_op_props, XRAY_OT_dynamic_menu),
-    ])
-    for operator in classes:
-        bpy.utils.register_class(operator)
+    utils.version.register_operators(classes)
 
 
 def unregister():

@@ -24,19 +24,6 @@ def get_objects(context):
 filename_ext = '.anm'
 op_text = 'Animation Paths'
 
-import_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-    'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement
-    ),
-    'camera_animation': ie.PropAnmCameraAnimation(),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
 
 class XRAY_OT_import_anm(
         utils.ie.BaseOperator,
@@ -51,11 +38,17 @@ class XRAY_OT_import_anm(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
-    props = import_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    files = bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement
+    )
+    camera_animation = ie.PropAnmCameraAnimation()
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'gamedata_folder')
@@ -106,16 +99,6 @@ class XRAY_OT_import_anm(
         return super().invoke(context, event)
 
 
-export_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-    'format_version': ie.prop_anm_format_version()
-}
-
-
 class XRAY_OT_export_anm_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
@@ -128,11 +111,13 @@ class XRAY_OT_export_anm_file(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    format_version = ie.prop_anm_format_version()
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'gamedata_folder')
@@ -191,17 +176,6 @@ class XRAY_OT_export_anm_file(
         return {'RUNNING_MODAL'}
 
 
-export_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-    'format_version': ie.prop_anm_format_version(),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
-
 class XRAY_OT_export_anm(utils.ie.BaseOperator):
     bl_idname = 'xray_export.anm'
     bl_label = 'Export .anm'
@@ -211,11 +185,14 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    format_version = ie.prop_anm_format_version()
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'gamedata_folder')

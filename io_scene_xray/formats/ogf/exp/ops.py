@@ -53,18 +53,6 @@ def get_root_objects(context):
     return root_objs
 
 
-export_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
-        options={'HIDDEN'}
-    ),
-    'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
-    'fmt_version': ie.PropSDKVersion(),
-    'hq_export': ie.prop_omf_high_quality(),
-    'export_motions': ie.PropObjectMotionsExport()
-}
-
-
 class XRAY_OT_export_ogf_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
@@ -76,11 +64,15 @@ class XRAY_OT_export_ogf_file(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    )
+    texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
+    fmt_version = ie.PropSDKVersion()
+    hq_export = ie.prop_omf_high_quality()
+    export_motions = ie.PropObjectMotionsExport()
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
@@ -152,24 +144,6 @@ class XRAY_OT_export_ogf_file(
         return super().invoke(context, event)
 
 
-batch_export_props = {
-    'directory': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        options={'HIDDEN'}
-    ),
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
-        options={'HIDDEN'}
-    ),
-    'texture_name_from_image_path': ie.PropObjectTextureNamesFromPath(),
-    'export_motions': ie.PropObjectMotionsExport(),
-    'fmt_version': ie.PropSDKVersion(),
-    'hq_export': ie.prop_omf_high_quality(),
-    'use_export_paths': ie.PropUseExportPaths(),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
-
 class XRAY_OT_export_ogf(utils.ie.BaseOperator):
     bl_idname = 'xray_export.ogf'
     bl_label = 'Export .ogf'
@@ -178,11 +152,21 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
-    props = batch_export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    directory = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'HIDDEN'}
+    )
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    )
+    texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
+    export_motions = ie.PropObjectMotionsExport()
+    fmt_version = ie.PropSDKVersion()
+    hq_export = ie.prop_omf_high_quality()
+    use_export_paths = ie.PropUseExportPaths()
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')

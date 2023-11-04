@@ -16,43 +16,39 @@ def _get_real_bone_shape():
     return result
 
 
-op_props = {
-    'mode': bpy.props.EnumProperty(
-        name='Mode',
-        items=(
-            ('ADAPTIVE', 'Adaptive', ''),
-            ('CONSTANT', 'Constant', '')
-        ),
-        default='ADAPTIVE'
-    ),
-    'change': bpy.props.EnumProperty(
-        name='Change',
-        items=(
-            ('SELECTED', 'Selected Bones', ''),
-            ('ALL', 'All Bones', '')
-        ),
-        default='SELECTED'
-    ),
-    'size': bpy.props.FloatProperty(
-        name='Bone Size', default=0.05, min=0.0001, max=1000.0, precision=4
-    ),
-    'custom_shapes': bpy.props.BoolProperty(
-        name='Custom Shapes', default=False
-    )
-}
-
-
 class XRAY_OT_resize_bones(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.resize_bones'
     bl_label = 'Resize Bones'
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        items=(
+            ('ADAPTIVE', 'Adaptive', ''),
+            ('CONSTANT', 'Constant', '')
+        ),
+        default='ADAPTIVE'
+    )
+    change = bpy.props.EnumProperty(
+        name='Change',
+        items=(
+            ('SELECTED', 'Selected Bones', ''),
+            ('ALL', 'All Bones', '')
+        ),
+        default='SELECTED'
+    )
+    size = bpy.props.FloatProperty(
+        name='Bone Size',
+        default=0.05,
+        min=0.0001,
+        max=1000.0,
+        precision=4
+    )
+    custom_shapes = bpy.props.BoolProperty(
+        name='Custom Shapes',
+        default=False
+    )
 
     @classmethod
     def poll(cls, context):

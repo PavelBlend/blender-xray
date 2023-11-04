@@ -7,20 +7,58 @@ from .. import utils
 from .. import formats
 
 
-path_settings_props = {
-    'name': bpy.props.StringProperty(),
-    'sdk_ver': formats.ie.PropSDKVersion()
-}
-
-path_settings_props.update(props.paths_props)
-
-
 class PathsSettings(bpy.types.PropertyGroup):
-    props = path_settings_props
+    name = bpy.props.StringProperty()
+    sdk_ver = formats.ie.PropSDKVersion()
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in path_settings_props.items():
-            exec('{0} = path_settings_props.get("{0}")'.format(prop_name))
+    # path props
+    fs_ltx_file = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        name='fs.ltx File',
+        update=props.update_paths
+    )
+    gamedata_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=props.update_paths
+    )
+    textures_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=props.update_paths
+    )
+    meshes_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=props.update_paths
+    )
+    levels_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=props.update_paths
+    )
+    gamemtl_file = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        update=props.update_paths
+    )
+    eshader_file = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        update=props.update_paths
+    )
+    cshader_file = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        update=props.update_paths
+    )
+    objects_folder = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=props.update_paths
+    )
+
+    # path auto props
+    gamedata_folder_auto = bpy.props.StringProperty()
+    textures_folder_auto = bpy.props.StringProperty()
+    meshes_folder_auto = bpy.props.StringProperty()
+    levels_folder_auto = bpy.props.StringProperty()
+    gamemtl_file_auto = bpy.props.StringProperty()
+    eshader_file_auto = bpy.props.StringProperty()
+    cshader_file_auto = bpy.props.StringProperty()
+    objects_folder_auto = bpy.props.StringProperty()
 
 
 class XRAY_UL_path_presets_list(bpy.types.UIList):
@@ -49,19 +87,10 @@ class XRAY_UL_path_presets_list(bpy.types.UIList):
         layout.prop(item, 'name', text='')
 
 
-path_configs_props = {
-    'name': bpy.props.StringProperty(),
-    'platform': bpy.props.StringProperty(),
-    'mod': bpy.props.StringProperty()
-}
-
-
 class PathsConfigs(bpy.types.PropertyGroup):
-    props = path_configs_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in path_configs_props.items():
-            exec('{0} = path_configs_props.get("{0}")'.format(prop_name))
+    name = bpy.props.StringProperty()
+    platform = bpy.props.StringProperty()
+    mod = bpy.props.StringProperty()
 
 
 class XRAY_UL_path_configs_list(bpy.types.UIList):
@@ -89,17 +118,6 @@ class XRAY_UL_path_configs_list(bpy.types.UIList):
 
         layout.prop(item, 'name', text='')
 
-
-path_presets_props = {
-    'paths_presets': bpy.props.CollectionProperty(type=PathsSettings),
-    'paths_presets_index': bpy.props.IntProperty(),
-
-    'paths_configs': bpy.props.CollectionProperty(type=PathsConfigs),
-    'paths_configs_index': bpy.props.IntProperty(),
-
-    'used_config': bpy.props.StringProperty()
-}
-props.plugin_preferences_props.update(path_presets_props)
 
 classes = (
     PathsSettings,

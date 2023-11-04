@@ -12,17 +12,6 @@ from .. import log
 
 
 OMF_EXT = '.omf'
-op_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+OMF_EXT,
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-    'filepath': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        options={'SKIP_SAVE', 'HIDDEN'}
-    )
-}
 
 
 class XRAY_OT_save_omf(utils.ie.BaseOperator):
@@ -30,15 +19,20 @@ class XRAY_OT_save_omf(utils.ie.BaseOperator):
     bl_label = 'Save OMF'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
     filename_ext = OMF_EXT
 
     omf_data = None
     filepath_for_tests = None
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*'+OMF_EXT,
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    filepath = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
 
     def execute(self, context):
         path = os.path.join(self.directory, self.filepath)
@@ -72,34 +66,26 @@ class XRAY_OT_save_omf(utils.ie.BaseOperator):
         return change_ext
 
 
-op_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+OMF_EXT,
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-    'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement,
-        options={'SKIP_SAVE'}
-    ),
-    'filepath_for_tests': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        options={'SKIP_SAVE', 'HIDDEN'}
-    )
-}
-
-
 class XRAY_OT_merge_omf(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.merge_omf'
     bl_label = 'Merge OMF'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
     filename_ext = OMF_EXT
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*'+OMF_EXT,
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    files = bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement,
+        options={'SKIP_SAVE'}
+    )
+    filepath_for_tests = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
 
     @log.execute_with_logger
     @utils.set_cursor_state

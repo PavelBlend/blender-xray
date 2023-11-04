@@ -5,19 +5,12 @@ import bpy
 from .. import utils
 
 
-_collaps_op_props = {
-    'key': bpy.props.StringProperty(),
-}
-
-
 class XRAY_OT_collaps(bpy.types.Operator):
     bl_idname = 'io_scene_xray.collaps'
     bl_label = ''
     bl_description = 'Show / hide UI block'
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in _collaps_op_props.items():
-            exec('{0} = _collaps_op_props.get("{0}")'.format(prop_name))
+    key = bpy.props.StringProperty()
 
     _DATA = {}
 
@@ -61,7 +54,12 @@ def draw(layout, key, text=None, enabled=None, icon=None, style=None):
             bxr.alignment = 'LEFT'
             bxr.label(text='')
             box = bxr.column()
-    oper = row_operator.operator(XRAY_OT_collaps.bl_idname, icon=icon, emboss=style != 'tree', **kwargs)
+    oper = row_operator.operator(
+        XRAY_OT_collaps.bl_idname,
+        icon=icon,
+        emboss=style != 'tree',
+        **kwargs
+    )
     oper.key = key
     return row, box
 
@@ -71,8 +69,7 @@ def is_opened(key):
 
 
 def register():
-    utils.version.assign_props([(_collaps_op_props, XRAY_OT_collaps), ])
-    bpy.utils.register_class(XRAY_OT_collaps)
+    utils.version.register_operators(XRAY_OT_collaps)
 
 
 def unregister():

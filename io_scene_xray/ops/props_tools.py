@@ -122,33 +122,11 @@ def search_value(self, context, prop_name, prop_fun, text_fun):
     return value
 
 
-value_items = (
-    ('REPLACE', 'Replace', 'Set custom value for userdata.'),
-    ('CLEAR', 'Clear', 'Remove userdata.'),
-    ('OBJECT', 'Object', 'Copy userdata from custom object.'),
-    ('ACTIVE', 'Active Object', 'Copy userdata from active object.'),
-    ('TEXT', 'Text', 'Copy userdata from text data block.')
-)
 change_items = (
     ('ACTIVE', 'Active Object', ''),
     ('SELECTED', 'Selected Objects', ''),
     ('ALL', 'All Objects', '')
 )
-op_props = {
-    'value': bpy.props.EnumProperty(
-        name='Mode',
-        items=value_items,
-        default='REPLACE'
-    ),
-    'change': bpy.props.EnumProperty(
-        name='Change',
-        items=change_items,
-        default='SELECTED'
-    ),
-    'userdata': bpy.props.StringProperty(name='Userdata'),
-    'obj': bpy.props.StringProperty(name='Object'),
-    'text': bpy.props.StringProperty(name='Text')
-}
 
 
 class XRAY_OT_change_userdata(utils.ie.BaseOperator):
@@ -156,12 +134,25 @@ class XRAY_OT_change_userdata(utils.ie.BaseOperator):
     bl_label = 'Change Userdata'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
-
+    value = bpy.props.EnumProperty(
+        name='Mode',
+        items=(
+            ('REPLACE', 'Replace', 'Set custom value for userdata.'),
+            ('CLEAR', 'Clear', 'Remove userdata.'),
+            ('OBJECT', 'Object', 'Copy userdata from custom object.'),
+            ('ACTIVE', 'Active Object', 'Copy userdata from active object.'),
+            ('TEXT', 'Text', 'Copy userdata from text data block.')
+        ),
+        default='REPLACE'
+    )
+    change = bpy.props.EnumProperty(
+        name='Change',
+        items=change_items,
+        default='SELECTED'
+    )
+    userdata = bpy.props.StringProperty(name='Userdata')
+    obj = bpy.props.StringProperty(name='Object')
+    text = bpy.props.StringProperty(name='Text')
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
@@ -234,21 +225,6 @@ value_items = (
     ('ACTIVE', 'Active Object', 'Copy LOD reference from active object.'),
     ('TEXT', 'Text', 'Copy LOD reference from text data block.')
 )
-op_props = {
-    'value': bpy.props.EnumProperty(
-        name='Mode',
-        items=value_items,
-        default='REPLACE'
-    ),
-    'change': bpy.props.EnumProperty(
-        name='Change',
-        items=change_items,
-        default='SELECTED'
-    ),
-    'lod_ref': bpy.props.StringProperty(name='LOD Reference'),
-    'obj': bpy.props.StringProperty(name='Object'),
-    'text': bpy.props.StringProperty(name='Text')
-}
 
 
 class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
@@ -256,11 +232,19 @@ class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
     bl_label = 'Change LOD Reference'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    value = bpy.props.EnumProperty(
+        name='Mode',
+        items=value_items,
+        default='REPLACE'
+    )
+    change = bpy.props.EnumProperty(
+        name='Change',
+        items=change_items,
+        default='SELECTED'
+    )
+    lod_ref = bpy.props.StringProperty(name='LOD Reference')
+    obj = bpy.props.StringProperty(name='Object')
+    text = bpy.props.StringProperty(name='Text')
 
 
     def draw(self, context):    # pragma: no cover
@@ -327,10 +311,6 @@ class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
         return wm.invoke_props_dialog(self)
 
 
-mode_items = (
-    ('ADD', 'Add', ''),
-    ('OVERWRITE', 'Overwrite', '')
-)
 value_items = (
     ('REPLACE', 'Replace', 'Set custom value for motion refs.'),
     ('CLEAR', 'Clear', 'Remove motion refs.'),
@@ -338,26 +318,6 @@ value_items = (
     ('ACTIVE', 'Active Object', 'Copy motion refs from active object.'),
     ('TEXT', 'Text', 'Copy motion refs from text data block.')
 )
-op_props = {
-    'mode': bpy.props.EnumProperty(
-        name='Mode',
-        items=mode_items,
-        default='ADD'
-    ),
-    'value': bpy.props.EnumProperty(
-        name='Value',
-        items=value_items,
-        default='REPLACE'
-    ),
-    'change': bpy.props.EnumProperty(
-        name='Change',
-        items=change_items,
-        default='SELECTED'
-    ),
-    'motion_refs': bpy.props.StringProperty(name='Motion References'),
-    'obj': bpy.props.StringProperty(name='Object'),
-    'text': bpy.props.StringProperty(name='Text')
-}
 
 
 class XRAY_OT_change_motion_refs(utils.ie.BaseOperator):
@@ -365,11 +325,27 @@ class XRAY_OT_change_motion_refs(utils.ie.BaseOperator):
     bl_label = 'Change Motion References'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        items=(
+            ('ADD', 'Add', ''),
+            ('OVERWRITE', 'Overwrite', '')
+        ),
+        default='ADD'
+    )
+    value = bpy.props.EnumProperty(
+        name='Value',
+        items=value_items,
+        default='REPLACE'
+    )
+    change = bpy.props.EnumProperty(
+        name='Change',
+        items=change_items,
+        default='SELECTED'
+    )
+    motion_refs = bpy.props.StringProperty(name='Motion References')
+    obj = bpy.props.StringProperty(name='Object')
+    text = bpy.props.StringProperty(name='Text')
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
@@ -453,38 +429,28 @@ class XRAY_OT_change_motion_refs(utils.ie.BaseOperator):
         return wm.invoke_props_dialog(self)
 
 
-type_items = (
-    ('st', 'Static', ''),
-    ('dy', 'Dynamic ', ''),
-    ('pd', 'Propgressive Dynamic', ''),
-    ('ho', 'HOM', ''),
-    ('mu', 'Multiple Usage', ''),
-    ('so', 'SOM', ''),
-)
-op_props = {
-    'obj_type': bpy.props.EnumProperty(
-        name='Type',
-        items=type_items,
-        default='st'
-    ),
-    'change': bpy.props.EnumProperty(
-        name='Change',
-        items=change_items,
-        default='SELECTED'
-    )
-}
-
-
 class XRAY_OT_change_object_type(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.change_object_type'
     bl_label = 'Change Object Type'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    obj_type = bpy.props.EnumProperty(
+        name='Type',
+        items=(
+            ('st', 'Static', ''),
+            ('dy', 'Dynamic ', ''),
+            ('pd', 'Propgressive Dynamic', ''),
+            ('ho', 'HOM', ''),
+            ('mu', 'Multiple Usage', ''),
+            ('so', 'SOM', ''),
+        ),
+        default='st'
+    )
+    change = bpy.props.EnumProperty(
+        name='Change',
+        items=change_items,
+        default='SELECTED'
+    )
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
@@ -516,26 +482,17 @@ class XRAY_OT_change_object_type(utils.ie.BaseOperator):
         return wm.invoke_props_dialog(self)
 
 
-op_props = {
-    'change': bpy.props.EnumProperty(
-        name='Change',
-        items=change_items,
-        default='SELECTED'
-    ),
-    'hq_export': bpy.props.BoolProperty(name='HQ Export', default=False)
-}
-
-
 class XRAY_OT_change_hq_export(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.change_hq_export'
     bl_label = 'Change HQ Export'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    change = bpy.props.EnumProperty(
+        name='Change',
+        items=change_items,
+        default='SELECTED'
+    )
+    hq_export = bpy.props.BoolProperty(name='HQ Export', default=False)
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout

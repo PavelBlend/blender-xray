@@ -223,18 +223,6 @@ class OmfFile():
             formats.omf.imp.skip_motion(self.reader, self.bone_names, length)
 
 
-browse_props = {
-    'filepath': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        options={'HIDDEN'}
-    ),
-    'filter_glob': bpy.props.StringProperty(
-        default='*.*',
-        options={'HIDDEN'}
-    )
-}
-
-
 class XRAY_OT_browse_motions_file(BaseBrowserOperator):
     '''
     Shows file open dialog, reads .skls/.omf file to buffer,
@@ -248,9 +236,14 @@ class XRAY_OT_browse_motions_file(BaseBrowserOperator):
         'Used to import X-Ray engine animations. ' \
         'To import select object with X-Ray struct of bones'
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in browse_props.items():
-            exec('{0} = browse_props.get("{0}")'.format(prop_name))
+    filepath = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'HIDDEN'}
+    )
+    filter_glob = bpy.props.StringProperty(
+        default='*.*',
+        options={'HIDDEN'}
+    )
 
     # pure python hold variable of .skls/.omf file buffer instance
     motions_file = None
@@ -415,23 +408,19 @@ def anim_index_changed(self, context):
                 dope_sheet.spaces[0].action = act
 
 
-items = (
-    ('ALL', 'All', ''),
-    ('NONE', 'None', ''),
-    ('INVERT', 'Invert', '')
-)
-select_props = {
-    'mode': bpy.props.EnumProperty(items=items, name='Mode', default='ALL'),
-}
-
-
 class XRAY_OT_motions_browser_select(BaseBrowserOperator):
     bl_idname = 'xray.motions_browser_select'
     bl_label = 'Select Animation'
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in select_props.items():
-            exec('{0} = select_props.get("{0}")'.format(prop_name))
+    mode = bpy.props.EnumProperty(
+        items=(
+            ('ALL', 'All', ''),
+            ('NONE', 'None', ''),
+            ('INVERT', 'Invert', '')
+        ),
+        name='Mode',
+        default='ALL'
+    )
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -454,27 +443,19 @@ class XRAY_OT_motions_browser_select(BaseBrowserOperator):
         return {'FINISHED'}
 
 
-items = (
-    ('ACTIVE', 'Active', ''),
-    ('SELECTED', 'Selected', ''),
-    ('ALL', 'All', '')
-)
-import_props = {
-    'mode': bpy.props.EnumProperty(
-        items=items,
-        name='Mode',
-        default='SELECTED'
-    ),
-}
-
-
 class XRAY_OT_motions_browser_import(BaseBrowserOperator):
     bl_idname = 'xray.motions_browser_import'
     bl_label = 'Select Animation'
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in import_props.items():
-            exec('{0} = import_props.get("{0}")'.format(prop_name))
+    mode = bpy.props.EnumProperty(
+        items=(
+            ('ACTIVE', 'Active', ''),
+            ('SELECTED', 'Selected', ''),
+            ('ALL', 'All', '')
+        ),
+        name='Mode',
+        default='SELECTED'
+    )
 
     @utils.set_cursor_state
     @utils.stats.execute_with_stats
@@ -517,80 +498,56 @@ class XRAY_OT_motions_browser_import(BaseBrowserOperator):
         return {'FINISHED'}
 
 
-anim_props = {
-    # animation name in .skls/.omf file
-    'name': bpy.props.StringProperty(name='Name'),
-    'frames': bpy.props.IntProperty(name='Frames'),
-    'select': bpy.props.BoolProperty(name='Select', default=True)
-}
-
-
 class XRayMotionsAnimationProps(bpy.types.PropertyGroup):
     '''
     Contains animation properties in animations
     list of .skls/.omf file
     '''
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in anim_props.items():
-            exec('{0} = anim_props.get("{0}")'.format(prop_name))
-
-
-action_props = {
-    'name': bpy.props.StringProperty(name='Name'),
-}
+    # animation name in .skls/.omf file
+    name = bpy.props.StringProperty(name='Name')
+    frames = bpy.props.IntProperty(name='Frames')
+    select = bpy.props.BoolProperty(name='Select', default=True)
 
 
 class XRayMotionsExistingActs(bpy.types.PropertyGroup):
     '''Contains available actions before importing new'''
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in action_props.items():
-            exec('{0} = action_props.get("{0}")'.format(prop_name))
-
-
-skls_browser_props = {
-    'animations': bpy.props.CollectionProperty(type=XRayMotionsAnimationProps),
-    'animations_index': bpy.props.IntProperty(update=anim_index_changed),
-    'animations_prev_name': bpy.props.StringProperty(),
-    'exist_acts': bpy.props.CollectionProperty(type=XRayMotionsExistingActs),
-    'file_format': bpy.props.EnumProperty(
-        name='Format',
-        items=(('SKLS', 'Skls', ''), ('OMF', 'Omf', ''))
-    )
-}
+    name = bpy.props.StringProperty(name='Name')
 
 
 class XRayMotionsBrowserProps(bpy.types.PropertyGroup):
-    if not utils.version.IS_28:
-        for prop_name, prop_value in skls_browser_props.items():
-            exec('{0} = skls_browser_props.get("{0}")'.format(prop_name))
+    animations = bpy.props.CollectionProperty(type=XRayMotionsAnimationProps)
+    animations_index = bpy.props.IntProperty(update=anim_index_changed)
+    animations_prev_name = bpy.props.StringProperty()
+    exist_acts = bpy.props.CollectionProperty(type=XRayMotionsExistingActs)
+    file_format = bpy.props.EnumProperty(
+        name='Format',
+        items=(('SKLS', 'Skls', ''), ('OMF', 'Omf', ''))
+    )
 
 
 classes = (
     # lists
-    (XRAY_UL_motions_list_item, None),
+    XRAY_UL_motions_list_item,
 
     # props
-    (XRayMotionsAnimationProps, anim_props),
-    (XRayMotionsExistingActs, action_props),
-    (XRayMotionsBrowserProps, skls_browser_props),
+    XRayMotionsAnimationProps,
+    XRayMotionsExistingActs,
+    XRayMotionsBrowserProps,
 
     # operators
-    (XRAY_OT_browse_motions_file, browse_props),
-    (XRAY_OT_close_motions_file, None),
-    (XRAY_OT_motions_browser_select, select_props),
-    (XRAY_OT_motions_browser_import, import_props)
+    XRAY_OT_browse_motions_file,
+    XRAY_OT_close_motions_file,
+    XRAY_OT_motions_browser_select,
+    XRAY_OT_motions_browser_import
 )
 
 
 def register():
-    for clas, props in classes:
-        if props:
-            utils.version.assign_props([(props, clas), ])
-        bpy.utils.register_class(clas)
+    utils.version.register_operators(classes)
 
 
 def unregister():
-    for clas, props in reversed(classes):
+    for clas in reversed(classes):
         bpy.utils.unregister_class(clas)

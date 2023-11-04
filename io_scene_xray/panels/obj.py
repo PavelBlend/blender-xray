@@ -16,23 +16,14 @@ items = (
     ('paste', '', '', 'PASTEDOWN', 1),
     ('clear', '', '', 'X', 2)
 )
-op_props = {
-    'oper': bpy.props.EnumProperty(items=items),
-    'path': bpy.props.StringProperty()
-}
-TRANSLATION_TEXT = 'Translation'
-ROTATION_TEXT = 'Rotation'
 
 
 class XRAY_OT_prop_clip(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.propclip'
     bl_label = ''
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    oper = bpy.props.EnumProperty(items=items)
+    path = bpy.props.StringProperty()
 
     def execute(self, context):
         *path, prop = self.path.split('.')
@@ -211,22 +202,13 @@ class XRAY_OT_paste_motion_refs_list(utils.ie.BaseOperator):
         return {'FINISHED'}
 
 
-op_props = {
-    'sort_reverse': bpy.props.BoolProperty(default=False),
-}
-
-
 class XRAY_OT_sort_motion_refs_list(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.sort_motion_refs_list'
     bl_label = 'Sort Motion References'
     bl_description = 'Sort motion references list'
     bl_options = {'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    sort_reverse = bpy.props.BoolProperty(default=False)
 
     @classmethod
     def poll(cls, context):
@@ -264,33 +246,25 @@ class XRAY_OT_sort_motion_refs_list(utils.ie.BaseOperator):
         return wm.invoke_props_dialog(self)
 
 
-op_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default='*.omf',
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        options={'SKIP_SAVE'}
-    ),
-    'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement
-    )
-}
-
-
 class XRAY_OT_add_motion_ref_from_file(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.add_motion_ref_from_file'
     bl_label = 'Add Motion Reference'
     bl_description = 'Add motion reference from file path'
     bl_options = {'UNDO'}
 
-    props = op_props
     init = False
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default='*.omf',
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE'}
+    )
+    files = bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement
+    )
 
     @classmethod
     def poll(cls, context):

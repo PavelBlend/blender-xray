@@ -19,22 +19,6 @@ if utils.version.broken_file_browser_filter():
 else:
     FILE_FILTER_IMPORT = 'level'
 
-import_props = {
-    'filter_glob': bpy.props.StringProperty(
-        default=FILE_FILTER_IMPORT,
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        options={'HIDDEN'}
-    ),
-    'filepath': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        options={'SKIP_SAVE', 'HIDDEN'}
-    ),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
 
 class XRAY_OT_import_level(
         utils.ie.BaseOperator,
@@ -49,11 +33,20 @@ class XRAY_OT_import_level(
     text = 'Game Level'
     ext = 'level'
     filename_ext = ''
-    props = import_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    filter_glob = bpy.props.StringProperty(
+        default=FILE_FILTER_IMPORT,
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'HIDDEN'}
+    )
+    filepath = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'levels_folder')

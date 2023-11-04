@@ -35,80 +35,7 @@ else:
         ('ShaderNodeEmission', 'Emission', '')
     )
     default_shader = 'ShaderNodeBsdfDiffuse'
-op_props = {
-    'mode': material.mode_prop,
-    # alpha
-    'alpha_value': bpy.props.BoolProperty(name='Use Alpha', default=True),
-    'alpha_change': bpy.props.BoolProperty(name='Change Alpha', default=True),
-    # specular
-    'specular_value': bpy.props.FloatProperty(
-        name='Specular', default=0.0, min=0.0, max=1.0, subtype='FACTOR'
-    ),
-    'specular_change': bpy.props.BoolProperty(name='Change Specular', default=True),
-    # roughness
-    'roughness_value': bpy.props.FloatProperty(
-        name='Roughness', default=0.0, min=0.0, max=1.0, subtype='FACTOR'
-    ),
-    'roughness_change': bpy.props.BoolProperty(name='Change Roughness', default=True),
-    # viewport roughness
-    'viewport_roughness_value': bpy.props.FloatProperty(
-        name='Viewport Roughness', default=0.0, min=0.0, max=1.0, subtype='FACTOR'
-    ),
-    'viewport_roughness_change': bpy.props.BoolProperty(name='Change Viewport Roughness', default=True),
-    # blend mode
-    'blend_mode': bpy.props.EnumProperty(
-        name='Blend Mode', default='OPAQUE', items=blend_mode_items
-    ),
-    'blend_mode_change': bpy.props.BoolProperty(name='Change Blend Mode', default=False),
-    # shader
-    'shader_type': bpy.props.EnumProperty(
-        name='Shader Type', default=default_shader, items=shader_items
-    ),
-    'replace_shader': bpy.props.BoolProperty(name='Replace Shader', default=False),
 
-    # internal properties
-    'shadeless_change': bpy.props.BoolProperty(name='Change Shadeless', default=True),
-    'shadeless_value': bpy.props.BoolProperty(name='Shadeless', default=True),
-
-    'diffuse_intensity_change': bpy.props.BoolProperty(
-        name='Change Diffuse Intensity', default=True
-    ),
-    'diffuse_intensity_value': bpy.props.FloatProperty(
-        name='Diffuse Intensity', default=1.0,
-        min=0.0, max=1.0, subtype='FACTOR'
-    ),
-
-    'specular_intensity_change': bpy.props.BoolProperty(
-        name='Change Specular Intensity', default=True
-    ),
-    'specular_intensity_value': bpy.props.FloatProperty(
-        name='Specular Intensity', default=1.0,
-        min=0.0, max=1.0, subtype='FACTOR'
-    ),
-
-    'specular_hardness_change': bpy.props.BoolProperty(
-        name='Change Specular Hardness', default=True
-    ),
-    'specular_hardness_value': bpy.props.IntProperty(
-        name='Specular Hardness', default=50,
-        min=1, max=511
-    ),
-
-    'use_transparency_change': bpy.props.BoolProperty(
-        name='Change Transparency', default=True
-    ),
-    'use_transparency_value': bpy.props.BoolProperty(
-        name='Transparency', default=True
-    ),
-
-    'transparency_alpha_change': bpy.props.BoolProperty(
-        name='Change Transparency Alpha', default=True
-    ),
-    'transparency_alpha_value': bpy.props.FloatProperty(
-        name='Transparency Alpha', default=1.0,
-        min=0.0, max=1.0, subtype='FACTOR'
-    )
-}
 renders_28x = ('CYCLES', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH')
 
 
@@ -118,11 +45,138 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
     bl_description = ''
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
+    mode = material.mode_prop
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    # alpha
+    alpha_value = bpy.props.BoolProperty(name='Use Alpha', default=True)
+    alpha_change = bpy.props.BoolProperty(name='Change Alpha', default=True)
+
+    # specular
+    specular_value = bpy.props.FloatProperty(
+        name='Specular',
+        default=0.0,
+        min=0.0,
+        max=1.0,
+        subtype='FACTOR'
+    )
+    specular_change = bpy.props.BoolProperty(
+        name='Change Specular',
+        default=True
+    )
+
+    # roughness
+    roughness_value = bpy.props.FloatProperty(
+        name='Roughness',
+        default=0.0,
+        min=0.0,
+        max=1.0,
+        subtype='FACTOR'
+    )
+    roughness_change = bpy.props.BoolProperty(
+        name='Change Roughness',
+        default=True
+    )
+
+    # viewport roughness
+    viewport_roughness_value = bpy.props.FloatProperty(
+        name='Viewport Roughness',
+        default=0.0,
+        min=0.0,
+        max=1.0,
+        subtype='FACTOR'
+    )
+    viewport_roughness_change = bpy.props.BoolProperty(
+        name='Change Viewport Roughness',
+        default=True
+    )
+
+    # blend mode
+    blend_mode = bpy.props.EnumProperty(
+        name='Blend Mode',
+        default='OPAQUE',
+        items=blend_mode_items
+    )
+    blend_mode_change = bpy.props.BoolProperty(
+        name='Change Blend Mode',
+        default=False
+    )
+
+    # shader
+    shader_type = bpy.props.EnumProperty(
+        name='Shader Type',
+        default=default_shader,
+        items=shader_items
+    )
+    replace_shader = bpy.props.BoolProperty(
+        name='Replace Shader',
+        default=False
+    )
+
+    # internal properties
+    shadeless_change = bpy.props.BoolProperty(
+        name='Change Shadeless',
+        default=True
+    )
+    shadeless_value = bpy.props.BoolProperty(
+        name='Shadeless',
+        default=True
+    )
+
+    diffuse_intensity_change = bpy.props.BoolProperty(
+        name='Change Diffuse Intensity',
+        default=True
+    )
+    diffuse_intensity_value = bpy.props.FloatProperty(
+        name='Diffuse Intensity',
+        default=1.0,
+        min=0.0,
+        max=1.0,
+        subtype='FACTOR'
+    )
+
+    specular_intensity_change = bpy.props.BoolProperty(
+        name='Change Specular Intensity',
+        default=True
+    )
+    specular_intensity_value = bpy.props.FloatProperty(
+        name='Specular Intensity',
+        default=1.0,
+        min=0.0,
+        max=1.0,
+        subtype='FACTOR'
+    )
+
+    specular_hardness_change = bpy.props.BoolProperty(
+        name='Change Specular Hardness',
+        default=True
+    )
+    specular_hardness_value = bpy.props.IntProperty(
+        name='Specular Hardness',
+        default=50,
+        min=1,
+        max=511
+    )
+
+    use_transparency_change = bpy.props.BoolProperty(
+        name='Change Transparency',
+        default=True
+    )
+    use_transparency_value = bpy.props.BoolProperty(
+        name='Transparency',
+        default=True
+    )
+
+    transparency_alpha_change = bpy.props.BoolProperty(
+        name='Change Transparency Alpha',
+        default=True
+    )
+    transparency_alpha_value = bpy.props.FloatProperty(
+        name='Transparency Alpha',
+        default=1.0,
+        min=0.0,
+        max=1.0,
+        subtype='FACTOR'
+    )
 
     def draw_prop(self, layout, prop_active, prop_value):
         row = layout.row(align=True)

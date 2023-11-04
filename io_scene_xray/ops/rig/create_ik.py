@@ -319,33 +319,26 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         )
 
 
-props = {
-    'chain_length': bpy.props.IntProperty(
-        name='Chain Length',
-        min=0,
-        max=255,
-        default=2
-    ),
-    'pole_target_offset': bpy.props.FloatProperty(
-        name='Pole Target Offset',
-        min=0.001,
-        default=0.5
-    ),
-    'ik_fk_name': bpy.props.StringProperty(
-        name='IK/FK Name',
-        default='IK/FK Name'
-    ),
-}
-
-
 class XRAY_OT_create_ik(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.create_ik'
     bl_label = 'Create IK'
     bl_options = {'REGISTER', 'UNDO'}
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    chain_length = bpy.props.IntProperty(
+        name='Chain Length',
+        min=0,
+        max=255,
+        default=2
+    )
+    pole_target_offset = bpy.props.FloatProperty(
+        name='Pole Target Offset',
+        min=0.001,
+        default=0.5
+    )
+    ik_fk_name = bpy.props.StringProperty(
+        name='IK/FK Name',
+        default='IK/FK Name'
+    )
 
     @classmethod
     def poll(cls, context):
@@ -391,8 +384,7 @@ class XRAY_OT_create_ik(utils.ie.BaseOperator):
 
 
 def register():
-    utils.version.assign_props([(props, XRAY_OT_create_ik), ])
-    bpy.utils.register_class(XRAY_OT_create_ik)
+    utils.version.register_operators(XRAY_OT_create_ik)
 
 
 def unregister():

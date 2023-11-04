@@ -5,54 +5,42 @@ import bpy
 from .. import utils
 
 
-mode_items = (
-    ('ACTIVE_OBJECT', 'Active Object', ''),
-    ('SELECTED_OBJECTS', 'Selected Objects', ''),
-    ('ALL_OBJECTS', 'All Objects', ''),
-    ('ALL_DATA', 'All Data', '')
-)
-data_items = (
-    ('OBJECTS', 'Objects', ''),
-    ('MESHES', 'Meshes', ''),
-    ('MATERIALS', 'Materials', ''),
-    ('TEXTURES', 'Textures', ''),
-    ('IMAGES', 'Images', ''),
-    ('ARMATURES', 'Armatures', ''),
-    ('ACTIONS', 'Actions', ''),
-    ('ALL', 'All', '')
-)
-fake_items = (
-    ('TRUE', 'True', ''),
-    ('FALSE', 'False', ''),
-    ('INVERT', 'Invert', '')
-)
-op_props = {
-    'mode': bpy.props.EnumProperty(
-        default='SELECTED_OBJECTS',
-        items=mode_items
-    ),
-    'data': bpy.props.EnumProperty(
-        default={'ALL'},
-        items=data_items,
-        options={'ENUM_FLAG'}
-    ),
-    'fake_user': bpy.props.EnumProperty(
-        default='TRUE',
-        items=fake_items
-    )
-}
-
-
 class XRAY_OT_change_fake_user(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.change_fake_user'
     bl_label = 'Change Fake User'
     bl_options = {'REGISTER', 'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    mode = bpy.props.EnumProperty(
+        default='SELECTED_OBJECTS',
+        items=(
+            ('ACTIVE_OBJECT', 'Active Object', ''),
+            ('SELECTED_OBJECTS', 'Selected Objects', ''),
+            ('ALL_OBJECTS', 'All Objects', ''),
+            ('ALL_DATA', 'All Data', '')
+        )
+    )
+    data = bpy.props.EnumProperty(
+        default={'ALL'},
+        items=(
+            ('OBJECTS', 'Objects', ''),
+            ('MESHES', 'Meshes', ''),
+            ('MATERIALS', 'Materials', ''),
+            ('TEXTURES', 'Textures', ''),
+            ('IMAGES', 'Images', ''),
+            ('ARMATURES', 'Armatures', ''),
+            ('ACTIONS', 'Actions', ''),
+            ('ALL', 'All', '')
+        ),
+        options={'ENUM_FLAG'}
+    )
+    fake_user = bpy.props.EnumProperty(
+        default='TRUE',
+        items=(
+            ('TRUE', 'True', ''),
+            ('FALSE', 'False', ''),
+            ('INVERT', 'Invert', '')
+        )
+    )
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout

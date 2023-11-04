@@ -15,22 +15,15 @@ from .. import ops
 
 # details properties
 
-slots_meshes_props = {
-    'mesh_0': bpy.props.StringProperty(),
-    'mesh_1': bpy.props.StringProperty(),
-    'mesh_2': bpy.props.StringProperty(),
-    'mesh_3': bpy.props.StringProperty()
-}
-
-
 class XRayObjectDetailsSlotsMeshesProperties(bpy.types.PropertyGroup):
-    if not utils.version.IS_28:
-        for prop_name, prop_value in slots_meshes_props.items():
-            exec('{0} = slots_meshes_props.get("{0}")'.format(prop_name))
+    mesh_0 = bpy.props.StringProperty()
+    mesh_1 = bpy.props.StringProperty()
+    mesh_2 = bpy.props.StringProperty()
+    mesh_3 = bpy.props.StringProperty()
 
 
-slots_lighting_props = {
-    'format': bpy.props.EnumProperty(
+class XRayObjectDetailsSlotsLightingProperties(bpy.types.PropertyGroup):
+    format = bpy.props.EnumProperty(
         name='Format',
         items=(
             (
@@ -45,36 +38,22 @@ slots_lighting_props = {
             )
         ),
         default='builds_1569-cop'
-    ),
-    'lights_image': bpy.props.StringProperty(),
-    'hemi_image': bpy.props.StringProperty(),
-    'shadows_image': bpy.props.StringProperty()
-}
-
-
-class XRayObjectDetailsSlotsLightingProperties(bpy.types.PropertyGroup):
-    if not utils.version.IS_28:
-        for prop_name, prop_value in slots_lighting_props.items():
-            exec('{0} = slots_lighting_props.get("{0}")'.format(prop_name))
-
-
-slots_props = {
-    'meshes': bpy.props.PointerProperty(
-        type=XRayObjectDetailsSlotsMeshesProperties
-    ),
-    'ligthing': bpy.props.PointerProperty(
-        type=XRayObjectDetailsSlotsLightingProperties
-    ),
-    'meshes_object': bpy.props.StringProperty(),
-    'slots_base_object': bpy.props.StringProperty(),
-    'slots_top_object': bpy.props.StringProperty()
-}
+    )
+    lights_image = bpy.props.StringProperty()
+    hemi_image = bpy.props.StringProperty()
+    shadows_image = bpy.props.StringProperty()
 
 
 class XRayObjectDetailsSlotsProperties(bpy.types.PropertyGroup):
-    if not utils.version.IS_28:
-        for prop_name, prop_value in slots_props.items():
-            exec('{0} = slots_props.get("{0}")'.format(prop_name))
+    meshes = bpy.props.PointerProperty(
+        type=XRayObjectDetailsSlotsMeshesProperties
+    )
+    ligthing = bpy.props.PointerProperty(
+        type=XRayObjectDetailsSlotsLightingProperties
+    )
+    meshes_object = bpy.props.StringProperty()
+    slots_base_object = bpy.props.StringProperty()
+    slots_top_object = bpy.props.StringProperty()
 
 
 def _update_detail_color_by_index(self, context):
@@ -86,46 +65,32 @@ def _update_detail_color_by_index(self, context):
     xray.detail.model.color = color_indices[xray.detail.model.index][0 : 3]
 
 
-model_props = {
-    'no_waving': bpy.props.BoolProperty(
+class XRayObjectDetailsModelProperties(bpy.types.PropertyGroup):
+    no_waving = bpy.props.BoolProperty(
         description='No Waving',
         options={'SKIP_SAVE'},
         default=False
-    ),
-    'min_scale': bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0),
-    'max_scale': bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0),
-    'index': bpy.props.IntProperty(
+    )
+    min_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
+    max_scale = bpy.props.FloatProperty(default=1.0, min=0.1, max=100.0)
+    index = bpy.props.IntProperty(
         default=0,
         min=0,
         max=62,
         update=_update_detail_color_by_index
-    ),
-    'color': bpy.props.FloatVectorProperty(
+    )
+    color = bpy.props.FloatVectorProperty(
         default=(1.0, 0.0, 0.0),
         max=1.0,
         min=0.0,
         subtype='COLOR_GAMMA',
         size=3
     )
-}
-
-
-class XRayObjectDetailsModelProperties(bpy.types.PropertyGroup):
-    if not utils.version.IS_28:
-        for prop_name, prop_value in model_props.items():
-            exec('{0} = model_props.get("{0}")'.format(prop_name))
-
-
-details_props = {
-    'model': bpy.props.PointerProperty(type=XRayObjectDetailsModelProperties),
-    'slots': bpy.props.PointerProperty(type=XRayObjectDetailsSlotsProperties)
-}
 
 
 class XRayObjectDetailsProperties(bpy.types.PropertyGroup):
-    if not utils.version.IS_28:
-        for prop_name, prop_value in details_props.items():
-            exec('{0} = details_props.get("{0}")'.format(prop_name))
+    model = bpy.props.PointerProperty(type=XRayObjectDetailsModelProperties)
+    slots = bpy.props.PointerProperty(type=XRayObjectDetailsSlotsProperties)
 
 
 def _gen_time_prop(prop, description=''):
@@ -222,6 +187,14 @@ def get_color_prop(name, size):
     )
 
 
+def _update_light_type_name(self, context):
+    self.light_type = int(self.light_type_name)
+
+
+def _update_controller_name(self, context):
+    self.controller_id = int(self.controller_name)
+
+
 object_type_items = (
     ('LEVEL', 'Level ', ''),
     ('VISUAL', 'Visual', ''),
@@ -238,61 +211,53 @@ visual_type_items = (
     ('LOD', 'LoD', '')
 )
 
-
-def _update_light_type_name(self, context):
-    self.light_type = int(self.light_type_name)
-
-
-def _update_controller_name(self, context):
-    self.controller_id = int(self.controller_name)
-
-
 POINT_NAME = 'Point'
 SPOT_NAME = 'Spot'
 DIRECT_NAME = 'Directional'
 
-xray_object_level_properties = {
+
+class XRayObjectLevelProperties(bpy.types.PropertyGroup):
     # general
-    'object_type': bpy.props.EnumProperty(
+    object_type = bpy.props.EnumProperty(
         name='Type',
         items=object_type_items,
         default='VISUAL'
-    ),
+    )
 
     # level
-    'sectors_obj': bpy.props.StringProperty(name='Sectors Object'),
-    'portals_obj': bpy.props.StringProperty(name='Portals Object'),
-    'lights_obj': bpy.props.StringProperty(name='Lights Object'),
-    'glows_obj': bpy.props.StringProperty(name='Glows Object'),
+    sectors_obj = bpy.props.StringProperty(name='Sectors Object')
+    portals_obj = bpy.props.StringProperty(name='Portals Object')
+    lights_obj = bpy.props.StringProperty(name='Lights Object')
+    glows_obj = bpy.props.StringProperty(name='Glows Object')
 
     # visual
-    'visual_type': bpy.props.EnumProperty(
+    visual_type = bpy.props.EnumProperty(
         name='Visual Type',
         items=visual_type_items,
         default='NORMAL'
-    ),
-    'use_fastpath': bpy.props.BoolProperty(
+    )
+    use_fastpath = bpy.props.BoolProperty(
         name='Use Fastpath Geometry',
         default=True
-    ),
+    )
 
     # tree color scale
-    'color_scale_rgb': get_color_prop('Light', 3),
-    'color_scale_hemi': get_color_prop('Hemi', 3),
-    'color_scale_sun': get_color_prop('Sun', 3),
+    color_scale_rgb = get_color_prop('Light', 3)
+    color_scale_hemi = get_color_prop('Hemi', 3)
+    color_scale_sun = get_color_prop('Sun', 3)
 
     # tree color bias
-    'color_bias_rgb': get_color_prop('Light', 3),
-    'color_bias_hemi': get_color_prop('Hemi', 3),
-    'color_bias_sun': get_color_prop('Sun', 3),
+    color_bias_rgb = get_color_prop('Light', 3)
+    color_bias_hemi = get_color_prop('Hemi', 3)
+    color_bias_sun = get_color_prop('Sun', 3)
 
     # portal
-    'sector_front': bpy.props.StringProperty(name='Sector Front'),
-    'sector_back': bpy.props.StringProperty(name='Sector Back'),
+    sector_front = bpy.props.StringProperty(name='Sector Front')
+    sector_back = bpy.props.StringProperty(name='Sector Back')
 
     # light
-    'controller_id': bpy.props.IntProperty(name='Controller ID'),
-    'controller_name': bpy.props.EnumProperty(
+    controller_id = bpy.props.IntProperty(name='Controller ID')
+    controller_name = bpy.props.EnumProperty(
         name='Controller',
         items=(
             ('2', 'Static', ''),
@@ -300,16 +265,16 @@ xray_object_level_properties = {
             ('1', 'Sun', '')
         ),
         update=_update_controller_name
-    ),
-    'light_type': bpy.props.IntProperty(
+    )
+    light_type = bpy.props.IntProperty(
         name='Light Type',
         default=1,
         min=1,
         max=3,
         soft_min=1,
         soft_max=3
-    ),
-    'light_type_name': bpy.props.EnumProperty(
+    )
+    light_type_name = bpy.props.EnumProperty(
         name='Light Type',
         items=(
             (str(formats.level.fmt.D3D_LIGHT_POINT), POINT_NAME, ''),
@@ -317,40 +282,26 @@ xray_object_level_properties = {
             (str(formats.level.fmt.D3D_LIGHT_DIRECTIONAL), DIRECT_NAME, '')
         ),
         update=_update_light_type_name
-    ),
-    'diffuse': get_color_prop('Diffuse', size=4),
-    'specular': get_color_prop('Specular', size=4),
-    'ambient': get_color_prop('Ambient', size=4),
-    'range_': bpy.props.FloatProperty(name='Cutoff Range'),
-    'falloff': bpy.props.FloatProperty(name='Falloff'),
-    'attenuation_0': bpy.props.FloatProperty(name='Constant Attenuation'),
-    'attenuation_1': bpy.props.FloatProperty(name='Linear Attenuation'),
-    'attenuation_2': bpy.props.FloatProperty(name='Quadratic Attenuation'),
-    'theta': bpy.props.FloatProperty(name='Inner Angle Theta'),
-    'phi': bpy.props.FloatProperty(name='Outer Angle Phi'),
-}
-
-
-class XRayObjectLevelProperties(bpy.types.PropertyGroup):
-    if not utils.version.IS_28:
-        for prop_name, prop_value in xray_object_level_properties.items():
-            exec('{0} = xray_object_level_properties.get("{0}")'.format(prop_name))
-
-
-xray_object_revision_properties = {
-    'owner': bpy.props.StringProperty(name='owner'),
-    'ctime': bpy.props.IntProperty(name='ctime'),
-    'ctime_str': _gen_time_prop('ctime', description='Creation time'),
-    'moder': bpy.props.StringProperty(name='moder'),
-    'mtime': bpy.props.IntProperty(name='mtime'),
-    'mtime_str': _gen_time_prop('mtime', description='Modified time')
-}
+    )
+    diffuse = get_color_prop('Diffuse', size=4)
+    specular = get_color_prop('Specular', size=4)
+    ambient = get_color_prop('Ambient', size=4)
+    range_ = bpy.props.FloatProperty(name='Cutoff Range')
+    falloff = bpy.props.FloatProperty(name='Falloff')
+    attenuation_0 = bpy.props.FloatProperty(name='Constant Attenuation')
+    attenuation_1 = bpy.props.FloatProperty(name='Linear Attenuation')
+    attenuation_2 = bpy.props.FloatProperty(name='Quadratic Attenuation')
+    theta = bpy.props.FloatProperty(name='Inner Angle Theta')
+    phi = bpy.props.FloatProperty(name='Outer Angle Phi')
 
 
 class XRayObjectRevisionProperties(bpy.types.PropertyGroup):
-    if not utils.version.IS_28:
-        for prop_name, prop_value in xray_object_revision_properties.items():
-            exec('{0} = xray_object_revision_properties.get("{0}")'.format(prop_name))
+    owner = bpy.props.StringProperty(name='owner')
+    ctime = bpy.props.IntProperty(name='ctime')
+    ctime_str = _gen_time_prop('ctime', description='Creation time')
+    moder = bpy.props.StringProperty(name='moder')
+    mtime = bpy.props.IntProperty(name='mtime')
+    mtime_str = _gen_time_prop('mtime', description='Modified time')
 
 
 def find_duplicate_name(motion, used_names):
@@ -453,16 +404,9 @@ def update_load_active_motion_refs(self, context):
         bpy.ops.xray.close_motions_file()
 
 
-motion_ref_props = {
-    'name': bpy.props.StringProperty(),
-    'export_name': bpy.props.StringProperty(update=update_export_name)
-}
-
-
 class MotionRef(bpy.types.PropertyGroup):
-    if not utils.version.IS_28:
-        for prop_name, prop_value in motion_ref_props.items():
-            exec('{0} = motion_ref_props.get("{0}")'.format(prop_name))
+    name = bpy.props.StringProperty()
+    export_name = bpy.props.StringProperty(update=update_export_name)
 
 
 def get_isroot(self):
@@ -518,19 +462,23 @@ def flags_simple_set(self, value):
             self.flags = _flags_simple_inv_map[value] & ~0x40
 
 
-xray_object_properties = {
-    'root': bpy.props.BoolProperty(default=True),    # default=True - to backward compatibility
-    'isroot': bpy.props.BoolProperty(get=get_isroot, set=set_isroot, options={'SKIP_SAVE'}),
-    'is_details': bpy.props.BoolProperty(default=False),
-    'is_level': bpy.props.BoolProperty(default=False),
-    'version': bpy.props.IntProperty(),
-    'flags': bpy.props.IntProperty(name='flags'),
-    'flags_force_custom': bpy.props.BoolProperty(options={'SKIP_SAVE'}),
-    'flags_use_custom': bpy.props.BoolProperty(
+class XRayObjectProperties(utility.InitPropGroup):
+    b_type = bpy.types.Object
+
+    # default=True - to backward compatibility
+    root = bpy.props.BoolProperty(default=True)
+    isroot = bpy.props.BoolProperty(get=get_isroot, set=set_isroot, options={'SKIP_SAVE'})
+    is_details = bpy.props.BoolProperty(default=False)
+    is_level = bpy.props.BoolProperty(default=False)
+    version = bpy.props.IntProperty()
+
+    flags = bpy.props.IntProperty(name='flags')
+    flags_force_custom = bpy.props.BoolProperty(options={'SKIP_SAVE'})
+    flags_use_custom = bpy.props.BoolProperty(
         options={'SKIP_SAVE'},
         get=lambda self: self.flags_force_custom or not (self.flags & ~0x40 in _flags_simple_map)
-    ),
-    'flags_custom_type': bpy.props.EnumProperty(
+    )
+    flags_custom_type = bpy.props.EnumProperty(
         name='Custom Object Type',
         items=(
             ('st', 'Static', ''),
@@ -538,36 +486,36 @@ xray_object_properties = {
         ),
         options={'SKIP_SAVE'},
         get=lambda self: self.flags & 0x1, set=set_custom_type
-    ),
-    'flags_custom_progressive': utility.gen_flag_prop(
+    )
+    flags_custom_progressive = utility.gen_flag_prop(
         mask=0x02,
         description='Make Progressive',
         custom_prop='flags_force_custom'
-    ),
-    'flags_custom_lod': utility.gen_flag_prop(
+    )
+    flags_custom_lod = utility.gen_flag_prop(
         mask=0x04,
         description='Using LOD',
         custom_prop='flags_force_custom'
-    ),
-    'flags_custom_hom': utility.gen_flag_prop(
+    )
+    flags_custom_hom = utility.gen_flag_prop(
         mask=0x08,
         description='Hierarchical Occlusion Mapping',
         custom_prop='flags_force_custom'
-    ),
-    'flags_custom_musage': utility.gen_flag_prop(
+    )
+    flags_custom_musage = utility.gen_flag_prop(
         mask=0x10,
         custom_prop='flags_force_custom'
-    ),
-    'flags_custom_soccl': utility.gen_flag_prop(
+    )
+    flags_custom_soccl = utility.gen_flag_prop(
         mask=0x20,
         custom_prop='flags_force_custom'
-    ),
-    'flags_custom_hqexp': utility.gen_flag_prop(
+    )
+    flags_custom_hqexp = utility.gen_flag_prop(
         mask=0x40,
         description='HQ Geometry',
         custom_prop=''
-    ),
-    'flags_simple': bpy.props.EnumProperty(name='Object Type', items=(
+    )
+    flags_simple = bpy.props.EnumProperty(name='Object Type', items=(
         (formats.obj.fmt.CM, formats.obj.fmt.type_names[formats.obj.fmt.CM], ''),
         (formats.obj.fmt.SO, formats.obj.fmt.type_names[formats.obj.fmt.SO], ''),
         (formats.obj.fmt.MU, formats.obj.fmt.type_names[formats.obj.fmt.MU], ''),
@@ -575,35 +523,37 @@ xray_object_properties = {
         (formats.obj.fmt.PD, formats.obj.fmt.type_names[formats.obj.fmt.PD], ''),
         (formats.obj.fmt.DY, formats.obj.fmt.type_names[formats.obj.fmt.DY], ''),
         (formats.obj.fmt.ST, formats.obj.fmt.type_names[formats.obj.fmt.ST], '')
-    ), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set),
-    'lodref': bpy.props.StringProperty(name='LOD Reference'),
-    'userdata': bpy.props.StringProperty(name='userdata', update=userdata_update),
-    'show_userdata': bpy.props.BoolProperty(description='View user data', options={'SKIP_SAVE'}),
-    'revision': bpy.props.PointerProperty(type=XRayObjectRevisionProperties),
-    'load_active_motion_refs': bpy.props.BoolProperty(
+    ), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set)
+
+    lodref = bpy.props.StringProperty(name='LOD Reference')
+    userdata = bpy.props.StringProperty(name='userdata', update=userdata_update)
+    show_userdata = bpy.props.BoolProperty(description='View user data', options={'SKIP_SAVE'})
+    revision = bpy.props.PointerProperty(type=XRayObjectRevisionProperties)
+    load_active_motion_refs = bpy.props.BoolProperty(
         name='Load Active Motion Refs', default=False,
         update=update_load_active_motion_refs
-    ),
-    'motionrefs': bpy.props.StringProperty(
+    )
+    motionrefs = bpy.props.StringProperty(
         description='!Legacy: use \'motionrefs_collection\' instead'
-    ),
-    'motionrefs_collection': bpy.props.CollectionProperty(type=MotionRef),
-    'motionrefs_collection_index': bpy.props.IntProperty(
+    )
+    motionrefs_collection = bpy.props.CollectionProperty(type=MotionRef)
+    motionrefs_collection_index = bpy.props.IntProperty(
         options={'SKIP_SAVE'},
         update=load_motion_refs
-    ),
-    'show_motionsrefs': bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'}),
+    )
+    show_motionsrefs = bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'})
 
-    'motions': bpy.props.StringProperty(
+    motions = bpy.props.StringProperty(
         description='!Legacy: use \'motions_collection\' instead'
-    ),
-    'motions_collection': bpy.props.CollectionProperty(type=MotionRef),
-    'motions_collection_index': bpy.props.IntProperty(
-        options={'SKIP_SAVE'}, update=update_motion_collection_index
-    ),
-    'show_motions': bpy.props.BoolProperty(description='View motions', options={'SKIP_SAVE'}),
-    'play_active_motion': bpy.props.BoolProperty(name='Play Active Motion', default=False),
-    'show_motions_names': bpy.props.EnumProperty(
+    )
+    motions_collection = bpy.props.CollectionProperty(type=MotionRef)
+    motions_collection_index = bpy.props.IntProperty(
+        options={'SKIP_SAVE'},
+        update=update_motion_collection_index
+    )
+    show_motions = bpy.props.BoolProperty(description='View motions', options={'SKIP_SAVE'})
+    play_active_motion = bpy.props.BoolProperty(name='Play Active Motion', default=False)
+    show_motions_names = bpy.props.EnumProperty(
         name='Show Motions Names',
         items=(
             ('ACTION', 'Action', ''),
@@ -611,35 +561,29 @@ xray_object_properties = {
             ('BOTH', 'Both', '')
         ),
         default='ACTION'
-    ),
-    'dependency_object': bpy.props.StringProperty(name='Dependency', default=''),
-    'use_custom_motion_names': bpy.props.BoolProperty(name='Custom Names', default=False),
-    'helper_data': bpy.props.StringProperty(),
-    'export_path': bpy.props.StringProperty(
+    )
+    dependency_object = bpy.props.StringProperty(name='Dependency', default='')
+    use_custom_motion_names = bpy.props.BoolProperty(name='Custom Names', default=False)
+    helper_data = bpy.props.StringProperty()
+    export_path = bpy.props.StringProperty(
         name='Export Path',
         description='Path relative to the root export folder'
-    ),
-    'detail': bpy.props.PointerProperty(
-        type=XRayObjectDetailsProperties
-    ),
-    'motions_browser': bpy.props.PointerProperty(type=ops.motions_browser.XRayMotionsBrowserProps),
-    'level': bpy.props.PointerProperty(type=XRayObjectLevelProperties),
-    # transforms utils properties
-    'position': bpy.props.FloatVectorProperty(
-        name='Position', precision=3, subtype='TRANSLATION'
-    ),
-    'orientation': bpy.props.FloatVectorProperty(
-        name='Orientation', precision=3, subtype='EULER'
     )
-}
+    detail = bpy.props.PointerProperty(type=XRayObjectDetailsProperties)
+    motions_browser = bpy.props.PointerProperty(type=ops.motions_browser.XRayMotionsBrowserProps)
+    level = bpy.props.PointerProperty(type=XRayObjectLevelProperties)
 
-
-class XRayObjectProperties(utility.InitPropGroup):
-    b_type = bpy.types.Object
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in xray_object_properties.items():
-            exec('{0} = xray_object_properties.get("{0}")'.format(prop_name))
+    # transforms utils properties
+    position = bpy.props.FloatVectorProperty(
+        name='Position',
+        precision=3,
+        subtype='TRANSLATION'
+    )
+    orientation = bpy.props.FloatVectorProperty(
+        name='Orientation',
+        precision=3,
+        subtype='EULER'
+    )
 
     def _during_creation(self):
         obj = self.id_data
@@ -650,30 +594,21 @@ class XRayObjectProperties(utility.InitPropGroup):
 
 
 prop_groups = (
-    (XRayObjectDetailsSlotsMeshesProperties, slots_meshes_props, False),
-    (XRayObjectDetailsSlotsLightingProperties, slots_lighting_props, False),
-    (XRayObjectDetailsSlotsProperties, slots_props, False),
-    (XRayObjectDetailsModelProperties, model_props, False),
-    (XRayObjectDetailsProperties, details_props, False),
-    (XRayObjectLevelProperties, xray_object_level_properties, False),
-    (XRayObjectRevisionProperties, xray_object_revision_properties, False),
-    (MotionRef, motion_ref_props, False),
-    (XRayObjectProperties, xray_object_properties, True)
+    XRayObjectDetailsSlotsMeshesProperties,
+    XRayObjectDetailsSlotsLightingProperties,
+    XRayObjectDetailsSlotsProperties,
+    XRayObjectDetailsModelProperties,
+    XRayObjectDetailsProperties,
+    XRayObjectLevelProperties,
+    XRayObjectRevisionProperties,
+    MotionRef,
+    XRayObjectProperties
 )
 
 
 def register():
-    for prop_group, props, is_group in prop_groups:
-        utils.version.assign_props([
-            (props, prop_group),
-        ])
-        bpy.utils.register_class(prop_group)
-        if is_group:
-            prop_group.b_type.xray = bpy.props.PointerProperty(type=prop_group)
+    utils.version.register_prop_groups(prop_groups)
 
 
 def unregister():
-    for prop_group, props, is_group in reversed(prop_groups):
-        if is_group:
-            del prop_group.b_type.xray
-        bpy.utils.unregister_class(prop_group)
+    utils.version.unregister_prop_groups(prop_groups)

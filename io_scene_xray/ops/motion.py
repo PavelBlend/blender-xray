@@ -237,28 +237,20 @@ class XRAY_OT_paste_actions(utils.ie.BaseOperator):
         return {'FINISHED'}
 
 
-sort_items = (
-    ('NAME', 'Action Name', ''),
-    ('EXPORT', 'Export Name', ''),
-    ('LENGTH', 'Action Length', '')
-)
-op_props = {
-    'sort_by': bpy.props.EnumProperty(items=sort_items),
-    'sort_reverse': bpy.props.BoolProperty(default=False)
-}
-
-
 class XRAY_OT_sort_actions(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.sort_actions'
     bl_label = 'Sort Motions'
     bl_description = 'Sort motions list'
     bl_options = {'UNDO'}
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    sort_by = bpy.props.EnumProperty(
+        items=(
+            ('NAME', 'Action Name', ''),
+            ('EXPORT', 'Export Name', ''),
+            ('LENGTH', 'Action Length', '')
+        )
+    )
+    sort_reverse = bpy.props.BoolProperty(default=False)
 
     @classmethod
     def poll(cls, context):

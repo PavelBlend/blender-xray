@@ -113,37 +113,41 @@ def layout_split(layout, percentage, align=False):
     return split
 
 
-def _set_props_27(clas, props):
-    for prop_name, prop_value in props.items():
-        setattr(clas, prop_name, prop_value)
+def _make_annotations(cls):
+    """Converts class fields to annotations if running with Blender 2.8"""
+    if bpy.app.version < (2, 80):
+        return cls
 
-
-def _set_props_28(clas, props):
-    clas.__annotations__ = props
-
-
-def assign_props(items):
-    if IS_28:
-        for props, clas in items:
-            _set_props_28(clas, props)
+    if bpy.app.version >= (2, 93):
+        bl_props = {
+            key: value
+            for key, value in cls.__dict__.items()
+                if isinstance(value, bpy.props._PropertyDeferred)
+        }
 
     else:
-        for props, clas in items:
-            _set_props_27(clas, props)
+        bl_props = {
+            key: value
+            for key, value in cls.__dict__.items()
+                if isinstance(value, tuple)
+        }
 
+    if bl_props:
 
-def set_props(clas, props):
-    if IS_28:
-        _set_props_28(clas, props)
+        if '__annotations__' not in cls.__dict__:
+            setattr(cls, '__annotations__', {})
 
-    else:
-        _set_props_27(clas, props)
+        annotations = cls.__dict__['__annotations__']
+
+        for key, value in bl_props.items():
+            annotations[key] = value
+            delattr(cls, key)
+
+    return cls
 
 
 def _register_operator(operator_class):
-    props = getattr(operator_class, 'props', None)
-    if props:
-        set_props(operator_class, props)
+    _make_annotations(operator_class)
     bpy.utils.register_class(operator_class)
 
 
@@ -157,7 +161,7 @@ def register_operators(operators):
 
 def register_prop_group(clas):
     # clas inherits from bpy.types.PropertyGroup
-    set_props(clas, clas.props)
+    _make_annotations(clas)
     bpy.utils.register_class(clas)
 
     b_type = getattr(clas, 'b_type', None)

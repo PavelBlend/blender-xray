@@ -62,22 +62,13 @@ class XRAY_OT_check_update(utils.ie.BaseOperator):
         return {'FINISHED'}
 
 
-op_props = {
-    'download_url': bpy.props.StringProperty(),
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
-
 class XRAY_OT_install_update(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.download_update'
     bl_label = 'Download Update?'
     bl_description = 'Download Addon Last Release'
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    download_url = bpy.props.StringProperty()
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def execute(self, context):
         addon_zip_file = requests.get(self.download_url)

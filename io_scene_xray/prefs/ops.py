@@ -27,21 +27,12 @@ class XRAY_OT_reset_prefs_settings(utils.ie.BaseOperator):
         return context.window_manager.invoke_confirm(self, event)
 
 
-op_props = {
-    'path': bpy.props.StringProperty(),
-}
-
-
 class XRAY_OT_explicit_path(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.explicit_path'
     bl_label = 'Make Explicit'
     bl_description = 'Make this path explicit using the automatically calculated value'
 
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    path = bpy.props.StringProperty()
 
     def execute(self, context):
         pref = utils.version.get_preferences()

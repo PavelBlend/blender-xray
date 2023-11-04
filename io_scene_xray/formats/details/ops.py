@@ -33,32 +33,6 @@ filename_ext = '.details'
 op_text = 'Level Details'
 
 
-import_props = {
-    # file browser properties
-    'filter_glob': bpy.props.StringProperty(
-        default='*.details',
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-    'filepath': bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        options={'SKIP_SAVE'}
-    ),
-    'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement,
-        options={'SKIP_SAVE'}
-    ),
-
-    # import properties
-    'models_in_row': ie.prop_details_models_in_a_row(),
-    'load_slots': ie.prop_details_load_slots(),
-    'details_format': ie.prop_details_format(),
-
-    # system properties
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
-
 class XRAY_OT_import_details(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
@@ -72,11 +46,29 @@ class XRAY_OT_import_details(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
-    props = import_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    # file browser properties
+    filter_glob = bpy.props.StringProperty(
+        default='*.details',
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    filepath = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE'}
+    )
+    files = bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement,
+        options={'SKIP_SAVE'}
+    )
+
+    # import properties
+    models_in_row = ie.prop_details_models_in_a_row()
+    load_slots = ie.prop_details_load_slots()
+    details_format = ie.prop_details_format()
+
+    # system properties
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -177,22 +169,6 @@ def draw_export_props(self):    # pragma: no cover
     layout.prop(self, 'tex_name_from_path')
 
 
-export_props = {
-    # file browser properties
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
-        options={'HIDDEN'}
-    ),
-
-    # export properties
-    'tex_name_from_path': ie.PropObjectTextureNamesFromPath(),
-    'format_version': ie.prop_details_format_version(),
-
-    # system properties
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
-
 class XRAY_OT_export_details_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
@@ -205,11 +181,19 @@ class XRAY_OT_export_details_file(
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    # file browser properties
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    )
+
+    # export properties
+    tex_name_from_path = ie.PropObjectTextureNamesFromPath()
+    format_version = ie.prop_details_format_version()
+
+    # system properties
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         draw_export_props(self)
@@ -276,23 +260,6 @@ class XRAY_OT_export_details_file(
         return super().invoke(context, event)
 
 
-export_props = {
-    # file browser properties
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+filename_ext,
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(subtype='DIR_PATH'),
-
-    # export properties
-    'tex_name_from_path': ie.PropObjectTextureNamesFromPath(),
-    'format_version': ie.prop_details_format_version(),
-
-    # system properties
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
-
 class XRAY_OT_export_details(utils.ie.BaseOperator):
     bl_idname = 'xray_export.details'
     bl_label = 'Export .details'
@@ -301,11 +268,20 @@ class XRAY_OT_export_details(utils.ie.BaseOperator):
     text = op_text
     ext = filename_ext
     filename_ext = filename_ext
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    # file browser properties
+    filter_glob = bpy.props.StringProperty(
+        default='*'+filename_ext,
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(subtype='DIR_PATH')
+
+    # export properties
+    tex_name_from_path = ie.PropObjectTextureNamesFromPath()
+    format_version = ie.prop_details_format_version()
+
+    # system properties
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         draw_export_props(self)

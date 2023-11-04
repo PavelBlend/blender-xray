@@ -81,8 +81,12 @@ class XRAY_OT_paste_action_settings(utils.ie.BaseOperator):
         return {'FINISHED'}
 
 
-op_props = {
-    'change_mode': bpy.props.EnumProperty(
+class XRAY_OT_change_action_bake_settings(utils.ie.BaseOperator):
+    bl_idname = 'io_scene_xray.change_action_bake_settings'
+    bl_label = 'Change Action Bake Settings'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    change_mode = bpy.props.EnumProperty(
         name='Mode',
         items=(
             ('ACTIVE_ACTION', 'Active Action', ''),
@@ -92,11 +96,11 @@ op_props = {
             ('ALL_ACTIONS', 'All Actions', '')
         ),
         default='SELECTED_OBJECTS'
-    ),
-    'change_auto_bake_mode': bpy.props.BoolProperty(
+    )
+    change_auto_bake_mode = bpy.props.BoolProperty(
         name='Change Auto Bake Mode', default=True
-    ),
-    'auto_bake_mode': bpy.props.EnumProperty(
+    )
+    auto_bake_mode = bpy.props.EnumProperty(
         name='Auto Bake Mode',
         items=(
             ('auto', 'Auto', ''),
@@ -104,39 +108,26 @@ op_props = {
             ('off', 'Off', '')
         ),
         default='auto'
-    ),
-    'change_use_custom_thresholds': bpy.props.BoolProperty(
+    )
+    change_use_custom_thresholds = bpy.props.BoolProperty(
         name='Change Use Custom Thresholds', default=True
-    ),
-    'use_custom_threshold': bpy.props.BoolProperty(
+    )
+    use_custom_threshold = bpy.props.BoolProperty(
         name='Use Custom Thresholds', default=True
-    ),
-    'change_location_threshold': bpy.props.BoolProperty(
+    )
+    change_location_threshold = bpy.props.BoolProperty(
         name='Change Location Threshold', default=True
-    ),
-    'change_rotation_threshold': bpy.props.BoolProperty(
+    )
+    change_rotation_threshold = bpy.props.BoolProperty(
         name='Change Rotation Threshold', default=True
-    ),
-    'value_location_threshold': bpy.props.FloatProperty(
+    )
+    value_location_threshold = bpy.props.FloatProperty(
         name='Location Threshold', default=0.00001, precision=6
-    ),
-    'value_rotation_threshold': bpy.props.FloatProperty(
+    )
+    value_rotation_threshold = bpy.props.FloatProperty(
         name='Rotation Threshold', default=0.00001, precision=6,
         subtype='ANGLE'
     )
-}
-
-
-class XRAY_OT_change_action_bake_settings(utils.ie.BaseOperator):
-    bl_idname = 'io_scene_xray.change_action_bake_settings'
-    bl_label = 'Change Action Bake Settings'
-    bl_options = {'REGISTER', 'UNDO'}
-
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
@@ -238,8 +229,14 @@ funct_items = (
     ('CAPITALIZE', 'Capitalize', ''),
     ('TITLE', 'Title', '')
 )
-op_props = {
-    'data_mode': bpy.props.EnumProperty(
+
+
+class XRAY_OT_rename_actions(utils.ie.BaseOperator):
+    bl_idname = 'io_scene_xray.rename_actions'
+    bl_label = 'Rename Actions'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    data_mode = bpy.props.EnumProperty(
         name='Data Mode',
         items=(
             ('ACTIVE_MOTION', 'Active Motion', ''),
@@ -248,50 +245,37 @@ op_props = {
             ('ALL_OBJECTS', 'All Objects', '')
         ),
         default='SELECTED_OBJECTS'
-    ),
+    )
     # part 1
-    'part_1': bpy.props.EnumProperty(
+    part_1 = bpy.props.EnumProperty(
         name='Part',
         items=part_items,
         default='OBJECT_NAME'
-    ),
-    'prefix_1': bpy.props.StringProperty(name='Prefix', default=''),
-    'suffix_1': bpy.props.StringProperty(name='Suffix', default=''),
-    'function_1': bpy.props.EnumProperty(
+    )
+    prefix_1 = bpy.props.StringProperty(name='Prefix', default='')
+    suffix_1 = bpy.props.StringProperty(name='Suffix', default='')
+    function_1 = bpy.props.EnumProperty(
         name='Function',
         items=funct_items,
         default='NONE'
-    ),
-    'replace_old_1': bpy.props.StringProperty(name='Old', default=''),
-    'replace_new_1': bpy.props.StringProperty(name='New', default=''),
+    )
+    replace_old_1 = bpy.props.StringProperty(name='Old', default='')
+    replace_new_1 = bpy.props.StringProperty(name='New', default='')
     # part 2
-    'part_2': bpy.props.EnumProperty(
+    part_2 = bpy.props.EnumProperty(
         name='Part',
         items=part_items,
         default='MOTION_NAME'
-    ),
-    'prefix_2': bpy.props.StringProperty(name='Prefix', default=''),
-    'suffix_2': bpy.props.StringProperty(name='Suffix', default=''),
-    'function_2': bpy.props.EnumProperty(
+    )
+    prefix_2 = bpy.props.StringProperty(name='Prefix', default='')
+    suffix_2 = bpy.props.StringProperty(name='Suffix', default='')
+    function_2 = bpy.props.EnumProperty(
         name='Function',
         items=funct_items,
         default='NONE'
-    ),
-    'replace_old_2': bpy.props.StringProperty(name='Old', default=''),
-    'replace_new_2': bpy.props.StringProperty(name='New', default='')
-}
-
-
-class XRAY_OT_rename_actions(utils.ie.BaseOperator):
-    bl_idname = 'io_scene_xray.rename_actions'
-    bl_label = 'Rename Actions'
-    bl_options = {'REGISTER', 'UNDO'}
-
-    props = op_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    )
+    replace_old_2 = bpy.props.StringProperty(name='Old', default='')
+    replace_new_2 = bpy.props.StringProperty(name='New', default='')
 
     def draw(self, context):    # pragma: no cover
         column = self.layout.column(align=True)

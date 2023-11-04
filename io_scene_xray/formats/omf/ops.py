@@ -44,49 +44,10 @@ class ExportOmfContext(
         self.need_bone_groups = None
 
 
-# motion list item
-motion_props = {
-    'flag': bpy.props.BoolProperty(name='Selected for Import', default=True),
-    'name': bpy.props.StringProperty(name='Motion Name'),
-    'length': bpy.props.IntProperty(name='Motion Length'),
-}
-
-
 class Motion(bpy.types.PropertyGroup):
-    props = motion_props
-
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
-
-
-import_props = {
-    # file browser properties
-    'filter_glob': bpy.props.StringProperty(
-        default='*.omf',
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        options={'SKIP_SAVE'}
-    ),
-    'files': bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement
-    ),
-
-    # import properties
-    'import_motions': ie.PropObjectMotionsImport(),
-    'import_bone_parts': ie.prop_import_bone_parts(),
-    'add_to_motion_list': ie.prop_skl_add_actions_to_motion_list(),
-    'motions': bpy.props.CollectionProperty(
-        type=Motion,
-        name='Motions Filter'
-    ),
-    'motion_index': bpy.props.IntProperty(options={'HIDDEN'}),
-
-    # system properties
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
+    flag = bpy.props.BoolProperty(name='Selected for Import', default=True)
+    name = bpy.props.StringProperty(name='Motion Name')
+    length = bpy.props.IntProperty(name='Motion Length')
 
 
 class XRAY_OT_import_omf(
@@ -102,13 +63,34 @@ class XRAY_OT_import_omf(
     text = OP_TEXT
     ext = OMF_EXT
     filename_ext = OMF_EXT
-    props = import_props
 
     __parsed_file_name = None
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    # file browser properties
+    filter_glob = bpy.props.StringProperty(
+        default='*.omf',
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE'}
+    )
+    files = bpy.props.CollectionProperty(
+        type=bpy.types.OperatorFileListElement
+    )
+
+    # import properties
+    import_motions = ie.PropObjectMotionsImport()
+    import_bone_parts = ie.prop_import_bone_parts()
+    add_to_motion_list = ie.prop_skl_add_actions_to_motion_list()
+    motions = bpy.props.CollectionProperty(
+        type=Motion,
+        name='Motions Filter'
+    )
+    motion_index = bpy.props.IntProperty(options={'HIDDEN'})
+
+    # system properties
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -303,24 +285,6 @@ def get_arm_objs(operator, context):
     return objs
 
 
-export_props = {
-    # file browser properties
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+OMF_EXT,
-        options={'HIDDEN'}
-    ),
-
-    # export properties
-    'export_mode': ie.prop_omf_export_mode(),
-    'export_motions': ie.PropObjectMotionsExport(),
-    'export_bone_parts': ie.prop_export_bone_parts(),
-    'high_quality': ie.prop_omf_high_quality(),
-
-    # system properties
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
-
 class XRAY_OT_export_omf_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
@@ -334,13 +298,23 @@ class XRAY_OT_export_omf_file(
     text = OP_TEXT
     ext = OMF_EXT
     filename_ext = OMF_EXT
-    props = export_props
 
     obj = None
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    # file browser properties
+    filter_glob = bpy.props.StringProperty(
+        default='*'+OMF_EXT,
+        options={'HIDDEN'}
+    )
+
+    # export properties
+    export_mode = ie.prop_omf_export_mode()
+    export_motions = ie.PropObjectMotionsExport()
+    export_bone_parts = ie.prop_export_bone_parts()
+    high_quality = ie.prop_omf_high_quality()
+
+    # system properties
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
@@ -407,22 +381,6 @@ class XRAY_OT_export_omf_file(
         return super().invoke(context, event)
 
 
-export_props = {
-    # file browser properties
-    'filter_glob': bpy.props.StringProperty(
-        default='*'+OMF_EXT,
-        options={'HIDDEN'}
-    ),
-    'directory': bpy.props.StringProperty(subtype='FILE_PATH'),
-
-    # export properties
-    'high_quality': ie.prop_omf_high_quality(),
-
-    # system properties
-    'processed': bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-}
-
-
 class XRAY_OT_export_omf(utils.ie.BaseOperator):
     bl_idname = 'xray_export.omf'
     bl_label = 'Export .omf'
@@ -432,11 +390,19 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
     text = OP_TEXT
     ext = OMF_EXT
     filename_ext = OMF_EXT
-    props = export_props
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in props.items():
-            exec('{0} = props.get("{0}")'.format(prop_name))
+    # file browser properties
+    filter_glob = bpy.props.StringProperty(
+        default='*'+OMF_EXT,
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(subtype='FILE_PATH')
+
+    # export properties
+    high_quality = ie.prop_omf_high_quality()
+
+    # system properties
+    processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')

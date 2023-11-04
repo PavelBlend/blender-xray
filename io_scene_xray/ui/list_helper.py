@@ -5,20 +5,13 @@ import bpy
 from .. import utils
 
 
-_list_op_props = {
-    'operation': bpy.props.StringProperty(),
-    'collection': bpy.props.StringProperty(),
-    'index': bpy.props.StringProperty()
-}
-
-
 class XRAY_OT_list(bpy.types.Operator):
     bl_idname = 'io_scene_xray.list'
     bl_label = ''
 
-    if not utils.version.IS_28:
-        for prop_name, prop_value in _list_op_props.items():
-            exec('{0} = _list_op_props.get("{0}")'.format(prop_name))
+    operation = bpy.props.StringProperty()
+    collection = bpy.props.StringProperty()
+    index = bpy.props.StringProperty()
 
     def execute(self, context):
         data = getattr(context, XRAY_OT_list.bl_idname + '.data')
@@ -62,8 +55,7 @@ def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_fu
 
 
 def register():
-    utils.version.assign_props([(_list_op_props, XRAY_OT_list), ])
-    bpy.utils.register_class(XRAY_OT_list)
+    utils.version.register_operators(XRAY_OT_list)
 
 
 def unregister():
