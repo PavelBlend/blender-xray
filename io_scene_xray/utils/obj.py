@@ -15,6 +15,10 @@ from .. import text
 
 HELPER_OBJECT_NAME_PREFIX = '.xray-helper--'
 
+SOC_LEVEL_FOV = 67.5
+SOC_HUD_FOV_FACTOR = 0.45
+SOC_HUD_FOV = SOC_LEVEL_FOV * SOC_HUD_FOV_FACTOR
+
 
 def is_helper_object(obj):
     if not obj:

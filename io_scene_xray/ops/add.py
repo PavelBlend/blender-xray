@@ -9,9 +9,6 @@ from .. import utils
 from .. import text
 
 
-SOC_LEVEL_FOV = 67.5
-SOC_HUD_FOV_FACTOR = 0.45
-SOC_HUD_FOV = SOC_LEVEL_FOV * SOC_HUD_FOV_FACTOR
 DRAW_SIZE = 0.5
 
 
@@ -58,9 +55,9 @@ class XRAY_OT_add_camera(utils.ie.BaseOperator):
             camera.draw_size = DRAW_SIZE
 
         if self.camera_type == 'HUD':
-            fov = SOC_HUD_FOV
+            fov = utils.obj.SOC_HUD_FOV
         else:
-            fov = SOC_LEVEL_FOV
+            fov = utils.obj.SOC_LEVEL_FOV
 
         # set camera settings
         camera.clip_start = 0.2

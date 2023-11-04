@@ -53,17 +53,20 @@ def _import(file_path, creader, context):
     bpy_obj = bpy.data.objects.new(name, None)
     bpy_obj.rotation_mode = 'YXZ'
     utils.stats.created_obj()
+
     if context.camera_animation:
-        bpy_cam = bpy.data.objects.new(
-            name + '.camera',
-            bpy.data.cameras.new(name)
-        )
+        camera = bpy.data.cameras.new(name)
+        bpy_cam = bpy.data.objects.new(name + '.camera', camera)
         bpy_cam.parent = bpy_obj
         bpy_cam.rotation_euler = (math.pi / 2, 0, 0)
+        camera.lens_unit = 'FOV'
+        camera.sensor_fit = 'VERTICAL'
+        camera.angle = math.radians(utils.obj.SOC_LEVEL_FOV)
         utils.version.link_object(bpy_cam)
         utils.stats.created_obj()
     else:
         utils.version.set_empty_draw_type(bpy_obj, 'SPHERE')
+
     utils.version.set_empty_draw_size(bpy_obj, DISPLAY_SIZE)
     utils.version.link_object(bpy_obj)
     action = bpy.data.actions.new(name=name)
