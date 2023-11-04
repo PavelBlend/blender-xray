@@ -242,7 +242,10 @@ def update_file(self, context):
         if viewer.is_preview_folder_mode:
             viewer.is_preview_folder_mode = False
         else:
-            scene.xray.viewer.folder = file.path
+            folder = file.path
+            if not folder.endswith(os.sep):
+                folder += os.sep
+            scene.xray.viewer.folder = folder
             update_file_list(scene.xray.viewer.folder)
             viewer.is_preview_folder_mode = True
             viewer.files_index = 0
@@ -435,15 +438,22 @@ class XRAY_OT_viewer_preview_folder(utils.ie.BaseOperator):
     def execute(self, context):
         scene = context.scene
         viewer_folder = scene.xray.viewer.folder
+
         if viewer_folder:
             if viewer_folder[-1] == os.sep:
                 viewer_folder = viewer_folder[0 : -1]
+
             active_folder = os.path.basename(viewer_folder)
             viewer_folder = os.path.dirname(viewer_folder)
+
+            if not viewer_folder.endswith(os.sep):
+                viewer_folder += os.sep
+
             scene.xray.viewer.folder = viewer_folder
             scene.xray.viewer.is_preview_folder_mode = True
             update_file_list(scene.xray.viewer.folder, active_folder)
             remove_preview_data()
+
         return {'FINISHED'}
 
 
