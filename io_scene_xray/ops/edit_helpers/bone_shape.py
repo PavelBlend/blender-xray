@@ -343,5 +343,5 @@ def register():
 
 
 def unregister():
-    for operator, props in reversed(classes):
+    for operator in reversed(classes):
         bpy.utils.unregister_class(operator)
