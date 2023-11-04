@@ -202,6 +202,47 @@ class TestOgfExport(tests.utils.XRayTestCase):
             'test_motion_refs_cscop.ogf'
         })
 
+    def test_export_motions(self):
+        # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
+        obj = self._create_object('test_object')
+
+        bpy.ops.object.mode_set(mode='POSE')
+
+        bpy.ops.pose.group_add()
+        bone_group = obj.pose.bone_groups.active
+        bone_group.name = 'default'
+
+        obj.pose.bones['test_bone'].bone_group = bone_group
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        act = bpy.data.actions.new(name='test_action')
+        act.use_fake_user = True
+        motion = obj.xray.motions_collection.add()
+        motion.name = act.name
+
+        for i in range(3):
+            loc = act.fcurves.new('pose.bones["test_bone"].location', index=i)
+            rot = act.fcurves.new('pose.bones["test_bone"].rotation_euler', index=i)
+            for i in range(2):
+                loc.keyframe_points.insert(i*5, i*1)
+                rot.keyframe_points.insert(i*5, i*0.1)
+
+        # Act
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_motions.ogf'),
+            fmt_version='soc',
+            export_motions=True,
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({
+            'test_motions.ogf',
+        })
+
     def test_export_multiple_bones(self):
         # Arrange
         bpy.ops.object.select_all(action='DESELECT')
