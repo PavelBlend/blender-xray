@@ -240,6 +240,13 @@ def set_object_select(obj, select_state):
         obj.select = select_state
 
 
+def get_object_visibility(obj):
+    if IS_28:
+        return obj.visible_get()
+    else:
+        return obj.is_visible(bpy.context.scene)
+
+
 @contextlib.contextmanager
 def using_active_object(obj):
     if IS_28:

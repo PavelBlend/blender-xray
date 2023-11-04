@@ -291,13 +291,7 @@ class XRayBoneProps(bpy.types.PropertyGroup):
     def ondraw_postview(self, obj_arm, bone):
         # draw limits
         arm_xray = obj_arm.data.xray
-        if utils.version.IS_28:
-            hide_global = obj_arm.hide_viewport
-            view_layer = bpy.context.view_layer
-            hide_viewport = obj_arm.hide_get(view_layer=view_layer)
-            hide = hide_global or hide_viewport
-        else:
-            hide = obj_arm.hide
+        hide = not utils.version.get_object_visibility(obj_arm)
         multiply = utils.version.get_multiply()
 
         prev_line_width = utils.draw.get_gl_line_width()
@@ -306,10 +300,10 @@ class XRayBoneProps(bpy.types.PropertyGroup):
         utils.draw.set_gl_blend_mode()
 
         hide_bone = bone.hide
-        hided = hide or hide_bone
         is_pose = obj_arm.mode == 'POSE'
         exportable = bone.xray.exportable
-        draw_overlays = not hided and is_pose and exportable
+        hided = hide or hide_bone or not exportable
+        draw_overlays = not hided and is_pose
 
         # set color
         pref = utils.version.get_preferences()
@@ -455,7 +449,7 @@ class XRayBoneProps(bpy.types.PropertyGroup):
         # draw mass centers
         is_edit = obj_arm.mode == 'EDIT'
         draw_mass = obj_arm.data.xray.display_bone_mass_centers
-        if draw_mass and exportable and not hided and not is_edit:
+        if draw_mass and not hided and not is_edit:
             ctr = self.mass.center
             trn = multiply(
                 bmat,
@@ -476,7 +470,7 @@ class XRayBoneProps(bpy.types.PropertyGroup):
 
         # draw shapes
         draw_shapes = obj_arm.data.xray.display_bone_shapes
-        if hided or not draw_shapes or not exportable or is_edit:
+        if hided or not draw_shapes or is_edit:
             utils.draw.set_gl_line_width(prev_line_width)
             return
 
