@@ -146,21 +146,7 @@ def _make_annotations(cls):
     return cls
 
 
-def _register_operator(operator_class):
-    _make_annotations(operator_class)
-    bpy.utils.register_class(operator_class)
-
-
-def register_operators(operators):
-    if hasattr(operators, '__iter__'):
-        for operator in operators:
-            _register_operator(operator)
-    else:
-        _register_operator(operators)
-
-
-def register_prop_group(clas):
-    # clas inherits from bpy.types.PropertyGroup
+def _register_class(clas):
     _make_annotations(clas)
     bpy.utils.register_class(clas)
 
@@ -169,7 +155,15 @@ def register_prop_group(clas):
         b_type.xray = bpy.props.PointerProperty(type=clas)
 
 
-def unregister_prop_group(clas):
+def register_classes(operators):
+    if hasattr(operators, '__iter__'):
+        for operator in operators:
+            _register_class(operator)
+    else:
+        _register_class(operators)
+
+
+def _unregister_prop_group(clas):
     # clas inherits from bpy.types.PropertyGroup
     if hasattr(clas, 'b_type'):
         del clas.b_type.xray
@@ -177,16 +171,13 @@ def unregister_prop_group(clas):
     bpy.utils.unregister_class(clas)
 
 
-def register_prop_groups(classes):
-    # clas inherits from bpy.types.PropertyGroup
-    for clas in classes:
-        register_prop_group(clas)
-
-
 def unregister_prop_groups(classes):
-    # clas inherits from bpy.types.PropertyGroup
-    for clas in reversed(classes):
-        unregister_prop_group(clas)
+    if hasattr(classes, '__iter__'):
+        # clas inherits from bpy.types.PropertyGroup
+        for clas in reversed(classes):
+            _unregister_prop_group(clas)
+    else:
+        _unregister_prop_group(classes)
 
 
 IMAGE_NODES = ('TEX_IMAGE', 'TEX_ENVIRONMENT')

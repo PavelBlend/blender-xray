@@ -13,8 +13,8 @@ class XRaySceneProps(bpy.types.PropertyGroup):
 
 
 def register():
-    utils.version.register_prop_group(XRaySceneProps)
+    utils.version.register_classes(XRaySceneProps)
 
 
 def unregister():
-    utils.version.unregister_prop_group(XRaySceneProps)
+    utils.version.unregister_prop_groups(XRaySceneProps)

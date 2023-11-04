@@ -184,8 +184,8 @@ class XRayActionProps(bpy.types.PropertyGroup):
 
 
 def register():
-    utils.version.register_prop_group(XRayActionProps)
+    utils.version.register_classes(XRayActionProps)
 
 
 def unregister():
-    utils.version.unregister_prop_group(XRayActionProps)
+    utils.version.unregister_prop_groups(XRayActionProps)

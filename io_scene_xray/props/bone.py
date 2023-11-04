@@ -508,7 +508,7 @@ prop_groups = (
 
 
 def register():
-    utils.version.register_prop_groups(prop_groups)
+    utils.version.register_classes(prop_groups)
 
 
 def unregister():

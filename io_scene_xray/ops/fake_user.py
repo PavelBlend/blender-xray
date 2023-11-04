@@ -213,7 +213,7 @@ class XRAY_OT_change_fake_user(utils.ie.BaseOperator):
 
 
 def register():
-    utils.version.register_operators(XRAY_OT_change_fake_user)
+    utils.version.register_classes(XRAY_OT_change_fake_user)
 
 
 def unregister():

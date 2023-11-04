@@ -70,8 +70,8 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
 
 
 def register():
-    utils.version.register_prop_group(XRayArmatureProps)
+    utils.version.register_classes(XRayArmatureProps)
 
 
 def unregister():
-    utils.version.unregister_prop_group(XRayArmatureProps)
+    utils.version.unregister_prop_groups(XRayArmatureProps)

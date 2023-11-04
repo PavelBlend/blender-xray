@@ -96,7 +96,7 @@ class XRAY_OT_add_camera(utils.ie.BaseOperator):
 
 
 def register():
-    utils.version.register_operators(XRAY_OT_add_camera)
+    utils.version.register_classes(XRAY_OT_add_camera)
 
 
 def unregister():

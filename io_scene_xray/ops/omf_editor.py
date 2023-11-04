@@ -131,7 +131,7 @@ classes = (XRAY_OT_save_omf, XRAY_OT_merge_omf)
 
 def register():
     for op_class in classes:
-        utils.version.register_operators(op_class)
+        utils.version.register_classes(op_class)
 
 
 def unregister():

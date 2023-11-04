@@ -617,9 +617,9 @@ classes_27x = (
 
 
 def register():
-    utils.version.register_operators(classes)
+    utils.version.register_classes(classes)
     if not utils.version.IS_28:
-        utils.version.register_operators(classes_27x)
+        utils.version.register_classes(classes_27x)
 
 
 def unregister():

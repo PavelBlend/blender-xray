@@ -246,7 +246,7 @@ if utils.version.has_asset_browser():
 
 
 def register():
-    utils.version.register_operators(classes)
+    utils.version.register_classes(classes)
 
 
 def unregister():

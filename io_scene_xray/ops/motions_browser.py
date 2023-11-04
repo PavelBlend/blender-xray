@@ -545,7 +545,7 @@ classes = (
 
 
 def register():
-    utils.version.register_operators(classes)
+    utils.version.register_classes(classes)
 
 
 def unregister():

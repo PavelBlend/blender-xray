@@ -69,7 +69,7 @@ def is_opened(key):
 
 
 def register():
-    utils.version.register_operators(XRAY_OT_collaps)
+    utils.version.register_classes(XRAY_OT_collaps)
 
 
 def unregister():

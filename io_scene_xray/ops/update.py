@@ -91,7 +91,7 @@ classes = (XRAY_OT_check_update, XRAY_OT_install_update)
 
 
 def register():
-    utils.version.register_operators(classes)
+    utils.version.register_classes(classes)
 
 
 def unregister():

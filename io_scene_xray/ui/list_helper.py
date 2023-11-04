@@ -55,7 +55,7 @@ def draw_list_ops(layout, dataptr, propname, active_propname, custom_elements_fu
 
 
 def register():
-    utils.version.register_operators(XRAY_OT_list)
+    utils.version.register_classes(XRAY_OT_list)
 
 
 def unregister():

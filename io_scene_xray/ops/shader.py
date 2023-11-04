@@ -329,7 +329,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
 
 
 def register():
-    utils.version.register_operators(XRAY_OT_change_shader_params)
+    utils.version.register_classes(XRAY_OT_change_shader_params)
 
 
 def unregister():

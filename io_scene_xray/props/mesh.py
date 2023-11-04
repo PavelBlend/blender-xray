@@ -16,8 +16,8 @@ class XRayMeshProps(bpy.types.PropertyGroup):
 
 
 def register():
-    utils.version.register_prop_group(XRayMeshProps)
+    utils.version.register_classes(XRayMeshProps)
 
 
 def unregister():
-    utils.version.unregister_prop_group(XRayMeshProps)
+    utils.version.unregister_prop_groups(XRayMeshProps)

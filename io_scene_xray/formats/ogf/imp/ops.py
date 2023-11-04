@@ -107,7 +107,7 @@ class XRAY_OT_import_ogf(
 
 
 def register():
-    utils.version.register_operators(XRAY_OT_import_ogf)
+    utils.version.register_classes(XRAY_OT_import_ogf)
 
 
 def unregister():

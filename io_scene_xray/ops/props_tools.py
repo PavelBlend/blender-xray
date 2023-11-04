@@ -528,7 +528,7 @@ classes = (
 
 def register():
     for operator in classes:
-        utils.version.register_operators(operator)
+        utils.version.register_classes(operator)
 
 
 def unregister():

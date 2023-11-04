@@ -384,7 +384,7 @@ class XRAY_OT_create_ik(utils.ie.BaseOperator):
 
 
 def register():
-    utils.version.register_operators(XRAY_OT_create_ik)
+    utils.version.register_classes(XRAY_OT_create_ik)
 
 
 def unregister():

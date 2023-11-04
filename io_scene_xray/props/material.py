@@ -41,8 +41,8 @@ class XRayMaterialProps(utility.InitPropGroup):
 
 
 def register():
-    utils.version.register_prop_group(XRayMaterialProps)
+    utils.version.register_classes(XRayMaterialProps)
 
 
 def unregister():
-    utils.version.unregister_prop_group(XRayMaterialProps)
+    utils.version.unregister_prop_groups(XRayMaterialProps)
