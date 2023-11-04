@@ -285,21 +285,21 @@ def _write_header_bounds(obj, header_writer):
     header_writer.putf('<f', rad)    # bsphere radius
 
 
-def _write_header_base(obj, header_writer):
-    model_type = _get_model_type(obj.xray)
+def _write_header_base(obj, header_writer, context):
+    model_type = _get_model_type(obj.xray, context)
     header_writer.putf('<2BH', fmt.FORMAT_VERSION_4, model_type, FIRST_SHADER)
 
 
-def _write_header(root_obj, ogf_writer):
+def _write_header(root_obj, ogf_writer, context):
     header_writer = rw.write.PackedWriter()
 
-    _write_header_base(root_obj, header_writer)
+    _write_header_base(root_obj, header_writer, context)
     _write_header_bounds(root_obj, header_writer)
 
     ogf_writer.put(fmt.HEADER, header_writer)
 
 
-def _get_model_type(xray):
+def _get_model_type(xray, context):
     if len(xray.motionrefs_collection):
         model_type = fmt.ModelType_v4.SKELETON_ANIM
 
@@ -789,7 +789,7 @@ def _export_main(root_obj, ogf_writer, context):
     scale = _get_arm_scale(root_obj, arm_obj)
 
     # write
-    _write_header(root_obj, ogf_writer)
+    _write_header(root_obj, ogf_writer, context)
     _write_revision(root_obj, ogf_writer)
     _write_children(meshes, ogf_writer)
     _write_bone_names(bones, scale, ogf_writer)
