@@ -22,35 +22,33 @@ class XRAY_OT_add_prefs_preset(
     bl_idname = 'xray.prefs_preset_add'
     bl_label = 'Add XRay Preferences Preset'
     preset_menu = 'XRAY_MT_prefs_presets'
+    preset_subdir = 'io_scene_xray/preferences'
 
-    def __init__(self):
-        if utils.version.IS_28:
-            preset_defines = [
-                'prefs = bpy.context.preferences.'
-                'addons["io_scene_xray"].preferences',
-            ]
-        else:
-            preset_defines = [
-                'prefs = bpy.context.user_preferences.'
-                'addons["io_scene_xray"].preferences',
-            ]
+    if utils.version.IS_28:
+        preset_defines = [
+            'prefs = bpy.context.preferences.'
+            'addons["io_scene_xray"].preferences',
+        ]
+    else:
+        preset_defines = [
+            'prefs = bpy.context.user_preferences.'
+            'addons["io_scene_xray"].preferences',
+        ]
 
-        preset_values = []
-        pref = utils.version.get_preferences()
+    preset_values = []
+    pref = utils.version.get_preferences()
 
-        for prop_key in props.plugin_preferences_props:
-            preset_values.append('prefs.{}'.format(prop_key))
+    for prop_key in props.plugin_preferences_props:
+        preset_values.append('prefs.{}'.format(prop_key))
 
-        for prop_key in props.xray_custom_properties:
-            preset_values.append('prefs.custom_props.{}'.format(prop_key))
+    for prop_key in props.xray_custom_properties:
+        preset_values.append('prefs.custom_props.{}'.format(prop_key))
 
-        for prop in props.__AUTO_PROPS__:
-            auto_prop = props.build_auto_id(prop)
+    for prop in props.__AUTO_PROPS__:
+        auto_prop = props.build_auto_id(prop)
 
-            preset_values.append('prefs.{}'.format(prop))
-            preset_values.append('prefs.{}'.format(auto_prop))
-
-        preset_subdir = 'io_scene_xray/preferences'
+        preset_values.append('prefs.{}'.format(prop))
+        preset_values.append('prefs.{}'.format(auto_prop))
 
 
 classes = (
