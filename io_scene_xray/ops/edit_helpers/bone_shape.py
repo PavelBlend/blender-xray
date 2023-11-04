@@ -16,10 +16,30 @@ class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
     def draw(self, layout, context):    # pragma: no cover
         if self.is_active(context):
             layout.operator(XRAY_OT_apply_shape.bl_idname, icon='FILE_TICK')
-            layout.operator(
+
+            col = layout.column(align=True)
+
+            op = col.operator(
                 XRAY_OT_fit_shape.bl_idname,
+                text='Fit Shape',
                 icon=utils.version.get_icon('BBOX')
             )
+            op.mode = 'FIT'
+
+            op = col.operator(
+                XRAY_OT_fit_shape.bl_idname,
+                text='Axis Align Bounding Box',
+                icon=utils.version.get_icon('BBOX')
+            )
+            op.mode = 'AABB'
+
+            op = col.operator(
+                XRAY_OT_fit_shape.bl_idname,
+                text='Orient Bounding Box',
+                icon=utils.version.get_icon('BBOX')
+            )
+            op.mode = 'OBB'
+
             super().draw(layout, context)
             return
 
@@ -192,10 +212,29 @@ class XRAY_OT_apply_shape(utils.ie.BaseOperator):
         return {'FINISHED'}
 
 
+fit_shape_props = {
+    'mode': bpy.props.EnumProperty(
+        name='Mode',
+        default='FIT',
+        items=(
+            ('FIT', 'Fit', 'Fit shape without rotation'),
+            ('AABB', 'Axis Align Bounding Box', ''),
+            ('OBB', 'Orient Bounding Box', '')
+        )
+    ),
+}
+
+
 class XRAY_OT_fit_shape(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_bone_shape_fit'
     bl_label = 'Fit Shape'
     bl_options = {'UNDO'}
+
+    props = fit_shape_props
+
+    if not utils.version.IS_28:
+        for prop_name, prop_value in props.items():
+            exec('{0} = props.get("{0}")'.format(prop_name))
 
     def execute(self, context):
         def vfunc(vtx_a, vtx_b, func):
@@ -220,15 +259,21 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
         if xsh.type == '1':    # box
             obb_mat = utils.bone.get_obb(bone, False)
 
-            if obb_mat:
+            if obb_mat and self.mode == 'OBB':
                 hobj.matrix_local = obb_mat
 
             else:
+
+                if self.mode == 'AABB':
+                    matrix = mathutils.Matrix.Identity(4)
+                    matrix_inverted = matrix
+
                 # generate aabb
                 for vtx in utils.bone.bone_vertices(bone):
                     vtx = multiply(matrix_inverted, vtx)
                     vfunc(vmin, vtx, min)
                     vfunc(vmax, vtx, max)
+
                 if vmax.x > vmin.x:
                     vcenter = (vmax + vmin) / 2
                     vscale = (vmax - vmin) / 2
@@ -294,10 +339,9 @@ classes = (
 
 
 def register():
-    for operator in classes:
-        bpy.utils.register_class(operator)
+    utils.version.register_operators(classes)
 
 
 def unregister():
-    for operator in reversed(classes):
+    for operator, props in reversed(classes):
         bpy.utils.unregister_class(operator)
