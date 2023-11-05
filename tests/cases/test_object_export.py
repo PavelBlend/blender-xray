@@ -28,9 +28,11 @@ class TestObjectExport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_export.object(
-            objects='tobj1,tobj2', directory=self.outpath(),
+            objects='tobj1,tobj2',
+            directory=self.outpath(),
             fmt_version='cscop',
-            texture_name_from_image_path=False
+            texture_name_from_image_path=False,
+            use_export_paths=True
         )
 
         # Assert
