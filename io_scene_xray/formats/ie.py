@@ -40,7 +40,7 @@ def PropUseExportPaths():
         description=
             'Append the Object.ExportPath to the '
             'export directory for each object',
-        default=True
+        default=False
     )
 
 
