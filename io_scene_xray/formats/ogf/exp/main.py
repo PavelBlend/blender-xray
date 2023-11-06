@@ -659,12 +659,14 @@ def _write_bone_names(bones, scale, ogf_writer):
 
 
 def reg_bone(bones, bones_map, bone, adv):
-    idx = bones_map.get(bone, -1)
-    if idx == -1:
-        idx = len(bones)
+    bone_index = bones_map.get(bone, None)
+
+    if bone_index is None:
+        bone_index = len(bones)
         bones.append((bone, adv))
-        bones_map[bone] = idx
-    return idx
+        bones_map[bone] = bone_index
+
+    return bone_index
 
 
 def scan_root(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
@@ -694,12 +696,25 @@ def scan_root(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
                 mesh_object=bpy_obj.name
             )
 
+        # collect vertex groups
         vertex_groups_map = {}
+
         for group_index, group in enumerate(bpy_obj.vertex_groups):
             bone = arm_obj.data.bones.get(group.name, None)
+
             if bone is None:
                 continue
-            vertex_groups_map[group_index] = reg_bone(bones, bones_map, bone, arm_obj)
+
+            if not utils.bone.is_exportable_bone(bone):
+                continue
+
+            vertex_groups_map[group_index] = reg_bone(
+                bones,
+                bones_map,
+                bone,
+                arm_obj
+            )
+
         child_objects = []
         remove_child_objects = False
         if len(bpy_obj.material_slots) > 1:
