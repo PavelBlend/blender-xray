@@ -166,10 +166,10 @@ def _create_material(level, context, rel_tex, engine_shader, light_maps):
     # set vertex color layers
     else:
         bpy_mat.xray.light_vert_color = 'Light'
-        if level.xrlc_version >= fmt.VERSION_12:
+        if level.xrlc_version >= fmt.VERSION_11:
             bpy_mat.xray.sun_vert_color = 'Sun'
 
-    if level.xrlc_version >= fmt.VERSION_12:
+    if level.xrlc_version >= fmt.VERSION_11:
         bpy_mat.xray.hemi_vert_color = 'Hemi'
 
     # create shader nodes
