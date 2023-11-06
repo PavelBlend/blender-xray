@@ -4,6 +4,7 @@ import mathutils
 
 # addon modules
 from . import texture
+from .. import fmt
 from .... import utils
 
 
@@ -143,7 +144,7 @@ def _set_material_settings(bpy_material):
     bpy_material.blend_method = 'CLIP'
 
 
-def _create_material(context, rel_tex, engine_shader, light_maps):
+def _create_material(level, context, rel_tex, engine_shader, light_maps):
     # create material
     bpy_mat = bpy.data.materials.new(name=rel_tex)
     bpy_mat.xray.version = context.version
@@ -165,9 +166,11 @@ def _create_material(context, rel_tex, engine_shader, light_maps):
     # set vertex color layers
     else:
         bpy_mat.xray.light_vert_color = 'Light'
-        bpy_mat.xray.sun_vert_color = 'Sun'
+        if level.xrlc_version >= fmt.VERSION_12:
+            bpy_mat.xray.sun_vert_color = 'Sun'
 
-    bpy_mat.xray.hemi_vert_color = 'Hemi'
+    if level.xrlc_version >= fmt.VERSION_12:
+        bpy_mat.xray.hemi_vert_color = 'Hemi'
 
     # create shader nodes
     if utils.version.IS_28:
@@ -204,13 +207,14 @@ def _create_material(context, rel_tex, engine_shader, light_maps):
     return bpy_mat, bpy_img
 
 
-def get_material(context, rel_tex, eshader, lmaps):
+def get_material(level, context, rel_tex, eshader, lmaps):
     # search material
     bpy_mat, bpy_img = _search_material(context, rel_tex, eshader, lmaps)
 
     # create material
     if not bpy_mat:
         bpy_mat, bpy_img = _create_material(
+            level,
             context,
             rel_tex,
             eshader,

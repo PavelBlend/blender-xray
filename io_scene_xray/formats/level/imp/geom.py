@@ -22,7 +22,7 @@ def read_geom(level, chunks, context):
             update_log=False
         )
         geom_chunks = rw.utils.get_reader_chunks(geom_reader)
-        header.get_version(geom_chunks, geom_path)
+        header.get_version(None, geom_chunks, geom_path)
         chunks.update(geom_chunks)
 
     else:

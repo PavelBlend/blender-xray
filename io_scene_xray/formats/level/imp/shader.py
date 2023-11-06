@@ -33,6 +33,7 @@ def import_shader(level, context, shader_data):
 
     # get material
     bpy_material, bpy_image = material.get_material(
+        level,
         context,
         texture,
         engine_shader,

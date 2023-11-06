@@ -5,7 +5,7 @@ from .... import log
 from .... import rw
 
 
-def get_version(chunks, file):
+def get_version(level, chunks, file):
     data = chunks.pop(fmt.HEADER)
     header_reader = rw.read.PackedReader(data)
 
@@ -19,6 +19,7 @@ def get_version(chunks, file):
             )
         )
 
-    header_reader.skip(2)    # xrlc quality (0 - Draft, 1 - High, 2 - Custom)
+    if level:
+        level.xrlc_version = xrlc_version
 
-    return xrlc_version
+    header_reader.skip(2)    # xrlc quality (0 - Draft, 1 - High, 2 - Custom)

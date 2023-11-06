@@ -165,7 +165,7 @@ def _import_main(context, level):
     chunks = rw.utils.get_file_chunks(level.file)
 
     # level version
-    level.xrlc_version = header.get_version(chunks, context.filepath)
+    header.get_version(level, chunks, context.filepath)
 
     # read level.geom
     geom.read_geom(level, chunks, context)
