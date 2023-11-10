@@ -89,6 +89,12 @@ ICONS_279_TO_280 = {
     'FONT_DATA': 'FAKE_USER_ON'
 }
 
+SHADER_NODES = {
+    'ShaderNodeMix': 'ShaderNodeMixRGB',
+    'Factor': 'Fac',
+    'Color': 'Vertex Color'
+}
+
 
 def get_icon(icon):
     if IS_28:
@@ -96,6 +102,12 @@ def get_icon(icon):
         if icon_28:
             return icon_28
     return icon
+
+
+def get_node(node):
+    if not IS_28:
+        node = SHADER_NODES.get(node, None)
+    return node
 
 
 def get_action_panel_space():

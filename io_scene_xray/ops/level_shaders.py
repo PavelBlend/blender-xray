@@ -282,11 +282,19 @@ def _create_lmap_image_nodes(mat, xray, img_node):
 def _create_vert_color_node(shader_group, col_name, name, loc):
     if col_name:
 
-        col_node = shader_group.nodes.new('ShaderNodeVertexColor')
-        col_node.name = name
-        col_node.layer_name = col_name
-        col_node.select = False
-        col_node.location = loc
+        if utils.version.IS_28:
+            col_node = shader_group.nodes.new('ShaderNodeVertexColor')
+            col_node.name = name
+            col_node.layer_name = col_name
+            col_node.select = False
+            col_node.location = loc
+
+        else:
+            col_node = shader_group.nodes.new('ShaderNodeGeometry')
+            col_node.name = name
+            col_node.color_layer = col_name
+            col_node.select = False
+            col_node.location = loc
 
         return col_node
 
@@ -359,19 +367,21 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
 
         # create inputs
         tex_rgb = shader_group.inputs.new('NodeSocketColor', 'Texture Color')
-        tex_rgb.hide_value = True
         tex_a = shader_group.inputs.new('NodeSocketFloat', 'Texture Alpha')
-        tex_a.hide_value = True
 
         lmap_rgb = shader_group.inputs.new('NodeSocketColor', 'Light Map 1 Color')
-        lmap_rgb.hide_value = True
         lmap_a = shader_group.inputs.new('NodeSocketFloat', 'Light Map 1 Alpha')
-        lmap_a.hide_value = True
 
         lmap_rgb = shader_group.inputs.new('NodeSocketColor', 'Light Map 2 Color')
-        lmap_rgb.hide_value = True
         lmap_a = shader_group.inputs.new('NodeSocketFloat', 'Light Map 2 Alpha')
-        lmap_a.hide_value = True
+
+        if utils.version.IS_28:
+            tex_rgb.hide_value = True
+            tex_a.hide_value = True
+            lmap_rgb.hide_value = True
+            lmap_a.hide_value = True
+            lmap_rgb.hide_value = True
+            lmap_a.hide_value = True
 
         # create outputs
         shader_group.outputs.new('NodeSocketShader', 'Shader')
@@ -396,41 +406,57 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
             princp_node.outputs['BSDF'],
             output_node.inputs['Shader']
         )
-        alpha_link = shader_group.links.new(
-            input_node.outputs['Texture Alpha'],
-            princp_node.inputs['Alpha']
-        )
+        alpha_link = None
+        if utils.version.IS_28:
+            alpha_link = shader_group.links.new(
+                input_node.outputs['Texture Alpha'],
+                princp_node.inputs['Alpha']
+            )
 
         # create color mix nodes
-        light_sun = shader_group.nodes.new('ShaderNodeMix')
+        mix_node = utils.version.get_node('ShaderNodeMix')
+        factor = utils.version.get_node('Factor')
+        vert_col = utils.version.get_node('Color')
+
+        light_sun = shader_group.nodes.new(mix_node)
         light_sun.name = 'Light + Sun'
         light_sun.label = 'Light + Sun'
         light_sun.blend_type = 'ADD'
-        light_sun.data_type = 'RGBA'
-        light_sun.inputs['Factor'].default_value = 1.0
+        light_sun.inputs[factor].default_value = 1.0
         light_sun.select = False
         light_sun.location.x = -500
         light_sun.location.y = 200
 
-        hemi = shader_group.nodes.new('ShaderNodeMix')
+        hemi = shader_group.nodes.new(mix_node)
         hemi.name = '+ Hemi'
         hemi.label = '+ Hemi'
         hemi.blend_type = 'ADD'
-        hemi.data_type = 'RGBA'
-        hemi.inputs['Factor'].default_value = 1.0
+        hemi.inputs[factor].default_value = 1.0
         hemi.select = False
         hemi.location.x = -150
         hemi.location.y = 0
 
-        lmap = shader_group.nodes.new('ShaderNodeMix')
+        lmap = shader_group.nodes.new(mix_node)
         lmap.name = 'Diffuse * Light Map'
         lmap.label = 'Diffuse * Light Map'
         lmap.blend_type = 'MULTIPLY'
-        lmap.data_type = 'RGBA'
-        lmap.inputs['Factor'].default_value = 1.0
+        lmap.inputs[factor].default_value = 1.0
         lmap.select = False
         lmap.location.x = 200
         lmap.location.y = 200
+
+        if utils.version.IS_28:
+            light_sun.data_type = 'RGBA'
+            hemi.data_type = 'RGBA'
+            lmap.data_type = 'RGBA'
+            res = 2
+            col1 = 6
+            col2 = 7
+
+        else:
+            res = 'Color'
+            col1 = 'Color1'
+            col2 = 'Color2'
 
         # vertex colors
         light_node, sun_node, hemi_node = _create_vert_col_nodes(mat, shader_group)
@@ -438,20 +464,20 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
         # link nodes
 
         shader_group.links.new(
-            lmap.outputs[2],    # Result
+            lmap.outputs[res],    # Result
             princp_node.inputs['Base Color']
         )
         shader_group.links.new(
             input_node.outputs['Texture Color'],
-            lmap.inputs[6]    # color A
+            lmap.inputs[col1]    # color A
         )
         shader_group.links.new(
-            light_sun.outputs[2],    # Result
-            hemi.inputs[6]    # color A
+            light_sun.outputs[res],    # Result
+            hemi.inputs[col1]    # color A
         )
         hemi_lmap = shader_group.links.new(
-            hemi.outputs[2],    # Result
-            lmap.inputs[7]    # color B
+            hemi.outputs[res],    # Result
+            lmap.inputs[col2]    # color B
         )
 
         # link light maps
@@ -460,48 +486,49 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
 
             shader_group.links.new(
                 input_node.outputs['Light Map 1 Color'],
-                light_sun.inputs[6]    # color A
+                light_sun.inputs[col1]    # color A
             )
             shader_group.links.new(
                 input_node.outputs['Light Map 1 Alpha'],
-                light_sun.inputs[7]    # color B
+                light_sun.inputs[col2]    # color B
             )
             shader_group.links.new(
                 input_node.outputs['Light Map 2 Color'],
-                hemi.inputs[7]    # color B
+                hemi.inputs[col2]    # color B
             )
 
         # link terrain
         elif use_lmap_1 and not use_lmap_2:
-            shader_group.links.remove(alpha_link)
+            if alpha_link:
+                shader_group.links.remove(alpha_link)
             shader_group.nodes.remove(hemi_node)
 
             shader_group.links.new(
                 input_node.outputs['Texture Alpha'],
-                hemi.inputs[7]    # color B
+                hemi.inputs[col2]    # color B
             )
             shader_group.links.new(
                 input_node.outputs['Light Map 1 Color'],
-                light_sun.inputs[6]    # color A
+                light_sun.inputs[col1]    # color A
             )
             shader_group.links.new(
                 input_node.outputs['Light Map 1 Alpha'],
-                light_sun.inputs[7]    # color B
+                light_sun.inputs[col2]    # color B
             )
 
         # link vertex colors
         elif light_node and sun_node and hemi_node:
             shader_group.links.new(
-                light_node.outputs['Color'],
-                light_sun.inputs[6]    # color A
+                light_node.outputs[vert_col],
+                light_sun.inputs[col1]    # color A
             )
             shader_group.links.new(
-                sun_node.outputs['Color'],
-                light_sun.inputs[7]    # color B
+                sun_node.outputs[vert_col],
+                light_sun.inputs[col2]    # color B
             )
             shader_group.links.new(
-                hemi_node.outputs['Color'],
-                hemi.inputs[7]    # color B
+                hemi_node.outputs[vert_col],
+                hemi.inputs[col2]    # color B
             )
 
         # link multiple usage
@@ -509,11 +536,11 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
             shader_group.links.remove(hemi_lmap)
             shader_group.nodes.remove(light_sun)
             shader_group.nodes.remove(hemi)
-            lmap.inputs['Factor'].default_value = 0.5
+            lmap.inputs[factor].default_value = 0.5
 
             shader_group.links.new(
-                hemi_node.outputs['Color'],
-                lmap.inputs[7]    # color B
+                hemi_node.outputs[vert_col],
+                lmap.inputs[col2]    # color B
             )
 
     group.node_tree = shader_group
@@ -652,7 +679,8 @@ def _create_base_nodes(mat, img):
         princp_node.inputs['Base Color']
     )
 
-    if not (xray.lmap_0 and not xray.lmap_1):    # is not terrain
+    # is not terrain
+    if not (xray.lmap_0 and not xray.lmap_1) and utils.version.IS_28:
         mat.node_tree.links.new(
             img_node.outputs['Alpha'],
             princp_node.inputs['Alpha']
