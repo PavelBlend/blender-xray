@@ -12,6 +12,7 @@ from . import custom_props
 from . import fake_user
 from . import invalid_sg
 from . import joint_limits
+from . import level_shaders
 from . import rig
 from . import shader
 from . import motions_browser
@@ -37,6 +38,7 @@ modules = (
     fake_user,
     invalid_sg,
     joint_limits,
+    level_shaders,
     rig,
     shader,
     motions_browser,

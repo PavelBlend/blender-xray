@@ -703,3 +703,183 @@ class TestOps(tests.utils.XRayTestCase):
             bpy.ops.object.mode_set(mode='OBJECT')
 
         bpy.ops.io_scene_xray.remove_rig()
+
+    def test_level_shader_nodes(self):
+        # create level
+        level_obj = bpy.data.objects.new('test_level', None)
+        tests.utils.link_object(level_obj)
+
+        xray = level_obj.xray
+        lvl = xray.level
+
+        xray.is_level = True
+        lvl.object_type = 'LEVEL'
+
+        # create sectors object
+        sectors_obj = bpy.data.objects.new('sectors', None)
+        sectors_obj.parent = level_obj
+        tests.utils.link_object(sectors_obj)
+        lvl.sectors_obj = sectors_obj.name
+
+        # create sector objects
+        sector_1_obj = bpy.data.objects.new('sector_1', None)
+        sector_1_obj.parent = sectors_obj
+        tests.utils.link_object(sector_1_obj)
+
+        sector_2_obj = bpy.data.objects.new('sector_2', None)
+        sector_2_obj.parent = sectors_obj
+        tests.utils.link_object(sector_2_obj)
+
+        # create hierrarhy visual objects
+        hier_1_obj = bpy.data.objects.new('hierrarhy_1', None)
+        hier_1_obj.parent = sector_1_obj
+        hier_1_obj.xray.is_level = True
+        hier_1_obj.xray.level.object_type = 'VISUAL'
+        hier_1_obj.xray.level.visual_type = 'HIERRARHY'
+        tests.utils.link_object(hier_1_obj)
+
+        hier_2_obj = bpy.data.objects.new('hierrarhy_2', None)
+        hier_2_obj.parent = sector_2_obj
+        hier_2_obj.xray.is_level = True
+        hier_2_obj.xray.level.object_type = 'VISUAL'
+        hier_2_obj.xray.level.visual_type = 'HIERRARHY'
+        tests.utils.link_object(hier_2_obj)
+
+        # create normal visual objects
+        norm_1_me = bpy.data.meshes.new('normal')
+        norm_1_obj = bpy.data.objects.new('normal', norm_1_me)
+        norm_1_obj.parent = hier_1_obj
+        norm_1_obj.xray.is_level = True
+        norm_1_obj.xray.level.object_type = 'VISUAL'
+        norm_1_obj.xray.level.visual_type = 'NORMAL'
+        tests.utils.link_object(norm_1_obj)
+
+        norm_2_me = bpy.data.meshes.new('normal')
+        norm_2_obj = bpy.data.objects.new('normal', norm_2_me)
+        norm_2_obj.parent = hier_2_obj
+        norm_2_obj.xray.is_level = True
+        norm_2_obj.xray.level.object_type = 'VISUAL'
+        norm_2_obj.xray.level.visual_type = 'NORMAL'
+        tests.utils.link_object(norm_2_obj)
+
+        # create materials
+        bpy.context.scene.render.engine = 'CYCLES'
+
+        # material 1
+        mat_1 = bpy.data.materials.new('lmaps')
+        mat_1.use_nodes = True
+        img_1 = bpy.data.images.new('image_1', 0, 0)
+        img_1.source = 'FILE'
+        nodes_1 = mat_1.node_tree.nodes
+        norm_1_me.materials.append(mat_1)
+
+        lmap_1 = bpy.data.images.new('lmap_1', 0, 0)
+        lmap_1.source = 'FILE'
+
+        lmap_2 = bpy.data.images.new('lmap_2', 0, 0)
+        lmap_2.source = 'FILE'
+
+        mat_1.xray.lmap_0 = lmap_1.name
+        mat_1.xray.lmap_1 = lmap_2.name
+        mat_1.xray.hemi_vert_color = 'Hemi'
+        mat_1.xray.uv_texture = 'Texture'
+        mat_1.xray.uv_light_map = 'Light Map'
+
+        # material 2
+        mat_2 = bpy.data.materials.new('lmaps')
+        mat_2.use_nodes = True
+        img_2 = bpy.data.images.new('image_2', 0, 0)
+        img_2.source = 'FILE'
+        nodes_2 = mat_2.node_tree.nodes
+        norm_2_me.materials.append(mat_2)
+
+        mat_2.xray.light_vert_color = 'Light'
+        mat_2.xray.sun_vert_color = 'Sun'
+        mat_2.xray.hemi_vert_color = 'Hemi'
+        mat_2.xray.uv_texture = 'Texture'
+
+        # create output node
+        out_node_1 = nodes_1.new('ShaderNodeOutputMaterial')
+        out_node_1.select = False
+        out_node_1.location.x = 300
+        out_node_1.location.y = 300
+
+        out_node_2 = nodes_2.new('ShaderNodeOutputMaterial')
+        out_node_2.select = False
+        out_node_2.location.x = 300
+        out_node_2.location.y = 300
+
+        # create shader node
+        princp_node_1 = nodes_1.new('ShaderNodeBsdfPrincipled')
+        princp_node_1.select = False
+        princp_node_1.location.x = 10
+        princp_node_1.location.y = 300
+
+        princp_node_2 = nodes_2.new('ShaderNodeBsdfPrincipled')
+        princp_node_2.select = False
+        princp_node_2.location.x = 10
+        princp_node_2.location.y = 300
+
+        # create image node
+        img_node_1 = nodes_1.new('ShaderNodeTexImage')
+        img_node_1.image = img_1
+        img_node_1.select = False
+        img_node_1.location.x = -500
+        img_node_1.location.y = 100
+
+        img_node_2 = nodes_2.new('ShaderNodeTexImage')
+        img_node_2.image = img_2
+        img_node_2.select = False
+        img_node_2.location.x = -500
+        img_node_2.location.y = 100
+
+        # link nodes
+        mat_1.node_tree.links.new(
+            princp_node_1.outputs['BSDF'],
+            out_node_1.inputs['Surface']
+        )
+        mat_1.node_tree.links.new(
+            img_node_1.outputs['Color'],
+            princp_node_1.inputs['Base Color']
+        )
+
+        mat_2.node_tree.links.new(
+            princp_node_2.outputs['BSDF'],
+            out_node_2.inputs['Surface']
+        )
+        mat_2.node_tree.links.new(
+            img_node_2.outputs['Color'],
+            princp_node_2.inputs['Base Color']
+        )
+
+        # run
+        bpy.ops.object.select_all(action='DESELECT')
+        tests.utils.select_object(level_obj)
+        tests.utils.set_active_object(level_obj)
+
+        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ACTIVE_LEVEL')
+        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ACTIVE_LEVEL')
+
+        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='SELECTED_LEVELS')
+        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='SELECTED_LEVELS')
+
+        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ALL_LEVELS')
+        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ALL_LEVELS')
+
+        bpy.ops.object.select_all(action='SELECT')
+        tests.utils.set_active_object(norm_1_obj)
+
+        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ACTIVE_OBJECT')
+        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ACTIVE_OBJECT')
+
+        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='SELECTED_OBJECTS')
+        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='SELECTED_OBJECTS')
+
+        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ALL_OBJECTS')
+        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ALL_OBJECTS')
+
+        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ACTIVE_MATERIAL')
+        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ACTIVE_MATERIAL')
+
+        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ALL_MATERIALS')
+        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ALL_MATERIALS')
