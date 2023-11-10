@@ -10,7 +10,7 @@ def _get_visuals_meshes(parent_obj, meshes, children):
     for child_obj in children[parent_obj]:
         if child_obj.xray.level.object_type == 'VISUAL':
 
-            if child_obj.xray.level.visual_type == 'HIERRARHY':
+            if child_obj.xray.level.visual_type in ('HIERRARHY', 'LOD'):
                 _get_visuals_meshes(child_obj, meshes, children)
 
             else:
@@ -120,11 +120,12 @@ def _get_diffuse_img(mat):
     # get output node
     output_node = None
 
-    for node in mat.node_tree.nodes:
-        if node.bl_idname == 'ShaderNodeOutputMaterial':
-            if node.is_active_output:
-                output_node = node
-                break
+    if mat.node_tree:
+        for node in mat.node_tree.nodes:
+            if node.bl_idname == 'ShaderNodeOutputMaterial':
+                if node.is_active_output:
+                    output_node = node
+                    break
 
     # get diffuse image from output node
     diffuse_img = None
@@ -161,13 +162,14 @@ def _get_diffuse_img(mat):
         active_img = None
         all_img_nodes = set()
 
-        for node in mat.node_tree.nodes:
-            if node.bl_idname == 'ShaderNodeTexImage':
-                img = node.image
-                if img:
-                    all_img_nodes.add(node)
-                    if node == mat.node_tree.nodes.active:
-                        active_img = img
+        if mat.node_tree:
+            for node in mat.node_tree.nodes:
+                if node.bl_idname == 'ShaderNodeTexImage':
+                    img = node.image
+                    if img:
+                        all_img_nodes.add(node)
+                        if node == mat.node_tree.nodes.active:
+                            active_img = img
 
         if active_img:
             diffuse_img = active_img
@@ -428,13 +430,15 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
             light_sun.outputs[2],    # Result
             hemi.inputs[6]    # color A
         )
-        shader_group.links.new(
+        hemi_lmap = shader_group.links.new(
             hemi.outputs[2],    # Result
             lmap.inputs[7]    # color B
         )
 
         # link light maps
         if use_lmap_1 and use_lmap_2:
+            shader_group.nodes.remove(hemi_node)
+
             shader_group.links.new(
                 input_node.outputs['Light Map 1 Color'],
                 light_sun.inputs[6]    # color A
@@ -451,6 +455,7 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
         # link terrain
         elif use_lmap_1 and not use_lmap_2:
             shader_group.links.remove(alpha_link)
+            shader_group.nodes.remove(hemi_node)
 
             shader_group.links.new(
                 input_node.outputs['Texture Alpha'],
@@ -466,7 +471,7 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
             )
 
         # link vertex colors
-        if light_node and sun_node and hemi_node:
+        elif light_node and sun_node and hemi_node:
             shader_group.links.new(
                 light_node.outputs['Color'],
                 light_sun.inputs[6]    # color A
@@ -478,6 +483,18 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
             shader_group.links.new(
                 hemi_node.outputs['Color'],
                 hemi.inputs[7]    # color B
+            )
+
+        # link multiple usage
+        elif use_hemi and not use_light and not use_sun:
+            shader_group.links.remove(hemi_lmap)
+            shader_group.nodes.remove(light_sun)
+            shader_group.nodes.remove(hemi)
+            lmap.inputs['Factor'].default_value = 0.5
+
+            shader_group.links.new(
+                hemi_node.outputs['Color'],
+                lmap.inputs[7]    # color B
             )
 
     group.node_tree = shader_group
