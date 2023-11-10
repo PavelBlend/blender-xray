@@ -7,14 +7,20 @@ from .. import utils
 
 
 def _get_visuals_meshes(parent_obj, meshes, children):
-    for child_obj in children[parent_obj]:
+    child_objs = children.get(parent_obj)
+
+    if not child_objs:
+        return
+
+    for child_obj in child_objs:
         if child_obj.xray.level.object_type == 'VISUAL':
 
             if child_obj.xray.level.visual_type in ('HIERRARHY', 'LOD'):
                 _get_visuals_meshes(child_obj, meshes, children)
 
             else:
-                meshes.add(child_obj.data)
+                if child_obj.type == 'MESH':
+                    meshes.add(child_obj.data)
 
 
 def _get_level_meshes(level_obj, meshes, children):
