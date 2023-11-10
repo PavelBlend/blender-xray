@@ -157,7 +157,6 @@ def _get_diffuse_img(mat):
 
     # get diffuse image from node tree
     if not diffuse_img:
-        active_node = mat.node_tree.nodes.active
         active_img = None
         all_img_nodes = set()
 
@@ -166,7 +165,7 @@ def _get_diffuse_img(mat):
                 img = node.image
                 if img:
                     all_img_nodes.add(node)
-                    if active_node == node:
+                    if node == mat.node_tree.nodes.active:
                         active_img = img
 
         if active_img:
@@ -185,29 +184,13 @@ def _get_diffuse_img(mat):
     return diffuse_img
 
 
-def _create_shader_nodes(mat, shader_groups):
-    use_lmap_1 = False
-    use_lmap_2 = False
-    use_hemi = False
-    use_light = False
-    use_sun = False
-
-    # get diffuse image
-    diff_img = _get_diffuse_img(mat)
-    if not diff_img:
-        return
-
-    # remove all nodes
-    mat.node_tree.nodes.clear()
-
+def _create_diffuse_image_nodes(mat, diff_img, xray):
     # create image node
     img_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
     img_node.image = diff_img
     img_node.select = False
     img_node.location.x = -200
     img_node.location.y = 500
-
-    xray = mat.xray
 
     # create diffuse uv-map node
     if xray.uv_texture:
@@ -223,7 +206,12 @@ def _create_shader_nodes(mat, shader_groups):
             img_node.inputs['Vector']
         )
 
-    # create light maps
+    return img_node
+
+
+def _create_lmap_image_nodes(mat, xray, img_node):
+    use_lmap_1 = False
+    use_lmap_2 = False
     lmap_imgs = []
 
     if xray.lmap_0 or xray.lmap_1:
@@ -266,6 +254,10 @@ def _create_shader_nodes(mat, shader_groups):
             uv_lmap_node.location.x = loc_1.x - 250
             uv_lmap_node.location.y = (loc_1.y + loc_2.y) / 2 - 100
 
+    return lmap_imgs, use_lmap_1, use_lmap_2
+
+
+def _create_group_nodes(mat, img_node, shader_groups, usage):
     # create group node
     group = mat.node_tree.nodes.new('ShaderNodeGroup')
     group.select = False
@@ -273,26 +265,16 @@ def _create_shader_nodes(mat, shader_groups):
     group.location.x = img_node.location.x + 500
     group.location.y = img_node.location.y - 300
 
-    shader_group = shader_groups.get((
-        use_lmap_1,
-        use_lmap_2,
-        use_hemi,
-        use_light,
-        use_sun
-    ))
+    shader_group = shader_groups.get(usage)
+
     if not shader_group:
         shader_group = bpy.data.node_groups.new(
             'Level Shader Group',
             'ShaderNodeTree'
         )
-        shader_groups[(
-            use_lmap_1,
-            use_lmap_2,
-            use_hemi,
-            use_light,
-            use_sun
-        )] = shader_group
+        shader_groups[usage] = shader_group
 
+        # create inputs
         shader_group.inputs.new('NodeSocketColor', 'Texture Color')
         shader_group.inputs.new('NodeSocketFloat', 'Texture Alpha')
 
@@ -306,6 +288,7 @@ def _create_shader_nodes(mat, shader_groups):
         shader_group.inputs.new('NodeSocketColor', 'Sun Color')
         shader_group.inputs.new('NodeSocketColor', 'Hemi Color')
 
+        # create outputs
         shader_group.outputs.new('NodeSocketShader', 'Shader')
 
         # create group nodes
@@ -317,10 +300,12 @@ def _create_shader_nodes(mat, shader_groups):
         output_node.select = False
         output_node.location.x = 800
 
+        # create shader node
         princp_node = shader_group.nodes.new('ShaderNodeBsdfPrincipled')
         princp_node.select = False
         princp_node.location.x = 500
 
+        # create color mix nodes
         light_sun = shader_group.nodes.new('ShaderNodeMix')
         light_sun.name = 'Light + Sun'
         light_sun.label = 'Light + Sun'
@@ -351,9 +336,7 @@ def _create_shader_nodes(mat, shader_groups):
         lmap.location.x = 200
         lmap.location.y = 200
 
-        shader_group.nodes.update()
-
-        # link
+        # link nodes
 
         shader_group.links.new(
             princp_node.outputs['BSDF'],
@@ -397,6 +380,30 @@ def _create_shader_nodes(mat, shader_groups):
         )
 
     group.node_tree = shader_group
+
+    return group
+
+
+def _create_and_link_nodes(mat, diff_img, shader_groups):
+    use_light = False
+    use_sun = False
+    use_hemi = False
+
+    xray = mat.xray
+
+    # diffuse image
+    img_node = _create_diffuse_image_nodes(mat, diff_img, xray)
+
+    # light maps image
+    lmap_imgs, use_lmap_1, use_lmap_2 = _create_lmap_image_nodes(
+        mat,
+        xray,
+        img_node
+    )
+
+    # group node
+    usage = (use_lmap_1, use_lmap_2, use_light, use_sun, use_hemi)
+    group = _create_group_nodes(mat, img_node, shader_groups, usage)
 
     # create output node
     out_node = mat.node_tree.nodes.new('ShaderNodeOutputMaterial')
@@ -444,6 +451,19 @@ def _create_shader_nodes(mat, shader_groups):
             lmap_imgs[1].outputs['Alpha'],
             group.inputs['Light Map 2 Alpha']
         )
+
+
+def _create_shader_nodes(mat, shader_groups):
+    # get diffuse image
+    diff_img = _get_diffuse_img(mat)
+    if not diff_img:
+        return
+
+    # remove all nodes
+    mat.node_tree.nodes.clear()
+
+    # create nodes
+    _create_and_link_nodes(mat, diff_img, shader_groups)
 
 
 class XRAY_OT_create_level_shader_nodes(utils.ie.BaseOperator):
