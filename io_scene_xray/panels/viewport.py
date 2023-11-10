@@ -412,6 +412,10 @@ class XRAY_PT_batch_tools(ui.base.XRayPanel):
             icon='SCENE_DATA'
         )
         column.operator(
+            ops.level_shaders.XRAY_OT_remove_level_shader_nodes.bl_idname,
+            icon='CANCEL'
+        )
+        column.operator(
             ops.fake_user.XRAY_OT_change_fake_user.bl_idname,
             icon=utils.version.get_icon('FONT_DATA')
         )

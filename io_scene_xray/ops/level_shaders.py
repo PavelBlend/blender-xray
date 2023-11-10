@@ -598,26 +598,90 @@ def _create_shader_nodes(mat, shader_groups):
     _create_and_link_nodes(mat, diff_img, shader_groups)
 
 
-class XRAY_OT_create_level_shader_nodes(utils.ie.BaseOperator):
-    bl_idname = 'io_scene_xray.create_level_shader_nodes'
-    bl_label = 'Create Level Shader Nodes'
-    bl_options = {'REGISTER', 'UNDO'}
+def _create_base_nodes(mat, img):
+    xray = mat.xray
 
-    mode = bpy.props.EnumProperty(
-        default='ACTIVE_LEVEL',
-        items=(
-            ('ACTIVE_LEVEL', 'Active Level', ''),
-            ('SELECTED_LEVELS', 'Selected Levels', ''),
-            ('ALL_LEVELS', 'All Levels', ''),
+    # create output node
+    out_node = mat.node_tree.nodes.new('ShaderNodeOutputMaterial')
+    out_node.select = False
+    out_node.location.x = 300
+    out_node.location.y = 300
 
-            ('ACTIVE_OBJECT', 'Active Object', ''),
-            ('SELECTED_OBJECTS', 'Selected Objects', ''),
-            ('ALL_OBJECTS', 'All Objects', ''),
+    # create shader node
+    princp_node = mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+    princp_node.select = False
+    princp_node.location.x = 10
+    princp_node.location.y = 300
+    princp_node.inputs['Specular'].default_value = 0.0
 
-            ('ACTIVE_MATERIAL', 'Active Material', ''),
-            ('ALL_MATERIALS', 'All Materials', '')
+    # create image node
+    img_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
+    img_node.image = img
+    img_node.select = False
+    img_node.location.x = -500
+    img_node.location.y = 100
+
+    # create uv-map node
+    uv_name = xray.uv_texture
+    if uv_name:
+        uv_node = mat.node_tree.nodes.new('ShaderNodeUVMap')
+        uv_node.uv_map = uv_name
+        uv_node.select = False
+        uv_node.location.x = -800
+        uv_node.location.y = 100
+
+        # link
+        mat.node_tree.links.new(
+            uv_node.outputs['UV'],
+            img_node.inputs['Vector']
         )
+
+    # link nodes
+    mat.node_tree.links.new(
+        princp_node.outputs['BSDF'],
+        out_node.inputs['Surface']
     )
+    mat.node_tree.links.new(
+        img_node.outputs['Color'],
+        princp_node.inputs['Base Color']
+    )
+
+    if not (xray.lmap_0 and not xray.lmap_1):    # is not terrain
+        mat.node_tree.links.new(
+            img_node.outputs['Alpha'],
+            princp_node.inputs['Alpha']
+        )
+
+
+def _remove_shader_nodes(mat):
+    # get diffuse image
+    diff_img = _get_diffuse_img(mat)
+    if not diff_img:
+        return
+
+    # remove all nodes
+    mat.node_tree.nodes.clear()
+
+    # create nodes
+    _create_base_nodes(mat, diff_img)
+
+
+mode_items = (
+    ('ACTIVE_LEVEL', 'Active Level', ''),
+    ('SELECTED_LEVELS', 'Selected Levels', ''),
+    ('ALL_LEVELS', 'All Levels', ''),
+
+    ('ACTIVE_OBJECT', 'Active Object', ''),
+    ('SELECTED_OBJECTS', 'Selected Objects', ''),
+    ('ALL_OBJECTS', 'All Objects', ''),
+
+    ('ACTIVE_MATERIAL', 'Active Material', ''),
+    ('ALL_MATERIALS', 'All Materials', '')
+)
+
+
+class _BaseOperator(utils.ie.BaseOperator):
+    bl_options = {'REGISTER', 'UNDO'}
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
@@ -625,10 +689,18 @@ class XRAY_OT_create_level_shader_nodes(utils.ie.BaseOperator):
 
         column.prop(self, 'mode', expand=True)
 
-    def execute(self, context):
-        import time
-        st = time.time()
+    def invoke(self, context, event):    # pragma: no cover
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
+
+class XRAY_OT_create_level_shader_nodes(_BaseOperator):
+    bl_idname = 'io_scene_xray.create_level_shader_nodes'
+    bl_label = 'Create Level Shader Nodes'
+
+    mode = bpy.props.EnumProperty(default='ACTIVE_LEVEL', items=mode_items)
+
+    def execute(self, context):
         materials = _get_materials(self.mode)
 
         change_count = 0
@@ -638,21 +710,41 @@ class XRAY_OT_create_level_shader_nodes(utils.ie.BaseOperator):
             _create_shader_nodes(mat, shader_groups)
             change_count += 1
 
-        et = time.time()
-        print('{:.3f} sec'.format(et - st))
+        self.report({'INFO'}, 'Changed materials: {}'.format(change_count))
+
+        return {'FINISHED'}
+
+
+class XRAY_OT_remove_level_shader_nodes(_BaseOperator):
+    bl_idname = 'io_scene_xray.remove_level_shader_nodes'
+    bl_label = 'Remove Level Shader Nodes'
+
+    mode = bpy.props.EnumProperty(default='ACTIVE_LEVEL', items=mode_items)
+
+    def execute(self, context):
+        materials = _get_materials(self.mode)
+
+        change_count = 0
+
+        for mat in materials:
+            _remove_shader_nodes(mat)
+            change_count += 1
 
         self.report({'INFO'}, 'Changed materials: {}'.format(change_count))
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):    # pragma: no cover
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
+
+classes = (
+    XRAY_OT_create_level_shader_nodes,
+    XRAY_OT_remove_level_shader_nodes
+)
 
 
 def register():
-    utils.version.register_classes(XRAY_OT_create_level_shader_nodes)
+    utils.version.register_classes(classes)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_OT_create_level_shader_nodes)
+    for operator in reversed(classes):
+        bpy.utils.unregister_class(operator)
