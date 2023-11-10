@@ -1,5 +1,7 @@
 # standart modules
 import os
+import sys
+import traceback
 
 # blender modules
 import bpy
@@ -247,9 +249,10 @@ def _auto_path(prefs, self_name, path_suffix, checker):
             fs = rw.ltx.LtxParser()
             fs.from_file(prefs.fs_ltx_file)
         except:
+            traceback.print_exc()
             utils.draw.show_message(
                 text.get_text(text.error.ltx_invalid_syntax),
-                (prefs.fs_ltx_file, ),
+                (prefs.fs_ltx_file, sys.exc_info()[1]),
                 text.get_text(text.error.error_title),
                 'ERROR'
             )
