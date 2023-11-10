@@ -140,4 +140,4 @@ class LtxParser:
                 self.line_index += 1
 
             else:
-                raise BaseException(f'Invalid *.ltx syntax: {line}')
+                raise BaseException('Invalid *.ltx syntax: ' + line)
