@@ -1,5 +1,6 @@
 # blender modules
 import bpy
+import mathutils
 
 # addon modules
 from .. import utils
@@ -257,13 +258,56 @@ def _create_lmap_image_nodes(mat, xray, img_node):
     return lmap_imgs, use_lmap_1, use_lmap_2
 
 
-def _create_group_nodes(mat, img_node, shader_groups, usage):
+def _create_vert_color_node(shader_group, col_name, name, loc):
+    if col_name:
+
+        col_node = shader_group.nodes.new('ShaderNodeVertexColor')
+        col_node.name = name
+        col_node.layer_name = col_name
+        col_node.select = False
+        col_node.location = loc
+
+        return col_node
+
+
+def _create_vert_col_nodes(mat, shader_group):
+    xray = mat.xray
+
+    light_node = _create_vert_color_node(
+        shader_group,
+        xray.light_vert_color,
+        'Light',
+        mathutils.Vector((-800, 300))
+    )
+    sun_node = _create_vert_color_node(
+        shader_group,
+        xray.sun_vert_color,
+        'Sun',
+        mathutils.Vector((-800, 150))
+    )
+    hemi_node = _create_vert_color_node(
+        shader_group,
+        xray.hemi_vert_color,
+        'Hemi',
+        mathutils.Vector((-400, -200))
+    )
+
+    return light_node, sun_node, hemi_node
+
+
+def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
     # create group node
     group = mat.node_tree.nodes.new('ShaderNodeGroup')
     group.select = False
     group.width = 350
     group.location.x = img_node.location.x + 500
     group.location.y = img_node.location.y - 300
+
+    use_light = bool(mat.xray.light_vert_color)
+    use_sun = bool(mat.xray.sun_vert_color)
+    use_hemi = bool(mat.xray.hemi_vert_color)
+
+    usage = (use_lmap_1, use_lmap_2, use_light, use_sun, use_hemi)
 
     shader_group = shader_groups.get(usage)
 
@@ -304,6 +348,17 @@ def _create_group_nodes(mat, img_node, shader_groups, usage):
         princp_node = shader_group.nodes.new('ShaderNodeBsdfPrincipled')
         princp_node.select = False
         princp_node.location.x = 500
+        princp_node.inputs['Specular'].default_value = 0.0
+
+        # link shader
+        shader_group.links.new(
+            princp_node.outputs['BSDF'],
+            output_node.inputs['Shader']
+        )
+        shader_group.links.new(
+            input_node.outputs['Texture Alpha'],
+            princp_node.inputs['Alpha']
+        )
 
         # create color mix nodes
         light_sun = shader_group.nodes.new('ShaderNodeMix')
@@ -336,48 +391,78 @@ def _create_group_nodes(mat, img_node, shader_groups, usage):
         lmap.location.x = 200
         lmap.location.y = 200
 
+        # vertex colors
+        light_node, sun_node, hemi_node = _create_vert_col_nodes(mat, shader_group)
+
         # link nodes
+        if use_lmap_1 and use_lmap_2:
 
-        shader_group.links.new(
-            princp_node.outputs['BSDF'],
-            output_node.inputs['Shader']
-        )
+            shader_group.links.new(
+                lmap.outputs[2],    # Result
+                princp_node.inputs['Base Color']
+            )
 
-        shader_group.links.new(
-            lmap.outputs[2],    # Result
-            princp_node.inputs['Base Color']
-        )
-        shader_group.links.new(
-            input_node.outputs['Texture Alpha'],
-            princp_node.inputs['Alpha']
-        )
+            shader_group.links.new(
+                input_node.outputs['Light Map 1 Color'],
+                light_sun.inputs[6]    # A
+            )
+            shader_group.links.new(
+                input_node.outputs['Light Map 1 Alpha'],
+                light_sun.inputs[7]    # B
+            )
 
-        shader_group.links.new(
-            input_node.outputs['Light Map 1 Color'],
-            light_sun.inputs[6]    # A
-        )
-        shader_group.links.new(
-            input_node.outputs['Light Map 1 Alpha'],
-            light_sun.inputs[7]    # B
-        )
+            shader_group.links.new(
+                light_sun.outputs[2],    # Result
+                hemi.inputs[6]    # A
+            )
+            shader_group.links.new(
+                input_node.outputs['Light Map 2 Color'],
+                hemi.inputs[7]    # B
+            )
 
-        shader_group.links.new(
-            light_sun.outputs[2],    # Result
-            hemi.inputs[6]    # A
-        )
-        shader_group.links.new(
-            input_node.outputs['Light Map 2 Color'],
-            hemi.inputs[7]    # B
-        )
+            shader_group.links.new(
+                input_node.outputs['Texture Color'],
+                lmap.inputs[6]    # A
+            )
+            shader_group.links.new(
+                hemi.outputs[2],    # Result
+                lmap.inputs[7]    # B
+            )
 
-        shader_group.links.new(
-            input_node.outputs['Texture Color'],
-            lmap.inputs[6]    # A
-        )
-        shader_group.links.new(
-            hemi.outputs[2],    # Result
-            lmap.inputs[7]    # B
-        )
+        # link vertex colors
+        print(light_node and sun_node and hemi_node)
+        if light_node and sun_node and hemi_node:
+            shader_group.links.new(
+                lmap.outputs[2],    # Result
+                princp_node.inputs['Base Color']
+            )
+
+            shader_group.links.new(
+                light_node.outputs['Color'],
+                light_sun.inputs[6]    # A
+            )
+            shader_group.links.new(
+                sun_node.outputs['Color'],
+                light_sun.inputs[7]    # B
+            )
+
+            shader_group.links.new(
+                light_sun.outputs[2],    # Result
+                hemi.inputs[6]    # A
+            )
+            shader_group.links.new(
+                hemi_node.outputs['Color'],
+                hemi.inputs[7]    # B
+            )
+
+            shader_group.links.new(
+                input_node.outputs['Texture Color'],
+                lmap.inputs[6]    # A
+            )
+            shader_group.links.new(
+                hemi.outputs[2],    # Result
+                lmap.inputs[7]    # B
+            )
 
     group.node_tree = shader_group
 
@@ -385,10 +470,6 @@ def _create_group_nodes(mat, img_node, shader_groups, usage):
 
 
 def _create_and_link_nodes(mat, diff_img, shader_groups):
-    use_light = False
-    use_sun = False
-    use_hemi = False
-
     xray = mat.xray
 
     # diffuse image
@@ -402,8 +483,13 @@ def _create_and_link_nodes(mat, diff_img, shader_groups):
     )
 
     # group node
-    usage = (use_lmap_1, use_lmap_2, use_light, use_sun, use_hemi)
-    group = _create_group_nodes(mat, img_node, shader_groups, usage)
+    group = _create_group_nodes(
+        mat,
+        img_node,
+        shader_groups,
+        use_lmap_1,
+        use_lmap_2
+    )
 
     # create output node
     out_node = mat.node_tree.nodes.new('ShaderNodeOutputMaterial')
