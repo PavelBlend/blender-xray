@@ -157,6 +157,14 @@ def _get_diffuse_img(mat):
                             if img:
                                 diffuse_img = img
 
+    # get light map images
+    lmap_imgs = set()
+    for lmap in (mat.xray.lmap_0, mat.xray.lmap_1):
+        if lmap:
+            lmap_img = bpy.data.images.get(lmap)
+            if lmap_img:
+                lmap_imgs.add(lmap_img)
+
     # get diffuse image from node tree
     if not diffuse_img:
         active_img = None
@@ -167,12 +175,17 @@ def _get_diffuse_img(mat):
                 if node.bl_idname == 'ShaderNodeTexImage':
                     img = node.image
                     if img:
+                        if img in lmap_imgs:
+                            continue
                         all_img_nodes.add(node)
                         if node == mat.node_tree.nodes.active:
                             active_img = img
 
         if active_img:
             diffuse_img = active_img
+
+        elif len(all_img_nodes) == 1:
+            diffuse_img = list(all_img_nodes)[0].image
 
         else:
             selected_imgs = []
