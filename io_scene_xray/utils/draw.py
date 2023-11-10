@@ -59,7 +59,7 @@ def show_message(
             if message_text:
                 self.layout.label(text=message + '.')
         for element in elements:
-            self.layout.label(text=' ' * 4 + element)
+            self.layout.label(text=' ' * 4 + str(element))
         if operators:
             self.layout.operator_context = 'INVOKE_DEFAULT'
             for op_index, operator in enumerate(operators):
