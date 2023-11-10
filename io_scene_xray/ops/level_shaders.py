@@ -312,8 +312,26 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
     shader_group = shader_groups.get(usage)
 
     if not shader_group:
+        if use_lmap_1 and use_lmap_2:
+            group_suffix = 'Light Map'
+
+        elif use_lmap_1 and not use_lmap_2:
+            group_suffix = 'Terrain'
+
+        elif use_light and use_sun and use_hemi:
+            group_suffix = 'Vertex Color'
+
+        elif use_hemi and not use_light and not use_sun:
+            group_suffix = 'Multiple Usage'
+
+        else:
+            group_suffix = ''
+
+        if group_suffix:
+            group_suffix = ': ' + group_suffix
+
         shader_group = bpy.data.node_groups.new(
-            'Level Shader Group',
+            'Level Shader Group{}'.format(group_suffix),
             'ShaderNodeTree'
         )
         shader_groups[usage] = shader_group
@@ -357,7 +375,7 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
             princp_node.outputs['BSDF'],
             output_node.inputs['Shader']
         )
-        shader_group.links.new(
+        alpha_link = shader_group.links.new(
             input_node.outputs['Texture Alpha'],
             princp_node.inputs['Alpha']
         )
@@ -397,72 +415,69 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
         light_node, sun_node, hemi_node = _create_vert_col_nodes(mat, shader_group)
 
         # link nodes
+
+        shader_group.links.new(
+            lmap.outputs[2],    # Result
+            princp_node.inputs['Base Color']
+        )
+        shader_group.links.new(
+            input_node.outputs['Texture Color'],
+            lmap.inputs[6]    # color A
+        )
+        shader_group.links.new(
+            light_sun.outputs[2],    # Result
+            hemi.inputs[6]    # color A
+        )
+        shader_group.links.new(
+            hemi.outputs[2],    # Result
+            lmap.inputs[7]    # color B
+        )
+
+        # link light maps
         if use_lmap_1 and use_lmap_2:
-
-            shader_group.links.new(
-                lmap.outputs[2],    # Result
-                princp_node.inputs['Base Color']
-            )
-
             shader_group.links.new(
                 input_node.outputs['Light Map 1 Color'],
-                light_sun.inputs[6]    # A
+                light_sun.inputs[6]    # color A
             )
             shader_group.links.new(
                 input_node.outputs['Light Map 1 Alpha'],
-                light_sun.inputs[7]    # B
-            )
-
-            shader_group.links.new(
-                light_sun.outputs[2],    # Result
-                hemi.inputs[6]    # A
+                light_sun.inputs[7]    # color B
             )
             shader_group.links.new(
                 input_node.outputs['Light Map 2 Color'],
-                hemi.inputs[7]    # B
+                hemi.inputs[7]    # color B
             )
 
+        # link terrain
+        elif use_lmap_1 and not use_lmap_2:
+            shader_group.links.remove(alpha_link)
+
             shader_group.links.new(
-                input_node.outputs['Texture Color'],
-                lmap.inputs[6]    # A
+                input_node.outputs['Texture Alpha'],
+                hemi.inputs[7]    # color B
             )
             shader_group.links.new(
-                hemi.outputs[2],    # Result
-                lmap.inputs[7]    # B
+                input_node.outputs['Light Map 1 Color'],
+                light_sun.inputs[6]    # color A
+            )
+            shader_group.links.new(
+                input_node.outputs['Light Map 1 Alpha'],
+                light_sun.inputs[7]    # color B
             )
 
         # link vertex colors
         if light_node and sun_node and hemi_node:
             shader_group.links.new(
-                lmap.outputs[2],    # Result
-                princp_node.inputs['Base Color']
-            )
-
-            shader_group.links.new(
                 light_node.outputs['Color'],
-                light_sun.inputs[6]    # A
+                light_sun.inputs[6]    # color A
             )
             shader_group.links.new(
                 sun_node.outputs['Color'],
-                light_sun.inputs[7]    # B
-            )
-
-            shader_group.links.new(
-                light_sun.outputs[2],    # Result
-                hemi.inputs[6]    # A
+                light_sun.inputs[7]    # color B
             )
             shader_group.links.new(
                 hemi_node.outputs['Color'],
-                hemi.inputs[7]    # B
-            )
-
-            shader_group.links.new(
-                input_node.outputs['Texture Color'],
-                lmap.inputs[6]    # A
-            )
-            shader_group.links.new(
-                hemi.outputs[2],    # Result
-                lmap.inputs[7]    # B
+                hemi.inputs[7]    # color B
             )
 
     group.node_tree = shader_group
