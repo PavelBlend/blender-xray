@@ -319,18 +319,20 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
         shader_groups[usage] = shader_group
 
         # create inputs
-        shader_group.inputs.new('NodeSocketColor', 'Texture Color')
-        shader_group.inputs.new('NodeSocketFloat', 'Texture Alpha')
+        tex_rgb = shader_group.inputs.new('NodeSocketColor', 'Texture Color')
+        tex_rgb.hide_value = True
+        tex_a = shader_group.inputs.new('NodeSocketFloat', 'Texture Alpha')
+        tex_a.hide_value = True
 
-        shader_group.inputs.new('NodeSocketColor', 'Light Map 1 Color')
-        shader_group.inputs.new('NodeSocketFloat', 'Light Map 1 Alpha')
+        lmap_rgb = shader_group.inputs.new('NodeSocketColor', 'Light Map 1 Color')
+        lmap_rgb.hide_value = True
+        lmap_a = shader_group.inputs.new('NodeSocketFloat', 'Light Map 1 Alpha')
+        lmap_a.hide_value = True
 
-        shader_group.inputs.new('NodeSocketColor', 'Light Map 2 Color')
-        shader_group.inputs.new('NodeSocketFloat', 'Light Map 2 Alpha')
-
-        shader_group.inputs.new('NodeSocketColor', 'Light Color')
-        shader_group.inputs.new('NodeSocketColor', 'Sun Color')
-        shader_group.inputs.new('NodeSocketColor', 'Hemi Color')
+        lmap_rgb = shader_group.inputs.new('NodeSocketColor', 'Light Map 2 Color')
+        lmap_rgb.hide_value = True
+        lmap_a = shader_group.inputs.new('NodeSocketFloat', 'Light Map 2 Alpha')
+        lmap_a.hide_value = True
 
         # create outputs
         shader_group.outputs.new('NodeSocketShader', 'Shader')
@@ -430,7 +432,6 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
             )
 
         # link vertex colors
-        print(light_node and sun_node and hemi_node)
         if light_node and sun_node and hemi_node:
             shader_group.links.new(
                 lmap.outputs[2],    # Result
