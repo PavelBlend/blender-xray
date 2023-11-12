@@ -103,6 +103,7 @@ class XRAY_OT_export_anm_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
+
     bl_idname = 'xray_export.anm_file'
     bl_label = 'Export .anm'
     bl_description = 'Exports X-Ray animation'

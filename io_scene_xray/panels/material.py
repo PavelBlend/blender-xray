@@ -136,6 +136,7 @@ class XRAY_OT_add_surface_preset(
         bl_operators.presets.AddPresetBase,
         utils.ie.BaseOperator
     ):
+
     bl_idname = 'xray.surface_preset_add'
     bl_label = 'Add Surface Preset'
     preset_menu = 'XRAY_MT_surface_presets'

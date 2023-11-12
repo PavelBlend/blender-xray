@@ -57,6 +57,7 @@ class XRAY_OT_export_ogf_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
+
     bl_idname = 'xray_export.ogf_file'
     bl_label = 'Export .ogf'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

@@ -246,7 +246,6 @@ class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
     obj = bpy.props.StringProperty(name='Object')
     text = bpy.props.StringProperty(name='Text')
 
-
     def draw(self, context):    # pragma: no cover
         layout = self.layout
 

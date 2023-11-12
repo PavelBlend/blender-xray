@@ -23,6 +23,7 @@ class XRAY_UL_motions_list_item(bpy.types.UIList):
             active_data,
             active_propname
         ):
+
         row = layout.row()
 
         # select

@@ -98,7 +98,8 @@ class XRAY_OT_change_action_bake_settings(utils.ie.BaseOperator):
         default='SELECTED_OBJECTS'
     )
     change_auto_bake_mode = bpy.props.BoolProperty(
-        name='Change Auto Bake Mode', default=True
+        name='Change Auto Bake Mode',
+        default=True
     )
     auto_bake_mode = bpy.props.EnumProperty(
         name='Auto Bake Mode',
@@ -110,22 +111,30 @@ class XRAY_OT_change_action_bake_settings(utils.ie.BaseOperator):
         default='auto'
     )
     change_use_custom_thresholds = bpy.props.BoolProperty(
-        name='Change Use Custom Thresholds', default=True
+        name='Change Use Custom Thresholds',
+        default=True
     )
     use_custom_threshold = bpy.props.BoolProperty(
-        name='Use Custom Thresholds', default=True
+        name='Use Custom Thresholds',
+        default=True
     )
     change_location_threshold = bpy.props.BoolProperty(
-        name='Change Location Threshold', default=True
+        name='Change Location Threshold',
+        default=True
     )
     change_rotation_threshold = bpy.props.BoolProperty(
-        name='Change Rotation Threshold', default=True
+        name='Change Rotation Threshold',
+        default=True
     )
     value_location_threshold = bpy.props.FloatProperty(
-        name='Location Threshold', default=0.00001, precision=6
+        name='Location Threshold',
+        default=0.00001,
+        precision=6
     )
     value_rotation_threshold = bpy.props.FloatProperty(
-        name='Rotation Threshold', default=0.00001, precision=6,
+        name='Rotation Threshold',
+        default=0.00001,
+        precision=6,
         subtype='ANGLE'
     )
 

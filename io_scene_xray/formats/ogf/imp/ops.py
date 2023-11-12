@@ -42,6 +42,7 @@ class XRAY_OT_import_ogf(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
+
     bl_idname = 'xray_import.ogf'
     bl_label = 'Import .ogf'
     bl_description = 'Import X-Ray Compiled Game Model (.ogf)'

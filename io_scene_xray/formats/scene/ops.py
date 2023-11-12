@@ -23,6 +23,7 @@ class XRAY_OT_export_scene(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
+
     bl_idname = 'xray_export.scene'
     bl_label = 'Export .level'
 
@@ -70,6 +71,7 @@ class XRAY_OT_import_scene(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
+
     bl_idname = 'xray_import.scene'
     bl_label = 'Import .level'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

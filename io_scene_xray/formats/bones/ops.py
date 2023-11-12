@@ -209,6 +209,7 @@ class XRAY_OT_export_bone(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
+
     bl_idname = 'xray_export.bone'
     bl_label = 'Export .bones'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

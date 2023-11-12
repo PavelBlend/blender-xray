@@ -17,6 +17,7 @@ class XRAY_OT_import_err(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
+
     bl_idname = 'xray_import.err'
     bl_label = 'Import .err'
     bl_description = 'Imports X-Ray Error List (.err)'

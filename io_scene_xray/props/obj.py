@@ -57,10 +57,12 @@ class XRayObjectDetailsSlotsProperties(bpy.types.PropertyGroup):
 
 
 def _update_detail_color_by_index(self, context):
-    color_indices = formats.details.utility.generate_color_indices()
     ob = context.active_object
+
     if not ob:
         return
+
+    color_indices = formats.details.utility.generate_color_indices()
     xray = ob.xray
     xray.detail.model.color = color_indices[xray.detail.model.index][0 : 3]
 
@@ -467,7 +469,11 @@ class XRayObjectProperties(utility.InitPropGroup):
 
     # default=True - to backward compatibility
     root = bpy.props.BoolProperty(default=True)
-    isroot = bpy.props.BoolProperty(get=get_isroot, set=set_isroot, options={'SKIP_SAVE'})
+    isroot = bpy.props.BoolProperty(
+        get=get_isroot,
+        set=set_isroot,
+        options={'SKIP_SAVE'}
+    )
     is_details = bpy.props.BoolProperty(default=False)
     is_level = bpy.props.BoolProperty(default=False)
     version = bpy.props.IntProperty()
@@ -515,22 +521,29 @@ class XRayObjectProperties(utility.InitPropGroup):
         description='HQ Geometry',
         custom_prop=''
     )
-    flags_simple = bpy.props.EnumProperty(name='Object Type', items=(
-        (formats.obj.fmt.CM, formats.obj.fmt.type_names[formats.obj.fmt.CM], ''),
-        (formats.obj.fmt.SO, formats.obj.fmt.type_names[formats.obj.fmt.SO], ''),
-        (formats.obj.fmt.MU, formats.obj.fmt.type_names[formats.obj.fmt.MU], ''),
-        (formats.obj.fmt.HO, formats.obj.fmt.type_names[formats.obj.fmt.HO], 'Hierarchical Occlusion Mapping'),
-        (formats.obj.fmt.PD, formats.obj.fmt.type_names[formats.obj.fmt.PD], ''),
-        (formats.obj.fmt.DY, formats.obj.fmt.type_names[formats.obj.fmt.DY], ''),
-        (formats.obj.fmt.ST, formats.obj.fmt.type_names[formats.obj.fmt.ST], '')
-    ), options={'SKIP_SAVE'}, get=flags_simple_get, set=flags_simple_set)
+    flags_simple = bpy.props.EnumProperty(
+        name='Object Type',
+        items=(
+            (formats.obj.fmt.CM, formats.obj.fmt.type_names[formats.obj.fmt.CM], ''),
+            (formats.obj.fmt.SO, formats.obj.fmt.type_names[formats.obj.fmt.SO], ''),
+            (formats.obj.fmt.MU, formats.obj.fmt.type_names[formats.obj.fmt.MU], ''),
+            (formats.obj.fmt.HO, formats.obj.fmt.type_names[formats.obj.fmt.HO], 'Hierarchical Occlusion Mapping'),
+            (formats.obj.fmt.PD, formats.obj.fmt.type_names[formats.obj.fmt.PD], ''),
+            (formats.obj.fmt.DY, formats.obj.fmt.type_names[formats.obj.fmt.DY], ''),
+            (formats.obj.fmt.ST, formats.obj.fmt.type_names[formats.obj.fmt.ST], '')
+        ),
+        options={'SKIP_SAVE'},
+        get=flags_simple_get,
+        set=flags_simple_set
+    )
 
     lodref = bpy.props.StringProperty(name='LOD Reference')
     userdata = bpy.props.StringProperty(name='userdata', update=userdata_update)
     show_userdata = bpy.props.BoolProperty(description='View user data', options={'SKIP_SAVE'})
     revision = bpy.props.PointerProperty(type=XRayObjectRevisionProperties)
     load_active_motion_refs = bpy.props.BoolProperty(
-        name='Load Active Motion Refs', default=False,
+        name='Load Active Motion Refs',
+        default=False,
         update=update_load_active_motion_refs
     )
     motionrefs = bpy.props.StringProperty(
@@ -541,7 +554,10 @@ class XRayObjectProperties(utility.InitPropGroup):
         options={'SKIP_SAVE'},
         update=load_motion_refs
     )
-    show_motionsrefs = bpy.props.BoolProperty(description='View motion refs', options={'SKIP_SAVE'})
+    show_motionsrefs = bpy.props.BoolProperty(
+        description='View motion refs',
+        options={'SKIP_SAVE'}
+    )
 
     motions = bpy.props.StringProperty(
         description='!Legacy: use \'motions_collection\' instead'
@@ -551,8 +567,14 @@ class XRayObjectProperties(utility.InitPropGroup):
         options={'SKIP_SAVE'},
         update=update_motion_collection_index
     )
-    show_motions = bpy.props.BoolProperty(description='View motions', options={'SKIP_SAVE'})
-    play_active_motion = bpy.props.BoolProperty(name='Play Active Motion', default=False)
+    show_motions = bpy.props.BoolProperty(
+        description='View motions',
+        options={'SKIP_SAVE'}
+    )
+    play_active_motion = bpy.props.BoolProperty(
+        name='Play Active Motion',
+        default=False
+    )
     show_motions_names = bpy.props.EnumProperty(
         name='Show Motions Names',
         items=(
@@ -562,15 +584,23 @@ class XRayObjectProperties(utility.InitPropGroup):
         ),
         default='ACTION'
     )
-    dependency_object = bpy.props.StringProperty(name='Dependency', default='')
-    use_custom_motion_names = bpy.props.BoolProperty(name='Custom Names', default=False)
+    dependency_object = bpy.props.StringProperty(
+        name='Dependency',
+        default=''
+    )
+    use_custom_motion_names = bpy.props.BoolProperty(
+        name='Custom Names',
+        default=False
+    )
     helper_data = bpy.props.StringProperty()
     export_path = bpy.props.StringProperty(
         name='Export Path',
         description='Path relative to the root export folder'
     )
     detail = bpy.props.PointerProperty(type=XRayObjectDetailsProperties)
-    motions_browser = bpy.props.PointerProperty(type=ops.motions_browser.XRayMotionsBrowserProps)
+    motions_browser = bpy.props.PointerProperty(
+        type=ops.motions_browser.XRayMotionsBrowserProps
+    )
     level = bpy.props.PointerProperty(type=XRayObjectLevelProperties)
 
     # transforms utils properties

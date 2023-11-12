@@ -195,7 +195,7 @@ class XRAY_OT_export_skl(
     filter_glob = bpy.props.StringProperty(
         default='*'+skl_ext,
         options={'HIDDEN'}
-    ),
+    )
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     action = None
@@ -243,7 +243,7 @@ class XRAY_OT_export_skls_file(
     filter_glob = bpy.props.StringProperty(
         default='*'+skls_ext,
         options={'HIDDEN'}
-    ),
+    )
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
