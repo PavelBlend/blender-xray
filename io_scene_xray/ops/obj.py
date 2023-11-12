@@ -24,7 +24,7 @@ class XRAY_OT_place_objects(utils.ie.BaseOperator):
             ('YZ', 'YZ', '')
         )
     )
-    rows = bpy.props.IntProperty(name='Rows', default=1, min=1, max=1000),
+    rows = bpy.props.IntProperty(name='Rows', default=1, min=1, max=1000)
     offset_h = bpy.props.FloatProperty(
         name='Horizontal Offset',
         default=2.0,
