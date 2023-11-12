@@ -119,8 +119,8 @@ class XRAY_OT_colorize_objects(utils.ie.BaseOperator):
     seed = bpy.props.IntProperty(min=0, max=255)
     power = bpy.props.FloatProperty(default=0.5, min=0.0, max=1.0)
     color = bpy.props.FloatVectorProperty(
-        default=(0.5, 0.5, 0.5),
-        size=3,
+        default=(0.5, 0.5, 0.5, 1.0),
+        size=4,
         min=0.0,
         max=1.0,
         subtype='COLOR'
@@ -156,23 +156,27 @@ class XRAY_OT_colorize_objects(utils.ie.BaseOperator):
                 self.report({'ERROR'}, 'No active object')
                 return {'CANCELLED'}
             objects = (obj, )
+
         # selected objects
         elif self.mode == 'SELECTED_OBJECTS':
             objects = context.selected_objects
             if not objects:
                 self.report({'ERROR'}, 'No objects selected')
                 return {'CANCELLED'}
+
         # all objects
-        elif self.mode == 'ALL_OBJECTS':
+        else:
             objects = bpy.data.objects
             if not objects:
                 self.report({'ERROR'}, 'Blend-file has no objects')
                 return {'CANCELLED'}
+
         # colorize
         changed_objects_count = 0
         for obj in objects:
             if obj.type != 'MESH':
                 continue
+
             if self.color_mode == 'RANDOM_BY_MESH':
                 name = obj.data.name
             elif self.color_mode == 'RANDOM_BY_OBJECT':
@@ -182,6 +186,7 @@ class XRAY_OT_colorize_objects(utils.ie.BaseOperator):
                 name = root.name
             else:
                 name = None
+
             if name is None:
                 color = list(self.color)
             else:
@@ -194,16 +199,17 @@ class XRAY_OT_colorize_objects(utils.ie.BaseOperator):
                     (((hsh >> 8) & 3) / 3 * 0.5 + 0.5) * self.power,
                     ((hsh >> 2) & 1) * (0.5 * self.power) + 0.5
                 )
-                color = [color.r, color.g, color.b]
-            if utils.version.IS_28:
-                color.append(1.0)    # alpha
+                color = [color.r, color.g, color.b, 1.0]
+
             obj.color = color
             changed_objects_count += 1
+
         utils.draw.redraw_areas()
         self.report(
             {'INFO'},
             'Changed {} object(s)'.format(changed_objects_count)
         )
+
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
