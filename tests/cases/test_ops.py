@@ -735,6 +735,40 @@ class TestOps(tests.utils.XRayTestCase):
             offset_v=2.0
         )
 
+    def test_colorize_objects(self):
+        for i in range(5):
+            obj = bpy.data.objects.new('test_{}'.format(i), None)
+            tests.utils.link_object(obj)
+            tests.utils.set_active_object(obj)
+
+        bpy.ops.object.select_all(action='SELECT')
+
+        bpy.ops.io_scene_xray.colorize_objects(
+            mode='ACTIVE_OBJECT',
+            color_mode='RANDOM_BY_MESH',
+            seed=0,
+            power=0.5
+        )
+        bpy.ops.io_scene_xray.colorize_objects(
+            mode='SELECTED_OBJECTS',
+            color_mode='RANDOM_BY_OBJECT',
+            seed=1,
+            power=1.0
+        )
+        bpy.ops.io_scene_xray.colorize_objects(
+            mode='ALL_OBJECTS',
+            color_mode='RANDOM_BY_ROOT',
+            seed=127,
+            power=0.0
+        )
+        bpy.ops.io_scene_xray.colorize_objects(
+            mode='ALL_OBJECTS',
+            color_mode='SINGLE_COLOR',
+            seed=255,
+            power=1.0,
+            color=(0.8, 0.6, 0.2)
+        )
+
     def test_level_shader_nodes(self):
         # create level
         level_obj = bpy.data.objects.new('test_level', None)
