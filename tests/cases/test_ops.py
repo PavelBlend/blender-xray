@@ -1,6 +1,7 @@
 import re
 import bpy
 import tests
+import io_scene_xray
 
 
 class TestOps(tests.utils.XRayTestCase):
@@ -703,6 +704,36 @@ class TestOps(tests.utils.XRayTestCase):
             bpy.ops.object.mode_set(mode='OBJECT')
 
         bpy.ops.io_scene_xray.remove_rig()
+
+    def test_place_selected_objects(self):
+        ver = io_scene_xray.utils.addon_version_number()
+
+        for i in range(5):
+            obj = bpy.data.objects.new('test_{}'.format(i), None)
+            obj.xray.version = ver
+            obj.xray.isroot = True
+            tests.utils.link_object(obj)
+
+        bpy.ops.object.select_all(action='SELECT')
+
+        bpy.ops.io_scene_xray.place_objects(
+            plane='XY',
+            rows=1,
+            offset_h=1.0,
+            offset_v=0.5
+        )
+        bpy.ops.io_scene_xray.place_objects(
+            plane='XZ',
+            rows=2,
+            offset_h=0.2,
+            offset_v=1.0
+        )
+        bpy.ops.io_scene_xray.place_objects(
+            plane='YZ',
+            rows=3,
+            offset_h=2.0,
+            offset_v=2.0
+        )
 
     def test_level_shader_nodes(self):
         # create level
