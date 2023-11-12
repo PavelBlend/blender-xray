@@ -737,7 +737,8 @@ class TestOps(tests.utils.XRayTestCase):
 
     def test_colorize_objects(self):
         for i in range(5):
-            obj = bpy.data.objects.new('test_{}'.format(i), None)
+            mesh = bpy.data.meshes.new('mesh')
+            obj = bpy.data.objects.new('test_{}'.format(i), mesh)
             tests.utils.link_object(obj)
             tests.utils.set_active_object(obj)
 
