@@ -581,3 +581,55 @@ def get_sdk_ver(default):
         ver = default
 
     return ver
+
+
+def validate_vertex_weights(bpy_obj, arm_obj):
+    exportable_bones_names = [
+        bpy_bone.name
+        for bpy_bone in arm_obj.data.bones
+            if bpy_bone.xray.exportable
+    ]
+    exportable_groups_indices = [
+        group.index
+        for group in bpy_obj.vertex_groups
+            if group.name in exportable_bones_names
+    ]
+
+    has_ungrouped_verts = None
+    ungrouped_verts_count = 0
+
+    has_nonexp_vert_groups = None
+    nonexp_group_verts_count = 0
+
+    for vertex in bpy_obj.data.vertices:
+
+        if len(vertex.groups):
+            exportable_groups_count = 0
+            for vertex_group in vertex.groups:
+                if vertex_group.group in exportable_groups_indices:
+                    exportable_groups_count += 1
+            if not exportable_groups_count:
+                has_nonexp_vert_groups = True
+                nonexp_group_verts_count += 1
+
+        else:
+            has_ungrouped_verts = True
+            ungrouped_verts_count += 1
+
+    if has_ungrouped_verts:
+        raise log.AppError(
+            text.error.object_ungroupped_verts,
+            log.props(
+                object=bpy_obj.name,
+                vertices_count=ungrouped_verts_count
+            )
+        )
+
+    if has_nonexp_vert_groups:
+        raise log.AppError(
+            text.error.object_nonexp_group_verts,
+            log.props(
+                object=bpy_obj.name,
+                vertices_count=nonexp_group_verts_count
+            )
+        )

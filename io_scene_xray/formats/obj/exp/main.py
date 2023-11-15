@@ -41,58 +41,6 @@ def export_flags(chunked_writer, xray, some_arm):
     chunked_writer.put(fmt.Chunks.Object.FLAGS, packed_writer)
 
 
-def validate_vertex_weights(bpy_obj, arm_obj):
-    exportable_bones_names = [
-        bpy_bone.name
-        for bpy_bone in arm_obj.data.bones
-            if bpy_bone.xray.exportable
-    ]
-    exportable_groups_indices = [
-        group.index
-        for group in bpy_obj.vertex_groups
-            if group.name in exportable_bones_names
-    ]
-
-    has_ungrouped_verts = None
-    ungrouped_verts_count = 0
-
-    has_nonexp_vert_groups = None
-    nonexp_group_verts_count = 0
-
-    for vertex in bpy_obj.data.vertices:
-
-        if len(vertex.groups):
-            exportable_groups_count = 0
-            for vertex_group in vertex.groups:
-                if vertex_group.group in exportable_groups_indices:
-                    exportable_groups_count += 1
-            if not exportable_groups_count:
-                has_nonexp_vert_groups = True
-                nonexp_group_verts_count += 1
-
-        else:
-            has_ungrouped_verts = True
-            ungrouped_verts_count += 1
-
-    if has_ungrouped_verts:
-        raise log.AppError(
-            text.error.object_ungroupped_verts,
-            log.props(
-                object=bpy_obj.name,
-                vertices_count=ungrouped_verts_count
-            )
-        )
-
-    if has_nonexp_vert_groups:
-        raise log.AppError(
-            text.error.object_nonexp_group_verts,
-            log.props(
-                object=bpy_obj.name,
-                vertices_count=nonexp_group_verts_count
-            )
-        )
-
-
 @log.with_context('armature')
 def _check_bone_names(armature_object):
     bone_names = {}
@@ -116,7 +64,7 @@ def _check_bone_names(armature_object):
         )
 
 
-def merge_meshes(mesh_objects):
+def merge_meshes(mesh_objects, arm_obj):
     objects = []
     override = bpy.context.copy()
 
@@ -133,6 +81,8 @@ def merge_meshes(mesh_objects):
                 exported_uv=obj.data.uv_layers.active.name,
                 mesh_object=obj.name
             )
+
+        utils.ie.validate_vertex_weights(obj, arm_obj)
 
         copy_obj = obj.copy()
         copy_mesh = obj.data.copy()
@@ -297,11 +247,12 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
         # one mesh
         if len(armature_meshes) == 1:
             mesh_object = list(armature_meshes)[0]
+            utils.ie.validate_vertex_weights(mesh_object, bpy_arm_obj)
             write_mesh(mesh_object)
 
         # many meshes
         else:
-            merged_obj = merge_meshes(armature_meshes)
+            merged_obj = merge_meshes(armature_meshes, bpy_arm_obj)
             write_mesh(merged_obj)
             mesh_names = [mesh.name for mesh in armature_meshes]
             log.warn(
@@ -320,10 +271,6 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             text.error.object_skel_many_meshes,
             log.props(object=bpy_root.name)
         )
-
-    if bpy_arm_obj:
-        for mesh_obj in meshes:
-            validate_vertex_weights(mesh_obj, bpy_arm_obj)
 
     bone_writers = []
     root_bones = []

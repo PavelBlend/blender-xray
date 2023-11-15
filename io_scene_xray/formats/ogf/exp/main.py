@@ -682,6 +682,9 @@ def scan_root(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
                 log.props(object=bpy_obj.name)
             )
 
+        # check vertex weights
+        utils.ie.validate_vertex_weights(bpy_obj, arm_obj)
+
         # check uv-maps
         uv_layers = bpy_obj.data.uv_layers
         if not len(uv_layers):
