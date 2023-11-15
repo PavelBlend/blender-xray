@@ -517,14 +517,14 @@ def _create_group_nodes(
             )
 
             # soc
-            if light_format == 'SOC':
+            if light_format in ('SOC', '1964-3120'):
                 shader_group.links.new(
                     input_node.outputs['Light Map 2 Color'],
                     hemi.inputs[col2]    # color B
                 )
 
             # cs/cop
-            else:
+            elif light_format in ('CSCOP', '3436-3844'):
                 shader_group.links.new(
                     input_node.outputs['Light Map 2 Alpha'],
                     hemi.inputs[col2]    # color B
@@ -770,8 +770,10 @@ class XRAY_OT_create_level_shader_nodes(_BaseOperator):
     light_format = bpy.props.EnumProperty(
         default='SOC',
         items=(
+            ('CSCOP', 'Clear Sky / Call of Pripyat', ''),
             ('SOC', 'Shadow of Chernobyl', ''),
-            ('CSCOP', 'Clear Sky / Call of Pripyat', '')
+            ('3436-3844', 'Builds 3436-3844', ''),
+            ('1964-3120', 'Builds 1964-3120', '')
         )
     )
 
