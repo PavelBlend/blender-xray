@@ -89,7 +89,7 @@ def _create_shader_nodes(bpy_mat, bpy_img, bpy_img_lmaps, rel_tex):
     output_node = _create_shader_output_node(bpy_mat, offset)
 
     # deselect nodes
-    for node in bpy_mat.nodes:
+    for node in bpy_mat.node_tree.nodes:
         node.select = False
 
     # link nodes
