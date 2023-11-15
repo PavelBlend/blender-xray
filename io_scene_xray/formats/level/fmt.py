@@ -26,7 +26,7 @@ class Chunks12:
     SWIS = 0xb
 
 
-class Chunks10:
+class Chunks11:
     SHADERS = 0x2
     VISUALS = 0x3
     PORTALS = 0x4
@@ -35,6 +35,10 @@ class Chunks10:
     SECTORS = 0x8
     IB = 0x9
     VB = 0xa
+
+
+class Chunks10(Chunks11):
+    pass
 
 
 class Chunks9:
@@ -142,6 +146,17 @@ SUPPORTED_VERSIONS = (
     VERSION_5,
     VERSION_4
 )
+
+ver_chunks = {
+    VERSION_13: Chunks13,
+    VERSION_12: Chunks12,
+    VERSION_11: Chunks11,
+    VERSION_10: Chunks10,
+    VERSION_9: Chunks9,
+    VERSION_8: Chunks8,
+    VERSION_5: Chunks5,
+    VERSION_4: Chunks4
+}
 
 # vertex buffer type names
 FLOAT2 = 'FLOAT2'

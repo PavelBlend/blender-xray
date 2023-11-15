@@ -54,31 +54,6 @@ class Level:
         self.loaded_geometry = {}
 
 
-def _get_level_chunks_ids(level):
-    if level.xrlc_version >= fmt.VERSION_13:
-        chunks_ids = fmt.Chunks13
-
-    elif level.xrlc_version == fmt.VERSION_12:
-        chunks_ids = fmt.Chunks12
-
-    elif level.xrlc_version in (fmt.VERSION_11, fmt.VERSION_10):
-        chunks_ids = fmt.Chunks10
-
-    elif level.xrlc_version == fmt.VERSION_9:
-        chunks_ids = fmt.Chunks9
-
-    elif level.xrlc_version == fmt.VERSION_8:
-        chunks_ids = fmt.Chunks8
-
-    elif level.xrlc_version == fmt.VERSION_5:
-        chunks_ids = fmt.Chunks5
-
-    elif level.xrlc_version == fmt.VERSION_4:
-        chunks_ids = fmt.Chunks4
-
-    return chunks_ids
-
-
 def _create_level_object(level, level_collection):
     level_object = utils.obj.create_object(level.name, None, False)
 
@@ -171,7 +146,7 @@ def _import_main(context, level):
     geom.read_geom(level, chunks, context)
 
     # get chunks
-    chunks_ids = _get_level_chunks_ids(level)
+    chunks_ids = fmt.ver_chunks[level.xrlc_version]
 
     # create level object
     level_collection = _create_level_collections(level)
