@@ -976,11 +976,11 @@ class TestOps(tests.utils.XRayTestCase):
         bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ALL_MATERIALS', light_format='SOC')
         bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ALL_MATERIALS')
 
-        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ACTIVE_LEVEL', light_format='CSCOP')
-        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ACTIVE_LEVEL')
+        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ALL_MATERIALS', light_format='CSCOP')
+        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ALL_MATERIALS')
 
-        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ACTIVE_LEVEL', light_format='1964-3120')
-        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ACTIVE_LEVEL')
+        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ALL_MATERIALS', light_format='1964-3120')
+        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ALL_MATERIALS')
 
-        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ACTIVE_LEVEL', light_format='3436-3844')
-        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ACTIVE_LEVEL')
+        bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ALL_MATERIALS', light_format='3436-3844')
+        bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ALL_MATERIALS')
