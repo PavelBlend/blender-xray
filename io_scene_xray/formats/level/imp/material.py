@@ -8,14 +8,8 @@ from .. import fmt
 from .... import utils
 
 
-def _link_nodes(bpy_material, input_, output):
-    links = bpy_material.node_tree.links
-    links.new(input_, output)
-
-
 def _create_shader_output_node(bpy_material, offset):
     output_node = bpy_material.node_tree.nodes.new('ShaderNodeOutputMaterial')
-    output_node.select = False
     offset.x += 400.0
     output_node.location = offset
     return output_node
@@ -23,19 +17,17 @@ def _create_shader_output_node(bpy_material, offset):
 
 def _create_shader_principled_node(bpy_material, offset):
     node = bpy_material.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
-    node.select = False
     node.inputs['Specular'].default_value = 0.0
     offset.x += 400.0
     node.location = offset
     return node
 
 
-def _create_shader_uv_map_texture_node(bpy_material, offset):
+def _create_shader_uv_map_node(bpy_material, offset):
     uv_map_node = bpy_material.node_tree.nodes.new('ShaderNodeUVMap')
-    offset_y = offset.y - 200.0
-    uv_map_node.location = offset.x, offset_y
+    uv_map_node.location.x = offset.x
+    uv_map_node.location.y = offset.y - 200.0
     uv_map_node.uv_map = 'Texture'
-    uv_map_node.select = False
     return uv_map_node
 
 
@@ -43,11 +35,10 @@ def _create_shader_image_node(bpy_material, bpy_image, offset, rel_tex):
     image_node = bpy_material.node_tree.nodes.new('ShaderNodeTexImage')
     image_node.name = rel_tex
     image_node.label = rel_tex
-    image_node.select = False
     image_node.image = bpy_image
     offset.x += 400.0
-    offset_y = offset.y - 200.0
-    image_node.location = offset.x, offset_y
+    image_node.location.x = offset.x
+    image_node.location.y = offset.y - 200.0
     return image_node
 
 
@@ -59,24 +50,22 @@ def _links_nodes(
         uv_map_node,
         lmap_count
     ):
-    _link_nodes(
-        bpy_material,
+
+    bpy_material.node_tree.links.new(
         principled_node.outputs['BSDF'],
         output_node.inputs['Surface']
     )
-    _link_nodes(
-        bpy_material,
+    bpy_material.node_tree.links.new(
         image_node.outputs['Color'],
         principled_node.inputs['Base Color']
     )
-    _link_nodes(
-        bpy_material,
+    bpy_material.node_tree.links.new(
         uv_map_node.outputs['UV'],
         image_node.inputs['Vector']
     )
+
     if lmap_count != 1:    # is not terrain
-        _link_nodes(
-            bpy_material,
+        bpy_material.node_tree.links.new(
             image_node.outputs['Alpha'],
             principled_node.inputs['Alpha']
         )
@@ -94,10 +83,14 @@ def _create_shader_nodes(bpy_mat, bpy_img, bpy_img_lmaps, rel_tex):
         lmaps_count = 0
 
     # create nodes
-    uv_map_node = _create_shader_uv_map_texture_node(bpy_mat, offset)
+    uv_map_node = _create_shader_uv_map_node(bpy_mat, offset)
     image_node = _create_shader_image_node(bpy_mat, bpy_img, offset, rel_tex)
     principled_node = _create_shader_principled_node(bpy_mat, offset)
     output_node = _create_shader_output_node(bpy_mat, offset)
+
+    # deselect nodes
+    for node in bpy_mat.nodes:
+        node.select = False
 
     # link nodes
     _links_nodes(
@@ -138,12 +131,6 @@ def _search_material(context, rel_tex, engine_shader, light_maps):
     return found_mat, found_img
 
 
-def _set_material_settings(bpy_material):
-    bpy_material.use_nodes = True
-    bpy_material.use_backface_culling = True
-    bpy_material.blend_method = 'CLIP'
-
-
 def _create_material(level, context, rel_tex, engine_shader, light_maps):
     # create material
     bpy_mat = bpy.data.materials.new(name=rel_tex)
@@ -174,7 +161,12 @@ def _create_material(level, context, rel_tex, engine_shader, light_maps):
 
     # create shader nodes
     if utils.version.IS_28:
-        _set_material_settings(bpy_mat)
+
+        # set material settings
+        bpy_mat.use_nodes = True
+        bpy_mat.use_backface_culling = True
+        bpy_mat.blend_method = 'CLIP'
+
         _create_shader_nodes(bpy_mat, bpy_img, bpy_img_lmaps, rel_tex)
 
     # search or create texture
