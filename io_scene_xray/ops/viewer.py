@@ -330,7 +330,7 @@ def update_file_list(directory, active_folder=None):
                     time_str
                 ))
     file_index = 0
-    sort_by_name = lambda item: item[0]
+    sort_by_name = lambda item: item[0].lower()
     if viewer.sort == 'NAME':
         key = sort_by_name
     elif viewer.sort == 'SIZE':
