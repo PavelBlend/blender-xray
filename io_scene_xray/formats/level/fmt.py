@@ -2,7 +2,7 @@
 HEADER = 0x1
 
 
-class Chunks13:
+class Chunks14:
     SHADERS = 0x2
     VISUALS = 0x3
     PORTALS = 0x4
@@ -12,6 +12,10 @@ class Chunks13:
     VB = 0x9
     IB = 0xa
     SWIS = 0xb
+
+
+class Chunks13(Chunks14):
+    pass
 
 
 class Chunks12:
@@ -148,6 +152,7 @@ SUPPORTED_VERSIONS = (
 )
 
 ver_chunks = {
+    VERSION_14: Chunks14,
     VERSION_13: Chunks13,
     VERSION_12: Chunks12,
     VERSION_11: Chunks11,
