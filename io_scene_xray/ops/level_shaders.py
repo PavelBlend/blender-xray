@@ -324,7 +324,15 @@ def _create_vert_col_nodes(mat, shader_group):
     return light_node, sun_node, hemi_node
 
 
-def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
+def _create_group_nodes(
+        mat,
+        img_node,
+        shader_groups,
+        use_lmap_1,
+        use_lmap_2,
+        light_format
+    ):
+
     # create group node
     group = mat.node_tree.nodes.new('ShaderNodeGroup')
     group.select = False
@@ -369,11 +377,23 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
         tex_rgb = shader_group.inputs.new('NodeSocketColor', 'Texture Color')
         tex_a = shader_group.inputs.new('NodeSocketFloat', 'Texture Alpha')
 
-        lmap_rgb = shader_group.inputs.new('NodeSocketColor', 'Light Map 1 Color')
-        lmap_a = shader_group.inputs.new('NodeSocketFloat', 'Light Map 1 Alpha')
+        lmap_rgb = shader_group.inputs.new(
+            'NodeSocketColor',
+            'Light Map 1 Color'
+        )
+        lmap_a = shader_group.inputs.new(
+            'NodeSocketFloat',
+            'Light Map 1 Alpha'
+        )
 
-        lmap_rgb = shader_group.inputs.new('NodeSocketColor', 'Light Map 2 Color')
-        lmap_a = shader_group.inputs.new('NodeSocketFloat', 'Light Map 2 Alpha')
+        lmap_rgb = shader_group.inputs.new(
+            'NodeSocketColor',
+            'Light Map 2 Color'
+        )
+        lmap_a = shader_group.inputs.new(
+            'NodeSocketFloat',
+            'Light Map 2 Alpha'
+        )
 
         if utils.version.IS_28:
             tex_rgb.hide_value = True
@@ -459,7 +479,10 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
             col2 = 'Color2'
 
         # vertex colors
-        light_node, sun_node, hemi_node = _create_vert_col_nodes(mat, shader_group)
+        light_node, sun_node, hemi_node = _create_vert_col_nodes(
+            mat,
+            shader_group
+        )
 
         # link nodes
 
@@ -492,10 +515,20 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
                 input_node.outputs['Light Map 1 Alpha'],
                 light_sun.inputs[col2]    # color B
             )
-            shader_group.links.new(
-                input_node.outputs['Light Map 2 Color'],
-                hemi.inputs[col2]    # color B
-            )
+
+            # soc
+            if light_format == 'SOC':
+                shader_group.links.new(
+                    input_node.outputs['Light Map 2 Color'],
+                    hemi.inputs[col2]    # color B
+                )
+
+            # cs/cop
+            else:
+                shader_group.links.new(
+                    input_node.outputs['Light Map 2 Alpha'],
+                    hemi.inputs[col2]    # color B
+                )
 
         # link terrain
         elif use_lmap_1 and not use_lmap_2:
@@ -548,7 +581,7 @@ def _create_group_nodes(mat, img_node, shader_groups, use_lmap_1, use_lmap_2):
     return group
 
 
-def _create_and_link_nodes(mat, diff_img, shader_groups):
+def _create_and_link_nodes(mat, diff_img, shader_groups, light_format):
     xray = mat.xray
 
     # diffuse image
@@ -567,7 +600,8 @@ def _create_and_link_nodes(mat, diff_img, shader_groups):
         img_node,
         shader_groups,
         use_lmap_1,
-        use_lmap_2
+        use_lmap_2,
+        light_format
     )
 
     # create output node
@@ -618,7 +652,7 @@ def _create_and_link_nodes(mat, diff_img, shader_groups):
         )
 
 
-def _create_shader_nodes(mat, shader_groups):
+def _create_shader_nodes(mat, shader_groups, light_format):
     # get diffuse image
     diff_img = _get_diffuse_img(mat)
     if not diff_img:
@@ -628,7 +662,7 @@ def _create_shader_nodes(mat, shader_groups):
     mat.node_tree.nodes.clear()
 
     # create nodes
-    _create_and_link_nodes(mat, diff_img, shader_groups)
+    _create_and_link_nodes(mat, diff_img, shader_groups, light_format)
 
 
 def _create_base_nodes(mat, img):
@@ -733,6 +767,22 @@ class XRAY_OT_create_level_shader_nodes(_BaseOperator):
     bl_label = 'Create Level Shader Nodes'
 
     mode = bpy.props.EnumProperty(default='ACTIVE_LEVEL', items=mode_items)
+    light_format = bpy.props.EnumProperty(
+        default='SOC',
+        items=(
+            ('SOC', 'Shadow of Chernobyl', ''),
+            ('CSCOP', 'Clear Sky / Call of Pripyat', '')
+        )
+    )
+
+    def draw(self, context):    # pragma: no cover
+        col = self.layout.column(align=True)
+
+        col.label(text='Mode:')
+        col.prop(self, 'mode', expand=True)
+
+        col.label(text='Light Format:')
+        col.prop(self, 'light_format', expand=True)
 
     def execute(self, context):
         materials = _get_materials(self.mode)
@@ -741,12 +791,16 @@ class XRAY_OT_create_level_shader_nodes(_BaseOperator):
         shader_groups = {}
 
         for mat in materials:
-            _create_shader_nodes(mat, shader_groups)
+            _create_shader_nodes(mat, shader_groups, self.light_format)
             change_count += 1
 
         self.report({'INFO'}, 'Changed materials: {}'.format(change_count))
 
         return {'FINISHED'}
+
+    def invoke(self, context, event):    # pragma: no cover
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
 
 class XRAY_OT_remove_level_shader_nodes(_BaseOperator):
@@ -754,6 +808,12 @@ class XRAY_OT_remove_level_shader_nodes(_BaseOperator):
     bl_label = 'Remove Level Shader Nodes'
 
     mode = bpy.props.EnumProperty(default='ACTIVE_LEVEL', items=mode_items)
+
+    def draw(self, context):    # pragma: no cover
+        col = self.layout.column(align=True)
+
+        col.label(text='Mode:')
+        col.prop(self, 'mode', expand=True)
 
     def execute(self, context):
         materials = _get_materials(self.mode)
