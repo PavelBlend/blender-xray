@@ -583,6 +583,22 @@ def get_sdk_ver(default):
     return ver
 
 
+def _select_verts(obj, verts):
+    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.select_all(action='DESELECT')
+    version.set_active_object(obj)
+
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.reveal()
+    bpy.ops.mesh.select_all(action='DESELECT')
+    bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    for vert_index in verts:
+        vert = obj.data.vertices[vert_index]
+        vert.select = True
+
+
 def validate_vertex_weights(bpy_obj, arm_obj):
     exportable_bones_names = [
         bpy_bone.name
@@ -595,10 +611,10 @@ def validate_vertex_weights(bpy_obj, arm_obj):
             if group.name in exportable_bones_names
     ]
 
-    has_ungrouped_verts = None
+    ungrouped_verts = set()
     ungrouped_verts_count = 0
 
-    has_nonexp_vert_groups = None
+    nonexp_vert_groups = set()
     nonexp_group_verts_count = 0
 
     for vertex in bpy_obj.data.vertices:
@@ -609,14 +625,15 @@ def validate_vertex_weights(bpy_obj, arm_obj):
                 if vertex_group.group in exportable_groups_indices:
                     exportable_groups_count += 1
             if not exportable_groups_count:
-                has_nonexp_vert_groups = True
+                nonexp_vert_groups.add(vertex.index)
                 nonexp_group_verts_count += 1
 
         else:
-            has_ungrouped_verts = True
+            ungrouped_verts.add(vertex.index)
             ungrouped_verts_count += 1
 
-    if has_ungrouped_verts:
+    if ungrouped_verts:
+        _select_verts(bpy_obj, ungrouped_verts)
         raise log.AppError(
             text.error.object_ungroupped_verts,
             log.props(
@@ -625,7 +642,8 @@ def validate_vertex_weights(bpy_obj, arm_obj):
             )
         )
 
-    if has_nonexp_vert_groups:
+    if nonexp_vert_groups:
+        _select_verts(bpy_obj, nonexp_vert_groups)
         raise log.AppError(
             text.error.object_nonexp_group_verts,
             log.props(
