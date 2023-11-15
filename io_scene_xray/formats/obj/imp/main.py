@@ -252,17 +252,21 @@ def import_file(file_path, context):
             utils.version.set_active_object(bpy_arm_obj)
             bpy.ops.object.mode_set(mode='POSE')
             obj_pose = bpy_arm_obj.pose
+            pose_bones_count = len(obj_pose.bones)
             try:
                 for part_id in range(parts_count):
                     part_name = reader.gets()
                     bone_group = obj_pose.bone_groups.new(name=part_name)
                     bones_count = reader.uint32()
                     for bone_id in range(bones_count):
+                        pose_bone = None
                         if chunk_id == fmt.Chunks.Object.PARTITIONS1:
                             bone_key = reader.gets()
+                            pose_bone = obj_pose.bones.get(bone_key)
                         else:
                             bone_key = reader.uint32()
-                        pose_bone = obj_pose.bones.get(bone_key)
+                            if bone_key < pose_bones_count:
+                                pose_bone = obj_pose.bones[bone_key]
                         if pose_bone:
                             pose_bone.bone_group = bone_group
             finally:
