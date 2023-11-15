@@ -42,7 +42,7 @@ class XRayShapeProps(bpy.types.PropertyGroup):
     flags = bpy.props.IntProperty()
     flags_nopickable = utility.gen_flag_prop(mask=0x1)
     flags_removeafterbreak = utility.gen_flag_prop(mask=0x2)
-    flags_nophysics = utility.gen_flag_prop(mask=0x4),
+    flags_nophysics = utility.gen_flag_prop(mask=0x4)
     flags_nofogcollider = utility.gen_flag_prop(mask=0x8)
 
     # box
