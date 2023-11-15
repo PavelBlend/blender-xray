@@ -304,7 +304,7 @@ def update_file_list(directory, active_folder=None):
         for file_name, file_path in file_list:
             is_directory = is_dir[index]
             size = os.path.getsize(file_path)
-            create_time = os.path.getctime(file_path)
+            create_time = os.path.getmtime(file_path)
             local_time = time.localtime(create_time)
             time_str = time.strftime('%Y.%m.%d %H:%M:%S', local_time)
             if is_directory:
