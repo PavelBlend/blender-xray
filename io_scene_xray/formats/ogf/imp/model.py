@@ -49,7 +49,6 @@ def import_model_v4(chunks, visual, lvl):
             visual.model_type
         ))
 
-    bpy_obj.xray.is_ogf = True
     lvl.visuals.append(bpy_obj)
     link_visual_object(lvl, visual, bpy_obj)
 
@@ -79,7 +78,6 @@ def import_model_v3(chunks, visual, lvl):
             log.props(model_type=visual.model_type)
         )
 
-    bpy_obj.xray.is_ogf = True
     lvl.visuals.append(bpy_obj)
     link_visual_object(lvl, visual, bpy_obj)
 
@@ -100,6 +98,5 @@ def import_model_v2(chunks, visual, lvl):
             log.props(model_type=visual.model_type)
         )
 
-    bpy_obj.xray.is_ogf = True
     lvl.visuals.append(bpy_obj)
     link_visual_object(lvl, visual, bpy_obj)
