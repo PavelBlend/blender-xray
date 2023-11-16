@@ -110,7 +110,10 @@ class Logger:
                     if line.endswith('.'):
                         line = line[ : -1]
                     self.lines.append(' ' + line)
-                    line = '{0}: "{1}"'.format(line, prop)
+                    if type(prop) == int:
+                        line = '{0}: {1}'.format(line, prop)
+                    else:
+                        line = '{0}: "{1}"'.format(line, prop)
 
                 else:
                     self.lines.append(' ' + line)

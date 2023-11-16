@@ -215,6 +215,16 @@ def _export_child(
     if two_sided:
         vertices_count *= 2
 
+    if vertices_count > fmt.VERTS_COUNT_LIMIT:
+        raise log.AppError(
+            text.error.ogf_verts_count_limit,
+            log.props(
+                vertices_count=vertices_count,
+                vertices_count_limit=fmt.VERTS_COUNT_LIMIT,
+                object=bpy_obj.name
+            )
+        )
+
     # 1-link vertices
     if vertex_max_weights == 1:
         if context.fmt_ver == 'soc':

@@ -158,6 +158,7 @@ translations_table = (
 
     # ogf export
     (error.ogf_has_no_arm, 'Скелетный меш-объект не имеет арматуры'),
+    (error.ogf_verts_count_limit, 'При сохранении в OGF создано слишком много вершин'),
 
     # omf export
     (error.omf_empty, 'Используйте другой режим экспорта. Этот OMF файл пустой'),

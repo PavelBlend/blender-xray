@@ -86,6 +86,7 @@ class ChunksSwi_v3:
     FACES = 3
 
 
+VERTS_COUNT_LIMIT = 65536
 VSPLIT_SIZE = 4
 
 

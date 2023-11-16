@@ -150,6 +150,7 @@ ogf_bad_model_type = 'Unsupported OGF model type'
 
 # ogf export
 ogf_has_no_arm = 'Skeletal mesh-object has no armature'
+ogf_verts_count_limit = 'Too many vertices were created when saving to OGF'
 
 # omf export
 omf_empty = 'Use different export mode. This OMF-file is empty'
