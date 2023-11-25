@@ -276,7 +276,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
                     self.report({'WARNING'}, 'Material "{}" has no principled shader.'.format(mat.name))
                     continue
                 if self.specular_change:
-                    shader_node.inputs['Specular'].default_value = self.specular_value
+                    shader_node.inputs["Specular IOR Level"].default_value = self.specular_value
                 if self.roughness_change:
                     shader_node.inputs['Roughness'].default_value = self.roughness_value
                 if not self.alpha_change:

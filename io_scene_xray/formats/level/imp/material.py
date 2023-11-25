@@ -17,7 +17,7 @@ def _create_shader_output_node(bpy_material, offset):
 
 def _create_shader_principled_node(bpy_material, offset):
     node = bpy_material.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
-    node.inputs['Specular'].default_value = 0.0
+    node.inputs['Specular IOR Level'].default_value = 0.0
     offset.x += 400.0
     node.location = offset
     return node

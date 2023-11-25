@@ -419,7 +419,7 @@ def _create_group_nodes(
         princp_node = shader_group.nodes.new('ShaderNodeBsdfPrincipled')
         princp_node.select = False
         princp_node.location.x = 500
-        princp_node.inputs['Specular'].default_value = 0.0
+        princp_node.inputs['Specular IOR Level'].default_value = 0.0
 
         # link shader
         shader_group.links.new(
@@ -679,7 +679,7 @@ def _create_base_nodes(mat, img):
     princp_node.select = False
     princp_node.location.x = 10
     princp_node.location.y = 300
-    princp_node.inputs['Specular'].default_value = 0.0
+    princp_node.inputs['Specular IOR Level'].default_value = 0.0
 
     # create image node
     img_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
