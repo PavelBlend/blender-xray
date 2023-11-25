@@ -180,7 +180,10 @@ def create_mat_nodes(bpy_material):
     princ_node = node_tree.nodes.new('ShaderNodeBsdfPrincipled')
     princ_node.location.x = 10.0
     princ_node.location.y = 300.0
-    princ_node.inputs['Specular IOR Level'].default_value = 0.0
+    if (int(bpy.app.version_string[0]) >= 4):
+        princ_node.inputs['Specular IOR Level'].default_value = 0.0
+    else:
+        princ_node.inputs['Specular'].default_value = 0.0
     princ_node.select = False
 
     # create output node
