@@ -72,20 +72,3 @@ def time_log():
                 log.debug('time', func=name, time=time.time() - start)
         return wrap
     return decorator
-
-
-# temporarily not used
-def print_time_info(message=None, tabs_count=None, total_time=None):
-    if not message:
-        print()
-        return
-    if tabs_count:
-        spaces = ' ' * 4 * tabs_count
-    else:
-        spaces = ''
-    if total_time is None:
-        print('{0}{1} start...'.format(spaces, message))
-    else:
-        message_text = '{0}{1: <50}'.format(spaces, message + ' end:')
-        message_time = '{0:.6f} sec'.format(total_time)
-        print('{0}{1}'.format(message_text, message_time))
