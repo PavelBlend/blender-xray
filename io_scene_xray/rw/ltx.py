@@ -2,7 +2,7 @@
 import os
 
 
-class LtxSection:
+class _LtxSection:
     def __init__(self, name, parent):
         self.name = name
         self.parent = parent
@@ -10,24 +10,28 @@ class LtxSection:
 
 
 class LtxParser:
-    WHITESPACE = {' ', '\t'}
-    COMMENT = {';', '/'}
+    _WHITESPACE = {' ', '\t'}
+    _COMMENT = {';', '/'}
+
+    def __init__(self):
+        self.path = ''
+        self.sections = {}
+        self.values = {}
 
     def from_file(self, path):
         self.path = path
         with open(self.path, 'r') as file:
-            self.data = file.read()
-        self.parse()
+            self._data = file.read()
+        self._parse()
 
     def from_str(self, data):
-        self.path = ''
-        self.data = data
-        self.parse()
+        self._data = data
+        self._parse()
 
-    def remove_spaces_and_comments(self):
-        self.parsed_lines = []
+    def _remove_spaces_and_comments(self):
+        self._parsed_lines = []
 
-        for line in self.data.splitlines():
+        for line in self._data.splitlines():
             char_index = 0
             char_count = len(line)
             parsed_line = ''
@@ -46,18 +50,18 @@ class LtxParser:
                         parsed_line += char
                     continue
 
-                if char in self.WHITESPACE:
+                if char in self._WHITESPACE:
                     continue
 
-                if char in self.COMMENT:
+                if char in self._COMMENT:
                     break
 
                 parsed_line += char
 
             if parsed_line:
-                self.parsed_lines.append(parsed_line)
+                self._parsed_lines.append(parsed_line)
 
-    def parse_sections(self, line):
+    def _parse_sections(self, line):
         line = line[1 : ]    # cut "["
 
         # parse section header
@@ -69,13 +73,13 @@ class LtxParser:
             section_name = line.split(split_char)[0]
             section_parent = None
 
-        section = LtxSection(section_name, section_parent)
+        section = _LtxSection(section_name, section_parent)
         self.sections[section_name] = section
-        self.line_index += 1
+        self._line_index += 1
 
         start_new_section = False
-        while not start_new_section and self.line_index < self.lines_count:
-            line = self.parsed_lines[self.line_index]
+        while not start_new_section and self._line_index < self._lines_count:
+            line = self._parsed_lines[self._line_index]
 
             if line.startswith('['):
                 start_new_section = True
@@ -89,10 +93,10 @@ class LtxParser:
                     param_value = None
 
                 section.params[param_name] = param_value
-                self.line_index += 1
+                self._line_index += 1
 
-    def parse_fs(self, line):
-        section = LtxSection('root', None)
+    def _parse_fs(self, line):
+        section = _LtxSection('root', None)
         self.sections['root'] = section
         prop_name, prop_value = line.split('=')
         line_parts = prop_value.split('|')
@@ -118,26 +122,24 @@ class LtxParser:
             value = value.replace('\\', os.sep)
             self.values[prop_name] = value
 
-        self.line_index += 1
+        self._line_index += 1
 
-    def parse(self):
-        self.remove_spaces_and_comments()
-        self.line_index = 0
-        self.lines_count = len(self.parsed_lines)
-        self.sections = {}
-        self.values = {}
+    def _parse(self):
+        self._remove_spaces_and_comments()
+        self._line_index = 0
+        self._lines_count = len(self._parsed_lines)
 
-        while self.line_index < self.lines_count:
-            line = self.parsed_lines[self.line_index]
+        while self._line_index < self._lines_count:
+            line = self._parsed_lines[self._line_index]
 
             if line.startswith('['):
-                self.parse_sections(line)
+                self._parse_sections(line)
 
             elif line.startswith('$'):    # fs.ltx
-                self.parse_fs(line)
+                self._parse_fs(line)
 
             elif line.startswith('#include'):
-                self.line_index += 1
+                self._line_index += 1
 
             else:
                 raise BaseException('Invalid *.ltx syntax: ' + line)
