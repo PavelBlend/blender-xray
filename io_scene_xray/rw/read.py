@@ -11,6 +11,7 @@ except:
 
 # addon modules
 from . import lzhuf
+from .. import log
 
 
 class FastBytes:
@@ -60,7 +61,7 @@ class PackedReader:
         size = self.get_size()
         diff = size - self.__offs
         if diff > 0 and self.debug:
-            print('bytes not read: ', diff)
+            log.debug('bytes unread', count=diff)
 
     def getb(self, count):
         self.__offs += count

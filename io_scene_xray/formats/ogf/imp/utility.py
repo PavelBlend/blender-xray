@@ -101,4 +101,7 @@ def set_visual_type(visual, root_visual):
         root_visual.root_obj.xray.flags_simple = 'dy'
 
     else:
-        print('WARNING: Model type = {}'.format(visual.model_type))
+        log.debug(
+            'OGF-model has an unknown type',
+            model_type=visual.model_type
+        )
