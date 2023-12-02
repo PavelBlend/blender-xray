@@ -24,6 +24,9 @@ def create_weights_bones(src_arm_obj, con_arm_obj):
     weight_obj.data = weight_arm
     utils.version.link_object(weight_obj)
 
+    # change xray properties
+    weight_obj.xray.isroot = False
+
     # collect connected bones transforms
     transforms = {}
 
@@ -246,6 +249,9 @@ class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
         bpy.ops.object.select_all(action='DESELECT')
         utils.version.select_object(arm_obj)
         utils.version.set_active_object(arm_obj)
+
+        # change xray properties
+        arm_obj.xray.isroot = False
 
         # clear pose bone transforms
         bpy.ops.object.mode_set(mode='POSE')
