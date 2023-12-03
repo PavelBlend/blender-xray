@@ -83,6 +83,8 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
         items=(('BASE', 'Base', ''), ('ADVANCED', 'Advanced', ''))
     )
 
+    use_update = bpy.props.BoolProperty(default=True)
+
     # defaults
     defaults_category = bpy.props.EnumProperty(
         default='OBJECT',

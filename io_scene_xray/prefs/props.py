@@ -182,6 +182,9 @@ xray_custom_properties = (
 
 
 def update_paths(prefs, context):
+    if not prefs.use_update:
+        return
+
     not_found_paths = set()
 
     for prop, suffix in path_props_suffix_values.items():
@@ -249,6 +252,17 @@ fs_props = {
 }
 
 
+def _clear_paths():
+    pref = utils.version.get_preferences()
+    pref.use_update = False
+
+    for prop in path_props_suffix_values.keys():
+        setattr(pref, build_auto_id(prop), '')
+        setattr(pref, prop, '')
+
+    pref.use_update = True
+
+
 def _auto_path(prefs, prop_name, suffix, checker):
     if prefs.fs_ltx_file:
 
@@ -258,6 +272,7 @@ def _auto_path(prefs, prop_name, suffix, checker):
         try:
             fs = rw.ltx.LtxParser()
             fs.from_file(prefs.fs_ltx_file)
+
         except log.AppError:
             traceback.print_exc()
             utils.draw.show_message(
@@ -266,6 +281,11 @@ def _auto_path(prefs, prop_name, suffix, checker):
                 text.get_text(text.error.error_title),
                 'ERROR'
             )
+            _clear_paths()
+            raise BaseException('error')
+
+        except BaseException:
+            _clear_paths()
             raise BaseException('error')
 
         prop_key, file_name = fs_props[prop_name]
@@ -278,7 +298,8 @@ def _auto_path(prefs, prop_name, suffix, checker):
                 text.get_text(text.error.error_title),
                 'ERROR'
             )
-            raise log.AppError(text.get_text(text.error.ltx_no_param))
+            _clear_paths()
+            raise BaseException('error')
 
         if file_name:
             result = os.path.join(dir_path, file_name)
