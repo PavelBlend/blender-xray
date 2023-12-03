@@ -166,9 +166,4 @@ class LtxParser:
 
             else:
                 src_line, src_index = self._src_lines[self._line_index]
-                raise log.AppError(
-                    'Invalid *.ltx syntax. Line {}: {}'.format(
-                        src_index,
-                        src_line
-                    )
-                )
+                raise log.AppError('Line {}: {}'.format(src_index, src_line))
