@@ -1,6 +1,11 @@
 # standart modules
 import os
 
+# addon modules
+from .. import log
+from .. import text
+from .. import utils
+
 
 class _LtxSection:
     def __init__(self, name, parent):
@@ -30,8 +35,10 @@ class LtxParser:
 
     def _remove_spaces_and_comments(self):
         self._parsed_lines = []
+        self._src_lines = {}
+        line_index = 0
 
-        for line in self._data.splitlines():
+        for src_line_index, line in enumerate(self._data.splitlines()):
             char_index = 0
             char_count = len(line)
             parsed_line = ''
@@ -60,6 +67,8 @@ class LtxParser:
 
             if parsed_line:
                 self._parsed_lines.append(parsed_line)
+                self._src_lines[line_index] = (line, src_line_index)
+                line_index += 1
 
     def _parse_sections(self, line):
         line = line[1 : ]    # cut "["
@@ -118,7 +127,18 @@ class LtxParser:
                 self.values[prop_name] = self.values[parent_key]
 
         else:
-            value = os.path.join(self.values['$sdk_root$'], parent_key)
+            sdk_root = self.values.get('$sdk_root$', None)
+
+            if sdk_root is None:
+                utils.draw.show_message(
+                    text.get_text(text.error.ltx_no_param),
+                    ('$sdk_root$', ),
+                    text.get_text(text.error.error_title),
+                    'ERROR'
+                )
+                raise BaseException('error')
+
+            value = os.path.join(sdk_root, parent_key)
             value = value.replace('\\', os.sep)
             self.values[prop_name] = value
 
@@ -136,10 +156,19 @@ class LtxParser:
                 self._parse_sections(line)
 
             elif line.startswith('$'):    # fs.ltx
-                self._parse_fs(line)
+                try:
+                    self._parse_fs(line)
+                except:
+                    raise BaseException('error')
 
             elif line.startswith('#include'):
                 self._line_index += 1
 
             else:
-                raise BaseException('Invalid *.ltx syntax: ' + line)
+                src_line, src_index = self._src_lines[self._line_index]
+                raise log.AppError(
+                    'Invalid *.ltx syntax. Line {}: {}'.format(
+                        src_index,
+                        src_line
+                    )
+                )

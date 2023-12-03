@@ -9,6 +9,7 @@ import bpy
 # addon modules
 from . import hotkeys
 from .. import rw
+from .. import log
 from .. import utils
 from .. import text
 
@@ -182,27 +183,34 @@ xray_custom_properties = (
 
 def update_paths(prefs, context):
     not_found_paths = set()
-    for path_prop, suffix in path_props_suffix_values.items():
-        if getattr(prefs, path_prop):
-            setattr(prefs, build_auto_id(path_prop), getattr(prefs, path_prop))
+
+    for prop, suffix in path_props_suffix_values.items():
+
+        if getattr(prefs, prop):
+            setattr(prefs, build_auto_id(prop), getattr(prefs, prop))
             continue
-        prop_type = path_props_types[path_prop]
+
+        prop_type = path_props_types[prop]
+
         if prop_type == DIRECTORY:
-            cheker_function = os.path.isdir
+            cheker_fun = os.path.isdir
         elif prop_type == FILE:
-            cheker_function = os.path.isfile
-        path_value, not_found = _auto_path(
-            prefs,
-            path_prop,
-            suffix,
-            cheker_function
-        )
+            cheker_fun = os.path.isfile
+
+        try:
+            value, not_found = _auto_path(prefs, prop, suffix, cheker_fun)
+        except:
+            return
+
         if not_found:
             not_found_paths.add(os.path.abspath(not_found))
-        if path_value and prop_type == DIRECTORY:
-            if not path_value.endswith(os.sep):
-                path_value += os.sep
-        setattr(prefs, build_auto_id(path_prop), path_value)
+
+        if value and prop_type == DIRECTORY:
+            if not value.endswith(os.sep):
+                value += os.sep
+
+        setattr(prefs, build_auto_id(prop), value)
+
     if not_found_paths:
         not_found_paths = list(not_found_paths)
         not_found_paths.sort()
@@ -241,14 +249,16 @@ fs_props = {
 }
 
 
-def _auto_path(prefs, self_name, path_suffix, checker):
+def _auto_path(prefs, prop_name, suffix, checker):
     if prefs.fs_ltx_file:
+
         if not os.path.exists(prefs.fs_ltx_file):
             return '', prefs.fs_ltx_file
+
         try:
             fs = rw.ltx.LtxParser()
             fs.from_file(prefs.fs_ltx_file)
-        except:
+        except log.AppError:
             traceback.print_exc()
             utils.draw.show_message(
                 text.get_text(text.error.ltx_invalid_syntax),
@@ -256,16 +266,29 @@ def _auto_path(prefs, self_name, path_suffix, checker):
                 text.get_text(text.error.error_title),
                 'ERROR'
             )
-            return '', False
-        prop_key, file_name = fs_props[self_name]
-        dir_path = fs.values[prop_key]
+            raise BaseException('error')
+
+        prop_key, file_name = fs_props[prop_name]
+        dir_path = fs.values.get(prop_key, None)
+
+        if dir_path is None:
+            utils.draw.show_message(
+                text.get_text(text.error.ltx_no_param),
+                (prop_key, ),
+                text.get_text(text.error.error_title),
+                'ERROR'
+            )
+            raise log.AppError(text.get_text(text.error.ltx_no_param))
+
         if file_name:
             result = os.path.join(dir_path, file_name)
         else:
             result = dir_path
+
         return result, False
+
     for prop in __AUTO_PROPS__:
-        if prop == self_name:
+        if prop == prop_name:
             continue
         value = getattr(prefs, prop)
         if not value:
@@ -279,10 +302,10 @@ def _auto_path(prefs, self_name, path_suffix, checker):
             if dirname == result:
                 continue  # os.path.dirname('T:') == 'T:'
             result = dirname
-        if path_suffix:
-            result = os.path.join(result, path_suffix)
+        if suffix:
+            result = os.path.join(result, suffix)
         if checker(result):
-            if self_name == 'objects_folder':
+            if prop_name == 'objects_folder':
                 result = os.path.abspath(result)
             return result, False
         else:
