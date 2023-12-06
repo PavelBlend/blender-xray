@@ -380,6 +380,15 @@ def _write_motions(xray, context, arm_obj, ogf_writer):
         ogf_writer.data.extend(motions_writer.data)
 
 
+def _write_lod(root_obj, ogf_writer):
+    lod = root_obj.xray.lodref
+
+    if lod:
+        lod_writer = rw.write.PackedWriter()
+        lod_writer.puts(lod + '\r\n')
+        ogf_writer.put(fmt.Chunks_v4.S_LODS, lod_writer)
+
+
 def _write_motion_refs(obj, context, ogf_writer):
     refs_collect = obj.xray.motionrefs_collection
 
@@ -825,6 +834,7 @@ def _export_main(root_obj, ogf_writer, context):
     _write_userdata(root_obj, ogf_writer)
     _write_motion_refs(root_obj, context, ogf_writer)
     _write_motions(xray, context, arm_obj, ogf_writer)
+    _write_lod(root_obj, ogf_writer)
 
 
 @log.with_context('export-ogf')
