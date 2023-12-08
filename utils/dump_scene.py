@@ -19,4 +19,4 @@ for root, dirs, files in os.walk(os.curdir):
 # dump files
 
 for path in reversed(scene_files):
-    le.scene.dump_main(path)
+    le.selection.dump_main(path)

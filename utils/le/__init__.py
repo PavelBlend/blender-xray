@@ -8,7 +8,7 @@ sys.path.append(xray_io_dir)
 
 
 from . import part
-from . import scene
+from . import selection
 from . import group
 from . import fmt
 from . import objects
