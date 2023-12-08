@@ -99,6 +99,9 @@ def _read_objects(data):
 
 
 def import_objects(imp_ctx, references, positions, rotations, scales):
+    if not len(references):
+        raise log.AppError(text.error.part_no_objs)
+
     imported_objects = {}
 
     for ref, pos, rot, scl in zip(references, positions, rotations, scales):

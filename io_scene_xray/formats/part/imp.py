@@ -67,10 +67,7 @@ def import_file(file_path, context):
         if data_chunk:
             refs, pos, rot, scl = le.imp.read_data(data_chunk)
         else:
-            raise log.AppError(
-                text.error.part_no_objs,
-                log.props(file=file_path)
-            )
+            raise log.AppError(text.error.part_no_objs)
 
     # import
     le.imp.import_objects(context, refs, pos, rot, scl)
