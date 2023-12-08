@@ -49,7 +49,7 @@ def write_object_body(chunked_writer, bpy_obj):
     body_chunked_writer.put(fmt.Chunks.CUSTOMOBJECT_CHUNK_TRANSFORM, packed_reader)
 
     packed_reader = rw.write.PackedWriter()
-    packed_reader.putf('<H', fmt.SCENEOBJ_VERSION_SOC)
+    packed_reader.putf('<H', fmt.OBJECT_VER_SOC)
     body_chunked_writer.put(fmt.Chunks.SCENEOBJ_CHUNK_VERSION, packed_reader)
 
     packed_reader = rw.write.PackedWriter()
@@ -104,7 +104,7 @@ def write_objects(root_chunked_writer, bpy_objs):
 
 def write_header(chunked_writer):
     packed_writer = rw.write.PackedWriter()
-    packed_writer.putf('<I', fmt.FORMAT_VERSION)
+    packed_writer.putf('<I', fmt.SCENE_VERSION)
     chunked_writer.put(fmt.Chunks.VERSION_CHUNK, packed_writer)
 
 

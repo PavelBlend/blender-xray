@@ -19,30 +19,6 @@ def _set_obj_transforms(obj, loc, rot, scl):
     obj.scale = scl[0], scl[2], scl[1]
 
 
-def _read_scene_version(scene_version_chunk):
-    if not scene_version_chunk:
-        raise log.AppError(text.error.scene_bad_file)
-
-    packed_reader = rw.read.PackedReader(scene_version_chunk)
-    object_tools_version = packed_reader.getf('<H')[0]
-
-    if object_tools_version != fmt.OBJECT_TOOLS_VERSION:
-        raise log.AppError(
-            text.error.scene_obj_tool_ver,
-            log.props(version=object_tools_version)
-        )
-
-
-def _read_objects_count(objects_count_chunk):
-    if not objects_count_chunk:
-        raise log.AppError(text.error.scene_obj_count)
-
-    packed_reader = rw.read.PackedReader(objects_count_chunk)
-    objects_count = packed_reader.uint32()
-
-    return objects_count
-
-
 def _read_object_body_version(chunked_reader):
     # get scene object version
     ver_chunk = chunked_reader.get_chunk(fmt.Chunks.SCENEOBJ_CHUNK_VERSION)
@@ -50,7 +26,7 @@ def _read_object_body_version(chunked_reader):
     ver = packed_reader.getf('<H')[0]
 
     # check version
-    if not ver in (fmt.SCENEOBJ_VERSION_SOC, fmt.SCENEOBJ_VERSION_COP):
+    if not ver in (fmt.OBJECT_VER_SOC, fmt.OBJECT_VER_COP):
         raise log.AppError(
             text.error.scene_obj_ver,
             log.props(version=ver)
@@ -71,7 +47,7 @@ def _read_object_body_data(chunked_reader, ver):
         if chunk_id == fmt.Chunks.SCENEOBJ_CHUNK_REFERENCE:
             packed_reader = rw.read.PackedReader(chunk_data)
 
-            if ver == fmt.SCENEOBJ_VERSION_SOC:
+            if ver == fmt.OBJECT_VER_SOC:
                 version = packed_reader.uint32()
                 reserved = packed_reader.uint32()
 
@@ -196,7 +172,7 @@ def _read_scene_object(data, imported_objects, import_context):
             break
 
 
-def _read_scene_objects(scene_objects_chunk, objects_count, import_context):
+def _read_scene_objects(scene_objects_chunk, import_context):
     if not scene_objects_chunk:
         raise log.AppError(text.error.scene_scn_objs)
 
@@ -214,14 +190,10 @@ def _read_objects(objects_chunk, import_context):
     chunked_reader = rw.read.ChunkedReader(objects_chunk)
 
     # get chunks
-    ver_chunk = chunked_reader.get_chunk(fmt.Chunks.SCENE_VERSION_CHUNK)
-    count_chunk = chunked_reader.get_chunk(fmt.Chunks.OBJECTS_COUNT_CHUNK)
     objs_chunk = chunked_reader.get_chunk(fmt.Chunks.SCENE_OBJECTS_CHUNK)
 
     # read
-    _read_scene_version(ver_chunk)
-    objects_count = _read_objects_count(count_chunk)
-    _read_scene_objects(objs_chunk, objects_count, import_context)
+    _read_scene_objects(objs_chunk, import_context)
 
 
 def _read_version(version_chunk):
@@ -237,7 +209,7 @@ def _read_version(version_chunk):
 
     packed_reader = rw.read.PackedReader(version_chunk)
     version = packed_reader.uint32()
-    if version != fmt.FORMAT_VERSION:
+    if version != fmt.SCENE_VERSION:
         raise log.AppError(
             text.error.scene_ver,
             log.props(version=version)
