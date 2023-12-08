@@ -37,17 +37,17 @@ def _get_file_path(object_path):
     return import_path
 
 
-def _copy_object(imp_obj, position, rotation, scale):
+def _copy_object(imp_obj, collection, position, rotation, scale):
     # copy root
     new_root = imp_obj.copy()
     utils.stats.created_obj()
-    utils.version.link_object(new_root)
+    utils.version.link_object_to_collection(new_root, collection)
 
     # copy meshes
     for child_obj in imp_obj.children:
         new_mesh = child_obj.copy()
         utils.stats.created_obj()
-        utils.version.link_object(new_mesh)
+        utils.version.link_object_to_collection(new_mesh, collection)
         new_mesh.parent = new_root
         new_mesh.xray.isroot = False
 
@@ -65,9 +65,12 @@ def _import_object(
         scale
     ):
 
+    imp_obj = None
+
     if os.path.exists(import_path):
         # import file
         imp_obj = obj.imp.main.import_file(import_path, import_context)
+        utils.version.unlink_object_from_collections(imp_obj)
         utils.ie.set_export_path(imp_obj, '', object_path)
         imported_objects[object_path] = imp_obj
 
@@ -81,10 +84,15 @@ def _import_object(
             path=import_path
         )
 
+    return imp_obj
 
-def import_objects(imp_ctx, references, positions, rotations, scales):
+
+def import_objects(name, imp_ctx, references, positions, rotations, scales):
+
     if not len(references):
         raise log.AppError(text.error.part_no_objs)
+
+    collection = utils.version.create_collection(name)
 
     imported_objects = {}
 
@@ -98,11 +106,11 @@ def import_objects(imp_ctx, references, positions, rotations, scales):
 
         if imp_obj:
             # copy object
-            _copy_object(imp_obj, pos, rot, scl)
+            _copy_object(imp_obj, collection, pos, rot, scl)
 
         else:
             # import object
-            _import_object(
+            imp_obj = _import_object(
                 imp_ctx,
                 import_path,
                 ref,
@@ -111,3 +119,6 @@ def import_objects(imp_ctx, references, positions, rotations, scales):
                 rot,
                 scl
             )
+
+            if imp_obj:
+                utils.version.link_object_to_collection(imp_obj, collection)

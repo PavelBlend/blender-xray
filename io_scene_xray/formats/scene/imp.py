@@ -46,7 +46,8 @@ def import_(filepath, chunked_reader, import_context):
     refs, poss, rots, scls = le.read.read_data(data_chunk)
 
     # import
-    le.imp.import_objects(import_context, refs, poss, rots, scls)
+    name = os.path.basename(filepath)
+    le.imp.import_objects(name, import_context, refs, poss, rots, scls)
 
 
 @log.with_context(name='import-scene-selection')

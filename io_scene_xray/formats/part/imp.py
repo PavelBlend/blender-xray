@@ -70,4 +70,5 @@ def import_file(file_path, context):
             raise log.AppError(text.error.part_no_objs)
 
     # import
-    le.imp.import_objects(context, refs, pos, rot, scl)
+    name = os.path.basename(os.path.dirname(file_path))
+    le.imp.import_objects(name, context, refs, pos, rot, scl)
