@@ -1,5 +1,6 @@
 import os
 import xray_io
+import le
 
 
 CURRENT_VERSION = 17
@@ -38,6 +39,7 @@ def dump_reference(data):
     reader = xray_io.PackedReader(data)
 
     reference = read('str', 'reference')
+    print('        Reference: "{}"'.format(reference))
 
 
 def dump_flags(data):
@@ -46,21 +48,15 @@ def dump_flags(data):
 
     flags = read('I', 'flags')
     flag_state_opened = bool(flags & GroupFlags.STATE_OPENED)
-    print('flag_state_opened =', flag_state_opened)
-
-
-def dump_level_tag(data):
-    chunks = xray_io.ChunkedReader(data).read()
-
-    for chunk_id, chunk_data in chunks:
-        print('unknown custom object chunk', hex(chunk_id), len(chunk_data))
+    print('        Flag State Opened:', flag_state_opened)
 
 
 def dump_object_class(data):
     global reader
     reader = xray_io.PackedReader(data)
 
-    read('I', 'object_class')
+    object_class = read('I', 'object_class')
+    print('                Object Class:', object_class)
 
 
 def dump_object(data):
@@ -69,23 +65,23 @@ def dump_object(data):
     for chunk_id, chunk_data in chunks:
 
         if chunk_id == SceneChunks.OBJECT_CLASS:
+            print('            OBJECT CLASS:')
             dump_object_class(chunk_data)
 
         elif chunk_id == SceneChunks.LEVEL_TAG:
-            dump_level_tag(chunk_data)
+            print('            LEVEL TAG:')
+            le.objects.dump_object_body(chunk_data)
 
         else:
-            print('unknown object chunk', hex(chunk_id), len(chunk_data))
+            print('            unknown object chunk', hex(chunk_id), len(chunk_data))
 
 
 def dump_object_list(data):
     chunks = xray_io.ChunkedReader(data).read()
 
     for chunk_id, chunk_data in chunks:
-        print('\n\tobject', chunk_id)
+        print('        Object', chunk_id)
         dump_object(chunk_data)
-
-    print()
 
 
 def dump_version(data):
@@ -93,6 +89,7 @@ def dump_version(data):
     reader = xray_io.PackedReader(data)
 
     ver = read('H', 'version')
+    print('        Version:', ver)
 
     if ver != CURRENT_VERSION:
         raise 'unsupported group version'
@@ -104,19 +101,37 @@ def dump_group(data):
     for chunk_id, chunk_data in chunks:
 
         if chunk_id == GroupChunks.VERSION:
+            print('    VERSION:')
             dump_version(chunk_data)
 
         elif chunk_id == GroupChunks.OBJECT_LIST:
+            print('    OBJECT LIST:')
             dump_object_list(chunk_data)
 
         elif chunk_id == GroupChunks.FLAGS:
+            print('    OBJECT FLAGS:')
             dump_flags(chunk_data)
 
         elif chunk_id == GroupChunks.REFERENCE:
+            print('    OBJECT REFERENCE:')
             dump_reference(chunk_data)
 
+        # custom object
+        elif chunk_id == le.fmt.ObjectChunks.FLAGS:
+            print('                    CUSTOM OBJECT FLAGS:')
+            le.custom_object.dump_flags(chunk_data)
+
+        elif chunk_id == le.fmt.ObjectChunks.NAME:
+            print('                    CUSTOM OBJECT NAME:')
+            le.custom_object.dump_name(chunk_data)
+
+        elif chunk_id == le.fmt.ObjectChunks.TRANSFORM:
+            print('                    CUSTOM OBJECT TRANSFORM:')
+            le.custom_object.dump_transform(chunk_data)
+
+        # unknown chunks
         else:
-            print('unknown chunk', hex(chunk_id), len(chunk_data))
+            print('    unknown chunk', hex(chunk_id), len(chunk_data))
 
 
 reader = None
@@ -133,7 +148,7 @@ def read(fmt, name):
         if len(value) == 1:
             value = value[0]
 
-    print('{} = {}'.format(name, value))
+    # print('{} = {}'.format(name, value))
 
     return value
 

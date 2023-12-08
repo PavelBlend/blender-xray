@@ -20,7 +20,7 @@ def dump_objects(data):
         _dump_object(object_data)
 
 
-def _dump_object_body(data):
+def dump_object_body(data):
     chunked_reader = xray_io.ChunkedReader(data)
 
     for chunk_id, chunk_data in chunked_reader.read():
@@ -78,7 +78,7 @@ def _dump_object(data):
 
         elif chunk_id == fmt.CustomObjectChunks.BODY:
             print('                OBJECT BODY:')
-            _dump_object_body(chunk_data)
+            dump_object_body(chunk_data)
 
         else:
             raise BaseException('Unsupported chunk: 0x{:x}'.format(chunk_id))
