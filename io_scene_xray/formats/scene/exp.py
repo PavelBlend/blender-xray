@@ -11,7 +11,7 @@ from ... import utils
 def write_objects_count(chunked_writer, bpy_objs):
     packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<I', len(bpy_objs))
-    chunked_writer.put(fmt.CustomObjectsChunks.OBJECTS_COUNT, packed_writer)
+    chunked_writer.put(fmt.CustomObjectsChunks.OBJECT_COUNT, packed_writer)
 
 
 def write_object_body(chunked_writer, bpy_obj):
