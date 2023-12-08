@@ -45,6 +45,14 @@ class ObjectToolsChunks:
     FLAGS = 0x1003
 
 
+class GroupChunks:
+    VERSION = 0
+    OBJECT_LIST = 1
+    FLAGS = 3
+    REFERENCE = 4
+    OPEN_OBJECT_LIST = 5
+
+
 # flags
 class AppendRandomFlags:
     UpdateProps = 1<<27
@@ -63,6 +71,10 @@ class CustomObjectFlags:
     CAMERA_VIEW = 1<<31
 
 
+class GroupFlags:
+    STATE_OPENED = 1 << 0
+
+
 # classes
 class ClassID:
     OBJECT = 2
@@ -71,3 +83,4 @@ class ClassID:
 # versions
 OBJECT_TOOLS_VERSION = 0
 SCENE_OBJECT_VERSION = 17
+GROUP_VERSION = 17

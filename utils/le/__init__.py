@@ -8,6 +8,7 @@ sys.path.append(xray_io_dir)
 
 
 from . import part
+from . import group
 from . import fmt
 from . import objects
 from . import custom_object
