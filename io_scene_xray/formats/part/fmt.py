@@ -1,6 +1,0 @@
-class Chunks:
-    TOOLS_DATA = 0x8002
-    OBJECTS = 0x3
-    OBJECT_BODY = 0x7777
-    REFERENCE = 0x0902
-    TRANSFORM = 0xF903
