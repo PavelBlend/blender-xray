@@ -6,6 +6,7 @@ class ToolsChunks:
 
 
 class SceneChunks:
+    VERSION = 0x9df3
     LEVEL_TAG = 0x7777
 
 
@@ -81,6 +82,7 @@ class ClassID:
 
 
 # versions
-OBJECT_TOOLS_VERSION = 0
+SCENE_VERSION = 5
 SCENE_OBJECT_VERSION = 17
+OBJECT_TOOLS_VERSION = 0
 GROUP_VERSION = 17

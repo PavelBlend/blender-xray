@@ -7,7 +7,7 @@ from . import object_tools
 from . import utils
 
 
-def _dump_data(data):
+def dump_data(data):
     chunked_reader = xray_io.ChunkedReader(data)
 
     for chunk_id, chunk_data in chunked_reader.read():
@@ -55,7 +55,7 @@ def _dump_part_body(data):
 
         elif chunk_id == fmt.ToolsChunks.DATA + fmt.ClassID.OBJECT:
             print('    DATA:')
-            _dump_data(chunk_data)
+            dump_data(chunk_data)
 
         # unknown chunks
         else:
