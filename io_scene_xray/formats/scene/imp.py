@@ -21,7 +21,7 @@ def _set_obj_transforms(obj, loc, rot, scl):
 
 def _read_object_body_version(chunked_reader):
     # get scene object version
-    ver_chunk = chunked_reader.get_chunk(fmt.Chunks.SCENEOBJ_CHUNK_VERSION)
+    ver_chunk = chunked_reader.get_chunk(fmt.SceneObjectChunks.VERSION)
     packed_reader = rw.read.PackedReader(ver_chunk)
     ver = packed_reader.getf('<H')[0]
 
@@ -44,7 +44,7 @@ def _read_object_body_data(chunked_reader, ver):
     for chunk_id, chunk_data in chunked_reader:
 
         # reference
-        if chunk_id == fmt.Chunks.SCENEOBJ_CHUNK_REFERENCE:
+        if chunk_id == fmt.SceneObjectChunks.REFERENCE:
             packed_reader = rw.read.PackedReader(chunk_data)
 
             if ver == fmt.OBJECT_VER_SOC:
@@ -54,7 +54,7 @@ def _read_object_body_data(chunked_reader, ver):
             object_path = packed_reader.gets()
 
         # transforms
-        elif chunk_id == fmt.Chunks.CUSTOMOBJECT_CHUNK_TRANSFORM:
+        elif chunk_id == fmt.ObjectChunks.TRANSFORM:
             packed_reader = rw.read.PackedReader(chunk_data)
 
             position = packed_reader.getf('<3f')
@@ -167,7 +167,7 @@ def _read_scene_object(data, imported_objects, import_context):
 
     for chunk_id, chunk_data in chunked_reader:
 
-        if chunk_id == fmt.Chunks.CHUNK_OBJECT_BODY:
+        if chunk_id == fmt.SceneChunks.LEVEL_TAG:
             _read_object_body(chunk_data, imported_objects, import_context)
             break
 
@@ -190,7 +190,7 @@ def _read_objects(objects_chunk, import_context):
     chunked_reader = rw.read.ChunkedReader(objects_chunk)
 
     # get chunks
-    objs_chunk = chunked_reader.get_chunk(fmt.Chunks.SCENE_OBJECTS_CHUNK)
+    objs_chunk = chunked_reader.get_chunk(fmt.CustomObjectsChunks.OBJECTS)
 
     # read
     _read_scene_objects(objs_chunk, import_context)
@@ -218,8 +218,10 @@ def _read_version(version_chunk):
 
 def import_(filepath, chunked_reader, import_context):
     # get chunks
-    version_chunk = chunked_reader.get_chunk(fmt.Chunks.VERSION_CHUNK)
-    objects_chunk = chunked_reader.get_chunk(fmt.Chunks.OBJECTS_CHUNK)
+    version_chunk = chunked_reader.get_chunk(fmt.SceneChunks.VERSION)
+    objects_chunk = chunked_reader.get_chunk(
+        fmt.ToolsChunks.DATA + fmt.ClassID.OBJECT
+    )
 
     if not version_chunk or not objects_chunk:
         utils.draw.show_message(

@@ -1,17 +1,53 @@
-class Chunks:
-    VERSION_CHUNK = 0x9df3
-    OBJECTS_CHUNK = 0x8002
-    SCENE_VERSION_CHUNK = 0x1001
-    OBJECTS_COUNT_CHUNK = 0x0002
-    SCENE_OBJECTS_CHUNK = 0x0003
-    CHUNK_OBJECT_CLASS = 0x7703
-    CHUNK_OBJECT_BODY = 0x7777
-    CUSTOMOBJECT_CHUNK_FLAGS = 0xf906
-    CUSTOMOBJECT_CHUNK_NAME = 0xf907
-    CUSTOMOBJECT_CHUNK_TRANSFORM = 0xf903
-    SCENEOBJ_CHUNK_VERSION = 0x0900
-    SCENEOBJ_CHUNK_REFERENCE = 0x0902
-    SCENEOBJ_CHUNK_FLAGS = 0x0905
+# chunks
+class SceneChunks:
+    VERSION = 0x9df3
+    LEVEL_TAG = 0x7777
+
+
+class ToolsChunks:
+    GUID = 0x7000
+    DATA = 0x8000
+
+
+class ObjectToolsChunks:
+    VERSION = 0x1001
+    APPEND_RANDOM = 0x1002
+    FLAGS = 0x1003
+
+
+class CustomObjectsChunks:
+    VERSION = 1
+    OBJECT_COUNT = 2
+    OBJECTS = 3
+    FLAGS = 4
+
+
+class CustomObjectChunks:
+    CLASS = 0x7703
+    BODY = 0x7777
+
+
+class ObjectChunks:
+    PARAMS = 0xf900
+    LOCK = 0xf902
+    TRANSFORM = 0xf903
+    GROUP = 0xf904
+    MOTION = 0xf905
+    FLAGS = 0xf906
+    NAME = 0xf907
+    MOTION_PARAM = 0xf908
+
+
+class SceneObjectChunks:
+    VERSION = 0x0900
+    REFERENCE = 0x0902
+    PLACEMENT = 0x0904
+    FLAGS = 0x0905
+
+
+# classes
+class ClassID:
+    OBJECT = 2
 
 
 # versions
