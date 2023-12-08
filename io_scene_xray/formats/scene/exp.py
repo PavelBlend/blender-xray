@@ -10,7 +10,13 @@ from ... import utils
 
 def write_objects_count(chunked_writer, bpy_objs):
     packed_writer = rw.write.PackedWriter()
-    packed_writer.putf('<I', len(bpy_objs))
+
+    obj_count = 0
+    for obj in bpy_objs:
+        if obj.xray.isroot:
+            obj_count += 1
+
+    packed_writer.putf('<I', obj_count)
     chunked_writer.put(le.fmt.CustomObjectsChunks.OBJECT_COUNT, packed_writer)
 
 
