@@ -9,9 +9,14 @@ from ... import utils
 
 
 def _set_obj_transforms(obj, loc, rot, scl):
-    obj.location = loc[0], loc[2], loc[1]
-    obj.rotation_euler = rot[0], rot[2], rot[1]
-    obj.scale = scl[0], scl[2], scl[1]
+    if loc:
+        obj.location = loc[0], loc[2], loc[1]
+
+    if rot:
+        obj.rotation_euler = rot[0], rot[2], rot[1]
+
+    if scl:
+        obj.scale = scl[0], scl[2], scl[1]
 
 
 def get_file_path(object_path):
