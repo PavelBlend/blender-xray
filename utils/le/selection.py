@@ -1,7 +1,7 @@
 import xray_io
 
 from . import fmt
-from . import part
+from . import scene
 from . import utils
 
 
@@ -27,7 +27,7 @@ def _dump_scene_body(data):
 
         elif chunk_id == fmt.ToolsChunks.DATA + fmt.ClassID.OBJECT:
             print('    DATA:')
-            part.dump_data(chunk_data)
+            scene.dump_data(chunk_data)
 
         # unknown chunks
         else:
