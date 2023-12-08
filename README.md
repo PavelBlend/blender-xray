@@ -15,7 +15,8 @@
 | .details  | Level details         | Yes        | Yes        |
 | .level    | Scene selection       | Yes        | Yes        |
 | level     | Game level            | Yes        | Yes        |
-| .part     | Scene objects         | Yes        | No         |
+| .part     | Scene objects         | Yes        | Yes        |
+| .group    | Object groups         | Yes        | No         |
 | .err      | Error list            | Yes        | No         |
 
 ## Installation
