@@ -33,13 +33,19 @@ def is_armature_context(context):
     return obj.type == 'ARMATURE'
 
 
-def get_revision_data(revision):
+def get_current_user():
     pref = version.get_preferences()
 
     if pref.custom_owner_name:
         curruser = pref.custom_owner_name
     else:
         curruser = '\\\\{}\\{}'.format(platform.node(), getpass.getuser())
+
+    return curruser
+
+
+def get_revision_data(revision):
+    curruser = get_current_user()
 
     currtime = int(time.time())
     if (not revision.owner) or (revision.owner == curruser):

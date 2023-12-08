@@ -208,6 +208,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
     enable_level_export = bpy.props.BoolProperty(default=True, update=update_menu_func)
     enable_omf_export = bpy.props.BoolProperty(default=True, update=update_menu_func)
     enable_ogf_export = bpy.props.BoolProperty(default=True, update=update_menu_func)
+    enable_part_export = bpy.props.BoolProperty(default=True, update=update_menu_func)
 
     category = bpy.props.EnumProperty(
         default='PATHS',

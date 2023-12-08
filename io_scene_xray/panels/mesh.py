@@ -35,7 +35,8 @@ class XRAY_PT_mesh(ui.base.XRayPanel):
 
             # export formats
             pref.enable_object_export or
-            pref.enable_scene_export
+            pref.enable_scene_export or
+            pref.enable_part_export
         )
 
         return panel_used

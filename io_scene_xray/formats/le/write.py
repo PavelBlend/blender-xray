@@ -1,10 +1,22 @@
 # standart modules
+import time
 import string
 
 # addon modules
 from . import fmt
 from ... import rw
 from ... import utils
+
+
+def write_level_tag(chunked_writer):
+    owner = utils.obj.get_current_user()
+
+    packed_writer = rw.write.PackedWriter()
+
+    packed_writer.puts(owner)
+    packed_writer.putf('<I', int(time.time()))
+
+    chunked_writer.put(fmt.SceneChunks.LEVEL_TAG, packed_writer)
 
 
 def write_objects_count(chunked_writer, bpy_objs):
@@ -28,6 +40,28 @@ def write_object_tools_ver(chunked_writer):
     chunked_writer.put(fmt.ObjectToolsChunks.VERSION, packed_writer)
 
 
+def write_object_tools_append_random(chunked_writer):
+    packed_writer = rw.write.PackedWriter()
+
+    packed_writer.putf('<3f', 1.0, 1.0, 1.0)    # min scale
+    packed_writer.putf('<3f', 1.0, 1.0, 1.0)    # max scale
+
+    packed_writer.putf('<3f', 0.0, 0.0, 0.0)    # min rotation
+    packed_writer.putf('<3f', 0.0, 0.0, 0.0)    # min rotation
+
+    packed_writer.putf('<I', 0)    # objects count
+
+    chunked_writer.put(fmt.ObjectToolsChunks.APPEND_RANDOM, packed_writer)
+
+
+def write_object_tools_flags(chunked_writer):
+    packed_writer = rw.write.PackedWriter()
+
+    packed_writer.putf('<I', 0)
+
+    chunked_writer.put(fmt.ObjectToolsChunks.FLAGS, packed_writer)
+
+
 def write_object_body(chunked_writer, bpy_obj):
     exp_path = utils.ie.get_export_path(bpy_obj)
     object_name = exp_path + bpy_obj.name
@@ -45,7 +79,7 @@ def write_object_body(chunked_writer, bpy_obj):
 
     # flags
     packed_reader = rw.write.PackedWriter()
-    packed_reader.putf('<I', 3)
+    packed_reader.putf('<I', 2)
     body_chunked_writer.put(fmt.ObjectChunks.FLAGS, packed_reader)
 
     # name
@@ -117,12 +151,21 @@ def write_scene_objects(chunked_writer, bpy_objs):
     chunked_writer.put(fmt.CustomObjectsChunks.OBJECTS, objects_writer)
 
 
-def write_objects(root_chunked_writer, bpy_objs):
+def write_objects(root_chunked_writer, bpy_objs, part=False):
     chunked_writer = rw.write.ChunkedWriter()
 
-    write_object_tools_ver(chunked_writer)
-    write_scene_objects(chunked_writer, bpy_objs)
-    write_objects_count(chunked_writer, bpy_objs)
+    if part:
+        write_level_tag(chunked_writer)
+        write_objects_count(chunked_writer, bpy_objs)
+        write_scene_objects(chunked_writer, bpy_objs)
+        write_object_tools_ver(chunked_writer)
+        write_object_tools_flags(chunked_writer)
+        write_object_tools_append_random(chunked_writer)
+
+    else:
+        write_object_tools_ver(chunked_writer)
+        write_scene_objects(chunked_writer, bpy_objs)
+        write_objects_count(chunked_writer, bpy_objs)
 
     root_chunked_writer.put(
         fmt.ToolsChunks.DATA + fmt.ClassID.OBJECT,
