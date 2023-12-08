@@ -359,6 +359,17 @@ def draw_defaults(prefs):
         )
         box.prop(prefs, 'part_mesh_split_by_mat')
 
+    elif prefs.defaults_category == 'GROUP':
+        box = layout.box()
+        box.label(text='Import:')
+        utils.draw.draw_fmt_ver_prop(
+            box,
+            prefs,
+            'group_sdk_ver',
+            lay_type='ROW'
+        )
+        box.prop(prefs, 'group_split_by_mat')
+
 
 def draw_formats_enable_disable(prefs):
     layout = prefs.layout
@@ -378,6 +389,7 @@ def draw_formats_enable_disable(prefs):
     column_import.prop(prefs, 'enable_scene_import', text='*.level')
     column_import.prop(prefs, 'enable_level_import', text='level')
     column_import.prop(prefs, 'enable_part_import', text='*.part')
+    column_import.prop(prefs, 'enable_group_import', text='*.group')
     column_import.prop(prefs, 'enable_err_import', text='*.err')
 
     # export operators

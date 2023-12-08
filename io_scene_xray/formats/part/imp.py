@@ -46,7 +46,6 @@ def _read_cs_cop_objects(ltx):
 def import_file(file_path, context):
     utils.stats.status('Import File', file_path)
 
-    level_name = os.path.basename(os.path.dirname(file_path))
     file_data = rw.utils.get_file_data(file_path)
 
     try:

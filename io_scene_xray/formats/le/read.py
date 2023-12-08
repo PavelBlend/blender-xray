@@ -8,6 +8,9 @@ from ... import rw
 def _read_object_body_version(chunked_reader):
     # get scene object version
     ver_chunk = chunked_reader.get_chunk(fmt.SceneObjectChunks.VERSION)
+    if not ver_chunk:
+        return
+
     packed_reader = rw.read.PackedReader(ver_chunk)
     ver = packed_reader.getf('<H')[0]
 
@@ -19,6 +22,16 @@ def _read_object_body_version(chunked_reader):
         )
 
     return ver
+
+
+def read_transform(chunk_data):
+    packed_reader = rw.read.PackedReader(chunk_data)
+
+    pos = packed_reader.getf('<3f')
+    rot = packed_reader.getf('<3f')
+    scl = packed_reader.getf('<3f')
+
+    return pos, rot, scl
 
 
 def _read_object_body_data(chunked_reader, ver):
@@ -33,7 +46,7 @@ def _read_object_body_data(chunked_reader, ver):
         if chunk_id == fmt.SceneObjectChunks.REFERENCE:
             packed_reader = rw.read.PackedReader(chunk_data)
 
-            if ver == fmt.OBJECT_VER_SOC:
+            if ver == fmt.OBJECT_VER_SOC or ver is None:
                 version = packed_reader.uint32()
                 reserved = packed_reader.uint32()
 
@@ -41,11 +54,7 @@ def _read_object_body_data(chunked_reader, ver):
 
         # transforms
         elif chunk_id == fmt.ObjectChunks.TRANSFORM:
-            packed_reader = rw.read.PackedReader(chunk_data)
-
-            pos = packed_reader.getf('<3f')
-            rot = packed_reader.getf('<3f')
-            scl = packed_reader.getf('<3f')
+            pos, rot, scl = read_transform(chunk_data)
 
     return ref, pos, rot, scl
 
@@ -79,7 +88,7 @@ def _read_object(data):
     return ref, pos, rot, scl
 
 
-def _read_objects(data):
+def read_objects(data):
     references = []
     positions = []
     rotations = []
@@ -100,5 +109,5 @@ def _read_objects(data):
 def read_data(data):
     chunked_reader = rw.read.ChunkedReader(data)
     objs_chunk = chunked_reader.get_chunk(fmt.CustomObjectsChunks.OBJECTS)
-    refs, poss, rots, scls = _read_objects(objs_chunk)
+    refs, poss, rots, scls = read_objects(objs_chunk)
     return refs, poss, rots, scls

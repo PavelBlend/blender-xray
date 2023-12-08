@@ -45,6 +45,14 @@ class SceneObjectChunks:
     FLAGS = 0x0905
 
 
+class GroupChunks:
+    VERSION = 0
+    OBJECT_LIST = 1
+    FLAGS = 3
+    REFERENCE = 4
+    OPEN_OBJECT_LIST = 5
+
+
 # classes
 class ClassID:
     OBJECT = 2

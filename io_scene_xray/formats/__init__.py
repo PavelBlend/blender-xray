@@ -11,6 +11,7 @@ from . import ogf
 from . import level
 from . import omf
 from . import part
+from . import group
 from . import xr
 
 
@@ -29,6 +30,7 @@ modules = (
     level.imp.ops,
     level.exp.ops,
     part.ops,
+    group.ops,
     err.ops
 )
 

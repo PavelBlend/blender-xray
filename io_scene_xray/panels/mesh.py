@@ -31,6 +31,7 @@ class XRAY_PT_mesh(ui.base.XRayPanel):
             pref.enable_object_import or
             pref.enable_scene_import or
             pref.enable_part_import or
+            pref.enable_group_import or
 
             # export formats
             pref.enable_object_export or

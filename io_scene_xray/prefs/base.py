@@ -98,7 +98,8 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
             ('DM', 'Dm', ''),
             ('DETAILS', 'Details', ''),
             ('SCENE', ' Scene ', ''),
-            ('PART', 'Part', '')
+            ('PART', 'Part', ''),
+            ('GROUP', 'Group', '')
         )
     )
 
@@ -172,6 +173,10 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
     part_sdk_version = formats.ie.PropSDKVersion()
     part_mesh_split_by_mat = formats.ie.PropObjectMeshSplitByMaterials()
 
+    # group import props
+    group_sdk_ver = formats.ie.PropSDKVersion()
+    group_split_by_mat = formats.ie.PropObjectMeshSplitByMaterials()
+
     # keymap
     keymaps_collection = bpy.props.CollectionProperty(type=XRayKeyMap)
     keymaps_collection_index = bpy.props.IntProperty(options={'SKIP_SAVE'})
@@ -189,6 +194,7 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
     enable_omf_import = bpy.props.BoolProperty(default=True, update=update_menu_func)
     enable_ogf_import = bpy.props.BoolProperty(default=True, update=update_menu_func)
     enable_part_import = bpy.props.BoolProperty(default=True, update=update_menu_func)
+    enable_group_import = bpy.props.BoolProperty(default=True, update=update_menu_func)
 
     # enable export plugins
     enable_object_export = bpy.props.BoolProperty(default=True, update=update_menu_func)

@@ -29,7 +29,7 @@ keymap_items_list = (
     (formats.level.imp.ops.XRAY_OT_import_level, 'F6', True, True, False),
     (formats.level.exp.ops.XRAY_OT_export_level, 'F6', True, True, True),
     (formats.part.ops.XRAY_OT_import_part, 'F7', True, True, False),
-    (formats.err.ops.XRAY_OT_import_err, 'F8', True, True, False)
+    (formats.group.ops.XRAY_OT_import_group, 'F8', True, True, False)
 )
 
 

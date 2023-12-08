@@ -12,17 +12,17 @@ from ... import utils
 from ... import log
 
 
-class ImportPartContext(obj.imp.ctx.ImportObjectContext):
+class ImportGroupContext(obj.imp.ctx.ImportObjectContext):
     pass
 
 
-filename_ext = '.part'
+filename_ext = '.group'
 op_text = 'Scene Objects'
 
 
-class XRAY_OT_import_part(utils.ie.BaseOperator):
-    bl_idname = 'xray_import.part'
-    bl_label = 'Import .part'
+class XRAY_OT_import_group(utils.ie.BaseOperator):
+    bl_idname = 'xray_import.group'
+    bl_label = 'Import .group'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     text = op_text
@@ -37,28 +37,28 @@ class XRAY_OT_import_part(utils.ie.BaseOperator):
         default='*'+filename_ext,
         options={'HIDDEN'}
     )
-    mesh_split_by_materials = ie.PropObjectMeshSplitByMaterials()
+    mesh_split_by_mat = ie.PropObjectMeshSplitByMaterials()
     fmt_version = ie.PropSDKVersion()
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
         utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
-        layout.prop(self, 'mesh_split_by_materials')
+        layout.prop(self, 'mesh_split_by_mat')
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
-        utils.stats.update('Import *.part')
+        utils.stats.update('Import *.group')
 
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
 
-        import_context = ImportPartContext()
+        import_context = ImportGroupContext()
         import_context.soc_sgroups = self.fmt_version == 'soc'
-        import_context.split_by_materials = self.mesh_split_by_materials
+        import_context.split_by_materials = self.mesh_split_by_mat
         import_context.operator = self
         import_context.import_motions = False
 
@@ -79,16 +79,16 @@ class XRAY_OT_import_part(utils.ie.BaseOperator):
     def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
 
-        self.mesh_split_by_materials = pref.part_mesh_split_by_mat
-        self.fmt_version = utils.ie.get_sdk_ver(pref.part_sdk_version)
+        self.mesh_split_by_mat = pref.group_split_by_mat
+        self.fmt_version = utils.ie.get_sdk_ver(pref.group_sdk_ver)
 
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 
 def register():
-    utils.version.register_classes(XRAY_OT_import_part)
+    utils.version.register_classes(XRAY_OT_import_group)
 
 
 def unregister():
-    bpy.utils.unregister_class(XRAY_OT_import_part)
+    bpy.utils.unregister_class(XRAY_OT_import_group)

@@ -577,6 +577,7 @@ def get_used(prefs):
         prefs.enable_omf_import or
         prefs.enable_ogf_import or
         prefs.enable_part_import or
+        prefs.enable_group_import or
         # export plugins
         prefs.enable_object_export or
         prefs.enable_skls_export or
