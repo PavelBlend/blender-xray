@@ -183,10 +183,7 @@ translations_table = (
     (error.scene_bad_file, 'Недопустимый scene selection файл. Не найден "scene version" блок'),
     (error.scene_obj_tool_ver, 'Неподдерживаемая версия "object tools"'),
     (error.scene_obj_count, 'Недопустимый scene selection файл. Не найден "scene objects count" блок'),
-    (error.scene_scn_objs, 'Недопустимый scene selection файл. Не найден "scene objects" блок'),
     (error.scene_objs, 'Недопустимый scene selection файл. Не найден "objects" блок'),
-    (error.scene_no_ver, 'Недопустимый scene selection файл. Не найден "version" блок'),
-    (error.scene_ver_size, 'Недопустимый scene selection файл. Размер "version" блока не равен 4'),
     (error.scene_ver, 'Неподдерживаемая версия формата'),
     (error.scene_obj_ver, 'Неподдерживаемая версия формата объектов сцены'),
 

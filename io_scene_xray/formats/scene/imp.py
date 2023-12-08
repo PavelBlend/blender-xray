@@ -162,7 +162,7 @@ def _read_object_body(data, imported_objects, import_context):
         )
 
 
-def _read_scene_object(data, imported_objects, import_context):
+def _read_object(data, imported_objects, import_context):
     chunked_reader = rw.read.ChunkedReader(data)
 
     for chunk_id, chunk_data in chunked_reader:
@@ -172,43 +172,24 @@ def _read_scene_object(data, imported_objects, import_context):
             break
 
 
-def _read_scene_objects(scene_objects_chunk, import_context):
-    if not scene_objects_chunk:
-        raise log.AppError(text.error.scene_scn_objs)
-
+def _read_objects(data, import_context):
     imported_objects = {}
-    chunked_reader = rw.read.ChunkedReader(scene_objects_chunk)
+    chunked_reader = rw.read.ChunkedReader(data)
 
     for chunk_id, chunk_data in chunked_reader:
-        _read_scene_object(chunk_data, imported_objects, import_context)
+        _read_object(chunk_data, imported_objects, import_context)
 
 
-def _read_objects(objects_chunk, import_context):
-    if not objects_chunk:
-        raise log.AppError(text.error.scene_objs)
-
-    chunked_reader = rw.read.ChunkedReader(objects_chunk)
-
-    # get chunks
+def _read_data(data, import_context):
+    chunked_reader = rw.read.ChunkedReader(data)
     objs_chunk = chunked_reader.get_chunk(fmt.CustomObjectsChunks.OBJECTS)
-
-    # read
-    _read_scene_objects(objs_chunk, import_context)
+    _read_objects(objs_chunk, import_context)
 
 
 def _read_version(version_chunk):
-    if not version_chunk:
-        raise log.AppError(text.error.scene_no_ver)
-
-    chunk_size = len(version_chunk)
-    if chunk_size != 4:
-        raise log.AppError(
-            text.error.scene_ver_size,
-            log.props(size=chunk_size)
-        )
-
     packed_reader = rw.read.PackedReader(version_chunk)
     version = packed_reader.uint32()
+
     if version != fmt.SCENE_VERSION:
         raise log.AppError(
             text.error.scene_ver,
@@ -218,12 +199,11 @@ def _read_version(version_chunk):
 
 def import_(filepath, chunked_reader, import_context):
     # get chunks
+    data_chunk_id = fmt.ToolsChunks.DATA + fmt.ClassID.OBJECT
     version_chunk = chunked_reader.get_chunk(fmt.SceneChunks.VERSION)
-    objects_chunk = chunked_reader.get_chunk(
-        fmt.ToolsChunks.DATA + fmt.ClassID.OBJECT
-    )
+    data_chunk = chunked_reader.get_chunk(data_chunk_id)
 
-    if not version_chunk or not objects_chunk:
+    if not version_chunk or not data_chunk:
         utils.draw.show_message(
             text.error.scene_incorrect_file,
             (text.get_text(text.error.scene_err_info), ),
@@ -237,7 +217,7 @@ def import_(filepath, chunked_reader, import_context):
 
     # read
     _read_version(version_chunk)
-    _read_objects(objects_chunk, import_context)
+    _read_data(data_chunk, import_context)
 
 
 @log.with_context(name='import-scene-selection')
