@@ -18,22 +18,6 @@ class GroupChunks:
     OPEN_OBJECT_LIST = 5
 
 
-class CustomObjectChunks:
-    PARAMS = 0xf900
-    LOCK = 0xf902
-    TRANSFORM = 0xf903
-    GROUP = 0xf904
-    MOTION = 0xf905
-    FLAGS = 0xf906
-    NAME = 0xf907
-    MOTION_PARAM = 0xf908
-
-
-class SceneChunks:
-    OBJECT_CLASS = 0x7703
-    LEVEL_TAG = 0x7777
-
-
 def dump_reference(data):
     global reader
     reader = xray_io.PackedReader(data)
@@ -49,39 +33,6 @@ def dump_flags(data):
     flags = read('I', 'flags')
     flag_state_opened = bool(flags & GroupFlags.STATE_OPENED)
     print('        Flag State Opened:', flag_state_opened)
-
-
-def dump_object_class(data):
-    global reader
-    reader = xray_io.PackedReader(data)
-
-    object_class = read('I', 'object_class')
-    print('                Object Class:', object_class)
-
-
-def dump_object(data):
-    chunks = xray_io.ChunkedReader(data).read()
-
-    for chunk_id, chunk_data in chunks:
-
-        if chunk_id == SceneChunks.OBJECT_CLASS:
-            print('            OBJECT CLASS:')
-            dump_object_class(chunk_data)
-
-        elif chunk_id == SceneChunks.LEVEL_TAG:
-            print('            LEVEL TAG:')
-            le.objects.dump_object_body(chunk_data)
-
-        else:
-            print('            unknown object chunk', hex(chunk_id), len(chunk_data))
-
-
-def dump_object_list(data):
-    chunks = xray_io.ChunkedReader(data).read()
-
-    for chunk_id, chunk_data in chunks:
-        print('        Object', chunk_id)
-        dump_object(chunk_data)
 
 
 def dump_version(data):
@@ -106,7 +57,7 @@ def dump_group(data):
 
         elif chunk_id == GroupChunks.OBJECT_LIST:
             print('    OBJECT LIST:')
-            dump_object_list(chunk_data)
+            le.objects.dump_objects(chunk_data)
 
         elif chunk_id == GroupChunks.FLAGS:
             print('    OBJECT FLAGS:')
