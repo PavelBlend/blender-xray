@@ -43,7 +43,7 @@ def import_(filepath, chunked_reader, import_context):
 
     # read
     _read_version(version_chunk)
-    refs, poss, rots, scls = le.imp.read_data(data_chunk)
+    refs, poss, rots, scls = le.read.read_data(data_chunk)
 
     # import
     le.imp.import_objects(import_context, refs, poss, rots, scls)

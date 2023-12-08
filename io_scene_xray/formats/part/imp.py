@@ -65,7 +65,7 @@ def import_file(file_path, context):
         data_chunk = chunks.get(data_chunk_id, None)
 
         if data_chunk:
-            refs, pos, rot, scl = le.imp.read_data(data_chunk)
+            refs, pos, rot, scl = le.read.read_data(data_chunk)
         else:
             raise log.AppError(text.error.part_no_objs)
 
