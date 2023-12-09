@@ -182,6 +182,9 @@ scene_obj_ver = 'Unsupported scene object format version'
 # part import
 part_no_objs = 'File has no objects!'
 
+# group import
+group_ver = 'Unsupported group format version'
+
 # motion
 motion_shape = 'Unsupported keyframe shapes'
 motion_ver = 'Unsupported motions version'

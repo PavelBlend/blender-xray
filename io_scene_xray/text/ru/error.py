@@ -190,6 +190,9 @@ translations_table = (
     # part import
     (error.part_no_objs, 'Файл не имеет объектов!'),
 
+    # group import
+    (error.group_ver, 'Неподдерживаемая версия group формата'),
+
     # motion
     (error.motion_shape, 'Неподдерживаемая форма ключевого кадра'),
     (error.motion_ver, 'Неподдерживаемая версия анимации')

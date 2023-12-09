@@ -142,5 +142,3 @@ def import_objects(name, imp_ctx, references, positions, rotations, scales):
 
     if not refs_count:
         raise log.AppError(text.error.part_no_objs)
-
-    return all_objects, collection
