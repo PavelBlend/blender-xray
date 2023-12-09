@@ -30,10 +30,3 @@ def import_file(file_path, context):
     # import
     name = os.path.basename(file_path)
     objs, coll = le.imp.import_objects(name, context, refs, pos, rot, scl)
-
-    # create group root-object
-    group_obj = bpy.data.objects.new(name, None)
-    utils.version.link_object_to_collection(group_obj, coll)
-
-    for ob in objs:
-        ob.parent = group_obj
