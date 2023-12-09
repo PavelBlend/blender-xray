@@ -17,7 +17,7 @@ class ImportGroupContext(obj.imp.ctx.ImportObjectContext):
 
 
 filename_ext = '.group'
-op_text = 'Scene Objects'
+op_text = 'Object Group'
 
 
 class XRAY_OT_import_group(utils.ie.BaseOperator):
