@@ -58,6 +58,16 @@ class ClassID:
     OBJECT = 2
 
 
+# flags
+class CustomObjectFlags:
+    SELECTED = 1<<0
+    VISIBLE = 1<<1
+    LOCKED = 1<<2
+    MOTION = 1<<3
+    AUTO_KEY = 1<<30
+    CAMERA_VIEW = 1<<31
+
+
 # versions
 SCENE_VERSION = 5
 GROUP_VERSION = 17

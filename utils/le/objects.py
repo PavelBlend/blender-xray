@@ -27,28 +27,28 @@ def dump_object_body(data):
 
         # custom object
         if chunk_id == fmt.ObjectChunks.FLAGS:
-            print('                    CUSTOM OBJECT FLAGS:')
+            print('                    CUSTOM OBJECT FLAGS:', hex(chunk_id))
             custom_object.dump_flags(chunk_data)
 
         elif chunk_id == fmt.ObjectChunks.TRANSFORM:
-            print('                    CUSTOM OBJECT TRANSFORM:')
+            print('                    CUSTOM OBJECT TRANSFORM:', hex(chunk_id))
             custom_object.dump_transform(chunk_data)
 
         elif chunk_id == fmt.ObjectChunks.NAME:
-            print('                    CUSTOM OBJECT NAME:')
+            print('                    CUSTOM OBJECT NAME:', hex(chunk_id))
             custom_object.dump_name(chunk_data)
 
         # scene object
         elif chunk_id == fmt.SceneObjectChunks.VERSION:
-            print('                    SCENE OBJECT VERSION:')
+            print('                    SCENE OBJECT VERSION:', hex(chunk_id))
             scene_object.dump_version(chunk_data)
 
         elif chunk_id == fmt.SceneObjectChunks.FLAGS:
-            print('                    SCENE OBJECT FLAGS:')
+            print('                    SCENE OBJECT FLAGS:', hex(chunk_id))
             scene_object.dump_flags(chunk_data)
 
         elif chunk_id == fmt.SceneObjectChunks.REFERENCE:
-            print('                    SCENE OBJECT REFERENCE:')
+            print('                    SCENE OBJECT REFERENCE:', hex(chunk_id))
             scene_object.dump_reference(chunk_data)
 
         # unknown chunks
@@ -73,11 +73,11 @@ def _dump_object(data):
     for chunk_id, chunk_data in chunked_reader.read():
 
         if chunk_id == fmt.CustomObjectChunks.CLASS:
-            print('                OBJECT CLASS:')
+            print('                OBJECT CLASS:', hex(chunk_id))
             _dump_object_class(chunk_data)
 
         elif chunk_id == fmt.CustomObjectChunks.BODY:
-            print('                OBJECT BODY:')
+            print('                OBJECT BODY:', hex(chunk_id))
             dump_object_body(chunk_data)
 
         else:

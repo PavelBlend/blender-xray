@@ -38,32 +38,32 @@ def dump_group(data):
 
         # group object
         if chunk_id == fmt.GroupChunks.VERSION:
-            print('    VERSION:')
+            print('    VERSION:', hex(chunk_id))
             _dump_version(chunk_data)
 
         elif chunk_id == fmt.GroupChunks.OBJECT_LIST:
-            print('    OBJECT LIST:')
+            print('    OBJECT LIST:', hex(chunk_id))
             objects.dump_objects(chunk_data)
 
         elif chunk_id == fmt.GroupChunks.FLAGS:
-            print('    OBJECT FLAGS:')
+            print('    OBJECT FLAGS:', hex(chunk_id))
             _dump_flags(chunk_data)
 
         elif chunk_id == fmt.GroupChunks.REFERENCE:
-            print('    OBJECT REFERENCE:')
+            print('    OBJECT REFERENCE:', hex(chunk_id))
             _dump_reference(chunk_data)
 
         # custom object
         elif chunk_id == fmt.ObjectChunks.FLAGS:
-            print('                    CUSTOM OBJECT FLAGS:')
+            print('                    CUSTOM OBJECT FLAGS:', hex(chunk_id))
             custom_object.dump_flags(chunk_data)
 
         elif chunk_id == fmt.ObjectChunks.NAME:
-            print('                    CUSTOM OBJECT NAME:')
+            print('                    CUSTOM OBJECT NAME:', hex(chunk_id))
             custom_object.dump_name(chunk_data)
 
         elif chunk_id == fmt.ObjectChunks.TRANSFORM:
-            print('                    CUSTOM OBJECT TRANSFORM:')
+            print('                    CUSTOM OBJECT TRANSFORM:', hex(chunk_id))
             custom_object.dump_transform(chunk_data)
 
         # unknown chunks

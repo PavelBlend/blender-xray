@@ -62,6 +62,41 @@ def write_object_tools_flags(chunked_writer):
     chunked_writer.put(fmt.ObjectToolsChunks.FLAGS, packed_writer)
 
 
+def write_name(object_name, body_chunked_writer):
+    packed_reader = rw.write.PackedWriter()
+
+    packed_reader.puts(object_name)
+
+    body_chunked_writer.put(fmt.ObjectChunks.NAME, packed_reader)
+
+
+def write_flags(body_chunked_writer):
+    packed_reader = rw.write.PackedWriter()
+
+    packed_reader.putf('<I', fmt.CustomObjectFlags.VISIBLE)
+
+    body_chunked_writer.put(fmt.ObjectChunks.FLAGS, packed_reader)
+
+
+def write_transform(loc, rot, scl, body_chunked_writer):
+    location = (loc[0], loc[2], loc[1])
+
+    rotation_matrix = rot.to_matrix()
+    rotation_euler = rotation_matrix.to_euler('YXZ')
+    rotation = (rotation_euler.x, rotation_euler.z, rotation_euler.y)
+
+    scale = (scl[0], scl[2], scl[1])
+
+    # write
+    packed_reader = rw.write.PackedWriter()
+
+    packed_reader.putf('<3f', *location)
+    packed_reader.putf('<3f', *rotation)
+    packed_reader.putf('<3f', *scale)
+
+    body_chunked_writer.put(fmt.ObjectChunks.TRANSFORM, packed_reader)
+
+
 def write_object_body(chunked_writer, bpy_obj):
     exp_path = utils.ie.get_export_path(bpy_obj)
     object_name = exp_path + bpy_obj.name
@@ -78,28 +113,18 @@ def write_object_body(chunked_writer, bpy_obj):
     body_chunked_writer = rw.write.ChunkedWriter()
 
     # flags
-    packed_reader = rw.write.PackedWriter()
-    packed_reader.putf('<I', 2)
-    body_chunked_writer.put(fmt.ObjectChunks.FLAGS, packed_reader)
+    write_flags(body_chunked_writer)
 
     # name
-    packed_reader = rw.write.PackedWriter()
-    packed_reader.puts(object_name)
-    body_chunked_writer.put(fmt.ObjectChunks.NAME, packed_reader)
+    write_name(object_name, body_chunked_writer)
 
     # transform
-    packed_reader = rw.write.PackedWriter()
-    packed_reader.putf('<3f', bpy_obj.location[0], bpy_obj.location[2], bpy_obj.location[1])
-    rotation_matrix = bpy_obj.rotation_euler.to_matrix()
-    rotation_euler = rotation_matrix.to_euler('YXZ')
-    packed_reader.putf(
-        '<3f',
-        rotation_euler.x,
-        rotation_euler.z,
-        rotation_euler.y
+    write_transform(
+        bpy_obj.location,
+        bpy_obj.rotation_euler,
+        bpy_obj.scale,
+        body_chunked_writer
     )
-    packed_reader.putf('<3f', bpy_obj.scale[0], bpy_obj.scale[2], bpy_obj.scale[1])
-    body_chunked_writer.put(fmt.ObjectChunks.TRANSFORM, packed_reader)
 
     # version
     packed_reader = rw.write.PackedWriter()
@@ -139,7 +164,7 @@ def write_scene_object(bpy_obj, objects_chunked_writer, object_index):
     objects_chunked_writer.put(object_index, chunked_writer)
 
 
-def write_scene_objects(chunked_writer, bpy_objs):
+def write_scene_objects(chunked_writer, bpy_objs, group=False):
     objects_writer = rw.write.ChunkedWriter()
     obj_index = 0
 
@@ -148,7 +173,10 @@ def write_scene_objects(chunked_writer, bpy_objs):
             write_scene_object(bpy_obj, objects_writer, obj_index)
             obj_index += 1
 
-    chunked_writer.put(fmt.CustomObjectsChunks.OBJECTS, objects_writer)
+    if group:
+        chunked_writer.put(fmt.GroupChunks.OBJECT_LIST, objects_writer)
+    else:
+        chunked_writer.put(fmt.CustomObjectsChunks.OBJECTS, objects_writer)
 
 
 def write_objects(root_chunked_writer, bpy_objs, part=False):

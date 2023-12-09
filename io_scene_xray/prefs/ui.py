@@ -409,6 +409,7 @@ def draw_formats_enable_disable(prefs):
     column_export.prop(prefs, 'enable_scene_export', text='*.level')
     column_export.prop(prefs, 'enable_level_export', text='level')
     column_export.prop(prefs, 'enable_part_export', text='*.part')
+    column_export.prop(prefs, 'enable_group_export', text='*.group')
 
 
 def draw_keymaps(context, prefs):

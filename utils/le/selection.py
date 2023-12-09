@@ -22,11 +22,11 @@ def _dump_scene_body(data):
     for chunk_id, chunk_data in chunked_reader.read():
 
         if chunk_id == fmt.SceneChunks.VERSION:
-            print('    VERSION:')
+            print('    VERSION:', hex(chunk_id))
             _dump_version(chunk_data)
 
         elif chunk_id == fmt.ToolsChunks.DATA + fmt.ClassID.OBJECT:
-            print('    DATA:')
+            print('    DATA:', hex(chunk_id))
             scene.dump_data(chunk_data)
 
         # unknown chunks

@@ -99,6 +99,7 @@ plugin_preferences_props = (
     'enable_scene_export',
     'enable_level_export',
     'enable_part_export',
+    'enable_group_export',
     'enable_omf_export',
     'enable_ogf_export',
     'category',

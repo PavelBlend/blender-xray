@@ -37,7 +37,8 @@ export_ops = (
     (formats.details.ops.XRAY_OT_export_details, 'Details'),
     (formats.scene.ops.XRAY_OT_export_scene, 'Scene'),
     (formats.level.exp.ops.XRAY_OT_export_level, 'Level'),
-    (formats.part.ops.XRAY_OT_export_part, 'Part')
+    (formats.part.ops.XRAY_OT_export_part, 'Part'),
+    (formats.group.ops.XRAY_OT_export_group, 'Group')
 )
 
 

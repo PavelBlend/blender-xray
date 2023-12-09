@@ -12,11 +12,11 @@ def _dump_part_body(data):
     for chunk_id, chunk_data in chunked_reader.read():
 
         if chunk_id == fmt.ToolsChunks.GUID:
-            print('    GUID:')
+            print('    GUID:', hex(chunk_id))
             general.dump_guid(chunk_data)
 
         elif chunk_id == fmt.ToolsChunks.DATA + fmt.ClassID.OBJECT:
-            print('    DATA:')
+            print('    DATA:', hex(chunk_id))
             scene.dump_data(chunk_data)
 
         # unknown chunks
