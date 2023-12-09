@@ -43,11 +43,11 @@ def import_(filepath, chunked_reader, import_context):
 
     # read
     _read_version(version_chunk)
-    refs, poss, rots, scls = le.read.read_data(data_chunk)
+    ref, pos, rot, scl = le.read.read_data(data_chunk)
 
     # import
     name = os.path.basename(filepath)
-    le.imp.import_objects(name, import_context, refs, poss, rots, scls)
+    le.imp.import_objects(name, import_context, ref, pos, rot, scl)
 
 
 @log.with_context(name='import-scene-selection')

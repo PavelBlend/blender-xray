@@ -29,7 +29,7 @@ def import_swidata_v3(visual, data):
             ]
 
         elif chunk_id == fmt.ChunksSwi_v3.FACES:
-            faces_count = reader.getf('<I')[0]
+            faces_count = reader.uint32()
             faces_affected = reader.getf('<{}H'.format(faces_count))
 
         else:
