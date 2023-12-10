@@ -5,6 +5,7 @@ import os
 from .. import le
 from ... import rw
 from ... import log
+from ... import text
 from ... import utils
 
 
@@ -17,10 +18,18 @@ def write_guid(file_path, chunked_writer):
             data = file.read()
 
         chunked_reader = rw.read.ChunkedReader(data)
-        packed_writer.data = chunked_reader.get_chunk(le.fmt.ToolsChunks.GUID)
+        guid_data = chunked_reader.get_chunk(le.fmt.ToolsChunks.GUID)
+
+        if guid_data is None:
+            raise log.AppError(
+                text.error.part_no_guid,
+                log.props(file=file_path)
+            )
+
+        packed_writer.data = guid_data
 
     else:
-        packed_writer.putf('<2Q', 0, 0)
+        raise log.AppError(text.error.part_no_file)
 
     chunked_writer.put(le.fmt.ToolsChunks.GUID, packed_writer)
 
@@ -34,6 +43,7 @@ def _export(file_path, objs, chunked_writer):
 @utils.stats.timer
 def export_file(objs, file_path):
     utils.stats.status('Export File', file_path)
+    log.update(file_path=file_path)
 
     writer = rw.write.ChunkedWriter()
     _export(file_path, objs, writer)

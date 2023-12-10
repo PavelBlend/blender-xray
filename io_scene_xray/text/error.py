@@ -182,6 +182,10 @@ scene_obj_ver = 'Unsupported scene object format version'
 # part import
 part_no_objs = 'File has no objects!'
 
+# part export
+part_no_file = 'Saving to a new file is not supported. Need to export over existing file.'
+part_no_guid = 'File has no GUID data'
+
 # group import
 group_ver = 'Unsupported group format version'
 

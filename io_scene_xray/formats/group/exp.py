@@ -58,6 +58,7 @@ def _export(file_path, objs, chunked_writer):
 @utils.stats.timer
 def export_file(objs, file_path):
     utils.stats.status('Export File', file_path)
+    log.update(file_path=file_path)
 
     writer = rw.write.ChunkedWriter()
     _export(file_path, objs, writer)

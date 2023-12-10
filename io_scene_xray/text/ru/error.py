@@ -190,6 +190,10 @@ translations_table = (
     # part import
     (error.part_no_objs, 'Файл не имеет объектов!'),
 
+    # part export
+    (error.part_no_file, 'Не поддерживается сохранение в новый файл. Нужно экспортировать поверх существующего файла.'),
+    (error.part_no_guid, 'Файл не имеет GUID данных'),
+
     # group import
     (error.group_ver, 'Неподдерживаемая версия group формата'),
 

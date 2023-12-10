@@ -22,6 +22,7 @@ def _export(bpy_objs, chunked_writer):
 @utils.stats.timer
 def export_file(bpy_objs, file_path):
     utils.stats.status('Export File', file_path)
+    log.update(file_path=file_path)
 
     writer = rw.write.ChunkedWriter()
     _export(bpy_objs, writer)
