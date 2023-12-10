@@ -17,7 +17,7 @@ class TestObjectInitialize(utils.XRayTestCase):
         handlers.scene_update_post(bpy.context.scene)
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
         obj = bpy.data.objects['test_fmt.object']
         self.assertEqual(obj.type, 'MESH')
         self.assertEqual(obj.data.name, 'plobj')

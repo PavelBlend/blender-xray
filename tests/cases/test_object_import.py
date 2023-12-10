@@ -29,7 +29,7 @@ class TestObjectImport(utils.XRayTestCase):
             directory=self.binpath(),
             files=[{'name': 'test_fmt_armature.object'}]
         )
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
         pbones = bpy.data.objects['test_fmt_armature.object'].pose.bones
         self.assertIsNone(pbones[0].custom_shape)
         self.assertEqual(pbones['Bone'].bone_group.name, 'GroupA')
@@ -40,7 +40,7 @@ class TestObjectImport(utils.XRayTestCase):
             directory=self.binpath(),
             files=[{'name': 'test_fmt.object'}],
         )
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
         obj = bpy.data.objects['test_fmt.object']
         if not bpy.app.version >= (2, 80, 0):
             self.assertEqual(obj.material_slots[0].material.texture_slots[0].uv_layer, 'uvm')
@@ -65,6 +65,6 @@ class TestObjectImport(utils.XRayTestCase):
             directory=self.binpath(),
             files=[{'name': 'test_fmt_vmrefs.object'}],
         )
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
         obj = bpy.data.objects['testShape']
         self.assertEqual(len(obj.data.vertices), 6)

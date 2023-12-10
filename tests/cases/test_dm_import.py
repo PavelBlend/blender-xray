@@ -12,7 +12,7 @@ class TestDmImport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
         obj = bpy.data.objects['test_fmt.dm']
         self.assertEqual(obj.xray.detail.model.no_waving, False)

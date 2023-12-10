@@ -28,4 +28,4 @@ class TestLevel(tests.utils.XRayTestCase):
         bpy.ops.xray_export.level(directory=directory)
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')

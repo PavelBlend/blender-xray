@@ -17,7 +17,7 @@ class TestPartImport(tests.utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
     def test_cs_cop(self):
         prefs = tests.utils.get_preferences()
@@ -31,7 +31,7 @@ class TestPartImport(tests.utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
     def test_without_objects(self):
         prefs = tests.utils.get_preferences()
@@ -76,7 +76,7 @@ class TestPartImport(tests.utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
     def test_export_path(self):
         prefs = tests.utils.get_preferences()
@@ -92,4 +92,4 @@ class TestPartImport(tests.utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')

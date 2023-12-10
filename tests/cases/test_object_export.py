@@ -437,7 +437,7 @@ class TestObjectExport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
         self.assertOutputFiles({
             'tobj.object',
         })
@@ -595,7 +595,7 @@ class TestObjectExport(utils.XRayTestCase):
             'skeletal_object_soc_format.object',
             'skeletal_object_cop_format.object'
         })
-        self.assertReportsNotContains()
+        self.assertReportsNotContains('ERROR')
 
     def test_export_incorrect_textures_folder(self):
         # Arrange

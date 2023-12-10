@@ -1,4 +1,5 @@
 import os
+import shutil
 import bpy
 import tests
 import io_scene_xray
@@ -11,11 +12,15 @@ class TestPartExport(tests.utils.XRayTestCase):
 
         create_objects()
 
+        out_path = self.outpath('test_export.part')
+        part_file = os.path.join(self.binpath(), 'test_fmt_soc.part')
+        shutil.copyfile(part_file, out_path)
+
         # Act
-        bpy.ops.xray_export.part(filepath=self.outpath('test_export.part'))
+        bpy.ops.xray_export.part(filepath=out_path)
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
 
 def create_objects():

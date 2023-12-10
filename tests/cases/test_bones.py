@@ -28,7 +28,7 @@ class TestBonesImport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
         NAME_TEST = 'test.bones'
         NAME_IK_LIMITS = 'ik_limits.bones'
@@ -153,7 +153,7 @@ class TestBonesImport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
     def test_import_without_bone_props(self):
         # import mesh and armature
@@ -177,7 +177,7 @@ class TestBonesImport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
     def test_import_replace_bone_groups(self):
         # import mesh and armature
@@ -197,7 +197,7 @@ class TestBonesImport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
     def test_import_has_no_bone(self):
         # import mesh and armature

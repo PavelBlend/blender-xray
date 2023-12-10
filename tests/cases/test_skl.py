@@ -32,7 +32,7 @@ class TestSklImport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
         self.assertEqual(len(bpy.data.actions), 1)
         act = bpy.data.actions['test_fmt']
         self.assertEqual(len(act.fcurves[0].keyframe_points), 3)
@@ -49,7 +49,7 @@ class TestSklImport(utils.XRayTestCase):
         motions = list(XRAY_OT_import_skls._examine_file(self.binpath('test_fmt.skls')))
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
         self.assertEqual(len(bpy.data.actions), 1)
         act = bpy.data.actions['xact']
         self.assertEqual(len(act.fcurves[0].keyframe_points), 3)

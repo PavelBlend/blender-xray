@@ -137,7 +137,7 @@ class TestFormatObject(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
         imported_object = bpy.data.objects['test_fmt.object']
         self.assertEqual(imported_object.data.name, 'plobj')
         imported_material = imported_object.data.materials[0]
@@ -218,7 +218,7 @@ class TestFormatObject(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
         obj = bpy.data.objects['test_fmt_old.object']
         material = obj.data.materials[0]

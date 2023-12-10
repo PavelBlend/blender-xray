@@ -15,7 +15,7 @@ class TestGroupExport(tests.utils.XRayTestCase):
         bpy.ops.xray_export.group(filepath=self.outpath('test_export.group'))
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
 
 def create_objects():

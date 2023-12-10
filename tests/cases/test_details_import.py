@@ -12,7 +12,7 @@ class TestDetailsImport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
         obj = bpy.data.objects['test_fmt_v3.details']
 
@@ -65,7 +65,7 @@ class TestDetailsImport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
         obj = bpy.data.objects['test_fmt_v2.details']
 
@@ -107,7 +107,7 @@ class TestDetailsImport(utils.XRayTestCase):
         bpy.ops.io_scene_xray.pack_details_images()
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
 
     def test_without_slots(self):
         # Act
@@ -122,4 +122,4 @@ class TestDetailsImport(utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')

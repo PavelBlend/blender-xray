@@ -135,18 +135,23 @@ class XRayTestCase(unittest.TestCase):
 
     def _findReport(self, report_type=None, re_message=None):
         for report in self._reports:
+
             if (report_type is not None) and (report_type not in report[0]):
                 continue
+
             if re_message is None:
-                continue
+                return report
+
             match = re_message.match(report[1])
             if match is not None:
                 return match
 
     def assertReportsContains(self, report_type=None, re_message=None):
         report = self._findReport(report_type, re_message)
+
         if report is not None:
             return report
+
         raise self.fail('Cannot find report with: type={}, message={} in reports: {}'.format(
             report_type,
             re_message,
@@ -155,8 +160,10 @@ class XRayTestCase(unittest.TestCase):
 
     def assertReportsNotContains(self, report_type=None, re_message=None):
         report = self._findReport(report_type, re_message)
+
         if report is None:
             return
+
         raise self.fail('Found report with: type={}, message={}: {}'.format(
             report_type,
             re_message,

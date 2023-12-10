@@ -17,4 +17,4 @@ class TestGroupImport(tests.utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsNotContains('WARNING')
+        self.assertReportsNotContains('ERROR')
