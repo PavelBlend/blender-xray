@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import bpy
 import tests
@@ -6,7 +7,7 @@ import io_scene_xray
 
 
 class TestPartExport(tests.utils.XRayTestCase):
-    def test_scene_export(self):
+    def test_part_export(self):
         prefs = tests.utils.get_preferences()
         prefs.objects_folder = os.path.join(os.curdir, 'tests', 'cases')
 
@@ -21,6 +22,40 @@ class TestPartExport(tests.utils.XRayTestCase):
 
         # Assert
         self.assertReportsNotContains('ERROR')
+
+    def test_no_file(self):
+        prefs = tests.utils.get_preferences()
+        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'cases')
+
+        create_objects()
+
+        # Act
+        bpy.ops.xray_export.part(filepath=self.outpath('test_export.part'))
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('Saving to a new file is not supported. Need to export over existing file.')
+        )
+
+    def test_no_guid(self):
+        prefs = tests.utils.get_preferences()
+        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'cases')
+
+        create_objects()
+
+        out_path = self.outpath('test_export.part')
+        part_file = os.path.join(self.binpath(), 'test_fmt.object')
+        shutil.copyfile(part_file, out_path)
+
+        # Act
+        bpy.ops.xray_export.part(filepath=out_path)
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('File has no GUID data')
+        )
 
 
 def create_objects():

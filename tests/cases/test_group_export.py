@@ -5,7 +5,7 @@ import io_scene_xray
 
 
 class TestGroupExport(tests.utils.XRayTestCase):
-    def test_scene_export(self):
+    def test_group_export(self):
         prefs = tests.utils.get_preferences()
         prefs.objects_folder = os.path.join(os.curdir, 'tests', 'cases')
 
