@@ -265,20 +265,23 @@ def get_pose_bones_and_groups(context):
     bone_groups = {}
     no_group_bones = set()
     bone_index = 0
+
     for bone in context.bpy_arm_obj.data.bones:
+
         if bone.xray.exportable:
             pose_bone = context.bpy_arm_obj.pose.bones[bone.name]
             pose_bones.append(pose_bone)
-            if not pose_bone.bone_group:
+
+            if pose_bone.bone_group:
+                bone_groups.setdefault(pose_bone.bone_group.name, []).append(
+                    (pose_bone.name, bone_index)
+                )
+                bone_index += 1
+
+            else:
                 if context.need_bone_groups:
                     no_group_bones.add(pose_bone.name)
-                    continue
-                else:
-                    continue
-            bone_groups.setdefault(pose_bone.bone_group.name, []).append(
-                (pose_bone.name, bone_index)
-            )
-            bone_index += 1
+                continue
 
     if no_group_bones:
         raise log.AppError(
@@ -288,6 +291,7 @@ def get_pose_bones_and_groups(context):
                 bones=no_group_bones
             )
         )
+
     return pose_bones, bone_groups
 
 
@@ -303,6 +307,7 @@ def export_motion_params(
         motion_export_names,
         actions_table
     ):
+
     if not available_params:
         # overwrite mode
         packed_writer.putf('<H', motion_count)
@@ -331,18 +336,8 @@ def export_motion_params(
             if context.export_motions:
                 packed_writer.putf('<H', len(available_params) + new_motions_count)
                 for motion_name, motion_params in available_params.items():
-                    motion_index = motions_ids.get(motion_name, None)
-                    has_available = False
-                    if not motion_index is None:
-                        _, _, has_available = motions_list[motion_index]
-                    if has_available:
-                        packed_writer.puts(motion_name)
-                        packed_writer.putp(motion_params.writer)
-                    else:
-                        params = motion
-                        if xray.use_custom_motion_names:
-                            motion_name = motion_export_names[motion_name]
-                        write_motion_params(context, packed_writer, motion_name, params, actions_table)
+                    packed_writer.puts(motion_name)
+                    packed_writer.putp(motion_params.writer)
                 motions_new = []
                 for motion_name, motion_id, has_available in motions_list:
                     if not has_available:
