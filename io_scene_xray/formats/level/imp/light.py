@@ -9,13 +9,26 @@ from .... import rw
 from .... import utils
 
 
-def _read_light(reader, data):
+col_fun = lambda x: x**2.2
+light_types = {
+    '1': 'POINT',
+    '2': 'SPOT',
+    '3': 'SUN',
+}
+
+
+def _read_color(reader):
+    r, g, b, a = reader.getf('<4f')
+    return col_fun(r), col_fun(g), col_fun(b), a
+
+
+def _read_light(reader, data, light_object):
     # type of light source
     data.light_type_name = str(reader.uint32())
 
-    data.diffuse = reader.getf('<4f')
-    data.specular = reader.getf('<4f')
-    data.ambient = reader.getf('<4f')
+    data.diffuse = _read_color(reader)
+    data.specular = _read_color(reader)
+    data.ambient = _read_color(reader)
 
     position = reader.getv3f()
     direction = reader.getv3f()
@@ -27,6 +40,20 @@ def _read_light(reader, data):
     data.attenuation_2 = reader.getf('<f')[0]    # quadratic attenuation
     data.theta = reader.getf('<f')[0]    # inner angle of spotlight cone
     data.phi = reader.getf('<f')[0]    # outer angle of spotlight cone
+
+    lamp = light_object.data
+
+    lamp.color = data.diffuse[0 : 3]
+    lamp.type = light_types[data.light_type_name]
+
+    if lamp.type == 'SUN':
+        lamp.energy = 10.0
+
+    elif lamp.type == 'POINT':
+        lamp.energy = 100.0
+
+    else:
+        lamp.energy = 1000.0
 
     return position, direction
 
@@ -44,14 +71,14 @@ def _import_light_v9(reader, light_object):
     # controller id
     data.controller_name = str(reader.uint32())
 
-    position, direction = _read_light(reader, data)
+    position, direction = _read_light(reader, data, light_object)
 
     _set_light_transforms(light_object, position, direction)
 
 
 def _import_light_v8(reader, light_object):
     data = light_object.xray.level
-    position, direction = _read_light(reader, data)
+    position, direction = _read_light(reader, data, light_object)
 
     dw_frame, flags = reader.getf('<2I')
     affect_static = bool(flags & fmt.FLAG_AFFECT_STATIC)
@@ -70,7 +97,7 @@ def _import_light_v8(reader, light_object):
 
 def _import_light_v5(reader, light_object):
     data = light_object.xray.level
-    position, direction = _read_light(reader, data)
+    position, direction = _read_light(reader, data, light_object)
 
     dw_frame, flags = reader.getf('<2I')
     current_time, speed = reader.getf('<2f')

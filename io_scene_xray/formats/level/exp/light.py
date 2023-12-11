@@ -8,6 +8,10 @@ from .... import log
 from .... import text
 
 
+def get_color(r, g, b, a):
+    return r**(1/2.2), g**(1/2.2), b**(1/2.2), a
+
+
 def write_lights(level_writer, level, level_object):
     lights_writer = rw.write.PackedWriter()
     children = level.visuals_cache.children
@@ -36,9 +40,9 @@ def write_lights(level_writer, level, level_object):
 
             # write
             lights_writer.putf('<2I', data.controller_id, data.light_type)
-            lights_writer.putf('<4f', *data.diffuse)
-            lights_writer.putf('<4f', *data.specular)
-            lights_writer.putf('<4f', *data.ambient)
+            lights_writer.putf('<4f', *get_color(*data.diffuse))
+            lights_writer.putf('<4f', *get_color(*data.specular))
+            lights_writer.putf('<4f', *get_color(*data.ambient))
             lights_writer.putv3f(light_obj.location)
             lights_writer.putf('<3f', *direction)
             lights_writer.putf('<2f', data.range_, data.falloff)
