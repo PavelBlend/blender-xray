@@ -5,7 +5,6 @@ import struct
 # addon modules
 from . import fmt
 from .. import ogf
-from .. import omf
 from ... import rw
 from ... import text
 from ... import log
@@ -233,9 +232,9 @@ def merge_files(files):
 
             for bone_index in range(required_bones_count):
                 flags = reader.getf('<B')[0]
-                t_present = flags & omf.fmt.FL_T_KEY_PRESENT
-                r_absent = flags & omf.fmt.FL_R_KEY_ABSENT
-                hq = flags & omf.fmt.KPF_T_HQ
+                t_present = flags & fmt.FL_T_KEY_PRESENT
+                r_absent = flags & fmt.FL_R_KEY_ABSENT
+                hq = flags & fmt.KPF_T_HQ
 
                 # skip rotation
                 if r_absent:
@@ -308,7 +307,7 @@ def merge_files(files):
     # write motions count chunk
     motions_count_chunk = struct.pack(
         '<3I',
-        omf.fmt.MOTIONS_COUNT_CHUNK,    # chunk id
+        fmt.MOTIONS_COUNT_CHUNK,    # chunk id
         4,    # chunk size
         motion_chunk_id - 1    # motion count
     )
