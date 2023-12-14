@@ -64,7 +64,7 @@ class XRAY_OT_deselect_dupli_motions(BaseSelectMotionsOp):
 
 class XRAY_UL_motions_list(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        BaseSelectMotionsOp.set_motions_list(self)  # A dirty hack
+        BaseSelectMotionsOp.set_motions_list(self)    # A dirty hack
 
         row = layout.row(align=True)
         row.prop(

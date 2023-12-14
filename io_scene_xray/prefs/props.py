@@ -323,7 +323,7 @@ def _auto_path(prefs, prop_name, suffix, checker):
                 dirname = os.path.dirname(dirname)
                 dirname = os.path.join(dirname, 'gamedata')
             if dirname == result:
-                continue  # os.path.dirname('T:') == 'T:'
+                continue    # os.path.dirname('T:') == 'T:'
             result = dirname
         if suffix:
             result = os.path.join(result, suffix)

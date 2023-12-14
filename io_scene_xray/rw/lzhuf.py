@@ -1,22 +1,22 @@
 # This file was converted from the original C source:
-# 	lzhuf.c
-# 	written by Haruyasu Yoshizaki 11/20/1988
-# 	some minor changes 4/6/1989
-# 	comments translated by Haruhiko Okumura 4/7/1989
+#    lzhuf.c
+#    written by Haruyasu Yoshizaki 11/20/1988
+#    some minor changes 4/6/1989
+#    comments translated by Haruhiko Okumura 4/7/1989
 
 # LZHUF.C (c)1989 by Haruyasu Yoshizaki, Haruhiko Okumura, and Kenji Rikitake.
 # All rights reserved. Permission granted for non-commercial use.
 
 # Huffman coding
 
-N = 4096  # buffer size
-F = 60  # lookahead buffer size
+N = 4096    # buffer size
+F = 60    # lookahead buffer size
 THRESHOLD = 2
 
-N_CHAR = 256 - THRESHOLD + F  # kinds of characters (character code = 0..N_CHAR-1)
-T = N_CHAR * 2 - 1  # size of table
-R = T - 1  # position of root
-MAX_FREQ = 0x4000  # updates tree when the root frequency comes to this value
+N_CHAR = 256 - THRESHOLD + F    # kinds of characters (character code = 0..N_CHAR-1)
+T = N_CHAR * 2 - 1    # size of table
+R = T - 1    # position of root
+MAX_FREQ = 0x4000    # updates tree when the root frequency comes to this value
 N_MASK = N - 1
 
 
@@ -40,7 +40,7 @@ def decompress_buffer(buffer: bytearray, textsize: int) -> bytearray:
     getbuf = 0
     getlen = 0
 
-    def GetBit() -> int:  # get one bit
+    def GetBit() -> int:    # get one bit
         nonlocal getbuf, getlen
         while getlen <= 8:
             i = getcz()
@@ -51,7 +51,7 @@ def decompress_buffer(buffer: bytearray, textsize: int) -> bytearray:
         getlen -= 1
         return (i >> 15) & 1
 
-    def GetByte() -> int:  # get one byte
+    def GetByte() -> int:    # get one byte
         nonlocal getbuf, getlen
         while getlen <= 8:
             i = getcz()
@@ -64,16 +64,16 @@ def decompress_buffer(buffer: bytearray, textsize: int) -> bytearray:
 
     result = bytearray()
 
-    freq = [0] * (T + 1)  # frequency table
+    freq = [0] * (T + 1)    # frequency table
 
-    prnt = [0] * (T + N_CHAR)  # pointers to parent nodes, except for the
+    prnt = [0] * (T + N_CHAR)    # pointers to parent nodes, except for the
     # elements [T..T + N_CHAR - 1] which are used to get
     # the positions of leaves corresponding to the codes
 
-    son = [0] * T  # pointers to child nodes (son[], son[] + 1)
+    son = [0] * T    # pointers to child nodes (son[], son[] + 1)
     text_buf = [0] * (N + F - 1)
 
-    def StartHuff():  # initialization of tree
+    def StartHuff():    # initialization of tree
         for i in range(N_CHAR):
             freq[i] = 1
             son[i] = i + T
@@ -89,7 +89,7 @@ def decompress_buffer(buffer: bytearray, textsize: int) -> bytearray:
         freq[T] = 0xffff
         prnt[R] = 0
 
-    def reconst():  # reconstruction of tree
+    def reconst():    # reconstruction of tree
         # collect leaf nodes in the first half of the table
         # and replace the freq by (freq + 1) / 2.
         j = 0
@@ -129,7 +129,7 @@ def decompress_buffer(buffer: bytearray, textsize: int) -> bytearray:
             else:
                 prnt[k] = prnt[k + 1] = i
 
-    def update(c: int):  # increment frequency of given code by one, and update tree
+    def update(c: int):    # increment frequency of given code by one, and update tree
         if freq[R] == MAX_FREQ:
             reconst()
 
@@ -161,7 +161,7 @@ def decompress_buffer(buffer: bytearray, textsize: int) -> bytearray:
 
                 c = l
             c = prnt[c]
-            if c == 0:  # repeat up to root
+            if c == 0:    # repeat up to root
                 break
 
     def DecodeChar() -> int:

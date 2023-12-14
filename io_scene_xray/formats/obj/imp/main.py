@@ -279,7 +279,7 @@ def import_file(file_path, context):
 
         # lib version
         elif chunk_id == fmt.Chunks.Object.LIB_VERSION:
-            pass  # skip obsolete chunk
+            pass    # skip obsolete chunk
 
         elif chunk_id == fmt.Chunks.Object.OMOTIONS:
             pass    # not supported

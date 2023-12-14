@@ -184,11 +184,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     bpy.ops.armature.select_all(action='DESELECT')
 
-    ########################################
-    # Create and place IK pole target bone #
-    #          by Marco Giordano           #
-    ########################################
-
+    # Create and place IK pole target bone by Marco Giordano
     # https://blender.stackexchange.com/questions/97606
 
     arm_edit_bones = arm.edit_bones
@@ -253,10 +249,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         # change current bone
         current_bone = current_bone.parent
 
-    ##############
-    # Pole Angle #
-    # by Jerryno #
-    ##############
+    # Pole Angle by Jerryno
 
     def signed_angle(vector_u, vector_v, normal):
         # Normal specifies orientation

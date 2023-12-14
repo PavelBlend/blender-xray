@@ -220,4 +220,4 @@ def create_pallete(color_indices):
         pallete.use_fake_user = True
         for rgba in color_indices:
             color = pallete.colors.new()
-            color.color = rgba[0 : 3]   # cut alpha
+            color.color = rgba[0 : 3]    # cut alpha

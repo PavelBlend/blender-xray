@@ -110,7 +110,7 @@ def _export_child(
     header_writer = rw.write.PackedWriter()
     header_writer.putf('<B', fmt.FORMAT_VERSION_4)
     header_writer.putf('<B', fmt.ModelType_v4.SKELETON_GEOMDEF_ST)
-    header_writer.putf('<H', 0)  # shader id
+    header_writer.putf('<H', 0)    # shader id
     header_writer.putv3f(bbox[0])
     header_writer.putv3f(bbox[1])
     header_writer.putv3f(bsphere[0])

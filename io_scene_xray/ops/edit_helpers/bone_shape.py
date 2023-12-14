@@ -123,12 +123,12 @@ def bone_matrix(bone):
         mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
     )
     mat = multiply(mat, xsh.get_matrix_basis())
-    if xsh.type == '1':  # box
+    if xsh.type == '1':    # box
         mat = multiply(mat, mathutils.Matrix.Scale(-1, 4, (0, 0, 1)))
         mat = multiply(mat, utils.bone.convert_vector_to_matrix(xsh.box_hsz))
-    elif xsh.type == '2':  # sphere
+    elif xsh.type == '2':    # sphere
         mat = multiply(mat, utils.bone.convert_vector_to_matrix((xsh.sph_rad, xsh.sph_rad, xsh.sph_rad)))
-    elif xsh.type == '3':  # cylinder
+    elif xsh.type == '3':    # cylinder
         mat = multiply(mat, formats.motions.const.MATRIX_BONE_INVERTED)
         mat = multiply(
             mat,
@@ -160,7 +160,7 @@ def apply_shape(bone, shape_matrix):
         ).inverted(),
         shape_matrix
     )
-    if xsh.type == '1':  # box
+    if xsh.type == '1':    # box
         mat = multiply(mat, mathutils.Matrix.Scale(-1, 4, (0, 0, 1)))
         xsh.box_trn = mat.to_translation().to_tuple()
         scale = mat.to_scale()
@@ -170,13 +170,13 @@ def apply_shape(bone, shape_matrix):
         mrt = multiply(mat, utils.bone.convert_vector_to_matrix(scale).inverted()).to_3x3().transposed()
         for index in range(3):
             xsh.box_rot[index * 3 : index * 3 + 3] = mrt[index].to_tuple()
-    elif xsh.type == '2':  # sphere
+    elif xsh.type == '2':    # sphere
         scale = mat.to_scale()
         if not scale.length:
             return
         xsh.sph_pos = mat.to_translation().to_tuple()
         xsh.sph_rad = maxabs(*scale)
-    elif xsh.type == '3':  # cylinder
+    elif xsh.type == '3':    # cylinder
         xsh.cyl_pos = mat.to_translation().to_tuple()
         vscale = mat.to_scale()
         if not vscale.length:
@@ -251,7 +251,7 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                 matrix = mathutils.Matrix.Identity(4)
                 matrix_inverted = matrix
 
-        hobj.scale = (1, 1, 1)  # ugly: force delayed refresh 3d-view
+        hobj.scale = (1, 1, 1)    # ugly: force delayed refresh 3d-view
         vmin = mathutils.Vector((+math.inf, +math.inf, +math.inf))
         vmax = mathutils.Vector((-math.inf, -math.inf, -math.inf))
         xsh = bone.xray.shape

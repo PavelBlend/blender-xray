@@ -69,7 +69,7 @@ def _write_geom_vbs(geom_writer, vbs):
 
         vbs_writer.putf('<H', 255)    # stream
         vbs_writer.putf('<H', 0)    # offset
-        vbs_writer.putf('<B', fmt.types_values[fmt.UNUSED])   # type UNUSED
+        vbs_writer.putf('<B', fmt.types_values[fmt.UNUSED])    # type UNUSED
         vbs_writer.putf('<B', 0)    # method
         vbs_writer.putf('<B', 0)    # usage
         vbs_writer.putf('<B', 0)    # usage_index

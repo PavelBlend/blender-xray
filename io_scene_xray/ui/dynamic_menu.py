@@ -60,8 +60,8 @@ class DynamicMenu(bpy.types.Menu):
         path = _detect_current_path(context)
         path_len = len(path)
         if path_len:
-            pfx = _path_to_prefix(path[:-1] + [path[path_len - 1] + 1])  # next sibling
-            layout.context_pointer_set(pfx, None)  # stop
+            pfx = _path_to_prefix(path[:-1] + [path[path_len - 1] + 1])    # next sibling
+            layout.context_pointer_set(pfx, None)    # stop
 
         items = self.items_for_path(path)
         for i, item in enumerate(items):
@@ -77,8 +77,8 @@ class DynamicMenu(bpy.types.Menu):
                 oper.value = value
                 oper.desc = desc
 
-        pfx = _path_to_prefix(path + [len(items)])  # after last child
-        layout.context_pointer_set(pfx, None)  # stop
+        pfx = _path_to_prefix(path + [len(items)])    # after last child
+        layout.context_pointer_set(pfx, None)    # stop
 
     @staticmethod
     def set_layout_context_data(layout, data):

@@ -438,13 +438,13 @@ def userdata_update(self, context):
 
 
 _flags_simple_inv_map = [
-    None,  # other
-    0x20,  # sound occluder
-    0x14,  # multi. usage
-    0x08,  # hom
-    0x03,  # dynamic progressive
-    0x01,  # dynamic
-    0x00   # static
+    None,    # other
+    0x20,    # sound occluder
+    0x14,    # multi. usage
+    0x08,    # hom
+    0x03,    # dynamic progressive
+    0x01,    # dynamic
+    0x00    # static
 ]
 _flags_simple_map = {v: k for k, v in enumerate(_flags_simple_inv_map)}
 
@@ -457,7 +457,7 @@ def flags_simple_get(self):
 
 def flags_simple_set(self, value):
     self.flags_force_custom = value == 0
-    if value != 0:  # !custom
+    if value != 0:    # !custom
         if self.flags_custom_hqexp:
             self.flags = _flags_simple_inv_map[value] | 0x40
         else:
