@@ -39,7 +39,7 @@ class TestPartExport(tests.utils.XRayTestCase):
         # Assert
         self.assertReportsNotContains('ERROR')
 
-    def test_no_file(self):
+    def test_soc_no_file(self):
         prefs = tests.utils.get_preferences()
         prefs.objects_folder = os.path.join(os.curdir, 'tests', 'tested')
 
@@ -54,7 +54,87 @@ class TestPartExport(tests.utils.XRayTestCase):
             re.compile('Saving to a new file is not supported. Need to export over existing file.')
         )
 
-    def test_no_guid(self):
+    def test_cscop_no_file(self):
+        prefs = tests.utils.get_preferences()
+        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'tested')
+
+        create_objects()
+
+        # Act
+        bpy.ops.xray_export.part(filepath=self.outpath('test_export.part'), fmt_ver='cscop')
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('Saving to a new file is not supported. Need to export over existing file.')
+        )
+
+    def test_cscop_no_txt(self):
+        prefs = tests.utils.get_preferences()
+        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'tested')
+
+        create_objects()
+
+        out_path = self.outpath('test_export_cscop.part')
+        part_file = os.path.join(self.binpath(), 'test_fmt_soc.part')
+        shutil.copyfile(part_file, out_path)
+
+        # Act
+        bpy.ops.xray_export.part(filepath=out_path, fmt_ver='cscop')
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('The file must be text, not binary.')
+        )
+
+    def test_cscop_spaces(self):
+        prefs = tests.utils.get_preferences()
+        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'tested')
+
+        create_objects()
+
+        for ob in bpy.data.objects:
+            ob.name = ob.name.replace('_', ' ')
+
+        out_path = self.outpath('test_export_cscop.part')
+        part_file = os.path.join(self.binpath(), 'test_fmt_cs_cop.part')
+        shutil.copyfile(part_file, out_path)
+
+        # Act
+        bpy.ops.xray_export.part(filepath=out_path, fmt_ver='cscop')
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('The path to the object must not contain spaces.')
+        )
+
+    def test_cscop_spaces_single(self):
+        prefs = tests.utils.get_preferences()
+        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'tested')
+
+        create_objects()
+
+        for ob in bpy.data.objects:
+            if '_' in ob.name:
+                ob.name = ob.name.replace('_', ' ')
+                break
+
+        out_path = self.outpath('test_export_cscop.part')
+        part_file = os.path.join(self.binpath(), 'test_fmt_cs_cop.part')
+        shutil.copyfile(part_file, out_path)
+
+        # Act
+        bpy.ops.xray_export.part(filepath=out_path, fmt_ver='cscop')
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('The path to the object must not contain spaces.')
+        )
+
+    def test_soc_no_guid(self):
         prefs = tests.utils.get_preferences()
         prefs.objects_folder = os.path.join(os.curdir, 'tests', 'tested')
 
@@ -66,6 +146,46 @@ class TestPartExport(tests.utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_export.part(filepath=out_path)
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('File has no GUID data')
+        )
+
+    def test_cscop_no_guid(self):
+        prefs = tests.utils.get_preferences()
+        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'tested')
+
+        create_objects()
+
+        out_path = self.outpath('test_export_cscop.part')
+        with open(out_path, 'w') as file:
+            file.write('[test_section]\n')
+            file.write('test_prop = 0\n')
+
+        # Act
+        bpy.ops.xray_export.part(filepath=out_path, fmt_ver='cscop')
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('File has no GUID data')
+        )
+
+    def test_cscop_no_guid0(self):
+        prefs = tests.utils.get_preferences()
+        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'tested')
+
+        create_objects()
+
+        out_path = self.outpath('test_export_cscop.part')
+        with open(out_path, 'w') as file:
+            file.write('[guid]\n')
+            file.write('guid_g1 = 123\n')
+
+        # Act
+        bpy.ops.xray_export.part(filepath=out_path, fmt_ver='cscop')
 
         # Assert
         self.assertReportsContains(
