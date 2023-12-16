@@ -8,6 +8,16 @@ from ... import rw
 from ... import utils
 
 
+def get_obj_count(bpy_objs):
+    obj_count = 0
+
+    for obj in bpy_objs:
+        if obj.xray.isroot:
+            obj_count += 1
+
+    return obj_count
+
+
 def write_level_tag(chunked_writer):
     owner = utils.obj.get_current_user()
 
@@ -20,10 +30,7 @@ def write_level_tag(chunked_writer):
 
 
 def write_objects_count(chunked_writer, bpy_objs):
-    obj_count = 0
-    for obj in bpy_objs:
-        if obj.xray.isroot:
-            obj_count += 1
+    obj_count = get_obj_count(bpy_objs)
 
     packed_writer = rw.write.PackedWriter()
 
@@ -78,7 +85,11 @@ def write_flags(body_chunked_writer):
     body_chunked_writer.put(fmt.ObjectChunks.FLAGS, packed_reader)
 
 
-def write_transform(loc, rot, scl, body_chunked_writer):
+def get_transform(bpy_obj):
+    loc = bpy_obj.location
+    rot = bpy_obj.rotation_euler
+    scl = bpy_obj.scale
+
     location = (loc[0], loc[2], loc[1])
 
     rotation_matrix = rot.to_matrix()
@@ -87,7 +98,10 @@ def write_transform(loc, rot, scl, body_chunked_writer):
 
     scale = (scl[0], scl[2], scl[1])
 
-    # write
+    return location, rotation, scale
+
+
+def write_transform(location, rotation, scale, body_chunked_writer):
     packed_reader = rw.write.PackedWriter()
 
     packed_reader.putf('<3f', *location)
@@ -97,7 +111,13 @@ def write_transform(loc, rot, scl, body_chunked_writer):
     body_chunked_writer.put(fmt.ObjectChunks.TRANSFORM, packed_reader)
 
 
-def write_object_body(chunked_writer, bpy_obj):
+def export_transform(bpy_obj, body_chunked_writer):
+    location, rotation, scale = get_transform(bpy_obj)
+
+    write_transform(location, rotation, scale, body_chunked_writer)
+
+
+def get_obj_name(bpy_obj):
     exp_path = utils.ie.get_export_path(bpy_obj)
     object_name = exp_path + bpy_obj.name
 
@@ -110,6 +130,12 @@ def write_object_body(chunked_writer, bpy_obj):
     if object_name.endswith('.object'):
         object_name = object_name[0 : -len('.object')]
 
+    return object_name
+
+
+def write_object_body(chunked_writer, bpy_obj):
+    object_name = get_obj_name(bpy_obj)
+
     body_chunked_writer = rw.write.ChunkedWriter()
 
     # flags
@@ -119,12 +145,7 @@ def write_object_body(chunked_writer, bpy_obj):
     write_name(object_name, body_chunked_writer)
 
     # transform
-    write_transform(
-        bpy_obj.location,
-        bpy_obj.rotation_euler,
-        bpy_obj.scale,
-        body_chunked_writer
-    )
+    export_transform(bpy_obj, body_chunked_writer)
 
     # version
     packed_reader = rw.write.PackedWriter()

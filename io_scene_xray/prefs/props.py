@@ -75,6 +75,7 @@ plugin_preferences_props = (
     'scene_selection_mesh_split_by_mat',
     'part_sdk_version',
     'part_mesh_split_by_mat',
+    'part_exp_sdk_ver',
     'keymaps_collection',
     'keymaps_collection_index',
     'enable_object_import',

@@ -173,6 +173,9 @@ class XRAY_addon_preferences(bpy.types.AddonPreferences):
     part_sdk_version = formats.ie.PropSDKVersion()
     part_mesh_split_by_mat = formats.ie.PropObjectMeshSplitByMaterials()
 
+    # part export props
+    part_exp_sdk_ver = formats.ie.PropSDKVersion()
+
     # group import props
     group_sdk_ver = formats.ie.PropSDKVersion()
     group_split_by_mat = formats.ie.PropObjectMeshSplitByMaterials()

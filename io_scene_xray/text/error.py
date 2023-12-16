@@ -185,6 +185,8 @@ part_no_objs = 'File has no objects!'
 # part export
 part_no_file = 'Saving to a new file is not supported. Need to export over existing file.'
 part_no_guid = 'File has no GUID data'
+part_no_txt = 'The file must be text, not binary'
+part_no_space = 'The path to the object must not contain spaces.'
 
 # group import
 group_ver = 'Unsupported group format version'

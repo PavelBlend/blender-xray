@@ -9,6 +9,7 @@ import bpy_extras
 from . import imp
 from . import exp
 from .. import ie
+from .. import contexts
 from .. import obj
 from ... import utils
 from ... import text
@@ -17,6 +18,12 @@ from ... import log
 
 class ImportPartContext(obj.imp.ctx.ImportObjectContext):
     pass
+
+
+class ExportPartContext(contexts.ExportContext):
+    def __init__(self):
+        super().__init__()
+        self.fmt_ver = None
 
 
 filename_ext = '.part'
@@ -101,11 +108,22 @@ class XRAY_OT_export_part(
     ext = filename_ext
     filename_ext = filename_ext
 
+    # file browser properties
     filter_glob = bpy.props.StringProperty(
         default='*'+filename_ext,
         options={'HIDDEN'}
     )
+
+    # export properties
+    fmt_ver = ie.PropSDKVersion()
+
+    # system properties
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
+
+    def draw(self, context):    # pragma: no cover
+        layout = self.layout
+
+        utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_ver')
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -113,10 +131,16 @@ class XRAY_OT_export_part(
     def execute(self, context):
         utils.stats.update('Export *.part')
 
+        exp_ctx = ExportPartContext()
+
+        exp_ctx.filepath = self.filepath
+        exp_ctx.operator = self
+        exp_ctx.fmt_ver = self.fmt_ver
+
         objs = context.selected_objects
 
         try:
-            exp.export_file(objs, self.filepath)
+            exp.export_file(exp_ctx, objs)
 
         except log.AppError as err:
             log.err(err)
@@ -130,6 +154,10 @@ class XRAY_OT_export_part(
         if not objs:
             self.report({'ERROR'}, text.get_text(text.error.no_selected_obj))
             return {'CANCELLED'}
+
+        pref = utils.version.get_preferences()
+
+        self.fmt_ver = utils.ie.get_sdk_ver(pref.part_exp_sdk_ver)
 
         return super().invoke(context, event)
 

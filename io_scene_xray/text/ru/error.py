@@ -193,6 +193,8 @@ translations_table = (
     # part export
     (error.part_no_file, 'Не поддерживается сохранение в новый файл. Нужно экспортировать поверх существующего файла.'),
     (error.part_no_guid, 'Файл не имеет GUID данных'),
+    (error.part_no_txt, 'Файл должен быть текстовым, а не двоичным'),
+    (error.part_no_space, 'Путь к объекту не должен содержать пробелов'),
 
     # group import
     (error.group_ver, 'Неподдерживаемая версия group формата'),

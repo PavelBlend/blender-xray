@@ -262,8 +262,8 @@ def draw_defaults(prefs):
         box.prop(prefs, 'add_to_motion_list')
 
     elif prefs.defaults_category == 'BONES':
-        box = layout.box()
         # import
+        box = layout.box()
         box.label(text='Import:')
         box.prop(prefs, 'bones_import_bone_parts')
         box.prop(prefs, 'bones_import_bone_properties')
@@ -274,8 +274,8 @@ def draw_defaults(prefs):
         box.prop(prefs, 'bones_export_bone_properties')
 
     elif prefs.defaults_category == 'DETAILS':
-        box = layout.box()
         # import
+        box = layout.box()
         box.label(text='Import:')
         utils.draw.draw_fmt_ver_prop(
             box,
@@ -321,8 +321,8 @@ def draw_defaults(prefs):
         box.prop(prefs, 'ogf_texture_names_from_path')
 
     elif prefs.defaults_category == 'OMF':
-        box = layout.box()
         # import
+        box = layout.box()
         box.label(text='Import:')
         box.prop(prefs, 'omf_import_motions')
         box.prop(prefs, 'import_bone_parts')
@@ -349,6 +349,7 @@ def draw_defaults(prefs):
         box.prop(prefs, 'scene_selection_mesh_split_by_mat')
 
     elif prefs.defaults_category == 'PART':
+        # import
         box = layout.box()
         box.label(text='Import:')
         utils.draw.draw_fmt_ver_prop(
@@ -358,6 +359,15 @@ def draw_defaults(prefs):
             lay_type='ROW'
         )
         box.prop(prefs, 'part_mesh_split_by_mat')
+        # export
+        box = layout.box()
+        box.label(text='Export:')
+        utils.draw.draw_fmt_ver_prop(
+            box,
+            prefs,
+            'part_exp_sdk_ver',
+            lay_type='ROW'
+        )
 
     elif prefs.defaults_category == 'GROUP':
         box = layout.box()
