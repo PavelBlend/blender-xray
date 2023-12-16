@@ -12,7 +12,7 @@ keymap_items_list = (
     (formats.obj.exp.ops.XRAY_OT_export_object, 'F5', False, False, True),
     (formats.skl.ops.XRAY_OT_import_skls, 'F6', False, False, False),
     (formats.skl.ops.XRAY_OT_export_skls, 'F6', False, False, True),
-    (formats.skl.ops.XRAY_OT_export_skl_batch, None, None, None, None),
+    (formats.skl.ops.XRAY_OT_export_skl_batch, 'NONE', False, False, False),
     (formats.ogf.imp.ops.XRAY_OT_import_ogf, 'F7', False, False, False),
     (formats.ogf.exp.ops.XRAY_OT_export_ogf, 'F7', False, False, True),
     (formats.omf.ops.XRAY_OT_import_omf, 'F8', False, False, False),
@@ -33,7 +33,7 @@ keymap_items_list = (
     (formats.part.ops.XRAY_OT_export_part, 'F7', True, True, True),
     (formats.group.ops.XRAY_OT_import_group, 'F8', True, True, False),
     (formats.group.ops.XRAY_OT_export_group, 'F8', True, True, True),
-    (formats.err.ops.XRAY_OT_import_err, None, None, None, None),
+    (formats.err.ops.XRAY_OT_import_err, 'NONE', False, False, False),
 )
 
 
@@ -64,25 +64,16 @@ def add_keymaps(only=None):
                     if only != operator.bl_idname:
                         create = False
                 if create:
-                    if key:
-                        keymap_item = keymaps.keymap_items.new(
-                            operator.bl_idname,
-                            type=key,
-                            value='PRESS',
-                            shift=shift,
-                            ctrl=ctrl,
-                            alt=alt,
-                            key_modifier='NONE'
-                        )
-                        keymap_item.active = True
-                    else:
-                        keymap_item = keymaps.keymap_items.new(
-                            operator.bl_idname,
-                            type='NONE',
-                            value='PRESS',
-                            key_modifier='NONE'
-                        )
-                        keymap_item.active = True
+                    keymap_item = keymaps.keymap_items.new(
+                        operator.bl_idname,
+                        type=key,
+                        value='PRESS',
+                        shift=shift,
+                        ctrl=ctrl,
+                        alt=alt,
+                        key_modifier='NONE'
+                    )
+                    keymap_item.active = True
 
             has_key = False
             for item in pref.keymaps_collection:
