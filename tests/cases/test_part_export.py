@@ -7,25 +7,41 @@ import io_scene_xray
 
 
 class TestPartExport(tests.utils.XRayTestCase):
-    def test_part_export(self):
+    def test_soc_part_export(self):
         prefs = tests.utils.get_preferences()
-        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'cases')
+        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'tested')
 
         create_objects()
 
-        out_path = self.outpath('test_export.part')
+        out_path = self.outpath('test_export_soc.part')
         part_file = os.path.join(self.binpath(), 'test_fmt_soc.part')
         shutil.copyfile(part_file, out_path)
 
         # Act
-        bpy.ops.xray_export.part(filepath=out_path)
+        bpy.ops.xray_export.part(filepath=out_path, fmt_ver='soc')
+
+        # Assert
+        self.assertReportsNotContains('ERROR')
+
+    def test_cscop_part_export(self):
+        prefs = tests.utils.get_preferences()
+        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'tested')
+
+        create_objects()
+
+        out_path = self.outpath('test_export_cscop.part')
+        part_file = os.path.join(self.binpath(), 'test_fmt_cs_cop.part')
+        shutil.copyfile(part_file, out_path)
+
+        # Act
+        bpy.ops.xray_export.part(filepath=out_path, fmt_ver='cscop')
 
         # Assert
         self.assertReportsNotContains('ERROR')
 
     def test_no_file(self):
         prefs = tests.utils.get_preferences()
-        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'cases')
+        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'tested')
 
         create_objects()
 
@@ -40,7 +56,7 @@ class TestPartExport(tests.utils.XRayTestCase):
 
     def test_no_guid(self):
         prefs = tests.utils.get_preferences()
-        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'cases')
+        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'tested')
 
         create_objects()
 

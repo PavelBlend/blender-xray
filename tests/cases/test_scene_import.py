@@ -6,7 +6,7 @@ import tests
 class TestSceneImport(tests.utils.XRayTestCase):
     def test_scene_import(self):
         prefs = tests.utils.get_preferences()
-        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'cases')
+        prefs.objects_folder = os.path.join(os.curdir, 'tests', 'tested')
 
         # Act
         bpy.ops.xray_import.scene(
