@@ -760,6 +760,8 @@ class ImportExportBasePanel(ui.base.XRayPanel):
 
                 # draw keymap
                 key = get_operator_key(operator.bl_idname)
+                if key == 'NONE':
+                    key = ''
                 row_key = split.row(align=True)
                 row_key.alignment = 'RIGHT'
                 row_key.label(text=key)
