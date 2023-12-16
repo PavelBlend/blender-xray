@@ -65,6 +65,7 @@ props = {
         precision=4,
         name='Pause'
     ),
+    'recursion': bpy.props.BoolProperty(name='Recursion', default=True),
 
     # formats
     'import_object': bpy.props.BoolProperty(name='Object', default=True),
@@ -109,6 +110,42 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
     for prop_name in props.keys():
         exec('{0} = props.get("{0}")'.format(prop_name))
 
+    def check_file(self, root, file, file_path):
+        if self.skip_by_size:
+            file_size = os.path.getsize(file_path)
+            if not self.min_size < file_size < self.max_size:
+                return
+
+        if self.skip_by_date:
+            date_float = os.path.getmtime(file_path)
+
+            if not min_time_float is None:
+                if date_float < min_time_float:
+                    return
+
+            if not max_time_float is None:
+                if date_float > max_time_float:
+                    return
+
+        name, ext = os.path.splitext(file)
+        ext = ext.lower()
+
+        if ext == '.object' and self.import_object:
+            skip = False
+        elif ext == '.ogf' and self.import_ogf:
+            skip = False
+        elif ext == '.dm' and self.import_dm:
+            skip = False
+        elif ext == '.details' and self.import_details:
+            skip = False
+        else:
+            skip = True
+
+        if skip:
+            return
+
+        self.files_list.append((root, file, file_path))
+
     def collect_files(self, context):
         self.file_index = 0
         self.files_list = []
@@ -116,42 +153,17 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
         min_time_float = get_float_time_by_str(self.time_min)
         max_time_float = get_float_time_by_str(self.time_max)
 
-        for root, dirs, files in os.walk(self.directory):
-            for file in files:
-                file_path = os.path.join(root, file)
+        if self.recursion:
+            for root, dirs, files in os.walk(self.directory):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    self.check_file(root, file, file_path)
 
-                if self.skip_by_size:
-                    file_size = os.path.getsize(file_path)
-                    if not self.min_size < file_size < self.max_size:
-                        continue
-
-                if self.skip_by_date:
-                    date_float = os.path.getmtime(file_path)
-
-                    if not min_time_float is None:
-                        if date_float < min_time_float:
-                            continue
-
-                    if not max_time_float is None:
-                        if date_float > max_time_float:
-                            continue
-
-                name, ext = os.path.splitext(file)
-                ext = ext.lower()
-
-                if ext == '.object' and self.import_object:
-                    skip = False
-                elif ext == '.ogf' and self.import_ogf:
-                    skip = False
-                elif ext == '.dm' and self.import_dm:
-                    skip = False
-                elif ext == '.details' and self.import_details:
-                    skip = False
-                else:
-                    skip = True
-
-                if not skip:
-                    self.files_list.append((root, file, file_path))
+        else:
+            for file in os.listdir(self.directory):
+                file_path = os.path.join(self.directory, file)
+                if os.path.isfile(file_path):
+                    self.check_file(self.directory, file, file_path)
 
     def test_import(self):
         remove_bpy_data()
@@ -313,6 +325,7 @@ class XRAY_OT_test_import(utils.ie.BaseOperator):
 
     def draw(self, context):    # pragma: no cover
         lay = self.layout
+        lay.prop(self, 'recursion')
         lay.prop(self, 'pause')
 
         box = lay.box()
@@ -354,6 +367,7 @@ class XRAY_OT_test_import(utils.ie.BaseOperator):
     def execute(self, context):
         bpy.ops.io_scene_xray.test_import_modal(
             directory=self.directory,
+            recursion=self.recursion,
             pause=self.pause,
             import_object=self.import_object,
             import_ogf=self.import_ogf,
