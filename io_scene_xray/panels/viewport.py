@@ -152,36 +152,43 @@ class XRAY_PT_viewer(ui.base.XRayPanel):
                 icon='FILE_FOLDER'
             )
 
-            col_fmt = col.column(align=True)
-
-            # formats
-            col_fmt.label(text='Use Formats:')
-            row = col_fmt.row(align=True)
-            row.prop(
-                viewer_props,
-                'use_object',
-                text='Object',
-                toggle=True,
-                translate=False
+            _, box = ui.collapsible.draw(
+                col,
+                'viewer:settings',
+                'Settings'
             )
-            row.prop(viewer_props, 'use_ogf', toggle=True)
-            row.prop(viewer_props, 'use_dm', toggle=True)
-            row.prop(viewer_props, 'use_details', toggle=True)
 
-            row = col.row(align=True)
-            col_1 = row.column(align=True)
-            col_2 = row.column(align=True)
+            if box:
+                col_fmt = box.column(align=True)
 
-            col_1.prop(viewer_props, 'import_motions')
-            col_1.prop(viewer_props, 'sort_reverse')
-            col_1.prop(viewer_props, 'ignore_ext')
-            col_2.prop(viewer_props, 'show_size')
-            col_2.prop(viewer_props, 'show_date')
-            col_2.prop(viewer_props, 'group_by_ext')
+                # formats
+                col_fmt.label(text='Use Formats:')
+                row = col_fmt.row(align=True)
+                row.prop(
+                    viewer_props,
+                    'use_object',
+                    text='Object',
+                    toggle=True,
+                    translate=False
+                )
+                row.prop(viewer_props, 'use_ogf', toggle=True)
+                row.prop(viewer_props, 'use_dm', toggle=True)
+                row.prop(viewer_props, 'use_details', toggle=True)
 
-            row = col.row(align=True)
-            row.label(text='Sort:')
-            row.prop(viewer_props, 'sort', expand=True)
+                row = box.row(align=True)
+                col_1 = row.column(align=True)
+                col_2 = row.column(align=True)
+
+                col_1.prop(viewer_props, 'import_motions')
+                col_1.prop(viewer_props, 'sort_reverse')
+                col_1.prop(viewer_props, 'ignore_ext')
+                col_2.prop(viewer_props, 'show_size')
+                col_2.prop(viewer_props, 'show_date')
+                col_2.prop(viewer_props, 'group_by_ext')
+
+                row = box.row(align=True)
+                row.label(text='Sort:')
+                row.prop(viewer_props, 'sort', expand=True)
 
             # folders count
             row = col.row()
