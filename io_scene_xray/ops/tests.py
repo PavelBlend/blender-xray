@@ -53,6 +53,51 @@ def update_time(self, context):
                 setattr(self, prop_name, '')
 
 
+props = {
+    'directory': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
+    ),
+    'pause': bpy.props.FloatProperty(
+        default=0.1,
+        min=0.0001,
+        max=100.0,
+        precision=4,
+        name='Pause'
+    ),
+
+    # formats
+    'import_object': bpy.props.BoolProperty(name='Object', default=True),
+    'import_ogf': bpy.props.BoolProperty(name='Ogf', default=True),
+    'import_dm': bpy.props.BoolProperty(name='Dm', default=True),
+    'import_details': bpy.props.BoolProperty(name='Details', default=True),
+    'import_motions': bpy.props.BoolProperty(
+        name='Import Motions',
+        default=False
+    ),
+
+    # size
+    'skip_by_size': bpy.props.BoolProperty(
+        name='Skip Files by Size',
+        default=False
+    ),
+    'min_size': bpy.props.IntProperty(default=0, min=0, max=2**31-1),
+    'max_size': bpy.props.IntProperty(
+        default=1000000,
+        min=0,
+        max=2**31-1
+    ),
+
+    # date
+    'skip_by_date': bpy.props.BoolProperty(
+        name='Skip Files by Creation Date',
+        default=False
+    ),
+    'time_min': bpy.props.StringProperty(update=update_time),
+    'time_max': bpy.props.StringProperty(update=update_time)
+}
+
+
 class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.test_import_modal'
     bl_label = 'Test Import Modal'
@@ -61,33 +106,8 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
     timer = None
     last_time = 0
 
-    directory = bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        options={'SKIP_SAVE', 'HIDDEN'}
-    )
-    pause = bpy.props.FloatProperty(
-        default=0.1,
-        min=0.0001,
-        max=100.0,
-        precision=4,
-        name='Pause'
-    )
-    import_object = bpy.props.BoolProperty(name='Object', default=True)
-    import_ogf = bpy.props.BoolProperty(name='Ogf', default=True)
-    import_dm = bpy.props.BoolProperty(name='Dm', default=True)
-    import_details = bpy.props.BoolProperty(name='Details', default=True)
-    import_motions = bpy.props.BoolProperty(
-        name='Import Motions',
-        default=False
-    )
-    min_size = bpy.props.IntProperty(default=0, min=0, max=2**31-1)
-    max_size = bpy.props.IntProperty(
-        default=2**31-1,
-        min=0,
-        max=2**31-1
-    )
-    time_min = bpy.props.StringProperty(update=update_time)
-    time_max = bpy.props.StringProperty(update=update_time)
+    for prop_name in props.keys():
+        exec('{0} = props.get("{0}")'.format(prop_name))
 
     def collect_files(self, context):
         self.file_index = 0
@@ -100,19 +120,21 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
             for file in files:
                 file_path = os.path.join(root, file)
 
-                file_size = os.path.getsize(file_path)
-                if not self.min_size < file_size < self.max_size:
-                    continue
-
-                date_float = os.path.getmtime(file_path)
-
-                if not min_time_float is None:
-                    if date_float < min_time_float:
+                if self.skip_by_size:
+                    file_size = os.path.getsize(file_path)
+                    if not self.min_size < file_size < self.max_size:
                         continue
 
-                if not max_time_float is None:
-                    if date_float > max_time_float:
-                        continue
+                if self.skip_by_date:
+                    date_float = os.path.getmtime(file_path)
+
+                    if not min_time_float is None:
+                        if date_float < min_time_float:
+                            continue
+
+                    if not max_time_float is None:
+                        if date_float > max_time_float:
+                            continue
 
                 name, ext = os.path.splitext(file)
                 ext = ext.lower()
@@ -286,33 +308,8 @@ class XRAY_OT_test_import(utils.ie.BaseOperator):
     bl_label = 'Test Import'
     bl_options = {'REGISTER'}
 
-    directory = bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        options={'SKIP_SAVE', 'HIDDEN'}
-    )
-    pause = bpy.props.FloatProperty(
-        default=0.1,
-        min=0.0001,
-        max=100.0,
-        precision=4,
-        name='Pause'
-    )
-    import_object = bpy.props.BoolProperty(name='Object', default=True)
-    import_ogf = bpy.props.BoolProperty(name='Ogf', default=True)
-    import_dm = bpy.props.BoolProperty(name='Dm', default=True)
-    import_details = bpy.props.BoolProperty(name='Details', default=True)
-    import_motions = bpy.props.BoolProperty(
-        name='Import Motions',
-        default=False
-    )
-    min_size = bpy.props.IntProperty(default=0, min=0, max=2**31-1)
-    max_size = bpy.props.IntProperty(
-        default=2**31-1,
-        min=0,
-        max=2**31-1
-    )
-    time_min = bpy.props.StringProperty(update=update_time)
-    time_max = bpy.props.StringProperty(update=update_time)
+    for prop_name in props.keys():
+        exec('{0} = props.get("{0}")'.format(prop_name))
 
     def draw(self, context):    # pragma: no cover
         lay = self.layout
@@ -336,21 +333,23 @@ class XRAY_OT_test_import(utils.ie.BaseOperator):
         lay.label(text='Filters:')
 
         box = lay.box()
-        box.label(text='Skip Files by Size:')
-        box.prop(self, 'min_size', text='Min')
-        box.prop(self, 'max_size', text='Max')
-        box.label(text='Size in Bytes', icon='INFO')
+        box.prop(self, 'skip_by_size')
+        col = box.column()
+        col.active = self.skip_by_size
+        col.prop(self, 'min_size', text='Min')
+        col.prop(self, 'max_size', text='Max')
+        col.label(text='Size in Bytes', icon='INFO')
 
         box = lay.box()
-        box.label(text='Skip Files by Creation Date:')
+        box.prop(self, 'skip_by_date')
+        col = box.column()
+        col.active = self.skip_by_date
+        col.prop(self, 'time_min', text='Min')
+        col.prop(self, 'time_max', text='Max')
 
-        row = box.row()
-        box.prop(self, 'time_min', text='Min')
-        box.prop(self, 'time_max', text='Max')
-
-        box.label(text='Time Formats:', icon='INFO')
-        box.label(text='Year.Month.Day Hours:Minutes')
-        box.label(text='Year.Month.Day')
+        col.label(text='Time Formats:', icon='INFO')
+        col.label(text='Year.Month.Day Hours:Minutes')
+        col.label(text='Year.Month.Day')
 
     def execute(self, context):
         bpy.ops.io_scene_xray.test_import_modal(
@@ -361,8 +360,10 @@ class XRAY_OT_test_import(utils.ie.BaseOperator):
             import_dm=self.import_dm,
             import_details=self.import_details,
             import_motions=self.import_motions,
+            skip_by_size=self.skip_by_size,
             min_size=self.min_size,
             max_size=self.max_size,
+            skip_by_date=self.skip_by_date,
             time_min=self.time_min,
             time_max=self.time_max
         )
