@@ -34,6 +34,10 @@ def support_principled_shader():
     return bpy.app.version >= (2, 79, 0)
 
 
+def support_vertex_color_node():
+    return bpy.app.version >= (2, 81, 0)
+
+
 def has_set_normals_from_faces():
     return bpy.app.version >= (2, 79, 0)
 
@@ -108,8 +112,8 @@ def get_icon(icon):
     return icon
 
 
-def get_node(node):
-    if not IS_28:
+def get_node(node, ver):
+    if not ver:
         node = SHADER_NODES.get(node, None)
     return node
 

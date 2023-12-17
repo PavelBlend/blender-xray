@@ -282,7 +282,7 @@ def _create_lmap_image_nodes(mat, xray, img_node):
 def _create_vert_color_node(shader_group, col_name, name, loc):
     if col_name:
 
-        if utils.version.IS_28:
+        if utils.version.support_vertex_color_node():
             col_node = shader_group.nodes.new('ShaderNodeVertexColor')
             col_node.name = name
             col_node.layer_name = col_name
@@ -290,9 +290,9 @@ def _create_vert_color_node(shader_group, col_name, name, loc):
             col_node.location = loc
 
         else:
-            col_node = shader_group.nodes.new('ShaderNodeGeometry')
+            col_node = shader_group.nodes.new('ShaderNodeAttribute')
             col_node.name = name
-            col_node.color_layer = col_name
+            col_node.attribute_name = col_name
             col_node.select = False
             col_node.location = loc
 
@@ -395,7 +395,7 @@ def _create_group_nodes(
             'Light Map 2 Alpha'
         )
 
-        if utils.version.IS_28:
+        if utils.version.IS_29:
             tex_rgb.hide_value = True
             tex_a.hide_value = True
             lmap_rgb.hide_value = True
@@ -439,9 +439,9 @@ def _create_group_nodes(
             )
 
         # create color mix nodes
-        mix_node = utils.version.get_node('ShaderNodeMix')
-        factor = utils.version.get_node('Factor')
-        vert_col = utils.version.get_node('Color')
+        mix_node = utils.version.get_node('ShaderNodeMix', utils.version.IS_34)
+        factor = utils.version.get_node('Factor', utils.version.IS_34)
+        vert_col = utils.version.get_node('Color', utils.version.IS_28)
 
         light_sun = shader_group.nodes.new(mix_node)
         light_sun.name = 'Light + Sun'
@@ -470,7 +470,7 @@ def _create_group_nodes(
         lmap.location.x = 200
         lmap.location.y = 200
 
-        if utils.version.IS_28:
+        if utils.version.IS_34:
             light_sun.data_type = 'RGBA'
             hemi.data_type = 'RGBA'
             lmap.data_type = 'RGBA'
