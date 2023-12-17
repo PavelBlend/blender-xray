@@ -902,15 +902,23 @@ class TestOps(tests.utils.XRayTestCase):
         out_node_2.location.y = 300
 
         # create shader node
-        princp_node_1 = nodes_1.new('ShaderNodeBsdfPrincipled')
-        princp_node_1.select = False
-        princp_node_1.location.x = 10
-        princp_node_1.location.y = 300
+        if bpy.app.version >= (2, 79):
+            shader_node_1 = nodes_1.new('ShaderNodeBsdfPrincipled')
+            color_socket = 'Base Color'
+        else:
+            shader_node_1 = nodes_1.new('ShaderNodeBsdfDiffuse')
+            color_socket = 'Color'
+        shader_node_1.select = False
+        shader_node_1.location.x = 10
+        shader_node_1.location.y = 300
 
-        princp_node_2 = nodes_2.new('ShaderNodeBsdfPrincipled')
-        princp_node_2.select = False
-        princp_node_2.location.x = 10
-        princp_node_2.location.y = 300
+        if bpy.app.version >= (2, 79):
+            shader_node_2 = nodes_2.new('ShaderNodeBsdfPrincipled')
+        else:
+            shader_node_2 = nodes_1.new('ShaderNodeBsdfDiffuse')
+        shader_node_2.select = False
+        shader_node_2.location.x = 10
+        shader_node_2.location.y = 300
 
         # create image node
         img_node_1 = nodes_1.new('ShaderNodeTexImage')
@@ -927,21 +935,21 @@ class TestOps(tests.utils.XRayTestCase):
 
         # link nodes
         mat_1.node_tree.links.new(
-            princp_node_1.outputs['BSDF'],
+            shader_node_1.outputs['BSDF'],
             out_node_1.inputs['Surface']
         )
         mat_1.node_tree.links.new(
             img_node_1.outputs['Color'],
-            princp_node_1.inputs['Base Color']
+            shader_node_1.inputs[color_socket]
         )
 
         mat_2.node_tree.links.new(
-            princp_node_2.outputs['BSDF'],
+            shader_node_2.outputs['BSDF'],
             out_node_2.inputs['Surface']
         )
         mat_2.node_tree.links.new(
             img_node_2.outputs['Color'],
-            princp_node_2.inputs['Base Color']
+            shader_node_2.inputs[color_socket]
         )
 
         # run

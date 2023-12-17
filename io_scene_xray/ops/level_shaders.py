@@ -416,21 +416,26 @@ def _create_group_nodes(
         output_node.location.x = 800
 
         # create shader node
-        princp_node = shader_group.nodes.new('ShaderNodeBsdfPrincipled')
-        princp_node.select = False
-        princp_node.location.x = 500
-        princp_node.inputs['Specular'].default_value = 0.0
+        if utils.version.support_principled_shader():
+            shader_node = shader_group.nodes.new('ShaderNodeBsdfPrincipled')
+            shader_node.inputs['Specular'].default_value = 0.0
+            color_socket = 'Base Color'
+        else:
+            shader_node = shader_group.nodes.new('ShaderNodeBsdfDiffuse')
+            color_socket = 'Color'
+        shader_node.select = False
+        shader_node.location.x = 500
 
         # link shader
         shader_group.links.new(
-            princp_node.outputs['BSDF'],
+            shader_node.outputs['BSDF'],
             output_node.inputs['Shader']
         )
         alpha_link = None
         if utils.version.IS_28:
             alpha_link = shader_group.links.new(
                 input_node.outputs['Texture Alpha'],
-                princp_node.inputs['Alpha']
+                shader_node.inputs['Alpha']
             )
 
         # create color mix nodes
@@ -488,7 +493,7 @@ def _create_group_nodes(
 
         shader_group.links.new(
             lmap.outputs[res],    # Result
-            princp_node.inputs['Base Color']
+            shader_node.inputs[color_socket]
         )
         shader_group.links.new(
             input_node.outputs['Texture Color'],
@@ -675,11 +680,16 @@ def _create_base_nodes(mat, img):
     out_node.location.y = 300
 
     # create shader node
-    princp_node = mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
-    princp_node.select = False
-    princp_node.location.x = 10
-    princp_node.location.y = 300
-    princp_node.inputs['Specular'].default_value = 0.0
+    if utils.version.support_principled_shader():
+        shader_node = mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+        shader_node.inputs['Specular'].default_value = 0.0
+        color_socket = 'Base Color'
+    else:
+        shader_node = mat.node_tree.nodes.new('ShaderNodeBsdfDiffuse')
+        color_socket = 'Color'
+    shader_node.select = False
+    shader_node.location.x = 10
+    shader_node.location.y = 300
 
     # create image node
     img_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
@@ -705,19 +715,19 @@ def _create_base_nodes(mat, img):
 
     # link nodes
     mat.node_tree.links.new(
-        princp_node.outputs['BSDF'],
+        shader_node.outputs['BSDF'],
         out_node.inputs['Surface']
     )
     mat.node_tree.links.new(
         img_node.outputs['Color'],
-        princp_node.inputs['Base Color']
+        shader_node.inputs[color_socket]
     )
 
     # is not terrain
     if not (xray.lmap_0 and not xray.lmap_1) and utils.version.IS_28:
         mat.node_tree.links.new(
             img_node.outputs['Alpha'],
-            princp_node.inputs['Alpha']
+            shader_node.inputs['Alpha']
         )
 
 

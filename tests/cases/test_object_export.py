@@ -44,6 +44,9 @@ class TestObjectExport(utils.XRayTestCase):
     def test_export_using_context(self):
         # remove default objects (cube, camera, lamp)
         for obj in bpy.data.objects:
+            if bpy.app.version <= (2, 77, 0):
+                bpy.context.scene.objects.unlink(obj)
+                obj.user_clear()
             bpy.data.objects.remove(obj)
 
         # Arrange
@@ -72,6 +75,9 @@ class TestObjectExport(utils.XRayTestCase):
     def test_export_without_selection(self):
         # remove default objects (cube, camera, lamp)
         for obj in bpy.data.objects:
+            if bpy.app.version <= (2, 77, 0):
+                bpy.context.scene.objects.unlink(obj)
+                obj.user_clear()
             bpy.data.objects.remove(obj)
 
         # Act
@@ -106,8 +112,15 @@ class TestObjectExport(utils.XRayTestCase):
 
         # Arrange
         ob2 = bpy.data.objects['tobj2']
-        ob3 = bpy.data.objects['tobj3']
+        if bpy.app.version <= (2, 77, 0):
+            bpy.context.scene.objects.unlink(ob2)
+            ob2.user_clear()
         bpy.data.objects.remove(ob2)
+
+        ob3 = bpy.data.objects['tobj3']
+        if bpy.app.version <= (2, 77, 0):
+            bpy.context.scene.objects.unlink(ob3)
+            ob3.user_clear()
         bpy.data.objects.remove(ob3)
 
         # Act
