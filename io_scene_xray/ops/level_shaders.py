@@ -441,7 +441,6 @@ def _create_group_nodes(
         # create color mix nodes
         mix_node = utils.version.get_node('ShaderNodeMix', utils.version.IS_34)
         factor = utils.version.get_node('Factor', utils.version.IS_34)
-        vert_col = utils.version.get_node('Color', utils.version.IS_28)
 
         light_sun = shader_group.nodes.new(mix_node)
         light_sun.name = 'Light + Sun'
@@ -557,15 +556,15 @@ def _create_group_nodes(
         # link vertex colors
         elif light_node and sun_node and hemi_node:
             shader_group.links.new(
-                light_node.outputs[vert_col],
+                light_node.outputs['Color'],
                 light_sun.inputs[col1]    # color A
             )
             shader_group.links.new(
-                sun_node.outputs[vert_col],
+                sun_node.outputs['Color'],
                 light_sun.inputs[col2]    # color B
             )
             shader_group.links.new(
-                hemi_node.outputs[vert_col],
+                hemi_node.outputs['Color'],
                 hemi.inputs[col2]    # color B
             )
 
@@ -577,7 +576,7 @@ def _create_group_nodes(
             lmap.inputs[factor].default_value = 0.5
 
             shader_group.links.new(
-                hemi_node.outputs[vert_col],
+                hemi_node.outputs['Color'],
                 lmap.inputs[col2]    # color B
             )
 

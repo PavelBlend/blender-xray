@@ -99,8 +99,7 @@ ICONS_279_TO_280 = {
 
 SHADER_NODES = {
     'ShaderNodeMix': 'ShaderNodeMixRGB',
-    'Factor': 'Fac',
-    'Color': 'Vertex Color'
+    'Factor': 'Fac'
 }
 
 
