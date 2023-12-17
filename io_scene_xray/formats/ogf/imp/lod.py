@@ -117,6 +117,11 @@ def assign_lod_layers_values(
         hemi_color,
         sun_color
     ):
+
+    if utils.version.broken_uv_layers():
+        # see https://github.com/PavelBlend/blender-xray/issues/622
+        uv_layer = bpy_mesh.uv_layers['Texture']
+
     if utils.version.IS_28:
         for face in bpy_mesh.polygons:
             for loop_index in face.loop_indices:

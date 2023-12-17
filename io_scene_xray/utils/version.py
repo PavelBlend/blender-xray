@@ -42,6 +42,10 @@ def broken_file_browser_filter():
     return bpy.app.version >= (2, 90, 0)
 
 
+def broken_uv_layers():
+    return bpy.app.version >= (3, 5, 0)
+
+
 def has_file_browser_show_tool_prop():
     return bpy.app.version >= (3, 0, 0)
 
