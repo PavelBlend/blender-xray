@@ -1,6 +1,7 @@
 # addon modules
 from . import imp
 from . import write
+from . import const
 from . import interp
 from . import utilites
 from ... import log
@@ -163,7 +164,7 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
 
 
 @log.with_context('envelope')
-def export_envelope(writer, ver, fcurve, fps, koef, epsilon=utilites.EPSILON):
+def export_envelope(writer, ver, fcurve, fps, koef, epsilon=const.EPSILON):
     behavior = None
     if fcurve.extrapolation == 'CONSTANT':
         behavior = interp.Behavior.CONSTANT

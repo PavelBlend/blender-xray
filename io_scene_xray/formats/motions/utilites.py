@@ -1,11 +1,9 @@
 # addon modules
+from . import const
 from . import interp
 
 
-EPSILON = 0.00001
-
-
-def refine_keys(keyframes, epsilon=EPSILON):
+def refine_keys(keyframes, epsilon=const.EPSILON):
     def significant(prev_kf, curr_kf, next_kf, skipped):
         def is_oor(keyframe, derivative):
             expected_value = (keyframe.time - prev_kf.time) * derivative + prev_kf.value

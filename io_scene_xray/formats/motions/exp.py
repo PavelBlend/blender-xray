@@ -58,8 +58,8 @@ def _export_motion_data(
         epsilon_loc = xray.autobake_refine_location
         epsilon_rot = xray.autobake_refine_rotation
     else:
-        epsilon_loc = utilites.EPSILON
-        epsilon_rot = utilites.EPSILON
+        epsilon_loc = const.EPSILON
+        epsilon_rot = const.EPSILON
 
     epsilons = [epsilon_loc, epsilon_rot]
     _, scale = utils.ie.get_obj_scale_matrix(root_obj, armature)
