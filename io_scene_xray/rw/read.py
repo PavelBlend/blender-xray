@@ -42,7 +42,7 @@ class FastBytes:
     @staticmethod
     def str_at(data, offs):
         new_offs = FastBytes.skip_str_at(data, offs)
-        return data[offs:new_offs - 1].decode('cp1251'), new_offs
+        return data[offs : new_offs - 1].decode('cp1251'), new_offs
 
 
 class PackedReader:
@@ -65,7 +65,7 @@ class PackedReader:
 
     def getb(self, count):
         self.__offs += count
-        return self.__data[self.__offs - count:self.__offs]
+        return self.__data[self.__offs - count : self.__offs]
 
     def getb32(self):
         return struct.unpack_from('<I', self.__data, self.__offs)[0]
@@ -93,8 +93,10 @@ class PackedReader:
     def get_array(self, fmt, count, vec_len=1):
         if numpy:
             dtype_format = NUMPY_FORMATS.get(fmt, None)
+
             if not dtype_format:
                 raise Exception('Unsupported numpy format: {}'.format(fmt))
+
             dtype = numpy.dtype(dtype_format)
             dtype = dtype.newbyteorder('<')
             size = dtype.itemsize
@@ -106,11 +108,13 @@ class PackedReader:
             )
             self.__offs += size * count * vec_len
             values.shape = (values.shape[0] // vec_len, vec_len)
+
         else:
             values = [
                 self.getf('<{0}{1}'.format(vec_len, fmt))
                 for _ in range(count)
             ]
+
         return values
 
     def byte(self):
@@ -142,9 +146,11 @@ class PackedReader:
     def gets(self, onerror=None):
         data, offs = self.__data, self.__offs
         new_offs = self.__offs = FastBytes.skip_str_at(data, offs)
-        bts = data[offs:new_offs - 1]
+        bts = data[offs : new_offs - 1]
+
         try:
             return str(bts, 'cp1251')
+
         except UnicodeError as error:
             if onerror is None:
                 raise error
@@ -154,9 +160,11 @@ class PackedReader:
     def gets_a(self, onerror=None):
         data, offs = self.__data, self.__offs
         new_offs = self.__offs = FastBytes.skip_str_at_a(data, offs)
-        bts = data[offs:new_offs - 1]
+        bts = data[offs : new_offs - 1]
+
         try:
             return str(bts, 'cp1251')
+
         except UnicodeError as error:
             if onerror is None:
                 raise
@@ -165,9 +173,11 @@ class PackedReader:
 
     def getv(self):
         view = self.__view
+
         if view is None:
             self.__view = view = memoryview(self.__data)
-        return view[self.__offs:]
+
+        return view[self.__offs : ]
 
     def get_size(self):
         return len(self.__data)
@@ -200,30 +210,39 @@ class ChunkedReader:
     def __next__(self):
         offs = self.__offs
         data = self.__data
+
         if offs >= len(data):
             raise StopIteration
+
         cid = FastBytes.int_at(data, offs)
         size = FastBytes.int_at(data, offs + 4)
         offs += 8
         self.__offs = offs + size
+
         if cid & ChunkedReader.__MASK_COMPRESSED:
             cid &= ~ChunkedReader.__MASK_COMPRESSED
+
             if (size == 0) or self.__ignore_compression:
-                return cid, data[offs:offs + size]
+                return cid, data[offs : offs + size]
+
             textsize = FastBytes.int_at(data, offs)
-            buffer = data[offs + 4:offs + size]
+            buffer = data[offs + 4 : offs + size]
             return cid, memoryview(lzhuf.decompress_buffer(buffer, textsize))
-        return cid, data[offs:offs + size]
+
+        return cid, data[offs : offs + size]
 
     def next(self, expected_cid, error=True):
         cid, data = next(self)
+
         if cid != expected_cid:
             data = None
+
             if error:
                 raise Exception('expected chunk: {}, but found: {}'.format(
                     expected_cid,
                     cid
                 ))
+
         return data
 
     def get_chunk(self, expected_chunk_id):
@@ -247,7 +266,10 @@ class ChunkedReader:
 
     def get_chunks_count(self):
         chunks_count = 0
+
         for chunk_id, chunk_data in self:
             chunks_count += 1
+
         self.__offs = 0
+
         return chunks_count

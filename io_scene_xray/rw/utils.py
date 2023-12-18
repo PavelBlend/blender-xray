@@ -8,11 +8,13 @@ from .. import text
 
 
 def get_chunks(data):
-    chunked_reader = read.ChunkedReader(data)
     chunks = {}
+    chunked_reader = read.ChunkedReader(data)
+
     for chunk_id, chunk_data in chunked_reader:
         if not chunks.get(chunk_id, None):
             chunks[chunk_id] = chunk_data
+
     return chunks
 
 
@@ -25,6 +27,7 @@ def read_file(file_path):
         with open(file_path, 'rb') as file:
             data = file.read()
         return data
+
     except FileNotFoundError:
         raise log.AppError('No such file!')
 
@@ -61,6 +64,7 @@ def save_file(file_path, writer):
 def read_text_file(file_path):
     with open(file_path, mode='r', encoding='cp1251') as file:
         data = file.read()
+
     return data
 
 
