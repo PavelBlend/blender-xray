@@ -12,6 +12,9 @@ from ... import utils
 from ... import rw
 
 
+MOTIONS_FILTER_ALL = lambda name: True
+
+
 def skip_motion_rest(data, offs):
     ptr = offs + 4 + 4 + 4 + 2
     ver = rw.read.FastBytes.short_at(data, ptr - 2)
@@ -43,7 +46,7 @@ def import_motion(
         context,
         bonesmap,
         reported,
-        motions_filter=utilites.MOTIONS_FILTER_ALL,
+        motions_filter=MOTIONS_FILTER_ALL,
         skl_file_name=None
     ):
 
@@ -306,7 +309,7 @@ def import_motion(
     return act
 
 
-def import_motions(reader, context, motions_filter=utilites.MOTIONS_FILTER_ALL):
+def import_motions(reader, context, motions_filter=MOTIONS_FILTER_ALL):
     bpy_armature = context.bpy_arm_obj
     motions_count = reader.uint32()
     if motions_count:

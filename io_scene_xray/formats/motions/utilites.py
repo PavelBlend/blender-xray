@@ -2,7 +2,6 @@
 from . import interp
 
 
-MOTIONS_FILTER_ALL = lambda name: True
 EPSILON = 0.00001
 
 

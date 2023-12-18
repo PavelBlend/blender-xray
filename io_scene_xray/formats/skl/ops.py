@@ -136,7 +136,7 @@ class XRAY_OT_import_skls(
         if not self.files or (len(self.files) == 1 and not self.files[0].name):
             self.report({'ERROR'}, 'No files selected!')
             return {'CANCELLED'}
-        motions_filter = motions.utilites.MOTIONS_FILTER_ALL
+        motions_filter = motions.imp.MOTIONS_FILTER_ALL
         if self.motions:
             selected_names = {
                 motion.name

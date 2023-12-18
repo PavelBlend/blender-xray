@@ -292,7 +292,7 @@ def import_anim(obj, file, animation_name):
         # *.skls
         imp_ctx = formats.skl.imp.ImportSklContext()
         imp_ctx.bpy_arm_obj = obj
-        imp_ctx.motions_filter = formats.motions.utilites.MOTIONS_FILTER_ALL
+        imp_ctx.motions_filter = formats.motions.imp.MOTIONS_FILTER_ALL
         imp_ctx.filename = file.file_path
 
         # import
