@@ -178,7 +178,7 @@ def _export_action_data(packed_writer, ver, xray, fcurves):
         fcurve = fcurves[(0, 2, 1, 5, 3, 4)[curve_index]]
         coef = (1, 1, 1, -1, -1, -1)[curve_index]
 
-        epsilon = motions.utilites.EPSILON
+        epsilon = motions.const.EPSILON
         if xray.autobake_custom_refine:
             if curve_index < 3:
                 epsilon = xray.autobake_refine_location
