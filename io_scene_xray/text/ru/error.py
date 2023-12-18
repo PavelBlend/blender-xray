@@ -32,6 +32,8 @@ translations_table = (
     (error.arm_non_uniform_scale, 'Объект имеет неравномерный масштаб'),
     (error.not_pose_mode, 'Pose mode не активирован!'),
     (error.no_active_bone, 'Нет активной кости!'),
+    (error.no_anim_data, 'Объект не имеет анимационных данных'),
+    (error.sel_no_anim_data, 'Выделенные объекты не имеют анимационных данных.'),
 
     # anm export
     (error.anm_no_keys, 'Анимация имеет ключи не для всех каналов'),

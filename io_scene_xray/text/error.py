@@ -24,6 +24,8 @@ has_no_main_chunk = 'File has no main data block'
 arm_non_uniform_scale = 'Object has an non-uniform scale'
 not_pose_mode = 'Pose mode not activated!'
 no_active_bone = 'No active bone!'
+no_anim_data = 'Object has no animation data'
+sel_no_anim_data = 'Selected objects has no animation data.'
 
 # anm export
 anm_no_keys = 'Action has keys not for all channels'

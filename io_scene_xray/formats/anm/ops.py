@@ -10,13 +10,14 @@ from . import imp
 from . import exp
 from .. import ie
 from ... import log
+from ... import text
 from ... import utils
 
 
-def get_objects(context):
+def get_objects(objects):
     return [
         obj
-        for obj in context.selected_objects
+        for obj in objects
             if obj.animation_data
     ]
 
@@ -131,7 +132,7 @@ class XRAY_OT_export_anm_file(
     def execute(self, context):
         utils.stats.update('Export *.anm')
 
-        objects_list = get_objects(context)
+        objects_list = get_objects(context.selected_objects)
         if len(objects_list) == 1:
             obj = objects_list[0]
         else:
@@ -150,7 +151,8 @@ class XRAY_OT_export_anm_file(
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
-        objects_list = get_objects(context)
+        objects_list = get_objects(context.selected_objects)
+
         if len(objects_list) == 1:
             obj = objects_list[0]
         else:
@@ -160,13 +162,6 @@ class XRAY_OT_export_anm_file(
             self.filepath = utils.ie.add_file_ext(obj.name, filename_ext)
         else:
             utils.ie.no_active_obj_report(self)
-            return {'CANCELLED'}
-
-        if not obj.animation_data:
-            self.report(
-                {'ERROR'},
-                'Object "{}" has no animation data.'.format(obj.name)
-            )
             return {'CANCELLED'}
 
         pref = utils.version.get_preferences()
@@ -209,7 +204,7 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
         export_context = exp.ExportAnmContext()
         export_context.format_version = self.format_version
 
-        objects_list = get_objects(context)
+        objects_list = get_objects(context.selected_objects)
 
         for obj in objects_list:
             filepath = os.path.join(self.directory, obj.name)
@@ -228,16 +223,35 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
 
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
+        active_obj = context.active_object
         selected_objects_count = len(context.selected_objects)
 
-        if not selected_objects_count:
+        if not selected_objects_count and not active_obj:
             utils.ie.no_selected_obj_report(self)
             return {'CANCELLED'}
 
-        objects_list = get_objects(context)
+        if selected_objects_count:
+            objs = context.selected_objects
+        else:
+            objs = [active_obj, ]
+
+        objects_list = get_objects(objs)
 
         if not objects_list:
-            self.report({'ERROR'}, 'Selected objects has no animation data')
+
+            if len(objs) == 1:
+                obj_name = objs[0].name
+                obj_info = ': "{}"'.format(obj_name)
+                self.report(
+                    {'ERROR'},
+                    text.get_text(text.error.no_anim_data) + obj_info
+                )
+            else:
+                self.report(
+                    {'ERROR'},
+                    text.get_text(text.error.sel_no_anim_data)
+                )
+
             return {'CANCELLED'}
 
         if len(objects_list) == 1:
