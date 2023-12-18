@@ -16,7 +16,7 @@ MOTION_DEFAULT_FLAGS = 0
 
 def convert_curve_to_keys(curve, fps):
     for frame, value in enumerate(curve):
-        yield utilites.KF(frame / fps, value, interp.Shape.STEPPED)
+        yield interp.KeyFrame(frame / fps, value, interp.Shape.STEPPED)
 
 
 def _export_motion_data(

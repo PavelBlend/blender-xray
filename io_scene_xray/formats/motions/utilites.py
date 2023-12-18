@@ -3,25 +3,6 @@ from . import interp
 
 
 MOTIONS_FILTER_ALL = lambda name: True
-
-
-def mkstruct(name, fields):
-    template = \
-        'class {name}:\n' \
-            '\t__slots__={fields}\n' \
-            '\tdef __init__(self, {params}):\n' \
-                '\t\t{params_init}={params}'.format(
-        name=name,
-        fields=fields,
-        params=','.join(fields),
-        params_init=','.join('self.' + field for field in fields)
-    )
-    tmp = {}
-    exec(template, tmp)
-    return tmp[name]
-
-
-KF = mkstruct('KeyFrame', ['time', 'value', 'shape'])
 EPSILON = 0.00001
 
 

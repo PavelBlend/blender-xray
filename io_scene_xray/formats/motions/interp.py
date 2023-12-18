@@ -20,6 +20,13 @@ class Shape(enum.Enum):
     BEZIER_2D = 5
 
 
+class KeyFrame:
+    def __init__(self, time, value, shape):
+        self.time = time
+        self.value = value
+        self.shape = shape
+
+
 class Key:
     def __init__(self):
         self.value = None

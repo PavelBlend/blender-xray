@@ -196,7 +196,7 @@ def export_envelope(writer, ver, fcurve, fps, koef, epsilon=utilites.EPSILON):
                     unsupported_occured.add(prev_kf.interpolation)
                     shape = replace_unsupported_to
             prev_kf = curr_kf
-            yield utilites.KF(curr_kf.co.x / fps, curr_kf.co.y / koef, shape)
+            yield interp.KeyFrame(curr_kf.co.x / fps, curr_kf.co.y / koef, shape)
 
     kf_writer = rw.write.PackedWriter()
     keyframes = utilites.refine_keys(generate_keys(fcurve.keyframe_points), epsilon)
