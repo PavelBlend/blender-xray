@@ -40,12 +40,13 @@ def _export_motion_data(
 
     # collect motion parameters
     frame_start, frame_end = action.frame_range
+    length = int(frame_end - frame_start + 1)
     fps = xray.fps
     bones_count = len(bones_anims)
 
     # write motion parameters
     writer.puts(motion_name)
-    writer.putf('<2I', int(frame_start), int(frame_end))
+    writer.putf('<2I', 0, length)    # start frame, end frame
     writer.putf('<f', fps)
     writer.putf('<H', const.FORMAT_VERSION_6)
     writer.putf('<B', xray.flags)
