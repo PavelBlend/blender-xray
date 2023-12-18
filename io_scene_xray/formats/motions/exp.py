@@ -4,6 +4,7 @@ import mathutils
 
 # addon modules
 from . import const
+from . import write
 from . import interp
 from . import utilites
 from ... import utils
@@ -124,7 +125,7 @@ def _export_motion_data(
                 convert_curve_to_keys(curve, fps),
                 epsilon
             )
-            keyframes_count = utilites.export_keyframes(
+            keyframes_count = write.export_keyframes(
                 keyframes_writer,
                 keyframes,
                 time_end=time_end,

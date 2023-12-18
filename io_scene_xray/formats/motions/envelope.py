@@ -1,5 +1,6 @@
 # addon modules
 from . import imp
+from . import write
 from . import interp
 from . import utilites
 from ... import log
@@ -200,7 +201,7 @@ def export_envelope(writer, ver, fcurve, fps, koef, epsilon=utilites.EPSILON):
 
     kf_writer = rw.write.PackedWriter()
     keyframes = utilites.refine_keys(generate_keys(fcurve.keyframe_points), epsilon)
-    count = utilites.export_keyframes(kf_writer, keyframes, anm_ver=ver)
+    count = write.export_keyframes(kf_writer, keyframes, anm_ver=ver)
 
     count_fmt = 'I'
     if ver > 3:
