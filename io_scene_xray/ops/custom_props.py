@@ -139,7 +139,7 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
     draw = draw_function
 
     def set_custom(self, owner, prop, custom):
-        if not self.obj.get(custom, None) is None:
+        if self.obj.get(custom, None) is not None:
             setattr(owner, prop, self.obj[custom])
 
     @utils.set_cursor_state
@@ -159,7 +159,7 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
             self.set_custom(xray.revision, 'moder', stgs.object_modif_name)
             self.set_custom(xray.revision, 'mtime', stgs.object_modified_time)
             motion_refs = obj.get(stgs.object_motion_references, None)
-            if not motion_refs is None:
+            if motion_refs is not None:
                 motion_refs_list = motion_refs.split(',')
                 for motion_ref in motion_refs_list:
                     xray.motionrefs_collection.add().name = motion_ref
@@ -217,7 +217,7 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
                 self.set_custom(xray.breakf, 'torque', stgs.bone_breakable_torque)
                 self.set_custom(xray, 'friction', stgs.bone_friction)
                 bone_group_name = bone.get(stgs.bone_part, None)
-                if not bone_group_name is None:
+                if bone_group_name is not None:
                     group = armature.pose.bone_groups.get(bone_group_name)
                     if not group:
                         group = armature.pose.bone_groups.new(name=bone_group_name)
@@ -454,11 +454,11 @@ class XRAY_OT_remove_xray_custom_props(utils.ie.BaseOperator):
             props_names = []
             for prop_id in custom_props:
                 prop_name = getattr(preferences.custom_props, prop_id, None)
-                if not prop_name is None:
+                if prop_name is not None:
                     props_names.append(prop_name)
             for bpy_data in bpy_data_list:
                 for prop_name in props_names:
-                    if not bpy_data.get(prop_name, None) is None:
+                    if bpy_data.get(prop_name, None) is not None:
                         del bpy_data[prop_name]
         utils.draw.redraw_areas()
         self.report({'INFO'}, text.get_text(text.warn.ready))

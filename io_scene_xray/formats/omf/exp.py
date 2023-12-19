@@ -510,7 +510,7 @@ def collect_motions_availability_table(
                 if motion_id is None:
                     act_not_found.add(action_name)
                     continue
-            if not motion_id is None:
+            if motion_id is not None:
                 available = True
                 motions_list.append((motion_name, motion_id, available))
             else:

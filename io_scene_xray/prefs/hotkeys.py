@@ -60,7 +60,7 @@ def add_keymaps(only=None):
 
             if not keymap_item:
                 create = True
-                if not only is None:
+                if only is not None:
                     if only != operator.bl_idname:
                         create = False
                 if create:

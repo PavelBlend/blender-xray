@@ -15,7 +15,7 @@ def export_keyframes(writer, keyframes, time_end=None, fps=None, anm_ver=5):
                 writer.putf('<4H', 32768, 32768, 32768, 32768)
 
         # so that the animation doesn't change its length
-        if not time_end is None:
+        if time_end is not None:
             if (time_end - keyframe.time) > (1 / fps):
                 writer.putf('<2f', keyframe.value, time_end)
                 writer.putf('<B', interp.Shape.STEPPED.value)
@@ -30,7 +30,7 @@ def export_keyframes(writer, keyframes, time_end=None, fps=None, anm_ver=5):
             writer.putf('<4f', 0.0, 0.0, 0.0, 0.0)
 
         # so that the animation doesn't change its length
-        if not time_end is None:
+        if time_end is not None:
             if (time_end - keyframe.time) > (1 / fps):
                 writer.putf('<2f', keyframe.value, time_end)
                 writer.putf('<I', interp.Shape.STEPPED.value)

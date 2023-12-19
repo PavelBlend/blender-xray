@@ -288,7 +288,7 @@ def export_mesh(
         if is_bad:
             weight_maps.append(None)
             continue
-        if not bones_names is None:
+        if bones_names is not None:
             if vertex_group.name not in bones_names:
                 weight_maps.append(None)
                 continue

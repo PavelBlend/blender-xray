@@ -46,7 +46,7 @@ def incoming(start_key, end_key, next_key):
         a = (1.0 - end_key.tension) * (1.0 - end_key.continuity) * (1.0 + end_key.bias)
         b = (1.0 - end_key.tension) * (1.0 + end_key.continuity) * (1.0 - end_key.bias)
         d = end_key.value - start_key.value
-        if not next_key.time is None:
+        if next_key.time is not None:
             t = (end_key.time - start_key.time) / (next_key.time - start_key.time)
             in_ = t * (b * (next_key.value - end_key.value) + a * d)
         else:
@@ -55,7 +55,7 @@ def incoming(start_key, end_key, next_key):
         in_ = (end_key.value - start_key.value) / (end_key.time - start_key.time)
     elif end_key.shape in (Shape.HERMITE, Shape.BEZIER_1D):
         in_ = end_key.param_1
-        if not next_key.time is None:
+        if next_key.time is not None:
             in_ *= (end_key.time - start_key.time) / (next_key.time - start_key.time)
     else:
         in_ = 0.0
@@ -67,14 +67,14 @@ def outgoing(start_key, end_key, prev_key):
         a = (1.0 - start_key.tension) * (1.0 + start_key.continuity) * (1.0 + start_key.bias)
         b = (1.0 - start_key.tension) * (1.0 - start_key.continuity) * (1.0 - start_key.bias)
         d = end_key.value - start_key.value
-        if not prev_key.time is None:
+        if prev_key.time is not None:
             t = (end_key.time - start_key.time) / (end_key.time - prev_key.time)
             out = t * (a * (start_key.value - prev_key.value) + b * d)
         else:
             out = 0.5 * (a + b) * d
     elif start_key.shape in (Shape.HERMITE, Shape.BEZIER_1D):
         out = start_key.param_2
-        if not prev_key.time is None:
+        if prev_key.time is not None:
             out *= (end_key.time - start_key.time) / (end_key.time - prev_key.time)
     else:
         out = 0.0

@@ -181,7 +181,7 @@ def _export_child(
             weights_count = 0
             for group_index, weight in loop.vert[weight_layer].items():
                 remap_group_index = vertex_groups_map.get(group_index, None)
-                if not remap_group_index is None:
+                if remap_group_index is not None:
                     weights.append((remap_group_index, weight))
                     weights_count += 1
             if not weights_count:

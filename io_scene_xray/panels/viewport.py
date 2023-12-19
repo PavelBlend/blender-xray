@@ -43,7 +43,7 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
 
         obj = context.active_object
         active = False
-        if not obj is None:
+        if obj is not None:
             if obj.type == 'ARMATURE':
                 active = True
             else:
@@ -660,7 +660,7 @@ class XRAY_PT_rig(ui.base.XRayPanel):
 
         for bone in bones:
             ik_fk_prop = bone.get(ops.rig.create_ik.IK_FK_PROP_NAME, None)
-            if not ik_fk_prop is None:
+            if ik_fk_prop is not None:
                 ik_fk_bones.append(bone)
 
         if not ik_fk_bones:
