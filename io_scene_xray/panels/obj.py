@@ -378,7 +378,7 @@ def details_draw_function(self, context):
             bpy.data,
             'objects',
             text=''
-            )
+        )
 
         split = utils.version.layout_split(box, 0.4, align=True)
         split.label(text='Slots Base Object:')
@@ -388,7 +388,7 @@ def details_draw_function(self, context):
             bpy.data,
             'objects',
             text=''
-            )
+        )
 
         split = utils.version.layout_split(box, 0.4, align=True)
         split.label(text='Slots Top Object:')
@@ -398,11 +398,11 @@ def details_draw_function(self, context):
             bpy.data,
             'objects',
             text=''
-            )
+        )
 
         _, box_ = ui.collapsible.draw(
             box, 'object:lighting', 'Lighting Coefficients'
-            )
+        )
 
         if box_:
 
@@ -417,7 +417,7 @@ def details_draw_function(self, context):
                 bpy.data,
                 'images',
                 text='Lights'
-                )
+            )
 
             if ligthing.format == 'builds_1569-cop':
 
@@ -427,7 +427,7 @@ def details_draw_function(self, context):
                     bpy.data,
                     'images',
                     text='Hemi'
-                    )
+                )
 
                 box_.prop_search(
                     ligthing,
@@ -435,11 +435,11 @@ def details_draw_function(self, context):
                     bpy.data,
                     'images',
                     text='Shadows'
-                    )
+                )
 
         _, box_ = ui.collapsible.draw(
             box, 'object:slots', 'Slots Meshes Indices'
-            )
+        )
 
         if box_:
             for mesh_index in range(4):
@@ -449,7 +449,7 @@ def details_draw_function(self, context):
                     bpy.data,
                     'images',
                     text='Mesh {}'.format(mesh_index)
-                    )
+                )
 
         box.operator(formats.details.ops.XRAY_OT_pack_details_images.bl_idname)
 
