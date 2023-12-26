@@ -155,7 +155,7 @@ class XRAY_OT_copy_motion_refs_list(utils.ie.BaseOperator):
         obj = context.active_object
         lines = []
         saved_refs = set()
-        for ref_index, ref in enumerate(obj.xray.motionrefs_collection):
+        for ref in obj.xray.motionrefs_collection:
             name = ref.name
             if not name:
                 continue
