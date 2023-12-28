@@ -8,45 +8,6 @@ from .. import utils
 from .. import ops
 
 
-BONE_TEXT_JOINT = []
-for axis in ('X', 'Y', 'Z'):
-    BONE_TEXT_JOINT.append((
-        'Limit {}'.format(axis),
-        ('Min', 'Max'),
-        'Spring',
-        'Damping'
-    ))
-
-BONE_TEXT_WHEEL = [(
-    'Steer',
-    ('Limit Min', 'Limit Max')
-), ]
-
-BONE_TEXT_SLIDER = []
-for transform in ('Slide', 'Rotate'):
-    BONE_TEXT_SLIDER.append((
-        '{} Axis Z'.format(transform),
-        ('Limits Min', 'Limits Max'),
-        'Spring',
-        'Damping'
-    ))
-
-BONE_TEXT = {
-    2: BONE_TEXT_JOINT,
-    3: BONE_TEXT_WHEEL,
-    5: BONE_TEXT_SLIDER
-}
-
-BONE_PROPS = []
-for axis in ('x', 'y', 'z'):
-    BONE_PROPS.extend((
-        'lim_{}_min'.format(axis),
-        'lim_{}_max'.format(axis),
-        'lim_{}_spr'.format(axis),
-        'lim_{}_dmp'.format(axis)
-    ))
-
-
 class XRAY_PT_bone(ui.base.XRayPanel):
     bl_context = 'bone'
     bl_label = ui.base.build_label('Bone')
