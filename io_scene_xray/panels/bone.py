@@ -176,21 +176,9 @@ class XRAY_PT_bone(ui.base.XRayPanel):
         row.label(text='Joint Type:', translate=False)
         row.prop(data.ikjoint, 'type', text='', translate=False)
 
-        if data.ikjoint.type == '6':
-            row = box.row()
-            row.label(text='Joint ID:', translate=False)
-            row.prop(data.ikjoint, 'type_custom_id', text='', translate=False)
-
         joint_type = int(data.ikjoint.type)
 
-        if 0 < joint_type < 6 and joint_type != 4:    # 4 - None type
-
-            if joint_type == 3:    # Wheel
-                box.label(
-                    text='Steer-X / Roll-Z',
-                    icon='INFO',
-                    translate=False
-                )
+        if joint_type != 4:    # 4 - None type
 
             box.prop(data, 'friction', text='Friction')
 
@@ -198,46 +186,66 @@ class XRAY_PT_bone(ui.base.XRayPanel):
             col.prop(data.ikjoint, 'spring', text='Spring')
             col.prop(data.ikjoint, 'damping', text='Damping')
 
-            if 1 < joint_type < 6:
-                prop_index = 0
-                for text in BONE_TEXT[joint_type]:
-                    col = box.column(align=True)
-                    col.label(text=text[0] + ':')
-                    # slider info
-                    if joint_type == 5 and text[0] == 'Slide Axis Z':
-                        col.label(
-                            text='Limit Min: {0:.4f} m'.format(
-                                data.ikjoint.lim_x_min
-                            ),
-                            icon='INFO',
-                            translate=False
-                        )
-                        col.label(
-                            text='Limit Max: {0:.4f} m'.format(
-                                data.ikjoint.lim_x_max
-                            ),
-                            icon='INFO',
-                            translate=False
-                        )
+            # joint
+            if joint_type == 2:
+                col_joint = box.column(align=True)
+                col_joint.label(text='Limit X:')
+                row = col_joint.row(align=True)
+                row.prop(data.ikjoint, 'lim_x_min', text='Min')
+                row.prop(data.ikjoint, 'lim_x_max', text='Max')
+                col_joint.prop(data.ikjoint, 'lim_x_spr', text='Spring')
+                col_joint.prop(data.ikjoint, 'lim_x_dmp', text='Damping')
 
-                    for prop_text in text[1 : ]:
-                        if isinstance(prop_text, tuple):
-                            row = col.row(align=True)
-                            for property_text in prop_text:
-                                row.prop(
-                                    data.ikjoint,
-                                    BONE_PROPS[prop_index],
-                                    text=property_text
-                                )
-                                prop_index += 1
+                col_joint = box.column(align=True)
+                col_joint.label(text='Limit Y:')
+                row = col_joint.row(align=True)
+                row.prop(data.ikjoint, 'lim_y_min', text='Min')
+                row.prop(data.ikjoint, 'lim_y_max', text='Max')
+                col_joint.prop(data.ikjoint, 'lim_y_spr', text='Spring')
+                col_joint.prop(data.ikjoint, 'lim_y_dmp', text='Damping')
 
-                        else:
-                            col.prop(
-                                data.ikjoint,
-                                BONE_PROPS[prop_index],
-                                text=prop_text
-                            )
-                            prop_index += 1
+                col_joint = box.column(align=True)
+                col_joint.label(text='Limit Z:')
+                row = col_joint.row(align=True)
+                row.prop(data.ikjoint, 'lim_z_min', text='Min')
+                row.prop(data.ikjoint, 'lim_z_max', text='Max')
+                col_joint.prop(data.ikjoint, 'lim_z_spr', text='Spring')
+                col_joint.prop(data.ikjoint, 'lim_z_dmp', text='Damping')
+
+            # wheel
+            elif joint_type == 3:
+                col_wheel = box.column(align=True)
+                col_wheel.label(
+                    text='Steer-X / Roll-Z',
+                    icon='INFO',
+                    translate=False
+                )
+                col_wheel.label(text='Steer:')
+                col_wheel.prop(data.ikjoint, 'lim_x_min', text='Min')
+                col_wheel.prop(data.ikjoint, 'lim_x_max', text='Max')
+
+            # slider
+            elif joint_type == 5:
+                col = box.column(align=True)
+                col.label(text='Slide Z:')
+                col.prop(data.ikjoint, 'lim_x_min', text='Min')
+                col.prop(data.ikjoint, 'lim_x_max', text='Max')
+
+                col = box.column(align=True)
+                col.label(text='Rotate Z:')
+                col.prop(data.ikjoint, 'lim_y_min', text='Min')
+                col.prop(data.ikjoint, 'lim_y_max', text='Max')
+
+            # custom
+            elif joint_type == 6:
+                row = box.row()
+                row.label(text='Joint ID:', translate=False)
+                row.prop(
+                    data.ikjoint,
+                    'type_custom_id',
+                    text='',
+                    translate=False
+                )
 
         col = box.column(align=True)
         col.prop(
