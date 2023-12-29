@@ -147,8 +147,7 @@ def export_bone(
     # ik joint chunk
     ik = xray.ikjoint
     if bpy_arm_obj.data.xray.joint_limits_type == 'XRAY':
-        lim_x_min = ik.lim_x_min
-        lim_x_max = ik.lim_x_max
+        lim_x_min, lim_x_max = utils.bone.get_x_limits(ik)
         lim_y_min = ik.lim_y_min
         lim_y_max = ik.lim_y_max
         lim_z_min = ik.lim_z_min

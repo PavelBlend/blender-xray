@@ -210,6 +210,8 @@ def import_file(file_path, context):
                     ik.lim_z_min, ik.lim_z_max = 0, 0
                     ik.lim_z_spr, ik.lim_z_dmp = 1, 1
 
+                    ik.slide_min, ik.slide_max = 0, 0
+
                     ik.spring = 1
                     ik.damping = 1
 

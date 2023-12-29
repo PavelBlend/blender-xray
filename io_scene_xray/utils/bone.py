@@ -39,6 +39,22 @@ def get_ode_ik_limits(value_1, value_2):
     return min_value, max_value
 
 
+def get_x_limits(ik_data):
+    if ik_data.type == '5':    # slider
+        return ik_data.slide_min, ik_data.slide_max
+    else:
+        return ik_data.lim_x_min, ik_data.lim_x_max
+
+
+def set_x_limits(ik, limit_min, limit_max):
+    # min
+    ik.lim_x_min = limit_min
+    ik.slide_min = limit_min
+    # max
+    ik.lim_x_max = limit_max
+    ik.slide_max = limit_max
+
+
 def safe_assign_enum_property(bone_name, obj, prop_name, value, desc, custom):
     if value < custom:
         setattr(obj, prop_name, str(value))

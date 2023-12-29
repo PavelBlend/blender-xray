@@ -449,10 +449,8 @@ def _write_ik_data(bones, scale, ogf_writer):
         cyl_rad = xray.shape.cyl_rad * scale
 
         # get limits
-        x_min, x_max = utils.bone.get_ode_ik_limits(
-            xray.ikjoint.lim_x_min,
-            xray.ikjoint.lim_x_max
-        )
+        x_min, x_max = utils.bone.get_x_limits(xray.ikjoint)
+        x_min, x_max = utils.bone.get_ode_ik_limits(x_min, x_max)
         y_min, y_max = utils.bone.get_ode_ik_limits(
             xray.ikjoint.lim_y_min,
             xray.ikjoint.lim_y_max

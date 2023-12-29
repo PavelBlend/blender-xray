@@ -130,8 +130,7 @@ def _export_bone_data(bpy_obj, bone, scale):
     ik = xray.ikjoint
     if bpy_obj.data.xray.joint_limits_type == 'XRAY':
         # x limits
-        x_min = ik.lim_x_min
-        x_max = ik.lim_x_max
+        x_min, x_max = utils.bone.get_x_limits(ik)
         # y limits
         y_min = ik.lim_y_min
         y_max = ik.lim_y_max

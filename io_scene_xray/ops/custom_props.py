@@ -196,6 +196,8 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
                 self.set_custom(xray.shape, 'cyl_hgh', stgs.bone_cylinder_shape_hight)
                 self.set_custom(xray.shape, 'cyl_rad', stgs.bone_cylinder_shape_radius)
                 self.set_custom(xray.ikjoint, 'type', stgs.bone_ik_joint_type)
+                self.set_custom(xray.ikjoint, 'slide_min', stgs.bone_limit_x_min)
+                self.set_custom(xray.ikjoint, 'slide_max', stgs.bone_limit_x_max)
                 self.set_custom(xray.ikjoint, 'lim_x_min', stgs.bone_limit_x_min)
                 self.set_custom(xray.ikjoint, 'lim_x_max', stgs.bone_limit_x_max)
                 self.set_custom(xray.ikjoint, 'lim_y_min', stgs.bone_limit_y_min)
@@ -305,8 +307,12 @@ class XRAY_OT_set_xray_to_custom_props(utils.ie.BaseOperator):
                 bone[stgs.bone_cylinder_shape_hight] = xray.shape.cyl_hgh
                 bone[stgs.bone_cylinder_shape_radius] = xray.shape.cyl_rad
                 bone[stgs.bone_ik_joint_type] = xray.ikjoint.type
-                bone[stgs.bone_limit_x_min] = xray.ikjoint.lim_x_min
-                bone[stgs.bone_limit_x_max] = xray.ikjoint.lim_x_max
+                if xray.ikjoint.type == '5':    # slider
+                    bone[stgs.bone_limit_x_min] = xray.ikjoint.slide_min
+                    bone[stgs.bone_limit_x_max] = xray.ikjoint.slide_max
+                else:
+                    bone[stgs.bone_limit_x_min] = xray.ikjoint.lim_x_min
+                    bone[stgs.bone_limit_x_max] = xray.ikjoint.lim_x_max
                 bone[stgs.bone_limit_y_min] = xray.ikjoint.lim_y_min
                 bone[stgs.bone_limit_y_max] = xray.ikjoint.lim_y_max
                 bone[stgs.bone_limit_z_min] = xray.ikjoint.lim_z_min

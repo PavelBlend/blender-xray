@@ -193,7 +193,8 @@ def import_bone(
                 6
             )
 
-            ik.lim_x_min, ik.lim_x_max = reader.getf('<2f')
+            limit_min, limit_max = reader.getf('<2f')
+            utils.bone.set_x_limits(ik, limit_min, limit_max)
             ik.lim_x_spr, ik.lim_x_dmp = reader.getf('<2f')
 
             ik.lim_y_min, ik.lim_y_max = reader.getf('<2f')

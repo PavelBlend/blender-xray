@@ -70,7 +70,7 @@ def read_mt_skeleton_rigid(context, chunks, ogf_chunks, visual):
     props.read_description(chunks, ogf_chunks, visual)
     props.read_lods(context, chunks, ogf_chunks, visual)
     bone.read_bone_names(chunks, ogf_chunks, visual)
-    ik.import_ik_data(chunks, ogf_chunks, visual)
+    ik.import_ik_data(context, chunks, ogf_chunks, visual)
     child.import_children(context, chunks, ogf_chunks, visual)
 
 

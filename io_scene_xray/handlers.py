@@ -33,7 +33,7 @@ class DataBlocksInitializer:
             data_blocks_set.sync(bpy_collect, operation, addon_ver)
 
 
-bpy_data_init_collects = ['objects', 'materials']
+bpy_data_init_collects = ['objects', 'materials', 'armatures']
 _INITIALIZER = DataBlocksInitializer(bpy_data_init_collects)
 
 

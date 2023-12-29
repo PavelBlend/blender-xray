@@ -11,7 +11,7 @@ from .... import text
 from .... import log
 
 
-def import_ik_data(chunks, ogf_chunks, visual):
+def import_ik_data(context, chunks, ogf_chunks, visual):
     # create reader
     read_ver = True
     chunk_data = chunks.pop(ogf_chunks.S_IKDATA_2, None)
@@ -98,8 +98,13 @@ def import_ik_data(chunks, ogf_chunks, visual):
 
         # x limits
         limit_x_min, limit_x_max = packed_reader.getf('<2f')
+
         limit_x_spring = packed_reader.getf('<f')[0]
         limit_x_damping = packed_reader.getf('<f')[0]
+
+        if joint_type != 5:    # not is slider
+            limit_x_min = -limit_x_max
+            limit_x_max = -limit_x_min
 
         # y limits
         limit_y_min, limit_y_max = packed_reader.getf('<2f')
@@ -273,6 +278,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
         ) = props
 
 
+        xray.version = context.version
         xray.gamemtl = game_material
 
         utils.bone.safe_assign_enum_property(
@@ -308,8 +314,7 @@ def import_ik_data(chunks, ogf_chunks, visual):
         )
 
         # x-limits
-        ik.lim_x_max = -limit_x_min
-        ik.lim_x_min = -limit_x_max
+        utils.bone.set_x_limits(ik, limit_x_min, limit_x_max)
 
         ik.lim_x_spr = limit_x_spring
         ik.lim_x_dmp = limit_x_damping

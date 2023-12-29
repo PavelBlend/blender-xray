@@ -125,7 +125,8 @@ def _import_bone_data(data, arm_obj_name, bpy_bones):
             )
 
             # limit x
-            ik.lim_x_min, ik.lim_x_max = packed_reader.getf('<2f')
+            limit_min, limit_max = packed_reader.getf('<2f')
+            utils.bone.set_x_limits(ik, limit_min, limit_max)
             ik.lim_x_spr, ik.lim_x_dmp = packed_reader.getf('<2f')
 
             # limit y

@@ -68,6 +68,20 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
             0,
         )
 
+    def initialize(self, operation, addon_ver):
+        if operation == 'LOADED':
+            for bone in self.id_data.bones:
+                if bone.xray.version < addon_ver:
+                    data = bone.xray
+                    data.version = addon_ver
+                    ik = data.ikjoint
+                    ik.slide_min = ik.lim_x_min
+                    ik.slide_max = ik.lim_x_max
+
+        elif operation == 'CREATED':
+            for bone in self.id_data.bones:
+                bone.xray.version = addon_ver
+
 
 def register():
     utils.version.register_classes(XRayArmatureProps)

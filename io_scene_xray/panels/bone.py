@@ -189,8 +189,8 @@ class XRAY_PT_bone(ui.base.XRayPanel):
             elif joint_type == 5:
                 col = box.column(align=True)
                 col.label(text='Slide Z:')
-                col.prop(data.ikjoint, 'lim_x_min', text='Min')
-                col.prop(data.ikjoint, 'lim_x_max', text='Max')
+                col.prop(data.ikjoint, 'slide_min', text='Min')
+                col.prop(data.ikjoint, 'slide_max', text='Max')
 
                 col = box.column(align=True)
                 col.label(text='Rotate Z:')
