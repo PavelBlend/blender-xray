@@ -206,8 +206,8 @@ class XRayIKJointProps(bpy.types.PropertyGroup):
     lim_z_dmp = bpy.props.FloatProperty(min=0.0, max=1000.0)
 
     # slide
-    slide_min = bpy.props.FloatProperty(max=0.0)
-    slide_max = bpy.props.FloatProperty(min=0.0)
+    slide_min = bpy.props.FloatProperty(update=ops.joint_limits.update_slider)
+    slide_max = bpy.props.FloatProperty(update=ops.joint_limits.update_slider)
 
     # others
     spring = bpy.props.FloatProperty(min=0.0, max=1000.0)

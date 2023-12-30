@@ -52,6 +52,24 @@ def update_limit(self, context):
     constraint.max_z = ik.lim_z_max
 
 
+def update_slider(self, context):
+    obj = context.active_object
+    if obj and obj.type != 'ARMATURE':
+        return
+
+    bone = obj.data.bones.active
+    if bone is None:
+        return
+
+    ik = bone.xray.ikjoint
+
+    if ik.slide_min > 0.0:
+        ik.slide_min = -ik.slide_min
+
+    if ik.slide_max < 0.0:
+        ik.slide_max = -ik.slide_max
+
+
 def get_bone_list(obj, mode, report):
     bones = []
     if mode == 'ACTIVE_BONE':
