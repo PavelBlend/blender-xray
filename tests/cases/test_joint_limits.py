@@ -111,6 +111,8 @@ class TestJointLimits(tests.utils.XRayTestCase):
             self.assertEqual(float_str(imp_ik.lim_x_max), float_str(+0.1))
 
     def _create_objects(self):
+        tests.utils.remove_all_objects()
+
         # create armature
         arm = bpy.data.armatures.new('test_joint_limits')
         arm_obj = bpy.data.objects.new('test_joint_limits', arm)
