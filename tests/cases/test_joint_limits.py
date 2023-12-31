@@ -147,11 +147,18 @@ class TestJointLimits(tests.utils.XRayTestCase):
 
         # create image
         img = bpy.data.images.new('test\\test_texture', 0, 0)
-        img_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
-        img_node.name = 'test\\test_texture'
-        img_node.label = 'test\\test_texture'
-        img_node.image = img
-        mat.node_tree.nodes.active = img_node
+
+        if bpy.app.version >= (2, 80, 0):
+            img_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
+            img_node.name = 'test\\test_texture'
+            img_node.label = 'test\\test_texture'
+            img_node.image = img
+            mat.node_tree.nodes.active = img_node
+        else:
+            tex = bpy.data.textures.new('test\\test_texture', 'IMAGE')
+            tex_slot = mat.texture_slots.add()
+            tex_slot.texture = tex
+            tex.image = img
 
         # create geometry
         try:
