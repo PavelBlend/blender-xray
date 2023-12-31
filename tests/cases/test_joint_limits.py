@@ -182,5 +182,6 @@ class TestJointLimits(tests.utils.XRayTestCase):
         # set active armature object
         tests.utils.set_active_object(arm_obj)
         arm_obj.xray.isroot = True
+        arm.xray.joint_limits_type = 'XRAY'
 
         return arm_obj, arm
