@@ -250,16 +250,5 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
     return bbox, (center, radius)
 
 
-def weights_top_two(dic):
-    def top_one(dic, skip=None):
-        max_key = None
-        max_val = -1
-        for key, val in dic:
-            if (key != skip) and (val > max_val):
-                max_val = val
-                max_key = key
-        return max_key, max_val
-
-    key0, val0 = top_one(dic)
-    key1, val1 = top_one(dic, key0)
-    return [(key0, val0), (key1, val1)]
+def weights_top(weights, count):
+    return sorted(weights, key=lambda x: x[1], reverse=True)[0 : count]
