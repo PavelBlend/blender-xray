@@ -287,12 +287,13 @@ class TestOgfExport(tests.utils.XRayTestCase):
         arm = obj.data
         bpy.ops.object.mode_set(mode='EDIT')
         parent = arm.edit_bones[0]
+
         try:
-            bone = arm.edit_bones.new('test_child')
-            bone.head.z = 1.0
-            bone.tail.y = 1.0
-            bone.tail.z = 1.0
+            bone = arm.edit_bones.new('test_child_1')
+            bone.head = (0.0, 0.0, 1.0)
+            bone.tail = (0.0, 1.0, 1.0)
             bone.parent = parent
+
         finally:
             bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -302,11 +303,17 @@ class TestOgfExport(tests.utils.XRayTestCase):
         group = mesh_obj.vertex_groups.clear()
 
         grp1 = mesh_obj.vertex_groups.new(name='test_bone')
-        grp2 = mesh_obj.vertex_groups.new(name='test_child')
+        grp2 = mesh_obj.vertex_groups.new(name='test_child_1')
 
         verts_count = len(mesh_obj.data.vertices)
-        grp1.add(range(verts_count), 0.5, 'REPLACE')
-        grp2.add(range(verts_count), 0.5, 'REPLACE')
+        two_weight_verts = list(range(verts_count))[2 : ]
+
+        # one weight
+        grp1.add([0, 1], 1.0, 'REPLACE')
+
+        # two weights
+        grp1.add(two_weight_verts, 0.5, 'REPLACE')
+        grp2.add(two_weight_verts, 0.5, 'REPLACE')
 
         # Act
         bpy.ops.xray_export.ogf_file(
@@ -327,12 +334,177 @@ class TestOgfExport(tests.utils.XRayTestCase):
             'test_two_links_cscop.ogf'
         })
 
+    def test_export_three_links(self):
+        # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
+        obj = self._create_object('test_object')
+
+        # create new bones
+        arm = obj.data
+        bpy.ops.object.mode_set(mode='EDIT')
+        parent = arm.edit_bones[0]
+
+        try:
+            bone = arm.edit_bones.new('test_child_1')
+            bone.head = (0.0, 0.0, 1.0)
+            bone.tail = (0.0, 1.0, 1.0)
+            bone.parent = parent
+
+            bone = arm.edit_bones.new('test_child_2')
+            bone.head = (1.0, 0.0, 1.0)
+            bone.tail = (1.0, 1.0, 1.0)
+            bone.parent = parent
+
+        finally:
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        # remove preview vertex groups
+        mesh_obj = obj.children[0]
+
+        group = mesh_obj.vertex_groups.clear()
+
+        grp1 = mesh_obj.vertex_groups.new(name='test_bone')
+        grp2 = mesh_obj.vertex_groups.new(name='test_child_1')
+        grp3 = mesh_obj.vertex_groups.new(name='test_child_2')
+
+        verts_count = len(mesh_obj.data.vertices)
+
+        one_weight_verts = [0, ]
+        two_weight_verts = [1, ]
+        three_weight_verts = list(range(verts_count))[2 : ]
+
+        # one weight
+        grp1.add(one_weight_verts, 1.0, 'REPLACE')
+
+        # two weights
+        grp1.add(two_weight_verts, 0.8, 'REPLACE')
+        grp2.add(two_weight_verts, 0.2, 'REPLACE')
+
+        # three weights
+        grp1.add(three_weight_verts, 0.5, 'REPLACE')
+        grp2.add(three_weight_verts, 0.3, 'REPLACE')
+        grp3.add(three_weight_verts, 0.2, 'REPLACE')
+
+        # Act
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_three_links_soc.ogf'),
+            fmt_version='soc',
+            texture_name_from_image_path=False
+        )
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_three_links_cscop.ogf'),
+            fmt_version='cscop',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({
+            'test_three_links_soc.ogf',
+            'test_three_links_cscop.ogf'
+        })
+
+    def test_export_four_links(self):
+        # Arrange
+        bpy.ops.object.select_all(action='DESELECT')
+        obj = self._create_object('test_object')
+
+        # create new bones
+        arm = obj.data
+        bpy.ops.object.mode_set(mode='EDIT')
+        parent = arm.edit_bones[0]
+
+        try:
+            bone = arm.edit_bones.new('test_child_1')
+            bone.head = (0.0, 0.0, 1.0)
+            bone.tail = (0.0, 1.0, 1.0)
+            bone.parent = parent
+
+            bone = arm.edit_bones.new('test_child_2')
+            bone.head = (1.0, 0.0, 1.0)
+            bone.tail = (1.0, 1.0, 1.0)
+            bone.parent = parent
+
+            bone = arm.edit_bones.new('test_child_3')
+            bone.head = (1.0, 0.0, 2.0)
+            bone.tail = (1.0, 1.0, 2.0)
+            bone.parent = parent
+
+            bone = arm.edit_bones.new('test_child_4')
+            bone.head = (2.0, 0.0, 2.0)
+            bone.tail = (2.0, 1.0, 2.0)
+            bone.parent = parent
+
+        finally:
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        # remove preview vertex groups
+        mesh_obj = obj.children[0]
+
+        group = mesh_obj.vertex_groups.clear()
+
+        grp1 = mesh_obj.vertex_groups.new(name='test_bone')
+        grp2 = mesh_obj.vertex_groups.new(name='test_child_1')
+        grp3 = mesh_obj.vertex_groups.new(name='test_child_2')
+        grp4 = mesh_obj.vertex_groups.new(name='test_child_3')
+        grp5 = mesh_obj.vertex_groups.new(name='test_child_4')
+
+        verts_count = len(mesh_obj.data.vertices)
+
+        one_weight_verts = [0, ]
+        two_weight_verts = [1, ]
+        three_weight_verts = [2, ]
+        four_weight_verts = list(range(verts_count))[3 : ]
+        five_weight_verts = [four_weight_verts[-1], ]
+
+        # one weight
+        grp1.add(one_weight_verts, 1.0, 'REPLACE')
+
+        # two weights
+        grp1.add(two_weight_verts, 0.8, 'REPLACE')
+        grp2.add(two_weight_verts, 0.2, 'REPLACE')
+
+        # three weights
+        grp1.add(three_weight_verts, 0.5, 'REPLACE')
+        grp2.add(three_weight_verts, 0.3, 'REPLACE')
+        grp3.add(three_weight_verts, 0.2, 'REPLACE')
+
+        # four weights
+        grp1.add(four_weight_verts, 0.4, 'REPLACE')
+        grp2.add(four_weight_verts, 0.3, 'REPLACE')
+        grp3.add(four_weight_verts, 0.2, 'REPLACE')
+        grp4.add(four_weight_verts, 0.1, 'REPLACE')
+
+        # five weights
+        grp5.add(five_weight_verts, 0.05, 'REPLACE')
+
+        # Act
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_four_links_soc.ogf'),
+            fmt_version='soc',
+            texture_name_from_image_path=False
+        )
+        bpy.ops.xray_export.ogf_file(
+            filepath=self.outpath('test_four_links_cscop.ogf'),
+            fmt_version='cscop',
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('WARNING')
+        self.assertOutputFiles({
+            'test_four_links_soc.ogf',
+            'test_four_links_cscop.ogf'
+        })
+
     def _create_object(self, name, two_sided=False):
         # create mesh
         bmesh = tests.utils.create_bmesh(
+            # verts
             ((0, 0, 0), (-1, -1, 0), (+1, -1, 0), (+1, +1, 0), (-1, +1, 0)),
+            # faces
             ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)),
-            True
+            create_uv=True
         )
 
         ver = io_scene_xray.utils.addon_version_number()
@@ -368,6 +540,6 @@ class TestOgfExport(tests.utils.XRayTestCase):
         # create bone vertex group
         group = obj.vertex_groups.new(name='test_bone')
         vertices_count = len(obj.data.vertices)
-        group.add(range(vertices_count), 1, 'REPLACE')
+        group.add(range(vertices_count), 1.0, 'REPLACE')
 
         return arm_obj

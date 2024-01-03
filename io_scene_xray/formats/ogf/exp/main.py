@@ -79,9 +79,6 @@ def write_verts_3l(vertices_writer, vertices, norm_coef=1):
     for vertex in vertices:
         weights = vertex[6]
 
-        if len(weights) > 3:
-            weights = utils.mesh.weights_top(weights, 3)
-
         # 3-link vertex
         if len(weights) == 3:
             group_1 = weights[0][0]
