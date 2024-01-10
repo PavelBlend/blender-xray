@@ -40,7 +40,7 @@ class XRAY_OT_add_prefs_preset(
     for prop_key in props.prefs_props.keys():
         preset_values.append('prefs.{}'.format(prop_key))
 
-    for prop_key in props.xray_custom_properties:
+    for prop_key in props.custom_props.keys():
         preset_values.append('prefs.custom_props.{}'.format(prop_key))
 
 

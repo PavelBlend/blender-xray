@@ -18,7 +18,7 @@ class XRAY_OT_reset_prefs_settings(utils.ie.BaseOperator):
             prefs.property_unset(prop_name)
 
         # reset custom properties settings
-        for prop_name in props.xray_custom_properties:
+        for prop_name in props.custom_props.keys():
             prefs.custom_props.property_unset(prop_name)
 
         return {'FINISHED'}
