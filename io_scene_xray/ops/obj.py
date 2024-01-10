@@ -1,4 +1,5 @@
 # standart modules
+import os
 import zlib
 
 # blender modules
@@ -240,17 +241,23 @@ class XRAY_OT_set_export_path(utils.ie.BaseOperator):
     def _get_folders(self):
         objects_folders = utils.ie.get_pref_paths('objects_folder')
 
-        objs_folder = None
+        objs_folder = ''
         for val in objects_folders:
             if val:
                 objs_folder = val
 
         meshes_folder = utils.ie.get_pref_paths('meshes_folder')
 
-        mshs_folder = None
+        mshs_folder = ''
         for val in meshes_folder:
             if val:
                 mshs_folder = val
+
+        if not objs_folder.endswith(os.sep):
+            objs_folder += os.sep
+
+        if not mshs_folder.endswith(os.sep):
+            mshs_folder += os.sep
 
         return objs_folder, mshs_folder
 
@@ -292,6 +299,9 @@ class XRAY_OT_set_export_path(utils.ie.BaseOperator):
         prefs_folder = objs_folder
         cur_folder = bpy.path.abspath(self.directory)
 
+        if not cur_folder.endswith(os.sep):
+            cur_folder += os.sep
+
         if not cur_folder.startswith(objs_folder):
 
             if cur_folder.startswith(mshs_folder):
@@ -313,8 +323,8 @@ class XRAY_OT_set_export_path(utils.ie.BaseOperator):
                 return {'CANCELLED'}
 
         # set export path
+        export_path = cur_folder[len(prefs_folder) : ]
         for obj in objs:
-            export_path = cur_folder[len(prefs_folder) : ]
             obj.xray.export_path = export_path
 
         return {'FINISHED'}

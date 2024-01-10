@@ -1,3 +1,4 @@
+import os
 import re
 import bpy
 import tests
@@ -992,3 +993,97 @@ class TestOps(tests.utils.XRayTestCase):
 
         bpy.ops.io_scene_xray.create_level_shader_nodes(mode='ALL_MATERIALS', light_format='3436-3844')
         bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ALL_MATERIALS')
+
+    def test_set_export_path(self):
+        obj_1 = bpy.data.objects.new('object_1', None)
+        tests.utils.link_object(obj_1)
+        obj_1.xray.isroot = True
+
+        obj_2 = bpy.data.objects.new('object_2', None)
+        tests.utils.link_object(obj_2)
+        obj_2.xray.isroot = True
+
+        obj_3 = bpy.data.objects.new('object_3', None)
+        tests.utils.link_object(obj_3)
+        obj_3.xray.isroot = True
+
+        prefs = tests.utils.get_preferences()
+        prefs.objects_folder = self.outpath(os.path.join('rawdata', 'objects'))
+        prefs.meshes_folder = self.outpath(os.path.join('gamedata', 'meshes'))
+
+        bpy.ops.object.select_all(action='DESELECT')
+        tests.utils.set_active_object(obj_1)
+
+        exp_path = os.path.join('test', 'folder') + os.sep
+        rel_exp_path = exp_path.replace('/', '\\')
+
+        # active object
+        bpy.ops.io_scene_xray.set_export_path(
+            directory=os.path.join(prefs.objects_folder, exp_path),
+            mode='ACTIVE_OBJECT'
+        )
+
+        self.assertEqual(obj_1.xray.export_path, rel_exp_path)
+        self.assertEqual(obj_2.xray.export_path, '')
+        self.assertEqual(obj_3.xray.export_path, '')
+
+        # selected objects
+        prefs.objects_folder = self.outpath(os.path.join('rawdata', 'objects')) + os.sep
+        prefs.meshes_folder = self.outpath(os.path.join('gamedata', 'meshes')) + os.sep
+
+        for ob in (obj_1, obj_2, obj_3):
+            ob.xray.export_path = ''
+
+        tests.utils.select_object(obj_1)
+        tests.utils.select_object(obj_2)
+
+        bpy.ops.io_scene_xray.set_export_path(
+            directory=os.path.join(prefs.objects_folder, exp_path),
+            mode='SELECTED_OBJECTS'
+        )
+
+        self.assertEqual(obj_1.xray.export_path, rel_exp_path)
+        self.assertEqual(obj_2.xray.export_path, rel_exp_path)
+        self.assertEqual(obj_3.xray.export_path, '')
+
+        # all objects
+        exp_path = os.path.join('test', 'folder')
+        rel_exp_path = exp_path.replace('/', '\\') + '\\'
+
+        bpy.ops.object.select_all(action='DESELECT')
+
+        for ob in (obj_1, obj_2, obj_3):
+            ob.xray.export_path = ''
+
+        bpy.ops.io_scene_xray.set_export_path(
+            directory=os.path.join(prefs.meshes_folder, exp_path),
+            mode='ALL_OBJECTS'
+        )
+
+        self.assertEqual(obj_1.xray.export_path, rel_exp_path)
+        self.assertEqual(obj_2.xray.export_path, rel_exp_path)
+        self.assertEqual(obj_3.xray.export_path, rel_exp_path)
+
+        # no active object
+        tests.utils.set_active_object(None)
+
+        bpy.ops.io_scene_xray.set_export_path(
+            directory=os.path.join(prefs.objects_folder, exp_path),
+            mode='ACTIVE_OBJECT'
+        )
+
+        # Assert
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('Objects not found!')
+        )
+
+        # not inside folder
+        bpy.ops.io_scene_xray.set_export_path(
+            directory='test',
+            mode='ALL_OBJECTS'
+        )
+        self.assertReportsContains(
+            'ERROR',
+            re.compile('The path is not inside the Meshes or Objects folder!')
+        )
