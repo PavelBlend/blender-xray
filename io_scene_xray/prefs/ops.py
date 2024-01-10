@@ -14,7 +14,7 @@ class XRAY_OT_reset_prefs_settings(utils.ie.BaseOperator):
         prefs = utils.version.get_preferences()
 
         # reset main settings
-        for prop_name in props.plugin_preferences_props:
+        for prop_name in props.prefs_props.keys():
             prefs.property_unset(prop_name)
 
         # reset custom properties settings

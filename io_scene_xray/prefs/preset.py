@@ -37,7 +37,7 @@ class XRAY_OT_add_prefs_preset(
 
     preset_values = []
 
-    for prop_key in props.plugin_preferences_props:
+    for prop_key in props.prefs_props.keys():
         preset_values.append('prefs.{}'.format(prop_key))
 
     for prop_key in props.xray_custom_properties:

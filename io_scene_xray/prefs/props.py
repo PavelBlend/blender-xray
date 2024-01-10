@@ -10,178 +10,14 @@ import bpy
 from . import hotkeys
 from .. import rw
 from .. import log
+from .. import menus
+from .. import formats
 from .. import utils
 from .. import text
 
 
-plugin_preferences_props = (
-    'fs_ltx_file',
-    'gamedata_folder',
-    'textures_folder',
-    'meshes_folder',
-    'levels_folder',
-    'gamemtl_file',
-    'eshader_file',
-    'cshader_file',
-    'objects_folder',
-
-    'gamedata_folder_auto',
-    'textures_folder_auto',
-    'meshes_folder_auto',
-    'levels_folder_auto',
-    'gamemtl_file_auto',
-    'eshader_file_auto',
-    'cshader_file_auto',
-    'objects_folder_auto',
-
-    'compact_menus',
-    'paths_mode',
-    'defaults_category',
-    'sdk_version',
-    'object_motions_import',
-    'object_mesh_split_by_mat',
-    'export_object_sdk_version',
-    'smoothing_out_of',
-    'object_motions_export',
-    'object_texture_names_from_path',
-    'export_object_use_export_paths',
-    'anm_create_camera',
-    'anm_format_version',
-    'add_to_motion_list',
-    'bones_import_bone_parts',
-    'bones_import_bone_properties',
-    'bones_export_bone_parts',
-    'bones_export_bone_properties',
-    'details_models_in_a_row',
-    'load_slots',
-    'details_format',
-    'details_texture_names_from_path',
-    'format_version',
-    'dm_texture_names_from_path',
-    'ogf_import_motions',
-    'ogf_texture_names_from_path',
-    'ogf_export_motions',
-    'ogf_export_fmt_ver',
-    'ogf_export_hq_motions',
-    'ogf_export_use_export_paths',
-    'omf_import_motions',
-    'import_bone_parts',
-    'omf_add_actions_to_motion_list',
-    'omf_export_bone_parts',
-    'omf_export_mode',
-    'omf_motions_export',
-    'omf_high_quality',
-    'scene_selection_sdk_version',
-    'scene_selection_mesh_split_by_mat',
-    'part_sdk_version',
-    'part_mesh_split_by_mat',
-    'part_exp_sdk_ver',
-    'keymaps_collection',
-    'keymaps_collection_index',
-    'enable_object_import',
-    'enable_anm_import',
-    'enable_dm_import',
-    'enable_details_import',
-    'enable_skls_import',
-    'enable_bones_import',
-    'enable_err_import',
-    'enable_scene_import',
-    'enable_level_import',
-    'enable_omf_import',
-    'enable_ogf_import',
-    'enable_part_import',
-    'enable_object_export',
-    'enable_anm_export',
-    'enable_dm_export',
-    'enable_details_export',
-    'enable_skls_export',
-    'enable_skl_export',
-    'enable_bones_export',
-    'enable_scene_export',
-    'enable_level_export',
-    'enable_part_export',
-    'enable_group_export',
-    'enable_omf_export',
-    'enable_ogf_export',
-    'category',
-    'custom_owner_name',
-    'gl_shape_color',
-    'gl_active_shape_color',
-    'gl_select_shape_color',
-    'gl_object_mode_shape_color',
-    'object_split_normals'
-)
-xray_custom_properties = (
-    'object_flags',
-    'object_userdata',
-    'object_lod_reference',
-    'object_owner_name',
-    'object_creation_time',
-    'object_modif_name',
-    'object_modified_time',
-    'object_motion_references',
-
-    'mesh_flags',
-
-    'material_two_sided',
-    'material_shader',
-    'material_compile',
-    'material_game_mtl',
-
-    'bone_game_mtl',
-    'bone_length',
-    'bone_shape_flags',
-    'bone_shape_type',
-    'bone_part',
-
-    'bone_box_shape_rotation',
-    'bone_box_shape_translate',
-    'bone_box_shape_half_size',
-
-    'bone_sphere_shape_position',
-    'bone_sphere_shape_radius',
-
-    'bone_cylinder_shape_position',
-    'bone_cylinder_shape_direction',
-    'bone_cylinder_shape_hight',
-    'bone_cylinder_shape_radius',
-
-    'bone_ik_joint_type',
-
-    'bone_limit_x_min',
-    'bone_limit_x_max',
-    'bone_limit_y_min',
-    'bone_limit_y_max',
-    'bone_limit_z_min',
-    'bone_limit_z_max',
-
-    'bone_limit_x_spring',
-    'bone_limit_y_spring',
-    'bone_limit_z_spring',
-
-    'bone_limit_x_damping',
-    'bone_limit_y_damping',
-    'bone_limit_z_damping',
-
-    'bone_spring',
-    'bone_damping',
-
-    'bone_mass',
-    'bone_center_of_mass',
-
-    'bone_ik_flags',
-    'bone_breakable_force',
-    'bone_breakable_torque',
-    'bone_friction',
-
-    'action_fps',
-    'action_speed',
-    'action_accrue',
-    'action_falloff',
-    'action_bone_part',
-    'action_flags',
-    'action_power'
-)
+def update_menu_func(self, context):
+    menus.append_menu_func()
 
 
 def update_paths(prefs, context):
@@ -228,138 +64,10 @@ def update_paths(prefs, context):
         )
 
 
-def build_auto_id(prop):
-    return prop + '_auto'
+class XRayKeyMap(bpy.types.PropertyGroup):
+    name = bpy.props.StringProperty()
+    operator = bpy.props.StringProperty()
 
-
-__AUTO_PROPS__ = [
-    'gamedata_folder',
-    'textures_folder',
-    'meshes_folder',
-    'levels_folder',
-    'gamemtl_file',
-    'eshader_file',
-    'cshader_file',
-    'objects_folder'
-]
-
-fs_props = {
-    'gamedata_folder': ('$game_data$', None),
-    'textures_folder': ('$game_textures$', None),
-    'meshes_folder': ('$game_meshes$', None),
-    'levels_folder': ('$game_levels$', None),
-    'gamemtl_file': ('$game_data$', 'gamemtl.xr'),
-    'eshader_file': ('$game_data$', 'shaders.xr'),
-    'cshader_file': ('$game_data$', 'shaders_xrlc.xr'),
-    'objects_folder': ('$objects$', None)
-}
-
-
-def _clear_paths():
-    pref = utils.version.get_preferences()
-    pref.use_update = False
-
-    for prop in path_props_suffix_values.keys():
-        setattr(pref, build_auto_id(prop), '')
-        setattr(pref, prop, '')
-
-    pref.use_update = True
-
-
-def _auto_path(prefs, prop_name, suffix, checker):
-    if prefs.fs_ltx_file:
-
-        if not os.path.exists(prefs.fs_ltx_file):
-            return '', prefs.fs_ltx_file
-
-        try:
-            fs = rw.ltx.LtxParser()
-            fs.from_file(prefs.fs_ltx_file)
-
-        except log.AppError:
-            traceback.print_exc()
-            utils.draw.show_message(
-                text.get_text(text.error.ltx_invalid_syntax),
-                (prefs.fs_ltx_file, sys.exc_info()[1]),
-                text.get_text(text.error.error_title),
-                'ERROR'
-            )
-            _clear_paths()
-            raise BaseException('error')
-
-        except BaseException:
-            _clear_paths()
-            raise BaseException('error')
-
-        prop_key, file_name = fs_props[prop_name]
-        dir_path = fs.values.get(prop_key, None)
-
-        if dir_path is None:
-            utils.draw.show_message(
-                text.get_text(text.error.ltx_no_param),
-                (prop_key, ),
-                text.get_text(text.error.error_title),
-                'ERROR'
-            )
-            _clear_paths()
-            raise BaseException('error')
-
-        if file_name:
-            result = os.path.join(dir_path, file_name)
-        else:
-            result = dir_path
-
-        return result, False
-
-    for prop in __AUTO_PROPS__:
-        if prop == prop_name:
-            continue
-        value = getattr(prefs, prop)
-        if not value:
-            continue
-        result = os.path.normpath(value)
-        if prop != 'gamedata_folder':
-            dirname = os.path.dirname(result)
-            if prop == 'objects_folder':
-                dirname = os.path.dirname(dirname)
-                dirname = os.path.join(dirname, 'gamedata')
-            if dirname == result:
-                continue    # os.path.dirname('T:') == 'T:'
-            result = dirname
-        if suffix:
-            result = os.path.join(result, suffix)
-        if checker(result):
-            if prop_name == 'objects_folder':
-                result = os.path.abspath(result)
-            return result, False
-        else:
-            return '', result
-    return '', False
-
-
-path_props_suffix_values = {
-    'gamedata_folder': '',
-    'textures_folder': 'textures',
-    'meshes_folder': 'meshes',
-    'levels_folder': 'levels',
-    'gamemtl_file': 'gamemtl.xr',
-    'eshader_file': 'shaders.xr',
-    'cshader_file': 'shaders_xrlc.xr',
-    'objects_folder': os.path.join('..', 'rawdata', 'objects')
-}
-
-FILE = 'FILE'
-DIRECTORY = 'DIRECTORY'
-path_props_types = {
-    'gamedata_folder': DIRECTORY,
-    'textures_folder': DIRECTORY,
-    'meshes_folder': DIRECTORY,
-    'levels_folder': DIRECTORY,
-    'gamemtl_file': FILE,
-    'eshader_file': FILE,
-    'cshader_file': FILE,
-    'objects_folder': DIRECTORY
-}
 
 
 class XRayPrefsCustomProperties(bpy.types.PropertyGroup):
@@ -636,6 +344,457 @@ class XRayPrefsCustomProperties(bpy.types.PropertyGroup):
     )
 
 
+prefs_props = {
+    # path props
+    'fs_ltx_file': bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        name='fs.ltx File',
+        update=update_paths
+    ),
+    'gamedata_folder': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    ),
+    'textures_folder': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    ),
+    'meshes_folder': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    ),
+    'levels_folder': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    ),
+    'gamemtl_file': bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        update=update_paths
+    ),
+    'eshader_file': bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        update=update_paths
+    ),
+    'cshader_file': bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        update=update_paths
+    ),
+    'objects_folder': bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        update=update_paths
+    ),
+
+    # path auto props
+    'gamedata_folder_auto': bpy.props.StringProperty(),
+    'textures_folder_auto': bpy.props.StringProperty(),
+    'meshes_folder_auto': bpy.props.StringProperty(),
+    'levels_folder_auto': bpy.props.StringProperty(),
+    'gamemtl_file_auto': bpy.props.StringProperty(),
+    'eshader_file_auto': bpy.props.StringProperty(),
+    'cshader_file_auto': bpy.props.StringProperty(),
+    'objects_folder_auto': bpy.props.StringProperty(),
+
+    'compact_menus': bpy.props.BoolProperty(
+        name='Compact Import/Export Menus',
+        update=update_menu_func
+    ),
+
+    'paths_mode': bpy.props.EnumProperty(
+        default='BASE',
+        items=(('BASE', 'Base', ''), ('ADVANCED', 'Advanced', ''))
+    ),
+
+    # defaults
+    'defaults_category': bpy.props.EnumProperty(
+        default='OBJECT',
+        items=(
+            ('OBJECT', ' Object ', ''),
+            ('SKLS', 'Skls', ''),
+            ('OGF', 'Ogf', ''),
+            ('OMF', 'Omf', ''),
+            ('ANM', 'Anm', ''),
+            ('BONES', ' Bones ', ''),
+            ('DM', 'Dm', ''),
+            ('DETAILS', 'Details', ''),
+            ('SCENE', ' Scene ', ''),
+            ('PART', 'Part', ''),
+            ('GROUP', 'Group', '')
+        )
+    ),
+
+    # object import props
+    'sdk_version': formats.ie.PropSDKVersion(),
+    'object_motions_import': formats.ie.PropObjectMotionsImport(),
+    'object_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
+
+    # object export props
+    'export_object_sdk_version': formats.ie.PropSDKVersion(),
+    'smoothing_out_of': formats.ie.prop_smoothing_out_of(),
+    'object_motions_export': formats.ie.PropObjectMotionsExport(),
+    'object_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
+    'export_object_use_export_paths': formats.ie.PropUseExportPaths(),
+
+    # anm import props
+    'anm_create_camera': formats.ie.PropAnmCameraAnimation(),
+
+    # anm export props
+    'anm_format_version': formats.ie.prop_anm_format_version(),
+
+    # skl/skls import props
+    'add_to_motion_list': formats.ie.prop_skl_add_actions_to_motion_list(),
+
+    # bones import props
+    'bones_import_bone_parts': formats.ie.prop_import_bone_parts(),
+    'bones_import_bone_properties': formats.ie.prop_import_bone_properties(),
+
+    # bones export props
+    'bones_export_bone_parts': formats.ie.prop_export_bone_parts(),
+    'bones_export_bone_properties': formats.ie.prop_export_bone_properties(),
+
+    # details import props
+    'details_models_in_a_row': formats.ie.prop_details_models_in_a_row(),
+    'load_slots': formats.ie.prop_details_load_slots(),
+    'details_format': formats.ie.prop_details_format(),
+
+    # details export props
+    'details_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
+    'format_version': formats.ie.prop_details_format_version(),
+
+    # dm export props
+    'dm_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
+
+    # ogf import props
+    'ogf_import_motions': formats.ie.PropObjectMotionsImport(),
+
+    # ogf export props
+    'ogf_texture_names_from_path': formats.ie.PropObjectTextureNamesFromPath(),
+    'ogf_export_motions': formats.ie.PropObjectMotionsExport(),
+    'ogf_export_fmt_ver': formats.ie.PropSDKVersion(),
+    'ogf_export_hq_motions': formats.ie.prop_omf_high_quality(),
+    'ogf_export_use_export_paths': formats.ie.PropUseExportPaths(),
+
+    # omf import props
+    'omf_import_motions': formats.ie.PropObjectMotionsImport(),
+    'import_bone_parts': formats.ie.prop_import_bone_parts(),
+    'omf_add_actions_to_motion_list': formats.ie.prop_skl_add_actions_to_motion_list(),
+
+    # omf export props
+    'omf_export_bone_parts': formats.ie.prop_export_bone_parts(),
+    'omf_export_mode': formats.ie.prop_omf_export_mode(),
+    'omf_motions_export': formats.ie.PropObjectMotionsExport(),
+    'omf_high_quality': formats.ie.prop_omf_high_quality(),
+
+    # scene selection import props
+    'scene_selection_sdk_version': formats.ie.PropSDKVersion(),
+    'scene_selection_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
+
+    # part import props
+    'part_sdk_version': formats.ie.PropSDKVersion(),
+    'part_mesh_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
+
+    # part export props
+    'part_exp_sdk_ver': formats.ie.PropSDKVersion(),
+
+    # group import props
+    'group_sdk_ver': formats.ie.PropSDKVersion(),
+    'group_split_by_mat': formats.ie.PropObjectMeshSplitByMaterials(),
+
+    # keymap
+    'keymaps_collection': bpy.props.CollectionProperty(type=XRayKeyMap),
+    'keymaps_collection_index': bpy.props.IntProperty(options={'SKIP_SAVE'}),
+
+    # enable import plugins
+    'enable_object_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_anm_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_dm_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_details_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_skls_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_bones_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_err_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_scene_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_level_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_omf_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_ogf_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_part_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_group_import': bpy.props.BoolProperty(default=True, update=update_menu_func),
+
+    # enable export plugins
+    'enable_object_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_anm_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_dm_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_details_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_skls_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_skl_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_bones_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_scene_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_level_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_omf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_ogf_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_part_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+    'enable_group_export': bpy.props.BoolProperty(default=True, update=update_menu_func),
+
+    'category': bpy.props.EnumProperty(
+        default='PATHS',
+        items=(
+            ('PATHS', 'Paths', ''),
+            ('DEFAULTS', 'Defaults', ''),
+            ('PLUGINS', 'Formats', ''),
+            ('KEYMAP', 'Keymap', ''),
+            ('CUSTOM_PROPS', 'Custom Props', ''),
+            ('OTHERS', 'Others', '')
+        )
+    ),
+
+    'custom_owner_name': bpy.props.StringProperty(),
+
+    # viewport props
+    'gl_shape_color': bpy.props.FloatVectorProperty(
+        name='Unselected Shape',
+        default=(0.0, 0.0, 1.0, 0.5),
+        min=0.0,
+        max=1.0,
+        subtype='COLOR',
+        size=4
+    ),
+    'gl_active_shape_color': bpy.props.FloatVectorProperty(
+        name='Active Shape',
+        default=(1.0, 1.0, 1.0, 0.7),
+        min=0.0,
+        max=1.0,
+        subtype='COLOR',
+        size=4
+    ),
+    'gl_select_shape_color': bpy.props.FloatVectorProperty(
+        name='Selected Shape',
+        default=(0.0, 1.0, 1.0, 0.7),
+        min=0.0,
+        max=1.0,
+        subtype='COLOR',
+        size=4
+    ),
+    'gl_object_mode_shape_color': bpy.props.FloatVectorProperty(
+        name='Shape in Object Mode',
+        default=(0.8, 0.8, 0.8, 0.8),
+        min=0.0,
+        max=1.0,
+        subtype='COLOR',
+        size=4
+    ),
+
+    # custom data props
+    'object_split_normals': bpy.props.BoolProperty(
+        name='Use *.object Split Normals',
+        default=False
+    )
+}
+
+xray_custom_properties = (
+    'object_flags',
+    'object_userdata',
+    'object_lod_reference',
+    'object_owner_name',
+    'object_creation_time',
+    'object_modif_name',
+    'object_modified_time',
+    'object_motion_references',
+
+    'mesh_flags',
+
+    'material_two_sided',
+    'material_shader',
+    'material_compile',
+    'material_game_mtl',
+
+    'bone_game_mtl',
+    'bone_length',
+    'bone_shape_flags',
+    'bone_shape_type',
+    'bone_part',
+
+    'bone_box_shape_rotation',
+    'bone_box_shape_translate',
+    'bone_box_shape_half_size',
+
+    'bone_sphere_shape_position',
+    'bone_sphere_shape_radius',
+
+    'bone_cylinder_shape_position',
+    'bone_cylinder_shape_direction',
+    'bone_cylinder_shape_hight',
+    'bone_cylinder_shape_radius',
+
+    'bone_ik_joint_type',
+
+    'bone_limit_x_min',
+    'bone_limit_x_max',
+    'bone_limit_y_min',
+    'bone_limit_y_max',
+    'bone_limit_z_min',
+    'bone_limit_z_max',
+
+    'bone_limit_x_spring',
+    'bone_limit_y_spring',
+    'bone_limit_z_spring',
+
+    'bone_limit_x_damping',
+    'bone_limit_y_damping',
+    'bone_limit_z_damping',
+
+    'bone_spring',
+    'bone_damping',
+
+    'bone_mass',
+    'bone_center_of_mass',
+
+    'bone_ik_flags',
+    'bone_breakable_force',
+    'bone_breakable_torque',
+    'bone_friction',
+
+    'action_fps',
+    'action_speed',
+    'action_accrue',
+    'action_falloff',
+    'action_bone_part',
+    'action_flags',
+    'action_power'
+)
+
+
+def build_auto_id(prop):
+    return prop + '_auto'
+
+
+__AUTO_PROPS__ = [
+    'gamedata_folder',
+    'textures_folder',
+    'meshes_folder',
+    'levels_folder',
+    'gamemtl_file',
+    'eshader_file',
+    'cshader_file',
+    'objects_folder'
+]
+
+fs_props = {
+    'gamedata_folder': ('$game_data$', None),
+    'textures_folder': ('$game_textures$', None),
+    'meshes_folder': ('$game_meshes$', None),
+    'levels_folder': ('$game_levels$', None),
+    'gamemtl_file': ('$game_data$', 'gamemtl.xr'),
+    'eshader_file': ('$game_data$', 'shaders.xr'),
+    'cshader_file': ('$game_data$', 'shaders_xrlc.xr'),
+    'objects_folder': ('$objects$', None)
+}
+
+
+def _clear_paths():
+    pref = utils.version.get_preferences()
+    pref.use_update = False
+
+    for prop in path_props_suffix_values.keys():
+        setattr(pref, build_auto_id(prop), '')
+        setattr(pref, prop, '')
+
+    pref.use_update = True
+
+
+def _auto_path(prefs, prop_name, suffix, checker):
+    if prefs.fs_ltx_file:
+
+        if not os.path.exists(prefs.fs_ltx_file):
+            return '', prefs.fs_ltx_file
+
+        try:
+            fs = rw.ltx.LtxParser()
+            fs.from_file(prefs.fs_ltx_file)
+
+        except log.AppError:
+            traceback.print_exc()
+            utils.draw.show_message(
+                text.get_text(text.error.ltx_invalid_syntax),
+                (prefs.fs_ltx_file, sys.exc_info()[1]),
+                text.get_text(text.error.error_title),
+                'ERROR'
+            )
+            _clear_paths()
+            raise BaseException('error')
+
+        except BaseException:
+            _clear_paths()
+            raise BaseException('error')
+
+        prop_key, file_name = fs_props[prop_name]
+        dir_path = fs.values.get(prop_key, None)
+
+        if dir_path is None:
+            utils.draw.show_message(
+                text.get_text(text.error.ltx_no_param),
+                (prop_key, ),
+                text.get_text(text.error.error_title),
+                'ERROR'
+            )
+            _clear_paths()
+            raise BaseException('error')
+
+        if file_name:
+            result = os.path.join(dir_path, file_name)
+        else:
+            result = dir_path
+
+        return result, False
+
+    for prop in __AUTO_PROPS__:
+        if prop == prop_name:
+            continue
+        value = getattr(prefs, prop)
+        if not value:
+            continue
+        result = os.path.normpath(value)
+        if prop != 'gamedata_folder':
+            dirname = os.path.dirname(result)
+            if prop == 'objects_folder':
+                dirname = os.path.dirname(dirname)
+                dirname = os.path.join(dirname, 'gamedata')
+            if dirname == result:
+                continue    # os.path.dirname('T:') == 'T:'
+            result = dirname
+        if suffix:
+            result = os.path.join(result, suffix)
+        if checker(result):
+            if prop_name == 'objects_folder':
+                result = os.path.abspath(result)
+            return result, False
+        else:
+            return '', result
+    return '', False
+
+
+path_props_suffix_values = {
+    'gamedata_folder': '',
+    'textures_folder': 'textures',
+    'meshes_folder': 'meshes',
+    'levels_folder': 'levels',
+    'gamemtl_file': 'gamemtl.xr',
+    'eshader_file': 'shaders.xr',
+    'cshader_file': 'shaders_xrlc.xr',
+    'objects_folder': os.path.join('..', 'rawdata', 'objects')
+}
+
+FILE = 'FILE'
+DIRECTORY = 'DIRECTORY'
+path_props_types = {
+    'gamedata_folder': DIRECTORY,
+    'textures_folder': DIRECTORY,
+    'meshes_folder': DIRECTORY,
+    'levels_folder': DIRECTORY,
+    'gamemtl_file': FILE,
+    'eshader_file': FILE,
+    'cshader_file': FILE,
+    'objects_folder': DIRECTORY
+}
+
+
 class XRAY_OT_add_keymap(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.add_keymap'
     bl_label = 'Add Keymap'
@@ -648,6 +807,7 @@ class XRAY_OT_add_keymap(utils.ie.BaseOperator):
 
 
 classes = (
+    XRayKeyMap,
     XRAY_OT_add_keymap,
     XRayPrefsCustomProperties
 )
