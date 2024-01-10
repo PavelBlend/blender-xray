@@ -308,6 +308,8 @@ class XRAY_OT_set_export_path(utils.ie.BaseOperator):
         if not cur_folder.endswith(os.sep):
             cur_folder += os.sep
 
+        cur_folder = cur_folder.replace(os.sep, '\\')
+
         if not cur_folder.startswith(objs_folder):
 
             if cur_folder.startswith(mshs_folder):
