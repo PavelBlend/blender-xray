@@ -668,12 +668,11 @@ class XRAY_PT_object(ui.base.XRayPanel):
                 split.label(text='Export Path:')
                 row = split.row(align=True)
                 row.prop(data, 'export_path', text='')
-                op = row.operator(
+                row.operator(
                     ops.obj.XRAY_OT_set_export_path.bl_idname,
                     text='',
                     icon='FILE_FOLDER'
                 )
-                op.obj_name = obj.name
                 row, box = ui.collapsible.draw(
                     object_box,
                     'object:userdata',

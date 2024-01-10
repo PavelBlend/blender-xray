@@ -228,7 +228,14 @@ class XRAY_OT_set_export_path(utils.ie.BaseOperator):
         subtype='DIR_PATH',
         options={'SKIP_SAVE'}
     )
-    obj_name = bpy.props.StringProperty()
+    mode = bpy.props.EnumProperty(
+        default='ACTIVE_OBJECT',
+        items=(
+            ('ACTIVE_OBJECT', 'Active Object', ''),
+            ('SELECTED_OBJECTS', 'Selected Objects', ''),
+            ('ALL_OBJECTS', 'All Objects', '')
+        )
+    )
 
     def _get_folders(self):
         objects_folders = utils.ie.get_pref_paths('objects_folder')
@@ -247,20 +254,36 @@ class XRAY_OT_set_export_path(utils.ie.BaseOperator):
 
         return objs_folder, mshs_folder
 
+    def _get_objs(self):
+        objs = []
+
+        if self.mode == 'ACTIVE_OBJECT':
+            active = bpy.context.active_object
+            if active:
+                objs.append(active)
+
+        elif self.mode == 'SELECTED_OBJECTS':
+            for obj in bpy.context.selected_objects:
+                objs.append(obj)
+
+        else:
+            for obj in bpy.data.objects:
+                objs.append(obj)
+
+        return objs
+
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'objects_folder')
 
+        col = self.layout.column(align=True)
+        col.label(text='Mode:')
+        col.prop(self, 'mode', expand=True)
+
     def execute(self, context):
         # search object
-        obj = bpy.data.objects.get(self.obj_name)
-        if not obj:
-            self.report(
-                {'ERROR'},
-                '{0}: "{1}"'.format(
-                    text.get_text(text.error.no_obj),
-                    self.obj_name
-                )
-            )
+        objs = self._get_objs()
+        if not objs:
+            self.report({'ERROR'}, text.get_text(text.error.no_objs))
             return {'CANCELLED'}
 
         # get objects and meshes folders
@@ -290,8 +313,9 @@ class XRAY_OT_set_export_path(utils.ie.BaseOperator):
                 return {'CANCELLED'}
 
         # set export path
-        export_path = cur_folder[len(prefs_folder) : ]
-        obj.xray.export_path = export_path
+        for obj in objs:
+            export_path = cur_folder[len(prefs_folder) : ]
+            obj.xray.export_path = export_path
 
         return {'FINISHED'}
 
