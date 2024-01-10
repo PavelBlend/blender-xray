@@ -203,7 +203,12 @@ translations_table = (
 
     # motion
     (error.motion_shape, 'Неподдерживаемая форма ключевого кадра'),
-    (error.motion_ver, 'Неподдерживаемая версия анимации')
+    (error.motion_ver, 'Неподдерживаемая версия анимации'),
+
+    # operators
+    (error.no_objs_mshs_folder, 'Objects или Meshes папка не указана в настройках аддона!'),
+    (error.not_inside_objs_mshs_folder, 'Путь не находится внутри Meshes или Objects папки!'),
+    (error.no_obj, 'Не найден объект')
 )
 
 translation = {}

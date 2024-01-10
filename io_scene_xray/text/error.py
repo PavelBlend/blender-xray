@@ -196,3 +196,8 @@ group_ver = 'Unsupported group format version'
 # motion
 motion_shape = 'Unsupported keyframe shapes'
 motion_ver = 'Unsupported motions version'
+
+# operators
+no_objs_mshs_folder = 'Objects or Meshes folder not specified in the addon preferences!'
+not_inside_objs_mshs_folder = 'The path is not inside the Meshes or Objects folder!'
+no_obj = 'Object not found'

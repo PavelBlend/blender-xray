@@ -626,7 +626,8 @@ class XRAY_PT_object(ui.base.XRayPanel):
         object_used, details_used, game_level_used = get_used(preferences)
 
         layout = self.layout
-        data = context.active_object.xray
+        obj = context.active_object
+        data = obj.xray
         if object_used:
             layout.prop(
                 data,
@@ -665,7 +666,14 @@ class XRAY_PT_object(ui.base.XRayPanel):
                 split.prop(data, 'lodref', text='')
                 split = utils.version.layout_split(object_box, 0.333)
                 split.label(text='Export Path:')
-                split.prop(data, 'export_path', text='')
+                row = split.row(align=True)
+                row.prop(data, 'export_path', text='')
+                op = row.operator(
+                    ops.obj.XRAY_OT_set_export_path.bl_idname,
+                    text='',
+                    icon='FILE_FOLDER'
+                )
+                op.obj_name = obj.name
                 row, box = ui.collapsible.draw(
                     object_box,
                     'object:userdata',
