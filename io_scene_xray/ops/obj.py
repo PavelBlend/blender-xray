@@ -265,17 +265,20 @@ class XRAY_OT_set_export_path(utils.ie.BaseOperator):
         objs = []
 
         if self.mode == 'ACTIVE_OBJECT':
-            active = bpy.context.active_object
-            if active:
-                objs.append(active)
+            obj = bpy.context.active_object
+            if obj:
+                if obj.xray.isroot:
+                    objs.append(obj)
 
         elif self.mode == 'SELECTED_OBJECTS':
             for obj in bpy.context.selected_objects:
-                objs.append(obj)
+                if obj.xray.isroot:
+                    objs.append(obj)
 
         else:
             for obj in bpy.data.objects:
-                objs.append(obj)
+                if obj.xray.isroot:
+                    objs.append(obj)
 
         return objs
 

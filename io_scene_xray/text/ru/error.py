@@ -208,7 +208,7 @@ translations_table = (
     # operators
     (error.no_objs_mshs_folder, 'Objects или Meshes папка не указана в настройках аддона!'),
     (error.not_inside_objs_mshs_folder, 'Путь не находится внутри Meshes или Objects папки!'),
-    (error.no_objs, 'Не найдены объекты!')
+    (error.no_objs, 'Не найдены root-объекты!')
 )
 
 translation = {}

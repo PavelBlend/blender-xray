@@ -995,16 +995,21 @@ class TestOps(tests.utils.XRayTestCase):
         bpy.ops.io_scene_xray.remove_level_shader_nodes(mode='ALL_MATERIALS')
 
     def test_set_export_path(self):
+        ver = io_scene_xray.utils.addon_version_number()
+
         obj_1 = bpy.data.objects.new('object_1', None)
         tests.utils.link_object(obj_1)
+        obj_1.xray.version = ver
         obj_1.xray.isroot = True
 
         obj_2 = bpy.data.objects.new('object_2', None)
         tests.utils.link_object(obj_2)
+        obj_2.xray.version = ver
         obj_2.xray.isroot = True
 
         obj_3 = bpy.data.objects.new('object_3', None)
         tests.utils.link_object(obj_3)
+        obj_3.xray.version = ver
         obj_3.xray.isroot = True
 
         prefs = tests.utils.get_preferences()
@@ -1075,7 +1080,7 @@ class TestOps(tests.utils.XRayTestCase):
         # Assert
         self.assertReportsContains(
             'ERROR',
-            re.compile('Objects not found!')
+            re.compile('Root-objects not found!')
         )
 
         # not inside folder
