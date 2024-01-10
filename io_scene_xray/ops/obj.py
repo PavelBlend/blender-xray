@@ -259,6 +259,9 @@ class XRAY_OT_set_export_path(utils.ie.BaseOperator):
         if not mshs_folder.endswith(os.sep):
             mshs_folder += os.sep
 
+        objs_folder = objs_folder.replace(os.sep, '\\')
+        mshs_folder = mshs_folder.replace(os.sep, '\\')
+
         return objs_folder, mshs_folder
 
     def _get_objs(self):
