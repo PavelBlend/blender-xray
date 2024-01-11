@@ -22,6 +22,7 @@ else:
         ('ALPHA_SORT', 'Alpha Sort', ''),
         ('ALPHA_ANTIALIASING', 'Alpha Anti-Aliasing', '')
     )
+
 if utils.version.support_principled_shader():
     shader_items = (
         ('ShaderNodeBsdfDiffuse', 'Diffuse', ''),
@@ -46,6 +47,8 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
     bl_options = {'REGISTER', 'UNDO'}
 
     mode = material.mode_prop
+
+    # cycles properties
 
     # alpha
     alpha_value = bpy.props.BoolProperty(name='Use Alpha', default=True)
@@ -91,7 +94,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
     )
 
     # blend mode
-    blend_mode = bpy.props.EnumProperty(
+    blend_mode_value = bpy.props.EnumProperty(
         name='Blend Mode',
         default='OPAQUE',
         items=blend_mode_items
@@ -102,17 +105,19 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
     )
 
     # shader
-    shader_type = bpy.props.EnumProperty(
+    shader_value = bpy.props.EnumProperty(
         name='Shader Type',
         default=default_shader,
         items=shader_items
     )
-    replace_shader = bpy.props.BoolProperty(
+    shader_change = bpy.props.BoolProperty(
         name='Replace Shader',
         default=False
     )
 
     # internal properties
+
+    # shadeless
     shadeless_change = bpy.props.BoolProperty(
         name='Change Shadeless',
         default=True
@@ -122,6 +127,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         default=True
     )
 
+    # diffuse intensity
     diffuse_intensity_change = bpy.props.BoolProperty(
         name='Change Diffuse Intensity',
         default=True
@@ -134,6 +140,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         subtype='FACTOR'
     )
 
+    # specular intensity
     specular_intensity_change = bpy.props.BoolProperty(
         name='Change Specular Intensity',
         default=True
@@ -146,6 +153,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         subtype='FACTOR'
     )
 
+    # specular hardness
     specular_hardness_change = bpy.props.BoolProperty(
         name='Change Specular Hardness',
         default=True
@@ -157,6 +165,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         max=511
     )
 
+    # transparency
     use_transparency_change = bpy.props.BoolProperty(
         name='Change Transparency',
         default=True
@@ -166,6 +175,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         default=True
     )
 
+    # transparency alpha
     transparency_alpha_change = bpy.props.BoolProperty(
         name='Change Transparency Alpha',
         default=True
@@ -178,149 +188,247 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         subtype='FACTOR'
     )
 
-    def draw_prop(self, layout, prop_active, prop_value):
+    def _draw_prop(self, layout, prop):
+        # properties names
+        prop_active = prop + '_change'
+        prop_value = prop + '_value'
+
+        # layout
         row = layout.row(align=True)
+
+        # change
         row.prop(self, prop_active, text='')
+
+        # value
         row = row.row(align=True)
         row.active = getattr(self, prop_active)
         row.prop(self, prop_value, toggle=True)
 
+    def _get_render_status(self, context):
+        is_cycles = context.scene.render.engine in renders_28x
+        is_internal = context.scene.render.engine == 'BLENDER_RENDER'
+
+        return is_cycles, is_internal
+
     def draw(self, context):    # pragma: no cover
-        layout = self.layout
-        column = layout.column(align=True)
+        is_cycles, is_internal = self._get_render_status(context)
+
+        # layout
+        column = self.layout.column(align=True)
+
+        # mode
         column.label(text='Mode:')
         column.prop(self, 'mode', expand=True)
-        is_internal = context.scene.render.engine == 'BLENDER_RENDER'
-        is_cycles = context.scene.render.engine in renders_28x
+
+        # settings
         column.label(text='Settings:')
+
+        # cycles render
         if is_cycles:
-            self.draw_prop(column, 'specular_change', 'specular_value')
-            self.draw_prop(column, 'roughness_change', 'roughness_value')
-            self.draw_prop(column, 'viewport_roughness_change', 'viewport_roughness_value')
+            self._draw_prop(column, 'specular')
+            self._draw_prop(column, 'roughness')
+            self._draw_prop(column, 'viewport_roughness')
+
             if utils.version.IS_28:
-                self.draw_prop(column, 'alpha_change', 'alpha_value')
-            self.draw_prop(column, 'blend_mode_change', 'blend_mode')
-            self.draw_prop(column, 'replace_shader', 'shader_type')
+                self._draw_prop(column, 'alpha')
+
+            self._draw_prop(column, 'blend_mode')
+            self._draw_prop(column, 'shader')
+
+        # internal render
         if is_internal:
-            self.draw_prop(column, 'diffuse_intensity_change', 'diffuse_intensity_value')
-            self.draw_prop(column, 'specular_intensity_change', 'specular_intensity_value')
-            self.draw_prop(column, 'transparency_alpha_change', 'transparency_alpha_value')
-            self.draw_prop(column, 'specular_hardness_change', 'specular_hardness_value')
-            self.draw_prop(column, 'use_transparency_change', 'use_transparency_value')
-            self.draw_prop(column, 'shadeless_change', 'shadeless_value')
+            self._draw_prop(column, 'diffuse_intensity')
+            self._draw_prop(column, 'specular_intensity')
+            self._draw_prop(column, 'transparency_alpha')
+            self._draw_prop(column, 'specular_hardness')
+            self._draw_prop(column, 'use_transparency')
+            self._draw_prop(column, 'shadeless')
+
+    def _change_cycles_params(self, mat):
+        if not mat.node_tree:
+            return
+
+        # search output node
+        output_node = None
+        for node in mat.node_tree.nodes:
+            if node.type == 'OUTPUT_MATERIAL':
+                if node.is_active_output:
+                    output_node = node
+                    break
+
+        # viewport roughness
+        if self.viewport_roughness_change:
+            mat.roughness = self.viewport_roughness_value
+
+        # blend mode
+        if self.blend_mode_change:
+            if utils.version.IS_28:
+                mat.blend_method = self.blend_mode_value
+            else:
+                mat.game_settings.alpha_blend = self.blend_mode_value
+
+        if not output_node:
+            self.report(
+                {'WARNING'},
+                'Material "{}" has no output node.'.format(mat.name)
+            )
+            return
+
+        links = output_node.inputs['Surface'].links
+        if not len(links):
+            self.report(
+                {'WARNING'},
+                'Material "{}" has no shader.'.format(mat.name)
+            )
+            return
+
+        # change shader
+        shader_node = links[0].from_node
+
+        if self.shader_change and self.shader_value != shader_node.bl_idname:
+
+            # create new shader node
+            new_shader = mat.node_tree.nodes.new(self.shader_value)
+            new_shader.location = shader_node.location
+            new_shader.label = shader_node.label
+            new_shader.color = shader_node.color
+            new_shader.select = shader_node.select
+            new_shader.use_custom_color = shader_node.use_custom_color
+
+            # search color input
+            color_socket = new_shader.inputs.get('Base Color')
+            if not color_socket:
+                color_socket = new_shader.inputs.get('Color')
+
+            if color_socket:
+
+                # search old color input
+                old_input = shader_node.inputs.get('Base Color')
+                if not old_input:
+                    old_input = shader_node.inputs.get('Color')
+
+                # create new color link
+                if old_input and old_input.links:
+                    color_input = old_input.links[0].from_socket
+                    mat.node_tree.links.new(
+                        color_input,
+                        color_socket
+                    )
+
+            # search shader output
+            if self.shader_value != 'ShaderNodeEmission':
+                bsdf_socket = new_shader.outputs.get('BSDF')
+            else:
+                bsdf_socket = new_shader.outputs.get('Emission')
+
+            # create output link
+            output_surface = output_node.inputs.get('Surface')
+            if bsdf_socket and output_surface:
+                mat.node_tree.links.new(
+                    output_surface,
+                    bsdf_socket
+                )
+
+            # remove preview shader node
+            mat.node_tree.nodes.remove(shader_node)
+            shader_node = new_shader
+
+        if shader_node.type != 'BSDF_PRINCIPLED':
+            self.report(
+                {'WARNING'},
+                'Material "{}" has no principled shader.'.format(mat.name)
+            )
+            return
+
+        # specular
+        if self.specular_change:
+            spec_input = shader_node.inputs['Specular']
+            spec_input.default_value = self.specular_value
+
+        # roughness change
+        if self.roughness_change:
+            rough_input = shader_node.inputs['Roughness']
+            rough_input.default_value = self.roughness_value
+
+        if not self.alpha_change:
+            return
+
+        links = shader_node.inputs['Base Color'].links
+        if not len(links):
+            self.report(
+                {'WARNING'},
+                'Material "{}" has no texture.'.format(mat.name)
+            )
+            return
+
+        image_node = links[0].from_node
+        if not image_node.type in utils.version.IMAGE_NODES:
+            self.report(
+                {'WARNING'},
+                'Material "{}" has no image.'.format(mat.name)
+            )
+            return
+
+        # change alpha
+        if utils.version.IS_28:
+
+            # create link
+            if self.alpha_value:
+                mat.node_tree.links.new(
+                    image_node.outputs['Alpha'],
+                    shader_node.inputs['Alpha']
+                )
+
+            # remove link
+            else:
+                links = shader_node.inputs['Alpha'].links
+                if len(links):
+                    mat.node_tree.links.remove(links[0])
+
+    def _change_internal_params(self, mat):
+        # shadeless
+        if self.shadeless_change:
+            mat.use_shadeless = self.shadeless_value
+
+        # diffuse intensity
+        if self.diffuse_intensity_change:
+            mat.diffuse_intensity = self.diffuse_intensity_value
+
+        # specular intensity
+        if self.specular_intensity_change:
+            mat.specular_intensity = self.specular_intensity_value
+
+        # specular hardness
+        if self.specular_hardness_change:
+            mat.specular_hardness = self.specular_hardness_value
+
+        # use transparency
+        if self.use_transparency_change:
+            mat.use_transparency = self.use_transparency_value
+
+        # transparency alpha
+        if self.transparency_alpha_change:
+            mat.alpha = self.transparency_alpha_value
 
     @utils.set_cursor_state
     def execute(self, context):
-        scene = context.scene
-        materials = material.get_materials(context, self.mode)
-        is_cycles = scene.render.engine in renders_28x
-        is_internal = scene.render.engine == 'BLENDER_RENDER'
-        for mat in materials:
-            if is_cycles:
-                if not mat.node_tree:
-                    continue
-                output_node = None
-                for node in mat.node_tree.nodes:
-                    if node.type == 'OUTPUT_MATERIAL':
-                        if node.is_active_output:
-                            output_node = node
-                            break
-                if self.viewport_roughness_change:
-                    mat.roughness = self.viewport_roughness_value
-                if self.blend_mode_change:
-                    if utils.version.IS_28:
-                        mat.blend_method = self.blend_mode
-                    else:
-                        mat.game_settings.alpha_blend = self.blend_mode
-                if not output_node:
-                    self.report({'WARNING'}, 'Material "{}" has no output node.'.format(mat.name))
-                    continue
-                links = output_node.inputs['Surface'].links
-                if not len(links):
-                    self.report({'WARNING'}, 'Material "{}" has no shader.'.format(mat.name))
-                    continue
-                shader_node = links[0].from_node
-                if self.replace_shader and self.shader_type != shader_node.bl_idname:
-                    new_shader = mat.node_tree.nodes.new(self.shader_type)
-                    new_shader.location = shader_node.location
-                    new_shader.label = shader_node.label
-                    new_shader.color = shader_node.color
-                    new_shader.select = shader_node.select
-                    new_shader.use_custom_color = shader_node.use_custom_color
-                    color_socket = new_shader.inputs.get('Base Color')
-                    if not color_socket:
-                        color_socket = new_shader.inputs.get('Color')
-                    if color_socket:
-                        old_input = shader_node.inputs.get('Base Color')
-                        if not old_input:
-                            old_input = shader_node.inputs.get('Color')
-                        if old_input and old_input.links:
-                            color_input = old_input.links[0].from_socket
-                            mat.node_tree.links.new(
-                                color_input,
-                                color_socket
-                            )
-                    if self.shader_type != 'ShaderNodeEmission':
-                        bsdf_socket = new_shader.outputs.get('BSDF')
-                    else:
-                        bsdf_socket = new_shader.outputs.get('Emission')
-                    output_surface = output_node.inputs.get('Surface')
-                    if bsdf_socket and output_surface:
-                        mat.node_tree.links.new(
-                            output_surface,
-                            bsdf_socket
-                        )
-                    mat.node_tree.nodes.remove(shader_node)
-                    shader_node = new_shader
-                if shader_node.type != 'BSDF_PRINCIPLED':
-                    self.report({'WARNING'}, 'Material "{}" has no principled shader.'.format(mat.name))
-                    continue
-                if self.specular_change:
-                    shader_node.inputs['Specular'].default_value = self.specular_value
-                if self.roughness_change:
-                    shader_node.inputs['Roughness'].default_value = self.roughness_value
-                if not self.alpha_change:
-                    continue
-                links = shader_node.inputs['Base Color'].links
-                if not len(links):
-                    self.report({'WARNING'}, 'Material "{}" has no texture.'.format(mat.name))
-                    continue
-                image_node = links[0].from_node
-                if not image_node.type in utils.version.IMAGE_NODES:
-                    self.report({'WARNING'}, 'Material "{}" has no image.'.format(mat.name))
-                    continue
-                if utils.version.IS_28:
-                    if self.alpha_value:
-                        mat.node_tree.links.new(
-                            image_node.outputs['Alpha'],
-                            shader_node.inputs['Alpha']
-                        )
-                    else:
-                        links = shader_node.inputs['Alpha'].links
-                        if len(links):
-                            mat.node_tree.links.remove(links[0])
-            if is_internal:
-                # shadeless
-                if self.shadeless_change:
-                    mat.use_shadeless = self.shadeless_value
-                # diffuse intensity
-                if self.diffuse_intensity_change:
-                    mat.diffuse_intensity = self.diffuse_intensity_value
-                # specular intensity
-                if self.specular_intensity_change:
-                    mat.specular_intensity = self.specular_intensity_value
-                # specular hardness
-                if self.specular_hardness_change:
-                    mat.specular_hardness = self.specular_hardness_value
-                # use transparency
-                if self.use_transparency_change:
-                    mat.use_transparency = self.use_transparency_value
-                # transparency alpha
-                if self.transparency_alpha_change:
-                    mat.alpha = self.transparency_alpha_value
-            mat.update_tag()
+        mats = material.get_materials(context, self.mode)
+        mats_count = len(mats)
+        is_cycles, is_internal = self._get_render_status(context)
+
+        if is_cycles:
+            for mat in mats:
+                self._change_cycles_params(mat)
+                mat.update_tag()
+
+        if is_internal:
+            for mat in mats:
+                self._change_internal_params(mat)
+                mat.update_tag()
+
         utils.draw.redraw_areas()
-        self.report({'INFO'}, 'Changed {} material(s)'.format(len(materials)))
+        self.report({'INFO'}, 'Changed {} material(s)'.format(mats_count))
+
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
