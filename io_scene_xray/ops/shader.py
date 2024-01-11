@@ -188,7 +188,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         subtype='FACTOR'
     )
 
-    def _draw_prop(self, layout, prop):
+    def _draw_prop(self, layout, prop):    # pragma: no cover
         # properties names
         prop_active = prop + '_change'
         prop_value = prop + '_value'

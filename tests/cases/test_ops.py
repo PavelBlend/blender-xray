@@ -1092,3 +1092,135 @@ class TestOps(tests.utils.XRayTestCase):
             'ERROR',
             re.compile('The path is not inside the Meshes or Objects folder!')
         )
+
+    def test_change_shader_params(self):
+        for i in range(3):
+            name = 'test_{}'.format(i)
+            mesh = bpy.data.meshes.new(name)
+            obj = bpy.data.objects.new(name, mesh)
+            mat = bpy.data.materials.new(name)
+            if i != 2:
+                mat.use_nodes = True
+            mesh.materials.append(mat)
+            tests.utils.link_object(obj)
+            tests.utils.set_active_object(obj)
+
+        # default
+        bpy.ops.io_scene_xray.change_shader_params()
+
+        # change all
+        if bpy.app.version >= (2, 79, 0):
+            bpy.ops.io_scene_xray.change_shader_params(
+                mode='ALL_MATERIALS',
+
+                alpha_value=True,
+                alpha_change=True,
+    
+                specular_value=0.1,
+                specular_change=True,
+
+                roughness_value=0.1,
+                roughness_change=True,
+
+                viewport_roughness_value=0.1,
+                viewport_roughness_change=True,
+
+                blend_mode_value='OPAQUE',
+                blend_mode_change=True,
+
+                shader_value='ShaderNodeBsdfPrincipled',
+                shader_change=True
+            )
+
+            # diffuse
+            bpy.ops.io_scene_xray.change_shader_params(
+                mode='ALL_MATERIALS',
+
+                alpha_value=True,
+                alpha_change=True,
+    
+                specular_value=0.1,
+                specular_change=True,
+
+                roughness_value=0.1,
+                roughness_change=True,
+
+                viewport_roughness_value=0.1,
+                viewport_roughness_change=True,
+
+                blend_mode_value='OPAQUE',
+                blend_mode_change=True,
+
+                shader_value='ShaderNodeBsdfDiffuse',
+                shader_change=True
+            )
+
+            # not change
+            bpy.ops.io_scene_xray.change_shader_params(
+                mode='ALL_MATERIALS',
+
+                alpha_value=True,
+                alpha_change=False,
+    
+                specular_value=0.1,
+                specular_change=False,
+
+                roughness_value=0.1,
+                roughness_change=False,
+
+                viewport_roughness_value=0.1,
+                viewport_roughness_change=False,
+
+                blend_mode_value='OPAQUE',
+                blend_mode_change=False,
+
+                shader_value='ShaderNodeBsdfPrincipled',
+                shader_change=False
+            )
+
+        if bpy.app.version < (2, 80, 0):
+            bpy.context.scene.render.engine = 'BLENDER_RENDER'
+
+            bpy.ops.io_scene_xray.change_shader_params(
+                mode='ALL_MATERIALS',
+
+                shadeless_value=True,
+                shadeless_change=True,
+    
+                diffuse_intensity_value =0.1,
+                diffuse_intensity_change=True,
+
+                specular_intensity_value=0.1,
+                specular_intensity_change=True,
+
+                specular_hardness_value=10,
+                specular_hardness_change=True,
+
+                use_transparency_value=True,
+                use_transparency_change=True,
+
+                transparency_alpha_value=0.1,
+                transparency_alpha_change=True
+            )
+
+            bpy.ops.io_scene_xray.change_shader_params(
+                mode='ALL_MATERIALS',
+
+                shadeless_value=True,
+                shadeless_change=False,
+    
+                diffuse_intensity_value =0.1,
+                diffuse_intensity_change=False,
+
+                specular_intensity_value=0.1,
+                specular_intensity_change=False,
+
+                specular_hardness_value=10,
+                specular_hardness_change=False,
+
+                use_transparency_value=True,
+                use_transparency_change=False,
+
+                transparency_alpha_value=0.1,
+                transparency_alpha_change=False
+            )
