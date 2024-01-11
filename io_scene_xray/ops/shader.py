@@ -254,7 +254,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
                         old_input = shader_node.inputs.get('Base Color')
                         if not old_input:
                             old_input = shader_node.inputs.get('Color')
-                        if old_input:
+                        if old_input and old_input.links:
                             color_input = old_input.links[0].from_socket
                             mat.node_tree.links.new(
                                 color_input,
