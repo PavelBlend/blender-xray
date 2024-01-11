@@ -417,14 +417,14 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         is_cycles, is_internal = self._get_render_status(context)
 
         if is_cycles:
-            for mat in mats:
-                self._change_cycles_params(mat)
-                mat.update_tag()
+            funct = self._change_cycles_params
 
         if is_internal:
-            for mat in mats:
-                self._change_internal_params(mat)
-                mat.update_tag()
+            funct = self._change_internal_params
+
+        for mat in mats:
+            funct(mat)
+            mat.update_tag()
 
         utils.draw.redraw_areas()
         self.report({'INFO'}, 'Changed {} material(s)'.format(mats_count))
