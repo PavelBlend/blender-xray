@@ -1128,6 +1128,9 @@ class TestOps(tests.utils.XRayTestCase):
                 blend_mode_value='OPAQUE',
                 blend_mode_change=True,
 
+                shadow_mode_value='OPAQUE',
+                shadow_mode_change=True,
+
                 shader_value='ShaderNodeBsdfPrincipled',
                 shader_change=True
             )
@@ -1151,6 +1154,9 @@ class TestOps(tests.utils.XRayTestCase):
                 blend_mode_value='OPAQUE',
                 blend_mode_change=True,
 
+                shadow_mode_value='OPAQUE',
+                shadow_mode_change=True,
+
                 shader_value='ShaderNodeBsdfDiffuse',
                 shader_change=True
             )
@@ -1173,6 +1179,9 @@ class TestOps(tests.utils.XRayTestCase):
 
                 blend_mode_value='OPAQUE',
                 blend_mode_change=False,
+
+                shadow_mode_value='OPAQUE',
+                shadow_mode_change=False,
 
                 shader_value='ShaderNodeBsdfPrincipled',
                 shader_change=False
