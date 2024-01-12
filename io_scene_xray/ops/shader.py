@@ -6,6 +6,20 @@ from . import material
 from .. import utils
 
 
+if utils.version.support_principled_shader():
+    shader_items = (
+        ('ShaderNodeBsdfDiffuse', 'Diffuse', ''),
+        ('ShaderNodeEmission', 'Emission', ''),
+        ('ShaderNodeBsdfPrincipled', 'Principled', '')
+    )
+    default_shader = 'ShaderNodeBsdfPrincipled'
+else:
+    shader_items = (
+        ('ShaderNodeBsdfDiffuse', 'Diffuse', ''),
+        ('ShaderNodeEmission', 'Emission', '')
+    )
+    default_shader = 'ShaderNodeBsdfDiffuse'
+
 if utils.version.IS_28:
     blend_mode_items = (
         ('OPAQUE', 'Opaque', ''),
@@ -23,19 +37,12 @@ else:
         ('ALPHA_ANTIALIASING', 'Alpha Anti-Aliasing', '')
     )
 
-if utils.version.support_principled_shader():
-    shader_items = (
-        ('ShaderNodeBsdfDiffuse', 'Diffuse', ''),
-        ('ShaderNodeEmission', 'Emission', ''),
-        ('ShaderNodeBsdfPrincipled', 'Principled', '')
-    )
-    default_shader = 'ShaderNodeBsdfPrincipled'
-else:
-    shader_items = (
-        ('ShaderNodeBsdfDiffuse', 'Diffuse', ''),
-        ('ShaderNodeEmission', 'Emission', '')
-    )
-    default_shader = 'ShaderNodeBsdfDiffuse'
+shadow_mode_items = (
+    ('NONE', 'None', ''),
+    ('OPAQUE', 'Opaque', ''),
+    ('CLIP', 'Alpha Clip', ''),
+    ('HASHED', 'Alpha Hashed', '')
+)
 
 renders_28x = ('CYCLES', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH')
 
@@ -93,6 +100,17 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         default=True
     )
 
+    # shader
+    shader_value = bpy.props.EnumProperty(
+        name='Shader Type',
+        default=default_shader,
+        items=shader_items
+    )
+    shader_change = bpy.props.BoolProperty(
+        name='Replace Shader',
+        default=False
+    )
+
     # blend mode
     blend_mode_value = bpy.props.EnumProperty(
         name='Blend Mode',
@@ -104,14 +122,14 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         default=False
     )
 
-    # shader
-    shader_value = bpy.props.EnumProperty(
-        name='Shader Type',
-        default=default_shader,
-        items=shader_items
+    # shadow mode
+    shadow_mode_value = bpy.props.EnumProperty(
+        name='Shadow Mode',
+        default='OPAQUE',
+        items=shadow_mode_items
     )
-    shader_change = bpy.props.BoolProperty(
-        name='Replace Shader',
+    shadow_mode_change = bpy.props.BoolProperty(
+        name='Change Shadow Mode',
         default=False
     )
 
@@ -232,8 +250,11 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
             if utils.version.IS_28:
                 self._draw_prop(column, 'alpha')
 
-            self._draw_prop(column, 'blend_mode')
             self._draw_prop(column, 'shader')
+            self._draw_prop(column, 'blend_mode')
+
+            if utils.version.IS_28:
+                self._draw_prop(column, 'shadow_mode')
 
         # internal render
         if is_internal:
@@ -266,6 +287,11 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
                 mat.blend_method = self.blend_mode_value
             else:
                 mat.game_settings.alpha_blend = self.blend_mode_value
+
+        # shadow mode
+        if self.shadow_mode_change:
+            if utils.version.IS_28:
+                mat.shadow_method = self.shadow_mode_value
 
         if not output_node:
             self.report(
