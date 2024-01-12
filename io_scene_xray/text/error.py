@@ -180,6 +180,9 @@ scene_objs = 'Bad scene selection file. Cannot find "objects" chunk'
 scene_ver = 'Unsupported format version'
 scene_obj_ver = 'Unsupported scene object format version'
 
+# skls export
+skl_path_conflict = 'The folder cannot be created because a file with the same name exists'
+
 # part import
 part_no_objs = 'File has no objects!'
 

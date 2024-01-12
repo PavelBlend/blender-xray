@@ -188,6 +188,9 @@ translations_table = (
     (error.scene_ver, 'Неподдерживаемая версия формата'),
     (error.scene_obj_ver, 'Неподдерживаемая версия формата объектов сцены'),
 
+    # skls export
+    (error.skl_path_conflict, 'Невозможно создать папку, так как существует файл с таким же именем'),
+
     # part import
     (error.part_no_objs, 'Файл не имеет объектов!'),
 

@@ -397,6 +397,7 @@ class XRAY_OT_export_skl_batch(utils.ie.BaseOperator):
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
     @log.execute_with_logger
+    @log.with_context('export-skl-batch')
     @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
@@ -409,51 +410,80 @@ class XRAY_OT_export_skl_batch(utils.ie.BaseOperator):
             if obj.type != 'ARMATURE':
                 continue
             objects.append(obj)
+
         use_sub_dirs = len(objects) > 1
+        path_conflicts = []
+
         for obj in objects:
             export_context.bpy_arm_obj = obj
+            sub_dir_name = obj.name
+            directory = os.path.join(self.directory, sub_dir_name)
+
+            if os.path.exists(directory):
+                if os.path.isfile(directory):
+                    path_conflicts.append(directory)
+                    continue
+
             for motion in obj.xray.motions_collection:
+
                 action = bpy.data.actions.get(motion.name)
                 if not action:
                     continue
+
                 export_context.action = action
 
                 # skl file name
+                file_name = action.name
+
                 if obj.xray.use_custom_motion_names:
                     if motion.export_name:
                         file_name = motion.export_name
-                    else:
-                        file_name = action.name
-                else:
-                    file_name = action.name
 
                 if not file_name.lower().endswith(skl_ext):
                     file_name += skl_ext
+
                 if use_sub_dirs:
-                    sub_dir_name = obj.name
-                    directory = os.path.join(self.directory, sub_dir_name)
+                    filepath = os.path.join(directory, file_name)
+
                     if not os.path.exists(directory):
                         os.makedirs(directory)
-                    filepath = os.path.join(directory, file_name)
+
                 else:
                     filepath = os.path.join(self.directory, file_name)
+
+                # export
                 try:
                     exp.export_skl_file(filepath, export_context)
                     exp_actions_count += 1
+
                 except log.AppError as err:
                     export_context.errors.append(err)
-        if not exp_actions_count:
+
+        # report errors
+        if not exp_actions_count and not path_conflicts:
             self.report({'WARNING'}, 'Selected objects have no actions')
+
+        for path in path_conflicts:
+            err = log.AppError(
+                text.error.skl_path_conflict,
+                log.props(path=path)
+            )
+            log.err(err)
+
         for err in export_context.errors:
             log.err(err)
+
         return {'FINISHED'}
 
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
+
         if not context.selected_objects:
             self.report({'ERROR'}, 'No selected objects')
             return {'CANCELLED'}
+
         context.window_manager.fileselect_add(self)
+
         return {'RUNNING_MODAL'}
 
 
