@@ -206,7 +206,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         subtype='FACTOR'
     )
 
-    def _draw_prop(self, layout, prop):    # pragma: no cover
+    def _draw_prop(self, layout, prop, name=None):    # pragma: no cover
         # properties names
         prop_active = prop + '_change'
         prop_value = prop + '_value'
@@ -218,9 +218,16 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
         row.prop(self, prop_active, text='')
 
         # value
-        row = row.row(align=True)
-        row.active = getattr(self, prop_active)
-        row.prop(self, prop_value, toggle=True)
+        if name:
+            row = row.row(align=True)
+            row.active = getattr(self, prop_active)
+            row.label(text=name)
+            row.prop(self, prop_value, text='', toggle=True)
+
+        else:
+            row = row.row(align=True)
+            row.active = getattr(self, prop_active)
+            row.prop(self, prop_value, toggle=True)
 
     def _get_render_status(self, context):
         is_cycles = context.scene.render.engine in renders_28x
@@ -250,11 +257,11 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
             if utils.version.IS_28:
                 self._draw_prop(column, 'alpha')
 
-            self._draw_prop(column, 'shader')
-            self._draw_prop(column, 'blend_mode')
+            self._draw_prop(column, 'shader', 'Shader Type')
+            self._draw_prop(column, 'blend_mode', 'Blend Mode')
 
             if utils.version.IS_28:
-                self._draw_prop(column, 'shadow_mode')
+                self._draw_prop(column, 'shadow_mode', 'Shadow Mode')
 
         # internal render
         if is_internal:
