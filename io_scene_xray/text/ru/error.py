@@ -108,7 +108,6 @@ translations_table = (
 
     # level export glow
     (error.level_no_glow, 'Level-объект не имеет glow-объектов'),
-    (error.level_bad_glow_type, 'Glow-объект не является мешем'),
     (error.level_bad_glow, 'Glow меш-объект не имеет полигонов'),
     (error.level_no_mat_glow, 'Glow-объект не имеет материала'),
     (error.level_glow_empty_mat, 'Glow-объект имеет пустой слот материала'),

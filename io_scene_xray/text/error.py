@@ -100,7 +100,6 @@ level_light_not_spec = '"Light" parameter for the material is not specified'
 
 # level export glow
 level_no_glow = 'Level-object has no glow-objects'
-level_bad_glow_type = 'Glow-object is not a mesh'
 level_bad_glow = 'Glow mesh-object has no faces'
 level_no_mat_glow = 'Glow-object has no material'
 level_glow_empty_mat = 'Glow-object has empty material slot'

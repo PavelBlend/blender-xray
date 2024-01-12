@@ -10,16 +10,13 @@ from .... import rw
 
 
 def _write_glow(glows_writer, glow_obj, level):
+    exported = False
+
     if glow_obj.type != 'MESH':
-        raise log.AppError(
-            text.error.level_bad_glow_type,
-            log.props(
-                object=glow_obj.name,
-                type=glow_obj.type
-            )
-        )
+        return exported
 
     glow_mesh = glow_obj.data
+
     faces_count = len(glow_mesh.polygons)
     if not faces_count:
         raise log.AppError(
@@ -63,11 +60,15 @@ def _write_glow(glows_writer, glow_obj, level):
     # shader index
     glows_writer.putf('<H', shader_index + 1)    # +1 - skip first empty shader
 
+    exported = True
+
+    return exported
+
 
 def write_glows(level_writer, level_object, level):
     glows_writer = rw.write.PackedWriter()
-    glows_count = 0
 
+    # search glows object
     glows_obj = bpy.data.objects.get(level_object.xray.level.glows_obj)
 
     if not glows_obj:
@@ -76,12 +77,19 @@ def write_glows(level_writer, level_object, level):
             child_obj = bpy.data.objects[child_name]
             if child_obj.name.startswith('glows'):
                 glows_obj = child_obj
+                break
+
+    # export glows
+    glows_count = 0
 
     if glows_obj:
+
         for glow_name in level.visuals_cache.children[glows_obj.name]:
             glow_obj = bpy.data.objects[glow_name]
-            _write_glow(glows_writer, glow_obj, level)
-            glows_count += 1
+            exported = _write_glow(glows_writer, glow_obj, level)
+
+            if exported:
+                glows_count += 1
 
     if not glows_count:
         raise log.AppError(
@@ -89,4 +97,5 @@ def write_glows(level_writer, level_object, level):
             log.props(object=level_object.name)
         )
 
+    # write glows chunk
     level_writer.put(fmt.Chunks13.GLOWS, glows_writer)
