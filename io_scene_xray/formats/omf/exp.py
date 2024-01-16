@@ -297,15 +297,12 @@ def get_pose_bones_and_groups(context):
 
 def export_motion_params(
         context,
-        xray,
         packed_writer,
         available_params,
         motion_count,
         new_motions_count,
         motions_list,
-        motions_ids,
-        motion_export_names,
-        actions_table
+        act_exp_table
     ):
 
     if not available_params:
@@ -315,7 +312,7 @@ def export_motion_params(
             context,
             packed_writer,
             motions_list,
-            actions_table
+            act_exp_table
         )
     else:
 
@@ -329,7 +326,7 @@ def export_motion_params(
             for motion_name, motion_id, has_available in motions_list:
                 if not has_available:
                     motions_new.append((motion_name, motion_id, has_available))
-            write_motions_params(context, packed_writer, motions_new, actions_table)
+            write_motions_params(context, packed_writer, motions_new, act_exp_table)
 
         # replace mode
         elif context.export_mode == 'REPLACE':
@@ -342,7 +339,7 @@ def export_motion_params(
                 for motion_name, motion_id, has_available in motions_list:
                     if not has_available:
                         motions_new.append((motion_name, motion_id, has_available))
-                write_motions_params(context, packed_writer, motions_new, actions_table)
+                write_motions_params(context, packed_writer, motions_new, act_exp_table)
             else:
                 packed_writer.putf('<H', len(available_params))
                 for motion_name, motion_params in available_params.items():
@@ -432,41 +429,48 @@ def collect_bones(context, bone_names, bone_indices, bones_count):
 
 
 def collect_motion_names(context, xray):
-    motion_export_names = {}
-    actions_table = {}
+    act_exp_table = {}    # key: action name, value: export name
+    exp_act_table = {}    # key: export name, value: action name
+
     for motion in xray.motions_collection:
-        if xray.use_custom_motion_names:
-            if motion.export_name:
-                export_name = motion.export_name
-            else:
-                export_name = motion.name
+
+        if xray.use_custom_motion_names and motion.export_name:
+            export_name = motion.export_name
         else:
             export_name = motion.name
-        motion_export_names[motion.name] = export_name
-        actions_table[export_name] = motion.name
-    return motion_export_names, actions_table
+
+        act_exp_table[motion.name] = export_name
+        exp_act_table[export_name] = motion.name
+
+    return act_exp_table, exp_act_table
 
 
-def calculate_bones_count(context):
+def calculate_bones_count(bpy_arm_obj):
     bones_count = 0
-    for bone in context.bpy_arm_obj.data.bones:
+
+    for bone in bpy_arm_obj.data.bones:
+
         if utils.bone.is_exportable_bone(bone):
             bones_count += 1
+
     return bones_count
 
 
-def search_available_data(context, bones_count, motion_export_names):
+def search_available_data(context, bones_count, exp_act_table):
     chunks = None
+
     if context.export_mode in ('ADD', 'REPLACE'):
         available_motions, available_motion_names, chunks = get_motions(context, bones_count)
         export_motion_names = []
         export_motion_names.extend(available_motion_names)
         export_motion_names.extend(
-            list(set(motion_export_names.values()) - set(available_motion_names))
+            list(set(exp_act_table.values()) - set(available_motion_names))
         )
+
     else:
         available_motions = {}
-        export_motion_names = list(motion_export_names.values())
+        export_motion_names = list(exp_act_table.values())
+
     return available_motions, export_motion_names, chunks
 
 
@@ -559,19 +563,19 @@ def export_motions(
         dependency_object,
         pose_bones,
         export_bones,
-        actions_table,
-        motion_export_names
+        act_exp_table,
+        exp_act_table
     ):
 
     scn = bpy.context.scene
     new_motions_count = 0
     chunk_id = fmt.MOTIONS_COUNT_CHUNK + 1
-    object_motions = motion_export_names.values()
+    object_motions = exp_act_table.values()
 
     _, scale = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
 
     for motion_name in export_motion_names:
-        action_name = actions_table.get(motion_name, None)
+        action_name = act_exp_table.get(motion_name, None)
         if action_name:
             action = bpy.data.actions.get(action_name)
         else:
@@ -795,13 +799,13 @@ def export_omf(context):
         dep_action
     ) = utils.action.get_initial_state(arm_obj)
 
-    motion_export_names, actions_table = collect_motion_names(context, xray)
-    bones_count = calculate_bones_count(context)
+    exp_act_table, act_exp_table = collect_motion_names(context, xray)
+    bones_count = calculate_bones_count(arm_obj)
 
     available_motions, export_motion_names, chunks = search_available_data(
         context,
         bones_count,
-        motion_export_names
+        exp_act_table
     )
 
     pose_bones, bone_groups = get_pose_bones_and_groups(context)
@@ -814,7 +818,7 @@ def export_omf(context):
         context,
         export_motion_names,
         available_motions,
-        actions_table
+        act_exp_table
     )
 
     # motions chunked writer
@@ -853,8 +857,8 @@ def export_omf(context):
         dependency_object,
         pose_bones,
         export_bones,
-        actions_table,
-        motion_export_names
+        act_exp_table,
+        exp_act_table
     )
 
     main_chunked_writer = rw.write.ChunkedWriter()
@@ -872,15 +876,12 @@ def export_omf(context):
 
     export_motion_params(
         context,
-        xray,
         packed_writer,
         available_params,
         motion_count,
         new_motions_count,
         motions_list,
-        motions_ids,
-        motion_export_names,
-        actions_table
+        act_exp_table
     )
 
     # write params chunk
@@ -912,34 +913,31 @@ def check_context(exp_ctx):
                 'Nothing was exported. Change the export settings.'
             )
 
-    if exp_ctx.export_mode in ('OVERWRITE', 'ADD'):
-        need_motions = True
+    if exp_ctx.export_mode == 'OVERWRITE':
+        exp_ctx.need_motions = True
+        exp_ctx.need_bone_groups = True
 
-        if exp_ctx.export_mode == 'OVERWRITE':
-            need_bone_groups = True
-        else:
-            need_bone_groups = False
+    elif exp_ctx.export_mode == 'ADD':
+        exp_ctx.need_motions = True
+        exp_ctx.need_bone_groups = False
 
-    else:
-        need_motions = exp_ctx.export_motions
-        need_bone_groups = exp_ctx.export_bone_parts
+    else:    # replace mode
+        exp_ctx.need_motions = exp_ctx.export_motions
+        exp_ctx.need_bone_groups = exp_ctx.export_bone_parts
 
     motions_count = len(exp_ctx.bpy_arm_obj.xray.motions_collection)
-    if not motions_count and need_motions:
+    if not motions_count and exp_ctx.need_motions:
         raise log.AppError(
             'Armature object has no actions',
             log.props(object=exp_ctx.bpy_arm_obj.name)
         )
 
     bone_groups_count = len(exp_ctx.bpy_arm_obj.pose.bone_groups)
-    if not bone_groups_count and need_bone_groups:
+    if not bone_groups_count and exp_ctx.need_bone_groups:
         raise log.AppError(
             'Armature object has no bone groups',
             log.props(object=exp_ctx.bpy_arm_obj.name)
         )
-
-    exp_ctx.need_motions = need_motions
-    exp_ctx.need_bone_groups = need_bone_groups
 
 
 @log.with_context('export-omf')
