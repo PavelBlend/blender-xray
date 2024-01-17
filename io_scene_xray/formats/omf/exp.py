@@ -44,49 +44,64 @@ class Motion:
 
 
 def get_flags(xray):
-    flags = 0x0
+    flags = 0
+
     if xray.flags_fx:
         flags |= fmt.FX
+
     if xray.flags_stopatend:
         flags |= fmt.STOP_AT_END
+
     if xray.flags_nomix:
         flags |= fmt.NO_MIX
+
     if xray.flags_syncpart:
         flags |= fmt.SYNC_PART
+
     if xray.flags_footsteps:
         flags |= fmt.USE_FOOT_STEPS
+
     if xray.flags_movexform:
         flags |= fmt.ROOT_MOVER
+
     if xray.flags_idle:
         flags |= fmt.IDLE
+
     if xray.flags_weaponbone:
         flags |= fmt.USE_WEAPON_BONE
+
     return flags
 
 
 def validate_omf_file(context):
-    data = rw.utils.read_file(context.filepath)
-    if not len(data):
+    # read file data
+    file_data = rw.utils.read_file(context.filepath)
+
+    if not file_data:
         raise log.AppError(
             text.error.omf_empty,
             log.props(file=context.filepath)
         )
-    chunked_reader = rw.read.ChunkedReader(data)
-    chunks = {}
-    for chunk_id, chunk_data in chunked_reader:
-        chunks[chunk_id] = chunk_data
+
+    # get chunks
+    chunks = rw.utils.get_chunks(file_data)
     chunks_ids = list(chunks.keys())
-    if ogf.fmt.Chunks_v4.S_MOTIONS_2 not in chunks_ids and context.export_motions:
+
+    # verify omf file data
+
+    if ogf.fmt.Chunks_v4.S_MOTIONS_2 not in chunks_ids:
         raise log.AppError(
             text.error.omf_no_anims,
             log.props(file=context.filepath)
         )
-    if ogf.fmt.Chunks_v4.S_SMPARAMS_1 not in chunks_ids and context.export_bone_parts:
+
+    if ogf.fmt.Chunks_v4.S_SMPARAMS_1 not in chunks_ids:
         raise log.AppError(
             text.error.omf_no_params,
             log.props(file=context.filepath)
         )
-    return data, chunks
+
+    return file_data, chunks
 
 
 def get_exclude_motion_names(context):
@@ -160,15 +175,17 @@ def get_motions(context, bones_count):
     _, chunks = validate_omf_file(context)
 
     # create chunk reader
-    chunked_reader = rw.read.ChunkedReader(chunks[ogf.fmt.Chunks_v4.S_MOTIONS_2])
+    motions_chunk = chunks[ogf.fmt.Chunks_v4.S_MOTIONS_2]
+    chunked_reader = rw.read.ChunkedReader(motions_chunk)
     chunked_reader.next(fmt.MOTIONS_COUNT_CHUNK)
 
-    motion_writers = {}
     motion_names = []
+    motion_writers = {}
 
-    for motion_id, chunk_data in chunked_reader:
+    for motion_id, motion_data in chunked_reader:
+
         # packed writer/reader
-        packed_reader = rw.read.PackedReader(chunk_data)
+        packed_reader = rw.read.PackedReader(motion_data)
         packed_writer = rw.write.PackedWriter()
 
         # motion name
@@ -185,12 +202,14 @@ def get_motions(context, bones_count):
 
         # bones keyframes
         for bone_index in range(bones_count):
+
             # flags
             flags = packed_reader.getf('<B')[0]
+            packed_writer.putf('<B', flags)
+
             t_present = flags & fmt.FL_T_KEY_PRESENT
             r_absent = flags & fmt.FL_R_KEY_ABSENT
             hq = flags & fmt.KPF_T_HQ
-            packed_writer.putf('<B', flags)
 
             # rotation
             if r_absent:
@@ -260,34 +279,37 @@ def write_motions_params(context, writer, motions_list, actions_table):
 
 def get_pose_bones_and_groups(context):
     # collect pose bones and bone groups
+
     utils.ie.set_mode('POSE')
+
+    bone_index = 0
     pose_bones = []
     bone_groups = {}
     no_group_bones = set()
-    bone_index = 0
+    arm_obj = context.bpy_arm_obj
 
-    for bone in context.bpy_arm_obj.data.bones:
+    for bone in arm_obj.data.bones:
 
         if bone.xray.exportable:
-            pose_bone = context.bpy_arm_obj.pose.bones[bone.name]
+            pose_bone = arm_obj.pose.bones[bone.name]
             pose_bones.append(pose_bone)
+            bone_name = pose_bone.name
+            group = pose_bone.bone_group
 
-            if pose_bone.bone_group:
-                bone_groups.setdefault(pose_bone.bone_group.name, []).append(
-                    (pose_bone.name, bone_index)
-                )
+            if group:
+                group_bones = bone_groups.setdefault(group.name, [])
+                group_bones.append((bone_name, bone_index))
                 bone_index += 1
 
             else:
                 if context.need_bone_groups:
-                    no_group_bones.add(pose_bone.name)
-                continue
+                    no_group_bones.add(bone_name)
 
     if no_group_bones:
         raise log.AppError(
             text.error.omf_bone_no_group,
             log.props(
-                armature_object=context.bpy_arm_obj.name,
+                armature_object=arm_obj.name,
                 bones=no_group_bones
             )
         )
@@ -460,18 +482,18 @@ def search_available_data(context, bones_count, exp_act_table):
     chunks = None
 
     if context.export_mode in ('ADD', 'REPLACE'):
-        available_motions, available_motion_names, chunks = get_motions(context, bones_count)
+        file_motions, file_names, chunks = get_motions(context, bones_count)
+
         export_motion_names = []
-        export_motion_names.extend(available_motion_names)
-        export_motion_names.extend(
-            list(set(exp_act_table.values()) - set(available_motion_names))
-        )
+        export_motion_names.extend(file_names)
+        armature_motion_names = set(exp_act_table.values()) - set(file_names)
+        export_motion_names.extend(armature_motion_names)
 
     else:
-        available_motions = {}
+        file_motions = {}
         export_motion_names = list(exp_act_table.values())
 
-    return available_motions, export_motion_names, chunks
+    return file_motions, export_motion_names, chunks
 
 
 def collect_motions_availability_table(
