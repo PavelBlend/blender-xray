@@ -7,6 +7,7 @@ from . import mesh
 from . import bone
 from .. import fmt
 from ... import motions
+from ... import contexts
 from .... import rw
 from .... import text
 from .... import utils
@@ -435,7 +436,9 @@ def export_motions(chunked_writer, some_arm, context, root_obj):
         if not acts:
             return
         writer = rw.write.PackedWriter()
-        motions.exp.export_motions(writer, acts, some_arm, root_obj)
+        motion_ctx = contexts.ExportAnimationOnlyContext()
+        motion_ctx.bpy_arm_obj = some_arm
+        motions.exp.export_motions(writer, acts, motion_ctx, root_obj)
         if writer.data:
             chunked_writer.put(fmt.Chunks.Object.MOTIONS, writer)
 

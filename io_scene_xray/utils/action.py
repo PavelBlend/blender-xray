@@ -7,7 +7,22 @@ from . import ie
 from . import version
 
 
-def set_arm_initial_state(
+def get_dep_obj(arm_obj):
+    dependency_object = None
+    dep_action = None
+
+    xray = arm_obj.xray
+
+    if xray.dependency_object:
+        dependency_object = bpy.data.objects.get(xray.dependency_object)
+
+        if dependency_object:
+            dep_action = dependency_object.animation_data.action
+
+    return dependency_object, dep_action
+
+
+def _set_arm_initial_state(
         arm_obj,
         mode,
         current_frame,
@@ -15,6 +30,7 @@ def set_arm_initial_state(
         dependency_object,
         dep_action
     ):
+
     # return initial state
     ie.set_mode(mode)
     bpy.context.scene.frame_set(current_frame)
@@ -35,7 +51,7 @@ def set_arm_initial_state(
             bone.reset_pose_bone_transforms(dependency_object)
 
 
-def get_initial_state(arm_obj):
+def _get_initial_state(arm_obj):
     xray = arm_obj.xray
     # remember initial state
     current_frame = bpy.context.scene.frame_current
@@ -46,14 +62,30 @@ def get_initial_state(arm_obj):
         current_action = arm_obj.animation_data.action
 
     # remember dependency object state
-    dependency_object = None
-    dep_action = None
-    if xray.dependency_object:
-        dependency_object = bpy.data.objects.get(xray.dependency_object)
-        if dependency_object:
-            dep_action = dependency_object.animation_data.action
+    dependency_object, dep_action = get_dep_obj(arm_obj)
 
     return current_frame, mode, current_action, dependency_object, dep_action
+
+
+def initial_state(fun):
+
+    def wrapper(*args, **kwargs):
+        arm_obj = None
+
+        for arg in args:
+            if hasattr(arg, 'bpy_arm_obj'):
+                arm_obj = arg.bpy_arm_obj
+                break
+
+        frame, mode, act, dep_obj, dep_act = _get_initial_state(arm_obj)
+
+        result = fun(*args, **kwargs)
+
+        _set_arm_initial_state(arm_obj, mode, frame, act, dep_obj, dep_act)
+
+        return result
+
+    return wrapper
 
 
 def insert_keyframes(frames_coords, fcurves):

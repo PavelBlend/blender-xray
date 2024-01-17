@@ -230,25 +230,11 @@ def export_motion(writer, action, armature, root_obj):
         dep_obj.animation_data.action = old_action
 
 
-def export_motions(writer, actions, bpy_armature, root_obj):
-    (
-        current_frame,
-        mode,
-        current_action,
-        dependency_object,
-        dep_action
-    ) = utils.action.get_initial_state(bpy_armature)
-
+@utils.action.initial_state
+def export_motions(writer, actions, context, root_obj):
     motions_count = len(actions)
+    bpy_armature = context.bpy_arm_obj
     writer.putf('<I', motions_count)
+
     for action in actions:
         export_motion(writer, action, bpy_armature, root_obj)
-
-    utils.action.set_arm_initial_state(
-        bpy_armature,
-        mode,
-        current_frame,
-        current_action,
-        dependency_object,
-        dep_action
-    )

@@ -808,18 +808,11 @@ def export_motions(
     return new_motions_count
 
 
+@utils.action.initial_state
 def export_omf(context):
     arm_obj = context.bpy_arm_obj
     utils.version.set_active_object(arm_obj)
     xray = arm_obj.xray
-
-    (
-        current_frame,
-        mode,
-        current_action,
-        dependency_object,
-        dep_action
-    ) = utils.action.get_initial_state(arm_obj)
 
     exp_act_table, act_exp_table = collect_motion_names(context, xray)
     bones_count = calculate_bones_count(arm_obj)
@@ -869,6 +862,7 @@ def export_omf(context):
 
     root_obj = utils.obj.find_root(arm_obj)
 
+    dependency_object, _ = utils.action.get_dep_obj(arm_obj)
     new_motions_count = export_motions(
         arm_obj,
         root_obj,
@@ -908,15 +902,6 @@ def export_omf(context):
 
     # write params chunk
     main_chunked_writer.put(ogf.fmt.Chunks_v4.S_SMPARAMS_1, packed_writer)
-
-    utils.action.set_arm_initial_state(
-        arm_obj,
-        mode,
-        current_frame,
-        current_action,
-        dependency_object,
-        dep_action
-    )
 
     return main_chunked_writer
 
