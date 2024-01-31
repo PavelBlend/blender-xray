@@ -484,7 +484,11 @@ def run_imp_exp_operator(method):    # pragma: no cover
         keymaps = wm.keyconfigs[config].keymaps['3D View'].keymap_items
 
         for op_id in addon_ops:
-            keymap = keymaps[op_id]
+            keymap = keymaps.get(op_id)
+
+            if not keymap:
+                continue
+
             if version.IS_3:
                 oskey = keymap.oskey_ui
             else:
