@@ -550,6 +550,7 @@ def draw_others(prefs):
     split.prop(prefs, 'custom_owner_name', text='')
 
     prop_bool(layout, prefs, 'compact_menus')
+    prop_bool(layout, prefs, 'check_updates')
     layout.prop(prefs, 'object_split_normals')
 
     box = layout.box()

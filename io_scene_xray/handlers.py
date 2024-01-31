@@ -39,6 +39,10 @@ _INITIALIZER = DataBlocksInitializer(bpy_data_init_collects)
 
 @bpy.app.handlers.persistent
 def load_post(_):
+    pref = utils.version.get_preferences()
+    if pref.check_updates:
+        bpy.ops.io_scene_xray.notify_update()
+
     _INITIALIZER.sync('LOADED')
 
 

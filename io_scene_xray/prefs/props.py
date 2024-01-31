@@ -123,6 +123,10 @@ prefs_props = {
         name='Compact Import/Export Menus',
         update=update_menu_func
     ),
+    'check_updates': bpy.props.BoolProperty(
+        default=True,
+        name='Check for Updates after Starting Blender'
+    ),
 
     'paths_mode': bpy.props.EnumProperty(
         default='BASE',
