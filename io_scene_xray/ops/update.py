@@ -126,13 +126,13 @@ class XRAY_OT_notify_update(utils.ie.BaseOperator):
                     report_text = '{0}: {1}'.format(message, ver_text)
                     self.report({'INFO'}, report_text)
 
-                return self.cancel(context)
+                self.cancel(context)
+                return {'FINISHED'}
 
-        return {'RUNNING_MODAL'}
+        return {'PASS_THROUGH'}
 
     def cancel(self, context):
         context.window_manager.event_timer_remove(self.timer)
-        return {'CANCELLED'}
 
     def execute(self, context):
         self.timer = context.window_manager.event_timer_add(
