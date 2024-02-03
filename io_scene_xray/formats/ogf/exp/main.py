@@ -811,11 +811,11 @@ def _get_bone_box(bone, bone_mat, scale, mul):
 
 
 def _get_bone_bound(bone, scale, mul):
-    verts = utils.bone.bone_vertices(bone)
+    verts, _ = utils.bone.bone_vertices(bone)
 
     if len(verts) > 3:
         # generate obb
-        mat = utils.bone.get_obb(bone, False)
+        mat = utils.bone.get_obb(bone, False, 0.0)
 
         if not mat:
             # generate aabb

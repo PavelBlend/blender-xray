@@ -139,6 +139,7 @@ def _bone_objects(bone):
 
 def bone_vertices(bone):
     verts = []
+    weights = []
     for obj, vgi in _bone_objects(bone):
         bmsh = bmesh.new()
         if version.IS_28:
@@ -151,14 +152,18 @@ def bone_vertices(bone):
             weight = vtx[layer_deform].get(vgi, 0)
             if weight:
                 verts.append(vtx.co.copy())
-    return verts
+                weights.append(weight)
+    return verts, weights
 
 
-def get_obb(bone, for_cylinder):
+def get_obb(bone, for_cylinder, min_weight):
     # create convex hull mesh for obb generation
     bm = bmesh.new()
-    for vert in bone_vertices(bone):
-        bm.verts.new(vert)
+    verts, weights = bone_vertices(bone)
+    for index, vert in enumerate(verts):
+        weight = weights[index]
+        if weight >= min_weight:
+            bm.verts.new(vert)
     bm.verts.ensure_lookup_table()
     if len(bm.verts) >= 3:
         input_geom = bmesh.ops.convex_hull(bm, input=bm.verts)['geom']

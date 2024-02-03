@@ -61,7 +61,7 @@ class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
     def _update_helper(self, helper, target):
         bone = target
         shape_type = bone.xray.shape.type
-        if shape_type == '0':
+        if shape_type in ('0', '4'):    # None, Custom
             self.deactivate()
             return
 
@@ -72,8 +72,8 @@ class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
         mat = bone_matrix(bone)
         helper.matrix_local = mat
 
-        vscale = mat.to_scale()
-        if not (vscale.x and vscale.y and vscale.z):
+        scale = mat.to_scale()
+        if not (scale.x and scale.y and scale.z):
             bpy.ops.io_scene_xray.edit_bone_shape_fit()
 
 
@@ -82,14 +82,19 @@ HELPER = _BoneShapeEditHelper('bone-shape-edit')
 
 def _create_bmesh(shape_type):
     mesh = bmesh.new()
+
     if shape_type == '1':
         bmesh.ops.create_cube(mesh, size=2)
+
     elif shape_type == '2':
         utils.version.create_bmesh_icosphere(mesh)
+
     elif shape_type == '3':
         utils.version.create_bmesh_cone(mesh, segments=16)
+
     else:
         raise AssertionError('unsupported bone shape type: ' + shape_type)
+
     return mesh
 
 
@@ -99,13 +104,21 @@ class XRAY_OT_edit_shape(utils.ie.BaseOperator):
     bl_description = 'Create a helper object that can be ' \
         'used for adjusting bone shape'
 
+    bl_options = {'REGISTER', 'UNDO'}
+
     @classmethod
     def poll(cls, context):
         if context.mode == 'EDIT_ARMATURE':
             return False
+
         bone = context.active_bone
-        return bone and (bone.xray.shape.type not in ('0', '4')) and \
-            not HELPER.is_active(context)
+        if not bone:
+            return False
+
+        # is not "None" or "Custom" shape type
+        has_shape = bone.xray.shape.type not in ('0', '4')
+
+        return has_shape and not HELPER.is_active(context)
 
     def execute(self, context):
         target = context.active_object.data.bones[context.active_bone.name]
@@ -123,11 +136,21 @@ def bone_matrix(bone):
         mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
     )
     mat = multiply(mat, xsh.get_matrix_basis())
+
     if xsh.type == '1':    # box
         mat = multiply(mat, mathutils.Matrix.Scale(-1, 4, (0, 0, 1)))
         mat = multiply(mat, utils.bone.convert_vector_to_matrix(xsh.box_hsz))
+
     elif xsh.type == '2':    # sphere
-        mat = multiply(mat, utils.bone.convert_vector_to_matrix((xsh.sph_rad, xsh.sph_rad, xsh.sph_rad)))
+        mat = multiply(
+            mat,
+            utils.bone.convert_vector_to_matrix((
+                xsh.sph_rad,
+                xsh.sph_rad,
+                xsh.sph_rad
+            ))
+        )
+
     elif xsh.type == '3':    # cylinder
         mat = multiply(mat, formats.motions.const.MATRIX_BONE_INVERTED)
         mat = multiply(
@@ -138,8 +161,10 @@ def bone_matrix(bone):
                 xsh.cyl_hgh * 0.5
             ))
         )
+
     else:
         raise AssertionError('unsupported bone shape type: ' + xsh.type)
+
     return mat
 
 
@@ -160,6 +185,7 @@ def apply_shape(bone, shape_matrix):
         ).inverted(),
         shape_matrix
     )
+
     if xsh.type == '1':    # box
         mat = multiply(mat, mathutils.Matrix.Scale(-1, 4, (0, 0, 1)))
         xsh.box_trn = mat.to_translation().to_tuple()
@@ -167,15 +193,21 @@ def apply_shape(bone, shape_matrix):
         if not scale.length:
             return
         xsh.box_hsz = scale.to_tuple()
-        mrt = multiply(mat, utils.bone.convert_vector_to_matrix(scale).inverted()).to_3x3().transposed()
+        mrt = multiply(
+            mat,
+            utils.bone.convert_vector_to_matrix(scale).inverted()
+        ).to_3x3().transposed()
+
         for index in range(3):
             xsh.box_rot[index * 3 : index * 3 + 3] = mrt[index].to_tuple()
+
     elif xsh.type == '2':    # sphere
         scale = mat.to_scale()
         if not scale.length:
             return
         xsh.sph_pos = mat.to_translation().to_tuple()
         xsh.sph_rad = maxabs(*scale)
+
     elif xsh.type == '3':    # cylinder
         xsh.cyl_pos = mat.to_translation().to_tuple()
         vscale = mat.to_scale()
@@ -191,8 +223,10 @@ def apply_shape(bone, shape_matrix):
         qrot = mat3.transposed().to_quaternion().inverted()
         vrot = multiply(qrot, mathutils.Vector((0, 0, 1)))
         xsh.cyl_dir = vrot.to_tuple()
+
     else:
         raise AssertionError('unsupported shape type: ' + xsh.type)
+
     xsh.set_curver()
 
 
@@ -219,7 +253,7 @@ class XRAY_OT_apply_shape(utils.ie.BaseOperator):
 class XRAY_OT_fit_shape(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_bone_shape_fit'
     bl_label = 'Fit Shape'
-    bl_options = {'UNDO'}
+    bl_options = {'REGISTER', 'UNDO'}
 
     mode = bpy.props.EnumProperty(
         name='Mode',
@@ -230,6 +264,17 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
             ('OBB', 'Orient Bounding Box', '')
         )
     )
+    min_weight = bpy.props.FloatProperty(
+        default=0.0,
+        min=0.0,
+        max=1.0,
+        subtype='FACTOR',
+        name='Min Weight'
+    )
+
+    def draw(self, context):    # pragma: no cover
+        self.layout.prop(self, 'mode')
+        self.layout.prop(self, 'min_weight')
 
     def execute(self, context):
         def vfunc(vtx_a, vtx_b, func):
@@ -254,11 +299,11 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
         hobj.scale = (1, 1, 1)    # ugly: force delayed refresh 3d-view
         vmin = mathutils.Vector((+math.inf, +math.inf, +math.inf))
         vmax = mathutils.Vector((-math.inf, -math.inf, -math.inf))
-        xsh = bone.xray.shape
+        stype = bone.xray.shape.type
         multiply = utils.version.get_multiply()
 
-        if xsh.type == '1':    # box
-            obb_mat = utils.bone.get_obb(bone, False)
+        if stype == '1':    # box
+            obb_mat = utils.bone.get_obb(bone, False, self.min_weight)
 
             if obb_mat and self.mode == 'OBB':
                 hobj.matrix_local = obb_mat
@@ -266,10 +311,13 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
             else:
 
                 # generate aabb
-                for vtx in utils.bone.bone_vertices(bone):
-                    vtx = multiply(matrix_inverted, vtx)
-                    vfunc(vmin, vtx, min)
-                    vfunc(vmax, vtx, max)
+                verts, weights = utils.bone.bone_vertices(bone)
+                for index, vtx in enumerate(verts):
+                    weight = weights[index]
+                    if weight >= self.min_weight:
+                        vtx = multiply(matrix_inverted, vtx)
+                        vfunc(vmin, vtx, min)
+                        vfunc(vmax, vtx, max)
 
                 if vmax.x > vmin.x:
                     vcenter = (vmax + vmin) / 2
@@ -282,27 +330,34 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
 
         else:
             vertices = []
-            for vtx in utils.bone.bone_vertices(bone):
-                vtx = multiply(matrix_inverted, vtx)
-                vfunc(vmin, vtx, min)
-                vfunc(vmax, vtx, max)
-                vertices.append(vtx)
+            verts, weights = utils.bone.bone_vertices(bone)
+            for index, vtx in enumerate(verts):
+                weight = weights[index]
+                if weight >= self.min_weight:
+                    vtx = multiply(matrix_inverted, vtx)
+                    vfunc(vmin, vtx, min)
+                    vfunc(vmax, vtx, max)
+                    vertices.append(vtx)
 
             if vmax.x > vmin.x:
                 vcenter = (vmax + vmin) / 2
                 radius = 0
 
-                if xsh.type == '2':    # sphere
+                if stype == '2':    # sphere
                     for vtx in vertices:
                         radius = max(radius, (vtx - vcenter).length)
                     hobj.matrix_local = multiply(
                         matrix,
                         mathutils.Matrix.Translation(vcenter),
-                        utils.bone.convert_vector_to_matrix((radius, radius, radius))
+                        utils.bone.convert_vector_to_matrix((
+                            radius,
+                            radius,
+                            radius
+                        ))
                     )
 
-                elif xsh.type == '3':    # cylinder
-                    obb_mat = utils.bone.get_obb(bone, True)
+                elif stype == '3':    # cylinder
+                    obb_mat = utils.bone.get_obb(bone, True, self.min_weight)
 
                     if obb_mat and self.mode == 'OBB':
                         hobj.matrix_local = obb_mat
@@ -315,11 +370,15 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                         hobj.matrix_local = multiply(
                             matrix,
                             mathutils.Matrix.Translation(vcenter),
-                            utils.bone.convert_vector_to_matrix((radius, radius, (vmax.z - vmin.z) * 0.5))
+                            utils.bone.convert_vector_to_matrix((
+                                radius,
+                                radius,
+                                (vmax.z - vmin.z) * 0.5
+                            ))
                         )
 
                 else:
-                    raise AssertionError('unsupported shape type: ' + xsh.type)
+                    raise AssertionError('unsupported shape type: ' + stype)
 
         if utils.version.IS_28:
             bpy.context.view_layer.update()

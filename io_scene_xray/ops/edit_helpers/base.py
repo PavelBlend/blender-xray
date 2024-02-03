@@ -12,7 +12,7 @@ class AbstractHelper:
     def __init__(self, name):
         if name in __HELPERS__:
             raise AssertionError(
-                'helper with name ' + name + ' is already registered'
+                'helper with name {} is already registered'.format(name)
             )
         __HELPERS__[name] = self
         self._name = utils.obj.HELPER_OBJECT_NAME_PREFIX + name
