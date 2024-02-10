@@ -1,4 +1,9 @@
+# standart modules
+import os
+
 # addon modules
+from .. import fmt
+from ... import omf
 from .... import rw
 from .... import log
 from .... import text
@@ -67,6 +72,59 @@ def _read_motion_refs_cs_cop(data, visual):
 
     count = packed_reader.uint32()
     visual.motion_refs = [packed_reader.gets() for index in range(count)]
+
+
+def import_bone_parts(context, visual):
+    if not visual.motion_refs:
+        return
+
+    # search meshes folder
+    meshes_folder = None
+    meshes_folders = context.meshes_folders
+    for folder in meshes_folders:
+        if os.path.exists(folder):
+            meshes_folder = folder
+            break
+
+    if meshes_folder:
+
+        # get *.omf path
+        omf_path = None
+
+        for ref in visual.motion_refs:
+            relative_path = ref.replace('\\', os.sep)
+            relative_path = relative_path.replace('/', os.sep)
+            ref_path = os.path.join(meshes_folder, relative_path)
+            omf_path = ref_path + os.extsep + 'omf'
+
+            if os.path.exists(omf_path):
+                break
+
+        if omf_path:
+
+            # read file
+            data = None
+            try:
+                data = rw.utils.read_file(omf_path)
+            except:
+                pass
+
+            if data:
+
+                # get params chunk
+                chunks = rw.utils.get_chunks(data)
+                params_data = chunks.get(fmt.Chunks_v4.S_SMPARAMS_1, None)
+
+                # import bone parts
+                if params_data:
+                    params_chunk = 1
+                    context.import_bone_parts = True
+                    context.bpy_arm_obj = visual.arm_obj
+                    omf.imp.read_params(
+                        params_data,
+                        context,
+                        params_chunk
+                    )
 
 
 def read_motion_references(chunks, ogf_chunks, visual):

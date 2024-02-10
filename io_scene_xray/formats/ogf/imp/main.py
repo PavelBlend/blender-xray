@@ -60,6 +60,9 @@ def import_ogf_visual(context, data, visual):
     props.read_user_data(chunks, ogf_chunks, visual)
     import_fun(context, chunks, ogf_chunks, visual)
 
+    if not visual.arm_obj.pose.bone_groups:
+        props.import_bone_parts(context, visual)
+
     utility.check_unread_chunks(chunks)
 
     if visual.is_root:
