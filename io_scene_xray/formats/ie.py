@@ -115,7 +115,7 @@ def prop_details_models_in_a_row():
 
 
 def prop_details_load_slots():
-    return bpy.props.BoolProperty(name='Load Slots', default=True)
+    return bpy.props.BoolProperty(name='Import Slots', default=True)
 
 
 def prop_details_format():
