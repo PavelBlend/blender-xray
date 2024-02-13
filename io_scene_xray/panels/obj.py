@@ -586,7 +586,8 @@ def get_used(prefs):
         prefs.enable_part_export or
         prefs.enable_part_export or
         prefs.enable_omf_export or
-        prefs.enable_ogf_export
+        prefs.enable_ogf_export or
+        prefs.enable_group_export
     )
     details_used = (
         # import plugins
