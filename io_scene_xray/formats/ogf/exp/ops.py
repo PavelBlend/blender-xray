@@ -33,7 +33,7 @@ def draw_props(self, context, batch):    # pragma: no cover
     layout.prop(self, 'export_motions')
     row = layout.row()
     row.active = self.fmt_version == 'cscop' and self.export_motions
-    row.prop(self, 'hq_export', text='High Quatily Motions')
+    row.prop(self, 'hq_export')
     if batch:
         layout.prop(self, 'use_export_paths')
     layout.prop(self, 'texture_name_from_image_path')

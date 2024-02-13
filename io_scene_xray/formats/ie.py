@@ -160,4 +160,4 @@ def prop_omf_export_mode():
 
 
 def prop_omf_high_quality():
-    return bpy.props.BoolProperty(name='High Quality', default=False)
+    return bpy.props.BoolProperty(name='High Quality Motions', default=False)
