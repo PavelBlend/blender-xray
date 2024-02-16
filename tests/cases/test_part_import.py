@@ -45,7 +45,7 @@ class TestPartImport(tests.utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsContains('ERROR', re.compile('File has no objects!'))
+        self.assertReportsContains('ERROR', re.compile('File has no objects'))
 
     def test_no_exists_objects(self):
         prefs = tests.utils.get_preferences()

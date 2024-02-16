@@ -15,7 +15,7 @@ class TestInvalidSG(tests.utils.XRayTestCase):
         bpy.ops.io_scene_xray.check_invalid_sg_objs()
 
         # Assert
-        self.assertReportsContains('INFO', re.compile('Ready!'))
+        self.assertReportsContains('INFO', re.compile('Ready'))
 
         selected = [obj for obj in bpy.context.selected_objects]
         self.assertEqual(selected, [invalid_obj, ])

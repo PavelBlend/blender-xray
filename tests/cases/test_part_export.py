@@ -51,7 +51,7 @@ class TestPartExport(tests.utils.XRayTestCase):
         # Assert
         self.assertReportsContains(
             'ERROR',
-            re.compile('Saving to a new file is not supported. Need to export over existing file.')
+            re.compile('Saving to a new file is not supported. Need to export over existing file')
         )
 
     def test_cscop_no_file(self):
@@ -66,7 +66,7 @@ class TestPartExport(tests.utils.XRayTestCase):
         # Assert
         self.assertReportsContains(
             'ERROR',
-            re.compile('Saving to a new file is not supported. Need to export over existing file.')
+            re.compile('Saving to a new file is not supported. Need to export over existing file')
         )
 
     def test_cscop_no_txt(self):
@@ -85,7 +85,7 @@ class TestPartExport(tests.utils.XRayTestCase):
         # Assert
         self.assertReportsContains(
             'ERROR',
-            re.compile('The file must be text, not binary.')
+            re.compile('The file must be text, not binary')
         )
 
     def test_cscop_spaces(self):
@@ -107,7 +107,7 @@ class TestPartExport(tests.utils.XRayTestCase):
         # Assert
         self.assertReportsContains(
             'ERROR',
-            re.compile('The path to the object must not contain spaces.')
+            re.compile('The path to the object must not contain spaces')
         )
 
     def test_cscop_spaces_single(self):
@@ -131,7 +131,7 @@ class TestPartExport(tests.utils.XRayTestCase):
         # Assert
         self.assertReportsContains(
             'ERROR',
-            re.compile('The path to the object must not contain spaces.')
+            re.compile('The path to the object must not contain spaces')
         )
 
     def test_soc_no_guid(self):

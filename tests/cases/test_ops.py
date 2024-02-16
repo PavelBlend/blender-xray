@@ -200,7 +200,7 @@ class TestOps(tests.utils.XRayTestCase):
             replace_old_2='',
             replace_new_2=''
         )
-        self.assertReportsContains('WARNING', re.compile('No active object!'))
+        self.assertReportsContains('WARNING', re.compile('No active object'))
 
         # without motions test
         arm = bpy.data.armatures.new('test_arm')
@@ -469,7 +469,7 @@ class TestOps(tests.utils.XRayTestCase):
         )
         self.assertReportsContains(
             'WARNING',
-            re.compile('No active object!')
+            re.compile('No active object')
         )
         self._reports.clear()
 
@@ -1080,7 +1080,7 @@ class TestOps(tests.utils.XRayTestCase):
         # Assert
         self.assertReportsContains(
             'ERROR',
-            re.compile('Root-objects not found!')
+            re.compile('Root-objects not found')
         )
 
         # not inside folder
@@ -1090,7 +1090,7 @@ class TestOps(tests.utils.XRayTestCase):
         )
         self.assertReportsContains(
             'ERROR',
-            re.compile('The path is not inside the Meshes or Objects folder!')
+            re.compile('The path is not inside the Meshes or Objects folder')
         )
 
     def test_change_shader_params(self):
