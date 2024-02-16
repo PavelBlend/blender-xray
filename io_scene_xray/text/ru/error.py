@@ -34,6 +34,7 @@ translations_table = (
     (error.no_active_bone, 'Нет активной кости!'),
     (error.no_anim_data, 'Объект не имеет анимационных данных'),
     (error.sel_no_anim_data, 'Выделенные объекты не имеют анимационных данных.'),
+    (error.no_valid_str, 'Недопустимая строка'),
 
     # anm export
     (error.anm_no_keys, 'Анимация имеет ключи не для всех каналов'),
@@ -167,7 +168,9 @@ translations_table = (
     (error.omf_no_anims, 'OMF файл не имеет блок анимаций'),
     (error.omf_no_params, 'OMF файл не имеет блок параметров'),
     (error.omf_bone_no_group, 'Не все кости арматуры имеют группу костей (bone part)'),
-    (error.omf_nothing_exp, 'Ничего не экспортируется!'),
+    (error.omf_nothing_exp, 'Ничего не экспортируется! Измените настройки экспорта'),
+    (error.omf_no_acts, 'Объект-арматура не имеет анимаций'),
+    (error.omf_no_bone_groups, 'Объект-арматура не имеет групп костей'),
 
     # omf import
     (error.omf_no_bone, 'Арматура не имеет всех костей, которые есть в OMF файле'),
@@ -177,6 +180,8 @@ translations_table = (
     # omf merge
     (error.few_files, 'Необходимо выделить больше одного файла!'),
     (error.omf_merge_parts_count, 'Файл имеет разное количество boneparts'),
+    (error.omf_merge_different_params, 'Файл имеет другую версию параметров'),
+    (error.omf_merge_unsupported_params, 'Не поддерживаемая версия параметров'),
 
     # scene import
     (error.scene_incorrect_file, 'Недопустимый *.level файл'),

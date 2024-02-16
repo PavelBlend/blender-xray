@@ -3,6 +3,7 @@ import struct
 
 # addon modules
 from .. import log
+from .. import text
 
 
 class PackedWriter():
@@ -24,7 +25,10 @@ class PackedWriter():
             self.data += string.encode('cp1251')
 
         except UnicodeEncodeError:
-            raise log.AppError('Not valid string: {}'.format(string))
+            raise log.AppError(
+                text.error.no_valid_str,
+                log.props(string=string)
+            )
 
         self.data += b'\x00'
 

@@ -910,15 +910,13 @@ def check_context(exp_ctx):
     if exp_ctx.export_mode in ('REPLACE', 'ADD'):
         if not os.path.exists(exp_ctx.filepath):
             raise log.AppError(
-                'File not found',
+                text.error.file_not_found,
                 log.props(file=exp_ctx.filepath)
             )
 
     if exp_ctx.export_mode == 'REPLACE':
         if not exp_ctx.export_motions and not exp_ctx.export_bone_parts:
-            raise log.AppError(
-                'Nothing was exported. Change the export settings.'
-            )
+            raise log.AppError(text.error.omf_nothing_exp)
 
     if exp_ctx.export_mode == 'OVERWRITE':
         exp_ctx.need_motions = True
@@ -935,14 +933,14 @@ def check_context(exp_ctx):
     motions_count = len(exp_ctx.bpy_arm_obj.xray.motions_collection)
     if not motions_count and exp_ctx.need_motions:
         raise log.AppError(
-            'Armature object has no actions',
+            text.error.omf_no_acts,
             log.props(object=exp_ctx.bpy_arm_obj.name)
         )
 
     bone_groups_count = len(exp_ctx.bpy_arm_obj.pose.bone_groups)
     if not bone_groups_count and exp_ctx.need_bone_groups:
         raise log.AppError(
-            'Armature object has no bone groups',
+            text.error.omf_no_bone_groups,
             log.props(object=exp_ctx.bpy_arm_obj.name)
         )
 

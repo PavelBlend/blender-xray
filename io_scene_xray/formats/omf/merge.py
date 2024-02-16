@@ -81,7 +81,7 @@ def merge_files(files):
                 params_ver = reader.getf('<H')[0]
                 if not params_ver in (3, 4):
                     raise log.AppError(
-                        'unsupported params version',
+                        text.error.omf_merge_unsupported_params,
                         log.props(file=file_path)
                     )
 
@@ -116,7 +116,7 @@ def merge_files(files):
 
                     if required_params_ver != params_ver:
                         raise log.AppError(
-                            'file have different params versions',
+                            text.error.omf_merge_different_params,
                             log.props(file=file_path, version=params_ver)
                         )
 

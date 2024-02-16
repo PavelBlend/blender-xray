@@ -26,6 +26,7 @@ not_pose_mode = 'Pose mode not activated!'
 no_active_bone = 'No active bone!'
 no_anim_data = 'Object has no animation data'
 sel_no_anim_data = 'Selected objects has no animation data.'
+no_valid_str = 'Not valid string'
 
 # anm export
 anm_no_keys = 'Action has keys not for all channels'
@@ -159,7 +160,9 @@ omf_empty = 'Use different export mode. This OMF-file is empty'
 omf_no_anims = 'OMF-file does not have an animation block'
 omf_no_params = 'OMF-file does not have an parameters block'
 omf_bone_no_group = 'Not all bones in an armature have bone group'
-omf_nothing_exp = 'Nothing is exported!'
+omf_nothing_exp = 'Nothing is exported! Change the export settings'
+omf_no_acts = 'Armature object has no actions'
+omf_no_bone_groups = 'Armature object has no bone groups'
 
 # omf import
 omf_no_bone = 'Armature does not have all bones that file has'
@@ -169,6 +172,8 @@ omf_nothing_imp = 'Nothing is imported!'
 # omf merge
 few_files = 'More than one file needs to be selected'
 omf_merge_parts_count = 'File have different boneparts count'
+omf_merge_different_params = 'File have different params versions'
+omf_merge_unsupported_params = 'Unsupported params version'
 
 # scene import
 scene_incorrect_file = 'Invalid *.level file'

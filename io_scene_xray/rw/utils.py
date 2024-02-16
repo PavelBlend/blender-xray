@@ -29,7 +29,10 @@ def read_file(file_path):
         return data
 
     except FileNotFoundError:
-        raise log.AppError('No such file!')
+        raise log.AppError(
+            text.error.file_not_found,
+            log.props(file=file_path)
+        )
 
 
 def save_file(file_path, writer):
