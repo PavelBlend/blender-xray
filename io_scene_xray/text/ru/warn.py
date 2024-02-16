@@ -10,7 +10,7 @@ mat_many_tex = 'Материал имеет больше одной тексту
 translations_table = (
     # general
     (warn.info_title, 'Информация'),
-    (warn.ready, 'Готово!'),
+    (warn.ready, 'Готово'),
     (warn.imported, 'Импортировано'),
     (warn.сhanged, 'Изменено'),
     (warn.full_log, 'Полный лог хранится в окне Text Editor в текстовом файле'),

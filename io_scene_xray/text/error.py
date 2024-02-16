@@ -1,6 +1,6 @@
 # general
 error_title = 'Error'
-no_sel_files = 'No files selected!'
+no_sel_files = 'No files selected'
 fatal_import_error = 'Import error. File not imported'
 mat_no_img = 'Material has no image'
 mat_many_img = 'Material has more the one image'
@@ -12,20 +12,20 @@ obj_empty_mat = 'Object use empty material slot'
 obj_no_mat = 'Object has no material'
 many_mat = 'Mesh-object has more than one material'
 file_another_prog = 'Unable to write file. The file is open in another program'
-no_active_obj = 'No active object!'
-no_selected_obj = 'No selected objects!'
+no_active_obj = 'No active object'
+no_selected_obj = 'No selected objects'
 no_blend_obj = 'Current blend-file has no objects'
-is_not_arm = 'Active object is not armature!'
+is_not_arm = 'Active object is not armature'
 file_not_found = 'File not found'
 file_folder_not_found = 'File or folder not found'
 ltx_invalid_syntax = 'LTX file syntax error'
 ltx_no_param = 'LTX file has no parameter'
 has_no_main_chunk = 'File has no main data block'
 arm_non_uniform_scale = 'Object has an non-uniform scale'
-not_pose_mode = 'Pose mode not activated!'
-no_active_bone = 'No active bone!'
+not_pose_mode = 'Pose mode not activated'
+no_active_bone = 'No active bone'
 no_anim_data = 'Object has no animation data'
-sel_no_anim_data = 'Selected objects has no animation data.'
+sel_no_anim_data = 'Selected objects has no animation data'
 no_valid_str = 'Not valid string'
 
 # anm export
@@ -167,7 +167,7 @@ omf_no_bone_groups = 'Armature object has no bone groups'
 # omf import
 omf_no_bone = 'Armature does not have all bones that file has'
 omf_nothing = 'Nothing was imported. Change import settings'
-omf_nothing_imp = 'Nothing is imported!'
+omf_nothing_imp = 'Nothing is imported'
 
 # omf merge
 few_files = 'More than one file needs to be selected'
@@ -189,13 +189,13 @@ scene_obj_ver = 'Unsupported scene object format version'
 skl_path_conflict = 'The folder cannot be created because a file with the same name exists'
 
 # part import
-part_no_objs = 'File has no objects!'
+part_no_objs = 'File has no objects'
 
 # part export
-part_no_file = 'Saving to a new file is not supported. Need to export over existing file.'
+part_no_file = 'Saving to a new file is not supported. Need to export over existing file'
 part_no_guid = 'File has no GUID data'
 part_no_txt = 'The file must be text, not binary'
-part_no_space = 'The path to the object must not contain spaces.'
+part_no_space = 'The path to the object must not contain spaces'
 
 # group import
 group_ver = 'Unsupported group format version'
@@ -205,6 +205,6 @@ motion_shape = 'Unsupported keyframe shapes'
 motion_ver = 'Unsupported motions version'
 
 # operators
-no_objs_mshs_folder = 'Objects or Meshes folder not specified in the addon preferences!'
-not_inside_objs_mshs_folder = 'The path is not inside the Meshes or Objects folder!'
-no_objs = 'Root-objects not found!'
+no_objs_mshs_folder = 'Objects or Meshes folder not specified in the addon preferences'
+not_inside_objs_mshs_folder = 'The path is not inside the Meshes or Objects folder'
+no_objs = 'Root-objects not found'

@@ -8,7 +8,7 @@ from .. import error
 translations_table = (
     # general
     (error.error_title, 'Ошибка'),
-    (error.no_sel_files, 'Нет выделенных файлов!'),
+    (error.no_sel_files, 'Нет выделенных файлов'),
     (error.fatal_import_error, 'Ошибка импорта. Файл не импортирован'),
     (error.mat_no_img, 'Материал не имеет изображения'),
     (error.mat_many_img, 'Материал имеет больше одного изображения'),
@@ -20,20 +20,20 @@ translations_table = (
     (error.obj_no_mat, 'Объект не имеет материала'),
     (error.many_mat, 'Меш-объект имеет более одного материала'),
     (error.file_another_prog, 'Невозможно записать файл. Файл открыт в другой программе'),
-    (error.no_active_obj, 'Нет активного объекта!'),
-    (error.no_selected_obj, 'Нет выделенных объектов!'),
+    (error.no_active_obj, 'Нет активного объекта'),
+    (error.no_selected_obj, 'Нет выделенных объектов'),
     (error.no_blend_obj, 'Текущий blend-файл не имеет объектов'),
-    (error.is_not_arm, 'Активный объект не является арматурой!'),
+    (error.is_not_arm, 'Активный объект не является арматурой'),
     (error.file_not_found, 'Файл не найден'),
     (error.file_folder_not_found, 'Файл или папка не найден(а)'),
     (error.ltx_invalid_syntax, 'Ошибка синтаксиса LTX файла'),
     (error.ltx_no_param, 'LTX файл не имеет параметра'),
     (error.has_no_main_chunk, 'Файл не имеет основного блока данных'),
     (error.arm_non_uniform_scale, 'Объект имеет неравномерный масштаб'),
-    (error.not_pose_mode, 'Pose mode не активирован!'),
-    (error.no_active_bone, 'Нет активной кости!'),
+    (error.not_pose_mode, 'Pose mode не активирован'),
+    (error.no_active_bone, 'Нет активной кости'),
     (error.no_anim_data, 'Объект не имеет анимационных данных'),
-    (error.sel_no_anim_data, 'Выделенные объекты не имеют анимационных данных.'),
+    (error.sel_no_anim_data, 'Выделенные объекты не имеют анимационных данных'),
     (error.no_valid_str, 'Недопустимая строка'),
 
     # anm export
@@ -140,8 +140,8 @@ translations_table = (
     (error.object_skel_many_meshes, 'Скелетный объект имеет больше одного меша'),
     (error.object_bad_boneparts, 'Не все кости привязаны к bone parts'),
     (error.object_many_parents, 'Объект-арматура имеет больше одной главной кости'),
-    (error.object_no_roots, 'Не найдены root-объекты.'),
-    (error.object_many_roots, 'Найдено слишком много root-объектов, но ни один не выбран.'),
+    (error.object_no_roots, 'Не найдены root-объекты'),
+    (error.object_many_roots, 'Найдено слишком много root-объектов, но ни один не выбран'),
 
     # object import bone
     (error.object_unsupport_bone_ver, 'Неподдерживаемая версия формата костей'),
@@ -178,7 +178,7 @@ translations_table = (
     (error.omf_nothing_imp, 'Ничего не импортируется!'),
 
     # omf merge
-    (error.few_files, 'Необходимо выделить больше одного файла!'),
+    (error.few_files, 'Необходимо выделить больше одного файла'),
     (error.omf_merge_parts_count, 'Файл имеет разное количество boneparts'),
     (error.omf_merge_different_params, 'Файл имеет другую версию параметров'),
     (error.omf_merge_unsupported_params, 'Не поддерживаемая версия параметров'),
@@ -197,10 +197,10 @@ translations_table = (
     (error.skl_path_conflict, 'Невозможно создать папку, так как существует файл с таким же именем'),
 
     # part import
-    (error.part_no_objs, 'Файл не имеет объектов!'),
+    (error.part_no_objs, 'Файл не имеет объектов'),
 
     # part export
-    (error.part_no_file, 'Не поддерживается сохранение в новый файл. Нужно экспортировать поверх существующего файла.'),
+    (error.part_no_file, 'Не поддерживается сохранение в новый файл. Нужно экспортировать поверх существующего файла'),
     (error.part_no_guid, 'Файл не имеет GUID данных'),
     (error.part_no_txt, 'Файл должен быть текстовым, а не двоичным'),
     (error.part_no_space, 'Путь к объекту не должен содержать пробелов'),
@@ -213,9 +213,9 @@ translations_table = (
     (error.motion_ver, 'Неподдерживаемая версия анимации'),
 
     # operators
-    (error.no_objs_mshs_folder, 'Objects или Meshes папка не указана в настройках аддона!'),
-    (error.not_inside_objs_mshs_folder, 'Путь не находится внутри Meshes или Objects папки!'),
-    (error.no_objs, 'Не найдены root-объекты!')
+    (error.no_objs_mshs_folder, 'Objects или Meshes папка не указана в настройках аддона'),
+    (error.not_inside_objs_mshs_folder, 'Путь не находится внутри Meshes или Objects папки'),
+    (error.no_objs, 'Не найдены root-объекты')
 )
 
 translation = {}
