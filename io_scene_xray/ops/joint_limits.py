@@ -209,8 +209,8 @@ class XRAY_OT_remove_limits_constraints(JointLimitsBaseOperator):
 
 class XRAY_OT_convert_ik_to_xray_limits(JointLimitsBaseOperator):
     bl_idname = 'io_scene_xray.convert_ik_to_xray_limits'
-    bl_label = 'Convert IK Limits to XRay Limits'
-    bl_description = 'Convert selected bones IK limits to XRay joint limits'
+    bl_label = 'Convert IK Limits to X-Ray Limits'
+    bl_description = 'Convert selected bones IK limits to X-Ray joint limits'
 
     @utils.set_cursor_state
     def execute(self, context):
@@ -233,8 +233,8 @@ class XRAY_OT_convert_ik_to_xray_limits(JointLimitsBaseOperator):
 
 class XRAY_OT_convert_xray_to_ik_limits(JointLimitsBaseOperator):
     bl_idname = 'io_scene_xray.convert_xray_to_ik_limits'
-    bl_label = 'Convert XRay Limits to IK Limits'
-    bl_description = 'Convert selected bones XRay joint limits to IK limits'
+    bl_label = 'Convert X-Ray Limits to IK Limits'
+    bl_description = 'Convert selected bones X-Ray joint limits to IK limits'
 
     @utils.set_cursor_state
     def execute(self, context):

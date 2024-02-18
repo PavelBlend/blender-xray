@@ -20,7 +20,7 @@ class XRAY_OT_add_prefs_preset(
     ):
 
     bl_idname = 'xray.prefs_preset_add'
-    bl_label = 'Add XRay Preferences Preset'
+    bl_label = 'Add X-Ray Preferences Preset'
     preset_menu = 'XRAY_MT_prefs_presets'
     preset_subdir = 'io_scene_xray/preferences'
 
