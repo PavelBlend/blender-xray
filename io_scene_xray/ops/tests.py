@@ -119,12 +119,12 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
         if self.skip_by_date:
             date_float = os.path.getmtime(file_path)
 
-            if not min_time_float is None:
-                if date_float < min_time_float:
+            if not self.min_time_float is None:
+                if date_float < self.min_time_float:
                     return
 
-            if not max_time_float is None:
-                if date_float > max_time_float:
+            if not self.max_time_float is None:
+                if date_float > self.max_time_float:
                     return
 
         name, ext = os.path.splitext(file)
@@ -150,8 +150,8 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
         self.file_index = 0
         self.files_list = []
 
-        min_time_float = get_float_time_by_str(self.time_min)
-        max_time_float = get_float_time_by_str(self.time_max)
+        self.min_time_float = get_float_time_by_str(self.time_min)
+        self.max_time_float = get_float_time_by_str(self.time_max)
 
         if self.recursion:
             for root, dirs, files in os.walk(self.directory):
