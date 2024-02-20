@@ -19,23 +19,29 @@ RELEASES_URL = 'https://api.github.com/repos/PavelBlend/blender-xray/releases'
 
 
 def has_update():
-    releases = requests.get(RELEASES_URL)
-    releases_list = json.loads(releases.text)
-    last_tag_str = releases_list[0]['tag_name']
-    last_tag_tuple = last_tag_str[1 : ].split('.')
-    last_tag = tuple(map(int, last_tag_tuple))
-    current_ver = utils.addon_version
     has_new_release = False
     download_url = None
+    last_tag = None
 
-    if last_tag[0] > current_ver[0]:
-        has_new_release = True
+    releases = requests.get(RELEASES_URL)
 
-    if last_tag[1] > current_ver[1]:
-        has_new_release = True
+    if releases:
+        releases_list = json.loads(releases.text)
 
-    if last_tag[2] > current_ver[2]:
-        has_new_release = True
+        if releases_list:
+            last_tag_str = releases_list[0]['tag_name']
+            last_tag_tuple = last_tag_str[1 : ].split('.')
+            last_tag = tuple(map(int, last_tag_tuple))
+            current_ver = utils.addon_version
+
+            if last_tag[0] > current_ver[0]:
+                has_new_release = True
+
+            if last_tag[1] > current_ver[1]:
+                has_new_release = True
+
+            if last_tag[2] > current_ver[2]:
+                has_new_release = True
 
     if has_new_release:
         download_url = releases_list[0]['assets'][0]['browser_download_url']
@@ -44,10 +50,11 @@ def has_update():
 
 
 def check_for_updates():
-    download_url, _ = has_update()
+    download_url, last_tag = has_update()
 
     if download_url:
         message = text.get_text(text.warn.new_update_available)
+        last_tag_str = 'v{0}.{1}.{2}'.format(*last_tag)
         utils.draw.show_message(
             message,
             (last_tag_str, ),
