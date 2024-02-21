@@ -37,7 +37,6 @@ def write_cform(file_path, level):
                 materials.add(material)
 
     # get gamemtl.xr data
-    pref = utils.version.get_preferences()
     game_mtl_files = utils.ie.get_pref_paths('gamemtl_file')
     gamemtl_data = None
 
