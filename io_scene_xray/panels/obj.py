@@ -584,7 +584,6 @@ def get_used(prefs):
         prefs.enable_skl_export or
         prefs.enable_scene_export or
         prefs.enable_part_export or
-        prefs.enable_part_export or
         prefs.enable_omf_export or
         prefs.enable_ogf_export or
         prefs.enable_group_export
