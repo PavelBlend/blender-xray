@@ -26,6 +26,7 @@ class TestOgfExport(tests.utils.XRayTestCase):
         # Arrange
         bpy.ops.object.select_all(action='DESELECT')
         obj = self._create_object('test_object')
+        obj.xray.export_path = 'test'
 
         # test lod export
         obj.xray.lodref = 'test\\lod\\ref'
@@ -36,12 +37,15 @@ class TestOgfExport(tests.utils.XRayTestCase):
         bpy.ops.xray_export.ogf_file(
             filepath=self.outpath('test.ogf'),
             fmt_version='cscop',
-            texture_name_from_image_path=False
+            texture_name_from_image_path=False,
+            use_export_paths=True
         )
 
         # Assert
         self.assertReportsNotContains('WARNING')
-        self.assertOutputFiles({'test.ogf'})
+        self.assertOutputFiles({
+            os.path.join('test', 'test.ogf')
+        })
 
     def test_export_batch(self):
         # Arrange
