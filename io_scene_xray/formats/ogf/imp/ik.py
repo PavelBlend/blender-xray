@@ -102,9 +102,7 @@ def import_ik_data(context, chunks, ogf_chunks, visual):
         limit_x_spring = packed_reader.getf('<f')[0]
         limit_x_damping = packed_reader.getf('<f')[0]
 
-        if joint_type != 5:    # not is slider
-            limit_x_min = -limit_x_max
-            limit_x_max = -limit_x_min
+        limit_x_min, limit_x_max = -limit_x_max, -limit_x_min
 
         # y limits
         limit_y_min, limit_y_max = packed_reader.getf('<2f')
