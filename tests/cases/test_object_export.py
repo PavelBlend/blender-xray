@@ -1,5 +1,6 @@
 from tests import utils
 
+import os
 import bpy
 import io_scene_xray
 import re
@@ -12,7 +13,8 @@ class TestObjectExport(utils.XRayTestCase):
 
         # Act
         bpy.ops.xray_export.object_file(
-            object='tobj1', filepath=self.outpath('test.object'),
+            object='tobj1',
+            filepath=self.outpath('test.object'),
             texture_name_from_image_path=False
         )
 
@@ -154,6 +156,7 @@ class TestObjectExport(utils.XRayTestCase):
     def test_many_uvs_and_not_used_mat(self):
         # Arrange
         obj = self._create_objects()[0]
+        obj.xray.export_path = 'test'
 
         # add new uv layer
         if bpy.app.version >= (2, 80, 0):
@@ -173,7 +176,8 @@ class TestObjectExport(utils.XRayTestCase):
         bpy.ops.xray_export.object_file(
             object='tobj1',
             filepath=self.outpath('test.object'),
-            texture_name_from_image_path=False
+            texture_name_from_image_path=False,
+            use_export_paths=True
         )
 
         # Assert
@@ -181,6 +185,9 @@ class TestObjectExport(utils.XRayTestCase):
             'WARNING',
             re.compile('Object has more than one UV-map. Active UV-map exported')
         )
+        self.assertOutputFiles({
+            os.path.join('test', 'test.object'),
+        })
 
     def test_obsolete_bones(self):
         # Arrange
