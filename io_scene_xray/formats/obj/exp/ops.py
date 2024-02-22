@@ -25,7 +25,7 @@ class ExportObjectContext(
         self.smoothing_out_of = None
 
 
-def draw_props(self, export_paths=False):    # pragma: no cover
+def draw_props(self):    # pragma: no cover
     layout = self.layout
 
     utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
@@ -34,9 +34,7 @@ def draw_props(self, export_paths=False):    # pragma: no cover
     row.label(text='Smoothing:')
     row.row().prop(self, 'smoothing_out_of', expand=True)
 
-    if export_paths:
-        layout.prop(self, 'use_export_paths')
-
+    layout.prop(self, 'use_export_paths')
     layout.prop(self, 'export_motions')
     layout.prop(self, 'texture_name_from_image_path')
 
@@ -99,7 +97,7 @@ class XRAY_OT_export_object(utils.ie.BaseOperator):
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'objects_folder')
-        draw_props(self, export_paths=True)
+        draw_props(self)
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -189,6 +187,7 @@ class XRAY_OT_export_object_file(
     # export properties
     texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
     fmt_version = ie.PropSDKVersion()
+    use_export_paths = ie.PropUseExportPaths()
     smoothing_out_of = ie.prop_smoothing_out_of()
     export_motions = ie.PropObjectMotionsExport()
 
@@ -197,7 +196,7 @@ class XRAY_OT_export_object_file(
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'objects_folder')
-        draw_props(self, export_paths=False)
+        draw_props(self)
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -215,8 +214,17 @@ class XRAY_OT_export_object_file(
 
         bpy_obj = context.scene.objects[self.object]
 
+        file_path = self.filepath
+        directory, file = os.path.split(file_path)
+        exp_path = utils.ie.get_export_path(bpy_obj)
+
+        if self.use_export_paths and exp_path:
+            exp_dir = os.path.join(directory, exp_path)
+            file_path = os.path.join(exp_dir, file)
+            os.makedirs(exp_dir, exist_ok=True)
+
         try:
-            main.export_file(bpy_obj, self.filepath, export_context)
+            main.export_file(bpy_obj, file_path, export_context)
         except log.AppError as err:
             export_context.errors.append(err)
 
@@ -246,6 +254,7 @@ class XRAY_OT_export_object_file(
         self.export_motions = pref.object_motions_export
         self.texture_name_from_image_path = pref.object_texture_names_from_path
         self.smoothing_out_of = pref.smoothing_out_of
+        self.use_export_paths = pref.export_object_use_export_paths
 
         return super().invoke(context, event)
 
