@@ -27,15 +27,14 @@ op_text = 'Game Object'
 filename_ext = '.ogf'
 
 
-def draw_props(self, context, batch):    # pragma: no cover
+def draw_props(self, context):    # pragma: no cover
     layout = self.layout
     utils.draw.draw_fmt_ver_prop(layout, self, 'fmt_version')
     layout.prop(self, 'export_motions')
     row = layout.row()
     row.active = self.fmt_version == 'cscop' and self.export_motions
     row.prop(self, 'hq_export')
-    if batch:
-        layout.prop(self, 'use_export_paths')
+    layout.prop(self, 'use_export_paths')
     layout.prop(self, 'texture_name_from_image_path')
 
 
@@ -73,11 +72,12 @@ class XRAY_OT_export_ogf_file(
     texture_name_from_image_path = ie.PropObjectTextureNamesFromPath()
     fmt_version = ie.PropSDKVersion()
     hq_export = ie.prop_omf_high_quality()
+    use_export_paths = ie.PropUseExportPaths()
     export_motions = ie.PropObjectMotionsExport()
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
-        draw_props(self, context, False)
+        draw_props(self, context)
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
@@ -102,8 +102,17 @@ class XRAY_OT_export_ogf_file(
         export_context.hq_export = self.hq_export
         export_context.export_motions = self.export_motions
 
+        file_path = self.filepath
+        directory, file = os.path.split(file_path)
+        exp_path = utils.ie.get_export_path(exported_obj)
+
+        if self.use_export_paths and exp_path:
+            exp_dir = os.path.join(directory, exp_path)
+            file_path = os.path.join(exp_dir, file)
+            os.makedirs(exp_dir, exist_ok=True)
+
         try:
-            main.export_file(exported_obj, self.filepath, export_context)
+            main.export_file(exported_obj, file_path, export_context)
         except log.AppError as err:
             export_context.errors.append(err)
 
@@ -122,6 +131,7 @@ class XRAY_OT_export_ogf_file(
 
         self.texture_name_from_image_path = pref.ogf_texture_names_from_path
         self.fmt_version = utils.ie.get_sdk_ver(pref.ogf_export_fmt_ver)
+        self.use_export_paths = pref.ogf_export_use_export_paths
         self.export_motions = pref.ogf_export_motions
         self.hq_export = pref.ogf_export_hq_motions
 
@@ -171,7 +181,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
 
     def draw(self, context):    # pragma: no cover
         utils.ie.open_imp_exp_folder(self, 'meshes_folder')
-        draw_props(self, context, True)
+        draw_props(self, context)
 
     @log.execute_with_logger
     @utils.stats.execute_with_stats
