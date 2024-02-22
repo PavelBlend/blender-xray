@@ -174,8 +174,8 @@ class XRAY_OT_convert_limits_to_constraints(JointLimitsBaseOperator):
                         max_x = 0.0
                         min_y = 0.0
                         max_y = 0.0
-                        min_z = -ik.lim_y_max
-                        max_z = -ik.lim_y_min
+                        min_z = ik.lim_y_min
+                        max_z = ik.lim_y_max
 
                     constraint.min_x = min_x
                     constraint.max_x = max_x
