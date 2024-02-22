@@ -156,6 +156,8 @@ class TestObjectExport(utils.XRayTestCase):
     def test_many_uvs_and_not_used_mat(self):
         # Arrange
         obj = self._create_objects()[0]
+
+        # set export path
         obj.xray.export_path = 'test'
 
         # add new uv layer

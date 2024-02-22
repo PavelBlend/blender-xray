@@ -26,6 +26,8 @@ class TestOgfExport(tests.utils.XRayTestCase):
         # Arrange
         bpy.ops.object.select_all(action='DESELECT')
         obj = self._create_object('test_object')
+
+        # set export path
         obj.xray.export_path = 'test'
 
         # test lod export
