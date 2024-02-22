@@ -126,9 +126,15 @@ class XRAY_OT_convert_limits_to_constraints(JointLimitsBaseOperator):
         obj = context.active_object
         bones = get_bone_list(obj, self.mode, self.report)
         created_count = 0
+
         for bone in bones:
             xray = bone.xray
-            if xray.exportable and xray.ikjoint.type in {'2', '3', '5'}:
+
+            if not xray.exportable:
+                continue
+
+            if xray.ikjoint.type in ('2', '3', '5'):    # Joint, Wheel, Slider
+
                 pose_bone = obj.pose.bones[bone.name]
                 constraint = pose_bone.constraints.get(CONSTRAINT_NAME, None)
                 if not constraint:
@@ -142,14 +148,42 @@ class XRAY_OT_convert_limits_to_constraints(JointLimitsBaseOperator):
                 constraint.use_limit_z = True
                 constraint.use_transform_limit = True
                 constraint.owner_space = 'LOCAL'
+
                 if obj.data.xray.joint_limits_type == 'XRAY':
                     ik = xray.ikjoint
-                    constraint.min_x = -ik.lim_x_max
-                    constraint.max_x = -ik.lim_x_min
-                    constraint.min_y = -ik.lim_y_max
-                    constraint.max_y = -ik.lim_y_min
-                    constraint.min_z = ik.lim_z_min
-                    constraint.max_z = ik.lim_z_max
+
+                    if xray.ikjoint.type == '2':    # Joint
+                        min_x = -ik.lim_x_max
+                        max_x = -ik.lim_x_min
+                        min_y = -ik.lim_y_max
+                        max_y = -ik.lim_y_min
+                        min_z = ik.lim_z_min
+                        max_z = ik.lim_z_max
+
+                    elif xray.ikjoint.type == '3':    # Wheel
+                        min_x = -ik.lim_x_max
+                        max_x = -ik.lim_x_min
+                        min_y = 0.0
+                        max_y = 0.0
+                        min_z = 0.0
+                        max_z = 0.0
+                        constraint.use_limit_z = False
+
+                    else:    # Slider
+                        min_x = 0.0
+                        max_x = 0.0
+                        min_y = 0.0
+                        max_y = 0.0
+                        min_z = -ik.lim_y_max
+                        max_z = -ik.lim_y_min
+
+                    constraint.min_x = min_x
+                    constraint.max_x = max_x
+                    constraint.min_y = min_y
+                    constraint.max_y = max_y
+                    constraint.min_z = min_z
+                    constraint.max_z = max_z
+
                 else:
                     constraint.min_x = pose_bone.ik_min_x
                     constraint.max_x = pose_bone.ik_max_x
@@ -157,8 +191,10 @@ class XRAY_OT_convert_limits_to_constraints(JointLimitsBaseOperator):
                     constraint.max_y = pose_bone.ik_max_y
                     constraint.min_z = pose_bone.ik_min_z
                     constraint.max_z = pose_bone.ik_max_z
+
         utils.draw.redraw_areas()
         self.report({'INFO'}, 'Constraints created: {}'.format(created_count))
+
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
