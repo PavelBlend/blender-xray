@@ -144,6 +144,21 @@ def merge_meshes(mesh_objects, arm_obj):
     return active_object
 
 
+def _remove_merged_obj(merged_obj):
+    if merged_obj:
+        merged_mesh = merged_obj.data
+
+        if utils.version.IS_277:
+            bpy.context.scene.objects.unlink(merged_obj)
+            merged_obj.user_clear()
+            bpy.data.objects.remove(merged_obj)
+
+        else:
+            bpy.data.objects.remove(merged_obj, do_unlink=True)
+
+        bpy.data.meshes.remove(merged_mesh)
+
+
 def export_meshes(chunked_writer, bpy_root, context, obj_xray):
     armatures = set()
     materials = set()
@@ -262,12 +277,14 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             )
 
     if not mesh_writers:
+        _remove_merged_obj(merged_obj)
         raise log.AppError(
             text.error.object_no_meshes,
             log.props(object=bpy_root.name)
         )
 
     if len(mesh_writers) > 1 and bpy_arm_obj:
+        _remove_merged_obj(merged_obj)
         raise log.AppError(
             text.error.object_skel_many_meshes,
             log.props(object=bpy_root.name)
@@ -319,6 +336,7 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
                     else:
                         has_bone_groups = True
         if invalid_bones and has_bone_groups:
+            _remove_merged_obj(merged_obj)
             raise log.AppError(
                 text.error.object_bad_boneparts,
                 log.props(
@@ -328,6 +346,7 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             )
 
     if len(root_bones) > 1:
+        _remove_merged_obj(merged_obj)
         raise log.AppError(
             text.error.object_many_parents,
             log.props(
@@ -346,15 +365,7 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
 
     chunked_writer.put(fmt.Chunks.Object.MESHES, meshes_writer)
 
-    if merged_obj:
-        merged_mesh = merged_obj.data
-        if not utils.version.IS_277:
-            bpy.data.objects.remove(merged_obj, do_unlink=True)
-        else:
-            bpy.context.scene.objects.unlink(merged_obj)
-            merged_obj.user_clear()
-            bpy.data.objects.remove(merged_obj)
-        bpy.data.meshes.remove(merged_mesh)
+    _remove_merged_obj(merged_obj)
 
     return materials, bone_writers, bpy_arm_obj, bpy_root, uv_maps_names
 
