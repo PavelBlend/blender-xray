@@ -15,6 +15,7 @@ class XRAY_PT_bone(ui.base.XRayPanel):
     @classmethod
     def poll(cls, context):
         obj = context.active_object
+
         if not obj:
             return
 
@@ -49,6 +50,7 @@ class XRAY_PT_bone(ui.base.XRayPanel):
         obj = context.active_object
         bone_name = context.active_bone.name
         bone = obj.data.bones.get(bone_name, None)
+
         if not bone:
             return
 
@@ -64,12 +66,16 @@ class XRAY_PT_bone(ui.base.XRayPanel):
             translate=False
         )
 
+        layout.separator()
+
         main_col = layout.column(align=False)
         main_col.enabled = data.exportable
 
-        main_col.prop(data, 'length')
+        general_box = main_col.box()
+        material.gen_xr_selector(general_box, data, 'gamemtl', 'Material')
+        general_box.prop(data, 'length')
 
-        material.gen_xr_selector(main_col, data, 'gamemtl', 'Material')
+        main_col.separator()
 
         box = main_col.box()
 
@@ -131,6 +137,8 @@ class XRAY_PT_bone(ui.base.XRayPanel):
             translate=False
         )
 
+        main_col.separator()
+
         box = main_col.box()
 
         row = box.row()
@@ -139,7 +147,7 @@ class XRAY_PT_bone(ui.base.XRayPanel):
 
         joint_type = int(data.ikjoint.type)
 
-        if joint_type != 4:    # 4 - None type
+        if joint_type not in (0, 4):    # 0 - Rigid, 4 - None
 
             box.prop(data, 'friction', text='Friction')
 
@@ -189,13 +197,19 @@ class XRAY_PT_bone(ui.base.XRayPanel):
             elif joint_type == 5:
                 col = box.column(align=True)
                 col.label(text='Slide Z:')
-                col.prop(data.ikjoint, 'slide_min', text='Min')
-                col.prop(data.ikjoint, 'slide_max', text='Max')
+                row = col.row(align=True)
+                row.prop(data.ikjoint, 'slide_min', text='Min')
+                row.prop(data.ikjoint, 'slide_max', text='Max')
+                col.prop(data.ikjoint, 'lim_x_spr', text='Spring')
+                col.prop(data.ikjoint, 'lim_x_dmp', text='Damping')
 
                 col = box.column(align=True)
                 col.label(text='Rotate Z:')
-                col.prop(data.ikjoint, 'lim_y_min', text='Min')
-                col.prop(data.ikjoint, 'lim_y_max', text='Max')
+                row = col.row(align=True)
+                row.prop(data.ikjoint, 'lim_y_min', text='Min')
+                row.prop(data.ikjoint, 'lim_y_max', text='Max')
+                col.prop(data.ikjoint, 'lim_y_spr', text='Spring')
+                col.prop(data.ikjoint, 'lim_y_dmp', text='Damping')
 
             # custom
             elif joint_type == 6:
@@ -220,6 +234,8 @@ class XRAY_PT_bone(ui.base.XRayPanel):
         if data.ikflags_breakable:
             col.prop(data.breakf, 'force', text='Force')
             col.prop(data.breakf, 'torque', text='Torque')
+
+        main_col.separator()
 
         box = main_col.box()
 

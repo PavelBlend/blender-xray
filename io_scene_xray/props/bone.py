@@ -385,7 +385,7 @@ class XRayBoneProps(bpy.types.PropertyGroup):
                             viewport.gl_utils.matrix_to_buffer(slider_mat.transposed())
                         )
                     draw_slider_slide_limits = viewport.get_draw_slider_slide_limits()
-                    draw_slider_slide_limits(limits[0], limits[1], color)
+                    draw_slider_slide_limits(ik.slide_min, ik.slide_max, color)
 
                 if utils.version.IS_28:
                     gpu.matrix.pop()
