@@ -8,54 +8,62 @@ from ... import text
 
 
 bone_layers = [False, ] * 32
+
 last_layer = bone_layers.copy()
 last_layer[31] = True
+
 layer_30 = bone_layers.copy()
 layer_30[30] = True
+
 IK_FK_PROP_NAME = 'ik_fk'
-ik_suffix = ' ik'
-fk_suffix = ' fk'
-ik_target_suffix = ' ik_target'
-ik_pole_target_suffix = ' ik_pole_target'
-bone_suffix_list = (
-    ik_suffix,
-    fk_suffix,
-    ik_target_suffix,
-    ik_pole_target_suffix
-)
+
+IK_SUFFIX = ' ik'
+FK_SUFFIX = ' fk'
+
+IK_TARGET_SUFFIX = ' ik_target'
+IK_POLE_TARGET_SUFFIX = ' ik_pole_target'
 
 
 def create_ik(bone, chain_length, pole_target_offset, category_name):
+
     if not bone.parent:
         return
+
     bone_name = bone.name
     bone_root_name = bone.parent.name
+
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.ops.object.select_all(action='DESELECT')
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+
     obj = bpy.context.active_object
     arm = obj.data
     current_bone = arm.edit_bones[bone_name]
+
     ik_bones = {}
     fk_bones = {}
     fk_last_bone_name = None
+
     # create ik/fk bones
     for chain_index in range(chain_length):
         current_bone.layers = last_layer
+
         # ik bone
-        ik_bone = arm.edit_bones.new(current_bone.name + ik_suffix)
+        ik_bone = arm.edit_bones.new(current_bone.name + IK_SUFFIX)
         ik_bones[current_bone.name] = ik_bone.name
         ik_bone.head = current_bone.head
         ik_bone.tail = current_bone.tail
         ik_bone.roll = current_bone.roll
         ik_bone.layers = layer_30
+
         # fk bone
-        fk_bone = arm.edit_bones.new(current_bone.name + fk_suffix)
+        fk_bone = arm.edit_bones.new(current_bone.name + FK_SUFFIX)
         fk_bones[current_bone.name] = fk_bone.name
         fk_bone.head = current_bone.head
         fk_bone.tail = current_bone.tail
         fk_bone.roll = current_bone.roll
         current_bone = current_bone.parent
+
         if not chain_index:
             fk_last_bone_name = fk_bone.name
 
@@ -91,13 +99,14 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
             if not find_parent:
                 fk_bone.parent = parent
 
-    target_bone = arm.edit_bones.new(bone.name + ik_target_suffix)
+    target_bone = arm.edit_bones.new(bone.name + IK_TARGET_SUFFIX)
     target_bone_name = target_bone.name
     target_bone.head = bone.tail
     tail = target_bone.head.copy()
     tail[2] += bone.length / 4
     target_bone.tail = tail
     children = []
+
     for child in bone.children:
         if bone.name.startswith(child.name):
             continue
@@ -107,6 +116,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     bpy.ops.object.mode_set(mode='POSE', toggle=False)
     obj.pose.bones[target_bone_name][IK_FK_PROP_NAME] = 1.0
     obj.pose.bones[target_bone_name]['bone_category'] = category_name
+
     if utils.version.has_id_props_ui():
         ui_prop = obj.pose.bones[target_bone_name].id_properties_ui(IK_FK_PROP_NAME)
         ui_prop.update(
@@ -115,6 +125,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
             soft_min=0,
             soft_max=1
         )
+
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     target_bone = arm.edit_bones[target_bone_name]
 
@@ -124,36 +135,42 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         child_bone_name = child_bone.name
         child_edit_bone = arm.edit_bones[child_bone_name]
         child_edit_bone.layers = last_layer
+
         # create ik bone
-        child_ik_bone = arm.edit_bones.new(child_bone_name + ik_suffix)
+        child_ik_bone = arm.edit_bones.new(child_bone_name + IK_SUFFIX)
         child_ik_bone.head = child_edit_bone.head
         child_ik_bone.tail = child_edit_bone.tail
         child_ik_bone.roll = child_edit_bone.roll
         child_ik_bone.parent = target_bone
         child_ik_bone.layers = last_layer
         ik_subtarget_name = child_ik_bone.name
+
         # create fk bone
-        child_fk_bone = arm.edit_bones.new(child_bone_name + fk_suffix)
+        child_fk_bone = arm.edit_bones.new(child_bone_name + FK_SUFFIX)
         child_fk_bone.head = child_edit_bone.head
         child_fk_bone.tail = child_edit_bone.tail
         child_fk_bone.roll = child_edit_bone.roll
         child_fk_bone.parent = arm.edit_bones[fk_last_bone_name]
         fk_subtarget_name = child_fk_bone.name
+
         # create constraints
         bpy.ops.object.mode_set(mode='POSE', toggle=False)
         child_pose_bone = obj.pose.bones[child_bone_name]
+
         # ik
         copy_rotation_constr = child_pose_bone.constraints.new('COPY_ROTATION')
         copy_rotation_constr.name = 'ik'
         copy_rotation_constr.target = obj
         copy_rotation_constr.subtarget = ik_subtarget_name
         copy_rotation_constr.mute = False
+
         # fk
         copy_transforms_constr = child_pose_bone.constraints.new('COPY_TRANSFORMS')
         copy_transforms_constr.name = 'fk'
         copy_transforms_constr.target = obj
         copy_transforms_constr.subtarget = fk_subtarget_name
         copy_transforms_constr.mute = False
+
         # create ik drivers
         ik_driver = copy_rotation_constr.driver_add('influence').driver
         ik_driver.expression = IK_FK_PROP_NAME
@@ -167,6 +184,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
             target_bone_name,
             IK_FK_PROP_NAME
         )
+
         # create fk drivers
         fk_driver = copy_transforms_constr.driver_add('influence').driver
         fk_driver.expression = '1.0 - {}'.format(IK_FK_PROP_NAME)
@@ -189,26 +207,35 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
 
     arm_edit_bones = arm.edit_bones
     root_bone = arm_edit_bones[bone_name]
+
     for chain_index in range(chain_length - 1):
         root_bone = root_bone.parent
+
     bone_root_name = root_bone.name
+
     # Get points to define the plane on which to put the pole target
     A = arm_edit_bones[bone_root_name].head
     B = arm_edit_bones[bone_name].head
     C = arm_edit_bones[bone_name].tail
+
     # Vector of chain root to chain tip (wrist)
     AC = C - A
+
     # Vector of chain root to second bone's head
     AB = B - A
+
     # Multiply the two vectors to get the dot product
     dot_prod = mathutils.Vector()
     dot_prod.x = AB.x * AC.x
     dot_prod.y = AB.y * AC.y
     dot_prod.z = AB.z * AC.z
+
     # Find the point on the vector AC projected from point B
     proj = dot_prod / AC.length
+
     # Normalize AC vector to keep it a reasonable magnitude
     start_end_norm = AC.normalized()
+
     # Project an arrow from AC projection point to point B
     proj_vec = mathutils.Vector()
     proj_vec.x = start_end_norm.x * proj.x
@@ -216,22 +243,28 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     proj_vec.z = start_end_norm.z * proj.z
     arrow_vec = AB - proj_vec
     arrow_vec.normalize()
+
     # Place pole target at a reasonable distance from the chain
     arrow_vec *= pole_target_offset
     final_vec = arrow_vec + B
+
     # Add pole target bone and place it in the scene pointed to Z+
-    pole_name = bone_name + ik_pole_target_suffix
+    pole_name = bone_name + IK_POLE_TARGET_SUFFIX
     pole_edit_bone = arm.edit_bones.new(pole_name)
     pole_edit_bone.head = final_vec
     pole_tail_offset = mathutils.Vector((0.0, 0.1, 0.0))
     pole_edit_bone.tail = final_vec + pole_tail_offset
+
     # Enter Pose Mode to set up data for pole angle
     bpy.ops.object.mode_set(mode='POSE', toggle=False)
+
     # create ik/fk constraints
     current_bone = obj.pose.bones[bone_name]
     ik_fk_bones = []
+
     for chain_index in range(chain_length):
         ik_fk_bones.append(current_bone.name)
+
         # ik bone
         ik_bone_name = ik_bones[current_bone.name]
         ik_bone = obj.pose.bones[ik_bone_name]
@@ -239,6 +272,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         copy_transforms.name = 'ik'
         copy_transforms.target = obj
         copy_transforms.subtarget = ik_bone.name
+
         # fk bone
         fk_bone_name = fk_bones[current_bone.name]
         fk_bone = obj.pose.bones[fk_bone_name]
@@ -246,6 +280,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         copy_transforms.name = 'fk'
         copy_transforms.target = obj
         copy_transforms.subtarget = fk_bone.name
+
         # change current bone
         current_bone = current_bone.parent
 
@@ -279,9 +314,11 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     ik_constr.pole_subtarget = pole_name
     ik_constr.pole_angle = pole_angle_in_radians
     ik_constr.chain_count = chain_length
+
     # add drivers
     for ik_fk_bone_name in ik_fk_bones:
         ik_fk_bone = obj.pose.bones[ik_fk_bone_name]
+
         # ik driver
         ik_constraint = ik_fk_bone.constraints['ik']
         ik_driver = ik_constraint.driver_add('influence').driver
@@ -296,6 +333,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
             target_bone_name,
             IK_FK_PROP_NAME
         )
+
         # fk driver
         fk_constraint = ik_fk_bone.constraints['fk']
         fk_driver = fk_constraint.driver_add('influence').driver
@@ -337,10 +375,13 @@ class XRAY_OT_create_ik(utils.ie.BaseOperator):
     def poll(cls, context):
         if not context.active_object:
             return False
+
         if context.active_object.type != 'ARMATURE':
             return False
+
         if context.mode != 'POSE':
             return False
+
         return True
 
     def draw(self, context):    # pragma: no cover
@@ -358,9 +399,11 @@ class XRAY_OT_create_ik(utils.ie.BaseOperator):
 
     @utils.set_cursor_state
     def execute(self, context):
+
         if not len(context.selected_pose_bones):
             self.report({'WARNING'}, text.warn.ik_no_selected_bones)
             return {'FINISHED'}
+
         for bone in context.selected_pose_bones:
             create_ik(
                 bone,
@@ -368,11 +411,15 @@ class XRAY_OT_create_ik(utils.ie.BaseOperator):
                 self.pole_target_offset,
                 self.ik_fk_name
             )
+
         self.report({'INFO'}, text.get_text(text.warn.ready))
+
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
+
         wm = context.window_manager
+
         return wm.invoke_props_dialog(self)
 
 
