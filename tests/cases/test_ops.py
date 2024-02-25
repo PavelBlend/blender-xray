@@ -106,19 +106,19 @@ class TestOps(tests.utils.XRayTestCase):
         )
         bpy.ops.io_scene_xray.change_action_bake_settings(
             change_mode='ALL_ACTIONS',
-            change_auto_bake_mode=False
+            change_bake_mode=False
         )
         bpy.ops.io_scene_xray.change_action_bake_settings(
             change_mode='ALL_ACTIONS',
-            auto_bake_mode='auto'
+            bake_mode='auto'
         )
         bpy.ops.io_scene_xray.change_action_bake_settings(
             change_mode='ALL_ACTIONS',
-            auto_bake_mode='on'
+            bake_mode='on'
         )
         bpy.ops.io_scene_xray.change_action_bake_settings(
             change_mode='ALL_ACTIONS',
-            auto_bake_mode='off'
+            bake_mode='off'
         )
         bpy.ops.io_scene_xray.change_action_bake_settings(
             change_mode='ALL_ACTIONS',

@@ -97,12 +97,12 @@ class XRAY_OT_change_action_bake_settings(utils.ie.BaseOperator):
         ),
         default='SELECTED_OBJECTS'
     )
-    change_auto_bake_mode = bpy.props.BoolProperty(
-        name='Change Auto Bake Mode',
+    change_bake_mode = bpy.props.BoolProperty(
+        name='Change Bake Mode',
         default=True
     )
-    auto_bake_mode = bpy.props.EnumProperty(
-        name='Auto Bake Mode',
+    bake_mode = bpy.props.EnumProperty(
+        name='Bake Mode',
         items=(
             ('auto', 'Auto', ''),
             ('on', 'On', ''),
@@ -143,11 +143,11 @@ class XRAY_OT_change_action_bake_settings(utils.ie.BaseOperator):
         layout.label(text='Mode:')
         column = layout.column(align=True)
         column.prop(self, 'change_mode', expand=True)
-        # auto bake mode
-        layout.prop(self, 'change_auto_bake_mode')
+        # bake mode
+        layout.prop(self, 'change_bake_mode')
         row = layout.row()
-        row.active = self.change_auto_bake_mode
-        row.prop(self, 'auto_bake_mode', expand=True)
+        row.active = self.change_bake_mode
+        row.prop(self, 'bake_mode', expand=True)
         # custom thresholds
         layout.prop(self, 'change_use_custom_thresholds')
         row = layout.row()
@@ -206,8 +206,8 @@ class XRAY_OT_change_action_bake_settings(utils.ie.BaseOperator):
         for action in actions:
             xray = action.xray
             # mode
-            if self.change_auto_bake_mode:
-                xray.autobake = self.auto_bake_mode
+            if self.change_bake_mode:
+                xray.autobake = self.bake_mode
             # custom thresholds
             if self.change_use_custom_thresholds:
                 xray.autobake_custom_refine = self.use_custom_threshold
