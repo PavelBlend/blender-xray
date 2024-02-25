@@ -246,7 +246,7 @@ class XRAY_OT_rename_actions(utils.ie.BaseOperator):
     bl_options = {'REGISTER', 'UNDO'}
 
     data_mode = bpy.props.EnumProperty(
-        name='Data Mode',
+        name='Mode',
         items=(
             ('ACTIVE_MOTION', 'Active Motion', ''),
             ('ACTIVE_OBJECT', 'Active Object', ''),
@@ -289,7 +289,7 @@ class XRAY_OT_rename_actions(utils.ie.BaseOperator):
     def draw(self, context):    # pragma: no cover
         column = self.layout.column(align=True)
 
-        column.label(text='Data Mode:')
+        column.label(text='Mode:')
         column.prop(self, 'data_mode', expand=True)
 
         part_1 = self.calc_name('object_name', 'motion_name', 0)
