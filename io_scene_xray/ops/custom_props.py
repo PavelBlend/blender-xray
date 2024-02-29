@@ -14,10 +14,10 @@ def find_data(operator, context):
     actions = set()
 
     # find objects
-    if operator.edit_data in ('OBJECT', 'ALL'):
-        if operator.edit_mode == 'ACTIVE':
+    if operator.props in ('OBJECT', 'ALL'):
+        if operator.mode == 'ACTIVE':
             objects.add(context.active_object)
-        elif operator.edit_mode == 'SELECTED':
+        elif operator.mode == 'SELECTED':
             for obj in context.selected_objects:
                 objects.add(obj)
         else:    # all
@@ -25,12 +25,12 @@ def find_data(operator, context):
                 objects.add(obj)
 
     # find meshes
-    if operator.edit_data in ('MESH', 'ALL'):
-        if operator.edit_mode == 'ACTIVE':
+    if operator.props in ('MESH', 'ALL'):
+        if operator.mode == 'ACTIVE':
             active_obj = context.active_object
             if active_obj and active_obj.type == 'MESH':
                 meshes.add(active_obj.data)
-        elif operator.edit_mode == 'SELECTED':
+        elif operator.mode == 'SELECTED':
             for obj in context.selected_objects:
                 if obj.type == 'MESH':
                     meshes.add(obj.data)
@@ -39,12 +39,12 @@ def find_data(operator, context):
                 meshes.add(mesh)
 
     # find materials
-    if operator.edit_data in ('MATERIAL', 'ALL'):
-        if operator.edit_mode == 'ACTIVE':
+    if operator.props in ('MATERIAL', 'ALL'):
+        if operator.mode == 'ACTIVE':
             active_obj = context.active_object
             if active_obj and active_obj.type == 'MESH':
                 materials.add(active_obj.active_material)
-        elif operator.edit_mode == 'SELECTED':
+        elif operator.mode == 'SELECTED':
             for obj in context.selected_objects:
                 if obj.type == 'MESH':
                     for material in obj.data.materials:
@@ -54,12 +54,12 @@ def find_data(operator, context):
                 materials.add(material)
 
     # find bones
-    if operator.edit_data in ('BONE', 'ALL'):
-        if operator.edit_mode == 'ACTIVE':
+    if operator.props in ('BONE', 'ALL'):
+        if operator.mode == 'ACTIVE':
             active_obj = context.active_object
             if active_obj and active_obj.type == 'ARMATURE':
                 armatures.add(active_obj)
-        elif operator.edit_mode == 'SELECTED':
+        elif operator.mode == 'SELECTED':
             for obj in context.selected_objects:
                 if obj.type == 'ARMATURE':
                     armatures.add(obj)
@@ -69,12 +69,12 @@ def find_data(operator, context):
                     armatures.add(obj)
 
     # find actions
-    if operator.edit_data in ('ACTION', 'ALL'):
-        if operator.edit_mode == 'ACTIVE':
+    if operator.props in ('ACTION', 'ALL'):
+        if operator.mode == 'ACTIVE':
             active_obj = context.active_object
             if active_obj and active_obj.animation_data:
                 actions.add(active_obj.animation_data.action)
-        elif operator.edit_mode == 'SELECTED':
+        elif operator.mode == 'SELECTED':
             for obj in context.selected_objects:
                 for motion in obj.xray.motions_collection:
                     action = bpy.data.actions.get(motion.name)
@@ -96,16 +96,18 @@ def find_data(operator, context):
 def draw_function(self, context):    # pragma: no cover
     lay = self.layout
     col = lay.column(align=True)
-    col.label(text='Edit Data:')
-    col.prop(self, 'edit_data', expand=True)
-    col.label(text='Edit Mode:')
-    col.prop(self, 'edit_mode', expand=True)
+
+    col.label(text='Mode:')
+    col.prop(self, 'mode', expand=True)
+
+    col.label(text='Properties:')
+    col.prop(self, 'props', expand=True)
 
 
 op_props = {
     # custom properties utils
-    'edit_data': bpy.props.EnumProperty(
-        name='Edit Data',
+    'props': bpy.props.EnumProperty(
+        name='Properties',
         items=(
             ('ALL', 'All', ''),
             ('OBJECT', 'Object', ''),
@@ -116,8 +118,8 @@ op_props = {
         ),
         default='ALL'
     ),
-    'edit_mode': bpy.props.EnumProperty(
-        name='Edit Mode',
+    'mode': bpy.props.EnumProperty(
+        name='Mode',
         items=(
             ('ALL', 'All', ''),
             ('SELECTED', 'Selected Objects', ''),
