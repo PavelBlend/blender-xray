@@ -15,10 +15,15 @@ CONSTRAINT_NAME = '!-XRAY-JOINT-LIMITS'
 
 def update_limit(self, context):
     obj = context.active_object
-    if obj and obj.type != 'ARMATURE':
+
+    if not obj:
+        return
+
+    if obj.type != 'ARMATURE':
         return
 
     bone = obj.data.bones.active
+
     if bone is None:
         return
 
@@ -54,10 +59,15 @@ def update_limit(self, context):
 
 def update_slider(self, context):
     obj = context.active_object
-    if obj and obj.type != 'ARMATURE':
+
+    if not obj:
+        return
+
+    if obj.type != 'ARMATURE':
         return
 
     bone = obj.data.bones.active
+
     if bone is None:
         return
 
