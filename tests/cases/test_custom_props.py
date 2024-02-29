@@ -8,135 +8,135 @@ class TestCustomProps(tests.utils.XRayTestCase):
 
         # all all
         bpy.ops.io_scene_xray.set_xray_to_custom_properties(
-            props='ALL',
+            props={'ALL'},
             mode='ALL'
         )
         bpy.ops.io_scene_xray.set_custom_to_xray_properties(
-            props='ALL',
+            props={'ALL'},
             mode='ALL'
         )
         bpy.ops.io_scene_xray.remove_xray_custom_props(
-            props='ALL',
+            props={'ALL'},
             mode='ALL'
         )
         bpy.ops.io_scene_xray.remove_all_custom_props(
-            props='ALL',
+            props={'ALL'},
             mode='ALL'
         )
 
         # all selected
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.io_scene_xray.set_xray_to_custom_properties(
-            props='ALL',
+            props={'ALL'},
             mode='SELECTED'
         )
         bpy.ops.io_scene_xray.set_custom_to_xray_properties(
-            props='ALL',
+            props={'ALL'},
             mode='SELECTED'
         )
         bpy.ops.io_scene_xray.remove_all_custom_props(
-            props='ALL',
+            props={'ALL'},
             mode='SELECTED'
         )
         bpy.ops.io_scene_xray.remove_xray_custom_props(
-            props='ALL',
+            props={'ALL'},
             mode='SELECTED'
         )
 
         # all active
         tests.utils.set_active_object(me_obj)
         bpy.ops.io_scene_xray.set_xray_to_custom_properties(
-            props='ALL',
+            props={'ALL'},
             mode='ACTIVE'
         )
         bpy.ops.io_scene_xray.set_custom_to_xray_properties(
-            props='ALL',
+            props={'ALL'},
             mode='ACTIVE'
         )
         bpy.ops.io_scene_xray.remove_xray_custom_props(
-            props='ALL',
+            props={'ALL'},
             mode='ACTIVE'
         )
         bpy.ops.io_scene_xray.remove_all_custom_props(
-            props='ALL',
+            props={'ALL'},
             mode='ACTIVE'
         )
 
         # object all
         bpy.ops.io_scene_xray.set_xray_to_custom_properties(
-            props='OBJECT',
+            props={'OBJECT'},
             mode='ALL'
         )
         bpy.ops.io_scene_xray.set_custom_to_xray_properties(
-            props='OBJECT',
+            props={'OBJECT'},
             mode='ALL'
         )
         bpy.ops.io_scene_xray.remove_xray_custom_props(
-            props='OBJECT',
+            props={'OBJECT'},
             mode='ALL'
         )
         bpy.ops.io_scene_xray.remove_all_custom_props(
-            props='OBJECT',
+            props={'OBJECT'},
             mode='ALL'
         )
 
         # mesh active
         tests.utils.set_active_object(None)
         bpy.ops.io_scene_xray.set_xray_to_custom_properties(
-            props='MESH',
+            props={'MESH'},
             mode='ACTIVE'
         )
         bpy.ops.io_scene_xray.set_custom_to_xray_properties(
-            props='MESH',
+            props={'MESH'},
             mode='ACTIVE'
         )
         bpy.ops.io_scene_xray.remove_xray_custom_props(
-            props='MESH',
+            props={'MESH'},
             mode='ACTIVE'
         )
         bpy.ops.io_scene_xray.remove_all_custom_props(
-            props='MESH',
+            props={'MESH'},
             mode='ACTIVE'
         )
 
         # material active
         bpy.ops.io_scene_xray.set_xray_to_custom_properties(
-            props='MATERIAL',
+            props={'MATERIAL'},
             mode='ACTIVE'
         )
         bpy.ops.io_scene_xray.set_custom_to_xray_properties(
-            props='MATERIAL',
+            props={'MATERIAL'},
             mode='ACTIVE'
         )
 
         # material all
         bpy.ops.io_scene_xray.set_xray_to_custom_properties(
-            props='MATERIAL',
+            props={'MATERIAL'},
             mode='ALL'
         )
         bpy.ops.io_scene_xray.set_custom_to_xray_properties(
-            props='MATERIAL',
+            props={'MATERIAL'},
             mode='ALL'
         )
 
         # bone active
         tests.utils.set_active_object(arm_obj)
         bpy.ops.io_scene_xray.set_xray_to_custom_properties(
-            props='BONE',
+            props={'BONE'},
             mode='ACTIVE'
         )
         bpy.ops.io_scene_xray.set_custom_to_xray_properties(
-            props='BONE',
+            props={'BONE'},
             mode='ACTIVE'
         )
 
         # action all
         bpy.ops.io_scene_xray.set_xray_to_custom_properties(
-            props='ACTION',
+            props={'ACTION'},
             mode='ALL'
         )
         bpy.ops.io_scene_xray.set_custom_to_xray_properties(
-            props='ACTION',
+            props={'ACTION'},
             mode='ALL'
         )
 

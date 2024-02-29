@@ -14,7 +14,7 @@ def find_data(operator, context):
     actions = set()
 
     # find objects
-    if operator.props in ('OBJECT', 'ALL'):
+    if operator.props & {'OBJECT', 'ALL'}:
         if operator.mode == 'ACTIVE':
             objects.add(context.active_object)
         elif operator.mode == 'SELECTED':
@@ -25,7 +25,7 @@ def find_data(operator, context):
                 objects.add(obj)
 
     # find meshes
-    if operator.props in ('MESH', 'ALL'):
+    if operator.props & {'MESH', 'ALL'}:
         if operator.mode == 'ACTIVE':
             active_obj = context.active_object
             if active_obj and active_obj.type == 'MESH':
@@ -39,7 +39,7 @@ def find_data(operator, context):
                 meshes.add(mesh)
 
     # find materials
-    if operator.props in ('MATERIAL', 'ALL'):
+    if operator.props & {'MATERIAL', 'ALL'}:
         if operator.mode == 'ACTIVE':
             active_obj = context.active_object
             if active_obj and active_obj.type == 'MESH':
@@ -54,7 +54,7 @@ def find_data(operator, context):
                 materials.add(material)
 
     # find bones
-    if operator.props in ('BONE', 'ALL'):
+    if operator.props & {'BONE', 'ALL'}:
         if operator.mode == 'ACTIVE':
             active_obj = context.active_object
             if active_obj and active_obj.type == 'ARMATURE':
@@ -69,7 +69,7 @@ def find_data(operator, context):
                     armatures.add(obj)
 
     # find actions
-    if operator.props in ('ACTION', 'ALL'):
+    if operator.props & {'ACTION', 'ALL'}:
         if operator.mode == 'ACTIVE':
             active_obj = context.active_object
             if active_obj and active_obj.animation_data:
@@ -116,7 +116,8 @@ op_props = {
             ('BONE', 'Bone', ''),
             ('ACTION', 'Action', '')
         ),
-        default='ALL'
+        default={'ALL'},
+        options={'ENUM_FLAG'}
     ),
     'mode': bpy.props.EnumProperty(
         name='Mode',
