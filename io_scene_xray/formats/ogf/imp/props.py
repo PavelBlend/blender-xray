@@ -120,11 +120,15 @@ def import_bone_parts(context, visual):
                     params_chunk = 1
                     context.import_bone_parts = True
                     context.bpy_arm_obj = visual.arm_obj
-                    omf.imp.read_params(
-                        params_data,
-                        context,
-                        params_chunk
-                    )
+
+                    try:
+                        omf.imp.read_params(
+                            params_data,
+                            context,
+                            params_chunk
+                        )
+                    except log.AppError:
+                        pass
 
 
 def read_motion_references(chunks, ogf_chunks, visual):
