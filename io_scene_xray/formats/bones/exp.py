@@ -204,7 +204,7 @@ def export_file(context):
     chunked_writer = rw.write.ChunkedWriter()
 
     # get armature scale
-    root_obj = utils.obj.find_root(arm_obj)
+    root_obj = utils.obj.find_root(context, arm_obj)
     _, scale = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
 
     # export bones data

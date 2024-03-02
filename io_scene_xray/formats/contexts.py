@@ -1,6 +1,9 @@
 # standart modules
 import os
 
+# blender modules
+import bpy
+
 # addon modules
 from .. import log
 from .. import text
@@ -16,6 +19,23 @@ class Context:
         self.version = utils.addon_version_number()
         self.errors = []
         self.fatal_errors = []
+        self._children = None
+
+    @property
+    def children(self):
+        if not self._children:
+            self._children = {}
+
+            for obj in bpy.data.objects:
+                self._children[obj.name] = []
+
+            for child in bpy.data.objects:
+                parent = child.parent
+
+                if parent:
+                    self._children[parent.name].append(child)
+
+        return self._children
 
 
 class MeshContext(Context):

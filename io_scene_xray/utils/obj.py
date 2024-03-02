@@ -7,7 +7,6 @@ import getpass
 import bpy
 
 # addon modules
-from . import ie
 from . import version
 from . import stats
 from .. import log
@@ -66,9 +65,73 @@ def get_revision_data(revision):
     return owner, ctime, moder, mtime
 
 
-def find_root(obj):
+def get_exp_objs(context, root_obj):
+    # get exported objects
+
+    objects = [root_obj, ]
+    processed_obj = set()
+
+    scan_obj(context, objects, processed_obj)
+
+    exp_objs = [
+        obj
+        for obj in objects
+            if obj.name in bpy.context.scene.objects
+    ]
+
+    return exp_objs
+
+
+def scan_obj(context, objects, processed_obj):
+    for obj in objects:
+        parent = obj.parent
+        if parent and parent not in processed_obj:
+            objects.append(parent)
+
+        for child_obj in context.children[obj.name]:
+            if child_obj not in processed_obj:
+                objects.append(child_obj)
+
+        processed_obj.add(obj)
+
+
+def scan_objs(context, objects):
+    processed_obj = set()
+
+    # collect exported objects
+    scan_obj(context, objects, processed_obj)
+
+    roots = []    # root-objects
+
+    # get root-objects
+    for obj in objects:
+        if obj.xray.isroot and obj.name in bpy.context.scene.objects:
+            roots.append(obj)
+
+    # get root-object by active object
+    if not roots:
+        active_obj = bpy.context.active_object
+
+        if active_obj and active_obj.xray.isroot:
+            roots = [active_obj, ]
+
+    return roots
+
+
+def get_root_objs(context):
+    # returns a list of root-objects
+
+    # list of objects that need to be scanned
+    objects = [obj for obj in bpy.context.selected_objects]
+
+    roots = scan_objs(context, objects)
+
+    return roots
+
+
+def find_root(context, obj):
     objs = [obj, ]
-    roots = ie.scan_objs(objs)
+    roots = scan_objs(context, objs)
 
     if len(roots) == 1:
         return roots[0]

@@ -2,6 +2,7 @@
 import bpy
 
 # addon modules
+from .. import formats
 from .. import utils
 from .. import text
 from .. import rw
@@ -18,7 +19,8 @@ class XRAY_OT_add_all_actions(utils.ie.BaseOperator):
         return context.active_object
 
     def execute(self, context):
-        root_obj = utils.obj.find_root(context.active_object)
+        ctx = formats.contexts.Context()
+        root_obj = utils.obj.find_root(ctx, context.active_object)
         arm_obj = utils.ie.get_arm_obj(root_obj, self)
 
         if not arm_obj:

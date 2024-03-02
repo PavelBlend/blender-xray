@@ -7,6 +7,7 @@ import bpy
 import mathutils
 
 # addon modules
+from .. import formats
 from .. import utils
 from .. import text
 
@@ -424,6 +425,7 @@ class XRAY_OT_colorize_materials(utils.ie.BaseOperator):
                 materials.add((mat, None))
         # colorize
         changed_materials_count = 0
+        ctx = formats.contexts.Context()
         for mat, obj in materials:
             if self.color_mode == 'RANDOM_BY_MATERIAL':
                 name = mat.name
@@ -432,7 +434,7 @@ class XRAY_OT_colorize_materials(utils.ie.BaseOperator):
             elif self.color_mode == 'RANDOM_BY_OBJECT':
                 name = obj.name
             elif self.color_mode == 'RANDOM_BY_ROOT':
-                root = utils.obj.find_root(obj)
+                root = utils.obj.find_root(ctx, obj)
                 name = root.name
             else:
                 name = None

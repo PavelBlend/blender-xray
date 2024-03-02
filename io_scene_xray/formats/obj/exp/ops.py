@@ -39,8 +39,8 @@ def draw_props(self):    # pragma: no cover
     layout.prop(self, 'texture_name_from_image_path')
 
 
-def find_objects_for_export(context):
-    roots = utils.ie.get_root_objs()
+def find_objects_for_export(context, export_context):
+    roots = utils.obj.get_root_objs(export_context)
 
     if not roots:
         roots = [obj for obj in context.scene.objects if obj.xray.isroot]
@@ -94,10 +94,6 @@ class XRAY_OT_export_object(utils.ie.BaseOperator):
     def execute(self, context):
         utils.stats.update('Export *.object')
 
-        if not self.objects:
-            roots = find_objects_for_export(context)
-            self.objects = ','.join([obj.name for obj in roots])
-
         exp_ctx = ExportObjectContext()
 
         exp_ctx.operator = self
@@ -105,6 +101,10 @@ class XRAY_OT_export_object(utils.ie.BaseOperator):
         exp_ctx.soc_sgroups = self.fmt_version == 'soc'
         exp_ctx.export_motions = self.export_motions
         exp_ctx.smoothing_out_of = self.smoothing_out_of
+
+        if not self.objects:
+            roots = find_objects_for_export(context, exp_ctx)
+            self.objects = ','.join([obj.name for obj in roots])
 
         for name in self.objects.split(','):
             bpy_obj = context.scene.objects[name]
@@ -132,8 +132,10 @@ class XRAY_OT_export_object(utils.ie.BaseOperator):
 
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, _event):    # pragma: no cover
+        exp_ctx = ExportObjectContext()
+
         try:
-            roots = find_objects_for_export(context)
+            roots = find_objects_for_export(context, exp_ctx)
         except log.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
@@ -224,9 +226,10 @@ class XRAY_OT_export_object_file(
 
     def invoke(self, context, event):    # pragma: no cover
         pref = utils.version.get_preferences()
+        exp_ctx = ExportObjectContext()
 
         try:
-            roots = find_objects_for_export(context)
+            roots = find_objects_for_export(context, exp_ctx)
         except log.AppError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}

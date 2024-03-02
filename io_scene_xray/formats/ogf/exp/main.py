@@ -968,10 +968,6 @@ def scan_root(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
                 continue
             reg_bone(bones, bones_map, bone, bpy_obj)
 
-    # scan children
-    for child in bpy_obj.children:
-        scan_root(child, root_obj, meshes, arms, bones, bones_map, context)
-
 
 def _get_arm_scale(root_obj, arm_obj):
     _, scale_vec = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
@@ -1001,7 +997,9 @@ def _export_main(root_obj, ogf_writer, context):
     bones = []
     bones_map = {}
 
-    scan_root(root_obj, root_obj, meshes, arms, bones, bones_map, context)
+    exp_objs = utils.obj.get_exp_objs(context, root_obj)
+    for obj in exp_objs:
+        scan_root(obj, root_obj, meshes, arms, bones, bones_map, context)
 
     # get armature
     arm_obj = _get_arm(root_obj, arms)

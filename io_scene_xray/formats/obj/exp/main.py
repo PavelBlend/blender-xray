@@ -202,36 +202,37 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
                 mesh_object=bpy_obj.name
             )
 
-    def scan_root_obj(bpy_obj):
-        # scan bone shape helper object
-        if utils.obj.is_helper_object(bpy_obj):
-            return
+    def scan_root_obj(exp_objs):
+        for bpy_obj in exp_objs:
 
-        # scan mesh object
-        if bpy_obj.type == 'MESH':
-            arm_obj = utils.obj.get_armature_object(bpy_obj)
-            if arm_obj:
-                armature_meshes.add(bpy_obj)
-                armatures.add(arm_obj)
-            elif armatures:
-                armature_meshes.add(bpy_obj)
-                meshes_without_arms.add(bpy_obj)
-            else:
-                write_mesh(bpy_obj)
+            # scan bone shape helper object
+            if utils.obj.is_helper_object(bpy_obj):
+                continue
 
-        # scan children
-        for child in bpy_obj.children:
-            scan_root_obj(child)
+            # scan mesh object
+            if bpy_obj.type == 'MESH':
+                arm_obj = utils.obj.get_armature_object(bpy_obj)
 
-    def search_armatures(bpy_obj):
-        if bpy_obj.type == 'ARMATURE':
-            armatures.add(bpy_obj)
+                if arm_obj:
+                    armature_meshes.add(bpy_obj)
+                    armatures.add(arm_obj)
 
-        for child in bpy_obj.children:
-            search_armatures(child)
+                elif armatures:
+                    armature_meshes.add(bpy_obj)
+                    meshes_without_arms.add(bpy_obj)
 
-    search_armatures(bpy_root)
-    scan_root_obj(bpy_root)
+                else:
+                    write_mesh(bpy_obj)
+
+    def search_armatures(exp_objs):
+        for bpy_obj in exp_objs:
+            if bpy_obj.type == 'ARMATURE':
+                armatures.add(bpy_obj)
+
+    exp_objs = utils.obj.get_exp_objs(context, bpy_root)
+
+    search_armatures(exp_objs)
+    scan_root_obj(exp_objs)
 
     # find armature object
     if len(armatures) == 1:

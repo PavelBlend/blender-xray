@@ -7,6 +7,7 @@ import bpy
 import mathutils
 
 # addon modules
+from .. import formats
 from .. import utils
 from .. import text
 
@@ -175,6 +176,7 @@ class XRAY_OT_colorize_objects(utils.ie.BaseOperator):
 
         # colorize
         changed_objects_count = 0
+        ctx = formats.contexts.Context()
         for obj in objects:
             if obj.type != 'MESH':
                 continue
@@ -184,7 +186,7 @@ class XRAY_OT_colorize_objects(utils.ie.BaseOperator):
             elif self.color_mode == 'RANDOM_BY_OBJECT':
                 name = obj.name
             elif self.color_mode == 'RANDOM_BY_ROOT':
-                root = utils.obj.find_root(obj)
+                root = utils.obj.find_root(ctx, obj)
                 name = root.name
             else:
                 name = None
@@ -367,7 +369,8 @@ class XRAY_OT_set_asset_author(utils.ie.BaseOperator):
             asset = obj.asset_data
             if not asset:
                 continue
-            root = utils.obj.find_root(obj)
+            ctx = formats.contexts.Context()
+            root = utils.obj.find_root(ctx, obj)
             owner = root.xray.revision.owner
             asset.author = owner
             changed += 1

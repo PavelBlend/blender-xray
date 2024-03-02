@@ -72,21 +72,21 @@ class XRAY_OT_export_ogf_file(
     def execute(self, context):
         utils.stats.update('Export *.ogf')
 
-        selected_objs = context.selected_objects
-        root_objs = utils.ie.get_root_objs()
-
-        if not root_objs:
-            self.report({'ERROR'}, 'Cannot find object root')
-            return {'CANCELLED'}
-
-        exported_obj = root_objs[0]
-
         export_context = ExportOgfContext()
         export_context.operator = self
         export_context.texname_from_path = self.texture_name_from_image_path
         export_context.fmt_ver = self.fmt_version
         export_context.hq_export = self.hq_export
         export_context.export_motions = self.export_motions
+
+        selected_objs = context.selected_objects
+        root_objs = utils.obj.get_root_objs(export_context)
+
+        if not root_objs:
+            self.report({'ERROR'}, 'Cannot find object root')
+            return {'CANCELLED'}
+
+        exported_obj = root_objs[0]
 
         file_path = self.filepath
         directory, file = os.path.split(file_path)
@@ -121,7 +121,8 @@ class XRAY_OT_export_ogf_file(
         self.export_motions = pref.ogf_export_motions
         self.hq_export = pref.ogf_export_hq_motions
 
-        root_objs = utils.ie.get_root_objs()
+        ctx = ExportOgfContext()
+        root_objs = utils.obj.get_root_objs(ctx)
 
         if not root_objs:
             self.report({'ERROR'}, 'Cannot find object root')
@@ -182,7 +183,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         export_context.fmt_ver = self.fmt_version
         export_context.hq_export = self.hq_export
 
-        root_objs = utils.ie.get_root_objs()
+        root_objs = utils.obj.get_root_objs(export_context)
 
         if not root_objs:
             self.report({'ERROR'}, 'Cannot find root-objects')
@@ -218,7 +219,8 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         self.fmt_version = utils.ie.get_sdk_ver(pref.ogf_export_fmt_ver)
         self.hq_export = pref.ogf_export_hq_motions
 
-        root_objs = utils.ie.get_root_objs()
+        ctx = ExportOgfContext()
+        root_objs = utils.obj.get_root_objs(ctx)
 
         if not root_objs:
             self.report({'ERROR'}, 'Cannot find root-objects')
