@@ -274,6 +274,7 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
             mesh_names = [mesh.name for mesh in armature_meshes]
             log.warn(
                 text.warn.object_merged,
+                count=str(len(mesh_names)),
                 objects=mesh_names
             )
 
