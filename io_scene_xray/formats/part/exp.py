@@ -59,6 +59,9 @@ def _write_objects(lines, objs):
                 )
             )
 
+    if not obj_index:
+        raise log.AppError(text.error.object_no_roots)
+
 
 def _write_modif(lines):
     owner = utils.obj.get_current_user()
@@ -128,7 +131,7 @@ def _write_append_random(lines):
     lines.append('')
 
 
-def _export_sccop_part(file_path, objs):
+def _export_cscop_part(file_path, objs):
     lines = []
 
     _write_append_random(lines)
@@ -184,7 +187,7 @@ def export_file(ctx, objs):
 
     # clear sky / call of pripyat
     else:
-        file_data = _export_sccop_part(ctx.filepath, objs)
+        file_data = _export_cscop_part(ctx.filepath, objs)
 
         with open(ctx.filepath, 'w', encoding='cp1251') as file:
             file.write(file_data)

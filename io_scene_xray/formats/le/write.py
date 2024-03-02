@@ -5,6 +5,8 @@ import string
 # addon modules
 from . import fmt
 from ... import rw
+from ... import log
+from ... import text
 from ... import utils
 
 
@@ -193,6 +195,9 @@ def write_scene_objects(chunked_writer, bpy_objs, group=False):
         if bpy_obj.xray.isroot:
             write_scene_object(bpy_obj, objects_writer, obj_index)
             obj_index += 1
+
+    if not obj_index:
+        raise log.AppError(text.error.object_no_roots)
 
     if group:
         chunked_writer.put(fmt.GroupChunks.OBJECT_LIST, objects_writer)
