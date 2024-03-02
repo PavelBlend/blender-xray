@@ -1,3 +1,6 @@
+# blender modules
+import bpy
+
 # addon modules
 from . import convert
 from . import fmt
@@ -13,7 +16,12 @@ def write_details(chunked_writer, lvl_dets, context, file_path):
     dm_cw = rw.write.ChunkedWriter()
 
     meshes_object = lvl_dets.meshes_object
-    dm_count = len(meshes_object.children)
+    dm_objs = [
+        obj
+        for obj in meshes_object.children
+            if obj.name in bpy.context.scene.objects
+    ]
+    dm_count = len(dm_objs)
     log.update(object=meshes_object.name)
 
     if not dm_count:
@@ -36,6 +44,9 @@ def write_details(chunked_writer, lvl_dets, context, file_path):
     warn_list = set()
     dm_indices = [0 for _ in range(dm_count)]
     for detail_model in meshes_object.children:
+
+        if detail_model.name not in bpy.context.scene.objects:
+            continue
 
         if detail_model.type != 'MESH':
             raise log.AppError(
