@@ -89,7 +89,6 @@ class XRAY_OT_import_group(utils.ie.BaseOperator):
         return {'RUNNING_MODAL'}
 
 
-
 class XRAY_OT_export_group(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper

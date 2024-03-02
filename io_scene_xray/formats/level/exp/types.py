@@ -57,12 +57,15 @@ class VisualsCache:
 
         # search children
         for obj in bpy.data.objects:
-            self.children[obj.name] = []
+            if obj.name in bpy.context.scene.objects:
+                self.children[obj.name] = []
 
         for child_obj in bpy.data.objects:
-            parent = child_obj.parent
-            if parent:
-                self.children[parent.name].append(child_obj.name)
+            if child_obj.name in bpy.context.scene.objects:
+                parent = child_obj.parent
+
+                if parent and parent.name in bpy.context.scene.objects:
+                    self.children[parent.name].append(child_obj.name)
 
 
 class ExportLevelContext(contexts.ExportMeshContext):
