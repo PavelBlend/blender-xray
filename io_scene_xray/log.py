@@ -113,7 +113,7 @@ class Logger:
                     if type(prop) == int:
                         line = '{0}: {1}'.format(line, prop)
                     else:
-                        if prop.isdigit():
+                        if type(prop) == str and prop.isdigit():
                             line = '{0}: [{1}x]'.format(line, prop)
                         else:
                             line = '{0}: "{1}"'.format(line, prop)
