@@ -7,6 +7,7 @@ import getpass
 import bpy
 
 # addon modules
+from . import ie
 from . import version
 from . import stats
 from .. import log
@@ -66,12 +67,11 @@ def get_revision_data(revision):
 
 
 def find_root(obj):
-    if obj.xray.isroot:
-        return obj
-    if obj.parent:
-        return find_root(obj.parent)
-    else:
-        return obj
+    objs = [obj, ]
+    roots = ie.scan_objs(objs)
+
+    if len(roots) == 1:
+        return roots[0]
 
 
 def create_object(name, data, link=True):

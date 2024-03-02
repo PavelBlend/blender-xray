@@ -38,20 +38,6 @@ def draw_props(self, context):    # pragma: no cover
     layout.prop(self, 'texture_name_from_image_path')
 
 
-def get_root_objects(context):
-    root_objs = [
-        obj
-        for obj in context.selected_objects
-            if obj.xray.isroot
-    ]
-    if not root_objs:
-        active_obj = context.active_object
-        if active_obj:
-            if active_obj.xray.isroot:
-                root_objs = [active_obj, ]
-    return root_objs
-
-
 class XRAY_OT_export_ogf_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
@@ -87,7 +73,7 @@ class XRAY_OT_export_ogf_file(
         utils.stats.update('Export *.ogf')
 
         selected_objs = context.selected_objects
-        root_objs = get_root_objects(context)
+        root_objs = utils.ie.get_root_objs()
 
         if not root_objs:
             self.report({'ERROR'}, 'Cannot find object root')
@@ -135,7 +121,7 @@ class XRAY_OT_export_ogf_file(
         self.export_motions = pref.ogf_export_motions
         self.hq_export = pref.ogf_export_hq_motions
 
-        root_objs = get_root_objects(context)
+        root_objs = utils.ie.get_root_objs()
 
         if not root_objs:
             self.report({'ERROR'}, 'Cannot find object root')
@@ -196,7 +182,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         export_context.fmt_ver = self.fmt_version
         export_context.hq_export = self.hq_export
 
-        root_objs = get_root_objects(context)
+        root_objs = utils.ie.get_root_objs()
 
         if not root_objs:
             self.report({'ERROR'}, 'Cannot find root-objects')
@@ -232,7 +218,7 @@ class XRAY_OT_export_ogf(utils.ie.BaseOperator):
         self.fmt_version = utils.ie.get_sdk_ver(pref.ogf_export_fmt_ver)
         self.hq_export = pref.ogf_export_hq_motions
 
-        root_objs = get_root_objects(context)
+        root_objs = utils.ie.get_root_objs()
 
         if not root_objs:
             self.report({'ERROR'}, 'Cannot find root-objects')

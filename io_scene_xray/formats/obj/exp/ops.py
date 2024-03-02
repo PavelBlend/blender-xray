@@ -40,18 +40,7 @@ def draw_props(self):    # pragma: no cover
 
 
 def find_objects_for_export(context):
-    roots = []
-    processed_objs = set()
-
-    for bpy_obj in context.selected_objects:
-        while bpy_obj:
-            if bpy_obj in processed_objs:
-                break
-            processed_objs.add(bpy_obj)
-            if bpy_obj.xray.isroot:
-                roots.append(bpy_obj)
-                break
-            bpy_obj = bpy_obj.parent
+    roots = utils.ie.get_root_objs()
 
     if not roots:
         roots = [obj for obj in context.scene.objects if obj.xray.isroot]

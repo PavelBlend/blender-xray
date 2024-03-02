@@ -1,5 +1,6 @@
 import bpy
 import tests
+import io_scene_xray
 
 
 class TestOmf(tests.utils.XRayTestCase):
@@ -89,6 +90,10 @@ class TestOmf(tests.utils.XRayTestCase):
 
         tests.utils.link_object(obj)
         tests.utils.set_active_object(obj)
+
+        ver = io_scene_xray.utils.addon_version_number()
+        obj.xray.version = ver
+        obj.xray.isroot = True
 
         # create bones
         bpy.ops.object.mode_set(mode='EDIT')

@@ -366,6 +366,63 @@ def check_armature_scale(scale, bpy_root, bpy_arm_obj):
             )
 
 
+def _get_obj_children_table():
+    children = {}
+
+    for obj in bpy.data.objects:
+        children[obj.name] = []
+
+    for child in bpy.data.objects:
+        parent = child.parent
+
+        if parent:
+            children[parent.name].append(child)
+
+    return children
+
+
+def scan_objs(objects):
+    processed_obj = set()
+    children = _get_obj_children_table()
+
+    for obj in objects:
+
+        parent = obj.parent
+        if parent and parent not in processed_obj:
+            objects.append(parent)
+
+        for child_obj in children[obj.name]:
+            if child_obj not in processed_obj:
+                objects.append(child_obj)
+
+        processed_obj.add(obj)
+
+    roots = []    # root-objects
+
+    for obj in objects:
+        if obj.xray.isroot and obj.name in bpy.context.scene.objects:
+            roots.append(obj)
+
+    if not roots:
+        active_obj = bpy.context.active_object
+
+        if active_obj and active_obj.xray.isroot:
+            roots = [active_obj, ]
+
+    return roots
+
+
+def get_root_objs():
+    # returns a list of root-objects
+
+    # list of objects that need to be scanned
+    objects = [obj for obj in bpy.context.selected_objects]
+
+    roots = scan_objs(objects)
+
+    return roots
+
+
 def get_arm_obj(root_obj, operator):
     arm_objs = []
 
