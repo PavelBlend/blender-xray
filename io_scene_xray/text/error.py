@@ -27,6 +27,7 @@ no_active_bone = 'No active bone'
 no_anim_data = 'Object has no animation data'
 sel_no_anim_data = 'Selected objects has no animation data'
 no_valid_str = 'Not valid string'
+no_arm_obj = 'There is no armature among the selected objects'
 
 # anm export
 anm_no_keys = 'Action has keys not for all channels'
@@ -184,6 +185,9 @@ scene_obj_count = 'Bad scene selection file. Cannot find "scene objects count" c
 scene_objs = 'Bad scene selection file. Cannot find "objects" chunk'
 scene_ver = 'Unsupported format version'
 scene_obj_ver = 'Unsupported scene object format version'
+
+# skls import
+many_arm_objs = 'More than one armature-object is selected'
 
 # skls export
 skl_path_conflict = 'The folder cannot be created because a file with the same name exists'

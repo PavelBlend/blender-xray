@@ -205,6 +205,8 @@ def export_file(context):
 
     # get armature scale
     root_obj = utils.obj.find_root(context, arm_obj)
+    if not root_obj:
+        root_obj = arm_obj
     _, scale = utils.ie.get_obj_scale_matrix(root_obj, arm_obj)
 
     # export bones data

@@ -35,6 +35,7 @@ translations_table = (
     (error.no_anim_data, 'Объект не имеет анимационных данных'),
     (error.sel_no_anim_data, 'Выделенные объекты не имеют анимационных данных'),
     (error.no_valid_str, 'Недопустимая строка'),
+    (error.no_arm_obj, 'Среди выделенных объектов нет арматуры'),
 
     # anm export
     (error.anm_no_keys, 'Анимация имеет ключи не для всех каналов'),
@@ -192,6 +193,9 @@ translations_table = (
     (error.scene_objs, 'Недопустимый scene selection файл. Не найден "objects" блок'),
     (error.scene_ver, 'Неподдерживаемая версия формата'),
     (error.scene_obj_ver, 'Неподдерживаемая версия формата объектов сцены'),
+
+    # skls import
+    (error.many_arm_objs, 'Выделено более одного объекта-арматуры'),
 
     # skls export
     (error.skl_path_conflict, 'Невозможно создать папку, так как существует файл с таким же именем'),

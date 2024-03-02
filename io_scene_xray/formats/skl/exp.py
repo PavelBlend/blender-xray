@@ -17,6 +17,9 @@ def _export_skl(chunked_writer, context):
     arm_obj = context.bpy_arm_obj
     root_obj = utils.obj.find_root(context, arm_obj)
 
+    if not root_obj:
+        root_obj = arm_obj
+
     writer = rw.write.PackedWriter()
     motions.exp.export_motion(writer, context.action, arm_obj, root_obj)
     chunked_writer.put(0x1200, writer)
@@ -41,5 +44,9 @@ def export_skls_file(file_path, context, actions):
 
     writer = rw.write.PackedWriter()
     root_obj = utils.obj.find_root(context, context.bpy_arm_obj)
+
+    if not root_obj:
+        root_obj = context.bpy_arm_obj
+
     motions.exp.export_motions(writer, actions, context, root_obj)
     rw.utils.save_file(file_path, writer)

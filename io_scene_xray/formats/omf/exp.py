@@ -861,6 +861,8 @@ def export_omf(context):
     )
 
     root_obj = utils.obj.find_root(context, arm_obj)
+    if not root_obj:
+        root_obj = arm_obj
 
     dependency_object, _ = utils.action.get_dep_obj(arm_obj)
     new_motions_count = export_motions(

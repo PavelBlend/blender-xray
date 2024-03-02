@@ -401,16 +401,39 @@ def execute_require_filepath(func):
 def invoke_require_armature(func):
 
     def wrapper(self, context, event):
+
+        arm_obj = None
         active = context.active_object
-        if not active:
-            if context.selected_objects:
-                active = context.selected_objects[0]
-        if not active:
-            self.report({'ERROR'}, text.get_text(text.error.no_active_obj))
-            return {'CANCELLED'}
-        if active.type != 'ARMATURE':
-            self.report({'ERROR'}, text.get_text(text.error.is_not_arm))
-            return {'CANCELLED'}
+
+        # get armature-object by active object
+        if active and active.type == 'ARMATURE':
+            arm_obj = active
+
+        if not arm_obj:
+
+            # get armature-object by selected objects
+            arm_objs = []
+            for obj in context.selected_objects:
+                if obj.type == 'ARMATURE':
+                    arm_objs.append(obj)
+
+            if len(arm_objs) > 1:
+                self.report({'ERROR'}, text.get_text(text.error.many_arm_objs))
+                return {'CANCELLED'}
+
+            elif len(arm_objs) == 1:
+                arm_obj = arm_objs[0]
+
+        if not arm_obj:
+
+            if not active:
+                self.report({'ERROR'}, text.get_text(text.error.no_active_obj))
+                return {'CANCELLED'}
+
+            if active.type != 'ARMATURE':
+                self.report({'ERROR'}, text.get_text(text.error.is_not_arm))
+                return {'CANCELLED'}
+
         return func(self, context, event)
 
     return wrapper
