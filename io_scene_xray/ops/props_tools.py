@@ -135,7 +135,7 @@ class XRAY_OT_change_userdata(utils.ie.BaseOperator):
     bl_options = {'REGISTER', 'UNDO'}
 
     value = bpy.props.EnumProperty(
-        name='Mode',
+        name='Value',
         items=(
             ('REPLACE', 'Replace', 'Set custom value for userdata.'),
             ('CLEAR', 'Clear', 'Remove userdata.'),
@@ -168,7 +168,7 @@ class XRAY_OT_change_userdata(utils.ie.BaseOperator):
         row = utils.version.layout_split(layout, 0.2)
 
         if self.value == 'REPLACE':
-            row.label(text='Userdata:')
+            row.label(text='Value:')
             row.prop(self, 'userdata', text='')
 
         elif self.value == 'OBJECT':
@@ -233,7 +233,7 @@ class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
     bl_options = {'REGISTER', 'UNDO'}
 
     value = bpy.props.EnumProperty(
-        name='Mode',
+        name='Value',
         items=value_items,
         default='REPLACE'
     )
