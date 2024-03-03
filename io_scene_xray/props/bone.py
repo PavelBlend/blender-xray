@@ -249,7 +249,7 @@ class XRayBoneProps(bpy.types.PropertyGroup):
     friction = bpy.props.FloatProperty(min=0.0)
     mass = bpy.props.PointerProperty(type=XRayMassProps)
 
-    def ondraw_postview(self, obj_arm, bone):
+    def ondraw_postview(self, obj_arm, bone):    # pragma: no cover
         # draw limits
         arm_xray = obj_arm.data.xray
         hide = not utils.version.get_object_visibility(obj_arm)
