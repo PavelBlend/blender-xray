@@ -7,14 +7,14 @@ from .. import utils
 
 def search_objects(self, context):
     objects = []
-    if self.change == 'ACTIVE':
+    if self.mode == 'ACTIVE':
         if context.active_object:
             objects.append(context.active_object)
         else:
             self.report({'INFO'}, 'No active object!')
             return {'FINISHED'}
 
-    elif self.change == 'SELECTED':
+    elif self.mode == 'SELECTED':
         if context.selected_objects:
             for obj in context.selected_objects:
                 objects.append(obj)
@@ -22,7 +22,7 @@ def search_objects(self, context):
             self.report({'INFO'}, 'No selected objects!')
             return {'FINISHED'}
 
-    elif self.change == 'ALL':
+    elif self.mode == 'ALL':
         if bpy.data.objects:
             for obj in bpy.data.objects:
                 objects.append(obj)
@@ -122,7 +122,7 @@ def search_value(self, context, prop_name, prop_fun, text_fun):
     return value
 
 
-change_items = (
+mode_items = (
     ('ACTIVE', 'Active Object', ''),
     ('SELECTED', 'Selected Objects', ''),
     ('ALL', 'All Objects', '')
@@ -145,9 +145,9 @@ class XRAY_OT_change_userdata(utils.ie.BaseOperator):
         ),
         default='REPLACE'
     )
-    change = bpy.props.EnumProperty(
-        name='Change',
-        items=change_items,
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        items=mode_items,
         default='SELECTED'
     )
     userdata = bpy.props.StringProperty(name='Userdata')
@@ -158,12 +158,12 @@ class XRAY_OT_change_userdata(utils.ie.BaseOperator):
         layout = self.layout
 
         column = layout.column(align=True)
-        column.label(text='Value:')
-        column.prop(self, 'value', expand=True)
+        column.label(text='Mode:')
+        column.prop(self, 'mode', expand=True)
 
         column = layout.column(align=True)
-        column.label(text='Change:')
-        column.prop(self, 'change', expand=True)
+        column.label(text='Value:')
+        column.prop(self, 'value', expand=True)
 
         row = utils.version.layout_split(layout, 0.2)
 
@@ -237,9 +237,9 @@ class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
         items=value_items,
         default='REPLACE'
     )
-    change = bpy.props.EnumProperty(
-        name='Change',
-        items=change_items,
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        items=mode_items,
         default='SELECTED'
     )
     lod_ref = bpy.props.StringProperty(name='LOD Reference')
@@ -250,12 +250,12 @@ class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
         layout = self.layout
 
         column = layout.column(align=True)
-        column.label(text='Value:')
-        column.prop(self, 'value', expand=True)
+        column.label(text='Mode:')
+        column.prop(self, 'mode', expand=True)
 
         column = layout.column(align=True)
-        column.label(text='Change:')
-        column.prop(self, 'change', expand=True)
+        column.label(text='Value:')
+        column.prop(self, 'value', expand=True)
 
         row = utils.version.layout_split(layout, 0.2)
 
@@ -337,9 +337,9 @@ class XRAY_OT_change_motion_refs(utils.ie.BaseOperator):
         items=value_items,
         default='REPLACE'
     )
-    change = bpy.props.EnumProperty(
-        name='Change',
-        items=change_items,
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        items=mode_items,
         default='SELECTED'
     )
     motion_refs = bpy.props.StringProperty(name='Motion References')
@@ -356,10 +356,6 @@ class XRAY_OT_change_motion_refs(utils.ie.BaseOperator):
         column = layout.column(align=True)
         column.label(text='Value:')
         column.prop(self, 'value', expand=True)
-
-        column = layout.column(align=True)
-        column.label(text='Change:')
-        column.prop(self, 'change', expand=True)
 
         row = utils.version.layout_split(layout, 0.2)
 
@@ -445,9 +441,9 @@ class XRAY_OT_change_object_type(utils.ie.BaseOperator):
         ),
         default='st'
     )
-    change = bpy.props.EnumProperty(
-        name='Change',
-        items=change_items,
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        items=mode_items,
         default='SELECTED'
     )
 
@@ -455,12 +451,12 @@ class XRAY_OT_change_object_type(utils.ie.BaseOperator):
         layout = self.layout
 
         column = layout.column(align=True)
-        column.label(text='Type:')
-        column.prop(self, 'obj_type', expand=True)
+        column.label(text='Mode:')
+        column.prop(self, 'mode', expand=True)
 
         column = layout.column(align=True)
-        column.label(text='Change:')
-        column.prop(self, 'change', expand=True)
+        column.label(text='Type:')
+        column.prop(self, 'obj_type', expand=True)
 
     def execute(self, context):
         result = search_objects(self, context)
@@ -486,15 +482,20 @@ class XRAY_OT_change_hq_export(utils.ie.BaseOperator):
     bl_label = 'Change HQ Export'
     bl_options = {'REGISTER', 'UNDO'}
 
-    change = bpy.props.EnumProperty(
-        name='Change',
-        items=change_items,
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        items=mode_items,
         default='SELECTED'
     )
     hq_export = bpy.props.BoolProperty(name='HQ Export', default=False)
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
+
+        column = layout.column(align=True)
+        column.label(text='Mode:')
+        column.prop(self, 'mode', expand=True)
+
         layout.prop(self, 'hq_export')
 
     def execute(self, context):
