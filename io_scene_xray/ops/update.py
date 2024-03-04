@@ -23,7 +23,10 @@ def has_update():
     download_url = None
     last_tag = None
 
-    releases = requests.get(RELEASES_URL)
+    try:
+        releases = requests.get(RELEASES_URL)
+    except:
+        return download_url, last_tag
 
     if releases:
         releases_list = json.loads(releases.text)
