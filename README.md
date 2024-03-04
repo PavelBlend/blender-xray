@@ -1,4 +1,4 @@
-# blender-xray [![Version](https://img.shields.io/github/release/PavelBlend/blender-xray.svg)](../../releases/latest) [![AppVeyor Status](https://img.shields.io/appveyor/build/PavelBlend/blender-xray?logo=AppVeyor&label=AppVeyor)](https://ci.appveyor.com/project/PavelBlend/blender-xray/branch/develop) [![Code Coverage](https://codecov.io/gh/PavelBlend/blender-xray/graph/badge.svg)](https://codecov.io/gh/PavelBlend/blender-xray) ![Repo Size](https://img.shields.io/github/repo-size/PavelBlend/blender-xray)
+# blender-xray ![Latest Release](https://img.shields.io/github/release/PavelBlend/blender-xray?color=7f7f7f&link=../../releases/latest) [![AppVeyor Status](https://img.shields.io/appveyor/build/PavelBlend/blender-xray?logo=AppVeyor&label=AppVeyor)](https://ci.appveyor.com/project/PavelBlend/blender-xray/branch/develop) [![Code Coverage](https://codecov.io/gh/PavelBlend/blender-xray/graph/badge.svg)](https://codecov.io/gh/PavelBlend/blender-xray) ![Repo Size](https://img.shields.io/github/repo-size/PavelBlend/blender-xray)
 `X-Ray Engine` import/export addon for [Blender](http://www.blender.org/).
 
 ## Supported formats
