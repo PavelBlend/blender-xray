@@ -11,14 +11,19 @@ class DataBlocksSet:
 
     def sync(self, bpy_collect, operation, addon_ver):
         hashes_old = self._hashes
+
         if len(bpy_collect) == len(hashes_old):
             return
+
         hashes_new = set()
+
         for data_block in bpy_collect:
             block_hash = hash(data_block)
             hashes_new.add(block_hash)
-            if not block_hash in hashes_old:
+
+            if block_hash not in hashes_old:
                 data_block.xray.initialize(operation, addon_ver)
+
         self._hashes = hashes_new
 
 
@@ -28,13 +33,14 @@ class DataBlocksInitializer:
 
     def sync(self, operation):
         addon_ver = utils.addon_version_number()
+
         for collect_name, data_blocks_set in self._collects.items():
             bpy_collect = getattr(bpy.data, collect_name)
             data_blocks_set.sync(bpy_collect, operation, addon_ver)
 
 
-bpy_data_init_collects = ['objects', 'materials', 'armatures']
-_INITIALIZER = DataBlocksInitializer(bpy_data_init_collects)
+BPY_DATA_INIT_COLLECTS = ('objects', 'materials', 'armatures')
+_INITIALIZER = DataBlocksInitializer(BPY_DATA_INIT_COLLECTS)
 
 
 @bpy.app.handlers.persistent
