@@ -28,12 +28,16 @@ no_anim_data = 'Object has no animation data'
 sel_no_anim_data = 'Selected objects has no animation data'
 no_valid_str = 'Not valid string'
 no_arm_obj = 'There is no armature among the selected objects'
+nothing_imp = 'Nothing is imported'
 
 # anm export
 anm_no_keys = 'Action has keys not for all channels'
 
 # anm import
 anm_unsupport_ver = 'File has unsupported format version'
+
+# bones import
+bones_many_sel_files = 'Too many selected files. Select one file'
 
 # details convert
 details_light_1569 = 'Object has incorrect light format: "Builds 1096-1558". Must be "Builds 1569-CoP"'
@@ -168,7 +172,6 @@ omf_no_bone_groups = 'Armature object has no bone groups'
 # omf import
 omf_no_bone = 'Armature does not have all bones that file has'
 omf_nothing = 'Nothing was imported. Change import settings'
-omf_nothing_imp = 'Nothing is imported'
 
 # omf merge
 few_files = 'More than one file needs to be selected'

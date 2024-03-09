@@ -11,6 +11,7 @@ from . import exp
 from .. import ie
 from .. import contexts
 from ... import log
+from ... import text
 from ... import utils
 
 
@@ -67,54 +68,73 @@ class XRAY_OT_import_bones(
     def execute(self, context):
         utils.stats.update('Import *.bones')
 
+        # check input file
         if len(self.files) > 1:
-            self.report({'ERROR'}, 'Too many selected files. Select one file')
+            self.report({'ERROR'}, text.error.bones_many_sel_files)
             return {'CANCELLED'}
-        if not self.files or (len(self.files) == 1 and not self.files[0].name):
-            self.report({'ERROR'}, 'No file selected!')
+
+        has_sel = utils.ie.has_selected_files(self)
+        if not has_sel:
             return {'CANCELLED'}
+
+        # get file path
         filename = self.files[0].name
         filepath = os.path.join(self.directory, filename)
-        file_ext = os.path.splitext(filename)[-1].lower()
+
+        # import properties
         imp_props = self.import_bone_properties
         imp_parts = self.import_bone_parts
+
         if not imp_props and not imp_parts:
-            self.report({'ERROR'}, 'Nothing is imported')
+            self.report({'ERROR'}, text.error.nothing_imp)
             return {'CANCELLED'}
+
+        # create import context
         import_context = ImportBonesContext()
         import_context.import_bone_properties = imp_props
         import_context.import_bone_parts = imp_parts
         import_context.filepath = filepath
         import_context.bpy_arm_obj = context.active_object
+
+        # import
         try:
             imp.import_file(import_context)
         except log.AppError as err:
             import_context.errors.append(err)
+
+        # report errors
         for err in import_context.errors:
             log.err(err)
+
         return {'FINISHED'}
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
+
         layout.prop(self, 'import_bone_properties')
         layout.prop(self, 'import_bone_parts')
+
         if not self.import_bone_properties and not self.import_bone_parts:
             layout.label(text='Nothing is imported', icon='ERROR')
 
     @utils.ie.run_imp_exp_operator
     def invoke(self, context, event):    # pragma: no cover
         obj = context.active_object
+
         if not obj:
-            self.report({'ERROR'}, 'There is no active object')
+            self.report({'ERROR'}, text.error.no_active_obj)
             return {'CANCELLED'}
+
         if obj.type != 'ARMATURE':
-            self.report({'ERROR'}, 'The active object is not an armature')
+            self.report({'ERROR'}, text.error.is_not_arm)
             return {'CANCELLED'}
-        prefs = utils.version.get_preferences()
-        # import bone parts
-        self.import_bone_parts = prefs.bones_import_bone_parts
-        # import bone properties
-        self.import_bone_properties = prefs.bones_import_bone_properties
+
+        pref = utils.version.get_preferences()
+
+        # set default values for import properties
+        self.import_bone_parts = pref.bones_import_bone_parts
+        self.import_bone_properties = pref.bones_import_bone_properties
+
         return super().invoke(context, event)
 
 

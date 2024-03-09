@@ -168,7 +168,7 @@ class XRAY_OT_import_omf(
 
         if not self.import_motions and not self.import_bone_parts:
             layout.label(
-                text=text.get_text(text.error.omf_nothing_imp),
+                text=text.get_text(text.error.nothing_imp),
                 icon='ERROR'
             )
 

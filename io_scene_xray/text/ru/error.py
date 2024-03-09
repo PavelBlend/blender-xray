@@ -36,12 +36,16 @@ translations_table = (
     (error.sel_no_anim_data, 'Выделенные объекты не имеют анимационных данных'),
     (error.no_valid_str, 'Недопустимая строка'),
     (error.no_arm_obj, 'Среди выделенных объектов нет арматуры'),
+    (error.nothing_imp, 'Ничего не импортируется'),
 
     # anm export
     (error.anm_no_keys, 'Анимация имеет ключи не для всех каналов'),
 
     # anm import
     (error.anm_unsupport_ver, 'Файл имеет неподдерживаемую версию формата'),
+
+    # bones import
+    (error.bones_many_sel_files, 'Выбрано слишком много файлов. Нужно выделить один файл'),
 
     # details convert
     (error.details_light_1569, 'Объект имеет некорректный формат освещения: "Builds 1096-1558". Должен быть "Builds 1569-CoP"'),
@@ -176,7 +180,6 @@ translations_table = (
     # omf import
     (error.omf_no_bone, 'Арматура не имеет всех костей, которые есть в OMF файле'),
     (error.omf_nothing, 'Ничего не импортировано. Измените настройки импорта'),
-    (error.omf_nothing_imp, 'Ничего не импортируется!'),
 
     # omf merge
     (error.few_files, 'Необходимо выделить больше одного файла'),
