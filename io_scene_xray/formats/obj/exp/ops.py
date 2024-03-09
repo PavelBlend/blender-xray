@@ -46,10 +46,10 @@ def find_objects_for_export(context, export_context):
         roots = [obj for obj in context.scene.objects if obj.xray.isroot]
 
         if not roots:
-            raise log.AppError(text.get_text(text.error.object_no_roots))
+            raise log.AppError(text.error.object_no_roots)
 
         if len(roots) > 1:
-            raise log.AppError(text.get_text(text.error.object_many_roots))
+            raise log.AppError(text.error.object_many_roots)
 
     return roots
 

@@ -23,7 +23,7 @@ class ImportObjectMeshContext(contexts.ImportMeshContext):
                 self.reported = True
                 self.operator.report(
                     {'WARNING'},
-                    text.get_text(text.warn.objs_folder_not_spec)
+                    text.warn.objs_folder_not_spec
                 )
         return self.objs_folders
 

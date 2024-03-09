@@ -50,7 +50,7 @@ class XRAY_OT_copy_xray_tranforms(utils.ie.BaseOperator):
             return {'FINISHED'}
 
         write_buffer_data()
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
 
@@ -68,7 +68,7 @@ class XRAY_OT_update_xray_tranforms(utils.ie.BaseOperator):
         data = obj.xray
         data.position = xray_translation
         data.orientation = xray_rotation
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
 
@@ -107,7 +107,7 @@ class XRAY_OT_update_blender_tranforms(utils.ie.BaseOperator):
         else:
             obj.rotation_euler = rot_euler.to_matrix().to_euler(obj.rotation_mode)
 
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
 

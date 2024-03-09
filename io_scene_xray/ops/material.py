@@ -598,7 +598,7 @@ class XRAY_OT_create_material(utils.ie.BaseOperator):
         image_node.label = rel_path
 
         utils.draw.redraw_areas()
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
 
         return {'FINISHED'}
 

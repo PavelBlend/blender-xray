@@ -122,7 +122,7 @@ def merge_files(files):
 
                     if required_part_count != parts_count:
                         raise log.AppError(
-                            text.get_text(text.error.omf_merge_parts_count),
+                            text.error.omf_merge_parts_count,
                             log.props(
                                 file=file_path,
                                 count=parts_count,

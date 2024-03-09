@@ -60,7 +60,7 @@ class MeshContext(Context):
                 self.tex_folder_repored = True
                 self.operator.report(
                     {'WARNING'},
-                    text.get_text(text.warn.tex_folder_not_spec)
+                    text.warn.tex_folder_not_spec
                 )
         return self.tex_dir
 

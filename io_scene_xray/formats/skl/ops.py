@@ -327,10 +327,7 @@ class XRAY_OT_export_skls_file(
         if obj:
             self.filepath = utils.ie.add_file_ext(obj.name, self.filename_ext)
         else:
-            self.report(
-                {'ERROR'},
-                text.get_text(text.error.no_active_obj)
-            )
+            self.report({'ERROR'}, text.error.no_active_obj)
             return {'CANCELLED'}
 
         self.actions = []
@@ -419,16 +416,13 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
             if active and active.type == 'ARMATURE':
                 return bpy.ops.xray_export.skls_file('INVOKE_DEFAULT')
             else:
-                self.report(
-                    {'ERROR'},
-                    text.get_text(text.error.no_selected_obj)
-                )
+                self.report({'ERROR'}, text.error.no_selected_obj)
                 return {'CANCELLED'}
 
         if len(context.selected_objects) == 1:
             obj = context.selected_objects[0]
             if obj.type != 'ARMATURE':
-                self.report({'ERROR'}, text.get_text(text.error.is_not_arm))
+                self.report({'ERROR'}, text.error.is_not_arm)
                 return {'CANCELLED'}
 
             actions = []
@@ -450,7 +444,7 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
                     arm_objs.append(obj)
 
             if not arm_objs:
-                self.report({'ERROR'}, text.get_text(text.error.no_arm_obj))
+                self.report({'ERROR'}, text.error.no_arm_obj)
                 return {'CANCELLED'}
 
             if len(arm_objs) == 1:

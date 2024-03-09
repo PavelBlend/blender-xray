@@ -117,7 +117,7 @@ class XRAY_OT_check_invalid_sg_objs(utils.ie.BaseOperator):
     def execute(self, context):
         check_invalid_smooth_groups()
 
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
 
         return {'FINISHED'}
 

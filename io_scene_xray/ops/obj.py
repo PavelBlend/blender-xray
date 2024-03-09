@@ -298,7 +298,7 @@ class XRAY_OT_set_export_path(utils.ie.BaseOperator):
         # search object
         objs = self._get_objs()
         if not objs:
-            self.report({'ERROR'}, text.get_text(text.error.no_objs))
+            self.report({'ERROR'}, text.error.no_objs)
             return {'CANCELLED'}
 
         # get objects and meshes folders
@@ -317,10 +317,7 @@ class XRAY_OT_set_export_path(utils.ie.BaseOperator):
             if cur_folder.startswith(mshs_folder):
                 prefs_folder = mshs_folder
             else:
-                self.report(
-                    {'ERROR'},
-                    text.get_text(text.error.not_inside_objs_mshs_folder)
-                )
+                self.report({'ERROR'}, text.error.not_inside_objs_mshs_folder)
                 self.report({'ERROR'}, cur_folder)
                 self.report(
                     {'ERROR'},
@@ -343,10 +340,7 @@ class XRAY_OT_set_export_path(utils.ie.BaseOperator):
         objs_folder, mshs_folder = self._get_folders()
 
         if not (objs_folder or mshs_folder):
-            self.report(
-                {'ERROR'},
-                text.get_text(text.error.no_objs_mshs_folder)
-            )
+            self.report({'ERROR'}, text.error.no_objs_mshs_folder)
             return {'FINISHED'}
 
         context.window_manager.fileselect_add(self)

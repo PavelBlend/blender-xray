@@ -239,7 +239,7 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
             self.set_custom(xray, 'flags', stgs.action_flags)
             self.set_custom(xray, 'power', stgs.action_power)
         utils.draw.redraw_areas()
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
@@ -348,7 +348,7 @@ class XRAY_OT_set_xray_to_custom_props(utils.ie.BaseOperator):
             action[stgs.action_flags] = xray.flags
             action[stgs.action_power] = xray.power
         utils.draw.redraw_areas()
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
@@ -470,7 +470,7 @@ class XRAY_OT_remove_xray_custom_props(utils.ie.BaseOperator):
                     if bpy_data.get(prop_name, None) is not None:
                         del bpy_data[prop_name]
         utils.draw.redraw_areas()
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
@@ -513,7 +513,7 @@ class XRAY_OT_remove_all_custom_props(utils.ie.BaseOperator):
             for prop in remove_keys:
                 del data[prop]
         utils.draw.redraw_areas()
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover

@@ -60,7 +60,7 @@ class XRAY_OT_import_level(
         # check selected files
         filename = self.filepath[len(self.directory) : ]
         if not filename:
-            self.report({'ERROR'}, text.get_text(text.error.no_sel_files))
+            self.report({'ERROR'}, text.error.no_sel_files)
             return {'CANCELLED'}
 
         # create context

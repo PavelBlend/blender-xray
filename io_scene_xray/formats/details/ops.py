@@ -319,7 +319,7 @@ class XRAY_OT_export_details(utils.ie.BaseOperator):
         for obj, path in zip(objs, paths):
             if paths.count(path) > 1:
                 error = log.AppError(
-                    text.get_text(text.error.details_file_duplicates),
+                    text.error.details_file_duplicates,
                     log.props(file_path=file_path, object=obj.name)
                 )
                 dupli_errors.append(error)

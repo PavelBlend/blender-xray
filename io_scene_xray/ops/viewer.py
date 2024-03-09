@@ -391,7 +391,7 @@ class XRAY_OT_viewer_open_folder(utils.ie.BaseOperator):
         scene.xray.viewer.folder = self.directory
         update_file_list(scene.xray.viewer.folder)
         utils.draw.redraw_areas()
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover

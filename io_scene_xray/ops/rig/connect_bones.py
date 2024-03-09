@@ -221,19 +221,16 @@ class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
         # check input
         src_arm_obj = context.active_object
         if not src_arm_obj:
-            self.report({'WARNING'}, text.get_text(text.error.no_active_obj))
+            self.report({'WARNING'}, text.error.no_active_obj)
             return {'FINISHED'}
 
         if src_arm_obj.type != 'ARMATURE':
-            self.report({'WARNING'}, text.get_text(text.error.is_not_arm))
+            self.report({'WARNING'}, text.error.is_not_arm)
             return {'FINISHED'}
 
         src_arm = src_arm_obj.data
         if not len(src_arm.bones):
-            self.report(
-                {'WARNING'},
-                text.get_text(text.warn.connect_has_no_bones)
-            )
+            self.report({'WARNING'}, text.warn.connect_has_no_bones)
             return {'FINISHED'}
 
         if context.mode != 'OBJECT':
@@ -281,7 +278,7 @@ class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
         bpy.ops.io_scene_xray.link_bones(armature=arm_obj.name)
         utils.version.set_active_object(arm_obj)
 
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
 
         return {'FINISHED'}
 

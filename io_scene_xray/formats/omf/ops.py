@@ -145,11 +145,11 @@ class XRAY_OT_import_omf(
         obj = context.active_object
 
         if not obj:
-            self.report({'ERROR'}, text.get_text(text.error.no_active_obj))
+            self.report({'ERROR'}, text.error.no_active_obj)
             return {'CANCELLED'}
 
         if obj.type != 'ARMATURE':
-            self.report({'ERROR'}, text.get_text(text.error.is_not_arm))
+            self.report({'ERROR'}, text.error.is_not_arm)
             return {'CANCELLED'}
 
         return super().invoke(context, event)
@@ -168,7 +168,7 @@ class XRAY_OT_import_omf(
 
         if not self.import_motions and not self.import_bone_parts:
             layout.label(
-                text=text.get_text(text.error.nothing_imp),
+                text=text.error.nothing_imp,
                 icon='ERROR'
             )
 
@@ -334,7 +334,7 @@ class XRAY_OT_export_omf_file(
         if self.export_mode == 'REPLACE':
             if not self.export_motions and not self.export_bone_parts:
                 layout.label(
-                    text=text.get_text(text.error.omf_nothing_exp),
+                    text=text.error.omf_nothing_exp,
                     icon='ERROR'
                 )
 

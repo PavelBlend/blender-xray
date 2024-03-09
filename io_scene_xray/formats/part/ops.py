@@ -152,7 +152,7 @@ class XRAY_OT_export_part(
         objs = context.selected_objects
 
         if not objs:
-            self.report({'ERROR'}, text.get_text(text.error.no_selected_obj))
+            self.report({'ERROR'}, text.error.no_selected_obj)
             return {'CANCELLED'}
 
         pref = utils.version.get_preferences()

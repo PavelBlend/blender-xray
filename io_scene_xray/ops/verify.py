@@ -16,22 +16,19 @@ def get_objects(self):
         else:
             self.report(
                 {'WARNING'},
-                text.get_text(text.error.no_active_obj).capitalize()
+                text.get_text(text.error.no_active_obj)
             )
     elif self.mode == 'SELECTED_OBJECTS':
         if not bpy.context.selected_objects:
             self.report(
                 {'WARNING'},
-                text.get_text(text.error.no_selected_obj).capitalize()
+                text.get_text(text.error.no_selected_obj)
             )
         else:
             objects = [obj for obj in bpy.context.selected_objects]
     elif self.mode == 'ALL_OBJECTS':
         if not bpy.data.objects:
-            self.report(
-                {'WARNING'},
-                text.get_text(text.error.no_blend_obj).capitalize()
-            )
+            self.report({'WARNING'}, text.error.no_blend_obj)
         else:
             objects = [obj for obj in bpy.context.scene.objects]
     return objects
@@ -89,7 +86,7 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
         utils.version.set_active_object(None)
         self.report(
             {'INFO'},
-            text.get_text(text.warn.incorrect_uv_objs_count).capitalize() + \
+            text.get_text(text.warn.incorrect_uv_objs_count) + \
             ': {}'.format(len(bad_objects))
         )
         return {'FINISHED'}
@@ -246,7 +243,7 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
 
         self.report(
             {'INFO'},
-            text.get_text(text.warn.invalid_face_objs_count).capitalize() + \
+            text.get_text(text.warn.invalid_face_objs_count) + \
             ': {}'.format(len(bad_objects))
         )
 

@@ -101,10 +101,7 @@ class XRAY_OT_export_level(utils.ie.BaseOperator):
         level_object = level_objs[0]
 
         if not level_object:
-            self.report(
-                {'ERROR'},
-                text.get_text(text.error.no_active_obj)
-            )
+            self.report({'ERROR'}, text.error.no_active_obj)
             return {'CANCELLED'}
 
         if not level_object.xray.is_level:

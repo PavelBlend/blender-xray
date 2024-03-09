@@ -64,7 +64,7 @@ class XRAY_OT_copy_action_settings(utils.ie.BaseOperator):
     @utils.set_cursor_state
     def execute(self, context):
         write_buffer_data()
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
 
@@ -77,7 +77,7 @@ class XRAY_OT_paste_action_settings(utils.ie.BaseOperator):
     def execute(self, context):
         read_buffer_data()
         utils.draw.redraw_areas()
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
 

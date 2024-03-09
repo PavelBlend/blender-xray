@@ -83,7 +83,7 @@ class XRAY_OT_add_camera(utils.ie.BaseOperator):
         # set active camera
         context.scene.camera = camera_obj
 
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
 
         return {'FINISHED'}
 

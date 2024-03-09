@@ -97,17 +97,11 @@ class XRAY_OT_merge_omf(utils.ie.BaseOperator):
         ]
 
         if not len(omf_files):
-            self.report(
-                {'ERROR'},
-                text.get_text(text.error.no_sel_files)
-            )
+            self.report({'ERROR'}, text.error.no_sel_files)
             return {'CANCELLED'}
 
         if len(omf_files) == 1:
-            self.report(
-                {'ERROR'},
-                text.get_text(text.error.few_files)
-            )
+            self.report({'ERROR'}, text.error.few_files)
             return {'CANCELLED'}
 
         try:

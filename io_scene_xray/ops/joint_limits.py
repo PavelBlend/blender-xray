@@ -273,7 +273,7 @@ class XRAY_OT_convert_ik_to_xray_limits(JointLimitsBaseOperator):
                 ik.lim_z_min = pose_bone.ik_min_z
                 ik.lim_z_max = pose_bone.ik_max_z
         utils.draw.redraw_areas()
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
 
@@ -300,7 +300,7 @@ class XRAY_OT_convert_xray_to_ik_limits(JointLimitsBaseOperator):
                 pose_bone.ik_min_z = ik.lim_z_min
                 pose_bone.ik_max_z = ik.lim_z_max
         utils.draw.redraw_areas()
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
 
@@ -332,7 +332,7 @@ class XRAY_OT_clear_ik_limits(JointLimitsBaseOperator):
                 pose_bone.ik_min_z = -math.pi
                 pose_bone.ik_max_z = math.pi
         utils.draw.redraw_areas()
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
@@ -460,7 +460,7 @@ class XRAY_OT_set_joint_limits(JointLimitsBaseOperator):
             ik.lim_z_max = rot.z
 
         utils.draw.redraw_areas()
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
 
         return {'FINISHED'}
 

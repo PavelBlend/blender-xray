@@ -29,7 +29,7 @@ class ImportOgfContext(
                 self.repored = True
                 self.operator.report(
                     {'WARNING'},
-                    text.get_text(text.warn.meshes_folder_not_spec)
+                    text.warn.meshes_folder_not_spec
                 )
         return self._meshes_folders
 

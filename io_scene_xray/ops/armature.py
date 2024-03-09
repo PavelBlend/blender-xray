@@ -50,7 +50,7 @@ class XRAY_OT_link_bones(utils.ie.BaseOperator):
                 constraint.name = COPY_TRANSFORMS_NAME
             constraint.target = link_arm_obj
             constraint.subtarget = link_bone.name
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
@@ -80,7 +80,7 @@ class XRAY_OT_unlink_bones(utils.ie.BaseOperator):
             if not constraint:
                 continue
             pose_bone.constraints.remove(constraint)
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
         return {'FINISHED'}
 
 

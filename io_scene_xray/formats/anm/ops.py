@@ -247,10 +247,7 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
                     text.get_text(text.error.no_anim_data) + obj_info
                 )
             else:
-                self.report(
-                    {'ERROR'},
-                    text.get_text(text.error.sel_no_anim_data)
-                )
+                self.report({'ERROR'}, text.error.sel_no_anim_data)
 
             return {'CANCELLED'}
 

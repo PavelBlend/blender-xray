@@ -412,7 +412,7 @@ class XRAY_OT_create_ik(utils.ie.BaseOperator):
                 self.ik_fk_name
             )
 
-        self.report({'INFO'}, text.get_text(text.warn.ready))
+        self.report({'INFO'}, text.warn.ready)
 
         return {'FINISHED'}
 
