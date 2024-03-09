@@ -30,6 +30,14 @@ class ExportBonesContext(contexts.ExportAnimationOnlyContext):
         self.export_bone_properties = None
 
 
+def get_arm_objs():
+    return [
+        obj.name
+        for obj in bpy.context.selected_objects
+            if obj.type == 'ARMATURE'
+    ]
+
+
 BONES_EXT = '.bones'
 op_text = 'Bones Data'
 
@@ -158,43 +166,51 @@ class XRAY_OT_export_bones(utils.ie.BaseOperator):
 
     objects_list = []
 
-    def get_objects(self, context):
-        self.objects_list.clear()
-        for obj in context.selected_objects:
-            if obj.type == 'ARMATURE':
-                self.objects_list.append(obj.name)
-
     @log.execute_with_logger
     @utils.stats.execute_with_stats
     @utils.ie.set_initial_state
     def execute(self, context):
         utils.stats.update('Export *.bones')
 
-        self.get_objects(context)
+        self.objects_list = get_arm_objs()
+
+        # export properties
+        exp_parts = self.export_bone_parts
+        exp_props = self.export_bone_properties
+    
+        # export context
         export_context = ExportBonesContext()
+        export_context.export_bone_parts = exp_parts
+        export_context.export_bone_properties = exp_props
+
         for object_name in self.objects_list:
             filepath = os.path.join(self.directory, object_name)
             filepath = utils.ie.add_file_ext(filepath, self.filename_ext)
             obj = context.scene.objects[object_name]
+
+            # export
             try:
-                exp_parts = self.export_bone_parts
-                exp_props = self.export_bone_properties
                 export_context.bpy_arm_obj = obj
                 export_context.filepath = filepath
-                export_context.export_bone_parts = exp_parts
-                export_context.export_bone_properties = exp_props
                 exp.export_file(export_context)
+
             except log.AppError as err:
                 export_context.errors.append(err)
+
         self.objects_list.clear()
+
+        # report errors
         for err in export_context.errors:
             log.err(err)
+
         return {'FINISHED'}
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
+
         layout.prop(self, 'export_bone_properties')
         layout.prop(self, 'export_bone_parts')
+
         if not self.export_bone_properties and not self.export_bone_parts:
             layout.label(text='Nothing is exported', icon='ERROR')
 
@@ -206,7 +222,7 @@ class XRAY_OT_export_bones(utils.ie.BaseOperator):
             self.report({'ERROR'}, 'There is no selected object')
             return {'CANCELLED'}
 
-        self.get_objects(context)
+        self.objects_list = get_arm_objs()
 
         if not self.objects_list:
             self.report({'ERROR'}, 'No selected armatures')
@@ -253,6 +269,7 @@ class XRAY_OT_export_bone(
         utils.stats.update('Export *.bones')
 
         obj = context.scene.objects[self.object_name]
+
         try:
             export_context = ExportBonesContext()
             export_context.bpy_arm_obj = obj
@@ -260,16 +277,21 @@ class XRAY_OT_export_bone(
             export_context.export_bone_parts = self.export_bone_parts
             export_context.export_bone_properties = self.export_bone_properties
             exp.export_file(export_context)
+
         except log.AppError as err:
             export_context.errors.append(err)
+
         for err in export_context.errors:
             log.err(err)
+
         return {'FINISHED'}
 
     def draw(self, context):    # pragma: no cover
         layout = self.layout
+
         layout.prop(self, 'export_bone_properties')
         layout.prop(self, 'export_bone_parts')
+
         if not self.export_bone_properties and not self.export_bone_parts:
             layout.label(text='Nothing is exported', icon='ERROR')
 
@@ -280,10 +302,7 @@ class XRAY_OT_export_bone(
             self.report({'ERROR'}, 'There is no selected object')
             return {'CANCELLED'}
 
-        self.objects.clear()
-        for bpy_obj in context.selected_objects:
-            if bpy_obj.type == 'ARMATURE':
-                self.objects.append(bpy_obj.name)
+        self.objects = get_arm_objs()
 
         obj = bpy.data.objects[self.objects[0]]
 
