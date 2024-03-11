@@ -4,6 +4,7 @@ import bmesh
 import mathutils
 
 # addon modules
+from . import general
 from .. import utils
 from .. import text
 
@@ -92,12 +93,13 @@ def select_invalid_smooth_groups_verts(bpy_obj):
     return has_invalid_verts
 
 
-def check_invalid_smooth_groups():
+def check_invalid_smooth_groups(objs):
     # search invalid objects
     invalid_objects = set()
 
-    for bpy_obj in bpy.context.selected_objects:
+    for bpy_obj in objs:
         has_invalid_verts = select_invalid_smooth_groups_verts(bpy_obj)
+
         if has_invalid_verts:
             invalid_objects.add(bpy_obj)
 
@@ -114,16 +116,40 @@ class XRAY_OT_check_invalid_sg_objs(utils.ie.BaseOperator):
     bl_label = 'Check Invalid Smooth Groups'
     bl_options = {'REGISTER', 'UNDO'}
 
+    mode = bpy.props.EnumProperty(
+        name='Mode',
+        default='SELECTED_OBJECTS',
+        items=general.MODE_ITEMS
+    )
+
+    def draw(self, context):    # pragma: no cover
+        col = self.layout.column(align=True)
+
+        col.label(text='Mode:')
+        col.prop(self, 'mode', expand=True)
+
     def execute(self, context):
-        check_invalid_smooth_groups()
+        # get objects
+        objs = general.get_objs_by_mode(self)
+
+        if not objs:
+            bpy.ops.object.select_all(action='DESELECT')
+            utils.version.set_active_object(None)
+            return {'CANCELLED'}
+
+        check_invalid_smooth_groups(objs)
 
         self.report({'INFO'}, text.warn.ready)
 
         return {'FINISHED'}
 
+    def invoke(self, context, event):    # pragma: no cover
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
 
 def register():
-    bpy.utils.register_class(XRAY_OT_check_invalid_sg_objs)
+    utils.version.register_classes(XRAY_OT_check_invalid_sg_objs)
 
 
 def unregister():

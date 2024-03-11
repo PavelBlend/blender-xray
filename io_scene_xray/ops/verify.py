@@ -3,42 +3,9 @@ import bpy
 import bmesh
 
 # addon modules
+from . import general
 from .. import utils
 from .. import text
-
-
-def get_objects(self):
-    objects = []
-    if self.mode == 'ACTIVE_OBJECT':
-        active_obj = bpy.context.active_object
-        if active_obj:
-            objects.append(active_obj)
-        else:
-            self.report(
-                {'WARNING'},
-                text.get_text(text.error.no_active_obj)
-            )
-    elif self.mode == 'SELECTED_OBJECTS':
-        if not bpy.context.selected_objects:
-            self.report(
-                {'WARNING'},
-                text.get_text(text.error.no_selected_obj)
-            )
-        else:
-            objects = [obj for obj in bpy.context.selected_objects]
-    elif self.mode == 'ALL_OBJECTS':
-        if not bpy.data.objects:
-            self.report({'WARNING'}, text.error.no_blend_obj)
-        else:
-            objects = [obj for obj in bpy.context.scene.objects]
-    return objects
-
-
-mode_items = (
-    ('ACTIVE_OBJECT', 'Active Object', ''),
-    ('SELECTED_OBJECTS', 'Selected Objects', ''),
-    ('ALL_OBJECTS', 'All Objects', '')
-)
 
 
 class XRAY_OT_verify_uv(utils.ie.BaseOperator):
@@ -50,7 +17,7 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
     mode = bpy.props.EnumProperty(
         name='Mode',
         default='SELECTED_OBJECTS',
-        items=mode_items
+        items=general.MODE_ITEMS
     )
 
     MINIMUM_VALUE = -32.0
@@ -69,7 +36,7 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
         # set object mode
         if context.active_object:
             bpy.ops.object.mode_set(mode='OBJECT')
-        objects = get_objects(self)
+        objects = general.get_objs_by_mode(self)
         if not objects:
             bpy.ops.object.select_all(action='DESELECT')
             utils.version.set_active_object(None)
@@ -137,7 +104,7 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
     mode = bpy.props.EnumProperty(
         name='Mode',
         default='SELECTED_OBJECTS',
-        items=mode_items
+        items=general.MODE_ITEMS
     )
     face_area = bpy.props.BoolProperty(
         name='Check Face Area',
@@ -222,7 +189,7 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
         if context.active_object:
             bpy.ops.object.mode_set(mode='OBJECT')
 
-        objs = get_objects(self)
+        objs = general.get_objs_by_mode(self)
 
         if not objs:
             bpy.ops.object.select_all(action='DESELECT')
