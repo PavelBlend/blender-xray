@@ -6,6 +6,7 @@ from . import icons
 from . import list_helper
 from . import motion_filter
 from . import motion_list
+from . import motion
 
 
 modules = (
@@ -14,7 +15,8 @@ modules = (
     icons,
     list_helper,
     motion_filter,
-    motion_list
+    motion_list,
+    motion
 )
 
 

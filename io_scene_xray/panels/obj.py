@@ -48,32 +48,32 @@ class XRAY_OT_prop_clip(utils.ie.BaseOperator):
 
 def draw_motion_list_elements(layout):
     layout.operator(
-        ops.motion.XRAY_OT_add_all_actions.bl_idname,
+        ui.motion.XRAY_OT_add_all_actions.bl_idname,
         text='',
         icon='ACTION'
     )
     layout.operator(
-        ops.motion.XRAY_OT_clean_actions.bl_idname,
+        ui.motion.XRAY_OT_clean_actions.bl_idname,
         text='',
         icon='BRUSH_DATA'
     )
     layout.operator(
-        ops.motion.XRAY_OT_remove_all_actions.bl_idname,
+        ui.motion.XRAY_OT_remove_all_actions.bl_idname,
         text='',
         icon='X'
     )
     layout.operator(
-        ops.motion.XRAY_OT_copy_actions.bl_idname,
+        ui.motion.XRAY_OT_copy_actions.bl_idname,
         text='',
         icon='COPYDOWN'
     )
     layout.operator(
-        ops.motion.XRAY_OT_paste_actions.bl_idname,
+        ui.motion.XRAY_OT_paste_actions.bl_idname,
         text='',
         icon='PASTEDOWN'
     )
     layout.operator(
-        ops.motion.XRAY_OT_sort_actions.bl_idname,
+        ui.motion.XRAY_OT_sort_actions.bl_idname,
         text='',
         icon='SORTALPHA'
     )
