@@ -4,7 +4,7 @@ from . import collapsible
 from . import dynamic_menu
 from . import icons
 from . import list_helper
-from . import motion_list
+from . import motion_filter
 
 
 modules = (
@@ -12,7 +12,7 @@ modules = (
     dynamic_menu,
     icons,
     list_helper,
-    motion_list,
+    motion_filter,
 )
 
 

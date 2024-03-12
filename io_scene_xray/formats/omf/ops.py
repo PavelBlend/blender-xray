@@ -207,7 +207,7 @@ class XRAY_OT_import_omf(
             # motion list
             if box:
                 col = box.column(align=True)
-                ui.motion_list.BaseSelectMotionsOp.set_motions_list(None)
+                ui.motion_filter.BaseSelectMotionsOp.set_motions_list(None)
                 col.template_list(
                     'XRAY_UL_motions_list',
                     '',
@@ -217,19 +217,19 @@ class XRAY_OT_import_omf(
                     'motion_index'
                 )
                 row = col.row(align=True)
-                ui.motion_list.BaseSelectMotionsOp.set_data(self)
+                ui.motion_filter.BaseSelectMotionsOp.set_data(self)
 
                 # select/deselect operators
                 row.operator(
-                    ui.motion_list.XRAY_OT_select_motions.bl_idname,
+                    ui.motion_filter.XRAY_OT_select_motions.bl_idname,
                     icon='CHECKBOX_HLT'
                 )
                 row.operator(
-                    ui.motion_list.XRAY_OT_deselect_motions.bl_idname,
+                    ui.motion_filter.XRAY_OT_deselect_motions.bl_idname,
                     icon='CHECKBOX_DEHLT'
                 )
                 row.operator(
-                    ui.motion_list.XRAY_OT_deselect_dupli_motions.bl_idname,
+                    ui.motion_filter.XRAY_OT_deselect_dupli_motions.bl_idname,
                     icon='COPY_ID'
                 )
 

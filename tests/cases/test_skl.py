@@ -4,7 +4,7 @@ import bpy
 
 from tests import utils
 from io_scene_xray.formats.skl.ops import XRAY_OT_import_skls
-from io_scene_xray.ui.motion_list import BaseSelectMotionsOp
+from io_scene_xray.ui.motion_filter import BaseSelectMotionsOp
 
 
 class TestSklImport(utils.XRayTestCase):
