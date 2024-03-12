@@ -69,7 +69,7 @@ def get_enabled_operators(ops_list, mode):
 def _append_standart_draw_functions(ops_list, menu, mode):
     operators = get_enabled_operators(ops_list, mode)
     for operator in operators:
-        draw_function = utils.ie.get_draw_fun(operator)
+        draw_function = utils.draw.get_draw_fun(operator)
         menu.append(draw_function)
 
 

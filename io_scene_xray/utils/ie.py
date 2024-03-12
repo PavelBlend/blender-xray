@@ -8,7 +8,6 @@ import mathutils
 # addon modules
 from . import draw
 from . import version
-from .. import ui
 from .. import log
 from .. import text
 
@@ -24,19 +23,6 @@ class BaseOperator(bpy.types.Operator):
 
 
 # import/export utils
-
-
-def get_draw_fun(operator):
-    def menu_func(self, context):
-        icon = ui.icons.get_stalker_icon()
-        op = self.layout.operator(
-            operator.bl_idname,
-            text=draw.build_op_label(operator),
-            icon_value=icon
-        )
-        op.processed = True
-    operator.draw_fun = menu_func
-    return menu_func
 
 
 def _get_selection_state(context):

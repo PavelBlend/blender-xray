@@ -5,6 +5,7 @@ from . import dynamic_menu
 from . import icons
 from . import list_helper
 from . import motion_filter
+from . import motion_list
 
 
 modules = (
@@ -13,6 +14,7 @@ modules = (
     icons,
     list_helper,
     motion_filter,
+    motion_list
 )
 
 

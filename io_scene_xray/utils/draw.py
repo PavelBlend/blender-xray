@@ -4,6 +4,7 @@ import gpu
 
 # addon modules
 from . import version
+from .. import ui
 from .. import text
 
 if not version.IS_34:
@@ -33,6 +34,19 @@ def draw_fmt_ver_prop(layout, owner, prop, lay_type='SPLIT', use_row=True):
     else:
         prop_lay = lay.column(align=True)
     prop_lay.prop(owner, prop, expand=True)
+
+
+def get_draw_fun(operator):
+    def menu_func(self, context):
+        icon = ui.icons.get_stalker_icon()
+        op = self.layout.operator(
+            operator.bl_idname,
+            text=build_op_label(operator),
+            icon_value=icon
+        )
+        op.processed = True
+    operator.draw_fun = menu_func
+    return menu_func
 
 
 def show_message(
