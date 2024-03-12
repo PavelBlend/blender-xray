@@ -48,43 +48,43 @@ class XRAY_OT_prop_clip(utils.ie.BaseOperator):
 
 def draw_motion_list_elements(layout):
     layout.operator(
-        ui.motion.XRAY_OT_add_all_actions.bl_idname,
+        ui.motion_list.XRAY_OT_add_all_actions.bl_idname,
         text='',
         icon='ACTION'
     )
     layout.operator(
-        ui.motion.XRAY_OT_clean_actions.bl_idname,
+        ui.motion_list.XRAY_OT_clean_actions.bl_idname,
         text='',
         icon='BRUSH_DATA'
     )
     layout.operator(
-        ui.motion.XRAY_OT_remove_all_actions.bl_idname,
+        ui.motion_list.XRAY_OT_remove_all_actions.bl_idname,
         text='',
         icon='X'
     )
     layout.operator(
-        ui.motion.XRAY_OT_copy_actions.bl_idname,
+        ui.motion_list.XRAY_OT_copy_actions.bl_idname,
         text='',
         icon='COPYDOWN'
     )
     layout.operator(
-        ui.motion.XRAY_OT_paste_actions.bl_idname,
+        ui.motion_list.XRAY_OT_paste_actions.bl_idname,
         text='',
         icon='PASTEDOWN'
     )
     layout.operator(
-        ui.motion.XRAY_OT_sort_actions.bl_idname,
+        ui.motion_list.XRAY_OT_sort_actions.bl_idname,
         text='',
         icon='SORTALPHA'
     )
 
 
 def draw_motion_refs_elements(layout):
-    layout.operator(ui.motion_list.XRAY_OT_remove_all_motion_refs.bl_idname, text='', icon='X')
-    layout.operator(ui.motion_list.XRAY_OT_copy_motion_refs_list.bl_idname, text='', icon='COPYDOWN')
-    layout.operator(ui.motion_list.XRAY_OT_paste_motion_refs_list.bl_idname, text='', icon='PASTEDOWN')
-    layout.operator(ui.motion_list.XRAY_OT_sort_motion_refs_list.bl_idname, text='', icon='SORTALPHA')
-    layout.operator(ui.motion_list.XRAY_OT_add_motion_ref_from_file.bl_idname, text='', icon='FILE_FOLDER')
+    layout.operator(ui.motion_refs.XRAY_OT_remove_all_motion_refs.bl_idname, text='', icon='X')
+    layout.operator(ui.motion_refs.XRAY_OT_copy_motion_refs_list.bl_idname, text='', icon='COPYDOWN')
+    layout.operator(ui.motion_refs.XRAY_OT_paste_motion_refs_list.bl_idname, text='', icon='PASTEDOWN')
+    layout.operator(ui.motion_refs.XRAY_OT_sort_motion_refs_list.bl_idname, text='', icon='SORTALPHA')
+    layout.operator(ui.motion_refs.XRAY_OT_add_motion_ref_from_file.bl_idname, text='', icon='FILE_FOLDER')
 
 
 def details_draw_function(self, context):

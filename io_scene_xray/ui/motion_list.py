@@ -1,11 +1,11 @@
-# standart modules
-import os
-
 # blender modules
 import bpy
 
 # addon modules
+from .. import formats
 from .. import utils
+from .. import text
+from .. import rw
 
 
 class XRAY_UL_motion_list(bpy.types.UIList):
@@ -42,126 +42,315 @@ class XRAY_UL_motion_list(bpy.types.UIList):
                 row.label(text=motion.name)
 
 
-class XRAY_OT_remove_all_motion_refs(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.remove_all_motion_refs'
-    bl_label = 'Remove All'
-    bl_description = 'Remove all motion references'
+class XRAY_OT_add_all_actions(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.add_all_actions'
+    bl_label = 'Add All Actions'
+    bl_description = 'Add all actions to motion list'
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        ctx = formats.contexts.Context()
+        root_obj = utils.obj.find_root(ctx, context.active_object)
+        arm_obj = utils.ie.get_arm_obj(root_obj, self)
+
+        if not arm_obj:
+            return {'FINISHED'}
+
+        # collect exportable bones
+        exportable_bones = set()
+        non_exportable_bones = set()
+        for bone in arm_obj.data.bones:
+            if bone.xray.exportable:
+                exportable_bones.add(bone.name)
+            else:
+                non_exportable_bones.add(bone.name)
+
+        added_count = 0
+        path_pose = 'pose.bones["'
+        path_loc = '"].location'
+        path_euler = '"].rotation_euler'
+        path_quat = '"].rotation_quaternion'
+        path_angle = '"].rotation_axis_angle'
+
+        for action in bpy.data.actions:
+            action_bones = set()
+
+            for fcurve in action.fcurves:
+                path = fcurve.data_path
+
+                if path.startswith(path_pose):
+                    path = path[len(path_pose) : ]
+                else:
+                    continue
+
+                if path.endswith(path_loc):
+                    path = path[ : -len(path_loc)]
+
+                elif path.endswith(path_euler):
+                    path = path[ : -len(path_euler)]
+
+                elif path.endswith(path_quat):
+                    path = path[ : -len(path_quat)]
+
+                elif path.endswith(path_angle):
+                    path = path[ : -len(path_angle)]
+
+                else:
+                    continue
+
+                action_bones.add(path)
+
+            action_exportable_bones = action_bones - non_exportable_bones
+            if not action_exportable_bones - exportable_bones:
+                if not root_obj.xray.motions_collection.get(action.name):
+                    motion = root_obj.xray.motions_collection.add()
+                    motion.name = action.name
+                    added_count += 1
+
+        utils.draw.redraw_areas()
+        self.report(
+            {'INFO'},
+            text.get_text(text.warn.added_motions) + ': ' + str(added_count)
+        )
+
+        return {'FINISHED'}
+
+
+class XRAY_OT_remove_all_actions(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.remove_all_actions'
+    bl_label = 'Remove All Actions'
+    bl_description = 'Remove all actions'
     bl_options = {'UNDO'}
 
     @classmethod
     def poll(cls, context):
         obj = context.active_object
         if not obj:
-            return False
-        data = obj.xray
-        refs_count = len(data.motionrefs_collection)
-        return bool(refs_count)
+            return
+
+        has_motions = bool(len(obj.xray.motions_collection))
+
+        return has_motions
 
     def execute(self, context):
         obj = context.active_object
-        obj.xray.motionrefs_collection.clear()
+        obj.xray.motions_collection.clear()
         utils.draw.redraw_areas()
         return {'FINISHED'}
 
 
-class XRAY_OT_copy_motion_refs_list(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.copy_motion_refs_list'
-    bl_label = 'Copy Motion References'
-    bl_description = 'Copy motion references list to clipboard'
+class XRAY_OT_clean_actions(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.clean_actions'
+    bl_label = 'Clean Actions'
+    bl_description = 'Remove non-existent actions'
     bl_options = {'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        obj = context.active_object
-        if not obj:
-            return False
-        return True
+        return context.active_object
 
     def execute(self, context):
         obj = context.active_object
+
+        remove = set()
+        available = set()
+
+        for motion_index, motion in enumerate(obj.xray.motions_collection):
+            action = bpy.data.actions.get(motion.name)
+
+            # non-existent action
+            if not action:
+                remove.add(motion_index)
+
+            # duplicated action
+            if motion.name in available:
+                remove.add(motion_index)
+
+            available.add(motion.name)
+
+        remove = list(remove)
+        remove.sort(reverse=True)
+
+        for motion_index in remove:
+            obj.xray.motions_collection.remove(motion_index)
+
+        utils.draw.redraw_areas()
+        return {'FINISHED'}
+
+
+MOTION_NAME_PARAM = 'motion_name'
+EXPORT_NAME_PARAM = 'export_name'
+
+
+class XRAY_OT_copy_actions(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.copy_actions'
+    bl_label = 'Copy Actions'
+    bl_description = 'Copy actions list to clipboard'
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        obj = context.active_object
+
         lines = []
-        saved_refs = set()
-        for ref in obj.xray.motionrefs_collection:
-            name = ref.name
-            if not name:
+        saved_motions = set()
+
+        for motion_index, motion in enumerate(obj.xray.motions_collection):
+            if not motion.name:
                 continue
-            if name in saved_refs:
+
+            motion_key = (motion.name, motion.export_name)
+
+            if motion_key in saved_motions:
                 continue
-            unique_chars = set(name)
-            if unique_chars == {' ', }:
-                continue
-            lines.append(name)
-            saved_refs.add(name)
+
+            lines.append('[{}]\n{} = "{}"\n{} = "{}"\n'.format(
+                motion_index,
+                MOTION_NAME_PARAM,
+                motion.name,
+                EXPORT_NAME_PARAM,
+                motion.export_name
+            ))
+            saved_motions.add(motion_key)
+
         bpy.context.window_manager.clipboard = '\n'.join(lines)
+
         return {'FINISHED'}
 
 
-class XRAY_OT_paste_motion_refs_list(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.paste_motion_refs_list'
-    bl_label = 'Past Motion References'
-    bl_description = 'Paste motion references list from clipboard'
+class XRAY_OT_paste_actions(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.paste_actions'
+    bl_label = 'Past Actions'
+    bl_description = 'Paste actions list from clipboard'
     bl_options = {'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        obj = context.active_object
-        if not obj:
-            return False
-        return True
+        return context.active_object
 
     def execute(self, context):
-        obj = context.active_object
-        refs = obj.xray.motionrefs_collection
-        used_refs = {ref.name for ref in obj.xray.motionrefs_collection}
-        refs_data = bpy.context.window_manager.clipboard
-        for line in refs_data.split('\n'):
-            if not line:
+        xray = context.active_object.xray
+
+        ltx = rw.ltx.LtxParser()
+        ltx.from_str(context.window_manager.clipboard)
+        used_motions = [
+            (motion.name, motion.export_name)
+            for motion in xray.motions_collection
+        ]
+        use_custom_name = False
+
+        for section_key, section in ltx.sections.items():
+            motion_name = section.params.get(MOTION_NAME_PARAM, None)
+            export_name = section.params.get(EXPORT_NAME_PARAM, None)
+
+            if not motion_name:
                 continue
-            if line in used_refs:
+
+            motion_key = (motion_name, export_name)
+
+            if motion_key in used_motions:
                 continue
-            unique_chars = set(line)
-            if unique_chars == {' ', }:
-                continue
-            ref = refs.add()
-            ref.name = line
+
+            motion = xray.motions_collection.add()
+            motion.name = motion_name
+
+            if export_name:
+                motion.export_name = export_name
+                use_custom_name = True
+
+        if use_custom_name:
+            xray.use_custom_motion_names = True
+
         utils.draw.redraw_areas()
+
         return {'FINISHED'}
 
 
-class XRAY_OT_sort_motion_refs_list(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.sort_motion_refs_list'
-    bl_label = 'Sort Motion References'
-    bl_description = 'Sort motion references list'
+class XRAY_OT_sort_actions(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.sort_actions'
+    bl_label = 'Sort Motions'
+    bl_description = 'Sort motions list'
     bl_options = {'UNDO'}
 
+    sort_by = bpy.props.EnumProperty(
+        items=(
+            ('NAME', 'Action Name', ''),
+            ('EXPORT', 'Export Name', ''),
+            ('LENGTH', 'Action Length', '')
+        )
+    )
     sort_reverse = bpy.props.BoolProperty(default=False)
 
     @classmethod
     def poll(cls, context):
-        obj = context.active_object
-        if not obj:
-            return False
-        return True
+        return context.active_object
 
-    def draw(self, context):
+    def draw(self, context):    # pragma: no cover
         lay = self.layout
+        lay.label(text='Sort by:')
+        lay.prop(self, 'sort_by', expand=True)
         lay.prop(self, 'sort_reverse', text='Reverse Sort', toggle=True)
 
     def execute(self, context):
-        obj = context.active_object
-        refs = obj.xray.motionrefs_collection
+        motions = context.active_object.xray.motions_collection
 
-        used_refs = [ref.name for ref in refs]
-        used_refs.sort()
+        if self.sort_by in ('NAME', 'LENGTH'):
+            sort_fun = lambda i: i[0]
+        else:
+            sort_fun = lambda i: i[2]
+
+        used_motions = []
+
+        if self.sort_by == 'LENGTH':
+            motions_length = {}
+            for motion in motions:
+                act = bpy.data.actions.get(motion.name)
+
+                if act:
+                    start, end = act.frame_range
+                    length = int(round(end - start, 0))
+                else:
+                    length = -1
+
+                motions_length.setdefault(length, []).append((
+                    motion.name,
+                    motion.export_name,
+                    None
+                ))
+
+            length_keys = list(motions_length.keys())
+            length_keys.sort()
+            for key in length_keys:
+                key_motions = motions_length[key]
+                key_motions.sort(key=sort_fun)
+                for name, exp, _ in key_motions:
+                    used_motions.append((name, exp, _))
+
+        else:
+            for motion in motions:
+                if motion.export_name:
+                    exp = motion.export_name
+                else:
+                    exp = motion.name
+                used_motions.append((motion.name, motion.export_name, exp))
+            used_motions.sort(key=sort_fun)
 
         if self.sort_reverse:
-            used_refs.reverse()
+            used_motions.reverse()
 
-        refs.clear()
+        motions.clear()
 
-        for ref in used_refs:
-            elem = refs.add()
-            elem.name = ref
+        for name, exp, _ in used_motions:
+            elem = motions.add()
+            elem.name = name
+            elem.export_name = exp
 
         utils.draw.redraw_areas()
 
@@ -172,100 +361,14 @@ class XRAY_OT_sort_motion_refs_list(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
-class XRAY_OT_add_motion_ref_from_file(bpy.types.Operator):
-    bl_idname = 'io_scene_xray.add_motion_ref_from_file'
-    bl_label = 'Add Motion Reference'
-    bl_description = 'Add motion reference from file path'
-    bl_options = {'UNDO'}
-
-    init = False
-
-    filter_glob = bpy.props.StringProperty(
-        default='*.omf',
-        options={'HIDDEN'}
-    )
-    directory = bpy.props.StringProperty(
-        subtype='DIR_PATH',
-        options={'SKIP_SAVE'}
-    )
-    files = bpy.props.CollectionProperty(
-        type=bpy.types.OperatorFileListElement
-    )
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.active_object
-        if not obj:
-            return False
-        return True
-
-    def draw(self, context):
-        if not self.init:
-            self.init = True
-            space = context.space_data
-            params = space.params
-            prefs = utils.version.get_preferences()
-            meshes_folders = utils.ie.get_pref_paths('meshes_folder')
-
-            for mshs_folder in meshes_folders:
-                if mshs_folder and os.path.exists(mshs_folder):
-
-                    if isinstance(params.directory, bytes):
-                        mshs_folder = bytes(mshs_folder, encoding='utf-8')
-
-                    if not params.directory.startswith(mshs_folder):
-                        params.directory = mshs_folder
-
-    def execute(self, context):
-        obj = context.active_object
-        refs = obj.xray.motionrefs_collection
-        meshes_folders = utils.ie.get_pref_paths('meshes_folder')
-
-        mshs_folder = None
-        for val in meshes_folders:
-            if val:
-                mshs_folder = val
-
-        if not mshs_folder:
-            self.report({'WARNING'}, 'Meshes folder not specified!')
-            return {'FINISHED'}
-
-        fail_count = 0
-        for file in self.files:
-            if not file.name.endswith('.omf'):
-                continue
-            file_path = os.path.join(self.directory, file.name)
-            if not file_path.startswith(mshs_folder):
-                fail_count += 1
-                continue
-            relative_path = file_path[len(mshs_folder) : ]
-            motion_ref = os.path.splitext(relative_path)[0]
-            if not motion_ref in refs:
-                ref = refs.add()
-                ref.name = motion_ref
-
-        if fail_count:
-            self.report(
-                {'WARNING'},
-                'Could not add {} references!'.format(fail_count)
-            )
-
-        utils.draw.redraw_areas()
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):    # pragma: no cover
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
-
 classes = (
     XRAY_UL_motion_list,
-    XRAY_OT_remove_all_motion_refs,
-    XRAY_OT_copy_motion_refs_list,
-    XRAY_OT_paste_motion_refs_list,
-    XRAY_OT_sort_motion_refs_list,
-    XRAY_OT_add_motion_ref_from_file
+    XRAY_OT_add_all_actions,
+    XRAY_OT_remove_all_actions,
+    XRAY_OT_clean_actions,
+    XRAY_OT_copy_actions,
+    XRAY_OT_paste_actions,
+    XRAY_OT_sort_actions
 )
 
 
