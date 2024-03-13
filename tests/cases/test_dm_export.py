@@ -40,6 +40,26 @@ class TestDmExport(tests.utils.XRayTestCase):
         # Assert
         self.assertOutputFiles({'tdm1.dm', 'tdm2.dm', 'tdm3.dm'})
 
+    def test_many_materials(self):
+        # Arrange
+        objs = self._create_dm_objects()
+        obj = objs[0]
+
+        mat = bpy.data.materials.new(name='test')
+        obj.data.materials.append(mat)
+
+        # Act
+        bpy.ops.xray_export.dm_file(
+            detail_model='tdm1',
+            filepath=self.outpath('test.dm'),
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertOutputFiles({
+            'test.dm'
+        })
+
     def test_error_many_uv(self):
         # Arrange
         objs = self._create_dm_objects()
@@ -96,6 +116,7 @@ class TestDmExport(tests.utils.XRayTestCase):
 
         mat = bpy.data.materials.new('test')
         obj.data.materials.append(mat)
+        obj.data.polygons[0].material_index = 1
 
         # Act
         bpy.ops.xray_export.dm_file(

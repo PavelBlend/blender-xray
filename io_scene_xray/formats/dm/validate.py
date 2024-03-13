@@ -10,6 +10,7 @@ from ... import utils
 @log.with_context(name='export-dm')
 def validate_material_and_uv(bpy_obj):
     log.update(object=bpy_obj.name)
+    bpy_mesh = bpy_obj.data
 
     # validate material
     material_count = len(bpy_obj.material_slots)
@@ -21,22 +22,30 @@ def validate_material_and_uv(bpy_obj):
         )
 
     elif material_count > 1:
-        raise log.AppError(
-            text.error.many_mat,
-            log.props(object=bpy_obj.name)
-        )
+        mats = [None, ] * len(bpy_mesh.polygons)
+        bpy_mesh.polygons.foreach_get('material_index', mats)
+        mats = set(mats)
+
+        if len(mats) == 1:
+            mat_index = list(mats)[0]
+            bpy_material = bpy_obj.material_slots[mat_index].material
+        else:
+            raise log.AppError(
+                text.error.many_mat,
+                log.props(object=bpy_obj.name)
+            )
 
     else:
         bpy_material = bpy_obj.material_slots[0].material
 
-        if not bpy_material:
-            raise log.AppError(
-                text.error.obj_empty_mat,
-                log.props(object=bpy_obj.name)
-            )
+    if not bpy_material:
+        raise log.AppError(
+            text.error.obj_empty_mat,
+            log.props(object=bpy_obj.name)
+        )
 
     # validate uv
-    uv_count = len(bpy_obj.data.uv_layers)
+    uv_count = len(bpy_mesh.uv_layers)
 
     if not uv_count:
         raise log.AppError(
@@ -47,7 +56,7 @@ def validate_material_and_uv(bpy_obj):
     if uv_count > 1:
         log.warn(
             text.warn.obj_many_uv,
-            exported_uv=bpy_obj.data.uv_layers.active.name,
+            exported_uv=bpy_mesh.uv_layers.active.name,
             mesh_object=bpy_obj.name
         )
 
