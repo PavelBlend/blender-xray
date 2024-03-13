@@ -17,13 +17,26 @@ MB = KB ** 2
 
 class XRAY_UL_viewer_list_item(bpy.types.UIList):
 
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+    def draw_item(
+            self,
+            context,
+            layout,
+            data,
+            item,
+            icon,
+            active_data,
+            active_propname
+        ):    # pragma: no cover
+
         if item.is_dir:
             layout.label(text=item.name, icon='FILE_FOLDER')
+
         else:
             row = layout.row()
+
             if not item.select:
                 row.active = False
+
             row.prop(item, 'select', text='')
             row.label(text=item.name, icon='FILE')
 
@@ -477,26 +490,35 @@ class XRAY_OT_viewer_import_files(utils.ie.BaseOperator):
         viewer = scene.xray.viewer
         remove_preview_data()
         count = 0
+
+        # selected
         if self.mode == 'IMPORT_SELECTED':
             for file in viewer.files:
                 if file.select:
                     import_file(file)
                     count += 1
+
+        # all
         elif self.mode == 'IMPORT_ALL':
             for file in viewer.files:
                 import_file(file)
                 count += 1
-        elif self.mode == 'IMPORT_ACTIVE':
+
+        # active
+        else:
             file = viewer.files[viewer.files_index]
             import_file(file)
             count += 1
+
         if scene.get('imported_objects'):
             scene['imported_objects'].clear()
             del scene['imported_objects']
+
         self.report(
             {'INFO'},
             '{0}: {1}'.format(text.get_text(text.warn.imported), count)
         )
+
         return {'FINISHED'}
 
 
@@ -518,22 +540,30 @@ class XRAY_OT_viewer_select_files(utils.ie.BaseOperator):
         scene = context.scene
         files = scene.xray.viewer.files
         count = 0
+
+        # all
         if self.mode == 'SELECT_ALL':
             for file in files:
                 file.select = True
                 count += 1
+
+        # none
         elif self.mode == 'DESELECT_ALL':
             for file in files:
                 file.select = False
                 count += 1
-        elif self.mode == 'INVERT_SELECTION':
+
+        # invert
+        else:
             for file in files:
                 file.select = not file.select
                 count += 1
+
         self.report(
             {'INFO'},
             '{0}: {1}'.format(text.get_text(text.warn.сhanged), count)
         )
+
         return {'FINISHED'}
 
 

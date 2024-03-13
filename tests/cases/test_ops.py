@@ -1233,3 +1233,27 @@ class TestOps(tests.utils.XRayTestCase):
                 transparency_alpha_value=0.1,
                 transparency_alpha_change=False
             )
+
+    def test_viewer(self):
+        viewer = bpy.context.scene.xray.viewer
+        folder = self.binpath()
+
+        bpy.ops.io_scene_xray.viewer_open_folder(directory=folder)
+
+        viewer.files_index = 0
+
+        bpy.ops.io_scene_xray.viewer_select_files(mode='DESELECT_ALL')
+        bpy.ops.io_scene_xray.viewer_select_files(mode='INVERT_SELECTION')
+        bpy.ops.io_scene_xray.viewer_select_files(mode='SELECT_ALL')
+
+        for index, file in enumerate(viewer.files):
+            if index >= 3:
+                file.select = False
+
+        bpy.ops.io_scene_xray.viewer_import_files(mode='IMPORT_ALL')
+        bpy.ops.io_scene_xray.viewer_import_files(mode='IMPORT_SELECTED')
+        bpy.ops.io_scene_xray.viewer_import_files(mode='IMPORT_ACTIVE')
+
+        bpy.ops.io_scene_xray.viewer_open_current_folder()
+        bpy.ops.io_scene_xray.viewer_preview_folder()
+        bpy.ops.io_scene_xray.viewer_close_folder()
