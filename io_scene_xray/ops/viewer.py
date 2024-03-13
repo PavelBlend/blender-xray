@@ -420,10 +420,11 @@ class XRAY_OT_viewer_open_current_folder(utils.ie.BaseOperator):
 
     @utils.set_cursor_state
     def execute(self, context):
-        scene = context.scene
-        folder = scene.xray.viewer.folder
-        folder = os.path.realpath(folder)
-        os.startfile(folder)
+        folder = os.path.realpath(context.scene.xray.viewer.folder)
+
+        if hasattr(os, 'startfile'):
+            os.startfile(folder)
+
         return {'FINISHED'}
 
 
