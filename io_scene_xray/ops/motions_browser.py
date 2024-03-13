@@ -50,7 +50,7 @@ class BaseBrowserOperator(utils.ie.BaseOperator):
 class XRAY_OT_close_motions_file(BaseBrowserOperator):
     '''Close animations list'''
 
-    bl_idname = 'xray.close_motions_file'
+    bl_idname = 'io_scene_xray.close_motions_file'
     bl_label = 'Close File'
 
     @utils.set_cursor_state
@@ -230,7 +230,7 @@ class XRAY_OT_browse_motions_file(BaseBrowserOperator):
     clears & populates animations list
     '''
 
-    bl_idname = 'xray.browse_motions_file'
+    bl_idname = 'io_scene_xray.browse_motions_file'
     bl_label = 'Open file'
     bl_description = \
         'Opens .skls/.omf file with collection of animations. ' \
@@ -409,7 +409,7 @@ def anim_index_changed(self, context):
 
 
 class XRAY_OT_motions_browser_select(BaseBrowserOperator):
-    bl_idname = 'xray.motions_browser_select'
+    bl_idname = 'io_scene_xray.motions_browser_select'
     bl_label = 'Select Animation'
 
     mode = bpy.props.EnumProperty(
@@ -444,7 +444,7 @@ class XRAY_OT_motions_browser_select(BaseBrowserOperator):
 
 
 class XRAY_OT_motions_browser_import(BaseBrowserOperator):
-    bl_idname = 'xray.motions_browser_import'
+    bl_idname = 'io_scene_xray.motions_browser_import'
     bl_label = 'Select Animation'
 
     mode = bpy.props.EnumProperty(

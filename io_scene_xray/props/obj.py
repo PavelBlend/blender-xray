@@ -403,7 +403,7 @@ def update_load_active_motion_refs(self, context):
     if not hasattr(context.active_object.data, 'bones'):
         return
     if not self.load_active_motion_refs:
-        bpy.ops.xray.close_motions_file()
+        bpy.ops.io_scene_xray.close_motions_file()
 
 
 class MotionRef(bpy.types.PropertyGroup):

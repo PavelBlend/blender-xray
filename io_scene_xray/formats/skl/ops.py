@@ -227,12 +227,12 @@ class XRAY_OT_import_skls(
         return super().invoke(context, event)
 
 
-class XRAY_OT_export_skl(
+class XRAY_OT_export_skl_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
 
-    bl_idname = 'xray_export.skl'
+    bl_idname = 'xray_export.skl_file'
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animation'
     bl_options = {'UNDO'}
@@ -268,7 +268,7 @@ class XRAY_OT_export_skl(
     @utils.ie.run_imp_exp_operator
     @utils.ie.invoke_require_armature
     def invoke(self, context, event):    # pragma: no cover
-        action_prop_name = XRAY_OT_export_skl.bl_idname + '.action'
+        action_prop_name = XRAY_OT_export_skl_file.bl_idname + '.action'
         self.action = getattr(context, action_prop_name, None)
 
         if not action:
@@ -458,8 +458,8 @@ class XRAY_OT_export_skls(utils.ie.BaseOperator):
 op_text = 'Skeletal Animation'
 
 
-class XRAY_OT_export_skl_batch(utils.ie.BaseOperator):
-    bl_idname = 'xray_export.skl_batch'
+class XRAY_OT_export_skl(utils.ie.BaseOperator):
+    bl_idname = 'xray_export.skl'
     bl_label = 'Export .skl'
     bl_description = 'Exports X-Ray skeletal animations'
     bl_options = {'UNDO'}
@@ -570,10 +570,10 @@ class XRAY_OT_export_skl_batch(utils.ie.BaseOperator):
 classes = (
     Motion,
     XRAY_OT_import_skls,
-    XRAY_OT_export_skl,
     XRAY_OT_export_skls,
     XRAY_OT_export_skls_file,
-    XRAY_OT_export_skl_batch
+    XRAY_OT_export_skl,
+    XRAY_OT_export_skl_file
 )
 
 

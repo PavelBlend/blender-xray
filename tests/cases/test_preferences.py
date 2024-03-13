@@ -147,4 +147,4 @@ class TestPreferences(utils.XRayTestCase):
             prefs.enable_err_import = value
 
     def test_prefs_preset(self):
-        bpy.ops.xray.prefs_preset_add(name='test_preset')
+        bpy.ops.io_scene_xray.prefs_preset_add(name='test_preset')

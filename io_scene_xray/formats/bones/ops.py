@@ -46,6 +46,7 @@ class XRAY_OT_import_bones(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ImportHelper
     ):
+
     bl_idname = 'xray_import.bones'
     bl_label = 'Import .bones'
     bl_description = 'Import X-Ray Bones Data'
@@ -229,7 +230,7 @@ class XRAY_OT_export_bones(utils.ie.BaseOperator):
             return {'CANCELLED'}
 
         if len(self.objects_list) == 1:
-            return bpy.ops.xray_export.bone('INVOKE_DEFAULT')
+            return bpy.ops.xray_export.bones_file('INVOKE_DEFAULT')
 
         pref = utils.version.get_preferences()
 
@@ -241,12 +242,12 @@ class XRAY_OT_export_bones(utils.ie.BaseOperator):
         return {'RUNNING_MODAL'}
 
 
-class XRAY_OT_export_bone(
+class XRAY_OT_export_bones_file(
         utils.ie.BaseOperator,
         bpy_extras.io_utils.ExportHelper
     ):
 
-    bl_idname = 'xray_export.bone'
+    bl_idname = 'xray_export.bones_file'
     bl_label = 'Export .bones'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
@@ -321,7 +322,7 @@ class XRAY_OT_export_bone(
 classes = (
     XRAY_OT_import_bones,
     XRAY_OT_export_bones,
-    XRAY_OT_export_bone
+    XRAY_OT_export_bones_file
 )
 
 

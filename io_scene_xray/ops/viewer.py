@@ -422,7 +422,7 @@ class XRAY_OT_viewer_open_current_folder(utils.ie.BaseOperator):
     def execute(self, context):
         folder = os.path.realpath(context.scene.xray.viewer.folder)
 
-        if hasattr(os, 'startfile'):
+        if hasattr(os, 'startfile') and not bpy.app.background:
             os.startfile(folder)
 
         return {'FINISHED'}

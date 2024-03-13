@@ -141,11 +141,11 @@ class XRAY_PT_action(ui.base.XRayPanel):
 
         # export operators
         layout.context_pointer_set(
-            formats.skl.ops.XRAY_OT_export_skl.bl_idname + '.action',
+            formats.skl.ops.XRAY_OT_export_skl_file.bl_idname + '.action',
             action
         )
         layout.operator(
-            formats.skl.ops.XRAY_OT_export_skl.bl_idname,
+            formats.skl.ops.XRAY_OT_export_skl_file.bl_idname,
             icon='EXPORT'
         )
 

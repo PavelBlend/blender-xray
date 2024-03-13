@@ -39,21 +39,21 @@ class TestBonesImport(utils.XRayTestCase):
 
         # export all
         arm_obj.name = NAME_TEST
-        bpy.ops.xray_export.bone(
+        bpy.ops.xray_export.bones_file(
             filepath=self.outpath(NAME_TEST),
             object_name=arm_obj.name,
             export_bone_parts=True,
             export_bone_properties=True
         )
         # export without bone properties
-        bpy.ops.xray_export.bone(
+        bpy.ops.xray_export.bones_file(
             filepath=self.outpath(NAME_TEST),
             object_name=arm_obj.name,
             export_bone_parts=True,
             export_bone_properties=False
         )
         # export without bone parts
-        bpy.ops.xray_export.bone(
+        bpy.ops.xray_export.bones_file(
             filepath=self.outpath(NAME_TEST),
             object_name=arm_obj.name,
             export_bone_parts=False,
@@ -61,7 +61,7 @@ class TestBonesImport(utils.XRayTestCase):
         )
         # test non-exportable bone
         arm_obj.data.bones[0].xray.exportable = False
-        bpy.ops.xray_export.bone(
+        bpy.ops.xray_export.bones_file(
             filepath=self.outpath(NAME_TEST),
             object_name=arm_obj.name,
             export_bone_parts=True,
@@ -72,7 +72,7 @@ class TestBonesImport(utils.XRayTestCase):
         # test breakable
         arm_obj.data.bones[0].xray.ikflags_breakable = False
         arm_obj.data.bones[1].xray.ikflags_breakable = True
-        bpy.ops.xray_export.bone(
+        bpy.ops.xray_export.bones_file(
             filepath=self.outpath(NAME_TEST),
             object_name=arm_obj.name,
             export_bone_parts=True,
@@ -83,7 +83,7 @@ class TestBonesImport(utils.XRayTestCase):
         for group in arm_obj.pose.bone_groups:
             arm_obj.pose.bone_groups.remove(group)
         arm_obj.pose.bone_groups.new(name='test')
-        bpy.ops.xray_export.bone(
+        bpy.ops.xray_export.bones_file(
             filepath=self.outpath(NAME_TEST),
             object_name=arm_obj.name,
             export_bone_parts=True,
@@ -93,7 +93,7 @@ class TestBonesImport(utils.XRayTestCase):
         # test blender ik limits
         arm_obj.name = NAME_IK_LIMITS
         arm_obj.data.xray.joint_limits_type = 'IK'
-        bpy.ops.xray_export.bone(
+        bpy.ops.xray_export.bones_file(
             filepath=self.outpath(NAME_IK_LIMITS),
             object_name=arm_obj.name,
             export_bone_parts=True,
@@ -107,7 +107,7 @@ class TestBonesImport(utils.XRayTestCase):
 
         # Act export
         arm_obj.name = NAME_NULL_BONEPARTS
-        bpy.ops.xray_export.bone(
+        bpy.ops.xray_export.bones_file(
             filepath=self.outpath(NAME_NULL_BONEPARTS),
             object_name=arm_obj.name,
             export_bone_parts=True,
