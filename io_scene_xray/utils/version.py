@@ -220,6 +220,16 @@ def link_object(obj):
             bpy.context.scene.objects.link(obj)
 
 
+def remove_object(obj):
+    if IS_277:
+        bpy.context.scene.objects.unlink(obj)
+        obj.user_clear()
+        bpy.data.objects.remove(obj)
+    
+    else:
+        bpy.data.objects.remove(obj, do_unlink=True)
+
+
 def set_active_object(obj):
     if IS_28:
         bpy.context.view_layer.objects.active = obj

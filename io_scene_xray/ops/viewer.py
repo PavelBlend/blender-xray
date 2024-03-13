@@ -110,7 +110,7 @@ def remove_preview_data():
                         action = bpy.data.actions.get(motion.name)
                         if action:
                             actions.add(action)
-                bpy.data.objects.remove(obj)
+                utils.version.remove_object(obj)
     data_list = (
         (bpy.data.meshes, meshes),
         (bpy.data.materials, materials),
