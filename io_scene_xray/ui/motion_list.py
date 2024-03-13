@@ -4,6 +4,7 @@ import bpy
 # addon modules
 from .. import formats
 from .. import utils
+from .. import log
 from .. import text
 from .. import rw
 
@@ -239,7 +240,12 @@ class XRAY_OT_paste_actions(bpy.types.Operator):
         xray = context.active_object.xray
 
         ltx = rw.ltx.LtxParser()
-        ltx.from_str(context.window_manager.clipboard)
+
+        try:
+            ltx.from_str(context.window_manager.clipboard)
+        except log.AppError:
+            return {'CANCELLED'}
+
         used_motions = [
             (motion.name, motion.export_name)
             for motion in xray.motions_collection
