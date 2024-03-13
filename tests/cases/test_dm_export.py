@@ -45,7 +45,10 @@ class TestDmExport(tests.utils.XRayTestCase):
         objs = self._create_dm_objects()
         obj = objs[0]
 
-        uv_layer = obj.data.uv_layers.new(name='test')
+        if bpy.app.version >= (2, 80, 0):
+            uv_layer = obj.data.uv_layers.new(name='test')
+        else:
+            uv_layer = obj.data.uv_textures.new(name='test')
 
         # Act
         bpy.ops.xray_export.dm_file(
@@ -53,8 +56,6 @@ class TestDmExport(tests.utils.XRayTestCase):
             filepath=self.outpath('test_error.dm'),
             texture_name_from_image_path=False
         )
-
-        obj.data.uv_layers.remove(uv_layer)
 
         # Assert
         self.assertReportsNotContains('ERROR')
@@ -68,8 +69,12 @@ class TestDmExport(tests.utils.XRayTestCase):
         objs = self._create_dm_objects()
         obj = objs[0]
 
-        uv_layer = obj.data.uv_layers[0]
-        obj.data.uv_layers.remove(uv_layer)
+        if bpy.app.version >= (2, 80, 0):
+            uv_layer = obj.data.uv_layers[0]
+            obj.data.uv_layers.remove(uv_layer)
+        else:
+            uv_layer = obj.data.uv_textures[0]
+            obj.data.uv_textures.remove(uv_layer)
 
         # Act
         bpy.ops.xray_export.dm_file(
