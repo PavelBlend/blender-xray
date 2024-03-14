@@ -63,19 +63,21 @@ class XRayTestCase(unittest.TestCase):
 
     def tearDown(self):
         TestReadyOperator.report_catcher = self.__prev_report_catcher
+
         if os.path.exists(self.__tmp):
-            if self.__save_test_data:
-                bpy.ops.wm.save_mainfile(
-                    filepath=os.path.join(self.__tmp, 'result.blend')
-                )
-                new_path = os.path.join(
-                    self.__tmp_base,
-                    self.__class__.__name__,
-                    self._testMethodName
-                )
-                os.renames(self.__tmp, new_path)
-            else:
-                shutil.rmtree(self.__tmp)
+            shutil.rmtree(self.__tmp)
+
+        if self.__save_test_data:
+            new_path = os.path.join(
+                self.__tmp_base,
+                self.__class__.__name__,
+                self._testMethodName
+            )
+            os.makedirs(new_path)
+            bpy.ops.wm.save_mainfile(
+                filepath=os.path.join(new_path, 'result.blend')
+            )
+
         addon_utils.disable('io_scene_xray')
 
     def assertFileExists(self, path, allow_empty=False, msg=None):
