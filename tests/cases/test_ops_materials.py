@@ -38,39 +38,43 @@ class TestOpsMaterials(tests.utils.XRayTestCase):
         bpy.ops.io_scene_xray.switch_render(mode='ALL_OBJECTS')
         bpy.ops.io_scene_xray.switch_render(mode='ALL_MATERIALS')
 
-    def test_convert_to_internal_general(self):
+    def convert_to_internal_or_cycles(self):
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_MATERIAL')
+        bpy.ops.io_scene_xray.convert_to_cycles(mode='ACTIVE_MATERIAL')
+
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_OBJECT')
+        bpy.ops.io_scene_xray.convert_to_cycles(mode='ACTIVE_OBJECT')
+
+        bpy.ops.io_scene_xray.convert_to_internal(mode='SELECTED_OBJECTS')
+        bpy.ops.io_scene_xray.convert_to_cycles(mode='SELECTED_OBJECTS')
+
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_OBJECTS')
+        bpy.ops.io_scene_xray.convert_to_cycles(mode='ALL_OBJECTS')
+
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_MATERIALS')
+        bpy.ops.io_scene_xray.convert_to_cycles(mode='ALL_MATERIALS')
+
+    def test_convert_general(self):
         if bpy.app.version >= (2, 80, 0):
             return
 
         objs = self.create_objects()
 
-        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_MATERIAL')
-        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_OBJECT')
-        bpy.ops.io_scene_xray.convert_to_internal(mode='SELECTED_OBJECTS')
-        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_OBJECTS')
-        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_MATERIALS')
+        self.convert_to_internal_or_cycles()
 
-    def test_convert_to_internal_without_materials(self):
+    def test_convert_without_materials(self):
         if bpy.app.version >= (2, 80, 0):
             return
 
         objs = self.create_objects_without_materials()
 
-        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_MATERIAL')
-        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_OBJECT')
-        bpy.ops.io_scene_xray.convert_to_internal(mode='SELECTED_OBJECTS')
-        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_OBJECTS')
-        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_MATERIALS')
+        self.convert_to_internal_or_cycles()
 
-    def test_convert_to_internal_without_objects(self):
+    def test_convert_without_objects(self):
         if bpy.app.version >= (2, 80, 0):
             return
 
-        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_MATERIAL')
-        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_OBJECT')
-        bpy.ops.io_scene_xray.convert_to_internal(mode='SELECTED_OBJECTS')
-        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_OBJECTS')
-        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_MATERIALS')
+        self.convert_to_internal_or_cycles()
 
     def create_objects(self):
         objs = []
