@@ -1,3 +1,4 @@
+import os
 import bpy
 import tests
 
@@ -75,6 +76,14 @@ class TestOpsMaterials(tests.utils.XRayTestCase):
             return
 
         self.convert_to_internal_or_cycles()
+
+    def test_create_material(self):
+        mat = bpy.data.materials.new('test')
+
+        bpy.ops.io_scene_xray.create_material(
+            material_name=mat.name,
+            filepath=os.path.join('test', 'folder', 'tex.dds')
+        )
 
     def create_objects(self):
         objs = []

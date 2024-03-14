@@ -599,8 +599,13 @@ class XRAY_OT_create_material(utils.ie.BaseOperator):
             if image_path != file_path:
                 image = None
 
-        if not image:
+        if not image and os.path.exists(file_path):
             image = bpy.data.images.load(file_path)
+
+        if not image:
+            image = bpy.data.images.new(image_name, 0, 0)
+            image.source = 'FILE'
+            image.filepath = file_path
 
         tex_folder = utils.ie.get_tex_dirs(self)[0]
 
