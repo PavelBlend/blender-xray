@@ -146,10 +146,19 @@ class TestDmExport(tests.utils.XRayTestCase):
         )
 
         # Assert
-        self.assertReportsContains(
-            'ERROR',
-            re.compile('Object has no material')
-        )
+
+        # error in blender 2.80
+        if bpy.app.version[0] == 2 and bpy.app.version[1] == 80:
+            self.assertReportsContains(
+                'ERROR',
+                re.compile('Object use empty material slot')
+            )
+
+        else:
+            self.assertReportsContains(
+                'ERROR',
+                re.compile('Object has no material')
+            )
 
     def test_error_empty_material_slot(self):
         # Arrange
