@@ -57,13 +57,17 @@ def get_materials(context, mode):
 
 def get_image_nodes(node, image_nodes):
     for node_input in node.inputs:
+
         from_node = None
         for link in node_input.links:
             from_node = link.from_node
             break
+
         if from_node:
+
             if from_node.type in utils.version.IMAGE_NODES:
                 image_nodes.append(from_node)
+
             get_image_nodes(from_node, image_nodes)
 
 

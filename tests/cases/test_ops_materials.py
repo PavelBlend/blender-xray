@@ -10,10 +10,6 @@ class TestOpsMaterials(tests.utils.XRayTestCase):
 
         objs = self.create_objects()
 
-        tests.utils.set_active_object(objs[0])
-        tests.utils.select_object(objs[0])
-        tests.utils.select_object(objs[1])
-
         bpy.ops.io_scene_xray.switch_render(mode='ACTIVE_MATERIAL')
         bpy.ops.io_scene_xray.switch_render(mode='ACTIVE_OBJECT')
         bpy.ops.io_scene_xray.switch_render(mode='SELECTED_OBJECTS')
@@ -24,20 +20,7 @@ class TestOpsMaterials(tests.utils.XRayTestCase):
         if bpy.app.version >= (2, 80, 0):
             return
 
-        objs = []
-
-        for i in range(3):
-            name = 'test'
-            mesh = bpy.data.meshes.new(name)
-            obj = bpy.data.objects.new(name, mesh)
-            tests.utils.link_object(obj)
-            objs.append(obj)
-
-        tests.utils.set_active_object(objs[0])
-        tests.utils.select_object(objs[0])
-        tests.utils.select_object(objs[1])
-
-        bpy.ops.object.material_slot_add()
+        objs = self.create_objects_without_materials()
 
         bpy.ops.io_scene_xray.switch_render(mode='ACTIVE_MATERIAL')
         bpy.ops.io_scene_xray.switch_render(mode='ACTIVE_OBJECT')
@@ -55,6 +38,39 @@ class TestOpsMaterials(tests.utils.XRayTestCase):
         bpy.ops.io_scene_xray.switch_render(mode='ALL_OBJECTS')
         bpy.ops.io_scene_xray.switch_render(mode='ALL_MATERIALS')
 
+    def test_convert_to_internal_general(self):
+        if bpy.app.version >= (2, 80, 0):
+            return
+
+        objs = self.create_objects()
+
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_MATERIAL')
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_OBJECT')
+        bpy.ops.io_scene_xray.convert_to_internal(mode='SELECTED_OBJECTS')
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_OBJECTS')
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_MATERIALS')
+
+    def test_convert_to_internal_without_materials(self):
+        if bpy.app.version >= (2, 80, 0):
+            return
+
+        objs = self.create_objects_without_materials()
+
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_MATERIAL')
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_OBJECT')
+        bpy.ops.io_scene_xray.convert_to_internal(mode='SELECTED_OBJECTS')
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_OBJECTS')
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_MATERIALS')
+
+    def test_convert_to_internal_without_objects(self):
+        if bpy.app.version >= (2, 80, 0):
+            return
+
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_MATERIAL')
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ACTIVE_OBJECT')
+        bpy.ops.io_scene_xray.convert_to_internal(mode='SELECTED_OBJECTS')
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_OBJECTS')
+        bpy.ops.io_scene_xray.convert_to_internal(mode='ALL_MATERIALS')
 
     def create_objects(self):
         objs = []
@@ -85,6 +101,7 @@ class TestOpsMaterials(tests.utils.XRayTestCase):
 
                 node_tree = mat.node_tree
                 nodes = node_tree.nodes
+                nodes.clear()
 
                 image = bpy.data.images.new(name, 0, 0)
                 image.source = 'FILE'
@@ -97,5 +114,29 @@ class TestOpsMaterials(tests.utils.XRayTestCase):
 
                 node_tree.links.new(image_node.outputs['Color'], shader_node.inputs['Color'])
                 node_tree.links.new(shader_node.outputs['BSDF'], output_node.inputs['Surface'])
+
+        tests.utils.set_active_object(objs[0])
+        tests.utils.select_object(objs[0])
+        tests.utils.select_object(objs[1])
+
+        bpy.ops.object.material_slot_add()
+
+        return objs
+
+    def create_objects_without_materials(self):
+        objs = []
+
+        for i in range(3):
+            name = 'test'
+            mesh = bpy.data.meshes.new(name)
+            obj = bpy.data.objects.new(name, mesh)
+            tests.utils.link_object(obj)
+            objs.append(obj)
+
+        tests.utils.set_active_object(objs[0])
+        tests.utils.select_object(objs[0])
+        tests.utils.select_object(objs[1])
+
+        bpy.ops.object.material_slot_add()
 
         return objs
