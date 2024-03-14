@@ -21,6 +21,8 @@ def get_object_materials(bpy_object, materials):
 
 def get_materials(context, mode):
     materials = set()
+
+    # active material
     if mode == 'ACTIVE_MATERIAL':
         if not context.active_object:
             return materials
@@ -28,19 +30,28 @@ def get_materials(context, mode):
             materials.add(context.active_object.active_material)
         else:
             return materials
+
+    # active object
     elif mode == 'ACTIVE_OBJECT':
         if not context.active_object:
             return materials
         get_object_materials(context.active_object, materials)
+
+    # selected objects
     elif mode == 'SELECTED_OBJECTS':
         for bpy_object in context.selected_objects:
             get_object_materials(bpy_object, materials)
+
+    # all objects
     elif mode == 'ALL_OBJECTS':
         for bpy_object in bpy.data.objects:
             get_object_materials(bpy_object, materials)
-    elif mode == 'ALL_MATERIALS':
+
+    # all materials
+    else:
         for material in bpy.data.materials:
             materials.add(material)
+
     return materials
 
 
@@ -86,24 +97,32 @@ class XRAY_OT_switch_render(utils.ie.BaseOperator):
     @utils.set_cursor_state
     def execute(self, context):
         scene = context.scene
+
+        # set render engine
         if scene.render.engine == 'CYCLES':
             scene.render.engine = 'BLENDER_RENDER'
+
         elif scene.render.engine == 'BLENDER_RENDER':
             scene.render.engine = 'CYCLES'
+
         else:
             scene.render.engine = 'BLENDER_RENDER'
 
+        # collect materials
         materials = get_materials(context, self.mode)
 
+        # change use nodes
         if scene.render.engine == 'CYCLES':
             for material in materials:
                 material.use_nodes = True
-        elif scene.render.engine == 'BLENDER_RENDER':
+
+        else:
             for material in materials:
                 material.use_nodes = False
 
         utils.draw.redraw_areas()
         self.report({'INFO'}, 'Changed {} material(s)'.format(len(materials)))
+
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
