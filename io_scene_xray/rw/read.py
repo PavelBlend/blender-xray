@@ -162,6 +162,9 @@ class PackedReader:
         new_offs = self.__offs = FastBytes.skip_str_at_a(data, offs)
         bts = data[offs : new_offs - 1]
 
+        if bts[-1] == 0xd:    # '\r' char
+            bts = bts[0 : -1]
+
         try:
             return str(bts, 'cp1251')
 
