@@ -20,7 +20,6 @@ translations_table = (
     (warn.meshes_folder_not_spec, 'Папка с мешами не указана в настройках аддона'),
     (warn.env_tex, 'Материал имеет некорректный тип ноды изображения (Environment Texture)'),
     (warn.no_bone_parent, 'Не найдена родительская кость'),
-    (warn.invalid_image_path, 'Изображение имеет некорректный путь'),
     (warn.no_file, 'Файл не выделен'),
     (warn.img_bad_image_path, 'Изображение не находится в папке с текстурами'),
     (warn.use_shader_tex, mat_many_tex + '. Экспортирована текстура шейдера'),
