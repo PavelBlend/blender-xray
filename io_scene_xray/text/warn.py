@@ -29,7 +29,6 @@ anm_rot_mode = 'Object has rotation mode other than YXZ. Animation has been bake
 
 # anm import
 anm_conv_linear = 'Motion shapes converted to LINEAR'
-anm_unsupport_shape = 'Unsupported shapes are found, and will be replaced'
 
 # bones import
 bones_not_have_boneparts = 'BONES file does not have boneparts'

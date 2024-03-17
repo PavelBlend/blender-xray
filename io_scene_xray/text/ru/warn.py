@@ -38,7 +38,6 @@ translations_table = (
 
     # anm import
     (warn.anm_conv_linear, 'Анимационные ключи были сконвертированы в LINEAR'),
-    (warn.anm_unsupport_shape, 'Найдены ключи с неподдерживаемой интерполяцией и были заменены на поддерживаемую'),
 
     # bones import
     (warn.bones_not_have_boneparts, 'BONES файл не имеет bone parts'),

@@ -25,7 +25,6 @@ class ImportAnmContext(contexts.ImportContext):
 
 
 def _import(file_path, creader, context):
-    warn_list = []
     chunk_data = creader.next(fmt.Chunks.MAIN, error=False)
     if chunk_data is None:
         raise log.AppError(
@@ -99,21 +98,14 @@ def _import(file_path, creader, context):
         )
         if use_interpolate:
             converted_warrning = True
+
     if converted_warrning:
         log.warn(
             text.warn.anm_conv_linear,
             anm_name=name,
             shapes=unique_shapes
         )
-    for (shapes, replacement, name) in set(warn_list):
-        keys_count = warn_list.count((shapes, replacement, name))
-        log.warn(
-            text.warn.anm_unsupport_shape,
-            shapes=shapes,
-            replacement=replacement,
-            filename=name,
-            keys_count=keys_count
-        )
+
     return frame_start, frame_end
 
 
