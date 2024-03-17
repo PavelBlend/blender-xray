@@ -95,7 +95,6 @@ def _import(file_path, creader, context):
             fps,
             koef,
             name,
-            warn_list,
             unique_shapes
         )
         if use_interpolate:

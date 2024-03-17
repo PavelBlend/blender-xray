@@ -11,10 +11,15 @@ from ... import utils
 
 
 @log.with_context('envelope')
-def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shapes):
-    bhv_fmt = 'I'
+def import_envelope(reader, ver, fcurve, fps, koef, name, unique_shapes):
+
+    # behavior (extrapolation)
+
     if ver > 3:
         bhv_fmt = 'B'
+    else:
+        bhv_fmt = 'I'
+
     bhv0, bhv1 = map(interp.Behavior, reader.getf('<2' + bhv_fmt))
 
     if bhv0 != bhv1:
@@ -24,141 +29,138 @@ def import_envelope(reader, ver, fcurve, fps, koef, name, warn_list, unique_shap
             replacement=bhv0.name
         )
         bhv1 = bhv0
+
     if bhv0 == interp.Behavior.CONSTANT:
         fcurve.extrapolation = 'CONSTANT'
+
     elif bhv0 == interp.Behavior.LINEAR:
         fcurve.extrapolation = 'LINEAR'
+
     else:
         bhv1 = interp.Behavior.CONSTANT
+        fcurve.extrapolation = 'CONSTANT'
+
         log.warn(
             text.warn.envelope_bad_behavior,
             behavior=bhv0.name,
             replacement=bhv1.name
         )
         bhv0 = bhv1
-        fcurve.extrapolation = 'CONSTANT'
 
-    replace_unsupported_to = 'BEZIER'
-    unsupported_occured = set()
-    use_interpolate = False
+    # keyframes
+
     values = []
     times = []
     shapes = []
     tcb = []
     params = []
-    count_fmt = 'I'
+
+    use_interpolate = False
+
     if ver > 3:
         count_fmt = 'H'
+    else:
+        count_fmt = 'I'
+
     keyframes_count = reader.getf('<' + count_fmt)[0]
+
     if ver > 3:
         for _ in range(keyframes_count):
             value = reader.getf('<f')[0]
             time = reader.getf('<f')[0] * fps
             shape = interp.Shape(reader.getf('<B')[0])
-            if shape != interp.Shape.STEPPED:
-                tension = reader.getq16f(-32.0, 32.0)
-                continuity = reader.getq16f(-32.0, 32.0)
-                bias = reader.getq16f(-32.0, 32.0)
-                param = []
-                for param_index in range(4):
-                    param_value = reader.getq16f(-32.0, 32.0)
-                    param.append(param_value)
-            else:
+
+            if shape == interp.Shape.STEPPED:
                 tension = 0.0
                 continuity = 0.0
                 bias = 0.0
                 param = (0.0, 0.0, 0.0, 0.0)
+
+            else:
+                tension = reader.getq16f(-32.0, 32.0)
+                continuity = reader.getq16f(-32.0, 32.0)
+                bias = reader.getq16f(-32.0, 32.0)
+                param_1 = reader.getq16f(-32.0, 32.0)
+                param_2 = reader.getq16f(-32.0, 32.0)
+                param_3 = reader.getq16f(-32.0, 32.0)
+                param_4 = reader.getq16f(-32.0, 32.0)
+                param = (param_1, param_2, param_3, param_4)
+
             values.append(value)
             times.append(time)
             shapes.append(shape)
             tcb.append((tension, continuity, bias))
             params.append(param)
-            if shape not in (
-                    interp.Shape.TCB,
-                    interp.Shape.HERMITE,
-                    interp.Shape.BEZIER_1D,
-                    interp.Shape.LINEAR,
-                    interp.Shape.STEPPED,
-                    interp.Shape.BEZIER_2D
-                ):
-                unsupported_occured.add(shape.name)
+
             unique_shapes.add(shape.name)
-            if shape in (
-                    interp.Shape.TCB,
-                    interp.Shape.HERMITE,
-                    interp.Shape.BEZIER_1D,
-                    interp.Shape.BEZIER_2D
-                ):
+
+            if shape not in (interp.Shape.STEPPED, interp.Shape.LINEAR):
                 use_interpolate = True
+
     else:
         for _ in range(keyframes_count):
             value = reader.getf('<f')[0]
             time = reader.getf('<f')[0] * fps
             shape = interp.Shape(reader.uint32() & 0xff)
             tension, continuity, bias = reader.getf('<3f')
-            param = reader.getf('<4f')    # params
+            param = reader.getf('<4f')
+
             values.append(value)
             times.append(time)
             shapes.append(shape)
             tcb.append((tension, continuity, bias))
             params.append(param)
-            if shape not in (
-                    interp.Shape.TCB,
-                    interp.Shape.HERMITE,
-                    interp.Shape.BEZIER_1D,
-                    interp.Shape.LINEAR,
-                    interp.Shape.STEPPED,
-                    interp.Shape.BEZIER_2D
-                ):
-                unsupported_occured.add(shape.name)
+
             unique_shapes.add(shape.name)
-            if shape in (
-                    interp.Shape.TCB,
-                    interp.Shape.HERMITE,
-                    interp.Shape.BEZIER_1D,
-                    interp.Shape.BEZIER_2D
-                ):
+
+            if shape not in (interp.Shape.STEPPED, interp.Shape.LINEAR):
                 use_interpolate = True
 
     frames_coords = []
 
+    # insert TCB, Hermite, Bezier 1D, Bezier 2D keyframes
     if use_interpolate:
         start_frame = int(round(times[0], 0))
         end_frame = int(round(times[-1], 0))
+
         values, times = imp.interpolate_keys(
-            start_frame, end_frame, values, times, shapes, tcb, params
+            start_frame,
+            end_frame,
+            values,
+            times,
+            shapes,
+            tcb,
+            params
         )
+
         for time, value in zip(times, values):
             frames_coords.extend((time, value * koef))
+
         utils.action.insert_keyframes_for_single_curve(frames_coords, fcurve)
 
+    # insert Stepped, Linear keyframes
     else:
         key_count = len(times)
         interps = []
-        for index, (time, value, shape_prev) in enumerate(zip(times, values, shapes)):
+
+        for index, (time, value) in enumerate(zip(times, values)):
             frames_coords.extend((time, value * koef))
+
             if index + 1 < key_count:
                 shape = shapes[index + 1]
             else:
                 shape = shapes[-1]
+
             if shape == interp.Shape.LINEAR:
                 interps.append('LINEAR')
-            elif shape == interp.Shape.STEPPED:
-                interps.append('CONSTANT')
             else:
-                interps.append(replace_unsupported_to)
+                interps.append('CONSTANT')
+
         utils.action.insert_keyframes_for_single_curve(
             frames_coords,
             fcurve,
             interps=interps
         )
-
-    if unsupported_occured:
-        warn_list.append((
-            tuple(unsupported_occured),
-            replace_unsupported_to,
-            name
-        ))
 
     return use_interpolate
 
