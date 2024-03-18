@@ -93,7 +93,6 @@ def _import(file_path, creader, context):
             fcurve,
             fps,
             koef,
-            name,
             unique_shapes
         )
         if use_interpolate:
