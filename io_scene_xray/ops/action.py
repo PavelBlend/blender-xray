@@ -3,6 +3,7 @@ import bpy
 
 # addon modules
 from .. import utils
+from .. import log
 from .. import text
 from .. import rw
 
@@ -48,7 +49,12 @@ def read_buffer_data():
     if xray:
         buffer_text = bpy.context.window_manager.clipboard
         ltx = rw.ltx.LtxParser()
-        ltx.from_str(buffer_text)
+
+        try:
+            ltx.from_str(buffer_text)
+        except log.AppError:
+            return
+
         section = ltx.sections.get(SECTION_NAME, None)
 
         if not section:
