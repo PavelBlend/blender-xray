@@ -12,9 +12,12 @@ SECTION_NAME = 'action_xray_settings'
 
 def get_xray_settings():
     obj = bpy.context.active_object
+
     if not obj:
         return
+
     anim_data = obj.animation_data
+
     if anim_data:
         action = anim_data.action
         xray = action.xray
@@ -24,6 +27,7 @@ def get_xray_settings():
 def write_buffer_data():
     xray = get_xray_settings()
     buffer_text = ''
+
     if xray:
         buffer_text += '[{}]\n'.format(SECTION_NAME)
         buffer_text += 'fps = {}\n'.format(xray.fps)
@@ -34,27 +38,37 @@ def write_buffer_data():
         buffer_text += 'power = {}\n'.format(xray.power)
         buffer_text += 'bonepart_name = "{}"\n'.format(xray.bonepart_name)
         buffer_text += 'bonestart_name = "{}"\n'.format(xray.bonestart_name)
+
     bpy.context.window_manager.clipboard = buffer_text
 
 
 def read_buffer_data():
     xray = get_xray_settings()
+
     if xray:
         buffer_text = bpy.context.window_manager.clipboard
         ltx = rw.ltx.LtxParser()
         ltx.from_str(buffer_text)
         section = ltx.sections.get(SECTION_NAME, None)
+
         if not section:
             return
+
         params = section.params
+
         xray.fps = float(params.get('fps'))
         xray.flags = int(params.get('flags'))
         xray.speed = float(params.get('speed'))
         xray.accrue = float(params.get('accrue'))
         xray.falloff = float(params.get('falloff'))
         xray.power = float(params.get('power'))
-        xray.bonepart_name = params.get('bonepart_name')
-        xray.bonestart_name = params.get('bonestart_name')
+
+        type_fx = xray.flags & 0x1
+
+        if type_fx:
+            xray.bonestart_name = params.get('bonestart_name')
+        else:
+            xray.bonepart_name = params.get('bonepart_name')
 
 
 class XRAY_OT_copy_action_settings(utils.ie.BaseOperator):
