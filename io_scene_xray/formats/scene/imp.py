@@ -32,8 +32,8 @@ def import_(filepath, chunked_reader, import_context):
     if not version_chunk or not data_chunk:
         utils.draw.show_message(
             text.error.scene_incorrect_file,
-            (text.get_text(text.error.scene_err_info), ),
-            text.get_text(text.warn.info_title),
+            (text.get_tip(text.error.scene_err_info), ),
+            text.get_tip(text.warn.info_title),
             'ERROR',
             operators=('wm.url_open', ),
             operators_props=({'url': URL_FOR_ERR, }, ),

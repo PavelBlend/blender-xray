@@ -131,9 +131,9 @@ class LtxParser:
 
             if sdk_root is None:
                 utils.draw.show_message(
-                    text.get_text(text.error.ltx_no_param),
+                    text.get_tip(text.error.ltx_no_param),
                     ('$sdk_root$', ),
-                    text.get_text(text.error.error_title),
+                    text.get_tip(text.error.error_title),
                     'ERROR'
                 )
                 raise BaseException('error')

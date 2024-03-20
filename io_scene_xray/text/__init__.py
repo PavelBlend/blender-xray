@@ -10,7 +10,7 @@ from . import ru
 MESSAGE_CONTEXT = '*'
 
 
-def get_text(message):
+def get_tip(message):
     return bpy.app.translations.pgettext_tip(message, MESSAGE_CONTEXT)
 
 

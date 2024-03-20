@@ -165,7 +165,7 @@ def import_bone(
                 xray.shape,
                 'type',
                 reader.getf('<H')[0],
-                text.get_text(text.warn.ogf_bad_shape),
+                text.get_tip(text.warn.ogf_bad_shape),
                 4
             )
             xray.shape.flags = reader.getf('<H')[0]
@@ -189,7 +189,7 @@ def import_bone(
                 ik,
                 'type',
                 value,
-                text.get_text(text.warn.ogf_bad_joint),
+                text.get_tip(text.warn.ogf_bad_joint),
                 6
             )
 

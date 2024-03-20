@@ -244,7 +244,7 @@ class XRAY_OT_export_anm(utils.ie.BaseOperator):
                 obj_info = ': "{}"'.format(obj_name)
                 self.report(
                     {'ERROR'},
-                    text.get_text(text.error.no_anim_data) + obj_info
+                    text.get_tip(text.error.no_anim_data) + obj_info
                 )
             else:
                 self.report({'ERROR'}, text.error.sel_no_anim_data)

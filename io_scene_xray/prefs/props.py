@@ -57,9 +57,9 @@ def update_paths(prefs, context):
         not_found_paths = list(not_found_paths)
         not_found_paths.sort()
         utils.draw.show_message(
-            text.get_text(text.error.file_folder_not_found),
+            text.get_tip(text.error.file_folder_not_found),
             not_found_paths,
-            text.get_text(text.error.error_title),
+            text.get_tip(text.error.error_title),
             'ERROR'
         )
 
@@ -643,9 +643,9 @@ def _auto_path(prefs, prop_name, suffix, checker):
         except log.AppError:
             traceback.print_exc()
             utils.draw.show_message(
-                text.get_text(text.error.ltx_invalid_syntax),
+                text.get_tip(text.error.ltx_invalid_syntax),
                 (prefs.fs_ltx_file, sys.exc_info()[1]),
-                text.get_text(text.error.error_title),
+                text.get_tip(text.error.error_title),
                 'ERROR'
             )
             _clear_paths()
@@ -660,9 +660,9 @@ def _auto_path(prefs, prop_name, suffix, checker):
 
         if dir_path is None:
             utils.draw.show_message(
-                text.get_text(text.error.ltx_no_param),
+                text.get_tip(text.error.ltx_no_param),
                 (prop_key, ),
-                text.get_text(text.error.error_title),
+                text.get_tip(text.error.error_title),
                 'ERROR'
             )
             _clear_paths()

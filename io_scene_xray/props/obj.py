@@ -366,18 +366,18 @@ def load_motion_refs(self, context):
         if obj.xray.motions_browser.file_format == 'SKLS':
             folder = _get_motions_folder('objects_folder')
             ext = os.extsep + 'skls'
-            message = text.get_text(text.warn.objs_folder_not_spec)
+            message = text.get_tip(text.warn.objs_folder_not_spec)
 
         else:
             folder = _get_motions_folder('meshes_folder')
             ext = os.extsep + 'omf'
-            message = text.get_text(text.warn.meshes_folder_not_spec)
+            message = text.get_tip(text.warn.meshes_folder_not_spec)
 
         if not folder:
             utils.draw.show_message(
                 message,
                 (),
-                text.get_text(text.error.error_title),
+                text.get_tip(text.error.error_title),
                 'ERROR'
             )
             return
@@ -388,11 +388,11 @@ def load_motion_refs(self, context):
             ops.motions_browser.init_browser(self, context, file_path)
             return
 
-        message = text.get_text(text.error.file_not_found)
+        message = text.get_tip(text.error.file_not_found)
         utils.draw.show_message(
             message,
             (file_path, ),
-            text.get_text(text.error.error_title),
+            text.get_tip(text.error.error_title),
             'ERROR'
         )
 

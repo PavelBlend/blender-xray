@@ -48,13 +48,13 @@ class XRAY_PT_skls_animations(ui.base.XRayPanel):
                 active = True
             else:
                 layout.label(
-                    text=text.get_text(text.error.is_not_arm),
+                    text=text.get_tip(text.error.is_not_arm),
                     icon='ERROR'
                 )
                 return
         else:
             layout.label(
-                text=text.get_text(text.error.no_active_obj),
+                text=text.get_tip(text.error.no_active_obj),
                 icon='ERROR'
             )
             return
@@ -324,7 +324,7 @@ class XRAY_PT_transforms(ui.base.XRayPanel):
         lay = self.layout
         if not context.active_object:
             lay.label(
-                text=text.get_text(text.error.no_active_obj),
+                text=text.get_tip(text.error.no_active_obj),
                 icon='ERROR'
             )
             return
@@ -518,13 +518,13 @@ class XRAY_PT_armature_tools(ui.base.XRayPanel):
             else:
                 col = col.row().box().column(align=True)
                 col.label(
-                    text=text.get_text(text.error.is_not_arm),
+                    text=text.get_tip(text.error.is_not_arm),
                     icon='ERROR'
                 )
         else:
             col = col.row().box().column(align=True)
             col.label(
-                text=text.get_text(text.error.no_active_obj),
+                text=text.get_tip(text.error.no_active_obj),
                 icon='ERROR'
             )
 
@@ -548,7 +548,7 @@ class XRAY_PT_armature_tools(ui.base.XRayPanel):
             pose_mode = False
             pose_lay = col.row().box().column(align=True)
             pose_lay.label(
-                text=text.get_text(text.error.not_pose_mode),
+                text=text.get_tip(text.error.not_pose_mode),
                 icon='ERROR'
             )
         else:
@@ -565,7 +565,7 @@ class XRAY_PT_armature_tools(ui.base.XRayPanel):
             if not context.active_pose_bone:
                 limit_lay = pose_lay.box().column(align=True)
                 limit_lay.label(
-                    text=text.get_text(text.error.no_active_bone),
+                    text=text.get_tip(text.error.no_active_bone),
                     icon='ERROR'
                 )
 
@@ -636,21 +636,21 @@ class XRAY_PT_rig(ui.base.XRayPanel):
         if obj:
             if obj.type != 'ARMATURE':
                 col.label(
-                    text=text.get_text(text.error.is_not_arm),
+                    text=text.get_tip(text.error.is_not_arm),
                     icon='ERROR'
                 )
                 return
 
         else:
             col.label(
-                text=text.get_text(text.error.no_active_obj),
+                text=text.get_tip(text.error.no_active_obj),
                 icon='ERROR'
             )
             return
 
         if context.mode != 'POSE':
             col.label(
-                text=text.get_text(text.error.not_pose_mode),
+                text=text.get_tip(text.error.not_pose_mode),
                 icon='ERROR'
             )
             return

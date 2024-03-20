@@ -43,7 +43,7 @@ class Logger:
 
     def _format_message(self, message):
         message = str(message)
-        message = text.get_text(message)
+        message = text.get_tip(message)
         return message
 
     def _format_data(self, data):
@@ -210,7 +210,7 @@ class Logger:
             text_history.from_string(history)
 
             # report info
-            full_log_text = text.get_text(text.warn.full_log)
+            full_log_text = text.get_tip(text.warn.full_log)
             self._report(
                 {'WARNING'},
                 '{0}: "{1}"'.format(full_log_text, text_log.name)

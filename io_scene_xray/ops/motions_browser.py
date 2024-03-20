@@ -107,7 +107,7 @@ def init_browser(self, context, filepath):
         anims_count = len(file.animations)
         report(
             {'INFO'},
-            text.get_text(text.warn.browser_done).format(anims_count)
+            text.get_tip(text.warn.browser_done).format(anims_count)
         )
 
 
@@ -492,7 +492,7 @@ class XRAY_OT_motions_browser_import(BaseBrowserOperator):
 
         self.report(
             {'INFO'},
-            text.get_text(text.warn.browser_import) + ': ' + str(count)
+            text.get_tip(text.warn.browser_import) + ': ' + str(count)
         )
 
         return {'FINISHED'}

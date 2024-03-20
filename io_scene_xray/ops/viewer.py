@@ -517,7 +517,7 @@ class XRAY_OT_viewer_import_files(utils.ie.BaseOperator):
 
         self.report(
             {'INFO'},
-            '{0}: {1}'.format(text.get_text(text.warn.imported), count)
+            '{0}: {1}'.format(text.get_tip(text.warn.imported), count)
         )
 
         return {'FINISHED'}
@@ -562,7 +562,7 @@ class XRAY_OT_viewer_select_files(utils.ie.BaseOperator):
 
         self.report(
             {'INFO'},
-            '{0}: {1}'.format(text.get_text(text.warn.сhanged), count)
+            '{0}: {1}'.format(text.get_tip(text.warn.сhanged), count)
         )
 
         return {'FINISHED'}

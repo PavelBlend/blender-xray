@@ -53,7 +53,7 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
         utils.version.set_active_object(None)
         self.report(
             {'INFO'},
-            text.get_text(text.warn.incorrect_uv_objs_count) + \
+            text.get_tip(text.warn.incorrect_uv_objs_count) + \
             ': {}'.format(len(bad_objects))
         )
         return {'FINISHED'}
@@ -210,7 +210,7 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
 
         self.report(
             {'INFO'},
-            text.get_text(text.warn.invalid_face_objs_count) + \
+            text.get_tip(text.warn.invalid_face_objs_count) + \
             ': {}'.format(len(bad_objects))
         )
 

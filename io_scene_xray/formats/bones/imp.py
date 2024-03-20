@@ -88,7 +88,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones):
                 xray.shape,
                 'type',
                 shape_type,
-                text.get_text(text.warn.ogf_bad_shape),
+                text.get_tip(text.warn.ogf_bad_shape),
                 4
             )
 
@@ -120,7 +120,7 @@ def _import_bone_data(data, arm_obj_name, bpy_bones):
                 ik,
                 'type',
                 joint_type,
-                text.get_text(text.warn.ogf_bad_joint),
+                text.get_tip(text.warn.ogf_bad_joint),
                 6
             )
 

@@ -284,7 +284,7 @@ def import_ik_data(context, chunks, ogf_chunks, visual):
             xray.shape,
             'type',
             shape_type,
-            text.get_text(text.warn.ogf_bad_shape),
+            text.get_tip(text.warn.ogf_bad_shape),
             4
         )
 
@@ -307,7 +307,7 @@ def import_ik_data(context, chunks, ogf_chunks, visual):
             ik,
             'type',
             joint_type,
-            text.get_text(text.warn.ogf_bad_joint),
+            text.get_tip(text.warn.ogf_bad_joint),
             6
         )
 

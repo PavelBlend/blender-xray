@@ -71,7 +71,7 @@ class XRAY_OT_remove_rig(utils.ie.BaseOperator):
 
     def draw(self, context):    # pragma: no cover
         self.layout.label(
-            text=text.get_text(text.warn.remove_rig_warn),
+            text=text.get_tip(text.warn.remove_rig_warn),
             icon='ERROR'
         )
 

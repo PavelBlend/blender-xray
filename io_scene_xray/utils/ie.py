@@ -79,7 +79,7 @@ def has_selected_files(operator):
     if not has_sel:
         operator.report(
             {'ERROR'},
-            text.get_text(text.error.no_sel_files)
+            text.get_tip(text.error.no_sel_files)
         )
 
     return has_sel
@@ -404,7 +404,7 @@ def invoke_require_armature(func):
                     arm_objs.append(obj)
 
             if len(arm_objs) > 1:
-                self.report({'ERROR'}, text.get_text(text.error.many_arm_objs))
+                self.report({'ERROR'}, text.get_tip(text.error.many_arm_objs))
                 return {'CANCELLED'}
 
             elif len(arm_objs) == 1:
@@ -413,11 +413,11 @@ def invoke_require_armature(func):
         if not arm_obj:
 
             if not active:
-                self.report({'ERROR'}, text.get_text(text.error.no_active_obj))
+                self.report({'ERROR'}, text.get_tip(text.error.no_active_obj))
                 return {'CANCELLED'}
 
             if active.type != 'ARMATURE':
-                self.report({'ERROR'}, text.get_text(text.error.is_not_arm))
+                self.report({'ERROR'}, text.get_tip(text.error.is_not_arm))
                 return {'CANCELLED'}
 
         return func(self, context, event)
@@ -550,7 +550,7 @@ def run_imp_exp_operator(method):    # pragma: no cover
 
                 key_str = shift + ctrl + alt + oskey + key_type.upper()
 
-                header_text = text.get_text(text.warn.keymap_assign_more_one)
+                header_text = text.get_tip(text.warn.keymap_assign_more_one)
                 draw.show_message(
                     '',    # message
                     [],    # elements

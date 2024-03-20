@@ -56,23 +56,23 @@ def check_for_updates():
     download_url, last_tag = has_update()
 
     if download_url:
-        message = text.get_text(text.warn.new_update_available)
+        message = text.get_tip(text.warn.new_update_available)
         last_tag_str = 'v{0}.{1}.{2}'.format(*last_tag)
         utils.draw.show_message(
             message,
             (last_tag_str, ),
-            text.get_text(text.warn.info_title),
+            text.get_tip(text.warn.info_title),
             'INFO',
             operators=[XRAY_OT_install_update.bl_idname, ],
             operators_props=[{'download_url': download_url, }, ]
         )
 
     else:
-        message = text.get_text(text.warn.has_no_update)
+        message = text.get_tip(text.warn.has_no_update)
         utils.draw.show_message(
             message,
             (),
-            text.get_text(text.warn.info_title),
+            text.get_tip(text.warn.info_title),
             'INFO'
         )
 
@@ -132,7 +132,7 @@ class XRAY_OT_notify_update(utils.ie.BaseOperator):
 
                 if download_url:
                     ver_text = 'v{0}.{1}.{2}'.format(*last_ver)
-                    message = text.get_text(text.warn.new_update_available)
+                    message = text.get_tip(text.warn.new_update_available)
                     report_text = '{0}: {1}'.format(message, ver_text)
                     self.report({'INFO'}, report_text)
 

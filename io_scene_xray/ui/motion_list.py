@@ -115,7 +115,7 @@ class XRAY_OT_add_all_actions(bpy.types.Operator):
         utils.draw.redraw_areas()
         self.report(
             {'INFO'},
-            text.get_text(text.warn.added_motions) + ': ' + str(added_count)
+            text.get_tip(text.warn.added_motions) + ': ' + str(added_count)
         )
 
         return {'FINISHED'}

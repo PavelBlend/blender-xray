@@ -60,9 +60,9 @@ def show_message(
         message_props=None
     ):
 
-    message = text.get_text(message_text).capitalize()
+    message = text.get_tip(message_text).capitalize()
 
-    message_type = text.get_text(message_type).capitalize()
+    message_type = text.get_tip(message_type).capitalize()
     if message_props:
         message_type = '{0}: {1}'.format(message_type, message_props)
 
