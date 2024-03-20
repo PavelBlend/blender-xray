@@ -7,9 +7,10 @@ import xray_io
 MAIN_CHUNK = 0x1100
 
 
-def dump_envelopes(packed_reader, version):
+def dump_envelopes(packed_reader, version, frame_start):
 
     for curve_index in range(6):
+        print('    curve_index: {}'.format(curve_index))
 
         if version > 3:
             behaviour_1 = packed_reader.getf('<B')[0]
@@ -29,7 +30,8 @@ def dump_envelopes(packed_reader, version):
         print('    frames_count: {}'.format(frames_count))
 
         for frame_index in range(frames_count):
-            print('        frame: {}'.format(frame_index))
+            print('        frame index: {}'.format(frame_index))
+            print('        frame: {}'.format(frame_start + frame_index))
 
             value = packed_reader.getf('<f')[0]
             time = packed_reader.getf('<f')[0]
@@ -60,26 +62,23 @@ def dump_envelopes(packed_reader, version):
                     print('            param_4: {}'.format(param_4))
 
             else:
-                shape = packed_reader.getf('H')[0]
+                shape = packed_reader.getf('I')[0]
+                tension = packed_reader.getf('<f')[0]
+                continuity = packed_reader.getf('<f')[0]
+                bias = packed_reader.getf('<f')[0]
+                param_1 = packed_reader.getf('<f')[0]
+                param_2 = packed_reader.getf('<f')[0]
+                param_3 = packed_reader.getf('<f')[0]
+                param_4 = packed_reader.getf('<f')[0]
 
                 print('            shape: {}'.format(shape))
-
-                if shape != 4:
-                    tension = packed_reader.getf('<f')[0]
-                    continuity = packed_reader.getf('<f')[0]
-                    bias = packed_reader.getf('<f')[0]
-                    param_1 = packed_reader.getf('<f')[0]
-                    param_2 = packed_reader.getf('<f')[0]
-                    param_3 = packed_reader.getf('<f')[0]
-                    param_4 = packed_reader.getf('<f')[0]
-
-                    print('            tension: {}'.format(tension))
-                    print('            continuity: {}'.format(continuity))
-                    print('            bias: {}'.format(bias))
-                    print('            param_1: {}'.format(param_1))
-                    print('            param_2: {}'.format(param_2))
-                    print('            param_3: {}'.format(param_3))
-                    print('            param_4: {}'.format(param_4))
+                print('            tension: {}'.format(tension))
+                print('            continuity: {}'.format(continuity))
+                print('            bias: {}'.format(bias))
+                print('            param_1: {}'.format(param_1))
+                print('            param_2: {}'.format(param_2))
+                print('            param_3: {}'.format(param_3))
+                print('            param_4: {}'.format(param_4))
 
 
 def dump_anm(chunks):
@@ -100,13 +99,13 @@ def dump_anm(chunks):
         if version not in (3, 4, 5):
             raise Exception('unsupported anm version: {}'.format(version))
 
-        print('name: {}'.format(name))
+        print('name: "{}"'.format(name))
         print('frame_start: {}'.format(frame_start))
         print('frame_end: {}'.format(frame_end))
         print('fps: {}'.format(fps))
         print('version: {}'.format(version))
 
-        dump_envelopes(packed_reader, version)
+        dump_envelopes(packed_reader, version, frame_start)
 
 
 def main():
