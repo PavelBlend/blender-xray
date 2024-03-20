@@ -304,8 +304,10 @@ def export_envelope(writer, ver, act, fcurve, fps, koef, epsilon=const.EPSILON):
 
     if fcurve.extrapolation == 'CONSTANT':
         behavior = interp.Behavior.CONSTANT
+
     elif fcurve.extrapolation == 'LINEAR':
         behavior = interp.Behavior.LINEAR
+
     else:
         behavior = interp.Behavior.LINEAR
         log.warn(
@@ -325,19 +327,39 @@ def export_envelope(writer, ver, act, fcurve, fps, koef, epsilon=const.EPSILON):
     unsupported_occured = set()
 
     def generate_keys(keyframe_points):
-        prev_kf = None
-        for curr_kf in keyframe_points:
+        first_keyframe = keyframe_points[0]
+
+        if first_keyframe.interpolation == 'CONSTANT':
             shape = interp.Shape.STEPPED
+
+        elif first_keyframe.interpolation == 'LINEAR':
+            shape = interp.Shape.LINEAR
+
+        else:
+            shape = replace_unsupported_to
+            unsupported_occured.add(first_keyframe.interpolation)
+
+        prev_kf = None
+
+        for curr_kf in keyframe_points:
             if prev_kf is not None:
+
                 if prev_kf.interpolation == 'CONSTANT':
                     shape = interp.Shape.STEPPED
+
                 elif prev_kf.interpolation == 'LINEAR':
                     shape = interp.Shape.LINEAR
+
                 else:
-                    unsupported_occured.add(prev_kf.interpolation)
                     shape = replace_unsupported_to
+                    unsupported_occured.add(prev_kf.interpolation)
+
             prev_kf = curr_kf
-            yield interp.KeyFrame(curr_kf.co.x / fps, curr_kf.co.y / koef, shape)
+            yield interp.KeyFrame(
+                curr_kf.co.x / fps,
+                curr_kf.co.y / koef,
+                shape
+            )
 
     frame_start, frame_end = act.frame_range
     time_end = (frame_end - frame_start) / fps
