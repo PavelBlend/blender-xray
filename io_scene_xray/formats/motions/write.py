@@ -53,8 +53,13 @@ def export_keyframes(writer, keyframes, fps, time_end, anm_ver):
     # so that the animation doesn't change its length
     if time_end is not None:
         if (time_end - keyframe.time) > (1 / fps):
+
             writer.putf('<2f', keyframe.value, time_end)
             writer.putf(shape_format, interp.Shape.STEPPED.value)
+
+            if anm_ver == 3:
+                writer.data.extend(params_data)
+
             count += 1
 
     return count
