@@ -28,7 +28,18 @@ translations_table = (
     (iface.use_custom_thresh, 'Использовать Настраеваемые Пороги'),
     (iface.loc_thresh, 'Порог Позиции'),
     (iface.rot_thresh, 'Порог Вращения'),
-    (iface.export_skl, 'Экспорт .skl')
+    (iface.export_skl, 'Экспорт .skl'),
+
+    # armature panel
+    (iface.display_bone_shapes, 'Отображать Формы Костей'),
+    (iface.display_bone_mass_centers, 'Отображать Центры Масс Костей'),
+    (iface.crosshair_size, 'Размер Перекрестия'),
+    (iface.display_bone_limits, 'Отображать Лимиты Костей'),
+    (iface.gizmo_radius, 'Радиус Гизмо'),
+    (iface.limit_x, 'Ограничение по X'),
+    (iface.limit_y, 'Ограничение по Y'),
+    (iface.limit_z, 'Ограничение по Z'),
+    (iface.use_limits, 'Использовать Лимиты')
 
 )
 

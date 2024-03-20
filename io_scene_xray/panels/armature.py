@@ -55,31 +55,69 @@ class XRAY_PT_armature(ui.base.XRayPanel):
                 icon='ERROR'
             )
 
-        layout.prop(data, 'display_bone_shapes', toggle=True)
+        layout.prop(
+            data,
+            'display_bone_shapes',
+            text=text.get_iface(text.iface.display_bone_shapes),
+            toggle=True
+        )
 
         # mass
         col = layout.column(align=True)
-        col.prop(data, 'display_bone_mass_centers', toggle=True)
+        col.prop(
+            data,
+            'display_bone_mass_centers',
+            text=text.get_iface(text.iface.display_bone_mass_centers),
+            toggle=True
+        )
 
         row = col.row(align=True)
         row.active = data.display_bone_mass_centers
-        row.prop(data, 'bone_mass_center_cross_size')
+        row.prop(
+            data,
+            'bone_mass_center_cross_size',
+            text=text.get_iface(text.iface.crosshair_size),
+        )
 
         # joint limits
         col = layout.column(align=True)
-        col.prop(data, 'display_bone_limits', toggle=True)
+        col.prop(
+            data,
+            'display_bone_limits',
+            text=text.get_iface(text.iface.display_bone_limits),
+            toggle=True
+        )
 
         column = col.column(align=True)
         column.active = data.display_bone_limits
-        column.prop(data, 'display_bone_limits_radius')
+        column.prop(
+            data,
+            'display_bone_limits_radius',
+            text=text.get_iface(text.iface.gizmo_radius),
+        )
 
         row = column.row(align=True)
-        row.prop(data, 'display_bone_limit_x', toggle=True)
-        row.prop(data, 'display_bone_limit_y', toggle=True)
-        row.prop(data, 'display_bone_limit_z', toggle=True)
+        row.prop(
+            data,
+            'display_bone_limit_x',
+            text=text.get_iface(text.iface.limit_x),
+            toggle=True
+        )
+        row.prop(
+            data,
+            'display_bone_limit_y',
+            text=text.get_iface(text.iface.limit_y),
+            toggle=True
+        )
+        row.prop(
+            data,
+            'display_bone_limit_z',
+            text=text.get_iface(text.iface.limit_z),
+            toggle=True
+        )
 
         row = layout.row(align=True)
-        row.label(text='Use Limits:')
+        row.label(text=text.get_iface(text.iface.use_limits) + ':')
         row.prop(data, 'joint_limits_type', expand=True)
 
 

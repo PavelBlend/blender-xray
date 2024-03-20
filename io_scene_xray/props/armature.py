@@ -20,7 +20,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
         default=False
     )
     bone_mass_center_cross_size = bpy.props.FloatProperty(
-        name='Cross Size',
+        name='Сrosshair Size',
         default=0.02,
         min=0.00001,
         precision=5
