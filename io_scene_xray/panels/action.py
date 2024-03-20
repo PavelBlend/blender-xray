@@ -5,6 +5,7 @@ import bpy
 from .. import ui
 from .. import utils
 from .. import formats
+from .. import text
 from .. import ops
 
 
@@ -47,18 +48,27 @@ class XRAY_PT_action(ui.base.XRayPanel):
         return panel_used
 
     def draw_refine_props(self, layout, data):
-        layout.prop(data, 'autobake_custom_refine', toggle=True)
+        layout.prop(data, 'autobake_custom_refine', toggle=True, text=text.get_iface(text.iface.use_custom_thresh))
 
         col = layout.column(align=True)
         col.active = data.autobake_custom_refine
 
-        col.prop(data, 'autobake_refine_location', text='Location Threshold')
-        col.prop(data, 'autobake_refine_rotation', text='Rotation Threshold')
+        col.prop(
+            data,
+            'autobake_refine_location',
+            text=text.get_iface(text.iface.loc_thresh)
+        )
+
+        col.prop(
+            data,
+            'autobake_refine_rotation',
+            text=text.get_iface(text.iface.rot_thresh)
+        )
 
     def draw_bake_props(self, layout, data, autobake_props):
         col = layout.column(align=True)
 
-        col.label(text='Bake:')
+        col.label(text=text.get_iface(text.iface.bake) + ':')
 
         if autobake_props:
             row = col.row(align=True)
@@ -77,23 +87,28 @@ class XRAY_PT_action(ui.base.XRayPanel):
 
         col = layout.column(align=True)
 
-        col.prop(data, 'fps', text='FPS')
+        col.prop(data, 'fps', text=text.get_iface(text.iface.fps), translate=False)
 
         if obj.type != 'ARMATURE':
             # *.anm format properties
             self.draw_bake_props(layout, data, True)
             return
 
-        col.prop(data, 'speed', text='Speed')
-        col.prop(data, 'accrue', text='Accrue')
-        col.prop(data, 'falloff', text='Falloff')
+        col.prop(data, 'speed', text=text.get_iface(text.iface.speed))
+        col.prop(data, 'accrue', text=text.get_iface(text.iface.accrue))
+        col.prop(data, 'falloff', text=text.get_iface(text.iface.falloff))
 
-        layout.prop(data, 'flags_fx', text='Type FX', toggle=True)
+        layout.prop(
+            data,
+            'flags_fx',
+            text=text.get_iface(text.iface.type_fx),
+            toggle=True
+        )
 
         row = layout.row(align=True)
 
         if data.flags_fx:
-            row.label(text='Start Bone:')
+            row.label(text=text.get_iface(text.iface.start_bone) + ':')
             row.prop_search(
                 data,
                 'bonestart_name',
@@ -101,10 +116,10 @@ class XRAY_PT_action(ui.base.XRayPanel):
                 'bones',
                 text=''
             )
-            layout.prop(data, 'power', text='Power')
+            layout.prop(data, 'power', text=text.get_iface(text.iface.power))
 
         else:
-            row.label(text='Bone Part:')
+            row.label(text=text.get_iface(text.iface.bone_part) + ':')
             row.prop_search(
                 data,
                 'bonepart_name',
@@ -116,17 +131,52 @@ class XRAY_PT_action(ui.base.XRayPanel):
             col = layout.column(align=True)
             row = col.row(align=True)
 
-            row.prop(data, 'flags_stopatend', text='Stop', toggle=True)
-            row.prop(data, 'flags_nomix', text='No Mix', toggle=True)
-            row.prop(data, 'flags_syncpart', text='Sync', toggle=True)
+            row.prop(
+                data,
+                'flags_stopatend',
+                text=text.get_iface(text.iface.stop),
+                toggle=True
+            )
+            row.prop(
+                data,
+                'flags_nomix',
+                text=text.get_iface(text.iface.no_mix),
+                toggle=True
+            )
+            row.prop(
+                data,
+                'flags_syncpart',
+                text=text.get_iface(text.iface.sync),
+                toggle=True
+            )
 
             row = col.row(align=True)
-            row.prop(data, 'flags_footsteps', text='Foot Steps', toggle=True)
-            row.prop(data, 'flags_movexform', text='Move XForm', toggle=True)
+            row.prop(
+                data,
+                'flags_footsteps',
+                text=text.get_iface(text.iface.foot_steps),
+                toggle=True
+            )
+            row.prop(
+                data,
+                'flags_movexform',
+                text=text.get_iface(text.iface.move_xform),
+                toggle=True
+            )
 
             row = col.row(align=True)
-            row.prop(data, 'flags_idle', text='Idle', toggle=True)
-            row.prop(data, 'flags_weaponbone', text='Weapon Bone', toggle=True)
+            row.prop(
+                data,
+                'flags_idle',
+                text=text.get_iface(text.iface.idle),
+                toggle=True
+            )
+            row.prop(
+                data,
+                'flags_weaponbone',
+                text=text.get_iface(text.iface.weapon_bone),
+                toggle=True
+            )
 
         # *.skls bake settings
         layout.separator()
@@ -135,7 +185,7 @@ class XRAY_PT_action(ui.base.XRayPanel):
 
         # copy/paste operators
         row = layout.row(align=True)
-        row.label(text='Settings:')
+        row.label(text=text.get_iface(text.iface.settings) + ':')
         row.operator(ops.action.XRAY_OT_copy_action_settings.bl_idname)
         row.operator(ops.action.XRAY_OT_paste_action_settings.bl_idname)
 
@@ -146,7 +196,8 @@ class XRAY_PT_action(ui.base.XRayPanel):
         )
         layout.operator(
             formats.skl.ops.XRAY_OT_export_skl_file.bl_idname,
-            icon='EXPORT'
+            icon='EXPORT',
+            text=text.get_iface(text.iface.export_skl)
         )
 
 

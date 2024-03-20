@@ -10,6 +10,10 @@ from . import ru
 MESSAGE_CONTEXT = '*'
 
 
+def get_iface(message):
+    return bpy.app.translations.pgettext_iface(message, MESSAGE_CONTEXT)
+
+
 def get_tip(message):
     return bpy.app.translations.pgettext_tip(message, MESSAGE_CONTEXT)
 
