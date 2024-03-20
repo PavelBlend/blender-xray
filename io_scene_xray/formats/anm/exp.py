@@ -64,7 +64,7 @@ def _export(export_context, chunked_writer):
                 packed_writer,
                 ver,
                 bpy_act.xray,
-                baked_action.fcurves
+                baked_action
             )
         finally:
             utils.version.remove_action(baked_action)
@@ -74,7 +74,7 @@ def _export(export_context, chunked_writer):
             packed_writer,
             ver,
             bpy_act.xray,
-            bpy_act.fcurves
+            bpy_act
         )
 
     # writing chunk
@@ -144,12 +144,12 @@ axis_keys = {
 }
 
 
-def _export_action_data(packed_writer, ver, xray, fcurves):
+def _export_action_data(packed_writer, ver, xray, act):
     # collect fcurve axes
     loc_axes = []
     rot_axes = []
 
-    for fcurve in fcurves:
+    for fcurve in act.fcurves:
         if fcurve.data_path == 'location':
             loc_axes.append(fcurve.array_index)
 
@@ -175,7 +175,7 @@ def _export_action_data(packed_writer, ver, xray, fcurves):
 
     # export
     for curve_index in range(6):
-        fcurve = fcurves[(0, 2, 1, 5, 3, 4)[curve_index]]
+        fcurve = act.fcurves[(0, 2, 1, 5, 3, 4)[curve_index]]
         coef = (1, 1, 1, -1, -1, -1)[curve_index]
 
         epsilon = motions.const.EPSILON
@@ -188,6 +188,7 @@ def _export_action_data(packed_writer, ver, xray, fcurves):
         motions.envelope.export_envelope(
             packed_writer,
             ver,
+            act,
             fcurve,
             xray.fps,
             coef,

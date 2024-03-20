@@ -44,11 +44,13 @@ def _export_motion_data(
     fps = xray.fps
     bones_count = len(bones_anims)
 
+    ver = const.FORMAT_VERSION_6
+
     # write motion parameters
     writer.puts(motion_name)
     writer.putf('<2I', 0, length)    # start frame, end frame
     writer.putf('<f', fps)
-    writer.putf('<H', const.FORMAT_VERSION_6)
+    writer.putf('<H', ver)
     writer.putf('<B', xray.flags)
     writer.putf('<H', xray.bonepart)
     writer.putf('<4f', xray.speed, xray.accrue, xray.falloff, xray.power)
@@ -129,8 +131,9 @@ def _export_motion_data(
             keyframes_count = write.export_keyframes(
                 keyframes_writer,
                 keyframes,
-                time_end=time_end,
-                fps=fps
+                fps,
+                time_end,
+                ver
             )
             writer.putf('<H', keyframes_count)
             writer.putp(keyframes_writer)

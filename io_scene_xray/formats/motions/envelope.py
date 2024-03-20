@@ -299,8 +299,9 @@ def import_envelope(reader, ver, fcurve, fps, koef, shapes):
 
 
 @log.with_context('envelope')
-def export_envelope(writer, ver, fcurve, fps, koef, epsilon=const.EPSILON):
+def export_envelope(writer, ver, act, fcurve, fps, koef, epsilon=const.EPSILON):
     behavior = None
+
     if fcurve.extrapolation == 'CONSTANT':
         behavior = interp.Behavior.CONSTANT
     elif fcurve.extrapolation == 'LINEAR':
@@ -312,9 +313,12 @@ def export_envelope(writer, ver, fcurve, fps, koef, epsilon=const.EPSILON):
             extrapolation=fcurve.extrapolation,
             replacement=behavior.name
         )
-    behav_fmt = 'I'
+
     if ver > 3:
         behav_fmt = 'B'
+    else:
+        behav_fmt = 'I'
+
     writer.putf('<2' + behav_fmt, behavior.value, behavior.value)
 
     replace_unsupported_to = interp.Shape.TCB
@@ -335,13 +339,18 @@ def export_envelope(writer, ver, fcurve, fps, koef, epsilon=const.EPSILON):
             prev_kf = curr_kf
             yield interp.KeyFrame(curr_kf.co.x / fps, curr_kf.co.y / koef, shape)
 
+    frame_start, frame_end = act.frame_range
+    time_end = (frame_end - frame_start) / fps
+
     kf_writer = rw.write.PackedWriter()
     keyframes = utilites.refine_keys(generate_keys(fcurve.keyframe_points), epsilon)
-    count = write.export_keyframes(kf_writer, keyframes, anm_ver=ver)
+    count = write.export_keyframes(kf_writer, keyframes, fps, time_end, ver)
 
-    count_fmt = 'I'
     if ver > 3:
         count_fmt = 'H'
+    else:
+        count_fmt = 'I'
+
     writer.putf('<' + count_fmt, count)
     writer.putp(kf_writer)
 
