@@ -4,3 +4,14 @@ coverage.xml
 *.bat
 *.zip
 .coverage
+utils/*.anm
+utils/*.bones
+utils/*.group
+utils/level
+utils/*.object
+utils/*.ogf
+utils/*.omf
+utils/*.part
+utils/*.level
+utils/*.skl
+utils/*.skls
