@@ -5,6 +5,7 @@ import mathutils
 # addon modules
 from . import base_bone
 from ... import formats
+from ... import text
 from ... import utils
 
 
@@ -42,7 +43,10 @@ class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
             super().draw(layout, context)
             return
 
-        layout.operator(XRAY_OT_edit_center.bl_idname, text='Edit Center')
+        layout.operator(
+            XRAY_OT_edit_center.bl_idname,
+            text=text.get_iface(text.iface.edit_center)
+        )
 
     def _create_helper(self, name):
         helper = bpy.data.objects.new(name, None)

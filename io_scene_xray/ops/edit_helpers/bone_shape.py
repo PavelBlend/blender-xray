@@ -9,6 +9,7 @@ import mathutils
 # addon modules
 from . import base_bone
 from ... import utils
+from ... import text
 from ... import formats
 
 
@@ -47,7 +48,10 @@ class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
             super().draw(layout, context)
             return
 
-        layout.operator(XRAY_OT_edit_shape.bl_idname, text='Edit Shape')
+        layout.operator(
+            XRAY_OT_edit_shape.bl_idname,
+            text=text.get_iface(text.iface.edit_shape)
+        )
 
     def _create_helper(self, name):
         mesh = bpy.data.meshes.new(name=name)

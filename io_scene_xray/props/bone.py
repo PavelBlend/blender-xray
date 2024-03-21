@@ -32,7 +32,7 @@ class XRayShapeProps(bpy.types.PropertyGroup):
             ('1', 'Box', ''),
             ('2', 'Sphere', ''),
             ('3', 'Cylinder', ''),
-            ('4', 'Custom', '')
+            ('4', 'Custom ', '')
         ),
         update=lambda self, ctx: ops.edit_helpers.bone_shape.HELPER.update(),
     )

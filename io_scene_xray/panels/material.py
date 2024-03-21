@@ -35,11 +35,11 @@ class XRAY_MT_material(ui.dynamic_menu.XRAY_MT_xr_template):
     )
 
 
-def gen_xr_selector(layout, data, name, text):
+def gen_xr_selector(layout, data, name, menu, text):
     row = layout.row(align=True)
     row.prop(data, name, text=text)
     ui.dynamic_menu.DynamicMenu.set_layout_context_data(row, data)
-    row.menu('XRAY_MT_' + text.lower(), icon='TRIA_DOWN')
+    row.menu('XRAY_MT_' + menu, icon='TRIA_DOWN')
 
 
 def draw_level_prop(lay, data, prop_name, prop_text, prop_type):
@@ -94,9 +94,9 @@ class XRAY_PT_material(ui.base.XRayPanel):
             XRAY_MT_surface_presets,
             XRAY_OT_add_surface_preset
         )
-        gen_xr_selector(box, data, 'eshader', 'Shader')
-        gen_xr_selector(box, data, 'cshader', 'Compile')
-        gen_xr_selector(box, data, 'gamemtl', 'Material')
+        gen_xr_selector(box, data, 'eshader', 'shader', 'Shader')
+        gen_xr_selector(box, data, 'cshader', 'compile', 'Compile')
+        gen_xr_selector(box, data, 'gamemtl', 'material', 'Material')
         box.prop(data, 'flags_twosided', text='Two Sided', toggle=True)
 
         pref = utils.version.get_preferences()
