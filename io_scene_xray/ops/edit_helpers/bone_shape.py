@@ -16,7 +16,11 @@ from ... import formats
 class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
     def draw(self, layout, context):    # pragma: no cover
         if self.is_active(context):
-            layout.operator(XRAY_OT_apply_shape.bl_idname, icon='FILE_TICK')
+            layout.operator(
+                XRAY_OT_apply_shape.bl_idname,
+                text=text.get_iface(text.iface.apply_shape),
+                icon='FILE_TICK'
+            )
 
             col = layout.column(align=True)
 
@@ -25,7 +29,7 @@ class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
 
             op = col.operator(
                 XRAY_OT_fit_shape.bl_idname,
-                text='Fit Shape',
+                text=text.get_iface(text.iface.fit_shape),
                 icon=utils.version.get_icon('BBOX')
             )
             op.mode = 'FIT'
@@ -236,7 +240,7 @@ def apply_shape(bone, shape_matrix):
 
 class XRAY_OT_apply_shape(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_bone_shape_apply'
-    bl_label = 'Apply Shape'
+    bl_label = text.iface.apply_shape
     bl_options = {'UNDO'}
 
     def execute(self, context):
@@ -256,7 +260,7 @@ class XRAY_OT_apply_shape(utils.ie.BaseOperator):
 
 class XRAY_OT_fit_shape(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_bone_shape_fit'
-    bl_label = 'Fit Shape'
+    bl_label = text.iface.fit_shape
     bl_options = {'REGISTER', 'UNDO'}
 
     mode = bpy.props.EnumProperty(

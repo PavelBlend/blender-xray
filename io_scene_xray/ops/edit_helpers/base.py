@@ -2,6 +2,7 @@
 import bpy
 
 # addon modules
+from ... import text
 from ... import utils
 
 
@@ -55,7 +56,11 @@ class AbstractHelper:
 
     def draw(self, layout, context):    # pragma: no cover
         if self.is_active(context):
-            layout.operator(XRAY_OT_edit_cancel.bl_idname, icon='X')
+            layout.operator(
+                XRAY_OT_edit_cancel.bl_idname,
+                text=text.get_iface(text.iface.cancel),
+                icon='X'
+            )
 
     def is_active(self, context=bpy.context):
         obj = context.active_object
@@ -106,7 +111,7 @@ def get_object_helper(context):
 
 class XRAY_OT_edit_cancel(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_cancel'
-    bl_label = 'Cancel'
+    bl_label = text.iface.cancel
     bl_description = 'Cancel editing and remove a helper object'
 
     @classmethod

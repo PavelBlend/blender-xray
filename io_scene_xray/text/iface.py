@@ -64,3 +64,10 @@ joint = 'Joint'
 wheel = 'Wheel '
 slider = 'Slider '
 custom = 'Custom '
+
+# edit helper
+cancel = 'Cancel'
+apply_shape = 'Apply Shape'
+fit_shape = 'Fit Shape'
+apply_center = 'Apply Center'
+align_center = 'Align Center'

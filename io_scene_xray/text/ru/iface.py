@@ -70,7 +70,14 @@ translations_table = (
     (iface.joint, 'Сустав'),
     (iface.wheel, 'Колесо'),
     (iface.slider, 'Скольжение'),
-    (iface.custom, 'Настраиваемый')
+    (iface.custom, 'Настраиваемый'),
+
+    # edit helper
+    (iface.cancel, 'Отмена'),
+    (iface.apply_shape, 'Применить Форму'),
+    (iface.fit_shape, 'Вписать Форму'),
+    (iface.apply_center, 'Применить Центр'),
+    (iface.align_center, 'Выровнять Центр')
 
 )
 

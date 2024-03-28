@@ -38,8 +38,16 @@ class _BoneCenterEditHelper(base_bone.AbstractBoneEditHelper):
 
     def draw(self, layout, context):    # pragma: no cover
         if self.is_active(context):
-            layout.operator(XRAY_OT_apply_center.bl_idname, icon='FILE_TICK')
-            layout.operator(XRAY_OT_align_center.bl_idname, icon='CURSOR')
+            layout.operator(
+                XRAY_OT_apply_center.bl_idname,
+                text=text.get_iface(text.iface.apply_center),
+                icon='FILE_TICK'
+            )
+            layout.operator(
+                XRAY_OT_align_center.bl_idname,
+                text=text.get_iface(text.iface.align_center),
+                icon='CURSOR'
+            )
             super().draw(layout, context)
             return
 
@@ -84,7 +92,7 @@ class XRAY_OT_edit_center(utils.ie.BaseOperator):
 
 class XRAY_OT_align_center(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_bone_center_align'
-    bl_label = 'Align Center'
+    bl_label = text.iface.align_center
 
     @classmethod
     def poll(cls, context):
@@ -116,7 +124,7 @@ class XRAY_OT_align_center(utils.ie.BaseOperator):
 
 class XRAY_OT_apply_center(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.edit_bone_center_apply'
-    bl_label = 'Apply Center'
+    bl_label = text.iface.apply_center
     bl_options = {'UNDO'}
 
     def execute(self, context):
