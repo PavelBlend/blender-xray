@@ -65,9 +65,15 @@ wheel = 'Wheel '
 slider = 'Slider '
 custom = 'Custom '
 
-# edit helper
+# edit helper panel
 cancel = 'Cancel'
 apply_shape = 'Apply Shape'
 fit_shape = 'Fit Shape'
 apply_center = 'Apply Center'
 align_center = 'Align Center'
+
+# material panel
+surface = 'Sufrace'
+surface_presets = 'Surface Presets'
+compile_shader = 'Compile'
+two_sided = 'Two Sided'

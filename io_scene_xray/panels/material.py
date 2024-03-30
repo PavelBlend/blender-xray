@@ -5,6 +5,7 @@ import bl_operators
 # addon modules
 from .. import ui
 from .. import utils
+from .. import text
 from .. import formats
 
 
@@ -88,16 +89,29 @@ class XRAY_PT_material(ui.base.XRayPanel):
         data = material.xray
 
         box = layout.box()
-        box.label(text='Surface:')
+        box.label(text=text.get_iface(text.iface.surface)+':')
         utils.draw.draw_presets(
             box,
             XRAY_MT_surface_presets,
             XRAY_OT_add_surface_preset
         )
+
         gen_xr_selector(box, data, 'eshader', 'shader', 'Shader')
-        gen_xr_selector(box, data, 'cshader', 'compile', 'Compile')
+        gen_xr_selector(
+            box,
+            data,
+            'cshader',
+            'compile',
+            text.get_iface(text.iface.compile_shader)
+        )
         gen_xr_selector(box, data, 'gamemtl', 'material', 'Material')
-        box.prop(data, 'flags_twosided', text='Two Sided', toggle=True)
+
+        box.prop(
+            data,
+            'flags_twosided',
+            text=text.get_iface(text.iface.two_sided),
+            toggle=True
+        )
 
         pref = utils.version.get_preferences()
         panel_used = (
@@ -126,7 +140,7 @@ class XRAY_PT_material(ui.base.XRayPanel):
 
 
 class XRAY_MT_surface_presets(bpy.types.Menu):
-    bl_label = 'Surface Presets'
+    bl_label = text.get_iface(text.iface.surface_presets)
     preset_subdir = 'io_scene_xray/surfaces'
     preset_operator = 'script.execute_preset'
     draw = bpy.types.Menu.draw_preset

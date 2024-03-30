@@ -72,12 +72,18 @@ translations_table = (
     (iface.slider, 'Скольжение'),
     (iface.custom, 'Настраиваемый'),
 
-    # edit helper
+    # edit helper panel
     (iface.cancel, 'Отмена'),
     (iface.apply_shape, 'Применить Форму'),
     (iface.fit_shape, 'Вписать Форму'),
     (iface.apply_center, 'Применить Центр'),
-    (iface.align_center, 'Выровнять Центр')
+    (iface.align_center, 'Выровнять Центр'),
+
+    # material panel
+    (iface.surface, 'Поверхность'),
+    (iface.surface_presets, 'Предустановки Поверхности'),
+    (iface.compile_shader, 'Компилятор'),
+    (iface.two_sided, 'Двусторонний'),
 
 )
 
