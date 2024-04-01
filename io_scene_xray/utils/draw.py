@@ -4,11 +4,24 @@ import gpu
 
 # addon modules
 from . import version
-from .. import ui
 from .. import text
 
 if not version.IS_34:
     import bgl
+
+
+preview_collections = {}
+STALKER_ICON_NAME = 'stalker'
+
+
+def get_stalker_icon():
+    pcoll = preview_collections['main']
+    icon = pcoll[STALKER_ICON_NAME]
+
+    # without this line in some cases the icon is not visible
+    len(icon.icon_pixels)
+
+    return icon.icon_id
 
 
 def draw_files_count(operator):
@@ -38,7 +51,7 @@ def draw_fmt_ver_prop(layout, owner, prop, lay_type='SPLIT', use_row=True):
 
 def get_draw_fun(operator):
     def menu_func(self, context):
-        icon = ui.icons.get_stalker_icon()
+        icon = get_stalker_icon()
         op = self.layout.operator(
             operator.bl_idname,
             text=build_op_label(operator),

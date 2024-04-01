@@ -2,7 +2,7 @@
 import bpy
 
 # addon modules
-from . import icons
+from .. import utils
 
 
 CATEGORY = ' X-Ray '
@@ -19,5 +19,5 @@ class XRayPanel(bpy.types.Panel):
     bl_region_type = 'WINDOW'
 
     def draw_header(self, context):
-        icon = icons.get_stalker_icon()
+        icon = utils.draw.get_stalker_icon()
         self.layout.label(icon_value=icon)

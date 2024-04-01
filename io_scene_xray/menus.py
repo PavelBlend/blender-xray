@@ -43,7 +43,7 @@ export_ops = (
 
 
 def _draw_xray_menu(self, menu):    # pragma: no cover
-    icon = ui.icons.get_stalker_icon()
+    icon = utils.draw.get_stalker_icon()
     self.layout.menu(menu.bl_idname, icon_value=icon)
 
 
