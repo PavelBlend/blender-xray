@@ -85,6 +85,11 @@ translations_table = (
     (iface.compile_shader, 'Компилятор'),
     (iface.two_sided, 'Двусторонний'),
 
+    # mesh panel
+    (iface.visible, 'Видимый'),
+    (iface.locked, 'Заблокированный'),
+    (iface.sgmask, 'Маска Групп Сглаживания')
+
 )
 
 translation = {}

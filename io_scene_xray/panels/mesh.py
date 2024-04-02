@@ -3,6 +3,7 @@ import bpy
 
 # addon modules
 from .. import ui
+from .. import text
 from .. import utils
 
 
@@ -43,12 +44,29 @@ class XRAY_PT_mesh(ui.base.XRayPanel):
         return panel_used
 
     def draw(self, context):
-        row = self.layout.row(align=True)
         data = context.active_object.data.xray
+        col = self.layout.column(align=True)
 
-        row.prop(data, 'flags_visible', text='Visible', toggle=True)
-        row.prop(data, 'flags_locked', text='Locked', toggle=True)
-        row.prop(data, 'flags_sgmask', text='SGMask', toggle=True)
+        col.prop(
+            data,
+            'flags_visible',
+            text=text.get_iface(text.iface.visible),
+            toggle=True
+        )
+
+        col.prop(
+            data,
+            'flags_locked',
+            text=text.get_iface(text.iface.locked),
+            toggle=True
+        )
+
+        col.prop(
+            data,
+            'flags_sgmask',
+            text=text.get_iface(text.iface.sgmask),
+            toggle=True
+        )
 
 
 def register():

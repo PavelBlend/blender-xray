@@ -77,3 +77,8 @@ surface = 'Sufrace'
 surface_presets = 'Surface Presets'
 compile_shader = 'Compile'
 two_sided = 'Two Sided'
+
+# mesh panel
+visible = 'Visible '
+locked = 'Locked '
+sgmask = 'Smoothing Groups Mask'
