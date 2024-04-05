@@ -37,14 +37,14 @@ class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
             if shape_type in ('1', '3'):    # box, cylinder
                 op = col.operator(
                     XRAY_OT_fit_shape.bl_idname,
-                    text='Axis Align Bounding Box',
+                    text='Axis Aligned Bounding Box',
                     icon=utils.version.get_icon('BBOX')
                 )
                 op.mode = 'AABB'
 
                 op = col.operator(
                     XRAY_OT_fit_shape.bl_idname,
-                    text='Orient Bounding Box',
+                    text='Oriented Bounding Box',
                     icon=utils.version.get_icon('BBOX')
                 )
                 op.mode = 'OBB'
