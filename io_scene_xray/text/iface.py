@@ -69,6 +69,8 @@ custom = 'Custom '
 cancel = 'Cancel'
 apply_shape = 'Apply Shape'
 fit_shape = 'Fit Shape'
+aabb = 'Axis Aligned Bounding Box'
+obb = 'Oriented Bounding Box'
 apply_center = 'Apply Center'
 align_center = 'Align Center'
 

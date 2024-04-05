@@ -76,6 +76,8 @@ translations_table = (
     (iface.cancel, 'Отмена'),
     (iface.apply_shape, 'Применить Форму'),
     (iface.fit_shape, 'Вписать Форму'),
+    (iface.aabb, 'Выровненные по Осям Габариты'),
+    (iface.obb, 'Ориентированные Габариты'),
     (iface.apply_center, 'Применить Центр'),
     (iface.align_center, 'Выровнять Центр'),
 
