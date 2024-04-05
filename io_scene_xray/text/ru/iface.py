@@ -84,6 +84,17 @@ translations_table = (
     (iface.surface_presets, 'Предустановки Поверхности'),
     (iface.compile_shader, 'Компилятор'),
     (iface.two_sided, 'Двусторонний'),
+    (iface.level_visual, 'Визуальный Объект Уровня'),
+    (iface.texture_uv, 'UV Текстуры'),
+    (iface.lmap_uv, 'UV Карты Освещения'),
+    (iface.lmap_1, 'Карта Освещения 1'),
+    (iface.lmap_2, 'Карта Освещения 2'),
+    (iface.light, 'Источники Света'),
+    (iface.sun, 'Свет Солнца'),
+    (iface.hemi, 'Полусферическое Освещение'),
+    (iface.level_cform, 'Коллизия Уровня'),
+    (iface.supp_shadows, 'Подавить Тени'),
+    (iface.supp_wallmarks, 'Подавить Следы на Стенах'),
 
     # mesh panel
     (iface.visible, 'Видимый'),

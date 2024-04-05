@@ -124,19 +124,71 @@ class XRAY_PT_material(ui.base.XRayPanel):
             return
 
         box = layout.box()
-        box.label(text='Level Visual:')
-        draw_level_prop(box, data, 'uv_texture', 'Texture UV', 'UV')
-        draw_level_prop(box, data, 'uv_light_map', 'Light Map UV', 'UV')
-        draw_level_prop(box, data, 'lmap_0', 'Light Map 1', 'IMAGE')
-        draw_level_prop(box, data, 'lmap_1', 'Light Map 2', 'IMAGE')
-        draw_level_prop(box, data, 'light_vert_color', 'Light', 'VERTEX')
-        draw_level_prop(box, data, 'sun_vert_color', 'Sun', 'VERTEX')
-        draw_level_prop(box, data, 'hemi_vert_color', 'Hemi', 'VERTEX')
+        box.label(text=text.get_iface(text.iface.level_visual)+':')
+
+        draw_level_prop(
+            box,
+            data,
+            'uv_texture',
+            text.get_iface(text.iface.texture_uv),
+            'UV'
+        )
+        draw_level_prop(
+            box,
+            data,
+            'uv_light_map',
+            text.get_iface(text.iface.lmap_uv),
+            'UV'
+        )
+        draw_level_prop(
+            box,
+            data,
+            'lmap_0',
+            text.get_iface(text.iface.lmap_1),
+            'IMAGE'
+        )
+        draw_level_prop(
+            box,
+            data,
+            'lmap_1',
+            text.get_iface(text.iface.lmap_2),
+            'IMAGE'
+        )
+        draw_level_prop(
+            box,
+            data,
+            'light_vert_color',
+            text.get_iface(text.iface.light),
+            'VERTEX'
+        )
+        draw_level_prop(
+            box,
+            data,
+            'sun_vert_color',
+            text.get_iface(text.iface.sun),
+            'VERTEX'
+        )
+        draw_level_prop(
+            box,
+            data,
+            'hemi_vert_color',
+            text.get_iface(text.iface.hemi),
+            'VERTEX'
+        )
 
         box = layout.box()
-        box.label(text='Level CForm:')
-        box.prop(data, 'suppress_shadows', text='Suppress Shadows')
-        box.prop(data, 'suppress_wm', text='Suppress Wallmarks')
+        box.label(text=text.get_iface(text.iface.level_cform)+':')
+
+        box.prop(
+            data,
+            'suppress_shadows',
+            text=text.get_iface(text.iface.supp_shadows)
+        )
+        box.prop(
+            data,
+            'suppress_wm',
+            text=text.get_iface(text.iface.supp_wallmarks)
+        )
 
 
 class XRAY_MT_surface_presets(bpy.types.Menu):
