@@ -220,7 +220,7 @@ class OmfFile():
 
             length = self.reader.uint32()
             self.animations[name] = (offset, length, motion_id)
-            # skip the rest bytes of skl animation to the next animation
+            # skip the rest bytes of omf animation to the next animation
             formats.omf.imp.skip_motion(self.reader, self.bone_names, length)
 
 
