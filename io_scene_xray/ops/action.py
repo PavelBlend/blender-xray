@@ -159,28 +159,40 @@ class XRAY_OT_change_action_bake_settings(utils.ie.BaseOperator):
     )
 
     def draw(self, context):    # pragma: no cover
-        layout = self.layout
-        layout.label(text='Mode:')
-        column = layout.column(align=True)
+        col = self.layout.column(align=True)
+
+        col.label(text='Mode:')
+        column = col.column(align=True)
         column.prop(self, 'change_mode', expand=True)
+
+        col.label(text='Settings:')
+
         # bake mode
-        layout.prop(self, 'change_bake_mode')
-        row = layout.row()
+        row = col.row(align=True)
+        row.prop(self, 'change_bake_mode', text='')
+        row = row.row(align=True)
         row.active = self.change_bake_mode
+        row.label(text='Bake Mode')
         row.prop(self, 'bake_mode', expand=True)
+
         # custom thresholds
-        layout.prop(self, 'change_use_custom_thresholds')
-        row = layout.row()
+        row = col.row(align=True)
+        row.prop(self, 'change_use_custom_thresholds', text='')
+        row = row.row(align=True)
         row.active = self.change_use_custom_thresholds
         row.prop(self, 'use_custom_threshold', toggle=True)
+
         # location
-        layout.prop(self, 'change_location_threshold')
-        row = layout.row()
+        row = col.row(align=True)
+        row.prop(self, 'change_location_threshold', text='')
+        row = row.row(align=True)
         row.active = self.change_location_threshold
         row.prop(self, 'value_location_threshold')
+
         # rotation
-        layout.prop(self, 'change_rotation_threshold')
-        row = layout.row()
+        row = col.row(align=True)
+        row.prop(self, 'change_rotation_threshold', text='')
+        row = row.row(align=True)
         row.active = self.change_rotation_threshold
         row.prop(self, 'value_rotation_threshold')
 
