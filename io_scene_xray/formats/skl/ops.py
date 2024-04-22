@@ -271,7 +271,7 @@ class XRAY_OT_export_skl_file(
         action_prop_name = XRAY_OT_export_skl_file.bl_idname + '.action'
         self.action = getattr(context, action_prop_name, None)
 
-        if not action:
+        if not self.action:
             return {'CANCELLED'}
 
         self.filepath = self.action.name
