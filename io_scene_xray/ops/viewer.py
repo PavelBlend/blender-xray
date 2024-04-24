@@ -13,6 +13,11 @@ from .. import text
 
 KB = 1024
 MB = KB ** 2
+GB = KB ** 3
+SIZE_MAX = 2 ** 30 - 1
+MB_FLAG = 0x40000000
+MB_FLAG_OFFSET = 29
+MB_FLAG_MASK = 1 << (MB_FLAG_OFFSET + 1)
 
 
 class XRAY_UL_viewer_list_item(bpy.types.UIList):
@@ -52,12 +57,21 @@ class XRAY_UL_viewer_list_item(bpy.types.UIList):
 
 
 def get_size_label(size):
-    if size > MB:
+
+    # most significant bit is used to indicate
+    # the units of measurement for file sizes (Bytes or MB)
+    is_mb = size >> MB_FLAG_OFFSET
+
+    if is_mb:
+        size &= ~MB_FLAG_MASK
+        text = '{:.1f} GB'.format((size * MB) / GB)
+    elif size > MB:
         text = '{:.1f} MB'.format(size / MB)
     elif size > KB:
         text = '{:.1f} KB'.format(size / KB)
     else:
         text = '{} Bytes'.format(size)
+
     return text
 
 
@@ -285,9 +299,9 @@ def update_file(self, context):
 
 def update_file_list(directory, active_folder=None):
     scene = bpy.context.scene
-    viewer = scene.xray.viewer
-    viewer.files.clear()
-    viewer_files = viewer.files
+    vwr = scene.xray.viewer
+    vwr.files.clear()
+    viewer_files = vwr.files
     dirs = []
     files = []
     for file_name in os.listdir(directory):
@@ -297,15 +311,15 @@ def update_file_list(directory, active_folder=None):
         else:
             _, ext = os.path.splitext(file_name)
             ext = ext.lower()
-            if viewer.ignore_ext:
+            if vwr.ignore_ext:
                 added_file = True
-            elif ext == '.object' and viewer.use_object:
+            elif ext == '.object' and vwr.use_object:
                 added_file = True
-            elif ext == '.ogf' and viewer.use_ogf:
+            elif ext == '.ogf' and vwr.use_ogf:
                 added_file = True
-            elif ext == '.dm' and viewer.use_dm:
+            elif ext == '.dm' and vwr.use_dm:
                 added_file = True
-            elif ext == '.details' and viewer.use_details:
+            elif ext == '.details' and vwr.use_details:
                 added_file = True
             else:
                 added_file = False
@@ -326,7 +340,7 @@ def update_file_list(directory, active_folder=None):
                 ext = os.path.splitext(file_name)[-1]
                 if not ext:
                     ext = '.'
-            if not viewer.group_by_ext:
+            if not vwr.group_by_ext:
                 file_groups.setdefault(is_directory, []).append((
                     file_name,
                     file_path,
@@ -344,11 +358,11 @@ def update_file_list(directory, active_folder=None):
                 ))
     file_index = 0
     sort_by_name = lambda item: item[0].lower()
-    if viewer.sort == 'NAME':
+    if vwr.sort == 'NAME':
         key = sort_by_name
-    elif viewer.sort == 'SIZE':
+    elif vwr.sort == 'SIZE':
         key = lambda item: item[3]
-    elif viewer.sort == 'DATE':
+    elif vwr.sort == 'DATE':
         key = lambda item: item[4]
     groups_keys = list(file_groups.keys())
     if True in file_groups:
@@ -356,15 +370,16 @@ def update_file_list(directory, active_folder=None):
         groups_keys.pop(dir_index)
         groups_keys.insert(0, True)
 
-    viewer.files_count = 0
-    viewer.dirs_count = 0
-    viewer.files_size = 0
+    vwr.files_count = 0
+    vwr.dirs_count = 0
+    files_size = 0
+
     for group_key in groups_keys:
         files_list = file_groups[group_key]
         if group_key:    # folders
-            files_list.sort(key=sort_by_name, reverse=viewer.sort_reverse)
+            files_list.sort(key=sort_by_name, reverse=vwr.sort_reverse)
         else:
-            files_list.sort(key=key, reverse=viewer.sort_reverse)
+            files_list.sort(key=key, reverse=vwr.sort_reverse)
         for file_name, file_path, is_directory, size, date in files_list:
             file = viewer_files.add()
             file.name = file_name
@@ -373,14 +388,21 @@ def update_file_list(directory, active_folder=None):
             file.date = date
             file.is_dir = is_directory
             if is_directory:
-                viewer.dirs_count += 1
+                vwr.dirs_count += 1
                 if active_folder:
                     if file_name == active_folder:
-                        viewer.files_index = file_index
+                        vwr.files_index = file_index
             else:
-                viewer.files_count += 1
-                viewer.files_size += size
+                vwr.files_count += 1
+                files_size += size
+
             file_index += 1
+
+    if files_size > SIZE_MAX:
+        files_size = int(round(files_size / MB, 0))
+        files_size |= MB_FLAG
+
+    vwr.files_size = files_size
 
 
 def update_file_list_ext(self, context):
