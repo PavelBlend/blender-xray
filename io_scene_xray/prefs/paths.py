@@ -60,6 +60,8 @@ class PathsSettings(bpy.types.PropertyGroup):
     cshader_file_auto = bpy.props.StringProperty()
     objects_folder_auto = bpy.props.StringProperty()
 
+    use_update = bpy.props.BoolProperty(default=True)
+
 
 class XRAY_UL_path_presets_list(bpy.types.UIList):
     bl_idname = 'XRAY_UL_path_presets_list'
