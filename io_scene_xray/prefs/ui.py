@@ -551,7 +551,8 @@ def draw_others(prefs):
 
     prop_bool(layout, prefs, 'compact_menus')
     prop_bool(layout, prefs, 'check_updates')
-    layout.prop(prefs, 'object_split_normals')
+    prop_bool(layout, prefs, 'use_batch_status')
+    prop_bool(layout, prefs, 'object_split_normals')
 
     box = layout.box()
     box.label(text='Bone Shape Colors:')

@@ -127,6 +127,10 @@ prefs_props = {
         default=True,
         name='Check for Updates after Starting Blender'
     ),
+    'use_batch_status': bpy.props.BoolProperty(
+        default=False,
+        name='Print Batch Import/Export Status to the Console'
+    ),
 
     'paths_mode': bpy.props.EnumProperty(
         default='BASE',

@@ -4,6 +4,9 @@ import time
 # blender modules
 import bpy
 
+# addon modules
+from . import version
+
 
 statistics = None
 STATS_FILE_NAME = 'xray_stats'
@@ -29,6 +32,7 @@ class Statistics:
         self.acts_count = 0
 
         self.props = None
+        self.print_status = version.get_preferences().use_batch_status
 
     def info(self, data):
         self.lines.append(data)
@@ -116,6 +120,10 @@ def status(status_str, *props):
     if statistics:
         statistics.status = status_str
         statistics.props = props
+
+        if statistics.print_status:
+            file_path = props[0]
+            print(file_path)
 
 
 def stage(stage_name):
