@@ -168,7 +168,7 @@ class XRAY_OT_change_userdata(utils.ie.BaseOperator):
         row = utils.version.layout_split(layout, 0.2)
 
         if self.value == 'REPLACE':
-            row.label(text='Value:')
+            row.label(text='String:')
             row.prop(self, 'userdata', text='')
 
         elif self.value == 'OBJECT':
@@ -260,7 +260,7 @@ class XRAY_OT_change_lod_ref(utils.ie.BaseOperator):
         row = utils.version.layout_split(layout, 0.2)
 
         if self.value == 'REPLACE':
-            row.label(text='Value:')
+            row.label(text='String:')
             row.prop(self, 'lod_ref', text='')
 
         elif self.value == 'OBJECT':
@@ -360,7 +360,7 @@ class XRAY_OT_change_motion_refs(utils.ie.BaseOperator):
         row = utils.version.layout_split(layout, 0.2)
 
         if self.value == 'REPLACE':
-            row.label(text='Value:')
+            row.label(text='String:')
             row.prop(self, 'motion_refs', text='')
 
         elif self.value == 'OBJECT':
