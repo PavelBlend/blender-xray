@@ -120,7 +120,7 @@ def scan_objs(context, objects):
         if active_obj and active_obj.xray.isroot:
             roots = [active_obj, ]
 
-    return roots
+    return list(roots)
 
 
 def get_root_objs(context):
