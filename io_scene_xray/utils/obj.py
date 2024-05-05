@@ -106,12 +106,12 @@ def scan_objs(context, objects):
     # collect exported objects
     scan_obj(context, objects, processed_obj)
 
-    roots = []    # root-objects
+    roots = set()    # root-objects
 
     # get root-objects
     for obj in objects:
         if obj.xray.isroot and obj.name in bpy.context.scene.objects:
-            roots.append(obj)
+            roots.add(obj)
 
     # get root-object by active object
     if not roots:
