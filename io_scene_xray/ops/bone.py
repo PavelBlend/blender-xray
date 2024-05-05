@@ -5,6 +5,7 @@ import math
 import bpy
 
 # addon modules
+from .. import text
 from .. import utils
 
 
@@ -58,11 +59,6 @@ class XRAY_OT_resize_bones(utils.ie.BaseOperator):
         layout = self.layout
         column = layout.column(align=True)
 
-        if context.mode == 'POSE':
-            column.label(text='Change:')
-            row = column.row(align=True)
-            row.prop(self, 'change', expand=True)
-
         column.label(text='Mode:')
         row = column.row(align=True)
         row.prop(self, 'mode', expand=True)
@@ -72,6 +68,21 @@ class XRAY_OT_resize_bones(utils.ie.BaseOperator):
         row.prop(self, 'size')
 
         column.prop(self, 'custom_shapes', toggle=True)
+
+        if context.mode != 'POSE':
+            column.label(text='')
+            column.label(
+                text=text.get_tip(text.error.not_pose_mode),
+                icon='ERROR'
+            )
+
+        col = column.column(align=True)
+        col.label(text='Change:')
+        row = col.row(align=True)
+        row.prop(self, 'change', expand=True)
+
+        if context.mode != 'POSE':
+            col.active = False
 
     @utils.set_cursor_state
     def execute(self, context):
