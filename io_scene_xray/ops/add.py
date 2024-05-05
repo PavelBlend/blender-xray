@@ -19,13 +19,19 @@ class XRAY_OT_add_camera(utils.ie.BaseOperator):
 
     camera_type = bpy.props.EnumProperty(
         name='Camera Type',
-        items=(('HUD', 'HUD', ''), ('LEVEL', 'Level', ''))
+        items=(
+            ('HUD_SOCCS', 'HUD SoC/CS', ''),
+            ('HUD_COP', 'HUD CoP', ''),
+            ('LEVEL_SOCCS', 'Level SoC/CS', ''),
+            ('LEVEL_COP', 'Level CoP', '')
+        )
     )
 
     def draw(self, context):    # pragma: no cover
         row = self.layout.row(align=True)
         row.label(text='Camera Type:')
-        row.prop(self, 'camera_type', expand=True)
+        col = row.column(align=True)
+        col.prop(self, 'camera_type', expand=True)
 
     def execute(self, context):
         # set object mode
@@ -54,10 +60,14 @@ class XRAY_OT_add_camera(utils.ie.BaseOperator):
         else:
             camera.draw_size = DRAW_SIZE
 
-        if self.camera_type == 'HUD':
+        if self.camera_type == 'HUD_SOCCS':
             fov = utils.obj.SOC_HUD_FOV
-        else:
+        elif self.camera_type == 'HUD_COP':
+            fov = utils.obj.COP_HUD_FOV
+        elif self.camera_type == 'LEVEL_SOCCS':
             fov = utils.obj.SOC_LEVEL_FOV
+        else:
+            fov = utils.obj.COP_LEVEL_FOV
 
         # set camera settings
         camera.clip_start = 0.2
