@@ -503,6 +503,21 @@ def _create_group_nodes(
                 shader_node.inputs['Alpha']
             )
 
+        if utils.version.IS_28:
+            com_col = 'ShaderNodeCombineColor'
+            sep_col = 'ShaderNodeSeparateColor'
+            col = 'Color'
+            red = 'Red'
+            green = 'Green'
+            blue = 'Blue'
+        else:
+            com_col = 'ShaderNodeCombineRGB'
+            sep_col = 'ShaderNodeSeparateRGB'
+            col = 'Image'
+            red = 'R'
+            green = 'G'
+            blue = 'B'
+
         # create color mix nodes
         mix_node = utils.version.get_node('ShaderNodeMix', utils.version.IS_34)
         factor = utils.version.get_node('Factor', utils.version.IS_34)
@@ -535,14 +550,14 @@ def _create_group_nodes(
         lmap.location.y = 200
 
         # create bump nodes
-        sep = shader_group.nodes.new('ShaderNodeSeparateColor')
+        sep = shader_group.nodes.new(sep_col)
         sep.name = 'Separate Bump 1'
         sep.label = 'Separate Bump 1'
         sep.select = False
         sep.location.x = -500
         sep.location.y = -500
 
-        com = shader_group.nodes.new('ShaderNodeCombineColor')
+        com = shader_group.nodes.new(com_col)
         com.name = 'Combine Bump 1'
         com.label = 'Combine Bump 1'
         com.select = False
@@ -688,7 +703,7 @@ def _create_group_nodes(
             norm.inputs['Color']
         )
         shader_group.links.new(
-            com.outputs['Color'],
+            com.outputs[col],
             bump_mix.inputs[col1]
         )
         shader_group.links.new(
@@ -697,22 +712,22 @@ def _create_group_nodes(
         )
         shader_group.links.new(
             input_node.outputs['Bump 1 Color'],
-            sep.inputs['Color']
+            sep.inputs[col]
         )
         shader_group.links.new(
             input_node.outputs['Bump 1 Alpha'],
-            com.inputs['Red']
+            com.inputs[red]
         )
         shader_group.links.new(
-            sep.outputs['Blue'],
-            com.inputs['Green']
+            sep.outputs[blue],
+            com.inputs[green]
         )
         shader_group.links.new(
-            sep.outputs['Green'],
-            com.inputs['Blue']
+            sep.outputs[green],
+            com.inputs[blue]
         )
         shader_group.links.new(
-            sep.outputs['Red'],
+            sep.outputs[red],
             shader_node.inputs['Specular']
         )
 
