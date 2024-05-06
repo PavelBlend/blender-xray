@@ -13,6 +13,7 @@ from . import omf
 from . import part
 from . import group
 from . import xr
+from . import thm
 
 
 modules = (

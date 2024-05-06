@@ -243,7 +243,9 @@ def props(**kwargs):
 
 
 def warn(message, **kwargs):
-    _logger.warn(message, props(**kwargs))
+    global _logger
+    if _logger:
+        _logger.warn(message, props(**kwargs))
 
 
 def err(error):

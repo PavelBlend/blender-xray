@@ -1,8 +1,13 @@
+# standart modules
+import os
+
 # blender modules
 import bpy
 import mathutils
 
 # addon modules
+from .. import formats
+from .. import rw
 from .. import utils
 
 
@@ -202,11 +207,33 @@ def _get_diffuse_img(mat):
 
             if len(selected_imgs) == 1:
                 diffuse_img = selected_imgs[0]
+            else:
+                diffuse_imgs = []
+                for img_node in all_img_nodes:
+                    if '_bump' in img_node.image.filepath:
+                        continue
+                    diffuse_imgs.append(img_node.image)
+
+                if len(diffuse_imgs) == 1:
+                    diffuse_img = diffuse_imgs[0]
 
     return diffuse_img
 
 
-def _create_diffuse_image_nodes(mat, diff_img, xray):
+def _get_bump_imgs(diff_img):
+    bump_1, bump_2 = None, None
+
+    file_path = bpy.path.abspath(os.path.splitext(diff_img.filepath)[0])
+
+    thm_path = file_path + os.extsep + 'thm'
+    if os.path.exists(thm_path):
+        thm_data = rw.utils.read_file(thm_path)
+        bump_1, bump_2 = formats.thm.read.get_bump_paths(thm_data)
+
+    return bump_1, bump_2
+
+
+def _create_image_nodes(mat, diff_img, bump_1, bump_2, xray):
     # create image node
     img_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
     img_node.image = diff_img
@@ -215,12 +242,13 @@ def _create_diffuse_image_nodes(mat, diff_img, xray):
     img_node.location.y = 500
 
     # create diffuse uv-map node
+    uv_tex_node = None
     if xray.uv_texture:
         uv_tex_node = mat.node_tree.nodes.new('ShaderNodeUVMap')
         uv_tex_node.uv_map = xray.uv_texture
         uv_tex_node.select = False
-        uv_tex_node.location.x = img_node.location.x - 250
-        uv_tex_node.location.y = img_node.location.y - 100
+        uv_tex_node.location.x = img_node.location.x - 500
+        uv_tex_node.location.y = img_node.location.y - 300
 
         # link
         mat.node_tree.links.new(
@@ -228,7 +256,33 @@ def _create_diffuse_image_nodes(mat, diff_img, xray):
             img_node.inputs['Vector']
         )
 
-    return img_node
+    # create bumps
+    bump_1_node = None
+    bump_2_node = None
+    bump_nodes = []
+
+    for index, bump in enumerate((bump_1, bump_2)):
+
+        if not bump:
+            bump_nodes.append(None)
+            continue
+
+        # create bump node
+        bump_node = mat.node_tree.nodes.new('ShaderNodeTexImage')
+        bump_node.image = bump
+        bump_node.select = False
+        bump_node.location.x = -200
+        bump_node.location.y = -400 - index*300
+        bump_nodes.append(bump_node)
+
+        # link
+        if uv_tex_node:
+            mat.node_tree.links.new(
+                uv_tex_node.outputs['UV'],
+                bump_node.inputs['Vector']
+            )
+
+    return img_node, bump_nodes
 
 
 def _create_lmap_image_nodes(mat, xray, img_node):
@@ -395,6 +449,13 @@ def _create_group_nodes(
             'Light Map 2 Alpha'
         )
 
+
+        bump_1_rgb = shader_group.inputs.new('NodeSocketColor', 'Bump 1 Color')
+        bump_1_a = shader_group.inputs.new('NodeSocketFloat', 'Bump 1 Alpha')
+
+        bump_2_rgb = shader_group.inputs.new('NodeSocketColor', 'Bump 2 Color')
+        bump_2_a = shader_group.inputs.new('NodeSocketFloat', 'Bump 2 Alpha')
+
         if utils.version.IS_29:
             tex_rgb.hide_value = True
             tex_a.hide_value = True
@@ -402,6 +463,10 @@ def _create_group_nodes(
             lmap_a.hide_value = True
             lmap_rgb.hide_value = True
             lmap_a.hide_value = True
+            bump_1_rgb.hide_value = True
+            bump_1_a.hide_value = True
+            bump_2_rgb.hide_value = True
+            bump_2_a.hide_value = True
 
         # create outputs
         shader_group.outputs.new('NodeSocketShader', 'Shader')
@@ -469,10 +534,43 @@ def _create_group_nodes(
         lmap.location.x = 200
         lmap.location.y = 200
 
+        # create bump nodes
+        sep = shader_group.nodes.new('ShaderNodeSeparateColor')
+        sep.name = 'Separate Bump 1'
+        sep.label = 'Separate Bump 1'
+        sep.select = False
+        sep.location.x = -500
+        sep.location.y = -500
+
+        com = shader_group.nodes.new('ShaderNodeCombineColor')
+        com.name = 'Combine Bump 1'
+        com.label = 'Combine Bump 1'
+        com.select = False
+        com.location.x = -250
+        com.location.y = -400
+
+        bump_mix = shader_group.nodes.new(mix_node)
+        bump_mix.name = 'Bump Correction'
+        bump_mix.label = 'Bump Correction'
+        bump_mix.blend_type = 'ADD'
+        bump_mix.inputs[factor].default_value = 1.0
+        bump_mix.select = False
+        bump_mix.location.x = 0
+        bump_mix.location.y = -500
+
+        norm = shader_group.nodes.new('ShaderNodeNormalMap')
+        norm.name = 'Normal Map'
+        norm.label = 'Normal Map'
+        norm.uv_map = mat.xray.uv_texture
+        norm.select = False
+        norm.location.x = 200
+        norm.location.y = -500
+
         if utils.version.IS_34:
             light_sun.data_type = 'RGBA'
             hemi.data_type = 'RGBA'
             lmap.data_type = 'RGBA'
+            bump_mix.data_type = 'RGBA'
             res = 2
             col1 = 6
             col2 = 7
@@ -580,16 +678,58 @@ def _create_group_nodes(
                 lmap.inputs[col2]    # color B
             )
 
+        # link bump nodes
+        shader_group.links.new(
+            norm.outputs['Normal'],
+            shader_node.inputs['Normal']
+        )
+        shader_group.links.new(
+            bump_mix.outputs[res],
+            norm.inputs['Color']
+        )
+        shader_group.links.new(
+            com.outputs['Color'],
+            bump_mix.inputs[col1]
+        )
+        shader_group.links.new(
+            input_node.outputs['Bump 2 Color'],
+            bump_mix.inputs[col2]
+        )
+        shader_group.links.new(
+            input_node.outputs['Bump 1 Color'],
+            sep.inputs['Color']
+        )
+        shader_group.links.new(
+            input_node.outputs['Bump 1 Alpha'],
+            com.inputs['Red']
+        )
+        shader_group.links.new(
+            sep.outputs['Blue'],
+            com.inputs['Green']
+        )
+        shader_group.links.new(
+            sep.outputs['Green'],
+            com.inputs['Blue']
+        )
+
     group.node_tree = shader_group
 
     return group
 
 
-def _create_and_link_nodes(mat, diff_img, shader_groups, light_format):
+def _create_and_link_nodes(
+        mat,
+        diff_img,
+        bump_1,
+        bump_2,
+        shader_groups,
+        light_format
+    ):
+
     xray = mat.xray
 
     # diffuse image
-    img_node = _create_diffuse_image_nodes(mat, diff_img, xray)
+    img_node, bumps = _create_image_nodes(mat, diff_img, bump_1, bump_2, xray)
 
     # light maps image
     lmap_imgs, use_lmap_1, use_lmap_2 = _create_lmap_image_nodes(
@@ -632,6 +772,22 @@ def _create_and_link_nodes(mat, diff_img, shader_groups, light_format):
         group.inputs['Texture Alpha']
     )
 
+    # link bump images
+    for index, bump_img in enumerate(bumps):
+
+        if not bump_img:
+            continue
+
+        mat.node_tree.links.new(
+            bump_img.outputs['Color'],
+            group.inputs['Bump {} Color'.format(index + 1)]
+        )
+
+        mat.node_tree.links.new(
+            bump_img.outputs['Alpha'],
+            group.inputs['Bump {} Alpha'.format(index + 1)]
+        )
+
     # link light map images
     if len(lmap_imgs) >= 1:
         mat.node_tree.links.new(
@@ -656,17 +812,37 @@ def _create_and_link_nodes(mat, diff_img, shader_groups, light_format):
         )
 
 
-def _create_shader_nodes(mat, shader_groups, light_format):
+def _create_shader_nodes(ctx, mat, shader_groups, light_format):
     # get diffuse image
     diff_img = _get_diffuse_img(mat)
     if not diff_img:
         return
 
+    # get bumps images
+    bump_1, bump_2 = _get_bump_imgs(diff_img)
+    if bump_1 and bump_2:
+        bump_1_img = ctx.image(bump_1)
+        bump_2_img = ctx.image(bump_2)
+    else:
+        diff_path = os.path.splitext(diff_img.filepath)[0]
+        bump_1_path = diff_path + '_bump' + os.extsep + 'dds'
+        bump_2_path = diff_path + '_bump#' + os.extsep + 'dds'
+
+        bump_1_img = utils.tex.load_image_by_tex_path(bump_1_path)
+        bump_2_img = utils.tex.load_image_by_tex_path(bump_2_path)
+
     # remove all nodes
     mat.node_tree.nodes.clear()
 
     # create nodes
-    _create_and_link_nodes(mat, diff_img, shader_groups, light_format)
+    _create_and_link_nodes(
+        mat,
+        diff_img,
+        bump_1_img,
+        bump_2_img,
+        shader_groups,
+        light_format
+    )
 
 
 def _create_base_nodes(mat, img):
@@ -801,8 +977,10 @@ class XRAY_OT_create_level_shader_nodes(_BaseOperator):
         change_count = 0
         shader_groups = {}
 
+        ctx = formats.contexts.ImportMeshContext()
+
         for mat in materials:
-            _create_shader_nodes(mat, shader_groups, self.light_format)
+            _create_shader_nodes(ctx, mat, shader_groups, self.light_format)
             change_count += 1
 
         self.report({'INFO'}, 'Changed materials: {}'.format(change_count))
