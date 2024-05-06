@@ -26,10 +26,7 @@ def _check_sg_soc(bmedges, sgroups):
             continue
         sg0 = sgroups[edge.link_faces[0].index]
         sg1 = sgroups[edge.link_faces[1].index]
-        if edge.smooth:
-            if sg0 != sg1:
-                return text.warn.object_sg_smooth
-        else:
+        if not edge.smooth:
             if sg0 == sg1:
                 return text.warn.object_sg_sharp
 

@@ -55,7 +55,6 @@ object_arm_mod_disabled = 'Armature modifier is disabled in viewport'
 obj_used_arm = 'No object specified in "Armature" modifier. Object from the hierarchy was used'
 
 # object export mesh
-object_sg_smooth = 'Maya-SG incompatible: smooth edge adjacents has different smoothing group'
 object_sg_sharp = 'Maya-SG incompatible: sharp edge adjacents has same smoothing group'
 object_skip_geom = 'Skipping geometry from vertex groups'
 object_missing_group = 'Vertices have missing groups'
