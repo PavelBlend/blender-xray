@@ -89,8 +89,8 @@ class XRAY_OT_check_update(utils.ie.BaseOperator):
 
 class XRAY_OT_install_update(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.download_update'
-    bl_label = 'Download Update?'
-    bl_description = 'Download Addon Last Release'
+    bl_label = 'Install Update?'
+    bl_description = 'Install Addon Last Release'
 
     download_url = bpy.props.StringProperty()
     processed = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
