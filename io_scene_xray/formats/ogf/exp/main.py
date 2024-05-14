@@ -465,6 +465,9 @@ def _export_child(
                 offset + tris[0]
             )
 
+    # remove temp mesh
+    bpy.data.meshes.remove(bpy_mesh)
+
     chunked_writer.put(fmt.Chunks_v4.INDICES, indices_writer)
 
 
