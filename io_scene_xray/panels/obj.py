@@ -5,6 +5,7 @@ import bpy
 from .. import ui
 from .. import utils
 from .. import ops
+from .. import text
 from .. import formats
 
 
@@ -119,7 +120,7 @@ def draw_object_props(layout, data):
 
     # object type
     split = utils.version.layout_split(object_box, 0.333)
-    split.label(text='Type:')
+    split.label(text=text.get_iface(text.iface.obj_type) + ':')
     split.prop(data, 'flags_simple', text='')
 
     if data.flags_use_custom:
@@ -158,16 +159,20 @@ def draw_object_props(layout, data):
         )
 
     # high quality export
-    object_box.prop(data, 'flags_custom_hqexp', text='HQ Export')
+    object_box.prop(
+        data,
+        'flags_custom_hqexp',
+        text=text.get_iface(text.iface.hq_export)
+    )
 
     # lod reference
     split = utils.version.layout_split(object_box, 0.333)
-    split.label(text='LOD Reference:')
+    split.label(text=text.get_iface(text.iface.lod_ref) + ':')
     split.prop(data, 'lodref', text='')
 
     # export path
     split = utils.version.layout_split(object_box, 0.333)
-    split.label(text='Export Path:')
+    split.label(text=text.get_iface(text.iface.exp_path) + ':')
     row = split.row(align=True)
 
     row.prop(data, 'export_path', text='')
@@ -182,7 +187,7 @@ def draw_object_props(layout, data):
     row, box = ui.collapsible.draw(
         object_box,
         'object:userdata',
-        'User Data',
+        text.get_iface(text.iface.user_data),
         enabled=data.userdata != '',
         icon='VIEWZOOM'
     )
@@ -207,31 +212,41 @@ def draw_object_props(layout, data):
     _, box = ui.collapsible.draw(
         object_box,
         'object:motions',
-        'Motions ({})'.format(len(data.motions_collection))
+        '{} ({})'.format(
+            text.get_iface(text.iface.motions),
+            len(data.motions_collection)
+        )
     )
 
     if box:
         col = box.column(align=True)
 
         # play active motion
-        col.prop(data, 'play_active_motion', toggle=True, icon='PLAY')
+        col.prop(
+            data,
+            'play_active_motion',
+            text=text.get_iface(text.iface.play_active_motion),
+            toggle=True,
+            icon='PLAY'
+        )
 
         # use custom names
         col.prop(
             data,
             'use_custom_motion_names',
+            text=text.get_iface(text.iface.custom_names),
             toggle=True,
             icon='SORTALPHA'
         )
 
         # show motion names
         names_row = col.row()
-        names_row.label(text='Show:')
+        names_row.label(text=text.get_iface(text.iface.show) + ':')
         names_row.prop(data, 'show_motions_names', expand=True)
 
         # dependency object
         split = utils.version.layout_split(col, 0.333)
-        split.label(text='Dependency:')
+        split.label(text='Dependency' + ':')
         split.prop_search(
             data,
             'dependency_object',
@@ -271,17 +286,25 @@ def draw_object_props(layout, data):
     _, box = ui.collapsible.draw(
         object_box,
         'object:motionsrefs',
-        'Motion Refs ({})'.format(len(data.motionrefs_collection))
+        '{} ({})'.format(
+            text.get_iface(text.iface.motion_refs),
+            len(data.motionrefs_collection)
+        )
     )
 
     if box:
 
         # load active motion reference
-        box.prop(data, 'load_active_motion_refs', toggle=True)
+        box.prop(
+            data,
+            'load_active_motion_refs',
+            text=text.get_iface(text.iface.load_motion_ref),
+            toggle=True
+        )
 
         if data.load_active_motion_refs:
             row = box.row()
-            row.label(text='Format:')
+            row.label(text=text.get_iface(text.iface.fmt) + ':')
             row.prop(data.motions_browser, 'file_format', expand=True)
 
         # motion references
@@ -310,38 +333,38 @@ def draw_object_props(layout, data):
     _, box = ui.collapsible.draw(
         object_box,
         'object:revision',
-        'Revision'
+        text.get_iface(text.iface.revision)
     )
 
     if box:
 
         # owner
         split = utils.version.layout_split(box, 0.35)
-        split.label(text='Owner Name:')
+        split.label(text=text.get_iface(text.iface.owner_name) + ':')
         split.prop(data.revision, 'owner', text='')
 
         # created time
         split = utils.version.layout_split(box, 0.35)
-        split.label(text='Created Time:')
+        split.label(text=text.get_iface(text.iface.created_time) + ':')
         split.prop(data.revision, 'ctime_str', text='')
 
         # modif name
         split = utils.version.layout_split(box, 0.35)
-        split.label(text='Moder Name:')
+        split.label(text=text.get_iface(text.iface.moder_name) + ':')
         split.label(text=data.revision.moder)
 
         # modified time
         split = utils.version.layout_split(box, 0.35)
-        split.label(text='Modified Time:')
+        split.label(text=text.get_iface(text.iface.mod_time) + ':')
         split.label(text=data.revision.mtime_str)
 
         # time formats
         subbox = box.box()
         split = utils.version.layout_split(subbox, 0.25)
         split.label(text='')
-        split.label(text='Time Formats:', icon='INFO')
-        subbox.label(text='Year.Month.Day Hours:Minutes')
-        subbox.label(text='Year.Month.Day')
+        split.label(text=text.get_iface(text.iface.time_fmt) + ':', icon='INFO')
+        subbox.label(text=text.get_iface(text.iface.time_fmt_1))
+        subbox.label(text=text.get_iface(text.iface.time_fmt_2))
 
 
 def draw_details_props(layout, context):

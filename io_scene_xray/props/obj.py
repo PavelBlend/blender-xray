@@ -542,7 +542,6 @@ class XRayObjectProperties(utility.InitPropGroup):
     show_userdata = bpy.props.BoolProperty(description='View user data', options={'SKIP_SAVE'})
     revision = bpy.props.PointerProperty(type=XRayObjectRevisionProperties)
     load_active_motion_refs = bpy.props.BoolProperty(
-        name='Load Active Motion Refs',
         default=False,
         update=update_load_active_motion_refs
     )
@@ -571,12 +570,8 @@ class XRayObjectProperties(utility.InitPropGroup):
         description='View motions',
         options={'SKIP_SAVE'}
     )
-    play_active_motion = bpy.props.BoolProperty(
-        name='Play Active Motion',
-        default=False
-    )
+    play_active_motion = bpy.props.BoolProperty(default=False)
     show_motions_names = bpy.props.EnumProperty(
-        name='Show Motions Names',
         items=(
             ('ACTION', 'Action', ''),
             ('EXPORT', ' Export ', ''),
@@ -584,17 +579,10 @@ class XRayObjectProperties(utility.InitPropGroup):
         ),
         default='ACTION'
     )
-    dependency_object = bpy.props.StringProperty(
-        name='Dependency',
-        default=''
-    )
-    use_custom_motion_names = bpy.props.BoolProperty(
-        name='Custom Names',
-        default=False
-    )
+    dependency_object = bpy.props.StringProperty(default='')
+    use_custom_motion_names = bpy.props.BoolProperty(default=False)
     helper_data = bpy.props.StringProperty()
     export_path = bpy.props.StringProperty(
-        name='Export Path',
         description='Path relative to the root export folder'
     )
     detail = bpy.props.PointerProperty(type=XRayObjectDetailsProperties)

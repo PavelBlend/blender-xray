@@ -101,7 +101,30 @@ translations_table = (
     # mesh panel
     (iface.visible, 'Видимый'),
     (iface.locked, 'Заблокированный'),
-    (iface.sgmask, 'Маска Групп Сглаживания')
+    (iface.sgmask, 'Маска Групп Сглаживания'),
+
+    # object panel
+    (iface.obj_type, 'Тип'),
+    (iface.hq_export, 'Высококачественный Экспорт'),
+    (iface.lod_ref, 'LOD Ссылка'),
+    (iface.exp_path, 'Путь Экспорта'),
+    (iface.user_data, 'Пользовательские Данные'),
+    (iface.motions, 'Анимации'),
+    (iface.play_active_motion, 'Проиграть Активную Анимацию'),
+    (iface.custom_names, 'Настраиваемые Имена'),
+    (iface.show, 'Отображать'),
+    (iface.dep_obj, 'Зависимость'),
+    (iface.motion_refs, 'Ссылки на Анимации'),
+    (iface.load_motion_ref, 'Загрузить Активную Ссылку на Анимацию'),
+    (iface.fmt, 'Формат'),
+    (iface.revision, 'Редакция'),
+    (iface.owner_name, 'Имя Автора'),
+    (iface.created_time, 'Время Создания'),
+    (iface.moder_name, 'Имя Модифицирующего'),
+    (iface.mod_time, 'Время Модифицирования'),
+    (iface.time_fmt, 'Формат Времени'),
+    (iface.time_fmt_1, 'Год.Месяц.День Часы:Минуты'),
+    (iface.time_fmt_2, 'Год.Месяц.День')
 
 )
 
