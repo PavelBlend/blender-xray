@@ -15,9 +15,12 @@ from .... import rw
 from .... import utils
 
 
-_SHARP = 0xffffffff
+_SHARP_MAYA = 0xffffffff
+_SHARP_MAX = 0x0
 _MIN_WEIGHT = 0.0002
 DEFAULT_UV_NAME = 'Texture'
+
+_soc_sgfunc = lambda group_a, group_b, edge_a, edge_b: group_a == group_b
 
 
 def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
@@ -29,6 +32,28 @@ def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
         return (group & (4, 2, 1)[(4 - edge) % 3 if backface else edge]) == 0
 
     return is_soft(group_a, bfa, edge_a) and is_soft(group_b, bfb, edge_b)
+
+
+def face_sg_impl(smooth_groups, sg_fun, sharp, bm_face, face_index, edict):
+    smooth_group = smooth_groups[face_index]
+
+    # smoothing is stored in the edges
+    # triangles should always be smoothed
+    bm_face.smooth = True
+
+    if smooth_group == sharp:
+        for bm_edge in bm_face.edges:
+            bm_edge.smooth = False
+
+    else:
+        for edge_index, bm_edge in enumerate(bm_face.edges):
+            prev = edict[bm_edge.index]
+
+            if prev is None:
+                edict[bm_edge.index] = (smooth_group, edge_index)
+
+            elif not sg_fun(prev[0], smooth_group, prev[1], edge_index):
+                bm_edge.smooth = False
 
 
 @log.with_context(name='mesh')
@@ -47,10 +72,16 @@ def import_mesh(context, creader, renamemap, file_name):
     mesh_flags = None
     mesh_options = None
     bmsh = bmesh.new()
-    sgfuncs = (_SHARP, lambda ga, gb, ea, eb: ga == gb) \
-        if context.soc_sgroups else (_SHARP, _cop_sgfunc)
+
     vt_data = ()
     fc_data = ()
+
+    sharp = _SHARP_MAYA
+
+    if context.soc_sgroups:
+        sg_fun = _soc_sgfunc
+    else:
+        sg_fun = _cop_sgfunc
 
     prefs = utils.version.get_preferences()
 
@@ -81,27 +112,12 @@ def import_mesh(context, creader, renamemap, file_name):
             log.update(name=mesh_name)
 
         elif cid == fmt.Chunks.Mesh.SG:
+
             if not data:    # old object format
                 continue
+
             has_sg_chunk = True
             sgroups = data.cast('I')
-
-            def face_sg_impl(bmf, fidx, edict):
-                sm_group = sgroups[fidx]
-                # smoothing is stored in the edges
-                # triangles should always be smoothed
-                bmf.smooth = True
-                if sm_group == sgfuncs[0]:
-                    for bme in bmf.edges:
-                        bme.smooth = False
-                    return
-                for eidx, bme in enumerate(bmf.edges):
-                    prev = edict[bme.index]
-                    if prev is None:
-                        edict[bme.index] = (sm_group, eidx)
-                    elif not sgfuncs[1](prev[0], sm_group, prev[1], eidx):
-                        bme.smooth = False
-
             face_sg = face_sg_impl
 
         elif cid == fmt.Chunks.Mesh.NORMALS and prefs.object_split_normals:
@@ -214,7 +230,8 @@ def import_mesh(context, creader, renamemap, file_name):
         elif cid == fmt.Chunks.Mesh.FLAGS:
             mesh_flags = rw.read.PackedReader(data).getf('<B')[0]
             if mesh_flags & 0x4 and context.soc_sgroups:    # sgmask
-                sgfuncs = (0, lambda ga, gb, ea, eb: ga == gb)
+                sharp = _SHARP_MAX
+                sg_fun = _soc_sgfunc
 
         elif cid == fmt.Chunks.Mesh.BBOX:
             pass    # blender automatically calculates bbox
@@ -386,13 +403,14 @@ def import_mesh(context, creader, renamemap, file_name):
             continue    # already instantiated
         bmfaces[fidx] = local.mkface(fidx)
 
+    # set smoothing
     if face_sg and not split_normals:
         bmsh.edges.index_update()
         edict = [None] * len(bmsh.edges)
         for fidx, bmf in enumerate(bmfaces):
             if bmf is None:
                 continue
-            face_sg(bmf, fidx, edict)
+            face_sg(sgroups, sg_fun, sharp, bmf, fidx, edict)
 
     if not context.split_by_materials:
         assigned = [False] * len(bmfaces)
