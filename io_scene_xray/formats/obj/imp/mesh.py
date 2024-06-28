@@ -56,9 +56,18 @@ def face_sg_impl(smooth_groups, sg_fun, sharp, bm_face, face_index, edict):
                 bm_edge.smooth = False
 
 
+def read_vertex_map_reference(reader, struct_2i):
+    count = reader.byte()
+
+    if count == 1:
+        return (reader.getp(struct_2i), )    # fast path
+
+    return [reader.getp(struct_2i) for __ in range(count)]
+
+
 @log.with_context(name='mesh')
-def import_mesh(context, creader, renamemap, file_name):
-    ver_chunk = creader.next(fmt.Chunks.Mesh.VERSION)
+def import_mesh(context, chunked_reader, renamemap, file_name):
+    ver_chunk = chunked_reader.next(fmt.Chunks.Mesh.VERSION)
     ver_reader = rw.read.PackedReader(ver_chunk)
     ver = ver_reader.getf('<H')[0]
 
@@ -71,91 +80,101 @@ def import_mesh(context, creader, renamemap, file_name):
     mesh_name = None
     mesh_flags = None
     mesh_options = None
-    bmsh = bmesh.new()
+    face_sg = None
+    bml_texture = None
+    has_sg_chunk = False
+    has_multiple_uvs = False
 
     vt_data = ()
     fc_data = ()
+    vm_refs = ()
+    surface_faces = []
+    split_normals = []
+    vmaps = []
+    vgroups = []
 
     sharp = _SHARP_MAYA
+    use_normals = utils.version.get_preferences().object_split_normals
 
     if context.soc_sgroups:
         sg_fun = _soc_sgfunc
     else:
         sg_fun = _cop_sgfunc
 
-    prefs = utils.version.get_preferences()
-
-    face_sg = None
-    s_faces = []
-    split_normals = []
-    vm_refs = ()
-    vmaps = []
-    vgroups = []
+    bmsh = bmesh.new()
     bml_deform = bmsh.verts.layers.deform.verify()
-    bml_texture = None
-    has_sg_chunk = False
-    has_multiple_uvs = False
 
-    for (cid, data) in creader:
-        if cid == fmt.Chunks.Mesh.VERTS:
-            reader = rw.read.PackedReader(data)
-            vt_data = [reader.getv3fp() for _ in range(reader.uint32())]
+    for chunk_id, chunk_data in chunked_reader:
 
-        elif cid == fmt.Chunks.Mesh.FACES:
-            s_6i = rw.read.PackedReader.prep('6I')
-            reader = rw.read.PackedReader(data)
+        # vertices
+        if chunk_id == fmt.Chunks.Mesh.VERTS:
+            reader = rw.read.PackedReader(chunk_data)
+            verts_count = reader.uint32()
+            vt_data = [reader.getv3fp() for _ in range(verts_count)]
+
+        # triangles
+        elif chunk_id == fmt.Chunks.Mesh.FACES:
+            struct_6i = rw.read.PackedReader.prep('6I')
+            reader = rw.read.PackedReader(chunk_data)
             faces_count = reader.uint32()
-            fc_data = [reader.getp(s_6i) for _ in range(faces_count)]
+            fc_data = [reader.getp(struct_6i) for _ in range(faces_count)]
 
-        elif cid == fmt.Chunks.Mesh.MESHNAME:
-            mesh_name = rw.read.PackedReader(data).gets()
+        # mesh name
+        elif chunk_id == fmt.Chunks.Mesh.MESHNAME:
+            reader = rw.read.PackedReader(chunk_data)
+            mesh_name = reader.gets()
             log.update(name=mesh_name)
 
-        elif cid == fmt.Chunks.Mesh.SG:
+        # smoothing groups
+        elif chunk_id == fmt.Chunks.Mesh.SG:
 
-            if not data:    # old object format
+            if not chunk_data:    # old object format
                 continue
 
             has_sg_chunk = True
-            sgroups = data.cast('I')
+            sgroups = chunk_data.cast('I')
             face_sg = face_sg_impl
 
-        elif cid == fmt.Chunks.Mesh.NORMALS and prefs.object_split_normals:
-            reader = rw.read.PackedReader(data)
+        # split normals
+        elif chunk_id == fmt.Chunks.Mesh.NORMALS and use_normals:
+            reader = rw.read.PackedReader(chunk_data)
             for face_index in range(faces_count):
                 norm_1 = mathutils.Vector(reader.getv3fp()).normalized()
                 norm_2 = mathutils.Vector(reader.getv3fp()).normalized()
                 norm_3 = mathutils.Vector(reader.getv3fp()).normalized()
                 split_normals.extend((norm_1, norm_3, norm_2))
 
-        elif cid == fmt.Chunks.Mesh.SFACE:
-            reader = rw.read.PackedReader(data)
-            for _ in range(reader.getf('<H')[0]):
+        # surfaces
+        elif chunk_id == fmt.Chunks.Mesh.SFACE:
+            reader = rw.read.PackedReader(chunk_data)
+            surface_count = reader.getf('<H')[0]
+            for _ in range(surface_count):
                 name = reader.gets()
-                s_faces.append((name, reader.getb(reader.uint32() * 4).cast('I')))
+                surf_faces_count = reader.uint32()
+                face_indices = reader.getb(surf_faces_count * 4).cast('I')
+                surface_faces.append((name, face_indices))
 
-        elif cid == fmt.Chunks.Mesh.VMREFS:
-            s_ii = rw.read.PackedReader.prep('2I')
+        # vertex map references
+        elif chunk_id == fmt.Chunks.Mesh.VMREFS:
+            struct_2i = rw.read.PackedReader.prep('2I')
+            reader = rw.read.PackedReader(chunk_data)
+            vertex_map_count = reader.uint32()
+            vm_refs = [
+                read_vertex_map_reference(reader, struct_2i)
+                for _ in range(vertex_map_count)
+            ]
 
-            def read_vmref(reader):
-                count = reader.byte()
-                if count == 1:
-                    return (reader.getp(s_ii),)    # fast path
-                return [reader.getp(s_ii) for __ in range(count)]
-
-            reader = rw.read.PackedReader(data)
-            vm_refs = [read_vmref(reader) for _ in range(reader.uint32())]
-
-        elif cid in (fmt.Chunks.Mesh.VMAPS1, fmt.Chunks.Mesh.VMAPS2):
+        # vertex maps
+        elif chunk_id in (fmt.Chunks.Mesh.VMAPS1, fmt.Chunks.Mesh.VMAPS2):
             suppress_rename_warnings = {}
             zero_maps = set()
-            reader = rw.read.PackedReader(data)
+            reader = rw.read.PackedReader(chunk_data)
             for _ in range(reader.uint32()):
                 name = reader.gets()
                 if not name:
                     name = DEFAULT_UV_NAME
                 reader.skip(1)    # dim
-                if cid == fmt.Chunks.Mesh.VMAPS2:
+                if chunk_id == fmt.Chunks.Mesh.VMAPS2:
                     discon = reader.byte() != 0
                 typ = reader.byte() & 0x3
                 size = reader.uint32()
@@ -182,7 +201,7 @@ def import_mesh(context, creader, renamemap, file_name):
                         else:
                             bml_texture = bmsh.faces.layers.tex.new(name)
                     uvs = reader.getb(size * 8).cast('f')
-                    if cid == fmt.Chunks.Mesh.VMAPS2:
+                    if chunk_id == fmt.Chunks.Mesh.VMAPS2:
                         reader.skip(size * 4)
                         if discon:
                             reader.skip(size * 4)
@@ -201,7 +220,7 @@ def import_mesh(context, creader, renamemap, file_name):
                             wgs[i] = _MIN_WEIGHT
                     if bad:
                         zero_maps.add(name)
-                    if cid == fmt.Chunks.Mesh.VMAPS2:
+                    if chunk_id == fmt.Chunks.Mesh.VMAPS2:
                         reader.skip(size * 4)
                         if discon:
                             reader.skip(size * 4)
@@ -227,23 +246,29 @@ def import_mesh(context, creader, renamemap, file_name):
                         vmaps=zero_maps
                     )
 
-        elif cid == fmt.Chunks.Mesh.FLAGS:
-            mesh_flags = rw.read.PackedReader(data).getf('<B')[0]
+        # mesh flags
+        elif chunk_id == fmt.Chunks.Mesh.FLAGS:
+            reader = rw.read.PackedReader(chunk_data)
+            mesh_flags = reader.getf('<B')[0]
+
             if mesh_flags & 0x4 and context.soc_sgroups:    # sgmask
                 sharp = _SHARP_MAX
                 sg_fun = _soc_sgfunc
 
-        elif cid == fmt.Chunks.Mesh.BBOX:
+        # bounding box
+        elif chunk_id == fmt.Chunks.Mesh.BBOX:
             pass    # blender automatically calculates bbox
 
-        elif cid == fmt.Chunks.Mesh.OPTIONS:
-            mesh_options = rw.read.PackedReader(data).getf('<2I')
+        # mesh options
+        elif chunk_id == fmt.Chunks.Mesh.OPTIONS:
+            reader = rw.read.PackedReader(chunk_data)
+            mesh_options = reader.getf('<2I')
 
-        elif cid == fmt.Chunks.Mesh.NOT_USED_0:
+        elif chunk_id == fmt.Chunks.Mesh.NOT_USED_0:
             pass    # not used chunk
 
         else:
-            log.debug('unknown chunk', cid=cid)
+            log.debug('unknown chunk', chunk_id=chunk_id)
 
     bo_mesh = None
     bad_vgroup = -1
@@ -337,6 +362,7 @@ def import_mesh(context, creader, renamemap, file_name):
 
     bmfaces = [None] * len(fc_data)
 
+    # create mesh
     bm_data = bpy.data.meshes.new(mesh_name)
     utils.stats.created_msh()
     if face_sg or split_normals:
@@ -345,6 +371,7 @@ def import_mesh(context, creader, renamemap, file_name):
         if not utils.version.IS_28:
             bm_data.show_edge_sharp = True
 
+    # create object
     if file_name:
         obj_name = file_name
     else:
@@ -352,29 +379,44 @@ def import_mesh(context, creader, renamemap, file_name):
 
     bo_mesh = bpy.data.objects.new(obj_name, bm_data)
     utils.stats.created_obj()
+
+    # set flags
     if mesh_flags is not None:
         bo_mesh.data.xray.flags = mesh_flags
+
+    # set options
     if mesh_options is not None:
         bo_mesh.data.xray.options = mesh_options
-    for vgroup in vgroups:
-        bo_mesh.vertex_groups.new(name=vgroup)
 
+    # create vertex groups
+    for group_name in vgroups:
+        bo_mesh.vertex_groups.new(name=group_name)
+
+    # create materials
     f_facez = []
     images = []
-    for name, faces in s_faces:
-        bmat = context.loaded_materials.get(name)
-        if bmat is None:
-            context.loaded_materials[name] = bmat = \
+
+    for name, faces in surface_faces:
+
+        # search material
+        bpy_mat = context.loaded_materials.get(name)
+
+        # create material
+        if bpy_mat is None:
+            context.loaded_materials[name] = bpy_mat = \
                 bpy.data.materials.new(name)
-            bmat.xray.version = context.version
+            bpy_mat.xray.version = context.version
             utils.stats.created_mat()
-        midx = len(bm_data.materials)
-        bm_data.materials.append(bmat)
+
+        material_index = len(bm_data.materials)
+        bm_data.materials.append(bpy_mat)
+        f_facez.append((faces, material_index))
+
         if not utils.version.IS_28:
             images.append(
-                bmat.active_texture.image if bmat.active_texture else None
+                bpy_mat.active_texture.image
+                if bpy_mat.active_texture else None
             )
-        f_facez.append((faces, midx))
 
     local_class = LocalComplex if vgroups else LocalSimple
 
@@ -412,6 +454,10 @@ def import_mesh(context, creader, renamemap, file_name):
                 continue
             face_sg(sgroups, sg_fun, sharp, bmf, fidx, edict)
 
+    if not has_sg_chunk:    # old object format
+        for face in bmsh.faces:
+            face.smooth = True
+
     if not context.split_by_materials:
         assigned = [False] * len(bmfaces)
         for faces, midx in f_facez:
@@ -431,6 +477,7 @@ def import_mesh(context, creader, renamemap, file_name):
                     bmf[bml_texture].image = images[midx]
                 assigned[fidx] = True
 
+    # duplicate faces report
     if bad_vgroup != -1:
         msg = text.get_tip(text.warn.object_duplicate_faces) + '. '
         if not context.split_by_materials:
@@ -442,16 +489,13 @@ def import_mesh(context, creader, renamemap, file_name):
         msg += text.get_tip(text.warn.object_vert_group_created)
         log.warn(msg, vertex_group=bo_mesh.vertex_groups[bad_vgroup].name)
 
-    if not has_sg_chunk:    # old object format
-        for face in bmsh.faces:
-            face.smooth = True
-
     bmsh.normal_update()
     bmsh.to_mesh(bm_data)
 
     if has_multiple_uvs:
         bm_data.uv_layers[0].name = DEFAULT_UV_NAME
 
+    # set split normals
     if split_normals:
         bm_data.normals_split_custom_set(split_normals)
 
