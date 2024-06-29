@@ -169,7 +169,9 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
             suppress_rename_warnings = {}
             zero_maps = set()
             reader = rw.read.PackedReader(chunk_data)
-            for _ in range(reader.uint32()):
+            vmap_count = reader.uint32()
+
+            for _ in range(vmap_count):
                 name = reader.gets()
                 if not name:
                     name = DEFAULT_UV_NAME
@@ -178,6 +180,8 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
                     discon = reader.byte() != 0
                 typ = reader.byte() & 0x3
                 size = reader.uint32()
+
+                # uvs
                 if typ == fmt.VMapTypes.UVS:
                     new_name = renamemap.get(name.lower(), name)
                     if new_name != name:
@@ -206,7 +210,9 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
                         if discon:
                             reader.skip(size * 4)
                     vmaps.append((typ, bml, uvs))
-                elif typ == fmt.VMapTypes.WEIGHTS:    # weights
+
+                # weights
+                elif typ == fmt.VMapTypes.WEIGHTS:
                     name = renamemap.get(name, name)
                     vgi = len(vgroups)
                     vgroups.append(name)
@@ -225,12 +231,14 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
                         if discon:
                             reader.skip(size * 4)
                     vmaps.append((typ, vgi, wgs))
+
                 else:
                     raise log.AppError(
                         text.error.object_bad_vmap,
                         log.props(type=typ)
                     )
 
+            # zero maps report
             if zero_maps:
                 zero_maps = list(zero_maps)
                 zero_maps.sort()
