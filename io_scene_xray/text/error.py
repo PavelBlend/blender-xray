@@ -29,6 +29,7 @@ sel_no_anim_data = 'Selected objects has no animation data'
 no_valid_str = 'Not valid string'
 no_arm_obj = 'There is no armature among the selected objects'
 nothing_imp = 'Nothing is imported'
+zero_weights = 'Mesh object has vertices that have zero weights. Problem vertices have been selected'
 
 # anm export
 anm_no_keys = 'Action has keys not for all channels'

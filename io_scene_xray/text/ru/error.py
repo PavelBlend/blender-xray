@@ -37,6 +37,7 @@ translations_table = (
     (error.no_valid_str, 'Недопустимая строка'),
     (error.no_arm_obj, 'Среди выделенных объектов нет арматуры'),
     (error.nothing_imp, 'Ничего не импортируется'),
+    (error.zero_weights, 'Mesh-объект имеет вершины, у которых нулевые веса. Проблемные вершины были выделены'),
 
     # anm export
     (error.anm_no_keys, 'Анимация имеет ключи не для всех каналов'),

@@ -335,6 +335,8 @@ def _export_child(
     triangles = []
     vertices_map = {}
     vertex_max_weights = 0
+    has_zero_weights = False
+
     for face in mesh.faces:
         face_indices = []
         for loop_index, loop in enumerate(face.loops):
@@ -347,13 +349,19 @@ def _export_child(
             for group_index, weight in loop.vert[weight_layer].items():
                 remap_group_index = vertex_groups_map.get(group_index, None)
                 if remap_group_index is not None:
-                    weights.append((remap_group_index, weight))
+                    if weight:
+                        weights.append((remap_group_index, weight))
                     weights_count += 1
+
             if not weights_count:
                 return log.AppError(
                     text.error.object_ungroupped_verts,
                     log.props(object=bpy_obj.name)
                 )
+
+            if weights_count and not weights:
+                has_zero_weights = True
+
             vertex_max_weights = max(vertex_max_weights, weights_count)
 
             bitan = bpy_loop.bitangent.normalized().to_tuple()
@@ -371,7 +379,46 @@ def _export_child(
                 vertices_map[vertex] = vertex_index = len(vertices)
                 vertices.append(vertex)
             face_indices.append(vertex_index)
+
         triangles.append(face_indices)
+
+    # report zero weights
+    if has_zero_weights:
+
+        # unhide faces
+        zero_vert_count = 0
+        for face in bpy_obj.data.polygons:
+            face.hide = False
+            face.select = False
+
+        # unhide edges
+        for edge in bpy_obj.data.edges:
+            edge.hide = False
+            edge.select = False
+
+        for vert in bpy_obj.data.vertices:
+
+            # unhide vertex
+            vert.hide = False
+
+            # calculate total weight
+            total_weight = 0.0
+            for group in vert.groups:
+                total_weight += group.weight
+
+            # select
+            if total_weight:
+                vert.select = False
+            else:
+                vert.select = True
+                zero_vert_count += 1
+
+        # report
+        return log.AppError(
+            text.error.zero_weights,
+            log.props(object=bpy_obj.name, vertices_count=zero_vert_count)
+        )
+
     utils.mesh.fix_ensure_lookup_table(mesh.verts)
 
     # write vertices chunk
