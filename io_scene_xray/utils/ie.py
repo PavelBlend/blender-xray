@@ -7,6 +7,7 @@ import mathutils
 
 # addon modules
 from . import draw
+from . import mesh
 from . import version
 from .. import log
 from .. import text
@@ -630,14 +631,27 @@ def validate_vertex_weights(bpy_obj, arm_obj):
     nonexp_vert_groups = set()
     nonexp_group_verts_count = 0
 
+    has_zero_weights = False
+
     for vertex in bpy_obj.data.vertices:
+
+        weights = []
 
         if len(vertex.groups):
             exportable_groups_count = 0
+
             for vertex_group in vertex.groups:
+
                 if vertex_group.group in exportable_groups_indices:
                     exportable_groups_count += 1
-            if not exportable_groups_count:
+
+                if vertex_group.weight:
+                    weights.append(vertex_group.weight)
+
+            if exportable_groups_count:
+                if not weights:
+                    mesh.check_zero_weight_verts(bpy_obj)
+            else:
                 nonexp_vert_groups.add(vertex.index)
                 nonexp_group_verts_count += 1
 

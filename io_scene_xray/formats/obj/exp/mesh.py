@@ -392,6 +392,7 @@ def export_mesh(
     packed_writer.putf('<B', 1)    # discon
     packed_writer.putf('<B', fmt.VMapTypes.UVS)    # type
     packed_writer.putf('<I', len(uvs))
+
     # write uv coords
     for uvc in uvs:
         packed_writer.putf('<2f', *uvc)
@@ -399,6 +400,7 @@ def export_mesh(
         packed_writer.putf('<I', vidx)
     for fidx in face_indices:
         packed_writer.putf('<I', fidx)
+
     # write vertex weights
     for group_index, vertex_group in enumerate(bpy_obj.vertex_groups):
         weight_map = weight_maps[group_index]
@@ -411,7 +413,8 @@ def export_mesh(
         packed_writer.putf('<B', fmt.VMapTypes.WEIGHTS)    # type
         packed_writer.putf('<I', len(vert_indices))
         for vert_index in vert_indices:
-            packed_writer.putf('<f', bm.verts[vert_index][weights_layer][group_index])
+            weight = bm.verts[vert_index][weights_layer][group_index]
+            packed_writer.putf('<f', weight)
         packed_writer.putf('<' + str(len(vert_indices)) + 'I', *vert_indices)
     chunked_writer.put(fmt.Chunks.Mesh.VMAPS2, packed_writer)
 

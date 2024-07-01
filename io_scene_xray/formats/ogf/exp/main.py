@@ -335,7 +335,6 @@ def _export_child(
     triangles = []
     vertices_map = {}
     vertex_max_weights = 0
-    has_zero_weights = False
 
     for face in mesh.faces:
         face_indices = []
@@ -349,12 +348,8 @@ def _export_child(
             for group_index, weight in loop.vert[weight_layer].items():
                 remap_group_index = vertex_groups_map.get(group_index, None)
                 if remap_group_index is not None:
-                    if weight:
-                        weights.append((remap_group_index, weight))
+                    weights.append((remap_group_index, weight))
                     weights_count += 1
-
-            if weights_count and not weights:
-                has_zero_weights = True
 
             vertex_max_weights = max(vertex_max_weights, weights_count)
 
@@ -375,10 +370,6 @@ def _export_child(
             face_indices.append(vertex_index)
 
         triangles.append(face_indices)
-
-    # report zero weights
-    if has_zero_weights:
-        utils.mesh.check_zero_weight_verts(bpy_obj)
 
     utils.mesh.fix_ensure_lookup_table(mesh.verts)
 
