@@ -353,12 +353,6 @@ def _export_child(
                         weights.append((remap_group_index, weight))
                     weights_count += 1
 
-            if not weights_count:
-                return log.AppError(
-                    text.error.object_ungroupped_verts,
-                    log.props(object=bpy_obj.name)
-                )
-
             if weights_count and not weights:
                 has_zero_weights = True
 
@@ -384,40 +378,7 @@ def _export_child(
 
     # report zero weights
     if has_zero_weights:
-
-        # unhide faces
-        zero_vert_count = 0
-        for face in bpy_obj.data.polygons:
-            face.hide = False
-            face.select = False
-
-        # unhide edges
-        for edge in bpy_obj.data.edges:
-            edge.hide = False
-            edge.select = False
-
-        for vert in bpy_obj.data.vertices:
-
-            # unhide vertex
-            vert.hide = False
-
-            # calculate total weight
-            total_weight = 0.0
-            for group in vert.groups:
-                total_weight += group.weight
-
-            # select
-            if total_weight:
-                vert.select = False
-            else:
-                vert.select = True
-                zero_vert_count += 1
-
-        # report
-        return log.AppError(
-            text.error.zero_weights,
-            log.props(object=bpy_obj.name, vertices_count=zero_vert_count)
-        )
+        utils.mesh.check_zero_weight_verts(bpy_obj)
 
     utils.mesh.fix_ensure_lookup_table(mesh.verts)
 
@@ -450,44 +411,43 @@ def _export_child(
         if two_sided:
             write_verts_1l(vertices_writer, vertices, norm_coef=-1)
 
-    else:
-        # 2-link vertices
-        if vertex_max_weights == 2 or context.fmt_ver == 'soc':
-            if vertex_max_weights != 2:
-                log.debug(
-                    'max_weights_count',
-                    count=vertex_max_weights
-                )
-            if context.fmt_ver == 'soc':
-                vert_fmt = fmt.VertexFormat.FVF_2L
-            else:
-                vert_fmt = fmt.VertexFormat.FVF_2L_CS
-
-            vertices_writer.putf('<2I', vert_fmt, vertices_count)
-            write_verts_2l(vertices_writer, vertices)
-
-            if two_sided:
-                write_verts_2l(vertices_writer, vertices, norm_coef=-1)
-
-        # 3-link vertices
-        elif vertex_max_weights == 3:
-            vert_fmt = fmt.VertexFormat.FVF_3L_CS
-
-            vertices_writer.putf('<2I', vert_fmt, vertices_count)
-            write_verts_3l(vertices_writer, vertices)
-
-            if two_sided:
-                write_verts_3l(vertices_writer, vertices, norm_coef=-1)
-
-        # 4-link vertices
+    # 2-link vertices
+    elif vertex_max_weights == 2 or context.fmt_ver == 'soc':
+        if vertex_max_weights != 2:
+            log.debug(
+                'max_weights_count',
+                count=vertex_max_weights
+            )
+        if context.fmt_ver == 'soc':
+            vert_fmt = fmt.VertexFormat.FVF_2L
         else:
-            vert_fmt = fmt.VertexFormat.FVF_4L_CS
+            vert_fmt = fmt.VertexFormat.FVF_2L_CS
 
-            vertices_writer.putf('<2I', vert_fmt, vertices_count)
-            write_verts_4l(vertices_writer, vertices)
+        vertices_writer.putf('<2I', vert_fmt, vertices_count)
+        write_verts_2l(vertices_writer, vertices)
 
-            if two_sided:
-                write_verts_4l(vertices_writer, vertices, norm_coef=-1)
+        if two_sided:
+            write_verts_2l(vertices_writer, vertices, norm_coef=-1)
+
+    # 3-link vertices
+    elif vertex_max_weights == 3:
+        vert_fmt = fmt.VertexFormat.FVF_3L_CS
+
+        vertices_writer.putf('<2I', vert_fmt, vertices_count)
+        write_verts_3l(vertices_writer, vertices)
+
+        if two_sided:
+            write_verts_3l(vertices_writer, vertices, norm_coef=-1)
+
+    # 4-link vertices
+    else:
+        vert_fmt = fmt.VertexFormat.FVF_4L_CS
+
+        vertices_writer.putf('<2I', vert_fmt, vertices_count)
+        write_verts_4l(vertices_writer, vertices)
+
+        if two_sided:
+            write_verts_4l(vertices_writer, vertices, norm_coef=-1)
 
     chunked_writer.put(fmt.Chunks_v4.VERTICES, vertices_writer)
 
@@ -995,7 +955,7 @@ def scan_root(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
             child_objects.append(bpy_obj)
         for child_object in child_objects:
             mesh_writer = rw.write.ChunkedWriter()
-            error = _export_child(
+            _export_child(
                 root_obj,
                 child_object,
                 mesh_writer,
@@ -1007,8 +967,6 @@ def scan_root(bpy_obj, root_obj, meshes, arms, bones, bones_map, context):
                 child_mesh = child_object.data
                 bpy.data.objects.remove(child_object)
                 bpy.data.meshes.remove(child_mesh)
-            if error:
-                raise error
 
     # scan armature
     elif bpy_obj.type == 'ARMATURE':

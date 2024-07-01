@@ -7,6 +7,8 @@ import mathutils
 from . import ie
 from . import obj
 from . import version
+from .. import log
+from .. import text
 
 
 def convert_object_to_space_bmesh(
@@ -252,3 +254,46 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
 
 def weights_top(weights, count):
     return sorted(weights, key=lambda x: x[1], reverse=True)[0 : count]
+
+
+def _unhide_faces(bpy_obj):
+    for face in bpy_obj.data.polygons:
+        face.hide = False
+        face.select = False
+
+
+def _unhide_edges(bpy_obj):
+    for edge in bpy_obj.data.edges:
+        edge.hide = False
+        edge.select = False
+
+
+def check_zero_weight_verts(bpy_obj):
+    _unhide_faces(bpy_obj)
+    _unhide_edges(bpy_obj)
+
+    zero_vert_count = 0
+
+    for vert in bpy_obj.data.vertices:
+
+        # unhide vertex
+        vert.hide = False
+
+        # calculate total weight
+        total_weight = 0.0
+        for group in vert.groups:
+            total_weight += group.weight
+
+        # select
+        if total_weight:
+            vert.select = False
+        else:
+            vert.select = True
+            zero_vert_count += 1
+
+    # report
+    if zero_vert_count:
+        raise log.AppError(
+            text.error.zero_weights,
+            log.props(object=bpy_obj.name, vertices_count=zero_vert_count)
+        )
