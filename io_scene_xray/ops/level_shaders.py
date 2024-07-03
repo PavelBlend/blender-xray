@@ -726,10 +726,11 @@ def _create_group_nodes(
             sep.outputs[green],
             com.inputs[blue]
         )
-        shader_group.links.new(
-            sep.outputs[red],
-            shader_node.inputs['Specular']
-        )
+        if utils.version.support_principled_shader():
+            shader_group.links.new(
+                sep.outputs[red],
+                shader_node.inputs['Specular']
+            )
 
     group.node_tree = shader_group
 
