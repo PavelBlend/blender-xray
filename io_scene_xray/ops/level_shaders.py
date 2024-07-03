@@ -503,7 +503,7 @@ def _create_group_nodes(
                 shader_node.inputs['Alpha']
             )
 
-        if utils.version.IS_28:
+        if utils.version.IS_33:
             com_col = 'ShaderNodeCombineColor'
             sep_col = 'ShaderNodeSeparateColor'
             col = 'Color'

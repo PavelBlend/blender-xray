@@ -26,6 +26,10 @@ def is_blender_3():
     return bpy.app.version >= (3, 0, 0)
 
 
+def is_blender_33():
+    return bpy.app.version >= (3, 3, 0)
+
+
 def is_blender_34():
     return bpy.app.version >= (3, 4, 0)
 
@@ -67,6 +71,7 @@ IS_28 = is_blender_2_80()
 IS_29 = is_blender_2_90()
 IS_293 = is_blender_2_93()
 IS_3 = is_blender_3()
+IS_33 = is_blender_33()
 IS_34 = is_blender_34()
 
 
