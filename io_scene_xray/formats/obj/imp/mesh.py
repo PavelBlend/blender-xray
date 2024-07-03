@@ -278,7 +278,6 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
         else:
             log.debug('unknown chunk', chunk_id=chunk_id)
 
-    bo_mesh = None
     bad_vgroup = -1
 
     class LocalAbstract:
@@ -294,11 +293,10 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
                 return bmf
             for i, j in enumerate((1, 5, 3)):
                 for vmi, vi in vm_refs[fr[j]]:
-                    vmap = vmaps[vmi]
-                    if vmap[0] == 0:
+                    vmap_type, layer, uvs = vmaps[vmi]
+                    if vmap_type == fmt.VMapTypes.UVS:
                         vi *= 2
-                        vd = vmap[2]
-                        bmf.loops[i][vmap[1]].uv = (vd[vi], 1 - vd[vi + 1])
+                        bmf.loops[i][layer].uv = (uvs[vi], 1 - uvs[vi + 1])
             return bmf
 
         def _vtx(self, _fr, _i):
@@ -328,8 +326,8 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
                         )
                     nonlocal bad_vgroup
                     if bad_vgroup == -1:
-                        bad_vgroup = len(bo_mesh.vertex_groups)
-                        bo_mesh.vertex_groups.new(name=utils.BAD_VTX_GROUP_NAME)
+                        bad_vgroup = len(bpy_obj.vertex_groups)
+                        bpy_obj.vertex_groups.new(name=utils.BAD_VTX_GROUP_NAME)
                     self.__next = self.__class__(lvl + 1, badvg=bad_vgroup)
                 return self.__next._mkf(fr, i0, i1, i2)
 
@@ -355,9 +353,9 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
             vidx = fr[i]
             vkey = [vidx]
             for vmi, vei in vm_refs[fr[i + 1]]:
-                vmap = vmaps[vmi]
-                if vmap[0] == 1:
-                    vkey.append((vmap[1], vmap[2][vei]))
+                vmap_type, group_index, weights = vmaps[vmi]
+                if vmap_type == fmt.VMapTypes.WEIGHTS:
+                    vkey.append((group_index, weights[vei]))
             vkey = tuple(vkey)
 
             vertex = self.__verts.get(vkey, None)
@@ -368,37 +366,37 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
             self._vgvtx(vertex)
             return vertex
 
-    bmfaces = [None] * len(fc_data)
-
     # create mesh
     bm_data = bpy.data.meshes.new(mesh_name)
     utils.stats.created_msh()
-    if face_sg or split_normals:
-        bm_data.use_auto_smooth = True
-        bm_data.auto_smooth_angle = math.pi
-        if not utils.version.IS_28:
-            bm_data.show_edge_sharp = True
 
-    # create object
+    # set smooth settings
+    bm_data.use_auto_smooth = True
+    bm_data.auto_smooth_angle = math.pi
+    if not utils.version.IS_28:
+        bm_data.show_edge_sharp = True
+
+    # choose object name
     if file_name:
         obj_name = file_name
     else:
         obj_name = mesh_name
 
-    bo_mesh = bpy.data.objects.new(obj_name, bm_data)
+    # create object
+    bpy_obj = bpy.data.objects.new(obj_name, bm_data)
     utils.stats.created_obj()
 
     # set flags
     if mesh_flags is not None:
-        bo_mesh.data.xray.flags = mesh_flags
+        bpy_obj.data.xray.flags = mesh_flags
 
     # set options
     if mesh_options is not None:
-        bo_mesh.data.xray.options = mesh_options
+        bpy_obj.data.xray.options = mesh_options
 
     # create vertex groups
     for group_name in vgroups:
-        bo_mesh.vertex_groups.new(name=group_name)
+        bpy_obj.vertex_groups.new(name=group_name)
 
     # create materials
     f_facez = []
@@ -428,62 +426,63 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
 
     local_class = LocalComplex if vgroups else LocalSimple
 
+    bmfaces = [None] * len(fc_data)
+
+    # create faces splitted by materials
     if context.split_by_materials:
-        for faces, midx in f_facez:
+        for faces, mat_index in f_facez:
             local = local_class()
-            for fidx in faces:
-                bmf = bmfaces[fidx]
+            for face_index in faces:
+                bmf = bmfaces[face_index]
                 if bmf is not None:
                     log.warn(
                         text.warn.object_already_mat,
-                        face=fidx,
+                        face=face_index,
                         material=bmf.material_index,
                     )
                     continue
-                bmfaces[fidx] = bmf = local.mkface(fidx)
+                bmfaces[face_index] = bmf = local.mkface(face_index)
                 if bmf is None:
                     continue
-                bmf.material_index = midx
+                bmf.material_index = mat_index
                 if bml_texture is not None:
-                    bmf[bml_texture].image = images[midx]
+                    bmf[bml_texture].image = images[mat_index]
 
+    # create faces
     local = local_class()
-    for fidx, bmf in enumerate(bmfaces):
+    for face_index, bmf in enumerate(bmfaces):
         if bmf is not None:
             continue    # already instantiated
-        bmfaces[fidx] = local.mkface(fidx)
+        bmfaces[face_index] = local.mkface(face_index)
 
     # set smoothing
     if face_sg and not split_normals:
         bmsh.edges.index_update()
         edict = [None] * len(bmsh.edges)
-        for fidx, bmf in enumerate(bmfaces):
+        for face_index, bmf in enumerate(bmfaces):
             if bmf is None:
                 continue
-            face_sg(sgroups, sg_fun, sharp, bmf, fidx, edict)
+            face_sg(sgroups, sg_fun, sharp, bmf, face_index, edict)
 
-    if not has_sg_chunk:    # old object format
-        for face in bmsh.faces:
-            face.smooth = True
-
+    # assign materials
     if not context.split_by_materials:
         assigned = [False] * len(bmfaces)
-        for faces, midx in f_facez:
-            for fidx in faces:
-                bmf = bmfaces[fidx]
+        for faces, mat_index in f_facez:
+            for face_index in faces:
+                bmf = bmfaces[face_index]
                 if bmf is None:
                     continue
-                if assigned[fidx]:
+                if assigned[face_index]:
                     log.warn(
                         text.warn.object_already_used_mat,
-                        face=fidx,
+                        face=face_index,
                         material=bmf.material_index,
                     )
                     continue
-                bmf.material_index = midx
+                bmf.material_index = mat_index
                 if bml_texture is not None:
-                    bmf[bml_texture].image = images[midx]
-                assigned[fidx] = True
+                    bmf[bml_texture].image = images[mat_index]
+                assigned[face_index] = True
 
     # duplicate faces report
     if bad_vgroup != -1:
@@ -495,11 +494,13 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
             )
             msg += ' "' + split_mesh_prop_name + '". '
         msg += text.get_tip(text.warn.object_vert_group_created)
-        log.warn(msg, vertex_group=bo_mesh.vertex_groups[bad_vgroup].name)
+        log.warn(msg, vertex_group=bpy_obj.vertex_groups[bad_vgroup].name)
 
+    # convert bmesh to bpy-mesh
     bmsh.normal_update()
     bmsh.to_mesh(bm_data)
 
+    # rename uv-map
     if has_multiple_uvs:
         bm_data.uv_layers[0].name = DEFAULT_UV_NAME
 
@@ -507,4 +508,4 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
     if split_normals:
         bm_data.normals_split_custom_set(split_normals)
 
-    return bo_mesh
+    return bpy_obj
