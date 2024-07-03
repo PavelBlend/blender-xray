@@ -67,10 +67,13 @@ def read_vertex_map_reference(reader, struct_2i):
 
 @log.with_context(name='mesh')
 def import_mesh(context, chunked_reader, renamemap, file_name):
+
+    # mesh version
     ver_chunk = chunked_reader.next(fmt.Chunks.Mesh.VERSION)
     ver_reader = rw.read.PackedReader(ver_chunk)
     ver = ver_reader.getf('<H')[0]
 
+    # check version
     if ver != fmt.CURRENT_MESH_VERSION:
         raise log.AppError(
             text.error.object_unsupport_mesh_ver,
@@ -80,14 +83,17 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
     mesh_name = None
     mesh_flags = None
     mesh_options = None
+
+    vt_data = None
+    fc_data = None
+    vm_refs = None
+
     face_sg = None
     bml_texture = None
+
     has_sg_chunk = False
     has_multiple_uvs = False
 
-    vt_data = ()
-    fc_data = ()
-    vm_refs = ()
     surface_faces = []
     split_normals = []
     vmaps = []
@@ -96,11 +102,13 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
     sharp = _SHARP_MAYA
     use_normals = utils.version.get_preferences().object_split_normals
 
+    # choose smoothing groups function
     if context.soc_sgroups:
         sg_fun = _soc_sgfunc
     else:
         sg_fun = _cop_sgfunc
 
+    # create bmesh
     bmsh = bmesh.new()
     bml_deform = bmsh.verts.layers.deform.verify()
 
@@ -272,9 +280,11 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
             reader = rw.read.PackedReader(chunk_data)
             mesh_options = reader.getf('<2I')
 
+        # not used chunk
         elif chunk_id == fmt.Chunks.Mesh.NOT_USED_0:
-            pass    # not used chunk
+            pass
 
+        # unknown chunk
         else:
             log.debug('unknown chunk', chunk_id=chunk_id)
 
