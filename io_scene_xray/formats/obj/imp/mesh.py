@@ -123,10 +123,9 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
 
         # triangles
         elif chunk_id == fmt.Chunks.Mesh.FACES:
-            struct_6i = rw.read.PackedReader.prep('6I')
             reader = rw.read.PackedReader(chunk_data)
             faces_count = reader.uint32()
-            fc_data = [reader.getp(struct_6i) for _ in range(faces_count)]
+            fc_data = reader.get_array('I', faces_count, vec_len=6)
 
         # mesh name
         elif chunk_id == fmt.Chunks.Mesh.MESHNAME:

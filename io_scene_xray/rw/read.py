@@ -5,7 +5,10 @@ import struct
 try:
     import numpy
 
-    NUMPY_FORMATS = {'f': numpy.float32, }
+    NUMPY_FORMATS = {
+        'f': numpy.float32,
+        'I': numpy.uint32
+    }
 except:
     numpy = None
 
