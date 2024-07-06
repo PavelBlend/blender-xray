@@ -112,13 +112,14 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
     bmsh = bmesh.new()
     bml_deform = bmsh.verts.layers.deform.verify()
 
+    # read chunks
     for chunk_id, chunk_data in chunked_reader:
 
         # vertices
         if chunk_id == fmt.Chunks.Mesh.VERTS:
             reader = rw.read.PackedReader(chunk_data)
             verts_count = reader.uint32()
-            vt_data = [reader.getv3fp() for _ in range(verts_count)]
+            vt_data = reader.getverts(verts_count)
 
         # triangles
         elif chunk_id == fmt.Chunks.Mesh.FACES:
@@ -246,7 +247,7 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
                         log.props(type=typ)
                     )
 
-            # zero maps report
+            # zero weights report
             if zero_maps:
                 zero_maps = list(zero_maps)
                 zero_maps.sort()

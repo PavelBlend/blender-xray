@@ -90,6 +90,16 @@ class PackedReader:
         vec = self.getp(self.__S_FFF)
         return vec[0], vec[2], vec[1]
 
+    def getverts(self, count):
+        # get vertex coordinates
+        verts = [None, ] * count
+        prep = self.__S_FFF
+        for index in range(count):
+            co_x, co_y, co_z = prep.unpack_from(self.__data, self.__offs)
+            verts[index] = (co_x, co_z, co_y)
+            self.__offs += prep.size
+        return verts
+
     def get_array(self, fmt, count, vec_len=1):
         if numpy:
             dtype_format = NUMPY_FORMATS.get(fmt, None)
