@@ -303,10 +303,11 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
                 return bmf
             for i, j in enumerate((1, 5, 3)):
                 for vmi, vi in vm_refs[fr[j]]:
-                    vmap_type, layer, uvs = vmaps[vmi]
-                    if vmap_type == fmt.VMapTypes.UVS:
+                    vmap = vmaps[vmi]
+                    if vmap[0] == fmt.VMapTypes.UVS:
                         vi *= 2
-                        bmf.loops[i][layer].uv = (uvs[vi], 1 - uvs[vi + 1])
+                        vd = vmap[2]
+                        bmf.loops[i][vmap[1]].uv = (vd[vi], 1 - vd[vi + 1])
             return bmf
 
         def _vtx(self, _fr, _i):
@@ -363,9 +364,9 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
             vidx = fr[i]
             vkey = [vidx]
             for vmi, vei in vm_refs[fr[i + 1]]:
-                vmap_type, group_index, weights = vmaps[vmi]
-                if vmap_type == fmt.VMapTypes.WEIGHTS:
-                    vkey.append((group_index, weights[vei]))
+                vmap = vmaps[vmi]
+                if vmap[0] == fmt.VMapTypes.WEIGHTS:
+                    vkey.append((vmap[1], vmap[2][vei]))
             vkey = tuple(vkey)
 
             vertex = self.__verts.get(vkey, None)
