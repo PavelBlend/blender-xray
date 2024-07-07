@@ -15,6 +15,167 @@ from .... import rw
 from .... import utils
 
 
+class MeshConstructorAbstract:
+    def __init__(
+            self,
+            bpy_obj,
+            bmsh,
+            vt_data,
+            fc_data,
+            vm_refs,
+            vmaps,
+            bml_deform,
+            level=0,
+            badvg=-1
+        ):
+
+        self.__level = level
+        self.__badvg = badvg
+        self.__next = None
+        self.bad_vgroup = -1
+        self.bpy_obj = bpy_obj
+        self.bmsh = bmsh
+        self.vt_data = vt_data
+        self.fc_data = fc_data
+        self.vm_refs = vm_refs
+        self.vmaps = vmaps
+        self.bml_deform = bml_deform
+
+    def mkface(self, face_index):
+        fr = self.fc_data[face_index]
+        bmf = self._mkf(fr, 0, 4, 2)
+        if bmf is None:
+            return bmf
+        for i, j in enumerate((1, 5, 3)):
+            for vmi, vi in self.vm_refs[fr[j]]:
+                vmap = self.vmaps[vmi]
+                if vmap[0] == fmt.VMapTypes.UVS:
+                    vi *= 2
+                    vd = vmap[2]
+                    bmf.loops[i][vmap[1]].uv = (vd[vi], 1 - vd[vi + 1])
+        return bmf
+
+    def _vtx(self, _fr, _i):
+        raise NotImplementedError
+
+    def _vgvtx(self, vtx):
+        if self.__badvg != -1:
+            vtx[self.bml_deform][self.__badvg] = 0
+
+    def _mkf(self, fr, i0, i1, i2):
+        vertexes = (
+            self._vtx(fr, i0), self._vtx(fr, i1), self._vtx(fr, i2)
+        )
+        try:
+            face = self.bmsh.faces.new(vertexes)
+            face.smooth = True
+            return face
+        except ValueError:
+            if len(set(vertexes)) < 3:
+                log.warn(text.warn.object_invalid_face)
+                return None
+            if self.__next is None:
+                lvl = self.__level
+                if lvl > 100:
+                    raise log.AppError(
+                        text.error.object_many_duplicated_faces
+                    )
+                if self.bad_vgroup == -1:
+                    self.bad_vgroup = len(self.bpy_obj.vertex_groups)
+                    self.bpy_obj.vertex_groups.new(name=utils.BAD_VTX_GROUP_NAME)
+                self.__next = self.__class__(
+                    self.bpy_obj,
+                    self.bmsh,
+                    self.vt_data,
+                    self.fc_data,
+                    self.vm_refs,
+                    self.vmaps,
+                    self.bml_deform,
+                    lvl + 1,
+                    badvg=self.bad_vgroup
+                )
+            return self.__next._mkf(fr, i0, i1, i2)
+
+
+class MeshConstructorSimple(MeshConstructorAbstract):    # fastpath
+    def __init__(
+            self,
+            bpy_obj,
+            bmsh,
+            vt_data,
+            fc_data,
+            vm_refs,
+            vmaps,
+            bml_deform,
+            level=0,
+            badvg=-1
+        ):
+        super(MeshConstructorSimple, self).__init__(
+            bpy_obj,
+            bmsh,
+            vt_data,
+            fc_data,
+            vm_refs,
+            vmaps,
+            bml_deform,
+            level,
+            badvg
+        )
+        self.__verts = [None] * len(vt_data)
+
+    def _vtx(self, fr, i):
+        vidx = fr[i]
+        vertex = self.__verts[vidx]
+        if vertex is None:
+            self.__verts[vidx] = vertex = self.bmsh.verts.new(self.vt_data[vidx])
+        self._vgvtx(vertex)
+        return vertex
+
+
+class MeshConstructorComplex(MeshConstructorAbstract):
+    def __init__(
+            self,
+            bpy_obj,
+            bmsh,
+            vt_data,
+            fc_data,
+            vm_refs,
+            vmaps,
+            bml_deform,
+            level=0,
+            badvg=-1
+        ):
+        super(MeshConstructorComplex, self).__init__(
+            bpy_obj,
+            bmsh,
+            vt_data,
+            fc_data,
+            vm_refs,
+            vmaps,
+            bml_deform,
+            level,
+            badvg
+        )
+        self.__verts = {}
+
+    def _vtx(self, fr, i):
+        vidx = fr[i]
+        vkey = [vidx]
+        for vmi, vei in self.vm_refs[fr[i + 1]]:
+            vmap = self.vmaps[vmi]
+            if vmap[0] == fmt.VMapTypes.WEIGHTS:
+                vkey.append((vmap[1], vmap[2][vei]))
+        vkey = tuple(vkey)
+
+        vertex = self.__verts.get(vkey, None)
+        if vertex is None:
+            self.__verts[vkey] = vertex = self.bmsh.verts.new(self.vt_data[vidx])
+            for vl, vv in vkey[1:]:
+                vertex[self.bml_deform][vl] = vv
+        self._vgvtx(vertex)
+        return vertex
+
+
 _SHARP_MAYA = 0xffffffff
 _SHARP_MAX = 0x0
 _MIN_WEIGHT = 0.0002
@@ -289,95 +450,6 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
         else:
             log.debug('unknown chunk', chunk_id=chunk_id)
 
-    bad_vgroup = -1
-
-    class MeshConstructorAbstract:
-        def __init__(self, level=0, badvg=-1):
-            self.__level = level
-            self.__badvg = badvg
-            self.__next = None
-
-        def mkface(self, face_index):
-            fr = fc_data[face_index]
-            bmf = self._mkf(fr, 0, 4, 2)
-            if bmf is None:
-                return bmf
-            for i, j in enumerate((1, 5, 3)):
-                for vmi, vi in vm_refs[fr[j]]:
-                    vmap = vmaps[vmi]
-                    if vmap[0] == fmt.VMapTypes.UVS:
-                        vi *= 2
-                        vd = vmap[2]
-                        bmf.loops[i][vmap[1]].uv = (vd[vi], 1 - vd[vi + 1])
-            return bmf
-
-        def _vtx(self, _fr, _i):
-            raise NotImplementedError
-
-        def _vgvtx(self, vtx):
-            if self.__badvg != -1:
-                vtx[bml_deform][self.__badvg] = 0
-
-        def _mkf(self, fr, i0, i1, i2):
-            vertexes = (
-                self._vtx(fr, i0), self._vtx(fr, i1), self._vtx(fr, i2)
-            )
-            try:
-                face = bmsh.faces.new(vertexes)
-                face.smooth = True
-                return face
-            except ValueError:
-                if len(set(vertexes)) < 3:
-                    log.warn(text.warn.object_invalid_face)
-                    return None
-                if self.__next is None:
-                    lvl = self.__level
-                    if lvl > 100:
-                        raise log.AppError(
-                            text.error.object_many_duplicated_faces
-                        )
-                    nonlocal bad_vgroup
-                    if bad_vgroup == -1:
-                        bad_vgroup = len(bpy_obj.vertex_groups)
-                        bpy_obj.vertex_groups.new(name=utils.BAD_VTX_GROUP_NAME)
-                    self.__next = self.__class__(lvl + 1, badvg=bad_vgroup)
-                return self.__next._mkf(fr, i0, i1, i2)
-
-    class MeshConstructorSimple(MeshConstructorAbstract):    # fastpath
-        def __init__(self, level=0, badvg=-1):
-            super(MeshConstructorSimple, self).__init__(level, badvg)
-            self.__verts = [None] * len(vt_data)
-
-        def _vtx(self, fr, i):
-            vidx = fr[i]
-            vertex = self.__verts[vidx]
-            if vertex is None:
-                self.__verts[vidx] = vertex = bmsh.verts.new(vt_data[vidx])
-            self._vgvtx(vertex)
-            return vertex
-
-    class MeshConstructorComplex(MeshConstructorAbstract):
-        def __init__(self, level=0, badvg=-1):
-            super(MeshConstructorComplex, self).__init__(level, badvg)
-            self.__verts = {}
-
-        def _vtx(self, fr, i):
-            vidx = fr[i]
-            vkey = [vidx]
-            for vmi, vei in vm_refs[fr[i + 1]]:
-                vmap = vmaps[vmi]
-                if vmap[0] == fmt.VMapTypes.WEIGHTS:
-                    vkey.append((vmap[1], vmap[2][vei]))
-            vkey = tuple(vkey)
-
-            vertex = self.__verts.get(vkey, None)
-            if vertex is None:
-                self.__verts[vkey] = vertex = bmsh.verts.new(vt_data[vidx])
-                for vl, vv in vkey[1:]:
-                    vertex[bml_deform][vl] = vv
-            self._vgvtx(vertex)
-            return vertex
-
     # create mesh
     bm_data = bpy.data.meshes.new(mesh_name)
     utils.stats.created_msh()
@@ -436,14 +508,22 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
                 if bpy_mat.active_texture else None
             )
 
-    local_class = MeshConstructorComplex if vgroups else MeshConstructorSimple
-
+    mesh_class = MeshConstructorComplex if vgroups else MeshConstructorSimple
     bmfaces = [None] * len(fc_data)
+    bad_vgroup = -1
 
     # create faces splitted by materials
     if context.split_by_materials:
         for faces, mat_index in f_facez:
-            local = local_class()
+            constructor = mesh_class(
+                bpy_obj,
+                bmsh,
+                vt_data,
+                fc_data,
+                vm_refs,
+                vmaps,
+                bml_deform
+            )
             for face_index in faces:
                 bmf = bmfaces[face_index]
                 if bmf is not None:
@@ -453,19 +533,32 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
                         material=bmf.material_index,
                     )
                     continue
-                bmfaces[face_index] = bmf = local.mkface(face_index)
+                bmfaces[face_index] = bmf = constructor.mkface(face_index)
                 if bmf is None:
                     continue
                 bmf.material_index = mat_index
                 if bml_texture is not None:
                     bmf[bml_texture].image = images[mat_index]
+            if constructor.bad_vgroup != -1:
+                bad_vgroup = constructor.bad_vgroup
 
     # create faces
-    local = local_class()
+    constructor = mesh_class(
+        bpy_obj,
+        bmsh,
+        vt_data,
+        fc_data,
+        vm_refs,
+        vmaps,
+        bml_deform
+    )
     for face_index, bmf in enumerate(bmfaces):
         if bmf is not None:
             continue    # already instantiated
-        bmfaces[face_index] = local.mkface(face_index)
+        bmfaces[face_index] = constructor.mkface(face_index)
+
+    if constructor.bad_vgroup != -1:
+        bad_vgroup = constructor.bad_vgroup
 
     # set smoothing
     if face_sg and not split_normals:
