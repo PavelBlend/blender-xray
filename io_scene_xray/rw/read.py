@@ -121,6 +121,7 @@ class PackedReader:
             )
             self.__offs += size * count * vec_len
             values.shape = (values.shape[0] // vec_len, vec_len)
+            values = values.tolist()
 
         else:
             values = [
