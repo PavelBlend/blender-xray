@@ -23,13 +23,14 @@ DEFAULT_UV_NAME = 'Texture'
 _soc_sgfunc = lambda group_a, group_b, edge_a, edge_b: group_a == group_b
 
 
+def is_soft(group, backface, edge):
+    return (group & (4, 2, 1)[(4 - edge) % 3 if backface else edge]) == 0
+
+
 def _cop_sgfunc(group_a, group_b, edge_a, edge_b):
     bfa, bfb = bool(group_a & 0x8), bool(group_b & 0x8)    # test backface-s
     if bfa != bfb:
         return False
-
-    def is_soft(group, backface, edge):
-        return (group & (4, 2, 1)[(4 - edge) % 3 if backface else edge]) == 0
 
     return is_soft(group_a, bfa, edge_a) and is_soft(group_b, bfb, edge_b)
 
