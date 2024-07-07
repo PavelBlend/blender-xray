@@ -291,7 +291,7 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
 
     bad_vgroup = -1
 
-    class LocalAbstract:
+    class MeshConstructorAbstract:
         def __init__(self, level=0, badvg=-1):
             self.__level = level
             self.__badvg = badvg
@@ -343,9 +343,9 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
                     self.__next = self.__class__(lvl + 1, badvg=bad_vgroup)
                 return self.__next._mkf(fr, i0, i1, i2)
 
-    class LocalSimple(LocalAbstract):    # fastpath
+    class MeshConstructorSimple(MeshConstructorAbstract):    # fastpath
         def __init__(self, level=0, badvg=-1):
-            super(LocalSimple, self).__init__(level, badvg)
+            super(MeshConstructorSimple, self).__init__(level, badvg)
             self.__verts = [None] * len(vt_data)
 
         def _vtx(self, fr, i):
@@ -356,9 +356,9 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
             self._vgvtx(vertex)
             return vertex
 
-    class LocalComplex(LocalAbstract):
+    class MeshConstructorComplex(MeshConstructorAbstract):
         def __init__(self, level=0, badvg=-1):
-            super(LocalComplex, self).__init__(level, badvg)
+            super(MeshConstructorComplex, self).__init__(level, badvg)
             self.__verts = {}
 
         def _vtx(self, fr, i):
@@ -436,7 +436,7 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
                 if bpy_mat.active_texture else None
             )
 
-    local_class = LocalComplex if vgroups else LocalSimple
+    local_class = MeshConstructorComplex if vgroups else MeshConstructorSimple
 
     bmfaces = [None] * len(fc_data)
 
