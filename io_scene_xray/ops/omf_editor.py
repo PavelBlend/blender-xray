@@ -14,15 +14,14 @@ from .. import log
 OMF_EXT = '.omf'
 
 
-class XRAY_OT_save_omf(utils.ie.BaseOperator):
-    bl_idname = 'io_scene_xray.save_omf'
-    bl_label = 'Save OMF'
+class XRAY_OT_merge_omf(utils.ie.BaseOperator):
+    bl_idname = 'io_scene_xray.merge_omf'
+    bl_label = 'Merge OMF'
     bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = OMF_EXT
 
     omf_data = None
-    filepath_for_tests = None
 
     filter_glob = bpy.props.StringProperty(
         default='*'+OMF_EXT,
@@ -37,13 +36,21 @@ class XRAY_OT_save_omf(utils.ie.BaseOperator):
     def execute(self, context):
         path = os.path.join(self.directory, self.filepath)
 
-        if not path:
-            path = self.filepath_for_tests
+        omf_files = [
+            omf.file_path
+            for omf in context.scene.xray.merge_omf.omf_files
+        ]
+
+        try:
+            merged_data = formats.omf.merge.merge_files(omf_files)
+        except log.AppError as err:
+            log.err(err)
+            return {'CANCELLED'}
 
         with open(path, 'wb') as file:
-            file.write(XRAY_OT_save_omf.omf_data)
+            file.write(merged_data)
 
-        XRAY_OT_save_omf.omf_data = None
+        XRAY_OT_merge_omf.omf_data = None
 
         return {'FINISHED'}
 
@@ -66,9 +73,9 @@ class XRAY_OT_save_omf(utils.ie.BaseOperator):
         return change_ext
 
 
-class XRAY_OT_merge_omf(utils.ie.BaseOperator):
-    bl_idname = 'io_scene_xray.merge_omf'
-    bl_label = 'Merge OMF'
+class XRAY_OT_select_omf(utils.ie.BaseOperator):
+    bl_idname = 'io_scene_xray.select_omf'
+    bl_label = 'Select OMF Files'
     bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = OMF_EXT
@@ -81,10 +88,6 @@ class XRAY_OT_merge_omf(utils.ie.BaseOperator):
     files = bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement,
         options={'SKIP_SAVE'}
-    )
-    filepath_for_tests = bpy.props.StringProperty(
-        subtype='FILE_PATH',
-        options={'SKIP_SAVE', 'HIDDEN'}
     )
 
     @log.execute_with_logger
@@ -104,23 +107,19 @@ class XRAY_OT_merge_omf(utils.ie.BaseOperator):
             self.report({'ERROR'}, text.error.few_files)
             return {'CANCELLED'}
 
-        try:
-            merged_data = formats.omf.merge.merge_files(omf_files)
-        except log.AppError as err:
-            log.err(err)
-            return {'CANCELLED'}
+        for file_path in omf_files:
+            omf = context.scene.xray.merge_omf.omf_files.add()
+            omf.file_path = file_path
+            omf.file_name = os.path.basename(file_path)
 
-        XRAY_OT_save_omf.omf_data = merged_data
-        XRAY_OT_save_omf.filepath_for_tests = self.filepath_for_tests
-
-        return bpy.ops.io_scene_xray.save_omf('INVOKE_DEFAULT')
+        return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 
-classes = (XRAY_OT_save_omf, XRAY_OT_merge_omf)
+classes = (XRAY_OT_merge_omf, XRAY_OT_select_omf)
 
 
 def register():

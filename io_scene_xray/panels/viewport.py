@@ -3,6 +3,7 @@ import bpy
 
 # addon modules
 from .. import ui
+from .. import formats
 from .. import menus
 from .. import utils
 from .. import text
@@ -306,8 +307,37 @@ class XRAY_PT_omf_editor(ui.base.XRayPanel):
 
     def draw(self, context):
         layout = self.layout
+        scn = context.scene
         col = layout.column(align=True)
-        col.operator(ops.omf_editor.XRAY_OT_merge_omf.bl_idname)
+
+        if scn.xray.merge_omf.omf_files:
+            col.operator(ops.omf_editor.XRAY_OT_merge_omf.bl_idname)
+        else:
+            col.operator(ops.omf_editor.XRAY_OT_select_omf.bl_idname)
+
+        row = col.row(align=True)
+
+        # files list
+        row.template_list(
+            listtype_name='XRAY_UL_merge_omf_list_item',
+            list_id='compact',
+            dataptr=scn.xray.merge_omf,
+            propname='omf_files',
+            active_dataptr=scn.xray.merge_omf,
+            active_propname='omf_index',
+            rows=5
+        )
+
+        # list operators
+        col = row.column(align=True)
+        ui.list_helper.draw_list_ops(
+            col,
+            scn.xray.merge_omf,
+            'omf_files',
+            'omf_index',
+            custom_elements_func=formats.omf.merge.draw_omf_list_elements,
+            has_add=False
+        )
 
 
 class XRAY_PT_transforms(ui.base.XRayPanel):

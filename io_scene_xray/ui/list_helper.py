@@ -37,7 +37,8 @@ def draw_list_ops(
         dataptr,
         propname,
         active_propname,
-        custom_elements_func=None
+        custom_elements_func=None,
+        has_add=True
     ):
 
     def operator(operation, icon, enabled=None):
@@ -51,7 +52,8 @@ def draw_list_ops(
         operator.index = active_propname
 
     layout.context_pointer_set(XRAY_OT_list.bl_idname + '.data', dataptr)
-    operator('add', utils.version.get_icon('ZOOMIN'))
+    if has_add:
+        operator('add', utils.version.get_icon('ZOOMIN'))
     collection = getattr(dataptr, propname)
     index = getattr(dataptr, active_propname)
 

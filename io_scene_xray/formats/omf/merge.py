@@ -1,12 +1,50 @@
 # standart modules
 import struct
 
+# blender modules
+import bpy
+
 # addon modules
 from . import fmt
 from .. import ogf
+from ... import ui
 from ... import rw
 from ... import text
 from ... import log
+
+
+class XRayMergeOmfFile(bpy.types.PropertyGroup):
+    file_name = bpy.props.StringProperty()
+    file_path = bpy.props.StringProperty()
+
+
+class XRayMergeOmfProps(bpy.types.PropertyGroup):
+    omf_files = bpy.props.CollectionProperty(type=XRayMergeOmfFile)
+    omf_index = bpy.props.IntProperty()
+
+
+class XRAY_UL_merge_omf_list_item(bpy.types.UIList):
+
+    def draw_item(
+            self,
+            context,
+            layout,
+            data,
+            item,
+            icon,
+            active_data,
+            active_propname
+        ):    # pragma: no cover
+
+        layout.row().label(text=item.file_name)
+
+
+def draw_omf_list_elements(layout):
+    layout.operator(
+        ui.omf_list.XRAY_OT_remove_all_omfs.bl_idname,
+        text='',
+        icon='X'
+    )
 
 
 class OmfMotion:

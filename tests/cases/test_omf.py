@@ -166,14 +166,19 @@ class TestOmf(tests.utils.XRayTestCase):
             export_bone_parts=True
         )
 
-        # merge
-        bpy.ops.io_scene_xray.merge_omf(
+        # select
+        bpy.ops.io_scene_xray.select_omf(
             directory=self.outpath(),
             files=(
                 {'name': 'test_1.omf'},
                 {'name': 'test_2.omf'}
             ),
-            filepath_for_tests=self.outpath('merged.omf')
+        )
+
+        # merge
+        bpy.ops.io_scene_xray.merge_omf(
+            directory=self.outpath(),
+            filepath='merged.omf'
         )
 
         # import merged

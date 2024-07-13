@@ -8,6 +8,7 @@ import bpy_extras
 # addon modules
 from . import imp
 from . import exp
+from . import merge
 from .. import ie
 from .. import contexts
 from ... import utils

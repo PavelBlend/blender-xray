@@ -7,6 +7,7 @@ from . import list_helper
 from . import motion_filter
 from . import motion_list
 from . import motion_refs
+from . import omf_list
 
 
 modules = (
@@ -16,7 +17,8 @@ modules = (
     list_helper,
     motion_filter,
     motion_list,
-    motion_refs
+    motion_refs,
+    omf_list
 )
 
 
