@@ -53,7 +53,7 @@ def export_bone(
     # def chunk
     packed_writer = rw.write.PackedWriter()
     packed_writer.puts(bone_name)
-    packed_writer.puts(real_parent.name if real_parent else '')
+    packed_writer.puts(real_parent.name.lower() if real_parent else '')
     packed_writer.puts(bone_name)    # vmap
     writer.put(fmt.Chunks.Bone.DEF, packed_writer)
 

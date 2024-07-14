@@ -177,6 +177,7 @@ def export_faces(chunked_writer, bm, bpy_obj):
 def export_mesh(
         bpy_obj,
         bpy_root,
+        arm_obj,
         chunked_writer,
         context,
         loc_space,
@@ -271,9 +272,9 @@ def export_mesh(
         packed_writer.putf('<I', smooth_group)
     chunked_writer.put(fmt.Chunks.Mesh.SG, packed_writer)
 
-    if bpy_root.type == 'ARMATURE':
+    if arm_obj:
         bones_names = []
-        for bone in bpy_root.data.bones:
+        for bone in arm_obj.data.bones:
             if bone.xray.exportable:
                 bones_names.append(bone.name)
     else:

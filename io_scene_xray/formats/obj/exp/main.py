@@ -171,12 +171,13 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
 
     loc_space, rot_space, scl_space = utils.ie.get_object_world_matrix(bpy_root)
 
-    def write_mesh(bpy_obj):
+    def write_mesh(bpy_obj, arm_obj):
         # write mesh chunk
         mesh_writer = rw.write.ChunkedWriter()
         used_material_names = mesh.export_mesh(
             bpy_obj,
             bpy_root,
+            arm_obj,
             mesh_writer,
             context,
             loc_space,
@@ -222,7 +223,7 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
                     meshes_without_arms.add(bpy_obj)
 
                 else:
-                    write_mesh(bpy_obj)
+                    write_mesh(bpy_obj, arm_obj)
 
     def search_armatures(exp_objs):
         for bpy_obj in exp_objs:
@@ -265,12 +266,12 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
         if len(armature_meshes) == 1:
             mesh_object = list(armature_meshes)[0]
             utils.ie.validate_vertex_weights(mesh_object, bpy_arm_obj)
-            write_mesh(mesh_object)
+            write_mesh(mesh_object, bpy_arm_obj)
 
         # many meshes
         else:
             merged_obj = merge_meshes(armature_meshes, bpy_arm_obj)
-            write_mesh(merged_obj)
+            write_mesh(merged_obj, bpy_arm_obj)
             mesh_names = [mesh.name for mesh in armature_meshes]
             log.warn(
                 text.warn.object_merged,
