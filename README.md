@@ -19,8 +19,8 @@
 | .group    | Object groups         | Yes        | Yes        |
 | .err      | Error list            | Yes        | No         |
 
-## Installation
-Follow [wiki instructions](https://github.com/PavelBlend/blender-xray/wiki/Installation).
+## Documentation
+Follow [wiki](https://github.com/PavelBlend/blender-xray/wiki).
 
 ## License
 Almost all the code is published under the liberal terms of the BSD License, see the [LICENSE](LICENSE) file.
