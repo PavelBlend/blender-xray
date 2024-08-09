@@ -56,6 +56,8 @@ class XRAY_OT_add_all_actions(bpy.types.Operator):
     def execute(self, context):
         ctx = formats.contexts.Context()
         root_obj = utils.obj.find_root(ctx, context.active_object)
+        if not root_obj:
+            root_obj = context.active_object
         arm_obj = utils.ie.get_arm_obj(root_obj, self)
 
         if not arm_obj:
