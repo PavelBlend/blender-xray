@@ -37,13 +37,7 @@ def has_update():
             last_tag = tuple(map(int, last_tag_tuple))
             current_ver = utils.addon_version
 
-            if last_tag[0] > current_ver[0]:
-                has_new_release = True
-
-            if last_tag[1] > current_ver[1]:
-                has_new_release = True
-
-            if last_tag[2] > current_ver[2]:
+            if last_tag > current_ver:
                 has_new_release = True
 
     if has_new_release:
