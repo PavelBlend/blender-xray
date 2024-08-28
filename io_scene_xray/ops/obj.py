@@ -46,30 +46,47 @@ class XRAY_OT_place_objects(utils.ie.BaseOperator):
     def draw(self, context):    # pragma: no cover
         layout = self.layout
         column = layout.column(align=True)
+
         column.label(text='Plane:')
         row = column.row(align=True)
         row.prop(self, 'plane', expand=True)
+
         column.prop(self, 'rows')
         column.prop(self, 'offset_h')
         column.prop(self, 'offset_v')
 
     @utils.set_cursor_state
     def execute(self, context):
+
+        # search root-objects
         objs = set()
         for obj in context.selected_objects:
             if obj.xray.isroot:
                 objs.add(obj.name)
         objs = sorted(list(objs))
         objects_count = len(objs)
-        column = 0
-        row = 0
-        objects_in_row = objects_count // self.rows
-        if (objects_count % self.rows) == 0:
+
+        # rows count
+        if self.rows < 1:
+            rows = 1
+        elif self.rows <= objects_count:
+            rows = self.rows
+        else:
+            rows = objects_count
+
+        objects_in_row = objects_count // rows
+        if (objects_count % rows) == 0:
             offset = 1
         else:
             offset = 0
+
+        column = 0
+        row = 0
+
         for obj_name in objs:
             obj = bpy.data.objects.get(obj_name)
+
+            # change location
             if self.plane == 'XY':
                 obj.location.x = column * self.offset_h
                 obj.location.y = row * self.offset_v
@@ -82,13 +99,17 @@ class XRAY_OT_place_objects(utils.ie.BaseOperator):
                 obj.location.x = 0.0
                 obj.location.y = column * self.offset_h
                 obj.location.z = row * self.offset_v
+
+            # calculate row and column
             if ((column + offset) % objects_in_row) == 0 and column != 0:
                 column = 0
                 row += 1
             else:
                 column += 1
+
         utils.draw.redraw_areas()
         self.report({'INFO'}, 'Moved {0} objects'.format(objects_count))
+
         return {'FINISHED'}
 
     def invoke(self, context, event):    # pragma: no cover
