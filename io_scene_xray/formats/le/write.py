@@ -123,14 +123,13 @@ def get_obj_name(bpy_obj):
     exp_path = utils.ie.get_export_path(bpy_obj)
     object_name = exp_path + bpy_obj.name
 
-    if len(object_name) > 4 and object_name[-4] == '.':
-        if object_name[-1] in string.digits and \
-           object_name[-2] in string.digits and \
-           object_name[-3] in string.digits:
-            object_name = object_name[0 : -4]
+    if '.' in object_name:
+        end = object_name.split('.')[-1]
+        if end.isdigit():
+            object_name = object_name[ : -len(end) - 1]
 
     if object_name.endswith('.object'):
-        object_name = object_name[0 : -len('.object')]
+        object_name = object_name[ : -len('.object')]
 
     return object_name
 
