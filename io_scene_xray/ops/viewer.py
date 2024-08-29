@@ -398,7 +398,7 @@ def update_file_list(directory, active_folder=None):
 
             file_index += 1
 
-    if files_size > SIZE_MAX:
+    if files_size > (GB / 2 - 1):
         files_size = int(round(files_size / MB, 0))
         files_size |= MB_FLAG
 
