@@ -9,6 +9,7 @@ from .. import fmt
 from ... import motions
 from ... import contexts
 from .... import rw
+from .... import inspect
 from .... import text
 from .... import utils
 from .... import log
@@ -40,36 +41,6 @@ def export_flags(chunked_writer, xray, some_arm):
     packed_writer = rw.write.PackedWriter()
     packed_writer.putf('<I', flags)
     chunked_writer.put(fmt.Chunks.Object.FLAGS, packed_writer)
-
-
-@log.with_context('armature')
-def _check_bone_names(armature_object):
-
-    # collect bone names
-    bone_names = {}
-    for bpy_bone in armature_object.data.bones:
-        name = bpy_bone.name
-        name_lower = name.lower()
-        bone_names.setdefault(name_lower, []).append(name)
-
-    # search bone duplicates
-    bone_duplicates = []
-    for bones in bone_names.values():
-        if len(bones) > 1:
-            bones.sort()
-            bone_duplicates.append(bones)
-    bone_duplicates.sort()
-
-    # report error
-    if bone_duplicates:
-        log.update(object=armature_object.name)
-        raise log.AppError(
-            text.error.object_duplicate_bones,
-            log.props(
-                count=str(sum(map(len, bone_duplicates))),
-                bones=bone_duplicates
-            )
-        )
 
 
 def merge_meshes(mesh_objects, arm_obj):
@@ -303,7 +274,7 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
     bone_writers = []
     root_bones = []
     if bpy_arm_obj:
-        _check_bone_names(bpy_arm_obj)
+        inspect.bone.check_bone_names(bpy_arm_obj)
         bonemap = {}
 
         arm_mat, scale = utils.ie.get_obj_scale_matrix(bpy_root, bpy_arm_obj)
