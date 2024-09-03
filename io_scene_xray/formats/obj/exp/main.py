@@ -59,9 +59,13 @@ def _check_bone_names(armature_object):
 
     if bone_duplicates:
         log.update(object=armature_object.name)
+        duplicate_names = sorted(bone_duplicates.values())
         raise log.AppError(
             text.error.object_duplicate_bones,
-            log.props(bones=tuple(bone_duplicates.values()))
+            log.props(
+                count=str(sum(map(len, duplicate_names))),
+                bones=duplicate_names
+            )
         )
 
 
