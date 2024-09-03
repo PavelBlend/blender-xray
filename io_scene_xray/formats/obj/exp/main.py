@@ -44,27 +44,30 @@ def export_flags(chunked_writer, xray, some_arm):
 
 @log.with_context('armature')
 def _check_bone_names(armature_object):
-    bone_names = {}
-    bone_duplicates = {}
 
+    # collect bone names
+    bone_names = {}
     for bpy_bone in armature_object.data.bones:
         name = bpy_bone.name
         name_lower = name.lower()
-        if bone_names.get(name_lower, None):
-            if not bone_duplicates.get(name_lower, None):
-                bone_duplicates[name_lower] = [bone_names.get(name_lower), ]
-            bone_duplicates[name_lower].append(name)
-        else:
-            bone_names[name_lower] = name
+        bone_names.setdefault(name_lower, []).append(name)
 
+    # search bone duplicates
+    bone_duplicates = []
+    for bones in bone_names.values():
+        if len(bones) > 1:
+            bones.sort()
+            bone_duplicates.append(bones)
+    bone_duplicates.sort()
+
+    # report error
     if bone_duplicates:
         log.update(object=armature_object.name)
-        duplicate_names = sorted(bone_duplicates.values())
         raise log.AppError(
             text.error.object_duplicate_bones,
             log.props(
-                count=str(sum(map(len, duplicate_names))),
-                bones=duplicate_names
+                count=str(sum(map(len, bone_duplicates))),
+                bones=bone_duplicates
             )
         )
 
