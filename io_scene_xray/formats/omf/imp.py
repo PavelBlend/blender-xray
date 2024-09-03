@@ -12,6 +12,24 @@ from ... import utils
 from ... import rw
 
 
+class MotionsParams:
+    def __init__(self):
+        self.by_dict = {}
+        self.by_list = []
+
+
+class MotionParams:
+    def __init__(self):
+        self.name = None
+        self.flags = None
+        self.bone_or_part = None
+        self.motion = None
+        self.speed = None
+        self.power = None
+        self.accrue = None
+        self.falloff = None
+
+
 def read_motion_marks(packed_reader):
     num_marks = packed_reader.uint32()
 
@@ -69,24 +87,6 @@ def examine_motions(data):
                 motion_names.append(motion_name)
 
     return motion_names
-
-
-class MotionsParams:
-    def __init__(self):
-        self.by_dict = {}
-        self.by_list = []
-
-
-class MotionParams:
-    def __init__(self):
-        self.name = None
-        self.flags = None
-        self.bone_or_part = None
-        self.motion = None
-        self.speed = None
-        self.power = None
-        self.accrue = None
-        self.falloff = None
 
 
 def quat_to_euler(quaternion):
