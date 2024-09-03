@@ -11,6 +11,7 @@ from .. import fmt
 from ... import omf
 from ... import motions
 from .... import text
+from .... import inspect
 from .... import rw
 from .... import log
 from .... import utils
@@ -1002,6 +1003,9 @@ def _export_main(root_obj, ogf_writer, context):
 
     # get armature
     arm_obj = _get_arm(root_obj, arms)
+
+    # check bone names
+    inspect.bone.check_bone_names(arm_obj)
 
     # get armature scale
     scale = _get_arm_scale(root_obj, arm_obj)
