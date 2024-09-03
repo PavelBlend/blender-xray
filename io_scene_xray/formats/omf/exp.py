@@ -155,7 +155,8 @@ def read_motion_params(packed_reader, params_version):
                     '<{}s'.format(len(mark_name)),
                     mark_name
                 ))
-                motion.writer.data.append(0xa)    # end string
+                motion.writer.data.append(0xd)    # \r char
+                motion.writer.data.append(0xa)    # \n char
                 motion.writer.data.extend(struct.pack('<I', mark_count))
                 motion.writer.data.extend(packed_reader.getb(8 * mark_count))
         motions_params[motion.name] = motion
