@@ -17,6 +17,10 @@ from . import lzhuf
 from .. import log
 
 
+CHAR_LINE_FEED = 0xa    # '\n' char
+CHAR_CARRIAGE_RETURN = 0xd    # '\r' char
+
+
 class FastBytes:
     Errors = (IndexError, )
 
@@ -38,7 +42,7 @@ class FastBytes:
     @staticmethod
     def skip_str_at_a(data, offs):
         dlen = len(data)
-        while (offs < dlen) and (data[offs] != 0xa):
+        while (offs < dlen) and (data[offs] != CHAR_LINE_FEED):
             offs += 1
         return offs + 1
 
@@ -176,7 +180,7 @@ class PackedReader:
         new_offs = self.__offs = FastBytes.skip_str_at_a(data, offs)
         bts = data[offs : new_offs - 1]
 
-        if bts[-1] == 0xd:    # '\r' char
+        if bts[-1] == CHAR_CARRIAGE_RETURN:
             bts = bts[0 : -1]
 
         try:
