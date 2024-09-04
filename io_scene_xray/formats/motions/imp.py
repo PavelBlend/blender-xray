@@ -34,7 +34,7 @@ def skip_motion_rest(data, offs):
     if ver >= const.FORMAT_VERSION_7:
         ptr += 4
         for _bone_idx in range(rw.read.FastBytes.int_at(data, ptr - 4)):
-            ptr = rw.read.FastBytes.skip_str_at_a(data, ptr) + 4
+            ptr = rw.read.FastBytes.skip_str_at_rn(data, ptr) + 4
             ptr += (4 + 4) * rw.read.FastBytes.int_at(data, ptr - 4)
 
     return ptr
@@ -303,7 +303,7 @@ def import_motion(
         )
     if ver >= const.FORMAT_VERSION_7:
         for _bone_idx in range(reader.uint32()):
-            name = reader.gets_a()
+            name = reader.gets_rn()
             reader.skip((4 + 4) * reader.uint32())
             log.warn(text.warn.motion_markers, name=name)
     return act

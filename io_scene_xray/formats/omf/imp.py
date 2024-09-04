@@ -34,7 +34,7 @@ def read_motion_marks(packed_reader):
     num_marks = packed_reader.uint32()
 
     for mark_index in range(num_marks):
-        name = packed_reader.gets_a()
+        name = packed_reader.gets_rn()
         count = packed_reader.uint32()
 
         for index in range(count):
@@ -80,7 +80,7 @@ def examine_motions(data):
                 if params_ver == 4:
                     num_marks = packed_reader.uint32()
                     for mark_index in range(num_marks):
-                        packed_reader.gets_a()    # mark name
+                        packed_reader.gets_rn()    # mark name
                         count = packed_reader.uint32()
                         packed_reader.skip(count * 8)    # intervals
 

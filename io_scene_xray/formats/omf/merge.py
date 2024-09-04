@@ -229,7 +229,7 @@ def merge_files(files):
                         # skip motion marks
                         num_marks = reader.uint32()
                         for mark_index in range(num_marks):
-                            reader.gets_a()    # mark name
+                            reader.gets_rn()    # mark name
                             count = reader.uint32()
                             reader.skip(count * 8)    # intervals
 

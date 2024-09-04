@@ -148,7 +148,7 @@ def read_motion_params(packed_reader, params_version):
             num_marks = packed_reader.uint32()
             motion.writer.data.extend(struct.pack('<I', num_marks))
             for mark_index in range(num_marks):
-                mark_name = packed_reader.gets_a()
+                mark_name = packed_reader.gets_rn()
                 mark_count = packed_reader.uint32()
                 mark_name = bytes(mark_name, 'cp1251')
                 motion.writer.data.extend(struct.pack(

@@ -40,7 +40,7 @@ class FastBytes:
         return offs + 1
 
     @staticmethod
-    def skip_str_at_a(data, offs):
+    def skip_str_at_rn(data, offs):
         dlen = len(data)
         while (offs < dlen) and (data[offs] != CHAR_LINE_FEED):
             offs += 1
@@ -162,6 +162,8 @@ class PackedReader:
         return prep.unpack_from(self.__data, offs)
 
     def gets(self, onerror=None):
+        # reading null-terminated strings
+
         data, offs = self.__data, self.__offs
         new_offs = self.__offs = FastBytes.skip_str_at(data, offs)
         bts = data[offs : new_offs - 1]
@@ -175,9 +177,11 @@ class PackedReader:
             onerror(error)
             return str(bts, 'cp1251', errors='replace')
 
-    def gets_a(self, onerror=None):
+    def gets_rn(self, onerror=None):
+        # reading strings that end with the characters \r\n
+
         data, offs = self.__data, self.__offs
-        new_offs = self.__offs = FastBytes.skip_str_at_a(data, offs)
+        new_offs = self.__offs = FastBytes.skip_str_at_rn(data, offs)
         bts = data[offs : new_offs - 1]
 
         if bts[-1] == CHAR_CARRIAGE_RETURN:
