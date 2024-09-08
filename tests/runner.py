@@ -1,7 +1,10 @@
 import coverage
-import os
 import unittest
+import os
 import sys
+
+sys.path.append(os.path.dirname(__file__))
+import debugger
 
 cov = coverage.Coverage()
 try:
@@ -19,12 +22,16 @@ for i, v in enumerate(sys.argv):
             pattern = '*' + pattern + '*'
         loader.testNamePatterns = (loader.testNamePatterns or []) + [pattern]
 
-suite = loader.discover('.')
+suite = loader.discover('.')  # loading modules first otherwise breakpoints will suck
+
+attached = debugger.attach_if_needed(sys.argv)
+
 if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():
     exit(1)
 
 cov.stop()
-cov.xml_report()
+if not attached:
+    cov.xml_report()
 
 if '--save-html-report' in sys.argv:
     save_html_index = sys.argv.index('--save-html-report')
