@@ -11,8 +11,16 @@ except:
 cov.combine(keep=True)
 cov.start()
 
-suite = unittest.defaultTestLoader.discover('.')
-if not unittest.TextTestRunner().run(suite).wasSuccessful():
+loader = unittest.TestLoader()
+for i, v in enumerate(sys.argv):
+    if v == '-k':
+        pattern = sys.argv[i + 1]
+        if '*' not in pattern:
+            pattern = '*' + pattern + '*'
+        loader.testNamePatterns = (loader.testNamePatterns or []) + [pattern]
+
+suite = loader.discover('.')
+if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():
     exit(1)
 
 cov.stop()
