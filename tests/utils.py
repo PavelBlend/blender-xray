@@ -10,6 +10,7 @@ import tempfile
 import bpy
 import bmesh
 import addon_utils
+import mathutils
 
 # addon modules
 import io_scene_xray
@@ -171,6 +172,17 @@ class XRayTestCase(unittest.TestCase):
             re_message,
             report
         ))
+
+    def assertAlmostEqualV(self, first, second, delta, msg=None):
+        class V:
+            def __init__(self, v):
+                self.vec = mathutils.Vector(v)
+            def __sub__(self, right):
+                return (self.vec - right.vec).length
+            def __repr__(self):
+                return 'V' + repr(self.vec.to_tuple())
+
+        return self.assertAlmostEqual(V(first), V(second), msg=msg, delta=delta)
 
     def getFullLogAsText(self):
         return bpy.data.texts['xray_log'].as_string()
