@@ -277,14 +277,14 @@ def export_meshes(chunked_writer, bpy_root, context, obj_xray):
         inspect.bone.check_bone_names(bpy_arm_obj)
         bonemap = {}
 
-        arm_mat, scale = utils.ie.get_obj_scale_matrix(bpy_root, bpy_arm_obj)
+        scale = bpy_arm_obj.matrix_world.to_scale()
 
         utils.ie.check_armature_scale(scale, bpy_root, bpy_arm_obj)
 
         edit_mode_matrices = {}
         with utils.version.using_active_object(bpy_arm_obj), utils.version.using_mode('EDIT'):
             for edit_bone in bpy_arm_obj.data.edit_bones:
-                bone_mat = utils.version.multiply(arm_mat, edit_bone.matrix)
+                bone_mat = edit_bone.matrix
                 bone_mat[0][3] *= scale.x
                 bone_mat[1][3] *= scale.y
                 bone_mat[2][3] *= scale.z
