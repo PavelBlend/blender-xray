@@ -296,7 +296,7 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
             matrix = mathutils.Matrix.Identity(4)
             matrix_inverted = matrix
         else:
-            matrix = hobj.matrix_local
+            matrix = hobj.matrix_world
             matrix_inverted = matrix
             try:
                 matrix_inverted = matrix.inverted()
@@ -311,15 +311,15 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
         multiply = utils.version.get_multiply()
 
         if stype == '1':    # box
-            obb_mat = utils.bone.get_obb(bone, False, self.min_weight)
+            obb_mat = utils.bone.get_obb(bone, False, self.min_weight, in_world_coordinates=True)
 
             if obb_mat and self.mode == 'OBB':
-                hobj.matrix_local = obb_mat
+                hobj.matrix_world = obb_mat
 
             else:
 
                 # generate aabb
-                verts, weights = utils.bone.bone_vertices(bone)
+                verts, weights = utils.bone.bone_vertices(bone, in_world_coordinates=True)
                 for index, vtx in enumerate(verts):
                     weight = weights[index]
                     if weight >= self.min_weight:
@@ -330,7 +330,7 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                 if vmax.x > vmin.x:
                     vcenter = (vmax + vmin) / 2
                     vscale = (vmax - vmin) / 2
-                    hobj.matrix_local = multiply(
+                    hobj.matrix_world = multiply(
                         matrix,
                         mathutils.Matrix.Translation(vcenter),
                         utils.bone.convert_vector_to_matrix(vscale)
@@ -338,7 +338,7 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
 
         else:
             vertices = []
-            verts, weights = utils.bone.bone_vertices(bone)
+            verts, weights = utils.bone.bone_vertices(bone, in_world_coordinates=True)
             for index, vtx in enumerate(verts):
                 weight = weights[index]
                 if weight >= self.min_weight:
@@ -354,7 +354,7 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                 if stype == '2':    # sphere
                     for vtx in vertices:
                         radius = max(radius, (vtx - vcenter).length)
-                    hobj.matrix_local = multiply(
+                    hobj.matrix_world = multiply(
                         matrix,
                         mathutils.Matrix.Translation(vcenter),
                         utils.bone.convert_vector_to_matrix((
@@ -365,17 +365,17 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                     )
 
                 elif stype == '3':    # cylinder
-                    obb_mat = utils.bone.get_obb(bone, True, self.min_weight)
+                    obb_mat = utils.bone.get_obb(bone, True, self.min_weight, in_world_coordinates=True)
 
                     if obb_mat and self.mode == 'OBB':
-                        hobj.matrix_local = obb_mat
+                        hobj.matrix_world = obb_mat
 
                     else:
 
                         # generate aabb
                         for vtx in vertices:
                             radius = max(radius, (vtx - vcenter).xy.length)
-                        hobj.matrix_local = multiply(
+                        hobj.matrix_world = multiply(
                             matrix,
                             mathutils.Matrix.Translation(vcenter),
                             utils.bone.convert_vector_to_matrix((
