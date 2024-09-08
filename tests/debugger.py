@@ -22,11 +22,8 @@ def attach_if_needed(argv):
     return True
 
 if __name__ == '__main__':
+    import bpy
+    bpy.ops.preferences.addon_remove(module='io_scene_xray')
     sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-    import io_scene_xray
+    bpy.ops.preferences.addon_enable(module='io_scene_xray')
     attach_if_needed(sys.argv)
-    try:
-        io_scene_xray.unregister()
-    except ValueError as err:
-        print('Oops, monkey see no evil in:', err)
-    io_scene_xray.register()

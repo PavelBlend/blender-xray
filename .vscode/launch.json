@@ -38,10 +38,6 @@
       ],
       "program": "tests/debugger.py",
       "console": "integratedTerminal",
-      "pathMappings": [{
-        "localRoot": "${workspaceFolder}",
-        "remoteRoot": "/Users/igelbox/Library/Application Support/Blender/3.1/scripts/addons/"
-      }]
     },
   ]
 }
