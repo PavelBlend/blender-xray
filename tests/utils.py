@@ -1,10 +1,8 @@
 # standart modules
 import os
-import sys
 import shutil
 import unittest
 import inspect
-import tempfile
 
 # blender modules
 import bpy
@@ -18,9 +16,7 @@ from io_scene_xray.utils.ie import BaseOperator as TestReadyOperator
 
 class XRayTestCase(unittest.TestCase):
     blend_file = None
-    __save_test_data = '--save-test-data' in sys.argv
-    __tmp_base = os.path.join(tempfile.gettempdir(), 'io_scene_xray-tests')
-    __tmp = os.path.join(__tmp_base, 'out')
+    __tests_out = os.path.abspath('.tests')
     _reports = []
 
     @classmethod
@@ -30,11 +26,15 @@ class XRayTestCase(unittest.TestCase):
             result = os.path.join(result, path)
         return result
 
-    @classmethod
-    def outpath(cls, path=''):
-        if not os.path.exists(cls.__tmp):
-            os.makedirs(cls.__tmp)
-        return os.path.join(cls.__tmp, path)
+    def outpath(self, path='', mkdirs=True):
+        base = os.path.join(
+            self.__tests_out,
+            self.__class__.__name__,
+            self._testMethodName,
+        )
+        if mkdirs:
+            os.makedirs(base, exist_ok=True)
+        return os.path.join(base, path)
 
     @classmethod
     def binpath(cls, path=None):
@@ -45,6 +45,9 @@ class XRayTestCase(unittest.TestCase):
         return result
 
     def setUp(self):
+        opath = self.outpath(mkdirs=False)
+        if os.path.exists(opath):
+            shutil.rmtree(opath)
         self._reports = []
         if self.blend_file:
             bpy.ops.wm.open_mainfile(filepath=self.relpath(self.blend_file))
@@ -64,21 +67,19 @@ class XRayTestCase(unittest.TestCase):
     def tearDown(self):
         TestReadyOperator.report_catcher = self.__prev_report_catcher
 
-        if os.path.exists(self.__tmp):
-            shutil.rmtree(self.__tmp)
-
-        if self.__save_test_data:
-            new_path = os.path.join(
-                self.__tmp_base,
-                self.__class__.__name__,
-                self._testMethodName
-            )
-            os.makedirs(new_path)
-            bpy.ops.wm.save_mainfile(
-                filepath=os.path.join(new_path, 'result.blend')
-            )
-
         addon_utils.disable('io_scene_xray')
+
+    def run(self, result=None):
+        def errcount():
+            return len(result.errors) + len(result.failures)
+    
+        count_before = errcount()
+        super().run(result)
+
+        if errcount() > count_before:
+            bpy.ops.wm.save_mainfile(
+                filepath=self.outpath('result.blend')
+            )
 
     def assertFileExists(self, path, allow_empty=False, msg=None):
         if not os.path.isfile(path):
@@ -94,7 +95,7 @@ class XRayTestCase(unittest.TestCase):
             ))
 
     def assertOutputFiles(self, expected):
-        tmp = self.__tmp
+        tmp = self.outpath(mkdirs=False)
 
         normalized = {
             path.replace('/', os.path.sep)
@@ -103,13 +104,13 @@ class XRayTestCase(unittest.TestCase):
         for path in normalized:
             self.assertFileExists(os.path.join(tmp, path))
 
-        def scan_dir(files, path=''):
+        def scan_dir(files, path):
             for p in os.listdir(path):
                 pp = os.path.join(path, p)
                 if os.path.isdir(pp):
                     scan_dir(files, pp)
                 else:
-                    files.add(pp[len(tmp) + 1:])
+                    files.add(pp[len(tmp):])
 
         existing = set()
         scan_dir(existing, tmp)
@@ -131,7 +132,7 @@ class XRayTestCase(unittest.TestCase):
                 ))
 
     def getFileSafeContent(self, file_path):
-        full_path = os.path.join(self.__tmp, file_path)
+        full_path = self.outpath(file_path, mkdirs=False)
         with open(full_path, 'rb') as file:
             return file.read().replace(b'\x00', b'')
 

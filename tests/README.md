@@ -13,11 +13,9 @@ To do this, you could download the package archive and extract the `coverage` fo
 To run all tests, invoke the `runner.py` script from the repository-root directory using `blender`:
 
 ```shell
-blender --factory-startup -noaudio -b --python tests/runner.py --save-html-report output_folder --save-test-data
+blender --factory-startup -noaudio -b --python tests/runner.py --save-html-report output_folder
 ```
 The `--save-html-report output_folder` parameter is optional. If all tests are passed, the `./htmlcov/` directory with coverage reports will be created.
-
-The `--save-test-data` parameter is optional. If this parameter is present, then files created during tests in the temporary directory will not be deleted.
 
 To start tests for all `blender` versions, you can use such commands for `windows`:
 
