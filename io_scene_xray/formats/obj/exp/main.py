@@ -22,11 +22,10 @@ class ObjectExporter:
         self.xray = root_obj.xray
         self.context = context
 
+        self.status()
         self.export()
 
     def export(self):
-        self.status()
-
         self.file_writer = rw.write.ChunkedWriter()
         self.export_body()
         rw.utils.save_file(self.context.filepath, self.file_writer)
@@ -119,36 +118,46 @@ class ObjectExporter:
 
     def export_motion_refs(self):
         motionrefs = self.xray.motionrefs_collection
+        legacy_refs = self.xray.motionrefs
 
+        # export motion references from collection
         if motionrefs:
-
-            if self.xray.motionrefs:
+            # legacy warning
+            if legacy_refs:
                 log.warn(
                     text.warn.object_legacy_motionrefs,
-                    data=self.xray.motionrefs
+                    data=legacy_refs
                 )
-
             # soc format
             if self.context.soc_sgroups:
                 refs = ','.join(ref.name for ref in motionrefs)
                 self.export_motion_refs_soc(refs)
-
             # cs/cop format
             else:
-                writer = rw.write.PackedWriter()
-                refs_count = len(motionrefs)
-                writer.putf('<I', refs_count)
-                for ref in motionrefs:
-                    writer.puts(ref.name)
-                self.body_writer.put(fmt.Chunks.Object.SMOTIONS3, writer)
+                self.export_motion_refs_cscop(motionrefs)
 
-        elif self.xray.motionrefs:
-            self.export_motion_refs_soc(self.xray.motionrefs)
+        # export legacy motion references
+        elif legacy_refs:
+            # soc format
+            if self.context.soc_sgroups:
+                self.export_motion_refs_soc(legacy_refs)
+            # cs/cop format
+            else:
+                refs = legacy_refs.split(',')
+                self.export_motion_refs_cscop(refs)
 
     def export_motion_refs_soc(self, refs):
         writer = rw.write.PackedWriter()
         writer.puts(refs)
         self.body_writer.put(fmt.Chunks.Object.MOTION_REFS, writer)
+
+    def export_motion_refs_cscop(self, refs):
+        writer = rw.write.PackedWriter()
+        refs_count = len(refs)
+        writer.putf('<I', refs_count)
+        for ref in refs:
+            writer.puts(ref.name)
+        self.body_writer.put(fmt.Chunks.Object.SMOTIONS3, writer)
 
     def export_partitions(self):
         if self.arm_obj and self.arm_obj.pose.bone_groups:
