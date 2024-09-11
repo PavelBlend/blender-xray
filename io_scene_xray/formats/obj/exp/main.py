@@ -15,100 +15,6 @@ from .... import utils
 from .... import log
 
 
-def merge_meshes(mesh_objects, arm_obj):
-    objects = []
-    override = bpy.context.copy()
-
-    for obj in mesh_objects:
-        if not len(obj.data.uv_layers):
-            raise log.AppError(
-                text.error.no_uv,
-                log.props(object=obj.name)
-            )
-
-        if len(obj.data.uv_layers) > 1:
-            log.warn(
-                text.warn.obj_many_uv,
-                exported_uv=obj.data.uv_layers.active.name,
-                mesh_object=obj.name
-            )
-
-        utils.ie.validate_vertex_weights(obj, arm_obj)
-
-        copy_obj = obj.copy()
-        copy_mesh = obj.data.copy()
-        copy_obj.data = copy_mesh
-
-        # rename uv layers
-        active_uv_name = copy_mesh.uv_layers.active.name
-        index = 0
-        for uv_layer in copy_mesh.uv_layers:
-            if uv_layer.name == active_uv_name:
-                continue
-            uv_layer.name = str(index)
-            index += 1
-
-        copy_mesh.uv_layers.active.name = 'Texture'
-        utils.version.link_object(copy_obj)
-
-        # apply modifiers
-        override['active_object'] = copy_obj
-        override['object'] = copy_obj
-        for mod in copy_obj.modifiers:
-            if mod.type == 'ARMATURE':
-                continue
-            if not mod.show_viewport:
-                continue
-            override['modifier'] = mod
-            utils.obj.apply_obj_modifier(mod, context=override)
-        objects.append(copy_obj)
-
-        # apply shape keys
-        if copy_mesh.shape_keys:
-            copy_obj.shape_key_add(name='last_shape_key', from_mix=True)
-            for shape_key in copy_mesh.shape_keys.key_blocks:
-                copy_obj.shape_key_remove(shape_key)
-
-    active_object = objects[0]
-    override['active_object'] = active_object
-    override['selected_objects'] = objects
-    if utils.version.IS_28:
-        override['object'] = active_object
-        override['selected_editable_objects'] = objects
-    else:
-        scene = bpy.context.scene
-        override['selected_editable_bases'] = [
-            scene.object_bases[ob.name]
-            for ob in objects
-        ]
-    bpy.ops.object.join(override)
-
-    # remove uvs
-    uv_layers = [uv_layer.name for uv_layer in active_object.data.uv_layers]
-    for uv_name in uv_layers:
-        if uv_name == 'Texture':
-            continue
-        uv_layer = active_object.data.uv_layers[uv_name]
-        active_object.data.uv_layers.remove(uv_layer)
-
-    return active_object
-
-
-def _remove_merged_obj(merged_obj):
-    if merged_obj:
-        merged_mesh = merged_obj.data
-
-        if utils.version.IS_277:
-            bpy.context.scene.objects.unlink(merged_obj)
-            merged_obj.user_clear()
-            bpy.data.objects.remove(merged_obj)
-
-        else:
-            bpy.data.objects.remove(merged_obj, do_unlink=True)
-
-        bpy.data.meshes.remove(merged_mesh)
-
-
 class ObjectExporter:
 
     def __init__(self, bpy_obj, context):
@@ -459,7 +365,7 @@ class ObjectExporter:
 
             # many meshes
             else:
-                merged_obj = merge_meshes(armature_meshes, self.arm_obj)
+                merged_obj = utils.obj.merge_meshes(armature_meshes, self.arm_obj)
                 write_mesh(merged_obj, self.arm_obj)
                 mesh_names = [mesh.name for mesh in armature_meshes]
                 log.warn(
@@ -469,14 +375,14 @@ class ObjectExporter:
                 )
 
         if not mesh_writers:
-            _remove_merged_obj(merged_obj)
+            utils.obj.remove_merged_obj(merged_obj)
             raise log.AppError(
                 text.error.object_no_meshes,
                 log.props(object=self.bpy_obj.name)
             )
 
         if len(mesh_writers) > 1 and self.arm_obj:
-            _remove_merged_obj(merged_obj)
+            utils.obj.remove_merged_obj(merged_obj)
             raise log.AppError(
                 text.error.object_skel_many_meshes,
                 log.props(object=self.bpy_obj.name)
@@ -528,7 +434,7 @@ class ObjectExporter:
                         else:
                             has_bone_groups = True
             if invalid_bones and has_bone_groups:
-                _remove_merged_obj(merged_obj)
+                utils.obj.remove_merged_obj(merged_obj)
                 raise log.AppError(
                     text.error.object_bad_boneparts,
                     log.props(
@@ -538,7 +444,7 @@ class ObjectExporter:
                 )
 
         if len(root_bones) > 1:
-            _remove_merged_obj(merged_obj)
+            utils.obj.remove_merged_obj(merged_obj)
             raise log.AppError(
                 text.error.object_many_parents,
                 log.props(
@@ -557,7 +463,7 @@ class ObjectExporter:
 
         self.body_writer.put(fmt.Chunks.Object.MESHES, meshes_writer)
 
-        _remove_merged_obj(merged_obj)
+        utils.obj.remove_merged_obj(merged_obj)
 
 
 @log.with_context('export-object')
