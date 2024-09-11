@@ -673,35 +673,63 @@ class TestObjectExport(utils.XRayTestCase):
         obj = self._create_objects()[0]
         obj.xray.motionrefs = 'test legacy motion refs'
 
-        # Act
+        # legacy soc
         bpy.ops.xray_export.object_file(
             object=obj.name,
             filepath=self.outpath('test.object'),
+            fmt_version='soc',
             texture_name_from_image_path=False
         )
 
-        # Assert
         self.assertOutputFiles({
             'test.object'
         })
 
         self.assertReportsNotContains()
 
-    def test_skip_legacy_motion_refs(self):
-        # Arrange
-        obj = self._create_objects()[0]
-        obj.xray.motionrefs = 'test legacy motion refs'
-        ref = obj.xray.motionrefs_collection.add()
-        ref.name = 'test motion ref'
-
-        # Act
+        # legacy cop
         bpy.ops.xray_export.object_file(
             object=obj.name,
             filepath=self.outpath('test.object'),
+            fmt_version='cscop',
             texture_name_from_image_path=False
         )
 
-        # Assert
+        self.assertOutputFiles({
+            'test.object'
+        })
+
+        self.assertReportsNotContains()
+
+        # add motion refs
+        ref = obj.xray.motionrefs_collection.add()
+        ref.name = 'test motion ref'
+
+        # skipped soc
+        bpy.ops.xray_export.object_file(
+            object=obj.name,
+            filepath=self.outpath('test.object'),
+            fmt_version='soc',
+            texture_name_from_image_path=False
+        )
+
+        self.assertOutputFiles({
+            'test.object'
+        })
+
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Skipped motion references legacy data')
+        )
+
+        # skipped cop
+        bpy.ops.xray_export.object_file(
+            object=obj.name,
+            filepath=self.outpath('test.object'),
+            fmt_version='cscop',
+            texture_name_from_image_path=False
+        )
+
         self.assertOutputFiles({
             'test.object'
         })

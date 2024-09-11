@@ -134,7 +134,8 @@ class ObjectExporter:
                 self.export_motion_refs_soc(refs)
             # cs/cop format
             else:
-                self.export_motion_refs_cscop(motionrefs)
+                refs = [ref.name for ref in motionrefs]
+                self.export_motion_refs_cscop(refs)
 
         # export legacy motion references
         elif legacy_refs:
@@ -156,7 +157,7 @@ class ObjectExporter:
         refs_count = len(refs)
         writer.putf('<I', refs_count)
         for ref in refs:
-            writer.puts(ref.name)
+            writer.puts(ref)
         self.body_writer.put(fmt.Chunks.Object.SMOTIONS3, writer)
 
     def export_partitions(self):
