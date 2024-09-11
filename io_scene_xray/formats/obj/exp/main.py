@@ -17,9 +17,9 @@ from .... import log
 
 class ObjectExporter:
 
-    def __init__(self, bpy_obj, context):
-        self.bpy_obj = bpy_obj
-        self.xray = bpy_obj.xray
+    def __init__(self, root_obj, context):
+        self.root_obj = root_obj
+        self.xray = root_obj.xray
         self.context = context
 
         self.export()
@@ -33,7 +33,7 @@ class ObjectExporter:
 
     def status(self):
         utils.stats.status('Export File', self.context.filepath)
-        log.update(object=self.bpy_obj.name)
+        log.update(object=self.root_obj.name)
 
     def export_body(self):
         self.body_writer = rw.write.ChunkedWriter()
@@ -109,9 +109,9 @@ class ObjectExporter:
         self.body_writer.put(fmt.Chunks.Object.REVISION, writer)
 
     def export_transform(self):
-        root_matrix = self.bpy_obj.matrix_world
+        root_matrix = self.root_obj.matrix_world
         if root_matrix != mathutils.Matrix.Identity(4):
-            loc_mat, rot_mat = utils.ie.get_object_transform_matrix(self.bpy_obj)
+            loc_mat, rot_mat = utils.ie.get_object_transform_matrix(self.root_obj)
             writer = rw.write.PackedWriter()
             writer.putv3f(loc_mat.to_translation())
             writer.putv3f(rot_mat.to_euler('YXZ'))
@@ -193,7 +193,7 @@ class ObjectExporter:
         if self.arm_obj and self.context.export_motions:
             motions_names = [
                 motion.name
-                for motion in self.bpy_obj.xray.motions_collection
+                for motion in self.root_obj.xray.motions_collection
             ]
             motions_names = set(motions_names)
             motions_names = list(motions_names)
@@ -207,13 +207,13 @@ class ObjectExporter:
                     log.warn(
                         text.warn.object_no_action,
                         action=act_name,
-                        object=self.bpy_obj.name
+                        object=self.root_obj.name
                     )
             if acts:
                 writer = rw.write.PackedWriter()
                 motion_ctx = contexts.ExportAnimationOnlyContext()
                 motion_ctx.bpy_arm_obj = self.arm_obj
-                motions.exp.export_motions(writer, acts, motion_ctx, self.bpy_obj)
+                motions.exp.export_motions(writer, acts, motion_ctx, self.root_obj)
                 if writer.data:
                     self.body_writer.put(fmt.Chunks.Object.MOTIONS, writer)
 
@@ -264,14 +264,14 @@ class ObjectExporter:
         self.uv_map_names = {}
         merged_obj = None
 
-        loc_space, rot_space, scl_space = utils.ie.get_object_world_matrix(self.bpy_obj)
+        loc_space, rot_space, scl_space = utils.ie.get_object_world_matrix(self.root_obj)
 
         def write_mesh(bpy_obj, arm_obj):
             # write mesh chunk
             mesh_writer = rw.write.ChunkedWriter()
             used_material_names = mesh.export_mesh(
                 bpy_obj,
-                self.bpy_obj,
+                self.root_obj,
                 arm_obj,
                 mesh_writer,
                 self.context,
@@ -325,7 +325,7 @@ class ObjectExporter:
                 if bpy_obj.type == 'ARMATURE':
                     armatures.add(bpy_obj)
 
-        exp_objs = utils.obj.get_exp_objs(self.context, self.bpy_obj)
+        exp_objs = utils.obj.get_exp_objs(self.context, self.root_obj)
 
         search_armatures(exp_objs)
         scan_root_obj(exp_objs)
@@ -346,7 +346,7 @@ class ObjectExporter:
             raise log.AppError(
                 text.error.object_many_arms,
                 log.props(
-                    root_object=self.bpy_obj.name,
+                    root_object=self.root_obj.name,
                     armature_objects=[obj.name for obj in armatures]
                 )
             )
@@ -378,14 +378,14 @@ class ObjectExporter:
             utils.obj.remove_merged_obj(merged_obj)
             raise log.AppError(
                 text.error.object_no_meshes,
-                log.props(object=self.bpy_obj.name)
+                log.props(object=self.root_obj.name)
             )
 
         if len(mesh_writers) > 1 and self.arm_obj:
             utils.obj.remove_merged_obj(merged_obj)
             raise log.AppError(
                 text.error.object_skel_many_meshes,
-                log.props(object=self.bpy_obj.name)
+                log.props(object=self.root_obj.name)
             )
 
         self.bone_writers = []
@@ -394,9 +394,9 @@ class ObjectExporter:
             inspect.bone.check_bone_names(self.arm_obj)
             bonemap = {}
 
-            arm_mat, scale = utils.ie.get_obj_scale_matrix(self.bpy_obj, self.arm_obj)
+            arm_mat, scale = utils.ie.get_obj_scale_matrix(self.root_obj, self.arm_obj)
 
-            utils.ie.check_armature_scale(scale, self.bpy_obj, self.arm_obj)
+            utils.ie.check_armature_scale(scale, self.root_obj, self.arm_obj)
 
             edit_mode_matrices = {}
             with utils.version.using_active_object(self.arm_obj), utils.version.using_mode('EDIT'):
@@ -468,5 +468,5 @@ class ObjectExporter:
 
 @log.with_context('export-object')
 @utils.stats.timer
-def export_file(bpy_obj, context):
-    ObjectExporter(bpy_obj, context)
+def export_file(root_obj, context):
+    ObjectExporter(root_obj, context)
