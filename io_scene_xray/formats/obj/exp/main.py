@@ -143,7 +143,7 @@ class ObjectExporter:
                 self.body_writer.put(fmt.Chunks.Object.SMOTIONS3, writer)
 
         elif self.xray.motionrefs:
-            export_motion_refs_soc(self.xray.motionrefs)
+            self.export_motion_refs_soc(self.xray.motionrefs)
 
     def export_motion_refs_soc(self, refs):
         writer = rw.write.PackedWriter()
@@ -333,7 +333,7 @@ class ObjectExporter:
         # find armature object
         if len(armatures) == 1:
             self.arm_obj = list(armatures)[0]
-    
+
             if meshes_without_arms:
                 for obj in meshes_without_arms:
                     log.warn(
