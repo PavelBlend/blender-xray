@@ -49,7 +49,9 @@ def get_current_user():
     return curruser
 
 
-def get_revision_data(revision):
+def get_revis(revision):
+    # get revision data
+
     curruser = get_current_user()
 
     currtime = int(time.time())
