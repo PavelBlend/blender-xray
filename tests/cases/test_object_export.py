@@ -668,6 +668,49 @@ class TestObjectExport(utils.XRayTestCase):
         # Assert
         self.assertOutputFiles({'test.object', })
 
+    def test_export_legacy_motion_refs(self):
+        # Arrange
+        obj = self._create_objects()[0]
+        obj.xray.motionrefs = 'test legacy motion refs'
+
+        # Act
+        bpy.ops.xray_export.object_file(
+            object=obj.name,
+            filepath=self.outpath('test.object'),
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertOutputFiles({
+            'test.object'
+        })
+
+        self.assertReportsNotContains()
+
+    def test_skip_legacy_motion_refs(self):
+        # Arrange
+        obj = self._create_objects()[0]
+        obj.xray.motionrefs = 'test legacy motion refs'
+        ref = obj.xray.motionrefs_collection.add()
+        ref.name = 'test motion ref'
+
+        # Act
+        bpy.ops.xray_export.object_file(
+            object=obj.name,
+            filepath=self.outpath('test.object'),
+            texture_name_from_image_path=False
+        )
+
+        # Assert
+        self.assertOutputFiles({
+            'test.object'
+        })
+
+        self.assertReportsContains(
+            'WARNING',
+            re.compile('Skipped motion references legacy data')
+        )
+
 
 def _create_armature(targets):
     arm = bpy.data.armatures.new('tarm')
