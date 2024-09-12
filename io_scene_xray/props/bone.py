@@ -430,6 +430,8 @@ class XRayBoneProps(bpy.types.PropertyGroup):
                 bgl.glPopMatrix()
 
         # draw shapes
+        gpu.state.depth_test_set('LESS_EQUAL')
+
         draw_shapes = obj_arm.data.xray.display_bone_shapes
         if hided or not draw_shapes or is_edit:
             utils.draw.set_gl_line_width(prev_line_width)
@@ -500,6 +502,8 @@ class XRayBoneProps(bpy.types.PropertyGroup):
             finally:
                 bgl.glPopMatrix()
         utils.draw.set_gl_line_width(prev_line_width)
+
+        gpu.state.depth_test_set('NONE')
 
 
 prop_groups = (

@@ -22,7 +22,7 @@ def matrix_to_buffer(matrix):
     return buff
 
 
-def draw_wire_cube(half_size_x, half_size_y, half_size_z):
+def draw_cube(half_size_x, half_size_y, half_size_z):
     # bottom of the box (plane xy)
     bgl.glBegin(bgl.GL_LINE_LOOP)
     bgl.glVertex3f(-half_size_x, -half_size_y, -half_size_z)
@@ -146,7 +146,7 @@ def draw_slider_slide_limits(slide_min, slide_max, color):
     draw_line(start, end, color)
 
 
-def draw_wire_sphere(radius, num_segments):
+def draw_sphere(radius, num_segments):
     bgl.glBegin(bgl.GL_LINE_LOOP)
     gen_circle(radius, num_segments, lambda x, y: bgl.glVertex3f(x, y, 0))
     bgl.glEnd()
@@ -158,7 +158,7 @@ def draw_wire_sphere(radius, num_segments):
     bgl.glEnd()
 
 
-def draw_wire_cylinder(radius, half_height, num_segments):
+def draw_cylinder(radius, half_height, num_segments):
     bgl.glBegin(bgl.GL_LINE_LOOP)
     gen_circle(
         radius, num_segments,
