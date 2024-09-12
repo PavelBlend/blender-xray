@@ -73,19 +73,17 @@ class ObjectExporter:
     def get_flags(self):
         flags = self.xray.flags
 
-        if self.arm_obj:
-            # 1 - Dynamic
-            # 3 - Progressive Dynamic
-            if flags & ~0x40 not in (1, 3):
-                # set Dynamic flag
-                # so that it is possible to export to ogf from ActorEditor
-                flags = 1 | (flags & 0x40)
-                log.warn(
-                    text.warn.object_set_dynamic,
-                    object=self.xray.id_data.name,
-                    has_type=fmt.type_names[self.xray.flags_simple],
-                    save_as=fmt.type_names[fmt.DY]
-                )
+        # 1 - Dynamic, 3 - Progressive Dynamic
+        if self.arm_obj and flags & ~0x40 not in (1, 3):
+            # set Dynamic flag so that it is possible
+            # to ogf export from ActorEditor
+            flags = 1 | (flags & 0x40)
+            log.warn(
+                text.warn.object_set_dynamic,
+                object=self.xray.id_data.name,
+                has_type=fmt.type_names[self.xray.flags_simple],
+                save_as=fmt.type_names[fmt.DY]
+            )
 
         return flags
 
@@ -209,6 +207,8 @@ class ObjectExporter:
 
     def export_motions(self):
         if self.arm_obj and self.context.export_motions:
+
+            # collect motion names
             motions_names = [
                 motion.name
                 for motion in self.root_obj.xray.motions_collection
@@ -216,6 +216,8 @@ class ObjectExporter:
             motions_names = set(motions_names)
             motions_names = list(motions_names)
             motions_names.sort()
+
+            # collect actions
             acts = []
             for act_name in motions_names:
                 act = bpy.data.actions.get(act_name, None)
@@ -227,11 +229,23 @@ class ObjectExporter:
                         action=act_name,
                         object=self.root_obj.name
                     )
+
             if acts:
-                writer = rw.write.PackedWriter()
+
+                # create motions context
                 motion_ctx = contexts.ExportAnimationOnlyContext()
                 motion_ctx.bpy_arm_obj = self.arm_obj
-                motions.exp.export_motions(writer, acts, motion_ctx, self.root_obj)
+
+                # export motions
+                writer = rw.write.PackedWriter()
+                motions.exp.export_motions(
+                    writer,
+                    acts,
+                    motion_ctx,
+                    self.root_obj
+                )
+
+                # write chunk
                 if writer.data:
                     self.body_writer.put(fmt.Chunks.Object.MOTIONS, writer)
 
