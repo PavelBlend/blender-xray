@@ -22,6 +22,12 @@ class ObjectExporter:
         self.xray = root_obj.xray
         self.context = context
 
+        self.body_writer = None
+        self.arm_obj = None
+        self.materials = None
+        self.uv_map_names = None
+        self.bone_writers = None
+
         self.status()
         self.export()
 
