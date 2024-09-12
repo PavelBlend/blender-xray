@@ -162,13 +162,15 @@ class ObjectExporter:
 
     def export_partitions(self):
         if self.arm_obj and self.arm_obj.pose.bone_groups:
-            non_empty_groups = self.get_bone_groups()
-            if non_empty_groups:
+            bone_groups = self.get_bone_groups()
+            if bone_groups:
                 writer = rw.write.PackedWriter()
-                writer.putf('<I', len(non_empty_groups))
-                for name, bones in non_empty_groups:
+                groups_count = len(bone_groups)
+                writer.putf('<I', groups_count)
+                for name, bones in bone_groups:
                     writer.puts(name)
-                    writer.putf('<I', len(bones))
+                    bones_count = len(bones)
+                    writer.putf('<I', bones_count)
                     for bone_name in bones:
                         writer.puts(bone_name.lower())
                 self.body_writer.put(fmt.Chunks.Object.PARTITIONS1, writer)
