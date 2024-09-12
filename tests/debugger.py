@@ -4,8 +4,8 @@ import sys
 def attach_if_needed(argv):
     connect, token = None, None
     for i, v in enumerate(argv):
-        if v.endswith('/debugpy'):
-            sys.path.append(v + '/..')
+        if v.endswith(os.sep + 'debugpy'):
+            sys.path.append(v + os.sep + '..')
         elif v == '--connect':
             connect = argv[i + 1]
         elif v == '--adapter-access-token':
