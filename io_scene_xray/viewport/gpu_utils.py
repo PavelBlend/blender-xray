@@ -6,6 +6,7 @@ import gpu
 
 # addon modules
 from . import const
+from . import geom
 from .. import utils
 
 if utils.version.IS_28:
@@ -13,147 +14,49 @@ if utils.version.IS_28:
     import gpu_extras.batch
 
 
-def gen_arc(
-        radius, start, end, num_segments,
-        fconsumer, indices, close=False
-    ):
-
-    theta = (end - start) / num_segments
-    cos_th, sin_th = math.cos(theta), math.sin(theta)
-    x, y = radius * math.cos(start), radius * math.sin(start)
-    if indices:
-        start_index = indices[-1][-1] + 1
-    else:
-        start_index = 0
-    index = 0
-    for _ in range(num_segments):
-        fconsumer(x, y)
-        indices.append(
-            (start_index + index, start_index + index + 1)
-        )
-        index += 1
-        _ = x
-        x = x * cos_th - y * sin_th
-        y = _ * sin_th + y * cos_th
-    if close:
-        fconsumer(x, y)
-
-
-def gen_circle(radius, num_segments, fconsumer, indices):
-    gen_arc(
-        radius, 0, 2.0 * math.pi, num_segments,
-        fconsumer, indices, close=True
+def _draw_geom(coords, lines, faces, color, alpha_coef):
+    # solid geometry
+    shader = utils.draw.get_shader()
+    batch = gpu_extras.batch.batch_for_shader(
+        shader,
+        'TRIS',
+        {'pos': coords},
+        indices=faces
     )
+    shader.bind()
+    shader.uniform_float('color', [*color[0 : 3], color[3] * alpha_coef])
+    batch.draw(shader)
 
-
-def draw_wire_cube(half_size_x, half_size_y, half_size_z, color):
-    coords = (
-        (-half_size_x, -half_size_y, -half_size_z),
-        (+half_size_x, -half_size_y, -half_size_z),
-        (+half_size_x, +half_size_y, -half_size_z),
-        (-half_size_x, +half_size_y, -half_size_z),
-
-        (-half_size_x, -half_size_y, +half_size_z),
-        (+half_size_x, -half_size_y, +half_size_z),
-        (+half_size_x, +half_size_y, +half_size_z),
-        (-half_size_x, +half_size_y, +half_size_z),
-    )
-    indices = (
-        (0, 1), (1, 2),
-        (2, 3), (3, 7),
-        (2, 6), (1, 5),
-        (0, 4), (4, 5),
-        (5, 6), (6, 7),
-        (4, 7), (0, 3)
-    )
+    # wire geometry
     shader = utils.draw.get_shader()
     batch = gpu_extras.batch.batch_for_shader(
         shader,
         'LINES',
         {'pos': coords},
-        indices=indices
+        indices=lines
     )
     shader.bind()
     shader.uniform_float('color', color)
     batch.draw(shader)
 
 
-def draw_wire_sphere(radius, num_segments, color):
-    coords = []
-    indices = []
-    gen_circle(
-        radius,
-        num_segments,
-        lambda x, y: coords.append((x, y, 0)),
-        indices
-    )
-    gen_circle(
-        radius,
-        num_segments,
-        lambda x, y: coords.append((0, x, y)),
-        indices
-    )
-    gen_circle(
-        radius,
-        num_segments,
-        lambda x, y: coords.append((y, 0, x)),
-        indices
-    )
-
-    shader = utils.draw.get_shader()
-    batch = gpu_extras.batch.batch_for_shader(
-        shader,
-        'LINES',
-        {'pos': coords},
-        indices=indices
-    )
-    shader.bind()
-    shader.uniform_float('color', color)
-    batch.draw(shader)
+def draw_cube(half_sz_x, half_sz_y, half_sz_z, color, alpha_coef):
+    coords, lines, faces = geom.gen_cube_geom(half_sz_x, half_sz_y, half_sz_z)
+    _draw_geom(coords, lines, faces, color, alpha_coef)
 
 
-def draw_wire_cylinder(radius, half_height, num_segments, color):
-    coords = []
-    indices = []
-    gen_circle(
-        radius,
-        num_segments,
-        lambda x, y: coords.append((x, -half_height, y)),
-        indices
-    )
-    gen_circle(
-        radius,
-        num_segments,
-        lambda x, y: coords.append((x, +half_height, y)),
-        indices
-    )
-    coords.extend([
-        (-radius, -half_height, 0),
-        (-radius, +half_height, 0),
-        (+radius, -half_height, 0),
-        (+radius, +half_height, 0),
-        (0, -half_height, -radius),
-        (0, +half_height, -radius),
-        (0, -half_height, +radius),
-        (0, +half_height, +radius)
-    ])
-    start_index = indices[-1][-1] + 1
-    for i in range(start_index, start_index + 8, 2):
-        indices.extend((
-            (i, i + 1),
-            (i +1, i)
-        ))
+def draw_sphere(radius, num_segments, color, alpha_coef):
+    coords, lines, faces = geom.gen_sphere_geom(radius, num_segments)
+    _draw_geom(coords, lines, faces, color, alpha_coef)
 
-    shader = utils.draw.get_shader()
-    batch = gpu_extras.batch.batch_for_shader(
-        shader,
-        'LINES',
-        {'pos': coords},
-        indices=indices
+
+def draw_cylinder(radius, half_height, num_segments, color, alpha_coef):
+    coords, lines, faces = geom.gen_cylinder_geom(
+        radius,
+        half_height,
+        num_segments
     )
-    shader.bind()
-    shader.uniform_float('color', color)
-    batch.draw(shader)
+    _draw_geom(coords, lines, faces, color, alpha_coef)
 
 
 def draw_cross(size, color):
@@ -202,7 +105,7 @@ def gen_limit_circle(
             num_segments * abs(end - start) / (math.pi * 2.0)
         )
         if num_segs:
-            gen_arc(
+            geom.gen_arc(
                 radius, start, end, num_segs,
                 fconsumer, indices, close=True
             )
@@ -263,7 +166,7 @@ def gen_limit_circle(
     # draw current rotation point
     coords = []
     indices = []
-    gen_arc(radius, rotate, rotate + 1, 1, fconsumer, indices, close=False)
+    geom.gen_arc(radius, rotate, rotate + 1, 1, fconsumer, indices, close=False)
 
     gpu.state.point_size_set(const.POINT_SIZE)
 

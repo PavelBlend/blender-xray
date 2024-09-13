@@ -6,6 +6,7 @@ import bgl
 
 # addon modules
 from . import const
+from . import geom
 
 
 axis_draw_functions = {
@@ -22,38 +23,8 @@ def matrix_to_buffer(matrix):
     return buff
 
 
-def draw_wire_cube(half_size_x, half_size_y, half_size_z):
-    # bottom of the box (plane xy)
-    bgl.glBegin(bgl.GL_LINE_LOOP)
-    bgl.glVertex3f(-half_size_x, -half_size_y, -half_size_z)
-    bgl.glVertex3f(+half_size_x, -half_size_y, -half_size_z)
-    bgl.glVertex3f(+half_size_x, +half_size_y, -half_size_z)
-    bgl.glVertex3f(-half_size_x, +half_size_y, -half_size_z)
-    bgl.glEnd()
-
-    # top of the box (plane xy)
-    bgl.glBegin(bgl.GL_LINE_LOOP)
-    bgl.glVertex3f(-half_size_x, -half_size_y, +half_size_z)
-    bgl.glVertex3f(+half_size_x, -half_size_y, +half_size_z)
-    bgl.glVertex3f(+half_size_x, +half_size_y, +half_size_z)
-    bgl.glVertex3f(-half_size_x, +half_size_y, +half_size_z)
-    bgl.glEnd()
-
-    # vertical lines
-    bgl.glBegin(bgl.GL_LINES)
-    bgl.glVertex3f(-half_size_x, -half_size_y, -half_size_z)
-    bgl.glVertex3f(-half_size_x, -half_size_y, +half_size_z)
-    bgl.glVertex3f(+half_size_x, -half_size_y, -half_size_z)
-    bgl.glVertex3f(+half_size_x, -half_size_y, +half_size_z)
-    bgl.glVertex3f(+half_size_x, +half_size_y, -half_size_z)
-    bgl.glVertex3f(+half_size_x, +half_size_y, +half_size_z)
-    bgl.glVertex3f(-half_size_x, +half_size_y, -half_size_z)
-    bgl.glVertex3f(-half_size_x, +half_size_y, +half_size_z)
-    bgl.glEnd()
-
-
 # pylint: disable=C0103
-def gen_arc(radius, start, end, num_segments, fconsumer, close=False):
+def draw_arc(radius, start, end, num_segments, fconsumer, close=False):
     theta = (end - start) / num_segments
     cos_th, sin_th = math.cos(theta), math.sin(theta)
     x, y = radius * math.cos(start), radius * math.sin(start)
@@ -66,9 +37,27 @@ def gen_arc(radius, start, end, num_segments, fconsumer, close=False):
         fconsumer(x, y)
 
 
-# pylint: disable=C0103
-def gen_circle(radius, num_segments, fconsumer):
-    gen_arc(radius, 0, 2.0 * math.pi, num_segments, fconsumer)
+def _draw_geom(coords, lines, faces, color, alpha_coef):
+    # solid geometry
+    bgl.glColor4f(*color[0 : 3], color[3] * alpha_coef)
+    bgl.glBegin(bgl.GL_TRIANGLES)
+    for face in faces:
+        for vertex in face:
+            bgl.glVertex3f(*coords[vertex])
+    bgl.glEnd()
+
+    # wire geometry
+    bgl.glColor4f(*color)
+    bgl.glBegin(bgl.GL_LINES)
+    for line in lines:
+        for vertex in line:
+            bgl.glVertex3f(*coords[vertex])
+    bgl.glEnd()
+
+
+def draw_cube(half_sz_x, half_sz_y, half_sz_z, color, alpha_coef):
+    coords, lines, faces = geom.gen_cube_geom(half_sz_x, half_sz_y, half_sz_z)
+    _draw_geom(coords, lines, faces, color, alpha_coef)
 
 
 # pylint: disable=C0103
@@ -83,7 +72,7 @@ def gen_limit_circle(
             num_segments * abs(end - start) / (math.pi * 2.0)
         )
         if num_segs:
-            gen_arc(radius, start, end, num_segs, fconsumer, close=True)
+            draw_arc(radius, start, end, num_segs, fconsumer, close=True)
 
     bgl.glLineWidth(2)
     bgl.glBegin(bgl.GL_LINE_STRIP)
@@ -106,7 +95,7 @@ def gen_limit_circle(
     bgl.glPointSize(const.POINT_SIZE)
     bgl.glColor4f(*color)
     bgl.glBegin(bgl.GL_POINTS)
-    gen_arc(radius, rotate, rotate + 1, 1, fconsumer)
+    draw_arc(radius, rotate, rotate + 1, 1, fconsumer)
     bgl.glEnd()
 
 
@@ -146,41 +135,18 @@ def draw_slider_slide_limits(slide_min, slide_max, color):
     draw_line(start, end, color)
 
 
-def draw_wire_sphere(radius, num_segments):
-    bgl.glBegin(bgl.GL_LINE_LOOP)
-    gen_circle(radius, num_segments, lambda x, y: bgl.glVertex3f(x, y, 0))
-    bgl.glEnd()
-    bgl.glBegin(bgl.GL_LINE_LOOP)
-    gen_circle(radius, num_segments, lambda x, y: bgl.glVertex3f(0, x, y))
-    bgl.glEnd()
-    bgl.glBegin(bgl.GL_LINE_LOOP)
-    gen_circle(radius, num_segments, lambda x, y: bgl.glVertex3f(y, 0, x))
-    bgl.glEnd()
+def draw_sphere(radius, num_segments, color, alpha_coef):
+    coords, lines, faces = geom.gen_sphere_geom(radius, num_segments)
+    _draw_geom(coords, lines, faces, color, alpha_coef)
 
 
-def draw_wire_cylinder(radius, half_height, num_segments):
-    bgl.glBegin(bgl.GL_LINE_LOOP)
-    gen_circle(
-        radius, num_segments,
-        lambda x, y: bgl.glVertex3f(x, -half_height, y)
+def draw_cylinder(radius, half_height, num_segments, color, alpha_coef):
+    coords, lines, faces = geom.gen_cylinder_geom(
+        radius,
+        half_height,
+        num_segments
     )
-    bgl.glEnd()
-    bgl.glBegin(bgl.GL_LINE_LOOP)
-    gen_circle(
-        radius, num_segments,
-        lambda x, y: bgl.glVertex3f(x, +half_height, y)
-    )
-    bgl.glEnd()
-    bgl.glBegin(bgl.GL_LINES)
-    bgl.glVertex3f(-radius, -half_height, 0)
-    bgl.glVertex3f(-radius, +half_height, 0)
-    bgl.glVertex3f(+radius, -half_height, 0)
-    bgl.glVertex3f(+radius, +half_height, 0)
-    bgl.glVertex3f(0, -half_height, -radius)
-    bgl.glVertex3f(0, +half_height, -radius)
-    bgl.glVertex3f(0, -half_height, +radius)
-    bgl.glVertex3f(0, +half_height, +radius)
-    bgl.glEnd()
+    _draw_geom(coords, lines, faces, color, alpha_coef)
 
 
 def draw_cross(size):

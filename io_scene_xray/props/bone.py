@@ -282,6 +282,7 @@ class XRayBoneProps(bpy.types.PropertyGroup):
                     color = pref.gl_shape_color
         else:
             color = pref.gl_object_mode_shape_color
+        alpha_coef = pref.gl_alpha_coef
 
         # draw limits
         if draw_overlays and arm_xray.display_bone_limits:
@@ -405,6 +406,7 @@ class XRayBoneProps(bpy.types.PropertyGroup):
         shape = self.shape
         if shape.type in ('0', '4'):
             utils.draw.set_gl_line_width(prev_line_width)
+            utils.draw.reset_gl_state()
             return
 
         # draw mass centers
@@ -430,18 +432,23 @@ class XRayBoneProps(bpy.types.PropertyGroup):
                 bgl.glPopMatrix()
 
         # draw shapes
+        utils.draw.set_gl_state()
+
         draw_shapes = obj_arm.data.xray.display_bone_shapes
         if hided or not draw_shapes or is_edit:
             utils.draw.set_gl_line_width(prev_line_width)
+            utils.draw.reset_gl_state()
             return
 
         if utils.version.IS_28:
             if not obj_arm.name in bpy.context.view_layer.objects:
                 utils.draw.set_gl_line_width(prev_line_width)
+                utils.draw.reset_gl_state()
                 return
         else:
             if not obj_arm.name in bpy.context.scene.objects:
                 utils.draw.set_gl_line_width(prev_line_width)
+                utils.draw.reset_gl_state()
                 return
             visible_armature_object = False
             for layer_index, layer in enumerate(obj_arm.layers):
@@ -452,6 +459,7 @@ class XRayBoneProps(bpy.types.PropertyGroup):
 
             if not visible_armature_object:
                 utils.draw.set_gl_line_width(prev_line_width)
+                utils.draw.reset_gl_state()
                 return
 
         if utils.version.IS_28:
@@ -460,19 +468,21 @@ class XRayBoneProps(bpy.types.PropertyGroup):
                 mat = multiply(mat, shape.get_matrix_basis())
                 gpu.matrix.multiply_matrix(mat)
                 if shape.type == '1':    # box
-                    viewport.draw_cube(*shape.box_hsz, color=color)
+                    viewport.draw_cube(*shape.box_hsz, color, alpha_coef)
                 if shape.type == '2':    # sphere
                     viewport.draw_sphere(
                         shape.sph_rad,
                         viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT,
-                        color=color
+                        color,
+                        alpha_coef
                     )
                 if shape.type == '3':    # cylinder
                     viewport.draw_cylinder(
                         shape.cyl_rad,
                         shape.cyl_hgh * 0.5,
                         viewport.const.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT,
-                        color
+                        color,
+                        alpha_coef
                     )
             finally:
                 gpu.matrix.pop()
@@ -485,21 +495,27 @@ class XRayBoneProps(bpy.types.PropertyGroup):
                     viewport.gl_utils.matrix_to_buffer(mat.transposed())
                 )
                 if shape.type == '1':    # box
-                    viewport.draw_cube(*shape.box_hsz)
+                    viewport.draw_cube(*shape.box_hsz, color, alpha_coef)
                 if shape.type == '2':    # sphere
                     viewport.draw_sphere(
                         shape.sph_rad,
-                        viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT
+                        viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT,
+                        color,
+                        alpha_coef
                     )
                 if shape.type == '3':    # cylinder
                     viewport.draw_cylinder(
                         shape.cyl_rad,
                         shape.cyl_hgh * 0.5,
-                        viewport.const.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT
+                        viewport.const.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT,
+                        color,
+                        alpha_coef
                     )
             finally:
                 bgl.glPopMatrix()
+
         utils.draw.set_gl_line_width(prev_line_width)
+        utils.draw.reset_gl_state()
 
 
 prop_groups = (
