@@ -620,6 +620,29 @@ class TestObjectExport(utils.XRayTestCase):
         })
         self.assertReportsNotContains('ERROR')
 
+    def test_fails_export_nonuniform_scaled_object(self):
+        # Arrange
+        root = bpy.data.objects.new('root', None)
+        utils.link_object(root)
+        root.scale = (1, 1, 1.000002)
+        [obj_mesh] = self._create_objects(count=1)
+
+        obj_arm = _create_armature((obj_mesh, ))
+        obj_arm.parent = root
+        utils.set_active_object(root)
+
+        # Act
+        bpy.ops.xray_export.object(
+            objects=root.name,
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False
+        )
+
+        # Assert
+        self.assertOutputFiles({})
+        self.assertReportsContains('ERROR', re.compile('Object has an non-uniform scale: "tobj"'))
+
     def test_export_scaled_skeletal_object(self):
         # Arrange
         root = bpy.data.objects.new('root', None)
