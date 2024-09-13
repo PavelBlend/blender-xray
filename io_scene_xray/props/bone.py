@@ -405,6 +405,7 @@ class XRayBoneProps(bpy.types.PropertyGroup):
         shape = self.shape
         if shape.type in ('0', '4'):
             utils.draw.set_gl_line_width(prev_line_width)
+            utils.draw.reset_gl_state()
             return
 
         # draw mass centers
@@ -435,15 +436,18 @@ class XRayBoneProps(bpy.types.PropertyGroup):
         draw_shapes = obj_arm.data.xray.display_bone_shapes
         if hided or not draw_shapes or is_edit:
             utils.draw.set_gl_line_width(prev_line_width)
+            utils.draw.reset_gl_state()
             return
 
         if utils.version.IS_28:
             if not obj_arm.name in bpy.context.view_layer.objects:
                 utils.draw.set_gl_line_width(prev_line_width)
+                utils.draw.reset_gl_state()
                 return
         else:
             if not obj_arm.name in bpy.context.scene.objects:
                 utils.draw.set_gl_line_width(prev_line_width)
+                utils.draw.reset_gl_state()
                 return
             visible_armature_object = False
             for layer_index, layer in enumerate(obj_arm.layers):
@@ -454,6 +458,7 @@ class XRayBoneProps(bpy.types.PropertyGroup):
 
             if not visible_armature_object:
                 utils.draw.set_gl_line_width(prev_line_width)
+                utils.draw.reset_gl_state()
                 return
 
         if utils.version.IS_28:
@@ -503,8 +508,8 @@ class XRayBoneProps(bpy.types.PropertyGroup):
                     )
             finally:
                 bgl.glPopMatrix()
-        utils.draw.set_gl_line_width(prev_line_width)
 
+        utils.draw.set_gl_line_width(prev_line_width)
         utils.draw.reset_gl_state()
 
 
