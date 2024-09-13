@@ -338,10 +338,10 @@ def check_armature_scale(scale, bpy_root, bpy_arm_obj):
             armature_scale=format_scale(bpy_arm_obj.scale),
         )
         if bpy_root != bpy_arm_obj:
-            props |= dict(
+            props.update(dict(
                 root_object=bpy_root.name,
                 root_scale=format_scale(bpy_root.scale),
-            )
+            ))
         raise log.AppError(
             text.error.arm_non_uniform_scale,
             log.props(**props)
