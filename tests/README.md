@@ -13,11 +13,11 @@ To do this, you could download the package archive and extract the `coverage` fo
 To run all tests, invoke the `runner.py` script from the repository-root directory using `blender`:
 
 ```shell
-blender --factory-startup -noaudio -b --python tests/runner.py --save-html-report output_folder --save-test-data
+blender --factory-startup -noaudio -b --python tests/runner.py --save-html-report output_folder -k 'test*shape'
 ```
 The `--save-html-report output_folder` parameter is optional. If all tests are passed, the `./htmlcov/` directory with coverage reports will be created.
 
-The `--save-test-data` parameter is optional. If this parameter is present, then files created during tests in the temporary directory will not be deleted.
+The `-k` parameter is optional and can be used to run test methods and classes that match the pattern or substring (just like [-k](https://docs.python.org/3/library/unittest.html#cmdoption-unittest-k) in `unittest`).
 
 To start tests for all `blender` versions, you can use such commands for `windows`:
 

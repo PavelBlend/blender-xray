@@ -1,4 +1,5 @@
 __pycache__
+/.tests/
 htmlcov
 coverage.xml
 *.bat

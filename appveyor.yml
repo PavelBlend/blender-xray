@@ -21,3 +21,9 @@ test_script:
 
 after_test:
   - bash <(curl -s https://codecov.io/bash)
+
+artifacts:
+  - path: .tests
+on_failure:
+  - 7z a tests.zip .tests
+  - appveyor PushArtifact tests.zip

@@ -116,12 +116,11 @@ class XRAY_OT_export_object(utils.ie.BaseOperator):
                 path = os.path.join(path, exp_path)
                 os.makedirs(path, exist_ok=True)
 
+            file_path = os.path.join(path, name)
+            exp_ctx.filepath = file_path
+
             try:
-                main.export_file(
-                    bpy_obj,
-                    os.path.join(path, name),
-                    exp_ctx
-                )
+                main.export_file(bpy_obj, exp_ctx)
             except log.AppError as err:
                 exp_ctx.errors.append(err)
 
@@ -214,8 +213,10 @@ class XRAY_OT_export_object_file(
             file_path = os.path.join(exp_dir, file)
             os.makedirs(exp_dir, exist_ok=True)
 
+        export_context.filepath = file_path
+
         try:
-            main.export_file(bpy_obj, file_path, export_context)
+            main.export_file(bpy_obj, export_context)
         except log.AppError as err:
             export_context.errors.append(err)
 

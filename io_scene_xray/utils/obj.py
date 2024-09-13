@@ -8,6 +8,8 @@ import bpy
 
 # addon modules
 from . import version
+from . import ie
+from . import obj
 from . import stats
 from .. import log
 from .. import text
@@ -49,7 +51,9 @@ def get_current_user():
     return curruser
 
 
-def get_revision_data(revision):
+def get_revis(revision):
+    # get revision data
+
     curruser = get_current_user()
 
     currtime = int(time.time())
@@ -206,3 +210,97 @@ def apply_obj_modifier(mod, context=None):
     except RuntimeError as err:
         # modifier is disabled, skipping apply
         pass
+
+
+def merge_meshes(mesh_objects, arm_obj):
+    objects = []
+    override = bpy.context.copy()
+
+    for bpy_obj in mesh_objects:
+        if not len(bpy_obj.data.uv_layers):
+            raise log.AppError(
+                text.error.no_uv,
+                log.props(object=bpy_obj.name)
+            )
+
+        if len(bpy_obj.data.uv_layers) > 1:
+            log.warn(
+                text.warn.obj_many_uv,
+                exported_uv=bpy_obj.data.uv_layers.active.name,
+                mesh_object=bpy_obj.name
+            )
+
+        ie.validate_vertex_weights(bpy_obj, arm_obj)
+
+        copy_obj = bpy_obj.copy()
+        copy_mesh = bpy_obj.data.copy()
+        copy_obj.data = copy_mesh
+
+        # rename uv layers
+        active_uv_name = copy_mesh.uv_layers.active.name
+        index = 0
+        for uv_layer in copy_mesh.uv_layers:
+            if uv_layer.name == active_uv_name:
+                continue
+            uv_layer.name = str(index)
+            index += 1
+
+        copy_mesh.uv_layers.active.name = 'Texture'
+        version.link_object(copy_obj)
+
+        # apply modifiers
+        override['active_object'] = copy_obj
+        override['object'] = copy_obj
+        for mod in copy_obj.modifiers:
+            if mod.type == 'ARMATURE':
+                continue
+            if not mod.show_viewport:
+                continue
+            override['modifier'] = mod
+            apply_obj_modifier(mod, context=override)
+        objects.append(copy_obj)
+
+        # apply shape keys
+        if copy_mesh.shape_keys:
+            copy_obj.shape_key_add(name='last_shape_key', from_mix=True)
+            for shape_key in copy_mesh.shape_keys.key_blocks:
+                copy_obj.shape_key_remove(shape_key)
+
+    active_object = objects[0]
+    override['active_object'] = active_object
+    override['selected_objects'] = objects
+    if version.IS_28:
+        override['object'] = active_object
+        override['selected_editable_objects'] = objects
+    else:
+        scene = bpy.context.scene
+        override['selected_editable_bases'] = [
+            scene.object_bases[ob.name]
+            for ob in objects
+        ]
+    bpy.ops.object.join(override)
+
+    # remove uvs
+    uv_layers = [uv_layer.name for uv_layer in active_object.data.uv_layers]
+    for uv_name in uv_layers:
+        if uv_name == 'Texture':
+            continue
+        uv_layer = active_object.data.uv_layers[uv_name]
+        active_object.data.uv_layers.remove(uv_layer)
+
+    return active_object
+
+
+def remove_merged_obj(merged_obj):
+    if merged_obj:
+        merged_mesh = merged_obj.data
+
+        if version.IS_277:
+            bpy.context.scene.objects.unlink(merged_obj)
+            merged_obj.user_clear()
+            bpy.data.objects.remove(merged_obj)
+
+        else:
+            bpy.data.objects.remove(merged_obj, do_unlink=True)
+
+        bpy.data.meshes.remove(merged_mesh)

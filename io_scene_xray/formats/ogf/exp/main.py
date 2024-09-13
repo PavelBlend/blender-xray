@@ -514,7 +514,7 @@ def _write_revision(obj, ogf_writer):
     revision_writer = rw.write.PackedWriter()
 
     # get values
-    owner, ctime, moder, mtime = utils.obj.get_revision_data(obj.xray.revision)
+    owner, ctime, moder, mtime = utils.obj.get_revis(obj.xray.revision)
     build_time = int(time.time())
 
     # formatting build name

@@ -18,7 +18,11 @@ class TestBoneEditHelpers(XRayTestCase):
             directory=self.binpath(),
             files=[{'name': 'test_fmt_armature.object'}]
         )
+        msh = bpy.data.objects['Plane']
+        msh.location.z += 0.1
+        msh.scale *= 0.75
         arm = bpy.data.objects['test_fmt_armature.object']
+        arm.scale *= 2
         set_active_object(arm)
         bone = arm.data.bones['Bone']
         arm.data.bones.active = bone
@@ -40,17 +44,17 @@ class TestBoneEditHelpers(XRayTestCase):
 
         helper.location = helper.scale = (1, 2, 3)
         bpy.ops.io_scene_xray.edit_bone_shape_fit()
-        self.assertLess(helper.location.length, 0.1, msg='fit shape location')
-        self.assertLess(helper.scale.length, 0.1, msg='fit shape size')
+        self.assertAlmostEqualV(helper.location, (0, 0, 0.1), 1e-3, msg='fit shape location')
+        self.assertAlmostEqualV(helper.scale, (0.022, 0.022, 0.008), 1e-3, msg='fit shape size')
         self.assertIsNotNone(get_object_helper(bpy.context), msg='a helper still shown')
 
         bpy.ops.io_scene_xray.edit_bone_shape_apply()
         self.assertIsNone(get_object_helper(bpy.context), msg='a helper is hidden')
-        self.assertTrue(_has_nonzero(bone.xray.shape.box_rot), msg='has box_rot')
-        self.assertFalse(_has_nonzero(bone.xray.shape.box_trn), msg='has zero box_trn')
-        self.assertTrue(_has_nonzero(bone.xray.shape.box_hsz), msg='has box_hsz')
-        scale = bone.xray.shape.get_matrix_basis().to_scale().to_tuple()
-        self.assertGreater(scale, (0.999, 0.999, 0.999), msg='close to 1:1 scale')
+        self.assertAlmostEqualV(bone.xray.shape.box_rot, (+1,0,0, 0,0,+1, 0,-1,0), 0.02, msg='has box_rot')
+        self.assertAlmostEqualV(bone.xray.shape.box_trn, (0, 0.1, 0), 1e-3, msg='has box_trn')
+        self.assertAlmostEqualV(bone.xray.shape.box_hsz, (0.022, 0.022, 0.008), 1e-3, msg='has box_hsz')
+        scale = bone.xray.shape.get_matrix_basis().to_scale()
+        self.assertAlmostEqualV(scale, (1, 1, 1), 1e-3, msg='close to 1:1 scale')
         self.assertLess(reapply_max_difference(bone.xray.shape), 0.1, msg='box reapplies almost the same')
 
         bone.xray.shape.type = '2'
@@ -59,9 +63,9 @@ class TestBoneEditHelpers(XRayTestCase):
         helper = bpy.context.active_object
         helper.location = helper.scale = (1, 2, 3)
         bpy.ops.io_scene_xray.edit_bone_shape_fit()
-        self.assertLess(helper.location.length, 0.1, msg='fit shape sphere location')
+        self.assertAlmostEqualV(helper.location, (0, 0, 0.1), 1e-3, msg='fit shape sphere location')
         bpy.ops.io_scene_xray.edit_bone_shape_apply()
-        self.assertGreater(bone.xray.shape.sph_rad, 0.01, msg='has sph_rad')
+        self.assertAlmostEqual(bone.xray.shape.sph_rad, 0.073, delta=1e-3, msg='has sph_rad')
         self.assertLess(reapply_max_difference(bone.xray.shape), 0.1, msg='sphere reapplies almost the same')
 
         bone.xray.shape.type = '3'
@@ -70,9 +74,9 @@ class TestBoneEditHelpers(XRayTestCase):
         helper = bpy.context.active_object
         helper.location = helper.scale = (1, 2, 3)
         bpy.ops.io_scene_xray.edit_bone_shape_fit()
-        self.assertLess(helper.location.length, 0.1, msg='fit shape cylinder location')
+        self.assertAlmostEqualV(helper.location, (0, 0, 0.1), 1e-3, msg='fit shape cylinder location')
         bpy.ops.io_scene_xray.edit_bone_shape_apply()
-        self.assertGreater(bone.xray.shape.cyl_hgh, 0.01, msg='has cyl_hgh')
+        self.assertAlmostEqual(bone.xray.shape.cyl_hgh, 0.016, delta=1e-3, msg='has cyl_hgh')
         self.assertLess(reapply_max_difference(bone.xray.shape), 0.1, msg='cylinder reapplies almost the same')
 
         op_edit()

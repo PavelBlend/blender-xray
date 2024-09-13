@@ -137,7 +137,7 @@ def _bone_objects(bone):
                 break
 
 
-def bone_vertices(bone):
+def bone_vertices(bone, in_world_coordinates=False):
     verts = []
     weights = []
     for obj, vgi in _bone_objects(bone):
@@ -146,6 +146,8 @@ def bone_vertices(bone):
             bmsh.from_object(obj, bpy.context.view_layer.depsgraph)
         else:
             bmsh.from_object(obj, bpy.context.scene)
+        if in_world_coordinates:
+            bmsh.transform(obj.matrix_world)
         layer_deform = bmsh.verts.layers.deform.verify()
         mesh.fix_ensure_lookup_table(bmsh.verts)
         for vtx in bmsh.verts:
@@ -156,10 +158,10 @@ def bone_vertices(bone):
     return verts, weights
 
 
-def get_obb(bone, for_cylinder, min_weight):
+def get_obb(bone, for_cylinder, min_weight, in_world_coordinates=False):
     # create convex hull mesh for obb generation
     bm = bmesh.new()
-    verts, weights = bone_vertices(bone)
+    verts, weights = bone_vertices(bone, in_world_coordinates)
     for index, vert in enumerate(verts):
         weight = weights[index]
         if weight >= min_weight:
