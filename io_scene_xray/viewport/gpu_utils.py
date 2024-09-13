@@ -198,8 +198,8 @@ def draw_cylinder(radius, half_height, num_segments, color):
     # bottom and top faces
     for i in range(num_segments):
         next_i = (i + 1) % num_segments
-        faces.append((bottom_start, bottom_start + next_i, bottom_start + i))
-        faces.append((top_start, top_start + i, top_start + next_i))
+        faces.append((bottom_start, bottom_start + i, bottom_start + next_i))
+        faces.append((top_start, top_start + next_i, top_start + i))
 
     # side faces
     for i in range(num_segments):

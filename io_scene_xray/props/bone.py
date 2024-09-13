@@ -431,6 +431,7 @@ class XRayBoneProps(bpy.types.PropertyGroup):
 
         # draw shapes
         gpu.state.depth_test_set('LESS_EQUAL')
+        gpu.state.face_culling_set('FRONT')
 
         draw_shapes = obj_arm.data.xray.display_bone_shapes
         if hided or not draw_shapes or is_edit:
@@ -504,6 +505,7 @@ class XRayBoneProps(bpy.types.PropertyGroup):
         utils.draw.set_gl_line_width(prev_line_width)
 
         gpu.state.depth_test_set('NONE')
+        gpu.state.face_culling_set('NONE')
 
 
 prop_groups = (
