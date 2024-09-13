@@ -175,7 +175,7 @@ def set_gl_blend_mode():
 
 
 def set_gl_state():
-    if version.IS_293:
+    if version.IS_34:
         gpu.state.depth_test_set('LESS_EQUAL')
         gpu.state.face_culling_set('FRONT')
     else:
