@@ -528,18 +528,19 @@ class TestObjectExport(utils.XRayTestCase):
             re.compile('Object has no material: "{0}"'.format('tobj1'))
         )
 
-    def _create_objects(self, create_uv=True, create_material=True):
+    def _create_objects(self, create_uv=True, create_material=True, count=3):
         bmesh = utils.create_bmesh((
             (0, 0, 0),
             (-1, -1, 0), (+1, -1, 0), (+1, +1, 0), (-1, +1, 0),
         ), ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 1)), create_uv)
 
         objs = []
-        for i in range(3):
+        for i in range(count):
             obj = utils.create_object(bmesh, create_material)
             obj.name = 'tobj%d' % (i + 1)
             objs.append(obj)
-        objs[1].xray.export_path = 'a/b'
+        if len(objs) > 1:
+            objs[1].xray.export_path = 'a/b'
         return objs
 
     def test_export_split_normals(self):
@@ -618,6 +619,67 @@ class TestObjectExport(utils.XRayTestCase):
             'skeletal_object_cop_format.object'
         })
         self.assertReportsNotContains('ERROR')
+
+    def test_fails_export_nonuniform_scaled_object(self):
+        # Arrange
+        root = bpy.data.objects.new('root', None)
+        utils.link_object(root)
+        root.scale = (1, 1, 1.000002)
+        [obj_mesh] = self._create_objects(count=1)
+
+        obj_arm = _create_armature((obj_mesh, ))
+        obj_arm.parent = root
+        utils.set_active_object(root)
+
+        # Act
+        bpy.ops.xray_export.object(
+            objects=root.name,
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False
+        )
+
+        # Assert
+        self.assertOutputFiles({})
+        self.assertReportsContains('ERROR', re.compile('Object has an non-uniform scale: "tobj"'))
+
+    def test_export_scaled_skeletal_object(self):
+        # Arrange
+        root = bpy.data.objects.new('root', None)
+        utils.link_object(root)
+        root.scale = (2, 2, 2)
+        [obj_mesh] = self._create_objects(count=1)
+        obj_mesh.parent = root
+        obj_mesh.scale.x = 1.5
+
+        obj_arm = _create_armature((obj_mesh, ))
+        obj_arm.scale = (1.25, 1.25, 1.25)
+        obj_arm.parent = root
+        obj_arm.name = 'scaled_skeletal_object'
+        utils.set_active_object(obj_mesh)
+
+        # Act
+        bpy.ops.xray_export.object(
+            objects=obj_arm.name,
+            directory=self.outpath(),
+            texture_name_from_image_path=False,
+            export_motions=False
+        )
+
+        # Assert
+        self.assertReportsNotContains('ERROR')
+        filename = obj_arm.name + '.object'
+        self.assertOutputFiles({filename, })
+
+        bpy.ops.xray_import.object(
+            directory=self.outpath(),
+            files=[{'name': filename}],
+        )
+        self.assertReportsNotContains('ERROR')
+
+        dimensions = lambda name: bpy.data.objects[name].dimensions.to_tuple()
+        self.assertEqual(dimensions('tobj1.001'), (7.5, 5.0, 0.0))
+        self.assertEqual(dimensions(filename), (1.25, 2.5, 0.625))
 
     def test_export_incorrect_textures_folder(self):
         # Arrange
@@ -741,6 +803,15 @@ class TestObjectExport(utils.XRayTestCase):
 
 
 def _create_armature(targets):
+    def create_bone(name, tail, parent=None):
+        bone = arm.edit_bones.new(name)
+        bone.tail = tail
+        if parent:
+            bone.parent = parent
+            bone.use_connect = True
+            bone.tail += parent.tail
+        return bone
+
     arm = bpy.data.armatures.new('tarm')
     obj = bpy.data.objects.new('tobj', arm)
     utils.link_object(obj)
@@ -748,8 +819,10 @@ def _create_armature(targets):
 
     bpy.ops.object.mode_set(mode='EDIT')
     try:
-        bone = arm.edit_bones.new('tbone')
-        bone.tail.y = 1
+        bone = create_bone('tbone', (0, 1, 0))
+        bone = create_bone('tbone+x', (0.5, 0, 0), bone)
+        bone = create_bone('tbone+z', (0, 0, 0.25), bone)
+        bone = create_bone('tbone=0', (-0.5, -1, -0.25), bone)
     finally:
         bpy.ops.object.mode_set(mode='OBJECT')
 

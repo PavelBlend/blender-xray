@@ -329,28 +329,25 @@ def format_scale(scale):
 
 
 def check_armature_scale(scale, bpy_root, bpy_arm_obj):
-    if scale.x == scale.y == scale.z:
-        return scale.x
+    values = scale.to_tuple()
+    mx = max(values)
+    EPS = 1e-6  # some matrix transformation inaccuracy
+    if any(v / mx < (1 - EPS) for v in values):
+        props = dict(
+            armature_object=bpy_arm_obj.name,
+            armature_scale=format_scale(bpy_arm_obj.scale),
+        )
+        if bpy_root != bpy_arm_obj:
+            props.update(dict(
+                root_object=bpy_root.name,
+                root_scale=format_scale(bpy_root.scale),
+            ))
+        raise log.AppError(
+            text.error.arm_non_uniform_scale,
+            log.props(**props)
+        )
 
-    else:
-        if bpy_root == bpy_arm_obj:
-            raise log.AppError(
-                text.error.arm_non_uniform_scale,
-                log.props(
-                    armature_scale=format_scale(bpy_arm_obj.scale),
-                    armature_object=bpy_arm_obj.name
-                )
-            )
-        else:
-            raise log.AppError(
-                text.error.arm_non_uniform_scale,
-                log.props(
-                    armature_object=bpy_arm_obj.name,
-                    armature_scale=format_scale(bpy_arm_obj.scale),
-                    root_object=bpy_root.name,
-                    root_scale=format_scale(bpy_root.scale)
-                )
-            )
+    return mx
 
 
 def get_arm_obj(root_obj, operator):

@@ -426,14 +426,14 @@ class ObjectExporter:
             inspect.bone.check_bone_names(self.arm_obj)
             bonemap = {}
 
-            arm_mat, scale = utils.ie.get_obj_scale_matrix(self.root_obj, self.arm_obj)
+            scale = self.arm_obj.matrix_world.to_scale()
 
             utils.ie.check_armature_scale(scale, self.root_obj, self.arm_obj)
 
             edit_mode_matrices = {}
             with utils.version.using_active_object(self.arm_obj), utils.version.using_mode('EDIT'):
                 for edit_bone in self.arm_obj.data.edit_bones:
-                    bone_mat = utils.version.multiply(arm_mat, edit_bone.matrix)
+                    bone_mat = edit_bone.matrix
                     bone_mat[0][3] *= scale.x
                     bone_mat[1][3] *= scale.y
                     bone_mat[2][3] *= scale.z
