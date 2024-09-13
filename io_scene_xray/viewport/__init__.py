@@ -8,25 +8,25 @@ from . import const
 from .. import utils
 
 
-def draw_cube(half_size_x, half_size_y, half_size_z, color=None):
+def draw_cube(half_size_x, half_size_y, half_size_z, color):
     if utils.version.IS_28:
         gpu_utils.draw_cube(half_size_x, half_size_y, half_size_z, color)
     else:
-        gl_utils.draw_cube(half_size_x, half_size_y, half_size_z)
+        gl_utils.draw_cube(half_size_x, half_size_y, half_size_z, color)
 
 
-def draw_sphere(radius, num_segments, color=None):
+def draw_sphere(radius, num_segments, color):
     if utils.version.IS_28:
         gpu_utils.draw_sphere(radius, num_segments, color)
     else:
-        gl_utils.draw_sphere(radius, num_segments)
+        gl_utils.draw_sphere(radius, num_segments, color)
 
 
-def draw_cylinder(radius, half_height, num_segments, color=None):
+def draw_cylinder(radius, half_height, num_segments, color):
     if utils.version.IS_28:
         gpu_utils.draw_cylinder(radius, half_height, num_segments, color)
     else:
-        gl_utils.draw_cylinder(radius, half_height, num_segments)
+        gl_utils.draw_cylinder(radius, half_height, num_segments, color)
 
 
 def draw_cross(size, color=None):

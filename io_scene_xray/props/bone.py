@@ -462,12 +462,12 @@ class XRayBoneProps(bpy.types.PropertyGroup):
                 mat = multiply(mat, shape.get_matrix_basis())
                 gpu.matrix.multiply_matrix(mat)
                 if shape.type == '1':    # box
-                    viewport.draw_cube(*shape.box_hsz, color=color)
+                    viewport.draw_cube(*shape.box_hsz, color)
                 if shape.type == '2':    # sphere
                     viewport.draw_sphere(
                         shape.sph_rad,
                         viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT,
-                        color=color
+                        color
                     )
                 if shape.type == '3':    # cylinder
                     viewport.draw_cylinder(
@@ -487,17 +487,19 @@ class XRayBoneProps(bpy.types.PropertyGroup):
                     viewport.gl_utils.matrix_to_buffer(mat.transposed())
                 )
                 if shape.type == '1':    # box
-                    viewport.draw_cube(*shape.box_hsz)
+                    viewport.draw_cube(*shape.box_hsz, color)
                 if shape.type == '2':    # sphere
                     viewport.draw_sphere(
                         shape.sph_rad,
-                        viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT
+                        viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT,
+                        color
                     )
                 if shape.type == '3':    # cylinder
                     viewport.draw_cylinder(
                         shape.cyl_rad,
                         shape.cyl_hgh * 0.5,
-                        viewport.const.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT
+                        viewport.const.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT,
+                        color
                     )
             finally:
                 bgl.glPopMatrix()
