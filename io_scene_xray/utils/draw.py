@@ -172,3 +172,22 @@ def set_gl_blend_mode():
         gpu.state.blend_set('ALPHA')
     else:
         bgl.glEnable(bgl.GL_BLEND)
+
+
+def set_gl_state():
+    if version.IS_293:
+        gpu.state.depth_test_set('LESS_EQUAL')
+        gpu.state.face_culling_set('FRONT')
+    else:
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthFunc(bgl.GL_LEQUAL)
+        bgl.glEnable(bgl.GL_CULL_FACE)
+        bgl.glCullFace(bgl.GL_FRONT)
+
+def reset_gl_state():
+    if version.IS_293:
+        gpu.state.depth_test_set('NONE')
+        gpu.state.face_culling_set('NONE')
+    else:
+        bgl.glDisable(bgl.GL_DEPTH_TEST)
+        bgl.glDisable(bgl.GL_CULL_FACE)
