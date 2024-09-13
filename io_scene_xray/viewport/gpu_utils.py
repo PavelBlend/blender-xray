@@ -14,7 +14,7 @@ if utils.version.IS_28:
     import gpu_extras.batch
 
 
-def draw_geom(coords, lines, faces, color):
+def _draw_geom(coords, lines, faces, color, alpha_coef):
     # solid geometry
     shader = utils.draw.get_shader()
     batch = gpu_extras.batch.batch_for_shader(
@@ -24,7 +24,7 @@ def draw_geom(coords, lines, faces, color):
         indices=faces
     )
     shader.bind()
-    shader.uniform_float('color', [*color[0 : 3], color[3] * const.ALPHA_COEF])
+    shader.uniform_float('color', [*color[0 : 3], color[3] * alpha_coef])
     batch.draw(shader)
 
     # wire geometry
@@ -40,23 +40,23 @@ def draw_geom(coords, lines, faces, color):
     batch.draw(shader)
 
 
-def draw_cube(half_sz_x, half_sz_y, half_sz_z, color):
+def draw_cube(half_sz_x, half_sz_y, half_sz_z, color, alpha_coef):
     coords, lines, faces = geom.gen_cube_geom(half_sz_x, half_sz_y, half_sz_z)
-    draw_geom(coords, lines, faces, color)
+    _draw_geom(coords, lines, faces, color, alpha_coef)
 
 
-def draw_sphere(radius, num_segments, color):
+def draw_sphere(radius, num_segments, color, alpha_coef):
     coords, lines, faces = geom.gen_sphere_geom(radius, num_segments)
-    draw_geom(coords, lines, faces, color)
+    _draw_geom(coords, lines, faces, color, alpha_coef)
 
 
-def draw_cylinder(radius, half_height, num_segments, color):
+def draw_cylinder(radius, half_height, num_segments, color, alpha_coef):
     coords, lines, faces = geom.gen_cylinder_geom(
         radius,
         half_height,
         num_segments
     )
-    draw_geom(coords, lines, faces, color)
+    _draw_geom(coords, lines, faces, color, alpha_coef)
 
 
 def draw_cross(size, color):

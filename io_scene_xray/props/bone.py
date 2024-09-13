@@ -282,6 +282,7 @@ class XRayBoneProps(bpy.types.PropertyGroup):
                     color = pref.gl_shape_color
         else:
             color = pref.gl_object_mode_shape_color
+        alpha_coef = pref.gl_alpha_coef
 
         # draw limits
         if draw_overlays and arm_xray.display_bone_limits:
@@ -467,19 +468,21 @@ class XRayBoneProps(bpy.types.PropertyGroup):
                 mat = multiply(mat, shape.get_matrix_basis())
                 gpu.matrix.multiply_matrix(mat)
                 if shape.type == '1':    # box
-                    viewport.draw_cube(*shape.box_hsz, color)
+                    viewport.draw_cube(*shape.box_hsz, color, alpha_coef)
                 if shape.type == '2':    # sphere
                     viewport.draw_sphere(
                         shape.sph_rad,
                         viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT,
-                        color
+                        color,
+                        alpha_coef
                     )
                 if shape.type == '3':    # cylinder
                     viewport.draw_cylinder(
                         shape.cyl_rad,
                         shape.cyl_hgh * 0.5,
                         viewport.const.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT,
-                        color
+                        color,
+                        alpha_coef
                     )
             finally:
                 gpu.matrix.pop()
@@ -492,19 +495,21 @@ class XRayBoneProps(bpy.types.PropertyGroup):
                     viewport.gl_utils.matrix_to_buffer(mat.transposed())
                 )
                 if shape.type == '1':    # box
-                    viewport.draw_cube(*shape.box_hsz, color)
+                    viewport.draw_cube(*shape.box_hsz, color, alpha_coef)
                 if shape.type == '2':    # sphere
                     viewport.draw_sphere(
                         shape.sph_rad,
                         viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT,
-                        color
+                        color,
+                        alpha_coef
                     )
                 if shape.type == '3':    # cylinder
                     viewport.draw_cylinder(
                         shape.cyl_rad,
                         shape.cyl_hgh * 0.5,
                         viewport.const.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT,
-                        color
+                        color,
+                        alpha_coef
                     )
             finally:
                 bgl.glPopMatrix()

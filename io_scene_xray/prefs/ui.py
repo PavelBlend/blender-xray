@@ -568,3 +568,6 @@ def draw_others(prefs):
 
     row = box.row()
     row.prop(prefs, 'gl_object_mode_shape_color')
+
+    row = box.row()
+    row.prop(prefs, 'gl_alpha_coef')

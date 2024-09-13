@@ -37,9 +37,9 @@ def draw_arc(radius, start, end, num_segments, fconsumer, close=False):
         fconsumer(x, y)
 
 
-def _draw_geom(coords, lines, faces, color):
+def _draw_geom(coords, lines, faces, color, alpha_coef):
     # solid geometry
-    bgl.glColor4f(*color[0 : 3], color[3] * const.ALPHA_COEF)
+    bgl.glColor4f(*color[0 : 3], color[3] * alpha_coef)
     bgl.glBegin(bgl.GL_TRIANGLES)
     for face in faces:
         for vertex in face:
@@ -55,9 +55,9 @@ def _draw_geom(coords, lines, faces, color):
     bgl.glEnd()
 
 
-def draw_cube(half_sz_x, half_sz_y, half_sz_z, color):
+def draw_cube(half_sz_x, half_sz_y, half_sz_z, color, alpha_coef):
     coords, lines, faces = geom.gen_cube_geom(half_sz_x, half_sz_y, half_sz_z)
-    _draw_geom(coords, lines, faces, color)
+    _draw_geom(coords, lines, faces, color, alpha_coef)
 
 
 # pylint: disable=C0103
@@ -135,18 +135,18 @@ def draw_slider_slide_limits(slide_min, slide_max, color):
     draw_line(start, end, color)
 
 
-def draw_sphere(radius, num_segments, color):
+def draw_sphere(radius, num_segments, color, alpha_coef):
     coords, lines, faces = geom.gen_sphere_geom(radius, num_segments)
-    _draw_geom(coords, lines, faces, color)
+    _draw_geom(coords, lines, faces, color, alpha_coef)
 
 
-def draw_cylinder(radius, half_height, num_segments, color):
+def draw_cylinder(radius, half_height, num_segments, color, alpha_coef):
     coords, lines, faces = geom.gen_cylinder_geom(
         radius,
         half_height,
         num_segments
     )
-    _draw_geom(coords, lines, faces, color)
+    _draw_geom(coords, lines, faces, color, alpha_coef)
 
 
 def draw_cross(size):

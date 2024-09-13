@@ -313,6 +313,14 @@ prefs_props = {
         subtype='COLOR',
         size=4
     ),
+    'gl_alpha_coef': bpy.props.FloatProperty(
+        name='Alpha Coefficient',
+        default=0.2,
+        min=0.0,
+        max=1.0,
+        subtype='FACTOR',
+        precision=3
+    ),
 
     # custom data props
     'object_split_normals': bpy.props.BoolProperty(
