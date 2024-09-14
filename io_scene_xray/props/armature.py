@@ -105,17 +105,52 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
                 shape.get_matrix_basis()
             )
 
+            # get geometry state
+            is_obj_mode = False
+            is_active_bone = False
+            is_sel_bone = False
+            is_desel_bone = False
+
+            if self.is_pose:
+                active = bpy.context.active_bone
+                if active and active.id_data == obj.data and active.name == bone.name:
+                    is_active_bone = True
+                elif bone.select:
+                    is_sel_bone = True
+                else:
+                    is_desel_bone = True
+            else:
+                is_obj_mode = True
+
+            # get geometry lists
+            if is_obj_mode:
+                coords = ctx.coords_obj
+                lines = ctx.lines_obj
+                faces = ctx.faces_obj
+            elif is_active_bone:
+                coords = ctx.coords_active
+                lines = ctx.lines_active
+                faces = ctx.faces_active
+            elif is_sel_bone:
+                coords = ctx.coords_sel
+                lines = ctx.lines_sel
+                faces = ctx.faces_sel
+            elif is_desel_bone:
+                coords = ctx.coords_desel
+                lines = ctx.lines_desel
+                faces = ctx.faces_desel
+
             # box
             if shape.type == '1':
-                viewport.geom.gen_cube_geom(mat, ctx.coords, ctx.lines, ctx.faces)
+                viewport.geom.gen_cube_geom(mat, coords, lines, faces)
 
             # sphere
             elif shape.type == '2':
-                viewport.geom.gen_sphere_geom(mat, ctx.coords, ctx.lines, ctx.faces)
+                viewport.geom.gen_sphere_geom(mat, coords, lines, faces)
 
             # cylinder
             elif shape.type == '3':
-                viewport.geom.gen_cylinder_geom(mat, ctx.coords, ctx.lines, ctx.faces)
+                viewport.geom.gen_cylinder_geom(mat, coords, lines, faces)
 
     def _check_arm_vis(self, obj):
         visible = True
@@ -142,7 +177,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
 
         # get armature state
         hide_arm_obj = not utils.version.get_object_visibility(obj)
-        is_pose = obj.mode == 'POSE'
+        self.is_pose = obj.mode == 'POSE'
         is_edit = obj.mode == 'EDIT'
 
         if hide_arm_obj:
