@@ -631,6 +631,9 @@ class TestObjectExport(utils.XRayTestCase):
         obj_arm.parent = root
         utils.set_active_object(root)
 
+        root.xray.isroot = True
+        obj_arm.xray.isroot = False
+
         # Act
         bpy.ops.xray_export.object(
             objects=root.name,
