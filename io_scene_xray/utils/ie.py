@@ -325,7 +325,7 @@ def get_object_world_matrix(bpy_obj):
 
 
 def format_scale(scale):
-    return '[{0:.3f}, {1:.3f}, {2:.3f}]'.format(*scale)
+    return '[{0:.6f}, {1:.6f}, {2:.6f}]'.format(*scale)
 
 
 def check_armature_scale(scale, bpy_root, bpy_arm_obj):
