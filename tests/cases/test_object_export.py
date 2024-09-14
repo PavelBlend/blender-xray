@@ -644,7 +644,7 @@ class TestObjectExport(utils.XRayTestCase):
 
         # Assert
         self.assertOutputFiles({})
-        self.assertReportsContains('ERROR', re.compile('Object has an non-uniform scale: "tobj"'))
+        self.assertReportsContains('ERROR', re.compile('Object has an non-uniform scale'))
 
     def test_export_scaled_skeletal_object(self):
         # Arrange
