@@ -5,6 +5,7 @@ import bpy
 from . import gl_utils
 from . import gpu_utils
 from . import const
+from . import geom
 from .. import utils
 
 
@@ -57,25 +58,16 @@ def get_draw_slider_slide_limits():
         return gl_utils.draw_slider_slide_limits
 
 
-def overlay_view_3d():
-    def try_draw(base_obj, obj):
-        if not hasattr(obj, 'xray'):
-            return
-        xray = obj.xray
-        if hasattr(xray, 'ondraw_postview'):
-            xray.ondraw_postview(base_obj, obj)
-        if hasattr(obj, 'type'):
-            if obj.type == 'ARMATURE':
-                arm_data = obj.data.xray
-                shapes = arm_data.display_bone_shapes
-                centers = arm_data.display_bone_mass_centers
-                limits = arm_data.display_bone_limits
-                if shapes or centers or limits:
-                    for bone in obj.data.bones:
-                        try_draw(base_obj, bone)
+def try_draw(obj):
+    if obj.data:
+        xray = getattr(obj.data, 'xray', None)
+        if xray and hasattr(xray, 'ondraw_postview'):
+            xray.ondraw_postview(obj)
 
+
+def overlay_view_3d():
     for obj in bpy.data.objects:
-        try_draw(obj, obj)
+        try_draw(obj)
 
 
 def register():

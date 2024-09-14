@@ -3,9 +3,11 @@ import functools
 
 # blender modules
 import bpy
+import mathutils
 
 # addon modules
 from .. import utils
+from .. import viewport
 
 
 class XRayArmatureProps(bpy.types.PropertyGroup):
@@ -81,6 +83,78 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
         elif operation == 'CREATED':
             for bone in self.id_data.bones:
                 bone.xray.version = addon_ver
+
+    def ondraw_postview(self, obj):
+        arm_data = obj.data.xray
+
+        hide_arm_obj = not utils.version.get_object_visibility(obj)
+        is_pose = obj.mode == 'POSE'
+        is_edit = obj.mode == 'EDIT'
+
+        if hide_arm_obj:
+            return
+
+        if is_edit:
+            return
+
+        if utils.version.IS_28:
+            if not obj.name in bpy.context.view_layer.objects:
+                return
+        else:
+            if not obj.name in bpy.context.scene.objects:
+                return
+            visible_armature_object = False
+            for layer_index, layer in enumerate(obj.layers):
+                scene_layer = bpy.context.scene.layers[layer_index]
+                if scene_layer and layer:
+                    visible_armature_object = True
+                    break
+            if not visible_armature_object:
+                return
+
+        shapes = arm_data.display_bone_shapes
+        centers = arm_data.display_bone_mass_centers
+        limits = arm_data.display_bone_limits
+
+        multiply = utils.version.get_multiply()
+
+        if shapes:
+            coords = []
+            lines = []
+            faces = []
+
+            for bone in obj.data.bones:
+
+                exportable = bone.xray.exportable
+                hided = bone.hide or not exportable
+                if hided:
+                    continue
+
+                shape = bone.xray.shape
+
+                if shape.type in ('0', '4'):
+                    continue
+
+                mat = multiply(
+                    obj.matrix_world,
+                    obj.pose.bones[bone.name].matrix,
+                    mathutils.Matrix.Scale(-1, 4, (0, 0, 1)),
+                    shape.get_matrix_basis()
+                )
+
+                if shape.type == '1':    # box
+                    viewport.geom.gen_cube_geom(mat, coords, lines, faces)
+
+                elif shape.type == '2':    # sphere
+                    viewport.geom.gen_sphere_geom(mat, coords, lines, faces)
+
+                elif shape.type == '3':    # cylinder
+                    viewport.geom.gen_cylinder_geom(mat, coords, lines, faces)
+
+            utils.draw.set_gl_blend_mode()
+            utils.draw.set_gl_state()
+            utils.draw.set_gl_line_width(viewport.const.LINE_WIDTH)
+            viewport.gpu_utils._draw_geom(coords, lines, faces, (0.0, 0.0, 1.0, 0.8), 0.2)
 
 
 def register():

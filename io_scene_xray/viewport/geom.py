@@ -1,6 +1,12 @@
 # standart modules
 import math
 
+# blender modules
+import mathutils
+
+# addon modules
+from . import const
+
 
 def gen_arc(
         radius,
@@ -9,13 +15,14 @@ def gen_arc(
         num_segments,
         fconsumer,
         indices,
-        close=False
+        close=False,
+        offset=0,
     ):
 
     theta = (end - start) / num_segments
     cos_th, sin_th = math.cos(theta), math.sin(theta)
     x, y = radius * math.cos(start), radius * math.sin(start)
-    if indices:
+    if indices and not offset:
         start_index = indices[-1][-1] + 1
     else:
         start_index = 0
@@ -23,7 +30,7 @@ def gen_arc(
     for _ in range(num_segments):
         fconsumer(x, y)
         indices.append(
-            (start_index + index, start_index + index + 1)
+            (start_index + index + offset, start_index + index + offset + 1)
         )
         index += 1
         _ = x
@@ -33,7 +40,7 @@ def gen_arc(
         fconsumer(x, y)
 
 
-def gen_circle(radius, num_segments, fconsumer, indices):
+def gen_circle(radius, num_segments, fconsumer, indices, offset=0):
     gen_arc(
         radius,
         0,
@@ -41,63 +48,67 @@ def gen_circle(radius, num_segments, fconsumer, indices):
         num_segments,
         fconsumer,
         indices,
-        close=True
+        close=True,
+        offset=offset
     )
 
 
-def gen_cube_geom(half_size_x, half_size_y, half_size_z):
-    coords = (
-        (-half_size_x, -half_size_y, -half_size_z),
-        (+half_size_x, -half_size_y, -half_size_z),
-        (+half_size_x, +half_size_y, -half_size_z),
-        (-half_size_x, +half_size_y, -half_size_z),
+def gen_cube_geom(mat, coords, lines, faces):
+    offset = len(coords)
+    coords.extend((
+        mat @ mathutils.Vector((-1.0, -1.0, -1.0)),
+        mat @ mathutils.Vector((+1.0, -1.0, -1.0)),
+        mat @ mathutils.Vector((+1.0, +1.0, -1.0)),
+        mat @ mathutils.Vector((-1.0, +1.0, -1.0)),
 
-        (-half_size_x, -half_size_y, +half_size_z),
-        (+half_size_x, -half_size_y, +half_size_z),
-        (+half_size_x, +half_size_y, +half_size_z),
-        (-half_size_x, +half_size_y, +half_size_z),
-    )
-    lines = (
-        (0, 1), (1, 2),
-        (2, 3), (3, 7),
-        (2, 6), (1, 5),
-        (0, 4), (4, 5),
-        (5, 6), (6, 7),
-        (4, 7), (0, 3)
-    )
-    faces = (
-        (2, 0, 3),
-        (2, 1, 0),
-        (6, 4, 5),
-        (6, 7, 4),
-        (5, 0, 1),
-        (5, 2, 6),
-        (7, 2, 3),
-        (4, 3, 0),
-        (5, 4, 0),
-        (5, 1, 2),
-        (7, 6, 2),
-        (4, 7, 3)
-    )
-    return coords, lines, faces
+        mat @ mathutils.Vector((-1.0, -1.0, +1.0)),
+        mat @ mathutils.Vector((+1.0, -1.0, +1.0)),
+        mat @ mathutils.Vector((+1.0, +1.0, +1.0)),
+        mat @ mathutils.Vector((-1.0, +1.0, +1.0)),
+    ))
+    lines.extend((
+        (offset + 0, offset + 1), (offset + 1, offset + 2),
+        (offset + 2, offset + 3), (offset + 3, offset + 7),
+        (offset + 2, offset + 6), (offset + 1, offset + 5),
+        (offset + 0, offset + 4), (offset + 4, offset + 5),
+        (offset + 5, offset + 6), (offset + 6, offset + 7),
+        (offset + 4, offset + 7), (offset + 0, offset + 3)
+    ))
+    faces.extend((
+        (offset + 2, offset + 0, offset + 3),
+        (offset + 2, offset + 1, offset + 0),
+        (offset + 6, offset + 4, offset + 5),
+        (offset + 6, offset + 7, offset + 4),
+        (offset + 5, offset + 0, offset + 1),
+        (offset + 5, offset + 2, offset + 6),
+        (offset + 7, offset + 2, offset + 3),
+        (offset + 4, offset + 3, offset + 0),
+        (offset + 5, offset + 4, offset + 0),
+        (offset + 5, offset + 1, offset + 2),
+        (offset + 7, offset + 6, offset + 2),
+        (offset + 4, offset + 7, offset + 3)
+    ))
 
 
-def gen_cylinder_geom(radius, half_height, num_segments):
-    coords = []
-    lines = []
-    faces = []
+def gen_cylinder_geom(mat, coords, lines, faces):
+    num_segments = const.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT
+    offset = len(coords)
+    radius = 1.0
+    half_height = 0.5
 
     gen_circle(
         radius,
         num_segments,
-        lambda x, y: coords.append((x, -half_height, y)),
-        lines
+        lambda x, y: coords.append(mat @ mathutils.Vector((x, -half_height, y))),
+        lines,
+        offset=offset
     )
     gen_circle(
         radius,
         num_segments,
-        lambda x, y: coords.append((x, +half_height, y)),
-        lines
+        lambda x, y: coords.append(mat @ mathutils.Vector((x, +half_height, y))),
+        lines,
+        offset=offset+num_segments+1
     )
 
     bottom_start = 0
@@ -106,49 +117,63 @@ def gen_cylinder_geom(radius, half_height, num_segments):
     # bottom and top faces
     for i in range(num_segments):
         next_i = (i + 1) % num_segments
-        faces.append((bottom_start, bottom_start + i, bottom_start + next_i))
-        faces.append((top_start, top_start + next_i, top_start + i))
+        faces.append((
+            bottom_start + offset,
+            bottom_start + i + offset,
+            bottom_start + next_i + offset
+        ))
+        faces.append((
+            top_start + offset,
+            top_start + next_i + offset,
+            top_start + i + offset
+        ))
 
     # side faces
     for i in range(num_segments):
         next_i = (i + 1) % num_segments
-        faces.append((bottom_start + i, top_start + i, bottom_start + next_i))
-        faces.append((top_start + i, top_start + next_i, bottom_start + next_i))
+        faces.append((
+            bottom_start + i + offset,
+            top_start + i + offset,
+            bottom_start + next_i + offset
+        ))
+        faces.append((
+            top_start + i + offset,
+            top_start + next_i + offset,
+            bottom_start + next_i + offset
+        ))
+
+    start_index = len(coords)
 
     coords.extend([
-        (-radius, -half_height, 0),
-        (-radius, +half_height, 0),
-        (+radius, -half_height, 0),
-        (+radius, +half_height, 0),
-        (0, -half_height, -radius),
-        (0, +half_height, -radius),
-        (0, -half_height, +radius),
-        (0, +half_height, +radius)
+        mat @ mathutils.Vector((-radius, -half_height, 0)),
+        mat @ mathutils.Vector((-radius, +half_height, 0)),
+        mat @ mathutils.Vector((+radius, -half_height, 0)),
+        mat @ mathutils.Vector((+radius, +half_height, 0)),
+        mat @ mathutils.Vector((0, -half_height, -radius)),
+        mat @ mathutils.Vector((0, +half_height, -radius)),
+        mat @ mathutils.Vector((0, -half_height, +radius)),
+        mat @ mathutils.Vector((0, +half_height, +radius))
     ])
-    start_index = lines[-1][-1] + 1
     for i in range(start_index, start_index + 8, 2):
         lines.extend((
             (i, i + 1),
-            (i +1, i)
+            (i + 1, i)
         ))
 
-    return coords, lines, faces
 
-
-def gen_sphere_geom(radius, num_segments):
-    coords = []
-    lines = []
-    faces = []
+def gen_sphere_geom(mat, coords, lines, faces):
+    offset = len(coords)
+    num_segments = const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT
 
     # generate vertex coordinates
     for i in range(num_segments + 1):
         theta = math.pi * i / num_segments
         for j in range(num_segments):
             phi = 2 * math.pi * j / num_segments
-            x = radius * math.sin(theta) * math.cos(phi)
-            y = radius * math.sin(theta) * math.sin(phi)
-            z = radius * math.cos(theta)
-            coords.append((x, y, z))
+            x = math.sin(theta) * math.cos(phi)
+            y = math.sin(theta) * math.sin(phi)
+            z = math.cos(theta)
+            coords.append(mat @ mathutils.Vector((x, y, z)))
 
     # generate indices
     for i in range(num_segments):
@@ -163,16 +188,21 @@ def gen_sphere_geom(radius, num_segments):
 
             # generate face indices
             if i != num_segments - 1:
-                faces.append((current, next_lat, next_lat_lon))
+                faces.append((
+                    current + offset,
+                    next_lat + offset,
+                    next_lat_lon + offset))
             if i != 0:
-                faces.append((current, next_lat_lon, next_lon))
+                faces.append((
+                    current + offset,
+                    next_lat_lon + offset,
+                    next_lon + offset
+                ))
 
             # generate wire indices
             if i == num_segments // 2:
-                lines.append((current, next_lon))
+                lines.append((current + offset, next_lon + offset))
             if j == num_segments // 2 or j == 0:
-                lines.append((current, next_lat))
+                lines.append((current + offset, next_lat + offset))
             if j == num_segments // 4 or j == num_segments // 4 * 3:
-                lines.append((current, next_lat))
-
-    return coords, lines, faces
+                lines.append((current + offset, next_lat + offset))
