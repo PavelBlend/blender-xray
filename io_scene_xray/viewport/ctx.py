@@ -7,56 +7,50 @@ from .. import utils
 
 class DrawContext:
     def __init__(self):
-        self.coords_obj = []
-        self.lines_obj = []
-        self.faces_obj = []
 
-        self.coords_active = []
-        self.lines_active = []
-        self.faces_active = []
-
-        self.coords_sel = []
-        self.lines_sel = []
-        self.faces_sel = []
-
-        self.coords_desel = []
-        self.lines_desel = []
-        self.faces_desel = []
+        # init geometry lists
+        self.geom = {}
+        for data_type in ('shape', 'mass'):
+            self.geom[data_type] = {}
+            for state_type in ('obj', 'active', 'sel', 'desel'):
+                self.geom[data_type][state_type] = {}
+                for geom_type in ('coords', 'lines', 'faces'):
+                    self.geom[data_type][state_type][geom_type] = []
 
     def draw(self):
-        self._draw_shapes(
-            self.coords_obj,
-            self.lines_obj,
-            self.faces_obj,
-            (0.8, 0.8, 0.8, 0.8),
-            0.2
-        )
-        self._draw_shapes(
-            self.coords_active,
-            self.lines_active,
-            self.faces_active,
-            (1.0, 1.0, 1.0, 0.8),
-            0.2
-        )
-        self._draw_shapes(
-            self.coords_sel,
-            self.lines_sel,
-            self.faces_sel,
-            (0.0, 0.8, 0.8, 0.8),
-            0.2
-        )
-        self._draw_shapes(
-            self.coords_desel,
-            self.lines_desel,
-            self.faces_desel,
-            (0.0, 0.0, 0.8, 0.8),
-            0.2
-        )
+        utils.draw.set_gl_line_width(const.LINE_WIDTH)
+
+        colors = {
+            'obj': (0.5, 0.5, 0.5, 0.8),
+            'active': (1.0, 1.0, 1.0, 0.8),
+            'sel': (0.0, 1.0, 1.0, 0.8),
+            'desel': (0.0, 0.0, 1.0, 0.8)
+        }
+
+        for data_type, data in self.geom.items():
+            for state_type, state in data.items():
+
+                coords = state['coords']
+                lines = state['lines']
+                faces = state['faces']
+
+                if data_type == 'shape': 
+                    utils.draw.set_gl_blend_mode()
+                    utils.draw.set_gl_state()
+                elif data_type == 'mass': 
+                    utils.draw.reset_gl_state()
+
+                color = colors[state_type]
+
+                self._draw_shapes(
+                    coords,
+                    lines,
+                    faces,
+                    color,
+                    0.2
+                )
 
     def _draw_shapes(self, coords, lines, faces, color, alpha_factor):
-        utils.draw.set_gl_blend_mode()
-        utils.draw.set_gl_state()
-        utils.draw.set_gl_line_width(const.LINE_WIDTH)
         gpu_utils.draw_geom(
             coords,
             lines,

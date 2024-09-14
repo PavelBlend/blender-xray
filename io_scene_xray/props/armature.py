@@ -84,7 +84,80 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
             for bone in self.id_data.bones:
                 bone.xray.version = addon_ver
 
-    def _gen_shapes(self, obj, ctx):
+    def _gen_shape(self, obj, bone, ctx):
+        shape = bone.xray.shape
+        mat = self.mul(
+            obj.matrix_world,
+            obj.pose.bones[bone.name].matrix,
+            mathutils.Matrix.Scale(-1, 4, (0, 0, 1)),
+            shape.get_matrix_basis()
+        )
+
+        coords = ctx.geom['shape'][self.state]['coords']
+        lines = ctx.geom['shape'][self.state]['lines']
+        faces = ctx.geom['shape'][self.state]['faces']
+
+        # box
+        if shape.type == '1':
+            viewport.geom.gen_cube_geom(mat, coords, lines, faces)
+
+        # sphere
+        elif shape.type == '2':
+            viewport.geom.gen_sphere_geom(mat, coords, lines, faces)
+
+        # cylinder
+        elif shape.type == '3':
+            viewport.geom.gen_cylinder_geom(mat, coords, lines, faces)
+
+    def _gen_centers(self, obj, bone, ctx):
+        mat = self.mul(
+            obj.matrix_world,
+            obj.pose.bones[bone.name].matrix,
+            mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
+        )
+        ctr = bone.xray.mass.center
+        trn = mathutils.Matrix.Translation(self.mul(
+            mat,
+            mathutils.Vector((ctr[0], ctr[2], ctr[1]))
+        ))
+        cross_size = obj.data.xray.bone_mass_center_cross_size
+
+        coords = ctx.geom['mass'][self.state]['coords']
+        lines = ctx.geom['mass'][self.state]['lines']
+
+        viewport.geom.gen_cross_geom(cross_size, trn, coords, lines)
+
+    def _get_geom_state(self, obj, bone, ctx):
+
+        is_obj_mode = False
+        is_active_bone = False
+        is_sel_bone = False
+        is_desel_bone = False
+
+        if self.is_pose:
+            active = bpy.context.active_bone
+            if active and active.id_data == obj.data and active.name == bone.name:
+                is_active_bone = True
+            elif bone.select:
+                is_sel_bone = True
+            else:
+                is_desel_bone = True
+        else:
+            is_obj_mode = True
+
+        if is_obj_mode:
+            self.state = 'obj'
+
+        elif is_active_bone:
+            self.state = 'active'
+
+        elif is_sel_bone:
+            self.state = 'sel'
+
+        elif is_desel_bone:
+            self.state = 'desel'
+
+    def _gen_geometry(self, obj, ctx):
         for bone in obj.data.bones:
 
             # check bone visibility
@@ -93,64 +166,21 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
             if hided:
                 continue
 
+            # get geometry state
+            self._get_geom_state(obj, bone, ctx)
+
             # None and Custom types don't have shape
             shape = bone.xray.shape
             if shape.type in ('0', '4'):
                 continue
 
-            mat = self.mul(
-                obj.matrix_world,
-                obj.pose.bones[bone.name].matrix,
-                mathutils.Matrix.Scale(-1, 4, (0, 0, 1)),
-                shape.get_matrix_basis()
-            )
+            # generate shape
+            if self.shapes:
+                self._gen_shape(obj, bone, ctx)
 
-            # get geometry state
-            is_obj_mode = False
-            is_active_bone = False
-            is_sel_bone = False
-            is_desel_bone = False
-
-            if self.is_pose:
-                active = bpy.context.active_bone
-                if active and active.id_data == obj.data and active.name == bone.name:
-                    is_active_bone = True
-                elif bone.select:
-                    is_sel_bone = True
-                else:
-                    is_desel_bone = True
-            else:
-                is_obj_mode = True
-
-            # get geometry lists
-            if is_obj_mode:
-                coords = ctx.coords_obj
-                lines = ctx.lines_obj
-                faces = ctx.faces_obj
-            elif is_active_bone:
-                coords = ctx.coords_active
-                lines = ctx.lines_active
-                faces = ctx.faces_active
-            elif is_sel_bone:
-                coords = ctx.coords_sel
-                lines = ctx.lines_sel
-                faces = ctx.faces_sel
-            elif is_desel_bone:
-                coords = ctx.coords_desel
-                lines = ctx.lines_desel
-                faces = ctx.faces_desel
-
-            # box
-            if shape.type == '1':
-                viewport.geom.gen_cube_geom(mat, coords, lines, faces)
-
-            # sphere
-            elif shape.type == '2':
-                viewport.geom.gen_sphere_geom(mat, coords, lines, faces)
-
-            # cylinder
-            elif shape.type == '3':
-                viewport.geom.gen_cylinder_geom(mat, coords, lines, faces)
+            # generate mass centers
+            if self.centers:
+                self._gen_centers(obj, bone, ctx)
 
     def _check_arm_vis(self, obj):
         visible = True
@@ -178,12 +208,12 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
         # get armature state
         hide_arm_obj = not utils.version.get_object_visibility(obj)
         self.is_pose = obj.mode == 'POSE'
-        is_edit = obj.mode == 'EDIT'
+        self.is_edit = obj.mode == 'EDIT'
 
         if hide_arm_obj:
             return
 
-        if is_edit:
+        if self.is_edit:
             return
 
         # check armature visibility
@@ -195,13 +225,12 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
         self.mul = utils.version.get_multiply()
 
         # what to display
-        shapes = arm_data.display_bone_shapes
-        centers = arm_data.display_bone_mass_centers
-        limits = arm_data.display_bone_limits
+        self.shapes = arm_data.display_bone_shapes
+        self.centers = arm_data.display_bone_mass_centers
+        self.limits = arm_data.display_bone_limits
 
-        # generate shapes geometry
-        if shapes:
-            self._gen_shapes(obj, ctx)
+        # generate geometry
+        self._gen_geometry(obj, ctx)
 
 
 def register():

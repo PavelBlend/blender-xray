@@ -59,7 +59,7 @@ def get_draw_slider_slide_limits():
         return gl_utils.draw_slider_slide_limits
 
 
-def try_draw(obj, context):
+def gen_draw_geom(obj, context):
     if obj.data:
         xray = getattr(obj.data, 'xray', None)
         if xray and hasattr(xray, 'ondraw_postview'):
@@ -70,7 +70,7 @@ def overlay_view_3d():
     context = ctx.DrawContext()
 
     for obj in bpy.data.objects:
-        try_draw(obj, context)
+        gen_draw_geom(obj, context)
 
     context.draw()
 

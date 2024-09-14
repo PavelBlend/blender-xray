@@ -206,3 +206,20 @@ def gen_sphere_geom(mat, coords, lines, faces):
                 lines.append((current + offset, next_lat + offset))
             if j == num_segments // 4 or j == num_segments // 4 * 3:
                 lines.append((current + offset, next_lat + offset))
+
+
+def gen_cross_geom(size, mat, coords, lines):
+    offset = len(coords)
+
+    coords.extend((
+        mat @ mathutils.Vector((-size, 0.0, 0.0)),
+        mat @ mathutils.Vector((+size, 0.0, 0.0)),
+        mat @ mathutils.Vector((0.0, -size, 0.0)),
+        mat @ mathutils.Vector((0.0, +size, 0.0)),
+        mat @ mathutils.Vector((0.0, 0.0, -size)),
+        mat @ mathutils.Vector((0.0, 0.0, +size))
+    ))
+
+    for i in range(3):
+        index = offset + i * 2
+        lines.append((index, index + 1))
