@@ -49,7 +49,7 @@ class XRAY_PT_bone(ui.base.XRayPanel):
 
     def draw(self, context):
         obj = context.active_object
-        bone_name = context.active_bone.name
+        bone_name = ops.edit_helpers.bone_shape.HELPER.bone_to_target(context.active_bone).name
         bone = obj.data.bones.get(bone_name, None)
 
         if not bone:
