@@ -14,7 +14,7 @@ if utils.version.IS_28:
     import gpu_extras.batch
 
 
-def _draw_geom(coords, lines, faces, color, alpha_coef):
+def draw_geom(coords, lines, faces, color, alpha_coef):
     # solid geometry
     shader = utils.draw.get_shader()
     batch = gpu_extras.batch.batch_for_shader(
@@ -42,12 +42,12 @@ def _draw_geom(coords, lines, faces, color, alpha_coef):
 
 def draw_cube(half_sz_x, half_sz_y, half_sz_z, color, alpha_coef):
     coords, lines, faces = geom.gen_cube_geom(half_sz_x, half_sz_y, half_sz_z)
-    _draw_geom(coords, lines, faces, color, alpha_coef)
+    draw_geom(coords, lines, faces, color, alpha_coef)
 
 
 def draw_sphere(radius, num_segments, color, alpha_coef):
     coords, lines, faces = geom.gen_sphere_geom(radius, num_segments)
-    _draw_geom(coords, lines, faces, color, alpha_coef)
+    draw_geom(coords, lines, faces, color, alpha_coef)
 
 
 def draw_cylinder(radius, half_height, num_segments, color, alpha_coef):
@@ -56,7 +56,7 @@ def draw_cylinder(radius, half_height, num_segments, color, alpha_coef):
         half_height,
         num_segments
     )
-    _draw_geom(coords, lines, faces, color, alpha_coef)
+    draw_geom(coords, lines, faces, color, alpha_coef)
 
 
 def draw_cross(size, color):

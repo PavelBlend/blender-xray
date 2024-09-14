@@ -9,6 +9,28 @@ from . import geom
 from .. import utils
 
 
+class DrawContext:
+    def __init__(self):
+        self.coords = []
+        self.lines = []
+        self.faces = []
+
+    def draw(self):
+        self._draw_shapes()
+
+    def _draw_shapes(self):
+        utils.draw.set_gl_blend_mode()
+        utils.draw.set_gl_state()
+        utils.draw.set_gl_line_width(const.LINE_WIDTH)
+        gpu_utils.draw_geom(
+            self.coords,
+            self.lines,
+            self.faces,
+            (0.0, 0.0, 1.0, 0.8),
+            0.2
+        )
+
+
 def draw_cube(half_size_x, half_size_y, half_size_z, color, alpha_coef):
     if utils.version.IS_28:
         gpu_utils.draw_cube(half_size_x, half_size_y, half_size_z, color, alpha_coef)
@@ -58,16 +80,20 @@ def get_draw_slider_slide_limits():
         return gl_utils.draw_slider_slide_limits
 
 
-def try_draw(obj):
+def try_draw(obj, context):
     if obj.data:
         xray = getattr(obj.data, 'xray', None)
         if xray and hasattr(xray, 'ondraw_postview'):
-            xray.ondraw_postview(obj)
+            xray.ondraw_postview(obj, context)
 
 
 def overlay_view_3d():
+    context = DrawContext()
+
     for obj in bpy.data.objects:
-        try_draw(obj)
+        try_draw(obj, context)
+
+    context.draw()
 
 
 def register():
