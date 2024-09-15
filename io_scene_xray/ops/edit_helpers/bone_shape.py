@@ -7,49 +7,62 @@ import bmesh
 import mathutils
 
 # addon modules
-from . import base_bone
+from . import base
 from ... import utils
 from ... import text
 from ... import formats
 
 
-class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
+class _BoneShapeEditHelper:
+    def __init__(self, name):
+        base.__HELPERS__[name] = self
+        self._name = utils.obj.HELPER_OBJECT_NAME_PREFIX + name
+
     def draw(self, layout, context):    # pragma: no cover
+        def operator_if(op, **kwargs):
+            if not op.poll():
+                return None
+            return layout.operator(
+                op.idname(),
+                **kwargs,
+            )
+
         if self.is_active(context):
-            layout.operator(
-                XRAY_OT_apply_shape.bl_idname,
+            operator_if(
+                bpy.ops.io_scene_xray.edit_bone_shape_apply,
                 text=text.get_iface(text.iface.apply_shape),
                 icon='FILE_TICK'
             )
 
-            col = layout.column(align=True)
-
-            hobj, bone = HELPER.get_target()
+            _, bone = self.get_helper(context)
             shape_type = bone.xray.shape.type
 
-            op = col.operator(
-                XRAY_OT_fit_shape.bl_idname,
+            op = operator_if(
+                bpy.ops.io_scene_xray.edit_bone_shape_fit,
                 text=text.get_iface(text.iface.fit_shape),
                 icon=utils.version.get_icon('BBOX')
             )
-            op.mode = 'FIT'
 
-            if shape_type in ('1', '3'):    # box, cylinder
-                op = col.operator(
-                    XRAY_OT_fit_shape.bl_idname,
+            if op and shape_type in ('1', '3'):    # box, cylinder
+                op = layout.operator(
+                    op.bl_rna.identifier,
                     text=text.get_iface(text.iface.aabb),
                     icon=utils.version.get_icon('BBOX')
                 )
                 op.mode = 'AABB'
 
-                op = col.operator(
-                    XRAY_OT_fit_shape.bl_idname,
+                op = layout.operator(
+                    op.bl_rna.identifier,
                     text=text.get_iface(text.iface.obb),
                     icon=utils.version.get_icon('BBOX')
                 )
                 op.mode = 'OBB'
 
-            super().draw(layout, context)
+            layout.operator(
+                base.XRAY_OT_edit_cancel.bl_idname,
+                text=text.get_iface(text.iface.cancel),
+                icon='X'
+            )
             return
 
         layout.operator(
@@ -57,32 +70,74 @@ class _BoneShapeEditHelper(base_bone.AbstractBoneEditHelper):
             text=text.get_iface(text.iface.edit_shape)
         )
 
-    def _create_helper(self, name):
-        mesh = bpy.data.meshes.new(name=name)
-        return bpy.data.objects.new(name, mesh)
+    def is_active(self, context=bpy.context):
+        return self.get_helper(context)[0] is not None
 
-    def _delete_helper(self, helper):
-        mesh = helper.data
-        super()._delete_helper(helper)
-        bpy.data.meshes.remove(mesh)
+    def get_helper(self, context):
+        obj = context.active_object
+        if (obj is None) or (obj.pose is None):
+            return None, None
+        helper = obj.pose.bones.get(self._name)
+        if helper is None:
+            return None, None
+        return helper, obj.data.bones[helper.parent.name]
 
-    def _update_helper(self, helper, target):
-        bone = target
-        shape_type = bone.xray.shape.type
-        if shape_type in ('0', '4'):    # None, Custom
-            self.deactivate()
+    def bone_to_target(self, bone):
+        if bone.name == self._name:
+            return bone.parent
+        return bone
+
+    def activate(self, context):
+        bone = context.active_bone
+        armature = bone.id_data
+        target_name = bone.name
+        with utils.version.using_mode('EDIT'):
+            edit_bones = armature.edit_bones
+            target_edit = edit_bones[target_name]
+            helper = edit_bones.get(self._name)
+            if helper is None:
+                helper = edit_bones.new(self._name)
+                helper.show_wire = True
+            helper.parent = target_edit
+            for key in ('head', 'tail', 'roll'):
+                setattr(helper, key, getattr(target_edit, key))
+        bone = armature.bones[self._name]
+        bone.xray.exportable = False
+        armature.bones.active = bone
+        armature.bones[target_name].select = False
+        self.update(context)
+    
+    def update(self, context):
+        helper, target = self.get_helper(context)
+        if helper is None:
             return
 
-        super()._update_helper(helper, target)
-        mesh = _create_bmesh(shape_type)
-        mesh.to_mesh(helper.data)
+        shape_type = target.xray.shape.type
+        key = self._name + '--' + shape_type
+        obj = bpy.data.objects.get(key)
+        if obj is None:
+            mesh = bpy.data.meshes.new(key)
+            bmesh = _create_bmesh(shape_type)
+            bmesh.to_mesh(mesh)
+            obj = bpy.data.objects.new(key, mesh)
+        helper.custom_shape = obj
+        helper.use_custom_shape_bone_size = False
 
-        mat = bone_matrix(bone)
-        helper.matrix_local = mat
+        mat = bone_matrix(target)
+        helper.matrix = mat
 
         scale = mat.to_scale()
         if not (scale.x and scale.y and scale.z):
             bpy.ops.io_scene_xray.edit_bone_shape_fit()
+
+    def deactivate(self):
+        _, target = self.get_helper(bpy.context)
+        target_name = target.name
+        armature = target.id_data
+        edit_bones = armature.edit_bones
+        with utils.version.using_mode('EDIT'):
+            edit_bones.remove(edit_bones[self._name])
+        armature.bones.active = armature.bones[target_name]
 
 
 HELPER = _BoneShapeEditHelper('bone-shape-edit')
@@ -99,9 +154,6 @@ def _create_bmesh(shape_type):
 
     elif shape_type == '3':
         utils.version.create_bmesh_cone(mesh, segments=16)
-
-    else:
-        raise AssertionError('unsupported bone shape type: ' + shape_type)
 
     return mesh
 
@@ -129,14 +181,12 @@ class XRAY_OT_edit_shape(utils.ie.BaseOperator):
         return has_shape and not HELPER.is_active(context)
 
     def execute(self, context):
-        target = context.active_object.data.bones[context.active_bone.name]
-        HELPER.activate(target)
+        HELPER.activate(context)
         return {'FINISHED'}
 
 
 def bone_matrix(bone):
     xsh = bone.xray.shape
-    global pose_bone
     pose_bone = bpy.context.active_object.pose.bones[bone.name]
     multiply = utils.version.get_multiply()
     mat = multiply(
@@ -170,9 +220,6 @@ def bone_matrix(bone):
             ))
         )
 
-    else:
-        raise AssertionError('unsupported bone shape type: ' + xsh.type)
-
     return mat
 
 
@@ -186,6 +233,7 @@ def maxabs(*args):
 def apply_shape(bone, shape_matrix):
     xsh = bone.xray.shape
     multiply = utils.version.get_multiply()
+    pose_bone = bpy.context.active_object.pose.bones[bone.name]
     mat = multiply(
         multiply(
             pose_bone.matrix,
@@ -243,13 +291,14 @@ class XRAY_OT_apply_shape(utils.ie.BaseOperator):
     bl_label = text.iface.apply_shape
     bl_options = {'UNDO'}
 
+    @classmethod
+    def poll(cls, context):
+        _, bone = HELPER.get_helper(context)
+        return bone.xray.shape.type in ('1', '2', '3')
+
     def execute(self, context):
-        hobj, bone = HELPER.get_target()
-        apply_shape(bone, hobj.matrix_local)
-        for obj in bpy.data.objects:
-            if obj.data == bone.id_data:
-                utils.version.set_active_object(obj)
-                break
+        hbone, bone = HELPER.get_helper(context)
+        apply_shape(bone, hbone.matrix)
         HELPER.deactivate()
         if utils.version.IS_28:
             bpy.context.view_layer.update()
@@ -280,6 +329,11 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
         name='Min Weight'
     )
 
+    @classmethod
+    def poll(cls, context):
+        _, bone = HELPER.get_helper(context)
+        return bone.xray.shape.type in ('1', '2', '3')
+
     def draw(self, context):    # pragma: no cover
         self.layout.prop(self, 'mode')
         self.layout.prop(self, 'min_weight')
@@ -290,13 +344,19 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
             vtx_a.y = func(vtx_a.y, vtx_b.y)
             vtx_a.z = func(vtx_a.z, vtx_b.z)
 
-        hobj, bone = HELPER.get_target()
+        multiply = utils.version.get_multiply()
+
+        hbone, bone = HELPER.get_helper(context)
+        obj = hbone.id_data
+
+        def set_matrix(matrix):
+            hbone.matrix =  multiply(obj.matrix_world.inverted(), matrix)
 
         if self.mode == 'AABB':
             matrix = mathutils.Matrix.Identity(4)
             matrix_inverted = matrix
         else:
-            matrix = hobj.matrix_world
+            matrix = multiply(obj.matrix_world, hbone.matrix)
             matrix_inverted = matrix
             try:
                 matrix_inverted = matrix.inverted()
@@ -304,17 +364,15 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                 matrix = mathutils.Matrix.Identity(4)
                 matrix_inverted = matrix
 
-        hobj.scale = (1, 1, 1)    # ugly: force delayed refresh 3d-view
         vmin = mathutils.Vector((+math.inf, +math.inf, +math.inf))
         vmax = mathutils.Vector((-math.inf, -math.inf, -math.inf))
         stype = bone.xray.shape.type
-        multiply = utils.version.get_multiply()
 
         if stype == '1':    # box
             obb_mat = utils.bone.get_obb(bone, False, self.min_weight, in_world_coordinates=True)
 
             if obb_mat and self.mode == 'OBB':
-                hobj.matrix_world = obb_mat
+                set_matrix(obb_mat)
 
             else:
 
@@ -330,11 +388,11 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                 if vmax.x > vmin.x:
                     vcenter = (vmax + vmin) / 2
                     vscale = (vmax - vmin) / 2
-                    hobj.matrix_world = multiply(
+                    set_matrix(multiply(
                         matrix,
                         mathutils.Matrix.Translation(vcenter),
                         utils.bone.convert_vector_to_matrix(vscale)
-                    )
+                    ))
 
         else:
             vertices = []
@@ -354,7 +412,7 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                 if stype == '2':    # sphere
                     for vtx in vertices:
                         radius = max(radius, (vtx - vcenter).length)
-                    hobj.matrix_world = multiply(
+                    set_matrix(multiply(
                         matrix,
                         mathutils.Matrix.Translation(vcenter),
                         utils.bone.convert_vector_to_matrix((
@@ -362,20 +420,20 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                             radius,
                             radius
                         ))
-                    )
+                    ))
 
                 elif stype == '3':    # cylinder
                     obb_mat = utils.bone.get_obb(bone, True, self.min_weight, in_world_coordinates=True)
 
                     if obb_mat and self.mode == 'OBB':
-                        hobj.matrix_world = obb_mat
+                        set_matrix(obb_mat)
 
                     else:
 
                         # generate aabb
                         for vtx in vertices:
                             radius = max(radius, (vtx - vcenter).xy.length)
-                        hobj.matrix_world = multiply(
+                        set_matrix(multiply(
                             matrix,
                             mathutils.Matrix.Translation(vcenter),
                             utils.bone.convert_vector_to_matrix((
@@ -383,7 +441,7 @@ class XRAY_OT_fit_shape(utils.ie.BaseOperator):
                                 radius,
                                 (vmax.z - vmin.z) * 0.5
                             ))
-                        )
+                        ))
 
                 else:
                     raise AssertionError('unsupported shape type: ' + stype)

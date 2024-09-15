@@ -34,7 +34,7 @@ class XRayShapeProps(bpy.types.PropertyGroup):
             ('3', 'Cylinder', ''),
             ('4', 'Custom ', '')
         ),
-        update=lambda self, ctx: ops.edit_helpers.bone_shape.HELPER.update(),
+        update=lambda self, context: ops.edit_helpers.bone_shape.HELPER.update(context),
     )
     type_custom_id = bpy.props.IntProperty(default=0, min=0)
 
@@ -117,7 +117,7 @@ class XRayShapeProps(bpy.types.PropertyGroup):
         self.version_data = self._CURVER_DATA
 
     def get_matrix_basis(self) -> mathutils.Matrix:
-        result = None
+        result = mathutils.Matrix.Identity(4)
 
         if self.type == '1':    # box
             rot = self.box_rot
