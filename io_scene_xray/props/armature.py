@@ -109,7 +109,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
         elif shape.type == '3':
             viewport.geom.gen_cylinder_geom(mat, coords, lines, faces)
 
-    def _gen_centers(self, obj, bone, ctx):
+    def _gen_center(self, obj, bone, ctx):
         mat = self.mul(
             obj.matrix_world,
             obj.pose.bones[bone.name].matrix,
@@ -178,9 +178,9 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
             if self.shapes:
                 self._gen_shape(obj, bone, ctx)
 
-            # generate mass centers
+            # generate mass center
             if self.centers:
-                self._gen_centers(obj, bone, ctx)
+                self._gen_center(obj, bone, ctx)
 
     def _check_arm_vis(self, obj):
         visible = True
