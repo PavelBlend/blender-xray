@@ -128,34 +128,16 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
         viewport.geom.gen_cross_geom(cross_size, trn, coords, lines)
 
     def _get_geom_state(self, obj, bone, ctx):
-
-        is_obj_mode = False
-        is_active_bone = False
-        is_sel_bone = False
-        is_desel_bone = False
-
         if self.is_pose:
             active = bpy.context.active_bone
             if active and active.id_data == obj.data and active.name == bone.name:
-                is_active_bone = True
+                self.state = 'active'
             elif bone.select:
-                is_sel_bone = True
+                self.state = 'sel'
             else:
-                is_desel_bone = True
+                self.state = 'desel'
         else:
-            is_obj_mode = True
-
-        if is_obj_mode:
             self.state = 'obj'
-
-        elif is_active_bone:
-            self.state = 'active'
-
-        elif is_sel_bone:
-            self.state = 'sel'
-
-        elif is_desel_bone:
-            self.state = 'desel'
 
     def _gen_geometry(self, obj, ctx):
         for bone in obj.data.bones:
