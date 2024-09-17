@@ -14,7 +14,7 @@ if utils.version.IS_28:
     import gpu_extras.batch
 
 
-def draw_geom(coords, lines, faces, color, alpha_coef):
+def draw_geom(coords, lines, faces, color_solid, color_wire):
     # solid geometry
     shader = utils.draw.get_shader()
     batch = gpu_extras.batch.batch_for_shader(
@@ -24,7 +24,7 @@ def draw_geom(coords, lines, faces, color, alpha_coef):
         indices=faces
     )
     shader.bind()
-    shader.uniform_float('color', [*color[0 : 3], color[3] * alpha_coef])
+    shader.uniform_float('color', color_solid)
     batch.draw(shader)
 
     # wire geometry
@@ -36,7 +36,7 @@ def draw_geom(coords, lines, faces, color, alpha_coef):
         indices=lines
     )
     shader.bind()
-    shader.uniform_float('color', color)
+    shader.uniform_float('color', color_wire)
     batch.draw(shader)
 
 

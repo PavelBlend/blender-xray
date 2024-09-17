@@ -20,11 +20,18 @@ class DrawContext:
     def draw(self):
         utils.draw.set_gl_line_width(const.LINE_WIDTH)
 
-        colors = {
-            'obj': (0.5, 0.5, 0.5, 0.8),
-            'active': (1.0, 1.0, 1.0, 0.8),
-            'sel': (0.0, 1.0, 1.0, 0.8),
-            'desel': (0.0, 0.0, 1.0, 0.8)
+        pref = utils.version.get_preferences()
+        colors_solid = {
+            'obj': pref.gl_solid_col_obj,
+            'active': pref.gl_solid_col_active,
+            'sel': pref.gl_solid_col_sel,
+            'desel': pref.gl_solid_col_desel
+        }
+        colors_wire = {
+            'obj': pref.gl_object_mode_shape_color,
+            'active': pref.gl_active_shape_color,
+            'sel': pref.gl_select_shape_color,
+            'desel': pref.gl_shape_color
         }
 
         for data_type, data in self.geom.items():
@@ -40,12 +47,13 @@ class DrawContext:
                 elif data_type == 'mass': 
                     utils.draw.reset_gl_state()
 
-                color = colors[state_type]
+                color_solid = colors_solid[state_type]
+                color_wire = colors_wire[state_type]
 
                 gpu_utils.draw_geom(
                     coords,
                     lines,
                     faces,
-                    color,
-                    0.2
+                    color_solid,
+                    color_wire
                 )
