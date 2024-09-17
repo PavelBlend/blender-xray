@@ -42,19 +42,10 @@ class DrawContext:
 
                 color = colors[state_type]
 
-                self._draw_shapes(
+                gpu_utils.draw_geom(
                     coords,
                     lines,
                     faces,
                     color,
                     0.2
                 )
-
-    def _draw_shapes(self, coords, lines, faces, color, alpha_factor):
-        gpu_utils.draw_geom(
-            coords,
-            lines,
-            faces,
-            color,
-            alpha_factor
-        )
