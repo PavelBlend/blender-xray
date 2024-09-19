@@ -1,6 +1,6 @@
 version: 1.0.{build}
 
-image: Ubuntu
+image: Ubuntu2204
 
 install:
   - sudo apt-get install -y libglu1-mesa
