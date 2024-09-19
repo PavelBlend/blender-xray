@@ -9,7 +9,7 @@ install:
 environment:
   matrix:
     - BLENDER_VERSION: 2.79
-    - BLENDER_VERSION: 3.4
+    - BLENDER_VERSION: 3.6
 
 before_test:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
