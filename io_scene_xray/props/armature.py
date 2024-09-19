@@ -94,7 +94,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
             obj.matrix_world,
             obj.pose.bones[bone.name].matrix,
             mathutils.Matrix.Scale(-1, 4, (0, 0, 1)),
-            shape.get_matrix_basis()
+            shape.get_matrix()
         )
 
         coords = ctx.geom['shape'][self.state]['coords']

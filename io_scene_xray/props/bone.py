@@ -120,41 +120,51 @@ class XRayShapeProps(bpy.types.PropertyGroup):
         result = mathutils.Matrix.Identity(4)
 
         if self.type == '1':    # box
+            rot = self.box_rot
+            rot_mat = mathutils.Matrix((rot[0:3], rot[3:6], rot[6:9]))
+            result = utils.version.multiply(
+                mathutils.Matrix.Translation(self.box_trn),
+                rot_mat.transposed().to_4x4()
+            )
+
+        elif self.type == '2':    # sphere
+            result = mathutils.Matrix.Translation(self.sph_pos)
+
+        elif self.type == '3':    # cylinder
+            v_dir = mathutils.Vector(self.cyl_dir)
+            q_rot = v_dir.rotation_difference((0, 1, 0))
+            result = utils.version.multiply(
+                mathutils.Matrix.Translation(self.cyl_pos),
+                q_rot.to_matrix().transposed().to_4x4()
+            )
+
+        return result
+
+    def get_matrix(self) -> mathutils.Matrix:
+        basis = self.get_matrix_basis()
+
+        if self.type == '1':    # box
             scale = utils.version.multiply(
                 mathutils.Matrix.Scale(self.box_hsz[0], 4, (1, 0, 0)),
                 mathutils.Matrix.Scale(self.box_hsz[1], 4, (0, 1, 0)),
                 mathutils.Matrix.Scale(self.box_hsz[2], 4, (0, 0, 1))
             )
-            rot = self.box_rot
-            rot_mat = mathutils.Matrix((rot[0:3], rot[3:6], rot[6:9]))
-            result = utils.version.multiply(
-                mathutils.Matrix.Translation(self.box_trn),
-                rot_mat.transposed().to_4x4(),
-                scale
-            )
 
         elif self.type == '2':    # sphere
-            pos = mathutils.Matrix.Translation(self.sph_pos)
             scale = utils.version.multiply(
                 mathutils.Matrix.Scale(self.sph_rad, 4, (1, 0, 0)),
                 mathutils.Matrix.Scale(self.sph_rad, 4, (0, 1, 0)),
                 mathutils.Matrix.Scale(self.sph_rad, 4, (0, 0, 1))
             )
-            result = utils.version.multiply(pos, scale)
 
         elif self.type == '3':    # cylinder
-            v_dir = mathutils.Vector(self.cyl_dir)
-            q_rot = v_dir.rotation_difference((0, 1, 0))
             scale = utils.version.multiply(
                 mathutils.Matrix.Scale(self.cyl_rad, 4, (1, 0, 0)),
                 mathutils.Matrix.Scale(self.cyl_hgh, 4, (0, 1, 0)),
                 mathutils.Matrix.Scale(self.cyl_rad, 4, (0, 0, 1))
             )
-            result = utils.version.multiply(
-                mathutils.Matrix.Translation(self.cyl_pos),
-                q_rot.to_matrix().transposed().to_4x4(),
-                scale
-            )
+
+        result = utils.version.multiply(basis, scale)
 
         return result
 
