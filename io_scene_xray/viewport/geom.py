@@ -6,6 +6,10 @@ import mathutils
 
 # addon modules
 from . import const
+from .. import utils
+
+
+mul = utils.version.get_multiply()
 
 
 def gen_arc(
@@ -56,15 +60,15 @@ def gen_circle(radius, num_segments, fconsumer, indices, offset=0):
 def gen_cube_geom(mat, coords, lines, faces):
     offset = len(coords)
     coords.extend((
-        mat @ mathutils.Vector((-1.0, -1.0, -1.0)),
-        mat @ mathutils.Vector((+1.0, -1.0, -1.0)),
-        mat @ mathutils.Vector((+1.0, +1.0, -1.0)),
-        mat @ mathutils.Vector((-1.0, +1.0, -1.0)),
+        mul(mat, mathutils.Vector((-1.0, -1.0, -1.0))),
+        mul(mat, mathutils.Vector((+1.0, -1.0, -1.0))),
+        mul(mat, mathutils.Vector((+1.0, +1.0, -1.0))),
+        mul(mat, mathutils.Vector((-1.0, +1.0, -1.0))),
 
-        mat @ mathutils.Vector((-1.0, -1.0, +1.0)),
-        mat @ mathutils.Vector((+1.0, -1.0, +1.0)),
-        mat @ mathutils.Vector((+1.0, +1.0, +1.0)),
-        mat @ mathutils.Vector((-1.0, +1.0, +1.0)),
+        mul(mat, mathutils.Vector((-1.0, -1.0, +1.0))),
+        mul(mat, mathutils.Vector((+1.0, -1.0, +1.0))),
+        mul(mat, mathutils.Vector((+1.0, +1.0, +1.0))),
+        mul(mat, mathutils.Vector((-1.0, +1.0, +1.0))),
     ))
     lines.extend((
         (offset + 0, offset + 1), (offset + 1, offset + 2),
@@ -99,14 +103,14 @@ def gen_cylinder_geom(mat, coords, lines, faces):
     gen_circle(
         radius,
         num_segments,
-        lambda x, y: coords.append(mat @ mathutils.Vector((x, -half_height, y))),
+        lambda x, y: coords.append(mul(mat, mathutils.Vector((x, -half_height, y)))),
         lines,
         offset=offset
     )
     gen_circle(
         radius,
         num_segments,
-        lambda x, y: coords.append(mat @ mathutils.Vector((x, +half_height, y))),
+        lambda x, y: coords.append(mul(mat, mathutils.Vector((x, +half_height, y)))),
         lines,
         offset=offset+num_segments+1
     )
@@ -145,14 +149,14 @@ def gen_cylinder_geom(mat, coords, lines, faces):
     start_index = len(coords)
 
     coords.extend([
-        mat @ mathutils.Vector((-radius, -half_height, 0)),
-        mat @ mathutils.Vector((-radius, +half_height, 0)),
-        mat @ mathutils.Vector((+radius, -half_height, 0)),
-        mat @ mathutils.Vector((+radius, +half_height, 0)),
-        mat @ mathutils.Vector((0, -half_height, -radius)),
-        mat @ mathutils.Vector((0, +half_height, -radius)),
-        mat @ mathutils.Vector((0, -half_height, +radius)),
-        mat @ mathutils.Vector((0, +half_height, +radius))
+        mul(mat, mathutils.Vector((-radius, -half_height, 0))),
+        mul(mat, mathutils.Vector((-radius, +half_height, 0))),
+        mul(mat, mathutils.Vector((+radius, -half_height, 0))),
+        mul(mat, mathutils.Vector((+radius, +half_height, 0))),
+        mul(mat, mathutils.Vector((0, -half_height, -radius))),
+        mul(mat, mathutils.Vector((0, +half_height, -radius))),
+        mul(mat, mathutils.Vector((0, -half_height, +radius))),
+        mul(mat, mathutils.Vector((0, +half_height, +radius)))
     ])
     for i in range(start_index, start_index + 8, 2):
         lines.extend((
@@ -173,7 +177,7 @@ def gen_sphere_geom(mat, coords, lines, faces):
             x = math.sin(theta) * math.cos(phi)
             y = math.sin(theta) * math.sin(phi)
             z = math.cos(theta)
-            coords.append(mat @ mathutils.Vector((x, y, z)))
+            coords.append(mul(mat, mathutils.Vector((x, y, z))))
 
     # generate indices
     for i in range(num_segments):
@@ -212,12 +216,12 @@ def gen_cross_geom(size, mat, coords, lines):
     offset = len(coords)
 
     coords.extend((
-        mat @ mathutils.Vector((-size, 0.0, 0.0)),
-        mat @ mathutils.Vector((+size, 0.0, 0.0)),
-        mat @ mathutils.Vector((0.0, -size, 0.0)),
-        mat @ mathutils.Vector((0.0, +size, 0.0)),
-        mat @ mathutils.Vector((0.0, 0.0, -size)),
-        mat @ mathutils.Vector((0.0, 0.0, +size))
+        mul(mat, mathutils.Vector((-size, 0.0, 0.0))),
+        mul(mat, mathutils.Vector((+size, 0.0, 0.0))),
+        mul(mat, mathutils.Vector((0.0, -size, 0.0))),
+        mul(mat, mathutils.Vector((0.0, +size, 0.0))),
+        mul(mat, mathutils.Vector((0.0, 0.0, -size))),
+        mul(mat, mathutils.Vector((0.0, 0.0, +size)))
     ))
 
     for i in range(3):

@@ -34,6 +34,11 @@ class DrawContext:
             'desel': pref.gl_shape_color
         }
 
+        if utils.version.IS_28:
+            draw_fun = gpu_utils.draw_geom
+        else:
+            draw_fun = gl_utils.draw_geom
+
         for data_type, data in self.geom.items():
             for state_type, state in data.items():
 
@@ -50,7 +55,7 @@ class DrawContext:
                 color_solid = colors_solid[state_type]
                 color_wire = colors_wire[state_type]
 
-                gpu_utils.draw_geom(
+                draw_fun(
                     coords,
                     lines,
                     faces,

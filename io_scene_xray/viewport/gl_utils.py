@@ -37,9 +37,9 @@ def draw_arc(radius, start, end, num_segments, fconsumer, close=False):
         fconsumer(x, y)
 
 
-def draw_geom(coords, lines, faces, color, alpha_coef):
+def draw_geom(coords, lines, faces, color_solid, color_wire):
     # solid geometry
-    bgl.glColor4f(*color[0 : 3], color[3] * alpha_coef)
+    bgl.glColor4f(*color_solid)
     bgl.glBegin(bgl.GL_TRIANGLES)
     for face in faces:
         for vertex in face:
@@ -47,7 +47,7 @@ def draw_geom(coords, lines, faces, color, alpha_coef):
     bgl.glEnd()
 
     # wire geometry
-    bgl.glColor4f(*color)
+    bgl.glColor4f(*color_wire)
     bgl.glBegin(bgl.GL_LINES)
     for line in lines:
         for vertex in line:
