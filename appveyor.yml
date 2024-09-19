@@ -1,6 +1,6 @@
 version: 1.0.{build}
 
-image: Ubuntu
+image: Ubuntu2204
 
 install:
   - sudo apt-get install -y libglu1-mesa
@@ -9,7 +9,7 @@ install:
 environment:
   matrix:
     - BLENDER_VERSION: 2.79
-    - BLENDER_VERSION: 3.4
+    - BLENDER_VERSION: 3.6
 
 before_test:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
