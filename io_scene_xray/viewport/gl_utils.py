@@ -55,11 +55,6 @@ def draw_geom(coords, lines, faces, color_solid, color_wire):
     bgl.glEnd()
 
 
-def draw_cube(half_sz_x, half_sz_y, half_sz_z, color, alpha_coef):
-    coords, lines, faces = geom.gen_cube_geom(half_sz_x, half_sz_y, half_sz_z)
-    draw_geom(coords, lines, faces, color, alpha_coef)
-
-
 # pylint: disable=C0103
 def gen_limit_circle(
         rotate, radius, num_segments,
@@ -133,31 +128,6 @@ def draw_slider_slide_limits(slide_min, slide_max, color):
     start = (0, 0, slide_min)
     end = (0, 0, slide_max)
     draw_line(start, end, color)
-
-
-def draw_sphere(radius, num_segments, color, alpha_coef):
-    coords, lines, faces = geom.gen_sphere_geom(radius, num_segments)
-    draw_geom(coords, lines, faces, color, alpha_coef)
-
-
-def draw_cylinder(radius, half_height, num_segments, color, alpha_coef):
-    coords, lines, faces = geom.gen_cylinder_geom(
-        radius,
-        half_height,
-        num_segments
-    )
-    draw_geom(coords, lines, faces, color, alpha_coef)
-
-
-def draw_cross(size):
-    bgl.glBegin(bgl.GL_LINES)
-    bgl.glVertex3f(-size, 0, 0)
-    bgl.glVertex3f(+size, 0, 0)
-    bgl.glVertex3f(0, -size, 0)
-    bgl.glVertex3f(0, +size, 0)
-    bgl.glVertex3f(0, 0, -size)
-    bgl.glVertex3f(0, 0, +size)
-    bgl.glEnd()
 
 
 def draw_line(start, end, color):

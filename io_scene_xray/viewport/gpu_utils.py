@@ -40,45 +40,6 @@ def draw_geom(coords, lines, faces, color_solid, color_wire):
     batch.draw(shader)
 
 
-def draw_cube(half_sz_x, half_sz_y, half_sz_z, color, alpha_coef):
-    coords, lines, faces = geom.gen_cube_geom(half_sz_x, half_sz_y, half_sz_z)
-    draw_geom(coords, lines, faces, color, alpha_coef)
-
-
-def draw_sphere(radius, num_segments, color, alpha_coef):
-    coords, lines, faces = geom.gen_sphere_geom(radius, num_segments)
-    draw_geom(coords, lines, faces, color, alpha_coef)
-
-
-def draw_cylinder(radius, half_height, num_segments, color, alpha_coef):
-    coords, lines, faces = geom.gen_cylinder_geom(
-        radius,
-        half_height,
-        num_segments
-    )
-    draw_geom(coords, lines, faces, color, alpha_coef)
-
-
-def draw_cross(size, color):
-    coords = (
-        (-size, 0, 0),
-        (+size, 0, 0),
-        (0, -size, 0),
-        (0, +size, 0),
-        (0, 0, -size),
-        (0, 0, +size)
-    )
-    shader = utils.draw.get_shader()
-    batch = gpu_extras.batch.batch_for_shader(
-        shader,
-        'LINES',
-        {'pos': coords}
-    )
-    shader.bind()
-    shader.uniform_float('color', color)
-    batch.draw(shader)
-
-
 def draw_line(start, end, color):
     coords = (
         start,

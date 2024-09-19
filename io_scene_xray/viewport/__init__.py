@@ -10,34 +10,6 @@ from . import geom
 from .. import utils
 
 
-def draw_cube(half_size_x, half_size_y, half_size_z, color, alpha_coef):
-    if utils.version.IS_28:
-        gpu_utils.draw_cube(half_size_x, half_size_y, half_size_z, color, alpha_coef)
-    else:
-        gl_utils.draw_cube(half_size_x, half_size_y, half_size_z, color, alpha_coef)
-
-
-def draw_sphere(radius, num_segments, color, alpha_coef):
-    if utils.version.IS_28:
-        gpu_utils.draw_sphere(radius, num_segments, color, alpha_coef)
-    else:
-        gl_utils.draw_sphere(radius, num_segments, color, alpha_coef)
-
-
-def draw_cylinder(radius, half_height, num_segments, color, alpha_coef):
-    if utils.version.IS_28:
-        gpu_utils.draw_cylinder(radius, half_height, num_segments, color, alpha_coef)
-    else:
-        gl_utils.draw_cylinder(radius, half_height, num_segments, color, alpha_coef)
-
-
-def draw_cross(size, color=None):
-    if utils.version.IS_28:
-        gpu_utils.draw_cross(size, color)
-    else:
-        gl_utils.draw_cross(size)
-
-
 def get_draw_joint_limits():
     if utils.version.IS_28:
         return gpu_utils.draw_joint_limits
