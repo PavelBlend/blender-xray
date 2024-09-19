@@ -555,7 +555,7 @@ def draw_others(prefs):
     prop_bool(layout, prefs, 'object_split_normals')
 
     box = layout.box()
-    box.label(text='Bone Shape Colors:')
+    box.label(text='Bone Shape Wireframe Colors:')
 
     row = box.row()
     row.prop(prefs, 'gl_active_shape_color')
@@ -569,5 +569,17 @@ def draw_others(prefs):
     row = box.row()
     row.prop(prefs, 'gl_object_mode_shape_color')
 
+    box = layout.box()
+    box.label(text='Bone Shape Solid Colors:')
+
     row = box.row()
-    row.prop(prefs, 'gl_alpha_coef')
+    row.prop(prefs, 'gl_solid_col_active')
+
+    row = box.row()
+    row.prop(prefs, 'gl_solid_col_sel')
+
+    row = box.row()
+    row.prop(prefs, 'gl_solid_col_desel')
+
+    row = box.row()
+    row.prop(prefs, 'gl_solid_col_obj')

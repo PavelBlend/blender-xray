@@ -5,35 +5,9 @@ import bpy
 from . import gl_utils
 from . import gpu_utils
 from . import const
+from . import ctx
+from . import geom
 from .. import utils
-
-
-def draw_cube(half_size_x, half_size_y, half_size_z, color, alpha_coef):
-    if utils.version.IS_28:
-        gpu_utils.draw_cube(half_size_x, half_size_y, half_size_z, color, alpha_coef)
-    else:
-        gl_utils.draw_cube(half_size_x, half_size_y, half_size_z, color, alpha_coef)
-
-
-def draw_sphere(radius, num_segments, color, alpha_coef):
-    if utils.version.IS_28:
-        gpu_utils.draw_sphere(radius, num_segments, color, alpha_coef)
-    else:
-        gl_utils.draw_sphere(radius, num_segments, color, alpha_coef)
-
-
-def draw_cylinder(radius, half_height, num_segments, color, alpha_coef):
-    if utils.version.IS_28:
-        gpu_utils.draw_cylinder(radius, half_height, num_segments, color, alpha_coef)
-    else:
-        gl_utils.draw_cylinder(radius, half_height, num_segments, color, alpha_coef)
-
-
-def draw_cross(size, color=None):
-    if utils.version.IS_28:
-        gpu_utils.draw_cross(size, color)
-    else:
-        gl_utils.draw_cross(size)
 
 
 def get_draw_joint_limits():
@@ -58,24 +32,17 @@ def get_draw_slider_slide_limits():
 
 
 def overlay_view_3d():
-    def try_draw(base_obj, obj):
-        if not hasattr(obj, 'xray'):
-            return
-        xray = obj.xray
-        if hasattr(xray, 'ondraw_postview'):
-            xray.ondraw_postview(base_obj, obj)
-        if hasattr(obj, 'type'):
-            if obj.type == 'ARMATURE':
-                arm_data = obj.data.xray
-                shapes = arm_data.display_bone_shapes
-                centers = arm_data.display_bone_mass_centers
-                limits = arm_data.display_bone_limits
-                if shapes or centers or limits:
-                    for bone in obj.data.bones:
-                        try_draw(base_obj, bone)
+    context = ctx.DrawContext()
+
+    # set opengl state for limits draw
+    utils.draw.reset_gl_state()
+    utils.draw.set_gl_line_width(const.LINE_WIDTH)
 
     for obj in bpy.data.objects:
-        try_draw(obj, obj)
+        if obj.type == 'ARMATURE':
+            obj.data.xray.ondraw_postview(obj, context)
+
+    context.draw()
 
 
 def register():

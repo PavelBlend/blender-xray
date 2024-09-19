@@ -140,6 +140,34 @@ class XRayShapeProps(bpy.types.PropertyGroup):
 
         return result
 
+    def get_matrix(self) -> mathutils.Matrix:
+        basis = self.get_matrix_basis()
+
+        if self.type == '1':    # box
+            scale = utils.version.multiply(
+                mathutils.Matrix.Scale(self.box_hsz[0], 4, (1, 0, 0)),
+                mathutils.Matrix.Scale(self.box_hsz[1], 4, (0, 1, 0)),
+                mathutils.Matrix.Scale(self.box_hsz[2], 4, (0, 0, 1))
+            )
+
+        elif self.type == '2':    # sphere
+            scale = utils.version.multiply(
+                mathutils.Matrix.Scale(self.sph_rad, 4, (1, 0, 0)),
+                mathutils.Matrix.Scale(self.sph_rad, 4, (0, 1, 0)),
+                mathutils.Matrix.Scale(self.sph_rad, 4, (0, 0, 1))
+            )
+
+        elif self.type == '3':    # cylinder
+            scale = utils.version.multiply(
+                mathutils.Matrix.Scale(self.cyl_rad, 4, (1, 0, 0)),
+                mathutils.Matrix.Scale(self.cyl_hgh, 4, (0, 1, 0)),
+                mathutils.Matrix.Scale(self.cyl_rad, 4, (0, 0, 1))
+            )
+
+        result = utils.version.multiply(basis, scale)
+
+        return result
+
 
 class XRayBreakProps(bpy.types.PropertyGroup):
     force = bpy.props.FloatProperty(min=0.0)
@@ -248,274 +276,6 @@ class XRayBoneProps(bpy.types.PropertyGroup):
     breakf = bpy.props.PointerProperty(type=XRayBreakProps)
     friction = bpy.props.FloatProperty(min=0.0)
     mass = bpy.props.PointerProperty(type=XRayMassProps)
-
-    def ondraw_postview(self, obj_arm, bone):    # pragma: no cover
-        # draw limits
-        arm_xray = obj_arm.data.xray
-        hide = not utils.version.get_object_visibility(obj_arm)
-        multiply = utils.version.get_multiply()
-
-        prev_line_width = utils.draw.get_gl_line_width()
-        utils.draw.set_gl_line_width(viewport.const.LINE_WIDTH)
-
-        utils.draw.set_gl_blend_mode()
-
-        hide_bone = bone.hide
-        is_pose = obj_arm.mode == 'POSE'
-        exportable = bone.xray.exportable
-        hided = hide or hide_bone or not exportable
-        draw_overlays = not hided and is_pose
-
-        # set color
-        pref = utils.version.get_preferences()
-        if is_pose:
-            active_bone = bpy.context.active_bone
-            color = None
-            if active_bone:
-                if active_bone.id_data == obj_arm.data:
-                    if active_bone.name == bone.name:
-                        color = pref.gl_active_shape_color
-            if color is None:
-                if bone.select:
-                    color = pref.gl_select_shape_color
-                else:
-                    color = pref.gl_shape_color
-        else:
-            color = pref.gl_object_mode_shape_color
-        alpha_coef = pref.gl_alpha_coef
-
-        # draw limits
-        if draw_overlays and arm_xray.display_bone_limits:
-            context_obj = bpy.context.active_object
-            if context_obj:
-                is_active_object = context_obj.name == obj_arm.name
-            else:
-                is_active_object = False
-            has_limits = bone.xray.ikjoint.type in {'2', '3', '5'}
-            if bone.select and has_limits and is_active_object:
-                draw_joint_limits = viewport.get_draw_joint_limits()
-
-                if utils.version.IS_28:
-                    gpu.matrix.push()
-                else:
-                    bgl.glPushMatrix()
-
-                translate = obj_arm.pose.bones[bone.name].matrix.to_translation()
-                mat_translate = mathutils.Matrix.Translation(translate)
-                mat_rotate = obj_arm.data.bones[bone.name].matrix_local.to_euler().to_matrix().to_4x4()
-                if bone.parent:
-                    mat_rotate_parent = obj_arm.pose.bones[bone.parent.name].matrix_basis.to_euler().to_matrix().to_4x4()
-                else:
-                    mat_rotate_parent = mathutils.Matrix()
-
-                mat = multiply(
-                    obj_arm.matrix_world,
-                    mat_translate,
-                    multiply(mat_rotate, mat_rotate_parent),
-                    mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
-                )
-                if utils.version.IS_28:
-                    gpu.matrix.multiply_matrix(mat)
-                else:
-                    bgl.glMultMatrixf(
-                        viewport.gl_utils.matrix_to_buffer(mat.transposed())
-                    )
-
-                pose_bone = obj_arm.pose.bones[bone.name]
-                if pose_bone.rotation_mode == 'QUATERNION':
-                    rotate = pose_bone.rotation_quaternion.to_euler('ZXY')
-                else:
-                    rotate = pose_bone.rotation_euler.to_matrix().to_euler('ZXY')
-
-                if arm_xray.joint_limits_type == 'IK':
-                    limits = (
-                        pose_bone.ik_min_x, pose_bone.ik_max_x,
-                        pose_bone.ik_min_y, pose_bone.ik_max_y,
-                        pose_bone.ik_min_z, pose_bone.ik_max_z
-                    )
-                else:
-                    ik = bone.xray.ikjoint
-                    limits = (
-                        ik.lim_x_min, ik.lim_x_max,
-                        ik.lim_y_min, ik.lim_y_max,
-                        ik.lim_z_min, ik.lim_z_max
-                    )
-
-                is_joint = bone.xray.ikjoint.type == '2'
-                is_wheel = bone.xray.ikjoint.type == '3'
-                is_slider = bone.xray.ikjoint.type == '5'
-
-                if arm_xray.display_bone_limit_x and (is_joint or is_wheel):
-                    draw_joint_limits(
-                        rotate.x, limits[0], limits[1], 'X',
-                        arm_xray.display_bone_limits_radius
-                    )
-
-                if arm_xray.display_bone_limit_y and is_joint:
-                    draw_joint_limits(
-                        rotate.y, limits[2], limits[3], 'Y',
-                        arm_xray.display_bone_limits_radius
-                    )
-
-                if arm_xray.display_bone_limit_z and is_joint:
-                    draw_joint_limits(
-                        rotate.z, limits[4], limits[5], 'Z',
-                        arm_xray.display_bone_limits_radius
-                    )
-
-                # slider limits
-                if arm_xray.display_bone_limit_z and is_slider:
-                    draw_slider_rotation_limits = viewport.get_draw_slider_rotation_limits()
-                    draw_slider_rotation_limits(
-                        rotate.z, limits[2], limits[3],
-                        arm_xray.display_bone_limits_radius
-                    )
-                    bone_matrix = obj_arm.data.bones[bone.name].matrix_local.to_4x4()
-                    slider_mat = multiply(
-                        obj_arm.matrix_world,
-                        bone_matrix
-                    )
-                    if utils.version.IS_28:
-                        gpu.matrix.pop()
-                        gpu.matrix.push()
-                        gpu.matrix.multiply_matrix(slider_mat)
-                    else:
-                        bgl.glPopMatrix()
-                        bgl.glPushMatrix()
-                        bgl.glMultMatrixf(
-                            viewport.gl_utils.matrix_to_buffer(slider_mat.transposed())
-                        )
-                    draw_slider_slide_limits = viewport.get_draw_slider_slide_limits()
-                    draw_slider_slide_limits(ik.slide_min, ik.slide_max, color)
-
-                if utils.version.IS_28:
-                    gpu.matrix.pop()
-                else:
-                    bgl.glPopMatrix()
-
-        mat = multiply(
-            obj_arm.matrix_world,
-            obj_arm.pose.bones[bone.name].matrix,
-            mathutils.Matrix.Scale(-1, 4, (0, 0, 1))
-        )
-        bmat = mat
-
-        if not utils.version.IS_28:
-            bgl.glColor4f(*color)
-
-        shape = self.shape
-        if shape.type in ('0', '4'):
-            utils.draw.set_gl_line_width(prev_line_width)
-            utils.draw.reset_gl_state()
-            return
-
-        # draw mass centers
-        is_edit = obj_arm.mode == 'EDIT'
-        draw_mass = obj_arm.data.xray.display_bone_mass_centers
-        if draw_mass and not hided and not is_edit:
-            ctr = self.mass.center
-            trn = multiply(
-                bmat,
-                mathutils.Vector((ctr[0], ctr[2], ctr[1]))
-            )
-            cross_size = obj_arm.data.xray.bone_mass_center_cross_size
-            if utils.version.IS_28:
-                gpu.matrix.push()
-                gpu.matrix.translate(trn)
-                viewport.draw_cross(cross_size, color=color)
-                gpu.matrix.pop()
-            else:
-                bgl.glPopMatrix()
-                bgl.glPushMatrix()
-                bgl.glTranslatef(*trn)
-                viewport.draw_cross(cross_size)
-                bgl.glPopMatrix()
-
-        # draw shapes
-        utils.draw.set_gl_state()
-
-        draw_shapes = obj_arm.data.xray.display_bone_shapes
-        if hided or not draw_shapes or is_edit:
-            utils.draw.set_gl_line_width(prev_line_width)
-            utils.draw.reset_gl_state()
-            return
-
-        if utils.version.IS_28:
-            if not obj_arm.name in bpy.context.view_layer.objects:
-                utils.draw.set_gl_line_width(prev_line_width)
-                utils.draw.reset_gl_state()
-                return
-        else:
-            if not obj_arm.name in bpy.context.scene.objects:
-                utils.draw.set_gl_line_width(prev_line_width)
-                utils.draw.reset_gl_state()
-                return
-            visible_armature_object = False
-            for layer_index, layer in enumerate(obj_arm.layers):
-                scene_layer = bpy.context.scene.layers[layer_index]
-                if scene_layer and layer:
-                    visible_armature_object = True
-                    break
-
-            if not visible_armature_object:
-                utils.draw.set_gl_line_width(prev_line_width)
-                utils.draw.reset_gl_state()
-                return
-
-        if utils.version.IS_28:
-            gpu.matrix.push()
-            try:
-                mat = multiply(mat, shape.get_matrix_basis())
-                gpu.matrix.multiply_matrix(mat)
-                if shape.type == '1':    # box
-                    viewport.draw_cube(*shape.box_hsz, color, alpha_coef)
-                if shape.type == '2':    # sphere
-                    viewport.draw_sphere(
-                        shape.sph_rad,
-                        viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT,
-                        color,
-                        alpha_coef
-                    )
-                if shape.type == '3':    # cylinder
-                    viewport.draw_cylinder(
-                        shape.cyl_rad,
-                        shape.cyl_hgh * 0.5,
-                        viewport.const.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT,
-                        color,
-                        alpha_coef
-                    )
-            finally:
-                gpu.matrix.pop()
-        else:
-            bgl.glPopMatrix()
-            bgl.glPushMatrix()
-            try:
-                mat = multiply(mat, shape.get_matrix_basis())
-                bgl.glMultMatrixf(
-                    viewport.gl_utils.matrix_to_buffer(mat.transposed())
-                )
-                if shape.type == '1':    # box
-                    viewport.draw_cube(*shape.box_hsz, color, alpha_coef)
-                if shape.type == '2':    # sphere
-                    viewport.draw_sphere(
-                        shape.sph_rad,
-                        viewport.const.BONE_SHAPE_SPHERE_SEGMENTS_COUNT,
-                        color,
-                        alpha_coef
-                    )
-                if shape.type == '3':    # cylinder
-                    viewport.draw_cylinder(
-                        shape.cyl_rad,
-                        shape.cyl_hgh * 0.5,
-                        viewport.const.BONE_SHAPE_CYLINDER_SEGMENTS_COUNT,
-                        color,
-                        alpha_coef
-                    )
-            finally:
-                bgl.glPopMatrix()
-
-        utils.draw.set_gl_line_width(prev_line_width)
-        utils.draw.reset_gl_state()
 
 
 prop_groups = (

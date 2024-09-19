@@ -313,13 +313,37 @@ prefs_props = {
         subtype='COLOR',
         size=4
     ),
-    'gl_alpha_coef': bpy.props.FloatProperty(
-        name='Alpha Coefficient',
-        default=0.2,
+    'gl_solid_col_desel': bpy.props.FloatVectorProperty(
+        name='Unselected Shape',
+        default=(0.0, 0.0, 1.0, 0.1),
         min=0.0,
         max=1.0,
-        subtype='FACTOR',
-        precision=3
+        subtype='COLOR',
+        size=4
+    ),
+    'gl_solid_col_active': bpy.props.FloatVectorProperty(
+        name='Active Shape',
+        default=(1.0, 1.0, 1.0, 0.15),
+        min=0.0,
+        max=1.0,
+        subtype='COLOR',
+        size=4
+    ),
+    'gl_solid_col_sel': bpy.props.FloatVectorProperty(
+        name='Selected Shape',
+        default=(0.0, 1.0, 1.0, 0.15),
+        min=0.0,
+        max=1.0,
+        subtype='COLOR',
+        size=4
+    ),
+    'gl_solid_col_obj': bpy.props.FloatVectorProperty(
+        name='Shape in Object Mode',
+        default=(0.8, 0.8, 0.8, 0.15),
+        min=0.0,
+        max=1.0,
+        subtype='COLOR',
+        size=4
     ),
 
     # custom data props
