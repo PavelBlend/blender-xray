@@ -62,6 +62,10 @@ def get_draw_slider_slide_limits():
 def overlay_view_3d():
     context = ctx.DrawContext()
 
+    # set opengl state for limits draw
+    utils.draw.reset_gl_state()
+    utils.draw.set_gl_line_width(const.LINE_WIDTH)
+
     for obj in bpy.data.objects:
         if obj.type == 'ARMATURE':
             obj.data.xray.ondraw_postview(obj, context)
