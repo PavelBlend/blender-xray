@@ -58,6 +58,9 @@ class ObjectExporter:
         self.export_transform()
         self.export_revision()
 
+    def export_meshes(self):
+        ObjectExporterMeshes(self)
+
     def export_version(self):
         packed_writer = rw.write.PackedWriter()
         packed_writer.putf('<H', fmt.CURRENT_OBJECT_VERSION)
@@ -286,216 +289,264 @@ class ObjectExporter:
 
         self.body_writer.put(fmt.Chunks.Object.SURFACES2, writer)
 
-    def export_meshes(self):
-        armatures = set()
-        self.materials = set()
-        meshes = set()
-        armature_meshes = set()
-        meshes_without_arms = set()
-        mesh_writers = []
-        self.uv_map_names = {}
-        merged_obj = None
 
-        loc_space, rot_space, scl_space = utils.ie.get_object_world_matrix(self.root_obj)
+class ObjectExporterMeshes:
 
-        def write_mesh(bpy_obj, arm_obj):
-            # write mesh chunk
-            mesh_writer = rw.write.ChunkedWriter()
-            used_material_names = mesh.export_mesh(
-                bpy_obj,
-                self.root_obj,
-                arm_obj,
-                mesh_writer,
-                self.context,
-                loc_space,
-                rot_space,
-                scl_space
+    def __init__(self, body):
+        self.body = body
+
+        self.init()
+        self.export()
+
+    def init(self):
+        self.armatures = set()
+        self.meshes = set()
+        self.armature_meshes = set()
+        self.meshes_without_arms = set()
+        self.mesh_writers = []
+        self.root_bones = None
+        self.edit_mode_matrices = None
+        self.merged_obj = None
+
+        self.body.materials = set()
+        self.body.uv_map_names = {}
+
+        (
+            self.loc_space,
+            self.rot_space,
+            self.scl_space
+        ) = utils.ie.get_object_world_matrix(self.body.root_obj)
+
+    def write_mesh(self, bpy_obj, arm_obj):
+        # write mesh chunk
+        mesh_writer = rw.write.ChunkedWriter()
+        used_material_names = mesh.export_mesh(
+            bpy_obj,
+            self.body.root_obj,
+            arm_obj,
+            mesh_writer,
+            self.body.context,
+            self.loc_space,
+            self.rot_space,
+            self.scl_space
+        )
+        self.mesh_writers.append(mesh_writer)
+        self.meshes.add(bpy_obj)
+
+        # collect materials and uv-map names
+        uv_layers = bpy_obj.data.uv_layers
+
+        for material in bpy_obj.data.materials:
+            if material:
+                if material.name in used_material_names:
+                    self.body.materials.add(material)
+                    self.body.uv_map_names[material.name] = uv_layers.active.name
+
+        if len(uv_layers) > 1:
+            log.warn(
+                text.warn.obj_many_uv,
+                exported_uv=uv_layers.active.name,
+                mesh_object=bpy_obj.name
             )
-            mesh_writers.append(mesh_writer)
-            meshes.add(bpy_obj)
 
-            # collect materials and uv-map names
-            uv_layers = bpy_obj.data.uv_layers
+    def scan_root_obj(self, exp_objs):
+        for bpy_obj in exp_objs:
 
-            for material in bpy_obj.data.materials:
-                if material:
-                    if material.name in used_material_names:
-                        self.materials.add(material)
-                        self.uv_map_names[material.name] = uv_layers.active.name
+            # scan bone shape helper object
+            if utils.obj.is_helper_object(bpy_obj):
+                continue
 
-            if len(uv_layers) > 1:
-                log.warn(
-                    text.warn.obj_many_uv,
-                    exported_uv=uv_layers.active.name,
-                    mesh_object=bpy_obj.name
-                )
+            # scan mesh object
+            if bpy_obj.type == 'MESH':
+                arm_obj = utils.obj.get_armature_object(bpy_obj)
 
-        def scan_root_obj(exp_objs):
-            for bpy_obj in exp_objs:
+                if arm_obj:
+                    self.armature_meshes.add(bpy_obj)
+                    self.armatures.add(arm_obj)
 
-                # scan bone shape helper object
-                if utils.obj.is_helper_object(bpy_obj):
-                    continue
+                elif self.armatures:
+                    self.armature_meshes.add(bpy_obj)
+                    self.meshes_without_arms.add(bpy_obj)
 
-                # scan mesh object
-                if bpy_obj.type == 'MESH':
-                    arm_obj = utils.obj.get_armature_object(bpy_obj)
+                else:
+                    self.write_mesh(bpy_obj, arm_obj)
 
-                    if arm_obj:
-                        armature_meshes.add(bpy_obj)
-                        armatures.add(arm_obj)
+    def search_armatures(self, exp_objs):
+        for bpy_obj in exp_objs:
+            if bpy_obj.type == 'ARMATURE':
+                self.armatures.add(bpy_obj)
 
-                    elif armatures:
-                        armature_meshes.add(bpy_obj)
-                        meshes_without_arms.add(bpy_obj)
-
-                    else:
-                        write_mesh(bpy_obj, arm_obj)
-
-        def search_armatures(exp_objs):
-            for bpy_obj in exp_objs:
-                if bpy_obj.type == 'ARMATURE':
-                    armatures.add(bpy_obj)
-
-        exp_objs = utils.obj.get_exp_objs(self.context, self.root_obj)
-
-        search_armatures(exp_objs)
-        scan_root_obj(exp_objs)
-
+    def find_arm_obj(self):
         # find armature object
-        if len(armatures) == 1:
-            self.arm_obj = list(armatures)[0]
 
-            if meshes_without_arms:
-                for obj in meshes_without_arms:
+        if len(self.armatures) == 1:
+            self.body.arm_obj = list(self.armatures)[0]
+
+            if self.meshes_without_arms:
+                for obj in self.meshes_without_arms:
                     log.warn(
                         text.warn.obj_used_arm,
-                        used_armature=self.arm_obj.name,
+                        used_armature=self.body.arm_obj.name,
                         mesh_object=obj.name
                     )
 
-        elif len(armatures) > 1:
+        elif len(self.armatures) > 1:
             raise log.AppError(
                 text.error.object_many_arms,
                 log.props(
-                    root_object=self.root_obj.name,
-                    armature_objects=[obj.name for obj in armatures]
+                    root_object=self.body.root_obj.name,
+                    armature_objects=[obj.name for obj in self.armatures]
                 )
             )
 
         else:
-            self.arm_obj = None
+            self.body.arm_obj = None
 
+    def write_arm_meshes(self):
         # write armature meshes
-        if armature_meshes:
+
+        if self.armature_meshes:
 
             # one mesh
-            if len(armature_meshes) == 1:
-                mesh_object = list(armature_meshes)[0]
-                utils.ie.validate_vertex_weights(mesh_object, self.arm_obj)
-                write_mesh(mesh_object, self.arm_obj)
+            if len(self.armature_meshes) == 1:
+                mesh_object = list(self.armature_meshes)[0]
+                utils.ie.validate_vertex_weights(mesh_object, self.body.arm_obj)
+                self.write_mesh(mesh_object, self.body.arm_obj)
 
             # many meshes
             else:
-                merged_obj = utils.obj.merge_meshes(armature_meshes, self.arm_obj)
-                write_mesh(merged_obj, self.arm_obj)
-                mesh_names = [mesh.name for mesh in armature_meshes]
+                self.merged_obj = utils.obj.merge_meshes(self.armature_meshes, self.body.arm_obj)
+                self.write_mesh(self.merged_obj, self.body.arm_obj)
+                mesh_names = [mesh.name for mesh in self.armature_meshes]
                 log.warn(
                     text.warn.object_merged,
                     count=str(len(mesh_names)),
                     objects=mesh_names
                 )
 
-        if not mesh_writers:
-            utils.obj.remove_merged_obj(merged_obj)
+    def check_mesh_writers(self):
+        if not self.mesh_writers:
+            utils.obj.remove_merged_obj(self.merged_obj)
             raise log.AppError(
                 text.error.object_no_meshes,
-                log.props(object=self.root_obj.name)
+                log.props(object=self.body.root_obj.name)
             )
 
-        if len(mesh_writers) > 1 and self.arm_obj:
-            utils.obj.remove_merged_obj(merged_obj)
+        if len(self.mesh_writers) > 1 and self.body.arm_obj:
+            utils.obj.remove_merged_obj(self.merged_obj)
             raise log.AppError(
                 text.error.object_skel_many_meshes,
-                log.props(object=self.root_obj.name)
+                log.props(object=self.body.root_obj.name)
             )
 
-        self.bone_writers = []
-        root_bones = []
-        if self.arm_obj:
-            inspect.bone.check_bone_names(self.arm_obj)
-            bonemap = {}
+    def get_bone_edit_mats(self):
+        self.edit_mode_matrices = {}
 
-            scale = self.arm_obj.matrix_world.to_scale()
+        with utils.version.using_active_object(self.body.arm_obj), utils.version.using_mode('EDIT'):
+            for edit_bone in self.body.arm_obj.data.edit_bones:
+                bone_mat = edit_bone.matrix
+                bone_mat[0][3] *= self.scale.x
+                bone_mat[1][3] *= self.scale.y
+                bone_mat[2][3] *= self.scale.z
+                self.edit_mode_matrices[edit_bone.name] = bone_mat
 
-            utils.ie.check_armature_scale(scale, self.root_obj, self.arm_obj)
+    def write_bones(self):
+        bonemap = {}
 
-            edit_mode_matrices = {}
-            with utils.version.using_active_object(self.arm_obj), utils.version.using_mode('EDIT'):
-                for edit_bone in self.arm_obj.data.edit_bones:
-                    bone_mat = edit_bone.matrix
-                    bone_mat[0][3] *= scale.x
-                    bone_mat[1][3] *= scale.y
-                    bone_mat[2][3] *= scale.z
-                    edit_mode_matrices[edit_bone.name] = bone_mat
+        for bpy_bone in self.body.arm_obj.data.bones:
 
-            for bpy_bone in self.arm_obj.data.bones:
-                if not utils.bone.is_exportable_bone(bpy_bone):
-                    continue
-                real_parent = utils.bone.find_bone_exportable_parent(bpy_bone)
-                if not real_parent:
-                    root_bones.append(bpy_bone.name)
-                bone.export_bone(
-                    self.arm_obj,
-                    bpy_bone,
-                    self.bone_writers,
-                    bonemap,
-                    edit_mode_matrices,
-                    self.context.multiply,
-                    scale
+            if not utils.bone.is_exportable_bone(bpy_bone):
+                continue
+
+            real_parent = utils.bone.find_bone_exportable_parent(bpy_bone)
+
+            if not real_parent:
+                self.root_bones.append(bpy_bone.name)
+
+            bone.export_bone(
+                self.body.arm_obj,
+                bpy_bone,
+                self.body.bone_writers,
+                bonemap,
+                self.edit_mode_matrices,
+                self.body.context.multiply,
+                self.scale
+            )
+
+    def check_bone_groups(self):
+        invalid_bones = []
+        has_bone_groups = False
+
+        if len(self.body.arm_obj.pose.bone_groups):
+            for bone_ in self.body.arm_obj.pose.bones:
+                xray = self.body.arm_obj.data.bones[bone_.name].xray
+                if xray.exportable:
+                    if bone_.bone_group is None:
+                        invalid_bones.append(bone_.name)
+                    else:
+                        has_bone_groups = True
+
+        if invalid_bones and has_bone_groups:
+            utils.obj.remove_merged_obj(self.merged_obj)
+            raise log.AppError(
+                text.error.object_bad_boneparts,
+                log.props(
+                    object=self.body.arm_obj.name,
+                    bones=invalid_bones
                 )
+            )
 
-            invalid_bones = []
-            has_bone_groups = False
-            if len(self.arm_obj.pose.bone_groups):
-                for bone_ in self.arm_obj.pose.bones:
-                    xray = self.arm_obj.data.bones[bone_.name].xray
-                    if xray.exportable:
-                        if bone_.bone_group is None:
-                            invalid_bones.append(bone_.name)
-                        else:
-                            has_bone_groups = True
-            if invalid_bones and has_bone_groups:
-                utils.obj.remove_merged_obj(merged_obj)
-                raise log.AppError(
-                    text.error.object_bad_boneparts,
-                    log.props(
-                        object=self.arm_obj.name,
-                        bones=invalid_bones
-                    )
-                )
-
-        if len(root_bones) > 1:
-            utils.obj.remove_merged_obj(merged_obj)
+    def check_root_bones(self):
+        if len(self.root_bones) > 1:
+            utils.obj.remove_merged_obj(self.merged_obj)
             raise log.AppError(
                 text.error.object_many_parents,
                 log.props(
-                    object=self.arm_obj.name,
-                    root_bones=root_bones
+                    object=self.body.arm_obj.name,
+                    root_bones=self.root_bones
                 )
             )
 
-        self.export_flags()
+    def export_bones(self):
+        if self.body.arm_obj:
+            self.root_bones = []
+            self.body.bone_writers = []
 
+            inspect.bone.check_bone_names(self.body.arm_obj)
+            self.scale = self.body.arm_obj.matrix_world.to_scale()
+            utils.ie.check_armature_scale(
+                self.scale,
+                self.body.root_obj,
+                self.body.arm_obj
+            )
+            self.get_bone_edit_mats()
+            self.write_bones()
+            self.check_bone_groups()
+            self.check_root_bones()
+
+    def write_meshes(self):
         meshes_writer = rw.write.ChunkedWriter()
+
         mesh_index = 0
-        for mesh_writer in mesh_writers:
+        for mesh_writer in self.mesh_writers:
             meshes_writer.put(mesh_index, mesh_writer)
             mesh_index += 1
 
-        self.body_writer.put(fmt.Chunks.Object.MESHES, meshes_writer)
+        self.body.body_writer.put(fmt.Chunks.Object.MESHES, meshes_writer)
 
-        utils.obj.remove_merged_obj(merged_obj)
+    def export(self):
+        exp_objs = utils.obj.get_exp_objs(self.body.context, self.body.root_obj)
+
+        self.search_armatures(exp_objs)
+        self.scan_root_obj(exp_objs)
+        self.find_arm_obj()
+        self.write_arm_meshes()
+        self.check_mesh_writers()
+        self.export_bones()
+        self.body.export_flags()
+        self.write_meshes()
+
+        utils.obj.remove_merged_obj(self.merged_obj)
 
 
 @log.with_context('export-object')
