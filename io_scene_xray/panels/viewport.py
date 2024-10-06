@@ -293,6 +293,7 @@ class XRAY_PT_verify_tools(ui.base.XRayPanel):
         )
         col.operator(ops.verify.XRAY_OT_check_invalid_faces.bl_idname)
         col.operator(ops.invalid_sg.XRAY_OT_check_invalid_sg_objs.bl_idname)
+        col.operator(ops.invalid_sg.XRAY_OT_check_sg_incompatibility.bl_idname)
 
 
 class XRAY_PT_omf_editor(ui.base.XRayPanel):

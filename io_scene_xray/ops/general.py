@@ -3,6 +3,7 @@ import bpy
 
 # addon modules
 from .. import text
+from .. import utils
 
 
 MODE_ITEMS = (
@@ -38,3 +39,16 @@ def get_objs_by_mode(operator):
             operator.report({'WARNING'}, text.error.no_blend_obj)
 
     return objects
+
+
+def select_objs(objs):
+    bpy.ops.object.select_all(action='DESELECT')
+    for obj_name in objs:
+        obj = bpy.data.objects[obj_name]
+        utils.version.select_object(obj)
+    utils.version.set_active_object(None)
+
+
+def deselect_objs():
+    bpy.ops.object.select_all(action='DESELECT')
+    utils.version.set_active_object(None)

@@ -124,6 +124,7 @@ remove_rig_warn = 'All bone constraints and bones that have the "Exportable" par
 # verify operator
 incorrect_uv_objs_count = 'Selected objects with incorrect UV-maps'
 invalid_face_objs_count = 'Selected objects with invalid faces'
+invalid_sg_objs_count = 'Selected objects with incorrect smoothing'
 
 # other operators
 added_motions = 'Added animations'

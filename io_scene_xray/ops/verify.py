@@ -38,19 +38,14 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
             bpy.ops.object.mode_set(mode='OBJECT')
         objects = general.get_objs_by_mode(self)
         if not objects:
-            bpy.ops.object.select_all(action='DESELECT')
-            utils.version.set_active_object(None)
+            general.deselect_objs()
             return {'CANCELLED'}
         bad_objects = []
         for bpy_object in objects:
             uv_status = self.verify_uv(context, bpy_object)
             if uv_status == self.BAD_UV:
                 bad_objects.append(bpy_object.name)
-        bpy.ops.object.select_all(action='DESELECT')
-        for bad_object_name in bad_objects:
-            bad_object = bpy.data.objects[bad_object_name]
-            utils.version.select_object(bad_object)
-        utils.version.set_active_object(None)
+        general.select_objs(bad_objects)
         self.report(
             {'INFO'},
             text.get_tip(text.warn.incorrect_uv_objs_count) + \
@@ -192,8 +187,7 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
         objs = general.get_objs_by_mode(self)
 
         if not objs:
-            bpy.ops.object.select_all(action='DESELECT')
-            utils.version.set_active_object(None)
+            general.deselect_objs()
             return {'CANCELLED'}
 
         bad_objects = []
@@ -202,11 +196,7 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
             if is_invalid:
                 bad_objects.append(obj.name)
 
-        bpy.ops.object.select_all(action='DESELECT')
-        for obj_name in bad_objects:
-            obj = bpy.data.objects[obj_name]
-            utils.version.select_object(obj)
-        utils.version.set_active_object(None)
+        general.select_objs(bad_objects)
 
         self.report(
             {'INFO'},
