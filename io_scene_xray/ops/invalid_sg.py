@@ -150,7 +150,7 @@ class XRAY_OT_check_invalid_sg_objs(utils.ie.BaseOperator):
 
 class XRAY_OT_check_sg_incompatibility(utils.ie.BaseOperator):
     bl_idname = 'io_scene_xray.check_sg_incompatibility'
-    bl_label = 'Check Smoothing Groups Incompatibility'
+    bl_label = 'Check Smooth Groups Incompatibility'
     bl_description = 'Find smoothing groups incompatibility'
     bl_options = {'REGISTER', 'UNDO'}
 
