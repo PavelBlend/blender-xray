@@ -291,9 +291,18 @@ class XRAY_PT_verify_tools(ui.base.XRayPanel):
             ops.verify.XRAY_OT_verify_uv.bl_idname,
             icon='GROUP_UVS'
         )
-        col.operator(ops.verify.XRAY_OT_check_invalid_faces.bl_idname)
-        col.operator(ops.invalid_sg.XRAY_OT_check_invalid_sg_objs.bl_idname)
-        col.operator(ops.invalid_sg.XRAY_OT_check_sg_incompatibility.bl_idname)
+        col.operator(
+            ops.verify.XRAY_OT_check_invalid_faces.bl_idname,
+            icon='EDGESEL'
+        )
+        col.operator(
+            ops.invalid_sg.XRAY_OT_check_invalid_sg_objs.bl_idname,
+            icon=utils.version.get_icon('MESH_ICOSPHERE')
+        )
+        col.operator(
+            ops.invalid_sg.XRAY_OT_check_sg_incompatibility.bl_idname,
+            icon=utils.version.get_icon('MOD_EDGESPLIT')
+        )
 
 
 class XRAY_PT_omf_editor(ui.base.XRayPanel):
@@ -421,6 +430,7 @@ class XRAY_PT_batch_tools(ui.base.XRayPanel):
     def draw(self, context):
         layout = self.layout
         column = layout.column(align=True)
+
         column.operator(
             ops.material.XRAY_OT_colorize_materials.bl_idname,
             icon='COLOR'
@@ -433,13 +443,9 @@ class XRAY_PT_batch_tools(ui.base.XRayPanel):
             ops.action.XRAY_OT_change_action_bake_settings.bl_idname,
             icon='ACTION'
         )
-        if utils.version.IS_28:
-            icon = 'LIGHTPROBE_GRID'
-        else:
-            icon = 'MANIPUL'
         column.operator(
             ops.obj.XRAY_OT_place_objects.bl_idname,
-            icon=icon
+            icon=utils.version.get_icon('MANIPUL')
         )
         column.operator(
             ops.shader.XRAY_OT_change_shader_params.bl_idname,
@@ -457,15 +463,13 @@ class XRAY_PT_batch_tools(ui.base.XRayPanel):
             ops.fake_user.XRAY_OT_change_fake_user.bl_idname,
             icon=utils.version.get_icon('FONT_DATA')
         )
+        column.operator(
+            ops.action.XRAY_OT_rename_actions.bl_idname,
+            icon='OUTLINER_OB_FONT'
+        )
 
         # 2.7x operators
         if not utils.version.IS_28:
-            column.operator(
-                ops.material.XRAY_OT_convert_to_cycles_material.bl_idname
-            )
-            column.operator(
-                ops.material.XRAY_OT_convert_to_internal_material.bl_idname
-            )
 
             if context.scene.render.engine == 'BLENDER_RENDER':
                 switch_text = 'Switch to Cycles'
@@ -475,13 +479,21 @@ class XRAY_PT_batch_tools(ui.base.XRayPanel):
                 switch_text = 'Switch to Internal'
 
             column.operator(
+                ops.material.XRAY_OT_convert_to_cycles_material.bl_idname
+            )
+            column.operator(
+                ops.material.XRAY_OT_convert_to_internal_material.bl_idname
+            )
+            column.operator(
                 ops.material.XRAY_OT_switch_render.bl_idname,
                 text=switch_text
             )
-        column.operator(ops.action.XRAY_OT_rename_actions.bl_idname)
 
         if utils.version.has_asset_browser():
-            column.operator(ops.obj.XRAY_OT_set_asset_author.bl_idname)
+            column.operator(
+                ops.obj.XRAY_OT_set_asset_author.bl_idname,
+                icon='ASSET_MANAGER'
+            )
 
 
 class XRAY_PT_custom_props(ui.base.XRayPanel):
