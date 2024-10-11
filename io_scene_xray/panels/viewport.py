@@ -324,27 +324,32 @@ class XRAY_PT_omf_editor(ui.base.XRayPanel):
         col.operator(ops.omf_editor.XRAY_OT_merge_omf.bl_idname)
 
         row = col.row(align=True)
+        merge_props = scn.xray.merge_omf
 
         # files list
         row.template_list(
             listtype_name='XRAY_UL_merge_omf_list_item',
             list_id='compact',
-            dataptr=scn.xray.merge_omf,
+            dataptr=merge_props,
             propname='omf_files',
-            active_dataptr=scn.xray.merge_omf,
+            active_dataptr=merge_props,
             active_propname='omf_index',
             rows=5
         )
 
         # list operators
-        col = row.column(align=True)
+        col_ops = row.column(align=True)
         ui.list_helper.draw_list_ops(
-            col,
-            scn.xray.merge_omf,
+            col_ops,
+            merge_props,
             'omf_files',
             'omf_index',
             custom_elements_func=formats.omf.merge.draw_omf_list_elements
         )
+
+        if merge_props.omf_files:
+            active_omf = merge_props.omf_files[merge_props.omf_index]
+            col.label(text=active_omf.file_path)
 
 
 class XRAY_PT_transforms(ui.base.XRayPanel):
