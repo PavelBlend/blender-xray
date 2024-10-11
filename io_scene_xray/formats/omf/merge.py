@@ -1,4 +1,5 @@
 # standart modules
+import os
 import struct
 
 # blender modules
@@ -93,6 +94,12 @@ def merge_files(files):
     omf_files = []
 
     for file_index, file_path in enumerate(files):
+
+        if not file_path:
+            continue
+
+        if not os.path.exists(file_path):
+            continue
 
         # read file
         with open(file_path, 'rb') as file:

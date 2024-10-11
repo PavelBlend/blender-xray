@@ -37,6 +37,8 @@ class XRAY_OT_merge_omf(utils.ie.BaseOperator):
     def poll(cls, context):
         return context.scene.xray.merge_omf.omf_files
 
+    @log.execute_with_logger
+    @utils.set_cursor_state
     def execute(self, context):
         path = os.path.join(self.directory, self.filepath)
 
