@@ -167,7 +167,7 @@ class TestOmf(tests.utils.XRayTestCase):
         )
 
         # select
-        bpy.ops.io_scene_xray.select_omf(
+        bpy.ops.io_scene_xray.add_omf(
             directory=self.outpath(),
             files=(
                 {'name': 'test_1.omf'},

@@ -1,3 +1,6 @@
+# standart modules
+import os
+
 # blender modules
 import bpy
 
@@ -21,8 +24,43 @@ class XRAY_OT_remove_all_omfs(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class XRAY_OT_set_omf_file(bpy.types.Operator):
+    bl_idname = 'io_scene_xray.set_omf_file'
+    bl_label = 'Set OMF File'
+    bl_description = 'Set OMF file path'
+    bl_options = {'UNDO'}
+
+    filename_ext = '.omf'
+    filter_glob = bpy.props.StringProperty(
+        default='*.omf',
+        options={'HIDDEN'}
+    )
+    directory = bpy.props.StringProperty(
+        subtype='DIR_PATH',
+        options={'HIDDEN'}
+    )
+    filepath = bpy.props.StringProperty(
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE', 'HIDDEN'}
+    )
+
+    def execute(self, context):
+        scn = context.scene
+        merge_props = scn.xray.merge_omf
+        omf = merge_props.omf_files[merge_props.omf_index]
+        omf.file_path = self.filepath
+        omf.file_name = os.path.basename(self.filepath)
+        utils.draw.redraw_areas()
+        return {'FINISHED'}
+
+    def invoke(self, context, event):    # pragma: no cover
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
 classes = (
     XRAY_OT_remove_all_omfs,
+    XRAY_OT_set_omf_file
 )
 
 

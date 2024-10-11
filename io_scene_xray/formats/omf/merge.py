@@ -41,6 +41,11 @@ class XRAY_UL_merge_omf_list_item(bpy.types.UIList):
 
 def draw_omf_list_elements(layout):
     layout.operator(
+        ui.omf_list.XRAY_OT_set_omf_file.bl_idname,
+        text='',
+        icon='FILE_FOLDER'
+    )
+    layout.operator(
         ui.omf_list.XRAY_OT_remove_all_omfs.bl_idname,
         text='',
         icon='X'

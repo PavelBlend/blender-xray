@@ -33,13 +33,17 @@ class XRAY_OT_merge_omf(utils.ie.BaseOperator):
         options={'SKIP_SAVE', 'HIDDEN'}
     )
 
+    @classmethod
+    def poll(cls, context):
+        return context.scene.xray.merge_omf.omf_files
+
     def execute(self, context):
         path = os.path.join(self.directory, self.filepath)
 
-        omf_files = [
-            omf.file_path
-            for omf in context.scene.xray.merge_omf.omf_files
-        ]
+        omf_files = []
+        for omf in context.scene.xray.merge_omf.omf_files:
+            if omf.file_path not in omf_files:
+                omf_files.append(omf.file_path)
 
         try:
             merged_data = formats.omf.merge.merge_files(omf_files)
@@ -73,9 +77,9 @@ class XRAY_OT_merge_omf(utils.ie.BaseOperator):
         return change_ext
 
 
-class XRAY_OT_select_omf(utils.ie.BaseOperator):
-    bl_idname = 'io_scene_xray.select_omf'
-    bl_label = 'Select OMF Files'
+class XRAY_OT_add_omf(utils.ie.BaseOperator):
+    bl_idname = 'io_scene_xray.add_omf'
+    bl_label = 'Add OMF Files'
     bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = OMF_EXT
@@ -119,7 +123,7 @@ class XRAY_OT_select_omf(utils.ie.BaseOperator):
         return {'RUNNING_MODAL'}
 
 
-classes = (XRAY_OT_merge_omf, XRAY_OT_select_omf)
+classes = (XRAY_OT_merge_omf, XRAY_OT_add_omf)
 
 
 def register():
