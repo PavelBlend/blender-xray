@@ -44,6 +44,10 @@ class XRAY_OT_set_omf_file(bpy.types.Operator):
         options={'SKIP_SAVE', 'HIDDEN'}
     )
 
+    @classmethod
+    def poll(cls, context):
+        return context.scene.xray.merge_omf.omf_files
+
     def execute(self, context):
         scn = context.scene
         merge_props = scn.xray.merge_omf
