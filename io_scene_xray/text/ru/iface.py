@@ -127,11 +127,23 @@ translations_table = (
     (iface.time_fmt_2, 'Год.Месяц.День'),
 
     # dm panel
-    (iface.dm_props, 'Параметры Детальной Модели'),
+    (iface.dm_props, 'Detail Model Параметры'),
     (iface.dm_no_waving, 'Без Волнения'),
     (iface.dm_min_scale, 'Мин. Масштаб'),
     (iface.dm_max_scale, 'Макс. Масштаб'),
-    (iface.dm_index, 'Индекс')
+    (iface.dm_index, 'Индекс'),
+
+    # details panel
+    (iface.details_props, 'Details Параметры'),
+    (iface.details_meshes, 'Объект Мешей'),
+    (iface.details_slots_base, 'Объект Низа Слотов'),
+    (iface.details_slots_top, 'Объект Верха Слотов'),
+    (iface.details_light_coefs, 'Коэффициенты Освещения'),
+    (iface.details_fmt_cop, 'Билды 1569-ЗП'),
+    (iface.details_fmt_1096, 'Билды 1096-1558'),
+    (iface.details_meshes_indices, 'Индексы Мешей'),
+    (iface.details_mesh, 'Меш'),
+    (iface.details_pack, 'Упаковать Details Изображения')
 
 )
 

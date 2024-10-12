@@ -394,10 +394,10 @@ def draw_details_props(layout, context):
 
         slots = context.active_object.xray.detail.slots
 
-        box.label(text='Level Details Properties:')
+        box.label(text=text.get_iface(text.iface.details_props) + ':')
 
         split = utils.version.layout_split(box, 0.4, align=True)
-        split.label(text='Meshes Object:')
+        split.label(text=text.get_iface(text.iface.details_meshes) + ':')
         split.prop_search(
             slots,
             'meshes_object',
@@ -407,7 +407,7 @@ def draw_details_props(layout, context):
         )
 
         split = utils.version.layout_split(box, 0.4, align=True)
-        split.label(text='Slots Base Object:')
+        split.label(text=text.get_iface(text.iface.details_slots_base) + ':')
         split.prop_search(
             slots,
             'slots_base_object',
@@ -417,7 +417,7 @@ def draw_details_props(layout, context):
         )
 
         split = utils.version.layout_split(box, 0.4, align=True)
-        split.label(text='Slots Top Object:')
+        split.label(text=text.get_iface(text.iface.details_slots_top) + ':')
         split.prop_search(
             slots,
             'slots_top_object',
@@ -427,13 +427,15 @@ def draw_details_props(layout, context):
         )
 
         _, box_ = ui.collapsible.draw(
-            box, 'object:lighting', 'Lighting Coefficients'
+            box,
+            'object:lighting',
+            text.get_iface(text.iface.details_light_coefs)
         )
 
         if box_:
 
             ligthing = slots.ligthing
-            box_.label(text='Format:')
+            box_.label(text=text.get_iface(text.iface.fmt) + ':')
             row = box_.row()
             row.prop(ligthing, 'format', expand=True, text='Format')
 
@@ -464,7 +466,9 @@ def draw_details_props(layout, context):
                 )
 
         _, box_ = ui.collapsible.draw(
-            box, 'object:slots', 'Slots Meshes Indices'
+            box,
+            'object:slots',
+            text.get_iface(text.iface.details_meshes_indices)
         )
 
         if box_:
@@ -474,10 +478,16 @@ def draw_details_props(layout, context):
                     'mesh_{}'.format(mesh_index),
                     bpy.data,
                     'images',
-                    text='Mesh {}'.format(mesh_index)
+                    text='{0} {1}'.format(
+                        text.get_iface(text.iface.details_mesh),
+                        mesh_index
+                    )
                 )
 
-        box.operator(formats.details.ops.XRAY_OT_pack_details_images.bl_idname)
+        box.operator(
+            formats.details.ops.XRAY_OT_pack_details_images.bl_idname,
+            text=text.get_iface(text.iface.details_pack)
+        )
 
 
 def draw_split_prop(layout, owner, prop, label):

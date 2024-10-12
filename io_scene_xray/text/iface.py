@@ -119,9 +119,21 @@ time_fmt = 'Time Formats'
 time_fmt_1 = 'Year.Month.Day Hours:Minutes'
 time_fmt_2 = 'Year.Month.Day'
 
-# details panel
+# dm panel
 dm_props = 'Detail Model Properties'
 dm_no_waving = 'No Waving'
 dm_min_scale = 'Min Scale'
 dm_max_scale = 'Max Scale'
 dm_index = 'Index'
+
+# details panel
+details_props = 'Details Properties'
+details_meshes = 'Meshes Object'
+details_slots_base = 'Slots Base Object'
+details_slots_top = 'Slots Top Object'
+details_light_coefs = 'Lighting Coefficients'
+details_fmt_cop = 'Builds 1569-CoP'
+details_fmt_1096 = 'Builds 1096-1558'
+details_meshes_indices = 'Meshes Indices'
+details_mesh = 'Mesh'
+details_pack = 'Pack Details Images'
