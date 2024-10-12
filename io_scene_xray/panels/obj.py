@@ -382,12 +382,12 @@ def draw_details_props(layout, context):
         model = context.active_object.xray.detail.model
 
         col = box.column(align=True)
-        col.label(text='Detail Model Properties:')
+        col.label(text=text.get_iface(text.iface.dm_props) + ':')
 
-        col.prop(model, 'no_waving', text='No Waving', toggle=True)
-        col.prop(model, 'min_scale', text='Min Scale')
-        col.prop(model, 'max_scale', text='Max Scale')
-        col.prop(model, 'index', text='Detail Index')
+        col.prop(model, 'no_waving', text=text.get_iface(text.iface.dm_no_waving), toggle=True)
+        col.prop(model, 'min_scale', text=text.get_iface(text.iface.dm_min_scale))
+        col.prop(model, 'max_scale', text=text.get_iface(text.iface.dm_max_scale))
+        col.prop(model, 'index', text=text.get_iface(text.iface.dm_index))
         col.prop(model, 'color', text='')
 
     elif context.active_object.type == 'EMPTY':

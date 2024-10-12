@@ -124,7 +124,14 @@ translations_table = (
     (iface.mod_time, 'Время Модифицирования'),
     (iface.time_fmt, 'Формат Времени'),
     (iface.time_fmt_1, 'Год.Месяц.День Часы:Минуты'),
-    (iface.time_fmt_2, 'Год.Месяц.День')
+    (iface.time_fmt_2, 'Год.Месяц.День'),
+
+    # dm panel
+    (iface.dm_props, 'Параметры Детальной Модели'),
+    (iface.dm_no_waving, 'Без Волнения'),
+    (iface.dm_min_scale, 'Мин. Масштаб'),
+    (iface.dm_max_scale, 'Макс. Масштаб'),
+    (iface.dm_index, 'Индекс')
 
 )
 

@@ -118,3 +118,10 @@ mod_time = 'Modified Time'
 time_fmt = 'Time Formats'
 time_fmt_1 = 'Year.Month.Day Hours:Minutes'
 time_fmt_2 = 'Year.Month.Day'
+
+# details panel
+dm_props = 'Detail Model Properties'
+dm_no_waving = 'No Waving'
+dm_min_scale = 'Min Scale'
+dm_max_scale = 'Max Scale'
+dm_index = 'Index'
