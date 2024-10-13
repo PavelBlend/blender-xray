@@ -11,12 +11,12 @@ from .. import log
 from .. import utils
 
 
-def clear_bpy_collection(bpy_collection):
+def clear_bpy_collection(bpy_collection):    # pragma: no cover
     for prop in bpy_collection:
         bpy_collection.remove(prop)
 
 
-def remove_bpy_data():
+def remove_bpy_data():    # pragma: no cover
     data = bpy.data
     clear_bpy_collection(data.objects)
     clear_bpy_collection(data.meshes)
@@ -31,7 +31,7 @@ FORMAT_FULL = '%Y.%m.%d %H:%M'
 FORMAT_SHORT = '%Y.%m.%d'
 
 
-def get_float_time_by_str(time_str):
+def get_float_time_by_str(time_str):    # pragma: no cover
     try:
         struct_time = time.strptime(time_str, FORMAT_FULL)
         float_time = time.mktime(struct_time)
@@ -44,7 +44,7 @@ def get_float_time_by_str(time_str):
     return float_time
 
 
-def update_time(self, context):
+def update_time(self, context):    # pragma: no cover
     for prop_name in ('time_min', 'time_max'):
         time_str = getattr(self, prop_name)
         if time_str:
@@ -110,7 +110,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
     for prop_name in props.keys():
         exec('{0} = props.get("{0}")'.format(prop_name))
 
-    def check_file(self, root, file, file_path):
+    def check_file(self, root, file, file_path):    # pragma: no cover
         if self.skip_by_size:
             file_size = os.path.getsize(file_path)
             if not self.min_size < file_size < self.max_size:
@@ -146,7 +146,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
 
         self.files_list.append((root, file, file_path))
 
-    def collect_files(self, context):
+    def collect_files(self, context):    # pragma: no cover
         self.file_index = 0
         self.files_list = []
 
@@ -165,7 +165,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
                 if os.path.isfile(file_path):
                     self.check_file(self.directory, file, file_path)
 
-    def test_import(self):
+    def test_import(self):    # pragma: no cover
         remove_bpy_data()
         root, file, file_path = self.files_list[self.file_index]
         ext = os.path.splitext(file)[-1]
@@ -202,7 +202,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
         except BaseException as err:
             print(str(err))
 
-    def calc_clip_end(self):
+    def calc_clip_end(self):    # pragma: no cover
         bbox_min_x = 1000000.0
         bbox_min_y = 1000000.0
         bbox_min_z = 1000000.0
@@ -235,7 +235,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
 
         return clip_end
 
-    def set_view(self):
+    def set_view(self):    # pragma: no cover
         bpy.ops.object.select_all(action='DESELECT')
         for obj in bpy.data.objects:
             if obj.type == 'MESH':
@@ -256,7 +256,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
 
         bpy.ops.object.select_all(action='DESELECT')
 
-    def get_space_3d(self):
+    def get_space_3d(self):    # pragma: no cover
         space_3d = None
         for area in bpy.context.screen.areas:
             if area.type == 'VIEW_3D':
@@ -265,12 +265,12 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
                         space_3d = space
         return space_3d
 
-    def set_clip_end(self, clip_end):
+    def set_clip_end(self, clip_end):    # pragma: no cover
         space_3d = self.get_space_3d()
         if space_3d:
             space_3d.clip_end = clip_end
 
-    def modal(self, context, event):
+    def modal(self, context, event):    # pragma: no cover
         if event.type == 'TIMER':
             cur_time = time.time()
             if cur_time > self.last_time + self.pause or not self.file_index:
@@ -285,7 +285,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
 
         return {'RUNNING_MODAL'}
 
-    def cancel(self, context):
+    def cancel(self, context):    # pragma: no cover
         context.window_manager.event_timer_remove(self.timer)
         remove_bpy_data()
 
@@ -297,7 +297,7 @@ class XRAY_OT_test_import_modal(utils.ie.BaseOperator):
         return {'CANCELLED'}
 
     @log.execute_with_logger
-    def execute(self, context):
+    def execute(self, context):    # pragma: no cover
         space_3d = self.get_space_3d()
         self.clip_end_old = space_3d.clip_end
 
@@ -364,7 +364,7 @@ class XRAY_OT_test_import(utils.ie.BaseOperator):
         col.label(text='Year.Month.Day Hours:Minutes')
         col.label(text='Year.Month.Day')
 
-    def execute(self, context):
+    def execute(self, context):    # pragma: no cover
         bpy.ops.io_scene_xray.test_import_modal(
             directory=self.directory,
             recursion=self.recursion,

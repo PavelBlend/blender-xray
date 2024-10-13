@@ -88,7 +88,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
             for bone in self.id_data.bones:
                 bone.xray.version = addon_ver
 
-    def _gen_shape(self, obj, bone, ctx):
+    def _gen_shape(self, obj, bone, ctx):    # pragma: no cover
         shape = bone.xray.shape
         mat = self.mul(
             obj.matrix_world,
@@ -113,7 +113,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
         elif shape.type == '3':
             viewport.geom.gen_cylinder_geom(mat, coords, lines, faces)
 
-    def _gen_center(self, obj, bone, ctx):
+    def _gen_center(self, obj, bone, ctx):    # pragma: no cover
         mat = self.mul(
             obj.matrix_world,
             obj.pose.bones[bone.name].matrix,
@@ -131,7 +131,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
 
         viewport.geom.gen_cross_geom(cross_size, trn, coords, lines)
 
-    def _get_geom_state(self, obj, bone, ctx):
+    def _get_geom_state(self, obj, bone, ctx):    # pragma: no cover
         if self.is_pose:
             active = bpy.context.active_bone
             if active and active.id_data == obj.data and active.name == bone.name:
@@ -143,7 +143,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
         else:
             self.state = 'obj'
 
-    def _gen_geometry(self, obj, ctx):
+    def _gen_geometry(self, obj, ctx):    # pragma: no cover
         for bone in obj.data.bones:
 
             # check bone visibility
@@ -174,7 +174,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
             if self.limits and draw_overlays:
                 self._draw_limits(obj, bone, ctx)
 
-    def _check_arm_vis(self, obj):
+    def _check_arm_vis(self, obj):    # pragma: no cover
         visible = True
 
         if utils.version.IS_28:
@@ -195,7 +195,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
 
         return visible
 
-    def _draw_limits(self, obj, bone, ctx):
+    def _draw_limits(self, obj, bone, ctx):    # pragma: no cover
         active_obj = bpy.context.active_object
         if active_obj:
             is_active = active_obj.name == obj.name
@@ -314,7 +314,7 @@ class XRayArmatureProps(bpy.types.PropertyGroup):
             else:
                 bgl.glPopMatrix()
 
-    def ondraw_postview(self, obj, ctx):
+    def ondraw_postview(self, obj, ctx):    # pragma: no cover
 
         # get armature state
         hide_arm_obj = not utils.version.get_object_visibility(obj)
