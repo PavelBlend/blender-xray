@@ -5,6 +5,7 @@ import os
 import bpy
 
 # addon modules
+from . import version
 from .. import log
 from .. import text
 
@@ -81,3 +82,10 @@ def gen_texture_name(image, context, level_folder=None, errors=None):
     tex_rel_path = _gen_tex_name_by_textures_folder(tex_path, context, image)
 
     return tex_rel_path
+
+
+def set_img_alpha_mode(bpy_img):
+    if version.IS_28:
+        bpy_img.alpha_mode = 'CHANNEL_PACKED'
+    else:
+        bpy_img.alpha_mode = 'STRAIGHT'

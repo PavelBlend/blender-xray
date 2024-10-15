@@ -165,6 +165,7 @@ def create_images(
         images_list.append(meshes_image.name)
         meshes_image.pixels = meshes[mesh_id]
         pack_image(meshes_image)
+        utils.image.set_img_alpha_mode(meshes_image)
         m_i.append(meshes_image.name)
 
     dets_meshes.mesh_0 = m_i[0]
@@ -183,6 +184,7 @@ def create_images(
             bpy_image = _create_det_image('{}.png'.format(image_name))
             images_list.append(bpy_image.name)
             bpy_image.pixels = pixels
+            utils.image.set_img_alpha_mode(bpy_image)
             pack_image(bpy_image)
             setattr(ligthing, prop_name, bpy_image.name)
 
@@ -193,6 +195,7 @@ def create_images(
         images_list.append(lights_v2_image.name)
         lights_v2_image.use_fake_user = True
         lights_v2_image.pixels = lights_old
+        utils.image.set_img_alpha_mode(lights_v2_image)
         pack_image(lights_v2_image)
         ligthing.lights_image = lights_v2_image.name
 
