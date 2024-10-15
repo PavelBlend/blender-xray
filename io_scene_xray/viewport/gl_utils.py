@@ -39,20 +39,22 @@ def draw_arc(radius, start, end, num_segments, fconsumer, close=False):
 
 def draw_geom(coords, lines, faces, color_solid, color_wire):
     # solid geometry
-    bgl.glColor4f(*color_solid)
-    bgl.glBegin(bgl.GL_TRIANGLES)
-    for face in faces:
-        for vertex in face:
-            bgl.glVertex3f(*coords[vertex])
-    bgl.glEnd()
+    if faces:
+        bgl.glColor4f(*color_solid)
+        bgl.glBegin(bgl.GL_TRIANGLES)
+        for face in faces:
+            for vertex in face:
+                bgl.glVertex3f(*coords[vertex])
+        bgl.glEnd()
 
     # wire geometry
-    bgl.glColor4f(*color_wire)
-    bgl.glBegin(bgl.GL_LINES)
-    for line in lines:
-        for vertex in line:
-            bgl.glVertex3f(*coords[vertex])
-    bgl.glEnd()
+    if lines:
+        bgl.glColor4f(*color_wire)
+        bgl.glBegin(bgl.GL_LINES)
+        for line in lines:
+            for vertex in line:
+                bgl.glVertex3f(*coords[vertex])
+        bgl.glEnd()
 
 
 # pylint: disable=C0103
