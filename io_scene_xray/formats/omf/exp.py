@@ -583,7 +583,7 @@ def export_motions(
         motions_writer,
         export_motion_names,
         available_motions,
-        dependency_object,
+        dep_obj,
         pose_bones,
         export_bones,
         act_exp_table,
@@ -639,8 +639,8 @@ def export_motions(
         packed_writer = rw.write.PackedWriter()
         context.bpy_arm_obj.animation_data.action = action
 
-        if dependency_object:
-            dependency_object.animation_data.action = action
+        if dep_obj:
+            dep_obj.animation_data.action = action
 
         # name
         packed_writer.puts(motion_name)
@@ -865,7 +865,7 @@ def export_omf(context):
     if not root_obj:
         root_obj = arm_obj
 
-    dependency_object, _ = utils.action.get_dep_obj(arm_obj)
+    dep_obj, _ = utils.action.get_dep_obj(arm_obj)
     new_motions_count = export_motions(
         arm_obj,
         root_obj,
@@ -873,7 +873,7 @@ def export_omf(context):
         motions_writer,
         export_motion_names,
         available_motions,
-        dependency_object,
+        dep_obj,
         pose_bones,
         export_bones,
         act_exp_table,

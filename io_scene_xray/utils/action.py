@@ -8,18 +8,18 @@ from . import version
 
 
 def get_dep_obj(arm_obj):
-    dependency_object = None
+    dep_obj = None
     dep_action = None
 
     xray = arm_obj.xray
 
     if xray.dependency_object:
-        dependency_object = bpy.data.objects.get(xray.dependency_object)
+        dep_obj = bpy.data.objects.get(xray.dependency_object)
 
-        if dependency_object:
-            dep_action = dependency_object.animation_data.action
+        if dep_obj:
+            dep_action = dep_obj.animation_data.action
 
-    return dependency_object, dep_action
+    return dep_obj, dep_action
 
 
 def _set_arm_initial_state(
@@ -27,7 +27,7 @@ def _set_arm_initial_state(
         mode,
         current_frame,
         current_action,
-        dependency_object,
+        dep_obj,
         dep_action
     ):
 
@@ -42,13 +42,13 @@ def _set_arm_initial_state(
         bone.reset_pose_bone_transforms(arm_obj)
 
     # return dependency object state
-    if dependency_object:
+    if dep_obj:
         if dep_action:
-            dependency_object.animation_data.action = dep_action
+            dep_obj.animation_data.action = dep_action
         else:
-            dependency_object.animation_data_clear()
+            dep_obj.animation_data_clear()
             # reset dependency object transforms
-            bone.reset_pose_bone_transforms(dependency_object)
+            bone.reset_pose_bone_transforms(dep_obj)
 
 
 def _get_initial_state(arm_obj):
@@ -62,9 +62,9 @@ def _get_initial_state(arm_obj):
         current_action = arm_obj.animation_data.action
 
     # remember dependency object state
-    dependency_object, dep_action = get_dep_obj(arm_obj)
+    dep_obj, dep_action = get_dep_obj(arm_obj)
 
-    return current_frame, mode, current_action, dependency_object, dep_action
+    return current_frame, mode, current_action, dep_obj, dep_action
 
 
 def initial_state(fun):
