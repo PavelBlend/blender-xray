@@ -206,10 +206,13 @@ def export_motion(writer, action, armature, root_obj):
     log.update(action=action.name)
 
     dep_obj = None
+    old_action = None
     dep_obj_name = armature.xray.dependency_object
     if dep_obj_name:
         dep_obj = bpy.data.objects.get(dep_obj_name)
         if dep_obj:
+            if not dep_obj.animation_data:
+                dep_obj.animation_data_create()
             old_action = dep_obj.animation_data.action
             dep_obj.animation_data.action = action
 

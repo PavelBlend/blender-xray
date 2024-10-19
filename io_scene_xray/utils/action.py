@@ -16,7 +16,7 @@ def get_dep_obj(arm_obj):
     if xray.dependency_object:
         dep_obj = bpy.data.objects.get(xray.dependency_object)
 
-        if dep_obj:
+        if dep_obj and dep_obj.animation_data:
             dep_action = dep_obj.animation_data.action
 
     return dep_obj, dep_action

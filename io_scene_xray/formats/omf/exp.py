@@ -640,6 +640,8 @@ def export_motions(
         context.bpy_arm_obj.animation_data.action = action
 
         if dep_obj:
+            if not dep_obj.animation_data:
+                dep_obj.animation_data_create()
             dep_obj.animation_data.action = action
 
         # name
