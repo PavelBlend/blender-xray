@@ -313,9 +313,8 @@ class ObjectExporterMeshes:
 
         (
             self.loc_space,
-            self.rot_space,
-            self.scl_space
-        ) = utils.ie.get_object_world_matrix(self.body.root_obj)
+            self.rot_space
+        ) = utils.ie.get_obj_transform_matrices(self.body.root_obj)
 
     def write_mesh(self, bpy_obj, arm_obj):
         # write mesh chunk
@@ -327,8 +326,7 @@ class ObjectExporterMeshes:
             mesh_writer,
             self.body.context,
             self.loc_space,
-            self.rot_space,
-            self.scl_space
+            self.rot_space
         )
         self.mesh_writers.append(mesh_writer)
         self.meshes.add(bpy_obj)

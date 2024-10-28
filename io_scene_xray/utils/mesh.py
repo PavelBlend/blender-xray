@@ -91,10 +91,12 @@ def apply_mods(exp_obj, temp_obj, temp_mesh, mods):
     return exp_obj, temp_obj, temp_mesh
 
 
-def flip_normals(mesh, scl_space, scl_mesh):
+def flip_normals(mesh, bpy_obj):
+    scale = bpy_obj.matrix_world.to_scale()
+
     need_flip = False
 
-    for scale_component in (*scl_space, *scl_mesh):
+    for scale_component in (scale):
         if scale_component < 0:
             need_flip = not need_flip
 
@@ -102,31 +104,18 @@ def flip_normals(mesh, scl_space, scl_mesh):
         bmesh.ops.reverse_faces(mesh, faces=mesh.faces)
 
 
-def apply_transforms(mesh, bpy_obj, loc_space, rot_space, scl_space):
-    loc_mat, rot_mat, scl_world = ie.get_object_world_matrix(bpy_obj)
-
-    loc = version.multiply(loc_space.inverted(), loc_mat)
-    rot = version.multiply(rot_space.inverted(), rot_mat)
-
-    loc_rot = version.multiply(loc, rot)
-
-    scl_mesh = mathutils.Vector()
-    scl_mesh.x = scl_world.x / scl_space.x
-    scl_mesh.y = scl_world.y / scl_space.y
-    scl_mesh.z = scl_world.z / scl_space.z
-
-    bmesh.ops.scale(mesh, vec=scl_mesh, verts=mesh.verts)
-    mesh.transform(loc_rot)
-    bmesh.ops.scale(mesh, vec=scl_space, verts=mesh.verts)
-
-    return scl_mesh
+def apply_transforms(mesh, bpy_obj, loc_space, rot_space):
+    mesh.transform(version.multiply(
+        rot_space.inverted(),
+        loc_space.inverted(),
+        bpy_obj.matrix_world
+    ))
 
 
 def convert_object_to_space_bmesh(
         bpy_obj,
         loc_space,
         rot_space,
-        scl_space,
         split_normals=False,
         mods=None
     ):
@@ -149,10 +138,10 @@ def convert_object_to_space_bmesh(
     mesh.from_mesh(exp_obj.data)
 
     # apply mesh transforms
-    scl_mesh = apply_transforms(mesh, bpy_obj, loc_space, rot_space, scl_space)
+    apply_transforms(mesh, bpy_obj, loc_space, rot_space)
 
     # flip normals
-    flip_normals(mesh, scl_space, scl_mesh)
+    flip_normals(mesh, bpy_obj)
 
     # remove temp mesh object
     remove_temp_obj(temp_obj, temp_mesh)

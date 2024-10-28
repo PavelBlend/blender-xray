@@ -324,6 +324,13 @@ def get_object_world_matrix(bpy_obj):
     return loc_mat, rot_mat, scl
 
 
+def get_obj_transform_matrices(bpy_obj):
+    mat = bpy_obj.matrix_world
+    mat_trn = mathutils.Matrix.Translation(mat.to_translation())
+    mat_rot = mat.to_quaternion().to_matrix().to_4x4()
+    return mat_trn, mat_rot
+
+
 def format_scale(scale):
     return '[{0:.6f}, {1:.6f}, {2:.6f}]'.format(*scale)
 

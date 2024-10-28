@@ -181,12 +181,8 @@ def export_mesh(
         chunked_writer,
         context,
         loc_space,
-        rot_space,
-        scl_space
+        rot_space
     ):
-
-    if bpy_obj == bpy_root:
-        scl_space = mathutils.Vector((1.0, 1.0, 1.0))
 
     log.update(mesh=bpy_obj.data.name)
     export_version(chunked_writer)
@@ -232,7 +228,6 @@ def export_mesh(
             temp_obj,
             loc_space,
             rot_space,
-            scl_space,
             split_normals=use_split_normals,
             mods=modifiers
         )
@@ -241,7 +236,6 @@ def export_mesh(
             bpy_obj,
             loc_space,
             rot_space,
-            scl_space,
             split_normals=use_split_normals,
             mods=modifiers
         )
