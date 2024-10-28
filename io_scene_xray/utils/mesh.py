@@ -11,37 +11,115 @@ from .. import log
 from .. import text
 
 
-def set_sharps_by_faces(bpy_obj):
-    # set sharp edges by faces smoothing
+def create_temp_obj(exp_obj):
 
-    temp_mesh = bpy_obj.data.copy()
-    temp_obj = bpy_obj.copy()
+    temp_mesh = exp_obj.data.copy()
+    temp_obj = exp_obj.copy()
 
     temp_obj.data = temp_mesh
-
-    for polygon in temp_mesh.polygons:
-
-        if polygon.use_smooth:
-            continue
-
-        for loop_index in polygon.loop_indices:
-            loop = temp_mesh.loops[loop_index]
-            edge = temp_mesh.edges[loop.edge_index]
-            edge.use_edge_sharp = True
 
     version.link_object(temp_obj)
     version.set_active_object(temp_obj)
 
-    bpy.ops.object.select_all(action='DESELECT')
-    bpy.ops.object.mode_set(mode='EDIT')
-
-    bpy.ops.mesh.reveal()
-    bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.mesh.set_normals_from_faces()
-
-    bpy.ops.object.mode_set(mode='OBJECT')
-
     return temp_obj, temp_mesh
+
+
+def remove_temp_obj(temp_obj, temp_mesh):
+
+    if temp_obj:
+        bpy.data.objects.remove(temp_obj)
+
+    if temp_mesh:
+        bpy.data.meshes.remove(temp_mesh)
+
+
+def set_sharps(exp_obj, temp_obj, temp_mesh, split_normals):
+
+    if split_normals and version.has_set_normals_from_faces():
+
+        temp_obj, temp_mesh = create_temp_obj(exp_obj)
+        exp_obj = temp_obj
+
+        for polygon in temp_mesh.polygons:
+
+            if polygon.use_smooth:
+                continue
+
+            for loop_index in polygon.loop_indices:
+                loop = temp_mesh.loops[loop_index]
+                edge = temp_mesh.edges[loop.edge_index]
+                edge.use_edge_sharp = True
+
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        bpy.ops.mesh.reveal()
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.set_normals_from_faces()
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+    return exp_obj, temp_obj, temp_mesh
+
+
+def apply_shapes(exp_obj, temp_obj, temp_mesh):
+
+    if exp_obj.data.shape_keys:
+
+        if not temp_obj:
+            temp_obj, temp_mesh = create_temp_obj(exp_obj)
+            exp_obj = temp_obj
+
+        temp_obj.shape_key_add(name='last_shape_key', from_mix=True)
+        for shape_key in temp_mesh.shape_keys.key_blocks:
+            temp_obj.shape_key_remove(shape_key)
+
+    return exp_obj, temp_obj, temp_mesh
+
+
+def apply_mods(exp_obj, temp_obj, temp_mesh, mods):
+
+    if mods:
+
+        if not temp_obj:
+            temp_obj, temp_mesh = create_temp_obj(exp_obj)
+            exp_obj = temp_obj
+
+        for mod in mods:
+            obj.apply_obj_modifier(mod)
+
+    return exp_obj, temp_obj, temp_mesh
+
+
+def flip_normals(mesh, scl_space, scl_mesh):
+    need_flip = False
+
+    for scale_component in (*scl_space, *scl_mesh):
+        if scale_component < 0:
+            need_flip = not need_flip
+
+    if need_flip:
+        bmesh.ops.reverse_faces(mesh, faces=mesh.faces)
+
+
+def apply_transforms(mesh, bpy_obj, loc_space, rot_space, scl_space):
+    loc_mat, rot_mat, scl_world = ie.get_object_world_matrix(bpy_obj)
+
+    loc = version.multiply(loc_space.inverted(), loc_mat)
+    rot = version.multiply(rot_space.inverted(), rot_mat)
+
+    loc_rot = version.multiply(loc, rot)
+
+    scl_mesh = mathutils.Vector()
+    scl_mesh.x = scl_world.x / scl_space.x
+    scl_mesh.y = scl_world.y / scl_space.y
+    scl_mesh.z = scl_world.z / scl_space.z
+
+    bmesh.ops.scale(mesh, vec=scl_mesh, verts=mesh.verts)
+    mesh.transform(loc_rot)
+    bmesh.ops.scale(mesh, vec=scl_space, verts=mesh.verts)
+
+    return scl_mesh
 
 
 def convert_object_to_space_bmesh(
@@ -53,77 +131,34 @@ def convert_object_to_space_bmesh(
         mods=None
     ):
 
-    mesh = bmesh.new()
-    exportable_obj = bpy_obj
+    exp_obj = bpy_obj
     temp_obj = None
+    temp_mesh = None
 
     # set sharp edges by faces smoothing
-    if split_normals and version.has_set_normals_from_faces():
-        temp_obj, temp_mesh = set_sharps_by_faces(bpy_obj)
-        exportable_obj = temp_obj
+    exp_obj, temp_obj, temp_mesh = set_sharps(exp_obj, temp_obj, temp_mesh, split_normals)
 
     # apply shape keys
-    if exportable_obj.data.shape_keys:
-        if not temp_obj:
-            temp_mesh = exportable_obj.data.copy()
-            temp_obj = exportable_obj.copy()
-            temp_obj.data = temp_mesh
-            version.link_object(temp_obj)
-            version.set_active_object(temp_obj)
-            exportable_obj = temp_obj
-        temp_obj.shape_key_add(name='last_shape_key', from_mix=True)
-        for shape_key in temp_mesh.shape_keys.key_blocks:
-            temp_obj.shape_key_remove(shape_key)
+    exp_obj, temp_obj, temp_mesh = apply_shapes(exp_obj, temp_obj, temp_mesh)
 
     # apply modifiers
-    if mods:
-        if not temp_obj:
-            temp_mesh = exportable_obj.data.copy()
-            temp_obj = exportable_obj.copy()
-            temp_obj.data = temp_mesh
-            version.link_object(temp_obj)
-            version.set_active_object(temp_obj)
-            exportable_obj = temp_obj
-        for mod in mods:
-            obj.apply_obj_modifier(mod)
+    exp_obj, temp_obj, temp_mesh = apply_mods(exp_obj, temp_obj, temp_mesh, mods)
 
-    mesh.from_mesh(exportable_obj.data)
+    # create bmesh
+    mesh = bmesh.new()
+    mesh.from_mesh(exp_obj.data)
 
     # apply mesh transforms
-    loc_mat, rot_mat, scl_world = ie.get_object_world_matrix(bpy_obj)
-
-    loc = version.multiply(loc_space.inverted(), loc_mat)
-    rot = version.multiply(rot_space.inverted(), rot_mat)
-
-    loc_rot = version.multiply(loc, rot)
-    scl_mesh = mathutils.Vector()
-    scl_mesh.x = scl_world.x / scl_space.x
-    scl_mesh.y = scl_world.y / scl_space.y
-    scl_mesh.z = scl_world.z / scl_space.z
-
-    scl = mathutils.Vector()
-    scl.x = scl_world.x * scl_space.x
-    scl.y = scl_world.y * scl_space.y
-    scl.z = scl_world.z * scl_space.z
-
-    bmesh.ops.scale(mesh, vec=scl_mesh, verts=mesh.verts)
-    mesh.transform(loc_rot)
-    bmesh.ops.scale(mesh, vec=scl_space, verts=mesh.verts)
+    scl_mesh = apply_transforms(mesh, bpy_obj, loc_space, rot_space, scl_space)
 
     # flip normals
-    need_flip = False
-    for scale_component in (*scl_space, *scl_mesh):
-        if scale_component < 0:
-            need_flip = not need_flip
-    if need_flip:
-        bmesh.ops.reverse_faces(mesh, faces=mesh.faces)
-
-    fix_ensure_lookup_table(mesh.verts)
+    flip_normals(mesh, scl_space, scl_mesh)
 
     # remove temp mesh object
-    if temp_obj:
-        bpy.data.objects.remove(temp_obj)
-        bpy.data.meshes.remove(temp_mesh)
+    remove_temp_obj(temp_obj, temp_mesh)
+
+    # update vertex indices
+    fix_ensure_lookup_table(mesh.verts)
 
     return mesh
 
