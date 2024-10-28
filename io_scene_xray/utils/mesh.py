@@ -11,6 +11,39 @@ from .. import log
 from .. import text
 
 
+def set_sharps_by_faces(bpy_obj):
+    # set sharp edges by faces smoothing
+
+    temp_mesh = bpy_obj.data.copy()
+    temp_obj = bpy_obj.copy()
+
+    temp_obj.data = temp_mesh
+
+    for polygon in temp_mesh.polygons:
+
+        if polygon.use_smooth:
+            continue
+
+        for loop_index in polygon.loop_indices:
+            loop = temp_mesh.loops[loop_index]
+            edge = temp_mesh.edges[loop.edge_index]
+            edge.use_edge_sharp = True
+
+    version.link_object(temp_obj)
+    version.set_active_object(temp_obj)
+
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    bpy.ops.mesh.reveal()
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.set_normals_from_faces()
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    return temp_obj, temp_mesh
+
+
 def convert_object_to_space_bmesh(
         bpy_obj,
         loc_space,
@@ -24,26 +57,9 @@ def convert_object_to_space_bmesh(
     exportable_obj = bpy_obj
     temp_obj = None
 
-    # set sharp edges by face smoothing
+    # set sharp edges by faces smoothing
     if split_normals and version.has_set_normals_from_faces():
-        temp_mesh = bpy_obj.data.copy()
-        temp_obj = bpy_obj.copy()
-        temp_obj.data = temp_mesh
-        for polygon in temp_mesh.polygons:
-            if polygon.use_smooth:
-                continue
-            for loop_index in polygon.loop_indices:
-                loop = temp_mesh.loops[loop_index]
-                edge = temp_mesh.edges[loop.edge_index]
-                edge.use_edge_sharp = True
-        version.link_object(temp_obj)
-        bpy.ops.object.select_all(action='DESELECT')
-        version.set_active_object(temp_obj)
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.reveal()
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.set_normals_from_faces()
-        bpy.ops.object.mode_set(mode='OBJECT')
+        temp_obj, temp_mesh = set_sharps_by_faces(bpy_obj)
         exportable_obj = temp_obj
 
     # apply shape keys
