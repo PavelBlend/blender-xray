@@ -11,7 +11,7 @@ from .. import log
 from .. import text
 
 
-def create_temp_obj(exp_obj):
+def _create_temp_obj(exp_obj):
 
     temp_mesh = exp_obj.data.copy()
     temp_obj = exp_obj.copy()
@@ -24,7 +24,7 @@ def create_temp_obj(exp_obj):
     return temp_obj, temp_mesh
 
 
-def remove_temp_obj(temp_obj, temp_mesh):
+def _remove_temp_obj(temp_obj, temp_mesh):
 
     if temp_obj:
         bpy.data.objects.remove(temp_obj)
@@ -33,11 +33,11 @@ def remove_temp_obj(temp_obj, temp_mesh):
         bpy.data.meshes.remove(temp_mesh)
 
 
-def set_sharps(exp_obj, temp_obj, temp_mesh, split_normals):
+def _set_sharps(exp_obj, temp_obj, temp_mesh, split_normals):
 
     if split_normals and version.has_set_normals_from_faces():
 
-        temp_obj, temp_mesh = create_temp_obj(exp_obj)
+        temp_obj, temp_mesh = _create_temp_obj(exp_obj)
         exp_obj = temp_obj
 
         for polygon in temp_mesh.polygons:
@@ -62,12 +62,12 @@ def set_sharps(exp_obj, temp_obj, temp_mesh, split_normals):
     return exp_obj, temp_obj, temp_mesh
 
 
-def apply_shapes(exp_obj, temp_obj, temp_mesh):
+def _apply_shapes(exp_obj, temp_obj, temp_mesh):
 
     if exp_obj.data.shape_keys:
 
         if not temp_obj:
-            temp_obj, temp_mesh = create_temp_obj(exp_obj)
+            temp_obj, temp_mesh = _create_temp_obj(exp_obj)
             exp_obj = temp_obj
 
         temp_obj.shape_key_add(name='last_shape_key', from_mix=True)
@@ -77,12 +77,12 @@ def apply_shapes(exp_obj, temp_obj, temp_mesh):
     return exp_obj, temp_obj, temp_mesh
 
 
-def apply_mods(exp_obj, temp_obj, temp_mesh, mods):
+def _apply_mods(exp_obj, temp_obj, temp_mesh, mods):
 
     if mods:
 
         if not temp_obj:
-            temp_obj, temp_mesh = create_temp_obj(exp_obj)
+            temp_obj, temp_mesh = _create_temp_obj(exp_obj)
             exp_obj = temp_obj
 
         for mod in mods:
@@ -91,7 +91,7 @@ def apply_mods(exp_obj, temp_obj, temp_mesh, mods):
     return exp_obj, temp_obj, temp_mesh
 
 
-def flip_normals(mesh, bpy_obj):
+def _flip_normals(mesh, bpy_obj):
     scale = bpy_obj.matrix_world.to_scale()
 
     need_flip = False
@@ -104,7 +104,7 @@ def flip_normals(mesh, bpy_obj):
         bmesh.ops.reverse_faces(mesh, faces=mesh.faces)
 
 
-def apply_transforms(mesh, bpy_obj, root_obj, apply):
+def _apply_transforms(mesh, bpy_obj, root_obj, apply):
     if apply:
         mesh.transform(bpy_obj.matrix_world)
     else:
@@ -129,26 +129,26 @@ def convert_object_to_space_bmesh(
     temp_mesh = None
 
     # set sharp edges by faces smoothing
-    exp_obj, temp_obj, temp_mesh = set_sharps(exp_obj, temp_obj, temp_mesh, split_normals)
+    exp_obj, temp_obj, temp_mesh = _set_sharps(exp_obj, temp_obj, temp_mesh, split_normals)
 
     # apply shape keys
-    exp_obj, temp_obj, temp_mesh = apply_shapes(exp_obj, temp_obj, temp_mesh)
+    exp_obj, temp_obj, temp_mesh = _apply_shapes(exp_obj, temp_obj, temp_mesh)
 
     # apply modifiers
-    exp_obj, temp_obj, temp_mesh = apply_mods(exp_obj, temp_obj, temp_mesh, mods)
+    exp_obj, temp_obj, temp_mesh = _apply_mods(exp_obj, temp_obj, temp_mesh, mods)
 
     # create bmesh
     mesh = bmesh.new()
     mesh.from_mesh(exp_obj.data)
 
     # apply mesh transforms
-    apply_transforms(mesh, bpy_obj, root_obj, apply)
+    _apply_transforms(mesh, bpy_obj, root_obj, apply)
 
     # flip normals
-    flip_normals(mesh, bpy_obj)
+    _flip_normals(mesh, bpy_obj)
 
     # remove temp mesh object
-    remove_temp_obj(temp_obj, temp_mesh)
+    _remove_temp_obj(temp_obj, temp_mesh)
 
     # update vertex indices
     fix_ensure_lookup_table(mesh.verts)
