@@ -37,21 +37,11 @@ def export(
     packed_writer.putf('<2f', det_model.min_scale, det_model.max_scale)
 
     if mode == 'DM':
-        b_mesh = utils.mesh.convert_object_to_space_bmesh(
-            bpy_obj,
-            mathutils.Matrix.Identity(4),
-            mathutils.Matrix.Identity(4),
-            mathutils.Vector((1.0, 1.0, 1.0))
-        )
+        b_mesh = utils.mesh.convert_object_to_space_bmesh(bpy_obj, bpy_obj)
 
     else:
         loc_mat, rot_mat = utils.ie.get_object_transform_matrix(bpy_obj)
-        b_mesh = utils.mesh.convert_object_to_space_bmesh(
-            bpy_obj,
-            loc_mat,
-            mathutils.Matrix.Identity(4),
-            bpy_obj.scale
-        )
+        b_mesh = utils.mesh.convert_object_to_space_bmesh(bpy_obj, bpy_obj)
 
     bmesh.ops.triangulate(b_mesh, faces=b_mesh.faces)
     bpy_data = bpy.data.meshes.new('.export-dm')

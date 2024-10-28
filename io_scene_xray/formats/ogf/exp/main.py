@@ -255,12 +255,9 @@ def _export_child(
             if mod.type != 'ARMATURE' and mod.show_viewport
     ]
 
-    loc_space, rot_space, scl_space = utils.ie.get_object_world_matrix(root_obj)
     mesh = utils.mesh.convert_object_to_space_bmesh(
         bpy_obj,
-        loc_space,
-        rot_space,
-        scl_space,
+        root_obj,
         mods=modifiers
     )
 

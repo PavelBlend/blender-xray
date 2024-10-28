@@ -179,9 +179,7 @@ def export_mesh(
         bpy_root,
         arm_obj,
         chunked_writer,
-        context,
-        loc_space,
-        rot_space
+        context
     ):
 
     log.update(mesh=bpy_obj.data.name)
@@ -226,16 +224,14 @@ def export_mesh(
         utils.obj.apply_obj_modifier(tri_mod, context=override)
         bm = utils.mesh.convert_object_to_space_bmesh(
             temp_obj,
-            loc_space,
-            rot_space,
+            bpy_root,
             split_normals=use_split_normals,
             mods=modifiers
         )
     else:
         bm = utils.mesh.convert_object_to_space_bmesh(
             bpy_obj,
-            loc_space,
-            rot_space,
+            bpy_root,
             split_normals=use_split_normals,
             mods=modifiers
         )

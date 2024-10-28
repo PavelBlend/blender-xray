@@ -104,18 +104,22 @@ def flip_normals(mesh, bpy_obj):
         bmesh.ops.reverse_faces(mesh, faces=mesh.faces)
 
 
-def apply_transforms(mesh, bpy_obj, loc_space, rot_space):
-    mesh.transform(version.multiply(
-        rot_space.inverted(),
-        loc_space.inverted(),
-        bpy_obj.matrix_world
-    ))
+def apply_transforms(mesh, bpy_obj, root_obj, apply):
+    if apply:
+        mesh.transform(bpy_obj.matrix_world)
+    else:
+        root_loc, root_rot = ie.get_obj_transform_matrices(root_obj)
+        mesh.transform(version.multiply(
+            root_rot.inverted(),
+            root_loc.inverted(),
+            bpy_obj.matrix_world
+        ))
 
 
 def convert_object_to_space_bmesh(
         bpy_obj,
-        loc_space,
-        rot_space,
+        root_obj,
+        apply=False,
         split_normals=False,
         mods=None
     ):
@@ -138,7 +142,7 @@ def convert_object_to_space_bmesh(
     mesh.from_mesh(exp_obj.data)
 
     # apply mesh transforms
-    apply_transforms(mesh, bpy_obj, loc_space, rot_space)
+    apply_transforms(mesh, bpy_obj, root_obj, apply)
 
     # flip normals
     flip_normals(mesh, bpy_obj)
@@ -194,6 +198,7 @@ def calculate_mesh_bsphere(bbox, vertices, mat=mathutils.Matrix()):
 
 
 def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
+
     def scan_meshes(bpy_obj, meshes):
         if obj.is_helper_object(bpy_obj):
             return
@@ -219,7 +224,7 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
 
     bbox = None
     spheres = []
-    loc_space, rot_space, scl_space = ie.get_object_world_matrix(bpy_obj)
+
     for bpy_mesh in meshes:
         mat_world = mathutils.Matrix.Identity(4)
         if cache:
@@ -229,16 +234,13 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
                 if apply_transforms:
                     mesh = convert_object_to_space_bmesh(
                         bpy_mesh,
-                        mathutils.Matrix.Identity(4),
-                        mathutils.Matrix.Identity(4),
-                        mathutils.Vector((1.0, 1.0, 1.0))
+                        bpy_obj,
+                        apply=True
                     )
                 else:
                     mesh = convert_object_to_space_bmesh(
                         bpy_mesh,
-                        loc_space,
-                        rot_space,
-                        scl_space
+                        bpy_obj
                     )
                 bbx = calculate_mesh_bbox(mesh.verts, mat=mat_world)
                 center, radius = calculate_mesh_bsphere(
@@ -251,16 +253,13 @@ def calculate_bbox_and_bsphere(bpy_obj, apply_transforms=False, cache=None):
             if apply_transforms:
                 mesh = convert_object_to_space_bmesh(
                     bpy_mesh,
-                    mathutils.Matrix.Identity(4),
-                    mathutils.Matrix.Identity(4),
-                    mathutils.Vector((1.0, 1.0, 1.0))
+                    bpy_obj,
+                    apply=True
                 )
             else:
                 mesh = convert_object_to_space_bmesh(
                     bpy_mesh,
-                    loc_space,
-                    rot_space,
-                    scl_space
+                    bpy_obj
                 )
             bbx = calculate_mesh_bbox(mesh.verts, mat=mat_world)
             center, radius = calculate_mesh_bsphere(
