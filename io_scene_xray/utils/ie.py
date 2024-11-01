@@ -612,9 +612,18 @@ def _select_verts(obj, verts):
     bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    for vert_index in verts:
-        vert = obj.data.vertices[vert_index]
-        vert.select = True
+    mesh = obj.data
+
+    if version.IS_34:
+        sel = [False] * len(mesh.vertices)
+        for vert_index in verts:
+            sel[vert_index] = True
+        version.set_vert_sel(mesh, sel)
+
+    else:
+        for vert_index in verts:
+            vert = mesh.vertices[vert_index]
+            vert.select = True
 
 
 def validate_vertex_weights(bpy_obj, arm_obj):

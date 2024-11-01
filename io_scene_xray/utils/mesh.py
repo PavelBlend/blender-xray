@@ -306,9 +306,11 @@ def check_zero_weight_verts(bpy_obj):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
+    vert_select = []
     zero_vert_count = 0
+    mesh = bpy_obj.data
 
-    for vert in bpy_obj.data.vertices:
+    for vert in mesh.vertices:
 
         # calculate total weight
         total_weight = 0.0
@@ -317,10 +319,13 @@ def check_zero_weight_verts(bpy_obj):
 
         # select
         if total_weight:
-            vert.select = False
+            vert_select.append(False)
         else:
-            vert.select = True
+            vert_select.append(True)
             zero_vert_count += 1
+
+    # select vertices
+    version.set_vert_sel(mesh, vert_select)
 
     # report
     if zero_vert_count:

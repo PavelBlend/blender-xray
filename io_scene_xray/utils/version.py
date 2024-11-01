@@ -462,6 +462,20 @@ def link_object_to_collection(obj, collection):
     collection.objects.link(obj)
 
 
+def set_vert_sel(mesh, sel):
+    # set vertices selection
+
+    if IS_34:
+        if '.select_vert' in mesh.attributes:
+            attr = mesh.attributes['.select_vert']
+        else:
+            attr = mesh.attributes.new('.select_vert', 'BOOLEAN', 'POINT')
+        attr.data.foreach_set('value', sel)
+
+    else:
+        mesh.vertices.foreach_set('select', sel)
+
+
 @contextlib.contextmanager
 def using_mode(mode):
     if IS_28:

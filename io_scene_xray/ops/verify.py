@@ -20,8 +20,8 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
         items=general.MODE_ITEMS
     )
 
-    MINIMUM_VALUE = -32.0
-    MAXIMUM_VALUE = 32.0
+    MIN_VAL = -32.0
+    MAX_VAL = 32.0
     BAD_UV = True
     CORRECT_UV = False
 
@@ -64,16 +64,34 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
         bpy.ops.object.select_all(action='DESELECT')
         mesh = bpy_object.data
         has_bad_uv = False
+
+        face_sel = [False] * len(mesh.polygons)
         for uv_layer in mesh.uv_layers:
             for polygon in mesh.polygons:
                 for loop in polygon.loop_indices:
                     uv = uv_layer.data[loop].uv
-                    if not self.MINIMUM_VALUE < uv.x < self.MAXIMUM_VALUE:
-                        polygon.select = True
+                    if (
+                            not self.MIN_VAL < uv.x < self.MAX_VAL or \
+                            not self.MIN_VAL < uv.y < self.MAX_VAL
+                        ):
+                        face_sel[polygon.index] = True
                         has_bad_uv = True
-                    if not self.MINIMUM_VALUE < uv.y < self.MAXIMUM_VALUE:
-                        polygon.select = True
-                        has_bad_uv = True
+                    else:
+                        face_sel[polygon.index] = False
+
+        if utils.version.IS_34:
+            if '.select_poly' in mesh.attributes:
+                sel_attr = mesh.attributes['.select_poly']
+            else:
+                sel_attr = mesh.attributes.new(
+                    '.select_poly',
+                    'BOOLEAN',
+                    'FACE'
+                )
+            sel_attr.data.foreach_set('value', face_sel)
+
+        else:
+            mesh.polygons.foreach_set('select', face_sel)
 
         if has_bad_uv:
             result = self.BAD_UV
@@ -126,10 +144,25 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
 
         # check face area
         if self.face_area:
-            for face in mesh.polygons:
-                if face.area < self.EPS:
-                    face.select = True
-                    is_invalid = True
+            if utils.version.IS_34:
+                if '.select_poly' in mesh.attributes:
+                    face_sel = mesh.attributes['.select_poly']
+                else:
+                    face_sel = mesh.attributes.new(
+                        '.select_poly',
+                        'BOOLEAN',
+                        'FACE'
+                    )
+                for face in mesh.polygons:
+                    if face.area < self.EPS:
+                        face_sel.data[face.index].value = True
+                        is_invalid = True
+
+            else:
+                for face in mesh.polygons:
+                    if face.area < self.EPS:
+                        face.select = True
+                        is_invalid = True
 
         # check uv area
         if self.uv_area:
@@ -162,10 +195,25 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
                 bpy.ops.mesh.select_mode(type='VERT')
                 bpy.ops.object.mode_set(mode='OBJECT')
 
-                for face in invalid_faces:
-                    for vert in face.verts:
-                        # select vertices as model is triangulated
-                        mesh.vertices[vert.index].select = True
+                if utils.version.IS_34:
+                    if '.select_vert' in mesh.attributes:
+                        vert_sel = mesh.attributes['.select_vert']
+                    else:
+                        vert_sel = mesh.attributes.new(
+                            '.select_vert',
+                            'BOOLEAN',
+                            'POINT'
+                        )
+                    for face in invalid_faces:
+                        for vert in face.verts:
+                            vert_sel.data[vert.index].value = True
+
+                else:
+                    for face in invalid_faces:
+                        for vert in face.verts:
+                            # select vertices as model is triangulated
+                            mesh.vertices[vert.index].select = True
+
                 is_invalid = True
 
         return is_invalid

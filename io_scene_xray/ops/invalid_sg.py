@@ -85,8 +85,21 @@ def select_invalid_smooth_groups_verts(bpy_obj):
         bpy.ops.mesh.select_all(action='DESELECT')
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        for vert_index in invalid_verts:
-            bpy_mesh.vertices[vert_index].select = True
+        if utils.version.IS_34:
+            if '.select_vert' in bpy_mesh.attributes:
+                sel_attr = bpy_mesh.attributes['.select_vert']
+            else:
+                sel_attr = bpy_mesh.attributes.new(
+                    '.select_vert',
+                    'BOOLEAN',
+                    'POINT'
+                )
+            for vert_index in invalid_verts:
+                sel_attr.data[vert_index].value = True
+
+        else:
+            for vert_index in invalid_verts:
+                bpy_mesh.vertices[vert_index].select = True
 
     has_invalid_verts = bool(invalid_verts)
 
@@ -203,8 +216,21 @@ class XRAY_OT_check_sg_incompatibility(utils.ie.BaseOperator):
             bpy.ops.mesh.select_all(action='DESELECT')
             bpy.ops.object.mode_set(mode='OBJECT')
 
-            for edge_index in incomp_edges:
-                bpy_mesh.edges[edge_index].select = True
+            if utils.version.IS_34:
+                if '.select_edge' in bpy_mesh.attributes:
+                    sel_attr = bpy_mesh.attributes['.select_edge']
+                else:
+                    sel_attr = bpy_mesh.attributes.new(
+                        '.select_edge',
+                        'BOOLEAN',
+                        'EDGE'
+                    )
+                for edge_index in incomp_edges:
+                    sel_attr.data[edge_index].value = True
+
+            else:
+                for edge_index in incomp_edges:
+                    bpy_mesh.edges[edge_index].select = True
 
         return incomp_sg
 
