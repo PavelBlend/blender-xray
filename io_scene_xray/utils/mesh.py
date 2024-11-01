@@ -295,28 +295,20 @@ def weights_top(weights, count):
     return sorted(weights, key=lambda x: x[1], reverse=True)[0 : count]
 
 
-def _unhide_faces(bpy_obj):
-    for face in bpy_obj.data.polygons:
-        face.hide = False
-        face.select = False
-
-
-def _unhide_edges(bpy_obj):
-    for edge in bpy_obj.data.edges:
-        edge.hide = False
-        edge.select = False
-
-
 def check_zero_weight_verts(bpy_obj):
-    _unhide_faces(bpy_obj)
-    _unhide_edges(bpy_obj)
+    version.set_active_object(bpy_obj)
+
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    bpy.ops.mesh.reveal()
+    bpy.ops.mesh.select_all(action='DESELECT')
+
+    bpy.ops.object.mode_set(mode='OBJECT')
 
     zero_vert_count = 0
 
     for vert in bpy_obj.data.vertices:
-
-        # unhide vertex
-        vert.hide = False
 
         # calculate total weight
         total_weight = 0.0
