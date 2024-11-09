@@ -607,7 +607,7 @@ def _write_userdata(obj, ogf_writer):
         ogf_writer.put(fmt.Chunks_v4.S_USERDATA, userdata_writer)
 
 
-def _write_ik_data(bones, scale, ogf_writer):
+def _write_ik_data(arm_obj, bones, scale, ogf_writer):
     ik_writer = rw.write.PackedWriter()
     mul = utils.version.get_multiply()
 
@@ -651,13 +651,21 @@ def _write_ik_data(bones, scale, ogf_writer):
         # get bind pose matrix
 
         # bind pose matrix
-        mat = mul(bone.matrix_local, motions.const.MATRIX_BONE_INVERTED)
+        mat = mul(
+            arm_obj.matrix_world,
+            bone.matrix_local,
+            motions.const.MATRIX_BONE_INVERTED
+        )
         # parent bone
         par = utils.bone.find_bone_exportable_parent(bone)
 
         if par:
             # parent matrix
-            pmat = mul(par.matrix_local, motions.const.MATRIX_BONE_INVERTED)
+            pmat = mul(
+                arm_obj.matrix_world,
+                par.matrix_local,
+                motions.const.MATRIX_BONE_INVERTED
+            )
             # bind pose matrix
             mat = mul(pmat.inverted(), mat)
 
@@ -1012,7 +1020,7 @@ def _export_main(root_obj, ogf_writer, context):
     _write_revision(root_obj, ogf_writer)
     _write_children(meshes, ogf_writer)
     _write_bone_names(bones, scale, ogf_writer)
-    _write_ik_data(bones, scale, ogf_writer)
+    _write_ik_data(arm_obj, bones, scale, ogf_writer)
     _write_userdata(root_obj, ogf_writer)
     _write_motion_refs(root_obj, context, ogf_writer)
     _write_motions(xray, context, arm_obj, ogf_writer)
