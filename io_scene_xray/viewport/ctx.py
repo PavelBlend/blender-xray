@@ -46,6 +46,9 @@ class DrawContext:
                 lines = state['lines']
                 faces = state['faces']
 
+                if not len(coords):
+                    continue
+
                 if data_type == 'shape': 
                     utils.draw.set_gl_blend_mode()
                     utils.draw.set_gl_state()
