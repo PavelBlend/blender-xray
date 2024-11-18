@@ -1,6 +1,8 @@
 # standart modules
 import os
 import zlib
+import ctypes
+import platform
 
 # blender modules
 import bpy
@@ -555,6 +557,12 @@ class XRAY_OT_create_material(utils.ie.BaseOperator):
 
                 if not params.directory.startswith(tex_folder):
                     params.directory = tex_folder
+
+            # maximize window
+            if platform.system() == 'Windows':
+                MAXIMIZE = 3
+                window = ctypes.windll.user32.GetForegroundWindow()
+                ctypes.windll.user32.ShowWindow(window, MAXIMIZE)
 
     def execute(self, context):
         mat = bpy.data.materials[self.material_name]
