@@ -118,12 +118,7 @@ def get_shader_index(level, obj, no_mat_text, many_mats_text, empty_mat_text):
             )
 
     else:
-        mats = set()
-        for face in mesh.polygons:
-            mat = mesh.materials[face.material_index]
-            if mat:
-                mats.add(mat)
-        mats = list(mats)
+        mats = utils.material.get_used_mats(mesh)
 
         if len(mats) == 1:
             bpy_mat = mats[0]
