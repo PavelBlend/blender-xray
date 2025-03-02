@@ -582,5 +582,5 @@ def get_used_mats(bpy_mesh):
     else:
         bpy_mesh.polygons.foreach_get('material_index', mats)
 
-    mats = set(mats)
+    mats = tuple(set(mats))
     return mats

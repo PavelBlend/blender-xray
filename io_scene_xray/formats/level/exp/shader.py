@@ -121,20 +121,37 @@ def get_shader_index(level, obj, no_mat_text, many_mats_text, empty_mat_text):
         mats = utils.material.get_used_mats(mesh)
 
         if len(mats) == 1:
-            bpy_mat = mats[0]
+            bpy_mat = mesh.materials[mats[0]]
             if not bpy_mat:
                 raise log.AppError(
                     empty_mat_text,
                     log.props(object=obj.name)
                 )
+
         else:
-            raise log.AppError(
-                many_mats_text,
-                log.props(
-                    object=obj.name,
-                    materials=[mat.name for mat in mats]
+
+            empty_mat = False
+            for mat in mats:
+                bpy_mat = mesh.materials[mat]
+                if not bpy_mat:
+                    raise log.AppError(
+                        empty_mat_text,
+                        log.props(object=obj.name)
+                    )
+                    empty_mat = True
+
+            if not empty_mat:
+                raise log.AppError(
+                    many_mats_text,
+                    log.props(
+                        object=obj.name,
+                        materials=[
+                            mesh.materials[mat].name
+                            for mat in mats
+                                if mesh.materials[mat]
+                        ]
+                    )
                 )
-            )
 
     shader_index = level.materials.get(bpy_mat, None)
 

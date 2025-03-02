@@ -25,7 +25,7 @@ def validate_material_and_uv(bpy_obj):
         mats = utils.material.get_used_mats(bpy_mesh)
 
         if len(mats) == 1:
-            mat_index = list(mats)[0]
+            mat_index = mats[0]
             bpy_material = bpy_obj.material_slots[mat_index].material
         else:
             raise log.AppError(
