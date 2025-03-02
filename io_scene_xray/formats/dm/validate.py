@@ -23,7 +23,19 @@ def validate_material_and_uv(bpy_obj):
 
     elif material_count > 1:
         mats = [None, ] * len(bpy_mesh.polygons)
-        bpy_mesh.polygons.foreach_get('material_index', mats)
+
+        if utils.version.IS_34:
+            mat_attr = bpy_mesh.attributes.get('material_index')
+            if not mat_attr:
+                mat_attr = bpy_mesh.attributes.new(
+                    'material_index',
+                    'INT',
+                    'FACE'
+                )
+            mat_attr.data.foreach_get('value', mats)
+        else:
+            bpy_mesh.polygons.foreach_get('material_index', mats)
+
         mats = set(mats)
 
         if len(mats) == 1:
