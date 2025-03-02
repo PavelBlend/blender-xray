@@ -26,13 +26,17 @@ def validate_material_and_uv(bpy_obj):
 
         if utils.version.IS_34:
             mat_attr = bpy_mesh.attributes.get('material_index')
+            created_attr = False
             if not mat_attr:
                 mat_attr = bpy_mesh.attributes.new(
-                    'material_index',
-                    'INT',
-                    'FACE'
+                    name='material_index',
+                    type='INT',
+                    domain='FACE'
                 )
+                created_attr = True
             mat_attr.data.foreach_get('value', mats)
+            if created_attr:
+                bpy_mesh.attributes.remove(mat_attr)
         else:
             bpy_mesh.polygons.foreach_get('material_index', mats)
 
