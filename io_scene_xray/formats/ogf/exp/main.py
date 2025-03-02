@@ -281,9 +281,7 @@ def _export_child(
     chunked_writer.put(fmt.HEADER, header_writer)
 
     # search material
-    used_materials = set()
-    for face in bpy_obj.data.polygons:
-        used_materials.add(face.material_index)
+    used_materials = utils.material.get_used_mats(bpy_obj.data)
     for mat_index in used_materials:
         material = bpy_obj.data.materials[mat_index]
         if not material:
