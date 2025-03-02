@@ -498,9 +498,9 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
             bpy_mat.xray.version = context.version
             utils.stats.created_mat()
 
-        material_index = len(bm_data.materials)
+        mat_index = len(bm_data.materials)
         bm_data.materials.append(bpy_mat)
-        f_facez.append((faces, material_index))
+        f_facez.append((faces, mat_index))
 
         if not utils.version.IS_28:
             images.append(

@@ -284,18 +284,18 @@ def _export_child(
     used_materials = set()
     for face in bpy_obj.data.polygons:
         used_materials.add(face.material_index)
-    for material_index in used_materials:
-        material = bpy_obj.data.materials[material_index]
+    for mat_index in used_materials:
+        material = bpy_obj.data.materials[mat_index]
         if not material:
             raise log.AppError(
                 text.error.obj_empty_mat,
                 log.props(object=bpy_obj.name)
             )
     materials = set()
-    for material_index, material in enumerate(bpy_obj.data.materials):
+    for mat_index, material in enumerate(bpy_obj.data.materials):
         if not material:
             continue
-        if not material_index in used_materials:
+        if not mat_index in used_materials:
             continue
         materials.add(material)
     materials = list(materials)

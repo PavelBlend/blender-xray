@@ -321,17 +321,17 @@ def export_mesh(
 
     packed_writer = rw.write.PackedWriter()
     face_materials = {
-        (material.name, material_index)
-        if material else (None, material_index): [
+        (material.name, mat_index)
+        if material else (None, mat_index): [
             face_index
             for face_index, face in enumerate(bm.faces)
-                if face.material_index == material_index
+                if face.material_index == mat_index
         ]
-        for material_index, material in enumerate(bpy_obj.data.materials)
+        for mat_index, material in enumerate(bpy_obj.data.materials)
     }
 
     materials = {}
-    for (material_name, material_index), faces_indices in face_materials.items():
+    for (material_name, mat_index), faces_indices in face_materials.items():
         mat = materials.setdefault(
             material_name,
             {
@@ -339,11 +339,11 @@ def export_mesh(
                 'faces_count': []
             }
         )
-        mat['materials_ids'].append(material_index)
+        mat['materials_ids'].append(mat_index)
         mat['faces_count'].append(len(faces_indices))
 
     used_material_names = set()
-    for (material_name, material_index), faces_indices in face_materials.items():
+    for (material_name, mat_index), faces_indices in face_materials.items():
         if faces_indices:
             if material_name is None:
                 raise log.AppError(
