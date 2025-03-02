@@ -331,9 +331,9 @@ def export_mesh(
     }
 
     materials = {}
-    for (material_name, mat_index), faces_indices in face_materials.items():
+    for (mat_name, mat_index), faces_indices in face_materials.items():
         mat = materials.setdefault(
-            material_name,
+            mat_name,
             {
                 'materials_ids': [],
                 'faces_count': []
@@ -343,14 +343,14 @@ def export_mesh(
         mat['faces_count'].append(len(faces_indices))
 
     used_material_names = set()
-    for (material_name, mat_index), faces_indices in face_materials.items():
+    for (mat_name, mat_index), faces_indices in face_materials.items():
         if faces_indices:
-            if material_name is None:
+            if mat_name is None:
                 raise log.AppError(
                     text.error.obj_empty_mat,
                     log.props(object=bpy_obj.name)
                 )
-            used_material_names.add(material_name)
+            used_material_names.add(mat_name)
 
     if not face_materials:
         raise log.AppError(
