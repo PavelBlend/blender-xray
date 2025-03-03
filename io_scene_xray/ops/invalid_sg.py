@@ -85,21 +85,12 @@ def select_invalid_smooth_groups_verts(bpy_obj):
         bpy.ops.mesh.select_all(action='DESELECT')
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        if utils.version.IS_34:
-            if '.select_vert' in bpy_mesh.attributes:
-                sel_attr = bpy_mesh.attributes['.select_vert']
-            else:
-                sel_attr = bpy_mesh.attributes.new(
-                    '.select_vert',
-                    'BOOLEAN',
-                    'POINT'
-                )
-            for vert_index in invalid_verts:
-                sel_attr.data[vert_index].value = True
+        vert_sel = [False] * len(bpy_mesh.vertices)
 
-        else:
-            for vert_index in invalid_verts:
-                bpy_mesh.vertices[vert_index].select = True
+        for vert_index in invalid_verts:
+            vert_sel[vert_index] = True
+
+        utils.version.set_vert_sel(bpy_mesh, vert_sel)
 
     has_invalid_verts = bool(invalid_verts)
 
