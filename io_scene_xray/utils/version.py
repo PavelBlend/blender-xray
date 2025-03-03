@@ -462,46 +462,38 @@ def link_object_to_collection(obj, collection):
     collection.objects.link(obj)
 
 
-def set_vert_sel(mesh, sel):
-    # set vertices selection
-
+def _set_geom_sel(mesh, sel, attr_name, domain):
     if IS_34:
-        if '.select_vert' in mesh.attributes:
-            attr = mesh.attributes['.select_vert']
+        if attr_name in mesh.attributes:
+            attr = mesh.attributes[attr_name]
         else:
-            attr = mesh.attributes.new('.select_vert', 'BOOLEAN', 'POINT')
+            attr = mesh.attributes.new(attr_name, 'BOOLEAN', domain)
         attr.data.foreach_set('value', sel)
 
     else:
-        mesh.vertices.foreach_set('select', sel)
+        if attr_name == '.select_vert':
+            data = mesh.vertices
+        elif attr_name == '.select_edge':
+            data = mesh.edges
+        else:
+            data = mesh.polygons
+
+        data.foreach_set('select', sel)
+
+
+def set_vert_sel(mesh, sel):
+    # set vertices selection
+    _set_geom_sel(mesh, sel, '.select_vert', 'POINT')
 
 
 def set_edge_sel(mesh, sel):
     # set edges selection
-
-    if IS_34:
-        if '.select_edge' in mesh.attributes:
-            attr = mesh.attributes['.select_edge']
-        else:
-            attr = mesh.attributes.new('.select_edge', 'BOOLEAN', 'EDGE')
-        attr.data.foreach_set('value', sel)
-
-    else:
-        mesh.edges.foreach_set('select', sel)
+    _set_geom_sel(mesh, sel, '.select_edge', 'EDGE')
 
 
 def set_face_sel(mesh, sel):
     # set faces selection
-
-    if IS_34:
-        if '.select_poly' in mesh.attributes:
-            attr = mesh.attributes['.select_poly']
-        else:
-            attr = mesh.attributes.new('.select_poly', 'BOOLEAN', 'FACE')
-        attr.data.foreach_set('value', sel)
-
-    else:
-        mesh.polygons.foreach_set('select', sel)
+    _set_geom_sel(mesh, sel, '.select_poly', 'FACE')
 
 
 @contextlib.contextmanager
