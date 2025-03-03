@@ -16,7 +16,7 @@ class TestBonesImport(utils.XRayTestCase):
         utils.set_active_object(arm_obj)
 
         # remove "bone or parts" (bone groups)
-        bgroups = tests.utils.get_bone_groups(arm_obj)
+        bgroups = utils.get_bone_groups(arm_obj)
         for bone_group in bgroups:
             bgroups.remove(bone_group)
 
@@ -81,7 +81,7 @@ class TestBonesImport(utils.XRayTestCase):
         )
 
         # test export without exportable bone groups
-        bgroups = tests.utils.get_bone_groups(arm_obj)
+        bgroups = utils.get_bone_groups(arm_obj)
         for group in bgroups:
             bgroups.remove(group)
         bgroups.new(name='test')
@@ -104,7 +104,7 @@ class TestBonesImport(utils.XRayTestCase):
 
         # test export null boneparts
         # remove "bone or parts" (bone groups)
-        bgroups = tests.utils.get_bone_groups(arm_obj)
+        bgroups = utils.get_bone_groups(arm_obj)
         for bone_group in bgroups:
             bgroups.remove(bone_group)
 
@@ -144,7 +144,7 @@ class TestBonesImport(utils.XRayTestCase):
         utils.set_active_object(arm_obj)
 
         # remove "bone or parts" (bone groups)
-        bgroups = tests.utils.get_bone_groups(arm_obj)
+        bgroups = utils.get_bone_groups(arm_obj)
         for bone_group in bgroups:
             bgroups.remove(bone_group)
 
@@ -169,7 +169,7 @@ class TestBonesImport(utils.XRayTestCase):
         utils.set_active_object(arm_obj)
 
         # remove "bone or parts" (bone groups)
-        bgroups = tests.utils.get_bone_groups(arm_obj)
+        bgroups = utils.get_bone_groups(arm_obj)
         for bone_group in bgroups:
             bgroups.remove(bone_group)
 
