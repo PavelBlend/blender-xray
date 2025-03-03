@@ -195,24 +195,13 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
                 bpy.ops.mesh.select_mode(type='VERT')
                 bpy.ops.object.mode_set(mode='OBJECT')
 
-                if utils.version.IS_34:
-                    if '.select_vert' in mesh.attributes:
-                        vert_sel = mesh.attributes['.select_vert']
-                    else:
-                        vert_sel = mesh.attributes.new(
-                            '.select_vert',
-                            'BOOLEAN',
-                            'POINT'
-                        )
-                    for face in invalid_faces:
-                        for vert in face.verts:
-                            vert_sel.data[vert.index].value = True
+                vert_sel = [False] * len(mesh.vertices)
+                for face in invalid_faces:
+                    for vert in face.verts:
+                        vert_sel[vert.index] = True
 
-                else:
-                    for face in invalid_faces:
-                        for vert in face.verts:
-                            # select vertices as model is triangulated
-                            mesh.vertices[vert.index].select = True
+                # select vertices as model is triangulated
+                utils.version.set_vert_sel(mesh, vert_sel)
 
                 is_invalid = True
 
