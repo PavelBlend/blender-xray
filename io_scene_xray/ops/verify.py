@@ -144,25 +144,14 @@ class XRAY_OT_check_invalid_faces(utils.ie.BaseOperator):
 
         # check face area
         if self.face_area:
-            if utils.version.IS_34:
-                if '.select_poly' in mesh.attributes:
-                    face_sel = mesh.attributes['.select_poly']
-                else:
-                    face_sel = mesh.attributes.new(
-                        '.select_poly',
-                        'BOOLEAN',
-                        'FACE'
-                    )
-                for face in mesh.polygons:
-                    if face.area < self.EPS:
-                        face_sel.data[face.index].value = True
-                        is_invalid = True
+            face_sel = [False] * len(mesh.polygons)
 
-            else:
-                for face in mesh.polygons:
-                    if face.area < self.EPS:
-                        face.select = True
-                        is_invalid = True
+            for face in mesh.polygons:
+                if face.area < self.EPS:
+                    face_sel[face.index] = True
+                    is_invalid = True
+
+            utils.version.set_face_sel(mesh, face_sel)
 
         # check uv area
         if self.uv_area:

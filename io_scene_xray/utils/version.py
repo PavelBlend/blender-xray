@@ -476,6 +476,20 @@ def set_vert_sel(mesh, sel):
         mesh.vertices.foreach_set('select', sel)
 
 
+def set_face_sel(mesh, sel):
+    # set faces selection
+
+    if IS_34:
+        if '.select_poly' in mesh.attributes:
+            attr = mesh.attributes['.select_poly']
+        else:
+            attr = mesh.attributes.new('.select_poly', 'BOOLEAN', 'FACE')
+        attr.data.foreach_set('value', sel)
+
+    else:
+        mesh.polygons.foreach_set('select', sel)
+
+
 @contextlib.contextmanager
 def using_mode(mode):
     if IS_28:
