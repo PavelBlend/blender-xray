@@ -483,7 +483,7 @@ def _create_group_nodes(
         # create shader node
         if utils.version.support_principled_shader():
             shader_node = shader_group.nodes.new('ShaderNodeBsdfPrincipled')
-            shader_node.inputs['Specular'].default_value = 0.0
+            shader_node.inputs[utils.version.SPECULAR].default_value = 0.0
             color_socket = 'Base Color'
         else:
             shader_node = shader_group.nodes.new('ShaderNodeBsdfDiffuse')
@@ -729,7 +729,7 @@ def _create_group_nodes(
         if utils.version.support_principled_shader():
             shader_group.links.new(
                 sep.outputs[red],
-                shader_node.inputs['Specular']
+                shader_node.inputs[utils.version.SPECULAR]
             )
 
     group.node_tree = shader_group
@@ -877,7 +877,7 @@ def _create_base_nodes(mat, img):
     # create shader node
     if utils.version.support_principled_shader():
         shader_node = mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
-        shader_node.inputs['Specular'].default_value = 0.0
+        shader_node.inputs[utils.version.SPECULAR].default_value = 0.0
         color_socket = 'Base Color'
     else:
         shader_node = mat.node_tree.nodes.new('ShaderNodeBsdfDiffuse')

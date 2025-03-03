@@ -34,6 +34,10 @@ def is_blender_34():
     return bpy.app.version >= (3, 4, 0)
 
 
+def is_blender_4():
+    return bpy.app.version >= (4, 0, 0)
+
+
 def support_principled_shader():
     return bpy.app.version >= (2, 79, 0)
 
@@ -73,6 +77,7 @@ IS_293 = is_blender_2_93()
 IS_3 = is_blender_3()
 IS_33 = is_blender_33()
 IS_34 = is_blender_34()
+IS_4 = is_blender_4()
 
 
 def get_import_export_menus():
@@ -109,6 +114,12 @@ SHADER_NODES = {
     'ShaderNodeMix': 'ShaderNodeMixRGB',
     'Factor': 'Fac'
 }
+
+
+if IS_4:
+    SPECULAR = 'Specular IOR Level'
+else:
+    SPECULAR = 'Specular'
 
 
 def get_icon(icon):

@@ -375,7 +375,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
 
         # specular
         if self.specular_change:
-            spec_input = shader_node.inputs['Specular']
+            spec_input = shader_node.inputs[utils.version.SPECULAR]
             spec_input.default_value = self.specular_value
 
         # roughness change
