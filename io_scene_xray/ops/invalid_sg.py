@@ -207,21 +207,12 @@ class XRAY_OT_check_sg_incompatibility(utils.ie.BaseOperator):
             bpy.ops.mesh.select_all(action='DESELECT')
             bpy.ops.object.mode_set(mode='OBJECT')
 
-            if utils.version.IS_34:
-                if '.select_edge' in bpy_mesh.attributes:
-                    sel_attr = bpy_mesh.attributes['.select_edge']
-                else:
-                    sel_attr = bpy_mesh.attributes.new(
-                        '.select_edge',
-                        'BOOLEAN',
-                        'EDGE'
-                    )
-                for edge_index in incomp_edges:
-                    sel_attr.data[edge_index].value = True
+            edge_sel = [False] * len(bpy_mesh.edges)
 
-            else:
-                for edge_index in incomp_edges:
-                    bpy_mesh.edges[edge_index].select = True
+            for edge_index in incomp_edges:
+                edge_sel[edge_index] = True
+
+            utils.version.set_edge_sel(bpy_mesh, edge_sel)
 
         return incomp_sg
 

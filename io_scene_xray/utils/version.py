@@ -476,6 +476,20 @@ def set_vert_sel(mesh, sel):
         mesh.vertices.foreach_set('select', sel)
 
 
+def set_edge_sel(mesh, sel):
+    # set edges selection
+
+    if IS_34:
+        if '.select_edge' in mesh.attributes:
+            attr = mesh.attributes['.select_edge']
+        else:
+            attr = mesh.attributes.new('.select_edge', 'BOOLEAN', 'EDGE')
+        attr.data.foreach_set('value', sel)
+
+    else:
+        mesh.edges.foreach_set('select', sel)
+
+
 def set_face_sel(mesh, sel):
     # set faces selection
 
