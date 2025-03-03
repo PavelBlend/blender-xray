@@ -76,22 +76,8 @@ class XRAY_OT_verify_uv(utils.ie.BaseOperator):
                         ):
                         face_sel[polygon.index] = True
                         has_bad_uv = True
-                    else:
-                        face_sel[polygon.index] = False
 
-        if utils.version.IS_34:
-            if '.select_poly' in mesh.attributes:
-                sel_attr = mesh.attributes['.select_poly']
-            else:
-                sel_attr = mesh.attributes.new(
-                    '.select_poly',
-                    'BOOLEAN',
-                    'FACE'
-                )
-            sel_attr.data.foreach_set('value', face_sel)
-
-        else:
-            mesh.polygons.foreach_set('select', face_sel)
+        utils.version.set_face_sel(mesh, face_sel)
 
         if has_bad_uv:
             result = self.BAD_UV
