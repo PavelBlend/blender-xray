@@ -177,7 +177,7 @@ class TestCustomProps(tests.utils.XRayTestCase):
         mod = me_ob.modifiers.new('test', 'ARMATURE')
         mod.object = arm_ob
         me_ob.parent = arm_ob
-        bone_group = arm_ob.pose.bone_groups.new(name=name)
+        bone_group = tests.utils.get_bone_groups(arm_ob).new(name=name)
         arm_ob.pose.bones[0].bone_group = bone_group
 
         # create action

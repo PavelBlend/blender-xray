@@ -458,7 +458,7 @@ class XRAY_OT_export_omf(utils.ie.BaseOperator):
             obj = arm_objs[0]
 
             motions_count = len(obj.xray.motions_collection)
-            bone_groups_count = len(obj.pose.bone_groups)
+            bone_groups_count = len(utils.version.get_bone_groups(obj))
 
             if not motions_count and not bone_groups_count:
                 self.report(

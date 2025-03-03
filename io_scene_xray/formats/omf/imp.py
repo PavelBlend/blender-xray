@@ -373,6 +373,7 @@ def read_params(data, context, chunk, bones_indices={}):
     bone_names = {}
     cannot_find_bones = set()
     pose = context.bpy_arm_obj.pose
+    bgroups = utils.version.get_bone_groups(context.bpy_arm_obj)
 
     for partition_index in range(partition_count):
         partition_name = reader.gets()
@@ -380,9 +381,9 @@ def read_params(data, context, chunk, bones_indices={}):
 
         # create bone group
         if context.import_bone_parts:
-            bone_group = pose.bone_groups.get(partition_name)
+            bone_group = bgroups.get(partition_name)
             if not bone_group:
-                bone_group = pose.bone_groups.new(name=partition_name)
+                bone_group = bgroups.new(name=partition_name)
 
         for bone in range(bone_count):
             if params_version in (3, 4):

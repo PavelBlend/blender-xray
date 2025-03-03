@@ -9,7 +9,7 @@ from ... import rw
 def _export_partitions(context, bpy_obj):
     log.update(object=bpy_obj.name)
     packed_writer = rw.write.PackedWriter()
-    all_groups_count = len(bpy_obj.pose.bone_groups)
+    all_groups_count = len(utils.version.get_bone_groups(bpy_obj))
 
     if not all_groups_count or not context.export_bone_parts:
         # boneparts count
@@ -30,7 +30,7 @@ def _export_partitions(context, bpy_obj):
                     if bone.bone_group == group
             )
         )
-        for group in bpy_obj.pose.bone_groups
+        for group in utils.version.get_bone_groups(bpy_obj)
     )
     non_empty_groups = tuple(
         group

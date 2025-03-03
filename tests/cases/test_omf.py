@@ -109,7 +109,7 @@ class TestOmf(tests.utils.XRayTestCase):
         anim_data = obj.animation_data_create()
 
         bpy.ops.object.mode_set(mode='POSE')
-        bone_group = obj.pose.bone_groups.new(name='default')
+        bone_group = tests.utils.get_bone_groups(obj).new(name='default')
         for bone in obj.pose.bones:
             bone.rotation_mode = 'ZXY'
             bone.bone_group = bone_group

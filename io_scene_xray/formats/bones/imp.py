@@ -22,6 +22,7 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
 
     current_mode = arm_obj.mode
     pose = arm_obj.pose
+    bgroups = utils.version.get_bone_groups(arm_obj)
     bpy.ops.object.mode_set(mode='POSE')
 
     try:
@@ -29,10 +30,10 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
             name = packed_reader.gets()
             log.update(partition=name)
 
-            bone_group = pose.bone_groups.get(name, None)
+            bone_group = bgroups.get(name, None)
             if not bone_group:
                 bpy.ops.pose.group_add()
-                bone_group = pose.bone_groups.active
+                bone_group = bgroups.active
                 bone_group.name = name
 
             bones_count = packed_reader.uint32()

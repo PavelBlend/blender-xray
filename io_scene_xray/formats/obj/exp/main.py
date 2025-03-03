@@ -168,7 +168,7 @@ class ObjectExporter:
         self.body_writer.put(fmt.Chunks.Object.SMOTIONS3, writer)
 
     def export_partitions(self):
-        if self.arm_obj and self.arm_obj.pose.bone_groups:
+        if self.arm_obj and utils.version.get_bone_groups(self.arm_obj):
             bone_groups = self.get_bone_groups()
             if bone_groups:
                 writer = rw.write.PackedWriter()
@@ -197,7 +197,7 @@ class ObjectExporter:
                 for pose_bone in exportable_bones
                     if pose_bone.bone_group == group
             ))
-            for group in self.arm_obj.pose.bone_groups
+            for group in utils.version.get_bone_groups(self.arm_obj)
         )
 
         non_empty_groups = tuple(
@@ -467,8 +467,9 @@ class ObjectExporterMeshes:
     def check_bone_groups(self):
         invalid_bones = []
         has_bone_groups = False
+        bgroups = utils.version.get_bone_groups(self.body.arm_obj)
 
-        if len(self.body.arm_obj.pose.bone_groups):
+        if len(bgroups):
             for bone_ in self.body.arm_obj.pose.bones:
                 xray = self.body.arm_obj.data.bones[bone_.name].xray
                 if xray.exportable:

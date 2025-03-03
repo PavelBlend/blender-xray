@@ -118,8 +118,10 @@ SHADER_NODES = {
 
 if IS_4:
     SPECULAR = 'Specular IOR Level'
+    BONE_GROUPS = 'collections'
 else:
     SPECULAR = 'Specular'
+    BONE_GROUPS = 'bone_groups'
 
 
 def get_icon(icon):
@@ -529,6 +531,13 @@ def get_used_mats(bpy_mesh):
 
     mats = tuple(set(mats))
     return mats
+
+
+def get_bone_groups(obj):
+    if IS_4:
+        return obj.data.collections
+    else:
+        return obj.pose.bone_groups
 
 
 @contextlib.contextmanager

@@ -16,8 +16,9 @@ class TestBonesImport(utils.XRayTestCase):
         utils.set_active_object(arm_obj)
 
         # remove "bone or parts" (bone groups)
-        for bone_group in arm_obj.pose.bone_groups:
-            arm_obj.pose.bone_groups.remove(bone_group)
+        bgroups = tests.utils.get_bone_groups(arm_obj)
+        for bone_group in bgroups:
+            bgroups.remove(bone_group)
 
         # Act import
         bpy.ops.xray_import.bones(
@@ -80,9 +81,10 @@ class TestBonesImport(utils.XRayTestCase):
         )
 
         # test export without exportable bone groups
-        for group in arm_obj.pose.bone_groups:
-            arm_obj.pose.bone_groups.remove(group)
-        arm_obj.pose.bone_groups.new(name='test')
+        bgroups = tests.utils.get_bone_groups(arm_obj)
+        for group in bgroups:
+            bgroups.remove(group)
+        bgroups.new(name='test')
         bpy.ops.xray_export.bones_file(
             filepath=self.outpath(NAME_TEST),
             object_name=arm_obj.name,
@@ -102,8 +104,9 @@ class TestBonesImport(utils.XRayTestCase):
 
         # test export null boneparts
         # remove "bone or parts" (bone groups)
-        for bone_group in arm_obj.pose.bone_groups:
-            arm_obj.pose.bone_groups.remove(bone_group)
+        bgroups = tests.utils.get_bone_groups(arm_obj)
+        for bone_group in bgroups:
+            bgroups.remove(bone_group)
 
         # Act export
         arm_obj.name = NAME_NULL_BONEPARTS
@@ -141,8 +144,9 @@ class TestBonesImport(utils.XRayTestCase):
         utils.set_active_object(arm_obj)
 
         # remove "bone or parts" (bone groups)
-        for bone_group in arm_obj.pose.bone_groups:
-            arm_obj.pose.bone_groups.remove(bone_group)
+        bgroups = tests.utils.get_bone_groups(arm_obj)
+        for bone_group in bgroups:
+            bgroups.remove(bone_group)
 
         # Act import
         bpy.ops.xray_import.bones(
@@ -165,8 +169,9 @@ class TestBonesImport(utils.XRayTestCase):
         utils.set_active_object(arm_obj)
 
         # remove "bone or parts" (bone groups)
-        for bone_group in arm_obj.pose.bone_groups:
-            arm_obj.pose.bone_groups.remove(bone_group)
+        bgroups = tests.utils.get_bone_groups(arm_obj)
+        for bone_group in bgroups:
+            bgroups.remove(bone_group)
 
         # Act import
         bpy.ops.xray_import.bones(

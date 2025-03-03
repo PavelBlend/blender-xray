@@ -94,14 +94,14 @@ class XRayActionProps(bpy.types.PropertyGroup):
 
     bonepart_name = bpy.props.StringProperty(
         get=lambda self: _get_collection_item_attr(
-            bpy.context.active_object.pose.bone_groups,
+            utils.version.get_bone_groups(bpy.context.active_object),
             self.bonepart,
             'name',
             _SPECIAL
         ),
         set=lambda self, value: setattr(
             self, 'bonepart', _get_collection_index(
-                bpy.context.active_object.pose.bone_groups,
+                utils.version.get_bone_groups(bpy.context.active_object),
                 value,
                 _SPECIAL
             )

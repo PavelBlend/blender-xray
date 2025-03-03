@@ -380,7 +380,8 @@ def export_boneparts(
         packed_writer.putf('<H', context.params_ver)
         partitions_count = len(bone_groups)
         packed_writer.putf('<H', partitions_count)
-        for bone_group in context.bpy_arm_obj.pose.bone_groups:
+        bgroups = utils.version.get_bone_groups(context.bpy_arm_obj)
+        for bone_group in bgroups:
             partition_name = bone_group.name
             bones = bone_groups.get(partition_name, None)
             if not bones:
@@ -942,7 +943,7 @@ def check_context(exp_ctx):
             log.props(object=exp_ctx.bpy_arm_obj.name)
         )
 
-    bone_groups_count = len(exp_ctx.bpy_arm_obj.pose.bone_groups)
+    bone_groups_count = len(utils.version.get_bone_groups(exp_ctx.bpy_arm_obj))
     if not bone_groups_count and exp_ctx.need_bone_groups:
         raise log.AppError(
             text.error.omf_no_bone_groups,

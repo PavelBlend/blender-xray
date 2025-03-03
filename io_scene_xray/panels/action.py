@@ -124,7 +124,7 @@ class XRAY_PT_action(ui.base.XRayPanel):
                 data,
                 'bonepart_name',
                 obj.pose,
-                'bone_groups',
+                utils.version.BONE_GROUPS,
                 text=''
             )
 

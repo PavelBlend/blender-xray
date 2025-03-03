@@ -255,10 +255,11 @@ def import_file(file_path, context):
             bpy.ops.object.mode_set(mode='POSE')
             obj_pose = bpy_arm_obj.pose
             pose_bones_count = len(obj_pose.bones)
+            bgroups = utils.version.get_bone_groups(bpy_arm_obj)
             try:
                 for part_id in range(parts_count):
                     part_name = reader.gets()
-                    bone_group = obj_pose.bone_groups.new(name=part_name)
+                    bone_group = bgroups.new(name=part_name)
                     bones_count = reader.uint32()
                     for bone_id in range(bones_count):
                         pose_bone = None

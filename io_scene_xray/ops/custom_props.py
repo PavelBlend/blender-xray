@@ -180,6 +180,7 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
             self.set_custom(xray, 'gamemtl', stgs.material_game_mtl)
         # bone
         for armature in armatures:
+            bgroups = utils.version.get_bone_groups(armature)
             for bone in armature.data.bones:
                 self.obj = bone
                 xray = bone.xray
@@ -223,9 +224,9 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
                 self.set_custom(xray, 'friction', stgs.bone_friction)
                 bone_group_name = bone.get(stgs.bone_part, None)
                 if bone_group_name is not None:
-                    group = armature.pose.bone_groups.get(bone_group_name)
+                    group = bgroups.get(bone_group_name)
                     if not group:
-                        group = armature.pose.bone_groups.new(name=bone_group_name)
+                        group = bgroups.new(name=bone_group_name)
                     armature.pose.bones[bone.name].bone_group = group
         # action
         for action in actions:

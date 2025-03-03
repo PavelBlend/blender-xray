@@ -428,10 +428,11 @@ class TestObjectExport(utils.XRayTestCase):
                 bone.parent = parent
         finally:
             bpy.ops.object.mode_set(mode='POSE')
-        bg_exp = obj.pose.bone_groups.new(name='bg-only-exportable')
-        bg_mix = obj.pose.bone_groups.new(name='bg-mixed')
-        bg_non = obj.pose.bone_groups.new(name='bg-only-non-exportable')
-        bg_emp = obj.pose.bone_groups.new(name='bg-empty')
+        bgroups = utils.get_bone_groups(obj)
+        bg_exp = bgroups.new(name='bg-only-exportable')
+        bg_mix = bgroups.new(name='bg-mixed')
+        bg_non = bgroups.new(name='bg-only-non-exportable')
+        bg_emp = bgroups.new(name='bg-empty')
         obj.pose.bones[b_exp0].bone_group = bg_exp
         obj.pose.bones[b_non0].bone_group = bg_mix
         obj.pose.bones[b_exp1].bone_group = bg_mix

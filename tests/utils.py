@@ -217,6 +217,13 @@ def select_object(obj):
         obj.select = True
 
 
+def get_bone_groups(obj):
+    if bpy.app.version >= (4, 0, 0):
+        return obj.data.collections
+    else:
+        return obj.pose.bone_groups
+
+
 def set_active_object(obj):
     if bpy.app.version >= (2, 80, 0):
         bpy.context.view_layer.objects.active = obj
