@@ -22,7 +22,7 @@ def validate_material_and_uv(bpy_obj):
         )
 
     elif material_count > 1:
-        mats = utils.material.get_used_mats(bpy_mesh)
+        mats = utils.version.get_used_mats(bpy_mesh)
 
         if len(mats) == 1:
             mat_index = mats[0]

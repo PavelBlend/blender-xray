@@ -118,7 +118,7 @@ def get_shader_index(level, obj, no_mat_text, many_mats_text, empty_mat_text):
             )
 
     else:
-        mats = utils.material.get_used_mats(mesh)
+        mats = utils.version.get_used_mats(mesh)
 
         if len(mats) == 1:
             bpy_mat = mesh.materials[mats[0]]

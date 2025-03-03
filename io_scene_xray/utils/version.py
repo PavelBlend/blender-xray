@@ -496,6 +496,30 @@ def set_face_sel(mesh, sel):
     _set_geom_sel(mesh, sel, '.select_poly', 'FACE')
 
 
+def get_used_mats(bpy_mesh):
+    mats = [None] * len(bpy_mesh.polygons)
+
+    if IS_34:
+        mat_attr = bpy_mesh.attributes.get('material_index')
+        created_attr = False
+        if not mat_attr:
+            mat_attr = bpy_mesh.attributes.new(
+                name='material_index',
+                type='INT',
+                domain='FACE'
+            )
+            created_attr = True
+        mat_attr.data.foreach_get('value', mats)
+        if created_attr:
+            bpy_mesh.attributes.remove(mat_attr)
+
+    else:
+        bpy_mesh.polygons.foreach_get('material_index', mats)
+
+    mats = tuple(set(mats))
+    return mats
+
+
 @contextlib.contextmanager
 def using_mode(mode):
     if IS_28:
