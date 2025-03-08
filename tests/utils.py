@@ -235,6 +235,7 @@ def get_bone_group(obj, bone):
         else:
             raise BaseException('A bone must not belong to more than one collection')
     else:
+        bone = obj.pose.bones[bone.name]
         return bone.bone_group
 
 
