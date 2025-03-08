@@ -7,14 +7,6 @@ from ... import utils
 from ... import text
 
 
-bone_layers = [False, ] * 32
-
-last_layer = bone_layers.copy()
-last_layer[31] = True
-
-layer_30 = bone_layers.copy()
-layer_30[30] = True
-
 IK_FK_PROP_NAME = 'ik_fk'
 
 IK_SUFFIX = ' ik'
@@ -42,11 +34,12 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
 
     ik_bones = {}
     fk_bones = {}
+    non_exp_bone_names = []
     fk_last_bone_name = None
 
     # create ik/fk bones
     for chain_index in range(chain_length):
-        current_bone.layers = last_layer
+        utils.version.set_deform_layer(arm, current_bone)
 
         # ik bone
         ik_bone = arm.edit_bones.new(current_bone.name + IK_SUFFIX)
@@ -54,7 +47,8 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         ik_bone.head = current_bone.head
         ik_bone.tail = current_bone.tail
         ik_bone.roll = current_bone.roll
-        ik_bone.layers = layer_30
+        non_exp_bone_names.append(ik_bone.name)
+        utils.version.set_ik_layer(arm, ik_bone)
 
         # fk bone
         fk_bone = arm.edit_bones.new(current_bone.name + FK_SUFFIX)
@@ -63,6 +57,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         fk_bone.tail = current_bone.tail
         fk_bone.roll = current_bone.roll
         current_bone = current_bone.parent
+        non_exp_bone_names.append(fk_bone.name)
 
         if not chain_index:
             fk_last_bone_name = fk_bone.name
@@ -105,6 +100,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     tail = target_bone.head.copy()
     tail[2] += bone.length / 4
     target_bone.tail = tail
+    non_exp_bone_names.append(target_bone.name)
     children = []
 
     for child in bone.children:
@@ -134,7 +130,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         child_bone = children[0]
         child_bone_name = child_bone.name
         child_edit_bone = arm.edit_bones[child_bone_name]
-        child_edit_bone.layers = last_layer
+        utils.version.set_deform_layer(arm, child_edit_bone)
 
         # create ik bone
         child_ik_bone = arm.edit_bones.new(child_bone_name + IK_SUFFIX)
@@ -142,7 +138,8 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         child_ik_bone.tail = child_edit_bone.tail
         child_ik_bone.roll = child_edit_bone.roll
         child_ik_bone.parent = target_bone
-        child_ik_bone.layers = last_layer
+        non_exp_bone_names.append(child_ik_bone.name)
+        utils.version.set_deform_layer(arm, child_ik_bone)
         ik_subtarget_name = child_ik_bone.name
 
         # create fk bone
@@ -151,6 +148,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
         child_fk_bone.tail = child_edit_bone.tail
         child_fk_bone.roll = child_edit_bone.roll
         child_fk_bone.parent = arm.edit_bones[fk_last_bone_name]
+        non_exp_bone_names.append(child_fk_bone.name)
         fk_subtarget_name = child_fk_bone.name
 
         # create constraints
@@ -254,6 +252,7 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
     pole_edit_bone.head = final_vec
     pole_tail_offset = mathutils.Vector((0.0, 0.1, 0.0))
     pole_edit_bone.tail = final_vec + pole_tail_offset
+    non_exp_bone_names.append(pole_edit_bone.name)
 
     # Enter Pose Mode to set up data for pole angle
     bpy.ops.object.mode_set(mode='POSE', toggle=False)
@@ -348,6 +347,10 @@ def create_ik(bone, chain_length, pole_target_offset, category_name):
             target_bone_name,
             IK_FK_PROP_NAME
         )
+
+    # set exportable
+    for name in non_exp_bone_names:
+        arm.bones[name].xray.exportable = False
 
 
 class XRAY_OT_create_ik(utils.ie.BaseOperator):

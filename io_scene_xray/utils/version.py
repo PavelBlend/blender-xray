@@ -569,6 +569,64 @@ def assign_bone_group(obj, bone_name, bgroup):
         obj.pose.bones[bone_name].bone_group = bgroup
 
 
+arm_layers = [False, ] * 32
+
+first_layer = arm_layers.copy()
+first_layer[0] = True
+
+deform_layer = arm_layers.copy()
+deform_layer[31] = True
+
+ik_layer = arm_layers.copy()
+ik_layer[30] = True
+
+MAIN_COLL = 'Main'
+DEFORM_COLL = 'Deform'
+IK_COLL = 'IK'
+
+
+def _set_bone_layer(arm, bone, layer_or_coll):
+    if IS_4:
+        colls = arm.collections
+        coll = colls.get(layer_or_coll)
+        if not coll:
+            coll = colls.new(name=layer_or_coll)
+        coll.assign(bone)
+    else:
+        bone.layers = layer_or_coll
+
+
+def set_first_layer(arm, bone):
+    if IS_4:
+        layer_or_coll = MAIN_COLL
+    else:
+        layer_or_coll = first_layer
+    _set_bone_layer(arm, bone, layer_or_coll)
+
+
+def set_deform_layer(arm, bone):
+    if IS_4:
+        layer_or_coll = DEFORM_COLL
+    else:
+        layer_or_coll = deform_layer
+    _set_bone_layer(arm, bone, layer_or_coll)
+
+
+def set_ik_layer(arm, bone):
+    if IS_4:
+        layer_or_coll = IK_COLL
+    else:
+        layer_or_coll = ik_layer
+    _set_bone_layer(arm, bone, layer_or_coll)
+
+
+def remove_bone_colls(arm):
+    if IS_4:
+        colls = arm.collections
+        for coll in colls:
+            colls.remove(coll)
+
+
 @contextlib.contextmanager
 def using_mode(mode):
     if IS_28:

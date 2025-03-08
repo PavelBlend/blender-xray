@@ -52,11 +52,9 @@ def remove_non_exportable_bones(arm_obj):
 
 
 def move_bones_on_first_layer(arm_obj):
-    layers = [False, ] * 32
-    layers[0] = True
-
+    utils.version.remove_bone_colls(arm_obj.data)
     for bone in arm_obj.data.bones:
-        bone.layers = layers
+        utils.version.set_first_layer(arm_obj.data, bone)
 
 
 class XRAY_OT_remove_rig(utils.ie.BaseOperator):

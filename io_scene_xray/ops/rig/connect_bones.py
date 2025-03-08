@@ -141,9 +141,11 @@ def connect_bones(arm, mesh_objs):
 
     # create connected bones
     connected_bones = {}
+    connected_bone_names = []
     for bone in edit_bones:
         children_count = len(bone.children)
         connected_bone = arm.edit_bones.new(name=bone.name + BONE_NAME_SUFFIX)
+        connected_bone_names.append(connected_bone.name)
 
         # set head coordinate
         connected_bone.head = bone.head
@@ -177,15 +179,6 @@ def connect_bones(arm, mesh_objs):
 
         connected_bones[bone] = connected_bone
 
-    # bone layers
-    arm_layers = [False, ] * 32
-
-    bone_layers = arm_layers.copy()
-    bone_layers[31] = True
-
-    connected_layers = arm_layers.copy()
-    connected_layers[0] = True
-
     # change bones parents
     for bone, connected_bone in connected_bones.items():
 
@@ -200,10 +193,14 @@ def connect_bones(arm, mesh_objs):
         bone.parent = connected_bone
 
         # set layers
-        bone.layers = bone_layers
-        connected_bone.layers = connected_layers
+        utils.version.set_deform_layer(arm, bone)
+        utils.version.set_first_layer(arm, connected_bone)
 
     bpy.ops.object.mode_set(mode='OBJECT')
+
+    # set exportable
+    for name in connected_bone_names:
+        arm.bones[name].xray.exportable = False
 
 
 class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
