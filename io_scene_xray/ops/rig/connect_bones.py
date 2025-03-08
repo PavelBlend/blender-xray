@@ -200,7 +200,9 @@ def connect_bones(arm, mesh_objs):
 
     # set exportable
     for name in connected_bone_names:
-        arm.bones[name].xray.exportable = False
+        bone = arm.bones.get(name)
+        if bone:
+            bone.xray.exportable = False
 
 
 class XRAY_OT_create_connected_bones(utils.ie.BaseOperator):
