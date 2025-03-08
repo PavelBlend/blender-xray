@@ -30,6 +30,7 @@ no_valid_str = 'Not valid string'
 no_arm_obj = 'There is no armature among the selected objects'
 nothing_imp = 'Nothing is imported'
 zero_weights = 'Mesh object has vertices that have zero weights. Problem vertices have been selected'
+bone_many_colls = 'A bone must not belong to more than one collection'
 
 # anm export
 anm_no_keys = 'Action has keys not for all channels'

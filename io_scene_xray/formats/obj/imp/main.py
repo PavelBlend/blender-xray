@@ -259,7 +259,7 @@ def import_file(file_path, context):
             try:
                 for part_id in range(parts_count):
                     part_name = reader.gets()
-                    bone_group = bgroups.new(name=part_name)
+                    bgroup = bgroups.new(name=part_name)
                     bones_count = reader.uint32()
                     for bone_id in range(bones_count):
                         pose_bone = None
@@ -271,7 +271,7 @@ def import_file(file_path, context):
                             if bone_key < pose_bones_count:
                                 pose_bone = obj_pose.bones[bone_key]
                         if pose_bone:
-                            pose_bone.bone_group = bone_group
+                            utils.version.assign_bone_group(bpy_arm_obj, pose_bone.name, bgroup)
             finally:
                 bpy.ops.object.mode_set(mode='OBJECT')
 

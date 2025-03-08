@@ -227,7 +227,7 @@ class XRAY_OT_set_custom_to_xray_props(utils.ie.BaseOperator):
                     group = bgroups.get(bone_group_name)
                     if not group:
                         group = bgroups.new(name=bone_group_name)
-                    armature.pose.bones[bone.name].bone_group = group
+                    utils.version.assign_bone_group(armature, bone.name, group)
         # action
         for action in actions:
             self.obj = action
@@ -335,9 +335,9 @@ class XRAY_OT_set_xray_to_custom_props(utils.ie.BaseOperator):
                 bone[stgs.bone_breakable_force] = xray.breakf.force
                 bone[stgs.bone_breakable_torque] = xray.breakf.torque
                 bone[stgs.bone_friction] = xray.friction
-                bone_group = armature.pose.bones[bone.name].bone_group
-                if bone_group:
-                    bone[stgs.bone_part] = bone_group.name
+                bgroup = utils.version.get_bone_group(armature, bone)
+                if bgroup:
+                    bone[stgs.bone_part] = bgroup.name
         # action
         for action in actions:
             xray = action.xray

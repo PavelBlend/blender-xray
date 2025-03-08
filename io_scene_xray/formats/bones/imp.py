@@ -21,7 +21,6 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
         )
 
     current_mode = arm_obj.mode
-    pose = arm_obj.pose
     bgroups = utils.version.get_bone_groups(arm_obj)
     bpy.ops.object.mode_set(mode='POSE')
 
@@ -30,11 +29,9 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
             name = packed_reader.gets()
             log.update(partition=name)
 
-            bone_group = bgroups.get(name, None)
-            if not bone_group:
-                bpy.ops.pose.group_add()
-                bone_group = bgroups.active
-                bone_group.name = name
+            bgroup = bgroups.get(name, None)
+            if not bgroup:
+                bgroup = bgroups.new(name=name)
 
             bones_count = packed_reader.uint32()
 
@@ -43,7 +40,7 @@ def _import_partitions(import_context, data, arm_obj, bpy_bones):
                 bpy_bone = bpy_bones.get(bone_name, None)
 
                 if bpy_bone:
-                    pose.bones[bone_name].bone_group = bone_group
+                    utils.version.assign_bone_group(arm_obj, bone_name, bgroup)
                 else:
                     log.warn(
                         text.warn.bones_missing_bone,

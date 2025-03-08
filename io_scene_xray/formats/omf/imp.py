@@ -381,9 +381,9 @@ def read_params(data, context, chunk, bones_indices={}):
 
         # create bone group
         if context.import_bone_parts:
-            bone_group = bgroups.get(partition_name)
-            if not bone_group:
-                bone_group = bgroups.new(name=partition_name)
+            bgroup = bgroups.get(partition_name)
+            if not bgroup:
+                bgroup = bgroups.new(name=partition_name)
 
         for bone in range(bone_count):
             if params_version in (3, 4):
@@ -410,7 +410,7 @@ def read_params(data, context, chunk, bones_indices={}):
                 pose_bone = pose.bones[bone_id]
 
             if context.import_bone_parts:
-                pose_bone.bone_group = bone_group
+                utils.version.assign_bone_group(context.bpy_arm_obj, pose_bone.name, bgroup)
 
     if cannot_find_bones:
         raise log.AppError(

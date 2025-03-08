@@ -221,7 +221,7 @@ class TestOgfExport(tests.utils.XRayTestCase):
 
         bone_group = tests.utils.get_bone_groups(obj).new(name='default')
 
-        obj.pose.bones['test_bone'].bone_group = bone_group
+        tests.utils.assign_bone_group(obj, 'test_bone', bone_group)
 
         bpy.ops.object.mode_set(mode='OBJECT')
 

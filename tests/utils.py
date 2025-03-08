@@ -224,6 +224,27 @@ def get_bone_groups(obj):
         return obj.pose.bone_groups
 
 
+def get_bone_group(obj, bone):
+    if bpy.app.version >= (4, 0, 0):
+        bone = obj.data.bones[bone.name]
+        colls_count = len(bone.collections)
+        if colls_count == 1:
+            return bone.collections[0]
+        elif not colls_count:
+            return None
+        else:
+            raise BaseException('A bone must not belong to more than one collection')
+    else:
+        return bone.bone_group
+
+
+def assign_bone_group(obj, bone_name, bgroup):
+    if bpy.app.version >= (4, 0, 0):
+        bgroup.assign(obj.data.bones[bone_name])
+    else:
+        obj.pose.bones[bone_name].bone_group = bgroup
+
+
 def set_active_object(obj):
     if bpy.app.version >= (2, 80, 0):
         bpy.context.view_layer.objects.active = obj

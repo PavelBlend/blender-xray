@@ -30,10 +30,12 @@ class TestObjectImport(utils.XRayTestCase):
             files=[{'name': 'test_fmt_armature.object'}]
         )
         self.assertReportsNotContains('ERROR')
-        pbones = bpy.data.objects['test_fmt_armature.object'].pose.bones
-        self.assertIsNone(pbones[0].custom_shape)
-        self.assertEqual(pbones['Bone'].bone_group.name, 'GroupA')
-        self.assertEqual(pbones['Bone1'].bone_group.name, 'GroupB')
+        obj = bpy.data.objects['test_fmt_armature.object']
+        bones = obj.data.bones
+        self.assertIsNone(obj.pose.bones[0].custom_shape)
+        utils.get_bone_group(obj, bones['Bone'])
+        self.assertEqual(utils.get_bone_group(obj, bones['Bone']).name, 'GroupA')
+        self.assertEqual(utils.get_bone_group(obj, bones['Bone1']).name, 'GroupB')
 
     def test_import_uv(self):
         bpy.ops.xray_import.object(

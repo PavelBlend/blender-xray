@@ -27,7 +27,7 @@ def _export_partitions(context, bpy_obj):
             tuple(
                 bone.name
                 for bone in exportable_bones
-                    if bone.bone_group == group
+                    if utils.version.get_bone_group(bpy_obj, bone) == group
             )
         )
         for group in utils.version.get_bone_groups(bpy_obj)

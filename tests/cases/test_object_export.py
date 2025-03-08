@@ -433,10 +433,10 @@ class TestObjectExport(utils.XRayTestCase):
         bg_mix = bgroups.new(name='bg-mixed')
         bg_non = bgroups.new(name='bg-only-non-exportable')
         bg_emp = bgroups.new(name='bg-empty')
-        obj.pose.bones[b_exp0].bone_group = bg_exp
-        obj.pose.bones[b_non0].bone_group = bg_mix
-        obj.pose.bones[b_exp1].bone_group = bg_mix
-        obj.pose.bones[b_non0].bone_group = bg_non
+        utils.assign_bone_group(obj, obj.pose.bones[b_exp0].name, bg_exp)
+        utils.assign_bone_group(obj, obj.pose.bones[b_non0].name, bg_mix)
+        utils.assign_bone_group(obj, obj.pose.bones[b_exp1].name, bg_mix)
+        utils.assign_bone_group(obj, obj.pose.bones[b_non0].name, bg_non)
         arm.bones[b_non0].xray.exportable = False
         arm.bones[b_non1].xray.exportable = False
 

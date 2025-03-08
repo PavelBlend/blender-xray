@@ -295,7 +295,7 @@ def get_pose_bones_and_groups(context):
             pose_bone = arm_obj.pose.bones[bone.name]
             pose_bones.append(pose_bone)
             bone_name = pose_bone.name
-            group = pose_bone.bone_group
+            group = utils.version.get_bone_group(arm_obj, pose_bone)
 
             if group:
                 group_bones = bone_groups.setdefault(group.name, [])
@@ -381,8 +381,8 @@ def export_boneparts(
         partitions_count = len(bone_groups)
         packed_writer.putf('<H', partitions_count)
         bgroups = utils.version.get_bone_groups(context.bpy_arm_obj)
-        for bone_group in bgroups:
-            partition_name = bone_group.name
+        for bgroup in bgroups:
+            partition_name = bgroup.name
             bones = bone_groups.get(partition_name, None)
             if not bones:
                 continue

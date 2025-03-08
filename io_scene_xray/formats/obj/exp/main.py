@@ -195,7 +195,7 @@ class ObjectExporter:
             (group.name, tuple(
                 pose_bone.name
                 for pose_bone in exportable_bones
-                    if pose_bone.bone_group == group
+                    if utils.version.get_bone_group(self.arm_obj, pose_bone) == group
             ))
             for group in utils.version.get_bone_groups(self.arm_obj)
         )
@@ -473,7 +473,7 @@ class ObjectExporterMeshes:
             for bone_ in self.body.arm_obj.pose.bones:
                 xray = self.body.arm_obj.data.bones[bone_.name].xray
                 if xray.exportable:
-                    if bone_.bone_group is None:
+                    if utils.version.get_bone_group(self.body.arm_obj, bone_) is None:
                         invalid_bones.append(bone_.name)
                     else:
                         has_bone_groups = True

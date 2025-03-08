@@ -5,6 +5,10 @@ import contextlib
 import bpy
 import bmesh
 
+# addon modules
+from .. import log
+from .. import text
+
 
 def is_blender_2_77():
     return bpy.app.version <= (2, 77, 0)
@@ -538,6 +542,31 @@ def get_bone_groups(obj):
         return obj.data.collections
     else:
         return obj.pose.bone_groups
+
+
+def get_bone_group(obj, bone):
+    if IS_4:
+        bone = obj.data.bones[bone.name]
+        colls_count = len(bone.collections)
+        if colls_count == 1:
+            return bone.collections[0]
+        elif not colls_count:
+            return None
+        else:
+            raise log.AppError(
+                text.error.bone_many_colls,
+                log.props(object=obj.name, bone=bone.name)
+            )
+    else:
+        bone = obj.pose.bones[bone.name]
+        return bone.bone_group
+
+
+def assign_bone_group(obj, bone_name, bgroup):
+    if IS_4:
+        bgroup.assign(obj.data.bones[bone_name])
+    else:
+        obj.pose.bones[bone_name].bone_group = bgroup
 
 
 @contextlib.contextmanager
