@@ -265,7 +265,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
             self._draw_prop(column, 'shader', 'Shader Type')
             self._draw_prop(column, 'blend_mode', 'Blend Mode')
 
-            if utils.version.IS_28:
+            if utils.version.support_shadow_method():
                 self._draw_prop(column, 'shadow_mode', 'Shadow Mode')
 
         # internal render
@@ -302,7 +302,7 @@ class XRAY_OT_change_shader_params(utils.ie.BaseOperator):
 
         # shadow mode
         if self.shadow_mode_change:
-            if utils.version.IS_28:
+            if utils.version.support_shadow_method():
                 mat.shadow_method = self.shadow_mode_value
 
         if not output_node:
