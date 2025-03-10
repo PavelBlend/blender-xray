@@ -412,9 +412,10 @@ def export_mesh(
     # normals chunk
     if prefs.object_split_normals:
         temp_mesh = temp_obj.data
-        temp_mesh.use_auto_smooth = bpy_obj.data.use_auto_smooth
-        temp_mesh.auto_smooth_angle = bpy_obj.data.auto_smooth_angle
-        temp_mesh.calc_normals_split()
+        if not utils.version.IS_41:
+            temp_mesh.use_auto_smooth = bpy_obj.data.use_auto_smooth
+            temp_mesh.auto_smooth_angle = bpy_obj.data.auto_smooth_angle
+            temp_mesh.calc_normals_split()
         packed_writer = rw.write.PackedWriter()
         for face in bm.faces:
             for loop_index in (0, 2, 1):

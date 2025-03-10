@@ -176,9 +176,10 @@ def write_gcontainer(bpy_obj, vbs, ibs, level):
 
     export_mesh = bpy.data.meshes.new('temp_mesh')
     bm.to_mesh(export_mesh)
-    export_mesh.use_auto_smooth = True
-    export_mesh.auto_smooth_angle = math.pi
-    export_mesh.calc_normals_split()
+    if not utils.version.IS_41:
+        export_mesh.use_auto_smooth = True
+        export_mesh.auto_smooth_angle = math.pi
+        export_mesh.calc_normals_split()
 
     xray = material.xray
     uv_layer = bm.loops.layers.uv.get(xray.uv_texture)

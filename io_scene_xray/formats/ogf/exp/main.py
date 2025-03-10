@@ -265,8 +265,9 @@ def _export_child(
     bsphere = utils.mesh.calculate_mesh_bsphere(bbox, mesh.verts)
     bmesh.ops.triangulate(mesh, faces=mesh.faces)
     bpy_mesh = bpy.data.meshes.new('.export-ogf')
-    bpy_mesh.use_auto_smooth = bpy_obj.data.use_auto_smooth
-    bpy_mesh.auto_smooth_angle = bpy_obj.data.auto_smooth_angle
+    if not utils.version.IS_41:
+        bpy_mesh.use_auto_smooth = bpy_obj.data.use_auto_smooth
+        bpy_mesh.auto_smooth_angle = bpy_obj.data.auto_smooth_angle
     mesh.to_mesh(bpy_mesh)
 
     # write header chunk

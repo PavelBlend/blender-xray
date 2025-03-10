@@ -42,6 +42,10 @@ def is_blender_4():
     return bpy.app.version >= (4, 0, 0)
 
 
+def is_blender_41():
+    return bpy.app.version >= (4, 1, 0)
+
+
 def support_principled_shader():
     return bpy.app.version >= (2, 79, 0)
 
@@ -82,6 +86,7 @@ IS_3 = is_blender_3()
 IS_33 = is_blender_33()
 IS_34 = is_blender_34()
 IS_4 = is_blender_4()
+IS_41 = is_blender_41()
 
 
 def get_import_export_menus():

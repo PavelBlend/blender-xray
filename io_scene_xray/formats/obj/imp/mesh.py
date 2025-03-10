@@ -455,8 +455,9 @@ def import_mesh(context, chunked_reader, renamemap, file_name):
     utils.stats.created_msh()
 
     # set smooth settings
-    bm_data.use_auto_smooth = True
-    bm_data.auto_smooth_angle = math.pi
+    if not utils.version.IS_41:
+        bm_data.use_auto_smooth = True
+        bm_data.auto_smooth_angle = math.pi
     if not utils.version.IS_28:
         bm_data.show_edge_sharp = True
 
