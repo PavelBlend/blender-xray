@@ -168,10 +168,14 @@ class TestCustomProps(tests.utils.XRayTestCase):
         bpy.ops.object.select_all(action='DESELECT')
         tests.utils.link_object(arm_ob)
         tests.utils.set_active_object(arm_ob)
+
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.armature.bone_primitive_add()
-        bpy.ops.armature.bone_primitive_add()
+        bone_1 = arm.edit_bones.new('bone_1')
+        bone_1.head.z = 0.5
+        bone_2 = arm.edit_bones.new('bone_2')
+        bone_2.head.z = 0.5
         bpy.ops.object.mode_set(mode='OBJECT')
+
         arm.bones[0].name = 'test_bone'
         arm.bones[1].xray.exportable = False
         mod = me_ob.modifiers.new('test', 'ARMATURE')
