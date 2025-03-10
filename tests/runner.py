@@ -26,7 +26,7 @@ suite = loader.discover('.')  # loading modules first otherwise breakpoints will
 
 attached = debugger.attach_if_needed(sys.argv)
 
-if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():
+if not unittest.TextTestRunner(verbosity=1).run(suite).wasSuccessful():
     exit(1)
 
 cov.stop()
